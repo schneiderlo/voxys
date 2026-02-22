@@ -1,0 +1,16 @@
+#!/bin/bash
+# Pre-commit hook: Ensure all Bazel tests pass before committing
+
+set -e
+
+echo "Running Bazel tests..."
+
+if ! bazel test //tests:voxy_tests; then
+    echo ""
+    echo "❌ Bazel tests failed. Commit aborted."
+    echo "Please fix the failing tests before committing."
+    exit 1
+fi
+
+echo "✅ All Bazel tests passed!"
+exit 0

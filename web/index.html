@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>voxy — WebGPU Terrain Renderer</title>
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-TVBHPYQCGP"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-TVBHPYQCGP');
+    </script>
+</head>
+
+<body>
+    <canvas id="voxy-canvas"></canvas>
+
+    <div id="loading">
+        <div class="spinner"></div>
+        <div id="roller-container">
+            <div id="roller-drum"></div>
+        </div>
+        <p id="loading-technical"
+            style="font-family: var(--font-mono); font-size: 12px; color: var(--color-text-dim); margin-top: 8px; opacity: 0.7;">
+        </p>
+        <div id="loading-progress-container">
+            <div id="loading-progress-bar"></div>
+        </div>
+        <p id="loading-progress-text"></p>
+    </div>
+
+    <div id="error" style="display: none;">
+        <h2>WebGPU Not Supported</h2>
+        <p>Your browser does not support WebGPU. Please try one of the following:</p>
+        <ul>
+            <li>Chrome 113+ (recommended)</li>
+            <li>Firefox 115+ (with flags enabled)</li>
+            <li>Safari 17+</li>
+            <li>Edge 113+</li>
+        </ul>
+        <p class="hint">
+            For Firefox, enable <code>dom.webgpu.enabled</code> in <code>about:config</code>
+        </p>
+    </div>
+
+    <div id="overlay" style="display: none;">
+        <div class="controls-hint">
+            <p><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> Move</p>
+            <p><kbd>Mouse</kbd> Look around</p>
+            <p><kbd>Shift</kbd> Speed boost</p>
+            <p><kbd>F1</kbd> Debug overlay</p>
+            <p><kbd>F2</kbd> Wireframe mode</p>
+            <p><kbd>F3</kbd> Toggle path</p>
+            <p><kbd>F4</kbd> Depth viz</p>
+            <p><kbd>F5</kbd> Normal viz</p>
+            <p><kbd>F6</kbd> Mip level viz</p>
+            <p><kbd>F7</kbd> Benchmark</p>
+            <p><kbd>F8</kbd> Toggle Controller</p>
+            <p><kbd>F11</kbd> Fullscreen</p>
+            <p><kbd>Esc</kbd> Release cursor</p>
+        </div>
+        <button id="fullscreen-btn" class="ui-button" title="Toggle Fullscreen (F11)">⛶</button>
+    </div>
+
+    <!-- Touch controls for mobile -->
+    <div id="touch-controls" style="display: none;">
+        <div id="touch-joystick-left" class="touch-joystick">
+            <div class="touch-joystick-knob"></div>
+        </div>
+        <!-- Right joystick removed, using touchpad style for look -->
+        <div id="touch-look-hint" class="touch-hint"
+            style="display:none; position:absolute; right: 20%; top: 50%; color: rgba(255,255,255,0.3); pointer-events:none;">
+            Swipe to look
+        </div>
+    </div>
+
+    <div id="debug-overlay" style="display: none;">
+        <div class="debug-content">
+            <div class="debug-title">DEBUG</div>
+            <div id="debug-fps">-- FPS</div>
+            <div id="debug-camera">Pos: (0, 0, 0)</div>
+            <div id="debug-path">Path: raycast</div>
+            <div id="debug-terrain">Terrain: 0x0</div>
+            <div id="debug-memory">Memory: N/A</div>
+            <div id="debug-frame">Frame: 0</div>
+        </div>
+    </div>
+
+    <script src="loader.js"></script>
+    <script src="voxy_wasm.js"></script>
+    <script>
+        // Global module reference
+        let voxyModule = null;
+
+        // Detect if device has touch capability
+        const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+
+        // Touch controls setup
+        function setupTouchControls(canvas) {
+            if (!isTouchDevice) return;
+
+            const touchControls = document.getElementById('touch-controls');
+            const leftJoystick = document.getElementById('touch-joystick-left');
+
+            if (!touchControls || !leftJoystick) return;
+
+            // Show touch controls on touch devices
+            touchControls.style.display = 'block';
+
+            // Track active touches
+            let leftTouchId = null;
+            let rightTouchId = null;
+
+            // Movement (Left Stick)
+            let leftOrigin = { x: 0, y: 0 };
+            const joystickRadius = 50;
+
+            // Look (Right Touchpad)
+            let rightLastPos = { x: 0, y: 0 };
+
+            function getJoystickOffset(touch, origin) {
+                const dx = touch.clientX - origin.x;
+                const dy = touch.clientY - origin.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                const clampedDist = Math.min(dist, joystickRadius);
+                const angle = Math.atan2(dy, dx);
+                return {
+                    x: Math.cos(angle) * clampedDist,
+                    y: Math.sin(angle) * clampedDist,
+                    normalized: { x: dx / joystickRadius, y: dy / joystickRadius }
+                };
+            }
+
+            function updateKnob(joystick, offset) {
+                const knob = joystick.querySelector('.touch-joystick-knob');
+                if (knob) {
+                    knob.style.transform = `translate(${offset.x}px, ${offset.y}px)`;
+                }
+            }
+
+            // Simulate key presses based on left joystick
+            function processLeftJoystick(offset) {
+                if (!voxyModule || !voxyModule._voxy_key_event) return;
+
+                const threshold = 0.3;
+                const nx = offset.normalized.x;
+                const ny = offset.normalized.y;
+
+                // W (forward) - keyCode 87
+                voxyModule._voxy_key_event(87, ny < -threshold ? 1 : 0);
+                // S (backward) - keyCode 83
+                voxyModule._voxy_key_event(83, ny > threshold ? 1 : 0);
+                // A (left) - keyCode 65
+                voxyModule._voxy_key_event(65, nx < -threshold ? 1 : 0);
+                // D (right) - keyCode 68
+                voxyModule._voxy_key_event(68, nx > threshold ? 1 : 0);
+            }
+
+            // Process right touch for camera look (delta based)
+            function processRightLook(dx, dy) {
+                if (!voxyModule || !voxyModule._voxy_mouse_move) {
+                    console.warn("voxyModule or _voxy_mouse_move not ready");
+                    return;
+                }
+
+                // Apply a dampening factor for touch to match mouse feel
+                const sensitivity = 0.5;
+                voxyModule._voxy_mouse_move(dx * sensitivity, dy * sensitivity);
+            }
+
+            canvas.addEventListener('touchstart', (e) => {
+                // Prevent default behaviors like scrolling or zooming
+                if (e.cancelable) e.preventDefault();
+
+                const screenMid = window.innerWidth / 2;
+
+                for (const touch of e.changedTouches) {
+                    // Left half: Joystick
+                    if (touch.clientX < screenMid) {
+                        if (leftTouchId === null) {
+                            leftTouchId = touch.identifier;
+                            leftOrigin = { x: touch.clientX, y: touch.clientY };
+
+                            // Position joystick under finger
+                            leftJoystick.style.left = (touch.clientX - 60) + 'px';
+                            leftJoystick.style.top = (touch.clientY - 60) + 'px';
+                            leftJoystick.classList.add('active');
+
+                            updateKnob(leftJoystick, { x: 0, y: 0 });
+                        }
+                    }
+                    // Right half: Look (Touchpad)
+                    else {
+                        if (rightTouchId === null) {
+                            rightTouchId = touch.identifier;
+                            rightLastPos = { x: touch.clientX, y: touch.clientY };
+                        }
+                    }
+                }
+            }, { passive: false });
+
+            canvas.addEventListener('touchmove', (e) => {
+                if (e.cancelable) e.preventDefault();
+
+                for (const touch of e.changedTouches) {
+                    if (touch.identifier === leftTouchId) {
+                        const offset = getJoystickOffset(touch, leftOrigin);
+                        updateKnob(leftJoystick, offset);
+                        processLeftJoystick(offset);
+                    } else if (touch.identifier === rightTouchId) {
+                        const dx = touch.clientX - rightLastPos.x;
+                        const dy = touch.clientY - rightLastPos.y;
+
+                        processRightLook(dx, dy);
+
+                        rightLastPos = { x: touch.clientX, y: touch.clientY };
+                    }
+                }
+            }, { passive: false });
+
+            function handleTouchEnd(e) {
+                if (e.cancelable) e.preventDefault();
+
+                for (const touch of e.changedTouches) {
+                    if (touch.identifier === leftTouchId) {
+                        leftTouchId = null;
+                        leftJoystick.classList.remove('active');
+                        updateKnob(leftJoystick, { x: 0, y: 0 });
+
+                        // Release all movement keys
+                        if (voxyModule && voxyModule._voxy_key_event) {
+                            voxyModule._voxy_key_event(87, 0); // W
+                            voxyModule._voxy_key_event(83, 0); // S
+                            voxyModule._voxy_key_event(65, 0); // A
+                            voxyModule._voxy_key_event(68, 0); // D
+                        }
+                    } else if (touch.identifier === rightTouchId) {
+                        rightTouchId = null;
+                    }
+                }
+            }
+
+            canvas.addEventListener('touchend', handleTouchEnd);
+            canvas.addEventListener('touchcancel', handleTouchEnd);
+        }
+
+        // Funny loading messages
+        const loadingPhrases = [
+            // Minecraft / Voxel
+            "Punching trees to get wood...",
+            "Mining for diamonds...",
+            "Spawning creepers...",
+            "Generating infinite terrain...",
+            "Punching the ground...",
+            "Building dirt hut...",
+            "Herobrine removed.",
+            "Watching out for lava...",
+            "Crafting workbench...",
+            "Digging straight down...",
+
+            // Gaming Generic
+            "Constructing additional pylons...",
+            "The cake is a lie...",
+            "It's dangerous to go alone...",
+            "Snake? Snake?! SNAKEEEEE!",
+            "All your base are belong to us...",
+            "Pressing F to pay respects...",
+            "Buying GF 10gp...",
+            "Do a barrel roll!",
+            "War... war never changes.",
+            "Wake up, Samurai...",
+            "Checking for fall damage...",
+            "Updating localization files...",
+            "Nerfing fusion rifles...",
+            "Searching for high ground...",
+
+            // Programming / Dev / Tech
+            "Deleting System32...",
+            "Downloading more RAM...",
+            "Compiling shaders (99% done forever)...",
+            "Git push --force in progress...",
+            "Resolving merge conflicts...",
+            "Debugging on production...",
+            "StackOverflow copy-paste in progress...",
+            "Asking ChatGippity for help...",
+            "Ignoring all warnings...",
+            "Running garbage collector...",
+            "Trying to exit Vim...",
+            "Sudo make me a sandwich...",
+            "Fixing bugs by adding more bugs...",
+            "Checking if P = NP...",
+            "Dividing by zero...",
+            "Searching for the any key...",
+
+            // Hardware / Graphics
+            "Bribing the graphics driver...",
+            "Oiling the cooling fans...",
+            "Counting polygons...",
+            "Tracing rays manually...",
+            "Warming up the GPU...",
+            "Allocating gigabytes of nothing...",
+            "Testing pixel shader 352...",
+            "Verifying RGB lighting...",
+
+            // Meta / Funny
+            "Reticulating splines...",
+            "Loading... please wait...",
+            "Doing important math...",
+            "Spinning the loading wheel...",
+            "Making pixel art...",
+            "Preparing voxel soup...",
+            "Calibrating flux capacitor...",
+            "Refueling the spaceship...",
+            "Inventing the wheel...",
+            "Proving the earth is round..."
+        ];
+
+        // ─────────────────────────────────────────────────────────────────────────────
+        // Audio Manager (Synthesizer)
+        // ─────────────────────────────────────────────────────────────────────────────
+        class SoundManager {
+            constructor() {
+                this.ctx = null;
+                this.enabled = true;
+                this.init();
+            }
+
+            init() {
+                try {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    if (AudioContext) {
+                        this.ctx = new AudioContext();
+                    }
+                } catch (e) {
+                    console.warn("Web Audio API not supported", e);
+                    this.enabled = false;
+                }
+            }
+
+            suspend() {
+                if (this.ctx && this.ctx.state !== 'closed') {
+                    this.ctx.close().catch(() => { });
+                }
+            }
+
+            // Mechanical "Clack"
+            playClick(intensity = 1) {
+                if (!this.enabled || !this.ctx) return;
+                // Resume logic
+                if (this.ctx.state === 'suspended') {
+                    this.ctx.resume().catch(() => { });
+                    if (this.ctx.state === 'suspended') return;
+                }
+
+                try {
+                    const t = this.ctx.currentTime;
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+
+                    // Pitch varies with speed (higher = faster)
+                    // Base 200Hz, goes up to 600Hz
+                    osc.frequency.setValueAtTime(200 + (intensity * 400), t);
+                    osc.type = 'triangle';
+
+                    // Short, sharp click
+                    gain.gain.setValueAtTime(0, t);
+                    gain.gain.linearRampToValueAtTime(0.3 * intensity, t + 0.005);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.03);
+
+                    osc.start(t);
+                    osc.stop(t + 0.05);
+                } catch (e) { }
+            }
+
+            // Heavy "Lock" sound
+            playLock() {
+                if (!this.enabled || !this.ctx) return;
+                if (this.ctx.state === 'suspended') {
+                    this.ctx.resume().catch(() => { });
+                    if (this.ctx.state === 'suspended') return;
+                }
+
+                try {
+                    // Thud
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(200, this.ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(50, this.ctx.currentTime + 0.15);
+
+                    gain.gain.setValueAtTime(1.0, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.15);
+
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + 0.2);
+
+                    // Add a click on top for definition
+                    this.playClick();
+                } catch (e) { }
+            }
+        }
+
+        // ─────────────────────────────────────────────────────────────────────────────
+        // 3D Roller Logic (Hearthstone Physics)
+        // ─────────────────────────────────────────────────────────────────────────────
+        class Roller {
+            constructor(phrases) {
+                this.phrases = phrases;
+                this.drum = document.getElementById('roller-drum');
+                this.container = document.getElementById('roller-container');
+                this.sound = new SoundManager();
+
+                // Config
+                this.faceHeight = 50;
+                this.radius = 200; // Larger radius = flatter look in center
+                this.faceCount = 20; // Number of slots in the circle
+                this.anglePerFace = 360 / this.faceCount;
+
+                // Physics State
+                this.angle = 0;
+                this.speed = 0;
+                this.maxSpeed = 1.2; // Degrees per ms (very fast)
+                this.state = 'IDLE'; // IDLE, ACCEL, SPINNING, STOPPING, LOCKED
+                this.targetAngle = 0;
+
+                this.lastTickIndex = -1;
+                this.rAF = null;
+
+                this.initFaces();
+            }
+
+            initFaces() {
+                this.drum.innerHTML = '';
+                this.faces = [];
+                // Create the drum faces
+                for (let i = 0; i < this.faceCount; i++) {
+                    const el = document.createElement('div');
+                    el.className = 'roller-item';
+                    // Position in 3D space
+                    const theta = i * this.anglePerFace * (Math.PI / 180);
+                    // Standard cylinder calc
+                    el.style.transform = `rotateX(${i * this.anglePerFace}deg) translateZ(${this.radius}px)`;
+
+                    // Fill with random text initially
+                    el.textContent = this.getRandomPhrase();
+
+                    this.drum.appendChild(el);
+                    this.faces.push(el);
+                }
+            }
+
+            getRandomPhrase() {
+                return this.phrases[Math.floor(Math.random() * this.phrases.length)];
+            }
+
+            // Call this to start the infinite loading spin
+            start() {
+                if (this.state !== 'IDLE') return;
+                this.state = 'ACCEL';
+                this.lastTime = performance.now();
+                this.loop();
+            }
+
+            // Call this when WebGPU is 100% loaded
+            land() {
+                if (this.state === 'STOPPING' || this.state === 'LOCKED') return;
+
+                this.state = 'STOPPING';
+
+                // 1. Calculate where we are now
+                const currentRotation = this.angle;
+
+                // 2. We want to land on a specific face distance away to allow for deceleration
+                // Add e.g. 720 degrees (2 spins) + enough to snap to grid
+                const distanceToStop = 1000 + (Math.random() * 360);
+                let rawTarget = currentRotation + distanceToStop;
+
+                // 3. Snap target to exact face angle
+                const remainder = rawTarget % this.anglePerFace;
+                this.targetAngle = rawTarget - remainder + this.anglePerFace;
+
+                // 4. Inject "READY" into the target face
+                // Normalize angle to find which face index corresponds to targetAngle
+                // Because we rotate negative X, the face index is:
+                let normalized = (this.targetAngle % 360) / this.anglePerFace;
+                let targetIndex = Math.round(normalized) % this.faceCount;
+                // Handle wrap around math
+                if (targetIndex < 0) targetIndex += this.faceCount;
+                targetIndex = (this.faceCount - targetIndex) % this.faceCount;
+
+                // Set the text of the landing face
+                if (this.faces[targetIndex]) {
+                    this.faces[targetIndex].textContent = "READY_TO_RENDER";
+                    this.faces[targetIndex].style.color = "var(--color-accent)";
+                }
+            }
+
+            loop() {
+                const now = performance.now();
+                const dt = Math.min(now - this.lastTime, 50); // Cap dt
+                this.lastTime = now;
+
+                // ─────────────────────────────────
+                // State Machine
+                // ─────────────────────────────────
+
+                // 1. Acceleration Phase (Start up)
+                if (this.state === 'ACCEL') {
+                    this.speed += 0.002 * dt; // Linear accel
+                    if (this.speed >= this.maxSpeed) {
+                        this.speed = this.maxSpeed;
+                        this.state = 'SPINNING';
+                        this.container.classList.add('roller-fast');
+                    }
+                }
+
+                // 2. Spinning Phase (Waiting for WebGPU)
+                else if (this.state === 'SPINNING') {
+                    // Maintain max speed
+                    this.speed = this.maxSpeed;
+                    // While spinning fast, occasionally randomize text on back-faces
+                    // to keep the illusion of infinite content
+                    if (Math.random() < 0.1) {
+                        this.randomizeHiddenFaces();
+                    }
+                }
+
+                // 3. Stopping Phase (Decel to target)
+                else if (this.state === 'STOPPING') {
+                    const remainingDist = this.targetAngle - this.angle;
+
+                    // Visual Blur removal
+                    if (this.speed < this.maxSpeed * 0.5) {
+                        this.container.classList.remove('roller-fast');
+                    }
+
+                    // Physics: Spring/Ease to target
+                    // Simple P-controller: speed proportional to distance
+                    const desiredSpeed = remainingDist * 0.005; // Tunable "spring" strength
+
+                    // Smoothly blend current speed to desired speed
+                    this.speed = this.speed * 0.92 + desiredSpeed * 0.08;
+
+                    // Snap threshold
+                    if (remainingDist < 0.5 && Math.abs(this.speed) < 0.01) {
+                        this.angle = this.targetAngle;
+                        this.speed = 0;
+                        this.state = 'LOCKED';
+                        this.finish();
+                    }
+                }
+
+                // Apply Rotation
+                this.angle += this.speed * dt;
+                this.drum.style.transform = `rotateX(-${this.angle}deg)`;
+
+                // ─────────────────────────────────
+                // Audio Trigger (The "Click")
+                // ─────────────────────────────────
+                // Calculate which "notch" we are currently passing
+                const currentTick = Math.floor(this.angle / this.anglePerFace);
+
+                if (currentTick > this.lastTickIndex) {
+                    // Only click if moving fast enough to matter, or if slowing down
+                    if (this.state === 'STOPPING' || (this.state === 'SPINNING' && currentTick % 2 === 0)) {
+                        // Pitch the sound up when fast, down when slow
+                        const intensity = Math.min(1, this.speed / this.maxSpeed);
+                        this.sound.playClick(intensity);
+                    }
+                    this.lastTickIndex = currentTick;
+                }
+
+                if (this.state !== 'LOCKED') {
+                    this.rAF = requestAnimationFrame(() => this.loop());
+                }
+            }
+
+            randomizeHiddenFaces() {
+                // Find faces currently behind the drum (90 to 270 degrees away from current view)
+                const viewAngle = this.angle % 360;
+
+                this.faces.forEach((face, index) => {
+                    const faceAngle = (index * this.anglePerFace);
+                    // quick approximate check for visibility
+                    // If face is roughly opposite to view, change text
+                    let diff = Math.abs(faceAngle - viewAngle);
+                    if (diff > 180) diff = 360 - diff;
+
+                    if (diff > 90) {
+                        face.textContent = this.getRandomPhrase();
+                        face.style.color = ""; // reset color
+                    }
+                });
+            }
+
+            finish() {
+                // Final Thud Sound
+                this.sound.playLock();
+
+                // Highlight the winner
+                const normalized = (this.angle % 360) / this.anglePerFace;
+                let targetIndex = Math.round(normalized) % this.faceCount;
+                if (targetIndex < 0) targetIndex += this.faceCount;
+                targetIndex = (this.faceCount - targetIndex) % this.faceCount;
+
+                if (this.faces[targetIndex]) {
+                    this.faces[targetIndex].classList.add('active');
+                }
+            }
+        }
+
+        // Progress tracking
+        function updateProgress(percent, message) {
+            const progressBar = document.getElementById('loading-progress-bar');
+            const progressText = document.getElementById('loading-progress-text');
+            const technical = document.getElementById('loading-technical');
+
+            if (progressBar) {
+                progressBar.style.width = Math.min(100, percent) + '%';
+            }
+            if (progressText && percent > 0) {
+                progressText.textContent = Math.round(percent) + '%';
+            }
+            if (technical && message) {
+                technical.textContent = message;
+            }
+        }
+
+        let roller = null;
+
+        async function init() {
+            const loading = document.getElementById('loading');
+            const error = document.getElementById('error');
+            const overlay = document.getElementById('overlay');
+            const canvas = document.getElementById('voxy-canvas');
+
+            // 1. Initialize and Start the Roller immediately
+            roller = new Roller(loadingPhrases);
+            roller.start(); // This will accelerate to max speed and stay there
+
+            // Check WebGPU support
+            if (!navigator.gpu) {
+                gtag('event', 'webgpu_support_check', {
+                    'status': 'unsupported',
+                    'user_agent': navigator.userAgent
+                });
+                loading.style.display = 'none';
+                error.style.display = 'block';
+                return;
+            }
+
+            gtag('event', 'webgpu_support_check', {
+                'status': 'supported'
+            });
+
+            try {
+                // Set initial canvas size before module loads
+                const dpr = window.devicePixelRatio || 1;
+                canvas.width = Math.floor(window.innerWidth * dpr);
+                canvas.height = Math.floor(window.innerHeight * dpr);
+                canvas.style.width = window.innerWidth + 'px';
+                canvas.style.height = window.innerHeight + 'px';
+
+                // Helper to format bytes
+                function formatBytes(bytes) {
+                    if (bytes === 0) return '0 B';
+                    const k = 1024;
+                    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+                    const i = Math.floor(Math.log(bytes) / Math.log(k));
+                    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+                }
+
+                updateProgress(5, 'Requesting GPU adapter...');
+                const adapter = await navigator.gpu.requestAdapter();
+                if (!adapter) {
+                    throw new Error('No suitable GPU adapter found');
+                }
+
+                updateProgress(10, 'Creating GPU device...');
+                const device = await adapter.requestDevice();
+
+                updateProgress(15, 'Loading WASM module...');
+
+                // Track total loading progress
+                let dataProgress = 0;
+                let wasmProgress = 0;
+
+                voxyModule = await VoxyModule({
+                    canvas: canvas,
+                    preinitializedWebGPUDevice: device,
+
+                    // Track WASM/data download progress
+                    setStatus: function (text) {
+                        if (!text) return;
+
+                        // Parse Emscripten status messages for progress
+                        // Format: "Downloading data... (X/Y)" or percentage
+                        const match = text.match(/\((\d+)\/(\d+)\)/);
+                        if (match) {
+                            const loaded = parseInt(match[1]);
+                            const total = parseInt(match[2]);
+                            const percent = 15 + (loaded / total) * 70; // 15-85% for assets
+
+                            // Format the message to be human readable
+                            const loadedStr = formatBytes(loaded);
+                            const totalStr = formatBytes(total);
+                            const newText = text.replace(match[0], `(${loadedStr} / ${totalStr})`);
+
+                            updateProgress(percent, newText);
+                        } else if (text.includes('%')) {
+                            const percentMatch = text.match(/(\d+)%/);
+                            if (percentMatch) {
+                                const percent = 15 + parseInt(percentMatch[1]) * 0.7;
+                                updateProgress(percent, text);
+                            }
+                        } else {
+                            // Generic status update
+                            updateProgress(0, text);
+                        }
+                    },
+
+                    // Track loading dependencies
+                    monitorRunDependencies: function (left) {
+                        if (left === 0) {
+                            updateProgress(90, 'Initializing renderer...');
+                        }
+                    }
+                });
+
+                // 2. LOADING COMPLETE: Trigger the Landing Sequence
+                updateProgress(100, 'Done');
+                roller.land(); // Triggers deceleration and snap
+
+                // 3. Wait for the animation to finish visuals (approx 1.5s - 2s)
+                // We poll the roller state
+                await new Promise(resolve => {
+                    const check = setInterval(() => {
+                        if (roller.state === 'LOCKED') {
+                            clearInterval(check);
+                            setTimeout(resolve, 500); // Small pause to admire the "READY"
+                        }
+                    }, 100);
+                });
+
+                // 4. Hide loading screen and show game
+                loading.style.opacity = 0;
+                setTimeout(() => {
+                    loading.style.display = 'none';
+                    overlay.style.display = 'block';
+                }, 500);
+
+                // Track successful load
+                gtag('event', 'app_initialized', {
+                    'pixel_ratio': window.devicePixelRatio || 1
+                });
+
+                // Initial resize notification to C++
+                // Delay the call to ensure the C++ main loop has started and g_app is initialized
+                // The WASM main() runs asynchronously after module promise resolves
+                function notifyResize() {
+                    if (voxyModule._voxy_resize) {
+                        const dpr = window.devicePixelRatio || 1;
+                        const w = Math.floor(window.innerWidth * dpr);
+                        const h = Math.floor(window.innerHeight * dpr);
+                        canvas.width = w;
+                        canvas.height = h;
+                        canvas.style.width = window.innerWidth + 'px';
+                        canvas.style.height = window.innerHeight + 'px';
+                        voxyModule._voxy_resize(w, h);
+                    }
+                }
+                // Wait for the first animation frame to ensure the C++ side is ready
+                requestAnimationFrame(() => {
+                    notifyResize();
+                    // Also trigger a second resize after a short delay as a safety net
+                    // Some browsers may report stale dimensions on the first frame
+                    setTimeout(notifyResize, 100);
+                });
+
+                // Handle window resize
+                function resize() {
+                    const dpr = window.devicePixelRatio || 1;
+                    canvas.width = Math.floor(window.innerWidth * dpr);
+                    canvas.height = Math.floor(window.innerHeight * dpr);
+                    canvas.style.width = window.innerWidth + 'px';
+                    canvas.style.height = window.innerHeight + 'px';
+                    if (voxyModule && voxyModule._voxy_resize) {
+                        voxyModule._voxy_resize(canvas.width, canvas.height);
+                    }
+                }
+                window.addEventListener('resize', resize);
+
+                // Handle pointer lock for mouse controls
+                canvas.addEventListener('click', () => {
+                    // Only request pointer lock on non-touch devices
+                    // isTouchDevice is defined in the parent scope
+                    if (!isTouchDevice) {
+                        canvas.requestPointerLock();
+                    }
+                });
+
+                document.addEventListener('pointerlockchange', () => {
+                    overlay.style.opacity = document.pointerLockElement ? '0' : '1';
+                });
+
+                // Handle mouse movement when pointer is locked
+                document.addEventListener('mousemove', (e) => {
+                    if (document.pointerLockElement === canvas && voxyModule && voxyModule._voxy_mouse_move) {
+                        voxyModule._voxy_mouse_move(e.movementX, e.movementY);
+                    }
+                });
+
+                // Handle keyboard input
+                document.addEventListener('keydown', (e) => {
+                    if (voxyModule && voxyModule._voxy_key_event) {
+                        voxyModule._voxy_key_event(e.keyCode, 1);
+                    }
+                    // Release pointer lock on Escape
+                    if (e.key === 'Escape' && document.pointerLockElement) {
+                        document.exitPointerLock();
+                    }
+                    // Fullscreen toggle on F11
+                    if (e.key === 'F11') {
+                        e.preventDefault();
+                        toggleFullscreen();
+                    }
+                });
+
+                document.addEventListener('keyup', (e) => {
+                    if (voxyModule && voxyModule._voxy_key_event) {
+                        voxyModule._voxy_key_event(e.keyCode, 0);
+                    }
+                });
+
+                // Fullscreen toggle function
+                function toggleFullscreen() {
+                    if (!document.fullscreenElement) {
+                        document.documentElement.requestFullscreen().catch(err => {
+                            console.warn('Fullscreen request failed:', err);
+                        });
+                    } else {
+                        document.exitFullscreen();
+                    }
+                }
+
+                // Fullscreen button
+                const fullscreenBtn = document.getElementById('fullscreen-btn');
+                if (fullscreenBtn) {
+                    fullscreenBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        toggleFullscreen();
+                    });
+                }
+
+                // Update fullscreen button icon on state change
+                document.addEventListener('fullscreenchange', () => {
+                    if (fullscreenBtn) {
+                        fullscreenBtn.textContent = document.fullscreenElement ? '⛶' : '⛶';
+                        fullscreenBtn.classList.toggle('active', !!document.fullscreenElement);
+                    }
+                });
+
+                // Touch input support for mobile devices
+                setupTouchControls(canvas);
+
+                console.log('voxy WASM module initialized successfully');
+
+            } catch (err) {
+                console.error('Initialization failed:', err);
+
+                // Track error with details
+                gtag('event', 'webgpu_error', {
+                    'error_message': err.message,
+                    'error_stack': err.stack
+                });
+
+                loading.style.display = 'none';
+                error.style.display = 'block';
+                error.querySelector('h2').textContent = 'Initialization Failed';
+                error.querySelector('p').textContent = err.message;
+            }
+        }
+
+        init();
+    </script>
+</body>
+
+</html>

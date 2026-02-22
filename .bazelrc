@@ -1,0 +1,74 @@
+# Enable WORKSPACE support (required for new_local_repository)
+build --enable_workspace
+
+# C++20 for all builds (also defined in settings/configure_copts.bzl for targets using PROJECT_DEFAULT_COPTS)
+build --cxxopt=-std=c++20
+build --host_cxxopt=-std=c++20
+
+# GLM configuration (matching CMake setup)
+build --copt=-DGLM_FORCE_DEPTH_ZERO_TO_ONE
+build --copt=-DGLM_FORCE_LEFT_HANDED
+build --copt=-DGLM_ENABLE_EXPERIMENTAL
+
+# Ignore broken third-party packages to allow //... to work
+build --deleted_packages=third_party/googletest/googletest/test,third_party/googletest/googlemock/test
+test --deleted_packages=third_party/googletest/googletest/test,third_party/googletest/googlemock/test
+
+# WASM-specific configuration
+# Use this with: bazel build --config=wasm //:voxy_wasm
+build:wasm --platforms=@emsdk//:platform_wasm
+build:wasm --compilation_mode=opt
+build:wasm --copt=-DVOXY_WASM=1
+
+# Required for Jules environment (fixes IPv6 DNS issues in container)
+startup --host_jvm_args=-Djava.net.preferIPv4Stack=true
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Sanitizer configurations
+# Usage: bazel build --config=asan //:voxy_native or bazel test --config=asan
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# AddressSanitizer - detects memory errors (buffer overflows, use-after-free, etc.)
+build:asan --copt=-fsanitize=address
+build:asan --linkopt=-fsanitize=address
+build:asan --copt=-fno-omit-frame-pointer
+build:asan --copt=-O1
+build:asan --copt=-g
+build:asan --strip=never
+# LeakSanitizer suppression file for GPU library false positives
+test:asan --test_env=LSAN_OPTIONS=suppressions=.asan_suppressions
+
+# ThreadSanitizer - detects data races
+# NOTE: TSan requires disabling ASLR (Address Space Layout Randomization).
+# Running `bazel test --config=tsan` directly may fail with "unexpected memory mapping".
+# Recommended usage:
+#   1. Build tests: bazel build --config=tsan //tests:voxy_tests
+#   2. Run manually: TSAN_OPTIONS="suppressions=.tsan_suppressions" setarch $(uname -m) -R ./bazel-bin/tests/voxy_tests
+build:tsan --copt=-fsanitize=thread
+build:tsan --linkopt=-fsanitize=thread
+build:tsan --copt=-fno-omit-frame-pointer
+build:tsan --copt=-O1
+build:tsan --copt=-g
+build:tsan --strip=never
+# TSan suppression file for GPU library false positives
+test:tsan --test_env=TSAN_OPTIONS=suppressions=.tsan_suppressions
+
+# MemorySanitizer - detects uninitialized memory reads (clang only)
+# NOTE: MSan requires an instrumented libc++ for full accuracy.
+# This setup suppresses errors from uninstrumented system libraries.
+build:msan --copt=-fsanitize=memory
+build:msan --linkopt=-fsanitize=memory
+build:msan --copt=-fno-omit-frame-pointer
+build:msan --copt=-O1
+build:msan --copt=-g
+build:msan --strip=never
+# MSan suppression file for uninstrumented libraries
+test:msan --test_env=MSAN_OPTIONS=suppressions=.msan_suppressions
+
+# UndefinedBehaviorSanitizer - detects undefined behavior
+build:ubsan --copt=-fsanitize=undefined
+build:ubsan --linkopt=-fsanitize=undefined
+build:ubsan --copt=-fno-omit-frame-pointer
+build:ubsan --copt=-O1
+build:ubsan --copt=-g
+build:ubsan --strip=never
