@@ -96,13 +96,23 @@ TrianglePath::TrianglePath(TrianglePath&& other) noexcept
     , pipelineLayout_(other.pipelineLayout_)
     , pipeline_(other.pipeline_)
     , wireframePipeline_(other.wireframePipeline_)
+    , computeModule_(other.computeModule_)
+    , computePipelineLayout_(other.computePipelineLayout_)
+    , computePipeline_(other.computePipeline_)
+    , computeBindGroupLayout_(other.computeBindGroupLayout_)
+    , computeBindGroup_(other.computeBindGroup_)
     , bindGroupLayout_(other.bindGroupLayout_)
     , bindGroup_(other.bindGroup_)
     , indexBuffer_(other.indexBuffer_)
     , uniformBuffer_(other.uniformBuffer_)
+    , indirectBuffer_(other.indirectBuffer_)
+    , visibleIndicesBuffer_(other.visibleIndicesBuffer_)
     , heightmapView_(other.heightmapView_)
     , heightmapWidth_(other.heightmapWidth_)
     , heightmapHeight_(other.heightmapHeight_)
+    , albedoView_(other.albedoView_)
+    , lightmapView_(other.lightmapView_)
+    , sampler_(other.sampler_)
     , uniforms_(other.uniforms_)
     , config_(other.config_)
     , tilesX_(other.tilesX_)
@@ -118,11 +128,21 @@ TrianglePath::TrianglePath(TrianglePath&& other) noexcept
     other.pipelineLayout_ = nullptr;
     other.pipeline_ = nullptr;
     other.wireframePipeline_ = nullptr;
+    other.computeModule_ = nullptr;
+    other.computePipelineLayout_ = nullptr;
+    other.computePipeline_ = nullptr;
+    other.computeBindGroupLayout_ = nullptr;
+    other.computeBindGroup_ = nullptr;
     other.bindGroupLayout_ = nullptr;
     other.bindGroup_ = nullptr;
     other.indexBuffer_ = nullptr;
     other.uniformBuffer_ = nullptr;
+    other.indirectBuffer_ = nullptr;
+    other.visibleIndicesBuffer_ = nullptr;
     other.heightmapView_ = nullptr;
+    other.albedoView_ = nullptr;
+    other.lightmapView_ = nullptr;
+    other.sampler_ = nullptr;
 }
 
 TrianglePath& TrianglePath::operator=(TrianglePath&& other) noexcept {
@@ -135,13 +155,23 @@ TrianglePath& TrianglePath::operator=(TrianglePath&& other) noexcept {
         pipelineLayout_ = other.pipelineLayout_;
         pipeline_ = other.pipeline_;
         wireframePipeline_ = other.wireframePipeline_;
+        computeModule_ = other.computeModule_;
+        computePipelineLayout_ = other.computePipelineLayout_;
+        computePipeline_ = other.computePipeline_;
+        computeBindGroupLayout_ = other.computeBindGroupLayout_;
+        computeBindGroup_ = other.computeBindGroup_;
         bindGroupLayout_ = other.bindGroupLayout_;
         bindGroup_ = other.bindGroup_;
         indexBuffer_ = other.indexBuffer_;
         uniformBuffer_ = other.uniformBuffer_;
+        indirectBuffer_ = other.indirectBuffer_;
+        visibleIndicesBuffer_ = other.visibleIndicesBuffer_;
         heightmapView_ = other.heightmapView_;
         heightmapWidth_ = other.heightmapWidth_;
         heightmapHeight_ = other.heightmapHeight_;
+        albedoView_ = other.albedoView_;
+        lightmapView_ = other.lightmapView_;
+        sampler_ = other.sampler_;
         uniforms_ = other.uniforms_;
         config_ = other.config_;
         tilesX_ = other.tilesX_;
@@ -156,11 +186,21 @@ TrianglePath& TrianglePath::operator=(TrianglePath&& other) noexcept {
         other.pipelineLayout_ = nullptr;
         other.pipeline_ = nullptr;
         other.wireframePipeline_ = nullptr;
+        other.computeModule_ = nullptr;
+        other.computePipelineLayout_ = nullptr;
+        other.computePipeline_ = nullptr;
+        other.computeBindGroupLayout_ = nullptr;
+        other.computeBindGroup_ = nullptr;
         other.bindGroupLayout_ = nullptr;
         other.bindGroup_ = nullptr;
         other.indexBuffer_ = nullptr;
         other.uniformBuffer_ = nullptr;
+        other.indirectBuffer_ = nullptr;
+        other.visibleIndicesBuffer_ = nullptr;
         other.heightmapView_ = nullptr;
+        other.albedoView_ = nullptr;
+        other.lightmapView_ = nullptr;
+        other.sampler_ = nullptr;
     }
     return *this;
 }
@@ -170,9 +210,17 @@ void TrianglePath::shutdown() {
         wgpuBindGroupRelease(bindGroup_);
         bindGroup_ = nullptr;
     }
+    if (computeBindGroup_) {
+        wgpuBindGroupRelease(computeBindGroup_);
+        computeBindGroup_ = nullptr;
+    }
     if (bindGroupLayout_) {
         wgpuBindGroupLayoutRelease(bindGroupLayout_);
         bindGroupLayout_ = nullptr;
+    }
+    if (computeBindGroupLayout_) {
+        wgpuBindGroupLayoutRelease(computeBindGroupLayout_);
+        computeBindGroupLayout_ = nullptr;
     }
     if (pipeline_) {
         wgpuRenderPipelineRelease(pipeline_);
@@ -182,13 +230,25 @@ void TrianglePath::shutdown() {
         wgpuRenderPipelineRelease(wireframePipeline_);
         wireframePipeline_ = nullptr;
     }
+    if (computePipeline_) {
+        wgpuComputePipelineRelease(computePipeline_);
+        computePipeline_ = nullptr;
+    }
     if (pipelineLayout_) {
         wgpuPipelineLayoutRelease(pipelineLayout_);
         pipelineLayout_ = nullptr;
     }
+    if (computePipelineLayout_) {
+        wgpuPipelineLayoutRelease(computePipelineLayout_);
+        computePipelineLayout_ = nullptr;
+    }
     if (shaderModule_) {
         wgpuShaderModuleRelease(shaderModule_);
         shaderModule_ = nullptr;
+    }
+    if (computeModule_) {
+        wgpuShaderModuleRelease(computeModule_);
+        computeModule_ = nullptr;
     }
     if (indexBuffer_) {
         wgpuBufferRelease(indexBuffer_);
@@ -198,9 +258,20 @@ void TrianglePath::shutdown() {
         wgpuBufferRelease(uniformBuffer_);
         uniformBuffer_ = nullptr;
     }
+    if (indirectBuffer_) {
+        wgpuBufferRelease(indirectBuffer_);
+        indirectBuffer_ = nullptr;
+    }
+    if (visibleIndicesBuffer_) {
+        wgpuBufferRelease(visibleIndicesBuffer_);
+        visibleIndicesBuffer_ = nullptr;
+    }
     
-    // Note: We don't own heightmapView_, so don't release it
+    // Note: We don't own these views/samplers, so don't release them.
     heightmapView_ = nullptr;
+    albedoView_ = nullptr;
+    lightmapView_ = nullptr;
+    sampler_ = nullptr;
     device_ = nullptr;
     queue_ = nullptr;
 }
@@ -851,6 +922,5 @@ void TrianglePath::setWireframe(bool enabled) {
 }
 
 } // namespace voxy::render
-
 
 
