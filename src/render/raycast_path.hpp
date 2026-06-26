@@ -5,7 +5,7 @@
 // Features:
 //   - Compute shader ray-caster with 8×8 workgroups
 //   - Hierarchical traversal using max-height mip pyramid
-//   - R32Float depth output texture for compositing
+//   - R32Float depth and shadow output textures for compositing
 //   - Distance-based LOD termination
 // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -134,6 +134,9 @@ public:
     /// Set Lego Mode
     void setLegoMode(bool enabled);
 
+    /// Copy a fully-built camera uniform block into this renderer
+    void setCameraUniforms(const CameraUniforms& uniforms);
+
     /// Dispatch the compute shader to ray-cast the terrain
     /// @param encoder Command encoder
     void dispatch(WGPUCommandEncoder encoder);
@@ -150,6 +153,12 @@ public:
 
     /// Get depth output texture (for advanced usage)
     [[nodiscard]] WGPUTexture getDepthOutputTexture() const noexcept { return depthOutputTexture_; }
+
+    /// Get shadow output texture view (for use in blit pass)
+    [[nodiscard]] WGPUTextureView getShadowOutputView() const noexcept { return shadowOutputView_; }
+
+    /// Get shadow output texture (for advanced usage)
+    [[nodiscard]] WGPUTexture getShadowOutputTexture() const noexcept { return shadowOutputTexture_; }
 
     /// Get current camera uniforms (for debugging)
     [[nodiscard]] const CameraUniforms& getUniforms() const noexcept;
@@ -189,9 +198,11 @@ private:
     // Buffers
     WGPUBuffer uniformBuffer_ = nullptr;
 
-    // Depth output texture
+    // Output textures
     WGPUTexture depthOutputTexture_ = nullptr;
     WGPUTextureView depthOutputView_ = nullptr;
+    WGPUTexture shadowOutputTexture_ = nullptr;
+    WGPUTextureView shadowOutputView_ = nullptr;
     uint32_t outputWidth_ = 0;
     uint32_t outputHeight_ = 0;
 
@@ -208,4 +219,3 @@ private:
 };
 
 } // namespace voxy::render
-

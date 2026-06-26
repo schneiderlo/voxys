@@ -81,7 +81,7 @@ Heightmap::Heightmap(Heightmap&& other) noexcept
 Heightmap& Heightmap::operator=(Heightmap&& other) noexcept {
     if (this != &other) {
         release();
-        
+
         data_ = std::move(other.data_);
         width_ = other.width_;
         height_ = other.height_;
@@ -90,7 +90,7 @@ Heightmap& Heightmap::operator=(Heightmap&& other) noexcept {
         textureView_ = other.textureView_;
         mipLevelCount_ = other.mipLevelCount_;
         cachedMinMax_ = std::move(other.cachedMinMax_);
-        
+
         other.width_ = 0;
         other.height_ = 0;
         other.loadTimeMs_ = 0.0;
@@ -111,27 +111,27 @@ Heightmap::readFileToMemory(const std::filesystem::path& path) {
         LOG_ERROR("Heightmap file not found: {}", path.string());
         return HeightmapError::FileNotFound;
     }
-    
+
     std::ifstream file(path, std::ios::binary | std::ios::ate);
     if (!file.is_open()) {
         LOG_ERROR("Failed to open heightmap file: {}", path.string());
         return HeightmapError::ReadError;
     }
-    
+
     const auto fileSize = file.tellg();
     if (fileSize <= 0) {
         LOG_ERROR("Heightmap file is empty or unreadable: {}", path.string());
         return HeightmapError::ReadError;
     }
-    
+
     file.seekg(0, std::ios::beg);
-    
+
     std::vector<std::byte> buffer(static_cast<size_t>(fileSize));
     if (!file.read(reinterpret_cast<char*>(buffer.data()), fileSize)) {
         LOG_ERROR("Failed to read heightmap file: {}", path.string());
         return HeightmapError::ReadError;
     }
-    
+
     return buffer;
 }
 
@@ -141,7 +141,7 @@ Heightmap::readFileToMemory(const std::filesystem::path& path) {
 
 VoidResult Heightmap::loadFromFile(const std::filesystem::path& path) {
     const auto ext = path.extension().string();
-    
+
     if (ext == ".ldh") {
         return loadLdh(path);
     }
@@ -160,23 +160,23 @@ VoidResult Heightmap::loadLdh(const std::filesystem::path& path) {
         LOG_ERROR("Failed to load LDH file: {}", errorToString(result.error()));
         return HeightmapError::ReadError; // Map compression error to heightmap error
     }
-    
+
     auto& decompressed = result.value();
-    
+
     // Release previous data
     release();
-    
+
     // Copy data
     width_ = decompressed.width;
     height_ = decompressed.height;
     data_ = std::move(decompressed.data);
     loadTimeMs_ = decompressed.stats.totalTimeMs;
-    
+
     LOG_INFO("Loaded LDH heightmap: {}x{} ({:.2f} MB, {:.2f} ms)",
              width_, height_,
              static_cast<double>(getSizeBytes()) / (1024.0 * 1024.0),
              loadTimeMs_);
-             
+
     return VoidResult();
 }
 
@@ -185,36 +185,36 @@ VoidResult Heightmap::loadLdh(const std::filesystem::path& path) {
 VoidResult Heightmap::loadRawFromMemory(std::span<const std::byte> data,
                                          uint32_t width, uint32_t height) {
     const auto startTime = std::chrono::high_resolution_clock::now();
-    
+
     if (width == 0 || height == 0) {
         LOG_ERROR("Invalid heightmap dimensions: {}x{}", width, height);
         return HeightmapError::InvalidDimensions;
     }
-    
+
     const size_t expectedSize = static_cast<size_t>(width) * height * sizeof(uint16_t);
     if (data.size() != expectedSize) {
         LOG_ERROR("RAW heightmap size mismatch: expected {} bytes for {}x{}, got {} bytes",
                   expectedSize, width, height, data.size());
         return HeightmapError::InvalidDimensions;
     }
-    
+
     // Release previous data
     release();
-    
+
     // Copy data
     width_ = width;
     height_ = height;
     data_.resize(static_cast<size_t>(width) * height);
     std::memcpy(data_.data(), data.data(), data.size());
-    
+
     const auto endTime = std::chrono::high_resolution_clock::now();
     loadTimeMs_ = std::chrono::duration<double, std::milli>(endTime - startTime).count();
-    
+
     LOG_INFO("Loaded RAW heightmap: {}x{} ({:.2f} MB, {:.2f} ms)",
-             width_, height_, 
+             width_, height_,
              static_cast<double>(getSizeBytes()) / (1024.0 * 1024.0),
              loadTimeMs_);
-    
+
     return VoidResult();
 }
 
@@ -227,7 +227,7 @@ VoidResult Heightmap::resize(uint32_t targetWidth, uint32_t targetHeight) {
         LOG_ERROR("Cannot resize: no heightmap loaded");
         return HeightmapError::InvalidDimensions;
     }
-    
+
     // Auto-calculate target dimensions if not specified
     if (targetWidth == 0) {
         targetWidth = nextPowerOfTwo(width_);
@@ -235,57 +235,91 @@ VoidResult Heightmap::resize(uint32_t targetWidth, uint32_t targetHeight) {
     if (targetHeight == 0) {
         targetHeight = nextPowerOfTwo(height_);
     }
-    
+
     // Skip if already the right size
     if (targetWidth == width_ && targetHeight == height_) {
         LOG_DEBUG("Heightmap already {}x{}, no resize needed", width_, height_);
         return VoidResult();
     }
-    
+
     const auto startTime = std::chrono::high_resolution_clock::now();
-    
+
     LOG_INFO("Resizing heightmap from {}x{} to {}x{} (bilinear interpolation)",
              width_, height_, targetWidth, targetHeight);
-    
+
     // Allocate new buffer
     std::vector<uint16_t> newData(static_cast<size_t>(targetWidth) * targetHeight);
-    
+
+    struct AxisSample {
+        uint32_t i0 = 0;
+        uint32_t i1 = 0;
+        float f = 0.0f;
+    };
+
     // Bilinear interpolation
     // Avoid division by zero if target dimension is 1
-    const float scaleX = (targetWidth > 1) 
+    const float scaleX = (targetWidth > 1)
         ? static_cast<float>(width_ - 1) / static_cast<float>(targetWidth - 1)
         : 0.0f;
-    const float scaleY = (targetHeight > 1) 
+    const float scaleY = (targetHeight > 1)
         ? static_cast<float>(height_ - 1) / static_cast<float>(targetHeight - 1)
         : 0.0f;
-    
-    for (uint32_t y = 0; y < targetHeight; y++) {
-        for (uint32_t x = 0; x < targetWidth; x++) {
-            // Source coordinates
-            const float srcX = static_cast<float>(x) * scaleX;
-            const float srcY = static_cast<float>(y) * scaleY;
-            
-            // Sample with bilinear interpolation
-            const float value = sampleBilinear(srcX, srcY);
-            newData[y * targetWidth + x] = static_cast<uint16_t>(
-                std::clamp(value, 0.0f, 65535.0f));
+
+    std::vector<AxisSample> xSamples(targetWidth);
+    for (uint32_t x = 0; x < targetWidth; ++x) {
+        const float srcX = static_cast<float>(x) * scaleX;
+        const uint32_t x0 = std::min(static_cast<uint32_t>(srcX), width_ - 1);
+        xSamples[x] = AxisSample{
+            .i0 = x0,
+            .i1 = std::min(x0 + 1, width_ - 1),
+            .f = srcX - static_cast<float>(x0)
+        };
+    }
+
+    std::vector<AxisSample> ySamples(targetHeight);
+    for (uint32_t y = 0; y < targetHeight; ++y) {
+        const float srcY = static_cast<float>(y) * scaleY;
+        const uint32_t y0 = std::min(static_cast<uint32_t>(srcY), height_ - 1);
+        ySamples[y] = AxisSample{
+            .i0 = y0,
+            .i1 = std::min(y0 + 1, height_ - 1),
+            .f = srcY - static_cast<float>(y0)
+        };
+    }
+
+    for (uint32_t y = 0; y < targetHeight; ++y) {
+        const AxisSample& ys = ySamples[y];
+        const uint16_t* row0 = data_.data() + static_cast<size_t>(ys.i0) * width_;
+        const uint16_t* row1 = data_.data() + static_cast<size_t>(ys.i1) * width_;
+        uint16_t* dst = newData.data() + static_cast<size_t>(y) * targetWidth;
+
+        for (uint32_t x = 0; x < targetWidth; ++x) {
+            const AxisSample& xs = xSamples[x];
+            const float s00 = static_cast<float>(row0[xs.i0]);
+            const float s10 = static_cast<float>(row0[xs.i1]);
+            const float s01 = static_cast<float>(row1[xs.i0]);
+            const float s11 = static_cast<float>(row1[xs.i1]);
+            const float s0 = s00 * (1.0f - xs.f) + s10 * xs.f;
+            const float s1 = s01 * (1.0f - xs.f) + s11 * xs.f;
+            const float value = s0 * (1.0f - ys.f) + s1 * ys.f;
+            dst[x] = static_cast<uint16_t>(std::clamp(value, 0.0f, 65535.0f));
         }
     }
-    
+
     // Replace data
     data_ = std::move(newData);
     width_ = targetWidth;
     height_ = targetHeight;
     cachedMinMax_.reset();  // Invalidate cache
-    
+
     const auto endTime = std::chrono::high_resolution_clock::now();
     const double resizeTimeMs = std::chrono::duration<double, std::milli>(endTime - startTime).count();
-    
+
     LOG_INFO("Heightmap resized to {}x{} ({:.2f} MB, {:.2f} ms)",
              width_, height_,
              static_cast<double>(getSizeBytes()) / (1024.0 * 1024.0),
              resizeTimeMs);
-    
+
     return VoidResult();
 }
 
@@ -306,11 +340,11 @@ uint16_t Heightmap::sample(uint32_t x, uint32_t y) const noexcept {
 
 float Heightmap::sampleBilinear(float x, float y) const noexcept {
     if (data_.empty()) return 0.0f;
-    
+
     // Clamp coordinates
     x = std::clamp(x, 0.0f, static_cast<float>(width_ - 1));
     y = std::clamp(y, 0.0f, static_cast<float>(height_ - 1));
-    
+
     // Get integer and fractional parts
     const uint32_t x0 = static_cast<uint32_t>(x);
     const uint32_t y0 = static_cast<uint32_t>(y);
@@ -318,13 +352,13 @@ float Heightmap::sampleBilinear(float x, float y) const noexcept {
     const uint32_t y1 = std::min(y0 + 1, height_ - 1);
     const float fx = x - static_cast<float>(x0);
     const float fy = y - static_cast<float>(y0);
-    
+
     // Sample four corners
     const float s00 = static_cast<float>(data_[y0 * width_ + x0]);
     const float s10 = static_cast<float>(data_[y0 * width_ + x1]);
     const float s01 = static_cast<float>(data_[y1 * width_ + x0]);
     const float s11 = static_cast<float>(data_[y1 * width_ + x1]);
-    
+
     // Bilinear interpolation
     const float s0 = s00 * (1.0f - fx) + s10 * fx;
     const float s1 = s01 * (1.0f - fx) + s11 * fx;
@@ -339,12 +373,12 @@ std::pair<uint16_t, uint16_t> Heightmap::getMinMax() const noexcept {
     if (cachedMinMax_) {
         return *cachedMinMax_;
     }
-    
+
     if (data_.empty()) {
         cachedMinMax_ = {0, 0};
         return *cachedMinMax_;
     }
-    
+
     auto [minIt, maxIt] = std::minmax_element(data_.begin(), data_.end());
     cachedMinMax_ = {*minIt, *maxIt};
     return *cachedMinMax_;
@@ -354,21 +388,21 @@ std::pair<uint16_t, uint16_t> Heightmap::getMinMax() const noexcept {
 // GPU Texture
 // ─────────────────────────────────────────────────────────────────────────────
 
-VoidResult Heightmap::uploadToGPU(WGPUDevice device, WGPUQueue queue, 
+VoidResult Heightmap::uploadToGPU(WGPUDevice device, WGPUQueue queue,
                                    std::string_view label) {
     if (!isLoaded()) {
         LOG_ERROR("Cannot upload heightmap to GPU: no data loaded");
         return HeightmapError::UploadFailed;
     }
-    
+
     if (!device || !queue) {
         LOG_ERROR("Cannot upload heightmap to GPU: invalid device or queue");
         return HeightmapError::UploadFailed;
     }
-    
+
     // Release existing GPU resources
     releaseGPU();
-    
+
     // Create texture descriptor (single mip level)
     auto desc = gpu::TextureDesc::tex2D(
         width_, height_,
@@ -376,16 +410,16 @@ VoidResult Heightmap::uploadToGPU(WGPUDevice device, WGPUQueue queue,
         WGPUTextureUsage_TextureBinding | WGPUTextureUsage_CopyDst,
         label
     );
-    
+
     // Create texture with data
     const uint32_t bytesPerRow = width_ * sizeof(uint16_t);
     texture_ = gpu::createTextureWithData(device, queue, desc, getDataBytes(), bytesPerRow);
-    
+
     if (!texture_) {
         LOG_ERROR("Failed to create heightmap GPU texture");
         return HeightmapError::TextureCreationFailed;
     }
-    
+
     mipLevelCount_ = 1;  // Single mip level
     LOG_DEBUG("Uploaded heightmap to GPU: {}x{} (R16Uint, 1 mip level)", width_, height_);
     return VoidResult();
@@ -393,7 +427,7 @@ VoidResult Heightmap::uploadToGPU(WGPUDevice device, WGPUQueue queue,
 
 WGPUTextureView Heightmap::getTextureView() {
     if (!texture_) return nullptr;
-    
+
     if (!textureView_) {
         // Create a view that includes all mip levels
         gpu::TextureViewDesc viewDesc{};
@@ -404,10 +438,10 @@ WGPUTextureView Heightmap::getTextureView() {
         viewDesc.mipLevelCount = mipLevelCount_ > 0 ? mipLevelCount_ : 1;
         viewDesc.baseArrayLayer = 0;
         viewDesc.arrayLayerCount = 1;
-        
+
         textureView_ = gpu::createTextureView(texture_, viewDesc);
     }
-    
+
     return textureView_;
 }
 
@@ -416,19 +450,19 @@ void Heightmap::releaseGPU() {
         wgpuTextureViewRelease(textureView_);
         textureView_ = nullptr;
     }
-    
+
     if (texture_) {
         wgpuTextureDestroy(texture_);
         wgpuTextureRelease(texture_);
         texture_ = nullptr;
     }
-    
+
     mipLevelCount_ = 0;
 }
 
 void Heightmap::release() {
     releaseGPU();
-    
+
     data_.clear();
     data_.shrink_to_fit();
     width_ = 0;
@@ -441,7 +475,7 @@ WGPUTextureView Heightmap::getMipView(uint32_t level) {
     if (!texture_ || level >= mipLevelCount_) {
         return nullptr;
     }
-    
+
     return gpu::createMipView(texture_, level, WGPUTextureFormat_R16Uint);
 }
 
@@ -453,18 +487,18 @@ VoidResult Heightmap::uploadToGPUWithMips(WGPUDevice device, WGPUQueue queue,
         LOG_ERROR("Cannot upload heightmap to GPU: no data loaded");
         return HeightmapError::UploadFailed;
     }
-    
+
     if (!device || !queue) {
         LOG_ERROR("Cannot upload heightmap to GPU: invalid device or queue");
         return HeightmapError::UploadFailed;
     }
-    
+
     // Release existing GPU resources
     releaseGPU();
-    
+
     // Calculate mip levels
     mipLevelCount_ = calculateMipLevels(width_, height_);
-    
+
     // Create texture descriptor with mip chain
     // Note: For GPU mip generation, we need StorageBinding usage (not supported on all devices)
     WGPUTextureDescriptor texDesc{};
@@ -480,7 +514,7 @@ VoidResult Heightmap::uploadToGPUWithMips(WGPUDevice device, WGPUQueue queue,
     texDesc.sampleCount = 1;
     texDesc.viewFormatCount = 0;
     texDesc.viewFormats = nullptr;
-    
+
     // GPU mip generation is NOT supported for R16Uint textures because:
     // 1. r16uint is NOT a valid storage texture format in WebGPU 1.0
     // 2. Only 32-bit formats (r32uint, r32sint, r32float, etc.) are supported
@@ -494,25 +528,25 @@ VoidResult Heightmap::uploadToGPUWithMips(WGPUDevice device, WGPUQueue queue,
         LOG_WARN("GPU mip generation requested but R16Uint is not a valid storage texture format in WebGPU 1.0. "
                  "Falling back to CPU mip generation.");
     }
-    
+
     // Create texture without storage binding if needed
     if (!texture_) {
         texture_ = wgpuDeviceCreateTexture(device, &texDesc);
     }
-    
+
     if (!texture_) {
         LOG_ERROR("Failed to create mipped heightmap texture");
         mipLevelCount_ = 0;
         return HeightmapError::TextureCreationFailed;
     }
-    
+
     // Upload base level (level 0)
-    gpu::writeTexture(queue, texture_, getDataBytes(), width_, height_, 
+    gpu::writeTexture(queue, texture_, getDataBytes(), width_, height_,
                       width_ * sizeof(uint16_t), 0);
-    
+
     // Generate mip levels
     bool mipsGenerated = false;
-    
+
 #if defined(VOXY_NATIVE) || defined(VOXY_WASM)
     if (canUseGPUMips && !shaderPath.empty()) {
         // Try GPU mip generation
@@ -526,7 +560,7 @@ VoidResult Heightmap::uploadToGPUWithMips(WGPUDevice device, WGPUQueue queue,
         }
     }
 #endif
-    
+
     if (!mipsGenerated) {
         // Fall back to CPU mip generation
         if (!uploadMipsFromCPU(device, queue)) {
@@ -537,11 +571,11 @@ VoidResult Heightmap::uploadToGPUWithMips(WGPUDevice device, WGPUQueue queue,
                       mipLevelCount_ - 1, width_, height_);
         }
     }
-    
+
     LOG_INFO("Uploaded heightmap to GPU with mips: {}x{} ({} levels, {:.2f} MB total)",
              width_, height_, mipLevelCount_,
              static_cast<double>(getSizeBytes() * 4 / 3) / (1024.0 * 1024.0));
-    
+
     return VoidResult();
 }
 
@@ -550,14 +584,14 @@ bool Heightmap::uploadMipsFromCPU(WGPUDevice /*device*/, WGPUQueue queue) {
         LOG_WARN("uploadMipsFromCPU: No texture to upload mips to");
         return false;  // This is an error condition - texture should exist
     }
-    
+
     if (mipLevelCount_ < 2) {
         // Single mip level (or none) - no additional mips to generate
-        LOG_DEBUG("uploadMipsFromCPU: Texture has {} mip levels, no additional mips to generate", 
+        LOG_DEBUG("uploadMipsFromCPU: Texture has {} mip levels, no additional mips to generate",
                   mipLevelCount_);
         return true;
     }
-    
+
     // The terrain ray-caster shader relies on mips existing up to level 7 for
     // hierarchical traversal. Warn if we have fewer mip levels than expected.
     constexpr uint32_t RAYCAST_EXPECTED_MIP_LEVELS = 8;  // levels 0-7
@@ -566,33 +600,34 @@ bool Heightmap::uploadMipsFromCPU(WGPUDevice /*device*/, WGPUQueue queue) {
                  "This may affect hierarchical traversal performance for smaller heightmaps.",
                  mipLevelCount_, RAYCAST_EXPECTED_MIP_LEVELS);
     }
-    
-    // Generate mip chain using CPU
-    MaxHeightMipChain mipChain;
-    if (!mipChain.generateWithoutBase(data_, width_, height_)) {
-        LOG_ERROR("Failed to generate CPU mip chain");
-        return false;
-    }
-    
-    // Upload each mip level
+
+    std::span<const uint16_t> previousData = data_;
+    uint32_t previousWidth = width_;
+    uint32_t previousHeight = height_;
+    MipLevel currentLevel;
+
     for (uint32_t level = 1; level < mipLevelCount_; level++) {
-        const MipLevel* mipLevel = mipChain.getLevel(level);
-        if (!mipLevel || !mipLevel->isValid()) {
-            LOG_ERROR("Invalid mip level {}", level);
+        MipLevel nextLevel = generateNextMipLevel(previousData, previousWidth, previousHeight);
+        if (!nextLevel.isValid()) {
+            LOG_ERROR("Failed to generate CPU mip level {}", level);
             return false;
         }
-        
-        // Convert to byte span for upload
+
         std::span<const std::byte> levelBytes(
-            reinterpret_cast<const std::byte*>(mipLevel->data.data()),
-            mipLevel->sizeBytes()
+            reinterpret_cast<const std::byte*>(nextLevel.data.data()),
+            nextLevel.sizeBytes()
         );
-        
+
         gpu::writeTexture(queue, texture_, levelBytes,
-                          mipLevel->width, mipLevel->height,
-                          mipLevel->width * sizeof(uint16_t), level);
+                          nextLevel.width, nextLevel.height,
+                          nextLevel.width * sizeof(uint16_t), level);
+
+        currentLevel = std::move(nextLevel);
+        previousData = currentLevel.data;
+        previousWidth = currentLevel.width;
+        previousHeight = currentLevel.height;
     }
-    
+
     return true;
 }
 
@@ -604,17 +639,17 @@ Result<LoadResult, HeightmapError>
 Heightmap::load(const std::filesystem::path& path) {
     Heightmap hm;
     auto result = hm.loadFromFile(path);
-    
+
     if (!result) {
         return result.error();
     }
-    
+
     LoadResult loadResult;
     loadResult.data = std::move(hm.data_);
     loadResult.width = hm.width_;
     loadResult.height = hm.height_;
     loadResult.loadTimeMs = hm.loadTimeMs_;
-    
+
     return loadResult;
 }
 
@@ -636,4 +671,3 @@ Heightmap Heightmap::createFromData(std::vector<uint16_t>&& data,
 }
 
 } // namespace voxy::terrain
-

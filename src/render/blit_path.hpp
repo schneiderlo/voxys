@@ -110,6 +110,10 @@ public:
     /// @param depthView Texture view of R32Float depth from ray-caster
     void setDepthTexture(WGPUTextureView depthView);
 
+    /// Set the shadow texture from the ray-cast pass
+    /// @param shadowView Texture view of R32Float shadow visibility from ray-caster
+    void setShadowTexture(WGPUTextureView shadowView);
+
     /// Set the terrain albedo texture
     /// @param terrainView Texture view of terrain color/albedo
     void setTerrainTexture(WGPUTextureView terrainView);
@@ -149,6 +153,9 @@ public:
 
     /// Set Lego Mode
     void setLegoMode(bool enabled);
+
+    /// Copy a fully-built camera uniform block into this renderer
+    void setCameraUniforms(const CameraUniforms& uniforms);
 
     /// Render the fullscreen blit pass
     /// @param encoder Command encoder
@@ -205,6 +212,7 @@ private:
 
     // Input textures (not owned)
     WGPUTextureView depthView_ = nullptr;
+    WGPUTextureView shadowView_ = nullptr;
     WGPUTextureView terrainView_ = nullptr;
     WGPUTextureView lightmapView_ = nullptr;
 
@@ -225,4 +233,3 @@ private:
 };
 
 } // namespace voxy::render
-

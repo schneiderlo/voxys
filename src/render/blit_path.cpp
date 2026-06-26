@@ -45,6 +45,7 @@ BlitPath::BlitPath(BlitPath&& other) noexcept
     , debugUniformBuffer_(other.debugUniformBuffer_)
     , sampler_(other.sampler_)
     , depthView_(other.depthView_)
+    , shadowView_(other.shadowView_)
     , terrainView_(other.terrainView_)
     , lightmapView_(other.lightmapView_)
     , terrainWidth_(other.terrainWidth_)
@@ -69,6 +70,7 @@ BlitPath::BlitPath(BlitPath&& other) noexcept
     other.debugUniformBuffer_ = nullptr;
     other.sampler_ = nullptr;
     other.depthView_ = nullptr;
+    other.shadowView_ = nullptr;
     other.terrainView_ = nullptr;
     other.lightmapView_ = nullptr;
     other.uniforms_ = nullptr;
@@ -89,6 +91,7 @@ BlitPath& BlitPath::operator=(BlitPath&& other) noexcept {
         debugUniformBuffer_ = other.debugUniformBuffer_;
         sampler_ = other.sampler_;
         depthView_ = other.depthView_;
+        shadowView_ = other.shadowView_;
         terrainView_ = other.terrainView_;
         lightmapView_ = other.lightmapView_;
         terrainWidth_ = other.terrainWidth_;
@@ -112,6 +115,7 @@ BlitPath& BlitPath::operator=(BlitPath&& other) noexcept {
         other.debugUniformBuffer_ = nullptr;
         other.sampler_ = nullptr;
         other.depthView_ = nullptr;
+        other.shadowView_ = nullptr;
         other.terrainView_ = nullptr;
         other.lightmapView_ = nullptr;
         other.uniforms_ = nullptr;
@@ -159,6 +163,7 @@ void BlitPath::shutdown() {
     
     // Note: We don't own texture views, so don't release them
     depthView_ = nullptr;
+    shadowView_ = nullptr;
     terrainView_ = nullptr;
     lightmapView_ = nullptr;
     device_ = nullptr;
@@ -297,12 +302,13 @@ bool BlitPath::createBindGroupLayout() {
     // Layout matches ray_blit.wgsl:
     // @group(0) @binding(0) var<uniform> camera : CameraUniforms;
     // @group(0) @binding(1) var depthTex : texture_2d<f32>;
-    // @group(0) @binding(2) var terrainTex : texture_2d<f32>;
-    // @group(0) @binding(3) var lightmapTex : texture_2d<f32>;
-    // @group(0) @binding(4) var terrainSampler : sampler;
-    // @group(0) @binding(5) var<uniform> debug : DebugUniforms;
+    // @group(0) @binding(2) var shadowTex : texture_2d<f32>;
+    // @group(0) @binding(3) var terrainTex : texture_2d<f32>;
+    // @group(0) @binding(4) var lightmapTex : texture_2d<f32>;
+    // @group(0) @binding(5) var terrainSampler : sampler;
+    // @group(0) @binding(6) var<uniform> debug : DebugUniforms;
     
-    std::array<gpu::BindGroupLayoutEntry, 6> entries = {
+    std::array<gpu::BindGroupLayoutEntry, 7> entries = {
         gpu::BindGroupLayoutEntry(0)
             .vertexVisible()
             .fragmentVisible()
@@ -312,14 +318,17 @@ bool BlitPath::createBindGroupLayout() {
             .texture(WGPUTextureSampleType_UnfilterableFloat, WGPUTextureViewDimension_2D, false),
         gpu::BindGroupLayoutEntry(2)
             .fragmentVisible()
-            .texture(WGPUTextureSampleType_Float, WGPUTextureViewDimension_2D, false),
+            .texture(WGPUTextureSampleType_UnfilterableFloat, WGPUTextureViewDimension_2D, false),
         gpu::BindGroupLayoutEntry(3)
             .fragmentVisible()
             .texture(WGPUTextureSampleType_Float, WGPUTextureViewDimension_2D, false),
         gpu::BindGroupLayoutEntry(4)
             .fragmentVisible()
-            .sampler(WGPUSamplerBindingType_Filtering),
+            .texture(WGPUTextureSampleType_Float, WGPUTextureViewDimension_2D, false),
         gpu::BindGroupLayoutEntry(5)
+            .fragmentVisible()
+            .sampler(WGPUSamplerBindingType_Filtering),
+        gpu::BindGroupLayoutEntry(6)
             .fragmentVisible()
             .uniformBuffer(false, sizeof(DebugUniforms))
     };
@@ -417,6 +426,11 @@ bool BlitPath::createBindGroup() {
         LOG_ERROR("Cannot create bind group: no depth view set");
         return false;
     }
+
+    if (!shadowView_) {
+        LOG_ERROR("Cannot create bind group: no shadow view set");
+        return false;
+    }
     
     if (!terrainView_) {
         LOG_ERROR("Cannot create bind group: no terrain view set");
@@ -434,13 +448,14 @@ bool BlitPath::createBindGroup() {
         bindGroup_ = nullptr;
     }
     
-    std::array<gpu::BindGroupEntry, 6> entries = {
+    std::array<gpu::BindGroupEntry, 7> entries = {
         gpu::BindGroupEntry(0).buffer(uniformBuffer_, 0, sizeof(CameraUniforms)),
         gpu::BindGroupEntry(1).textureView(depthView_),
-        gpu::BindGroupEntry(2).textureView(terrainView_),
-        gpu::BindGroupEntry(3).textureView(lightmapView_),
-        gpu::BindGroupEntry(4).sampler(sampler_),
-        gpu::BindGroupEntry(5).buffer(debugUniformBuffer_, 0, sizeof(DebugUniforms))
+        gpu::BindGroupEntry(2).textureView(shadowView_),
+        gpu::BindGroupEntry(3).textureView(terrainView_),
+        gpu::BindGroupEntry(4).textureView(lightmapView_),
+        gpu::BindGroupEntry(5).sampler(sampler_),
+        gpu::BindGroupEntry(6).buffer(debugUniformBuffer_, 0, sizeof(DebugUniforms))
     };
     
     bindGroup_ = gpu::createBindGroup(device_, bindGroupLayout_, entries, "blit_bind_group");
@@ -463,6 +478,12 @@ void BlitPath::setDepthTexture(WGPUTextureView depthView) {
     depthView_ = depthView;
     bindGroupDirty_ = true;
     LOG_DEBUG("Set depth texture view");
+}
+
+void BlitPath::setShadowTexture(WGPUTextureView shadowView) {
+    shadowView_ = shadowView;
+    bindGroupDirty_ = true;
+    LOG_DEBUG("Set shadow texture view");
 }
 
 void BlitPath::setTerrainTexture(WGPUTextureView terrainView) {
@@ -514,6 +535,13 @@ void BlitPath::setLegoMode(bool enabled) {
     }
 }
 
+void BlitPath::setCameraUniforms(const CameraUniforms& uniforms) {
+    if (!uniforms_) return;
+
+    *uniforms_ = uniforms;
+    uniformsDirty_ = true;
+}
+
 void BlitPath::updateUniformBuffer() {
     if (!uniformBuffer_ || !queue_ || !uniforms_) return;
     
@@ -531,7 +559,7 @@ void BlitPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView) {
         return;
     }
     
-    if (!depthView_ || !terrainView_ || !lightmapView_) {
+    if (!depthView_ || !shadowView_ || !terrainView_ || !lightmapView_) {
         LOG_WARN("BlitPath::render: missing required texture bindings");
         return;
     }
@@ -613,4 +641,3 @@ const CameraUniforms& BlitPath::getUniforms() const noexcept {
 }
 
 } // namespace voxy::render
-

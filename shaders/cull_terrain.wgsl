@@ -27,15 +27,18 @@ struct IndirectArgs {
     firstInstance : u32,
 };
 
+struct CullUniforms {
+    tilesX : u32,
+    tilesY : u32,
+    totalTiles : u32,
+    tileSizeGrid : u32,
+    originAndCellScale : vec4<f32>, // x/y = origin, z = cell scale
+};
+
 @group(0) @binding(0) var<uniform> camera : CameraUniforms;
 @group(0) @binding(1) var<storage, read_write> indirectArgs : IndirectArgs;
 @group(0) @binding(2) var<storage, read_write> visibleIndices : array<u32>;
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Constants
-// ─────────────────────────────────────────────────────────────────────────────
-
-const TILE_QUADS : u32 = 64u;
+@group(0) @binding(3) var<uniform> cull : CullUniforms;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Culling Logic
@@ -73,44 +76,26 @@ fn isAABBVisible(minPos: vec3<f32>, maxPos: vec3<f32>) -> bool {
 fn main(@builtin(global_invocation_id) global_id : vec3<u32>) {
     let tileIndex = global_id.x;
 
-    // We need to reconstruct the logic for "Total Tiles" to bounds check
-    // This duplicates logic from TrianglePath::calculateTileCount()
-    // but we can assume we dispatch exactly enough or slightly more.
-    // Ideally we'd pass totalTileCount as a uniform, but we can compute it from metrics.
-
-    let step = max(u32(camera.metrics.z), 1u);
     let terrainSize = vec2<u32>(u32(camera.terrainSize.x), u32(camera.terrainSize.y));
-
-    let quadsX = max(((terrainSize.x - 1u) + step - 1u) / step, 1u);
-    let quadsY = max(((terrainSize.y - 1u) + step - 1u) / step, 1u);
-    let tilesX = max((quadsX + TILE_QUADS - 1u) / TILE_QUADS, 1u);
-    let tilesY = max((quadsY + TILE_QUADS - 1u) / TILE_QUADS, 1u);
-    let totalTiles = tilesX * tilesY;
-
-    if (tileIndex >= totalTiles) {
+    if (tileIndex >= cull.totalTiles) {
         return;
     }
 
     // Decode tile position
-    let tileX = tileIndex % tilesX;
-    let tileY = tileIndex / tilesX;
+    let tileX = tileIndex % cull.tilesX;
+    let tileY = tileIndex / cull.tilesX;
 
     // Calculate World Space AABB
     // Based on vs() logic in terrain.wgsl
 
     let heightScale = camera.metrics.x;
-    let cellScale = camera.metrics.y;
+    let cellScale = cull.originAndCellScale.z;
+    let origin = cull.originAndCellScale.xy;
 
-    // Tile covers TILE_QUADS * step units in heightmap grid space
-    let tileSizeGrid = TILE_QUADS * step;
-
-    let startX = tileX * tileSizeGrid;
-    let startY = tileY * tileSizeGrid;
-    let endX = min(startX + tileSizeGrid, terrainSize.x);
-    let endY = min(startY + tileSizeGrid, terrainSize.y);
-
-    // Origin calculation matches Vertex Shader
-    let origin = 0.5 * (vec2<f32>(camera.terrainSize) - vec2<f32>(1.0, 1.0)) * cellScale;
+    let startX = tileX * cull.tileSizeGrid;
+    let startY = tileY * cull.tileSizeGrid;
+    let endX = min(startX + cull.tileSizeGrid, terrainSize.x);
+    let endY = min(startY + cull.tileSizeGrid, terrainSize.y);
 
     let minX = f32(startX) * cellScale - origin.x;
     let maxX = f32(endX) * cellScale - origin.x;

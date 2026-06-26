@@ -31,6 +31,8 @@ RaycastPath::RaycastPath(RaycastPath&& other) noexcept
     , uniformBuffer_(other.uniformBuffer_)
     , depthOutputTexture_(other.depthOutputTexture_)
     , depthOutputView_(other.depthOutputView_)
+    , shadowOutputTexture_(other.shadowOutputTexture_)
+    , shadowOutputView_(other.shadowOutputView_)
     , outputWidth_(other.outputWidth_)
     , outputHeight_(other.outputHeight_)
     , heightmapView_(other.heightmapView_)
@@ -52,6 +54,8 @@ RaycastPath::RaycastPath(RaycastPath&& other) noexcept
     other.uniformBuffer_ = nullptr;
     other.depthOutputTexture_ = nullptr;
     other.depthOutputView_ = nullptr;
+    other.shadowOutputTexture_ = nullptr;
+    other.shadowOutputView_ = nullptr;
     other.heightmapView_ = nullptr;
     other.uniforms_ = nullptr;
 }
@@ -70,6 +74,8 @@ RaycastPath& RaycastPath::operator=(RaycastPath&& other) noexcept {
         uniformBuffer_ = other.uniformBuffer_;
         depthOutputTexture_ = other.depthOutputTexture_;
         depthOutputView_ = other.depthOutputView_;
+        shadowOutputTexture_ = other.shadowOutputTexture_;
+        shadowOutputView_ = other.shadowOutputView_;
         outputWidth_ = other.outputWidth_;
         outputHeight_ = other.outputHeight_;
         heightmapView_ = other.heightmapView_;
@@ -90,6 +96,8 @@ RaycastPath& RaycastPath::operator=(RaycastPath&& other) noexcept {
         other.uniformBuffer_ = nullptr;
         other.depthOutputTexture_ = nullptr;
         other.depthOutputView_ = nullptr;
+        other.shadowOutputTexture_ = nullptr;
+        other.shadowOutputView_ = nullptr;
         other.heightmapView_ = nullptr;
         other.uniforms_ = nullptr;
     }
@@ -128,6 +136,14 @@ void RaycastPath::shutdown() {
     if (depthOutputTexture_) {
         wgpuTextureRelease(depthOutputTexture_);
         depthOutputTexture_ = nullptr;
+    }
+    if (shadowOutputView_) {
+        wgpuTextureViewRelease(shadowOutputView_);
+        shadowOutputView_ = nullptr;
+    }
+    if (shadowOutputTexture_) {
+        wgpuTextureRelease(shadowOutputTexture_);
+        shadowOutputTexture_ = nullptr;
     }
     
     // Free heap-allocated uniforms
@@ -203,14 +219,14 @@ bool RaycastPath::init(WGPUDevice device, WGPUQueue queue,
 // ─────────────────────────────────────────────────────────────────────────────
 
 bool RaycastPath::createDepthOutputTexture() {
-    // Create RG32Float storage texture for ray-cast depth output and shadow data
-    gpu::TextureDesc texDesc = gpu::TextureDesc::storage(
+    // Create separate R32Float storage textures for ray-cast depth and shadow data.
+    gpu::TextureDesc depthDesc = gpu::TextureDesc::storage(
         outputWidth_, outputHeight_,
-        WGPUTextureFormat_RG32Float,
+        WGPUTextureFormat_R32Float,
         "raycast_depth_output"
     );
     
-    depthOutputTexture_ = gpu::createTexture(device_, texDesc);
+    depthOutputTexture_ = gpu::createTexture(device_, depthDesc);
     
     if (!depthOutputTexture_) {
         LOG_ERROR("Failed to create depth output texture");
@@ -220,7 +236,7 @@ bool RaycastPath::createDepthOutputTexture() {
     // Create texture view
     gpu::TextureViewDesc viewDesc{};
     viewDesc.label = "raycast_depth_output_view";
-    viewDesc.format = WGPUTextureFormat_RG32Float;
+    viewDesc.format = WGPUTextureFormat_R32Float;
     
     depthOutputView_ = gpu::createTextureView(depthOutputTexture_, viewDesc);
     
@@ -228,8 +244,32 @@ bool RaycastPath::createDepthOutputTexture() {
         LOG_ERROR("Failed to create depth output texture view");
         return false;
     }
+
+    gpu::TextureDesc shadowDesc = gpu::TextureDesc::storage(
+        outputWidth_, outputHeight_,
+        WGPUTextureFormat_R32Float,
+        "raycast_shadow_output"
+    );
+
+    shadowOutputTexture_ = gpu::createTexture(device_, shadowDesc);
+
+    if (!shadowOutputTexture_) {
+        LOG_ERROR("Failed to create shadow output texture");
+        return false;
+    }
+
+    gpu::TextureViewDesc shadowViewDesc{};
+    shadowViewDesc.label = "raycast_shadow_output_view";
+    shadowViewDesc.format = WGPUTextureFormat_R32Float;
+
+    shadowOutputView_ = gpu::createTextureView(shadowOutputTexture_, shadowViewDesc);
+
+    if (!shadowOutputView_) {
+        LOG_ERROR("Failed to create shadow output texture view");
+        return false;
+    }
     
-    LOG_DEBUG("Created depth output texture: {}x{} R32Float", outputWidth_, outputHeight_);
+    LOG_DEBUG("Created raycast output textures: {}x{} R32Float", outputWidth_, outputHeight_);
     return true;
 }
 
@@ -269,9 +309,10 @@ bool RaycastPath::createBindGroupLayout() {
     // Layout matches terrain_raycast.wgsl:
     // @group(0) @binding(0) var<uniform> camera : CameraUniforms;
     // @group(0) @binding(1) var heightTex : texture_2d<u32>;
-    // @group(0) @binding(2) var outDepth : texture_storage_2d<rg32float, write>;
+    // @group(0) @binding(2) var outDepth : texture_storage_2d<r32float, write>;
+    // @group(0) @binding(3) var outShadow : texture_storage_2d<r32float, write>;
     
-    std::array<gpu::BindGroupLayoutEntry, 3> entries = {
+    std::array<gpu::BindGroupLayoutEntry, 4> entries = {
         gpu::BindGroupLayoutEntry(0)
             .computeVisible()
             .uniformBuffer(false, sizeof(CameraUniforms)),
@@ -281,7 +322,12 @@ bool RaycastPath::createBindGroupLayout() {
         gpu::BindGroupLayoutEntry(2)
             .computeVisible()
             .storageTexture(WGPUStorageTextureAccess_WriteOnly, 
-                           WGPUTextureFormat_RG32Float,
+                           WGPUTextureFormat_R32Float,
+                           WGPUTextureViewDimension_2D),
+        gpu::BindGroupLayoutEntry(3)
+            .computeVisible()
+            .storageTexture(WGPUStorageTextureAccess_WriteOnly,
+                           WGPUTextureFormat_R32Float,
                            WGPUTextureViewDimension_2D)
     };
     
@@ -350,6 +396,11 @@ bool RaycastPath::createBindGroup() {
         LOG_ERROR("Cannot create bind group: no depth output view");
         return false;
     }
+
+    if (!shadowOutputView_) {
+        LOG_ERROR("Cannot create bind group: no shadow output view");
+        return false;
+    }
     
     // Release old bind group if exists
     if (bindGroup_) {
@@ -357,10 +408,11 @@ bool RaycastPath::createBindGroup() {
         bindGroup_ = nullptr;
     }
     
-    std::array<gpu::BindGroupEntry, 3> entries = {
+    std::array<gpu::BindGroupEntry, 4> entries = {
         gpu::BindGroupEntry(0).buffer(uniformBuffer_, 0, sizeof(CameraUniforms)),
         gpu::BindGroupEntry(1).textureView(heightmapView_),
-        gpu::BindGroupEntry(2).textureView(depthOutputView_)
+        gpu::BindGroupEntry(2).textureView(depthOutputView_),
+        gpu::BindGroupEntry(3).textureView(shadowOutputView_)
     };
     
     bindGroup_ = gpu::createBindGroup(device_, bindGroupLayout_, entries, "raycast_bind_group");
@@ -400,6 +452,14 @@ bool RaycastPath::resize(uint32_t width, uint32_t height) {
     if (depthOutputTexture_) {
         wgpuTextureRelease(depthOutputTexture_);
         depthOutputTexture_ = nullptr;
+    }
+    if (shadowOutputView_) {
+        wgpuTextureViewRelease(shadowOutputView_);
+        shadowOutputView_ = nullptr;
+    }
+    if (shadowOutputTexture_) {
+        wgpuTextureRelease(shadowOutputTexture_);
+        shadowOutputTexture_ = nullptr;
     }
     
     outputWidth_ = width;
@@ -461,6 +521,13 @@ void RaycastPath::setLegoMode(bool enabled) {
         uniforms_->setLegoMode(enabled);
         uniformsDirty_ = true;
     }
+}
+
+void RaycastPath::setCameraUniforms(const CameraUniforms& uniforms) {
+    if (!uniforms_) return;
+
+    *uniforms_ = uniforms;
+    uniformsDirty_ = true;
 }
 
 void RaycastPath::updateUniformBuffer() {
@@ -537,4 +604,3 @@ uint32_t RaycastPath::getWorkgroupCountY() const noexcept {
 }
 
 } // namespace voxy::render
-

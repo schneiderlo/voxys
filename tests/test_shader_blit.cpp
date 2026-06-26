@@ -117,17 +117,27 @@ TEST_F(BlitShaderTest, HasUniformBindings) {
     EXPECT_NE(shaderSource_.find("@group(0) @binding(1)"), std::string::npos)
         << "Shader missing depthTex binding";
     EXPECT_NE(shaderSource_.find("@group(0) @binding(2)"), std::string::npos)
-        << "Shader missing terrainTex binding";
+        << "Shader missing shadowTex binding";
     EXPECT_NE(shaderSource_.find("@group(0) @binding(3)"), std::string::npos)
-        << "Shader missing lightmapTex binding";
+        << "Shader missing terrainTex binding";
     EXPECT_NE(shaderSource_.find("@group(0) @binding(4)"), std::string::npos)
+        << "Shader missing lightmapTex binding";
+    EXPECT_NE(shaderSource_.find("@group(0) @binding(5)"), std::string::npos)
         << "Shader missing terrainSampler binding";
+    EXPECT_NE(shaderSource_.find("@group(0) @binding(6)"), std::string::npos)
+        << "Shader missing debug uniform binding";
 }
 
 TEST_F(BlitShaderTest, HasDepthTexBinding) {
     ASSERT_FALSE(shaderSource_.empty());
     EXPECT_NE(shaderSource_.find("var depthTex : texture_2d<f32>"), std::string::npos)
         << "Shader missing depthTex texture declaration";
+}
+
+TEST_F(BlitShaderTest, HasShadowTexBinding) {
+    ASSERT_FALSE(shaderSource_.empty());
+    EXPECT_NE(shaderSource_.find("var shadowTex : texture_2d<f32>"), std::string::npos)
+        << "Shader missing shadowTex texture declaration";
 }
 
 TEST_F(BlitShaderTest, HasTerrainTexBinding) {
@@ -420,4 +430,3 @@ TEST_F(BlitShaderGPUTest, ShaderCompilesOnGPU) {
 }
 
 } // namespace voxy
-

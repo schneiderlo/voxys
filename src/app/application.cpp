@@ -25,6 +25,7 @@
 #include "render/blit_path.hpp"
 
 #include <chrono>
+#include <algorithm>
 #include <cmath>
 #include <filesystem>
 #include <system_error>
@@ -609,6 +610,7 @@ void Application::onResize(uint32_t width, uint32_t height) {
         // Rebind depth texture after resize
         if (blitPath_) {
             blitPath_->setDepthTexture(raycastPath_->getDepthOutputView());
+            blitPath_->setShadowTexture(raycastPath_->getShadowOutputView());
         }
     }
     
@@ -1129,6 +1131,7 @@ bool Application::initRenderers() {
 
         // Bind textures to blit path
         blitPath_->setDepthTexture(raycastPath_->getDepthOutputView());
+        blitPath_->setShadowTexture(raycastPath_->getShadowOutputView());
         
         // TerrainTextures guarantees valid views after init (either loaded or placeholder)
         blitPath_->setTerrainTexture(terrainTextures_->getAlbedoView());
@@ -1195,21 +1198,40 @@ void Application::updateCameraUniforms() {
     const auto& view = camera_->viewMatrix();
     const auto& proj = camera_->projectionMatrix();
     const auto& pos = camera_->position();
-    float ambient = config_.ambientIntensity;
+    const float ambient = config_.ambientIntensity;
+    const uint32_t terrainWidth = heightmap_ ? heightmap_->getWidth() : stats_.terrainWidth;
+    const uint32_t terrainHeight = heightmap_ ? heightmap_->getHeight() : stats_.terrainHeight;
+    const uint32_t lodStep =
+        (config_.renderPath == RenderPath::Triangle && trianglePath_) ? trianglePath_->getLODStep() : 1u;
+    const glm::vec3 worldLightDir = glm::normalize(glm::vec3(0.3f, 0.8f, 0.4f));
+    constexpr float fogDensity = 0.0001f;
 
-    if (trianglePath_ && trianglePath_->isInitialized()) {
-        trianglePath_->updateCamera(view, proj, pos, ambient);
-        trianglePath_->setLegoMode(legoMode_);
+    render::CameraUniforms uniforms;
+    uniforms.setTerrain(
+        std::max(terrainWidth, 1u),
+        std::max(terrainHeight, 1u),
+        config_.heightScale,
+        config_.cellScale,
+        static_cast<float>(lodStep),
+        fogDensity
+    );
+    uniforms.setCamera(view, proj, pos);
+    uniforms.setLightDirection(worldLightDir, view, ambient);
+    uniforms.setLegoMode(legoMode_);
+
+    if (config_.renderPath == RenderPath::Triangle &&
+        trianglePath_ && trianglePath_->isInitialized()) {
+        trianglePath_->setCameraUniforms(uniforms);
     }
 
-    if (raycastPath_ && raycastPath_->isInitialized()) {
-        raycastPath_->updateCamera(view, proj, pos, ambient);
-        raycastPath_->setLegoMode(legoMode_);
-    }
+    if (config_.renderPath == RenderPath::Raycast) {
+        if (raycastPath_ && raycastPath_->isInitialized()) {
+            raycastPath_->setCameraUniforms(uniforms);
+        }
 
-    if (blitPath_ && blitPath_->isInitialized()) {
-        blitPath_->updateCamera(view, proj, pos, ambient);
-        blitPath_->setLegoMode(legoMode_);
+        if (blitPath_ && blitPath_->isInitialized()) {
+            blitPath_->setCameraUniforms(uniforms);
+        }
     }
 }
 
@@ -1594,4 +1616,3 @@ void Application::captureScreenshot(const std::string& filepath) {
 }
 
 } // namespace voxy
-

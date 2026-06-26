@@ -34,7 +34,29 @@ MipLevel generateNextMipLevel(std::span<const uint16_t> srcData,
             const uint16_t* row1 = row0 + srcWidth;
             uint16_t* dst = result.data.data() + y * result.width;
 
-            for (uint32_t x = 0; x < result.width; x++) {
+            uint32_t x = 0;
+            for (; x + 3 < result.width; x += 4) {
+                const uint32_t sx0 = x * 2;
+                const uint32_t sx1 = sx0 + 2;
+                const uint32_t sx2 = sx0 + 4;
+                const uint32_t sx3 = sx0 + 6;
+
+                const uint16_t a0 = std::max(std::max(row0[sx0], row0[sx0 + 1]),
+                                             std::max(row1[sx0], row1[sx0 + 1]));
+                const uint16_t a1 = std::max(std::max(row0[sx1], row0[sx1 + 1]),
+                                             std::max(row1[sx1], row1[sx1 + 1]));
+                const uint16_t a2 = std::max(std::max(row0[sx2], row0[sx2 + 1]),
+                                             std::max(row1[sx2], row1[sx2 + 1]));
+                const uint16_t a3 = std::max(std::max(row0[sx3], row0[sx3 + 1]),
+                                             std::max(row1[sx3], row1[sx3 + 1]));
+
+                dst[x] = a0;
+                dst[x + 1] = a1;
+                dst[x + 2] = a2;
+                dst[x + 3] = a3;
+            }
+
+            for (; x < result.width; x++) {
                 const uint32_t sx = x * 2;
                 const uint16_t s00 = row0[sx];
                 const uint16_t s10 = row0[sx + 1];
@@ -227,5 +249,4 @@ void MaxHeightMipChain::clear() {
 }
 
 } // namespace voxy::terrain
-
 

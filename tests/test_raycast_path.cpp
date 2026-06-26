@@ -51,6 +51,8 @@ TEST(RaycastPathTest, DefaultConstruction) {
     EXPECT_EQ(renderer.getUniformBuffer(), nullptr);
     EXPECT_EQ(renderer.getDepthOutputTexture(), nullptr);
     EXPECT_EQ(renderer.getDepthOutputView(), nullptr);
+    EXPECT_EQ(renderer.getShadowOutputTexture(), nullptr);
+    EXPECT_EQ(renderer.getShadowOutputView(), nullptr);
     EXPECT_EQ(renderer.getOutputWidth(), 0u);
     EXPECT_EQ(renderer.getOutputHeight(), 0u);
 }
@@ -275,6 +277,8 @@ TEST_F(RaycastPathGPUTest, InitAndShutdown) {
     EXPECT_NE(renderer_.getUniformBuffer(), nullptr);
     EXPECT_NE(renderer_.getDepthOutputTexture(), nullptr);
     EXPECT_NE(renderer_.getDepthOutputView(), nullptr);
+    EXPECT_NE(renderer_.getShadowOutputTexture(), nullptr);
+    EXPECT_NE(renderer_.getShadowOutputView(), nullptr);
     EXPECT_EQ(renderer_.getOutputWidth(), 1920u);
     EXPECT_EQ(renderer_.getOutputHeight(), 1080u);
     
@@ -282,6 +286,7 @@ TEST_F(RaycastPathGPUTest, InitAndShutdown) {
     
     EXPECT_FALSE(renderer_.isInitialized());
     EXPECT_EQ(renderer_.getDepthOutputTexture(), nullptr);
+    EXPECT_EQ(renderer_.getShadowOutputTexture(), nullptr);
 }
 
 TEST_F(RaycastPathGPUTest, WorkgroupCounts) {
@@ -324,6 +329,7 @@ TEST_F(RaycastPathGPUTest, Resize) {
     EXPECT_EQ(renderer_.getOutputWidth(), 1280u);
     EXPECT_EQ(renderer_.getOutputHeight(), 720u);
     EXPECT_NE(renderer_.getDepthOutputView(), nullptr);
+    EXPECT_NE(renderer_.getShadowOutputView(), nullptr);
 }
 
 TEST_F(RaycastPathGPUTest, ResizeToSameSize) {
@@ -340,12 +346,14 @@ TEST_F(RaycastPathGPUTest, ResizeToSameSize) {
     ));
     
     auto view = renderer_.getDepthOutputView();
+    auto shadowView = renderer_.getShadowOutputView();
     
     // Resize to same size should be a no-op
     EXPECT_TRUE(renderer_.resize(1920, 1080));
     
     // View should be the same (not recreated)
     EXPECT_EQ(renderer_.getDepthOutputView(), view);
+    EXPECT_EQ(renderer_.getShadowOutputView(), shadowView);
 }
 
 TEST_F(RaycastPathGPUTest, ResizeToZeroFails) {
@@ -460,4 +468,3 @@ TEST_F(RaycastPathGPUTest, DispatchWithHeightmap) {
 }
 
 } // namespace voxy::render
-

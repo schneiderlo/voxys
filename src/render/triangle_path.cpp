@@ -14,6 +14,20 @@
 
 namespace voxy::render {
 
+namespace {
+
+struct CullUniforms {
+    uint32_t tilesX = 0;
+    uint32_t tilesY = 0;
+    uint32_t totalTiles = 0;
+    uint32_t tileSizeGrid = 0;
+    glm::vec4 originAndCellScale = glm::vec4(0.0f);
+};
+
+static_assert(sizeof(CullUniforms) == 32, "CullUniforms must be 32 bytes");
+
+} // namespace
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // CameraUniforms Implementation
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -107,6 +121,7 @@ TrianglePath::TrianglePath(TrianglePath&& other) noexcept
     , uniformBuffer_(other.uniformBuffer_)
     , indirectBuffer_(other.indirectBuffer_)
     , visibleIndicesBuffer_(other.visibleIndicesBuffer_)
+    , cullUniformBuffer_(other.cullUniformBuffer_)
     , heightmapView_(other.heightmapView_)
     , heightmapWidth_(other.heightmapWidth_)
     , heightmapHeight_(other.heightmapHeight_)
@@ -118,6 +133,7 @@ TrianglePath::TrianglePath(TrianglePath&& other) noexcept
     , tilesX_(other.tilesX_)
     , tilesY_(other.tilesY_)
     , uniformsDirty_(other.uniformsDirty_)
+    , cullUniformsDirty_(other.cullUniformsDirty_)
     , bindGroupDirty_(other.bindGroupDirty_)
     , wireframeEnabled_(other.wireframeEnabled_)
 {
@@ -139,6 +155,7 @@ TrianglePath::TrianglePath(TrianglePath&& other) noexcept
     other.uniformBuffer_ = nullptr;
     other.indirectBuffer_ = nullptr;
     other.visibleIndicesBuffer_ = nullptr;
+    other.cullUniformBuffer_ = nullptr;
     other.heightmapView_ = nullptr;
     other.albedoView_ = nullptr;
     other.lightmapView_ = nullptr;
@@ -166,6 +183,7 @@ TrianglePath& TrianglePath::operator=(TrianglePath&& other) noexcept {
         uniformBuffer_ = other.uniformBuffer_;
         indirectBuffer_ = other.indirectBuffer_;
         visibleIndicesBuffer_ = other.visibleIndicesBuffer_;
+        cullUniformBuffer_ = other.cullUniformBuffer_;
         heightmapView_ = other.heightmapView_;
         heightmapWidth_ = other.heightmapWidth_;
         heightmapHeight_ = other.heightmapHeight_;
@@ -177,6 +195,7 @@ TrianglePath& TrianglePath::operator=(TrianglePath&& other) noexcept {
         tilesX_ = other.tilesX_;
         tilesY_ = other.tilesY_;
         uniformsDirty_ = other.uniformsDirty_;
+        cullUniformsDirty_ = other.cullUniformsDirty_;
         bindGroupDirty_ = other.bindGroupDirty_;
         wireframeEnabled_ = other.wireframeEnabled_;
         
@@ -197,6 +216,7 @@ TrianglePath& TrianglePath::operator=(TrianglePath&& other) noexcept {
         other.uniformBuffer_ = nullptr;
         other.indirectBuffer_ = nullptr;
         other.visibleIndicesBuffer_ = nullptr;
+        other.cullUniformBuffer_ = nullptr;
         other.heightmapView_ = nullptr;
         other.albedoView_ = nullptr;
         other.lightmapView_ = nullptr;
@@ -265,6 +285,10 @@ void TrianglePath::shutdown() {
     if (visibleIndicesBuffer_) {
         wgpuBufferRelease(visibleIndicesBuffer_);
         visibleIndicesBuffer_ = nullptr;
+    }
+    if (cullUniformBuffer_) {
+        wgpuBufferRelease(cullUniformBuffer_);
+        cullUniformBuffer_ = nullptr;
     }
     
     // Note: We don't own these views/samplers, so don't release them.
@@ -657,6 +681,7 @@ void TrianglePath::calculateTileCount() {
     // Ensure at least 1 tile
     tilesX_ = std::max(tilesX_, 1u);
     tilesY_ = std::max(tilesY_, 1u);
+    cullUniformsDirty_ = true;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -671,6 +696,11 @@ void TrianglePath::updateCamera(const glm::mat4& view, const glm::mat4& proj,
     glm::vec3 worldLightDir = glm::normalize(glm::vec3(0.3f, 0.8f, 0.4f));
     uniforms_.setLightDirection(worldLightDir, view, ambientIntensity);
     
+    uniformsDirty_ = true;
+}
+
+void TrianglePath::setCameraUniforms(const CameraUniforms& uniforms) {
+    uniforms_ = uniforms;
     uniformsDirty_ = true;
 }
 
@@ -695,6 +725,28 @@ void TrianglePath::updateUniformBuffer() {
     uniformsDirty_ = false;
 }
 
+void TrianglePath::updateCullUniformBuffer() {
+    if (!cullUniformBuffer_ || !queue_) return;
+
+    const uint32_t terrainWidth = std::max(heightmapWidth_, 1u);
+    const uint32_t terrainHeight = std::max(heightmapHeight_, 1u);
+    const uint32_t step = std::max(config_.lodStep, 1u);
+    const float cellScale = config_.cellScale;
+    const glm::vec2 terrainSize(static_cast<float>(terrainWidth),
+                                static_cast<float>(terrainHeight));
+    const glm::vec2 origin = 0.5f * (terrainSize - glm::vec2(1.0f, 1.0f)) * cellScale;
+
+    CullUniforms uniforms;
+    uniforms.tilesX = tilesX_;
+    uniforms.tilesY = tilesY_;
+    uniforms.totalTiles = tilesX_ * tilesY_;
+    uniforms.tileSizeGrid = TILE_QUADS * step;
+    uniforms.originAndCellScale = glm::vec4(origin.x, origin.y, cellScale, 0.0f);
+
+    gpu::writeBuffer(queue_, cullUniformBuffer_, 0, uniforms);
+    cullUniformsDirty_ = false;
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Rendering
 // ─────────────────────────────────────────────────────────────────────────────
@@ -715,6 +767,10 @@ void TrianglePath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
     if (uniformsDirty_) {
         updateUniformBuffer();
     }
+
+    if (cullUniformsDirty_) {
+        updateCullUniformBuffer();
+    }
     
     // Update Compute Bind Group (if needed) and Main Bind Group
     if (bindGroupDirty_ || !bindGroup_) {
@@ -729,10 +785,8 @@ void TrianglePath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
     // 1. Reset Indirect Buffer
     // ─────────────────────────────────────────────────────────────────────────
 
-    // Reset instance count (offset 4) to 0.
-    // We can use WriteBuffer for this 4-byte update.
-    uint32_t zero = 0;
-    wgpuQueueWriteBuffer(queue_, indirectBuffer_, 4, &zero, sizeof(uint32_t));
+    // Reset instance count (offset 4) to 0 on the same command stream.
+    wgpuCommandEncoderClearBuffer(encoder, indirectBuffer_, sizeof(uint32_t), sizeof(uint32_t));
 
     // ─────────────────────────────────────────────────────────────────────────
     // 2. Compute Culling Pass
@@ -844,16 +898,27 @@ bool TrianglePath::createComputeResources(const TrianglePathConfig& config) {
     visibleIndicesBuffer_ = gpu::createBuffer(device_, visibleDesc);
     if (!visibleIndicesBuffer_) return false;
 
-    // 3. Load Compute Shader
+    // 3. Create Cull Constants Uniform Buffer
+    gpu::BufferDesc cullDesc = gpu::BufferDesc::uniform(
+        gpu::alignUniformBufferSize(sizeof(CullUniforms)),
+        "terrain_cull_uniforms"
+    );
+
+    cullUniformBuffer_ = gpu::createBuffer(device_, cullDesc);
+    if (!cullUniformBuffer_) return false;
+    updateCullUniformBuffer();
+
+    // 4. Load Compute Shader
     std::filesystem::path cullShaderPath = config.shaderPath.parent_path() / "cull_terrain.wgsl";
     computeModule_ = gpu::loadShaderModule(device_, cullShaderPath, "cull_terrain.wgsl");
     if (!computeModule_) return false;
 
-    // 4. Create Compute Bind Group Layout
+    // 5. Create Compute Bind Group Layout
     // @group(0) @binding(0) var<uniform> camera : CameraUniforms;
     // @group(0) @binding(1) var<storage, read_write> indirectArgs : IndirectArgs;
     // @group(0) @binding(2) var<storage, read_write> visibleIndices : array<u32>;
-    std::array<gpu::BindGroupLayoutEntry, 3> entries = {
+    // @group(0) @binding(3) var<uniform> cull : CullUniforms;
+    std::array<gpu::BindGroupLayoutEntry, 4> entries = {
         gpu::BindGroupLayoutEntry(0)
             .computeVisible()
             .uniformBuffer(false, sizeof(CameraUniforms)),
@@ -862,13 +927,16 @@ bool TrianglePath::createComputeResources(const TrianglePathConfig& config) {
             .storageBuffer(false), // read_write
         gpu::BindGroupLayoutEntry(2)
             .computeVisible()
-            .storageBuffer(false)  // read_write
+            .storageBuffer(false), // read_write
+        gpu::BindGroupLayoutEntry(3)
+            .computeVisible()
+            .uniformBuffer(false, sizeof(CullUniforms))
     };
 
     computeBindGroupLayout_ = gpu::createBindGroupLayout(device_, entries, "cull_compute_layout");
     if (!computeBindGroupLayout_) return false;
 
-    // 5. Create Compute Pipeline
+    // 6. Create Compute Pipeline
     std::array<WGPUBindGroupLayout, 1> layouts = { computeBindGroupLayout_ };
     computePipelineLayout_ = gpu::createPipelineLayout(device_, layouts, "cull_pipeline_layout");
     if (!computePipelineLayout_) return false;
@@ -882,24 +950,26 @@ bool TrianglePath::createComputeResources(const TrianglePathConfig& config) {
     computePipeline_ = wgpuDeviceCreateComputePipeline(device_, &computeDesc);
     if (!computePipeline_) return false;
 
-    // 6. Create initial Bind Group
+    // 7. Create initial Bind Group
     updateComputeBindGroup();
 
     return true;
 }
 
 void TrianglePath::updateComputeBindGroup() {
-    if (!computeBindGroupLayout_ || !indirectBuffer_ || !visibleIndicesBuffer_ || !uniformBuffer_) return;
+    if (!computeBindGroupLayout_ || !indirectBuffer_ || !visibleIndicesBuffer_ ||
+        !uniformBuffer_ || !cullUniformBuffer_) return;
 
     if (computeBindGroup_) {
         wgpuBindGroupRelease(computeBindGroup_);
         computeBindGroup_ = nullptr;
     }
 
-    std::array<gpu::BindGroupEntry, 3> entries = {
+    std::array<gpu::BindGroupEntry, 4> entries = {
         gpu::BindGroupEntry(0).buffer(uniformBuffer_, 0, sizeof(CameraUniforms)),
         gpu::BindGroupEntry(1).buffer(indirectBuffer_, 0, sizeof(uint32_t) * 5),
-        gpu::BindGroupEntry(2).buffer(visibleIndicesBuffer_, 0, WGPU_WHOLE_SIZE)
+        gpu::BindGroupEntry(2).buffer(visibleIndicesBuffer_, 0, WGPU_WHOLE_SIZE),
+        gpu::BindGroupEntry(3).buffer(cullUniformBuffer_, 0, sizeof(CullUniforms))
     };
 
     computeBindGroup_ = gpu::createBindGroup(device_, computeBindGroupLayout_, entries, "cull_bind_group");
@@ -923,4 +993,3 @@ void TrianglePath::setWireframe(bool enabled) {
 }
 
 } // namespace voxy::render
-

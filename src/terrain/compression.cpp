@@ -6,6 +6,7 @@
 #include "core/log.hpp"
 
 #include <algorithm>
+#include <array>
 #include <chrono>
 #include <cstring>
 #include <fstream>
@@ -102,6 +103,135 @@ constexpr uint32_t CRC32_TABLE[256] = {
     0xB40BBE37, 0xC30C8EA1, 0x5A05DF1B, 0x2D02EF8D
 };
 
+class ZstdByteStream {
+public:
+    ZstdByteStream(const uint8_t* data, size_t size)
+        : input_{data, size, 0} {}
+
+    ZstdByteStream(const ZstdByteStream&) = delete;
+    ZstdByteStream& operator=(const ZstdByteStream&) = delete;
+
+    ~ZstdByteStream() {
+        if (stream_) {
+            ZSTD_freeDStream(stream_);
+        }
+    }
+
+    [[nodiscard]] CompressionError init() {
+        stream_ = ZSTD_createDStream();
+        if (!stream_) {
+            return CompressionError::OutOfMemory;
+        }
+
+        const size_t result = ZSTD_initDStream(stream_);
+        if (ZSTD_isError(result)) {
+            LOG_ERROR("zstd stream init failed: {}", ZSTD_getErrorName(result));
+            return CompressionError::ZstdDecompressFailed;
+        }
+
+        return CompressionError::None;
+    }
+
+    [[nodiscard]] CompressionError read(uint8_t* dst, size_t size) {
+        size_t copied = 0;
+
+        while (copied < size) {
+            if (readPos_ == writePos_) {
+                const CompressionError refillResult = refill();
+                if (refillResult != CompressionError::None) {
+                    return refillResult;
+                }
+            }
+
+            const size_t available = writePos_ - readPos_;
+            const size_t toCopy = std::min(available, size - copied);
+            std::memcpy(dst + copied, buffer_.data() + readPos_, toCopy);
+            readPos_ += toCopy;
+            copied += toCopy;
+        }
+
+        return CompressionError::None;
+    }
+
+    [[nodiscard]] CompressionError finish(size_t expectedSize) {
+        if (decodedBytes_ > expectedSize || readPos_ != writePos_) {
+            return CompressionError::SizeMismatch;
+        }
+
+        while (!finished_) {
+            readPos_ = 0;
+            writePos_ = 0;
+
+            ZSTD_outBuffer output{buffer_.data(), buffer_.size(), 0};
+            const size_t result = ZSTD_decompressStream(stream_, &output, &input_);
+            if (ZSTD_isError(result)) {
+                LOG_ERROR("zstd streaming decompression failed: {}", ZSTD_getErrorName(result));
+                return CompressionError::ZstdDecompressFailed;
+            }
+
+            if (output.pos != 0) {
+                decodedBytes_ += output.pos;
+                return CompressionError::SizeMismatch;
+            }
+
+            if (result == 0) {
+                finished_ = true;
+            } else if (input_.pos == input_.size) {
+                return CompressionError::SizeMismatch;
+            }
+        }
+
+        if (decodedBytes_ != expectedSize || input_.pos != input_.size) {
+            return CompressionError::SizeMismatch;
+        }
+
+        return CompressionError::None;
+    }
+
+private:
+    [[nodiscard]] CompressionError refill() {
+        if (finished_) {
+            return CompressionError::SizeMismatch;
+        }
+
+        readPos_ = 0;
+        writePos_ = 0;
+
+        while (writePos_ == 0) {
+            ZSTD_outBuffer output{buffer_.data(), buffer_.size(), 0};
+            const size_t result = ZSTD_decompressStream(stream_, &output, &input_);
+            if (ZSTD_isError(result)) {
+                LOG_ERROR("zstd streaming decompression failed: {}", ZSTD_getErrorName(result));
+                return CompressionError::ZstdDecompressFailed;
+            }
+
+            writePos_ = output.pos;
+            decodedBytes_ += output.pos;
+
+            if (result == 0) {
+                finished_ = true;
+                break;
+            }
+
+            if (input_.pos == input_.size && writePos_ == 0) {
+                return CompressionError::SizeMismatch;
+            }
+        }
+
+        return writePos_ == 0 ? CompressionError::SizeMismatch : CompressionError::None;
+    }
+
+    static constexpr size_t BUFFER_SIZE = 64 * 1024;
+
+    ZSTD_DStream* stream_ = nullptr;
+    ZSTD_inBuffer input_{};
+    std::array<uint8_t, BUFFER_SIZE> buffer_{};
+    size_t readPos_ = 0;
+    size_t writePos_ = 0;
+    size_t decodedBytes_ = 0;
+    bool finished_ = false;
+};
+
 } // anonymous namespace
 
 uint32_t calculateCRC32(std::span<const uint8_t> data) {
@@ -151,6 +281,71 @@ void decodeWithPredictor(std::span<const uint8_t> lowStream,
 }
 
 } // namespace detail
+
+namespace {
+
+[[nodiscard]] CompressionError decodeStreamingWithPredictor(
+    const uint8_t* lowCompressed,
+    size_t lowCompressedSize,
+    const uint8_t* highCompressed,
+    size_t highCompressedSize,
+    uint32_t width,
+    uint32_t height,
+    std::span<uint16_t> output) {
+
+    ZstdByteStream lowStream(lowCompressed, lowCompressedSize);
+    ZstdByteStream highStream(highCompressed, highCompressedSize);
+
+    CompressionError result = lowStream.init();
+    if (result != CompressionError::None) {
+        return result;
+    }
+
+    result = highStream.init();
+    if (result != CompressionError::None) {
+        return result;
+    }
+
+    std::vector<uint8_t> lowRow(width);
+    std::vector<uint8_t> highRow(width);
+
+    for (uint32_t y = 0; y < height; ++y) {
+        result = lowStream.read(lowRow.data(), width);
+        if (result != CompressionError::None) {
+            return result;
+        }
+
+        result = highStream.read(highRow.data(), width);
+        if (result != CompressionError::None) {
+            return result;
+        }
+
+        for (uint32_t x = 0; x < width; ++x) {
+            const size_t idx = static_cast<size_t>(y) * width + x;
+            const uint16_t delta = static_cast<uint16_t>(
+                static_cast<uint16_t>(lowRow[x]) |
+                (static_cast<uint16_t>(highRow[x]) << 8));
+            const uint16_t predicted = detail::predict(output.data(), x, y, width);
+            output[idx] = detail::decodeDelta(delta, predicted);
+        }
+    }
+
+    const size_t sampleCount = static_cast<size_t>(width) * height;
+
+    result = lowStream.finish(sampleCount);
+    if (result != CompressionError::None) {
+        return result;
+    }
+
+    result = highStream.finish(sampleCount);
+    if (result != CompressionError::None) {
+        return result;
+    }
+
+    return CompressionError::None;
+}
+
+} // anonymous namespace
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Compression
@@ -329,58 +524,30 @@ CompressionResult<DecompressResult> decompress(std::span<const uint8_t> input) {
         }
     }
     
-    // Decompress streams with zstd
+    // Stream zstd byte planes and decode the predictor directly into final output.
     const auto zstdStart = Clock::now();
-    
-    std::vector<uint8_t> lowStream(sampleCount);
-    std::vector<uint8_t> highStream(sampleCount);
-    
-    const size_t lowDecompressedSize = ZSTD_decompress(
-        lowStream.data(), lowStream.size(),
-        lowCompressed, header.lowStreamSize
+    std::vector<uint16_t> output(sampleCount);
+
+    const CompressionError decodeResult = decodeStreamingWithPredictor(
+        lowCompressed,
+        header.lowStreamSize,
+        highCompressed,
+        header.highStreamSize,
+        header.width,
+        header.height,
+        output
     );
-    
-    if (ZSTD_isError(lowDecompressedSize)) {
-        LOG_ERROR("zstd decompression failed for low stream: {}", 
-                  ZSTD_getErrorName(lowDecompressedSize));
-        return CompressionError::ZstdDecompressFailed;
+
+    if (decodeResult != CompressionError::None) {
+        if (decodeResult == CompressionError::SizeMismatch) {
+            LOG_ERROR("Decompressed stream size mismatch: expected {} bytes per stream", sampleCount);
+        }
+        return decodeResult;
     }
-    
-    if (lowDecompressedSize != sampleCount) {
-        LOG_ERROR("Low stream size mismatch: expected {}, got {}", 
-                  sampleCount, lowDecompressedSize);
-        return CompressionError::SizeMismatch;
-    }
-    
-    const size_t highDecompressedSize = ZSTD_decompress(
-        highStream.data(), highStream.size(),
-        highCompressed, header.highStreamSize
-    );
-    
-    if (ZSTD_isError(highDecompressedSize)) {
-        LOG_ERROR("zstd decompression failed for high stream: {}", 
-                  ZSTD_getErrorName(highDecompressedSize));
-        return CompressionError::ZstdDecompressFailed;
-    }
-    
-    if (highDecompressedSize != sampleCount) {
-        LOG_ERROR("High stream size mismatch: expected {}, got {}", 
-                  sampleCount, highDecompressedSize);
-        return CompressionError::SizeMismatch;
-    }
-    
+
     const auto zstdEnd = Clock::now();
     stats.zstdTimeMs = std::chrono::duration<double, std::milli>(zstdEnd - zstdStart).count();
-    
-    // Decode with planar predictor
-    const auto decodeStart = Clock::now();
-    
-    std::vector<uint16_t> output(sampleCount);
-    detail::decodeWithPredictor(lowStream, highStream, 
-                                header.width, header.height, output);
-    
-    const auto decodeEnd = Clock::now();
-    stats.encodeTimeMs = std::chrono::duration<double, std::milli>(decodeEnd - decodeStart).count();
+    stats.encodeTimeMs = 0.0;
     
     const auto endTime = Clock::now();
     stats.totalTimeMs = std::chrono::duration<double, std::milli>(endTime - startTime).count();
@@ -667,4 +834,3 @@ CompressionResult<LDHHeader> readHeaderFromFile(
 }
 
 } // namespace voxy::terrain
-

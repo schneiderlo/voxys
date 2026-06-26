@@ -46,10 +46,11 @@ struct DebugUniforms {
 
 @group(0) @binding(0) var<uniform> camera : CameraUniforms;
 @group(0) @binding(1) var depthTex : texture_2d<f32>;
-@group(0) @binding(2) var terrainTex : texture_2d<f32>;
-@group(0) @binding(3) var lightmapTex : texture_2d<f32>;
-@group(0) @binding(4) var terrainSampler : sampler;
-@group(0) @binding(5) var<uniform> debug : DebugUniforms;
+@group(0) @binding(2) var shadowTex : texture_2d<f32>;
+@group(0) @binding(3) var terrainTex : texture_2d<f32>;
+@group(0) @binding(4) var lightmapTex : texture_2d<f32>;
+@group(0) @binding(5) var terrainSampler : sampler;
+@group(0) @binding(6) var<uniform> debug : DebugUniforms;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Vertex Shader (Fullscreen Triangle)
@@ -89,9 +90,8 @@ fn vs(@builtin(vertex_index) i : u32) -> VSOut {
 
 /// Sample depth from depth texture at given pixel coordinates
 /// Clamps coordinates to texture bounds to avoid sampling outside
-fn sampleDepth(coords : vec2<i32>) -> f32 {
-    let dims = textureDimensions(depthTex, 0);
-    let clamped = clamp(coords, vec2<i32>(0, 0), vec2<i32>(i32(dims.x) - 1, i32(dims.y) - 1));
+fn sampleDepth(coords : vec2<i32>, maxCoord : vec2<i32>) -> f32 {
+    let clamped = clamp(coords, vec2<i32>(0, 0), maxCoord);
     return textureLoad(depthTex, clamped, 0).x;
 }
 
@@ -221,14 +221,12 @@ fn fs(i : VSOut) -> @location(0) vec4<f32> {
     // Get texture dimensions and compute pixel coordinates
     let dims = textureDimensions(depthTex, 0);
     let dimsF = vec2<f32>(f32(dims.x), f32(dims.y));
+    let maxCoord = vec2<i32>(i32(dims.x) - 1, i32(dims.y) - 1);
     let pixF = i.uv * dimsF;
-    let pixelI = clamp(vec2<i32>(floor(pixF)), vec2<i32>(0, 0), 
-                       vec2<i32>(dims) - vec2<i32>(1, 1));
+    let pixelI = clamp(vec2<i32>(floor(pixF)), vec2<i32>(0, 0), maxCoord);
     let ndcCenter = ndcFromPixel(pixelI, dimsF);
-    // Sample RG32Float texture (R=Depth, G=Shadow)
-    let depthSample = textureLoad(depthTex, clamp(pixelI, vec2<i32>(0, 0), vec2<i32>(i32(dims.x) - 1, i32(dims.y) - 1)), 0);
-    let depthCenter = depthSample.x;
-    let shadowFactor = depthSample.y;
+    let depthCenter = textureLoad(depthTex, pixelI, 0).x;
+    let shadowFactor = textureLoad(shadowTex, pixelI, 0).x;
 
     let invProjParams = camera.invProjParams.xy;
     
@@ -364,10 +362,10 @@ fn fs(i : VSOut) -> @location(0) vec4<f32> {
     // Sample neighbor depths to reconstruct surface normal
     let offsetX = vec2<i32>(1, 0);
     let offsetY = vec2<i32>(0, 1);
-    let depthNegX = sampleDepth(pixelI - offsetX);
-    let depthPosX = sampleDepth(pixelI + offsetX);
-    let depthNegY = sampleDepth(pixelI - offsetY);
-    let depthPosY = sampleDepth(pixelI + offsetY);
+    let depthNegX = sampleDepth(pixelI - offsetX, maxCoord);
+    let depthPosX = sampleDepth(pixelI + offsetX, maxCoord);
+    let depthNegY = sampleDepth(pixelI - offsetY, maxCoord);
+    let depthPosY = sampleDepth(pixelI + offsetY, maxCoord);
     
     // Choose closer neighbor for each axis to handle depth discontinuities
     // Logic optimization:
@@ -497,4 +495,3 @@ fn applyDebugVisualization(finalColor : vec3<f32>, depth : f32,
         }
     }
 }
-

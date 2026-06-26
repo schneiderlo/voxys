@@ -68,6 +68,14 @@ protected:
             wgpuTextureRelease(depthTexture_);
             depthTexture_ = nullptr;
         }
+        if (shadowView_) {
+            wgpuTextureViewRelease(shadowView_);
+            shadowView_ = nullptr;
+        }
+        if (shadowTexture_) {
+            wgpuTextureRelease(shadowTexture_);
+            shadowTexture_ = nullptr;
+        }
         if (terrainView_) {
             wgpuTextureViewRelease(terrainView_);
             terrainView_ = nullptr;
@@ -118,6 +126,22 @@ protected:
         depthViewDesc.format = WGPUTextureFormat_R32Float;
         depthView_ = gpu::createTextureView(depthTexture_, depthViewDesc);
         if (!depthView_) return false;
+
+        // Create shadow texture (R32Float - from ray-caster)
+        gpu::TextureDesc shadowDesc = gpu::TextureDesc::tex2D(
+            320, 240,
+            WGPUTextureFormat_R32Float,
+            WGPUTextureUsage_TextureBinding | WGPUTextureUsage_StorageBinding,
+            "test_shadow_texture"
+        );
+        shadowTexture_ = gpu::createTexture(device, shadowDesc);
+        if (!shadowTexture_) return false;
+
+        gpu::TextureViewDesc shadowViewDesc{};
+        shadowViewDesc.label = "test_shadow_view";
+        shadowViewDesc.format = WGPUTextureFormat_R32Float;
+        shadowView_ = gpu::createTextureView(shadowTexture_, shadowViewDesc);
+        if (!shadowView_) return false;
         
         // Create terrain texture (RGBA8)
         gpu::TextureDesc terrainDesc = gpu::TextureDesc::tex2D(
@@ -177,6 +201,8 @@ protected:
     // Test textures
     WGPUTexture depthTexture_ = nullptr;
     WGPUTextureView depthView_ = nullptr;
+    WGPUTexture shadowTexture_ = nullptr;
+    WGPUTextureView shadowView_ = nullptr;
     WGPUTexture terrainTexture_ = nullptr;
     WGPUTextureView terrainView_ = nullptr;
     WGPUTexture lightmapTexture_ = nullptr;
@@ -341,6 +367,7 @@ TEST_F(BlitPathTest, CanSetInputTextures) {
     
     // These should not throw/crash
     blitPath_.setDepthTexture(depthView_);
+    blitPath_.setShadowTexture(shadowView_);
     blitPath_.setTerrainTexture(terrainView_);
     blitPath_.setLightmapTexture(lightmapView_);
 }
@@ -385,6 +412,7 @@ TEST_F(BlitPathTest, RenderWithAllTexturesSucceeds) {
     
     // Set all required textures
     blitPath_.setDepthTexture(depthView_);
+    blitPath_.setShadowTexture(shadowView_);
     blitPath_.setTerrainTexture(terrainView_);
     blitPath_.setLightmapTexture(lightmapView_);
     blitPath_.setTerrainSize(256, 256);
@@ -486,4 +514,3 @@ TEST_F(BlitPathTest, CustomConfig) {
 }
 
 } // namespace voxy
-

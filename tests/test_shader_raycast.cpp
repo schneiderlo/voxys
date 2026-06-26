@@ -101,6 +101,8 @@ TEST_F(RaycastShaderTest, HasUniformBindings) {
         << "Shader missing heightTex binding";
     EXPECT_NE(shaderSource_.find("@group(0) @binding(2)"), std::string::npos)
         << "Shader missing outDepth binding";
+    EXPECT_NE(shaderSource_.find("@group(0) @binding(3)"), std::string::npos)
+        << "Shader missing outShadow binding";
 }
 
 TEST_F(RaycastShaderTest, HasHeightTexBinding) {
@@ -111,8 +113,10 @@ TEST_F(RaycastShaderTest, HasHeightTexBinding) {
 
 TEST_F(RaycastShaderTest, HasOutDepthBinding) {
     ASSERT_FALSE(shaderSource_.empty());
-    EXPECT_NE(shaderSource_.find("var outDepth : texture_storage_2d<rg32float, write>"), std::string::npos)
+    EXPECT_NE(shaderSource_.find("var outDepth : texture_storage_2d<r32float, write>"), std::string::npos)
         << "Shader missing outDepth storage texture declaration";
+    EXPECT_NE(shaderSource_.find("var outShadow : texture_storage_2d<r32float, write>"), std::string::npos)
+        << "Shader missing outShadow storage texture declaration";
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -300,4 +304,3 @@ TEST_F(RaycastShaderGPUTest, ShaderCompilesOnGPU) {
 }
 
 } // namespace voxy
-

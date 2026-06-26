@@ -184,6 +184,9 @@ public:
     /// @param cameraPos World-space camera position
     void updateCamera(const glm::mat4& view, const glm::mat4& proj, const glm::vec3& cameraPos, float ambientIntensity = 0.3f);
 
+    /// Copy a fully-built camera uniform block into this renderer
+    void setCameraUniforms(const CameraUniforms& uniforms);
+
     /// Set Lego Mode
     void setLegoMode(bool enabled) {
         uniforms_.setLegoMode(enabled);
@@ -238,6 +241,7 @@ private:
 
     bool createComputeResources(const TrianglePathConfig& config);
     void updateComputeBindGroup();
+    void updateCullUniformBuffer();
 
     /// Calculate number of tiles for current terrain size and LOD
     void calculateTileCount();
@@ -271,6 +275,7 @@ private:
     WGPUBuffer uniformBuffer_ = nullptr;
     WGPUBuffer indirectBuffer_ = nullptr;
     WGPUBuffer visibleIndicesBuffer_ = nullptr;
+    WGPUBuffer cullUniformBuffer_ = nullptr;
 
     // Heightmap binding
     WGPUTextureView heightmapView_ = nullptr;
@@ -288,9 +293,9 @@ private:
     uint32_t tilesX_ = 0;
     uint32_t tilesY_ = 0;
     bool uniformsDirty_ = true;
+    bool cullUniformsDirty_ = true;
     bool bindGroupDirty_ = true;
     bool wireframeEnabled_ = false;
 };
 
 } // namespace voxy::render
-

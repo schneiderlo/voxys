@@ -36,7 +36,8 @@ struct CameraUniforms {
 
 @group(0) @binding(0) var<uniform> camera : CameraUniforms;
 @group(0) @binding(1) var heightTex : texture_2d<u32>;
-@group(0) @binding(2) var outDepth : texture_storage_2d<rg32float, write>;
+@group(0) @binding(2) var outDepth : texture_storage_2d<r32float, write>;
+@group(0) @binding(3) var outShadow : texture_storage_2d<r32float, write>;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Coordinate Space Conversion
@@ -85,9 +86,7 @@ fn rayDirFromPixel(invVP : mat4x4<f32>, pixel : vec2<u32>,
     let pixelF = vec2<f32>(f32(pixel.x), f32(pixel.y));
     let uv = (pixelF + vec2<f32>(0.5, 0.5)) / dimf;
     let ndc = vec2<f32>(uv.x * 2.0 - 1.0, 1.0 - uv.y * 2.0);
-    let near4 = invVP * vec4<f32>(ndc, 0.0, 1.0);
     let far4 = invVP * vec4<f32>(ndc, 1.0, 1.0);
-    let nearPos = near4.xyz / near4.w;
     let farPos = far4.xyz / far4.w;
     return normalize(farPos - origin);
 }
@@ -378,7 +377,8 @@ fn main(@builtin(global_invocation_id) gid : vec3<u32>) {
     let range = intersectAabb(origin, dir, boundsMin, boundsMax);
     if (range.y < 0.0 || range.x > range.y) {
         // No hit, sky is fully lit (shadow = 1.0)
-        textureStore(outDepth, vec2<i32>(gid.xy), vec4<f32>(-1.0, 1.0, 0.0, 0.0));
+        textureStore(outDepth, vec2<i32>(gid.xy), vec4<f32>(-1.0, 0.0, 0.0, 0.0));
+        textureStore(outShadow, vec2<i32>(gid.xy), vec4<f32>(1.0, 0.0, 0.0, 0.0));
         return;
     }
     
@@ -602,6 +602,6 @@ fn main(@builtin(global_invocation_id) gid : vec3<u32>) {
         shadowFactor = intersectShadow(shadowOrigin, lightDir);
     }
 
-    // Output: R=depth, G=shadow
-    textureStore(outDepth, vec2<i32>(gid.xy), vec4<f32>(t, shadowFactor, 0.0, 0.0));
+    textureStore(outDepth, vec2<i32>(gid.xy), vec4<f32>(t, 0.0, 0.0, 0.0));
+    textureStore(outShadow, vec2<i32>(gid.xy), vec4<f32>(shadowFactor, 0.0, 0.0, 0.0));
 }
