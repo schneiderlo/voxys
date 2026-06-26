@@ -161,8 +161,8 @@ TEST_F(TerrainTexturesTest, DefaultTextureDimensions) {
     
     EXPECT_EQ(textures_.getAlbedoWidth(), 256u);
     EXPECT_EQ(textures_.getAlbedoHeight(), 256u);
-    EXPECT_EQ(textures_.getLightmapWidth(), 256u);
-    EXPECT_EQ(textures_.getLightmapHeight(), 256u);
+    EXPECT_EQ(textures_.getLightmapWidth(), 1u);
+    EXPECT_EQ(textures_.getLightmapHeight(), 1u);
 }
 
 TEST_F(TerrainTexturesTest, CustomPlaceholderDimensions) {
@@ -181,8 +181,8 @@ TEST_F(TerrainTexturesTest, CustomPlaceholderDimensions) {
     
     EXPECT_EQ(textures_.getAlbedoWidth(), 512u);
     EXPECT_EQ(textures_.getAlbedoHeight(), 512u);
-    EXPECT_EQ(textures_.getLightmapWidth(), 512u);
-    EXPECT_EQ(textures_.getLightmapHeight(), 512u);
+    EXPECT_EQ(textures_.getLightmapWidth(), 1u);
+    EXPECT_EQ(textures_.getLightmapHeight(), 1u);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -292,4 +292,3 @@ TEST(TerrainTextureUtilTest, GenerateWhiteLightmapDataDifferentSizes) {
 }
 
 } // namespace voxy
-

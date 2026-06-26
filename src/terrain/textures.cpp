@@ -160,14 +160,14 @@ bool TerrainTextures::init(WGPUDevice device, WGPUQueue queue,
     if (!config.lightmapPath.empty() && std::filesystem::exists(config.lightmapPath)) {
         if (!loadLightmap(config.lightmapPath)) {
             LOG_WARN("Failed to load lightmap texture, creating white lightmap");
-            if (!createWhiteLightmap(config.placeholderWidth, config.placeholderHeight)) {
+            if (!createWhiteLightmap(1, 1)) {
                 LOG_ERROR("Failed to create white lightmap texture");
                 shutdown();
                 return false;
             }
         }
     } else {
-        if (!createWhiteLightmap(config.placeholderWidth, config.placeholderHeight)) {
+        if (!createWhiteLightmap(1, 1)) {
             LOG_ERROR("Failed to create white lightmap texture");
             shutdown();
             return false;
@@ -450,4 +450,3 @@ std::vector<uint8_t> generateWhiteLightmapData(uint32_t width, uint32_t height) 
 }
 
 } // namespace voxy::terrain
-
