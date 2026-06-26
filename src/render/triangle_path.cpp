@@ -893,6 +893,7 @@ void TrianglePath::updateComputeBindGroup() {
 
     if (computeBindGroup_) {
         wgpuBindGroupRelease(computeBindGroup_);
+        computeBindGroup_ = nullptr;
     }
 
     std::array<gpu::BindGroupEntry, 3> entries = {
@@ -922,5 +923,4 @@ void TrianglePath::setWireframe(bool enabled) {
 }
 
 } // namespace voxy::render
-
 

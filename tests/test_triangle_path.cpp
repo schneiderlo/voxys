@@ -7,11 +7,18 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 
 #include <gtest/gtest.h>
-#include "render/triangle_path.hpp"
+
+#include <cmath>
+#include <cstdint>
+#include <filesystem>
+#include <string_view>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <cmath>
+
+#define private public
+#include "render/triangle_path.hpp"
+#undef private
 
 namespace voxy::render {
 
@@ -243,6 +250,92 @@ TEST(TrianglePathTest, ShutdownWithoutInit) {
     // Should not crash
     renderer.shutdown();
     EXPECT_FALSE(renderer.isInitialized());
+}
+
+namespace {
+
+template <typename T>
+T fakeHandle(uintptr_t value) {
+    return reinterpret_cast<T>(value);
+}
+
+struct FakeComputeHandles {
+    WGPUShaderModule computeModule = fakeHandle<WGPUShaderModule>(0x101);
+    WGPUPipelineLayout computePipelineLayout = fakeHandle<WGPUPipelineLayout>(0x102);
+    WGPUComputePipeline computePipeline = fakeHandle<WGPUComputePipeline>(0x103);
+    WGPUBindGroupLayout computeBindGroupLayout = fakeHandle<WGPUBindGroupLayout>(0x104);
+    WGPUBindGroup computeBindGroup = fakeHandle<WGPUBindGroup>(0x105);
+    WGPUBuffer indirectBuffer = fakeHandle<WGPUBuffer>(0x106);
+    WGPUBuffer visibleIndicesBuffer = fakeHandle<WGPUBuffer>(0x107);
+};
+
+void installFakeComputeHandles(TrianglePath& renderer, const FakeComputeHandles& handles) {
+    renderer.computeModule_ = handles.computeModule;
+    renderer.computePipelineLayout_ = handles.computePipelineLayout;
+    renderer.computePipeline_ = handles.computePipeline;
+    renderer.computeBindGroupLayout_ = handles.computeBindGroupLayout;
+    renderer.computeBindGroup_ = handles.computeBindGroup;
+    renderer.indirectBuffer_ = handles.indirectBuffer;
+    renderer.visibleIndicesBuffer_ = handles.visibleIndicesBuffer;
+}
+
+void expectComputeHandles(const TrianglePath& renderer, const FakeComputeHandles& handles) {
+    EXPECT_EQ(renderer.computeModule_, handles.computeModule);
+    EXPECT_EQ(renderer.computePipelineLayout_, handles.computePipelineLayout);
+    EXPECT_EQ(renderer.computePipeline_, handles.computePipeline);
+    EXPECT_EQ(renderer.computeBindGroupLayout_, handles.computeBindGroupLayout);
+    EXPECT_EQ(renderer.computeBindGroup_, handles.computeBindGroup);
+    EXPECT_EQ(renderer.indirectBuffer_, handles.indirectBuffer);
+    EXPECT_EQ(renderer.visibleIndicesBuffer_, handles.visibleIndicesBuffer);
+}
+
+void expectComputeHandlesCleared(const TrianglePath& renderer) {
+    EXPECT_EQ(renderer.computeModule_, nullptr);
+    EXPECT_EQ(renderer.computePipelineLayout_, nullptr);
+    EXPECT_EQ(renderer.computePipeline_, nullptr);
+    EXPECT_EQ(renderer.computeBindGroupLayout_, nullptr);
+    EXPECT_EQ(renderer.computeBindGroup_, nullptr);
+    EXPECT_EQ(renderer.indirectBuffer_, nullptr);
+    EXPECT_EQ(renderer.visibleIndicesBuffer_, nullptr);
+}
+
+void clearFakeComputeHandles(TrianglePath& renderer) {
+    renderer.computeModule_ = nullptr;
+    renderer.computePipelineLayout_ = nullptr;
+    renderer.computePipeline_ = nullptr;
+    renderer.computeBindGroupLayout_ = nullptr;
+    renderer.computeBindGroup_ = nullptr;
+    renderer.indirectBuffer_ = nullptr;
+    renderer.visibleIndicesBuffer_ = nullptr;
+}
+
+} // namespace
+
+TEST(TrianglePathLifetimeTest, MoveConstructorTransfersComputeCullingResources) {
+    TrianglePath source;
+    const FakeComputeHandles handles;
+    installFakeComputeHandles(source, handles);
+
+    TrianglePath moved(std::move(source));
+
+    expectComputeHandles(moved, handles);
+    expectComputeHandlesCleared(source);
+
+    clearFakeComputeHandles(moved);
+}
+
+TEST(TrianglePathLifetimeTest, MoveAssignmentTransfersComputeCullingResources) {
+    TrianglePath source;
+    const FakeComputeHandles handles;
+    installFakeComputeHandles(source, handles);
+
+    TrianglePath moved;
+    moved = std::move(source);
+
+    expectComputeHandles(moved, handles);
+    expectComputeHandlesCleared(source);
+
+    clearFakeComputeHandles(moved);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
