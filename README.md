@@ -4,6 +4,23 @@
 
 This project supports multiple build systems. **Bazel** is recommended for development, while **CMake** is available for standard integration.
 
+## Terrain Assets
+
+Voxys can import generated terrain from Terrain Diffusion through the offline
+tool at `tools/terrain_diffusion_import.py`.
+
+See [Terrain Diffusion Import](docs/terrain_diffusion.md) for the workflow.
+
+## Python Tooling
+
+Python utilities use `uv`.
+
+```bash
+uv sync
+uv run python tools/test_terrain_diffusion_import.py
+uv run python tools/terrain_diffusion_import.py --help
+```
+
 ### 1. Bazel (Recommended)
 
 Bazel provides hermetic builds, fast incremental compilation, and easy sanitizer integration.
