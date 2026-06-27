@@ -853,7 +853,15 @@ bool Application::initCamera() {
                             static_cast<float>(config_.windowHeight);
 #endif
 
-    camera_ = std::make_unique<Camera>(config_.cameraStartPos, camConfig);
+    const glm::vec3 defaultStart{0.0f, 80.0f, 0.0f};
+    glm::vec3 startPos = config_.cameraStartPos;
+    if (glm::length(startPos - defaultStart) < 0.001f) {
+        const float viewDistance = std::max(200.0f, config_.cellScale * 256.0f);
+        const float viewHeight = std::max(80.0f, config_.heightScale * 1.25f);
+        startPos = glm::vec3(0.0f, viewHeight, -viewDistance);
+    }
+
+    camera_ = std::make_unique<Camera>(startPos, camConfig);
 
     // The renderer centers the terrain at (0,0,0)
     // So we should look at the origin, not the calculated positive center

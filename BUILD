@@ -80,6 +80,8 @@ cc_binary(
         # Only embed the specific data files needed, not the entire directory
         "--preload-file", "data/canyon_4k.ldh@/data/canyon_4k.ldh",
         "--preload-file", "data/canyon_diffuse.jpg@/data/canyon_diffuse.jpg",
+        "--preload-file", "data/generated/td_seed_1234_2048.ldh@/data/generated/td_seed_1234_2048.ldh",
+        "--preload-file", "data/generated/td_seed_1234_2048_relief.png@/data/generated/td_seed_1234_2048_relief.png",
         "--preload-file", "voxy.cfg@/voxy.cfg",
     ],
     additional_linker_inputs = [
