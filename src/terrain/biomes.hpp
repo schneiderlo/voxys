@@ -18,6 +18,13 @@ enum class BiomeSurfaceRole : uint32_t {
     Snow = 4,
     Beach = 5,
     Water = 6,
+    Meadow = 7,
+    Taiga = 8,
+    Savanna = 9,
+    Jungle = 10,
+    Swamp = 11,
+    Badlands = 12,
+    Tundra = 13,
 };
 
 struct BiomeSampleInput {

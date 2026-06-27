@@ -20,7 +20,9 @@ set(TEST_SOURCES
     test_timer.cpp
     test_config.cpp
     test_biomes.cpp
+    test_benchmark.cpp
     test_decorations.cpp
+    test_web_assets.cpp
     test_window.cpp
     test_input.cpp
     test_heightmap.cpp

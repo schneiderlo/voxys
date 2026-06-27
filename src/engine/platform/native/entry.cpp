@@ -10,6 +10,7 @@
 #include <memory>
 #include <chrono>
 #include <algorithm>
+#include <cstdlib>
 #include <numeric>
 
 int main(int argc, char* argv[]) {
@@ -30,7 +31,10 @@ int main(int argc, char* argv[]) {
                           ? "voxy - WebGPU Terrain Renderer"
                           : config.window.title;
     appConfig.fullscreen = config.window.fullscreen;
-    appConfig.vsync = config.render.vsync;
+    const bool automationRun = config.automation.benchmark ||
+                               config.automation.screenshotPath.has_value() ||
+                               config.automation.screenshotTourCount > 0;
+    appConfig.vsync = automationRun ? false : config.render.vsync;
 
     // Render path selection
     if (config.render.path == "triangle") {
@@ -50,6 +54,10 @@ int main(int argc, char* argv[]) {
     appConfig.enableDecorations = config.terrain.enableDecorations;
     appConfig.decorationSpacingCells = static_cast<uint32_t>(std::max(config.terrain.decorationSpacingCells, 1));
     appConfig.maxTreeInstances = static_cast<uint32_t>(std::max(config.terrain.maxTreeInstances, 0));
+    if (const char* workspace = std::getenv("BUILD_WORKSPACE_DIRECTORY")) {
+        appConfig.generatedTextureCacheDir =
+            std::filesystem::path(workspace) / "data/generated/texture_cache";
+    }
 
     // Enforce 8K resolution
     appConfig.heightmapWidth = 8192;

@@ -125,6 +125,8 @@ TEST_F(BlitShaderTest, HasUniformBindings) {
     EXPECT_NE(shaderSource_.find("@group(0) @binding(5)"), std::string::npos)
         << "Shader missing terrainSampler binding";
     EXPECT_NE(shaderSource_.find("@group(0) @binding(6)"), std::string::npos)
+        << "Shader missing normalTex binding";
+    EXPECT_NE(shaderSource_.find("@group(0) @binding(7)"), std::string::npos)
         << "Shader missing debug uniform binding";
 }
 
@@ -150,6 +152,12 @@ TEST_F(BlitShaderTest, HasLightmapTexBinding) {
     ASSERT_FALSE(shaderSource_.empty());
     EXPECT_NE(shaderSource_.find("var lightmapTex : texture_2d<f32>"), std::string::npos)
         << "Shader missing lightmapTex texture declaration";
+}
+
+TEST_F(BlitShaderTest, HasNormalTexBinding) {
+    ASSERT_FALSE(shaderSource_.empty());
+    EXPECT_NE(shaderSource_.find("var normalTex : texture_2d<f32>"), std::string::npos)
+        << "Shader missing normalTex texture declaration";
 }
 
 TEST_F(BlitShaderTest, HasSamplerBinding) {
@@ -220,6 +228,58 @@ TEST_F(BlitShaderTest, HasTerrainUVFunction) {
         << "Shader missing terrainUV helper function";
 }
 
+TEST_F(BlitShaderTest, HasSeaLevelWaterSurface) {
+    ASSERT_FALSE(shaderSource_.empty());
+    EXPECT_NE(shaderSource_.find("fn terrainCoord("), std::string::npos)
+        << "Shader missing unclamped terrain coordinate helper";
+    EXPECT_NE(shaderSource_.find("fn waterMaskFromAlbedo("), std::string::npos)
+        << "Shader missing albedo-derived water mask";
+    EXPECT_NE(shaderSource_.find("fn waterSurfaceColor("), std::string::npos)
+        << "Shader missing sea-level water surface shading";
+    EXPECT_NE(shaderSource_.find("let seaLevel = 0.0"), std::string::npos)
+        << "Shader should composite water at sea level";
+    EXPECT_NE(shaderSource_.find("Sky pixels can still see the sea-level plane"), std::string::npos)
+        << "Shader should composite the ocean plane for sky pixels";
+    EXPECT_NE(shaderSource_.find("deepOceanDistance"), std::string::npos)
+        << "Shader should estimate deep water for sky-ocean pixels";
+    EXPECT_NE(shaderSource_.find("shoreFoam"), std::string::npos)
+        << "Shader missing shoreline foam treatment";
+    EXPECT_NE(shaderSource_.find("fn waterWaveNormal("), std::string::npos)
+        << "Shader missing multi-wave water normal";
+    EXPECT_NE(shaderSource_.find("fn waterCaustics("), std::string::npos)
+        << "Shader missing shallow-water caustic treatment";
+    EXPECT_NE(shaderSource_.find("reflectionDir"), std::string::npos)
+        << "Shader missing Fresnel sky reflection for water";
+    EXPECT_NE(shaderSource_.find("deepFade"), std::string::npos)
+        << "Shader missing depth absorption for water";
+    EXPECT_NE(shaderSource_.find("farFlatten"), std::string::npos)
+        << "Shader missing distant-water smoothing";
+    EXPECT_NE(shaderSource_.find("distanceHaze"), std::string::npos)
+        << "Shader missing far-water atmospheric haze";
+    EXPECT_NE(shaderSource_.find("oceanMask"), std::string::npos)
+        << "Shader missing stable sky-ocean mask";
+    EXPECT_NE(shaderSource_.find("camera.invProjParams.w"), std::string::npos)
+        << "Shader should use animated water time from camera uniforms";
+}
+
+TEST_F(BlitShaderTest, HasAnimatedCloudShadows) {
+    ASSERT_FALSE(shaderSource_.empty());
+    EXPECT_NE(shaderSource_.find("fn valueNoise2D("), std::string::npos)
+        << "Shader missing cheap value-noise helper for cloud fields";
+    EXPECT_NE(shaderSource_.find("fn cloudField("), std::string::npos)
+        << "Shader missing shaped cloud field";
+    EXPECT_NE(shaderSource_.find("fn cloudCoverageAt("), std::string::npos)
+        << "Shader missing animated cloud coverage helper";
+    EXPECT_NE(shaderSource_.find("fn cloudShadowAtWorld("), std::string::npos)
+        << "Shader missing terrain cloud-shadow helper";
+    EXPECT_NE(shaderSource_.find("terrainCloudShadow"), std::string::npos)
+        << "Shader should apply cloud shadowing to terrain lighting";
+    EXPECT_NE(shaderSource_.find("cloudShadowAtWorld(waterPos"), std::string::npos)
+        << "Shader should apply cloud shadowing to water lighting";
+    EXPECT_NE(shaderSource_.find("camera.invProjParams.w"), std::string::npos)
+        << "Clouds should use real time from camera uniforms";
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // Sky Rendering Tests
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -248,46 +308,27 @@ TEST_F(BlitShaderTest, ChecksForSkyPixels) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// Normal Reconstruction Tests
+// Normal Map Tests
 // ═══════════════════════════════════════════════════════════════════════════════
 
-TEST_F(BlitShaderTest, HasNeighborDepthSampling) {
+TEST_F(BlitShaderTest, SamplesTerrainNormalMap) {
     ASSERT_FALSE(shaderSource_.empty());
-    // Check for neighbor depth sampling
-    EXPECT_NE(shaderSource_.find("depthNegX"), std::string::npos)
-        << "Shader missing negative X neighbor depth";
-    EXPECT_NE(shaderSource_.find("depthPosX"), std::string::npos)
-        << "Shader missing positive X neighbor depth";
-    EXPECT_NE(shaderSource_.find("depthNegY"), std::string::npos)
-        << "Shader missing negative Y neighbor depth";
-    EXPECT_NE(shaderSource_.find("depthPosY"), std::string::npos)
-        << "Shader missing positive Y neighbor depth";
+    EXPECT_NE(shaderSource_.find("textureSampleLevel(normalTex"), std::string::npos)
+        << "Shader should sample terrain normals from normalTex";
 }
 
-TEST_F(BlitShaderTest, ChoosesCloserNeighbor) {
+TEST_F(BlitShaderTest, DecodesTerrainNormalMap) {
     ASSERT_FALSE(shaderSource_.empty());
-    // Check for closer neighbor selection
-    EXPECT_NE(shaderSource_.find("useNegX"), std::string::npos)
-        << "Shader missing useNegX closer neighbor selection";
-    EXPECT_NE(shaderSource_.find("useNegY"), std::string::npos)
-        << "Shader missing useNegY closer neighbor selection";
+    EXPECT_NE(shaderSource_.find("* 2.0 - vec3<f32>(1.0, 1.0, 1.0)"), std::string::npos)
+        << "Shader should decode normals from [0,1] to [-1,1]";
 }
 
-TEST_F(BlitShaderTest, HasNormalFlipRule) {
+TEST_F(BlitShaderTest, UsesWorldSpaceTerrainLighting) {
     ASSERT_FALSE(shaderSource_.empty());
-    // Normal flip rule: ensure dx/dy are flipped to point in positive axis direction
-    // Current implementation: if (useNegX) { dx = -dx; }
-    bool hasDxFlip = shaderSource_.find("dx = -dx") != std::string::npos;
-    bool hasDyFlip = shaderSource_.find("dy = -dy") != std::string::npos;
-    
-    EXPECT_TRUE(hasDxFlip || hasDyFlip)
-        << "Shader missing normal flip rule (dx = -dx or dy = -dy)";
-}
-
-TEST_F(BlitShaderTest, ComputesNormalFromCrossProduct) {
-    ASSERT_FALSE(shaderSource_.empty());
-    EXPECT_NE(shaderSource_.find("cross(dx, dy)"), std::string::npos)
-        << "Shader should compute normal using cross product";
+    EXPECT_NE(shaderSource_.find("camera.lightDirWS.xyz"), std::string::npos)
+        << "Shader should light terrain with world-space light direction";
+    EXPECT_NE(shaderSource_.find("camera.cameraPos.xyz - posCWorld"), std::string::npos)
+        << "Shader should compute terrain view direction in world space";
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -324,7 +365,7 @@ TEST_F(BlitShaderTest, HasSpecularLighting) {
 
 TEST_F(BlitShaderTest, UsesLightDirFromUniforms) {
     ASSERT_FALSE(shaderSource_.empty());
-    EXPECT_NE(shaderSource_.find("camera.lightDirVS"), std::string::npos)
+    EXPECT_NE(shaderSource_.find("camera.lightDirWS"), std::string::npos)
         << "Shader should use light direction from camera uniforms";
 }
 

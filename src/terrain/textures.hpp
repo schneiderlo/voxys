@@ -12,6 +12,7 @@
 #include <cstdint>
 #include <filesystem>
 #include <span>
+#include <string>
 #include <string_view>
 #include <vector>
 
@@ -41,6 +42,8 @@ struct TerrainTextureConfig {
     float cellScale = 1.0f;              ///< World-space horizontal spacing for slope estimates
     bool minecraftStyleEnhancement = true; ///< Bake biome colors, rivers, and canopy detail
     uint32_t generatedLightmapMaxSize = 2048; ///< Cap for generated terrain AO/lightmap textures
+    bool enableGeneratedTextureCache = true; ///< Persist expensive generated albedo/lightmap bakes
+    std::filesystem::path generatedTextureCacheDir = "data/generated/texture_cache";
     
     /// Default configuration
     static TerrainTextureConfig defaults() {
@@ -131,6 +134,12 @@ public:
     /// Get lightmap texture view
     [[nodiscard]] WGPUTextureView getLightmapView() const noexcept { return lightmapView_; }
 
+    /// Get terrain normal texture
+    [[nodiscard]] WGPUTexture getNormalTexture() const noexcept { return normalTexture_; }
+
+    /// Get terrain normal texture view
+    [[nodiscard]] WGPUTextureView getNormalView() const noexcept { return normalView_; }
+
     /// Get linear sampler for texture sampling
     [[nodiscard]] WGPUSampler getSampler() const noexcept { return sampler_; }
 
@@ -142,6 +151,10 @@ public:
     [[nodiscard]] uint32_t getLightmapWidth() const noexcept { return lightmapWidth_; }
     [[nodiscard]] uint32_t getLightmapHeight() const noexcept { return lightmapHeight_; }
 
+    /// Get normal texture dimensions
+    [[nodiscard]] uint32_t getNormalWidth() const noexcept { return normalWidth_; }
+    [[nodiscard]] uint32_t getNormalHeight() const noexcept { return normalHeight_; }
+
 private:
     // ─────────────────────────────────────────────────────────────────────────
     // Internal Methods
@@ -150,6 +163,7 @@ private:
     bool createSampler();
     bool uploadAlbedoTexture(const std::vector<uint8_t>& data, uint32_t width, uint32_t height);
     bool uploadLightmapTexture(const std::vector<uint8_t>& data, uint32_t width, uint32_t height);
+    bool uploadNormalTexture(const std::vector<uint8_t>& data, uint32_t width, uint32_t height);
 
     // ─────────────────────────────────────────────────────────────────────────
     // GPU Resources
@@ -170,11 +184,18 @@ private:
     uint32_t lightmapWidth_ = 0;
     uint32_t lightmapHeight_ = 0;
 
+    // Normal texture (RGBA8, world-space normal encoded in RGB)
+    WGPUTexture normalTexture_ = nullptr;
+    WGPUTextureView normalView_ = nullptr;
+    uint32_t normalWidth_ = 0;
+    uint32_t normalHeight_ = 0;
+
     // Sampler
     WGPUSampler sampler_ = nullptr;
 
     // Configuration
     TerrainTextureConfig config_ = TerrainTextureConfig::defaults();
+    std::string generatedCacheKey_;
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -197,6 +218,13 @@ private:
 /// Generate terrain-aware R8 light visibility data.
 /// Falls back to solid white if the config has no height samples.
 [[nodiscard]] std::vector<uint8_t> generateTerrainLightmapData(
+    uint32_t width,
+    uint32_t height,
+    const TerrainTextureConfig& config);
+
+/// Generate terrain-aware RGBA8 world normal data.
+/// Falls back to flat +Y normals if the config has no height samples.
+[[nodiscard]] std::vector<uint8_t> generateTerrainNormalData(
     uint32_t width,
     uint32_t height,
     const TerrainTextureConfig& config);

@@ -65,22 +65,25 @@ bool BenchmarkRunner::onFrame(const FrameStats& frameStats) {
     }
     
     const auto& scenario = scenarios_[currentScenario_];
+    if (currentFrame_ < kWarmupFrames) {
+        currentFrame_++;
+        return true;
+    }
+
+    const uint32_t measuredFrame = currentFrame_ - kWarmupFrames;
     
     // Accumulate statistics
     scenarioSumFrame_ += frameStats.totalMs;
     scenarioSumUpdate_ += frameStats.updateMs;
     scenarioSumRender_ += frameStats.renderMs;
     scenarioSumPresent_ += frameStats.presentMs;
-    
-    if (currentFrame_ > 0) {  // Skip first frame for min/max (warmup)
-        scenarioMinFrame_ = std::min(scenarioMinFrame_, frameStats.totalMs);
-        scenarioMaxFrame_ = std::max(scenarioMaxFrame_, frameStats.totalMs);
-    }
+    scenarioMinFrame_ = std::min(scenarioMinFrame_, frameStats.totalMs);
+    scenarioMaxFrame_ = std::max(scenarioMaxFrame_, frameStats.totalMs);
     
     currentFrame_++;
     
     // Check if scenario is complete
-    if (currentFrame_ >= scenario.frameCount) {
+    if (measuredFrame + 1u >= scenario.frameCount) {
         endScenario();
         
         currentScenario_++;
@@ -106,7 +109,7 @@ void BenchmarkRunner::beginScenario() {
     LOG_INFO("");
     LOG_INFO("Scenario {}/{}: {}", 
              currentScenario_ + 1, scenarios_.size(), scenario.name);
-    LOG_INFO("  Frames: {}", scenario.frameCount);
+    LOG_INFO("  Frames: {} measured (+{} warmup)", scenario.frameCount, kWarmupFrames);
     LOG_INFO("  Camera: ({:.1f}, {:.1f}, {:.1f}) -> ({:.1f}, {:.1f}, {:.1f})",
              scenario.cameraPos.x, scenario.cameraPos.y, scenario.cameraPos.z,
              scenario.cameraTarget.x, scenario.cameraTarget.y, scenario.cameraTarget.z);
@@ -130,14 +133,10 @@ void BenchmarkRunner::beginScenario() {
 void BenchmarkRunner::endScenario() {
     const auto& scenario = scenarios_[currentScenario_];
     
-    auto now = std::chrono::high_resolution_clock::now();
-    double endTime = std::chrono::duration<double, std::milli>(now.time_since_epoch()).count();
-    double totalTime = endTime - scenarioStartTime_;
-    
     BenchmarkResult result;
     result.scenarioName = scenario.name;
     result.frameCount = scenario.frameCount;
-    result.totalTimeMs = totalTime;
+    result.totalTimeMs = scenarioSumFrame_;
     result.avgFrameMs = scenarioSumFrame_ / static_cast<double>(scenario.frameCount);
     result.minFrameMs = scenarioMinFrame_;
     result.maxFrameMs = scenarioMaxFrame_;
@@ -190,5 +189,4 @@ void BenchmarkRunner::printResults() const {
 }
 
 } // namespace voxy::perf
-
 

@@ -4,6 +4,7 @@ TEST_SRCS = [
     "test_timer.cpp",
     "test_config.cpp",
     "test_biomes.cpp",
+    "test_benchmark.cpp",
     "test_window.cpp",
     "test_input.cpp",
     "test_decorations.cpp",
@@ -19,6 +20,7 @@ TEST_SRCS = [
     "test_shader_raycast.cpp",
     "test_shader_blit.cpp",
     "test_shader_decorations.cpp",
+    "test_web_assets.cpp",
     "test_triangle_path.cpp",
     "test_raycast_path.cpp",
     "test_blit_path.cpp",
@@ -42,6 +44,7 @@ load("//settings:configure_copts.bzl", "PROJECT_TEST_COPTS")
     ],
     data = [
         "//shaders:shaders",
+        "//web:assets",
         "//:asan_suppressions",
         "//:tsan_suppressions",
         "//:msan_suppressions",
@@ -59,6 +62,7 @@ cc_test(
     ],
     data = [
         "//shaders:shaders",
+        "//web:assets",
         "//:asan_suppressions",
         "//:tsan_suppressions",
         "//:msan_suppressions",

@@ -8,7 +8,7 @@
 //   - Depth texture sampling from ray-cast pass
 //   - Sky rendering with vertical gradient and S-curve interpolation
 //   - Position reconstruction from depth
-//   - Screen-space normal reconstruction (picking closer neighbor)
+//   - Terrain normal map sampling
 //   - Terrain UV computation
 //   - Lighting (diffuse, ambient, roughness-based specular)
 //   - Exponential fog (capped at 0.7)
@@ -26,7 +26,7 @@ struct CameraUniforms {
     invTerrainSize : vec2<f32>,   // 1.0 / terrainSize
     metrics : vec4<f32>,          // (heightScale, cellScale, step, fogDensity)
     cameraPos : vec4<f32>,        // World-space camera position (.xyz)
-    invProjParams : vec4<f32>,    // Inverse projection params (.xy used)
+    invProjParams : vec4<f32>,    // Inverse projection params (.xy), lego flag (.z), time seconds (.w)
     lightDirVS : vec4<f32>,       // View-space light direction (.xyz)
     frustumPlanes : array<vec4<f32>, 6>, // Frustum planes
     lightDirWS : vec4<f32>,       // World-space light direction (.xyz)
@@ -50,7 +50,8 @@ struct DebugUniforms {
 @group(0) @binding(3) var terrainTex : texture_2d<f32>;
 @group(0) @binding(4) var lightmapTex : texture_2d<f32>;
 @group(0) @binding(5) var terrainSampler : sampler;
-@group(0) @binding(6) var<uniform> debug : DebugUniforms;
+@group(0) @binding(6) var normalTex : texture_2d<f32>;
+@group(0) @binding(7) var<uniform> debug : DebugUniforms;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Vertex Shader (Fullscreen Triangle)
@@ -95,6 +96,16 @@ fn sampleDepth(coords : vec2<i32>, maxCoord : vec2<i32>) -> f32 {
     return textureLoad(depthTex, clamped, 0).x;
 }
 
+fn sampleShadow(coords : vec2<i32>, maxCoord : vec2<i32>) -> f32 {
+    let clamped = clamp(coords, vec2<i32>(0, 0), maxCoord);
+    return textureLoad(shadowTex, clamped, 0).x;
+}
+
+fn filteredShadow(coords : vec2<i32>, maxCoord : vec2<i32>) -> f32 {
+    let visibility = sampleShadow(coords, maxCoord);
+    return max(visibility, 0.60);
+}
+
 /// Convert pixel coordinates to normalized device coordinates (NDC)
 fn ndcFromPixel(coords : vec2<i32>, dims : vec2<f32>) -> vec2<f32> {
     let uv = (vec2<f32>(f32(coords.x), f32(coords.y)) + vec2<f32>(0.5, 0.5)) / dims;
@@ -122,14 +133,19 @@ fn viewToWorld(invView : mat4x4<f32>, viewPos : vec3<f32>) -> vec3<f32> {
 }
 
 /// Compute terrain UV coordinates from world-space position
-/// Maps world XZ position to [0, 1] UV range based on terrain dimensions
-fn terrainUV(worldPos : vec3<f32>) -> vec2<f32> {
+/// Maps world XZ position to terrain texture space based on terrain dimensions.
+fn terrainCoord(worldPos : vec3<f32>) -> vec2<f32> {
     let terrainSize = vec2<f32>(camera.terrainSize);
     let cellCounts = max(terrainSize - vec2<f32>(1.0, 1.0), vec2<f32>(1.0, 1.0));
     let cellScale = max(camera.metrics.y, 0.0001);
     let origin = 0.5 * cellCounts * cellScale;
     let coord = (worldPos.xz + origin) / cellScale;
-    return clamp(coord / cellCounts, vec2<f32>(0.0, 0.0), vec2<f32>(1.0, 1.0));
+    return coord / cellCounts;
+}
+
+/// Compute clamped terrain UV coordinates from world-space position.
+fn terrainUV(worldPos : vec3<f32>) -> vec2<f32> {
+    return clamp(terrainCoord(worldPos), vec2<f32>(0.0, 0.0), vec2<f32>(1.0, 1.0));
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -212,6 +228,168 @@ fn simplexNoise2D(p: vec2<f32>) -> f32 {
     return 70.0 * (n0 + n1 + n2);
 }
 
+fn valueNoise2D(p: vec2<f32>) -> f32 {
+    let cell = floor(p);
+    let f = fract(p);
+    let u = f * f * (3.0 - 2.0 * f);
+    let a = hash2D(cell);
+    let b = hash2D(cell + vec2<f32>(1.0, 0.0));
+    let c = hash2D(cell + vec2<f32>(0.0, 1.0));
+    let d = hash2D(cell + vec2<f32>(1.0, 1.0));
+    return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
+}
+
+fn cloudField(p: vec2<f32>) -> f32 {
+    let broad = valueNoise2D(p * 0.72);
+    let body = valueNoise2D(p * 1.37 + vec2<f32>(11.7, -4.3));
+    let lace = valueNoise2D(p * 2.83 + vec2<f32>(-19.1, 8.6));
+    let erosion = valueNoise2D(p * 5.20 + vec2<f32>(3.4, 25.2));
+    let field = broad * 0.50 + body * 0.33 + lace * 0.17;
+    return clamp(field - max(erosion - 0.68, 0.0) * 0.42, 0.0, 1.0);
+}
+
+fn cloudCoverageAt(cloudPos: vec2<f32>, time: f32) -> f32 {
+    let wind = vec2<f32>(time * 0.010, -time * 0.004);
+    let p = cloudPos + wind;
+    let banks = smoothstep(0.50, 0.76, cloudField(p));
+    let wisps = smoothstep(0.62, 0.86, valueNoise2D(p * 4.30 + vec2<f32>(time * 0.018, 0.0)));
+    return clamp(banks * 0.88 + wisps * 0.12, 0.0, 1.0);
+}
+
+fn cloudShadowAtWorld(worldPos: vec3<f32>, time: f32) -> f32 {
+    let cloudPos = worldPos.xz * 0.00042;
+    let cover = cloudCoverageAt(cloudPos, time);
+    return mix(1.0, 0.78, cover);
+}
+
+fn waterMaskFromAlbedo(color : vec3<f32>) -> f32 {
+    return smoothstep(0.04, 0.22, color.b - max(color.r, color.g) * 0.72);
+}
+
+fn terrainDetailColor(worldPos : vec3<f32>,
+                      normal : vec3<f32>,
+                      color : vec3<f32>,
+                      waterMask : f32) -> vec3<f32> {
+    let macroNoise = valueNoise2D(worldPos.xz * 0.018 + vec2<f32>(7.0, -13.0));
+    let medium = valueNoise2D(worldPos.xz * 0.090 + vec2<f32>(31.0, 5.0));
+    let grain = hash2D(floor(worldPos.xz * 0.85 + vec2<f32>(19.0, -23.0)));
+    let dryMask = 1.0 - waterMask;
+    let slopeMask = smoothstep(0.30, 0.82, 1.0 - clamp(normal.y, 0.0, 1.0)) * dryMask;
+    let greenMask = smoothstep(0.04, 0.22, color.g - max(color.r, color.b) * 0.72) * dryMask;
+
+    var detailed = color * (0.955 + macroNoise * 0.060 + medium * 0.030 + grain * 0.018);
+    detailed = mix(detailed, detailed * vec3<f32>(0.86, 0.87, 0.84), slopeMask * 0.20);
+    detailed = mix(detailed, detailed * vec3<f32>(0.84, 1.06, 0.82), greenMask * (0.04 + 0.08 * macroNoise));
+    return clamp(detailed, vec3<f32>(0.0), vec3<f32>(1.0));
+}
+
+fn waterWaveNormal(waterXZ : vec2<f32>, time : f32) -> vec3<f32> {
+    let dirA = normalize(vec2<f32>(0.940, 0.341));
+    let dirB = normalize(vec2<f32>(-0.270, 0.963));
+    let dirC = normalize(vec2<f32>(0.763, -0.647));
+    let dirD = normalize(vec2<f32>(-0.983, -0.184));
+    let phaseA = dot(waterXZ, dirA) * 0.021 + time * 0.23;
+    let phaseB = dot(waterXZ, dirB) * 0.046 + time * 0.37;
+    let phaseC = dot(waterXZ, dirC) * 0.082 + time * 0.61;
+    let phaseD = dot(waterXZ, dirD) * 0.135 + time * 0.83;
+    let swirlA = valueNoise2D(waterXZ * 0.042 + vec2<f32>(time * 0.018, -time * 0.010)) * 2.0 - 1.0;
+    let swirlB = valueNoise2D(waterXZ * 0.130 + vec2<f32>(-time * 0.031, time * 0.017)) * 2.0 - 1.0;
+    let slope = dirA * cos(phaseA) * 0.050 +
+                dirB * cos(phaseB) * 0.038 +
+                dirC * cos(phaseC) * 0.026 +
+                dirD * cos(phaseD) * 0.014 +
+                vec2<f32>(swirlA, swirlB) * 0.018;
+    return normalize(vec3<f32>(
+        -slope.x,
+        1.0,
+        -slope.y
+    ));
+}
+
+fn waterCrest(waterXZ : vec2<f32>, time : f32) -> f32 {
+    let dirA = normalize(vec2<f32>(0.940, 0.341));
+    let dirB = normalize(vec2<f32>(-0.270, 0.963));
+    let dirC = normalize(vec2<f32>(0.763, -0.647));
+    let swell = sin(dot(waterXZ, dirA) * 0.021 + time * 0.23);
+    let chop = sin(dot(waterXZ, dirB) * 0.046 + time * 0.37);
+    let capillary = sin(dot(waterXZ, dirC) * 0.135 + time * 0.83);
+    let noise = valueNoise2D(waterXZ * 0.075 + vec2<f32>(time * 0.025, -time * 0.014));
+    return smoothstep(0.74, 0.98, swell * 0.38 + chop * 0.22 + capillary * 0.10 + noise * 0.30);
+}
+
+fn waterCaustics(waterXZ : vec2<f32>, waterDepth : f32, time : f32) -> f32 {
+    let p = waterXZ * 0.062;
+    let causticA = sin(p.x + p.y * 1.73 + time * 0.68);
+    let causticB = sin(p.x * -1.47 + p.y * 0.82 - time * 0.51);
+    let causticC = valueNoise2D(waterXZ * 0.150 + vec2<f32>(time * 0.035, time * 0.019));
+    let lattice = pow(clamp(causticA * causticB * 0.42 + causticC * 0.58, 0.0, 1.0), 4.5);
+    let depthFade = 1.0 - smoothstep(1.0, 22.0, waterDepth);
+    return lattice * depthFade;
+}
+
+fn waterSurfaceColor(waterPos : vec3<f32>,
+                     terrainColor : vec3<f32>,
+                     terrainDistance : f32,
+                     waterDistance : f32,
+                     planeMask : f32,
+                     time : f32) -> vec3<f32> {
+    let waterDepth = max(terrainDistance - waterDistance, 0.0);
+    let shallow = 1.0 - smoothstep(2.5, 24.0, waterDepth);
+    let nearShore = 1.0 - smoothstep(0.8, 9.0, waterDepth);
+    let deepFade = smoothstep(14.0, 70.0, waterDepth);
+    let farFlatten = smoothstep(520.0, 2400.0, waterDistance);
+    let rippleNoise = valueNoise2D(waterPos.xz * 0.115 + vec2<f32>(time * 0.040, -time * 0.024));
+    let waterNormal = normalize(mix(waterWaveNormal(waterPos.xz, time),
+                                   vec3<f32>(0.0, 1.0, 0.0),
+                                   farFlatten * 0.78));
+
+    let lightDir = normalize(camera.lightDirWS.xyz);
+    let viewDir = normalize(camera.cameraPos.xyz - waterPos);
+    let halfDir = normalize(lightDir + viewDir);
+    let cloudShadowInfluence = clamp((1.0 - farFlatten) * 0.55 + nearShore * 0.20, 0.0, 0.75);
+    let cloudShadow = mix(0.98, cloudShadowAtWorld(waterPos, time), cloudShadowInfluence);
+    let diffuse = (0.50 + 0.36 * max(dot(waterNormal, lightDir), 0.0)) * mix(0.88, 1.0, cloudShadow);
+    let glintPower = mix(76.0, 180.0, deepFade);
+    let glint = pow(max(dot(waterNormal, halfDir), 0.0), glintPower) *
+                mix(0.18, 0.42, deepFade) * cloudShadow * (1.0 - farFlatten * 0.35);
+    let fresnel = 0.035 + 0.965 * pow(1.0 - clamp(dot(waterNormal, viewDir), 0.0, 1.0), 5.0);
+    let crest = waterCrest(waterPos.xz, time);
+    let caustics = waterCaustics(waterPos.xz, waterDepth, time);
+
+    let deepColor = vec3<f32>(0.018, 0.135, 0.265);
+    let midColor = vec3<f32>(0.035, 0.245, 0.365);
+    let shallowColor = vec3<f32>(0.100, 0.420, 0.500);
+    let transmission = mix(terrainColor * vec3<f32>(0.58, 0.82, 0.78), shallowColor, 0.58);
+    var waterColor = mix(mix(transmission, midColor, 1.0 - shallow), deepColor, deepFade);
+    waterColor *= diffuse + 0.18;
+
+    let reflectionDir = reflect(-viewDir, waterNormal);
+    let skyReflect = mix(vec3<f32>(0.54, 0.70, 0.82),
+                         vec3<f32>(0.18, 0.38, 0.62),
+                         pow(clamp(reflectionDir.y * 0.5 + 0.5, 0.0, 1.0), 0.72));
+    let cloudReflect = cloudCoverageAt(waterPos.xz * 0.00050 + reflectionDir.xz * 0.022, time);
+    let reflectionColor = mix(skyReflect, vec3<f32>(0.82, 0.86, 0.86), cloudReflect * 0.035 * (1.0 - farFlatten * 0.75));
+
+    waterColor = mix(waterColor, reflectionColor, fresnel * mix(0.24, 0.48, deepFade) * (1.0 - farFlatten * 0.32));
+    waterColor += vec3<f32>(0.78, 0.90, 0.98) * glint;
+    waterColor += vec3<f32>(0.10, 0.30, 0.27) * caustics * shallow;
+    waterColor *= 0.985 + (rippleNoise - 0.5) * (0.045 * (1.0 - farFlatten * 0.75));
+
+    let shoreFoam = smoothstep(0.25, 0.90, planeMask) *
+                    nearShore *
+                    (0.56 + 0.44 * valueNoise2D(waterPos.xz * 0.42 + vec2<f32>(time * 0.11, -time * 0.07)));
+    let whitecaps = crest * mix(nearShore * 0.34, deepFade * 0.10, smoothstep(24.0, 90.0, waterDepth)) *
+                    (1.0 - farFlatten * 0.75);
+    waterColor = mix(waterColor, vec3<f32>(0.74, 0.88, 0.86), clamp(shoreFoam * 0.58 + whitecaps, 0.0, 0.72));
+
+    let distanceHaze = farFlatten * 0.34;
+    waterColor = mix(waterColor, vec3<f32>(0.34, 0.53, 0.65), distanceHaze);
+
+    let opacity = smoothstep(0.20, 0.72, planeMask) *
+                  mix(0.42, 0.94, smoothstep(5.0, 38.0, waterDepth));
+    return mix(terrainColor, waterColor, opacity);
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Fragment Shader
 // ─────────────────────────────────────────────────────────────────────────────
@@ -226,9 +404,11 @@ fn fs(i : VSOut) -> @location(0) vec4<f32> {
     let pixelI = clamp(vec2<i32>(floor(pixF)), vec2<i32>(0, 0), maxCoord);
     let ndcCenter = ndcFromPixel(pixelI, dimsF);
     let depthCenter = textureLoad(depthTex, pixelI, 0).x;
-    let shadowFactor = textureLoad(shadowTex, pixelI, 0).x;
+    let shadowFactor = filteredShadow(pixelI, maxCoord);
 
     let invProjParams = camera.invProjParams.xy;
+    let viewRay = rayDirFromPixel(invProjParams, ndcCenter);
+    let worldRay = normalize((camera.invView * vec4<f32>(viewRay, 0.0)).xyz);
     
     // ─────────────────────────────────────────────────────────────────────────
     // Sky Rendering - Atmospheric Scattering
@@ -240,8 +420,7 @@ fn fs(i : VSOut) -> @location(0) vec4<f32> {
             return vec4<f32>(1.0, 0.0, 0.5, 1.0); // Hot Pink
         }
 
-        let viewDir = rayDirFromPixel(invProjParams, ndcCenter);
-        let worldDir = normalize((camera.invView * vec4<f32>(viewDir, 0.0)).xyz);
+        let worldDir = worldRay;
         let sunDir = normalize(camera.lightDirWS.xyz);
         
         // ─────────────────────────────────────────────────────────────────────
@@ -302,42 +481,25 @@ fn fs(i : VSOut) -> @location(0) vec4<f32> {
         skyColor += bloomColor * (bloom1 + bloom2 + bloom3);
         
         // ─────────────────────────────────────────────────────────────────────
-        // Procedural Clouds (FBM noise)
+        // Procedural Clouds
         // ─────────────────────────────────────────────────────────────────────
         if (worldDir.y > 0.0) {
-            // Project ray onto cloud plane at fixed height
             let cloudHeight = 800.0;
             let t = cloudHeight / max(worldDir.y, 0.001);
-            let cloudPos = worldDir.xz * t * 0.0008; // Scale for cloud size
-            
-            // Animated cloud position (use fog density as time proxy, or static)
-            let cloudOffset = vec2<f32>(camera.metrics.w * 1000.0, 0.0);
-            let animatedPos = cloudPos + cloudOffset;
-            
-            // FBM noise for clouds
-            var cloudNoise = 0.0;
-            var amplitude = 0.5;
-            var frequency = 1.0;
-            var noisePos = animatedPos;
-            
-            for (var i = 0; i < 5; i++) {
-                cloudNoise += amplitude * simplexNoise2D(noisePos * frequency);
-                amplitude *= 0.5;
-                frequency *= 2.0;
-                noisePos = noisePos * 1.02 + vec2<f32>(0.1, 0.05); // Slight rotation
-            }
-            
-            // Shape clouds
-            let cloudDensity = smoothstep(0.1, 0.6, cloudNoise * 0.5 + 0.5);
-            let cloudFade = smoothstep(0.0, 0.3, worldDir.y); // Fade near horizon
-            let distanceFade = exp(-t * 0.0003); // Fade with distance
-            
-            // Cloud lighting (simple sun-facing)
-            let cloudBrightness = mix(0.7, 1.0, max(0.0, sunDot * 0.5 + 0.5));
-            let cloudColor = vec3<f32>(1.0, 0.98, 0.95) * cloudBrightness;
-            
-            // Blend clouds
-            let cloudAlpha = cloudDensity * cloudFade * distanceFade * 0.8;
+            let cloudPos = worldDir.xz * t * 0.00072;
+            let cloudDensity = cloudCoverageAt(cloudPos, camera.invProjParams.w);
+            let cloudFade = smoothstep(0.02, 0.26, worldDir.y) *
+                            (1.0 - smoothstep(0.86, 1.0, worldDir.y) * 0.18);
+            let distanceFade = exp(-t * 0.00024);
+
+            let sunEdge = pow(max(sunDot, 0.0), 6.0);
+            let cloudBrightness = mix(0.64, 1.08, max(0.0, sunDot * 0.5 + 0.5));
+            let cloudBase = vec3<f32>(0.78, 0.82, 0.86);
+            let cloudLit = vec3<f32>(1.0, 0.96, 0.88) * cloudBrightness +
+                           vec3<f32>(0.18, 0.14, 0.08) * sunEdge;
+            let cloudColor = mix(cloudBase, cloudLit, 0.72);
+
+            let cloudAlpha = cloudDensity * cloudFade * distanceFade * 0.74;
             skyColor = mix(skyColor, cloudColor, cloudAlpha);
         }
         
@@ -346,6 +508,27 @@ fn fs(i : VSOut) -> @location(0) vec4<f32> {
         
         // Gamma correction
         skyColor = pow(skyColor, vec3<f32>(1.0 / 2.2));
+
+        // Sky pixels can still see the sea-level plane beyond the heightfield hit
+        // distance. Composite ocean here so distant water keeps a flat horizon.
+        let seaLevel = 0.0;
+        if (abs(worldRay.y) > 0.0001) {
+            let waterDistance = (seaLevel - camera.cameraPos.y) / worldRay.y;
+            if (waterDistance > 0.0) {
+                let waterPos = camera.cameraPos.xyz + worldRay * waterDistance;
+                let waterUv = terrainCoord(waterPos);
+                if (waterUv.x >= 0.0 && waterUv.x <= 1.0 && waterUv.y >= 0.0 && waterUv.y <= 1.0) {
+                    let waterAlbedo = textureSampleLevel(terrainTex, terrainSampler, waterUv, 0.0).xyz;
+                    let planeMask = waterMaskFromAlbedo(waterAlbedo);
+                    let oceanMask = smoothstep(0.18, 0.55, planeMask);
+                    if (oceanMask > 0.01) {
+                        let deepOceanDistance = waterDistance + mix(42.0, 140.0, planeMask);
+                        let skyWater = waterSurfaceColor(waterPos, skyColor, deepOceanDistance, waterDistance, 1.0, camera.invProjParams.w);
+                        return vec4<f32>(mix(skyColor, skyWater, oceanMask), 1.0);
+                    }
+                }
+            }
+        }
         
         return vec4<f32>(skyColor, 1.0);
     }
@@ -357,69 +540,34 @@ fn fs(i : VSOut) -> @location(0) vec4<f32> {
     let posCWorld = viewToWorld(camera.invView, posCView);
     
     // ─────────────────────────────────────────────────────────────────────────
-    // Screen-Space Normal Reconstruction
-    // ─────────────────────────────────────────────────────────────────────────
-    // Sample neighbor depths to reconstruct surface normal
-    let offsetX = vec2<i32>(1, 0);
-    let offsetY = vec2<i32>(0, 1);
-    let depthNegX = sampleDepth(pixelI - offsetX, maxCoord);
-    let depthPosX = sampleDepth(pixelI + offsetX, maxCoord);
-    let depthNegY = sampleDepth(pixelI - offsetY, maxCoord);
-    let depthPosY = sampleDepth(pixelI + offsetY, maxCoord);
-    
-    // Choose closer neighbor for each axis to handle depth discontinuities
-    // Logic optimization:
-    // 1. If x=0 (Left Edge): (pixelI.x > 0) is false -> useNegX = false -> Forces PosX.
-    // 2. If x=Max (Right Edge): (pixelI.x >= dims.x - 1) is true -> useNegX = true -> Forces NegX.
-    // 3. Middle: Uses the standard depth difference comparison.
-    let useNegX = (pixelI.x > 0) && ( (pixelI.x >= i32(dims.x) - 1) || (abs(depthNegX - depthCenter) < abs(depthPosX - depthCenter)) );
-    let useNegY = (pixelI.y > 0) && ( (pixelI.y >= i32(dims.y) - 1) || (abs(depthNegY - depthCenter) < abs(depthPosY - depthCenter)) );
-    
-    var depthX = select(depthPosX, depthNegX, useNegX);
-    var depthY = select(depthPosY, depthNegY, useNegY);
-    var coordX = select(pixelI + offsetX, pixelI - offsetX, useNegX);
-    var coordY = select(pixelI + offsetY, pixelI - offsetY, useNegY);
-    
-    // Reconstruct positions for neighbor pixels
-    let ndcX = ndcFromPixel(coordX, dimsF);
-    let ndcY = ndcFromPixel(coordY, dimsF);
-    let posXView = viewPosFromDepth(invProjParams, ndcX, depthX);
-    let posYView = viewPosFromDepth(invProjParams, ndcY, depthY);
-    
-    // Compute normal from cross product of position differences. Force dx/dy to always represent
-    // the positive screen-space axis directions so the cross product remains stable regardless
-    // of which neighbor sample was selected to avoid depth discontinuities.
-    var dx = posXView - posCView;
-    var dy = posYView - posCView;
-    if (useNegX) { dx = -dx; }
-    if (useNegY) { dy = -dy; }
-    var normal = normalize(cross(dx, dy));
-
-    // ─────────────────────────────────────────────────────────────────────────
     // Texture Sampling
     // ─────────────────────────────────────────────────────────────────────────
     let uvTerrain = terrainUV(posCWorld);
-    let albedo = textureSampleLevel(terrainTex, terrainSampler, uvTerrain, 0.0).xyz;
-    let waterMask = smoothstep(0.04, 0.22, albedo.b - max(albedo.r, albedo.g) * 0.72);
+    let normal = normalize(textureSampleLevel(normalTex, terrainSampler, uvTerrain, 0.0).xyz * 2.0 - vec3<f32>(1.0, 1.0, 1.0));
+    let rawAlbedo = textureSampleLevel(terrainTex, terrainSampler, uvTerrain, 0.0).xyz;
+    let waterMask = waterMaskFromAlbedo(rawAlbedo);
+    let albedo = terrainDetailColor(posCWorld, normal, rawAlbedo, waterMask);
     let lightVisibility = textureSampleLevel(lightmapTex, terrainSampler, uvTerrain, 0.0).x;
     
     // ─────────────────────────────────────────────────────────────────────────
     // Lighting
     // ─────────────────────────────────────────────────────────────────────────
-    // Light direction is pre-transformed to view-space by CPU
-    let lightDir = camera.lightDirVS.xyz;
+    let lightDir = normalize(camera.lightDirWS.xyz);
     
     // Diffuse (Lambertian)
-    let diffuse = max(dot(normal, lightDir), 0.0);
+    let lambert = max(dot(normal, lightDir), 0.0);
+    let diffuse = lambert * 0.76 + 0.24;
     
     // Apply Shadow from Ray Tracing
-    let finalDiffuse = diffuse * shadowFactor;
+    let terrainCloudShadow = cloudShadowAtWorld(posCWorld, camera.invProjParams.w);
+    let finalDiffuse = diffuse * shadowFactor * terrainCloudShadow;
 
     // Fixed ambient intensity
     let ambient = max(camera.lightDirVS.w, 0.05);
+    let ambientCloud = ambient * mix(0.90, 1.0, terrainCloudShadow);
     
     // Specular (roughness-based Blinn-Phong)
-    let viewDir = normalize(-posCView);
+    let viewDir = normalize(camera.cameraPos.xyz - posCWorld);
     let halfVec = normalize(lightDir + viewDir);
 
     var roughness = mix(0.72, 0.18, waterMask);
@@ -431,10 +579,37 @@ fn fs(i : VSOut) -> @location(0) vec4<f32> {
     let specStrength = mix(0.04, 0.25, 1.0 - roughness);  // ~0.124 for roughness 0.6
     let specularTerm = pow(max(dot(normal, halfVec), 0.0), specPower);
     // Apply shadow to specular as well
-    let specular = specStrength * specularTerm * lightVisibility * shadowFactor;
+    let specular = specStrength * specularTerm * lightVisibility * shadowFactor * terrainCloudShadow;
     
     // Combine lighting components
-    let litColor = albedo * (finalDiffuse * lightVisibility + ambient) + specular;
+    let litColor = albedo * (finalDiffuse * lightVisibility + ambientCloud) + specular;
+    var shadedColor = litColor;
+    var fogDistance = length(posCView);
+
+    // Minecraft fills terrain below sea level with water. The heightfield itself
+    // remains the ocean floor, so composite a sea-level plane wherever the baked
+    // biome texture says the underlying surface is water.
+    let seaLevel = 0.0;
+    if (abs(worldRay.y) > 0.0001) {
+        let waterDistance = (seaLevel - camera.cameraPos.y) / worldRay.y;
+        if (waterDistance > 0.0 && waterDistance < depthCenter) {
+            let waterPos = camera.cameraPos.xyz + worldRay * waterDistance;
+            let waterUv = terrainCoord(waterPos);
+            if (waterUv.x >= 0.0 && waterUv.x <= 1.0 && waterUv.y >= 0.0 && waterUv.y <= 1.0) {
+                var planeMask = 0.0;
+                if (waterMask > 0.18 && posCWorld.y <= seaLevel + 1.0) {
+                    planeMask = waterMask;
+                } else {
+                    let waterAlbedo = textureSampleLevel(terrainTex, terrainSampler, waterUv, 0.0).xyz;
+                    planeMask = waterMaskFromAlbedo(waterAlbedo);
+                }
+                if (planeMask > 0.18) {
+                    shadedColor = waterSurfaceColor(waterPos, shadedColor, depthCenter, waterDistance, planeMask, camera.invProjParams.w);
+                    fogDistance = waterDistance;
+                }
+            }
+        }
+    }
     
     // ─────────────────────────────────────────────────────────────────────────
     // Fog
@@ -442,9 +617,8 @@ fn fs(i : VSOut) -> @location(0) vec4<f32> {
     // Exponential fog capped at 0.7 to maintain visibility at distance
     let fogDensity = camera.metrics.w;
     let fogColor = vec3<f32>(0.6, 0.68, 0.76);  // Hardcoded fog color
-    let dist = length(posCView);
-    let fogFactor = clamp(1.0 - exp(-fogDensity * dist), 0.0, 0.7);
-    let finalColor = mix(litColor, fogColor, fogFactor);
+    let fogFactor = clamp(1.0 - exp(-fogDensity * fogDistance), 0.0, 0.7);
+    let finalColor = mix(shadedColor, fogColor, fogFactor);
     
     // ─────────────────────────────────────────────────────────────────────────
     // Apply Debug Visualization (if enabled)

@@ -9,7 +9,12 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 
 #include <gtest/gtest.h>
+#include <chrono>
 #include <filesystem>
+#include <fstream>
+#include <set>
+#include <string>
+#include <vector>
 
 #include "terrain/textures.hpp"
 #include "gpu/context.hpp"
@@ -59,6 +64,8 @@ TEST_F(TerrainTexturesTest, DefaultConfigValues) {
     EXPECT_FLOAT_EQ(config.cellScale, 1.0f);
     EXPECT_TRUE(config.minecraftStyleEnhancement);
     EXPECT_EQ(config.generatedLightmapMaxSize, 2048u);
+    EXPECT_TRUE(config.enableGeneratedTextureCache);
+    EXPECT_EQ(config.generatedTextureCacheDir, std::filesystem::path("data/generated/texture_cache"));
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -190,6 +197,139 @@ TEST_F(TerrainTexturesTest, CustomPlaceholderDimensions) {
     EXPECT_EQ(textures_.getAlbedoHeight(), 512u);
     EXPECT_EQ(textures_.getLightmapWidth(), 1u);
     EXPECT_EQ(textures_.getLightmapHeight(), 1u);
+}
+
+TEST_F(TerrainTexturesTest, GeneratedTextureCacheCreatesAndReusesFiles) {
+    if (!gpuContextInitialized_) {
+        GTEST_SKIP() << "GPU context not available";
+    }
+
+    const auto unique = std::chrono::steady_clock::now().time_since_epoch().count();
+    const auto cacheDir = std::filesystem::temp_directory_path() /
+                          ("voxy_texture_cache_test_" + std::to_string(unique));
+
+    std::vector<uint16_t> samples(32u * 32u, 36044u);
+    terrain::TerrainTextureConfig config;
+    config.placeholderWidth = 32;
+    config.placeholderHeight = 32;
+    config.heightSamples = samples;
+    config.heightmapWidth = 32;
+    config.heightmapHeight = 32;
+    config.heightScale = 50.0f;
+    config.cellScale = 1.0f;
+    config.generatedLightmapMaxSize = 16;
+    config.generatedTextureCacheDir = cacheDir;
+
+    auto countCacheFiles = [&]() {
+        size_t count = 0;
+        if (!std::filesystem::exists(cacheDir)) {
+            return count;
+        }
+        for (const auto& entry : std::filesystem::directory_iterator(cacheDir)) {
+            if (entry.is_regular_file()) {
+                count++;
+            }
+        }
+        return count;
+    };
+
+    auto device = gpuContext_.getDevice();
+    auto queue = gpuContext_.getQueue();
+
+    ASSERT_TRUE(textures_.init(device, queue, config));
+    EXPECT_EQ(textures_.getAlbedoWidth(), 32u);
+    EXPECT_EQ(textures_.getAlbedoHeight(), 32u);
+    EXPECT_EQ(textures_.getLightmapWidth(), 16u);
+    EXPECT_EQ(textures_.getLightmapHeight(), 16u);
+    EXPECT_EQ(textures_.getNormalWidth(), 16u);
+    EXPECT_EQ(textures_.getNormalHeight(), 16u);
+    textures_.shutdown();
+
+    EXPECT_EQ(countCacheFiles(), 3u);
+
+    terrain::TerrainTextures cachedTextures;
+    ASSERT_TRUE(cachedTextures.init(device, queue, config));
+    EXPECT_EQ(cachedTextures.getAlbedoWidth(), 32u);
+    EXPECT_EQ(cachedTextures.getAlbedoHeight(), 32u);
+    EXPECT_EQ(cachedTextures.getLightmapWidth(), 16u);
+    EXPECT_EQ(cachedTextures.getLightmapHeight(), 16u);
+    EXPECT_EQ(cachedTextures.getNormalWidth(), 16u);
+    EXPECT_EQ(cachedTextures.getNormalHeight(), 16u);
+    cachedTextures.shutdown();
+
+    std::error_code ec;
+    std::filesystem::remove_all(cacheDir, ec);
+}
+
+TEST_F(TerrainTexturesTest, GeneratedAlbedoCacheContainsBiomeMaterialVariation) {
+    if (!gpuContextInitialized_) {
+        GTEST_SKIP() << "GPU context not available";
+    }
+
+    const auto unique = std::chrono::steady_clock::now().time_since_epoch().count();
+    const auto cacheDir = std::filesystem::temp_directory_path() /
+                          ("voxy_texture_material_test_" + std::to_string(unique));
+
+    std::vector<uint16_t> samples(48u * 48u, 36044u);
+    for (uint32_t y = 0; y < 48; ++y) {
+        for (uint32_t x = 0; x < 48; ++x) {
+            if (x > 32 && y > 28) {
+                samples[y * 48u + x] = 52000u;
+            } else if (x < 12 && y < 18) {
+                samples[y * 48u + x] = 31000u;
+            }
+        }
+    }
+
+    terrain::TerrainTextureConfig config;
+    config.placeholderWidth = 48;
+    config.placeholderHeight = 48;
+    config.heightSamples = samples;
+    config.heightmapWidth = 48;
+    config.heightmapHeight = 48;
+    config.heightScale = 80.0f;
+    config.cellScale = 1.0f;
+    config.generatedLightmapMaxSize = 16;
+    config.generatedTextureCacheDir = cacheDir;
+
+    auto device = gpuContext_.getDevice();
+    auto queue = gpuContext_.getQueue();
+    ASSERT_TRUE(textures_.init(device, queue, config));
+    textures_.shutdown();
+
+    std::filesystem::path albedoPath;
+    for (const auto& entry : std::filesystem::directory_iterator(cacheDir)) {
+        if (entry.path().extension() == ".rgba8" &&
+            entry.path().filename().string().find("albedo") != std::string::npos) {
+            albedoPath = entry.path();
+            break;
+        }
+    }
+    ASSERT_FALSE(albedoPath.empty()) << "Expected generated albedo cache file";
+
+    std::ifstream file(albedoPath, std::ios::binary);
+    ASSERT_TRUE(file.is_open());
+    std::string contents((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+    const std::string marker = "END\n";
+    const auto payloadOffset = contents.find(marker);
+    ASSERT_NE(payloadOffset, std::string::npos);
+    const size_t pixelOffset = payloadOffset + marker.size();
+    ASSERT_GE(contents.size(), pixelOffset + 48u * 48u * 4u);
+
+    std::set<uint32_t> uniqueColors;
+    for (size_t i = pixelOffset; i + 3 < contents.size(); i += 4) {
+        const auto r = static_cast<uint8_t>(contents[i + 0]);
+        const auto g = static_cast<uint8_t>(contents[i + 1]);
+        const auto b = static_cast<uint8_t>(contents[i + 2]);
+        uniqueColors.insert((static_cast<uint32_t>(r) << 16u) |
+                            (static_cast<uint32_t>(g) << 8u) |
+                            static_cast<uint32_t>(b));
+    }
+    EXPECT_GT(uniqueColors.size(), 32u)
+        << "Biome/material albedo should contain varied surface colors";
+
+    std::error_code ec;
+    std::filesystem::remove_all(cacheDir, ec);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════

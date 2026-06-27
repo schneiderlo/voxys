@@ -19,6 +19,7 @@
 #include "core/timer.hpp"
 #include "gpu/context.hpp"
 #include "gpu/resources.hpp"
+#include "terrain/biomes.hpp"
 #include "terrain/decorations.hpp"
 #include "terrain/textures.hpp"
 #include "render/decoration_renderer.hpp"
@@ -30,7 +31,9 @@
 #include <algorithm>
 #include <cmath>
 #include <filesystem>
+#include <limits>
 #include <system_error>
+#include <unordered_map>
 #include <vector>
 
 #if defined(VOXY_NATIVE)
@@ -522,6 +525,264 @@ void Application::scheduleNextTourStep() {
 
     tourCurrentPath_ = (config_.screenshotTourDir / ("view_" + std::to_string(tourStep_) + ".png")).string();
     tourFrameCounter_ = 0;
+}
+
+void Application::rebuildTeleportTargetsFromTerrain(const std::vector<terrain::TerrainDecoration>& decorations) {
+    if (!heightmap_ || !heightmap_->isLoaded() ||
+        heightmap_->getWidth() < 2u || heightmap_->getHeight() < 2u) {
+        return;
+    }
+
+    const uint32_t width = heightmap_->getWidth();
+    const uint32_t height = heightmap_->getHeight();
+    const float cellScale = std::max(config_.cellScale, 0.001f);
+    const float worldWidth = static_cast<float>(width - 1u) * cellScale;
+    const float worldHeight = static_cast<float>(height - 1u) * cellScale;
+    const float maxWorldExtent = std::max(worldWidth, worldHeight);
+    const float originX = worldWidth * 0.5f;
+    const float originZ = worldHeight * 0.5f;
+
+    auto rawToMeters = [&](float raw) {
+        const float normalized = raw / 65535.0f;
+        return (normalized * 2.0f - 1.0f) * config_.heightScale;
+    };
+
+    auto worldToSample = [&](float worldX, float worldZ) {
+        const float sampleX = std::clamp((worldX + originX) / cellScale, 0.0f, static_cast<float>(width - 1u));
+        const float sampleY = std::clamp((worldZ + originZ) / cellScale, 0.0f, static_cast<float>(height - 1u));
+        return glm::vec2(sampleX, sampleY);
+    };
+
+    auto sampleWorldHeight = [&](float worldX, float worldZ) {
+        const glm::vec2 sample = worldToSample(worldX, worldZ);
+        return rawToMeters(heightmap_->sampleBilinear(sample.x, sample.y));
+    };
+
+    auto finite = [](const glm::vec3& value) {
+        return std::isfinite(value.x) && std::isfinite(value.y) && std::isfinite(value.z);
+    };
+
+    auto normalized2 = [](glm::vec2 value, glm::vec2 fallback) {
+        const float length = glm::length(value);
+        if (length < 0.001f) {
+            return glm::normalize(fallback);
+        }
+        return value / length;
+    };
+
+    std::vector<CameraState> targets;
+    targets.reserve(6u);
+
+    auto addLookAt = [&](glm::vec3 position, glm::vec3 target) {
+        if (targets.size() >= 6u || !finite(position) || !finite(target)) {
+            return;
+        }
+
+        const float ground = sampleWorldHeight(position.x, position.z);
+        const float clearance = std::max(config_.cameraEyeHeight + 4.0f, 6.0f);
+        position.y = std::max(position.y, ground + clearance);
+
+        glm::vec3 direction = target - position;
+        const float distance = glm::length(direction);
+        if (distance < 0.001f) {
+            return;
+        }
+        direction /= distance;
+
+        CameraState state;
+        state.position = position;
+        state.yaw = std::atan2(direction.x, direction.z);
+        state.pitch = std::asin(std::clamp(direction.y, -1.0f, 1.0f));
+        constexpr float maxPitch = 1.5607964f;
+        state.pitch = std::clamp(state.pitch, -maxPitch, maxPitch);
+        targets.push_back(state);
+    };
+
+    struct Candidate {
+        glm::vec3 position{0.0f};
+        float score = -std::numeric_limits<float>::infinity();
+        bool valid = false;
+    };
+
+    terrain::DecorationConfig scanConfig;
+    scanConfig.heightSamples = heightmap_->getData();
+    scanConfig.width = width;
+    scanConfig.height = height;
+    scanConfig.heightScale = config_.heightScale;
+    scanConfig.cellScale = cellScale;
+
+    Candidate ridge;
+    Candidate shore;
+    const uint32_t scanStep = std::max(4u, std::max(width, height) / 96u);
+    for (uint32_t y = scanStep / 2u; y < height; y += scanStep) {
+        for (uint32_t x = scanStep / 2u; x < width; x += scanStep) {
+            const float heightM = terrain::sampleDecorationHeightMeters(scanConfig, x, y);
+            const float slope = terrain::estimateDecorationSlope(scanConfig, x, y);
+            const float worldX = static_cast<float>(x) * cellScale - originX;
+            const float worldZ = static_cast<float>(y) * cellScale - originZ;
+            const terrain::BiomeSample biome = terrain::sampleBiome(terrain::BiomeSampleInput{
+                .worldX = worldX,
+                .worldZ = worldZ,
+                .heightM = heightM,
+                .slope = slope,
+            });
+
+            const float edgePenalty = std::max(
+                std::abs(worldX) / std::max(originX, 1.0f),
+                std::abs(worldZ) / std::max(originZ, 1.0f)
+            );
+            if (!biome.isWater()) {
+                const float score = heightM + slope * 24.0f - edgePenalty * 18.0f;
+                if (score > ridge.score) {
+                    ridge = Candidate{glm::vec3(worldX, heightM, worldZ), score, true};
+                }
+            }
+
+            if (biome.water > 0.18f || biome.river > 0.40f) {
+                const float waterline = 1.0f - std::clamp(std::abs(heightM) / std::max(config_.heightScale, 1.0f),
+                                                          0.0f,
+                                                          1.0f);
+                const float score = biome.water * 1.30f + biome.river * 1.05f + waterline * 0.25f -
+                                    edgePenalty * 0.12f;
+                if (score > shore.score) {
+                    shore = Candidate{glm::vec3(worldX, heightM, worldZ), score, true};
+                }
+            }
+        }
+    }
+
+    const float centerHeight = sampleWorldHeight(0.0f, 0.0f);
+    const float overviewDistance = std::clamp(maxWorldExtent * 0.13f, 180.0f, 980.0f);
+    const float overviewHeight = std::max(centerHeight + config_.heightScale * 1.2f, 110.0f);
+    addLookAt(glm::vec3(-overviewDistance * 0.35f, overviewHeight, -overviewDistance),
+              glm::vec3(0.0f, centerHeight + config_.heightScale * 0.12f, 0.0f));
+
+    if (ridge.valid) {
+        const glm::vec2 outward = normalized2(glm::vec2(ridge.position.x, ridge.position.z),
+                                              glm::vec2(-0.7f, -1.0f));
+        const float distance = std::clamp(maxWorldExtent * 0.05f, 85.0f, 220.0f);
+        const float lift = std::max(config_.heightScale * 0.32f, 38.0f);
+        addLookAt(ridge.position + glm::vec3(outward.x * distance, lift, outward.y * distance),
+                  ridge.position + glm::vec3(0.0f, 18.0f, 0.0f));
+    }
+
+    if (shore.valid) {
+        const glm::vec2 acrossWater = normalized2(glm::vec2(-shore.position.z, shore.position.x),
+                                                  glm::vec2(1.0f, -0.35f));
+        const float distance = std::clamp(maxWorldExtent * 0.035f, 65.0f, 150.0f);
+        addLookAt(shore.position + glm::vec3(acrossWater.x * distance, 24.0f, acrossWater.y * distance),
+                  shore.position + glm::vec3(-acrossWater.x * distance * 0.35f, 6.0f,
+                                             -acrossWater.y * distance * 0.35f));
+    }
+
+    const float treeClusterCell = std::clamp(maxWorldExtent * 0.025f, 28.0f, 54.0f);
+    auto treeBinKey = [](int32_t x, int32_t z) {
+        return (static_cast<uint64_t>(static_cast<uint32_t>(x)) << 32u) |
+               static_cast<uint32_t>(z);
+    };
+    auto treeBin = [&](const terrain::TerrainDecoration& tree) {
+        return glm::ivec2(static_cast<int32_t>(std::floor(tree.x / treeClusterCell)),
+                          static_cast<int32_t>(std::floor(tree.z / treeClusterCell)));
+    };
+
+    std::unordered_map<uint64_t, uint32_t> broadleafBins;
+    std::unordered_map<uint64_t, uint32_t> pineBins;
+    broadleafBins.reserve(decorations.size());
+    pineBins.reserve(decorations.size());
+    for (const auto& tree : decorations) {
+        if (!terrain::isTreeDecoration(tree.kind)) {
+            continue;
+        }
+        const glm::ivec2 bin = treeBin(tree);
+        auto& bins = tree.kind == terrain::DecorationKind::PineTree ? pineBins : broadleafBins;
+        bins[treeBinKey(bin.x, bin.y)]++;
+    }
+
+    auto treeClusterCount = [&](const terrain::TerrainDecoration& tree) {
+        const auto& bins = tree.kind == terrain::DecorationKind::PineTree ? pineBins : broadleafBins;
+        const glm::ivec2 bin = treeBin(tree);
+        uint32_t count = 0;
+        for (int32_t dz = -1; dz <= 1; ++dz) {
+            for (int32_t dx = -1; dx <= 1; ++dx) {
+                const auto it = bins.find(treeBinKey(bin.x + dx, bin.y + dz));
+                if (it != bins.end()) {
+                    count += it->second;
+                }
+            }
+        }
+        return count;
+    };
+
+    auto addTreeTarget = [&](terrain::DecorationKind kind) {
+        const terrain::TerrainDecoration* best = nullptr;
+        float bestScore = -std::numeric_limits<float>::infinity();
+        for (const auto& tree : decorations) {
+            if (tree.kind != kind) {
+                continue;
+            }
+            const float distanceFromCenter = glm::length(glm::vec2(tree.x, tree.z));
+            const float cluster = static_cast<float>(treeClusterCount(tree));
+            const float score = cluster * 7.5f + tree.height * 1.4f + tree.radius * 2.0f +
+                                tree.y * 0.04f - distanceFromCenter * 0.0025f;
+            if (score > bestScore) {
+                best = &tree;
+                bestScore = score;
+            }
+        }
+
+        if (!best) {
+            return;
+        }
+
+        const glm::vec2 outward = normalized2(glm::vec2(best->x, best->z), glm::vec2(0.35f, -1.0f));
+        const bool broadCanopy = best->kind == terrain::DecorationKind::JungleTree ||
+                                  best->kind == terrain::DecorationKind::AcaciaTree;
+        const bool denseConifer = best->kind == terrain::DecorationKind::PineTree ||
+                                  best->kind == terrain::DecorationKind::CypressTree;
+        const float distance = std::clamp(best->height * (broadCanopy ? 10.0f : 8.5f),
+                                          denseConifer ? 54.0f : 44.0f,
+                                          broadCanopy ? 130.0f : 104.0f);
+        const glm::vec3 canopy(best->x, best->y + best->height * 0.56f, best->z);
+        const glm::vec3 position = canopy + glm::vec3(outward.x * distance,
+                                                      best->height * (broadCanopy ? 1.18f : 0.98f) + 12.0f,
+                                                      outward.y * distance);
+        const glm::vec3 target = canopy - glm::vec3(outward.x * distance * 0.45f,
+                                                    -best->height * 0.10f,
+                                                    outward.y * distance * 0.45f);
+        addLookAt(position, target);
+    };
+
+    addTreeTarget(terrain::DecorationKind::JungleTree);
+    addTreeTarget(terrain::DecorationKind::AcaciaTree);
+    addTreeTarget(terrain::DecorationKind::CypressTree);
+    addTreeTarget(terrain::DecorationKind::BroadleafTree);
+    addTreeTarget(terrain::DecorationKind::PineTree);
+
+    const std::vector<glm::vec2> fallbackDirections = {
+        {0.0f, -1.0f},
+        {0.9f, -0.35f},
+        {-0.75f, 0.65f},
+        {0.45f, 0.85f},
+    };
+    for (glm::vec2 direction : fallbackDirections) {
+        if (targets.size() >= 6u) {
+            break;
+        }
+        direction = normalized2(direction, glm::vec2(0.0f, -1.0f));
+        const float distance = std::clamp(maxWorldExtent * 0.16f, 190.0f, 760.0f);
+        addLookAt(glm::vec3(direction.x * distance,
+                            centerHeight + std::max(config_.heightScale * 0.95f, 90.0f),
+                            direction.y * distance),
+                  glm::vec3(0.0f, centerHeight + config_.heightScale * 0.08f, 0.0f));
+    }
+
+    if (targets.size() >= 3u) {
+        teleportTargets_ = std::move(targets);
+        LOG_INFO("Generated {} terrain-aware teleport targets", teleportTargets_.size());
+    } else {
+        LOG_WARN("Terrain-aware teleport generation produced {} targets; keeping fallback positions",
+                 targets.size());
+    }
 }
 
 void Application::processFrame(float deltaTime) {
@@ -1077,6 +1338,7 @@ bool Application::initRenderers() {
     textureConfig.heightmapHeight = heightmap_->getHeight();
     textureConfig.heightScale = config_.heightScale;
     textureConfig.cellScale = config_.cellScale;
+    textureConfig.generatedTextureCacheDir = config_.generatedTextureCacheDir;
 
     if (!terrainTextures_->init(device, queue, textureConfig)) {
         LOG_WARN("Failed to initialize terrain textures (using defaults/placeholders)");
@@ -1169,10 +1431,12 @@ bool Application::initRenderers() {
         
         // TerrainTextures guarantees valid views after init (either loaded or placeholder)
         blitPath_->setTerrainTexture(terrainTextures_->getAlbedoView());
-        blitPath_->setLightmapTexture(terrainTextures_->getLightmapView()); 
+        blitPath_->setLightmapTexture(terrainTextures_->getLightmapView());
+        blitPath_->setNormalTexture(terrainTextures_->getNormalView());
         blitPath_->setTerrainSize(heightmap_->getWidth(), heightmap_->getHeight());
     }
 
+    std::vector<terrain::TerrainDecoration> decorations;
     if (config_.enableDecorations) {
         terrain::DecorationConfig decorationConfig;
         decorationConfig.heightSamples = heightmap_->getData();
@@ -1182,28 +1446,45 @@ bool Application::initRenderers() {
         decorationConfig.cellScale = config_.cellScale;
         decorationConfig.spacingCells = config_.decorationSpacingCells;
         decorationConfig.maxTrees = config_.maxTreeInstances;
+        decorationConfig.maxGroundDecorations = config_.maxTreeInstances / 2u;
 
-        auto trees = terrain::generateTreeDecorations(decorationConfig);
-        if (!trees.empty()) {
+        decorations = terrain::generateTerrainDecorations(decorationConfig);
+        if (!decorations.empty()) {
+            const auto treeCount = std::count_if(
+                decorations.begin(),
+                decorations.end(),
+                [](const terrain::TerrainDecoration& decoration) {
+                    return terrain::isTreeDecoration(decoration.kind);
+                }
+            );
+            const size_t groundCount = decorations.size() - static_cast<size_t>(treeCount);
             render::DecorationRendererConfig decorationRendererConfig =
                 render::DecorationRendererConfig::defaults();
             decorationRendererConfig.shaderPath = config_.shaderDir / "decorations.wgsl";
             decorationRendererConfig.colorFormat = config_.colorFormat;
-            decorationRendererConfig.maxInstances = config_.maxTreeInstances;
+            decorationRendererConfig.maxInstances = config_.maxTreeInstances +
+                                                    decorationConfig.maxGroundDecorations;
+            decorationRendererConfig.maxVisibleInstances = std::min<uint32_t>(
+                3200u,
+                std::max<uint32_t>(1800u, decorationRendererConfig.maxInstances / 10u)
+            );
 
             decorationRenderer_ = std::make_unique<render::DecorationRenderer>();
             if (decorationRenderer_->init(device, queue, decorationRendererConfig) &&
-                decorationRenderer_->uploadTrees(trees)) {
+                decorationRenderer_->uploadDecorations(decorations)) {
                 decorationRenderer_->setRaycastDepthTexture(raycastPath_->getDepthOutputView());
-                LOG_INFO("Initialized biome decorations with {} tree instances", trees.size());
+                LOG_INFO("Initialized biome decorations with {} tree instances and {} ground details",
+                         treeCount,
+                         groundCount);
             } else {
                 LOG_WARN("Failed to initialize biome decorations");
                 decorationRenderer_.reset();
             }
         } else {
-            LOG_INFO("Biome decoration generation produced no tree instances");
+            LOG_INFO("Biome decoration generation produced no instances");
         }
     }
+    rebuildTeleportTargetsFromTerrain(decorations);
 
     LOG_DEBUG("Renderers initialized");
     return true;
@@ -1290,6 +1571,7 @@ void Application::updateCameraUniforms() {
     uniforms.setCamera(view, proj, pos);
     uniforms.setLightDirection(worldLightDir, view, ambient);
     uniforms.setLegoMode(legoMode_);
+    uniforms.invProjParams.w = static_cast<float>(stats_.totalTimeSeconds);
 
     if (config_.renderPath == RenderPath::Triangle &&
         trianglePath_ && trianglePath_->isInitialized()) {

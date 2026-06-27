@@ -13,9 +13,27 @@ namespace voxy::terrain {
 enum class DecorationKind : uint32_t {
     BroadleafTree = 0,
     PineTree = 1,
+    GrassClump = 2,
+    FlowerPatch = 3,
+    ReedCluster = 4,
+    RockShard = 5,
+    DryShrub = 6,
+    JungleTree = 7,
+    AcaciaTree = 8,
+    CypressTree = 9,
+    MushroomCluster = 10,
+    CactusColumn = 11,
 };
 
-struct TreeDecoration {
+[[nodiscard]] constexpr bool isTreeDecoration(DecorationKind kind) noexcept {
+    return kind == DecorationKind::BroadleafTree ||
+           kind == DecorationKind::PineTree ||
+           kind == DecorationKind::JungleTree ||
+           kind == DecorationKind::AcaciaTree ||
+           kind == DecorationKind::CypressTree;
+}
+
+struct TerrainDecoration {
     float x = 0.0f;
     float y = 0.0f;
     float z = 0.0f;
@@ -27,6 +45,8 @@ struct TreeDecoration {
     DecorationKind kind = DecorationKind::BroadleafTree;
 };
 
+using TreeDecoration = TerrainDecoration;
+
 struct DecorationConfig {
     std::span<const uint16_t> heightSamples;
     uint32_t width = 0;
@@ -35,6 +55,7 @@ struct DecorationConfig {
     float cellScale = 1.0f;
     uint32_t spacingCells = 10;
     uint32_t maxTrees = 22000;
+    uint32_t maxGroundDecorations = 11000;
     uint32_t seed = 0x4d43524fu;
     bool enabled = true;
 };
@@ -46,6 +67,8 @@ struct DecorationConfig {
 
 [[nodiscard]] float estimateDecorationSlope(const DecorationConfig& config,
                                             uint32_t x, uint32_t y) noexcept;
+
+[[nodiscard]] std::vector<TerrainDecoration> generateTerrainDecorations(const DecorationConfig& config);
 
 [[nodiscard]] std::vector<TreeDecoration> generateTreeDecorations(const DecorationConfig& config);
 

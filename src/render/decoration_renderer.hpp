@@ -59,7 +59,10 @@ public:
     [[nodiscard]] bool isInitialized() const noexcept { return pipelineRayDepth_ != nullptr; }
     [[nodiscard]] uint32_t getInstanceCount() const noexcept { return instanceCount_; }
 
-    [[nodiscard]] bool uploadTrees(std::span<const terrain::TreeDecoration> trees);
+    [[nodiscard]] bool uploadDecorations(std::span<const terrain::TerrainDecoration> decorations);
+    [[nodiscard]] bool uploadTrees(std::span<const terrain::TreeDecoration> trees) {
+        return uploadDecorations(trees);
+    }
 
     void setCameraUniforms(const CameraUniforms& uniforms);
     void setRaycastDepthTexture(WGPUTextureView depthView);
@@ -71,6 +74,7 @@ private:
     struct GPUInstance {
         glm::vec4 baseRadius;
         glm::vec4 colorHeight;
+        glm::vec4 variant;
     };
 
     struct DecorationParams {
@@ -80,7 +84,7 @@ private:
         float fadeEnd = 1700.0f;
     };
 
-    static_assert(sizeof(GPUInstance) == 32, "Decoration GPU instance must match WGSL layout");
+    static_assert(sizeof(GPUInstance) == 48, "Decoration GPU instance must match WGSL layout");
     static_assert(sizeof(DecorationParams) == 16, "Decoration params must match WGSL layout");
 
     bool createUniformBuffers();

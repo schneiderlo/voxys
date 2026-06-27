@@ -63,6 +63,7 @@ using CameraUpdateCallback = std::function<void(const glm::vec3& pos, const glm:
 class BenchmarkRunner {
 public:
     BenchmarkRunner() = default;
+    static constexpr uint32_t kWarmupFrames = 4;
     
     /// Set the callback for updating camera position
     void setCameraCallback(CameraUpdateCallback callback);
@@ -125,5 +126,3 @@ private:
 };
 
 } // namespace voxy::perf
-
-

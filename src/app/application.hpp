@@ -49,6 +49,7 @@ namespace gpu {
 namespace terrain {
     class Heightmap;
     class TerrainTextures;
+    struct TerrainDecoration;
 }
 
 namespace render {
@@ -121,6 +122,7 @@ struct ApplicationConfig {
     bool enableDecorations = true;         ///< Render biome-driven trees and vegetation
     uint32_t decorationSpacingCells = 10;  ///< Approximate tree candidate grid spacing
     uint32_t maxTreeInstances = 22000;     ///< Cap for generated tree instances
+    std::filesystem::path generatedTextureCacheDir = "data/generated/texture_cache";
 
     // Camera settings
     glm::vec3 cameraStartPos = {0.0f, 80.0f, 0.0f}; // Start lower, near center
@@ -396,6 +398,7 @@ private:
     void captureScreenshot(const std::string& filepath);
     void startScreenshotTour();
     void scheduleNextTourStep();
+    void rebuildTeleportTargetsFromTerrain(const std::vector<terrain::TerrainDecoration>& decorations);
 
     // ─────────────────────────────────────────────────────────────────────────
     // Input Processing

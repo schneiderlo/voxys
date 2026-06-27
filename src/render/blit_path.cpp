@@ -48,6 +48,7 @@ BlitPath::BlitPath(BlitPath&& other) noexcept
     , shadowView_(other.shadowView_)
     , terrainView_(other.terrainView_)
     , lightmapView_(other.lightmapView_)
+    , normalView_(other.normalView_)
     , terrainWidth_(other.terrainWidth_)
     , terrainHeight_(other.terrainHeight_)
     , uniforms_(other.uniforms_)
@@ -73,6 +74,7 @@ BlitPath::BlitPath(BlitPath&& other) noexcept
     other.shadowView_ = nullptr;
     other.terrainView_ = nullptr;
     other.lightmapView_ = nullptr;
+    other.normalView_ = nullptr;
     other.uniforms_ = nullptr;
 }
 
@@ -94,6 +96,7 @@ BlitPath& BlitPath::operator=(BlitPath&& other) noexcept {
         shadowView_ = other.shadowView_;
         terrainView_ = other.terrainView_;
         lightmapView_ = other.lightmapView_;
+        normalView_ = other.normalView_;
         terrainWidth_ = other.terrainWidth_;
         terrainHeight_ = other.terrainHeight_;
         uniforms_ = other.uniforms_;
@@ -118,6 +121,7 @@ BlitPath& BlitPath::operator=(BlitPath&& other) noexcept {
         other.shadowView_ = nullptr;
         other.terrainView_ = nullptr;
         other.lightmapView_ = nullptr;
+        other.normalView_ = nullptr;
         other.uniforms_ = nullptr;
     }
     return *this;
@@ -166,6 +170,7 @@ void BlitPath::shutdown() {
     shadowView_ = nullptr;
     terrainView_ = nullptr;
     lightmapView_ = nullptr;
+    normalView_ = nullptr;
     device_ = nullptr;
     queue_ = nullptr;
 }
@@ -306,9 +311,10 @@ bool BlitPath::createBindGroupLayout() {
     // @group(0) @binding(3) var terrainTex : texture_2d<f32>;
     // @group(0) @binding(4) var lightmapTex : texture_2d<f32>;
     // @group(0) @binding(5) var terrainSampler : sampler;
-    // @group(0) @binding(6) var<uniform> debug : DebugUniforms;
+    // @group(0) @binding(6) var normalTex : texture_2d<f32>;
+    // @group(0) @binding(7) var<uniform> debug : DebugUniforms;
     
-    std::array<gpu::BindGroupLayoutEntry, 7> entries = {
+    std::array<gpu::BindGroupLayoutEntry, 8> entries = {
         gpu::BindGroupLayoutEntry(0)
             .vertexVisible()
             .fragmentVisible()
@@ -329,6 +335,9 @@ bool BlitPath::createBindGroupLayout() {
             .fragmentVisible()
             .sampler(WGPUSamplerBindingType_Filtering),
         gpu::BindGroupLayoutEntry(6)
+            .fragmentVisible()
+            .texture(WGPUTextureSampleType_Float, WGPUTextureViewDimension_2D, false),
+        gpu::BindGroupLayoutEntry(7)
             .fragmentVisible()
             .uniformBuffer(false, sizeof(DebugUniforms))
     };
@@ -441,6 +450,11 @@ bool BlitPath::createBindGroup() {
         LOG_ERROR("Cannot create bind group: no lightmap view set");
         return false;
     }
+
+    if (!normalView_) {
+        LOG_ERROR("Cannot create bind group: no normal view set");
+        return false;
+    }
     
     // Release old bind group if exists
     if (bindGroup_) {
@@ -448,14 +462,15 @@ bool BlitPath::createBindGroup() {
         bindGroup_ = nullptr;
     }
     
-    std::array<gpu::BindGroupEntry, 7> entries = {
+    std::array<gpu::BindGroupEntry, 8> entries = {
         gpu::BindGroupEntry(0).buffer(uniformBuffer_, 0, sizeof(CameraUniforms)),
         gpu::BindGroupEntry(1).textureView(depthView_),
         gpu::BindGroupEntry(2).textureView(shadowView_),
         gpu::BindGroupEntry(3).textureView(terrainView_),
         gpu::BindGroupEntry(4).textureView(lightmapView_),
         gpu::BindGroupEntry(5).sampler(sampler_),
-        gpu::BindGroupEntry(6).buffer(debugUniformBuffer_, 0, sizeof(DebugUniforms))
+        gpu::BindGroupEntry(6).textureView(normalView_),
+        gpu::BindGroupEntry(7).buffer(debugUniformBuffer_, 0, sizeof(DebugUniforms))
     };
     
     bindGroup_ = gpu::createBindGroup(device_, bindGroupLayout_, entries, "blit_bind_group");
@@ -496,6 +511,12 @@ void BlitPath::setLightmapTexture(WGPUTextureView lightmapView) {
     lightmapView_ = lightmapView;
     bindGroupDirty_ = true;
     LOG_DEBUG("Set lightmap texture view");
+}
+
+void BlitPath::setNormalTexture(WGPUTextureView normalView) {
+    normalView_ = normalView;
+    bindGroupDirty_ = true;
+    LOG_DEBUG("Set normal texture view");
 }
 
 void BlitPath::setTerrainSize(uint32_t width, uint32_t height) {
@@ -559,7 +580,7 @@ void BlitPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView) {
         return;
     }
     
-    if (!depthView_ || !shadowView_ || !terrainView_ || !lightmapView_) {
+    if (!depthView_ || !shadowView_ || !terrainView_ || !lightmapView_ || !normalView_) {
         LOG_WARN("BlitPath::render: missing required texture bindings");
         return;
     }

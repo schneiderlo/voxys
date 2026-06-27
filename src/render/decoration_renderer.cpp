@@ -16,6 +16,20 @@
 
 namespace voxy::render {
 
+namespace {
+
+constexpr uint32_t kDecorationVertexCount = 126;
+
+float decorationKindToVariant(terrain::DecorationKind kind) noexcept {
+    return static_cast<float>(static_cast<uint32_t>(kind));
+}
+
+bool isTreeVariant(float variant) noexcept {
+    return variant < 1.5f || (variant > 6.5f && variant < 9.5f);
+}
+
+} // namespace
+
 DecorationRenderer::~DecorationRenderer() {
     shutdown();
 }
@@ -199,7 +213,7 @@ void DecorationRenderer::shutdown() {
     queue_ = nullptr;
 }
 
-bool DecorationRenderer::uploadTrees(std::span<const terrain::TreeDecoration> trees) {
+bool DecorationRenderer::uploadDecorations(std::span<const terrain::TerrainDecoration> decorations) {
     if (!device_ || !queue_) {
         return false;
     }
@@ -214,7 +228,7 @@ bool DecorationRenderer::uploadTrees(std::span<const terrain::TreeDecoration> tr
     visibleInstanceCount_ = 0;
     instanceBufferCapacity_ = 0;
 
-    const size_t count = std::min<size_t>(trees.size(), config_.maxInstances);
+    const size_t count = std::min<size_t>(decorations.size(), config_.maxInstances);
     if (count == 0) {
         bindGroupDirty_ = true;
         return true;
@@ -222,10 +236,17 @@ bool DecorationRenderer::uploadTrees(std::span<const terrain::TreeDecoration> tr
 
     allInstances_.reserve(count);
     for (size_t i = 0; i < count; ++i) {
-        const auto& tree = trees[i];
+        const auto& decoration = decorations[i];
+        float seed = std::sin(decoration.x * 12.9898f + decoration.z * 78.233f + static_cast<float>(i) * 0.37f) *
+                     43758.5453f;
+        seed -= std::floor(seed);
         allInstances_.push_back(GPUInstance{
-            .baseRadius = glm::vec4(tree.x, tree.y, tree.z, tree.radius),
-            .colorHeight = glm::vec4(tree.colorR, tree.colorG, tree.colorB, tree.height),
+            .baseRadius = glm::vec4(decoration.x, decoration.y, decoration.z, decoration.radius),
+            .colorHeight = glm::vec4(decoration.colorR, decoration.colorG, decoration.colorB, decoration.height),
+            .variant = glm::vec4(decorationKindToVariant(decoration.kind),
+                                 seed,
+                                 0.0f,
+                                 0.0f),
         });
     }
 
@@ -457,11 +478,22 @@ void DecorationRenderer::rebuildVisibleInstances() {
     const float maxDistance = std::max(config_.visibleDistance, 1.0f);
     const float maxDistance2 = maxDistance * maxDistance;
 
+    struct VisibleCandidate {
+        GPUInstance instance;
+        float score = 0.0f;
+    };
+
+    std::vector<VisibleCandidate> candidates;
+    candidates.reserve(std::min<size_t>(allInstances_.size(), instanceBufferCapacity_ * 2u));
+
     for (const auto& instance : allInstances_) {
         const glm::vec3 base(instance.baseRadius);
         const float height = instance.colorHeight.w;
-        const float radius = std::max(instance.baseRadius.w, height * 0.45f);
-        const glm::vec3 center = base + glm::vec3(0.0f, height * 0.5f, 0.0f);
+        const bool tree = isTreeVariant(instance.variant.x);
+        const float radius = tree
+            ? std::max(instance.baseRadius.w, height * 0.45f)
+            : std::max(instance.baseRadius.w, height * 0.85f);
+        const glm::vec3 center = base + glm::vec3(0.0f, height * (tree ? 0.5f : 0.35f), 0.0f);
         const glm::vec3 delta = center - cameraPos;
         const float distance2 = glm::dot(delta, delta);
         if (distance2 > maxDistance2) {
@@ -480,10 +512,28 @@ void DecorationRenderer::rebuildVisibleInstances() {
             continue;
         }
 
-        visibleInstances_.push_back(instance);
-        if (visibleInstances_.size() >= instanceBufferCapacity_) {
-            break;
-        }
+        candidates.push_back(VisibleCandidate{
+            .instance = instance,
+            .score = distance2 * (tree ? 0.86f : 1.0f),
+        });
+    }
+
+    if (candidates.size() > instanceBufferCapacity_) {
+        const auto cutoff = candidates.begin() + static_cast<std::ptrdiff_t>(instanceBufferCapacity_);
+        std::nth_element(candidates.begin(), cutoff, candidates.end(),
+                         [](const VisibleCandidate& lhs, const VisibleCandidate& rhs) {
+                             return lhs.score < rhs.score;
+                         });
+        candidates.resize(instanceBufferCapacity_);
+    }
+    std::sort(candidates.begin(), candidates.end(),
+              [](const VisibleCandidate& lhs, const VisibleCandidate& rhs) {
+                  return lhs.score > rhs.score;
+              });
+
+    visibleInstances_.reserve(candidates.size());
+    for (const auto& candidate : candidates) {
+        visibleInstances_.push_back(candidate.instance);
     }
 
     visibleInstanceCount_ = static_cast<uint32_t>(visibleInstances_.size());
@@ -544,7 +594,7 @@ void DecorationRenderer::renderRaycast(WGPUCommandEncoder encoder, WGPUTextureVi
     WGPURenderPassEncoder pass = wgpuCommandEncoderBeginRenderPass(encoder, &passDesc);
     wgpuRenderPassEncoderSetPipeline(pass, pipelineRayDepth_);
     wgpuRenderPassEncoderSetBindGroup(pass, 0, bindGroup_, 0, nullptr);
-    wgpuRenderPassEncoderDraw(pass, 12, visibleInstanceCount_, 0, 0);
+    wgpuRenderPassEncoderDraw(pass, kDecorationVertexCount, visibleInstanceCount_, 0, 0);
     wgpuRenderPassEncoderEnd(pass);
     wgpuRenderPassEncoderRelease(pass);
 }
@@ -591,7 +641,7 @@ void DecorationRenderer::renderWithDepth(WGPUCommandEncoder encoder, WGPUTexture
     WGPURenderPassEncoder pass = wgpuCommandEncoderBeginRenderPass(encoder, &passDesc);
     wgpuRenderPassEncoderSetPipeline(pass, pipelineHardwareDepth_);
     wgpuRenderPassEncoderSetBindGroup(pass, 0, bindGroup_, 0, nullptr);
-    wgpuRenderPassEncoderDraw(pass, 12, visibleInstanceCount_, 0, 0);
+    wgpuRenderPassEncoderDraw(pass, kDecorationVertexCount, visibleInstanceCount_, 0, 0);
     wgpuRenderPassEncoderEnd(pass);
     wgpuRenderPassEncoderRelease(pass);
 }

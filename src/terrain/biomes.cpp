@@ -72,7 +72,10 @@ BiomeSurface classifyBiomeSurface(float heightM, float slope, float moisture,
     const bool steep = slope > 0.62f;
     const bool cold = temperature < 5.0f;
     const bool cool = temperature >= 5.0f && temperature < 12.0f;
+    const bool warm = temperature >= 18.0f && temperature <= 24.0f;
     const bool hot = temperature > 24.0f;
+    const bool lowland = heightM < 10.0f;
+    const bool alpine = heightM > 52.0f;
 
     if (ocean) {
         return {0.025f, 0.16f, 0.31f, 0.0f, 1.0f, 0.0f, BiomeSurfaceRole::Water};
@@ -86,31 +89,54 @@ BiomeSurface classifyBiomeSurface(float heightM, float slope, float moisture,
     if ((mountain && cold) || (heightM > 84.0f && moisture > 0.30f)) {
         return {0.88f, 0.91f, 0.87f, 0.0f, 0.0f, 1.0f, BiomeSurfaceRole::Snow};
     }
+    if (hot && moisture < 0.30f && (slope > 0.26f || highland)) {
+        return {0.62f, 0.39f, 0.21f, 0.04f, 0.0f, 0.0f, BiomeSurfaceRole::Badlands};
+    }
     if (steep || (mountain && moisture < 0.55f)) {
         return {0.43f, 0.42f, 0.38f, 0.0f, 0.0f, 0.0f, BiomeSurfaceRole::Rock};
+    }
+    if ((cold && alpine) || (cold && moisture < 0.32f)) {
+        return {0.55f, 0.60f, 0.47f, 0.0f, 0.0f, 0.18f, BiomeSurfaceRole::Tundra};
+    }
+    if (cool || cold) {
+        const float trees = smoothstep(0.34f, 0.76f, moisture) *
+                            (1.0f - smoothstep(0.48f, 0.72f, slope));
+        if (trees > 0.16f) {
+            return {0.11f, 0.29f, 0.17f, trees * 0.92f, 0.0f, cold ? 0.12f : 0.0f,
+                    BiomeSurfaceRole::Taiga};
+        }
+        return {0.45f, 0.56f, 0.33f, 0.0f, 0.0f, cold ? 0.16f : 0.0f,
+                BiomeSurfaceRole::Tundra};
     }
     if (hot && moisture < 0.33f) {
         return {0.58f, 0.51f, 0.27f, 0.0f, 0.0f, 0.0f, BiomeSurfaceRole::Dry};
     }
     if (hot && moisture < 0.48f) {
-        return {0.50f, 0.49f, 0.24f, 0.12f, 0.0f, 0.0f, BiomeSurfaceRole::Dry};
+        return {0.55f, 0.52f, 0.23f, 0.18f, 0.0f, 0.0f, BiomeSurfaceRole::Savanna};
     }
-    if (heightM < 8.0f && moisture > 0.72f) {
-        return {0.18f, 0.31f, 0.13f, 0.86f, 0.0f, 0.0f, BiomeSurfaceRole::Forest};
+    if (lowland && moisture > 0.78f) {
+        const bool hotWet = temperature > 22.0f;
+        return hotWet
+            ? BiomeSurface{0.06f, 0.31f, 0.12f, 0.94f, 0.0f, 0.0f, BiomeSurfaceRole::Jungle}
+            : BiomeSurface{0.10f, 0.28f, 0.13f, 0.74f, 0.0f, 0.0f, BiomeSurfaceRole::Swamp};
     }
-    if (cool || cold) {
-        const float trees = smoothstep(0.38f, 0.76f, moisture);
-        return {0.14f, 0.30f, 0.16f, trees, 0.0f, 0.0f,
-                trees > 0.18f ? BiomeSurfaceRole::Forest : BiomeSurfaceRole::Grass};
+    if (hot && moisture > 0.64f) {
+        return {0.07f, 0.34f, 0.12f, 0.96f, 0.0f, 0.0f, BiomeSurfaceRole::Jungle};
+    }
+    if (warm && moisture < 0.42f) {
+        return {0.50f, 0.48f, 0.22f, 0.14f, 0.0f, 0.0f, BiomeSurfaceRole::Savanna};
     }
     if (highland && moisture > 0.40f) {
-        return {0.38f, 0.55f, 0.25f, 0.22f, 0.0f, 0.0f, BiomeSurfaceRole::Grass};
+        const float trees = smoothstep(0.62f, 0.86f, moisture) * 0.34f;
+        return {0.42f, 0.58f, 0.25f, trees, 0.0f, 0.0f, BiomeSurfaceRole::Meadow};
     }
 
     const float trees = smoothstep(0.46f, 0.82f, moisture);
     if (trees > 0.08f) {
-        return {0.16f, 0.36f, 0.14f, trees, 0.0f, 0.0f,
-                trees > 0.22f ? BiomeSurfaceRole::Forest : BiomeSurfaceRole::Grass};
+        if (trees < 0.22f) {
+            return {0.40f, 0.55f, 0.24f, trees, 0.0f, 0.0f, BiomeSurfaceRole::Meadow};
+        }
+        return {0.16f, 0.36f, 0.14f, trees, 0.0f, 0.0f, BiomeSurfaceRole::Forest};
     }
     return {0.42f, 0.53f, 0.24f, 0.0f, 0.0f, 0.0f, BiomeSurfaceRole::Grass};
 }

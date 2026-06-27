@@ -42,7 +42,7 @@ struct CameraUniforms {
     glm::vec2 invTerrainSize;  ///< offset: 200, size: 8  - 1.0 / terrainSize
     glm::vec4 metrics;         ///< offset: 208, size: 16 - (heightScale, cellScale, step, fogDensity)
     glm::vec4 cameraPos;       ///< offset: 224, size: 16 - World-space camera position (.xyz)
-    glm::vec4 invProjParams;   ///< offset: 240, size: 16 - Inverse projection params (.xy used)
+    glm::vec4 invProjParams;   ///< offset: 240, size: 16 - inverse projection params (.xy), lego flag (.z), time seconds (.w)
     glm::vec4 lightDirVS;      ///< offset: 256, size: 16 - View-space light direction (.xyz)
     glm::vec4 frustumPlanes[6]; ///< offset: 272, size: 96 - Frustum planes
     glm::vec4 lightDirWS;      ///< offset: 368, size: 16 - World-space light direction (.xyz)

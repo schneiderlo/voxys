@@ -8,7 +8,7 @@
 //   - Depth texture sampling from ray-cast pass
 //   - Terrain albedo and lightmap texture sampling
 //   - Sky rendering with gradient
-//   - Screen-space normal reconstruction
+//   - Terrain normal map sampling
 //   - Complete lighting model (diffuse, ambient, specular)
 //   - Exponential fog
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -66,7 +66,7 @@ struct BlitPathConfig {
 /// This pass takes the depth texture from the ray-caster and applies:
 /// - Sky rendering for pixels with no terrain hit
 /// - Position reconstruction from depth
-/// - Screen-space normal reconstruction
+/// - Terrain normal map sampling
 /// - Terrain texture and lightmap sampling
 /// - Lighting (diffuse, ambient, specular)
 /// - Fog
@@ -121,6 +121,10 @@ public:
     /// Set the lightmap texture (ambient occlusion / sky visibility)
     /// @param lightmapView Texture view of lightmap
     void setLightmapTexture(WGPUTextureView lightmapView);
+
+    /// Set the terrain normal texture
+    /// @param normalView Texture view of generated world-space terrain normals
+    void setNormalTexture(WGPUTextureView normalView);
 
     /// Set terrain parameters (size, scale)
     /// @param width Heightmap width in samples
@@ -215,6 +219,7 @@ private:
     WGPUTextureView shadowView_ = nullptr;
     WGPUTextureView terrainView_ = nullptr;
     WGPUTextureView lightmapView_ = nullptr;
+    WGPUTextureView normalView_ = nullptr;
 
     // Terrain parameters
     uint32_t terrainWidth_ = 256;

@@ -6,6 +6,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>voxy — WebGPU Terrain Renderer</title>
     <link rel="stylesheet" href="style.css">
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "./vendor/three/three.module.js",
+                "threejs-water-pro": "./vendor/threejs-water-pro/threejs-water-pro.module.js"
+            }
+        }
+    </script>
 
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-TVBHPYQCGP"></script>
@@ -92,6 +100,7 @@
         </div>
     </div>
 
+    <script src="water-pro-adapter.js"></script>
     <script src="loader.js"></script>
     <script src="voxy_wasm.js"></script>
     <script>
@@ -646,6 +655,15 @@
             const error = document.getElementById('error');
             const overlay = document.getElementById('overlay');
             const canvas = document.getElementById('voxy-canvas');
+            const waterBridge = window.VoxyWaterPro && window.VoxyWaterPro.configure({
+                renderer: 'voxy-wgsl',
+                seaLevel: 0.0,
+                waterColor: 0x2e9fc8,
+                distortionScale: 1.15
+            });
+            if (waterBridge && waterBridge.enabled) {
+                console.info('Water Pro bridge enabled:', waterBridge);
+            }
 
             // 1. Initialize and Start the Roller immediately
             roller = new Roller(loadingPhrases);
