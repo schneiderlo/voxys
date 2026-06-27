@@ -242,15 +242,15 @@ if(VOXY_BUILD_WASM)
         endif()
 
         # Terrain Diffusion terrain and generated relief texture
-        if(EXISTS "${CMAKE_SOURCE_DIR}/data/generated/td_seed_1234_2048.ldh")
+        if(EXISTS "${CMAKE_SOURCE_DIR}/data/generated/td_seed_1234_8192.ldh")
             list(APPEND WASM_LINK_FLAGS
-                "--preload-file ${CMAKE_SOURCE_DIR}/data/generated/td_seed_1234_2048.ldh@/data/generated/td_seed_1234_2048.ldh"
+                "--preload-file ${CMAKE_SOURCE_DIR}/data/generated/td_seed_1234_8192.ldh@/data/generated/td_seed_1234_8192.ldh"
             )
         endif()
 
-        if(EXISTS "${CMAKE_SOURCE_DIR}/data/generated/td_seed_1234_2048_relief.png")
+        if(EXISTS "${CMAKE_SOURCE_DIR}/data/generated/td_seed_1234_8192_relief.png")
             list(APPEND WASM_LINK_FLAGS
-                "--preload-file ${CMAKE_SOURCE_DIR}/data/generated/td_seed_1234_2048_relief.png@/data/generated/td_seed_1234_2048_relief.png"
+                "--preload-file ${CMAKE_SOURCE_DIR}/data/generated/td_seed_1234_8192_relief.png@/data/generated/td_seed_1234_8192_relief.png"
             )
         endif()
         
