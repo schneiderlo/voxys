@@ -240,6 +240,19 @@ if(VOXY_BUILD_WASM)
                 "--preload-file ${CMAKE_SOURCE_DIR}/data/canyon_diffuse.jpg@/data/canyon_diffuse.jpg"
             )
         endif()
+
+        # Terrain Diffusion terrain and generated relief texture
+        if(EXISTS "${CMAKE_SOURCE_DIR}/data/generated/td_seed_1234_2048.ldh")
+            list(APPEND WASM_LINK_FLAGS
+                "--preload-file ${CMAKE_SOURCE_DIR}/data/generated/td_seed_1234_2048.ldh@/data/generated/td_seed_1234_2048.ldh"
+            )
+        endif()
+
+        if(EXISTS "${CMAKE_SOURCE_DIR}/data/generated/td_seed_1234_2048_relief.png")
+            list(APPEND WASM_LINK_FLAGS
+                "--preload-file ${CMAKE_SOURCE_DIR}/data/generated/td_seed_1234_2048_relief.png@/data/generated/td_seed_1234_2048_relief.png"
+            )
+        endif()
         
         string(JOIN " " WASM_LINK_FLAGS_STR ${WASM_LINK_FLAGS})
         set_target_properties(voxy_wasm PROPERTIES
@@ -307,4 +320,3 @@ message(STATUS "  Build tests:       ${VOXY_BUILD_TESTS}")
 message(STATUS "  Validation:        ${VOXY_ENABLE_VALIDATION}")
 message(STATUS "═══════════════════════════════════════════════════════════════")
 message(STATUS "")
-
