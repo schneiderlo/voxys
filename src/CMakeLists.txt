@@ -72,6 +72,11 @@ else()
 endif()
 
 # Terrain systems (Phase 3, 5, 6)
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/terrain/biomes.cpp")
+    list(APPEND TERRAIN_SOURCES
+        terrain/biomes.cpp
+    )
+endif()
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/terrain/heightmap.cpp")
     list(APPEND TERRAIN_SOURCES
         terrain/heightmap.cpp
@@ -90,6 +95,11 @@ endif()
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/terrain/textures.cpp")
     list(APPEND TERRAIN_SOURCES
         terrain/textures.cpp
+    )
+endif()
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/terrain/decorations.cpp")
+    list(APPEND TERRAIN_SOURCES
+        terrain/decorations.cpp
     )
 endif()
 
@@ -132,6 +142,11 @@ endif()
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/render/blit_path.cpp")
     list(APPEND RENDER_SOURCES
         render/blit_path.cpp
+    )
+endif()
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/render/decoration_renderer.cpp")
+    list(APPEND RENDER_SOURCES
+        render/decoration_renderer.cpp
     )
 endif()
 
@@ -277,4 +292,3 @@ if(ALL_SOURCES)
 else()
     message(STATUS "No voxy_core sources found yet (will be added in later phases)")
 endif()
-

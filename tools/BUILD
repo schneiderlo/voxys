@@ -5,6 +5,11 @@ sh_binary(
     srcs = ["terrain_diffusion_import.py"],
 )
 
+sh_binary(
+    name = "download_cc0_texture_pack",
+    srcs = ["download_cc0_texture_pack.py"],
+)
+
 sh_test(
     name = "terrain_diffusion_import_test",
     srcs = ["test_terrain_diffusion_import.py"],

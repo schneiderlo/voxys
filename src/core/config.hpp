@@ -46,6 +46,9 @@ struct TerrainConfig {
     std::string lightmap;
     float heightScale = 500.0f;         // Vertical scale factor
     float cellScale = 1.0f;             // Horizontal scale factor
+    bool enableDecorations = true;      // Biome-driven vegetation/decorations
+    int decorationSpacingCells = 10;    // Candidate spacing for tree placement
+    int maxTreeInstances = 22000;       // Total generated tree cap
     
     [[nodiscard]] constexpr auto operator<=>(const TerrainConfig&) const = default;
 };

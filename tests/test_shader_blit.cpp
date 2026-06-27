@@ -378,6 +378,18 @@ TEST_F(BlitShaderTest, UsesLightVisibility) {
         << "Shader should use lightmap visibility";
 }
 
+TEST_F(BlitShaderTest, DetectsWaterFromBakedAlbedo) {
+    ASSERT_FALSE(shaderSource_.empty());
+    EXPECT_NE(shaderSource_.find("waterMask"), std::string::npos)
+        << "Shader missing water mask from baked albedo";
+}
+
+TEST_F(BlitShaderTest, WaterAffectsRoughness) {
+    ASSERT_FALSE(shaderSource_.empty());
+    EXPECT_NE(shaderSource_.find("mix(0.72, 0.18, waterMask)"), std::string::npos)
+        << "Water should lower roughness for brighter highlights";
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // GPU Compilation Test (requires WebGPU context)
 // ═══════════════════════════════════════════════════════════════════════════════

@@ -253,13 +253,17 @@ fn fs(input : VSOut) -> @location(0) vec4<f32> {
     let diffuse = max(dot(input.normal, lightDir), 0.0);
 
     // Sample textures
-    let albedo = textureSample(albedoTex, texSampler, input.uv);
+    let albedo = textureSample(albedoTex, texSampler, input.uv).rgb;
+    let waterMask = smoothstep(0.04, 0.22, albedo.b - max(albedo.r, albedo.g) * 0.72);
     let lightmap = textureSample(lightmapTex, texSampler, input.uv).r;
     
     // Combine lighting
     // Shadow affects diffuse term. Lightmap (baked sky visibility) modulates diffuse + shadow.
     // Ray Blit logic: albedo * (diffuse * shadow * lightmap + ambient)
-    let litColor = albedo.rgb * (diffuse * shadow * lightmap + ambient);
+    let viewDir = normalize(camera.cameraPos.xyz - input.worldPos);
+    let halfVec = normalize(lightDir + viewDir);
+    let waterSpecular = waterMask * pow(max(dot(normalize(input.normal), halfVec), 0.0), 96.0) * shadow * 0.30;
+    let litColor = albedo * (diffuse * shadow * lightmap + ambient) + vec3<f32>(waterSpecular);
     
     // Fog
     let fogDensity = max(camera.metrics.w, 0.0);

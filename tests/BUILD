@@ -3,8 +3,10 @@ TEST_SRCS = [
     "test_log.cpp",
     "test_timer.cpp",
     "test_config.cpp",
+    "test_biomes.cpp",
     "test_window.cpp",
     "test_input.cpp",
+    "test_decorations.cpp",
     "test_heightmap.cpp",
     "test_compression.cpp",
     "test_mip_generator.cpp",
@@ -16,6 +18,7 @@ TEST_SRCS = [
     "test_shader_terrain.cpp",
     "test_shader_raycast.cpp",
     "test_shader_blit.cpp",
+    "test_shader_decorations.cpp",
     "test_triangle_path.cpp",
     "test_raycast_path.cpp",
     "test_blit_path.cpp",
@@ -72,4 +75,3 @@ cc_test(
         "@googletest//:gtest_main",
     ],
 )
-

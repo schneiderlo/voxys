@@ -19,6 +19,8 @@ set(TEST_SOURCES
     test_log.cpp
     test_timer.cpp
     test_config.cpp
+    test_biomes.cpp
+    test_decorations.cpp
     test_window.cpp
     test_input.cpp
     test_heightmap.cpp
@@ -38,6 +40,7 @@ if(TARGET wgpu::webgpu OR TARGET dawn::webgpu)
         test_shader_terrain.cpp
         test_shader_raycast.cpp
         test_shader_blit.cpp
+        test_shader_decorations.cpp
         test_triangle_path.cpp
         test_raycast_path.cpp
         test_blit_path.cpp

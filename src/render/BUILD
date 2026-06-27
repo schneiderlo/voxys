@@ -18,12 +18,14 @@ cc_library(
     name = "render",
     srcs = [
         "blit_path.cpp",
+        "decoration_renderer.cpp",
         "debug_visualizer.cpp",
         "raycast_path.cpp",
         "triangle_path.cpp",
     ],
     hdrs = [
         "blit_path.hpp",
+        "decoration_renderer.hpp",
         "debug_visualizer.hpp",
         "frustum.hpp",
         "raycast_path.hpp",
@@ -37,5 +39,6 @@ cc_library(
         "//src/core:core",
         "//src/gpu:gpu",
         "//src/terrain:terrain",
+        "//third_party:glm",
     ],
 )

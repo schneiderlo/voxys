@@ -191,6 +191,14 @@ TEST_F(TerrainShaderTest, HasTextureSampling) {
         << "Shader missing lightmap texture sampling";
 }
 
+TEST_F(TerrainShaderTest, DetectsWaterFromBakedAlbedo) {
+    ASSERT_FALSE(shaderSource_.empty());
+    EXPECT_NE(shaderSource_.find("waterMask"), std::string::npos)
+        << "Shader missing water mask from baked albedo";
+    EXPECT_NE(shaderSource_.find("waterSpecular"), std::string::npos)
+        << "Shader missing water highlight";
+}
+
 TEST_F(TerrainShaderTest, HasFog) {
     ASSERT_FALSE(shaderSource_.empty());
     EXPECT_NE(shaderSource_.find("fogDensity"), std::string::npos)
@@ -255,4 +263,3 @@ TEST_F(TerrainShaderGPUTest, ShaderCompilesOnGPU) {
 }
 
 } // namespace voxy
-

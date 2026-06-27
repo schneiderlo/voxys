@@ -19,7 +19,9 @@
 #include "core/timer.hpp"
 #include "gpu/context.hpp"
 #include "gpu/resources.hpp"
+#include "terrain/decorations.hpp"
 #include "terrain/textures.hpp"
+#include "render/decoration_renderer.hpp"
 #include "render/triangle_path.hpp"
 #include "render/raycast_path.hpp"
 #include "render/blit_path.hpp"
@@ -288,6 +290,10 @@ void Application::shutdown() {
     }
 
     // Shutdown renderers
+    if (decorationRenderer_) {
+        decorationRenderer_->shutdown();
+        decorationRenderer_.reset();
+    }
     if (blitPath_) {
         blitPath_->shutdown();
         blitPath_.reset();
@@ -302,6 +308,10 @@ void Application::shutdown() {
     }
 
     // Release terrain
+    if (terrainTextures_) {
+        terrainTextures_->shutdown();
+        terrainTextures_.reset();
+    }
     if (heightmap_) {
         heightmap_->release();
         heightmap_.reset();
@@ -618,6 +628,9 @@ void Application::onResize(uint32_t width, uint32_t height) {
         if (blitPath_) {
             blitPath_->setDepthTexture(raycastPath_->getDepthOutputView());
             blitPath_->setShadowTexture(raycastPath_->getShadowOutputView());
+        }
+        if (decorationRenderer_) {
+            decorationRenderer_->setRaycastDepthTexture(raycastPath_->getDepthOutputView());
         }
     }
     
@@ -1059,6 +1072,11 @@ bool Application::initRenderers() {
     textureConfig.lightmapPath = config_.lightmapPath;
     textureConfig.placeholderWidth = config_.heightmapWidth;
     textureConfig.placeholderHeight = config_.heightmapHeight;
+    textureConfig.heightSamples = heightmap_->getData();
+    textureConfig.heightmapWidth = heightmap_->getWidth();
+    textureConfig.heightmapHeight = heightmap_->getHeight();
+    textureConfig.heightScale = config_.heightScale;
+    textureConfig.cellScale = config_.cellScale;
 
     if (!terrainTextures_->init(device, queue, textureConfig)) {
         LOG_WARN("Failed to initialize terrain textures (using defaults/placeholders)");
@@ -1155,6 +1173,38 @@ bool Application::initRenderers() {
         blitPath_->setTerrainSize(heightmap_->getWidth(), heightmap_->getHeight());
     }
 
+    if (config_.enableDecorations) {
+        terrain::DecorationConfig decorationConfig;
+        decorationConfig.heightSamples = heightmap_->getData();
+        decorationConfig.width = heightmap_->getWidth();
+        decorationConfig.height = heightmap_->getHeight();
+        decorationConfig.heightScale = config_.heightScale;
+        decorationConfig.cellScale = config_.cellScale;
+        decorationConfig.spacingCells = config_.decorationSpacingCells;
+        decorationConfig.maxTrees = config_.maxTreeInstances;
+
+        auto trees = terrain::generateTreeDecorations(decorationConfig);
+        if (!trees.empty()) {
+            render::DecorationRendererConfig decorationRendererConfig =
+                render::DecorationRendererConfig::defaults();
+            decorationRendererConfig.shaderPath = config_.shaderDir / "decorations.wgsl";
+            decorationRendererConfig.colorFormat = config_.colorFormat;
+            decorationRendererConfig.maxInstances = config_.maxTreeInstances;
+
+            decorationRenderer_ = std::make_unique<render::DecorationRenderer>();
+            if (decorationRenderer_->init(device, queue, decorationRendererConfig) &&
+                decorationRenderer_->uploadTrees(trees)) {
+                decorationRenderer_->setRaycastDepthTexture(raycastPath_->getDepthOutputView());
+                LOG_INFO("Initialized biome decorations with {} tree instances", trees.size());
+            } else {
+                LOG_WARN("Failed to initialize biome decorations");
+                decorationRenderer_.reset();
+            }
+        } else {
+            LOG_INFO("Biome decoration generation produced no tree instances");
+        }
+    }
+
     LOG_DEBUG("Renderers initialized");
     return true;
 }
@@ -1191,6 +1241,9 @@ void Application::renderTrianglePath(WGPUCommandEncoder encoder, WGPUTextureView
     }
 
     trianglePath_->render(encoder, colorView, depthView);
+    if (decorationRenderer_ && decorationRenderer_->isInitialized()) {
+        decorationRenderer_->renderWithDepth(encoder, colorView, depthView);
+    }
 }
 
 void Application::renderRaycastPath(WGPUCommandEncoder encoder, WGPUTextureView colorView) {
@@ -1206,6 +1259,9 @@ void Application::renderRaycastPath(WGPUCommandEncoder encoder, WGPUTextureView 
 
     // Render blit pass
     blitPath_->render(encoder, colorView);
+    if (decorationRenderer_ && decorationRenderer_->isInitialized()) {
+        decorationRenderer_->renderRaycast(encoder, colorView);
+    }
 }
 
 void Application::updateCameraUniforms() {
@@ -1248,6 +1304,10 @@ void Application::updateCameraUniforms() {
         if (blitPath_ && blitPath_->isInitialized()) {
             blitPath_->setCameraUniforms(uniforms);
         }
+    }
+
+    if (decorationRenderer_ && decorationRenderer_->isInitialized()) {
+        decorationRenderer_->setCameraUniforms(uniforms);
     }
 }
 

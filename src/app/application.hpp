@@ -55,6 +55,7 @@ namespace render {
     class TrianglePath;
     class RaycastPath;
     class BlitPath;
+    class DecorationRenderer;
 }
 
 namespace perf {
@@ -117,6 +118,9 @@ struct ApplicationConfig {
     float heightScale = 1.0f;             ///< Reduced height for realistic hills
     float cellScale = 1.0f;                ///< World-space size per heightmap cell
     float ambientIntensity = 0.3f;         ///< Ambient light intensity associated with the sunlight
+    bool enableDecorations = true;         ///< Render biome-driven trees and vegetation
+    uint32_t decorationSpacingCells = 10;  ///< Approximate tree candidate grid spacing
+    uint32_t maxTreeInstances = 22000;     ///< Cap for generated tree instances
 
     // Camera settings
     glm::vec3 cameraStartPos = {0.0f, 80.0f, 0.0f}; // Start lower, near center
@@ -437,6 +441,7 @@ private:
     std::unique_ptr<render::TrianglePath> trianglePath_;
     std::unique_ptr<render::RaycastPath> raycastPath_;
     std::unique_ptr<render::BlitPath> blitPath_;
+    std::unique_ptr<render::DecorationRenderer> decorationRenderer_;
 
     // Depth buffer for triangle path
     WGPUTexture depthTexture_ = nullptr;
@@ -475,4 +480,3 @@ private:
 };
 
 } // namespace voxy
-

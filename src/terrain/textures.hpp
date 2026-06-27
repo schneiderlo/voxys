@@ -11,6 +11,7 @@
 
 #include <cstdint>
 #include <filesystem>
+#include <span>
 #include <string_view>
 #include <vector>
 
@@ -33,6 +34,13 @@ struct TerrainTextureConfig {
     std::filesystem::path lightmapPath;  ///< Path to lightmap texture (optional)
     uint32_t placeholderWidth = 256;     ///< Width for placeholder textures
     uint32_t placeholderHeight = 256;    ///< Height for placeholder textures
+    std::span<const uint16_t> heightSamples; ///< Optional heightmap samples for biome/material baking
+    uint32_t heightmapWidth = 0;         ///< Width of heightSamples
+    uint32_t heightmapHeight = 0;        ///< Height of heightSamples
+    float heightScale = 1.0f;            ///< World-space height scale for biome thresholds
+    float cellScale = 1.0f;              ///< World-space horizontal spacing for slope estimates
+    bool minecraftStyleEnhancement = true; ///< Bake biome colors, rivers, and canopy detail
+    uint32_t generatedLightmapMaxSize = 2048; ///< Cap for generated terrain AO/lightmap textures
     
     /// Default configuration
     static TerrainTextureConfig defaults() {
@@ -186,5 +194,11 @@ private:
 /// @return R8 pixel data (all 255)
 [[nodiscard]] std::vector<uint8_t> generateWhiteLightmapData(uint32_t width, uint32_t height);
 
-} // namespace voxy::terrain
+/// Generate terrain-aware R8 light visibility data.
+/// Falls back to solid white if the config has no height samples.
+[[nodiscard]] std::vector<uint8_t> generateTerrainLightmapData(
+    uint32_t width,
+    uint32_t height,
+    const TerrainTextureConfig& config);
 
+} // namespace voxy::terrain

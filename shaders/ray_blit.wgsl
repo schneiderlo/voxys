@@ -400,6 +400,7 @@ fn fs(i : VSOut) -> @location(0) vec4<f32> {
     // ─────────────────────────────────────────────────────────────────────────
     let uvTerrain = terrainUV(posCWorld);
     let albedo = textureSampleLevel(terrainTex, terrainSampler, uvTerrain, 0.0).xyz;
+    let waterMask = smoothstep(0.04, 0.22, albedo.b - max(albedo.r, albedo.g) * 0.72);
     let lightVisibility = textureSampleLevel(lightmapTex, terrainSampler, uvTerrain, 0.0).x;
     
     // ─────────────────────────────────────────────────────────────────────────
@@ -421,7 +422,7 @@ fn fs(i : VSOut) -> @location(0) vec4<f32> {
     let viewDir = normalize(-posCView);
     let halfVec = normalize(lightDir + viewDir);
 
-    var roughness = 0.6;
+    var roughness = mix(0.72, 0.18, waterMask);
     if (camera.invProjParams.z > 0.5) {
         roughness = 0.2; // Shiny plastic for Lego
     }

@@ -52,6 +52,13 @@ TEST_F(TerrainTexturesTest, DefaultConfigValues) {
     EXPECT_TRUE(config.lightmapPath.empty());
     EXPECT_EQ(config.placeholderWidth, 256u);
     EXPECT_EQ(config.placeholderHeight, 256u);
+    EXPECT_TRUE(config.heightSamples.empty());
+    EXPECT_EQ(config.heightmapWidth, 0u);
+    EXPECT_EQ(config.heightmapHeight, 0u);
+    EXPECT_FLOAT_EQ(config.heightScale, 1.0f);
+    EXPECT_FLOAT_EQ(config.cellScale, 1.0f);
+    EXPECT_TRUE(config.minecraftStyleEnhancement);
+    EXPECT_EQ(config.generatedLightmapMaxSize, 2048u);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -263,6 +270,46 @@ TEST(TerrainTextureUtilTest, GenerateWhiteLightmapData) {
     for (size_t i = 0; i < data.size(); ++i) {
         EXPECT_EQ(data[i], 255u) << "Lightmap value should be 255 at index " << i;
     }
+}
+
+TEST(TerrainTextureUtilTest, GenerateTerrainLightmapFallsBackToWhiteWithoutHeightSamples) {
+    terrain::TerrainTextureConfig config;
+    auto data = terrain::generateTerrainLightmapData(8, 8, config);
+
+    ASSERT_EQ(data.size(), 64u);
+    for (uint8_t value : data) {
+        EXPECT_EQ(value, 255u);
+    }
+}
+
+TEST(TerrainTextureUtilTest, GenerateTerrainLightmapUsesHeightSamples) {
+    std::vector<uint16_t> samples(16u * 16u, 32768u);
+    for (uint32_t y = 0; y < 16; ++y) {
+        for (uint32_t x = 0; x < 16; ++x) {
+            if (x > 8 && y > 8) {
+                samples[y * 16u + x] = 52000u;
+            }
+        }
+    }
+
+    terrain::TerrainTextureConfig config;
+    config.heightSamples = samples;
+    config.heightmapWidth = 16;
+    config.heightmapHeight = 16;
+    config.heightScale = 50.0f;
+    config.cellScale = 1.0f;
+
+    auto data = terrain::generateTerrainLightmapData(16, 16, config);
+    ASSERT_EQ(data.size(), 16u * 16u);
+
+    bool sawNonWhite = false;
+    for (uint8_t value : data) {
+        if (value < 255u) {
+            sawNonWhite = true;
+            break;
+        }
+    }
+    EXPECT_TRUE(sawNonWhite);
 }
 
 TEST(TerrainTextureUtilTest, GenerateTerrainColorDataDifferentSizes) {

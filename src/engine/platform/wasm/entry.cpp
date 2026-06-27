@@ -8,6 +8,7 @@
 #include "engine/platform/input.hpp"
 
 #include <memory>
+#include <algorithm>
 #include <numeric>
 #include <emscripten.h>
 #include <emscripten/html5.h>
@@ -57,6 +58,9 @@ int main(int argc, char* argv[]) {
     appConfig.heightScale = config.terrain.heightScale;
     appConfig.cellScale = config.terrain.cellScale;
     appConfig.ambientIntensity = config.lighting.ambientIntensity;
+    appConfig.enableDecorations = config.terrain.enableDecorations;
+    appConfig.decorationSpacingCells = static_cast<uint32_t>(std::max(config.terrain.decorationSpacingCells, 1));
+    appConfig.maxTreeInstances = static_cast<uint32_t>(std::max(config.terrain.maxTreeInstances, 0));
     
     // Enforce 8K resolution
     appConfig.heightmapWidth = 8192;

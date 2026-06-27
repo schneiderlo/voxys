@@ -806,8 +806,16 @@ void Context::present() {
     // Browser presentation happens implicitly on RAF; nothing to do.
     (void)surface_;
 #else
-    if (surface_) {
+    if (surface_ && currentTexture_) {
         wgpuSurfacePresent(surface_);
+    }
+    if (currentTextureView_) {
+        wgpuTextureViewRelease(currentTextureView_);
+        currentTextureView_ = nullptr;
+    }
+    if (currentTexture_) {
+        wgpuTextureRelease(currentTexture_);
+        currentTexture_ = nullptr;
     }
 #endif
 }

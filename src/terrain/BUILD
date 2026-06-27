@@ -5,13 +5,17 @@ load("//settings:configure_copts.bzl", "PROJECT_DEFAULT_COPTS")
 cc_library(
     name = "terrain",
     srcs = [
+        "biomes.cpp",
         "compression.cpp",
+        "decorations.cpp",
         "heightmap.cpp",
         "mip_generator.cpp",
         "textures.cpp",
     ],
     hdrs = [
+        "biomes.hpp",
         "compression.hpp",
+        "decorations.hpp",
         "heightmap.hpp",
         "mip_generator.hpp",
         "textures.hpp",

@@ -284,6 +284,9 @@ Config load(std::string_view path) {
             else if (key == "lightmap") config.terrain.lightmap = value;
             else if (key == "height_scale") config.terrain.heightScale = parseFloat(value, 500.0f);
             else if (key == "cell_scale") config.terrain.cellScale = parseFloat(value, 1.0f);
+            else if (key == "enable_decorations") config.terrain.enableDecorations = parseBool(value, true);
+            else if (key == "decoration_spacing_cells") config.terrain.decorationSpacingCells = parseInt(value, 10);
+            else if (key == "max_tree_instances") config.terrain.maxTreeInstances = parseInt(value, 22000);
             else if (key == "ambient_light") config.lighting.ambientIntensity = parseFloat(value, 0.3f);
         }
         else if (currentSection == "camera") {
@@ -365,7 +368,10 @@ bool save(const Config& config, std::string_view path) {
     if (!config.terrain.albedo.empty()) file << std::format("albedo = \"{}\"\n", config.terrain.albedo);
     if (!config.terrain.lightmap.empty()) file << std::format("lightmap = \"{}\"\n", config.terrain.lightmap);
     file << std::format("height_scale = {}\n", config.terrain.heightScale);
-    file << std::format("cell_scale = {}\n\n", config.terrain.cellScale);
+    file << std::format("cell_scale = {}\n", config.terrain.cellScale);
+    file << std::format("enable_decorations = {}\n", config.terrain.enableDecorations ? "true" : "false");
+    file << std::format("decoration_spacing_cells = {}\n", config.terrain.decorationSpacingCells);
+    file << std::format("max_tree_instances = {}\n\n", config.terrain.maxTreeInstances);
     
     file << "[camera]\n";
     file << std::format("fov = {}\n", config.camera.fov);
