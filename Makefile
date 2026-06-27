@@ -30,7 +30,7 @@ wasm:
 		echo "Set EMSDK=<path-to-emsdk> or install emsdk first."; \
 		exit 1; \
 	fi
-	bash -lc "source '$(EMSDK_ENV)' && emcmake cmake -S . -B $(WASM_BUILD_DIR)"
+	bash -lc "source '$(EMSDK_ENV)' && emcmake cmake -S . -B $(WASM_BUILD_DIR) -DCMAKE_POLICY_VERSION_MINIMUM=3.5"
 	bash -lc "source '$(EMSDK_ENV)' && cmake --build $(WASM_BUILD_DIR) -- -j"
 	cp web/index.html web/loader.js web/style.css $(WASM_BUILD_DIR)/
 	cp $(WASM_BUILD_DIR)/bin/voxy_wasm.* $(WASM_BUILD_DIR)/
@@ -43,4 +43,3 @@ clean-native:
 
 clean-wasm:
 	rm -rf $(WASM_BUILD_DIR)
-
