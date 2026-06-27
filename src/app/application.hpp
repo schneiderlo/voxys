@@ -137,6 +137,8 @@ struct ApplicationConfig {
     std::filesystem::path assetDir = "assets";
 
     // Automation
+    bool benchmarkOnStartup = false;
+    bool exitAfterBenchmark = false;
     std::optional<int> initialTeleportIndex;
     std::optional<std::string> screenshotPath;
     int screenshotFrameDelay = 10;
@@ -473,5 +475,4 @@ private:
 };
 
 } // namespace voxy
-
 

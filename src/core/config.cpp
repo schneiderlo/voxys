@@ -331,6 +331,7 @@ Config load(std::string_view path, const CommandLineArgs& args) {
     if (args.noValidation) config.debug.enableValidation = false;
     
     // Apply automation settings
+    config.automation.benchmark = args.benchmark;
     config.automation.teleportIndex = args.teleportIndex;
     config.automation.screenshotPath = args.screenshotPath;
     config.automation.screenshotFrames = args.screenshotFrames;
@@ -436,4 +437,3 @@ Config& getMutable() noexcept {
 }
 
 } // namespace voxy::config
-

@@ -4,6 +4,21 @@
 
 This project supports multiple build systems. **Bazel** is recommended for development, while **CMake** is available for standard integration.
 
+## Nix Development Shell
+
+The repo includes `shell.nix` for local toolchain setup. Use it before fetching
+vendored third-party dependencies or building:
+
+```bash
+nix-shell
+./scripts/fetch_deps.sh
+bazel build //:voxy_native
+bazel test //tests:config
+```
+
+The shell provides GCC, Bazelisk-backed `bazel`, CMake, Rust, `uv`, X11/Vulkan
+development libraries, and runtime library paths for native WebGPU runs.
+
 ## Terrain Assets
 
 Voxys can import generated terrain from Terrain Diffusion through the offline

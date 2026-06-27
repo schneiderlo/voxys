@@ -23,6 +23,12 @@ build:wasm --copt=-DVOXY_WASM=1
 # Required for Jules environment (fixes IPv6 DNS issues in container)
 startup --host_jvm_args=-Djava.net.preferIPv4Stack=true
 
+# Let Bazel compile inside nix-shell with the Nix GCC wrapper.
+# Outside nix-shell these vars are usually empty, so this is harmless.
+build --action_env=NIX_CFLAGS_COMPILE
+build --action_env=NIX_LDFLAGS
+test --test_env=LD_LIBRARY_PATH
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # Sanitizer configurations
 # Usage: bazel build --config=asan //:voxy_native or bazel test --config=asan

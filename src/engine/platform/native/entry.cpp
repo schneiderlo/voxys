@@ -73,6 +73,8 @@ int main(int argc, char* argv[]) {
     appConfig.fpsLogIntervalSeconds = 2.0f;
 
     // Automation settings
+    appConfig.benchmarkOnStartup = config.automation.benchmark;
+    appConfig.exitAfterBenchmark = config.automation.benchmark;
     appConfig.initialTeleportIndex = config.automation.teleportIndex;
     appConfig.screenshotPath = config.automation.screenshotPath;
     appConfig.screenshotFrameDelay = config.automation.screenshotFrames;

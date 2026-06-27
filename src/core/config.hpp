@@ -91,6 +91,7 @@ struct WindowConfig {
 };
 
 struct AutomationConfig {
+    bool benchmark = false;
     std::optional<int> teleportIndex;
     std::optional<std::string> screenshotPath;
     int screenshotFrames = 10;
@@ -205,4 +206,3 @@ template<ConfigValue T>
 }
 
 } // namespace voxy::config
-

@@ -333,6 +333,15 @@ height = 600
     EXPECT_EQ(config.window.height, 600);        // From file
 }
 
+TEST_F(ConfigFileTest, CommandLineBenchmarkEnablesAutomation) {
+    CommandLineArgs args;
+    args.benchmark = true;
+
+    auto config = load(testConfigPath, args);
+
+    EXPECT_TRUE(config.automation.benchmark);
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Config Save Tests
 // ─────────────────────────────────────────────────────────────────────────────
@@ -524,4 +533,3 @@ TEST(CommandLineArgsTest, AllOverridesTogether) {
 }
 
 } // namespace voxy::config
-

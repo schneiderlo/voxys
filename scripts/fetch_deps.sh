@@ -10,6 +10,7 @@
 #   - GLFW (3.4)             - Windowing (native only)
 #   - stb                    - Image loading
 #   - wgpu-native (22.1.0.5) - WebGPU Native Implementation
+#   - Emdawn WebGPU          - Browser WebGPU implementation
 #   - X11 Dev Headers        - For hermetic build of GLFW
 #
 # Note: Dawn must be installed separately. See README for instructions.
@@ -41,7 +42,7 @@ cd "$THIRD_PARTY_DIR"
 # ─────────────────────────────────────────────────────────────────────────────
 # GLM - OpenGL Mathematics
 # ─────────────────────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[1/6]${NC} GLM (OpenGL Mathematics)..."
+echo -e "${YELLOW}[1/7]${NC} GLM (OpenGL Mathematics)..."
 if [ -d "glm" ]; then
     echo -e "  ${GREEN}✓${NC} Already exists"
 else
@@ -53,7 +54,7 @@ fi
 # ─────────────────────────────────────────────────────────────────────────────
 # zstd - Fast Compression
 # ─────────────────────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[2/6]${NC} zstd (Compression)..."
+echo -e "${YELLOW}[2/7]${NC} zstd (Compression)..."
 if [ -d "zstd" ]; then
     echo -e "  ${GREEN}✓${NC} Already exists"
 else
@@ -65,7 +66,7 @@ fi
 # ─────────────────────────────────────────────────────────────────────────────
 # GLFW - Window/Input
 # ─────────────────────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[3/6]${NC} GLFW (Windowing)..."
+echo -e "${YELLOW}[3/7]${NC} GLFW (Windowing)..."
 if [ -d "glfw" ]; then
     echo -e "  ${GREEN}✓${NC} Already exists"
 else
@@ -77,7 +78,7 @@ fi
 # ─────────────────────────────────────────────────────────────────────────────
 # stb - Single-file Libraries
 # ─────────────────────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[4/6]${NC} stb (Image Loading)..."
+echo -e "${YELLOW}[4/7]${NC} stb (Image Loading)..."
 if [ -f "stb/stb_image.h" ]; then
     echo -e "  ${GREEN}✓${NC} Already exists"
 else
@@ -93,7 +94,7 @@ fi
 # ─────────────────────────────────────────────────────────────────────────────
 # wgpu-native - WebGPU Implementation
 # ─────────────────────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[5/6]${NC} wgpu-native (WebGPU)..."
+echo -e "${YELLOW}[5/7]${NC} wgpu-native (WebGPU)..."
 if [ -d "wgpu-native" ]; then
     echo -e "  ${GREEN}✓${NC} Already exists"
 else
@@ -110,12 +111,46 @@ else
 fi
 
 # ─────────────────────────────────────────────────────────────────────────────
+# Emdawn WebGPU - Browser WebGPU port
+# ─────────────────────────────────────────────────────────────────────────────
+echo -e "${YELLOW}[6/7]${NC} Emdawn WebGPU (browser)..."
+EMDAWN_VERSION="v20251002.162335"
+EMDAWN_ZIP="emdawnwebgpu_pkg-${EMDAWN_VERSION}.zip"
+EMDAWN_URL="https://github.com/google/dawn/releases/download/${EMDAWN_VERSION}/${EMDAWN_ZIP}"
+
+if [ -L "emsdk" ]; then
+    EMSDK_ROOT="$(readlink -f emsdk)"
+else
+    EMSDK_ROOT="$THIRD_PARTY_DIR/emsdk"
+fi
+
+EMDAWN_PORT_DIR="$EMSDK_ROOT/upstream/emscripten/cache/ports/emdawnwebgpu"
+EMDAWN_PKG_DIR="$EMDAWN_PORT_DIR/emdawnwebgpu_pkg"
+
+if [ -f "$EMDAWN_PKG_DIR/webgpu/include/webgpu/webgpu.h" ] && \
+   [ -f "$EMDAWN_PKG_DIR/webgpu/src/library_webgpu_generated_struct_info.js" ]; then
+    echo -e "  ${GREEN}✓${NC} Already exists"
+else
+    echo -e "  Downloading ${EMDAWN_VERSION}..."
+    mkdir -p "$EMDAWN_PORT_DIR"
+
+    TEMP_DIR="$(mktemp -d)"
+    curl -L -o "$TEMP_DIR/$EMDAWN_ZIP" "$EMDAWN_URL"
+    unzip -q "$TEMP_DIR/$EMDAWN_ZIP" -d "$TEMP_DIR"
+    rm -rf "$EMDAWN_PKG_DIR"
+    mv "$TEMP_DIR/emdawnwebgpu_pkg" "$EMDAWN_PKG_DIR"
+    rm -rf "$TEMP_DIR"
+
+    echo -e "  ${GREEN}✓${NC} Done"
+fi
+
+# ─────────────────────────────────────────────────────────────────────────────
 # X11 Headers - For hermetic build
 # ─────────────────────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[6/6]${NC} X11 Development Headers..."
+echo -e "${YELLOW}[7/7]${NC} X11 Development Headers..."
 X11_DIR="x11_headers"
 
-if [ -d "$X11_DIR/include/X11" ]; then
+if [ -d "$X11_DIR/include/X11" ] && [ -f "$X11_DIR/include/X11/extensions/Xrender.h" ]; then
     echo -e "  ${GREEN}✓${NC} Already exists"
 else
     echo -e "  Fetching X11 development headers (from Ubuntu repositories)..."
@@ -140,6 +175,7 @@ else
     wget -q "http://archive.ubuntu.com/ubuntu/pool/main/x/xorgproto/x11proto-dev_2024.1-1_all.deb"
     wget -q "http://archive.ubuntu.com/ubuntu/pool/main/libx/libxext/libxext-dev_1.3.4-1build3_amd64.deb"
     wget -q "http://archive.ubuntu.com/ubuntu/pool/main/libx/libxfixes/libxfixes-dev_6.0.0-2build2_amd64.deb"
+    wget -q "http://archive.ubuntu.com/ubuntu/pool/main/libx/libxrender/libxrender-dev_0.9.10-1.1build1_amd64.deb"
 
     # Compile zstd if needed? No, that's too slow/complex.
     # Python's `tarfile` module supports xz/gz/bz2 but maybe not zstd in older versions.

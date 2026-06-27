@@ -222,6 +222,10 @@ bool Application::init(const ApplicationConfig& config) {
     // If a screenshot tour is requested, prepare it now (after initial teleport).
     startScreenshotTour();
 
+    if (config_.benchmarkOnStartup) {
+        startBenchmark();
+    }
+
     return true;
 }
 
@@ -536,7 +540,10 @@ void Application::processFrame(float deltaTime) {
     
     // Update benchmark if running (use frame timer stats)
     if (benchmarkRunner_ && benchmarkRunner_->isRunning()) {
-        benchmarkRunner_->onFrame(frameTimer.getLastFrameStats());
+        const bool stillRunning = benchmarkRunner_->onFrame(frameTimer.getLastFrameStats());
+        if (!stillRunning && config_.exitAfterBenchmark) {
+            requestExit();
+        }
     }
 }
 
@@ -782,6 +789,7 @@ bool Application::initGPU() {
     gpuConfig.powerPreference = WGPUPowerPreference_HighPerformance;
     gpuConfig.enableValidation = config_.enableValidation;
     gpuConfig.preferredFormat = config_.colorFormat;
+    gpuConfig.presentMode = config_.vsync ? WGPUPresentMode_Fifo : WGPUPresentMode_Immediate;
 
 #if defined(VOXY_NATIVE)
     if (!window_) {
