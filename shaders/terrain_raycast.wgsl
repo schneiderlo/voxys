@@ -185,8 +185,10 @@ fn intersectShadow(origin : vec3<f32>, dir : vec3<f32>) -> f32 {
     // Check if we are already out of bounds
     if (t > range.y) { return 1.0; }
 
-    // Start at mip level 0 for accuracy near surface, but ascend later for speed
-    var mipLevel : u32 = 0u;
+    // Terrain-diffusion worlds can use sub-meter cells at 8K resolution. Broad
+    // terrain shadows should not walk individual cells for every shaded pixel.
+    let minShadowMip = select(2u, 0u, legoMode);
+    var mipLevel : u32 = minShadowMip;
 
     // Standard DDA Setup (packed coordinates: Sebbbi's approach)
     var pos = origin + dir * t;
@@ -216,7 +218,8 @@ fn intersectShadow(origin : vec3<f32>, dir : vec3<f32>) -> f32 {
 
     var loopCount = 0u;
 
-    // Loop Limit: Increased for mip 0 traversal
+    // Coarse terrain shadows keep ground-level views from spending most of the
+    // frame in shadow rays. Lego mode can still descend to exact cell geometry.
     loop {
         loopCount++;
         if (loopCount > 2000u) { break; } // Safety break
@@ -250,7 +253,7 @@ fn intersectShadow(origin : vec3<f32>, dir : vec3<f32>) -> f32 {
         if (min(yEnter, yExit) <= hCheck) {
              // Potential hit - check if we need to descend or confirm hit
              
-             if (mipLevel == 0u) {
+             if (mipLevel <= minShadowMip) {
                  if (legoMode) {
                      // 1. Calculate absolute World Y of the brick surface
                      // h is relative to originY in 0-65535 space
@@ -281,7 +284,7 @@ fn intersectShadow(origin : vec3<f32>, dir : vec3<f32>) -> f32 {
                      // If we are here, we hit the expanded bounds (hCheck) but missed stud and brick.
                      // Fall through to "Next Cell".
                  } else {
-                    return 0.0; // Hit standard terrain
+                    return 0.0; // Hit standard terrain at the shadow mip floor
                  }
              } else {
                  // Descend to Finer Mip Level (Sebbbi's packed approach)

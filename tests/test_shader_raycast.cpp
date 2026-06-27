@@ -219,6 +219,14 @@ TEST_F(RaycastShaderTest, HasLODTermination) {
         << "Shader missing LOD termination based on distance";
 }
 
+TEST_F(RaycastShaderTest, ShadowsUseCoarseTerrainMipFloor) {
+    ASSERT_FALSE(shaderSource_.empty());
+    EXPECT_NE(shaderSource_.find("let minShadowMip = select(2u, 0u, legoMode)"), std::string::npos)
+        << "Raycast terrain shadows should use a coarse mip floor outside Lego mode";
+    EXPECT_NE(shaderSource_.find("mipLevel : u32 = minShadowMip"), std::string::npos)
+        << "Shadow traversal should start at the configured mip floor";
+}
+
 TEST_F(RaycastShaderTest, HasLevelUpCheck) {
     ASSERT_FALSE(shaderSource_.empty());
     // Level-up threshold: 128 << mipLevel
