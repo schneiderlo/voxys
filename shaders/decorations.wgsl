@@ -436,6 +436,9 @@ fn fs(input : VSOut) -> @location(0) vec4<f32> {
     let isMushroom = isKind(input.kind, KIND_MUSHROOM);
     let isCactus = isKind(input.kind, KIND_CACTUS);
     let isTrunk = isTree && input.segment >= 5.5;
+    let treeVolume = isTree && input.segment >= 99.5;
+    let treeVolumeTrunk = treeVolume && input.segment < 100.5;
+    let treeVolumeLeaves = treeVolume && !treeVolumeTrunk;
     let leafNoise = hash2D(floor(input.worldPos.xz * 1.7 + vec2<f32>(y * 37.0, y * 19.0)));
 
     var coverage = 0.0;
@@ -443,9 +446,14 @@ fn fs(input : VSOut) -> @location(0) vec4<f32> {
     if (isTree) {
         if (input.segment >= 99.5) {
             coverage = 1.0;
-            color = input.color * (0.92 + 0.12 * leafNoise);
-            if (input.segment > 100.5) {
-                color = mix(color, color * vec3<f32>(0.86, 1.14, 0.82), 0.24);
+            let lobeNoise = hash2D(floor(input.worldPos.xz * 0.58 +
+                                         vec2<f32>(input.segment * 7.0, input.seed * 31.0)));
+            color = input.color * (0.94 + 0.16 * leafNoise);
+            if (treeVolumeLeaves) {
+                color = input.color * (1.02 + 0.18 * leafNoise);
+                color = mix(color, color * vec3<f32>(0.82, 1.16, 0.72), 0.10 + 0.12 * lobeNoise);
+                color = mix(color, color * vec3<f32>(1.12, 0.94, 0.68), 0.07 * step(0.78, lobeNoise));
+                color *= 1.0 + 0.10 * max(input.normal.y, 0.0);
             }
         } else {
         var leafAlpha = 0.0;
@@ -609,10 +617,17 @@ fn fs(input : VSOut) -> @location(0) vec4<f32> {
 
     let lightDir = normalize(camera.lightDirWS.xyz);
     let ambient = max(camera.lightDirVS.w, 0.08);
-    let diffuse = max(dot(normalize(input.normal), lightDir), 0.0);
-    let treeVolume = isTree && input.segment >= 99.5;
+    let normalWS = normalize(input.normal);
+    let diffuse = max(dot(normalWS, lightDir), 0.0);
     let wrappedDiffuse = mix(0.30 + 0.70 * diffuse, 0.48 + 0.52 * diffuse, select(0.0, 1.0, treeVolume));
-    color *= ambient + wrappedDiffuse * select(0.62, 0.78, treeVolume);
+    var lighting = ambient + wrappedDiffuse * select(0.62, 0.78, treeVolume);
+    if (treeVolumeLeaves) {
+        lighting += 0.12 + 0.10 * max(normalWS.y, 0.0);
+        lighting += 0.08 * max(dot(-normalWS, lightDir), 0.0);
+    } else if (treeVolumeTrunk) {
+        lighting *= 0.92;
+    }
+    color *= lighting;
 
     let fade = 1.0 - smoothstep(params.fadeStart, params.fadeEnd, dist);
     if (fade < 0.05) {
