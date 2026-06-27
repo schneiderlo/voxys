@@ -118,8 +118,15 @@ EMDAWN_VERSION="v20251002.162335"
 EMDAWN_ZIP="emdawnwebgpu_pkg-${EMDAWN_VERSION}.zip"
 EMDAWN_URL="https://github.com/google/dawn/releases/download/${EMDAWN_VERSION}/${EMDAWN_ZIP}"
 
-if [ -L "emsdk" ]; then
-    EMSDK_ROOT="$(readlink -f emsdk)"
+if [ -n "${EMSDK:-}" ]; then
+    EMSDK_ROOT="$EMSDK"
+elif [ -L "emsdk" ]; then
+    EMSDK_ROOT="$(readlink -f emsdk || true)"
+    if [ -z "$EMSDK_ROOT" ]; then
+        echo -e "  ${RED}✗${NC} third_party/emsdk is a broken symlink"
+        echo "  Set EMSDK to a valid Emscripten SDK path and rerun this script."
+        exit 1
+    fi
 else
     EMSDK_ROOT="$THIRD_PARTY_DIR/emsdk"
 fi
@@ -135,7 +142,7 @@ else
     mkdir -p "$EMDAWN_PORT_DIR"
 
     TEMP_DIR="$(mktemp -d)"
-    curl -L -o "$TEMP_DIR/$EMDAWN_ZIP" "$EMDAWN_URL"
+    curl -fL -o "$TEMP_DIR/$EMDAWN_ZIP" "$EMDAWN_URL"
     unzip -q "$TEMP_DIR/$EMDAWN_ZIP" -d "$TEMP_DIR"
     rm -rf "$EMDAWN_PKG_DIR"
     mv "$TEMP_DIR/emdawnwebgpu_pkg" "$EMDAWN_PKG_DIR"
