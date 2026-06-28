@@ -570,11 +570,12 @@ void Application::rebuildTeleportTargetsFromTerrain(const std::vector<terrain::T
         return value / length;
     };
 
+    constexpr size_t maxTeleportTargets = 8u;
     std::vector<CameraState> targets;
-    targets.reserve(6u);
+    targets.reserve(maxTeleportTargets);
 
     auto addLookAt = [&](glm::vec3 position, glm::vec3 target) {
-        if (targets.size() >= 6u || !finite(position) || !finite(target)) {
+        if (targets.size() >= maxTeleportTargets || !finite(position) || !finite(target)) {
             return;
         }
 
@@ -610,6 +611,24 @@ void Application::rebuildTeleportTargetsFromTerrain(const std::vector<terrain::T
     scanConfig.height = height;
     scanConfig.heightScale = config_.heightScale;
     scanConfig.cellScale = cellScale;
+
+    auto sampleBiomeAt = [&](float worldX, float worldZ) {
+        const glm::vec2 sample = worldToSample(worldX, worldZ);
+        const uint32_t sampleX = static_cast<uint32_t>(std::clamp(sample.x,
+                                                                  0.0f,
+                                                                  static_cast<float>(width - 1u)));
+        const uint32_t sampleY = static_cast<uint32_t>(std::clamp(sample.y,
+                                                                  0.0f,
+                                                                  static_cast<float>(height - 1u)));
+        const float heightM = terrain::sampleDecorationHeightMeters(scanConfig, sampleX, sampleY);
+        const float slope = terrain::estimateDecorationSlope(scanConfig, sampleX, sampleY);
+        return terrain::sampleBiome(terrain::BiomeSampleInput{
+            .worldX = worldX,
+            .worldZ = worldZ,
+            .heightM = heightM,
+            .slope = slope,
+        });
+    };
 
     Candidate ridge;
     Candidate shore;
@@ -654,6 +673,20 @@ void Application::rebuildTeleportTargetsFromTerrain(const std::vector<terrain::T
     const float centerHeight = sampleWorldHeight(0.0f, 0.0f);
     const float overviewDistance = std::clamp(maxWorldExtent * 0.13f, 180.0f, 980.0f);
     const float overviewHeight = std::max(centerHeight + config_.heightScale * 1.2f, 110.0f);
+
+    if (shore.valid && ridge.valid) {
+        const glm::vec2 waterSide = normalized2(glm::vec2(shore.position.x - ridge.position.x,
+                                                          shore.position.z - ridge.position.z),
+                                                glm::vec2(0.25f, -1.0f));
+        const float distance = std::clamp(maxWorldExtent * 0.045f, 90.0f, 250.0f);
+        const glm::vec3 position(shore.position.x + waterSide.x * distance,
+                                 3.0f,
+                                 shore.position.z + waterSide.y * distance);
+        glm::vec3 target = glm::mix(shore.position, ridge.position, 0.68f);
+        target.y = std::max(target.y, ridge.position.y * 0.52f);
+        addLookAt(position, target);
+    }
+
     addLookAt(glm::vec3(-overviewDistance * 0.35f, overviewHeight, -overviewDistance),
               glm::vec3(0.0f, centerHeight + config_.heightScale * 0.12f, 0.0f));
 
@@ -670,9 +703,13 @@ void Application::rebuildTeleportTargetsFromTerrain(const std::vector<terrain::T
         const glm::vec2 acrossWater = normalized2(glm::vec2(-shore.position.z, shore.position.x),
                                                   glm::vec2(1.0f, -0.35f));
         const float distance = std::clamp(maxWorldExtent * 0.035f, 65.0f, 150.0f);
-        addLookAt(shore.position + glm::vec3(acrossWater.x * distance, 24.0f, acrossWater.y * distance),
-                  shore.position + glm::vec3(-acrossWater.x * distance * 0.35f, 6.0f,
+        const size_t before = targets.size();
+        addLookAt(shore.position + glm::vec3(acrossWater.x * distance, 6.0f, acrossWater.y * distance),
+                  shore.position + glm::vec3(-acrossWater.x * distance * 0.35f, 4.0f,
                                              -acrossWater.y * distance * 0.35f));
+        if (targets.size() > before) {
+            std::rotate(targets.begin(), targets.end() - 1, targets.end());
+        }
     }
 
     const float treeClusterCell = std::clamp(maxWorldExtent * 0.025f, 28.0f, 54.0f);
@@ -712,6 +749,94 @@ void Application::rebuildTeleportTargetsFromTerrain(const std::vector<terrain::T
         }
         return count;
     };
+
+    struct ScenicCameraCandidate {
+        glm::vec3 position{0.0f};
+        glm::vec3 target{0.0f};
+        float score = -std::numeric_limits<float>::infinity();
+        bool valid = false;
+    };
+
+    ScenicCameraCandidate scenicForest;
+    const glm::vec2 scenicDirections[] = {
+        {1.0f, 0.0f},
+        {-1.0f, 0.0f},
+        {0.0f, 1.0f},
+        {0.0f, -1.0f},
+        {0.72f, 0.72f},
+        {-0.72f, 0.72f},
+        {0.72f, -0.72f},
+        {-0.72f, -0.72f},
+    };
+    const float scenicDistances[] = {
+        std::clamp(maxWorldExtent * 0.036f, 82.0f, 170.0f),
+        std::clamp(maxWorldExtent * 0.052f, 120.0f, 245.0f),
+        std::clamp(maxWorldExtent * 0.070f, 165.0f, 320.0f),
+    };
+    for (const auto& tree : decorations) {
+        if (!terrain::isTreeDecoration(tree.kind)) {
+            continue;
+        }
+
+        const float cluster = static_cast<float>(treeClusterCount(tree));
+        if (cluster < 5.0f) {
+            continue;
+        }
+
+        for (glm::vec2 direction : scenicDirections) {
+            direction = normalized2(direction, glm::vec2(0.0f, -1.0f));
+
+            for (const float distance : scenicDistances) {
+                const glm::vec2 waterPos(tree.x + direction.x * distance,
+                                         tree.z + direction.y * distance);
+                const terrain::BiomeSample waterBiome = sampleBiomeAt(waterPos.x, waterPos.y);
+                if (waterBiome.water < 0.24f || waterBiome.heightM > 4.0f) {
+                    continue;
+                }
+                const float waterScore = waterBiome.water * 1.40f +
+                                         waterBiome.river * 0.20f +
+                                         (1.0f - std::clamp(std::abs(waterBiome.heightM) / 28.0f,
+                                                           0.0f,
+                                                           1.0f)) * 0.35f;
+
+                float ridgeBackdrop = 0.0f;
+                if (ridge.valid) {
+                    const glm::vec2 treeToRidge = normalized2(glm::vec2(ridge.position.x - tree.x,
+                                                                        ridge.position.z - tree.z),
+                                                              -direction);
+                    ridgeBackdrop = std::max(glm::dot(treeToRidge, -direction), 0.0f);
+                }
+
+                const float distanceFromCenter = glm::length(glm::vec2(tree.x, tree.z));
+                const float score = cluster * 7.0f +
+                                    tree.height * 1.8f +
+                                    waterScore * 42.0f +
+                                    ridgeBackdrop * 34.0f -
+                                    distanceFromCenter * 0.0016f;
+                if (score <= scenicForest.score) {
+                    continue;
+                }
+
+                glm::vec3 target(tree.x, tree.y + tree.height * 0.72f, tree.z);
+                if (ridge.valid && ridgeBackdrop > 0.25f) {
+                    glm::vec3 ridgeTarget = ridge.position;
+                    ridgeTarget.y += 18.0f;
+                    target = glm::mix(target, ridgeTarget, 0.32f);
+                }
+
+                scenicForest = ScenicCameraCandidate{
+                    glm::vec3(waterPos.x, 3.0f, waterPos.y),
+                    target,
+                    score,
+                    true,
+                };
+            }
+        }
+    }
+
+    if (scenicForest.valid) {
+        addLookAt(scenicForest.position, scenicForest.target);
+    }
 
     auto addTreeTarget = [&](terrain::DecorationKind kind) {
         const terrain::TerrainDecoration* best = nullptr;
@@ -765,7 +890,7 @@ void Application::rebuildTeleportTargetsFromTerrain(const std::vector<terrain::T
         {0.45f, 0.85f},
     };
     for (glm::vec2 direction : fallbackDirections) {
-        if (targets.size() >= 6u) {
+        if (targets.size() >= maxTeleportTargets) {
             break;
         }
         direction = normalized2(direction, glm::vec2(0.0f, -1.0f));
@@ -779,6 +904,16 @@ void Application::rebuildTeleportTargetsFromTerrain(const std::vector<terrain::T
     if (targets.size() >= 3u) {
         teleportTargets_ = std::move(targets);
         LOG_INFO("Generated {} terrain-aware teleport targets", teleportTargets_.size());
+        for (size_t index = 0; index < teleportTargets_.size(); ++index) {
+            const auto& target = teleportTargets_[index];
+            LOG_INFO("  target {}: pos({:.2f}, {:.2f}, {:.2f}) yaw {:.3f} pitch {:.3f}",
+                     index,
+                     target.position.x,
+                     target.position.y,
+                     target.position.z,
+                     target.yaw,
+                     target.pitch);
+        }
     } else {
         LOG_WARN("Terrain-aware teleport generation produced {} targets; keeping fallback positions",
                  targets.size());
@@ -1556,8 +1691,12 @@ void Application::updateCameraUniforms() {
     const uint32_t terrainHeight = heightmap_ ? heightmap_->getHeight() : stats_.terrainHeight;
     const uint32_t lodStep =
         (config_.renderPath == RenderPath::Triangle && trianglePath_) ? trianglePath_->getLODStep() : 1u;
-    const glm::vec3 worldLightDir = glm::normalize(glm::vec3(0.3f, 0.8f, 0.4f));
-    constexpr float fogDensity = 0.0001f;
+    glm::vec3 worldLightDir = config_.sunDirection;
+    if (glm::length(worldLightDir) < 0.001f) {
+        worldLightDir = glm::vec3(0.3f, 0.8f, 0.4f);
+    }
+    worldLightDir = glm::normalize(worldLightDir);
+    const float fogDensity = std::max(config_.fogDensity, 0.0f);
 
     render::CameraUniforms uniforms;
     uniforms.setTerrain(

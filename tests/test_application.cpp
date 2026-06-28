@@ -51,6 +51,8 @@ TEST(ApplicationConfigTest, DefaultsHaveReasonableValues) {
     EXPECT_GT(config.heightmapHeight, 0);
     EXPECT_GT(config.heightScale, 0.0f);
     EXPECT_GT(config.cellScale, 0.0f);
+    EXPECT_GT(glm::length(config.sunDirection), 0.0f);
+    EXPECT_GE(config.fogDensity, 0.0f);
     
     // Camera defaults
     EXPECT_GT(config.cameraFovDegrees, 0.0f);
@@ -76,6 +78,8 @@ TEST(ApplicationConfigTest, CustomConfiguration) {
     config.heightmapWidth = 512;
     config.heightmapHeight = 512;
     config.heightScale = 1000.0f;
+    config.sunDirection = glm::vec3(0.2f, 0.4f, 0.7f);
+    config.fogDensity = 0.0003f;
     config.cameraFovDegrees = 90.0f;
     
     EXPECT_EQ(config.windowWidth, 1920);
@@ -86,6 +90,10 @@ TEST(ApplicationConfigTest, CustomConfiguration) {
     EXPECT_EQ(config.heightmapWidth, 512);
     EXPECT_EQ(config.heightmapHeight, 512);
     EXPECT_FLOAT_EQ(config.heightScale, 1000.0f);
+    EXPECT_FLOAT_EQ(config.sunDirection.x, 0.2f);
+    EXPECT_FLOAT_EQ(config.sunDirection.y, 0.4f);
+    EXPECT_FLOAT_EQ(config.sunDirection.z, 0.7f);
+    EXPECT_FLOAT_EQ(config.fogDensity, 0.0003f);
     EXPECT_FLOAT_EQ(config.cameraFovDegrees, 90.0f);
 }
 
@@ -374,4 +382,3 @@ TEST_F(ApplicationGPUTest, DISABLED_UpdateCallback) {
 #endif // VOXY_NATIVE
 
 } // namespace voxy
-

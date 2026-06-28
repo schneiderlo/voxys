@@ -58,6 +58,10 @@ int main(int argc, char* argv[]) {
     appConfig.heightScale = config.terrain.heightScale;
     appConfig.cellScale = config.terrain.cellScale;
     appConfig.ambientIntensity = config.lighting.ambientIntensity;
+    appConfig.sunDirection = glm::vec3(config.lighting.sunDirection[0],
+                                       config.lighting.sunDirection[1],
+                                       config.lighting.sunDirection[2]);
+    appConfig.fogDensity = config.lighting.fogDensity;
     appConfig.enableDecorations = config.terrain.enableDecorations;
     appConfig.decorationSpacingCells = static_cast<uint32_t>(std::max(config.terrain.decorationSpacingCells, 1));
     appConfig.maxTreeInstances = static_cast<uint32_t>(std::max(config.terrain.maxTreeInstances, 0));

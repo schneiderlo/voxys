@@ -119,6 +119,8 @@ struct ApplicationConfig {
     float heightScale = 1.0f;             ///< Reduced height for realistic hills
     float cellScale = 1.0f;                ///< World-space size per heightmap cell
     float ambientIntensity = 0.3f;         ///< Ambient light intensity associated with the sunlight
+    glm::vec3 sunDirection = {0.3f, 0.8f, 0.4f}; ///< World-space sunlight direction
+    float fogDensity = 0.0001f;            ///< Exponential fog density
     bool enableDecorations = true;         ///< Render biome-driven trees and vegetation
     uint32_t decorationSpacingCells = 10;  ///< Approximate tree candidate grid spacing
     uint32_t maxTreeInstances = 22000;     ///< Cap for generated tree instances

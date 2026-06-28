@@ -283,46 +283,86 @@ fn terrainDetailColor(worldPos : vec3<f32>,
     return clamp(detailed, vec3<f32>(0.0), vec3<f32>(1.0));
 }
 
+struct WaterSpectrum {
+    normal : vec3<f32>,
+    crest : f32,
+    whitecap : f32,
+    detail : f32,
+};
+
+fn waterSpectrum(waterXZ : vec2<f32>, time : f32, farFlatten : f32) -> WaterSpectrum {
+    let dirA = vec2<f32>(0.940, 0.341);
+    let dirB = vec2<f32>(-0.270, 0.963);
+    let dirC = vec2<f32>(0.763, -0.647);
+
+    let waveNumberA = 0.018480;
+    let waveNumberB = 0.041888;
+    let waveNumberC = 0.089760;
+
+    let amplitudeA = 3.60;
+    let amplitudeB = 1.45;
+    let amplitudeC = 0.56;
+
+    let steepnessA = 0.74;
+    let steepnessB = 0.56;
+    let steepnessC = 0.36;
+
+    let phaseA = dot(waterXZ, dirA) * waveNumberA - time * 0.21 + 0.40;
+    let phaseB = dot(waterXZ, dirB) * waveNumberB - time * 0.35 + 1.70;
+    let phaseC = dot(waterXZ, dirC) * waveNumberC - time * 0.61 + 3.10;
+
+    let waveA = sin(phaseA);
+    let waveB = sin(phaseB);
+    let waveC = sin(phaseC);
+    let chopA = cos(phaseA);
+    let chopB = cos(phaseB);
+    let chopC = cos(phaseC);
+
+    let farDamp = 1.0 - farFlatten * 0.70;
+    let waveAmplitudeA = waveNumberA * amplitudeA;
+    let waveAmplitudeB = waveNumberB * amplitudeB;
+    let waveAmplitudeC = waveNumberC * amplitudeC;
+    let detail = clamp(0.50 + waveB * 0.24 + chopC * 0.18 + waveA * 0.08, 0.0, 1.0);
+
+    let slope = (dirA * chopA * waveAmplitudeA +
+                 dirB * chopB * waveAmplitudeB +
+                 dirC * chopC * waveAmplitudeC +
+                 vec2<f32>(detail - 0.5, waveC * 0.5) * 0.014) * farDamp;
+
+    let gerstnerFold = steepnessA * waveAmplitudeA * waveA +
+                       steepnessB * waveAmplitudeB * waveB +
+                       steepnessC * waveAmplitudeC * waveC;
+    let vertical = max(1.0 - gerstnerFold * farDamp, 0.24);
+    let heightSignal = (waveA * amplitudeA +
+                        waveB * amplitudeB +
+                        waveC * amplitudeC) /
+                       (amplitudeA + amplitudeB + amplitudeC);
+    let foldSignal = clamp(1.0 - vertical, 0.0, 1.0) * 1.85 +
+                     abs(chopC) * 0.12 +
+                     detail * 0.15;
+    let crestSignal = heightSignal * 0.62 + foldSignal * 0.54 + detail * 0.16;
+
+    var spectrum : WaterSpectrum;
+    spectrum.normal = normalize(vec3<f32>(-slope.x, vertical, -slope.y));
+    spectrum.crest = smoothstep(0.42, 0.84, crestSignal) * farDamp;
+    spectrum.whitecap = smoothstep(1.02, 1.36, crestSignal + foldSignal * 0.34) * farDamp;
+    spectrum.detail = detail;
+    return spectrum;
+}
+
 fn waterWaveNormal(waterXZ : vec2<f32>, time : f32) -> vec3<f32> {
-    let dirA = normalize(vec2<f32>(0.940, 0.341));
-    let dirB = normalize(vec2<f32>(-0.270, 0.963));
-    let dirC = normalize(vec2<f32>(0.763, -0.647));
-    let dirD = normalize(vec2<f32>(-0.983, -0.184));
-    let phaseA = dot(waterXZ, dirA) * 0.021 + time * 0.23;
-    let phaseB = dot(waterXZ, dirB) * 0.046 + time * 0.37;
-    let phaseC = dot(waterXZ, dirC) * 0.082 + time * 0.61;
-    let phaseD = dot(waterXZ, dirD) * 0.135 + time * 0.83;
-    let swirlA = valueNoise2D(waterXZ * 0.042 + vec2<f32>(time * 0.018, -time * 0.010)) * 2.0 - 1.0;
-    let swirlB = valueNoise2D(waterXZ * 0.130 + vec2<f32>(-time * 0.031, time * 0.017)) * 2.0 - 1.0;
-    let slope = dirA * cos(phaseA) * 0.050 +
-                dirB * cos(phaseB) * 0.038 +
-                dirC * cos(phaseC) * 0.026 +
-                dirD * cos(phaseD) * 0.014 +
-                vec2<f32>(swirlA, swirlB) * 0.018;
-    return normalize(vec3<f32>(
-        -slope.x,
-        1.0,
-        -slope.y
-    ));
+    return waterSpectrum(waterXZ, time, 0.0).normal;
 }
 
 fn waterCrest(waterXZ : vec2<f32>, time : f32) -> f32 {
-    let dirA = normalize(vec2<f32>(0.940, 0.341));
-    let dirB = normalize(vec2<f32>(-0.270, 0.963));
-    let dirC = normalize(vec2<f32>(0.763, -0.647));
-    let swell = sin(dot(waterXZ, dirA) * 0.021 + time * 0.23);
-    let chop = sin(dot(waterXZ, dirB) * 0.046 + time * 0.37);
-    let capillary = sin(dot(waterXZ, dirC) * 0.135 + time * 0.83);
-    let noise = valueNoise2D(waterXZ * 0.075 + vec2<f32>(time * 0.025, -time * 0.014));
-    return smoothstep(0.74, 0.98, swell * 0.38 + chop * 0.22 + capillary * 0.10 + noise * 0.30);
+    return waterSpectrum(waterXZ, time, 0.0).crest;
 }
 
 fn waterCaustics(waterXZ : vec2<f32>, waterDepth : f32, time : f32) -> f32 {
     let p = waterXZ * 0.062;
     let causticA = sin(p.x + p.y * 1.73 + time * 0.68);
     let causticB = sin(p.x * -1.47 + p.y * 0.82 - time * 0.51);
-    let causticC = valueNoise2D(waterXZ * 0.150 + vec2<f32>(time * 0.035, time * 0.019));
-    let lattice = pow(clamp(causticA * causticB * 0.42 + causticC * 0.58, 0.0, 1.0), 4.5);
+    let lattice = smoothstep(0.46, 0.96, causticA * causticB * 0.50 + 0.50);
     let depthFade = 1.0 - smoothstep(1.0, 22.0, waterDepth);
     return lattice * depthFade;
 }
@@ -338,52 +378,65 @@ fn waterSurfaceColor(waterPos : vec3<f32>,
     let nearShore = 1.0 - smoothstep(0.8, 9.0, waterDepth);
     let deepFade = smoothstep(14.0, 70.0, waterDepth);
     let farFlatten = smoothstep(520.0, 2400.0, waterDistance);
-    let rippleNoise = valueNoise2D(waterPos.xz * 0.115 + vec2<f32>(time * 0.040, -time * 0.024));
-    let waterNormal = normalize(mix(waterWaveNormal(waterPos.xz, time),
+    let wave = waterSpectrum(waterPos.xz, time, farFlatten);
+    let rippleNoise = wave.detail;
+    let waterNormal = normalize(mix(wave.normal,
                                    vec3<f32>(0.0, 1.0, 0.0),
-                                   farFlatten * 0.78));
+                                   farFlatten * 0.58));
 
     let lightDir = normalize(camera.lightDirWS.xyz);
     let viewDir = normalize(camera.cameraPos.xyz - waterPos);
     let halfDir = normalize(lightDir + viewDir);
-    let cloudShadowInfluence = clamp((1.0 - farFlatten) * 0.55 + nearShore * 0.20, 0.0, 0.75);
-    let cloudShadow = mix(0.98, cloudShadowAtWorld(waterPos, time), cloudShadowInfluence);
-    let diffuse = (0.50 + 0.36 * max(dot(waterNormal, lightDir), 0.0)) * mix(0.88, 1.0, cloudShadow);
-    let glintPower = mix(76.0, 180.0, deepFade);
+    let cloudShadow = 0.96 + farFlatten * 0.04;
+    let diffuse = (0.60 + 0.38 * max(dot(waterNormal, lightDir), 0.0)) * mix(0.88, 1.0, cloudShadow);
+    let glintPower = mix(68.0, 164.0, deepFade);
     let glint = pow(max(dot(waterNormal, halfDir), 0.0), glintPower) *
-                mix(0.18, 0.42, deepFade) * cloudShadow * (1.0 - farFlatten * 0.35);
+                mix(0.22, 0.54, deepFade) * cloudShadow * (1.0 - farFlatten * 0.35);
     let fresnel = 0.035 + 0.965 * pow(1.0 - clamp(dot(waterNormal, viewDir), 0.0, 1.0), 5.0);
-    let crest = waterCrest(waterPos.xz, time);
     let caustics = waterCaustics(waterPos.xz, waterDepth, time);
 
-    let deepColor = vec3<f32>(0.018, 0.135, 0.265);
-    let midColor = vec3<f32>(0.035, 0.245, 0.365);
-    let shallowColor = vec3<f32>(0.100, 0.420, 0.500);
-    let transmission = mix(terrainColor * vec3<f32>(0.58, 0.82, 0.78), shallowColor, 0.58);
+    let deepColor = vec3<f32>(0.035, 0.180, 0.340);
+    let midColor = vec3<f32>(0.070, 0.330, 0.460);
+    let shallowColor = vec3<f32>(0.180, 0.540, 0.620);
+    let absorption = 1.0 / (vec3<f32>(1.0) + waterDepth * vec3<f32>(0.085, 0.040, 0.024));
+    let absorbedFloor = terrainColor * absorption;
+    let transmission = mix(absorbedFloor * vec3<f32>(0.70, 0.92, 0.90), shallowColor, 0.62);
     var waterColor = mix(mix(transmission, midColor, 1.0 - shallow), deepColor, deepFade);
-    waterColor *= diffuse + 0.18;
+    waterColor *= diffuse + 0.25;
 
     let reflectionDir = reflect(-viewDir, waterNormal);
-    let skyReflect = mix(vec3<f32>(0.54, 0.70, 0.82),
-                         vec3<f32>(0.18, 0.38, 0.62),
-                         pow(clamp(reflectionDir.y * 0.5 + 0.5, 0.0, 1.0), 0.72));
-    let cloudReflect = cloudCoverageAt(waterPos.xz * 0.00050 + reflectionDir.xz * 0.022, time);
-    let reflectionColor = mix(skyReflect, vec3<f32>(0.82, 0.86, 0.86), cloudReflect * 0.035 * (1.0 - farFlatten * 0.75));
+    let reflectionLift = clamp(reflectionDir.y * 0.5 + 0.5, 0.0, 1.0);
+    let skyReflect = mix(vec3<f32>(0.62, 0.78, 0.90),
+                         vec3<f32>(0.20, 0.46, 0.70),
+                         reflectionLift * (1.22 - 0.22 * reflectionLift));
+    let reflectionColor = skyReflect;
 
-    waterColor = mix(waterColor, reflectionColor, fresnel * mix(0.24, 0.48, deepFade) * (1.0 - farFlatten * 0.32));
-    waterColor += vec3<f32>(0.78, 0.90, 0.98) * glint;
-    waterColor += vec3<f32>(0.10, 0.30, 0.27) * caustics * shallow;
-    waterColor *= 0.985 + (rippleNoise - 0.5) * (0.045 * (1.0 - farFlatten * 0.75));
+    waterColor = mix(waterColor, reflectionColor, fresnel * mix(0.32, 0.58, deepFade) * (1.0 - farFlatten * 0.32));
+    let windStreakBase = 0.5 + 0.5 * sin(dot(waterPos.xz, vec2<f32>(0.94, 0.34)) * 0.18 +
+                                         waterDistance * 0.034 +
+                                         time * 0.62);
+    let windStreakBreakup = 0.58 + wave.detail * 0.42;
+    let windStreak = smoothstep(0.76, 0.99, windStreakBase * windStreakBreakup) *
+                     (1.0 - farFlatten * 0.84);
+    waterColor += vec3<f32>(1.00, 0.93, 0.78) * glint;
+    waterColor += vec3<f32>(0.016, 0.032, 0.046) * windStreak;
+    waterColor += vec3<f32>(0.20, 0.32, 0.24) * caustics * shallow * cloudShadow;
+    waterColor *= 0.995 + (rippleNoise - 0.5) * (0.095 * (1.0 - farFlatten * 0.75));
 
     let shoreFoam = smoothstep(0.25, 0.90, planeMask) *
                     nearShore *
-                    (0.56 + 0.44 * valueNoise2D(waterPos.xz * 0.42 + vec2<f32>(time * 0.11, -time * 0.07)));
-    let whitecaps = crest * mix(nearShore * 0.34, deepFade * 0.10, smoothstep(24.0, 90.0, waterDepth)) *
-                    (1.0 - farFlatten * 0.75);
-    waterColor = mix(waterColor, vec3<f32>(0.74, 0.88, 0.86), clamp(shoreFoam * 0.58 + whitecaps, 0.0, 0.72));
+                    (0.58 + 0.42 * wave.detail);
+    let ambientFoam = smoothstep(0.98, 1.0, wave.detail + wave.crest * 0.08) *
+                      deepFade *
+                      (1.0 - farFlatten * 0.90);
+    let whitecaps = wave.whitecap * mix(nearShore * 0.24, deepFade * 0.035, smoothstep(18.0, 80.0, waterDepth)) *
+                    (1.0 - farFlatten * 0.72);
+    let foamMask = clamp(shoreFoam * 0.58 + whitecaps + ambientFoam * 0.05, 0.0, 0.62);
+    let foamColor = mix(vec3<f32>(0.78, 0.90, 0.86), vec3<f32>(0.95, 0.98, 0.92), cloudShadow);
+    waterColor = mix(waterColor, foamColor, foamMask);
 
     let distanceHaze = farFlatten * 0.34;
-    waterColor = mix(waterColor, vec3<f32>(0.34, 0.53, 0.65), distanceHaze);
+    waterColor = mix(waterColor, vec3<f32>(0.40, 0.60, 0.72), distanceHaze);
 
     let opacity = smoothstep(0.20, 0.72, planeMask) *
                   mix(0.42, 0.94, smoothstep(5.0, 38.0, waterDepth));
@@ -453,8 +506,8 @@ fn fs(i : VSOut) -> @location(0) vec4<f32> {
         let skyScatter = (rayleigh + mie) * sunIntensity;
         
         // Base sky gradient (zenith to horizon)
-        let horizonColor = vec3<f32>(0.8, 0.85, 0.95);
-        let zenithColor = vec3<f32>(0.15, 0.35, 0.65);
+        let horizonColor = vec3<f32>(0.62, 0.76, 0.92);
+        let zenithColor = vec3<f32>(0.08, 0.28, 0.58);
         let heightGradient = pow(max(worldDir.y, 0.0), 0.4);
         let baseSky = mix(horizonColor, zenithColor, heightGradient);
         
@@ -582,7 +635,11 @@ fn fs(i : VSOut) -> @location(0) vec4<f32> {
     let specular = specStrength * specularTerm * lightVisibility * shadowFactor * terrainCloudShadow;
     
     // Combine lighting components
-    let litColor = albedo * (finalDiffuse * lightVisibility + ambientCloud) + specular;
+    let warmSunTint = vec3<f32>(1.12, 0.99, 0.82);
+    let coolAmbientTint = vec3<f32>(0.68, 0.78, 0.94);
+    let litColor = albedo * (finalDiffuse * lightVisibility * warmSunTint +
+                             ambientCloud * coolAmbientTint) +
+                   specular * warmSunTint;
     var shadedColor = litColor;
     var fogDistance = length(posCView);
 
@@ -616,7 +673,7 @@ fn fs(i : VSOut) -> @location(0) vec4<f32> {
     // ─────────────────────────────────────────────────────────────────────────
     // Exponential fog capped at 0.7 to maintain visibility at distance
     let fogDensity = camera.metrics.w;
-    let fogColor = vec3<f32>(0.6, 0.68, 0.76);  // Hardcoded fog color
+    let fogColor = vec3<f32>(0.58, 0.70, 0.82);  // Hardcoded fog color
     let fogFactor = clamp(1.0 - exp(-fogDensity * fogDistance), 0.0, 0.7);
     let finalColor = mix(shadedColor, fogColor, fogFactor);
     
