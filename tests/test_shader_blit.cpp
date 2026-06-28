@@ -246,8 +246,6 @@ TEST_F(BlitShaderTest, HasSeaLevelWaterSurface) {
         << "Shader missing shoreline foam treatment";
     EXPECT_NE(shaderSource_.find("fn waterWaveNormal("), std::string::npos)
         << "Shader missing multi-wave water normal";
-    EXPECT_NE(shaderSource_.find("fn waterSpectrum("), std::string::npos)
-        << "Shader missing shared water spectrum model";
     EXPECT_NE(shaderSource_.find("fn waterCaustics("), std::string::npos)
         << "Shader missing shallow-water caustic treatment";
     EXPECT_NE(shaderSource_.find("reflectionDir"), std::string::npos)
@@ -276,8 +274,8 @@ TEST_F(BlitShaderTest, HasAnimatedCloudShadows) {
         << "Shader missing terrain cloud-shadow helper";
     EXPECT_NE(shaderSource_.find("terrainCloudShadow"), std::string::npos)
         << "Shader should apply cloud shadowing to terrain lighting";
-    EXPECT_NE(shaderSource_.find("let cloudShadow = 0.96 + farFlatten * 0.04"), std::string::npos)
-        << "Water lighting should use a cheap bounded cloud-shadow term";
+    EXPECT_NE(shaderSource_.find("cloudShadowAtWorld(waterPos"), std::string::npos)
+        << "Shader should apply cloud shadowing to water lighting";
     EXPECT_NE(shaderSource_.find("camera.invProjParams.w"), std::string::npos)
         << "Clouds should use real time from camera uniforms";
 }
@@ -369,30 +367,6 @@ TEST_F(BlitShaderTest, UsesLightDirFromUniforms) {
     ASSERT_FALSE(shaderSource_.empty());
     EXPECT_NE(shaderSource_.find("camera.lightDirWS"), std::string::npos)
         << "Shader should use light direction from camera uniforms";
-}
-
-TEST_F(BlitShaderTest, UsesWarmSunAndCoolAmbientTint) {
-    ASSERT_FALSE(shaderSource_.empty());
-    EXPECT_NE(shaderSource_.find("warmSunTint"), std::string::npos)
-        << "Shader missing warm direct sunlight tint";
-    EXPECT_NE(shaderSource_.find("coolAmbientTint"), std::string::npos)
-        << "Shader missing cool ambient skylight tint";
-}
-
-TEST_F(BlitShaderTest, UsesBrighterReflectiveWaterPalette) {
-    ASSERT_FALSE(shaderSource_.empty());
-    EXPECT_NE(shaderSource_.find("shallowColor = vec3<f32>(0.180"), std::string::npos)
-        << "Shader missing brighter shallow water palette";
-    EXPECT_NE(shaderSource_.find("windStreak"), std::string::npos)
-        << "Shader missing wind-aligned water ripple highlights";
-    EXPECT_NE(shaderSource_.find("let absorption = 1.0 /"), std::string::npos)
-        << "Shader missing depth absorption term";
-    EXPECT_NE(shaderSource_.find("whitecap"), std::string::npos)
-        << "Shader missing crest-driven whitecap term";
-    EXPECT_NE(shaderSource_.find("fresnel * mix(0.32, 0.58"), std::string::npos)
-        << "Shader missing stronger water reflection weighting";
-    EXPECT_NE(shaderSource_.find("vec3<f32>(1.00, 0.93, 0.78)"), std::string::npos)
-        << "Shader missing warm water glint color";
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════

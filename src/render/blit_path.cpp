@@ -285,8 +285,8 @@ bool BlitPath::createUniformBuffer() {
 // ─────────────────────────────────────────────────────────────────────────────
 
 bool BlitPath::createSampler() {
-    // Create linear filtering sampler for terrain and lightmap textures
-    gpu::SamplerDesc samplerDesc = gpu::SamplerDesc::linear("blit_terrain_sampler");
+    // Keep terrain/albedo pixels crisp in the final pass so the world reads as Minecraft.
+    gpu::SamplerDesc samplerDesc = gpu::SamplerDesc::nearest("blit_terrain_sampler");
     
     sampler_ = gpu::createSampler(device_, samplerDesc);
     
