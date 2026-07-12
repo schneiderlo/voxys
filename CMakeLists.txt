@@ -176,9 +176,10 @@ if(VOXY_BUILD_WASM)
         set(WASM_LINK_FLAGS
             "--use-port=emdawnwebgpu"
             "-s WASM=1"
-            "-s ALLOW_MEMORY_GROWTH=1"
-            "-s MAXIMUM_MEMORY=2GB"
-            "-s INITIAL_MEMORY=256MB"
+            # Web APIs such as TextDecoder and WebGPU reject views backed by
+            # resizable WebAssembly memory. Keep the heap fixed for browser use.
+            "-s ALLOW_MEMORY_GROWTH=0"
+            "-s INITIAL_MEMORY=512MB"
             "-s STACK_SIZE=1MB"
             "-s MODULARIZE=1"
             "-s EXPORT_NAME='VoxyModule'"

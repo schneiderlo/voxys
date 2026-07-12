@@ -63,9 +63,9 @@ cc_binary(
     ],
     linkopts = [
         "-sWASM=1",
-        "-sALLOW_MEMORY_GROWTH=1",
-        "-sMAXIMUM_MEMORY=2GB",
-        "-sINITIAL_MEMORY=256MB",
+        # Web APIs reject views backed by resizable WebAssembly memory.
+        "-sALLOW_MEMORY_GROWTH=0",
+        "-sINITIAL_MEMORY=512MB",
         "-sSTACK_SIZE=1MB",
         "-sMODULARIZE=1",
         "-sEXPORT_NAME=VoxyModule",
