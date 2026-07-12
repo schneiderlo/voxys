@@ -78,7 +78,7 @@ cc_binary(
         "--js-library", "$(location @emdawnwebgpu//:src/library_webgpu.js)",
         "--preload-file", "shaders@/shaders",
         # Only embed the data files referenced by voxy.cfg.
-        "--preload-file", "data/canyon_8k.ldh@/data/canyon_8k.ldh",
+        "--preload-file", "data/generated/td_seed_1234_8192.ldh@/data/generated/td_seed_1234_8192.ldh",
         "--preload-file", "data/canyon_diffuse.jpg@/data/canyon_diffuse.jpg",
         "--preload-file", "voxy.cfg@/voxy.cfg",
     ],

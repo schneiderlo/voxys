@@ -111,8 +111,8 @@ jobs:
             echo "ERROR: voxy_wasm.js missing!"
             exit 1
           fi
-          if ! grep -a -q "/data/canyon_8k.ldh" docs/voxy_wasm.js; then
-            echo "ERROR: canyon_8k.ldh missing from WASM preload manifest!"
+          if ! grep -a -q "/data/generated/td_seed_1234_8192.ldh" docs/voxy_wasm.js; then
+            echo "ERROR: generated 8K terrain missing from WASM preload manifest!"
             exit 1
           fi
           echo "✓ All critical files present"
