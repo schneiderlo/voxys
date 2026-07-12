@@ -19,11 +19,16 @@
   "voxy": {
     "heightmap": "data/generated/td_seed_1234_8192.ldh",
     "raw_heightmap": "data/generated/td_seed_1234_8192.r16",
+    "albedo": "data/generated/td_seed_1234_8192_albedo.jpg",
+    "albedo_source": "height-and-slope material bake from ambientCG CC0 color maps",
+    "albedo_resolution": [4096, 4096],
+    "albedo_sea_level_meters": -1844.6667,
     "encoding": "symmetric-zero",
     "recommended_height_scale": 5534.0,
     "recommended_cell_scale": 0.25,
     "config_snippet": {
       "terrain.heightmap": "data/generated/td_seed_1234_8192.ldh",
+      "terrain.albedo": "data/generated/td_seed_1234_8192_albedo.jpg",
       "terrain.height_scale": 5534.0,
       "terrain.cell_scale": 0.25
     }
