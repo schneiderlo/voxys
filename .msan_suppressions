@@ -1,0 +1,16 @@
+# MemorySanitizer suppression file for voxys
+# Suppress false positives from uninstrumented system libraries
+
+# Broad suppression for GoogleTest internals interacting with std::
+fun:testing::Message::Message
+fun:testing::internal::*
+src:*gtest.cc
+src:*gtest-port.cc
+
+# Broad suppression for std:: ostream/iomanip
+fun:std::basic_ostream*
+fun:std::operator<<*
+
+# Shared object initialization
+fun:call_init
+fun:_dl_init

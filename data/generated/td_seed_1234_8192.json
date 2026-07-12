@@ -1,0 +1,31 @@
+{
+  "source": "terrain-diffusion",
+  "model": "xandergos/terrain-diffusion-30m",
+  "api_url": "http://127.0.0.1:8000",
+  "seed": 1234,
+  "origin_i": 0,
+  "origin_j": 0,
+  "scale": 1,
+  "width": 8192,
+  "height": 8192,
+  "meters_per_sample": 30.0,
+  "climate_channels_in_response": 4,
+  "elevation_meters": {
+    "min": -5534,
+    "max": 3102,
+    "encoded_min": -5534.0,
+    "encoded_max": 5534.0
+  },
+  "voxy": {
+    "heightmap": "data/generated/td_seed_1234_8192.ldh",
+    "raw_heightmap": "data/generated/td_seed_1234_8192.r16",
+    "encoding": "symmetric-zero",
+    "recommended_height_scale": 5534.0,
+    "recommended_cell_scale": 0.25,
+    "config_snippet": {
+      "terrain.heightmap": "data/generated/td_seed_1234_8192.ldh",
+      "terrain.height_scale": 5534.0,
+      "terrain.cell_scale": 0.25
+    }
+  }
+}

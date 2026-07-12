@@ -1,0 +1,10 @@
+# ThreadSanitizer suppression file for voxys
+# Suppress data races in external GPU libraries
+
+# LLVMpipe Vulkan driver
+race:libvulkan_lvp.so
+
+# wgpu-native
+race:libwgpu_native.so
+race:wgpu_hal
+race:wgpu_core

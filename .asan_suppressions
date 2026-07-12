@@ -1,0 +1,15 @@
+# AddressSanitizer suppression file for voxys
+# These are known false positives from third-party GPU libraries
+
+# wgpu-native and Vulkan driver leaks (static allocations cleaned at exit)
+leak:libvulkan_lvp.so
+leak:libwgpu_native.so
+leak:wgpu_hal
+leak:wgpu_core
+
+# Mesa/LLVMpipe driver
+leak:libLLVM
+leak:llvmpipe
+
+# Vulkan loader
+leak:libvulkan.so
