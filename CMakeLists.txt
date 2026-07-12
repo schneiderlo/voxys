@@ -179,7 +179,7 @@ if(VOXY_BUILD_WASM)
             # Web APIs such as TextDecoder and WebGPU reject views backed by
             # resizable WebAssembly memory. Keep the heap fixed for browser use.
             "-s ALLOW_MEMORY_GROWTH=0"
-            "-s INITIAL_MEMORY=512MB"
+            "-s INITIAL_MEMORY=768MB"
             "-s STACK_SIZE=1MB"
             "-s MODULARIZE=1"
             "-s EXPORT_NAME='VoxyModule'"
@@ -235,7 +235,7 @@ if(VOXY_BUILD_WASM)
         # Preload the data files referenced by voxy.cfg
         foreach(VOXY_WASM_DATA_FILE
             data/generated/td_seed_1234_8192.ldh
-            data/canyon_diffuse.jpg
+            data/generated/td_seed_1234_8192_relief.png
         )
             if(NOT EXISTS "${CMAKE_SOURCE_DIR}/${VOXY_WASM_DATA_FILE}")
                 message(FATAL_ERROR "Required WASM data file not found: ${VOXY_WASM_DATA_FILE}")

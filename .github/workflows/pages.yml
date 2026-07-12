@@ -115,6 +115,10 @@ jobs:
             echo "ERROR: generated 8K terrain missing from WASM preload manifest!"
             exit 1
           fi
+          if ! grep -a -q "/data/generated/td_seed_1234_8192_relief.png" docs/voxy_wasm.js; then
+            echo "ERROR: generated 8K color map missing from WASM preload manifest!"
+            exit 1
+          fi
           echo "✓ All critical files present"
 
       - name: Setup Pages

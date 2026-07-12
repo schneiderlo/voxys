@@ -65,7 +65,7 @@ cc_binary(
         "-sWASM=1",
         # Web APIs reject views backed by resizable WebAssembly memory.
         "-sALLOW_MEMORY_GROWTH=0",
-        "-sINITIAL_MEMORY=512MB",
+        "-sINITIAL_MEMORY=768MB",
         "-sSTACK_SIZE=1MB",
         "-sMODULARIZE=1",
         "-sEXPORT_NAME=VoxyModule",
@@ -79,7 +79,7 @@ cc_binary(
         "--preload-file", "shaders@/shaders",
         # Only embed the data files referenced by voxy.cfg.
         "--preload-file", "data/generated/td_seed_1234_8192.ldh@/data/generated/td_seed_1234_8192.ldh",
-        "--preload-file", "data/canyon_diffuse.jpg@/data/canyon_diffuse.jpg",
+        "--preload-file", "data/generated/td_seed_1234_8192_relief.png@/data/generated/td_seed_1234_8192_relief.png",
         "--preload-file", "voxy.cfg@/voxy.cfg",
     ],
     additional_linker_inputs = [
