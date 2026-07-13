@@ -120,5 +120,33 @@ TEST_F(PhysicsWorldTest, KeepsEachThrownShapeDistinct) {
     }
 }
 
+TEST_F(PhysicsWorldTest, KeepsMoreThanSixtyFourBodies) {
+    constexpr uint32_t bodyCount = 96;
+    for (uint32_t index = 0; index < bodyCount; ++index) {
+        ASSERT_TRUE(world.throwBody(
+            PhysicsWorld::ThrowableShape::Sphere,
+            glm::vec3(static_cast<float>(index % 12), 8.0f,
+                      static_cast<float>(index / 12)),
+            glm::vec3(0.0f)));
+    }
+    EXPECT_EQ(world.dynamicBodies().size(), bodyCount);
+}
+
+TEST_F(PhysicsWorldTest, WaterAppliesBuoyancyAndDrag) {
+    world.setWaterPlane(5.0f);
+    ASSERT_TRUE(world.throwBody(
+        PhysicsWorld::ThrowableShape::Box,
+        glm::vec3(0.0f, 4.0f, 0.0f), glm::vec3(4.0f, -2.0f, 0.0f)));
+
+    for (int step = 0; step < 120; ++step) {
+        world.update(1.0f / 60.0f);
+    }
+
+    const auto bodies = world.dynamicBodies();
+    ASSERT_EQ(bodies.size(), 1u);
+    EXPECT_GT(bodies.front().position.y, 3.5f);
+    EXPECT_LT(bodies.front().position.x, 6.0f);
+}
+
 } // namespace
 } // namespace voxy::physics

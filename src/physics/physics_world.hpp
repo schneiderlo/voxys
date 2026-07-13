@@ -73,6 +73,9 @@ public:
     void clearTerrain();
     [[nodiscard]] bool hasTerrain() const noexcept;
 
+    /// Configure the horizontal water surface used for rigid-body buoyancy.
+    void setWaterPlane(float height, bool enabled = true);
+
     [[nodiscard]] CharacterHandle createCharacter(
         const glm::vec3& feetPosition,
         const CharacterSettings& settings);
@@ -90,7 +93,7 @@ public:
         float terminalVelocity,
         float deltaTime);
 
-    /// Spawn one visible rigid body. Old bodies are recycled after 64 throws.
+    /// Spawn one visible rigid body. Bodies remain until world shutdown.
     [[nodiscard]] bool throwBody(ThrowableShape shape,
                                  const glm::vec3& position,
                                  const glm::vec3& velocity);

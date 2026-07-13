@@ -954,6 +954,7 @@ bool Application::initCamera() {
         LOG_ERROR("Failed to initialize Jolt Physics");
         return false;
     }
+    physicsWorld_->setWaterPlane(config_.waterHeight, config_.waterEnabled);
 
     // Create character controller (will be fully initialized after terrain loads)
     CharacterConfig charConfig;

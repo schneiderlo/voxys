@@ -147,7 +147,19 @@ constexpr uint32_t kTileCellCount = kTileSampleCount - 1;
 constexpr int32_t kTileRadius = 1;
 constexpr float kMaxFrameTime = 8.0f / 60.0f;
 constexpr float kMaxSubstep = 1.0f / 60.0f;
-constexpr size_t kMaxDynamicBodies = 64;
+
+float throwableBuoyancy(PhysicsWorld::ThrowableShape shape) {
+    using Shape = PhysicsWorld::ThrowableShape;
+    switch (shape) {
+        case Shape::Sphere: return 1.08f;
+        case Shape::Cube: return 0.94f;
+        case Shape::Box: return 1.18f;
+        case Shape::Capsule: return 1.10f;
+        case Shape::Cylinder: return 0.98f;
+        case Shape::Count: break;
+    }
+    return 1.0f;
+}
 
 uint64_t tileKey(int32_t x, int32_t z) {
     return (static_cast<uint64_t>(static_cast<uint32_t>(x)) << 32u)
@@ -395,6 +407,8 @@ public:
     Terrain terrain;
     std::vector<std::unique_ptr<CharacterSlot>> characters;
     std::vector<DynamicSlot> dynamicBodies;
+    float waterHeight = 0.0f;
+    bool waterEnabled = false;
     bool runtimeRetained = false;
 };
 
@@ -451,6 +465,12 @@ void PhysicsWorld::clearTerrain() {
 
 bool PhysicsWorld::hasTerrain() const noexcept {
     return impl_ && impl_->terrain.valid();
+}
+
+void PhysicsWorld::setWaterPlane(float height, bool enabled) {
+    if (!impl_) return;
+    impl_->waterHeight = height;
+    impl_->waterEnabled = enabled && std::isfinite(height);
 }
 
 PhysicsWorld::CharacterHandle PhysicsWorld::createCharacter(
@@ -633,13 +653,6 @@ bool PhysicsWorld::throwBody(ThrowableShape shape, const glm::vec3& position,
             return false;
     }
 
-    if (impl_->dynamicBodies.size() >= kMaxDynamicBodies) {
-        auto& bodyInterface = impl_->system->GetBodyInterface();
-        bodyInterface.RemoveBody(impl_->dynamicBodies.front().body);
-        bodyInterface.DestroyBody(impl_->dynamicBodies.front().body);
-        impl_->dynamicBodies.erase(impl_->dynamicBodies.begin());
-    }
-
     JPH::BodyCreationSettings settings(
         bodyShape, toJoltPosition(position), JPH::Quat::sIdentity(),
         JPH::EMotionType::Dynamic, Layers::Moving);
@@ -670,6 +683,17 @@ void PhysicsWorld::update(float deltaTime) {
         1, static_cast<int>(std::ceil(frameTime / kMaxSubstep)));
     const float stepTime = frameTime / static_cast<float>(substeps);
     for (int step = 0; step < substeps; ++step) {
+        if (impl_->waterEnabled) {
+            auto& bodyInterface = impl_->system->GetBodyInterface();
+            const JPH::RVec3 surface = toJoltPosition(
+                glm::vec3(0.0f, impl_->waterHeight, 0.0f));
+            for (const Impl::DynamicSlot& slot : impl_->dynamicBodies) {
+                bodyInterface.ApplyBuoyancyImpulse(
+                    slot.body, surface, JPH::Vec3::sAxisY(),
+                    throwableBuoyancy(slot.shape), 0.55f, 0.08f,
+                    JPH::Vec3::sZero(), impl_->system->GetGravity(), stepTime);
+            }
+        }
         impl_->system->Update(stepTime, 1, impl_->tempAllocator.get(),
                               impl_->jobSystem.get());
     }

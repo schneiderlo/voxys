@@ -15,8 +15,7 @@
 namespace voxy::render {
 namespace {
 
-// 64 simulated bodies plus the camera-held selection preview.
-constexpr uint32_t kMaxInstances = 65;
+constexpr size_t kInitialInstanceCapacity = 64;
 constexpr uint32_t kSegments = 16;
 constexpr uint32_t kSphereRings = 12;
 
@@ -224,6 +223,7 @@ void PrimitivePath::shutdown() {
     queue_ = nullptr;
     rayDepthView_ = nullptr;
     boundRayDepthView_ = nullptr;
+    instanceCapacity_ = 0;
     instanceCount_ = 0;
 }
 
@@ -262,9 +262,10 @@ bool PrimitivePath::createBuffers() {
     uniformBuffer_ = gpu::createBuffer(
         device_, gpu::BufferDesc::uniform(sizeof(PrimitiveUniforms),
                                            "physics_primitive_uniforms"));
+    instanceCapacity_ = kInitialInstanceCapacity;
     instanceBuffer_ = gpu::createBuffer(
-        device_, gpu::BufferDesc::storage(kMaxInstances * sizeof(GpuInstance), true,
-                                           "physics_primitive_instances"));
+        device_, gpu::BufferDesc::storage(instanceCapacity_ * sizeof(GpuInstance),
+                                           true, "physics_primitive_instances"));
     return uniformBuffer_ && instanceBuffer_;
 }
 
@@ -355,6 +356,30 @@ void PrimitivePath::setRayDepthTexture(WGPUTextureView view) {
     boundRayDepthView_ = nullptr;
 }
 
+bool PrimitivePath::ensureInstanceCapacity(size_t requiredCapacity) {
+    if (requiredCapacity <= instanceCapacity_) return true;
+
+    size_t newCapacity = std::max(instanceCapacity_, kInitialInstanceCapacity);
+    while (newCapacity < requiredCapacity) {
+        newCapacity *= 2;
+    }
+
+    WGPUBuffer newBuffer = gpu::createBuffer(
+        device_, gpu::BufferDesc::storage(newCapacity * sizeof(GpuInstance), true,
+                                           "physics_primitive_instances"));
+    if (!newBuffer) {
+        LOG_ERROR("Failed to grow physics primitive instance buffer to {} entries",
+                  newCapacity);
+        return false;
+    }
+
+    if (instanceBuffer_) wgpuBufferRelease(instanceBuffer_);
+    instanceBuffer_ = newBuffer;
+    instanceCapacity_ = newCapacity;
+    boundRayDepthView_ = nullptr;
+    return true;
+}
+
 void PrimitivePath::updateBindGroup() {
     if (!rayDepthView_ || boundRayDepthView_ == rayDepthView_) return;
     if (bindGroup_) {
@@ -364,7 +389,7 @@ void PrimitivePath::updateBindGroup() {
     std::array<gpu::BindGroupEntry, 3> entries = {
         gpu::BindGroupEntry(0).buffer(uniformBuffer_, 0, sizeof(PrimitiveUniforms)),
         gpu::BindGroupEntry(1).buffer(instanceBuffer_, 0,
-                                      kMaxInstances * sizeof(GpuInstance)),
+                                      instanceCapacity_ * sizeof(GpuInstance)),
         gpu::BindGroupEntry(2).textureView(rayDepthView_)
     };
     bindGroup_ = gpu::createBindGroup(
@@ -375,7 +400,7 @@ void PrimitivePath::updateBindGroup() {
 void PrimitivePath::setInstances(
     std::span<const physics::PhysicsWorld::DynamicBodySnapshot> bodies) {
     std::vector<GpuInstance> instances;
-    instances.reserve(std::min<size_t>(bodies.size(), kMaxInstances));
+    instances.reserve(bodies.size());
     for (auto& range : ranges_) {
         range.firstInstance = 0;
         range.instanceCount = 0;
@@ -386,8 +411,7 @@ void PrimitivePath::setInstances(
         auto& range = ranges_[shapeIndex];
         range.firstInstance = static_cast<uint32_t>(instances.size());
         for (const auto& body : bodies) {
-            if (static_cast<uint32_t>(body.shape) != shapeIndex
-                || instances.size() >= kMaxInstances) continue;
+            if (static_cast<uint32_t>(body.shape) != shapeIndex) continue;
             GpuInstance instance;
             instance.model = glm::translate(glm::mat4(1.0f), body.position)
                            * glm::mat4_cast(body.rotation)
@@ -399,6 +423,10 @@ void PrimitivePath::setInstances(
     }
 
     instanceCount_ = static_cast<uint32_t>(instances.size());
+    if (!ensureInstanceCapacity(instances.size())) {
+        instanceCount_ = 0;
+        return;
+    }
     if (!instances.empty()) {
         gpu::writeBuffer(queue_, instanceBuffer_, 0,
                          std::as_bytes(std::span<const GpuInstance>(instances)));

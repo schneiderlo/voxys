@@ -7,6 +7,7 @@
 #include <filesystem>
 #include <array>
 #include <span>
+#include <vector>
 #include <glm/gtc/matrix_transform.hpp>
 
 namespace voxy::render {
@@ -81,6 +82,9 @@ TEST(PrimitivePathGPUTest, CompilesPrimitivePipeline) {
             physics::PhysicsWorld::ThrowableShape::Cylinder,
             glm::vec3(2.0f, 0.0f, 0.0f), {}, glm::vec3(0.9f, 1.1f, 0.9f)}};
     path.setInstances(bodies);
+    std::vector<physics::PhysicsWorld::DynamicBodySnapshot> manyBodies(
+        130, bodies.front());
+    path.setInstances(manyBodies);
 
     WGPUCommandEncoderDescriptor encoderDesc{};
     auto encoder = wgpuDeviceCreateCommandEncoder(context.getDevice(), &encoderDesc);
