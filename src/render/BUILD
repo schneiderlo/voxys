@@ -33,6 +33,7 @@ cc_library(
         "blit_path.cpp",
         "debug_visualizer.cpp",
         "raycast_path.cpp",
+        "primitive_path.cpp",
         "triangle_path.cpp",
     ],
     hdrs = [
@@ -40,6 +41,7 @@ cc_library(
         "debug_visualizer.hpp",
         "frustum.hpp",
         "raycast_path.hpp",
+        "primitive_path.hpp",
         "triangle_path.hpp",
     ],
     copts = PROJECT_DEFAULT_COPTS,
@@ -50,6 +52,7 @@ cc_library(
         "//src/camera:camera",
         "//src/core:core",
         "//src/gpu:gpu",
+        "//src/physics:physics",
         "//src/terrain:terrain",
     ],
 )

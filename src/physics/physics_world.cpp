@@ -14,9 +14,12 @@
 #include <Jolt/Core/TempAllocator.h>
 #include <Jolt/Physics/Body/BodyCreationSettings.h>
 #include <Jolt/Physics/Character/CharacterVirtual.h>
+#include <Jolt/Physics/Collision/Shape/BoxShape.h>
 #include <Jolt/Physics/Collision/Shape/CapsuleShape.h>
+#include <Jolt/Physics/Collision/Shape/CylinderShape.h>
 #include <Jolt/Physics/Collision/Shape/HeightFieldShape.h>
 #include <Jolt/Physics/Collision/Shape/RotatedTranslatedShape.h>
+#include <Jolt/Physics/Collision/Shape/SphereShape.h>
 #include <Jolt/Physics/PhysicsSystem.h>
 #if defined(__GNUC__)
 #pragma GCC diagnostic pop
@@ -144,6 +147,7 @@ constexpr uint32_t kTileCellCount = kTileSampleCount - 1;
 constexpr int32_t kTileRadius = 1;
 constexpr float kMaxFrameTime = 8.0f / 60.0f;
 constexpr float kMaxSubstep = 1.0f / 60.0f;
+constexpr size_t kMaxDynamicBodies = 64;
 
 uint64_t tileKey(int32_t x, int32_t z) {
     return (static_cast<uint64_t>(static_cast<uint32_t>(x)) << 32u)
@@ -185,6 +189,12 @@ public:
         CharacterSettings settings;
     };
 
+    struct DynamicSlot {
+        JPH::BodyID body;
+        ThrowableShape shape = ThrowableShape::Sphere;
+        glm::vec3 dimensions{1.0f};
+    };
+
     ~Impl() { shutdown(); }
 
     bool initialize() {
@@ -209,6 +219,7 @@ public:
         }
 
         characters.clear();
+        clearDynamicBodies();
         clearTerrain();
         system.reset();
         jobSystem.reset();
@@ -218,6 +229,17 @@ public:
             releaseJoltRuntime();
             runtimeRetained = false;
         }
+    }
+
+    void clearDynamicBodies() {
+        if (system) {
+            auto& bodyInterface = system->GetBodyInterface();
+            for (const DynamicSlot& slot : dynamicBodies) {
+                bodyInterface.RemoveBody(slot.body);
+                bodyInterface.DestroyBody(slot.body);
+            }
+        }
+        dynamicBodies.clear();
     }
 
     void clearTerrain() {
@@ -372,6 +394,7 @@ public:
     std::unique_ptr<JPH::PhysicsSystem> system;
     Terrain terrain;
     std::vector<std::unique_ptr<CharacterSlot>> characters;
+    std::vector<DynamicSlot> dynamicBodies;
     bool runtimeRetained = false;
 };
 
@@ -566,8 +589,6 @@ PhysicsWorld::CharacterMotion PhysicsWorld::moveCharacter(
             impl_->system->GetDefaultBroadPhaseLayerFilter(Layers::Moving),
             impl_->system->GetDefaultLayerFilter(Layers::Moving), {}, {},
             *impl_->tempAllocator);
-        impl_->system->Update(stepTime, 1, impl_->tempAllocator.get(),
-                              impl_->jobSystem.get());
     }
 
     result.position = toGlmPosition(character.GetPosition());
@@ -580,6 +601,115 @@ PhysicsWorld::CharacterMotion PhysicsWorld::moveCharacter(
     result.groundNormal = normal.IsNearZero() ? glm::vec3(0.0f, 1.0f, 0.0f)
                                                : toGlmVector(normal.Normalized());
     return result;
+}
+
+bool PhysicsWorld::throwBody(ThrowableShape shape, const glm::vec3& position,
+                             const glm::vec3& velocity) {
+    if (!isInitialized() || shape >= ThrowableShape::Count) {
+        return false;
+    }
+
+    impl_->streamTerrainAt(position);
+
+    JPH::RefConst<JPH::Shape> bodyShape;
+    glm::vec3 dimensions{1.0f};
+    switch (shape) {
+        case ThrowableShape::Sphere:
+            bodyShape = new JPH::SphereShape(0.6f);
+            dimensions = glm::vec3(1.2f);
+            break;
+        case ThrowableShape::Cube:
+            bodyShape = new JPH::BoxShape(JPH::Vec3::sReplicate(0.55f));
+            dimensions = glm::vec3(1.1f);
+            break;
+        case ThrowableShape::Box:
+            bodyShape = new JPH::BoxShape(JPH::Vec3(0.9f, 0.4f, 0.5f));
+            dimensions = glm::vec3(1.8f, 0.8f, 1.0f);
+            break;
+        case ThrowableShape::Capsule:
+            bodyShape = new JPH::CapsuleShape(0.55f, 0.35f);
+            dimensions = glm::vec3(0.7f, 1.8f, 0.7f);
+            break;
+        case ThrowableShape::Cylinder:
+            bodyShape = new JPH::CylinderShape(0.55f, 0.45f);
+            dimensions = glm::vec3(0.9f, 1.1f, 0.9f);
+            break;
+        case ThrowableShape::Count:
+            return false;
+    }
+
+    if (impl_->dynamicBodies.size() >= kMaxDynamicBodies) {
+        auto& bodyInterface = impl_->system->GetBodyInterface();
+        bodyInterface.RemoveBody(impl_->dynamicBodies.front().body);
+        bodyInterface.DestroyBody(impl_->dynamicBodies.front().body);
+        impl_->dynamicBodies.erase(impl_->dynamicBodies.begin());
+    }
+
+    JPH::BodyCreationSettings settings(
+        bodyShape, toJoltPosition(position), JPH::Quat::sIdentity(),
+        JPH::EMotionType::Dynamic, Layers::Moving);
+    settings.mFriction = 0.65f;
+    settings.mRestitution = shape == ThrowableShape::Sphere ? 0.55f : 0.25f;
+    const JPH::BodyID body = impl_->system->GetBodyInterface().CreateAndAddBody(
+        settings, JPH::EActivation::Activate);
+    if (body.IsInvalid()) {
+        return false;
+    }
+
+    auto& bodyInterface = impl_->system->GetBodyInterface();
+    bodyInterface.SetLinearVelocity(body, JPH::Vec3(velocity.x, velocity.y, velocity.z));
+    bodyInterface.SetAngularVelocity(body, JPH::Vec3(3.5f, 5.0f, 2.5f));
+    impl_->dynamicBodies.push_back({body, shape, dimensions});
+    return true;
+}
+
+void PhysicsWorld::update(float deltaTime) {
+    if (!isInitialized()) {
+        return;
+    }
+    const float frameTime = std::clamp(deltaTime, 0.0f, kMaxFrameTime);
+    if (frameTime <= 0.0f) {
+        return;
+    }
+    const int substeps = std::max(
+        1, static_cast<int>(std::ceil(frameTime / kMaxSubstep)));
+    const float stepTime = frameTime / static_cast<float>(substeps);
+    for (int step = 0; step < substeps; ++step) {
+        impl_->system->Update(stepTime, 1, impl_->tempAllocator.get(),
+                              impl_->jobSystem.get());
+    }
+}
+
+std::vector<PhysicsWorld::DynamicBodySnapshot> PhysicsWorld::dynamicBodies() const {
+    std::vector<DynamicBodySnapshot> result;
+    if (!isInitialized()) {
+        return result;
+    }
+    result.reserve(impl_->dynamicBodies.size());
+    const auto& bodyInterface = impl_->system->GetBodyInterface();
+    for (const Impl::DynamicSlot& slot : impl_->dynamicBodies) {
+        JPH::RVec3 position;
+        JPH::Quat rotation;
+        bodyInterface.GetPositionAndRotation(slot.body, position, rotation);
+        result.push_back({
+            slot.shape,
+            toGlmPosition(position),
+            glm::quat(rotation.GetW(), rotation.GetX(), rotation.GetY(), rotation.GetZ()),
+            slot.dimensions});
+    }
+    return result;
+}
+
+const char* PhysicsWorld::throwableShapeName(ThrowableShape shape) noexcept {
+    switch (shape) {
+        case ThrowableShape::Sphere: return "ball";
+        case ThrowableShape::Cube: return "cube";
+        case ThrowableShape::Box: return "rectangle";
+        case ThrowableShape::Capsule: return "capsule";
+        case ThrowableShape::Cylinder: return "cylinder";
+        case ThrowableShape::Count: break;
+    }
+    return "unknown";
 }
 
 } // namespace voxy::physics

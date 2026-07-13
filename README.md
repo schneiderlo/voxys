@@ -22,6 +22,12 @@ development libraries, and runtime library paths for native WebGPU runs.
 `fetch_deps.sh` also pins Jolt Physics 5.5.0. The same Jolt character and
 full-resolution streamed terrain collision run in native and WASM builds.
 
+Physics sandbox controls:
+
+- Mouse wheel: select ball, cube, rectangle, capsule, or cylinder.
+- First left click: capture the pointer.
+- Later left clicks: throw the selected object.
+
 ## Terrain Assets
 
 Voxys can import generated terrain from Terrain Diffusion through the offline

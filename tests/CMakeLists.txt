@@ -45,6 +45,7 @@ if(TARGET wgpu::webgpu OR TARGET dawn::webgpu)
         test_water_simulation.cpp
         test_debug_visualizer.cpp
         test_mip_pipeline.cpp
+        test_primitive_path.cpp
     test_shadow_bake.cpp
         test_terrain_textures.cpp
         test_application.cpp

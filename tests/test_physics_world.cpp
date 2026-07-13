@@ -78,5 +78,30 @@ TEST_F(PhysicsWorldTest, TerrainTilesFollowTeleportedCharacter) {
     EXPECT_NEAR(motion.position.x, 450.0f, 0.01f);
 }
 
+TEST_F(PhysicsWorldTest, ThrownBodyMovesUnderJoltSimulation) {
+    ASSERT_TRUE(world.throwBody(
+        PhysicsWorld::ThrowableShape::Sphere,
+        glm::vec3(0.0f, 8.0f, 0.0f),
+        glm::vec3(5.0f, 2.0f, 0.0f)));
+    auto bodies = world.dynamicBodies();
+    ASSERT_EQ(bodies.size(), 1u);
+    const glm::vec3 start = bodies.front().position;
+
+    for (int i = 0; i < 30; ++i) {
+        world.update(1.0f / 60.0f);
+    }
+    bodies = world.dynamicBodies();
+    ASSERT_EQ(bodies.size(), 1u);
+    EXPECT_GT(bodies.front().position.x, start.x + 1.0f);
+    EXPECT_LT(bodies.front().position.y, start.y);
+}
+
+TEST(PhysicsWorldShapeTest, ThrowableNamesAreReadable) {
+    EXPECT_STREQ(PhysicsWorld::throwableShapeName(
+                     PhysicsWorld::ThrowableShape::Sphere), "ball");
+    EXPECT_STREQ(PhysicsWorld::throwableShapeName(
+                     PhysicsWorld::ThrowableShape::Capsule), "capsule");
+}
+
 } // namespace
 } // namespace voxy::physics

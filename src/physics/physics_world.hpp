@@ -7,10 +7,12 @@
 #pragma once
 
 #include <glm/vec3.hpp>
+#include <glm/gtc/quaternion.hpp>
 
 #include <cstdint>
 #include <memory>
 #include <span>
+#include <vector>
 
 namespace voxy::physics {
 
@@ -18,6 +20,22 @@ class PhysicsWorld {
 public:
     using CharacterHandle = uint32_t;
     static constexpr CharacterHandle InvalidCharacter = 0;
+
+    enum class ThrowableShape : uint32_t {
+        Sphere = 0,
+        Cube,
+        Box,
+        Capsule,
+        Cylinder,
+        Count
+    };
+
+    struct DynamicBodySnapshot {
+        ThrowableShape shape = ThrowableShape::Sphere;
+        glm::vec3 position{0.0f};
+        glm::quat rotation{1.0f, 0.0f, 0.0f, 0.0f};
+        glm::vec3 dimensions{1.0f};
+    };
 
     struct CharacterSettings {
         float radius = 0.4f;
@@ -71,6 +89,19 @@ public:
         float gravity,
         float terminalVelocity,
         float deltaTime);
+
+    /// Spawn one visible rigid body. Old bodies are recycled after 64 throws.
+    [[nodiscard]] bool throwBody(ThrowableShape shape,
+                                 const glm::vec3& position,
+                                 const glm::vec3& velocity);
+
+    /// Advance simulated rigid bodies. Call once per application frame.
+    void update(float deltaTime);
+
+    /// Copy current transforms for rendering.
+    [[nodiscard]] std::vector<DynamicBodySnapshot> dynamicBodies() const;
+
+    [[nodiscard]] static const char* throwableShapeName(ThrowableShape shape) noexcept;
 
 private:
     class Impl;

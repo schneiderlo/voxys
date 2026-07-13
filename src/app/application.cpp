@@ -25,6 +25,7 @@
 #include "render/raycast_path.hpp"
 #include "render/blit_path.hpp"
 #include "render/water_simulation.hpp"
+#include "render/primitive_path.hpp"
 #include "physics/physics_world.hpp"
 
 #include <chrono>
@@ -204,6 +205,8 @@ bool Application::init(const ApplicationConfig& config) {
     LOG_INFO("  F7        - Toggle benchmark mode");
     LOG_INFO("  F8        - Toggle controller (free-fly/character)");
     LOG_INFO("  Escape    - Release mouse / Exit");
+    LOG_INFO("  Wheel     - Select throwable object");
+    LOG_INFO("  Left click- Capture mouse / throw selected object");
     LOG_INFO("");
 
 #if defined(VOXY_WASM)
@@ -306,6 +309,10 @@ void Application::shutdown() {
     }
 
     // Shutdown renderers
+    if (primitivePath_) {
+        primitivePath_->shutdown();
+        primitivePath_.reset();
+    }
     if (blitPath_) {
         blitPath_->shutdown();
         blitPath_.reset();
@@ -409,6 +416,10 @@ void Application::update(float deltaTime) {
         }
     }
 
+    if (physicsWorld_) {
+        physicsWorld_->update(deltaTime);
+    }
+
     // Custom update callback
     if (updateCallback_) {
         updateCallback_(deltaTime);
@@ -458,6 +469,19 @@ void Application::render() {
         case RenderPath::Raycast:
             renderRaycastPath(encoder, targetView);
             break;
+    }
+
+    if (primitivePath_ && primitivePath_->isInitialized() && physicsWorld_) {
+        const auto bodies = physicsWorld_->dynamicBodies();
+        primitivePath_->setInstances(bodies);
+        WGPUTextureView objectDepth = getOrCreateDepthView();
+        if (objectDepth) {
+            primitivePath_->render(
+                encoder, targetView, objectDepth, camera_->viewMatrix(),
+                camera_->projectionMatrix(), camera_->position(), kSunDirection,
+                gpuContext_->getSwapchainWidth(), gpuContext_->getSwapchainHeight(),
+                config_.renderPath == RenderPath::Raycast);
+        }
     }
 
     // Submit commands
@@ -651,6 +675,9 @@ void Application::onResize(uint32_t width, uint32_t height) {
             blitPath_->setDepthTexture(raycastPath_->getDepthOutputView());
             blitPath_->setShadowTexture(raycastPath_->getShadowOutputView());
             blitPath_->setMaterialTexture(raycastPath_->getMaterialOutputView());
+        }
+        if (primitivePath_) {
+            primitivePath_->setRayDepthTexture(raycastPath_->getDepthOutputView());
         }
     }
     
@@ -1257,6 +1284,18 @@ bool Application::initRenderers() {
         blitPath_->setTerrainSize(heightmap_->getWidth(), heightmap_->getHeight());
     }
 
+    {
+        render::PrimitivePathConfig primitiveConfig;
+        primitiveConfig.shaderPath = config_.shaderDir / "physics_primitives.wgsl";
+        primitiveConfig.colorFormat = config_.colorFormat;
+        primitivePath_ = std::make_unique<render::PrimitivePath>();
+        if (!primitivePath_->init(device, queue, primitiveConfig)) {
+            LOG_ERROR("Failed to initialize physics primitive renderer");
+            return false;
+        }
+        primitivePath_->setRayDepthTexture(raycastPath_->getDepthOutputView());
+    }
+
     LOG_DEBUG("Renderers initialized");
     return true;
 }
@@ -1482,7 +1521,42 @@ WGPUTextureView Application::getOrCreateDepthView() {
 // ─────────────────────────────────────────────────────────────────────────────
 
 void Application::processInput([[maybe_unused]] float deltaTime) {
-    // Input is processed by the camera controller in update()
+    processThrowableInput();
+}
+
+void Application::processThrowableInput() {
+    if (!input_ || !camera_ || !physicsWorld_) {
+        return;
+    }
+
+    const float wheel = input_->scrollDelta();
+    if (wheel != 0.0f) {
+        constexpr uint32_t count = static_cast<uint32_t>(
+            physics::PhysicsWorld::ThrowableShape::Count);
+        if (wheel > 0.0f) {
+            selectedThrowable_ = (selectedThrowable_ + 1u) % count;
+        } else {
+            selectedThrowable_ = (selectedThrowable_ + count - 1u) % count;
+        }
+        const auto shape = static_cast<physics::PhysicsWorld::ThrowableShape>(
+            selectedThrowable_);
+        LOG_INFO("Selected throwable: {}",
+                 physics::PhysicsWorld::throwableShapeName(shape));
+    }
+
+    // The first click captures the pointer. Later clicks launch objects.
+    if (!input_->isMouseCaptured()
+        || !input_->wasMouseButtonPressed(MouseButton::Left)) {
+        return;
+    }
+
+    const auto shape = static_cast<physics::PhysicsWorld::ThrowableShape>(
+        selectedThrowable_);
+    const glm::vec3 direction = glm::normalize(camera_->forward());
+    const glm::vec3 origin = camera_->position() + direction * 2.2f;
+    if (physicsWorld_->throwBody(shape, origin, direction * 28.0f)) {
+        LOG_INFO("Threw {}", physics::PhysicsWorld::throwableShapeName(shape));
+    }
 }
 
 void Application::handleKeyboardShortcuts() {

@@ -145,6 +145,11 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/render/water_simulation.cpp")
         render/water_simulation.cpp
     )
 endif()
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/render/primitive_path.cpp")
+    list(APPEND RENDER_SOURCES
+        render/primitive_path.cpp
+    )
+endif()
 
 # Camera (Phase 3, 4)
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/camera/camera.cpp")

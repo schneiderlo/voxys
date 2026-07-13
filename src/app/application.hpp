@@ -60,6 +60,7 @@ namespace render {
     class RaycastPath;
     class BlitPath;
     class WaterSimulation;
+    class PrimitivePath;
 }
 
 namespace perf {
@@ -413,6 +414,7 @@ private:
     // ─────────────────────────────────────────────────────────────────────────
 
     void processInput(float deltaTime);
+    void processThrowableInput();
     void handleKeyboardShortcuts();
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -431,6 +433,7 @@ private:
     
     // Controller mode state
     ControllerMode controllerMode_ = ControllerMode::FreeFly;
+    uint32_t selectedThrowable_ = 0;
 
     // Uncapped FPS state
     bool uncappedFPS_ = false;
@@ -451,6 +454,7 @@ private:
 
     // Renderers
     std::unique_ptr<render::WaterSimulation> waterSimulation_;
+    std::unique_ptr<render::PrimitivePath> primitivePath_;
     std::unique_ptr<render::TrianglePath> trianglePath_;
     std::unique_ptr<render::RaycastPath> raycastPath_;
     std::unique_ptr<render::BlitPath> blitPath_;
