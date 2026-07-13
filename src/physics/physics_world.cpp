@@ -151,6 +151,7 @@ constexpr uint32_t kMaxContactConstraints = 16384;
 constexpr size_t kTempAllocatorBytes = 16u * 1024u * 1024u;
 constexpr float kMaxFrameTime = 8.0f / 60.0f;
 constexpr float kMaxSubstep = 1.0f / 60.0f;
+constexpr float kWaterWaveSampleBand = 8.0f;
 
 float throwableBuoyancy(PhysicsWorld::ThrowableShape shape) {
     using Shape = PhysicsWorld::ThrowableShape;
@@ -699,11 +700,19 @@ void PhysicsWorld::update(float deltaTime) {
             auto& bodyInterface = impl_->system->GetBodyInterface();
             for (const Impl::DynamicSlot& slot : impl_->dynamicBodies) {
                 const JPH::RVec3 bodyPosition = bodyInterface.GetPosition(slot.body);
+                // Outside the wave-sampling band the surface is the flat water
+                // plane. Every throwable is less than 1.2 m from its centre,
+                // so Jolt would calculate zero submerged volume here.
+                if (bodyPosition.GetY() - impl_->waterHeight >=
+                    kWaterWaveSampleBand) {
+                    continue;
+                }
                 WaterSurfaceSample water;
                 // Far above or below the interface, a local wave sample cannot
                 // affect submerged volume. Avoid spectral work for those bodies.
                 if (impl_->waterSurfaceSampler &&
-                    std::abs(bodyPosition.GetY() - impl_->waterHeight) < 8.0f) {
+                    std::abs(bodyPosition.GetY() - impl_->waterHeight) <
+                        kWaterWaveSampleBand) {
                     water = impl_->waterSurfaceSampler(
                         glm::vec2(bodyPosition.GetX(), bodyPosition.GetZ()),
                         impl_->waterTime);

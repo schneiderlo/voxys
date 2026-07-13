@@ -2,6 +2,7 @@
 
 #include "physics/physics_world.hpp"
 
+#include <bit>
 #include <cmath>
 #include <cstdint>
 #include <vector>
@@ -10,6 +11,25 @@ namespace voxy::physics {
 namespace {
 
 constexpr uint32_t kTerrainSize = 1024;
+
+void expectSameFloatBits(float lhs, float rhs) {
+    EXPECT_EQ(std::bit_cast<uint32_t>(lhs), std::bit_cast<uint32_t>(rhs));
+}
+
+void expectSameBodyState(const PhysicsWorld::DynamicBodySnapshot& lhs,
+                         const PhysicsWorld::DynamicBodySnapshot& rhs) {
+    EXPECT_EQ(lhs.shape, rhs.shape);
+    expectSameFloatBits(lhs.position.x, rhs.position.x);
+    expectSameFloatBits(lhs.position.y, rhs.position.y);
+    expectSameFloatBits(lhs.position.z, rhs.position.z);
+    expectSameFloatBits(lhs.rotation.x, rhs.rotation.x);
+    expectSameFloatBits(lhs.rotation.y, rhs.rotation.y);
+    expectSameFloatBits(lhs.rotation.z, rhs.rotation.z);
+    expectSameFloatBits(lhs.rotation.w, rhs.rotation.w);
+    expectSameFloatBits(lhs.dimensions.x, rhs.dimensions.x);
+    expectSameFloatBits(lhs.dimensions.y, rhs.dimensions.y);
+    expectSameFloatBits(lhs.dimensions.z, rhs.dimensions.z);
+}
 
 class PhysicsWorldTest : public ::testing::Test {
 protected:
@@ -184,6 +204,34 @@ TEST_F(PhysicsWorldTest, SamplesAnimatedWaterForBuoyancy) {
 
     world.update(1.0f / 60.0f);
     EXPECT_GT(sampleCount, 0u);
+}
+
+TEST_F(PhysicsWorldTest, DryBodiesMatchWaterDisabledBitForBit) {
+    PhysicsWorld waterDisabled;
+    ASSERT_TRUE(waterDisabled.initialize());
+    ASSERT_TRUE(waterDisabled.setTerrain(
+        heights, kTerrainSize, kTerrainSize, 32.0f, 1.0f));
+
+    world.setWaterPlane(5.0f, true);
+    waterDisabled.setWaterPlane(5.0f, false);
+    constexpr uint32_t shapeCount = static_cast<uint32_t>(
+        PhysicsWorld::ThrowableShape::Count);
+    for (uint32_t index = 0; index < shapeCount; ++index) {
+        const auto shape = static_cast<PhysicsWorld::ThrowableShape>(index);
+        const glm::vec3 position{static_cast<float>(index) * 3.0f, 13.0f, 0.0f};
+        const glm::vec3 velocity{2.0f, -1.0f, 0.5f};
+        ASSERT_TRUE(world.throwBody(shape, position, velocity));
+        ASSERT_TRUE(waterDisabled.throwBody(shape, position, velocity));
+    }
+
+    world.update(1.0f / 60.0f);
+    waterDisabled.update(1.0f / 60.0f);
+    const auto withWater = world.dynamicBodies();
+    const auto withoutWater = waterDisabled.dynamicBodies();
+    ASSERT_EQ(withWater.size(), withoutWater.size());
+    for (size_t index = 0; index < withWater.size(); ++index) {
+        expectSameBodyState(withWater[index], withoutWater[index]);
+    }
 }
 
 } // namespace
