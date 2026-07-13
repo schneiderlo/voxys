@@ -15,6 +15,19 @@ cc_library(
 )
 
 cc_library(
+    name = "water_simulation",
+    srcs = ["water_simulation.cpp"],
+    hdrs = ["water_simulation.hpp"],
+    copts = PROJECT_DEFAULT_COPTS,
+    includes = [".."],
+    deps = [
+        "//src/core:core",
+        "//src/gpu:gpu",
+        "//third_party:glm",
+    ],
+)
+
+cc_library(
     name = "render",
     srcs = [
         "blit_path.cpp",
@@ -33,6 +46,7 @@ cc_library(
     includes = [".."],
     deps = [
         ":mip_pipeline",
+        ":water_simulation",
         "//src/camera:camera",
         "//src/core:core",
         "//src/gpu:gpu",

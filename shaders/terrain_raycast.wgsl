@@ -47,6 +47,8 @@ struct CameraUniforms {
 // heightmap-space height below which a point is in the terrain's sun shadow.
 // Baked at a fraction of the heightmap resolution.
 @group(0) @binding(5) var shadowHeightTex : texture_2d<u32>;
+@group(0) @binding(6) var waterDisplacementTex : texture_2d_array<f32>;
+@group(0) @binding(7) var waterDisplacementSampler : sampler;
 
 const MATERIAL_SKY : u32 = 0u;
 const MATERIAL_TERRAIN : u32 = 1u;
@@ -57,7 +59,7 @@ const MATERIAL_WATER : u32 = 2u;
 // converge to the bed colour, so a low cutoff blends seamlessly.
 const MIN_WATER_DEPTH : f32 = 0.5;
 const SHORE_DEPTH : f32 = 7.5;
-const WATER_SURFACE_AMPLITUDE : f32 = 2.0;
+const WATER_SURFACE_AMPLITUDE : f32 = 1.0;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Coordinate Space Conversion
@@ -111,16 +113,15 @@ fn lodDistanceForMip(level : u32) -> f32 {
 }
 
 fn waterSurfaceOffset(worldXZ : vec2<f32>) -> f32 {
-    let time = camera.waterMotion.x;
     let strength = clamp(camera.waterParams.z, 0.0, 1.0);
-    let q0 = dot(worldXZ, vec2<f32>( 0.021,  0.009)) - time * 0.54 + 0.3;
-    let q1 = dot(worldXZ, vec2<f32>( 0.012, -0.033)) - time * 0.64 + 2.1;
-    let q2 = dot(worldXZ, vec2<f32>(-0.052,  0.021)) - time * 0.78 + 4.7;
-    let q3 = dot(worldXZ, vec2<f32>( 0.074,  0.041)) - time * 0.94 + 1.2;
-    let q4 = dot(worldXZ, vec2<f32>(-0.110,  0.062)) - time * 1.12 + 5.4;
-    let spectrum = sin(q0) * 0.48 + sin(q1) * 0.26 + sin(q2) * 0.14 +
-                   sin(q3) * 0.075 + sin(q4) * 0.045;
-    return spectrum * WATER_SURFACE_AMPLITUDE * strength;
+    let shortWaves = textureSampleLevel(waterDisplacementTex,
+        waterDisplacementSampler, worldXZ / 96.0, 0, 0.0).x;
+    let mediumWaves = textureSampleLevel(waterDisplacementTex,
+        waterDisplacementSampler, worldXZ / 384.0, 1, 0.0).x;
+    let longWaves = textureSampleLevel(waterDisplacementTex,
+        waterDisplacementSampler, worldXZ / 1536.0, 2, 0.0).x;
+    return (shortWaves + mediumWaves + longWaves) *
+           WATER_SURFACE_AMPLITUDE * strength;
 }
 
 fn nearbyShoreInfluence(cell : vec2<i32>, baseSize : vec2<i32>, waterHeight : f32) -> f32 {

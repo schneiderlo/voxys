@@ -125,6 +125,9 @@ public:
     /// Optional: without it a 1x1 zero fallback is bound (everything lit).
     void setShadowMap(WGPUTextureView shadowMapView);
 
+    /// Bind the shared FFT displacement cascades.
+    void setWaterSimulation(WGPUTextureView displacementView, WGPUSampler sampler);
+
     // ─────────────────────────────────────────────────────────────────────────
     // Rendering
     // ─────────────────────────────────────────────────────────────────────────
@@ -227,6 +230,10 @@ private:
     WGPUTextureView shadowMapView_ = nullptr;
     WGPUTexture fallbackShadowTexture_ = nullptr;
     WGPUTextureView fallbackShadowView_ = nullptr;
+
+    // Borrowed from WaterSimulation.
+    WGPUTextureView waterDisplacementView_ = nullptr;
+    WGPUSampler waterDisplacementSampler_ = nullptr;
 
     // State
     CameraUniforms* uniforms_ = nullptr;  // Pointer to heap-allocated uniforms

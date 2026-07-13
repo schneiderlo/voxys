@@ -41,6 +41,7 @@ if(TARGET wgpu::webgpu OR TARGET dawn::webgpu)
         test_triangle_path.cpp
         test_raycast_path.cpp
         test_blit_path.cpp
+        test_water_simulation.cpp
         test_debug_visualizer.cpp
         test_mip_pipeline.cpp
     test_shadow_bake.cpp

@@ -74,6 +74,20 @@ cc_test(
     data = ["//data:data"],
 )
 
+# Kept independent from //src:voxy_core so renderer validation does not pull in
+# unrelated application dependencies.
+cc_test(
+    name = "water_simulation",
+    srcs = ["test_water_simulation.cpp"],
+    copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
+    deps = [
+        "//src/gpu:gpu",
+        "//src/render:water_simulation",
+        "@googletest//:gtest_main",
+    ],
+    data = ["//shaders:shaders"],
+)
+
 # Standalone SVO core test - uses only header-only voxel_types (no GPU/GLFW deps)
 cc_test(
     name = "svo_core_standalone",

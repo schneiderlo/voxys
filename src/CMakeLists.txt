@@ -139,6 +139,11 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/render/blit_path.cpp")
         render/blit_path.cpp
     )
 endif()
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/render/water_simulation.cpp")
+    list(APPEND RENDER_SOURCES
+        render/water_simulation.cpp
+    )
+endif()
 
 # Camera (Phase 3, 4)
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/camera/camera.cpp")
@@ -282,4 +287,3 @@ if(ALL_SOURCES)
 else()
     message(STATUS "No voxy_core sources found yet (will be added in later phases)")
 endif()
-

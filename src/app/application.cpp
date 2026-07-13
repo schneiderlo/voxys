@@ -24,6 +24,7 @@
 #include "render/triangle_path.hpp"
 #include "render/raycast_path.hpp"
 #include "render/blit_path.hpp"
+#include "render/water_simulation.hpp"
 
 #include <chrono>
 #include <algorithm>
@@ -315,6 +316,10 @@ void Application::shutdown() {
     if (trianglePath_) {
         trianglePath_->shutdown();
         trianglePath_.reset();
+    }
+    if (waterSimulation_) {
+        waterSimulation_->shutdown();
+        waterSimulation_.reset();
     }
 
     if (terrainTextures_) {
@@ -1030,6 +1035,14 @@ bool Application::initRenderers() {
     uint32_t width = gpuContext_->getSwapchainWidth();
     uint32_t height = gpuContext_->getSwapchainHeight();
 
+    // The spectral ocean is shared by ray intersection and final shading.
+    // Initialize it before either consumer creates its bind group.
+    waterSimulation_ = std::make_unique<render::WaterSimulation>();
+    if (!waterSimulation_->init(device, queue, config_.shaderDir)) {
+        LOG_ERROR("Failed to initialize FFT water simulation");
+        return false;
+    }
+
     // Initialize triangle path
     {
         render::TrianglePathConfig triConfig = render::TrianglePathConfig::defaults();
@@ -1072,6 +1085,8 @@ bool Application::initRenderers() {
             heightmap_->getWidth(),
             heightmap_->getHeight()
         );
+        raycastPath_->setWaterSimulation(waterSimulation_->getOutputView(),
+                                         waterSimulation_->getSampler());
 
         // Bake the static sun shadow height field. The raycast shader then
         // replaces its per-pixel shadow DDA with a single texture lookup.
@@ -1210,6 +1225,9 @@ bool Application::initRenderers() {
         blitPath_->setDepthTexture(raycastPath_->getDepthOutputView());
         blitPath_->setShadowTexture(raycastPath_->getShadowOutputView());
         blitPath_->setMaterialTexture(raycastPath_->getMaterialOutputView());
+        blitPath_->setWaterSimulation(waterSimulation_->getOutputView(),
+                                      waterSimulation_->getFoamView(),
+                                      waterSimulation_->getSampler());
         
         // TerrainTextures guarantees valid views after init (either loaded or placeholder)
         blitPath_->setTerrainTexture(terrainTextures_->getAlbedoView());
@@ -1261,6 +1279,11 @@ void Application::renderRaycastPath(WGPUCommandEncoder encoder, WGPUTextureView 
     }
     if (!blitPath_ || !blitPath_->isInitialized()) {
         return;
+    }
+
+    if (waterSimulation_ && waterSimulation_->isInitialized()) {
+        waterSimulation_->update(
+            encoder, static_cast<float>(std::fmod(stats_.totalTimeSeconds, 4096.0)));
     }
 
     // Dispatch ray-cast compute shader

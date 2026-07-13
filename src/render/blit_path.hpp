@@ -126,6 +126,11 @@ public:
     /// @param lightmapView Texture view of lightmap
     void setLightmapTexture(WGPUTextureView lightmapView);
 
+    /// Bind the shared FFT displacement cascades.
+    void setWaterSimulation(WGPUTextureView displacementView,
+                            WGPUTextureView foamView,
+                            WGPUSampler sampler);
+
     /// Set terrain parameters (size, scale)
     /// @param width Heightmap width in samples
     /// @param height Heightmap height in samples
@@ -237,6 +242,9 @@ private:
     WGPUTextureView materialView_ = nullptr;
     WGPUTextureView terrainView_ = nullptr;
     WGPUTextureView lightmapView_ = nullptr;
+    WGPUTextureView waterDisplacementView_ = nullptr;
+    WGPUTextureView waterFoamView_ = nullptr;
+    WGPUSampler waterDisplacementSampler_ = nullptr;
 
     // Terrain parameters
     uint32_t terrainWidth_ = 256;

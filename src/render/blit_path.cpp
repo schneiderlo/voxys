@@ -64,6 +64,9 @@ BlitPath::BlitPath(BlitPath&& other) noexcept
     , materialView_(other.materialView_)
     , terrainView_(other.terrainView_)
     , lightmapView_(other.lightmapView_)
+    , waterDisplacementView_(other.waterDisplacementView_)
+    , waterFoamView_(other.waterFoamView_)
+    , waterDisplacementSampler_(other.waterDisplacementSampler_)
     , terrainWidth_(other.terrainWidth_)
     , terrainHeight_(other.terrainHeight_)
     , uniforms_(other.uniforms_)
@@ -100,6 +103,9 @@ BlitPath::BlitPath(BlitPath&& other) noexcept
     other.materialView_ = nullptr;
     other.terrainView_ = nullptr;
     other.lightmapView_ = nullptr;
+    other.waterDisplacementView_ = nullptr;
+    other.waterFoamView_ = nullptr;
+    other.waterDisplacementSampler_ = nullptr;
     other.uniforms_ = nullptr;
 }
 
@@ -133,6 +139,9 @@ BlitPath& BlitPath::operator=(BlitPath&& other) noexcept {
         materialView_ = other.materialView_;
         terrainView_ = other.terrainView_;
         lightmapView_ = other.lightmapView_;
+        waterDisplacementView_ = other.waterDisplacementView_;
+        waterFoamView_ = other.waterFoamView_;
+        waterDisplacementSampler_ = other.waterDisplacementSampler_;
         terrainWidth_ = other.terrainWidth_;
         terrainHeight_ = other.terrainHeight_;
         uniforms_ = other.uniforms_;
@@ -168,6 +177,9 @@ BlitPath& BlitPath::operator=(BlitPath&& other) noexcept {
         other.materialView_ = nullptr;
         other.terrainView_ = nullptr;
         other.lightmapView_ = nullptr;
+        other.waterDisplacementView_ = nullptr;
+        other.waterFoamView_ = nullptr;
+        other.waterDisplacementSampler_ = nullptr;
         other.uniforms_ = nullptr;
     }
     return *this;
@@ -258,6 +270,9 @@ void BlitPath::shutdown() {
     materialView_ = nullptr;
     terrainView_ = nullptr;
     lightmapView_ = nullptr;
+    waterDisplacementView_ = nullptr;
+    waterFoamView_ = nullptr;
+    waterDisplacementSampler_ = nullptr;
     device_ = nullptr;
     queue_ = nullptr;
 }
@@ -616,8 +631,11 @@ bool BlitPath::createBindGroupLayout() {
     // @group(0) @binding(8) var skyLUT : texture_2d<f32>;
     // @group(0) @binding(9) var waterNoiseTex : texture_2d<f32>;
     // @group(0) @binding(10) var waterNoiseSampler : sampler;
+    // @group(0) @binding(11) var waterDisplacementTex : texture_2d_array<f32>;
+    // @group(0) @binding(12) var waterDisplacementSampler : sampler;
+    // @group(0) @binding(13) var waterFoamTex : texture_2d<f32>;
 
-    std::array<gpu::BindGroupLayoutEntry, 11> entries = {
+    std::array<gpu::BindGroupLayoutEntry, 14> entries = {
         gpu::BindGroupLayoutEntry(0)
             .vertexVisible()
             .fragmentVisible()
@@ -651,7 +669,16 @@ bool BlitPath::createBindGroupLayout() {
             .texture(WGPUTextureSampleType_Float, WGPUTextureViewDimension_2D, false),
         gpu::BindGroupLayoutEntry(10)
             .fragmentVisible()
-            .sampler(WGPUSamplerBindingType_Filtering)
+            .sampler(WGPUSamplerBindingType_Filtering),
+        gpu::BindGroupLayoutEntry(11)
+            .fragmentVisible()
+            .texture(WGPUTextureSampleType_Float, WGPUTextureViewDimension_2DArray, false),
+        gpu::BindGroupLayoutEntry(12)
+            .fragmentVisible()
+            .sampler(WGPUSamplerBindingType_Filtering),
+        gpu::BindGroupLayoutEntry(13)
+            .fragmentVisible()
+            .texture(WGPUTextureSampleType_Float, WGPUTextureViewDimension_2D, false)
     };
     
     bindGroupLayout_ = gpu::createBindGroupLayout(device_, entries, "blit_bind_group_layout");
@@ -767,6 +794,10 @@ bool BlitPath::createBindGroup() {
         LOG_ERROR("Cannot create bind group: no lightmap view set");
         return false;
     }
+    if (!waterDisplacementView_ || !waterFoamView_ || !waterDisplacementSampler_) {
+        LOG_ERROR("Cannot create bind group: no FFT water simulation");
+        return false;
+    }
     
     // Release old bind group if exists
     if (bindGroup_) {
@@ -774,7 +805,7 @@ bool BlitPath::createBindGroup() {
         bindGroup_ = nullptr;
     }
     
-    std::array<gpu::BindGroupEntry, 11> entries = {
+    std::array<gpu::BindGroupEntry, 14> entries = {
         gpu::BindGroupEntry(0).buffer(uniformBuffer_, 0, sizeof(CameraUniforms)),
         gpu::BindGroupEntry(1).textureView(depthView_),
         gpu::BindGroupEntry(2).textureView(shadowView_),
@@ -785,7 +816,10 @@ bool BlitPath::createBindGroup() {
         gpu::BindGroupEntry(7).buffer(debugUniformBuffer_, 0, sizeof(DebugUniforms)),
         gpu::BindGroupEntry(8).textureView(skyLutView_),
         gpu::BindGroupEntry(9).textureView(waterNoiseView_),
-        gpu::BindGroupEntry(10).sampler(noiseSampler_)
+        gpu::BindGroupEntry(10).sampler(noiseSampler_),
+        gpu::BindGroupEntry(11).textureView(waterDisplacementView_),
+        gpu::BindGroupEntry(12).sampler(waterDisplacementSampler_),
+        gpu::BindGroupEntry(13).textureView(waterFoamView_)
     };
     
     bindGroup_ = gpu::createBindGroup(device_, bindGroupLayout_, entries, "blit_bind_group");
@@ -832,6 +866,16 @@ void BlitPath::setLightmapTexture(WGPUTextureView lightmapView) {
     lightmapView_ = lightmapView;
     bindGroupDirty_ = true;
     LOG_DEBUG("Set lightmap texture view");
+}
+
+void BlitPath::setWaterSimulation(WGPUTextureView displacementView,
+                                  WGPUTextureView foamView,
+                                  WGPUSampler sampler) {
+    waterDisplacementView_ = displacementView;
+    waterFoamView_ = foamView;
+    waterDisplacementSampler_ = sampler;
+    bindGroupDirty_ = true;
+    LOG_DEBUG("Set FFT water displacement cascades");
 }
 
 void BlitPath::setTerrainSize(uint32_t width, uint32_t height) {

@@ -719,3 +719,20 @@ Goal: move the current river rendering closer to `water.jpeg`.
 - [x] Capture displaced-surface screenshot:
   - `screenshots/water_visual_match/displaced_surface/view_0.png`
 - [ ] Add richer reference-style content such as eagle/animals/foliage/settlement details. Skipped for this pass by request.
+
+## Spectral Ocean Replacement
+
+- [x] Replace hand-authored sine waves with a directional Phillips spectrum.
+- [x] Add three 256² wavelength cascades.
+- [x] Evolve deep-water dispersion on the GPU every frame.
+- [x] Run a separable 2D inverse FFT for height and horizontal displacement.
+- [x] Use the same resolved height field for ray intersection and shading.
+- [x] Derive normals from resolved FFT slopes.
+- [x] Derive breaking-wave energy from the horizontal-displacement Jacobian.
+- [x] Add persistent foam accumulation, advection, and decay.
+- [x] Derive refracted caustics from the simulated slope field.
+- [x] Add manual distance filtering for cascades without mip chains.
+- [x] Validate the complete compute pipeline on native WebGPU/Vulkan.
+- [x] Build the complete WebAssembly application with the FFT ocean enabled.
+- [x] Run the 1,500-frame benchmark: 78.1 FPS average at 1280×720 on AMD Radeon 890M.
+- [x] Capture fixed ocean and shore views after foam warm-up.

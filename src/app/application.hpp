@@ -55,6 +55,7 @@ namespace render {
     class TrianglePath;
     class RaycastPath;
     class BlitPath;
+    class WaterSimulation;
 }
 
 namespace perf {
@@ -444,6 +445,7 @@ private:
     std::unique_ptr<terrain::TerrainTextures> terrainTextures_;
 
     // Renderers
+    std::unique_ptr<render::WaterSimulation> waterSimulation_;
     std::unique_ptr<render::TrianglePath> trianglePath_;
     std::unique_ptr<render::RaycastPath> raycastPath_;
     std::unique_ptr<render::BlitPath> blitPath_;

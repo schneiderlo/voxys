@@ -44,6 +44,8 @@ RaycastPath::RaycastPath(RaycastPath&& other) noexcept
     , shadowMapView_(other.shadowMapView_)
     , fallbackShadowTexture_(other.fallbackShadowTexture_)
     , fallbackShadowView_(other.fallbackShadowView_)
+    , waterDisplacementView_(other.waterDisplacementView_)
+    , waterDisplacementSampler_(other.waterDisplacementSampler_)
     , uniforms_(other.uniforms_)
     , config_(other.config_)
     , uniformsDirty_(other.uniformsDirty_)
@@ -68,6 +70,8 @@ RaycastPath::RaycastPath(RaycastPath&& other) noexcept
     other.shadowMapView_ = nullptr;
     other.fallbackShadowTexture_ = nullptr;
     other.fallbackShadowView_ = nullptr;
+    other.waterDisplacementView_ = nullptr;
+    other.waterDisplacementSampler_ = nullptr;
     other.uniforms_ = nullptr;
 }
 
@@ -97,6 +101,8 @@ RaycastPath& RaycastPath::operator=(RaycastPath&& other) noexcept {
         shadowMapView_ = other.shadowMapView_;
         fallbackShadowTexture_ = other.fallbackShadowTexture_;
         fallbackShadowView_ = other.fallbackShadowView_;
+        waterDisplacementView_ = other.waterDisplacementView_;
+        waterDisplacementSampler_ = other.waterDisplacementSampler_;
         uniforms_ = other.uniforms_;
         config_ = other.config_;
         uniformsDirty_ = other.uniformsDirty_;
@@ -120,6 +126,8 @@ RaycastPath& RaycastPath::operator=(RaycastPath&& other) noexcept {
         other.shadowMapView_ = nullptr;
         other.fallbackShadowTexture_ = nullptr;
         other.fallbackShadowView_ = nullptr;
+        other.waterDisplacementView_ = nullptr;
+        other.waterDisplacementSampler_ = nullptr;
         other.uniforms_ = nullptr;
     }
     return *this;
@@ -191,6 +199,8 @@ void RaycastPath::shutdown() {
     // Note: We don't own heightmapView_ or shadowMapView_, so don't release them
     heightmapView_ = nullptr;
     shadowMapView_ = nullptr;
+    waterDisplacementView_ = nullptr;
+    waterDisplacementSampler_ = nullptr;
     device_ = nullptr;
     queue_ = nullptr;
 }
@@ -405,8 +415,10 @@ bool RaycastPath::createBindGroupLayout() {
     // @group(0) @binding(3) var outShadow : texture_storage_2d<r32float, write>;
     // @group(0) @binding(4) var outMaterial : texture_storage_2d<r32float, write>;
     // @group(0) @binding(5) var shadowHeightTex : texture_2d<u32>;
+    // @group(0) @binding(6) var waterDisplacementTex : texture_2d_array<f32>;
+    // @group(0) @binding(7) var waterDisplacementSampler : sampler;
 
-    std::array<gpu::BindGroupLayoutEntry, 6> entries = {
+    std::array<gpu::BindGroupLayoutEntry, 8> entries = {
         gpu::BindGroupLayoutEntry(0)
             .computeVisible()
             .uniformBuffer(false, sizeof(CameraUniforms)),
@@ -430,7 +442,13 @@ bool RaycastPath::createBindGroupLayout() {
                            WGPUTextureViewDimension_2D),
         gpu::BindGroupLayoutEntry(5)
             .computeVisible()
-            .texture(WGPUTextureSampleType_Uint, WGPUTextureViewDimension_2D, false)
+            .texture(WGPUTextureSampleType_Uint, WGPUTextureViewDimension_2D, false),
+        gpu::BindGroupLayoutEntry(6)
+            .computeVisible()
+            .texture(WGPUTextureSampleType_Float, WGPUTextureViewDimension_2DArray, false),
+        gpu::BindGroupLayoutEntry(7)
+            .computeVisible()
+            .sampler(WGPUSamplerBindingType_Filtering)
     };
     
     bindGroupLayout_ = gpu::createBindGroupLayout(device_, entries, "raycast_bind_group_layout");
@@ -508,6 +526,10 @@ bool RaycastPath::createBindGroup() {
         LOG_ERROR("Cannot create bind group: no material output view");
         return false;
     }
+    if (!waterDisplacementView_ || !waterDisplacementSampler_) {
+        LOG_ERROR("Cannot create bind group: no FFT water simulation");
+        return false;
+    }
     
     // Release old bind group if exists
     if (bindGroup_) {
@@ -515,14 +537,16 @@ bool RaycastPath::createBindGroup() {
         bindGroup_ = nullptr;
     }
     
-    std::array<gpu::BindGroupEntry, 6> entries = {
+    std::array<gpu::BindGroupEntry, 8> entries = {
         gpu::BindGroupEntry(0).buffer(uniformBuffer_, 0, sizeof(CameraUniforms)),
         gpu::BindGroupEntry(1).textureView(heightmapView_),
         gpu::BindGroupEntry(2).textureView(depthOutputView_),
         gpu::BindGroupEntry(3).textureView(shadowOutputView_),
         gpu::BindGroupEntry(4).textureView(materialOutputView_),
         gpu::BindGroupEntry(5).textureView(shadowMapView_ ? shadowMapView_
-                                                          : fallbackShadowView_)
+                                                          : fallbackShadowView_),
+        gpu::BindGroupEntry(6).textureView(waterDisplacementView_),
+        gpu::BindGroupEntry(7).sampler(waterDisplacementSampler_)
     };
     
     bindGroup_ = gpu::createBindGroup(device_, bindGroupLayout_, entries, "raycast_bind_group");
@@ -621,6 +645,14 @@ void RaycastPath::setShadowMap(WGPUTextureView shadowMapView) {
     shadowMapView_ = shadowMapView;
     bindGroupDirty_ = true;
     LOG_DEBUG("Set baked shadow map");
+}
+
+void RaycastPath::setWaterSimulation(WGPUTextureView displacementView,
+                                     WGPUSampler sampler) {
+    waterDisplacementView_ = displacementView;
+    waterDisplacementSampler_ = sampler;
+    bindGroupDirty_ = true;
+    LOG_DEBUG("Set FFT water displacement cascades");
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

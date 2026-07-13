@@ -64,6 +64,9 @@ struct DebugUniforms {
 // A = ripple noise, both stored as v*0.5+0.5. One tile = 1024 world units.
 @group(0) @binding(9) var waterNoiseTex : texture_2d<f32>;
 @group(0) @binding(10) var waterNoiseSampler : sampler;
+@group(0) @binding(11) var waterDisplacementTex : texture_2d_array<f32>;
+@group(0) @binding(12) var waterDisplacementSampler : sampler;
+@group(0) @binding(13) var waterFoamTex : texture_2d<f32>;
 
 const MATERIAL_SKY : u32 = 0u;
 const MATERIAL_TERRAIN : u32 = 1u;
@@ -166,46 +169,31 @@ fn sampleSkyLUT(dir : vec3<f32>) -> vec3<f32> {
     return textureSampleLevel(skyLUT, terrainSampler, uv, 0.0).rgb;
 }
 
-/// Five directional bands approximate a Phillips/JONSWAP spectrum without an
-/// FFT texture.  The same phases are evaluated by terrain_raycast.wgsl, so the
-/// visible normals belong to the surface that the camera ray actually hits.
-/// Returns (height, dh/dx, dh/dz, normalized crest height).
+/// Sum three band-limited Tessendorf cascades resolved by the GPU inverse FFT.
+/// Returns (height, dh/dx, dh/dz, Jacobian compression).
 fn waterWaveField(p : vec2<f32>) -> vec4<f32> {
-    let time = camera.waterMotion.x;
     let strength = clamp(camera.waterParams.z, 0.0, 1.0);
-    let amplitude = 2.0 * strength;
-
-    let q0 = dot(p, vec2<f32>( 0.021,  0.009)) - time * 0.54 + 0.3;
-    let q1 = dot(p, vec2<f32>( 0.012, -0.033)) - time * 0.64 + 2.1;
-    let q2 = dot(p, vec2<f32>(-0.052,  0.021)) - time * 0.78 + 4.7;
-    let q3 = dot(p, vec2<f32>( 0.074,  0.041)) - time * 0.94 + 1.2;
-    let q4 = dot(p, vec2<f32>(-0.110,  0.062)) - time * 1.12 + 5.4;
-
-    let weightedSin = sin(q0) * 0.48 + sin(q1) * 0.26 + sin(q2) * 0.14 +
-                      sin(q3) * 0.075 + sin(q4) * 0.045;
-    let slope = (vec2<f32>( 0.021,  0.009) * cos(q0) * 0.48 +
-                 vec2<f32>( 0.012, -0.033) * cos(q1) * 0.26 +
-                 vec2<f32>(-0.052,  0.021) * cos(q2) * 0.14 +
-                 vec2<f32>( 0.074,  0.041) * cos(q3) * 0.075 +
-                 vec2<f32>(-0.110,  0.062) * cos(q4) * 0.045) * amplitude;
-    return vec4<f32>(weightedSin * amplitude, slope, weightedSin * 0.5 + 0.5);
+    let shortWaves = textureSampleLevel(waterDisplacementTex,
+        waterDisplacementSampler, p / 96.0, 0, 0.0);
+    let mediumWaves = textureSampleLevel(waterDisplacementTex,
+        waterDisplacementSampler, p / 384.0, 1, 0.0);
+    let longWaves = textureSampleLevel(waterDisplacementTex,
+        waterDisplacementSampler, p / 1536.0, 2, 0.0);
+    // Manual cascade LOD. The simulation texture has no mip chain because it
+    // is rewritten every frame; fading bands before they become sub-pixel
+    // prevents the glittering horizon that an unfiltered slope field creates.
+    let cameraDistance = length(p - camera.cameraPos.xz);
+    let shortWeight = 1.0 - smoothstep(520.0, 1450.0, cameraDistance);
+    let mediumWeight = 1.0 - smoothstep(1900.0, 5200.0, cameraDistance);
+    let summed = shortWaves * shortWeight +
+                 mediumWaves * mediumWeight + longWaves;
+    return vec4<f32>(summed.xyz * strength,
+                     max(max(shortWaves.w * shortWeight,
+                             mediumWaves.w * mediumWeight), longWaves.w));
 }
 
-fn waterWaveNormal(worldPos : vec3<f32>, wave : vec4<f32>) -> vec3<f32> {
-    let p = worldPos.xz;
-    let time = camera.waterMotion.x;
-    let strength = clamp(camera.waterParams.z, 0.0, 1.0);
-
-    // Two independently moving capillary octaves break up the analytic bands.
-    // They affect reflection/refraction but not ray intersection, avoiding tiny
-    // silhouette holes at grazing angles.
-    let detailA = (textureSampleLevel(waterNoiseTex, waterNoiseSampler,
-        p / 1024.0 + vec2<f32>(time * 0.0032, -time * 0.0017), 0.0).rg - 0.5) * 0.25;
-    let detailB = (textureSampleLevel(waterNoiseTex, waterNoiseSampler,
-        p.yx / 640.0 + vec2<f32>(-time * 0.0021, time * 0.0028), 0.0).gr - 0.5) * 0.25;
-    let detailSlope = (detailA * 0.48 + detailB * 0.28) * strength;
-    return normalize(vec3<f32>(-(wave.y + detailSlope.x), 1.0,
-                               -(wave.z + detailSlope.y)));
+fn waterWaveNormal(wave : vec4<f32>) -> vec3<f32> {
+    return normalize(vec3<f32>(-wave.y, 1.0, -wave.z));
 }
 
 /// RGB is reflected radiance; A is confidence.  A confidence channel avoids
@@ -274,9 +262,8 @@ fn sampleScreenTerrainReflection(origin : vec3<f32>, dir : vec3<f32>, dims : vec
 }
 
 /// Trace the incoming sunlight through the local surface normal to the bed,
-/// then evaluate narrow, moving focus lines there.  This is an analytic
-/// refracted-ray caustic: cheap enough for the fullscreen pass and tied to the
-/// same normal that bends the visible riverbed.
+/// then measure convergence in the simulated FFT slope field. Brightness now
+/// comes from the surface lens Jacobian rather than an unrelated noise grid.
 fn refractedRayCaustics(posWorld : vec3<f32>, waterDepth : f32,
                         n : vec3<f32>, sunDir : vec3<f32>) -> f32 {
     if (waterDepth <= 0.0 || waterDepth > 22.0 || sunDir.y <= 0.02) {
@@ -285,18 +272,18 @@ fn refractedRayCaustics(posWorld : vec3<f32>, waterDepth : f32,
     let ray = refract(-sunDir, n, 0.7502);
     let travel = waterDepth / max(-ray.y, 0.12);
     let bedPoint = posWorld.xz + ray.xz * travel;
-    let time = camera.waterMotion.x;
-    // Several refracted bands interfere into curved focus ridges.  Summing
-    // before thresholding avoids the conspicuous Cartesian grid produced by
-    // crossing two independent line masks.
-    let bandA = sin(dot(bedPoint, vec2<f32>( 0.182,  0.107)) - time * 0.72);
-    let bandB = sin(dot(bedPoint, vec2<f32>(-0.137,  0.218)) + time * 0.91);
-    let bandC = sin(dot(bedPoint, vec2<f32>( 0.293, -0.081)) - time * 1.13);
-    let interference = abs(bandA + bandB * 0.57 + bandC * 0.27);
-    let focusLines = 1.0 - smoothstep(0.025, 0.145, interference);
+    let epsilon = mix(0.45, 1.5, clamp(waterDepth / 22.0, 0.0, 1.0));
+    let slopeLeft = waterWaveField(bedPoint - vec2<f32>(epsilon, 0.0)).y;
+    let slopeRight = waterWaveField(bedPoint + vec2<f32>(epsilon, 0.0)).y;
+    let slopeDown = waterWaveField(bedPoint - vec2<f32>(0.0, epsilon)).z;
+    let slopeUp = waterWaveField(bedPoint + vec2<f32>(0.0, epsilon)).z;
+    let divergence = ((slopeRight - slopeLeft) + (slopeUp - slopeDown)) /
+                     (2.0 * epsilon);
+    let convergence = max(-divergence, 0.0);
+    let focusLines = smoothstep(0.006, 0.065, convergence * (1.0 + waterDepth * 0.08));
     let breakup = textureSampleLevel(waterNoiseTex, waterNoiseSampler,
-        bedPoint / 380.0 + vec2<f32>(time * 0.0011, -time * 0.0015), 0.0).b;
-    return focusLines * focusLines * mix(0.35, 1.0, breakup) *
+        bedPoint / 380.0, 0.0).b;
+    return focusLines * mix(0.72, 1.0, breakup) *
            exp(-waterDepth * 0.105) * smoothstep(0.02, 0.35, sunDir.y);
 }
 
@@ -443,10 +430,11 @@ fn shadeWater(posWorld : vec3<f32>, posView : vec3<f32>, viewDirWS : vec3<f32>,
                                          posWorld.xz * (0.18 / 16.0) + vec2<f32>(0.13, 0.57) +
                                          vec2<f32>(camera.waterMotion.x * 0.003, 0.0),
                                          0.0).a;
-    let whitecap = smoothstep(0.96, 1.08,
-                              waveCrest + clamp((1.0 - n.y) * 1.6, 0.0, 0.12));
+    let persistentFoam = textureSampleLevel(
+        waterFoamTex, waterDisplacementSampler, posWorld.xz / 96.0, 0.0).x;
+    let whitecap = persistentFoam * smoothstep(0.025, 0.12, waveCrest);
     let foamAmount = shoreline * smoothstep(0.30, 0.85, shoreRipple) * 0.58 +
-                     whitecap * smoothstep(0.64, 0.88, shoreRipple) * 0.10;
+                     whitecap * mix(0.55, 0.90, shoreRipple);
     let foam = vec3<f32>(0.90, 0.88, 0.78) * foamAmount;
     let shoreShadow = mix(0.4, 1.0, shadowVisibility);
     surface += foam * shoreShadow;
@@ -536,7 +524,7 @@ fn fs(i : VSOut) -> @location(0) vec4<f32> {
         // Compute the wave normal once, here, so the debug normal view shows
         // the real surface normal instead of a flat placeholder.
         let waterWave = waterWaveField(posCWorld.xz);
-        let waterNormal = waterWaveNormal(posCWorld, waterWave);
+        let waterNormal = waterWaveNormal(waterWave);
         let waterColor = shadeWater(posCWorld, posCView, viewDirWS, waterNormal,
                                     waterWave.w, waterDepth, shoreMask, waterShadow, dims);
         let outputColor = applyDebugVisualization(waterColor, depthCenter, waterNormal);
