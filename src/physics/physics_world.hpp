@@ -10,6 +10,7 @@
 #include <glm/vec2.hpp>
 #include <glm/gtc/quaternion.hpp>
 
+#include <cstddef>
 #include <cstdint>
 #include <functional>
 #include <memory>
@@ -115,8 +116,10 @@ public:
     /// Advance simulated rigid bodies. Call once per application frame.
     void update(float deltaTime);
 
-    /// Copy current transforms for rendering.
-    [[nodiscard]] std::vector<DynamicBodySnapshot> dynamicBodies() const;
+    /// Copy current transforms for rendering. Reserve optional capacity for
+    /// caller-owned overlays without changing the returned body sequence.
+    [[nodiscard]] std::vector<DynamicBodySnapshot> dynamicBodies(
+        size_t additionalCapacity = 0) const;
 
     [[nodiscard]] static const char* throwableShapeName(ThrowableShape shape) noexcept;
     [[nodiscard]] static glm::vec3 throwableShapeDimensions(ThrowableShape shape) noexcept;

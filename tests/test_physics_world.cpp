@@ -155,6 +155,25 @@ TEST_F(PhysicsWorldTest, KeepsMoreThanSixtyFourBodies) {
     EXPECT_EQ(world.dynamicBodies().size(), bodyCount);
 }
 
+TEST_F(PhysicsWorldTest, ReservesCallerOverlayCapacityWithoutGrowth) {
+    constexpr size_t overlayCount = 36;
+    for (uint32_t index = 0; index < 96; ++index) {
+        ASSERT_TRUE(world.throwBody(
+            PhysicsWorld::ThrowableShape::Sphere,
+            glm::vec3(static_cast<float>(index), 8.0f, 0.0f),
+            glm::vec3(0.0f)));
+    }
+
+    auto bodies = world.dynamicBodies(overlayCount);
+    ASSERT_EQ(bodies.size(), 96u);
+    ASSERT_GE(bodies.capacity(), bodies.size() + overlayCount);
+    const auto* storage = bodies.data();
+    for (size_t index = 0; index < overlayCount; ++index) {
+        bodies.push_back({});
+    }
+    EXPECT_EQ(bodies.data(), storage);
+}
+
 TEST_F(PhysicsWorldTest, SupportsTenThousandDynamicBodies) {
     constexpr uint32_t columns = 100;
     constexpr float spacing = 2.1f;

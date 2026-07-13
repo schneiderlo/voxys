@@ -764,11 +764,13 @@ void PhysicsWorld::update(float deltaTime) {
     }
 }
 
-std::vector<PhysicsWorld::DynamicBodySnapshot> PhysicsWorld::dynamicBodies() const {
+std::vector<PhysicsWorld::DynamicBodySnapshot> PhysicsWorld::dynamicBodies(
+    size_t additionalCapacity) const {
     std::vector<DynamicBodySnapshot> result;
     if (!isInitialized()) {
         return result;
     }
+    result.reserve(impl_->dynamicBodies.size() + additionalCapacity);
     if (impl_->dynamicBodies.empty()) {
         return result;
     }
@@ -793,7 +795,6 @@ std::vector<PhysicsWorld::DynamicBodySnapshot> PhysicsWorld::dynamicBodies() con
         }
     }
 
-    result.reserve(impl_->dynamicBodies.size());
     const JPH::BodyLockMultiRead lock(
         impl_->system->GetBodyLockInterface(), bodyIDs.data(),
         static_cast<int>(bodyIDs.size()));

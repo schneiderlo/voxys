@@ -69,6 +69,7 @@ namespace voxy {
 // World-space direction toward the sun. Single source of truth: the per-frame
 // light uniform and the baked shadow height field must agree.
 constexpr glm::vec3 kSunDirection = {0.3f, 0.8f, 0.4f};
+constexpr size_t kPrimitiveOverlayHeadroom = 1u + 5u * 7u;
 
 void appendObjectCount(
     std::vector<physics::PhysicsWorld::DynamicBodySnapshot>& instances,
@@ -528,7 +529,7 @@ void Application::render() {
     }
 
     if (primitivePath_ && primitivePath_->isInitialized() && physicsWorld_) {
-        auto bodies = physicsWorld_->dynamicBodies();
+        auto bodies = physicsWorld_->dynamicBodies(kPrimitiveOverlayHeadroom);
         const size_t objectCount = bodies.size();
         const auto selectedShape =
             static_cast<physics::PhysicsWorld::ThrowableShape>(selectedThrowable_);
