@@ -133,6 +133,24 @@ TEST_F(PhysicsWorldTest, KeepsMoreThanSixtyFourBodies) {
     EXPECT_EQ(world.dynamicBodies().size(), bodyCount);
 }
 
+TEST_F(PhysicsWorldTest, SupportsTenThousandDynamicBodies) {
+    constexpr uint32_t columns = 100;
+    constexpr float spacing = 2.1f;
+    for (uint32_t index = 0; index < 10000; ++index) {
+        const glm::vec3 position{
+            static_cast<float>(index % columns) * spacing,
+            300.0f,
+            static_cast<float>(index / columns) * spacing};
+        const auto shape = static_cast<PhysicsWorld::ThrowableShape>(
+            index % static_cast<uint32_t>(PhysicsWorld::ThrowableShape::Count));
+        ASSERT_TRUE(world.throwBody(shape, position, {0.0f, -1.0f, 0.0f}));
+    }
+
+    ASSERT_EQ(world.dynamicBodies().size(), 10000u);
+    world.update(1.0f / 60.0f);
+    EXPECT_EQ(world.dynamicBodies().size(), 10000u);
+}
+
 TEST_F(PhysicsWorldTest, WaterAppliesBuoyancyAndDrag) {
     world.setWaterPlane(5.0f);
     ASSERT_TRUE(world.throwBody(

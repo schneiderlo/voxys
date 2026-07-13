@@ -145,6 +145,10 @@ void releaseJoltRuntime() {
 constexpr uint32_t kTileSampleCount = 256;
 constexpr uint32_t kTileCellCount = kTileSampleCount - 1;
 constexpr int32_t kTileRadius = 1;
+constexpr uint32_t kMaxBodies = 16384;
+constexpr uint32_t kMaxBodyPairs = 65536;
+constexpr uint32_t kMaxContactConstraints = 16384;
+constexpr size_t kTempAllocatorBytes = 16u * 1024u * 1024u;
 constexpr float kMaxFrameTime = 8.0f / 60.0f;
 constexpr float kMaxSubstep = 1.0f / 60.0f;
 
@@ -217,10 +221,11 @@ public:
         retainJoltRuntime();
         runtimeRetained = true;
 
-        tempAllocator = std::make_unique<JPH::TempAllocatorImpl>(8 * 1024 * 1024);
+        tempAllocator = std::make_unique<JPH::TempAllocatorImpl>(kTempAllocatorBytes);
         jobSystem = std::make_unique<JPH::JobSystemSingleThreaded>(JPH::cMaxPhysicsJobs);
         system = std::make_unique<JPH::PhysicsSystem>();
-        system->Init(4096, 0, 8192, 4096, broadPhaseInterface,
+        system->Init(kMaxBodies, 0, kMaxBodyPairs, kMaxContactConstraints,
+                     broadPhaseInterface,
                      objectVsBroadPhaseFilter, objectLayerPairFilter);
         return true;
     }
