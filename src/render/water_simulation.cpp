@@ -7,12 +7,14 @@
 #include <array>
 #include <cmath>
 #include <complex>
+#include <limits>
 #include <numbers>
 #include <random>
 #include <span>
 #include <vector>
 
 #include <glm/glm.hpp>
+#include <glm/gtc/packing.hpp>
 
 namespace voxy::render {
 namespace {
@@ -30,6 +32,20 @@ struct alignas(16) WaveData {
     glm::vec2 padding{};
 };
 static_assert(sizeof(WaveData) == 32);
+
+struct CoastPixel {
+    uint32_t direction;
+    uint32_t distanceDepth;
+};
+static_assert(sizeof(CoastPixel) == 8);
+
+CoastPixel packCoastPixel(const glm::vec2& onshoreDirection,
+                          float coastDistance, float waterDepth) {
+    return {
+        glm::packHalf2x16(onshoreDirection),
+        glm::packHalf2x16(glm::vec2(coastDistance, waterDepth)),
+    };
+}
 
 constexpr std::array<float, WaterSimulation::CASCADE_COUNT> kPatchLengths = {
     96.0f, 384.0f, 1536.0f
@@ -70,7 +86,11 @@ WaterSimulation::~WaterSimulation() {
 }
 
 bool WaterSimulation::init(WGPUDevice device, WGPUQueue queue,
-                           const std::filesystem::path& shaderDirectory) {
+                           const std::filesystem::path& shaderDirectory,
+                           std::span<const uint16_t> terrainHeights,
+                           uint32_t terrainWidth, uint32_t terrainHeight,
+                           float terrainHeightScale, float cellScale,
+                           float waterHeight) {
     if (!device || !queue) {
         LOG_ERROR("WaterSimulation::init: device or queue is null");
         return false;
@@ -79,6 +99,8 @@ bool WaterSimulation::init(WGPUDevice device, WGPUQueue queue,
     queue_ = queue;
 
     if (!createSpectrum() || !createBuffers() || !createOutputTexture() ||
+        !createCoastField(terrainHeights, terrainWidth, terrainHeight,
+                          terrainHeightScale, cellScale, waterHeight) ||
         !createPipelines(shaderDirectory) || !createBindGroups() ||
         !createFoamResources(shaderDirectory)) {
         LOG_ERROR("Failed to initialize FFT water simulation");
@@ -88,6 +110,198 @@ bool WaterSimulation::init(WGPUDevice device, WGPUQueue queue,
 
     LOG_INFO("FFT water simulation initialized: {} cascades at {}x{}",
              CASCADE_COUNT, RESOLUTION, RESOLUTION);
+    return true;
+}
+
+bool WaterSimulation::createCoastField(
+    std::span<const uint16_t> terrainHeights,
+    uint32_t terrainWidth, uint32_t terrainHeight,
+    float terrainHeightScale, float cellScale, float waterHeight) {
+    const bool validTerrain = terrainWidth > 1 && terrainHeight > 1 &&
+        terrainHeights.size() == static_cast<size_t>(terrainWidth) * terrainHeight &&
+        std::isfinite(terrainHeightScale) && terrainHeightScale > 0.0f &&
+        std::isfinite(cellScale) && cellScale > 0.0f;
+
+    uint32_t fieldWidth = 1;
+    uint32_t fieldHeight = 1;
+    std::vector<CoastPixel> pixels;
+
+    if (!validTerrain) {
+        // Tests and tools without terrain still receive a valid, entirely
+        // offshore field. A large distance gives the FFT path full weight.
+        pixels.push_back(packCoastPixel(glm::normalize(glm::vec2(0.91f, 0.414f)),
+                                        4096.0f, 64.0f));
+    } else {
+        fieldWidth = std::min(COAST_FIELD_RESOLUTION, terrainWidth);
+        fieldHeight = std::min(COAST_FIELD_RESOLUTION, terrainHeight);
+        const size_t fieldSize = static_cast<size_t>(fieldWidth) * fieldHeight;
+        std::vector<float> depths(fieldSize);
+        std::vector<uint8_t> landMask(fieldSize, 0u);
+        std::vector<int32_t> nearestX(fieldSize, -1);
+        std::vector<int32_t> nearestY(fieldSize, -1);
+        bool hasLand = false;
+
+        for (uint32_t y = 0; y < fieldHeight; ++y) {
+            const uint32_t sourceY = static_cast<uint32_t>(std::lround(
+                static_cast<double>(y) * (terrainHeight - 1) /
+                std::max(fieldHeight - 1u, 1u)));
+            for (uint32_t x = 0; x < fieldWidth; ++x) {
+                const uint32_t sourceX = static_cast<uint32_t>(std::lround(
+                    static_cast<double>(x) * (terrainWidth - 1) /
+                    std::max(fieldWidth - 1u, 1u)));
+                const float normalized = static_cast<float>(
+                    terrainHeights[static_cast<size_t>(sourceY) * terrainWidth + sourceX]) /
+                    65535.0f;
+                const float terrainWorld = (normalized * 2.0f - 1.0f) *
+                                           terrainHeightScale;
+                const size_t index = static_cast<size_t>(y) * fieldWidth + x;
+                depths[index] = std::max(waterHeight - terrainWorld, 0.0f);
+                if (terrainWorld >= waterHeight) {
+                    landMask[index] = 1u;
+                    nearestX[index] = static_cast<int32_t>(x);
+                    nearestY[index] = static_cast<int32_t>(y);
+                    hasLand = true;
+                }
+            }
+        }
+
+        const float worldStepX = static_cast<float>(terrainWidth - 1) * cellScale /
+                                 static_cast<float>(std::max(fieldWidth - 1u, 1u));
+        const float worldStepY = static_cast<float>(terrainHeight - 1) * cellScale /
+                                 static_cast<float>(std::max(fieldHeight - 1u, 1u));
+        const auto consider = [&](uint32_t x, uint32_t y, int32_t candidateX,
+                                  int32_t candidateY) {
+            if (candidateX < 0 || candidateY < 0) return;
+            const size_t index = static_cast<size_t>(y) * fieldWidth + x;
+            const auto distanceSquared = [&](int32_t sourceX, int32_t sourceY) {
+                if (sourceX < 0 || sourceY < 0) {
+                    return std::numeric_limits<float>::infinity();
+                }
+                const float dx = (static_cast<float>(sourceX) -
+                                  static_cast<float>(x)) * worldStepX;
+                const float dy = (static_cast<float>(sourceY) -
+                                  static_cast<float>(y)) * worldStepY;
+                return dx * dx + dy * dy;
+            };
+            if (distanceSquared(candidateX, candidateY) <
+                distanceSquared(nearestX[index], nearestY[index])) {
+                nearestX[index] = candidateX;
+                nearestY[index] = candidateY;
+            }
+        };
+
+        if (hasLand) {
+            // Two Euclidean chamfer sweeps propagate the nearest land sample.
+            // Unlike a local height gradient this remains stable through flat
+            // shallows and naturally points around islands and into bays.
+            for (uint32_t y = 0; y < fieldHeight; ++y) {
+                for (uint32_t x = 0; x < fieldWidth; ++x) {
+                    if (x > 0) {
+                        const size_t i = static_cast<size_t>(y) * fieldWidth + x - 1;
+                        consider(x, y, nearestX[i], nearestY[i]);
+                    }
+                    if (y > 0) {
+                        for (int32_t ox = -1; ox <= 1; ++ox) {
+                            const int32_t nx = static_cast<int32_t>(x) + ox;
+                            if (nx < 0 || nx >= static_cast<int32_t>(fieldWidth)) continue;
+                            const size_t i = static_cast<size_t>(y - 1) * fieldWidth +
+                                             static_cast<uint32_t>(nx);
+                            consider(x, y, nearestX[i], nearestY[i]);
+                        }
+                    }
+                }
+            }
+            for (uint32_t y = fieldHeight; y-- > 0;) {
+                for (uint32_t x = fieldWidth; x-- > 0;) {
+                    if (x + 1 < fieldWidth) {
+                        const size_t i = static_cast<size_t>(y) * fieldWidth + x + 1;
+                        consider(x, y, nearestX[i], nearestY[i]);
+                    }
+                    if (y + 1 < fieldHeight) {
+                        for (int32_t ox = -1; ox <= 1; ++ox) {
+                            const int32_t nx = static_cast<int32_t>(x) + ox;
+                            if (nx < 0 || nx >= static_cast<int32_t>(fieldWidth)) continue;
+                            const size_t i = static_cast<size_t>(y + 1) * fieldWidth +
+                                             static_cast<uint32_t>(nx);
+                            consider(x, y, nearestX[i], nearestY[i]);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Directional land shadow. Waves travel along incomingDirection, so
+        // each water cell inherits occlusion from the up-wave column. Energy
+        // recovers over distance to approximate diffraction around headlands.
+        const glm::vec2 incomingDirection = glm::normalize(glm::vec2(0.91f, 0.414f));
+        std::vector<float> waveShadow(fieldSize, 0.0f);
+        constexpr float shelterRecoveryDistance = 900.0f;
+        const float advanceDistance = worldStepX /
+            std::max(std::abs(incomingDirection.x), 0.01f);
+        const float shadowDecay = advanceDistance / shelterRecoveryDistance;
+        for (uint32_t x = 0; x < fieldWidth; ++x) {
+            for (uint32_t y = 0; y < fieldHeight; ++y) {
+                const size_t index = static_cast<size_t>(y) * fieldWidth + x;
+                if (landMask[index] != 0u) {
+                    waveShadow[index] = 1.0f;
+                    continue;
+                }
+                if (x == 0u) continue;
+
+                const float upstreamY = static_cast<float>(y) -
+                    incomingDirection.y / incomingDirection.x;
+                if (upstreamY < 0.0f ||
+                    upstreamY > static_cast<float>(fieldHeight - 1u)) {
+                    continue;
+                }
+                const uint32_t y0 = static_cast<uint32_t>(std::floor(upstreamY));
+                const uint32_t y1 = std::min(y0 + 1u, fieldHeight - 1u);
+                const float fraction = upstreamY - static_cast<float>(y0);
+                const float upstreamShadow = std::lerp(
+                    waveShadow[static_cast<size_t>(y0) * fieldWidth + x - 1u],
+                    waveShadow[static_cast<size_t>(y1) * fieldWidth + x - 1u],
+                    fraction);
+                waveShadow[index] = std::max(upstreamShadow - shadowDecay, 0.0f);
+            }
+        }
+
+        pixels.resize(fieldSize);
+        const float halfCell = 0.5f * std::sqrt(worldStepX * worldStepX +
+                                               worldStepY * worldStepY);
+        for (uint32_t y = 0; y < fieldHeight; ++y) {
+            for (uint32_t x = 0; x < fieldWidth; ++x) {
+                const size_t index = static_cast<size_t>(y) * fieldWidth + x;
+                glm::vec2 direction = glm::normalize(incomingDirection);
+                float distance = 4096.0f;
+                if (nearestX[index] >= 0) {
+                    const glm::vec2 delta(
+                        static_cast<float>(nearestX[index] - static_cast<int32_t>(x)) *
+                            worldStepX,
+                        static_cast<float>(nearestY[index] - static_cast<int32_t>(y)) *
+                            worldStepY);
+                    const float centerDistance = glm::length(delta);
+                    distance = std::max(centerDistance - halfCell, 0.0f);
+                    if (centerDistance > 1e-4f) direction = delta / centerDistance;
+                }
+                const float exposure = 1.0f - waveShadow[index];
+                pixels[index] = packCoastPixel(direction * exposure,
+                                               distance, depths[index]);
+            }
+        }
+    }
+
+    gpu::TextureDesc desc = gpu::TextureDesc::tex2D(
+        fieldWidth, fieldHeight, WGPUTextureFormat_RGBA16Float,
+        WGPUTextureUsage_TextureBinding | WGPUTextureUsage_CopyDst,
+        "water_coast_field");
+    coastTexture_ = gpu::createTextureWithData(
+        device_, queue_, desc, std::as_bytes(std::span<const CoastPixel>(pixels)),
+        fieldWidth * sizeof(CoastPixel));
+    if (!coastTexture_) return false;
+    coastView_ = gpu::createTextureView(coastTexture_);
+    if (!coastView_) return false;
+
+    LOG_INFO("Coastal refraction field initialized: {}x{}", fieldWidth, fieldHeight);
     return true;
 }
 
@@ -446,6 +660,8 @@ void WaterSimulation::shutdown() {
     if (finalizeShader_) wgpuShaderModuleRelease(finalizeShader_);
     if (fftShader_) wgpuShaderModuleRelease(fftShader_);
     if (sampler_) wgpuSamplerRelease(sampler_);
+    if (coastView_) wgpuTextureViewRelease(coastView_);
+    if (coastTexture_) wgpuTextureRelease(coastTexture_);
     if (outputView_) wgpuTextureViewRelease(outputView_);
     if (outputTexture_) wgpuTextureRelease(outputTexture_);
     for (auto& buffer : stageUniformBuffers_) if (buffer) wgpuBufferRelease(buffer);
@@ -478,6 +694,8 @@ void WaterSimulation::shutdown() {
     finalizeShader_ = nullptr;
     fftShader_ = nullptr;
     sampler_ = nullptr;
+    coastView_ = nullptr;
+    coastTexture_ = nullptr;
     outputView_ = nullptr;
     outputTexture_ = nullptr;
     stageUniformBuffers_.fill(nullptr);

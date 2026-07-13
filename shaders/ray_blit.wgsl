@@ -67,6 +67,7 @@ struct DebugUniforms {
 @group(0) @binding(11) var waterDisplacementTex : texture_2d_array<f32>;
 @group(0) @binding(12) var waterDisplacementSampler : sampler;
 @group(0) @binding(13) var waterFoamTex : texture_2d<f32>;
+@group(0) @binding(14) var waterCoastFieldTex : texture_2d<f32>;
 
 const MATERIAL_SKY : u32 = 0u;
 const MATERIAL_TERRAIN : u32 = 1u;
@@ -75,6 +76,9 @@ const MATERIAL_WATER : u32 = 2u;
 // Beer-Lambert extinction per world unit of water. Red is absorbed fastest,
 // so the water tends blue-green as the light path lengthens.
 const WATER_EXTINCTION : vec3<f32> = vec3<f32>(0.135, 0.052, 0.033);
+const WATER_TAU : f32 = 6.283185307179586;
+const WATER_GRAVITY : f32 = 9.81;
+const WATER_INCOMING_DIRECTION : vec2<f32> = vec2<f32>(0.9100, 0.4146);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Vertex Shader (Fullscreen Triangle)
@@ -171,8 +175,71 @@ fn sampleSkyLUT(dir : vec3<f32>) -> vec3<f32> {
 
 /// Sum three band-limited Tessendorf cascades resolved by the GPU inverse FFT.
 /// Returns (height, dh/dx, dh/dz, Jacobian compression).
-fn waterWaveField(p : vec2<f32>) -> vec4<f32> {
-    let strength = clamp(camera.waterParams.z, 0.0, 1.0);
+struct CoastalWave {
+    wave : vec4<f32>,
+    blend : f32,
+    exposure : f32,
+};
+
+fn coastFieldUv(worldXZ : vec2<f32>) -> vec2<f32> {
+    let cells = max(camera.terrainSize - vec2<f32>(1.0), vec2<f32>(1.0));
+    let extent = cells * camera.metrics.y;
+    let rawUv = (worldXZ + extent * 0.5) / extent;
+    let dims = vec2<f32>(textureDimensions(waterCoastFieldTex));
+    let halfTexel = 0.5 / dims;
+    return clamp(rawUv, halfTexel, vec2<f32>(1.0) - halfTexel);
+}
+
+fn coastalWaveField(worldXZ : vec2<f32>) -> CoastalWave {
+    let coast = textureSampleLevel(waterCoastFieldTex,
+        waterDisplacementSampler, coastFieldUv(worldXZ), 0.0);
+    let coastDistance = max(coast.z, 0.0);
+    let waterDepth = max(coast.w, 0.0);
+    let rawOnshore = coast.xy;
+    let directionalExposure = clamp(length(rawOnshore), 0.0, 1.0);
+    var onshore = WATER_INCOMING_DIRECTION;
+    if (dot(rawOnshore, rawOnshore) > 0.01) {
+        onshore = normalize(rawOnshore);
+    }
+
+    let turn = 1.0 - smoothstep(55.0, 420.0, coastDistance);
+    let wet = smoothstep(0.55, 2.8, waterDepth);
+    let facing = smoothstep(-0.20, 0.55,
+                            dot(WATER_INCOMING_DIRECTION, onshore));
+    let coastResponse = directionalExposure * mix(0.12, 1.0, facing);
+    let blend = turn * wet * coastResponse;
+    let shelterInfluence = 1.0 - smoothstep(220.0, 850.0, coastDistance);
+    let waveExposure = mix(1.0, max(0.16, directionalExposure), shelterInfluence);
+    let shallow = 1.0 - smoothstep(4.0, 28.0, waterDepth);
+    let wavelengthCompression = mix(1.0, 1.58, shallow);
+    let offshoreCoordinate = -dot(worldXZ, WATER_INCOMING_DIRECTION);
+    let phaseCoordinate = mix(offshoreCoordinate, coastDistance, turn) +
+                          coastDistance * (wavelengthCompression - 1.0) * turn;
+    let phaseGradient = normalize(mix(-WATER_INCOMING_DIRECTION,
+                                      -onshore * wavelengthCompression, turn));
+    let tangent = vec2<f32>(-onshore.y, onshore.x);
+    let alongshore = dot(worldXZ, tangent);
+
+    let k0 = WATER_TAU / 27.0;
+    let k1 = WATER_TAU / 12.5;
+    let phase0 = k0 * phaseCoordinate + sqrt(WATER_GRAVITY * k0) *
+                 camera.waterMotion.x + 0.20 * sin(alongshore * 0.031);
+    let phase1 = k1 * phaseCoordinate + sqrt(WATER_GRAVITY * k1) *
+                 camera.waterMotion.x + 1.7 + 0.12 * sin(alongshore * 0.067);
+    let shoaling = mix(1.0, 1.42, shallow);
+    let amplitude0 = 0.62 * shoaling * wet;
+    let amplitude1 = 0.19 * mix(1.0, 1.20, shallow) * wet;
+    let height = sin(phase0) * amplitude0 + sin(phase1) * amplitude1;
+    let derivative = cos(phase0) * amplitude0 * k0 +
+                     cos(phase1) * amplitude1 * k1;
+    let slope = phaseGradient * derivative;
+    let crest = smoothstep(0.58, 0.94, sin(phase0) * 0.5 + 0.5);
+    let breaking = blend * (1.0 - smoothstep(6.0, 16.0, waterDepth)) * crest;
+    return CoastalWave(vec4<f32>(height, slope.x, slope.y, breaking),
+                       blend, waveExposure);
+}
+
+fn fftWaterWaveField(p : vec2<f32>) -> vec4<f32> {
     let shortWaves = textureSampleLevel(waterDisplacementTex,
         waterDisplacementSampler, p / 96.0, 0, 0.0);
     let mediumWaves = textureSampleLevel(waterDisplacementTex,
@@ -187,9 +254,19 @@ fn waterWaveField(p : vec2<f32>) -> vec4<f32> {
     let mediumWeight = 1.0 - smoothstep(1900.0, 5200.0, cameraDistance);
     let summed = shortWaves * shortWeight +
                  mediumWaves * mediumWeight + longWaves;
-    return vec4<f32>(summed.xyz * strength,
-                     max(max(shortWaves.w * shortWeight,
-                             mediumWaves.w * mediumWeight), longWaves.w));
+    let compression = max(max(shortWaves.w * shortWeight,
+                              mediumWaves.w * mediumWeight), longWaves.w);
+    return vec4<f32>(summed.xyz, compression);
+}
+
+fn waterWaveField(p : vec2<f32>) -> vec4<f32> {
+    let strength = clamp(camera.waterParams.z, 0.0, 1.0);
+    let fft = fftWaterWaveField(p);
+    let coast = coastalWaveField(p);
+    let refracted = mix(fft.xyz * coast.exposure,
+                        coast.wave.xyz, coast.blend) * strength;
+    return vec4<f32>(refracted,
+                     max(fft.w * coast.exposure, coast.wave.w));
 }
 
 fn waterWaveNormal(wave : vec4<f32>) -> vec3<f32> {
@@ -273,10 +350,13 @@ fn refractedRayCaustics(posWorld : vec3<f32>, waterDepth : f32,
     let travel = waterDepth / max(-ray.y, 0.12);
     let bedPoint = posWorld.xz + ray.xz * travel;
     let epsilon = mix(0.45, 1.5, clamp(waterDepth / 22.0, 0.0, 1.0));
-    let slopeLeft = waterWaveField(bedPoint - vec2<f32>(epsilon, 0.0)).y;
-    let slopeRight = waterWaveField(bedPoint + vec2<f32>(epsilon, 0.0)).y;
-    let slopeDown = waterWaveField(bedPoint - vec2<f32>(0.0, epsilon)).z;
-    let slopeUp = waterWaveField(bedPoint + vec2<f32>(0.0, epsilon)).z;
+    // Caustics use the spectral slopes directly. Re-evaluating the full
+    // coastal phase four times here adds no visible focusing detail and makes
+    // water-heavy views unnecessarily expensive.
+    let slopeLeft = fftWaterWaveField(bedPoint - vec2<f32>(epsilon, 0.0)).y;
+    let slopeRight = fftWaterWaveField(bedPoint + vec2<f32>(epsilon, 0.0)).y;
+    let slopeDown = fftWaterWaveField(bedPoint - vec2<f32>(0.0, epsilon)).z;
+    let slopeUp = fftWaterWaveField(bedPoint + vec2<f32>(0.0, epsilon)).z;
     let divergence = ((slopeRight - slopeLeft) + (slopeUp - slopeDown)) /
                      (2.0 * epsilon);
     let convergence = max(-divergence, 0.0);
@@ -424,7 +504,9 @@ fn shadeWater(posWorld : vec3<f32>, posView : vec3<f32>, viewDirWS : vec3<f32>,
     // ── Shore foam ───────────────────────────────────────────────────────────
     // Foam hugs the waterline (shallow depth). It is lit geometry, so darken it
     // by the sun shadow — otherwise it glows in the dark at the canyon bottom.
-    let shoreline = shoreMask * (1.0 - smoothstep(0.05, 0.5, depth01));
+    let waveArrival = smoothstep(0.055, 0.42, waveCrest);
+    let shoreline = shoreMask * (1.0 - smoothstep(0.05, 0.5, depth01)) *
+                    waveArrival;
     // Ripple noise (A channel, 16 periods per tile) replaces per-pixel simplex.
     let shoreRipple = textureSampleLevel(waterNoiseTex, waterNoiseSampler,
                                          posWorld.xz * (0.18 / 16.0) + vec2<f32>(0.13, 0.57) +
@@ -432,7 +514,9 @@ fn shadeWater(posWorld : vec3<f32>, posView : vec3<f32>, viewDirWS : vec3<f32>,
                                          0.0).a;
     let persistentFoam = textureSampleLevel(
         waterFoamTex, waterDisplacementSampler, posWorld.xz / 96.0, 0.0).x;
-    let whitecap = persistentFoam * smoothstep(0.025, 0.12, waveCrest);
+    let fftWhitecap = persistentFoam * smoothstep(0.025, 0.12, waveCrest);
+    let coastalBreaker = smoothstep(0.42, 0.90, waveCrest) * 0.82;
+    let whitecap = max(fftWhitecap, coastalBreaker);
     let foamAmount = shoreline * smoothstep(0.30, 0.85, shoreRipple) * 0.58 +
                      whitecap * mix(0.55, 0.90, shoreRipple);
     let foam = vec3<f32>(0.90, 0.88, 0.78) * foamAmount;

@@ -89,7 +89,9 @@ fn evolve(@builtin(global_invocation_id) gid : vec3<u32>) {
 
     let initial = inputData[index];
     let omega = sqrt(GRAVITY * kLength);
-    let phase = omega * params.time;
+    // This inverse FFT uses +i*k*x. A negative temporal phase therefore makes
+    // wind-favoured +k modes travel along +k instead of away from the wind.
+    let phase = -omega * params.time;
     let positive = vec2<f32>(cos(phase), sin(phase));
     let negative = vec2<f32>(positive.x, -positive.y);
     let h = complexMul(initial.height, positive) +

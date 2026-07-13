@@ -126,7 +126,9 @@ public:
     void setShadowMap(WGPUTextureView shadowMapView);
 
     /// Bind the shared FFT displacement cascades.
-    void setWaterSimulation(WGPUTextureView displacementView, WGPUSampler sampler);
+    void setWaterSimulation(WGPUTextureView displacementView,
+                            WGPUTextureView coastView,
+                            WGPUSampler sampler);
 
     // ─────────────────────────────────────────────────────────────────────────
     // Rendering
@@ -233,6 +235,7 @@ private:
 
     // Borrowed from WaterSimulation.
     WGPUTextureView waterDisplacementView_ = nullptr;
+    WGPUTextureView waterCoastView_ = nullptr;
     WGPUSampler waterDisplacementSampler_ = nullptr;
 
     // State

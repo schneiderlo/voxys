@@ -1168,7 +1168,10 @@ bool Application::initRenderers() {
     // The spectral ocean is shared by ray intersection and final shading.
     // Initialize it before either consumer creates its bind group.
     waterSimulation_ = std::make_unique<render::WaterSimulation>();
-    if (!waterSimulation_->init(device, queue, config_.shaderDir)) {
+    if (!waterSimulation_->init(device, queue, config_.shaderDir,
+                                heightmap_->getData(), heightmap_->getWidth(),
+                                heightmap_->getHeight(), config_.heightScale,
+                                config_.cellScale, config_.waterHeight)) {
         LOG_ERROR("Failed to initialize FFT water simulation");
         return false;
     }
@@ -1216,6 +1219,7 @@ bool Application::initRenderers() {
             heightmap_->getHeight()
         );
         raycastPath_->setWaterSimulation(waterSimulation_->getOutputView(),
+                                         waterSimulation_->getCoastView(),
                                          waterSimulation_->getSampler());
 
         // Bake the static sun shadow height field. The raycast shader then
@@ -1357,6 +1361,7 @@ bool Application::initRenderers() {
         blitPath_->setMaterialTexture(raycastPath_->getMaterialOutputView());
         blitPath_->setWaterSimulation(waterSimulation_->getOutputView(),
                                       waterSimulation_->getFoamView(),
+                                      waterSimulation_->getCoastView(),
                                       waterSimulation_->getSampler());
         
         // TerrainTextures guarantees valid views after init (either loaded or placeholder)

@@ -206,6 +206,12 @@ TEST_F(BlitShaderTest, HasWaterShading) {
         << "Shader missing FFT displacement cascades";
     EXPECT_NE(shaderSource_.find("waterFoamTex"), std::string::npos)
         << "Shader missing persistent simulated foam";
+    EXPECT_NE(shaderSource_.find("coastalWaveField"), std::string::npos)
+        << "Shader missing depth-aware coastal refraction";
+    EXPECT_NE(shaderSource_.find("waterCoastFieldTex"), std::string::npos)
+        << "Shader missing shoreline direction field";
+    EXPECT_NE(shaderSource_.find("directionalExposure"), std::string::npos)
+        << "Shader missing island sheltering";
     EXPECT_NE(shaderSource_.find("Manual cascade LOD"), std::string::npos)
         << "Shader missing distance-aware spectral filtering";
     EXPECT_EQ(shaderSource_.find("let bedTint = textureSampleLevel(terrainTex"), std::string::npos)

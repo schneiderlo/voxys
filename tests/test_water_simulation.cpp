@@ -7,6 +7,7 @@
 #include <filesystem>
 #include <fstream>
 #include <sstream>
+#include <vector>
 
 namespace voxy::render {
 namespace {
@@ -38,6 +39,7 @@ std::string readTextFile(const std::filesystem::path& path) {
 TEST(WaterSimulationTest, SpectralGridConstantsAreCoherent) {
     EXPECT_EQ(WaterSimulation::RESOLUTION, 1u << WaterSimulation::FFT_STAGE_COUNT);
     EXPECT_EQ(WaterSimulation::CASCADE_COUNT, 3u);
+    EXPECT_EQ(WaterSimulation::COAST_FIELD_RESOLUTION, 1024u);
     EXPECT_EQ(WaterSimulation::RESOLUTION & (WaterSimulation::RESOLUTION - 1u), 0u);
 }
 
@@ -46,6 +48,7 @@ TEST(WaterSimulationTest, DefaultConstructionOwnsNoGPUResources) {
     EXPECT_FALSE(simulation.isInitialized());
     EXPECT_EQ(simulation.getOutputView(), nullptr);
     EXPECT_EQ(simulation.getFoamView(), nullptr);
+    EXPECT_EQ(simulation.getCoastView(), nullptr);
     EXPECT_EQ(simulation.getSampler(), nullptr);
 }
 
@@ -64,10 +67,19 @@ TEST(WaterSimulationGPUTest, BuildsAndDispatchesCompleteOceanPipeline) {
     }
 
     WaterSimulation simulation;
-    ASSERT_TRUE(simulation.init(context.getDevice(), context.getQueue(), shaderDirectory));
+    constexpr uint32_t terrainSize = 64;
+    std::vector<uint16_t> terrain(terrainSize * terrainSize, 18000u);
+    for (uint32_t y = 0; y < terrainSize; ++y) {
+        for (uint32_t x = 44; x < terrainSize; ++x) {
+            terrain[y * terrainSize + x] = 47000u;
+        }
+    }
+    ASSERT_TRUE(simulation.init(context.getDevice(), context.getQueue(), shaderDirectory,
+                                terrain, terrainSize, terrainSize, 500.0f, 1.0f, 0.0f));
     ASSERT_TRUE(simulation.isInitialized());
     ASSERT_NE(simulation.getOutputView(), nullptr);
     ASSERT_NE(simulation.getFoamView(), nullptr);
+    ASSERT_NE(simulation.getCoastView(), nullptr);
 
     // Compile both consumers as part of the isolated ocean test. Full pipeline
     // binding is exercised by the native screenshot run; this catches WGSL

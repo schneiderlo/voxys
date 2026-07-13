@@ -25,6 +25,21 @@ The resolved `RGBA16Float` array stores:
 - G/B: analytic height slope.
 - A: Jacobian compression used for breaking-wave detection.
 
+## Directional coasts
+
+A static 1024² coastal field is built from the terrain heightmap when the
+ocean starts. It stores water depth, distance to land, the nearest shoreline
+direction, and incoming-wave exposure.
+
+The exposure pass follows the dominant swell direction. Terrain blocks energy
+down-wave, producing sheltered water behind islands and headlands. The shadow
+then decays over distance to approximate diffraction around their edges.
+
+Inside the coastal band, wave phase transitions from the offshore swell axis
+to distance-to-shore contours. This makes exposed crests slow, turn parallel
+to the beach, shoal, and break. Leeward shores retain much less displacement
+and foam instead of responding equally around the entire island.
+
 ## Rendering
 
 The ray-caster and lighting pass sample the same displacement texture. This
@@ -39,6 +54,7 @@ The lighting pass adds:
 - FFT-slope-derived refracted caustics;
 - persistent whitecaps sourced from Jacobian compression;
 - shoreline foam;
+- windward breaking and leeward wave shelter;
 - distance-aware cascade filtering.
 
 ## Performance reference

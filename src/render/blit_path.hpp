@@ -129,6 +129,7 @@ public:
     /// Bind the shared FFT displacement cascades.
     void setWaterSimulation(WGPUTextureView displacementView,
                             WGPUTextureView foamView,
+                            WGPUTextureView coastView,
                             WGPUSampler sampler);
 
     /// Set terrain parameters (size, scale)
@@ -244,6 +245,7 @@ private:
     WGPUTextureView lightmapView_ = nullptr;
     WGPUTextureView waterDisplacementView_ = nullptr;
     WGPUTextureView waterFoamView_ = nullptr;
+    WGPUTextureView waterCoastView_ = nullptr;
     WGPUSampler waterDisplacementSampler_ = nullptr;
 
     // Terrain parameters

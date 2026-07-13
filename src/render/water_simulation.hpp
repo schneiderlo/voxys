@@ -3,6 +3,7 @@
 #include <array>
 #include <cstdint>
 #include <filesystem>
+#include <span>
 
 #if defined(VOXY_WASM)
     #include <webgpu/webgpu.h>
@@ -23,6 +24,7 @@ public:
     static constexpr uint32_t RESOLUTION = 256;
     static constexpr uint32_t CASCADE_COUNT = 3;
     static constexpr uint32_t FFT_STAGE_COUNT = 8;
+    static constexpr uint32_t COAST_FIELD_RESOLUTION = 1024;
 
     WaterSimulation() = default;
     ~WaterSimulation();
@@ -31,7 +33,13 @@ public:
     WaterSimulation& operator=(const WaterSimulation&) = delete;
 
     [[nodiscard]] bool init(WGPUDevice device, WGPUQueue queue,
-                            const std::filesystem::path& shaderDirectory);
+                            const std::filesystem::path& shaderDirectory,
+                            std::span<const uint16_t> terrainHeights = {},
+                            uint32_t terrainWidth = 0,
+                            uint32_t terrainHeight = 0,
+                            float terrainHeightScale = 1.0f,
+                            float cellScale = 1.0f,
+                            float waterHeight = 0.0f);
     void shutdown();
 
     /// Record spectrum evolution, 16 Stockham/Cooley FFT stages, and resolve.
@@ -42,6 +50,7 @@ public:
     }
     [[nodiscard]] WGPUTextureView getOutputView() const noexcept { return outputView_; }
     [[nodiscard]] WGPUTextureView getFoamView() const noexcept { return foamView_; }
+    [[nodiscard]] WGPUTextureView getCoastView() const noexcept { return coastView_; }
     [[nodiscard]] WGPUSampler getSampler() const noexcept { return sampler_; }
 
 private:
@@ -56,6 +65,10 @@ private:
     bool createSpectrum();
     bool createBuffers();
     bool createOutputTexture();
+    bool createCoastField(std::span<const uint16_t> terrainHeights,
+                          uint32_t terrainWidth, uint32_t terrainHeight,
+                          float terrainHeightScale, float cellScale,
+                          float waterHeight);
     bool createPipelines(const std::filesystem::path& shaderDirectory);
     bool createBindGroups();
     bool createFoamResources(const std::filesystem::path& shaderDirectory);
@@ -71,6 +84,8 @@ private:
 
     WGPUTexture outputTexture_ = nullptr;
     WGPUTextureView outputView_ = nullptr;
+    WGPUTexture coastTexture_ = nullptr;
+    WGPUTextureView coastView_ = nullptr;
     WGPUSampler sampler_ = nullptr;
 
     WGPUBuffer foamUniformBuffer_ = nullptr;

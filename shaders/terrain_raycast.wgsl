@@ -49,6 +49,7 @@ struct CameraUniforms {
 @group(0) @binding(5) var shadowHeightTex : texture_2d<u32>;
 @group(0) @binding(6) var waterDisplacementTex : texture_2d_array<f32>;
 @group(0) @binding(7) var waterDisplacementSampler : sampler;
+@group(0) @binding(8) var waterCoastFieldTex : texture_2d<f32>;
 
 const MATERIAL_SKY : u32 = 0u;
 const MATERIAL_TERRAIN : u32 = 1u;
@@ -60,6 +61,9 @@ const MATERIAL_WATER : u32 = 2u;
 const MIN_WATER_DEPTH : f32 = 0.5;
 const SHORE_DEPTH : f32 = 7.5;
 const WATER_SURFACE_AMPLITUDE : f32 = 1.0;
+const WATER_TAU : f32 = 6.283185307179586;
+const WATER_GRAVITY : f32 = 9.81;
+const WATER_INCOMING_DIRECTION : vec2<f32> = vec2<f32>(0.9100, 0.4146);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Coordinate Space Conversion
@@ -112,6 +116,67 @@ fn lodDistanceForMip(level : u32) -> f32 {
     }
 }
 
+struct CoastalWave {
+    height : f32,
+    blend : f32,
+    exposure : f32,
+};
+
+fn coastFieldUv(worldXZ : vec2<f32>) -> vec2<f32> {
+    let cells = max(camera.terrainSize - vec2<f32>(1.0), vec2<f32>(1.0));
+    let extent = cells * camera.metrics.y;
+    let rawUv = (worldXZ + extent * 0.5) / extent;
+    // The FFT sampler repeats. Keep coast samples inside the edge texels so
+    // the far side of the terrain cannot wrap into this shoreline.
+    let dims = vec2<f32>(textureDimensions(waterCoastFieldTex));
+    let halfTexel = 0.5 / dims;
+    return clamp(rawUv, halfTexel, vec2<f32>(1.0) - halfTexel);
+}
+
+fn coastalWaveField(worldXZ : vec2<f32>) -> CoastalWave {
+    let coast = textureSampleLevel(waterCoastFieldTex,
+        waterDisplacementSampler, coastFieldUv(worldXZ), 0.0);
+    let coastDistance = max(coast.z, 0.0);
+    let waterDepth = max(coast.w, 0.0);
+    let rawOnshore = coast.xy;
+    let directionalExposure = clamp(length(rawOnshore), 0.0, 1.0);
+    var onshore = WATER_INCOMING_DIRECTION;
+    if (dot(rawOnshore, rawOnshore) > 0.01) {
+        onshore = normalize(rawOnshore);
+    }
+
+    // Offshore phase follows the incoming swell. Across a broad coastal band,
+    // its phase coordinate becomes distance-to-shore, whose contours are
+    // naturally parallel to beaches, coves, and islands.
+    let turn = 1.0 - smoothstep(55.0, 420.0, coastDistance);
+    let wet = smoothstep(0.55, 2.8, waterDepth);
+    let facing = smoothstep(-0.20, 0.55,
+                            dot(WATER_INCOMING_DIRECTION, onshore));
+    let coastResponse = directionalExposure * mix(0.12, 1.0, facing);
+    let blend = turn * wet * coastResponse;
+    let shelterInfluence = 1.0 - smoothstep(220.0, 850.0, coastDistance);
+    let waveExposure = mix(1.0, max(0.16, directionalExposure), shelterInfluence);
+    let shallow = 1.0 - smoothstep(4.0, 28.0, waterDepth);
+    let wavelengthCompression = mix(1.0, 1.58, shallow);
+    let offshoreCoordinate = -dot(worldXZ, WATER_INCOMING_DIRECTION);
+    let phaseCoordinate = mix(offshoreCoordinate, coastDistance, turn) +
+                          coastDistance * (wavelengthCompression - 1.0) * turn;
+    let tangent = vec2<f32>(-onshore.y, onshore.x);
+    let alongshore = dot(worldXZ, tangent);
+
+    let k0 = WATER_TAU / 27.0;
+    let k1 = WATER_TAU / 12.5;
+    let phase0 = k0 * phaseCoordinate + sqrt(WATER_GRAVITY * k0) *
+                 camera.waterMotion.x + 0.20 * sin(alongshore * 0.031);
+    let phase1 = k1 * phaseCoordinate + sqrt(WATER_GRAVITY * k1) *
+                 camera.waterMotion.x + 1.7 + 0.12 * sin(alongshore * 0.067);
+    let shoaling = mix(1.0, 1.42, shallow);
+    let amplitude0 = 0.62 * shoaling * wet;
+    let amplitude1 = 0.19 * mix(1.0, 1.20, shallow) * wet;
+    let height = sin(phase0) * amplitude0 + sin(phase1) * amplitude1;
+    return CoastalWave(height, blend, waveExposure);
+}
+
 fn waterSurfaceOffset(worldXZ : vec2<f32>) -> f32 {
     let strength = clamp(camera.waterParams.z, 0.0, 1.0);
     let shortWaves = textureSampleLevel(waterDisplacementTex,
@@ -120,7 +185,9 @@ fn waterSurfaceOffset(worldXZ : vec2<f32>) -> f32 {
         waterDisplacementSampler, worldXZ / 384.0, 1, 0.0).x;
     let longWaves = textureSampleLevel(waterDisplacementTex,
         waterDisplacementSampler, worldXZ / 1536.0, 2, 0.0).x;
-    return (shortWaves + mediumWaves + longWaves) *
+    let fftHeight = shortWaves + mediumWaves + longWaves;
+    let coast = coastalWaveField(worldXZ);
+    return mix(fftHeight * coast.exposure, coast.height, coast.blend) *
            WATER_SURFACE_AMPLITUDE * strength;
 }
 

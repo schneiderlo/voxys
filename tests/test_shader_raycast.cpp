@@ -191,6 +191,14 @@ TEST_F(RaycastShaderTest, HasRayDirFromPixelFunction) {
         << "Shader missing rayDirFromPixel function";
 }
 
+TEST_F(RaycastShaderTest, WaterIntersectionUsesCoastalRefractionField) {
+    ASSERT_FALSE(shaderSource_.empty());
+    EXPECT_NE(shaderSource_.find("waterCoastFieldTex"), std::string::npos)
+        << "Ray intersection must bind the shoreline direction field";
+    EXPECT_NE(shaderSource_.find("coastalWaveField"), std::string::npos)
+        << "Ray intersection must use the same refracted surface as shading";
+}
+
 TEST_F(RaycastShaderTest, RayGenerationUsesProjectionScaleAndViewRotation) {
     ASSERT_FALSE(shaderSource_.empty());
     EXPECT_NE(shaderSource_.find("camera.invProjParams.xy"), std::string::npos)

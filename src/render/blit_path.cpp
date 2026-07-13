@@ -66,6 +66,7 @@ BlitPath::BlitPath(BlitPath&& other) noexcept
     , lightmapView_(other.lightmapView_)
     , waterDisplacementView_(other.waterDisplacementView_)
     , waterFoamView_(other.waterFoamView_)
+    , waterCoastView_(other.waterCoastView_)
     , waterDisplacementSampler_(other.waterDisplacementSampler_)
     , terrainWidth_(other.terrainWidth_)
     , terrainHeight_(other.terrainHeight_)
@@ -105,6 +106,7 @@ BlitPath::BlitPath(BlitPath&& other) noexcept
     other.lightmapView_ = nullptr;
     other.waterDisplacementView_ = nullptr;
     other.waterFoamView_ = nullptr;
+    other.waterCoastView_ = nullptr;
     other.waterDisplacementSampler_ = nullptr;
     other.uniforms_ = nullptr;
 }
@@ -141,6 +143,7 @@ BlitPath& BlitPath::operator=(BlitPath&& other) noexcept {
         lightmapView_ = other.lightmapView_;
         waterDisplacementView_ = other.waterDisplacementView_;
         waterFoamView_ = other.waterFoamView_;
+        waterCoastView_ = other.waterCoastView_;
         waterDisplacementSampler_ = other.waterDisplacementSampler_;
         terrainWidth_ = other.terrainWidth_;
         terrainHeight_ = other.terrainHeight_;
@@ -179,6 +182,7 @@ BlitPath& BlitPath::operator=(BlitPath&& other) noexcept {
         other.lightmapView_ = nullptr;
         other.waterDisplacementView_ = nullptr;
         other.waterFoamView_ = nullptr;
+        other.waterCoastView_ = nullptr;
         other.waterDisplacementSampler_ = nullptr;
         other.uniforms_ = nullptr;
     }
@@ -272,6 +276,7 @@ void BlitPath::shutdown() {
     lightmapView_ = nullptr;
     waterDisplacementView_ = nullptr;
     waterFoamView_ = nullptr;
+    waterCoastView_ = nullptr;
     waterDisplacementSampler_ = nullptr;
     device_ = nullptr;
     queue_ = nullptr;
@@ -634,8 +639,9 @@ bool BlitPath::createBindGroupLayout() {
     // @group(0) @binding(11) var waterDisplacementTex : texture_2d_array<f32>;
     // @group(0) @binding(12) var waterDisplacementSampler : sampler;
     // @group(0) @binding(13) var waterFoamTex : texture_2d<f32>;
+    // @group(0) @binding(14) var waterCoastFieldTex : texture_2d<f32>;
 
-    std::array<gpu::BindGroupLayoutEntry, 14> entries = {
+    std::array<gpu::BindGroupLayoutEntry, 15> entries = {
         gpu::BindGroupLayoutEntry(0)
             .vertexVisible()
             .fragmentVisible()
@@ -677,6 +683,9 @@ bool BlitPath::createBindGroupLayout() {
             .fragmentVisible()
             .sampler(WGPUSamplerBindingType_Filtering),
         gpu::BindGroupLayoutEntry(13)
+            .fragmentVisible()
+            .texture(WGPUTextureSampleType_Float, WGPUTextureViewDimension_2D, false),
+        gpu::BindGroupLayoutEntry(14)
             .fragmentVisible()
             .texture(WGPUTextureSampleType_Float, WGPUTextureViewDimension_2D, false)
     };
@@ -794,7 +803,8 @@ bool BlitPath::createBindGroup() {
         LOG_ERROR("Cannot create bind group: no lightmap view set");
         return false;
     }
-    if (!waterDisplacementView_ || !waterFoamView_ || !waterDisplacementSampler_) {
+    if (!waterDisplacementView_ || !waterFoamView_ || !waterCoastView_ ||
+        !waterDisplacementSampler_) {
         LOG_ERROR("Cannot create bind group: no FFT water simulation");
         return false;
     }
@@ -805,7 +815,7 @@ bool BlitPath::createBindGroup() {
         bindGroup_ = nullptr;
     }
     
-    std::array<gpu::BindGroupEntry, 14> entries = {
+    std::array<gpu::BindGroupEntry, 15> entries = {
         gpu::BindGroupEntry(0).buffer(uniformBuffer_, 0, sizeof(CameraUniforms)),
         gpu::BindGroupEntry(1).textureView(depthView_),
         gpu::BindGroupEntry(2).textureView(shadowView_),
@@ -819,7 +829,8 @@ bool BlitPath::createBindGroup() {
         gpu::BindGroupEntry(10).sampler(noiseSampler_),
         gpu::BindGroupEntry(11).textureView(waterDisplacementView_),
         gpu::BindGroupEntry(12).sampler(waterDisplacementSampler_),
-        gpu::BindGroupEntry(13).textureView(waterFoamView_)
+        gpu::BindGroupEntry(13).textureView(waterFoamView_),
+        gpu::BindGroupEntry(14).textureView(waterCoastView_)
     };
     
     bindGroup_ = gpu::createBindGroup(device_, bindGroupLayout_, entries, "blit_bind_group");
@@ -870,9 +881,11 @@ void BlitPath::setLightmapTexture(WGPUTextureView lightmapView) {
 
 void BlitPath::setWaterSimulation(WGPUTextureView displacementView,
                                   WGPUTextureView foamView,
+                                  WGPUTextureView coastView,
                                   WGPUSampler sampler) {
     waterDisplacementView_ = displacementView;
     waterFoamView_ = foamView;
+    waterCoastView_ = coastView;
     waterDisplacementSampler_ = sampler;
     bindGroupDirty_ = true;
     LOG_DEBUG("Set FFT water displacement cascades");
