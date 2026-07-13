@@ -8,6 +8,7 @@
 #include <array>
 #include <bit>
 #include <cstring>
+#include <limits>
 #include <span>
 #include <vector>
 #include <glm/gtc/matrix_transform.hpp>
@@ -79,6 +80,136 @@ TEST(PrimitivePathTest, ActiveBodiesBypassInstanceCache) {
     EXPECT_TRUE(cache.entries.empty());
 }
 
+TEST(PrimitivePathTest, PlansOnlyProvenDifferentInstanceRanges) {
+    std::vector<uint64_t> previous(64);
+    for (size_t index = 0; index < previous.size(); ++index) {
+        previous[index] = index + 1;
+    }
+    auto current = previous;
+
+    const auto first = detail::planPrimitiveInstanceUpload(
+        current.size(), current, {}, false);
+    EXPECT_TRUE(first.fullUpload);
+    EXPECT_EQ(first.byteCount,
+              current.size() * sizeof(detail::GpuInstance));
+
+    const auto unchanged = detail::planPrimitiveInstanceUpload(
+        current.size(), current, previous, true);
+    EXPECT_FALSE(unchanged.fullUpload);
+    EXPECT_EQ(unchanged.rangeCount, 0u);
+    EXPECT_EQ(unchanged.byteCount, 0u);
+
+    current[7] = 1001;
+    current[8] = 1002;
+    current[40] = 0;
+    const auto sparse = detail::planPrimitiveInstanceUpload(
+        current.size(), current, previous, true);
+    ASSERT_FALSE(sparse.fullUpload);
+    ASSERT_EQ(sparse.rangeCount, 2u);
+    EXPECT_EQ(sparse.ranges[0].firstInstance, 7u);
+    EXPECT_EQ(sparse.ranges[0].instanceCount, 2u);
+    EXPECT_EQ(sparse.ranges[1].firstInstance, 40u);
+    EXPECT_EQ(sparse.ranges[1].instanceCount, 1u);
+    EXPECT_EQ(sparse.byteCount, 3u * sizeof(detail::GpuInstance));
+
+    std::vector<detail::GpuInstance> previousInstances(current.size());
+    for (size_t index = 0; index < previousInstances.size(); ++index) {
+        previousInstances[index].model[3][0] = static_cast<float>(index);
+    }
+    auto currentInstances = previousInstances;
+    currentInstances[7].model[3][0] = -0.0f;
+    currentInstances[8].model[3][0] = 123.0f;
+    currentInstances[40].color.x = 0.25f;
+    auto mirror = previousInstances;
+    for (size_t index = 0; index < sparse.rangeCount; ++index) {
+        const auto& range = sparse.ranges[index];
+        std::memcpy(mirror.data() + range.firstInstance,
+                    currentInstances.data() + range.firstInstance,
+                    range.instanceCount * sizeof(detail::GpuInstance));
+    }
+    EXPECT_EQ(std::memcmp(mirror.data(), currentInstances.data(),
+                          currentInstances.size()
+                              * sizeof(detail::GpuInstance)), 0);
+}
+
+TEST(PrimitivePathTest, FallsBackForDenseOrFragmentedChanges) {
+    std::vector<uint64_t> previous(64, 1);
+    auto dense = previous;
+    for (size_t index = 0; index < dense.size() / 2; ++index) {
+        dense[index] = 2;
+    }
+    const auto densePlan = detail::planPrimitiveInstanceUpload(
+        dense.size(), dense, previous, true);
+    EXPECT_TRUE(densePlan.fullUpload);
+    EXPECT_EQ(densePlan.byteCount,
+              dense.size() * sizeof(detail::GpuInstance));
+
+    std::vector<uint64_t> fragmentedPrevious(68, 1);
+    auto fragmented = fragmentedPrevious;
+    for (size_t index = 0; index < fragmented.size(); index += 4) {
+        fragmented[index] = 2;
+    }
+    const auto fragmentedPlan = detail::planPrimitiveInstanceUpload(
+        fragmented.size(), fragmented, fragmentedPrevious, true);
+    EXPECT_TRUE(fragmentedPlan.fullUpload);
+    EXPECT_EQ(fragmentedPlan.byteCount,
+              fragmented.size() * sizeof(detail::GpuInstance));
+}
+
+TEST(PrimitivePathTest, SleepingTokenCannotSkipAnActiveOverwrite) {
+    using Shape = physics::PhysicsWorld::ThrowableShape;
+    std::vector<physics::PhysicsWorld::DynamicBodySnapshot> bodies(
+        64, {Shape::Sphere, glm::vec3(1.0f, 2.0f, 3.0f), {},
+             glm::vec3(1.0f), false});
+    detail::PrimitiveInstanceCache cache;
+    const auto sleeping = detail::packPrimitiveInstances(bodies, cache);
+    ASSERT_EQ(sleeping.cacheTokens.size(), bodies.size());
+    ASSERT_NE(sleeping.cacheTokens.front(), 0u);
+
+    bodies.front().active = true;
+    bodies.front().position.x = 9.0f;
+    const auto active = detail::packPrimitiveInstances(bodies, cache);
+    ASSERT_EQ(active.cacheTokens.size(), bodies.size());
+    EXPECT_EQ(active.cacheTokens.front(), 0u);
+    const auto activePlan = detail::planPrimitiveInstanceUpload(
+        active.instances.size(), active.cacheTokens, sleeping.cacheTokens,
+        true);
+    ASSERT_FALSE(activePlan.fullUpload);
+    ASSERT_EQ(activePlan.rangeCount, 1u);
+    EXPECT_EQ(activePlan.ranges[0].firstInstance, 0u);
+
+    bodies.front().active = false;
+    bodies.front().position.x = 1.0f;
+    const auto sleepingAgain = detail::packPrimitiveInstances(bodies, cache);
+    EXPECT_EQ(sleepingAgain.cacheTokens.front(),
+              sleeping.cacheTokens.front());
+    const auto restoredPlan = detail::planPrimitiveInstanceUpload(
+        sleepingAgain.instances.size(), sleepingAgain.cacheTokens,
+        active.cacheTokens, true);
+    ASSERT_FALSE(restoredPlan.fullUpload);
+    ASSERT_EQ(restoredPlan.rangeCount, 1u);
+    EXPECT_EQ(restoredPlan.ranges[0].firstInstance, 0u);
+    EXPECT_EQ(restoredPlan.byteCount, sizeof(detail::GpuInstance));
+}
+
+TEST(PrimitivePathTest, TokenWrapForcesFullUploadBeforeReuse) {
+    using Shape = physics::PhysicsWorld::ThrowableShape;
+    std::vector<physics::PhysicsWorld::DynamicBodySnapshot> bodies(
+        64, {Shape::Sphere, glm::vec3(1.0f), {}, glm::vec3(1.0f), false});
+    detail::PrimitiveInstanceCache cache;
+    cache.nextToken = std::numeric_limits<uint64_t>::max();
+    const auto batch = detail::packPrimitiveInstances(bodies, cache);
+    ASSERT_TRUE(batch.forceFullUpload);
+    ASSERT_EQ(batch.cacheTokens.size(), batch.instances.size());
+
+    const auto plan = detail::planPrimitiveInstanceUpload(
+        batch.instances.size(), batch.cacheTokens, batch.cacheTokens, true,
+        batch.forceFullUpload);
+    EXPECT_TRUE(plan.fullUpload);
+    EXPECT_EQ(plan.byteCount,
+              batch.instances.size() * sizeof(detail::GpuInstance));
+}
+
 TEST(PrimitivePathGPUTest, CompilesPrimitivePipeline) {
     gpu::Context context;
     if (!context.initHeadless()) {
@@ -144,9 +275,25 @@ TEST(PrimitivePathGPUTest, CompilesPrimitivePipeline) {
             physics::PhysicsWorld::ThrowableShape::Cylinder,
             glm::vec3(2.0f, 0.0f, 0.0f), {}, glm::vec3(0.9f, 1.1f, 0.9f)}};
     path.setInstances(bodies);
+    EXPECT_TRUE(path.lastUploadStats().fullUpload);
+    EXPECT_EQ(path.lastUploadStats().bytesUploaded,
+              bodies.size() * sizeof(detail::GpuInstance));
     std::vector<physics::PhysicsWorld::DynamicBodySnapshot> manyBodies(
         130, bodies.front());
     path.setInstances(manyBodies);
+    EXPECT_TRUE(path.lastUploadStats().fullUpload);
+    EXPECT_EQ(path.lastUploadStats().bytesUploaded,
+              manyBodies.size() * sizeof(detail::GpuInstance));
+    path.setInstances(manyBodies);
+    EXPECT_FALSE(path.lastUploadStats().fullUpload);
+    EXPECT_EQ(path.lastUploadStats().writeCalls, 0u);
+    EXPECT_EQ(path.lastUploadStats().bytesUploaded, 0u);
+    manyBodies[64].position.x = -0.0f;
+    path.setInstances(manyBodies);
+    EXPECT_FALSE(path.lastUploadStats().fullUpload);
+    EXPECT_EQ(path.lastUploadStats().writeCalls, 1u);
+    EXPECT_EQ(path.lastUploadStats().bytesUploaded,
+              sizeof(detail::GpuInstance));
 
     WGPUCommandEncoderDescriptor encoderDesc{};
     auto encoder = wgpuDeviceCreateCommandEncoder(context.getDevice(), &encoderDesc);

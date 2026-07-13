@@ -90,6 +90,18 @@ cc_test(
 )
 
 cc_test(
+    name = "primitive_upload_benchmark",
+    srcs = ["primitive_upload_benchmark.cpp"],
+    copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
+    tags = ["manual"],
+    deps = [
+        "//src/gpu:gpu",
+        "//src/render:primitive_instance_packing",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_test(
     name = "physics_snapshot_benchmark",
     srcs = ["physics_snapshot_benchmark.cpp"],
     copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],

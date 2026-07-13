@@ -8,6 +8,7 @@
 #include <cstdint>
 #include <filesystem>
 #include <span>
+#include <vector>
 
 #include <glm/mat4x4.hpp>
 
@@ -25,6 +26,12 @@ struct PrimitivePathConfig {
     WGPUTextureFormat depthFormat = WGPUTextureFormat_Depth32Float;
 };
 
+struct PrimitiveUploadStats {
+    size_t bytesUploaded = 0;
+    uint32_t writeCalls = 0;
+    bool fullUpload = false;
+};
+
 class PrimitivePath {
 public:
     PrimitivePath() = default;
@@ -40,6 +47,9 @@ public:
 
     void setRayDepthTexture(WGPUTextureView view);
     void setInstances(std::span<const physics::PhysicsWorld::DynamicBodySnapshot> bodies);
+    [[nodiscard]] const PrimitiveUploadStats& lastUploadStats() const noexcept {
+        return lastUploadStats_;
+    }
 
     void render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
                 WGPUTextureView depthView, const glm::mat4& view,
@@ -76,8 +86,11 @@ private:
     WGPUTextureView boundRayDepthView_ = nullptr;
     std::array<DrawRange, static_cast<size_t>(physics::PhysicsWorld::ThrowableShape::Count)> ranges_{};
     detail::PrimitiveInstanceCache instanceCache_;
+    std::vector<uint64_t> uploadedInstanceCacheTokens_;
+    PrimitiveUploadStats lastUploadStats_;
     size_t instanceCapacity_ = 0;
     uint32_t instanceCount_ = 0;
+    bool instanceBufferContentsValid_ = false;
 };
 
 } // namespace voxy::render

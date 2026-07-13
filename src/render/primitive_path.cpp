@@ -209,8 +209,11 @@ void PrimitivePath::shutdown() {
     rayDepthView_ = nullptr;
     boundRayDepthView_ = nullptr;
     instanceCache_ = {};
+    uploadedInstanceCacheTokens_ = {};
+    lastUploadStats_ = {};
     instanceCapacity_ = 0;
     instanceCount_ = 0;
+    instanceBufferContentsValid_ = false;
 }
 
 bool PrimitivePath::createGeometry() {
@@ -252,6 +255,7 @@ bool PrimitivePath::createBuffers() {
     instanceBuffer_ = gpu::createBuffer(
         device_, gpu::BufferDesc::storage(instanceCapacity_ * sizeof(GpuInstance),
                                            true, "physics_primitive_instances"));
+    instanceBufferContentsValid_ = false;
     return uniformBuffer_ && instanceBuffer_;
 }
 
@@ -362,6 +366,7 @@ bool PrimitivePath::ensureInstanceCapacity(size_t requiredCapacity) {
     if (instanceBuffer_) wgpuBufferRelease(instanceBuffer_);
     instanceBuffer_ = newBuffer;
     instanceCapacity_ = newCapacity;
+    instanceBufferContentsValid_ = false;
     boundRayDepthView_ = nullptr;
     return true;
 }
@@ -385,6 +390,7 @@ void PrimitivePath::updateBindGroup() {
 
 void PrimitivePath::setInstances(
     std::span<const physics::PhysicsWorld::DynamicBodySnapshot> bodies) {
+    lastUploadStats_ = {};
     auto batch = detail::packPrimitiveInstances(bodies, instanceCache_);
     for (uint32_t shapeIndex = 0; shapeIndex < ranges_.size(); ++shapeIndex) {
         auto& range = ranges_[shapeIndex];
@@ -397,10 +403,32 @@ void PrimitivePath::setInstances(
         instanceCount_ = 0;
         return;
     }
-    if (!batch.instances.empty()) {
+
+    const auto uploadPlan = detail::planPrimitiveInstanceUpload(
+        batch.instances.size(), batch.cacheTokens,
+        uploadedInstanceCacheTokens_, instanceBufferContentsValid_,
+        batch.forceFullUpload);
+    if (uploadPlan.fullUpload) {
         gpu::writeBuffer(queue_, instanceBuffer_, 0,
                          std::as_bytes(std::span<const GpuInstance>(batch.instances)));
+        lastUploadStats_ = {uploadPlan.byteCount, 1, true};
+    } else {
+        for (size_t rangeIndex = 0;
+             rangeIndex < uploadPlan.rangeCount; ++rangeIndex) {
+            const auto& range = uploadPlan.ranges[rangeIndex];
+            const auto instances = std::span<const GpuInstance>(batch.instances)
+                                       .subspan(range.firstInstance,
+                                                range.instanceCount);
+            gpu::writeBuffer(queue_, instanceBuffer_,
+                             range.firstInstance * sizeof(GpuInstance),
+                             std::as_bytes(instances));
+        }
+        lastUploadStats_ = {
+            uploadPlan.byteCount,
+            static_cast<uint32_t>(uploadPlan.rangeCount), false};
     }
+    uploadedInstanceCacheTokens_ = std::move(batch.cacheTokens);
+    instanceBufferContentsValid_ = instanceBuffer_ != nullptr;
 }
 
 void PrimitivePath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,

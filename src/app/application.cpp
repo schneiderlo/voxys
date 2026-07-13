@@ -567,6 +567,10 @@ void Application::render() {
         stats_.primitiveCullEvaluated = cullStats.evaluated;
         stats_.primitiveCullingEnabled = cullStats.enabled;
         primitivePath_->setInstances(bodies);
+        const auto& uploadStats = primitivePath_->lastUploadStats();
+        stats_.primitiveInstanceUploadBytes = uploadStats.bytesUploaded;
+        stats_.primitiveInstanceUploadCalls = uploadStats.writeCalls;
+        stats_.primitiveInstanceFullUpload = uploadStats.fullUpload;
         WGPUTextureView objectDepth = getOrCreateDepthView();
         if (objectDepth) {
             primitivePath_->render(

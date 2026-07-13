@@ -191,6 +191,9 @@ struct ApplicationStats {
     float primitiveCullRejectionRatio = 0.0f;
     bool primitiveCullEvaluated = false;
     bool primitiveCullingEnabled = true;
+    uint64_t primitiveInstanceUploadBytes = 0;
+    uint32_t primitiveInstanceUploadCalls = 0;
+    bool primitiveInstanceFullUpload = false;
     
     // Controller stats
     ControllerMode activeController = ControllerMode::FreeFly;
