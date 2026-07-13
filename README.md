@@ -26,7 +26,7 @@ Physics sandbox controls:
 
 - Mouse wheel: select ball, cube, rectangle, capsule, or cylinder.
 - First left click: capture the pointer.
-- Later left clicks: throw the selected object. Hold to throw faster.
+- Later left clicks: throw the selected object. Hold for continuous fire.
 
 ## Terrain Assets
 

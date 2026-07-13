@@ -1642,29 +1642,23 @@ void Application::processThrowableInput(float deltaTime) {
     const bool firing = input_->isMouseCaptured()
                      && input_->isMouseButtonDown(MouseButton::Left);
     if (!firing) {
-        throwableHoldTime_ = 0.0f;
         throwableCooldown_ = 0.0f;
         return;
     }
 
     const float frameTime = std::clamp(deltaTime, 0.0f, 0.1f);
-    throwableHoldTime_ += frameTime;
     throwableCooldown_ -= frameTime;
-    if (throwableCooldown_ > 0.0f) return;
-
-    const auto shape = static_cast<physics::PhysicsWorld::ThrowableShape>(
-        selectedThrowable_);
-    const glm::vec3 direction = glm::normalize(camera_->forward());
-    const glm::vec3 origin = camera_->position() + direction * 2.2f;
-    if (physicsWorld_->throwBody(shape, origin, direction * 28.0f)) {
-        LOG_INFO("Threw {}", physics::PhysicsWorld::throwableShapeName(shape));
+    constexpr float throwInterval = 1.0f / 50.0f;
+    while (throwableCooldown_ <= 0.0f) {
+        const auto shape = static_cast<physics::PhysicsWorld::ThrowableShape>(
+            selectedThrowable_);
+        const glm::vec3 direction = glm::normalize(camera_->forward());
+        const glm::vec3 origin = camera_->position() + direction * 2.2f;
+        if (physicsWorld_->throwBody(shape, origin, direction * 28.0f)) {
+            LOG_INFO("Threw {}", physics::PhysicsWorld::throwableShapeName(shape));
+        }
+        throwableCooldown_ += throwInterval;
     }
-
-    // Ramp from roughly 3 throws/second to 18 throws/second over three seconds.
-    const float ramp = std::clamp(throwableHoldTime_ / 3.0f, 0.0f, 1.0f);
-    constexpr float slowInterval = 1.0f / 3.0f;
-    constexpr float fastInterval = 1.0f / 18.0f;
-    throwableCooldown_ = slowInterval + (fastInterval - slowInterval) * ramp;
 }
 
 void Application::handleKeyboardShortcuts() {
