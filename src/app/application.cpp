@@ -26,6 +26,7 @@
 #include "render/blit_path.hpp"
 #include "render/water_simulation.hpp"
 #include "render/primitive_path.hpp"
+#include "render/primitive_culling.hpp"
 #include "physics/physics_world.hpp"
 
 #include <chrono>
@@ -178,6 +179,7 @@ bool Application::init(const ApplicationConfig& config) {
     }
 
     config_ = config;
+    primitiveCullController_.reset();
 
     // Initialize teleport targets
     // Paste recorded positions here!
@@ -555,6 +557,15 @@ void Application::render() {
             physics::PhysicsWorld::throwableShapeDimensions(selectedShape) * previewScale});
         appendObjectCount(bodies, objectCount, previewPlane, camera_->right(),
                           camera_->up(), cameraRotation, halfWidth, halfHeight);
+        const auto cullStats = primitiveCullController_.cull(
+            bodies, camera_->projectionMatrix() * camera_->viewMatrix());
+        stats_.primitiveInputCount = static_cast<uint32_t>(cullStats.inputCount);
+        stats_.primitiveSubmittedCount =
+            static_cast<uint32_t>(cullStats.submittedCount);
+        stats_.primitiveCullRejectionRatio =
+            cullStats.measuredRejectionRatio;
+        stats_.primitiveCullEvaluated = cullStats.evaluated;
+        stats_.primitiveCullingEnabled = cullStats.enabled;
         primitivePath_->setInstances(bodies);
         WGPUTextureView objectDepth = getOrCreateDepthView();
         if (objectDepth) {

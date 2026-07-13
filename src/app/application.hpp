@@ -34,6 +34,7 @@
 
 #include "engine/platform/window.hpp"
 #include "engine/platform/input.hpp"
+#include "render/primitive_culling.hpp"
 
 namespace voxy {
 
@@ -185,6 +186,11 @@ struct ApplicationStats {
 
     // Render path stats
     RenderPath activeRenderPath = RenderPath::Raycast;
+    uint32_t primitiveInputCount = 0;
+    uint32_t primitiveSubmittedCount = 0;
+    float primitiveCullRejectionRatio = 0.0f;
+    bool primitiveCullEvaluated = false;
+    bool primitiveCullingEnabled = true;
     
     // Controller stats
     ControllerMode activeController = ControllerMode::FreeFly;
@@ -457,6 +463,7 @@ private:
     // Renderers
     std::unique_ptr<render::WaterSimulation> waterSimulation_;
     std::unique_ptr<render::PrimitivePath> primitivePath_;
+    render::PrimitiveCullController primitiveCullController_;
     std::unique_ptr<render::TrianglePath> trianglePath_;
     std::unique_ptr<render::RaycastPath> raycastPath_;
     std::unique_ptr<render::BlitPath> blitPath_;

@@ -3,6 +3,14 @@ package(default_visibility = ["//visibility:public"])
 load("//settings:configure_copts.bzl", "PROJECT_DEFAULT_COPTS")
 
 cc_library(
+    name = "frustum",
+    hdrs = ["frustum.hpp"],
+    copts = PROJECT_DEFAULT_COPTS,
+    includes = [".."],
+    deps = ["//third_party:glm"],
+)
+
+cc_library(
     name = "mip_pipeline",
     srcs = ["mip_pipeline.cpp"],
     hdrs = ["mip_pipeline.hpp"],
@@ -40,6 +48,19 @@ cc_library(
 )
 
 cc_library(
+    name = "primitive_culling",
+    srcs = ["primitive_culling.cpp"],
+    hdrs = ["primitive_culling.hpp"],
+    copts = PROJECT_DEFAULT_COPTS,
+    includes = [".."],
+    deps = [
+        ":frustum",
+        "//src/physics:physics",
+        "//third_party:glm",
+    ],
+)
+
+cc_library(
     name = "render",
     srcs = [
         "blit_path.cpp",
@@ -51,7 +72,6 @@ cc_library(
     hdrs = [
         "blit_path.hpp",
         "debug_visualizer.hpp",
-        "frustum.hpp",
         "raycast_path.hpp",
         "primitive_path.hpp",
         "triangle_path.hpp",
@@ -60,6 +80,8 @@ cc_library(
     includes = [".."],
     deps = [
         ":mip_pipeline",
+        ":frustum",
+        ":primitive_culling",
         ":primitive_instance_packing",
         ":water_simulation",
         "//src/camera:camera",

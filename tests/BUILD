@@ -24,6 +24,7 @@ TEST_SRCS = [
     "test_debug_visualizer.cpp",
     "test_mip_pipeline.cpp",
     "test_primitive_path.cpp",
+    "test_primitive_culling.cpp",
     "test_shadow_bake.cpp",
     "test_terrain_textures.cpp",
     "test_application.cpp",
@@ -106,6 +107,18 @@ cc_test(
     tags = ["manual"],
     deps = [
         "//src/physics:physics",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "primitive_culling_benchmark",
+    srcs = ["primitive_culling_benchmark.cpp"],
+    copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
+    tags = ["manual"],
+    deps = [
+        "//src/render:primitive_culling",
+        "//src/render:primitive_instance_packing",
         "@googletest//:gtest_main",
     ],
 )

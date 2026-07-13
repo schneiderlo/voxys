@@ -147,6 +147,7 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/render/water_simulation.cpp")
 endif()
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/render/primitive_path.cpp")
     list(APPEND RENDER_SOURCES
+        render/primitive_culling.cpp
         render/primitive_instance_packing.cpp
         render/primitive_path.cpp
     )
