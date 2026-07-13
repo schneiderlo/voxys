@@ -30,6 +30,7 @@
 
 #include <chrono>
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <filesystem>
 #include <glm/gtc/quaternion.hpp>
@@ -68,6 +69,58 @@ namespace voxy {
 // World-space direction toward the sun. Single source of truth: the per-frame
 // light uniform and the baked shadow height field must agree.
 constexpr glm::vec3 kSunDirection = {0.3f, 0.8f, 0.4f};
+
+void appendObjectCount(
+    std::vector<physics::PhysicsWorld::DynamicBodySnapshot>& instances,
+    size_t objectCount, const glm::vec3& planeCenter,
+    const glm::vec3& cameraRight, const glm::vec3& cameraUp,
+    const glm::quat& cameraRotation, float halfWidth, float halfHeight) {
+    // Segment bits: top, upper-right, lower-right, bottom,
+    // lower-left, upper-left, middle.
+    constexpr std::array<uint8_t, 10> digitMasks = {
+        0x3f, 0x06, 0x5b, 0x4f, 0x66,
+        0x6d, 0x7d, 0x07, 0x7f, 0x6f,
+    };
+
+    const std::string digits = std::to_string(objectCount);
+    const float screenScale = std::min(halfWidth, halfHeight);
+    const float digitHeight = screenScale * 0.18f;
+    const float digitWidth = digitHeight * 0.52f;
+    const float thickness = digitHeight * 0.11f;
+    const float verticalLength = digitHeight * 0.39f;
+    const float gap = thickness * 1.4f;
+    const float advance = digitWidth + gap;
+    const float totalWidth = digitWidth * static_cast<float>(digits.size())
+                           + gap * static_cast<float>(digits.size() - 1);
+    const float leftEdge = halfWidth * 0.90f - totalWidth;
+    const float centerY = -halfHeight * 0.38f;
+
+    const auto addSegment = [&](float centerX, float segmentY,
+                                float width, float height) {
+        instances.push_back({
+            physics::PhysicsWorld::ThrowableShape::Cube,
+            planeCenter + cameraRight * centerX + cameraUp * segmentY,
+            cameraRotation,
+            glm::vec3(width, height, thickness * 0.35f)});
+    };
+
+    for (size_t digitIndex = 0; digitIndex < digits.size(); ++digitIndex) {
+        const uint8_t mask = digitMasks[static_cast<size_t>(digits[digitIndex] - '0')];
+        const float centerX = leftEdge + digitWidth * 0.5f
+                            + static_cast<float>(digitIndex) * advance;
+        const float xSide = digitWidth * 0.5f;
+        const float ySide = digitHeight * 0.25f;
+        const float yEdge = digitHeight * 0.5f;
+
+        if (mask & (1u << 0u)) addSegment(centerX, centerY + yEdge, digitWidth, thickness);
+        if (mask & (1u << 1u)) addSegment(centerX + xSide, centerY + ySide, thickness, verticalLength);
+        if (mask & (1u << 2u)) addSegment(centerX + xSide, centerY - ySide, thickness, verticalLength);
+        if (mask & (1u << 3u)) addSegment(centerX, centerY - yEdge, digitWidth, thickness);
+        if (mask & (1u << 4u)) addSegment(centerX - xSide, centerY - ySide, thickness, verticalLength);
+        if (mask & (1u << 5u)) addSegment(centerX - xSide, centerY + ySide, thickness, verticalLength);
+        if (mask & (1u << 6u)) addSegment(centerX, centerY, digitWidth, thickness);
+    }
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Utility Functions
@@ -475,17 +528,31 @@ void Application::render() {
 
     if (primitivePath_ && primitivePath_->isInitialized() && physicsWorld_) {
         auto bodies = physicsWorld_->dynamicBodies();
+        const size_t objectCount = bodies.size();
         const auto selectedShape =
             static_cast<physics::PhysicsWorld::ThrowableShape>(selectedThrowable_);
         const float previewAngle = static_cast<float>(
             std::fmod(stats_.totalTimeSeconds * 1.8, 2.0 * std::numbers::pi));
+        const float previewDistance = 1.35f;
+        const float viewportWidth = static_cast<float>(
+            std::max(gpuContext_->getSwapchainWidth(), 1u));
+        const float viewportHeight = static_cast<float>(
+            std::max(gpuContext_->getSwapchainHeight(), 1u));
+        const float halfHeight = std::tan(camera_->fovY() * 0.5f) * previewDistance;
+        const float halfWidth = halfHeight * viewportWidth / viewportHeight;
+        const float previewScale = std::min(halfWidth, halfHeight) * 0.22f;
+        const glm::vec3 previewPlane =
+            camera_->position() + camera_->forward() * previewDistance;
+        const glm::quat cameraRotation = glm::quat_cast(glm::mat3(
+            camera_->right(), camera_->up(), camera_->forward()));
         bodies.push_back({
             selectedShape,
-            camera_->position() + camera_->forward() * 1.65f
-                                + camera_->right() * 0.58f
-                                - camera_->up() * 0.38f,
+            previewPlane + camera_->right() * (halfWidth * 0.76f)
+                         - camera_->up() * (halfHeight * 0.72f),
             glm::angleAxis(previewAngle, glm::normalize(glm::vec3(0.3f, 1.0f, 0.2f))),
-            physics::PhysicsWorld::throwableShapeDimensions(selectedShape) * 0.42f});
+            physics::PhysicsWorld::throwableShapeDimensions(selectedShape) * previewScale});
+        appendObjectCount(bodies, objectCount, previewPlane, camera_->right(),
+                          camera_->up(), cameraRotation, halfWidth, halfHeight);
         primitivePath_->setInstances(bodies);
         WGPUTextureView objectDepth = getOrCreateDepthView();
         if (objectDepth) {
