@@ -31,12 +31,14 @@
 | [Shader Specifications](specs/shader-specifications.md) | WGSL shader source for all rendering stages, shared structures, bindings | Draft |
 | [Virtual File System](specs/virtual-filesystem.md) | Cross-platform file abstraction, mount points, Native/Emscripten backends, async support | Draft |
 | [SVO Architecture](specs/svo-architecture.md) | Sparse Voxel Octree data structures, memory layout, traversal algorithms, and shader logic | Draft |
+| [GPU Physics and Distributed World Plan](specs/gpu-physics-distributed-world-implementation-plan.md) | Self-contained architecture and staged implementation plan for Box3D-inspired GPU physics, determinism, direct rendering, replay, server authority, rollback, procedural chunks, and distributed physics islands | Proposed |
 
 ## Implementation Plan
 
 | Document | Description |
 |----------|-------------|
 | [**IMPLEMENTATION.md**](IMPLEMENTATION.md) | Detailed task checklist organized by phase, with dependencies and testing checkpoints |
+| [**GPU Physics and Distributed World Implementation Plan**](specs/gpu-physics-distributed-world-implementation-plan.md) | Detailed implementation source of truth for replacing the Jolt-centered path incrementally and preparing authoritative browser multiplayer |
 
 ---
 
@@ -202,5 +204,4 @@ TBD
 
 ---
 
-*Last Updated: 2024*
-
+*Last Updated: 2026-07-13*
