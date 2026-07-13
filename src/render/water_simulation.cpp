@@ -22,6 +22,7 @@ namespace {
 constexpr uint32_t kElementCount = WaterSimulation::RESOLUTION *
                                    WaterSimulation::RESOLUTION *
                                    WaterSimulation::CASCADE_COUNT;
+constexpr size_t kCpuWaveModeCount = 24;
 
 // Matches WaveData in water_fft.wgsl. Two complex displacement spectra plus
 // height are padded to two vec4s for naturally aligned storage-buffer access.
@@ -64,6 +65,11 @@ float smoothBand(float wavelength, glm::vec2 band) {
     const float lower = smooth(band.x * 0.72f, band.x, wavelength);
     const float upper = 1.0f - smooth(band.y, band.y * 1.25f, wavelength);
     return lower * upper;
+}
+
+glm::vec2 complexMultiply(glm::vec2 a, glm::vec2 b) {
+    return {a.x * b.x - a.y * b.y,
+            a.x * b.y + a.y * b.x};
 }
 
 WGPUComputePipeline createComputePipeline(WGPUDevice device,
@@ -352,6 +358,61 @@ bool WaterSimulation::createSpectrum() {
         }
     }
 
+    struct CpuModeCandidate {
+        float energy = 0.0f;
+        CpuWaveMode mode;
+    };
+    std::vector<CpuModeCandidate> candidates;
+    candidates.reserve(kElementCount / 2);
+    for (uint32_t cascade = 0; cascade < CASCADE_COUNT; ++cascade) {
+        const uint32_t base = cascade * RESOLUTION * RESOLUTION;
+        const float deltaK = 2.0f * std::numbers::pi_v<float> /
+                             kPatchLengths[cascade];
+        for (uint32_t y = 0; y < RESOLUTION; ++y) {
+            const int32_t sy = y <= RESOLUTION / 2 ? static_cast<int32_t>(y)
+                : static_cast<int32_t>(y) - static_cast<int32_t>(RESOLUTION);
+            for (uint32_t x = 0; x < RESOLUTION; ++x) {
+                const uint32_t mirrorX = (RESOLUTION - x) % RESOLUTION;
+                const uint32_t mirrorY = (RESOLUTION - y) % RESOLUTION;
+                const uint32_t index = base + y * RESOLUTION + x;
+                const uint32_t mirror = base + mirrorY * RESOLUTION + mirrorX;
+                if (index >= mirror) continue;
+
+                const int32_t sx = x <= RESOLUTION / 2 ? static_cast<int32_t>(x)
+                    : static_cast<int32_t>(x) - static_cast<int32_t>(RESOLUTION);
+                const glm::vec2 waveVector =
+                    glm::vec2(static_cast<float>(sx), static_cast<float>(sy)) * deltaK;
+                const float waveNumber = glm::length(waveVector);
+                if (waveNumber < 1e-5f) continue;
+
+                const float energy = std::norm(h0[index]) + std::norm(h0[mirror]);
+                candidates.push_back({
+                    energy,
+                    CpuWaveMode{
+                        waveVector,
+                        glm::vec2(-0.5f * kPatchLengths[cascade] /
+                                  static_cast<float>(RESOLUTION)),
+                        glm::vec2(h0[index].real(), h0[index].imag()),
+                        glm::vec2(std::conj(h0[mirror]).real(),
+                                  std::conj(h0[mirror]).imag()),
+                        std::sqrt(gravity * waveNumber)}});
+            }
+        }
+    }
+    std::sort(candidates.begin(), candidates.end(),
+              [](const CpuModeCandidate& a, const CpuModeCandidate& b) {
+                  return a.energy > b.energy;
+              });
+    const size_t modeCount = std::min(kCpuWaveModeCount, candidates.size());
+    cpuWaveModes_.clear();
+    cpuWaveModes_.reserve(modeCount);
+    for (size_t index = 0; index < modeCount; ++index) {
+        cpuWaveModes_.push_back(candidates[index].mode);
+    }
+    cpuEvolvedHeight_.resize(modeCount);
+    cpuEvolvedVelocity_.resize(modeCount);
+    cpuCacheTime_ = -1.0f;
+
     std::vector<WaveData> packed(kElementCount);
     for (uint32_t cascade = 0; cascade < CASCADE_COUNT; ++cascade) {
         const uint32_t base = cascade * RESOLUTION * RESOLUTION;
@@ -375,6 +436,59 @@ bool WaterSimulation::createSpectrum() {
     initialSpectrumBuffer_ = gpu::createBufferWithData(
         device_, queue_, desc, std::span<const WaveData>(packed));
     return initialSpectrumBuffer_ != nullptr;
+}
+
+void WaterSimulation::updateCpuWaveCache(float timeSeconds) const {
+    if (cpuCacheTime_ == timeSeconds) return;
+    cpuCacheTime_ = timeSeconds;
+    for (size_t index = 0; index < cpuWaveModes_.size(); ++index) {
+        const CpuWaveMode& mode = cpuWaveModes_[index];
+        const float angle = -mode.angularFrequency * timeSeconds;
+        const glm::vec2 positive(std::cos(angle), std::sin(angle));
+        const glm::vec2 negative(positive.x, -positive.y);
+        const glm::vec2 positivePart = complexMultiply(mode.initialPositive, positive);
+        const glm::vec2 negativePart = complexMultiply(mode.conjugateNegative, negative);
+        cpuEvolvedHeight_[index] = positivePart + negativePart;
+        cpuEvolvedVelocity_[index] = {
+            mode.angularFrequency * (positivePart.y - negativePart.y),
+            mode.angularFrequency * (-positivePart.x + negativePart.x)};
+    }
+}
+
+WaterSimulation::SurfaceSample WaterSimulation::sampleSurface(
+    glm::vec2 worldPosition, float timeSeconds, float strength) const {
+    SurfaceSample sample;
+    if (cpuWaveModes_.empty() || !std::isfinite(timeSeconds)) return sample;
+    updateCpuWaveCache(timeSeconds);
+
+    for (size_t index = 0; index < cpuWaveModes_.size(); ++index) {
+        const CpuWaveMode& mode = cpuWaveModes_[index];
+        const float spatialAngle = glm::dot(
+            mode.waveVector, worldPosition + mode.sampleOffset);
+        const glm::vec2 spatialPhase(std::cos(spatialAngle), std::sin(spatialAngle));
+        const glm::vec2 spatialHeight =
+            complexMultiply(cpuEvolvedHeight_[index], spatialPhase);
+        const glm::vec2 spatialVelocity =
+            complexMultiply(cpuEvolvedVelocity_[index], spatialPhase);
+        const float waveNumber = glm::length(mode.waveVector);
+
+        sample.heightOffset += 2.0f * spatialHeight.x;
+        sample.slope -= 2.0f * spatialHeight.y * mode.waveVector;
+        sample.velocity.y += 2.0f * spatialVelocity.x;
+        if (waveNumber > 1e-5f) {
+            const glm::vec2 horizontal = mode.waveVector / waveNumber
+                                       * (2.0f * mode.angularFrequency
+                                          * spatialHeight.x);
+            sample.velocity.x += horizontal.x;
+            sample.velocity.z += horizontal.y;
+        }
+    }
+
+    const float amplitude = std::clamp(strength, 0.0f, 1.0f);
+    sample.heightOffset *= amplitude;
+    sample.slope *= amplitude;
+    sample.velocity *= amplitude;
+    return sample;
 }
 
 bool WaterSimulation::createBuffers() {
@@ -682,6 +796,10 @@ void WaterSimulation::shutdown() {
     foamUniformBuffer_ = nullptr;
     foamFrame_ = 0;
     lastUpdateTime_ = 0.0f;
+    cpuWaveModes_.clear();
+    cpuEvolvedHeight_.clear();
+    cpuEvolvedVelocity_.clear();
+    cpuCacheTime_ = -1.0f;
     fftBindGroups_.fill(nullptr);
     evolveBindGroup_ = nullptr;
     finalizePipeline_ = nullptr;

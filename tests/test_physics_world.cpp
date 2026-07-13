@@ -2,6 +2,7 @@
 
 #include "physics/physics_world.hpp"
 
+#include <cmath>
 #include <cstdint>
 #include <vector>
 
@@ -146,6 +147,25 @@ TEST_F(PhysicsWorldTest, WaterAppliesBuoyancyAndDrag) {
     ASSERT_EQ(bodies.size(), 1u);
     EXPECT_GT(bodies.front().position.y, 3.5f);
     EXPECT_LT(bodies.front().position.x, 6.0f);
+}
+
+TEST_F(PhysicsWorldTest, SamplesAnimatedWaterForBuoyancy) {
+    uint32_t sampleCount = 0;
+    world.setWaterPlane(5.0f);
+    world.setWaterSurfaceSampler(
+        [&sampleCount](glm::vec2 position, float timeSeconds) {
+            ++sampleCount;
+            return PhysicsWorld::WaterSurfaceSample{
+                std::sin(position.x * 0.1f + timeSeconds),
+                glm::vec2(0.1f, -0.05f),
+                glm::vec3(0.2f, 0.4f, 0.0f)};
+        });
+    ASSERT_TRUE(world.throwBody(
+        PhysicsWorld::ThrowableShape::Sphere,
+        glm::vec3(0.0f, 4.5f, 0.0f), glm::vec3(0.0f)));
+
+    world.update(1.0f / 60.0f);
+    EXPECT_GT(sampleCount, 0u);
 }
 
 } // namespace

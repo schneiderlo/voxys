@@ -7,9 +7,11 @@
 #pragma once
 
 #include <glm/vec3.hpp>
+#include <glm/vec2.hpp>
 #include <glm/gtc/quaternion.hpp>
 
 #include <cstdint>
+#include <functional>
 #include <memory>
 #include <span>
 #include <vector>
@@ -36,6 +38,15 @@ public:
         glm::quat rotation{1.0f, 0.0f, 0.0f, 0.0f};
         glm::vec3 dimensions{1.0f};
     };
+
+    struct WaterSurfaceSample {
+        float heightOffset = 0.0f;
+        glm::vec2 slope{0.0f};
+        glm::vec3 velocity{0.0f};
+    };
+
+    using WaterSurfaceSampler =
+        std::function<WaterSurfaceSample(glm::vec2 position, float timeSeconds)>;
 
     struct CharacterSettings {
         float radius = 0.4f;
@@ -75,6 +86,7 @@ public:
 
     /// Configure the horizontal water surface used for rigid-body buoyancy.
     void setWaterPlane(float height, bool enabled = true);
+    void setWaterSurfaceSampler(WaterSurfaceSampler sampler);
 
     [[nodiscard]] CharacterHandle createCharacter(
         const glm::vec3& feetPosition,

@@ -4,6 +4,10 @@
 #include <cstdint>
 #include <filesystem>
 #include <span>
+#include <vector>
+
+#include <glm/vec2.hpp>
+#include <glm/vec3.hpp>
 
 #if defined(VOXY_WASM)
     #include <webgpu/webgpu.h>
@@ -32,6 +36,12 @@ public:
     WaterSimulation(const WaterSimulation&) = delete;
     WaterSimulation& operator=(const WaterSimulation&) = delete;
 
+    struct SurfaceSample {
+        float heightOffset = 0.0f;
+        glm::vec2 slope{0.0f};
+        glm::vec3 velocity{0.0f};
+    };
+
     [[nodiscard]] bool init(WGPUDevice device, WGPUQueue queue,
                             const std::filesystem::path& shaderDirectory,
                             std::span<const uint16_t> terrainHeights = {},
@@ -53,6 +63,11 @@ public:
     [[nodiscard]] WGPUTextureView getCoastView() const noexcept { return coastView_; }
     [[nodiscard]] WGPUSampler getSampler() const noexcept { return sampler_; }
 
+    /// Approximate the rendered FFT surface from its strongest spectral modes.
+    [[nodiscard]] SurfaceSample sampleSurface(glm::vec2 worldPosition,
+                                              float timeSeconds,
+                                              float strength = 1.0f) const;
+
 private:
     struct SimParams {
         float time = 0.0f;
@@ -61,6 +76,14 @@ private:
         uint32_t size = RESOLUTION;
     };
     static_assert(sizeof(SimParams) == 16);
+
+    struct CpuWaveMode {
+        glm::vec2 waveVector{0.0f};
+        glm::vec2 sampleOffset{0.0f};
+        glm::vec2 initialPositive{0.0f};
+        glm::vec2 conjugateNegative{0.0f};
+        float angularFrequency = 0.0f;
+    };
 
     bool createSpectrum();
     bool createBuffers();
@@ -72,6 +95,7 @@ private:
     bool createPipelines(const std::filesystem::path& shaderDirectory);
     bool createBindGroups();
     bool createFoamResources(const std::filesystem::path& shaderDirectory);
+    void updateCpuWaveCache(float timeSeconds) const;
 
     WGPUDevice device_ = nullptr;
     WGPUQueue queue_ = nullptr;
@@ -99,6 +123,11 @@ private:
     std::array<WGPUBindGroup, 2> foamBindGroups_{};
     uint32_t foamFrame_ = 0;
     float lastUpdateTime_ = 0.0f;
+
+    std::vector<CpuWaveMode> cpuWaveModes_;
+    mutable std::vector<glm::vec2> cpuEvolvedHeight_;
+    mutable std::vector<glm::vec2> cpuEvolvedVelocity_;
+    mutable float cpuCacheTime_ = -1.0f;
 
     WGPUShaderModule fftShader_ = nullptr;
     WGPUBindGroupLayout fftBindGroupLayout_ = nullptr;

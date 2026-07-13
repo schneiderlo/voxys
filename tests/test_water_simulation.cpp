@@ -4,6 +4,7 @@
 #include "gpu/resources.hpp"
 #include "render/water_simulation.hpp"
 
+#include <cmath>
 #include <filesystem>
 #include <fstream>
 #include <sstream>
@@ -80,6 +81,19 @@ TEST(WaterSimulationGPUTest, BuildsAndDispatchesCompleteOceanPipeline) {
     ASSERT_NE(simulation.getOutputView(), nullptr);
     ASSERT_NE(simulation.getFoamView(), nullptr);
     ASSERT_NE(simulation.getCoastView(), nullptr);
+
+    const auto still = simulation.sampleSurface(glm::vec2(14.0f, -27.0f),
+                                                0.0f, 0.0f);
+    EXPECT_FLOAT_EQ(still.heightOffset, 0.0f);
+    EXPECT_EQ(still.slope, glm::vec2(0.0f));
+    EXPECT_EQ(still.velocity, glm::vec3(0.0f));
+    const auto first = simulation.sampleSurface(glm::vec2(14.0f, -27.0f),
+                                                0.0f, 0.08f);
+    const auto later = simulation.sampleSurface(glm::vec2(14.0f, -27.0f),
+                                                1.25f, 0.08f);
+    EXPECT_TRUE(std::isfinite(first.heightOffset));
+    EXPECT_TRUE(std::isfinite(later.heightOffset));
+    EXPECT_NE(first.heightOffset, later.heightOffset);
 
     // Compile both consumers as part of the isolated ocean test. Full pipeline
     // binding is exercised by the native screenshot run; this catches WGSL

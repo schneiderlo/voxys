@@ -381,6 +381,7 @@ void Application::shutdown() {
         trianglePath_.reset();
     }
     if (waterSimulation_) {
+        if (physicsWorld_) physicsWorld_->setWaterSurfaceSampler({});
         waterSimulation_->shutdown();
         waterSimulation_.reset();
     }
@@ -1174,6 +1175,17 @@ bool Application::initRenderers() {
                                 config_.cellScale, config_.waterHeight)) {
         LOG_ERROR("Failed to initialize FFT water simulation");
         return false;
+    }
+    if (physicsWorld_) {
+        const float waveStrength = config_.waterWaveStrength;
+        physicsWorld_->setWaterSurfaceSampler(
+            [simulation = waterSimulation_.get(), waveStrength](
+                glm::vec2 position, float timeSeconds) {
+                const auto sample = simulation->sampleSurface(
+                    position, timeSeconds, waveStrength);
+                return physics::PhysicsWorld::WaterSurfaceSample{
+                    sample.heightOffset, sample.slope, sample.velocity};
+            });
     }
 
     // Initialize triangle path

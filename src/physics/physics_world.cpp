@@ -408,7 +408,9 @@ public:
     std::vector<std::unique_ptr<CharacterSlot>> characters;
     std::vector<DynamicSlot> dynamicBodies;
     float waterHeight = 0.0f;
+    float waterTime = 0.0f;
     bool waterEnabled = false;
+    WaterSurfaceSampler waterSurfaceSampler;
     bool runtimeRetained = false;
 };
 
@@ -471,6 +473,10 @@ void PhysicsWorld::setWaterPlane(float height, bool enabled) {
     if (!impl_) return;
     impl_->waterHeight = height;
     impl_->waterEnabled = enabled && std::isfinite(height);
+}
+
+void PhysicsWorld::setWaterSurfaceSampler(WaterSurfaceSampler sampler) {
+    if (impl_) impl_->waterSurfaceSampler = std::move(sampler);
 }
 
 PhysicsWorld::CharacterHandle PhysicsWorld::createCharacter(
@@ -684,14 +690,36 @@ void PhysicsWorld::update(float deltaTime) {
     const float stepTime = frameTime / static_cast<float>(substeps);
     for (int step = 0; step < substeps; ++step) {
         if (impl_->waterEnabled) {
+            impl_->waterTime = std::fmod(impl_->waterTime + stepTime, 4096.0f);
             auto& bodyInterface = impl_->system->GetBodyInterface();
-            const JPH::RVec3 surface = toJoltPosition(
-                glm::vec3(0.0f, impl_->waterHeight, 0.0f));
             for (const Impl::DynamicSlot& slot : impl_->dynamicBodies) {
+                const JPH::RVec3 bodyPosition = bodyInterface.GetPosition(slot.body);
+                WaterSurfaceSample water;
+                // Far above or below the interface, a local wave sample cannot
+                // affect submerged volume. Avoid spectral work for those bodies.
+                if (impl_->waterSurfaceSampler &&
+                    std::abs(bodyPosition.GetY() - impl_->waterHeight) < 8.0f) {
+                    water = impl_->waterSurfaceSampler(
+                        glm::vec2(bodyPosition.GetX(), bodyPosition.GetZ()),
+                        impl_->waterTime);
+                }
+                if (!std::isfinite(water.heightOffset) ||
+                    !std::isfinite(water.slope.x) || !std::isfinite(water.slope.y) ||
+                    !std::isfinite(water.velocity.x) ||
+                    !std::isfinite(water.velocity.y) ||
+                    !std::isfinite(water.velocity.z)) {
+                    water = {};
+                }
+                const glm::vec3 normal = glm::normalize(
+                    glm::vec3(-water.slope.x, 1.0f, -water.slope.y));
+                const JPH::RVec3 surface(
+                    bodyPosition.GetX(), impl_->waterHeight + water.heightOffset,
+                    bodyPosition.GetZ());
                 bodyInterface.ApplyBuoyancyImpulse(
-                    slot.body, surface, JPH::Vec3::sAxisY(),
+                    slot.body, surface, JPH::Vec3(normal.x, normal.y, normal.z),
                     throwableBuoyancy(slot.shape), 0.55f, 0.08f,
-                    JPH::Vec3::sZero(), impl_->system->GetGravity(), stepTime);
+                    JPH::Vec3(water.velocity.x, water.velocity.y, water.velocity.z),
+                    impl_->system->GetGravity(), stepTime);
             }
         }
         impl_->system->Update(stepTime, 1, impl_->tempAllocator.get(),
