@@ -20,6 +20,7 @@ TEST_SRCS = [
     "test_triangle_path.cpp",
     "test_raycast_path.cpp",
     "test_blit_path.cpp",
+    "test_benchmark.cpp",
     "test_debug_visualizer.cpp",
     "test_mip_pipeline.cpp",
     "test_primitive_path.cpp",

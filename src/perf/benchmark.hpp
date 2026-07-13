@@ -42,6 +42,9 @@ struct BenchmarkResult {
     uint32_t frameCount = 0;
     double totalTimeMs = 0.0;
     double avgFrameMs = 0.0;
+    double p50FrameMs = 0.0;
+    double p95FrameMs = 0.0;
+    double p99FrameMs = 0.0;
     double minFrameMs = 0.0;
     double maxFrameMs = 0.0;
     double fps = 0.0;
@@ -122,8 +125,8 @@ private:
     double scenarioSumUpdate_ = 0.0;
     double scenarioSumRender_ = 0.0;
     double scenarioSumPresent_ = 0.0;
+    std::vector<double> scenarioFrameTimes_;
 };
 
 } // namespace voxy::perf
-
 

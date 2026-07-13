@@ -5,8 +5,23 @@
 #include "perf/benchmark.hpp"
 #include "core/log.hpp"
 
-#include <limits>
+#include <algorithm>
 #include <chrono>
+#include <cmath>
+#include <limits>
+
+namespace {
+
+double observedPercentile(const std::vector<double>& sortedSamples,
+                          double percentile) {
+    if (sortedSamples.empty()) return 0.0;
+    const auto rank = static_cast<size_t>(
+        std::ceil(percentile * static_cast<double>(sortedSamples.size())));
+    return sortedSamples[std::min(std::max<size_t>(rank, 1u) - 1u,
+                                  sortedSamples.size() - 1u)];
+}
+
+} // namespace
 
 namespace voxy::perf {
 
@@ -71,6 +86,7 @@ bool BenchmarkRunner::onFrame(const FrameStats& frameStats) {
     scenarioSumUpdate_ += frameStats.updateMs;
     scenarioSumRender_ += frameStats.renderMs;
     scenarioSumPresent_ += frameStats.presentMs;
+    scenarioFrameTimes_.push_back(frameStats.totalMs);
     
     if (currentFrame_ > 0) {  // Skip first frame for min/max (warmup)
         scenarioMinFrame_ = std::min(scenarioMinFrame_, frameStats.totalMs);
@@ -125,6 +141,8 @@ void BenchmarkRunner::beginScenario() {
     scenarioSumUpdate_ = 0.0;
     scenarioSumRender_ = 0.0;
     scenarioSumPresent_ = 0.0;
+    scenarioFrameTimes_.clear();
+    scenarioFrameTimes_.reserve(scenario.frameCount);
 }
 
 void BenchmarkRunner::endScenario() {
@@ -139,6 +157,15 @@ void BenchmarkRunner::endScenario() {
     result.frameCount = scenario.frameCount;
     result.totalTimeMs = totalTime;
     result.avgFrameMs = scenarioSumFrame_ / static_cast<double>(scenario.frameCount);
+    // The first frame warms newly selected camera state and is excluded from
+    // latency distributions, matching the existing min/max convention.
+    if (scenarioFrameTimes_.size() > 1u) {
+        scenarioFrameTimes_.erase(scenarioFrameTimes_.begin());
+    }
+    std::sort(scenarioFrameTimes_.begin(), scenarioFrameTimes_.end());
+    result.p50FrameMs = observedPercentile(scenarioFrameTimes_, 0.50);
+    result.p95FrameMs = observedPercentile(scenarioFrameTimes_, 0.95);
+    result.p99FrameMs = observedPercentile(scenarioFrameTimes_, 0.99);
     result.minFrameMs = scenarioMinFrame_;
     result.maxFrameMs = scenarioMaxFrame_;
     result.fps = (result.avgFrameMs > 0.0) ? (1000.0 / result.avgFrameMs) : 0.0;
@@ -148,8 +175,8 @@ void BenchmarkRunner::endScenario() {
     
     results_.push_back(result);
     
-    LOG_INFO("  Complete: {:.1f} FPS (avg {:.2f} ms, min {:.2f} ms, max {:.2f} ms)",
-             result.fps, result.avgFrameMs, result.minFrameMs, result.maxFrameMs);
+    LOG_INFO("  Complete: {:.1f} FPS (p50 {:.2f} ms, p95 {:.2f} ms, p99 {:.2f} ms)",
+             result.fps, result.p50FrameMs, result.p95FrameMs, result.p99FrameMs);
 }
 
 const std::string& BenchmarkRunner::getCurrentScenarioName() const {
@@ -173,6 +200,8 @@ void BenchmarkRunner::printResults() const {
         LOG_INFO("  Frames: {}", result.frameCount);
         LOG_INFO("  Total Time: {:.0f} ms", result.totalTimeMs);
         LOG_INFO("  Avg Frame: {:.2f} ms ({:.1f} FPS)", result.avgFrameMs, result.fps);
+        LOG_INFO("  Latency: p50 {:.2f} ms, p95 {:.2f} ms, p99 {:.2f} ms",
+                 result.p50FrameMs, result.p95FrameMs, result.p99FrameMs);
         LOG_INFO("  Min Frame: {:.2f} ms", result.minFrameMs);
         LOG_INFO("  Max Frame: {:.2f} ms", result.maxFrameMs);
         LOG_INFO("  Breakdown: Update {:.2f} ms, Render {:.2f} ms, Present {:.2f} ms",
@@ -190,5 +219,4 @@ void BenchmarkRunner::printResults() const {
 }
 
 } // namespace voxy::perf
-
 
