@@ -74,7 +74,7 @@ cc_test(
         "//src:voxy_core",
         "@googletest//:gtest_main",
     ],
-    data = ["//data:data"],
+    data = ["//data:performance_golden"],
 )
 
 # Kept independent from //src:voxy_core so renderer validation does not pull in

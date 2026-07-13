@@ -7,3 +7,8 @@ filegroup(
         "generated/td_seed_1234_8192.ldh",
     ],
 )
+
+filegroup(
+    name = "performance_golden",
+    srcs = ["canyon_8k.ldh"],
+)
