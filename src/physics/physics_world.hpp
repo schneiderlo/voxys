@@ -37,6 +37,8 @@ public:
         glm::vec3 position{0.0f};
         glm::quat rotation{1.0f, 0.0f, 0.0f, 0.0f};
         glm::vec3 dimensions{1.0f};
+        // Rendering hint only. Transform fields remain the authoritative state.
+        bool active = false;
     };
 
     struct WaterSurfaceSample {

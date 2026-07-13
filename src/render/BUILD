@@ -28,6 +28,18 @@ cc_library(
 )
 
 cc_library(
+    name = "primitive_instance_packing",
+    srcs = ["primitive_instance_packing.cpp"],
+    hdrs = ["primitive_instance_packing.hpp"],
+    copts = PROJECT_DEFAULT_COPTS,
+    includes = [".."],
+    deps = [
+        "//src/physics:physics",
+        "//third_party:glm",
+    ],
+)
+
+cc_library(
     name = "render",
     srcs = [
         "blit_path.cpp",
@@ -48,6 +60,7 @@ cc_library(
     includes = [".."],
     deps = [
         ":mip_pipeline",
+        ":primitive_instance_packing",
         ":water_simulation",
         "//src/camera:camera",
         "//src/core:core",

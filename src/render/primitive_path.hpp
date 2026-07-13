@@ -1,6 +1,7 @@
 #pragma once
 
 #include "physics/physics_world.hpp"
+#include "render/primitive_instance_packing.hpp"
 
 #include <array>
 #include <cstddef>
@@ -74,6 +75,7 @@ private:
     WGPUTextureView rayDepthView_ = nullptr;
     WGPUTextureView boundRayDepthView_ = nullptr;
     std::array<DrawRange, static_cast<size_t>(physics::PhysicsWorld::ThrowableShape::Count)> ranges_{};
+    detail::PrimitiveInstanceCache instanceCache_;
     size_t instanceCapacity_ = 0;
     uint32_t instanceCount_ = 0;
 };

@@ -6,6 +6,8 @@
 
 #include <filesystem>
 #include <array>
+#include <bit>
+#include <cstring>
 #include <span>
 #include <vector>
 #include <glm/gtc/matrix_transform.hpp>
@@ -15,6 +17,66 @@ namespace voxy::render {
 TEST(PrimitivePathTest, RejectsNullGpuHandles) {
     PrimitivePath path;
     EXPECT_FALSE(path.init(nullptr, nullptr));
+}
+
+TEST(PrimitivePathTest, SleepingInstanceCacheIsBitExact) {
+    using Shape = physics::PhysicsWorld::ThrowableShape;
+    std::array bodies = {
+        physics::PhysicsWorld::DynamicBodySnapshot{
+            Shape::Cylinder, glm::vec3(2.0f, 1.0f, -3.0f),
+            glm::quat(0.5f, 0.5f, 0.5f, 0.5f), glm::vec3(0.9f, 1.1f, 0.9f)},
+        physics::PhysicsWorld::DynamicBodySnapshot{
+            Shape::Sphere, glm::vec3(-2.0f, 0.0f, 0.0f), {}, glm::vec3(1.2f)},
+        physics::PhysicsWorld::DynamicBodySnapshot{
+            Shape::Box, glm::vec3(0.0f), {}, glm::vec3(1.8f, 0.8f, 1.0f)},
+        physics::PhysicsWorld::DynamicBodySnapshot{
+            Shape::Sphere, glm::vec3(4.0f, 5.0f, 6.0f),
+            glm::quat(0.9238795f, 0.0f, 0.38268343f, 0.0f), glm::vec3(0.7f)},
+        physics::PhysicsWorld::DynamicBodySnapshot{
+            Shape::Count, glm::vec3(99.0f), {}, glm::vec3(99.0f)},
+    };
+
+    detail::PrimitiveInstanceCache cache;
+    const auto expected = detail::packPrimitiveInstances(bodies);
+    const auto first = detail::packPrimitiveInstances(bodies, cache);
+    const auto cached = detail::packPrimitiveInstances(bodies, cache);
+
+    ASSERT_EQ(cached.instances.size(), expected.instances.size());
+    EXPECT_EQ(cached.firstInstances, expected.firstInstances);
+    EXPECT_EQ(cached.instanceCounts, expected.instanceCounts);
+    EXPECT_EQ(first.firstInstances, expected.firstInstances);
+    EXPECT_EQ(first.instanceCounts, expected.instanceCounts);
+    EXPECT_EQ(std::memcmp(cached.instances.data(), expected.instances.data(),
+                          expected.instances.size() * sizeof(detail::GpuInstance)), 0);
+
+    bodies[2].position.x = -0.0f;
+    const auto signedZeroExpected = detail::packPrimitiveInstances(bodies);
+    const auto signedZeroCached = detail::packPrimitiveInstances(bodies, cache);
+    ASSERT_EQ(signedZeroCached.instances.size(), signedZeroExpected.instances.size());
+    EXPECT_EQ(std::memcmp(signedZeroCached.instances.data(),
+                          signedZeroExpected.instances.data(),
+                          signedZeroExpected.instances.size()
+                              * sizeof(detail::GpuInstance)), 0);
+    EXPECT_EQ(std::bit_cast<uint32_t>(cache.entries[2].body.position.x),
+              std::bit_cast<uint32_t>(-0.0f));
+}
+
+TEST(PrimitivePathTest, ActiveBodiesBypassInstanceCache) {
+    using Shape = physics::PhysicsWorld::ThrowableShape;
+    const std::array bodies = {
+        physics::PhysicsWorld::DynamicBodySnapshot{
+            Shape::Sphere, glm::vec3(1.0f, 2.0f, 3.0f), {}, glm::vec3(1.2f), true},
+        physics::PhysicsWorld::DynamicBodySnapshot{
+            Shape::Cube, glm::vec3(-3.0f, -2.0f, -1.0f), {}, glm::vec3(1.1f), true},
+    };
+
+    detail::PrimitiveInstanceCache cache;
+    const auto expected = detail::packPrimitiveInstances(bodies);
+    const auto actual = detail::packPrimitiveInstances(bodies, cache);
+    ASSERT_EQ(actual.instances.size(), expected.instances.size());
+    EXPECT_EQ(std::memcmp(actual.instances.data(), expected.instances.data(),
+                          expected.instances.size() * sizeof(detail::GpuInstance)), 0);
+    EXPECT_TRUE(cache.entries.empty());
 }
 
 TEST(PrimitivePathGPUTest, CompilesPrimitivePipeline) {

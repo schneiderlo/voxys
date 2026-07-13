@@ -1,5 +1,7 @@
 #include "render/primitive_path.hpp"
 
+#include "render/primitive_instance_packing.hpp"
+
 #include "core/log.hpp"
 #include "gpu/resources.hpp"
 
@@ -24,11 +26,6 @@ struct Vertex {
     glm::vec3 normal;
 };
 
-struct alignas(16) GpuInstance {
-    glm::mat4 model{1.0f};
-    glm::vec4 color{1.0f};
-};
-
 struct alignas(16) PrimitiveUniforms {
     glm::mat4 viewProj{1.0f};
     glm::vec4 cameraPos{0.0f};
@@ -37,22 +34,10 @@ struct alignas(16) PrimitiveUniforms {
 };
 
 static_assert(sizeof(Vertex) == 24);
-static_assert(sizeof(GpuInstance) == 80);
 static_assert(sizeof(PrimitiveUniforms) == 112);
 
 using Shape = physics::PhysicsWorld::ThrowableShape;
-
-glm::vec4 shapeColor(Shape shape) {
-    switch (shape) {
-        case Shape::Sphere: return {0.95f, 0.28f, 0.18f, 1.0f};
-        case Shape::Cube: return {0.20f, 0.62f, 0.95f, 1.0f};
-        case Shape::Box: return {0.96f, 0.70f, 0.16f, 1.0f};
-        case Shape::Capsule: return {0.42f, 0.85f, 0.36f, 1.0f};
-        case Shape::Cylinder: return {0.68f, 0.38f, 0.92f, 1.0f};
-        case Shape::Count: break;
-    }
-    return glm::vec4(1.0f);
-}
+using detail::GpuInstance;
 
 void appendSphere(std::vector<Vertex>& vertices, std::vector<uint16_t>& indices) {
     const uint16_t base = static_cast<uint16_t>(vertices.size());
@@ -223,6 +208,7 @@ void PrimitivePath::shutdown() {
     queue_ = nullptr;
     rayDepthView_ = nullptr;
     boundRayDepthView_ = nullptr;
+    instanceCache_ = {};
     instanceCapacity_ = 0;
     instanceCount_ = 0;
 }
@@ -399,37 +385,21 @@ void PrimitivePath::updateBindGroup() {
 
 void PrimitivePath::setInstances(
     std::span<const physics::PhysicsWorld::DynamicBodySnapshot> bodies) {
-    std::vector<GpuInstance> instances;
-    instances.reserve(bodies.size());
-    for (auto& range : ranges_) {
-        range.firstInstance = 0;
-        range.instanceCount = 0;
-    }
-
-    for (uint32_t shapeIndex = 0;
-         shapeIndex < static_cast<uint32_t>(Shape::Count); ++shapeIndex) {
+    auto batch = detail::packPrimitiveInstances(bodies, instanceCache_);
+    for (uint32_t shapeIndex = 0; shapeIndex < ranges_.size(); ++shapeIndex) {
         auto& range = ranges_[shapeIndex];
-        range.firstInstance = static_cast<uint32_t>(instances.size());
-        for (const auto& body : bodies) {
-            if (static_cast<uint32_t>(body.shape) != shapeIndex) continue;
-            GpuInstance instance;
-            instance.model = glm::translate(glm::mat4(1.0f), body.position)
-                           * glm::mat4_cast(body.rotation)
-                           * glm::scale(glm::mat4(1.0f), body.dimensions);
-            instance.color = shapeColor(body.shape);
-            instances.push_back(instance);
-            ++range.instanceCount;
-        }
+        range.firstInstance = batch.firstInstances[shapeIndex];
+        range.instanceCount = batch.instanceCounts[shapeIndex];
     }
 
-    instanceCount_ = static_cast<uint32_t>(instances.size());
-    if (!ensureInstanceCapacity(instances.size())) {
+    instanceCount_ = static_cast<uint32_t>(batch.instances.size());
+    if (!ensureInstanceCapacity(batch.instances.size())) {
         instanceCount_ = 0;
         return;
     }
-    if (!instances.empty()) {
+    if (!batch.instances.empty()) {
         gpu::writeBuffer(queue_, instanceBuffer_, 0,
-                         std::as_bytes(std::span<const GpuInstance>(instances)));
+                         std::as_bytes(std::span<const GpuInstance>(batch.instances)));
     }
 }
 

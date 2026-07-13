@@ -106,6 +106,7 @@ TEST_F(PhysicsWorldTest, ThrownBodyMovesUnderJoltSimulation) {
         glm::vec3(5.0f, 2.0f, 0.0f)));
     auto bodies = world.dynamicBodies();
     ASSERT_EQ(bodies.size(), 1u);
+    EXPECT_TRUE(bodies.front().active);
     const glm::vec3 start = bodies.front().position;
 
     for (int i = 0; i < 30; ++i) {
@@ -113,6 +114,7 @@ TEST_F(PhysicsWorldTest, ThrownBodyMovesUnderJoltSimulation) {
     }
     bodies = world.dynamicBodies();
     ASSERT_EQ(bodies.size(), 1u);
+    EXPECT_TRUE(bodies.front().active);
     EXPECT_GT(bodies.front().position.x, start.x + 1.0f);
     EXPECT_LT(bodies.front().position.y, start.y);
 }

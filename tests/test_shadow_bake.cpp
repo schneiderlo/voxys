@@ -43,6 +43,7 @@ TEST(ShadowBakeTest, OutputDimensionsFollowDownsample) {
     EXPECT_EQ(result.width, 32u);
     EXPECT_EQ(result.height, 32u);
     EXPECT_EQ(result.data.size(), 32u * 32u);
+    EXPECT_LE(result.scratchBytes, 2u * 64u * sizeof(float));
 }
 
 TEST(ShadowBakeTest, FlatTerrainCastsNoShadowAboveItself) {

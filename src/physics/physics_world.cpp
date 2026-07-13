@@ -13,6 +13,7 @@
 #include <Jolt/Core/JobSystemSingleThreaded.h>
 #include <Jolt/Core/TempAllocator.h>
 #include <Jolt/Physics/Body/BodyCreationSettings.h>
+#include <Jolt/Physics/Body/BodyLockMulti.h>
 #include <Jolt/Physics/Character/CharacterVirtual.h>
 #include <Jolt/Physics/Collision/Shape/BoxShape.h>
 #include <Jolt/Physics/Collision/Shape/CapsuleShape.h>
@@ -26,6 +27,7 @@
 #endif
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <cstdarg>
 #include <cstdio>
@@ -746,17 +748,52 @@ std::vector<PhysicsWorld::DynamicBodySnapshot> PhysicsWorld::dynamicBodies() con
     if (!isInitialized()) {
         return result;
     }
-    result.reserve(impl_->dynamicBodies.size());
-    const auto& bodyInterface = impl_->system->GetBodyInterface();
+    if (impl_->dynamicBodies.empty()) {
+        return result;
+    }
+
+    std::vector<JPH::BodyID> bodyIDs;
+    bodyIDs.reserve(impl_->dynamicBodies.size());
     for (const Impl::DynamicSlot& slot : impl_->dynamicBodies) {
-        JPH::RVec3 position;
-        JPH::Quat rotation;
-        bodyInterface.GetPositionAndRotation(slot.body, position, rotation);
+        bodyIDs.push_back(slot.body);
+    }
+
+    const uint32_t activeBodyCount =
+        impl_->system->GetNumActiveBodies(JPH::EBodyType::RigidBody);
+    const bool allBodiesActive =
+        activeBodyCount == impl_->dynamicBodies.size();
+    std::array<uint8_t, kMaxBodies> activeBodyIndices;
+    if (activeBodyCount != 0 && !allBodiesActive) {
+        activeBodyIndices.fill(0);
+        JPH::BodyIDVector activeBodies;
+        impl_->system->GetActiveBodies(JPH::EBodyType::RigidBody, activeBodies);
+        for (const JPH::BodyID bodyID : activeBodies) {
+            activeBodyIndices[bodyID.GetIndex()] = 1;
+        }
+    }
+
+    result.reserve(impl_->dynamicBodies.size());
+    const JPH::BodyLockMultiRead lock(
+        impl_->system->GetBodyLockInterface(), bodyIDs.data(),
+        static_cast<int>(bodyIDs.size()));
+    for (size_t index = 0; index < impl_->dynamicBodies.size(); ++index) {
+        const Impl::DynamicSlot& slot = impl_->dynamicBodies[index];
+        const JPH::Body* body = lock.GetBody(static_cast<int>(index));
+        const JPH::RVec3 position = body != nullptr
+            ? body->GetPosition()
+            : JPH::RVec3::sZero();
+        const JPH::Quat rotation = body != nullptr
+            ? body->GetRotation()
+            : JPH::Quat::sIdentity();
         result.push_back({
             slot.shape,
             toGlmPosition(position),
             glm::quat(rotation.GetW(), rotation.GetX(), rotation.GetY(), rotation.GetZ()),
-            slot.dimensions});
+            slot.dimensions,
+            body != nullptr
+                && (allBodiesActive
+                    || (activeBodyCount != 0
+                        && activeBodyIndices[slot.body.GetIndex()] != 0))});
     }
     return result;
 }

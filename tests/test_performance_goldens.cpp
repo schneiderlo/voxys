@@ -57,6 +57,7 @@ TEST(PerformanceGoldenTest, CanyonHeightAndShadowOutputsAreBitExact) {
         heightmap.data, heightmap.width, heightmap.height, config);
     ASSERT_EQ(shadow.width, 4096u);
     ASSERT_EQ(shadow.height, 4096u);
+    EXPECT_LE(shadow.scratchBytes, 2u * 8192u * sizeof(float));
     const auto shadowBytes = std::span<const uint8_t>(
         reinterpret_cast<const uint8_t*>(shadow.data.data()),
         shadow.data.size() * sizeof(uint16_t));

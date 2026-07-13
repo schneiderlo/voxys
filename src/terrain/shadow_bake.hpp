@@ -21,6 +21,7 @@
 
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
 #include <span>
 #include <vector>
@@ -42,6 +43,7 @@ struct ShadowBakeResult {
     std::vector<uint16_t> data; ///< Shadow boundary per cell, heightmap encoding
     uint32_t width = 0;         ///< Output width  (heightmap width  / downsample)
     uint32_t height = 0;        ///< Output height (heightmap height / downsample)
+    std::size_t scratchBytes = 0; ///< Peak temporary storage used by the sweep
 };
 
 /// Bake the shadow boundary height field for a heightmap and a fixed sun.
