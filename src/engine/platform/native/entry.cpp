@@ -30,7 +30,7 @@ int main(int argc, char* argv[]) {
                           ? "voxy - WebGPU Terrain Renderer"
                           : config.window.title;
     appConfig.fullscreen = config.window.fullscreen;
-    appConfig.vsync = config.render.vsync;
+    appConfig.vsync = config.render.vsync && !config.automation.benchmark;
 
     // Render path selection
     if (config.render.path == "triangle") {
