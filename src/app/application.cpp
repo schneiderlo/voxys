@@ -265,6 +265,7 @@ bool Application::init(const ApplicationConfig& config) {
     LOG_INFO("  Escape    - Release mouse / Exit");
     LOG_INFO("  Wheel     - Select throwable object");
     LOG_INFO("  Left click- Capture mouse / throw selected object");
+    LOG_INFO("  Right click- Throw 128 selected objects");
     LOG_INFO("");
 
 #if defined(VOXY_WASM)
@@ -1672,8 +1673,33 @@ void Application::processThrowableInput(float deltaTime) {
                  physics::PhysicsWorld::throwableShapeName(shape));
     }
 
-    const bool firing = input_->isMouseCaptured()
+    const bool mouseCaptured = input_->isMouseCaptured();
+    const bool batchRequested = mouseCaptured
+                             && input_->wasMouseButtonPressed(MouseButton::Right);
+    const bool firing = mouseCaptured
                      && input_->isMouseButtonDown(MouseButton::Left);
+    if (!batchRequested && !firing) {
+        throwableCooldown_ = 0.0f;
+        return;
+    }
+
+    const auto shape = static_cast<physics::PhysicsWorld::ThrowableShape>(
+        selectedThrowable_);
+    const glm::vec3 direction = glm::normalize(camera_->forward());
+    const glm::vec3 origin = camera_->position() + direction * 2.2f;
+    constexpr float throwSpeed = 28.0f;
+
+    if (batchRequested) {
+        constexpr uint32_t batchSize = 128;
+        uint32_t thrown = 0;
+        for (uint32_t i = 0; i < batchSize; ++i) {
+            thrown += physicsWorld_->throwBody(
+                shape, origin, direction * throwSpeed) ? 1u : 0u;
+        }
+        LOG_INFO("Threw {} x {}", thrown,
+                 physics::PhysicsWorld::throwableShapeName(shape));
+    }
+
     if (!firing) {
         throwableCooldown_ = 0.0f;
         return;
@@ -1683,11 +1709,8 @@ void Application::processThrowableInput(float deltaTime) {
     throwableCooldown_ -= frameTime;
     constexpr float throwInterval = 1.0f / 100.0f;
     while (throwableCooldown_ <= 0.0f) {
-        const auto shape = static_cast<physics::PhysicsWorld::ThrowableShape>(
-            selectedThrowable_);
-        const glm::vec3 direction = glm::normalize(camera_->forward());
-        const glm::vec3 origin = camera_->position() + direction * 2.2f;
-        if (physicsWorld_->throwBody(shape, origin, direction * 28.0f)) {
+        if (physicsWorld_->throwBody(
+                shape, origin, direction * throwSpeed)) {
             LOG_INFO("Threw {}", physics::PhysicsWorld::throwableShapeName(shape));
         }
         throwableCooldown_ += throwInterval;
