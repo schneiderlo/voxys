@@ -1660,7 +1660,7 @@ void Application::processThrowableInput(float deltaTime) {
 
     const float frameTime = std::clamp(deltaTime, 0.0f, 0.1f);
     throwableCooldown_ -= frameTime;
-    constexpr float throwInterval = 1.0f / 50.0f;
+    constexpr float throwInterval = 1.0f / 100.0f;
     while (throwableCooldown_ <= 0.0f) {
         const auto shape = static_cast<physics::PhysicsWorld::ThrowableShape>(
             selectedThrowable_);
