@@ -22,6 +22,10 @@ const PI : f32 = 3.141592653589793;
 const GRAVITY : f32 = 9.81;
 const CASCADE_COUNT : u32 = 3u;
 
+// One 256-sample row or column. Keeping all eight radix-2 stages here avoids
+// round-tripping the complete spectrum through device memory for every stage.
+var<workgroup> lineData : array<WaveData, 256>;
+
 fn patchLength(cascade : u32) -> f32 {
     switch cascade {
         case 0u: { return 96.0; }
@@ -112,54 +116,45 @@ fn evolve(@builtin(global_invocation_id) gid : vec3<u32>) {
 }
 
 @compute @workgroup_size(256, 1, 1)
-fn fft(@builtin(global_invocation_id) gid : vec3<u32>) {
+fn fftAxis(@builtin(local_invocation_id) lid : vec3<u32>,
+           @builtin(workgroup_id) wid : vec3<u32>) {
     let n = params.size;
-    let butterfliesPerLayer = n * n / 2u;
-    let totalButterflies = butterfliesPerLayer * CASCADE_COUNT;
-    let butterfly = gid.x;
-    if (butterfly >= totalButterflies) { return; }
-
-    let cascade = butterfly / butterfliesPerLayer;
-    let localButterfly = butterfly - cascade * butterfliesPerLayer;
-    let line = localButterfly / (n / 2u);
-    let along = localButterfly % (n / 2u);
-    let halfSpan = 1u << params.stage;
-    let span = halfSpan << 1u;
-    let group = along / halfSpan;
-    let j = along - group * halfSpan;
-    let i0 = group * span + j;
-    let i1 = i0 + halfSpan;
-
-    var coord0 = vec2<u32>(i0, line);
-    var coord1 = vec2<u32>(i1, line);
-    if (params.axis == 1u) {
-        coord0 = coord0.yx;
-        coord1 = coord1.yx;
-    }
-    if (params.stage == 0u) {
-        if (params.axis == 0u) {
-            coord0.x = bitReverse8(coord0.x);
-            coord1.x = bitReverse8(coord1.x);
-        } else {
-            coord0.y = bitReverse8(coord0.y);
-            coord1.y = bitReverse8(coord1.y);
-        }
-    }
-
+    let sample = lid.x;
+    let cascade = wid.x / n;
+    let line = wid.x - cascade * n;
     let base = cascade * n * n;
-    let read0 = base + coord0.y * n + coord0.x;
-    let read1 = base + coord1.y * n + coord1.x;
-    let angle = 2.0 * PI * f32(j) / f32(span);
-    let twiddle = vec2<f32>(cos(angle), sin(angle));
-    let a = inputData[read0];
-    let b = mulWave(inputData[read1], twiddle);
 
-    var outCoord0 = vec2<u32>(i0, line);
-    var outCoord1 = vec2<u32>(i1, line);
+    var readCoord = vec2<u32>(bitReverse8(sample), line);
     if (params.axis == 1u) {
-        outCoord0 = outCoord0.yx;
-        outCoord1 = outCoord1.yx;
+        readCoord = readCoord.yx;
     }
-    outputData[base + outCoord0.y * n + outCoord0.x] = addWave(a, b);
-    outputData[base + outCoord1.y * n + outCoord1.x] = subWave(a, b);
+    lineData[sample] = outputData[base + readCoord.y * n + readCoord.x];
+    workgroupBarrier();
+
+    var stage = 0u;
+    loop {
+        if (stage >= 8u) { break; }
+        if (sample < n / 2u) {
+            let halfSpan = 1u << stage;
+            let span = halfSpan << 1u;
+            let group = sample / halfSpan;
+            let j = sample - group * halfSpan;
+            let i0 = group * span + j;
+            let i1 = i0 + halfSpan;
+            let angle = 2.0 * PI * f32(j) / f32(span);
+            let twiddle = vec2<f32>(cos(angle), sin(angle));
+            let a = lineData[i0];
+            let b = mulWave(lineData[i1], twiddle);
+            lineData[i0] = addWave(a, b);
+            lineData[i1] = subWave(a, b);
+        }
+        workgroupBarrier();
+        stage += 1u;
+    }
+
+    var writeCoord = vec2<u32>(sample, line);
+    if (params.axis == 1u) {
+        writeCoord = writeCoord.yx;
+    }
+    outputData[base + writeCoord.y * n + writeCoord.x] = lineData[sample];
 }

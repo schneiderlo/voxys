@@ -52,7 +52,7 @@ public:
                             float waterHeight = 0.0f);
     void shutdown();
 
-    /// Record spectrum evolution, 16 Stockham/Cooley FFT stages, and resolve.
+    /// Record spectrum evolution, two workgroup-local FFT axes, and resolve.
     void update(WGPUCommandEncoder encoder, float timeSeconds);
 
     [[nodiscard]] bool isInitialized() const noexcept {
@@ -101,10 +101,9 @@ private:
     WGPUQueue queue_ = nullptr;
 
     WGPUBuffer initialSpectrumBuffer_ = nullptr;
-    WGPUBuffer pingBuffer_ = nullptr;
     WGPUBuffer pongBuffer_ = nullptr;
     WGPUBuffer simulationUniformBuffer_ = nullptr;
-    std::array<WGPUBuffer, FFT_STAGE_COUNT * 2> stageUniformBuffers_{};
+    std::array<WGPUBuffer, 2> axisUniformBuffers_{};
 
     WGPUTexture outputTexture_ = nullptr;
     WGPUTextureView outputView_ = nullptr;
@@ -135,7 +134,7 @@ private:
     WGPUComputePipeline evolvePipeline_ = nullptr;
     WGPUComputePipeline fftPipeline_ = nullptr;
     WGPUBindGroup evolveBindGroup_ = nullptr;
-    std::array<WGPUBindGroup, FFT_STAGE_COUNT * 2> fftBindGroups_{};
+    std::array<WGPUBindGroup, 2> fftAxisBindGroups_{};
 
     WGPUShaderModule finalizeShader_ = nullptr;
     WGPUBindGroupLayout finalizeBindGroupLayout_ = nullptr;

@@ -493,26 +493,21 @@ WaterSimulation::SurfaceSample WaterSimulation::sampleSurface(
 
 bool WaterSimulation::createBuffers() {
     const uint64_t byteSize = static_cast<uint64_t>(kElementCount) * sizeof(WaveData);
-    pingBuffer_ = gpu::createBuffer(
-        device_, gpu::BufferDesc::storage(byteSize, false, "water_fft_ping"));
     pongBuffer_ = gpu::createBuffer(
         device_, gpu::BufferDesc::storage(byteSize, false, "water_fft_pong"));
     simulationUniformBuffer_ = gpu::createBuffer(
         device_, gpu::BufferDesc::uniform(sizeof(SimParams), "water_sim_params"));
-    if (!pingBuffer_ || !pongBuffer_ || !simulationUniformBuffer_) {
+    if (!pongBuffer_ || !simulationUniformBuffer_) {
         return false;
     }
 
-    for (uint32_t axis = 0; axis < 2; ++axis) {
-        for (uint32_t stage = 0; stage < FFT_STAGE_COUNT; ++stage) {
-            const uint32_t pass = axis * FFT_STAGE_COUNT + stage;
-            SimParams params{.time = 0.0f, .stage = stage, .axis = axis, .size = RESOLUTION};
-            auto desc = gpu::BufferDesc::uniform(sizeof(SimParams), "water_fft_stage_params");
-            stageUniformBuffers_[pass] = gpu::createBufferWithData(
-                device_, queue_, desc, std::span<const SimParams>(&params, 1));
-            if (!stageUniformBuffers_[pass]) {
-                return false;
-            }
+    for (uint32_t axis = 0; axis < axisUniformBuffers_.size(); ++axis) {
+        SimParams params{.time = 0.0f, .stage = 0, .axis = axis, .size = RESOLUTION};
+        auto desc = gpu::BufferDesc::uniform(sizeof(SimParams), "water_fft_axis_params");
+        axisUniformBuffers_[axis] = gpu::createBufferWithData(
+            device_, queue_, desc, std::span<const SimParams>(&params, 1));
+        if (!axisUniformBuffers_[axis]) {
+            return false;
         }
     }
     return true;
@@ -562,7 +557,7 @@ bool WaterSimulation::createPipelines(const std::filesystem::path& shaderDirecto
     evolvePipeline_ = createComputePipeline(device_, fftPipelineLayout_, fftShader_,
                                             "evolve", "water_spectrum_evolve");
     fftPipeline_ = createComputePipeline(device_, fftPipelineLayout_, fftShader_,
-                                         "fft", "water_inverse_fft");
+                                         "fftAxis", "water_inverse_fft");
     if (!evolvePipeline_ || !fftPipeline_) return false;
 
     finalizeShader_ = gpu::loadShaderModule(device_, shaderDirectory / "water_finalize.wgsl",
@@ -597,22 +592,15 @@ bool WaterSimulation::createBindGroups() {
         device_, fftBindGroupLayout_, evolveEntries, "water_evolve_bind_group");
     if (!evolveBindGroup_) return false;
 
-    for (uint32_t axis = 0; axis < 2; ++axis) {
-        for (uint32_t stage = 0; stage < FFT_STAGE_COUNT; ++stage) {
-            const uint32_t pass = axis * FFT_STAGE_COUNT + stage;
-            // Every axis starts from pong. Even stages write ping, odd stages
-            // write pong; eight stages therefore finish in pong.
-            WGPUBuffer source = (stage & 1u) == 0u ? pongBuffer_ : pingBuffer_;
-            WGPUBuffer destination = (stage & 1u) == 0u ? pingBuffer_ : pongBuffer_;
-            std::array<gpu::BindGroupEntry, 3> entries = {
-                gpu::BindGroupEntry(0).buffer(stageUniformBuffers_[pass], 0, sizeof(SimParams)),
-                gpu::BindGroupEntry(1).buffer(source, 0, byteSize),
-                gpu::BindGroupEntry(2).buffer(destination, 0, byteSize),
-            };
-            fftBindGroups_[pass] = gpu::createBindGroup(
-                device_, fftBindGroupLayout_, entries, "water_fft_stage_bind_group");
-            if (!fftBindGroups_[pass]) return false;
-        }
+    for (uint32_t axis = 0; axis < fftAxisBindGroups_.size(); ++axis) {
+        std::array<gpu::BindGroupEntry, 3> entries = {
+            gpu::BindGroupEntry(0).buffer(axisUniformBuffers_[axis], 0, sizeof(SimParams)),
+            gpu::BindGroupEntry(1).buffer(initialSpectrumBuffer_, 0, byteSize),
+            gpu::BindGroupEntry(2).buffer(pongBuffer_, 0, byteSize),
+        };
+        fftAxisBindGroups_[axis] = gpu::createBindGroup(
+            device_, fftBindGroupLayout_, entries, "water_fft_axis_bind_group");
+        if (!fftAxisBindGroups_[axis]) return false;
     }
 
     std::array<gpu::BindGroupEntry, 2> finalizeEntries = {
@@ -726,12 +714,11 @@ void WaterSimulation::update(WGPUCommandEncoder encoder, float timeSeconds) {
     wgpuComputePassEncoderSetBindGroup(pass, 0, evolveBindGroup_, 0, nullptr);
     wgpuComputePassEncoderDispatchWorkgroups(pass, evolveGroups, 1, 1);
 
-    constexpr uint32_t butterflyCount = kElementCount / 2u;
-    constexpr uint32_t butterflyGroups = (butterflyCount + 255u) / 256u;
     wgpuComputePassEncoderSetPipeline(pass, fftPipeline_);
-    for (uint32_t fftPass = 0; fftPass < fftBindGroups_.size(); ++fftPass) {
-        wgpuComputePassEncoderSetBindGroup(pass, 0, fftBindGroups_[fftPass], 0, nullptr);
-        wgpuComputePassEncoderDispatchWorkgroups(pass, butterflyGroups, 1, 1);
+    for (WGPUBindGroup bindGroup : fftAxisBindGroups_) {
+        wgpuComputePassEncoderSetBindGroup(pass, 0, bindGroup, 0, nullptr);
+        wgpuComputePassEncoderDispatchWorkgroups(
+            pass, RESOLUTION * CASCADE_COUNT, 1, 1);
     }
 
     wgpuComputePassEncoderSetPipeline(pass, finalizePipeline_);
@@ -762,7 +749,7 @@ void WaterSimulation::shutdown() {
     for (auto& buffer : foamBuffers_) if (buffer) wgpuBufferRelease(buffer);
     if (foamUniformBuffer_) wgpuBufferRelease(foamUniformBuffer_);
     if (finalizeBindGroup_) wgpuBindGroupRelease(finalizeBindGroup_);
-    for (auto& group : fftBindGroups_) if (group) wgpuBindGroupRelease(group);
+    for (auto& group : fftAxisBindGroups_) if (group) wgpuBindGroupRelease(group);
     if (evolveBindGroup_) wgpuBindGroupRelease(evolveBindGroup_);
     if (finalizePipeline_) wgpuComputePipelineRelease(finalizePipeline_);
     if (fftPipeline_) wgpuComputePipelineRelease(fftPipeline_);
@@ -778,10 +765,9 @@ void WaterSimulation::shutdown() {
     if (coastTexture_) wgpuTextureRelease(coastTexture_);
     if (outputView_) wgpuTextureViewRelease(outputView_);
     if (outputTexture_) wgpuTextureRelease(outputTexture_);
-    for (auto& buffer : stageUniformBuffers_) if (buffer) wgpuBufferRelease(buffer);
+    for (auto& buffer : axisUniformBuffers_) if (buffer) wgpuBufferRelease(buffer);
     if (simulationUniformBuffer_) wgpuBufferRelease(simulationUniformBuffer_);
     if (pongBuffer_) wgpuBufferRelease(pongBuffer_);
-    if (pingBuffer_) wgpuBufferRelease(pingBuffer_);
     if (initialSpectrumBuffer_) wgpuBufferRelease(initialSpectrumBuffer_);
 
     finalizeBindGroup_ = nullptr;
@@ -800,7 +786,7 @@ void WaterSimulation::shutdown() {
     cpuEvolvedHeight_.clear();
     cpuEvolvedVelocity_.clear();
     cpuCacheTime_ = -1.0f;
-    fftBindGroups_.fill(nullptr);
+    fftAxisBindGroups_.fill(nullptr);
     evolveBindGroup_ = nullptr;
     finalizePipeline_ = nullptr;
     fftPipeline_ = nullptr;
@@ -816,10 +802,9 @@ void WaterSimulation::shutdown() {
     coastTexture_ = nullptr;
     outputView_ = nullptr;
     outputTexture_ = nullptr;
-    stageUniformBuffers_.fill(nullptr);
+    axisUniformBuffers_.fill(nullptr);
     simulationUniformBuffer_ = nullptr;
     pongBuffer_ = nullptr;
-    pingBuffer_ = nullptr;
     initialSpectrumBuffer_ = nullptr;
     device_ = nullptr;
     queue_ = nullptr;
