@@ -665,6 +665,12 @@
             const overlay = document.getElementById('overlay');
             const canvas = document.getElementById('voxy-canvas');
 
+            // Right click is a game action. Suppress the browser context menu
+            // on the canvas so the input reaches the game without a popup.
+            canvas.addEventListener('contextmenu', (event) => {
+                event.preventDefault();
+            });
+
             // 1. Initialize and Start the Roller immediately
             roller = new Roller(loadingPhrases);
             roller.start(); // This will accelerate to max speed and stay there
