@@ -35,7 +35,7 @@ namespace voxy::render {
 
 /// Unified camera uniforms structure shared between all shaders.
 /// Must match the WGSL CameraUniforms struct exactly.
-/// Total size: 272 bytes (aligned to 16 bytes)
+/// Total size: 448 bytes (aligned to 16 bytes)
 struct CameraUniforms {
     glm::mat4 viewProj;        ///< offset: 0,   size: 64 - View-projection matrix
     glm::mat4 invViewProj;     ///< offset: 64,  size: 64 - Inverse view-projection
@@ -51,7 +51,8 @@ struct CameraUniforms {
     glm::vec4 waterParams;     ///< offset: 384, size: 16 - (height, enabled, waveStrength, roughness)
     glm::vec4 waterColorA;     ///< offset: 400, size: 16 - shallow color rgb, reflection strength
     glm::vec4 waterColorB;     ///< offset: 416, size: 16 - deep color rgb, shore fade
-    // Total: 432 bytes
+    glm::vec4 waterMotion;     ///< offset: 432, size: 16 - (simulation time, reserved...)
+    // Total: 448 bytes
 
     /// Default constructor with sensible defaults
     CameraUniforms();
@@ -76,9 +77,12 @@ struct CameraUniforms {
     void setWater(bool enabled, float height, const glm::vec3& shallowColor,
                   const glm::vec3& deepColor, float roughness,
                   float waveStrength, float reflectionStrength, float shoreFade);
+
+    /// Advance animated water without changing its art controls.
+    void setWaterTime(float seconds) { waterMotion.x = seconds; }
 };
 
-static_assert(sizeof(CameraUniforms) == 432, "CameraUniforms must be 432 bytes");
+static_assert(sizeof(CameraUniforms) == 448, "CameraUniforms must be 448 bytes");
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Triangle Path Configuration

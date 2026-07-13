@@ -61,6 +61,7 @@ CameraUniforms::CameraUniforms() {
     waterParams = glm::vec4(-230.0f, 1.0f, 0.08f, 0.05f);
     waterColorA = glm::vec4(0.12f, 0.46f, 0.50f, 0.42f);
     waterColorB = glm::vec4(0.0f, 0.28f, 0.42f, 30.0f);
+    waterMotion = glm::vec4(0.0f);
 
     // Default frustum (all zeros)
     std::memset(frustumPlanes, 0, sizeof(frustumPlanes));

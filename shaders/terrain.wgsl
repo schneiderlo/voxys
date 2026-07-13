@@ -30,6 +30,7 @@ struct CameraUniforms {
     waterParams : vec4<f32>,      // (height, enabled, waveStrength, roughness)
     waterColorA : vec4<f32>,      // shallow color rgb, reflection strength
     waterColorB : vec4<f32>,      // deep color rgb, shore fade depth
+    waterMotion : vec4<f32>,      // simulation time, reserved...
 };
 
 // Beer-Lambert extinction per world unit of water (matches ray_blit.wgsl).

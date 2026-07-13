@@ -30,6 +30,7 @@ struct CameraUniforms {
     waterParams : vec4<f32>,
     waterColorA : vec4<f32>,
     waterColorB : vec4<f32>,
+    waterMotion : vec4<f32>,
 };
 
 @group(0) @binding(0) var<uniform> camera : CameraUniforms;

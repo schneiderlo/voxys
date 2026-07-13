@@ -196,6 +196,12 @@ TEST_F(BlitShaderTest, HasWaterShading) {
         << "Shader missing shoreline mask decode";
     EXPECT_NE(shaderSource_.find("let foam"), std::string::npos)
         << "Shader missing shoreline foam term";
+    EXPECT_NE(shaderSource_.find("waterWaveField"), std::string::npos)
+        << "Shader missing coherent directional wave field";
+    EXPECT_NE(shaderSource_.find("refractedRayCaustics"), std::string::npos)
+        << "Shader missing refracted-ray caustics";
+    EXPECT_NE(shaderSource_.find("waterF0"), std::string::npos)
+        << "Shader missing physical water Fresnel";
     EXPECT_EQ(shaderSource_.find("let bedTint = textureSampleLevel(terrainTex"), std::string::npos)
         << "Water shading should not reveal vertical terrain walls through bed tint";
 }

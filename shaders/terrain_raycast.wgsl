@@ -31,6 +31,7 @@ struct CameraUniforms {
     waterParams : vec4<f32>,      // (height, enabled, waveStrength, roughness)
     waterColorA : vec4<f32>,      // shallow color rgb, reflection strength
     waterColorB : vec4<f32>,      // deep color rgb, shore fade distance
+    waterMotion : vec4<f32>,      // simulation time, reserved...
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -56,7 +57,7 @@ const MATERIAL_WATER : u32 = 2u;
 // converge to the bed colour, so a low cutoff blends seamlessly.
 const MIN_WATER_DEPTH : f32 = 0.5;
 const SHORE_DEPTH : f32 = 7.5;
-const WATER_SURFACE_AMPLITUDE : f32 = 1.6;
+const WATER_SURFACE_AMPLITUDE : f32 = 2.0;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Coordinate Space Conversion
@@ -110,11 +111,16 @@ fn lodDistanceForMip(level : u32) -> f32 {
 }
 
 fn waterSurfaceOffset(worldXZ : vec2<f32>) -> f32 {
-    let waveStrength = camera.waterParams.z;
-    let broad = sin(dot(worldXZ, vec2<f32>(0.010, 0.006)) + 1.4) * 0.55;
-    let cross = sin(dot(worldXZ, vec2<f32>(-0.007, 0.014)) + 3.2) * 0.30;
-    let ripple = sin(dot(worldXZ, vec2<f32>(0.026, -0.018)) + 5.1) * 0.15;
-    return (broad + cross + ripple) * WATER_SURFACE_AMPLITUDE * clamp(waveStrength * 12.0, 0.0, 1.0);
+    let time = camera.waterMotion.x;
+    let strength = clamp(camera.waterParams.z, 0.0, 1.0);
+    let q0 = dot(worldXZ, vec2<f32>( 0.021,  0.009)) - time * 0.54 + 0.3;
+    let q1 = dot(worldXZ, vec2<f32>( 0.012, -0.033)) - time * 0.64 + 2.1;
+    let q2 = dot(worldXZ, vec2<f32>(-0.052,  0.021)) - time * 0.78 + 4.7;
+    let q3 = dot(worldXZ, vec2<f32>( 0.074,  0.041)) - time * 0.94 + 1.2;
+    let q4 = dot(worldXZ, vec2<f32>(-0.110,  0.062)) - time * 1.12 + 5.4;
+    let spectrum = sin(q0) * 0.48 + sin(q1) * 0.26 + sin(q2) * 0.14 +
+                   sin(q3) * 0.075 + sin(q4) * 0.045;
+    return spectrum * WATER_SURFACE_AMPLITUDE * strength;
 }
 
 fn nearbyShoreInfluence(cell : vec2<i32>, baseSize : vec2<i32>, waterHeight : f32) -> f32 {

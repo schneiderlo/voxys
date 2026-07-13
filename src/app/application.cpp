@@ -1304,6 +1304,8 @@ void Application::updateCameraUniforms() {
                       config_.waterWaveStrength,
                       config_.waterReflectionStrength,
                       config_.waterShoreFade);
+    // Wrap before fp32 loses the sub-frame precision used by short waves.
+    uniforms.setWaterTime(static_cast<float>(std::fmod(stats_.totalTimeSeconds, 4096.0)));
 
     if (config_.renderPath == RenderPath::Triangle &&
         trianglePath_ && trianglePath_->isInitialized()) {

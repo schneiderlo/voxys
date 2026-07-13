@@ -26,9 +26,9 @@ namespace voxy::render {
 // CameraUniforms Tests
 // ═══════════════════════════════════════════════════════════════════════════════
 
-TEST(CameraUniformsTest, SizeIs432Bytes) {
+TEST(CameraUniformsTest, SizeIs448Bytes) {
     // Critical: Must match WGSL struct exactly
-    EXPECT_EQ(sizeof(CameraUniforms), 432u);
+    EXPECT_EQ(sizeof(CameraUniforms), 448u);
 }
 
 TEST(CameraUniformsTest, DefaultConstruction) {
@@ -58,6 +58,13 @@ TEST(CameraUniformsTest, DefaultConstruction) {
     EXPECT_FLOAT_EQ(uniforms.waterParams.w, 0.05f);
     EXPECT_FLOAT_EQ(uniforms.waterColorA.w, 0.42f);
     EXPECT_FLOAT_EQ(uniforms.waterColorB.w, 30.0f);
+    EXPECT_FLOAT_EQ(uniforms.waterMotion.x, 0.0f);
+}
+
+TEST(CameraUniformsTest, SetWaterTime) {
+    CameraUniforms uniforms;
+    uniforms.setWaterTime(12.5f);
+    EXPECT_FLOAT_EQ(uniforms.waterMotion.x, 12.5f);
 }
 
 TEST(CameraUniformsTest, SetWater) {

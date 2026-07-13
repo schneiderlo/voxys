@@ -141,6 +141,8 @@ TEST_F(RaycastShaderTest, HasWaterMaterialOutput) {
         << "Shader missing displaced water surface helper";
     EXPECT_NE(shaderSource_.find("WATER_SURFACE_AMPLITUDE"), std::string::npos)
         << "Shader missing water surface displacement amplitude";
+    EXPECT_NE(shaderSource_.find("camera.waterMotion.x"), std::string::npos)
+        << "Shader missing animated wave phases";
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
