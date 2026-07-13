@@ -42,6 +42,12 @@ public:
         bool active = false;
     };
 
+    struct DynamicBodyReadStats {
+        size_t bodyCount = 0;
+        size_t lockedBodyCount = 0;
+        size_t cachedBodyCount = 0;
+    };
+
     struct WaterSurfaceSample {
         float heightOffset = 0.0f;
         glm::vec2 slope{0.0f};
@@ -120,6 +126,7 @@ public:
     /// caller-owned overlays without changing the returned body sequence.
     [[nodiscard]] std::vector<DynamicBodySnapshot> dynamicBodies(
         size_t additionalCapacity = 0) const;
+    [[nodiscard]] DynamicBodyReadStats lastDynamicBodyReadStats() const noexcept;
 
     [[nodiscard]] static const char* throwableShapeName(ThrowableShape shape) noexcept;
     [[nodiscard]] static glm::vec3 throwableShapeDimensions(ThrowableShape shape) noexcept;

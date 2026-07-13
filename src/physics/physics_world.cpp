@@ -13,6 +13,7 @@
 #include <Jolt/Core/JobSystemSingleThreaded.h>
 #include <Jolt/Core/TempAllocator.h>
 #include <Jolt/Physics/Body/BodyCreationSettings.h>
+#include <Jolt/Physics/Body/BodyActivationListener.h>
 #include <Jolt/Physics/Body/BodyLockMulti.h>
 #include <Jolt/Physics/Character/CharacterVirtual.h>
 #include <Jolt/Physics/Collision/Shape/BoxShape.h>
@@ -28,6 +29,7 @@
 
 #include <algorithm>
 #include <array>
+#include <atomic>
 #include <cmath>
 #include <cstdarg>
 #include <cstdio>
@@ -187,7 +189,7 @@ JPH::RVec3 toJoltPosition(const glm::vec3& value) {
 
 } // namespace
 
-class PhysicsWorld::Impl {
+class PhysicsWorld::Impl : public JPH::BodyActivationListener {
 public:
     struct Terrain {
         std::span<const uint16_t> samples;
@@ -212,7 +214,21 @@ public:
         JPH::BodyID body;
         ThrowableShape shape = ThrowableShape::Sphere;
         glm::vec3 dimensions{1.0f};
+        mutable glm::vec3 cachedPosition{0.0f};
+        mutable glm::quat cachedRotation{1.0f, 0.0f, 0.0f, 0.0f};
     };
+
+    void OnBodyActivated(const JPH::BodyID& bodyID, JPH::uint64) override {
+        const uint32_t index = bodyID.GetIndex();
+        if (index < snapshotTransformDirty.size()) {
+            snapshotTransformDirty[index].store(true,
+                                                std::memory_order_relaxed);
+        }
+    }
+
+    void OnBodyDeactivated(const JPH::BodyID& bodyID, JPH::uint64) override {
+        OnBodyActivated(bodyID, 0);
+    }
 
     ~Impl() { shutdown(); }
 
@@ -230,6 +246,7 @@ public:
         system->Init(kMaxBodies, 0, kMaxBodyPairs, kMaxContactConstraints,
                      broadPhaseInterface,
                      objectVsBroadPhaseFilter, objectLayerPairFilter);
+        system->SetBodyActivationListener(this);
         return true;
     }
 
@@ -238,6 +255,7 @@ public:
             return;
         }
 
+        if (system) system->SetBodyActivationListener(nullptr);
         characters.clear();
         clearDynamicBodies();
         clearTerrain();
@@ -262,6 +280,7 @@ public:
         dynamicBodies.clear();
         waterBodyIDs.clear();
         waterPositions.clear();
+        lastDynamicBodyReadStats = {};
     }
 
     void clearTerrain() {
@@ -417,6 +436,8 @@ public:
     Terrain terrain;
     std::vector<std::unique_ptr<CharacterSlot>> characters;
     std::vector<DynamicSlot> dynamicBodies;
+    std::array<std::atomic_bool, kMaxBodies> snapshotTransformDirty{};
+    mutable DynamicBodyReadStats lastDynamicBodyReadStats;
     std::vector<JPH::BodyID> waterBodyIDs;
     std::vector<JPH::RVec3> waterPositions;
     float waterHeight = 0.0f;
@@ -686,6 +707,8 @@ bool PhysicsWorld::throwBody(ThrowableShape shape, const glm::vec3& position,
     bodyInterface.SetLinearVelocity(body, JPH::Vec3(velocity.x, velocity.y, velocity.z));
     bodyInterface.SetAngularVelocity(body, JPH::Vec3(3.5f, 5.0f, 2.5f));
     impl_->dynamicBodies.push_back({body, shape, dimensions});
+    impl_->snapshotTransformDirty[body.GetIndex()].store(
+        true, std::memory_order_relaxed);
     impl_->waterBodyIDs.push_back(body);
     return true;
 }
@@ -767,9 +790,11 @@ void PhysicsWorld::update(float deltaTime) {
 std::vector<PhysicsWorld::DynamicBodySnapshot> PhysicsWorld::dynamicBodies(
     size_t additionalCapacity) const {
     std::vector<DynamicBodySnapshot> result;
+    if (impl_) impl_->lastDynamicBodyReadStats = {};
     if (!isInitialized()) {
         return result;
     }
+    impl_->lastDynamicBodyReadStats.bodyCount = impl_->dynamicBodies.size();
     result.reserve(impl_->dynamicBodies.size() + additionalCapacity);
     if (impl_->dynamicBodies.empty()) {
         return result;
@@ -785,9 +810,34 @@ std::vector<PhysicsWorld::DynamicBodySnapshot> PhysicsWorld::dynamicBodies(
         impl_->system->GetNumActiveBodies(JPH::EBodyType::RigidBody);
     const bool allBodiesActive =
         activeBodyCount == impl_->dynamicBodies.size();
+    if (allBodiesActive) {
+        const JPH::BodyLockMultiRead lock(
+            impl_->system->GetBodyLockInterface(), bodyIDs.data(),
+            static_cast<int>(bodyIDs.size()));
+        for (size_t index = 0; index < impl_->dynamicBodies.size(); ++index) {
+            const Impl::DynamicSlot& slot = impl_->dynamicBodies[index];
+            const JPH::Body* body = lock.GetBody(static_cast<int>(index));
+            const JPH::RVec3 position = body != nullptr
+                ? body->GetPosition()
+                : JPH::RVec3::sZero();
+            const JPH::Quat rotation = body != nullptr
+                ? body->GetRotation()
+                : JPH::Quat::sIdentity();
+            result.push_back({
+                slot.shape,
+                toGlmPosition(position),
+                glm::quat(rotation.GetW(), rotation.GetX(), rotation.GetY(),
+                          rotation.GetZ()),
+                slot.dimensions,
+                body != nullptr});
+        }
+        impl_->lastDynamicBodyReadStats.lockedBodyCount = bodyIDs.size();
+        return result;
+    }
+
     std::array<uint8_t, kMaxBodies> activeBodyIndices;
-    if (activeBodyCount != 0 && !allBodiesActive) {
-        activeBodyIndices.fill(0);
+    activeBodyIndices.fill(0);
+    if (activeBodyCount != 0) {
         JPH::BodyIDVector activeBodies;
         impl_->system->GetActiveBodies(JPH::EBodyType::RigidBody, activeBodies);
         for (const JPH::BodyID bodyID : activeBodies) {
@@ -795,29 +845,68 @@ std::vector<PhysicsWorld::DynamicBodySnapshot> PhysicsWorld::dynamicBodies(
         }
     }
 
-    const JPH::BodyLockMultiRead lock(
-        impl_->system->GetBodyLockInterface(), bodyIDs.data(),
-        static_cast<int>(bodyIDs.size()));
+    result.resize(impl_->dynamicBodies.size());
+    bodyIDs.clear();
     for (size_t index = 0; index < impl_->dynamicBodies.size(); ++index) {
         const Impl::DynamicSlot& slot = impl_->dynamicBodies[index];
-        const JPH::Body* body = lock.GetBody(static_cast<int>(index));
-        const JPH::RVec3 position = body != nullptr
-            ? body->GetPosition()
-            : JPH::RVec3::sZero();
-        const JPH::Quat rotation = body != nullptr
-            ? body->GetRotation()
-            : JPH::Quat::sIdentity();
-        result.push_back({
-            slot.shape,
-            toGlmPosition(position),
-            glm::quat(rotation.GetW(), rotation.GetX(), rotation.GetY(), rotation.GetZ()),
-            slot.dimensions,
-            body != nullptr
-                && (allBodiesActive
-                    || (activeBodyCount != 0
-                        && activeBodyIndices[slot.body.GetIndex()] != 0))});
+        auto& snapshot = result[index];
+        snapshot.shape = slot.shape;
+        snapshot.dimensions = slot.dimensions;
+        snapshot.active = activeBodyCount != 0
+            && activeBodyIndices[slot.body.GetIndex()] != 0;
+        const bool transformDirty =
+            impl_->snapshotTransformDirty[slot.body.GetIndex()].load(
+                std::memory_order_relaxed);
+        if (snapshot.active || transformDirty) {
+            if (!snapshot.active) {
+                activeBodyIndices[slot.body.GetIndex()] = 2;
+            }
+            bodyIDs.push_back(slot.body);
+        } else {
+            snapshot.position = slot.cachedPosition;
+            snapshot.rotation = slot.cachedRotation;
+        }
     }
+
+    if (!bodyIDs.empty()) {
+        const JPH::BodyLockMultiRead lock(
+            impl_->system->GetBodyLockInterface(), bodyIDs.data(),
+            static_cast<int>(bodyIDs.size()));
+        int readIndex = 0;
+        for (size_t index = 0; index < impl_->dynamicBodies.size(); ++index) {
+            const Impl::DynamicSlot& slot = impl_->dynamicBodies[index];
+            auto& snapshot = result[index];
+            if (activeBodyIndices[slot.body.GetIndex()] == 0) continue;
+
+            const JPH::Body* body = lock.GetBody(readIndex++);
+            const JPH::RVec3 position = body != nullptr
+                ? body->GetPosition()
+                : JPH::RVec3::sZero();
+            const JPH::Quat rotation = body != nullptr
+                ? body->GetRotation()
+                : JPH::Quat::sIdentity();
+            snapshot.position = toGlmPosition(position);
+            snapshot.rotation = glm::quat(
+                rotation.GetW(), rotation.GetX(), rotation.GetY(),
+                rotation.GetZ());
+            snapshot.active &= body != nullptr;
+            if (!snapshot.active) {
+                slot.cachedPosition = snapshot.position;
+                slot.cachedRotation = snapshot.rotation;
+                impl_->snapshotTransformDirty[slot.body.GetIndex()].store(
+                    false, std::memory_order_relaxed);
+            }
+        }
+    }
+    impl_->lastDynamicBodyReadStats.lockedBodyCount = bodyIDs.size();
+    impl_->lastDynamicBodyReadStats.cachedBodyCount =
+        result.size() - bodyIDs.size();
     return result;
+}
+
+PhysicsWorld::DynamicBodyReadStats
+PhysicsWorld::lastDynamicBodyReadStats() const noexcept {
+    return impl_ ? impl_->lastDynamicBodyReadStats : DynamicBodyReadStats{};
 }
 
 const char* PhysicsWorld::throwableShapeName(ThrowableShape shape) noexcept {

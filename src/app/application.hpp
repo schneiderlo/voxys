@@ -194,6 +194,8 @@ struct ApplicationStats {
     uint64_t primitiveInstanceUploadBytes = 0;
     uint32_t primitiveInstanceUploadCalls = 0;
     bool primitiveInstanceFullUpload = false;
+    uint32_t primitiveBodyLockedReadCount = 0;
+    uint32_t primitiveBodyCachedReadCount = 0;
     
     // Controller stats
     ControllerMode activeController = ControllerMode::FreeFly;

@@ -532,6 +532,11 @@ void Application::render() {
 
     if (primitivePath_ && primitivePath_->isInitialized() && physicsWorld_) {
         auto bodies = physicsWorld_->dynamicBodies(kPrimitiveOverlayHeadroom);
+        const auto bodyReadStats = physicsWorld_->lastDynamicBodyReadStats();
+        stats_.primitiveBodyLockedReadCount =
+            static_cast<uint32_t>(bodyReadStats.lockedBodyCount);
+        stats_.primitiveBodyCachedReadCount =
+            static_cast<uint32_t>(bodyReadStats.cachedBodyCount);
         const size_t objectCount = bodies.size();
         const auto selectedShape =
             static_cast<physics::PhysicsWorld::ThrowableShape>(selectedThrowable_);

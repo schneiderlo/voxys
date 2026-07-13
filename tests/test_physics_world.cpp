@@ -29,6 +29,7 @@ void expectSameBodyState(const PhysicsWorld::DynamicBodySnapshot& lhs,
     expectSameFloatBits(lhs.dimensions.x, rhs.dimensions.x);
     expectSameFloatBits(lhs.dimensions.y, rhs.dimensions.y);
     expectSameFloatBits(lhs.dimensions.z, rhs.dimensions.z);
+    EXPECT_EQ(lhs.active, rhs.active);
 }
 
 class PhysicsWorldTest : public ::testing::Test {
@@ -153,6 +154,62 @@ TEST_F(PhysicsWorldTest, KeepsMoreThanSixtyFourBodies) {
             glm::vec3(0.0f)));
     }
     EXPECT_EQ(world.dynamicBodies().size(), bodyCount);
+}
+
+TEST_F(PhysicsWorldTest, ReusesOnlyContinuouslySleepingTransforms) {
+    ASSERT_TRUE(world.throwBody(
+        PhysicsWorld::ThrowableShape::Box,
+        glm::vec3(0.0f, 4.0f, 0.0f), glm::vec3(0.0f)));
+
+    PhysicsWorld::DynamicBodySnapshot firstSleep;
+    bool settled = false;
+    for (uint32_t frame = 0; frame < 900; ++frame) {
+        world.update(1.0f / 60.0f);
+        const auto bodies = world.dynamicBodies();
+        ASSERT_EQ(bodies.size(), 1u);
+        if (!bodies.front().active) {
+            firstSleep = bodies.front();
+            settled = true;
+            break;
+        }
+    }
+    ASSERT_TRUE(settled);
+    EXPECT_EQ(world.lastDynamicBodyReadStats().lockedBodyCount, 1u);
+    EXPECT_EQ(world.lastDynamicBodyReadStats().cachedBodyCount, 0u);
+
+    const auto cached = world.dynamicBodies();
+    ASSERT_EQ(cached.size(), 1u);
+    expectSameBodyState(cached.front(), firstSleep);
+    EXPECT_EQ(world.lastDynamicBodyReadStats().lockedBodyCount, 0u);
+    EXPECT_EQ(world.lastDynamicBodyReadStats().cachedBodyCount, 1u);
+
+    world.setWaterPlane(3.0f, true);
+    world.setWaterSurfaceSampler([](glm::vec2, float) {
+        return PhysicsWorld::WaterSurfaceSample{
+            0.0f, glm::vec2(0.0f), glm::vec3(8.0f, 0.0f, 0.0f)};
+    });
+    for (uint32_t frame = 0; frame < 30; ++frame) {
+        world.update(1.0f / 60.0f);
+    }
+    world.setWaterPlane(3.0f, false);
+    world.setWaterSurfaceSampler({});
+    for (uint32_t frame = 0; frame < 900; ++frame) {
+        world.update(1.0f / 60.0f);
+    }
+
+    const auto resettled = world.dynamicBodies();
+    ASSERT_EQ(resettled.size(), 1u);
+    ASSERT_FALSE(resettled.front().active);
+    EXPECT_GT(std::abs(resettled.front().position.x - firstSleep.position.x),
+              0.01f);
+    EXPECT_EQ(world.lastDynamicBodyReadStats().lockedBodyCount, 1u);
+    EXPECT_EQ(world.lastDynamicBodyReadStats().cachedBodyCount, 0u);
+
+    const auto recached = world.dynamicBodies();
+    ASSERT_EQ(recached.size(), 1u);
+    expectSameBodyState(recached.front(), resettled.front());
+    EXPECT_EQ(world.lastDynamicBodyReadStats().lockedBodyCount, 0u);
+    EXPECT_EQ(world.lastDynamicBodyReadStats().cachedBodyCount, 1u);
 }
 
 TEST_F(PhysicsWorldTest, ReservesCallerOverlayCapacityWithoutGrowth) {
