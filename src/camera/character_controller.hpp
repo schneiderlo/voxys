@@ -18,6 +18,10 @@
 
 namespace voxy {
 
+namespace physics {
+class PhysicsWorld;
+}
+
 namespace terrain {
     class Heightmap;
 }
@@ -62,6 +66,7 @@ struct CharacterConfig {
     // Character dimensions
     float groundOffset = 1.8f;        ///< Eye height above terrain
     float collisionRadius = 0.4f;     ///< Collision capsule radius
+    float collisionHeight = 1.8f;     ///< Full collision capsule height
     
     // Slope handling
     float maxSlopeAngle = 45.0f;      ///< Maximum walkable slope (degrees)
@@ -117,6 +122,12 @@ public:
     
     /// Default constructor
     CharacterController() = default;
+    ~CharacterController();
+
+    CharacterController(const CharacterController&) = delete;
+    CharacterController& operator=(const CharacterController&) = delete;
+    CharacterController(CharacterController&&) = delete;
+    CharacterController& operator=(CharacterController&&) = delete;
     
     /// Constructor with camera and heightmap
     CharacterController(Camera& camera, const terrain::Heightmap* heightmap,
@@ -130,13 +141,21 @@ public:
     [[nodiscard]] const CharacterConfig& config() const noexcept { return config_; }
     
     /// Set configuration
-    void setConfig(const CharacterConfig& config) { config_ = config; }
+    void setConfig(const CharacterConfig& config);
     
     /// Set heightmap for terrain sampling
     void setHeightmap(const terrain::Heightmap* heightmap) { heightmap_ = heightmap; }
     
     /// Set custom height sampler (overrides heightmap)
     void setHeightSampler(HeightSampler sampler) { heightSampler_ = std::move(sampler); }
+
+    /// Use Jolt for character collision and movement.
+    void attachPhysicsWorld(physics::PhysicsWorld& world);
+    void detachPhysicsWorld();
+
+    /// Teleport the Jolt character to the camera's current feet position.
+    /// Call when switching from free-fly to character control.
+    void syncPhysicsPosition();
     
     // ─────────────────────────────────────────────────────────────────────────
     // Camera Access
@@ -224,6 +243,10 @@ private:
     
     /// Handle ground collision and state transitions
     void handleGroundCollision(float deltaTime);
+
+    /// Lazily create and advance the Jolt virtual character.
+    [[nodiscard]] bool ensurePhysicsCharacter();
+    void updatePhysicsCharacter(float deltaTime);
     
     /// Convert world coordinates to heightmap UV
     [[nodiscard]] glm::vec2 worldToHeightmapUV(float worldX, float worldZ) const;
@@ -236,6 +259,8 @@ private:
     const terrain::Heightmap* heightmap_ = nullptr;
     HeightSampler heightSampler_;
     CharacterConfig config_;
+    physics::PhysicsWorld* physicsWorld_ = nullptr;
+    uint32_t physicsCharacter_ = 0;
     
     // Physics state
     CharacterState state_ = CharacterState::Falling;
@@ -245,6 +270,7 @@ private:
     float lastTerrainHeight_ = 0.0f;
     glm::vec3 terrainNormal_{0.0f, 1.0f, 0.0f};
     bool isWalkableSlope_ = true;
+    bool jumpRequested_ = false;
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -268,4 +294,3 @@ inline glm::vec3 CharacterController::feetPosition() const noexcept {
 }
 
 } // namespace voxy
-

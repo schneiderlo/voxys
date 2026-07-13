@@ -4,6 +4,7 @@
 
 #include "camera/character_controller.hpp"
 #include "terrain/heightmap.hpp"
+#include "physics/physics_world.hpp"
 #include "core/log.hpp"
 
 #include <glm/geometric.hpp>
@@ -31,6 +32,45 @@ CharacterController::CharacterController(Camera& camera, const terrain::Heightma
     }
 }
 
+CharacterController::~CharacterController() {
+    detachPhysicsWorld();
+}
+
+void CharacterController::setConfig(const CharacterConfig& config) {
+    config_ = config;
+    if (physicsWorld_ && physicsCharacter_ != physics::PhysicsWorld::InvalidCharacter) {
+        physicsWorld_->destroyCharacter(physicsCharacter_);
+        physicsCharacter_ = physics::PhysicsWorld::InvalidCharacter;
+    }
+}
+
+void CharacterController::attachPhysicsWorld(physics::PhysicsWorld& world) {
+    if (physicsWorld_ == &world) {
+        return;
+    }
+    detachPhysicsWorld();
+    physicsWorld_ = &world;
+}
+
+void CharacterController::detachPhysicsWorld() {
+    if (physicsWorld_ && physicsCharacter_ != physics::PhysicsWorld::InvalidCharacter) {
+        physicsWorld_->destroyCharacter(physicsCharacter_);
+    }
+    physicsCharacter_ = physics::PhysicsWorld::InvalidCharacter;
+    physicsWorld_ = nullptr;
+}
+
+void CharacterController::syncPhysicsPosition() {
+    if (!camera_ || !physicsWorld_) {
+        return;
+    }
+    if (ensurePhysicsCharacter()) {
+        (void)physicsWorld_->setCharacterPosition(physicsCharacter_, feetPosition());
+        velocity_ = glm::vec3(0.0f);
+        state_ = CharacterState::Falling;
+    }
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // Update
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -49,11 +89,15 @@ void CharacterController::update(float deltaTime, Input& input) {
     // Process keyboard movement
     processMovement(deltaTime, input);
     
-    // Apply physics (gravity)
-    applyPhysics(deltaTime);
-    
-    // Handle ground collision
-    handleGroundCollision(deltaTime);
+    if (ensurePhysicsCharacter()) {
+        updatePhysicsCharacter(deltaTime);
+    } else {
+        // Lightweight fallback for standalone controllers with no world attached.
+        applyPhysics(deltaTime);
+        handleGroundCollision(deltaTime);
+    }
+
+    jumpRequested_ = false;
     
 }
 
@@ -178,15 +222,60 @@ void CharacterController::processMovement(float deltaTime, const Input& input) {
     
     // Jump (only when grounded and on walkable slope)
     if (input.wasKeyPressed(Key::Space) && state_ == CharacterState::Grounded && isWalkableSlope_) {
-        velocity_.y = config_.jumpVelocity();
-        state_ = CharacterState::Jumping;
-        LOG_INFO("Jump! velocity.y = {:.1f}", velocity_.y);
+        jumpRequested_ = true;
+        if (!physicsWorld_) {
+            velocity_.y = config_.jumpVelocity();
+            state_ = CharacterState::Jumping;
+        }
+        LOG_INFO("Jump! velocity.y = {:.1f}", config_.jumpVelocity());
     }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Physics
 // ═══════════════════════════════════════════════════════════════════════════════
+
+bool CharacterController::ensurePhysicsCharacter() {
+    if (!physicsWorld_ || !physicsWorld_->isInitialized() || !camera_) {
+        return false;
+    }
+    if (physicsCharacter_ != physics::PhysicsWorld::InvalidCharacter) {
+        return true;
+    }
+
+    physics::PhysicsWorld::CharacterSettings settings;
+    settings.radius = config_.collisionRadius;
+    settings.height = config_.collisionHeight;
+    settings.maxSlopeAngleDegrees = config_.maxSlopeAngle;
+    settings.stepUp = 0.5f;
+    settings.stepDown = std::min(config_.maxStepDown, 0.5f);
+    physicsCharacter_ = physicsWorld_->createCharacter(feetPosition(), settings);
+    return physicsCharacter_ != physics::PhysicsWorld::InvalidCharacter;
+}
+
+void CharacterController::updatePhysicsCharacter(float deltaTime) {
+    const auto motion = physicsWorld_->moveCharacter(
+        physicsCharacter_, glm::vec3(velocity_.x, 0.0f, velocity_.z),
+        jumpRequested_, config_.jumpVelocity(), config_.gravity,
+        config_.terminalVelocity, deltaTime);
+
+    velocity_ = motion.velocity;
+    terrainNormal_ = motion.groundNormal;
+    isWalkableSlope_ = !motion.onSteepGround;
+    lastTerrainHeight_ = sampleTerrainHeight(motion.position.x, motion.position.z);
+
+    if (motion.grounded) {
+        state_ = CharacterState::Grounded;
+    } else if (motion.velocity.y > 0.0f) {
+        state_ = CharacterState::Jumping;
+    } else {
+        state_ = CharacterState::Falling;
+    }
+
+    glm::vec3 cameraPosition = motion.position;
+    cameraPosition.y += config_.groundOffset;
+    camera_->setPosition(cameraPosition);
+}
 
 void CharacterController::applyPhysics(float deltaTime) {
     // Apply gravity when not grounded

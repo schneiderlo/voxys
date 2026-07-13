@@ -42,6 +42,10 @@ class Camera;
 class FreeFlyController;
 class CharacterController;
 
+namespace physics {
+    class PhysicsWorld;
+}
+
 namespace gpu {
     class Context;
 }
@@ -440,6 +444,7 @@ private:
     std::unique_ptr<Input> input_;
     std::unique_ptr<Camera> camera_;
     std::unique_ptr<FreeFlyController> freeFlyController_;
+    std::unique_ptr<physics::PhysicsWorld> physicsWorld_;
     std::unique_ptr<CharacterController> characterController_;
     std::unique_ptr<terrain::Heightmap> heightmap_;
     std::unique_ptr<terrain::TerrainTextures> terrainTextures_;

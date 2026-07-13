@@ -14,6 +14,7 @@ set(GPU_SOURCES "")
 set(TERRAIN_SOURCES "")
 set(RENDER_SOURCES "")
 set(CAMERA_SOURCES "")
+set(PHYSICS_SOURCES "")
 set(APP_SOURCES "")
 
 # Core utilities (Phase 1.4)
@@ -162,6 +163,13 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/camera/character_controller.cpp")
     )
 endif()
 
+# Physics (Jolt on both native and WebAssembly)
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/physics/physics_world.cpp")
+    list(APPEND PHYSICS_SOURCES
+        physics/physics_world.cpp
+    )
+endif()
+
 # Application layer (Phase 4, 9, 10)
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/app/application.cpp")
     list(APPEND APP_SOURCES
@@ -197,6 +205,7 @@ set(ALL_SOURCES
     ${VOXEL_SOURCES}
     ${RENDER_SOURCES}
     ${CAMERA_SOURCES}
+    ${PHYSICS_SOURCES}
     ${APP_SOURCES}
     ${PERF_SOURCES}
 )
@@ -257,6 +266,11 @@ if(ALL_SOURCES)
     
     if(TARGET tinyexr)
         target_link_libraries(voxy_core PUBLIC tinyexr)
+    endif()
+
+    if(TARGET Jolt)
+        target_link_libraries(voxy_core PUBLIC Jolt)
+        target_compile_definitions(voxy_core PUBLIC VOXY_HAS_JOLT=1)
     endif()
     
     # GLFW for windowing (native only)

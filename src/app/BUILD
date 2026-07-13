@@ -21,6 +21,7 @@ cc_library(
         "//src/core:core",
         "//src/gpu:gpu",
         "//src/perf:perf",
+        "//src/physics:physics",
         "//src/render:render",
         "//src/terrain:terrain",
         "//third_party:glm",

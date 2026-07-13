@@ -25,6 +25,7 @@
 #include "render/raycast_path.hpp"
 #include "render/blit_path.hpp"
 #include "render/water_simulation.hpp"
+#include "physics/physics_world.hpp"
 
 #include <chrono>
 #include <algorithm>
@@ -327,15 +328,20 @@ void Application::shutdown() {
         terrainTextures_.reset();
     }
 
-    // Release terrain
+    // Shutdown other subsystems
+    characterController_.reset();
+    if (physicsWorld_) {
+        physicsWorld_->shutdown();
+        physicsWorld_.reset();
+    }
+
+    // Jolt streams directly from the heightmap, so release it after physics.
     if (heightmap_) {
         heightmap_->release();
         heightmap_.reset();
     }
 
-    // Shutdown other subsystems
     freeFlyController_.reset();
-    characterController_.reset();
     camera_.reset();
     input_.reset();
 
@@ -750,6 +756,7 @@ void Application::setControllerMode(ControllerMode mode) {
         
         // When switching to character mode, log terrain info for debugging
         if (mode == ControllerMode::Character && characterController_ && camera_) {
+            characterController_->syncPhysicsPosition();
             const auto& cfg = characterController_->config();
             LOG_INFO("Character config: terrainWidth={:.1f}, terrainHeight={:.1f}, heightScale={:.1f}", 
                      cfg.terrainWidth, cfg.terrainHeight, cfg.heightScale);
@@ -902,6 +909,12 @@ bool Application::initCamera() {
 
     freeFlyController_ = std::make_unique<FreeFlyController>(*camera_, flyConfig);
 
+    physicsWorld_ = std::make_unique<physics::PhysicsWorld>();
+    if (!physicsWorld_->initialize()) {
+        LOG_ERROR("Failed to initialize Jolt Physics");
+        return false;
+    }
+
     // Create character controller (will be fully initialized after terrain loads)
     CharacterConfig charConfig;
     charConfig.walkSpeed = config_.cameraMoveSpeed;
@@ -910,6 +923,7 @@ bool Application::initCamera() {
     charConfig.heightScale = config_.heightScale;
     charConfig.cellScale = config_.cellScale;
     charConfig.groundOffset = config_.cameraEyeHeight;
+    charConfig.collisionHeight = std::max(config_.cameraEyeHeight, 0.82f);
     charConfig.terrainWidth = terrainSampleExtent(config_.heightmapWidth, config_.cellScale);
     charConfig.terrainHeight = terrainSampleExtent(config_.heightmapHeight, config_.cellScale);
     
@@ -917,6 +931,7 @@ bool Application::initCamera() {
     characterController_ = std::make_unique<CharacterController>();
     characterController_->attachCamera(*camera_);
     characterController_->setConfig(charConfig);
+    characterController_->attachPhysicsWorld(*physicsWorld_);
 
     LOG_DEBUG("Camera initialized at ({}, {}, {})",
               config_.cameraStartPos.x, config_.cameraStartPos.y, config_.cameraStartPos.z);
@@ -1020,6 +1035,13 @@ bool Application::initTerrain() {
         charConfig.cellScale = config_.cellScale;
         charConfig.groundOffset = config_.cameraEyeHeight;
         characterController_->setConfig(charConfig);
+    }
+
+    if (!physicsWorld_ || !physicsWorld_->setTerrain(
+            heightmap_->getData(), heightmap_->getWidth(), heightmap_->getHeight(),
+            config_.heightScale, config_.cellScale)) {
+        LOG_ERROR("Failed to attach terrain to Jolt Physics");
+        return false;
     }
 
     LOG_DEBUG("Terrain initialized: {}x{} with {} mip levels",

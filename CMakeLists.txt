@@ -1,7 +1,7 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.20)
 # CMake 4 rejects vendored projects whose own minimum predates 3.5. Keep the
 # compatibility floor local to this dependency build while the top-level
-# project continues to require 3.16.
+# project continues to require 3.20.
 set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
 project(voxy VERSION 0.1.0 LANGUAGES CXX C)
 
@@ -309,5 +309,6 @@ message(STATUS "  WASM build:        ${VOXY_BUILD_WASM}")
 message(STATUS "  Build tools:       ${VOXY_BUILD_TOOLS}")
 message(STATUS "  Build tests:       ${VOXY_BUILD_TESTS}")
 message(STATUS "  Validation:        ${VOXY_ENABLE_VALIDATION}")
+message(STATUS "  Jolt Physics:      ON")
 message(STATUS "═══════════════════════════════════════════════════════════════")
 message(STATUS "")

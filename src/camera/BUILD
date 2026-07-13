@@ -19,6 +19,7 @@ cc_library(
     deps = [
         "//src/engine/platform:input",
         "//src/core:core",
+        "//src/physics:physics",
         "//src/terrain:terrain",
         "//third_party:glm",
     ],

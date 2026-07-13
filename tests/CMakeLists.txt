@@ -27,6 +27,7 @@ set(TEST_SOURCES
     test_camera.cpp
     test_controller.cpp
     test_character_controller.cpp
+    test_physics_world.cpp
     test_svo_core.cpp
 )
 

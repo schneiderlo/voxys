@@ -11,6 +11,7 @@ TEST_SRCS = [
     "test_camera.cpp",
     "test_controller.cpp",
     "test_character_controller.cpp",
+    "test_physics_world.cpp",
     "test_gpu_context.cpp",
     "test_gpu_resources.cpp",
     "test_shader_terrain.cpp",
@@ -75,7 +76,7 @@ cc_test(
 )
 
 # Kept independent from //src:voxy_core so renderer validation does not pull in
-# unrelated application dependencies.
+# unrelated application/physics dependencies.
 cc_test(
     name = "water_simulation",
     srcs = ["test_water_simulation.cpp"],

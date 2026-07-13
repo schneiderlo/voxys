@@ -173,4 +173,28 @@ else()
     message(STATUS "  GoogleTest: Not found - run scripts/fetch_deps.sh")
 endif()
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Jolt Physics - shared by native and WebAssembly builds
+# https://github.com/jrouwe/JoltPhysics
+# ─────────────────────────────────────────────────────────────────────────────
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/JoltPhysics/Build/CMakeLists.txt")
+    # Keep Jolt lean and let the application own compiler policy. A single-
+    # threaded job system is selected at runtime, so browser builds do not
+    # require SharedArrayBuffer or COOP/COEP headers.
+    set(OVERRIDE_CXX_FLAGS OFF CACHE BOOL "" FORCE)
+    set(INTERPROCEDURAL_OPTIMIZATION OFF CACHE BOOL "" FORCE)
+    set(ENABLE_ALL_WARNINGS OFF CACHE BOOL "" FORCE)
+    set(ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
+    set(ENABLE_OBJECT_STREAM OFF CACHE BOOL "" FORCE)
+    set(DEBUG_RENDERER_IN_DEBUG_AND_RELEASE OFF CACHE BOOL "" FORCE)
+    set(PROFILER_IN_DEBUG_AND_RELEASE OFF CACHE BOOL "" FORCE)
+    set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+    set(USE_WASM_SIMD ${EMSCRIPTEN} CACHE BOOL "" FORCE)
+
+    add_subdirectory(JoltPhysics/Build EXCLUDE_FROM_ALL)
+    message(STATUS "  Jolt Physics: Found (v5.5.0)")
+else()
+    message(FATAL_ERROR "Jolt Physics not found - run scripts/fetch_deps.sh")
+endif()
+
 message(STATUS "Third-party configuration complete")

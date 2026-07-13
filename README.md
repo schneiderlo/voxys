@@ -19,6 +19,9 @@ bazel test //tests:config
 The shell provides GCC, Bazelisk-backed `bazel`, CMake, Rust, `uv`, X11/Vulkan
 development libraries, and runtime library paths for native WebGPU runs.
 
+`fetch_deps.sh` also pins Jolt Physics 5.5.0. The same Jolt character and
+full-resolution streamed terrain collision run in native and WASM builds.
+
 ## Terrain Assets
 
 Voxys can import generated terrain from Terrain Diffusion through the offline

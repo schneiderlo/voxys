@@ -1,5 +1,26 @@
 package(default_visibility = ["//visibility:public"])
 
+# Jolt Physics. Keep the instruction set portable on native builds and use
+# standardized wasm128 SIMD in browsers. The project uses Jolt's single-threaded
+# scheduler on both targets, so WASM does not require pthreads/SharedArrayBuffer.
+cc_library(
+    name = "jolt",
+    srcs = glob(["JoltPhysics/Jolt/**/*.cpp"]),
+    hdrs = glob([
+        "JoltPhysics/Jolt/**/*.h",
+        "JoltPhysics/Jolt/**/*.inl",
+    ]),
+    copts = select({
+        "@platforms//cpu:wasm32": ["-msimd128", "-msse4.2", "-w"],
+        "//conditions:default": ["-msse2", "-w"],
+    }),
+    includes = ["JoltPhysics"],
+    linkopts = select({
+        "@platforms//cpu:wasm32": [],
+        "//conditions:default": ["-pthread"],
+    }),
+)
+
 # GLM
 cc_library(
     name = "glm",

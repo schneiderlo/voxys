@@ -393,10 +393,11 @@ This document tracks the implementation progress of the voxy WebGPU terrain rend
 ## Phase 12: Character Controller ✅
 > 📖 **Spec:** [Interaction & Tools](specs/interaction-tools.md) — Sections 2.1–2.4
 
-- [x] Ground detection via heightmap sampling
+- [x] Ground detection via Jolt `CharacterVirtual`
 - [x] Gravity and jumping
 - [x] Slope handling
-- [x] Collision with terrain
+- [x] Full-resolution streamed Jolt heightfield collision
+- [x] Identical single-threaded physics path for native and WASM
 
 ## Phase 13: Virtual File System (Engine Core)
 
