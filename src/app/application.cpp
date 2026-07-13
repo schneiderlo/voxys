@@ -1440,7 +1440,7 @@ void Application::renderRaycastPath(WGPUCommandEncoder encoder, WGPUTextureView 
         return;
     }
 
-    if (waterSimulation_ && waterSimulation_->isInitialized()) {
+    if (config_.waterEnabled && waterSimulation_ && waterSimulation_->isInitialized()) {
         waterSimulation_->update(
             encoder, static_cast<float>(std::fmod(stats_.totalTimeSeconds, 4096.0)));
     }
