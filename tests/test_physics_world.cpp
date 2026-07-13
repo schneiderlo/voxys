@@ -208,6 +208,34 @@ TEST_F(PhysicsWorldTest, SamplesAnimatedWaterForBuoyancy) {
     EXPECT_GT(sampleCount, 0u);
 }
 
+TEST_F(PhysicsWorldTest, PreservesWaterSamplerOrderAcrossBatchRead) {
+    constexpr uint32_t bodyCount = 17;
+    std::vector<glm::vec2> sampledPositions;
+    sampledPositions.reserve(bodyCount);
+    world.setWaterPlane(5.0f);
+    world.setWaterSurfaceSampler(
+        [&sampledPositions](glm::vec2 position, float) {
+            sampledPositions.push_back(position);
+            return PhysicsWorld::WaterSurfaceSample{};
+        });
+
+    for (uint32_t index = 0; index < bodyCount; ++index) {
+        ASSERT_TRUE(world.throwBody(
+            PhysicsWorld::ThrowableShape::Sphere,
+            glm::vec3(static_cast<float>(index) * 3.0f, 4.5f, 0.0f),
+            glm::vec3(0.0f)));
+    }
+
+    world.update(1.0f / 60.0f);
+
+    ASSERT_EQ(sampledPositions.size(), bodyCount);
+    for (uint32_t index = 0; index < bodyCount; ++index) {
+        EXPECT_FLOAT_EQ(sampledPositions[index].x,
+                        static_cast<float>(index) * 3.0f);
+        EXPECT_FLOAT_EQ(sampledPositions[index].y, 0.0f);
+    }
+}
+
 TEST_F(PhysicsWorldTest, DryBodiesMatchWaterDisabledBitForBit) {
     PhysicsWorld waterDisabled;
     ASSERT_TRUE(waterDisabled.initialize());

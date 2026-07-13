@@ -260,6 +260,8 @@ public:
             }
         }
         dynamicBodies.clear();
+        waterBodyIDs.clear();
+        waterPositions.clear();
     }
 
     void clearTerrain() {
@@ -415,6 +417,8 @@ public:
     Terrain terrain;
     std::vector<std::unique_ptr<CharacterSlot>> characters;
     std::vector<DynamicSlot> dynamicBodies;
+    std::vector<JPH::BodyID> waterBodyIDs;
+    std::vector<JPH::RVec3> waterPositions;
     float waterHeight = 0.0f;
     float waterTime = 0.0f;
     bool waterEnabled = false;
@@ -682,6 +686,7 @@ bool PhysicsWorld::throwBody(ThrowableShape shape, const glm::vec3& position,
     bodyInterface.SetLinearVelocity(body, JPH::Vec3(velocity.x, velocity.y, velocity.z));
     bodyInterface.SetAngularVelocity(body, JPH::Vec3(3.5f, 5.0f, 2.5f));
     impl_->dynamicBodies.push_back({body, shape, dimensions});
+    impl_->waterBodyIDs.push_back(body);
     return true;
 }
 
@@ -700,8 +705,24 @@ void PhysicsWorld::update(float deltaTime) {
         if (impl_->waterEnabled) {
             impl_->waterTime = std::fmod(impl_->waterTime + stepTime, 4096.0f);
             auto& bodyInterface = impl_->system->GetBodyInterface();
-            for (const Impl::DynamicSlot& slot : impl_->dynamicBodies) {
-                const JPH::RVec3 bodyPosition = bodyInterface.GetPosition(slot.body);
+            impl_->waterPositions.resize(impl_->waterBodyIDs.size());
+            if (!impl_->waterBodyIDs.empty()) {
+                // Snapshot every position, then release all shared locks before
+                // ApplyBuoyancyImpulse takes an exclusive body lock below.
+                const JPH::BodyLockMultiRead lock(
+                    impl_->system->GetBodyLockInterface(),
+                    impl_->waterBodyIDs.data(),
+                    static_cast<int>(impl_->waterBodyIDs.size()));
+                for (size_t index = 0; index < impl_->waterBodyIDs.size(); ++index) {
+                    const JPH::Body* body = lock.GetBody(static_cast<int>(index));
+                    impl_->waterPositions[index] = body != nullptr
+                        ? body->GetPosition()
+                        : JPH::RVec3::sZero();
+                }
+            }
+            for (size_t index = 0; index < impl_->dynamicBodies.size(); ++index) {
+                const Impl::DynamicSlot& slot = impl_->dynamicBodies[index];
+                const JPH::RVec3 bodyPosition = impl_->waterPositions[index];
                 // Outside the wave-sampling band the surface is the flat water
                 // plane. Every throwable is less than 1.2 m from its centre,
                 // so Jolt would calculate zero submerged volume here.

@@ -99,6 +99,17 @@ cc_test(
     ],
 )
 
+cc_test(
+    name = "water_lock_benchmark",
+    srcs = ["water_lock_benchmark.cpp"],
+    copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
+    tags = ["manual"],
+    deps = [
+        "//src/physics:physics",
+        "@googletest//:gtest_main",
+    ],
+)
+
 # Kept independent from //src:voxy_core so renderer validation does not pull in
 # unrelated application/physics dependencies.
 cc_test(
