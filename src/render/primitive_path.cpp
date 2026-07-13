@@ -15,7 +15,8 @@
 namespace voxy::render {
 namespace {
 
-constexpr uint32_t kMaxInstances = 64;
+// 64 simulated bodies plus the camera-held selection preview.
+constexpr uint32_t kMaxInstances = 65;
 constexpr uint32_t kSegments = 16;
 constexpr uint32_t kSphereRings = 12;
 

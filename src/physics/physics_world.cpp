@@ -612,27 +612,22 @@ bool PhysicsWorld::throwBody(ThrowableShape shape, const glm::vec3& position,
     impl_->streamTerrainAt(position);
 
     JPH::RefConst<JPH::Shape> bodyShape;
-    glm::vec3 dimensions{1.0f};
+    const glm::vec3 dimensions = throwableShapeDimensions(shape);
     switch (shape) {
         case ThrowableShape::Sphere:
             bodyShape = new JPH::SphereShape(0.6f);
-            dimensions = glm::vec3(1.2f);
             break;
         case ThrowableShape::Cube:
             bodyShape = new JPH::BoxShape(JPH::Vec3::sReplicate(0.55f));
-            dimensions = glm::vec3(1.1f);
             break;
         case ThrowableShape::Box:
             bodyShape = new JPH::BoxShape(JPH::Vec3(0.9f, 0.4f, 0.5f));
-            dimensions = glm::vec3(1.8f, 0.8f, 1.0f);
             break;
         case ThrowableShape::Capsule:
             bodyShape = new JPH::CapsuleShape(0.55f, 0.35f);
-            dimensions = glm::vec3(0.7f, 1.8f, 0.7f);
             break;
         case ThrowableShape::Cylinder:
             bodyShape = new JPH::CylinderShape(0.55f, 0.45f);
-            dimensions = glm::vec3(0.9f, 1.1f, 0.9f);
             break;
         case ThrowableShape::Count:
             return false;
@@ -710,6 +705,18 @@ const char* PhysicsWorld::throwableShapeName(ThrowableShape shape) noexcept {
         case ThrowableShape::Count: break;
     }
     return "unknown";
+}
+
+glm::vec3 PhysicsWorld::throwableShapeDimensions(ThrowableShape shape) noexcept {
+    switch (shape) {
+        case ThrowableShape::Sphere: return glm::vec3(1.2f);
+        case ThrowableShape::Cube: return glm::vec3(1.1f);
+        case ThrowableShape::Box: return glm::vec3(1.8f, 0.8f, 1.0f);
+        case ThrowableShape::Capsule: return glm::vec3(0.7f, 1.8f, 0.7f);
+        case ThrowableShape::Cylinder: return glm::vec3(0.9f, 1.1f, 0.9f);
+        case ThrowableShape::Count: break;
+    }
+    return glm::vec3(1.0f);
 }
 
 } // namespace voxy::physics

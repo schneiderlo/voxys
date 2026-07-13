@@ -414,7 +414,7 @@ private:
     // ─────────────────────────────────────────────────────────────────────────
 
     void processInput(float deltaTime);
-    void processThrowableInput();
+    void processThrowableInput(float deltaTime);
     void handleKeyboardShortcuts();
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -434,6 +434,9 @@ private:
     // Controller mode state
     ControllerMode controllerMode_ = ControllerMode::FreeFly;
     uint32_t selectedThrowable_ = 0;
+    float throwableWheelAccumulator_ = 0.0f;
+    float throwableHoldTime_ = 0.0f;
+    float throwableCooldown_ = 0.0f;
 
     // Uncapped FPS state
     bool uncappedFPS_ = false;

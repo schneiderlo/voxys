@@ -103,5 +103,22 @@ TEST(PhysicsWorldShapeTest, ThrowableNamesAreReadable) {
                      PhysicsWorld::ThrowableShape::Capsule), "capsule");
 }
 
+TEST_F(PhysicsWorldTest, KeepsEachThrownShapeDistinct) {
+    constexpr uint32_t shapeCount = static_cast<uint32_t>(
+        PhysicsWorld::ThrowableShape::Count);
+    for (uint32_t index = 0; index < shapeCount; ++index) {
+        const auto shape = static_cast<PhysicsWorld::ThrowableShape>(index);
+        ASSERT_TRUE(world.throwBody(shape, glm::vec3(0.0f, 8.0f, 0.0f),
+                                    glm::vec3(0.0f)));
+    }
+
+    const auto bodies = world.dynamicBodies();
+    ASSERT_EQ(bodies.size(), shapeCount);
+    for (uint32_t index = 0; index < shapeCount; ++index) {
+        EXPECT_EQ(bodies[index].shape,
+                  static_cast<PhysicsWorld::ThrowableShape>(index));
+    }
+}
+
 } // namespace
 } // namespace voxy::physics

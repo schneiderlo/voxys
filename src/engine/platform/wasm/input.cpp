@@ -327,7 +327,10 @@ void Input::setupEmscriptenCallbacks(const char* canvasSelector) {
     emscripten_set_mousemove_callback(canvasSelector, nullptr, false, emMouseMoveCallback);
     emscripten_set_mousedown_callback(canvasSelector, nullptr, false, emMouseDownCallback);
     emscripten_set_mouseup_callback(canvasSelector, nullptr, false, emMouseUpCallback);
-    emscripten_set_wheel_callback(canvasSelector, nullptr, false, emWheelCallback);
+    // Pointer lock can retarget wheel events away from the canvas in some
+    // browsers. The game owns the full document, so listen there reliably.
+    emscripten_set_wheel_callback(EMSCRIPTEN_EVENT_TARGET_DOCUMENT, nullptr,
+                                  false, emWheelCallback);
     
     LOG_DEBUG("Emscripten input callbacks set up for {}", canvasSelector);
 }

@@ -32,6 +32,8 @@
 #include <algorithm>
 #include <cmath>
 #include <filesystem>
+#include <glm/gtc/quaternion.hpp>
+#include <numbers>
 #include <span>
 #include <system_error>
 #include <vector>
@@ -472,7 +474,18 @@ void Application::render() {
     }
 
     if (primitivePath_ && primitivePath_->isInitialized() && physicsWorld_) {
-        const auto bodies = physicsWorld_->dynamicBodies();
+        auto bodies = physicsWorld_->dynamicBodies();
+        const auto selectedShape =
+            static_cast<physics::PhysicsWorld::ThrowableShape>(selectedThrowable_);
+        const float previewAngle = static_cast<float>(
+            std::fmod(stats_.totalTimeSeconds * 1.8, 2.0 * std::numbers::pi));
+        bodies.push_back({
+            selectedShape,
+            camera_->position() + camera_->forward() * 1.65f
+                                + camera_->right() * 0.58f
+                                - camera_->up() * 0.38f,
+            glm::angleAxis(previewAngle, glm::normalize(glm::vec3(0.3f, 1.0f, 0.2f))),
+            physics::PhysicsWorld::throwableShapeDimensions(selectedShape) * 0.42f});
         primitivePath_->setInstances(bodies);
         WGPUTextureView objectDepth = getOrCreateDepthView();
         if (objectDepth) {
@@ -1520,35 +1533,51 @@ WGPUTextureView Application::getOrCreateDepthView() {
 // Input Processing
 // ─────────────────────────────────────────────────────────────────────────────
 
-void Application::processInput([[maybe_unused]] float deltaTime) {
-    processThrowableInput();
+void Application::processInput(float deltaTime) {
+    processThrowableInput(deltaTime);
 }
 
-void Application::processThrowableInput() {
+void Application::processThrowableInput(float deltaTime) {
     if (!input_ || !camera_ || !physicsWorld_) {
         return;
     }
 
     const float wheel = input_->scrollDelta();
     if (wheel != 0.0f) {
+        if (throwableWheelAccumulator_ * wheel < 0.0f) {
+            throwableWheelAccumulator_ = 0.0f;
+        }
+        throwableWheelAccumulator_ += wheel;
+    }
+
+    constexpr float wheelStep = 1.0f;
+    if (std::abs(throwableWheelAccumulator_) >= wheelStep) {
         constexpr uint32_t count = static_cast<uint32_t>(
             physics::PhysicsWorld::ThrowableShape::Count);
-        if (wheel > 0.0f) {
+        if (throwableWheelAccumulator_ > 0.0f) {
             selectedThrowable_ = (selectedThrowable_ + 1u) % count;
         } else {
             selectedThrowable_ = (selectedThrowable_ + count - 1u) % count;
         }
+        throwableWheelAccumulator_ = 0.0f;
         const auto shape = static_cast<physics::PhysicsWorld::ThrowableShape>(
             selectedThrowable_);
         LOG_INFO("Selected throwable: {}",
                  physics::PhysicsWorld::throwableShapeName(shape));
     }
 
-    // The first click captures the pointer. Later clicks launch objects.
-    if (!input_->isMouseCaptured()
-        || !input_->wasMouseButtonPressed(MouseButton::Left)) {
+    const bool firing = input_->isMouseCaptured()
+                     && input_->isMouseButtonDown(MouseButton::Left);
+    if (!firing) {
+        throwableHoldTime_ = 0.0f;
+        throwableCooldown_ = 0.0f;
         return;
     }
+
+    const float frameTime = std::clamp(deltaTime, 0.0f, 0.1f);
+    throwableHoldTime_ += frameTime;
+    throwableCooldown_ -= frameTime;
+    if (throwableCooldown_ > 0.0f) return;
 
     const auto shape = static_cast<physics::PhysicsWorld::ThrowableShape>(
         selectedThrowable_);
@@ -1557,6 +1586,12 @@ void Application::processThrowableInput() {
     if (physicsWorld_->throwBody(shape, origin, direction * 28.0f)) {
         LOG_INFO("Threw {}", physics::PhysicsWorld::throwableShapeName(shape));
     }
+
+    // Ramp from roughly 3 throws/second to 18 throws/second over three seconds.
+    const float ramp = std::clamp(throwableHoldTime_ / 3.0f, 0.0f, 1.0f);
+    constexpr float slowInterval = 1.0f / 3.0f;
+    constexpr float fastInterval = 1.0f / 18.0f;
+    throwableCooldown_ = slowInterval + (fastInterval - slowInterval) * ramp;
 }
 
 void Application::handleKeyboardShortcuts() {

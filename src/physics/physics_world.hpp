@@ -102,6 +102,7 @@ public:
     [[nodiscard]] std::vector<DynamicBodySnapshot> dynamicBodies() const;
 
     [[nodiscard]] static const char* throwableShapeName(ThrowableShape shape) noexcept;
+    [[nodiscard]] static glm::vec3 throwableShapeDimensions(ThrowableShape shape) noexcept;
 
 private:
     class Impl;

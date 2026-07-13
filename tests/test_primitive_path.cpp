@@ -64,9 +64,22 @@ TEST(PrimitivePathGPUTest, CompilesPrimitivePipeline) {
     ASSERT_NE(rayView, nullptr);
 
     path.setRayDepthTexture(rayView);
-    const std::array bodies = {physics::PhysicsWorld::DynamicBodySnapshot{
-        physics::PhysicsWorld::ThrowableShape::Sphere,
-        glm::vec3(0.0f), glm::quat(1.0f, 0.0f, 0.0f, 0.0f), glm::vec3(1.2f)}};
+    const std::array bodies = {
+        physics::PhysicsWorld::DynamicBodySnapshot{
+            physics::PhysicsWorld::ThrowableShape::Sphere,
+            glm::vec3(-2.0f, 0.0f, 0.0f), {}, glm::vec3(1.2f)},
+        physics::PhysicsWorld::DynamicBodySnapshot{
+            physics::PhysicsWorld::ThrowableShape::Cube,
+            glm::vec3(-1.0f, 0.0f, 0.0f), {}, glm::vec3(1.1f)},
+        physics::PhysicsWorld::DynamicBodySnapshot{
+            physics::PhysicsWorld::ThrowableShape::Box,
+            glm::vec3(0.0f), {}, glm::vec3(1.8f, 0.8f, 1.0f)},
+        physics::PhysicsWorld::DynamicBodySnapshot{
+            physics::PhysicsWorld::ThrowableShape::Capsule,
+            glm::vec3(1.0f, 0.0f, 0.0f), {}, glm::vec3(0.7f, 1.8f, 0.7f)},
+        physics::PhysicsWorld::DynamicBodySnapshot{
+            physics::PhysicsWorld::ThrowableShape::Cylinder,
+            glm::vec3(2.0f, 0.0f, 0.0f), {}, glm::vec3(0.9f, 1.1f, 0.9f)}};
     path.setInstances(bodies);
 
     WGPUCommandEncoderDescriptor encoderDesc{};
