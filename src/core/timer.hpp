@@ -140,6 +140,13 @@ struct FrameStats {
     double updateMs = 0.0;     // Time spent in update logic
     double renderMs = 0.0;     // Time spent in render commands
     double presentMs = 0.0;    // Time spent waiting for present
+    double physicsSimulationMs = 0.0;
+    double physicsWaterMs = 0.0;
+    double physicsSnapshotMs = 0.0;
+    double primitiveCullMs = 0.0;
+    double primitivePackingMs = 0.0;
+    double primitiveUploadMs = 0.0;
+    double primitiveRenderMs = 0.0;
     uint32_t frameNumber = 0;  // Current frame count
     
     // Computed values
@@ -264,4 +271,3 @@ template<Duration D>
 
 #define PERF_SCOPE(name) voxy::perf::ScopedTimer _perf_##__LINE__(name)
 #define PERF_SCOPE_MS(name, outMs) voxy::perf::ScopedTimer _perf_##__LINE__(name, outMs)
-

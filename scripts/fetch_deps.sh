@@ -13,6 +13,7 @@
 #   - Emdawn WebGPU          - Browser WebGPU implementation
 #   - X11 Dev Headers        - For hermetic build of GLFW
 #   - Jolt Physics (5.5.0)   - Physics and collision
+#   - Box3D (pinned commit)   - CPU physics reference backend
 #
 # Note: Dawn must be installed separately. See README for instructions.
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -43,7 +44,7 @@ cd "$THIRD_PARTY_DIR"
 # ─────────────────────────────────────────────────────────────────────────────
 # GLM - OpenGL Mathematics
 # ─────────────────────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[1/8]${NC} GLM (OpenGL Mathematics)..."
+echo -e "${YELLOW}[1/9]${NC} GLM (OpenGL Mathematics)..."
 if [ -d "glm" ]; then
     echo -e "  ${GREEN}✓${NC} Already exists"
 else
@@ -55,7 +56,7 @@ fi
 # ─────────────────────────────────────────────────────────────────────────────
 # zstd - Fast Compression
 # ─────────────────────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[2/8]${NC} zstd (Compression)..."
+echo -e "${YELLOW}[2/9]${NC} zstd (Compression)..."
 if [ -d "zstd" ]; then
     echo -e "  ${GREEN}✓${NC} Already exists"
 else
@@ -67,7 +68,7 @@ fi
 # ─────────────────────────────────────────────────────────────────────────────
 # GLFW - Window/Input
 # ─────────────────────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[3/8]${NC} GLFW (Windowing)..."
+echo -e "${YELLOW}[3/9]${NC} GLFW (Windowing)..."
 if [ -d "glfw" ]; then
     echo -e "  ${GREEN}✓${NC} Already exists"
 else
@@ -79,7 +80,7 @@ fi
 # ─────────────────────────────────────────────────────────────────────────────
 # stb - Single-file Libraries
 # ─────────────────────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[4/8]${NC} stb (Image Loading)..."
+echo -e "${YELLOW}[4/9]${NC} stb (Image Loading)..."
 if [ -f "stb/stb_image.h" ]; then
     echo -e "  ${GREEN}✓${NC} Already exists"
 else
@@ -95,7 +96,7 @@ fi
 # ─────────────────────────────────────────────────────────────────────────────
 # wgpu-native - WebGPU Implementation
 # ─────────────────────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[5/8]${NC} wgpu-native (WebGPU)..."
+echo -e "${YELLOW}[5/9]${NC} wgpu-native (WebGPU)..."
 if [ -d "wgpu-native" ]; then
     echo -e "  ${GREEN}✓${NC} Already exists"
 else
@@ -114,7 +115,7 @@ fi
 # ─────────────────────────────────────────────────────────────────────────────
 # Emdawn WebGPU - Browser WebGPU port
 # ─────────────────────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[6/8]${NC} Emdawn WebGPU (browser)..."
+echo -e "${YELLOW}[6/9]${NC} Emdawn WebGPU (browser)..."
 EMDAWN_VERSION="v20251002.162335"
 EMDAWN_ZIP="emdawnwebgpu_pkg-${EMDAWN_VERSION}.zip"
 EMDAWN_URL="https://github.com/google/dawn/releases/download/${EMDAWN_VERSION}/${EMDAWN_ZIP}"
@@ -141,7 +142,7 @@ fi
 # ─────────────────────────────────────────────────────────────────────────────
 # X11 Headers - For hermetic build
 # ─────────────────────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[7/8]${NC} X11 Development Headers..."
+echo -e "${YELLOW}[7/9]${NC} X11 Development Headers..."
 X11_DIR="x11_headers"
 
 if [ -d "$X11_DIR/include/X11" ] && [ -f "$X11_DIR/include/X11/extensions/Xrender.h" ]; then
@@ -229,12 +230,35 @@ fi
 # ─────────────────────────────────────────────────────────────────────────────
 # Jolt Physics
 # ─────────────────────────────────────────────────────────────────────────────
-echo -e "${YELLOW}[8/8]${NC} Jolt Physics..."
+echo -e "${YELLOW}[8/9]${NC} Jolt Physics..."
 if [ -f "JoltPhysics/Jolt/Jolt.h" ]; then
     echo -e "  ${GREEN}✓${NC} Already exists"
 else
     echo -e "  Cloning v5.5.0 from GitHub..."
     git clone --depth 1 --branch v5.5.0 https://github.com/jrouwe/JoltPhysics.git JoltPhysics
+    echo -e "  ${GREEN}✓${NC} Done"
+fi
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Box3D - pinned CPU reference backend
+# ─────────────────────────────────────────────────────────────────────────────
+BOX3D_COMMIT="d421e45c828f6f853a145f726f0b9425d31146eb"
+echo -e "${YELLOW}[9/9]${NC} Box3D (${BOX3D_COMMIT:0:12})..."
+if [ -d "box3d/.git" ]; then
+    BOX3D_HEAD="$(git -C box3d rev-parse HEAD)"
+    if [ "$BOX3D_HEAD" != "$BOX3D_COMMIT" ]; then
+        echo -e "  Updating pinned checkout..."
+        git -C box3d fetch --depth 1 origin "$BOX3D_COMMIT"
+        git -C box3d checkout --detach "$BOX3D_COMMIT"
+    else
+        echo -e "  ${GREEN}✓${NC} Pinned checkout already present"
+    fi
+else
+    echo -e "  Cloning pinned commit from GitHub..."
+    git clone --filter=blob:none --no-checkout \
+        https://github.com/erincatto/box3d.git box3d
+    git -C box3d fetch --depth 1 origin "$BOX3D_COMMIT"
+    git -C box3d checkout --detach "$BOX3D_COMMIT"
     echo -e "  ${GREEN}✓${NC} Done"
 fi
 

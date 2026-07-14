@@ -1,6 +1,9 @@
 # List of test source files
 TEST_SRCS = [
     "test_log.cpp",
+    "test_lockstep.cpp",
+    "test_networking.cpp",
+    "test_replay.cpp",
     "test_timer.cpp",
     "test_config.cpp",
     "test_window.cpp",
@@ -11,9 +14,22 @@ TEST_SRCS = [
     "test_camera.cpp",
     "test_controller.cpp",
     "test_character_controller.cpp",
+    "test_cpu_capsule_mover.cpp",
     "test_physics_world.cpp",
+    "test_terrain_topology.cpp",
+    "test_vertical_slices.cpp",
     "test_gpu_context.cpp",
+    "test_gpu_ccd.cpp",
+    "test_gpu_dynamic_solver.cpp",
+    "test_gpu_event_readback.cpp",
+    "test_gpu_islands.cpp",
     "test_gpu_resources.cpp",
+    "test_gpu_physics.cpp",
+    "test_gpu_broad_phase.cpp",
+    "test_gpu_narrow_phase.cpp",
+    "test_gpu_queries.cpp",
+    "test_deterministic_gpu_primitives.cpp",
+    "test_distributed_server.cpp",
     "test_shader_terrain.cpp",
     "test_shader_raycast.cpp",
     "test_shader_blit.cpp",
@@ -24,6 +40,7 @@ TEST_SRCS = [
     "test_debug_visualizer.cpp",
     "test_mip_pipeline.cpp",
     "test_primitive_path.cpp",
+    "test_primitive_gpu_culling.cpp",
     "test_primitive_culling.cpp",
     "test_shadow_bake.cpp",
     "test_terrain_textures.cpp",
@@ -49,6 +66,29 @@ load("//settings:configure_copts.bzl", "PROJECT_TEST_COPTS")
         "//:msan_suppressions",
     ],
 ) for src in TEST_SRCS]
+
+test_suite(
+    name = "determinism_ci",
+    tests = [
+        ":lockstep",
+        ":replay",
+    ],
+)
+
+test_suite(
+    name = "networking_ci",
+    tests = [":networking"],
+)
+
+test_suite(
+    name = "distributed_ci",
+    tests = [":distributed_server"],
+)
+
+test_suite(
+    name = "vertical_slices_ci",
+    tests = [":vertical_slices"],
+)
 
 # Combined test target that runs all tests
 cc_test(
@@ -99,6 +139,60 @@ cc_test(
         "//src/render:primitive_instance_packing",
         "@googletest//:gtest_main",
     ],
+)
+
+cc_test(
+    name = "gpu_ballistic_benchmark",
+    srcs = ["gpu_ballistic_benchmark.cpp"],
+    copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
+    tags = ["manual"],
+    deps = [
+        "//src/gpu:gpu",
+        "//src/physics:physics",
+        "//src/render:render",
+        "@googletest//:gtest_main",
+    ],
+    data = ["//shaders:shaders"],
+)
+
+cc_test(
+    name = "gpu_static_benchmark",
+    srcs = ["gpu_static_benchmark.cpp"],
+    copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
+    tags = ["manual"],
+    deps = [
+        "//src/gpu:gpu",
+        "//src/physics:physics",
+        "//src/render:render",
+        "@googletest//:gtest_main",
+    ],
+    data = ["//shaders:shaders"],
+)
+
+cc_test(
+    name = "gpu_dynamic_benchmark",
+    srcs = ["gpu_dynamic_benchmark.cpp"],
+    copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
+    tags = ["manual"],
+    deps = [
+        "//src/gpu:gpu",
+        "//src/physics:physics",
+        "@googletest//:gtest_main",
+    ],
+    data = ["//shaders:shaders"],
+)
+
+cc_test(
+    name = "native_server_batch_benchmark",
+    srcs = ["native_server_batch_benchmark.cpp"],
+    copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
+    tags = ["manual"],
+    deps = [
+        "//src/gpu:gpu",
+        "//src/server:server",
+        "@googletest//:gtest_main",
+    ],
+    data = ["//shaders:shaders"],
 )
 
 cc_test(

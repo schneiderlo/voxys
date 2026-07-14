@@ -1,77 +1,36 @@
-// Cross-platform Jolt Physics integration.
+// Cross-platform physics facade.
 //
-// Jolt stays behind this PIMPL boundary so most of voxy does not need to parse
-// its large header set. The implementation deliberately uses the same
-// single-threaded scheduler and terrain tiling policy on native and WASM.
+// Concrete engines stay behind IPhysicsBackend so callers do not parse Jolt,
+// Box3D, or WebGPU implementation headers.
 
 #pragma once
 
-#include <glm/vec3.hpp>
-#include <glm/vec2.hpp>
-#include <glm/gtc/quaternion.hpp>
+#include "physics/physics_types.hpp"
 
 #include <cstddef>
 #include <cstdint>
-#include <functional>
 #include <memory>
 #include <span>
 #include <vector>
 
 namespace voxy::physics {
 
+class IPhysicsBackend;
+
 class PhysicsWorld {
 public:
-    using CharacterHandle = uint32_t;
-    static constexpr CharacterHandle InvalidCharacter = 0;
-
-    enum class ThrowableShape : uint32_t {
-        Sphere = 0,
-        Cube,
-        Box,
-        Capsule,
-        Cylinder,
-        Count
-    };
-
-    struct DynamicBodySnapshot {
-        ThrowableShape shape = ThrowableShape::Sphere;
-        glm::vec3 position{0.0f};
-        glm::quat rotation{1.0f, 0.0f, 0.0f, 0.0f};
-        glm::vec3 dimensions{1.0f};
-        // Rendering hint only. Transform fields remain the authoritative state.
-        bool active = false;
-    };
-
-    struct DynamicBodyReadStats {
-        size_t bodyCount = 0;
-        size_t lockedBodyCount = 0;
-        size_t cachedBodyCount = 0;
-    };
-
-    struct WaterSurfaceSample {
-        float heightOffset = 0.0f;
-        glm::vec2 slope{0.0f};
-        glm::vec3 velocity{0.0f};
-    };
-
-    using WaterSurfaceSampler =
-        std::function<WaterSurfaceSample(glm::vec2 position, float timeSeconds)>;
-
-    struct CharacterSettings {
-        float radius = 0.4f;
-        float height = 1.8f;
-        float maxSlopeAngleDegrees = 45.0f;
-        float stepUp = 0.5f;
-        float stepDown = 0.5f;
-    };
-
-    struct CharacterMotion {
-        glm::vec3 position{0.0f}; // Feet position in world space.
-        glm::vec3 velocity{0.0f};
-        glm::vec3 groundNormal{0.0f, 1.0f, 0.0f};
-        bool grounded = false;
-        bool onSteepGround = false;
-    };
+    // Source-compatible names while shared backend types live outside the
+    // facade and can be consumed by IPhysicsBackend.
+    using CharacterHandle = physics::CharacterHandle;
+    static constexpr CharacterHandle InvalidCharacter =
+        physics::InvalidCharacter;
+    using ThrowableShape = physics::ThrowableShape;
+    using DynamicBodySnapshot = physics::DynamicBodySnapshot;
+    using DynamicBodyReadStats = physics::DynamicBodyReadStats;
+    using WaterSurfaceSample = physics::WaterSurfaceSample;
+    using WaterSurfaceSampler = physics::WaterSurfaceSampler;
+    using CharacterSettings = physics::CharacterSettings;
+    using CharacterMotion = physics::CharacterMotion;
 
     PhysicsWorld();
     ~PhysicsWorld();
@@ -82,18 +41,23 @@ public:
     PhysicsWorld& operator=(PhysicsWorld&&) noexcept;
 
     [[nodiscard]] bool initialize();
+    [[nodiscard]] bool initialize(const PhysicsInitContext& context);
     void shutdown();
     [[nodiscard]] bool isInitialized() const noexcept;
+    [[nodiscard]] BackendType backendType() const noexcept;
+    [[nodiscard]] BackendCapabilities capabilities() const noexcept;
+    [[nodiscard]] PhysicsStats stats() const noexcept;
+    [[nodiscard]] PhysicsStepStats lastStepStats() const noexcept;
 
     /// Attach a heightmap as streamed, full-resolution collision tiles.
     /// The sample storage must remain alive until clearTerrain() or shutdown().
     [[nodiscard]] bool setTerrain(std::span<const uint16_t> samples,
                                   uint32_t width, uint32_t height,
                                   float heightScale, float cellScale);
+    void setTerrainGpuResources(const TerrainGpuResources& resources);
     void clearTerrain();
     [[nodiscard]] bool hasTerrain() const noexcept;
 
-    /// Configure the horizontal water surface used for rigid-body buoyancy.
     void setWaterPlane(float height, bool enabled = true);
     void setWaterSurfaceSampler(WaterSurfaceSampler sampler);
 
@@ -103,37 +67,46 @@ public:
     void destroyCharacter(CharacterHandle handle);
     [[nodiscard]] bool setCharacterPosition(CharacterHandle handle,
                                             const glm::vec3& feetPosition);
-
-    /// Advance one virtual character. Long frames are internally sub-stepped.
     [[nodiscard]] CharacterMotion moveCharacter(
         CharacterHandle handle,
         const glm::vec3& desiredHorizontalVelocity,
-        bool jump,
-        float jumpSpeed,
-        float gravity,
-        float terminalVelocity,
+        bool jump, float jumpSpeed, float gravity, float terminalVelocity,
         float deltaTime);
 
-    /// Spawn one visible rigid body. Bodies remain until world shutdown.
     [[nodiscard]] bool throwBody(ThrowableShape shape,
                                  const glm::vec3& position,
                                  const glm::vec3& velocity);
 
-    /// Advance simulated rigid bodies. Call once per application frame.
-    void update(float deltaTime);
+    [[nodiscard]] BodyHandle spawnBody(const BodySpawnDesc& desc);
+    [[nodiscard]] bool destroyBody(BodyHandle handle);
+    void enqueue(std::span<const PhysicsCommand> commands);
 
-    /// Copy current transforms for rendering. Reserve optional capacity for
-    /// caller-owned overlays without changing the returned body sequence.
+    void update(float deltaTime);
+    void encodeGpuStep(WGPUCommandEncoder encoder);
+
+    [[nodiscard]] bool submitQueries(
+        std::span<const PhysicsQueryRequest> requests,
+        uint64_t resultTick = 0);
+    [[nodiscard]] std::optional<PhysicsQueryBatch> pollQueryResults();
+    void setEventReadbackEnabled(bool enabled);
+    [[nodiscard]] std::optional<PhysicsEventBatch> pollEvents();
+    [[nodiscard]] std::optional<PhysicsGpuStageTiming> pollGpuStageTimings();
+
+    [[nodiscard]] PhysicsRenderView renderView() const;
+    void requestDebugSnapshot(DebugSnapshotRequest request);
+    [[nodiscard]] std::optional<DebugSnapshot> pollDebugSnapshot();
+
     [[nodiscard]] std::vector<DynamicBodySnapshot> dynamicBodies(
         size_t additionalCapacity = 0) const;
     [[nodiscard]] DynamicBodyReadStats lastDynamicBodyReadStats() const noexcept;
 
-    [[nodiscard]] static const char* throwableShapeName(ThrowableShape shape) noexcept;
-    [[nodiscard]] static glm::vec3 throwableShapeDimensions(ThrowableShape shape) noexcept;
+    [[nodiscard]] static const char* throwableShapeName(
+        ThrowableShape shape) noexcept;
+    [[nodiscard]] static glm::vec3 throwableShapeDimensions(
+        ThrowableShape shape) noexcept;
 
 private:
-    class Impl;
-    std::unique_ptr<Impl> impl_;
+    std::unique_ptr<IPhysicsBackend> backend_;
 };
 
 } // namespace voxy::physics

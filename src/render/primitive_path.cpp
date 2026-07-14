@@ -10,6 +10,7 @@
 
 #include <array>
 #include <algorithm>
+#include <chrono>
 #include <cmath>
 #include <numbers>
 #include <vector>
@@ -35,6 +36,19 @@ struct alignas(16) PrimitiveUniforms {
 
 static_assert(sizeof(Vertex) == 24);
 static_assert(sizeof(PrimitiveUniforms) == 112);
+
+struct alignas(16) CompactPose {
+    glm::vec4 positionInvMass{0.0f};
+    glm::vec4 orientation{0.0f, 0.0f, 0.0f, 1.0f};
+};
+
+struct alignas(16) CompactShape {
+    glm::vec4 dimensionsType{0.0f};
+    glm::vec4 invInertiaMaterial{0.0f};
+};
+
+static_assert(sizeof(CompactPose) == 32);
+static_assert(sizeof(CompactShape) == 32);
 
 using Shape = physics::PhysicsWorld::ThrowableShape;
 using detail::GpuInstance;
@@ -187,7 +201,19 @@ bool PrimitivePath::init(WGPUDevice device, WGPUQueue queue,
     device_ = device;
     queue_ = queue;
     if (!createGeometry() || !createBuffers()
-        || !createLayoutAndPipeline(config)) {
+        || !createLayoutAndPipeline(config)
+        || !createCompactLayoutAndPipeline(config)) {
+        shutdown();
+        return false;
+    }
+    std::array<PrimitiveDrawGeometry, PrimitiveGpuCulling::kShapeCount> geometry{};
+    for (uint32_t shape = 0; shape < geometry.size(); ++shape) {
+        geometry[shape] = {ranges_[shape].indexCount, ranges_[shape].firstIndex};
+    }
+    const std::filesystem::path cullShaderPath = config.cullShaderPath.empty()
+        ? config.shaderPath.parent_path() / "physics_primitive_cull.wgsl"
+        : config.cullShaderPath;
+    if (!gpuCulling_.initialize(device_, queue_, cullShaderPath, geometry)) {
         shutdown();
         return false;
     }
@@ -195,6 +221,14 @@ bool PrimitivePath::init(WGPUDevice device, WGPUQueue queue,
 }
 
 void PrimitivePath::shutdown() {
+    gpuCulling_.shutdown();
+    if (compactBindGroup_) { wgpuBindGroupRelease(compactBindGroup_); compactBindGroup_ = nullptr; }
+    if (compactPipeline_) { wgpuRenderPipelineRelease(compactPipeline_); compactPipeline_ = nullptr; }
+    if (compactPipelineLayout_) { wgpuPipelineLayoutRelease(compactPipelineLayout_); compactPipelineLayout_ = nullptr; }
+    if (compactBindGroupLayout_) { wgpuBindGroupLayoutRelease(compactBindGroupLayout_); compactBindGroupLayout_ = nullptr; }
+    if (compactShaderModule_) { wgpuShaderModuleRelease(compactShaderModule_); compactShaderModule_ = nullptr; }
+    if (cpuPoseBuffer_) { wgpuBufferDestroy(cpuPoseBuffer_); wgpuBufferRelease(cpuPoseBuffer_); cpuPoseBuffer_ = nullptr; }
+    if (cpuShapeBuffer_) { wgpuBufferDestroy(cpuShapeBuffer_); wgpuBufferRelease(cpuShapeBuffer_); cpuShapeBuffer_ = nullptr; }
     if (bindGroup_) { wgpuBindGroupRelease(bindGroup_); bindGroup_ = nullptr; }
     if (pipeline_) { wgpuRenderPipelineRelease(pipeline_); pipeline_ = nullptr; }
     if (pipelineLayout_) { wgpuPipelineLayoutRelease(pipelineLayout_); pipelineLayout_ = nullptr; }
@@ -208,10 +242,18 @@ void PrimitivePath::shutdown() {
     queue_ = nullptr;
     rayDepthView_ = nullptr;
     boundRayDepthView_ = nullptr;
+    compactBoundPoseBuffer_ = nullptr;
+    compactBoundShapeBuffer_ = nullptr;
+    compactBoundVisibleBuffer_ = nullptr;
+    compactBoundRayDepthView_ = nullptr;
+    physicsRenderView_ = {};
     instanceCache_ = {};
     uploadedInstanceCacheTokens_ = {};
     lastUploadStats_ = {};
+    lastCompactUploadStats_ = {};
+    lastCpuTimings_ = {};
     instanceCapacity_ = 0;
+    compactInstanceCapacity_ = 0;
     instanceCount_ = 0;
     instanceBufferContentsValid_ = false;
 }
@@ -341,9 +383,98 @@ bool PrimitivePath::createLayoutAndPipeline(const PrimitivePathConfig& config) {
     return pipeline_ != nullptr;
 }
 
+bool PrimitivePath::createCompactLayoutAndPipeline(
+    const PrimitivePathConfig& config) {
+    std::array<gpu::BindGroupLayoutEntry, 5> entries = {
+        gpu::BindGroupLayoutEntry(0).vertexVisible().fragmentVisible()
+            .uniformBuffer(false, sizeof(PrimitiveUniforms)),
+        gpu::BindGroupLayoutEntry(1).vertexVisible()
+            .storageBuffer(true, false, sizeof(CompactPose)),
+        gpu::BindGroupLayoutEntry(2).vertexVisible()
+            .storageBuffer(true, false, sizeof(CompactShape)),
+        gpu::BindGroupLayoutEntry(3).vertexVisible()
+            .storageBuffer(true, true, sizeof(uint32_t)),
+        gpu::BindGroupLayoutEntry(4).fragmentVisible()
+            .texture(WGPUTextureSampleType_UnfilterableFloat,
+                     WGPUTextureViewDimension_2D, false),
+    };
+    compactBindGroupLayout_ = gpu::createBindGroupLayout(
+        device_, entries, "physics_primitive_compact_bind_group_layout");
+    if (!compactBindGroupLayout_) return false;
+
+    const std::array<WGPUBindGroupLayout, 1> layouts{compactBindGroupLayout_};
+    compactPipelineLayout_ = gpu::createPipelineLayout(
+        device_, layouts, "physics_primitive_compact_pipeline_layout");
+    const std::filesystem::path shaderPath = config.compactShaderPath.empty()
+        ? config.shaderPath.parent_path() / "physics_primitives_compact.wgsl"
+        : config.compactShaderPath;
+    compactShaderModule_ = gpu::loadShaderModule(
+        device_, shaderPath, "physics_primitives_compact.wgsl");
+    if (!compactPipelineLayout_ || !compactShaderModule_) return false;
+
+    std::array<WGPUVertexAttribute, 2> attributes{};
+    attributes[0].format = WGPUVertexFormat_Float32x3;
+    attributes[0].offset = 0;
+    attributes[0].shaderLocation = 0;
+    attributes[1].format = WGPUVertexFormat_Float32x3;
+    attributes[1].offset = sizeof(glm::vec3);
+    attributes[1].shaderLocation = 1;
+    WGPUVertexBufferLayout vertexBufferLayout{};
+    vertexBufferLayout.arrayStride = sizeof(Vertex);
+    vertexBufferLayout.stepMode = WGPUVertexStepMode_Vertex;
+    vertexBufferLayout.attributeCount = attributes.size();
+    vertexBufferLayout.attributes = attributes.data();
+
+    WGPUVertexState vertexState{};
+    vertexState.module = compactShaderModule_;
+    WGPU_SET_ENTRY_POINT(vertexState, "vs");
+    vertexState.bufferCount = 1;
+    vertexState.buffers = &vertexBufferLayout;
+
+    WGPUColorTargetState colorTarget{};
+    colorTarget.format = config.colorFormat;
+    colorTarget.writeMask = WGPUColorWriteMask_All;
+    WGPUFragmentState fragmentState{};
+    fragmentState.module = compactShaderModule_;
+    WGPU_SET_ENTRY_POINT(fragmentState, "fs");
+    fragmentState.targetCount = 1;
+    fragmentState.targets = &colorTarget;
+
+    WGPUPrimitiveState primitiveState{};
+    primitiveState.topology = WGPUPrimitiveTopology_TriangleList;
+    primitiveState.frontFace = WGPUFrontFace_CCW;
+    primitiveState.cullMode = WGPUCullMode_None;
+    WGPUDepthStencilState depthState{};
+    depthState.format = config.depthFormat;
+    depthState.depthWriteEnabled = gpu::toOptionalBool(true);
+    depthState.depthCompare = WGPUCompareFunction_Less;
+    depthState.stencilFront.compare = WGPUCompareFunction_Always;
+    depthState.stencilFront.failOp = WGPUStencilOperation_Keep;
+    depthState.stencilFront.depthFailOp = WGPUStencilOperation_Keep;
+    depthState.stencilFront.passOp = WGPUStencilOperation_Keep;
+    depthState.stencilBack = depthState.stencilFront;
+    depthState.stencilReadMask = 0xFFFFFFFFu;
+    depthState.stencilWriteMask = 0xFFFFFFFFu;
+    WGPUMultisampleState multisample{};
+    multisample.count = 1;
+    multisample.mask = 0xFFFFFFFFu;
+
+    WGPURenderPipelineDescriptor desc{};
+    WGPU_SET_LABEL(desc, "physics_primitive_compact_pipeline");
+    desc.layout = compactPipelineLayout_;
+    desc.vertex = vertexState;
+    desc.fragment = &fragmentState;
+    desc.primitive = primitiveState;
+    desc.depthStencil = &depthState;
+    desc.multisample = multisample;
+    compactPipeline_ = wgpuDeviceCreateRenderPipeline(device_, &desc);
+    return compactPipeline_ != nullptr;
+}
+
 void PrimitivePath::setRayDepthTexture(WGPUTextureView view) {
     rayDepthView_ = view;
     boundRayDepthView_ = nullptr;
+    compactBoundRayDepthView_ = nullptr;
 }
 
 bool PrimitivePath::ensureInstanceCapacity(size_t requiredCapacity) {
@@ -371,6 +502,49 @@ bool PrimitivePath::ensureInstanceCapacity(size_t requiredCapacity) {
     return true;
 }
 
+bool PrimitivePath::ensureCompactInstanceCapacity(size_t requiredCapacity) {
+    if (requiredCapacity <= compactInstanceCapacity_
+        && cpuPoseBuffer_ && cpuShapeBuffer_) return true;
+    size_t newCapacity = std::max<size_t>(kInitialInstanceCapacity,
+                                         compactInstanceCapacity_);
+    while (newCapacity < requiredCapacity) newCapacity *= 2;
+    WGPUBuffer newPoseBuffer = gpu::createBuffer(
+        device_, gpu::BufferDesc::storage(
+            newCapacity * sizeof(CompactPose), true,
+            "physics_primitive_cpu_compact_poses"));
+    WGPUBuffer newShapeBuffer = gpu::createBuffer(
+        device_, gpu::BufferDesc::storage(
+            newCapacity * sizeof(CompactShape), true,
+            "physics_primitive_cpu_compact_shapes"));
+    if (!newPoseBuffer || !newShapeBuffer) {
+        if (newPoseBuffer) {
+            wgpuBufferDestroy(newPoseBuffer);
+            wgpuBufferRelease(newPoseBuffer);
+        }
+        if (newShapeBuffer) {
+            wgpuBufferDestroy(newShapeBuffer);
+            wgpuBufferRelease(newShapeBuffer);
+        }
+        LOG_ERROR("Failed to grow compact physics buffers to {} bodies",
+                  newCapacity);
+        return false;
+    }
+    if (cpuPoseBuffer_) {
+        wgpuBufferDestroy(cpuPoseBuffer_);
+        wgpuBufferRelease(cpuPoseBuffer_);
+    }
+    if (cpuShapeBuffer_) {
+        wgpuBufferDestroy(cpuShapeBuffer_);
+        wgpuBufferRelease(cpuShapeBuffer_);
+    }
+    cpuPoseBuffer_ = newPoseBuffer;
+    cpuShapeBuffer_ = newShapeBuffer;
+    compactInstanceCapacity_ = newCapacity;
+    compactBoundPoseBuffer_ = nullptr;
+    compactBoundShapeBuffer_ = nullptr;
+    return true;
+}
+
 void PrimitivePath::updateBindGroup() {
     if (!rayDepthView_ || boundRayDepthView_ == rayDepthView_) return;
     if (bindGroup_) {
@@ -388,19 +562,114 @@ void PrimitivePath::updateBindGroup() {
     if (bindGroup_) boundRayDepthView_ = rayDepthView_;
 }
 
+void PrimitivePath::updateCompactBindGroup() {
+    const WGPUBuffer visibleBuffer = gpuCulling_.visibleBodyIds();
+    if (!rayDepthView_ || !physicsRenderView_.valid() || !visibleBuffer)
+        return;
+    if (compactBindGroup_
+        && compactBoundPoseBuffer_ == physicsRenderView_.poseBuffer
+        && compactBoundShapeBuffer_ == physicsRenderView_.shapeBuffer
+        && compactBoundVisibleBuffer_ == visibleBuffer
+        && compactBoundRayDepthView_ == rayDepthView_) return;
+    if (compactBindGroup_) {
+        wgpuBindGroupRelease(compactBindGroup_);
+        compactBindGroup_ = nullptr;
+    }
+    const uint64_t visibleSegmentBytes =
+        uint64_t{gpuCulling_.segmentCapacity()} * sizeof(uint32_t);
+    const std::array<gpu::BindGroupEntry, 5> entries = {
+        gpu::BindGroupEntry(0).buffer(
+            uniformBuffer_, 0, sizeof(PrimitiveUniforms)),
+        gpu::BindGroupEntry(1).buffer(physicsRenderView_.poseBuffer),
+        gpu::BindGroupEntry(2).buffer(physicsRenderView_.shapeBuffer),
+        gpu::BindGroupEntry(3).buffer(
+            visibleBuffer, 0, visibleSegmentBytes),
+        gpu::BindGroupEntry(4).textureView(rayDepthView_),
+    };
+    compactBindGroup_ = gpu::createBindGroup(
+        device_, compactBindGroupLayout_, entries,
+        "physics_primitive_compact_bind_group");
+    if (compactBindGroup_) {
+        compactBoundPoseBuffer_ = physicsRenderView_.poseBuffer;
+        compactBoundShapeBuffer_ = physicsRenderView_.shapeBuffer;
+        compactBoundVisibleBuffer_ = visibleBuffer;
+        compactBoundRayDepthView_ = rayDepthView_;
+    }
+}
+
+void PrimitivePath::setCompactPhysicsInstances(
+    std::span<const physics::PhysicsWorld::DynamicBodySnapshot> bodies) {
+    lastCompactUploadStats_ = {};
+    if (bodies.empty()) {
+        clearPhysicsRenderView();
+        return;
+    }
+    if (!ensureCompactInstanceCapacity(bodies.size())) {
+        clearPhysicsRenderView();
+        return;
+    }
+    std::vector<CompactPose> poses(bodies.size());
+    std::vector<CompactShape> shapes(bodies.size());
+    for (size_t index = 0; index < bodies.size(); ++index) {
+        const auto& body = bodies[index];
+        poses[index].positionInvMass = glm::vec4(body.position, 1.0f);
+        poses[index].orientation = glm::vec4(
+            body.rotation.x, body.rotation.y, body.rotation.z, body.rotation.w);
+        shapes[index].dimensionsType = glm::vec4(
+            body.dimensions, static_cast<float>(body.shape));
+    }
+    gpu::writeBuffer(queue_, cpuPoseBuffer_, 0,
+                     std::as_bytes(std::span<const CompactPose>(poses)));
+    gpu::writeBuffer(queue_, cpuShapeBuffer_, 0,
+                     std::as_bytes(std::span<const CompactShape>(shapes)));
+    lastCompactUploadStats_ = {
+        bodies.size() * (sizeof(CompactPose) + sizeof(CompactShape)), 2, true};
+    setPhysicsRenderView({
+        .poseBuffer = cpuPoseBuffer_,
+        .shapeBuffer = cpuShapeBuffer_,
+        .residentBodyCapacity = static_cast<uint32_t>(bodies.size()),
+        .shapeCount = static_cast<uint32_t>(Shape::Count),
+    });
+}
+
+void PrimitivePath::setPhysicsRenderView(
+    const physics::PhysicsRenderView& view) {
+    if (physicsRenderView_.poseBuffer != view.poseBuffer
+        || physicsRenderView_.shapeBuffer != view.shapeBuffer) {
+        compactBoundPoseBuffer_ = nullptr;
+        compactBoundShapeBuffer_ = nullptr;
+    }
+    physicsRenderView_ = view;
+    gpuCulling_.setBodyView(view);
+}
+
+void PrimitivePath::clearPhysicsRenderView() {
+    setPhysicsRenderView({});
+}
+
 void PrimitivePath::setInstances(
     std::span<const physics::PhysicsWorld::DynamicBodySnapshot> bodies) {
+    using Clock = std::chrono::steady_clock;
     lastUploadStats_ = {};
+    lastCpuTimings_ = {};
+    const auto packingStart = Clock::now();
     auto batch = detail::packPrimitiveInstances(bodies, instanceCache_);
     for (uint32_t shapeIndex = 0; shapeIndex < ranges_.size(); ++shapeIndex) {
         auto& range = ranges_[shapeIndex];
         range.firstInstance = batch.firstInstances[shapeIndex];
         range.instanceCount = batch.instanceCounts[shapeIndex];
     }
+    lastCpuTimings_.packingMs =
+        std::chrono::duration<double, std::milli>(
+            Clock::now() - packingStart).count();
 
+    const auto uploadStart = Clock::now();
     instanceCount_ = static_cast<uint32_t>(batch.instances.size());
     if (!ensureInstanceCapacity(batch.instances.size())) {
         instanceCount_ = 0;
+        lastCpuTimings_.uploadMs =
+            std::chrono::duration<double, std::milli>(
+                Clock::now() - uploadStart).count();
         return;
     }
 
@@ -429,6 +698,9 @@ void PrimitivePath::setInstances(
     }
     uploadedInstanceCacheTokens_ = std::move(batch.cacheTokens);
     instanceBufferContentsValid_ = instanceBuffer_ != nullptr;
+    lastCpuTimings_.uploadMs =
+        std::chrono::duration<double, std::milli>(
+            Clock::now() - uploadStart).count();
 }
 
 void PrimitivePath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
@@ -437,9 +709,24 @@ void PrimitivePath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView
                            const glm::vec3& cameraPosition,
                            const glm::vec3& lightDirection, uint32_t width,
                            uint32_t height, bool useRayDepth) {
-    if (!pipeline_ || !encoder || !colorView || !depthView || instanceCount_ == 0) return;
-    updateBindGroup();
-    if (!bindGroup_) return;
+    if (!pipeline_ || !compactPipeline_ || !encoder || !colorView || !depthView)
+        return;
+
+    bool overlayReady = instanceCount_ != 0;
+    if (overlayReady) {
+        updateBindGroup();
+        overlayReady = bindGroup_ != nullptr;
+    }
+    bool compactReady = false;
+    if (physicsRenderView_.valid()
+        && physicsRenderView_.residentBodyCapacity != 0) {
+        compactReady = gpuCulling_.encode(encoder, projection * view);
+        if (compactReady) {
+            updateCompactBindGroup();
+            compactReady = compactBindGroup_ != nullptr;
+        }
+    }
+    if (!overlayReady && !compactReady) return;
 
     PrimitiveUniforms uniforms;
     uniforms.viewProj = projection * view;
@@ -472,15 +759,30 @@ void PrimitivePath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView
     passDesc.colorAttachments = &colorAttachment;
     passDesc.depthStencilAttachment = &depthAttachment;
     WGPURenderPassEncoder pass = wgpuCommandEncoderBeginRenderPass(encoder, &passDesc);
-    wgpuRenderPassEncoderSetPipeline(pass, pipeline_);
-    wgpuRenderPassEncoderSetBindGroup(pass, 0, bindGroup_, 0, nullptr);
     wgpuRenderPassEncoderSetVertexBuffer(pass, 0, vertexBuffer_, 0, WGPU_WHOLE_SIZE);
     wgpuRenderPassEncoderSetIndexBuffer(pass, indexBuffer_, WGPUIndexFormat_Uint16,
                                         0, WGPU_WHOLE_SIZE);
-    for (const DrawRange& range : ranges_) {
-        if (range.instanceCount == 0) continue;
-        wgpuRenderPassEncoderDrawIndexed(pass, range.indexCount, range.instanceCount,
-                                         range.firstIndex, 0, range.firstInstance);
+    if (compactReady) {
+        wgpuRenderPassEncoderSetPipeline(pass, compactPipeline_);
+        for (uint32_t shape = 0; shape < ranges_.size(); ++shape) {
+            const uint32_t visibleOffset = shape
+                * gpuCulling_.segmentCapacity() * sizeof(uint32_t);
+            wgpuRenderPassEncoderSetBindGroup(
+                pass, 0, compactBindGroup_, 1, &visibleOffset);
+            wgpuRenderPassEncoderDrawIndexedIndirect(
+                pass, gpuCulling_.indirectDrawArgs(),
+                uint64_t{shape} * 5u * sizeof(uint32_t));
+        }
+    }
+    if (overlayReady) {
+        wgpuRenderPassEncoderSetPipeline(pass, pipeline_);
+        wgpuRenderPassEncoderSetBindGroup(pass, 0, bindGroup_, 0, nullptr);
+        for (const DrawRange& range : ranges_) {
+            if (range.instanceCount == 0) continue;
+            wgpuRenderPassEncoderDrawIndexed(
+                pass, range.indexCount, range.instanceCount,
+                range.firstIndex, 0, range.firstInstance);
+        }
     }
     wgpuRenderPassEncoderEnd(pass);
     wgpuRenderPassEncoderRelease(pass);

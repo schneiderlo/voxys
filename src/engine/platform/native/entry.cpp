@@ -63,6 +63,17 @@ int main(int argc, char* argv[]) {
     appConfig.waterWaveStrength = config.water.waveStrength;
     appConfig.waterReflectionStrength = config.water.reflectionStrength;
     appConfig.waterShoreFade = config.water.shoreFade;
+    appConfig.physicsBackend = voxy::physics::backendTypeFromName(
+        config.physics.backend);
+    appConfig.gpuPhysicsMaxBodies = static_cast<uint32_t>(
+        std::max(config.physics.gpuMaxBodies, 2));
+    appConfig.physicsCpuFallback = config.physics.allowCpuFallback;
+    appConfig.joltJobSystem = voxy::physics::joltJobSystemModeFromName(
+        config.physics.joltJobSystem);
+    appConfig.joltWorkerThreads = static_cast<uint32_t>(
+        std::max(config.physics.joltWorkerThreads, 0));
+    appConfig.box3dWorkerThreads = static_cast<uint32_t>(
+        std::max(config.physics.box3dWorkerThreads, 1));
 
     // Enforce 8K resolution
     appConfig.heightmapWidth = 8192;

@@ -7,8 +7,8 @@
 #include "core/log.hpp"
 
 #include <cstdio>
-#include <sstream>
 #include <iomanip>
+#include <sstream>
 
 #if defined(VOXY_WASM)
     #include <emscripten.h>
@@ -23,6 +23,40 @@ namespace voxy {
 
 namespace {
     DebugOverlay g_debugOverlay;
+
+std::string formatUsage(std::string_view label,
+                        const physics::PhysicsCapacityUsage& usage) {
+    std::ostringstream out;
+    out << label << ' ' << usage.current << '/';
+    if (usage.capacity == 0u) {
+        out << '-';
+    } else {
+        out << usage.capacity;
+    }
+    out << " h" << usage.highWater;
+    if (usage.overflow) out << " !";
+    return out.str();
+}
+
+std::string formatByteCount(uint64_t bytes) {
+    std::ostringstream out;
+    constexpr double kib = 1024.0;
+    constexpr double mib = kib * 1024.0;
+    constexpr double gib = mib * 1024.0;
+    if (bytes >= static_cast<uint64_t>(gib)) {
+        out << std::fixed << std::setprecision(2)
+            << static_cast<double>(bytes) / gib << " GiB";
+    } else if (bytes >= static_cast<uint64_t>(mib)) {
+        out << std::fixed << std::setprecision(2)
+            << static_cast<double>(bytes) / mib << " MiB";
+    } else if (bytes >= static_cast<uint64_t>(kib)) {
+        out << std::fixed << std::setprecision(1)
+            << static_cast<double>(bytes) / kib << " KiB";
+    } else {
+        out << bytes << " B";
+    }
+    return out.str();
+}
 }
 
 DebugOverlay& getDebugOverlay() {
@@ -154,6 +188,122 @@ std::string DebugOverlay::formatTerrain() const {
     return ss.str();
 }
 
+std::string DebugOverlay::formatPhysicsIdentity() const {
+    const auto& physicsStats = stats_.physics;
+    std::ostringstream out;
+    out << "Physics: " << physics::backendTypeName(physicsStats.backend)
+        << " / "
+        << physics::physicsArithmeticModeName(physicsStats.arithmeticMode)
+        << " | tick " << physicsStats.telemetryTick
+        << " | substeps " << physicsStats.substeps;
+    return out.str();
+}
+
+std::string DebugOverlay::formatPhysicsBodies() const {
+    const auto& value = stats_.physics;
+    std::ostringstream out;
+    out << formatUsage("Bodies", value.residentBodyUsage)
+        << " | " << formatUsage("active", value.activeBodyUsage)
+        << " | sleeping " << value.sleepingBodies
+        << " | kinematic " << value.kinematicBodies
+        << " | " << formatUsage("cmd", value.commandUsage);
+    return out.str();
+}
+
+std::string DebugOverlay::formatPhysicsBroadPhase() const {
+    const auto& value = stats_.physics;
+    std::ostringstream out;
+    out << formatUsage("Grid", value.gridEntryUsage)
+        << " | cells " << value.occupiedCells
+        << " | " << formatUsage("candidates", value.candidatePairUsage)
+        << " | " << formatUsage("pairs", value.uniquePairUsage)
+        << " | sleep-pairs " << value.activeSleepingPairs
+        << " | oversized " << value.oversizedBodies;
+    return out.str();
+}
+
+std::string DebugOverlay::formatPhysicsContacts() const {
+    const auto& value = stats_.physics;
+    std::ostringstream out;
+    out << formatUsage("Contacts", value.contactUsage)
+        << " | " << formatUsage("manifolds", value.manifoldUsage)
+        << " | points " << value.manifoldPoints
+        << " | " << formatUsage("terrain", value.terrainContactUsage)
+        << " (" << value.terrainContactBodies << " bodies, max "
+        << value.maximumTerrainContactsPerBody << ')';
+    return out.str();
+}
+
+std::string DebugOverlay::formatPhysicsSolver() const {
+    const auto& value = stats_.physics;
+    std::ostringstream out;
+    out << "Solver: colors " << value.activeGraphColors
+        << " | " << formatUsage("overflow", value.overflowConstraintUsage)
+        << " | degree " << value.maximumBodyDegree
+        << " | invalid " << value.invalidManifolds
+        << " | conflicts " << value.colorConflictErrors;
+    return out.str();
+}
+
+std::string DebugOverlay::formatPhysicsIslands() const {
+    const auto& value = stats_.physics;
+    std::ostringstream out;
+    out << "Islands: " << value.islandCount
+        << " (awake " << value.awakeIslands
+        << ", sleeping " << value.sleepingIslands << ')'
+        << " | max bodies " << value.maximumIslandBodies
+        << " | " << formatUsage("sleep-grid", value.sleepingGridUsage)
+        << " / " << value.sleepingGridCells << " cells"
+        << " | root errors " << value.islandRootErrors;
+    return out.str();
+}
+
+std::string DebugOverlay::formatPhysicsCcdWaterEvents() const {
+    const auto& value = stats_.physics;
+    std::ostringstream out;
+    out << formatUsage("CCD", value.bulletUsage)
+        << " hits " << value.ccdHits
+        << " stalls " << value.ccdStalls
+        << " failures " << value.ccdFailures
+        << " | submerged " << value.submergedBodies
+        << " | " << formatUsage("water", value.waterSampleUsage)
+        << " | " << formatUsage("events", value.eventUsage);
+    return out.str();
+}
+
+std::string DebugOverlay::formatPhysicsIo() const {
+    const auto& value = stats_.physics;
+    std::ostringstream out;
+    out << "Physics memory: persistent "
+        << formatByteCount(value.estimatedPersistentBytes)
+        << " | scratch " << formatByteCount(value.scratchBytes)
+        << " | upload " << formatByteCount(value.gpuUploadBytes)
+        << " | readback " << formatByteCount(value.gpuReadbackBytes)
+        << " | " << formatUsage("visible", value.visibleBodyUsage);
+    if (value.deviceMaxStorageBuffersPerShaderStage != 0u) {
+        out << " | device storage-bindings "
+            << value.deviceMaxStorageBuffersPerShaderStage
+            << " storage-buffer "
+            << formatByteCount(value.deviceMaxStorageBufferBindingSize)
+            << " max-buffer " << formatByteCount(value.deviceMaxBufferSize);
+    }
+    return out.str();
+}
+
+std::string DebugOverlay::formatPhysicsTimings() const {
+    if (!stats_.physicsGpuTiming) return "GPU stages: unavailable";
+    const auto& timing = *stats_.physicsGpuTiming;
+    std::ostringstream out;
+    out << std::fixed << std::setprecision(2)
+        << "GPU stages: " << timing.totalMilliseconds() << " ms";
+    for (size_t index = 0; index < physics::kPhysicsGpuStageCount; ++index) {
+        out << " | " << physics::physicsGpuStageName(
+            static_cast<physics::PhysicsGpuStage>(index))
+            << ' ' << timing.milliseconds[index];
+    }
+    return out.str();
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Platform-Specific Display
 // ─────────────────────────────────────────────────────────────────────────────
@@ -175,6 +325,15 @@ void DebugOverlay::displayNative() {
     LOG_INFO("│ {}                                      ", formatRenderPath());
     LOG_INFO("│ {}                                      ", formatTerrain());
     LOG_INFO("│ {}                                      ", formatMemory());
+    LOG_INFO("│ {}                                      ", formatPhysicsIdentity());
+    LOG_INFO("│ {}                                      ", formatPhysicsBodies());
+    LOG_INFO("│ {}                                      ", formatPhysicsBroadPhase());
+    LOG_INFO("│ {}                                      ", formatPhysicsContacts());
+    LOG_INFO("│ {}                                      ", formatPhysicsSolver());
+    LOG_INFO("│ {}                                      ", formatPhysicsIslands());
+    LOG_INFO("│ {}                                      ", formatPhysicsCcdWaterEvents());
+    LOG_INFO("│ {}                                      ", formatPhysicsIo());
+    LOG_INFO("│ {}                                      ", formatPhysicsTimings());
     LOG_INFO("│ Frame: {}                               ", stats_.frameCount);
     LOG_INFO("└─────────────────────────────────────────┘");
 #endif
@@ -190,6 +349,20 @@ void DebugOverlay::displayWasm() {
         var terrainText = UTF8ToString($3);
         var memText = UTF8ToString($4);
         var frameCount = $5;
+        var physicsIdentity = UTF8ToString($6);
+        var physicsBodies = UTF8ToString($7);
+        var physicsBroad = UTF8ToString($8);
+        var physicsContacts = UTF8ToString($9);
+        var physicsSolver = UTF8ToString($10);
+        var physicsIslands = UTF8ToString($11);
+        var physicsCcdWaterEvents = UTF8ToString($12);
+        var physicsIo = UTF8ToString($13);
+        var physicsTimings = UTF8ToString($14);
+
+        function setText(id, value) {
+            var element = document.getElementById(id);
+            if (element) element.textContent = value;
+        }
         
         // Update FPS display
         var fpsEl = document.getElementById('debug-fps');
@@ -214,16 +387,41 @@ void DebugOverlay::displayWasm() {
         // Update frame count
         var frameEl = document.getElementById('debug-frame');
         if (frameEl) frameEl.textContent = 'Frame: ' + frameCount;
+        setText('debug-physics-identity', physicsIdentity);
+        setText('debug-physics-bodies', physicsBodies);
+        setText('debug-physics-broad', physicsBroad);
+        setText('debug-physics-contacts', physicsContacts);
+        setText('debug-physics-solver', physicsSolver);
+        setText('debug-physics-islands', physicsIslands);
+        setText('debug-physics-ccd-water-events', physicsCcdWaterEvents);
+        setText('debug-physics-io', physicsIo);
+        setText('debug-physics-timings', physicsTimings);
+        var profile = globalThis.voxyDeviceProfile;
+        if (profile) {
+            setText('debug-device', 'Device: ' + profile.name
+                + ' | storage bindings '
+                + profile.maxStorageBuffersPerShaderStage
+                + ' | storage buffer '
+                + profile.maxStorageBufferBindingSize
+                + ' B | max buffer ' + profile.maxBufferSize + ' B');
+        }
         
     }, formatFPS().c_str(), 
        formatCameraPosition().c_str(),
        formatRenderPath().c_str(),
        formatTerrain().c_str(),
        formatMemory().c_str(),
-       static_cast<int>(stats_.frameCount));
+       static_cast<int>(stats_.frameCount),
+       formatPhysicsIdentity().c_str(),
+       formatPhysicsBodies().c_str(),
+       formatPhysicsBroadPhase().c_str(),
+       formatPhysicsContacts().c_str(),
+       formatPhysicsSolver().c_str(),
+       formatPhysicsIslands().c_str(),
+       formatPhysicsCcdWaterEvents().c_str(),
+       formatPhysicsIo().c_str(),
+       formatPhysicsTimings().c_str());
 #endif
 }
 
 } // namespace voxy
-
-

@@ -556,11 +556,16 @@ WGPUShaderModule loadShaderModule(WGPUDevice device,
     
     // Get file size and read content
     const auto size = file.tellg();
+    if (size <= 0
+        || size > std::numeric_limits<std::streamsize>::max()) {
+        LOG_ERROR("Shader file is empty or too large: {}", path.string());
+        return nullptr;
+    }
     file.seekg(0);
     
     std::string source;
     source.resize(static_cast<size_t>(size));
-    file.read(source.data(), size);
+    file.read(source.data(), static_cast<std::streamsize>(size));
     
     if (file.fail()) {
         LOG_ERROR("Failed to read shader file: {}", path.string());
@@ -690,6 +695,5 @@ bool isDepthStencilFormat(WGPUTextureFormat format) noexcept {
 }
 
 } // namespace voxy::gpu
-
 
 

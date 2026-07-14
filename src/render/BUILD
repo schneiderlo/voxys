@@ -65,6 +65,7 @@ cc_library(
     srcs = [
         "blit_path.cpp",
         "debug_visualizer.cpp",
+        "primitive_gpu_culling.cpp",
         "raycast_path.cpp",
         "primitive_path.cpp",
         "triangle_path.cpp",
@@ -72,6 +73,7 @@ cc_library(
     hdrs = [
         "blit_path.hpp",
         "debug_visualizer.hpp",
+        "primitive_gpu_culling.hpp",
         "raycast_path.hpp",
         "primitive_path.hpp",
         "triangle_path.hpp",

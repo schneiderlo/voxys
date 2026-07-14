@@ -3,6 +3,7 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 
 #include "render/triangle_path.hpp"
+#include "physics/terrain_topology.hpp"
 #include "gpu/resources.hpp"
 #include "core/log.hpp"
 #include "render/frustum.hpp"
@@ -425,15 +426,14 @@ bool TrianglePath::createIndexBuffer() {
             uint16_t bottomLeft = static_cast<uint16_t>(topLeft + TILE_VERTS);
             uint16_t bottomRight = static_cast<uint16_t>(bottomLeft + 1);
             
-            // First triangle (top-left, bottom-right, bottom-left) - CCW when viewed from above
-            indices.push_back(topLeft);
-            indices.push_back(bottomRight);
-            indices.push_back(bottomLeft);
-            
-            // Second triangle (top-left, top-right, bottom-right) - CCW when viewed from above
-            indices.push_back(topLeft);
-            indices.push_back(topRight);
-            indices.push_back(bottomRight);
+            const std::array<uint16_t, 4> corners{
+                topLeft, topRight, bottomLeft, bottomRight};
+            for (const auto& triangle :
+                 physics::terrain_topology::kCellTriangles) {
+                for (const auto corner : triangle) {
+                    indices.push_back(corners[static_cast<size_t>(corner)]);
+                }
+            }
         }
     }
 

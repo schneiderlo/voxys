@@ -14,6 +14,7 @@
 
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
 #include <filesystem>
 #include <functional>
@@ -34,6 +35,7 @@
 
 #include "engine/platform/window.hpp"
 #include "engine/platform/input.hpp"
+#include "physics/physics_types.hpp"
 #include "render/primitive_culling.hpp"
 
 namespace voxy {
@@ -135,6 +137,17 @@ struct ApplicationConfig {
     float waterReflectionStrength = 0.42f;
     float waterShoreFade = 30.0f;
 
+    // Physics backend and baseline scheduler selection.
+    physics::BackendType physicsBackend = physics::BackendType::WebGpuSoft;
+    uint32_t gpuPhysicsMaxBodies = 131'072;
+    bool gpuPhysicsStageProfiling = false;
+    double gpuPhysicsTimestampPeriodNanoseconds = 1.0;
+    bool physicsCpuFallback = true;
+    physics::JoltJobSystemMode joltJobSystem =
+        physics::JoltJobSystemMode::SingleThreaded;
+    uint32_t joltWorkerThreads = 0;
+    uint32_t box3dWorkerThreads = 1;
+
     // Camera settings
     glm::vec3 cameraStartPos = {0.0f, 80.0f, 0.0f}; // Start lower, near center
     float cameraFovDegrees = 60.0f;
@@ -196,6 +209,22 @@ struct ApplicationStats {
     bool primitiveInstanceFullUpload = false;
     uint32_t primitiveBodyLockedReadCount = 0;
     uint32_t primitiveBodyCachedReadCount = 0;
+
+    physics::BackendType physicsBackend = physics::BackendType::JoltLegacy;
+    physics::PhysicsStats physics{};
+    std::optional<physics::PhysicsGpuStageTiming> physicsGpuTiming;
+    uint32_t physicsResidentBodies = 0;
+    uint32_t physicsActiveBodies = 0;
+    uint32_t physicsBodyCapacity = 0;
+    size_t physicsEstimatedPersistentBytes = 0;
+    size_t physicsScratchBytes = 0;
+    double physicsSimulationMs = 0.0;
+    double physicsWaterMs = 0.0;
+    double physicsSnapshotMs = 0.0;
+    double primitiveCullMs = 0.0;
+    double primitivePackingMs = 0.0;
+    double primitiveUploadMs = 0.0;
+    double primitiveRenderMs = 0.0;
     
     // Controller stats
     ControllerMode activeController = ControllerMode::FreeFly;

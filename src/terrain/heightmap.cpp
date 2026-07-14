@@ -17,6 +17,7 @@
 #include <cmath>
 #include <cstring>
 #include <fstream>
+#include <limits>
 
 #include "terrain/compression.hpp"
 
@@ -119,15 +120,18 @@ Heightmap::readFileToMemory(const std::filesystem::path& path) {
     }
 
     const auto fileSize = file.tellg();
-    if (fileSize <= 0) {
-        LOG_ERROR("Heightmap file is empty or unreadable: {}", path.string());
+    if (fileSize <= 0
+        || fileSize > std::numeric_limits<std::streamsize>::max()) {
+        LOG_ERROR("Heightmap file is empty, unreadable, or too large: {}",
+                  path.string());
         return HeightmapError::ReadError;
     }
 
     file.seekg(0, std::ios::beg);
 
     std::vector<std::byte> buffer(static_cast<size_t>(fileSize));
-    if (!file.read(reinterpret_cast<char*>(buffer.data()), fileSize)) {
+    if (!file.read(reinterpret_cast<char*>(buffer.data()),
+                   static_cast<std::streamsize>(fileSize))) {
         LOG_ERROR("Failed to read heightmap file: {}", path.string());
         return HeightmapError::ReadError;
     }

@@ -380,6 +380,7 @@ bool Context::createSurface(Window& window) {
     
 #elif defined(VOXY_WASM)
     // WASM: Use canvas element
+    static_cast<void>(window);
     WGPUEmscriptenSurfaceSourceCanvasHTMLSelector canvasDesc =
         WGPU_EMSCRIPTEN_SURFACE_SOURCE_CANVAS_HTML_SELECTOR_INIT;
     canvasDesc.selector.data = "#voxy-canvas";
@@ -489,8 +490,11 @@ bool Context::requestDevice(const ContextConfig& config) {
     // Set up required features
     std::vector<WGPUFeatureName> requiredFeatures;
     
-    if (config.enableTimestamps) {
+    if (config.enableTimestamps
+        && wgpuAdapterHasFeature(adapter_, WGPUFeatureName_TimestampQuery)) {
         requiredFeatures.push_back(WGPUFeatureName_TimestampQuery);
+    } else if (config.enableTimestamps) {
+        LOG_WARN("GPU timestamp queries requested but unsupported; continuing without them");
     }
     
     // The callback userdata must stay at a stable address if Context is moved.

@@ -14,11 +14,18 @@
 #include <vector>
 #include <optional>
 #include <filesystem>
+#include <limits>
 
 // WebGPU compatibility layer - handles API differences between implementations
 #include "webgpu_compat.hpp"
 
 namespace voxy::gpu {
+
+[[nodiscard]] constexpr size_t saturatingSize(uint64_t bytes) noexcept {
+    return bytes > static_cast<uint64_t>(std::numeric_limits<size_t>::max())
+        ? std::numeric_limits<size_t>::max()
+        : static_cast<size_t>(bytes);
+}
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Buffer Creation
@@ -133,6 +140,13 @@ template<typename T>
 /// Write data to an existing buffer
 void writeBuffer(WGPUQueue queue, WGPUBuffer buffer, uint64_t offset, 
                  std::span<const std::byte> data);
+
+/// Typed spans upload their elements, not the small span descriptor object.
+template<typename T>
+void writeBuffer(WGPUQueue queue, WGPUBuffer buffer, uint64_t offset,
+                 std::span<const T> data) {
+    writeBuffer(queue, buffer, offset, std::as_bytes(data));
+}
 
 /// Templated version for typed data
 template<typename T>
@@ -539,6 +553,4 @@ private:
 }
 
 } // namespace voxy::gpu
-
-
 

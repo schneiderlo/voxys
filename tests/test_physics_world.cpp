@@ -2,9 +2,11 @@
 
 #include "physics/physics_world.hpp"
 
+#include <array>
 #include <bit>
 #include <cmath>
 #include <cstdint>
+#include <string>
 #include <vector>
 
 namespace voxy::physics {
@@ -19,6 +21,7 @@ void expectSameFloatBits(float lhs, float rhs) {
 void expectSameBodyState(const PhysicsWorld::DynamicBodySnapshot& lhs,
                          const PhysicsWorld::DynamicBodySnapshot& rhs) {
     EXPECT_EQ(lhs.shape, rhs.shape);
+    EXPECT_EQ(lhs.sector, rhs.sector);
     expectSameFloatBits(lhs.position.x, rhs.position.x);
     expectSameFloatBits(lhs.position.y, rhs.position.y);
     expectSameFloatBits(lhs.position.z, rhs.position.z);
@@ -32,11 +35,48 @@ void expectSameBodyState(const PhysicsWorld::DynamicBodySnapshot& lhs,
     EXPECT_EQ(lhs.active, rhs.active);
 }
 
-class PhysicsWorldTest : public ::testing::Test {
+TEST(WorldPositionTest, CanonicalizesWithoutFarFloatConversion) {
+    const WorldPosition position = canonicalWorldPosition(
+        glm::ivec3(2'000'000, -2'000'000, 7),
+        glm::dvec3(384.25, -384.5, 127.999));
+    EXPECT_EQ(position.sector, glm::ivec3(2'000'002, -2'000'002, 7));
+    EXPECT_FLOAT_EQ(position.local.x, -127.75f);
+    EXPECT_FLOAT_EQ(position.local.y, 127.5f);
+    EXPECT_NEAR(position.local.z, 127.999f, 1e-5f);
+    EXPECT_TRUE(isValidWorldPosition(position));
+}
+
+TEST(WorldPositionTest, ConvertsOnlyNearbySectorsToHotFloatFrame) {
+    const WorldPosition position{
+        .sector = {1'500'001, -9, 4},
+        .local = {-127.5f, 10.0f, 3.0f},
+    };
+    glm::vec3 relative;
+    EXPECT_TRUE(worldPositionRelativeToSector(
+        position, glm::ivec3(1'500'000, -9, 4), relative));
+    EXPECT_EQ(relative, glm::vec3(128.5f, 10.0f, 3.0f));
+    EXPECT_FALSE(worldPositionRelativeToSector(
+        position, glm::ivec3(0), relative));
+}
+
+TEST(WorldPositionTest, RoundTripsLargeAbsoluteCoordinatesOnHost) {
+    const glm::dvec3 absolute(
+        512'000'127.75, -400'000'128.25, 42.125);
+    const WorldPosition position = worldPositionFromAbsolute(absolute);
+    const glm::dvec3 roundTrip = worldPositionToAbsolute(position);
+    EXPECT_NEAR(roundTrip.x, absolute.x, 1e-5);
+    EXPECT_NEAR(roundTrip.y, absolute.y, 1e-5);
+    EXPECT_NEAR(roundTrip.z, absolute.z, 1e-5);
+    EXPECT_TRUE(isValidWorldPosition(position));
+}
+
+class PhysicsWorldTest : public ::testing::TestWithParam<BackendType> {
 protected:
     void SetUp() override {
         heights.assign(static_cast<size_t>(kTerrainSize) * kTerrainSize, 32768u);
-        ASSERT_TRUE(world.initialize());
+        PhysicsInitContext context;
+        context.requestedBackend = GetParam();
+        ASSERT_TRUE(world.initialize(context));
         ASSERT_TRUE(world.setTerrain(heights, kTerrainSize, kTerrainSize, 32.0f, 1.0f));
     }
 
@@ -57,12 +97,74 @@ protected:
     std::vector<uint16_t> heights;
 };
 
-TEST_F(PhysicsWorldTest, InitializesWithStreamedTerrain) {
+TEST_P(PhysicsWorldTest, InitializesWithTerrain) {
     EXPECT_TRUE(world.isInitialized());
     EXPECT_TRUE(world.hasTerrain());
+    EXPECT_EQ(world.backendType(), GetParam());
+    EXPECT_TRUE(world.capabilities().synchronousCharacter);
+    EXPECT_TRUE(world.capabilities().bodyBodyContacts);
+
+    const PhysicsStats stats = world.stats();
+    EXPECT_EQ(stats.backend, GetParam());
+    EXPECT_EQ(stats.bodyCapacity, 16'384u);
+    EXPECT_EQ(stats.pairCapacity, 65'536u);
+    EXPECT_EQ(stats.contactCapacity, 16'384u);
+    EXPECT_EQ(stats.workerConcurrency, 1u);
+    EXPECT_GT(stats.estimatedPersistentBytes + stats.scratchBytes, 0u);
 }
 
-TEST_F(PhysicsWorldTest, CharacterFallsAndSettlesOnTerrain) {
+TEST(PhysicsWorldBackendConfigurationTest, RejectsUnavailableBackendExplicitly) {
+    PhysicsWorld world;
+    PhysicsInitContext context;
+    context.requestedBackend = BackendType::WebGpuSoft;
+    EXPECT_FALSE(world.initialize(context));
+    EXPECT_FALSE(world.isInitialized());
+}
+
+TEST(PhysicsWorldBackendConfigurationTest,
+     FallsBackToBox3DOnlyWhenExplicitlyEnabled) {
+    PhysicsWorld world;
+    PhysicsInitContext context;
+    context.requestedBackend = BackendType::WebGpuSoft;
+    context.allowCpuFallback = true;
+    ASSERT_TRUE(world.initialize(context));
+    EXPECT_TRUE(world.isInitialized());
+    EXPECT_EQ(world.backendType(), BackendType::Box3DReference);
+    EXPECT_TRUE(world.capabilities().synchronousCharacter);
+    EXPECT_TRUE(world.capabilities().bodyBodyContacts);
+    EXPECT_TRUE(world.capabilities().deterministicFloat);
+
+    // Repeating the same requested configuration is idempotent even though
+    // the selected backend is the configured fallback.
+    EXPECT_TRUE(world.initialize(context));
+}
+
+#if !defined(__EMSCRIPTEN__)
+TEST(PhysicsWorldBackendConfigurationTest, SupportsMultithreadedJoltBaseline) {
+    PhysicsWorld world;
+    PhysicsInitContext context;
+    context.joltJobSystem = JoltJobSystemMode::ThreadPool;
+    context.joltWorkerThreads = 1;
+    ASSERT_TRUE(world.initialize(context));
+    EXPECT_EQ(world.stats().workerConcurrency, 2u);
+    ASSERT_TRUE(world.throwBody(
+        PhysicsWorld::ThrowableShape::Sphere,
+        glm::vec3(0.0f, 8.0f, 0.0f), glm::vec3(0.0f)));
+    world.update(1.0f / 60.0f);
+    EXPECT_EQ(world.dynamicBodies().size(), 1u);
+}
+
+TEST(PhysicsWorldBackendConfigurationTest, SupportsMultithreadedBox3DBaseline) {
+    PhysicsWorld world;
+    PhysicsInitContext context;
+    context.requestedBackend = BackendType::Box3DReference;
+    context.box3dWorkerThreads = 2;
+    ASSERT_TRUE(world.initialize(context));
+    EXPECT_EQ(world.stats().workerConcurrency, 2u);
+}
+#endif
+
+TEST_P(PhysicsWorldTest, CharacterFallsAndSettlesOnTerrain) {
     PhysicsWorld::CharacterSettings settings;
     const auto character = world.createCharacter(glm::vec3(0.0f, 4.0f, 0.0f), settings);
     ASSERT_NE(character, PhysicsWorld::InvalidCharacter);
@@ -73,7 +175,7 @@ TEST_F(PhysicsWorldTest, CharacterFallsAndSettlesOnTerrain) {
     EXPECT_NEAR(motion.groundNormal.y, 1.0f, 0.01f);
 }
 
-TEST_F(PhysicsWorldTest, CharacterMovesAndJumps) {
+TEST_P(PhysicsWorldTest, CharacterMovesAndJumps) {
     PhysicsWorld::CharacterSettings settings;
     const auto character = world.createCharacter(glm::vec3(0.0f, 2.0f, 0.0f), settings);
     ASSERT_NE(character, PhysicsWorld::InvalidCharacter);
@@ -87,7 +189,7 @@ TEST_F(PhysicsWorldTest, CharacterMovesAndJumps) {
     EXPECT_FALSE(motion.grounded);
 }
 
-TEST_F(PhysicsWorldTest, TerrainTilesFollowTeleportedCharacter) {
+TEST_P(PhysicsWorldTest, TerrainSupportsTeleportedCharacter) {
     PhysicsWorld::CharacterSettings settings;
     const auto character = world.createCharacter(glm::vec3(-450.0f, 3.0f, 0.0f), settings);
     ASSERT_NE(character, PhysicsWorld::InvalidCharacter);
@@ -100,7 +202,7 @@ TEST_F(PhysicsWorldTest, TerrainTilesFollowTeleportedCharacter) {
     EXPECT_NEAR(motion.position.x, 450.0f, 0.01f);
 }
 
-TEST_F(PhysicsWorldTest, ThrownBodyMovesUnderJoltSimulation) {
+TEST_P(PhysicsWorldTest, ThrownBodyMovesUnderSimulation) {
     ASSERT_TRUE(world.throwBody(
         PhysicsWorld::ThrowableShape::Sphere,
         glm::vec3(0.0f, 8.0f, 0.0f),
@@ -127,7 +229,16 @@ TEST(PhysicsWorldShapeTest, ThrowableNamesAreReadable) {
                      PhysicsWorld::ThrowableShape::Capsule), "capsule");
 }
 
-TEST_F(PhysicsWorldTest, KeepsEachThrownShapeDistinct) {
+TEST(PhysicsBackendTypeTest, NamesParseToStableBackendIdentifiers) {
+    EXPECT_EQ(backendTypeFromName("jolt"), BackendType::JoltLegacy);
+    EXPECT_EQ(backendTypeFromName("box3d"), BackendType::Box3DReference);
+    EXPECT_EQ(backendTypeFromName("webgpu"), BackendType::WebGpuSoft);
+    EXPECT_STREQ(backendTypeName(BackendType::WebGpuSoft), "webgpu_soft");
+    EXPECT_EQ(joltJobSystemModeFromName("thread_pool"),
+              JoltJobSystemMode::ThreadPool);
+}
+
+TEST_P(PhysicsWorldTest, KeepsEachThrownShapeDistinct) {
     constexpr uint32_t shapeCount = static_cast<uint32_t>(
         PhysicsWorld::ThrowableShape::Count);
     for (uint32_t index = 0; index < shapeCount; ++index) {
@@ -144,7 +255,7 @@ TEST_F(PhysicsWorldTest, KeepsEachThrownShapeDistinct) {
     }
 }
 
-TEST_F(PhysicsWorldTest, KeepsMoreThanSixtyFourBodies) {
+TEST_P(PhysicsWorldTest, KeepsMoreThanSixtyFourBodies) {
     constexpr uint32_t bodyCount = 96;
     for (uint32_t index = 0; index < bodyCount; ++index) {
         ASSERT_TRUE(world.throwBody(
@@ -156,7 +267,7 @@ TEST_F(PhysicsWorldTest, KeepsMoreThanSixtyFourBodies) {
     EXPECT_EQ(world.dynamicBodies().size(), bodyCount);
 }
 
-TEST_F(PhysicsWorldTest, ReusesOnlyContinuouslySleepingTransforms) {
+TEST_P(PhysicsWorldTest, ReusesOnlyContinuouslySleepingTransforms) {
     ASSERT_TRUE(world.throwBody(
         PhysicsWorld::ThrowableShape::Box,
         glm::vec3(0.0f, 4.0f, 0.0f), glm::vec3(0.0f)));
@@ -212,7 +323,7 @@ TEST_F(PhysicsWorldTest, ReusesOnlyContinuouslySleepingTransforms) {
     EXPECT_EQ(world.lastDynamicBodyReadStats().cachedBodyCount, 1u);
 }
 
-TEST_F(PhysicsWorldTest, ReservesCallerOverlayCapacityWithoutGrowth) {
+TEST_P(PhysicsWorldTest, ReservesCallerOverlayCapacityWithoutGrowth) {
     constexpr size_t overlayCount = 36;
     for (uint32_t index = 0; index < 96; ++index) {
         ASSERT_TRUE(world.throwBody(
@@ -231,7 +342,7 @@ TEST_F(PhysicsWorldTest, ReservesCallerOverlayCapacityWithoutGrowth) {
     EXPECT_EQ(bodies.data(), storage);
 }
 
-TEST_F(PhysicsWorldTest, SupportsTenThousandDynamicBodies) {
+TEST_P(PhysicsWorldTest, SupportsTenThousandDynamicBodies) {
     constexpr uint32_t columns = 100;
     constexpr float spacing = 2.1f;
     for (uint32_t index = 0; index < 10000; ++index) {
@@ -249,7 +360,7 @@ TEST_F(PhysicsWorldTest, SupportsTenThousandDynamicBodies) {
     EXPECT_EQ(world.dynamicBodies().size(), 10000u);
 }
 
-TEST_F(PhysicsWorldTest, WaterAppliesBuoyancyAndDrag) {
+TEST_P(PhysicsWorldTest, WaterAppliesBuoyancyAndDrag) {
     world.setWaterPlane(5.0f);
     ASSERT_TRUE(world.throwBody(
         PhysicsWorld::ThrowableShape::Box,
@@ -265,7 +376,7 @@ TEST_F(PhysicsWorldTest, WaterAppliesBuoyancyAndDrag) {
     EXPECT_LT(bodies.front().position.x, 6.0f);
 }
 
-TEST_F(PhysicsWorldTest, SamplesAnimatedWaterForBuoyancy) {
+TEST_P(PhysicsWorldTest, SamplesAnimatedWaterForBuoyancy) {
     uint32_t sampleCount = 0;
     world.setWaterPlane(5.0f);
     world.setWaterSurfaceSampler(
@@ -284,7 +395,7 @@ TEST_F(PhysicsWorldTest, SamplesAnimatedWaterForBuoyancy) {
     EXPECT_GT(sampleCount, 0u);
 }
 
-TEST_F(PhysicsWorldTest, PreservesWaterSamplerOrderAcrossBatchRead) {
+TEST_P(PhysicsWorldTest, PreservesWaterSamplerOrderAcrossBatchRead) {
     constexpr uint32_t bodyCount = 17;
     std::vector<glm::vec2> sampledPositions;
     sampledPositions.reserve(bodyCount);
@@ -312,9 +423,11 @@ TEST_F(PhysicsWorldTest, PreservesWaterSamplerOrderAcrossBatchRead) {
     }
 }
 
-TEST_F(PhysicsWorldTest, DryBodiesMatchWaterDisabledBitForBit) {
+TEST_P(PhysicsWorldTest, DryBodiesMatchWaterDisabledBitForBit) {
     PhysicsWorld waterDisabled;
-    ASSERT_TRUE(waterDisabled.initialize());
+    PhysicsInitContext context;
+    context.requestedBackend = GetParam();
+    ASSERT_TRUE(waterDisabled.initialize(context));
     ASSERT_TRUE(waterDisabled.setTerrain(
         heights, kTerrainSize, kTerrainSize, 32.0f, 1.0f));
 
@@ -339,6 +452,47 @@ TEST_F(PhysicsWorldTest, DryBodiesMatchWaterDisabledBitForBit) {
         expectSameBodyState(withWater[index], withoutWater[index]);
     }
 }
+
+TEST(Box3DReferenceBackendTest, PreservesCanonicalTerrainDiagonal) {
+    PhysicsWorld world;
+    PhysicsInitContext context;
+    context.requestedBackend = BackendType::Box3DReference;
+    ASSERT_TRUE(world.initialize(context));
+
+    // Only the central cell's BR is high. At that cell's center the TL-BR
+    // diagonal is exactly y=0; Box3D's unadapted diagonal would be y=-0.2.
+    std::array<uint16_t, 16> heights{};
+    heights[2u * 4u + 2u] = 65'535u;
+    ASSERT_TRUE(world.setTerrain(heights, 4, 4, 0.2f, 1.0f));
+    const auto character = world.createCharacter(
+        glm::vec3(0.0f, 2.0f, 0.0f), {});
+    ASSERT_NE(character, PhysicsWorld::InvalidCharacter);
+
+    PhysicsWorld::CharacterMotion motion;
+    for (int step = 0; step < 240 && !motion.grounded; ++step) {
+        motion = world.moveCharacter(
+            character, glm::vec3(0.0f), false, 6.0f, 20.0f, 50.0f,
+            1.0f / 60.0f);
+    }
+    ASSERT_TRUE(motion.grounded);
+    EXPECT_NEAR(motion.position.y, 0.0f, 0.02f);
+}
+
+std::string backendTestName(
+    const ::testing::TestParamInfo<BackendType>& info) {
+    switch (info.param) {
+        case BackendType::JoltLegacy: return "JoltLegacy";
+        case BackendType::Box3DReference: return "Box3DReference";
+        case BackendType::WebGpuSoft: return "WebGpuSoft";
+    }
+    return "Unknown";
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    CpuBackends, PhysicsWorldTest,
+    ::testing::Values(BackendType::JoltLegacy,
+                      BackendType::Box3DReference),
+    backendTestName);
 
 } // namespace
 } // namespace voxy::physics

@@ -1,0 +1,38 @@
+name: Determinism contract
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  cpu-wgsl-lockstep:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31
+
+      - name: Install software Vulkan
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y mesa-vulkan-drivers vulkan-tools
+
+      - name: Fetch pinned dependencies
+        run: nix-shell --run './scripts/fetch_deps.sh'
+
+      - name: Compare CPU and WGSL hashes
+        env:
+          VOXY_REQUIRE_WEBGPU: "1"
+          XDG_RUNTIME_DIR: /tmp/voxy-runtime
+        run: |
+          mkdir -p "$XDG_RUNTIME_DIR"
+          chmod 700 "$XDG_RUNTIME_DIR"
+          nix-shell --run 'bazel test //tests:determinism_ci --test_output=errors --test_env=VOXY_REQUIRE_WEBGPU --test_env=XDG_RUNTIME_DIR'

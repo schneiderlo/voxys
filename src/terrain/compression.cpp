@@ -11,6 +11,7 @@
 #include <cstring>
 #include <fstream>
 #include <iomanip>
+#include <limits>
 #include <sstream>
 
 // zstd for compression
@@ -690,15 +691,18 @@ namespace {
     }
     
     const auto fileSize = file.tellg();
-    if (fileSize <= 0) {
-        LOG_ERROR("LDH file is empty or unreadable: {}", path.string());
+    if (fileSize <= 0
+        || fileSize > std::numeric_limits<std::streamsize>::max()) {
+        LOG_ERROR("LDH file is empty, unreadable, or too large: {}",
+                  path.string());
         return CompressionError::InvalidInput;
     }
     
     file.seekg(0, std::ios::beg);
     
     std::vector<uint8_t> buffer(static_cast<size_t>(fileSize));
-    if (!file.read(reinterpret_cast<char*>(buffer.data()), fileSize)) {
+    if (!file.read(reinterpret_cast<char*>(buffer.data()),
+                   static_cast<std::streamsize>(fileSize))) {
         LOG_ERROR("Failed to read LDH file: {}", path.string());
         return CompressionError::InvalidInput;
     }

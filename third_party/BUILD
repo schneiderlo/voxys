@@ -21,6 +21,41 @@ cc_library(
     }),
 )
 
+# Box3D 3D CPU reference backend. This checkout is pinned by fetch_deps.sh.
+# Keep floating-point contraction disabled to match its determinism contract.
+cc_library(
+    name = "box3d",
+    srcs = glob(["box3d/src/*.c"]),
+    hdrs = glob([
+        "box3d/include/box3d/*.h",
+        "box3d/src/*.h",
+        "box3d/src/*.inl",
+    ]),
+    copts = select({
+        "@platforms//cpu:wasm32": [
+            "-ffp-contract=off",
+            "-msimd128",
+            "-msse2",
+            "-std=gnu17",
+            "-w",
+        ],
+        "//conditions:default": [
+            "-ffp-contract=off",
+            "-msse2",
+            "-std=gnu17",
+            "-w",
+        ],
+    }),
+    includes = [
+        "box3d/include",
+        "box3d/src",
+    ],
+    linkopts = select({
+        "@platforms//cpu:wasm32": [],
+        "//conditions:default": ["-lm", "-pthread"],
+    }),
+)
+
 # GLM
 cc_library(
     name = "glm",

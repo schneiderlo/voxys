@@ -33,8 +33,13 @@ namespace voxy::gpu {
     using WGPUBufferUsageFlags  = WGPUBufferUsage;
     using WGPUTextureUsageFlags = WGPUTextureUsage;
     using WGPUShaderStageFlags  = WGPUShaderStage;
+    using CompatPassTimestampWrites = WGPUPassTimestampWrites;
+#else
+    using WGPUBufferUsageFlags  = ::WGPUBufferUsageFlags;
+    using WGPUTextureUsageFlags = ::WGPUTextureUsageFlags;
+    using WGPUShaderStageFlags  = ::WGPUShaderStageFlags;
+    using CompatPassTimestampWrites = WGPUComputePassTimestampWrites;
 #endif
-// Native builds already have these types defined
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Type Compatibility - Texture Copy Types
@@ -113,6 +118,20 @@ inline const char* nullStringView() { return nullptr; }
     inline bool toOptionalBool(bool value) { return value; }
 #endif
 
+// emdawnwebgpu writes WGPULimits directly and returns WGPUStatus. The native
+// API still wraps limits in WGPUSupportedLimits and returns a boolean.
+inline bool getDeviceLimits(WGPUDevice device, WGPULimits& limits) {
+#if defined(VOXY_WASM)
+    limits = {};
+    return wgpuDeviceGetLimits(device, &limits) == WGPUStatus_Success;
+#else
+    WGPUSupportedLimits supported{};
+    if (!wgpuDeviceGetLimits(device, &supported)) return false;
+    limits = supported.limits;
+    return true;
+#endif
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // Helper Functions for Texture Operations
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -151,4 +170,3 @@ inline CompatTextureDataLayout makeTextureDataLayout(
 }
 
 } // namespace voxy::gpu
-

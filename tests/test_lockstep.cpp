@@ -1,0 +1,246 @@
+#include <gtest/gtest.h>
+
+#include "gpu/context.hpp"
+#include "gpu/resources.hpp"
+#include "physics/deterministic/fixed.hpp"
+#include "physics/deterministic/lockstep_world.hpp"
+#include "physics/gpu/gpu_lockstep.hpp"
+
+#include <array>
+#include <bit>
+#include <cmath>
+#include <cstddef>
+#include <cstdint>
+#include <cstdlib>
+#include <cstring>
+#include <limits>
+#include <span>
+#include <vector>
+
+#ifndef WGPUWrappedSubmissionIndex
+using WGPUSubmissionIndex = uint64_t;
+struct WGPUWrappedSubmissionIndex {
+    WGPUQueue queue;
+    WGPUSubmissionIndex submissionIndex;
+};
+#endif
+
+extern "C" WGPUSubmissionIndex wgpuQueueSubmitForIndex(
+    WGPUQueue queue, size_t commandCount,
+    const WGPUCommandBuffer* commands);
+extern "C" WGPUBool wgpuDevicePoll(
+    WGPUDevice device, WGPUBool wait,
+    const WGPUWrappedSubmissionIndex* wrappedSubmissionIndex);
+
+namespace voxy::physics::deterministic {
+namespace {
+
+int32_t q12(float value) {
+    return Position::fromDouble(value).raw();
+}
+
+int32_t q16(float value) {
+    return LinearVelocity::fromDouble(value).raw();
+}
+
+LockstepBody body(uint32_t id, float x, float y, float z, float radius,
+                  float vx = 0.0f, float vy = 0.0f, float vz = 0.0f,
+                  bool isStatic = false) {
+    LockstepBody result;
+    result.identity = {
+        id, 1u, LockstepBodyAlive | LockstepBodyAwake
+            | (isStatic ? LockstepBodyStatic : 0u), 0u};
+    result.sectorRadius = {0, 0, 0, q12(radius)};
+    result.positionInvMass = {q12(x), q12(y), q12(z),
+                              isStatic ? 0 : q16(1.0f)};
+    result.linearVelocity = {q16(vx), q16(vy), q16(vz), 0};
+    return result;
+}
+
+void releaseBuffer(WGPUBuffer& buffer) {
+    if (!buffer) return;
+    wgpuBufferDestroy(buffer);
+    wgpuBufferRelease(buffer);
+    buffer = nullptr;
+}
+
+TEST(FixedPoint, SaturatesRoundsAndUsesIntegerSquareRoot) {
+    using Q = Fixed32<16>;
+    EXPECT_EQ(Q::fromInteger(-2).raw(), q16(-2.0f));
+    EXPECT_EQ((Q::fromDouble(1.5) * Q::fromDouble(2.0)).raw(), q16(3.0f));
+    EXPECT_EQ((Q::fromDouble(-1.5) * Q::fromDouble(2.0)).raw(), q16(-3.0f));
+    EXPECT_NEAR((Q::fromDouble(1.0) / Q::fromDouble(3.0)).toDouble(),
+                1.0 / 3.0, 2e-5);
+    EXPECT_EQ((Q::fromRaw(std::numeric_limits<int32_t>::max())
+               + Q::fromRaw(1)).raw(), std::numeric_limits<int32_t>::max());
+    EXPECT_EQ((Q::fromRaw(std::numeric_limits<int32_t>::min())
+               / Q::fromRaw(-1)).raw(),
+              std::numeric_limits<int32_t>::max());
+    EXPECT_EQ(lockstepMultiplyShift(q16(3.0f), kLockstepUnitOne, 30u),
+              q16(3.0f));
+    EXPECT_EQ(lockstepMultiplyShift(q16(-3.0f), kLockstepUnitOne, 31u),
+              q16(-1.5f));
+    for (uint64_t value : {uint64_t{0}, uint64_t{1}, uint64_t{2},
+                           uint64_t{15}, uint64_t{16}, uint64_t{17},
+                           uint64_t{1} << 32u,
+                           std::numeric_limits<uint64_t>::max()}) {
+        const uint32_t root = lockstepIntegerSquareRoot(value);
+        EXPECT_LE(uint64_t{root} * root, value);
+        if (root != std::numeric_limits<uint32_t>::max()) {
+            EXPECT_GT(uint64_t{root + 1u} * (root + 1u), value);
+        }
+    }
+}
+
+TEST(Lockstep, CpuAndWgslProduceIdenticalStateTopologySolverAndHashes) {
+    constexpr uint32_t bodyCapacity = 16;
+    constexpr uint32_t contactCapacity = 32;
+    constexpr uint32_t ticks = 20;
+    gpu::Context context;
+    gpu::ContextConfig contextConfig;
+    contextConfig.enableValidation = false;
+    if (!context.initHeadless(contextConfig)) {
+        if (const char* required = std::getenv("VOXY_REQUIRE_WEBGPU");
+            required != nullptr && std::string_view(required) == "1") {
+            FAIL() << "VOXY_REQUIRE_WEBGPU=1 but headless WebGPU is unavailable";
+        }
+        GTEST_SKIP() << "Headless WebGPU is unavailable";
+    }
+
+    std::vector<LockstepBody> initial(bodyCapacity);
+    initial[1] = body(1u, -0.40f, 1.0f, 0.0f, 0.5f, 1.0f, 0.0f, 0.0f);
+    initial[2] = body(2u, 0.40f, 1.0f, 0.0f, 0.5f, -1.0f, 0.0f, 0.0f);
+    initial[3] = body(3u, 0.0f, 2.2f, 0.0f, 0.5f, 0.0f, -0.5f, 0.0f);
+    initial[4] = body(4u, 0.0f, 0.0f, 0.0f, 0.5f,
+                      0.0f, 0.0f, 0.0f, true);
+    initial[5] = body(5u, 3.0f, 1.0f, 0.0f, 0.6f,
+                      -0.25f, 0.0f, 0.0f);
+
+    LockstepWorld cpu;
+    LockstepWorld::Config cpuConfig;
+    cpuConfig.bodyCapacity = bodyCapacity;
+    cpuConfig.contactCapacity = contactCapacity;
+    ASSERT_TRUE(cpu.initialize(cpuConfig));
+    ASSERT_TRUE(cpu.setBodies(initial));
+
+    GpuLockstepWorld gpuWorld;
+    GpuLockstepWorld::Config gpuConfig;
+    gpuConfig.bodyCapacity = bodyCapacity;
+    gpuConfig.contactCapacity = contactCapacity;
+    ASSERT_TRUE(gpuWorld.initialize(
+        context.getDevice(), context.getQueue(), gpuConfig));
+    ASSERT_TRUE(gpuWorld.uploadBodies(initial));
+
+    LockstepTelemetry cpuTelemetry;
+    WGPUSubmissionIndex finalSubmissionIndex = 0;
+    for (uint32_t tick = 1; tick <= ticks; ++tick) {
+        cpuTelemetry = cpu.step(tick);
+        WGPUCommandEncoderDescriptor encoderDesc{};
+        WGPUCommandEncoder encoder = wgpuDeviceCreateCommandEncoder(
+            context.getDevice(), &encoderDesc);
+        ASSERT_TRUE(gpuWorld.encode(encoder, tick));
+        WGPUCommandBufferDescriptor commandDesc{};
+        WGPUCommandBuffer command = wgpuCommandEncoderFinish(
+            encoder, &commandDesc);
+        finalSubmissionIndex = wgpuQueueSubmitForIndex(
+            context.getQueue(), 1, &command);
+        wgpuCommandBufferRelease(command);
+        wgpuCommandEncoderRelease(encoder);
+    }
+
+    const size_t bodyBytes = bodyCapacity * sizeof(LockstepBody);
+    const size_t contactBytes = contactCapacity * sizeof(LockstepContact);
+    const size_t rootBytes = bodyCapacity * sizeof(uint32_t);
+    const size_t bodyHashBytes = bodyCapacity * sizeof(uint32_t);
+    const size_t contactHashBytes = contactCapacity * sizeof(uint32_t);
+    const size_t islandHashBytes = bodyCapacity * sizeof(uint32_t);
+    constexpr size_t telemetryBytes = 32u * sizeof(uint32_t);
+    const size_t totalBytes = bodyBytes + contactBytes + rootBytes
+        + bodyHashBytes + contactHashBytes + islandHashBytes + telemetryBytes;
+    WGPUBuffer readback = gpu::createBuffer(
+        context.getDevice(), gpu::BufferDesc{
+            .label = "lockstep_test_readback",
+            .size = totalBytes,
+            .usage = WGPUBufferUsage_CopyDst | WGPUBufferUsage_MapRead,
+        });
+    WGPUCommandEncoderDescriptor encoderDesc{};
+    WGPUCommandEncoder encoder = wgpuDeviceCreateCommandEncoder(
+        context.getDevice(), &encoderDesc);
+    size_t offset = 0;
+    auto copy = [&](WGPUBuffer source, size_t bytes) {
+        wgpuCommandEncoderCopyBufferToBuffer(
+            encoder, source, 0, readback, offset, bytes);
+        offset += bytes;
+    };
+    copy(gpuWorld.bodyBuffer(), bodyBytes);
+    copy(gpuWorld.contactBuffer(), contactBytes);
+    copy(gpuWorld.rootBuffer(), rootBytes);
+    copy(gpuWorld.bodyHashBuffer(), bodyHashBytes);
+    copy(gpuWorld.contactHashBuffer(), contactHashBytes);
+    copy(gpuWorld.islandHashBuffer(), islandHashBytes);
+    copy(gpuWorld.telemetryBuffer(), telemetryBytes);
+    WGPUCommandBufferDescriptor commandDesc{};
+    WGPUCommandBuffer command = wgpuCommandEncoderFinish(encoder, &commandDesc);
+    finalSubmissionIndex = wgpuQueueSubmitForIndex(
+        context.getQueue(), 1, &command);
+    const WGPUWrappedSubmissionIndex submission{
+        context.getQueue(), finalSubmissionIndex};
+    struct MapState { bool done = false; bool success = false; } state;
+    const auto callback = [](WGPUBufferMapAsyncStatus status, void* userdata) {
+        auto& map = *static_cast<MapState*>(userdata);
+        map.success = status == WGPUBufferMapAsyncStatus_Success;
+        map.done = true;
+    };
+    wgpuBufferMapAsync(
+        readback, WGPUMapMode_Read, 0, totalBytes, callback, &state);
+    while (!state.done) {
+        static_cast<void>(wgpuDevicePoll(
+            context.getDevice(), true, &submission));
+    }
+    ASSERT_TRUE(state.success);
+    const auto* bytes = static_cast<const std::byte*>(
+        wgpuBufferGetConstMappedRange(readback, 0, totalBytes));
+    offset = 0;
+    EXPECT_EQ(std::memcmp(bytes + offset, cpu.bodies().data(), bodyBytes), 0);
+    offset += bodyBytes;
+    ASSERT_EQ(cpuTelemetry.contacts, cpu.contacts().size());
+    EXPECT_EQ(std::memcmp(bytes + offset, cpu.contacts().data(),
+                          cpu.contacts().size_bytes()), 0);
+    offset += contactBytes;
+    EXPECT_EQ(std::memcmp(bytes + offset, cpu.islandRoots().data(), rootBytes), 0);
+    offset += rootBytes;
+    EXPECT_EQ(std::memcmp(bytes + offset, cpuTelemetry.hashes.bodies.data(),
+                          bodyHashBytes), 0);
+    offset += bodyHashBytes;
+    EXPECT_EQ(std::memcmp(bytes + offset, cpuTelemetry.hashes.contacts.data(),
+                          contactHashBytes), 0);
+    offset += contactHashBytes;
+    EXPECT_EQ(std::memcmp(bytes + offset, cpuTelemetry.hashes.islands.data(),
+                          islandHashBytes), 0);
+    offset += islandHashBytes;
+    std::array<uint32_t, 32> telemetryWords{};
+    std::memcpy(telemetryWords.data(), bytes + offset, telemetryBytes);
+    const LockstepTelemetry gpuTelemetry =
+        GpuLockstepWorld::decodeTelemetry(telemetryWords);
+    EXPECT_EQ(gpuTelemetry.liveBodies, cpuTelemetry.liveBodies);
+    EXPECT_EQ(gpuTelemetry.contacts, cpuTelemetry.contacts);
+    EXPECT_EQ(gpuTelemetry.contactOverflow, cpuTelemetry.contactOverflow);
+    EXPECT_EQ(gpuTelemetry.tick, cpuTelemetry.tick);
+    EXPECT_EQ(gpuTelemetry.hashes.world, cpuTelemetry.hashes.world);
+    EXPECT_EQ(gpuTelemetry.hashes.bodyAggregate,
+              cpuTelemetry.hashes.bodyAggregate);
+    EXPECT_EQ(gpuTelemetry.hashes.contactAggregate,
+              cpuTelemetry.hashes.contactAggregate);
+    EXPECT_EQ(gpuTelemetry.hashes.islandAggregate,
+              cpuTelemetry.hashes.islandAggregate);
+    EXPECT_GT(gpuWorld.allocatedBytes(), 0u);
+
+    wgpuBufferUnmap(readback);
+    releaseBuffer(readback);
+    wgpuCommandBufferRelease(command);
+    wgpuCommandEncoderRelease(encoder);
+    gpuWorld.shutdown();
+}
+
+} // namespace
+} // namespace voxy::physics::deterministic

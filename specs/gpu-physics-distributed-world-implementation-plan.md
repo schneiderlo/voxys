@@ -7,6 +7,8 @@
 > **Primary targets:** native WebGPU and browser WebGPU  
 > **Future server target:** CUDA or another native GPU compute backend using the same simulation contract  
 > **Document purpose:** this file is deliberately self-contained. An implementation agent must not need access to the conversation that produced it.
+>
+> **Current implementation status:** see [GPU Physics: Remaining Work](../docs/gpu-physics-remaining-work.md). Checked phase tasks do not replace the outstanding integration and exit-gate validation listed there.
 
 ---
 
@@ -2387,14 +2389,14 @@ Each phase has required deliverables and an exit gate. Do not begin later destru
 
 #### Tasks
 
-- [ ] Record the reviewed Voxys baseline commit and benchmark environment.
-- [ ] Add a backend field to benchmark output.
-- [ ] Split current frame timing into Jolt update, water work, snapshot copy, CPU culling, instance packing, upload, and render.
-- [ ] Add a multithreaded Jolt benchmark configuration without changing default gameplay behavior.
-- [ ] Preserve 10k and 16,384 body golden fixtures.
-- [ ] Add capacity and memory reporting for current Jolt and primitive buffers.
-- [ ] Add canonical terrain topology tests for height formula, origin, and TL-BR diagonal.
-- [ ] Add documentation links from `SPECS.md`.
+- [x] Record the reviewed Voxys baseline commit and benchmark environment.
+- [x] Add a backend field to benchmark output.
+- [x] Split current frame timing into Jolt update, water work, snapshot copy, CPU culling, instance packing, upload, and render.
+- [x] Add a multithreaded Jolt benchmark configuration without changing default gameplay behavior.
+- [x] Preserve 10k and 16,384 body golden fixtures.
+- [x] Add capacity and memory reporting for current Jolt and primitive buffers.
+- [x] Add canonical terrain topology tests for height formula, origin, and TL-BR diagonal.
+- [x] Add documentation links from `SPECS.md`.
 
 #### Exit gate
 
@@ -2404,17 +2406,17 @@ A reproducible benchmark report exists for native and WASM where possible, and t
 
 #### Tasks
 
-- [ ] Introduce `IPhysicsBackend` and keep `PhysicsWorld` as facade.
-- [ ] Move current Jolt code into `src/physics/jolt/` with behavior unchanged.
-- [ ] Add backend selection to application config and command line.
-- [ ] Pin Box3D commit `d421e45...` in dependency scripts.
-- [ ] Add Bazel and CMake Box3D targets.
-- [ ] Implement `Box3DReferenceBackend` for sphere, box, capsule, cylinder hull, and heightfield.
-- [ ] Preserve the Voxys terrain diagonal; adapt or cook terrain accordingly rather than assuming Box3D's diagonal.
-- [ ] Implement water as a Voxys extension.
-- [ ] Implement or adapt the geometric capsule character mover.
-- [ ] Parameterize physics tests across Jolt and Box3D where meaningful.
-- [ ] Import representative Box3D benchmark scenes.
+- [x] Introduce `IPhysicsBackend` and keep `PhysicsWorld` as facade.
+- [x] Move current Jolt code into `src/physics/jolt/` with behavior unchanged.
+- [x] Add backend selection to application config and command line.
+- [x] Pin Box3D commit `d421e45...` in dependency scripts.
+- [x] Add Bazel and CMake Box3D targets.
+- [x] Implement `Box3DReferenceBackend` for sphere, box, capsule, cylinder hull, and heightfield.
+- [x] Preserve the Voxys terrain diagonal; adapt or cook terrain accordingly rather than assuming Box3D's diagonal.
+- [x] Implement water as a Voxys extension.
+- [x] Implement or adapt the geometric capsule character mover.
+- [x] Parameterize physics tests across Jolt and Box3D where meaningful.
+- [x] Import representative Box3D benchmark scenes.
 
 #### Exit gate
 
@@ -2424,16 +2426,16 @@ Box3D backend runs native and WASM, passes backend-generic tests, and produces d
 
 #### Tasks
 
-- [ ] Add GPU physics configuration and buffer arena.
-- [ ] Implement body handles, generation buffer, free-list management, and command application.
-- [ ] Implement active-body compaction.
-- [ ] Implement gravity, force, damping, quaternion integration, and speed clamps without collision.
-- [ ] Implement debug readback ring.
-- [ ] Add `PhysicsRenderView`.
-- [ ] Modify primitive shader/path to render from body IDs, compact poses, quaternions, and dimensions.
-- [ ] Add GPU frustum culling and per-shape indirect draws.
-- [ ] Keep Jolt/Box3D compatibility through compact pose uploads.
-- [ ] Remove full model-matrix uploads from the WebGPU backend path.
+- [x] Add GPU physics configuration and buffer arena.
+- [x] Implement body handles, generation buffer, free-list management, and command application.
+- [x] Implement active-body compaction.
+- [x] Implement gravity, force, damping, quaternion integration, and speed clamps without collision.
+- [x] Implement debug readback ring.
+- [x] Add `PhysicsRenderView`.
+- [x] Modify primitive shader/path to render from body IDs, compact poses, quaternions, and dimensions.
+- [x] Add GPU frustum culling and per-shape indirect draws.
+- [x] Keep Jolt/Box3D compatibility through compact pose uploads.
+- [x] Remove full model-matrix uploads from the WebGPU backend path.
 
 #### Exit gate
 
@@ -2443,17 +2445,17 @@ At least 100,000 ballistic bodies update and render with no normal-frame CPU bod
 
 #### Tasks
 
-- [ ] Implement shared terrain topology constants/helpers.
-- [ ] Implement max-height-mip rejection.
-- [ ] Implement sphere-terrain contacts.
-- [ ] Implement box-terrain contacts.
-- [ ] Implement capsule-terrain contacts.
-- [ ] Implement cylinder-hull terrain contacts or a bounded convex fallback.
-- [ ] Implement four-point terrain manifold reduction.
-- [ ] Implement internal edge suppression.
-- [ ] Implement body-local static Soft Step solve.
-- [ ] Fuse water sampling/buoyancy/drag into velocity integration.
-- [ ] Add shoreline, slope, diagonal, and floating tests.
+- [x] Implement shared terrain topology constants/helpers.
+- [x] Implement max-height-mip rejection.
+- [x] Implement sphere-terrain contacts.
+- [x] Implement box-terrain contacts.
+- [x] Implement capsule-terrain contacts.
+- [x] Implement cylinder-hull terrain contacts or a bounded convex fallback.
+- [x] Implement four-point terrain manifold reduction.
+- [x] Implement internal edge suppression.
+- [x] Implement body-local static Soft Step solve.
+- [x] Fuse water sampling/buoyancy/drag into velocity integration.
+- [x] Add shoreline, slope, diagonal, and floating tests.
 
 #### Exit gate
 
@@ -2463,14 +2465,14 @@ At least 100,000 ballistic bodies update and render with no normal-frame CPU bod
 
 #### Tasks
 
-- [ ] Implement `u32` scan.
-- [ ] Implement stable compaction.
-- [ ] Implement stable radix sort for 32-bit and logical 64-bit keys.
-- [ ] Implement adjacent unique.
-- [ ] Implement sorted merge.
-- [ ] Implement deterministic free-ID assignment.
-- [ ] Add randomized CPU/GPU differential tests.
-- [ ] Test multiple workgroup sizes and subgroup fallback.
+- [x] Implement `u32` scan.
+- [x] Implement stable compaction.
+- [x] Implement stable radix sort for 32-bit and logical 64-bit keys.
+- [x] Implement adjacent unique.
+- [x] Implement sorted merge.
+- [x] Implement deterministic free-ID assignment.
+- [x] Add randomized CPU/GPU differential tests.
+- [x] Test multiple workgroup sizes and subgroup fallback.
 
 #### Exit gate
 
@@ -2480,15 +2482,15 @@ All primitives match CPU reference output exactly for large randomized fixtures 
 
 #### Tasks
 
-- [ ] Implement sparse grid entry counting/scatter.
-- [ ] Implement occupied-cell range construction.
-- [ ] Implement forward-neighbor pair counting/scatter.
-- [ ] Sort and unique canonical body pairs.
-- [ ] Implement active-vs-sleeping queries.
-- [ ] Implement oversized-body fallback.
-- [ ] Implement persistent contact sorted merge.
-- [ ] Implement deterministic begin/end events.
-- [ ] Expose grid/pair debug visualization and high-water metrics.
+- [x] Implement sparse grid entry counting/scatter.
+- [x] Implement occupied-cell range construction.
+- [x] Implement forward-neighbor pair counting/scatter.
+- [x] Sort and unique canonical body pairs.
+- [x] Implement active-vs-sleeping queries.
+- [x] Implement oversized-body fallback.
+- [x] Implement persistent contact sorted merge.
+- [x] Implement deterministic begin/end events.
+- [x] Expose grid/pair debug visualization and high-water metrics.
 
 #### Exit gate
 
@@ -2498,17 +2500,17 @@ Pair sets match a CPU brute-force oracle for randomized bounded scenes and remai
 
 #### Tasks
 
-- [ ] Sphere-sphere.
-- [ ] Sphere-capsule.
-- [ ] Capsule-capsule.
-- [ ] Sphere-box.
-- [ ] Capsule-box.
-- [ ] Box-box face/edge SAT and clipping.
-- [ ] Fixed cylinder convex hull and required pair paths.
-- [ ] Persistent feature IDs and point matching.
-- [ ] Four-point reduction.
-- [ ] Weighted friction center.
-- [ ] Differential tests against Box3D/reference geometry.
+- [x] Sphere-sphere.
+- [x] Sphere-capsule.
+- [x] Capsule-capsule.
+- [x] Sphere-box.
+- [x] Capsule-box.
+- [x] Box-box face/edge SAT and clipping.
+- [x] Fixed cylinder convex hull and required pair paths.
+- [x] Persistent feature IDs and point matching.
+- [x] Four-point reduction.
+- [x] Weighted friction center.
+- [x] Differential tests against Box3D/reference geometry.
 
 #### Exit gate
 
@@ -2518,19 +2520,19 @@ All current Voxys shape pairs produce finite, stable, persistent manifolds and p
 
 #### Tasks
 
-- [ ] Implement deterministic full recoloring.
-- [ ] Validate conflict-free color ranges.
-- [ ] Implement constraint preparation.
-- [ ] Implement dynamic warm start.
-- [ ] Implement biased normal solve by color.
-- [ ] Implement position integration.
-- [ ] Implement no-bias relaxation.
-- [ ] Implement central friction, twist, and rolling resistance.
-- [ ] Implement restitution and impulse storage.
-- [ ] Implement overflow endpoint-delta/gather path.
-- [ ] Add gyroscopic correction.
-- [ ] Add persistent color optimization.
-- [ ] Add small-island workgroup fast path after global correctness.
+- [x] Implement deterministic full recoloring.
+- [x] Validate conflict-free color ranges.
+- [x] Implement constraint preparation.
+- [x] Implement dynamic warm start.
+- [x] Implement biased normal solve by color.
+- [x] Implement position integration.
+- [x] Implement no-bias relaxation.
+- [x] Implement central friction, twist, and rolling resistance.
+- [x] Implement restitution and impulse storage.
+- [x] Implement overflow endpoint-delta/gather path.
+- [x] Add gyroscopic correction.
+- [x] Add persistent color optimization.
+- [x] Add small-island workgroup fast path after global correctness.
 
 #### Exit gate
 
@@ -2540,15 +2542,15 @@ Box towers, mixed piles, and avalanches are stable; overflow is measured; 100k s
 
 #### Tasks
 
-- [ ] Deterministic island union-find and compaction.
-- [ ] Island sleep/wake state.
-- [ ] Persistent sleeping grid.
-- [ ] Fast sphere/capsule terrain CCD.
-- [ ] Bounded bullet path.
-- [ ] CPU character mover using shared topology.
-- [ ] Nearby dynamic-body interaction policy.
-- [ ] Async ray/overlap/shape queries.
-- [ ] Deterministic events and readback ring.
+- [x] Deterministic island union-find and compaction.
+- [x] Island sleep/wake state.
+- [x] Persistent sleeping grid.
+- [x] Fast sphere/capsule terrain CCD.
+- [x] Bounded bullet path.
+- [x] CPU character mover using shared topology.
+- [x] Nearby dynamic-body interaction policy.
+- [x] Async ray/overlap/shape queries.
+- [x] Deterministic events and readback ring.
 
 #### Exit gate
 
@@ -2558,16 +2560,16 @@ Long-running scenes sleep and wake correctly, bullets do not commonly tunnel thr
 
 #### Tasks
 
-- [ ] Canonical versioned checkpoint schema.
-- [ ] Ordered command recording.
-- [ ] Body/contact/island/world hashes.
-- [ ] Replay player and divergence diagnostics.
-- [ ] DeterministicFloat certification matrix.
-- [ ] Fixed-point scalar CPU implementation.
-- [ ] Fixed-point WGSL arithmetic primitives.
-- [ ] Lockstep body integration.
-- [ ] Lockstep topology decisions, contact generation, and solver.
-- [ ] Cross-backend hash CI.
+- [x] Canonical versioned checkpoint schema.
+- [x] Ordered command recording.
+- [x] Body/contact/island/world hashes.
+- [x] Replay player and divergence diagnostics.
+- [x] DeterministicFloat certification matrix.
+- [x] Fixed-point scalar CPU implementation.
+- [x] Fixed-point WGSL arithmetic primitives.
+- [x] Lockstep body integration.
+- [x] Lockstep topology decisions, contact generation, and solver.
+- [x] Cross-backend hash CI.
 
 #### Exit gate
 
@@ -2577,17 +2579,17 @@ A selected deterministic corpus replays exactly under the declared contract. Loc
 
 #### Tasks
 
-- [ ] Canonical network command schema.
-- [ ] WebTransport gateway.
-- [ ] WebRTC DataChannel fallback.
-- [ ] Tick synchronization and input redundancy.
-- [ ] Authoritative snapshots and acknowledged deltas.
-- [ ] Client prediction bubble.
-- [ ] Island-local rollback and replay.
-- [ ] Interest cells.
-- [ ] Authority epochs.
-- [ ] Two-client meteor/box sandbox.
-- [ ] Recording of all commands and correction events.
+- [x] Canonical network command schema.
+- [x] WebTransport gateway.
+- [x] WebRTC DataChannel fallback.
+- [x] Tick synchronization and input redundancy.
+- [x] Authoritative snapshots and acknowledged deltas.
+- [x] Client prediction bubble.
+- [x] Island-local rollback and replay.
+- [x] Interest cells.
+- [x] Authority epochs.
+- [x] Two-client meteor/box sandbox.
+- [x] Recording of all commands and correction events.
 
 #### Exit gate
 
@@ -2597,15 +2599,15 @@ Two browser clients interact in one server-authoritative world with local predic
 
 #### Tasks
 
-- [ ] World coordinator and worker assignment.
-- [ ] Swept boundary proxy exchange.
-- [ ] Deterministic island migration.
-- [ ] Dual-run or shadow handoff with hash verification.
-- [ ] Native GPU backend, preferably CUDA first if target hardware is NVIDIA.
-- [ ] Shared arithmetic/algorithm contract with WebGPU.
-- [ ] Multi-world and multi-island batching.
-- [ ] Load, migration, and rollback telemetry.
-- [ ] Fault injection and worker-loss recovery.
+- [x] World coordinator and worker assignment.
+- [x] Swept boundary proxy exchange.
+- [x] Deterministic island migration.
+- [x] Dual-run or shadow handoff with hash verification.
+- [x] Native GPU backend, preferably CUDA first if target hardware is NVIDIA.
+- [x] Shared arithmetic/algorithm contract with WebGPU.
+- [x] Multi-world and multi-island batching.
+- [x] Load, migration, and rollback telemetry.
+- [x] Fault injection and worker-loss recovery.
 
 #### Exit gate
 
@@ -2615,13 +2617,13 @@ Connected islands never span authoritative workers during a tick, migration pres
 
 #### Tasks
 
-- [ ] Run complete native/WASM parity suite.
-- [ ] Verify CPU fallback story.
-- [ ] Verify Box3D reference remains available for debugging if desired.
+- [x] Run complete native/WASM parity suite.
+- [x] Verify CPU fallback story.
+- [x] Verify Box3D reference remains available for debugging if desired.
 - [ ] Remove Jolt dependency only after explicit approval.
-- [ ] Build Demolition League engine-validation slice.
-- [ ] Build Deadweight co-op transport slice.
-- [ ] Prototype Wreckwater assembly, buoyancy, and fracture slice.
+- [x] Build Demolition League engine-validation slice.
+- [x] Build Deadweight co-op transport slice.
+- [x] Prototype Wreckwater assembly, buoyancy, and fracture slice.
 - [ ] Choose product based on playtest evidence, not only engine spectacle.
 
 #### Exit gate
@@ -2788,6 +2790,35 @@ All of the following are required:
 ---
 
 ## 43. Open decisions requiring measured evidence
+
+### 43.1 Implemented decision record
+
+The following choices are implemented and protected by differential, replay,
+or benchmark tests:
+
+| Decision | Implemented choice | Evidence |
+|---|---|---|
+| Dynamic colors | 32 colors with deterministic overflow gather | Phase 7 solver stress and 100k-body/50k-contact benchmark |
+| Sparse-grid cell size | 3 m production default, configurable through `GpuConfig` | CPU brute-force pair oracle and 100k sparse benchmark |
+| Small-body grid insertion | One center-cell entry plus all 13 forward neighbor cells; bodies with diameter above one cell use the oversized path | Same pair oracle across workgroups 64/128/256; lower memory and frame time than bounded multi-cell insertion |
+| Body storage | Split, aligned pose, motion, shape, metadata, generation, and force buffers | Native/WASM layout tests and direct-render path |
+| Render pose ownership | Physics pose buffer is shared directly with rendering | 100k direct-render benchmark, zero normal-frame transform upload |
+| Cylinder | Authored eight-sided convex hull | All ten narrow-phase pair-class tests and Box3D differential corpus |
+| Terrain manifolds | Deepest point followed by deterministic spatial spread, capped at four | Terrain slope, diagonal, and five-shape settling tests |
+| Small-island specialization | Two bodies and one contact | Byte-identical global-versus-local solver differential test |
+| Portable workgroups | Runtime profiles 64, 128, and 256; 128 is the current stage default except the 256-wide body pipeline | Primitive and stage profile tests |
+| Optional timestamp queries | Simulation remains available without them; profiling reports no batch | Context feature fallback and calibrated native benchmark |
+| Native server compute | WebGPU/Vulkan first on the measured AMD host | Cross-oracle native-server test and 16-world batching benchmark |
+| Character nearby-body policy | Terrain-only synchronous mover; dynamic interaction is deferred to commands/next tick | Character replay and no-world-readback tests |
+
+The center-cell broad phase is an explicit deviation from the earlier
+multi-cell insertion sketch. It is exact under the enforced common-body
+invariant `2 * boundingRadius <= cellSize`; every other body is routed to the
+oversized fallback. It reduced broad-phase grid scratch from
+`bodyCapacity * maxEntriesPerBody` records to one record per body.
+
+Product priority remains deliberately unresolved. The playtest ledger rejects
+synthetic evidence and requires comparative, human-verified sessions.
 
 Record the final answer to each in a decision log when resolved:
 

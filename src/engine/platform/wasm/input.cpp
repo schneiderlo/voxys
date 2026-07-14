@@ -55,17 +55,18 @@ void Input::processEvents() {
     // Process buffered key events
     for (const auto& event : keyQueue_) {
         if (isValidKey(event.key)) {
+            const size_t key = static_cast<size_t>(event.key);
             if (event.down) {
                 // Only flag a fresh press if the key was not already held. Browser
                 // key auto-repeat fires "keydown" every frame while held; if we set
                 // the accumulator each time, wasKeyPressed() stays true for the whole
                 // hold and toggles (F1/F3/...) flicker.
-                if (!currentKeys_[event.key]) {
-                    keysPressedThisFrame_[event.key] = true;
+                if (!currentKeys_[key]) {
+                    keysPressedThisFrame_[key] = true;
                 }
-                currentKeys_[event.key] = true;
+                currentKeys_[key] = true;
             } else {
-                currentKeys_[event.key] = false;
+                currentKeys_[key] = false;
             }
         }
     }
@@ -74,11 +75,12 @@ void Input::processEvents() {
     // Process buffered mouse button events
     for (const auto& event : mouseButtonQueue_) {
         if (isValidButton(event.button)) {
+            const size_t button = static_cast<size_t>(event.button);
             if (event.down) {
-                currentButtons_[event.button] = true;
-                buttonsPressedThisFrame_[event.button] = true;
+                currentButtons_[button] = true;
+                buttonsPressedThisFrame_[button] = true;
             } else {
-                currentButtons_[event.button] = false;
+                currentButtons_[button] = false;
             }
         }
     }
@@ -111,23 +113,26 @@ void Input::endFrame() {
 // ─────────────────────────────────────────────────────────────────────────────
 
 bool Input::isKeyDown(Key key) const {
-    int code = static_cast<int>(key);
+    const int code = static_cast<int>(key);
     if (!isValidKey(code)) return false;
-    return currentKeys_[code];
+    return currentKeys_[static_cast<size_t>(code)];
 }
 
 bool Input::wasKeyPressed(Key key) const {
-    int code = static_cast<int>(key);
+    const int code = static_cast<int>(key);
     if (!isValidKey(code)) return false;
     // Check both: standard press detection AND the per-frame accumulator
     // The accumulator catches quick press+release within a single frame
-    return (currentKeys_[code] && !previousKeys_[code]) || keysPressedThisFrame_[code];
+    const size_t index = static_cast<size_t>(code);
+    return (currentKeys_[index] && !previousKeys_[index])
+        || keysPressedThisFrame_[index];
 }
 
 bool Input::wasKeyReleased(Key key) const {
-    int code = static_cast<int>(key);
+    const int code = static_cast<int>(key);
     if (!isValidKey(code)) return false;
-    return !currentKeys_[code] && previousKeys_[code];
+    const size_t index = static_cast<size_t>(code);
+    return !currentKeys_[index] && previousKeys_[index];
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -135,24 +140,27 @@ bool Input::wasKeyReleased(Key key) const {
 // ─────────────────────────────────────────────────────────────────────────────
 
 bool Input::isMouseButtonDown(MouseButton button) const {
-    int idx = static_cast<int>(button);
+    const int idx = static_cast<int>(button);
     if (!isValidButton(idx)) return false;
-    return currentButtons_[idx];
+    return currentButtons_[static_cast<size_t>(idx)];
 }
 
 bool Input::wasMouseButtonPressed(MouseButton button) const {
-    int idx = static_cast<int>(button);
+    const int idx = static_cast<int>(button);
     if (!isValidButton(idx)) return false;
     // Check both: standard press detection AND the per-frame accumulator
     // The accumulator catches quick press+release within a single frame
-    bool standardResult = currentButtons_[idx] && !previousButtons_[idx];
-    return standardResult || buttonsPressedThisFrame_[idx];
+    const size_t index = static_cast<size_t>(idx);
+    const bool standardResult = currentButtons_[index]
+        && !previousButtons_[index];
+    return standardResult || buttonsPressedThisFrame_[index];
 }
 
 bool Input::wasMouseButtonReleased(MouseButton button) const {
-    int idx = static_cast<int>(button);
+    const int idx = static_cast<int>(button);
     if (!isValidButton(idx)) return false;
-    return !currentButtons_[idx] && previousButtons_[idx];
+    const size_t index = static_cast<size_t>(idx);
+    return !currentButtons_[index] && previousButtons_[index];
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

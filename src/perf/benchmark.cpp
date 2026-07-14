@@ -47,6 +47,10 @@ void BenchmarkRunner::setCameraCallback(CameraUpdateCallback callback) {
     cameraCallback_ = std::move(callback);
 }
 
+void BenchmarkRunner::setPhysicsBackend(std::string backend) {
+    physicsBackend_ = std::move(backend);
+}
+
 void BenchmarkRunner::start(const std::vector<BenchmarkScenario>& scenarios) {
     if (scenarios.empty()) {
         scenarios_ = BenchmarkScenario::getDefaultScenarios();
@@ -63,6 +67,7 @@ void BenchmarkRunner::start(const std::vector<BenchmarkScenario>& scenarios) {
     
     LOG_INFO("=== Starting Benchmark ===");
     LOG_INFO("Scenarios: {}", scenarios_.size());
+    LOG_INFO("Physics backend: {}", physicsBackend_);
     
     beginScenario();
 }
@@ -86,6 +91,13 @@ bool BenchmarkRunner::onFrame(const FrameStats& frameStats) {
     scenarioSumUpdate_ += frameStats.updateMs;
     scenarioSumRender_ += frameStats.renderMs;
     scenarioSumPresent_ += frameStats.presentMs;
+    scenarioSumPhysicsSimulation_ += frameStats.physicsSimulationMs;
+    scenarioSumPhysicsWater_ += frameStats.physicsWaterMs;
+    scenarioSumPhysicsSnapshot_ += frameStats.physicsSnapshotMs;
+    scenarioSumPrimitiveCull_ += frameStats.primitiveCullMs;
+    scenarioSumPrimitivePacking_ += frameStats.primitivePackingMs;
+    scenarioSumPrimitiveUpload_ += frameStats.primitiveUploadMs;
+    scenarioSumPrimitiveRender_ += frameStats.primitiveRenderMs;
     scenarioFrameTimes_.push_back(frameStats.totalMs);
     
     if (currentFrame_ > 0) {  // Skip first frame for min/max (warmup)
@@ -141,6 +153,13 @@ void BenchmarkRunner::beginScenario() {
     scenarioSumUpdate_ = 0.0;
     scenarioSumRender_ = 0.0;
     scenarioSumPresent_ = 0.0;
+    scenarioSumPhysicsSimulation_ = 0.0;
+    scenarioSumPhysicsWater_ = 0.0;
+    scenarioSumPhysicsSnapshot_ = 0.0;
+    scenarioSumPrimitiveCull_ = 0.0;
+    scenarioSumPrimitivePacking_ = 0.0;
+    scenarioSumPrimitiveUpload_ = 0.0;
+    scenarioSumPrimitiveRender_ = 0.0;
     scenarioFrameTimes_.clear();
     scenarioFrameTimes_.reserve(scenario.frameCount);
 }
@@ -154,6 +173,7 @@ void BenchmarkRunner::endScenario() {
     
     BenchmarkResult result;
     result.scenarioName = scenario.name;
+    result.physicsBackend = physicsBackend_;
     result.frameCount = scenario.frameCount;
     result.totalTimeMs = totalTime;
     result.avgFrameMs = scenarioSumFrame_ / static_cast<double>(scenario.frameCount);
@@ -172,6 +192,20 @@ void BenchmarkRunner::endScenario() {
     result.avgUpdateMs = scenarioSumUpdate_ / static_cast<double>(scenario.frameCount);
     result.avgRenderMs = scenarioSumRender_ / static_cast<double>(scenario.frameCount);
     result.avgPresentMs = scenarioSumPresent_ / static_cast<double>(scenario.frameCount);
+    result.avgPhysicsSimulationMs = scenarioSumPhysicsSimulation_ /
+        static_cast<double>(scenario.frameCount);
+    result.avgPhysicsWaterMs = scenarioSumPhysicsWater_ /
+        static_cast<double>(scenario.frameCount);
+    result.avgPhysicsSnapshotMs = scenarioSumPhysicsSnapshot_ /
+        static_cast<double>(scenario.frameCount);
+    result.avgPrimitiveCullMs = scenarioSumPrimitiveCull_ /
+        static_cast<double>(scenario.frameCount);
+    result.avgPrimitivePackingMs = scenarioSumPrimitivePacking_ /
+        static_cast<double>(scenario.frameCount);
+    result.avgPrimitiveUploadMs = scenarioSumPrimitiveUpload_ /
+        static_cast<double>(scenario.frameCount);
+    result.avgPrimitiveRenderMs = scenarioSumPrimitiveRender_ /
+        static_cast<double>(scenario.frameCount);
     
     results_.push_back(result);
     
@@ -197,6 +231,7 @@ void BenchmarkRunner::printResults() const {
     
     for (const auto& result : results_) {
         LOG_INFO("Scenario: {}", result.scenarioName);
+        LOG_INFO("  Physics backend: {}", result.physicsBackend);
         LOG_INFO("  Frames: {}", result.frameCount);
         LOG_INFO("  Total Time: {:.0f} ms", result.totalTimeMs);
         LOG_INFO("  Avg Frame: {:.2f} ms ({:.1f} FPS)", result.avgFrameMs, result.fps);
@@ -206,6 +241,12 @@ void BenchmarkRunner::printResults() const {
         LOG_INFO("  Max Frame: {:.2f} ms", result.maxFrameMs);
         LOG_INFO("  Breakdown: Update {:.2f} ms, Render {:.2f} ms, Present {:.2f} ms",
                  result.avgUpdateMs, result.avgRenderMs, result.avgPresentMs);
+        LOG_INFO("  Physics: simulation {:.2f} ms, water {:.2f} ms, snapshot {:.2f} ms",
+                 result.avgPhysicsSimulationMs, result.avgPhysicsWaterMs,
+                 result.avgPhysicsSnapshotMs);
+        LOG_INFO("  Primitives: cull {:.2f} ms, pack {:.2f} ms, upload {:.2f} ms, render {:.2f} ms",
+                 result.avgPrimitiveCullMs, result.avgPrimitivePackingMs,
+                 result.avgPrimitiveUploadMs, result.avgPrimitiveRenderMs);
         LOG_INFO("");
         
         totalFps += result.fps;
@@ -219,4 +260,3 @@ void BenchmarkRunner::printResults() const {
 }
 
 } // namespace voxy::perf
-

@@ -188,6 +188,20 @@ CommandLineArgs parseArgs(std::span<char*> args) {
             result.renderPath = args[++i];
         } else if (arg == "--heightmap" && i + 1 < args.size()) {
             result.heightmap = args[++i];
+        } else if (arg == "--physics-backend" && i + 1 < args.size()) {
+            result.physicsBackend = args[++i];
+        } else if (arg == "--physics-max-bodies" && i + 1 < args.size()) {
+            result.gpuMaxBodies = std::max(parseInt(args[++i], 131072), 2);
+        } else if (arg == "--physics-cpu-fallback") {
+            result.physicsCpuFallback = true;
+        } else if (arg == "--no-physics-cpu-fallback") {
+            result.physicsCpuFallback = false;
+        } else if (arg == "--jolt-job-system" && i + 1 < args.size()) {
+            result.joltJobSystem = args[++i];
+        } else if (arg == "--jolt-workers" && i + 1 < args.size()) {
+            result.joltWorkerThreads = std::max(parseInt(args[++i], 0), 0);
+        } else if (arg == "--box3d-workers" && i + 1 < args.size()) {
+            result.box3dWorkerThreads = std::max(parseInt(args[++i], 1), 1);
         } else if (arg == "--width" && i + 1 < args.size()) {
             result.width = parseInt(args[++i], 1280);
         } else if (arg == "--height" && i + 1 < args.size()) {
@@ -230,6 +244,13 @@ void printHelp(std::string_view programName) {
         "  --config <path>         Config file path (default: voxy.cfg)\n"
         "  --render-path <path>    Override render path (raycast|triangle)\n"
         "  --heightmap <path>      Override heightmap file\n"
+        "  --physics-backend <b>   Physics backend (jolt|box3d|webgpu)\n"
+        "  --physics-max-bodies <n> WebGPU resident slots (default: 131072)\n"
+        "  --physics-cpu-fallback  Fall back from WebGPU to Box3D (default)\n"
+        "  --no-physics-cpu-fallback Fail if WebGPU physics cannot initialize\n"
+        "  --jolt-job-system <m>   Jolt scheduler (single_threaded|thread_pool)\n"
+        "  --jolt-workers <n>      Jolt worker threads (0 = automatic)\n"
+        "  --box3d-workers <n>     Box3D worker threads (default: 1)\n"
         "  --width <n>             Window width\n"
         "  --height <n>            Window height\n"
         "  --fullscreen            Start in fullscreen mode\n"
@@ -345,6 +366,28 @@ Config load(std::string_view path) {
             }
             else if (key == "shore_fade") config.water.shoreFade = parseFloat(value, config.water.shoreFade);
         }
+        else if (currentSection == "physics") {
+            if (key == "backend") config.physics.backend = value;
+            else if (key == "gpu_max_bodies") {
+                config.physics.gpuMaxBodies = std::max(
+                    parseInt(value, config.physics.gpuMaxBodies), 2);
+            }
+            else if (key == "allow_cpu_fallback") {
+                config.physics.allowCpuFallback = parseBool(
+                    value, config.physics.allowCpuFallback);
+            }
+            else if (key == "jolt_job_system") {
+                config.physics.joltJobSystem = value;
+            }
+            else if (key == "jolt_worker_threads") {
+                config.physics.joltWorkerThreads = std::max(
+                    parseInt(value, config.physics.joltWorkerThreads), 0);
+            }
+            else if (key == "box3d_worker_threads") {
+                config.physics.box3dWorkerThreads = std::max(
+                    parseInt(value, config.physics.box3dWorkerThreads), 1);
+            }
+        }
         else if (currentSection == "camera") {
             if (key == "fov") config.camera.fov = parseFloat(value, config.camera.fov);
             else if (key == "near_plane") config.camera.nearPlane = parseFloat(value, config.camera.nearPlane);
@@ -383,6 +426,18 @@ Config load(std::string_view path, const CommandLineArgs& args) {
     // Apply command-line overrides
     if (args.renderPath) config.render.path = *args.renderPath;
     if (args.heightmap) config.terrain.heightmap = *args.heightmap;
+    if (args.physicsBackend) config.physics.backend = *args.physicsBackend;
+    if (args.gpuMaxBodies) config.physics.gpuMaxBodies = *args.gpuMaxBodies;
+    if (args.physicsCpuFallback) {
+        config.physics.allowCpuFallback = *args.physicsCpuFallback;
+    }
+    if (args.joltJobSystem) config.physics.joltJobSystem = *args.joltJobSystem;
+    if (args.joltWorkerThreads) {
+        config.physics.joltWorkerThreads = *args.joltWorkerThreads;
+    }
+    if (args.box3dWorkerThreads) {
+        config.physics.box3dWorkerThreads = *args.box3dWorkerThreads;
+    }
     if (args.width) config.window.width = *args.width;
     if (args.height) config.window.height = *args.height;
     if (args.fullscreen) config.window.fullscreen = true;
@@ -426,6 +481,19 @@ bool save(const Config& config, std::string_view path) {
     file << std::format("height_scale = {}\n", config.terrain.heightScale);
     file << std::format("cell_scale = {}\n", config.terrain.cellScale);
     file << std::format("ambient_light = {}\n\n", config.lighting.ambientIntensity);
+
+    file << "[physics]\n";
+    file << std::format("backend = {}\n", quote(config.physics.backend));
+    file << std::format("gpu_max_bodies = {}\n",
+                        config.physics.gpuMaxBodies);
+    file << std::format("allow_cpu_fallback = {}\n",
+                        config.physics.allowCpuFallback ? "true" : "false");
+    file << std::format("jolt_job_system = {}\n",
+                        quote(config.physics.joltJobSystem));
+    file << std::format("jolt_worker_threads = {}\n",
+                        config.physics.joltWorkerThreads);
+    file << std::format("box3d_worker_threads = {}\n\n",
+                        config.physics.box3dWorkerThreads);
 
     file << "[water]\n";
     file << std::format("enabled = {}\n", config.water.enabled ? "true" : "false");

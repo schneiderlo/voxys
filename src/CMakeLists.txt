@@ -11,16 +11,45 @@
 
 set(CORE_SOURCES "")
 set(GPU_SOURCES "")
+set(GAMEPLAY_SOURCES "")
 set(TERRAIN_SOURCES "")
 set(RENDER_SOURCES "")
 set(CAMERA_SOURCES "")
 set(PHYSICS_SOURCES "")
+set(NETWORK_SOURCES "")
+set(SERVER_SOURCES "")
 set(APP_SOURCES "")
+
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/gameplay/vertical_slices.cpp")
+    list(APPEND GAMEPLAY_SOURCES
+        gameplay/structural_assembly.cpp
+        gameplay/platform_parity.cpp
+        gameplay/vertical_slices.cpp
+        gameplay/water_dynamics.cpp
+    )
+endif()
 
 # Core utilities (Phase 1.4)
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/core/log.cpp")
     list(APPEND CORE_SOURCES
         core/log.cpp
+    )
+endif()
+
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/server/world_coordinator.cpp")
+    list(APPEND SERVER_SOURCES
+        server/native_gpu_backend.cpp
+        server/world_coordinator.cpp
+    )
+endif()
+
+# Deterministic realtime protocol and prediction core.
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/network/protocol.cpp")
+    list(APPEND NETWORK_SOURCES
+        network/authoritative_sandbox.cpp
+        network/protocol.cpp
+        network/replication.cpp
+        network/transport.cpp
     )
 endif()
 
@@ -148,6 +177,7 @@ endif()
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/render/primitive_path.cpp")
     list(APPEND RENDER_SOURCES
         render/primitive_culling.cpp
+        render/primitive_gpu_culling.cpp
         render/primitive_instance_packing.cpp
         render/primitive_path.cpp
     )
@@ -173,6 +203,24 @@ endif()
 # Physics (Jolt on both native and WebAssembly)
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/physics/physics_world.cpp")
     list(APPEND PHYSICS_SOURCES
+        physics/box3d/box3d_backend.cpp
+        physics/character/cpu_capsule_mover.cpp
+        physics/deterministic/lockstep_world.cpp
+        physics/deterministic/replay.cpp
+        physics/gpu/debug_readback_ring.cpp
+        physics/gpu/deterministic_primitives.cpp
+        physics/gpu/gpu_buffer_arena.cpp
+    physics/gpu/gpu_broad_phase.cpp
+    physics/gpu/gpu_ccd.cpp
+    physics/gpu/gpu_dynamic_solver.cpp
+    physics/gpu/gpu_event_readback.cpp
+    physics/gpu/gpu_islands.cpp
+    physics/gpu/gpu_lockstep.cpp
+    physics/gpu/gpu_narrow_phase.cpp
+    physics/gpu/gpu_queries.cpp
+        physics/gpu/gpu_physics_backend.cpp
+        physics/jolt/jolt_backend.cpp
+        physics/physics_types.cpp
         physics/physics_world.cpp
     )
 endif()
@@ -208,11 +256,14 @@ endif()
 set(ALL_SOURCES
     ${CORE_SOURCES}
     ${GPU_SOURCES}
+    ${GAMEPLAY_SOURCES}
     ${TERRAIN_SOURCES}
     ${VOXEL_SOURCES}
     ${RENDER_SOURCES}
     ${CAMERA_SOURCES}
     ${PHYSICS_SOURCES}
+    ${NETWORK_SOURCES}
+    ${SERVER_SOURCES}
     ${APP_SOURCES}
     ${PERF_SOURCES}
 )
@@ -278,6 +329,11 @@ if(ALL_SOURCES)
     if(TARGET Jolt)
         target_link_libraries(voxy_core PUBLIC Jolt)
         target_compile_definitions(voxy_core PUBLIC VOXY_HAS_JOLT=1)
+    endif()
+
+    if(TARGET box3d)
+        target_link_libraries(voxy_core PUBLIC box3d)
+        target_compile_definitions(voxy_core PUBLIC VOXY_HAS_BOX3D=1)
     endif()
     
     # GLFW for windowing (native only)

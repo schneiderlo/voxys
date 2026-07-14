@@ -295,6 +295,11 @@ TEST(PrimitivePathGPUTest, CompilesPrimitivePipeline) {
     EXPECT_EQ(path.lastUploadStats().bytesUploaded,
               sizeof(detail::GpuInstance));
 
+    path.setCompactPhysicsInstances(bodies);
+    EXPECT_EQ(path.lastCompactUploadStats().writeCalls, 2u);
+    EXPECT_EQ(path.lastCompactUploadStats().bytesUploaded,
+              bodies.size() * 64u);
+
     WGPUCommandEncoderDescriptor encoderDesc{};
     auto encoder = wgpuDeviceCreateCommandEncoder(context.getDevice(), &encoderDesc);
     const glm::vec3 cameraPosition(0.0f, 0.0f, -5.0f);

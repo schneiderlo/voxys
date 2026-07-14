@@ -1,0 +1,755 @@
+const BODY_ALIVE : u32 = 1u << 20u;
+const BODY_AWAKE : u32 = 1u << 21u;
+const SENTINEL : u32 = 0xffffffffu;
+const CELL_MASK : u32 = 0x1fffffu;
+const CELL_BIAS : i32 = 1048576;
+
+struct BodyPose {
+    position_invMass : vec4<f32>,
+    orientation : vec4<f32>,
+};
+
+struct BodyMotion {
+    linearVelocity_sleep : vec4<f32>,
+    angularVelocity_flags : vec4<f32>,
+};
+
+struct KeyValue {
+    keyLow : u32,
+    keyHigh : u32,
+    value : u32,
+    ordinal : u32,
+};
+
+struct ManifoldPoint {
+    localAnchorA_separation : vec4<f32>,
+    localAnchorB_normalImpulse : vec4<f32>,
+    features : vec4<u32>,
+    impulses : vec4<f32>,
+};
+
+struct ContactManifold {
+    pair : KeyValue,
+    state : vec4<u32>,
+    normal : vec4<f32>,
+    tangent1 : vec4<f32>,
+    tangent2 : vec4<f32>,
+    frictionAnchorA : vec4<f32>,
+    frictionAnchorB : vec4<f32>,
+    rollingImpulse : vec4<f32>,
+    points : array<ManifoldPoint, 4>,
+};
+
+struct IslandRecord {
+    rootBody : u32,
+    firstBodyRecord : u32,
+    bodyCount : u32,
+    state : u32,
+};
+
+struct IslandScratch {
+    bodyCount : atomic<u32>,
+    awakeCount : atomic<u32>,
+    qualifies : atomic<u32>,
+    disturbed : atomic<u32>,
+};
+
+struct IslandPersistent {
+    sleepTicks : u32,
+    state : u32,
+    previousBodyCount : u32,
+    reserved : u32,
+};
+
+struct BodyPersistent {
+    previousRoot : u32,
+    previousSleeping : u32,
+    reserved0 : u32,
+    reserved1 : u32,
+};
+
+struct SleepingCellRange {
+    keyLow : u32,
+    keyHigh : u32,
+    firstEntry : u32,
+    entryCount : u32,
+};
+
+struct IslandEvent {
+    rootBody : u32,
+    eventType : u32,
+    tick : u32,
+    bodyCount : u32,
+};
+
+struct IslandParams {
+    capacities : vec4<u32>,
+    control : vec4<u32>,
+    thresholds : vec4<f32>,
+};
+
+@group(0) @binding(0) var<storage, read> poses : array<BodyPose>;
+@group(0) @binding(1) var<storage, read_write> motions : array<BodyMotion>;
+@group(0) @binding(3) var<storage, read_write> metadata : array<vec4<i32>>;
+@group(0) @binding(4) var<storage, read> manifolds : array<ContactManifold>;
+@group(0) @binding(5) var<storage, read> narrowTelemetry : array<u32>;
+@group(0) @binding(6) var<storage, read_write> bodyRoots : array<atomic<u32>>;
+@group(0) @binding(7) var<storage, read_write> bodyRecords : array<KeyValue>;
+@group(0) @binding(8) var<storage, read_write> sortedBodyRecords : array<KeyValue>;
+@group(0) @binding(9) var<storage, read_write> telemetry : array<atomic<u32>>;
+@group(0) @binding(10) var<uniform> params : IslandParams;
+@group(0) @binding(11) var<storage, read_write> islandRecords : array<IslandRecord>;
+@group(0) @binding(12) var<storage, read_write> islandScratch : array<IslandScratch>;
+@group(0) @binding(13) var<storage, read_write> islandPersistent :
+    array<IslandPersistent>;
+@group(0) @binding(14) var<storage, read_write> bodyPersistent :
+    array<BodyPersistent>;
+@group(0) @binding(15) var<storage, read_write> sleepingGrid : array<KeyValue>;
+@group(0) @binding(16) var<storage, read> sortedSleepingGrid : array<KeyValue>;
+@group(0) @binding(17) var<storage, read_write> sleepingCellRanges :
+    array<SleepingCellRange>;
+@group(0) @binding(18) var<storage, read_write> islandEvents : array<IslandEvent>;
+@group(0) @binding(19) var<storage, read_write> rangePredicates : array<u32>;
+@group(0) @binding(20) var<storage, read> rangeIndices : array<u32>;
+@group(0) @binding(21) var<storage, read_write> pendingEvents : array<IslandEvent>;
+@group(0) @binding(22) var<storage, read_write> compactedSleepingGrid :
+    array<KeyValue>;
+
+fn sentinel_record() -> KeyValue {
+    return KeyValue(SENTINEL, SENTINEL, SENTINEL, SENTINEL);
+}
+
+fn store_sort_dispatch(base : u32, count : u32) {
+    atomicStore(&telemetry[base],
+        (count + params.capacities.w - 1u) / params.capacities.w);
+    atomicStore(&telemetry[base + 1u], 1u);
+    atomicStore(&telemetry[base + 2u], 1u);
+    atomicStore(&telemetry[base + 3u], select(0u, 1u, count != 0u));
+    atomicStore(&telemetry[base + 4u], 1u);
+    atomicStore(&telemetry[base + 5u], 1u);
+}
+
+fn body_is_alive(body : u32) -> bool {
+    return body < params.capacities.x
+        && (u32(metadata[body].w) & BODY_ALIVE) != 0u;
+}
+
+fn active_contact_count() -> u32 {
+    return min(narrowTelemetry[10], params.capacities.y);
+}
+
+@compute @workgroup_size(1)
+fn prepare_union_dispatch(@builtin(global_invocation_id) gid : vec3<u32>) {
+    if (gid.x != 0u) { return; }
+    let contactCount = active_contact_count();
+    let hasContacts = contactCount != 0u;
+    atomicStore(&telemetry[12], select(0u, params.control.x, hasContacts));
+    atomicStore(&telemetry[25],
+        (contactCount + params.capacities.w - 1u) / params.capacities.w);
+    atomicStore(&telemetry[26], 1u);
+    atomicStore(&telemetry[27], 1u);
+    atomicStore(&telemetry[28], select(0u,
+        (params.capacities.x + params.capacities.w - 1u)
+            / params.capacities.w,
+        hasContacts));
+    atomicStore(&telemetry[29], 1u);
+    atomicStore(&telemetry[30], 1u);
+    atomicStore(&telemetry[31], select(0u, 1u, hasContacts));
+    atomicStore(&telemetry[32], 1u);
+    atomicStore(&telemetry[33], 1u);
+    atomicStore(&telemetry[34], select(0u, params.capacities.x, hasContacts));
+}
+
+fn reset_impl(gid : vec3<u32>) {
+    let index = gid.x;
+    let firstTick = atomicLoad(&telemetry[13]) == 0u;
+    if (index < params.capacities.x) {
+        atomicStore(&bodyRoots[index], select(SENTINEL, index,
+            body_is_alive(index)));
+        bodyRecords[index] = sentinel_record();
+        atomicStore(&islandScratch[index].bodyCount, 0u);
+        atomicStore(&islandScratch[index].awakeCount, 0u);
+        atomicStore(&islandScratch[index].qualifies, 1u);
+        atomicStore(&islandScratch[index].disturbed, 0u);
+        if (firstTick) {
+            islandPersistent[index] = IslandPersistent(0u, 0u, 0u, 0u);
+            bodyPersistent[index] = BodyPersistent(SENTINEL, 0u, 0u, 0u);
+        }
+    }
+    if (index < params.capacities.z) {
+        islandEvents[index] = IslandEvent(SENTINEL, 0u, 0u, 0u);
+    }
+    if (index < 13u || index == 17u || index == 18u) {
+        atomicStore(&telemetry[index], 0u);
+    }
+}
+
+@compute @workgroup_size(64)
+fn reset_islands_64(@builtin(global_invocation_id) gid : vec3<u32>) {
+    reset_impl(gid);
+}
+@compute @workgroup_size(128)
+fn reset_islands_128(@builtin(global_invocation_id) gid : vec3<u32>) {
+    reset_impl(gid);
+}
+@compute @workgroup_size(256)
+fn reset_islands_256(@builtin(global_invocation_id) gid : vec3<u32>) {
+    reset_impl(gid);
+}
+
+fn union_contacts_impl(gid : vec3<u32>) {
+    let rank = gid.x;
+    if (rank >= active_contact_count() || manifolds[rank].state.x == 0u) {
+        return;
+    }
+    let pair = manifolds[rank].pair;
+    if (!body_is_alive(pair.keyHigh) || !body_is_alive(pair.keyLow)) { return; }
+    let rootA = atomicLoad(&bodyRoots[pair.keyHigh]);
+    let rootB = atomicLoad(&bodyRoots[pair.keyLow]);
+    if (rootA == SENTINEL || rootB == SENTINEL || rootA == rootB) { return; }
+    atomicMin(&bodyRoots[max(rootA, rootB)], min(rootA, rootB));
+}
+
+@compute @workgroup_size(64)
+fn union_contacts_64(@builtin(global_invocation_id) gid : vec3<u32>) {
+    union_contacts_impl(gid);
+}
+@compute @workgroup_size(128)
+fn union_contacts_128(@builtin(global_invocation_id) gid : vec3<u32>) {
+    union_contacts_impl(gid);
+}
+@compute @workgroup_size(256)
+fn union_contacts_256(@builtin(global_invocation_id) gid : vec3<u32>) {
+    union_contacts_impl(gid);
+}
+
+fn compress_roots_impl(gid : vec3<u32>) {
+    let body = gid.x;
+    if (!body_is_alive(body)) { return; }
+    let root = atomicLoad(&bodyRoots[body]);
+    if (root != SENTINEL) {
+        atomicStore(&bodyRoots[body], atomicLoad(&bodyRoots[root]));
+    }
+}
+
+@compute @workgroup_size(64)
+fn compress_roots_64(@builtin(global_invocation_id) gid : vec3<u32>) {
+    compress_roots_impl(gid);
+}
+@compute @workgroup_size(128)
+fn compress_roots_128(@builtin(global_invocation_id) gid : vec3<u32>) {
+    compress_roots_impl(gid);
+}
+@compute @workgroup_size(256)
+fn compress_roots_256(@builtin(global_invocation_id) gid : vec3<u32>) {
+    compress_roots_impl(gid);
+}
+
+fn canonical_root(body : u32) -> u32 {
+    var root = atomicLoad(&bodyRoots[body]);
+    for (var round = 0u; round < params.control.x; round += 1u) {
+        if (root == SENTINEL) { break; }
+        let parent = atomicLoad(&bodyRoots[root]);
+        if (parent == root) { break; }
+        root = parent;
+    }
+    return root;
+}
+
+fn build_body_records_impl(gid : vec3<u32>) {
+    let body = gid.x;
+    if (body >= params.capacities.x) { return; }
+    bodyRecords[body] = sentinel_record();
+    sortedBodyRecords[body] = sentinel_record();
+    if (!body_is_alive(body)) { return; }
+    let root = canonical_root(body);
+    atomicStore(&bodyRoots[body], root);
+    bodyRecords[body] = KeyValue(body, root, body, body);
+    sortedBodyRecords[body] = bodyRecords[body];
+    if (root == SENTINEL || atomicLoad(&bodyRoots[root]) != root) {
+        atomicAdd(&telemetry[11], 1u);
+    }
+}
+
+@compute @workgroup_size(64)
+fn build_body_records_64(@builtin(global_invocation_id) gid : vec3<u32>) {
+    build_body_records_impl(gid);
+}
+@compute @workgroup_size(128)
+fn build_body_records_128(@builtin(global_invocation_id) gid : vec3<u32>) {
+    build_body_records_impl(gid);
+}
+@compute @workgroup_size(256)
+fn build_body_records_256(@builtin(global_invocation_id) gid : vec3<u32>) {
+    build_body_records_impl(gid);
+}
+
+fn mark_island_range_starts_impl(gid : vec3<u32>) {
+    let index = gid.x;
+    if (index >= params.capacities.x) { return; }
+    var start = 0u;
+    let current = sortedBodyRecords[index];
+    if (current.keyHigh != SENTINEL) {
+        start = select(0u, 1u, index == 0u
+            || sortedBodyRecords[index - select(0u, 1u, index != 0u)].keyHigh
+                != current.keyHigh);
+    }
+    rangePredicates[index] = start;
+}
+
+@compute @workgroup_size(64)
+fn mark_island_range_starts_64(@builtin(global_invocation_id) gid : vec3<u32>) {
+    mark_island_range_starts_impl(gid);
+}
+@compute @workgroup_size(128)
+fn mark_island_range_starts_128(@builtin(global_invocation_id) gid : vec3<u32>) {
+    mark_island_range_starts_impl(gid);
+}
+@compute @workgroup_size(256)
+fn mark_island_range_starts_256(@builtin(global_invocation_id) gid : vec3<u32>) {
+    mark_island_range_starts_impl(gid);
+}
+
+@compute @workgroup_size(1)
+fn finalize_island_count(@builtin(global_invocation_id) gid : vec3<u32>) {
+    if (gid.x != 0u) { return; }
+    var count = 0u;
+    if (params.capacities.x != 0u) {
+        let last = params.capacities.x - 1u;
+        count = rangeIndices[last] + rangePredicates[last];
+    }
+    atomicStore(&telemetry[0], count);
+    atomicMax(&telemetry[14], count);
+}
+
+fn scatter_island_range_starts_impl(gid : vec3<u32>) {
+    let index = gid.x;
+    if (index >= params.capacities.x || rangePredicates[index] == 0u) {
+        return;
+    }
+    let record = sortedBodyRecords[index];
+    islandRecords[rangeIndices[index]] = IslandRecord(
+        record.keyHigh, index, 0u, 0u);
+}
+
+@compute @workgroup_size(64)
+fn scatter_island_range_starts_64(@builtin(global_invocation_id) gid : vec3<u32>) {
+    scatter_island_range_starts_impl(gid);
+}
+@compute @workgroup_size(128)
+fn scatter_island_range_starts_128(@builtin(global_invocation_id) gid : vec3<u32>) {
+    scatter_island_range_starts_impl(gid);
+}
+@compute @workgroup_size(256)
+fn scatter_island_range_starts_256(@builtin(global_invocation_id) gid : vec3<u32>) {
+    scatter_island_range_starts_impl(gid);
+}
+
+fn scatter_island_range_ends_impl(gid : vec3<u32>) {
+    let index = gid.x;
+    if (index >= params.capacities.x
+        || sortedBodyRecords[index].keyHigh == SENTINEL) { return; }
+    let end = index + 1u == params.capacities.x
+        || sortedBodyRecords[index + 1u].keyHigh
+            != sortedBodyRecords[index].keyHigh;
+    if (!end) { return; }
+    var island = rangeIndices[index];
+    if (rangePredicates[index] == 0u) { island -= 1u; }
+    let count = index + 1u - islandRecords[island].firstBodyRecord;
+    islandRecords[island].bodyCount = count;
+    atomicMax(&telemetry[5], count);
+}
+
+@compute @workgroup_size(64)
+fn scatter_island_range_ends_64(@builtin(global_invocation_id) gid : vec3<u32>) {
+    scatter_island_range_ends_impl(gid);
+}
+@compute @workgroup_size(128)
+fn scatter_island_range_ends_128(@builtin(global_invocation_id) gid : vec3<u32>) {
+    scatter_island_range_ends_impl(gid);
+}
+@compute @workgroup_size(256)
+fn scatter_island_range_ends_256(@builtin(global_invocation_id) gid : vec3<u32>) {
+    scatter_island_range_ends_impl(gid);
+}
+
+fn classify_bodies_impl(gid : vec3<u32>) {
+    let body = gid.x;
+    if (!body_is_alive(body)) { return; }
+    let root = atomicLoad(&bodyRoots[body]);
+    if (root == SENTINEL) { return; }
+    atomicAdd(&islandScratch[root].bodyCount, 1u);
+    if ((u32(metadata[body].w) & BODY_AWAKE) != 0u) {
+        atomicAdd(&islandScratch[root].awakeCount, 1u);
+    }
+    let linear = motions[body].linearVelocity_sleep.xyz;
+    let angular = motions[body].angularVelocity_flags.xyz;
+    let slow = dot(linear, linear) <= params.thresholds.x
+        && dot(angular, angular) <= params.thresholds.y;
+    atomicAnd(&islandScratch[root].qualifies, select(0u, 1u, slow));
+    if (bodyPersistent[body].previousRoot != root) {
+        atomicOr(&islandScratch[root].disturbed, 1u);
+    }
+    if (bodyPersistent[body].previousSleeping != 0u) {
+        atomicOr(&islandScratch[root].disturbed, 2u);
+    }
+}
+
+@compute @workgroup_size(64)
+fn classify_bodies_64(@builtin(global_invocation_id) gid : vec3<u32>) {
+    classify_bodies_impl(gid);
+}
+@compute @workgroup_size(128)
+fn classify_bodies_128(@builtin(global_invocation_id) gid : vec3<u32>) {
+    classify_bodies_impl(gid);
+}
+@compute @workgroup_size(256)
+fn classify_bodies_256(@builtin(global_invocation_id) gid : vec3<u32>) {
+    classify_bodies_impl(gid);
+}
+
+fn decide_islands_impl(gid : vec3<u32>) {
+    let index = gid.x;
+    if (index >= params.capacities.x) { return; }
+    rangePredicates[index] = 0u;
+    let islandCount = atomicLoad(&telemetry[0]);
+    if (index >= islandCount) { return; }
+    let tick = atomicLoad(&telemetry[13]) + 1u;
+    var island = islandRecords[index];
+    let root = island.rootBody;
+    let bodyCount = atomicLoad(&islandScratch[root].bodyCount);
+    let awakeCount = atomicLoad(&islandScratch[root].awakeCount);
+    let qualifies = atomicLoad(&islandScratch[root].qualifies) != 0u;
+    let disturbanceFlags = atomicLoad(&islandScratch[root].disturbed);
+    let disturbed = (disturbanceFlags & 1u) != 0u
+        || islandPersistent[root].previousBodyCount != bodyCount;
+    let previousState = select(islandPersistent[root].state, 1u,
+        islandPersistent[root].previousBodyCount == 0u
+            && (disturbanceFlags & 2u) != 0u);
+    var nextState = previousState;
+    var sleepTicks = islandPersistent[root].sleepTicks;
+    if (disturbed || (awakeCount != 0u && awakeCount != bodyCount)) {
+        nextState = 0u;
+        sleepTicks = 0u;
+    } else if (awakeCount == 0u) {
+        nextState = 1u;
+    } else if (qualifies) {
+        sleepTicks = min(sleepTicks + 1u, params.control.y);
+        nextState = select(0u, 1u, sleepTicks >= params.control.y);
+    } else {
+        nextState = 0u;
+        sleepTicks = 0u;
+    }
+    islandPersistent[root] = IslandPersistent(
+        sleepTicks, nextState, bodyCount, 0u);
+    island.state = nextState;
+    islandRecords[index] = island;
+    if (nextState != previousState) {
+        let eventType = select(2u, 1u, nextState != 0u);
+        pendingEvents[index] = IslandEvent(root, eventType, tick, bodyCount);
+        rangePredicates[index] = 1u;
+        if (nextState != 0u) {
+            atomicAdd(&telemetry[6], 1u);
+        } else {
+            atomicAdd(&telemetry[7], 1u);
+        }
+    }
+    if (nextState != 0u) {
+        atomicAdd(&telemetry[2], 1u);
+        atomicAdd(&telemetry[4], bodyCount);
+    } else {
+        atomicAdd(&telemetry[1], 1u);
+        atomicAdd(&telemetry[3], bodyCount);
+    }
+}
+
+@compute @workgroup_size(64)
+fn decide_islands_64(@builtin(global_invocation_id) gid : vec3<u32>) {
+    decide_islands_impl(gid);
+}
+@compute @workgroup_size(128)
+fn decide_islands_128(@builtin(global_invocation_id) gid : vec3<u32>) {
+    decide_islands_impl(gid);
+}
+@compute @workgroup_size(256)
+fn decide_islands_256(@builtin(global_invocation_id) gid : vec3<u32>) {
+    decide_islands_impl(gid);
+}
+
+@compute @workgroup_size(1)
+fn finalize_island_events(@builtin(global_invocation_id) gid : vec3<u32>) {
+    if (gid.x != 0u) { return; }
+    var eventCount = 0u;
+    if (params.capacities.x != 0u) {
+        let last = params.capacities.x - 1u;
+        eventCount = rangeIndices[last] + rangePredicates[last];
+    }
+    atomicStore(&telemetry[8], min(eventCount, params.capacities.z));
+    atomicStore(&telemetry[17], select(0u, 1u,
+        eventCount > params.capacities.z));
+    atomicStore(&telemetry[13], atomicLoad(&telemetry[13]) + 1u);
+    atomicMax(&telemetry[15], atomicLoad(&telemetry[4]));
+    atomicMax(&telemetry[19], min(eventCount, params.capacities.z));
+}
+
+fn scatter_island_events_impl(gid : vec3<u32>) {
+    let index = gid.x;
+    if (index >= params.capacities.x || rangePredicates[index] == 0u) {
+        return;
+    }
+    let output = rangeIndices[index];
+    if (output < params.capacities.z) {
+        islandEvents[output] = pendingEvents[index];
+    }
+}
+
+@compute @workgroup_size(64)
+fn scatter_island_events_64(@builtin(global_invocation_id) gid : vec3<u32>) {
+    scatter_island_events_impl(gid);
+}
+@compute @workgroup_size(128)
+fn scatter_island_events_128(@builtin(global_invocation_id) gid : vec3<u32>) {
+    scatter_island_events_impl(gid);
+}
+@compute @workgroup_size(256)
+fn scatter_island_events_256(@builtin(global_invocation_id) gid : vec3<u32>) {
+    scatter_island_events_impl(gid);
+}
+
+fn coordinate_is_encodable(cell : vec3<i32>) -> bool {
+    return all(cell >= vec3<i32>(-CELL_BIAS))
+        && all(cell < vec3<i32>(CELL_BIAS));
+}
+
+fn encode_cell(cell : vec3<i32>) -> vec2<u32> {
+    let x = u32(cell.x + CELL_BIAS) & CELL_MASK;
+    let y = u32(cell.y + CELL_BIAS) & CELL_MASK;
+    let z = u32(cell.z + CELL_BIAS) & CELL_MASK;
+    return vec2<u32>(x | (y << 21u), (y >> 11u) | (z << 10u));
+}
+
+fn sleeping_cell(body : u32, valid : ptr<function, bool>) -> vec3<i32> {
+    let localCell = vec3<i32>(floor(
+        poses[body].position_invMass.xyz / params.thresholds.z));
+    let sectors = metadata[body].xyz;
+    if (all(sectors == vec3<i32>(0))) {
+        (*valid) = coordinate_is_encodable(localCell);
+        return localCell;
+    }
+    let cellsPerSector = i32(params.thresholds.w);
+    if (cellsPerSector <= 0) {
+        (*valid) = false;
+        return vec3<i32>(0);
+    }
+    let safeSector = (CELL_BIAS - 256) / cellsPerSector;
+    if (any(sectors < vec3<i32>(-safeSector))
+        || any(sectors > vec3<i32>(safeSector))) {
+        (*valid) = false;
+        return vec3<i32>(0);
+    }
+    let cell = sectors * cellsPerSector + localCell;
+    (*valid) = coordinate_is_encodable(cell);
+    return cell;
+}
+
+fn apply_states_impl(gid : vec3<u32>) {
+    let body = gid.x;
+    if (body >= params.capacities.x) { return; }
+    if (!body_is_alive(body)) {
+        sleepingGrid[body] = sentinel_record();
+        bodyPersistent[body] = BodyPersistent(SENTINEL, 0u, 0u, 0u);
+        return;
+    }
+    let root = atomicLoad(&bodyRoots[body]);
+    let sleeping = islandPersistent[root].state != 0u;
+    var bodyMetadata = metadata[body];
+    var packedMetadata = u32(bodyMetadata.w);
+    if (sleeping) {
+        packedMetadata &= ~BODY_AWAKE;
+        motions[body].linearVelocity_sleep = vec4<f32>(0.0);
+        motions[body].angularVelocity_flags = vec4<f32>(0.0);
+        if (bodyPersistent[body].previousSleeping == 0u) {
+            var validCell = false;
+            let cell = sleeping_cell(body, &validCell);
+            if (validCell) {
+                let key = encode_cell(cell);
+                sleepingGrid[body] = KeyValue(key.x, key.y, body, body);
+            } else {
+                sleepingGrid[body] = sentinel_record();
+                atomicStore(&telemetry[18], 1u);
+            }
+        }
+    } else {
+        packedMetadata |= BODY_AWAKE;
+        sleepingGrid[body] = sentinel_record();
+    }
+    bodyMetadata.w = i32(packedMetadata);
+    metadata[body] = bodyMetadata;
+    bodyPersistent[body] = BodyPersistent(
+        root, select(0u, 1u, sleeping), 0u, 0u);
+}
+
+@compute @workgroup_size(64)
+fn apply_states_64(@builtin(global_invocation_id) gid : vec3<u32>) {
+    apply_states_impl(gid);
+}
+@compute @workgroup_size(128)
+fn apply_states_128(@builtin(global_invocation_id) gid : vec3<u32>) {
+    apply_states_impl(gid);
+}
+@compute @workgroup_size(256)
+fn apply_states_256(@builtin(global_invocation_id) gid : vec3<u32>) {
+    apply_states_impl(gid);
+}
+
+fn mark_sleeping_entries_impl(gid : vec3<u32>) {
+    let index = gid.x;
+    if (index >= params.capacities.x) { return; }
+    rangePredicates[index] = select(0u, 1u,
+        sleepingGrid[index].keyHigh != SENTINEL);
+}
+
+@compute @workgroup_size(64)
+fn mark_sleeping_entries_64(@builtin(global_invocation_id) gid : vec3<u32>) {
+    mark_sleeping_entries_impl(gid);
+}
+@compute @workgroup_size(128)
+fn mark_sleeping_entries_128(@builtin(global_invocation_id) gid : vec3<u32>) {
+    mark_sleeping_entries_impl(gid);
+}
+@compute @workgroup_size(256)
+fn mark_sleeping_entries_256(@builtin(global_invocation_id) gid : vec3<u32>) {
+    mark_sleeping_entries_impl(gid);
+}
+
+fn compact_sleeping_entries_impl(gid : vec3<u32>) {
+    let index = gid.x;
+    if (index >= params.capacities.x || rangePredicates[index] == 0u) {
+        return;
+    }
+    compactedSleepingGrid[rangeIndices[index]] = sleepingGrid[index];
+}
+
+@compute @workgroup_size(64)
+fn compact_sleeping_entries_64(@builtin(global_invocation_id) gid : vec3<u32>) {
+    compact_sleeping_entries_impl(gid);
+}
+@compute @workgroup_size(128)
+fn compact_sleeping_entries_128(@builtin(global_invocation_id) gid : vec3<u32>) {
+    compact_sleeping_entries_impl(gid);
+}
+@compute @workgroup_size(256)
+fn compact_sleeping_entries_256(@builtin(global_invocation_id) gid : vec3<u32>) {
+    compact_sleeping_entries_impl(gid);
+}
+
+@compute @workgroup_size(1)
+fn finalize_sleeping_entry_count(@builtin(global_invocation_id) gid : vec3<u32>) {
+    if (gid.x != 0u) { return; }
+    var count = 0u;
+    if (params.capacities.x != 0u) {
+        let last = params.capacities.x - 1u;
+        count = rangeIndices[last] + rangePredicates[last];
+    }
+    atomicStore(&telemetry[9], count);
+    store_sort_dispatch(19u, count);
+}
+
+fn mark_sleeping_range_starts_impl(gid : vec3<u32>) {
+    let index = gid.x;
+    if (index >= params.capacities.x) { return; }
+    sleepingCellRanges[index] = SleepingCellRange(
+        SENTINEL, SENTINEL, 0u, 0u);
+    var start = 0u;
+    let current = sortedSleepingGrid[index];
+    if (index < atomicLoad(&telemetry[9]) && current.keyHigh != SENTINEL) {
+        if (index == 0u) {
+            start = 1u;
+        } else {
+            let previous = sortedSleepingGrid[index - 1u];
+            start = select(0u, 1u, current.keyLow != previous.keyLow
+                || current.keyHigh != previous.keyHigh);
+        }
+    }
+    rangePredicates[index] = start;
+}
+
+@compute @workgroup_size(64)
+fn mark_sleeping_range_starts_64(@builtin(global_invocation_id) gid : vec3<u32>) {
+    mark_sleeping_range_starts_impl(gid);
+}
+@compute @workgroup_size(128)
+fn mark_sleeping_range_starts_128(@builtin(global_invocation_id) gid : vec3<u32>) {
+    mark_sleeping_range_starts_impl(gid);
+}
+@compute @workgroup_size(256)
+fn mark_sleeping_range_starts_256(@builtin(global_invocation_id) gid : vec3<u32>) {
+    mark_sleeping_range_starts_impl(gid);
+}
+
+@compute @workgroup_size(1)
+fn finalize_sleeping_ranges(@builtin(global_invocation_id) gid : vec3<u32>) {
+    if (gid.x != 0u) { return; }
+    var rangeCount = 0u;
+    let entryCount = atomicLoad(&telemetry[9]);
+    if (entryCount != 0u) {
+        let last = entryCount - 1u;
+        rangeCount = rangeIndices[last] + rangePredicates[last];
+    }
+    atomicStore(&telemetry[10], rangeCount);
+    atomicMax(&telemetry[16], atomicLoad(&telemetry[9]));
+}
+
+fn scatter_sleeping_range_starts_impl(gid : vec3<u32>) {
+    let index = gid.x;
+    if (index >= params.capacities.x || rangePredicates[index] == 0u) {
+        return;
+    }
+    let record = sortedSleepingGrid[index];
+    sleepingCellRanges[rangeIndices[index]] = SleepingCellRange(
+        record.keyLow, record.keyHigh, index, 0u);
+}
+
+@compute @workgroup_size(64)
+fn scatter_sleeping_range_starts_64(@builtin(global_invocation_id) gid : vec3<u32>) {
+    scatter_sleeping_range_starts_impl(gid);
+}
+@compute @workgroup_size(128)
+fn scatter_sleeping_range_starts_128(@builtin(global_invocation_id) gid : vec3<u32>) {
+    scatter_sleeping_range_starts_impl(gid);
+}
+@compute @workgroup_size(256)
+fn scatter_sleeping_range_starts_256(@builtin(global_invocation_id) gid : vec3<u32>) {
+    scatter_sleeping_range_starts_impl(gid);
+}
+
+fn scatter_sleeping_range_ends_impl(gid : vec3<u32>) {
+    let index = gid.x;
+    let entryCount = atomicLoad(&telemetry[9]);
+    if (index >= entryCount
+        || sortedSleepingGrid[index].keyHigh == SENTINEL) { return; }
+    var end = index + 1u == entryCount;
+    if (!end) {
+        let current = sortedSleepingGrid[index];
+        let next = sortedSleepingGrid[index + 1u];
+        end = current.keyLow != next.keyLow || current.keyHigh != next.keyHigh;
+    }
+    if (!end) { return; }
+    var range = rangeIndices[index];
+    if (rangePredicates[index] == 0u) { range -= 1u; }
+    sleepingCellRanges[range].entryCount = index + 1u
+        - sleepingCellRanges[range].firstEntry;
+}
+
+@compute @workgroup_size(64)
+fn scatter_sleeping_range_ends_64(@builtin(global_invocation_id) gid : vec3<u32>) {
+    scatter_sleeping_range_ends_impl(gid);
+}
+@compute @workgroup_size(128)
+fn scatter_sleeping_range_ends_128(@builtin(global_invocation_id) gid : vec3<u32>) {
+    scatter_sleeping_range_ends_impl(gid);
+}
+@compute @workgroup_size(256)
+fn scatter_sleeping_range_ends_256(@builtin(global_invocation_id) gid : vec3<u32>) {
+    scatter_sleeping_range_ends_impl(gid);
+}

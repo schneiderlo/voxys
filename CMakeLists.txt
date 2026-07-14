@@ -32,6 +32,7 @@ option(VOXY_BUILD_NATIVE "Build native desktop target" ON)
 option(VOXY_BUILD_WASM "Build WebAssembly target" OFF)
 option(VOXY_BUILD_TOOLS "Build command-line tools" ON)
 option(VOXY_BUILD_TESTS "Build unit tests" ON)
+option(VOXY_BUILD_BENCHMARKS "Build manual benchmark executables" OFF)
 option(VOXY_ENABLE_VALIDATION "Enable WebGPU validation layers" ON)
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -184,7 +185,7 @@ if(VOXY_BUILD_WASM)
             "-s MODULARIZE=1"
             "-s EXPORT_NAME='VoxyModule'"
             "-s EXPORTED_RUNTIME_METHODS=['ccall','cwrap','UTF8ToString']"
-            "-s EXPORTED_FUNCTIONS=['_main','_voxy_resize','_voxy_mouse_move','_voxy_key_event','_voxy_get_fps']"
+            "-s EXPORTED_FUNCTIONS=['_main','_voxy_resize','_voxy_mouse_move','_voxy_key_event','_voxy_get_fps','_voxy_is_initialized','_voxy_get_physics_backend']"
             "-s ASYNCIFY"
         )
         
@@ -308,6 +309,7 @@ message(STATUS "  Native build:      ${VOXY_BUILD_NATIVE}")
 message(STATUS "  WASM build:        ${VOXY_BUILD_WASM}")
 message(STATUS "  Build tools:       ${VOXY_BUILD_TOOLS}")
 message(STATUS "  Build tests:       ${VOXY_BUILD_TESTS}")
+message(STATUS "  Build benchmarks:  ${VOXY_BUILD_BENCHMARKS}")
 message(STATUS "  Validation:        ${VOXY_ENABLE_VALIDATION}")
 message(STATUS "  Jolt Physics:      ON")
 message(STATUS "═══════════════════════════════════════════════════════════════")

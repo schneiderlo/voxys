@@ -90,9 +90,21 @@
             <div id="debug-terrain">Terrain: 0x0</div>
             <div id="debug-memory">Memory: N/A</div>
             <div id="debug-frame">Frame: 0</div>
+            <div class="debug-section"></div>
+            <div id="debug-physics-identity">Physics: unavailable</div>
+            <div id="debug-physics-bodies">Bodies: unavailable</div>
+            <div id="debug-physics-broad">Broad phase: unavailable</div>
+            <div id="debug-physics-contacts">Contacts: unavailable</div>
+            <div id="debug-physics-solver">Solver: unavailable</div>
+            <div id="debug-physics-islands">Islands: unavailable</div>
+            <div id="debug-physics-ccd-water-events">CCD/water/events: unavailable</div>
+            <div id="debug-physics-io">Physics I/O: unavailable</div>
+            <div id="debug-physics-timings">GPU stages: unavailable</div>
+            <div id="debug-device">Device profile: unavailable</div>
         </div>
     </div>
 
+    <script src="network_transport.js"></script>
     <script src="loader.js"></script>
     <script src="voxy_wasm.js"></script>
     <script>
@@ -710,7 +722,12 @@
                 }
 
                 updateProgress(10, 'Creating GPU device...');
-                const device = await adapter.requestDevice();
+                const deviceRequest = await VoxyLoader.requestVoxyDevice(
+                    adapter,
+                    {enableTimestamps: false}
+                );
+                const device = deviceRequest.device;
+                window.voxyDeviceProfile = deviceRequest.profile;
 
                 updateProgress(15, 'Loading WASM module...');
 
@@ -721,6 +738,15 @@
                 voxyModule = await VoxyModule({
                     canvas: canvas,
                     preinitializedWebGPUDevice: device,
+                    arguments: (() => {
+                        const value = new URLSearchParams(location.search)
+                            .get('physicsMaxBodies');
+                        if (!value) return [];
+                        const parsed = Number.parseInt(value, 10);
+                        if (!Number.isInteger(parsed) || parsed < 2
+                            || parsed > 1000000) return [];
+                        return ['--physics-max-bodies', String(parsed)];
+                    })(),
 
                     // Track WASM/data download progress
                     setStatus: function (text) {

@@ -10,7 +10,10 @@
 
 #pragma once
 
+#include "physics/physics_types.hpp"
+
 #include <string>
+#include <optional>
 #include <glm/vec3.hpp>
 
 namespace voxy {
@@ -46,6 +49,11 @@ struct DebugOverlayStats {
     
     // Frame count
     uint64_t frameCount = 0;
+
+    // Physics diagnostics. These are copied from the backend's asynchronous
+    // telemetry snapshot; displaying the overlay never locks body state.
+    physics::PhysicsStats physics{};
+    std::optional<physics::PhysicsGpuStageTiming> physicsGpuTiming;
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -117,6 +125,15 @@ private:
     [[nodiscard]] std::string formatRenderPath() const;
     [[nodiscard]] std::string formatMemory() const;
     [[nodiscard]] std::string formatTerrain() const;
+    [[nodiscard]] std::string formatPhysicsIdentity() const;
+    [[nodiscard]] std::string formatPhysicsBodies() const;
+    [[nodiscard]] std::string formatPhysicsBroadPhase() const;
+    [[nodiscard]] std::string formatPhysicsContacts() const;
+    [[nodiscard]] std::string formatPhysicsSolver() const;
+    [[nodiscard]] std::string formatPhysicsIslands() const;
+    [[nodiscard]] std::string formatPhysicsCcdWaterEvents() const;
+    [[nodiscard]] std::string formatPhysicsIo() const;
+    [[nodiscard]] std::string formatPhysicsTimings() const;
     
     // Platform-specific display
     void displayNative();
@@ -131,5 +148,4 @@ private:
 DebugOverlay& getDebugOverlay();
 
 } // namespace voxy
-
 

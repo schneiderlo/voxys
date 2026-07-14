@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-07-13",
+  "repository_base": "2dbbb6d209e62e0e704c36004bc344493d87730d",
+  "contract": {
+    "mode": "DeterministicFloat",
+    "equality_scope": [
+      "backend",
+      "adapter",
+      "driver",
+      "compiler",
+      "build fingerprint",
+      "shader fingerprint",
+      "capacity profile"
+    ],
+    "cross_vendor_bit_identity": false,
+    "golden_policy": "One golden corpus per exact certified tuple. A tuple change requires replay and benchmark review."
+  },
+  "matrix": [
+    {
+      "id": "linux-x86_64-jolt-5.5.0-gcc-15.2-sse2",
+      "backend": "JoltLegacy",
+      "platform": "Linux x86-64",
+      "adapter": "CPU",
+      "toolchain": "GCC 15.2.0, portable SSE2, precise floating point",
+      "status": "certified",
+      "scope": "single-process repeatability for the pinned tuple",
+      "evidence": ["//tests:physics_world"]
+    },
+    {
+      "id": "linux-x86_64-box3d-d421e45-gcc-15.2-sse2",
+      "backend": "Box3DReference",
+      "platform": "Linux x86-64",
+      "adapter": "CPU",
+      "toolchain": "GCC 15.2.0, portable SSE2, precise floating point",
+      "status": "certified",
+      "scope": "single-process repeatability for the pinned tuple",
+      "evidence": ["//tests:physics_world"]
+    },
+    {
+      "id": "linux-vulkan-radv-radeon-890m-webgpu",
+      "backend": "WebGpuSoft component pipeline",
+      "platform": "Linux x86-64",
+      "adapter": "AMD Radeon 890M Graphics (RADV STRIX1)",
+      "toolchain": "wgpu-native over Vulkan; GCC 15.2.0 host",
+      "status": "component-certified",
+      "scope": "canonical primitives, broad phase, narrow phase, solver, islands, CCD, queries, and events; facade certification remains pending",
+      "workgroup_sizes": [64, 128, 256],
+      "evidence": [
+        "//tests:deterministic_gpu_primitives",
+        "//tests:gpu_broad_phase",
+        "//tests:gpu_narrow_phase",
+        "//tests:gpu_dynamic_solver",
+        "//tests:gpu_islands",
+        "//tests:gpu_ccd"
+      ]
+    },
+    {
+      "id": "browser-webgpu",
+      "backend": "WebGpuSoft",
+      "platform": "WASM browser",
+      "adapter": "unbound",
+      "toolchain": "Emscripten plus browser WebGPU",
+      "status": "not-certified",
+      "scope": "compile coverage only; requires browser-specific replay goldens",
+      "evidence": ["WASM build"]
+    }
+  ]
+}

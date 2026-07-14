@@ -39,6 +39,7 @@ struct BenchmarkScenario {
 /// Results from running a benchmark scenario
 struct BenchmarkResult {
     std::string scenarioName;
+    std::string physicsBackend = "unknown";
     uint32_t frameCount = 0;
     double totalTimeMs = 0.0;
     double avgFrameMs = 0.0;
@@ -53,6 +54,13 @@ struct BenchmarkResult {
     double avgUpdateMs = 0.0;
     double avgRenderMs = 0.0;
     double avgPresentMs = 0.0;
+    double avgPhysicsSimulationMs = 0.0;
+    double avgPhysicsWaterMs = 0.0;
+    double avgPhysicsSnapshotMs = 0.0;
+    double avgPrimitiveCullMs = 0.0;
+    double avgPrimitivePackingMs = 0.0;
+    double avgPrimitiveUploadMs = 0.0;
+    double avgPrimitiveRenderMs = 0.0;
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -69,6 +77,9 @@ public:
     
     /// Set the callback for updating camera position
     void setCameraCallback(CameraUpdateCallback callback);
+
+    /// Attach the selected physics backend to every result record.
+    void setPhysicsBackend(std::string backend);
     
     /// Start running benchmark scenarios
     /// @param scenarios List of scenarios to run (empty = use defaults)
@@ -110,6 +121,7 @@ private:
     void endScenario();
     
     CameraUpdateCallback cameraCallback_;
+    std::string physicsBackend_ = "unknown";
     std::vector<BenchmarkScenario> scenarios_;
     std::vector<BenchmarkResult> results_;
     
@@ -125,8 +137,14 @@ private:
     double scenarioSumUpdate_ = 0.0;
     double scenarioSumRender_ = 0.0;
     double scenarioSumPresent_ = 0.0;
+    double scenarioSumPhysicsSimulation_ = 0.0;
+    double scenarioSumPhysicsWater_ = 0.0;
+    double scenarioSumPhysicsSnapshot_ = 0.0;
+    double scenarioSumPrimitiveCull_ = 0.0;
+    double scenarioSumPrimitivePacking_ = 0.0;
+    double scenarioSumPrimitiveUpload_ = 0.0;
+    double scenarioSumPrimitiveRender_ = 0.0;
     std::vector<double> scenarioFrameTimes_;
 };
 
 } // namespace voxy::perf
-

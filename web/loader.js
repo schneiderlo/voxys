@@ -60,6 +60,45 @@ async function getWebGPUInfo() {
 }
 
 /**
+ * Create a device with the limit used by the real Voxys physics layouts.
+ * Compiling a shader module does not validate bind-group limits. Adapters
+ * below this limit still receive a normal device so the explicit CPU fallback
+ * can initialize.
+ */
+async function requestVoxyDevice(adapter, { enableTimestamps = false } = {}) {
+    const requiredStorageBuffers = 8;
+    const supportedStorageBuffers =
+        adapter.limits.maxStorageBuffersPerShaderStage;
+    const requiredLimits = {};
+    if (supportedStorageBuffers >= requiredStorageBuffers) {
+        requiredLimits.maxStorageBuffersPerShaderStage =
+            requiredStorageBuffers;
+    }
+    const requiredFeatures = [];
+    if (enableTimestamps && adapter.features.has('timestamp-query')) {
+        requiredFeatures.push('timestamp-query');
+    }
+    const device = await adapter.requestDevice({
+        requiredFeatures,
+        requiredLimits,
+    });
+    const profile = Object.freeze({
+        name: supportedStorageBuffers >= requiredStorageBuffers
+            ? 'webgpu-physics' : 'cpu-fallback',
+        requiredStorageBuffers,
+        maxStorageBuffersPerShaderStage:
+            device.limits.maxStorageBuffersPerShaderStage,
+        maxStorageBufferBindingSize:
+            device.limits.maxStorageBufferBindingSize,
+        maxBufferSize: device.limits.maxBufferSize,
+        maxComputeWorkgroupsPerDimension:
+            device.limits.maxComputeWorkgroupsPerDimension,
+        timestampQuery: device.features.has('timestamp-query'),
+    });
+    return { device, profile };
+}
+
+/**
  * Request pointer lock on an element with cross-browser support
  * @param {HTMLElement} element
  */
@@ -136,6 +175,7 @@ function calculateCanvasSize(maxDpr = 2) {
 window.VoxyLoader = {
     isWebGPUSupported,
     getWebGPUInfo,
+    requestVoxyDevice,
     requestPointerLock,
     exitPointerLock,
     isPointerLocked,
@@ -143,4 +183,3 @@ window.VoxyLoader = {
     getDevicePixelRatio,
     calculateCanvasSize
 };
-

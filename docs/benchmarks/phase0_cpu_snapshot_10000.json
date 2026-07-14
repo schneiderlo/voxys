@@ -1,0 +1,63 @@
+{
+  "schema": "voxys.physics_benchmark_set.v1",
+  "date": "2026-07-13",
+  "reviewed_baseline_commit": "2dbbb6d209e62e0e704c36004bc344493d87730d",
+  "box3d_commit": "d421e45c828f6f853a145f726f0b9425d31146eb",
+  "environment": {
+    "os": "Linux 7.0.0-27-generic x86_64",
+    "cpu": "AMD Ryzen AI 9 HX 370",
+    "compiler": "GCC 15.2.0",
+    "bazel": "8.5.0",
+    "cpu_frequency_scaling": true
+  },
+  "records": [
+    {
+      "backend": "jolt_legacy",
+      "worker_concurrency": 1,
+      "step_p50_ms": 69.326047,
+      "step_p95_ms": 74.207244,
+      "step_p99_ms": 78.425077,
+      "simulation_avg_ms": 68.891100,
+      "snapshot_avg_ms": 2.913063,
+      "semantic_hash_fnv64": "0xd8865b2f1bdb00ff"
+    },
+    {
+      "backend": "jolt_legacy",
+      "worker_concurrency": 4,
+      "step_p50_ms": 38.622095,
+      "step_p95_ms": 47.229971,
+      "step_p99_ms": 48.032904,
+      "simulation_avg_ms": 38.323355,
+      "snapshot_avg_ms": 3.694360,
+      "semantic_hash_fnv64": "0xd8865b2f1bdb00ff"
+    },
+    {
+      "backend": "box3d_reference",
+      "worker_concurrency": 1,
+      "step_p50_ms": 34.521301,
+      "step_p95_ms": 40.342364,
+      "step_p99_ms": 44.033888,
+      "simulation_avg_ms": 34.326366,
+      "snapshot_avg_ms": 0.754470,
+      "semantic_hash_fnv64": "0x1bc8e24e0e45e7bb"
+    },
+    {
+      "backend": "box3d_reference",
+      "worker_concurrency": 4,
+      "step_p50_ms": 12.869540,
+      "step_p95_ms": 15.562127,
+      "step_p99_ms": 18.011612,
+      "simulation_avg_ms": 12.845345,
+      "snapshot_avg_ms": 0.854805,
+      "semantic_hash_fnv64": "0x1bc8e24e0e45e7bb"
+    }
+  ],
+  "shared": {
+    "scene": "snapshot",
+    "requested_bodies": 10000,
+    "resident_bodies": 10000,
+    "frames": 60,
+    "warmup_frames": 10,
+    "water_enabled": false
+  }
+}

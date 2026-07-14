@@ -1,0 +1,35 @@
+{
+  "schema": "voxys.gpu_ballistic_benchmark.v1",
+  "date": "2026-07-13",
+  "backend": "webgpu_soft",
+  "environment": {
+    "os": "Linux 7.0.0-27-generic x86_64",
+    "cpu": "AMD Ryzen AI 9 HX 370",
+    "gpu": "AMD Radeon 890M Graphics (RADV STRIX1)",
+    "graphics_backend": "Vulkan",
+    "compiler": "GCC 15.2.0",
+    "bazel": "8.5.0"
+  },
+  "scene": {
+    "resident_bodies": 100000,
+    "body_capacity": 131072,
+    "fixed_tick_hz": 60,
+    "substeps": 4,
+    "warmup_frames": 4,
+    "measured_frames": 20,
+    "collision": false,
+    "render_target": "128x128 RGBA8Unorm",
+    "gpu_frustum_culling": true,
+    "per_shape_indirect_draws": true
+  },
+  "result": {
+    "queue_retired_p50_ms": 5.058,
+    "queue_retired_p95_ms": 6.584,
+    "physics_persistent_mib": 16.500,
+    "physics_scratch_and_readback_mib": 26.754,
+    "normal_frame_cpu_body_snapshots": 0,
+    "normal_frame_body_upload_bytes": 0,
+    "normal_frame_model_matrix_upload_bytes": 0
+  },
+  "reproduce": "nix-shell --run 'bazel test //tests:gpu_ballistic_benchmark -c fastbuild --test_output=streamed --test_timeout=300'"
+}

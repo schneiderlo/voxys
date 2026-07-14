@@ -19,8 +19,30 @@ bazel test //tests:config
 The shell provides GCC, Bazelisk-backed `bazel`, CMake, Rust, `uv`, X11/Vulkan
 development libraries, and runtime library paths for native WebGPU runs.
 
-`fetch_deps.sh` also pins Jolt Physics 5.5.0. The same Jolt character and
-full-resolution streamed terrain collision run in native and WASM builds.
+Physics is selected through a backend facade:
+
+- `webgpu_soft`: GPU-resident simulation and direct GPU rendering.
+- `box3d_reference`: pinned CPU oracle and explicit WebGPU fallback.
+- `jolt_legacy`: migration baseline; retained until removal is approved.
+
+The WebGPU path includes terrain and water contacts, dynamic broad/narrow
+phase, a deterministic colored Soft Step solver, islands/sleeping, CCD,
+asynchronous queries/events, replay, and telemetry. Normal frames do not copy
+all body transforms through the CPU.
+
+Useful options:
+
+```text
+--physics-backend webgpu
+--physics-backend box3d
+--physics-backend jolt
+--physics-cpu-fallback
+--no-physics-cpu-fallback
+```
+
+See [the implementation plan](specs/gpu-physics-distributed-world-implementation-plan.md),
+[the measured physics report](docs/physics-baseline.md), and
+[the product slices](docs/product-vertical-slices.md).
 
 Physics sandbox controls:
 

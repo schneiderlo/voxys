@@ -1,0 +1,27 @@
+name: Native and WASM parity
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  platform-parity:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31
+
+      - name: Fetch pinned dependencies
+        run: nix-shell --run './scripts/fetch_deps.sh'
+
+      - name: Run native and WASM parity gates
+        run: nix-shell --run './scripts/run_platform_parity.sh'

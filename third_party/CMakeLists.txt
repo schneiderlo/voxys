@@ -197,4 +197,20 @@ else()
     message(FATAL_ERROR "Jolt Physics not found - run scripts/fetch_deps.sh")
 endif()
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Box3D 3D - pinned CPU reference backend
+# https://github.com/erincatto/box3d
+# ─────────────────────────────────────────────────────────────────────────────
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/box3d/src/CMakeLists.txt")
+    set(BOX3D_DISABLE_SIMD OFF CACHE BOOL "" FORCE)
+    set(BOX3D_COMPILE_WARNING_AS_ERROR OFF CACHE BOOL "" FORCE)
+    set(BOX3D_DOUBLE_PRECISION OFF CACHE BOOL "" FORCE)
+    set(BOX3D_PROFILE OFF CACHE BOOL "" FORCE)
+    set(BOX3D_VALIDATE OFF CACHE BOOL "" FORCE)
+    add_subdirectory(box3d EXCLUDE_FROM_ALL)
+    message(STATUS "  Box3D: Found (pinned d421e45c828f)")
+else()
+    message(FATAL_ERROR "Box3D not found - run scripts/fetch_deps.sh")
+endif()
+
 message(STATUS "Third-party configuration complete")

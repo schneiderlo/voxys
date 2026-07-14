@@ -1,0 +1,37 @@
+{
+  "schema": "voxys.gpu_dynamic_benchmark.v1",
+  "date": "2026-07-13",
+  "backend": "webgpu_soft",
+  "environment": {
+    "os": "Linux 7.0.0-27-generic x86_64",
+    "cpu": "AMD Ryzen AI 9 HX 370",
+    "gpu": "AMD Radeon 890M Graphics (RADV STRIX1)",
+    "graphics_backend": "Vulkan",
+    "compiler": "GCC 15.2.0",
+    "bazel": "8.5.0"
+  },
+  "scene": {
+    "active_spheres": 100000,
+    "dynamic_contacts": 50000,
+    "contact_topology": "50000 disjoint two-body islands",
+    "fixed_tick_hz": 60,
+    "soft_step_substeps": 4,
+    "graph_colors": 32,
+    "workgroup_size": 128,
+    "small_island_fast_path": true,
+    "warmup_frames": 4,
+    "measured_frames_per_run": 20,
+    "runs": 2,
+    "normal_frame_cpu_body_readback": false
+  },
+  "result": {
+    "queue_retired_p50_ms_worst_observed": 5.576,
+    "queue_retired_p95_ms_worst_observed": 6.034,
+    "target_ms": 16.667,
+    "solver_scratch_mib": 29.705,
+    "color_conflicts": 0,
+    "overflow_contacts": 0,
+    "small_island_contacts": 50000,
+    "pass": true
+  }
+}

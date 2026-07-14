@@ -107,6 +107,16 @@ TEST(ConfigDefaultsTest, WaterConfig) {
     EXPECT_FLOAT_EQ(config.shoreFade, 12.0f);
 }
 
+TEST(ConfigDefaultsTest, PhysicsConfig) {
+    PhysicsConfig config;
+    EXPECT_EQ(config.backend, "webgpu");
+    EXPECT_EQ(config.gpuMaxBodies, 131072);
+    EXPECT_TRUE(config.allowCpuFallback);
+    EXPECT_EQ(config.joltJobSystem, "single_threaded");
+    EXPECT_EQ(config.joltWorkerThreads, 0);
+    EXPECT_EQ(config.box3dWorkerThreads, 1);
+}
+
 TEST(ConfigDefaultsTest, CameraConfig) {
     CameraConfig config;
     EXPECT_FLOAT_EQ(config.fov, 60.0f);
@@ -151,6 +161,12 @@ TEST(CommandLineArgsTest, DefaultValues) {
     EXPECT_EQ(args.configPath, "voxy.cfg");
     EXPECT_FALSE(args.renderPath.has_value());
     EXPECT_FALSE(args.heightmap.has_value());
+    EXPECT_FALSE(args.physicsBackend.has_value());
+    EXPECT_FALSE(args.gpuMaxBodies.has_value());
+    EXPECT_FALSE(args.physicsCpuFallback.has_value());
+    EXPECT_FALSE(args.joltJobSystem.has_value());
+    EXPECT_FALSE(args.joltWorkerThreads.has_value());
+    EXPECT_FALSE(args.box3dWorkerThreads.has_value());
     EXPECT_FALSE(args.width.has_value());
     EXPECT_FALSE(args.height.has_value());
     EXPECT_FALSE(args.fullscreen);
@@ -181,6 +197,36 @@ TEST(CommandLineArgsTest, RenderPath) {
     auto args = parseArgs(3, argv);
     ASSERT_TRUE(args.renderPath.has_value());
     EXPECT_EQ(*args.renderPath, "triangle");
+}
+
+TEST(CommandLineArgsTest, PhysicsBackendAndCpuSchedulers) {
+    char* argv[] = {
+        const_cast<char*>("voxy"),
+        const_cast<char*>("--physics-backend"),
+        const_cast<char*>("box3d"),
+        const_cast<char*>("--physics-max-bodies"),
+        const_cast<char*>("200000"),
+        const_cast<char*>("--no-physics-cpu-fallback"),
+        const_cast<char*>("--jolt-job-system"),
+        const_cast<char*>("thread_pool"),
+        const_cast<char*>("--jolt-workers"),
+        const_cast<char*>("4"),
+        const_cast<char*>("--box3d-workers"),
+        const_cast<char*>("8"),
+    };
+    const auto args = parseArgs(12, argv);
+    ASSERT_TRUE(args.physicsBackend.has_value());
+    ASSERT_TRUE(args.gpuMaxBodies.has_value());
+    ASSERT_TRUE(args.physicsCpuFallback.has_value());
+    ASSERT_TRUE(args.joltJobSystem.has_value());
+    ASSERT_TRUE(args.joltWorkerThreads.has_value());
+    ASSERT_TRUE(args.box3dWorkerThreads.has_value());
+    EXPECT_EQ(*args.physicsBackend, "box3d");
+    EXPECT_EQ(*args.gpuMaxBodies, 200000);
+    EXPECT_FALSE(*args.physicsCpuFallback);
+    EXPECT_EQ(*args.joltJobSystem, "thread_pool");
+    EXPECT_EQ(*args.joltWorkerThreads, 4);
+    EXPECT_EQ(*args.box3dWorkerThreads, 8);
 }
 
 TEST(CommandLineArgsTest, WindowSize) {
@@ -297,6 +343,14 @@ max_fps = 60
 heightmap = "custom.ldh"
 height_scale = 1000.0
 
+[physics]
+backend = "box3d"
+gpu_max_bodies = 200000
+allow_cpu_fallback = false
+jolt_job_system = "thread_pool"
+jolt_worker_threads = 3
+box3d_worker_threads = 4
+
 [camera]
 fov = 90.0
 move_speed = 100.0
@@ -313,6 +367,12 @@ log_level = "debug"
     EXPECT_EQ(config.render.maxFps, 60);
     EXPECT_EQ(config.terrain.heightmap, "custom.ldh");
     EXPECT_FLOAT_EQ(config.terrain.heightScale, 1000.0f);
+    EXPECT_EQ(config.physics.backend, "box3d");
+    EXPECT_EQ(config.physics.gpuMaxBodies, 200000);
+    EXPECT_FALSE(config.physics.allowCpuFallback);
+    EXPECT_EQ(config.physics.joltJobSystem, "thread_pool");
+    EXPECT_EQ(config.physics.joltWorkerThreads, 3);
+    EXPECT_EQ(config.physics.box3dWorkerThreads, 4);
     EXPECT_FLOAT_EQ(config.camera.fov, 90.0f);
     EXPECT_FLOAT_EQ(config.camera.moveSpeed, 100.0f);
     EXPECT_FALSE(config.debug.showStats);
@@ -344,11 +404,13 @@ height = 600
     CommandLineArgs args;
     args.configPath = testConfigPath;
     args.renderPath = "triangle";
+    args.physicsBackend = "webgpu";
     args.width = 1920;
     
     auto config = load(testConfigPath, args);
     
     EXPECT_EQ(config.render.path, "triangle");  // Overridden
+    EXPECT_EQ(config.physics.backend, "webgpu");
     EXPECT_EQ(config.window.width, 1920);        // Overridden
     EXPECT_EQ(config.window.height, 600);        // From file
 }
@@ -376,6 +438,12 @@ TEST_F(ConfigFileTest, SaveAndReload) {
     original.camera.eyeHeight = 2.25f;
     original.lighting.ambientIntensity = 0.65f;
     original.debug.logLevel = "trace";
+    original.physics.backend = "box3d";
+    original.physics.gpuMaxBodies = 200000;
+    original.physics.allowCpuFallback = false;
+    original.physics.joltJobSystem = "thread_pool";
+    original.physics.joltWorkerThreads = 6;
+    original.physics.box3dWorkerThreads = 8;
     
     EXPECT_TRUE(save(original, testConfigPath));
     
@@ -389,6 +457,7 @@ TEST_F(ConfigFileTest, SaveAndReload) {
     EXPECT_FLOAT_EQ(loaded.camera.eyeHeight, original.camera.eyeHeight);
     EXPECT_FLOAT_EQ(loaded.lighting.ambientIntensity, original.lighting.ambientIntensity);
     EXPECT_EQ(loaded.debug.logLevel, original.debug.logLevel);
+    EXPECT_EQ(loaded.physics, original.physics);
 }
 
 TEST_F(ConfigFileTest, InvalidWaterNumbersKeepCurrentDefaults) {

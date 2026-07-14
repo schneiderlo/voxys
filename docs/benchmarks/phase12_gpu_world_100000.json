@@ -1,0 +1,65 @@
+{
+  "schema": "voxys.gpu_world_benchmark.v1",
+  "date": "2026-07-13",
+  "backend": "webgpu_soft",
+  "environment": {
+    "os": "Linux x86_64",
+    "cpu": "AMD Ryzen AI 9 HX 370",
+    "gpu": "AMD Radeon 890M Graphics (RADV STRIX1)",
+    "gpu_type": "integrated",
+    "graphics_backend": "wgpu-native over Vulkan",
+    "timestamp_period_ns": 10.019,
+    "build": "CMake Debug"
+  },
+  "scene": {
+    "resident_bodies": 100000,
+    "body_capacity": 131072,
+    "fixed_tick_hz": 60,
+    "soft_step_substeps": 4,
+    "pair_capacity": 8192,
+    "contact_capacity": 4096,
+    "manifold_capacity": 8192,
+    "terrain_attached": false,
+    "render_target": "128x128 RGBA8Unorm",
+    "warmup_frames": 4,
+    "measured_frames": 20,
+    "active_pairs": 0,
+    "active_contacts": 0,
+    "active_manifolds": 0,
+    "normal_frame_cpu_body_readback": false,
+    "normal_frame_transform_upload": false
+  },
+  "result": {
+    "queue_retired_p50_ms": 23.071,
+    "queue_retired_p95_ms": 24.685,
+    "physics_persistent_mib": 22.500,
+    "physics_scratch_and_readback_mib": 155.564,
+    "representative_discrete_target_ms": 16.667,
+    "target_evaluated_on_this_adapter": false
+  },
+  "gpu_stage_p50_ms": {
+    "commands_active_compaction": 0.097,
+    "ccd": 0.029,
+    "forces_water": 0.263,
+    "broad_phase": 12.523,
+    "narrow_phase": 0.046,
+    "dynamic_solver": 1.996,
+    "static_contacts": 0.006,
+    "islands_sleeping": 1.308,
+    "tick_finalize": 0.013,
+    "culling_render": 4.178
+  },
+  "gpu_stage_p95_ms": {
+    "commands_active_compaction": 0.190,
+    "ccd": 0.037,
+    "forces_water": 0.301,
+    "broad_phase": 13.017,
+    "narrow_phase": 0.059,
+    "dynamic_solver": 2.310,
+    "static_contacts": 0.015,
+    "islands_sleeping": 1.487,
+    "tick_finalize": 0.027,
+    "culling_render": 4.250
+  },
+  "reproduce": "nix-shell --run 'cmake -S . -B build -DVOXY_BUILD_BENCHMARKS=ON && cmake --build build --target gpu_ballistic_benchmark -j2 && VOXY_GPU_TIMESTAMP_PERIOD_NS=10.019 ./build/bin/gpu_ballistic_benchmark --gtest_filter=GpuBallisticBenchmark.*'"
+}

@@ -3,6 +3,7 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 
 #include "camera/character_controller.hpp"
+#include "physics/terrain_topology.hpp"
 #include "terrain/heightmap.hpp"
 #include "physics/physics_world.hpp"
 #include "core/log.hpp"
@@ -398,10 +399,8 @@ float CharacterController::sampleTerrainHeight(float worldX, float worldZ) const
     float hmZ = uv.y * static_cast<float>(heightmap_->getHeight() - 1);
     
     // Sample with bilinear interpolation
-    float normalizedHeight = heightmap_->sampleBilinear(hmX, hmZ) / 65535.0f;
-    
-    // Scale to world height (map [0, 1] to [-1, 1] to match renderer)
-    return (normalizedHeight * 2.0f - 1.0f) * config_.heightScale;
+    return physics::terrain_topology::worldHeight(
+        heightmap_->sampleBilinear(hmX, hmZ), config_.heightScale);
 }
 
 glm::vec3 CharacterController::sampleTerrainNormal(float worldX, float worldZ) const {

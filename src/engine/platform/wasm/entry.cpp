@@ -7,6 +7,7 @@
 #include "core/config.hpp"
 #include "engine/platform/input.hpp"
 
+#include <algorithm>
 #include <memory>
 #include <numeric>
 #include <emscripten.h>
@@ -73,6 +74,17 @@ int main(int argc, char* argv[]) {
     appConfig.waterWaveStrength = config.water.waveStrength;
     appConfig.waterReflectionStrength = config.water.reflectionStrength;
     appConfig.waterShoreFade = config.water.shoreFade;
+    appConfig.physicsBackend = voxy::physics::backendTypeFromName(
+        config.physics.backend);
+    appConfig.gpuPhysicsMaxBodies = static_cast<uint32_t>(
+        std::max(config.physics.gpuMaxBodies, 2));
+    appConfig.physicsCpuFallback = config.physics.allowCpuFallback;
+    appConfig.joltJobSystem = voxy::physics::joltJobSystemModeFromName(
+        config.physics.joltJobSystem);
+    appConfig.joltWorkerThreads = static_cast<uint32_t>(
+        std::max(config.physics.joltWorkerThreads, 0));
+    // Browser builds currently run Box3D without pthreads.
+    appConfig.box3dWorkerThreads = 1;
     
     // Enforce 8K resolution
     appConfig.heightmapWidth = 8192;
@@ -251,6 +263,18 @@ float voxy_get_fps() {
         return static_cast<float>(g_app->getStats().fps);
     }
     return 0.0f;
+}
+
+EMSCRIPTEN_KEEPALIVE
+int voxy_is_initialized() {
+    return g_app != nullptr ? 1 : 0;
+}
+
+EMSCRIPTEN_KEEPALIVE
+int voxy_get_physics_backend() {
+    return g_app
+        ? static_cast<int>(g_app->getStats().physicsBackend)
+        : -1;
 }
 
 EMSCRIPTEN_KEEPALIVE

@@ -478,6 +478,13 @@ void Application::update(float deltaTime) {
 
     if (physicsWorld_) {
         physicsWorld_->update(deltaTime);
+        const physics::PhysicsStepStats stepStats =
+            physicsWorld_->lastStepStats();
+        stats_.physicsSimulationMs = stepStats.simulationMs;
+        stats_.physicsWaterMs = stepStats.waterMs;
+    } else {
+        stats_.physicsSimulationMs = 0.0;
+        stats_.physicsWaterMs = 0.0;
     }
 
     // Custom update callback
@@ -490,6 +497,11 @@ void Application::update(float deltaTime) {
 }
 
 void Application::render() {
+    stats_.physicsSnapshotMs = 0.0;
+    stats_.primitiveCullMs = 0.0;
+    stats_.primitivePackingMs = 0.0;
+    stats_.primitiveUploadMs = 0.0;
+    stats_.primitiveRenderMs = 0.0;
     if (!gpuContext_ || !gpuContext_->isInitialized()) {
         return;
     }
@@ -521,6 +533,12 @@ void Application::render() {
     // Update camera uniforms for all renderers
     updateCameraUniforms();
 
+    // GPU physics writes persistent poses into this frame's command stream.
+    // CPU backends intentionally no-op here.
+    if (physicsWorld_) {
+        physicsWorld_->encodeGpuStep(encoder);
+    }
+
     // Render based on active path
     switch (config_.renderPath) {
         case RenderPath::Triangle:
@@ -532,13 +550,32 @@ void Application::render() {
     }
 
     if (primitivePath_ && primitivePath_->isInitialized() && physicsWorld_) {
-        auto bodies = physicsWorld_->dynamicBodies(kPrimitiveOverlayHeadroom);
-        const auto bodyReadStats = physicsWorld_->lastDynamicBodyReadStats();
-        stats_.primitiveBodyLockedReadCount =
-            static_cast<uint32_t>(bodyReadStats.lockedBodyCount);
-        stats_.primitiveBodyCachedReadCount =
-            static_cast<uint32_t>(bodyReadStats.cachedBodyCount);
-        const size_t objectCount = bodies.size();
+        perf::Timer primitiveStageTimer;
+        const auto capabilities = physicsWorld_->capabilities();
+        size_t objectCount = physicsWorld_->stats().residentBodies;
+        if (capabilities.gpuResidentState && capabilities.directRenderView) {
+            // Persistent GPU buffers flow straight into culling/rendering.
+            // No body snapshot or transform upload occurs on this path.
+            primitivePath_->setPhysicsRenderView(physicsWorld_->renderView());
+            stats_.physicsSnapshotMs = 0.0;
+            stats_.primitiveBodyLockedReadCount = 0;
+            stats_.primitiveBodyCachedReadCount = 0;
+        } else {
+            primitiveStageTimer.start();
+            auto bodies = physicsWorld_->dynamicBodies();
+            primitiveStageTimer.stop();
+            stats_.physicsSnapshotMs = primitiveStageTimer.elapsedMs();
+            const auto bodyReadStats = physicsWorld_->lastDynamicBodyReadStats();
+            stats_.primitiveBodyLockedReadCount =
+                static_cast<uint32_t>(bodyReadStats.lockedBodyCount);
+            stats_.primitiveBodyCachedReadCount =
+                static_cast<uint32_t>(bodyReadStats.cachedBodyCount);
+            objectCount = bodies.size();
+            primitivePath_->setCompactPhysicsInstances(bodies);
+        }
+
+        std::vector<physics::PhysicsWorld::DynamicBodySnapshot> overlays;
+        overlays.reserve(kPrimitiveOverlayHeadroom);
         const auto selectedShape =
             static_cast<physics::PhysicsWorld::ThrowableShape>(selectedThrowable_);
         const float previewAngle = static_cast<float>(
@@ -555,35 +592,44 @@ void Application::render() {
             camera_->position() + camera_->forward() * previewDistance;
         const glm::quat cameraRotation = glm::quat_cast(glm::mat3(
             camera_->right(), camera_->up(), camera_->forward()));
-        bodies.push_back({
+        overlays.push_back({
             selectedShape,
             previewPlane + camera_->right() * (halfWidth * 0.76f)
                          - camera_->up() * (halfHeight * 0.72f),
             glm::angleAxis(previewAngle, glm::normalize(glm::vec3(0.3f, 1.0f, 0.2f))),
             physics::PhysicsWorld::throwableShapeDimensions(selectedShape) * previewScale});
-        appendObjectCount(bodies, objectCount, previewPlane, camera_->right(),
+        appendObjectCount(overlays, objectCount, previewPlane, camera_->right(),
                           camera_->up(), cameraRotation, halfWidth, halfHeight);
-        const auto cullStats = primitiveCullController_.cull(
-            bodies, camera_->projectionMatrix() * camera_->viewMatrix());
-        stats_.primitiveInputCount = static_cast<uint32_t>(cullStats.inputCount);
-        stats_.primitiveSubmittedCount =
-            static_cast<uint32_t>(cullStats.submittedCount);
-        stats_.primitiveCullRejectionRatio =
-            cullStats.measuredRejectionRatio;
-        stats_.primitiveCullEvaluated = cullStats.evaluated;
-        stats_.primitiveCullingEnabled = cullStats.enabled;
-        primitivePath_->setInstances(bodies);
+        stats_.primitiveCullMs = 0.0;
+        stats_.primitiveInputCount = static_cast<uint32_t>(objectCount);
+        // The exact visible count remains GPU-resident by design.
+        stats_.primitiveSubmittedCount = static_cast<uint32_t>(objectCount);
+        stats_.primitiveCullRejectionRatio = 0.0f;
+        stats_.primitiveCullEvaluated = objectCount != 0;
+        stats_.primitiveCullingEnabled = true;
+        primitivePath_->setInstances(overlays);
+        const auto& cpuTimings = primitivePath_->lastCpuTimings();
+        stats_.primitivePackingMs = cpuTimings.packingMs;
+        stats_.primitiveUploadMs = cpuTimings.uploadMs;
         const auto& uploadStats = primitivePath_->lastUploadStats();
-        stats_.primitiveInstanceUploadBytes = uploadStats.bytesUploaded;
-        stats_.primitiveInstanceUploadCalls = uploadStats.writeCalls;
-        stats_.primitiveInstanceFullUpload = uploadStats.fullUpload;
+        const auto& compactUploadStats =
+            primitivePath_->lastCompactUploadStats();
+        stats_.primitiveInstanceUploadBytes = uploadStats.bytesUploaded
+                                            + compactUploadStats.bytesUploaded;
+        stats_.primitiveInstanceUploadCalls = uploadStats.writeCalls
+                                            + compactUploadStats.writeCalls;
+        stats_.primitiveInstanceFullUpload = uploadStats.fullUpload
+                                           || compactUploadStats.fullUpload;
         WGPUTextureView objectDepth = getOrCreateDepthView();
         if (objectDepth) {
+            primitiveStageTimer.restart();
             primitivePath_->render(
                 encoder, targetView, objectDepth, camera_->viewMatrix(),
                 camera_->projectionMatrix(), camera_->position(), kSunDirection,
                 gpuContext_->getSwapchainWidth(), gpuContext_->getSwapchainHeight(),
                 config_.renderPath == RenderPath::Raycast);
+            primitiveStageTimer.stop();
+            stats_.primitiveRenderMs = primitiveStageTimer.elapsedMs();
         }
     }
 
@@ -699,7 +745,15 @@ void Application::processFrame(float deltaTime) {
     
     // Update benchmark if running (use frame timer stats)
     if (benchmarkRunner_ && benchmarkRunner_->isRunning()) {
-        const bool stillRunning = benchmarkRunner_->onFrame(frameTimer.getLastFrameStats());
+        perf::FrameStats frameStats = frameTimer.getLastFrameStats();
+        frameStats.physicsSimulationMs = stats_.physicsSimulationMs;
+        frameStats.physicsWaterMs = stats_.physicsWaterMs;
+        frameStats.physicsSnapshotMs = stats_.physicsSnapshotMs;
+        frameStats.primitiveCullMs = stats_.primitiveCullMs;
+        frameStats.primitivePackingMs = stats_.primitivePackingMs;
+        frameStats.primitiveUploadMs = stats_.primitiveUploadMs;
+        frameStats.primitiveRenderMs = stats_.primitiveRenderMs;
+        const bool stillRunning = benchmarkRunner_->onFrame(frameStats);
         if (!stillRunning && config_.exitAfterBenchmark) {
             requestExit();
         }
@@ -842,7 +896,11 @@ void Application::startBenchmark() {
             }
         });
     }
-    
+
+    benchmarkRunner_->setPhysicsBackend(
+        physicsWorld_
+            ? physics::backendTypeName(physicsWorld_->backendType())
+            : "none");
     benchmarkRunner_->start();
     LOG_INFO("Benchmark started");
 }
@@ -952,6 +1010,7 @@ bool Application::initGPU() {
     gpu::ContextConfig gpuConfig;
     gpuConfig.powerPreference = WGPUPowerPreference_HighPerformance;
     gpuConfig.enableValidation = config_.enableValidation;
+    gpuConfig.enableTimestamps = config_.gpuPhysicsStageProfiling;
     gpuConfig.preferredFormat = config_.colorFormat;
     gpuConfig.presentMode = config_.vsync ? WGPUPresentMode_Fifo : WGPUPresentMode_Immediate;
 
@@ -1040,10 +1099,37 @@ bool Application::initCamera() {
     freeFlyController_ = std::make_unique<FreeFlyController>(*camera_, flyConfig);
 
     physicsWorld_ = std::make_unique<physics::PhysicsWorld>();
-    if (!physicsWorld_->initialize()) {
-        LOG_ERROR("Failed to initialize Jolt Physics");
+    physics::PhysicsInitContext physicsContext;
+    physicsContext.requestedBackend = config_.physicsBackend;
+    physicsContext.allowCpuFallback = config_.physicsCpuFallback;
+    physicsContext.device = gpuContext_->getDevice();
+    physicsContext.queue = gpuContext_->getQueue();
+    if (config_.physicsBackend == physics::BackendType::WebGpuSoft) {
+        physicsContext.maxBodies = config_.gpuPhysicsMaxBodies;
+        physicsContext.maxActiveBodies = config_.gpuPhysicsMaxBodies;
+    }
+    physicsContext.gpu.shaderPath =
+        (config_.shaderDir / "physics_ballistic.wgsl").string();
+    physicsContext.gpu.enableStageProfiling =
+        config_.gpuPhysicsStageProfiling;
+    physicsContext.gpu.stageProfilingTimestampPeriodNanoseconds =
+        config_.gpuPhysicsTimestampPeriodNanoseconds;
+    physicsContext.enableValidation = config_.enableValidation;
+    physicsContext.joltJobSystem = config_.joltJobSystem;
+    physicsContext.joltWorkerThreads = config_.joltWorkerThreads;
+    physicsContext.box3dWorkerThreads = config_.box3dWorkerThreads;
+    if (!physicsWorld_->initialize(physicsContext)) {
+        LOG_ERROR("Failed to initialize '{}' physics backend",
+                  physics::backendTypeName(config_.physicsBackend));
         return false;
     }
+    const char* scheduler = config_.physicsBackend
+            == physics::BackendType::JoltLegacy
+        ? physics::joltJobSystemModeName(config_.joltJobSystem)
+        : "internal";
+    LOG_INFO("Physics backend: {} (scheduler {}, concurrency {})",
+             physics::backendTypeName(physicsWorld_->backendType()),
+             scheduler, physicsWorld_->stats().workerConcurrency);
     physicsWorld_->setWaterPlane(config_.waterHeight, config_.waterEnabled);
 
     // Create character controller (will be fully initialized after terrain loads)
@@ -1168,6 +1254,10 @@ bool Application::initTerrain() {
         characterController_->setConfig(charConfig);
     }
 
+    if (physicsWorld_) {
+        physicsWorld_->setTerrainGpuResources({
+            heightmap_->getTextureView(), heightmap_->getMipLevelCount()});
+    }
     if (!physicsWorld_ || !physicsWorld_->setTerrain(
             heightmap_->getData(), heightmap_->getWidth(), heightmap_->getHeight(),
             config_.heightScale, config_.cellScale)) {
@@ -1531,6 +1621,28 @@ void Application::updateStats(float deltaTime) {
     stats_.frameTimeMs = static_cast<double>(deltaTime) * 1000.0;
     stats_.totalTimeSeconds += static_cast<double>(deltaTime);
     stats_.activeRenderPath = config_.renderPath;
+    if (physicsWorld_) {
+        const physics::PhysicsStats physicsStats = physicsWorld_->stats();
+        const uint32_t previousVisibleHigh =
+            stats_.physics.visibleBodyUsage.highWater;
+        stats_.physics = physicsStats;
+        stats_.physics.visibleBodyUsage.current =
+            stats_.primitiveSubmittedCount;
+        stats_.physics.visibleBodyUsage.capacity =
+            physicsStats.bodyCapacity;
+        stats_.physics.visibleBodyUsage.highWater = std::max(
+            previousVisibleHigh, stats_.primitiveSubmittedCount);
+        while (auto timing = physicsWorld_->pollGpuStageTimings()) {
+            stats_.physicsGpuTiming = std::move(*timing);
+        }
+        stats_.physicsBackend = physicsStats.backend;
+        stats_.physicsResidentBodies = physicsStats.residentBodies;
+        stats_.physicsActiveBodies = physicsStats.activeBodies;
+        stats_.physicsBodyCapacity = physicsStats.bodyCapacity;
+        stats_.physicsEstimatedPersistentBytes =
+            physicsStats.estimatedPersistentBytes;
+        stats_.physicsScratchBytes = physicsStats.scratchBytes;
+    }
 
     // FPS calculation
     fpsAccumulator_ += static_cast<double>(deltaTime);
@@ -1561,6 +1673,8 @@ void Application::updateStats(float deltaTime) {
     overlayStats.terrainWidth = stats_.terrainWidth;
     overlayStats.terrainHeight = stats_.terrainHeight;
     overlayStats.terrainMipLevels = stats_.terrainMipLevels;
+    overlayStats.physics = stats_.physics;
+    overlayStats.physicsGpuTiming = stats_.physicsGpuTiming;
     
     if (camera_) {
         overlayStats.cameraPosition = camera_->position();
@@ -1576,6 +1690,8 @@ void Application::updateStats(float deltaTime) {
         // Account for mip chain (roughly 1.33x base size)
         overlayStats.estimatedMemoryBytes = static_cast<size_t>(static_cast<double>(baseSize) * 1.33);
     }
+    overlayStats.estimatedMemoryBytes +=
+        stats_.physics.estimatedPersistentBytes + stats_.physics.scratchBytes;
     
     getDebugOverlay().update(overlayStats);
     getDebugOverlay().render();
@@ -1847,6 +1963,7 @@ void Application::handleKeyboardShortcuts() {
 
 void Application::captureScreenshot(const std::string& filepath) {
 #if defined(VOXY_WASM)
+    static_cast<void>(filepath);
     LOG_WARN("Screenshots are not supported on WebAssembly builds");
     return;
 #else

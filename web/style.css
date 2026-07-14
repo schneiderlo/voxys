@@ -239,6 +239,11 @@ body {
     pointer-events: none;
 }
 
+#debug-overlay .debug-section {
+    border-top: 1px solid rgba(255, 255, 255, 0.25);
+    margin: 6px 0;
+}
+
 .debug-content {
     background: rgba(10, 10, 15, 0.9);
     backdrop-filter: blur(8px);

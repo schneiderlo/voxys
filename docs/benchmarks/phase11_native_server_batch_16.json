@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-07-13",
+  "phase": 11,
+  "benchmark": "native_server_batch",
+  "hardware": {
+    "cpu": "AMD Ryzen AI 9 HX 370",
+    "gpu": "AMD Radeon 890M Graphics (RADV STRIX1)",
+    "api": "wgpu-native over Vulkan"
+  },
+  "build": {
+    "configuration": "Bazel fastbuild",
+    "compiler": "GCC 15.2.0",
+    "repository_base": "2dbbb6d209e62e0e704c36004bc344493d87730d"
+  },
+  "scene": {
+    "worlds": 16,
+    "islands_per_world": 1,
+    "body_capacity_per_world": 16,
+    "active_bodies_per_world": 1,
+    "contact_capacity_per_world": 32,
+    "warmup_pairs": 4,
+    "measured_pairs": 20
+  },
+  "results_ms": {
+    "batched_p50": 0.578,
+    "batched_p95": 1.651,
+    "isolated_p50": 3.885,
+    "isolated_p95": 4.513
+  },
+  "submission_reduction": 16,
+  "observed_p50_speedup": 6.72,
+  "reproduce": "nix-shell --run 'bazel test //tests:native_server_batch_benchmark -c fastbuild --test_output=streamed --test_timeout=300'"
+}

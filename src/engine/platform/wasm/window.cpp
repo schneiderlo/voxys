@@ -138,6 +138,7 @@ void Window::waitEvents() {
 
 void Window::setCursorVisible(bool visible) {
     // Handled by browser/canvas, no-op here usually unless we bind JS
+    static_cast<void>(visible);
 }
 
 void Window::setCursorCaptured(bool captured) {

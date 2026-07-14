@@ -33,7 +33,8 @@ GCC_FLAGS = (
 EMSCRIPTEN_FLAGS = (
     ["-std=c++20"] +
     CLANG_WARNINGS +
-    EMSCRIPTEN_DISABLED_WARNINGS
+    EMSCRIPTEN_DISABLED_WARNINGS +
+    ["-Wno-dollar-in-identifier-extension"]
     # Note: Not enabling -Werror for Emscripten to avoid build failures from third-party code
 )
 

@@ -10,6 +10,7 @@
 #include <cmath>
 #include <cstring>
 #include <fstream>
+#include <limits>
 
 // stb_image for texture loading (implementation in core/stb_impl.cpp)
 // Note: STBI_NO_STDIO is defined, so we must use stbi_load_from_memory
@@ -210,11 +211,20 @@ bool TerrainTextures::loadAlbedo(const std::filesystem::path& path) {
         return false;
     }
     
-    auto fileSize = file.tellg();
+    const auto fileSize = file.tellg();
+    if (fileSize <= 0
+        || fileSize > std::numeric_limits<std::streamsize>::max()
+        || fileSize > std::numeric_limits<int>::max()) {
+        LOG_ERROR("Albedo texture file is empty or too large: {}",
+                  path.string());
+        return false;
+    }
     file.seekg(0, std::ios::beg);
-    
-    std::vector<uint8_t> fileData(static_cast<size_t>(fileSize));
-    if (!file.read(reinterpret_cast<char*>(fileData.data()), fileSize)) {
+
+    const size_t byteCount = static_cast<size_t>(fileSize);
+    std::vector<uint8_t> fileData(byteCount);
+    if (!file.read(reinterpret_cast<char*>(fileData.data()),
+                   static_cast<std::streamsize>(fileSize))) {
         LOG_ERROR("Failed to read albedo texture file: {}", path.string());
         return false;
     }
@@ -248,11 +258,20 @@ bool TerrainTextures::loadLightmap(const std::filesystem::path& path) {
         return false;
     }
     
-    auto fileSize = file.tellg();
+    const auto fileSize = file.tellg();
+    if (fileSize <= 0
+        || fileSize > std::numeric_limits<std::streamsize>::max()
+        || fileSize > std::numeric_limits<int>::max()) {
+        LOG_ERROR("Lightmap texture file is empty or too large: {}",
+                  path.string());
+        return false;
+    }
     file.seekg(0, std::ios::beg);
-    
-    std::vector<uint8_t> fileData(static_cast<size_t>(fileSize));
-    if (!file.read(reinterpret_cast<char*>(fileData.data()), fileSize)) {
+
+    const size_t byteCount = static_cast<size_t>(fileSize);
+    std::vector<uint8_t> fileData(byteCount);
+    if (!file.read(reinterpret_cast<char*>(fileData.data()),
+                   static_cast<std::streamsize>(fileSize))) {
         LOG_ERROR("Failed to read lightmap texture file: {}", path.string());
         return false;
     }

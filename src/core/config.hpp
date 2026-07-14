@@ -64,6 +64,17 @@ struct WaterConfig {
     [[nodiscard]] constexpr auto operator<=>(const WaterConfig&) const = default;
 };
 
+struct PhysicsConfig {
+    std::string backend = "webgpu";
+    int gpuMaxBodies = 131072;
+    bool allowCpuFallback = true;
+    std::string joltJobSystem = "single_threaded";
+    int joltWorkerThreads = 0; // 0 lets Jolt choose in thread-pool mode.
+    int box3dWorkerThreads = 1;
+
+    [[nodiscard]] constexpr auto operator<=>(const PhysicsConfig&) const = default;
+};
+
 struct CameraConfig {
     float fov = 60.0f;                  // Field of view (degrees)
     float nearPlane = 0.1f;             // Near clipping plane
@@ -122,6 +133,7 @@ struct Config {
     RenderConfig render;
     TerrainConfig terrain;
     WaterConfig water;
+    PhysicsConfig physics;
     CameraConfig camera;
     LightingConfig lighting;
     DebugConfig debug;
@@ -139,6 +151,12 @@ struct CommandLineArgs {
     std::string configPath = "voxy.cfg";
     std::optional<std::string> renderPath;
     std::optional<std::string> heightmap;
+    std::optional<std::string> physicsBackend;
+    std::optional<int> gpuMaxBodies;
+    std::optional<bool> physicsCpuFallback;
+    std::optional<std::string> joltJobSystem;
+    std::optional<int> joltWorkerThreads;
+    std::optional<int> box3dWorkerThreads;
     std::optional<int> width;
     std::optional<int> height;
     bool fullscreen = false;

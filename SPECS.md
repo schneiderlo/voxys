@@ -31,7 +31,9 @@
 | [Shader Specifications](specs/shader-specifications.md) | WGSL shader source for all rendering stages, shared structures, bindings | Draft |
 | [Virtual File System](specs/virtual-filesystem.md) | Cross-platform file abstraction, mount points, Native/Emscripten backends, async support | Draft |
 | [SVO Architecture](specs/svo-architecture.md) | Sparse Voxel Octree data structures, memory layout, traversal algorithms, and shader logic | Draft |
-| [GPU Physics and Distributed World Plan](specs/gpu-physics-distributed-world-implementation-plan.md) | Self-contained architecture and staged implementation plan for Box3D-inspired GPU physics, determinism, direct rendering, replay, server authority, rollback, procedural chunks, and distributed physics islands | Proposed |
+| [GPU Physics and Distributed World Plan](specs/gpu-physics-distributed-world-implementation-plan.md) | Architecture and implementation record for GPU physics, determinism, direct rendering, replay, server authority, rollback, procedural chunks, and distributed physics islands | Integration snapshot; [remaining work](docs/gpu-physics-remaining-work.md) |
+| [Physics Baseline Report](docs/physics-baseline.md) | Reproducible Phase 0/1 CPU environment, commands, measurements, and Jolt/Box3D correctness differences | Active |
+| [Product Vertical Slices](docs/product-vertical-slices.md) | Deterministic Demolition League, Deadweight, and Wreckwater validation loops plus the human playtest decision gate | Active |
 
 ## Implementation Plan
 
