@@ -393,9 +393,14 @@ public:
 
     bool encode(WGPUCommandEncoder encoder) {
         if (!encoder || !input_.valid()) return false;
+        // At most one sleep/wake event can be emitted per body in a tick.
+        // Keep the allocated event buffer at the configured maximum, but only
+        // clear and expose the portion reachable by this sparse body view.
+        const uint32_t eventCapacity = std::min(
+            config_.eventCapacity, input_.bodyCapacity);
         Params params;
         params.capacities = {input_.bodyCapacity, input_.contactCapacity,
-                             config_.eventCapacity, config_.workgroupSize};
+                             eventCapacity, config_.workgroupSize};
         params.control = {config_.unionRounds, config_.sleepTicks, 0u, 0u};
         const float cellsPerSectorValue =
             kWorldSectorSize / config_.sleepingCellSize;
@@ -454,7 +459,7 @@ public:
             (input_.bodyCapacity + config_.workgroupSize - 1u)
             / config_.workgroupSize;
         const uint32_t eventGroups =
-            (config_.eventCapacity + config_.workgroupSize - 1u)
+            (eventCapacity + config_.workgroupSize - 1u)
             / config_.workgroupSize;
         WGPUComputePassDescriptor passDesc{};
         WGPUComputePassEncoder pass =

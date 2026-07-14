@@ -127,6 +127,42 @@ protected:
     PhysicsWorld world;
 };
 
+TEST_F(GpuPhysicsTest, RenderViewTracksSparseBodyRange) {
+    const PhysicsRenderView empty = world.renderView();
+    EXPECT_FALSE(empty.valid());
+    EXPECT_EQ(empty.residentBodyCapacity, 0u);
+    // Empty ticks still advance the device-side tick used by later commands.
+    stepTicks(2u);
+
+    const BodyHandle first = world.spawnBody({});
+    const BodyHandle second = world.spawnBody({});
+    ASSERT_TRUE(first.valid());
+    ASSERT_TRUE(second.valid());
+    EXPECT_EQ(first.index, 1u);
+    EXPECT_EQ(second.index, 2u);
+    stepTicks(1u);
+    EXPECT_EQ(world.renderView().residentBodyCapacity, 3u);
+    const auto spawned = snapshotRange(first.index, 2u);
+    ASSERT_TRUE(spawned.has_value());
+    ASSERT_EQ(spawned->bodies.size(), 2u);
+    EXPECT_TRUE(spawned->bodies[0].alive);
+    EXPECT_TRUE(spawned->bodies[1].alive);
+
+    ASSERT_TRUE(world.destroyBody(second));
+    stepTicks(1u);
+    EXPECT_EQ(world.renderView().residentBodyCapacity, 2u);
+
+    ASSERT_TRUE(world.destroyBody(first));
+    stepTicks(1u);
+    EXPECT_FALSE(world.renderView().valid());
+    EXPECT_EQ(world.renderView().residentBodyCapacity, 0u);
+
+    const BodyHandle recycled = world.spawnBody({});
+    ASSERT_TRUE(recycled.valid());
+    EXPECT_EQ(recycled.index, 1u);
+    EXPECT_EQ(world.renderView().residentBodyCapacity, 2u);
+}
+
 TEST_F(GpuPhysicsTest, IntegratesPersistentBodyAndReadsItAsynchronously) {
     BodySpawnDesc desc;
     desc.shape = ThrowableShape::Box;
@@ -156,7 +192,7 @@ TEST_F(GpuPhysicsTest, IntegratesPersistentBodyAndReadsItAsynchronously) {
 
     const PhysicsRenderView view = world.renderView();
     EXPECT_TRUE(view.valid());
-    EXPECT_EQ(view.residentBodyCapacity, 1'024u);
+    EXPECT_EQ(view.residentBodyCapacity, 2u);
     EXPECT_EQ(world.dynamicBodies().size(), 1u);
     EXPECT_EQ(world.lastDynamicBodyReadStats().lockedBodyCount, 0u);
 }

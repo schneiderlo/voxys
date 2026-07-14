@@ -18,13 +18,17 @@ There is no immediate sector-integration blocker.
   readback instead of treating application startup as physics evidence.
 - Native Jolt now defaults to its automatic multithreaded worker pool. The
   no-pthreads WASM build keeps browser CPU fallbacks single-threaded.
+- Sparse WebGPU worlds now dispatch over the allocated high-water range rather
+  than all 131,072 reserved slots. Empty worlds skip the body pipeline and
+  expose no physics instances to render culling; released top slots shrink the
+  range again at their tick boundary.
 
 ## Current automated evidence
 
 Native GPU evidence was collected on Linux with an integrated Radeon 890M.
 Browser evidence used headless Chromium with its SwiftShader WebGPU adapter:
 
-- Native CMake: all 810 enabled tests pass. Four application GPU tests remain
+- Native CMake: all 811 enabled tests pass. Four application GPU tests remain
   intentionally disabled.
 - Native Bazel: `//:voxy_native` builds. All 56 non-manual test targets pass
   when invoked individually; the targets affected by the final configuration
@@ -39,6 +43,10 @@ Browser evidence used headless Chromium with its SwiftShader WebGPU adapter:
 - Dynamic solver benchmark: 100,000 bodies and 50,000 contacts, 5.751 ms p95.
 - Full sparse pipeline sample: 100,000 bodies, 24.869 ms p95. This was measured
   on an integrated GPU, with no terrain and zero generated body pairs.
+- Full native application, with the product 131,072-slot WebGPU configuration
+  and no thrown bodies: 300.0 FPS over 1,500 frames. Scenario p95 frame times
+  were 1.69-3.29 ms, and physics primitive culling measured 0.00 ms. This is a
+  local Vulkan result, not a substitute for the deployed-browser retest.
 
 The 16.667 ms static and dynamic phase gates pass on this adapter. The sparse
 pipeline result is diagnostic only; it is not the plan's discrete-GPU
@@ -59,6 +67,9 @@ acceptance scene.
   this is distinct from test assertions, and individual targets pass.
 - Refresh the machine-readable GPU and multithreaded-Jolt benchmark snapshots
   on the final target hardware after the composed fixture is fixed.
+- Re-run the deployed Chromium build on the hardware that reported 10 FPS and
+  compare the same camera/configuration against single-threaded Jolt. Capture
+  browser GPU stage timings if the sparse empty-world path is still slower.
 
 ## Human gates
 

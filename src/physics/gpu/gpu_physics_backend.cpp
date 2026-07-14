@@ -384,7 +384,7 @@ public:
             .poseBuffer = poseBuffer_,
             .shapeBuffer = shapeBuffer_,
             .metadataBuffer = metadataBuffer_,
-            .bodyCapacity = bodyCapacity_,
+            .bodyCapacity = 1u,
         });
 
         GpuNarrowPhase::Config narrowConfig;
@@ -404,7 +404,7 @@ public:
             .shapeBuffer = shapeBuffer_,
             .uniquePairBuffer = broadPhase_.uniquePairs(),
             .broadPhaseTelemetryBuffer = broadPhase_.telemetryBuffer(),
-            .bodyCapacity = bodyCapacity_,
+            .bodyCapacity = 1u,
             .pairCapacity = pairCapacity_,
             .metadataBuffer = metadataBuffer_,
         });
@@ -458,7 +458,7 @@ public:
             .poseBuffer = poseBuffer_,
             .shapeBuffer = shapeBuffer_,
             .metadataBuffer = metadataBuffer_,
-            .bodyCapacity = bodyCapacity_,
+            .bodyCapacity = 1u,
         });
 
         const uint64_t maximumEvents = uint64_t{manifoldCapacity_} * 3u
@@ -479,17 +479,7 @@ public:
             shutdown();
             return false;
         }
-        eventReadback_.setSources({
-            .contactEvents = broadPhase_.contactEvents(),
-            .contactTelemetry = broadPhase_.telemetryBuffer(),
-            .contactCapacity = broadPhase_.contactCapacity(),
-            .islandEvents = islandManager_.events(),
-            .islandTelemetry = islandManager_.telemetryBuffer(),
-            .islandEventCapacity = bodyCapacity_,
-            .manifolds = narrowPhase_.manifolds(),
-            .narrowPhaseTelemetry = narrowPhase_.telemetryBuffer(),
-            .manifoldCapacity = manifoldCapacity_,
-        });
+        refreshEventSources(1u);
 
         if (config_.enableStageProfiling) {
             if (!std::isfinite(
@@ -968,7 +958,20 @@ public:
         refreshCcdInput();
     }
 
-    void refreshCcdInput() {
+    [[nodiscard]] uint32_t executionBodyCount() const noexcept {
+        if (bodyCapacity_ == 0u) return 0u;
+        uint32_t count = std::clamp(nextUnusedIndex_, 1u, bodyCapacity_);
+        if (debugRequest_) {
+            const uint64_t debugEnd = uint64_t{debugRequest_->firstBody}
+                                    + debugRequest_->bodyCount;
+            count = std::max(count, static_cast<uint32_t>(std::min(
+                debugEnd, uint64_t{bodyCapacity_})));
+        }
+        return count;
+    }
+
+    void refreshCcdInput(uint32_t executionBodies = 0u) {
+        if (executionBodies == 0u) executionBodies = executionBodyCount();
         if (!terrainAttached_) {
             ccd_.setInput({});
             return;
@@ -979,7 +982,7 @@ public:
             .shapeBuffer = shapeBuffer_,
             .metadataBuffer = metadataBuffer_,
             .terrainTexture = terrainBindingView(),
-            .bodyCapacity = bodyCapacity_,
+            .bodyCapacity = executionBodies,
             .terrainWidth = terrainWidth_,
             .terrainHeight = terrainHeight_,
             .terrainHeightScale = terrainHeightScale_,
@@ -988,7 +991,8 @@ public:
         });
     }
 
-    void refreshContactInputs() {
+    void refreshContactInputs(uint32_t executionBodies = 0u) {
+        if (executionBodies == 0u) executionBodies = executionBodyCount();
         const WGPUBuffer manifolds = narrowPhase_.manifolds();
         dynamicSolver_.setInput({
             .poseBuffer = poseBuffer_,
@@ -997,7 +1001,7 @@ public:
             .metadataBuffer = metadataBuffer_,
             .manifoldBuffer = manifolds,
             .narrowPhaseTelemetryBuffer = narrowPhase_.telemetryBuffer(),
-            .bodyCapacity = bodyCapacity_,
+            .bodyCapacity = executionBodies,
             .contactCapacity = contactCapacity_,
         });
         islandManager_.setInput({
@@ -1006,9 +1010,50 @@ public:
             .metadataBuffer = metadataBuffer_,
             .manifoldBuffer = manifolds,
             .narrowPhaseTelemetryBuffer = narrowPhase_.telemetryBuffer(),
-            .bodyCapacity = bodyCapacity_,
+            .bodyCapacity = executionBodies,
             .contactCapacity = contactCapacity_,
         });
+    }
+
+    void refreshEventSources(uint32_t executionBodies) {
+        eventReadback_.setSources({
+            .contactEvents = broadPhase_.contactEvents(),
+            .contactTelemetry = broadPhase_.telemetryBuffer(),
+            .contactCapacity = broadPhase_.contactCapacity(),
+            .islandEvents = islandManager_.events(),
+            .islandTelemetry = islandManager_.telemetryBuffer(),
+            .islandEventCapacity = executionBodies,
+            .manifolds = narrowPhase_.manifolds(),
+            .narrowPhaseTelemetry = narrowPhase_.telemetryBuffer(),
+            .manifoldCapacity = manifoldCapacity_,
+        });
+    }
+
+    void refreshExecutionInputs(uint32_t executionBodies) {
+        broadPhase_.setBodyView({
+            .poseBuffer = poseBuffer_,
+            .shapeBuffer = shapeBuffer_,
+            .metadataBuffer = metadataBuffer_,
+            .bodyCapacity = executionBodies,
+        });
+        narrowPhase_.setInput({
+            .poseBuffer = poseBuffer_,
+            .shapeBuffer = shapeBuffer_,
+            .uniquePairBuffer = broadPhase_.uniquePairs(),
+            .broadPhaseTelemetryBuffer = broadPhase_.telemetryBuffer(),
+            .bodyCapacity = executionBodies,
+            .pairCapacity = pairCapacity_,
+            .metadataBuffer = metadataBuffer_,
+        });
+        querySystem_.setBodyView({
+            .poseBuffer = poseBuffer_,
+            .shapeBuffer = shapeBuffer_,
+            .metadataBuffer = metadataBuffer_,
+            .bodyCapacity = executionBodies,
+        });
+        refreshCcdInput(executionBodies);
+        refreshContactInputs(executionBodies);
+        refreshEventSources(executionBodies);
     }
 
     BodyHandle spawn(const BodySpawnDesc& requested) {
@@ -1410,6 +1455,18 @@ public:
                 uint64_t{upload.size()} * sizeof(GpuCommand);
         }
 
+        uint32_t executionBodies = executionBodyCount();
+        for (const GpuCommand& command : upload) {
+            executionBodies = std::max(
+                executionBodies,
+                std::min(command.header.y + 1u, bodyCapacity_));
+        }
+        const uint32_t executionBlocks =
+            (executionBodies + kWorkgroupSize - 1u) / kWorkgroupSize;
+        const bool executeBodyPipeline = residentBodies_ != 0u
+            || !upload.empty() || !pendingFrees_.empty();
+        refreshExecutionInputs(executionBodies);
+
         SimulationUniforms uniforms;
         uniforms.gravityAndDt = glm::vec4(config_.gravity,
                                            config_.fixedTickSeconds);
@@ -1417,13 +1474,13 @@ public:
             config_.linearDamping, config_.angularDamping,
             config_.maximumLinearSpeed, config_.maximumAngularSpeed);
         uniforms.counts = glm::uvec4(
-            bodyCapacity_, static_cast<uint32_t>(upload.size()),
-            blockCount_, config_.substeps);
+            executionBodies, static_cast<uint32_t>(upload.size()),
+            executionBlocks, config_.substeps);
         if (debugRequest_) {
             uniforms.debugRange = glm::uvec4(
                 debugRequest_->firstBody, debugRequest_->bodyCount, 0u, 0u);
         }
-        uniforms.debugRange.z = activeCapacity_;
+        uniforms.debugRange.z = std::min(activeCapacity_, executionBodies);
         const glm::vec2 terrainOrigin = terrain_topology::centeredOrigin(
             terrainWidth_, terrainHeight_, terrainCellScale_);
         uniforms.terrainOriginCellHeight = glm::vec4(
@@ -1475,84 +1532,81 @@ public:
                 pass, 0, commandBindGroup_, 0, nullptr);
             wgpuComputePassEncoderDispatchWorkgroups(pass, 1, 1, 1);
 
-            wgpuComputePassEncoderSetPipeline(pass, compactBlocksPipeline_);
-            wgpuComputePassEncoderSetBindGroup(
-                pass, 0, compactBindGroup_, 0, nullptr);
-            wgpuComputePassEncoderDispatchWorkgroups(pass, blockCount_, 1, 1);
-            wgpuComputePassEncoderSetPipeline(pass, scanBlocksPipeline_);
-            wgpuComputePassEncoderDispatchWorkgroups(pass, 1, 1, 1);
-            wgpuComputePassEncoderSetPipeline(pass, scatterActivePipeline_);
-            wgpuComputePassEncoderDispatchWorkgroups(pass, blockCount_, 1, 1);
+            if (executeBodyPipeline) {
+                wgpuComputePassEncoderSetPipeline(pass, compactBlocksPipeline_);
+                wgpuComputePassEncoderSetBindGroup(
+                    pass, 0, compactBindGroup_, 0, nullptr);
+                wgpuComputePassEncoderDispatchWorkgroups(
+                    pass, executionBlocks, 1, 1);
+                wgpuComputePassEncoderSetPipeline(pass, scanBlocksPipeline_);
+                wgpuComputePassEncoderDispatchWorkgroups(pass, 1, 1, 1);
+                wgpuComputePassEncoderSetPipeline(pass, scatterActivePipeline_);
+                wgpuComputePassEncoderDispatchWorkgroups(
+                    pass, executionBlocks, 1, 1);
+            }
             wgpuComputePassEncoderEnd(pass);
             wgpuComputePassEncoderRelease(pass);
             writeStageTimestamp();
 
-            if (terrainAttached_ && !ccd_.encode(
+            if (executeBodyPipeline && terrainAttached_ && !ccd_.encode(
                     encoder, config_.fixedTickSeconds)) {
                 LOG_WARN("Failed to encode GPU CCD pass");
             }
             writeStageTimestamp();
 
-            pass = wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
-            wgpuComputePassEncoderSetPipeline(pass, preparePipeline_);
-            wgpuComputePassEncoderSetBindGroup(
-                pass, 0, integrateBindGroup_, 0, nullptr);
-            wgpuComputePassEncoderDispatchWorkgroups(
-                pass, (activeCapacity_ + kWorkgroupSize - 1u)
-                    / kWorkgroupSize, 1, 1);
-            wgpuComputePassEncoderEnd(pass);
-            wgpuComputePassEncoderRelease(pass);
+            if (executeBodyPipeline) {
+                pass = wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
+                wgpuComputePassEncoderSetPipeline(pass, preparePipeline_);
+                wgpuComputePassEncoderSetBindGroup(
+                    pass, 0, integrateBindGroup_, 0, nullptr);
+                wgpuComputePassEncoderDispatchWorkgroups(
+                    pass, executionBlocks, 1, 1);
+                wgpuComputePassEncoderEnd(pass);
+                wgpuComputePassEncoderRelease(pass);
+            }
             writeStageTimestamp();
 
             const bool dynamicContactsEnabled =
                 config_.enableBodyBodyContacts;
-            const bool broadPhaseEncoded = !dynamicContactsEnabled
-                || broadPhase_.encode(encoder);
+            const bool broadPhaseEncoded = !executeBodyPipeline
+                || !dynamicContactsEnabled || broadPhase_.encode(encoder);
             writeStageTimestamp();
             const bool narrowPhaseEncoded = broadPhaseEncoded
-                && (!dynamicContactsEnabled || narrowPhase_.encode(encoder));
+                && (!executeBodyPipeline || !dynamicContactsEnabled
+                    || narrowPhase_.encode(encoder));
             writeStageTimestamp();
-            if (dynamicContactsEnabled && narrowPhaseEncoded) {
-                refreshContactInputs();
+            if (executeBodyPipeline && dynamicContactsEnabled
+                && narrowPhaseEncoded) {
+                refreshContactInputs(executionBodies);
                 // Narrow-phase manifolds ping-pong every tick. Keep event
                 // packing on the just-produced buffer as well.
-                eventReadback_.setSources({
-                    .contactEvents = broadPhase_.contactEvents(),
-                    .contactTelemetry = broadPhase_.telemetryBuffer(),
-                    .contactCapacity = broadPhase_.contactCapacity(),
-                    .islandEvents = islandManager_.events(),
-                    .islandTelemetry = islandManager_.telemetryBuffer(),
-                    .islandEventCapacity = bodyCapacity_,
-                    .manifolds = narrowPhase_.manifolds(),
-                    .narrowPhaseTelemetry = narrowPhase_.telemetryBuffer(),
-                    .manifoldCapacity = manifoldCapacity_,
-                });
+                refreshEventSources(executionBodies);
             }
             // Even without body-body contacts, the dynamic solver owns pose
             // integration. Its contact count remains zero when broad and
             // narrow phase are disabled.
-            const bool dynamicWorldEncoded = narrowPhaseEncoded
-                && dynamicSolver_.encode(encoder);
-            if (!dynamicWorldEncoded) {
+            const bool dynamicWorldEncoded = !executeBodyPipeline
+                || (narrowPhaseEncoded && dynamicSolver_.encode(encoder));
+            if (executeBodyPipeline && !dynamicWorldEncoded) {
                 LOG_ERROR("Failed to encode a GPU dynamic-world stage");
             }
             writeStageTimestamp();
 
-            if (terrainAttached_ || terrainStateNeedsClear_) {
+            if (executeBodyPipeline
+                && (terrainAttached_ || terrainStateNeedsClear_)) {
                 pass = wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
                 wgpuComputePassEncoderSetPipeline(pass, staticContactPipeline_);
                 wgpuComputePassEncoderSetBindGroup(
                     pass, 0, integrateBindGroup_, 0, nullptr);
                 wgpuComputePassEncoderDispatchWorkgroups(
-                    pass, (activeCapacity_ + kWorkgroupSize - 1u)
-                        / kWorkgroupSize, 1, 1);
+                    pass, executionBlocks, 1, 1);
                 wgpuComputePassEncoderEnd(pass);
                 wgpuComputePassEncoderRelease(pass);
                 terrainStateNeedsClear_ = false;
             }
             writeStageTimestamp();
 
-            if (!islandManager_.encode(encoder)) {
+            if (executeBodyPipeline && !islandManager_.encode(encoder)) {
                 LOG_ERROR("Failed to encode the GPU island stage");
             }
             writeStageTimestamp();
@@ -1665,6 +1719,12 @@ public:
                 ++it;
             }
         }
+        while (nextUnusedIndex_ > 1u) {
+            const uint32_t last = nextUnusedIndex_ - 1u;
+            if (hostAlive_[last] || !freeIndices_.contains(last)) break;
+            freeIndices_.erase(last);
+            --nextUnusedIndex_;
+        }
 
         if (debugRequest_) {
             const size_t bytes = size_t{debugRequest_->bodyCount} * kGpuBodyBytes;
@@ -1754,7 +1814,8 @@ public:
             .shapeBuffer = shapeBuffer_,
             .metadataBuffer = metadataBuffer_,
             .activeBodyIds = activeIdsBuffer_,
-            .residentBodyCapacity = bodyCapacity_,
+            .residentBodyCapacity = residentBodies_ == 0u
+                ? 0u : nextUnusedIndex_,
             .shapeCount = static_cast<uint32_t>(ThrowableShape::Count),
         };
     }
