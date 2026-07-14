@@ -144,7 +144,7 @@ struct ApplicationConfig {
     double gpuPhysicsTimestampPeriodNanoseconds = 1.0;
     bool physicsCpuFallback = true;
     physics::JoltJobSystemMode joltJobSystem =
-        physics::JoltJobSystemMode::SingleThreaded;
+        physics::JoltJobSystemMode::ThreadPool;
     uint32_t joltWorkerThreads = 0;
     uint32_t box3dWorkerThreads = 1;
 
@@ -423,6 +423,14 @@ public:
     [[nodiscard]] terrain::Heightmap* getHeightmap() noexcept { return heightmap_.get(); }
     [[nodiscard]] const terrain::Heightmap* getHeightmap() const noexcept { return heightmap_.get(); }
 
+    /// Get the physics world.
+    [[nodiscard]] physics::PhysicsWorld* getPhysicsWorld() noexcept {
+        return physicsWorld_.get();
+    }
+    [[nodiscard]] const physics::PhysicsWorld* getPhysicsWorld() const noexcept {
+        return physicsWorld_.get();
+    }
+
 private:
     // ─────────────────────────────────────────────────────────────────────────
     // Initialization Helpers
@@ -531,6 +539,7 @@ private:
         glm::vec3 position;
         float yaw;
         float pitch;
+        glm::ivec3 sector{0};
     };
     std::vector<CameraState> recordedPositions_;
 

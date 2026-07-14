@@ -73,7 +73,8 @@ public:
                 WGPUTextureView depthView, const glm::mat4& view,
                 const glm::mat4& projection, const glm::vec3& cameraPosition,
                 const glm::vec3& lightDirection, uint32_t width, uint32_t height,
-                bool useRayDepth);
+                bool useRayDepth,
+                const glm::ivec3& cameraSector = glm::ivec3(0));
 
 private:
     struct DrawRange {

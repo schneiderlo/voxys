@@ -1,5 +1,8 @@
 const SHAPE_COUNT : u32 = 5u;
 const WORKGROUP_SIZE : u32 = 256u;
+const BODY_ALIVE : u32 = 1u << 20u;
+const WORLD_SECTOR_SIZE : f32 = 256.0;
+const INVALID_SECTOR_DELTA : i32 = 2147483647;
 
 struct BodyPose {
     position_invMass : vec4<f32>,
@@ -22,6 +25,7 @@ struct IndirectDrawArgs {
 struct CullUniforms {
     planes : array<vec4<f32>, 6>,
     counts : vec4<u32>,
+    cameraSector : vec4<i32>,
 };
 
 @group(0) @binding(0) var<storage, read> poses : array<BodyPose>;
@@ -33,10 +37,50 @@ struct CullUniforms {
 @group(0) @binding(6) var<storage, read_write> visibleBodyIds : array<u32>;
 @group(0) @binding(7) var<storage, read_write> indirectArgs : array<IndirectDrawArgs>;
 @group(0) @binding(8) var<uniform> cull : CullUniforms;
+@group(0) @binding(9) var<storage, read> metadata : array<vec4<i32>>;
+@group(0) @binding(10) var<storage, read_write> cameraRelativePoses : array<BodyPose>;
+
+fn bounded_sector_delta(reference : i32, other : i32,
+                        maximum : u32) -> i32 {
+    if (other >= reference) {
+        let wide = bitcast<u32>(other) - bitcast<u32>(reference);
+        if (wide > maximum) { return INVALID_SECTOR_DELTA; }
+        return i32(wide);
+    }
+    let wide = bitcast<u32>(reference) - bitcast<u32>(other);
+    if (wide > maximum) { return INVALID_SECTOR_DELTA; }
+    return -i32(wide);
+}
+
+@compute @workgroup_size(256)
+fn rebase_poses(@builtin(global_invocation_id) gid : vec3<u32>) {
+    let body = gid.x;
+    if (body >= cull.counts.x) { return; }
+    let source = poses[body];
+    let bodyMetadata = metadata[body];
+    let maximum = u32(max(cull.cameraSector.w, 0));
+    let delta = vec3<i32>(
+        bounded_sector_delta(cull.cameraSector.x, bodyMetadata.x, maximum),
+        bounded_sector_delta(cull.cameraSector.y, bodyMetadata.y, maximum),
+        bounded_sector_delta(cull.cameraSector.z, bodyMetadata.z, maximum));
+    let valid = all(delta != vec3<i32>(INVALID_SECTOR_DELTA))
+        && (u32(bodyMetadata.w) & BODY_ALIVE) != 0u;
+    var outputPose = source;
+    if (valid) {
+        outputPose.position_invMass = vec4<f32>(
+            source.position_invMass.xyz
+                + vec3<f32>(delta) * WORLD_SECTOR_SIZE,
+            source.position_invMass.w);
+    } else {
+        outputPose.position_invMass.w = -1.0;
+    }
+    cameraRelativePoses[body] = outputPose;
+}
 
 fn visible_shape(body : u32) -> u32 {
     if (body >= cull.counts.x) { return 0u; }
     let pose = poses[body];
+    if (pose.position_invMass.w < 0.0) { return 0u; }
     let shape = shapes[body];
     let dimensions = abs(shape.dimensions_type.xyz);
     if (max(dimensions.x, max(dimensions.y, dimensions.z)) <= 0.0) {

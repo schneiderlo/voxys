@@ -143,5 +143,54 @@ TEST(CpuCapsuleMover, RejectsSteepUpslopeAsAContactPlane) {
     EXPECT_LT(motion.position.x, -1.0f);
 }
 
+TEST(CpuCapsuleMover, CanonicalizesMovementAtLargeSectorBoundary) {
+    CpuCapsuleMoverWorld mover;
+    ASSERT_TRUE(mover.initialize());
+    const WorldPosition start{
+        .sector = {1'500'000, -7, 12},
+        .local = {127.75f, 3.0f, -4.0f},
+    };
+    const CharacterHandle character = mover.createCharacter(
+        start, CharacterSettings{});
+    ASSERT_NE(character, InvalidCharacter);
+
+    const CharacterMotion motion = mover.moveCharacter(
+        character, {4.0f, 0.0f, 0.0f}, false, 0.0f, 0.0f, 0.0f, 0.25f);
+    EXPECT_EQ(motion.sector, glm::ivec3(1'500'001, -7, 12));
+    EXPECT_FLOAT_EQ(motion.position.x, -127.25f);
+    EXPECT_FLOAT_EQ(motion.position.y, 3.0f);
+    EXPECT_FLOAT_EQ(motion.position.z, -4.0f);
+    EXPECT_TRUE(isValidWorldPosition({motion.sector, motion.position}));
+    const glm::dvec3 displacement = worldPositionToAbsolute(
+        {motion.sector, motion.position}) - worldPositionToAbsolute(start);
+    EXPECT_DOUBLE_EQ(displacement.x, 1.0);
+    EXPECT_DOUBLE_EQ(displacement.y, 0.0);
+    EXPECT_DOUBLE_EQ(displacement.z, 0.0);
+}
+
+TEST(CpuCapsuleMover, SamplesTerrainAcrossSectorBoundaryInLocalFrame) {
+    constexpr uint32_t width = 520;
+    constexpr uint32_t height = 4;
+    constexpr float heightScale = 10.0f;
+    std::vector<uint16_t> samples(
+        size_t{width} * height, rawHeight(0.0f, heightScale));
+    CpuCapsuleMoverWorld mover;
+    ASSERT_TRUE(mover.initialize());
+    ASSERT_TRUE(mover.setTerrain(
+        samples, width, height, heightScale, 1.0f));
+    const CharacterHandle character = mover.createCharacter(
+        WorldPosition{{0, 0, 0}, {127.75f, 0.0f, 0.0f}},
+        CharacterSettings{});
+    ASSERT_NE(character, InvalidCharacter);
+
+    const CharacterMotion motion = mover.moveCharacter(
+        character, {1.0f, 0.0f, 0.0f}, false, 0.0f,
+        20.0f, 50.0f, 0.5f);
+    EXPECT_TRUE(motion.grounded);
+    EXPECT_EQ(motion.sector, glm::ivec3(1, 0, 0));
+    EXPECT_NEAR(motion.position.x, -127.75f, 1e-5f);
+    EXPECT_NEAR(motion.position.y, 0.0f, 2e-4f);
+}
+
 } // namespace
 } // namespace voxy::physics

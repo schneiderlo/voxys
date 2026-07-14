@@ -12,6 +12,7 @@
 
 #include "camera/camera.hpp"
 #include "engine/platform/input.hpp"
+#include "physics/physics_types.hpp"
 
 #include <glm/glm.hpp>
 #include <functional>
@@ -201,6 +202,7 @@ public:
     
     /// Get current position (feet position)
     [[nodiscard]] glm::vec3 feetPosition() const noexcept;
+    [[nodiscard]] physics::WorldPosition feetWorldPosition() const noexcept;
     
     /// Get terrain height at current position
     [[nodiscard]] float terrainHeightAtPosition() const noexcept { return lastTerrainHeight_; }
@@ -291,6 +293,13 @@ inline glm::vec3 CharacterController::feetPosition() const noexcept {
     glm::vec3 pos = camera_->position();
     pos.y -= config_.groundOffset;
     return pos;
+}
+
+inline physics::WorldPosition
+CharacterController::feetWorldPosition() const noexcept {
+    return physics::canonicalWorldPosition(
+        camera_ ? camera_->worldSector() : glm::ivec3(0),
+        glm::dvec3(feetPosition()));
 }
 
 } // namespace voxy

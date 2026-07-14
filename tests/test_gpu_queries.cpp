@@ -2,6 +2,7 @@
 
 #include "gpu/context.hpp"
 #include "gpu/resources.hpp"
+#include "physics/gpu/gpu_body_metadata.hpp"
 #include "physics/gpu/gpu_queries.hpp"
 
 #include <array>
@@ -117,9 +118,9 @@ TEST(GpuAsyncQueries, SortsBatchesAndReportsOverflowWithoutBlockingPhysics) {
     }
     shapes[2].dimensionsType.w = 2.0f; // box
     shapes[3].dimensionsType = {1.0f, 2.0f, 1.0f, 3.0f}; // capsule
-    metadata[1].front() = 1u;
-    metadata[2].front() = 1u;
-    metadata[3].front() = 1u;
+    metadata[1][3] = packGpuBodyMetadata(1u, kGpuBodyAliveFlag);
+    metadata[2][3] = packGpuBodyMetadata(1u, kGpuBodyAliveFlag);
+    metadata[3][3] = packGpuBodyMetadata(1u, kGpuBodyAliveFlag);
 
     WGPUBuffer poseBuffer = makeStorage<TestPose>(
         context, poses, "query_test_poses");
@@ -177,7 +178,9 @@ TEST(GpuAsyncQueries, SortsBatchesAndReportsOverflowWithoutBlockingPhysics) {
         }
     }
 
-    for (uint32_t body = 1; body <= 20; ++body) metadata[body].front() = 1u;
+    for (uint32_t body = 1; body <= 20; ++body) {
+        metadata[body][3] = packGpuBodyMetadata(1u, kGpuBodyAliveFlag);
+    }
     gpu::writeBuffer(context.getQueue(), metadataBuffer, 0,
                      std::span<const TestMetadata>(metadata));
     GpuQueryRequest limited = makeRequest(
@@ -192,6 +195,70 @@ TEST(GpuAsyncQueries, SortsBatchesAndReportsOverflowWithoutBlockingPhysics) {
     EXPECT_EQ(second->outputs[0].hits[0].ids[1], 1u);
     EXPECT_EQ(second->outputs[0].hits[1].ids[1], 2u);
     EXPECT_GT(queries.allocatedBytes(), 0u);
+
+    queries.shutdown();
+    releaseBuffer(metadataBuffer);
+    releaseBuffer(shapeBuffer);
+    releaseBuffer(poseBuffer);
+}
+
+TEST(GpuAsyncQueries, CastsAcrossMultipleLargeWorldSectors) {
+    constexpr uint32_t bodyCapacity = 3;
+    constexpr int32_t querySectorX = 1'500'000;
+    gpu::Context context;
+    gpu::ContextConfig contextConfig;
+    contextConfig.enableValidation = false;
+    if (!context.initHeadless(contextConfig)) {
+        GTEST_SKIP() << "Headless WebGPU is unavailable";
+    }
+
+    std::array<TestPose, bodyCapacity> poses{};
+    std::array<TestShape, bodyCapacity> shapes{};
+    std::array<TestMetadata, bodyCapacity> metadata{};
+    poses[1].positionInvMass = {0.0f, 0.0f, 0.0f, 1.0f};
+    poses[2].positionInvMass = poses[1].positionInvMass;
+    shapes[1].dimensionsType = {1.0f, 1.0f, 1.0f, 0.0f};
+    shapes[2].dimensionsType = shapes[1].dimensionsType;
+    metadata[1] = {
+        static_cast<uint32_t>(querySectorX + 2), 0u, 0u,
+        packGpuBodyMetadata(1u, kGpuBodyAliveFlag),
+    };
+    metadata[2] = {
+        0u, 0u, 0u, packGpuBodyMetadata(1u, kGpuBodyAliveFlag),
+    };
+
+    WGPUBuffer poseBuffer = makeStorage<TestPose>(
+        context, poses, "long_query_poses");
+    WGPUBuffer shapeBuffer = makeStorage<TestShape>(
+        context, shapes, "long_query_shapes");
+    WGPUBuffer metadataBuffer = makeStorage<TestMetadata>(
+        context, metadata, "long_query_metadata");
+    ASSERT_NE(poseBuffer, nullptr);
+    ASSERT_NE(shapeBuffer, nullptr);
+    ASSERT_NE(metadataBuffer, nullptr);
+
+    GpuAsyncQuerySystem queries;
+    GpuAsyncQuerySystem::Config config;
+    config.bodyCapacity = bodyCapacity;
+    config.requestCapacity = 1;
+    ASSERT_TRUE(queries.initialize(
+        context.getDevice(), context.getQueue(), config));
+    queries.setBodyView({poseBuffer, shapeBuffer, metadataBuffer,
+                         bodyCapacity});
+    GpuQueryRequest request = makeRequest(
+        300u, GpuQueryType::RayCast, 4u);
+    request.directionDistance[3] = 600.0f;
+    request.sector = {querySectorX, 0, 0, 4};
+
+    const auto result = executeBatch(
+        context, queries, std::span<const GpuQueryRequest>(&request, 1), 90u);
+    ASSERT_TRUE(result.has_value());
+    ASSERT_EQ(result->outputs.size(), 1u);
+    ASSERT_EQ(result->outputs[0].header[1], 1u);
+    EXPECT_EQ(result->outputs[0].hits[0].ids[1], 1u);
+    EXPECT_NEAR(result->outputs[0].hits[0].metricDistance[1],
+                511.5f, 1e-4f);
+    EXPECT_NEAR(result->outputs[0].hits[0].point[0], 511.5f, 1e-4f);
 
     queries.shutdown();
     releaseBuffer(metadataBuffer);

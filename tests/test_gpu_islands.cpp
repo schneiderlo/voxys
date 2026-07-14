@@ -2,6 +2,7 @@
 
 #include "gpu/context.hpp"
 #include "gpu/resources.hpp"
+#include "physics/gpu/gpu_body_metadata.hpp"
 #include "physics/gpu/gpu_islands.hpp"
 #include "physics/gpu/gpu_narrow_phase.hpp"
 
@@ -9,6 +10,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
+#include <limits>
 #include <span>
 #include <vector>
 
@@ -41,6 +43,12 @@ struct alignas(16) TestMotion {
     glm::vec4 angularVelocityFlags{0.0f};
 };
 using TestMetadata = std::array<uint32_t, 4>;
+
+TestMetadata awakeMetadata(int32_t sectorX = 0) {
+    return {static_cast<uint32_t>(sectorX), 0u, 0u,
+            packGpuBodyMetadata(
+                1u, kGpuBodyAliveFlag | kGpuBodyAwakeFlag)};
+}
 
 struct IslandSnapshot {
     GpuIslandTelemetry telemetry;
@@ -166,6 +174,23 @@ IslandSnapshot runAndRead(gpu::Context& context, GpuIslandManager& manager,
 
 class GpuIslandTest : public ::testing::TestWithParam<uint32_t> {};
 
+TEST(GpuIslandSectorTest, RejectsCellSizeThatDoesNotDivideSector) {
+    gpu::Context context;
+    gpu::ContextConfig contextConfig;
+    contextConfig.enableValidation = false;
+    if (!context.initHeadless(contextConfig)) {
+        GTEST_SKIP() << "Headless WebGPU is unavailable";
+    }
+    GpuIslandManager islands;
+    GpuIslandManager::Config config;
+    config.bodyCapacity = 8;
+    config.contactCapacity = 8;
+    config.eventCapacity = 8;
+    config.sleepingCellSize = 3.0f;
+    EXPECT_FALSE(islands.initialize(
+        context.getDevice(), context.getQueue(), config));
+}
+
 TEST_P(GpuIslandTest, CompactsSleepsWakesAndMaintainsSleepingGrid) {
     constexpr uint32_t bodyCapacity = 32;
     constexpr uint32_t contactCapacity = 32;
@@ -181,15 +206,15 @@ TEST_P(GpuIslandTest, CompactsSleepsWakesAndMaintainsSleepingGrid) {
     std::vector<TestMotion> motions(bodyCapacity);
     std::vector<TestMetadata> metadata(bodyCapacity);
     std::vector<GpuContactManifold> manifolds(contactCapacity);
-    const auto addBody = [&](uint32_t body, float x) {
+    const auto addBody = [&](uint32_t body, float x, int32_t sectorX) {
         poses[body].positionInvMass = {x, 0.0f, 0.0f, 1.0f};
-        metadata[body] = {3u, 1u, 0u, 0u};
+        metadata[body] = awakeMetadata(sectorX);
     };
     for (uint32_t body = 1u; body <= 8u; ++body)
-        addBody(body, float(body));
+        addBody(body, float(body), 1'500'000);
     for (uint32_t body = 10u; body <= 12u; ++body)
-        addBody(body, float(body));
-    addBody(20u, 20.0f);
+        addBody(body, float(body), -1'500'000);
+    addBody(20u, 20.0f, std::numeric_limits<int32_t>::min());
     motions[11].linearVelocitySleep = {1.0f, 0.0f, 0.0f, 0.0f};
     uint32_t contactCount = 0;
     const auto addContact = [&](uint32_t bodyA, uint32_t bodyB) {
@@ -251,11 +276,11 @@ TEST_P(GpuIslandTest, CompactsSleepsWakesAndMaintainsSleepingGrid) {
     EXPECT_FALSE(snapshot.telemetry.gridOverflow);
     for (uint32_t body = 1u; body <= 8u; ++body) {
         EXPECT_EQ(snapshot.roots[body], 1u);
-        EXPECT_EQ(snapshot.metadata[body][0] & 2u, 0u);
+        EXPECT_EQ(snapshot.metadata[body][3] & kGpuBodyAwakeFlag, 0u);
     }
     for (uint32_t body = 10u; body <= 12u; ++body) {
         EXPECT_EQ(snapshot.roots[body], 10u);
-        EXPECT_NE(snapshot.metadata[body][0] & 2u, 0u);
+        EXPECT_NE(snapshot.metadata[body][3] & kGpuBodyAwakeFlag, 0u);
     }
     EXPECT_EQ(snapshot.roots[20], 20u);
     ASSERT_EQ(snapshot.events[0].rootBody, 1u);
@@ -263,7 +288,7 @@ TEST_P(GpuIslandTest, CompactsSleepsWakesAndMaintainsSleepingGrid) {
     ASSERT_EQ(snapshot.events[1].rootBody, 20u);
     ASSERT_EQ(snapshot.events[1].type, GpuIslandEventType::Sleep);
 
-    const TestMetadata wakeBody{3u, 1u, 0u, 0u};
+    const TestMetadata wakeBody = awakeMetadata(1'500'000);
     gpu::writeBuffer(context.getQueue(), metadataBuffer,
                      uint64_t{4u} * sizeof(TestMetadata), wakeBody);
     snapshot = runAndRead(
@@ -274,7 +299,7 @@ TEST_P(GpuIslandTest, CompactsSleepsWakesAndMaintainsSleepingGrid) {
     EXPECT_EQ(snapshot.events[0].type, GpuIslandEventType::Wake);
     EXPECT_EQ(snapshot.telemetry.sleepingBodies, 1u);
     for (uint32_t body = 1u; body <= 8u; ++body)
-        EXPECT_NE(snapshot.metadata[body][0] & 2u, 0u);
+        EXPECT_NE(snapshot.metadata[body][3] & kGpuBodyAwakeFlag, 0u);
 
     for (uint32_t tick = 0; tick < 3u; ++tick) {
         snapshot = runAndRead(

@@ -14,6 +14,9 @@
 namespace voxy::physics {
 
 inline constexpr uint32_t kGpuQueryMaximumHits = 16;
+// Keeps query-frame f32 coordinates within roughly one million metres while
+// still allowing explicit casts across thousands of world sectors.
+inline constexpr uint32_t kGpuQueryMaximumSectorDelta = 4096;
 
 enum class GpuQueryType : uint32_t {
     RayCast = 0,
@@ -31,7 +34,7 @@ struct alignas(16) GpuQueryRequest {
     std::array<float, 4> directionDistance{};
     // Capsule local axis xyz, w capsule half-height.
     std::array<float, 4> dimensions{};
-    // Query-frame world sector xyz, reserved.
+    // Query-frame world sector xyz, maximum body-sector delta.
     std::array<int32_t, 4> sector{};
 };
 

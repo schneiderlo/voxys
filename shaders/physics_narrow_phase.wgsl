@@ -1365,64 +1365,136 @@ fn build_manifold(pairRecord : KeyValue,
     return result;
 }
 
-fn generate_pair(pairRecord : KeyValue) -> CandidateSet {
-    let bodyA = pairRecord.keyHigh;
-    let bodyB = pairRecord.keyLow;
-    let categoryA = canonical_shape(shapes[bodyA].dimensions_type.w);
-    let categoryB = canonical_shape(shapes[bodyB].dimensions_type.w);
-    let pairClass = pairRecord.value & 255u;
-    if (pairClass == 0u) {
-        return collide_sphere_sphere(bodyA, bodyB, bodyA);
+fn class_pair_record(gid : vec3<u32>, pairClass : u32) -> KeyValue {
+    let localIndex = gid.x;
+    if (localIndex >= classTable[pairClass]) {
+        return KeyValue(0u, 0u, 0u, SENTINEL);
     }
-    if (pairClass == 1u) {
-        if (categoryA == 0u) {
-            return collide_sphere_capsule(bodyA, bodyB, bodyA);
-        }
-        return swap_candidates(collide_sphere_capsule(bodyB, bodyA, bodyA));
-    }
-    if (pairClass == 2u) {
-        return collide_capsule_capsule(bodyA, bodyB, bodyA);
-    }
-    if (pairClass == 3u) {
-        if (categoryA == 0u) {
-            return collide_sphere_box(bodyA, bodyB, bodyA);
-        }
-        return swap_candidates(collide_sphere_box(bodyB, bodyA, bodyA));
-    }
-    if (pairClass == 4u) {
-        if (categoryA == 1u) {
-            return collide_capsule_box(bodyA, bodyB, bodyA);
-        }
-        return swap_candidates(collide_capsule_box(bodyB, bodyA, bodyA));
-    }
-    if (pairClass == 5u) {
-        return collide_box_box(bodyA, bodyB, bodyA);
-    }
-    if (pairClass == 6u) {
-        if (categoryA == 0u) {
-            return collide_sphere_cylinder(bodyA, bodyB, bodyA);
-        }
-        return swap_candidates(collide_sphere_cylinder(bodyB, bodyA, bodyA));
-    }
-    if (pairClass == 7u) {
-        if (categoryA == 1u) {
-            return collide_capsule_cylinder(bodyA, bodyB, bodyA);
-        }
-        return swap_candidates(collide_capsule_cylinder(
-            bodyB, bodyA, bodyA));
-    }
-    return collide_polyhedra(
-        bodyA, categoryA, bodyB, categoryB, bodyA);
+    let bucketIndex = classTable[PAIR_CLASS_COUNT + pairClass] + localIndex;
+    return bucketedPairs[bucketIndex];
 }
 
-fn narrow_class_impl(gid : vec3<u32>, pairClass : u32) {
-    let localIndex = gid.x;
-    if (localIndex >= classTable[pairClass]) { return; }
-    let bucketIndex = classTable[PAIR_CLASS_COUNT + pairClass] + localIndex;
-    let pairRecord = bucketedPairs[bucketIndex];
+fn write_class_manifold(pairRecord : KeyValue, candidates : CandidateSet) {
     if (pairRecord.ordinal >= narrow.capacities.z) { return; }
     currentManifolds[pairRecord.ordinal] = build_manifold(
-        pairRecord, generate_pair(pairRecord));
+        pairRecord, candidates);
+}
+
+fn narrow_sphere_sphere_impl(gid : vec3<u32>) {
+    let pairRecord = class_pair_record(gid, 0u);
+    if (pairRecord.ordinal >= narrow.capacities.z) { return; }
+    write_class_manifold(pairRecord, collide_sphere_sphere(
+        pairRecord.keyHigh, pairRecord.keyLow, pairRecord.keyHigh));
+}
+
+fn narrow_sphere_capsule_impl(gid : vec3<u32>) {
+    let pairRecord = class_pair_record(gid, 1u);
+    if (pairRecord.ordinal >= narrow.capacities.z) { return; }
+    let bodyA = pairRecord.keyHigh;
+    let bodyB = pairRecord.keyLow;
+    if (canonical_shape(shapes[bodyA].dimensions_type.w) == 0u) {
+        write_class_manifold(pairRecord, collide_sphere_capsule(
+            bodyA, bodyB, bodyA));
+        return;
+    }
+    write_class_manifold(pairRecord, swap_candidates(
+        collide_sphere_capsule(bodyB, bodyA, bodyA)));
+}
+
+fn narrow_capsule_capsule_impl(gid : vec3<u32>) {
+    let pairRecord = class_pair_record(gid, 2u);
+    if (pairRecord.ordinal >= narrow.capacities.z) { return; }
+    write_class_manifold(pairRecord, collide_capsule_capsule(
+        pairRecord.keyHigh, pairRecord.keyLow, pairRecord.keyHigh));
+}
+
+fn narrow_sphere_box_impl(gid : vec3<u32>) {
+    let pairRecord = class_pair_record(gid, 3u);
+    if (pairRecord.ordinal >= narrow.capacities.z) { return; }
+    let bodyA = pairRecord.keyHigh;
+    let bodyB = pairRecord.keyLow;
+    if (canonical_shape(shapes[bodyA].dimensions_type.w) == 0u) {
+        write_class_manifold(pairRecord, collide_sphere_box(
+            bodyA, bodyB, bodyA));
+        return;
+    }
+    write_class_manifold(pairRecord, swap_candidates(
+        collide_sphere_box(bodyB, bodyA, bodyA)));
+}
+
+fn narrow_capsule_box_impl(gid : vec3<u32>) {
+    let pairRecord = class_pair_record(gid, 4u);
+    if (pairRecord.ordinal >= narrow.capacities.z) { return; }
+    let bodyA = pairRecord.keyHigh;
+    let bodyB = pairRecord.keyLow;
+    if (canonical_shape(shapes[bodyA].dimensions_type.w) == 1u) {
+        write_class_manifold(pairRecord, collide_capsule_box(
+            bodyA, bodyB, bodyA));
+        return;
+    }
+    write_class_manifold(pairRecord, swap_candidates(
+        collide_capsule_box(bodyB, bodyA, bodyA)));
+}
+
+fn narrow_box_box_impl(gid : vec3<u32>) {
+    let pairRecord = class_pair_record(gid, 5u);
+    if (pairRecord.ordinal >= narrow.capacities.z) { return; }
+    write_class_manifold(pairRecord, collide_box_box(
+        pairRecord.keyHigh, pairRecord.keyLow, pairRecord.keyHigh));
+}
+
+fn narrow_sphere_cylinder_impl(gid : vec3<u32>) {
+    let pairRecord = class_pair_record(gid, 6u);
+    if (pairRecord.ordinal >= narrow.capacities.z) { return; }
+    let bodyA = pairRecord.keyHigh;
+    let bodyB = pairRecord.keyLow;
+    if (canonical_shape(shapes[bodyA].dimensions_type.w) == 0u) {
+        write_class_manifold(pairRecord, collide_sphere_cylinder(
+            bodyA, bodyB, bodyA));
+        return;
+    }
+    write_class_manifold(pairRecord, swap_candidates(
+        collide_sphere_cylinder(bodyB, bodyA, bodyA)));
+}
+
+fn narrow_capsule_cylinder_impl(gid : vec3<u32>) {
+    let pairRecord = class_pair_record(gid, 7u);
+    if (pairRecord.ordinal >= narrow.capacities.z) { return; }
+    let bodyA = pairRecord.keyHigh;
+    let bodyB = pairRecord.keyLow;
+    if (canonical_shape(shapes[bodyA].dimensions_type.w) == 1u) {
+        write_class_manifold(pairRecord, collide_capsule_cylinder(
+            bodyA, bodyB, bodyA));
+        return;
+    }
+    write_class_manifold(pairRecord, swap_candidates(
+        collide_capsule_cylinder(bodyB, bodyA, bodyA)));
+}
+
+fn narrow_box_cylinder_impl(gid : vec3<u32>) {
+    let pairRecord = class_pair_record(gid, 8u);
+    if (pairRecord.ordinal >= narrow.capacities.z) { return; }
+    let bodyA = pairRecord.keyHigh;
+    let bodyB = pairRecord.keyLow;
+    write_class_manifold(pairRecord, collide_polyhedra(
+        bodyA,
+        canonical_shape(shapes[bodyA].dimensions_type.w),
+        bodyB,
+        canonical_shape(shapes[bodyB].dimensions_type.w),
+        bodyA));
+}
+
+fn narrow_cylinder_cylinder_impl(gid : vec3<u32>) {
+    let pairRecord = class_pair_record(gid, 9u);
+    if (pairRecord.ordinal >= narrow.capacities.z) { return; }
+    let bodyA = pairRecord.keyHigh;
+    let bodyB = pairRecord.keyLow;
+    write_class_manifold(pairRecord, collide_polyhedra(
+        bodyA,
+        canonical_shape(shapes[bodyA].dimensions_type.w),
+        bodyB,
+        canonical_shape(shapes[bodyB].dimensions_type.w),
+        bodyA));
 }
 
 @compute @workgroup_size(1)
@@ -1437,130 +1509,130 @@ fn finalize_narrow(@builtin(global_invocation_id) gid : vec3<u32>) {
 
 @compute @workgroup_size(64)
 fn narrow_sphere_sphere_64(@builtin(global_invocation_id) gid : vec3<u32>) {
-    narrow_class_impl(gid, 0u);
+    narrow_sphere_sphere_impl(gid);
 }
 @compute @workgroup_size(128)
 fn narrow_sphere_sphere_128(@builtin(global_invocation_id) gid : vec3<u32>) {
-    narrow_class_impl(gid, 0u);
+    narrow_sphere_sphere_impl(gid);
 }
 @compute @workgroup_size(256)
 fn narrow_sphere_sphere_256(@builtin(global_invocation_id) gid : vec3<u32>) {
-    narrow_class_impl(gid, 0u);
+    narrow_sphere_sphere_impl(gid);
 }
 
 @compute @workgroup_size(64)
 fn narrow_sphere_capsule_64(@builtin(global_invocation_id) gid : vec3<u32>) {
-    narrow_class_impl(gid, 1u);
+    narrow_sphere_capsule_impl(gid);
 }
 @compute @workgroup_size(128)
 fn narrow_sphere_capsule_128(@builtin(global_invocation_id) gid : vec3<u32>) {
-    narrow_class_impl(gid, 1u);
+    narrow_sphere_capsule_impl(gid);
 }
 @compute @workgroup_size(256)
 fn narrow_sphere_capsule_256(@builtin(global_invocation_id) gid : vec3<u32>) {
-    narrow_class_impl(gid, 1u);
+    narrow_sphere_capsule_impl(gid);
 }
 
 @compute @workgroup_size(64)
 fn narrow_capsule_capsule_64(@builtin(global_invocation_id) gid : vec3<u32>) {
-    narrow_class_impl(gid, 2u);
+    narrow_capsule_capsule_impl(gid);
 }
 @compute @workgroup_size(128)
 fn narrow_capsule_capsule_128(@builtin(global_invocation_id) gid : vec3<u32>) {
-    narrow_class_impl(gid, 2u);
+    narrow_capsule_capsule_impl(gid);
 }
 @compute @workgroup_size(256)
 fn narrow_capsule_capsule_256(@builtin(global_invocation_id) gid : vec3<u32>) {
-    narrow_class_impl(gid, 2u);
+    narrow_capsule_capsule_impl(gid);
 }
 
 @compute @workgroup_size(64)
 fn narrow_sphere_box_64(@builtin(global_invocation_id) gid : vec3<u32>) {
-    narrow_class_impl(gid, 3u);
+    narrow_sphere_box_impl(gid);
 }
 @compute @workgroup_size(128)
 fn narrow_sphere_box_128(@builtin(global_invocation_id) gid : vec3<u32>) {
-    narrow_class_impl(gid, 3u);
+    narrow_sphere_box_impl(gid);
 }
 @compute @workgroup_size(256)
 fn narrow_sphere_box_256(@builtin(global_invocation_id) gid : vec3<u32>) {
-    narrow_class_impl(gid, 3u);
+    narrow_sphere_box_impl(gid);
 }
 
 @compute @workgroup_size(64)
 fn narrow_capsule_box_64(@builtin(global_invocation_id) gid : vec3<u32>) {
-    narrow_class_impl(gid, 4u);
+    narrow_capsule_box_impl(gid);
 }
 @compute @workgroup_size(128)
 fn narrow_capsule_box_128(@builtin(global_invocation_id) gid : vec3<u32>) {
-    narrow_class_impl(gid, 4u);
+    narrow_capsule_box_impl(gid);
 }
 @compute @workgroup_size(256)
 fn narrow_capsule_box_256(@builtin(global_invocation_id) gid : vec3<u32>) {
-    narrow_class_impl(gid, 4u);
+    narrow_capsule_box_impl(gid);
 }
 
 @compute @workgroup_size(64)
 fn narrow_box_box_64(@builtin(global_invocation_id) gid : vec3<u32>) {
-    narrow_class_impl(gid, 5u);
+    narrow_box_box_impl(gid);
 }
 @compute @workgroup_size(128)
 fn narrow_box_box_128(@builtin(global_invocation_id) gid : vec3<u32>) {
-    narrow_class_impl(gid, 5u);
+    narrow_box_box_impl(gid);
 }
 @compute @workgroup_size(256)
 fn narrow_box_box_256(@builtin(global_invocation_id) gid : vec3<u32>) {
-    narrow_class_impl(gid, 5u);
+    narrow_box_box_impl(gid);
 }
 
 @compute @workgroup_size(64)
 fn narrow_sphere_cylinder_64(@builtin(global_invocation_id) gid : vec3<u32>) {
-    narrow_class_impl(gid, 6u);
+    narrow_sphere_cylinder_impl(gid);
 }
 @compute @workgroup_size(128)
 fn narrow_sphere_cylinder_128(@builtin(global_invocation_id) gid : vec3<u32>) {
-    narrow_class_impl(gid, 6u);
+    narrow_sphere_cylinder_impl(gid);
 }
 @compute @workgroup_size(256)
 fn narrow_sphere_cylinder_256(@builtin(global_invocation_id) gid : vec3<u32>) {
-    narrow_class_impl(gid, 6u);
+    narrow_sphere_cylinder_impl(gid);
 }
 
 @compute @workgroup_size(64)
 fn narrow_capsule_cylinder_64(@builtin(global_invocation_id) gid : vec3<u32>) {
-    narrow_class_impl(gid, 7u);
+    narrow_capsule_cylinder_impl(gid);
 }
 @compute @workgroup_size(128)
 fn narrow_capsule_cylinder_128(@builtin(global_invocation_id) gid : vec3<u32>) {
-    narrow_class_impl(gid, 7u);
+    narrow_capsule_cylinder_impl(gid);
 }
 @compute @workgroup_size(256)
 fn narrow_capsule_cylinder_256(@builtin(global_invocation_id) gid : vec3<u32>) {
-    narrow_class_impl(gid, 7u);
+    narrow_capsule_cylinder_impl(gid);
 }
 
 @compute @workgroup_size(64)
 fn narrow_box_cylinder_64(@builtin(global_invocation_id) gid : vec3<u32>) {
-    narrow_class_impl(gid, 8u);
+    narrow_box_cylinder_impl(gid);
 }
 @compute @workgroup_size(128)
 fn narrow_box_cylinder_128(@builtin(global_invocation_id) gid : vec3<u32>) {
-    narrow_class_impl(gid, 8u);
+    narrow_box_cylinder_impl(gid);
 }
 @compute @workgroup_size(256)
 fn narrow_box_cylinder_256(@builtin(global_invocation_id) gid : vec3<u32>) {
-    narrow_class_impl(gid, 8u);
+    narrow_box_cylinder_impl(gid);
 }
 
 @compute @workgroup_size(64)
 fn narrow_cylinder_cylinder_64(@builtin(global_invocation_id) gid : vec3<u32>) {
-    narrow_class_impl(gid, 9u);
+    narrow_cylinder_cylinder_impl(gid);
 }
 @compute @workgroup_size(128)
 fn narrow_cylinder_cylinder_128(@builtin(global_invocation_id) gid : vec3<u32>) {
-    narrow_class_impl(gid, 9u);
+    narrow_cylinder_cylinder_impl(gid);
 }
 @compute @workgroup_size(256)
 fn narrow_cylinder_cylinder_256(@builtin(global_invocation_id) gid : vec3<u32>) {
-    narrow_class_impl(gid, 9u);
+    narrow_cylinder_cylinder_impl(gid);
 }

@@ -92,6 +92,56 @@ TEST(FixedPoint, SaturatesRoundsAndUsesIntegerSquareRoot) {
     }
 }
 
+TEST(Lockstep, ExtremeSectorsDoNotAliasAndSaturateCanonically) {
+    LockstepWorld world;
+    LockstepWorld::Config config;
+    config.bodyCapacity = 4;
+    config.contactCapacity = 4;
+    config.substeps = 1;
+    config.solverIterations = 1;
+    config.gravityPerSubstepQ16 = 0;
+    ASSERT_TRUE(world.initialize(config));
+
+    std::array<LockstepBody, 4> distant{};
+    distant[1] = body(1u, 0.0f, 0.0f, 0.0f, 0.5f);
+    distant[2] = body(2u, 0.0f, 0.0f, 0.0f, 0.5f);
+    distant[1].sectorRadius[0] = std::numeric_limits<int32_t>::min();
+    distant[2].sectorRadius[0] = std::numeric_limits<int32_t>::max();
+    ASSERT_TRUE(world.setBodies(distant));
+    EXPECT_EQ(world.step(1u).contacts, 0u);
+
+    std::array<LockstepBody, 4> adjacent{};
+    adjacent[1] = body(1u, 127.75f, 0.0f, 0.0f, 0.5f);
+    adjacent[2] = body(2u, -127.75f, 0.0f, 0.0f, 0.5f);
+    adjacent[1].sectorRadius[0] = -1'500'000;
+    adjacent[2].sectorRadius[0] = -1'499'999;
+    ASSERT_TRUE(world.setBodies(adjacent));
+    // The solver resolves the overlap during the substep, so the final pair
+    // set is empty. The symmetric position correction proves the adjacent
+    // large-sector pair was processed.
+    EXPECT_EQ(world.step(2u).contacts, 0u);
+    EXPECT_LT(world.bodies()[1].positionInvMass[0], q12(127.75f));
+    EXPECT_GT(world.bodies()[2].positionInvMass[0], q12(-127.75f));
+
+    std::array<LockstepBody, 4> saturated{};
+    saturated[1] = body(
+        1u, 127.9f, 20.0f, 0.0f, 0.5f, 1000.0f, 0.0f, 0.0f);
+    saturated[2] = body(
+        2u, -127.9f, -20.0f, 0.0f, 0.5f, -1000.0f, 0.0f, 0.0f);
+    saturated[1].sectorRadius[0] = std::numeric_limits<int32_t>::max();
+    saturated[2].sectorRadius[0] = std::numeric_limits<int32_t>::min();
+    ASSERT_TRUE(world.setBodies(saturated));
+    static_cast<void>(world.step(3u));
+    EXPECT_EQ(world.bodies()[1].sectorRadius[0],
+              std::numeric_limits<int32_t>::max());
+    EXPECT_EQ(world.bodies()[1].positionInvMass[0],
+              kLockstepSectorHalf - 1);
+    EXPECT_EQ(world.bodies()[2].sectorRadius[0],
+              std::numeric_limits<int32_t>::min());
+    EXPECT_EQ(world.bodies()[2].positionInvMass[0],
+              -kLockstepSectorHalf);
+}
+
 TEST(Lockstep, CpuAndWgslProduceIdenticalStateTopologySolverAndHashes) {
     constexpr uint32_t bodyCapacity = 16;
     constexpr uint32_t contactCapacity = 32;
@@ -115,6 +165,20 @@ TEST(Lockstep, CpuAndWgslProduceIdenticalStateTopologySolverAndHashes) {
                       0.0f, 0.0f, 0.0f, true);
     initial[5] = body(5u, 3.0f, 1.0f, 0.0f, 0.6f,
                       -0.25f, 0.0f, 0.0f);
+    initial[6] = body(6u, 127.75f, 10.0f, 0.0f, 0.5f);
+    initial[7] = body(7u, -127.75f, 10.0f, 0.0f, 0.5f);
+    initial[6].sectorRadius[0] = 1'500'000;
+    initial[7].sectorRadius[0] = 1'500'001;
+    initial[9] = body(9u, 0.0f, 30.0f, 0.0f, 0.5f);
+    initial[10] = body(10u, 0.0f, 30.0f, 0.0f, 0.5f);
+    initial[9].sectorRadius[0] = std::numeric_limits<int32_t>::min();
+    initial[10].sectorRadius[0] = std::numeric_limits<int32_t>::max();
+    initial[11] = body(
+        11u, 127.9f, 50.0f, 0.0f, 0.5f, 1000.0f, 0.0f, 0.0f);
+    initial[12] = body(
+        12u, -127.9f, -50.0f, 0.0f, 0.5f, -1000.0f, 0.0f, 0.0f);
+    initial[11].sectorRadius[0] = std::numeric_limits<int32_t>::max();
+    initial[12].sectorRadius[0] = std::numeric_limits<int32_t>::min();
 
     LockstepWorld cpu;
     LockstepWorld::Config cpuConfig;

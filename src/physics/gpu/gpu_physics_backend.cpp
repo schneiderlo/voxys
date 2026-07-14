@@ -4,6 +4,7 @@
 #include "gpu/resources.hpp"
 #include "physics/character/cpu_capsule_mover.hpp"
 #include "physics/gpu/debug_readback_ring.hpp"
+#include "physics/gpu/gpu_body_metadata.hpp"
 #include "physics/gpu/gpu_broad_phase.hpp"
 #include "physics/gpu/gpu_buffer_arena.hpp"
 #include "physics/gpu/gpu_ccd.hpp"
@@ -40,14 +41,6 @@ constexpr uint32_t kWorkgroupSize = 256;
 // The command and integration layouts are the widest physics layouts. Each
 // exposes eight storage buffers, matching WebGPU's guaranteed minimum.
 constexpr uint32_t kRequiredStorageBuffersPerShaderStage = 8;
-constexpr uint32_t kGenerationMask = 0x000f'ffffu;
-constexpr uint32_t kAliveFlag = 1u << 20u;
-constexpr uint32_t kAwakeFlag = 1u << 21u;
-constexpr uint32_t kTerrainMipRejectedFlag = 1u << 25u;
-constexpr uint32_t kSubmergedFlag = 1u << 26u;
-constexpr uint32_t kTerrainContactCountShift = 27u;
-constexpr uint32_t kTerrainContactCountMask = 0x0fu
-    << kTerrainContactCountShift;
 constexpr size_t kGpuBodyBytes = 112;
 constexpr size_t kDebugVec4Count = 7;
 constexpr uint32_t kStageBoundaryCount =
@@ -178,7 +171,7 @@ uint32_t commandPriority(PhysicsCommandType type) noexcept {
 }
 
 uint32_t nextBodyGeneration(uint32_t generation) noexcept {
-    generation = (generation + 1u) & kGenerationMask;
+    generation = (generation + 1u) & kGpuBodyGenerationMask;
     return generation == 0u ? 1u : generation;
 }
 
@@ -344,6 +337,7 @@ public:
             shutdown();
             return false;
         }
+
         GpuCcd::Config ccdConfig;
         ccdConfig.bodyCapacity = bodyCapacity_;
         ccdConfig.bulletCapacity = std::min(
@@ -990,6 +984,7 @@ public:
             .terrainHeight = terrainHeight_,
             .terrainHeightScale = terrainHeightScale_,
             .terrainCellScale = terrainCellScale_,
+            .terrainSector = {0, 0, 0},
         });
     }
 
@@ -1200,6 +1195,23 @@ public:
                 || request.capsuleHalfHeight < 0.0f) {
                 return false;
             }
+            const WorldPosition queryOrigin = canonicalWorldPosition(
+                request.sector, glm::dvec3(request.origin));
+            double reach = static_cast<double>(request.radius);
+            if (request.type != PhysicsQueryType::OverlapSphere) {
+                reach += static_cast<double>(request.maximumDistance);
+            }
+            if (request.type == PhysicsQueryType::CapsuleCast) {
+                reach += static_cast<double>(request.capsuleHalfHeight);
+            }
+            const double sectorReach = std::ceil(
+                reach / static_cast<double>(kWorldSectorSize)) + 2.0;
+            if (sectorReach
+                > static_cast<double>(kGpuQueryMaximumSectorDelta)) {
+                return false;
+            }
+            const uint32_t maximumSectorDelta = std::max(
+                1u, static_cast<uint32_t>(sectorReach));
             GpuQueryRequest gpuRequest;
             gpuRequest.ids = {
                 request.requestId,
@@ -1208,7 +1220,8 @@ public:
                 request.flags,
             };
             gpuRequest.originRadius = {
-                request.origin.x, request.origin.y, request.origin.z,
+                queryOrigin.local.x, queryOrigin.local.y,
+                queryOrigin.local.z,
                 request.radius,
             };
             gpuRequest.directionDistance = {
@@ -1220,7 +1233,9 @@ public:
                 request.capsuleAxis.z, request.capsuleHalfHeight,
             };
             gpuRequest.sector = {
-                request.sector.x, request.sector.y, request.sector.z, 0,
+                queryOrigin.sector.x, queryOrigin.sector.y,
+                queryOrigin.sector.z,
+                static_cast<int32_t>(maximumSectorDelta),
             };
             packed.push_back(gpuRequest);
         }
@@ -1378,7 +1393,7 @@ public:
             GpuCommand gpuCommand;
             gpuCommand.header = glm::uvec4(
                 static_cast<uint32_t>(command.type), command.body.index,
-                command.body.generation & kGenerationMask,
+                command.body.generation & kGpuBodyGenerationMask,
                 static_cast<uint32_t>(command.targetTick));
             gpuCommand.p0 = command.a;
             gpuCommand.p1 = command.b;
@@ -1489,12 +1504,15 @@ public:
             wgpuComputePassEncoderRelease(pass);
             writeStageTimestamp();
 
-            const bool broadPhaseEncoded = broadPhase_.encode(encoder);
+            const bool dynamicContactsEnabled =
+                config_.enableBodyBodyContacts;
+            const bool broadPhaseEncoded = !dynamicContactsEnabled
+                || broadPhase_.encode(encoder);
             writeStageTimestamp();
             const bool narrowPhaseEncoded = broadPhaseEncoded
-                && narrowPhase_.encode(encoder);
+                && (!dynamicContactsEnabled || narrowPhase_.encode(encoder));
             writeStageTimestamp();
-            if (narrowPhaseEncoded) {
+            if (dynamicContactsEnabled && narrowPhaseEncoded) {
                 refreshContactInputs();
                 // Narrow-phase manifolds ping-pong every tick. Keep event
                 // packing on the just-produced buffer as well.
@@ -1510,6 +1528,9 @@ public:
                     .manifoldCapacity = manifoldCapacity_,
                 });
             }
+            // Even without body-body contacts, the dynamic solver owns pose
+            // integration. Its contact count remains zero when broad and
+            // narrow phase are disabled.
             const bool dynamicWorldEncoded = narrowPhaseEncoded
                 && dynamicSolver_.encode(encoder);
             if (!dynamicWorldEncoded) {
@@ -1696,10 +1717,12 @@ public:
             const glm::vec4 angular = asFloat(body[3]);
             const glm::vec4 shape = asFloat(body[4]);
             const uint32_t packedMetadata = body[6].w;
-            const uint32_t flags = packedMetadata & ~kGenerationMask;
+            const uint32_t flags =
+                packedMetadata & ~kGpuBodyGenerationMask;
             DebugBodyState state;
             state.handle = {
-                raw->firstBody + local, packedMetadata & kGenerationMask};
+                raw->firstBody + local,
+                packedMetadata & kGpuBodyGenerationMask};
             glm::ivec4 signedMetadata;
             std::memcpy(&signedMetadata, &body[6], sizeof(signedMetadata));
             state.sector = glm::ivec3(signedMetadata);
@@ -1711,14 +1734,14 @@ public:
             state.shape = static_cast<ThrowableShape>(std::min(
                 static_cast<uint32_t>(std::max(shape.w, 0.0f)),
                 static_cast<uint32_t>(ThrowableShape::Count) - 1u));
-            state.alive = (flags & kAliveFlag) != 0;
-            state.awake = (flags & kAwakeFlag) != 0;
+            state.alive = (flags & kGpuBodyAliveFlag) != 0;
+            state.awake = (flags & kGpuBodyAwakeFlag) != 0;
             state.staticContactCount =
-                (flags & kTerrainContactCountMask)
-                >> kTerrainContactCountShift;
+                (flags & kGpuBodyTerrainContactMask)
+                >> kGpuBodyTerrainContactShift;
             state.terrainRejectedByMip =
-                (flags & kTerrainMipRejectedFlag) != 0;
-            state.submerged = (flags & kSubmergedFlag) != 0;
+                (flags & kGpuBodyTerrainMipRejectedFlag) != 0;
+            state.submerged = (flags & kGpuBodySubmergedFlag) != 0;
             result.bodies.push_back(state);
         }
         cachedDebugBodies_ = result.bodies;
@@ -1729,6 +1752,7 @@ public:
         return {
             .poseBuffer = poseBuffer_,
             .shapeBuffer = shapeBuffer_,
+            .metadataBuffer = metadataBuffer_,
             .activeBodyIds = activeIdsBuffer_,
             .residentBodyCapacity = bodyCapacity_,
             .shapeCount = static_cast<uint32_t>(ThrowableShape::Count),
@@ -2065,7 +2089,7 @@ BackendCapabilities GpuPhysicsBackend::capabilities() const noexcept {
         .synchronousCharacter = true,
         .deterministicFloat = false,
         .lockstep = false,
-        .bodyBodyContacts = true,
+        .bodyBodyContacts = impl_->config_.enableBodyBodyContacts,
         .continuousCollision = true,
         .asynchronousQueries = true,
         .eventReadback = true,
@@ -2093,11 +2117,19 @@ CharacterHandle GpuPhysicsBackend::createCharacter(
     const glm::vec3& feetPosition, const CharacterSettings& settings) {
     return impl_->characterMover_.createCharacter(feetPosition, settings);
 }
+CharacterHandle GpuPhysicsBackend::createCharacter(
+    const WorldPosition& feetPosition, const CharacterSettings& settings) {
+    return impl_->characterMover_.createCharacter(feetPosition, settings);
+}
 void GpuPhysicsBackend::destroyCharacter(CharacterHandle handle) {
     impl_->characterMover_.destroyCharacter(handle);
 }
 bool GpuPhysicsBackend::setCharacterPosition(
     CharacterHandle handle, const glm::vec3& feetPosition) {
+    return impl_->characterMover_.setCharacterPosition(handle, feetPosition);
+}
+bool GpuPhysicsBackend::setCharacterPosition(
+    CharacterHandle handle, const WorldPosition& feetPosition) {
     return impl_->characterMover_.setCharacterPosition(handle, feetPosition);
 }
 CharacterMotion GpuPhysicsBackend::moveCharacter(

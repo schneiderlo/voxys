@@ -64,9 +64,14 @@ public:
     [[nodiscard]] CharacterHandle createCharacter(
         const glm::vec3& feetPosition,
         const CharacterSettings& settings);
+    [[nodiscard]] CharacterHandle createCharacter(
+        const WorldPosition& feetPosition,
+        const CharacterSettings& settings);
     void destroyCharacter(CharacterHandle handle);
     [[nodiscard]] bool setCharacterPosition(CharacterHandle handle,
                                             const glm::vec3& feetPosition);
+    [[nodiscard]] bool setCharacterPosition(
+        CharacterHandle handle, const WorldPosition& feetPosition);
     [[nodiscard]] CharacterMotion moveCharacter(
         CharacterHandle handle,
         const glm::vec3& desiredHorizontalVelocity,

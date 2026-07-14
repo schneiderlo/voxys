@@ -100,9 +100,10 @@ The present `PhysicsWorld` API exposes:
 - per-frame physics update;
 - a CPU vector of body snapshots for rendering.
 
-The current Jolt configuration in `src/physics/physics_world.cpp` uses:
+The current Jolt configuration uses:
 
-- `JPH::JobSystemSingleThreaded`;
+- `JPH::JobSystemThreadPool` on native builds, with automatic worker count;
+- `JPH::JobSystemSingleThreaded` in the WASM build without pthreads;
 - `kMaxBodies = 16384`;
 - `kMaxBodyPairs = 65536`;
 - `kMaxContactConstraints = 16384`;
@@ -111,7 +112,9 @@ The current Jolt configuration in `src/physics/physics_world.cpp` uses:
 - a three-by-three tile window around the character or newly thrown object;
 - per-shape friction, restitution, and buoyancy constants.
 
-The 16,384 body limit is a Voxys configuration value, not an intrinsic Jolt limit. Before claiming a GPU speedup, benchmarks must include a multithreaded CPU reference, not only the present single-threaded Jolt path.
+The 16,384 body limit is a Voxys configuration value, not an intrinsic Jolt
+limit. GPU speedup claims must retain both multithreaded and single-threaded
+Jolt measurements so scheduler scaling remains visible.
 
 ### 3.3 Existing terrain convention
 
@@ -2000,8 +2003,8 @@ Semantic hashes must satisfy the selected determinism contract.
 
 Measure:
 
-- current single-threaded Jolt;
-- multithreaded Jolt with a thread pool;
+- multithreaded Jolt with its automatic native worker count;
+- single-threaded Jolt as a scheduler-scaling control;
 - pinned Box3D with 1, 2, 4, 8, and available worker counts;
 - WebGPU DeterministicFloat;
 - later Lockstep;
@@ -2799,7 +2802,7 @@ or benchmark tests:
 | Decision | Implemented choice | Evidence |
 |---|---|---|
 | Dynamic colors | 32 colors with deterministic overflow gather | Phase 7 solver stress and 100k-body/50k-contact benchmark |
-| Sparse-grid cell size | 3 m production default, configurable through `GpuConfig` | CPU brute-force pair oracle and 100k sparse benchmark |
+| Sparse-grid cell size | 4 m production default, configurable through `GpuConfig`; the size must evenly divide each 256 m sector | CPU brute-force pair oracle, signed-i32 toroidal-key coverage, and 100k sparse benchmark |
 | Small-body grid insertion | One center-cell entry plus all 13 forward neighbor cells; bodies with diameter above one cell use the oversized path | Same pair oracle across workgroups 64/128/256; lower memory and frame time than bounded multi-cell insertion |
 | Body storage | Split, aligned pose, motion, shape, metadata, generation, and force buffers | Native/WASM layout tests and direct-render path |
 | Render pose ownership | Physics pose buffer is shared directly with rendering | 100k direct-render benchmark, zero normal-frame transform upload |
@@ -2820,7 +2823,9 @@ oversized fallback. It reduced broad-phase grid scratch from
 Product priority remains deliberately unresolved. The playtest ledger rejects
 synthetic evidence and requires comparative, human-verified sessions.
 
-Record the final answer to each in a decision log when resolved:
+The table above records the implemented choices. The original question set is
+preserved below as an audit trail. Current release blockers are tracked in
+[GPU Physics: Remaining Work](../docs/gpu-physics-remaining-work.md).
 
 1. 24, 32, or adaptive graph color count?
 2. Single-level sparse grid cell size for current shapes?
@@ -2844,20 +2849,18 @@ Record the final answer to each in a decision log when resolved:
 
 ## 44. Immediate next actions
 
-The next implementation agent should begin with Phase 0 and Phase 1, not with a monolithic GPU solver rewrite.
+All checked implementation tasks are complete. External validation and human
+gates remain. The live release-gate list is [GPU Physics: Remaining
+Work](../docs/gpu-physics-remaining-work.md).
 
-Recommended immediate sequence:
+Recommended sequence:
 
-1. Add this document to `SPECS.md`.
-2. Add per-stage timing around current Jolt update, snapshot, culling, packing, upload, and rendering.
-3. Add a multithreaded Jolt benchmark option.
-4. Introduce the backend facade with no behavior change.
-5. Move Jolt into `src/physics/jolt/`.
-6. Pin and build Box3D at `d421e45...`.
-7. Add Box3D CPU backend for the current five shapes and terrain.
-8. Parameterize current tests by backend.
-9. Add a headless benchmark runner that emits machine-readable JSON/CSV.
-10. Only then begin `GP-200`, the GPU body store and direct render path.
+1. Add a composed terrain, water, dynamic-contact, and direct-render benchmark.
+2. Measure it on a representative discrete desktop GPU.
+3. Complete browser replay certification and the remaining platform matrix.
+4. Resolve the Bazel aggregate-test sandbox issue.
+5. Run comparative product playtests.
+6. Request explicit approval before removing Jolt.
 
 ---
 

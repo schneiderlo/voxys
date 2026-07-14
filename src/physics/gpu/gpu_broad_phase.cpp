@@ -17,6 +17,14 @@ namespace {
 
 constexpr uint32_t kTelemetryWords = GpuBroadPhase::kTelemetryWordCount;
 
+bool validSectorCellSize(float cellSize) noexcept {
+    if (!std::isfinite(cellSize) || cellSize <= 0.0f) return false;
+    const float cellsPerSector = kWorldSectorSize / cellSize;
+    const float rounded = std::round(cellsPerSector);
+    return rounded >= 1.0f && rounded <= 2'097'152.0f
+        && std::abs(cellsPerSector - rounded) <= 1e-5f;
+}
+
 template <typename T>
 void releaseHandle(T& handle, void (*release)(T)) {
     if (handle) {
@@ -68,7 +76,8 @@ public:
     bool initialize(WGPUDevice device, WGPUQueue queue, const Config& config) {
         if (device_ || !device || !queue || config.bodyCapacity == 0
             || config.candidatePairCapacity == 0 || config.pairCapacity == 0
-            || config.contactCapacity == 0 || config.cellSize <= 0.0f
+            || config.contactCapacity == 0
+            || !validSectorCellSize(config.cellSize)
             || (config.workgroupSize != 64 && config.workgroupSize != 128
                 && config.workgroupSize != 256)) return false;
         const uint64_t entryCapacity = config.bodyCapacity;

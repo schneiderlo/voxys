@@ -2,6 +2,7 @@
 
 #include "gpu/context.hpp"
 #include "gpu/resources.hpp"
+#include "physics/gpu/gpu_body_metadata.hpp"
 #include "physics/gpu/gpu_broad_phase.hpp"
 
 #include <algorithm>
@@ -40,8 +41,8 @@ extern "C" WGPUBool wgpuDevicePoll(
 namespace voxy::physics {
 namespace {
 
-constexpr uint32_t kAlive = 1u;
-constexpr uint32_t kAwake = 2u;
+constexpr uint32_t kAlive = kGpuBodyAliveFlag;
+constexpr uint32_t kAwake = kGpuBodyAwakeFlag;
 
 struct alignas(16) TestPose {
     glm::vec4 positionInvMass{0.0f};
@@ -52,6 +53,10 @@ struct alignas(16) TestShape {
     glm::vec4 properties{0.0f};
 };
 using TestMetadata = std::array<uint32_t, 4>;
+
+TestMetadata makeMetadata(uint32_t flags) {
+    return {0u, 0u, 0u, packGpuBodyMetadata(1u, flags)};
+}
 
 struct PairKey {
     uint32_t minimum = 0;
@@ -90,17 +95,17 @@ std::vector<PairKey> bruteForcePairs(
     const std::vector<TestMetadata>& metadata, float margin) {
     std::vector<PairKey> result;
     for (uint32_t first = 0; first < poses.size(); ++first) {
-        if ((metadata[first][0] & kAlive) == 0u
+        if ((metadata[first][3] & kAlive) == 0u
             || glm::compMax(glm::abs(glm::vec3(shapes[first].dimensionsType)))
                 <= 0.0f) continue;
         const float firstRadius = 0.5f
             * glm::length(glm::vec3(shapes[first].dimensionsType)) + margin;
         for (uint32_t second = first + 1u; second < poses.size(); ++second) {
-            if ((metadata[second][0] & kAlive) == 0u
+            if ((metadata[second][3] & kAlive) == 0u
                 || glm::compMax(glm::abs(glm::vec3(shapes[second].dimensionsType)))
                     <= 0.0f) continue;
-            if ((metadata[first][0] & kAwake) == 0u
-                && (metadata[second][0] & kAwake) == 0u) continue;
+            if ((metadata[first][3] & kAwake) == 0u
+                && (metadata[second][3] & kAwake) == 0u) continue;
             const float secondRadius = 0.5f
                 * glm::length(glm::vec3(shapes[second].dimensionsType)) + margin;
             const glm::vec3 delta = glm::abs(
@@ -110,8 +115,8 @@ std::vector<PairKey> bruteForcePairs(
                     delta, glm::vec3(firstRadius + secondRadius)))) {
                 result.push_back({
                     first, second,
-                    (metadata[first][0] & kAwake) == 0u
-                        || (metadata[second][0] & kAwake) == 0u});
+                    (metadata[first][3] & kAwake) == 0u
+                        || (metadata[second][3] & kAwake) == 0u});
             }
         }
     }
@@ -247,8 +252,8 @@ TEST_P(GpuBroadPhaseTest, MatchesBruteForceAndPersistsLifecycle) {
             position(random), position(random), position(random), 1.0f};
         shapes[body].dimensionsType = {
             dimension(random), dimension(random), dimension(random), 0.0f};
-        metadata[body] = {kAlive | (body % 7u == 0u ? 0u : kAwake),
-                          1u, 0u, 0u};
+        metadata[body] = makeMetadata(
+            kAlive | (body % 7u == 0u ? 0u : kAwake));
     }
     poses[1].positionInvMass = {7.0f, 7.0f, 7.0f, 1.0f};
     shapes[1].dimensionsType = {12.0f, 8.0f, 10.0f, 2.0f};
@@ -257,7 +262,8 @@ TEST_P(GpuBroadPhaseTest, MatchesBruteForceAndPersistsLifecycle) {
     poses[4].positionInvMass = {0.7f, 0.0f, 0.0f, 1.0f};
     for (uint32_t body : {2u, 3u, 4u}) {
         shapes[body].dimensionsType = {1.0f, 1.0f, 1.0f, 1.0f};
-        metadata[body] = {kAlive | (body == 2u ? kAwake : 0u), 1u, 0u, 0u};
+        metadata[body] = makeMetadata(
+            kAlive | (body == 2u ? kAwake : 0u));
     }
 
     WGPUBuffer poseBuffer = makeInput<TestPose>(context, poses, "broad_poses");
@@ -274,7 +280,7 @@ TEST_P(GpuBroadPhaseTest, MatchesBruteForceAndPersistsLifecycle) {
     config.candidatePairCapacity = 65'536;
     config.pairCapacity = 8'192;
     config.contactCapacity = 8'192;
-    config.cellSize = 2.5f + static_cast<float>(GetParam()) / 128.0f;
+    config.cellSize = 4.0f;
     config.speculativeMargin = margin;
     config.workgroupSize = GetParam();
     ASSERT_TRUE(broadPhase.initialize(
@@ -310,11 +316,11 @@ TEST_P(GpuBroadPhaseTest, MatchesBruteForceAndPersistsLifecycle) {
     for (const auto& contact : second.contacts) EXPECT_EQ(contact.state[1], 1u);
 
     poses[2].positionInvMass = {40.0f, 40.0f, 40.0f, 1.0f};
-    metadata[3][0] |= kAwake;
-    metadata[10][0] = 0u;
+    metadata[3][3] |= kAwake;
+    metadata[10][3] = 0u;
     poses.back().positionInvMass = {0.2f, 0.2f, 0.2f, 1.0f};
     shapes.back().dimensionsType = {1.2f, 1.2f, 1.2f, 0.0f};
-    metadata.back() = {kAlive | kAwake, 1u, 0u, 0u};
+    metadata.back() = makeMetadata(kAlive | kAwake);
     gpu::writeBuffer(context.getQueue(), poseBuffer, 0,
                      std::as_bytes(std::span<const TestPose>(poses)));
     gpu::writeBuffer(context.getQueue(), metadataBuffer, 0,
@@ -366,6 +372,89 @@ INSTANTIATE_TEST_SUITE_P(
     TuningProfiles, GpuBroadPhaseTest,
     ::testing::Values(64u, 128u, 256u));
 
+TEST(GpuBroadPhaseSectorTest, RejectsCellSizeThatDoesNotDivideSector) {
+    gpu::Context context;
+    gpu::ContextConfig contextConfig;
+    contextConfig.enableValidation = false;
+    if (!context.initHeadless(contextConfig)) {
+        GTEST_SKIP() << "Headless WebGPU is unavailable";
+    }
+    GpuBroadPhase broadPhase;
+    GpuBroadPhase::Config config;
+    config.bodyCapacity = 8;
+    config.candidatePairCapacity = 8;
+    config.pairCapacity = 8;
+    config.contactCapacity = 8;
+    config.cellSize = 3.0f;
+    EXPECT_FALSE(broadPhase.initialize(
+        context.getDevice(), context.getQueue(), config));
+}
+
+TEST(GpuBroadPhaseSectorTest,
+     WrapsToroidalNeighborsAndRejectsDistantKeyAliases) {
+    constexpr uint32_t bodyCapacity = 3;
+    gpu::Context context;
+    gpu::ContextConfig contextConfig;
+    contextConfig.enableValidation = false;
+    if (!context.initHeadless(contextConfig)) {
+        GTEST_SKIP() << "Headless WebGPU is unavailable";
+    }
+
+    std::vector<TestPose> poses(bodyCapacity);
+    std::vector<TestShape> shapes(bodyCapacity);
+    std::vector<TestMetadata> metadata(bodyCapacity);
+    poses[0].positionInvMass = {-0.4f, 0.0f, 0.0f, 1.0f};
+    poses[1].positionInvMass = {0.4f, 0.0f, 0.0f, 1.0f};
+    poses[2].positionInvMass = poses[1].positionInvMass;
+    for (uint32_t body = 0; body < bodyCapacity; ++body) {
+        shapes[body].dimensionsType = {0.5f, 0.5f, 0.5f, 0.0f};
+        metadata[body] = makeMetadata(kAlive | kAwake);
+    }
+    // With 4 m cells, sector 16,384 starts exactly at the signed 21-bit key
+    // wrap. Bodies 0 and 1 therefore occupy max-key and min-key neighbors.
+    metadata[0][0] = 16'384u;
+    metadata[1][0] = 16'384u;
+    // 32,768 sectors is one complete key period. This body aliases body 1's
+    // bucket but is not physically close and must never become a pair.
+    metadata[2][0] = 16'384u + 32'768u;
+
+    WGPUBuffer poseBuffer = makeInput<TestPose>(
+        context, poses, "sector_wrap_poses");
+    WGPUBuffer shapeBuffer = makeInput<TestShape>(
+        context, shapes, "sector_wrap_shapes");
+    WGPUBuffer metadataBuffer = makeInput<TestMetadata>(
+        context, metadata, "sector_wrap_metadata");
+    ASSERT_NE(poseBuffer, nullptr);
+    ASSERT_NE(shapeBuffer, nullptr);
+    ASSERT_NE(metadataBuffer, nullptr);
+
+    GpuBroadPhase broadPhase;
+    GpuBroadPhase::Config config;
+    config.bodyCapacity = bodyCapacity;
+    config.candidatePairCapacity = 16;
+    config.pairCapacity = 8;
+    config.contactCapacity = 8;
+    config.cellSize = 4.0f;
+    config.workgroupSize = 64;
+    ASSERT_TRUE(broadPhase.initialize(
+        context.getDevice(), context.getQueue(), config));
+    broadPhase.setBodyView({
+        poseBuffer, shapeBuffer, metadataBuffer, bodyCapacity});
+
+    const BroadPhaseSnapshot snapshot = runAndRead(context, broadPhase);
+    ASSERT_EQ(snapshot.pairs.size(), 1u);
+    EXPECT_EQ(snapshot.pairs[0].keyHigh, 0u);
+    EXPECT_EQ(snapshot.pairs[0].keyLow, 1u);
+    EXPECT_EQ(snapshot.telemetry.gridEntries, bodyCapacity);
+    EXPECT_EQ(snapshot.telemetry.oversizedBodies, 0u);
+    EXPECT_FALSE(snapshot.telemetry.candidateOverflow);
+    EXPECT_FALSE(snapshot.telemetry.pairOverflow);
+
+    releaseBuffer(metadataBuffer);
+    releaseBuffer(shapeBuffer);
+    releaseBuffer(poseBuffer);
+}
+
 TEST(GpuBroadPhaseOverflowTest, ReportsAndRetainsCanonicalPrefix) {
     constexpr uint32_t bodyCapacity = 32;
     gpu::Context context;
@@ -381,7 +470,7 @@ TEST(GpuBroadPhaseOverflowTest, ReportsAndRetainsCanonicalPrefix) {
     for (uint32_t body = 0; body < bodyCapacity; ++body) {
         poses[body].positionInvMass = {1.0f, 1.0f, 1.0f, 1.0f};
         shapes[body].dimensionsType = {0.25f, 0.25f, 0.25f, 0.0f};
-        metadata[body] = {kAlive | kAwake, 1u, 0u, 0u};
+        metadata[body] = makeMetadata(kAlive | kAwake);
     }
     WGPUBuffer poseBuffer = makeInput<TestPose>(context, poses, "overflow_poses");
     WGPUBuffer shapeBuffer = makeInput<TestShape>(
@@ -398,7 +487,7 @@ TEST(GpuBroadPhaseOverflowTest, ReportsAndRetainsCanonicalPrefix) {
     config.candidatePairCapacity = 16;
     config.pairCapacity = 8;
     config.contactCapacity = 4;
-    config.cellSize = 10.0f;
+    config.cellSize = 8.0f;
     config.workgroupSize = 64;
     ASSERT_TRUE(broadPhase.initialize(
         context.getDevice(), context.getQueue(), config));

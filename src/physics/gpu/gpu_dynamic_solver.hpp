@@ -40,6 +40,9 @@ struct alignas(16) GpuConstraintCache {
     std::array<float, 4> angularMass{};
     // Bias rate, mass scale, impulse scale, unused.
     std::array<float, 4> softness{};
+    // Constant world-sector offset from body A's local frame to body B's.
+    // Local centers still advance between Soft Step substeps.
+    std::array<float, 4> sectorOffset{};
 };
 
 struct alignas(16) GpuEndpointDelta {
@@ -124,7 +127,7 @@ private:
     std::unique_ptr<Impl> impl_;
 };
 
-static_assert(sizeof(GpuConstraintCache) == 80);
+static_assert(sizeof(GpuConstraintCache) == 96);
 static_assert(sizeof(GpuEndpointDelta) == 32);
 
 } // namespace voxy::physics

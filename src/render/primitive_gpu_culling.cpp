@@ -14,13 +14,15 @@ namespace {
 
 constexpr uint32_t kWorkgroupSize = 256;
 constexpr uint32_t kStorageOffsetAlignmentWords = 64;
+constexpr int32_t kMaximumRenderSectorDelta = 4096;
 
 struct alignas(16) CullUniforms {
     std::array<glm::vec4, 6> planes{};
     glm::uvec4 counts{};
+    glm::ivec4 cameraSector{};
 };
 
-static_assert(sizeof(CullUniforms) == 112);
+static_assert(sizeof(CullUniforms) == 128);
 
 struct IndirectDrawArgs {
     uint32_t indexCount = 0;
@@ -106,6 +108,30 @@ bool PrimitiveGpuCulling::initialize(
         shutdown();
         return false;
     }
+    const std::array<gpu::BindGroupLayoutEntry, 4> rebaseEntries = {
+        gpu::BindGroupLayoutEntry(0).computeVisible().storageBuffer(true),
+        gpu::BindGroupLayoutEntry(8).computeVisible().uniformBuffer(
+            false, sizeof(CullUniforms)),
+        gpu::BindGroupLayoutEntry(9).computeVisible().storageBuffer(true),
+        gpu::BindGroupLayoutEntry(10).computeVisible().storageBuffer(false),
+    };
+    rebaseBindGroupLayout_ = gpu::createBindGroupLayout(
+        device_, rebaseEntries, "physics_primitive_rebase_layout");
+    if (!rebaseBindGroupLayout_) {
+        shutdown();
+        return false;
+    }
+    const std::array<WGPUBindGroupLayout, 1> rebaseLayouts{
+        rebaseBindGroupLayout_};
+    rebasePipelineLayout_ = gpu::createPipelineLayout(
+        device_, rebaseLayouts, "physics_primitive_rebase_pipeline_layout");
+    if (!rebasePipelineLayout_) {
+        shutdown();
+        return false;
+    }
+    rebasePipeline_ = createPipeline(
+        device_, rebasePipelineLayout_, shaderModule_, "rebase_poses",
+        "physics_primitive_rebase_poses");
     blocksPipeline_ = createPipeline(
         device_, pipelineLayout_, shaderModule_, "cull_blocks",
         "physics_primitive_cull_blocks");
@@ -115,7 +141,8 @@ bool PrimitiveGpuCulling::initialize(
     scatterPipeline_ = createPipeline(
         device_, pipelineLayout_, shaderModule_, "scatter_visible",
         "physics_primitive_cull_scatter");
-    if (!blocksPipeline_ || !scanPipeline_ || !scatterPipeline_) {
+    if (!rebasePipeline_ || !blocksPipeline_ || !scanPipeline_
+        || !scatterPipeline_) {
         shutdown();
         return false;
     }
@@ -123,14 +150,18 @@ bool PrimitiveGpuCulling::initialize(
 }
 
 void PrimitiveGpuCulling::shutdown() {
+    releaseHandle(rebaseBindGroup_, wgpuBindGroupRelease);
     releaseHandle(bindGroup_, wgpuBindGroupRelease);
     releaseCapacityBuffers();
     destroyBuffer(uniformBuffer_);
     releaseHandle(blocksPipeline_, wgpuComputePipelineRelease);
     releaseHandle(scanPipeline_, wgpuComputePipelineRelease);
     releaseHandle(scatterPipeline_, wgpuComputePipelineRelease);
+    releaseHandle(rebasePipeline_, wgpuComputePipelineRelease);
     releaseHandle(pipelineLayout_, wgpuPipelineLayoutRelease);
+    releaseHandle(rebasePipelineLayout_, wgpuPipelineLayoutRelease);
     releaseHandle(bindGroupLayout_, wgpuBindGroupLayoutRelease);
+    releaseHandle(rebaseBindGroupLayout_, wgpuBindGroupLayoutRelease);
     releaseHandle(shaderModule_, wgpuShaderModuleRelease);
     device_ = nullptr;
     queue_ = nullptr;
@@ -139,18 +170,23 @@ void PrimitiveGpuCulling::shutdown() {
     segmentCapacity_ = 0;
     blockCapacity_ = 0;
     bindGroupDirty_ = true;
+    rebaseBindGroupDirty_ = true;
 }
 
 void PrimitiveGpuCulling::setBodyView(const physics::PhysicsRenderView& view) {
     if (bodyView_.poseBuffer != view.poseBuffer
-        || bodyView_.shapeBuffer != view.shapeBuffer) {
+        || bodyView_.shapeBuffer != view.shapeBuffer
+        || bodyView_.metadataBuffer != view.metadataBuffer) {
         bindGroupDirty_ = true;
+        rebaseBindGroupDirty_ = true;
     }
     bodyView_ = view;
 }
 
 void PrimitiveGpuCulling::releaseCapacityBuffers() {
+    releaseHandle(rebaseBindGroup_, wgpuBindGroupRelease);
     releaseHandle(bindGroup_, wgpuBindGroupRelease);
+    destroyBuffer(cameraRelativePoses_);
     destroyBuffer(visibility_);
     destroyBuffer(localOffsets_);
     destroyBuffer(blockSums_);
@@ -158,6 +194,7 @@ void PrimitiveGpuCulling::releaseCapacityBuffers() {
     destroyBuffer(visibleBodyIds_);
     destroyBuffer(indirectDrawArgs_);
     bindGroupDirty_ = true;
+    rebaseBindGroupDirty_ = true;
 }
 
 bool PrimitiveGpuCulling::ensureCapacity(uint32_t bodyCapacity) {
@@ -182,6 +219,10 @@ bool PrimitiveGpuCulling::ensureCapacity(uint32_t bodyCapacity) {
     };
     visibility_ = gpu::createBuffer(device_, scratchDesc);
     localOffsets_ = gpu::createBuffer(device_, scratchDesc);
+    cameraRelativePoses_ = gpu::createBuffer(
+        device_, gpu::BufferDesc::storage(
+            uint64_t{newCapacity} * 2u * sizeof(glm::vec4), false,
+            "physics_primitive_camera_relative_poses"));
     const gpu::BufferDesc blockDesc{
         .label = "physics_primitive_cull_blocks",
         .size = uint64_t{blockCapacity_} * kShapeCount * sizeof(uint32_t),
@@ -212,33 +253,59 @@ bool PrimitiveGpuCulling::ensureCapacity(uint32_t bodyCapacity) {
         device_, queue_, indirectDesc,
         std::span<const IndirectDrawArgs>(indirect));
     bindGroupDirty_ = true;
-    return visibility_ && localOffsets_ && blockSums_ && blockPrefix_
+    return cameraRelativePoses_ && visibility_ && localOffsets_
+        && blockSums_ && blockPrefix_
         && visibleBodyIds_ && indirectDrawArgs_;
 }
 
 bool PrimitiveGpuCulling::updateBindGroup() {
-    if (!bindGroupDirty_) return bindGroup_ != nullptr;
-    releaseHandle(bindGroup_, wgpuBindGroupRelease);
-    if (!bodyView_.valid() || !visibleBodyIds_) return false;
-    const std::array<gpu::BindGroupEntry, 9> entries = {
+    if (bindGroupDirty_) {
+        releaseHandle(bindGroup_, wgpuBindGroupRelease);
+        if (!bodyView_.valid() || !visibleBodyIds_ || !renderPoseBuffer())
+            return false;
+        const std::array<gpu::BindGroupEntry, 9> entries = {
+            gpu::BindGroupEntry(0).buffer(renderPoseBuffer()),
+            gpu::BindGroupEntry(1).buffer(bodyView_.shapeBuffer),
+            gpu::BindGroupEntry(2).buffer(visibility_),
+            gpu::BindGroupEntry(3).buffer(localOffsets_),
+            gpu::BindGroupEntry(4).buffer(blockSums_),
+            gpu::BindGroupEntry(5).buffer(blockPrefix_),
+            gpu::BindGroupEntry(6).buffer(visibleBodyIds_),
+            gpu::BindGroupEntry(7).buffer(indirectDrawArgs_),
+            gpu::BindGroupEntry(8).buffer(
+                uniformBuffer_, 0, sizeof(CullUniforms)),
+        };
+        bindGroup_ = gpu::createBindGroup(
+            device_, bindGroupLayout_, entries,
+            "physics_primitive_cull_bind_group");
+        bindGroupDirty_ = false;
+    }
+    if (!bindGroup_) return false;
+
+    if (!bodyView_.metadataBuffer) {
+        releaseHandle(rebaseBindGroup_, wgpuBindGroupRelease);
+        rebaseBindGroupDirty_ = false;
+        return true;
+    }
+    if (!rebaseBindGroupDirty_) return rebaseBindGroup_ != nullptr;
+    releaseHandle(rebaseBindGroup_, wgpuBindGroupRelease);
+    const std::array<gpu::BindGroupEntry, 4> rebaseEntries = {
         gpu::BindGroupEntry(0).buffer(bodyView_.poseBuffer),
-        gpu::BindGroupEntry(1).buffer(bodyView_.shapeBuffer),
-        gpu::BindGroupEntry(2).buffer(visibility_),
-        gpu::BindGroupEntry(3).buffer(localOffsets_),
-        gpu::BindGroupEntry(4).buffer(blockSums_),
-        gpu::BindGroupEntry(5).buffer(blockPrefix_),
-        gpu::BindGroupEntry(6).buffer(visibleBodyIds_),
-        gpu::BindGroupEntry(7).buffer(indirectDrawArgs_),
-        gpu::BindGroupEntry(8).buffer(uniformBuffer_, 0, sizeof(CullUniforms)),
+        gpu::BindGroupEntry(8).buffer(
+            uniformBuffer_, 0, sizeof(CullUniforms)),
+        gpu::BindGroupEntry(9).buffer(bodyView_.metadataBuffer),
+        gpu::BindGroupEntry(10).buffer(cameraRelativePoses_),
     };
-    bindGroup_ = gpu::createBindGroup(
-        device_, bindGroupLayout_, entries, "physics_primitive_cull_bind_group");
-    bindGroupDirty_ = false;
-    return bindGroup_ != nullptr;
+    rebaseBindGroup_ = gpu::createBindGroup(
+        device_, rebaseBindGroupLayout_, rebaseEntries,
+        "physics_primitive_rebase_bind_group");
+    rebaseBindGroupDirty_ = false;
+    return rebaseBindGroup_ != nullptr;
 }
 
 bool PrimitiveGpuCulling::encode(WGPUCommandEncoder encoder,
-                                 const glm::mat4& viewProjection) {
+                                 const glm::mat4& viewProjection,
+                                 const glm::ivec3& cameraSector) {
     if (!encoder || !bodyView_.valid()
         || bodyView_.residentBodyCapacity == 0
         || !ensureCapacity(bodyView_.residentBodyCapacity)
@@ -256,12 +323,20 @@ bool PrimitiveGpuCulling::encode(WGPUCommandEncoder encoder,
     uniforms.counts = glm::uvec4(
         bodyView_.residentBodyCapacity, blockCount, segmentCapacity_,
         kShapeCount);
+    uniforms.cameraSector = glm::ivec4(
+        cameraSector, kMaximumRenderSectorDelta);
     gpu::writeBuffer(queue_, uniformBuffer_, 0, uniforms);
 
     WGPUComputePassDescriptor passDesc{};
     WGPU_SET_LABEL(passDesc, "physics_primitive_culling");
     WGPUComputePassEncoder pass =
         wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
+    if (bodyView_.metadataBuffer) {
+        wgpuComputePassEncoderSetBindGroup(
+            pass, 0, rebaseBindGroup_, 0, nullptr);
+        wgpuComputePassEncoderSetPipeline(pass, rebasePipeline_);
+        wgpuComputePassEncoderDispatchWorkgroups(pass, blockCount, 1, 1);
+    }
     wgpuComputePassEncoderSetBindGroup(pass, 0, bindGroup_, 0, nullptr);
     wgpuComputePassEncoderSetPipeline(pass, blocksPipeline_);
     wgpuComputePassEncoderDispatchWorkgroups(pass, blockCount, 1, 1);

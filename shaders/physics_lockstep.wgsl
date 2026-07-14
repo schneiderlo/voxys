@@ -161,13 +161,35 @@ fn body_dynamic(body : LockstepBody) -> bool {
 
 fn normalize_axis(bodyIndex : u32, axis : u32) {
     let local = bodies[bodyIndex].positionInvMass[axis];
-    let biased = local + SECTOR_HALF;
-    var sectorDelta = biased / SECTOR_SIZE;
-    if (biased < 0 && biased % SECTOR_SIZE != 0) { sectorDelta -= 1; }
-    bodies[bodyIndex].sectorRadius[axis] = sat_add(
-        bodies[bodyIndex].sectorRadius[axis], sectorDelta);
-    bodies[bodyIndex].positionInvMass[axis] = sat_sub(
-        local, sectorDelta * SECTOR_SIZE);
+    var sectorDelta = local / SECTOR_SIZE;
+    var canonical = local % SECTOR_SIZE;
+    if (canonical >= SECTOR_HALF) {
+        sectorDelta += 1;
+        canonical -= SECTOR_SIZE;
+    } else if (canonical < -SECTOR_HALF) {
+        sectorDelta -= 1;
+        canonical += SECTOR_SIZE;
+    }
+    let oldSector = bodies[bodyIndex].sectorRadius[axis];
+    if (sectorDelta > 0
+        && oldSector > 2147483647 - sectorDelta) {
+        bodies[bodyIndex].sectorRadius[axis] = 2147483647;
+        bodies[bodyIndex].positionInvMass[axis] = SECTOR_HALF - 1;
+    } else if (sectorDelta < 0
+               && oldSector < (-2147483647 - 1) - sectorDelta) {
+        bodies[bodyIndex].sectorRadius[axis] = -2147483647 - 1;
+        bodies[bodyIndex].positionInvMass[axis] = -SECTOR_HALF;
+    } else {
+        bodies[bodyIndex].sectorRadius[axis] = oldSector + sectorDelta;
+        bodies[bodyIndex].positionInvMass[axis] = canonical;
+    }
+}
+
+fn adjacent_sector_delta(reference : i32, other : i32) -> i32 {
+    if (other == reference) { return 0; }
+    if (reference < 2147483647 && other == reference + 1) { return 1; }
+    if (reference > -2147483647 - 1 && other == reference - 1) { return -1; }
+    return 2147483647;
 }
 
 fn make_contact(bodyA : u32, bodyB : u32,
@@ -179,8 +201,9 @@ fn make_contact(bodyA : u32, bodyB : u32,
     var delta = vec3<i32>(0);
     var squared = U64(0u, 0u);
     for (var axis = 0u; axis < 3u; axis += 1u) {
-        let sectorDelta = b.sectorRadius[axis] - a.sectorRadius[axis];
-        if (abs(sectorDelta) > 1) { return false; }
+        let sectorDelta = adjacent_sector_delta(
+            a.sectorRadius[axis], b.sectorRadius[axis]);
+        if (sectorDelta == 2147483647) { return false; }
         delta[axis] = sectorDelta * SECTOR_SIZE
             + b.positionInvMass[axis] - a.positionInvMass[axis];
         let component = signed_magnitude(delta[axis]);

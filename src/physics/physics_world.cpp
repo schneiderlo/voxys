@@ -132,6 +132,13 @@ PhysicsWorld::CharacterHandle PhysicsWorld::createCharacter(
         : InvalidCharacter;
 }
 
+PhysicsWorld::CharacterHandle PhysicsWorld::createCharacter(
+    const WorldPosition& feetPosition, const CharacterSettings& settings) {
+    return backend_
+        ? backend_->createCharacter(feetPosition, settings)
+        : InvalidCharacter;
+}
+
 void PhysicsWorld::destroyCharacter(CharacterHandle handle) {
     if (backend_) backend_->destroyCharacter(handle);
 }
@@ -139,6 +146,12 @@ void PhysicsWorld::destroyCharacter(CharacterHandle handle) {
 bool PhysicsWorld::setCharacterPosition(CharacterHandle handle,
                                         const glm::vec3& feetPosition) {
     return backend_ && backend_->setCharacterPosition(handle, feetPosition);
+}
+
+bool PhysicsWorld::setCharacterPosition(
+    CharacterHandle handle, const WorldPosition& feetPosition) {
+    return backend_
+        && backend_->setCharacterPosition(handle, feetPosition);
 }
 
 PhysicsWorld::CharacterMotion PhysicsWorld::moveCharacter(

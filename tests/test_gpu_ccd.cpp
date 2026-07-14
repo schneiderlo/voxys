@@ -2,6 +2,7 @@
 
 #include "gpu/context.hpp"
 #include "gpu/resources.hpp"
+#include "physics/gpu/gpu_body_metadata.hpp"
 #include "physics/gpu/gpu_ccd.hpp"
 
 #include <array>
@@ -155,6 +156,8 @@ class GpuCcdTest : public ::testing::TestWithParam<uint32_t> {};
 TEST_P(GpuCcdTest, StopsFastSphereAndCapsuleWithBoundedBulletOverflow) {
     constexpr uint32_t bodyCapacity = 8;
     constexpr uint32_t terrainExtent = 16;
+    constexpr std::array<int32_t, 3> terrainSector{
+        1'500'000, -1'500'000, 900'000};
     gpu::Context context;
     gpu::ContextConfig contextConfig;
     contextConfig.enableValidation = false;
@@ -170,8 +173,13 @@ TEST_P(GpuCcdTest, StopsFastSphereAndCapsuleWithBoundedBulletOverflow) {
         poses[body].positionInvMass = {x, 5.0f, 0.0f, 1.0f};
         motions[body].linearVelocitySleep = {0.0f, -600.0f, 0.0f, 0.0f};
         shapes[body].dimensionsType = {1.0f, 1.0f, 1.0f, 0.0f};
-        metadata[body] = {3u, 1u, 0u,
-                          bullet ? kGpuBodyBulletFlag : 0u};
+        const uint32_t flags = kGpuBodyAliveFlag | kGpuBodyAwakeFlag
+            | (bullet ? kGpuBodyBulletFlag : 0u);
+        metadata[body] = {
+            static_cast<uint32_t>(terrainSector[0]),
+            static_cast<uint32_t>(terrainSector[1]),
+            static_cast<uint32_t>(terrainSector[2]),
+            packGpuBodyMetadata(1u, flags)};
     };
     addBody(1u, -2.0f, true);
     addBody(2u, 0.0f, false);
@@ -225,6 +233,7 @@ TEST_P(GpuCcdTest, StopsFastSphereAndCapsuleWithBoundedBulletOverflow) {
         .terrainHeight = terrainExtent,
         .terrainHeightScale = 10.0f,
         .terrainCellScale = 1.0f,
+        .terrainSector = terrainSector,
     });
 
     const CcdSnapshot snapshot = runAndRead(
@@ -238,6 +247,14 @@ TEST_P(GpuCcdTest, StopsFastSphereAndCapsuleWithBoundedBulletOverflow) {
     EXPECT_LT(snapshot.poses[2].positionInvMass.y, 1.03f);
     EXPECT_GE(snapshot.motions[2].linearVelocitySleep.y, 0.0f);
     EXPECT_NE(snapshot.metadata[2][3] & kGpuBodyCcdHitFlag, 0u);
+    for (uint32_t body : {1u, 2u, 3u, 4u}) {
+        EXPECT_EQ(snapshot.metadata[body][0],
+                  static_cast<uint32_t>(terrainSector[0]));
+        EXPECT_EQ(snapshot.metadata[body][1],
+                  static_cast<uint32_t>(terrainSector[1]));
+        EXPECT_EQ(snapshot.metadata[body][2],
+                  static_cast<uint32_t>(terrainSector[2]));
+    }
     EXPECT_FLOAT_EQ(snapshot.poses[3].positionInvMass.y, 5.0f);
     EXPECT_FLOAT_EQ(snapshot.motions[3].linearVelocitySleep.y, -600.0f);
     EXPECT_EQ(snapshot.metadata[3][3] & kGpuBodyCcdHitFlag, 0u);
@@ -257,7 +274,13 @@ TEST_P(GpuCcdTest, StopsFastSphereAndCapsuleWithBoundedBulletOverflow) {
     EXPECT_GT(ccd.allocatedBytes(), 0u);
 
     for (auto& bodyMetadata : metadata) bodyMetadata = {};
-    metadata[1] = {3u, 1u, 0u, kGpuBodyBulletFlag};
+    metadata[1] = {
+        static_cast<uint32_t>(terrainSector[0]),
+        static_cast<uint32_t>(terrainSector[1]),
+        static_cast<uint32_t>(terrainSector[2]),
+        packGpuBodyMetadata(
+            1u, kGpuBodyAliveFlag | kGpuBodyAwakeFlag
+                | kGpuBodyBulletFlag)};
     poses[1].positionInvMass = {-2.0f, 5.0f, 0.0f, 1.0f};
     motions[1].linearVelocitySleep = {2'000.0f, 0.0f, 0.0f, 0.0f};
     gpu::writeBuffer(context.getQueue(), poseBuffer, 0,

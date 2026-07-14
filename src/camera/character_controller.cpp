@@ -66,7 +66,8 @@ void CharacterController::syncPhysicsPosition() {
         return;
     }
     if (ensurePhysicsCharacter()) {
-        (void)physicsWorld_->setCharacterPosition(physicsCharacter_, feetPosition());
+        (void)physicsWorld_->setCharacterPosition(
+            physicsCharacter_, feetWorldPosition());
         velocity_ = glm::vec3(0.0f);
         state_ = CharacterState::Falling;
     }
@@ -250,7 +251,8 @@ bool CharacterController::ensurePhysicsCharacter() {
     settings.maxSlopeAngleDegrees = config_.maxSlopeAngle;
     settings.stepUp = 0.5f;
     settings.stepDown = std::min(config_.maxStepDown, 0.5f);
-    physicsCharacter_ = physicsWorld_->createCharacter(feetPosition(), settings);
+    physicsCharacter_ = physicsWorld_->createCharacter(
+        feetWorldPosition(), settings);
     return physicsCharacter_ != physics::PhysicsWorld::InvalidCharacter;
 }
 
@@ -275,7 +277,7 @@ void CharacterController::updatePhysicsCharacter(float deltaTime) {
 
     glm::vec3 cameraPosition = motion.position;
     cameraPosition.y += config_.groundOffset;
-    camera_->setPosition(cameraPosition);
+    camera_->setWorldPosition(motion.sector, cameraPosition);
 }
 
 void CharacterController::applyPhysics(float deltaTime) {

@@ -3,7 +3,14 @@ if (!Number.isInteger(debugPort) || debugPort <= 0) {
     throw new Error("usage: wait_for_wasm_startup.mjs <devtools-port>");
 }
 
-const deadline = Date.now() + 90_000;
+const timeoutMilliseconds = Number.parseInt(
+    process.env.VOXY_WASM_STARTUP_TIMEOUT_MS ?? "90000",
+    10,
+);
+if (!Number.isInteger(timeoutMilliseconds) || timeoutMilliseconds <= 0) {
+    throw new Error("VOXY_WASM_STARTUP_TIMEOUT_MS must be a positive integer");
+}
+const deadline = Date.now() + timeoutMilliseconds;
 const delay = (milliseconds) => new Promise(
     (resolve) => setTimeout(resolve, milliseconds),
 );
@@ -32,6 +39,7 @@ await new Promise((resolve, reject) => {
 let nextId = 1;
 const pending = new Map();
 const diagnostics = [];
+let lastState = null;
 socket.addEventListener("message", (event) => {
     const message = JSON.parse(event.data);
     if (message.method === "Runtime.exceptionThrown") {
@@ -66,13 +74,24 @@ while (Date.now() < deadline) {
             const errorElement = document.getElementById("error");
             const moduleReady = typeof voxyModule !== "undefined"
                 && voxyModule !== null;
+            const initialized = moduleReady
+                && typeof voxyModule._voxy_is_initialized === "function"
+                && voxyModule._voxy_is_initialized() === 1;
+            const physicsBackend = moduleReady
+                && typeof voxyModule._voxy_get_physics_backend === "function"
+                ? voxyModule._voxy_get_physics_backend() : -1;
+            const physicsSelfTestStatus = moduleReady
+                && typeof voxyModule._voxy_get_physics_self_test_status
+                    === "function"
+                ? voxyModule._voxy_get_physics_self_test_status() : -100;
             return JSON.stringify({
-                initialized: moduleReady
-                    && typeof voxyModule._voxy_is_initialized === "function"
-                    && voxyModule._voxy_is_initialized() === 1,
-                physicsBackend: moduleReady
-                    && typeof voxyModule._voxy_get_physics_backend === "function"
-                    ? voxyModule._voxy_get_physics_backend() : -1,
+                initialized,
+                physicsBackend,
+                physicsSelfTestStatus,
+                physicsSelfTestTick: moduleReady
+                    && typeof voxyModule._voxy_get_physics_self_test_tick
+                        === "function"
+                    ? voxyModule._voxy_get_physics_self_test_tick() : 0,
                 errorVisible: errorElement !== null
                     && getComputedStyle(errorElement).display !== "none",
                 errorText: errorElement?.textContent ?? "",
@@ -89,8 +108,14 @@ while (Date.now() < deadline) {
         continue;
     }
     const value = JSON.parse(evaluated.result.value);
-    if (value.initialized && value.physicsBackend === 2) {
-        console.log(`WASM application initialized (${value.profile?.name ?? "unknown"})`);
+    lastState = value;
+    if (value.initialized && value.physicsBackend === 2
+        && value.physicsSelfTestStatus === 2) {
+        console.log(
+            `WASM GPU physics self-test passed at tick ${
+                value.physicsSelfTestTick
+            } (${value.profile?.name ?? "unknown"})`,
+        );
         socket.close();
         process.exit(0);
     }
@@ -108,6 +133,17 @@ while (Date.now() < deadline) {
             }`,
         );
     }
+    if (value.initialized && value.physicsSelfTestStatus < 0) {
+        socket.close();
+        throw new Error(
+            `WASM GPU physics self-test failed with status ${
+                value.physicsSelfTestStatus
+            }${
+                diagnostics.length === 0
+                    ? "" : `: ${diagnostics.slice(-10).join(" | ")}`
+            }`,
+        );
+    }
     await delay(100);
 }
 
@@ -115,5 +151,5 @@ socket.close();
 throw new Error(
     `WASM application startup timed out${
         diagnostics.length === 0 ? "" : `: ${diagnostics.slice(-10).join(" | ")}`
-    }`,
+    }; last state: ${JSON.stringify(lastState)}`,
 );

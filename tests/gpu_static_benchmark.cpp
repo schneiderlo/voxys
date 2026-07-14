@@ -63,7 +63,9 @@ TEST(GpuStaticBenchmark,
     physicsConfig.maxBodies = 131'072;
     physicsConfig.maxActiveBodies = 131'072;
     physicsConfig.gpu.maximumLinearSpeed = 50.0f;
+    physicsConfig.gpu.enableBodyBodyContacts = false;
     ASSERT_TRUE(world.initialize(physicsConfig));
+    EXPECT_FALSE(world.capabilities().bodyBodyContacts);
 
     constexpr uint32_t terrainExtent = 512;
     std::vector<uint16_t> terrain(terrainExtent * terrainExtent);

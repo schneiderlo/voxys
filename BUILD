@@ -70,7 +70,7 @@ cc_binary(
         "-sMODULARIZE=1",
         "-sEXPORT_NAME=VoxyModule",
         "-sEXPORTED_RUNTIME_METHODS=['ccall','cwrap','UTF8ToString']",
-        "-sEXPORTED_FUNCTIONS=['_main','_voxy_resize','_voxy_mouse_move','_voxy_key_event','_voxy_get_fps','_voxy_is_initialized','_voxy_get_physics_backend']",
+        "-sEXPORTED_FUNCTIONS=['_main','_voxy_resize','_voxy_mouse_move','_voxy_key_event','_voxy_get_fps','_voxy_is_initialized','_voxy_get_physics_backend','_voxy_start_physics_self_test','_voxy_get_physics_self_test_status','_voxy_get_physics_self_test_tick']",
         "-sASYNCIFY",
         "--js-library", "$(location @emdawnwebgpu//:src/library_webgpu_generated_struct_info.js)",
         "--js-library", "$(location @emdawnwebgpu//:src/library_webgpu_generated_sig_info.js)",

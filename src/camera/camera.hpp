@@ -65,6 +65,21 @@ public:
     /// Get camera world-space position
     [[nodiscard]] const glm::vec3& position() const noexcept { return position_; }
 
+    /// Integer sector containing the local camera position. Matrices continue
+    /// to use position() so all render math remains camera-near f32.
+    [[nodiscard]] const glm::ivec3& worldSector() const noexcept {
+        return worldSector_;
+    }
+
+    void setWorldSector(const glm::ivec3& sector) noexcept {
+        worldSector_ = sector;
+    }
+
+    void setWorldPosition(const glm::ivec3& sector, const glm::vec3& local) {
+        worldSector_ = sector;
+        setPosition(local);
+    }
+
     /// Set camera world-space position
     void setPosition(const glm::vec3& pos);
 
@@ -199,6 +214,7 @@ private:
 
     // Position
     glm::vec3 position_{0.0f, 0.0f, 0.0f};
+    glm::ivec3 worldSector_{0};
 
     // Orientation (Euler angles in radians)
     float yaw_ = 0.0f;    // Horizontal rotation (0 = looking along +Z)
@@ -309,7 +325,6 @@ inline void Camera::markProjectionDirty() const {
 }
 
 } // namespace voxy
-
 
 
 

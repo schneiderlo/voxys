@@ -2,6 +2,7 @@
 
 #include "gpu/context.hpp"
 #include "gpu/resources.hpp"
+#include "physics/gpu/gpu_body_metadata.hpp"
 #include "physics/gpu/gpu_dynamic_solver.hpp"
 
 #include <algorithm>
@@ -49,6 +50,12 @@ struct alignas(16) TestShape {
     glm::vec4 inverseInertiaMaterial{0.0f};
 };
 using TestMetadata = std::array<uint32_t, 4>;
+
+TestMetadata makeMetadata(bool awake) {
+    const uint32_t flags = kGpuBodyAliveFlag
+        | (awake ? kGpuBodyAwakeFlag : 0u);
+    return {0u, 0u, 0u, packGpuBodyMetadata(1u, flags)};
+}
 
 struct SolverSnapshot {
     GpuDynamicSolverTelemetry telemetry;
@@ -211,7 +218,7 @@ TEST_P(GpuDynamicColoringTest, ColorsConflictsAndGathersOverflowDeterministicall
     for (uint32_t body = 1; body <= contactCount + 1u; ++body) {
         poses[body].positionInvMass = {float(body), 0.0f, 0.0f, 0.0f};
         shapes[body].dimensionsType = {1.0f, 1.0f, 1.0f, 0.0f};
-        metadata[body] = {3u, 1u, 0u, 0u};
+        metadata[body] = makeMetadata(true);
     }
     for (uint32_t rank = 0; rank < contactCount; ++rank) {
         manifolds[rank] = makeContact(
@@ -317,7 +324,7 @@ TEST(GpuDynamicSolverTest, SoftStepSeparatesAndFrictionSlowsContact) {
     for (uint32_t body : {1u, 2u}) {
         shapes[body].dimensionsType = {1.0f, 1.0f, 1.0f, 0.0f};
         shapes[body].inverseInertiaMaterial = {10.0f, 10.0f, 10.0f, 0.0f};
-        metadata[body] = {3u, 1u, 0u, 0u};
+        metadata[body] = makeMetadata(true);
     }
     manifolds[0] = makeContact(
         1u, 2u, glm::vec3(1.0f, 0.0f, 0.0f),
@@ -403,7 +410,7 @@ TEST(GpuDynamicSolverTest, SmallIslandFastPathMatchesGlobalSolver) {
     for (uint32_t body : {1u, 2u}) {
         shapes[body].dimensionsType = {1.0f, 1.0f, 1.0f, 0.0f};
         shapes[body].inverseInertiaMaterial = {8.0f, 9.0f, 10.0f, 0.0f};
-        metadata[body] = {3u, 1u, 0u, 0u};
+        metadata[body] = makeMetadata(true);
     }
     initialManifolds[0] = makeContact(
         1u, 2u, glm::vec3(1.0f, 0.0f, 0.0f),
@@ -466,6 +473,35 @@ TEST(GpuDynamicSolverTest, SmallIslandFastPathMatchesGlobalSolver) {
     global.manifolds[0].state[2] &= 255u;
     EXPECT_EQ(std::memcmp(&fast.manifolds[0], &global.manifolds[0],
                           sizeof(GpuContactManifold)), 0);
+
+    // Repeat at a large sector boundary. The common velocity moves only body A
+    // through the boundary during the four substeps. Different local frames
+    // can round at different magnitudes, so compare physical state by a tight
+    // float tolerance rather than by bytes.
+    constexpr uint32_t baseSector = 1'500'000u;
+    initialPoses[1].positionInvMass = {127.995f, 0.1f, 0.0f, 1.0f};
+    initialPoses[2].positionInvMass = {-127.205f, -0.1f, 0.0f, 0.75f};
+    initialMotions[1].linearVelocitySleep = {11.0f, 0.8f, 0.2f, 0.0f};
+    initialMotions[2].linearVelocitySleep = {9.5f, -0.3f, -0.1f, 0.0f};
+    metadata[1][0] = baseSector;
+    metadata[2][0] = baseSector + 1u;
+    fast = run(true);
+    global = run(false);
+    for (uint32_t body : {1u, 2u}) {
+        for (int lane = 0; lane < 4; ++lane) {
+            EXPECT_NEAR(fast.poses[body].positionInvMass[lane],
+                        global.poses[body].positionInvMass[lane], 2e-4f);
+            EXPECT_NEAR(fast.poses[body].orientation[lane],
+                        global.poses[body].orientation[lane], 2e-4f);
+            EXPECT_NEAR(fast.motions[body].linearVelocitySleep[lane],
+                        global.motions[body].linearVelocitySleep[lane], 2e-4f);
+            EXPECT_NEAR(fast.motions[body].angularVelocityFlags[lane],
+                        global.motions[body].angularVelocityFlags[lane], 2e-4f);
+        }
+        EXPECT_GE(global.poses[body].positionInvMass.x, -128.0f);
+        EXPECT_LT(global.poses[body].positionInvMass.x, 128.0f);
+    }
+    EXPECT_LT(global.poses[1].positionInvMass.x, -127.0f);
 }
 
 TEST(GpuDynamicSolverTest, BoxTowerMixedPileAndAvalancheStayBounded) {
@@ -486,7 +522,7 @@ TEST(GpuDynamicSolverTest, BoxTowerMixedPileAndAvalancheStayBounded) {
     const auto makeStatic = [&](uint32_t body, const glm::vec3& position) {
         poses[body].positionInvMass = {position.x, position.y, position.z, 0.0f};
         shapes[body].dimensionsType = {1.0f, 1.0f, 1.0f, 1.0f};
-        metadata[body] = {1u, 1u, 0u, 0u};
+        metadata[body] = makeMetadata(false);
     };
     const auto makeDynamic = [&](uint32_t body, const glm::vec3& position,
                                  uint32_t shapeType) {
@@ -496,7 +532,7 @@ TEST(GpuDynamicSolverTest, BoxTowerMixedPileAndAvalancheStayBounded) {
         const float inertia = 7.0f + static_cast<float>(shapeType);
         shapes[body].inverseInertiaMaterial = {
             inertia, inertia * 0.9f, inertia * 1.1f, 0.0f};
-        metadata[body] = {3u, 1u, 0u, 0u};
+        metadata[body] = makeMetadata(true);
     };
     uint32_t contactCount = 0;
     const auto addContact = [&](uint32_t bodyA, uint32_t bodyB,
@@ -606,7 +642,7 @@ TEST(GpuDynamicSolverTest, BoxTowerMixedPileAndAvalancheStayBounded) {
     EXPECT_EQ(snapshot.telemetry.overflowContacts, 0u);
     EXPECT_EQ(snapshot.telemetry.smallIslandContacts, 8u);
     for (uint32_t body = 1u; body <= 55u; ++body) {
-        if ((metadata[body][0] & 2u) == 0u) continue;
+        if ((metadata[body][3] & kGpuBodyAwakeFlag) == 0u) continue;
         for (float value : {snapshot.poses[body].positionInvMass.x,
                             snapshot.poses[body].positionInvMass.y,
                             snapshot.poses[body].positionInvMass.z,

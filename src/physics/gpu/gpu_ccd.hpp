@@ -1,7 +1,9 @@
 #pragma once
 
 #include "gpu/webgpu_compat.hpp"
+#include "physics/gpu/gpu_body_metadata.hpp"
 
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <filesystem>
@@ -9,10 +11,6 @@
 #include <span>
 
 namespace voxy::physics {
-
-inline constexpr uint32_t kGpuBodyBulletFlag = 1u << 0u;
-inline constexpr uint32_t kGpuBodyCcdHitFlag = 1u << 1u;
-inline constexpr uint32_t kGpuBodyCcdFailureFlag = 1u << 2u;
 
 struct GpuCcdInput {
     WGPUBuffer poseBuffer = nullptr;
@@ -25,6 +23,7 @@ struct GpuCcdInput {
     uint32_t terrainHeight = 0;
     float terrainHeightScale = 0.0f;
     float terrainCellScale = 0.0f;
+    std::array<int32_t, 3> terrainSector{};
 
     [[nodiscard]] bool valid() const noexcept {
         return poseBuffer && motionBuffer && shapeBuffer && metadataBuffer

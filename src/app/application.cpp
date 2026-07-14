@@ -34,6 +34,7 @@
 #include <array>
 #include <cmath>
 #include <filesystem>
+#include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <numbers>
 #include <span>
@@ -279,7 +280,7 @@ bool Application::init(const ApplicationConfig& config) {
         int index = config_.initialTeleportIndex.value();
         if (index >= 0 && static_cast<size_t>(index) < teleportTargets_.size()) {
             const auto& target = teleportTargets_[static_cast<size_t>(index)];
-            camera_->setPosition(target.position);
+            camera_->setWorldPosition(target.sector, target.position);
             camera_->setYaw(target.yaw);
             camera_->setPitch(target.pitch);
             LOG_INFO("Applied initial teleport to index {} (Pos: {:.2f}, {:.2f}, {:.2f})",
@@ -627,7 +628,8 @@ void Application::render() {
                 encoder, targetView, objectDepth, camera_->viewMatrix(),
                 camera_->projectionMatrix(), camera_->position(), kSunDirection,
                 gpuContext_->getSwapchainWidth(), gpuContext_->getSwapchainHeight(),
-                config_.renderPath == RenderPath::Raycast);
+                config_.renderPath == RenderPath::Raycast,
+                camera_->worldSector());
             primitiveStageTimer.stop();
             stats_.primitiveRenderMs = primitiveStageTimer.elapsedMs();
         }
@@ -704,7 +706,7 @@ void Application::scheduleNextTourStep() {
     int index = config_.screenshotTourIndices[tourStep_];
     if (camera_ && index >= 0 && static_cast<size_t>(index) < teleportTargets_.size()) {
         const auto& target = teleportTargets_[static_cast<size_t>(index)];
-        camera_->setPosition(target.position);
+        camera_->setWorldPosition(target.sector, target.position);
         camera_->setYaw(target.yaw);
         camera_->setPitch(target.pitch);
         LOG_INFO("Screenshot tour: teleported to index {} (step {})", index, tourStep_);
@@ -891,7 +893,7 @@ void Application::startBenchmark() {
         // Set up camera callback for benchmark
         benchmarkRunner_->setCameraCallback([this](const glm::vec3& pos, const glm::vec3& target) {
             if (camera_) {
-                camera_->setPosition(pos);
+                camera_->setWorldPosition(glm::ivec3(0), pos);
                 camera_->lookAt(target);
             }
         });
@@ -1567,9 +1569,25 @@ void Application::renderRaycastPath(WGPUCommandEncoder encoder, WGPUTextureView 
 void Application::updateCameraUniforms() {
     if (!camera_) return;
 
-    const auto& view = camera_->viewMatrix();
+    const auto& cameraView = camera_->viewMatrix();
     const auto& proj = camera_->projectionMatrix();
     const auto& pos = camera_->position();
+    const physics::WorldPosition cameraWorld =
+        physics::canonicalWorldPosition(
+            camera_->worldSector(), glm::dvec3(pos));
+    const glm::dvec3 terrainPosition64 =
+        physics::worldPositionToAbsolute(cameraWorld);
+    const glm::vec3 terrainPosition{
+        static_cast<float>(terrainPosition64.x),
+        static_cast<float>(terrainPosition64.y),
+        static_cast<float>(terrainPosition64.z)};
+    // Terrain remains authored in sector-zero coordinates. Keep the camera's
+    // stable rotation, but reconstruct its terrain-space translation after the
+    // camera local position crosses a sector boundary. Physics primitives use
+    // cameraView separately and remain camera-relative.
+    const glm::mat4 terrainViewRotation{glm::mat3(cameraView)};
+    const glm::mat4 terrainView = terrainViewRotation
+        * glm::translate(glm::mat4(1.0f), -terrainPosition);
     const float ambient = config_.ambientIntensity;
     const uint32_t terrainWidth = heightmap_ ? heightmap_->getWidth() : stats_.terrainWidth;
     const uint32_t terrainHeight = heightmap_ ? heightmap_->getHeight() : stats_.terrainHeight;
@@ -1587,8 +1605,8 @@ void Application::updateCameraUniforms() {
         static_cast<float>(lodStep),
         fogDensity
     );
-    uniforms.setCamera(view, proj, pos);
-    uniforms.setLightDirection(worldLightDir, view, ambient);
+    uniforms.setCamera(terrainView, proj, terrainPosition);
+    uniforms.setLightDirection(worldLightDir, terrainView, ambient);
     uniforms.setLegoMode(legoMode_);
     uniforms.setWater(config_.waterEnabled,
                       config_.waterHeight,
@@ -1804,13 +1822,26 @@ void Application::processThrowableInput(float deltaTime) {
     const glm::vec3 direction = glm::normalize(camera_->forward());
     const glm::vec3 origin = camera_->position() + direction * 2.2f;
     constexpr float throwSpeed = 28.0f;
+    const auto throwSelected = [&]() {
+        if (physicsWorld_->capabilities().gpuResidentState) {
+            physics::BodySpawnDesc desc;
+            desc.shape = shape;
+            desc.position = origin;
+            desc.sector = camera_->worldSector();
+            desc.linearVelocity = direction * throwSpeed;
+            desc.dimensions =
+                physics::PhysicsWorld::throwableShapeDimensions(shape);
+            return physicsWorld_->spawnBody(desc).valid();
+        }
+        return physicsWorld_->throwBody(
+            shape, origin, direction * throwSpeed);
+    };
 
     if (batchRequested) {
         constexpr uint32_t batchSize = 128;
         uint32_t thrown = 0;
         for (uint32_t i = 0; i < batchSize; ++i) {
-            thrown += physicsWorld_->throwBody(
-                shape, origin, direction * throwSpeed) ? 1u : 0u;
+            thrown += throwSelected() ? 1u : 0u;
         }
         LOG_INFO("Threw {} x {}", thrown,
                  physics::PhysicsWorld::throwableShapeName(shape));
@@ -1825,8 +1856,7 @@ void Application::processThrowableInput(float deltaTime) {
     throwableCooldown_ -= frameTime;
     constexpr float throwInterval = 1.0f / 100.0f;
     while (throwableCooldown_ <= 0.0f) {
-        if (physicsWorld_->throwBody(
-                shape, origin, direction * throwSpeed)) {
+        if (throwSelected()) {
             LOG_INFO("Threw {}", physics::PhysicsWorld::throwableShapeName(shape));
         }
         throwableCooldown_ += throwInterval;
@@ -1916,6 +1946,7 @@ void Application::handleKeyboardShortcuts() {
             state.position = camera_->position();
             state.yaw = camera_->yaw();
             state.pitch = camera_->pitch();
+            state.sector = camera_->worldSector();
 
             recordedPositions_.push_back(state);
             LOG_INFO("Recorded state [{}] : Pos({:.2f}, {:.2f}, {:.2f}) Yaw({:.2f}) Pitch({:.2f})",
@@ -1938,7 +1969,7 @@ void Application::handleKeyboardShortcuts() {
             if (index < teleportTargets_.size()) {
                 if (camera_) {
                     const auto& target = teleportTargets_[index];
-                    camera_->setPosition(target.position);
+                    camera_->setWorldPosition(target.sector, target.position);
                     camera_->setYaw(target.yaw);
                     camera_->setPitch(target.pitch);
                     LOG_INFO("Teleported to position {}: {:.2f}, {:.2f}, {:.2f}",

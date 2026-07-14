@@ -195,6 +195,20 @@ TEST_F(CharacterControllerTest, FeetPositionIsCorrect) {
     EXPECT_FLOAT_EQ(feet.y, 10.0f - 1.8f);
 }
 
+TEST_F(CharacterControllerTest, FeetWorldPositionIsAlwaysCanonical) {
+    camera_->setWorldPosition(
+        {1'500'000, -1'500'000, 900'000},
+        {130.0f, -130.0f, 127.0f});
+
+    const physics::WorldPosition feet = controller_->feetWorldPosition();
+    EXPECT_TRUE(physics::isValidWorldPosition(feet));
+    EXPECT_EQ(feet.sector,
+              glm::ivec3(1'500'001, -1'500'001, 900'000));
+    EXPECT_FLOAT_EQ(feet.local.x, -126.0f);
+    EXPECT_FLOAT_EQ(feet.local.y, 124.2f);
+    EXPECT_FLOAT_EQ(feet.local.z, 127.0f);
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // Velocity Tests
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -282,4 +296,3 @@ TEST_F(CharacterControllerTest, StandsOnSteepSlope) {
     // (Our specific implementation forces grounded state when feet are at/below terrain)
     EXPECT_EQ(controller_->state(), CharacterState::Grounded);
 }
-

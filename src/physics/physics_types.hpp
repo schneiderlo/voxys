@@ -75,7 +75,7 @@ enum class JoltJobSystemMode : uint8_t {
 [[nodiscard]] JoltJobSystemMode joltJobSystemModeFromName(
     std::string_view name,
     JoltJobSystemMode fallback =
-        JoltJobSystemMode::SingleThreaded) noexcept;
+        JoltJobSystemMode::ThreadPool) noexcept;
 
 struct BackendCapabilities {
     bool gpuResidentState = false;
@@ -103,8 +103,9 @@ struct PhysicsInitContext {
     uint32_t maxManifolds = 65'536;
     bool enableValidation = false;
 
-    // Baseline-only tuning. Gameplay remains single-threaded by default.
-    JoltJobSystemMode joltJobSystem = JoltJobSystemMode::SingleThreaded;
+    // Native Jolt uses its worker pool by default. WASM overrides this because
+    // the browser build is currently compiled without pthreads.
+    JoltJobSystemMode joltJobSystem = JoltJobSystemMode::ThreadPool;
     // Zero lets Jolt select the native worker count.
     uint32_t joltWorkerThreads = 0;
 
@@ -123,6 +124,10 @@ struct PhysicsInitContext {
         float terrainRestitution = 0.20f;
         float linearSlop = 0.005f;
         float speculativeDistance = 0.02f;
+        // Production keeps the complete dynamic world enabled. Earlier
+        // ballistic/static phase gates disable this to isolate their stated
+        // terrain, water, and direct-render workloads.
+        bool enableBodyBodyContacts = true;
         // Must evenly divide the 256 m world sector for sector-aware grid keys.
         float broadPhaseCellSize = 4.0f;
         float waterBuoyancy = 1.05f;
@@ -360,6 +365,11 @@ struct PhysicsCommand {
 struct PhysicsRenderView {
     WGPUBuffer poseBuffer = nullptr;
     WGPUBuffer shapeBuffer = nullptr;
+    // Optional packed sector/generation/flags data. GPU physics provides this
+    // so rendering can rebase canonical local poses into the camera sector.
+    // CPU compatibility uploads already contain render-frame poses and leave
+    // this null.
+    WGPUBuffer metadataBuffer = nullptr;
     WGPUBuffer activeBodyIds = nullptr;
     WGPUBuffer visibleBodyIds = nullptr;
     WGPUBuffer perShapeRanges = nullptr;
@@ -518,7 +528,7 @@ struct CharacterSettings {
 };
 
 struct CharacterMotion {
-    glm::vec3 position{0.0f}; // Feet position in world space.
+    glm::vec3 position{0.0f}; // Feet position local to sector.
     glm::vec3 velocity{0.0f};
     glm::vec3 groundNormal{0.0f, 1.0f, 0.0f};
     bool grounded = false;

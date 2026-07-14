@@ -541,15 +541,16 @@ fn sleeping_cell(body : u32, valid : ptr<function, bool>) -> vec3<i32> {
         (*valid) = false;
         return vec3<i32>(0);
     }
-    let safeSector = (CELL_BIAS - 256) / cellsPerSector;
-    if (any(sectors < vec3<i32>(-safeSector))
-        || any(sectors > vec3<i32>(safeSector))) {
-        (*valid) = false;
-        return vec3<i32>(0);
-    }
-    let cell = sectors * cellsPerSector + localCell;
-    (*valid) = coordinate_is_encodable(cell);
-    return cell;
+    // Sleeping-grid keys are toroidal buckets. Restricting this arithmetic to
+    // the low 21 bits keeps it defined for every signed i32 sector. Exact body
+    // positions remain in metadata and poses; key aliases only share a range.
+    let cellBits = bitcast<vec3<u32>>(sectors)
+        * vec3<u32>(u32(cellsPerSector))
+        + bitcast<vec3<u32>>(localCell)
+        + vec3<u32>(u32(CELL_BIAS));
+    let encoded = cellBits & vec3<u32>(CELL_MASK);
+    (*valid) = true;
+    return vec3<i32>(encoded) - vec3<i32>(CELL_BIAS);
 }
 
 fn apply_states_impl(gid : vec3<u32>) {

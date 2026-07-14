@@ -728,6 +728,14 @@
                 );
                 const device = deviceRequest.device;
                 window.voxyDeviceProfile = deviceRequest.profile;
+                device.addEventListener('uncapturederror', (event) => {
+                    console.error('WebGPU uncaptured error:', event.error);
+                });
+                device.lost.then((info) => {
+                    console.error(
+                        `WebGPU device lost (${info.reason}): ${info.message}`
+                    );
+                });
 
                 updateProgress(15, 'Loading WASM module...');
 

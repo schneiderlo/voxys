@@ -6,17 +6,244 @@
 #include "core/log.hpp"
 #include "core/config.hpp"
 #include "engine/platform/input.hpp"
+#include "gpu/context.hpp"
+#include "physics/physics_world.hpp"
 
 #include <algorithm>
+#include <cmath>
 #include <memory>
 #include <numeric>
 #include <emscripten.h>
 #include <emscripten/html5.h>
 
+extern "C" WGPUDevice emscripten_webgpu_get_device(void);
+
 namespace {
+    enum class PhysicsSelfTestStatus : int {
+        NotStarted = 0,
+        Running = 1,
+        Passed = 2,
+        ApplicationUnavailable = -1,
+        WrongBackend = -2,
+        SpawnFailed = -3,
+        InvalidSnapshot = -4,
+        IntegrationFailed = -5,
+        SectorCollisionFailed = -6,
+        DistantSectorAliased = -7,
+    };
+
+    struct PhysicsSelfTestState {
+        PhysicsSelfTestStatus status = PhysicsSelfTestStatus::NotStarted;
+        voxy::physics::BodyHandle left{};
+        voxy::physics::BodyHandle right{};
+        voxy::physics::BodyHandle distant{};
+        uint64_t tick = 0;
+    };
+
     // Hold the Application instance for the lifetime of the page
     std::unique_ptr<voxy::Application> g_wasmAppInstance;
     voxy::Application* g_app = nullptr;
+    std::unique_ptr<voxy::physics::PhysicsWorld> g_physicsSelfTestWorld;
+    WGPUDevice g_physicsSelfTestDevice = nullptr;
+    WGPUQueue g_physicsSelfTestQueue = nullptr;
+    PhysicsSelfTestState g_physicsSelfTest;
+    bool g_physicsSelfTestRequested = false;
+    bool g_physicsSelfTestRuntimeReady = false;
+
+    constexpr int32_t kPhysicsSelfTestBaseSector = 1'500'000;
+    constexpr float kPhysicsSelfTestHeight = 100.0f;
+
+    int physicsSelfTestStatus() noexcept {
+        return static_cast<int>(g_physicsSelfTest.status);
+    }
+
+    voxy::physics::PhysicsWorld* physicsWorldForSelfTest() noexcept {
+        if (g_physicsSelfTestWorld) return g_physicsSelfTestWorld.get();
+        return g_app ? g_app->getPhysicsWorld() : nullptr;
+    }
+
+    WGPUDevice deviceForSelfTest() noexcept {
+        if (g_physicsSelfTestDevice) return g_physicsSelfTestDevice;
+        return g_app && g_app->getGPUContext()
+            ? g_app->getGPUContext()->getDevice() : nullptr;
+    }
+
+    WGPUQueue queueForSelfTest() noexcept {
+        if (g_physicsSelfTestQueue) return g_physicsSelfTestQueue;
+        return g_app && g_app->getGPUContext()
+            ? g_app->getGPUContext()->getQueue() : nullptr;
+    }
+
+    void failPhysicsSelfTest(PhysicsSelfTestStatus status,
+                             const char* message) {
+        g_physicsSelfTest.status = status;
+        LOG_ERROR("WASM GPU physics self-test failed ({}): {}",
+                  physicsSelfTestStatus(), message);
+    }
+
+    int startPhysicsSelfTest() {
+        if (g_physicsSelfTest.status != PhysicsSelfTestStatus::NotStarted) {
+            return physicsSelfTestStatus();
+        }
+        voxy::physics::PhysicsWorld* selfTestWorld =
+            physicsWorldForSelfTest();
+        WGPUDevice selfTestDevice = deviceForSelfTest();
+        WGPUQueue selfTestQueue = queueForSelfTest();
+        if (!selfTestWorld || !selfTestWorld->isInitialized()
+            || !selfTestDevice || !selfTestQueue) {
+            failPhysicsSelfTest(
+                PhysicsSelfTestStatus::ApplicationUnavailable,
+                "browser device or physics world is unavailable");
+            return physicsSelfTestStatus();
+        }
+
+        voxy::physics::PhysicsWorld& world = *selfTestWorld;
+        if (world.backendType() != voxy::physics::BackendType::WebGpuSoft) {
+            failPhysicsSelfTest(
+                PhysicsSelfTestStatus::WrongBackend,
+                "WebGpuSoft is not the active backend");
+            return physicsSelfTestStatus();
+        }
+
+        voxy::physics::BodySpawnDesc leftDesc;
+        leftDesc.shape = voxy::physics::ThrowableShape::Sphere;
+        leftDesc.dimensions =
+            voxy::physics::throwableShapeDimensions(leftDesc.shape);
+        leftDesc.position = {127.6f, kPhysicsSelfTestHeight, 0.0f};
+        leftDesc.sector = {kPhysicsSelfTestBaseSector, 0, 0};
+
+        voxy::physics::BodySpawnDesc rightDesc = leftDesc;
+        rightDesc.position.x = -127.6f;
+        ++rightDesc.sector.x;
+
+        voxy::physics::BodySpawnDesc distantDesc = rightDesc;
+        distantDesc.sector.x += 3;
+
+        g_physicsSelfTest.left = world.spawnBody(leftDesc);
+        g_physicsSelfTest.right = world.spawnBody(rightDesc);
+        g_physicsSelfTest.distant = world.spawnBody(distantDesc);
+        if (!g_physicsSelfTest.left.valid()
+            || !g_physicsSelfTest.right.valid()
+            || !g_physicsSelfTest.distant.valid()
+            || g_physicsSelfTest.right.index
+                != g_physicsSelfTest.left.index + 1u
+            || g_physicsSelfTest.distant.index
+                != g_physicsSelfTest.right.index + 1u) {
+            failPhysicsSelfTest(
+                PhysicsSelfTestStatus::SpawnFailed,
+                "could not allocate three contiguous probe bodies");
+            return physicsSelfTestStatus();
+        }
+
+        // Use the production backend and browser device, but submit a dedicated
+        // probe command buffer so the result does not depend on RAF scheduling
+        // or the cost of the terrain render running on SwiftShader.
+        world.update(1.0f / 60.0f);
+        world.requestDebugSnapshot({g_physicsSelfTest.left.index, 3u});
+        WGPUCommandEncoderDescriptor encoderDesc{};
+        WGPUCommandEncoder encoder = wgpuDeviceCreateCommandEncoder(
+            selfTestDevice, &encoderDesc);
+        if (!encoder) {
+            failPhysicsSelfTest(
+                PhysicsSelfTestStatus::ApplicationUnavailable,
+                "could not create the browser probe command encoder");
+            return physicsSelfTestStatus();
+        }
+        world.encodeGpuStep(encoder);
+        WGPUCommandBufferDescriptor commandDesc{};
+        WGPUCommandBuffer command =
+            wgpuCommandEncoderFinish(encoder, &commandDesc);
+        if (!command) {
+            wgpuCommandEncoderRelease(encoder);
+            failPhysicsSelfTest(
+                PhysicsSelfTestStatus::ApplicationUnavailable,
+                "could not finish the browser probe command buffer");
+            return physicsSelfTestStatus();
+        }
+        wgpuQueueSubmit(selfTestQueue, 1u, &command);
+        wgpuCommandBufferRelease(command);
+        wgpuCommandEncoderRelease(encoder);
+        g_physicsSelfTest.status = PhysicsSelfTestStatus::Running;
+        LOG_INFO("WASM GPU physics self-test started");
+        return physicsSelfTestStatus();
+    }
+
+    void finishPhysicsSelfTestFrame() {
+        voxy::physics::PhysicsWorld* selfTestWorld =
+            physicsWorldForSelfTest();
+        if (g_physicsSelfTest.status != PhysicsSelfTestStatus::Running
+            || !selfTestWorld) return;
+
+        voxy::physics::PhysicsWorld& world = *selfTestWorld;
+        const auto snapshot = world.pollDebugSnapshot();
+        if (!snapshot) return;
+        g_physicsSelfTest.tick = snapshot->tick;
+        if (snapshot->tick == 0u || snapshot->bodies.size() != 3u) {
+            failPhysicsSelfTest(
+                PhysicsSelfTestStatus::InvalidSnapshot,
+                "debug readback did not contain the simulated probe range");
+            return;
+        }
+
+        const auto& left = snapshot->bodies[0];
+        const auto& right = snapshot->bodies[1];
+        const auto& distant = snapshot->bodies[2];
+        if (left.handle != g_physicsSelfTest.left
+            || right.handle != g_physicsSelfTest.right
+            || distant.handle != g_physicsSelfTest.distant
+            || !left.alive || !right.alive || !distant.alive
+            || !(left.position.y < kPhysicsSelfTestHeight)
+            || !(right.position.y < kPhysicsSelfTestHeight)
+            || !(distant.position.y < kPhysicsSelfTestHeight)) {
+            failPhysicsSelfTest(
+                PhysicsSelfTestStatus::IntegrationFailed,
+                "spawned bodies were not integrated by the GPU");
+            return;
+        }
+
+        const voxy::physics::WorldPosition leftPosition{
+            left.sector, left.position};
+        const voxy::physics::WorldPosition rightPosition{
+            right.sector, right.position};
+        const voxy::physics::WorldPosition distantPosition{
+            distant.sector, distant.position};
+        glm::vec3 leftInFrame;
+        glm::vec3 rightInFrame;
+        if (!voxy::physics::isValidWorldPosition(leftPosition)
+            || !voxy::physics::isValidWorldPosition(rightPosition)
+            || !voxy::physics::isValidWorldPosition(distantPosition)
+            || !voxy::physics::worldPositionRelativeToSector(
+                leftPosition, left.sector, leftInFrame)
+            || !voxy::physics::worldPositionRelativeToSector(
+                rightPosition, left.sector, rightInFrame)) {
+            failPhysicsSelfTest(
+                PhysicsSelfTestStatus::SectorCollisionFailed,
+                "probe positions were not canonical sector-local values");
+            return;
+        }
+
+        const float separation = rightInFrame.x - leftInFrame.x;
+        if (!(separation > 0.8001f && separation < 1.3f)) {
+            failPhysicsSelfTest(
+                PhysicsSelfTestStatus::SectorCollisionFailed,
+                "overlapping bodies did not resolve across the sector boundary");
+            return;
+        }
+        if (distant.sector.x != kPhysicsSelfTestBaseSector + 4
+            || std::abs(distant.position.x + 127.6f) > 0.05f) {
+            failPhysicsSelfTest(
+                PhysicsSelfTestStatus::DistantSectorAliased,
+                "distant wrapped grid key produced a false collision");
+            return;
+        }
+
+        static_cast<void>(world.destroyBody(g_physicsSelfTest.left));
+        static_cast<void>(world.destroyBody(g_physicsSelfTest.right));
+        static_cast<void>(world.destroyBody(g_physicsSelfTest.distant));
+        g_physicsSelfTest.status = PhysicsSelfTestStatus::Passed;
+        LOG_INFO("WASM GPU physics self-test passed at tick {}",
+                 g_physicsSelfTest.tick);
+    }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -30,6 +257,63 @@ int main(int argc, char* argv[]) {
     // Parse command-line arguments and load config
     voxy::config::init(argc, argv);
     const auto& config = voxy::config::get();
+    g_physicsSelfTestRequested = EM_ASM_INT({
+        return new URLSearchParams(globalThis.location.search)
+            .get("physicsSelfTest") === "1" ? 1 : 0;
+    }) != 0;
+    if (g_physicsSelfTestRequested) {
+        g_physicsSelfTestRuntimeReady = true;
+        g_physicsSelfTest = {};
+        g_physicsSelfTestDevice = emscripten_webgpu_get_device();
+        if (!g_physicsSelfTestDevice) {
+            failPhysicsSelfTest(
+                PhysicsSelfTestStatus::ApplicationUnavailable,
+                "Emscripten did not provide the preinitialized WebGPU device");
+            return 0;
+        }
+        g_physicsSelfTestQueue =
+            wgpuDeviceGetQueue(g_physicsSelfTestDevice);
+        if (!g_physicsSelfTestQueue) {
+            failPhysicsSelfTest(
+                PhysicsSelfTestStatus::ApplicationUnavailable,
+                "the browser WebGPU device did not provide a queue");
+            return 0;
+        }
+
+        voxy::physics::PhysicsInitContext physicsContext;
+        physicsContext.requestedBackend =
+            voxy::physics::BackendType::WebGpuSoft;
+        physicsContext.device = g_physicsSelfTestDevice;
+        physicsContext.queue = g_physicsSelfTestQueue;
+        physicsContext.maxBodies = 64;
+        physicsContext.maxActiveBodies = 64;
+        physicsContext.maxPairs = 256;
+        physicsContext.maxContacts = 128;
+        physicsContext.maxManifolds = 256;
+        physicsContext.gpu.commandCapacity = 64;
+        physicsContext.gpu.debugReadbackSlots = 2;
+        physicsContext.gpu.debugReadbackBodyCapacity = 8;
+        physicsContext.gpu.asyncQueryCapacity = 8;
+        physicsContext.gpu.asyncQueryReadbackSlots = 2;
+        physicsContext.gpu.telemetryReadbackSlots = 1;
+        physicsContext.gpu.ccdBulletCapacity = 64;
+        physicsContext.gpu.shaderPath =
+            "shaders/physics_ballistic.wgsl";
+
+        g_physicsSelfTestWorld =
+            std::make_unique<voxy::physics::PhysicsWorld>();
+        if (!g_physicsSelfTestWorld->initialize(physicsContext)) {
+            failPhysicsSelfTest(
+                PhysicsSelfTestStatus::ApplicationUnavailable,
+                "the browser WebGPU physics backend did not initialize");
+            return 0;
+        }
+        static_cast<void>(startPhysicsSelfTest());
+        emscripten_set_main_loop([]() {
+            finishPhysicsSelfTestFrame();
+        }, 0, false);
+        return 0;
+    }
 
     // Configure the application from loaded config file
     voxy::ApplicationConfig appConfig;
@@ -79,11 +363,11 @@ int main(int argc, char* argv[]) {
     appConfig.gpuPhysicsMaxBodies = static_cast<uint32_t>(
         std::max(config.physics.gpuMaxBodies, 2));
     appConfig.physicsCpuFallback = config.physics.allowCpuFallback;
-    appConfig.joltJobSystem = voxy::physics::joltJobSystemModeFromName(
-        config.physics.joltJobSystem);
-    appConfig.joltWorkerThreads = static_cast<uint32_t>(
-        std::max(config.physics.joltWorkerThreads, 0));
-    // Browser builds currently run Box3D without pthreads.
+    // This WASM build has no pthreads. Native Jolt defaults to its thread pool,
+    // while browser CPU backends use their single-threaded schedulers.
+    appConfig.joltJobSystem =
+        voxy::physics::JoltJobSystemMode::SingleThreaded;
+    appConfig.joltWorkerThreads = 0;
     appConfig.box3dWorkerThreads = 1;
     
     // Enforce 8K resolution
@@ -140,6 +424,7 @@ int main(int argc, char* argv[]) {
     }
 
     g_app = app;
+    g_physicsSelfTest = {};
 
     // Run the main loop (returns immediately in WASM)
     // WASM: set up Emscripten main loop and return
@@ -267,14 +552,31 @@ float voxy_get_fps() {
 
 EMSCRIPTEN_KEEPALIVE
 int voxy_is_initialized() {
-    return g_app != nullptr ? 1 : 0;
+    return g_app != nullptr || g_physicsSelfTestRuntimeReady ? 1 : 0;
 }
 
 EMSCRIPTEN_KEEPALIVE
 int voxy_get_physics_backend() {
-    return g_app
-        ? static_cast<int>(g_app->getStats().physicsBackend)
+    const voxy::physics::PhysicsWorld* world = physicsWorldForSelfTest();
+    return world
+        ? static_cast<int>(world->backendType())
         : -1;
+}
+
+EMSCRIPTEN_KEEPALIVE
+int voxy_start_physics_self_test() {
+    return startPhysicsSelfTest();
+}
+
+EMSCRIPTEN_KEEPALIVE
+int voxy_get_physics_self_test_status() {
+    finishPhysicsSelfTestFrame();
+    return physicsSelfTestStatus();
+}
+
+EMSCRIPTEN_KEEPALIVE
+double voxy_get_physics_self_test_tick() {
+    return static_cast<double>(g_physicsSelfTest.tick);
 }
 
 EMSCRIPTEN_KEEPALIVE

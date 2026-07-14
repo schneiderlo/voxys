@@ -197,6 +197,47 @@ TEST(Replay, CanonicalCodecIsStableAcrossProducerInsertionOrder) {
     EXPECT_EQ(ReplayCodec::encode(*decoded.recording), canonicalBytes);
 }
 
+TEST(Replay, CheckpointsAndPendingCommandsPreserveLargeWorldSectors) {
+    ReplayRecording recording = makeRecording();
+    recording.checkpoint.bodies[1].sectorRadius[0] = 1'500'000;
+    recording.checkpoint.bodies[1].sectorRadius[1] =
+        std::numeric_limits<int32_t>::min();
+    recording.checkpoint.bodies[1].sectorRadius[2] =
+        std::numeric_limits<int32_t>::max();
+    auto correction = std::find_if(
+        recording.commands.begin(), recording.commands.end(),
+        [](const CanonicalReplayCommand& value) {
+            return value.type == ReplayCommandType::Correction;
+        });
+    ASSERT_NE(correction, recording.commands.end());
+    correction->payload[0] = -1'500'000;
+    correction->payload[1] = std::numeric_limits<int32_t>::max();
+    correction->payload[2] = std::numeric_limits<int32_t>::min();
+
+    const auto bytes = ReplayCodec::encode(recording);
+    const ReplayReadResult decoded = ReplayCodec::decode(bytes);
+    ASSERT_TRUE(decoded.recording.has_value()) << decoded.error;
+    EXPECT_EQ(decoded.recording->checkpoint.bodies[1].sectorRadius[0],
+              1'500'000);
+    EXPECT_EQ(decoded.recording->checkpoint.bodies[1].sectorRadius[1],
+              std::numeric_limits<int32_t>::min());
+    EXPECT_EQ(decoded.recording->checkpoint.bodies[1].sectorRadius[2],
+              std::numeric_limits<int32_t>::max());
+    const auto decodedCorrection = std::find_if(
+        decoded.recording->commands.begin(),
+        decoded.recording->commands.end(),
+        [](const CanonicalReplayCommand& value) {
+            return value.type == ReplayCommandType::Correction;
+        });
+    ASSERT_NE(decodedCorrection, decoded.recording->commands.end());
+    EXPECT_EQ(decodedCorrection->payload[0], -1'500'000);
+    EXPECT_EQ(decodedCorrection->payload[1],
+              std::numeric_limits<int32_t>::max());
+    EXPECT_EQ(decodedCorrection->payload[2],
+              std::numeric_limits<int32_t>::min());
+    EXPECT_EQ(ReplayCodec::encode(*decoded.recording), bytes);
+}
+
 TEST(Replay, SelectedCorpusMatchesSchemaOneGoldenHashes) {
     const ReplayRecording recording = makeRecording();
     constexpr std::array<uint32_t, 6> expectedWorldHashes{

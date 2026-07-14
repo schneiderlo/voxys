@@ -37,6 +37,7 @@ cc_library(
         "gpu/deterministic_primitives.hpp",
         "gpu/gpu_buffer_arena.hpp",
         "gpu/gpu_broad_phase.hpp",
+        "gpu/gpu_body_metadata.hpp",
         "gpu/gpu_ccd.hpp",
         "gpu/gpu_dynamic_solver.hpp",
         "gpu/gpu_event_readback.hpp",

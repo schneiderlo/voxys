@@ -24,11 +24,26 @@ int32_t saturate(int64_t value) noexcept {
 }
 
 int32_t normalizeLocal(int32_t& sector, int32_t local) noexcept {
-    const int64_t biased = int64_t{local} + kLockstepSectorHalf;
-    int64_t sectorDelta = biased / kLockstepSectorSize;
-    if (biased < 0 && biased % kLockstepSectorSize != 0) --sectorDelta;
-    sector = saturate(int64_t{sector} + sectorDelta);
-    return saturate(int64_t{local} - sectorDelta * kLockstepSectorSize);
+    int64_t sectorDelta = local / kLockstepSectorSize;
+    int64_t canonical = local % kLockstepSectorSize;
+    if (canonical >= kLockstepSectorHalf) {
+        ++sectorDelta;
+        canonical -= kLockstepSectorSize;
+    } else if (canonical < -kLockstepSectorHalf) {
+        --sectorDelta;
+        canonical += kLockstepSectorSize;
+    }
+    const int64_t candidate = int64_t{sector} + sectorDelta;
+    if (candidate < std::numeric_limits<int32_t>::min()) {
+        sector = std::numeric_limits<int32_t>::min();
+        return -kLockstepSectorHalf;
+    }
+    if (candidate > std::numeric_limits<int32_t>::max()) {
+        sector = std::numeric_limits<int32_t>::max();
+        return kLockstepSectorHalf - 1;
+    }
+    sector = static_cast<int32_t>(candidate);
+    return static_cast<int32_t>(canonical);
 }
 
 uint32_t unitFraction(uint32_t numerator, uint32_t denominator) noexcept {
@@ -175,9 +190,10 @@ bool LockstepWorld::contactFor(uint32_t bodyA, uint32_t bodyB,
     std::array<int32_t, 3> delta{};
     uint64_t squaredDistance = 0;
     for (uint32_t axis = 0; axis < 3u; ++axis) {
-        const int32_t sectorDelta =
-            b.sectorRadius[axis] - a.sectorRadius[axis];
-        if (std::abs(sectorDelta) > 1) return false;
+        const int64_t wideSectorDelta = int64_t{b.sectorRadius[axis]}
+                                      - a.sectorRadius[axis];
+        if (wideSectorDelta < -1 || wideSectorDelta > 1) return false;
+        const int32_t sectorDelta = static_cast<int32_t>(wideSectorDelta);
         const int64_t globalDelta =
             int64_t{sectorDelta} * kLockstepSectorSize
             + int64_t{b.positionInvMass[axis]} - a.positionInvMass[axis];

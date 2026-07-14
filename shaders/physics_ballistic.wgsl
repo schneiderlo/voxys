@@ -165,11 +165,13 @@ fn bounded_sector_delta(reference : i32, other : i32,
 
 fn pose_in_world_frame(pose : BodyPose, worldMeta : vec4<i32>,
                        maximumHorizontalSectors : u32,
+                       maximumVerticalSectors : u32,
                        valid : ptr<function, bool>) -> BodyPose {
     let delta = vec3<i32>(
         bounded_sector_delta(
             sim.worldSector.x, worldMeta.x, maximumHorizontalSectors),
-        bounded_sector_delta(sim.worldSector.y, worldMeta.y, 1u),
+        bounded_sector_delta(
+            sim.worldSector.y, worldMeta.y, maximumVerticalSectors),
         bounded_sector_delta(
             sim.worldSector.z, worldMeta.z, maximumHorizontalSectors));
     let validValue = all(delta != vec3<i32>(2147483647));
@@ -264,6 +266,7 @@ fn apply_commands(@builtin(global_invocation_id) gid : vec3<u32>) {
             set_body_flags(body, body_flags(body) | BODY_AWAKE);
         } else if (commandType == COMMAND_SLEEP) {
             let sleepingFlags = body_flags(body) & ~BODY_AWAKE;
+            set_body_flags(body, sleepingFlags);
             let motion = motions[body];
             motions[body].linearVelocity_sleep = vec4<f32>(
                 vec3<f32>(0.0), motion.linearVelocity_sleep.w);
@@ -800,7 +803,8 @@ fn append_water_sample(accumulator : ptr<function, WaterSampleAccumulator>,
     (*accumulator).submergedWeight += submersion * weight;
 }
 
-fn sample_water_state(pose : BodyPose, shape : BodyShape) -> WaterState {
+fn sample_water_state_in_frame(pose : BodyPose,
+                               shape : BodyShape) -> WaterState {
     var result : WaterState;
     result.fraction = 0.0;
     result.buoyancyCenter = pose.position_invMass.xyz;
@@ -872,6 +876,50 @@ fn sample_water_state(pose : BodyPose, shape : BodyShape) -> WaterState {
     return result;
 }
 
+fn sample_water_state(pose : BodyPose, shape : BodyShape,
+                      worldMeta : vec4<i32>) -> WaterState {
+    var result : WaterState;
+    result.fraction = 0.0;
+    result.buoyancyCenter = pose.position_invMass.xyz;
+    if (sim.water.y < 0.5) { return result; }
+
+    let sectorDelta = bounded_sector_delta(
+        sim.worldSector.y, worldMeta.y, 1u);
+    if (sectorDelta == 2147483647) {
+        // An infinite water plane is unambiguously above or below a body that
+        // is more than one vertical sector away. Avoid a lossy large float.
+        result.fraction = select(
+            1.0, 0.0, worldMeta.y > sim.worldSector.y);
+        return result;
+    }
+
+    var waterPose = pose;
+    let frameOffset = f32(sectorDelta) * WORLD_SECTOR_SIZE;
+    waterPose.position_invMass = vec4<f32>(
+        pose.position_invMass.xyz + vec3<f32>(0.0, frameOffset, 0.0),
+        pose.position_invMass.w);
+    let framed = sample_water_state_in_frame(waterPose, shape);
+    result.fraction = framed.fraction;
+    result.buoyancyCenter = framed.buoyancyCenter
+        - vec3<f32>(0.0, frameOffset, 0.0);
+    return result;
+}
+
+fn terrain_horizontal_sector_radius(shape : BodyShape) -> u32 {
+    let width = f32(max(sim.terrainSize_mips_flags.x, 1u) - 1u);
+    let height = f32(max(sim.terrainSize_mips_flags.y, 1u) - 1u);
+    let halfSpan = 0.5 * max(width, height)
+        * max(sim.terrainOrigin_cell_height.z, 0.0);
+    return u32(ceil((halfSpan + shape_bounding_radius(shape))
+                    / WORLD_SECTOR_SIZE)) + 1u;
+}
+
+fn terrain_vertical_sector_radius(shape : BodyShape) -> u32 {
+    return u32(ceil((abs(sim.terrainOrigin_cell_height.w)
+                    + shape_bounding_radius(shape))
+                    / WORLD_SECTOR_SIZE)) + 1u;
+}
+
 fn water_sample_count(shapeType : u32) -> u32 {
     return select(8u, 3u,
         shapeType == SHAPE_SPHERE || shapeType == SHAPE_CAPSULE);
@@ -908,7 +956,7 @@ fn integrate_bodies(@builtin(global_invocation_id) gid : vec3<u32>) {
     var rejectedByMip = 0u;
     var submergedAny = false;
     for (var substep = 0u; substep < substeps; substep = substep + 1u) {
-        let waterState = sample_water_state(pose, shape);
+        let waterState = sample_water_state(pose, shape, metadata[body]);
         let submerged = waterState.fraction;
         submergedAny = submergedAny || submerged > 1e-4;
         let buoyancyAcceleration = -sim.gravity_dt.xyz * sim.water.z * submerged;
@@ -1136,7 +1184,7 @@ fn prepare_dynamic_bodies(@builtin(global_invocation_id) gid : vec3<u32>) {
     let dryAcceleration = sim.gravity_dt.xyz + forces[body].xyz * inverseMass;
     var submergedAny = false;
     for (var substep = 0u; substep < substeps; substep += 1u) {
-        let waterState = sample_water_state(pose, shape);
+        let waterState = sample_water_state(pose, shape, metadata[body]);
         let submerged = waterState.fraction;
         submergedAny = submergedAny || submerged > 1e-4;
         let buoyancyAcceleration = -sim.gravity_dt.xyz * sim.water.z * submerged;
@@ -1199,7 +1247,20 @@ fn solve_static_contacts(@builtin(global_invocation_id) gid : vec3<u32>) {
         cache.state = vec4<u32>(metadata_generation(body), 0u, 0u, 0u);
     }
 
-    let generated = generate_terrain_candidates(pose, shape);
+    let worldDataBeforeSolve = metadata[body];
+    var terrainFrameValid = false;
+    let terrainPose = pose_in_world_frame(
+        pose, worldDataBeforeSolve,
+        terrain_horizontal_sector_radius(shape),
+        terrain_vertical_sector_radius(shape), &terrainFrameValid);
+    var generated : TerrainCandidateSet;
+    generated.count = 0u;
+    generated.rejected = select(
+        0u, 1u,
+        !terrainFrameValid && sim.terrainSize_mips_flags.w != 0u);
+    if (terrainFrameValid) {
+        generated = generate_terrain_candidates(terrainPose, shape);
+    }
     var contacts = reduce_terrain_candidates(generated);
     if (contacts.count != 0u) {
         atomicAdd(&counters[2], 1u);
@@ -1214,7 +1275,7 @@ fn solve_static_contacts(@builtin(global_invocation_id) gid : vec3<u32>) {
     for (var contactIndex = 0u; contactIndex < contacts.count;
          contactIndex += 1u) {
         let contact = contacts.items[contactIndex];
-        let leverArm = contact.point - pose.position_invMass.xyz;
+        let leverArm = contact.point - terrainPose.position_invMass.xyz;
         var accumulated = 0.8 * cached_normal_impulse(
             cache, contact.featureId);
         velocities = apply_body_impulse(
@@ -1242,7 +1303,7 @@ fn solve_static_contacts(@builtin(global_invocation_id) gid : vec3<u32>) {
     for (var contactIndex = 0u; contactIndex < contacts.count;
          contactIndex += 1u) {
         let contact = contacts.items[contactIndex];
-        let leverArm = contact.point - pose.position_invMass.xyz;
+        let leverArm = contact.point - terrainPose.position_invMass.xyz;
         let pointVelocity = velocities.linear
             + cross(velocities.angular, leverArm);
         let tangentVelocity = pointVelocity

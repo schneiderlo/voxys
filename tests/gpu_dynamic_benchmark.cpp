@@ -2,6 +2,7 @@
 
 #include "gpu/context.hpp"
 #include "gpu/resources.hpp"
+#include "physics/gpu/gpu_body_metadata.hpp"
 #include "physics/gpu/gpu_dynamic_solver.hpp"
 
 #include <algorithm>
@@ -125,7 +126,10 @@ TEST(GpuDynamicBenchmark,
         for (uint32_t body : {bodyA, bodyB}) {
             shapes[body].dimensionsType = {0.5f, 0.0f, 0.0f, 0.0f};
             shapes[body].inverseInertiaMaterial = {10.0f, 10.0f, 10.0f, 0.0f};
-            metadata[body] = {3u, 1u, 0u, 0u};
+            metadata[body] = {
+                0u, 0u, 0u,
+                packGpuBodyMetadata(
+                    1u, kGpuBodyAliveFlag | kGpuBodyAwakeFlag)};
         }
         manifolds[contact] = makeSphereContact(bodyA, bodyB, contact);
     }

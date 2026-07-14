@@ -55,6 +55,8 @@ public:
         std::array<float, 4> terrainOriginCellHeight{};
         // dt, fast-distance ratio, linear slop, reserved.
         std::array<float, 4> tuning{};
+        // Signed sector containing the terrain heightfield.
+        std::array<int32_t, 4> worldSector{};
     };
 
     ~Impl() { shutdown(); }
@@ -218,6 +220,8 @@ public:
                 input_.terrainHeightScale},
             .tuning = {deltaTime, config_.fastDistanceRatio,
                        config_.linearSlop, 0.0f},
+            .worldSector = {input_.terrainSector[0], input_.terrainSector[1],
+                            input_.terrainSector[2], 0},
         };
         gpu::writeBuffer(queue_, parameterBuffer_, 0, params);
 

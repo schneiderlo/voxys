@@ -28,6 +28,29 @@ port="${VOXY_WASM_TEST_PORT:-18767}"
 debug_port="${VOXY_WASM_DEBUG_PORT:-18768}"
 server_pid=""
 browser_pid=""
+gpu_mode="${VOXY_WASM_GPU_MODE:-swiftshader}"
+if [[ "$gpu_mode" == "hardware" ]]; then
+    gpu_flags=(
+        --enable-unsafe-webgpu
+        --enable-features=Vulkan
+        --use-angle=vulkan
+        --disable-vulkan-surface
+    )
+elif [[ "$gpu_mode" == "swiftshader" ]]; then
+    gpu_flags=(
+        --enable-unsafe-webgpu
+        --enable-unsafe-swiftshader
+        --use-webgpu-adapter=swiftshader
+        --use-gpu-in-tests
+        --enable-accelerated-2d-canvas
+        # Complex WGSL compilation can exceed Chromium's software-GPU
+        # watchdog even though the resulting pipeline executes correctly.
+        --disable-gpu-watchdog
+    )
+else
+    echo "VOXY_WASM_GPU_MODE must be 'swiftshader' or 'hardware'" >&2
+    exit 2
+fi
 
 cleanup() {
     if [[ -n "$browser_pid" ]]; then
@@ -59,19 +82,16 @@ for _ in {1..50}; do
     sleep 0.1
 done
 
+test_url="http://127.0.0.1:$port/index.html?physicsMaxBodies=64&physicsSelfTest=1"
+
 env -u VK_ICD_FILENAMES -u VK_DRIVER_FILES "$browser" \
     --headless=new \
     --no-sandbox \
     --user-data-dir="$temporary_directory/chrome-profile" \
     --disable-gpu-sandbox \
-    --enable-unsafe-webgpu \
-    --enable-unsafe-swiftshader \
-    --enable-features=Vulkan \
-    --use-angle=swiftshader \
-    --use-vulkan=swiftshader \
-    --disable-vulkan-surface \
+    "${gpu_flags[@]}" \
     --remote-debugging-port="$debug_port" \
-    "http://127.0.0.1:$port/index.html?physicsMaxBodies=4096" \
+    "$test_url" \
     >"$temporary_directory/chrome.log" 2>&1 &
 browser_pid=$!
 

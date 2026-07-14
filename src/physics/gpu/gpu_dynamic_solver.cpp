@@ -255,6 +255,7 @@ public:
         storage(prepareEntries, 0, false);
         storage(prepareEntries, 1, false);
         storage(prepareEntries, 2, true);
+        storage(prepareEntries, 3, false);
         storage(prepareEntries, 4, false);
         storage(prepareEntries, 5, true);
         storage(prepareEntries, 15, false);
@@ -628,10 +629,11 @@ public:
             gpu::BindGroupEntry(13).buffer(telemetry_),
             gpu::BindGroupEntry(17).buffer(sortedAdjacency_),
             gpu::BindGroupEntry(18).buffer(bodyRanges_), parameterEntry()};
-        const std::array<gpu::BindGroupEntry, 7> prepareEntries = {
+        const std::array<gpu::BindGroupEntry, 8> prepareEntries = {
             gpu::BindGroupEntry(0).buffer(input_.poseBuffer),
             gpu::BindGroupEntry(1).buffer(input_.motionBuffer),
             gpu::BindGroupEntry(2).buffer(input_.shapeBuffer),
+            gpu::BindGroupEntry(3).buffer(input_.metadataBuffer),
             gpu::BindGroupEntry(4).buffer(input_.manifoldBuffer),
             gpu::BindGroupEntry(5).buffer(input_.narrowPhaseTelemetryBuffer),
             gpu::BindGroupEntry(15).buffer(caches_), parameterEntry()};
@@ -735,7 +737,7 @@ public:
 
         for (uint32_t substep = 0; substep < config_.substeps; ++substep) {
             const uint32_t integrateOffset = writeParams(
-                slot, makeParams(0u, 0u, substep, 0u));
+                slot, makeParams(0u, 0u, substep, config_.substeps));
             bind(integrateGroup, integrateOffset);
             wgpuComputePassEncoderSetPipeline(pass, integrateVelocityPipeline_);
             wgpuComputePassEncoderDispatchWorkgroups(pass, bodyGroups, 1, 1);

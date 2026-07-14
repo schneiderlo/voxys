@@ -109,7 +109,11 @@ TEST_P(PhysicsWorldTest, InitializesWithTerrain) {
     EXPECT_EQ(stats.bodyCapacity, 16'384u);
     EXPECT_EQ(stats.pairCapacity, 65'536u);
     EXPECT_EQ(stats.contactCapacity, 16'384u);
-    EXPECT_EQ(stats.workerConcurrency, 1u);
+    if (GetParam() == BackendType::JoltLegacy) {
+        EXPECT_GT(stats.workerConcurrency, 1u);
+    } else {
+        EXPECT_EQ(stats.workerConcurrency, 1u);
+    }
     EXPECT_GT(stats.estimatedPersistentBytes + stats.scratchBytes, 0u);
 }
 
@@ -230,6 +234,8 @@ TEST(PhysicsWorldShapeTest, ThrowableNamesAreReadable) {
 }
 
 TEST(PhysicsBackendTypeTest, NamesParseToStableBackendIdentifiers) {
+    EXPECT_EQ(PhysicsInitContext{}.joltJobSystem,
+              JoltJobSystemMode::ThreadPool);
     EXPECT_EQ(backendTypeFromName("jolt"), BackendType::JoltLegacy);
     EXPECT_EQ(backendTypeFromName("box3d"), BackendType::Box3DReference);
     EXPECT_EQ(backendTypeFromName("webgpu"), BackendType::WebGpuSoft);

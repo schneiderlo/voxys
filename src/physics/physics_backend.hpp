@@ -34,9 +34,22 @@ public:
     [[nodiscard]] virtual CharacterHandle createCharacter(
         const glm::vec3& feetPosition,
         const CharacterSettings& settings) = 0;
+    [[nodiscard]] virtual CharacterHandle createCharacter(
+        const WorldPosition& feetPosition,
+        const CharacterSettings& settings) {
+        if (!isValidWorldPosition(feetPosition)) return InvalidCharacter;
+        return createCharacter(
+            glm::vec3(worldPositionToAbsolute(feetPosition)), settings);
+    }
     virtual void destroyCharacter(CharacterHandle handle) = 0;
     [[nodiscard]] virtual bool setCharacterPosition(
         CharacterHandle handle, const glm::vec3& feetPosition) = 0;
+    [[nodiscard]] virtual bool setCharacterPosition(
+        CharacterHandle handle, const WorldPosition& feetPosition) {
+        return isValidWorldPosition(feetPosition)
+            && setCharacterPosition(
+                handle, glm::vec3(worldPositionToAbsolute(feetPosition)));
+    }
     [[nodiscard]] virtual CharacterMotion moveCharacter(
         CharacterHandle handle,
         const glm::vec3& desiredHorizontalVelocity,

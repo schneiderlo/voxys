@@ -144,15 +144,17 @@ fn body_cell(body : u32, valid : ptr<function, bool>) -> vec3<i32> {
         (*valid) = false;
         return vec3<i32>(0);
     }
-    let safeSector = (CELL_BIAS - 256) / cellsPerSector;
-    if (any(sectors < vec3<i32>(-safeSector))
-        || any(sectors > vec3<i32>(safeSector))) {
-        (*valid) = false;
-        return vec3<i32>(0);
-    }
-    let cell = sectors * cellsPerSector + localCell;
-    (*valid) = coordinate_is_encodable(cell);
-    return cell;
+    // Keys are toroidal buckets, not authoritative world coordinates. The
+    // lower 21 bits stay exact for every signed i32 sector without overflowing
+    // signed arithmetic. position_delta() performs the exact sector test, so
+    // distant sectors that alias to one bucket can add work but not contacts.
+    let cellBits = bitcast<vec3<u32>>(sectors)
+        * vec3<u32>(u32(cellsPerSector))
+        + bitcast<vec3<u32>>(localCell)
+        + vec3<u32>(u32(CELL_BIAS));
+    let encoded = cellBits & vec3<u32>(CELL_MASK);
+    (*valid) = true;
+    return vec3<i32>(encoded) - vec3<i32>(CELL_BIAS);
 }
 
 fn body_is_alive(body : u32) -> bool {
@@ -179,6 +181,13 @@ fn decode_cell(low : u32, high : u32) -> vec3<i32> {
     let y = ((low >> 21u) & 0x7ffu) | ((high & 0x3ffu) << 11u);
     let z = (high >> 10u) & CELL_MASK;
     return vec3<i32>(vec3<u32>(x, y, z)) - vec3<i32>(CELL_BIAS);
+}
+
+fn wrap_cell(value : vec3<i32>) -> vec3<i32> {
+    let biased = bitcast<vec3<u32>>(
+        value + vec3<i32>(CELL_BIAS));
+    let encoded = biased & vec3<u32>(CELL_MASK);
+    return vec3<i32>(encoded) - vec3<i32>(CELL_BIAS);
 }
 
 struct CellBounds {
@@ -463,8 +472,8 @@ fn count_pairs_for_owner(owner : u32) -> u32 {
                         || (dx == 0 && dy > 0)
                         || (dx == 0 && dy == 0 && dz > 0);
                     if (!forward) { continue; }
-                    let neighborCell = cell + vec3<i32>(dx, dy, dz);
-                    if (!coordinate_is_encodable(neighborCell)) { continue; }
+                    let neighborCell = wrap_cell(
+                        cell + vec3<i32>(dx, dy, dz));
                     let neighbor = find_cell_range(encode_cell(neighborCell));
                     if (neighbor != SENTINEL) {
                         count += count_range_pairs(
@@ -549,8 +558,8 @@ fn scatter_pairs_impl(gid : vec3<u32>) {
                         || (dx == 0 && dy > 0)
                         || (dx == 0 && dy == 0 && dz > 0);
                     if (!forward) { continue; }
-                    let neighborCell = cell + vec3<i32>(dx, dy, dz);
-                    if (!coordinate_is_encodable(neighborCell)) { continue; }
+                    let neighborCell = wrap_cell(
+                        cell + vec3<i32>(dx, dy, dz));
                     let neighbor = find_cell_range(encode_cell(neighborCell));
                     if (neighbor != SENTINEL) {
                         scatter_range_pairs(

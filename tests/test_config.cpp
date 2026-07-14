@@ -112,7 +112,7 @@ TEST(ConfigDefaultsTest, PhysicsConfig) {
     EXPECT_EQ(config.backend, "webgpu");
     EXPECT_EQ(config.gpuMaxBodies, 131072);
     EXPECT_TRUE(config.allowCpuFallback);
-    EXPECT_EQ(config.joltJobSystem, "single_threaded");
+    EXPECT_EQ(config.joltJobSystem, "thread_pool");
     EXPECT_EQ(config.joltWorkerThreads, 0);
     EXPECT_EQ(config.box3dWorkerThreads, 1);
 }

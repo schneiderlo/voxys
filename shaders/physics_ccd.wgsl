@@ -5,6 +5,8 @@ const BODY_CCD_HIT : u32 = 1u << 23u;
 const BODY_CCD_FAILURE : u32 = 1u << 24u;
 const SHAPE_SPHERE : u32 = 0u;
 const SHAPE_CAPSULE : u32 = 3u;
+const WORLD_SECTOR_SIZE : f32 = 256.0;
+const WORLD_SECTOR_HALF : f32 = 128.0;
 
 struct BodyPose {
     position_invMass : vec4<f32>,
@@ -26,6 +28,7 @@ struct CcdParams {
     terrain : vec4<u32>,
     terrainOrigin_cell_height : vec4<f32>,
     tuning : vec4<f32>,
+    worldSector : vec4<i32>,
 };
 
 struct TerrainSurface {
@@ -88,6 +91,48 @@ fn normalize_world_position(pose : ptr<function, BodyPose>,
             (*pose).position_invMass[axis] = local - f32(step) * 256.0;
         }
     }
+}
+
+fn bounded_sector_delta(reference : i32, other : i32,
+                        maximum : u32) -> i32 {
+    if (other >= reference) {
+        let wide = bitcast<u32>(other) - bitcast<u32>(reference);
+        if (wide > maximum) { return 2147483647; }
+        return i32(wide);
+    }
+    let wide = bitcast<u32>(reference) - bitcast<u32>(other);
+    if (wide > maximum) { return 2147483647; }
+    return -i32(wide);
+}
+
+fn terrain_frame_pose(pose : BodyPose, worldMeta : vec4<i32>,
+                      shapeRadius : f32,
+                      valid : ptr<function, bool>) -> BodyPose {
+    let width = f32(max(ccd.terrain.x, 1u) - 1u);
+    let height = f32(max(ccd.terrain.y, 1u) - 1u);
+    let horizontalRadius = u32(ceil((
+        0.5 * max(width, height) * ccd.terrainOrigin_cell_height.z
+        + shapeRadius) / WORLD_SECTOR_SIZE)) + 1u;
+    let verticalRadius = u32(ceil((
+        abs(ccd.terrainOrigin_cell_height.w) + shapeRadius)
+        / WORLD_SECTOR_SIZE)) + 1u;
+    let delta = vec3<i32>(
+        bounded_sector_delta(
+            ccd.worldSector.x, worldMeta.x, horizontalRadius),
+        bounded_sector_delta(
+            ccd.worldSector.y, worldMeta.y, verticalRadius),
+        bounded_sector_delta(
+            ccd.worldSector.z, worldMeta.z, horizontalRadius));
+    let validValue = all(delta != vec3<i32>(2147483647));
+    (*valid) = validValue;
+    var result = pose;
+    if (validValue) {
+        result.position_invMass = vec4<f32>(
+            pose.position_invMass.xyz
+                + vec3<f32>(delta) * WORLD_SECTOR_SIZE,
+            pose.position_invMass.w);
+    }
+    return result;
 }
 
 fn raw_height_to_world(rawHeight : f32) -> f32 {
@@ -275,12 +320,16 @@ fn process_body(body : u32, bullet : bool) {
     if (!bullet && distance <= ccd.tuning.y * radius) { return; }
     if (!bullet) { atomicAdd(&telemetry[0], 1u); }
     if (distance <= 1e-8) { return; }
+    var terrainFrameValid = false;
+    let terrainPose = terrain_frame_pose(
+        pose, metadata[body], radius, &terrainFrameValid);
+    if (!terrainFrameValid) { return; }
     let underResolved = distance > f32(ccd.counts.z)
                      * ccd.terrainOrigin_cell_height.z;
     if (underResolved) {
         atomicAdd(&telemetry[5], 1u);
     }
-    let sweep = sweep_terrain(pose, shape, translation);
+    let sweep = sweep_terrain(terrainPose, shape, translation);
     atomicMax(&telemetry[7], sweep.iterations);
     if (!sweep.hit) {
         if (bullet && underResolved) {

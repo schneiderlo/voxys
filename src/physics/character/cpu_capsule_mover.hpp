@@ -55,9 +55,13 @@ public:
 
     [[nodiscard]] CharacterHandle createCharacter(
         const glm::vec3& feetPosition, const CharacterSettings& settings);
+    [[nodiscard]] CharacterHandle createCharacter(
+        const WorldPosition& feetPosition, const CharacterSettings& settings);
     void destroyCharacter(CharacterHandle handle);
     [[nodiscard]] bool setCharacterPosition(
         CharacterHandle handle, const glm::vec3& feetPosition);
+    [[nodiscard]] bool setCharacterPosition(
+        CharacterHandle handle, const WorldPosition& feetPosition);
     [[nodiscard]] CharacterMotion moveCharacter(
         CharacterHandle handle,
         const glm::vec3& desiredHorizontalVelocity,
@@ -78,10 +82,14 @@ private:
     [[nodiscard]] const CharacterSlot* find(
         CharacterHandle handle) const noexcept;
     [[nodiscard]] CapsuleClearance capsuleClearance(
-        const glm::vec3& feetPosition, float radius) const noexcept;
+        const glm::vec3& feetPosition, const glm::ivec3& referenceSector,
+        float radius) const noexcept;
     [[nodiscard]] CastHit castCapsule(
         const glm::vec3& start, const glm::vec3& translation,
-        float radius) const noexcept;
+        const glm::ivec3& referenceSector, float radius) const noexcept;
+    [[nodiscard]] CharacterTerrainSample sampleTerrainInFrame(
+        float localX, float localZ,
+        const glm::ivec3& referenceSector) const noexcept;
 
     Config config_{};
     std::vector<uint16_t> terrainSamples_;

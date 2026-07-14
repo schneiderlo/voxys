@@ -246,6 +246,190 @@ TEST_F(GpuPhysicsTest, ComposesBodyContactsEventsAndAsyncQueries) {
               queries->outputs[0].hits[1].distance);
 }
 
+TEST_F(GpuPhysicsTest,
+       CollidesAcrossLargeSectorBoundaryWithoutPairingDistantSector) {
+    constexpr int32_t baseSector = 1'500'000;
+    BodySpawnDesc leftDesc;
+    leftDesc.shape = ThrowableShape::Sphere;
+    leftDesc.dimensions = throwableShapeDimensions(leftDesc.shape);
+    leftDesc.position = {127.6f, 5.0f, 0.0f};
+    leftDesc.sector = {baseSector, 0, 0};
+
+    BodySpawnDesc rightDesc = leftDesc;
+    rightDesc.position.x = -127.6f;
+    rightDesc.sector.x += 1;
+
+    BodySpawnDesc distantDesc = rightDesc;
+    distantDesc.sector.x += 3;
+
+    const BodyHandle left = world.spawnBody(leftDesc);
+    const BodyHandle right = world.spawnBody(rightDesc);
+    const BodyHandle distant = world.spawnBody(distantDesc);
+    ASSERT_TRUE(left.valid());
+    ASSERT_TRUE(right.valid());
+    ASSERT_TRUE(distant.valid());
+
+    world.update(1.0f / 60.0f);
+    world.requestDebugSnapshot({left.index, 3u});
+    encodeAndSubmit();
+    const auto snapshot = retireDebugReadback();
+    ASSERT_TRUE(snapshot.has_value());
+    ASSERT_EQ(snapshot->bodies.size(), 3u);
+
+    const DebugBodyState& leftState = snapshot->bodies[0];
+    const DebugBodyState& rightState = snapshot->bodies[1];
+    const DebugBodyState& distantState = snapshot->bodies[2];
+    glm::vec3 leftInFrame;
+    glm::vec3 rightInFrame;
+    ASSERT_TRUE(worldPositionRelativeToSector(
+        {leftState.sector, leftState.position}, leftState.sector,
+        leftInFrame));
+    ASSERT_TRUE(worldPositionRelativeToSector(
+        {rightState.sector, rightState.position}, leftState.sector,
+        rightInFrame));
+    EXPECT_GT(rightInFrame.x - leftInFrame.x, 0.8f);
+    EXPECT_LT(rightInFrame.x - leftInFrame.x, 1.2f);
+    EXPECT_EQ(distantState.sector.x, baseSector + 4);
+
+    const PhysicsStats telemetry = retireTelemetry();
+    EXPECT_EQ(telemetry.uniquePairUsage.current, 1u);
+    EXPECT_EQ(telemetry.manifoldUsage.current, 1u);
+    EXPECT_EQ(telemetry.oversizedBodies, 0u);
+    EXPECT_EQ(telemetry.gridEntryUsage.current, 3u);
+
+    PhysicsQueryRequest ray;
+    ray.requestId = 1'500'000u;
+    ray.maximumHits = 4u;
+    ray.origin = {126.0f, leftState.position.y, 0.0f};
+    ray.direction = {1.0f, 0.0f, 0.0f};
+    ray.maximumDistance = 5.0f;
+    ray.sector = {baseSector, 0, 0};
+    ASSERT_TRUE(world.submitQueries(
+        std::span<const PhysicsQueryRequest>(&ray, 1), 1'500'001u));
+    encodeAndSubmit();
+    const auto queryBatch = retireQueryReadback();
+    ASSERT_TRUE(queryBatch.has_value());
+    ASSERT_EQ(queryBatch->outputs.size(), 1u);
+    ASSERT_EQ(queryBatch->outputs[0].hits.size(), 2u);
+    EXPECT_TRUE(std::any_of(
+        queryBatch->outputs[0].hits.begin(),
+        queryBatch->outputs[0].hits.end(),
+        [left](const PhysicsQueryHit& hit) {
+            return hit.bodyIndex == left.index;
+        }));
+    EXPECT_TRUE(std::any_of(
+        queryBatch->outputs[0].hits.begin(),
+        queryBatch->outputs[0].hits.end(),
+        [right](const PhysicsQueryHit& hit) {
+            return hit.bodyIndex == right.index;
+        }));
+    EXPECT_TRUE(std::none_of(
+        queryBatch->outputs[0].hits.begin(),
+        queryBatch->outputs[0].hits.end(),
+        [distant](const PhysicsQueryHit& hit) {
+            return hit.bodyIndex == distant.index;
+        }));
+}
+
+TEST_F(GpuPhysicsTest, ClassifiesWaterAtLargePositiveAndNegativeSectors) {
+    world.setWaterPlane(0.0f, true);
+
+    BodySpawnDesc submergedDesc;
+    submergedDesc.shape = ThrowableShape::Sphere;
+    submergedDesc.dimensions = throwableShapeDimensions(
+        submergedDesc.shape);
+    submergedDesc.position = {0.0f, 0.0f, 0.0f};
+    submergedDesc.sector = {0, -1'500'000, 0};
+    BodySpawnDesc dryDesc = submergedDesc;
+    dryDesc.sector.y = 1'500'000;
+
+    const BodyHandle submerged = world.spawnBody(submergedDesc);
+    const BodyHandle dry = world.spawnBody(dryDesc);
+    ASSERT_TRUE(submerged.valid());
+    ASSERT_TRUE(dry.valid());
+
+    stepTicks(1);
+    const auto snapshot = snapshotRange(submerged.index, 2u);
+    ASSERT_TRUE(snapshot.has_value());
+    ASSERT_EQ(snapshot->bodies.size(), 2u);
+    const DebugBodyState& submergedState = snapshot->bodies[0];
+    const DebugBodyState& dryState = snapshot->bodies[1];
+    EXPECT_TRUE(submergedState.submerged);
+    EXPECT_FALSE(dryState.submerged);
+    EXPECT_EQ(submergedState.sector.y, -1'500'000);
+    EXPECT_EQ(dryState.sector.y, 1'500'000);
+    EXPECT_GT(submergedState.linearVelocity.y, dryState.linearVelocity.y);
+
+    const PhysicsStats telemetry = retireTelemetry();
+    EXPECT_EQ(telemetry.submergedBodies, 1u);
+    EXPECT_EQ(telemetry.uniquePairUsage.current, 0u);
+    EXPECT_EQ(telemetry.oversizedBodies, 0u);
+}
+
+TEST_F(GpuPhysicsTest,
+       BodyContactSwitchKeepsIntegrationButSuppressesPairs) {
+    PhysicsWorld isolatedWorld;
+    PhysicsInitContext context;
+    context.requestedBackend = BackendType::WebGpuSoft;
+    context.device = gpuContext.getDevice();
+    context.queue = gpuContext.getQueue();
+    context.maxBodies = 64;
+    context.maxActiveBodies = 64;
+    context.maxPairs = 64;
+    context.maxContacts = 32;
+    context.maxManifolds = 64;
+    context.gpu.commandCapacity = 64;
+    context.gpu.debugReadbackBodyCapacity = 4;
+    context.gpu.enableBodyBodyContacts = false;
+    ASSERT_TRUE(isolatedWorld.initialize(context));
+    EXPECT_FALSE(isolatedWorld.capabilities().bodyBodyContacts);
+
+    BodySpawnDesc desc;
+    desc.position = {-0.1f, 10.0f, 0.0f};
+    desc.dimensions = throwableShapeDimensions(desc.shape);
+    const BodyHandle first = isolatedWorld.spawnBody(desc);
+    desc.position.x = 0.1f;
+    const BodyHandle second = isolatedWorld.spawnBody(desc);
+    ASSERT_TRUE(first.valid());
+    ASSERT_TRUE(second.valid());
+
+    isolatedWorld.update(1.0f / 60.0f);
+    isolatedWorld.requestDebugSnapshot({first.index, 2u});
+    WGPUCommandEncoderDescriptor encoderDesc{};
+    WGPUCommandEncoder encoder = wgpuDeviceCreateCommandEncoder(
+        gpuContext.getDevice(), &encoderDesc);
+    isolatedWorld.encodeGpuStep(encoder);
+    WGPUCommandBufferDescriptor commandDesc{};
+    WGPUCommandBuffer command =
+        wgpuCommandEncoderFinish(encoder, &commandDesc);
+    wgpuQueueSubmit(gpuContext.getQueue(), 1, &command);
+    wgpuCommandBufferRelease(command);
+    wgpuCommandEncoderRelease(encoder);
+
+    auto snapshot = isolatedWorld.pollDebugSnapshot();
+    for (uint32_t attempt = 0u; !snapshot && attempt < 8u; ++attempt) {
+        static_cast<void>(wgpuDevicePoll(
+            gpuContext.getDevice(), true, nullptr));
+        snapshot = isolatedWorld.pollDebugSnapshot();
+    }
+    ASSERT_TRUE(snapshot.has_value());
+    ASSERT_EQ(snapshot->bodies.size(), 2u);
+    EXPECT_LT(snapshot->bodies[0].position.y, 10.0f);
+    EXPECT_LT(snapshot->bodies[1].position.y, 10.0f);
+
+    PhysicsStats telemetry = isolatedWorld.stats();
+    for (uint32_t attempt = 0u;
+         telemetry.telemetryTick == 0u && attempt < 8u; ++attempt) {
+        isolatedWorld.update(1.0e-6f);
+        static_cast<void>(wgpuDevicePoll(
+            gpuContext.getDevice(), true, nullptr));
+        telemetry = isolatedWorld.stats();
+    }
+    EXPECT_EQ(telemetry.uniquePairUsage.current, 0u);
+    EXPECT_EQ(telemetry.contactUsage.current, 0u);
+    EXPECT_EQ(telemetry.manifoldUsage.current, 0u);
+}
+
 TEST_F(GpuPhysicsTest, ActiveCapacityClampsWithoutWritingPastCompactList) {
     PhysicsWorld limitedWorld;
     PhysicsInitContext context;
@@ -411,6 +595,33 @@ TEST_F(GpuPhysicsTest, AllPrimitiveShapesSettleOnFlatTerrain) {
         EXPECT_TRUE(body.staticContactCount != 0u || !body.awake)
             << throwableShapeName(body.shape);
     }
+}
+
+TEST_F(GpuPhysicsTest, SettlesOnTerrainAcrossSectorBoundary) {
+    constexpr uint32_t width = 520;
+    constexpr uint32_t height = 4;
+    std::vector<uint16_t> samples(width * height, 32'768u);
+    ASSERT_TRUE(world.setTerrain(
+        samples, width, height, 10.0f, 1.0f));
+
+    BodySpawnDesc desc;
+    desc.shape = ThrowableShape::Sphere;
+    desc.dimensions = throwableShapeDimensions(desc.shape);
+    desc.position = {-127.75f, 3.0f, 0.0f};
+    desc.sector = {1, 0, 0};
+    const BodyHandle body = world.spawnBody(desc);
+    ASSERT_TRUE(body.valid());
+
+    stepTicks(240);
+    const auto snapshot = snapshotRange(body.index, 1u);
+    ASSERT_TRUE(snapshot.has_value());
+    ASSERT_EQ(snapshot->bodies.size(), 1u);
+    const DebugBodyState& state = snapshot->bodies.front();
+    EXPECT_EQ(state.sector, glm::ivec3(1, 0, 0));
+    EXPECT_NEAR(state.position.x, -127.75f, 0.01f);
+    EXPECT_GT(state.position.y, 0.45f);
+    EXPECT_LT(state.position.y, 0.65f);
+    EXPECT_TRUE(state.staticContactCount != 0u || !state.awake);
 }
 
 TEST_F(GpuPhysicsTest, SphereSlidesAcrossCanonicalDiagonalWithoutSnagging) {

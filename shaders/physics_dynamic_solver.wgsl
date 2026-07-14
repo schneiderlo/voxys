@@ -57,6 +57,7 @@ struct ConstraintCache {
     tangentMass : vec4<f32>,
     angularMass : vec4<f32>,
     softness : vec4<f32>,
+    sectorOffset : vec4<f32>,
 };
 
 struct EndpointDelta {
@@ -583,7 +584,8 @@ fn adjacent_sector_delta(reference : i32, other : i32) -> i32 {
     return 0x3fffffff;
 }
 
-fn body_position_in_frame(body : u32, frameBody : u32) -> vec3<f32> {
+fn body_sector_offset_in_frame(body : u32,
+                               frameBody : u32) -> vec3<f32> {
     var sectorDelta = vec3<i32>(0);
     for (var axis = 0u; axis < 3u; axis += 1u) {
         sectorDelta[axis] = adjacent_sector_delta(
@@ -592,8 +594,12 @@ fn body_position_in_frame(body : u32, frameBody : u32) -> vec3<f32> {
             return vec3<f32>(3.402823466e+38);
         }
     }
+    return vec3<f32>(sectorDelta) * 256.0;
+}
+
+fn body_position_in_frame(body : u32, frameBody : u32) -> vec3<f32> {
     return poses[body].position_invMass.xyz
-         + vec3<f32>(sectorDelta) * 256.0;
+         + body_sector_offset_in_frame(body, frameBody);
 }
 
 fn saturating_sector_step(value : i32, step : i32) -> i32 {
@@ -664,24 +670,22 @@ fn prepare_constraints_impl(gid : vec3<u32>) {
     let angularA = motions[bodyA].angularVelocity_flags.xyz;
     let linearB = motions[bodyB].linearVelocity_sleep.xyz;
     let angularB = motions[bodyB].angularVelocity_flags.xyz;
-    let positionA = body_position_in_frame(bodyA, bodyA);
-    let positionB = body_position_in_frame(bodyB, bodyA);
     var cache : ConstraintCache;
     cache.normalMass = vec4<f32>(0.0);
     cache.preImpactVelocity = vec4<f32>(0.0);
     cache.tangentMass = vec4<f32>(0.0);
     cache.angularMass = vec4<f32>(0.0);
     cache.softness = vec4<f32>(params.solver.y, 1.0, 0.0, 0.0);
+    cache.sectorOffset = vec4<f32>(
+        body_sector_offset_in_frame(bodyB, bodyA), 0.0);
     for (var pointIndex = 0u; pointIndex < manifold.state.x;
          pointIndex += 1u) {
-        let worldA = positionA + quaternion_rotate(
+        let leverA = quaternion_rotate(
             poses[bodyA].orientation,
             manifold.points[pointIndex].localAnchorA_separation.xyz);
-        let worldB = positionB + quaternion_rotate(
+        let leverB = quaternion_rotate(
             poses[bodyB].orientation,
             manifold.points[pointIndex].localAnchorB_normalImpulse.xyz);
-        let leverA = worldA - positionA;
-        let leverB = worldB - positionB;
         cache.normalMass[pointIndex] = directional_mass(
             bodyA, bodyB, leverA, leverB, normal);
         cache.preImpactVelocity[pointIndex] = dot(
@@ -692,12 +696,10 @@ fn prepare_constraints_impl(gid : vec3<u32>) {
         manifold.points[pointIndex].impulses.y =
             max(-cache.preImpactVelocity[pointIndex], 0.0);
     }
-    let centerA = positionA + quaternion_rotate(
+    let leverA = quaternion_rotate(
         poses[bodyA].orientation, manifold.frictionAnchorA.xyz);
-    let centerB = positionB + quaternion_rotate(
+    let leverB = quaternion_rotate(
         poses[bodyB].orientation, manifold.frictionAnchorB.xyz);
-    let leverA = centerA - positionA;
-    let leverB = centerB - positionB;
     let inverseMass = poses[bodyA].position_invMass.w
                     + poses[bodyB].position_invMass.w;
     let angularA1 = inverse_inertia_world(bodyA, cross(leverA, tangent1));
@@ -782,19 +784,14 @@ fn solve_contact(rank : u32, stage : u32) -> VelocityPair {
     velocities.angularA = motions[bodyA].angularVelocity_flags.xyz;
     velocities.linearB = motions[bodyB].linearVelocity_sleep.xyz;
     velocities.angularB = motions[bodyB].angularVelocity_flags.xyz;
-    let positionA = body_position_in_frame(bodyA, bodyA);
-    let positionB = body_position_in_frame(bodyB, bodyA);
-
     for (var pointIndex = 0u; pointIndex < manifold.state.x;
          pointIndex += 1u) {
-        let worldA = positionA + quaternion_rotate(
+        let leverA = quaternion_rotate(
             poses[bodyA].orientation,
             manifold.points[pointIndex].localAnchorA_separation.xyz);
-        let worldB = positionB + quaternion_rotate(
+        let leverB = quaternion_rotate(
             poses[bodyB].orientation,
             manifold.points[pointIndex].localAnchorB_normalImpulse.xyz);
-        let leverA = worldA - positionA;
-        let leverB = worldB - positionB;
         if (stage == STAGE_WARM_START) {
             apply_impulse(&velocities, bodyA, bodyB, leverA, leverB,
                 normal * manifold.points[pointIndex]
@@ -821,7 +818,11 @@ fn solve_contact(rank : u32, stage : u32) -> VelocityPair {
             var massScale = 1.0;
             var impulseScale = 0.0;
             if (stage == STAGE_BIASED) {
-                let separation = dot(worldB - worldA, normal);
+                let relativeCenter = cache.sectorOffset.xyz
+                    + poses[bodyB].position_invMass.xyz
+                    - poses[bodyA].position_invMass.xyz;
+                let separation = dot(
+                    relativeCenter + leverB - leverA, normal);
                 if (separation > 0.0) {
                     bias = separation / max(params.gravity_dt.w, 1e-7);
                 } else {
@@ -846,12 +847,10 @@ fn solve_contact(rank : u32, stage : u32) -> VelocityPair {
     }
 
     if (stage == STAGE_WARM_START || stage == STAGE_RELAX) {
-        let centerA = positionA + quaternion_rotate(
+        let leverA = quaternion_rotate(
             poses[bodyA].orientation, manifold.frictionAnchorA.xyz);
-        let centerB = positionB + quaternion_rotate(
+        let leverB = quaternion_rotate(
             poses[bodyB].orientation, manifold.frictionAnchorB.xyz);
-        let leverA = centerA - positionA;
-        let leverB = centerB - positionB;
         if (stage == STAGE_WARM_START) {
             let tangentImpulse = tangent1 * manifold.tangent1.w
                                + tangent2 * manifold.tangent2.w;
@@ -1266,7 +1265,12 @@ fn integrate_body_position(body : u32) {
     else { orientation = vec4<f32>(0.0, 0.0, 0.0, 1.0); }
     pose.orientation = orientation;
     var worldMeta = metadata[body];
-    normalize_world_position(&pose, &worldMeta);
+    // Keep the sector offset cached by constraint preparation valid until the
+    // last biased solve. Local coordinates may exceed the canonical interval
+    // by at most one tick of bounded motion.
+    if (params.control.z + 1u >= params.control.w) {
+        normalize_world_position(&pose, &worldMeta);
+    }
     poses[body] = pose;
     metadata[body] = worldMeta;
 }

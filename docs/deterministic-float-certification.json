@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "recorded_at": "2026-07-13",
+  "recorded_at": "2026-07-14",
   "repository_base": "2dbbb6d209e62e0e704c36004bc344493d87730d",
   "contract": {
     "mode": "DeterministicFloat",
@@ -59,11 +59,14 @@
       "id": "browser-webgpu",
       "backend": "WebGpuSoft",
       "platform": "WASM browser",
-      "adapter": "unbound",
+      "adapter": "SwiftShader for the runtime smoke test; production adapters unbound",
       "toolchain": "Emscripten plus browser WebGPU",
       "status": "not-certified",
-      "scope": "compile coverage only; requires browser-specific replay goldens",
-      "evidence": ["WASM build"]
+      "scope": "runtime smoke coverage for GPU initialization, one physics tick, async readback, cross-sector contact, and distant-sector rejection; requires browser-specific replay goldens",
+      "evidence": [
+        "WASM build",
+        "headless Chromium WebGPU physics self-test"
+      ]
     }
   ]
 }

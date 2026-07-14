@@ -37,9 +37,15 @@ public:
     [[nodiscard]] CharacterHandle createCharacter(
         const glm::vec3& feetPosition,
         const CharacterSettings& settings) override;
+    [[nodiscard]] CharacterHandle createCharacter(
+        const WorldPosition& feetPosition,
+        const CharacterSettings& settings) override;
     void destroyCharacter(CharacterHandle handle) override;
     [[nodiscard]] bool setCharacterPosition(
         CharacterHandle handle, const glm::vec3& feetPosition) override;
+    [[nodiscard]] bool setCharacterPosition(
+        CharacterHandle handle,
+        const WorldPosition& feetPosition) override;
     [[nodiscard]] CharacterMotion moveCharacter(
         CharacterHandle handle,
         const glm::vec3& desiredHorizontalVelocity,

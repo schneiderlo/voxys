@@ -68,7 +68,7 @@ struct PhysicsConfig {
     std::string backend = "webgpu";
     int gpuMaxBodies = 131072;
     bool allowCpuFallback = true;
-    std::string joltJobSystem = "single_threaded";
+    std::string joltJobSystem = "thread_pool";
     int joltWorkerThreads = 0; // 0 lets Jolt choose in thread-pool mode.
     int box3dWorkerThreads = 1;
 

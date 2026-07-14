@@ -16,6 +16,14 @@ namespace {
 
 constexpr uint32_t kTelemetryWords = GpuIslandManager::kTelemetryWordCount;
 
+bool validSectorCellSize(float cellSize) noexcept {
+    if (!std::isfinite(cellSize) || cellSize <= 0.0f) return false;
+    const float cellsPerSector = kWorldSectorSize / cellSize;
+    const float rounded = std::round(cellsPerSector);
+    return rounded >= 1.0f && rounded <= 2'097'152.0f
+        && std::abs(cellsPerSector - rounded) <= 1e-5f;
+}
+
 template <typename T>
 void releaseHandle(T& handle, void (*release)(T)) {
     if (handle) {
@@ -62,7 +70,7 @@ public:
             || config.unionRounds == 0 || config.sleepTicks == 0
             || config.linearSleepThreshold < 0.0f
             || config.angularSleepThreshold < 0.0f
-            || config.sleepingCellSize <= 0.0f
+            || !validSectorCellSize(config.sleepingCellSize)
             || (config.workgroupSize != 64 && config.workgroupSize != 128
                 && config.workgroupSize != 256)) {
             return false;

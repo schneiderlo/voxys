@@ -22,6 +22,7 @@ bool finiteVector(const glm::vec3& value) noexcept {
 
 struct CpuCapsuleMoverWorld::CharacterSlot {
     glm::vec3 position{0.0f};
+    glm::ivec3 sector{0};
     glm::vec3 velocity{0.0f};
     glm::vec3 groundNormal{0.0f, 1.0f, 0.0f};
     CharacterSettings settings{};
@@ -164,9 +165,52 @@ CharacterTerrainSample CpuCapsuleMoverWorld::sampleTerrain(
     return result;
 }
 
+CharacterTerrainSample CpuCapsuleMoverWorld::sampleTerrainInFrame(
+    float localX, float localZ,
+    const glm::ivec3& referenceSector) const noexcept {
+    CharacterTerrainSample result;
+    if (!hasTerrain() || !std::isfinite(localX) || !std::isfinite(localZ))
+        return result;
+
+    // Terrain is currently anchored in sector zero. Reject distant sectors
+    // before converting any delta to f32; nearby terrain math remains in its
+    // compact local frame.
+    const WorldPosition horizontal = canonicalWorldPosition(
+        referenceSector, glm::dvec3(localX, 0.0, localZ));
+    const double halfWidth = 0.5 * static_cast<double>(terrainWidth_ - 1u)
+                           * static_cast<double>(terrainCellScale_);
+    const double halfDepth = 0.5 * static_cast<double>(terrainHeight_ - 1u)
+                           * static_cast<double>(terrainCellScale_);
+    const int64_t maximumHorizontalSectors = static_cast<int64_t>(std::ceil(
+        std::max(halfWidth, halfDepth)
+            / static_cast<double>(kWorldSectorSize))) + 1;
+    const int64_t maximumVerticalSectors = static_cast<int64_t>(std::ceil(
+        static_cast<double>(terrainHeightScale_)
+            / static_cast<double>(kWorldSectorSize))) + 1;
+    const int64_t sectorX = horizontal.sector.x;
+    const int64_t sectorZ = horizontal.sector.z;
+    const int64_t sectorY = referenceSector.y;
+    if (std::abs(sectorX) > maximumHorizontalSectors
+        || std::abs(sectorZ) > maximumHorizontalSectors
+        || std::abs(sectorY) > maximumVerticalSectors) {
+        return result;
+    }
+
+    const float terrainX = horizontal.local.x
+        + static_cast<float>(sectorX) * kWorldSectorSize;
+    const float terrainZ = horizontal.local.z
+        + static_cast<float>(sectorZ) * kWorldSectorSize;
+    result = sampleTerrain(terrainX, terrainZ);
+    if (result.valid) {
+        result.height -= static_cast<float>(sectorY) * kWorldSectorSize;
+    }
+    return result;
+}
+
 CpuCapsuleMoverWorld::CapsuleClearance
 CpuCapsuleMoverWorld::capsuleClearance(
-    const glm::vec3& feetPosition, float radius) const noexcept {
+    const glm::vec3& feetPosition, const glm::ivec3& referenceSector,
+    float radius) const noexcept {
     CapsuleClearance result;
     radius = std::max(radius, 1e-4f);
     constexpr std::array<glm::vec2, 9> normalizedOffsets{{
@@ -180,8 +224,9 @@ CpuCapsuleMoverWorld::capsuleClearance(
     }};
     for (uint32_t index = 0; index < normalizedOffsets.size(); ++index) {
         const glm::vec2 offset = normalizedOffsets[index] * radius;
-        const CharacterTerrainSample surface = sampleTerrain(
-            feetPosition.x + offset.x, feetPosition.z + offset.y);
+        const CharacterTerrainSample surface = sampleTerrainInFrame(
+            feetPosition.x + offset.x, feetPosition.z + offset.y,
+            referenceSector);
         if (!surface.valid) continue;
         const float radialSquared = glm::dot(offset, offset);
         const float sphereSurfaceOffset = radius
@@ -203,7 +248,7 @@ CpuCapsuleMoverWorld::capsuleClearance(
 
 CpuCapsuleMoverWorld::CastHit CpuCapsuleMoverWorld::castCapsule(
     const glm::vec3& start, const glm::vec3& translation,
-    float radius) const noexcept {
+    const glm::ivec3& referenceSector, float radius) const noexcept {
     CastHit result;
     const float horizontalDistance = glm::length(glm::vec2(
         translation.x, translation.z));
@@ -215,7 +260,8 @@ CpuCapsuleMoverWorld::CastHit CpuCapsuleMoverWorld::castCapsule(
         horizontalDistance / sampleSpan
         + std::abs(translation.y) / verticalSpan)));
     const uint32_t steps = std::min(requested, config_.maximumCastSamples);
-    CapsuleClearance previous = capsuleClearance(start, radius);
+    CapsuleClearance previous = capsuleClearance(
+        start, referenceSector, radius);
     if (previous.valid
         && (previous.distance < -config_.skin
             || (previous.distance <= config_.skin
@@ -231,7 +277,7 @@ CpuCapsuleMoverWorld::CastHit CpuCapsuleMoverWorld::castCapsule(
         const float fraction = static_cast<float>(step)
                              / static_cast<float>(steps);
         CapsuleClearance sample = capsuleClearance(
-            start + fraction * translation, radius);
+            start + fraction * translation, referenceSector, radius);
         if (sample.valid && sample.distance <= config_.skin) {
             float lower = previousFraction;
             float upper = fraction;
@@ -240,7 +286,7 @@ CpuCapsuleMoverWorld::CastHit CpuCapsuleMoverWorld::castCapsule(
                  iteration < config_.bisectionIterations; ++iteration) {
                 const float middle = 0.5f * (lower + upper);
                 const CapsuleClearance candidate = capsuleClearance(
-                    start + middle * translation, radius);
+                    start + middle * translation, referenceSector, radius);
                 if (candidate.valid && candidate.distance <= config_.skin) {
                     upper = middle;
                     hit = candidate;
@@ -264,6 +310,14 @@ CharacterHandle CpuCapsuleMoverWorld::createCharacter(
     const glm::vec3& feetPosition, const CharacterSettings& requested) {
     if (!initialized_ || !finiteVector(feetPosition))
         return InvalidCharacter;
+    return createCharacter(
+        worldPositionFromAbsolute(glm::dvec3(feetPosition)), requested);
+}
+
+CharacterHandle CpuCapsuleMoverWorld::createCharacter(
+    const WorldPosition& feetPosition, const CharacterSettings& requested) {
+    if (!initialized_ || !isValidWorldPosition(feetPosition))
+        return InvalidCharacter;
     CharacterSettings settings = requested;
     settings.radius = std::max(settings.radius, 0.01f);
     settings.height = std::max(settings.height, 2.0f * settings.radius);
@@ -286,11 +340,12 @@ CharacterHandle CpuCapsuleMoverWorld::createCharacter(
     if (handle == InvalidCharacter) return handle;
     auto& slot = characters_[handle - 1u];
     slot = {};
-    slot.position = feetPosition;
+    slot.position = feetPosition.local;
+    slot.sector = feetPosition.sector;
     slot.settings = settings;
     slot.active = true;
     const CapsuleClearance clearance = capsuleClearance(
-        feetPosition, settings.radius);
+        slot.position, slot.sector, settings.radius);
     if (clearance.valid && clearance.distance <= config_.skin) {
         slot.position.y = clearance.requiredFeetHeight;
         slot.groundNormal = clearance.normal;
@@ -299,6 +354,10 @@ CharacterHandle CpuCapsuleMoverWorld::createCharacter(
         slot.grounded = clearance.normal.y >= minimumNormal;
         slot.steep = !slot.grounded;
     }
+    const WorldPosition canonical = canonicalWorldPosition(
+        slot.sector, glm::dvec3(slot.position));
+    slot.sector = canonical.sector;
+    slot.position = canonical.local;
     return handle;
 }
 
@@ -314,9 +373,17 @@ void CpuCapsuleMoverWorld::destroyCharacter(CharacterHandle handle) {
 
 bool CpuCapsuleMoverWorld::setCharacterPosition(
     CharacterHandle handle, const glm::vec3& feetPosition) {
+    if (!finiteVector(feetPosition)) return false;
+    return setCharacterPosition(
+        handle, worldPositionFromAbsolute(glm::dvec3(feetPosition)));
+}
+
+bool CpuCapsuleMoverWorld::setCharacterPosition(
+    CharacterHandle handle, const WorldPosition& feetPosition) {
     CharacterSlot* slot = find(handle);
-    if (!slot || !finiteVector(feetPosition)) return false;
-    slot->position = feetPosition;
+    if (!slot || !isValidWorldPosition(feetPosition)) return false;
+    slot->position = feetPosition.local;
+    slot->sector = feetPosition.sector;
     slot->velocity = glm::vec3(0.0f);
     slot->grounded = false;
     slot->steep = false;
@@ -333,7 +400,7 @@ CharacterMotion CpuCapsuleMoverWorld::moveCharacter(
     if (!std::isfinite(deltaTime) || deltaTime <= 0.0f
         || !finiteVector(desiredHorizontalVelocity)) {
         return {slot->position, slot->velocity, slot->groundNormal,
-                slot->grounded, slot->steep};
+                slot->grounded, slot->steep, slot->sector};
     }
     gravity = std::max(gravity, 0.0f);
     terminalVelocity = std::max(terminalVelocity, 0.0f);
@@ -358,7 +425,7 @@ CharacterMotion CpuCapsuleMoverWorld::moveCharacter(
         slot->position.y,
         slot->position.z + translation.z);
     const CapsuleClearance targetGround = capsuleClearance(
-        horizontalTarget, slot->settings.radius);
+        horizontalTarget, slot->sector, slot->settings.radius);
     if (slot->grounded && !jump && targetGround.valid
         && targetGround.normal.y >= minimumGroundNormal) {
         const float rise = targetGround.requiredFeetHeight - slot->position.y;
@@ -369,8 +436,12 @@ CharacterMotion CpuCapsuleMoverWorld::moveCharacter(
             slot->groundNormal = targetGround.normal;
             slot->grounded = true;
             slot->steep = false;
+            const WorldPosition canonical = canonicalWorldPosition(
+                slot->sector, glm::dvec3(slot->position));
+            slot->sector = canonical.sector;
+            slot->position = canonical.local;
             return {slot->position, slot->velocity, slot->groundNormal,
-                    true, false};
+                    true, false, slot->sector};
         }
     }
 
@@ -380,7 +451,8 @@ CharacterMotion CpuCapsuleMoverWorld::moveCharacter(
          iteration < config_.maximumPlanes; ++iteration) {
         if (glm::dot(translation, translation) < 1e-12f) break;
         const CastHit hit = castCapsule(
-            slot->position, translation, slot->settings.radius);
+            slot->position, translation, slot->sector,
+            slot->settings.radius);
         if (!hit.hit) {
             slot->position += translation;
             translation = glm::vec3(0.0f);
@@ -420,7 +492,7 @@ CharacterMotion CpuCapsuleMoverWorld::moveCharacter(
     }
 
     const CapsuleClearance finalGround = capsuleClearance(
-        slot->position, slot->settings.radius);
+        slot->position, slot->sector, slot->settings.radius);
     slot->grounded = false;
     slot->steep = false;
     if (finalGround.valid) {
@@ -444,8 +516,12 @@ CharacterMotion CpuCapsuleMoverWorld::moveCharacter(
         }
     }
     if (!slot->grounded && encounteredSteep) slot->steep = true;
+    const WorldPosition canonical = canonicalWorldPosition(
+        slot->sector, glm::dvec3(slot->position));
+    slot->sector = canonical.sector;
+    slot->position = canonical.local;
     return {slot->position, slot->velocity, slot->groundNormal,
-            slot->grounded, slot->steep};
+            slot->grounded, slot->steep, slot->sector};
 }
 
 CpuCapsuleMoverWorld::CharacterSlot* CpuCapsuleMoverWorld::find(

@@ -564,10 +564,12 @@ void PrimitivePath::updateBindGroup() {
 
 void PrimitivePath::updateCompactBindGroup() {
     const WGPUBuffer visibleBuffer = gpuCulling_.visibleBodyIds();
-    if (!rayDepthView_ || !physicsRenderView_.valid() || !visibleBuffer)
+    const WGPUBuffer renderPoseBuffer = gpuCulling_.renderPoseBuffer();
+    if (!rayDepthView_ || !physicsRenderView_.valid() || !visibleBuffer
+        || !renderPoseBuffer)
         return;
     if (compactBindGroup_
-        && compactBoundPoseBuffer_ == physicsRenderView_.poseBuffer
+        && compactBoundPoseBuffer_ == renderPoseBuffer
         && compactBoundShapeBuffer_ == physicsRenderView_.shapeBuffer
         && compactBoundVisibleBuffer_ == visibleBuffer
         && compactBoundRayDepthView_ == rayDepthView_) return;
@@ -580,7 +582,7 @@ void PrimitivePath::updateCompactBindGroup() {
     const std::array<gpu::BindGroupEntry, 5> entries = {
         gpu::BindGroupEntry(0).buffer(
             uniformBuffer_, 0, sizeof(PrimitiveUniforms)),
-        gpu::BindGroupEntry(1).buffer(physicsRenderView_.poseBuffer),
+        gpu::BindGroupEntry(1).buffer(renderPoseBuffer),
         gpu::BindGroupEntry(2).buffer(physicsRenderView_.shapeBuffer),
         gpu::BindGroupEntry(3).buffer(
             visibleBuffer, 0, visibleSegmentBytes),
@@ -590,7 +592,7 @@ void PrimitivePath::updateCompactBindGroup() {
         device_, compactBindGroupLayout_, entries,
         "physics_primitive_compact_bind_group");
     if (compactBindGroup_) {
-        compactBoundPoseBuffer_ = physicsRenderView_.poseBuffer;
+        compactBoundPoseBuffer_ = renderPoseBuffer;
         compactBoundShapeBuffer_ = physicsRenderView_.shapeBuffer;
         compactBoundVisibleBuffer_ = visibleBuffer;
         compactBoundRayDepthView_ = rayDepthView_;
@@ -635,7 +637,8 @@ void PrimitivePath::setCompactPhysicsInstances(
 void PrimitivePath::setPhysicsRenderView(
     const physics::PhysicsRenderView& view) {
     if (physicsRenderView_.poseBuffer != view.poseBuffer
-        || physicsRenderView_.shapeBuffer != view.shapeBuffer) {
+        || physicsRenderView_.shapeBuffer != view.shapeBuffer
+        || physicsRenderView_.metadataBuffer != view.metadataBuffer) {
         compactBoundPoseBuffer_ = nullptr;
         compactBoundShapeBuffer_ = nullptr;
     }
@@ -708,7 +711,8 @@ void PrimitivePath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView
                            const glm::mat4& projection,
                            const glm::vec3& cameraPosition,
                            const glm::vec3& lightDirection, uint32_t width,
-                           uint32_t height, bool useRayDepth) {
+                           uint32_t height, bool useRayDepth,
+                           const glm::ivec3& cameraSector) {
     if (!pipeline_ || !compactPipeline_ || !encoder || !colorView || !depthView)
         return;
 
@@ -720,7 +724,8 @@ void PrimitivePath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView
     bool compactReady = false;
     if (physicsRenderView_.valid()
         && physicsRenderView_.residentBodyCapacity != 0) {
-        compactReady = gpuCulling_.encode(encoder, projection * view);
+        compactReady = gpuCulling_.encode(
+            encoder, projection * view, cameraSector);
         if (compactReady) {
             updateCompactBindGroup();
             compactReady = compactBindGroup_ != nullptr;

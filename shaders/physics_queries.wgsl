@@ -58,20 +58,26 @@ struct Intersection {
 @group(0) @binding(4) var<storage, read_write> outputs : array<QueryOutput>;
 @group(0) @binding(5) var<uniform> params : QueryParams;
 
-fn adjacent_sector_delta(reference : i32, other : i32) -> i32 {
-    if (other == reference) { return 0; }
-    if (reference < 2147483647 && other == reference + 1) { return 1; }
-    if (reference > -2147483647 - 1 && other == reference - 1) { return -1; }
-    return 0x3fffffff;
+fn bounded_sector_delta(reference : i32, other : i32,
+                        maximum : u32) -> i32 {
+    if (other >= reference) {
+        let wide = bitcast<u32>(other) - bitcast<u32>(reference);
+        if (wide > maximum) { return 2147483647; }
+        return i32(wide);
+    }
+    let wide = bitcast<u32>(reference) - bitcast<u32>(other);
+    if (wide > maximum) { return 2147483647; }
+    return -i32(wide);
 }
 
 fn body_position_in_query_frame(body : u32,
-                                querySector : vec3<i32>) -> vec3<f32> {
+                                querySector : vec3<i32>,
+                                maximum : u32) -> vec3<f32> {
     var sectorDelta = vec3<i32>(0);
     for (var axis = 0u; axis < 3u; axis += 1u) {
-        sectorDelta[axis] = adjacent_sector_delta(
-            querySector[axis], metadata[body][axis]);
-        if (abs(sectorDelta[axis]) > 1) {
+        sectorDelta[axis] = bounded_sector_delta(
+            querySector[axis], metadata[body][axis], maximum);
+        if (sectorDelta[axis] == 2147483647) {
             return vec3<f32>(3.402823466e+38);
         }
     }
@@ -221,7 +227,7 @@ fn execute_queries(@builtin(global_invocation_id) gid : vec3<u32>) {
         if ((u32(metadata[body].w) & BODY_ALIVE) == 0u) { continue; }
         let pose = poses[body];
         let bodyPosition = body_position_in_query_frame(
-            body, request.sector.xyz);
+            body, request.sector.xyz, u32(max(request.sector.w, 0)));
         if (bodyPosition.x > 1e30) { continue; }
         var queryPose = pose;
         queryPose.position_invMass = vec4<f32>(
