@@ -113,6 +113,8 @@ struct VelocityPair {
 var<workgroup> serialBodyNextLevel : array<u32, SERIAL_WORLD_BODY_CAPACITY>;
 var<workgroup> serialLevelCounts : array<u32, SERIAL_LEVEL_CAPACITY>;
 var<workgroup> serialLevelOffsets : array<u32, SERIAL_LEVEL_CAPACITY>;
+var<workgroup> serialBodyDegrees :
+    array<atomic<u32>, SERIAL_WORLD_BODY_CAPACITY>;
 
 fn sentinel_record() -> KeyValue {
     return KeyValue(SENTINEL, SENTINEL, SENTINEL, SENTINEL);
@@ -1639,31 +1641,22 @@ fn solve_serial_world(@builtin(local_invocation_id) lid : vec3<u32>) {
     // Detailed classification is diagnostic-only. Every body/contact owns an
     // independent lane; integer max/sum reductions are exact and commutative.
     if (contactCount <= 256u) {
-        for (var body = lane; body < params.capacities.x; body += 256u) {
-            var degree = 0u;
-            for (var rank = 0u; rank < contactCount; rank += 1u) {
-                if (!contact_is_active(rank)) { continue; }
-                let pair = manifolds[rank].pair;
-                degree += select(0u, 1u,
-                    pair.keyHigh == body || pair.keyLow == body);
-            }
-            atomicMax(&solverTelemetry[36], degree);
+        atomicStore(&serialBodyDegrees[lane], 0u);
+        workgroupBarrier();
+        if (lane < contactCount && contact_is_active(lane)) {
+            let pair = manifolds[lane].pair;
+            atomicAdd(&serialBodyDegrees[pair.keyHigh], 1u);
+            atomicAdd(&serialBodyDegrees[pair.keyLow], 1u);
         }
-        for (var rank = lane; rank < contactCount; rank += 256u) {
-            if (!contact_is_active(rank)) { continue; }
-            let pair = manifolds[rank].pair;
-            var degreeA = 0u;
-            var degreeB = 0u;
-            for (var other = 0u; other < contactCount; other += 1u) {
-                if (!contact_is_active(other)) { continue; }
-                let candidate = manifolds[other].pair;
-                degreeA += select(0u, 1u,
-                    candidate.keyHigh == pair.keyHigh
-                        || candidate.keyLow == pair.keyHigh);
-                degreeB += select(0u, 1u,
-                    candidate.keyHigh == pair.keyLow
-                        || candidate.keyLow == pair.keyLow);
-            }
+        workgroupBarrier();
+        if (lane < params.capacities.x) {
+            atomicMax(&solverTelemetry[36],
+                      atomicLoad(&serialBodyDegrees[lane]));
+        }
+        if (lane < contactCount && contact_is_active(lane)) {
+            let pair = manifolds[lane].pair;
+            let degreeA = atomicLoad(&serialBodyDegrees[pair.keyHigh]);
+            let degreeB = atomicLoad(&serialBodyDegrees[pair.keyLow]);
             atomicAdd(&solverTelemetry[43], select(
                 0u, 1u, degreeA == 1u && degreeB == 1u));
         }
