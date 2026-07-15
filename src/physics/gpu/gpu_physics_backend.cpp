@@ -394,6 +394,7 @@ public:
         GpuNarrowPhase::Config narrowConfig;
         narrowConfig.pairCapacity = pairCapacity_;
         narrowConfig.manifoldCapacity = manifoldCapacity_;
+        narrowConfig.dispatchContactCapacity = contactCapacity_;
         narrowConfig.linearSlop = config_.linearSlop;
         narrowConfig.speculativeDistance = config_.speculativeDistance;
         narrowConfig.recycleDistance = std::max(
@@ -1007,6 +1008,10 @@ public:
             .narrowPhaseTelemetryBuffer = narrowPhase_.telemetryBuffer(),
             .bodyCapacity = executionBodies,
             .contactCapacity = contactCapacity_,
+            .activeContactDispatchBuffer =
+                narrowPhase_.activeContactDispatchBuffer(),
+            .activeContactDispatchOffset =
+                GpuNarrowPhase::kActiveContactDispatchOffset,
         });
         islandManager_.setInput({
             .poseBuffer = poseBuffer_,

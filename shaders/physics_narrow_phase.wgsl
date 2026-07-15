@@ -46,6 +46,7 @@ struct ContactManifold {
 struct NarrowParams {
     capacities : vec4<u32>,
     tolerances : vec4<f32>,
+    dispatch : vec4<u32>,
 };
 
 struct ContactCandidate {
@@ -211,6 +212,13 @@ fn finalize_pair_buckets(@builtin(global_invocation_id) gid : vec3<u32>) {
         classDispatchArgs[dispatch + 3u] = 0u;
         prefix += count;
     }
+    let activeContacts = min(reported_pair_count(), narrow.dispatch.x);
+    let activeDispatch = PAIR_CLASS_COUNT * 4u;
+    classDispatchArgs[activeDispatch] =
+        (activeContacts + narrow.capacities.w - 1u) / narrow.capacities.w;
+    classDispatchArgs[activeDispatch + 1u] = 1u;
+    classDispatchArgs[activeDispatch + 2u] = 1u;
+    classDispatchArgs[activeDispatch + 3u] = 0u;
     let reportedCount = broadTelemetry[3];
     atomicStore(&narrowTelemetry[10], reportedCount);
     atomicStore(&narrowTelemetry[17], select(0u, 1u,

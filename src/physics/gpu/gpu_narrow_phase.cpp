@@ -2,6 +2,7 @@
 
 #include "gpu/resources.hpp"
 
+#include <algorithm>
 #include <array>
 #include <limits>
 #include <string>
@@ -49,6 +50,7 @@ public:
     struct alignas(16) Params {
         std::array<uint32_t, 4> capacities{};
         std::array<float, 4> tolerances{};
+        std::array<uint32_t, 4> dispatch{};
     };
 
     ~Impl() { shutdown(); }
@@ -67,6 +69,11 @@ public:
         if (config_.manifoldCapacity == 0u) {
             config_.manifoldCapacity = config_.pairCapacity;
         }
+        if (config_.dispatchContactCapacity == 0u) {
+            config_.dispatchContactCapacity = config_.manifoldCapacity;
+        }
+        config_.dispatchContactCapacity = std::min(
+            config_.dispatchContactCapacity, config_.manifoldCapacity);
 
         const auto makeStorage = [this](uint64_t bytes, const char* label) {
             return gpu::createBuffer(device_, gpu::BufferDesc{
@@ -88,7 +95,7 @@ public:
                                   "narrow_phase_class_table");
         classDispatchArgs_ = gpu::createBuffer(device_, gpu::BufferDesc{
             .label = "narrow_phase_class_dispatch_args",
-            .size = uint64_t{kGpuNarrowPhasePairClassCount} * 4u
+            .size = uint64_t{kGpuNarrowPhasePairClassCount + 1u} * 4u
                   * sizeof(uint32_t),
             .usage = WGPUBufferUsage_Storage | WGPUBufferUsage_CopyDst
                    | WGPUBufferUsage_Indirect,
@@ -114,7 +121,8 @@ public:
             sizeof(Params)
             + uint64_t{config.pairCapacity} * sizeof(GpuKeyValue)
             + kClassTableWords * sizeof(uint32_t)
-            + uint64_t{kGpuNarrowPhasePairClassCount} * 4u * sizeof(uint32_t)
+            + uint64_t{kGpuNarrowPhasePairClassCount + 1u} * 4u
+                * sizeof(uint32_t)
             + uint64_t{config_.manifoldCapacity} * 2u
                 * sizeof(GpuContactManifold)
             + kTelemetryWords * sizeof(uint32_t));
@@ -313,6 +321,7 @@ public:
                            config_.manifoldCapacity, config_.workgroupSize},
             .tolerances = {config_.linearSlop, config_.speculativeDistance,
                            config_.recycleDistance, 0.0f},
+            .dispatch = {config_.dispatchContactCapacity, 0u, 0u, 0u},
         };
         gpu::writeBuffer(queue_, parameterBuffer_, 0, params);
         if (!ensureCachedInputGroups()) return false;
@@ -444,6 +453,9 @@ WGPUBuffer GpuNarrowPhase::pairBuckets() const noexcept {
 }
 WGPUBuffer GpuNarrowPhase::pairClassTable() const noexcept {
     return impl_->classTable_;
+}
+WGPUBuffer GpuNarrowPhase::activeContactDispatchBuffer() const noexcept {
+    return impl_->classDispatchArgs_;
 }
 WGPUBuffer GpuNarrowPhase::telemetryBuffer() const noexcept {
     return impl_->telemetry_;

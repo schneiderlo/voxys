@@ -23,6 +23,10 @@ struct GpuDynamicSolverInput {
     WGPUBuffer narrowPhaseTelemetryBuffer = nullptr;
     uint32_t bodyCapacity = 0;
     uint32_t contactCapacity = 0;
+    // Optional GPU-produced dispatch dimensions for the active contact prefix.
+    // Appended to preserve positional initialization of the original fields.
+    WGPUBuffer activeContactDispatchBuffer = nullptr;
+    uint64_t activeContactDispatchOffset = 0;
 
     [[nodiscard]] bool valid() const noexcept {
         return poseBuffer && motionBuffer && shapeBuffer && metadataBuffer

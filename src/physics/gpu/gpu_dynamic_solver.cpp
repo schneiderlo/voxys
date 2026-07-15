@@ -662,6 +662,17 @@ public:
         const auto dispatchOffset = [](uint32_t dispatchSlot) {
             return uint64_t{dispatchSlot} * 4u * sizeof(uint32_t);
         };
+        auto dispatchContacts = [&](WGPUComputePipeline pipeline) {
+            wgpuComputePassEncoderSetPipeline(pass, pipeline);
+            if (input_.activeContactDispatchBuffer) {
+                wgpuComputePassEncoderDispatchWorkgroupsIndirect(
+                    pass, input_.activeContactDispatchBuffer,
+                    input_.activeContactDispatchOffset);
+            } else {
+                wgpuComputePassEncoderDispatchWorkgroups(
+                    pass, contactGroups, 1, 1);
+            }
+        };
         auto bind = [&](WGPUBindGroup group, uint32_t offset) {
             wgpuComputePassEncoderSetBindGroup(pass, 0, group, 1, &offset);
         };
@@ -674,10 +685,8 @@ public:
         bind(classificationGroup, offset);
         wgpuComputePassEncoderSetPipeline(pass, resetDegreesPipeline_);
         wgpuComputePassEncoderDispatchWorkgroups(pass, bodyGroups, 1, 1);
-        wgpuComputePassEncoderSetPipeline(pass, countDegreesPipeline_);
-        wgpuComputePassEncoderDispatchWorkgroups(pass, contactGroups, 1, 1);
-        wgpuComputePassEncoderSetPipeline(pass, markSmallIslandsPipeline_);
-        wgpuComputePassEncoderDispatchWorkgroups(pass, contactGroups, 1, 1);
+        dispatchContacts(countDegreesPipeline_);
+        dispatchContacts(markSmallIslandsPipeline_);
         wgpuComputePassEncoderEnd(pass);
         wgpuComputePassEncoderRelease(pass);
 
@@ -836,13 +845,11 @@ public:
         wgpuComputePassEncoderDispatchWorkgroupsIndirect(
             pass, dispatchArgs_, dispatchOffset(config_.colorCount + 3u));
         bind(prepareGroup, offset);
-        wgpuComputePassEncoderSetPipeline(pass, preparePipeline_);
-        wgpuComputePassEncoderDispatchWorkgroups(pass, contactGroups, 1, 1);
+        dispatchContacts(preparePipeline_);
         const uint32_t smallIslandOffset = writeParams(
             slot, makeParams(0u, 0u, config_.substeps, 0u));
         bind(smallIslandGroup, smallIslandOffset);
-        wgpuComputePassEncoderSetPipeline(pass, solveSmallIslandsPipeline_);
-        wgpuComputePassEncoderDispatchWorkgroups(pass, contactGroups, 1, 1);
+        dispatchContacts(solveSmallIslandsPipeline_);
 
         auto solveColors = [&](uint32_t stage, uint32_t substep) {
             // One workgroup preserves the exact color order while avoiding

@@ -88,11 +88,16 @@ struct GpuNarrowPhaseTelemetry {
 class GpuNarrowPhase {
 public:
     static constexpr uint32_t kTelemetryWordCount = 32;
+    static constexpr uint64_t kActiveContactDispatchOffset =
+        uint64_t{kGpuNarrowPhasePairClassCount} * 4u * sizeof(uint32_t);
 
     struct Config {
         uint32_t pairCapacity = 65'536;
         // Zero preserves the historical behavior: one manifold slot per pair.
         uint32_t manifoldCapacity = 0;
+        // Zero uses manifoldCapacity. The composed backend caps this to the
+        // downstream solver's contact capacity.
+        uint32_t dispatchContactCapacity = 0;
         uint32_t workgroupSize = 128;
         float linearSlop = 0.005f;
         float speculativeDistance = 0.02f;
@@ -116,6 +121,7 @@ public:
     [[nodiscard]] WGPUBuffer manifolds() const noexcept;
     [[nodiscard]] WGPUBuffer pairBuckets() const noexcept;
     [[nodiscard]] WGPUBuffer pairClassTable() const noexcept;
+    [[nodiscard]] WGPUBuffer activeContactDispatchBuffer() const noexcept;
     [[nodiscard]] WGPUBuffer telemetryBuffer() const noexcept;
     [[nodiscard]] uint32_t capacity() const noexcept;
     [[nodiscard]] size_t scratchBytes() const noexcept;
