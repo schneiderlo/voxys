@@ -1225,7 +1225,7 @@ fn prepare_dynamic_bodies(@builtin(global_invocation_id) gid : vec3<u32>) {
     forces[body] = vec4<f32>(0.0);
 }
 
-@compute @workgroup_size(256)
+@compute @workgroup_size(128)
 fn solve_static_contacts(@builtin(global_invocation_id) gid : vec3<u32>) {
     if (gid.x >= atomicLoad(&counters[0])) { return; }
     let body = activeBodyIds[gid.x];

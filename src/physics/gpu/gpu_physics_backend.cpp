@@ -38,6 +38,8 @@ namespace voxy::physics {
 namespace {
 
 constexpr uint32_t kWorkgroupSize = 256;
+// The terrain kernel is register-heavy; smaller groups expose more parallelism.
+constexpr uint32_t kStaticContactWorkgroupSize = 128;
 // The command and integration layouts are the widest physics layouts. Each
 // exposes eight storage buffers, matching WebGPU's guaranteed minimum.
 constexpr uint32_t kRequiredStorageBuffersPerShaderStage = 8;
@@ -1628,7 +1630,10 @@ public:
                 wgpuComputePassEncoderSetBindGroup(
                     pass, 0, integrateBindGroup_, 0, nullptr);
                 wgpuComputePassEncoderDispatchWorkgroups(
-                    pass, executionBlocks, 1, 1);
+                    pass,
+                    (executionBodies + kStaticContactWorkgroupSize - 1u)
+                        / kStaticContactWorkgroupSize,
+                    1, 1);
                 wgpuComputePassEncoderEnd(pass);
                 wgpuComputePassEncoderRelease(pass);
                 terrainStateNeedsClear_ = false;
