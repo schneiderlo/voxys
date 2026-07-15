@@ -294,7 +294,7 @@ TEST_P(GpuBroadPhaseTest, MatchesBruteForceAndPersistsLifecycle) {
     EXPECT_EQ(first.telemetry.persistentContacts, expectedFirst.size());
     EXPECT_EQ(first.telemetry.beginEvents, expectedFirst.size());
     EXPECT_EQ(first.telemetry.endEvents, 0u);
-    EXPECT_GT(first.telemetry.oversizedBodies, 0u);
+    EXPECT_EQ(first.telemetry.oversizedBodies, 1u);
     EXPECT_GT(first.telemetry.occupiedCells, 0u);
     EXPECT_FALSE(first.telemetry.candidateOverflow);
     EXPECT_FALSE(first.telemetry.pairOverflow);

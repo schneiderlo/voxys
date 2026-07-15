@@ -254,6 +254,7 @@ fn count_grid_entries_impl(gid : vec3<u32>) {
     // while any two common-body radii sum to at most one cell width.
     if (body_is_oversized(body)) {
         oversizedFlags[body] = 1u;
+        atomicAdd(&telemetry[5], 1u);
         return;
     }
     bodyEntryCounts[body] = 1u;
@@ -353,15 +354,10 @@ fn finalize_cell_range_count(@builtin(global_invocation_id) gid : vec3<u32>) {
         let last = entryCount - 1u;
         rangeCount = entryRangeIndices[last] + rangePredicates[last];
     }
-    var oversizedCount = 0u;
-    for (var body = 0u; body < broad.counts.x; body += 1u) {
-        oversizedCount += select(0u, 1u, oversizedFlags[body] != 0u);
-    }
     atomicStore(&telemetry[1], rangeCount);
     cellRanges[broad.counts.y].entryCount = rangeCount;
     oversizedFlags[broad.counts.x] = rangeCount;
     oversizedFlags[broad.counts.x + 1u] = rangeCount + broad.counts.x;
-    atomicStore(&telemetry[5], oversizedCount);
     atomicMax(&telemetry[15], rangeCount);
     store_sort_dispatch(6u, rangeCount + broad.counts.x);
 }
