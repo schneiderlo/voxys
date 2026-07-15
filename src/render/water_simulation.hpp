@@ -53,7 +53,11 @@ public:
     void shutdown();
 
     /// Record spectrum evolution, two workgroup-local FFT axes, and resolve.
-    void update(WGPUCommandEncoder encoder, float timeSeconds);
+    void update(
+        WGPUCommandEncoder encoder, float timeSeconds,
+        WGPUQuerySet timestampQuerySet = nullptr,
+        uint32_t timestampBegin = WGPU_QUERY_SET_INDEX_UNDEFINED,
+        uint32_t timestampEnd = WGPU_QUERY_SET_INDEX_UNDEFINED);
 
     [[nodiscard]] bool isInitialized() const noexcept {
         return evolvePipeline_ != nullptr && outputView_ != nullptr;

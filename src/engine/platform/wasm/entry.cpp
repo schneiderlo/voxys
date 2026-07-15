@@ -63,6 +63,7 @@ namespace {
         g_physicsBenchmarkTiming;
     std::optional<voxy::physics::PhysicsGpuStageTiming>
         g_polledPhysicsTiming;
+    std::optional<voxy::RenderGpuStageTiming> g_polledRenderTiming;
     double g_lastFrameCpuMilliseconds = 0.0;
     uint32_t g_gpuFramesInFlight = 0;
     uint64_t g_gpuPacingSkips = 0;
@@ -773,6 +774,10 @@ int main(int argc, char* argv[]) {
         return new URLSearchParams(globalThis.location.search)
             .get("physicsProfile") === "0" ? 0 : 1;
     }) != 0;
+    appConfig.gpuRenderStageProfiling = EM_ASM_INT({
+        return new URLSearchParams(globalThis.location.search)
+            .get("renderProfile") === "1" ? 1 : 0;
+    }) != 0;
 
     // Automation settings
     appConfig.initialTeleportIndex = config.automation.teleportIndex;
@@ -1045,6 +1050,23 @@ double voxy_get_polled_physics_stage_ms(int stage) {
         return -1.0;
     }
     return g_polledPhysicsTiming->milliseconds[static_cast<size_t>(stage)];
+}
+
+EMSCRIPTEN_KEEPALIVE
+double voxy_poll_render_stage_timing() {
+    g_polledRenderTiming = g_app
+        ? g_app->pollRenderGpuTimingSample() : std::nullopt;
+    return g_polledRenderTiming
+        ? static_cast<double>(g_polledRenderTiming->frame) : 0.0;
+}
+
+EMSCRIPTEN_KEEPALIVE
+double voxy_get_polled_render_stage_ms(int stage) {
+    if (!g_polledRenderTiming || stage < 0
+        || stage >= static_cast<int>(voxy::kRenderGpuStageCount)) {
+        return -1.0;
+    }
+    return g_polledRenderTiming->milliseconds[static_cast<size_t>(stage)];
 }
 
 EMSCRIPTEN_KEEPALIVE

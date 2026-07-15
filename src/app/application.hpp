@@ -37,6 +37,7 @@
 
 #include "engine/platform/window.hpp"
 #include "engine/platform/input.hpp"
+#include "physics/gpu/debug_readback_ring.hpp"
 #include "physics/physics_types.hpp"
 #include "render/primitive_culling.hpp"
 
@@ -93,6 +94,22 @@ enum class DebugVisMode : uint32_t {
     MipLevels = 3,   ///< Mip level heat map (raycast path only)
 };
 
+enum class RenderGpuStage : uint32_t {
+    WaterSimulation = 0,
+    TerrainRaycast,
+    LightingBlit,
+    Primitives,
+    Count,
+};
+
+inline constexpr size_t kRenderGpuStageCount =
+    static_cast<size_t>(RenderGpuStage::Count);
+
+struct RenderGpuStageTiming {
+    uint64_t frame = 0;
+    std::array<double, kRenderGpuStageCount> milliseconds{};
+};
+
 /// Controller mode selection
 enum class ControllerMode {
     FreeFly,    ///< Unrestricted free-fly camera (default)
@@ -144,6 +161,7 @@ struct ApplicationConfig {
     uint32_t gpuPhysicsMaxBodies = 131'072;
     uint32_t gpuPhysicsMaximumCatchUpTicks = 8;
     bool gpuPhysicsStageProfiling = false;
+    bool gpuRenderStageProfiling = false;
     double gpuPhysicsTimestampPeriodNanoseconds = 1.0;
     bool physicsCpuFallback = true;
     physics::JoltJobSystemMode joltJobSystem =
@@ -219,6 +237,7 @@ struct ApplicationStats {
     physics::BackendType physicsBackend = physics::BackendType::JoltLegacy;
     physics::PhysicsStats physics{};
     std::optional<physics::PhysicsGpuStageTiming> physicsGpuTiming;
+    std::optional<RenderGpuStageTiming> renderGpuTiming;
     uint32_t physicsResidentBodies = 0;
     uint32_t physicsActiveBodies = 0;
     uint32_t physicsBodyCapacity = 0;
@@ -429,6 +448,9 @@ public:
     [[nodiscard]] std::optional<physics::PhysicsGpuStageTiming>
         pollPhysicsGpuTimingSample() noexcept;
 
+    [[nodiscard]] std::optional<RenderGpuStageTiming>
+        pollRenderGpuTimingSample() noexcept;
+
     /// Get the window (may be null before init or on WASM).
     [[nodiscard]] Window* getWindow() noexcept { return window_.get(); }
     [[nodiscard]] const Window* getWindow() const noexcept { return window_.get(); }
@@ -468,6 +490,7 @@ private:
     bool initCamera();
     bool initTerrain();
     bool initRenderers();
+    bool initRenderGpuProfiling();
     bool spawnBenchmarkBodies();
     void retireBenchmarkSubmissions(bool drain);
     void setupCallbacks();
@@ -478,6 +501,7 @@ private:
 
     void renderTrianglePath(WGPUCommandEncoder encoder, WGPUTextureView colorView);
     void renderRaycastPath(WGPUCommandEncoder encoder, WGPUTextureView colorView);
+    void pollRenderGpuTimings();
     void updateCameraUniforms();
     void updateStats(float deltaTime);
     WGPUTextureView getOrCreateDepthView();
@@ -504,6 +528,11 @@ private:
                kPhysicsGpuTimingSampleCapacity> physicsGpuTimingSamples_{};
     size_t physicsGpuTimingSampleHead_ = 0u;
     size_t physicsGpuTimingSampleCount_ = 0u;
+    static constexpr size_t kRenderGpuTimingSampleCapacity = 64u;
+    std::array<RenderGpuStageTiming,
+               kRenderGpuTimingSampleCapacity> renderGpuTimingSamples_{};
+    size_t renderGpuTimingSampleHead_ = 0u;
+    size_t renderGpuTimingSampleCount_ = 0u;
     bool initialized_ = false;
     bool shouldExit_ = false;
     
@@ -543,6 +572,10 @@ private:
     std::unique_ptr<render::TrianglePath> trianglePath_;
     std::unique_ptr<render::RaycastPath> raycastPath_;
     std::unique_ptr<render::BlitPath> blitPath_;
+    WGPUQuerySet renderGpuQuerySet_ = nullptr;
+    WGPUBuffer renderGpuResolveBuffer_ = nullptr;
+    physics::DebugReadbackRing renderGpuReadback_;
+    bool renderGpuProfilingFrame_ = false;
 
     // Depth buffer for triangle path
     WGPUTexture depthTexture_ = nullptr;

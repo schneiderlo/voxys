@@ -2,6 +2,7 @@
 
 #include "core/log.hpp"
 #include "gpu/resources.hpp"
+#include "gpu/webgpu_compat.hpp"
 
 #include <algorithm>
 #include <array>
@@ -686,7 +687,10 @@ bool WaterSimulation::createFoamResources(
     return true;
 }
 
-void WaterSimulation::update(WGPUCommandEncoder encoder, float timeSeconds) {
+void WaterSimulation::update(WGPUCommandEncoder encoder, float timeSeconds,
+                             WGPUQuerySet timestampQuerySet,
+                             uint32_t timestampBegin,
+                             uint32_t timestampEnd) {
     if (!isInitialized() || !encoder) return;
 
     SimParams params{.time = timeSeconds, .stage = 0, .axis = 0, .size = RESOLUTION};
@@ -707,6 +711,13 @@ void WaterSimulation::update(WGPUCommandEncoder encoder, float timeSeconds) {
 
     WGPUComputePassDescriptor passDesc{};
     WGPU_SET_LABEL(passDesc, "water_fft_compute_pass");
+    gpu::CompatPassTimestampWrites timestampWrites{};
+    if (timestampQuerySet) {
+        timestampWrites.querySet = timestampQuerySet;
+        timestampWrites.beginningOfPassWriteIndex = timestampBegin;
+        timestampWrites.endOfPassWriteIndex = timestampEnd;
+        passDesc.timestampWrites = &timestampWrites;
+    }
     WGPUComputePassEncoder pass = wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
 
     constexpr uint32_t evolveGroups = (kElementCount + 255u) / 256u;

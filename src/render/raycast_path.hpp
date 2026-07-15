@@ -148,7 +148,11 @@ public:
 
     /// Dispatch the compute shader to ray-cast the terrain
     /// @param encoder Command encoder
-    void dispatch(WGPUCommandEncoder encoder);
+    void dispatch(
+        WGPUCommandEncoder encoder,
+        WGPUQuerySet timestampQuerySet = nullptr,
+        uint32_t timestampBegin = WGPU_QUERY_SET_INDEX_UNDEFINED,
+        uint32_t timestampEnd = WGPU_QUERY_SET_INDEX_UNDEFINED);
 
     // ─────────────────────────────────────────────────────────────────────────
     // Accessors

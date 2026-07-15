@@ -33,6 +33,7 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <cstring>
 #include <filesystem>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
@@ -72,6 +73,11 @@ namespace voxy {
 // light uniform and the baked shadow height field must agree.
 constexpr glm::vec3 kSunDirection = {0.3f, 0.8f, 0.4f};
 constexpr size_t kPrimitiveOverlayHeadroom = 1u + 5u * 7u;
+constexpr uint32_t kRenderGpuQueriesPerStage = 2u;
+constexpr uint32_t kRenderGpuTimestampCount =
+    static_cast<uint32_t>(kRenderGpuStageCount)
+        * kRenderGpuQueriesPerStage;
+constexpr uint32_t kRenderGpuProfilingIntervalFrames = 30u;
 
 void appendObjectCount(
     std::vector<physics::PhysicsWorld::DynamicBodySnapshot>& instances,
@@ -217,6 +223,11 @@ bool Application::init(const ApplicationConfig& config) {
             return false;
         }
 
+        if (!initRenderGpuProfiling()) {
+            LOG_ERROR("Failed to initialize render GPU profiling");
+            return false;
+        }
+
         if (!initInput()) {
             LOG_ERROR("Failed to initialize input system");
             return false;
@@ -331,6 +342,17 @@ void Application::shutdown() {
     LOG_INFO("Shutting down application...");
 
     retireBenchmarkSubmissions(true);
+
+    renderGpuReadback_.shutdown();
+    if (renderGpuResolveBuffer_) {
+        wgpuBufferDestroy(renderGpuResolveBuffer_);
+        wgpuBufferRelease(renderGpuResolveBuffer_);
+        renderGpuResolveBuffer_ = nullptr;
+    }
+    if (renderGpuQuerySet_) {
+        wgpuQuerySetRelease(renderGpuQuerySet_);
+        renderGpuQuerySet_ = nullptr;
+    }
 
 // No WASM global state needed in Application anymore
 
@@ -565,6 +587,12 @@ void Application::render() {
         physicsWorld_->encodeGpuStep(encoder);
     }
 
+    renderGpuProfilingFrame_ = renderGpuQuerySet_
+        && config_.renderPath == RenderPath::Raycast
+        && raycastPath_ && raycastPath_->isInitialized()
+        && blitPath_ && blitPath_->isInitialized()
+        && stats_.frameCount % kRenderGpuProfilingIntervalFrames == 0u;
+
     // Render based on active path
     switch (config_.renderPath) {
         case RenderPath::Triangle:
@@ -654,10 +682,25 @@ void Application::render() {
                 camera_->projectionMatrix(), camera_->position(), kSunDirection,
                 gpuContext_->getSwapchainWidth(), gpuContext_->getSwapchainHeight(),
                 config_.renderPath == RenderPath::Raycast,
-                camera_->worldSector());
+                camera_->worldSector(),
+                renderGpuProfilingFrame_ ? renderGpuQuerySet_ : nullptr,
+                static_cast<uint32_t>(RenderGpuStage::Primitives)
+                    * kRenderGpuQueriesPerStage,
+                static_cast<uint32_t>(RenderGpuStage::Primitives)
+                    * kRenderGpuQueriesPerStage + 1u);
             primitiveStageTimer.stop();
             stats_.primitiveRenderMs = primitiveStageTimer.elapsedMs();
         }
+    }
+
+    if (renderGpuProfilingFrame_) {
+        wgpuCommandEncoderResolveQuerySet(
+            encoder, renderGpuQuerySet_, 0u, kRenderGpuTimestampCount,
+            renderGpuResolveBuffer_, 0u);
+        static_cast<void>(renderGpuReadback_.encodeCopy(
+            encoder, renderGpuResolveBuffer_, 0u,
+            kRenderGpuTimestampCount * sizeof(uint64_t), stats_.frameCount,
+            0u, 0u));
     }
 
     // Submit commands
@@ -1141,7 +1184,8 @@ bool Application::initGPU() {
     gpu::ContextConfig gpuConfig;
     gpuConfig.powerPreference = WGPUPowerPreference_HighPerformance;
     gpuConfig.enableValidation = config_.enableValidation;
-    gpuConfig.enableTimestamps = config_.gpuPhysicsStageProfiling;
+    gpuConfig.enableTimestamps = config_.gpuPhysicsStageProfiling
+        || config_.gpuRenderStageProfiling;
     gpuConfig.preferredFormat = config_.colorFormat;
     gpuConfig.presentMode = config_.vsync ? WGPUPresentMode_Fifo : WGPUPresentMode_Immediate;
 
@@ -1184,6 +1228,44 @@ bool Application::initGPU() {
     }
 
     LOG_DEBUG("GPU context initialized");
+    return true;
+}
+
+bool Application::initRenderGpuProfiling() {
+    if (!config_.gpuRenderStageProfiling || !gpuContext_
+        || !wgpuDeviceHasFeature(
+            gpuContext_->getDevice(), WGPUFeatureName_TimestampQuery)) {
+        return true;
+    }
+
+    WGPUQuerySetDescriptor queryDesc{};
+    WGPU_SET_LABEL(queryDesc, "render_stage_timestamps");
+    queryDesc.type = WGPUQueryType_Timestamp;
+    queryDesc.count = kRenderGpuTimestampCount;
+    renderGpuQuerySet_ = wgpuDeviceCreateQuerySet(
+        gpuContext_->getDevice(), &queryDesc);
+    renderGpuResolveBuffer_ = gpu::createBuffer(
+        gpuContext_->getDevice(), gpu::BufferDesc{
+            .label = "render_stage_timestamp_resolve",
+            .size = kRenderGpuTimestampCount * sizeof(uint64_t),
+            .usage = WGPUBufferUsage_QueryResolve | WGPUBufferUsage_CopySrc,
+        });
+    if (!renderGpuQuerySet_ || !renderGpuResolveBuffer_
+        || !renderGpuReadback_.initialize(
+            gpuContext_->getDevice(), 4u,
+            kRenderGpuTimestampCount * sizeof(uint64_t))) {
+        renderGpuReadback_.shutdown();
+        if (renderGpuResolveBuffer_) {
+            wgpuBufferDestroy(renderGpuResolveBuffer_);
+            wgpuBufferRelease(renderGpuResolveBuffer_);
+            renderGpuResolveBuffer_ = nullptr;
+        }
+        if (renderGpuQuerySet_) {
+            wgpuQuerySetRelease(renderGpuQuerySet_);
+            renderGpuQuerySet_ = nullptr;
+        }
+        return false;
+    }
     return true;
 }
 
@@ -1689,6 +1771,41 @@ void Application::setupCallbacks() {
 // Rendering Helpers
 // ─────────────────────────────────────────────────────────────────────────────
 
+void Application::pollRenderGpuTimings() {
+    auto raw = renderGpuReadback_.poll();
+    if (!raw || raw->bytes.size()
+        != kRenderGpuTimestampCount * sizeof(uint64_t)) return;
+
+    std::array<uint64_t, kRenderGpuTimestampCount> timestamps{};
+    std::memcpy(timestamps.data(), raw->bytes.data(), raw->bytes.size());
+    RenderGpuStageTiming timing;
+    timing.frame = raw->tick;
+    const double tickToMilliseconds =
+        config_.gpuPhysicsTimestampPeriodNanoseconds * 1.0e-6;
+    for (size_t stage = 0; stage < kRenderGpuStageCount; ++stage) {
+        const uint64_t start =
+            timestamps[stage * kRenderGpuQueriesPerStage];
+        const uint64_t end =
+            timestamps[stage * kRenderGpuQueriesPerStage + 1u];
+        if (end >= start) {
+            timing.milliseconds[stage] = static_cast<double>(
+                end - start) * tickToMilliseconds;
+        }
+    }
+    stats_.renderGpuTiming = timing;
+    if (renderGpuTimingSampleCount_ == kRenderGpuTimingSampleCapacity) {
+        renderGpuTimingSampleHead_ =
+            (renderGpuTimingSampleHead_ + 1u)
+            % kRenderGpuTimingSampleCapacity;
+        --renderGpuTimingSampleCount_;
+    }
+    const size_t destination =
+        (renderGpuTimingSampleHead_ + renderGpuTimingSampleCount_)
+        % kRenderGpuTimingSampleCapacity;
+    renderGpuTimingSamples_[destination] = timing;
+    ++renderGpuTimingSampleCount_;
+}
+
 void Application::renderTrianglePath(WGPUCommandEncoder encoder, WGPUTextureView colorView) {
     if (!trianglePath_ || !trianglePath_->isInitialized()) {
         return;
@@ -1711,15 +1828,32 @@ void Application::renderRaycastPath(WGPUCommandEncoder encoder, WGPUTextureView 
     }
 
     if (config_.waterEnabled && waterSimulation_ && waterSimulation_->isInitialized()) {
+        constexpr uint32_t stage =
+            static_cast<uint32_t>(RenderGpuStage::WaterSimulation);
         waterSimulation_->update(
-            encoder, static_cast<float>(std::fmod(stats_.totalTimeSeconds, 4096.0)));
+            encoder,
+            static_cast<float>(std::fmod(stats_.totalTimeSeconds, 4096.0)),
+            renderGpuProfilingFrame_ ? renderGpuQuerySet_ : nullptr,
+            stage * kRenderGpuQueriesPerStage,
+            stage * kRenderGpuQueriesPerStage + 1u);
     }
 
     // Dispatch ray-cast compute shader
-    raycastPath_->dispatch(encoder);
+    constexpr uint32_t raycastStage =
+        static_cast<uint32_t>(RenderGpuStage::TerrainRaycast);
+    raycastPath_->dispatch(
+        encoder, renderGpuProfilingFrame_ ? renderGpuQuerySet_ : nullptr,
+        raycastStage * kRenderGpuQueriesPerStage,
+        raycastStage * kRenderGpuQueriesPerStage + 1u);
 
     // Render blit pass
-    blitPath_->render(encoder, colorView);
+    constexpr uint32_t blitStage =
+        static_cast<uint32_t>(RenderGpuStage::LightingBlit);
+    blitPath_->render(
+        encoder, colorView,
+        renderGpuProfilingFrame_ ? renderGpuQuerySet_ : nullptr,
+        blitStage * kRenderGpuQueriesPerStage,
+        blitStage * kRenderGpuQueriesPerStage + 1u);
 }
 
 void Application::updateCameraUniforms() {
@@ -1792,6 +1926,7 @@ void Application::updateCameraUniforms() {
 }
 
 void Application::updateStats(float deltaTime) {
+    pollRenderGpuTimings();
     stats_.frameTimeMs = static_cast<double>(deltaTime) * 1000.0;
     stats_.totalTimeSeconds += static_cast<double>(deltaTime);
     stats_.activeRenderPath = config_.renderPath;
@@ -1892,6 +2027,18 @@ Application::pollPhysicsGpuTimingSample() noexcept {
         (physicsGpuTimingSampleHead_ + 1u)
         % kPhysicsGpuTimingSampleCapacity;
     --physicsGpuTimingSampleCount_;
+    return result;
+}
+
+std::optional<RenderGpuStageTiming>
+Application::pollRenderGpuTimingSample() noexcept {
+    if (renderGpuTimingSampleCount_ == 0u) return std::nullopt;
+    RenderGpuStageTiming result =
+        renderGpuTimingSamples_[renderGpuTimingSampleHead_];
+    renderGpuTimingSampleHead_ =
+        (renderGpuTimingSampleHead_ + 1u)
+        % kRenderGpuTimingSampleCapacity;
+    --renderGpuTimingSampleCount_;
     return result;
 }
 

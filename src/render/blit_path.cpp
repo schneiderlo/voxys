@@ -5,6 +5,7 @@
 #include "render/blit_path.hpp"
 #include "render/triangle_path.hpp"  // For CameraUniforms
 #include "gpu/resources.hpp"
+#include "gpu/webgpu_compat.hpp"
 #include "core/log.hpp"
 
 #include <glm/gtc/matrix_inverse.hpp>
@@ -946,7 +947,10 @@ void BlitPath::updateUniformBuffer() {
 // Rendering
 // ─────────────────────────────────────────────────────────────────────────────
 
-void BlitPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView) {
+void BlitPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
+                      WGPUQuerySet timestampQuerySet,
+                      uint32_t timestampBegin,
+                      uint32_t timestampEnd) {
     if (!pipeline_) {
         LOG_WARN("BlitPath::render: not initialized");
         return;
@@ -1009,6 +1013,13 @@ void BlitPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView) {
     renderPassDesc.colorAttachmentCount = 1;
     renderPassDesc.colorAttachments = &colorAttachment;
     // No depth attachment - depth was computed by ray-caster
+    gpu::CompatRenderPassTimestampWrites timestampWrites{};
+    if (timestampQuerySet) {
+        timestampWrites.querySet = timestampQuerySet;
+        timestampWrites.beginningOfPassWriteIndex = timestampBegin;
+        timestampWrites.endOfPassWriteIndex = timestampEnd;
+        renderPassDesc.timestampWrites = &timestampWrites;
+    }
     
     WGPURenderPassEncoder renderPass = wgpuCommandEncoderBeginRenderPass(encoder, &renderPassDesc);
     

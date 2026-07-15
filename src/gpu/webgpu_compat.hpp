@@ -34,11 +34,13 @@ namespace voxy::gpu {
     using WGPUTextureUsageFlags = WGPUTextureUsage;
     using WGPUShaderStageFlags  = WGPUShaderStage;
     using CompatPassTimestampWrites = WGPUPassTimestampWrites;
+    using CompatRenderPassTimestampWrites = WGPUPassTimestampWrites;
 #else
     using WGPUBufferUsageFlags  = ::WGPUBufferUsageFlags;
     using WGPUTextureUsageFlags = ::WGPUTextureUsageFlags;
     using WGPUShaderStageFlags  = ::WGPUShaderStageFlags;
     using CompatPassTimestampWrites = WGPUComputePassTimestampWrites;
+    using CompatRenderPassTimestampWrites = WGPURenderPassTimestampWrites;
 #endif
 
 // ═══════════════════════════════════════════════════════════════════════════════

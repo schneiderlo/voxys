@@ -4,6 +4,7 @@
 
 #include "core/log.hpp"
 #include "gpu/resources.hpp"
+#include "gpu/webgpu_compat.hpp"
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
@@ -716,7 +717,10 @@ void PrimitivePath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView
                            const glm::vec3& cameraPosition,
                            const glm::vec3& lightDirection, uint32_t width,
                            uint32_t height, bool useRayDepth,
-                           const glm::ivec3& cameraSector) {
+                           const glm::ivec3& cameraSector,
+                           WGPUQuerySet timestampQuerySet,
+                           uint32_t timestampBegin,
+                           uint32_t timestampEnd) {
     if (!pipeline_ || !compactPipeline_ || !encoder || !colorView || !depthView)
         return;
 
@@ -767,6 +771,13 @@ void PrimitivePath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView
     passDesc.colorAttachmentCount = 1;
     passDesc.colorAttachments = &colorAttachment;
     passDesc.depthStencilAttachment = &depthAttachment;
+    gpu::CompatRenderPassTimestampWrites timestampWrites{};
+    if (timestampQuerySet) {
+        timestampWrites.querySet = timestampQuerySet;
+        timestampWrites.beginningOfPassWriteIndex = timestampBegin;
+        timestampWrites.endOfPassWriteIndex = timestampEnd;
+        passDesc.timestampWrites = &timestampWrites;
+    }
     WGPURenderPassEncoder pass = wgpuCommandEncoderBeginRenderPass(encoder, &passDesc);
     wgpuRenderPassEncoderSetVertexBuffer(pass, 0, vertexBuffer_, 0, WGPU_WHOLE_SIZE);
     wgpuRenderPassEncoderSetIndexBuffer(pass, indexBuffer_, WGPUIndexFormat_Uint16,

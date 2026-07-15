@@ -74,7 +74,10 @@ public:
                 const glm::mat4& projection, const glm::vec3& cameraPosition,
                 const glm::vec3& lightDirection, uint32_t width, uint32_t height,
                 bool useRayDepth,
-                const glm::ivec3& cameraSector = glm::ivec3(0));
+                const glm::ivec3& cameraSector = glm::ivec3(0),
+                WGPUQuerySet timestampQuerySet = nullptr,
+                uint32_t timestampBegin = WGPU_QUERY_SET_INDEX_UNDEFINED,
+                uint32_t timestampEnd = WGPU_QUERY_SET_INDEX_UNDEFINED);
 
 private:
     struct DrawRange {

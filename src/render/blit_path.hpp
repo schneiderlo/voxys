@@ -170,7 +170,11 @@ public:
     /// Render the fullscreen blit pass
     /// @param encoder Command encoder
     /// @param colorView Output color attachment texture view (swapchain)
-    void render(WGPUCommandEncoder encoder, WGPUTextureView colorView);
+    void render(
+        WGPUCommandEncoder encoder, WGPUTextureView colorView,
+        WGPUQuerySet timestampQuerySet = nullptr,
+        uint32_t timestampBegin = WGPU_QUERY_SET_INDEX_UNDEFINED,
+        uint32_t timestampEnd = WGPU_QUERY_SET_INDEX_UNDEFINED);
 
     // ─────────────────────────────────────────────────────────────────────────
     // Accessors

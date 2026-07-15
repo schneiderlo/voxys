@@ -230,8 +230,11 @@ const benchmarkCamera = await evaluate(`(() => {
     return JSON.parse(voxyModule.UTF8ToString(pointer)).camera;
 })()`);
 const expectedCamera = [202.53, 120.92, -27.16];
+const benchmarkWorldPosition = benchmarkCamera?.position.map(
+    (value, axis) => value + 256 * benchmarkCamera.sector[axis],
+);
 if (!benchmarkCamera || expectedCamera.some(
-    (value, axis) => Math.abs(benchmarkCamera.position[axis] - value) > 0.001
+    (value, axis) => Math.abs(benchmarkWorldPosition[axis] - value) > 0.001
 ) || Math.abs(benchmarkCamera.yaw - 1.4578) > 0.0001
     || Math.abs(benchmarkCamera.pitch + 0.0944) > 0.0001) {
     throw new Error(
@@ -247,6 +250,7 @@ await evaluate(`(() => {
         frameMs: [],
         frameSamples: [],
         stageSamples: [],
+        renderStageSamples: [],
         lastSubmittedAtMs: null,
         lastSubmittedFrame: voxyModule._voxy_get_frame_count(),
         stageTickFloor: voxyModule._voxy_get_physics_stage_tick(),
@@ -284,6 +288,24 @@ await evaluate(`(() => {
                 }
                 capture.stageSamples.push({
                     tick: timingTick,
+                    atMs: performance.now() - capture.startedMs,
+                    totalMs: stages.every((value) => value >= 0)
+                        ? stages.reduce((sum, value) => sum + value, 0) : -1,
+                    stages,
+                });
+            }
+            for (;;) {
+                const timingFrame =
+                    voxyModule._voxy_poll_render_stage_timing?.() ?? 0;
+                if (timingFrame <= 0) break;
+                const stages = [];
+                for (let stage = 0; stage < 4; ++stage) {
+                    stages.push(
+                        voxyModule._voxy_get_polled_render_stage_ms(stage),
+                    );
+                }
+                capture.renderStageSamples.push({
+                    frame: timingFrame,
                     atMs: performance.now() - capture.startedMs,
                     totalMs: stages.every((value) => value >= 0)
                         ? stages.reduce((sum, value) => sum + value, 0) : -1,
@@ -397,6 +419,7 @@ await evaluate(`(() => {
     capture.frameMs.length = 0;
     capture.frameSamples.length = 0;
     capture.stageSamples.length = 0;
+    capture.renderStageSamples.length = 0;
     capture.lastSubmittedAtMs = null;
     capture.lastSubmittedFrame = voxyModule._voxy_get_frame_count();
     capture.frameCountStart = capture.lastSubmittedFrame;
@@ -437,6 +460,7 @@ const capture = await evaluate(`(() => {
         frameMs: capture.frameMs,
         frameSamples: capture.frameSamples,
         stageSamples: capture.stageSamples,
+        renderStageSamples: capture.renderStageSamples,
         peakJsHeapBytes: capture.peakJsHeapBytes,
         wasmBytes: capture.wasmBytes,
         stageTickFloor: capture.stageTickFloor,
@@ -537,6 +561,11 @@ const validStageSamples = [...new Map(capture.stageSamples
         && sample.tick > capture.stageTickFloor
         && sample.tick <= capture.stageTickCeiling)
     .map((sample) => [sample.tick, sample])).values()];
+const validRenderStageSamples = [...new Map(capture.renderStageSamples
+    .filter((sample) => sample.totalMs >= 0
+        && sample.frame > capture.frameCountStart
+        && sample.frame <= capture.frameCountEnd)
+    .map((sample) => [sample.frame, sample])).values()];
 const stageNames = [
     "commands_active_compaction", "ccd", "forces_water", "broad_phase",
     "narrow_phase", "dynamic_solver", "static_contacts",
@@ -546,6 +575,16 @@ const gpuStages = Object.fromEntries(stageNames.map((name, stage) => [
     name,
     summarize(validStageSamples.map((sample) => sample.stages[stage])),
 ]));
+const renderStageNames = [
+    "water_simulation", "terrain_raycast", "lighting_blit", "primitives",
+];
+const renderGpuStages = Object.fromEntries(renderStageNames.map(
+    (name, stage) => [
+        name,
+        summarize(validRenderStageSamples.map(
+            (sample) => sample.stages[stage])),
+    ],
+));
 const summedGpuMilliseconds = validStageSamples.reduce(
     (sum, sample) => sum + sample.totalMs, 0,
 );
@@ -642,6 +681,11 @@ const result = {
     gpu: {
         total: summarize(validStageSamples.map((sample) => sample.totalMs)),
         stages: gpuStages,
+        render: {
+            total: summarize(validRenderStageSamples.map(
+                (sample) => sample.totalMs)),
+            stages: renderGpuStages,
+        },
         stageShares: gpuStageShares,
         queue: summarize(capture.frameSamples.map((sample) => sample.queue)),
         pacingSkipsStart: capture.frameSamples[0]?.pacingSkips ?? 0,
@@ -689,6 +733,7 @@ const result = {
         frameMs: capture.frameMs,
         frameSamples: capture.frameSamples,
         gpuStageSamples: validStageSamples,
+        renderGpuStageSamples: validRenderStageSamples,
     },
     diagnostics,
 };

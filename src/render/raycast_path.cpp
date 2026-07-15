@@ -5,6 +5,7 @@
 #include "render/raycast_path.hpp"
 #include "render/triangle_path.hpp"  // For CameraUniforms
 #include "gpu/resources.hpp"
+#include "gpu/webgpu_compat.hpp"
 #include "core/log.hpp"
 
 #include <glm/gtc/matrix_inverse.hpp>
@@ -709,7 +710,10 @@ void RaycastPath::updateUniformBuffer() {
 // Dispatch
 // ─────────────────────────────────────────────────────────────────────────────
 
-void RaycastPath::dispatch(WGPUCommandEncoder encoder) {
+void RaycastPath::dispatch(WGPUCommandEncoder encoder,
+                           WGPUQuerySet timestampQuerySet,
+                           uint32_t timestampBegin,
+                           uint32_t timestampEnd) {
     if (!pipeline_) {
         LOG_WARN("RaycastPath::dispatch: not initialized");
         return;
@@ -736,6 +740,13 @@ void RaycastPath::dispatch(WGPUCommandEncoder encoder) {
     // Create compute pass
     WGPUComputePassDescriptor computePassDesc{};
     WGPU_SET_LABEL(computePassDesc, "raycast_compute_pass");
+    gpu::CompatPassTimestampWrites timestampWrites{};
+    if (timestampQuerySet) {
+        timestampWrites.querySet = timestampQuerySet;
+        timestampWrites.beginningOfPassWriteIndex = timestampBegin;
+        timestampWrites.endOfPassWriteIndex = timestampEnd;
+        computePassDesc.timestampWrites = &timestampWrites;
+    }
     
     WGPUComputePassEncoder computePass = wgpuCommandEncoderBeginComputePass(encoder, &computePassDesc);
     
