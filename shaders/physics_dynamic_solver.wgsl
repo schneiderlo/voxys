@@ -10,6 +10,8 @@ const STAGE_BIASED : u32 = 1u;
 const STAGE_RELAX : u32 = 2u;
 const STAGE_RESTITUTION : u32 = 3u;
 const SERIAL_LEVEL_CONTACT_THRESHOLD : u32 = 1024u;
+const SERIAL_WORLD_BODY_CAPACITY : u32 = 256u;
+const SERIAL_LEVEL_CAPACITY : u32 = 2u * SERIAL_WORLD_BODY_CAPACITY;
 
 struct BodyPose {
     position_invMass : vec4<f32>,
@@ -108,7 +110,9 @@ struct VelocityPair {
 // Compact worlds keep the single-dispatch path. Dense contact graphs are
 // scheduled into dependency levels: contacts in one level touch disjoint
 // bodies, while every body's original rank order is preserved across levels.
-var<workgroup> serialBodyNextLevel : array<u32, 1024>;
+var<workgroup> serialBodyNextLevel : array<u32, SERIAL_WORLD_BODY_CAPACITY>;
+var<workgroup> serialLevelCounts : array<u32, SERIAL_LEVEL_CAPACITY>;
+var<workgroup> serialLevelOffsets : array<u32, SERIAL_LEVEL_CAPACITY>;
 
 fn sentinel_record() -> KeyValue {
     return KeyValue(SENTINEL, SENTINEL, SENTINEL, SENTINEL);
@@ -1521,8 +1525,11 @@ fn solve_serial_contact(rank : u32, stage : u32) {
 }
 
 fn build_serial_dependency_levels(lane : u32, contactCount : u32) {
-    for (var body = lane; body < 1024u; body += 256u) {
+    for (var body = lane; body < SERIAL_WORLD_BODY_CAPACITY; body += 256u) {
         serialBodyNextLevel[body] = 0u;
+    }
+    for (var level = lane; level < SERIAL_LEVEL_CAPACITY; level += 256u) {
+        serialLevelCounts[level] = 0u;
     }
     workgroupBarrier();
 
@@ -1537,10 +1544,28 @@ fn build_serial_dependency_levels(lane : u32, contactCount : u32) {
                 let nextLevel = level + 1u;
                 serialBodyNextLevel[pair.keyHigh] = nextLevel;
                 serialBodyNextLevel[pair.keyLow] = nextLevel;
+                serialLevelCounts[level] += 1u;
             }
             // softness.w is intentionally unused by constraint evaluation.
             cache.softness.w = bitcast<f32>(level);
             constraintCaches[rank] = cache;
+        }
+
+        var offset = 0u;
+        for (var level = 0u; level < SERIAL_LEVEL_CAPACITY; level += 1u) {
+            serialLevelOffsets[level] = offset;
+            offset += serialLevelCounts[level];
+            serialLevelCounts[level] = 0u;
+        }
+        // Compact each level once. tangentMass.w is also unused by constraint
+        // evaluation, so the existing cache is sufficient scratch storage.
+        for (var rank = 0u; rank < contactCount; rank += 1u) {
+            if (!contact_is_active(rank)) { continue; }
+            let level = bitcast<u32>(constraintCaches[rank].softness.w);
+            let packed = serialLevelOffsets[level]
+                       + serialLevelCounts[level];
+            constraintCaches[packed].tangentMass.w = bitcast<f32>(rank);
+            serialLevelCounts[level] += 1u;
         }
     }
     storageBarrier();
@@ -1563,10 +1588,12 @@ fn solve_serial_stage(lane : u32, contactCount : u32, stage : u32,
     // the per-body next levels. A uniform-buffer bound keeps every lane's
     // barriers in uniform control flow, as required by browser WebGPU.
     for (var level = 0u; level < 2u * params.capacities.x; level += 1u) {
-        for (var rank = lane; rank < contactCount; rank += 256u) {
-            if (bitcast<u32>(constraintCaches[rank].softness.w) == level) {
-                solve_serial_contact(rank, stage);
-            }
+        let offset = serialLevelOffsets[level];
+        let count = serialLevelCounts[level];
+        for (var index = lane; index < count; index += 256u) {
+            let rank = bitcast<u32>(
+                constraintCaches[offset + index].tangentMass.w);
+            solve_serial_contact(rank, stage);
         }
         storageBarrier();
         workgroupBarrier();
