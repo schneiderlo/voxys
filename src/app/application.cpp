@@ -1254,6 +1254,8 @@ bool Application::initCamera() {
     if (config_.physicsBackend == physics::BackendType::WebGpuSoft) {
         physicsContext.maxBodies = config_.gpuPhysicsMaxBodies;
         physicsContext.maxActiveBodies = config_.gpuPhysicsMaxBodies;
+        physicsContext.gpu.maximumCatchUpTicks =
+            config_.gpuPhysicsMaximumCatchUpTicks;
     }
     physicsContext.gpu.shaderPath =
         (config_.shaderDir / "physics_ballistic.wgsl").string();

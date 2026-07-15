@@ -700,6 +700,10 @@ int main(int argc, char* argv[]) {
         config.physics.backend);
     appConfig.gpuPhysicsMaxBodies = static_cast<uint32_t>(
         std::max(config.physics.gpuMaxBodies, 2));
+    // A long GPU tick must not trigger a self-sustaining catch-up spiral in
+    // the single browser queue. Interactive WASM advances at most one fixed
+    // tick per rendered frame and drops excess wall-clock backlog.
+    appConfig.gpuPhysicsMaximumCatchUpTicks = 1;
     appConfig.physicsCpuFallback = config.physics.allowCpuFallback;
     // This WASM build has no pthreads. Native Jolt defaults to its thread pool,
     // while browser CPU backends use their single-threaded schedulers.
