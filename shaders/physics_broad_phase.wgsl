@@ -1010,15 +1010,14 @@ fn small_world_pairs(@builtin(global_invocation_id) gid : vec3<u32>) {
     atomicMax(&telemetry[17], materialized);
 }
 
-fn cached_small_bodies_overlap(bodyA : u32, bodyB : u32) -> bool {
+fn cached_small_bodies_overlap(bodyA : u32, bodyB : u32,
+                               keyA : vec2<u32>, keyB : vec2<u32>) -> bool {
     let flagsA = u32(smallPairSectorFlags[bodyA].w);
     let flagsB = u32(smallPairSectorFlags[bodyB].w);
     if ((flagsA & BODY_ALIVE) == 0u || (flagsB & BODY_ALIVE) == 0u
         || ((flagsA | flagsB) & BODY_AWAKE) == 0u) {
         return false;
     }
-    let keyA = smallPairCellKeys[bodyA];
-    let keyB = smallPairCellKeys[bodyB];
     if (smallPairUseCellCull != 0u
         && !all(keyA == vec2<u32>(SENTINEL))
         && !all(keyB == vec2<u32>(SENTINEL))) {
@@ -1078,68 +1077,78 @@ fn parallel_small_world_pairs(@builtin(local_invocation_id) lid : vec3<u32>) {
         smallPairPositionRadius[lane] = vec4<f32>(0.0);
         smallPairSectorFlags[lane] = vec4<i32>(0);
     }
+    let oversized = select(0u, 1u,
+        (flags & BODY_ALIVE) != 0u
+            && all(cellKey == vec2<u32>(SENTINEL)));
+    let gridEntry = select(0u, 1u,
+        (flags & BODY_ALIVE) != 0u && oversized == 0u);
+    let hash = (cellKey.x * 0x9e3779b9u)
+             ^ (cellKey.y * 0x85ebca6bu);
+    smallPairFlags[lane] = gridEntry | (oversized << 1u);
+    smallPairOffsets[lane] = select(0u, 1u << (hash >> 27u),
+        gridEntry != 0u);
     smallPairCellKeys[lane] = cellKey;
-    workgroupBarrier();
-
-    var gridEntry = 0u;
-    var occupiedCell = 0u;
-    var oversized = 0u;
-    if ((flags & BODY_ALIVE) != 0u) {
-        oversized = select(0u, 1u,
-            all(cellKey == vec2<u32>(SENTINEL)));
-        gridEntry = 1u - oversized;
-        var firstInCell = gridEntry != 0u;
-        for (var previous = 0u; previous < lane; previous += 1u) {
-            if (all(smallPairCellKeys[previous] == cellKey)) {
-                firstInCell = false;
-                break;
-            }
-        }
-        occupiedCell = select(0u, 1u, firstInCell);
-    }
-    smallPairFlags[lane] = gridEntry | (occupiedCell << 1u)
-                         | (oversized << 2u);
     workgroupBarrier();
 
     if (lane == 0u) {
         var gridEntryCount = 0u;
-        var occupiedCellCount = 0u;
         var oversizedCount = 0u;
+        var cellBloom = 0u;
         for (var body = 0u; body < bodyCount; body += 1u) {
             let bodyStats = smallPairFlags[body];
             gridEntryCount += bodyStats & 1u;
-            occupiedCellCount += (bodyStats >> 1u) & 1u;
-            oversizedCount += (bodyStats >> 2u) & 1u;
+            oversizedCount += (bodyStats >> 1u) & 1u;
+            cellBloom |= smallPairOffsets[body];
         }
         atomicStore(&telemetry[0], gridEntryCount);
-        atomicStore(&telemetry[1], occupiedCellCount);
         atomicStore(&telemetry[5], oversizedCount);
         atomicMax(&telemetry[14], gridEntryCount);
-        atomicMax(&telemetry[15], occupiedCellCount);
-        // The integer cell test only pays for itself when bodies are spread
-        // across enough cells to reject a substantial fraction of all pairs.
+        // A small bloom filter chooses between two equivalent paths. Dispersed
+        // worlds fuse exact occupied-cell counting into the pair walk; compact
+        // worlds retain the cheap early-exit scan and skip the cell cull.
         smallPairUseCellCull = select(
-            0u, 1u, occupiedCellCount * 4u > gridEntryCount);
+            0u, 1u, countOneBits(cellBloom) > 8u);
     }
     workgroupBarrier();
 
     var pairCount = 0u;
+    var cellRepresentative = !all(cellKey == vec2<u32>(SENTINEL));
     if (lane < bodyCount) {
+        if (smallPairUseCellCull == 0u && cellRepresentative) {
+            for (var previous = 0u; previous < lane; previous += 1u) {
+                if (all(smallPairCellKeys[previous] == cellKey)) {
+                    cellRepresentative = false;
+                    break;
+                }
+            }
+        }
         for (var maximum = lane + 1u; maximum < bodyCount; maximum += 1u) {
+            let maximumKey = smallPairCellKeys[maximum];
+            if (smallPairUseCellCull != 0u && cellRepresentative
+                && all(maximumKey == cellKey)) {
+                cellRepresentative = false;
+            }
             pairCount += select(0u, 1u,
-                cached_small_bodies_overlap(lane, maximum));
+                cached_small_bodies_overlap(
+                    lane, maximum, cellKey, maximumKey));
         }
     }
-    smallPairFlags[lane] = pairCount;
+    smallPairFlags[lane] = pairCount | select(
+        0u, 0x80000000u, cellRepresentative);
     workgroupBarrier();
 
     if (lane == 0u) {
         var running = 0u;
+        var occupiedCellCount = 0u;
         for (var body = 0u; body < bodyCount; body += 1u) {
             smallPairOffsets[body] = running;
-            running += smallPairFlags[body];
+            let bodyResult = smallPairFlags[body];
+            running += bodyResult & 0x7fffffffu;
+            occupiedCellCount += bodyResult >> 31u;
         }
         smallPairOutputBase = running;
+        atomicStore(&telemetry[1], occupiedCellCount);
+        atomicMax(&telemetry[15], occupiedCellCount);
     }
     workgroupBarrier();
 
@@ -1149,7 +1158,9 @@ fn parallel_small_world_pairs(@builtin(local_invocation_id) lid : vec3<u32>) {
     if (lane < bodyCount) {
         let minimumFlags = u32(smallPairSectorFlags[lane].w);
         for (var maximum = lane + 1u; maximum < bodyCount; maximum += 1u) {
-            if (!cached_small_bodies_overlap(lane, maximum)) { continue; }
+            if (!cached_small_bodies_overlap(
+                    lane, maximum, cellKey,
+                    smallPairCellKeys[maximum])) { continue; }
             let output = smallPairOffsets[lane] + localRank;
             if (output < outputCapacity) {
                 let maximumFlags = u32(smallPairSectorFlags[maximum].w);
