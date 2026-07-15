@@ -977,7 +977,12 @@ fn small_world_decide(@builtin(global_invocation_id) gid : vec3<u32>) {
     }
     small_world_barrier();
 
-    let contactFree = atomicLoad(&telemetry[12]) == 0u;
+    if (lane == 0u) {
+        smallWorldSortRecords[0].ordinal = select(
+            0u, 1u, atomicLoad(&telemetry[12]) == 0u);
+    }
+    let contactFree = workgroupUniformLoad(
+        &smallWorldSortRecords[0].ordinal) != 0u;
     if (contactFree) {
         // Without dynamic contacts every sorted body record is a singleton
         // island. Decide those independent islands in parallel while keeping
@@ -1038,21 +1043,41 @@ fn small_world_decide(@builtin(global_invocation_id) gid : vec3<u32>) {
                 atomicAdd(&telemetry[3], 1u);
             }
         }
-    } else if (lane == 0u) {
-        var firstBodyRecord = 0u;
-        var islandIndex = 0u;
-        while (firstBodyRecord < params.capacities.x) {
-            let firstRecord = sortedBodyRecords[firstBodyRecord];
-            if (firstRecord.keyHigh == SENTINEL) { break; }
-            let root = firstRecord.keyHigh;
-            var endBodyRecord = firstBodyRecord;
+    } else {
+        if (lane == 0u) {
+            var firstBodyRecord = 0u;
+            var islandCount = 0u;
+            while (firstBodyRecord < params.capacities.x) {
+                let firstRecord = sortedBodyRecords[firstBodyRecord];
+                if (firstRecord.keyHigh == SENTINEL) { break; }
+                let root = firstRecord.keyHigh;
+                var endBodyRecord = firstBodyRecord + 1u;
+                while (endBodyRecord < params.capacities.x
+                       && sortedBodyRecords[endBodyRecord].keyHigh == root) {
+                    endBodyRecord += 1u;
+                }
+                smallWorldSortRecords[islandCount] = KeyValue(
+                    root, firstBodyRecord,
+                    endBodyRecord - firstBodyRecord, 0u);
+                firstBodyRecord = endBodyRecord;
+                islandCount += 1u;
+            }
+            smallWorldSortRecords[0].ordinal = islandCount;
+        }
+        let islandCount = workgroupUniformLoad(
+            &smallWorldSortRecords[0].ordinal);
+        for (var islandIndex = lane; islandIndex < islandCount;
+             islandIndex += 256u) {
+            let descriptor = smallWorldSortRecords[islandIndex];
+            let root = descriptor.keyLow;
+            let firstBodyRecord = descriptor.keyHigh;
+            let bodyCount = descriptor.value;
             var awakeCount = 0u;
             var qualifies = true;
             var rootChanged = false;
             var wasSleeping = false;
-            while (endBodyRecord < params.capacities.x
-                   && sortedBodyRecords[endBodyRecord].keyHigh == root) {
-                let body = sortedBodyRecords[endBodyRecord].value;
+            for (var offset = 0u; offset < bodyCount; offset += 1u) {
+                let body = sortedBodyRecords[firstBodyRecord + offset].value;
                 awakeCount += select(0u, 1u,
                     (u32(metadata[body].w) & BODY_AWAKE) != 0u);
                 let linear = motions[body].linearVelocity_sleep.xyz;
@@ -1064,9 +1089,7 @@ fn small_world_decide(@builtin(global_invocation_id) gid : vec3<u32>) {
                     || bodyPersistent[body].previousRoot != root;
                 wasSleeping = wasSleeping
                     || bodyPersistent[body].previousSleeping != 0u;
-                endBodyRecord += 1u;
             }
-            let bodyCount = endBodyRecord - firstBodyRecord;
             let persistent = islandPersistent[root];
             let disturbed = rootChanged
                 || persistent.previousBodyCount != bodyCount;
@@ -1107,8 +1130,6 @@ fn small_world_decide(@builtin(global_invocation_id) gid : vec3<u32>) {
                 atomicAdd(&telemetry[1], 1u);
                 atomicAdd(&telemetry[3], bodyCount);
             }
-            firstBodyRecord = endBodyRecord;
-            islandIndex += 1u;
         }
     }
     small_world_barrier();
