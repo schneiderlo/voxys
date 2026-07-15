@@ -825,6 +825,74 @@
                         + ` | canvas ${canvas.width}x${canvas.height}`;
                 }, 500);
 
+                // Local development runs publish a structured snapshot to the
+                // companion server. This is deliberately opt-in away from
+                // localhost so production pages never send diagnostics.
+                const telemetryParameter = new URLSearchParams(location.search)
+                    .get('telemetry');
+                const telemetryEnabled = telemetryParameter === '1'
+                    || (telemetryParameter !== '0'
+                        && ['localhost', '127.0.0.1', '::1']
+                            .includes(location.hostname));
+                if (telemetryEnabled) {
+                    let telemetrySequence = 0;
+                    let telemetryPostPending = false;
+                    let telemetryWarningShown = false;
+                    const telemetryState = {
+                        lastSample: null,
+                        lastError: null,
+                    };
+                    globalThis['voxyTelemetry'] = telemetryState;
+                    const publishTelemetry = async () => {
+                        if (telemetryPostPending) return;
+                        const pointer =
+                            voxyModule._voxy_get_telemetry_json?.() ?? 0;
+                        if (!pointer) return;
+                        telemetryPostPending = true;
+                        try {
+                            const payload = JSON.parse(
+                                voxyModule.UTF8ToString(pointer));
+                            payload.captured_at = new Date().toISOString();
+                            payload.sequence = ++telemetrySequence;
+                            payload.build_id = window.voxyBuildId;
+                            payload.browser = {
+                                canvas_width: canvas.width,
+                                canvas_height: canvas.height,
+                                viewport_width: innerWidth,
+                                viewport_height: innerHeight,
+                                device_pixel_ratio: devicePixelRatio || 1,
+                                user_agent: navigator.userAgent,
+                                device_profile: globalThis['voxyDeviceProfile']
+                                    || null,
+                            };
+                            const response = await fetch('/api/telemetry', {
+                                method: 'POST',
+                                cache: 'no-store',
+                                headers: {'Content-Type': 'application/json'},
+                                body: JSON.stringify(payload),
+                            });
+                            if (!response.ok) {
+                                throw new Error(
+                                    `telemetry receiver returned ${response.status}`);
+                            }
+                            telemetryState.lastSample = payload;
+                            telemetryState.lastError = null;
+                        } catch (publishError) {
+                            telemetryState.lastError = String(publishError);
+                            if (!telemetryWarningShown) {
+                                telemetryWarningShown = true;
+                                console.warn(
+                                    'Physics telemetry publish failed:',
+                                    publishError);
+                            }
+                        } finally {
+                            telemetryPostPending = false;
+                        }
+                    };
+                    setTimeout(publishTelemetry, 1000);
+                    setInterval(publishTelemetry, 1000);
+                }
+
                 // 2. LOADING COMPLETE: Trigger the Landing Sequence
                 updateProgress(100, 'Done');
                 roller.land(); // Triggers deceleration and snap

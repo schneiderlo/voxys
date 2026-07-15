@@ -11,8 +11,11 @@
 
 #include <algorithm>
 #include <cmath>
+#include <iomanip>
 #include <memory>
 #include <numeric>
+#include <sstream>
+#include <string>
 #include <emscripten.h>
 #include <emscripten/html5.h>
 
@@ -54,6 +57,169 @@ namespace {
     uint64_t g_gpuPacingSkips = 0;
 
     constexpr uint32_t kMaximumGpuFramesInFlight = 4;
+
+    void appendJsonNumber(std::ostream& out, double value) {
+        if (std::isfinite(value)) {
+            out << value;
+        } else {
+            out << "null";
+        }
+    }
+
+    void appendCapacityUsage(
+        std::ostream& out,
+        const voxy::physics::PhysicsCapacityUsage& usage) {
+        out << "{\"current\":" << usage.current
+            << ",\"capacity\":" << usage.capacity
+            << ",\"high_water\":" << usage.highWater
+            << ",\"overflow\":"
+            << (usage.overflow ? "true" : "false") << '}';
+    }
+
+    std::string makeTelemetryJson() {
+        if (!g_app) return {};
+        const voxy::ApplicationStats& app = g_app->getStats();
+        const voxy::physics::PhysicsStats& physics = app.physics;
+        const voxy::physics::PhysicsWorld* world = g_app->getPhysicsWorld();
+
+        std::ostringstream out;
+        out << std::setprecision(10);
+        out << "{\"schema_version\":1";
+        out << ",\"frame\":{\"count\":" << app.frameCount;
+        out << ",\"fps\":";
+        appendJsonNumber(out, app.fps);
+        out << ",\"current_ms\":";
+        appendJsonNumber(out, app.frameTimeMs);
+        out << ",\"average_ms\":";
+        appendJsonNumber(out, app.avgFrameTimeMs);
+        out << ",\"cpu_ms\":";
+        appendJsonNumber(out, g_lastFrameCpuMilliseconds);
+        out << ",\"gpu_queue\":" << g_gpuFramesInFlight
+            << ",\"pacing_skips\":" << g_gpuPacingSkips << '}';
+
+        out << ",\"render\":{\"path\":\""
+            << voxy::renderPathToString(app.activeRenderPath) << "\""
+            << ",\"terrain_width\":" << app.terrainWidth
+            << ",\"terrain_height\":" << app.terrainHeight
+            << ",\"terrain_mips\":" << app.terrainMipLevels
+            << ",\"submitted_primitives\":"
+            << app.primitiveSubmittedCount << '}';
+
+        out << ",\"physics\":{\"backend\":\""
+            << voxy::physics::backendTypeName(physics.backend) << "\""
+            << ",\"arithmetic\":\""
+            << voxy::physics::physicsArithmeticModeName(
+                   physics.arithmeticMode) << "\""
+            << ",\"tick\":" << physics.telemetryTick
+            << ",\"substeps\":" << physics.substeps
+            << ",\"scheduled_substeps\":"
+            << (world ? world->lastStepStats().substepCount : 0u);
+
+        out << ",\"bodies\":";
+        appendCapacityUsage(out, physics.residentBodyUsage);
+        out << ",\"active_bodies\":";
+        appendCapacityUsage(out, physics.activeBodyUsage);
+        out << ",\"sleeping_bodies\":" << physics.sleepingBodies
+            << ",\"kinematic_bodies\":" << physics.kinematicBodies;
+        out << ",\"commands\":";
+        appendCapacityUsage(out, physics.commandUsage);
+
+        out << ",\"grid_entries\":";
+        appendCapacityUsage(out, physics.gridEntryUsage);
+        out << ",\"occupied_cells\":" << physics.occupiedCells;
+        out << ",\"candidate_pairs\":";
+        appendCapacityUsage(out, physics.candidatePairUsage);
+        out << ",\"pairs\":";
+        appendCapacityUsage(out, physics.uniquePairUsage);
+        out << ",\"sleeping_pairs\":" << physics.activeSleepingPairs
+            << ",\"oversized_bodies\":" << physics.oversizedBodies;
+
+        out << ",\"contacts\":";
+        appendCapacityUsage(out, physics.contactUsage);
+        out << ",\"manifolds\":";
+        appendCapacityUsage(out, physics.manifoldUsage);
+        out << ",\"manifold_points\":" << physics.manifoldPoints
+            << ",\"speculative_manifolds\":"
+            << physics.speculativeManifolds
+            << ",\"invalid_manifolds\":" << physics.invalidManifolds;
+        out << ",\"terrain_contacts\":";
+        appendCapacityUsage(out, physics.terrainContactUsage);
+        out << ",\"terrain_contact_bodies\":"
+            << physics.terrainContactBodies
+            << ",\"maximum_terrain_contacts_per_body\":"
+            << physics.maximumTerrainContactsPerBody;
+
+        out << ",\"solver_mode\":\""
+            << (physics.serialWorldSolver ? "serial" : "global") << "\""
+            << ",\"compact_contacts\":"
+            << physics.compactIslandContacts
+            << ",\"compact_bodies\":" << physics.compactIslandBodies
+            << ",\"graph_colors\":" << physics.activeGraphColors;
+        out << ",\"solver_overflow\":";
+        appendCapacityUsage(out, physics.overflowConstraintUsage);
+        out << ",\"maximum_body_degree\":" << physics.maximumBodyDegree
+            << ",\"color_conflicts\":" << physics.colorConflictErrors;
+
+        out << ",\"islands\":{\"total\":" << physics.islandCount
+            << ",\"awake\":" << physics.awakeIslands
+            << ",\"sleeping\":" << physics.sleepingIslands
+            << ",\"maximum_bodies\":" << physics.maximumIslandBodies
+            << ",\"root_errors\":" << physics.islandRootErrors << '}';
+        out << ",\"sleeping_grid\":";
+        appendCapacityUsage(out, physics.sleepingGridUsage);
+        out << ",\"sleeping_grid_cells\":" << physics.sleepingGridCells
+            << ",\"sleep_transitions\":" << physics.sleepTransitions
+            << ",\"wake_transitions\":" << physics.wakeTransitions;
+
+        out << ",\"bullets\":";
+        appendCapacityUsage(out, physics.bulletUsage);
+        out << ",\"ccd_hits\":" << physics.ccdHits
+            << ",\"ccd_stalls\":" << physics.ccdStalls
+            << ",\"ccd_failures\":" << physics.ccdFailures
+            << ",\"ccd_maximum_iterations\":"
+            << physics.ccdMaximumIterations
+            << ",\"submerged_bodies\":" << physics.submergedBodies;
+        out << ",\"water_samples\":";
+        appendCapacityUsage(out, physics.waterSampleUsage);
+        out << ",\"events\":";
+        appendCapacityUsage(out, physics.eventUsage);
+        out << ",\"contact_begin_events\":" << physics.contactBeginEvents
+            << ",\"contact_end_events\":" << physics.contactEndEvents
+            << ",\"island_events\":" << physics.islandEvents;
+
+        out << ",\"memory\":{\"persistent_bytes\":"
+            << physics.estimatedPersistentBytes
+            << ",\"scratch_bytes\":" << physics.scratchBytes << '}';
+        out << ",\"io\":{\"upload_bytes\":" << physics.gpuUploadBytes
+            << ",\"readback_bytes\":" << physics.gpuReadbackBytes << '}';
+        out << ",\"device_limits\":{\"storage_bindings\":"
+            << physics.deviceMaxStorageBuffersPerShaderStage
+            << ",\"compute_invocations\":"
+            << physics.deviceMaxComputeInvocationsPerWorkgroup
+            << ",\"storage_buffer_bytes\":"
+            << physics.deviceMaxStorageBufferBindingSize
+            << ",\"maximum_buffer_bytes\":"
+            << physics.deviceMaxBufferSize << '}';
+
+        out << ",\"stages\":{\"available\":"
+            << (app.physicsGpuTiming ? "true" : "false");
+        if (app.physicsGpuTiming) {
+            const auto& timing = *app.physicsGpuTiming;
+            out << ",\"tick\":" << timing.tick << ",\"total_ms\":";
+            appendJsonNumber(out, timing.totalMilliseconds());
+            for (size_t index = 0;
+                 index < voxy::physics::kPhysicsGpuStageCount; ++index) {
+                out << ",\"" << voxy::physics::physicsGpuStageName(
+                    static_cast<voxy::physics::PhysicsGpuStage>(index))
+                    << "\":";
+                appendJsonNumber(out, timing.milliseconds[index]);
+            }
+        } else {
+            out << ",\"tick\":0,\"total_ms\":0";
+        }
+        out << "}}}";
+        return out.str();
+    }
 
     void gpuFrameCompleted(WGPUQueueWorkDoneStatus /*status*/,
                            WGPUStringView /*message*/, void* /*userdata1*/,
@@ -632,6 +798,13 @@ double voxy_get_physics_stage_ms(int stage) {
     const auto& timing = g_app->getStats().physicsGpuTiming;
     return timing
         ? timing->milliseconds[static_cast<size_t>(stage)] : -1.0;
+}
+
+EMSCRIPTEN_KEEPALIVE
+const char* voxy_get_telemetry_json() {
+    static std::string snapshot;
+    snapshot = makeTelemetryJson();
+    return snapshot.empty() ? nullptr : snapshot.c_str();
 }
 
 EMSCRIPTEN_KEEPALIVE

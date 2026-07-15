@@ -82,6 +82,26 @@ Bazel provides hermetic builds, fast incremental compilation, and easy sanitizer
 | **Serve ASM** | `bazel run --config=wasm //tools:serve_wasm` |
 | **IDE Setup** | `bazel run @hedron_compile_commands//:refresh_all` |
 
+### Browser Physics Telemetry
+
+The local WASM server receives a structured optimization snapshot from the
+browser once per second. No F1 overlay is required.
+
+```bash
+bazel run --config=wasm //tools:serve_wasm
+
+# In another terminal:
+bazel run //tools:read_physics_telemetry
+bazel run //tools:read_physics_telemetry -- --watch
+```
+
+The latest sample is stored in `/tmp/voxys-telemetry.json`. A bounded history
+is stored in `/tmp/voxys-telemetry.ndjson`. Set `VOXY_TELEMETRY_FILE` or
+`VOXY_TELEMETRY_HISTORY_FILE` to override those paths.
+
+Telemetry is enabled automatically on localhost. Use `?telemetry=0` to disable
+it, or `?telemetry=1` to enable it explicitly on another development host.
+
 #### Sanitizers (Debug & Verification)
 Enable sanitizers using `--config=<sanitizer>`.
 

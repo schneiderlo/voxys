@@ -25,6 +25,7 @@ fi
 # Locate artifacts via runfiles
 # The workspace name is "voxys"
 WEB_INDEX=$(rlocation voxys/web/index.html)
+TELEMETRY_SERVER=$(rlocation voxys/tools/serve_wasm.py)
 
 # Locate WASM artifacts
 # The target //:voxy_wasm produces files in voxy_wasm/ directory
@@ -79,9 +80,18 @@ fi
 # Patch index.html to use the correct JS file
 sed -i 's/voxy_wasm.js/voxy_wasm_cc.js/g' "$SERVE_DIR/index.html"
 
-echo "Starting server at http://localhost:8081"
+SERVER_HOST="${VOXY_HOST:-127.0.0.1}"
+SERVER_PORT="${VOXY_PORT:-8081}"
+echo "Starting server at http://${SERVER_HOST}:${SERVER_PORT}"
 echo "Files being served:"
 ls -lh "$SERVE_DIR"
 echo "Note: voxy.cfg is bundled inside voxy_wasm_cc.data"
+echo "Telemetry is written to ${VOXY_TELEMETRY_FILE:-/tmp/voxys-telemetry.json}"
 echo "Press Ctrl+C to stop."
-python3 -m http.server 8081 --directory "$SERVE_DIR"
+python3 "$TELEMETRY_SERVER" \
+  --directory "$SERVE_DIR" \
+  --host "$SERVER_HOST" \
+  --port "$SERVER_PORT" \
+  --telemetry-file "${VOXY_TELEMETRY_FILE:-/tmp/voxys-telemetry.json}" \
+  --history-file "${VOXY_TELEMETRY_HISTORY_FILE:-/tmp/voxys-telemetry.ndjson}" \
+  --maximum-history-bytes "${VOXY_TELEMETRY_HISTORY_BYTES:-8388608}"
