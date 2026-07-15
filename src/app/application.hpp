@@ -16,6 +16,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <deque>
 #include <filesystem>
 #include <functional>
 #include <memory>
@@ -461,6 +462,7 @@ private:
     bool initTerrain();
     bool initRenderers();
     bool spawnBenchmarkBodies();
+    void retireBenchmarkSubmissions(bool drain);
     void setupCallbacks();
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -509,6 +511,7 @@ private:
     
     // Benchmark mode
     std::unique_ptr<perf::BenchmarkRunner> benchmarkRunner_;
+    std::deque<uint64_t> benchmarkSubmissionIndices_;
 
     // Subsystems (order matters for destruction)
     std::unique_ptr<Window> window_;
@@ -534,6 +537,8 @@ private:
     WGPUTextureView depthView_ = nullptr;
     uint32_t depthWidth_ = 0;
     uint32_t depthHeight_ = 0;
+    WGPUTexture benchmarkTargetTexture_ = nullptr;
+    WGPUTextureView benchmarkTargetView_ = nullptr;
 
     // Placeholder textures for blit path
     WGPUTexture placeholderTerrainTexture_ = nullptr;

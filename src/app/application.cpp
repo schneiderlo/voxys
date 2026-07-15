@@ -330,6 +330,8 @@ void Application::shutdown() {
 
     LOG_INFO("Shutting down application...");
 
+    retireBenchmarkSubmissions(true);
+
 // No WASM global state needed in Application anymore
 
     // Release GPU resources
@@ -341,6 +343,15 @@ void Application::shutdown() {
         wgpuTextureDestroy(depthTexture_);
         wgpuTextureRelease(depthTexture_);
         depthTexture_ = nullptr;
+    }
+    if (benchmarkTargetView_) {
+        wgpuTextureViewRelease(benchmarkTargetView_);
+        benchmarkTargetView_ = nullptr;
+    }
+    if (benchmarkTargetTexture_) {
+        wgpuTextureDestroy(benchmarkTargetTexture_);
+        wgpuTextureRelease(benchmarkTargetTexture_);
+        benchmarkTargetTexture_ = nullptr;
     }
 
     if (placeholderTerrainView_) {
@@ -532,8 +543,10 @@ void Application::render() {
         return;  // Invalid swapchain dimensions
     }
 
-    // Get current swapchain texture
-    WGPUTextureView targetView = gpuContext_->getCurrentTextureView();
+    // Scripted performance runs render the same frame offscreen so window
+    // server presentation and occlusion cannot contaminate GPU throughput.
+    WGPUTextureView targetView = config_.benchmarkOnStartup
+        ? benchmarkTargetView_ : gpuContext_->getCurrentTextureView();
     if (!targetView) {
         return;
     }
@@ -650,7 +663,16 @@ void Application::render() {
     // Submit commands
     WGPUCommandBufferDescriptor cmdBufferDesc = {};
     WGPUCommandBuffer cmdBuffer = wgpuCommandEncoderFinish(encoder, &cmdBufferDesc);
+#if defined(VOXY_NATIVE)
+    if (config_.benchmarkOnStartup) {
+        benchmarkSubmissionIndices_.push_back(wgpuQueueSubmitForIndex(
+            gpuContext_->getQueue(), 1, &cmdBuffer));
+    } else {
+        wgpuQueueSubmit(gpuContext_->getQueue(), 1, &cmdBuffer);
+    }
+#else
     wgpuQueueSubmit(gpuContext_->getQueue(), 1, &cmdBuffer);
+#endif
 
     wgpuCommandBufferRelease(cmdBuffer);
     wgpuCommandEncoderRelease(encoder);
@@ -679,11 +701,43 @@ void Application::endFrame() {
     }
 
     if (gpuContext_) {
-        gpuContext_->present();
+        if (!config_.benchmarkOnStartup) {
+            gpuContext_->present();
+        }
+#if defined(VOXY_NATIVE)
+        if (config_.benchmarkOnStartup) {
+            const bool scenarioBoundary = benchmarkRunner_
+                && benchmarkRunner_->willCompleteScenarioAfterCurrentFrame();
+            retireBenchmarkSubmissions(scenarioBoundary);
+        }
+#endif
         gpuContext_->tick();
     }
 
     stats_.frameCount++;
+}
+
+void Application::retireBenchmarkSubmissions(bool drain) {
+#if defined(VOXY_NATIVE)
+    if (!gpuContext_ || benchmarkSubmissionIndices_.empty()) return;
+    constexpr size_t kMaximumFramesInFlight = 3u;
+    if (drain) {
+        const WGPUWrappedSubmissionIndex submission{
+            gpuContext_->getQueue(), benchmarkSubmissionIndices_.back()};
+        static_cast<void>(wgpuDevicePoll(
+            gpuContext_->getDevice(), true, &submission));
+        benchmarkSubmissionIndices_.clear();
+        return;
+    }
+    if (benchmarkSubmissionIndices_.size() < kMaximumFramesInFlight) return;
+    const WGPUWrappedSubmissionIndex submission{
+        gpuContext_->getQueue(), benchmarkSubmissionIndices_.front()};
+    static_cast<void>(wgpuDevicePoll(
+        gpuContext_->getDevice(), true, &submission));
+    benchmarkSubmissionIndices_.pop_front();
+#else
+    static_cast<void>(drain);
+#endif
 }
 
 void Application::startScreenshotTour() {
@@ -1112,6 +1166,22 @@ bool Application::initGPU() {
         return false;
     }
 #endif
+
+    if (config_.benchmarkOnStartup) {
+        gpu::TextureDesc targetDesc = gpu::TextureDesc::renderTarget(
+            gpuContext_->getSwapchainWidth(),
+            gpuContext_->getSwapchainHeight(),
+            gpuContext_->getSwapchainFormat(), "benchmark_offscreen_target");
+        targetDesc.usage = WGPUTextureUsage_RenderAttachment
+                         | WGPUTextureUsage_CopySrc;
+        benchmarkTargetTexture_ = gpu::createTexture(
+            gpuContext_->getDevice(), targetDesc);
+        benchmarkTargetView_ = gpu::createTextureView(benchmarkTargetTexture_);
+        if (!benchmarkTargetTexture_ || !benchmarkTargetView_) {
+            LOG_ERROR("Failed to create the benchmark offscreen target");
+            return false;
+        }
+    }
 
     LOG_DEBUG("GPU context initialized");
     return true;

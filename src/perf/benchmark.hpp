@@ -102,6 +102,11 @@ public:
     
     /// Check if benchmarking is active
     [[nodiscard]] bool isRunning() const noexcept { return running_; }
+
+    /// True when the frame currently being rendered closes its scenario.
+    /// The application uses this to drain bounded GPU work at clean scenario
+    /// boundaries before recording the frame's elapsed time.
+    [[nodiscard]] bool willCompleteScenarioAfterCurrentFrame() const noexcept;
     
     /// Called each frame during benchmarking
     /// @param frameStats Frame timing statistics from FrameTimer

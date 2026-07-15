@@ -113,6 +113,11 @@ void BenchmarkRunner::stop() {
     }
 }
 
+bool BenchmarkRunner::willCompleteScenarioAfterCurrentFrame() const noexcept {
+    return running_ && currentScenario_ < scenarios_.size()
+        && currentFrame_ + 1u >= scenarios_[currentScenario_].frameCount;
+}
+
 bool BenchmarkRunner::onFrame(const FrameStats& frameStats) {
     if (!running_ || currentScenario_ >= scenarios_.size()) {
         return false;
@@ -142,7 +147,7 @@ bool BenchmarkRunner::onFrame(const FrameStats& frameStats) {
         ++scenarioActiveBodySamples_;
     }
     scenarioFrameTimes_.push_back(frameStats.totalMs);
-    
+
     if (currentFrame_ > 0) {  // Skip first frame for min/max (warmup)
         scenarioMinFrame_ = std::min(scenarioMinFrame_, frameStats.totalMs);
         scenarioMaxFrame_ = std::max(scenarioMaxFrame_, frameStats.totalMs);
