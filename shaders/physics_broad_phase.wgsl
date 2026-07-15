@@ -1155,7 +1155,8 @@ fn parallel_small_world_pairs(@builtin(local_invocation_id) lid : vec3<u32>) {
     let outputCapacity = min(broad.counts.w, broad.capacities.x);
     var localRank = 0u;
     var sleepingCount = 0u;
-    if (lane < bodyCount && smallPairOutputBase != 0u) {
+    if (lane < bodyCount
+        && (smallPairFlags[lane] & 0x7fffffffu) != 0u) {
         let minimumFlags = u32(smallPairSectorFlags[lane].w);
         for (var maximum = lane + 1u; maximum < bodyCount; maximum += 1u) {
             if (!cached_small_bodies_overlap(
