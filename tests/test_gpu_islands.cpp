@@ -320,6 +320,33 @@ TEST_P(GpuIslandTest, CompactsSleepsWakesAndMaintainsSleepingGrid) {
     EXPECT_EQ(snapshot.events[0].rootBody, 1u);
     EXPECT_EQ(snapshot.events[1].rootBody, 5u);
 
+    // Zero contacts leave one canonical singleton island per live body. Keep
+    // holes in the body table so the compact fast path must move sentinels to
+    // the tail without changing root or island order.
+    narrowTelemetry[10] = 0u;
+    narrowTelemetry[11] = 0u;
+    gpu::writeBuffer(context.getQueue(), narrowTelemetryBuffer, 0,
+        std::as_bytes(std::span<const uint32_t>(narrowTelemetry)));
+    snapshot = runAndRead(
+        context, manager, metadataBuffer, bodyCapacity, eventCapacity, true);
+    constexpr std::array<uint32_t, 12> singletonBodies = {
+        1u, 2u, 3u, 4u, 5u, 6u, 7u, 8u, 10u, 11u, 12u, 20u};
+    ASSERT_EQ(snapshot.telemetry.islandCount,
+              static_cast<uint32_t>(singletonBodies.size()));
+    EXPECT_EQ(snapshot.telemetry.awakeIslands, 11u);
+    EXPECT_EQ(snapshot.telemetry.sleepingIslands, 1u);
+    EXPECT_EQ(snapshot.telemetry.awakeBodies, 11u);
+    EXPECT_EQ(snapshot.telemetry.sleepingBodies, 1u);
+    EXPECT_EQ(snapshot.telemetry.events, 0u);
+    for (size_t index = 0; index < singletonBodies.size(); ++index) {
+        const uint32_t body = singletonBodies[index];
+        EXPECT_EQ(snapshot.roots[body], body);
+        EXPECT_EQ(snapshot.islands[index].rootBody, body);
+        EXPECT_EQ(snapshot.islands[index].firstBodyRecord,
+                  static_cast<uint32_t>(index));
+        EXPECT_EQ(snapshot.islands[index].bodyCount, 1u);
+    }
+
     WGPUBuffer alternateManifoldBuffer = makeStorage<GpuContactManifold>(
         context, manifolds, "island_alternate_manifolds");
     ASSERT_NE(alternateManifoldBuffer, nullptr);

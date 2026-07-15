@@ -842,6 +842,52 @@ fn small_world_build(@builtin(global_invocation_id) gid : vec3<u32>) {
     }
     small_world_barrier();
 
+    // With no contacts, every live body is a singleton island and the only
+    // sorting work is moving dead sentinels to the end. Give each lane four
+    // consecutive body IDs, prefix their live counts, and scatter the exact
+    // ascending stream without the fixed 55-barrier bitonic network.
+    if (contactCount == 0u) {
+        let firstBody = lane * 4u;
+        var liveCount = 0u;
+        for (var offset = 0u; offset < 4u; offset += 1u) {
+            let body = firstBody + offset;
+            liveCount += select(0u, 1u,
+                body < params.capacities.x && body_is_alive(body));
+        }
+        smallWorldSortRecords[lane] = KeyValue(0u, 0u, 0u, liveCount);
+        workgroupBarrier();
+        if (lane == 0u) {
+            var running = 0u;
+            for (var worker = 0u; worker < 256u; worker += 1u) {
+                let count = smallWorldSortRecords[worker].ordinal;
+                smallWorldSortRecords[worker].ordinal = running;
+                running += count;
+            }
+        }
+        workgroupBarrier();
+        var output = smallWorldSortRecords[lane].ordinal;
+        for (var offset = 0u; offset < 4u; offset += 1u) {
+            let body = firstBody + offset;
+            if (body < params.capacities.x && body_is_alive(body)) {
+                sortedBodyRecords[output] = bodyRecords[body];
+                output += 1u;
+            }
+        }
+        small_world_barrier();
+        for (var body = lane; body < params.capacities.x; body += 256u) {
+            if (body_is_alive(body)) {
+                let root = atomicLoad(&bodyRoots[body]);
+                if (root == SENTINEL || atomicLoad(&bodyRoots[root]) != root) {
+                    atomicAdd(&telemetry[11], 1u);
+                }
+            }
+        }
+        if (lane == 0u) {
+            atomicStore(&telemetry[12], 0u);
+        }
+        return;
+    }
+
     // The old rank scan performed O(n^2) comparisons. This fixed bitonic
     // network sorts the same unique (root, body) keys in O(n log^2 n).
     for (var index = lane; index < 1024u; index += 256u) {
