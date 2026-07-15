@@ -97,7 +97,8 @@ fn visible_shape(body : u32) -> u32 {
     return shapeIndex + 1u;
 }
 
-var<workgroup> scanScratch : array<u32, 256>;
+var<workgroup> scanScratchFirstThree : array<u32, 256>;
+var<workgroup> scanScratchLastTwo : array<u32, 256>;
 
 @compute @workgroup_size(256)
 fn cull_blocks(@builtin(global_invocation_id) gid : vec3<u32>,
@@ -107,26 +108,51 @@ fn cull_blocks(@builtin(global_invocation_id) gid : vec3<u32>,
     let encodedShape = visible_shape(body);
     if (body < cull.counts.x) { visibility[body] = encodedShape; }
 
-    for (var shape = 0u; shape < SHAPE_COUNT; shape = shape + 1u) {
-        let predicate = select(0u, 1u, encodedShape == shape + 1u);
-        scanScratch[lid.x] = predicate;
+    // Nine bits hold every possible per-shape count in this 256-lane group.
+    // Packed integer addition therefore scans all five one-hot predicates
+    // without carries crossing a field boundary.
+    scanScratchFirstThree[lid.x] =
+          select(0u, 1u, encodedShape == 1u)
+        | select(0u, 1u << 9u, encodedShape == 2u)
+        | select(0u, 1u << 18u, encodedShape == 3u);
+    scanScratchLastTwo[lid.x] =
+          select(0u, 1u, encodedShape == 4u)
+        | select(0u, 1u << 9u, encodedShape == 5u);
+    workgroupBarrier();
+    var offset = 1u;
+    while (offset < WORKGROUP_SIZE) {
+        var addendFirstThree = 0u;
+        var addendLastTwo = 0u;
+        if (lid.x >= offset) {
+            addendFirstThree = scanScratchFirstThree[lid.x - offset];
+            addendLastTwo = scanScratchLastTwo[lid.x - offset];
+        }
         workgroupBarrier();
-        var offset = 1u;
-        while (offset < WORKGROUP_SIZE) {
-            var addend = 0u;
-            if (lid.x >= offset) { addend = scanScratch[lid.x - offset]; }
-            workgroupBarrier();
-            scanScratch[lid.x] += addend;
-            workgroupBarrier();
-            offset = offset << 1u;
-        }
-        if (predicate != 0u && body < cull.counts.x) {
-            localOffsets[body] = scanScratch[lid.x] - 1u;
-        }
-        if (lid.x == WORKGROUP_SIZE - 1u) {
-            blockSums[group.x * SHAPE_COUNT + shape] = scanScratch[lid.x];
-        }
+        scanScratchFirstThree[lid.x] += addendFirstThree;
+        scanScratchLastTwo[lid.x] += addendLastTwo;
         workgroupBarrier();
+        offset = offset << 1u;
+    }
+    if (encodedShape != 0u && body < cull.counts.x) {
+        var prefix = 0u;
+        if (encodedShape <= 3u) {
+            prefix = (scanScratchFirstThree[lid.x]
+                >> ((encodedShape - 1u) * 9u)) & 0x1ffu;
+        } else {
+            prefix = (scanScratchLastTwo[lid.x]
+                >> ((encodedShape - 4u) * 9u)) & 0x1ffu;
+        }
+        localOffsets[body] = prefix - 1u;
+    }
+    if (lid.x == WORKGROUP_SIZE - 1u) {
+        for (var shape = 0u; shape < 3u; shape += 1u) {
+            blockSums[group.x * SHAPE_COUNT + shape] =
+                (scanScratchFirstThree[lid.x] >> (shape * 9u)) & 0x1ffu;
+        }
+        for (var shape = 3u; shape < SHAPE_COUNT; shape += 1u) {
+            blockSums[group.x * SHAPE_COUNT + shape] =
+                (scanScratchLastTwo[lid.x] >> ((shape - 3u) * 9u)) & 0x1ffu;
+        }
     }
 }
 
