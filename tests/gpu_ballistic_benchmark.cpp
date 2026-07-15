@@ -13,6 +13,7 @@
 #include <cstring>
 #include <iomanip>
 #include <iostream>
+#include <numeric>
 #include <span>
 #include <string_view>
 #include <vector>
@@ -39,8 +40,17 @@ namespace {
 
 using Clock = std::chrono::steady_clock;
 constexpr uint32_t kDefaultBodyCount = 100'000;
-constexpr uint32_t kWarmupFrames = 4;
-constexpr uint32_t kMeasuredFrames = 20;
+constexpr uint32_t kDefaultWarmupFrames = 4;
+constexpr uint32_t kDefaultMeasuredFrames = 20;
+
+uint32_t benchmarkFrameCount(const char* name, uint32_t fallback) {
+    const char* text = std::getenv(name);
+    if (!text || *text == '\0') return fallback;
+    char* end = nullptr;
+    const unsigned long value = std::strtoul(text, &end, 10);
+    return end != text && *end == '\0' && value > 0u && value <= 10'000u
+        ? static_cast<uint32_t>(value) : fallback;
+}
 
 uint32_t benchmarkBodyCount() {
     const char* text = std::getenv("VOXY_GPU_BALLISTIC_BODIES");
@@ -76,6 +86,10 @@ double percentile(std::vector<double> samples, double fraction) {
 
 TEST(GpuBallisticBenchmark, UpdatesAndRendersConfiguredBodiesDirectly) {
     const uint32_t bodyCount = benchmarkBodyCount();
+    const uint32_t warmupFrames = benchmarkFrameCount(
+        "VOXY_GPU_BALLISTIC_WARMUP_FRAMES", kDefaultWarmupFrames);
+    const uint32_t measuredFrames = benchmarkFrameCount(
+        "VOXY_GPU_BALLISTIC_MEASURED_FRAMES", kDefaultMeasuredFrames);
     const bool denseOverlap = benchmarkDenseOverlap();
     const double timestampPeriod = timestampPeriodNanoseconds();
     gpu::Context context;
@@ -197,7 +211,7 @@ TEST(GpuBallisticBenchmark, UpdatesAndRendersConfiguredBodiesDirectly) {
     const glm::vec3 light = glm::normalize(glm::vec3(0.3f, 0.8f, 0.4f));
 
     std::vector<double> retiredFrameMs;
-    retiredFrameMs.reserve(kMeasuredFrames);
+    retiredFrameMs.reserve(measuredFrames);
     std::vector<double> updateMs;
     std::vector<double> physicsEncodeMs;
     std::vector<double> renderEncodeMs;
@@ -205,9 +219,14 @@ TEST(GpuBallisticBenchmark, UpdatesAndRendersConfiguredBodiesDirectly) {
     std::vector<double> queueSubmitMs;
     std::vector<double> gpuWaitMs;
     std::vector<double> renderGpuMs;
+    for (auto* samples : {&updateMs, &physicsEncodeMs, &renderEncodeMs,
+                          &commandFinishMs, &queueSubmitMs, &gpuWaitMs,
+                          &renderGpuMs}) {
+        samples->reserve(measuredFrames);
+    }
     std::array<std::vector<double>, kPhysicsGpuStageCount> stageMs;
-    for (auto& samples : stageMs) samples.reserve(kMeasuredFrames);
-    for (uint32_t frame = 0; frame < kWarmupFrames + kMeasuredFrames; ++frame) {
+    for (auto& samples : stageMs) samples.reserve(measuredFrames);
+    for (uint32_t frame = 0; frame < warmupFrames + measuredFrames; ++frame) {
         const auto start = Clock::now();
         world.update(1.0f / 60.0f);
         const auto afterUpdate = Clock::now();
@@ -293,7 +312,7 @@ TEST(GpuBallisticBenchmark, UpdatesAndRendersConfiguredBodiesDirectly) {
         }
         wgpuCommandBufferRelease(command);
         wgpuCommandEncoderRelease(encoder);
-        if (frame >= kWarmupFrames) {
+        if (frame >= warmupFrames) {
             const auto elapsedMs = [](auto first, auto last) {
                 return std::chrono::duration<double, std::milli>(
                     last - first).count();
@@ -325,13 +344,20 @@ TEST(GpuBallisticBenchmark, UpdatesAndRendersConfiguredBodiesDirectly) {
     EXPECT_EQ(world.lastDynamicBodyReadStats().lockedBodyCount, 0u);
     const PhysicsStats finalStats = world.stats();
     EXPECT_GT(finalStats.telemetryTick, 0u);
+    const double measuredSeconds =
+        std::accumulate(retiredFrameMs.begin(), retiredFrameMs.end(), 0.0)
+        * 1.0e-3;
     std::cout << std::fixed << std::setprecision(3)
               << "gpu_ballistic bodies=" << bodyCount
+              << " measured_frames=" << measuredFrames
               << " pairs=" << finalStats.highPairs
               << " contacts=" << finalStats.highContacts
               << " manifolds=" << finalStats.highManifolds
               << " retired_p50_ms=" << percentile(retiredFrameMs, 0.50)
               << " retired_p95_ms=" << percentile(retiredFrameMs, 0.95)
+              << " retired_p99_ms=" << percentile(retiredFrameMs, 0.99)
+              << " throughput_fps="
+              << static_cast<double>(retiredFrameMs.size()) / measuredSeconds
               << " persistent_mib="
               << static_cast<double>(finalStats.estimatedPersistentBytes)
                     / (1024.0 * 1024.0)
@@ -342,34 +368,42 @@ TEST(GpuBallisticBenchmark, UpdatesAndRendersConfiguredBodiesDirectly) {
               << '\n';
     std::cout << "cpu_stage name=update p50_ms="
               << percentile(updateMs, 0.50)
-              << " p95_ms=" << percentile(updateMs, 0.95) << '\n'
+              << " p95_ms=" << percentile(updateMs, 0.95)
+              << " p99_ms=" << percentile(updateMs, 0.99) << '\n'
               << "cpu_stage name=physics_encode p50_ms="
               << percentile(physicsEncodeMs, 0.50)
-              << " p95_ms=" << percentile(physicsEncodeMs, 0.95) << '\n'
+              << " p95_ms=" << percentile(physicsEncodeMs, 0.95)
+              << " p99_ms=" << percentile(physicsEncodeMs, 0.99) << '\n'
               << "cpu_stage name=render_encode p50_ms="
               << percentile(renderEncodeMs, 0.50)
-              << " p95_ms=" << percentile(renderEncodeMs, 0.95) << '\n'
+              << " p95_ms=" << percentile(renderEncodeMs, 0.95)
+              << " p99_ms=" << percentile(renderEncodeMs, 0.99) << '\n'
               << "cpu_stage name=command_finish p50_ms="
               << percentile(commandFinishMs, 0.50)
-              << " p95_ms=" << percentile(commandFinishMs, 0.95) << '\n'
+              << " p95_ms=" << percentile(commandFinishMs, 0.95)
+              << " p99_ms=" << percentile(commandFinishMs, 0.99) << '\n'
               << "cpu_stage name=queue_submit p50_ms="
               << percentile(queueSubmitMs, 0.50)
-              << " p95_ms=" << percentile(queueSubmitMs, 0.95) << '\n'
+              << " p95_ms=" << percentile(queueSubmitMs, 0.95)
+              << " p99_ms=" << percentile(queueSubmitMs, 0.99) << '\n'
               << "cpu_stage name=gpu_wait p50_ms="
               << percentile(gpuWaitMs, 0.50)
-              << " p95_ms=" << percentile(gpuWaitMs, 0.95) << '\n';
-    if (renderGpuMs.size() == kMeasuredFrames) {
+              << " p95_ms=" << percentile(gpuWaitMs, 0.95)
+              << " p99_ms=" << percentile(gpuWaitMs, 0.99) << '\n';
+    if (renderGpuMs.size() == measuredFrames) {
         std::cout << "gpu_stage name=culling_render p50_ms="
                   << percentile(renderGpuMs, 0.50)
-                  << " p95_ms=" << percentile(renderGpuMs, 0.95) << '\n';
+                  << " p95_ms=" << percentile(renderGpuMs, 0.95)
+                  << " p99_ms=" << percentile(renderGpuMs, 0.99) << '\n';
     }
-    if (stageMs[0].size() == kMeasuredFrames) {
+    if (stageMs[0].size() == measuredFrames) {
         for (size_t stage = 0; stage < kPhysicsGpuStageCount; ++stage) {
             std::cout << "gpu_stage name="
                       << physicsGpuStageName(
                           static_cast<PhysicsGpuStage>(stage))
                       << " p50_ms=" << percentile(stageMs[stage], 0.50)
                       << " p95_ms=" << percentile(stageMs[stage], 0.95)
+                      << " p99_ms=" << percentile(stageMs[stage], 0.99)
                       << '\n';
         }
     } else {

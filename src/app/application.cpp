@@ -1832,26 +1832,64 @@ void Application::processThrowableInput(float deltaTime) {
     const glm::vec3 direction = glm::normalize(camera_->forward());
     const glm::vec3 origin = camera_->position() + direction * 2.2f;
     constexpr float throwSpeed = 28.0f;
-    const auto throwSelected = [&]() {
+    const glm::vec3 dimensions =
+        physics::PhysicsWorld::throwableShapeDimensions(shape);
+    const auto throwSelected = [&](const glm::vec3& spawnOrigin,
+                                   const glm::vec3& spawnDirection) {
         if (physicsWorld_->capabilities().gpuResidentState) {
             physics::BodySpawnDesc desc;
             desc.shape = shape;
-            desc.position = origin;
+            desc.position = spawnOrigin;
             desc.sector = camera_->worldSector();
-            desc.linearVelocity = direction * throwSpeed;
-            desc.dimensions =
-                physics::PhysicsWorld::throwableShapeDimensions(shape);
+            desc.linearVelocity = spawnDirection * throwSpeed;
+            desc.dimensions = dimensions;
             return physicsWorld_->spawnBody(desc).valid();
         }
         return physicsWorld_->throwBody(
-            shape, origin, direction * throwSpeed);
+            shape, spawnOrigin, spawnDirection * throwSpeed);
     };
 
     if (batchRequested) {
-        constexpr uint32_t batchSize = 128;
+        constexpr uint32_t columns = 16u;
+        constexpr uint32_t rows = 8u;
+        constexpr uint32_t batchSize = columns * rows;
+        const float maximumDimension = std::max(
+            dimensions.x, std::max(dimensions.y, dimensions.z));
+        const float spacing = maximumDimension * 1.08f + 0.02f;
+        const float halfWidth = 0.5f * static_cast<float>(columns - 1u)
+                              * spacing + 0.5f * maximumDimension;
+        const float halfHeight = 0.5f * static_cast<float>(rows - 1u)
+                               * spacing + 0.5f * maximumDimension;
+        const float tanHalfFov = std::max(
+            std::tan(camera_->fovY() * 0.5f), 1.0e-3f);
+        const float verticalDistance = halfHeight / tanHalfFov;
+        const float horizontalDistance = halfWidth
+            / (tanHalfFov * std::max(camera_->aspectRatio(), 1.0e-3f));
+        const uint32_t batchLane =
+            (physicsWorld_->stats().residentBodies / batchSize) % 4u;
+        const float batchDistance = std::max(
+            2.2f, std::max(verticalDistance, horizontalDistance) + 0.5f)
+            + static_cast<float>(batchLane) * spacing * 1.5f;
+        const glm::vec3 batchCenter =
+            camera_->position() + direction * batchDistance;
+        const glm::vec3 cameraRight = glm::normalize(camera_->right());
+        const glm::vec3 cameraUp = glm::normalize(camera_->up());
         uint32_t thrown = 0;
         for (uint32_t i = 0; i < batchSize; ++i) {
-            thrown += throwSelected() ? 1u : 0u;
+            const uint32_t column = i % columns;
+            const uint32_t row = i / columns;
+            const float x = (static_cast<float>(column)
+                - 0.5f * static_cast<float>(columns - 1u)) * spacing;
+            const float y = (static_cast<float>(row)
+                - 0.5f * static_cast<float>(rows - 1u)) * spacing;
+            const float coneX = x / std::max(halfWidth, 1.0e-3f);
+            const float coneY = y / std::max(halfHeight, 1.0e-3f);
+            const glm::vec3 launchDirection = glm::normalize(
+                direction + cameraRight * (coneX * 0.08f)
+                          + cameraUp * (coneY * 0.08f));
+            const glm::vec3 spawnOrigin = batchCenter
+                                        + cameraRight * x + cameraUp * y;
+            thrown += throwSelected(spawnOrigin, launchDirection) ? 1u : 0u;
         }
         LOG_INFO("Threw {} x {}", thrown,
                  physics::PhysicsWorld::throwableShapeName(shape));
@@ -1866,7 +1904,7 @@ void Application::processThrowableInput(float deltaTime) {
     throwableCooldown_ -= frameTime;
     constexpr float throwInterval = 1.0f / 100.0f;
     while (throwableCooldown_ <= 0.0f) {
-        if (throwSelected()) {
+        if (throwSelected(origin, direction)) {
             LOG_INFO("Threw {}", physics::PhysicsWorld::throwableShapeName(shape));
         }
         throwableCooldown_ += throwInterval;

@@ -38,6 +38,14 @@ There is no immediate sector-integration blocker.
   display cannot hide pacing stalls.
 - DOM middle/right mouse buttons are translated to the engine's GLFW-style
   button numbering, so browser right-click batch spawning now matches native.
+- High-degree overflow contacts now average their Jacobi endpoint corrections.
+  A regression starts 128 bodies at the exact same position and verifies that
+  all poses remain finite and all 128 instances reach GPU render culling.
+- Right-click now emits its 128 bodies as a camera-fitted 16 by 8 wall. Four
+  forward lanes keep consecutive batches apart instead of creating a complete
+  contact graph at one coordinate. Single-body left-click throwing is unchanged.
+- The direct GPU-resident primitive path now has a texture-readback regression
+  that proves a physics body writes visible, nonblack pixels.
 
 ## Current automated evidence
 
@@ -63,14 +71,16 @@ integrated Radeon 890M:
   candidate pairs and saturating the 65,536 pair/manifold capacities. The
   native retired-frame result is 3.448 ms p50 and 3.843 ms p95. Broad phase is
   1.623 ms p50 and the compact dynamic solver is 0.422 ms p50.
-- The same browser application was measured through Chromium DevTools with
-  three canvas right-click batches through the production input path (384
-  overlapping balls). Before the fix it reported 12.8 FPS and produced
-  417-450 ms frames after catch-up reached six ticks per frame. With the fix it
-  submitted 730 frames in 12.192 seconds: 59.87 submitted FPS, one pacing skip,
-  2.7 ms CPU-frame p95, and exactly one four-substep physics tick per submitted
-  frame. The independent submission rate and displayed FPS agreed. This is a
-  capped RAF measurement, not an uncapped claim.
+- The current WASM build was exercised through the production DOM right-click
+  path for five batches (640 resident bodies). It held the browser's capped
+  60 Hz rate with 1.3 ms CPU-frame p50, 1.8 ms p95, one pacing skip, at most
+  three GPU frames in flight, and four physics substeps. No WebGPU validation
+  errors were reported. This is a capped RAF measurement, not an uncapped claim.
+- A native 640-body non-overlap sample retired at 2.13 ms p50, about 474 FPS.
+  The deliberately pathological version with all 640 bodies at one coordinate
+  generated 204,480 pair candidates, saturated the 65,536 contact/manifold
+  capacities, and retired at 223.6 ms p50, about 4.47 FPS. The solver now keeps
+  that case finite and renderable, but its complete contact graph is not cheap.
 
 The 16.667 ms static and dynamic phase gates pass on this adapter. The sparse
 pipeline result is diagnostic only; it is not the plan's discrete-GPU
@@ -97,6 +107,9 @@ acceptance scene.
 - Measure uncapped browser throughput separately. The current browser evidence
   proves a stable 60 Hz RAF path; it does not claim the previous 240 FPS
   single-threaded-Jolt comparison.
+- Improve or cap the deliberately coincident dense case if it must become a
+  supported workload. Its quadratic pair graph remains much slower than the
+  spaced right-click workload even though it no longer corrupts body poses.
 - Repair the GitHub Actions Nix environment. The current CI jobs fail before
   project compilation because `NIX_PATH`/the required Nix channel is missing.
 

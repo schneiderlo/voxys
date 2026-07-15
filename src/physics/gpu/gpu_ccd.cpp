@@ -309,12 +309,12 @@ public:
         releaseHandle(telemetryLayout_, wgpuBindGroupLayoutRelease);
         releaseHandle(executeLayout_, wgpuBindGroupLayoutRelease);
         releaseHandle(shader_, wgpuShaderModuleRelease);
+        primitives_.shutdown();
         releaseBuffer(parameterBuffer_);
         releaseBuffer(bodyValues_);
         releaseBuffer(bulletPredicates_);
         releaseBuffer(bulletIds_);
         releaseBuffer(telemetry_);
-        primitives_.shutdown();
         device_ = nullptr;
         queue_ = nullptr;
         config_ = {};

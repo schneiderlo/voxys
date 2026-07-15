@@ -1257,11 +1257,18 @@ fn gather_overflow_impl(gid : vec3<u32>) {
         angularDelta += endpointDeltas[endpoint].angular.xyz;
     }
     if (range.y != 0u) {
+        // Overflow constraints are solved Jacobi-style from the same incoming
+        // body velocity. Averaging the endpoint corrections prevents a
+        // high-degree contact graph from multiplying one body's correction by
+        // its degree. Repeated overflow iterations recover convergence.
+        let relaxation = 1.0 / f32(range.y);
         motions[body].linearVelocity_sleep = vec4<f32>(
-            motions[body].linearVelocity_sleep.xyz + linearDelta,
+            motions[body].linearVelocity_sleep.xyz
+                + linearDelta * relaxation,
             motions[body].linearVelocity_sleep.w);
         motions[body].angularVelocity_flags = vec4<f32>(
-            motions[body].angularVelocity_flags.xyz + angularDelta,
+            motions[body].angularVelocity_flags.xyz
+                + angularDelta * relaxation,
             motions[body].angularVelocity_flags.w);
     }
 }

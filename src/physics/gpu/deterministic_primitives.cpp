@@ -15,6 +15,7 @@ namespace {
 constexpr uint32_t kParameterStride = 256;
 constexpr uint32_t kParameterSlots = 32;
 constexpr uint32_t kRadix = 256;
+constexpr size_t kMaximumCachedBindGroups = 256;
 
 template <typename T>
 void releaseHandle(T& handle, void (*release)(T)) {
@@ -309,6 +310,66 @@ void DeterministicGpuPrimitives::flushParams(uint32_t firstSlot,
         std::span<const std::byte>(parameterUpload_.data() + offset, bytes));
 }
 
+void DeterministicGpuPrimitives::prepareBindGroupCache(
+    size_t requiredEntries) {
+    if (requiredEntries > kMaximumCachedBindGroups
+        || bindGroupCache_.size()
+            > kMaximumCachedBindGroups - requiredEntries) {
+        releaseCachedBindGroups();
+    }
+}
+
+void DeterministicGpuPrimitives::releaseCachedBindGroups() {
+    for (auto& cached : bindGroupCache_) {
+        releaseHandle(cached.group, wgpuBindGroupRelease);
+    }
+    bindGroupCache_.clear();
+}
+
+WGPUBindGroup DeterministicGpuPrimitives::cachedBindGroup(
+    WGPUBindGroupLayout layout,
+    std::span<const gpu::BindGroupEntry> entries,
+    std::string_view label) {
+    if (!layout || entries.size() > CachedBindGroup{}.bindings.size()) {
+        return nullptr;
+    }
+    const auto matches = [&](const CachedBindGroup& cached) {
+        if (cached.layout != layout || cached.bindingCount != entries.size()) {
+            return false;
+        }
+        for (size_t index = 0; index < entries.size(); ++index) {
+            const WGPUBindGroupEntry& entry = entries[index].get();
+            const CachedBufferBinding& binding = cached.bindings[index];
+            if (binding.binding != entry.binding
+                || binding.buffer != entry.buffer
+                || binding.offset != entry.offset
+                || binding.size != entry.size) {
+                return false;
+            }
+        }
+        return true;
+    };
+    for (const auto& cached : bindGroupCache_) {
+        if (matches(cached)) return cached.group;
+    }
+
+    prepareBindGroupCache(1u);
+    WGPUBindGroup group = gpu::createBindGroup(
+        device_, layout, entries, label);
+    if (!group) return nullptr;
+    CachedBindGroup cached;
+    cached.layout = layout;
+    cached.bindingCount = static_cast<uint32_t>(entries.size());
+    cached.group = group;
+    for (size_t index = 0; index < entries.size(); ++index) {
+        const WGPUBindGroupEntry& entry = entries[index].get();
+        cached.bindings[index] = {
+            entry.binding, entry.buffer, entry.offset, entry.size};
+    }
+    bindGroupCache_.push_back(cached);
+    return group;
+}
+
 bool DeterministicGpuPrimitives::encodeScanAt(
     WGPUCommandEncoder encoder, WGPUBuffer input, WGPUBuffer output,
     uint32_t count, uint32_t parameterSlot,
@@ -337,8 +398,8 @@ bool DeterministicGpuPrimitives::encodeScanAt(
             dynamicCountBuffer ? dynamicCountBuffer : resultBuffer_),
         gpu::BindGroupEntry(4).buffer(parameterBuffer_, 0, sizeof(Params)),
     };
-    WGPUBindGroup bindGroup = gpu::createBindGroup(
-        device_, scanLayout_, entries, "deterministic_scan_bind_group");
+    WGPUBindGroup bindGroup = cachedBindGroup(
+        scanLayout_, entries, "deterministic_scan_bind_group");
     if (!bindGroup) return false;
     const uint32_t dynamicOffset = parameterSlot * kParameterStride;
     WGPUComputePassDescriptor passDesc{};
@@ -373,7 +434,6 @@ bool DeterministicGpuPrimitives::encodeScanAt(
     }
     wgpuComputePassEncoderEnd(pass);
     wgpuComputePassEncoderRelease(pass);
-    wgpuBindGroupRelease(bindGroup);
     flushParams(parameterSlot, 1u);
     return true;
 }
@@ -405,8 +465,8 @@ bool DeterministicGpuPrimitives::encodeStableCompactU32(
         gpu::BindGroupEntry(14).buffer(resultBuffer_),
         gpu::BindGroupEntry(4).buffer(parameterBuffer_, 0, sizeof(Params)),
     };
-    WGPUBindGroup bindGroup = gpu::createBindGroup(
-        device_, compactLayout_, entries, "deterministic_compact_bind_group");
+    WGPUBindGroup bindGroup = cachedBindGroup(
+        compactLayout_, entries, "deterministic_compact_bind_group");
     if (!bindGroup) return false;
     constexpr uint32_t slot = 1u;
     const uint32_t dynamicOffset = slot * kParameterStride;
@@ -422,7 +482,6 @@ bool DeterministicGpuPrimitives::encodeStableCompactU32(
     wgpuComputePassEncoderDispatchWorkgroups(pass, 1, 1, 1);
     wgpuComputePassEncoderEnd(pass);
     wgpuComputePassEncoderRelease(pass);
-    wgpuBindGroupRelease(bindGroup);
     flushParams(1u, 1u);
     return true;
 }
@@ -442,8 +501,8 @@ bool DeterministicGpuPrimitives::encodeRadixSort(
     }
     const uint32_t blocks = (count + workgroupSize_ - 1u) / workgroupSize_;
     const uint32_t passCount = logicalKeyWords * 4u;
-    std::vector<WGPUBindGroup> bindGroups;
-    bindGroups.reserve(passCount);
+    prepareBindGroupCache(passCount);
+    std::array<WGPUBindGroup, 8> bindGroups{};
     for (uint32_t passIndex = 0; passIndex < passCount; ++passIndex) {
         WGPUBuffer passInput = passIndex == 0u
             ? input : (passIndex & 1u ? radixScratchBuffer_ : output);
@@ -465,13 +524,10 @@ bool DeterministicGpuPrimitives::encodeRadixSort(
                 dynamicCountBuffer ? dynamicCountBuffer : resultBuffer_),
             gpu::BindGroupEntry(4).buffer(parameterBuffer_, 0, sizeof(Params)),
         };
-        WGPUBindGroup bindGroup = gpu::createBindGroup(
-            device_, radixLayout_, entries, "deterministic_radix_bind_group");
-        if (!bindGroup) {
-            for (WGPUBindGroup created : bindGroups) wgpuBindGroupRelease(created);
-            return false;
-        }
-        bindGroups.push_back(bindGroup);
+        WGPUBindGroup bindGroup = cachedBindGroup(
+            radixLayout_, entries, "deterministic_radix_bind_group");
+        if (!bindGroup) return false;
+        bindGroups[passIndex] = bindGroup;
     }
 
     WGPUComputePassDescriptor passDesc{};
@@ -510,7 +566,6 @@ bool DeterministicGpuPrimitives::encodeRadixSort(
     }
     wgpuComputePassEncoderEnd(compute);
     wgpuComputePassEncoderRelease(compute);
-    for (WGPUBindGroup bindGroup : bindGroups) wgpuBindGroupRelease(bindGroup);
     flushParams(parameterBaseSlot, passCount);
     return true;
 }
@@ -527,8 +582,8 @@ bool DeterministicGpuPrimitives::encodeAdjacentUnique(
         gpu::BindGroupEntry(32).buffer(predicatesBuffer_),
         gpu::BindGroupEntry(4).buffer(parameterBuffer_, 0, sizeof(Params)),
     };
-    WGPUBindGroup markBindGroup = gpu::createBindGroup(
-        device_, uniqueMarkLayout_, markEntries,
+    WGPUBindGroup markBindGroup = cachedBindGroup(
+        uniqueMarkLayout_, markEntries,
         "deterministic_unique_mark_bind_group");
     if (!markBindGroup) return false;
     const uint32_t markOffset = 2u * kParameterStride;
@@ -543,7 +598,6 @@ bool DeterministicGpuPrimitives::encodeAdjacentUnique(
     }
     wgpuComputePassEncoderEnd(markPass);
     wgpuComputePassEncoderRelease(markPass);
-    wgpuBindGroupRelease(markBindGroup);
 
     if (!encodeScanAt(encoder, predicatesBuffer_, offsetsBuffer_, count, 6u))
         return false;
@@ -555,8 +609,8 @@ bool DeterministicGpuPrimitives::encodeAdjacentUnique(
         gpu::BindGroupEntry(14).buffer(resultBuffer_),
         gpu::BindGroupEntry(4).buffer(parameterBuffer_, 0, sizeof(Params)),
     };
-    WGPUBindGroup scatterBindGroup = gpu::createBindGroup(
-        device_, uniqueScatterLayout_, scatterEntries,
+    WGPUBindGroup scatterBindGroup = cachedBindGroup(
+        uniqueScatterLayout_, scatterEntries,
         "deterministic_unique_scatter_bind_group");
     if (!scatterBindGroup) return false;
     WGPUComputePassEncoder scatterPass =
@@ -571,7 +625,6 @@ bool DeterministicGpuPrimitives::encodeAdjacentUnique(
     wgpuComputePassEncoderDispatchWorkgroups(scatterPass, 1, 1, 1);
     wgpuComputePassEncoderEnd(scatterPass);
     wgpuComputePassEncoderRelease(scatterPass);
-    wgpuBindGroupRelease(scatterBindGroup);
     flushParams(2u, 1u);
     return true;
 }
@@ -591,8 +644,8 @@ bool DeterministicGpuPrimitives::encodeSortedMerge(
         gpu::BindGroupEntry(14).buffer(resultBuffer_),
         gpu::BindGroupEntry(4).buffer(parameterBuffer_, 0, sizeof(Params)),
     };
-    WGPUBindGroup bindGroup = gpu::createBindGroup(
-        device_, mergeLayout_, entries, "deterministic_merge_bind_group");
+    WGPUBindGroup bindGroup = cachedBindGroup(
+        mergeLayout_, entries, "deterministic_merge_bind_group");
     if (!bindGroup) return false;
     const uint32_t dynamicOffset = 16u * kParameterStride;
     WGPUComputePassDescriptor passDesc{};
@@ -603,7 +656,6 @@ bool DeterministicGpuPrimitives::encodeSortedMerge(
     wgpuComputePassEncoderDispatchWorkgroups(pass, 1, 1, 1);
     wgpuComputePassEncoderEnd(pass);
     wgpuComputePassEncoderRelease(pass);
-    wgpuBindGroupRelease(bindGroup);
     flushParams(16u, 1u);
     return true;
 }
@@ -626,8 +678,8 @@ bool DeterministicGpuPrimitives::encodeAssignFreeIds(
         gpu::BindGroupEntry(14).buffer(resultBuffer_),
         gpu::BindGroupEntry(4).buffer(parameterBuffer_, 0, sizeof(Params)),
     };
-    WGPUBindGroup bindGroup = gpu::createBindGroup(
-        device_, assignLayout_, entries, "deterministic_assign_bind_group");
+    WGPUBindGroup bindGroup = cachedBindGroup(
+        assignLayout_, entries, "deterministic_assign_bind_group");
     if (!bindGroup) return false;
     const uint32_t dynamicOffset = 3u * kParameterStride;
     WGPUComputePassDescriptor passDesc{};
@@ -642,12 +694,12 @@ bool DeterministicGpuPrimitives::encodeAssignFreeIds(
     wgpuComputePassEncoderDispatchWorkgroups(pass, 1, 1, 1);
     wgpuComputePassEncoderEnd(pass);
     wgpuComputePassEncoderRelease(pass);
-    wgpuBindGroupRelease(bindGroup);
     flushParams(3u, 1u);
     return true;
 }
 
 void DeterministicGpuPrimitives::shutdown() {
+    releaseCachedBindGroups();
     releaseHandle(scanBlocksPipeline_, wgpuComputePipelineRelease);
     releaseHandle(scanPrefixPipeline_, wgpuComputePipelineRelease);
     releaseHandle(scanAddPipeline_, wgpuComputePipelineRelease);

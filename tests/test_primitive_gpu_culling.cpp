@@ -3,9 +3,11 @@
 #include "gpu/context.hpp"
 #include "gpu/resources.hpp"
 #include "physics/gpu/gpu_body_metadata.hpp"
+#include "physics/physics_world.hpp"
 #include "render/primitive_gpu_culling.hpp"
 
 #include <array>
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
@@ -331,6 +333,139 @@ TEST(PrimitiveGpuCullingTest,
     wgpuBufferRelease(shapeBuffer);
     wgpuBufferDestroy(poseBuffer);
     wgpuBufferRelease(poseBuffer);
+}
+
+TEST(PrimitiveGpuCullingTest,
+     KeepsDenseGpuPhysicsBatchVisibleInSameCommandStream) {
+    gpu::Context context;
+    gpu::ContextConfig contextConfig;
+    contextConfig.enableValidation = false;
+    if (!context.initHeadless(contextConfig)) {
+        GTEST_SKIP() << "Headless WebGPU is unavailable";
+    }
+
+    physics::PhysicsInitContext physicsConfig;
+    physicsConfig.requestedBackend = physics::BackendType::WebGpuSoft;
+    physicsConfig.device = context.getDevice();
+    physicsConfig.queue = context.getQueue();
+    physicsConfig.maxBodies = 256;
+    physicsConfig.maxActiveBodies = 256;
+    physicsConfig.maxPairs = 16'384;
+    physicsConfig.maxContacts = 16'384;
+    physicsConfig.maxManifolds = 16'384;
+    physicsConfig.gpu.commandCapacity = 256;
+    physics::PhysicsWorld world;
+    ASSERT_TRUE(world.initialize(physicsConfig));
+
+    physics::BodySpawnDesc desc;
+    desc.shape = physics::ThrowableShape::Sphere;
+    desc.position = {0.0f, 0.0f, 2.2f};
+    desc.dimensions = physics::throwableShapeDimensions(desc.shape);
+    constexpr uint32_t bodyCount = 128u;
+    std::array<physics::BodyHandle, bodyCount> bodies{};
+    for (physics::BodyHandle& body : bodies) {
+        body = world.spawnBody(desc);
+        ASSERT_TRUE(body.valid());
+    }
+    world.update(1.0f / 60.0f);
+
+    std::array<PrimitiveDrawGeometry,
+               PrimitiveGpuCulling::kShapeCount> geometry{};
+    for (uint32_t shape = 0; shape < geometry.size(); ++shape) {
+        geometry[shape] = {100u + shape, 200u + shape * 10u};
+    }
+    PrimitiveGpuCulling culling;
+    ASSERT_TRUE(culling.initialize(
+        context.getDevice(), context.getQueue(),
+        "shaders/physics_primitive_cull.wgsl", geometry));
+    culling.setBodyView(world.renderView());
+
+    WGPUCommandEncoderDescriptor encoderDesc{};
+    WGPUCommandEncoder encoder = wgpuDeviceCreateCommandEncoder(
+        context.getDevice(), &encoderDesc);
+    world.encodeGpuStep(encoder);
+    const glm::vec3 cameraPosition(0.0f);
+    const glm::mat4 view = glm::lookAt(
+        cameraPosition, glm::vec3(0.0f, 0.0f, 1.0f),
+        glm::vec3(0.0f, 1.0f, 0.0f));
+    const glm::mat4 projection = glm::perspective(
+        glm::radians(60.0f), 16.0f / 9.0f, 0.1f, 100.0f);
+    ASSERT_TRUE(culling.encode(encoder, projection * view));
+
+    const size_t indirectBytes =
+        PrimitiveGpuCulling::kShapeCount * sizeof(IndirectDrawArgs);
+    const size_t visibleBytes = size_t{culling.segmentCapacity()}
+                              * PrimitiveGpuCulling::kShapeCount
+                              * sizeof(uint32_t);
+    constexpr size_t poseBytes = (bodyCount + 1u) * sizeof(TestPose);
+    const size_t totalBytes = indirectBytes + visibleBytes + poseBytes;
+    WGPUBuffer readback = gpu::createBuffer(
+        context.getDevice(), gpu::BufferDesc{
+            .label = "live_physics_cull_readback",
+            .size = totalBytes,
+            .usage = WGPUBufferUsage_CopyDst | WGPUBufferUsage_MapRead,
+        });
+    ASSERT_NE(readback, nullptr);
+    wgpuCommandEncoderCopyBufferToBuffer(
+        encoder, culling.indirectDrawArgs(), 0, readback, 0, indirectBytes);
+    wgpuCommandEncoderCopyBufferToBuffer(
+        encoder, culling.visibleBodyIds(), 0, readback, indirectBytes,
+        visibleBytes);
+    wgpuCommandEncoderCopyBufferToBuffer(
+        encoder, culling.renderPoseBuffer(), 0, readback,
+        indirectBytes + visibleBytes, poseBytes);
+
+    WGPUCommandBufferDescriptor commandDesc{};
+    WGPUCommandBuffer command =
+        wgpuCommandEncoderFinish(encoder, &commandDesc);
+    const WGPUSubmissionIndex submissionIndex = wgpuQueueSubmitForIndex(
+        context.getQueue(), 1, &command);
+    const WGPUWrappedSubmissionIndex submission{
+        context.getQueue(), submissionIndex};
+    struct MapState {
+        bool done = false;
+        bool success = false;
+    } state;
+    const auto callback = [](WGPUBufferMapAsyncStatus status, void* userdata) {
+        auto& map = *static_cast<MapState*>(userdata);
+        map.success = status == WGPUBufferMapAsyncStatus_Success;
+        map.done = true;
+    };
+    wgpuBufferMapAsync(readback, WGPUMapMode_Read, 0, totalBytes,
+                       callback, &state);
+    while (!state.done) {
+        static_cast<void>(wgpuDevicePoll(
+            context.getDevice(), true, &submission));
+    }
+    ASSERT_TRUE(state.success);
+    const auto* bytes = static_cast<const std::byte*>(
+        wgpuBufferGetConstMappedRange(readback, 0, totalBytes));
+    ASSERT_NE(bytes, nullptr);
+
+    std::array<IndirectDrawArgs,
+               PrimitiveGpuCulling::kShapeCount> indirect{};
+    std::memcpy(indirect.data(), bytes, indirectBytes);
+    EXPECT_EQ(indirect[0].instanceCount, bodyCount);
+    for (uint32_t shape = 1; shape < indirect.size(); ++shape) {
+        EXPECT_EQ(indirect[shape].instanceCount, 0u);
+    }
+    uint32_t visibleBody = 0u;
+    std::memcpy(&visibleBody, bytes + indirectBytes, sizeof(visibleBody));
+    EXPECT_EQ(visibleBody, bodies.front().index);
+    std::array<TestPose, bodyCount + 1u> poses{};
+    std::memcpy(poses.data(), bytes + indirectBytes + visibleBytes, poseBytes);
+    for (const physics::BodyHandle body : bodies) {
+        EXPECT_TRUE(std::isfinite(poses[body.index].positionInvMass.x));
+        EXPECT_TRUE(std::isfinite(poses[body.index].positionInvMass.y));
+        EXPECT_TRUE(std::isfinite(poses[body.index].positionInvMass.z));
+        EXPECT_GT(poses[body.index].positionInvMass.w, 0.0f);
+    }
+
+    wgpuBufferUnmap(readback);
+    wgpuBufferDestroy(readback);
+    wgpuBufferRelease(readback);
+    wgpuCommandBufferRelease(command);
+    wgpuCommandEncoderRelease(encoder);
 }
 
 } // namespace

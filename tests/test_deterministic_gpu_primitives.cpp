@@ -291,6 +291,9 @@ TEST_P(DeterministicGpuPrimitivesTest, MatchesLargeRandomizedCpuReferences) {
         mergeOutput, mergeTags));
     ASSERT_TRUE(primitives.encodeAssignFreeIds(
         encoder, requestsBuffer, count, freeIdsBuffer, freeIdCount, assignments));
+    const size_t bindGroupsAfterFirstEncode =
+        primitives.cachedBindGroupCount();
+    EXPECT_GT(bindGroupsAfterFirstEncode, 0u);
 
     CopyLayout layout;
     const size_t u32Bytes = size_t{count} * sizeof(uint32_t);
@@ -360,6 +363,8 @@ TEST_P(DeterministicGpuPrimitivesTest, MatchesLargeRandomizedCpuReferences) {
     wgpuCommandEncoderCopyBufferToBuffer(
         encoder, primitives.resultBuffer(), 0, readback,
         layout.assignResult, 4u * sizeof(uint32_t));
+    EXPECT_EQ(primitives.cachedBindGroupCount(),
+              bindGroupsAfterFirstEncode);
 
     WGPUCommandBufferDescriptor commandDesc{};
     WGPUCommandBuffer command = wgpuCommandEncoderFinish(encoder, &commandDesc);

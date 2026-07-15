@@ -2,11 +2,18 @@
 
 #include "gpu/webgpu_compat.hpp"
 
+#include <array>
 #include <cstddef>
 #include <compare>
 #include <cstdint>
 #include <filesystem>
+#include <span>
+#include <string_view>
 #include <vector>
+
+namespace voxy::gpu {
+class BindGroupEntry;
+}
 
 namespace voxy::physics {
 
@@ -103,9 +110,24 @@ public:
     [[nodiscard]] uint32_t workgroupSize() const noexcept { return workgroupSize_; }
     [[nodiscard]] size_t scratchBytes() const noexcept { return scratchBytes_; }
     [[nodiscard]] bool usesSubgroups() const noexcept { return false; }
+    [[nodiscard]] size_t cachedBindGroupCount() const noexcept {
+        return bindGroupCache_.size();
+    }
 
 private:
     struct Params;
+    struct CachedBufferBinding {
+        uint32_t binding = 0;
+        WGPUBuffer buffer = nullptr;
+        uint64_t offset = 0;
+        uint64_t size = 0;
+    };
+    struct CachedBindGroup {
+        WGPUBindGroupLayout layout = nullptr;
+        std::array<CachedBufferBinding, 7> bindings{};
+        uint32_t bindingCount = 0;
+        WGPUBindGroup group = nullptr;
+    };
 
     [[nodiscard]] bool createLayoutsAndPipelines();
     [[nodiscard]] bool encodeScanAt(WGPUCommandEncoder encoder,
@@ -121,6 +143,12 @@ private:
                                     uint32_t dynamicCountScale = 1);
     void writeParams(uint32_t slot, const Params& params);
     void flushParams(uint32_t firstSlot, uint32_t slotCount);
+    void prepareBindGroupCache(size_t requiredEntries);
+    void releaseCachedBindGroups();
+    [[nodiscard]] WGPUBindGroup cachedBindGroup(
+        WGPUBindGroupLayout layout,
+        std::span<const gpu::BindGroupEntry> entries,
+        std::string_view label);
 
     WGPUDevice device_ = nullptr;
     WGPUQueue queue_ = nullptr;
@@ -141,6 +169,7 @@ private:
     WGPUBuffer radixDigitBasesBuffer_ = nullptr;
     WGPUBuffer resultBuffer_ = nullptr;
     std::vector<std::byte> parameterUpload_;
+    std::vector<CachedBindGroup> bindGroupCache_;
 
     WGPUShaderModule shaderModule_ = nullptr;
     WGPUBindGroupLayout scanLayout_ = nullptr;

@@ -2,6 +2,7 @@
 
 #include "gpu/context.hpp"
 #include "gpu/resources.hpp"
+#include "physics/physics_world.hpp"
 #include "render/primitive_path.hpp"
 
 #include <filesystem>
@@ -12,6 +13,14 @@
 #include <span>
 #include <vector>
 #include <glm/gtc/matrix_transform.hpp>
+
+#ifndef WGPUWrappedSubmissionIndex
+struct WGPUWrappedSubmissionIndex;
+#endif
+
+extern "C" WGPUBool wgpuDevicePoll(
+    WGPUDevice device, WGPUBool wait,
+    const WGPUWrappedSubmissionIndex* wrappedSubmissionIndex);
 
 namespace voxy::render {
 
@@ -327,6 +336,180 @@ TEST(PrimitivePathGPUTest, CompilesPrimitivePipeline) {
     wgpuTextureRelease(colorTexture);
     path.shutdown();
     context.shutdown();
+}
+
+TEST(PrimitivePathGPUTest, DrawsGpuResidentPhysicsBody) {
+    gpu::Context context;
+    gpu::ContextConfig contextConfig;
+    contextConfig.enableValidation = false;
+    if (!context.initHeadless(contextConfig)) {
+        GTEST_SKIP() << "GPU context not available";
+    }
+
+    PrimitivePathConfig renderConfig;
+    renderConfig.colorFormat = WGPUTextureFormat_RGBA8Unorm;
+    PrimitivePath path;
+    ASSERT_TRUE(path.init(
+        context.getDevice(), context.getQueue(), renderConfig));
+
+    physics::PhysicsInitContext physicsConfig;
+    physicsConfig.requestedBackend = physics::BackendType::WebGpuSoft;
+    physicsConfig.device = context.getDevice();
+    physicsConfig.queue = context.getQueue();
+    physicsConfig.maxBodies = 256;
+    physicsConfig.maxActiveBodies = 256;
+    physicsConfig.maxPairs = 256;
+    physicsConfig.maxContacts = 128;
+    physicsConfig.maxManifolds = 256;
+    physicsConfig.gpu.commandCapacity = 256;
+    physics::PhysicsWorld world;
+    ASSERT_TRUE(world.initialize(physicsConfig));
+
+    physics::BodySpawnDesc bodyDesc;
+    bodyDesc.shape = physics::ThrowableShape::Sphere;
+    bodyDesc.position = {0.0f, 0.0f, 2.2f};
+    bodyDesc.dimensions = physics::throwableShapeDimensions(bodyDesc.shape);
+    ASSERT_TRUE(world.spawnBody(bodyDesc).valid());
+    world.update(1.0f / 60.0f);
+    path.setPhysicsRenderView(world.renderView());
+
+    constexpr uint32_t extent = 64u;
+    auto colorDesc = gpu::TextureDesc::renderTarget(
+        extent, extent, WGPUTextureFormat_RGBA8Unorm,
+        "gpu_resident_primitive_color");
+    colorDesc.usage |= WGPUTextureUsage_CopySrc;
+    WGPUTexture colorTexture = gpu::createTexture(
+        context.getDevice(), colorDesc);
+    WGPUTexture depthTexture = gpu::createTexture(
+        context.getDevice(), gpu::TextureDesc::depth(
+            extent, extent, WGPUTextureFormat_Depth32Float,
+            "gpu_resident_primitive_depth"));
+    const float clearRayDepth = -1.0f;
+    WGPUTexture rayTexture = gpu::createTextureWithData(
+        context.getDevice(), context.getQueue(),
+        gpu::TextureDesc::tex2D(
+            1, 1, WGPUTextureFormat_R32Float,
+            WGPUTextureUsage_TextureBinding | WGPUTextureUsage_CopyDst,
+            "gpu_resident_primitive_ray_depth"),
+        std::as_bytes(std::span<const float>(&clearRayDepth, 1)),
+        sizeof(float));
+    ASSERT_NE(colorTexture, nullptr);
+    ASSERT_NE(depthTexture, nullptr);
+    ASSERT_NE(rayTexture, nullptr);
+    WGPUTextureView colorView = gpu::createTextureView(colorTexture);
+    WGPUTextureView depthView = gpu::createTextureView(depthTexture);
+    WGPUTextureView rayView = gpu::createTextureView(rayTexture);
+    ASSERT_NE(colorView, nullptr);
+    ASSERT_NE(depthView, nullptr);
+    ASSERT_NE(rayView, nullptr);
+    path.setRayDepthTexture(rayView);
+
+    constexpr uint32_t bytesPerRow = 256u;
+    constexpr size_t readbackBytes = size_t{bytesPerRow} * extent;
+    WGPUBuffer readback = gpu::createBuffer(
+        context.getDevice(), gpu::BufferDesc{
+            .label = "gpu_resident_primitive_readback",
+            .size = readbackBytes,
+            .usage = WGPUBufferUsage_CopyDst | WGPUBufferUsage_MapRead,
+        });
+    ASSERT_NE(readback, nullptr);
+
+    WGPUCommandEncoderDescriptor encoderDesc{};
+    WGPUCommandEncoder encoder = wgpuDeviceCreateCommandEncoder(
+        context.getDevice(), &encoderDesc);
+    WGPURenderPassColorAttachment clearColor{};
+    clearColor.view = colorView;
+    clearColor.loadOp = WGPULoadOp_Clear;
+    clearColor.storeOp = WGPUStoreOp_Store;
+    clearColor.clearValue = {0.0, 0.0, 0.0, 1.0};
+    clearColor.depthSlice = WGPU_DEPTH_SLICE_UNDEFINED;
+    WGPURenderPassDepthStencilAttachment clearDepth{};
+    clearDepth.view = depthView;
+    clearDepth.depthLoadOp = WGPULoadOp_Clear;
+    clearDepth.depthStoreOp = WGPUStoreOp_Store;
+    clearDepth.depthClearValue = 1.0f;
+    clearDepth.stencilLoadOp = WGPULoadOp_Undefined;
+    clearDepth.stencilStoreOp = WGPUStoreOp_Undefined;
+    clearDepth.stencilReadOnly = true;
+    WGPURenderPassDescriptor clearDesc{};
+    clearDesc.colorAttachmentCount = 1;
+    clearDesc.colorAttachments = &clearColor;
+    clearDesc.depthStencilAttachment = &clearDepth;
+    WGPURenderPassEncoder clearPass =
+        wgpuCommandEncoderBeginRenderPass(encoder, &clearDesc);
+    wgpuRenderPassEncoderEnd(clearPass);
+    wgpuRenderPassEncoderRelease(clearPass);
+
+    world.encodeGpuStep(encoder);
+    const glm::vec3 cameraPosition(0.0f);
+    const glm::mat4 view = glm::lookAt(
+        cameraPosition, glm::vec3(0.0f, 0.0f, 1.0f),
+        glm::vec3(0.0f, 1.0f, 0.0f));
+    const glm::mat4 projection = glm::perspective(
+        glm::radians(60.0f), 1.0f, 0.1f, 100.0f);
+    path.render(
+        encoder, colorView, depthView, view, projection, cameraPosition,
+        glm::normalize(glm::vec3(0.3f, 0.8f, 0.4f)), extent, extent, false);
+
+    WGPUImageCopyTexture copySource{};
+    copySource.texture = colorTexture;
+    copySource.aspect = WGPUTextureAspect_All;
+    WGPUImageCopyBuffer copyDestination{};
+    copyDestination.buffer = readback;
+    copyDestination.layout.bytesPerRow = bytesPerRow;
+    copyDestination.layout.rowsPerImage = extent;
+    const WGPUExtent3D copyExtent{extent, extent, 1u};
+    wgpuCommandEncoderCopyTextureToBuffer(
+        encoder, &copySource, &copyDestination, &copyExtent);
+
+    WGPUCommandBufferDescriptor commandDesc{};
+    WGPUCommandBuffer command =
+        wgpuCommandEncoderFinish(encoder, &commandDesc);
+    wgpuQueueSubmit(context.getQueue(), 1, &command);
+    struct MapState {
+        bool done = false;
+        bool success = false;
+    } state;
+    const auto callback = [](WGPUBufferMapAsyncStatus status, void* userdata) {
+        auto& map = *static_cast<MapState*>(userdata);
+        map.success = status == WGPUBufferMapAsyncStatus_Success;
+        map.done = true;
+    };
+    wgpuBufferMapAsync(readback, WGPUMapMode_Read, 0, readbackBytes,
+                       callback, &state);
+    while (!state.done) {
+        static_cast<void>(wgpuDevicePoll(
+            context.getDevice(), true, nullptr));
+    }
+    ASSERT_TRUE(state.success);
+    const auto* pixels = static_cast<const uint8_t*>(
+        wgpuBufferGetConstMappedRange(readback, 0, readbackBytes));
+    ASSERT_NE(pixels, nullptr);
+    uint32_t coloredPixels = 0u;
+    for (uint32_t y = 0; y < extent; ++y) {
+        for (uint32_t x = 0; x < extent; ++x) {
+            const size_t offset = size_t{y} * bytesPerRow + x * 4u;
+            coloredPixels += pixels[offset] != 0u
+                          || pixels[offset + 1u] != 0u
+                          || pixels[offset + 2u] != 0u;
+        }
+    }
+    EXPECT_GT(coloredPixels, 16u);
+
+    wgpuBufferUnmap(readback);
+    wgpuBufferDestroy(readback);
+    wgpuBufferRelease(readback);
+    wgpuCommandBufferRelease(command);
+    wgpuCommandEncoderRelease(encoder);
+    wgpuTextureViewRelease(rayView);
+    wgpuTextureViewRelease(depthView);
+    wgpuTextureViewRelease(colorView);
+    wgpuTextureDestroy(rayTexture);
+    wgpuTextureRelease(rayTexture);
+    wgpuTextureDestroy(depthTexture);
+    wgpuTextureRelease(depthTexture);
+    wgpuTextureDestroy(colorTexture);
+    wgpuTextureRelease(colorTexture);
 }
 
 } // namespace voxy::render
