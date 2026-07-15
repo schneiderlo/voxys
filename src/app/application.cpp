@@ -1259,10 +1259,11 @@ bool Application::initCamera() {
         (config_.shaderDir / "physics_ballistic.wgsl").string();
     physicsContext.gpu.enableStageProfiling =
         config_.gpuPhysicsStageProfiling;
-    // Scripted body benchmarks must prove that their workload remains awake.
-    // The normal application keeps this asynchronous readback disabled.
+    // Scripted benchmarks and explicit browser profiling need authoritative
+    // awake/sleeping counts. Normal application runs keep this readback off.
     physicsContext.gpu.enableTelemetryReadback =
-        config_.benchmarkBodyCount != 0u;
+        config_.benchmarkBodyCount != 0u
+        || config_.gpuPhysicsStageProfiling;
     physicsContext.gpu.stageProfilingTimestampPeriodNanoseconds =
         config_.gpuPhysicsTimestampPeriodNanoseconds;
     physicsContext.enableValidation = config_.enableValidation;
