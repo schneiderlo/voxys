@@ -237,7 +237,11 @@ std::string DebugOverlay::formatPhysicsContacts() const {
 std::string DebugOverlay::formatPhysicsSolver() const {
     const auto& value = stats_.physics;
     std::ostringstream out;
-    out << "Solver: colors " << value.activeGraphColors
+    out << "Solver: mode "
+        << (value.serialWorldSolver ? "serial" : "global")
+        << " | compact " << value.compactIslandContacts
+        << " contacts / " << value.compactIslandBodies << " bodies"
+        << " | colors " << value.activeGraphColors
         << " | " << formatUsage("overflow", value.overflowConstraintUsage)
         << " | degree " << value.maximumBodyDegree
         << " | invalid " << value.invalidManifolds

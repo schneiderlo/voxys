@@ -634,6 +634,8 @@ public:
         eventReadbackEnabled_ = false;
         stageProfilingEnabled_ = false;
         stageQueryCapacity_ = 0u;
+        lastStageProfileTick_ = 0u;
+        lastTelemetryReadbackTick_ = 0u;
         stageTimingResults_.clear();
         cachedTelemetry_ = {};
         commands_.clear();
@@ -1527,7 +1529,20 @@ public:
         WGPU_SET_LABEL(passDesc, "physics_dynamic_world_step");
         const uint32_t profileTickCount = pendingTicks_;
         const uint64_t profileFirstTick = encodedTick_ + 1u;
+        const auto intervalElapsed = [](uint64_t currentTick,
+                                        uint64_t previousTick,
+                                        uint32_t intervalTicks) {
+            const uint64_t interval = std::max(intervalTicks, 1u);
+            return previousTick == 0u || currentTick < previousTick
+                || currentTick - previousTick >= interval;
+        };
+        // Body mutations are exactly when an interactive diagnostic sample is
+        // most useful. Do not make an overloaded world wait for the cadence.
+        const bool forceDiagnosticsSample = !upload.empty();
         const bool profileThisBatch = stageProfilingEnabled_
+            && (forceDiagnosticsSample
+                || intervalElapsed(finalTick, lastStageProfileTick_,
+                                   config_.stageProfilingIntervalTicks))
             && uint64_t{profileTickCount} * kStagePacketWordCount
                 <= stageQueryCapacity_;
         uint32_t profileQueryCount = 0u;
@@ -1612,12 +1627,17 @@ public:
             // Even without body-body contacts, the dynamic solver owns pose
             // integration. Its contact count remains zero when broad and
             // narrow phase are disabled.
-            constexpr uint32_t kCompactColorSolveBodyLimit = 1'024u;
+            // The one-workgroup serial solver is a latency win only for truly
+            // small worlds. At larger counts, even a few hundred independent
+            // contacts serialize thousands of Soft Step constraint solves on
+            // one lane. Let the global path classify and solve them in
+            // parallel instead.
+            constexpr uint32_t kSerialWorldBodyLimit = 256u;
             constexpr uint32_t kCompactIslandBodyLimit = 1'024u;
             const bool dynamicWorldEncoded = !executeBodyPipeline
                 || (narrowPhaseEncoded && dynamicSolver_.encode(
                     encoder,
-                    executionBodies <= kCompactColorSolveBodyLimit));
+                    executionBodies <= kSerialWorldBodyLimit));
             if (executeBodyPipeline && !dynamicWorldEncoded) {
                 LOG_ERROR("Failed to encode a GPU dynamic-world stage");
             }
@@ -1667,7 +1687,12 @@ public:
             writeStageTimestamp();
         }
 
-        if (config_.enableTelemetryReadback && profileTickCount != 0u) {
+        const bool sampleTelemetry = config_.enableTelemetryReadback
+            && profileTickCount != 0u
+            && (forceDiagnosticsSample
+                || intervalElapsed(finalTick, lastTelemetryReadbackTick_,
+                                   config_.telemetryReadbackIntervalTicks));
+        if (sampleTelemetry) {
             const auto copyTelemetry = [&](WGPUBuffer source,
                                            uint32_t destinationWord,
                                            uint32_t wordCount) {
@@ -1699,6 +1724,7 @@ public:
                 LOG_WARN("GPU physics telemetry readback ring is full");
             } else {
                 lastGpuReadbackBytes_ += kTelemetrySnapshotBytes;
+                lastTelemetryReadbackTick_ = finalTick;
             }
         }
 
@@ -1738,6 +1764,7 @@ public:
             } else {
                 lastGpuReadbackBytes_ +=
                     uint64_t{profileQueryCount} * sizeof(uint64_t);
+                lastStageProfileTick_ = finalTick;
             }
         }
 
@@ -1995,6 +2022,9 @@ public:
         result.maximumTerrainContactsPerBody =
             core.maximumTerrainContactsPerBody;
         result.submergedBodies = core.submergedBodies;
+        result.compactIslandContacts = solver.smallIslandContacts;
+        result.compactIslandBodies = solver.smallIslandBodies;
+        result.serialWorldSolver = solver.serialWorld;
         result.activeGraphColors = static_cast<uint32_t>(std::count_if(
             solver.colorCounts.begin(), solver.colorCounts.end(),
             [](uint32_t count) { return count != 0u; }));
@@ -2098,6 +2128,8 @@ public:
     bool eventReadbackEnabled_ = false;
     bool stageProfilingEnabled_ = false;
     uint32_t stageQueryCapacity_ = 0u;
+    uint64_t lastStageProfileTick_ = 0u;
+    uint64_t lastTelemetryReadbackTick_ = 0u;
     WaterSurfaceSampler waterSampler_;
     PhysicsStepStats lastStepStats_{};
     CachedTelemetry cachedTelemetry_{};

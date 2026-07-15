@@ -153,7 +153,7 @@ fn reset_coloring_impl(gid : vec3<u32>) {
         candidateColors[index] = SENTINEL;
         colorRecords[index] = sentinel_record();
     }
-    if (index < 39u || (index >= 42u && index < 45u)) {
+    if (index < 39u || (index >= 42u && index < 46u)) {
         atomicStore(&solverTelemetry[index], 0u);
     }
 }
@@ -1686,6 +1686,7 @@ fn solve_serial_world(@builtin(local_invocation_id) lid : vec3<u32>) {
             0u, 1u, narrowTelemetry[10] > params.capacities.y));
         atomicStore(&solverTelemetry[43], smallIslandCount);
         atomicStore(&solverTelemetry[44], smallIslandCount * 2u);
+        atomicStore(&solverTelemetry[45], 1u);
         atomicAdd(&solverTelemetry[41], 1u);
     }
 }

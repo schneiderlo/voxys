@@ -587,7 +587,7 @@ public:
         return true;
     }
 
-    bool encode(WGPUCommandEncoder encoder, bool compactColorSolve) {
+    bool encode(WGPUCommandEncoder encoder, bool serialWorldSolve) {
         if (!encoder || !input_.valid()) return false;
         CachedInputGroups& inputGroupCache = inputGroups();
         uint32_t slot = 0u;
@@ -595,7 +595,7 @@ public:
             return gpu::BindGroupEntry(14).buffer(
                 parameterBuffer_, 0, sizeof(Params));
         };
-        if (compactColorSolve) {
+        if (serialWorldSolve) {
             const std::array<gpu::BindGroupEntry, 9> serialEntries = {
                 gpu::BindGroupEntry(0).buffer(input_.poseBuffer),
                 gpu::BindGroupEntry(1).buffer(input_.motionBuffer),
@@ -1082,8 +1082,8 @@ void GpuDynamicSolver::setInput(const GpuDynamicSolverInput& input) {
     impl_->setInput(input);
 }
 bool GpuDynamicSolver::encode(WGPUCommandEncoder encoder,
-                              bool compactColorSolve) {
-    return impl_->encode(encoder, compactColorSolve);
+                              bool serialWorldSolve) {
+    return impl_->encode(encoder, serialWorldSolve);
 }
 WGPUBuffer GpuDynamicSolver::colors() const noexcept { return impl_->colors_; }
 WGPUBuffer GpuDynamicSolver::sortedColorRecords() const noexcept {
@@ -1111,7 +1111,7 @@ size_t GpuDynamicSolver::inputBindGroupCacheMisses() const noexcept {
 GpuDynamicSolverTelemetry GpuDynamicSolver::decodeTelemetry(
     std::span<const uint32_t> words) noexcept {
     GpuDynamicSolverTelemetry result;
-    if (words.size() < 45) return result;
+    if (words.size() < 46) return result;
     for (uint32_t color = 0; color < result.colorCounts.size(); ++color) {
         result.colorCounts[color] = words[color];
     }
@@ -1128,6 +1128,7 @@ GpuDynamicSolverTelemetry GpuDynamicSolver::decodeTelemetry(
     result.contactOverflow = words[42] != 0u;
     result.smallIslandContacts = words[43];
     result.smallIslandBodies = words[44];
+    result.serialWorld = words[45] != 0u;
     return result;
 }
 

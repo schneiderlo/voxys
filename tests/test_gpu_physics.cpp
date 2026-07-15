@@ -257,6 +257,9 @@ TEST_F(GpuPhysicsTest, ComposesBodyContactsEventsAndAsyncQueries) {
     EXPECT_GE(telemetry.uniquePairUsage.current, 1u);
     EXPECT_GE(telemetry.manifoldUsage.current, 1u);
     EXPECT_GE(telemetry.contactUsage.current, 1u);
+    EXPECT_GE(telemetry.compactIslandContacts, 1u);
+    EXPECT_GE(telemetry.compactIslandBodies, 2u);
+    EXPECT_TRUE(telemetry.serialWorldSolver);
     EXPECT_GE(telemetry.eventUsage.current, 1u);
     EXPECT_GT(telemetry.gpuReadbackBytes, 0u);
     EXPECT_FALSE(telemetry.pairCapacityOverflow);
@@ -280,6 +283,30 @@ TEST_F(GpuPhysicsTest, ComposesBodyContactsEventsAndAsyncQueries) {
     EXPECT_GE(queries->outputs[0].hits.size(), 2u);
     EXPECT_LE(queries->outputs[0].hits[0].distance,
               queries->outputs[0].hits[1].distance);
+}
+
+TEST_F(GpuPhysicsTest, UsesGlobalSolverAboveSerialWorldLimit) {
+    constexpr uint32_t bodyCount = 257u;
+    for (uint32_t index = 0u; index < bodyCount; ++index) {
+        BodySpawnDesc desc;
+        desc.shape = ThrowableShape::Sphere;
+        desc.dimensions = throwableShapeDimensions(desc.shape);
+        desc.position = {
+            -32.0f + 4.0f * static_cast<float>(index % 17u),
+            50.0f,
+            -28.0f + 4.0f * static_cast<float>(index / 17u)};
+        if (index == 1u) {
+            desc.position.x = -31.25f;
+        }
+        ASSERT_TRUE(world.spawnBody(desc).valid());
+    }
+
+    stepTicks(1u);
+
+    const PhysicsStats telemetry = retireTelemetry();
+    EXPECT_EQ(telemetry.telemetryTick, 1u);
+    EXPECT_GE(telemetry.highContacts, 1u);
+    EXPECT_FALSE(telemetry.serialWorldSolver);
 }
 
 TEST_F(GpuPhysicsTest,

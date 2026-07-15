@@ -436,6 +436,82 @@ TEST_P(GpuBroadPhaseTest, DenseMediumWorldMatchesBruteForce) {
     releaseBuffer(poseBuffer);
 }
 
+TEST_P(GpuBroadPhaseTest, CooperativeUpperBoundaryKeepsCanonicalPairs) {
+    constexpr uint32_t bodyCapacity = 1'024;
+    constexpr uint32_t pairCapacity = 4'096;
+    constexpr float margin = 0.02f;
+    gpu::Context context;
+    gpu::ContextConfig contextConfig;
+    contextConfig.enableValidation = false;
+    if (!context.initHeadless(contextConfig)) {
+        GTEST_SKIP() << "Headless WebGPU is unavailable";
+    }
+
+    std::vector<TestPose> poses(bodyCapacity);
+    std::vector<TestShape> shapes(bodyCapacity);
+    std::vector<TestMetadata> metadata(bodyCapacity);
+    for (uint32_t body = 0; body < bodyCapacity; ++body) {
+        poses[body].positionInvMass = {
+            static_cast<float>(body) * 10.0f, 0.0f, 0.0f, 1.0f};
+        shapes[body].dimensionsType = {1.0f, 1.0f, 1.0f, 1.0f};
+        metadata[body] = makeMetadata(kAlive | kAwake);
+    }
+    poses[700].positionInvMass = poses[10].positionInvMass;
+    poses[256].positionInvMass = poses[255].positionInvMass;
+    poses[1'023].positionInvMass = poses[512].positionInvMass;
+
+    WGPUBuffer poseBuffer = makeInput<TestPose>(
+        context, poses, "cooperative_boundary_poses");
+    WGPUBuffer shapeBuffer = makeInput<TestShape>(
+        context, shapes, "cooperative_boundary_shapes");
+    WGPUBuffer metadataBuffer = makeInput<TestMetadata>(
+        context, metadata, "cooperative_boundary_metadata");
+    ASSERT_NE(poseBuffer, nullptr);
+    ASSERT_NE(shapeBuffer, nullptr);
+    ASSERT_NE(metadataBuffer, nullptr);
+
+    GpuBroadPhase broadPhase;
+    GpuBroadPhase::Config config;
+    config.bodyCapacity = bodyCapacity;
+    config.candidatePairCapacity = pairCapacity;
+    config.pairCapacity = pairCapacity;
+    config.contactCapacity = pairCapacity;
+    config.cellSize = 4.0f;
+    config.speculativeMargin = margin;
+    config.workgroupSize = GetParam();
+    ASSERT_TRUE(broadPhase.initialize(
+        context.getDevice(), context.getQueue(), config));
+    broadPhase.setBodyView({
+        poseBuffer, shapeBuffer, metadataBuffer, bodyCapacity});
+
+    const std::vector<PairKey> expected = {
+        {10u, 700u, false},
+        {255u, 256u, false},
+        {512u, 1'023u, false},
+    };
+    const BroadPhaseSnapshot first = runAndRead(context, broadPhase);
+    EXPECT_EQ(snapshotPairs(first), expected);
+    EXPECT_EQ(first.telemetry.gridEntries, bodyCapacity);
+    EXPECT_EQ(first.telemetry.occupiedCells, bodyCapacity - expected.size());
+    EXPECT_EQ(first.telemetry.oversizedBodies, 0u);
+    EXPECT_EQ(first.telemetry.persistentContacts, expected.size());
+    EXPECT_EQ(first.telemetry.beginEvents, expected.size());
+    EXPECT_FALSE(first.telemetry.candidateOverflow);
+    EXPECT_FALSE(first.telemetry.pairOverflow);
+    EXPECT_FALSE(first.telemetry.contactOverflow);
+
+    const auto firstIds = contactIds(first);
+    const BroadPhaseSnapshot second = runAndRead(context, broadPhase);
+    EXPECT_EQ(snapshotPairs(second), expected);
+    EXPECT_EQ(contactIds(second), firstIds);
+    EXPECT_EQ(second.telemetry.beginEvents, 0u);
+    EXPECT_EQ(second.telemetry.endEvents, 0u);
+
+    releaseBuffer(metadataBuffer);
+    releaseBuffer(shapeBuffer);
+    releaseBuffer(poseBuffer);
+}
+
 INSTANTIATE_TEST_SUITE_P(
     TuningProfiles, GpuBroadPhaseTest,
     ::testing::Values(64u, 128u, 256u));

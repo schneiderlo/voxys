@@ -146,14 +146,19 @@ struct PhysicsInitContext {
         // devices keep running and simply return no timing batches.
         bool enableStageProfiling = false;
         uint32_t stageProfilingReadbackSlots = 3;
+        // One profiles every encoded batch. Larger values keep the most recent
+        // result cached and wait this many simulation ticks before sampling
+        // again.
+        uint32_t stageProfilingIntervalTicks = 1;
         // Conversion for timestamp-query device ticks. Browser WebGPU uses
         // nanoseconds. Native Vulkan callers must supply the adapter's
         // VkPhysicalDeviceLimits::timestampPeriod when it is not 1 ns.
         double stageProfilingTimestampPeriodNanoseconds = 1.0;
-        // Telemetry is useful for tests and diagnostics, but mapping a GPU
-        // buffer every simulation tick is not suitable for normal gameplay.
+        // Telemetry is useful for tests and diagnostics. Normal gameplay uses
+        // a larger interval because mapping every tick is unnecessarily noisy.
         bool enableTelemetryReadback = true;
         uint32_t telemetryReadbackSlots = 3;
+        uint32_t telemetryReadbackIntervalTicks = 1;
         uint32_t ccdBulletCapacity = 1'024;
         uint32_t ccdWorkgroupSize = 128;
         uint32_t ccdCoarseSteps = 16;
@@ -265,6 +270,9 @@ struct PhysicsStats {
     uint32_t terrainContactBodies = 0;
     uint32_t maximumTerrainContactsPerBody = 0;
     uint32_t submergedBodies = 0;
+    uint32_t compactIslandContacts = 0;
+    uint32_t compactIslandBodies = 0;
+    bool serialWorldSolver = false;
     uint32_t activeGraphColors = 0;
     uint32_t maximumBodyDegree = 0;
     uint32_t colorConflictErrors = 0;

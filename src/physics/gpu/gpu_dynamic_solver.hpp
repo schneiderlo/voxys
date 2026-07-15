@@ -69,6 +69,7 @@ struct GpuDynamicSolverTelemetry {
     bool contactOverflow = false;
     uint32_t smallIslandContacts = 0;
     uint32_t smallIslandBodies = 0;
+    bool serialWorld = false;
 };
 
 class GpuDynamicSolver {
@@ -114,7 +115,7 @@ public:
     void shutdown();
     void setInput(const GpuDynamicSolverInput& input);
     [[nodiscard]] bool encode(WGPUCommandEncoder encoder,
-                              bool compactColorSolve = false);
+                              bool serialWorldSolve = false);
 
     [[nodiscard]] WGPUBuffer colors() const noexcept;
     [[nodiscard]] WGPUBuffer sortedColorRecords() const noexcept;

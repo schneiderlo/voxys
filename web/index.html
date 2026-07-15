@@ -729,7 +729,7 @@
 
                 updateProgress(10, 'Creating GPU device...');
                 const physicsProfiling = new URLSearchParams(location.search)
-                    .get('physicsProfile') === '1';
+                    .get('physicsProfile') !== '0';
                 const deviceRequest = await VoxyLoader.requestVoxyDevice(
                     adapter,
                     {enableTimestamps: physicsProfiling}
@@ -804,9 +804,9 @@
                     }
                 });
 
-                // Keep browser-only pacing evidence visible without enabling
-                // GPU telemetry readback. This samples cached counters twice
-                // per second and only while the F1 overlay is open.
+                // Keep browser-only pacing evidence beside the low-rate GPU
+                // physics diagnostics. DOM updates happen only while the F1
+                // overlay is open.
                 setInterval(() => {
                     const debugOverlay = document.getElementById('debug-overlay');
                     const runtime = document.getElementById('debug-runtime');

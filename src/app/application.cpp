@@ -1259,11 +1259,15 @@ bool Application::initCamera() {
         (config_.shaderDir / "physics_ballistic.wgsl").string();
     physicsContext.gpu.enableStageProfiling =
         config_.gpuPhysicsStageProfiling;
-    // Scripted benchmarks and explicit browser profiling need authoritative
-    // awake/sleeping counts. Normal application runs keep this readback off.
-    physicsContext.gpu.enableTelemetryReadback =
-        config_.benchmarkBodyCount != 0u
-        || config_.gpuPhysicsStageProfiling;
+    // Benchmarks sample every tick. Interactive play samples asynchronously at
+    // a low rate so body, solver, and awake/sleeping counts remain useful
+    // without paying readback overhead on every frame.
+    constexpr uint32_t kInteractiveTelemetryIntervalTicks = 30u;
+    const uint32_t diagnosticsInterval = config_.benchmarkBodyCount != 0u
+        ? 1u : kInteractiveTelemetryIntervalTicks;
+    physicsContext.gpu.stageProfilingIntervalTicks = diagnosticsInterval;
+    physicsContext.gpu.enableTelemetryReadback = true;
+    physicsContext.gpu.telemetryReadbackIntervalTicks = diagnosticsInterval;
     physicsContext.gpu.stageProfilingTimestampPeriodNanoseconds =
         config_.gpuPhysicsTimestampPeriodNanoseconds;
     physicsContext.enableValidation = config_.enableValidation;

@@ -406,7 +406,7 @@ int main(int argc, char* argv[]) {
     appConfig.fpsLogIntervalSeconds = 2.0f;
     appConfig.gpuPhysicsStageProfiling = EM_ASM_INT({
         return new URLSearchParams(globalThis.location.search)
-            .get("physicsProfile") === "1" ? 1 : 0;
+            .get("physicsProfile") === "0" ? 0 : 1;
     }) != 0;
 
     // Automation settings

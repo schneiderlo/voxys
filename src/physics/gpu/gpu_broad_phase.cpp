@@ -510,6 +510,10 @@ public:
             device_, smallPairPipelineLayout_, shaderModule_,
             "parallel_small_world_pairs",
             "broad_phase_parallel_small_world_pairs");
+        mediumPairPipeline_ = makePipeline(
+            device_, smallPairPipelineLayout_, shaderModule_,
+            "medium_world_pairs",
+            "broad_phase_medium_world_pairs");
         smallLifecyclePipeline_ = makePipeline(
             device_, smallLifecyclePipelineLayout_, shaderModule_,
             "small_world_lifecycle", "broad_phase_small_world_lifecycle");
@@ -526,7 +530,7 @@ public:
             && lifecycleMarkFreePipeline_ && lifecycleScatterFreePipeline_
             && lifecycleAssignBeginPipeline_ && lifecycleScatterEndPipeline_
             && lifecycleFinalizePipeline_ && smallPairPipeline_
-            && parallelSmallPairPipeline_
+            && parallelSmallPairPipeline_ && mediumPairPipeline_
             && smallLifecyclePipeline_ && hybridLifecyclePipeline_;
     }
 
@@ -882,6 +886,7 @@ public:
         };
         constexpr uint32_t kSmallWorldBodyLimit = 64u;
         constexpr uint32_t kSmallPairBodyLimit = 256u;
+        constexpr uint32_t kMediumPairBodyLimit = 1'024u;
         if (bodyCount <= kSmallWorldBodyLimit) {
             const uint32_t parity = contactsAreB_ ? 1u : 0u;
             WGPUComputePassEncoder pass =
@@ -906,6 +911,20 @@ public:
                 pass, 0, cachedBindGroups_[15], 0, nullptr);
             wgpuComputePassEncoderSetPipeline(
                 pass, parallelSmallPairPipeline_);
+            wgpuComputePassEncoderDispatchWorkgroups(pass, 1u, 1u, 1u);
+            wgpuComputePassEncoderEnd(pass);
+            wgpuComputePassEncoderRelease(pass);
+            const uint32_t parity = contactsAreB_ ? 1u : 0u;
+            if (!encodeLifecycle(parity, true)) return false;
+            contactsAreB_ = !contactsAreB_;
+            return true;
+        }
+        if (bodyCount <= kMediumPairBodyLimit) {
+            WGPUComputePassEncoder pass =
+                wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
+            wgpuComputePassEncoderSetBindGroup(
+                pass, 0, cachedBindGroups_[15], 0, nullptr);
+            wgpuComputePassEncoderSetPipeline(pass, mediumPairPipeline_);
             wgpuComputePassEncoderDispatchWorkgroups(pass, 1u, 1u, 1u);
             wgpuComputePassEncoderEnd(pass);
             wgpuComputePassEncoderRelease(pass);
@@ -1059,7 +1078,7 @@ public:
                  &lifecycleMarkFreePipeline_, &lifecycleScatterFreePipeline_,
                  &lifecycleAssignBeginPipeline_, &lifecycleScatterEndPipeline_,
                  &lifecycleFinalizePipeline_, &smallPairPipeline_,
-                 &parallelSmallPairPipeline_,
+                 &parallelSmallPairPipeline_, &mediumPairPipeline_,
                  &smallLifecyclePipeline_, &hybridLifecyclePipeline_}) {
             releaseHandle(*pipeline, wgpuComputePipelineRelease);
         }
@@ -1210,6 +1229,7 @@ public:
     WGPUComputePipeline lifecycleFinalizePipeline_ = nullptr;
     WGPUComputePipeline smallPairPipeline_ = nullptr;
     WGPUComputePipeline parallelSmallPairPipeline_ = nullptr;
+    WGPUComputePipeline mediumPairPipeline_ = nullptr;
     WGPUComputePipeline smallLifecyclePipeline_ = nullptr;
     WGPUComputePipeline hybridLifecyclePipeline_ = nullptr;
 };

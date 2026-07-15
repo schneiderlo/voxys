@@ -1057,6 +1057,63 @@ fn cached_small_bodies_overlap(bodyA : u32, bodyB : u32,
     return all(abs(delta) <= vec3<f32>(extent));
 }
 
+struct MediumBodyProxy {
+    positionRadius : vec4<f32>,
+    sectorFlags : vec4<i32>,
+    cellKey : vec2<u32>,
+};
+
+fn load_medium_body(body : u32) -> MediumBodyProxy {
+    var proxy = MediumBodyProxy(
+        vec4<f32>(0.0), vec4<i32>(0), vec2<u32>(SENTINEL));
+    if (body >= broad.counts.x) { return proxy; }
+
+    let dimensions = abs(shapes[body].dimensions_type.xyz);
+    let flags = body_flags(body);
+    if ((flags & BODY_ALIVE) == 0u
+        || max(dimensions.x, max(dimensions.y, dimensions.z)) <= 0.0) {
+        return proxy;
+    }
+
+    let radius = 0.5 * length(dimensions) + broad.grid.y;
+    proxy.positionRadius = vec4<f32>(
+        poses[body].position_invMass.xyz, radius);
+    proxy.sectorFlags = vec4<i32>(metadata[body].xyz, i32(flags));
+    var valid = false;
+    let cell = body_cell(body, &valid);
+    if (radius * 2.0 <= broad.grid.x && valid
+        && coordinate_is_encodable(cell)) {
+        proxy.cellKey = encode_cell(cell);
+    }
+    return proxy;
+}
+
+fn medium_bodies_overlap(a : MediumBodyProxy,
+                         b : MediumBodyProxy) -> bool {
+    let flagsA = u32(a.sectorFlags.w);
+    let flagsB = u32(b.sectorFlags.w);
+    if ((flagsA & BODY_ALIVE) == 0u || (flagsB & BODY_ALIVE) == 0u
+        || ((flagsA | flagsB) & BODY_AWAKE) == 0u) {
+        return false;
+    }
+    if (!all(a.cellKey == vec2<u32>(SENTINEL))
+        && !all(b.cellKey == vec2<u32>(SENTINEL))) {
+        if (!encoded_cells_are_neighbors(a.cellKey, b.cellKey)) {
+            return false;
+        }
+    }
+    var sectorDelta = vec3<i32>(0);
+    for (var axis = 0u; axis < 3u; axis += 1u) {
+        sectorDelta[axis] = adjacent_sector_delta(
+            a.sectorFlags[axis], b.sectorFlags[axis]);
+        if (abs(sectorDelta[axis]) > 1) { return false; }
+    }
+    let extent = a.positionRadius.w + b.positionRadius.w;
+    let delta = b.positionRadius.xyz - a.positionRadius.xyz
+              + vec3<f32>(sectorDelta) * WORLD_SECTOR_SIZE;
+    return all(abs(delta) <= vec3<f32>(extent));
+}
+
 // For 65..256 bodies, one lane owns each minimum body ID. A single prefix sum
 // gives every lane its canonical output range, so the second walk scatters in
 // the exact (minimum, maximum) order without a binary rank decode or a barrier
@@ -1206,6 +1263,129 @@ fn parallel_small_world_pairs(@builtin(local_invocation_id) lid : vec3<u32>) {
             0u, 1u, rawCandidateCount > broad.counts.w));
         atomicStore(&telemetry[10], select(
             0u, 1u, materialized > broad.capacities.x));
+        atomicMax(&telemetry[16], rawCandidateCount);
+        atomicMax(&telemetry[17], materialized);
+    }
+}
+
+// For 257..1024 bodies, keep pair generation in one workgroup instead of
+// crossing the fixed-cost grid/radix cliff. Each 256-body minimum-ID tile is
+// counted and scattered in canonical order. Proxies are streamed from storage
+// so the path remains inside WebGPU's portable 16 KiB workgroup-memory limit.
+@compute @workgroup_size(256)
+fn medium_world_pairs(@builtin(local_invocation_id) lid : vec3<u32>) {
+    let lane = lid.x;
+    for (var index = lane; index < 14u; index += 256u) {
+        atomicStore(&telemetry[index], 0u);
+    }
+    if (lane == 0u) { smallPairOutputBase = 0u; }
+    storageBarrier();
+    workgroupBarrier();
+
+    let bodyCount = broad.counts.x;
+    let outputCapacity = min(broad.counts.w, broad.capacities.x);
+    for (var base = 0u; base < bodyCount; base += 256u) {
+        let minimum = base + lane;
+        let minimumProxy = load_medium_body(minimum);
+        let minimumFlags = u32(minimumProxy.sectorFlags.w);
+        let cellValid = !all(
+            minimumProxy.cellKey == vec2<u32>(SENTINEL));
+        var cellRepresentative = cellValid;
+        var pairCount = 0u;
+        if (minimum < bodyCount) {
+            for (var maximum = minimum + 1u; maximum < bodyCount;
+                 maximum += 1u) {
+                let maximumProxy = load_medium_body(maximum);
+                if (cellRepresentative
+                    && all(maximumProxy.cellKey == minimumProxy.cellKey)) {
+                    cellRepresentative = false;
+                }
+                pairCount += select(0u, 1u,
+                    medium_bodies_overlap(minimumProxy, maximumProxy));
+            }
+        }
+
+        let alive = (minimumFlags & BODY_ALIVE) != 0u;
+        let gridEntry = select(0u, 1u, alive && cellValid);
+        let oversized = select(0u, 1u, alive && !cellValid);
+        smallPairFlags[lane] = pairCount
+            | (gridEntry << 29u)
+            | (select(0u, 1u, cellRepresentative) << 30u)
+            | (oversized << 31u);
+        workgroupBarrier();
+
+        if (lane == 0u) {
+            var running = 0u;
+            var gridEntryCount = 0u;
+            var occupiedCellCount = 0u;
+            var oversizedCount = 0u;
+            let chunkSize = min(256u, bodyCount - base);
+            for (var index = 0u; index < chunkSize; index += 1u) {
+                let packed = smallPairFlags[index];
+                smallPairOffsets[index] = smallPairOutputBase + running;
+                running += packed & 0x1fffffffu;
+                gridEntryCount += (packed >> 29u) & 1u;
+                occupiedCellCount += (packed >> 30u) & 1u;
+                oversizedCount += packed >> 31u;
+            }
+            smallPairOutputBase += running;
+            atomicAdd(&telemetry[0], gridEntryCount);
+            atomicAdd(&telemetry[1], occupiedCellCount);
+            atomicAdd(&telemetry[5], oversizedCount);
+        }
+        workgroupBarrier();
+
+        var localRank = 0u;
+        var sleepingCount = 0u;
+        if (minimum < bodyCount && pairCount != 0u
+            && smallPairOffsets[lane] < outputCapacity) {
+            for (var maximum = minimum + 1u; maximum < bodyCount;
+                 maximum += 1u) {
+                if (smallPairOffsets[lane] + localRank >= outputCapacity) {
+                    break;
+                }
+                let maximumProxy = load_medium_body(maximum);
+                if (!medium_bodies_overlap(
+                        minimumProxy, maximumProxy)) { continue; }
+                let output = smallPairOffsets[lane] + localRank;
+                let maximumFlags = u32(maximumProxy.sectorFlags.w);
+                let sleeping = select(0u, 1u,
+                    (minimumFlags & BODY_AWAKE) == 0u
+                        || (maximumFlags & BODY_AWAKE) == 0u);
+                uniqueBodyPairs[output] = KeyValue(
+                    maximum, minimum, sleeping, output);
+                sleepingCount += sleeping;
+                localRank += 1u;
+            }
+        }
+        smallPairFlags[lane] = sleepingCount;
+        storageBarrier();
+        workgroupBarrier();
+
+        if (lane == 0u) {
+            var chunkSleepingCount = 0u;
+            let chunkSize = min(256u, bodyCount - base);
+            for (var index = 0u; index < chunkSize; index += 1u) {
+                chunkSleepingCount += smallPairFlags[index];
+            }
+            atomicAdd(&telemetry[4], chunkSleepingCount);
+        }
+        workgroupBarrier();
+    }
+
+    if (lane == 0u) {
+        let rawCandidateCount = smallPairOutputBase;
+        let materialized = min(rawCandidateCount, broad.counts.w);
+        let gridEntryCount = atomicLoad(&telemetry[0]);
+        let occupiedCellCount = atomicLoad(&telemetry[1]);
+        atomicStore(&telemetry[2], rawCandidateCount);
+        atomicStore(&telemetry[3], materialized);
+        atomicStore(&telemetry[9], select(
+            0u, 1u, rawCandidateCount > broad.counts.w));
+        atomicStore(&telemetry[10], select(
+            0u, 1u, materialized > broad.capacities.x));
+        atomicMax(&telemetry[14], gridEntryCount);
+        atomicMax(&telemetry[15], occupiedCellCount);
         atomicMax(&telemetry[16], rawCandidateCount);
         atomicMax(&telemetry[17], materialized);
     }
