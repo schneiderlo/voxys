@@ -698,16 +698,16 @@ fn reduce_terrain_candidates(input : TerrainCandidateSet) -> TerrainContacts {
         return result;
     }
 
+    var deepestIndex = 0u;
     for (var index = 1u; index < source.count; index += 1u) {
-        let key = source.items[index];
-        var insertion = index;
-        loop {
-            if (insertion == 0u
-                || !candidate_less(key, source.items[insertion - 1u])) { break; }
-            source.items[insertion] = source.items[insertion - 1u];
-            insertion -= 1u;
+        if (candidate_less(source.items[index], source.items[deepestIndex])) {
+            deepestIndex = index;
         }
-        source.items[insertion] = key;
+    }
+    if (deepestIndex != 0u) {
+        let deepest = source.items[deepestIndex];
+        source.items[deepestIndex] = source.items[0];
+        source.items[0] = deepest;
     }
 
     var selected = array<u32, 4>(0xffffffffu, 0xffffffffu,
