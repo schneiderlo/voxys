@@ -87,6 +87,10 @@ jobs:
           
           # Copy web assets
           cp -r web/* docs/
+
+          # Give every generated artifact URL a deployment-specific cache key.
+          # GitHub Pages caches otherwise-unversioned JS/WASM/data files.
+          sed -i "s/__VOXY_BUILD_ID__/${GITHUB_SHA}/g" docs/index.html
           
           # Copy WASM files from build-wasm/bin
           cp build-wasm/bin/voxy_wasm.js docs/
@@ -110,6 +114,10 @@ jobs:
           fi
           if [ ! -f "docs/voxy_wasm.js" ]; then
             echo "ERROR: voxy_wasm.js missing!"
+            exit 1
+          fi
+          if grep -q "__VOXY_BUILD_ID__" docs/index.html; then
+            echo "ERROR: deployment build ID was not substituted!"
             exit 1
           fi
           if ! grep -a -q "/data/generated/td_seed_1234_8192.ldh" docs/voxy_wasm.js; then
