@@ -20,6 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       EM_CACHE_FOLDER: 'emsdk-cache'
+      EMSCRIPTEN_VERSION: '6.0.1'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -41,14 +42,14 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ env.EM_CACHE_FOLDER }}
-          key: emsdk-${{ runner.os }}-${{ hashFiles('scripts/fetch_deps.sh') }}
+          key: emsdk-${{ runner.os }}-${{ env.EMSCRIPTEN_VERSION }}-emdawnwebgpu
           restore-keys: |
-            emsdk-${{ runner.os }}-
+            emsdk-${{ runner.os }}-${{ env.EMSCRIPTEN_VERSION }}-
 
       - name: Setup Emscripten
         uses: mymindstorm/setup-emsdk@v14
         with:
-          version: 'latest'
+          version: ${{ env.EMSCRIPTEN_VERSION }}
           actions-cache-folder: ${{ env.EM_CACHE_FOLDER }}
 
       - name: Install emdawnwebgpu port
