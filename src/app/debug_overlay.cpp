@@ -396,14 +396,24 @@ void DebugOverlay::displayWasm() {
         setText('debug-physics-ccd-water-events', physicsCcdWaterEvents);
         setText('debug-physics-io', physicsIo);
         setText('debug-physics-timings', physicsTimings);
-        var profile = globalThis.voxyDeviceProfile;
+        // Bracket access prevents Emscripten's JS minifier from renaming the
+        // property that the external page loader publishes.
+        var profile = globalThis['voxyDeviceProfile'];
         if (profile) {
-            setText('debug-device', 'Device: ' + profile.name
+            var adapter = profile['adapter'] || {};
+            var adapterName = adapter['description'] !== 'Unknown'
+                ? adapter['description']
+                : (adapter['device'] !== 'Unknown' ? adapter['device']
+                    : (adapter['architecture'] !== 'Unknown'
+                        ? adapter['architecture'] : adapter['vendor']));
+            setText('debug-device', 'Device: ' + adapterName
+                + (adapter['fallback'] ? ' (fallback)' : "")
+                + ' | ' + profile['name']
                 + ' | storage bindings '
-                + profile.maxStorageBuffersPerShaderStage
+                + profile['maxStorageBuffersPerShaderStage']
                 + ' | storage buffer '
-                + profile.maxStorageBufferBindingSize
-                + ' B | max buffer ' + profile.maxBufferSize + ' B');
+                + profile['maxStorageBufferBindingSize']
+                + ' B | max buffer ' + profile['maxBufferSize'] + ' B');
         }
         
     }, formatFPS().c_str(), 

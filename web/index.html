@@ -101,6 +101,7 @@
             <div id="debug-physics-io">Physics I/O: unavailable</div>
             <div id="debug-physics-timings">GPU stages: unavailable</div>
             <div id="debug-device">Device profile: unavailable</div>
+            <div id="debug-runtime">Runtime: unavailable</div>
         </div>
     </div>
 
@@ -795,6 +796,27 @@
                         }
                     }
                 });
+
+                // Keep browser-only pacing evidence visible without enabling
+                // GPU telemetry readback. This samples cached counters twice
+                // per second and only while the F1 overlay is open.
+                setInterval(() => {
+                    const debugOverlay = document.getElementById('debug-overlay');
+                    const runtime = document.getElementById('debug-runtime');
+                    if (!runtime || !debugOverlay
+                        || getComputedStyle(debugOverlay).display === 'none') {
+                        return;
+                    }
+                    const cpuMs = voxyModule._voxy_get_last_frame_cpu_ms?.() ?? 0;
+                    const inFlight = voxyModule._voxy_get_gpu_frames_in_flight?.() ?? 0;
+                    const skips = voxyModule._voxy_get_gpu_pacing_skips?.() ?? 0;
+                    const substeps = voxyModule._voxy_get_physics_substeps?.() ?? 0;
+                    const bodies = voxyModule._voxy_get_physics_resident_bodies?.() ?? 0;
+                    runtime.textContent = `Runtime: CPU ${cpuMs.toFixed(2)} ms`
+                        + ` | GPU queue ${inFlight}/4 | skips ${Math.trunc(skips)}`
+                        + ` | substeps ${substeps} | bodies ${bodies}`
+                        + ` | canvas ${canvas.width}x${canvas.height}`;
+                }, 500);
 
                 // 2. LOADING COMPLETE: Trigger the Landing Sequence
                 updateProgress(100, 'Done');

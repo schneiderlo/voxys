@@ -82,9 +82,25 @@ async function requestVoxyDevice(adapter, { enableTimestamps = false } = {}) {
         requiredFeatures,
         requiredLimits,
     });
+    let adapterInfo = adapter.info;
+    if (!adapterInfo && typeof adapter.requestAdapterInfo === 'function') {
+        try {
+            adapterInfo = await adapter.requestAdapterInfo();
+        } catch {
+            adapterInfo = {};
+        }
+    }
+    adapterInfo ||= {};
     const profile = Object.freeze({
         name: supportedStorageBuffers >= requiredStorageBuffers
             ? 'webgpu-physics' : 'cpu-fallback',
+        adapter: Object.freeze({
+            vendor: adapterInfo.vendor || 'Unknown',
+            architecture: adapterInfo.architecture || 'Unknown',
+            device: adapterInfo.device || 'Unknown',
+            description: adapterInfo.description || 'Unknown',
+            fallback: Boolean(adapter.isFallbackAdapter),
+        }),
         requiredStorageBuffers,
         maxStorageBuffersPerShaderStage:
             device.limits.maxStorageBuffersPerShaderStage,
