@@ -117,6 +117,7 @@ private:
     WGPUBuffer compactBoundPoseBuffer_ = nullptr;
     WGPUBuffer compactBoundShapeBuffer_ = nullptr;
     WGPUBuffer compactBoundVisibleBuffer_ = nullptr;
+    uint32_t compactBoundVisibleSegmentCapacity_ = 0;
     WGPUTextureView compactBoundRayDepthView_ = nullptr;
     physics::PhysicsRenderView physicsRenderView_{};
     PrimitiveGpuCulling gpuCulling_;

@@ -245,6 +245,7 @@ void PrimitivePath::shutdown() {
     compactBoundPoseBuffer_ = nullptr;
     compactBoundShapeBuffer_ = nullptr;
     compactBoundVisibleBuffer_ = nullptr;
+    compactBoundVisibleSegmentCapacity_ = 0;
     compactBoundRayDepthView_ = nullptr;
     physicsRenderView_ = {};
     instanceCache_ = {};
@@ -565,6 +566,7 @@ void PrimitivePath::updateBindGroup() {
 void PrimitivePath::updateCompactBindGroup() {
     const WGPUBuffer visibleBuffer = gpuCulling_.visibleBodyIds();
     const WGPUBuffer renderPoseBuffer = gpuCulling_.renderPoseBuffer();
+    const uint32_t visibleSegmentCapacity = gpuCulling_.segmentCapacity();
     if (!rayDepthView_ || !physicsRenderView_.valid() || !visibleBuffer
         || !renderPoseBuffer)
         return;
@@ -572,13 +574,14 @@ void PrimitivePath::updateCompactBindGroup() {
         && compactBoundPoseBuffer_ == renderPoseBuffer
         && compactBoundShapeBuffer_ == physicsRenderView_.shapeBuffer
         && compactBoundVisibleBuffer_ == visibleBuffer
+        && compactBoundVisibleSegmentCapacity_ == visibleSegmentCapacity
         && compactBoundRayDepthView_ == rayDepthView_) return;
     if (compactBindGroup_) {
         wgpuBindGroupRelease(compactBindGroup_);
         compactBindGroup_ = nullptr;
     }
     const uint64_t visibleSegmentBytes =
-        uint64_t{gpuCulling_.segmentCapacity()} * sizeof(uint32_t);
+        uint64_t{visibleSegmentCapacity} * sizeof(uint32_t);
     const std::array<gpu::BindGroupEntry, 5> entries = {
         gpu::BindGroupEntry(0).buffer(
             uniformBuffer_, 0, sizeof(PrimitiveUniforms)),
@@ -595,6 +598,7 @@ void PrimitivePath::updateCompactBindGroup() {
         compactBoundPoseBuffer_ = renderPoseBuffer;
         compactBoundShapeBuffer_ = physicsRenderView_.shapeBuffer;
         compactBoundVisibleBuffer_ = visibleBuffer;
+        compactBoundVisibleSegmentCapacity_ = visibleSegmentCapacity;
         compactBoundRayDepthView_ = rayDepthView_;
     }
 }
