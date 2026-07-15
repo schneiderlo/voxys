@@ -115,8 +115,17 @@ struct IslandParams {
 @group(0) @binding(22) var<storage, read_write> compactedSleepingGrid :
     array<KeyValue>;
 
+// The compact island path is selected only when bodyCapacity <= 1,024.
+// Sentinel padding gives every supported capacity the same fixed network.
+var<workgroup> smallWorldSortRecords : array<KeyValue, 1024>;
+
 fn sentinel_record() -> KeyValue {
     return KeyValue(SENTINEL, SENTINEL, SENTINEL, SENTINEL);
+}
+
+fn body_record_less(a : KeyValue, b : KeyValue) -> bool {
+    return a.keyHigh < b.keyHigh
+        || (a.keyHigh == b.keyHigh && a.keyLow < b.keyLow);
 }
 
 fn store_sort_dispatch(base : u32, count : u32) {
@@ -794,7 +803,10 @@ fn small_world_build(@builtin(global_invocation_id) gid : vec3<u32>) {
     small_world_barrier();
 
     let contactCount = active_contact_count();
-    for (var round = 0u; round < params.control.x; round += 1u) {
+    // With no dynamic contacts every live body is already its own canonical
+    // root. Union and path compression are identities, so defer all rounds.
+    let unionRounds = select(0u, params.control.x, contactCount != 0u);
+    for (var round = 0u; round < unionRounds; round += 1u) {
         for (var rank = lane; rank < contactCount; rank += 256u) {
             if (manifolds[rank].state.x == 0u) { continue; }
             let pair = manifolds[rank].pair;
@@ -823,24 +835,48 @@ fn small_world_build(@builtin(global_invocation_id) gid : vec3<u32>) {
             atomicStore(&bodyRoots[body], root);
             let record = KeyValue(body, root, body, body);
             bodyRecords[body] = record;
+            var persistent = bodyPersistent[body];
+            persistent.reserved0 = root;
+            bodyPersistent[body] = persistent;
         }
     }
     small_world_barrier();
 
-    // Rank-by-key is O(n^2) work, but each body owns an independent lane and
-    // medium worlds avoid the dozens of dispatches used by a global radix sort.
-    for (var body = lane; body < params.capacities.x; body += 256u) {
-        let record = bodyRecords[body];
-        if (record.keyHigh != SENTINEL) {
-            var rank = 0u;
-            for (var other = 0u; other < params.capacities.x; other += 1u) {
-                let candidate = bodyRecords[other];
-                rank += select(0u, 1u,
-                    candidate.keyHigh < record.keyHigh
-                    || (candidate.keyHigh == record.keyHigh
-                        && candidate.keyLow < record.keyLow));
+    // The old rank scan performed O(n^2) comparisons. This fixed bitonic
+    // network sorts the same unique (root, body) keys in O(n log^2 n).
+    for (var index = lane; index < 1024u; index += 256u) {
+        var record = sentinel_record();
+        if (index < params.capacities.x) {
+            record = bodyRecords[index];
+        }
+        smallWorldSortRecords[index] = record;
+    }
+    workgroupBarrier();
+
+    for (var width = 2u; width <= 1024u; width *= 2u) {
+        for (var stride = width >> 1u; stride != 0u; stride >>= 1u) {
+            for (var index = lane; index < 1024u; index += 256u) {
+                let partner = index ^ stride;
+                if (partner > index) {
+                    let low = smallWorldSortRecords[index];
+                    let high = smallWorldSortRecords[partner];
+                    let ascending = (index & width) == 0u;
+                    let swap = select(
+                        body_record_less(low, high),
+                        body_record_less(high, low), ascending);
+                    if (swap) {
+                        smallWorldSortRecords[index] = high;
+                        smallWorldSortRecords[partner] = low;
+                    }
+                }
             }
-            sortedBodyRecords[rank] = record;
+            workgroupBarrier();
+        }
+    }
+
+    for (var body = lane; body < params.capacities.x; body += 256u) {
+        sortedBodyRecords[body] = smallWorldSortRecords[body];
+        if (body_is_alive(body)) {
             let root = atomicLoad(&bodyRoots[body]);
             if (root == SENTINEL || atomicLoad(&bodyRoots[root]) != root) {
                 atomicAdd(&telemetry[11], 1u);
@@ -848,8 +884,7 @@ fn small_world_build(@builtin(global_invocation_id) gid : vec3<u32>) {
         }
     }
     if (lane == 0u) {
-        atomicStore(&telemetry[12], select(0u, params.control.x,
-            contactCount != 0u));
+        atomicStore(&telemetry[12], unionRounds);
     }
 }
 
@@ -862,7 +897,8 @@ fn small_world_decide(@builtin(global_invocation_id) gid : vec3<u32>) {
         islandRecords[body] = IslandRecord(SENTINEL, 0u, 0u, 0u);
         if (firstTick) {
             islandPersistent[body] = IslandPersistent(0u, 0u, 0u, 0u);
-            bodyPersistent[body] = BodyPersistent(SENTINEL, 0u, 0u, 0u);
+            bodyPersistent[body] = BodyPersistent(
+                SENTINEL, 0u, bodyPersistent[body].reserved0, 0u);
         } else if (!body_is_alive(body)) {
             bodyPersistent[body] = BodyPersistent(SENTINEL, 0u, 0u, 0u);
         }
@@ -872,90 +908,87 @@ fn small_world_decide(@builtin(global_invocation_id) gid : vec3<u32>) {
     }
     small_world_barrier();
 
-    for (var root = lane; root < params.capacities.x; root += 256u) {
-        if (!body_is_alive(root) || atomicLoad(&bodyRoots[root]) != root) {
-            continue;
-        }
-        var islandIndex = 0u;
+    if (lane == 0u) {
         var firstBodyRecord = 0u;
-        var bodyCount = 0u;
-        var awakeCount = 0u;
-        var qualifies = true;
-        var rootChanged = false;
-        var wasSleeping = false;
-        for (var otherRoot = 0u; otherRoot < root; otherRoot += 1u) {
-            islandIndex += select(0u, 1u,
-                body_is_alive(otherRoot)
-                && atomicLoad(&bodyRoots[otherRoot]) == otherRoot);
-        }
-        for (var body = 0u; body < params.capacities.x; body += 1u) {
-            if (!body_is_alive(body)) { continue; }
-            let bodyRoot = atomicLoad(&bodyRoots[body]);
-            firstBodyRecord += select(0u, 1u, bodyRoot < root);
-            if (bodyRoot != root) { continue; }
-            bodyCount += 1u;
-            awakeCount += select(0u, 1u,
-                (u32(metadata[body].w) & BODY_AWAKE) != 0u);
-            let linear = motions[body].linearVelocity_sleep.xyz;
-            let angular = motions[body].angularVelocity_flags.xyz;
-            qualifies = qualifies
-                && dot(linear, linear) <= params.thresholds.x
-                && dot(angular, angular) <= params.thresholds.y;
-            rootChanged = rootChanged
-                || bodyPersistent[body].previousRoot != root;
-            wasSleeping = wasSleeping
-                || bodyPersistent[body].previousSleeping != 0u;
-        }
+        var islandIndex = 0u;
+        while (firstBodyRecord < params.capacities.x) {
+            let firstRecord = sortedBodyRecords[firstBodyRecord];
+            if (firstRecord.keyHigh == SENTINEL) { break; }
+            let root = firstRecord.keyHigh;
+            var endBodyRecord = firstBodyRecord;
+            var awakeCount = 0u;
+            var qualifies = true;
+            var rootChanged = false;
+            var wasSleeping = false;
+            while (endBodyRecord < params.capacities.x
+                   && sortedBodyRecords[endBodyRecord].keyHigh == root) {
+                let body = sortedBodyRecords[endBodyRecord].value;
+                awakeCount += select(0u, 1u,
+                    (u32(metadata[body].w) & BODY_AWAKE) != 0u);
+                let linear = motions[body].linearVelocity_sleep.xyz;
+                let angular = motions[body].angularVelocity_flags.xyz;
+                qualifies = qualifies
+                    && dot(linear, linear) <= params.thresholds.x
+                    && dot(angular, angular) <= params.thresholds.y;
+                rootChanged = rootChanged
+                    || bodyPersistent[body].previousRoot != root;
+                wasSleeping = wasSleeping
+                    || bodyPersistent[body].previousSleeping != 0u;
+                endBodyRecord += 1u;
+            }
+            let bodyCount = endBodyRecord - firstBodyRecord;
+            let persistent = islandPersistent[root];
+            let disturbed = rootChanged
+                || persistent.previousBodyCount != bodyCount;
+            let previousState = select(persistent.state, 1u,
+                persistent.previousBodyCount == 0u && wasSleeping);
+            var nextState = previousState;
+            var sleepTicks = persistent.sleepTicks;
+            if (disturbed || (awakeCount != 0u && awakeCount != bodyCount)) {
+                nextState = 0u;
+                sleepTicks = 0u;
+            } else if (awakeCount == 0u) {
+                nextState = 1u;
+            } else if (qualifies) {
+                sleepTicks = min(sleepTicks + 1u, params.control.y);
+                nextState = select(0u, 1u, sleepTicks >= params.control.y);
+            } else {
+                nextState = 0u;
+                sleepTicks = 0u;
+            }
+            let eventType = select(0u,
+                select(2u, 1u, nextState != 0u),
+                nextState != previousState);
+            islandPersistent[root] = IslandPersistent(
+                sleepTicks, nextState, bodyCount, eventType);
+            islandRecords[islandIndex] = IslandRecord(
+                root, firstBodyRecord, bodyCount, nextState);
+            atomicAdd(&telemetry[0], 1u);
+            atomicMax(&telemetry[5], bodyCount);
 
-        let persistent = islandPersistent[root];
-        let disturbed = rootChanged
-            || persistent.previousBodyCount != bodyCount;
-        let previousState = select(persistent.state, 1u,
-            persistent.previousBodyCount == 0u && wasSleeping);
-        var nextState = previousState;
-        var sleepTicks = persistent.sleepTicks;
-        if (disturbed || (awakeCount != 0u && awakeCount != bodyCount)) {
-            nextState = 0u;
-            sleepTicks = 0u;
-        } else if (awakeCount == 0u) {
-            nextState = 1u;
-        } else if (qualifies) {
-            sleepTicks = min(sleepTicks + 1u, params.control.y);
-            nextState = select(0u, 1u, sleepTicks >= params.control.y);
-        } else {
-            nextState = 0u;
-            sleepTicks = 0u;
-        }
-        let eventType = select(0u,
-            select(2u, 1u, nextState != 0u),
-            nextState != previousState);
-        islandPersistent[root] = IslandPersistent(
-            sleepTicks, nextState, bodyCount, eventType);
-        islandRecords[islandIndex] = IslandRecord(
-            root, firstBodyRecord, bodyCount, nextState);
-        atomicAdd(&telemetry[0], 1u);
-        atomicMax(&telemetry[5], bodyCount);
-
-        if (nextState != previousState) {
-            atomicAdd(&telemetry[6], select(0u, 1u, nextState != 0u));
-            atomicAdd(&telemetry[7], select(0u, 1u, nextState == 0u));
-        }
-        if (nextState != 0u) {
-            atomicAdd(&telemetry[2], 1u);
-            atomicAdd(&telemetry[4], bodyCount);
-        } else {
-            atomicAdd(&telemetry[1], 1u);
-            atomicAdd(&telemetry[3], bodyCount);
+            if (nextState != previousState) {
+                atomicAdd(&telemetry[6], select(0u, 1u, nextState != 0u));
+                atomicAdd(&telemetry[7], select(0u, 1u, nextState == 0u));
+            }
+            if (nextState != 0u) {
+                atomicAdd(&telemetry[2], 1u);
+                atomicAdd(&telemetry[4], bodyCount);
+            } else {
+                atomicAdd(&telemetry[1], 1u);
+                atomicAdd(&telemetry[3], bodyCount);
+            }
+            firstBodyRecord = endBodyRecord;
+            islandIndex += 1u;
         }
     }
     small_world_barrier();
 
     if (lane == 0u) {
         var eventCount = 0u;
-        for (var root = 0u; root < params.capacities.x; root += 1u) {
-            if (!body_is_alive(root) || atomicLoad(&bodyRoots[root]) != root) {
-                continue;
-            }
+        let islandCount = atomicLoad(&telemetry[0]);
+        for (var islandIndex = 0u;
+             islandIndex < islandCount; islandIndex += 1u) {
+            let root = islandRecords[islandIndex].rootBody;
             let eventType = islandPersistent[root].reserved;
             if (eventType == 0u) { continue; }
             if (eventCount < params.capacities.z) {
@@ -977,7 +1010,7 @@ fn small_world_decide(@builtin(global_invocation_id) gid : vec3<u32>) {
 
     for (var body = lane; body < params.capacities.x; body += 256u) {
         if (!body_is_alive(body)) { continue; }
-        let root = atomicLoad(&bodyRoots[body]);
+        let root = bodyPersistent[body].reserved0;
         let sleeping = islandPersistent[root].state != 0u;
         var bodyMetadata = metadata[body];
         var packedMetadata = u32(bodyMetadata.w);

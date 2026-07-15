@@ -294,11 +294,12 @@ public:
         storage(entries, 7, false);
         storage(entries, 8, false);
         storage(entries, 9, false);
+        storage(entries, 14, false);
         uniform(entries);
         smallBuildLayout_ = makeLayout(entries, "island_small_build_layout");
 
         entries.clear();
-        for (uint32_t binding : {1u, 3u, 6u, 9u, 11u, 13u, 14u, 18u})
+        for (uint32_t binding : {1u, 3u, 8u, 9u, 11u, 13u, 14u, 18u})
             storage(entries, binding, false);
         uniform(entries);
         smallDecideLayout_ = makeLayout(entries, "island_small_decide_layout");
@@ -559,7 +560,7 @@ public:
                 parameterBuffer_, 0, sizeof(Params));
         };
         if (compactSmallWorld) {
-            const std::array<gpu::BindGroupEntry, 8> buildEntries = {
+            const std::array<gpu::BindGroupEntry, 9> buildEntries = {
                 gpu::BindGroupEntry(3).buffer(input_.metadataBuffer),
                 gpu::BindGroupEntry(4).buffer(input_.manifoldBuffer),
                 gpu::BindGroupEntry(5).buffer(
@@ -567,11 +568,13 @@ public:
                 gpu::BindGroupEntry(6).buffer(roots_),
                 gpu::BindGroupEntry(7).buffer(bodyRecords_),
                 gpu::BindGroupEntry(8).buffer(sortedBodyRecords_),
-                gpu::BindGroupEntry(9).buffer(telemetry_), parameterEntry()};
+                gpu::BindGroupEntry(9).buffer(telemetry_),
+                gpu::BindGroupEntry(14).buffer(bodyPersistent_),
+                parameterEntry()};
             const std::array<gpu::BindGroupEntry, 9> decideEntries = {
                 gpu::BindGroupEntry(1).buffer(input_.motionBuffer),
                 gpu::BindGroupEntry(3).buffer(input_.metadataBuffer),
-                gpu::BindGroupEntry(6).buffer(roots_),
+                gpu::BindGroupEntry(8).buffer(sortedBodyRecords_),
                 gpu::BindGroupEntry(9).buffer(telemetry_),
                 gpu::BindGroupEntry(11).buffer(islands_),
                 gpu::BindGroupEntry(13).buffer(islandPersistent_),
