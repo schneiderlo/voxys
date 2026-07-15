@@ -157,6 +157,9 @@ fn coastalWaveField(worldXZ : vec2<f32>) -> CoastalWave {
     let blend = turn * wet * coastResponse;
     let shelterInfluence = 1.0 - smoothstep(220.0, 850.0, coastDistance);
     let waveExposure = mix(1.0, max(0.16, directionalExposure), shelterInfluence);
+    if (blend == 0.0) {
+        return CoastalWave(0.0, 0.0, waveExposure);
+    }
     let shallow = 1.0 - smoothstep(4.0, 28.0, waterDepth);
     let wavelengthCompression = mix(1.0, 1.58, shallow);
     let offshoreCoordinate = -dot(worldXZ, WATER_INCOMING_DIRECTION);
