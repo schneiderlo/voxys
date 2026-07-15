@@ -109,7 +109,6 @@ struct VelocityPair {
 // scheduled into dependency levels: contacts in one level touch disjoint
 // bodies, while every body's original rank order is preserved across levels.
 var<workgroup> serialBodyNextLevel : array<u32, 1024>;
-var<workgroup> serialLevelCount : u32;
 
 fn sentinel_record() -> KeyValue {
     return KeyValue(SENTINEL, SENTINEL, SENTINEL, SENTINEL);
@@ -1525,9 +1524,6 @@ fn build_serial_dependency_levels(lane : u32, contactCount : u32) {
     for (var body = lane; body < 1024u; body += 256u) {
         serialBodyNextLevel[body] = 0u;
     }
-    if (lane == 0u) {
-        serialLevelCount = 0u;
-    }
     workgroupBarrier();
 
     if (lane == 0u) {
@@ -1541,7 +1537,6 @@ fn build_serial_dependency_levels(lane : u32, contactCount : u32) {
                 let nextLevel = level + 1u;
                 serialBodyNextLevel[pair.keyHigh] = nextLevel;
                 serialBodyNextLevel[pair.keyLow] = nextLevel;
-                serialLevelCount = max(serialLevelCount, nextLevel);
             }
             // softness.w is intentionally unused by constraint evaluation.
             cache.softness.w = bitcast<f32>(level);
@@ -1563,7 +1558,11 @@ fn solve_serial_stage(lane : u32, contactCount : u32, stage : u32,
         return;
     }
 
-    for (var level = 0u; level < serialLevelCount; level += 1u) {
+    // Pairs arrive in lexicographic (minimum, maximum) order. For n bodies,
+    // the complete graph reaches level 2n-4; removing pairs can only lower
+    // the per-body next levels. A uniform-buffer bound keeps every lane's
+    // barriers in uniform control flow, as required by browser WebGPU.
+    for (var level = 0u; level < 2u * params.capacities.x; level += 1u) {
         for (var rank = lane; rank < contactCount; rank += 256u) {
             if (bitcast<u32>(constraintCaches[rank].softness.w) == level) {
                 solve_serial_contact(rank, stage);
