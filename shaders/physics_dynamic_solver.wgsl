@@ -9,6 +9,7 @@ const STAGE_WARM_START : u32 = 0u;
 const STAGE_BIASED : u32 = 1u;
 const STAGE_RELAX : u32 = 2u;
 const STAGE_RESTITUTION : u32 = 3u;
+const SERIAL_LEVEL_CONTACT_THRESHOLD : u32 = 1024u;
 
 struct BodyPose {
     position_invMass : vec4<f32>,
@@ -103,6 +104,12 @@ struct VelocityPair {
 @group(0) @binding(19) var<storage, read_write> endpointDeltas : array<EndpointDelta>;
 @group(0) @binding(20) var<storage, read_write> bodyDegrees : array<atomic<u32>>;
 @group(0) @binding(21) var<storage, read_write> colorDispatchArgs : array<atomic<u32>>;
+
+// Compact worlds keep the single-dispatch path. Dense contact graphs are
+// scheduled into dependency levels: contacts in one level touch disjoint
+// bodies, while every body's original rank order is preserved across levels.
+var<workgroup> serialBodyNextLevel : array<u32, 1024>;
+var<workgroup> serialLevelCount : u32;
 
 fn sentinel_record() -> KeyValue {
     return KeyValue(SENTINEL, SENTINEL, SENTINEL, SENTINEL);
@@ -1514,6 +1521,59 @@ fn solve_serial_contact(rank : u32, stage : u32) {
     store_contact_velocities(pair, velocities);
 }
 
+fn build_serial_dependency_levels(lane : u32, contactCount : u32) {
+    for (var body = lane; body < 1024u; body += 256u) {
+        serialBodyNextLevel[body] = 0u;
+    }
+    if (lane == 0u) {
+        serialLevelCount = 0u;
+    }
+    workgroupBarrier();
+
+    if (lane == 0u) {
+        for (var rank = 0u; rank < contactCount; rank += 1u) {
+            var cache = constraintCaches[rank];
+            var level = SENTINEL;
+            if (contact_is_active(rank)) {
+                let pair = manifolds[rank].pair;
+                level = max(serialBodyNextLevel[pair.keyHigh],
+                            serialBodyNextLevel[pair.keyLow]);
+                let nextLevel = level + 1u;
+                serialBodyNextLevel[pair.keyHigh] = nextLevel;
+                serialBodyNextLevel[pair.keyLow] = nextLevel;
+                serialLevelCount = max(serialLevelCount, nextLevel);
+            }
+            // softness.w is intentionally unused by constraint evaluation.
+            cache.softness.w = bitcast<f32>(level);
+            constraintCaches[rank] = cache;
+        }
+    }
+    storageBarrier();
+    workgroupBarrier();
+}
+
+fn solve_serial_stage(lane : u32, contactCount : u32, stage : u32,
+                      dependencyLevels : bool) {
+    if (!dependencyLevels) {
+        if (lane == 0u) {
+            for (var rank = 0u; rank < contactCount; rank += 1u) {
+                solve_serial_contact(rank, stage);
+            }
+        }
+        return;
+    }
+
+    for (var level = 0u; level < serialLevelCount; level += 1u) {
+        for (var rank = lane; rank < contactCount; rank += 256u) {
+            if (bitcast<u32>(constraintCaches[rank].softness.w) == level) {
+                solve_serial_contact(rank, stage);
+            }
+        }
+        storageBarrier();
+        workgroupBarrier();
+    }
+}
+
 // Small GPU worlds are latency-bound, not throughput-bound. Run the exact
 // Soft Step contact sequence in one dispatch, while distributing independent
 // per-body integration across one workgroup.
@@ -1543,6 +1603,12 @@ fn solve_serial_world(@builtin(local_invocation_id) lid : vec3<u32>) {
     }
     storageBarrier();
     workgroupBarrier();
+
+    let dependencyLevels =
+        contactCount >= SERIAL_LEVEL_CONTACT_THRESHOLD;
+    if (dependencyLevels) {
+        build_serial_dependency_levels(lane, contactCount);
+    }
 
     // Detailed classification is diagnostic-only. Every body/contact owns an
     // independent lane; integer max/sum reductions are exact and commutative.
@@ -1585,16 +1651,12 @@ fn solve_serial_world(@builtin(local_invocation_id) lid : vec3<u32>) {
         }
         storageBarrier();
         workgroupBarrier();
-        if (lane == 0u && substep == 0u) {
-            for (var rank = 0u; rank < contactCount; rank += 1u) {
-                solve_serial_contact(rank, STAGE_WARM_START);
-            }
+        if (substep == 0u) {
+            solve_serial_stage(lane, contactCount, STAGE_WARM_START,
+                               dependencyLevels);
         }
-        if (lane == 0u) {
-            for (var rank = 0u; rank < contactCount; rank += 1u) {
-                solve_serial_contact(rank, STAGE_BIASED);
-            }
-        }
+        solve_serial_stage(lane, contactCount, STAGE_BIASED,
+                           dependencyLevels);
         storageBarrier();
         workgroupBarrier();
         let finalSubstep = substep + 1u == params.control.z;
@@ -1603,21 +1665,17 @@ fn solve_serial_world(@builtin(local_invocation_id) lid : vec3<u32>) {
         }
         storageBarrier();
         workgroupBarrier();
-        if (lane == 0u) {
-            for (var rank = 0u; rank < contactCount; rank += 1u) {
-                solve_serial_contact(rank, STAGE_RELAX);
-            }
-        }
+        solve_serial_stage(lane, contactCount, STAGE_RELAX,
+                           dependencyLevels);
         storageBarrier();
         workgroupBarrier();
     }
+    solve_serial_stage(lane, contactCount, STAGE_RESTITUTION,
+                       dependencyLevels);
     if (lane == 0u) {
         let activeCount = atomicLoad(&solverTelemetry[32]);
         let maximumDegree = atomicLoad(&solverTelemetry[36]);
         let smallIslandCount = atomicLoad(&solverTelemetry[43]);
-        for (var rank = 0u; rank < contactCount; rank += 1u) {
-            solve_serial_contact(rank, STAGE_RESTITUTION);
-        }
 
         atomicStore(&solverTelemetry[0], activeCount - smallIslandCount);
         atomicStore(&solverTelemetry[32], activeCount);
