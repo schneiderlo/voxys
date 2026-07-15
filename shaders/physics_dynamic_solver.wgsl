@@ -1589,7 +1589,8 @@ fn solve_serial_stage(lane : u32, contactCount : u32, stage : u32,
     // the complete graph reaches level 2n-4; removing pairs can only lower
     // the per-body next levels. A uniform-buffer bound keeps every lane's
     // barriers in uniform control flow, as required by browser WebGPU.
-    for (var level = 0u; level < 2u * params.capacities.x; level += 1u) {
+    let levelBound = min(2u * params.capacities.x, contactCount);
+    for (var level = 0u; level < levelBound; level += 1u) {
         let offset = serialLevelOffsets[level];
         let count = serialLevelCounts[level];
         for (var index = lane; index < count; index += 256u) {
