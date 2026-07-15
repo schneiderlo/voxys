@@ -954,7 +954,68 @@ fn small_world_decide(@builtin(global_invocation_id) gid : vec3<u32>) {
     }
     small_world_barrier();
 
-    if (lane == 0u) {
+    let contactFree = atomicLoad(&telemetry[12]) == 0u;
+    if (contactFree) {
+        // Without dynamic contacts every sorted body record is a singleton
+        // island. Decide those independent islands in parallel while keeping
+        // their canonical ascending record and event order.
+        for (var islandIndex = lane; islandIndex < params.capacities.x;
+             islandIndex += 256u) {
+            let record = sortedBodyRecords[islandIndex];
+            if (record.keyHigh == SENTINEL) { continue; }
+            let root = record.keyHigh;
+            let body = record.value;
+            let awakeCount = select(0u, 1u,
+                (u32(metadata[body].w) & BODY_AWAKE) != 0u);
+            let linear = motions[body].linearVelocity_sleep.xyz;
+            let angular = motions[body].angularVelocity_flags.xyz;
+            let qualifies = dot(linear, linear) <= params.thresholds.x
+                && dot(angular, angular) <= params.thresholds.y;
+            let rootChanged = bodyPersistent[body].previousRoot != root;
+            let wasSleeping = bodyPersistent[body].previousSleeping != 0u;
+            let persistent = islandPersistent[root];
+            let disturbed = rootChanged
+                || persistent.previousBodyCount != 1u;
+            let previousState = select(persistent.state, 1u,
+                persistent.previousBodyCount == 0u && wasSleeping);
+            var nextState = previousState;
+            var sleepTicks = persistent.sleepTicks;
+            if (disturbed) {
+                nextState = 0u;
+                sleepTicks = 0u;
+            } else if (awakeCount == 0u) {
+                nextState = 1u;
+            } else if (qualifies) {
+                sleepTicks = min(sleepTicks + 1u, params.control.y);
+                nextState = select(0u, 1u,
+                    sleepTicks >= params.control.y);
+            } else {
+                nextState = 0u;
+                sleepTicks = 0u;
+            }
+            let eventType = select(0u,
+                select(2u, 1u, nextState != 0u),
+                nextState != previousState);
+            islandPersistent[root] = IslandPersistent(
+                sleepTicks, nextState, 1u, eventType);
+            islandRecords[islandIndex] = IslandRecord(
+                root, islandIndex, 1u, nextState);
+            atomicAdd(&telemetry[0], 1u);
+            atomicMax(&telemetry[5], 1u);
+
+            if (nextState != previousState) {
+                atomicAdd(&telemetry[6], select(0u, 1u, nextState != 0u));
+                atomicAdd(&telemetry[7], select(0u, 1u, nextState == 0u));
+            }
+            if (nextState != 0u) {
+                atomicAdd(&telemetry[2], 1u);
+                atomicAdd(&telemetry[4], 1u);
+            } else {
+                atomicAdd(&telemetry[1], 1u);
+                atomicAdd(&telemetry[3], 1u);
+            }
+        }
+    } else if (lane == 0u) {
         var firstBodyRecord = 0u;
         var islandIndex = 0u;
         while (firstBodyRecord < params.capacities.x) {
