@@ -691,6 +691,11 @@ fn reduce_terrain_candidates(input : TerrainCandidateSet) -> TerrainContacts {
     result.count = 0u;
     result.rejected = input.rejected;
     if (source.count == 0u) { return result; }
+    if (source.count == 1u) {
+        result.items[0] = source.items[0];
+        result.count = 1u;
+        return result;
+    }
 
     for (var index = 1u; index < source.count; index += 1u) {
         let key = source.items[index];
