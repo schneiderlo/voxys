@@ -14,6 +14,7 @@
 #include <iomanip>
 #include <memory>
 #include <numeric>
+#include <optional>
 #include <sstream>
 #include <string>
 #include <emscripten.h>
@@ -47,11 +48,18 @@ namespace {
     std::unique_ptr<voxy::Application> g_wasmAppInstance;
     voxy::Application* g_app = nullptr;
     std::unique_ptr<voxy::physics::PhysicsWorld> g_physicsSelfTestWorld;
+    std::unique_ptr<voxy::physics::PhysicsWorld> g_physicsBenchmarkWorld;
     WGPUDevice g_physicsSelfTestDevice = nullptr;
     WGPUQueue g_physicsSelfTestQueue = nullptr;
     PhysicsSelfTestState g_physicsSelfTest;
     bool g_physicsSelfTestRequested = false;
     bool g_physicsSelfTestRuntimeReady = false;
+    bool g_physicsBenchmarkRuntimeReady = false;
+    bool g_physicsBenchmarkAwaitingTiming = false;
+    uint32_t g_physicsBenchmarkBodies = 0;
+    uint64_t g_physicsBenchmarkSamples = 0;
+    std::optional<voxy::physics::PhysicsGpuStageTiming>
+        g_physicsBenchmarkTiming;
     double g_lastFrameCpuMilliseconds = 0.0;
     uint32_t g_gpuFramesInFlight = 0;
     uint64_t g_gpuPacingSkips = 0;
@@ -77,10 +85,31 @@ namespace {
     }
 
     std::string makeTelemetryJson() {
-        if (!g_app) return {};
-        const voxy::ApplicationStats& app = g_app->getStats();
+        if (!g_app && !g_physicsBenchmarkWorld) return {};
+        voxy::ApplicationStats app = g_app
+            ? g_app->getStats() : voxy::ApplicationStats{};
+        const voxy::physics::PhysicsWorld* world = g_app
+            ? g_app->getPhysicsWorld() : g_physicsBenchmarkWorld.get();
+        if (!g_app && world) {
+            app.frameCount = g_physicsBenchmarkSamples;
+            app.physics = world->stats();
+            app.physicsBackend = app.physics.backend;
+            app.physicsResidentBodies = app.physics.residentBodies;
+            app.physicsActiveBodies = app.physics.activeBodies;
+            app.physicsBodyCapacity = app.physics.bodyCapacity;
+            app.physicsEstimatedPersistentBytes =
+                app.physics.estimatedPersistentBytes;
+            app.physicsScratchBytes = app.physics.scratchBytes;
+            app.physicsGpuTiming = g_physicsBenchmarkTiming;
+            if (g_physicsBenchmarkTiming) {
+                app.frameTimeMs =
+                    g_physicsBenchmarkTiming->totalMilliseconds();
+                app.avgFrameTimeMs = app.frameTimeMs;
+                app.fps = app.frameTimeMs > 0.0
+                    ? 1000.0 / app.frameTimeMs : 0.0;
+            }
+        }
         const voxy::physics::PhysicsStats& physics = app.physics;
-        const voxy::physics::PhysicsWorld* world = g_app->getPhysicsWorld();
 
         std::ostringstream out;
         out << std::setprecision(10);
@@ -235,6 +264,7 @@ namespace {
     }
 
     voxy::physics::PhysicsWorld* physicsWorldForSelfTest() noexcept {
+        if (g_physicsBenchmarkWorld) return g_physicsBenchmarkWorld.get();
         if (g_physicsSelfTestWorld) return g_physicsSelfTestWorld.get();
         return g_app ? g_app->getPhysicsWorld() : nullptr;
     }
@@ -421,6 +451,54 @@ namespace {
         LOG_INFO("WASM GPU physics self-test passed at tick {}",
                  g_physicsSelfTest.tick);
     }
+
+    bool submitPhysicsBenchmarkStep() {
+        if (!g_physicsBenchmarkWorld || !g_physicsSelfTestDevice
+            || !g_physicsSelfTestQueue) {
+            return false;
+        }
+
+        const double startMilliseconds = emscripten_get_now();
+        g_physicsBenchmarkWorld->update(1.0f / 60.0f);
+        WGPUCommandEncoderDescriptor encoderDesc{};
+        WGPUCommandEncoder encoder = wgpuDeviceCreateCommandEncoder(
+            g_physicsSelfTestDevice, &encoderDesc);
+        if (!encoder) return false;
+        g_physicsBenchmarkWorld->encodeGpuStep(encoder);
+        WGPUCommandBufferDescriptor commandDesc{};
+        WGPUCommandBuffer command =
+            wgpuCommandEncoderFinish(encoder, &commandDesc);
+        if (!command) {
+            wgpuCommandEncoderRelease(encoder);
+            return false;
+        }
+        wgpuQueueSubmit(g_physicsSelfTestQueue, 1u, &command);
+        wgpuCommandBufferRelease(command);
+        wgpuCommandEncoderRelease(encoder);
+        g_lastFrameCpuMilliseconds =
+            emscripten_get_now() - startMilliseconds;
+        g_physicsBenchmarkAwaitingTiming = true;
+        return true;
+    }
+
+    void physicsBenchmarkFrame() {
+        if (!g_physicsBenchmarkWorld) return;
+        bool retiredTiming = false;
+        while (auto timing =
+                   g_physicsBenchmarkWorld->pollGpuStageTimings()) {
+            g_physicsBenchmarkTiming = std::move(*timing);
+            retiredTiming = true;
+        }
+        if (g_physicsBenchmarkAwaitingTiming && !retiredTiming) return;
+        if (retiredTiming) {
+            g_physicsBenchmarkAwaitingTiming = false;
+            ++g_physicsBenchmarkSamples;
+        }
+        if (!submitPhysicsBenchmarkStep()) {
+            LOG_ERROR("Could not submit the browser physics benchmark step");
+            emscripten_cancel_main_loop();
+        }
+    }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -438,6 +516,89 @@ int main(int argc, char* argv[]) {
         return new URLSearchParams(globalThis.location.search)
             .get("physicsSelfTest") === "1" ? 1 : 0;
     }) != 0;
+    g_physicsBenchmarkBodies = static_cast<uint32_t>(EM_ASM_INT({
+        const value = Number.parseInt(
+            new URLSearchParams(globalThis.location.search)
+                .get("physicsBenchmarkBodies") ?? "0",
+            10);
+        return Number.isInteger(value) && value > 0 ? value : 0;
+    }));
+    if (g_physicsBenchmarkBodies != 0u) {
+        g_physicsBenchmarkRuntimeReady = true;
+        g_physicsSelfTestDevice = emscripten_webgpu_get_device();
+        if (!g_physicsSelfTestDevice) {
+            LOG_ERROR("Browser physics benchmark has no WebGPU device");
+            return 0;
+        }
+        g_physicsSelfTestQueue =
+            wgpuDeviceGetQueue(g_physicsSelfTestDevice);
+        if (!g_physicsSelfTestQueue) {
+            LOG_ERROR("Browser physics benchmark has no WebGPU queue");
+            return 0;
+        }
+
+        voxy::physics::PhysicsInitContext physicsContext;
+        physicsContext.requestedBackend =
+            voxy::physics::BackendType::WebGpuSoft;
+        physicsContext.device = g_physicsSelfTestDevice;
+        physicsContext.queue = g_physicsSelfTestQueue;
+        physicsContext.maxBodies = static_cast<uint32_t>(std::max(
+            config.physics.gpuMaxBodies,
+            static_cast<int>(g_physicsBenchmarkBodies)));
+        physicsContext.maxActiveBodies = physicsContext.maxBodies;
+        physicsContext.gpu.enableStageProfiling = true;
+        physicsContext.gpu.stageProfilingIntervalTicks = 1;
+        physicsContext.gpu.enableTelemetryReadback = true;
+        physicsContext.gpu.telemetryReadbackIntervalTicks = 1;
+        physicsContext.gpu.shaderPath =
+            "shaders/physics_ballistic.wgsl";
+
+        g_physicsBenchmarkWorld =
+            std::make_unique<voxy::physics::PhysicsWorld>();
+        if (!g_physicsBenchmarkWorld->initialize(physicsContext)) {
+            LOG_ERROR("Browser WebGPU physics benchmark did not initialize");
+            return 0;
+        }
+
+        const voxy::physics::ThrowableShape shape =
+            voxy::physics::ThrowableShape::Sphere;
+        const glm::vec3 dimensions =
+            voxy::physics::throwableShapeDimensions(shape);
+        const float maximumDimension = std::max(
+            dimensions.x, std::max(dimensions.y, dimensions.z));
+        const float spacing = maximumDimension * 1.08f + 0.02f;
+        constexpr uint32_t columns = 16u;
+        constexpr uint32_t rows = 8u;
+        constexpr uint32_t batchSize = columns * rows;
+        for (uint32_t index = 0; index < g_physicsBenchmarkBodies; ++index) {
+            const uint32_t batch = index / batchSize;
+            const uint32_t batchIndex = index % batchSize;
+            const uint32_t column = batchIndex % columns;
+            const uint32_t row = batchIndex / columns;
+            const uint32_t lane = batch % 4u;
+            voxy::physics::BodySpawnDesc body;
+            body.shape = shape;
+            body.dimensions = dimensions;
+            body.position = {
+                (static_cast<float>(column) - 7.5f) * spacing,
+                100.0f + (static_cast<float>(row) - 3.5f) * spacing,
+                static_cast<float>(lane) * spacing * 1.5f,
+            };
+            body.linearVelocity = {0.0f, 0.0f, 28.0f};
+            if (!g_physicsBenchmarkWorld->spawnBody(body).valid()) {
+                LOG_ERROR("Browser physics benchmark stopped spawning at {}",
+                          index);
+                return 0;
+            }
+        }
+        LOG_INFO("Spawned {} renderless browser benchmark bodies",
+                 g_physicsBenchmarkBodies);
+        emscripten_set_main_loop([]() {
+            physicsBenchmarkFrame();
+        }, 0, false);
+        emscripten_set_main_loop_timing(EM_TIMING_SETTIMEOUT, 0);
+        return 0;
+    }
     if (g_physicsSelfTestRequested) {
         g_physicsSelfTestRuntimeReady = true;
         g_physicsSelfTest = {};
@@ -785,16 +946,25 @@ int voxy_get_physics_substeps() {
 
 EMSCRIPTEN_KEEPALIVE
 int voxy_get_physics_resident_bodies() {
+    if (g_physicsBenchmarkWorld) {
+        return static_cast<int>(
+            g_physicsBenchmarkWorld->stats().residentBodies);
+    }
     return g_app
         ? static_cast<int>(g_app->getStats().physicsResidentBodies) : 0;
 }
 
 EMSCRIPTEN_KEEPALIVE
 double voxy_get_physics_stage_ms(int stage) {
-    if (!g_app || stage < 0
+    if (stage < 0
         || stage >= static_cast<int>(voxy::physics::kPhysicsGpuStageCount)) {
         return -1.0;
     }
+    if (g_physicsBenchmarkTiming) {
+        return g_physicsBenchmarkTiming->milliseconds[
+            static_cast<size_t>(stage)];
+    }
+    if (!g_app) return -1.0;
     const auto& timing = g_app->getStats().physicsGpuTiming;
     return timing
         ? timing->milliseconds[static_cast<size_t>(stage)] : -1.0;
@@ -809,7 +979,8 @@ const char* voxy_get_telemetry_json() {
 
 EMSCRIPTEN_KEEPALIVE
 int voxy_is_initialized() {
-    return g_app != nullptr || g_physicsSelfTestRuntimeReady ? 1 : 0;
+    return g_app != nullptr || g_physicsSelfTestRuntimeReady
+        || g_physicsBenchmarkRuntimeReady ? 1 : 0;
 }
 
 EMSCRIPTEN_KEEPALIVE
