@@ -155,6 +155,7 @@ while (Date.now() < deadline) {
             }
         }
         const canvas = document.getElementById("voxy-canvas");
+        const error = document.getElementById("error");
         const bounds = canvas?.getBoundingClientRect();
         return {
             initialized,
@@ -174,10 +175,10 @@ while (Date.now() < deadline) {
             buildId: globalThis.voxyBuildId ?? null,
             profilingEnabled: new URLSearchParams(location.search)
                 .get("physicsProfile") !== "0",
-            errorVisible: getComputedStyle(
-                document.getElementById("error"),
-            ).display !== "none",
-            errorText: document.getElementById("error")?.textContent ?? "",
+            errorVisible: error
+                ? getComputedStyle(error).display !== "none"
+                : false,
+            errorText: error?.textContent ?? "",
         };
     })()`);
     if (readyState.errorVisible) {
