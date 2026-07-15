@@ -201,7 +201,9 @@ TEST_F(GpuPhysicsTest, ComposesBodyContactsEventsAndAsyncQueries) {
     EXPECT_TRUE(world.capabilities().bodyBodyContacts);
     EXPECT_TRUE(world.capabilities().asynchronousQueries);
     EXPECT_TRUE(world.capabilities().eventReadback);
+    const size_t scratchBeforeEventReadback = world.stats().scratchBytes;
     world.setEventReadbackEnabled(true);
+    EXPECT_GT(world.stats().scratchBytes, scratchBeforeEventReadback);
 
     BodySpawnDesc leftDesc;
     leftDesc.dimensions = throwableShapeDimensions(ThrowableShape::Sphere);

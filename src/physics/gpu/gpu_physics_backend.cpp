@@ -485,17 +485,6 @@ public:
             return false;
         }
         eventCapacity_ = static_cast<uint32_t>(maximumEvents);
-        GpuEventReadbackRing::Config eventConfig;
-        eventConfig.eventCapacity = eventCapacity_;
-        eventConfig.readbackSlots = config_.eventReadbackSlots == 0
-            ? std::max(config_.maximumCatchUpTicks, 3u)
-            : config_.eventReadbackSlots;
-        eventConfig.shaderPath = shaderFile("physics_event_readback.wgsl");
-        if (!eventReadback_.initialize(device_, queue_, eventConfig)) {
-            shutdown();
-            return false;
-        }
-        refreshEventSources(1u);
 
         if (config_.enableStageProfiling) {
             if (!std::isfinite(
@@ -1051,6 +1040,26 @@ public:
         });
     }
 
+    [[nodiscard]] bool initializeEventReadback() {
+        if (eventReadback_.allocatedBytes() != 0u) return true;
+        GpuEventReadbackRing::Config eventConfig;
+        eventConfig.eventCapacity = eventCapacity_;
+        eventConfig.readbackSlots = config_.eventReadbackSlots == 0
+            ? std::max(config_.maximumCatchUpTicks, 3u)
+            : config_.eventReadbackSlots;
+        const std::filesystem::path mainShaderPath(config_.shaderPath);
+        eventConfig.shaderPath = (mainShaderPath.parent_path().empty()
+                ? std::filesystem::path("shaders")
+                : mainShaderPath.parent_path())
+            / "physics_event_readback.wgsl";
+        if (!eventReadback_.initialize(device_, queue_, eventConfig)) {
+            LOG_ERROR("Failed to allocate GPU physics event readback");
+            return false;
+        }
+        refreshEventSources(executionBodyCount());
+        return true;
+    }
+
     void refreshExecutionInputs(uint32_t executionBodies) {
         broadPhase_.setBodyView({
             .poseBuffer = poseBuffer_,
@@ -1360,7 +1369,9 @@ public:
     }
 
     void setEventReadbackEnabled(bool enabled) noexcept {
-        eventReadbackEnabled_ = initialized_ && enabled;
+        eventReadbackEnabled_ = false;
+        if (!initialized_ || !enabled) return;
+        eventReadbackEnabled_ = initializeEventReadback();
     }
 
     std::optional<PhysicsEventBatch> pollEvents() {
