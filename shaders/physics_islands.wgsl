@@ -806,7 +806,12 @@ fn small_world_build(@builtin(global_invocation_id) gid : vec3<u32>) {
     // With no dynamic contacts every live body is already its own canonical
     // root. Union and path compression are identities, so defer all rounds.
     let unionRounds = select(0u, params.control.x, contactCount != 0u);
+    // Telemetry word 35 is internal convergence scratch and is restored below.
     for (var round = 0u; round < unionRounds; round += 1u) {
+        if (lane == 0u) {
+            atomicStore(&telemetry[35], 0u);
+        }
+        workgroupBarrier();
         for (var rank = lane; rank < contactCount; rank += 256u) {
             if (manifolds[rank].state.x == 0u) { continue; }
             let pair = manifolds[rank].pair;
@@ -818,16 +823,34 @@ fn small_world_build(@builtin(global_invocation_id) gid : vec3<u32>) {
             if (rootA == SENTINEL || rootB == SENTINEL || rootA == rootB) {
                 continue;
             }
-            atomicMin(&bodyRoots[max(rootA, rootB)], min(rootA, rootB));
+            let higher = max(rootA, rootB);
+            let lower = min(rootA, rootB);
+            let previous = atomicMin(&bodyRoots[higher], lower);
+            if (previous > lower) {
+                atomicStore(&telemetry[35], 1u);
+            }
         }
         small_world_barrier();
         for (var body = lane; body < params.capacities.x; body += 256u) {
             if (body_is_alive(body)) {
-                atomicStore(&bodyRoots[body], small_world_root(body));
+                let previous = atomicLoad(&bodyRoots[body]);
+                let root = small_world_root(body);
+                atomicStore(&bodyRoots[body], root);
+                if (root != previous) {
+                    atomicStore(&telemetry[35], 1u);
+                }
             }
         }
         small_world_barrier();
+        if (lane == 0u) {
+            smallWorldSortRecords[0].ordinal = atomicLoad(&telemetry[35]);
+        }
+        if (workgroupUniformLoad(
+                &smallWorldSortRecords[0].ordinal) == 0u) {
+            break;
+        }
     }
+    if (lane == 0u) { atomicStore(&telemetry[35], 0u); }
 
     for (var body = lane; body < params.capacities.x; body += 256u) {
         if (body_is_alive(body)) {
