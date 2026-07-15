@@ -147,6 +147,9 @@ struct FrameStats {
     double primitivePackingMs = 0.0;
     double primitiveUploadMs = 0.0;
     double primitiveRenderMs = 0.0;
+    uint32_t physicsResidentBodies = 0;
+    uint32_t physicsActiveBodies = 0;
+    bool physicsActiveBodiesObserved = false;
     uint32_t frameNumber = 0;  // Current frame count
     
     // Computed values

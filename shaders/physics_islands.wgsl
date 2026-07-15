@@ -105,7 +105,7 @@ struct IslandParams {
 @group(0) @binding(14) var<storage, read_write> bodyPersistent :
     array<BodyPersistent>;
 @group(0) @binding(15) var<storage, read_write> sleepingGrid : array<KeyValue>;
-@group(0) @binding(16) var<storage, read> sortedSleepingGrid : array<KeyValue>;
+@group(0) @binding(16) var<storage, read_write> sortedSleepingGrid : array<KeyValue>;
 @group(0) @binding(17) var<storage, read_write> sleepingCellRanges :
     array<SleepingCellRange>;
 @group(0) @binding(18) var<storage, read_write> islandEvents : array<IslandEvent>;
@@ -753,4 +753,316 @@ fn scatter_sleeping_range_ends_128(@builtin(global_invocation_id) gid : vec3<u32
 @compute @workgroup_size(256)
 fn scatter_sleeping_range_ends_256(@builtin(global_invocation_id) gid : vec3<u32>) {
     scatter_sleeping_range_ends_impl(gid);
+}
+
+fn small_world_root(body : u32) -> u32 {
+    var root = atomicLoad(&bodyRoots[body]);
+    for (var step = 0u; step < params.capacities.x; step += 1u) {
+        if (root == SENTINEL) { return SENTINEL; }
+        let parent = atomicLoad(&bodyRoots[root]);
+        if (parent == root) { return root; }
+        root = parent;
+    }
+    return root;
+}
+
+// One workgroup keeps the latency advantage of the compact path while
+// spreading medium-world work across 256 lanes. Storage barriers make each
+// phase visible without paying for another WebGPU dispatch.
+fn small_world_barrier() {
+    storageBarrier();
+    workgroupBarrier();
+}
+
+@compute @workgroup_size(256)
+fn small_world_build(@builtin(global_invocation_id) gid : vec3<u32>) {
+    let lane = gid.x;
+    if (lane < 13u) {
+        atomicStore(&telemetry[lane], 0u);
+    }
+    if (lane == 0u) {
+        atomicStore(&telemetry[17], 0u);
+        atomicStore(&telemetry[18], 0u);
+    }
+
+    for (var body = lane; body < params.capacities.x; body += 256u) {
+        atomicStore(&bodyRoots[body], select(
+            SENTINEL, body, body_is_alive(body)));
+        bodyRecords[body] = sentinel_record();
+        sortedBodyRecords[body] = sentinel_record();
+    }
+    small_world_barrier();
+
+    let contactCount = active_contact_count();
+    for (var round = 0u; round < params.control.x; round += 1u) {
+        for (var rank = lane; rank < contactCount; rank += 256u) {
+            if (manifolds[rank].state.x == 0u) { continue; }
+            let pair = manifolds[rank].pair;
+            if (!body_is_alive(pair.keyHigh) || !body_is_alive(pair.keyLow)) {
+                continue;
+            }
+            let rootA = small_world_root(pair.keyHigh);
+            let rootB = small_world_root(pair.keyLow);
+            if (rootA == SENTINEL || rootB == SENTINEL || rootA == rootB) {
+                continue;
+            }
+            atomicMin(&bodyRoots[max(rootA, rootB)], min(rootA, rootB));
+        }
+        small_world_barrier();
+        for (var body = lane; body < params.capacities.x; body += 256u) {
+            if (body_is_alive(body)) {
+                atomicStore(&bodyRoots[body], small_world_root(body));
+            }
+        }
+        small_world_barrier();
+    }
+
+    for (var body = lane; body < params.capacities.x; body += 256u) {
+        if (body_is_alive(body)) {
+            let root = small_world_root(body);
+            atomicStore(&bodyRoots[body], root);
+            let record = KeyValue(body, root, body, body);
+            bodyRecords[body] = record;
+        }
+    }
+    small_world_barrier();
+
+    // Rank-by-key is O(n^2) work, but each body owns an independent lane and
+    // medium worlds avoid the dozens of dispatches used by a global radix sort.
+    for (var body = lane; body < params.capacities.x; body += 256u) {
+        let record = bodyRecords[body];
+        if (record.keyHigh != SENTINEL) {
+            var rank = 0u;
+            for (var other = 0u; other < params.capacities.x; other += 1u) {
+                let candidate = bodyRecords[other];
+                rank += select(0u, 1u,
+                    candidate.keyHigh < record.keyHigh
+                    || (candidate.keyHigh == record.keyHigh
+                        && candidate.keyLow < record.keyLow));
+            }
+            sortedBodyRecords[rank] = record;
+            let root = atomicLoad(&bodyRoots[body]);
+            if (root == SENTINEL || atomicLoad(&bodyRoots[root]) != root) {
+                atomicAdd(&telemetry[11], 1u);
+            }
+        }
+    }
+    if (lane == 0u) {
+        atomicStore(&telemetry[12], select(0u, params.control.x,
+            contactCount != 0u));
+    }
+}
+
+@compute @workgroup_size(256)
+fn small_world_decide(@builtin(global_invocation_id) gid : vec3<u32>) {
+    let lane = gid.x;
+    let firstTick = atomicLoad(&telemetry[13]) == 0u;
+    let tick = atomicLoad(&telemetry[13]) + 1u;
+    for (var body = lane; body < params.capacities.x; body += 256u) {
+        islandRecords[body] = IslandRecord(SENTINEL, 0u, 0u, 0u);
+        if (firstTick) {
+            islandPersistent[body] = IslandPersistent(0u, 0u, 0u, 0u);
+            bodyPersistent[body] = BodyPersistent(SENTINEL, 0u, 0u, 0u);
+        } else if (!body_is_alive(body)) {
+            bodyPersistent[body] = BodyPersistent(SENTINEL, 0u, 0u, 0u);
+        }
+    }
+    for (var index = lane; index < params.capacities.z; index += 256u) {
+        islandEvents[index] = IslandEvent(SENTINEL, 0u, 0u, 0u);
+    }
+    small_world_barrier();
+
+    for (var root = lane; root < params.capacities.x; root += 256u) {
+        if (!body_is_alive(root) || atomicLoad(&bodyRoots[root]) != root) {
+            continue;
+        }
+        var islandIndex = 0u;
+        var firstBodyRecord = 0u;
+        var bodyCount = 0u;
+        var awakeCount = 0u;
+        var qualifies = true;
+        var rootChanged = false;
+        var wasSleeping = false;
+        for (var otherRoot = 0u; otherRoot < root; otherRoot += 1u) {
+            islandIndex += select(0u, 1u,
+                body_is_alive(otherRoot)
+                && atomicLoad(&bodyRoots[otherRoot]) == otherRoot);
+        }
+        for (var body = 0u; body < params.capacities.x; body += 1u) {
+            if (!body_is_alive(body)) { continue; }
+            let bodyRoot = atomicLoad(&bodyRoots[body]);
+            firstBodyRecord += select(0u, 1u, bodyRoot < root);
+            if (bodyRoot != root) { continue; }
+            bodyCount += 1u;
+            awakeCount += select(0u, 1u,
+                (u32(metadata[body].w) & BODY_AWAKE) != 0u);
+            let linear = motions[body].linearVelocity_sleep.xyz;
+            let angular = motions[body].angularVelocity_flags.xyz;
+            qualifies = qualifies
+                && dot(linear, linear) <= params.thresholds.x
+                && dot(angular, angular) <= params.thresholds.y;
+            rootChanged = rootChanged
+                || bodyPersistent[body].previousRoot != root;
+            wasSleeping = wasSleeping
+                || bodyPersistent[body].previousSleeping != 0u;
+        }
+
+        let persistent = islandPersistent[root];
+        let disturbed = rootChanged
+            || persistent.previousBodyCount != bodyCount;
+        let previousState = select(persistent.state, 1u,
+            persistent.previousBodyCount == 0u && wasSleeping);
+        var nextState = previousState;
+        var sleepTicks = persistent.sleepTicks;
+        if (disturbed || (awakeCount != 0u && awakeCount != bodyCount)) {
+            nextState = 0u;
+            sleepTicks = 0u;
+        } else if (awakeCount == 0u) {
+            nextState = 1u;
+        } else if (qualifies) {
+            sleepTicks = min(sleepTicks + 1u, params.control.y);
+            nextState = select(0u, 1u, sleepTicks >= params.control.y);
+        } else {
+            nextState = 0u;
+            sleepTicks = 0u;
+        }
+        let eventType = select(0u,
+            select(2u, 1u, nextState != 0u),
+            nextState != previousState);
+        islandPersistent[root] = IslandPersistent(
+            sleepTicks, nextState, bodyCount, eventType);
+        islandRecords[islandIndex] = IslandRecord(
+            root, firstBodyRecord, bodyCount, nextState);
+        atomicAdd(&telemetry[0], 1u);
+        atomicMax(&telemetry[5], bodyCount);
+
+        if (nextState != previousState) {
+            atomicAdd(&telemetry[6], select(0u, 1u, nextState != 0u));
+            atomicAdd(&telemetry[7], select(0u, 1u, nextState == 0u));
+        }
+        if (nextState != 0u) {
+            atomicAdd(&telemetry[2], 1u);
+            atomicAdd(&telemetry[4], bodyCount);
+        } else {
+            atomicAdd(&telemetry[1], 1u);
+            atomicAdd(&telemetry[3], bodyCount);
+        }
+    }
+    small_world_barrier();
+
+    if (lane == 0u) {
+        var eventCount = 0u;
+        for (var root = 0u; root < params.capacities.x; root += 1u) {
+            if (!body_is_alive(root) || atomicLoad(&bodyRoots[root]) != root) {
+                continue;
+            }
+            let eventType = islandPersistent[root].reserved;
+            if (eventType == 0u) { continue; }
+            if (eventCount < params.capacities.z) {
+                islandEvents[eventCount] = IslandEvent(
+                    root, eventType, tick,
+                    islandPersistent[root].previousBodyCount);
+            }
+            eventCount += 1u;
+        }
+        let outputEvents = min(eventCount, params.capacities.z);
+        atomicStore(&telemetry[8], outputEvents);
+        atomicStore(&telemetry[13], tick);
+        atomicStore(&telemetry[17], select(
+            0u, 1u, eventCount > params.capacities.z));
+        atomicMax(&telemetry[14], atomicLoad(&telemetry[0]));
+        atomicMax(&telemetry[15], atomicLoad(&telemetry[4]));
+        atomicMax(&telemetry[19], outputEvents);
+    }
+
+    for (var body = lane; body < params.capacities.x; body += 256u) {
+        if (!body_is_alive(body)) { continue; }
+        let root = atomicLoad(&bodyRoots[body]);
+        let sleeping = islandPersistent[root].state != 0u;
+        var bodyMetadata = metadata[body];
+        var packedMetadata = u32(bodyMetadata.w);
+        if (sleeping) {
+            packedMetadata &= ~BODY_AWAKE;
+            motions[body].linearVelocity_sleep = vec4<f32>(0.0);
+            motions[body].angularVelocity_flags = vec4<f32>(0.0);
+        } else {
+            packedMetadata |= BODY_AWAKE;
+        }
+        bodyMetadata.w = i32(packedMetadata);
+        metadata[body] = bodyMetadata;
+        bodyPersistent[body] = BodyPersistent(
+            root, select(0u, 1u, sleeping), 0u, 0u);
+    }
+}
+
+fn sleeping_record_less(a : KeyValue, b : KeyValue) -> bool {
+    return a.keyHigh < b.keyHigh
+        || (a.keyHigh == b.keyHigh && a.keyLow < b.keyLow)
+        || (a.keyHigh == b.keyHigh && a.keyLow == b.keyLow
+            && a.value < b.value);
+}
+
+@compute @workgroup_size(256)
+fn small_world_sleeping_grid(@builtin(global_invocation_id) gid : vec3<u32>) {
+    let lane = gid.x;
+    for (var body = lane; body < params.capacities.x; body += 256u) {
+        sleepingGrid[body] = sentinel_record();
+        sortedSleepingGrid[body] = sentinel_record();
+        sleepingCellRanges[body] = SleepingCellRange(
+            SENTINEL, SENTINEL, 0u, 0u);
+    }
+    small_world_barrier();
+
+    for (var body = lane; body < params.capacities.x; body += 256u) {
+        if (!body_is_alive(body)
+            || (u32(metadata[body].w) & BODY_AWAKE) != 0u) { continue; }
+        var valid = false;
+        let cell = sleeping_cell(body, &valid);
+        if (!valid) {
+            atomicStore(&telemetry[18], 1u);
+            continue;
+        }
+        let key = encode_cell(cell);
+        let record = KeyValue(key.x, key.y, body, body);
+        sleepingGrid[body] = record;
+        atomicAdd(&telemetry[9], 1u);
+    }
+    small_world_barrier();
+
+    for (var body = lane; body < params.capacities.x; body += 256u) {
+        let record = sleepingGrid[body];
+        if (record.keyHigh == SENTINEL) { continue; }
+        var rank = 0u;
+        for (var other = 0u; other < params.capacities.x; other += 1u) {
+            let otherRecord = sleepingGrid[other];
+            if (otherRecord.keyHigh == SENTINEL) { continue; }
+            rank += select(0u, 1u, sleeping_record_less(otherRecord, record));
+        }
+        sortedSleepingGrid[rank] = record;
+    }
+    small_world_barrier();
+
+    if (lane == 0u) {
+        let entryCount = atomicLoad(&telemetry[9]);
+        var rangeCount = 0u;
+        for (var index = 0u; index < entryCount; index += 1u) {
+            let record = sortedSleepingGrid[index];
+            var startsRange = index == 0u;
+            if (!startsRange) {
+                startsRange = record.keyLow
+                        != sortedSleepingGrid[index - 1u].keyLow
+                    || record.keyHigh
+                        != sortedSleepingGrid[index - 1u].keyHigh;
+            }
+            if (startsRange) {
+                sleepingCellRanges[rangeCount] = SleepingCellRange(
+                    record.keyLow, record.keyHigh, index, 1u);
+                rangeCount += 1u;
+            } else {
+                sleepingCellRanges[rangeCount - 1u].entryCount += 1u;
+            }
+        }
+        atomicStore(&telemetry[10], rangeCount);
+        atomicMax(&telemetry[16], entryCount);
+    }
 }

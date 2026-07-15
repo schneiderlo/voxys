@@ -102,6 +102,14 @@ int main(int argc, char* argv[]) {
     // Automation settings
     appConfig.benchmarkOnStartup = config.automation.benchmark;
     appConfig.exitAfterBenchmark = config.automation.benchmark;
+    appConfig.benchmarkBodyCount = static_cast<uint32_t>(
+        std::max(config.automation.benchmarkBodies, 0));
+    appConfig.benchmarkMinimumFps = static_cast<double>(
+        std::max(config.automation.benchmarkMinimumFps, 0.0f));
+    if (config.automation.benchmarkFixedHz > 0.0f) {
+        appConfig.benchmarkFixedDeltaSeconds =
+            1.0f / config.automation.benchmarkFixedHz;
+    }
     appConfig.initialTeleportIndex = config.automation.teleportIndex;
     appConfig.screenshotPath = config.automation.screenshotPath;
     appConfig.screenshotFrameDelay = config.automation.screenshotFrames;
@@ -139,14 +147,23 @@ int main(int argc, char* argv[]) {
         // Clamp delta time to avoid huge jumps
         deltaTime = std::min(deltaTime, 0.1f);
 
-        app.processFrame(deltaTime);
+        if (appConfig.benchmarkOnStartup
+            && appConfig.benchmarkFixedDeltaSeconds > 0.0f) {
+            app.processFrame(appConfig.benchmarkFixedDeltaSeconds,
+                             appConfig.benchmarkFixedDeltaSeconds);
+        } else {
+            app.processFrame(deltaTime);
+        }
     }
 
     LOG_INFO("Main loop ended");
+
+    const bool benchmarkPassed = !appConfig.benchmarkOnStartup
+                              || app.benchmarkPassed();
 
     // Cleanup
     app.shutdown();
     voxy::log::shutdown();
 
-    return 0;
+    return benchmarkPassed ? 0 : 2;
 }

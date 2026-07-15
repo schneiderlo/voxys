@@ -117,6 +117,9 @@ struct WindowConfig {
 
 struct AutomationConfig {
     bool benchmark = false;
+    int benchmarkBodies = 0;
+    float benchmarkMinimumFps = 0.0f;
+    float benchmarkFixedHz = 0.0f;
     std::optional<int> teleportIndex;
     std::optional<std::string> screenshotPath;
     int screenshotFrames = 10;
@@ -163,6 +166,9 @@ struct CommandLineArgs {
     std::optional<std::string> logLevel;
     bool noValidation = false;
     bool benchmark = false;
+    int benchmarkBodies = 0;
+    float benchmarkMinimumFps = 0.0f;
+    float benchmarkFixedHz = 0.0f;
     bool help = false;
 
     // Automated Screenshot System

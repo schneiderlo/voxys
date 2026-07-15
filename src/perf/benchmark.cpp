@@ -51,6 +51,40 @@ void BenchmarkRunner::setPhysicsBackend(std::string backend) {
     physicsBackend_ = std::move(backend);
 }
 
+void BenchmarkRunner::setExpectedBodyCount(uint32_t bodyCount) noexcept {
+    expectedBodyCount_ = bodyCount;
+}
+
+void BenchmarkRunner::setMinimumThroughputFps(double minimumFps) noexcept {
+    minimumThroughputFps_ = std::max(minimumFps, 0.0);
+}
+
+double BenchmarkRunner::overallThroughputFps() const noexcept {
+    uint64_t totalFrames = 0u;
+    double totalFrameMs = 0.0;
+    for (const BenchmarkResult& result : results_) {
+        totalFrames += result.frameCount;
+        totalFrameMs += result.avgFrameMs
+                      * static_cast<double>(result.frameCount);
+    }
+    return totalFrameMs > 0.0
+        ? static_cast<double>(totalFrames) * 1000.0 / totalFrameMs
+        : 0.0;
+}
+
+bool BenchmarkRunner::passed() const noexcept {
+    if (running_ || results_.size() != scenarios_.size() || results_.empty()) {
+        return false;
+    }
+    const bool workloadValid = std::all_of(
+        results_.begin(), results_.end(), [](const BenchmarkResult& result) {
+            return result.bodyCountInvariantPassed;
+        });
+    return workloadValid
+        && (minimumThroughputFps_ <= 0.0
+            || overallThroughputFps() >= minimumThroughputFps_);
+}
+
 void BenchmarkRunner::start(const std::vector<BenchmarkScenario>& scenarios) {
     if (scenarios.empty()) {
         scenarios_ = BenchmarkScenario::getDefaultScenarios();
@@ -98,6 +132,15 @@ bool BenchmarkRunner::onFrame(const FrameStats& frameStats) {
     scenarioSumPrimitivePacking_ += frameStats.primitivePackingMs;
     scenarioSumPrimitiveUpload_ += frameStats.primitiveUploadMs;
     scenarioSumPrimitiveRender_ += frameStats.primitiveRenderMs;
+    scenarioMinResidentBodies_ = std::min(
+        scenarioMinResidentBodies_, frameStats.physicsResidentBodies);
+    scenarioMaxResidentBodies_ = std::max(
+        scenarioMaxResidentBodies_, frameStats.physicsResidentBodies);
+    if (frameStats.physicsActiveBodiesObserved) {
+        scenarioMinActiveBodies_ = std::min(
+            scenarioMinActiveBodies_, frameStats.physicsActiveBodies);
+        ++scenarioActiveBodySamples_;
+    }
     scenarioFrameTimes_.push_back(frameStats.totalMs);
     
     if (currentFrame_ > 0) {  // Skip first frame for min/max (warmup)
@@ -160,6 +203,10 @@ void BenchmarkRunner::beginScenario() {
     scenarioSumPrimitivePacking_ = 0.0;
     scenarioSumPrimitiveUpload_ = 0.0;
     scenarioSumPrimitiveRender_ = 0.0;
+    scenarioMinResidentBodies_ = std::numeric_limits<uint32_t>::max();
+    scenarioMaxResidentBodies_ = 0;
+    scenarioMinActiveBodies_ = std::numeric_limits<uint32_t>::max();
+    scenarioActiveBodySamples_ = 0;
     scenarioFrameTimes_.clear();
     scenarioFrameTimes_.reserve(scenario.frameCount);
 }
@@ -206,6 +253,17 @@ void BenchmarkRunner::endScenario() {
         static_cast<double>(scenario.frameCount);
     result.avgPrimitiveRenderMs = scenarioSumPrimitiveRender_ /
         static_cast<double>(scenario.frameCount);
+    result.expectedBodyCount = expectedBodyCount_;
+    result.minResidentBodies = scenarioMinResidentBodies_;
+    result.maxResidentBodies = scenarioMaxResidentBodies_;
+    result.minActiveBodies = scenarioActiveBodySamples_ != 0u
+        ? scenarioMinActiveBodies_ : 0u;
+    result.activeBodySamples = scenarioActiveBodySamples_;
+    result.bodyCountInvariantPassed = expectedBodyCount_ == 0u ||
+        (result.minResidentBodies == expectedBodyCount_ &&
+         result.maxResidentBodies == expectedBodyCount_ &&
+         result.activeBodySamples != 0u &&
+         result.minActiveBodies == expectedBodyCount_);
     
     results_.push_back(result);
     
@@ -226,7 +284,6 @@ void BenchmarkRunner::printResults() const {
     LOG_INFO("=== Benchmark Results ===");
     LOG_INFO("");
     
-    double totalFps = 0.0;
     uint32_t totalFrames = 0;
     
     for (const auto& result : results_) {
@@ -247,15 +304,37 @@ void BenchmarkRunner::printResults() const {
         LOG_INFO("  Primitives: cull {:.2f} ms, pack {:.2f} ms, upload {:.2f} ms, render {:.2f} ms",
                  result.avgPrimitiveCullMs, result.avgPrimitivePackingMs,
                  result.avgPrimitiveUploadMs, result.avgPrimitiveRenderMs);
+        if (result.expectedBodyCount != 0u) {
+            LOG_INFO("  Bodies: resident {}..{}, active min {} over {} observed samples (expected {}) [{}]",
+                     result.minResidentBodies, result.maxResidentBodies,
+                     result.minActiveBodies, result.activeBodySamples,
+                     result.expectedBodyCount,
+                     result.bodyCountInvariantPassed ? "PASS" : "INVALID");
+        }
         LOG_INFO("");
         
-        totalFps += result.fps;
         totalFrames += result.frameCount;
     }
     
     if (!results_.empty()) {
-        double avgFps = totalFps / static_cast<double>(results_.size());
-        LOG_INFO("Overall Average: {:.1f} FPS ({} total frames)", avgFps, totalFrames);
+        const double throughputFps = overallThroughputFps();
+        LOG_INFO("Overall Throughput: {:.1f} FPS ({} total frames)",
+                 throughputFps, totalFrames);
+        if (expectedBodyCount_ != 0u) {
+            const bool workloadValid = std::all_of(
+                results_.begin(), results_.end(), [](const BenchmarkResult& result) {
+                    return result.bodyCountInvariantPassed;
+                });
+            LOG_INFO("{}-body workload invariant: {}", expectedBodyCount_,
+                     workloadValid ? "PASS" : "INVALID");
+        }
+        if (minimumThroughputFps_ > 0.0) {
+            const bool throughputPassed =
+                throughputFps >= minimumThroughputFps_;
+            LOG_INFO("Throughput guardrail: {} ({:.1f} measured, {:.1f} required)",
+                     throughputPassed ? "PASS" : "FAIL", throughputFps,
+                     minimumThroughputFps_);
+        }
     }
 }
 

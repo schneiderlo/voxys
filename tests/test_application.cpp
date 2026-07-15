@@ -59,6 +59,9 @@ TEST(ApplicationConfigTest, DefaultsHaveReasonableValues) {
     EXPECT_GT(config.cameraFar, config.cameraNear);
     EXPECT_GT(config.cameraMoveSpeed, 0.0f);
     EXPECT_GT(config.cameraMouseSensitivity, 0.0f);
+    EXPECT_EQ(config.benchmarkBodyCount, 0u);
+    EXPECT_DOUBLE_EQ(config.benchmarkMinimumFps, 0.0);
+    EXPECT_FLOAT_EQ(config.benchmarkFixedDeltaSeconds, 0.0f);
     
     // Paths
     EXPECT_FALSE(config.shaderDir.empty());
@@ -374,4 +377,3 @@ TEST_F(ApplicationGPUTest, DISABLED_UpdateCallback) {
 #endif // VOXY_NATIVE
 
 } // namespace voxy
-

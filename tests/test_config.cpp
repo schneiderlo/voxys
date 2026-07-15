@@ -173,6 +173,9 @@ TEST(CommandLineArgsTest, DefaultValues) {
     EXPECT_FALSE(args.logLevel.has_value());
     EXPECT_FALSE(args.noValidation);
     EXPECT_FALSE(args.benchmark);
+    EXPECT_EQ(args.benchmarkBodies, 0);
+    EXPECT_FLOAT_EQ(args.benchmarkMinimumFps, 0.0f);
+    EXPECT_FLOAT_EQ(args.benchmarkFixedHz, 0.0f);
     EXPECT_FALSE(args.help);
 }
 
@@ -265,6 +268,33 @@ TEST(CommandLineArgsTest, Benchmark) {
     char* argv[] = {const_cast<char*>("voxy"), const_cast<char*>("--benchmark")};
     auto args = parseArgs(2, argv);
     EXPECT_TRUE(args.benchmark);
+}
+
+TEST(CommandLineArgsTest, BenchmarkBodiesEnableBenchmark) {
+    char* argv[] = {const_cast<char*>("voxy"),
+                    const_cast<char*>("--benchmark-bodies"),
+                    const_cast<char*>("400")};
+    const auto args = parseArgs(3, argv);
+    EXPECT_TRUE(args.benchmark);
+    EXPECT_EQ(args.benchmarkBodies, 400);
+}
+
+TEST(CommandLineArgsTest, BenchmarkMinimumFpsEnablesBenchmark) {
+    char* argv[] = {const_cast<char*>("voxy"),
+                    const_cast<char*>("--benchmark-min-fps"),
+                    const_cast<char*>("400.5")};
+    const auto args = parseArgs(3, argv);
+    EXPECT_TRUE(args.benchmark);
+    EXPECT_FLOAT_EQ(args.benchmarkMinimumFps, 400.5f);
+}
+
+TEST(CommandLineArgsTest, BenchmarkFixedHzEnablesBenchmark) {
+    char* argv[] = {const_cast<char*>("voxy"),
+                    const_cast<char*>("--benchmark-fixed-hz"),
+                    const_cast<char*>("400")};
+    const auto args = parseArgs(3, argv);
+    EXPECT_TRUE(args.benchmark);
+    EXPECT_FLOAT_EQ(args.benchmarkFixedHz, 400.0f);
 }
 
 TEST(CommandLineArgsTest, MultipleArgs) {
@@ -418,10 +448,16 @@ height = 600
 TEST_F(ConfigFileTest, CommandLineBenchmarkEnablesAutomation) {
     CommandLineArgs args;
     args.benchmark = true;
+    args.benchmarkBodies = 400;
+    args.benchmarkMinimumFps = 400.0f;
+    args.benchmarkFixedHz = 400.0f;
 
     auto config = load(testConfigPath, args);
 
     EXPECT_TRUE(config.automation.benchmark);
+    EXPECT_EQ(config.automation.benchmarkBodies, 400);
+    EXPECT_FLOAT_EQ(config.automation.benchmarkMinimumFps, 400.0f);
+    EXPECT_FLOAT_EQ(config.automation.benchmarkFixedHz, 400.0f);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

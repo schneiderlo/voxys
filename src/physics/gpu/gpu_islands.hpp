@@ -105,7 +105,8 @@ public:
                                   const Config& config);
     void shutdown();
     void setInput(const GpuIslandInput& input);
-    [[nodiscard]] bool encode(WGPUCommandEncoder encoder);
+    [[nodiscard]] bool encode(WGPUCommandEncoder encoder,
+                              bool compactSmallWorld = false);
 
     [[nodiscard]] WGPUBuffer bodyRoots() const noexcept;
     [[nodiscard]] WGPUBuffer sortedBodyRecords() const noexcept;

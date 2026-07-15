@@ -924,3 +924,164 @@ fn lifecycle_finalize(@builtin(global_invocation_id) gid : vec3<u32>) {
     atomicStore(&telemetry[19], lifecycleState[1]);
     atomicMax(&telemetry[20], beginCount + endCount);
 }
+
+// Small worlds are dominated by WebGPU dispatch latency. A deterministic
+// brute-force walk is cheaper than grid construction plus two radix sorts and
+// already emits the canonical (minimum body, maximum body) pair order.
+@compute @workgroup_size(1)
+fn small_world_pairs(@builtin(global_invocation_id) gid : vec3<u32>) {
+    if (gid.x != 0u) { return; }
+    for (var index = 0u; index < 14u; index += 1u) {
+        atomicStore(&telemetry[index], 0u);
+    }
+
+    var gridEntryCount = 0u;
+    var occupiedCellCount = 0u;
+    var oversizedCount = 0u;
+    for (var body = 0u; body < broad.counts.x; body += 1u) {
+        if (!body_is_alive(body)) { continue; }
+        if (body_is_oversized(body)) {
+            oversizedCount += 1u;
+            continue;
+        }
+        gridEntryCount += 1u;
+        var valid = false;
+        let cell = body_cell(body, &valid);
+        let key = encode_cell(cell);
+        var firstInCell = valid;
+        for (var previous = 0u; previous < body; previous += 1u) {
+            if (!body_is_alive(previous) || body_is_oversized(previous)) {
+                continue;
+            }
+            var previousValid = false;
+            let previousCell = body_cell(previous, &previousValid);
+            let previousKey = encode_cell(previousCell);
+            if (previousValid && previousKey.x == key.x
+                && previousKey.y == key.y) {
+                firstInCell = false;
+                break;
+            }
+        }
+        occupiedCellCount += select(0u, 1u, firstInCell);
+    }
+
+    var rawCandidateCount = 0u;
+    var sleepingCount = 0u;
+    let outputCapacity = min(broad.counts.w, broad.capacities.x);
+    for (var minimum = 0u; minimum < broad.counts.x; minimum += 1u) {
+        for (var maximum = minimum + 1u; maximum < broad.counts.x;
+             maximum += 1u) {
+            if (!bodies_overlap(minimum, maximum)) { continue; }
+            let output = rawCandidateCount;
+            rawCandidateCount += 1u;
+            if (output >= outputCapacity) { continue; }
+            let sleeping = select(0u, 1u,
+                (body_flags(minimum) & BODY_AWAKE) == 0u
+                    || (body_flags(maximum) & BODY_AWAKE) == 0u);
+            uniqueBodyPairs[output] = KeyValue(
+                maximum, minimum, sleeping, output);
+            sleepingCount += sleeping;
+        }
+    }
+
+    let materialized = min(rawCandidateCount, broad.counts.w);
+    atomicStore(&telemetry[0], gridEntryCount);
+    atomicStore(&telemetry[1], occupiedCellCount);
+    atomicStore(&telemetry[2], rawCandidateCount);
+    atomicStore(&telemetry[3], materialized);
+    atomicStore(&telemetry[4], sleepingCount);
+    atomicStore(&telemetry[5], oversizedCount);
+    atomicStore(&telemetry[9], select(
+        0u, 1u, rawCandidateCount > broad.counts.w));
+    atomicStore(&telemetry[10], select(
+        0u, 1u, materialized > broad.capacities.x));
+    atomicMax(&telemetry[14], gridEntryCount);
+    atomicMax(&telemetry[15], occupiedCellCount);
+    atomicMax(&telemetry[16], rawCandidateCount);
+    atomicMax(&telemetry[17], materialized);
+}
+
+@compute @workgroup_size(1)
+fn small_world_lifecycle(@builtin(global_invocation_id) gid : vec3<u32>) {
+    if (gid.x != 0u) { return; }
+    let currentCount = lifecycle_current_count();
+    let previousCount = lifecycle_previous_count();
+
+    // Occupancy from the previous tick contains exactly the previous contact
+    // IDs. Clear those IDs, then retain IDs for pairs that survived this tick.
+    for (var index = 0u; index < previousCount; index += 1u) {
+        let contactId = previousContacts[index].state.x;
+        if (contactId < broad.capacities.y) {
+            contactOccupancy[contactId] = 0u;
+        }
+    }
+
+    var persistentCount = 0u;
+    var beginCount = 0u;
+    for (var index = 0u; index < currentCount; index += 1u) {
+        let pair = uniqueBodyPairs[index];
+        let previousIndex = find_previous_contact(pair);
+        nextContacts[index].pair = pair;
+        if (previousIndex != SENTINEL) {
+            var state = previousContacts[previousIndex].state;
+            state.y += 1u;
+            state.w = 0u;
+            if (state.x < broad.capacities.y) {
+                nextContacts[index].state = state;
+                contactOccupancy[state.x] = 1u;
+                persistentCount += 1u;
+                continue;
+            }
+        }
+        nextContacts[index].state = vec4<u32>(
+            SENTINEL, 0u, SENTINEL, 0u);
+        beginCount += 1u;
+    }
+
+    var endCount = 0u;
+    for (var index = 0u; index < previousCount; index += 1u) {
+        let previous = previousContacts[index];
+        if (find_current_pair(previous) != SENTINEL) { continue; }
+        contactEvents[broad.capacities.y + endCount] = ContactEvent(
+            previous.pair.keyLow, previous.pair.keyHigh, 2u,
+            previous.state.x);
+        endCount += 1u;
+    }
+
+    let freeCount = broad.capacities.y - persistentCount;
+    var beginRank = 0u;
+    var nextFreeId = 0u;
+    for (var index = 0u; index < currentCount; index += 1u) {
+        if (nextContacts[index].state.x != SENTINEL) { continue; }
+        while (nextFreeId < broad.capacities.y
+            && contactOccupancy[nextFreeId] != 0u) {
+            nextFreeId += 1u;
+        }
+        if (nextFreeId < broad.capacities.y) {
+            nextContacts[index].state = vec4<u32>(
+                nextFreeId, 0u, SENTINEL, 0u);
+            contactOccupancy[nextFreeId] = 1u;
+            let pair = nextContacts[index].pair;
+            contactEvents[beginRank] = ContactEvent(
+                pair.keyLow, pair.keyHigh, 1u, nextFreeId);
+            nextFreeId += 1u;
+        }
+        beginRank += 1u;
+    }
+
+    lifecycleState[0] = currentCount;
+    lifecycleState[1] += 1u;
+    lifecycleState[2] = currentCount;
+    lifecycleState[3] = freeCount;
+    atomicStore(&telemetry[6], currentCount);
+    atomicStore(&telemetry[7], beginCount);
+    atomicStore(&telemetry[8], endCount);
+    atomicStore(&telemetry[11], select(0u, 1u,
+        atomicLoad(&telemetry[3]) > broad.capacities.y
+            || beginCount > freeCount));
+    atomicStore(&telemetry[12], select(0u, 1u,
+        beginCount > broad.capacities.y || endCount > broad.capacities.y));
+    atomicMax(&telemetry[18], currentCount);
+    atomicStore(&telemetry[19], lifecycleState[1]);
+    atomicMax(&telemetry[20], beginCount + endCount);
+}

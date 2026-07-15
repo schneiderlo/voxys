@@ -42,6 +42,7 @@ struct CameraUniforms {
 @group(0) @binding(1) var heightTex : texture_2d<u32>;
 @group(0) @binding(2) var outDepth : texture_storage_2d<r32float, write>;
 @group(0) @binding(3) var outShadow : texture_storage_2d<r32float, write>;
+// Water-only auxiliary output: material id plus shoreline influence.
 @group(0) @binding(4) var outMaterial : texture_storage_2d<r32float, write>;
 // Baked shadow boundary (see src/terrain/shadow_bake.hpp): per cell, the
 // heightmap-space height below which a point is in the terrain's sun shadow.
@@ -574,10 +575,9 @@ fn main(@builtin(global_invocation_id) gid : vec3<u32>) {
     // ─────────────────────────────────────────────────────────────────────────
     let range = intersectAabb(origin, dir, boundsMin, boundsMax);
     if (range.y < 0.0 || range.x > range.y) {
-        // No hit, sky is fully lit (shadow = 1.0)
+        // The blit classifies sky from negative depth and never observes the
+        // other outputs for these pixels.
         textureStore(outDepth, vec2<i32>(gid.xy), vec4<f32>(-1.0, 0.0, 0.0, 0.0));
-        textureStore(outShadow, vec2<i32>(gid.xy), vec4<f32>(1.0, 0.0, 0.0, 0.0));
-        textureStore(outMaterial, vec2<i32>(gid.xy), vec4<f32>(f32(MATERIAL_SKY), 0.0, 0.0, 0.0));
         return;
     }
     
@@ -868,12 +868,13 @@ fn main(@builtin(global_invocation_id) gid : vec3<u32>) {
         packedShadow = select(-(waterDepthUnder + 1.0), waterDepthUnder + 1.0,
                               shadowFactor > 0.5);
     }
-    // The material id only needs the integer part, so the shore influence
-    // rides in the fraction (scaled to 0.49 so +0.5 rounding still decodes
-    // the id). This saves the blit pass from re-deriving shore proximity
-    // with dozens of texture taps per water pixel.
-    let packedMaterial = f32(material) + shoreInfluence * 0.49;
     textureStore(outDepth, vec2<i32>(gid.xy), vec4<f32>(t, 0.0, 0.0, 0.0));
     textureStore(outShadow, vec2<i32>(gid.xy), vec4<f32>(packedShadow, 0.0, 0.0, 0.0));
-    textureStore(outMaterial, vec2<i32>(gid.xy), vec4<f32>(packedMaterial, 0.0, 0.0, 0.0));
+    if (material == MATERIAL_WATER) {
+        // Only water consumes this output. Shore influence rides in the
+        // fraction so the blit need not re-derive it with extra texture taps.
+        let packedMaterial = f32(MATERIAL_WATER) + shoreInfluence * 0.49;
+        textureStore(outMaterial, vec2<i32>(gid.xy),
+                     vec4<f32>(packedMaterial, 0.0, 0.0, 0.0));
+    }
 }

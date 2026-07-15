@@ -49,7 +49,7 @@ WGPUComputePipeline makePipeline(WGPUDevice device, WGPUPipelineLayout layout,
 
 class GpuDynamicSolver::Impl {
 public:
-    static constexpr size_t kInputGroupCount = 9;
+    static constexpr size_t kInputGroupCount = 10;
 
     struct alignas(16) Params {
         std::array<uint32_t, 4> capacities{};
@@ -315,6 +315,18 @@ public:
         smallIslandLayout_ = makeLayout(
             smallIslandEntries, "solver_small_island_layout");
 
+        std::vector<LE> serialEntries;
+        storage(serialEntries, 0, false);
+        storage(serialEntries, 1, false);
+        storage(serialEntries, 2, true);
+        storage(serialEntries, 3, false);
+        storage(serialEntries, 4, false);
+        storage(serialEntries, 5, true);
+        storage(serialEntries, 13, false);
+        storage(serialEntries, 15, false);
+        uniform(serialEntries);
+        serialLayout_ = makeLayout(serialEntries, "solver_serial_layout");
+
         std::vector<LE> finishEntries;
         storage(finishEntries, 13, false);
         uniform(finishEntries);
@@ -323,6 +335,7 @@ public:
             || !adjacencyLayout_
             || !bodyRangeLayout_ || !prepareLayout_ || !solveLayout_
             || !gatherLayout_ || !integrateLayout_ || !smallIslandLayout_
+            || !serialLayout_
             || !finishLayout_) {
             return false;
         }
@@ -351,6 +364,8 @@ public:
             integrateLayout_, "solver_integrate_pipeline_layout");
         smallIslandPipelineLayout_ = pipelineLayout(
             smallIslandLayout_, "solver_small_island_pipeline_layout");
+        serialPipelineLayout_ = pipelineLayout(
+            serialLayout_, "solver_serial_pipeline_layout");
         finishPipelineLayout_ = pipelineLayout(
             finishLayout_, "solver_finish_pipeline_layout");
         if (!coloringPipelineLayout_ || !classificationPipelineLayout_
@@ -358,7 +373,8 @@ public:
             || !adjacencyPipelineLayout_ || !bodyRangePipelineLayout_
             || !preparePipelineLayout_ || !solvePipelineLayout_
             || !gatherPipelineLayout_ || !integratePipelineLayout_
-            || !smallIslandPipelineLayout_ || !finishPipelineLayout_) {
+            || !smallIslandPipelineLayout_ || !serialPipelineLayout_
+            || !finishPipelineLayout_) {
             return false;
         }
 
@@ -427,6 +443,9 @@ public:
         solveSmallIslandsPipeline_ = makePipeline(
             device_, smallIslandPipelineLayout_, shaderModule_,
             "solve_small_islands_" + suffix, "solver_solve_small_islands");
+        serialPipeline_ = makePipeline(
+            device_, serialPipelineLayout_, shaderModule_,
+            "solve_serial_world", "solver_solve_serial_world");
         finishPipeline_ = makePipeline(device_, finishPipelineLayout_,
             shaderModule_, "finish_solver_tick", "solver_finish_tick");
         return resetPipeline_ && resetDegreesPipeline_ && countDegreesPipeline_
@@ -440,6 +459,7 @@ public:
             && solveOverflowPipeline_
             && gatherPipeline_ && integrateVelocityPipeline_
             && integratePositionPipeline_ && solveSmallIslandsPipeline_
+            && serialPipeline_
             && finishPipeline_;
     }
 
@@ -575,6 +595,39 @@ public:
             return gpu::BindGroupEntry(14).buffer(
                 parameterBuffer_, 0, sizeof(Params));
         };
+        if (compactColorSolve) {
+            const std::array<gpu::BindGroupEntry, 9> serialEntries = {
+                gpu::BindGroupEntry(0).buffer(input_.poseBuffer),
+                gpu::BindGroupEntry(1).buffer(input_.motionBuffer),
+                gpu::BindGroupEntry(2).buffer(input_.shapeBuffer),
+                gpu::BindGroupEntry(3).buffer(input_.metadataBuffer),
+                gpu::BindGroupEntry(4).buffer(input_.manifoldBuffer),
+                gpu::BindGroupEntry(5).buffer(
+                    input_.narrowPhaseTelemetryBuffer),
+                gpu::BindGroupEntry(13).buffer(telemetry_),
+                gpu::BindGroupEntry(15).buffer(caches_), parameterEntry()};
+            WGPUBindGroup serialGroup = cachedInputGroup(
+                inputGroupCache, 9u, serialLayout_, serialEntries,
+                "solver_serial_bind_group");
+            if (!serialGroup) return false;
+            const uint32_t offset = writeParams(
+                slot, makeParams(0u, config_.overflowIterations,
+                                 config_.substeps, config_.substeps));
+            WGPUComputePassDescriptor passDesc{};
+            WGPUComputePassEncoder pass =
+                wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
+            wgpuComputePassEncoderSetBindGroup(
+                pass, 0, serialGroup, 1, &offset);
+            wgpuComputePassEncoderSetPipeline(pass, serialPipeline_);
+            wgpuComputePassEncoderDispatchWorkgroups(pass, 1u, 1u, 1u);
+            wgpuComputePassEncoderEnd(pass);
+            wgpuComputePassEncoderRelease(pass);
+            gpu::writeBuffer(
+                queue_, parameterBuffer_, 0u,
+                std::span<const ParameterUploadSlot>(
+                    parameterUpload_.data(), slot));
+            return true;
+        }
         const std::array<gpu::BindGroupEntry, 9> coloringEntries = {
             gpu::BindGroupEntry(4).buffer(input_.manifoldBuffer),
             gpu::BindGroupEntry(5).buffer(input_.narrowPhaseTelemetryBuffer),
@@ -879,6 +932,7 @@ public:
                  &solveOverflowPipeline_,
                  &gatherPipeline_, &integrateVelocityPipeline_,
                  &integratePositionPipeline_, &solveSmallIslandsPipeline_,
+                 &serialPipeline_,
                  &finishPipeline_}) {
             releaseHandle(*pipeline, wgpuComputePipelineRelease);
         }
@@ -888,7 +942,8 @@ public:
                  &adjacencyPipelineLayout_, &bodyRangePipelineLayout_,
                  &preparePipelineLayout_, &solvePipelineLayout_,
                  &gatherPipelineLayout_, &integratePipelineLayout_,
-                 &smallIslandPipelineLayout_, &finishPipelineLayout_}) {
+                 &smallIslandPipelineLayout_, &serialPipelineLayout_,
+                 &finishPipelineLayout_}) {
             releaseHandle(*layout, wgpuPipelineLayoutRelease);
         }
         for (WGPUBindGroupLayout* layout : {
@@ -896,6 +951,7 @@ public:
                  &adjacencyLayout_,
                  &bodyRangeLayout_, &prepareLayout_, &solveLayout_,
                  &gatherLayout_, &integrateLayout_, &smallIslandLayout_,
+                 &serialLayout_,
                  &finishLayout_}) {
             releaseHandle(*layout, wgpuBindGroupLayoutRelease);
         }
@@ -960,6 +1016,7 @@ public:
     WGPUBindGroupLayout gatherLayout_ = nullptr;
     WGPUBindGroupLayout integrateLayout_ = nullptr;
     WGPUBindGroupLayout smallIslandLayout_ = nullptr;
+    WGPUBindGroupLayout serialLayout_ = nullptr;
     WGPUBindGroupLayout finishLayout_ = nullptr;
     WGPUPipelineLayout coloringPipelineLayout_ = nullptr;
     WGPUPipelineLayout classificationPipelineLayout_ = nullptr;
@@ -971,6 +1028,7 @@ public:
     WGPUPipelineLayout gatherPipelineLayout_ = nullptr;
     WGPUPipelineLayout integratePipelineLayout_ = nullptr;
     WGPUPipelineLayout smallIslandPipelineLayout_ = nullptr;
+    WGPUPipelineLayout serialPipelineLayout_ = nullptr;
     WGPUPipelineLayout finishPipelineLayout_ = nullptr;
     WGPUComputePipeline resetPipeline_ = nullptr;
     WGPUComputePipeline resetDegreesPipeline_ = nullptr;
@@ -994,6 +1052,7 @@ public:
     WGPUComputePipeline integrateVelocityPipeline_ = nullptr;
     WGPUComputePipeline integratePositionPipeline_ = nullptr;
     WGPUComputePipeline solveSmallIslandsPipeline_ = nullptr;
+    WGPUComputePipeline serialPipeline_ = nullptr;
     WGPUComputePipeline finishPipeline_ = nullptr;
 };
 

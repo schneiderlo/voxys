@@ -51,6 +51,7 @@ struct DebugUniforms {
 @group(0) @binding(0) var<uniform> camera : CameraUniforms;
 @group(0) @binding(1) var depthTex : texture_2d<f32>;
 @group(0) @binding(2) var shadowTex : texture_2d<f32>;
+// Water-only auxiliary output: material id plus shoreline influence.
 @group(0) @binding(3) var materialTex : texture_2d<f32>;
 @group(0) @binding(4) var terrainTex : texture_2d<f32>;
 @group(0) @binding(5) var lightmapTex : texture_2d<f32>;
@@ -302,7 +303,6 @@ fn sampleScreenTerrainReflection(origin : vec3<f32>, dir : vec3<f32>, dims : vec
         let uv = vec2<f32>(ndc.x * 0.5 + 0.5, 0.5 - ndc.y * 0.5);
         let pixel = clamp(vec2<i32>(floor(uv * dimsF)), vec2<i32>(0, 0), maxCoord);
         let sceneDepth = textureLoad(depthTex, pixel, 0).x;
-        let sceneMaterial = u32(textureLoad(materialTex, pixel, 0).x + 0.5);
 
         // Projection is linear in homogeneous coordinates. Because clip is the
         // same interpolation of the projected endpoints, its world-space point
@@ -311,11 +311,14 @@ fn sampleScreenTerrainReflection(origin : vec3<f32>, dir : vec3<f32>, dims : vec
         let candidateDepth = length(candidate - camera.cameraPos.xyz);
         let tolerance = max(4.0, candidateDepth * 0.06);
 
-        // Only accept terrain hits: sampling water pixels here would read
-        // the water-surface depth and produce false self-reflections.
-        if (sceneMaterial == MATERIAL_TERRAIN &&
-            sceneDepth > 0.0 &&
+        if (sceneDepth > 0.0 &&
             abs(sceneDepth - candidateDepth) < tolerance) {
+            // Only accept terrain hits. Terrain shadows are in [0, 1], while
+            // water stores signed depth + 1 and therefore has magnitude > 1.
+            // Load this only after the much cheaper depth rejection succeeds.
+            let sceneShadow = textureLoad(shadowTex, pixel, 0).x;
+            if (abs(sceneShadow) > 1.0) { continue; }
+
             let ndcHit = ndcFromPixel(pixel, dimsF);
             let hitView = viewPosFromDepth(camera.invProjParams.xy, ndcHit, sceneDepth);
             let hitWorld = viewToWorld(camera.invView, hitView);
@@ -325,7 +328,7 @@ fn sampleScreenTerrainReflection(origin : vec3<f32>, dir : vec3<f32>, dims : vec
             // reflection carries shadow / ambient occlusion instead of
             // looking flat and unlit.
             let albedoHit = textureSampleLevel(terrainTex, terrainSampler, hitUV, 0.0).rgb;
-            let hitShadow = clamp(textureLoad(shadowTex, pixel, 0).x, 0.0, 1.0);
+            let hitShadow = clamp(sceneShadow, 0.0, 1.0);
             let hitLight = textureSampleLevel(lightmapTex, terrainSampler, hitUV, 0.0).x;
             let edge = max(abs(ndc.x), abs(ndc.y));
             let confidence = (1.0 - smoothstep(0.72, 0.98, edge)) *
@@ -546,11 +549,6 @@ fn fs(i : VSOut) -> @location(0) vec4<f32> {
     let pixelI = clamp(vec2<i32>(floor(pixF)), vec2<i32>(0, 0), maxCoord);
     let ndcCenter = ndcFromPixel(pixelI, dimsF);
     let depthCenter = textureLoad(depthTex, pixelI, 0).x;
-    let shadowFactor = textureLoad(shadowTex, pixelI, 0).x;
-    // Material id in the integer part; shore influence (scaled by 0.49)
-    // packed in the fraction by the raycast pass.
-    let materialRaw = textureLoad(materialTex, pixelI, 0).x;
-    let material = u32(materialRaw + 0.5);
 
     let invProjParams = camera.invProjParams.xy;
     
@@ -595,16 +593,21 @@ fn fs(i : VSOut) -> @location(0) vec4<f32> {
     // ─────────────────────────────────────────────────────────────────────────
     let posCView = viewPosFromDepth(invProjParams, ndcCenter, depthCenter);
     let posCWorld = viewToWorld(camera.invView, posCView);
+    let packedShadow = textureLoad(shadowTex, pixelI, 0).x;
 
-    if (material == MATERIAL_WATER) {
+    // Terrain shadows are in [0, 1]. Water stores signed depth + 1 and its
+    // accepted depth is always above MIN_WATER_DEPTH, so these ranges cannot
+    // overlap. Only water needs the material texture's shoreline fraction.
+    if (abs(packedShadow) > 1.0) {
+        let materialRaw = textureLoad(materialTex, pixelI, 0).x;
         let viewDirWS = normalize(camera.cameraPos.xyz - posCWorld);
         // Water packs depth in the magnitude and its binary shadow in the sign.
-        let packedShadow = textureLoad(shadowTex, pixelI, 0).x;
         let waterDepth = max(abs(packedShadow) - 1.0, 0.0);
         let waterShadow = select(0.0, 1.0, packedShadow >= 0.0);
         // Shore proximity computed once in the raycast pass (world space),
         // unpacked from the material fraction. Replaces a 32-tap screen mask.
-        let shoreMask = clamp((materialRaw - f32(material)) / 0.49, 0.0, 1.0);
+        let shoreMask = clamp(
+            (materialRaw - f32(MATERIAL_WATER)) / 0.49, 0.0, 1.0);
         // Compute the wave normal once, here, so the debug normal view shows
         // the real surface normal instead of a flat placeholder.
         let waterWave = waterWaveField(posCWorld.xz);
@@ -676,7 +679,7 @@ fn fs(i : VSOut) -> @location(0) vec4<f32> {
     let diffuse = max(dot(normal, lightDir), 0.0);
     
     // Apply Shadow from Ray Tracing
-    let finalDiffuse = diffuse * shadowFactor;
+    let finalDiffuse = diffuse * packedShadow;
 
     // Fixed ambient intensity
     let ambient = max(camera.lightDirVS.w, 0.05);
@@ -694,7 +697,7 @@ fn fs(i : VSOut) -> @location(0) vec4<f32> {
     let specStrength = mix(0.04, 0.25, 1.0 - roughness);  // ~0.124 for roughness 0.6
     let specularTerm = pow(max(dot(normal, halfVec), 0.0), specPower);
     // Apply shadow to specular as well
-    let specular = specStrength * specularTerm * lightVisibility * shadowFactor;
+    let specular = specStrength * specularTerm * lightVisibility * packedShadow;
     
     // Combine lighting components
     let warmLight = vec3<f32>(1.10, 0.96, 0.84);

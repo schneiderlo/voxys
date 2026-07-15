@@ -61,6 +61,12 @@ struct BenchmarkResult {
     double avgPrimitivePackingMs = 0.0;
     double avgPrimitiveUploadMs = 0.0;
     double avgPrimitiveRenderMs = 0.0;
+    uint32_t expectedBodyCount = 0;
+    uint32_t minResidentBodies = 0;
+    uint32_t maxResidentBodies = 0;
+    uint32_t minActiveBodies = 0;
+    uint32_t activeBodySamples = 0;
+    bool bodyCountInvariantPassed = true;
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -80,6 +86,12 @@ public:
 
     /// Attach the selected physics backend to every result record.
     void setPhysicsBackend(std::string backend);
+
+    /// Require an exact resident and active body count throughout each scenario.
+    void setExpectedBodyCount(uint32_t bodyCount) noexcept;
+
+    /// Require aggregate measured frame throughput at or above this value.
+    void setMinimumThroughputFps(double minimumFps) noexcept;
     
     /// Start running benchmark scenarios
     /// @param scenarios List of scenarios to run (empty = use defaults)
@@ -98,6 +110,12 @@ public:
     
     /// Get results from completed benchmark
     [[nodiscard]] const std::vector<BenchmarkResult>& getResults() const noexcept { return results_; }
+
+    /// Aggregate measured frames divided by their total measured frame time.
+    [[nodiscard]] double overallThroughputFps() const noexcept;
+
+    /// True only after a complete run satisfies every configured guardrail.
+    [[nodiscard]] bool passed() const noexcept;
     
     /// Get current scenario name (for display)
     [[nodiscard]] const std::string& getCurrentScenarioName() const;
@@ -122,6 +140,8 @@ private:
     
     CameraUpdateCallback cameraCallback_;
     std::string physicsBackend_ = "unknown";
+    uint32_t expectedBodyCount_ = 0;
+    double minimumThroughputFps_ = 0.0;
     std::vector<BenchmarkScenario> scenarios_;
     std::vector<BenchmarkResult> results_;
     
@@ -144,6 +164,10 @@ private:
     double scenarioSumPrimitivePacking_ = 0.0;
     double scenarioSumPrimitiveUpload_ = 0.0;
     double scenarioSumPrimitiveRender_ = 0.0;
+    uint32_t scenarioMinResidentBodies_ = 0;
+    uint32_t scenarioMaxResidentBodies_ = 0;
+    uint32_t scenarioMinActiveBodies_ = 0;
+    uint32_t scenarioActiveBodySamples_ = 0;
     std::vector<double> scenarioFrameTimes_;
 };
 

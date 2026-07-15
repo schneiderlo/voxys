@@ -56,7 +56,7 @@ WGPUComputePipeline makePipeline(WGPUDevice device, WGPUPipelineLayout layout,
 
 class GpuIslandManager::Impl {
 public:
-    static constexpr size_t kInputGroupCount = 8;
+    static constexpr size_t kInputGroupCount = 11;
 
     struct alignas(16) Params {
         std::array<uint32_t, 4> capacities{};
@@ -277,7 +277,7 @@ public:
         entries.clear();
         storage(entries, 9, false);
         storage(entries, 15, false);
-        storage(entries, 16, true);
+        storage(entries, 16, false);
         storage(entries, 17, false);
         storage(entries, 19, false);
         storage(entries, 20, true);
@@ -285,11 +285,36 @@ public:
         uniform(entries);
         sleepingRangeLayout_ = makeLayout(
             entries, "island_sleeping_range_layout");
+
+        entries.clear();
+        storage(entries, 3, false);
+        storage(entries, 4, true);
+        storage(entries, 5, true);
+        storage(entries, 6, false);
+        storage(entries, 7, false);
+        storage(entries, 8, false);
+        storage(entries, 9, false);
+        uniform(entries);
+        smallBuildLayout_ = makeLayout(entries, "island_small_build_layout");
+
+        entries.clear();
+        for (uint32_t binding : {1u, 3u, 6u, 9u, 11u, 13u, 14u, 18u})
+            storage(entries, binding, false);
+        uniform(entries);
+        smallDecideLayout_ = makeLayout(entries, "island_small_decide_layout");
+
+        entries.clear();
+        storage(entries, 0, true);
+        for (uint32_t binding : {3u, 9u, 15u, 16u, 17u})
+            storage(entries, binding, false);
+        uniform(entries);
+        smallGridLayout_ = makeLayout(entries, "island_small_grid_layout");
         if (!resetLayout_ || !prepareUnionLayout_ || !unionLayout_
             || !recordLayout_ || !rangeLayout_
             || !classifyLayout_ || !decideLayout_ || !eventLayout_
             || !applyLayout_
-            || !sleepingRangeLayout_) return false;
+            || !sleepingRangeLayout_ || !smallBuildLayout_
+            || !smallDecideLayout_ || !smallGridLayout_) return false;
 
         const auto pipelineLayout = [this](WGPUBindGroupLayout layout,
                                             const char* label) {
@@ -308,12 +333,19 @@ public:
         applyPipelineLayout_ = pipelineLayout(applyLayout_, "island_apply_pl");
         sleepingRangePipelineLayout_ = pipelineLayout(
             sleepingRangeLayout_, "island_sleeping_range_pl");
+        smallBuildPipelineLayout_ = pipelineLayout(
+            smallBuildLayout_, "island_small_build_pl");
+        smallDecidePipelineLayout_ = pipelineLayout(
+            smallDecideLayout_, "island_small_decide_pl");
+        smallGridPipelineLayout_ = pipelineLayout(
+            smallGridLayout_, "island_small_grid_pl");
         if (!resetPipelineLayout_ || !prepareUnionPipelineLayout_
             || !unionPipelineLayout_
             || !recordPipelineLayout_ || !rangePipelineLayout_
             || !classifyPipelineLayout_ || !decidePipelineLayout_
             || !eventPipelineLayout_ || !applyPipelineLayout_
-            || !sleepingRangePipelineLayout_) {
+            || !sleepingRangePipelineLayout_ || !smallBuildPipelineLayout_
+            || !smallDecidePipelineLayout_ || !smallGridPipelineLayout_) {
             return false;
         }
 
@@ -383,6 +415,15 @@ public:
             device_, sleepingRangePipelineLayout_, shaderModule_,
             "scatter_sleeping_range_ends_" + suffix,
             "island_scatter_sleeping_range_ends");
+        smallBuildPipeline_ = makePipeline(
+            device_, smallBuildPipelineLayout_, shaderModule_,
+            "small_world_build", "island_small_world_build");
+        smallDecidePipeline_ = makePipeline(
+            device_, smallDecidePipelineLayout_, shaderModule_,
+            "small_world_decide", "island_small_world_decide");
+        smallGridPipeline_ = makePipeline(
+            device_, smallGridPipelineLayout_, shaderModule_,
+            "small_world_sleeping_grid", "island_small_world_grid");
         return resetPipeline_ && prepareUnionPipeline_ && unionPipeline_
             && compressPipeline_
             && recordPipeline_ && markRangePipeline_ && finalizeRangePipeline_
@@ -393,7 +434,8 @@ public:
             && finalizeSleepingEntriesPipeline_ && markSleepingRangePipeline_
             && finalizeSleepingRangePipeline_
             && scatterSleepingRangeStartsPipeline_
-            && scatterSleepingRangeEndsPipeline_;
+            && scatterSleepingRangeEndsPipeline_ && smallBuildPipeline_
+            && smallDecidePipeline_ && smallGridPipeline_;
     }
 
     static bool sameBaseBindings(const GpuIslandInput& lhs,
@@ -489,7 +531,7 @@ public:
         return cachedStaticGroups_[0] && cachedStaticGroups_[1];
     }
 
-    bool encode(WGPUCommandEncoder encoder) {
+    bool encode(WGPUCommandEncoder encoder, bool compactSmallWorld) {
         if (!encoder || !input_.valid()) return false;
         CachedInputGroups& inputGroupCache = inputGroups();
         // At most one sleep/wake event can be emitted per body in a tick.
@@ -516,6 +558,62 @@ public:
             return gpu::BindGroupEntry(10).buffer(
                 parameterBuffer_, 0, sizeof(Params));
         };
+        if (compactSmallWorld) {
+            const std::array<gpu::BindGroupEntry, 8> buildEntries = {
+                gpu::BindGroupEntry(3).buffer(input_.metadataBuffer),
+                gpu::BindGroupEntry(4).buffer(input_.manifoldBuffer),
+                gpu::BindGroupEntry(5).buffer(
+                    input_.narrowPhaseTelemetryBuffer),
+                gpu::BindGroupEntry(6).buffer(roots_),
+                gpu::BindGroupEntry(7).buffer(bodyRecords_),
+                gpu::BindGroupEntry(8).buffer(sortedBodyRecords_),
+                gpu::BindGroupEntry(9).buffer(telemetry_), parameterEntry()};
+            const std::array<gpu::BindGroupEntry, 9> decideEntries = {
+                gpu::BindGroupEntry(1).buffer(input_.motionBuffer),
+                gpu::BindGroupEntry(3).buffer(input_.metadataBuffer),
+                gpu::BindGroupEntry(6).buffer(roots_),
+                gpu::BindGroupEntry(9).buffer(telemetry_),
+                gpu::BindGroupEntry(11).buffer(islands_),
+                gpu::BindGroupEntry(13).buffer(islandPersistent_),
+                gpu::BindGroupEntry(14).buffer(bodyPersistent_),
+                gpu::BindGroupEntry(18).buffer(events_), parameterEntry()};
+            const std::array<gpu::BindGroupEntry, 7> gridEntries = {
+                gpu::BindGroupEntry(0).buffer(input_.poseBuffer),
+                gpu::BindGroupEntry(3).buffer(input_.metadataBuffer),
+                gpu::BindGroupEntry(9).buffer(telemetry_),
+                gpu::BindGroupEntry(15).buffer(sleepingGrid_),
+                gpu::BindGroupEntry(16).buffer(sortedSleepingGrid_),
+                gpu::BindGroupEntry(17).buffer(sleepingRanges_),
+                parameterEntry()};
+            WGPUBindGroup buildGroup = cachedInputGroup(
+                inputGroupCache, 8u, smallBuildLayout_, buildEntries,
+                "island_small_build_group");
+            WGPUBindGroup decideGroup = cachedInputGroup(
+                inputGroupCache, 9u, smallDecideLayout_, decideEntries,
+                "island_small_decide_group");
+            WGPUBindGroup gridGroup = cachedInputGroup(
+                inputGroupCache, 10u, smallGridLayout_, gridEntries,
+                "island_small_grid_group");
+            if (!buildGroup || !decideGroup || !gridGroup) return false;
+            WGPUComputePassDescriptor passDesc{};
+            WGPUComputePassEncoder pass =
+                wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
+            wgpuComputePassEncoderSetBindGroup(
+                pass, 0, buildGroup, 0, nullptr);
+            wgpuComputePassEncoderSetPipeline(pass, smallBuildPipeline_);
+            wgpuComputePassEncoderDispatchWorkgroups(pass, 1u, 1u, 1u);
+            wgpuComputePassEncoderSetBindGroup(
+                pass, 0, decideGroup, 0, nullptr);
+            wgpuComputePassEncoderSetPipeline(pass, smallDecidePipeline_);
+            wgpuComputePassEncoderDispatchWorkgroups(pass, 1u, 1u, 1u);
+            wgpuComputePassEncoderSetBindGroup(
+                pass, 0, gridGroup, 0, nullptr);
+            wgpuComputePassEncoderSetPipeline(pass, smallGridPipeline_);
+            wgpuComputePassEncoderDispatchWorkgroups(pass, 1u, 1u, 1u);
+            wgpuComputePassEncoderEnd(pass);
+            wgpuComputePassEncoderRelease(pass);
+            return true;
+        }
         const std::array<gpu::BindGroupEntry, 9> resetEntries = {
             gpu::BindGroupEntry(3).buffer(input_.metadataBuffer),
             gpu::BindGroupEntry(6).buffer(roots_),
@@ -770,7 +868,8 @@ public:
                  &finalizeSleepingEntriesPipeline_, &markSleepingRangePipeline_,
                  &finalizeSleepingRangePipeline_,
                  &scatterSleepingRangeStartsPipeline_,
-                 &scatterSleepingRangeEndsPipeline_})
+                 &scatterSleepingRangeEndsPipeline_, &smallBuildPipeline_,
+                 &smallDecidePipeline_, &smallGridPipeline_})
             releaseHandle(*pipeline, wgpuComputePipelineRelease);
         for (WGPUPipelineLayout* layout : {
                  &resetPipelineLayout_, &prepareUnionPipelineLayout_,
@@ -778,13 +877,15 @@ public:
                  &recordPipelineLayout_, &rangePipelineLayout_,
                  &classifyPipelineLayout_, &decidePipelineLayout_,
                  &eventPipelineLayout_, &applyPipelineLayout_,
-                 &sleepingRangePipelineLayout_})
+                 &sleepingRangePipelineLayout_, &smallBuildPipelineLayout_,
+                 &smallDecidePipelineLayout_, &smallGridPipelineLayout_})
             releaseHandle(*layout, wgpuPipelineLayoutRelease);
         for (WGPUBindGroupLayout* layout : {
                  &resetLayout_, &prepareUnionLayout_, &unionLayout_,
                  &recordLayout_, &rangeLayout_,
                  &classifyLayout_, &decideLayout_, &eventLayout_, &applyLayout_,
-                 &sleepingRangeLayout_})
+                 &sleepingRangeLayout_, &smallBuildLayout_, &smallDecideLayout_,
+                 &smallGridLayout_})
             releaseHandle(*layout, wgpuBindGroupLayoutRelease);
         releaseHandle(shaderModule_, wgpuShaderModuleRelease);
         primitives_.shutdown();
@@ -842,6 +943,9 @@ public:
     WGPUBindGroupLayout eventLayout_ = nullptr;
     WGPUBindGroupLayout applyLayout_ = nullptr;
     WGPUBindGroupLayout sleepingRangeLayout_ = nullptr;
+    WGPUBindGroupLayout smallBuildLayout_ = nullptr;
+    WGPUBindGroupLayout smallDecideLayout_ = nullptr;
+    WGPUBindGroupLayout smallGridLayout_ = nullptr;
     WGPUPipelineLayout resetPipelineLayout_ = nullptr;
     WGPUPipelineLayout prepareUnionPipelineLayout_ = nullptr;
     WGPUPipelineLayout unionPipelineLayout_ = nullptr;
@@ -852,6 +956,9 @@ public:
     WGPUPipelineLayout eventPipelineLayout_ = nullptr;
     WGPUPipelineLayout applyPipelineLayout_ = nullptr;
     WGPUPipelineLayout sleepingRangePipelineLayout_ = nullptr;
+    WGPUPipelineLayout smallBuildPipelineLayout_ = nullptr;
+    WGPUPipelineLayout smallDecidePipelineLayout_ = nullptr;
+    WGPUPipelineLayout smallGridPipelineLayout_ = nullptr;
     WGPUComputePipeline resetPipeline_ = nullptr;
     WGPUComputePipeline prepareUnionPipeline_ = nullptr;
     WGPUComputePipeline unionPipeline_ = nullptr;
@@ -873,6 +980,9 @@ public:
     WGPUComputePipeline finalizeSleepingRangePipeline_ = nullptr;
     WGPUComputePipeline scatterSleepingRangeStartsPipeline_ = nullptr;
     WGPUComputePipeline scatterSleepingRangeEndsPipeline_ = nullptr;
+    WGPUComputePipeline smallBuildPipeline_ = nullptr;
+    WGPUComputePipeline smallDecidePipeline_ = nullptr;
+    WGPUComputePipeline smallGridPipeline_ = nullptr;
 };
 
 GpuIslandManager::GpuIslandManager() : impl_(std::make_unique<Impl>()) {}
@@ -888,8 +998,9 @@ void GpuIslandManager::shutdown() { impl_->shutdown(); }
 void GpuIslandManager::setInput(const GpuIslandInput& input) {
     impl_->setInput(input);
 }
-bool GpuIslandManager::encode(WGPUCommandEncoder encoder) {
-    return impl_->encode(encoder);
+bool GpuIslandManager::encode(WGPUCommandEncoder encoder,
+                              bool compactSmallWorld) {
+    return impl_->encode(encoder, compactSmallWorld);
 }
 WGPUBuffer GpuIslandManager::bodyRoots() const noexcept { return impl_->roots_; }
 WGPUBuffer GpuIslandManager::sortedBodyRecords() const noexcept {

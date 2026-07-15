@@ -169,6 +169,9 @@ struct ApplicationConfig {
     // Automation
     bool benchmarkOnStartup = false;
     bool exitAfterBenchmark = false;
+    uint32_t benchmarkBodyCount = 0;
+    double benchmarkMinimumFps = 0.0;
+    float benchmarkFixedDeltaSeconds = 0.0f;
     std::optional<int> initialTeleportIndex;
     std::optional<std::string> screenshotPath;
     int screenshotFrameDelay = 10;
@@ -362,6 +365,9 @@ public:
     /// Check if benchmark mode is active.
     [[nodiscard]] bool isBenchmarkRunning() const noexcept;
 
+    /// True only after every configured benchmark guardrail has passed.
+    [[nodiscard]] bool benchmarkPassed() const noexcept;
+
     /// Toggle benchmark mode on/off.
     void toggleBenchmark();
 
@@ -454,6 +460,7 @@ private:
     bool initCamera();
     bool initTerrain();
     bool initRenderers();
+    bool spawnBenchmarkBodies();
     void setupCallbacks();
 
     // ─────────────────────────────────────────────────────────────────────────

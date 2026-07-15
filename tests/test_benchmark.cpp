@@ -7,6 +7,7 @@ namespace voxy::perf {
 TEST(BenchmarkRunnerTest, ReportsObservedLatencyPercentilesAfterWarmup) {
     BenchmarkRunner runner;
     runner.setPhysicsBackend("jolt_legacy");
+    runner.setExpectedBodyCount(400);
     runner.start({BenchmarkScenario{
         .name = "Deterministic",
         .cameraPos = {},
@@ -24,6 +25,9 @@ TEST(BenchmarkRunnerTest, ReportsObservedLatencyPercentilesAfterWarmup) {
         stats.primitivePackingMs = 0.75;
         stats.primitiveUploadMs = 0.375;
         stats.primitiveRenderMs = 1.25;
+        stats.physicsResidentBodies = 400;
+        stats.physicsActiveBodies = 400;
+        stats.physicsActiveBodiesObserved = true;
         runner.onFrame(stats);
     }
 
@@ -41,6 +45,113 @@ TEST(BenchmarkRunnerTest, ReportsObservedLatencyPercentilesAfterWarmup) {
     EXPECT_DOUBLE_EQ(result.avgPrimitivePackingMs, 0.75);
     EXPECT_DOUBLE_EQ(result.avgPrimitiveUploadMs, 0.375);
     EXPECT_DOUBLE_EQ(result.avgPrimitiveRenderMs, 1.25);
+    EXPECT_EQ(result.minResidentBodies, 400u);
+    EXPECT_EQ(result.maxResidentBodies, 400u);
+    EXPECT_EQ(result.minActiveBodies, 400u);
+    EXPECT_EQ(result.activeBodySamples, 5u);
+    EXPECT_TRUE(result.bodyCountInvariantPassed);
+    EXPECT_TRUE(runner.passed());
+}
+
+TEST(BenchmarkRunnerTest, RejectsAFrameWithSleepingBodies) {
+    BenchmarkRunner runner;
+    runner.setExpectedBodyCount(400);
+    runner.start({BenchmarkScenario{
+        .name = "Sleeping body guard",
+        .cameraPos = {},
+        .cameraTarget = {},
+        .frameCount = 2,
+    }});
+
+    FrameStats stats;
+    stats.physicsResidentBodies = 400;
+    stats.physicsActiveBodies = 400;
+    stats.physicsActiveBodiesObserved = true;
+    runner.onFrame(stats);
+    stats.physicsActiveBodies = 399;
+    runner.onFrame(stats);
+
+    ASSERT_EQ(runner.getResults().size(), 1u);
+    EXPECT_EQ(runner.getResults().front().minActiveBodies, 399u);
+    EXPECT_FALSE(runner.getResults().front().bodyCountInvariantPassed);
+    EXPECT_FALSE(runner.passed());
+}
+
+TEST(BenchmarkRunnerTest, RejectsUnobservedGpuActivity) {
+    BenchmarkRunner runner;
+    runner.setExpectedBodyCount(400);
+    runner.start({BenchmarkScenario{
+        .name = "Missing telemetry guard",
+        .cameraPos = {},
+        .cameraTarget = {},
+        .frameCount = 1,
+    }});
+
+    FrameStats stats;
+    stats.physicsResidentBodies = 400;
+    stats.physicsActiveBodies = 400;
+    runner.onFrame(stats);
+
+    ASSERT_EQ(runner.getResults().size(), 1u);
+    EXPECT_EQ(runner.getResults().front().activeBodySamples, 0u);
+    EXPECT_FALSE(runner.getResults().front().bodyCountInvariantPassed);
+    EXPECT_FALSE(runner.passed());
+}
+
+TEST(BenchmarkRunnerTest, GuardsAggregateThroughput) {
+    BenchmarkRunner runner;
+    runner.setMinimumThroughputFps(400.0);
+    runner.start({BenchmarkScenario{
+        .name = "Throughput guard",
+        .cameraPos = {},
+        .cameraTarget = {},
+        .frameCount = 2,
+    }});
+
+    FrameStats stats;
+    stats.totalMs = 2.0;
+    runner.onFrame(stats);
+    stats.totalMs = 3.0;
+    runner.onFrame(stats);
+
+    EXPECT_DOUBLE_EQ(runner.overallThroughputFps(), 400.0);
+    EXPECT_TRUE(runner.passed());
+
+    runner.setMinimumThroughputFps(400.1);
+    EXPECT_FALSE(runner.passed());
+}
+
+TEST(BenchmarkRunnerTest, AggregateThroughputIsNotMeanScenarioFps) {
+    BenchmarkRunner runner;
+    runner.setMinimumThroughputFps(201.0);
+    runner.start({
+        BenchmarkScenario{
+            .name = "Fast",
+            .cameraPos = {},
+            .cameraTarget = {},
+            .frameCount = 1,
+        },
+        BenchmarkScenario{
+            .name = "Slow",
+            .cameraPos = {},
+            .cameraTarget = {},
+            .frameCount = 1,
+        },
+    });
+
+    FrameStats stats;
+    stats.totalMs = 1.0;
+    runner.onFrame(stats);
+    stats.totalMs = 9.0;
+    runner.onFrame(stats);
+
+    // 2 frames / 10 ms = 200 FPS. Averaging the scenario rates would
+    // incorrectly report (1000 + 111.1) / 2 = 555.6 FPS.
+    EXPECT_DOUBLE_EQ(runner.overallThroughputFps(), 200.0);
+    EXPECT_FALSE(runner.passed());
+
+    runner.setMinimumThroughputFps(200.0);
+    EXPECT_TRUE(runner.passed());
 }
 
 } // namespace voxy::perf

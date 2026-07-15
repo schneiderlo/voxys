@@ -1591,6 +1591,7 @@ public:
             // integration. Its contact count remains zero when broad and
             // narrow phase are disabled.
             constexpr uint32_t kCompactColorSolveBodyLimit = 1'024u;
+            constexpr uint32_t kCompactIslandBodyLimit = 1'024u;
             const bool dynamicWorldEncoded = !executeBodyPipeline
                 || (narrowPhaseEncoded && dynamicSolver_.encode(
                     encoder,
@@ -1614,7 +1615,9 @@ public:
             }
             writeStageTimestamp();
 
-            if (executeBodyPipeline && !islandManager_.encode(encoder)) {
+            if (executeBodyPipeline && !islandManager_.encode(
+                    encoder,
+                    executionBodies <= kCompactIslandBodyLimit)) {
                 LOG_ERROR("Failed to encode the GPU island stage");
             }
             writeStageTimestamp();

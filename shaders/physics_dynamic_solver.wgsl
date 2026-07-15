@@ -1358,6 +1358,28 @@ fn integrate_body_position(body : u32) {
     metadata[body] = worldMeta;
 }
 
+fn integrate_body_position_serial(body : u32, normalize : bool) {
+    if ((u32(metadata[body].w) & (BODY_ALIVE | BODY_AWAKE))
+        != (BODY_ALIVE | BODY_AWAKE)) { return; }
+    if (poses[body].position_invMass.w <= 1e-7) { return; }
+    var pose = poses[body];
+    pose.position_invMass = vec4<f32>(
+        pose.position_invMass.xyz
+            + motions[body].linearVelocity_sleep.xyz * params.gravity_dt.w,
+        pose.position_invMass.w);
+    let omega = vec4<f32>(motions[body].angularVelocity_flags.xyz, 0.0);
+    var orientation = pose.orientation + 0.5 * params.gravity_dt.w
+        * quaternion_multiply(omega, pose.orientation);
+    let squared = dot(orientation, orientation);
+    if (squared > 1e-12) { orientation *= inverseSqrt(squared); }
+    else { orientation = vec4<f32>(0.0, 0.0, 0.0, 1.0); }
+    pose.orientation = orientation;
+    var worldMeta = metadata[body];
+    if (normalize) { normalize_world_position(&pose, &worldMeta); }
+    poses[body] = pose;
+    metadata[body] = worldMeta;
+}
+
 fn integrate_positions_impl(gid : vec3<u32>) {
     let body = gid.x;
     if (body >= params.capacities.x || body_is_small_island(body)) { return; }
@@ -1483,6 +1505,106 @@ fn solve_small_islands_impl(gid : vec3<u32>) {
     motions[pair.keyHigh] = motionA;
     motions[pair.keyLow] = motionB;
     manifolds[rank] = manifold;
+}
+
+fn solve_serial_contact(rank : u32, stage : u32) {
+    if (!contact_is_active(rank)) { return; }
+    let pair = manifolds[rank].pair;
+    let velocities = solve_contact(rank, stage);
+    store_contact_velocities(pair, velocities);
+}
+
+// Small GPU worlds are latency-bound, not throughput-bound. Run the exact
+// Soft Step sequence serially so WebGPU submits one dispatch instead of the
+// coloring, radix-sort, adjacency, and per-color dispatch stream.
+@compute @workgroup_size(1)
+fn solve_serial_world(@builtin(global_invocation_id) gid : vec3<u32>) {
+    if (gid.x != 0u) { return; }
+
+    for (var index = 0u; index < 39u; index += 1u) {
+        atomicStore(&solverTelemetry[index], 0u);
+    }
+    for (var index = 42u; index < 45u; index += 1u) {
+        atomicStore(&solverTelemetry[index], 0u);
+    }
+
+    let contactCount = active_contact_count();
+    var activeCount = 0u;
+    var maximumDegree = 0u;
+    var smallIslandCount = 0u;
+    for (var rank = 0u; rank < contactCount; rank += 1u) {
+        if (!contact_is_active(rank)) { continue; }
+        activeCount += 1u;
+        prepare_constraints_impl(vec3<u32>(rank, 0u, 0u));
+    }
+    // Detailed classification is diagnostic-only. Bound its serial cost so a
+    // deliberately dense small world still spends time solving, not counting.
+    if (contactCount <= 256u) {
+        for (var body = 0u; body < params.capacities.x; body += 1u) {
+            var degree = 0u;
+            for (var rank = 0u; rank < contactCount; rank += 1u) {
+                if (!contact_is_active(rank)) { continue; }
+                let pair = manifolds[rank].pair;
+                degree += select(0u, 1u,
+                    pair.keyHigh == body || pair.keyLow == body);
+            }
+            maximumDegree = max(maximumDegree, degree);
+        }
+        for (var rank = 0u; rank < contactCount; rank += 1u) {
+            if (!contact_is_active(rank)) { continue; }
+            let pair = manifolds[rank].pair;
+            var degreeA = 0u;
+            var degreeB = 0u;
+            for (var other = 0u; other < contactCount; other += 1u) {
+                if (!contact_is_active(other)) { continue; }
+                let candidate = manifolds[other].pair;
+                degreeA += select(0u, 1u,
+                    candidate.keyHigh == pair.keyHigh
+                        || candidate.keyLow == pair.keyHigh);
+                degreeB += select(0u, 1u,
+                    candidate.keyHigh == pair.keyLow
+                        || candidate.keyLow == pair.keyLow);
+            }
+            smallIslandCount += select(
+                0u, 1u, degreeA == 1u && degreeB == 1u);
+        }
+    }
+
+    for (var substep = 0u; substep < params.control.z; substep += 1u) {
+        for (var body = 0u; body < params.capacities.x; body += 1u) {
+            integrate_body_velocity(body);
+        }
+        if (substep == 0u) {
+            for (var rank = 0u; rank < contactCount; rank += 1u) {
+                solve_serial_contact(rank, STAGE_WARM_START);
+            }
+        }
+        for (var rank = 0u; rank < contactCount; rank += 1u) {
+            solve_serial_contact(rank, STAGE_BIASED);
+        }
+        let finalSubstep = substep + 1u == params.control.z;
+        for (var body = 0u; body < params.capacities.x; body += 1u) {
+            integrate_body_position_serial(body, finalSubstep);
+        }
+        for (var rank = 0u; rank < contactCount; rank += 1u) {
+            solve_serial_contact(rank, STAGE_RELAX);
+        }
+    }
+    for (var rank = 0u; rank < contactCount; rank += 1u) {
+        solve_serial_contact(rank, STAGE_RESTITUTION);
+    }
+
+    atomicStore(&solverTelemetry[0], activeCount - smallIslandCount);
+    atomicStore(&solverTelemetry[32], activeCount);
+    atomicStore(&solverTelemetry[33], activeCount - smallIslandCount);
+    atomicStore(&solverTelemetry[36], maximumDegree);
+    atomicStore(&solverTelemetry[38], params.control.y);
+    atomicMax(&solverTelemetry[39], activeCount);
+    atomicStore(&solverTelemetry[42], select(
+        0u, 1u, narrowTelemetry[10] > params.capacities.y));
+    atomicStore(&solverTelemetry[43], smallIslandCount);
+    atomicStore(&solverTelemetry[44], smallIslandCount * 2u);
+    atomicAdd(&solverTelemetry[41], 1u);
 }
 
 @compute @workgroup_size(64)

@@ -293,6 +293,11 @@ bool Application::init(const ApplicationConfig& config) {
     // If a screenshot tour is requested, prepare it now (after initial teleport).
     startScreenshotTour();
 
+    if (!spawnBenchmarkBodies()) {
+        LOG_ERROR("Failed to create the deterministic benchmark body set");
+        return false;
+    }
+
     if (config_.benchmarkOnStartup) {
         startBenchmark();
     }
@@ -459,25 +464,28 @@ void Application::update(float deltaTime) {
 }
 
 void Application::update(float simulationDeltaTime, float frameDeltaTime) {
-    // Process input
-    processInput(simulationDeltaTime);
+    // Command-line benchmarks are scripted workloads. Ignoring gameplay input
+    // keeps their camera and body count stable even if the window has focus.
+    const bool scriptedBenchmark = config_.exitAfterBenchmark
+                                && isBenchmarkRunning();
+    if (!scriptedBenchmark) {
+        processInput(simulationDeltaTime);
+        handleKeyboardShortcuts();
 
-    // Handle keyboard shortcuts
-    handleKeyboardShortcuts();
-
-    // Update camera controller based on active mode
-    if (input_) {
-        switch (controllerMode_) {
-            case ControllerMode::FreeFly:
-                if (freeFlyController_) {
-                    freeFlyController_->update(simulationDeltaTime, *input_);
-                }
-                break;
-            case ControllerMode::Character:
-                if (characterController_) {
-                    characterController_->update(simulationDeltaTime, *input_);
-                }
-                break;
+        // Update camera controller based on active mode
+        if (input_) {
+            switch (controllerMode_) {
+                case ControllerMode::FreeFly:
+                    if (freeFlyController_) {
+                        freeFlyController_->update(simulationDeltaTime, *input_);
+                    }
+                    break;
+                case ControllerMode::Character:
+                    if (characterController_) {
+                        characterController_->update(simulationDeltaTime, *input_);
+                    }
+                    break;
+            }
         }
     }
 
@@ -764,6 +772,11 @@ void Application::processFrame(float simulationDeltaTime,
         frameStats.primitivePackingMs = stats_.primitivePackingMs;
         frameStats.primitiveUploadMs = stats_.primitiveUploadMs;
         frameStats.primitiveRenderMs = stats_.primitiveRenderMs;
+        frameStats.physicsResidentBodies = stats_.physicsResidentBodies;
+        frameStats.physicsActiveBodies = stats_.physicsActiveBodies;
+        frameStats.physicsActiveBodiesObserved =
+            stats_.physicsBackend != physics::BackendType::WebGpuSoft
+            || stats_.physics.telemetryTick != 0u;
         const bool stillRunning = benchmarkRunner_->onFrame(frameStats);
         if (!stillRunning && config_.exitAfterBenchmark) {
             requestExit();
@@ -895,6 +908,48 @@ void Application::toggleLegoMode() {
 // Benchmark Mode
 // ─────────────────────────────────────────────────────────────────────────────
 
+bool Application::spawnBenchmarkBodies() {
+    const uint32_t bodyCount = config_.benchmarkBodyCount;
+    if (bodyCount == 0u) return true;
+    if (!physicsWorld_ || !characterController_) return false;
+
+    uint32_t columns = 1u;
+    while (uint64_t{columns} * columns < bodyCount) ++columns;
+    const uint32_t rows = (bodyCount + columns - 1u) / columns;
+    constexpr float spacing = 2.2f;
+    const float halfColumns = 0.5f * static_cast<float>(columns - 1u);
+    const float halfRows = 0.5f * static_cast<float>(rows - 1u);
+    constexpr uint32_t shapeCount = static_cast<uint32_t>(
+        physics::ThrowableShape::Count);
+
+    for (uint32_t index = 0u; index < bodyCount; ++index) {
+        const uint32_t column = index % columns;
+        const uint32_t row = index / columns;
+        const float x = (static_cast<float>(column) - halfColumns) * spacing;
+        const float z = (static_cast<float>(row) - halfRows) * spacing;
+        const float terrainHeight =
+            characterController_->sampleTerrainHeight(x, z);
+
+        physics::BodySpawnDesc body;
+        body.shape = static_cast<physics::ThrowableShape>(index % shapeCount);
+        // Keep every body active for the complete five-scenario benchmark.
+        // At 400 Hz the 1,500 frames advance 3.75 simulated seconds; the
+        // initial downward velocity plus gravity covers less than 73 metres.
+        body.position = {x, terrainHeight + 100.0f, z};
+        body.linearVelocity = {
+            static_cast<float>(static_cast<int32_t>(index % 7u) - 3) * 0.2f,
+            -1.0f,
+            static_cast<float>(static_cast<int32_t>(index % 5u) - 2) * 0.2f};
+        body.angularVelocity = {0.1f, 0.2f, 0.05f};
+        body.dimensions = physics::throwableShapeDimensions(body.shape);
+        if (!physicsWorld_->spawnBody(body).valid()) return false;
+    }
+
+    LOG_INFO("Spawned {} benchmark bodies 100 m above terrain with linear and angular velocity",
+             bodyCount);
+    return true;
+}
+
 void Application::startBenchmark() {
     if (!benchmarkRunner_) {
         benchmarkRunner_ = std::make_unique<perf::BenchmarkRunner>();
@@ -912,6 +967,13 @@ void Application::startBenchmark() {
         physicsWorld_
             ? physics::backendTypeName(physicsWorld_->backendType())
             : "none");
+    benchmarkRunner_->setExpectedBodyCount(config_.benchmarkBodyCount);
+    benchmarkRunner_->setMinimumThroughputFps(config_.benchmarkMinimumFps);
+    if (config_.benchmarkFixedDeltaSeconds > 0.0f) {
+        LOG_INFO("Benchmark scripted time step: {:.6f} s ({:.1f} Hz)",
+                 config_.benchmarkFixedDeltaSeconds,
+                 1.0f / config_.benchmarkFixedDeltaSeconds);
+    }
     benchmarkRunner_->start();
     LOG_INFO("Benchmark started");
 }
@@ -925,6 +987,10 @@ void Application::stopBenchmark() {
 
 bool Application::isBenchmarkRunning() const noexcept {
     return benchmarkRunner_ && benchmarkRunner_->isRunning();
+}
+
+bool Application::benchmarkPassed() const noexcept {
+    return benchmarkRunner_ && benchmarkRunner_->passed();
 }
 
 void Application::toggleBenchmark() {
@@ -1123,7 +1189,10 @@ bool Application::initCamera() {
         (config_.shaderDir / "physics_ballistic.wgsl").string();
     physicsContext.gpu.enableStageProfiling =
         config_.gpuPhysicsStageProfiling;
-    physicsContext.gpu.enableTelemetryReadback = false;
+    // Scripted body benchmarks must prove that their workload remains awake.
+    // The normal application keeps this asynchronous readback disabled.
+    physicsContext.gpu.enableTelemetryReadback =
+        config_.benchmarkBodyCount != 0u;
     physicsContext.gpu.stageProfilingTimestampPeriodNanoseconds =
         config_.gpuPhysicsTimestampPeriodNanoseconds;
     physicsContext.enableValidation = config_.enableValidation;
@@ -1884,11 +1953,41 @@ void Application::processThrowableInput(float deltaTime) {
                 - 0.5f * static_cast<float>(rows - 1u)) * spacing;
             const float coneX = x / std::max(halfWidth, 1.0e-3f);
             const float coneY = y / std::max(halfHeight, 1.0e-3f);
-            const glm::vec3 launchDirection = glm::normalize(
+            glm::vec3 launchDirection = glm::normalize(
                 direction + cameraRight * (coneX * 0.08f)
                           + cameraUp * (coneY * 0.08f));
-            const glm::vec3 spawnOrigin = batchCenter
-                                        + cameraRight * x + cameraUp * y;
+            glm::vec3 spawnOrigin = batchCenter
+                                  + cameraRight * x + cameraUp * y;
+            if (characterController_) {
+                const glm::ivec3 cameraSector = camera_->worldSector();
+                const float worldX = spawnOrigin.x
+                    + static_cast<float>(cameraSector.x)
+                    * physics::kWorldSectorSize;
+                const float worldZ = spawnOrigin.z
+                    + static_cast<float>(cameraSector.z)
+                    * physics::kWorldSectorSize;
+                const float terrainHeight =
+                    characterController_->sampleTerrainHeight(
+                        worldX, worldZ);
+                const float clearance = dimensions.y * 0.5f + 0.05f;
+                const float minimumY = terrainHeight
+                    - static_cast<float>(cameraSector.y)
+                    * physics::kWorldSectorSize
+                    + clearance;
+                if (spawnOrigin.y < minimumY) {
+                    spawnOrigin.y = minimumY;
+                    const glm::vec3 terrainNormal = glm::normalize(
+                        characterController_->sampleTerrainNormal(
+                            worldX, worldZ));
+                    const float intoTerrain =
+                        glm::dot(launchDirection, terrainNormal);
+                    if (intoTerrain < 0.0f) {
+                        launchDirection = glm::normalize(
+                            launchDirection - terrainNormal * intoTerrain
+                            + terrainNormal * 0.1f);
+                    }
+                }
+            }
             thrown += throwSelected(spawnOrigin, launchDirection) ? 1u : 0u;
         }
         LOG_INFO("Threw {} x {}", thrown,

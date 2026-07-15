@@ -214,6 +214,17 @@ CommandLineArgs parseArgs(std::span<char*> args) {
             result.noValidation = true;
         } else if (arg == "--benchmark") {
             result.benchmark = true;
+        } else if (arg == "--benchmark-bodies" && i + 1 < args.size()) {
+            result.benchmarkBodies = std::max(parseInt(args[++i], 0), 0);
+            result.benchmark = true;
+        } else if (arg == "--benchmark-min-fps" && i + 1 < args.size()) {
+            result.benchmarkMinimumFps = std::max(
+                parseFloat(args[++i], 0.0f), 0.0f);
+            result.benchmark = true;
+        } else if (arg == "--benchmark-fixed-hz" && i + 1 < args.size()) {
+            result.benchmarkFixedHz = std::max(
+                parseFloat(args[++i], 0.0f), 0.0f);
+            result.benchmark = true;
         } else if (arg == "--teleport-index" && i + 1 < args.size()) {
             result.teleportIndex = parseInt(args[++i], 0);
         } else if (arg == "--screenshot" && i + 1 < args.size()) {
@@ -257,6 +268,9 @@ void printHelp(std::string_view programName) {
         "  --log-level <level>     Set log level (trace|debug|info|warn|error)\n"
         "  --no-validation         Disable WebGPU validation layers\n"
         "  --benchmark             Run in benchmark mode\n"
+        "  --benchmark-bodies N    Spawn N deterministic benchmark bodies\n"
+        "  --benchmark-min-fps N   Fail if aggregate throughput is below N FPS\n"
+        "  --benchmark-fixed-hz N  Advance scripted time at exactly N frames/s\n"
         "  --teleport-index <n>    Teleport to stored target index on startup\n"
         "  --screenshot <path>     Save screenshot to path after N frames and exit\n"
         "  --screenshot-frames <n> Frames to render before screenshot (default: 10)\n"
@@ -446,6 +460,9 @@ Config load(std::string_view path, const CommandLineArgs& args) {
     
     // Apply automation settings
     config.automation.benchmark = args.benchmark;
+    config.automation.benchmarkBodies = args.benchmarkBodies;
+    config.automation.benchmarkMinimumFps = args.benchmarkMinimumFps;
+    config.automation.benchmarkFixedHz = args.benchmarkFixedHz;
     config.automation.teleportIndex = args.teleportIndex;
     config.automation.screenshotPath = args.screenshotPath;
     config.automation.screenshotFrames = args.screenshotFrames;

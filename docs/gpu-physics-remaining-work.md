@@ -32,6 +32,13 @@ There is no immediate sector-integration blocker.
   removes about 300 WebGPU dispatch calls per tick without dropping contacts,
   solver stages, or Soft Step substeps. Larger worlds keep the fully parallel
   per-color path.
+- Worlds of at most 64 allocated bodies use an exact serial broad-phase pair
+  build and lifecycle pass. This avoids paying the fixed cost of the complete
+  radix/grid pipeline when the pair search itself is tiny.
+- Worlds of at most 1,024 allocated bodies build and maintain islands inside
+  bounded workgroup-cooperative passes. Union, root ranking, deterministic
+  events, sleep state, and sleep-grid ranking remain present; the change
+  removes small-world dispatch overhead rather than removing island features.
 - Browser submission depth is bounded to four frames. A pacing skip discards
   catch-up debt instead of turning one slow frame into six GPU physics ticks.
   Submitted-frame statistics still include the skipped wall time, so the FPS
@@ -44,8 +51,14 @@ There is no immediate sector-integration blocker.
 - Right-click now emits its 128 bodies as a camera-fitted 16 by 8 wall. Four
   forward lanes keep consecutive batches apart instead of creating a complete
   contact graph at one coordinate. Single-body left-click throwing is unchanged.
+- Right-click terrain clearance now converts between the camera's local sector
+  and absolute terrain coordinates. The previous mixed coordinate spaces could
+  place a valid 128-body batch hundreds of metres outside the visible view.
 - The direct GPU-resident primitive path now has a texture-readback regression
   that proves a physics body writes visible, nonblack pixels.
+- Native benchmark automation can spawn an exact active-body workload, use a
+  fixed scripted time step, enforce a minimum throughput, and fail when the
+  resident or active count changes during a scenario.
 
 ## Current automated evidence
 
@@ -71,11 +84,21 @@ integrated Radeon 890M:
   candidate pairs and saturating the 65,536 pair/manifold capacities. The
   native retired-frame result is 3.448 ms p50 and 3.843 ms p95. Broad phase is
   1.623 ms p50 and the compact dynamic solver is 0.422 ms p50.
-- The current WASM build was exercised through the production DOM right-click
-  path for five batches (640 resident bodies). It held the browser's capped
-  60 Hz rate with 1.3 ms CPU-frame p50, 1.8 ms p95, one pacing skip, at most
-  three GPU frames in flight, and four physics substeps. No WebGPU validation
-  errors were reported. This is a capped RAF measurement, not an uncapped claim.
+- The current WASM build was exercised through the production DOM input path in
+  uncapped Chromium. It measured 225.8 FPS with 10 bodies and 213.6 FPS with
+  650 bodies. An intermediate run measured 223.5 FPS with 138 bodies and
+  225.6 FPS with 394 bodies. The final clean build had at most two GPU frames in
+  flight during the reported samples.
+- The production DOM right-click path was also checked on a real Chrome surface:
+  the count increased by exactly 128 and the spawned red bodies were visible in
+  the rendered frame.
+- Native scripted WebGPU benchmarks measured 246.2 FPS aggregate throughput
+  with 10 bodies and 211.4 FPS with 650 bodies. Every scenario kept the exact
+  resident count and observed every body active for the full run.
+- The focused broad phase, dynamic solver, islands, full GPU physics, direct
+  primitive rendering/culling, application, benchmark, configuration, and
+  terrain/raycast/blit test targets pass (14 targets). The clean WASM build also
+  completes successfully.
 - A native 640-body non-overlap sample retired at 2.13 ms p50, about 474 FPS.
   The deliberately pathological version with all 640 bodies at one coordinate
   generated 204,480 pair candidates, saturated the 65,536 contact/manifold
@@ -104,9 +127,9 @@ acceptance scene.
 - Re-run the deployed Chromium build on the hardware that reported 10 FPS.
   The automated hardware-browser result above proves the regression scene on
   one Radeon 890M, but it does not replace that machine's playtest.
-- Measure uncapped browser throughput separately. The current browser evidence
-  proves a stable 60 Hz RAF path; it does not claim the previous 240 FPS
-  single-threaded-Jolt comparison.
+- Add the 10/650-body browser measurements to an automated regression harness;
+  the current uncapped numbers were collected through Chrome DevTools control
+  on the test machine and are not yet a CI guardrail.
 - Improve or cap the deliberately coincident dense case if it must become a
   supported workload. Its quadratic pair graph remains much slower than the
   spaced right-click workload even though it no longer corrupts body poses.

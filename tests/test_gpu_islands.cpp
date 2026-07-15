@@ -78,7 +78,8 @@ void releaseBuffer(WGPUBuffer& buffer) {
 
 IslandSnapshot runAndRead(gpu::Context& context, GpuIslandManager& manager,
                           WGPUBuffer metadataBuffer, uint32_t bodyCapacity,
-                          uint32_t eventCapacity) {
+                          uint32_t eventCapacity,
+                          bool compactSmallWorld = false) {
     constexpr size_t telemetryBytes = 32u * sizeof(uint32_t);
     const size_t rootBytes = size_t{bodyCapacity} * sizeof(uint32_t);
     const size_t metadataBytes = size_t{bodyCapacity} * sizeof(TestMetadata);
@@ -97,7 +98,7 @@ IslandSnapshot runAndRead(gpu::Context& context, GpuIslandManager& manager,
     WGPUCommandEncoderDescriptor encoderDesc{};
     WGPUCommandEncoder encoder = wgpuDeviceCreateCommandEncoder(
         context.getDevice(), &encoderDesc);
-    EXPECT_TRUE(manager.encode(encoder));
+    EXPECT_TRUE(manager.encode(encoder, compactSmallWorld));
     size_t offset = 0;
     wgpuCommandEncoderCopyBufferToBuffer(
         encoder, manager.telemetryBuffer(), 0, readback, offset, telemetryBytes);
@@ -260,9 +261,9 @@ TEST_P(GpuIslandTest, CompactsSleepsWakesAndMaintainsSleepingGrid) {
     IslandSnapshot snapshot;
     for (uint32_t tick = 0; tick < 4u; ++tick) {
         snapshot = runAndRead(
-            context, manager, metadataBuffer, bodyCapacity, eventCapacity);
+            context, manager, metadataBuffer, bodyCapacity, eventCapacity, true);
     }
-    EXPECT_EQ(manager.inputBindGroupCacheMisses(), 8u);
+    EXPECT_EQ(manager.inputBindGroupCacheMisses(), 3u);
     EXPECT_EQ(snapshot.telemetry.tick, 4u);
     EXPECT_EQ(snapshot.telemetry.islandCount, 3u);
     EXPECT_EQ(snapshot.telemetry.maximumIslandBodies, 8u);
@@ -293,7 +294,7 @@ TEST_P(GpuIslandTest, CompactsSleepsWakesAndMaintainsSleepingGrid) {
     gpu::writeBuffer(context.getQueue(), metadataBuffer,
                      uint64_t{4u} * sizeof(TestMetadata), wakeBody);
     snapshot = runAndRead(
-        context, manager, metadataBuffer, bodyCapacity, eventCapacity);
+        context, manager, metadataBuffer, bodyCapacity, eventCapacity, true);
     EXPECT_EQ(snapshot.telemetry.wakeTransitions, 1u);
     EXPECT_EQ(snapshot.telemetry.events, 1u);
     EXPECT_EQ(snapshot.events[0].rootBody, 1u);
@@ -304,14 +305,14 @@ TEST_P(GpuIslandTest, CompactsSleepsWakesAndMaintainsSleepingGrid) {
 
     for (uint32_t tick = 0; tick < 3u; ++tick) {
         snapshot = runAndRead(
-            context, manager, metadataBuffer, bodyCapacity, eventCapacity);
+            context, manager, metadataBuffer, bodyCapacity, eventCapacity, true);
     }
     EXPECT_EQ(snapshot.telemetry.sleepingBodies, 9u);
     manifolds[3].state[0] = 0u;
     gpu::writeBuffer(context.getQueue(), manifoldBuffer, 0,
         std::as_bytes(std::span<const GpuContactManifold>(manifolds)));
     snapshot = runAndRead(
-        context, manager, metadataBuffer, bodyCapacity, eventCapacity);
+        context, manager, metadataBuffer, bodyCapacity, eventCapacity, true);
     EXPECT_EQ(snapshot.telemetry.islandCount, 4u);
     EXPECT_EQ(snapshot.telemetry.wakeTransitions, 2u);
     EXPECT_EQ(snapshot.telemetry.sleepingBodies, 1u);
@@ -326,14 +327,14 @@ TEST_P(GpuIslandTest, CompactsSleepsWakesAndMaintainsSleepingGrid) {
                       alternateManifoldBuffer, narrowTelemetryBuffer,
                       bodyCapacity, contactCapacity});
     static_cast<void>(runAndRead(
-        context, manager, metadataBuffer, bodyCapacity, eventCapacity));
-    EXPECT_EQ(manager.inputBindGroupCacheMisses(), 16u);
+        context, manager, metadataBuffer, bodyCapacity, eventCapacity, true));
+    EXPECT_EQ(manager.inputBindGroupCacheMisses(), 6u);
     manager.setInput({poseBuffer, motionBuffer, metadataBuffer,
                       manifoldBuffer, narrowTelemetryBuffer,
                       bodyCapacity, contactCapacity});
     static_cast<void>(runAndRead(
-        context, manager, metadataBuffer, bodyCapacity, eventCapacity));
-    EXPECT_EQ(manager.inputBindGroupCacheMisses(), 16u);
+        context, manager, metadataBuffer, bodyCapacity, eventCapacity, true));
+    EXPECT_EQ(manager.inputBindGroupCacheMisses(), 6u);
 
     manager.setInput({});
     releaseBuffer(alternateManifoldBuffer);
