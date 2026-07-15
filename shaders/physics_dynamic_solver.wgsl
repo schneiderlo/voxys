@@ -432,43 +432,52 @@ fn build_color_records_256(@builtin(global_invocation_id) gid : vec3<u32>) {
     build_color_records_impl(gid);
 }
 
-@compute @workgroup_size(1)
-fn build_color_ranges(@builtin(global_invocation_id) gid : vec3<u32>) {
-    if (gid.x != 0u) { return; }
-    for (var color = 0u; color <= params.capacities.z; color += 1u) {
-        colorRanges[color * 2u] = 0u;
-        colorRanges[color * 2u + 1u] = 0u;
-        store_dispatch(color, 0u);
+fn lower_color_bound(color : u32, count : u32) -> u32 {
+    var first = 0u;
+    var limit = count;
+    while (first < limit) {
+        let middle = first + (limit - first) / 2u;
+        if (sortedColorRecords[middle].keyHigh < color) {
+            first = middle + 1u;
+        } else {
+            limit = middle;
+        }
     }
+    return first;
+}
+
+fn upper_color_bound(color : u32, count : u32) -> u32 {
+    var first = 0u;
+    var limit = count;
+    while (first < limit) {
+        let middle = first + (limit - first) / 2u;
+        if (sortedColorRecords[middle].keyHigh <= color) {
+            first = middle + 1u;
+        } else {
+            limit = middle;
+        }
+    }
+    return first;
+}
+
+fn build_color_ranges_impl(localIndex : u32) {
     let globalSortBase = (params.capacities.z + 1u) * 4u;
-    if (atomicLoad(&colorDispatchArgs[globalSortBase]) == 0u) {
-        let activeContacts = atomicLoad(&solverTelemetry[43]);
-        atomicStore(&solverTelemetry[32], activeContacts);
-        atomicMax(&solverTelemetry[39], activeContacts);
-        atomicStore(&solverTelemetry[38], params.control.y);
-        atomicStore(&solverTelemetry[42], select(0u, 1u,
-            narrowTelemetry[10] > params.capacities.y));
-        return;
+    let hasSortedRecords =
+        atomicLoad(&colorDispatchArgs[globalSortBase]) != 0u;
+    if (localIndex <= params.capacities.z) {
+        let sortedCount = select(0u, active_contact_count(), hasSortedRecords);
+        let first = lower_color_bound(localIndex, sortedCount);
+        let last = upper_color_bound(localIndex, sortedCount);
+        let count = last - first;
+        colorRanges[localIndex * 2u] = first;
+        colorRanges[localIndex * 2u + 1u] = count;
+        let workgroupSize = params.capacities.w >> 8u;
+        store_dispatch(localIndex,
+            (count + workgroupSize - 1u) / workgroupSize);
     }
-    let sortedCount = active_contact_count();
-    var index = 0u;
-    while (index < sortedCount
-           && sortedColorRecords[index].keyHigh != SENTINEL) {
-        let color = sortedColorRecords[index].keyHigh;
-        let first = index;
-        index += 1u;
-        while (index < sortedCount
-               && sortedColorRecords[index].keyHigh == color) {
-            index += 1u;
-        }
-        if (color <= params.capacities.z) {
-            colorRanges[color * 2u] = first;
-            colorRanges[color * 2u + 1u] = index - first;
-            let workgroupSize = params.capacities.w >> 8u;
-            store_dispatch(color,
-                (index - first + workgroupSize - 1u) / workgroupSize);
-        }
-    }
+    storageBarrier();
+    workgroupBarrier();
+    if (localIndex != 0u) { return; }
     let activeContacts = atomicLoad(&solverTelemetry[33])
         + atomicLoad(&solverTelemetry[34])
         + atomicLoad(&solverTelemetry[43]);
@@ -486,6 +495,22 @@ fn build_color_ranges(@builtin(global_invocation_id) gid : vec3<u32>) {
     atomicStore(&solverTelemetry[38], params.control.y);
     atomicStore(&solverTelemetry[42], select(0u, 1u,
         narrowTelemetry[10] > params.capacities.y));
+}
+
+@compute @workgroup_size(64)
+fn build_color_ranges_64(
+    @builtin(local_invocation_index) localIndex : u32) {
+    build_color_ranges_impl(localIndex);
+}
+@compute @workgroup_size(128)
+fn build_color_ranges_128(
+    @builtin(local_invocation_index) localIndex : u32) {
+    build_color_ranges_impl(localIndex);
+}
+@compute @workgroup_size(256)
+fn build_color_ranges_256(
+    @builtin(local_invocation_index) localIndex : u32) {
+    build_color_ranges_impl(localIndex);
 }
 
 fn clear_adjacency_impl(gid : vec3<u32>) {
@@ -535,31 +560,47 @@ fn emit_adjacency_256(@builtin(global_invocation_id) gid : vec3<u32>) {
     emit_adjacency_impl(gid);
 }
 
-@compute @workgroup_size(1)
-fn build_body_ranges(@builtin(global_invocation_id) gid : vec3<u32>) {
-    if (gid.x != 0u) { return; }
-    if (colorRanges[params.capacities.z * 2u + 1u] == 0u) {
-        atomicStore(&solverTelemetry[36], 0u);
-        return;
+fn upper_body_bound(body : u32, firstIndex : u32, count : u32) -> u32 {
+    var first = firstIndex;
+    var limit = count;
+    while (first < limit) {
+        let middle = first + (limit - first) / 2u;
+        if (sortedAdjacency[middle].keyHigh <= body) {
+            first = middle + 1u;
+        } else {
+            limit = middle;
+        }
     }
+    return first;
+}
+
+fn build_body_ranges_impl(gid : vec3<u32>) {
+    let index = gid.x;
     let endpointCount =
         colorRanges[params.capacities.z * 2u + 1u] * 2u;
-    var index = 0u;
-    var maximumDegree = 0u;
-    while (index < endpointCount) {
-        let body = sortedAdjacency[index].keyHigh;
-        let first = index;
-        index += 1u;
-        while (index < endpointCount
-               && sortedAdjacency[index].keyHigh == body) {
-            index += 1u;
-        }
-        if (body < params.capacities.x) {
-            bodyRanges[body] = vec2<u32>(first, index - first);
-            maximumDegree = max(maximumDegree, index - first);
-        }
+    if (index >= endpointCount) { return; }
+    let body = sortedAdjacency[index].keyHigh;
+    if (body >= params.capacities.x
+        || (index != 0u && sortedAdjacency[index - 1u].keyHigh == body)) {
+        return;
     }
-    atomicStore(&solverTelemetry[36], maximumDegree);
+    let last = upper_body_bound(body, index + 1u, endpointCount);
+    let degree = last - index;
+    bodyRanges[body] = vec2<u32>(index, degree);
+    atomicMax(&solverTelemetry[36], degree);
+}
+
+@compute @workgroup_size(64)
+fn build_body_ranges_64(@builtin(global_invocation_id) gid : vec3<u32>) {
+    build_body_ranges_impl(gid);
+}
+@compute @workgroup_size(128)
+fn build_body_ranges_128(@builtin(global_invocation_id) gid : vec3<u32>) {
+    build_body_ranges_impl(gid);
+}
+@compute @workgroup_size(256)
+fn build_body_ranges_256(@builtin(global_invocation_id) gid : vec3<u32>) {
+    build_body_ranges_impl(gid);
 }
 
 fn quaternion_multiply(a : vec4<f32>, b : vec4<f32>) -> vec4<f32> {
@@ -1107,10 +1148,7 @@ fn store_contact_velocities(pair : KeyValue, velocities : VelocityPair) {
         velocities.angularB, motions[pair.keyLow].angularVelocity_flags.w);
 }
 
-fn solve_colored_impl(gid : vec3<u32>) {
-    let color = params.control.x;
-    if (color >= params.capacities.z) { return; }
-    let localIndex = gid.x;
+fn solve_colored_contact(color : u32, localIndex : u32) {
     let first = colorRanges[color * 2u];
     let count = colorRanges[color * 2u + 1u];
     if (localIndex >= count) { return; }
@@ -1118,6 +1156,12 @@ fn solve_colored_impl(gid : vec3<u32>) {
     let pair = manifolds[rank].pair;
     let velocities = solve_contact(rank, params.control.y);
     store_contact_velocities(pair, velocities);
+}
+
+fn solve_colored_impl(gid : vec3<u32>) {
+    let color = params.control.x;
+    if (color >= params.capacities.z) { return; }
+    solve_colored_contact(color, gid.x);
 }
 
 @compute @workgroup_size(64)
@@ -1131,6 +1175,38 @@ fn solve_colored_128(@builtin(global_invocation_id) gid : vec3<u32>) {
 @compute @workgroup_size(256)
 fn solve_colored_256(@builtin(global_invocation_id) gid : vec3<u32>) {
     solve_colored_impl(gid);
+}
+
+fn solve_compact_colors_impl(localIndex : u32) {
+    let workgroupSize = params.capacities.w >> 8u;
+    for (var color = 0u; color < params.capacities.z; color += 1u) {
+        let count = colorRanges[color * 2u + 1u];
+        var contact = localIndex;
+        while (contact < count) {
+            solve_colored_contact(color, contact);
+            contact += workgroupSize;
+        }
+        // Contacts within one color never share a body. The barrier only
+        // separates consecutive colors, matching the original dispatch order.
+        storageBarrier();
+        workgroupBarrier();
+    }
+}
+
+@compute @workgroup_size(64)
+fn solve_compact_colors_64(
+    @builtin(local_invocation_index) localIndex : u32) {
+    solve_compact_colors_impl(localIndex);
+}
+@compute @workgroup_size(128)
+fn solve_compact_colors_128(
+    @builtin(local_invocation_index) localIndex : u32) {
+    solve_compact_colors_impl(localIndex);
+}
+@compute @workgroup_size(256)
+fn solve_compact_colors_256(
+    @builtin(local_invocation_index) localIndex : u32) {
+    solve_compact_colors_impl(localIndex);
 }
 
 fn solve_overflow_impl(gid : vec3<u32>) {

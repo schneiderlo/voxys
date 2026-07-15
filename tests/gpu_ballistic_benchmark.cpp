@@ -14,6 +14,7 @@
 #include <iomanip>
 #include <iostream>
 #include <span>
+#include <string_view>
 #include <vector>
 
 #include <glm/gtc/matrix_transform.hpp>
@@ -37,9 +38,24 @@ namespace voxy::physics {
 namespace {
 
 using Clock = std::chrono::steady_clock;
-constexpr uint32_t kBodyCount = 100'000;
+constexpr uint32_t kDefaultBodyCount = 100'000;
 constexpr uint32_t kWarmupFrames = 4;
 constexpr uint32_t kMeasuredFrames = 20;
+
+uint32_t benchmarkBodyCount() {
+    const char* text = std::getenv("VOXY_GPU_BALLISTIC_BODIES");
+    if (!text || *text == '\0') return kDefaultBodyCount;
+    char* end = nullptr;
+    const unsigned long value = std::strtoul(text, &end, 10);
+    return end != text && *end == '\0' && value > 0u
+            && value <= 131'071u
+        ? static_cast<uint32_t>(value) : kDefaultBodyCount;
+}
+
+bool benchmarkDenseOverlap() {
+    const char* text = std::getenv("VOXY_GPU_BALLISTIC_DENSE_OVERLAP");
+    return text && std::string_view(text) == "1";
+}
 
 double timestampPeriodNanoseconds() {
     const char* text = std::getenv("VOXY_GPU_TIMESTAMP_PERIOD_NS");
@@ -58,7 +74,9 @@ double percentile(std::vector<double> samples, double fraction) {
                             samples.size() - 1)];
 }
 
-TEST(GpuBallisticBenchmark, UpdatesAndRendersOneHundredThousandBodiesDirectly) {
+TEST(GpuBallisticBenchmark, UpdatesAndRendersConfiguredBodiesDirectly) {
+    const uint32_t bodyCount = benchmarkBodyCount();
+    const bool denseOverlap = benchmarkDenseOverlap();
     const double timestampPeriod = timestampPeriodNanoseconds();
     gpu::Context context;
     gpu::ContextConfig contextConfig;
@@ -104,9 +122,9 @@ TEST(GpuBallisticBenchmark, UpdatesAndRendersOneHundredThousandBodiesDirectly) {
     physicsConfig.queue = context.getQueue();
     physicsConfig.maxBodies = 131'072;
     physicsConfig.maxActiveBodies = 131'072;
-    physicsConfig.maxPairs = 8'192;
-    physicsConfig.maxContacts = 4'096;
-    physicsConfig.maxManifolds = 8'192;
+    physicsConfig.maxPairs = denseOverlap ? 65'536u : 8'192u;
+    physicsConfig.maxContacts = denseOverlap ? 16'384u : 4'096u;
+    physicsConfig.maxManifolds = denseOverlap ? 65'536u : 8'192u;
     physicsConfig.gpu.enableStageProfiling = true;
     physicsConfig.gpu.stageProfilingTimestampPeriodNanoseconds =
         timestampPeriod;
@@ -147,15 +165,17 @@ TEST(GpuBallisticBenchmark, UpdatesAndRendersOneHundredThousandBodiesDirectly) {
     renderer.setRayDepthTexture(rayView);
 
     BodySpawnDesc body;
-    for (uint32_t index = 0; index < kBodyCount; ++index) {
+    for (uint32_t index = 0; index < bodyCount; ++index) {
         const uint32_t x = index % 400u;
         const uint32_t z = index / 400u;
         body.shape = static_cast<ThrowableShape>(
             index % static_cast<uint32_t>(ThrowableShape::Count));
-        body.position = {
-            (static_cast<float>(x) - 199.5f) * 4.0f,
-            20.0f + static_cast<float>(index % 17u) * 0.15f,
-            static_cast<float>(z) * 4.0f};
+        body.position = denseOverlap
+            ? glm::vec3(0.0f, 20.0f, 0.0f)
+            : glm::vec3(
+                (static_cast<float>(x) - 199.5f) * 4.0f,
+                20.0f + static_cast<float>(index % 17u) * 0.15f,
+                static_cast<float>(z) * 4.0f);
         body.linearVelocity = {
             static_cast<float>(int32_t(index % 7u) - 3) * 0.03f,
             0.0f,
@@ -164,7 +184,7 @@ TEST(GpuBallisticBenchmark, UpdatesAndRendersOneHundredThousandBodiesDirectly) {
         body.dimensions = throwableShapeDimensions(body.shape) * 0.7f;
         ASSERT_TRUE(world.spawnBody(body).valid());
     }
-    ASSERT_EQ(world.stats().residentBodies, kBodyCount);
+    ASSERT_EQ(world.stats().residentBodies, bodyCount);
     ASSERT_TRUE(world.dynamicBodies().empty());
     renderer.setPhysicsRenderView(world.renderView());
 
@@ -306,7 +326,7 @@ TEST(GpuBallisticBenchmark, UpdatesAndRendersOneHundredThousandBodiesDirectly) {
     const PhysicsStats finalStats = world.stats();
     EXPECT_GT(finalStats.telemetryTick, 0u);
     std::cout << std::fixed << std::setprecision(3)
-              << "gpu_ballistic bodies=" << kBodyCount
+              << "gpu_ballistic bodies=" << bodyCount
               << " pairs=" << finalStats.highPairs
               << " contacts=" << finalStats.highContacts
               << " manifolds=" << finalStats.highManifolds

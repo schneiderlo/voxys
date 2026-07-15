@@ -722,9 +722,11 @@
                 }
 
                 updateProgress(10, 'Creating GPU device...');
+                const physicsProfiling = new URLSearchParams(location.search)
+                    .get('physicsProfile') === '1';
                 const deviceRequest = await VoxyLoader.requestVoxyDevice(
                     adapter,
-                    {enableTimestamps: false}
+                    {enableTimestamps: physicsProfiling}
                 );
                 const device = deviceRequest.device;
                 window.voxyDeviceProfile = deviceRequest.profile;

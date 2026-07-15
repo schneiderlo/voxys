@@ -289,6 +289,13 @@ public:
     /// @param deltaTime Time since last frame in seconds
     void update(float deltaTime);
 
+    /// Update game state while accounting for a different submitted-frame
+    /// interval. This is used by the browser queue pacer: simulation time may
+    /// be dropped while the GPU drains, but FPS still reflects wall time.
+    /// @param simulationDeltaTime Time advanced by controllers and physics
+    /// @param frameDeltaTime Wall time since the previous submitted frame
+    void update(float simulationDeltaTime, float frameDeltaTime);
+
     /// Render the current frame.
     void render();
 
@@ -298,6 +305,11 @@ public:
     /// Process a single frame (calls beginFrame, update, render, endFrame).
     /// @param deltaTime Time since last frame in seconds
     void processFrame(float deltaTime);
+
+    /// Process a frame with separate simulation and submitted-frame timing.
+    /// @param simulationDeltaTime Time advanced by controllers and physics
+    /// @param frameDeltaTime Wall time since the previous submitted frame
+    void processFrame(float simulationDeltaTime, float frameDeltaTime);
 
     // ─────────────────────────────────────────────────────────────────────────
     // Render Path Control

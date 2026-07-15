@@ -147,6 +147,26 @@ public:
         contactEvents_ = makeStorage(uint64_t{config.contactCapacity} * 2u,
                                      sizeof(GpuContactEvent), "contact_events");
         lifecycleState_ = makeStorage(4, sizeof(uint32_t), "lifecycle_state");
+        lifecycleNewPredicates_ = makeStorage(
+            config.contactCapacity, sizeof(uint32_t),
+            "lifecycle_new_predicates");
+        lifecycleNewOffsets_ = makeStorage(
+            config.contactCapacity, sizeof(uint32_t),
+            "lifecycle_new_offsets");
+        lifecycleEndPredicates_ = makeStorage(
+            config.contactCapacity, sizeof(uint32_t),
+            "lifecycle_end_predicates");
+        lifecycleEndOffsets_ = makeStorage(
+            config.contactCapacity, sizeof(uint32_t),
+            "lifecycle_end_offsets");
+        lifecycleFreePredicates_ = makeStorage(
+            config.contactCapacity, sizeof(uint32_t),
+            "lifecycle_free_predicates");
+        lifecycleFreeOffsets_ = makeStorage(
+            config.contactCapacity, sizeof(uint32_t),
+            "lifecycle_free_offsets");
+        lifecycleFreeIds_ = makeStorage(
+            config.contactCapacity, sizeof(uint32_t), "lifecycle_free_ids");
         telemetry_ = makeBuffer(
             uint64_t{kTelemetryWords} * sizeof(uint32_t),
             "broad_phase_telemetry",
@@ -159,7 +179,11 @@ public:
             || !ownerPairCounts_ || !ownerPairOffsets_
             || !pairCandidates_ || !sortedPairCandidates_ || !uniquePairs_
             || !contactsA_ || !contactsB_ || !contactOccupancy_
-            || !contactEvents_ || !lifecycleState_ || !telemetry_) {
+            || !contactEvents_ || !lifecycleState_
+            || !lifecycleNewPredicates_ || !lifecycleNewOffsets_
+            || !lifecycleEndPredicates_ || !lifecycleEndOffsets_
+            || !lifecycleFreePredicates_ || !lifecycleFreeOffsets_
+            || !lifecycleFreeIds_ || !telemetry_) {
             shutdown();
             return false;
         }
@@ -176,7 +200,8 @@ public:
             + uint64_t{config.pairCapacity} * sizeof(GpuKeyValue)
             + uint64_t{config.contactCapacity}
                 * (2u * sizeof(GpuPersistentContact) + sizeof(uint32_t)
-                   + 2u * sizeof(GpuContactEvent))
+                   + 2u * sizeof(GpuContactEvent)
+                   + 7u * sizeof(uint32_t))
             + sizeof(Params) + (kTelemetryWords + 4u) * sizeof(uint32_t));
 
         shaderModule_ = gpu::loadShaderModule(
@@ -286,18 +311,57 @@ public:
         uniqueLayout_ = gpu::createBindGroupLayout(
             device_, uniqueEntries, "broad_phase_unique_layout");
 
-        std::vector<LE> lifecycleEntries;
-        storage(lifecycleEntries, 15, false);
-        storage(lifecycleEntries, 16, true);
-        for (uint32_t binding : {17u, 18u, 19u, 20u, 6u})
-            storage(lifecycleEntries, binding, false);
-        uniform(lifecycleEntries);
-        lifecycleLayout_ = gpu::createBindGroupLayout(
-            device_, lifecycleEntries, "broad_phase_lifecycle_layout");
+        std::vector<LE> lifecyclePrepareEntries;
+        for (uint32_t binding : {6u, 15u})
+            storage(lifecyclePrepareEntries, binding, false);
+        storage(lifecyclePrepareEntries, 16, true);
+        for (uint32_t binding : {17u, 18u, 20u, 24u, 26u})
+            storage(lifecyclePrepareEntries, binding, false);
+        uniform(lifecyclePrepareEntries);
+        lifecyclePrepareLayout_ = gpu::createBindGroupLayout(
+            device_, lifecyclePrepareEntries,
+            "broad_phase_lifecycle_prepare_layout");
+
+        std::vector<LE> lifecycleFreeEntries;
+        for (uint32_t binding : {18u, 20u, 28u, 29u, 30u})
+            storage(lifecycleFreeEntries, binding, false);
+        uniform(lifecycleFreeEntries);
+        lifecycleFreeLayout_ = gpu::createBindGroupLayout(
+            device_, lifecycleFreeEntries,
+            "broad_phase_lifecycle_free_layout");
+
+        std::vector<LE> lifecycleBeginEntries;
+        for (uint32_t binding : {
+                 17u, 18u, 19u, 20u, 24u, 25u, 30u})
+            storage(lifecycleBeginEntries, binding, false);
+        uniform(lifecycleBeginEntries);
+        lifecycleBeginLayout_ = gpu::createBindGroupLayout(
+            device_, lifecycleBeginEntries,
+            "broad_phase_lifecycle_begin_layout");
+
+        std::vector<LE> lifecycleEndEntries;
+        storage(lifecycleEndEntries, 16, true);
+        for (uint32_t binding : {19u, 20u, 26u, 27u})
+            storage(lifecycleEndEntries, binding, false);
+        uniform(lifecycleEndEntries);
+        lifecycleEndLayout_ = gpu::createBindGroupLayout(
+            device_, lifecycleEndEntries,
+            "broad_phase_lifecycle_end_layout");
+
+        std::vector<LE> lifecycleFinalizeEntries;
+        for (uint32_t binding : {
+                 6u, 20u, 24u, 25u, 26u, 27u, 28u, 29u})
+            storage(lifecycleFinalizeEntries, binding, false);
+        uniform(lifecycleFinalizeEntries);
+        lifecycleFinalizeLayout_ = gpu::createBindGroupLayout(
+            device_, lifecycleFinalizeEntries,
+            "broad_phase_lifecycle_finalize_layout");
         if (!gridLayout_ || !rangeLayout_ || !finalizeLayout_
             || !pairCountLayout_
             || !pairScatterLayout_ || !candidateClearLayout_ || !uniqueLayout_
-            || !lifecycleLayout_) return false;
+            || !lifecyclePrepareLayout_ || !lifecycleFreeLayout_
+            || !lifecycleBeginLayout_ || !lifecycleEndLayout_
+            || !lifecycleFinalizeLayout_) return false;
 
         gridPipelineLayout_ = pipelineLayout(
             device_, std::array{gridLayout_}, "broad_phase_grid_pipeline_layout");
@@ -317,14 +381,28 @@ public:
             "broad_phase_candidate_clear_pipeline_layout");
         uniquePipelineLayout_ = pipelineLayout(
             device_, std::array{uniqueLayout_}, "broad_phase_unique_pipeline_layout");
-        lifecyclePipelineLayout_ = pipelineLayout(
-            device_, std::array{lifecycleLayout_},
-            "broad_phase_lifecycle_pipeline_layout");
+        lifecyclePreparePipelineLayout_ = pipelineLayout(
+            device_, std::array{lifecyclePrepareLayout_},
+            "broad_phase_lifecycle_prepare_pipeline_layout");
+        lifecycleFreePipelineLayout_ = pipelineLayout(
+            device_, std::array{lifecycleFreeLayout_},
+            "broad_phase_lifecycle_free_pipeline_layout");
+        lifecycleBeginPipelineLayout_ = pipelineLayout(
+            device_, std::array{lifecycleBeginLayout_},
+            "broad_phase_lifecycle_begin_pipeline_layout");
+        lifecycleEndPipelineLayout_ = pipelineLayout(
+            device_, std::array{lifecycleEndLayout_},
+            "broad_phase_lifecycle_end_pipeline_layout");
+        lifecycleFinalizePipelineLayout_ = pipelineLayout(
+            device_, std::array{lifecycleFinalizeLayout_},
+            "broad_phase_lifecycle_finalize_pipeline_layout");
         if (!gridPipelineLayout_ || !rangePipelineLayout_
             || !finalizePipelineLayout_
             || !pairCountPipelineLayout_ || !pairScatterPipelineLayout_
             || !candidateClearPipelineLayout_ || !uniquePipelineLayout_
-            || !lifecyclePipelineLayout_) return false;
+            || !lifecyclePreparePipelineLayout_ || !lifecycleFreePipelineLayout_
+            || !lifecycleBeginPipelineLayout_ || !lifecycleEndPipelineLayout_
+            || !lifecycleFinalizePipelineLayout_) return false;
 
         const std::string suffix = std::to_string(config_.workgroupSize);
         resetPipeline_ = makePipeline(device_, gridPipelineLayout_, shaderModule_,
@@ -367,18 +445,46 @@ public:
             device_, pairScatterPipelineLayout_, shaderModule_,
             "scatter_pairs_" + suffix, "broad_phase_scatter_pairs");
         uniquePairsPipeline_ = makePipeline(
-            device_, uniquePipelineLayout_, shaderModule_, "unique_pairs",
+            device_, uniquePipelineLayout_, shaderModule_,
+            "unique_pairs_" + suffix,
             "broad_phase_unique_pairs");
-        lifecyclePipeline_ = makePipeline(
-            device_, lifecyclePipelineLayout_, shaderModule_,
-            "update_contact_lifecycle", "broad_phase_contact_lifecycle");
+        lifecycleResetPipeline_ = makePipeline(
+            device_, lifecyclePreparePipelineLayout_, shaderModule_,
+            "lifecycle_reset_" + suffix,
+            "broad_phase_lifecycle_reset");
+        lifecyclePreparePipeline_ = makePipeline(
+            device_, lifecyclePreparePipelineLayout_, shaderModule_,
+            "lifecycle_prepare_" + suffix,
+            "broad_phase_lifecycle_prepare");
+        lifecycleMarkFreePipeline_ = makePipeline(
+            device_, lifecycleFreePipelineLayout_, shaderModule_,
+            "lifecycle_mark_free_" + suffix,
+            "broad_phase_lifecycle_mark_free");
+        lifecycleScatterFreePipeline_ = makePipeline(
+            device_, lifecycleFreePipelineLayout_, shaderModule_,
+            "lifecycle_scatter_free_" + suffix,
+            "broad_phase_lifecycle_scatter_free");
+        lifecycleAssignBeginPipeline_ = makePipeline(
+            device_, lifecycleBeginPipelineLayout_, shaderModule_,
+            "lifecycle_assign_begin_" + suffix,
+            "broad_phase_lifecycle_assign_begin");
+        lifecycleScatterEndPipeline_ = makePipeline(
+            device_, lifecycleEndPipelineLayout_, shaderModule_,
+            "lifecycle_scatter_end_" + suffix,
+            "broad_phase_lifecycle_scatter_end");
+        lifecycleFinalizePipeline_ = makePipeline(
+            device_, lifecycleFinalizePipelineLayout_, shaderModule_,
+            "lifecycle_finalize", "broad_phase_lifecycle_finalize");
         return resetPipeline_ && clearEntriesPipeline_ && countEntriesPipeline_
             && scatterEntriesPipeline_ && finalizeEntryCountPipeline_
             && markRangeStartsPipeline_ && finalizeRangeCountPipeline_
             && scatterRangeStartsPipeline_ && scatterRangeEndsPipeline_
             && countPairsPipeline_ && clearCandidatesPipeline_
             && scatterPairsPipeline_ && uniquePairsPipeline_
-            && lifecyclePipeline_;
+            && lifecycleResetPipeline_ && lifecyclePreparePipeline_
+            && lifecycleMarkFreePipeline_ && lifecycleScatterFreePipeline_
+            && lifecycleAssignBeginPipeline_ && lifecycleScatterEndPipeline_
+            && lifecycleFinalizePipeline_;
     }
 
     void setBodyView(const BroadPhaseBodyView& view) {
@@ -398,9 +504,6 @@ public:
         const uint32_t ownerCount = bodyCount * 2u;
         const uint32_t bodyGroups =
             (bodyCount + config_.workgroupSize - 1u) / config_.workgroupSize;
-        const uint32_t candidateGroups =
-            (config_.candidatePairCapacity + config_.workgroupSize - 1u)
-            / config_.workgroupSize;
         const float cellsPerSectorValue = kWorldSectorSize / config_.cellSize;
         const float roundedCellsPerSector = std::round(cellsPerSectorValue);
         const float cellsPerSector = std::abs(
@@ -597,7 +700,10 @@ public:
         pass = wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
         wgpuComputePassEncoderSetBindGroup(pass, 0, clearGroup, 0, nullptr);
         wgpuComputePassEncoderSetPipeline(pass, clearCandidatesPipeline_);
-        wgpuComputePassEncoderDispatchWorkgroups(pass, candidateGroups, 1, 1);
+        // Pair owners fill a contiguous output range. The finalize kernel only
+        // publishes its dynamic length; clearing the full reserved capacity
+        // would make sparse worlds pay for all 262k candidate slots.
+        wgpuComputePassEncoderDispatchWorkgroups(pass, 1, 1, 1);
         wgpuComputePassEncoderEnd(pass);
         wgpuComputePassEncoderRelease(pass);
 
@@ -631,34 +737,150 @@ public:
         pass = wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
         wgpuComputePassEncoderSetBindGroup(pass, 0, uniqueGroup, 0, nullptr);
         wgpuComputePassEncoderSetPipeline(pass, uniquePairsPipeline_);
-        wgpuComputePassEncoderDispatchWorkgroups(pass, 1, 1, 1);
+        wgpuComputePassEncoderDispatchWorkgroupsIndirect(
+            pass, dispatchArgs_, 12u * sizeof(uint32_t));
         wgpuComputePassEncoderEnd(pass);
         wgpuComputePassEncoderRelease(pass);
         wgpuBindGroupRelease(uniqueGroup);
 
         WGPUBuffer previous = contactsAreB_ ? contactsB_ : contactsA_;
         WGPUBuffer next = contactsAreB_ ? contactsA_ : contactsB_;
-        const std::array<gpu::BindGroupEntry, 8> lifecycleEntries = {
+        const std::array<gpu::BindGroupEntry, 9> lifecyclePrepareEntries = {
+            gpu::BindGroupEntry(6).buffer(telemetry_),
             gpu::BindGroupEntry(15).buffer(uniquePairs_),
             gpu::BindGroupEntry(16).buffer(previous),
             gpu::BindGroupEntry(17).buffer(next),
             gpu::BindGroupEntry(18).buffer(contactOccupancy_),
-            gpu::BindGroupEntry(19).buffer(contactEvents_),
             gpu::BindGroupEntry(20).buffer(lifecycleState_),
-            gpu::BindGroupEntry(6).buffer(telemetry_),
+            gpu::BindGroupEntry(24).buffer(lifecycleNewPredicates_),
+            gpu::BindGroupEntry(26).buffer(lifecycleEndPredicates_),
             gpu::BindGroupEntry(7).buffer(parameterBuffer_),
         };
-        WGPUBindGroup lifecycleGroup = bindGroup(
-            lifecycleLayout_, lifecycleEntries,
-            "broad_phase_lifecycle_bind_group");
-        if (!lifecycleGroup) return false;
+        const std::array<gpu::BindGroupEntry, 6> lifecycleFreeEntries = {
+            gpu::BindGroupEntry(18).buffer(contactOccupancy_),
+            gpu::BindGroupEntry(20).buffer(lifecycleState_),
+            gpu::BindGroupEntry(28).buffer(lifecycleFreePredicates_),
+            gpu::BindGroupEntry(29).buffer(lifecycleFreeOffsets_),
+            gpu::BindGroupEntry(30).buffer(lifecycleFreeIds_),
+            gpu::BindGroupEntry(7).buffer(parameterBuffer_),
+        };
+        const std::array<gpu::BindGroupEntry, 8> lifecycleBeginEntries = {
+            gpu::BindGroupEntry(17).buffer(next),
+            gpu::BindGroupEntry(18).buffer(contactOccupancy_),
+            gpu::BindGroupEntry(19).buffer(contactEvents_),
+            gpu::BindGroupEntry(20).buffer(lifecycleState_),
+            gpu::BindGroupEntry(24).buffer(lifecycleNewPredicates_),
+            gpu::BindGroupEntry(25).buffer(lifecycleNewOffsets_),
+            gpu::BindGroupEntry(30).buffer(lifecycleFreeIds_),
+            gpu::BindGroupEntry(7).buffer(parameterBuffer_),
+        };
+        const std::array<gpu::BindGroupEntry, 6> lifecycleEndEntries = {
+            gpu::BindGroupEntry(16).buffer(previous),
+            gpu::BindGroupEntry(19).buffer(contactEvents_),
+            gpu::BindGroupEntry(20).buffer(lifecycleState_),
+            gpu::BindGroupEntry(26).buffer(lifecycleEndPredicates_),
+            gpu::BindGroupEntry(27).buffer(lifecycleEndOffsets_),
+            gpu::BindGroupEntry(7).buffer(parameterBuffer_),
+        };
+        const std::array<gpu::BindGroupEntry, 9> lifecycleFinalizeEntries = {
+            gpu::BindGroupEntry(6).buffer(telemetry_),
+            gpu::BindGroupEntry(20).buffer(lifecycleState_),
+            gpu::BindGroupEntry(24).buffer(lifecycleNewPredicates_),
+            gpu::BindGroupEntry(25).buffer(lifecycleNewOffsets_),
+            gpu::BindGroupEntry(26).buffer(lifecycleEndPredicates_),
+            gpu::BindGroupEntry(27).buffer(lifecycleEndOffsets_),
+            gpu::BindGroupEntry(28).buffer(lifecycleFreePredicates_),
+            gpu::BindGroupEntry(29).buffer(lifecycleFreeOffsets_),
+            gpu::BindGroupEntry(7).buffer(parameterBuffer_),
+        };
+        const std::array<WGPUBindGroup, 5> lifecycleGroups = {
+            bindGroup(lifecyclePrepareLayout_, lifecyclePrepareEntries,
+                      "broad_phase_lifecycle_prepare_group"),
+            bindGroup(lifecycleFreeLayout_, lifecycleFreeEntries,
+                      "broad_phase_lifecycle_free_group"),
+            bindGroup(lifecycleBeginLayout_, lifecycleBeginEntries,
+                      "broad_phase_lifecycle_begin_group"),
+            bindGroup(lifecycleEndLayout_, lifecycleEndEntries,
+                      "broad_phase_lifecycle_end_group"),
+            bindGroup(lifecycleFinalizeLayout_, lifecycleFinalizeEntries,
+                      "broad_phase_lifecycle_finalize_group"),
+        };
+        const auto releaseLifecycleGroups = [&] {
+            for (WGPUBindGroup group : lifecycleGroups) {
+                if (group) wgpuBindGroupRelease(group);
+            }
+        };
+        if (std::ranges::any_of(lifecycleGroups,
+                                [](WGPUBindGroup group) { return !group; })) {
+            releaseLifecycleGroups();
+            return false;
+        }
+        const uint32_t lifecycleWorkgroups =
+            (config_.contactCapacity + config_.workgroupSize - 1u)
+            / config_.workgroupSize;
         pass = wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
-        wgpuComputePassEncoderSetBindGroup(pass, 0, lifecycleGroup, 0, nullptr);
-        wgpuComputePassEncoderSetPipeline(pass, lifecyclePipeline_);
+        wgpuComputePassEncoderSetBindGroup(
+            pass, 0, lifecycleGroups[0], 0, nullptr);
+        wgpuComputePassEncoderSetPipeline(pass, lifecycleResetPipeline_);
+        wgpuComputePassEncoderDispatchWorkgroups(
+            pass, lifecycleWorkgroups, 1, 1);
+        wgpuComputePassEncoderSetPipeline(pass, lifecyclePreparePipeline_);
+        wgpuComputePassEncoderDispatchWorkgroups(
+            pass, lifecycleWorkgroups, 1, 1);
+        wgpuComputePassEncoderEnd(pass);
+        wgpuComputePassEncoderRelease(pass);
+
+        if (!primitives_.encodeScanU32(
+                encoder, lifecycleNewPredicates_, lifecycleNewOffsets_,
+                config_.contactCapacity, 3u)
+            || !primitives_.encodeScanU32(
+                encoder, lifecycleEndPredicates_, lifecycleEndOffsets_,
+                config_.contactCapacity, 4u)) {
+            releaseLifecycleGroups();
+            return false;
+        }
+
+        pass = wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
+        wgpuComputePassEncoderSetBindGroup(
+            pass, 0, lifecycleGroups[1], 0, nullptr);
+        wgpuComputePassEncoderSetPipeline(pass, lifecycleMarkFreePipeline_);
+        wgpuComputePassEncoderDispatchWorkgroups(
+            pass, lifecycleWorkgroups, 1, 1);
+        wgpuComputePassEncoderEnd(pass);
+        wgpuComputePassEncoderRelease(pass);
+        if (!primitives_.encodeScanU32(
+                encoder, lifecycleFreePredicates_, lifecycleFreeOffsets_,
+                config_.contactCapacity, 5u)) {
+            releaseLifecycleGroups();
+            return false;
+        }
+
+        pass = wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
+        wgpuComputePassEncoderSetBindGroup(
+            pass, 0, lifecycleGroups[1], 0, nullptr);
+        wgpuComputePassEncoderSetPipeline(
+            pass, lifecycleScatterFreePipeline_);
+        wgpuComputePassEncoderDispatchWorkgroups(
+            pass, lifecycleWorkgroups, 1, 1);
+        wgpuComputePassEncoderSetBindGroup(
+            pass, 0, lifecycleGroups[2], 0, nullptr);
+        wgpuComputePassEncoderSetPipeline(
+            pass, lifecycleAssignBeginPipeline_);
+        wgpuComputePassEncoderDispatchWorkgroups(
+            pass, lifecycleWorkgroups, 1, 1);
+        wgpuComputePassEncoderSetBindGroup(
+            pass, 0, lifecycleGroups[3], 0, nullptr);
+        wgpuComputePassEncoderSetPipeline(
+            pass, lifecycleScatterEndPipeline_);
+        wgpuComputePassEncoderDispatchWorkgroups(
+            pass, lifecycleWorkgroups, 1, 1);
+        wgpuComputePassEncoderSetBindGroup(
+            pass, 0, lifecycleGroups[4], 0, nullptr);
+        wgpuComputePassEncoderSetPipeline(pass, lifecycleFinalizePipeline_);
         wgpuComputePassEncoderDispatchWorkgroups(pass, 1, 1, 1);
         wgpuComputePassEncoderEnd(pass);
         wgpuComputePassEncoderRelease(pass);
-        wgpuBindGroupRelease(lifecycleGroup);
+        releaseLifecycleGroups();
         contactsAreB_ = !contactsAreB_;
         return true;
     }
@@ -677,7 +899,13 @@ public:
         releaseHandle(clearCandidatesPipeline_, wgpuComputePipelineRelease);
         releaseHandle(scatterPairsPipeline_, wgpuComputePipelineRelease);
         releaseHandle(uniquePairsPipeline_, wgpuComputePipelineRelease);
-        releaseHandle(lifecyclePipeline_, wgpuComputePipelineRelease);
+        for (WGPUComputePipeline* pipeline : {
+                 &lifecycleResetPipeline_, &lifecyclePreparePipeline_,
+                 &lifecycleMarkFreePipeline_, &lifecycleScatterFreePipeline_,
+                 &lifecycleAssignBeginPipeline_, &lifecycleScatterEndPipeline_,
+                 &lifecycleFinalizePipeline_}) {
+            releaseHandle(*pipeline, wgpuComputePipelineRelease);
+        }
         releaseHandle(gridPipelineLayout_, wgpuPipelineLayoutRelease);
         releaseHandle(rangePipelineLayout_, wgpuPipelineLayoutRelease);
         releaseHandle(finalizePipelineLayout_, wgpuPipelineLayoutRelease);
@@ -685,7 +913,14 @@ public:
         releaseHandle(pairScatterPipelineLayout_, wgpuPipelineLayoutRelease);
         releaseHandle(candidateClearPipelineLayout_, wgpuPipelineLayoutRelease);
         releaseHandle(uniquePipelineLayout_, wgpuPipelineLayoutRelease);
-        releaseHandle(lifecyclePipelineLayout_, wgpuPipelineLayoutRelease);
+        for (WGPUPipelineLayout* layout : {
+                 &lifecyclePreparePipelineLayout_,
+                 &lifecycleFreePipelineLayout_,
+                 &lifecycleBeginPipelineLayout_,
+                 &lifecycleEndPipelineLayout_,
+                 &lifecycleFinalizePipelineLayout_}) {
+            releaseHandle(*layout, wgpuPipelineLayoutRelease);
+        }
         releaseHandle(gridLayout_, wgpuBindGroupLayoutRelease);
         releaseHandle(rangeLayout_, wgpuBindGroupLayoutRelease);
         releaseHandle(finalizeLayout_, wgpuBindGroupLayoutRelease);
@@ -693,7 +928,12 @@ public:
         releaseHandle(pairScatterLayout_, wgpuBindGroupLayoutRelease);
         releaseHandle(candidateClearLayout_, wgpuBindGroupLayoutRelease);
         releaseHandle(uniqueLayout_, wgpuBindGroupLayoutRelease);
-        releaseHandle(lifecycleLayout_, wgpuBindGroupLayoutRelease);
+        for (WGPUBindGroupLayout* layout : {
+                 &lifecyclePrepareLayout_, &lifecycleFreeLayout_,
+                 &lifecycleBeginLayout_, &lifecycleEndLayout_,
+                 &lifecycleFinalizeLayout_}) {
+            releaseHandle(*layout, wgpuBindGroupLayoutRelease);
+        }
         releaseHandle(shaderModule_, wgpuShaderModuleRelease);
         primitives_.shutdown();
         for (WGPUBuffer* buffer : {
@@ -704,7 +944,10 @@ public:
                  &ownerPairOffsets_,
                  &pairCandidates_, &sortedPairCandidates_, &uniquePairs_,
                  &contactsA_, &contactsB_, &contactOccupancy_, &contactEvents_,
-                 &lifecycleState_, &telemetry_}) {
+                 &lifecycleState_, &lifecycleNewPredicates_,
+                 &lifecycleNewOffsets_, &lifecycleEndPredicates_,
+                 &lifecycleEndOffsets_, &lifecycleFreePredicates_,
+                 &lifecycleFreeOffsets_, &lifecycleFreeIds_, &telemetry_}) {
             releaseBuffer(*buffer);
         }
         device_ = nullptr;
@@ -747,6 +990,13 @@ public:
     WGPUBuffer contactOccupancy_ = nullptr;
     WGPUBuffer contactEvents_ = nullptr;
     WGPUBuffer lifecycleState_ = nullptr;
+    WGPUBuffer lifecycleNewPredicates_ = nullptr;
+    WGPUBuffer lifecycleNewOffsets_ = nullptr;
+    WGPUBuffer lifecycleEndPredicates_ = nullptr;
+    WGPUBuffer lifecycleEndOffsets_ = nullptr;
+    WGPUBuffer lifecycleFreePredicates_ = nullptr;
+    WGPUBuffer lifecycleFreeOffsets_ = nullptr;
+    WGPUBuffer lifecycleFreeIds_ = nullptr;
     WGPUBuffer telemetry_ = nullptr;
     WGPUShaderModule shaderModule_ = nullptr;
     WGPUBindGroupLayout gridLayout_ = nullptr;
@@ -756,7 +1006,11 @@ public:
     WGPUBindGroupLayout pairScatterLayout_ = nullptr;
     WGPUBindGroupLayout candidateClearLayout_ = nullptr;
     WGPUBindGroupLayout uniqueLayout_ = nullptr;
-    WGPUBindGroupLayout lifecycleLayout_ = nullptr;
+    WGPUBindGroupLayout lifecyclePrepareLayout_ = nullptr;
+    WGPUBindGroupLayout lifecycleFreeLayout_ = nullptr;
+    WGPUBindGroupLayout lifecycleBeginLayout_ = nullptr;
+    WGPUBindGroupLayout lifecycleEndLayout_ = nullptr;
+    WGPUBindGroupLayout lifecycleFinalizeLayout_ = nullptr;
     WGPUPipelineLayout gridPipelineLayout_ = nullptr;
     WGPUPipelineLayout rangePipelineLayout_ = nullptr;
     WGPUPipelineLayout finalizePipelineLayout_ = nullptr;
@@ -764,7 +1018,11 @@ public:
     WGPUPipelineLayout pairScatterPipelineLayout_ = nullptr;
     WGPUPipelineLayout candidateClearPipelineLayout_ = nullptr;
     WGPUPipelineLayout uniquePipelineLayout_ = nullptr;
-    WGPUPipelineLayout lifecyclePipelineLayout_ = nullptr;
+    WGPUPipelineLayout lifecyclePreparePipelineLayout_ = nullptr;
+    WGPUPipelineLayout lifecycleFreePipelineLayout_ = nullptr;
+    WGPUPipelineLayout lifecycleBeginPipelineLayout_ = nullptr;
+    WGPUPipelineLayout lifecycleEndPipelineLayout_ = nullptr;
+    WGPUPipelineLayout lifecycleFinalizePipelineLayout_ = nullptr;
     WGPUComputePipeline resetPipeline_ = nullptr;
     WGPUComputePipeline clearEntriesPipeline_ = nullptr;
     WGPUComputePipeline countEntriesPipeline_ = nullptr;
@@ -778,7 +1036,13 @@ public:
     WGPUComputePipeline clearCandidatesPipeline_ = nullptr;
     WGPUComputePipeline scatterPairsPipeline_ = nullptr;
     WGPUComputePipeline uniquePairsPipeline_ = nullptr;
-    WGPUComputePipeline lifecyclePipeline_ = nullptr;
+    WGPUComputePipeline lifecycleResetPipeline_ = nullptr;
+    WGPUComputePipeline lifecyclePreparePipeline_ = nullptr;
+    WGPUComputePipeline lifecycleMarkFreePipeline_ = nullptr;
+    WGPUComputePipeline lifecycleScatterFreePipeline_ = nullptr;
+    WGPUComputePipeline lifecycleAssignBeginPipeline_ = nullptr;
+    WGPUComputePipeline lifecycleScatterEndPipeline_ = nullptr;
+    WGPUComputePipeline lifecycleFinalizePipeline_ = nullptr;
 };
 
 GpuBroadPhase::GpuBroadPhase() : impl_(std::make_unique<Impl>()) {}

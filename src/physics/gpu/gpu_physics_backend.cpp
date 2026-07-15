@@ -295,16 +295,19 @@ public:
         debugPackedBuffer_ = arena_.create("physics_debug_packed",
             uint64_t{config_.debugReadbackBodyCapacity} * kGpuBodyBytes,
             WGPUBufferUsage_Storage | WGPUBufferUsage_CopySrc, true);
-        telemetrySnapshotBuffer_ = arena_.create(
-            "physics_telemetry_snapshot", kTelemetrySnapshotBytes,
-            WGPUBufferUsage_CopyDst | WGPUBufferUsage_CopySrc, true);
+        if (config_.enableTelemetryReadback) {
+            telemetrySnapshotBuffer_ = arena_.create(
+                "physics_telemetry_snapshot", kTelemetrySnapshotBytes,
+                WGPUBufferUsage_CopyDst | WGPUBufferUsage_CopySrc, true);
+        }
         if (!poseBuffer_ || !motionBuffer_ || !shapeBuffer_
             || !metadataBuffer_ || !forceBuffer_
             || !terrainContactCacheBuffer_
             || !activeIdsBuffer_ || !activeOffsetsBuffer_ || !blockSumsBuffer_
             || !blockPrefixBuffer_ || !countersBuffer_ || !commandBuffer_
             || !uniformBuffer_ || !debugPackedBuffer_
-            || !telemetrySnapshotBuffer_) {
+            || (config_.enableTelemetryReadback
+                && !telemetrySnapshotBuffer_)) {
             shutdown();
             return false;
         }
@@ -331,7 +334,8 @@ public:
             shutdown();
             return false;
         }
-        if (!telemetryReadback_.initialize(
+        if (config_.enableTelemetryReadback
+            && !telemetryReadback_.initialize(
                 device_, std::max(config_.telemetryReadbackSlots, 1u),
                 kTelemetrySnapshotBytes)) {
             shutdown();
@@ -1163,6 +1167,7 @@ public:
     }
 
     void pollTelemetry() {
+        if (!config_.enableTelemetryReadback) return;
         auto raw = telemetryReadback_.poll();
         if (!raw) return;
         if (raw->bytes.size() != kTelemetrySnapshotBytes) {
@@ -1585,8 +1590,11 @@ public:
             // Even without body-body contacts, the dynamic solver owns pose
             // integration. Its contact count remains zero when broad and
             // narrow phase are disabled.
+            constexpr uint32_t kCompactColorSolveBodyLimit = 1'024u;
             const bool dynamicWorldEncoded = !executeBodyPipeline
-                || (narrowPhaseEncoded && dynamicSolver_.encode(encoder));
+                || (narrowPhaseEncoded && dynamicSolver_.encode(
+                    encoder,
+                    executionBodies <= kCompactColorSolveBodyLimit));
             if (executeBodyPipeline && !dynamicWorldEncoded) {
                 LOG_ERROR("Failed to encode a GPU dynamic-world stage");
             }
@@ -1631,7 +1639,7 @@ public:
             writeStageTimestamp();
         }
 
-        if (profileTickCount != 0u) {
+        if (config_.enableTelemetryReadback && profileTickCount != 0u) {
             const auto copyTelemetry = [&](WGPUBuffer source,
                                            uint32_t destinationWord,
                                            uint32_t wordCount) {

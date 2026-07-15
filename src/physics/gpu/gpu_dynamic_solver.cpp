@@ -380,7 +380,8 @@ public:
             shaderModule_, "build_color_records_" + suffix,
             "solver_build_color_records");
         buildRangesPipeline_ = makePipeline(device_, rangePipelineLayout_,
-            shaderModule_, "build_color_ranges", "solver_build_color_ranges");
+            shaderModule_, "build_color_ranges_" + suffix,
+            "solver_build_color_ranges");
         clearAdjacencyPipeline_ = makePipeline(device_, adjacencyPipelineLayout_,
             shaderModule_, "clear_adjacency_" + suffix,
             "solver_clear_adjacency");
@@ -388,13 +389,18 @@ public:
             shaderModule_, "emit_adjacency_" + suffix,
             "solver_emit_adjacency");
         buildBodyRangesPipeline_ = makePipeline(device_, bodyRangePipelineLayout_,
-            shaderModule_, "build_body_ranges", "solver_build_body_ranges");
+            shaderModule_, "build_body_ranges_" + suffix,
+            "solver_build_body_ranges");
         preparePipeline_ = makePipeline(device_, preparePipelineLayout_,
             shaderModule_, "prepare_constraints_" + suffix,
             "solver_prepare_constraints");
         solveColoredPipeline_ = makePipeline(device_, solvePipelineLayout_,
             shaderModule_, "solve_colored_" + suffix,
             "solver_solve_colored");
+        solveCompactColorsPipeline_ = makePipeline(
+            device_, solvePipelineLayout_, shaderModule_,
+            "solve_compact_colors_" + suffix,
+            "solver_solve_compact_colors");
         solveOverflowPipeline_ = makePipeline(device_, solvePipelineLayout_,
             shaderModule_, "solve_overflow_" + suffix,
             "solver_solve_overflow");
@@ -419,7 +425,8 @@ public:
             && buildRecordsPipeline_ && buildRangesPipeline_
             && clearAdjacencyPipeline_ && emitAdjacencyPipeline_
             && buildBodyRangesPipeline_ && preparePipeline_
-            && solveColoredPipeline_ && solveOverflowPipeline_
+            && solveColoredPipeline_ && solveCompactColorsPipeline_
+            && solveOverflowPipeline_
             && gatherPipeline_ && integrateVelocityPipeline_
             && integratePositionPipeline_ && solveSmallIslandsPipeline_
             && finishPipeline_;
@@ -467,7 +474,7 @@ public:
         return gpu::createBindGroup(device_, layout, entries, label);
     }
 
-    bool encode(WGPUCommandEncoder encoder) {
+    bool encode(WGPUCommandEncoder encoder, bool compactColorSolve) {
         if (!encoder || !input_.valid()) return false;
         uint32_t slot = 0u;
         const auto parameterEntry = [this] {
@@ -698,7 +705,8 @@ public:
             makeParams(0u, config_.overflowIterations));
         bind(bodyRangeGroup, offset);
         wgpuComputePassEncoderSetPipeline(pass, buildBodyRangesPipeline_);
-        wgpuComputePassEncoderDispatchWorkgroups(pass, 1, 1, 1);
+        wgpuComputePassEncoderDispatchWorkgroupsIndirect(
+            pass, dispatchArgs_, dispatchOffset(config_.colorCount + 3u));
         bind(prepareGroup, offset);
         wgpuComputePassEncoderSetPipeline(pass, preparePipeline_);
         wgpuComputePassEncoderDispatchWorkgroups(pass, contactGroups, 1, 1);
@@ -709,6 +717,15 @@ public:
         wgpuComputePassEncoderDispatchWorkgroups(pass, contactGroups, 1, 1);
 
         auto solveColors = [&](uint32_t stage, uint32_t substep) {
+            if (compactColorSolve) {
+                const uint32_t colorOffset = writeParams(
+                    slot, makeParams(0u, stage, substep, 0u));
+                bind(solveGroup, colorOffset);
+                wgpuComputePassEncoderSetPipeline(
+                    pass, solveCompactColorsPipeline_);
+                wgpuComputePassEncoderDispatchWorkgroups(pass, 1u, 1u, 1u);
+                return;
+            }
             for (uint32_t color = 0; color < config_.colorCount; ++color) {
                 const uint32_t colorOffset = writeParams(
                     slot, makeParams(color, stage, substep, 0u));
@@ -784,7 +801,8 @@ public:
                  &buildRecordsPipeline_, &buildRangesPipeline_,
                  &clearAdjacencyPipeline_, &emitAdjacencyPipeline_,
                  &buildBodyRangesPipeline_, &preparePipeline_,
-                 &solveColoredPipeline_, &solveOverflowPipeline_,
+                 &solveColoredPipeline_, &solveCompactColorsPipeline_,
+                 &solveOverflowPipeline_,
                  &gatherPipeline_, &integrateVelocityPipeline_,
                  &integratePositionPipeline_, &solveSmallIslandsPipeline_,
                  &finishPipeline_}) {
@@ -891,6 +909,7 @@ public:
     WGPUComputePipeline buildBodyRangesPipeline_ = nullptr;
     WGPUComputePipeline preparePipeline_ = nullptr;
     WGPUComputePipeline solveColoredPipeline_ = nullptr;
+    WGPUComputePipeline solveCompactColorsPipeline_ = nullptr;
     WGPUComputePipeline solveOverflowPipeline_ = nullptr;
     WGPUComputePipeline gatherPipeline_ = nullptr;
     WGPUComputePipeline integrateVelocityPipeline_ = nullptr;
@@ -912,8 +931,9 @@ void GpuDynamicSolver::shutdown() { impl_->shutdown(); }
 void GpuDynamicSolver::setInput(const GpuDynamicSolverInput& input) {
     impl_->setInput(input);
 }
-bool GpuDynamicSolver::encode(WGPUCommandEncoder encoder) {
-    return impl_->encode(encoder);
+bool GpuDynamicSolver::encode(WGPUCommandEncoder encoder,
+                              bool compactColorSolve) {
+    return impl_->encode(encoder, compactColorSolve);
 }
 WGPUBuffer GpuDynamicSolver::colors() const noexcept { return impl_->colors_; }
 WGPUBuffer GpuDynamicSolver::sortedColorRecords() const noexcept {

@@ -111,12 +111,13 @@ struct ClipPolygon {
 @group(0) @binding(2) var<storage, read> uniquePairs : array<KeyValue>;
 @group(0) @binding(3) var<storage, read> broadTelemetry : array<u32>;
 @group(0) @binding(4) var<storage, read_write> bucketedPairs : array<KeyValue>;
-@group(0) @binding(5) var<storage, read_write> classTable : array<u32>;
+@group(0) @binding(5) var<storage, read_write> classTable : array<atomic<u32>>;
 @group(0) @binding(6) var<storage, read> previousManifolds : array<ContactManifold>;
 @group(0) @binding(7) var<storage, read_write> currentManifolds : array<ContactManifold>;
 @group(0) @binding(8) var<storage, read> metadata : array<vec4<i32>>;
 @group(0) @binding(9) var<storage, read_write> narrowTelemetry : array<atomic<u32>>;
 @group(0) @binding(10) var<uniform> narrow : NarrowParams;
+@group(0) @binding(11) var<storage, read_write> classDispatchArgs : array<u32>;
 
 fn canonical_shape(shapeValue : f32) -> u32 {
     let shapeType = u32(clamp(shapeValue, 0.0, 4.0));
@@ -161,55 +162,101 @@ fn empty_manifold() -> ContactManifold {
 }
 
 @compute @workgroup_size(1)
-fn bucket_pairs(@builtin(global_invocation_id) gid : vec3<u32>) {
+fn reset_pair_buckets(@builtin(global_invocation_id) gid : vec3<u32>) {
     if (gid.x != 0u) { return; }
     for (var word = 0u; word < 18u; word += 1u) {
         atomicStore(&narrowTelemetry[word], 0u);
     }
-    for (var word = 0u; word < 32u; word += 1u) {
-        classTable[word] = 0u;
+    for (var word = 0u; word < 30u; word += 1u) {
+        atomicStore(&classTable[word], 0u);
     }
+}
+
+fn reported_pair_count() -> u32 {
     let reportedCount = broadTelemetry[3];
-    let pairCount = min(reportedCount,
+    return min(reportedCount,
         min(narrow.capacities.y, narrow.capacities.z));
-    for (var pairIndex = 0u; pairIndex < pairCount; pairIndex += 1u) {
-        let pair = uniquePairs[pairIndex];
-        if (pair.keyHigh >= narrow.capacities.x
-            || pair.keyLow >= narrow.capacities.x) { continue; }
-        let shapeA = canonical_shape(shapes[pair.keyHigh].dimensions_type.w);
-        let shapeB = canonical_shape(shapes[pair.keyLow].dimensions_type.w);
-        classTable[pair_class(shapeA, shapeB)] += 1u;
-    }
+}
+
+fn pair_class_for_record(pair : KeyValue) -> u32 {
+    let shapeA = canonical_shape(shapes[pair.keyHigh].dimensions_type.w);
+    let shapeB = canonical_shape(shapes[pair.keyLow].dimensions_type.w);
+    return pair_class(shapeA, shapeB);
+}
+
+fn count_pair_classes_impl(gid : vec3<u32>) {
+    let pairIndex = gid.x;
+    if (pairIndex >= reported_pair_count()) { return; }
+    let pair = uniquePairs[pairIndex];
+    if (pair.keyHigh >= narrow.capacities.x
+        || pair.keyLow >= narrow.capacities.x) { return; }
+    atomicAdd(&classTable[pair_class_for_record(pair)], 1u);
+}
+
+@compute @workgroup_size(1)
+fn finalize_pair_buckets(@builtin(global_invocation_id) gid : vec3<u32>) {
+    if (gid.x != 0u) { return; }
     var prefix = 0u;
     for (var pairClass = 0u; pairClass < PAIR_CLASS_COUNT;
          pairClass += 1u) {
-        classTable[PAIR_CLASS_COUNT + pairClass] = prefix;
-        prefix += classTable[pairClass];
-        atomicStore(&narrowTelemetry[pairClass], classTable[pairClass]);
+        let count = atomicLoad(&classTable[pairClass]);
+        atomicStore(&classTable[PAIR_CLASS_COUNT + pairClass], prefix);
+        atomicStore(&classTable[2u * PAIR_CLASS_COUNT + pairClass], prefix);
+        atomicStore(&narrowTelemetry[pairClass], count);
+        let dispatch = pairClass * 4u;
+        classDispatchArgs[dispatch] =
+            (count + narrow.capacities.w - 1u) / narrow.capacities.w;
+        classDispatchArgs[dispatch + 1u] = 1u;
+        classDispatchArgs[dispatch + 2u] = 1u;
+        classDispatchArgs[dispatch + 3u] = 0u;
+        prefix += count;
     }
-    var cursors : array<u32, 10>;
-    for (var pairClass = 0u; pairClass < PAIR_CLASS_COUNT;
-         pairClass += 1u) {
-        cursors[pairClass] = classTable[PAIR_CLASS_COUNT + pairClass];
-    }
-    for (var pairIndex = 0u; pairIndex < pairCount; pairIndex += 1u) {
-        let pair = uniquePairs[pairIndex];
-        if (pair.keyHigh >= narrow.capacities.x
-            || pair.keyLow >= narrow.capacities.x) { continue; }
-        let shapeA = canonical_shape(shapes[pair.keyHigh].dimensions_type.w);
-        let shapeB = canonical_shape(shapes[pair.keyLow].dimensions_type.w);
-        let pairClass = pair_class(shapeA, shapeB);
-        let bucketIndex = cursors[pairClass];
-        bucketedPairs[bucketIndex] = KeyValue(
-            pair.keyLow, pair.keyHigh,
-            pairClass | ((pair.value & 1u) << 8u), pairIndex);
-        cursors[pairClass] += 1u;
-    }
+    let reportedCount = broadTelemetry[3];
     atomicStore(&narrowTelemetry[10], reportedCount);
     atomicStore(&narrowTelemetry[17], select(0u, 1u,
         reportedCount > narrow.capacities.y
         || reportedCount > narrow.capacities.z));
     atomicMax(&narrowTelemetry[18], reportedCount);
+}
+
+fn scatter_pair_classes_impl(gid : vec3<u32>) {
+    let pairIndex = gid.x;
+    if (pairIndex >= reported_pair_count()) { return; }
+    let pair = uniquePairs[pairIndex];
+    if (pair.keyHigh >= narrow.capacities.x
+        || pair.keyLow >= narrow.capacities.x) { return; }
+    let pairClass = pair_class_for_record(pair);
+    let bucketIndex = atomicAdd(
+        &classTable[2u * PAIR_CLASS_COUNT + pairClass], 1u);
+    bucketedPairs[bucketIndex] = KeyValue(
+        pair.keyLow, pair.keyHigh,
+        pairClass | ((pair.value & 1u) << 8u), pairIndex);
+}
+
+@compute @workgroup_size(64)
+fn count_pair_classes_64(@builtin(global_invocation_id) gid : vec3<u32>) {
+    count_pair_classes_impl(gid);
+}
+@compute @workgroup_size(128)
+fn count_pair_classes_128(@builtin(global_invocation_id) gid : vec3<u32>) {
+    count_pair_classes_impl(gid);
+}
+@compute @workgroup_size(256)
+fn count_pair_classes_256(@builtin(global_invocation_id) gid : vec3<u32>) {
+    count_pair_classes_impl(gid);
+}
+
+@compute @workgroup_size(64)
+fn scatter_pair_classes_64(@builtin(global_invocation_id) gid : vec3<u32>) {
+    scatter_pair_classes_impl(gid);
+}
+@compute @workgroup_size(128)
+fn scatter_pair_classes_128(@builtin(global_invocation_id) gid : vec3<u32>) {
+    scatter_pair_classes_impl(gid);
+}
+@compute @workgroup_size(256)
+fn scatter_pair_classes_256(@builtin(global_invocation_id) gid : vec3<u32>) {
+    scatter_pair_classes_impl(gid);
 }
 
 fn quaternion_rotate(q : vec4<f32>, value : vec3<f32>) -> vec3<f32> {
@@ -1367,10 +1414,11 @@ fn build_manifold(pairRecord : KeyValue,
 
 fn class_pair_record(gid : vec3<u32>, pairClass : u32) -> KeyValue {
     let localIndex = gid.x;
-    if (localIndex >= classTable[pairClass]) {
+    if (localIndex >= atomicLoad(&classTable[pairClass])) {
         return KeyValue(0u, 0u, 0u, SENTINEL);
     }
-    let bucketIndex = classTable[PAIR_CLASS_COUNT + pairClass] + localIndex;
+    let bucketIndex = atomicLoad(
+        &classTable[PAIR_CLASS_COUNT + pairClass]) + localIndex;
     return bucketedPairs[bucketIndex];
 }
 

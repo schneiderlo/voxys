@@ -49,6 +49,17 @@ namespace {
     PhysicsSelfTestState g_physicsSelfTest;
     bool g_physicsSelfTestRequested = false;
     bool g_physicsSelfTestRuntimeReady = false;
+    double g_lastFrameCpuMilliseconds = 0.0;
+    uint32_t g_gpuFramesInFlight = 0;
+    uint64_t g_gpuPacingSkips = 0;
+
+    constexpr uint32_t kMaximumGpuFramesInFlight = 4;
+
+    void gpuFrameCompleted(WGPUQueueWorkDoneStatus /*status*/,
+                           WGPUStringView /*message*/, void* /*userdata1*/,
+                           void* /*userdata2*/) {
+        if (g_gpuFramesInFlight != 0u) --g_gpuFramesInFlight;
+    }
 
     constexpr int32_t kPhysicsSelfTestBaseSector = 1'500'000;
     constexpr float kPhysicsSelfTestHeight = 100.0f;
@@ -393,6 +404,10 @@ int main(int argc, char* argv[]) {
     appConfig.enableValidation = false; // Browser handles validation
     appConfig.showFPS = config.debug.showStats;
     appConfig.fpsLogIntervalSeconds = 2.0f;
+    appConfig.gpuPhysicsStageProfiling = EM_ASM_INT({
+        return new URLSearchParams(globalThis.location.search)
+            .get("physicsProfile") === "1" ? 1 : 0;
+    }) != 0;
 
     // Automation settings
     appConfig.initialTeleportIndex = config.automation.teleportIndex;
@@ -430,7 +445,8 @@ int main(int argc, char* argv[]) {
     // WASM: set up Emscripten main loop and return
     LOG_INFO("Starting Emscripten main loop...");
 
-    static double lastTime = emscripten_get_now() / 1000.0;
+    static double lastSubmittedTime = emscripten_get_now() / 1000.0;
+    static double lastSimulationTime = lastSubmittedTime;
     static bool currentUncapped = false;
 
     auto mainLoop = []() {
@@ -442,6 +458,18 @@ int main(int argc, char* argv[]) {
         if (g_app->shouldExit()) {
             g_app->shutdown();
             emscripten_cancel_main_loop();
+            return;
+        }
+
+        // Browser WebGPU submissions are otherwise allowed to grow without
+        // bound. Once the GPU falls a little behind, surface acquisition can
+        // block for hundreds of milliseconds and the fixed-step scheduler
+        // responds by encoding six catch-up ticks, creating a feedback loop.
+        if (g_gpuFramesInFlight >= kMaximumGpuFramesInFlight) {
+            // Do not turn time spent waiting for the GPU into another burst of
+            // GPU work. The next submitted frame resumes from this RAF edge.
+            lastSimulationTime = emscripten_get_now() / 1000.0;
+            ++g_gpuPacingSkips;
             return;
         }
 
@@ -461,14 +489,30 @@ int main(int argc, char* argv[]) {
             }
         }
 
-        double now = emscripten_get_now() / 1000.0;
-        float deltaTime = static_cast<float>(now - lastTime);
-        lastTime = now;
+        const double now = emscripten_get_now() / 1000.0;
+        const float frameDeltaTime =
+            static_cast<float>(now - lastSubmittedTime);
+        float simulationDeltaTime =
+            static_cast<float>(now - lastSimulationTime);
+        lastSubmittedTime = now;
+        lastSimulationTime = now;
 
-        // Clamp delta time
-        deltaTime = std::min(deltaTime, 0.1f);
+        // Keep simulation stable after a suspended tab. The frame interval is
+        // intentionally not clamped: the FPS counter must include pacing skips.
+        simulationDeltaTime = std::min(simulationDeltaTime, 0.1f);
 
-        g_app->processFrame(deltaTime);
+        const double frameStartMilliseconds = emscripten_get_now();
+        g_app->processFrame(simulationDeltaTime, frameDeltaTime);
+        g_lastFrameCpuMilliseconds =
+            emscripten_get_now() - frameStartMilliseconds;
+
+        WGPUQueueWorkDoneCallbackInfo callbackInfo =
+            WGPU_QUEUE_WORK_DONE_CALLBACK_INFO_INIT;
+        callbackInfo.mode = WGPUCallbackMode_AllowSpontaneous;
+        callbackInfo.callback = gpuFrameCompleted;
+        ++g_gpuFramesInFlight;
+        static_cast<void>(wgpuQueueOnSubmittedWorkDone(
+            g_app->getGPUContext()->getQueue(), callbackInfo));
     };
 
     // 0 = use requestAnimationFrame, false = don't simulate infinite loop
@@ -548,6 +592,46 @@ float voxy_get_fps() {
         return static_cast<float>(g_app->getStats().fps);
     }
     return 0.0f;
+}
+
+EMSCRIPTEN_KEEPALIVE
+double voxy_get_last_frame_cpu_ms() {
+    return g_lastFrameCpuMilliseconds;
+}
+
+EMSCRIPTEN_KEEPALIVE
+int voxy_get_gpu_frames_in_flight() {
+    return static_cast<int>(g_gpuFramesInFlight);
+}
+
+EMSCRIPTEN_KEEPALIVE
+double voxy_get_gpu_pacing_skips() {
+    return static_cast<double>(g_gpuPacingSkips);
+}
+
+EMSCRIPTEN_KEEPALIVE
+int voxy_get_physics_substeps() {
+    const voxy::physics::PhysicsWorld* world =
+        g_app ? g_app->getPhysicsWorld() : nullptr;
+    return world
+        ? static_cast<int>(world->lastStepStats().substepCount) : 0;
+}
+
+EMSCRIPTEN_KEEPALIVE
+int voxy_get_physics_resident_bodies() {
+    return g_app
+        ? static_cast<int>(g_app->getStats().physicsResidentBodies) : 0;
+}
+
+EMSCRIPTEN_KEEPALIVE
+double voxy_get_physics_stage_ms(int stage) {
+    if (!g_app || stage < 0
+        || stage >= static_cast<int>(voxy::physics::kPhysicsGpuStageCount)) {
+        return -1.0;
+    }
+    const auto& timing = g_app->getStats().physicsGpuTiming;
+    return timing
+        ? timing->milliseconds[static_cast<size_t>(stage)] : -1.0;
 }
 
 EMSCRIPTEN_KEEPALIVE

@@ -455,8 +455,12 @@ void Application::beginFrame() {
 }
 
 void Application::update(float deltaTime) {
+    update(deltaTime, deltaTime);
+}
+
+void Application::update(float simulationDeltaTime, float frameDeltaTime) {
     // Process input
-    processInput(deltaTime);
+    processInput(simulationDeltaTime);
 
     // Handle keyboard shortcuts
     handleKeyboardShortcuts();
@@ -466,19 +470,19 @@ void Application::update(float deltaTime) {
         switch (controllerMode_) {
             case ControllerMode::FreeFly:
                 if (freeFlyController_) {
-                    freeFlyController_->update(deltaTime, *input_);
+                    freeFlyController_->update(simulationDeltaTime, *input_);
                 }
                 break;
             case ControllerMode::Character:
                 if (characterController_) {
-                    characterController_->update(deltaTime, *input_);
+                    characterController_->update(simulationDeltaTime, *input_);
                 }
                 break;
         }
     }
 
     if (physicsWorld_) {
-        physicsWorld_->update(deltaTime);
+        physicsWorld_->update(simulationDeltaTime);
         const physics::PhysicsStepStats stepStats =
             physicsWorld_->lastStepStats();
         stats_.physicsSimulationMs = stepStats.simulationMs;
@@ -490,11 +494,11 @@ void Application::update(float deltaTime) {
 
     // Custom update callback
     if (updateCallback_) {
-        updateCallback_(deltaTime);
+        updateCallback_(simulationDeltaTime);
     }
 
     // Update statistics
-    updateStats(deltaTime);
+    updateStats(frameDeltaTime);
 }
 
 void Application::render() {
@@ -722,6 +726,11 @@ void Application::scheduleNextTourStep() {
 }
 
 void Application::processFrame(float deltaTime) {
+    processFrame(deltaTime, deltaTime);
+}
+
+void Application::processFrame(float simulationDeltaTime,
+                               float frameDeltaTime) {
     // Static frame timer for performance instrumentation
     static perf::FrameTimer frameTimer;
     
@@ -731,7 +740,7 @@ void Application::processFrame(float deltaTime) {
     beginFrame();
     
     // Update phase
-    update(deltaTime);
+    update(simulationDeltaTime, frameDeltaTime);
     frameTimer.markUpdate();
     
     // Render phase
@@ -1114,6 +1123,7 @@ bool Application::initCamera() {
         (config_.shaderDir / "physics_ballistic.wgsl").string();
     physicsContext.gpu.enableStageProfiling =
         config_.gpuPhysicsStageProfiling;
+    physicsContext.gpu.enableTelemetryReadback = false;
     physicsContext.gpu.stageProfilingTimestampPeriodNanoseconds =
         config_.gpuPhysicsTimestampPeriodNanoseconds;
     physicsContext.enableValidation = config_.enableValidation;

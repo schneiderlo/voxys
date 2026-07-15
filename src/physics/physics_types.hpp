@@ -150,6 +150,9 @@ struct PhysicsInitContext {
         // nanoseconds. Native Vulkan callers must supply the adapter's
         // VkPhysicalDeviceLimits::timestampPeriod when it is not 1 ns.
         double stageProfilingTimestampPeriodNanoseconds = 1.0;
+        // Telemetry is useful for tests and diagnostics, but mapping a GPU
+        // buffer every simulation tick is not suitable for normal gameplay.
+        bool enableTelemetryReadback = true;
         uint32_t telemetryReadbackSlots = 3;
         uint32_t ccdBulletCapacity = 1'024;
         uint32_t ccdWorkgroupSize = 128;

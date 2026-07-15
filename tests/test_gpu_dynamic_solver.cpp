@@ -84,12 +84,13 @@ void releaseBuffer(WGPUBuffer& buffer) {
 SolverSnapshot runAndRead(gpu::Context& context, GpuDynamicSolver& solver,
                           WGPUBuffer poseBuffer, WGPUBuffer motionBuffer,
                           WGPUBuffer manifoldBuffer, uint32_t bodyCapacity,
-                          uint32_t contactCapacity, uint32_t tickCount = 1u) {
+                          uint32_t contactCapacity, uint32_t tickCount = 1u,
+                          bool compactColorSolve = false) {
     WGPUCommandEncoderDescriptor encoderDesc{};
     WGPUCommandEncoder encoder = wgpuDeviceCreateCommandEncoder(
         context.getDevice(), &encoderDesc);
     for (uint32_t tick = 0; tick < tickCount; ++tick) {
-        EXPECT_TRUE(solver.encode(encoder));
+        EXPECT_TRUE(solver.encode(encoder, compactColorSolve));
     }
     const size_t colorBytes = size_t{contactCapacity} * sizeof(uint32_t);
     const size_t manifoldBytes = size_t{contactCapacity}
@@ -635,7 +636,7 @@ TEST(GpuDynamicSolverTest, BoxTowerMixedPileAndAvalancheStayBounded) {
                      bodyCapacity, contactCapacity});
     const SolverSnapshot snapshot = runAndRead(
         context, solver, poseBuffer, motionBuffer, manifoldBuffer,
-        bodyCapacity, contactCapacity, 120u);
+        bodyCapacity, contactCapacity, 120u, true);
 
     EXPECT_EQ(snapshot.telemetry.tick, 120u);
     EXPECT_EQ(snapshot.telemetry.conflictErrors, 0u);

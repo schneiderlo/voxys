@@ -257,6 +257,14 @@ namespace {
 
 Input* g_inputInstance = nullptr;
 
+int browserButtonToVoxyButton(int button) {
+    // DOM: left=0, middle=1, right=2. The engine follows GLFW:
+    // left=0, right=1, middle=2.
+    if (button == 1) return static_cast<int>(MouseButton::Middle);
+    if (button == 2) return static_cast<int>(MouseButton::Right);
+    return button;
+}
+
 EM_BOOL emKeyDownCallback(int /*eventType*/, const EmscriptenKeyboardEvent* e, void* /*userData*/) {
     if (g_inputInstance) {
         int code = emscriptenKeyToCode(e->code);
@@ -295,14 +303,14 @@ EM_BOOL emMouseMoveCallback(int /*eventType*/, const EmscriptenMouseEvent* e, vo
 
 EM_BOOL emMouseDownCallback(int /*eventType*/, const EmscriptenMouseEvent* e, void* /*userData*/) {
     if (g_inputInstance) {
-        g_inputInstance->onMouseDown(e->button);
+        g_inputInstance->onMouseDown(browserButtonToVoxyButton(e->button));
     }
     return EM_TRUE;
 }
 
 EM_BOOL emMouseUpCallback(int /*eventType*/, const EmscriptenMouseEvent* e, void* /*userData*/) {
     if (g_inputInstance) {
-        g_inputInstance->onMouseUp(e->button);
+        g_inputInstance->onMouseUp(browserButtonToVoxyButton(e->button));
     }
     return EM_TRUE;
 }

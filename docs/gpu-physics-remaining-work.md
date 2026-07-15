@@ -22,11 +22,27 @@ There is no immediate sector-integration blocker.
   than all 131,072 reserved slots. Empty worlds skip the body pipeline and
   expose no physics instances to render culling; released top slots shrink the
   range again at their tick boundary.
+- Normal application frames no longer map a telemetry buffer after every GPU
+  physics tick. Tests and explicit diagnostics can still enable telemetry.
+- Pair compaction, contact lifecycle allocation, narrow-phase bucketing, solver
+  color ranges, and solver overflow body ranges no longer scan their full
+  capacities on one GPU invocation.
+- Worlds of at most 1,024 allocated bodies keep all 32 conflict-free solver
+  colors but execute each ordered color sequence inside one workgroup. This
+  removes about 300 WebGPU dispatch calls per tick without dropping contacts,
+  solver stages, or Soft Step substeps. Larger worlds keep the fully parallel
+  per-color path.
+- Browser submission depth is bounded to four frames. A pacing skip discards
+  catch-up debt instead of turning one slow frame into six GPU physics ticks.
+  Submitted-frame statistics still include the skipped wall time, so the FPS
+  display cannot hide pacing stalls.
+- DOM middle/right mouse buttons are translated to the engine's GLFW-style
+  button numbering, so browser right-click batch spawning now matches native.
 
 ## Current automated evidence
 
-Native GPU evidence was collected on Linux with an integrated Radeon 890M.
-Browser evidence used headless Chromium with its SwiftShader WebGPU adapter:
+Native and hardware-browser GPU evidence was collected on Linux with an
+integrated Radeon 890M:
 
 - Native CMake: all 811 enabled tests pass. Four application GPU tests remain
   intentionally disabled.
@@ -43,10 +59,18 @@ Browser evidence used headless Chromium with its SwiftShader WebGPU adapter:
 - Dynamic solver benchmark: 100,000 bodies and 50,000 contacts, 5.751 ms p95.
 - Full sparse pipeline sample: 100,000 bodies, 24.869 ms p95. This was measured
   on an integrated GPU, with no terrain and zero generated body pairs.
-- Full native application, with the product 131,072-slot WebGPU configuration
-  and no thrown bodies: 300.0 FPS over 1,500 frames. Scenario p95 frame times
-  were 1.69-3.29 ms, and physics primitive culling measured 0.00 ms. This is a
-  local Vulkan result, not a substitute for the deployed-browser retest.
+- Dense regression scene: 400 bodies begin at one position, producing 79,800
+  candidate pairs and saturating the 65,536 pair/manifold capacities. The
+  native retired-frame result is 3.448 ms p50 and 3.843 ms p95. Broad phase is
+  1.623 ms p50 and the compact dynamic solver is 0.422 ms p50.
+- The same browser application was measured through Chromium DevTools with
+  three canvas right-click batches through the production input path (384
+  overlapping balls). Before the fix it reported 12.8 FPS and produced
+  417-450 ms frames after catch-up reached six ticks per frame. With the fix it
+  submitted 730 frames in 12.192 seconds: 59.87 submitted FPS, one pacing skip,
+  2.7 ms CPU-frame p95, and exactly one four-substep physics tick per submitted
+  frame. The independent submission rate and displayed FPS agreed. This is a
+  capped RAF measurement, not an uncapped claim.
 
 The 16.667 ms static and dynamic phase gates pass on this adapter. The sparse
 pipeline result is diagnostic only; it is not the plan's discrete-GPU
@@ -67,9 +91,14 @@ acceptance scene.
   this is distinct from test assertions, and individual targets pass.
 - Refresh the machine-readable GPU and multithreaded-Jolt benchmark snapshots
   on the final target hardware after the composed fixture is fixed.
-- Re-run the deployed Chromium build on the hardware that reported 10 FPS and
-  compare the same camera/configuration against single-threaded Jolt. Capture
-  browser GPU stage timings if the sparse empty-world path is still slower.
+- Re-run the deployed Chromium build on the hardware that reported 10 FPS.
+  The automated hardware-browser result above proves the regression scene on
+  one Radeon 890M, but it does not replace that machine's playtest.
+- Measure uncapped browser throughput separately. The current browser evidence
+  proves a stable 60 Hz RAF path; it does not claim the previous 240 FPS
+  single-threaded-Jolt comparison.
+- Repair the GitHub Actions Nix environment. The current CI jobs fail before
+  project compilation because `NIX_PATH`/the required Nix channel is missing.
 
 ## Human gates
 

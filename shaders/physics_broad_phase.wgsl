@@ -54,7 +54,7 @@ struct BroadPhaseParams {
 @group(0) @binding(3) var<storage, read_write> bodyEntryCounts : array<u32>;
 @group(0) @binding(4) var<storage, read> bodyEntryOffsets : array<u32>;
 @group(0) @binding(5) var<storage, read_write> gridEntries : array<KeyValue>;
-@group(0) @binding(6) var<storage, read_write> telemetry : array<u32>;
+@group(0) @binding(6) var<storage, read_write> telemetry : array<atomic<u32>>;
 @group(0) @binding(7) var<uniform> broad : BroadPhaseParams;
 @group(0) @binding(8) var<storage, read> sortedGridEntries : array<KeyValue>;
 @group(0) @binding(9) var<storage, read_write> cellRanges : array<CellRange>;
@@ -72,6 +72,13 @@ struct BroadPhaseParams {
 @group(0) @binding(21) var<storage, read_write> rangePredicates : array<u32>;
 @group(0) @binding(22) var<storage, read> entryRangeIndices : array<u32>;
 @group(0) @binding(23) var<storage, read_write> sortDispatchArgs : array<u32>;
+@group(0) @binding(24) var<storage, read_write> lifecycleNewPredicates : array<u32>;
+@group(0) @binding(25) var<storage, read_write> lifecycleNewOffsets : array<u32>;
+@group(0) @binding(26) var<storage, read_write> lifecycleEndPredicates : array<u32>;
+@group(0) @binding(27) var<storage, read_write> lifecycleEndOffsets : array<u32>;
+@group(0) @binding(28) var<storage, read_write> lifecycleFreePredicates : array<u32>;
+@group(0) @binding(29) var<storage, read_write> lifecycleFreeOffsets : array<u32>;
+@group(0) @binding(30) var<storage, read_write> lifecycleFreeIds : array<u32>;
 
 fn sentinel_record() -> KeyValue {
     return KeyValue(SENTINEL, SENTINEL, SENTINEL, SENTINEL);
@@ -216,7 +223,7 @@ fn body_is_oversized(body : u32) -> bool {
 fn reset_telemetry(@builtin(global_invocation_id) gid : vec3<u32>) {
     if (gid.x != 0u) { return; }
     for (var index = 0u; index < 14u; index += 1u) {
-        telemetry[index] = 0u;
+        atomicStore(&telemetry[index], 0u);
     }
 }
 
@@ -302,8 +309,8 @@ fn finalize_grid_entry_count(@builtin(global_invocation_id) gid : vec3<u32>) {
         entryCount = min(bodyEntryOffsets[last] + bodyEntryCounts[last],
                          broad.counts.y);
     }
-    telemetry[0] = entryCount;
-    telemetry[14] = max(telemetry[14], entryCount);
+    atomicStore(&telemetry[0], entryCount);
+    atomicMax(&telemetry[14], entryCount);
     store_sort_dispatch(0u, entryCount);
 }
 
@@ -311,7 +318,7 @@ fn mark_cell_range_starts_impl(gid : vec3<u32>) {
     let index = gid.x;
     if (index >= broad.counts.y) { return; }
     var start = 0u;
-    if (index < telemetry[0]) {
+    if (index < atomicLoad(&telemetry[0])) {
         if (index == 0u) {
             start = 1u;
         } else {
@@ -340,7 +347,7 @@ fn mark_cell_range_starts_256(@builtin(global_invocation_id) gid : vec3<u32>) {
 @compute @workgroup_size(1)
 fn finalize_cell_range_count(@builtin(global_invocation_id) gid : vec3<u32>) {
     if (gid.x != 0u) { return; }
-    let entryCount = telemetry[0];
+    let entryCount = atomicLoad(&telemetry[0]);
     var rangeCount = 0u;
     if (entryCount != 0u) {
         let last = entryCount - 1u;
@@ -350,18 +357,19 @@ fn finalize_cell_range_count(@builtin(global_invocation_id) gid : vec3<u32>) {
     for (var body = 0u; body < broad.counts.x; body += 1u) {
         oversizedCount += select(0u, 1u, oversizedFlags[body] != 0u);
     }
-    telemetry[1] = rangeCount;
+    atomicStore(&telemetry[1], rangeCount);
     cellRanges[broad.counts.y].entryCount = rangeCount;
     oversizedFlags[broad.counts.x] = rangeCount;
     oversizedFlags[broad.counts.x + 1u] = rangeCount + broad.counts.x;
-    telemetry[5] = oversizedCount;
-    telemetry[15] = max(telemetry[15], rangeCount);
+    atomicStore(&telemetry[5], oversizedCount);
+    atomicMax(&telemetry[15], rangeCount);
     store_sort_dispatch(6u, rangeCount + broad.counts.x);
 }
 
 fn scatter_cell_range_starts_impl(gid : vec3<u32>) {
     let index = gid.x;
-    if (index >= telemetry[0] || rangePredicates[index] == 0u) { return; }
+    if (index >= atomicLoad(&telemetry[0])
+        || rangePredicates[index] == 0u) { return; }
     let record = sortedGridEntries[index];
     let range = entryRangeIndices[index];
     cellRanges[range] = CellRange(
@@ -383,7 +391,7 @@ fn scatter_cell_range_starts_256(@builtin(global_invocation_id) gid : vec3<u32>)
 
 fn scatter_cell_range_ends_impl(gid : vec3<u32>) {
     let index = gid.x;
-    let entryCount = telemetry[0];
+    let entryCount = atomicLoad(&telemetry[0]);
     if (index >= entryCount) { return; }
     var isEnd = index + 1u == entryCount;
     if (!isEnd) {
@@ -590,10 +598,9 @@ fn clear_pair_candidates_impl(gid : vec3<u32>) {
             let last = ownerCount - 1u;
             rawCandidates = ownerPairOffsets[last] + ownerPairCounts[last];
         }
-        telemetry[2] = rawCandidates;
+        atomicStore(&telemetry[2], rawCandidates);
         store_sort_dispatch(12u, min(rawCandidates, broad.counts.w));
     }
-    if (gid.x < broad.counts.w) { pairCandidates[gid.x] = sentinel_record(); }
 }
 
 @compute @workgroup_size(64)
@@ -622,38 +629,44 @@ fn scatter_pairs_256(@builtin(global_invocation_id) gid : vec3<u32>) {
     scatter_pairs_impl(gid);
 }
 
-@compute @workgroup_size(1)
-fn unique_pairs(@builtin(global_invocation_id) gid : vec3<u32>) {
-    if (gid.x != 0u) { return; }
-    let rawCandidates = telemetry[2];
+fn unique_pairs_impl(gid : vec3<u32>) {
+    let rawCandidates = atomicLoad(&telemetry[2]);
     let materialized = min(rawCandidates, broad.counts.w);
-    var uniqueCount = 0u;
-    var activeSleepingCount = 0u;
-    var index = 0u;
-    while (index < materialized) {
+    // Each common body owns exactly one center-cell record, neighbor checks
+    // are forward-only, and oversized/oversized pairs have an ID tie-break.
+    // Pair generation is therefore unique by construction. Keep the radix
+    // sort for canonical ordering, then copy it in parallel.
+    let index = gid.x;
+    if (index < min(materialized, broad.capacities.x)) {
         let record = sortedPairCandidates[index];
-        var sleeping = record.value;
-        index += 1u;
-        while (index < materialized
-               && sortedPairCandidates[index].keyLow == record.keyLow
-               && sortedPairCandidates[index].keyHigh == record.keyHigh) {
-            sleeping |= sortedPairCandidates[index].value;
-            index += 1u;
+        uniqueBodyPairs[index] = KeyValue(
+            record.keyLow, record.keyHigh, record.value, index);
+        if (record.value != 0u) {
+            atomicAdd(&telemetry[4], 1u);
         }
-        if (uniqueCount < broad.capacities.x) {
-            uniqueBodyPairs[uniqueCount] = KeyValue(
-                record.keyLow, record.keyHigh, sleeping, uniqueCount);
-        }
-        activeSleepingCount += select(0u, 1u, sleeping != 0u);
-        uniqueCount += 1u;
     }
-    telemetry[2] = rawCandidates;
-    telemetry[3] = uniqueCount;
-    telemetry[4] = activeSleepingCount;
-    telemetry[9] = select(0u, 1u, rawCandidates > broad.counts.w);
-    telemetry[10] = select(0u, 1u, uniqueCount > broad.capacities.x);
-    telemetry[16] = max(telemetry[16], rawCandidates);
-    telemetry[17] = max(telemetry[17], uniqueCount);
+    if (index == 0u) {
+        atomicStore(&telemetry[3], materialized);
+        atomicStore(&telemetry[9],
+            select(0u, 1u, rawCandidates > broad.counts.w));
+        atomicStore(&telemetry[10],
+            select(0u, 1u, materialized > broad.capacities.x));
+        atomicMax(&telemetry[16], rawCandidates);
+        atomicMax(&telemetry[17], materialized);
+    }
+}
+
+@compute @workgroup_size(64)
+fn unique_pairs_64(@builtin(global_invocation_id) gid : vec3<u32>) {
+    unique_pairs_impl(gid);
+}
+@compute @workgroup_size(128)
+fn unique_pairs_128(@builtin(global_invocation_id) gid : vec3<u32>) {
+    unique_pairs_impl(gid);
+}
+@compute @workgroup_size(256)
+fn unique_pairs_256(@builtin(global_invocation_id) gid : vec3<u32>) {
+    unique_pairs_impl(gid);
 }
 
 fn pair_equal_contact(pair : KeyValue, contact : PersistentContact) -> bool {
@@ -661,103 +674,257 @@ fn pair_equal_contact(pair : KeyValue, contact : PersistentContact) -> bool {
         && pair.keyHigh == contact.pair.keyHigh;
 }
 
-@compute @workgroup_size(1)
-fn update_contact_lifecycle(@builtin(global_invocation_id) gid : vec3<u32>) {
-    if (gid.x != 0u) { return; }
-    let previousCount = min(lifecycleState[0], broad.capacities.y);
-    let currentCount = min(telemetry[3], broad.capacities.x);
-    for (var index = 0u; index < broad.capacities.y; index += 1u) {
-        nextContacts[index].pair = sentinel_record();
-        nextContacts[index].state = vec4<u32>(0u);
-    }
+fn lifecycle_current_count() -> u32 {
+    return min(atomicLoad(&telemetry[3]),
+               min(broad.capacities.x, broad.capacities.y));
+}
 
-    var previousIndex = 0u;
-    var currentIndex = 0u;
-    var outputCount = 0u;
-    var beginCount = 0u;
-    var endCount = 0u;
-    while (previousIndex < previousCount || currentIndex < currentCount) {
-        var takeCurrent = false;
-        var isMatch = false;
-        if (previousIndex >= previousCount) {
-            takeCurrent = true;
-        } else if (currentIndex < currentCount) {
-            let current = uniqueBodyPairs[currentIndex];
-            let previous = previousContacts[previousIndex];
-            isMatch = pair_equal_contact(current, previous);
-            takeCurrent = isMatch || key_less(
-                current.keyLow, current.keyHigh,
-                previous.pair.keyLow, previous.pair.keyHigh);
-        }
+fn lifecycle_previous_count() -> u32 {
+    return min(lifecycleState[0], broad.capacities.y);
+}
 
-        if (takeCurrent) {
-            let current = uniqueBodyPairs[currentIndex];
-            if (outputCount < broad.capacities.y) {
-                nextContacts[outputCount].pair = current;
-                if (isMatch) {
-                    let previous = previousContacts[previousIndex];
-                    nextContacts[outputCount].state = previous.state;
-                    nextContacts[outputCount].state.y += 1u;
-                    previousIndex += 1u;
-                } else {
-                    nextContacts[outputCount].state = vec4<u32>(
-                        SENTINEL, 0u, SENTINEL, beginCount + 1u);
-                    if (beginCount < broad.capacities.y) {
-                        contactEvents[beginCount] = ContactEvent(
-                            current.keyLow, current.keyHigh, 1u, SENTINEL);
-                    }
-                    beginCount += 1u;
-                }
-                outputCount += 1u;
-            } else if (isMatch) {
-                contactOccupancy[previousContacts[previousIndex].state.x] = 0u;
-                previousIndex += 1u;
-            }
-            currentIndex += 1u;
+fn find_previous_contact(pair : KeyValue) -> u32 {
+    var low = 0u;
+    var high = lifecycle_previous_count();
+    while (low < high) {
+        let middle = low + (high - low) / 2u;
+        let candidate = previousContacts[middle].pair;
+        if (key_less(candidate.keyLow, candidate.keyHigh,
+                     pair.keyLow, pair.keyHigh)) {
+            low = middle + 1u;
         } else {
-            let previous = previousContacts[previousIndex];
-            contactOccupancy[previous.state.x] = 0u;
-            if (endCount < broad.capacities.y) {
-                contactEvents[broad.capacities.y + endCount] = ContactEvent(
-                    previous.pair.keyLow, previous.pair.keyHigh,
-                    2u, previous.state.x);
-            }
-            endCount += 1u;
-            previousIndex += 1u;
+            high = middle;
         }
     }
+    if (low < lifecycle_previous_count()
+        && pair_equal_contact(pair, previousContacts[low])) {
+        return low;
+    }
+    return SENTINEL;
+}
 
-    var freeCursor = 0u;
-    for (var contact = 0u; contact < outputCount; contact += 1u) {
-        if (nextContacts[contact].state.x == SENTINEL) {
-            while (freeCursor < broad.capacities.y
-                   && contactOccupancy[freeCursor] != 0u) {
-                freeCursor += 1u;
-            }
-            if (freeCursor < broad.capacities.y) {
-                nextContacts[contact].state.x = freeCursor;
-                contactOccupancy[freeCursor] = 1u;
-                let beginMarker = nextContacts[contact].state.w;
-                if (beginMarker != 0u && beginMarker <= broad.capacities.y) {
-                    contactEvents[beginMarker - 1u].contactId = freeCursor;
-                }
-                freeCursor += 1u;
+fn find_current_pair(contact : PersistentContact) -> u32 {
+    var low = 0u;
+    var high = lifecycle_current_count();
+    while (low < high) {
+        let middle = low + (high - low) / 2u;
+        let candidate = uniqueBodyPairs[middle];
+        if (key_less(candidate.keyLow, candidate.keyHigh,
+                     contact.pair.keyLow, contact.pair.keyHigh)) {
+            low = middle + 1u;
+        } else {
+            high = middle;
+        }
+    }
+    if (low < lifecycle_current_count()
+        && pair_equal_contact(uniqueBodyPairs[low], contact)) {
+        return low;
+    }
+    return SENTINEL;
+}
+
+fn lifecycle_reset_impl(gid : vec3<u32>) {
+    let index = gid.x;
+    if (index >= broad.capacities.y) { return; }
+    nextContacts[index].pair = sentinel_record();
+    nextContacts[index].state = vec4<u32>(0u);
+    contactOccupancy[index] = 0u;
+    lifecycleNewPredicates[index] = 0u;
+    lifecycleEndPredicates[index] = 0u;
+}
+
+fn lifecycle_prepare_impl(gid : vec3<u32>) {
+    let index = gid.x;
+    if (index == 0u) {
+        lifecycleState[2] = lifecycle_current_count();
+    }
+    if (index < lifecycle_current_count()) {
+        let current = uniqueBodyPairs[index];
+        let previousIndex = find_previous_contact(current);
+        nextContacts[index].pair = current;
+        if (previousIndex != SENTINEL) {
+            var state = previousContacts[previousIndex].state;
+            state.y += 1u;
+            state.w = 0u;
+            nextContacts[index].state = state;
+            if (state.x < broad.capacities.y) {
+                contactOccupancy[state.x] = 1u;
             } else {
-                telemetry[11] = 1u;
+                nextContacts[index].state.x = SENTINEL;
+                lifecycleNewPredicates[index] = 1u;
             }
+        } else {
+            nextContacts[index].state = vec4<u32>(
+                SENTINEL, 0u, SENTINEL, 0u);
+            lifecycleNewPredicates[index] = 1u;
         }
-        nextContacts[contact].state.w = 0u;
     }
+    if (index < lifecycle_previous_count()
+        && find_current_pair(previousContacts[index]) == SENTINEL) {
+        lifecycleEndPredicates[index] = 1u;
+    }
+}
 
+fn lifecycle_mark_free_impl(gid : vec3<u32>) {
+    let index = gid.x;
+    if (index < broad.capacities.y) {
+        lifecycleFreePredicates[index] = select(
+            0u, 1u, contactOccupancy[index] == 0u);
+    }
+}
+
+fn lifecycle_scatter_free_impl(gid : vec3<u32>) {
+    let index = gid.x;
+    if (index == 0u) {
+        lifecycleState[3] = lifecycle_free_count();
+    }
+    if (index < broad.capacities.y
+        && lifecycleFreePredicates[index] != 0u) {
+        lifecycleFreeIds[lifecycleFreeOffsets[index]] = index;
+    }
+}
+
+fn lifecycle_new_count() -> u32 {
+    if (broad.capacities.y == 0u) { return 0u; }
+    let last = broad.capacities.y - 1u;
+    return lifecycleNewOffsets[last] + lifecycleNewPredicates[last];
+}
+
+fn lifecycle_end_count() -> u32 {
+    if (broad.capacities.y == 0u) { return 0u; }
+    let last = broad.capacities.y - 1u;
+    return lifecycleEndOffsets[last] + lifecycleEndPredicates[last];
+}
+
+fn lifecycle_free_count() -> u32 {
+    if (broad.capacities.y == 0u) { return 0u; }
+    let last = broad.capacities.y - 1u;
+    return lifecycleFreeOffsets[last] + lifecycleFreePredicates[last];
+}
+
+fn lifecycle_assign_begin_impl(gid : vec3<u32>) {
+    let index = gid.x;
+    if (index >= lifecycleState[2]
+        || lifecycleNewPredicates[index] == 0u) { return; }
+    let rank = lifecycleNewOffsets[index];
+    let freeCount = lifecycleState[3];
+    if (rank >= freeCount) { return; }
+    let contactId = lifecycleFreeIds[rank];
+    nextContacts[index].state = vec4<u32>(
+        contactId, 0u, SENTINEL, 0u);
+    contactOccupancy[contactId] = 1u;
+    let pair = nextContacts[index].pair;
+    contactEvents[rank] = ContactEvent(
+        pair.keyLow, pair.keyHigh, 1u, contactId);
+}
+
+fn lifecycle_scatter_end_impl(gid : vec3<u32>) {
+    let index = gid.x;
+    if (index >= lifecycle_previous_count()
+        || lifecycleEndPredicates[index] == 0u) { return; }
+    let rank = lifecycleEndOffsets[index];
+    let previous = previousContacts[index];
+    contactEvents[broad.capacities.y + rank] = ContactEvent(
+        previous.pair.keyLow, previous.pair.keyHigh, 2u,
+        previous.state.x);
+}
+
+@compute @workgroup_size(64)
+fn lifecycle_reset_64(@builtin(global_invocation_id) gid : vec3<u32>) {
+    lifecycle_reset_impl(gid);
+}
+@compute @workgroup_size(128)
+fn lifecycle_reset_128(@builtin(global_invocation_id) gid : vec3<u32>) {
+    lifecycle_reset_impl(gid);
+}
+@compute @workgroup_size(256)
+fn lifecycle_reset_256(@builtin(global_invocation_id) gid : vec3<u32>) {
+    lifecycle_reset_impl(gid);
+}
+
+@compute @workgroup_size(64)
+fn lifecycle_prepare_64(@builtin(global_invocation_id) gid : vec3<u32>) {
+    lifecycle_prepare_impl(gid);
+}
+@compute @workgroup_size(128)
+fn lifecycle_prepare_128(@builtin(global_invocation_id) gid : vec3<u32>) {
+    lifecycle_prepare_impl(gid);
+}
+@compute @workgroup_size(256)
+fn lifecycle_prepare_256(@builtin(global_invocation_id) gid : vec3<u32>) {
+    lifecycle_prepare_impl(gid);
+}
+
+@compute @workgroup_size(64)
+fn lifecycle_mark_free_64(@builtin(global_invocation_id) gid : vec3<u32>) {
+    lifecycle_mark_free_impl(gid);
+}
+@compute @workgroup_size(128)
+fn lifecycle_mark_free_128(@builtin(global_invocation_id) gid : vec3<u32>) {
+    lifecycle_mark_free_impl(gid);
+}
+@compute @workgroup_size(256)
+fn lifecycle_mark_free_256(@builtin(global_invocation_id) gid : vec3<u32>) {
+    lifecycle_mark_free_impl(gid);
+}
+
+@compute @workgroup_size(64)
+fn lifecycle_scatter_free_64(@builtin(global_invocation_id) gid : vec3<u32>) {
+    lifecycle_scatter_free_impl(gid);
+}
+@compute @workgroup_size(128)
+fn lifecycle_scatter_free_128(@builtin(global_invocation_id) gid : vec3<u32>) {
+    lifecycle_scatter_free_impl(gid);
+}
+@compute @workgroup_size(256)
+fn lifecycle_scatter_free_256(@builtin(global_invocation_id) gid : vec3<u32>) {
+    lifecycle_scatter_free_impl(gid);
+}
+
+@compute @workgroup_size(64)
+fn lifecycle_assign_begin_64(@builtin(global_invocation_id) gid : vec3<u32>) {
+    lifecycle_assign_begin_impl(gid);
+}
+@compute @workgroup_size(128)
+fn lifecycle_assign_begin_128(@builtin(global_invocation_id) gid : vec3<u32>) {
+    lifecycle_assign_begin_impl(gid);
+}
+@compute @workgroup_size(256)
+fn lifecycle_assign_begin_256(@builtin(global_invocation_id) gid : vec3<u32>) {
+    lifecycle_assign_begin_impl(gid);
+}
+
+@compute @workgroup_size(64)
+fn lifecycle_scatter_end_64(@builtin(global_invocation_id) gid : vec3<u32>) {
+    lifecycle_scatter_end_impl(gid);
+}
+@compute @workgroup_size(128)
+fn lifecycle_scatter_end_128(@builtin(global_invocation_id) gid : vec3<u32>) {
+    lifecycle_scatter_end_impl(gid);
+}
+@compute @workgroup_size(256)
+fn lifecycle_scatter_end_256(@builtin(global_invocation_id) gid : vec3<u32>) {
+    lifecycle_scatter_end_impl(gid);
+}
+
+@compute @workgroup_size(1)
+fn lifecycle_finalize(@builtin(global_invocation_id) gid : vec3<u32>) {
+    if (gid.x != 0u) { return; }
+    let outputCount = lifecycle_current_count();
+    let beginCount = lifecycle_new_count();
+    let endCount = lifecycle_end_count();
+    let freeCount = lifecycle_free_count();
     lifecycleState[0] = outputCount;
     lifecycleState[1] += 1u;
-    telemetry[6] = outputCount;
-    telemetry[7] = beginCount;
-    telemetry[8] = endCount;
-    telemetry[11] |= select(0u, 1u, telemetry[3] > broad.capacities.y);
-    telemetry[12] = select(0u, 1u,
-        beginCount > broad.capacities.y || endCount > broad.capacities.y);
-    telemetry[18] = max(telemetry[18], outputCount);
-    telemetry[19] = lifecycleState[1];
-    telemetry[20] = max(telemetry[20], beginCount + endCount);
+    atomicStore(&telemetry[6], outputCount);
+    atomicStore(&telemetry[7], beginCount);
+    atomicStore(&telemetry[8], endCount);
+    atomicOr(&telemetry[11], select(
+        0u, 1u, atomicLoad(&telemetry[3]) > broad.capacities.y
+            || beginCount > freeCount));
+    atomicStore(&telemetry[12], select(0u, 1u,
+        beginCount > broad.capacities.y || endCount > broad.capacities.y));
+    atomicMax(&telemetry[18], outputCount);
+    atomicStore(&telemetry[19], lifecycleState[1]);
+    atomicMax(&telemetry[20], beginCount + endCount);
 }

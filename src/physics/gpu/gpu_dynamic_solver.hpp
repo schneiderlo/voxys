@@ -109,7 +109,8 @@ public:
                                   const Config& config);
     void shutdown();
     void setInput(const GpuDynamicSolverInput& input);
-    [[nodiscard]] bool encode(WGPUCommandEncoder encoder);
+    [[nodiscard]] bool encode(WGPUCommandEncoder encoder,
+                              bool compactColorSolve = false);
 
     [[nodiscard]] WGPUBuffer colors() const noexcept;
     [[nodiscard]] WGPUBuffer sortedColorRecords() const noexcept;
