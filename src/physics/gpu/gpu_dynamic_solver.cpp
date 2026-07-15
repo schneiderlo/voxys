@@ -845,7 +845,12 @@ public:
         wgpuComputePassEncoderDispatchWorkgroups(pass, contactGroups, 1, 1);
 
         auto solveColors = [&](uint32_t stage, uint32_t substep) {
-            if (compactColorSolve) {
+            // One workgroup preserves the exact color order while avoiding
+            // 32 host-side indirect dispatches at latency-sensitive sizes.
+            // Contacts within a color have disjoint bodies; the shader places
+            // a storage barrier between consecutive colors.
+            constexpr uint32_t kCompactColorDispatchBodyLimit = 4'096u;
+            if (input_.bodyCapacity <= kCompactColorDispatchBodyLimit) {
                 const uint32_t colorOffset = writeParams(
                     slot, makeParams(0u, stage, substep, 0u));
                 bind(solveGroup, colorOffset);
