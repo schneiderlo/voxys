@@ -87,6 +87,7 @@ var<workgroup> smallPairPositionRadius : array<vec4<f32>, 256>;
 var<workgroup> smallPairSectorFlags : array<vec4<i32>, 256>;
 var<workgroup> smallPairCellKeys : array<vec2<u32>, 256>;
 var<workgroup> smallPairOutputBase : u32;
+var<workgroup> smallPairUseCellCull : u32;
 
 fn sentinel_record() -> KeyValue {
     return KeyValue(SENTINEL, SENTINEL, SENTINEL, SENTINEL);
@@ -1016,6 +1017,21 @@ fn cached_small_bodies_overlap(bodyA : u32, bodyB : u32) -> bool {
         || ((flagsA | flagsB) & BODY_AWAKE) == 0u) {
         return false;
     }
+    let keyA = smallPairCellKeys[bodyA];
+    let keyB = smallPairCellKeys[bodyB];
+    if (smallPairUseCellCull != 0u
+        && !all(keyA == vec2<u32>(SENTINEL))
+        && !all(keyB == vec2<u32>(SENTINEL))) {
+        let cellA = decode_cell(keyA.x, keyA.y);
+        let cellB = decode_cell(keyB.x, keyB.y);
+        let directDistance = abs(cellB - cellA);
+        let wrappedDistance = min(
+            directDistance, vec3<i32>(2 * CELL_BIAS) - directDistance);
+        // Non-oversized bodies have a combined radius no larger than one
+        // cell. Therefore overlapping AABBs cannot have center cells more
+        // than one toroidal bucket apart on any axis.
+        if (any(wrappedDistance > vec3<i32>(1))) { return false; }
+    }
     var sectorDelta = vec3<i32>(0);
     for (var axis = 0u; axis < 3u; axis += 1u) {
         sectorDelta[axis] = adjacent_sector_delta(
@@ -1100,6 +1116,10 @@ fn parallel_small_world_pairs(@builtin(local_invocation_id) lid : vec3<u32>) {
         atomicStore(&telemetry[5], oversizedCount);
         atomicMax(&telemetry[14], gridEntryCount);
         atomicMax(&telemetry[15], occupiedCellCount);
+        // The integer cell test only pays for itself when bodies are spread
+        // across enough cells to reject a substantial fraction of all pairs.
+        smallPairUseCellCull = select(
+            0u, 1u, occupiedCellCount * 4u > gridEntryCount);
     }
     workgroupBarrier();
 
