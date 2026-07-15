@@ -175,6 +175,10 @@ public:
             shutdown();
             return false;
         }
+        if (!createCachedStaticGroups()) {
+            shutdown();
+            return false;
+        }
         return true;
     }
 
@@ -387,8 +391,36 @@ public:
 
     void setInput(const GpuIslandInput& input) {
         input_ = input.bodyCapacity <= config_.bodyCapacity
-              && input.contactCapacity <= config_.contactCapacity
+            && input.contactCapacity <= config_.contactCapacity
             ? input : GpuIslandInput{};
+    }
+
+    bool createCachedStaticGroups() {
+        const auto parameterEntry = [this] {
+            return gpu::BindGroupEntry(10).buffer(
+                parameterBuffer_, 0, sizeof(Params));
+        };
+        const std::array<gpu::BindGroupEntry, 6> rangeEntries = {
+            gpu::BindGroupEntry(8).buffer(sortedBodyRecords_),
+            gpu::BindGroupEntry(9).buffer(telemetry_),
+            gpu::BindGroupEntry(11).buffer(islands_),
+            gpu::BindGroupEntry(19).buffer(rangePredicates_),
+            gpu::BindGroupEntry(20).buffer(rangeIndices_), parameterEntry()};
+        const std::array<gpu::BindGroupEntry, 8> sleepingRangeEntries = {
+            gpu::BindGroupEntry(9).buffer(telemetry_),
+            gpu::BindGroupEntry(15).buffer(sleepingGrid_),
+            gpu::BindGroupEntry(16).buffer(sortedSleepingGrid_),
+            gpu::BindGroupEntry(17).buffer(sleepingRanges_),
+            gpu::BindGroupEntry(19).buffer(rangePredicates_),
+            gpu::BindGroupEntry(20).buffer(rangeIndices_),
+            gpu::BindGroupEntry(22).buffer(compactedSleepingGrid_),
+            parameterEntry()};
+        cachedStaticGroups_[0] = gpu::createBindGroup(
+            device_, rangeLayout_, rangeEntries, "island_range_group");
+        cachedStaticGroups_[1] = gpu::createBindGroup(
+            device_, sleepingRangeLayout_, sleepingRangeEntries,
+            "island_sleeping_range_group");
+        return cachedStaticGroups_[0] && cachedStaticGroups_[1];
     }
 
     bool encode(WGPUCommandEncoder encoder) {
@@ -504,12 +536,6 @@ public:
                 28u * sizeof(uint32_t), 31u * sizeof(uint32_t), telemetry_,
                 34u)) return false;
 
-        const std::array<gpu::BindGroupEntry, 6> rangeEntries = {
-            gpu::BindGroupEntry(8).buffer(sortedBodyRecords_),
-            gpu::BindGroupEntry(9).buffer(telemetry_),
-            gpu::BindGroupEntry(11).buffer(islands_),
-            gpu::BindGroupEntry(19).buffer(rangePredicates_),
-            gpu::BindGroupEntry(20).buffer(rangeIndices_), parameterEntry()};
         const std::array<gpu::BindGroupEntry, 6> classifyEntries = {
             gpu::BindGroupEntry(1).buffer(input_.motionBuffer),
             gpu::BindGroupEntry(3).buffer(input_.metadataBuffer),
@@ -539,8 +565,7 @@ public:
             gpu::BindGroupEntry(13).buffer(islandPersistent_),
             gpu::BindGroupEntry(14).buffer(bodyPersistent_),
             gpu::BindGroupEntry(15).buffer(sleepingGrid_), parameterEntry()};
-        WGPUBindGroup rangeGroup = gpu::createBindGroup(
-            device_, rangeLayout_, rangeEntries, "island_range_group");
+        WGPUBindGroup rangeGroup = cachedStaticGroups_[0];
         WGPUBindGroup classifyGroup = gpu::createBindGroup(
             device_, classifyLayout_, classifyEntries, "island_classify_group");
         WGPUBindGroup decideGroup = gpu::createBindGroup(
@@ -551,7 +576,7 @@ public:
             device_, applyLayout_, applyEntries, "island_apply_group");
         if (!rangeGroup || !classifyGroup || !decideGroup || !eventGroup
             || !applyGroup) {
-            for (WGPUBindGroup group : {rangeGroup, classifyGroup,
+            for (WGPUBindGroup group : {classifyGroup,
                                        decideGroup, eventGroup, applyGroup})
                 if (group) wgpuBindGroupRelease(group);
             return false;
@@ -566,7 +591,7 @@ public:
         if (!primitives_.encodeScanU32(
                 encoder, rangePredicates_, rangeIndices_,
                 input_.bodyCapacity, 2u)) {
-            for (WGPUBindGroup group : {rangeGroup, classifyGroup,
+            for (WGPUBindGroup group : {classifyGroup,
                                        decideGroup, eventGroup, applyGroup})
                 wgpuBindGroupRelease(group);
             return false;
@@ -592,7 +617,7 @@ public:
         if (!primitives_.encodeScanU32(
                 encoder, rangePredicates_, rangeIndices_,
                 input_.bodyCapacity, 3u)) {
-            for (WGPUBindGroup group : {rangeGroup, classifyGroup,
+            for (WGPUBindGroup group : {classifyGroup,
                                        decideGroup, eventGroup, applyGroup})
                 wgpuBindGroupRelease(group);
             return false;
@@ -609,23 +634,11 @@ public:
         wgpuComputePassEncoderDispatchWorkgroups(pass, bodyGroups, 1, 1);
         wgpuComputePassEncoderEnd(pass);
         wgpuComputePassEncoderRelease(pass);
-        for (WGPUBindGroup group : {rangeGroup, classifyGroup,
+        for (WGPUBindGroup group : {classifyGroup,
                                    decideGroup, eventGroup, applyGroup})
             wgpuBindGroupRelease(group);
 
-        const std::array<gpu::BindGroupEntry, 8> sleepingRangeEntries = {
-            gpu::BindGroupEntry(9).buffer(telemetry_),
-            gpu::BindGroupEntry(15).buffer(sleepingGrid_),
-            gpu::BindGroupEntry(16).buffer(sortedSleepingGrid_),
-            gpu::BindGroupEntry(17).buffer(sleepingRanges_),
-            gpu::BindGroupEntry(19).buffer(rangePredicates_),
-            gpu::BindGroupEntry(20).buffer(rangeIndices_),
-            gpu::BindGroupEntry(22).buffer(compactedSleepingGrid_),
-            parameterEntry()};
-        WGPUBindGroup sleepingRangeGroup = gpu::createBindGroup(
-            device_, sleepingRangeLayout_, sleepingRangeEntries,
-            "island_sleeping_range_group");
-        if (!sleepingRangeGroup) return false;
+        WGPUBindGroup sleepingRangeGroup = cachedStaticGroups_[1];
         pass = wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
         wgpuComputePassEncoderSetBindGroup(
             pass, 0, sleepingRangeGroup, 0, nullptr);
@@ -637,7 +650,6 @@ public:
         if (!primitives_.encodeScanU32(
                 encoder, rangePredicates_, rangeIndices_,
                 input_.bodyCapacity, 4u)) {
-            wgpuBindGroupRelease(sleepingRangeGroup);
             return false;
         }
 
@@ -656,7 +668,6 @@ public:
                 input_.bodyCapacity, 2u, 24u, telemetry_,
                 19u * sizeof(uint32_t), 22u * sizeof(uint32_t), telemetry_,
                 9u)) {
-            wgpuBindGroupRelease(sleepingRangeGroup);
             return false;
         }
 
@@ -673,7 +684,6 @@ public:
                 input_.bodyCapacity, 5u, telemetry_,
                 19u * sizeof(uint32_t), 22u * sizeof(uint32_t), telemetry_,
                 9u)) {
-            wgpuBindGroupRelease(sleepingRangeGroup);
             return false;
         }
 
@@ -690,11 +700,13 @@ public:
         wgpuComputePassEncoderDispatchWorkgroups(pass, bodyGroups, 1, 1);
         wgpuComputePassEncoderEnd(pass);
         wgpuComputePassEncoderRelease(pass);
-        wgpuBindGroupRelease(sleepingRangeGroup);
         return true;
     }
 
     void shutdown() {
+        for (WGPUBindGroup& group : cachedStaticGroups_) {
+            releaseHandle(group, wgpuBindGroupRelease);
+        }
         for (WGPUComputePipeline* pipeline : {
                  &resetPipeline_, &prepareUnionPipeline_, &unionPipeline_,
                  &compressPipeline_,
@@ -746,6 +758,7 @@ public:
     Config config_{};
     GpuIslandInput input_{};
     DeterministicGpuPrimitives primitives_;
+    std::array<WGPUBindGroup, 2> cachedStaticGroups_{};
     size_t scratchBytes_ = 0;
     WGPUBuffer parameterBuffer_ = nullptr;
     WGPUBuffer roots_ = nullptr;

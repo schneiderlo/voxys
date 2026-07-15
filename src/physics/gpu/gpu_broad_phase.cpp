@@ -488,14 +488,196 @@ public:
     }
 
     void setBodyView(const BroadPhaseBodyView& view) {
-        bodyView_ = view.bodyCapacity <= config_.bodyCapacity
+        const BroadPhaseBodyView next = view.bodyCapacity <= config_.bodyCapacity
             ? view : BroadPhaseBodyView{};
+        if (next.poseBuffer != bodyView_.poseBuffer
+            || next.shapeBuffer != bodyView_.shapeBuffer
+            || next.metadataBuffer != bodyView_.metadataBuffer) {
+            releaseCachedBindGroups();
+        }
+        bodyView_ = next;
     }
 
     WGPUBindGroup bindGroup(WGPUBindGroupLayout layout,
                             std::span<const gpu::BindGroupEntry> entries,
                             const char* label) {
         return gpu::createBindGroup(device_, layout, entries, label);
+    }
+
+    void releaseCachedBindGroups() {
+        for (WGPUBindGroup& group : cachedBindGroups_) {
+            releaseHandle(group, wgpuBindGroupRelease);
+        }
+        cachedBindGroups_.fill(nullptr);
+    }
+
+    bool ensureCachedBindGroups() {
+        if (!bodyView_.valid()) return false;
+        if (cachedBindGroups_[0]) return true;
+
+        const std::array<gpu::BindGroupEntry, 9> gridEntries = {
+            gpu::BindGroupEntry(0).buffer(bodyView_.poseBuffer),
+            gpu::BindGroupEntry(1).buffer(bodyView_.shapeBuffer),
+            gpu::BindGroupEntry(2).buffer(bodyView_.metadataBuffer),
+            gpu::BindGroupEntry(3).buffer(bodyEntryCounts_),
+            gpu::BindGroupEntry(4).buffer(bodyEntryOffsets_),
+            gpu::BindGroupEntry(5).buffer(gridEntries_),
+            gpu::BindGroupEntry(6).buffer(telemetry_),
+            gpu::BindGroupEntry(10).buffer(oversizedFlags_),
+            gpu::BindGroupEntry(7).buffer(parameterBuffer_),
+        };
+        const std::array<gpu::BindGroupEntry, 6> rangeEntries = {
+            gpu::BindGroupEntry(6).buffer(telemetry_),
+            gpu::BindGroupEntry(8).buffer(sortedGridEntries_),
+            gpu::BindGroupEntry(9).buffer(cellRanges_),
+            gpu::BindGroupEntry(21).buffer(rangePredicates_),
+            gpu::BindGroupEntry(22).buffer(entryRangeIndices_),
+            gpu::BindGroupEntry(7).buffer(parameterBuffer_),
+        };
+        const std::array<gpu::BindGroupEntry, 9> finalizeEntries = {
+            gpu::BindGroupEntry(3).buffer(bodyEntryCounts_),
+            gpu::BindGroupEntry(4).buffer(bodyEntryOffsets_),
+            gpu::BindGroupEntry(6).buffer(telemetry_),
+            gpu::BindGroupEntry(9).buffer(cellRanges_),
+            gpu::BindGroupEntry(10).buffer(oversizedFlags_),
+            gpu::BindGroupEntry(21).buffer(rangePredicates_),
+            gpu::BindGroupEntry(22).buffer(entryRangeIndices_),
+            gpu::BindGroupEntry(23).buffer(dispatchArgs_),
+            gpu::BindGroupEntry(7).buffer(parameterBuffer_),
+        };
+        const std::array<gpu::BindGroupEntry, 7> pairCountEntries = {
+            gpu::BindGroupEntry(0).buffer(bodyView_.poseBuffer),
+            gpu::BindGroupEntry(1).buffer(bodyView_.shapeBuffer),
+            gpu::BindGroupEntry(2).buffer(bodyView_.metadataBuffer),
+            gpu::BindGroupEntry(8).buffer(sortedGridEntries_),
+            gpu::BindGroupEntry(9).buffer(cellRanges_),
+            gpu::BindGroupEntry(11).buffer(ownerPairCounts_),
+            gpu::BindGroupEntry(7).buffer(parameterBuffer_),
+        };
+        const std::array<gpu::BindGroupEntry, 9> scatterEntries = {
+            gpu::BindGroupEntry(0).buffer(bodyView_.poseBuffer),
+            gpu::BindGroupEntry(1).buffer(bodyView_.shapeBuffer),
+            gpu::BindGroupEntry(2).buffer(bodyView_.metadataBuffer),
+            gpu::BindGroupEntry(8).buffer(sortedGridEntries_),
+            gpu::BindGroupEntry(9).buffer(cellRanges_),
+            gpu::BindGroupEntry(11).buffer(ownerPairCounts_),
+            gpu::BindGroupEntry(12).buffer(ownerPairOffsets_),
+            gpu::BindGroupEntry(13).buffer(pairCandidates_),
+            gpu::BindGroupEntry(7).buffer(parameterBuffer_),
+        };
+        const std::array<gpu::BindGroupEntry, 7> clearEntries = {
+            gpu::BindGroupEntry(13).buffer(pairCandidates_),
+            gpu::BindGroupEntry(11).buffer(ownerPairCounts_),
+            gpu::BindGroupEntry(12).buffer(ownerPairOffsets_),
+            gpu::BindGroupEntry(6).buffer(telemetry_),
+            gpu::BindGroupEntry(10).buffer(oversizedFlags_),
+            gpu::BindGroupEntry(23).buffer(dispatchArgs_),
+            gpu::BindGroupEntry(7).buffer(parameterBuffer_),
+        };
+        const std::array<gpu::BindGroupEntry, 6> uniqueEntries = {
+            gpu::BindGroupEntry(14).buffer(sortedPairCandidates_),
+            gpu::BindGroupEntry(15).buffer(uniquePairs_),
+            gpu::BindGroupEntry(11).buffer(ownerPairCounts_),
+            gpu::BindGroupEntry(12).buffer(ownerPairOffsets_),
+            gpu::BindGroupEntry(6).buffer(telemetry_),
+            gpu::BindGroupEntry(7).buffer(parameterBuffer_),
+        };
+
+        cachedBindGroups_[0] = bindGroup(
+            gridLayout_, gridEntries, "broad_phase_grid_bind_group");
+        cachedBindGroups_[1] = bindGroup(
+            rangeLayout_, rangeEntries, "broad_phase_range_bind_group");
+        cachedBindGroups_[2] = bindGroup(
+            finalizeLayout_, finalizeEntries,
+            "broad_phase_finalize_bind_group");
+        cachedBindGroups_[3] = bindGroup(
+            pairCountLayout_, pairCountEntries,
+            "broad_phase_pair_count_bind_group");
+        cachedBindGroups_[4] = bindGroup(
+            candidateClearLayout_, clearEntries,
+            "broad_phase_candidate_clear_bind_group");
+        cachedBindGroups_[5] = bindGroup(
+            pairScatterLayout_, scatterEntries,
+            "broad_phase_pair_scatter_bind_group");
+        cachedBindGroups_[6] = bindGroup(
+            uniqueLayout_, uniqueEntries, "broad_phase_unique_bind_group");
+
+        const std::array<gpu::BindGroupEntry, 6> lifecycleFreeEntries = {
+            gpu::BindGroupEntry(18).buffer(contactOccupancy_),
+            gpu::BindGroupEntry(20).buffer(lifecycleState_),
+            gpu::BindGroupEntry(28).buffer(lifecycleFreePredicates_),
+            gpu::BindGroupEntry(29).buffer(lifecycleFreeOffsets_),
+            gpu::BindGroupEntry(30).buffer(lifecycleFreeIds_),
+            gpu::BindGroupEntry(7).buffer(parameterBuffer_),
+        };
+        const std::array<gpu::BindGroupEntry, 9> lifecycleFinalizeEntries = {
+            gpu::BindGroupEntry(6).buffer(telemetry_),
+            gpu::BindGroupEntry(20).buffer(lifecycleState_),
+            gpu::BindGroupEntry(24).buffer(lifecycleNewPredicates_),
+            gpu::BindGroupEntry(25).buffer(lifecycleNewOffsets_),
+            gpu::BindGroupEntry(26).buffer(lifecycleEndPredicates_),
+            gpu::BindGroupEntry(27).buffer(lifecycleEndOffsets_),
+            gpu::BindGroupEntry(28).buffer(lifecycleFreePredicates_),
+            gpu::BindGroupEntry(29).buffer(lifecycleFreeOffsets_),
+            gpu::BindGroupEntry(7).buffer(parameterBuffer_),
+        };
+        for (uint32_t parity = 0; parity < 2; ++parity) {
+            WGPUBuffer previous = parity == 0 ? contactsA_ : contactsB_;
+            WGPUBuffer next = parity == 0 ? contactsB_ : contactsA_;
+            const std::array<gpu::BindGroupEntry, 9> prepareEntries = {
+                gpu::BindGroupEntry(6).buffer(telemetry_),
+                gpu::BindGroupEntry(15).buffer(uniquePairs_),
+                gpu::BindGroupEntry(16).buffer(previous),
+                gpu::BindGroupEntry(17).buffer(next),
+                gpu::BindGroupEntry(18).buffer(contactOccupancy_),
+                gpu::BindGroupEntry(20).buffer(lifecycleState_),
+                gpu::BindGroupEntry(24).buffer(lifecycleNewPredicates_),
+                gpu::BindGroupEntry(26).buffer(lifecycleEndPredicates_),
+                gpu::BindGroupEntry(7).buffer(parameterBuffer_),
+            };
+            const std::array<gpu::BindGroupEntry, 6> endEntries = {
+                gpu::BindGroupEntry(16).buffer(previous),
+                gpu::BindGroupEntry(19).buffer(contactEvents_),
+                gpu::BindGroupEntry(20).buffer(lifecycleState_),
+                gpu::BindGroupEntry(26).buffer(lifecycleEndPredicates_),
+                gpu::BindGroupEntry(27).buffer(lifecycleEndOffsets_),
+                gpu::BindGroupEntry(7).buffer(parameterBuffer_),
+            };
+            cachedBindGroups_[7 + parity] = bindGroup(
+                lifecyclePrepareLayout_, prepareEntries,
+                "broad_phase_lifecycle_prepare_group");
+            cachedBindGroups_[9 + parity] = bindGroup(
+                lifecycleEndLayout_, endEntries,
+                "broad_phase_lifecycle_end_group");
+            // The begin group only differs by its destination contact buffer.
+            const std::array<gpu::BindGroupEntry, 8> beginEntries = {
+                gpu::BindGroupEntry(17).buffer(next),
+                gpu::BindGroupEntry(18).buffer(contactOccupancy_),
+                gpu::BindGroupEntry(19).buffer(contactEvents_),
+                gpu::BindGroupEntry(20).buffer(lifecycleState_),
+                gpu::BindGroupEntry(24).buffer(lifecycleNewPredicates_),
+                gpu::BindGroupEntry(25).buffer(lifecycleNewOffsets_),
+                gpu::BindGroupEntry(30).buffer(lifecycleFreeIds_),
+                gpu::BindGroupEntry(7).buffer(parameterBuffer_),
+            };
+            cachedBindGroups_[11 + parity] = bindGroup(
+                lifecycleBeginLayout_, beginEntries,
+                "broad_phase_lifecycle_begin_group");
+        }
+        cachedBindGroups_[13] = bindGroup(
+            lifecycleFreeLayout_, lifecycleFreeEntries,
+            "broad_phase_lifecycle_free_group");
+        cachedBindGroups_[14] = bindGroup(
+            lifecycleFinalizeLayout_, lifecycleFinalizeEntries,
+            "broad_phase_lifecycle_finalize_group");
+
+        for (WGPUBindGroup group : cachedBindGroups_) {
+            if (!group) {
+                releaseCachedBindGroups();
+                return false;
+            }
+        }
+        return true;
     }
 
     bool encode(WGPUCommandEncoder encoder) {
@@ -518,20 +700,8 @@ public:
                      cellsPerSector, 0.0f},
         };
         gpu::writeBuffer(queue_, parameterBuffer_, 0, params);
-
-        const std::array<gpu::BindGroupEntry, 9> gridEntries = {
-            gpu::BindGroupEntry(0).buffer(bodyView_.poseBuffer),
-            gpu::BindGroupEntry(1).buffer(bodyView_.shapeBuffer),
-            gpu::BindGroupEntry(2).buffer(bodyView_.metadataBuffer),
-            gpu::BindGroupEntry(3).buffer(bodyEntryCounts_),
-            gpu::BindGroupEntry(4).buffer(bodyEntryOffsets_),
-            gpu::BindGroupEntry(5).buffer(gridEntries_),
-            gpu::BindGroupEntry(6).buffer(telemetry_),
-            gpu::BindGroupEntry(10).buffer(oversizedFlags_),
-            gpu::BindGroupEntry(7).buffer(parameterBuffer_),
-        };
-        WGPUBindGroup gridGroup = bindGroup(
-            gridLayout_, gridEntries, "broad_phase_grid_bind_group");
+        if (!ensureCachedBindGroups()) return false;
+        WGPUBindGroup gridGroup = cachedBindGroups_[0];
         if (!gridGroup) return false;
         WGPUComputePassDescriptor passDesc{};
         WGPUComputePassEncoder pass =
@@ -546,7 +716,6 @@ public:
 
         if (!primitives_.encodeScanU32(
                 encoder, bodyEntryCounts_, bodyEntryOffsets_, bodyCount, 0u)) {
-            wgpuBindGroupRelease(gridGroup);
             return false;
         }
         pass = wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
@@ -555,36 +724,8 @@ public:
         wgpuComputePassEncoderDispatchWorkgroups(pass, bodyGroups, 1, 1);
         wgpuComputePassEncoderEnd(pass);
         wgpuComputePassEncoderRelease(pass);
-        wgpuBindGroupRelease(gridGroup);
-
-        const std::array<gpu::BindGroupEntry, 6> rangeEntries = {
-            gpu::BindGroupEntry(6).buffer(telemetry_),
-            gpu::BindGroupEntry(8).buffer(sortedGridEntries_),
-            gpu::BindGroupEntry(9).buffer(cellRanges_),
-            gpu::BindGroupEntry(21).buffer(rangePredicates_),
-            gpu::BindGroupEntry(22).buffer(entryRangeIndices_),
-            gpu::BindGroupEntry(7).buffer(parameterBuffer_),
-        };
-        const std::array<gpu::BindGroupEntry, 9> finalizeEntries = {
-            gpu::BindGroupEntry(3).buffer(bodyEntryCounts_),
-            gpu::BindGroupEntry(4).buffer(bodyEntryOffsets_),
-            gpu::BindGroupEntry(6).buffer(telemetry_),
-            gpu::BindGroupEntry(9).buffer(cellRanges_),
-            gpu::BindGroupEntry(10).buffer(oversizedFlags_),
-            gpu::BindGroupEntry(21).buffer(rangePredicates_),
-            gpu::BindGroupEntry(22).buffer(entryRangeIndices_),
-            gpu::BindGroupEntry(23).buffer(dispatchArgs_),
-            gpu::BindGroupEntry(7).buffer(parameterBuffer_),
-        };
-        WGPUBindGroup rangeGroup = bindGroup(
-            rangeLayout_, rangeEntries, "broad_phase_range_bind_group");
-        WGPUBindGroup finalizeGroup = bindGroup(
-            finalizeLayout_, finalizeEntries, "broad_phase_finalize_bind_group");
-        if (!rangeGroup || !finalizeGroup) {
-            if (rangeGroup) wgpuBindGroupRelease(rangeGroup);
-            if (finalizeGroup) wgpuBindGroupRelease(finalizeGroup);
-            return false;
-        }
+        WGPUBindGroup rangeGroup = cachedBindGroups_[1];
+        WGPUBindGroup finalizeGroup = cachedBindGroups_[2];
         pass = wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
         wgpuComputePassEncoderSetBindGroup(pass, 0, finalizeGroup, 0, nullptr);
         wgpuComputePassEncoderSetPipeline(pass, finalizeEntryCountPipeline_);
@@ -595,8 +736,6 @@ public:
         if (!primitives_.encodeRadixSort(
                 encoder, gridEntries_, sortedGridEntries_, entryCapacity_, 2u,
                 8u, dispatchArgs_, 0u, 3u * sizeof(uint32_t), telemetry_, 0u)) {
-            wgpuBindGroupRelease(rangeGroup);
-            wgpuBindGroupRelease(finalizeGroup);
             return false;
         }
 
@@ -612,8 +751,6 @@ public:
                 encoder, rangePredicates_, entryRangeIndices_,
                 entryCapacity_, 2u, dispatchArgs_, 0u,
                 3u * sizeof(uint32_t), telemetry_, 0u)) {
-            wgpuBindGroupRelease(rangeGroup);
-            wgpuBindGroupRelease(finalizeGroup);
             return false;
         }
 
@@ -634,22 +771,7 @@ public:
             pass, dispatchArgs_, 0u);
         wgpuComputePassEncoderEnd(pass);
         wgpuComputePassEncoderRelease(pass);
-        wgpuBindGroupRelease(rangeGroup);
-        wgpuBindGroupRelease(finalizeGroup);
-
-        const std::array<gpu::BindGroupEntry, 7> pairCountEntries = {
-            gpu::BindGroupEntry(0).buffer(bodyView_.poseBuffer),
-            gpu::BindGroupEntry(1).buffer(bodyView_.shapeBuffer),
-            gpu::BindGroupEntry(2).buffer(bodyView_.metadataBuffer),
-            gpu::BindGroupEntry(8).buffer(sortedGridEntries_),
-            gpu::BindGroupEntry(9).buffer(cellRanges_),
-            gpu::BindGroupEntry(11).buffer(ownerPairCounts_),
-            gpu::BindGroupEntry(7).buffer(parameterBuffer_),
-        };
-        WGPUBindGroup pairCountGroup = bindGroup(
-            pairCountLayout_, pairCountEntries,
-            "broad_phase_pair_count_bind_group");
-        if (!pairCountGroup) return false;
+        WGPUBindGroup pairCountGroup = cachedBindGroups_[3];
         pass = wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
         wgpuComputePassEncoderSetBindGroup(pass, 0, pairCountGroup, 0, nullptr);
         wgpuComputePassEncoderSetPipeline(pass, countPairsPipeline_);
@@ -657,7 +779,6 @@ public:
             pass, dispatchArgs_, 6u * sizeof(uint32_t));
         wgpuComputePassEncoderEnd(pass);
         wgpuComputePassEncoderRelease(pass);
-        wgpuBindGroupRelease(pairCountGroup);
 
         if (!primitives_.encodeScanU32(
                 encoder, ownerPairCounts_, ownerPairOffsets_, ownerCount, 1u,
@@ -666,37 +787,8 @@ public:
                 bodyCount + 1u))
             return false;
 
-        const std::array<gpu::BindGroupEntry, 7> clearEntries = {
-            gpu::BindGroupEntry(13).buffer(pairCandidates_),
-            gpu::BindGroupEntry(11).buffer(ownerPairCounts_),
-            gpu::BindGroupEntry(12).buffer(ownerPairOffsets_),
-            gpu::BindGroupEntry(6).buffer(telemetry_),
-            gpu::BindGroupEntry(10).buffer(oversizedFlags_),
-            gpu::BindGroupEntry(23).buffer(dispatchArgs_),
-            gpu::BindGroupEntry(7).buffer(parameterBuffer_),
-        };
-        WGPUBindGroup clearGroup = bindGroup(
-            candidateClearLayout_, clearEntries,
-            "broad_phase_candidate_clear_bind_group");
-        const std::array<gpu::BindGroupEntry, 9> scatterEntries = {
-            gpu::BindGroupEntry(0).buffer(bodyView_.poseBuffer),
-            gpu::BindGroupEntry(1).buffer(bodyView_.shapeBuffer),
-            gpu::BindGroupEntry(2).buffer(bodyView_.metadataBuffer),
-            gpu::BindGroupEntry(8).buffer(sortedGridEntries_),
-            gpu::BindGroupEntry(9).buffer(cellRanges_),
-            gpu::BindGroupEntry(11).buffer(ownerPairCounts_),
-            gpu::BindGroupEntry(12).buffer(ownerPairOffsets_),
-            gpu::BindGroupEntry(13).buffer(pairCandidates_),
-            gpu::BindGroupEntry(7).buffer(parameterBuffer_),
-        };
-        WGPUBindGroup scatterGroup = bindGroup(
-            pairScatterLayout_, scatterEntries,
-            "broad_phase_pair_scatter_bind_group");
-        if (!clearGroup || !scatterGroup) {
-            if (clearGroup) wgpuBindGroupRelease(clearGroup);
-            if (scatterGroup) wgpuBindGroupRelease(scatterGroup);
-            return false;
-        }
+        WGPUBindGroup clearGroup = cachedBindGroups_[4];
+        WGPUBindGroup scatterGroup = cachedBindGroups_[5];
         pass = wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
         wgpuComputePassEncoderSetBindGroup(pass, 0, clearGroup, 0, nullptr);
         wgpuComputePassEncoderSetPipeline(pass, clearCandidatesPipeline_);
@@ -714,8 +806,6 @@ public:
             pass, dispatchArgs_, 6u * sizeof(uint32_t));
         wgpuComputePassEncoderEnd(pass);
         wgpuComputePassEncoderRelease(pass);
-        wgpuBindGroupRelease(clearGroup);
-        wgpuBindGroupRelease(scatterGroup);
 
         if (!primitives_.encodeRadixSort(
                 encoder, pairCandidates_, sortedPairCandidates_,
@@ -723,17 +813,7 @@ public:
                 12u * sizeof(uint32_t), 15u * sizeof(uint32_t), telemetry_,
                 2u)) return false;
 
-        const std::array<gpu::BindGroupEntry, 6> uniqueEntries = {
-            gpu::BindGroupEntry(14).buffer(sortedPairCandidates_),
-            gpu::BindGroupEntry(15).buffer(uniquePairs_),
-            gpu::BindGroupEntry(11).buffer(ownerPairCounts_),
-            gpu::BindGroupEntry(12).buffer(ownerPairOffsets_),
-            gpu::BindGroupEntry(6).buffer(telemetry_),
-            gpu::BindGroupEntry(7).buffer(parameterBuffer_),
-        };
-        WGPUBindGroup uniqueGroup = bindGroup(
-            uniqueLayout_, uniqueEntries, "broad_phase_unique_bind_group");
-        if (!uniqueGroup) return false;
+        WGPUBindGroup uniqueGroup = cachedBindGroups_[6];
         pass = wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
         wgpuComputePassEncoderSetBindGroup(pass, 0, uniqueGroup, 0, nullptr);
         wgpuComputePassEncoderSetPipeline(pass, uniquePairsPipeline_);
@@ -741,80 +821,12 @@ public:
             pass, dispatchArgs_, 12u * sizeof(uint32_t));
         wgpuComputePassEncoderEnd(pass);
         wgpuComputePassEncoderRelease(pass);
-        wgpuBindGroupRelease(uniqueGroup);
 
-        WGPUBuffer previous = contactsAreB_ ? contactsB_ : contactsA_;
-        WGPUBuffer next = contactsAreB_ ? contactsA_ : contactsB_;
-        const std::array<gpu::BindGroupEntry, 9> lifecyclePrepareEntries = {
-            gpu::BindGroupEntry(6).buffer(telemetry_),
-            gpu::BindGroupEntry(15).buffer(uniquePairs_),
-            gpu::BindGroupEntry(16).buffer(previous),
-            gpu::BindGroupEntry(17).buffer(next),
-            gpu::BindGroupEntry(18).buffer(contactOccupancy_),
-            gpu::BindGroupEntry(20).buffer(lifecycleState_),
-            gpu::BindGroupEntry(24).buffer(lifecycleNewPredicates_),
-            gpu::BindGroupEntry(26).buffer(lifecycleEndPredicates_),
-            gpu::BindGroupEntry(7).buffer(parameterBuffer_),
-        };
-        const std::array<gpu::BindGroupEntry, 6> lifecycleFreeEntries = {
-            gpu::BindGroupEntry(18).buffer(contactOccupancy_),
-            gpu::BindGroupEntry(20).buffer(lifecycleState_),
-            gpu::BindGroupEntry(28).buffer(lifecycleFreePredicates_),
-            gpu::BindGroupEntry(29).buffer(lifecycleFreeOffsets_),
-            gpu::BindGroupEntry(30).buffer(lifecycleFreeIds_),
-            gpu::BindGroupEntry(7).buffer(parameterBuffer_),
-        };
-        const std::array<gpu::BindGroupEntry, 8> lifecycleBeginEntries = {
-            gpu::BindGroupEntry(17).buffer(next),
-            gpu::BindGroupEntry(18).buffer(contactOccupancy_),
-            gpu::BindGroupEntry(19).buffer(contactEvents_),
-            gpu::BindGroupEntry(20).buffer(lifecycleState_),
-            gpu::BindGroupEntry(24).buffer(lifecycleNewPredicates_),
-            gpu::BindGroupEntry(25).buffer(lifecycleNewOffsets_),
-            gpu::BindGroupEntry(30).buffer(lifecycleFreeIds_),
-            gpu::BindGroupEntry(7).buffer(parameterBuffer_),
-        };
-        const std::array<gpu::BindGroupEntry, 6> lifecycleEndEntries = {
-            gpu::BindGroupEntry(16).buffer(previous),
-            gpu::BindGroupEntry(19).buffer(contactEvents_),
-            gpu::BindGroupEntry(20).buffer(lifecycleState_),
-            gpu::BindGroupEntry(26).buffer(lifecycleEndPredicates_),
-            gpu::BindGroupEntry(27).buffer(lifecycleEndOffsets_),
-            gpu::BindGroupEntry(7).buffer(parameterBuffer_),
-        };
-        const std::array<gpu::BindGroupEntry, 9> lifecycleFinalizeEntries = {
-            gpu::BindGroupEntry(6).buffer(telemetry_),
-            gpu::BindGroupEntry(20).buffer(lifecycleState_),
-            gpu::BindGroupEntry(24).buffer(lifecycleNewPredicates_),
-            gpu::BindGroupEntry(25).buffer(lifecycleNewOffsets_),
-            gpu::BindGroupEntry(26).buffer(lifecycleEndPredicates_),
-            gpu::BindGroupEntry(27).buffer(lifecycleEndOffsets_),
-            gpu::BindGroupEntry(28).buffer(lifecycleFreePredicates_),
-            gpu::BindGroupEntry(29).buffer(lifecycleFreeOffsets_),
-            gpu::BindGroupEntry(7).buffer(parameterBuffer_),
-        };
+        const uint32_t parity = contactsAreB_ ? 1u : 0u;
         const std::array<WGPUBindGroup, 5> lifecycleGroups = {
-            bindGroup(lifecyclePrepareLayout_, lifecyclePrepareEntries,
-                      "broad_phase_lifecycle_prepare_group"),
-            bindGroup(lifecycleFreeLayout_, lifecycleFreeEntries,
-                      "broad_phase_lifecycle_free_group"),
-            bindGroup(lifecycleBeginLayout_, lifecycleBeginEntries,
-                      "broad_phase_lifecycle_begin_group"),
-            bindGroup(lifecycleEndLayout_, lifecycleEndEntries,
-                      "broad_phase_lifecycle_end_group"),
-            bindGroup(lifecycleFinalizeLayout_, lifecycleFinalizeEntries,
-                      "broad_phase_lifecycle_finalize_group"),
-        };
-        const auto releaseLifecycleGroups = [&] {
-            for (WGPUBindGroup group : lifecycleGroups) {
-                if (group) wgpuBindGroupRelease(group);
-            }
-        };
-        if (std::ranges::any_of(lifecycleGroups,
-                                [](WGPUBindGroup group) { return !group; })) {
-            releaseLifecycleGroups();
-            return false;
-        }
+            cachedBindGroups_[7u + parity], cachedBindGroups_[13],
+            cachedBindGroups_[11u + parity], cachedBindGroups_[9u + parity],
+            cachedBindGroups_[14]};
         const uint32_t lifecycleWorkgroups =
             (config_.contactCapacity + config_.workgroupSize - 1u)
             / config_.workgroupSize;
@@ -836,7 +848,6 @@ public:
             || !primitives_.encodeScanU32(
                 encoder, lifecycleEndPredicates_, lifecycleEndOffsets_,
                 config_.contactCapacity, 4u)) {
-            releaseLifecycleGroups();
             return false;
         }
 
@@ -851,7 +862,6 @@ public:
         if (!primitives_.encodeScanU32(
                 encoder, lifecycleFreePredicates_, lifecycleFreeOffsets_,
                 config_.contactCapacity, 5u)) {
-            releaseLifecycleGroups();
             return false;
         }
 
@@ -880,7 +890,6 @@ public:
         wgpuComputePassEncoderDispatchWorkgroups(pass, 1, 1, 1);
         wgpuComputePassEncoderEnd(pass);
         wgpuComputePassEncoderRelease(pass);
-        releaseLifecycleGroups();
         contactsAreB_ = !contactsAreB_;
         return true;
     }
@@ -906,6 +915,7 @@ public:
                  &lifecycleFinalizePipeline_}) {
             releaseHandle(*pipeline, wgpuComputePipelineRelease);
         }
+        releaseCachedBindGroups();
         releaseHandle(gridPipelineLayout_, wgpuPipelineLayoutRelease);
         releaseHandle(rangePipelineLayout_, wgpuPipelineLayoutRelease);
         releaseHandle(finalizePipelineLayout_, wgpuPipelineLayoutRelease);
@@ -968,6 +978,7 @@ public:
     uint32_t ownerCapacity_ = 0;
     size_t scratchBytes_ = 0;
     bool contactsAreB_ = false;
+    std::array<WGPUBindGroup, 15> cachedBindGroups_{};
     DeterministicGpuPrimitives primitives_;
 
     WGPUBuffer parameterBuffer_ = nullptr;

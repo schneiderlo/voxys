@@ -186,6 +186,10 @@ public:
             shutdown();
             return false;
         }
+        if (!createCachedStaticGroups()) {
+            shutdown();
+            return false;
+        }
         return true;
     }
 
@@ -474,6 +478,28 @@ public:
         return gpu::createBindGroup(device_, layout, entries, label);
     }
 
+    bool createCachedStaticGroups() {
+        const auto parameterEntry = [this] {
+            return gpu::BindGroupEntry(14).buffer(
+                parameterBuffer_, 0, sizeof(Params));
+        };
+        cachedStaticGroups_[0] = makeGroup(
+            bodyRangeLayout_, std::array{
+                gpu::BindGroupEntry(12).buffer(colorRanges_),
+                gpu::BindGroupEntry(13).buffer(telemetry_),
+                gpu::BindGroupEntry(17).buffer(sortedAdjacency_),
+                gpu::BindGroupEntry(18).buffer(bodyRanges_), parameterEntry()},
+            "solver_body_range_bind_group");
+        cachedStaticGroups_[1] = makeGroup(
+            finishLayout_, std::array{
+                gpu::BindGroupEntry(13).buffer(telemetry_), parameterEntry()},
+            "solver_finish_bind_group");
+        for (WGPUBindGroup group : cachedStaticGroups_) {
+            if (!group) return false;
+        }
+        return true;
+    }
+
     bool encode(WGPUCommandEncoder encoder, bool compactColorSolve) {
         if (!encoder || !input_.valid()) return false;
         uint32_t slot = 0u;
@@ -631,11 +657,6 @@ public:
                 dispatchOffset(config_.colorCount + 4u), colorRanges_,
                 config_.colorCount * 2u + 1u, 2u)) return false;
 
-        const std::array<gpu::BindGroupEntry, 5> bodyRangeEntries = {
-            gpu::BindGroupEntry(12).buffer(colorRanges_),
-            gpu::BindGroupEntry(13).buffer(telemetry_),
-            gpu::BindGroupEntry(17).buffer(sortedAdjacency_),
-            gpu::BindGroupEntry(18).buffer(bodyRanges_), parameterEntry()};
         const std::array<gpu::BindGroupEntry, 8> prepareEntries = {
             gpu::BindGroupEntry(0).buffer(input_.poseBuffer),
             gpu::BindGroupEntry(1).buffer(input_.motionBuffer),
@@ -673,10 +694,7 @@ public:
             gpu::BindGroupEntry(5).buffer(input_.narrowPhaseTelemetryBuffer),
             gpu::BindGroupEntry(15).buffer(caches_),
             gpu::BindGroupEntry(20).buffer(bodyDegrees_), parameterEntry()};
-        const std::array<gpu::BindGroupEntry, 2> finishEntries = {
-            gpu::BindGroupEntry(13).buffer(telemetry_), parameterEntry()};
-        WGPUBindGroup bodyRangeGroup = makeGroup(
-            bodyRangeLayout_, bodyRangeEntries, "solver_body_range_bind_group");
+        WGPUBindGroup bodyRangeGroup = cachedStaticGroups_[0];
         WGPUBindGroup prepareGroup = makeGroup(
             prepareLayout_, prepareEntries, "solver_prepare_bind_group");
         WGPUBindGroup solveGroup = makeGroup(
@@ -688,13 +706,12 @@ public:
         WGPUBindGroup smallIslandGroup = makeGroup(
             smallIslandLayout_, smallIslandEntries,
             "solver_small_island_bind_group");
-        WGPUBindGroup finishGroup = makeGroup(
-            finishLayout_, finishEntries, "solver_finish_bind_group");
+        WGPUBindGroup finishGroup = cachedStaticGroups_[1];
         if (!bodyRangeGroup || !prepareGroup || !solveGroup || !gatherGroup
             || !integrateGroup || !smallIslandGroup || !finishGroup) {
-            for (WGPUBindGroup group : {bodyRangeGroup, prepareGroup, solveGroup,
+            for (WGPUBindGroup group : {prepareGroup, solveGroup,
                                        gatherGroup, integrateGroup,
-                                       smallIslandGroup, finishGroup}) {
+                                       smallIslandGroup}) {
                 if (group) wgpuBindGroupRelease(group);
             }
             return false;
@@ -779,9 +796,9 @@ public:
         wgpuComputePassEncoderDispatchWorkgroups(pass, 1, 1, 1);
         wgpuComputePassEncoderEnd(pass);
         wgpuComputePassEncoderRelease(pass);
-        for (WGPUBindGroup group : {bodyRangeGroup, prepareGroup, solveGroup,
+        for (WGPUBindGroup group : {prepareGroup, solveGroup,
                                    gatherGroup, integrateGroup,
-                                   smallIslandGroup, finishGroup}) {
+                                   smallIslandGroup}) {
             wgpuBindGroupRelease(group);
         }
         if (slot > kParameterSlots) return false;
@@ -793,6 +810,9 @@ public:
     }
 
     void shutdown() {
+        for (WGPUBindGroup& group : cachedStaticGroups_) {
+            releaseHandle(group, wgpuBindGroupRelease);
+        }
         for (WGPUComputePipeline* pipeline : {
                  &resetPipeline_, &resetDegreesPipeline_, &countDegreesPipeline_,
                  &markSmallIslandsPipeline_, &clearClaimsPipeline_,
@@ -854,6 +874,7 @@ public:
     size_t scratchBytes_ = 0;
     DeterministicGpuPrimitives primitives_;
     std::array<ParameterUploadSlot, kParameterSlots> parameterUpload_{};
+    std::array<WGPUBindGroup, 2> cachedStaticGroups_{};
     WGPUBuffer parameterBuffer_ = nullptr;
     WGPUBuffer colors_ = nullptr;
     WGPUBuffer acceptedMasks_ = nullptr;
