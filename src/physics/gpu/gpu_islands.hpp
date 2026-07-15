@@ -115,6 +115,8 @@ public:
     [[nodiscard]] WGPUBuffer events() const noexcept;
     [[nodiscard]] WGPUBuffer telemetryBuffer() const noexcept;
     [[nodiscard]] size_t scratchBytes() const noexcept;
+    // Monotonic since initialization; used to guard steady-state cache reuse.
+    [[nodiscard]] size_t inputBindGroupCacheMisses() const noexcept;
 
     [[nodiscard]] static GpuIslandTelemetry decodeTelemetry(
         std::span<const uint32_t> words) noexcept;

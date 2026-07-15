@@ -49,6 +49,8 @@ WGPUComputePipeline makePipeline(WGPUDevice device, WGPUPipelineLayout layout,
 
 class GpuDynamicSolver::Impl {
 public:
+    static constexpr size_t kInputGroupCount = 9;
+
     struct alignas(16) Params {
         std::array<uint32_t, 4> capacities{};
         std::array<uint32_t, 4> control{};
@@ -64,6 +66,11 @@ public:
     };
 
     static_assert(sizeof(ParameterUploadSlot) == kParameterStride);
+
+    struct CachedInputGroups {
+        WGPUBuffer manifoldBuffer = nullptr;
+        std::array<WGPUBindGroup, kInputGroupCount> groups{};
+    };
 
     ~Impl() { shutdown(); }
 
@@ -436,10 +443,70 @@ public:
             && finishPipeline_;
     }
 
+    static bool sameBaseBindings(const GpuDynamicSolverInput& lhs,
+                                 const GpuDynamicSolverInput& rhs) {
+        return lhs.poseBuffer == rhs.poseBuffer
+            && lhs.motionBuffer == rhs.motionBuffer
+            && lhs.shapeBuffer == rhs.shapeBuffer
+            && lhs.metadataBuffer == rhs.metadataBuffer
+            && lhs.narrowPhaseTelemetryBuffer
+                == rhs.narrowPhaseTelemetryBuffer;
+    }
+
+    static void releaseCachedInputGroups(CachedInputGroups& cache) {
+        for (WGPUBindGroup& group : cache.groups) {
+            releaseHandle(group, wgpuBindGroupRelease);
+        }
+        cache.manifoldBuffer = nullptr;
+    }
+
+    void releaseAllCachedInputGroups() {
+        for (CachedInputGroups& cache : cachedInputGroups_) {
+            releaseCachedInputGroups(cache);
+        }
+        nextInputGroupReplacement_ = 0u;
+    }
+
     void setInput(const GpuDynamicSolverInput& input) {
-        input_ = input.bodyCapacity <= config_.bodyCapacity
+        const GpuDynamicSolverInput next =
+            input.bodyCapacity <= config_.bodyCapacity
               && input.contactCapacity <= config_.contactCapacity
             ? input : GpuDynamicSolverInput{};
+        if (!next.valid() || !sameBaseBindings(input_, next)) {
+            releaseAllCachedInputGroups();
+        }
+        input_ = next;
+    }
+
+    CachedInputGroups& inputGroups() {
+        for (CachedInputGroups& cache : cachedInputGroups_) {
+            if (cache.manifoldBuffer == input_.manifoldBuffer) return cache;
+        }
+        for (CachedInputGroups& cache : cachedInputGroups_) {
+            if (!cache.manifoldBuffer) {
+                cache.manifoldBuffer = input_.manifoldBuffer;
+                return cache;
+            }
+        }
+        CachedInputGroups& cache =
+            cachedInputGroups_[nextInputGroupReplacement_];
+        nextInputGroupReplacement_ =
+            (nextInputGroupReplacement_ + 1u)
+            % static_cast<uint32_t>(cachedInputGroups_.size());
+        releaseCachedInputGroups(cache);
+        cache.manifoldBuffer = input_.manifoldBuffer;
+        return cache;
+    }
+
+    WGPUBindGroup cachedInputGroup(
+        CachedInputGroups& cache, size_t index, WGPUBindGroupLayout layout,
+        std::span<const gpu::BindGroupEntry> entries, const char* label) {
+        WGPUBindGroup& group = cache.groups[index];
+        if (!group) {
+            group = makeGroup(layout, entries, label);
+            ++inputBindGroupCacheMisses_;
+        }
+        return group;
     }
 
     Params makeParams(uint32_t first, uint32_t second,
@@ -502,6 +569,7 @@ public:
 
     bool encode(WGPUCommandEncoder encoder, bool compactColorSolve) {
         if (!encoder || !input_.valid()) return false;
+        CachedInputGroups& inputGroupCache = inputGroups();
         uint32_t slot = 0u;
         const auto parameterEntry = [this] {
             return gpu::BindGroupEntry(14).buffer(
@@ -523,16 +591,13 @@ public:
             gpu::BindGroupEntry(13).buffer(telemetry_),
             gpu::BindGroupEntry(20).buffer(bodyDegrees_),
             gpu::BindGroupEntry(21).buffer(dispatchArgs_), parameterEntry()};
-        WGPUBindGroup coloringGroup = makeGroup(
-            coloringLayout_, coloringEntries, "solver_coloring_bind_group");
-        WGPUBindGroup classificationGroup = makeGroup(
-            classificationLayout_, classificationEntries,
+        WGPUBindGroup coloringGroup = cachedInputGroup(
+            inputGroupCache, 0u, coloringLayout_, coloringEntries,
+            "solver_coloring_bind_group");
+        WGPUBindGroup classificationGroup = cachedInputGroup(
+            inputGroupCache, 1u, classificationLayout_, classificationEntries,
             "solver_island_classification_bind_group");
-        if (!coloringGroup || !classificationGroup) {
-            if (coloringGroup) wgpuBindGroupRelease(coloringGroup);
-            if (classificationGroup) wgpuBindGroupRelease(classificationGroup);
-            return false;
-        }
+        if (!coloringGroup || !classificationGroup) return false;
         WGPUComputePassDescriptor passDesc{};
         WGPUComputePassEncoder pass =
             wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
@@ -600,8 +665,6 @@ public:
             pass, dispatchArgs_, globalWorkOffset);
         wgpuComputePassEncoderEnd(pass);
         wgpuComputePassEncoderRelease(pass);
-        wgpuBindGroupRelease(classificationGroup);
-        wgpuBindGroupRelease(coloringGroup);
 
         if (!primitives_.encodeRadixSort(
                 encoder, colorRecords_, sortedColorRecords_,
@@ -623,15 +686,13 @@ public:
             gpu::BindGroupEntry(13).buffer(telemetry_),
             gpu::BindGroupEntry(16).buffer(adjacencyRecords_),
             gpu::BindGroupEntry(18).buffer(bodyRanges_), parameterEntry()};
-        WGPUBindGroup rangeGroup = makeGroup(
-            rangeLayout_, rangeEntries, "solver_range_bind_group");
-        WGPUBindGroup adjacencyGroup = makeGroup(
-            adjacencyLayout_, adjacencyEntries, "solver_adjacency_bind_group");
-        if (!rangeGroup || !adjacencyGroup) {
-            if (rangeGroup) wgpuBindGroupRelease(rangeGroup);
-            if (adjacencyGroup) wgpuBindGroupRelease(adjacencyGroup);
-            return false;
-        }
+        WGPUBindGroup rangeGroup = cachedInputGroup(
+            inputGroupCache, 2u, rangeLayout_, rangeEntries,
+            "solver_range_bind_group");
+        WGPUBindGroup adjacencyGroup = cachedInputGroup(
+            inputGroupCache, 3u, adjacencyLayout_, adjacencyEntries,
+            "solver_adjacency_bind_group");
+        if (!rangeGroup || !adjacencyGroup) return false;
         pass = wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
         offset = writeParams(slot,
             makeParams(0u, config_.overflowIterations));
@@ -647,8 +708,6 @@ public:
             dispatchOffset(config_.colorCount + 3u));
         wgpuComputePassEncoderEnd(pass);
         wgpuComputePassEncoderRelease(pass);
-        wgpuBindGroupRelease(adjacencyGroup);
-        wgpuBindGroupRelease(rangeGroup);
 
         if (!primitives_.encodeRadixSort(
                 encoder, adjacencyRecords_, sortedAdjacency_,
@@ -695,25 +754,24 @@ public:
             gpu::BindGroupEntry(15).buffer(caches_),
             gpu::BindGroupEntry(20).buffer(bodyDegrees_), parameterEntry()};
         WGPUBindGroup bodyRangeGroup = cachedStaticGroups_[0];
-        WGPUBindGroup prepareGroup = makeGroup(
-            prepareLayout_, prepareEntries, "solver_prepare_bind_group");
-        WGPUBindGroup solveGroup = makeGroup(
-            solveLayout_, solveEntries, "solver_solve_bind_group");
-        WGPUBindGroup gatherGroup = makeGroup(
-            gatherLayout_, gatherEntries, "solver_gather_bind_group");
-        WGPUBindGroup integrateGroup = makeGroup(
-            integrateLayout_, integrateEntries, "solver_integrate_bind_group");
-        WGPUBindGroup smallIslandGroup = makeGroup(
-            smallIslandLayout_, smallIslandEntries,
+        WGPUBindGroup prepareGroup = cachedInputGroup(
+            inputGroupCache, 4u, prepareLayout_, prepareEntries,
+            "solver_prepare_bind_group");
+        WGPUBindGroup solveGroup = cachedInputGroup(
+            inputGroupCache, 5u, solveLayout_, solveEntries,
+            "solver_solve_bind_group");
+        WGPUBindGroup gatherGroup = cachedInputGroup(
+            inputGroupCache, 6u, gatherLayout_, gatherEntries,
+            "solver_gather_bind_group");
+        WGPUBindGroup integrateGroup = cachedInputGroup(
+            inputGroupCache, 7u, integrateLayout_, integrateEntries,
+            "solver_integrate_bind_group");
+        WGPUBindGroup smallIslandGroup = cachedInputGroup(
+            inputGroupCache, 8u, smallIslandLayout_, smallIslandEntries,
             "solver_small_island_bind_group");
         WGPUBindGroup finishGroup = cachedStaticGroups_[1];
         if (!bodyRangeGroup || !prepareGroup || !solveGroup || !gatherGroup
             || !integrateGroup || !smallIslandGroup || !finishGroup) {
-            for (WGPUBindGroup group : {prepareGroup, solveGroup,
-                                       gatherGroup, integrateGroup,
-                                       smallIslandGroup}) {
-                if (group) wgpuBindGroupRelease(group);
-            }
             return false;
         }
 
@@ -796,11 +854,6 @@ public:
         wgpuComputePassEncoderDispatchWorkgroups(pass, 1, 1, 1);
         wgpuComputePassEncoderEnd(pass);
         wgpuComputePassEncoderRelease(pass);
-        for (WGPUBindGroup group : {prepareGroup, solveGroup,
-                                   gatherGroup, integrateGroup,
-                                   smallIslandGroup}) {
-            wgpuBindGroupRelease(group);
-        }
         if (slot > kParameterSlots) return false;
         gpu::writeBuffer(
             queue_, parameterBuffer_, 0u,
@@ -810,6 +863,7 @@ public:
     }
 
     void shutdown() {
+        releaseAllCachedInputGroups();
         for (WGPUBindGroup& group : cachedStaticGroups_) {
             releaseHandle(group, wgpuBindGroupRelease);
         }
@@ -862,6 +916,7 @@ public:
         input_ = {};
         claimCapacity_ = 0;
         endpointCapacity_ = 0;
+        inputBindGroupCacheMisses_ = 0;
         scratchBytes_ = 0;
     }
 
@@ -872,9 +927,12 @@ public:
     uint32_t claimCapacity_ = 0;
     uint32_t endpointCapacity_ = 0;
     size_t scratchBytes_ = 0;
+    size_t inputBindGroupCacheMisses_ = 0;
     DeterministicGpuPrimitives primitives_;
     std::array<ParameterUploadSlot, kParameterSlots> parameterUpload_{};
     std::array<WGPUBindGroup, 2> cachedStaticGroups_{};
+    std::array<CachedInputGroups, 2> cachedInputGroups_{};
+    uint32_t nextInputGroupReplacement_ = 0u;
     WGPUBuffer parameterBuffer_ = nullptr;
     WGPUBuffer colors_ = nullptr;
     WGPUBuffer acceptedMasks_ = nullptr;
@@ -974,6 +1032,9 @@ uint32_t GpuDynamicSolver::colorCount() const noexcept {
 }
 size_t GpuDynamicSolver::scratchBytes() const noexcept {
     return impl_->scratchBytes_;
+}
+size_t GpuDynamicSolver::inputBindGroupCacheMisses() const noexcept {
+    return impl_->inputBindGroupCacheMisses_;
 }
 
 GpuDynamicSolverTelemetry GpuDynamicSolver::decodeTelemetry(

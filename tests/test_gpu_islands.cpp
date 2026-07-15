@@ -262,6 +262,7 @@ TEST_P(GpuIslandTest, CompactsSleepsWakesAndMaintainsSleepingGrid) {
         snapshot = runAndRead(
             context, manager, metadataBuffer, bodyCapacity, eventCapacity);
     }
+    EXPECT_EQ(manager.inputBindGroupCacheMisses(), 8u);
     EXPECT_EQ(snapshot.telemetry.tick, 4u);
     EXPECT_EQ(snapshot.telemetry.islandCount, 3u);
     EXPECT_EQ(snapshot.telemetry.maximumIslandBodies, 8u);
@@ -318,6 +319,24 @@ TEST_P(GpuIslandTest, CompactsSleepsWakesAndMaintainsSleepingGrid) {
     EXPECT_EQ(snapshot.events[0].rootBody, 1u);
     EXPECT_EQ(snapshot.events[1].rootBody, 5u);
 
+    WGPUBuffer alternateManifoldBuffer = makeStorage<GpuContactManifold>(
+        context, manifolds, "island_alternate_manifolds");
+    ASSERT_NE(alternateManifoldBuffer, nullptr);
+    manager.setInput({poseBuffer, motionBuffer, metadataBuffer,
+                      alternateManifoldBuffer, narrowTelemetryBuffer,
+                      bodyCapacity, contactCapacity});
+    static_cast<void>(runAndRead(
+        context, manager, metadataBuffer, bodyCapacity, eventCapacity));
+    EXPECT_EQ(manager.inputBindGroupCacheMisses(), 16u);
+    manager.setInput({poseBuffer, motionBuffer, metadataBuffer,
+                      manifoldBuffer, narrowTelemetryBuffer,
+                      bodyCapacity, contactCapacity});
+    static_cast<void>(runAndRead(
+        context, manager, metadataBuffer, bodyCapacity, eventCapacity));
+    EXPECT_EQ(manager.inputBindGroupCacheMisses(), 16u);
+
+    manager.setInput({});
+    releaseBuffer(alternateManifoldBuffer);
     releaseBuffer(narrowTelemetryBuffer);
     releaseBuffer(manifoldBuffer);
     releaseBuffer(metadataBuffer);

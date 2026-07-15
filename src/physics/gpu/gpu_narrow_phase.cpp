@@ -221,10 +221,89 @@ public:
         return true;
     }
 
+    static bool sameInputBindings(const GpuNarrowPhaseInput& lhs,
+                                  const GpuNarrowPhaseInput& rhs) {
+        return lhs.poseBuffer == rhs.poseBuffer
+            && lhs.shapeBuffer == rhs.shapeBuffer
+            && lhs.uniquePairBuffer == rhs.uniquePairBuffer
+            && lhs.broadPhaseTelemetryBuffer
+                == rhs.broadPhaseTelemetryBuffer
+            && lhs.metadataBuffer == rhs.metadataBuffer;
+    }
+
+    void releaseCachedInputGroups() {
+        for (WGPUBindGroup& group : cachedInputGroups_) {
+            releaseHandle(group, wgpuBindGroupRelease);
+        }
+    }
+
     void setInput(const GpuNarrowPhaseInput& input) {
-        input_ = input.bodyCapacity != 0
+        const GpuNarrowPhaseInput next = input.bodyCapacity != 0
               && input.pairCapacity <= config_.pairCapacity
             ? input : GpuNarrowPhaseInput{};
+        if (!next.valid() || !sameInputBindings(input_, next)) {
+            releaseCachedInputGroups();
+        }
+        input_ = next;
+    }
+
+    bool ensureCachedInputGroups() {
+        if (!cachedInputGroups_[0]) {
+            const std::array<gpu::BindGroupEntry, 8> entries = {
+                gpu::BindGroupEntry(1).buffer(input_.shapeBuffer),
+                gpu::BindGroupEntry(2).buffer(input_.uniquePairBuffer),
+                gpu::BindGroupEntry(3).buffer(
+                    input_.broadPhaseTelemetryBuffer),
+                gpu::BindGroupEntry(4).buffer(bucketedPairs_),
+                gpu::BindGroupEntry(5).buffer(classTable_),
+                gpu::BindGroupEntry(9).buffer(telemetry_),
+                gpu::BindGroupEntry(10).buffer(parameterBuffer_),
+                gpu::BindGroupEntry(11).buffer(classDispatchArgs_),
+            };
+            cachedInputGroups_[0] = gpu::createBindGroup(
+                device_, bucketLayout_, entries,
+                "narrow_phase_bucket_bind_group");
+            ++inputBindGroupCacheMisses_;
+        }
+        if (!cachedInputGroups_[1]) {
+            const std::array<gpu::BindGroupEntry, 3> entries = {
+                gpu::BindGroupEntry(3).buffer(
+                    input_.broadPhaseTelemetryBuffer),
+                gpu::BindGroupEntry(9).buffer(telemetry_),
+                gpu::BindGroupEntry(10).buffer(parameterBuffer_),
+            };
+            cachedInputGroups_[1] = gpu::createBindGroup(
+                device_, finalizeLayout_, entries,
+                "narrow_phase_finalize_bind_group");
+            ++inputBindGroupCacheMisses_;
+        }
+
+        const uint32_t parity = manifoldsAreB_ ? 1u : 0u;
+        WGPUBindGroup& narrowGroup = cachedInputGroups_[2u + parity];
+        if (!narrowGroup) {
+            WGPUBuffer previous = manifoldsAreB_ ? manifoldsB_ : manifoldsA_;
+            WGPUBuffer next = manifoldsAreB_ ? manifoldsA_ : manifoldsB_;
+            const std::array<gpu::BindGroupEntry, 9> entries = {
+                gpu::BindGroupEntry(0).buffer(input_.poseBuffer),
+                gpu::BindGroupEntry(1).buffer(input_.shapeBuffer),
+                gpu::BindGroupEntry(4).buffer(bucketedPairs_),
+                gpu::BindGroupEntry(5).buffer(classTable_),
+                gpu::BindGroupEntry(6).buffer(previous),
+                gpu::BindGroupEntry(7).buffer(next),
+                gpu::BindGroupEntry(8).buffer(input_.metadataBuffer),
+                gpu::BindGroupEntry(9).buffer(telemetry_),
+                gpu::BindGroupEntry(10).buffer(parameterBuffer_),
+            };
+            narrowGroup = gpu::createBindGroup(
+                device_, narrowLayout_, entries,
+                "narrow_phase_collision_bind_group");
+            ++inputBindGroupCacheMisses_;
+        }
+        if (!cachedInputGroups_[0] || !cachedInputGroups_[1] || !narrowGroup) {
+            releaseCachedInputGroups();
+            return false;
+        }
+        return true;
     }
 
     bool encode(WGPUCommandEncoder encoder) {
@@ -236,50 +315,11 @@ public:
                            config_.recycleDistance, 0.0f},
         };
         gpu::writeBuffer(queue_, parameterBuffer_, 0, params);
-
-        WGPUBuffer previous = manifoldsAreB_ ? manifoldsB_ : manifoldsA_;
-        WGPUBuffer next = manifoldsAreB_ ? manifoldsA_ : manifoldsB_;
-        const std::array<gpu::BindGroupEntry, 8> bucketEntries = {
-            gpu::BindGroupEntry(1).buffer(input_.shapeBuffer),
-            gpu::BindGroupEntry(2).buffer(input_.uniquePairBuffer),
-            gpu::BindGroupEntry(3).buffer(input_.broadPhaseTelemetryBuffer),
-            gpu::BindGroupEntry(4).buffer(bucketedPairs_),
-            gpu::BindGroupEntry(5).buffer(classTable_),
-            gpu::BindGroupEntry(9).buffer(telemetry_),
-            gpu::BindGroupEntry(10).buffer(parameterBuffer_),
-            gpu::BindGroupEntry(11).buffer(classDispatchArgs_),
-        };
-        WGPUBindGroup bucketGroup = gpu::createBindGroup(
-            device_, bucketLayout_, bucketEntries,
-            "narrow_phase_bucket_bind_group");
-        const std::array<gpu::BindGroupEntry, 9> narrowEntries = {
-            gpu::BindGroupEntry(0).buffer(input_.poseBuffer),
-            gpu::BindGroupEntry(1).buffer(input_.shapeBuffer),
-            gpu::BindGroupEntry(4).buffer(bucketedPairs_),
-            gpu::BindGroupEntry(5).buffer(classTable_),
-            gpu::BindGroupEntry(6).buffer(previous),
-            gpu::BindGroupEntry(7).buffer(next),
-            gpu::BindGroupEntry(8).buffer(input_.metadataBuffer),
-            gpu::BindGroupEntry(9).buffer(telemetry_),
-            gpu::BindGroupEntry(10).buffer(parameterBuffer_),
-        };
-        WGPUBindGroup narrowGroup = gpu::createBindGroup(
-            device_, narrowLayout_, narrowEntries,
-            "narrow_phase_collision_bind_group");
-        const std::array<gpu::BindGroupEntry, 3> finalizeEntries = {
-            gpu::BindGroupEntry(3).buffer(input_.broadPhaseTelemetryBuffer),
-            gpu::BindGroupEntry(9).buffer(telemetry_),
-            gpu::BindGroupEntry(10).buffer(parameterBuffer_),
-        };
-        WGPUBindGroup finalizeGroup = gpu::createBindGroup(
-            device_, finalizeLayout_, finalizeEntries,
-            "narrow_phase_finalize_bind_group");
-        if (!bucketGroup || !narrowGroup || !finalizeGroup) {
-            if (bucketGroup) wgpuBindGroupRelease(bucketGroup);
-            if (narrowGroup) wgpuBindGroupRelease(narrowGroup);
-            if (finalizeGroup) wgpuBindGroupRelease(finalizeGroup);
-            return false;
-        }
+        if (!ensureCachedInputGroups()) return false;
+        const uint32_t parity = manifoldsAreB_ ? 1u : 0u;
+        WGPUBindGroup bucketGroup = cachedInputGroups_[0];
+        WGPUBindGroup finalizeGroup = cachedInputGroups_[1];
+        WGPUBindGroup narrowGroup = cachedInputGroups_[2u + parity];
 
         WGPUComputePassDescriptor passDesc{};
         WGPUComputePassEncoder pass =
@@ -312,14 +352,12 @@ public:
         wgpuComputePassEncoderDispatchWorkgroups(pass, 1, 1, 1);
         wgpuComputePassEncoderEnd(pass);
         wgpuComputePassEncoderRelease(pass);
-        wgpuBindGroupRelease(finalizeGroup);
-        wgpuBindGroupRelease(narrowGroup);
-        wgpuBindGroupRelease(bucketGroup);
         manifoldsAreB_ = !manifoldsAreB_;
         return true;
     }
 
     void shutdown() {
+        releaseCachedInputGroups();
         releaseHandle(resetBucketsPipeline_, wgpuComputePipelineRelease);
         releaseHandle(countBucketsPipeline_, wgpuComputePipelineRelease);
         releaseHandle(finalizeBucketsPipeline_, wgpuComputePipelineRelease);
@@ -347,6 +385,7 @@ public:
         config_ = {};
         input_ = {};
         manifoldsAreB_ = false;
+        inputBindGroupCacheMisses_ = 0;
         scratchBytes_ = 0;
     }
 
@@ -355,7 +394,9 @@ public:
     Config config_{};
     GpuNarrowPhaseInput input_{};
     size_t scratchBytes_ = 0;
+    size_t inputBindGroupCacheMisses_ = 0;
     bool manifoldsAreB_ = false;
+    std::array<WGPUBindGroup, 4> cachedInputGroups_{};
     WGPUBuffer parameterBuffer_ = nullptr;
     WGPUBuffer bucketedPairs_ = nullptr;
     WGPUBuffer classTable_ = nullptr;
@@ -412,6 +453,9 @@ uint32_t GpuNarrowPhase::capacity() const noexcept {
 }
 size_t GpuNarrowPhase::scratchBytes() const noexcept {
     return impl_->scratchBytes_;
+}
+size_t GpuNarrowPhase::inputBindGroupCacheMisses() const noexcept {
+    return impl_->inputBindGroupCacheMisses_;
 }
 
 GpuNarrowPhaseTelemetry GpuNarrowPhase::decodeTelemetry(

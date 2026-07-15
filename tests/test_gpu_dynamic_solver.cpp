@@ -263,6 +263,7 @@ TEST_P(GpuDynamicColoringTest, ColorsConflictsAndGathersOverflowDeterministicall
     const SolverSnapshot first = runAndRead(
         context, solver, poseBuffer, motionBuffer, manifoldBuffer,
         bodyCapacity, contactCapacity);
+    EXPECT_EQ(solver.inputBindGroupCacheMisses(), 9u);
     EXPECT_EQ(first.telemetry.contactCount, contactCount);
     EXPECT_EQ(first.telemetry.coloredContacts, colorCount);
     EXPECT_EQ(first.telemetry.overflowContacts, contactCount - colorCount);
@@ -288,10 +289,31 @@ TEST_P(GpuDynamicColoringTest, ColorsConflictsAndGathersOverflowDeterministicall
     const SolverSnapshot second = runAndRead(
         context, solver, poseBuffer, motionBuffer, manifoldBuffer,
         bodyCapacity, contactCapacity);
+    EXPECT_EQ(solver.inputBindGroupCacheMisses(), 9u);
     EXPECT_EQ(second.colors, first.colors);
     EXPECT_EQ(second.telemetry.persistentColorsRetained, colorCount);
     EXPECT_EQ(second.telemetry.tick, 2u);
 
+    WGPUBuffer alternateManifoldBuffer = makeStorage<GpuContactManifold>(
+        context, manifolds, "color_alternate_manifolds");
+    ASSERT_NE(alternateManifoldBuffer, nullptr);
+    solver.setInput({poseBuffer, motionBuffer, shapeBuffer, metadataBuffer,
+                     alternateManifoldBuffer, narrowTelemetryBuffer,
+                     bodyCapacity, contactCapacity});
+    static_cast<void>(runAndRead(
+        context, solver, poseBuffer, motionBuffer, alternateManifoldBuffer,
+        bodyCapacity, contactCapacity));
+    EXPECT_EQ(solver.inputBindGroupCacheMisses(), 18u);
+    solver.setInput({poseBuffer, motionBuffer, shapeBuffer, metadataBuffer,
+                     manifoldBuffer, narrowTelemetryBuffer,
+                     bodyCapacity, contactCapacity});
+    static_cast<void>(runAndRead(
+        context, solver, poseBuffer, motionBuffer, manifoldBuffer,
+        bodyCapacity, contactCapacity));
+    EXPECT_EQ(solver.inputBindGroupCacheMisses(), 18u);
+
+    solver.setInput({});
+    releaseBuffer(alternateManifoldBuffer);
     releaseBuffer(narrowTelemetryBuffer);
     releaseBuffer(manifoldBuffer);
     releaseBuffer(metadataBuffer);

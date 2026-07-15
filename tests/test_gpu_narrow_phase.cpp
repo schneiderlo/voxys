@@ -309,6 +309,7 @@ TEST_P(GpuNarrowPhaseTest, GeneratesAllPairClassesAndPersistsPoints) {
                           broadTelemetryBuffer, bodyCapacity, pairCapacity,
                           metadataBuffer});
     NarrowSnapshot first = runAndRead(context, narrowPhase, pairCount);
+    EXPECT_EQ(narrowPhase.inputBindGroupCacheMisses(), 3u);
     ASSERT_EQ(first.manifolds.size(), pairCount);
     EXPECT_EQ(first.telemetry.inputPairs, pairCount);
     EXPECT_EQ(first.telemetry.manifolds, overlapPairCount);
@@ -364,6 +365,7 @@ TEST_P(GpuNarrowPhaseTest, GeneratesAllPairClassesAndPersistsPoints) {
     gpu::writeBuffer(context.getQueue(), poseBuffer, 0,
         std::as_bytes(std::span<const TestPose>(poses)));
     const NarrowSnapshot second = runAndRead(context, narrowPhase, pairCount);
+    EXPECT_EQ(narrowPhase.inputBindGroupCacheMisses(), 4u);
     EXPECT_EQ(second.telemetry.tick, 2u);
     EXPECT_GT(second.telemetry.matchedFeaturePoints
             + second.telemetry.recycledAnchorPoints, 0u);
@@ -374,7 +376,10 @@ TEST_P(GpuNarrowPhaseTest, GeneratesAllPairClassesAndPersistsPoints) {
                     0.25f + 0.01f * float(pairIndex), 1e-6f);
         EXPECT_NEAR(point.impulses[0], 0.5f, 1e-6f);
     }
+    static_cast<void>(runAndRead(context, narrowPhase, pairCount));
+    EXPECT_EQ(narrowPhase.inputBindGroupCacheMisses(), 4u);
 
+    narrowPhase.setInput({});
     releaseBuffer(broadTelemetryBuffer);
     releaseBuffer(pairBuffer);
     releaseBuffer(metadataBuffer);
