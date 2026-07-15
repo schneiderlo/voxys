@@ -816,11 +816,12 @@ fn main(@builtin(global_invocation_id) gid : vec3<u32>) {
                 tWater = (h - origin.y) / dir.y;
             }
         }
-        let surfaceHeight = waterHeight + waterSurfaceOffset((origin + dir * tWater).xz);
         // t == -2.0 is the traversal loop-limit sentinel (hot pink debug).
         // Keep it visible instead of letting a water hit silently replace it.
         if (t > -1.5 && tWater > max(range.x, 0.0) && tWater < range.y &&
             (t <= 0.0 || tWater < t)) {
+            let surfaceHeight = waterHeight +
+                waterSurfaceOffset((origin + dir * tWater).xz);
             let waterPos = origin + dir * tWater;
             let waterCoord = (waterPos.xz + terrainOrigin) / cellScale;
             let waterCell = vec2<i32>(floor(waterCoord));
