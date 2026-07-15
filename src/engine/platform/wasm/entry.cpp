@@ -3,6 +3,7 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 
 #include "app/application.hpp"
+#include "camera/camera.hpp"
 #include "core/log.hpp"
 #include "core/config.hpp"
 #include "engine/platform/input.hpp"
@@ -60,6 +61,8 @@ namespace {
     uint64_t g_physicsBenchmarkSamples = 0;
     std::optional<voxy::physics::PhysicsGpuStageTiming>
         g_physicsBenchmarkTiming;
+    std::optional<voxy::physics::PhysicsGpuStageTiming>
+        g_polledPhysicsTiming;
     double g_lastFrameCpuMilliseconds = 0.0;
     uint32_t g_gpuFramesInFlight = 0;
     uint64_t g_gpuPacingSkips = 0;
@@ -246,7 +249,38 @@ namespace {
         } else {
             out << ",\"tick\":0,\"total_ms\":0";
         }
-        out << "}}}";
+        out << "}}";
+        if (g_app && g_app->getCamera()) {
+            const voxy::Camera& camera = *g_app->getCamera();
+            const glm::vec3& position = camera.position();
+            const glm::ivec3& sector = camera.worldSector();
+            const glm::vec3& forward = camera.forward();
+            out << ",\"camera\":{\"position\":[";
+            appendJsonNumber(out, position.x);
+            out << ',';
+            appendJsonNumber(out, position.y);
+            out << ',';
+            appendJsonNumber(out, position.z);
+            out << "],\"sector\":[" << sector.x << ',' << sector.y << ','
+                << sector.z << "],\"forward\":[";
+            appendJsonNumber(out, forward.x);
+            out << ',';
+            appendJsonNumber(out, forward.y);
+            out << ',';
+            appendJsonNumber(out, forward.z);
+            out << "],\"yaw\":";
+            appendJsonNumber(out, camera.yaw());
+            out << ",\"pitch\":";
+            appendJsonNumber(out, camera.pitch());
+            out << ",\"fov_y\":";
+            appendJsonNumber(out, camera.fovY());
+            out << ",\"aspect_ratio\":";
+            appendJsonNumber(out, camera.aspectRatio());
+            out << '}';
+        } else {
+            out << ",\"camera\":null";
+        }
+        out << '}';
         return out.str();
     }
 
@@ -972,6 +1006,45 @@ double voxy_get_physics_stage_ms(int stage) {
     const auto& timing = g_app->getStats().physicsGpuTiming;
     return timing
         ? timing->milliseconds[static_cast<size_t>(stage)] : -1.0;
+}
+
+EMSCRIPTEN_KEEPALIVE
+double voxy_get_physics_stage_tick() {
+    if (g_physicsBenchmarkTiming) {
+        return static_cast<double>(g_physicsBenchmarkTiming->tick);
+    }
+    if (!g_app) return 0.0;
+    const auto& timing = g_app->getStats().physicsGpuTiming;
+    return timing ? static_cast<double>(timing->tick) : 0.0;
+}
+
+EMSCRIPTEN_KEEPALIVE
+double voxy_get_frame_count() {
+    return g_app ? static_cast<double>(g_app->getStats().frameCount) : 0.0;
+}
+
+EMSCRIPTEN_KEEPALIVE
+double voxy_get_physics_encoded_tick() {
+    const voxy::physics::PhysicsWorld* world = g_app
+        ? g_app->getPhysicsWorld() : g_physicsBenchmarkWorld.get();
+    return world ? static_cast<double>(world->encodedTick()) : 0.0;
+}
+
+EMSCRIPTEN_KEEPALIVE
+double voxy_poll_physics_stage_timing() {
+    g_polledPhysicsTiming = g_app
+        ? g_app->pollPhysicsGpuTimingSample() : std::nullopt;
+    return g_polledPhysicsTiming
+        ? static_cast<double>(g_polledPhysicsTiming->tick) : 0.0;
+}
+
+EMSCRIPTEN_KEEPALIVE
+double voxy_get_polled_physics_stage_ms(int stage) {
+    if (!g_polledPhysicsTiming || stage < 0
+        || stage >= static_cast<int>(voxy::physics::kPhysicsGpuStageCount)) {
+        return -1.0;
+    }
+    return g_polledPhysicsTiming->milliseconds[static_cast<size_t>(stage)];
 }
 
 EMSCRIPTEN_KEEPALIVE

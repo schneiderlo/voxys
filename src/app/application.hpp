@@ -14,6 +14,7 @@
 
 #pragma once
 
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <deque>
@@ -423,6 +424,11 @@ public:
     /// Get runtime statistics.
     [[nodiscard]] const ApplicationStats& getStats() const noexcept { return stats_; }
 
+    /// Drain one raw GPU physics timing packet retained by updateStats().
+    /// A fixed ring preserves every profiled tick without allocating per frame.
+    [[nodiscard]] std::optional<physics::PhysicsGpuStageTiming>
+        pollPhysicsGpuTimingSample() noexcept;
+
     /// Get the window (may be null before init or on WASM).
     [[nodiscard]] Window* getWindow() noexcept { return window_.get(); }
     [[nodiscard]] const Window* getWindow() const noexcept { return window_.get(); }
@@ -493,6 +499,11 @@ private:
 
     ApplicationConfig config_;
     ApplicationStats stats_;
+    static constexpr size_t kPhysicsGpuTimingSampleCapacity = 64u;
+    std::array<physics::PhysicsGpuStageTiming,
+               kPhysicsGpuTimingSampleCapacity> physicsGpuTimingSamples_{};
+    size_t physicsGpuTimingSampleHead_ = 0u;
+    size_t physicsGpuTimingSampleCount_ = 0u;
     bool initialized_ = false;
     bool shouldExit_ = false;
     

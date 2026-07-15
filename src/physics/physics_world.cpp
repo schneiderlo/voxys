@@ -97,6 +97,10 @@ PhysicsStepStats PhysicsWorld::lastStepStats() const noexcept {
     return backend_ ? backend_->lastStepStats() : PhysicsStepStats{};
 }
 
+uint64_t PhysicsWorld::encodedTick() const noexcept {
+    return backend_ ? backend_->encodedTick() : 0u;
+}
+
 bool PhysicsWorld::setTerrain(std::span<const uint16_t> samples,
                               uint32_t width, uint32_t height,
                               float heightScale, float cellScale) {

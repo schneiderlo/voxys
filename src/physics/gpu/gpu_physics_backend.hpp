@@ -81,6 +81,7 @@ public:
         const noexcept override;
     [[nodiscard]] PhysicsStats stats() const noexcept override;
     [[nodiscard]] PhysicsStepStats lastStepStats() const noexcept override;
+    [[nodiscard]] uint64_t encodedTick() const noexcept override;
 
 private:
     class Impl;

@@ -1807,7 +1807,19 @@ void Application::updateStats(float deltaTime) {
         stats_.physics.visibleBodyUsage.highWater = std::max(
             previousVisibleHigh, stats_.primitiveSubmittedCount);
         while (auto timing = physicsWorld_->pollGpuStageTimings()) {
-            stats_.physicsGpuTiming = std::move(*timing);
+            stats_.physicsGpuTiming = *timing;
+            if (physicsGpuTimingSampleCount_
+                == kPhysicsGpuTimingSampleCapacity) {
+                physicsGpuTimingSampleHead_ =
+                    (physicsGpuTimingSampleHead_ + 1u)
+                    % kPhysicsGpuTimingSampleCapacity;
+                --physicsGpuTimingSampleCount_;
+            }
+            const size_t destination =
+                (physicsGpuTimingSampleHead_ + physicsGpuTimingSampleCount_)
+                % kPhysicsGpuTimingSampleCapacity;
+            physicsGpuTimingSamples_[destination] = std::move(*timing);
+            ++physicsGpuTimingSampleCount_;
         }
         stats_.physicsBackend = physicsStats.backend;
         stats_.physicsResidentBodies = physicsStats.residentBodies;
@@ -1869,6 +1881,18 @@ void Application::updateStats(float deltaTime) {
     
     getDebugOverlay().update(overlayStats);
     getDebugOverlay().render();
+}
+
+std::optional<physics::PhysicsGpuStageTiming>
+Application::pollPhysicsGpuTimingSample() noexcept {
+    if (physicsGpuTimingSampleCount_ == 0u) return std::nullopt;
+    physics::PhysicsGpuStageTiming result =
+        std::move(physicsGpuTimingSamples_[physicsGpuTimingSampleHead_]);
+    physicsGpuTimingSampleHead_ =
+        (physicsGpuTimingSampleHead_ + 1u)
+        % kPhysicsGpuTimingSampleCapacity;
+    --physicsGpuTimingSampleCount_;
+    return result;
 }
 
 WGPUTextureView Application::getOrCreateDepthView() {

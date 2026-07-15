@@ -1184,6 +1184,8 @@ public:
         return encodedTick_ + pendingTicks_ + 1u;
     }
 
+    uint64_t encodedTick() const noexcept { return encodedTick_; }
+
     void pollTelemetry() {
         if (!config_.enableTelemetryReadback) return;
         auto raw = telemetryReadback_.poll();
@@ -2337,6 +2339,9 @@ DynamicBodyReadStats GpuPhysicsBackend::lastDynamicBodyReadStats() const noexcep
 PhysicsStats GpuPhysicsBackend::stats() const noexcept { return impl_->stats(); }
 PhysicsStepStats GpuPhysicsBackend::lastStepStats() const noexcept {
     return impl_->lastStepStats_;
+}
+uint64_t GpuPhysicsBackend::encodedTick() const noexcept {
+    return impl_->encodedTick();
 }
 
 } // namespace voxy::physics

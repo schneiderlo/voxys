@@ -48,6 +48,7 @@ public:
     [[nodiscard]] BackendCapabilities capabilities() const noexcept;
     [[nodiscard]] PhysicsStats stats() const noexcept;
     [[nodiscard]] PhysicsStepStats lastStepStats() const noexcept;
+    [[nodiscard]] uint64_t encodedTick() const noexcept;
 
     /// Attach a heightmap as streamed, full-resolution collision tiles.
     /// The sample storage must remain alive until clearTerrain() or shutdown().

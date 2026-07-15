@@ -97,6 +97,7 @@ public:
         const noexcept = 0;
     [[nodiscard]] virtual PhysicsStats stats() const noexcept = 0;
     [[nodiscard]] virtual PhysicsStepStats lastStepStats() const noexcept = 0;
+    [[nodiscard]] virtual uint64_t encodedTick() const noexcept { return 0; }
 };
 
 } // namespace voxy::physics
