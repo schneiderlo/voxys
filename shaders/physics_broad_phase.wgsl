@@ -1011,19 +1011,17 @@ fn small_world_pairs(@builtin(global_invocation_id) gid : vec3<u32>) {
 }
 
 fn cached_small_bodies_overlap(bodyA : u32, bodyB : u32,
-                               keyA : vec2<u32>, keyB : vec2<u32>) -> bool {
+                               cellA : vec4<i32>, keyB : vec2<u32>) -> bool {
     let flagsA = u32(smallPairSectorFlags[bodyA].w);
     let flagsB = u32(smallPairSectorFlags[bodyB].w);
     if ((flagsA & BODY_ALIVE) == 0u || (flagsB & BODY_ALIVE) == 0u
         || ((flagsA | flagsB) & BODY_AWAKE) == 0u) {
         return false;
     }
-    if (smallPairUseCellCull != 0u
-        && !all(keyA == vec2<u32>(SENTINEL))
+    if (smallPairUseCellCull != 0u && cellA.w != 0
         && !all(keyB == vec2<u32>(SENTINEL))) {
-        let cellA = decode_cell(keyA.x, keyA.y);
         let cellB = decode_cell(keyB.x, keyB.y);
-        let directDistance = abs(cellB - cellA);
+        let directDistance = abs(cellB - cellA.xyz);
         let wrappedDistance = min(
             directDistance, vec3<i32>(2 * CELL_BIAS) - directDistance);
         // Non-oversized bodies have a combined radius no larger than one
@@ -1062,6 +1060,7 @@ fn parallel_small_world_pairs(@builtin(local_invocation_id) lid : vec3<u32>) {
 
     let bodyCount = broad.counts.x;
     var flags = 0u;
+    var cell = vec4<i32>(0);
     var cellKey = vec2<u32>(SENTINEL);
     if (lane < bodyCount && body_is_alive(lane)) {
         flags = body_flags(lane);
@@ -1070,8 +1069,11 @@ fn parallel_small_world_pairs(@builtin(local_invocation_id) lid : vec3<u32>) {
         smallPairSectorFlags[lane] = vec4<i32>(metadata[lane].xyz, i32(flags));
         if (!body_is_oversized(lane)) {
             var valid = false;
-            let cell = body_cell(lane, &valid);
-            if (valid) { cellKey = encode_cell(cell); }
+            let bodyCell = body_cell(lane, &valid);
+            if (valid) {
+                cell = vec4<i32>(bodyCell, 1);
+                cellKey = encode_cell(bodyCell);
+            }
         }
     } else {
         smallPairPositionRadius[lane] = vec4<f32>(0.0);
@@ -1130,7 +1132,7 @@ fn parallel_small_world_pairs(@builtin(local_invocation_id) lid : vec3<u32>) {
             }
             pairCount += select(0u, 1u,
                 cached_small_bodies_overlap(
-                    lane, maximum, cellKey, maximumKey));
+                    lane, maximum, cell, maximumKey));
         }
     }
     smallPairFlags[lane] = pairCount | select(
@@ -1160,7 +1162,7 @@ fn parallel_small_world_pairs(@builtin(local_invocation_id) lid : vec3<u32>) {
         let minimumFlags = u32(smallPairSectorFlags[lane].w);
         for (var maximum = lane + 1u; maximum < bodyCount; maximum += 1u) {
             if (!cached_small_bodies_overlap(
-                    lane, maximum, cellKey,
+                    lane, maximum, cell,
                     smallPairCellKeys[maximum])) { continue; }
             let output = smallPairOffsets[lane] + localRank;
             if (output < outputCapacity) {
