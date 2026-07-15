@@ -232,7 +232,8 @@ std::map<std::pair<uint32_t, uint32_t>, uint32_t> contactIds(
 class GpuBroadPhaseTest : public ::testing::TestWithParam<uint32_t> {};
 
 TEST_P(GpuBroadPhaseTest, MatchesBruteForceAndPersistsLifecycle) {
-    constexpr uint32_t bodyCapacity = 128;
+    // Exercise the cooperative pair enumerator's inclusive upper boundary.
+    constexpr uint32_t bodyCapacity = 256;
     constexpr float margin = 0.02f;
     gpu::Context context;
     gpu::ContextConfig contextConfig;
@@ -362,6 +363,73 @@ TEST_P(GpuBroadPhaseTest, MatchesBruteForceAndPersistsLifecycle) {
             EXPECT_EQ(thirdIds.at(pair), id);
         }
     }
+
+    releaseBuffer(metadataBuffer);
+    releaseBuffer(shapeBuffer);
+    releaseBuffer(poseBuffer);
+}
+
+TEST_P(GpuBroadPhaseTest, DenseMediumWorldMatchesBruteForce) {
+    constexpr uint32_t bodyCapacity = 65;
+    constexpr uint32_t pairCapacity = 4'096;
+    constexpr float margin = 0.02f;
+    gpu::Context context;
+    gpu::ContextConfig contextConfig;
+    contextConfig.enableValidation = false;
+    if (!context.initHeadless(contextConfig)) {
+        GTEST_SKIP() << "Headless WebGPU is unavailable";
+    }
+
+    std::vector<TestPose> poses(bodyCapacity);
+    std::vector<TestShape> shapes(bodyCapacity);
+    std::vector<TestMetadata> metadata(bodyCapacity);
+    for (uint32_t body = 0; body < bodyCapacity; ++body) {
+        poses[body].positionInvMass = {0.0f, 0.0f, 0.0f, 1.0f};
+        shapes[body].dimensionsType = {1.0f, 1.0f, 1.0f, 1.0f};
+        metadata[body] = makeMetadata(kAlive | kAwake);
+    }
+
+    WGPUBuffer poseBuffer = makeInput<TestPose>(
+        context, poses, "dense_medium_poses");
+    WGPUBuffer shapeBuffer = makeInput<TestShape>(
+        context, shapes, "dense_medium_shapes");
+    WGPUBuffer metadataBuffer = makeInput<TestMetadata>(
+        context, metadata, "dense_medium_metadata");
+    ASSERT_NE(poseBuffer, nullptr);
+    ASSERT_NE(shapeBuffer, nullptr);
+    ASSERT_NE(metadataBuffer, nullptr);
+
+    GpuBroadPhase broadPhase;
+    GpuBroadPhase::Config config;
+    config.bodyCapacity = bodyCapacity;
+    config.candidatePairCapacity = pairCapacity;
+    config.pairCapacity = pairCapacity;
+    config.contactCapacity = pairCapacity;
+    config.cellSize = 4.0f;
+    config.speculativeMargin = margin;
+    config.workgroupSize = GetParam();
+    ASSERT_TRUE(broadPhase.initialize(
+        context.getDevice(), context.getQueue(), config));
+    broadPhase.setBodyView({
+        poseBuffer, shapeBuffer, metadataBuffer, bodyCapacity});
+
+    const auto expected = bruteForcePairs(poses, shapes, metadata, margin);
+    ASSERT_GT(expected.size(), 1'024u);
+    const BroadPhaseSnapshot first = runAndRead(context, broadPhase);
+    EXPECT_EQ(snapshotPairs(first), expected);
+    EXPECT_EQ(first.telemetry.uniquePairs, expected.size());
+    EXPECT_EQ(first.telemetry.persistentContacts, expected.size());
+    EXPECT_EQ(first.telemetry.beginEvents, expected.size());
+    EXPECT_FALSE(first.telemetry.candidateOverflow);
+    EXPECT_FALSE(first.telemetry.pairOverflow);
+    EXPECT_FALSE(first.telemetry.contactOverflow);
+
+    const auto firstIds = contactIds(first);
+    const BroadPhaseSnapshot second = runAndRead(context, broadPhase);
+    EXPECT_EQ(snapshotPairs(second), expected);
+    EXPECT_EQ(contactIds(second), firstIds);
+    EXPECT_EQ(second.telemetry.beginEvents, 0u);
+    EXPECT_EQ(second.telemetry.endEvents, 0u);
 
     releaseBuffer(metadataBuffer);
     releaseBuffer(shapeBuffer);

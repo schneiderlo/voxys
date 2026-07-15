@@ -5,6 +5,7 @@ const SENTINEL : u32 = 0xffffffffu;
 const CELL_MASK : u32 = 0x1fffffu;
 const CELL_BIAS : i32 = 1048576;
 const WORLD_SECTOR_SIZE : f32 = 256.0;
+const SMALL_LIFECYCLE_CONTACT_LIMIT : u32 = 1024u;
 
 struct BodyPose {
     position_invMass : vec4<f32>,
@@ -79,6 +80,11 @@ struct BroadPhaseParams {
 @group(0) @binding(28) var<storage, read_write> lifecycleFreePredicates : array<u32>;
 @group(0) @binding(29) var<storage, read_write> lifecycleFreeOffsets : array<u32>;
 @group(0) @binding(30) var<storage, read_write> lifecycleFreeIds : array<u32>;
+
+var<workgroup> smallPairFlags : array<u32, 256>;
+var<workgroup> smallPairOffsets : array<u32, 256>;
+var<workgroup> smallPairOutputBase : u32;
+var<workgroup> smallPairChunkCount : u32;
 
 fn sentinel_record() -> KeyValue {
     return KeyValue(SENTINEL, SENTINEL, SENTINEL, SENTINEL);
@@ -1001,9 +1007,135 @@ fn small_world_pairs(@builtin(global_invocation_id) gid : vec3<u32>) {
     atomicMax(&telemetry[17], materialized);
 }
 
-@compute @workgroup_size(1)
-fn small_world_lifecycle(@builtin(global_invocation_id) gid : vec3<u32>) {
-    if (gid.x != 0u) { return; }
+fn pair_from_linear_rank(rank : u32, bodyCount : u32) -> vec2<u32> {
+    var low = 0u;
+    var high = bodyCount - 1u;
+    while (low + 1u < high) {
+        let middle = (low + high) >> 1u;
+        let before = middle * (2u * bodyCount - middle - 1u) / 2u;
+        if (before <= rank) {
+            low = middle;
+        } else {
+            high = middle;
+        }
+    }
+    let before = low * (2u * bodyCount - low - 1u) / 2u;
+    return vec2<u32>(low, low + 1u + rank - before);
+}
+
+// For 65..256 bodies, enumerate the bounded answer space cooperatively. Each
+// 256-pair chunk is compacted in input order, producing the same canonical
+// pair stream as small_world_pairs without the global grid and radix passes.
+@compute @workgroup_size(256)
+fn parallel_small_world_pairs(@builtin(local_invocation_id) lid : vec3<u32>) {
+    let lane = lid.x;
+    for (var index = lane; index < 14u; index += 256u) {
+        atomicStore(&telemetry[index], 0u);
+    }
+    if (lane == 0u) {
+        smallPairOutputBase = 0u;
+        smallPairChunkCount = 0u;
+    }
+    storageBarrier();
+    workgroupBarrier();
+
+    for (var body = lane; body < broad.counts.x; body += 256u) {
+        if (!body_is_alive(body)) { continue; }
+        if (body_is_oversized(body)) {
+            atomicAdd(&telemetry[5], 1u);
+            continue;
+        }
+        atomicAdd(&telemetry[0], 1u);
+        var valid = false;
+        let cell = body_cell(body, &valid);
+        let key = encode_cell(cell);
+        var firstInCell = valid;
+        for (var previous = 0u; previous < body; previous += 1u) {
+            if (!body_is_alive(previous) || body_is_oversized(previous)) {
+                continue;
+            }
+            var previousValid = false;
+            let previousCell = body_cell(previous, &previousValid);
+            let previousKey = encode_cell(previousCell);
+            if (previousValid && previousKey.x == key.x
+                && previousKey.y == key.y) {
+                firstInCell = false;
+                break;
+            }
+        }
+        if (firstInCell) {
+            atomicAdd(&telemetry[1], 1u);
+        }
+    }
+    storageBarrier();
+    workgroupBarrier();
+
+    let bodyCount = broad.counts.x;
+    let possiblePairCount = bodyCount * (bodyCount - 1u) / 2u;
+    let outputCapacity = min(broad.counts.w, broad.capacities.x);
+    for (var base = 0u; base < possiblePairCount; base += 256u) {
+        let pairRank = base + lane;
+        var pair = vec2<u32>(0u);
+        var sleeping = 0u;
+        var overlaps = false;
+        if (pairRank < possiblePairCount) {
+            pair = pair_from_linear_rank(pairRank, bodyCount);
+            overlaps = bodies_overlap(pair.x, pair.y);
+            if (overlaps) {
+                sleeping = select(0u, 1u,
+                    (body_flags(pair.x) & BODY_AWAKE) == 0u
+                        || (body_flags(pair.y) & BODY_AWAKE) == 0u);
+            }
+        }
+        smallPairFlags[lane] = select(0u, 1u, overlaps);
+        workgroupBarrier();
+
+        if (lane == 0u) {
+            var running = 0u;
+            let chunkSize = min(256u, possiblePairCount - base);
+            for (var index = 0u; index < chunkSize; index += 1u) {
+                smallPairOffsets[index] = running;
+                running += smallPairFlags[index];
+            }
+            smallPairChunkCount = running;
+        }
+        workgroupBarrier();
+
+        if (overlaps) {
+            let output = smallPairOutputBase + smallPairOffsets[lane];
+            if (output < outputCapacity) {
+                uniqueBodyPairs[output] = KeyValue(
+                    pair.y, pair.x, sleeping, output);
+                if (sleeping != 0u) {
+                    atomicAdd(&telemetry[4], 1u);
+                }
+            }
+        }
+        storageBarrier();
+        workgroupBarrier();
+        if (lane == 0u) {
+            smallPairOutputBase += smallPairChunkCount;
+        }
+        workgroupBarrier();
+    }
+
+    if (lane == 0u) {
+        let rawCandidateCount = smallPairOutputBase;
+        let materialized = min(rawCandidateCount, broad.counts.w);
+        atomicStore(&telemetry[2], rawCandidateCount);
+        atomicStore(&telemetry[3], materialized);
+        atomicStore(&telemetry[9], select(
+            0u, 1u, rawCandidateCount > broad.counts.w));
+        atomicStore(&telemetry[10], select(
+            0u, 1u, materialized > broad.capacities.x));
+        atomicMax(&telemetry[14], atomicLoad(&telemetry[0]));
+        atomicMax(&telemetry[15], atomicLoad(&telemetry[1]));
+        atomicMax(&telemetry[16], rawCandidateCount);
+        atomicMax(&telemetry[17], materialized);
+    }
+}
+
+fn small_world_lifecycle_impl() {
     let currentCount = lifecycle_current_count();
     let previousCount = lifecycle_previous_count();
 
@@ -1084,4 +1216,25 @@ fn small_world_lifecycle(@builtin(global_invocation_id) gid : vec3<u32>) {
     atomicMax(&telemetry[18], currentCount);
     atomicStore(&telemetry[19], lifecycleState[1]);
     atomicMax(&telemetry[20], beginCount + endCount);
+}
+
+@compute @workgroup_size(1)
+fn small_world_lifecycle(@builtin(global_invocation_id) gid : vec3<u32>) {
+    if (gid.x != 0u) { return; }
+    small_world_lifecycle_impl();
+}
+
+// Select the sparse serial lifecycle on the GPU, after pair generation has
+// published its exact dynamic count. The fallback dispatch arguments keep the
+// existing parallel scans for dense contact sets.
+@compute @workgroup_size(1)
+fn hybrid_lifecycle(@builtin(global_invocation_id) gid : vec3<u32>) {
+    if (gid.x != 0u) { return; }
+    let useSmall = lifecycle_current_count() <= SMALL_LIFECYCLE_CONTACT_LIMIT
+        && lifecycle_previous_count() <= SMALL_LIFECYCLE_CONTACT_LIMIT;
+    store_sort_dispatch(18u, select(
+        broad.capacities.y, 0u, useSmall));
+    if (useSmall) {
+        small_world_lifecycle_impl();
+    }
 }
