@@ -59,6 +59,9 @@ There is no immediate sector-integration blocker.
 - Native benchmark automation can spawn an exact active-body workload, use a
   fixed scripted time step, enforce a minimum throughput, and fail when the
   resident or active count changes during a scenario.
+- The Pages workflow pins Emscripten 6.0.1 and includes that version in the SDK
+  cache key. Production WASM builds can no longer silently change compiler or
+  reuse an incompatible cached emdawnwebgpu port when `latest` advances.
 
 ## Current automated evidence
 
@@ -133,8 +136,10 @@ acceptance scene.
 - Improve or cap the deliberately coincident dense case if it must become a
   supported workload. Its quadratic pair graph remains much slower than the
   spaced right-click workload even though it no longer corrupts body poses.
-- Repair the GitHub Actions Nix environment. The current CI jobs fail before
-  project compilation because `NIX_PATH`/the required Nix channel is missing.
+- Make GPU-dependent CI tests skip cleanly when no adapter is available, or
+  provision a software GPU on the hosted runner. The current determinism and
+  platform-parity jobs build successfully, then abort in `wgpuCreateInstance`
+  for the lockstep/distributed GPU cases; their CPU-only companion tests pass.
 
 ## Human gates
 
