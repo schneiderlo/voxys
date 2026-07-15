@@ -1010,24 +1010,37 @@ fn small_world_pairs(@builtin(global_invocation_id) gid : vec3<u32>) {
     atomicMax(&telemetry[17], materialized);
 }
 
+fn encoded_axes_are_neighbors(axisA : u32, axisB : u32) -> bool {
+    let delta = (axisB - axisA) & CELL_MASK;
+    return delta <= 1u || delta == CELL_MASK;
+}
+
+fn encoded_cells_are_neighbors(keyA : vec2<u32>, keyB : vec2<u32>) -> bool {
+    if (!encoded_axes_are_neighbors(
+            keyA.x & CELL_MASK, keyB.x & CELL_MASK)) { return false; }
+    let yA = ((keyA.x >> 21u) & 0x7ffu) | ((keyA.y & 0x3ffu) << 11u);
+    let yB = ((keyB.x >> 21u) & 0x7ffu) | ((keyB.y & 0x3ffu) << 11u);
+    if (!encoded_axes_are_neighbors(yA, yB)) { return false; }
+    return encoded_axes_are_neighbors(
+        (keyA.y >> 10u) & CELL_MASK,
+        (keyB.y >> 10u) & CELL_MASK);
+}
+
 fn cached_small_bodies_overlap(bodyA : u32, bodyB : u32,
-                               cellA : vec4<i32>, keyB : vec2<u32>) -> bool {
+                               keyA : vec2<u32>, keyB : vec2<u32>) -> bool {
     let flagsA = u32(smallPairSectorFlags[bodyA].w);
     let flagsB = u32(smallPairSectorFlags[bodyB].w);
     if ((flagsA & BODY_ALIVE) == 0u || (flagsB & BODY_ALIVE) == 0u
         || ((flagsA | flagsB) & BODY_AWAKE) == 0u) {
         return false;
     }
-    if (smallPairUseCellCull != 0u && cellA.w != 0
+    if (smallPairUseCellCull != 0u
+        && !all(keyA == vec2<u32>(SENTINEL))
         && !all(keyB == vec2<u32>(SENTINEL))) {
-        let cellB = decode_cell(keyB.x, keyB.y);
-        let directDistance = abs(cellB - cellA.xyz);
-        let wrappedDistance = min(
-            directDistance, vec3<i32>(2 * CELL_BIAS) - directDistance);
         // Non-oversized bodies have a combined radius no larger than one
         // cell. Therefore overlapping AABBs cannot have center cells more
         // than one toroidal bucket apart on any axis.
-        if (any(wrappedDistance > vec3<i32>(1))) { return false; }
+        if (!encoded_cells_are_neighbors(keyA, keyB)) { return false; }
     }
     var sectorDelta = vec3<i32>(0);
     for (var axis = 0u; axis < 3u; axis += 1u) {
@@ -1060,7 +1073,6 @@ fn parallel_small_world_pairs(@builtin(local_invocation_id) lid : vec3<u32>) {
 
     let bodyCount = broad.counts.x;
     var flags = 0u;
-    var cell = vec4<i32>(0);
     var cellKey = vec2<u32>(SENTINEL);
     if (lane < bodyCount && body_is_alive(lane)) {
         flags = body_flags(lane);
@@ -1071,7 +1083,6 @@ fn parallel_small_world_pairs(@builtin(local_invocation_id) lid : vec3<u32>) {
             var valid = false;
             let bodyCell = body_cell(lane, &valid);
             if (valid) {
-                cell = vec4<i32>(bodyCell, 1);
                 cellKey = encode_cell(bodyCell);
             }
         }
@@ -1132,7 +1143,7 @@ fn parallel_small_world_pairs(@builtin(local_invocation_id) lid : vec3<u32>) {
             }
             pairCount += select(0u, 1u,
                 cached_small_bodies_overlap(
-                    lane, maximum, cell, maximumKey));
+                    lane, maximum, cellKey, maximumKey));
         }
     }
     smallPairFlags[lane] = pairCount | select(
@@ -1162,7 +1173,7 @@ fn parallel_small_world_pairs(@builtin(local_invocation_id) lid : vec3<u32>) {
         let minimumFlags = u32(smallPairSectorFlags[lane].w);
         for (var maximum = lane + 1u; maximum < bodyCount; maximum += 1u) {
             if (!cached_small_bodies_overlap(
-                    lane, maximum, cell,
+                    lane, maximum, cellKey,
                     smallPairCellKeys[maximum])) { continue; }
             let output = smallPairOffsets[lane] + localRank;
             if (output < outputCapacity) {
