@@ -366,6 +366,18 @@ public:
         smallPairLayout_ = gpu::createBindGroupLayout(
             device_, smallPairEntries, "broad_phase_small_pair_layout");
 
+        std::vector<LE> parallelMediumPairEntries;
+        for (uint32_t binding : {0u, 1u, 2u})
+            storage(parallelMediumPairEntries, binding, true);
+        storage(parallelMediumPairEntries, 3, false);
+        storage(parallelMediumPairEntries, 4, true);
+        storage(parallelMediumPairEntries, 6, false);
+        storage(parallelMediumPairEntries, 15, false);
+        uniform(parallelMediumPairEntries);
+        parallelMediumPairLayout_ = gpu::createBindGroupLayout(
+            device_, parallelMediumPairEntries,
+            "broad_phase_parallel_medium_pair_layout");
+
         std::vector<LE> smallLifecycleEntries;
         storage(smallLifecycleEntries, 6, false);
         storage(smallLifecycleEntries, 15, false);
@@ -382,7 +394,9 @@ public:
             || !lifecyclePrepareLayout_ || !lifecycleFreeLayout_
             || !lifecycleBeginLayout_ || !lifecycleEndLayout_
             || !lifecycleFinalizeLayout_ || !smallPairLayout_
-            || !smallLifecycleLayout_) return false;
+            || !parallelMediumPairLayout_ || !smallLifecycleLayout_) {
+            return false;
+        }
 
         gridPipelineLayout_ = pipelineLayout(
             device_, std::array{gridLayout_}, "broad_phase_grid_pipeline_layout");
@@ -420,6 +434,9 @@ public:
         smallPairPipelineLayout_ = pipelineLayout(
             device_, std::array{smallPairLayout_},
             "broad_phase_small_pair_pipeline_layout");
+        parallelMediumPairPipelineLayout_ = pipelineLayout(
+            device_, std::array{parallelMediumPairLayout_},
+            "broad_phase_parallel_medium_pair_pipeline_layout");
         smallLifecyclePipelineLayout_ = pipelineLayout(
             device_, std::array{smallLifecycleLayout_},
             "broad_phase_small_lifecycle_pipeline_layout");
@@ -430,6 +447,7 @@ public:
             || !lifecyclePreparePipelineLayout_ || !lifecycleFreePipelineLayout_
             || !lifecycleBeginPipelineLayout_ || !lifecycleEndPipelineLayout_
             || !lifecycleFinalizePipelineLayout_ || !smallPairPipelineLayout_
+            || !parallelMediumPairPipelineLayout_
             || !smallLifecyclePipelineLayout_) return false;
 
         const std::string suffix = std::to_string(config_.workgroupSize);
@@ -514,6 +532,14 @@ public:
             device_, smallPairPipelineLayout_, shaderModule_,
             "medium_world_pairs",
             "broad_phase_medium_world_pairs");
+        parallelMediumPairCountPipeline_ = makePipeline(
+            device_, parallelMediumPairPipelineLayout_, shaderModule_,
+            "parallel_medium_world_pair_counts_" + suffix,
+            "broad_phase_parallel_medium_pair_counts");
+        parallelMediumPairScatterPipeline_ = makePipeline(
+            device_, parallelMediumPairPipelineLayout_, shaderModule_,
+            "parallel_medium_world_pair_scatter_" + suffix,
+            "broad_phase_parallel_medium_pair_scatter");
         smallLifecyclePipeline_ = makePipeline(
             device_, smallLifecyclePipelineLayout_, shaderModule_,
             "small_world_lifecycle", "broad_phase_small_world_lifecycle");
@@ -531,6 +557,8 @@ public:
             && lifecycleAssignBeginPipeline_ && lifecycleScatterEndPipeline_
             && lifecycleFinalizePipeline_ && smallPairPipeline_
             && parallelSmallPairPipeline_ && mediumPairPipeline_
+            && parallelMediumPairCountPipeline_
+            && parallelMediumPairScatterPipeline_
             && smallLifecyclePipeline_ && hybridLifecyclePipeline_;
     }
 
@@ -729,6 +757,19 @@ public:
         cachedBindGroups_[15] = bindGroup(
             smallPairLayout_, smallPairEntries,
             "broad_phase_small_pair_group");
+        const std::array<gpu::BindGroupEntry, 8> parallelMediumPairEntries = {
+            gpu::BindGroupEntry(0).buffer(bodyView_.poseBuffer),
+            gpu::BindGroupEntry(1).buffer(bodyView_.shapeBuffer),
+            gpu::BindGroupEntry(2).buffer(bodyView_.metadataBuffer),
+            gpu::BindGroupEntry(3).buffer(bodyEntryCounts_),
+            gpu::BindGroupEntry(4).buffer(bodyEntryOffsets_),
+            gpu::BindGroupEntry(6).buffer(telemetry_),
+            gpu::BindGroupEntry(15).buffer(uniquePairs_),
+            gpu::BindGroupEntry(7).buffer(parameterBuffer_),
+        };
+        cachedBindGroups_[18] = bindGroup(
+            parallelMediumPairLayout_, parallelMediumPairEntries,
+            "broad_phase_parallel_medium_pair_group");
         for (uint32_t parity = 0; parity < 2; ++parity) {
             WGPUBuffer previous = parity == 0 ? contactsA_ : contactsB_;
             WGPUBuffer next = parity == 0 ? contactsB_ : contactsA_;
@@ -887,6 +928,7 @@ public:
         constexpr uint32_t kSmallWorldBodyLimit = 64u;
         constexpr uint32_t kSmallPairBodyLimit = 256u;
         constexpr uint32_t kMediumPairBodyLimit = 1'024u;
+        constexpr uint32_t kParallelMediumPairBodyLimit = 2'048u;
         if (bodyCount <= kSmallWorldBodyLimit) {
             const uint32_t parity = contactsAreB_ ? 1u : 0u;
             WGPUComputePassEncoder pass =
@@ -928,6 +970,43 @@ public:
             wgpuComputePassEncoderDispatchWorkgroups(pass, 1u, 1u, 1u);
             wgpuComputePassEncoderEnd(pass);
             wgpuComputePassEncoderRelease(pass);
+            const uint32_t parity = contactsAreB_ ? 1u : 0u;
+            if (!encodeLifecycle(parity, true)) return false;
+            contactsAreB_ = !contactsAreB_;
+            return true;
+        }
+        if (bodyCount <= kParallelMediumPairBodyLimit) {
+            WGPUComputePassEncoder pass =
+                wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
+            wgpuComputePassEncoderSetBindGroup(
+                pass, 0, cachedBindGroups_[0], 0, nullptr);
+            wgpuComputePassEncoderSetPipeline(pass, resetPipeline_);
+            wgpuComputePassEncoderDispatchWorkgroups(pass, 1u, 1u, 1u);
+            wgpuComputePassEncoderSetBindGroup(
+                pass, 0, cachedBindGroups_[18], 0, nullptr);
+            wgpuComputePassEncoderSetPipeline(
+                pass, parallelMediumPairCountPipeline_);
+            wgpuComputePassEncoderDispatchWorkgroups(
+                pass, bodyGroups, 1u, 1u);
+            wgpuComputePassEncoderEnd(pass);
+            wgpuComputePassEncoderRelease(pass);
+
+            if (!primitives_.encodeScanU32(
+                    encoder, bodyEntryCounts_, bodyEntryOffsets_,
+                    bodyCount, 0u)) {
+                return false;
+            }
+
+            pass = wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
+            wgpuComputePassEncoderSetBindGroup(
+                pass, 0, cachedBindGroups_[18], 0, nullptr);
+            wgpuComputePassEncoderSetPipeline(
+                pass, parallelMediumPairScatterPipeline_);
+            wgpuComputePassEncoderDispatchWorkgroups(
+                pass, bodyGroups, 1u, 1u);
+            wgpuComputePassEncoderEnd(pass);
+            wgpuComputePassEncoderRelease(pass);
+
             const uint32_t parity = contactsAreB_ ? 1u : 0u;
             if (!encodeLifecycle(parity, true)) return false;
             contactsAreB_ = !contactsAreB_;
@@ -1079,6 +1158,8 @@ public:
                  &lifecycleAssignBeginPipeline_, &lifecycleScatterEndPipeline_,
                  &lifecycleFinalizePipeline_, &smallPairPipeline_,
                  &parallelSmallPairPipeline_, &mediumPairPipeline_,
+                 &parallelMediumPairCountPipeline_,
+                 &parallelMediumPairScatterPipeline_,
                  &smallLifecyclePipeline_, &hybridLifecyclePipeline_}) {
             releaseHandle(*pipeline, wgpuComputePipelineRelease);
         }
@@ -1096,6 +1177,7 @@ public:
                  &lifecycleBeginPipelineLayout_,
                  &lifecycleEndPipelineLayout_,
                  &lifecycleFinalizePipelineLayout_, &smallPairPipelineLayout_,
+                 &parallelMediumPairPipelineLayout_,
                  &smallLifecyclePipelineLayout_}) {
             releaseHandle(*layout, wgpuPipelineLayoutRelease);
         }
@@ -1110,6 +1192,7 @@ public:
                  &lifecyclePrepareLayout_, &lifecycleFreeLayout_,
                  &lifecycleBeginLayout_, &lifecycleEndLayout_,
                  &lifecycleFinalizeLayout_, &smallPairLayout_,
+                 &parallelMediumPairLayout_,
                  &smallLifecycleLayout_}) {
             releaseHandle(*layout, wgpuBindGroupLayoutRelease);
         }
@@ -1147,7 +1230,7 @@ public:
     uint32_t ownerCapacity_ = 0;
     size_t scratchBytes_ = 0;
     bool contactsAreB_ = false;
-    std::array<WGPUBindGroup, 18> cachedBindGroups_{};
+    std::array<WGPUBindGroup, 19> cachedBindGroups_{};
     DeterministicGpuPrimitives primitives_;
 
     WGPUBuffer parameterBuffer_ = nullptr;
@@ -1192,6 +1275,7 @@ public:
     WGPUBindGroupLayout lifecycleEndLayout_ = nullptr;
     WGPUBindGroupLayout lifecycleFinalizeLayout_ = nullptr;
     WGPUBindGroupLayout smallPairLayout_ = nullptr;
+    WGPUBindGroupLayout parallelMediumPairLayout_ = nullptr;
     WGPUBindGroupLayout smallLifecycleLayout_ = nullptr;
     WGPUPipelineLayout gridPipelineLayout_ = nullptr;
     WGPUPipelineLayout rangePipelineLayout_ = nullptr;
@@ -1206,6 +1290,7 @@ public:
     WGPUPipelineLayout lifecycleEndPipelineLayout_ = nullptr;
     WGPUPipelineLayout lifecycleFinalizePipelineLayout_ = nullptr;
     WGPUPipelineLayout smallPairPipelineLayout_ = nullptr;
+    WGPUPipelineLayout parallelMediumPairPipelineLayout_ = nullptr;
     WGPUPipelineLayout smallLifecyclePipelineLayout_ = nullptr;
     WGPUComputePipeline resetPipeline_ = nullptr;
     WGPUComputePipeline clearEntriesPipeline_ = nullptr;
@@ -1230,6 +1315,8 @@ public:
     WGPUComputePipeline smallPairPipeline_ = nullptr;
     WGPUComputePipeline parallelSmallPairPipeline_ = nullptr;
     WGPUComputePipeline mediumPairPipeline_ = nullptr;
+    WGPUComputePipeline parallelMediumPairCountPipeline_ = nullptr;
+    WGPUComputePipeline parallelMediumPairScatterPipeline_ = nullptr;
     WGPUComputePipeline smallLifecyclePipeline_ = nullptr;
     WGPUComputePipeline hybridLifecyclePipeline_ = nullptr;
 };
