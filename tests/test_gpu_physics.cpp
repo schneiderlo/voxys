@@ -624,6 +624,12 @@ TEST_F(GpuPhysicsTest, AllPrimitiveShapesSettleOnFlatTerrain) {
     ASSERT_EQ(snapshot->bodies.size(), bodies.size());
     for (const DebugBodyState& body : snapshot->bodies) {
         EXPECT_TRUE(body.alive);
+        EXPECT_FALSE(body.awake)
+            << throwableShapeName(body.shape)
+            << " linear=" << body.linearVelocity.x << ','
+            << body.linearVelocity.y << ',' << body.linearVelocity.z
+            << " angular=" << body.angularVelocity.x << ','
+            << body.angularVelocity.y << ',' << body.angularVelocity.z;
         EXPECT_GT(body.position.y, -0.15f) << throwableShapeName(body.shape);
         EXPECT_LT(body.position.y, 1.35f) << throwableShapeName(body.shape);
         EXPECT_LT(glm::length(body.linearVelocity), 0.20f)
@@ -631,6 +637,78 @@ TEST_F(GpuPhysicsTest, AllPrimitiveShapesSettleOnFlatTerrain) {
         EXPECT_TRUE(body.staticContactCount != 0u || !body.awake)
             << throwableShapeName(body.shape);
     }
+}
+
+TEST_F(GpuPhysicsTest, ThrownTerrainBodyEventuallySleeps) {
+    attachFlatTerrain();
+    BodySpawnDesc desc;
+    desc.shape = ThrowableShape::Sphere;
+    desc.position = {0.0f, 3.0f, 0.0f};
+    desc.linearVelocity = {5.0f, 0.0f, 0.0f};
+    desc.dimensions = throwableShapeDimensions(desc.shape);
+    const BodyHandle body = world.spawnBody(desc);
+    ASSERT_TRUE(body.valid());
+
+    stepTicks(600u);
+    const auto snapshot = snapshotRange(body.index, 1u);
+    ASSERT_TRUE(snapshot.has_value());
+    ASSERT_EQ(snapshot->bodies.size(), 1u);
+    const DebugBodyState& state = snapshot->bodies.front();
+    EXPECT_GT(state.position.x, 1.0f);
+    EXPECT_FALSE(state.awake)
+        << "linear=" << state.linearVelocity.x << ','
+        << state.linearVelocity.y << ',' << state.linearVelocity.z
+        << " angular=" << state.angularVelocity.x << ','
+        << state.angularVelocity.y << ',' << state.angularVelocity.z;
+}
+
+TEST_F(GpuPhysicsTest, RestingTerrainPileEventuallySleeps) {
+    attachFlatTerrain();
+    constexpr uint32_t bodyCount = 32u;
+    BodyHandle first{};
+    for (uint32_t index = 0u; index < bodyCount; ++index) {
+        BodySpawnDesc desc;
+        desc.shape = ThrowableShape::Sphere;
+        desc.dimensions = throwableShapeDimensions(desc.shape);
+        const uint32_t layer = index / 16u;
+        const uint32_t cell = index % 16u;
+        desc.position = {
+            (static_cast<float>(cell % 4u) - 1.5f) * 1.0f,
+            3.0f + static_cast<float>(layer) * 1.0f,
+            (static_cast<float>(cell / 4u) - 1.5f) * 1.0f,
+        };
+        const BodyHandle body = world.spawnBody(desc);
+        ASSERT_TRUE(body.valid());
+        if (index == 0u) first = body;
+    }
+
+    stepTicks(600u);
+    const auto firstSnapshot = snapshotRange(first.index, bodyCount);
+    ASSERT_TRUE(firstSnapshot.has_value());
+    ASSERT_EQ(firstSnapshot->bodies.size(), bodyCount);
+    stepTicks(120u);
+    const auto snapshot = snapshotRange(first.index, bodyCount);
+    ASSERT_TRUE(snapshot.has_value());
+    ASSERT_EQ(snapshot->bodies.size(), bodyCount);
+    uint32_t awakeCount = 0u;
+    float maximumLinearSpeed = 0.0f;
+    float maximumAngularSpeed = 0.0f;
+    float maximumDisplacement = 0.0f;
+    for (uint32_t index = 0u; index < bodyCount; ++index) {
+        const DebugBodyState& state = snapshot->bodies[index];
+        awakeCount += state.awake ? 1u : 0u;
+        maximumLinearSpeed = std::max(
+            maximumLinearSpeed, glm::length(state.linearVelocity));
+        maximumAngularSpeed = std::max(
+            maximumAngularSpeed, glm::length(state.angularVelocity));
+        maximumDisplacement = std::max(maximumDisplacement, glm::length(
+            state.position - firstSnapshot->bodies[index].position));
+    }
+    EXPECT_EQ(awakeCount, 0u)
+        << "maximum linear speed=" << maximumLinearSpeed
+        << " maximum angular speed=" << maximumAngularSpeed
+        << " displacement over 120 ticks=" << maximumDisplacement;
+    EXPECT_LT(maximumDisplacement, 1.0e-3f);
 }
 
 TEST_F(GpuPhysicsTest, SettlesOnTerrainAcrossSectorBoundary) {

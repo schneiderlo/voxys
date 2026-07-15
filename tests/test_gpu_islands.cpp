@@ -314,11 +314,12 @@ TEST_P(GpuIslandTest, CompactsSleepsWakesAndMaintainsSleepingGrid) {
     snapshot = runAndRead(
         context, manager, metadataBuffer, bodyCapacity, eventCapacity, true);
     EXPECT_EQ(snapshot.telemetry.islandCount, 4u);
-    EXPECT_EQ(snapshot.telemetry.wakeTransitions, 2u);
-    EXPECT_EQ(snapshot.telemetry.sleepingBodies, 1u);
-    EXPECT_EQ(snapshot.telemetry.sleepingGridEntries, 1u);
-    EXPECT_EQ(snapshot.events[0].rootBody, 1u);
-    EXPECT_EQ(snapshot.events[1].rootBody, 5u);
+    // Losing a sleeping-only contact changes connectivity, not motion. Keep
+    // both stationary halves asleep instead of waking eight bodies.
+    EXPECT_EQ(snapshot.telemetry.wakeTransitions, 0u);
+    EXPECT_EQ(snapshot.telemetry.sleepingBodies, 9u);
+    EXPECT_EQ(snapshot.telemetry.sleepingGridEntries, 9u);
+    EXPECT_EQ(snapshot.telemetry.events, 0u);
 
     // Zero contacts leave one canonical singleton island per live body. Keep
     // holes in the body table so the compact fast path must move sentinels to
@@ -333,11 +334,17 @@ TEST_P(GpuIslandTest, CompactsSleepsWakesAndMaintainsSleepingGrid) {
         1u, 2u, 3u, 4u, 5u, 6u, 7u, 8u, 10u, 11u, 12u, 20u};
     ASSERT_EQ(snapshot.telemetry.islandCount,
               static_cast<uint32_t>(singletonBodies.size()));
-    EXPECT_EQ(snapshot.telemetry.awakeIslands, 11u);
-    EXPECT_EQ(snapshot.telemetry.sleepingIslands, 1u);
-    EXPECT_EQ(snapshot.telemetry.awakeBodies, 11u);
-    EXPECT_EQ(snapshot.telemetry.sleepingBodies, 1u);
-    EXPECT_EQ(snapshot.telemetry.events, 0u);
+    // Each disconnected body keeps its own quiet history. Only body 11 is
+    // moving; the other eleven singleton islands are correctly asleep.
+    EXPECT_EQ(snapshot.telemetry.awakeIslands, 1u);
+    EXPECT_EQ(snapshot.telemetry.sleepingIslands, 11u);
+    EXPECT_EQ(snapshot.telemetry.awakeBodies, 1u);
+    EXPECT_EQ(snapshot.telemetry.sleepingBodies, 11u);
+    ASSERT_EQ(snapshot.telemetry.events, 2u);
+    EXPECT_EQ(snapshot.events[0].rootBody, 10u);
+    EXPECT_EQ(snapshot.events[0].type, GpuIslandEventType::Sleep);
+    EXPECT_EQ(snapshot.events[1].rootBody, 12u);
+    EXPECT_EQ(snapshot.events[1].type, GpuIslandEventType::Sleep);
     for (size_t index = 0; index < singletonBodies.size(); ++index) {
         const uint32_t body = singletonBodies[index];
         EXPECT_EQ(snapshot.roots[body], body);

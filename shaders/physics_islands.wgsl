@@ -1,5 +1,6 @@
 const BODY_ALIVE : u32 = 1u << 20u;
 const BODY_AWAKE : u32 = 1u << 21u;
+const TERRAIN_CONTACT_MASK : u32 = 0xfu << 27u;
 const SENTINEL : u32 = 0xffffffffu;
 const CELL_MASK : u32 = 0x1fffffu;
 const CELL_BIAS : i32 = 1048576;
@@ -143,6 +144,22 @@ fn body_is_alive(body : u32) -> bool {
         && (u32(metadata[body].w) & BODY_ALIVE) != 0u;
 }
 
+fn body_is_slow(body : u32) -> bool {
+    let motion = motions[body];
+    let terrainSupported =
+        (u32(metadata[body].w) & TERRAIN_CONTACT_MASK) != 0u;
+    // The static solver stores constraint-free linear activity in w. Its xyz
+    // velocity can contain penetration bias even when the pose is stationary.
+    let linearActivitySquared = select(
+        dot(motion.linearVelocity_sleep.xyz,
+            motion.linearVelocity_sleep.xyz),
+        motion.linearVelocity_sleep.w,
+        terrainSupported);
+    return linearActivitySquared <= params.thresholds.x
+        && dot(motion.angularVelocity_flags.xyz,
+               motion.angularVelocity_flags.xyz) <= params.thresholds.y;
+}
+
 fn active_contact_count() -> u32 {
     return min(narrowTelemetry[10], params.capacities.y);
 }
@@ -178,7 +195,7 @@ fn reset_impl(gid : vec3<u32>) {
         bodyRecords[index] = sentinel_record();
         atomicStore(&islandScratch[index].bodyCount, 0u);
         atomicStore(&islandScratch[index].awakeCount, 0u);
-        atomicStore(&islandScratch[index].qualifies, 1u);
+        atomicStore(&islandScratch[index].qualifies, params.control.y);
         atomicStore(&islandScratch[index].disturbed, 0u);
         if (firstTick) {
             islandPersistent[index] = IslandPersistent(0u, 0u, 0u, 0u);
@@ -391,14 +408,13 @@ fn classify_bodies_impl(gid : vec3<u32>) {
     if ((u32(metadata[body].w) & BODY_AWAKE) != 0u) {
         atomicAdd(&islandScratch[root].awakeCount, 1u);
     }
-    let linear = motions[body].linearVelocity_sleep.xyz;
-    let angular = motions[body].angularVelocity_flags.xyz;
-    let slow = dot(linear, linear) <= params.thresholds.x
-        && dot(angular, angular) <= params.thresholds.y;
-    atomicAnd(&islandScratch[root].qualifies, select(0u, 1u, slow));
-    if (bodyPersistent[body].previousRoot != root) {
-        atomicOr(&islandScratch[root].disturbed, 1u);
-    }
+    let slow = body_is_slow(body);
+    var persistent = bodyPersistent[body];
+    persistent.reserved1 = select(
+        0u, min(persistent.reserved1 + 1u, params.control.y),
+        slow && persistent.previousRoot != SENTINEL);
+    bodyPersistent[body] = persistent;
+    atomicMin(&islandScratch[root].qualifies, persistent.reserved1);
     if (bodyPersistent[body].previousSleeping != 0u) {
         atomicOr(&islandScratch[root].disturbed, 2u);
     }
@@ -428,29 +444,22 @@ fn decide_islands_impl(gid : vec3<u32>) {
     let root = island.rootBody;
     let bodyCount = atomicLoad(&islandScratch[root].bodyCount);
     let awakeCount = atomicLoad(&islandScratch[root].awakeCount);
-    let qualifies = atomicLoad(&islandScratch[root].qualifies) != 0u;
+    let quietTicks = atomicLoad(&islandScratch[root].qualifies);
     let disturbanceFlags = atomicLoad(&islandScratch[root].disturbed);
-    let disturbed = (disturbanceFlags & 1u) != 0u
-        || islandPersistent[root].previousBodyCount != bodyCount;
+    let wasSleeping = (disturbanceFlags & 2u) != 0u;
     let previousState = select(islandPersistent[root].state, 1u,
         islandPersistent[root].previousBodyCount == 0u
-            && (disturbanceFlags & 2u) != 0u);
+            && wasSleeping);
     var nextState = previousState;
-    var sleepTicks = islandPersistent[root].sleepTicks;
-    if (disturbed || (awakeCount != 0u && awakeCount != bodyCount)) {
+    if (wasSleeping && awakeCount != 0u) {
         nextState = 0u;
-        sleepTicks = 0u;
     } else if (awakeCount == 0u) {
         nextState = 1u;
-    } else if (qualifies) {
-        sleepTicks = min(sleepTicks + 1u, params.control.y);
-        nextState = select(0u, 1u, sleepTicks >= params.control.y);
     } else {
-        nextState = 0u;
-        sleepTicks = 0u;
+        nextState = select(0u, 1u, quietTicks >= params.control.y);
     }
     islandPersistent[root] = IslandPersistent(
-        sleepTicks, nextState, bodyCount, 0u);
+        quietTicks, nextState, bodyCount, 0u);
     island.state = nextState;
     islandRecords[index] = island;
     if (nextState != previousState) {
@@ -595,8 +604,12 @@ fn apply_states_impl(gid : vec3<u32>) {
     }
     bodyMetadata.w = i32(packedMetadata);
     metadata[body] = bodyMetadata;
+    let persistent = bodyPersistent[body];
+    let quietTicks = select(persistent.reserved1, 0u,
+        persistent.previousSleeping != 0u && !sleeping);
     bodyPersistent[body] = BodyPersistent(
-        root, select(0u, 1u, sleeping), 0u, 0u);
+        root, select(0u, 1u, sleeping), 0u,
+        select(quietTicks, params.control.y, sleeping));
 }
 
 @compute @workgroup_size(64)
@@ -977,6 +990,17 @@ fn small_world_decide(@builtin(global_invocation_id) gid : vec3<u32>) {
     }
     small_world_barrier();
 
+    for (var body = lane; body < params.capacities.x; body += 256u) {
+        if (!body_is_alive(body)) { continue; }
+        let slow = body_is_slow(body);
+        var persistent = bodyPersistent[body];
+        persistent.reserved1 = select(
+            0u, min(persistent.reserved1 + 1u, params.control.y),
+            slow && persistent.previousRoot != SENTINEL);
+        bodyPersistent[body] = persistent;
+    }
+    small_world_barrier();
+
     if (lane == 0u) {
         smallWorldSortRecords[0].ordinal = select(
             0u, 1u, atomicLoad(&telemetry[12]) == 0u);
@@ -995,37 +1019,25 @@ fn small_world_decide(@builtin(global_invocation_id) gid : vec3<u32>) {
             let body = record.value;
             let awakeCount = select(0u, 1u,
                 (u32(metadata[body].w) & BODY_AWAKE) != 0u);
-            let linear = motions[body].linearVelocity_sleep.xyz;
-            let angular = motions[body].angularVelocity_flags.xyz;
-            let qualifies = dot(linear, linear) <= params.thresholds.x
-                && dot(angular, angular) <= params.thresholds.y;
-            let rootChanged = bodyPersistent[body].previousRoot != root;
+            let quietTicks = bodyPersistent[body].reserved1;
             let wasSleeping = bodyPersistent[body].previousSleeping != 0u;
             let persistent = islandPersistent[root];
-            let disturbed = rootChanged
-                || persistent.previousBodyCount != 1u;
             let previousState = select(persistent.state, 1u,
                 persistent.previousBodyCount == 0u && wasSleeping);
             var nextState = previousState;
-            var sleepTicks = persistent.sleepTicks;
-            if (disturbed) {
+            if (wasSleeping && awakeCount != 0u) {
                 nextState = 0u;
-                sleepTicks = 0u;
             } else if (awakeCount == 0u) {
                 nextState = 1u;
-            } else if (qualifies) {
-                sleepTicks = min(sleepTicks + 1u, params.control.y);
-                nextState = select(0u, 1u,
-                    sleepTicks >= params.control.y);
             } else {
-                nextState = 0u;
-                sleepTicks = 0u;
+                nextState = select(
+                    0u, 1u, quietTicks >= params.control.y);
             }
             let eventType = select(0u,
                 select(2u, 1u, nextState != 0u),
                 nextState != previousState);
             islandPersistent[root] = IslandPersistent(
-                sleepTicks, nextState, 1u, eventType);
+                quietTicks, nextState, 1u, eventType);
             islandRecords[islandIndex] = IslandRecord(
                 root, islandIndex, 1u, nextState);
             atomicAdd(&telemetry[0], 1u);
@@ -1073,47 +1085,34 @@ fn small_world_decide(@builtin(global_invocation_id) gid : vec3<u32>) {
             let firstBodyRecord = descriptor.keyHigh;
             let bodyCount = descriptor.value;
             var awakeCount = 0u;
-            var qualifies = true;
-            var rootChanged = false;
+            var quietTicks = params.control.y;
             var wasSleeping = false;
             for (var offset = 0u; offset < bodyCount; offset += 1u) {
                 let body = sortedBodyRecords[firstBodyRecord + offset].value;
                 awakeCount += select(0u, 1u,
                     (u32(metadata[body].w) & BODY_AWAKE) != 0u);
-                let linear = motions[body].linearVelocity_sleep.xyz;
-                let angular = motions[body].angularVelocity_flags.xyz;
-                qualifies = qualifies
-                    && dot(linear, linear) <= params.thresholds.x
-                    && dot(angular, angular) <= params.thresholds.y;
-                rootChanged = rootChanged
-                    || bodyPersistent[body].previousRoot != root;
+                quietTicks = min(
+                    quietTicks, bodyPersistent[body].reserved1);
                 wasSleeping = wasSleeping
                     || bodyPersistent[body].previousSleeping != 0u;
             }
             let persistent = islandPersistent[root];
-            let disturbed = rootChanged
-                || persistent.previousBodyCount != bodyCount;
             let previousState = select(persistent.state, 1u,
                 persistent.previousBodyCount == 0u && wasSleeping);
             var nextState = previousState;
-            var sleepTicks = persistent.sleepTicks;
-            if (disturbed || (awakeCount != 0u && awakeCount != bodyCount)) {
+            if (wasSleeping && awakeCount != 0u) {
                 nextState = 0u;
-                sleepTicks = 0u;
             } else if (awakeCount == 0u) {
                 nextState = 1u;
-            } else if (qualifies) {
-                sleepTicks = min(sleepTicks + 1u, params.control.y);
-                nextState = select(0u, 1u, sleepTicks >= params.control.y);
             } else {
-                nextState = 0u;
-                sleepTicks = 0u;
+                nextState = select(
+                    0u, 1u, quietTicks >= params.control.y);
             }
             let eventType = select(0u,
                 select(2u, 1u, nextState != 0u),
                 nextState != previousState);
             islandPersistent[root] = IslandPersistent(
-                sleepTicks, nextState, bodyCount, eventType);
+                quietTicks, nextState, bodyCount, eventType);
             islandRecords[islandIndex] = IslandRecord(
                 root, firstBodyRecord, bodyCount, nextState);
             atomicAdd(&telemetry[0], 1u);
@@ -1174,8 +1173,12 @@ fn small_world_decide(@builtin(global_invocation_id) gid : vec3<u32>) {
         }
         bodyMetadata.w = i32(packedMetadata);
         metadata[body] = bodyMetadata;
+        let persistent = bodyPersistent[body];
+        let quietTicks = select(persistent.reserved1, 0u,
+            persistent.previousSleeping != 0u && !sleeping);
         bodyPersistent[body] = BodyPersistent(
-            root, select(0u, 1u, sleeping), 0u, 0u);
+            root, select(0u, 1u, sleeping), 0u,
+            select(quietTicks, params.control.y, sleeping));
     }
 }
 

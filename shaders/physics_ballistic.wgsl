@@ -16,6 +16,7 @@ const TERRAIN_MIP_REJECTED : u32 = 1u << 25u;
 const BODY_SUBMERGED : u32 = 1u << 26u;
 const TERRAIN_CONTACT_SHIFT : u32 = 27u;
 const TERRAIN_CONTACT_MASK : u32 = 0xfu << TERRAIN_CONTACT_SHIFT;
+const TERRAIN_ROLLING_RESISTANCE : f32 = 0.01;
 const WORLD_SECTOR_SIZE : f32 = 256.0;
 const WORLD_SECTOR_HALF : f32 = 128.0;
 
@@ -1239,6 +1240,7 @@ fn solve_static_contacts(@builtin(global_invocation_id) gid : vec3<u32>) {
 
     var pose = poses[body];
     var motion = motions[body];
+    var linearActivity = motion.linearVelocity_sleep.xyz;
     let shape = shapes[body];
     let inverseMass = pose.position_invMass.w;
     if (inverseMass <= 1e-7) { return; }
@@ -1305,10 +1307,17 @@ fn solve_static_contacts(@builtin(global_invocation_id) gid : vec3<u32>) {
         accumulatedImpulses[contactIndex] = updated;
     }
 
+    var supportNormalSum = vec3<f32>(0.0);
+    var supportImpulse = 0.0;
+    var supportRadius = sim.contact.w;
     for (var contactIndex = 0u; contactIndex < contacts.count;
          contactIndex += 1u) {
         let contact = contacts.items[contactIndex];
         let leverArm = contact.point - terrainPose.position_invMass.xyz;
+        let normalImpulse = accumulatedImpulses[contactIndex];
+        supportNormalSum += contact.normal * normalImpulse;
+        supportImpulse += normalImpulse;
+        supportRadius = max(supportRadius, length(leverArm));
         let pointVelocity = velocities.linear
             + cross(velocities.angular, leverArm);
         let tangentVelocity = pointVelocity
@@ -1320,12 +1329,57 @@ fn solve_static_contacts(@builtin(global_invocation_id) gid : vec3<u32>) {
                 leverArm, tangent, inverseMass, inverseInertia,
                 pose.orientation);
             let maximumFriction = sim.contact.y
-                * accumulatedImpulses[contactIndex];
+                * normalImpulse;
             let frictionMagnitude = min(
                 tangentSpeed * tangentMass, maximumFriction);
             velocities = apply_body_impulse(
                 velocities, -tangent * frictionMagnitude, leverArm,
                 inverseMass, inverseInertia, pose.orientation);
+        }
+    }
+
+    if (supportImpulse > 1e-7) {
+        let normalLength = length(supportNormalSum);
+        if (normalLength > 1e-7) {
+            let supportNormal = supportNormalSum / normalLength;
+            let supportSpeed = dot(linearActivity, supportNormal);
+            if (supportSpeed < 0.0) {
+                linearActivity -= supportNormal * supportSpeed;
+            }
+            let twistSpeed = dot(velocities.angular, supportNormal);
+            let twistInverseMass = dot(supportNormal,
+                inverse_inertia_world(
+                    pose.orientation, inverseInertia, supportNormal));
+            if (twistInverseMass > 1e-7) {
+                let maximumTwistImpulse = sim.contact.y
+                    * supportImpulse * supportRadius;
+                let twistImpulse = clamp(
+                    -twistSpeed / twistInverseMass,
+                    -maximumTwistImpulse, maximumTwistImpulse);
+                velocities.angular += inverse_inertia_world(
+                    pose.orientation, inverseInertia,
+                    supportNormal * twistImpulse);
+            }
+
+            let rollingVelocity = velocities.angular
+                - supportNormal
+                    * dot(velocities.angular, supportNormal);
+            let rollingSpeed = length(rollingVelocity);
+            if (rollingSpeed > 1e-7) {
+                let rollingDirection = rollingVelocity / rollingSpeed;
+                let rollingInverseMass = dot(rollingDirection,
+                    inverse_inertia_world(
+                        pose.orientation, inverseInertia,
+                        rollingDirection));
+                if (rollingInverseMass > 1e-7) {
+                    let rollingImpulse = min(
+                        rollingSpeed / rollingInverseMass,
+                        TERRAIN_ROLLING_RESISTANCE * supportImpulse);
+                    velocities.angular += inverse_inertia_world(
+                        pose.orientation, inverseInertia,
+                        -rollingDirection * rollingImpulse);
+                }
+            }
         }
     }
 
@@ -1347,7 +1401,9 @@ fn solve_static_contacts(@builtin(global_invocation_id) gid : vec3<u32>) {
 
     motion.linearVelocity_sleep = vec4<f32>(
         clamp_length(velocities.linear, sim.damping_clamps.z),
-        motion.linearVelocity_sleep.w);
+        // Terrain support cancels inward motion before it reaches the next
+        // rendered pose. Preserve only motion that can visibly translate it.
+        dot(linearActivity, linearActivity));
     motion.angularVelocity_flags = vec4<f32>(
         clamp_length(velocities.angular, sim.damping_clamps.w),
         motion.angularVelocity_flags.w);
