@@ -45,6 +45,15 @@ constexpr size_t kGpuBodyBytes = 112;
 constexpr size_t kDebugVec4Count = 7;
 constexpr uint32_t kStageBoundaryCount =
     static_cast<uint32_t>(kPhysicsGpuStageCount) + 1u;
+#if defined(VOXY_WASM)
+// emdawnwebgpu currently forwards UINT32_MAX instead of omitting an undefined
+// pass timestamp index. Supply a valid, discarded end timestamp in browsers.
+constexpr uint32_t kStageQueryWordsPerBoundary = 2u;
+#else
+constexpr uint32_t kStageQueryWordsPerBoundary = 1u;
+#endif
+constexpr uint32_t kStagePacketWordCount =
+    kStageBoundaryCount * kStageQueryWordsPerBoundary;
 constexpr uint32_t kCoreTelemetryWordCount = 16u;
 constexpr uint32_t kCoreTelemetryOffset = 0u;
 constexpr uint32_t kCcdTelemetryOffset =
@@ -495,7 +504,7 @@ public:
                     device_, WGPUFeatureName_TimestampQuery)) {
                 LOG_WARN("GPU physics stage profiling requested, but timestamp queries are unavailable");
             } else {
-                stageQueryCapacity_ = kStageBoundaryCount
+                stageQueryCapacity_ = kStagePacketWordCount
                     * std::max(config_.maximumCatchUpTicks, 1u);
                 WGPUQuerySetDescriptor queryDesc{};
                 WGPU_SET_LABEL(queryDesc, "physics_stage_timestamps");
@@ -1392,7 +1401,7 @@ public:
         const uint32_t boundaryCount = raw->bodyCount;
         const size_t expectedBytes = size_t{tickCount} * boundaryCount
                                    * sizeof(uint64_t);
-        if (tickCount == 0u || boundaryCount != kStageBoundaryCount
+        if (tickCount == 0u || boundaryCount != kStagePacketWordCount
             || raw->bytes.size() != expectedBytes) {
             LOG_WARN("Discarding malformed GPU stage timing packet");
             return std::nullopt;
@@ -1409,8 +1418,10 @@ public:
             const uint64_t* boundaries = timestamps.data()
                 + size_t{tick} * boundaryCount;
             for (size_t stage = 0; stage < kPhysicsGpuStageCount; ++stage) {
-                const uint64_t start = boundaries[stage];
-                const uint64_t end = boundaries[stage + 1u];
+                const uint64_t start = boundaries[
+                    stage * kStageQueryWordsPerBoundary];
+                const uint64_t end = boundaries[
+                    (stage + 1u) * kStageQueryWordsPerBoundary];
                 const uint64_t ticks = end >= start ? end - start : 0u;
                 timing.timestampTicks[stage] = ticks;
                 timing.milliseconds[stage] =
@@ -1515,7 +1526,7 @@ public:
         const uint32_t profileTickCount = pendingTicks_;
         const uint64_t profileFirstTick = encodedTick_ + 1u;
         const bool profileThisBatch = stageProfilingEnabled_
-            && uint64_t{profileTickCount} * kStageBoundaryCount
+            && uint64_t{profileTickCount} * kStagePacketWordCount
                 <= stageQueryCapacity_;
         uint32_t profileQueryCount = 0u;
         const auto writeStageTimestamp = [&] {
@@ -1523,7 +1534,11 @@ public:
             gpu::CompatPassTimestampWrites writes{};
             writes.querySet = stageQuerySet_;
             writes.beginningOfPassWriteIndex = profileQueryCount++;
+#if defined(VOXY_WASM)
+            writes.endOfPassWriteIndex = profileQueryCount++;
+#else
             writes.endOfPassWriteIndex = WGPU_QUERY_SET_INDEX_UNDEFINED;
+#endif
             WGPUComputePassDescriptor timestampPassDesc{};
             WGPU_SET_LABEL(timestampPassDesc, "physics_stage_boundary");
             timestampPassDesc.timestampWrites = &writes;
@@ -1713,7 +1728,7 @@ public:
                     encoder, stageResolveBuffer_, 0u,
                     uint64_t{profileQueryCount} * sizeof(uint64_t),
                     profileFirstTick, profileTickCount,
-                    kStageBoundaryCount)) {
+                    kStagePacketWordCount)) {
                 LOG_WARN("GPU physics stage timing readback ring is full");
             } else {
                 lastGpuReadbackBytes_ +=
