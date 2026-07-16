@@ -398,6 +398,10 @@ if (options.presetBodies !== null) {
 } else if (options.leftStreamBodies !== null) {
     await evaluate("voxyModule._voxy_mouse_move(0, 0)");
     if (options.leftStreamBodies > 0) {
+        await evaluate(
+            `voxyModule._voxy_set_throwable_body_limit(`
+            + `${JSON.stringify(options.leftStreamBodies)})`,
+        );
         clickInputs.push(await evaluate(`(() => {
             const pointer = voxyModule._voxy_get_telemetry_json();
             const sample = JSON.parse(voxyModule.UTF8ToString(pointer));
@@ -450,6 +454,7 @@ if (options.presetBodies !== null) {
             if (frame > releaseFrame) break;
             await delay(10);
         }
+        await evaluate("voxyModule._voxy_set_throwable_body_limit(0)");
         clickInputs.push(await evaluate(`(() => {
             const pointer = voxyModule._voxy_get_telemetry_json();
             const sample = JSON.parse(voxyModule.UTF8ToString(pointer));
@@ -465,6 +470,12 @@ if (options.presetBodies !== null) {
     expectedBodies = await evaluate(
         "voxyModule._voxy_get_physics_resident_bodies()",
     );
+    if (expectedBodies !== options.leftStreamBodies) {
+        throw new Error(
+            `left stream body cap missed: expected `
+            + `${options.leftStreamBodies}, observed ${expectedBodies}`,
+        );
+    }
 } else {
     await evaluate("voxyModule._voxy_mouse_move(0, 0)");
     for (let click = 0; click < options.clicks; ++click) {

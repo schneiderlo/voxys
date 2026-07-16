@@ -2253,6 +2253,11 @@ void Application::processThrowableInput(float deltaTime) {
     throwableCooldown_ -= frameTime;
     constexpr float throwInterval = 1.0f / 100.0f;
     while (throwableCooldown_ <= 0.0f) {
+        if (throwableBodyLimit_ != 0u
+            && physicsWorld_->stats().residentBodies
+                >= throwableBodyLimit_) {
+            break;
+        }
         if (throwSelected(origin, direction)) {
             LOG_INFO("Threw {}", physics::PhysicsWorld::throwableShapeName(shape));
         }

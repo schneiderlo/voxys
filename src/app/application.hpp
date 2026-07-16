@@ -480,6 +480,11 @@ public:
         return physicsWorld_.get();
     }
 
+    /// Optional absolute cap used by deterministic interactive benchmarks.
+    void setThrowableBodyLimit(uint32_t limit) noexcept {
+        throwableBodyLimit_ = limit;
+    }
+
 private:
     // ─────────────────────────────────────────────────────────────────────────
     // Initialization Helpers
@@ -545,6 +550,7 @@ private:
     // Controller mode state
     ControllerMode controllerMode_ = ControllerMode::FreeFly;
     uint32_t selectedThrowable_ = 0;
+    uint32_t throwableBodyLimit_ = 0;
     float throwableWheelAccumulator_ = 0.0f;
     float throwableCooldown_ = 0.0f;
 

@@ -1035,6 +1035,14 @@ int voxy_get_physics_resident_bodies() {
 }
 
 EMSCRIPTEN_KEEPALIVE
+void voxy_set_throwable_body_limit(int limit) {
+    if (g_app) {
+        g_app->setThrowableBodyLimit(
+            static_cast<uint32_t>(std::max(limit, 0)));
+    }
+}
+
+EMSCRIPTEN_KEEPALIVE
 double voxy_get_physics_stage_ms(int stage) {
     if (stage < 0
         || stage >= static_cast<int>(voxy::physics::kPhysicsGpuStageCount)) {
