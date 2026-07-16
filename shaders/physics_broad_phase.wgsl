@@ -1130,15 +1130,19 @@ fn medium_bodies_overlap(a : MediumBodyProxy,
             return false;
         }
     }
+    let extent = a.positionRadius.w + b.positionRadius.w;
+    let localDelta = b.positionRadius.xyz - a.positionRadius.xyz;
+    // Same-sector pairs have a zero world offset; skip three wrapped deltas.
+    if (all(a.sectorFlags.xyz == b.sectorFlags.xyz)) {
+        return all(abs(localDelta) <= vec3<f32>(extent));
+    }
     var sectorDelta = vec3<i32>(0);
     for (var axis = 0u; axis < 3u; axis += 1u) {
         sectorDelta[axis] = adjacent_sector_delta(
             a.sectorFlags[axis], b.sectorFlags[axis]);
         if (abs(sectorDelta[axis]) > 1) { return false; }
     }
-    let extent = a.positionRadius.w + b.positionRadius.w;
-    let delta = b.positionRadius.xyz - a.positionRadius.xyz
-              + vec3<f32>(sectorDelta) * WORLD_SECTOR_SIZE;
+    let delta = localDelta + vec3<f32>(sectorDelta) * WORLD_SECTOR_SIZE;
     return all(abs(delta) <= vec3<f32>(extent));
 }
 
