@@ -191,7 +191,15 @@ fn count_pair_classes_impl(gid : vec3<u32>) {
     let pair = uniquePairs[pairIndex];
     if (pair.keyHigh >= narrow.capacities.x
         || pair.keyLow >= narrow.capacities.x) { return; }
-    atomicAdd(&classTable[pair_class_for_record(pair)], 1u);
+    let pairClass = pair_class_for_record(pair);
+    atomicAdd(&narrowTelemetry[pairClass], 1u);
+    if (!bounding_spheres_may_touch(pair.keyHigh, pair.keyLow)) {
+        let pairRecord = KeyValue(pair.keyLow, pair.keyHigh,
+            pairClass | ((pair.value & 1u) << 8u), pairIndex);
+        currentManifolds[pairIndex] = base_manifold(pairRecord, 0u);
+        return;
+    }
+    atomicAdd(&classTable[pairClass], 1u);
 }
 
 @compute @workgroup_size(1)
@@ -203,7 +211,6 @@ fn finalize_pair_buckets(@builtin(global_invocation_id) gid : vec3<u32>) {
         let count = atomicLoad(&classTable[pairClass]);
         atomicStore(&classTable[PAIR_CLASS_COUNT + pairClass], prefix);
         atomicStore(&classTable[2u * PAIR_CLASS_COUNT + pairClass], prefix);
-        atomicStore(&narrowTelemetry[pairClass], count);
         let dispatch = pairClass * 4u;
         classDispatchArgs[dispatch] =
             (count + narrow.capacities.w - 1u) / narrow.capacities.w;
@@ -233,6 +240,7 @@ fn scatter_pair_classes_impl(gid : vec3<u32>) {
     let pair = uniquePairs[pairIndex];
     if (pair.keyHigh >= narrow.capacities.x
         || pair.keyLow >= narrow.capacities.x) { return; }
+    if (!bounding_spheres_may_touch(pair.keyHigh, pair.keyLow)) { return; }
     let pairClass = pair_class_for_record(pair);
     let bucketIndex = atomicAdd(
         &classTable[2u * PAIR_CLASS_COUNT + pairClass], 1u);
@@ -359,6 +367,30 @@ fn cylinder_radius(body : u32) -> f32 {
 
 fn cylinder_half_height(body : u32) -> f32 {
     return 0.5 * max(abs(shapes[body].dimensions_type.y), 1e-5);
+}
+
+fn shape_bounding_radius(body : u32) -> f32 {
+    let dimensions = max(abs(shapes[body].dimensions_type.xyz),
+                         vec3<f32>(1e-5));
+    let shapeClass = canonical_shape(shapes[body].dimensions_type.w);
+    if (shapeClass == 0u) { return 0.5 * dimensions.x; }
+    if (shapeClass == 1u) {
+        let radius = 0.25 * (dimensions.x + dimensions.z);
+        return max(0.5 * dimensions.y - radius, 0.0) + radius;
+    }
+    if (shapeClass == 3u) {
+        let radius = 0.25 * (dimensions.x + dimensions.z);
+        return length(vec2<f32>(radius, 0.5 * dimensions.y));
+    }
+    return 0.5 * length(dimensions);
+}
+
+fn bounding_spheres_may_touch(bodyA : u32, bodyB : u32) -> bool {
+    let delta = body_position_in_frame(bodyB, bodyA)
+              - body_position_in_frame(bodyA, bodyA);
+    let reach = shape_bounding_radius(bodyA)
+              + shape_bounding_radius(bodyB) + narrow.tolerances.y;
+    return dot(delta, delta) <= reach * reach;
 }
 
 fn closest_point_segment(point : vec3<f32>, segment : Segment) -> vec4<f32> {
@@ -1281,16 +1313,25 @@ fn tangent_basis(normal : vec3<f32>) -> vec3<f32> {
                           vec3<f32>(0.0, 0.0, 1.0));
 }
 
-fn build_manifold(pairRecord : KeyValue,
-                  sourceCandidates : CandidateSet) -> ContactManifold {
+fn base_manifold(pairRecord : KeyValue,
+                 candidateCount : u32) -> ContactManifold {
     let bodyA = pairRecord.keyHigh;
     let bodyB = pairRecord.keyLow;
     let pairClass = pairRecord.value & 255u;
     let sleepingFlag = (pairRecord.value >> 8u) & 1u;
-    var candidates = reduce_candidates(sourceCandidates);
     var result = empty_manifold();
     result.pair = KeyValue(bodyB, bodyA, sleepingFlag, pairRecord.ordinal);
-    result.state = vec4<u32>(candidates.count, pairClass, sleepingFlag, 0u);
+    result.state = vec4<u32>(candidateCount, pairClass, sleepingFlag, 0u);
+    return result;
+}
+
+fn build_manifold(pairRecord : KeyValue,
+                  sourceCandidates : CandidateSet) -> ContactManifold {
+    let bodyA = pairRecord.keyHigh;
+    let bodyB = pairRecord.keyLow;
+    let sleepingFlag = (pairRecord.value >> 8u) & 1u;
+    var candidates = reduce_candidates(sourceCandidates);
+    var result = base_manifold(pairRecord, candidates.count);
     if (candidates.count == 0u) { return result; }
 
     let normal = safe_normalize(candidates.normal,
