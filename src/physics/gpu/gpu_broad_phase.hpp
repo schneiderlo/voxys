@@ -105,6 +105,10 @@ public:
                                   const Config& config);
     void shutdown();
     void setBodyView(const BroadPhaseBodyView& view);
+    // Selects between equivalent canonical pair enumerators using delayed
+    // occupancy telemetry. Threshold hysteresis prevents route thrashing.
+    void updateMediumPairPath(uint32_t gridEntries,
+                              uint32_t occupiedCells) noexcept;
     [[nodiscard]] bool encode(WGPUCommandEncoder encoder);
     [[nodiscard]] bool encode(
         WGPUCommandEncoder encoder,

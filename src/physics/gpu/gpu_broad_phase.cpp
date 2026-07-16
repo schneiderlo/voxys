@@ -573,6 +573,20 @@ public:
         bodyView_ = next;
     }
 
+    void updateMediumPairPath(uint32_t gridEntries,
+                              uint32_t occupiedCells) noexcept {
+        if (gridEntries == 0u) return;
+        // Dense cells make the grid's local quadratic walks and candidate
+        // radix sort costlier than one canonical minimum/maximum pair walk.
+        if (denseMediumPairPath_) {
+            if (uint64_t{occupiedCells} * 2u >= gridEntries) {
+                denseMediumPairPath_ = false;
+            }
+        } else if (uint64_t{occupiedCells} * 3u < gridEntries) {
+            denseMediumPairPath_ = true;
+        }
+    }
+
     WGPUBindGroup bindGroup(WGPUBindGroupLayout layout,
                             std::span<const gpu::BindGroupEntry> entries,
                             const char* label) {
@@ -935,6 +949,7 @@ public:
         constexpr uint32_t kSmallPairBodyLimit = 256u;
         constexpr uint32_t kMediumPairBodyLimit = 512u;
         constexpr uint32_t kParallelMediumPairBodyLimit = 1'024u;
+        constexpr uint32_t kDenseParallelPairBodyLimit = 4'096u;
         if (bodyCount <= kSmallWorldBodyLimit) {
             writeProfilingBoundary();
             writeProfilingBoundary();
@@ -996,7 +1011,9 @@ public:
             contactsAreB_ = !contactsAreB_;
             return true;
         }
-        if (bodyCount <= kParallelMediumPairBodyLimit) {
+        const uint32_t parallelPairBodyLimit = denseMediumPairPath_
+            ? kDenseParallelPairBodyLimit : kParallelMediumPairBodyLimit;
+        if (bodyCount <= parallelPairBodyLimit) {
             writeProfilingBoundary();
             writeProfilingBoundary();
             WGPUComputePassEncoder pass =
@@ -1251,6 +1268,7 @@ public:
         ownerCapacity_ = 0;
         scratchBytes_ = 0;
         contactsAreB_ = false;
+        denseMediumPairPath_ = false;
     }
 
     WGPUDevice device_ = nullptr;
@@ -1261,6 +1279,7 @@ public:
     uint32_t ownerCapacity_ = 0;
     size_t scratchBytes_ = 0;
     bool contactsAreB_ = false;
+    bool denseMediumPairPath_ = false;
     std::array<WGPUBindGroup, 19> cachedBindGroups_{};
     DeterministicGpuPrimitives primitives_;
 
@@ -1364,6 +1383,10 @@ bool GpuBroadPhase::initialize(WGPUDevice device, WGPUQueue queue,
 void GpuBroadPhase::shutdown() { impl_->shutdown(); }
 void GpuBroadPhase::setBodyView(const BroadPhaseBodyView& view) {
     impl_->setBodyView(view);
+}
+void GpuBroadPhase::updateMediumPairPath(
+    uint32_t gridEntries, uint32_t occupiedCells) noexcept {
+    impl_->updateMediumPairPath(gridEntries, occupiedCells);
 }
 bool GpuBroadPhase::encode(WGPUCommandEncoder encoder) {
     return impl_->encode(encoder, ProfilingBoundary{});

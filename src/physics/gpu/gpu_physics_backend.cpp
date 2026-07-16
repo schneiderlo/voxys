@@ -1216,6 +1216,9 @@ public:
             kCcdTelemetryOffset, GpuCcd::kTelemetryWordCount));
         cachedTelemetry_.broad = GpuBroadPhase::decodeTelemetry(view.subspan(
             kBroadTelemetryOffset, GpuBroadPhase::kTelemetryWordCount));
+        broadPhase_.updateMediumPairPath(
+            cachedTelemetry_.broad.gridEntries,
+            cachedTelemetry_.broad.occupiedCells);
         cachedTelemetry_.narrow = GpuNarrowPhase::decodeTelemetry(
             view.subspan(kNarrowTelemetryOffset,
                          GpuNarrowPhase::kTelemetryWordCount),

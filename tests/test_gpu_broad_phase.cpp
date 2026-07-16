@@ -513,7 +513,7 @@ TEST_P(GpuBroadPhaseTest, CooperativeUpperBoundaryKeepsCanonicalPairs) {
 }
 
 TEST(GpuBroadPhaseGridCrossoverTest,
-     KeepsCanonicalPairsAboveDirectPairLimit) {
+     KeepsCanonicalPairsAcrossAdaptivePath) {
     constexpr uint32_t bodyCapacity = 1'300;
     constexpr uint32_t pairCapacity = 4'096;
     constexpr float margin = 0.02f;
@@ -580,11 +580,19 @@ TEST(GpuBroadPhaseGridCrossoverTest,
     EXPECT_FALSE(first.telemetry.contactOverflow);
 
     const auto firstIds = contactIds(first);
+    broadPhase.updateMediumPairPath(bodyCapacity, bodyCapacity / 4u);
     const BroadPhaseSnapshot second = runAndRead(context, broadPhase);
     EXPECT_EQ(snapshotPairs(second), expected);
     EXPECT_EQ(contactIds(second), firstIds);
     EXPECT_EQ(second.telemetry.beginEvents, 0u);
     EXPECT_EQ(second.telemetry.endEvents, 0u);
+
+    broadPhase.updateMediumPairPath(bodyCapacity, bodyCapacity);
+    const BroadPhaseSnapshot third = runAndRead(context, broadPhase);
+    EXPECT_EQ(snapshotPairs(third), expected);
+    EXPECT_EQ(contactIds(third), firstIds);
+    EXPECT_EQ(third.telemetry.beginEvents, 0u);
+    EXPECT_EQ(third.telemetry.endEvents, 0u);
 
     releaseBuffer(metadataBuffer);
     releaseBuffer(shapeBuffer);
