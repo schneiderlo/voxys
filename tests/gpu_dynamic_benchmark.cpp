@@ -136,6 +136,7 @@ TEST(GpuDynamicBenchmark,
     std::array<uint32_t, 32> narrowTelemetry{};
     narrowTelemetry[10] = kContactCount;
     narrowTelemetry[11] = kContactCount;
+    narrowTelemetry[24] = kContactCount;
 
     WGPUBuffer poseBuffer = makeStorage<BenchmarkPose>(
         context, poses, "dynamic_benchmark_poses");

@@ -111,6 +111,8 @@ public:
         float speculativeDistance = 0.02f;
         float recycleDistance = 0.05f;
         std::filesystem::path shaderPath = "shaders/physics_narrow_phase.wgsl";
+        std::filesystem::path primitivesShaderPath =
+            "shaders/physics_deterministic_primitives.wgsl";
     };
 
     GpuNarrowPhase();
@@ -128,8 +130,15 @@ public:
     [[nodiscard]] bool encode(
         WGPUCommandEncoder encoder,
         const ProfilingBoundary& profilingBoundary);
+    // Copies solver-updated dense contacts back to their original pair slots.
+    // The sparse buffer remains the warm-start history for the next tick.
+    [[nodiscard]] bool encodeCommitActiveManifolds(
+        WGPUCommandEncoder encoder);
 
+    // Pair-ordinal sparse history, retained for narrow-phase warm starting.
     [[nodiscard]] WGPUBuffer manifolds() const noexcept;
+    // Stable dense view of active contacts inside the solver capacity window.
+    [[nodiscard]] WGPUBuffer activeManifolds() const noexcept;
     [[nodiscard]] WGPUBuffer pairBuckets() const noexcept;
     [[nodiscard]] WGPUBuffer pairClassTable() const noexcept;
     [[nodiscard]] WGPUBuffer activeContactDispatchBuffer() const noexcept;

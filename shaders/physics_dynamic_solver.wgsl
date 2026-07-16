@@ -121,7 +121,7 @@ fn sentinel_record() -> KeyValue {
 }
 
 fn active_contact_count() -> u32 {
-    return min(narrowTelemetry[10], params.capacities.y);
+    return min(narrowTelemetry[24], params.capacities.y);
 }
 
 fn contact_is_active(rank : u32) -> bool {

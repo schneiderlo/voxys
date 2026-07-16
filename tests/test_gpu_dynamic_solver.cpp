@@ -200,6 +200,134 @@ GpuContactManifold makeContact(uint32_t bodyA, uint32_t bodyB,
 
 class GpuDynamicColoringTest : public ::testing::TestWithParam<uint32_t> {};
 
+TEST(GpuDynamicSolverDifferentialTest,
+     StableDenseContactsMatchSparseOrdinalWindowBitwise) {
+    constexpr uint32_t bodyCapacity = 64u;
+    constexpr uint32_t contactCapacity = 32u;
+    constexpr std::array<uint32_t, 8> activeRanks = {
+        1u, 4u, 7u, 11u, 16u, 23u, 27u, 31u};
+    constexpr std::array<std::array<uint32_t, 2>, activeRanks.size()> pairs = {{
+        {1u, 2u}, {2u, 3u}, {1u, 3u}, {3u, 4u},
+        {2u, 4u}, {4u, 5u}, {1u, 5u}, {2u, 5u},
+    }};
+    gpu::Context context;
+    gpu::ContextConfig contextConfig;
+    contextConfig.enableValidation = false;
+    if (!context.initHeadless(contextConfig)) {
+        GTEST_SKIP() << "Headless WebGPU is unavailable";
+    }
+
+    std::vector<TestPose> poses(bodyCapacity);
+    std::vector<TestMotion> motions(bodyCapacity);
+    std::vector<TestShape> shapes(bodyCapacity);
+    std::vector<TestMetadata> metadata(bodyCapacity);
+    for (uint32_t body = 1u; body <= 5u; ++body) {
+        poses[body].positionInvMass = {
+            0.35f * float(body), 0.1f * float(body & 1u),
+            -0.2f * float(body), 1.0f};
+        motions[body].linearVelocitySleep = {
+            0.07f * float(body), -0.03f * float(body),
+            0.02f * float(body), 0.0f};
+        motions[body].angularVelocityFlags = {
+            -0.01f * float(body), 0.04f * float(body),
+            0.03f * float(body), 0.0f};
+        shapes[body].dimensionsType = {1.0f, 1.0f, 1.0f, 0.0f};
+        shapes[body].inverseInertiaMaterial = {
+            8.0f + float(body), 9.0f + float(body),
+            10.0f + float(body), 0.0f};
+        metadata[body] = makeMetadata(true);
+    }
+
+    std::vector<GpuContactManifold> sparse(contactCapacity);
+    std::vector<GpuContactManifold> dense(contactCapacity);
+    for (uint32_t index = 0u; index < activeRanks.size(); ++index) {
+        GpuContactManifold manifold = makeContact(
+            pairs[index][0], pairs[index][1],
+            glm::normalize(glm::vec3(
+                1.0f + 0.1f * float(index),
+                0.2f + 0.03f * float(index),
+                -0.1f + 0.02f * float(index))),
+            glm::vec3(0.15f, -0.05f, 0.03f),
+            glm::vec3(-0.12f, 0.04f, -0.02f),
+            -0.01f * float(index + 1u));
+        manifold.pair.ordinal = activeRanks[index];
+        manifold.state[2] = ((index % 4u) + 1u) << 8u;
+        sparse[activeRanks[index]] = manifold;
+        dense[index] = manifold;
+    }
+
+    const auto run = [&](std::span<const GpuContactManifold> manifolds,
+                         uint32_t visibleContactCount) {
+        std::array<uint32_t, 32> narrowTelemetry{};
+        narrowTelemetry[10] = contactCapacity;
+        narrowTelemetry[11] = activeRanks.size();
+        narrowTelemetry[24] = visibleContactCount;
+        WGPUBuffer poseBuffer = makeStorage<TestPose>(
+            context, poses, "compaction_equivalence_poses");
+        WGPUBuffer motionBuffer = makeStorage<TestMotion>(
+            context, motions, "compaction_equivalence_motions");
+        WGPUBuffer shapeBuffer = makeStorage<TestShape>(
+            context, shapes, "compaction_equivalence_shapes");
+        WGPUBuffer metadataBuffer = makeStorage<TestMetadata>(
+            context, metadata, "compaction_equivalence_metadata");
+        WGPUBuffer manifoldBuffer = makeStorage<GpuContactManifold>(
+            context, manifolds, "compaction_equivalence_manifolds");
+        WGPUBuffer telemetryBuffer = makeStorage<uint32_t>(
+            context, narrowTelemetry, "compaction_equivalence_telemetry");
+        GpuDynamicSolver solver;
+        GpuDynamicSolver::Config config;
+        config.bodyCapacity = bodyCapacity;
+        config.contactCapacity = contactCapacity;
+        config.colorCount = 4u;
+        config.workgroupSize = 64u;
+        config.substeps = 2u;
+        config.gravity = {0.0f, -9.81f, 0.0f};
+        config.enableSmallIslandFastPath = false;
+        EXPECT_TRUE(solver.initialize(
+            context.getDevice(), context.getQueue(), config));
+        solver.setInput({poseBuffer, motionBuffer, shapeBuffer, metadataBuffer,
+                         manifoldBuffer, telemetryBuffer,
+                         bodyCapacity, contactCapacity});
+        SolverSnapshot snapshot = runAndRead(
+            context, solver, poseBuffer, motionBuffer, manifoldBuffer,
+            bodyCapacity, contactCapacity);
+        releaseBuffer(telemetryBuffer);
+        releaseBuffer(manifoldBuffer);
+        releaseBuffer(metadataBuffer);
+        releaseBuffer(shapeBuffer);
+        releaseBuffer(motionBuffer);
+        releaseBuffer(poseBuffer);
+        return snapshot;
+    };
+
+    const SolverSnapshot sparseResult = run(sparse, contactCapacity);
+    const SolverSnapshot denseResult = run(dense, activeRanks.size());
+    ASSERT_EQ(sparseResult.poses.size(), denseResult.poses.size());
+    ASSERT_EQ(sparseResult.motions.size(), denseResult.motions.size());
+    EXPECT_EQ(std::memcmp(sparseResult.poses.data(), denseResult.poses.data(),
+                          sparseResult.poses.size() * sizeof(TestPose)), 0);
+    EXPECT_EQ(std::memcmp(sparseResult.motions.data(), denseResult.motions.data(),
+                          sparseResult.motions.size() * sizeof(TestMotion)), 0);
+    EXPECT_EQ(sparseResult.telemetry.contactCount,
+              denseResult.telemetry.contactCount);
+    EXPECT_EQ(sparseResult.telemetry.coloredContacts,
+              denseResult.telemetry.coloredContacts);
+    EXPECT_EQ(sparseResult.telemetry.overflowContacts,
+              denseResult.telemetry.overflowContacts);
+    EXPECT_EQ(sparseResult.telemetry.maximumBodyDegree,
+              denseResult.telemetry.maximumBodyDegree);
+    EXPECT_EQ(sparseResult.telemetry.conflictErrors, 0u);
+    EXPECT_EQ(denseResult.telemetry.conflictErrors, 0u);
+    for (uint32_t index = 0u; index < activeRanks.size(); ++index) {
+        const uint32_t sparseRank = activeRanks[index];
+        EXPECT_EQ(sparseResult.colors[sparseRank], denseResult.colors[index]);
+        EXPECT_EQ(std::memcmp(&sparseResult.manifolds[sparseRank],
+                              &denseResult.manifolds[index],
+                              sizeof(GpuContactManifold)), 0)
+            << "active contact " << index;
+    }
+}
+
 TEST_P(GpuDynamicColoringTest, ColorsConflictsAndGathersOverflowDeterministically) {
     // Cross the production solver's compact-world threshold so colors 4-15
     // exercise the batched tail-color path.
@@ -234,6 +362,7 @@ TEST_P(GpuDynamicColoringTest, ColorsConflictsAndGathersOverflowDeterministicall
     std::array<uint32_t, 32> narrowTelemetry{};
     narrowTelemetry[10] = contactCount;
     narrowTelemetry[11] = contactCount;
+    narrowTelemetry[24] = contactCount;
     WGPUBuffer poseBuffer = makeStorage<TestPose>(context, poses, "color_poses");
     WGPUBuffer motionBuffer = makeStorage<TestMotion>(
         context, motions, "color_motions");
@@ -369,6 +498,7 @@ TEST(GpuDynamicSolverTest, SoftStepSeparatesAndFrictionSlowsContact) {
     std::array<uint32_t, 32> narrowTelemetry{};
     narrowTelemetry[10] = 1u;
     narrowTelemetry[11] = 1u;
+    narrowTelemetry[24] = 1u;
     WGPUBuffer poseBuffer = makeStorage<TestPose>(context, poses, "solve_poses");
     WGPUBuffer motionBuffer = makeStorage<TestMotion>(
         context, motions, "solve_motions");
@@ -455,6 +585,7 @@ TEST(GpuDynamicSolverTest, SmallIslandFastPathMatchesGlobalSolver) {
     std::array<uint32_t, 32> narrowTelemetry{};
     narrowTelemetry[10] = 1u;
     narrowTelemetry[11] = 1u;
+    narrowTelemetry[24] = 1u;
 
     const auto run = [&](bool enableFastPath) {
         WGPUBuffer poseBuffer = makeStorage<TestPose>(
@@ -643,6 +774,7 @@ TEST(GpuDynamicSolverTest, BoxTowerMixedPileAndAvalancheStayBounded) {
     std::array<uint32_t, 32> narrowTelemetry{};
     narrowTelemetry[10] = contactCount;
     narrowTelemetry[11] = contactCount;
+    narrowTelemetry[24] = contactCount;
     WGPUBuffer poseBuffer = makeStorage<TestPose>(context, poses, "stress_poses");
     WGPUBuffer motionBuffer = makeStorage<TestMotion>(
         context, motions, "stress_motions");

@@ -163,7 +163,7 @@ fn body_is_slow(body : u32) -> bool {
 }
 
 fn active_contact_count() -> u32 {
-    return min(narrowTelemetry[10], params.capacities.y);
+    return min(narrowTelemetry[24], params.capacities.y);
 }
 
 @compute @workgroup_size(1)

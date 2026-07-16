@@ -108,28 +108,46 @@ public:
             "narrow_phase_manifolds_b");
         telemetry_ = makeStorage(kTelemetryWords * sizeof(uint32_t),
                                  "narrow_phase_telemetry");
+        activePredicates_ = makeStorage(
+            uint64_t{config_.dispatchContactCapacity} * sizeof(uint32_t),
+            "narrow_phase_active_predicates");
+        activeOffsets_ = makeStorage(
+            uint64_t{config_.dispatchContactCapacity} * sizeof(uint32_t),
+            "narrow_phase_active_offsets");
         if (!parameterBuffer_ || !bucketedPairs_ || !classTable_
             || !classDispatchArgs_
-            || !manifoldsA_ || !manifoldsB_ || !telemetry_) {
+            || !manifoldsA_ || !manifoldsB_ || !telemetry_
+            || !activePredicates_ || !activeOffsets_) {
             shutdown();
             return false;
         }
         const std::array<uint32_t, kTelemetryWords> zeroTelemetry{};
         gpu::writeBuffer(queue_, telemetry_, 0, zeroTelemetry);
 
+        DeterministicGpuPrimitives::Config primitiveConfig;
+        primitiveConfig.capacity = config_.dispatchContactCapacity;
+        primitiveConfig.workgroupSize = config_.workgroupSize;
+        primitiveConfig.shaderPath = config_.primitivesShaderPath;
+        if (!primitives_.initialize(device_, queue_, primitiveConfig)) {
+            shutdown();
+            return false;
+        }
         scratchBytes_ = gpu::saturatingSize(
-            sizeof(Params)
+            primitives_.scratchBytes() + sizeof(Params)
             + uint64_t{config.pairCapacity} * sizeof(GpuKeyValue)
             + kClassTableWords * sizeof(uint32_t)
             + uint64_t{kGpuNarrowPhasePairClassCount + 1u} * 4u
                 * sizeof(uint32_t)
             + uint64_t{config_.manifoldCapacity} * 2u
                 * sizeof(GpuContactManifold)
+            + uint64_t{config_.dispatchContactCapacity} * 2u
+                * sizeof(uint32_t)
             + kTelemetryWords * sizeof(uint32_t));
 
         shaderModule_ = gpu::loadShaderModule(
             device_, config.shaderPath, "physics_narrow_phase.wgsl");
-        if (!shaderModule_ || !createPipelines()) {
+        if (!shaderModule_ || !createPipelines()
+            || !createCompactionGroups()) {
             shutdown();
             return false;
         }
@@ -203,8 +221,21 @@ public:
         uniform(finalizeEntries);
         finalizeLayout_ = gpu::createBindGroupLayout(
             device_, finalizeEntries, "narrow_phase_finalize_layout");
+
+        std::vector<LE> compactEntries;
+        storage(compactEntries, 7, false);
+        storage(compactEntries, 9, false);
+        storage(compactEntries, 11, false);
+        storage(compactEntries, 12, false);
+        storage(compactEntries, 13, false);
+        storage(compactEntries, 14, true);
+        uniform(compactEntries);
+        compactLayout_ = gpu::createBindGroupLayout(
+            device_, compactEntries, "narrow_phase_compact_layout");
         if (!bucketLayout_ || !countLayout_ || !scatterLayout_
-            || !narrowLayout_ || !finalizeLayout_) return false;
+            || !narrowLayout_ || !finalizeLayout_ || !compactLayout_) {
+            return false;
+        }
 
         bucketPipelineLayout_ = gpu::createPipelineLayout(
             device_, std::array{bucketLayout_},
@@ -221,9 +252,12 @@ public:
         finalizePipelineLayout_ = gpu::createPipelineLayout(
             device_, std::array{finalizeLayout_},
             "narrow_phase_finalize_pipeline_layout");
+        compactPipelineLayout_ = gpu::createPipelineLayout(
+            device_, std::array{compactLayout_},
+            "narrow_phase_compact_pipeline_layout");
         if (!bucketPipelineLayout_ || !countPipelineLayout_
             || !scatterPipelineLayout_ || !narrowPipelineLayout_
-            || !finalizePipelineLayout_) {
+            || !finalizePipelineLayout_ || !compactPipelineLayout_) {
             return false;
         }
 
@@ -245,6 +279,22 @@ public:
         finalizePipeline_ = makePipeline(
             device_, finalizePipelineLayout_, shaderModule_, "finalize_narrow",
             "narrow_phase_finalize");
+        markActivePipeline_ = makePipeline(
+            device_, compactPipelineLayout_, shaderModule_,
+            "mark_active_manifolds_" + suffix,
+            "narrow_phase_mark_active_manifolds");
+        scatterActivePipeline_ = makePipeline(
+            device_, compactPipelineLayout_, shaderModule_,
+            "scatter_active_manifolds_" + suffix,
+            "narrow_phase_scatter_active_manifolds");
+        finalizeActivePipeline_ = makePipeline(
+            device_, compactPipelineLayout_, shaderModule_,
+            "finalize_active_manifolds",
+            "narrow_phase_finalize_active_manifolds");
+        commitActivePipeline_ = makePipeline(
+            device_, compactPipelineLayout_, shaderModule_,
+            "commit_active_manifolds_" + suffix,
+            "narrow_phase_commit_active_manifolds");
         constexpr std::array<const char*, kGpuNarrowPhasePairClassCount> names = {
             "sphere_sphere", "sphere_capsule", "capsule_capsule",
             "sphere_box", "capsule_box", "box_box", "sphere_cylinder",
@@ -257,9 +307,32 @@ public:
         }
         if (!resetBucketsPipeline_ || !countBucketsPipeline_
             || !finalizeBucketsPipeline_ || !scatterBucketsPipeline_
-            || !finalizePipeline_) return false;
+            || !finalizePipeline_ || !markActivePipeline_
+            || !scatterActivePipeline_ || !finalizeActivePipeline_
+            || !commitActivePipeline_) return false;
         for (WGPUComputePipeline pipeline : classPipelines_) {
             if (!pipeline) return false;
+        }
+        return true;
+    }
+
+    bool createCompactionGroups() {
+        for (uint32_t parity = 0u; parity < compactGroups_.size(); ++parity) {
+            WGPUBuffer current = parity == 0u ? manifoldsB_ : manifoldsA_;
+            WGPUBuffer active = parity == 0u ? manifoldsA_ : manifoldsB_;
+            const std::array<gpu::BindGroupEntry, 7> entries = {
+                gpu::BindGroupEntry(7).buffer(current),
+                gpu::BindGroupEntry(9).buffer(telemetry_),
+                gpu::BindGroupEntry(10).buffer(parameterBuffer_),
+                gpu::BindGroupEntry(11).buffer(classDispatchArgs_),
+                gpu::BindGroupEntry(12).buffer(active),
+                gpu::BindGroupEntry(13).buffer(activePredicates_),
+                gpu::BindGroupEntry(14).buffer(activeOffsets_),
+            };
+            compactGroups_[parity] = gpu::createBindGroup(
+                device_, compactLayout_, entries,
+                "narrow_phase_compact_bind_group");
+            if (!compactGroups_[parity]) return false;
         }
         return true;
     }
@@ -448,12 +521,62 @@ public:
         wgpuComputePassEncoderDispatchWorkgroups(pass, 1, 1, 1);
         wgpuComputePassEncoderEnd(pass);
         wgpuComputePassEncoderRelease(pass);
+
+        WGPUBindGroup compactGroup = compactGroups_[parity];
+        const uint32_t compactGroups =
+            (config_.dispatchContactCapacity + config_.workgroupSize - 1u)
+            / config_.workgroupSize;
+        pass = wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
+        wgpuComputePassEncoderSetBindGroup(
+            pass, 0, compactGroup, 0, nullptr);
+        wgpuComputePassEncoderSetPipeline(pass, markActivePipeline_);
+        wgpuComputePassEncoderDispatchWorkgroups(
+            pass, compactGroups, 1, 1);
+        wgpuComputePassEncoderEnd(pass);
+        wgpuComputePassEncoderRelease(pass);
+        if (!primitives_.encodeScanU32(
+                encoder, activePredicates_, activeOffsets_,
+                config_.dispatchContactCapacity)) {
+            return false;
+        }
+        pass = wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
+        wgpuComputePassEncoderSetBindGroup(
+            pass, 0, compactGroup, 0, nullptr);
+        wgpuComputePassEncoderSetPipeline(pass, scatterActivePipeline_);
+        wgpuComputePassEncoderDispatchWorkgroups(
+            pass, compactGroups, 1, 1);
+        wgpuComputePassEncoderSetPipeline(pass, finalizeActivePipeline_);
+        wgpuComputePassEncoderDispatchWorkgroups(pass, 1, 1, 1);
+        wgpuComputePassEncoderEnd(pass);
+        wgpuComputePassEncoderRelease(pass);
         manifoldsAreB_ = !manifoldsAreB_;
+        return true;
+    }
+
+    bool encodeCommitActiveManifolds(WGPUCommandEncoder encoder) {
+        if (!encoder || !input_.valid()) return false;
+        const uint32_t compactParity = manifoldsAreB_ ? 0u : 1u;
+        WGPUComputePassDescriptor passDesc{};
+        WGPUComputePassEncoder pass =
+            wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
+        wgpuComputePassEncoderSetBindGroup(
+            pass, 0, compactGroups_[compactParity], 0, nullptr);
+        wgpuComputePassEncoderSetPipeline(pass, commitActivePipeline_);
+        wgpuComputePassEncoderDispatchWorkgroups(
+            pass,
+            (config_.dispatchContactCapacity + config_.workgroupSize - 1u)
+                / config_.workgroupSize,
+            1, 1);
+        wgpuComputePassEncoderEnd(pass);
+        wgpuComputePassEncoderRelease(pass);
         return true;
     }
 
     void shutdown() {
         releaseCachedInputGroups();
+        for (WGPUBindGroup& group : compactGroups_) {
+            releaseHandle(group, wgpuBindGroupRelease);
+        }
         releaseHandle(resetBucketsPipeline_, wgpuComputePipelineRelease);
         releaseHandle(countBucketsPipeline_, wgpuComputePipelineRelease);
         releaseHandle(finalizeBucketsPipeline_, wgpuComputePipelineRelease);
@@ -462,17 +585,24 @@ public:
             releaseHandle(pipeline, wgpuComputePipelineRelease);
         }
         releaseHandle(finalizePipeline_, wgpuComputePipelineRelease);
+        releaseHandle(markActivePipeline_, wgpuComputePipelineRelease);
+        releaseHandle(scatterActivePipeline_, wgpuComputePipelineRelease);
+        releaseHandle(finalizeActivePipeline_, wgpuComputePipelineRelease);
+        releaseHandle(commitActivePipeline_, wgpuComputePipelineRelease);
         releaseHandle(bucketPipelineLayout_, wgpuPipelineLayoutRelease);
         releaseHandle(countPipelineLayout_, wgpuPipelineLayoutRelease);
         releaseHandle(scatterPipelineLayout_, wgpuPipelineLayoutRelease);
         releaseHandle(narrowPipelineLayout_, wgpuPipelineLayoutRelease);
         releaseHandle(finalizePipelineLayout_, wgpuPipelineLayoutRelease);
+        releaseHandle(compactPipelineLayout_, wgpuPipelineLayoutRelease);
         releaseHandle(bucketLayout_, wgpuBindGroupLayoutRelease);
         releaseHandle(countLayout_, wgpuBindGroupLayoutRelease);
         releaseHandle(scatterLayout_, wgpuBindGroupLayoutRelease);
         releaseHandle(narrowLayout_, wgpuBindGroupLayoutRelease);
         releaseHandle(finalizeLayout_, wgpuBindGroupLayoutRelease);
+        releaseHandle(compactLayout_, wgpuBindGroupLayoutRelease);
         releaseHandle(shaderModule_, wgpuShaderModuleRelease);
+        primitives_.shutdown();
         releaseBuffer(parameterBuffer_);
         releaseBuffer(bucketedPairs_);
         releaseBuffer(classTable_);
@@ -480,6 +610,8 @@ public:
         releaseBuffer(manifoldsA_);
         releaseBuffer(manifoldsB_);
         releaseBuffer(telemetry_);
+        releaseBuffer(activePredicates_);
+        releaseBuffer(activeOffsets_);
         device_ = nullptr;
         queue_ = nullptr;
         config_ = {};
@@ -497,6 +629,8 @@ public:
     size_t inputBindGroupCacheMisses_ = 0;
     bool manifoldsAreB_ = false;
     std::array<WGPUBindGroup, 7> cachedInputGroups_{};
+    std::array<WGPUBindGroup, 2> compactGroups_{};
+    DeterministicGpuPrimitives primitives_;
     WGPUBuffer parameterBuffer_ = nullptr;
     WGPUBuffer bucketedPairs_ = nullptr;
     WGPUBuffer classTable_ = nullptr;
@@ -504,17 +638,21 @@ public:
     WGPUBuffer manifoldsA_ = nullptr;
     WGPUBuffer manifoldsB_ = nullptr;
     WGPUBuffer telemetry_ = nullptr;
+    WGPUBuffer activePredicates_ = nullptr;
+    WGPUBuffer activeOffsets_ = nullptr;
     WGPUShaderModule shaderModule_ = nullptr;
     WGPUBindGroupLayout bucketLayout_ = nullptr;
     WGPUBindGroupLayout countLayout_ = nullptr;
     WGPUBindGroupLayout scatterLayout_ = nullptr;
     WGPUBindGroupLayout narrowLayout_ = nullptr;
     WGPUBindGroupLayout finalizeLayout_ = nullptr;
+    WGPUBindGroupLayout compactLayout_ = nullptr;
     WGPUPipelineLayout bucketPipelineLayout_ = nullptr;
     WGPUPipelineLayout countPipelineLayout_ = nullptr;
     WGPUPipelineLayout scatterPipelineLayout_ = nullptr;
     WGPUPipelineLayout narrowPipelineLayout_ = nullptr;
     WGPUPipelineLayout finalizePipelineLayout_ = nullptr;
+    WGPUPipelineLayout compactPipelineLayout_ = nullptr;
     WGPUComputePipeline resetBucketsPipeline_ = nullptr;
     WGPUComputePipeline countBucketsPipeline_ = nullptr;
     WGPUComputePipeline finalizeBucketsPipeline_ = nullptr;
@@ -522,6 +660,10 @@ public:
     std::array<WGPUComputePipeline, kGpuNarrowPhasePairClassCount>
         classPipelines_{};
     WGPUComputePipeline finalizePipeline_ = nullptr;
+    WGPUComputePipeline markActivePipeline_ = nullptr;
+    WGPUComputePipeline scatterActivePipeline_ = nullptr;
+    WGPUComputePipeline finalizeActivePipeline_ = nullptr;
+    WGPUComputePipeline commitActivePipeline_ = nullptr;
 };
 
 GpuNarrowPhase::GpuNarrowPhase() : impl_(std::make_unique<Impl>()) {}
@@ -545,8 +687,15 @@ bool GpuNarrowPhase::encode(
     const ProfilingBoundary& profilingBoundary) {
     return impl_->encode(encoder, profilingBoundary);
 }
+bool GpuNarrowPhase::encodeCommitActiveManifolds(
+    WGPUCommandEncoder encoder) {
+    return impl_->encodeCommitActiveManifolds(encoder);
+}
 WGPUBuffer GpuNarrowPhase::manifolds() const noexcept {
     return impl_->manifoldsAreB_ ? impl_->manifoldsB_ : impl_->manifoldsA_;
+}
+WGPUBuffer GpuNarrowPhase::activeManifolds() const noexcept {
+    return impl_->manifoldsAreB_ ? impl_->manifoldsA_ : impl_->manifoldsB_;
 }
 WGPUBuffer GpuNarrowPhase::pairBuckets() const noexcept {
     return impl_->bucketedPairs_;

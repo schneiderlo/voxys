@@ -789,7 +789,7 @@ public:
                 input_.contactCapacity, 1u, config_.colorCount + 1u, 8u,
                 dispatchArgs_, dispatchOffset(config_.colorCount + 1u),
                 dispatchOffset(config_.colorCount + 2u),
-                input_.narrowPhaseTelemetryBuffer, 10u)) return false;
+                input_.narrowPhaseTelemetryBuffer, 24u)) return false;
         writeProfilingBoundary();
 
         const std::array<gpu::BindGroupEntry, 6> rangeEntries = {

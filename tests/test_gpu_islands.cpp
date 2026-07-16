@@ -219,6 +219,7 @@ TEST(GpuIslandGlobalTest, LogarithmicRoundsConvergeLongChain) {
     }
     std::array<uint32_t, 32> narrowTelemetry{};
     narrowTelemetry[10] = bodyCapacity - 2u;
+    narrowTelemetry[24] = bodyCapacity - 2u;
 
     WGPUBuffer poseBuffer = makeStorage<TestPose>(
         context, poses, "island_chain_poses");
@@ -261,6 +262,116 @@ TEST(GpuIslandGlobalTest, LogarithmicRoundsConvergeLongChain) {
     releaseBuffer(poseBuffer);
 }
 
+TEST(GpuIslandGlobalTest,
+     StableDenseContactsMatchSparseOrdinalWindowBitwise) {
+    constexpr uint32_t bodyCapacity = 64u;
+    constexpr uint32_t contactCapacity = 32u;
+    constexpr uint32_t eventCapacity = bodyCapacity;
+    constexpr std::array<uint32_t, 7> activeRanks = {
+        1u, 5u, 8u, 13u, 19u, 24u, 31u};
+    constexpr std::array<std::array<uint32_t, 2>, activeRanks.size()> pairs = {{
+        {1u, 2u}, {2u, 3u}, {3u, 4u}, {1u, 4u},
+        {8u, 9u}, {9u, 10u}, {8u, 10u},
+    }};
+    gpu::Context context;
+    gpu::ContextConfig contextConfig;
+    contextConfig.enableValidation = false;
+    if (!context.initHeadless(contextConfig)) {
+        GTEST_SKIP() << "Headless WebGPU is unavailable";
+    }
+
+    std::vector<TestPose> poses(bodyCapacity);
+    std::vector<TestMotion> motions(bodyCapacity);
+    std::vector<TestMetadata> metadata(bodyCapacity);
+    for (uint32_t body : {1u, 2u, 3u, 4u, 8u, 9u, 10u, 20u}) {
+        poses[body].positionInvMass = {
+            float(body), 0.25f * float(body & 1u), 0.0f, 1.0f};
+        metadata[body] = awakeMetadata();
+    }
+    motions[3].linearVelocitySleep = {0.2f, 0.0f, 0.0f, 0.0f};
+
+    std::vector<GpuContactManifold> sparse(contactCapacity);
+    std::vector<GpuContactManifold> dense(contactCapacity);
+    for (uint32_t index = 0u; index < activeRanks.size(); ++index) {
+        GpuContactManifold manifold;
+        manifold.pair = {
+            pairs[index][1], pairs[index][0], index, activeRanks[index]};
+        manifold.state = {1u, 0u, 0u, 0u};
+        sparse[activeRanks[index]] = manifold;
+        dense[index] = manifold;
+    }
+
+    const auto run = [&](std::span<const GpuContactManifold> manifolds,
+                         uint32_t visibleContactCount) {
+        std::array<uint32_t, 32> narrowTelemetry{};
+        narrowTelemetry[10] = contactCapacity;
+        narrowTelemetry[11] = activeRanks.size();
+        narrowTelemetry[24] = visibleContactCount;
+        WGPUBuffer poseBuffer = makeStorage<TestPose>(
+            context, poses, "island_compaction_equivalence_poses");
+        WGPUBuffer motionBuffer = makeStorage<TestMotion>(
+            context, motions, "island_compaction_equivalence_motions");
+        WGPUBuffer metadataBuffer = makeStorage<TestMetadata>(
+            context, metadata, "island_compaction_equivalence_metadata");
+        WGPUBuffer manifoldBuffer = makeStorage<GpuContactManifold>(
+            context, manifolds, "island_compaction_equivalence_manifolds");
+        WGPUBuffer telemetryBuffer = makeStorage<uint32_t>(
+            context, narrowTelemetry,
+            "island_compaction_equivalence_telemetry");
+        GpuIslandManager manager;
+        GpuIslandManager::Config config;
+        config.bodyCapacity = bodyCapacity;
+        config.contactCapacity = contactCapacity;
+        config.eventCapacity = eventCapacity;
+        config.workgroupSize = 64u;
+        config.unionRounds = 16u;
+        config.sleepTicks = 1u;
+        EXPECT_TRUE(manager.initialize(
+            context.getDevice(), context.getQueue(), config));
+        manager.setInput({poseBuffer, motionBuffer, metadataBuffer,
+                          manifoldBuffer, telemetryBuffer,
+                          bodyCapacity, contactCapacity});
+        IslandSnapshot snapshot = runAndRead(
+            context, manager, metadataBuffer, bodyCapacity,
+            eventCapacity, false);
+        releaseBuffer(telemetryBuffer);
+        releaseBuffer(manifoldBuffer);
+        releaseBuffer(metadataBuffer);
+        releaseBuffer(motionBuffer);
+        releaseBuffer(poseBuffer);
+        return snapshot;
+    };
+
+    const IslandSnapshot sparseResult = run(sparse, contactCapacity);
+    const IslandSnapshot denseResult = run(dense, activeRanks.size());
+    ASSERT_EQ(sparseResult.roots.size(), denseResult.roots.size());
+    ASSERT_EQ(sparseResult.metadata.size(), denseResult.metadata.size());
+    EXPECT_EQ(std::memcmp(sparseResult.roots.data(), denseResult.roots.data(),
+                          sparseResult.roots.size() * sizeof(uint32_t)), 0);
+    EXPECT_EQ(std::memcmp(sparseResult.metadata.data(),
+                          denseResult.metadata.data(),
+                          sparseResult.metadata.size()
+                              * sizeof(TestMetadata)), 0);
+    EXPECT_EQ(sparseResult.telemetry.islandCount,
+              denseResult.telemetry.islandCount);
+    EXPECT_EQ(sparseResult.telemetry.awakeBodies,
+              denseResult.telemetry.awakeBodies);
+    EXPECT_EQ(sparseResult.telemetry.sleepingBodies,
+              denseResult.telemetry.sleepingBodies);
+    EXPECT_EQ(sparseResult.telemetry.rootErrors, 0u);
+    EXPECT_EQ(denseResult.telemetry.rootErrors, 0u);
+    const size_t islandBytes = size_t{sparseResult.telemetry.islandCount}
+                             * sizeof(GpuIslandRecord);
+    EXPECT_EQ(std::memcmp(sparseResult.islands.data(),
+                          denseResult.islands.data(), islandBytes), 0);
+    const size_t eventBytes = size_t{sparseResult.telemetry.events}
+                            * sizeof(GpuIslandEvent);
+    ASSERT_EQ(sparseResult.telemetry.events,
+              denseResult.telemetry.events);
+    EXPECT_EQ(std::memcmp(sparseResult.events.data(),
+                          denseResult.events.data(), eventBytes), 0);
+}
+
 TEST_P(GpuIslandTest, CompactsSleepsWakesAndMaintainsSleepingGrid) {
     constexpr uint32_t bodyCapacity = 32;
     constexpr uint32_t contactCapacity = 32;
@@ -300,6 +411,7 @@ TEST_P(GpuIslandTest, CompactsSleepsWakesAndMaintainsSleepingGrid) {
     std::array<uint32_t, 32> narrowTelemetry{};
     narrowTelemetry[10] = contactCount;
     narrowTelemetry[11] = contactCount;
+    narrowTelemetry[24] = contactCount;
 
     WGPUBuffer poseBuffer = makeStorage<TestPose>(context, poses, "island_poses");
     WGPUBuffer motionBuffer = makeStorage<TestMotion>(
@@ -395,6 +507,7 @@ TEST_P(GpuIslandTest, CompactsSleepsWakesAndMaintainsSleepingGrid) {
     // the tail without changing root or island order.
     narrowTelemetry[10] = 0u;
     narrowTelemetry[11] = 0u;
+    narrowTelemetry[24] = 0u;
     gpu::writeBuffer(context.getQueue(), narrowTelemetryBuffer, 0,
         std::as_bytes(std::span<const uint32_t>(narrowTelemetry)));
     snapshot = runAndRead(

@@ -125,6 +125,9 @@ struct ClipPolygon {
 @group(0) @binding(9) var<storage, read_write> narrowTelemetry : array<atomic<u32>>;
 @group(0) @binding(10) var<uniform> narrow : NarrowParams;
 @group(0) @binding(11) var<storage, read_write> classDispatchArgs : array<u32>;
+@group(0) @binding(12) var<storage, read_write> activeManifolds : array<ContactManifold>;
+@group(0) @binding(13) var<storage, read_write> activePredicates : array<u32>;
+@group(0) @binding(14) var<storage, read> activeOffsets : array<u32>;
 
 fn canonical_shape(shapeValue : f32) -> u32 {
     let shapeType = u32(clamp(shapeValue, 0.0, 4.0));
@@ -183,6 +186,92 @@ fn reported_pair_count() -> u32 {
     let reportedCount = broadTelemetry[3];
     return min(reportedCount,
         min(narrow.capacities.y, narrow.capacities.z));
+}
+
+fn solver_pair_count() -> u32 {
+    return min(atomicLoad(&narrowTelemetry[10]),
+        min(narrow.dispatch.x, narrow.capacities.z));
+}
+
+fn mark_active_manifolds_impl(gid : vec3<u32>) {
+    let pairIndex = gid.x;
+    if (pairIndex >= narrow.dispatch.x) { return; }
+    activePredicates[pairIndex] = select(0u, 1u,
+        pairIndex < solver_pair_count()
+        && currentManifolds[pairIndex].state.x != 0u);
+}
+
+fn scatter_active_manifolds_impl(gid : vec3<u32>) {
+    let pairIndex = gid.x;
+    if (pairIndex >= narrow.dispatch.x
+        || activePredicates[pairIndex] == 0u) { return; }
+    activeManifolds[activeOffsets[pairIndex]] = currentManifolds[pairIndex];
+}
+
+fn commit_active_manifolds_impl(gid : vec3<u32>) {
+    let rank = gid.x;
+    if (rank >= atomicLoad(&narrowTelemetry[24])) { return; }
+    let manifold = activeManifolds[rank];
+    if (manifold.pair.ordinal < solver_pair_count()) {
+        currentManifolds[manifold.pair.ordinal] = manifold;
+    }
+}
+
+@compute @workgroup_size(1)
+fn finalize_active_manifolds(@builtin(global_invocation_id) gid : vec3<u32>) {
+    if (gid.x != 0u) { return; }
+    let inputCount = solver_pair_count();
+    var count = 0u;
+    if (inputCount != 0u) {
+        let last = inputCount - 1u;
+        count = activeOffsets[last] + activePredicates[last];
+    }
+    atomicStore(&narrowTelemetry[24], count);
+    let activeDispatch = PAIR_CLASS_COUNT * 4u;
+    classDispatchArgs[activeDispatch] =
+        (count + narrow.capacities.w - 1u) / narrow.capacities.w;
+    classDispatchArgs[activeDispatch + 1u] = 1u;
+    classDispatchArgs[activeDispatch + 2u] = 1u;
+    classDispatchArgs[activeDispatch + 3u] = 0u;
+}
+
+@compute @workgroup_size(64)
+fn mark_active_manifolds_64(@builtin(global_invocation_id) gid : vec3<u32>) {
+    mark_active_manifolds_impl(gid);
+}
+@compute @workgroup_size(128)
+fn mark_active_manifolds_128(@builtin(global_invocation_id) gid : vec3<u32>) {
+    mark_active_manifolds_impl(gid);
+}
+@compute @workgroup_size(256)
+fn mark_active_manifolds_256(@builtin(global_invocation_id) gid : vec3<u32>) {
+    mark_active_manifolds_impl(gid);
+}
+
+@compute @workgroup_size(64)
+fn scatter_active_manifolds_64(@builtin(global_invocation_id) gid : vec3<u32>) {
+    scatter_active_manifolds_impl(gid);
+}
+@compute @workgroup_size(128)
+fn scatter_active_manifolds_128(@builtin(global_invocation_id) gid : vec3<u32>) {
+    scatter_active_manifolds_impl(gid);
+}
+@compute @workgroup_size(256)
+fn scatter_active_manifolds_256(@builtin(global_invocation_id) gid : vec3<u32>) {
+    scatter_active_manifolds_impl(gid);
+}
+
+@compute @workgroup_size(64)
+fn commit_active_manifolds_64(@builtin(global_invocation_id) gid : vec3<u32>) {
+    commit_active_manifolds_impl(gid);
+}
+@compute @workgroup_size(128)
+fn commit_active_manifolds_128(@builtin(global_invocation_id) gid : vec3<u32>) {
+    commit_active_manifolds_impl(gid);
+}
+@compute @workgroup_size(256)
+fn commit_active_manifolds_256(@builtin(global_invocation_id) gid : vec3<u32>) {
+    commit_active_manifolds_impl(gid);
 }
 
 fn pair_class_for_record(pair : KeyValue) -> u32 {

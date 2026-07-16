@@ -54,9 +54,11 @@ struct alignas(16) TestShape {
 
 struct NarrowSnapshot {
     GpuNarrowPhaseTelemetry telemetry;
+    uint32_t activeContactCount = 0;
     std::array<uint32_t, kGpuNarrowPhasePairClassCount>
         collisionPairClasses{};
     std::vector<GpuContactManifold> manifolds;
+    std::vector<GpuContactManifold> activeManifolds;
 };
 
 template <typename T>
@@ -86,7 +88,10 @@ NarrowSnapshot runAndRead(gpu::Context& context, GpuNarrowPhase& narrowPhase,
     constexpr size_t telemetryBytes = 32u * sizeof(uint32_t);
     constexpr size_t classBytes = kGpuNarrowPhasePairClassCount
                                 * sizeof(uint32_t);
-    const size_t totalBytes = manifoldBytes + telemetryBytes + classBytes;
+    const size_t activeOffset = manifoldBytes;
+    const size_t telemetryOffset = activeOffset + manifoldBytes;
+    const size_t classOffset = telemetryOffset + telemetryBytes;
+    const size_t totalBytes = classOffset + classBytes;
     WGPUBuffer readback = gpu::createBuffer(
         context.getDevice(), gpu::BufferDesc{
             .label = "narrow_phase_readback",
@@ -98,11 +103,14 @@ NarrowSnapshot runAndRead(gpu::Context& context, GpuNarrowPhase& narrowPhase,
     wgpuCommandEncoderCopyBufferToBuffer(
         encoder, narrowPhase.manifolds(), 0, readback, 0, manifoldBytes);
     wgpuCommandEncoderCopyBufferToBuffer(
+        encoder, narrowPhase.activeManifolds(), 0, readback, activeOffset,
+        manifoldBytes);
+    wgpuCommandEncoderCopyBufferToBuffer(
         encoder, narrowPhase.telemetryBuffer(), 0, readback,
-        manifoldBytes, telemetryBytes);
+        telemetryOffset, telemetryBytes);
     wgpuCommandEncoderCopyBufferToBuffer(
         encoder, narrowPhase.pairClassTable(), 0, readback,
-        manifoldBytes + telemetryBytes, classBytes);
+        classOffset, classBytes);
     WGPUCommandBufferDescriptor commandDesc{};
     WGPUCommandBuffer command = wgpuCommandEncoderFinish(encoder, &commandDesc);
     const WGPUSubmissionIndex submissionIndex = wgpuQueueSubmitForIndex(
@@ -130,9 +138,14 @@ NarrowSnapshot runAndRead(gpu::Context& context, GpuNarrowPhase& narrowPhase,
         std::memcpy(result.manifolds.data(), bytes,
                     result.manifolds.size() * sizeof(GpuContactManifold));
         std::array<uint32_t, 32> telemetry{};
-        std::memcpy(telemetry.data(), bytes + manifoldBytes, telemetryBytes);
+        std::memcpy(telemetry.data(), bytes + telemetryOffset, telemetryBytes);
+        result.activeContactCount = telemetry[24];
+        result.activeManifolds.resize(result.activeContactCount);
+        std::memcpy(result.activeManifolds.data(), bytes + activeOffset,
+                    result.activeManifolds.size()
+                        * sizeof(GpuContactManifold));
         std::memcpy(result.collisionPairClasses.data(),
-                    bytes + manifoldBytes + telemetryBytes, classBytes);
+                    bytes + classOffset, classBytes);
         result.telemetry = GpuNarrowPhase::decodeTelemetry(
             telemetry, result.collisionPairClasses);
     }
@@ -142,6 +155,20 @@ NarrowSnapshot runAndRead(gpu::Context& context, GpuNarrowPhase& narrowPhase,
     wgpuCommandBufferRelease(command);
     wgpuCommandEncoderRelease(encoder);
     return result;
+}
+
+void expectStableActiveManifolds(const NarrowSnapshot& snapshot) {
+    std::vector<GpuContactManifold> expected;
+    for (const auto& manifold : snapshot.manifolds) {
+        if (manifold.state[0] != 0u) expected.push_back(manifold);
+    }
+    ASSERT_EQ(snapshot.activeContactCount, expected.size());
+    ASSERT_EQ(snapshot.activeManifolds.size(), expected.size());
+    if (!expected.empty()) {
+        EXPECT_EQ(std::memcmp(snapshot.activeManifolds.data(), expected.data(),
+                              expected.size() * sizeof(GpuContactManifold)),
+                  0);
+    }
 }
 
 glm::quat orientation(const TestPose& pose) {
@@ -319,6 +346,7 @@ TEST_P(GpuNarrowPhaseTest, GeneratesAllPairClassesAndPersistsPoints) {
                           broadTelemetryBuffer, bodyCapacity, pairCapacity,
                           metadataBuffer});
     NarrowSnapshot first = runAndRead(context, narrowPhase, pairCount);
+    expectStableActiveManifolds(first);
     EXPECT_EQ(narrowPhase.inputBindGroupCacheMisses(), 5u);
     ASSERT_EQ(first.manifolds.size(), pairCount);
     EXPECT_EQ(first.telemetry.inputPairs, pairCount);
@@ -379,6 +407,7 @@ TEST_P(GpuNarrowPhaseTest, GeneratesAllPairClassesAndPersistsPoints) {
     gpu::writeBuffer(context.getQueue(), poseBuffer, 0,
         std::as_bytes(std::span<const TestPose>(poses)));
     const NarrowSnapshot second = runAndRead(context, narrowPhase, pairCount);
+    expectStableActiveManifolds(second);
     EXPECT_EQ(narrowPhase.inputBindGroupCacheMisses(), 7u);
     EXPECT_EQ(second.telemetry.tick, 2u);
     EXPECT_GT(second.telemetry.matchedFeaturePoints
@@ -503,6 +532,7 @@ TEST(GpuNarrowPhaseDifferentialTest, MatchesBox3dOnRandomBoundedPairs) {
                           broadTelemetryBuffer, bodyCapacity, pairCapacity,
                           metadataBuffer});
     const NarrowSnapshot snapshot = runAndRead(context, narrowPhase, pairCount);
+    expectStableActiveManifolds(snapshot);
     ASSERT_EQ(snapshot.manifolds.size(), pairCount);
     for (uint32_t pairIndex = 0; pairIndex < pairCount; ++pairIndex) {
         EXPECT_EQ(snapshot.manifolds[pairIndex].state[0] != 0u,

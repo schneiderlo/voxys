@@ -413,6 +413,8 @@ public:
         narrowConfig.recycleDistance = std::max(
             0.05f, config_.speculativeDistance * 2.0f);
         narrowConfig.shaderPath = shaderFile("physics_narrow_phase.wgsl");
+        narrowConfig.primitivesShaderPath = shaderFile(
+            "physics_deterministic_primitives.wgsl");
         if (!narrowPhase_.initialize(device_, queue_, narrowConfig)) {
             shutdown();
             return false;
@@ -1002,7 +1004,7 @@ public:
 
     void refreshContactInputs(uint32_t executionBodies = 0u) {
         if (executionBodies == 0u) executionBodies = executionBodyCount();
-        const WGPUBuffer manifolds = narrowPhase_.manifolds();
+        const WGPUBuffer manifolds = narrowPhase_.activeManifolds();
         dynamicSolver_.setInput({
             .poseBuffer = poseBuffer_,
             .motionBuffer = motionBuffer_,
@@ -1716,6 +1718,12 @@ public:
             }
             if (executeBodyPipeline && !dynamicWorldEncoded) {
                 LOG_ERROR("Failed to encode a GPU dynamic-world stage");
+            }
+            if (executeBodyPipeline && dynamicContactsEnabled
+                && narrowPhaseEncoded && dynamicWorldEncoded
+                && !narrowPhase_.encodeCommitActiveManifolds(encoder)) {
+                LOG_ERROR("Failed to commit dense GPU contact manifolds");
+                dynamicWorldEncoded = false;
             }
             writeStageTimestamp();
 
