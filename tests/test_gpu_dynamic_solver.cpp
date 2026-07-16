@@ -201,7 +201,9 @@ GpuContactManifold makeContact(uint32_t bodyA, uint32_t bodyB,
 class GpuDynamicColoringTest : public ::testing::TestWithParam<uint32_t> {};
 
 TEST_P(GpuDynamicColoringTest, ColorsConflictsAndGathersOverflowDeterministically) {
-    constexpr uint32_t bodyCapacity = 32;
+    // Cross the production solver's compact-world threshold so colors 8-15
+    // exercise the batched tail-color path.
+    constexpr uint32_t bodyCapacity = 4'097;
     constexpr uint32_t contactCapacity = 32;
     constexpr uint32_t contactCount = 18;
     // Cross the eight-round continuation gate and still leave explicit

@@ -920,13 +920,24 @@ public:
                 wgpuComputePassEncoderDispatchWorkgroups(pass, 1u, 1u, 1u);
                 return;
             }
-            for (uint32_t color = 0; color < config_.colorCount; ++color) {
+            constexpr uint32_t kParallelColorCount = 8u;
+            const uint32_t parallelColors = std::min(
+                config_.colorCount, kParallelColorCount);
+            for (uint32_t color = 0; color < parallelColors; ++color) {
                 const uint32_t colorOffset = writeParams(
                     slot, makeParams(color, stage, substep, 0u));
                 bind(solveGroup, colorOffset);
                 wgpuComputePassEncoderSetPipeline(pass, solveColoredPipeline_);
                 wgpuComputePassEncoderDispatchWorkgroupsIndirect(
                     pass, dispatchArgs_, uint64_t{color} * 4u * sizeof(uint32_t));
+            }
+            if (parallelColors < config_.colorCount) {
+                const uint32_t colorOffset = writeParams(
+                    slot, makeParams(parallelColors, stage, substep, 0u));
+                bind(solveGroup, colorOffset);
+                wgpuComputePassEncoderSetPipeline(
+                    pass, solveCompactColorsPipeline_);
+                wgpuComputePassEncoderDispatchWorkgroups(pass, 1u, 1u, 1u);
             }
         };
         auto solveOverflow = [&](uint32_t stage, uint32_t substep,

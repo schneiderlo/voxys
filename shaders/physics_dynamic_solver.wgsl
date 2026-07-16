@@ -1222,7 +1222,8 @@ fn solve_colored_256(@builtin(global_invocation_id) gid : vec3<u32>) {
 
 fn solve_compact_colors_impl(localIndex : u32) {
     let workgroupSize = params.capacities.w >> 8u;
-    for (var color = 0u; color < params.capacities.z; color += 1u) {
+    for (var color = params.control.x; color < params.capacities.z;
+         color += 1u) {
         let count = colorRanges[color * 2u + 1u];
         var contact = localIndex;
         while (contact < count) {
