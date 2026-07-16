@@ -512,6 +512,106 @@ TEST_P(GpuBroadPhaseTest, CooperativeUpperBoundaryKeepsCanonicalPairs) {
     releaseBuffer(poseBuffer);
 }
 
+TEST_P(GpuBroadPhaseTest,
+       ParallelMediumPredicateCacheMatchesBruteForceAcrossTicks) {
+    constexpr uint32_t bodyCapacity = 1'024;
+    constexpr uint32_t pairCapacity = 4'096;
+    constexpr float margin = 0.02f;
+    gpu::Context context;
+    gpu::ContextConfig contextConfig;
+    contextConfig.enableValidation = false;
+    if (!context.initHeadless(contextConfig)) {
+        GTEST_SKIP() << "Headless WebGPU is unavailable";
+    }
+
+    std::vector<TestPose> poses(bodyCapacity);
+    std::vector<TestShape> shapes(bodyCapacity);
+    std::vector<TestMetadata> metadata(bodyCapacity);
+    for (uint32_t body = 0; body < bodyCapacity; ++body) {
+        poses[body].positionInvMass = {
+            static_cast<float>(body) * 20.0f, 0.0f, 0.0f, 1.0f};
+        shapes[body].dimensionsType = {1.0f, 1.0f, 1.0f, 1.0f};
+        metadata[body] = makeMetadata(kAlive | kAwake);
+    }
+    const std::array<std::array<uint32_t, 2>, 9> firstPairs = {{
+        {0u, 1'023u}, {1u, 33u}, {2u, 35u}, {31u, 32u},
+        {63u, 128u}, {127u, 511u}, {255u, 257u},
+        {512u, 900u}, {1'021u, 1'022u},
+    }};
+    for (uint32_t index = 0; index < firstPairs.size(); ++index) {
+        const float position = -1'000.0f - static_cast<float>(index) * 20.0f;
+        for (uint32_t body : firstPairs[index]) {
+            poses[body].positionInvMass = {position, 0.0f, 0.0f, 1.0f};
+        }
+    }
+    poses[500].positionInvMass = poses[0].positionInvMass;
+
+    WGPUBuffer poseBuffer = makeInput<TestPose>(
+        context, poses, "predicate_cache_poses");
+    WGPUBuffer shapeBuffer = makeInput<TestShape>(
+        context, shapes, "predicate_cache_shapes");
+    WGPUBuffer metadataBuffer = makeInput<TestMetadata>(
+        context, metadata, "predicate_cache_metadata");
+    ASSERT_NE(poseBuffer, nullptr);
+    ASSERT_NE(shapeBuffer, nullptr);
+    ASSERT_NE(metadataBuffer, nullptr);
+
+    GpuBroadPhase broadPhase;
+    GpuBroadPhase::Config config;
+    config.bodyCapacity = bodyCapacity;
+    config.candidatePairCapacity = pairCapacity;
+    config.pairCapacity = pairCapacity;
+    config.contactCapacity = pairCapacity;
+    config.cellSize = 4.0f;
+    config.speculativeMargin = margin;
+    config.workgroupSize = GetParam();
+    ASSERT_TRUE(broadPhase.initialize(
+        context.getDevice(), context.getQueue(), config));
+    broadPhase.setBodyView({
+        poseBuffer, shapeBuffer, metadataBuffer, bodyCapacity});
+
+    const auto expectedFirst = bruteForcePairs(
+        poses, shapes, metadata, margin);
+    ASSERT_EQ(expectedFirst.size(), firstPairs.size() + 2u);
+    const BroadPhaseSnapshot first = runAndRead(context, broadPhase);
+    EXPECT_EQ(snapshotPairs(first), expectedFirst);
+    for (uint32_t index = 0; index < first.pairs.size(); ++index) {
+        EXPECT_EQ(first.pairs[index].ordinal, index);
+    }
+    EXPECT_EQ(first.telemetry.candidatePairs, expectedFirst.size());
+    EXPECT_FALSE(first.telemetry.candidateOverflow);
+    EXPECT_FALSE(first.telemetry.pairOverflow);
+    EXPECT_FALSE(first.telemetry.contactOverflow);
+    const auto firstIds = contactIds(first);
+
+    poses[33].positionInvMass = {660.0f, 0.0f, 0.0f, 1.0f};
+    poses[10].positionInvMass = {-1'500.0f, 0.0f, 0.0f, 1.0f};
+    poses[1'000].positionInvMass = poses[10].positionInvMass;
+    gpu::writeBuffer(context.getQueue(), poseBuffer, 0,
+                     std::as_bytes(std::span<const TestPose>(poses)));
+
+    const auto expectedSecond = bruteForcePairs(
+        poses, shapes, metadata, margin);
+    const BroadPhaseSnapshot second = runAndRead(context, broadPhase);
+    EXPECT_EQ(snapshotPairs(second), expectedSecond);
+    for (uint32_t index = 0; index < second.pairs.size(); ++index) {
+        EXPECT_EQ(second.pairs[index].ordinal, index);
+    }
+    EXPECT_EQ(second.telemetry.candidatePairs, expectedSecond.size());
+    EXPECT_EQ(second.telemetry.beginEvents, 1u);
+    EXPECT_EQ(second.telemetry.endEvents, 1u);
+    const auto secondIds = contactIds(second);
+    for (const auto& [pair, id] : firstIds) {
+        if (pair != std::pair{1u, 33u}) {
+            EXPECT_EQ(secondIds.at(pair), id);
+        }
+    }
+
+    releaseBuffer(metadataBuffer);
+    releaseBuffer(shapeBuffer);
+    releaseBuffer(poseBuffer);
+}
+
 TEST(GpuBroadPhaseGridCrossoverTest,
      KeepsCanonicalPairsAcrossAdaptivePath) {
     constexpr uint32_t bodyCapacity = 4'100;

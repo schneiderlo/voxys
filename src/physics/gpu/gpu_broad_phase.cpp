@@ -16,6 +16,16 @@ namespace voxy::physics {
 namespace {
 
 constexpr uint32_t kTelemetryWords = GpuBroadPhase::kTelemetryWordCount;
+constexpr uint32_t kDenseParallelPairBodyLimit = 10'112u;
+
+uint64_t alignedPairPredicateWordCount(uint32_t bodyCapacity) noexcept {
+    if (bodyCapacity <= 1u) return 0u;
+    const uint64_t candidateCount = uint64_t{bodyCapacity} - 1u;
+    const uint64_t fullWords = candidateCount / 32u;
+    const uint64_t remainder = candidateCount % 32u;
+    return 16u * fullWords * (fullWords + 1u)
+         + remainder * (fullWords + 1u);
+}
 
 bool validSectorCellSize(float cellSize) noexcept {
     if (!std::isfinite(cellSize) || cellSize <= 0.0f) return false;
@@ -89,6 +99,17 @@ public:
         config_ = config;
         entryCapacity_ = static_cast<uint32_t>(entryCapacity);
         ownerCapacity_ = static_cast<uint32_t>(ownerCapacity);
+        mediumPairPredicateBodyCapacity_ = std::min(
+            config.bodyCapacity, kDenseParallelPairBodyLimit);
+        mediumPairPredicateWordCapacity_ = static_cast<uint32_t>(std::max(
+            uint64_t{1}, alignedPairPredicateWordCount(
+                mediumPairPredicateBodyCapacity_)));
+        const uint64_t predicateHalfBytes =
+            (uint64_t{mediumPairPredicateWordCapacity_} + 1u) / 2u
+            * sizeof(uint32_t);
+        pairCandidateStorageBytes_ = std::max(
+            uint64_t{config.candidatePairCapacity} * sizeof(GpuKeyValue),
+            predicateHalfBytes);
         const uint32_t primitiveCapacity = std::max({
             config.bodyCapacity, entryCapacity_, ownerCapacity_,
             config.candidatePairCapacity, config.pairCapacity,
@@ -131,11 +152,10 @@ public:
                                        "owner_pair_counts");
         ownerPairOffsets_ = makeStorage(ownerCapacity_, sizeof(uint32_t),
                                         "owner_pair_offsets");
-        pairCandidates_ = makeStorage(config.candidatePairCapacity,
-                                      sizeof(GpuKeyValue), "pair_candidates");
+        pairCandidates_ = makeStorage(
+            pairCandidateStorageBytes_, 1u, "pair_candidates");
         sortedPairCandidates_ = makeStorage(
-            config.candidatePairCapacity, sizeof(GpuKeyValue),
-            "sorted_pair_candidates");
+            pairCandidateStorageBytes_, 1u, "sorted_pair_candidates");
         uniquePairs_ = makeStorage(config.pairCapacity, sizeof(GpuKeyValue),
                                    "unique_body_pairs");
         contactsA_ = makeStorage(config.contactCapacity,
@@ -196,7 +216,7 @@ public:
                    + 2u * sizeof(uint32_t))
             + sizeof(GpuCellRange)
             + uint64_t{ownerCapacity_} * 2u * sizeof(uint32_t)
-            + uint64_t{config.candidatePairCapacity} * 2u * sizeof(GpuKeyValue)
+            + pairCandidateStorageBytes_ * 2u
             + uint64_t{config.pairCapacity} * sizeof(GpuKeyValue)
             + uint64_t{config.contactCapacity}
                 * (2u * sizeof(GpuPersistentContact) + sizeof(uint32_t)
@@ -376,15 +396,23 @@ public:
             device_, mediumProxyEntries,
             "broad_phase_medium_proxy_layout");
 
-        std::vector<LE> parallelMediumPairEntries;
-        storage(parallelMediumPairEntries, 3, false);
-        storage(parallelMediumPairEntries, 4, true);
-        for (uint32_t binding : {5u, 6u, 9u, 11u, 15u})
-            storage(parallelMediumPairEntries, binding, false);
-        uniform(parallelMediumPairEntries);
-        parallelMediumPairLayout_ = gpu::createBindGroupLayout(
-            device_, parallelMediumPairEntries,
-            "broad_phase_parallel_medium_pair_layout");
+        std::vector<LE> parallelMediumPairCountEntries;
+        for (uint32_t binding : {3u, 5u, 6u, 9u, 11u, 31u, 32u})
+            storage(parallelMediumPairCountEntries, binding, false);
+        uniform(parallelMediumPairCountEntries);
+        parallelMediumPairCountLayout_ = gpu::createBindGroupLayout(
+            device_, parallelMediumPairCountEntries,
+            "broad_phase_parallel_medium_pair_count_layout");
+
+        std::vector<LE> parallelMediumPairScatterEntries;
+        storage(parallelMediumPairScatterEntries, 3u, false);
+        storage(parallelMediumPairScatterEntries, 4u, true);
+        for (uint32_t binding : {6u, 9u, 15u, 31u, 32u})
+            storage(parallelMediumPairScatterEntries, binding, false);
+        uniform(parallelMediumPairScatterEntries);
+        parallelMediumPairScatterLayout_ = gpu::createBindGroupLayout(
+            device_, parallelMediumPairScatterEntries,
+            "broad_phase_parallel_medium_pair_scatter_layout");
 
         std::vector<LE> smallLifecycleEntries;
         storage(smallLifecycleEntries, 6, false);
@@ -402,7 +430,8 @@ public:
             || !lifecyclePrepareLayout_ || !lifecycleFreeLayout_
             || !lifecycleBeginLayout_ || !lifecycleEndLayout_
             || !lifecycleFinalizeLayout_ || !smallPairLayout_
-            || !mediumProxyLayout_ || !parallelMediumPairLayout_
+            || !mediumProxyLayout_ || !parallelMediumPairCountLayout_
+            || !parallelMediumPairScatterLayout_
             || !smallLifecycleLayout_) {
             return false;
         }
@@ -446,9 +475,12 @@ public:
         mediumProxyPipelineLayout_ = pipelineLayout(
             device_, std::array{mediumProxyLayout_},
             "broad_phase_medium_proxy_pipeline_layout");
-        parallelMediumPairPipelineLayout_ = pipelineLayout(
-            device_, std::array{parallelMediumPairLayout_},
-            "broad_phase_parallel_medium_pair_pipeline_layout");
+        parallelMediumPairCountPipelineLayout_ = pipelineLayout(
+            device_, std::array{parallelMediumPairCountLayout_},
+            "broad_phase_parallel_medium_pair_count_pipeline_layout");
+        parallelMediumPairScatterPipelineLayout_ = pipelineLayout(
+            device_, std::array{parallelMediumPairScatterLayout_},
+            "broad_phase_parallel_medium_pair_scatter_pipeline_layout");
         smallLifecyclePipelineLayout_ = pipelineLayout(
             device_, std::array{smallLifecycleLayout_},
             "broad_phase_small_lifecycle_pipeline_layout");
@@ -459,7 +491,9 @@ public:
             || !lifecyclePreparePipelineLayout_ || !lifecycleFreePipelineLayout_
             || !lifecycleBeginPipelineLayout_ || !lifecycleEndPipelineLayout_
             || !lifecycleFinalizePipelineLayout_ || !smallPairPipelineLayout_
-            || !mediumProxyPipelineLayout_ || !parallelMediumPairPipelineLayout_
+            || !mediumProxyPipelineLayout_
+            || !parallelMediumPairCountPipelineLayout_
+            || !parallelMediumPairScatterPipelineLayout_
             || !smallLifecyclePipelineLayout_) return false;
 
         const std::string suffix = std::to_string(config_.workgroupSize);
@@ -549,11 +583,11 @@ public:
             "precompute_medium_body_proxies_" + suffix,
             "broad_phase_precompute_medium_body_proxies");
         parallelMediumPairCountPipeline_ = makePipeline(
-            device_, parallelMediumPairPipelineLayout_, shaderModule_,
+            device_, parallelMediumPairCountPipelineLayout_, shaderModule_,
             "parallel_medium_world_pair_counts_" + suffix,
             "broad_phase_parallel_medium_pair_counts");
         parallelMediumPairScatterPipeline_ = makePipeline(
-            device_, parallelMediumPairPipelineLayout_, shaderModule_,
+            device_, parallelMediumPairScatterPipelineLayout_, shaderModule_,
             "parallel_medium_world_pair_scatter_" + suffix,
             "broad_phase_parallel_medium_pair_scatter");
         smallLifecyclePipeline_ = makePipeline(
@@ -799,19 +833,37 @@ public:
         cachedBindGroups_[19] = bindGroup(
             mediumProxyLayout_, mediumProxyEntries,
             "broad_phase_medium_proxy_group");
-        const std::array<gpu::BindGroupEntry, 8> parallelMediumPairEntries = {
+        const std::array<gpu::BindGroupEntry, 8>
+            parallelMediumPairCountEntries{
             gpu::BindGroupEntry(3).buffer(bodyEntryCounts_),
-            gpu::BindGroupEntry(4).buffer(bodyEntryOffsets_),
             gpu::BindGroupEntry(5).buffer(gridEntries_),
             gpu::BindGroupEntry(6).buffer(telemetry_),
             gpu::BindGroupEntry(9).buffer(cellRanges_),
             gpu::BindGroupEntry(11).buffer(ownerPairCounts_),
-            gpu::BindGroupEntry(15).buffer(uniquePairs_),
+            gpu::BindGroupEntry(31).buffer(pairCandidates_),
+            gpu::BindGroupEntry(32).buffer(sortedPairCandidates_),
             gpu::BindGroupEntry(7).buffer(parameterBuffer_),
         };
         cachedBindGroups_[18] = bindGroup(
-            parallelMediumPairLayout_, parallelMediumPairEntries,
-            "broad_phase_parallel_medium_pair_group");
+            parallelMediumPairCountLayout_, parallelMediumPairCountEntries,
+            "broad_phase_parallel_medium_pair_count_group");
+        const std::array<gpu::BindGroupEntry, 8>
+            parallelMediumPairScatterEntries{
+            gpu::BindGroupEntry(3).buffer(bodyEntryCounts_),
+            gpu::BindGroupEntry(4).buffer(bodyEntryOffsets_),
+            gpu::BindGroupEntry(6).buffer(telemetry_),
+            gpu::BindGroupEntry(9).buffer(cellRanges_),
+            gpu::BindGroupEntry(15).buffer(uniquePairs_),
+            // The grid route uses these allocations as radix-sort ping-pong;
+            // the mutually exclusive direct route reuses them as one bitset.
+            gpu::BindGroupEntry(31).buffer(pairCandidates_),
+            gpu::BindGroupEntry(32).buffer(sortedPairCandidates_),
+            gpu::BindGroupEntry(7).buffer(parameterBuffer_),
+        };
+        cachedBindGroups_[20] = bindGroup(
+            parallelMediumPairScatterLayout_,
+            parallelMediumPairScatterEntries,
+            "broad_phase_parallel_medium_pair_scatter_group");
         for (uint32_t parity = 0; parity < 2; ++parity) {
             WGPUBuffer previous = parity == 0 ? contactsA_ : contactsB_;
             WGPUBuffer next = parity == 0 ? contactsB_ : contactsA_;
@@ -861,7 +913,8 @@ public:
             .counts = {bodyCount, entryCapacity_, ownerCount,
                        config_.candidatePairCapacity},
             .capacities = {config_.pairCapacity, config_.contactCapacity,
-                           1u, config_.workgroupSize},
+                           mediumPairPredicateBodyCapacity_,
+                           config_.workgroupSize},
             .grid = {config_.cellSize, config_.speculativeMargin,
                      cellsPerSector, 0.0f},
         };
@@ -977,7 +1030,6 @@ public:
         constexpr uint32_t kSmallPairBodyLimit = 256u;
         constexpr uint32_t kMediumPairBodyLimit = 512u;
         constexpr uint32_t kParallelMediumPairBodyLimit = 1'024u;
-        constexpr uint32_t kDenseParallelPairBodyLimit = 10'112u;
         if (bodyCount <= kSmallWorldBodyLimit) {
             writeProfilingBoundary();
             writeProfilingBoundary();
@@ -1074,7 +1126,7 @@ public:
 
             pass = wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
             wgpuComputePassEncoderSetBindGroup(
-                pass, 0, cachedBindGroups_[18], 0, nullptr);
+                pass, 0, cachedBindGroups_[20], 0, nullptr);
             wgpuComputePassEncoderSetPipeline(
                 pass, parallelMediumPairScatterPipeline_);
             wgpuComputePassEncoderDispatchWorkgroups(
@@ -1261,7 +1313,8 @@ public:
                  &lifecycleEndPipelineLayout_,
                  &lifecycleFinalizePipelineLayout_, &smallPairPipelineLayout_,
                  &mediumProxyPipelineLayout_,
-                 &parallelMediumPairPipelineLayout_,
+                 &parallelMediumPairCountPipelineLayout_,
+                 &parallelMediumPairScatterPipelineLayout_,
                  &smallLifecyclePipelineLayout_}) {
             releaseHandle(*layout, wgpuPipelineLayoutRelease);
         }
@@ -1277,7 +1330,8 @@ public:
                  &lifecycleBeginLayout_, &lifecycleEndLayout_,
                  &lifecycleFinalizeLayout_, &smallPairLayout_,
                  &mediumProxyLayout_,
-                 &parallelMediumPairLayout_,
+                 &parallelMediumPairCountLayout_,
+                 &parallelMediumPairScatterLayout_,
                  &smallLifecycleLayout_}) {
             releaseHandle(*layout, wgpuBindGroupLayoutRelease);
         }
@@ -1303,6 +1357,9 @@ public:
         config_ = {};
         entryCapacity_ = 0;
         ownerCapacity_ = 0;
+        mediumPairPredicateBodyCapacity_ = 0;
+        mediumPairPredicateWordCapacity_ = 0;
+        pairCandidateStorageBytes_ = 0;
         scratchBytes_ = 0;
         contactsAreB_ = false;
         denseMediumPairPath_ = false;
@@ -1314,10 +1371,13 @@ public:
     BroadPhaseBodyView bodyView_{};
     uint32_t entryCapacity_ = 0;
     uint32_t ownerCapacity_ = 0;
+    uint32_t mediumPairPredicateBodyCapacity_ = 0;
+    uint32_t mediumPairPredicateWordCapacity_ = 0;
+    uint64_t pairCandidateStorageBytes_ = 0;
     size_t scratchBytes_ = 0;
     bool contactsAreB_ = false;
     bool denseMediumPairPath_ = false;
-    std::array<WGPUBindGroup, 20> cachedBindGroups_{};
+    std::array<WGPUBindGroup, 21> cachedBindGroups_{};
     DeterministicGpuPrimitives primitives_;
 
     WGPUBuffer parameterBuffer_ = nullptr;
@@ -1363,7 +1423,8 @@ public:
     WGPUBindGroupLayout lifecycleFinalizeLayout_ = nullptr;
     WGPUBindGroupLayout smallPairLayout_ = nullptr;
     WGPUBindGroupLayout mediumProxyLayout_ = nullptr;
-    WGPUBindGroupLayout parallelMediumPairLayout_ = nullptr;
+    WGPUBindGroupLayout parallelMediumPairCountLayout_ = nullptr;
+    WGPUBindGroupLayout parallelMediumPairScatterLayout_ = nullptr;
     WGPUBindGroupLayout smallLifecycleLayout_ = nullptr;
     WGPUPipelineLayout gridPipelineLayout_ = nullptr;
     WGPUPipelineLayout rangePipelineLayout_ = nullptr;
@@ -1379,7 +1440,8 @@ public:
     WGPUPipelineLayout lifecycleFinalizePipelineLayout_ = nullptr;
     WGPUPipelineLayout smallPairPipelineLayout_ = nullptr;
     WGPUPipelineLayout mediumProxyPipelineLayout_ = nullptr;
-    WGPUPipelineLayout parallelMediumPairPipelineLayout_ = nullptr;
+    WGPUPipelineLayout parallelMediumPairCountPipelineLayout_ = nullptr;
+    WGPUPipelineLayout parallelMediumPairScatterPipelineLayout_ = nullptr;
     WGPUPipelineLayout smallLifecyclePipelineLayout_ = nullptr;
     WGPUComputePipeline resetPipeline_ = nullptr;
     WGPUComputePipeline clearEntriesPipeline_ = nullptr;

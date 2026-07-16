@@ -80,6 +80,8 @@ struct BroadPhaseParams {
 @group(0) @binding(28) var<storage, read_write> lifecycleFreePredicates : array<u32>;
 @group(0) @binding(29) var<storage, read_write> lifecycleFreeOffsets : array<u32>;
 @group(0) @binding(30) var<storage, read_write> lifecycleFreeIds : array<u32>;
+@group(0) @binding(31) var<storage, read_write> mediumPairPredicates : array<u32>;
+@group(0) @binding(32) var<storage, read_write> mediumPairPredicatesTail : array<u32>;
 
 var<workgroup> smallPairFlags : array<u32, 256>;
 var<workgroup> smallPairOffsets : array<u32, 256>;
@@ -1140,6 +1142,44 @@ fn medium_bodies_overlap(a : MediumBodyProxy,
     return all(abs(delta) <= vec3<f32>(extent));
 }
 
+// Rows are word-aligned so one minimum-body invocation owns every cache word
+// it writes. F(n) is sum(i=1..n, ceil(i / 32)); subtracting two prefixes gives
+// the start of a triangular row without atomics or a per-frame clear.
+fn medium_pair_predicate_prefix_words(candidateCount : u32) -> u32 {
+    let fullWords = candidateCount >> 5u;
+    let remainder = candidateCount & 31u;
+    return 16u * fullWords * (fullWords + 1u)
+         + remainder * (fullWords + 1u);
+}
+
+fn medium_pair_predicate_row_base(minimum : u32) -> u32 {
+    let maximumCandidateCount = broad.capacities.z - 1u;
+    return medium_pair_predicate_prefix_words(maximumCandidateCount)
+         - medium_pair_predicate_prefix_words(
+               maximumCandidateCount - minimum);
+}
+
+fn medium_pair_predicate_split_words() -> u32 {
+    let totalWords = medium_pair_predicate_prefix_words(
+        broad.capacities.z - 1u);
+    let halfWords = (totalWords + 1u) >> 1u;
+    let candidateBufferWords = broad.counts.w * 4u;
+    return max(halfWords, candidateBufferWords);
+}
+
+fn store_medium_pair_predicate(index : u32, split : u32, value : u32) {
+    if (index < split) {
+        mediumPairPredicates[index] = value;
+    } else {
+        mediumPairPredicatesTail[index - split] = value;
+    }
+}
+
+fn load_medium_pair_predicate(index : u32, split : u32) -> u32 {
+    if (index < split) { return mediumPairPredicates[index]; }
+    return mediumPairPredicatesTail[index - split];
+}
+
 // For 65..256 bodies, one lane owns each minimum body ID. A single prefix sum
 // gives every lane its canonical output range, so the second walk scatters in
 // the exact (minimum, maximum) order without a binary rank decode or a barrier
@@ -1459,6 +1499,12 @@ fn parallel_medium_world_pair_counts_impl(gid : vec3<u32>,
         minimumProxy.cellKey == vec2<u32>(SENTINEL));
     var cellRepresentative = cellValid;
     var pairCount = 0u;
+    var predicateRowBase = 0u;
+    if (validMinimum) {
+        predicateRowBase = medium_pair_predicate_row_base(minimum);
+    }
+    let predicateSplit = medium_pair_predicate_split_words();
+    var predicateWord = 0u;
     let tileSize = broad.capacities.w;
     for (var base = 0u; base < bodyCount; base += tileSize) {
         let loadIndex = base + lid.x;
@@ -1484,8 +1530,19 @@ fn parallel_medium_world_pair_counts_impl(gid : vec3<u32>,
                     && all(maximumProxy.cellKey == minimumProxy.cellKey)) {
                     cellRepresentative = false;
                 }
-                pairCount += select(0u, 1u,
-                    medium_bodies_overlap(minimumProxy, maximumProxy));
+                let overlaps = medium_bodies_overlap(
+                    minimumProxy, maximumProxy);
+                let relative = maximum - minimum - 1u;
+                predicateWord |= select(
+                    0u, 1u << (relative & 31u), overlaps);
+                if ((relative & 31u) == 31u
+                    || maximum + 1u == bodyCount) {
+                    store_medium_pair_predicate(
+                        predicateRowBase + (relative >> 5u),
+                        predicateSplit, predicateWord);
+                    predicateWord = 0u;
+                }
+                pairCount += select(0u, 1u, overlaps);
             }
         }
         workgroupBarrier();
@@ -1521,8 +1578,7 @@ fn parallel_medium_world_pair_counts_256(
     parallel_medium_world_pair_counts_impl(gid, lid);
 }
 
-fn parallel_medium_world_pair_scatter_impl(gid : vec3<u32>,
-                                           lid : vec3<u32>) {
+fn parallel_medium_world_pair_scatter_impl(gid : vec3<u32>) {
     let minimum = gid.x;
     let bodyCount = broad.counts.x;
     let validMinimum = minimum < bodyCount;
@@ -1546,58 +1602,41 @@ fn parallel_medium_world_pair_scatter_impl(gid : vec3<u32>,
         atomicMax(&telemetry[17], materialized);
     }
 
-    var pairCount = 0u;
-    var outputBase = 0u;
-    var minimumProxy = MediumBodyProxy(
-        vec4<f32>(0.0), vec4<i32>(0), vec2<u32>(SENTINEL));
-    if (validMinimum) {
-        pairCount = bodyEntryCounts[minimum];
-        outputBase = bodyEntryOffsets[minimum];
-        minimumProxy = load_precomputed_medium_body(minimum);
-    }
+    if (!validMinimum) { return; }
+    let pairCount = bodyEntryCounts[minimum];
+    let outputBase = bodyEntryOffsets[minimum];
     let outputCapacity = min(broad.counts.w, broad.capacities.x);
-    let minimumFlags = u32(minimumProxy.sectorFlags.w);
+    if (pairCount == 0u || outputBase >= outputCapacity) { return; }
+
+    let predicateRowBase = medium_pair_predicate_row_base(minimum);
+    let predicateSplit = medium_pair_predicate_split_words();
+    let minimumFlags = u32(cellRanges[minimum].entryCount);
+    let predicateWordCount =
+        (bodyCount - minimum - 1u + 31u) >> 5u;
     var localRank = 0u;
     var sleepingCount = 0u;
-    var outputFull = !validMinimum || pairCount == 0u
-                  || outputBase >= outputCapacity;
-    let tileSize = broad.capacities.w;
-    for (var base = 0u; base < bodyCount; base += tileSize) {
-        let loadIndex = base + lid.x;
-        var loaded = MediumBodyProxy(
-            vec4<f32>(0.0), vec4<i32>(0), vec2<u32>(SENTINEL));
-        if (loadIndex < bodyCount) {
-            loaded = load_precomputed_medium_body(loadIndex);
+    var outputFull = false;
+    for (var wordIndex = 0u;
+         wordIndex < predicateWordCount && !outputFull;
+         wordIndex += 1u) {
+        var predicates = load_medium_pair_predicate(
+            predicateRowBase + wordIndex, predicateSplit);
+        while (predicates != 0u) {
+            let bit = firstTrailingBit(predicates);
+            let maximum = minimum + 1u + wordIndex * 32u + bit;
+            let output = outputBase + localRank;
+            let maximumFlags = u32(cellRanges[maximum].entryCount);
+            let sleeping = select(0u, 1u,
+                (minimumFlags & BODY_AWAKE) == 0u
+                    || (maximumFlags & BODY_AWAKE) == 0u);
+            uniqueBodyPairs[output] = KeyValue(
+                maximum, minimum, sleeping, output);
+            sleepingCount += sleeping;
+            localRank += 1u;
+            outputFull = outputBase + localRank >= outputCapacity;
+            if (outputFull) { break; }
+            predicates = predicates & (predicates - 1u);
         }
-        smallPairPositionRadius[lid.x] = loaded.positionRadius;
-        smallPairSectorFlags[lid.x] = loaded.sectorFlags;
-        smallPairCellKeys[lid.x] = loaded.cellKey;
-        workgroupBarrier();
-        if (!outputFull) {
-            let tileCount = min(tileSize, bodyCount - base);
-            for (var local = 0u; local < tileCount; local += 1u) {
-                let maximum = base + local;
-                if (maximum <= minimum) { continue; }
-                let maximumProxy = MediumBodyProxy(
-                    smallPairPositionRadius[local],
-                    smallPairSectorFlags[local],
-                    smallPairCellKeys[local]);
-                if (!medium_bodies_overlap(
-                        minimumProxy, maximumProxy)) { continue; }
-                let output = outputBase + localRank;
-                let maximumFlags = u32(maximumProxy.sectorFlags.w);
-                let sleeping = select(0u, 1u,
-                    (minimumFlags & BODY_AWAKE) == 0u
-                        || (maximumFlags & BODY_AWAKE) == 0u);
-                uniqueBodyPairs[output] = KeyValue(
-                    maximum, minimum, sleeping, output);
-                sleepingCount += sleeping;
-                localRank += 1u;
-                outputFull = outputBase + localRank >= outputCapacity;
-                if (outputFull) { break; }
-            }
-        }
-        workgroupBarrier();
     }
     if (sleepingCount != 0u) {
         atomicAdd(&telemetry[4], sleepingCount);
@@ -1606,21 +1645,18 @@ fn parallel_medium_world_pair_scatter_impl(gid : vec3<u32>,
 
 @compute @workgroup_size(64)
 fn parallel_medium_world_pair_scatter_64(
-    @builtin(global_invocation_id) gid : vec3<u32>,
-    @builtin(local_invocation_id) lid : vec3<u32>) {
-    parallel_medium_world_pair_scatter_impl(gid, lid);
+    @builtin(global_invocation_id) gid : vec3<u32>) {
+    parallel_medium_world_pair_scatter_impl(gid);
 }
 @compute @workgroup_size(128)
 fn parallel_medium_world_pair_scatter_128(
-    @builtin(global_invocation_id) gid : vec3<u32>,
-    @builtin(local_invocation_id) lid : vec3<u32>) {
-    parallel_medium_world_pair_scatter_impl(gid, lid);
+    @builtin(global_invocation_id) gid : vec3<u32>) {
+    parallel_medium_world_pair_scatter_impl(gid);
 }
 @compute @workgroup_size(256)
 fn parallel_medium_world_pair_scatter_256(
-    @builtin(global_invocation_id) gid : vec3<u32>,
-    @builtin(local_invocation_id) lid : vec3<u32>) {
-    parallel_medium_world_pair_scatter_impl(gid, lid);
+    @builtin(global_invocation_id) gid : vec3<u32>) {
+    parallel_medium_world_pair_scatter_impl(gid);
 }
 
 fn small_world_lifecycle_impl() {
