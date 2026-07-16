@@ -879,6 +879,8 @@ fn solve_contact(rank : u32, stage : u32) -> VelocityPair {
     velocities.angularA = motions[bodyA].angularVelocity_flags.xyz;
     velocities.linearB = motions[bodyB].linearVelocity_sleep.xyz;
     velocities.angularB = motions[bodyB].angularVelocity_flags.xyz;
+    let relativeCenter = cache.sectorOffset.xyz
+        + poseB.position_invMass.xyz - poseA.position_invMass.xyz;
     for (var pointIndex = 0u; pointIndex < manifold.state.x;
          pointIndex += 1u) {
         let leverA = quaternion_rotate(
@@ -914,9 +916,6 @@ fn solve_contact(rank : u32, stage : u32) -> VelocityPair {
             var massScale = 1.0;
             var impulseScale = 0.0;
             if (stage == STAGE_BIASED) {
-                let relativeCenter = cache.sectorOffset.xyz
-                    + poseB.position_invMass.xyz
-                    - poseA.position_invMass.xyz;
                 let separation = dot(
                     relativeCenter + leverB - leverA, normal);
                 if (separation > 0.0) {
