@@ -733,6 +733,21 @@ int main(int argc, char* argv[]) {
     appConfig.waterShoreFade = config.water.shoreFade;
     appConfig.physicsBackend = voxy::physics::backendTypeFromName(
         config.physics.backend);
+    const int browserPhysicsBackend = EM_ASM_INT({
+        const value = new URLSearchParams(globalThis.location.search)
+            .get("physicsBackend")?.toLowerCase();
+        if (value === "jolt" || value === "jolt_legacy") return 1;
+        if (value === "box3d" || value === "box3d_reference") return 2;
+        if (value === "webgpu" || value === "webgpu_soft") return 3;
+        return 0;
+    });
+    if (browserPhysicsBackend == 1) {
+        appConfig.physicsBackend = voxy::physics::BackendType::JoltLegacy;
+    } else if (browserPhysicsBackend == 2) {
+        appConfig.physicsBackend = voxy::physics::BackendType::Box3DReference;
+    } else if (browserPhysicsBackend == 3) {
+        appConfig.physicsBackend = voxy::physics::BackendType::WebGpuSoft;
+    }
     appConfig.gpuPhysicsMaxBodies = static_cast<uint32_t>(
         std::max(config.physics.gpuMaxBodies, 2));
     appConfig.benchmarkBodyCount = static_cast<uint32_t>(EM_ASM_INT({
