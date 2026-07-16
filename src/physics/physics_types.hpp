@@ -272,6 +272,8 @@ struct PhysicsStats {
     uint32_t activeSleepingPairs = 0;
     uint32_t oversizedBodies = 0;
     uint32_t persistentContacts = 0;
+    std::array<uint32_t, 10> narrowPairClasses{};
+    std::array<uint32_t, 10> narrowCollisionPairClasses{};
     uint32_t manifoldPoints = 0;
     uint32_t speculativeManifolds = 0;
     uint32_t invalidManifolds = 0;

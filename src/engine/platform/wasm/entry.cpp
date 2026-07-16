@@ -169,6 +169,19 @@ namespace {
 
         out << ",\"contacts\":";
         appendCapacityUsage(out, physics.contactUsage);
+        out << ",\"narrow_pair_classes\":[";
+        for (size_t index = 0; index < physics.narrowPairClasses.size();
+             ++index) {
+            if (index != 0u) out << ',';
+            out << physics.narrowPairClasses[index];
+        }
+        out << "],\"narrow_collision_pair_classes\":[";
+        for (size_t index = 0;
+             index < physics.narrowCollisionPairClasses.size(); ++index) {
+            if (index != 0u) out << ',';
+            out << physics.narrowCollisionPairClasses[index];
+        }
+        out << ']';
         out << ",\"manifolds\":";
         appendCapacityUsage(out, physics.manifoldUsage);
         out << ",\"manifold_points\":" << physics.manifoldPoints

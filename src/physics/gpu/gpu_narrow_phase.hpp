@@ -71,6 +71,8 @@ struct alignas(16) GpuContactManifold {
 
 struct GpuNarrowPhaseTelemetry {
     std::array<uint32_t, kGpuNarrowPhasePairClassCount> pairClasses{};
+    std::array<uint32_t, kGpuNarrowPhasePairClassCount>
+        collisionPairClasses{};
     uint32_t inputPairs = 0;
     uint32_t manifolds = 0;
     uint32_t manifoldPoints = 0;
@@ -138,7 +140,8 @@ public:
     [[nodiscard]] size_t inputBindGroupCacheMisses() const noexcept;
 
     [[nodiscard]] static GpuNarrowPhaseTelemetry decodeTelemetry(
-        std::span<const uint32_t> words) noexcept;
+        std::span<const uint32_t> words,
+        std::span<const uint32_t> collisionPairClasses = {}) noexcept;
 
 private:
     class Impl;

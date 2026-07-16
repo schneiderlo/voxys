@@ -180,6 +180,17 @@ const equivalenceOracle = (baseline, candidate) => {
           candidate.workload.candidates);
     exact("contacts", baseline.workload.contacts,
           candidate.workload.contacts);
+    for (const key of ["narrowPairClasses", "narrowCollisionPairClasses"]) {
+        const left = baseline.workload[key];
+        const right = candidate.workload[key];
+        if (Array.isArray(left) && Array.isArray(right)) {
+            exact(`${key} length`, left.length, right.length);
+            for (let index = 0;
+                 index < Math.min(left.length, right.length); ++index) {
+                exact(`${key} ${index}`, left[index], right[index]);
+            }
+        }
+    }
     exact("solver mode", baseline.workload.solverMode,
           candidate.workload.solverMode);
     exact("scheduled substeps", baseline.workload.substeps,

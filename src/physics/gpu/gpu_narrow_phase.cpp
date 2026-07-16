@@ -571,11 +571,15 @@ size_t GpuNarrowPhase::inputBindGroupCacheMisses() const noexcept {
 }
 
 GpuNarrowPhaseTelemetry GpuNarrowPhase::decodeTelemetry(
-    std::span<const uint32_t> words) noexcept {
+    std::span<const uint32_t> words,
+    std::span<const uint32_t> collisionPairClasses) noexcept {
     GpuNarrowPhaseTelemetry result;
-    if (words.size() < 24) return result;
+    if (words.size() < kTelemetryWords) return result;
     for (uint32_t index = 0; index < result.pairClasses.size(); ++index) {
         result.pairClasses[index] = words[index];
+        if (index < collisionPairClasses.size()) {
+            result.collisionPairClasses[index] = collisionPairClasses[index];
+        }
     }
     result.inputPairs = words[10];
     result.manifolds = words[11];

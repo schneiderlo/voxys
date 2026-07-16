@@ -131,9 +131,10 @@ NarrowSnapshot runAndRead(gpu::Context& context, GpuNarrowPhase& narrowPhase,
                     result.manifolds.size() * sizeof(GpuContactManifold));
         std::array<uint32_t, 32> telemetry{};
         std::memcpy(telemetry.data(), bytes + manifoldBytes, telemetryBytes);
-        result.telemetry = GpuNarrowPhase::decodeTelemetry(telemetry);
         std::memcpy(result.collisionPairClasses.data(),
                     bytes + manifoldBytes + telemetryBytes, classBytes);
+        result.telemetry = GpuNarrowPhase::decodeTelemetry(
+            telemetry, result.collisionPairClasses);
     }
     wgpuBufferUnmap(readback);
     wgpuBufferDestroy(readback);
@@ -322,6 +323,8 @@ TEST_P(GpuNarrowPhaseTest, GeneratesAllPairClassesAndPersistsPoints) {
     ASSERT_EQ(first.manifolds.size(), pairCount);
     EXPECT_EQ(first.telemetry.inputPairs, pairCount);
     EXPECT_EQ(first.telemetry.manifolds, overlapPairCount);
+    EXPECT_EQ(first.telemetry.collisionPairClasses,
+              first.collisionPairClasses);
     EXPECT_FALSE(first.telemetry.pairOverflow);
     EXPECT_EQ(first.telemetry.pairClasses[0], 2u);
     EXPECT_EQ(first.collisionPairClasses[0], 1u);

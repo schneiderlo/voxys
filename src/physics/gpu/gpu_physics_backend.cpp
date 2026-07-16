@@ -68,8 +68,10 @@ constexpr uint32_t kSolverTelemetryOffset =
     kNarrowTelemetryOffset + GpuNarrowPhase::kTelemetryWordCount;
 constexpr uint32_t kIslandTelemetryOffset =
     kSolverTelemetryOffset + GpuDynamicSolver::kTelemetryWordCount;
-constexpr uint32_t kTelemetrySnapshotWordCount =
+constexpr uint32_t kNarrowCollisionPairClassOffset =
     kIslandTelemetryOffset + GpuIslandManager::kTelemetryWordCount;
+constexpr uint32_t kTelemetrySnapshotWordCount =
+    kNarrowCollisionPairClassOffset + kGpuNarrowPhasePairClassCount;
 constexpr size_t kTelemetrySnapshotBytes =
     size_t{kTelemetrySnapshotWordCount} * sizeof(uint32_t);
 
@@ -1214,8 +1216,11 @@ public:
             kCcdTelemetryOffset, GpuCcd::kTelemetryWordCount));
         cachedTelemetry_.broad = GpuBroadPhase::decodeTelemetry(view.subspan(
             kBroadTelemetryOffset, GpuBroadPhase::kTelemetryWordCount));
-        cachedTelemetry_.narrow = GpuNarrowPhase::decodeTelemetry(view.subspan(
-            kNarrowTelemetryOffset, GpuNarrowPhase::kTelemetryWordCount));
+        cachedTelemetry_.narrow = GpuNarrowPhase::decodeTelemetry(
+            view.subspan(kNarrowTelemetryOffset,
+                         GpuNarrowPhase::kTelemetryWordCount),
+            view.subspan(kNarrowCollisionPairClassOffset,
+                         kGpuNarrowPhasePairClassCount));
         cachedTelemetry_.solver = GpuDynamicSolver::decodeTelemetry(view.subspan(
             kSolverTelemetryOffset, GpuDynamicSolver::kTelemetryWordCount));
         cachedTelemetry_.islands = GpuIslandManager::decodeTelemetry(view.subspan(
@@ -1785,6 +1790,9 @@ public:
             copyTelemetry(islandManager_.telemetryBuffer(),
                           kIslandTelemetryOffset,
                           GpuIslandManager::kTelemetryWordCount);
+            copyTelemetry(narrowPhase_.pairClassTable(),
+                          kNarrowCollisionPairClassOffset,
+                          kGpuNarrowPhasePairClassCount);
             if (!telemetryReadback_.encodeCopy(
                     encoder, telemetrySnapshotBuffer_, 0u,
                     kTelemetrySnapshotBytes, finalTick, 0u,
@@ -2083,6 +2091,8 @@ public:
         result.activeSleepingPairs = broad.activeSleepingPairs;
         result.oversizedBodies = broad.oversizedBodies;
         result.persistentContacts = broad.persistentContacts;
+        result.narrowPairClasses = narrow.pairClasses;
+        result.narrowCollisionPairClasses = narrow.collisionPairClasses;
         result.manifoldPoints = narrow.manifoldPoints;
         result.speculativeManifolds = narrow.speculativeManifolds;
         result.invalidManifolds = narrow.invalidManifolds;

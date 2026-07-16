@@ -894,6 +894,9 @@ const result = {
         tick: telemetry.physics.tick,
         candidates: telemetry.physics.candidate_pairs.current,
         contacts: telemetry.physics.contacts.current,
+        narrowPairClasses: telemetry.physics.narrow_pair_classes,
+        narrowCollisionPairClasses:
+            telemetry.physics.narrow_collision_pair_classes,
         solverMode: telemetry.physics.solver_mode,
         substeps: telemetry.physics.scheduled_substeps,
     },
