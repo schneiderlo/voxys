@@ -867,6 +867,10 @@ fn solve_contact(rank : u32, stage : u32) -> VelocityPair {
     let cache = constraintCaches[rank];
     let bodyA = manifold.pair.keyHigh;
     let bodyB = manifold.pair.keyLow;
+    let poseA = poses[bodyA];
+    let poseB = poses[bodyB];
+    let shapeA = shapes[bodyA];
+    let shapeB = shapes[bodyB];
     let normal = manifold.normal.xyz;
     let tangent1 = manifold.tangent1.xyz;
     let tangent2 = manifold.tangent2.xyz;
@@ -878,13 +882,14 @@ fn solve_contact(rank : u32, stage : u32) -> VelocityPair {
     for (var pointIndex = 0u; pointIndex < manifold.state.x;
          pointIndex += 1u) {
         let leverA = quaternion_rotate(
-            poses[bodyA].orientation,
+            poseA.orientation,
             manifold.points[pointIndex].localAnchorA_separation.xyz);
         let leverB = quaternion_rotate(
-            poses[bodyB].orientation,
+            poseB.orientation,
             manifold.points[pointIndex].localAnchorB_normalImpulse.xyz);
         if (stage == STAGE_WARM_START) {
-            apply_impulse(&velocities, bodyA, bodyB, leverA, leverB,
+            apply_impulse_state(&velocities, poseA, shapeA, poseB, shapeB,
+                leverA, leverB,
                 normal * manifold.points[pointIndex]
                     .localAnchorB_normalImpulse.w);
             continue;
@@ -910,8 +915,8 @@ fn solve_contact(rank : u32, stage : u32) -> VelocityPair {
             var impulseScale = 0.0;
             if (stage == STAGE_BIASED) {
                 let relativeCenter = cache.sectorOffset.xyz
-                    + poses[bodyB].position_invMass.xyz
-                    - poses[bodyA].position_invMass.xyz;
+                    + poseB.position_invMass.xyz
+                    - poseA.position_invMass.xyz;
                 let separation = dot(
                     relativeCenter + leverB - leverA, normal);
                 if (separation > 0.0) {
@@ -933,21 +938,22 @@ fn solve_contact(rank : u32, stage : u32) -> VelocityPair {
                 newImpulse;
             manifold.points[pointIndex].impulses.x = newImpulse;
         }
-        apply_impulse(&velocities, bodyA, bodyB, leverA, leverB,
-                      normal * incremental);
+        apply_impulse_state(&velocities, poseA, shapeA, poseB, shapeB,
+            leverA, leverB, normal * incremental);
     }
 
     if (stage == STAGE_WARM_START || stage == STAGE_RELAX) {
         let leverA = quaternion_rotate(
-            poses[bodyA].orientation, manifold.frictionAnchorA.xyz);
+            poseA.orientation, manifold.frictionAnchorA.xyz);
         let leverB = quaternion_rotate(
-            poses[bodyB].orientation, manifold.frictionAnchorB.xyz);
+            poseB.orientation, manifold.frictionAnchorB.xyz);
         if (stage == STAGE_WARM_START) {
             let tangentImpulse = tangent1 * manifold.tangent1.w
                                + tangent2 * manifold.tangent2.w;
-            apply_impulse(&velocities, bodyA, bodyB, leverA, leverB,
-                          tangentImpulse);
-            apply_angular_impulse(&velocities, bodyA, bodyB,
+            apply_impulse_state(&velocities, poseA, shapeA, poseB, shapeB,
+                leverA, leverB, tangentImpulse);
+            apply_angular_impulse_state(
+                &velocities, poseA, shapeA, poseB, shapeB,
                 normal * manifold.frictionAnchorA.w
                 + manifold.rollingImpulse.xyz);
         } else {
@@ -978,7 +984,8 @@ fn solve_contact(rank : u32, stage : u32) -> VelocityPair {
             let frictionDelta = newFriction - oldFriction;
             manifold.tangent1.w = newFriction.x;
             manifold.tangent2.w = newFriction.y;
-            apply_impulse(&velocities, bodyA, bodyB, leverA, leverB,
+            apply_impulse_state(&velocities, poseA, shapeA, poseB, shapeB,
+                leverA, leverB,
                 tangent1 * frictionDelta.x + tangent2 * frictionDelta.y);
 
             let relativeAngular = velocities.angularB - velocities.angularA;
@@ -989,8 +996,9 @@ fn solve_contact(rank : u32, stage : u32) -> VelocityPair {
                 - cache.angularMass.x * dot(relativeAngular, normal),
                 -twistLimit, twistLimit);
             manifold.frictionAnchorA.w = newTwist;
-            apply_angular_impulse(&velocities, bodyA, bodyB,
-                                  normal * (newTwist - oldTwist));
+            apply_angular_impulse_state(
+                &velocities, poseA, shapeA, poseB, shapeB,
+                normal * (newTwist - oldTwist));
 
             let rollingVelocity = relativeAngular
                 - normal * dot(relativeAngular, normal);
@@ -1003,8 +1011,9 @@ fn solve_contact(rank : u32, stage : u32) -> VelocityPair {
                 newRolling *= rollingLimit / rollingLength;
             }
             manifold.rollingImpulse = vec4<f32>(newRolling, 0.0);
-            apply_angular_impulse(&velocities, bodyA, bodyB,
-                                  newRolling - oldRolling);
+            apply_angular_impulse_state(
+                &velocities, poseA, shapeA, poseB, shapeB,
+                newRolling - oldRolling);
         }
     }
     if (stage != STAGE_WARM_START && stage != STAGE_RESTITUTION) {
