@@ -1017,7 +1017,20 @@ fn solve_contact(rank : u32, stage : u32) -> VelocityPair {
         }
     }
     if (stage != STAGE_WARM_START && stage != STAGE_RESTITUTION) {
-        manifolds[rank] = manifold;
+        for (var pointIndex = 0u; pointIndex < manifold.state.x;
+             pointIndex += 1u) {
+            manifolds[rank].points[pointIndex]
+                .localAnchorB_normalImpulse.w = manifold.points[pointIndex]
+                .localAnchorB_normalImpulse.w;
+            manifolds[rank].points[pointIndex].impulses.x =
+                manifold.points[pointIndex].impulses.x;
+        }
+        if (stage == STAGE_RELAX) {
+            manifolds[rank].tangent1.w = manifold.tangent1.w;
+            manifolds[rank].tangent2.w = manifold.tangent2.w;
+            manifolds[rank].frictionAnchorA.w = manifold.frictionAnchorA.w;
+            manifolds[rank].rollingImpulse = manifold.rollingImpulse;
+        }
     }
     return velocities;
 }
