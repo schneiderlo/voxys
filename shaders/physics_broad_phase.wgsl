@@ -1088,6 +1088,32 @@ fn load_medium_body(body : u32) -> MediumBodyProxy {
     return proxy;
 }
 
+fn store_medium_body_proxy(body : u32, proxy : MediumBodyProxy) {
+    let positionRadius = bitcast<vec4<u32>>(proxy.positionRadius);
+    let sectorFlags = bitcast<vec4<u32>>(proxy.sectorFlags);
+    gridEntries[body] = KeyValue(
+        positionRadius.x, positionRadius.y,
+        positionRadius.z, positionRadius.w);
+    cellRanges[body] = CellRange(
+        sectorFlags.x, sectorFlags.y, sectorFlags.z, sectorFlags.w);
+    ownerPairCounts[body * 2u] = proxy.cellKey.x;
+    ownerPairCounts[body * 2u + 1u] = proxy.cellKey.y;
+}
+
+fn load_precomputed_medium_body(body : u32) -> MediumBodyProxy {
+    let positionRadius = gridEntries[body];
+    let sectorFlags = cellRanges[body];
+    return MediumBodyProxy(
+        bitcast<vec4<f32>>(vec4<u32>(
+            positionRadius.keyLow, positionRadius.keyHigh,
+            positionRadius.value, positionRadius.ordinal)),
+        bitcast<vec4<i32>>(vec4<u32>(
+            sectorFlags.keyLow, sectorFlags.keyHigh,
+            sectorFlags.firstEntry, sectorFlags.entryCount)),
+        vec2<u32>(ownerPairCounts[body * 2u],
+                  ownerPairCounts[body * 2u + 1u]));
+}
+
 fn medium_bodies_overlap(a : MediumBodyProxy,
                          b : MediumBodyProxy) -> bool {
     let flagsA = u32(a.sectorFlags.w);
@@ -1396,12 +1422,34 @@ fn medium_world_pairs(@builtin(local_invocation_id) lid : vec3<u32>) {
 // scan those counts, then scatter from the same canonical ranges. This keeps
 // the low-dispatch direct-pair path while allowing several workgroups to cover
 // medium-sized browser worlds concurrently.
+fn precompute_medium_body_proxies_impl(gid : vec3<u32>) {
+    if (gid.x < broad.counts.x) {
+        store_medium_body_proxy(gid.x, load_medium_body(gid.x));
+    }
+}
+
+@compute @workgroup_size(64)
+fn precompute_medium_body_proxies_64(
+    @builtin(global_invocation_id) gid : vec3<u32>) {
+    precompute_medium_body_proxies_impl(gid);
+}
+@compute @workgroup_size(128)
+fn precompute_medium_body_proxies_128(
+    @builtin(global_invocation_id) gid : vec3<u32>) {
+    precompute_medium_body_proxies_impl(gid);
+}
+@compute @workgroup_size(256)
+fn precompute_medium_body_proxies_256(
+    @builtin(global_invocation_id) gid : vec3<u32>) {
+    precompute_medium_body_proxies_impl(gid);
+}
+
 fn parallel_medium_world_pair_counts_impl(gid : vec3<u32>) {
     let minimum = gid.x;
     let bodyCount = broad.counts.x;
     if (minimum >= bodyCount) { return; }
 
-    let minimumProxy = load_medium_body(minimum);
+    let minimumProxy = load_precomputed_medium_body(minimum);
     let minimumFlags = u32(minimumProxy.sectorFlags.w);
     let cellValid = !all(
         minimumProxy.cellKey == vec2<u32>(SENTINEL));
@@ -1409,7 +1457,7 @@ fn parallel_medium_world_pair_counts_impl(gid : vec3<u32>) {
     var pairCount = 0u;
     for (var maximum = minimum + 1u; maximum < bodyCount;
          maximum += 1u) {
-        let maximumProxy = load_medium_body(maximum);
+        let maximumProxy = load_precomputed_medium_body(maximum);
         if (cellRepresentative
             && all(maximumProxy.cellKey == minimumProxy.cellKey)) {
             cellRepresentative = false;
@@ -1473,14 +1521,14 @@ fn parallel_medium_world_pair_scatter_impl(gid : vec3<u32>) {
     let outputCapacity = min(broad.counts.w, broad.capacities.x);
     if (pairCount == 0u || outputBase >= outputCapacity) { return; }
 
-    let minimumProxy = load_medium_body(minimum);
+    let minimumProxy = load_precomputed_medium_body(minimum);
     let minimumFlags = u32(minimumProxy.sectorFlags.w);
     var localRank = 0u;
     var sleepingCount = 0u;
     for (var maximum = minimum + 1u; maximum < bodyCount;
          maximum += 1u) {
         if (outputBase + localRank >= outputCapacity) { break; }
-        let maximumProxy = load_medium_body(maximum);
+        let maximumProxy = load_precomputed_medium_body(maximum);
         if (!medium_bodies_overlap(
                 minimumProxy, maximumProxy)) { continue; }
         let output = outputBase + localRank;

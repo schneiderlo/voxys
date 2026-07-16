@@ -366,13 +366,21 @@ public:
         smallPairLayout_ = gpu::createBindGroupLayout(
             device_, smallPairEntries, "broad_phase_small_pair_layout");
 
-        std::vector<LE> parallelMediumPairEntries;
+        std::vector<LE> mediumProxyEntries;
         for (uint32_t binding : {0u, 1u, 2u})
-            storage(parallelMediumPairEntries, binding, true);
+            storage(mediumProxyEntries, binding, true);
+        for (uint32_t binding : {5u, 9u, 11u})
+            storage(mediumProxyEntries, binding, false);
+        uniform(mediumProxyEntries);
+        mediumProxyLayout_ = gpu::createBindGroupLayout(
+            device_, mediumProxyEntries,
+            "broad_phase_medium_proxy_layout");
+
+        std::vector<LE> parallelMediumPairEntries;
         storage(parallelMediumPairEntries, 3, false);
         storage(parallelMediumPairEntries, 4, true);
-        storage(parallelMediumPairEntries, 6, false);
-        storage(parallelMediumPairEntries, 15, false);
+        for (uint32_t binding : {5u, 6u, 9u, 11u, 15u})
+            storage(parallelMediumPairEntries, binding, false);
         uniform(parallelMediumPairEntries);
         parallelMediumPairLayout_ = gpu::createBindGroupLayout(
             device_, parallelMediumPairEntries,
@@ -394,7 +402,8 @@ public:
             || !lifecyclePrepareLayout_ || !lifecycleFreeLayout_
             || !lifecycleBeginLayout_ || !lifecycleEndLayout_
             || !lifecycleFinalizeLayout_ || !smallPairLayout_
-            || !parallelMediumPairLayout_ || !smallLifecycleLayout_) {
+            || !mediumProxyLayout_ || !parallelMediumPairLayout_
+            || !smallLifecycleLayout_) {
             return false;
         }
 
@@ -434,6 +443,9 @@ public:
         smallPairPipelineLayout_ = pipelineLayout(
             device_, std::array{smallPairLayout_},
             "broad_phase_small_pair_pipeline_layout");
+        mediumProxyPipelineLayout_ = pipelineLayout(
+            device_, std::array{mediumProxyLayout_},
+            "broad_phase_medium_proxy_pipeline_layout");
         parallelMediumPairPipelineLayout_ = pipelineLayout(
             device_, std::array{parallelMediumPairLayout_},
             "broad_phase_parallel_medium_pair_pipeline_layout");
@@ -447,7 +459,7 @@ public:
             || !lifecyclePreparePipelineLayout_ || !lifecycleFreePipelineLayout_
             || !lifecycleBeginPipelineLayout_ || !lifecycleEndPipelineLayout_
             || !lifecycleFinalizePipelineLayout_ || !smallPairPipelineLayout_
-            || !parallelMediumPairPipelineLayout_
+            || !mediumProxyPipelineLayout_ || !parallelMediumPairPipelineLayout_
             || !smallLifecyclePipelineLayout_) return false;
 
         const std::string suffix = std::to_string(config_.workgroupSize);
@@ -532,6 +544,10 @@ public:
             device_, smallPairPipelineLayout_, shaderModule_,
             "medium_world_pairs",
             "broad_phase_medium_world_pairs");
+        precomputeMediumPairPipeline_ = makePipeline(
+            device_, mediumProxyPipelineLayout_, shaderModule_,
+            "precompute_medium_body_proxies_" + suffix,
+            "broad_phase_precompute_medium_body_proxies");
         parallelMediumPairCountPipeline_ = makePipeline(
             device_, parallelMediumPairPipelineLayout_, shaderModule_,
             "parallel_medium_world_pair_counts_" + suffix,
@@ -557,7 +573,7 @@ public:
             && lifecycleAssignBeginPipeline_ && lifecycleScatterEndPipeline_
             && lifecycleFinalizePipeline_ && smallPairPipeline_
             && parallelSmallPairPipeline_ && mediumPairPipeline_
-            && parallelMediumPairCountPipeline_
+            && precomputeMediumPairPipeline_ && parallelMediumPairCountPipeline_
             && parallelMediumPairScatterPipeline_
             && smallLifecyclePipeline_ && hybridLifecyclePipeline_;
     }
@@ -771,13 +787,25 @@ public:
         cachedBindGroups_[15] = bindGroup(
             smallPairLayout_, smallPairEntries,
             "broad_phase_small_pair_group");
-        const std::array<gpu::BindGroupEntry, 8> parallelMediumPairEntries = {
+        const std::array<gpu::BindGroupEntry, 7> mediumProxyEntries = {
             gpu::BindGroupEntry(0).buffer(bodyView_.poseBuffer),
             gpu::BindGroupEntry(1).buffer(bodyView_.shapeBuffer),
             gpu::BindGroupEntry(2).buffer(bodyView_.metadataBuffer),
+            gpu::BindGroupEntry(5).buffer(gridEntries_),
+            gpu::BindGroupEntry(9).buffer(cellRanges_),
+            gpu::BindGroupEntry(11).buffer(ownerPairCounts_),
+            gpu::BindGroupEntry(7).buffer(parameterBuffer_),
+        };
+        cachedBindGroups_[19] = bindGroup(
+            mediumProxyLayout_, mediumProxyEntries,
+            "broad_phase_medium_proxy_group");
+        const std::array<gpu::BindGroupEntry, 8> parallelMediumPairEntries = {
             gpu::BindGroupEntry(3).buffer(bodyEntryCounts_),
             gpu::BindGroupEntry(4).buffer(bodyEntryOffsets_),
+            gpu::BindGroupEntry(5).buffer(gridEntries_),
             gpu::BindGroupEntry(6).buffer(telemetry_),
+            gpu::BindGroupEntry(9).buffer(cellRanges_),
+            gpu::BindGroupEntry(11).buffer(ownerPairCounts_),
             gpu::BindGroupEntry(15).buffer(uniquePairs_),
             gpu::BindGroupEntry(7).buffer(parameterBuffer_),
         };
@@ -1023,6 +1051,12 @@ public:
             wgpuComputePassEncoderSetPipeline(pass, resetPipeline_);
             wgpuComputePassEncoderDispatchWorkgroups(pass, 1u, 1u, 1u);
             wgpuComputePassEncoderSetBindGroup(
+                pass, 0, cachedBindGroups_[19], 0, nullptr);
+            wgpuComputePassEncoderSetPipeline(
+                pass, precomputeMediumPairPipeline_);
+            wgpuComputePassEncoderDispatchWorkgroups(
+                pass, bodyGroups, 1u, 1u);
+            wgpuComputePassEncoderSetBindGroup(
                 pass, 0, cachedBindGroups_[18], 0, nullptr);
             wgpuComputePassEncoderSetPipeline(
                 pass, parallelMediumPairCountPipeline_);
@@ -1206,6 +1240,7 @@ public:
                  &lifecycleAssignBeginPipeline_, &lifecycleScatterEndPipeline_,
                  &lifecycleFinalizePipeline_, &smallPairPipeline_,
                  &parallelSmallPairPipeline_, &mediumPairPipeline_,
+                 &precomputeMediumPairPipeline_,
                  &parallelMediumPairCountPipeline_,
                  &parallelMediumPairScatterPipeline_,
                  &smallLifecyclePipeline_, &hybridLifecyclePipeline_}) {
@@ -1225,6 +1260,7 @@ public:
                  &lifecycleBeginPipelineLayout_,
                  &lifecycleEndPipelineLayout_,
                  &lifecycleFinalizePipelineLayout_, &smallPairPipelineLayout_,
+                 &mediumProxyPipelineLayout_,
                  &parallelMediumPairPipelineLayout_,
                  &smallLifecyclePipelineLayout_}) {
             releaseHandle(*layout, wgpuPipelineLayoutRelease);
@@ -1240,6 +1276,7 @@ public:
                  &lifecyclePrepareLayout_, &lifecycleFreeLayout_,
                  &lifecycleBeginLayout_, &lifecycleEndLayout_,
                  &lifecycleFinalizeLayout_, &smallPairLayout_,
+                 &mediumProxyLayout_,
                  &parallelMediumPairLayout_,
                  &smallLifecycleLayout_}) {
             releaseHandle(*layout, wgpuBindGroupLayoutRelease);
@@ -1280,7 +1317,7 @@ public:
     size_t scratchBytes_ = 0;
     bool contactsAreB_ = false;
     bool denseMediumPairPath_ = false;
-    std::array<WGPUBindGroup, 19> cachedBindGroups_{};
+    std::array<WGPUBindGroup, 20> cachedBindGroups_{};
     DeterministicGpuPrimitives primitives_;
 
     WGPUBuffer parameterBuffer_ = nullptr;
@@ -1325,6 +1362,7 @@ public:
     WGPUBindGroupLayout lifecycleEndLayout_ = nullptr;
     WGPUBindGroupLayout lifecycleFinalizeLayout_ = nullptr;
     WGPUBindGroupLayout smallPairLayout_ = nullptr;
+    WGPUBindGroupLayout mediumProxyLayout_ = nullptr;
     WGPUBindGroupLayout parallelMediumPairLayout_ = nullptr;
     WGPUBindGroupLayout smallLifecycleLayout_ = nullptr;
     WGPUPipelineLayout gridPipelineLayout_ = nullptr;
@@ -1340,6 +1378,7 @@ public:
     WGPUPipelineLayout lifecycleEndPipelineLayout_ = nullptr;
     WGPUPipelineLayout lifecycleFinalizePipelineLayout_ = nullptr;
     WGPUPipelineLayout smallPairPipelineLayout_ = nullptr;
+    WGPUPipelineLayout mediumProxyPipelineLayout_ = nullptr;
     WGPUPipelineLayout parallelMediumPairPipelineLayout_ = nullptr;
     WGPUPipelineLayout smallLifecyclePipelineLayout_ = nullptr;
     WGPUComputePipeline resetPipeline_ = nullptr;
@@ -1365,6 +1404,7 @@ public:
     WGPUComputePipeline smallPairPipeline_ = nullptr;
     WGPUComputePipeline parallelSmallPairPipeline_ = nullptr;
     WGPUComputePipeline mediumPairPipeline_ = nullptr;
+    WGPUComputePipeline precomputeMediumPairPipeline_ = nullptr;
     WGPUComputePipeline parallelMediumPairCountPipeline_ = nullptr;
     WGPUComputePipeline parallelMediumPairScatterPipeline_ = nullptr;
     WGPUComputePipeline smallLifecyclePipeline_ = nullptr;
