@@ -807,14 +807,17 @@ fn box_box_sat(frameA : BoxFrame, frameB : BoxFrame) -> SatResult {
     for (var axis = 0u; axis < 3u; axis += 1u) {
         consider_box_sat_axis(&result, axis_value(frameA, axis),
                               0u, axis, 0u, frameA, frameB);
+        if (result.valid == 0u) { return result; }
         consider_box_sat_axis(&result, axis_value(frameB, axis),
                               1u, 0u, axis, frameA, frameB);
+        if (result.valid == 0u) { return result; }
     }
     for (var axisA = 0u; axisA < 3u; axisA += 1u) {
         for (var axisB = 0u; axisB < 3u; axisB += 1u) {
             consider_box_sat_axis(&result,
                 cross(axis_value(frameA, axisA), axis_value(frameB, axisB)),
                 2u, axisA, axisB, frameA, frameB);
+            if (result.valid == 0u) { return result; }
         }
     }
     return result;
@@ -1118,12 +1121,14 @@ fn polyhedron_sat(bodyA : u32, categoryA : u32,
         consider_poly_sat_axis(&result,
             poly_face_axis(bodyA, categoryA, axis, frameBody),
             0u, axis, 0u, bodyA, categoryA, bodyB, categoryB, frameBody);
+        if (result.valid == 0u) { return result; }
     }
     for (var axis = 0u; axis < poly_face_axis_count(categoryB);
          axis += 1u) {
         consider_poly_sat_axis(&result,
             poly_face_axis(bodyB, categoryB, axis, frameBody),
             1u, 0u, axis, bodyA, categoryA, bodyB, categoryB, frameBody);
+        if (result.valid == 0u) { return result; }
     }
     for (var axisA = 0u; axisA < poly_edge_axis_count(categoryA);
          axisA += 1u) {
@@ -1134,6 +1139,7 @@ fn polyhedron_sat(bodyA : u32, categoryA : u32,
                 poly_edge_axis(bodyB, categoryB, axisB, frameBody)),
                 2u, axisA, axisB,
                 bodyA, categoryA, bodyB, categoryB, frameBody);
+            if (result.valid == 0u) { return result; }
         }
     }
     return result;
