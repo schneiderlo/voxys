@@ -100,6 +100,26 @@ Click-batch counts must be multiples of 128. This mode is useful for diagnosing
 the deployed interaction, but wall-clock input timing makes it unsuitable as
 an isomorphism oracle.
 
+Use the production left-button hold path to reproduce a dense stream from one
+camera origin and direction:
+
+```bash
+node scripts/profile_wasm_matrix.mjs \
+  --port 9333 \
+  --output-dir /tmp/voxys-left-stream \
+  --workload left-stream \
+  --bodies 200,500,1000 \
+  --duration-ms 15000 \
+  --settle-ms 0 \
+  --expected-width 5504 \
+  --expected-height 2161
+```
+
+The engine's 100 Hz firing loop can cross the requested count within one
+rendered frame. The capture therefore records both the requested and exact
+observed body counts. This is an experience diagnostic, not an equivalence
+oracle; accept optimizations against the fixed-tick preset.
+
 The runner records every workload even if one workload trips a capacity or
 correctness invariant. The manifest marks that row as failed and the process
 returns exit code 2 after the full matrix is complete.

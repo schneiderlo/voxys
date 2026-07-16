@@ -21,7 +21,7 @@ const options = {
 const usage = () => console.error(
     "usage: node scripts/profile_wasm_matrix.mjs --port PORT "
     + "--output-dir DIR [--bodies 0,256,512,1024,2048,4096,8192,10112] "
-    + "[--workload preset|click-batches] [--duration-ms N] "
+    + "[--workload preset|click-batches|left-stream] [--duration-ms N] "
     + "[--duration-ticks N] [--settle-ms N] [--timeout-ms N] "
     + "[--expected-width N] [--expected-height N] [--profile] [--trace]",
 );
@@ -67,7 +67,7 @@ for (let index = 2; index < process.argv.length; ++index) {
 }
 
 if (!(options.port > 0) || !options.outputDirectory
-    || !["preset", "click-batches"].includes(options.workload)
+    || !["preset", "click-batches", "left-stream"].includes(options.workload)
     || !(options.durationMs > 0) || !(options.durationTicks > 0)
     || !(options.timeoutMs > 0)
     || options.bodies.length === 0) {
@@ -144,7 +144,8 @@ const preparePage = async (bodyCount) => {
         currentUrl.searchParams.set(
             "profileSession", `${Date.now()}-${process.pid}`);
     }
-    currentUrl.searchParams.set("matrixRun", `${Date.now()}-${bodyCount}`);
+    const matrixRun = `${Date.now()}-${bodyCount}`;
+    currentUrl.searchParams.set("matrixRun", matrixRun);
     if (options.workload === "preset") {
         currentUrl.searchParams.set("benchmarkBodies", String(bodyCount));
     } else {
@@ -154,6 +155,17 @@ const preparePage = async (bodyCount) => {
         expression: `location.replace(${JSON.stringify(currentUrl.href)})`,
     });
     socket.close();
+
+    const navigationDeadline = Date.now() + options.timeoutMs;
+    while (Date.now() < navigationDeadline) {
+        const navigatedPage = await findPage();
+        if (new URL(navigatedPage.url).searchParams.get("matrixRun")
+            === matrixRun) {
+            return;
+        }
+        await delay(25);
+    }
+    throw new Error(`browser navigation did not commit matrixRun=${matrixRun}`);
 };
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
@@ -172,6 +184,8 @@ const capture = (bodyCount) => new Promise((resolve, reject) => {
     ];
     if (options.workload === "preset") {
         arguments_.push("--preset-bodies", String(bodyCount));
+    } else if (options.workload === "left-stream") {
+        arguments_.push("--left-stream-bodies", String(bodyCount));
     } else {
         arguments_.push("--clicks", String(bodyCount / 128));
     }

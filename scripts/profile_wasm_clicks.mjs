@@ -7,6 +7,7 @@ const options = {
     settleMs: 2_000,
     warmupTick: 300,
     presetBodies: null,
+    leftStreamBodies: null,
     timeoutMs: 120_000,
     expectedWidth: 1236,
     expectedHeight: 777,
@@ -36,6 +37,9 @@ for (let index = 2; index < process.argv.length; ++index) {
         case "--preset-bodies":
             options.presetBodies = readInteger(argument);
             break;
+        case "--left-stream-bodies":
+            options.leftStreamBodies = readInteger(argument);
+            break;
         case "--settle-ms": options.settleMs = readInteger(argument); break;
         case "--warmup-tick": options.warmupTick = readInteger(argument); break;
         case "--timeout-ms": options.timeoutMs = readInteger(argument); break;
@@ -57,15 +61,22 @@ if (options.port <= 0 || options.durationMs <= 0 || options.durationTicks <= 0
         "usage: profile_wasm_clicks.mjs --port PORT "
         + "[--clicks N] [--click-interval-ms MS] [--duration-ms MS] "
         + "[--duration-ticks N] [--preset-bodies N] "
+        + "[--left-stream-bodies N] "
         + "[--settle-ms MS] [--warmup-tick TICK] [--timeout-ms MS] "
         + "[--profile] [--trace]",
+    );
+}
+if (options.presetBodies !== null && options.leftStreamBodies !== null) {
+    throw new Error(
+        "--preset-bodies and --left-stream-bodies are mutually exclusive",
     );
 }
 
 const delay = (milliseconds) => new Promise(
     (resolve) => setTimeout(resolve, milliseconds),
 );
-const expectedBodies = options.presetBodies ?? options.clicks * 128;
+let expectedBodies = options.presetBodies
+    ?? options.leftStreamBodies ?? options.clicks * 128;
 const deadline = Date.now() + options.timeoutMs;
 
 let page;
@@ -180,6 +191,7 @@ while (Date.now() < deadline) {
         const error = document.getElementById("error");
         const bounds = canvas?.getBoundingClientRect();
         return {
+            target: location.href,
             initialized,
             tick: sample?.physics?.tick ?? 0,
             backend: sample?.physics?.backend ?? null,
@@ -370,7 +382,90 @@ const canvasCenter = await evaluate(`(() => {
     };
 })()`);
 const clickInputs = [];
-if (options.presetBodies === null) {
+if (options.presetBodies !== null) {
+    const presetState = await evaluate(`({
+        queryBodies: Number.parseInt(
+            new URLSearchParams(location.search).get("benchmarkBodies") ?? "0",
+            10),
+        residentBodies: voxyModule._voxy_get_physics_resident_bodies(),
+    })`);
+    if (presetState.queryBodies !== options.presetBodies
+        || presetState.residentBodies !== options.presetBodies) {
+        throw new Error(
+            `deterministic preset mismatch: ${JSON.stringify(presetState)}`,
+        );
+    }
+} else if (options.leftStreamBodies !== null) {
+    await evaluate("voxyModule._voxy_mouse_move(0, 0)");
+    if (options.leftStreamBodies > 0) {
+        clickInputs.push(await evaluate(`(() => {
+            const pointer = voxyModule._voxy_get_telemetry_json();
+            const sample = JSON.parse(voxyModule.UTF8ToString(pointer));
+            return {
+                kind: "left_down",
+                camera: sample.camera,
+                encodedTick: voxyModule._voxy_get_physics_encoded_tick(),
+                frame: voxyModule._voxy_get_frame_count(),
+            };
+        })()`));
+        await command("Input.dispatchMouseEvent", {
+            type: "mousePressed",
+            x: canvasCenter.x,
+            y: canvasCenter.y,
+            button: "left",
+            buttons: 1,
+            clickCount: 1,
+        });
+        let reachedTarget = false;
+        while (Date.now() < deadline) {
+            const bodies = await evaluate(
+                "voxyModule._voxy_get_physics_resident_bodies()",
+            );
+            if (bodies >= options.leftStreamBodies) {
+                reachedTarget = true;
+                break;
+            }
+            await delay(10);
+        }
+        if (!reachedTarget) {
+            throw new Error(
+                `left stream did not reach ${options.leftStreamBodies} bodies`,
+            );
+        }
+        const releaseFrame = await evaluate(
+            "voxyModule._voxy_get_frame_count()",
+        );
+        await command("Input.dispatchMouseEvent", {
+            type: "mouseReleased",
+            x: canvasCenter.x,
+            y: canvasCenter.y,
+            button: "left",
+            buttons: 0,
+            clickCount: 1,
+        });
+        while (Date.now() < deadline) {
+            const frame = await evaluate(
+                "voxyModule._voxy_get_frame_count()",
+            );
+            if (frame > releaseFrame) break;
+            await delay(10);
+        }
+        clickInputs.push(await evaluate(`(() => {
+            const pointer = voxyModule._voxy_get_telemetry_json();
+            const sample = JSON.parse(voxyModule.UTF8ToString(pointer));
+            return {
+                kind: "left_up",
+                camera: sample.camera,
+                encodedTick: voxyModule._voxy_get_physics_encoded_tick(),
+                frame: voxyModule._voxy_get_frame_count(),
+            };
+        })()`));
+    }
+    await delay(options.settleMs);
+    expectedBodies = await evaluate(
+        "voxyModule._voxy_get_physics_resident_bodies()",
+    );
+} else {
     await evaluate("voxyModule._voxy_mouse_move(0, 0)");
     for (let click = 0; click < options.clicks; ++click) {
         clickInputs.push(await evaluate(`(() => {
@@ -416,19 +511,6 @@ if (options.presetBodies === null) {
         if (click + 1 < options.clicks) await delay(options.clickIntervalMs);
     }
     await delay(options.settleMs);
-} else {
-    const presetState = await evaluate(`({
-        queryBodies: Number.parseInt(
-            new URLSearchParams(location.search).get("benchmarkBodies") ?? "0",
-            10),
-        residentBodies: voxyModule._voxy_get_physics_resident_bodies(),
-    })`);
-    if (presetState.queryBodies !== options.presetBodies
-        || presetState.residentBodies !== options.presetBodies) {
-        throw new Error(
-            `deterministic preset mismatch: ${JSON.stringify(presetState)}`,
-        );
-    }
 }
 
 let cpuProfileStarted = false;
@@ -758,7 +840,7 @@ const result = {
     capturedAt: new Date().toISOString(),
     options,
     browser: {
-        target: page.url,
+        target: readyState.target,
         version: browserVersion,
         device: readyState.device,
         canvasWidth: readyState.canvasWidth,
@@ -775,9 +857,13 @@ const result = {
         camera: telemetry.camera,
     },
     workload: {
-        mode: options.presetBodies === null
-            ? "interactive_batches" : "deterministic_airborne",
-        requestedClicks: options.presetBodies === null ? options.clicks : 0,
+        mode: options.presetBodies !== null
+            ? "deterministic_airborne"
+            : options.leftStreamBodies !== null
+                ? "interactive_left_stream" : "interactive_batches",
+        requestedClicks: options.presetBodies === null
+            && options.leftStreamBodies === null ? options.clicks : 0,
+        requestedBodies: options.leftStreamBodies,
         expectedBodies,
         observedBodies: telemetry.physics.bodies.current,
         clickInputs,
