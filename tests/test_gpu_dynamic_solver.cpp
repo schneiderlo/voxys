@@ -264,6 +264,15 @@ TEST_P(GpuDynamicColoringTest, ColorsConflictsAndGathersOverflowDeterministicall
     solver.setInput({poseBuffer, motionBuffer, shapeBuffer, metadataBuffer,
                      manifoldBuffer, narrowTelemetryBuffer,
                      bodyCapacity, contactCapacity});
+    const std::array<uint32_t, 32> emptyNarrowTelemetry{};
+    gpu::writeBuffer(context.getQueue(), narrowTelemetryBuffer, 0,
+        std::as_bytes(std::span<const uint32_t>(emptyNarrowTelemetry)));
+    const SolverSnapshot empty = runAndRead(
+        context, solver, poseBuffer, motionBuffer, manifoldBuffer,
+        bodyCapacity, contactCapacity);
+    EXPECT_EQ(empty.telemetry.contactCount, 0u);
+    gpu::writeBuffer(context.getQueue(), narrowTelemetryBuffer, 0,
+        std::as_bytes(std::span<const uint32_t>(narrowTelemetry)));
     const SolverSnapshot first = runAndRead(
         context, solver, poseBuffer, motionBuffer, manifoldBuffer,
         bodyCapacity, contactCapacity);
@@ -296,7 +305,7 @@ TEST_P(GpuDynamicColoringTest, ColorsConflictsAndGathersOverflowDeterministicall
     EXPECT_EQ(solver.inputBindGroupCacheMisses(), 9u);
     EXPECT_EQ(second.colors, first.colors);
     EXPECT_EQ(second.telemetry.persistentColorsRetained, colorCount);
-    EXPECT_EQ(second.telemetry.tick, 2u);
+    EXPECT_EQ(second.telemetry.tick, 3u);
 
     WGPUBuffer alternateManifoldBuffer = makeStorage<GpuContactManifold>(
         context, manifolds, "color_alternate_manifolds");

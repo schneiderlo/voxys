@@ -715,23 +715,29 @@ public:
         bind(coloringGroup, offset);
         const uint64_t globalWorkOffset = dispatchOffset(
             config_.colorCount + 1u);
-        const uint64_t globalClaimOffset = dispatchOffset(
-            config_.colorCount + 5u);
         const uint64_t continuationWorkOffset = dispatchOffset(
             config_.colorCount + 6u);
         const uint32_t unconditionalRounds = std::min(
             config_.colorCount, kUnconditionalColorRounds);
+        const bool initializeClaims = !claimsInitialized_;
         const auto encodeColorRound = [&](uint32_t round,
                                           uint64_t workOffset) {
             offset = writeParams(slot, makeParams(round,
                 config_.overflowIterations));
             bind(coloringGroup, offset);
-            wgpuComputePassEncoderSetPipeline(
-                pass, round == 0u ? clearClaimsPipeline_
-                                  : clearRoundClaimsPipeline_);
-            wgpuComputePassEncoderDispatchWorkgroupsIndirect(
-                pass, dispatchArgs_,
-                round == 0u ? globalClaimOffset : workOffset);
+            if (round == 0u && initializeClaims) {
+                wgpuComputePassEncoderSetPipeline(pass, clearClaimsPipeline_);
+                wgpuComputePassEncoderDispatchWorkgroups(
+                    pass,
+                    (claimCapacity_ + config_.workgroupSize - 1u)
+                        / config_.workgroupSize,
+                    1u, 1u);
+            } else if (round != 0u) {
+                wgpuComputePassEncoderSetPipeline(
+                    pass, clearRoundClaimsPipeline_);
+                wgpuComputePassEncoderDispatchWorkgroupsIndirect(
+                    pass, dispatchArgs_, workOffset);
+            }
             wgpuComputePassEncoderSetPipeline(pass, claimPipeline_);
             wgpuComputePassEncoderDispatchWorkgroupsIndirect(
                 pass, dispatchArgs_, workOffset);
@@ -996,6 +1002,7 @@ public:
             queue_, parameterBuffer_, 0u,
             std::span<const ParameterUploadSlot>(
                 parameterUpload_.data(), slot));
+        claimsInitialized_ = true;
         return true;
     }
 
@@ -1058,6 +1065,7 @@ public:
         input_ = {};
         claimCapacity_ = 0;
         endpointCapacity_ = 0;
+        claimsInitialized_ = false;
         inputBindGroupCacheMisses_ = 0;
         scratchBytes_ = 0;
     }
@@ -1068,6 +1076,7 @@ public:
     GpuDynamicSolverInput input_{};
     uint32_t claimCapacity_ = 0;
     uint32_t endpointCapacity_ = 0;
+    bool claimsInitialized_ = false;
     size_t scratchBytes_ = 0;
     size_t inputBindGroupCacheMisses_ = 0;
     DeterministicGpuPrimitives primitives_;

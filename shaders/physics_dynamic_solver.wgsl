@@ -152,6 +152,13 @@ fn store_dispatch(slot : u32, x : u32) {
 fn reset_coloring_impl(gid : vec3<u32>) {
     let index = gid.x;
     if (index < params.capacities.x) {
+        var previousColors = atomicLoad(&acceptedColorMasks[index]);
+        while (previousColors != 0u) {
+            let color = firstTrailingBit(previousColors);
+            atomicStore(
+                &colorClaims[index * params.capacities.z + color], SENTINEL);
+            previousColors &= previousColors - 1u;
+        }
         atomicStore(&acceptedColorMasks[index], 0u);
     }
     if (index < params.capacities.y) {
