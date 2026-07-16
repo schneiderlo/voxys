@@ -547,6 +547,28 @@ if (options.trace) {
     });
 }
 
+await evaluate(`(() => {
+    globalThis.__voxyStartGoalMeasurement = () => {
+        const capture = globalThis.__voxyGoalCapture;
+        while (voxyModule._voxy_poll_physics_stage_timing() > 0) {}
+        while ((voxyModule._voxy_poll_render_stage_timing?.() ?? 0) > 0) {}
+        capture.startedMs = performance.now();
+        capture.frameMs.length = 0;
+        capture.frameSamples.length = 0;
+        capture.stageSamples.length = 0;
+        capture.renderStageSamples.length = 0;
+        capture.lastSubmittedAtMs = null;
+        capture.lastSubmittedFrame = voxyModule._voxy_get_frame_count();
+        capture.frameCountStart = capture.lastSubmittedFrame;
+        capture.stageTickFloor =
+            voxyModule._voxy_get_physics_encoded_tick();
+        capture.recordFrames = true;
+        capture.peakJsHeapBytes =
+            performance.memory?.usedJSHeapSize ?? 0;
+        return capture.stageTickFloor;
+    };
+})()`);
+
 let fixedMeasurementStartTick = null;
 if (options.presetBodies !== null) {
     const targetTick = options.warmupTick + 120;
@@ -555,7 +577,7 @@ if (options.presetBodies !== null) {
         const waitForTick = () => {
             const tick = voxyModule._voxy_get_physics_encoded_tick();
             if (tick >= target) {
-                resolve(tick);
+                resolve(globalThis.__voxyStartGoalMeasurement());
                 return;
             }
             requestAnimationFrame(waitForTick);
@@ -570,22 +592,9 @@ if (options.presetBodies !== null) {
     }
 }
 
-await evaluate(`(() => {
-    const capture = globalThis.__voxyGoalCapture;
-    while (voxyModule._voxy_poll_physics_stage_timing() > 0) {}
-    while ((voxyModule._voxy_poll_render_stage_timing?.() ?? 0) > 0) {}
-    capture.startedMs = performance.now();
-    capture.frameMs.length = 0;
-    capture.frameSamples.length = 0;
-    capture.stageSamples.length = 0;
-    capture.renderStageSamples.length = 0;
-    capture.lastSubmittedAtMs = null;
-    capture.lastSubmittedFrame = voxyModule._voxy_get_frame_count();
-    capture.frameCountStart = capture.lastSubmittedFrame;
-    capture.stageTickFloor = voxyModule._voxy_get_physics_encoded_tick();
-    capture.recordFrames = true;
-    capture.peakJsHeapBytes = performance.memory?.usedJSHeapSize ?? 0;
-})()`);
+if (options.presetBodies === null) {
+    await evaluate("globalThis.__voxyStartGoalMeasurement()");
+}
 network.requests = 0;
 network.requestBytes = 0;
 network.responseBytes = 0;
@@ -618,12 +627,22 @@ if (options.presetBodies === null) {
             capture.recordFrames = false;
             capture.frameCountEnd = voxyModule._voxy_get_frame_count();
             capture.stageTickCeiling = tick;
-            const pointer = voxyModule._voxy_get_telemetry_json();
-            resolve({
-                elapsedMs: performance.now() - capture.startedMs,
-                stageTickCeiling: tick,
-                telemetry: JSON.parse(voxyModule.UTF8ToString(pointer)),
-            });
+            const elapsedMs = performance.now() - capture.startedMs;
+            const waitForTelemetry = () => {
+                const pointer = voxyModule._voxy_get_telemetry_json();
+                const telemetry = JSON.parse(
+                    voxyModule.UTF8ToString(pointer));
+                if (telemetry.physics.tick < target) {
+                    requestAnimationFrame(waitForTelemetry);
+                    return;
+                }
+                resolve({
+                    elapsedMs,
+                    stageTickCeiling: tick,
+                    telemetry,
+                });
+            };
+            waitForTelemetry();
         };
         requestAnimationFrame(stopAtTick);
     })`);

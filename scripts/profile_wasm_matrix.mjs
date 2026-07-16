@@ -139,6 +139,8 @@ const preparePage = async (bodyCount) => {
         socket.close();
         throw new Error("WebGPU adapter is unavailable");
     }
+    await command("Network.enable");
+    await command("Network.setCacheDisabled", { cacheDisabled: true });
     const currentUrl = new URL(page.url);
     if (!currentUrl.searchParams.has("profileSession")) {
         currentUrl.searchParams.set(
@@ -154,18 +156,34 @@ const preparePage = async (bodyCount) => {
     await command("Runtime.evaluate", {
         expression: `location.replace(${JSON.stringify(currentUrl.href)})`,
     });
-    socket.close();
-
     const navigationDeadline = Date.now() + options.timeoutMs;
+    let navigationCommitted = false;
     while (Date.now() < navigationDeadline) {
-        const navigatedPage = await findPage();
-        if (new URL(navigatedPage.url).searchParams.get("matrixRun")
-            === matrixRun) {
-            return;
+        try {
+            const state = await command("Runtime.evaluate", {
+                expression: `({
+                    matrixRun: new URLSearchParams(location.search)
+                        .get("matrixRun"),
+                    ready: document.readyState,
+                })`,
+                returnByValue: true,
+            });
+            if (state.result?.value?.matrixRun === matrixRun
+                && state.result.value.ready === "complete") {
+                navigationCommitted = true;
+                break;
+            }
+        } catch {
+            // The old execution context is being replaced.
         }
         await delay(25);
     }
-    throw new Error(`browser navigation did not commit matrixRun=${matrixRun}`);
+    socket.close();
+    if (!navigationCommitted) {
+        throw new Error(
+            `browser navigation did not commit matrixRun=${matrixRun}`,
+        );
+    }
 };
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
