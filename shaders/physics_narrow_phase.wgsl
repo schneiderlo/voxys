@@ -1186,12 +1186,11 @@ fn consider_poly_sat_axis(sat : ptr<function, SatResult>,
                           axisA : u32, axisB : u32,
                           bodyA : u32, categoryA : u32,
                           bodyB : u32, categoryB : u32,
-                          frameBody : u32) {
+                          frameBody : u32, centerDelta : vec3<f32>) {
     let squared = dot(rawAxis, rawAxis);
     if (squared <= 1e-10) { return; }
     var axis = rawAxis * inverseSqrt(squared);
-    if (dot(body_position_in_frame(bodyB, frameBody)
-          - body_position_in_frame(bodyA, frameBody), axis) < 0.0) {
+    if (dot(centerDelta, axis) < 0.0) {
         axis = -axis;
     }
     let rangeA = projected_poly_range(bodyA, categoryA, axis, frameBody);
@@ -1222,18 +1221,22 @@ fn polyhedron_sat(bodyA : u32, categoryA : u32,
     result.axisA = 15u;
     result.axisB = 15u;
     result.valid = 1u;
+    let centerDelta = body_position_in_frame(bodyB, frameBody)
+                    - body_position_in_frame(bodyA, frameBody);
     for (var axis = 0u; axis < poly_face_axis_count(categoryA);
          axis += 1u) {
         consider_poly_sat_axis(&result,
             poly_face_axis(bodyA, categoryA, axis, frameBody),
-            0u, axis, 0u, bodyA, categoryA, bodyB, categoryB, frameBody);
+            0u, axis, 0u, bodyA, categoryA, bodyB, categoryB,
+            frameBody, centerDelta);
         if (result.valid == 0u) { return result; }
     }
     for (var axis = 0u; axis < poly_face_axis_count(categoryB);
          axis += 1u) {
         consider_poly_sat_axis(&result,
             poly_face_axis(bodyB, categoryB, axis, frameBody),
-            1u, 0u, axis, bodyA, categoryA, bodyB, categoryB, frameBody);
+            1u, 0u, axis, bodyA, categoryA, bodyB, categoryB,
+            frameBody, centerDelta);
         if (result.valid == 0u) { return result; }
     }
     for (var axisA = 0u; axisA < poly_edge_axis_count(categoryA);
@@ -1244,7 +1247,8 @@ fn polyhedron_sat(bodyA : u32, categoryA : u32,
                 poly_edge_axis(bodyA, categoryA, axisA, frameBody),
                 poly_edge_axis(bodyB, categoryB, axisB, frameBody)),
                 2u, axisA, axisB,
-                bodyA, categoryA, bodyB, categoryB, frameBody);
+                bodyA, categoryA, bodyB, categoryB,
+                frameBody, centerDelta);
             if (result.valid == 0u) { return result; }
         }
     }
