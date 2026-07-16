@@ -217,7 +217,7 @@ while (Date.now() < deadline) {
             profileSession: new URLSearchParams(location.search)
                 .get("profileSession"),
             profilingEnabled: new URLSearchParams(location.search)
-                .get("physicsProfile") !== "0",
+                .get("physicsProfile") === "1",
             renderProfilingEnabled: new URLSearchParams(location.search)
                 .get("renderProfile") === "1",
             errorVisible: error
