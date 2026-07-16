@@ -778,10 +778,9 @@ public:
         wgpuComputePassEncoderEnd(pass);
         wgpuComputePassEncoderRelease(pass);
 
-        if (!primitives_.encodeRadixSortBoundedU32x2(
+        if (!primitives_.encodeRadixSortBoundedU16Word(
                 encoder, colorRecords_, sortedColorRecords_,
-                input_.contactCapacity,
-                std::max(input_.contactCapacity, config_.colorCount + 1u), 8u,
+                input_.contactCapacity, 1u, config_.colorCount + 1u, 8u,
                 dispatchArgs_, dispatchOffset(config_.colorCount + 1u),
                 dispatchOffset(config_.colorCount + 2u),
                 input_.narrowPhaseTelemetryBuffer, 10u)) return false;

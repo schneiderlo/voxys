@@ -85,6 +85,7 @@ struct CopyLayout {
     size_t compact = 0;
     size_t compactResult = 0;
     size_t radix32 = 0;
+    size_t radixWord = 0;
     size_t radix64 = 0;
     size_t unique = 0;
     size_t uniqueResult = 0;
@@ -138,7 +139,7 @@ TEST_P(DeterministicGpuPrimitivesTest, MatchesLargeRandomizedCpuReferences) {
         predicates[index] = (smallValue(random) % 5u) == 0u ? 1u : 0u;
         records32[index] = {
             .keyLow = keyValue(random) & 0x3ffu,
-            .keyHigh = keyValue(random),
+            .keyHigh = keyValue(random) & 0x7fffu,
             .value = index ^ 0xa5a5u,
             .ordinal = index,
         };
@@ -168,6 +169,11 @@ TEST_P(DeterministicGpuPrimitivesTest, MatchesLargeRandomizedCpuReferences) {
     std::stable_sort(expected32.begin(), expected32.end(),
         [](const GpuKeyValue& lhs, const GpuKeyValue& rhs) {
             return lhs.keyLow < rhs.keyLow;
+        });
+    auto expectedWord = records32;
+    std::stable_sort(expectedWord.begin(), expectedWord.end(),
+        [](const GpuKeyValue& lhs, const GpuKeyValue& rhs) {
+            return lhs.keyHigh < rhs.keyHigh;
         });
     auto expected64 = records64;
     std::stable_sort(expected64.begin(), expected64.end(),
@@ -268,6 +274,8 @@ TEST_P(DeterministicGpuPrimitivesTest, MatchesLargeRandomizedCpuReferences) {
     auto scanOutput = outputBuffer<uint32_t>(context, count, "scan_output");
     auto compactOutput = outputBuffer<uint32_t>(context, count, "compact_output");
     auto radix32Output = outputBuffer<GpuKeyValue>(context, count, "radix32_output");
+    auto radixWordOutput = outputBuffer<GpuKeyValue>(
+        context, count, "radix_word_output");
     auto radix64Output = outputBuffer<GpuKeyValue>(context, count, "radix64_output");
     auto uniqueOutput = outputBuffer<GpuKeyValue>(context, count, "unique_output");
     auto mergeOutput = outputBuffer<GpuKeyValue>(
@@ -287,6 +295,12 @@ TEST_P(DeterministicGpuPrimitivesTest, MatchesLargeRandomizedCpuReferences) {
         encoder, valuesBuffer, predicatesBuffer, compactOutput, count));
     ASSERT_TRUE(primitives.encodeRadixSort(
         encoder, records32Buffer, radix32Output, count, 1u));
+    ASSERT_TRUE(primitives.encodeRadixSortBoundedU16Word(
+        encoder, records32Buffer, radixWordOutput, count,
+        1u, 0x8000u, 12u));
+    ASSERT_FALSE(primitives.encodeRadixSortBoundedU16Word(
+        encoder, records32Buffer, radixWordOutput, count,
+        2u, 0x8000u, 12u));
     ASSERT_TRUE(primitives.encodeRadixSortBoundedU32x2(
         encoder, records64Buffer, radix64Output, count, 0x00ffffffu, 20u));
     ASSERT_TRUE(primitives.encodeAdjacentUnique(
@@ -310,6 +324,7 @@ TEST_P(DeterministicGpuPrimitivesTest, MatchesLargeRandomizedCpuReferences) {
     layout.compact = layout.allocate(expectedCompact.size() * sizeof(uint32_t));
     layout.compactResult = layout.allocate(4u * sizeof(uint32_t));
     layout.radix32 = layout.allocate(recordBytes);
+    layout.radixWord = layout.allocate(recordBytes);
     layout.radix64 = layout.allocate(recordBytes);
     layout.unique = layout.allocate(expectedUnique.size() * sizeof(GpuKeyValue));
     layout.uniqueResult = layout.allocate(4u * sizeof(uint32_t));
@@ -341,6 +356,9 @@ TEST_P(DeterministicGpuPrimitivesTest, MatchesLargeRandomizedCpuReferences) {
         layout.compactResult, 4u * sizeof(uint32_t));
     wgpuCommandEncoderCopyBufferToBuffer(
         encoder, radix32Output, 0, readback, layout.radix32, recordBytes);
+    wgpuCommandEncoderCopyBufferToBuffer(
+        encoder, radixWordOutput, 0,
+        readback, layout.radixWord, recordBytes);
     wgpuCommandEncoderCopyBufferToBuffer(
         encoder, radix64Output, 0, readback, layout.radix64, recordBytes);
     ASSERT_TRUE(primitives.encodeAdjacentUnique(
@@ -401,6 +419,7 @@ TEST_P(DeterministicGpuPrimitivesTest, MatchesLargeRandomizedCpuReferences) {
     expectBytes(layout.scan, expectedScan);
     expectBytes(layout.compact, expectedCompact);
     expectBytes(layout.radix32, expected32);
+    expectBytes(layout.radixWord, expectedWord);
     expectBytes(layout.radix64, expected64);
     expectBytes(layout.unique, expectedUnique);
     expectBytes(layout.merge, expectedMerge);

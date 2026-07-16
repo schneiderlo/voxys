@@ -98,6 +98,19 @@ public:
         WGPUBuffer dynamicCountBuffer = nullptr,
         uint32_t dynamicCountWord = 0,
         uint32_t dynamicCountScale = 1);
+    // Stable sort by one selected key word when every real key is below a
+    // 16-bit exclusive bound. Equal keys retain their input order, and the
+    // all-ones sentinel remains after every real key.
+    [[nodiscard]] bool encodeRadixSortBoundedU16Word(
+        WGPUCommandEncoder encoder, WGPUBuffer input, WGPUBuffer output,
+        uint32_t count, uint32_t keyWord, uint32_t exclusiveKeyBound,
+        uint32_t parameterBaseSlot = 8,
+        WGPUBuffer indirectDispatchBuffer = nullptr,
+        uint64_t indirectWorkOffset = 0,
+        uint64_t indirectScalarOffset = 0,
+        WGPUBuffer dynamicCountBuffer = nullptr,
+        uint32_t dynamicCountWord = 0,
+        uint32_t dynamicCountScale = 1);
     [[nodiscard]] bool encodeAdjacentUnique(WGPUCommandEncoder encoder,
                                             WGPUBuffer sortedInput,
                                             WGPUBuffer output,
@@ -157,7 +170,7 @@ private:
                                     uint32_t dynamicCountScale = 1);
     [[nodiscard]] bool encodeRadixSortImpl(
         WGPUCommandEncoder encoder, WGPUBuffer input, WGPUBuffer output,
-        uint32_t count, uint32_t logicalKeyWords,
+        uint32_t count, uint32_t firstKeyWord, uint32_t logicalKeyWords,
         uint32_t significantBytesPerWord, uint32_t parameterBaseSlot,
         WGPUBuffer indirectDispatchBuffer, uint64_t indirectWorkOffset,
         uint64_t indirectScalarOffset, WGPUBuffer dynamicCountBuffer,

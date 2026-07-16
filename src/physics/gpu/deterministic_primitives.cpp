@@ -493,7 +493,7 @@ bool DeterministicGpuPrimitives::encodeRadixSort(
     uint64_t indirectScalarOffset, WGPUBuffer dynamicCountBuffer,
     uint32_t dynamicCountWord, uint32_t dynamicCountScale) {
     return encodeRadixSortImpl(
-        encoder, input, output, count, logicalKeyWords, 4u,
+        encoder, input, output, count, 0u, logicalKeyWords, 4u,
         parameterBaseSlot, indirectDispatchBuffer, indirectWorkOffset,
         indirectScalarOffset, dynamicCountBuffer, dynamicCountWord,
         dynamicCountScale);
@@ -510,7 +510,23 @@ bool DeterministicGpuPrimitives::encodeRadixSortBoundedU32x2(
     const uint32_t significantBytesPerWord = exclusiveKeyBound <= 0xffffu
         ? 2u : exclusiveKeyBound <= 0x00ffffffu ? 3u : 4u;
     return encodeRadixSortImpl(
-        encoder, input, output, count, 2u, significantBytesPerWord,
+        encoder, input, output, count, 0u, 2u, significantBytesPerWord,
+        parameterBaseSlot, indirectDispatchBuffer, indirectWorkOffset,
+        indirectScalarOffset, dynamicCountBuffer, dynamicCountWord,
+        dynamicCountScale);
+}
+
+bool DeterministicGpuPrimitives::encodeRadixSortBoundedU16Word(
+    WGPUCommandEncoder encoder, WGPUBuffer input, WGPUBuffer output,
+    uint32_t count, uint32_t keyWord, uint32_t exclusiveKeyBound,
+    uint32_t parameterBaseSlot,
+    WGPUBuffer indirectDispatchBuffer, uint64_t indirectWorkOffset,
+    uint64_t indirectScalarOffset, WGPUBuffer dynamicCountBuffer,
+    uint32_t dynamicCountWord, uint32_t dynamicCountScale) {
+    if (keyWord >= 2u || exclusiveKeyBound == 0u
+        || exclusiveKeyBound > 0xffffu) return false;
+    return encodeRadixSortImpl(
+        encoder, input, output, count, keyWord, 1u, 2u,
         parameterBaseSlot, indirectDispatchBuffer, indirectWorkOffset,
         indirectScalarOffset, dynamicCountBuffer, dynamicCountWord,
         dynamicCountScale);
@@ -518,13 +534,14 @@ bool DeterministicGpuPrimitives::encodeRadixSortBoundedU32x2(
 
 bool DeterministicGpuPrimitives::encodeRadixSortImpl(
     WGPUCommandEncoder encoder, WGPUBuffer input, WGPUBuffer output,
-    uint32_t count, uint32_t logicalKeyWords,
+    uint32_t count, uint32_t firstKeyWord, uint32_t logicalKeyWords,
     uint32_t significantBytesPerWord, uint32_t parameterBaseSlot,
     WGPUBuffer indirectDispatchBuffer, uint64_t indirectWorkOffset,
     uint64_t indirectScalarOffset, WGPUBuffer dynamicCountBuffer,
     uint32_t dynamicCountWord, uint32_t dynamicCountScale) {
     if (!encoder || !input || !output || count > capacity_
         || (logicalKeyWords != 1u && logicalKeyWords != 2u)
+        || firstKeyWord >= 2u || firstKeyWord + logicalKeyWords > 2u
         || significantBytesPerWord < 2u || significantBytesPerWord > 4u
         || parameterBaseSlot
             > kParameterSlots - logicalKeyWords * significantBytesPerWord
@@ -546,7 +563,7 @@ bool DeterministicGpuPrimitives::encodeRadixSortImpl(
                 | (dynamicCountScale == 2u ? (1u << 24u) : 0u)
             : std::numeric_limits<uint32_t>::max();
         const uint32_t keyByte =
-            (passIndex / significantBytesPerWord) * 4u
+            (firstKeyWord + passIndex / significantBytesPerWord) * 4u
             + passIndex % significantBytesPerWord;
         writeParams(slot, Params{{count, countDescriptor,
                                   workgroupSize_, keyByte}});
