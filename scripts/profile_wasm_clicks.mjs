@@ -83,6 +83,7 @@ await new Promise((resolve, reject) => {
 let nextId = 1;
 const pending = new Map();
 const diagnostics = [];
+const ignoredDiagnostics = [];
 const traceEvents = [];
 let finishTrace;
 const traceComplete = new Promise((resolve) => { finishTrace = resolve; });
@@ -94,7 +95,17 @@ const network = {
 socket.addEventListener("message", (event) => {
     const message = JSON.parse(event.data);
     if (message.method === "Runtime.exceptionThrown") {
-        diagnostics.push(message.params.exceptionDetails.text);
+        const details = message.params.exceptionDetails;
+        const description = details.exception?.description ?? details.text;
+        if (description.includes("WrongDocumentError")
+            && description.includes("pointer lock")) {
+            // Headless Chrome has no valid top-level document for Pointer
+            // Lock. The engine still records its internal capture state, which
+            // is all deterministic input injection needs.
+            ignoredDiagnostics.push(description);
+        } else {
+            diagnostics.push(description);
+        }
     } else if (message.method === "Log.entryAdded"
                && message.params.entry.level === "error") {
         diagnostics.push(message.params.entry.text);
@@ -175,6 +186,8 @@ while (Date.now() < deadline) {
             buildId: globalThis.voxyBuildId ?? null,
             profilingEnabled: new URLSearchParams(location.search)
                 .get("physicsProfile") !== "0",
+            renderProfilingEnabled: new URLSearchParams(location.search)
+                .get("renderProfile") === "1",
             errorVisible: error
                 ? getComputedStyle(error).display !== "none"
                 : false,
@@ -263,6 +276,12 @@ await evaluate(`(() => {
             ?? voxyModule.wasmMemory?.buffer?.byteLength ?? 0,
     };
     globalThis.__voxyGoalCapture = capture;
+    // Benchmark input is already captured by the engine. Prevent the page's
+    // anonymous click listener from making a second Pointer Lock request,
+    // which headless Chrome rejects as an unhandled promise.
+    document.getElementById("voxy-canvas").addEventListener(
+        "click", (event) => event.stopImmediatePropagation(), true,
+    );
     const onFrame = (now) => {
         if (!capture.active) return;
         capture.peakJsHeapBytes = Math.max(
@@ -415,6 +434,7 @@ if (options.trace) {
 await evaluate(`(() => {
     const capture = globalThis.__voxyGoalCapture;
     while (voxyModule._voxy_poll_physics_stage_timing() > 0) {}
+    while ((voxyModule._voxy_poll_render_stage_timing?.() ?? 0) > 0) {}
     capture.startedMs = performance.now();
     capture.frameMs.length = 0;
     capture.frameSamples.length = 0;
@@ -628,6 +648,8 @@ const traceHotspots = [...traceDurationBySite.values()]
 const submittedFrames = capture.frameCountEnd - capture.frameCountStart;
 const gpuSamplesPassed = !readyState.profilingEnabled
     || validStageSamples.length >= 10;
+const renderGpuSamplesPassed = !readyState.renderProfilingEnabled
+    || validRenderStageSamples.length >= 10;
 const baseInvariantsPassed = telemetry.physics.backend === "webgpu_soft"
     && telemetry.physics.arithmetic === "fast_float"
     && telemetry.physics.bodies.current === options.clicks * 128
@@ -657,6 +679,7 @@ const result = {
         devicePixelRatio: readyState.devicePixelRatio,
         buildId: readyState.buildId,
         physicsProfiling: readyState.profilingEnabled,
+        renderProfiling: readyState.renderProfilingEnabled,
         camera: telemetry.camera,
     },
     workload: {
@@ -726,7 +749,9 @@ const result = {
         rootErrors: telemetry.physics.islands.root_errors,
         ccdFailures: telemetry.physics.ccd_failures,
         gpuSamplesPassed,
+        renderGpuSamplesPassed,
         overallPassed: baseInvariantsPassed && gpuSamplesPassed
+            && renderGpuSamplesPassed
             && diagnostics.length === 0,
     },
     raw: {
@@ -736,6 +761,7 @@ const result = {
         renderGpuStageSamples: validRenderStageSamples,
     },
     diagnostics,
+    ignoredDiagnostics,
 };
 
 console.log(JSON.stringify(result, null, 2));

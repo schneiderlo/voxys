@@ -102,6 +102,10 @@ is stored in `/tmp/voxys-telemetry.ndjson`. Set `VOXY_TELEMETRY_FILE` or
 Telemetry is enabled automatically on localhost. Use `?telemetry=0` to disable
 it, or `?telemetry=1` to enable it explicitly on another development host.
 
+For reproducible WebGPU stage captures, scaling matrices, A/B confidence
+intervals, and regression thresholds, see
+[WebGPU performance profiling](docs/performance-profiling.md).
+
 #### Sanitizers (Debug & Verification)
 Enable sanitizers using `--config=<sanitizer>`.
 
