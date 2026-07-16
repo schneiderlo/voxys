@@ -1998,6 +1998,10 @@ void Application::updateStats(float deltaTime) {
     overlayStats.terrainMipLevels = stats_.terrainMipLevels;
     overlayStats.physics = stats_.physics;
     overlayStats.physicsGpuTiming = stats_.physicsGpuTiming;
+    if (stats_.renderGpuTiming) {
+        overlayStats.renderGpuMilliseconds =
+            stats_.renderGpuTiming->milliseconds;
+    }
     
     if (camera_) {
         overlayStats.cameraPosition = camera_->position();

@@ -8,6 +8,7 @@
 
 #include <cstdio>
 #include <iomanip>
+#include <numeric>
 #include <sstream>
 
 #if defined(VOXY_WASM)
@@ -308,6 +309,22 @@ std::string DebugOverlay::formatPhysicsTimings() const {
     return out.str();
 }
 
+std::string DebugOverlay::formatRenderTimings() const {
+    if (!stats_.renderGpuMilliseconds) return "Render GPU: unavailable";
+    constexpr std::array names{
+        "water", "terrain", "lighting", "primitives"};
+    const auto& milliseconds = *stats_.renderGpuMilliseconds;
+    const double total = std::accumulate(
+        milliseconds.begin(), milliseconds.end(), 0.0);
+    std::ostringstream out;
+    out << std::fixed << std::setprecision(2)
+        << "Render GPU: " << total << " ms";
+    for (size_t index = 0; index < milliseconds.size(); ++index) {
+        out << " | " << names[index] << ' ' << milliseconds[index];
+    }
+    return out.str();
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Platform-Specific Display
 // ─────────────────────────────────────────────────────────────────────────────
@@ -338,6 +355,7 @@ void DebugOverlay::displayNative() {
     LOG_INFO("│ {}                                      ", formatPhysicsCcdWaterEvents());
     LOG_INFO("│ {}                                      ", formatPhysicsIo());
     LOG_INFO("│ {}                                      ", formatPhysicsTimings());
+    LOG_INFO("│ {}                                      ", formatRenderTimings());
     LOG_INFO("│ Frame: {}                               ", stats_.frameCount);
     LOG_INFO("└─────────────────────────────────────────┘");
 #endif
@@ -362,6 +380,7 @@ void DebugOverlay::displayWasm() {
         var physicsCcdWaterEvents = UTF8ToString($12);
         var physicsIo = UTF8ToString($13);
         var physicsTimings = UTF8ToString($14);
+        var renderTimings = UTF8ToString($15);
 
         function setText(id, value) {
             var element = document.getElementById(id);
@@ -400,6 +419,7 @@ void DebugOverlay::displayWasm() {
         setText('debug-physics-ccd-water-events', physicsCcdWaterEvents);
         setText('debug-physics-io', physicsIo);
         setText('debug-physics-timings', physicsTimings);
+        setText('debug-render-timings', renderTimings);
         // Bracket access prevents Emscripten's JS minifier from renaming the
         // property that the external page loader publishes.
         var profile = globalThis['voxyDeviceProfile'];
@@ -434,7 +454,8 @@ void DebugOverlay::displayWasm() {
        formatPhysicsIslands().c_str(),
        formatPhysicsCcdWaterEvents().c_str(),
        formatPhysicsIo().c_str(),
-       formatPhysicsTimings().c_str());
+       formatPhysicsTimings().c_str(),
+       formatRenderTimings().c_str());
 #endif
 }
 

@@ -14,6 +14,7 @@
 
 #include <string>
 #include <optional>
+#include <array>
 #include <glm/vec3.hpp>
 
 namespace voxy {
@@ -54,6 +55,7 @@ struct DebugOverlayStats {
     // telemetry snapshot; displaying the overlay never locks body state.
     physics::PhysicsStats physics{};
     std::optional<physics::PhysicsGpuStageTiming> physicsGpuTiming;
+    std::optional<std::array<double, 4>> renderGpuMilliseconds;
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -134,6 +136,7 @@ private:
     [[nodiscard]] std::string formatPhysicsCcdWaterEvents() const;
     [[nodiscard]] std::string formatPhysicsIo() const;
     [[nodiscard]] std::string formatPhysicsTimings() const;
+    [[nodiscard]] std::string formatRenderTimings() const;
     
     // Platform-specific display
     void displayNative();
@@ -148,4 +151,3 @@ private:
 DebugOverlay& getDebugOverlay();
 
 } // namespace voxy
-
