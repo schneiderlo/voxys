@@ -19,6 +19,8 @@ const options = {
 
 const usesFrameMeasurementClock = () =>
     options.expectedBackend === "jolt_legacy";
+const usesTimerMeasurementPolling = () =>
+    options.uncapped || usesFrameMeasurementClock();
 
 for (let index = 2; index < process.argv.length; ++index) {
     const argument = process.argv[index];
@@ -633,7 +635,7 @@ if (options.presetBodies !== null) {
         : options.warmupTick + 120;
     fixedMeasurementStartProgress = await evaluate(`new Promise((resolve) => {
         const target = ${JSON.stringify(targetProgress)};
-        const schedule = ${JSON.stringify(usesFrameMeasurementClock())}
+        const schedule = ${JSON.stringify(usesTimerMeasurementPolling())}
             ? (callback) => setTimeout(callback, 0)
             : requestAnimationFrame;
         const waitForProgress = () => {
@@ -683,7 +685,7 @@ if (options.presetBodies === null) {
         + options.durationTicks;
     measurementWindow = await evaluate(`new Promise((resolve) => {
         const target = ${JSON.stringify(targetProgress)};
-        const schedule = ${JSON.stringify(usesFrameMeasurementClock())}
+        const schedule = ${JSON.stringify(usesTimerMeasurementPolling())}
             ? (callback) => setTimeout(callback, 0)
             : requestAnimationFrame;
         const stopAtProgress = () => {
