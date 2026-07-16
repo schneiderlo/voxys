@@ -407,16 +407,20 @@ fn adjacent_sector_delta(reference : i32, other : i32) -> i32 {
 }
 
 fn body_position_in_frame(body : u32, frameBody : u32) -> vec3<f32> {
+    let position = poses[body].position_invMass.xyz;
+    let frameSector = metadata[frameBody].xyz;
+    let bodySector = metadata[body].xyz;
     var sectorDelta = vec3<i32>(0);
-    for (var axis = 0u; axis < 3u; axis += 1u) {
-        sectorDelta[axis] = adjacent_sector_delta(
-            metadata[frameBody][axis], metadata[body][axis]);
-        if (abs(sectorDelta[axis]) > 1) {
-            return vec3<f32>(3.402823466e+38);
+    if (!all(frameSector == bodySector)) {
+        for (var axis = 0u; axis < 3u; axis += 1u) {
+            sectorDelta[axis] = adjacent_sector_delta(
+                frameSector[axis], bodySector[axis]);
+            if (abs(sectorDelta[axis]) > 1) {
+                return vec3<f32>(3.402823466e+38);
+            }
         }
     }
-    return poses[body].position_invMass.xyz
-         + vec3<f32>(sectorDelta) * 256.0;
+    return position + vec3<f32>(sectorDelta) * 256.0;
 }
 
 fn make_box(body : u32, frameBody : u32) -> BoxFrame {
