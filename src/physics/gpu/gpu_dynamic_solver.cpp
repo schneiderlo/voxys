@@ -778,10 +778,11 @@ public:
         wgpuComputePassEncoderEnd(pass);
         wgpuComputePassEncoderRelease(pass);
 
-        if (!primitives_.encodeRadixSort(
+        if (!primitives_.encodeRadixSortBoundedU32x2(
                 encoder, colorRecords_, sortedColorRecords_,
-                input_.contactCapacity, 2u, 8u, dispatchArgs_,
-                dispatchOffset(config_.colorCount + 1u),
+                input_.contactCapacity,
+                std::max(input_.contactCapacity, config_.colorCount + 1u), 8u,
+                dispatchArgs_, dispatchOffset(config_.colorCount + 1u),
                 dispatchOffset(config_.colorCount + 2u),
                 input_.narrowPhaseTelemetryBuffer, 10u)) return false;
         writeProfilingBoundary();
@@ -822,10 +823,11 @@ public:
         wgpuComputePassEncoderEnd(pass);
         wgpuComputePassEncoderRelease(pass);
 
-        if (!primitives_.encodeRadixSort(
+        if (!primitives_.encodeRadixSortBoundedU32x2(
                 encoder, adjacencyRecords_, sortedAdjacency_,
-                endpointCapacity_, 2u, 24u, dispatchArgs_,
-                dispatchOffset(config_.colorCount + 3u),
+                endpointCapacity_,
+                std::max(input_.contactCapacity, input_.bodyCapacity), 24u,
+                dispatchArgs_, dispatchOffset(config_.colorCount + 3u),
                 dispatchOffset(config_.colorCount + 4u), colorRanges_,
                 config_.colorCount * 2u + 1u, 2u)) return false;
         writeProfilingBoundary();

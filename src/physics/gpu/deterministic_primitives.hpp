@@ -84,6 +84,20 @@ public:
                                        WGPUBuffer dynamicCountBuffer = nullptr,
                                        uint32_t dynamicCountWord = 0,
                                        uint32_t dynamicCountScale = 1);
+    // Stable two-word sort when every real key component is below the given
+    // exclusive bound. The all-ones sentinel is also supported and remains
+    // after every real key. Constant high-byte passes are omitted while the
+    // exact order of the full eight-pass sort is preserved.
+    [[nodiscard]] bool encodeRadixSortBoundedU32x2(
+        WGPUCommandEncoder encoder, WGPUBuffer input, WGPUBuffer output,
+        uint32_t count, uint32_t exclusiveKeyBound,
+        uint32_t parameterBaseSlot = 8,
+        WGPUBuffer indirectDispatchBuffer = nullptr,
+        uint64_t indirectWorkOffset = 0,
+        uint64_t indirectScalarOffset = 0,
+        WGPUBuffer dynamicCountBuffer = nullptr,
+        uint32_t dynamicCountWord = 0,
+        uint32_t dynamicCountScale = 1);
     [[nodiscard]] bool encodeAdjacentUnique(WGPUCommandEncoder encoder,
                                             WGPUBuffer sortedInput,
                                             WGPUBuffer output,
@@ -141,6 +155,13 @@ private:
                                     WGPUBuffer dynamicCountBuffer = nullptr,
                                     uint32_t dynamicCountWord = 0,
                                     uint32_t dynamicCountScale = 1);
+    [[nodiscard]] bool encodeRadixSortImpl(
+        WGPUCommandEncoder encoder, WGPUBuffer input, WGPUBuffer output,
+        uint32_t count, uint32_t logicalKeyWords,
+        uint32_t significantBytesPerWord, uint32_t parameterBaseSlot,
+        WGPUBuffer indirectDispatchBuffer, uint64_t indirectWorkOffset,
+        uint64_t indirectScalarOffset, WGPUBuffer dynamicCountBuffer,
+        uint32_t dynamicCountWord, uint32_t dynamicCountScale);
     void writeParams(uint32_t slot, const Params& params);
     void flushParams(uint32_t firstSlot, uint32_t slotCount);
     void prepareBindGroupCache(size_t requiredEntries);

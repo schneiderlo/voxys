@@ -125,6 +125,8 @@ TEST_P(DeterministicGpuPrimitivesTest, MatchesLargeRandomizedCpuReferences) {
     std::mt19937 random(0x51a7'c0deu);
     std::uniform_int_distribution<uint32_t> smallValue(0u, 31u);
     std::uniform_int_distribution<uint32_t> keyValue(0u, 0xffffu);
+    std::uniform_int_distribution<uint32_t> boundedKeyValue(
+        0u, 0x00fffffeu);
     std::vector<uint32_t> scanInput(count);
     std::vector<uint32_t> values(count);
     std::vector<uint32_t> predicates(count);
@@ -141,11 +143,15 @@ TEST_P(DeterministicGpuPrimitivesTest, MatchesLargeRandomizedCpuReferences) {
             .ordinal = index,
         };
         records64[index] = {
-            .keyLow = keyValue(random) & 0xffu,
-            .keyHigh = keyValue(random) & 0x7fu,
+            .keyLow = boundedKeyValue(random),
+            .keyHigh = boundedKeyValue(random),
             .value = index * 5u,
             .ordinal = index,
         };
+        if (index % 997u == 0u) {
+            records64[index].keyLow = std::numeric_limits<uint32_t>::max();
+            records64[index].keyHigh = std::numeric_limits<uint32_t>::max();
+        }
     }
 
     std::vector<uint32_t> expectedScan(count);
@@ -281,8 +287,8 @@ TEST_P(DeterministicGpuPrimitivesTest, MatchesLargeRandomizedCpuReferences) {
         encoder, valuesBuffer, predicatesBuffer, compactOutput, count));
     ASSERT_TRUE(primitives.encodeRadixSort(
         encoder, records32Buffer, radix32Output, count, 1u));
-    ASSERT_TRUE(primitives.encodeRadixSort(
-        encoder, records64Buffer, radix64Output, count, 2u));
+    ASSERT_TRUE(primitives.encodeRadixSortBoundedU32x2(
+        encoder, records64Buffer, radix64Output, count, 0x00ffffffu, 20u));
     ASSERT_TRUE(primitives.encodeAdjacentUnique(
         encoder, radix64Output, uniqueOutput, count, 2u));
     ASSERT_TRUE(primitives.encodeSortedMerge(
@@ -495,8 +501,8 @@ TEST_P(DeterministicGpuPrimitivesTest, DynamicCountAndDispatchMatchCpuReferences
         encoder, scanInputBuffer, scanOutput, capacity, 0u,
         dispatchBuffer, 0u, 3u * sizeof(uint32_t),
         dynamicCountBuffer, countWord));
-    ASSERT_TRUE(primitives.encodeRadixSort(
-        encoder, recordsBuffer, sortOutput, capacity, 2u, 8u,
+    ASSERT_TRUE(primitives.encodeRadixSortBoundedU32x2(
+        encoder, recordsBuffer, sortOutput, capacity, 0xffffu, 8u,
         dispatchBuffer, 0u, 3u * sizeof(uint32_t),
         dynamicCountBuffer, countWord));
 

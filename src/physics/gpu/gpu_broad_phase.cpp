@@ -1147,11 +1147,11 @@ public:
         wgpuComputePassEncoderRelease(pass);
         writeProfilingBoundary();
 
-        if (!primitives_.encodeRadixSort(
+        if (!primitives_.encodeRadixSortBoundedU32x2(
                 encoder, pairCandidates_, sortedPairCandidates_,
-                config_.candidatePairCapacity, 2u, 24u, dispatchArgs_,
-                12u * sizeof(uint32_t), 15u * sizeof(uint32_t), telemetry_,
-                2u)) return false;
+                config_.candidatePairCapacity, config_.bodyCapacity, 24u,
+                dispatchArgs_, 12u * sizeof(uint32_t),
+                15u * sizeof(uint32_t), telemetry_, 2u)) return false;
 
         WGPUBindGroup uniqueGroup = cachedBindGroups_[6];
         pass = wgpuCommandEncoderBeginComputePass(encoder, &passDesc);

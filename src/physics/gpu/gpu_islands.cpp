@@ -694,9 +694,9 @@ public:
         wgpuComputePassEncoderEnd(pass);
         wgpuComputePassEncoderRelease(pass);
 
-        if (!primitives_.encodeRadixSort(
+        if (!primitives_.encodeRadixSortBoundedU32x2(
                 encoder, bodyRecords_, sortedBodyRecords_,
-                input_.bodyCapacity, 2u, 8u, telemetry_,
+                input_.bodyCapacity, input_.bodyCapacity, 8u, telemetry_,
                 28u * sizeof(uint32_t), 31u * sizeof(uint32_t), telemetry_,
                 34u)) return false;
 
