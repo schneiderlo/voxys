@@ -766,9 +766,9 @@ public:
         offset = writeParams(slot,
             makeParams(0u, config_.overflowIterations));
         bind(coloringGroup, offset);
-        wgpuComputePassEncoderSetPipeline(pass, clearClaimsPipeline_);
+        wgpuComputePassEncoderSetPipeline(pass, clearRoundClaimsPipeline_);
         wgpuComputePassEncoderDispatchWorkgroupsIndirect(
-            pass, dispatchArgs_, globalClaimOffset);
+            pass, dispatchArgs_, globalWorkOffset);
         wgpuComputePassEncoderSetPipeline(pass, validateClaimPipeline_);
         wgpuComputePassEncoderDispatchWorkgroupsIndirect(
             pass, dispatchArgs_, globalWorkOffset);
