@@ -74,6 +74,12 @@ struct GpuBroadPhaseTelemetry {
 class GpuBroadPhase {
 public:
     static constexpr uint32_t kTelemetryWordCount = 32;
+    static constexpr uint32_t kProfilingInternalBoundaryCount = 5;
+
+    struct ProfilingBoundary {
+        void (*callback)(const void*) = nullptr;
+        const void* userData = nullptr;
+    };
 
     struct Config {
         uint32_t bodyCapacity = 16'384;
@@ -100,6 +106,9 @@ public:
     void shutdown();
     void setBodyView(const BroadPhaseBodyView& view);
     [[nodiscard]] bool encode(WGPUCommandEncoder encoder);
+    [[nodiscard]] bool encode(
+        WGPUCommandEncoder encoder,
+        const ProfilingBoundary& profilingBoundary);
 
     [[nodiscard]] WGPUBuffer sortedGridEntries() const noexcept;
     [[nodiscard]] WGPUBuffer occupiedCellRanges() const noexcept;

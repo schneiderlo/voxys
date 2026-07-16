@@ -13,6 +13,13 @@ It follows two rules from Dennis Gustafsson's BSC 2025 solver talk:
 GPU timestamps are copied through an asynchronous readback ring. Profiling does
 not wait for the GPU or add a lock to the measured path.
 
+The physics timeline splits the large-world broad phase into six fields:
+`broad_index_build`, `broad_index_sort_ranges`, `broad_pair_count`,
+`broad_pair_scatter`, `broad_pair_sort_unique`, and `broad_lifecycle`.
+Small-world direct-pair kernels intentionally leave the unused grid fields near
+zero. These extra timestamp boundaries are emitted only when physics profiling
+is enabled.
+
 ## Enable the probes
 
 Open the benchmark page with both opt-in probes:

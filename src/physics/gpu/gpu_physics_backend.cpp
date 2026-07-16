@@ -1623,8 +1623,26 @@ public:
 
             const bool dynamicContactsEnabled =
                 config_.enableBodyBodyContacts;
-            const bool broadPhaseEncoded = !executeBodyPipeline
-                || !dynamicContactsEnabled || broadPhase_.encode(encoder);
+            GpuBroadPhase::ProfilingBoundary broadProfilingBoundary;
+            if (profileThisBatch) {
+                broadProfilingBoundary.callback = [](const void* userData) {
+                    (*static_cast<
+                        const decltype(writeStageTimestamp)*>(userData))();
+                };
+                broadProfilingBoundary.userData = &writeStageTimestamp;
+            }
+            bool broadPhaseEncoded = true;
+            if (executeBodyPipeline && dynamicContactsEnabled) {
+                broadPhaseEncoded = broadPhase_.encode(
+                    encoder, broadProfilingBoundary);
+            } else {
+                for (uint32_t boundary = 0u;
+                     boundary
+                        < GpuBroadPhase::kProfilingInternalBoundaryCount;
+                     ++boundary) {
+                    writeStageTimestamp();
+                }
+            }
             writeStageTimestamp();
             const bool narrowPhaseEncoded = broadPhaseEncoded
                 && (!executeBodyPipeline || !dynamicContactsEnabled

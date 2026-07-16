@@ -143,7 +143,18 @@ const char* physicsGpuStageName(PhysicsGpuStage stage) noexcept {
             return "commands_active_compaction";
         case PhysicsGpuStage::ContinuousCollision: return "ccd";
         case PhysicsGpuStage::ForcesAndWater: return "forces_water";
-        case PhysicsGpuStage::BroadPhase: return "broad_phase";
+        case PhysicsGpuStage::BroadPhaseIndexBuild:
+            return "broad_index_build";
+        case PhysicsGpuStage::BroadPhaseIndexSortRanges:
+            return "broad_index_sort_ranges";
+        case PhysicsGpuStage::BroadPhasePairCount:
+            return "broad_pair_count";
+        case PhysicsGpuStage::BroadPhasePairScatter:
+            return "broad_pair_scatter";
+        case PhysicsGpuStage::BroadPhasePairSortUnique:
+            return "broad_pair_sort_unique";
+        case PhysicsGpuStage::BroadPhaseLifecycle:
+            return "broad_lifecycle";
         case PhysicsGpuStage::NarrowPhase: return "narrow_phase";
         case PhysicsGpuStage::DynamicSolver: return "dynamic_solver";
         case PhysicsGpuStage::StaticContacts: return "static_contacts";

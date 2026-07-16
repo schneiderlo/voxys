@@ -300,7 +300,7 @@ await evaluate(`(() => {
                     voxyModule._voxy_poll_physics_stage_timing();
                 if (timingTick <= 0) break;
                 const stages = [];
-                for (let stage = 0; stage < 9; ++stage) {
+                for (let stage = 0; stage < 14; ++stage) {
                     stages.push(
                         voxyModule._voxy_get_polled_physics_stage_ms(stage),
                     );
@@ -587,7 +587,9 @@ const validRenderStageSamples = [...new Map(capture.renderStageSamples
         && sample.frame <= capture.frameCountEnd)
     .map((sample) => [sample.frame, sample])).values()];
 const stageNames = [
-    "commands_active_compaction", "ccd", "forces_water", "broad_phase",
+    "commands_active_compaction", "ccd", "forces_water",
+    "broad_index_build", "broad_index_sort_ranges", "broad_pair_count",
+    "broad_pair_scatter", "broad_pair_sort_unique", "broad_lifecycle",
     "narrow_phase", "dynamic_solver", "static_contacts",
     "islands_sleeping", "tick_finalize",
 ];

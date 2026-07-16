@@ -798,8 +798,14 @@ public:
         return true;
     }
 
-    bool encode(WGPUCommandEncoder encoder) {
+    bool encode(WGPUCommandEncoder encoder,
+                const GpuBroadPhase::ProfilingBoundary& profilingBoundary) {
         if (!encoder || !bodyView_.valid()) return false;
+        const auto writeProfilingBoundary = [&] {
+            if (profilingBoundary.callback) {
+                profilingBoundary.callback(profilingBoundary.userData);
+            }
+        };
         const uint32_t bodyCount = bodyView_.bodyCapacity;
         const uint32_t ownerCount = bodyCount * 2u;
         const uint32_t bodyGroups =
@@ -930,6 +936,8 @@ public:
         constexpr uint32_t kMediumPairBodyLimit = 1'024u;
         constexpr uint32_t kParallelMediumPairBodyLimit = 2'048u;
         if (bodyCount <= kSmallWorldBodyLimit) {
+            writeProfilingBoundary();
+            writeProfilingBoundary();
             const uint32_t parity = contactsAreB_ ? 1u : 0u;
             WGPUComputePassEncoder pass =
                 wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
@@ -943,10 +951,15 @@ public:
             wgpuComputePassEncoderDispatchWorkgroups(pass, 1u, 1u, 1u);
             wgpuComputePassEncoderEnd(pass);
             wgpuComputePassEncoderRelease(pass);
+            writeProfilingBoundary();
+            writeProfilingBoundary();
+            writeProfilingBoundary();
             contactsAreB_ = !contactsAreB_;
             return true;
         }
         if (bodyCount <= kSmallPairBodyLimit) {
+            writeProfilingBoundary();
+            writeProfilingBoundary();
             WGPUComputePassEncoder pass =
                 wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
             wgpuComputePassEncoderSetBindGroup(
@@ -956,12 +969,17 @@ public:
             wgpuComputePassEncoderDispatchWorkgroups(pass, 1u, 1u, 1u);
             wgpuComputePassEncoderEnd(pass);
             wgpuComputePassEncoderRelease(pass);
+            writeProfilingBoundary();
+            writeProfilingBoundary();
+            writeProfilingBoundary();
             const uint32_t parity = contactsAreB_ ? 1u : 0u;
             if (!encodeLifecycle(parity, true)) return false;
             contactsAreB_ = !contactsAreB_;
             return true;
         }
         if (bodyCount <= kMediumPairBodyLimit) {
+            writeProfilingBoundary();
+            writeProfilingBoundary();
             WGPUComputePassEncoder pass =
                 wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
             wgpuComputePassEncoderSetBindGroup(
@@ -970,12 +988,17 @@ public:
             wgpuComputePassEncoderDispatchWorkgroups(pass, 1u, 1u, 1u);
             wgpuComputePassEncoderEnd(pass);
             wgpuComputePassEncoderRelease(pass);
+            writeProfilingBoundary();
+            writeProfilingBoundary();
+            writeProfilingBoundary();
             const uint32_t parity = contactsAreB_ ? 1u : 0u;
             if (!encodeLifecycle(parity, true)) return false;
             contactsAreB_ = !contactsAreB_;
             return true;
         }
         if (bodyCount <= kParallelMediumPairBodyLimit) {
+            writeProfilingBoundary();
+            writeProfilingBoundary();
             WGPUComputePassEncoder pass =
                 wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
             wgpuComputePassEncoderSetBindGroup(
@@ -996,6 +1019,7 @@ public:
                     bodyCount, 0u)) {
                 return false;
             }
+            writeProfilingBoundary();
 
             pass = wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
             wgpuComputePassEncoderSetBindGroup(
@@ -1006,6 +1030,8 @@ public:
                 pass, bodyGroups, 1u, 1u);
             wgpuComputePassEncoderEnd(pass);
             wgpuComputePassEncoderRelease(pass);
+            writeProfilingBoundary();
+            writeProfilingBoundary();
 
             const uint32_t parity = contactsAreB_ ? 1u : 0u;
             if (!encodeLifecycle(parity, true)) return false;
@@ -1042,6 +1068,7 @@ public:
         wgpuComputePassEncoderDispatchWorkgroups(pass, 1, 1, 1);
         wgpuComputePassEncoderEnd(pass);
         wgpuComputePassEncoderRelease(pass);
+        writeProfilingBoundary();
 
         if (!primitives_.encodeRadixSort(
                 encoder, gridEntries_, sortedGridEntries_, entryCapacity_, 2u,
@@ -1081,6 +1108,7 @@ public:
             pass, dispatchArgs_, 0u);
         wgpuComputePassEncoderEnd(pass);
         wgpuComputePassEncoderRelease(pass);
+        writeProfilingBoundary();
         WGPUBindGroup pairCountGroup = cachedBindGroups_[3];
         pass = wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
         wgpuComputePassEncoderSetBindGroup(pass, 0, pairCountGroup, 0, nullptr);
@@ -1096,6 +1124,7 @@ public:
                 9u * sizeof(uint32_t), oversizedFlags_,
                 bodyCount + 1u))
             return false;
+        writeProfilingBoundary();
 
         WGPUBindGroup clearGroup = cachedBindGroups_[4];
         WGPUBindGroup scatterGroup = cachedBindGroups_[5];
@@ -1116,6 +1145,7 @@ public:
             pass, dispatchArgs_, 6u * sizeof(uint32_t));
         wgpuComputePassEncoderEnd(pass);
         wgpuComputePassEncoderRelease(pass);
+        writeProfilingBoundary();
 
         if (!primitives_.encodeRadixSort(
                 encoder, pairCandidates_, sortedPairCandidates_,
@@ -1131,6 +1161,7 @@ public:
             pass, dispatchArgs_, 12u * sizeof(uint32_t));
         wgpuComputePassEncoderEnd(pass);
         wgpuComputePassEncoderRelease(pass);
+        writeProfilingBoundary();
 
         const uint32_t parity = contactsAreB_ ? 1u : 0u;
         if (!encodeLifecycle(parity, false)) return false;
@@ -1335,7 +1366,12 @@ void GpuBroadPhase::setBodyView(const BroadPhaseBodyView& view) {
     impl_->setBodyView(view);
 }
 bool GpuBroadPhase::encode(WGPUCommandEncoder encoder) {
-    return impl_->encode(encoder);
+    return impl_->encode(encoder, ProfilingBoundary{});
+}
+bool GpuBroadPhase::encode(
+    WGPUCommandEncoder encoder,
+    const ProfilingBoundary& profilingBoundary) {
+    return impl_->encode(encoder, profilingBoundary);
 }
 WGPUBuffer GpuBroadPhase::sortedGridEntries() const noexcept {
     return impl_->sortedGridEntries_;
