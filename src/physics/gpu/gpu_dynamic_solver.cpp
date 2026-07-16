@@ -822,13 +822,21 @@ public:
         wgpuComputePassEncoderEnd(pass);
         wgpuComputePassEncoderRelease(pass);
 
-        if (!primitives_.encodeRadixSortBoundedU32x2(
+        const bool sortedAdjacency = input_.bodyCapacity <= 0xffffu
+            ? primitives_.encodeRadixSortBoundedU16Word(
+                encoder, adjacencyRecords_, sortedAdjacency_,
+                endpointCapacity_, 1u, input_.bodyCapacity, 24u,
+                dispatchArgs_, dispatchOffset(config_.colorCount + 3u),
+                dispatchOffset(config_.colorCount + 4u), colorRanges_,
+                config_.colorCount * 2u + 1u, 2u)
+            : primitives_.encodeRadixSortBoundedU32x2(
                 encoder, adjacencyRecords_, sortedAdjacency_,
                 endpointCapacity_,
                 std::max(input_.contactCapacity, input_.bodyCapacity), 24u,
                 dispatchArgs_, dispatchOffset(config_.colorCount + 3u),
                 dispatchOffset(config_.colorCount + 4u), colorRanges_,
-                config_.colorCount * 2u + 1u, 2u)) return false;
+                config_.colorCount * 2u + 1u, 2u);
+        if (!sortedAdjacency) return false;
         writeProfilingBoundary();
 
         const std::array<gpu::BindGroupEntry, 8> prepareEntries = {
