@@ -437,7 +437,7 @@ TEST_P(GpuBroadPhaseTest, DenseMediumWorldMatchesBruteForce) {
 }
 
 TEST_P(GpuBroadPhaseTest, CooperativeUpperBoundaryKeepsCanonicalPairs) {
-    constexpr uint32_t bodyCapacity = 1'024;
+    constexpr uint32_t bodyCapacity = 512;
     constexpr uint32_t pairCapacity = 4'096;
     constexpr float margin = 0.02f;
     gpu::Context context;
@@ -456,9 +456,9 @@ TEST_P(GpuBroadPhaseTest, CooperativeUpperBoundaryKeepsCanonicalPairs) {
         shapes[body].dimensionsType = {1.0f, 1.0f, 1.0f, 1.0f};
         metadata[body] = makeMetadata(kAlive | kAwake);
     }
-    poses[700].positionInvMass = poses[10].positionInvMass;
+    poses[400].positionInvMass = poses[10].positionInvMass;
     poses[256].positionInvMass = poses[255].positionInvMass;
-    poses[1'023].positionInvMass = poses[512].positionInvMass;
+    poses[511].positionInvMass = poses[300].positionInvMass;
 
     WGPUBuffer poseBuffer = makeInput<TestPose>(
         context, poses, "cooperative_boundary_poses");
@@ -485,9 +485,9 @@ TEST_P(GpuBroadPhaseTest, CooperativeUpperBoundaryKeepsCanonicalPairs) {
         poseBuffer, shapeBuffer, metadataBuffer, bodyCapacity});
 
     const std::vector<PairKey> expected = {
-        {10u, 700u, false},
+        {10u, 400u, false},
         {255u, 256u, false},
-        {512u, 1'023u, false},
+        {300u, 511u, false},
     };
     const BroadPhaseSnapshot first = runAndRead(context, broadPhase);
     EXPECT_EQ(snapshotPairs(first), expected);

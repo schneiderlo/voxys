@@ -1268,7 +1268,7 @@ fn parallel_small_world_pairs(@builtin(local_invocation_id) lid : vec3<u32>) {
     }
 }
 
-// For 257..1024 bodies, keep pair generation in one workgroup instead of
+// For 257..512 bodies, keep pair generation in one workgroup instead of
 // crossing the fixed-cost grid/radix cliff. Each 256-body minimum-ID tile is
 // counted and scattered in canonical order. Proxies are streamed from storage
 // so the path remains inside WebGPU's portable 16 KiB workgroup-memory limit.
@@ -1391,7 +1391,7 @@ fn medium_world_pairs(@builtin(local_invocation_id) lid : vec3<u32>) {
     }
 }
 
-// Beyond one 256-lane tile, keeping every minimum body in one workgroup
+// Beyond two 256-lane tiles, keeping every minimum body in one workgroup
 // serializes the triangular pair walk. Count one minimum body per invocation,
 // scan those counts, then scatter from the same canonical ranges. This keeps
 // the low-dispatch direct-pair path while allowing several workgroups to cover
