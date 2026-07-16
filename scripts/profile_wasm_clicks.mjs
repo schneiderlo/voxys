@@ -716,7 +716,7 @@ if (options.presetBodies === null) {
                     voxyModule.UTF8ToString(pointer));
                 if (!${JSON.stringify(usesFrameMeasurementClock())}
                     && telemetry.physics.tick < target) {
-                    requestAnimationFrame(waitForTelemetry);
+                    schedule(waitForTelemetry);
                     return;
                 }
                 resolve({
@@ -991,7 +991,7 @@ const result = {
         narrowCollisionPairClasses:
             telemetry.physics.narrow_collision_pair_classes,
         solverMode: telemetry.physics.solver_mode,
-        substeps: telemetry.physics.scheduled_substeps,
+        substeps: telemetry.physics.substeps,
     },
     frame: {
         ...summarize(capture.frameMs),
