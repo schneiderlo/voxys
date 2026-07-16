@@ -17,6 +17,9 @@ const options = {
     trace: false,
 };
 
+const usesFrameMeasurementClock = () =>
+    options.expectedBackend === "jolt_legacy";
+
 for (let index = 2; index < process.argv.length; ++index) {
     const argument = process.argv[index];
     const readInteger = (name) => {
@@ -330,6 +333,8 @@ await evaluate(`(() => {
         stageTickCeiling: 0,
         frameCountStart: voxyModule._voxy_get_frame_count(),
         frameCountEnd: 0,
+        measurementProgressStart: 0,
+        measurementProgressEnd: 0,
         recordFrames: true,
         peakJsHeapBytes: performance.memory?.usedJSHeapSize ?? 0,
         wasmBytes: voxyModule.HEAPU8?.buffer?.byteLength
@@ -608,32 +613,46 @@ await evaluate(`(() => {
         capture.frameCountStart = capture.lastSubmittedFrame;
         capture.stageTickFloor =
             voxyModule._voxy_get_physics_encoded_tick();
+        capture.measurementProgressStart = ${JSON.stringify(
+            usesFrameMeasurementClock(),
+        )}
+            ? capture.frameCountStart : capture.stageTickFloor;
         capture.recordFrames = true;
         capture.peakJsHeapBytes =
             performance.memory?.usedJSHeapSize ?? 0;
-        return capture.stageTickFloor;
+        return capture.measurementProgressStart;
     };
 })()`);
 
-let fixedMeasurementStartTick = null;
+let fixedMeasurementStartProgress = null;
 if (options.presetBodies !== null) {
-    const targetTick = options.warmupTick + 120;
-    fixedMeasurementStartTick = await evaluate(`new Promise((resolve) => {
-        const target = ${JSON.stringify(targetTick)};
-        const waitForTick = () => {
-            const tick = voxyModule._voxy_get_physics_encoded_tick();
-            if (tick >= target) {
+    const targetProgress = usesFrameMeasurementClock()
+        ? await evaluate(
+            "voxyModule._voxy_get_frame_count() + 120",
+        )
+        : options.warmupTick + 120;
+    fixedMeasurementStartProgress = await evaluate(`new Promise((resolve) => {
+        const target = ${JSON.stringify(targetProgress)};
+        const schedule = ${JSON.stringify(usesFrameMeasurementClock())}
+            ? (callback) => setTimeout(callback, 0)
+            : requestAnimationFrame;
+        const waitForProgress = () => {
+            const progress = ${JSON.stringify(usesFrameMeasurementClock())}
+                ? voxyModule._voxy_get_frame_count()
+                : voxyModule._voxy_get_physics_encoded_tick();
+            if (progress >= target) {
                 resolve(globalThis.__voxyStartGoalMeasurement());
                 return;
             }
-            requestAnimationFrame(waitForTick);
+            schedule(waitForProgress);
         };
-        requestAnimationFrame(waitForTick);
+        schedule(waitForProgress);
     })`);
-    if (fixedMeasurementStartTick !== targetTick) {
+    if (fixedMeasurementStartProgress !== targetProgress) {
         throw new Error(
-            `fixed measurement start missed tick ${targetTick}: `
-            + fixedMeasurementStartTick,
+            `fixed measurement start missed ${
+                usesFrameMeasurementClock() ? "frame" : "tick"
+            } ${targetProgress}: ${fixedMeasurementStartProgress}`,
         );
     }
 }
@@ -660,42 +679,53 @@ if (options.presetBodies === null) {
         };
     })()`);
 } else {
-    const targetTick = fixedMeasurementStartTick + options.durationTicks;
+    const targetProgress = fixedMeasurementStartProgress
+        + options.durationTicks;
     measurementWindow = await evaluate(`new Promise((resolve) => {
-        const target = ${JSON.stringify(targetTick)};
-        const stopAtTick = () => {
-            const tick = voxyModule._voxy_get_physics_encoded_tick();
-            if (tick < target) {
-                requestAnimationFrame(stopAtTick);
+        const target = ${JSON.stringify(targetProgress)};
+        const schedule = ${JSON.stringify(usesFrameMeasurementClock())}
+            ? (callback) => setTimeout(callback, 0)
+            : requestAnimationFrame;
+        const stopAtProgress = () => {
+            const progress = ${JSON.stringify(usesFrameMeasurementClock())}
+                ? voxyModule._voxy_get_frame_count()
+                : voxyModule._voxy_get_physics_encoded_tick();
+            if (progress < target) {
+                schedule(stopAtProgress);
                 return;
             }
             const capture = globalThis.__voxyGoalCapture;
             capture.recordFrames = false;
             capture.frameCountEnd = voxyModule._voxy_get_frame_count();
-            capture.stageTickCeiling = tick;
+            capture.stageTickCeiling =
+                voxyModule._voxy_get_physics_encoded_tick();
+            capture.measurementProgressEnd = progress;
             const elapsedMs = performance.now() - capture.startedMs;
             const waitForTelemetry = () => {
                 const pointer = voxyModule._voxy_get_telemetry_json();
                 const telemetry = JSON.parse(
                     voxyModule.UTF8ToString(pointer));
-                if (telemetry.physics.tick < target) {
+                if (!${JSON.stringify(usesFrameMeasurementClock())}
+                    && telemetry.physics.tick < target) {
                     requestAnimationFrame(waitForTelemetry);
                     return;
                 }
                 resolve({
                     elapsedMs,
-                    stageTickCeiling: tick,
+                    stageTickCeiling: capture.stageTickCeiling,
+                    measurementProgressEnd: progress,
                     telemetry,
                 });
             };
             waitForTelemetry();
         };
-        requestAnimationFrame(stopAtTick);
+        schedule(stopAtProgress);
     })`);
-    if (measurementWindow.stageTickCeiling !== targetTick) {
+    if (measurementWindow.measurementProgressEnd !== targetProgress) {
         throw new Error(
-            `fixed measurement end missed tick ${targetTick}: `
-            + measurementWindow.stageTickCeiling,
+            `fixed measurement end missed ${
+                usesFrameMeasurementClock() ? "frame" : "tick"
+            } ${targetProgress}: ${measurementWindow.measurementProgressEnd}`,
         );
     }
 }
@@ -723,6 +753,8 @@ const capture = await evaluate(`(() => {
         stageTickCeiling: capture.stageTickCeiling,
         frameCountStart: capture.frameCountStart,
         frameCountEnd: capture.frameCountEnd,
+        measurementProgressStart: capture.measurementProgressStart,
+        measurementProgressEnd: capture.measurementProgressEnd,
     };
 })()`);
 capture.elapsedMs = measurementWindow.elapsedMs;
@@ -937,6 +969,10 @@ const result = {
         observedBodies: telemetry.physics.bodies.current,
         clickInputs,
         benchmarkCamera,
+        measurementClock: usesFrameMeasurementClock()
+            ? "frame" : "physics_tick",
+        measurementStart: capture.measurementProgressStart,
+        measurementEnd: capture.measurementProgressEnd,
         measurementStartTick: capture.stageTickFloor,
         measurementEndTick: capture.stageTickCeiling,
         tick: telemetry.physics.tick,

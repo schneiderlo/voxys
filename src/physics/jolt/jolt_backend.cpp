@@ -767,6 +767,101 @@ bool JoltBackend::throwBody(ThrowableShape shape, const glm::vec3& position,
     return true;
 }
 
+BodyHandle JoltBackend::spawnBody(const BodySpawnDesc& requested) {
+    if (!isInitialized() || requested.shape >= ThrowableShape::Count
+        || impl_->dynamicBodies.size() >= impl_->initContext.maxBodies) {
+        return {};
+    }
+
+    BodySpawnDesc desc = requested;
+    if (!std::isfinite(desc.dimensions.x)
+        || !std::isfinite(desc.dimensions.y)
+        || !std::isfinite(desc.dimensions.z)
+        || glm::any(glm::lessThanEqual(desc.dimensions, glm::vec3(0.0f)))) {
+        desc.dimensions = throwableShapeDimensions(desc.shape);
+    }
+
+    const WorldPosition worldPosition = canonicalWorldPosition(
+        desc.sector, glm::dvec3(desc.position));
+    if (!isValidWorldPosition(worldPosition)) return {};
+    const glm::dvec3 absolute = worldPositionToAbsolute(worldPosition);
+    const glm::vec3 position(absolute);
+    if (!std::isfinite(position.x) || !std::isfinite(position.y)
+        || !std::isfinite(position.z)) {
+        return {};
+    }
+    impl_->streamTerrainAt(position);
+
+    JPH::RefConst<JPH::Shape> bodyShape;
+    switch (desc.shape) {
+        case ThrowableShape::Sphere:
+            bodyShape = new JPH::SphereShape(0.5f * desc.dimensions.x);
+            break;
+        case ThrowableShape::Cube:
+        case ThrowableShape::Box:
+            bodyShape = new JPH::BoxShape(JPH::Vec3(
+                0.5f * desc.dimensions.x,
+                0.5f * desc.dimensions.y,
+                0.5f * desc.dimensions.z));
+            break;
+        case ThrowableShape::Capsule: {
+            const float radius = 0.5f * desc.dimensions.x;
+            const float halfHeight = 0.5f * desc.dimensions.y - radius;
+            if (!(halfHeight > 0.0f)) return {};
+            bodyShape = new JPH::CapsuleShape(halfHeight, radius);
+            break;
+        }
+        case ThrowableShape::Cylinder:
+            bodyShape = new JPH::CylinderShape(
+                0.5f * desc.dimensions.y, 0.5f * desc.dimensions.x);
+            break;
+        case ThrowableShape::Count:
+            return {};
+    }
+
+    float orientationLength = glm::length(desc.orientation);
+    if (!std::isfinite(orientationLength) || orientationLength <= 1e-6f) {
+        desc.orientation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
+    } else {
+        desc.orientation /= orientationLength;
+    }
+    const JPH::Quat rotation(
+        desc.orientation.x, desc.orientation.y,
+        desc.orientation.z, desc.orientation.w);
+    JPH::BodyCreationSettings settings(
+        bodyShape, toJoltPosition(position), rotation,
+        JPH::EMotionType::Dynamic, Layers::Moving);
+    settings.mFriction = 0.65f;
+    settings.mRestitution =
+        desc.shape == ThrowableShape::Sphere ? 0.55f : 0.25f;
+    settings.mMotionQuality = desc.bullet
+        ? JPH::EMotionQuality::LinearCast : JPH::EMotionQuality::Discrete;
+    settings.mOverrideMassProperties = JPH::EOverrideMassProperties::CalculateInertia;
+    settings.mMassPropertiesOverride.mMass =
+        1.0f / std::max(desc.inverseMass, 1e-6f);
+
+    auto& bodyInterface = impl_->system->GetBodyInterface();
+    const JPH::BodyID body = bodyInterface.CreateAndAddBody(
+        settings, JPH::EActivation::Activate);
+    if (body.IsInvalid()) return {};
+
+    bodyInterface.SetLinearVelocity(body, JPH::Vec3(
+        desc.linearVelocity.x, desc.linearVelocity.y,
+        desc.linearVelocity.z));
+    bodyInterface.SetAngularVelocity(body, JPH::Vec3(
+        desc.angularVelocity.x, desc.angularVelocity.y,
+        desc.angularVelocity.z));
+    impl_->dynamicBodies.push_back({
+        body, desc.shape, desc.dimensions, position, desc.orientation});
+    impl_->snapshotTransformDirty[body.GetIndex()].store(
+        true, std::memory_order_relaxed);
+    impl_->waterBodyIDs.push_back(body);
+    return {
+        static_cast<uint32_t>(impl_->dynamicBodies.size()),
+        0u,
+    };
+}
+
 void JoltBackend::stepCpu(float deltaTime) {
     using Clock = std::chrono::steady_clock;
     const auto stepStart = Clock::now();

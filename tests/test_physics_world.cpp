@@ -158,6 +158,35 @@ TEST(PhysicsWorldBackendConfigurationTest, SupportsMultithreadedJoltBaseline) {
     EXPECT_EQ(world.dynamicBodies().size(), 1u);
 }
 
+TEST(PhysicsWorldBackendConfigurationTest, JoltSpawnsBodyDescriptors) {
+    PhysicsWorld world;
+    PhysicsInitContext context;
+    context.requestedBackend = BackendType::JoltLegacy;
+    context.joltJobSystem = JoltJobSystemMode::SingleThreaded;
+    ASSERT_TRUE(world.initialize(context));
+
+    BodySpawnDesc desc;
+    desc.shape = ThrowableShape::Box;
+    desc.position = {3.0f, 8.0f, -2.0f};
+    desc.orientation = glm::angleAxis(0.25f, glm::vec3(0.0f, 1.0f, 0.0f));
+    desc.linearVelocity = {1.0f, -2.0f, 3.0f};
+    desc.angularVelocity = {0.1f, 0.2f, 0.05f};
+    desc.dimensions = throwableShapeDimensions(desc.shape);
+
+    const BodyHandle handle = world.spawnBody(desc);
+    ASSERT_TRUE(handle.valid());
+    EXPECT_EQ(handle.index, 1u);
+    EXPECT_EQ(world.stats().residentBodies, 1u);
+
+    const auto bodies = world.dynamicBodies();
+    ASSERT_EQ(bodies.size(), 1u);
+    EXPECT_EQ(bodies.front().shape, desc.shape);
+    EXPECT_EQ(bodies.front().dimensions, desc.dimensions);
+    EXPECT_EQ(bodies.front().position, desc.position);
+    EXPECT_NEAR(bodies.front().rotation.w, desc.orientation.w, 1e-6f);
+    EXPECT_NEAR(bodies.front().rotation.y, desc.orientation.y, 1e-6f);
+}
+
 TEST(PhysicsWorldBackendConfigurationTest, SupportsMultithreadedBox3DBaseline) {
     PhysicsWorld world;
     PhysicsInitContext context;

@@ -56,6 +56,8 @@ public:
     [[nodiscard]] bool throwBody(ThrowableShape shape,
                                  const glm::vec3& position,
                                  const glm::vec3& velocity) override;
+    [[nodiscard]] BodyHandle spawnBody(
+        const BodySpawnDesc& desc) override;
     void stepCpu(float deltaTime) override;
 
     [[nodiscard]] std::vector<DynamicBodySnapshot> dynamicBodies(
