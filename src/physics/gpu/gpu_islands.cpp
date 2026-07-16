@@ -706,11 +706,18 @@ public:
         wgpuComputePassEncoderEnd(pass);
         wgpuComputePassEncoderRelease(pass);
 
-        if (!primitives_.encodeRadixSortBoundedU32x2(
+        const bool sortedBodies = input_.bodyCapacity <= 0xffffu
+            ? primitives_.encodeRadixSortBoundedU16Word(
+                encoder, bodyRecords_, sortedBodyRecords_,
+                input_.bodyCapacity, 1u, input_.bodyCapacity, 8u, telemetry_,
+                28u * sizeof(uint32_t), 31u * sizeof(uint32_t), telemetry_,
+                34u)
+            : primitives_.encodeRadixSortBoundedU32x2(
                 encoder, bodyRecords_, sortedBodyRecords_,
                 input_.bodyCapacity, input_.bodyCapacity, 8u, telemetry_,
                 28u * sizeof(uint32_t), 31u * sizeof(uint32_t), telemetry_,
-                34u)) return false;
+                34u);
+        if (!sortedBodies) return false;
 
         const std::array<gpu::BindGroupEntry, 6> classifyEntries = {
             gpu::BindGroupEntry(1).buffer(input_.motionBuffer),
