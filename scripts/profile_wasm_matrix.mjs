@@ -15,6 +15,8 @@ const options = {
     timeoutMs: 180_000,
     expectedWidth: 5504,
     expectedHeight: 2161,
+    expectedBackend: "webgpu_soft",
+    allowUnprofiled: false,
     profile: false,
     trace: false,
 };
@@ -25,7 +27,9 @@ const usage = () => console.error(
     + "[--workload preset|click-batches|left-stream] [--duration-ms N] "
     + "[--duration-ticks N] [--settle-ms N] [--timeout-ms N] "
     + "[--warmup-tick N] "
-    + "[--expected-width N] [--expected-height N] [--profile] [--trace]",
+    + "[--expected-width N] [--expected-height N] "
+    + "[--expected-backend webgpu_soft|jolt_legacy] [--allow-unprofiled] "
+    + "[--profile] [--trace]",
 );
 
 const readInteger = (argument, value) => {
@@ -59,6 +63,10 @@ for (let index = 2; index < process.argv.length; ++index) {
         options.expectedWidth = readInteger(argument, value());
     } else if (argument === "--expected-height") {
         options.expectedHeight = readInteger(argument, value());
+    } else if (argument === "--expected-backend") {
+        options.expectedBackend = value();
+    } else if (argument === "--allow-unprofiled") {
+        options.allowUnprofiled = true;
     } else if (argument === "--profile") options.profile = true;
     else if (argument === "--trace") options.trace = true;
     else if (argument === "--help" || argument === "-h") {
@@ -74,6 +82,7 @@ if (!(options.port > 0) || !options.outputDirectory
     || !["preset", "click-batches", "left-stream"].includes(options.workload)
     || !(options.durationMs > 0) || !(options.durationTicks > 0)
     || !(options.timeoutMs > 0)
+    || !["webgpu_soft", "jolt_legacy"].includes(options.expectedBackend)
     || options.bodies.length === 0) {
     usage();
     process.exit(2);
@@ -204,6 +213,7 @@ const capture = (bodyCount) => new Promise((resolve, reject) => {
         "--timeout-ms", String(options.timeoutMs),
         "--expected-width", String(options.expectedWidth),
         "--expected-height", String(options.expectedHeight),
+        "--expected-backend", options.expectedBackend,
     ];
     if (options.workload === "preset") {
         arguments_.push("--preset-bodies", String(bodyCount));
@@ -235,8 +245,8 @@ const capture = (bodyCount) => new Promise((resolve, reject) => {
             ));
             return;
         }
-        if (!profile.browser.physicsProfiling
-            || !profile.browser.renderProfiling) {
+        if (!options.allowUnprofiled && (!profile.browser.physicsProfiling
+            || !profile.browser.renderProfiling)) {
             reject(new Error(
                 "matrix URL must enable ?physicsProfile=1&renderProfile=1",
             ));

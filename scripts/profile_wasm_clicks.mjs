@@ -11,6 +11,7 @@ const options = {
     timeoutMs: 120_000,
     expectedWidth: 1236,
     expectedHeight: 777,
+    expectedBackend: "webgpu_soft",
     profile: false,
     trace: false,
 };
@@ -49,6 +50,9 @@ for (let index = 2; index < process.argv.length; ++index) {
         case "--expected-height":
             options.expectedHeight = readInteger(argument);
             break;
+        case "--expected-backend":
+            options.expectedBackend = process.argv[++index] ?? "";
+            break;
         case "--profile": options.profile = true; break;
         case "--trace": options.trace = true; break;
         default: throw new Error(`unknown argument: ${argument}`);
@@ -56,13 +60,15 @@ for (let index = 2; index < process.argv.length; ++index) {
 }
 
 if (options.port <= 0 || options.durationMs <= 0 || options.durationTicks <= 0
-    || options.timeoutMs <= 0) {
+    || options.timeoutMs <= 0
+    || !["webgpu_soft", "jolt_legacy"].includes(options.expectedBackend)) {
     throw new Error(
         "usage: profile_wasm_clicks.mjs --port PORT "
         + "[--clicks N] [--click-interval-ms MS] [--duration-ms MS] "
         + "[--duration-ticks N] [--preset-bodies N] "
         + "[--left-stream-bodies N] "
         + "[--settle-ms MS] [--warmup-tick TICK] [--timeout-ms MS] "
+        + "[--expected-backend webgpu_soft|jolt_legacy] "
         + "[--profile] [--trace]",
     );
 }
@@ -194,6 +200,7 @@ while (Date.now() < deadline) {
             target: location.href,
             initialized,
             tick: sample?.physics?.tick ?? 0,
+            frame: initialized ? voxyModule._voxy_get_frame_count() : 0,
             backend: sample?.physics?.backend ?? null,
             arithmetic: sample?.physics?.arithmetic ?? null,
             render: sample?.render ?? null,
@@ -222,10 +229,14 @@ while (Date.now() < deadline) {
     if (readyState.errorVisible) {
         throw new Error(`WASM application failed: ${readyState.errorText}`);
     }
-    if (readyState.initialized && readyState.tick >= options.warmupTick) break;
+    const warmupProgress = readyState.backend === "jolt_legacy"
+        ? readyState.frame : readyState.tick;
+    if (readyState.initialized && warmupProgress >= options.warmupTick) break;
     await delay(250);
 }
-if (!readyState?.initialized || readyState.tick < options.warmupTick) {
+const readyProgress = readyState?.backend === "jolt_legacy"
+    ? readyState.frame : readyState?.tick ?? 0;
+if (!readyState?.initialized || readyProgress < options.warmupTick) {
     throw new Error(
         `WASM workload warmup timed out: ${JSON.stringify(readyState)}`,
     );
@@ -237,7 +248,7 @@ if (readyState.canvasWidth !== options.expectedWidth
         + `expected ${options.expectedWidth}x${options.expectedHeight}`,
     );
 }
-if (readyState.backend !== "webgpu_soft"
+if (readyState.backend !== options.expectedBackend
     || readyState.arithmetic !== "fast_float"
     || readyState.render?.path !== "raycast"
     || readyState.render?.terrain_width !== 8192
@@ -249,32 +260,42 @@ if (readyState.backend !== "webgpu_soft"
 // Freeze the view before spawning. The browser defaults to a gravity-driven
 // character, so wall-clock A/B differences would otherwise change every body
 // origin and direction. F8 selects free-fly and Num1 applies a fixed camera.
-const cameraSetupFrame = await evaluate(
-    "voxyModule._voxy_get_frame_count()",
-);
-await evaluate(`(() => {
-    voxyModule._voxy_key_event(119, 1);
-    voxyModule._voxy_key_event(119, 0);
-    voxyModule._voxy_key_event(49, 1);
-    voxyModule._voxy_key_event(49, 0);
-})()`);
-while (Date.now() < deadline) {
-    const frame = await evaluate("voxyModule._voxy_get_frame_count()");
-    if (frame > cameraSetupFrame) break;
-    await delay(25);
-}
-const benchmarkCamera = await evaluate(`(() => {
+const expectedCamera = [202.53, 120.92, -27.16];
+const pressKey = async (key) => {
+    const frameBefore = await evaluate(
+        "voxyModule._voxy_get_frame_count()",
+    );
+    await evaluate(`(() => {
+        voxyModule._voxy_key_event(${JSON.stringify(key)}, 1);
+        voxyModule._voxy_key_event(${JSON.stringify(key)}, 0);
+    })()`);
+    while (Date.now() < deadline) {
+        const frame = await evaluate("voxyModule._voxy_get_frame_count()");
+        if (frame > frameBefore) break;
+        await delay(25);
+    }
+};
+const readCamera = () => evaluate(`(() => {
     const pointer = voxyModule._voxy_get_telemetry_json();
     return JSON.parse(voxyModule.UTF8ToString(pointer)).camera;
 })()`);
-const expectedCamera = [202.53, 120.92, -27.16];
-const benchmarkWorldPosition = benchmarkCamera?.position.map(
-    (value, axis) => value + 256 * benchmarkCamera.sector[axis],
-);
-if (!benchmarkCamera || expectedCamera.some(
-    (value, axis) => Math.abs(benchmarkWorldPosition[axis] - value) > 0.001
-) || Math.abs(benchmarkCamera.yaw - 1.4578) > 0.0001
-    || Math.abs(benchmarkCamera.pitch + 0.0944) > 0.0001) {
+const cameraMatches = (camera) => {
+    const worldPosition = camera?.position.map(
+        (value, axis) => value + 256 * camera.sector[axis],
+    );
+    return camera && !expectedCamera.some(
+        (value, axis) => Math.abs(worldPosition[axis] - value) > 0.001
+    ) && Math.abs(camera.yaw - 1.4578) <= 0.0001
+        && Math.abs(camera.pitch + 0.0944) <= 0.0001;
+};
+let benchmarkCamera = null;
+for (let attempt = 0; attempt < 3; ++attempt) {
+    await pressKey(119);
+    await pressKey(49);
+    benchmarkCamera = await readCamera();
+    if (cameraMatches(benchmarkCamera)) break;
+}
+if (!cameraMatches(benchmarkCamera)) {
     throw new Error(
         `deterministic camera setup failed: ${JSON.stringify(benchmarkCamera)}`,
     );
@@ -851,11 +872,13 @@ const traceHotspots = [...traceDurationBySite.values()]
     .sort((left, right) => right.durationUs - left.durationUs)
     .slice(0, 30);
 const submittedFrames = capture.frameCountEnd - capture.frameCountStart;
-const gpuSamplesPassed = !readyState.profilingEnabled
+const gpuSamplesPassed = options.expectedBackend !== "webgpu_soft"
+    || !readyState.profilingEnabled
     || validStageSamples.length >= 10;
 const renderGpuSamplesPassed = !readyState.renderProfilingEnabled
     || validRenderStageSamples.length >= 10;
-const baseInvariantsPassed = telemetry.physics.backend === "webgpu_soft"
+const baseInvariantsPassed =
+    telemetry.physics.backend === options.expectedBackend
     && telemetry.physics.arithmetic === "fast_float"
     && telemetry.physics.bodies.current === expectedBodies
     && !telemetry.physics.candidate_pairs.overflow
