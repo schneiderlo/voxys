@@ -1444,29 +1444,55 @@ fn precompute_medium_body_proxies_256(
     precompute_medium_body_proxies_impl(gid);
 }
 
-fn parallel_medium_world_pair_counts_impl(gid : vec3<u32>) {
+fn parallel_medium_world_pair_counts_impl(gid : vec3<u32>,
+                                          lid : vec3<u32>) {
     let minimum = gid.x;
     let bodyCount = broad.counts.x;
-    if (minimum >= bodyCount) { return; }
-
-    let minimumProxy = load_precomputed_medium_body(minimum);
+    let validMinimum = minimum < bodyCount;
+    var minimumProxy = MediumBodyProxy(
+        vec4<f32>(0.0), vec4<i32>(0), vec2<u32>(SENTINEL));
+    if (validMinimum) {
+        minimumProxy = load_precomputed_medium_body(minimum);
+    }
     let minimumFlags = u32(minimumProxy.sectorFlags.w);
     let cellValid = !all(
         minimumProxy.cellKey == vec2<u32>(SENTINEL));
     var cellRepresentative = cellValid;
     var pairCount = 0u;
-    for (var maximum = minimum + 1u; maximum < bodyCount;
-         maximum += 1u) {
-        let maximumProxy = load_precomputed_medium_body(maximum);
-        if (cellRepresentative
-            && all(maximumProxy.cellKey == minimumProxy.cellKey)) {
-            cellRepresentative = false;
+    let tileSize = broad.capacities.w;
+    for (var base = 0u; base < bodyCount; base += tileSize) {
+        let loadIndex = base + lid.x;
+        var loaded = MediumBodyProxy(
+            vec4<f32>(0.0), vec4<i32>(0), vec2<u32>(SENTINEL));
+        if (loadIndex < bodyCount) {
+            loaded = load_precomputed_medium_body(loadIndex);
         }
-        pairCount += select(0u, 1u,
-            medium_bodies_overlap(minimumProxy, maximumProxy));
+        smallPairPositionRadius[lid.x] = loaded.positionRadius;
+        smallPairSectorFlags[lid.x] = loaded.sectorFlags;
+        smallPairCellKeys[lid.x] = loaded.cellKey;
+        workgroupBarrier();
+        if (validMinimum) {
+            let tileCount = min(tileSize, bodyCount - base);
+            for (var local = 0u; local < tileCount; local += 1u) {
+                let maximum = base + local;
+                if (maximum <= minimum) { continue; }
+                let maximumProxy = MediumBodyProxy(
+                    smallPairPositionRadius[local],
+                    smallPairSectorFlags[local],
+                    smallPairCellKeys[local]);
+                if (cellRepresentative
+                    && all(maximumProxy.cellKey == minimumProxy.cellKey)) {
+                    cellRepresentative = false;
+                }
+                pairCount += select(0u, 1u,
+                    medium_bodies_overlap(minimumProxy, maximumProxy));
+            }
+        }
+        workgroupBarrier();
     }
-    bodyEntryCounts[minimum] = pairCount;
+    if (!validMinimum) { return; }
 
+    bodyEntryCounts[minimum] = pairCount;
     let alive = (minimumFlags & BODY_ALIVE) != 0u;
     if (alive && cellValid) {
         atomicAdd(&telemetry[0], 1u);
@@ -1478,26 +1504,30 @@ fn parallel_medium_world_pair_counts_impl(gid : vec3<u32>) {
 
 @compute @workgroup_size(64)
 fn parallel_medium_world_pair_counts_64(
-    @builtin(global_invocation_id) gid : vec3<u32>) {
-    parallel_medium_world_pair_counts_impl(gid);
+    @builtin(global_invocation_id) gid : vec3<u32>,
+    @builtin(local_invocation_id) lid : vec3<u32>) {
+    parallel_medium_world_pair_counts_impl(gid, lid);
 }
 @compute @workgroup_size(128)
 fn parallel_medium_world_pair_counts_128(
-    @builtin(global_invocation_id) gid : vec3<u32>) {
-    parallel_medium_world_pair_counts_impl(gid);
+    @builtin(global_invocation_id) gid : vec3<u32>,
+    @builtin(local_invocation_id) lid : vec3<u32>) {
+    parallel_medium_world_pair_counts_impl(gid, lid);
 }
 @compute @workgroup_size(256)
 fn parallel_medium_world_pair_counts_256(
-    @builtin(global_invocation_id) gid : vec3<u32>) {
-    parallel_medium_world_pair_counts_impl(gid);
+    @builtin(global_invocation_id) gid : vec3<u32>,
+    @builtin(local_invocation_id) lid : vec3<u32>) {
+    parallel_medium_world_pair_counts_impl(gid, lid);
 }
 
-fn parallel_medium_world_pair_scatter_impl(gid : vec3<u32>) {
+fn parallel_medium_world_pair_scatter_impl(gid : vec3<u32>,
+                                           lid : vec3<u32>) {
     let minimum = gid.x;
     let bodyCount = broad.counts.x;
-    if (minimum >= bodyCount) { return; }
+    let validMinimum = minimum < bodyCount;
 
-    if (minimum == 0u) {
+    if (validMinimum && minimum == 0u) {
         let last = bodyCount - 1u;
         let rawCandidateCount =
             bodyEntryOffsets[last] + bodyEntryCounts[last];
@@ -1516,30 +1546,58 @@ fn parallel_medium_world_pair_scatter_impl(gid : vec3<u32>) {
         atomicMax(&telemetry[17], materialized);
     }
 
-    let pairCount = bodyEntryCounts[minimum];
-    let outputBase = bodyEntryOffsets[minimum];
+    var pairCount = 0u;
+    var outputBase = 0u;
+    var minimumProxy = MediumBodyProxy(
+        vec4<f32>(0.0), vec4<i32>(0), vec2<u32>(SENTINEL));
+    if (validMinimum) {
+        pairCount = bodyEntryCounts[minimum];
+        outputBase = bodyEntryOffsets[minimum];
+        minimumProxy = load_precomputed_medium_body(minimum);
+    }
     let outputCapacity = min(broad.counts.w, broad.capacities.x);
-    if (pairCount == 0u || outputBase >= outputCapacity) { return; }
-
-    let minimumProxy = load_precomputed_medium_body(minimum);
     let minimumFlags = u32(minimumProxy.sectorFlags.w);
     var localRank = 0u;
     var sleepingCount = 0u;
-    for (var maximum = minimum + 1u; maximum < bodyCount;
-         maximum += 1u) {
-        if (outputBase + localRank >= outputCapacity) { break; }
-        let maximumProxy = load_precomputed_medium_body(maximum);
-        if (!medium_bodies_overlap(
-                minimumProxy, maximumProxy)) { continue; }
-        let output = outputBase + localRank;
-        let maximumFlags = u32(maximumProxy.sectorFlags.w);
-        let sleeping = select(0u, 1u,
-            (minimumFlags & BODY_AWAKE) == 0u
-                || (maximumFlags & BODY_AWAKE) == 0u);
-        uniqueBodyPairs[output] = KeyValue(
-            maximum, minimum, sleeping, output);
-        sleepingCount += sleeping;
-        localRank += 1u;
+    var outputFull = !validMinimum || pairCount == 0u
+                  || outputBase >= outputCapacity;
+    let tileSize = broad.capacities.w;
+    for (var base = 0u; base < bodyCount; base += tileSize) {
+        let loadIndex = base + lid.x;
+        var loaded = MediumBodyProxy(
+            vec4<f32>(0.0), vec4<i32>(0), vec2<u32>(SENTINEL));
+        if (loadIndex < bodyCount) {
+            loaded = load_precomputed_medium_body(loadIndex);
+        }
+        smallPairPositionRadius[lid.x] = loaded.positionRadius;
+        smallPairSectorFlags[lid.x] = loaded.sectorFlags;
+        smallPairCellKeys[lid.x] = loaded.cellKey;
+        workgroupBarrier();
+        if (!outputFull) {
+            let tileCount = min(tileSize, bodyCount - base);
+            for (var local = 0u; local < tileCount; local += 1u) {
+                let maximum = base + local;
+                if (maximum <= minimum) { continue; }
+                let maximumProxy = MediumBodyProxy(
+                    smallPairPositionRadius[local],
+                    smallPairSectorFlags[local],
+                    smallPairCellKeys[local]);
+                if (!medium_bodies_overlap(
+                        minimumProxy, maximumProxy)) { continue; }
+                let output = outputBase + localRank;
+                let maximumFlags = u32(maximumProxy.sectorFlags.w);
+                let sleeping = select(0u, 1u,
+                    (minimumFlags & BODY_AWAKE) == 0u
+                        || (maximumFlags & BODY_AWAKE) == 0u);
+                uniqueBodyPairs[output] = KeyValue(
+                    maximum, minimum, sleeping, output);
+                sleepingCount += sleeping;
+                localRank += 1u;
+                outputFull = outputBase + localRank >= outputCapacity;
+                if (outputFull) { break; }
+            }
+        }
+        workgroupBarrier();
     }
     if (sleepingCount != 0u) {
         atomicAdd(&telemetry[4], sleepingCount);
@@ -1548,18 +1606,21 @@ fn parallel_medium_world_pair_scatter_impl(gid : vec3<u32>) {
 
 @compute @workgroup_size(64)
 fn parallel_medium_world_pair_scatter_64(
-    @builtin(global_invocation_id) gid : vec3<u32>) {
-    parallel_medium_world_pair_scatter_impl(gid);
+    @builtin(global_invocation_id) gid : vec3<u32>,
+    @builtin(local_invocation_id) lid : vec3<u32>) {
+    parallel_medium_world_pair_scatter_impl(gid, lid);
 }
 @compute @workgroup_size(128)
 fn parallel_medium_world_pair_scatter_128(
-    @builtin(global_invocation_id) gid : vec3<u32>) {
-    parallel_medium_world_pair_scatter_impl(gid);
+    @builtin(global_invocation_id) gid : vec3<u32>,
+    @builtin(local_invocation_id) lid : vec3<u32>) {
+    parallel_medium_world_pair_scatter_impl(gid, lid);
 }
 @compute @workgroup_size(256)
 fn parallel_medium_world_pair_scatter_256(
-    @builtin(global_invocation_id) gid : vec3<u32>) {
-    parallel_medium_world_pair_scatter_impl(gid);
+    @builtin(global_invocation_id) gid : vec3<u32>,
+    @builtin(local_invocation_id) lid : vec3<u32>) {
+    parallel_medium_world_pair_scatter_impl(gid, lid);
 }
 
 fn small_world_lifecycle_impl() {
