@@ -172,13 +172,6 @@ const capture = (bodyCount) => new Promise((resolve, reject) => {
             ));
             return;
         }
-        if (status !== 0 || !profile.invariants?.overallPassed) {
-            reject(new Error(
-                `profile for ${bodyCount} bodies failed (exit ${status}): `
-                + `${JSON.stringify(profile.diagnostics)}\n${stderr}`,
-            ));
-            return;
-        }
         if (!profile.browser.physicsProfiling
             || !profile.browser.renderProfiling) {
             reject(new Error(
@@ -186,7 +179,7 @@ const capture = (bodyCount) => new Promise((resolve, reject) => {
             ));
             return;
         }
-        resolve(profile);
+        resolve({ profile, status, stderr });
     });
 });
 
@@ -195,13 +188,16 @@ const manifest = {
     schema: "voxys.wasm_profile_matrix.v1",
     capturedAt: new Date().toISOString(),
     options,
+    overallPassed: true,
     profiles: [],
 };
 
 for (const bodyCount of options.bodies) {
     process.stderr.write(`profiling ${bodyCount} bodies...\n`);
     await preparePage();
-    const profile = await capture(bodyCount);
+    const result = await capture(bodyCount);
+    const profile = result.profile;
+    const passed = result.status === 0 && profile.invariants?.overallPassed;
     const filename = `bodies-${String(bodyCount).padStart(5, "0")}.json`;
     fs.writeFileSync(
         path.join(options.outputDirectory, filename),
@@ -210,6 +206,7 @@ for (const bodyCount of options.bodies) {
     const entry = {
         bodies: bodyCount,
         file: filename,
+        passed,
         throughputFps: profile.frame.throughputFps,
         frameP50Ms: profile.frame.p50,
         frameP95Ms: profile.frame.p95,
@@ -218,12 +215,18 @@ for (const bodyCount of options.bodies) {
         renderGpuP50Ms: profile.gpu.render.total.p50,
         peakJsHeapBytes: profile.memory.peakJsHeapBytes,
     };
+    manifest.overallPassed &&= passed;
     manifest.profiles.push(entry);
     process.stderr.write(
         `  ${entry.throughputFps.toFixed(2)} FPS; `
         + `physics ${entry.physicsGpuP50Ms.toFixed(3)} ms; `
         + `render ${entry.renderGpuP50Ms.toFixed(3)} ms\n`,
     );
+    if (!passed) {
+        process.stderr.write(
+            `  FAILED invariants: ${JSON.stringify(profile.invariants)}\n`,
+        );
+    }
 }
 
 fs.writeFileSync(
@@ -231,3 +234,4 @@ fs.writeFileSync(
     `${JSON.stringify(manifest, null, 2)}\n`,
 );
 console.log(JSON.stringify(manifest, null, 2));
+if (!manifest.overallPassed) process.exitCode = 2;

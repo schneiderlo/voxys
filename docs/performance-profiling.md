@@ -68,6 +68,10 @@ for the 1000/2000/4000/10000 targets, with 8192 showing the curve between 4k
 and 10k. Counts must be multiples of the
 deterministic 128-body batch.
 
+The runner records every workload even if one workload trips a capacity or
+correctness invariant. The manifest marks that row as failed and the process
+returns exit code 2 after the full matrix is complete.
+
 ## Find hotspots and compare a change
 
 Analyze a single capture:
