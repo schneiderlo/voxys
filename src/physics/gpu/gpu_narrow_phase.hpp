@@ -88,8 +88,14 @@ struct GpuNarrowPhaseTelemetry {
 class GpuNarrowPhase {
 public:
     static constexpr uint32_t kTelemetryWordCount = 32;
+    static constexpr uint32_t kProfilingInternalBoundaryCount = 1;
     static constexpr uint64_t kActiveContactDispatchOffset =
         uint64_t{kGpuNarrowPhasePairClassCount} * 4u * sizeof(uint32_t);
+
+    struct ProfilingBoundary {
+        void (*callback)(const void*) = nullptr;
+        const void* userData = nullptr;
+    };
 
     struct Config {
         uint32_t pairCapacity = 65'536;
@@ -117,6 +123,9 @@ public:
     void shutdown();
     void setInput(const GpuNarrowPhaseInput& input);
     [[nodiscard]] bool encode(WGPUCommandEncoder encoder);
+    [[nodiscard]] bool encode(
+        WGPUCommandEncoder encoder,
+        const ProfilingBoundary& profilingBoundary);
 
     [[nodiscard]] WGPUBuffer manifolds() const noexcept;
     [[nodiscard]] WGPUBuffer pairBuckets() const noexcept;

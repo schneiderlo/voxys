@@ -1644,9 +1644,28 @@ public:
                 }
             }
             writeStageTimestamp();
+            GpuNarrowPhase::ProfilingBoundary narrowProfilingBoundary;
+            if (profileThisBatch) {
+                narrowProfilingBoundary.callback = [](const void* userData) {
+                    (*static_cast<
+                        const decltype(writeStageTimestamp)*>(userData))();
+                };
+                narrowProfilingBoundary.userData = &writeStageTimestamp;
+            }
+            const bool narrowPhaseEnabled = executeBodyPipeline
+                && dynamicContactsEnabled;
             const bool narrowPhaseEncoded = broadPhaseEncoded
-                && (!executeBodyPipeline || !dynamicContactsEnabled
-                    || narrowPhase_.encode(encoder));
+                && (!narrowPhaseEnabled
+                    || narrowPhase_.encode(
+                        encoder, narrowProfilingBoundary));
+            if (!narrowPhaseEnabled) {
+                for (uint32_t boundary = 0u;
+                     boundary
+                        < GpuNarrowPhase::kProfilingInternalBoundaryCount;
+                     ++boundary) {
+                    writeStageTimestamp();
+                }
+            }
             writeStageTimestamp();
             if (executeBodyPipeline && dynamicContactsEnabled
                 && narrowPhaseEncoded) {

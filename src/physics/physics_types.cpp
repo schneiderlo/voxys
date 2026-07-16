@@ -155,7 +155,10 @@ const char* physicsGpuStageName(PhysicsGpuStage stage) noexcept {
             return "broad_pair_sort_unique";
         case PhysicsGpuStage::BroadPhaseLifecycle:
             return "broad_lifecycle";
-        case PhysicsGpuStage::NarrowPhase: return "narrow_phase";
+        case PhysicsGpuStage::NarrowPhaseBucketing:
+            return "narrow_phase_bucketing";
+        case PhysicsGpuStage::NarrowPhaseCollision:
+            return "narrow_phase_collision";
         case PhysicsGpuStage::DynamicSolverColoring:
             return "dynamic_solver_coloring";
         case PhysicsGpuStage::DynamicSolverGraph:

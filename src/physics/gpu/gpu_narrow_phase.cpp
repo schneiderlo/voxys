@@ -314,8 +314,15 @@ public:
         return true;
     }
 
-    bool encode(WGPUCommandEncoder encoder) {
+    bool encode(
+        WGPUCommandEncoder encoder,
+        const GpuNarrowPhase::ProfilingBoundary& profilingBoundary) {
         if (!encoder || !input_.valid()) return false;
+        const auto writeProfilingBoundary = [&] {
+            if (profilingBoundary.callback) {
+                profilingBoundary.callback(profilingBoundary.userData);
+            }
+        };
         const Params params{
             .capacities = {input_.bodyCapacity, input_.pairCapacity,
                            config_.manifoldCapacity, config_.workgroupSize},
@@ -347,6 +354,7 @@ public:
         wgpuComputePassEncoderDispatchWorkgroups(pass, groups, 1, 1);
         wgpuComputePassEncoderEnd(pass);
         wgpuComputePassEncoderRelease(pass);
+        writeProfilingBoundary();
 
         pass = wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
         wgpuComputePassEncoderSetBindGroup(pass, 0, narrowGroup, 0, nullptr);
@@ -443,7 +451,12 @@ void GpuNarrowPhase::setInput(const GpuNarrowPhaseInput& input) {
     impl_->setInput(input);
 }
 bool GpuNarrowPhase::encode(WGPUCommandEncoder encoder) {
-    return impl_->encode(encoder);
+    return impl_->encode(encoder, ProfilingBoundary{});
+}
+bool GpuNarrowPhase::encode(
+    WGPUCommandEncoder encoder,
+    const ProfilingBoundary& profilingBoundary) {
+    return impl_->encode(encoder, profilingBoundary);
 }
 WGPUBuffer GpuNarrowPhase::manifolds() const noexcept {
     return impl_->manifoldsAreB_ ? impl_->manifoldsB_ : impl_->manifoldsA_;
