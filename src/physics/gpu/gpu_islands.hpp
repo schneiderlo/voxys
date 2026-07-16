@@ -66,6 +66,7 @@ struct GpuIslandTelemetry {
     uint32_t sleepingGridCells = 0;
     uint32_t rootErrors = 0;
     uint32_t unionRounds = 0;
+    uint32_t executedGlobalUnionRounds = 0;
     uint32_t tick = 0;
     uint32_t highIslands = 0;
     uint32_t highSleepingBodies = 0;

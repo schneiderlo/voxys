@@ -115,6 +115,8 @@ struct IslandParams {
 @group(0) @binding(21) var<storage, read_write> pendingEvents : array<IslandEvent>;
 @group(0) @binding(22) var<storage, read_write> compactedSleepingGrid :
     array<KeyValue>;
+@group(0) @binding(23) var<storage, read_write> unionConvergence :
+    array<atomic<u32>>;
 
 // The compact island path is selected only when bodyCapacity <= 1,024.
 // Sentinel padding gives every supported capacity the same fixed network.
@@ -170,6 +172,8 @@ fn prepare_union_dispatch(@builtin(global_invocation_id) gid : vec3<u32>) {
     let contactCount = active_contact_count();
     let hasContacts = contactCount != 0u;
     atomicStore(&telemetry[12], select(0u, params.control.x, hasContacts));
+    atomicStore(&unionConvergence[0], select(0u, 1u, hasContacts));
+    atomicStore(&telemetry[21], 0u);
     atomicStore(&telemetry[25],
         (contactCount + params.capacities.w - 1u) / params.capacities.w);
     atomicStore(&telemetry[26], 1u);
@@ -184,6 +188,18 @@ fn prepare_union_dispatch(@builtin(global_invocation_id) gid : vec3<u32>) {
     atomicStore(&telemetry[32], 1u);
     atomicStore(&telemetry[33], 1u);
     atomicStore(&telemetry[34], select(0u, params.capacities.x, hasContacts));
+}
+
+@compute @workgroup_size(1)
+fn prepare_union_round(@builtin(global_invocation_id) gid : vec3<u32>) {
+    if (gid.x != 0u) { return; }
+    let roundActive = atomicExchange(&unionConvergence[0], 0u) != 0u;
+    if (roundActive) {
+        atomicAdd(&telemetry[21], 1u);
+        return;
+    }
+    atomicStore(&telemetry[25], 0u);
+    atomicStore(&telemetry[28], 0u);
 }
 
 fn reset_impl(gid : vec3<u32>) {
@@ -233,7 +249,11 @@ fn union_contacts_impl(gid : vec3<u32>) {
     let rootA = atomicLoad(&bodyRoots[pair.keyHigh]);
     let rootB = atomicLoad(&bodyRoots[pair.keyLow]);
     if (rootA == SENTINEL || rootB == SENTINEL || rootA == rootB) { return; }
-    atomicMin(&bodyRoots[max(rootA, rootB)], min(rootA, rootB));
+    let lower = min(rootA, rootB);
+    let previous = atomicMin(&bodyRoots[max(rootA, rootB)], lower);
+    if (previous > lower) {
+        atomicStore(&unionConvergence[0], 1u);
+    }
 }
 
 @compute @workgroup_size(64)
@@ -254,7 +274,11 @@ fn compress_roots_impl(gid : vec3<u32>) {
     if (!body_is_alive(body)) { return; }
     let root = atomicLoad(&bodyRoots[body]);
     if (root != SENTINEL) {
-        atomicStore(&bodyRoots[body], atomicLoad(&bodyRoots[root]));
+        let parent = atomicLoad(&bodyRoots[root]);
+        atomicStore(&bodyRoots[body], parent);
+        if (parent != root) {
+            atomicStore(&unionConvergence[0], 1u);
+        }
     }
 }
 
@@ -805,6 +829,7 @@ fn small_world_build(@builtin(global_invocation_id) gid : vec3<u32>) {
     if (lane == 0u) {
         atomicStore(&telemetry[17], 0u);
         atomicStore(&telemetry[18], 0u);
+        atomicStore(&telemetry[21], 0u);
     }
 
     for (var body = lane; body < params.capacities.x; body += 256u) {

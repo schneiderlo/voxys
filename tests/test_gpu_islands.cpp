@@ -7,6 +7,7 @@
 #include "physics/gpu/gpu_narrow_phase.hpp"
 
 #include <array>
+#include <bit>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
@@ -245,6 +246,8 @@ TEST(GpuIslandGlobalTest, LogarithmicRoundsConvergeLongChain) {
     const IslandSnapshot snapshot = runAndRead(
         context, manager, metadataBuffer, bodyCapacity, bodyCapacity, false);
     EXPECT_EQ(snapshot.telemetry.unionRounds, config.unionRounds);
+    EXPECT_LT(snapshot.telemetry.executedGlobalUnionRounds,
+              std::bit_width(bodyCapacity - 1u));
     EXPECT_EQ(snapshot.telemetry.islandCount, 1u);
     for (uint32_t body = 1u; body < bodyCapacity; ++body) {
         EXPECT_EQ(snapshot.roots[body], 1u) << "body " << body;

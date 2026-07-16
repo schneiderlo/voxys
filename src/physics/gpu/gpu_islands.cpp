@@ -150,6 +150,8 @@ public:
         events_ = makeStorage(
             uint64_t{config.eventCapacity} * sizeof(GpuIslandEvent),
             "island_events");
+        unionConvergence_ = makeStorage(
+            sizeof(uint32_t), "island_union_convergence");
         telemetry_ = gpu::createBuffer(device_, gpu::BufferDesc{
             .label = "island_telemetry",
             .size = kTelemetryWords * sizeof(uint32_t),
@@ -161,7 +163,8 @@ public:
             || !islandPersistent_ || !bodyPersistent_ || !sleepingGrid_
             || !sortedSleepingGrid_ || !compactedSleepingGrid_
             || !sleepingRanges_ || !rangePredicates_
-            || !rangeIndices_ || !pendingEvents_ || !events_ || !telemetry_) {
+            || !rangeIndices_ || !pendingEvents_ || !events_
+            || !unionConvergence_ || !telemetry_) {
             shutdown();
             return false;
         }
@@ -175,7 +178,7 @@ public:
                    + sizeof(GpuIslandRecord) + sizeof(GpuSleepingCellRange)
                    + sizeof(GpuIslandEvent) + 3u * 16u)
             + uint64_t{config.eventCapacity} * sizeof(GpuIslandEvent)
-            + kTelemetryWords * sizeof(uint32_t));
+            + (kTelemetryWords + 1u) * sizeof(uint32_t));
 
         shaderModule_ = gpu::loadShaderModule(
             device_, config.shaderPath, "physics_islands.wgsl");
@@ -214,6 +217,7 @@ public:
         entries.clear();
         storage(entries, 5, true);
         storage(entries, 9, false);
+        storage(entries, 23, false);
         uniform(entries);
         prepareUnionLayout_ = makeLayout(
             entries, "island_prepare_union_layout");
@@ -223,6 +227,7 @@ public:
         storage(entries, 4, true);
         storage(entries, 5, true);
         storage(entries, 6, false);
+        storage(entries, 23, false);
         uniform(entries);
         unionLayout_ = makeLayout(entries, "island_union_layout");
 
@@ -357,6 +362,9 @@ public:
         prepareUnionPipeline_ = makePipeline(
             device_, prepareUnionPipelineLayout_, shaderModule_,
             "prepare_union_dispatch", "island_prepare_union_dispatch");
+        prepareUnionRoundPipeline_ = makePipeline(
+            device_, prepareUnionPipelineLayout_, shaderModule_,
+            "prepare_union_round", "island_prepare_union_round");
         unionPipeline_ = makePipeline(device_, unionPipelineLayout_, shaderModule_,
             "union_contacts_" + suffix, "island_union_contacts");
         compressPipeline_ = makePipeline(
@@ -426,7 +434,8 @@ public:
         smallGridPipeline_ = makePipeline(
             device_, smallGridPipelineLayout_, shaderModule_,
             "small_world_sleeping_grid", "island_small_world_grid");
-        return resetPipeline_ && prepareUnionPipeline_ && unionPipeline_
+        return resetPipeline_ && prepareUnionPipeline_
+            && prepareUnionRoundPipeline_ && unionPipeline_
             && compressPipeline_
             && recordPipeline_ && markRangePipeline_ && finalizeRangePipeline_
             && scatterRangeStartsPipeline_ && scatterRangeEndsPipeline_
@@ -627,14 +636,18 @@ public:
             gpu::BindGroupEntry(13).buffer(islandPersistent_),
             gpu::BindGroupEntry(14).buffer(bodyPersistent_),
             gpu::BindGroupEntry(18).buffer(events_), parameterEntry()};
-        const std::array<gpu::BindGroupEntry, 5> unionEntries = {
+        const std::array<gpu::BindGroupEntry, 6> unionEntries = {
             gpu::BindGroupEntry(3).buffer(input_.metadataBuffer),
             gpu::BindGroupEntry(4).buffer(input_.manifoldBuffer),
             gpu::BindGroupEntry(5).buffer(input_.narrowPhaseTelemetryBuffer),
-            gpu::BindGroupEntry(6).buffer(roots_), parameterEntry()};
-        const std::array<gpu::BindGroupEntry, 3> prepareUnionEntries = {
+            gpu::BindGroupEntry(6).buffer(roots_),
+            gpu::BindGroupEntry(23).buffer(unionConvergence_),
+            parameterEntry()};
+        const std::array<gpu::BindGroupEntry, 4> prepareUnionEntries = {
             gpu::BindGroupEntry(5).buffer(input_.narrowPhaseTelemetryBuffer),
-            gpu::BindGroupEntry(9).buffer(telemetry_), parameterEntry()};
+            gpu::BindGroupEntry(9).buffer(telemetry_),
+            gpu::BindGroupEntry(23).buffer(unionConvergence_),
+            parameterEntry()};
         const std::array<gpu::BindGroupEntry, 6> recordEntries = {
             gpu::BindGroupEntry(3).buffer(input_.metadataBuffer),
             gpu::BindGroupEntry(6).buffer(roots_),
@@ -688,7 +701,16 @@ public:
                 static_cast<uint32_t>(
                     std::bit_width(input_.bodyCapacity - 1u)),
                 1u));
+        // A no-change hook/compress round is a fixed point. Its scalar
+        // prepass zeros both later indirect workloads entirely on the GPU.
         for (uint32_t round = 0; round < convergenceRounds; ++round) {
+            wgpuComputePassEncoderSetBindGroup(
+                pass, 0, prepareUnionGroup, 0, nullptr);
+            wgpuComputePassEncoderSetPipeline(
+                pass, prepareUnionRoundPipeline_);
+            wgpuComputePassEncoderDispatchWorkgroups(pass, 1u, 1u, 1u);
+            wgpuComputePassEncoderSetBindGroup(
+                pass, 0, unionGroup, 0, nullptr);
             wgpuComputePassEncoderSetPipeline(pass, unionPipeline_);
             wgpuComputePassEncoderDispatchWorkgroupsIndirect(
                 pass, telemetry_, 25u * sizeof(uint32_t));
@@ -878,7 +900,8 @@ public:
             releaseHandle(group, wgpuBindGroupRelease);
         }
         for (WGPUComputePipeline* pipeline : {
-                 &resetPipeline_, &prepareUnionPipeline_, &unionPipeline_,
+                 &resetPipeline_, &prepareUnionPipeline_,
+                 &prepareUnionRoundPipeline_, &unionPipeline_,
                  &compressPipeline_,
                  &recordPipeline_, &markRangePipeline_,
                  &finalizeRangePipeline_, &scatterRangeStartsPipeline_,
@@ -917,7 +940,7 @@ public:
                  &sleepingGrid_, &sortedSleepingGrid_, &compactedSleepingGrid_,
                  &sleepingRanges_,
                  &rangePredicates_, &rangeIndices_, &pendingEvents_, &events_,
-                 &telemetry_})
+                 &unionConvergence_, &telemetry_})
             releaseBuffer(*buffer);
         device_ = nullptr;
         queue_ = nullptr;
@@ -953,6 +976,7 @@ public:
     WGPUBuffer rangeIndices_ = nullptr;
     WGPUBuffer pendingEvents_ = nullptr;
     WGPUBuffer events_ = nullptr;
+    WGPUBuffer unionConvergence_ = nullptr;
     WGPUBuffer telemetry_ = nullptr;
     WGPUShaderModule shaderModule_ = nullptr;
     WGPUBindGroupLayout resetLayout_ = nullptr;
@@ -983,6 +1007,7 @@ public:
     WGPUPipelineLayout smallGridPipelineLayout_ = nullptr;
     WGPUComputePipeline resetPipeline_ = nullptr;
     WGPUComputePipeline prepareUnionPipeline_ = nullptr;
+    WGPUComputePipeline prepareUnionRoundPipeline_ = nullptr;
     WGPUComputePipeline unionPipeline_ = nullptr;
     WGPUComputePipeline compressPipeline_ = nullptr;
     WGPUComputePipeline recordPipeline_ = nullptr;
@@ -1063,6 +1088,7 @@ GpuIslandTelemetry GpuIslandManager::decodeTelemetry(
     result.sleepingGridCells = words[10];
     result.rootErrors = words[11];
     result.unionRounds = words[12];
+    if (words.size() > 21u) result.executedGlobalUnionRounds = words[21];
     result.tick = words[13];
     result.highIslands = words[14];
     result.highSleepingBodies = words[15];
