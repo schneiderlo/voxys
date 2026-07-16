@@ -17,6 +17,7 @@ const options = {
     expectedHeight: 2161,
     expectedBackend: "webgpu_soft",
     allowUnprofiled: false,
+    uncapped: false,
     profile: false,
     trace: false,
 };
@@ -29,6 +30,7 @@ const usage = () => console.error(
     + "[--warmup-tick N] "
     + "[--expected-width N] [--expected-height N] "
     + "[--expected-backend webgpu_soft|jolt_legacy] [--allow-unprofiled] "
+    + "[--uncapped] "
     + "[--profile] [--trace]",
 );
 
@@ -67,6 +69,8 @@ for (let index = 2; index < process.argv.length; ++index) {
         options.expectedBackend = value();
     } else if (argument === "--allow-unprofiled") {
         options.allowUnprofiled = true;
+    } else if (argument === "--uncapped") {
+        options.uncapped = true;
     } else if (argument === "--profile") options.profile = true;
     else if (argument === "--trace") options.trace = true;
     else if (argument === "--help" || argument === "-h") {
@@ -224,6 +228,7 @@ const capture = (bodyCount) => new Promise((resolve, reject) => {
     }
     if (options.profile) arguments_.push("--profile");
     if (options.trace) arguments_.push("--trace");
+    if (options.uncapped) arguments_.push("--uncapped");
     const child = spawn(process.execPath, arguments_, {
         stdio: ["ignore", "pipe", "pipe"],
     });

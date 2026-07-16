@@ -12,6 +12,7 @@ const options = {
     expectedWidth: 1236,
     expectedHeight: 777,
     expectedBackend: "webgpu_soft",
+    uncapped: false,
     profile: false,
     trace: false,
 };
@@ -53,6 +54,7 @@ for (let index = 2; index < process.argv.length; ++index) {
         case "--expected-backend":
             options.expectedBackend = process.argv[++index] ?? "";
             break;
+        case "--uncapped": options.uncapped = true; break;
         case "--profile": options.profile = true; break;
         case "--trace": options.trace = true; break;
         default: throw new Error(`unknown argument: ${argument}`);
@@ -69,6 +71,7 @@ if (options.port <= 0 || options.durationMs <= 0 || options.durationTicks <= 0
         + "[--left-stream-bodies N] "
         + "[--settle-ms MS] [--warmup-tick TICK] [--timeout-ms MS] "
         + "[--expected-backend webgpu_soft|jolt_legacy] "
+        + "[--uncapped] "
         + "[--profile] [--trace]",
     );
 }
@@ -299,6 +302,17 @@ if (!cameraMatches(benchmarkCamera)) {
     throw new Error(
         `deterministic camera setup failed: ${JSON.stringify(benchmarkCamera)}`,
     );
+}
+if (options.uncapped) {
+    await pressKey(120);
+    const uncappedFrame = await evaluate(
+        "voxyModule._voxy_get_frame_count()",
+    );
+    while (Date.now() < deadline) {
+        const frame = await evaluate("voxyModule._voxy_get_frame_count()");
+        if (frame > uncappedFrame) break;
+        await delay(25);
+    }
 }
 
 await evaluate(`(() => {
