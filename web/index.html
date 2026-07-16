@@ -66,6 +66,40 @@
             <p><kbd>F11</kbd> Fullscreen</p>
             <p><kbd>Esc</kbd> Release cursor</p>
         </div>
+        <div id="physics-backend-switcher" class="physics-backend-switcher">
+            <button id="physics-backend-trigger"
+                class="physics-backend-trigger"
+                type="button"
+                aria-expanded="false"
+                aria-controls="physics-backend-menu"
+                aria-haspopup="true">
+                <span class="physics-backend-kicker">PHYSICS</span>
+                <span id="physics-backend-label" class="physics-backend-label">WebGPU</span>
+                <span class="physics-backend-chevron" aria-hidden="true"></span>
+            </button>
+            <div id="physics-backend-menu"
+                class="physics-backend-menu"
+                role="radiogroup"
+                aria-label="Physics engine"
+                hidden>
+                <button type="button" role="radio"
+                    data-physics-backend="webgpu" aria-checked="false">
+                    <span>WebGPU</span>
+                    <small>GPU</small>
+                </button>
+                <button type="button" role="radio"
+                    data-physics-backend="box3d" aria-checked="false">
+                    <span>Box3D</span>
+                    <small>CPU reference</small>
+                </button>
+                <button type="button" role="radio"
+                    data-physics-backend="jolt" aria-checked="false">
+                    <span>Jolt</span>
+                    <small>CPU legacy</small>
+                </button>
+                <div class="physics-backend-reload">Selection reloads the scene</div>
+            </div>
+        </div>
         <button id="fullscreen-btn" class="ui-button" title="Toggle Fullscreen (F11)">⛶</button>
     </div>
 
@@ -130,6 +164,119 @@
             canvas.style.width = window.innerWidth + 'px';
             canvas.style.height = window.innerHeight + 'px';
             return size;
+        }
+
+        const physicsBackendOptions = Object.freeze({
+            webgpu: Object.freeze({label: 'WebGPU', runtimeValue: 2}),
+            box3d: Object.freeze({label: 'Box3D', runtimeValue: 1}),
+            jolt: Object.freeze({label: 'Jolt', runtimeValue: 0}),
+        });
+
+        function requestedPhysicsBackend() {
+            const value = new URLSearchParams(location.search)
+                .get('physicsBackend')?.toLowerCase();
+            if (value === 'webgpu' || value === 'webgpu_soft') return 'webgpu';
+            if (value === 'box3d' || value === 'box3d_reference') return 'box3d';
+            if (value === 'jolt' || value === 'jolt_legacy') return 'jolt';
+            return 'webgpu';
+        }
+
+        function setupPhysicsBackendSwitcher() {
+            const switcher = document.getElementById('physics-backend-switcher');
+            const trigger = document.getElementById('physics-backend-trigger');
+            const label = document.getElementById('physics-backend-label');
+            const menu = document.getElementById('physics-backend-menu');
+            if (!switcher || !trigger || !label || !menu) return;
+
+            const optionButtons = Array.from(
+                menu.querySelectorAll('[data-physics-backend]'));
+            let activeBackend = requestedPhysicsBackend();
+            const runtimeValue = voxyModule?._voxy_get_physics_backend?.() ?? -1;
+            const runtimeEntry = Object.entries(physicsBackendOptions)
+                .find(([, option]) => option.runtimeValue === runtimeValue);
+            if (runtimeEntry) activeBackend = runtimeEntry[0];
+
+            const closeMenu = (restoreFocus = false) => {
+                menu.hidden = true;
+                trigger.setAttribute('aria-expanded', 'false');
+                if (restoreFocus) trigger.focus();
+            };
+
+            const openMenu = () => {
+                menu.hidden = false;
+                trigger.setAttribute('aria-expanded', 'true');
+                const activeButton = optionButtons.find(
+                    button => button.dataset.physicsBackend === activeBackend);
+                requestAnimationFrame(() => activeButton?.focus());
+            };
+
+            const displayActiveBackend = () => {
+                label.textContent = physicsBackendOptions[activeBackend].label;
+                optionButtons.forEach(button => {
+                    button.setAttribute(
+                        'aria-checked',
+                        String(button.dataset.physicsBackend === activeBackend));
+                });
+            };
+
+            trigger.addEventListener('click', event => {
+                event.stopPropagation();
+                if (menu.hidden) openMenu();
+                else closeMenu();
+            });
+
+            optionButtons.forEach(button => {
+                button.addEventListener('click', event => {
+                    event.stopPropagation();
+                    const selectedBackend = button.dataset.physicsBackend;
+                    if (!physicsBackendOptions[selectedBackend]
+                        || selectedBackend === activeBackend) {
+                        closeMenu(true);
+                        return;
+                    }
+
+                    trigger.disabled = true;
+                    label.textContent = 'Reloading…';
+                    const destination = new URL(location.href);
+                    destination.searchParams.set(
+                        'physicsBackend', selectedBackend);
+                    if (typeof gtag === 'function') {
+                        gtag('event', 'physics_backend_switch', {
+                            from: activeBackend,
+                            to: selectedBackend,
+                        });
+                    }
+                    location.assign(destination.href);
+                });
+            });
+
+            menu.addEventListener('keydown', event => {
+                const focusedIndex = optionButtons.indexOf(document.activeElement);
+                let nextIndex = focusedIndex;
+                if (event.key === 'ArrowDown') {
+                    nextIndex = (focusedIndex + 1) % optionButtons.length;
+                } else if (event.key === 'ArrowUp') {
+                    nextIndex = (focusedIndex - 1 + optionButtons.length)
+                        % optionButtons.length;
+                } else if (event.key === 'Home') {
+                    nextIndex = 0;
+                } else if (event.key === 'End') {
+                    nextIndex = optionButtons.length - 1;
+                } else if (event.key === 'Escape') {
+                    event.preventDefault();
+                    closeMenu(true);
+                    return;
+                } else {
+                    return;
+                }
+                event.preventDefault();
+                optionButtons[nextIndex].focus();
+            });
+
+            document.addEventListener('click', event => {
+                if (!switcher.contains(event.target)) closeMenu();
+            });
+            displayActiveBackend();
         }
 
         // Touch controls setup
@@ -804,6 +951,8 @@
                         }
                     }
                 });
+
+                setupPhysicsBackendSwitcher();
 
                 // Keep browser-only pacing evidence beside the low-rate GPU
                 // physics diagnostics. DOM updates happen only while the F1

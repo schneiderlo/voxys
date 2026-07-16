@@ -295,6 +295,186 @@ body {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
+   Physics Backend Switcher
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.physics-backend-switcher {
+    position: absolute;
+    right: -180px;
+    bottom: 56px;
+    width: 164px;
+    font-family: var(--font-mono);
+}
+
+.physics-backend-trigger {
+    position: relative;
+    width: 100%;
+    min-height: 52px;
+    padding: 9px 36px 9px 13px;
+    overflow: hidden;
+    color: var(--color-text);
+    text-align: left;
+    background:
+        linear-gradient(105deg, rgba(74, 158, 255, 0.13), transparent 58%),
+        rgba(10, 10, 15, 0.9);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(74, 158, 255, 0.34);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: border-color 150ms ease, background-color 150ms ease,
+        transform 150ms ease;
+}
+
+.physics-backend-trigger::before {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 3px;
+    content: "";
+    background: var(--color-accent);
+    box-shadow: 0 0 14px rgba(74, 158, 255, 0.75);
+}
+
+.physics-backend-trigger:hover,
+.physics-backend-trigger[aria-expanded="true"] {
+    background-color: rgba(22, 30, 44, 0.94);
+    border-color: var(--color-accent);
+}
+
+.physics-backend-trigger:active {
+    transform: translateY(1px);
+}
+
+.physics-backend-trigger:focus-visible,
+.physics-backend-menu button:focus-visible {
+    outline: 2px solid #ffffff;
+    outline-offset: 2px;
+}
+
+.physics-backend-kicker,
+.physics-backend-label {
+    display: block;
+}
+
+.physics-backend-kicker {
+    margin-bottom: 2px;
+    color: var(--color-text-dim);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+}
+
+.physics-backend-label {
+    overflow: hidden;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 650;
+    line-height: 1.2;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.physics-backend-chevron {
+    position: absolute;
+    top: 23px;
+    right: 15px;
+    width: 8px;
+    height: 8px;
+    border-right: 2px solid var(--color-accent);
+    border-bottom: 2px solid var(--color-accent);
+    transform: rotate(45deg) translateY(-3px);
+    transition: transform 150ms ease;
+}
+
+.physics-backend-trigger[aria-expanded="true"] .physics-backend-chevron {
+    transform: rotate(225deg) translate(-2px, -1px);
+}
+
+.physics-backend-menu {
+    position: absolute;
+    right: 0;
+    bottom: calc(100% + 8px);
+    width: 210px;
+    padding: 6px;
+    background: rgba(8, 10, 15, 0.97);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(74, 158, 255, 0.38);
+    border-radius: 10px;
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.45);
+}
+
+.physics-backend-menu[hidden] {
+    display: none;
+}
+
+.physics-backend-menu button {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 12px;
+    align-items: center;
+    width: 100%;
+    min-height: 40px;
+    padding: 8px 10px 8px 30px;
+    color: var(--color-text);
+    font-family: var(--font-mono);
+    text-align: left;
+    background: transparent;
+    border: 0;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.physics-backend-menu button::before {
+    position: absolute;
+    left: 11px;
+    width: 7px;
+    height: 7px;
+    content: "";
+    background: transparent;
+    border: 1px solid var(--color-text-dim);
+    border-radius: 50%;
+}
+
+.physics-backend-menu button:hover {
+    background: rgba(74, 158, 255, 0.12);
+}
+
+.physics-backend-menu button[aria-checked="true"] {
+    color: #ffffff;
+    background: rgba(74, 158, 255, 0.16);
+}
+
+.physics-backend-menu button[aria-checked="true"]::before {
+    background: #4ade80;
+    border-color: #4ade80;
+    box-shadow: 0 0 8px rgba(74, 222, 128, 0.75);
+}
+
+.physics-backend-menu button span {
+    font-size: 12px;
+    font-weight: 650;
+}
+
+.physics-backend-menu button small {
+    color: var(--color-text-dim);
+    font-size: 9px;
+    letter-spacing: 0.03em;
+}
+
+.physics-backend-reload {
+    margin: 5px 4px 1px;
+    padding-top: 7px;
+    color: var(--color-text-dim);
+    font-size: 8px;
+    letter-spacing: 0.07em;
+    text-align: center;
+    text-transform: uppercase;
+    border-top: 1px solid rgba(255, 255, 255, 0.09);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
    UI Buttons
    ───────────────────────────────────────────────────────────────────────────── */
 
@@ -391,6 +571,14 @@ body {
 @media (hover: none) and (pointer: coarse) {
     .controls-hint {
         display: none;
+    }
+
+    .physics-backend-switcher {
+        position: fixed;
+        top: 16px;
+        right: 16px;
+        bottom: auto;
+        width: 154px;
     }
 
     #fullscreen-btn {
