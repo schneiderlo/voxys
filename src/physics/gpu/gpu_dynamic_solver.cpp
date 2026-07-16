@@ -16,6 +16,7 @@ namespace {
 constexpr uint32_t kParameterStride = 256;
 constexpr uint32_t kParameterSlots = 512;
 constexpr uint32_t kTelemetryWords = GpuDynamicSolver::kTelemetryWordCount;
+constexpr uint32_t kUnconditionalColorRounds = 8;
 
 template <typename T>
 void releaseHandle(T& handle, void (*release)(T)) {
@@ -156,7 +157,7 @@ public:
             "solver_body_degrees");
         dispatchArgs_ = gpu::createBuffer(device_, gpu::BufferDesc{
             .label = "solver_color_dispatch_args",
-            .size = uint64_t{config.colorCount + 6u} * 4u * sizeof(uint32_t),
+            .size = uint64_t{config.colorCount + 7u} * 4u * sizeof(uint32_t),
             .usage = WGPUBufferUsage_Storage | WGPUBufferUsage_Indirect
                    | WGPUBufferUsage_CopyDst | WGPUBufferUsage_CopySrc,
         });
@@ -184,7 +185,7 @@ public:
             + uint64_t{endpointCapacity_}
                 * (2u * sizeof(GpuKeyValue) + sizeof(GpuEndpointDelta))
             + uint64_t{config.colorCount + 1u} * 2u * sizeof(uint32_t)
-            + uint64_t{config.colorCount + 6u} * 4u * sizeof(uint32_t)
+            + uint64_t{config.colorCount + 7u} * 4u * sizeof(uint32_t)
             + kTelemetryWords * sizeof(uint32_t));
 
         shaderModule_ = gpu::loadShaderModule(
@@ -396,6 +397,14 @@ public:
             device_, coloringPipelineLayout_, shaderModule_,
             "clear_round_claims_" + suffix,
             "solver_clear_round_claims");
+        resetColorContinuationPipeline_ = makePipeline(
+            device_, classificationPipelineLayout_, shaderModule_,
+            "reset_coloring_continuation",
+            "solver_reset_coloring_continuation");
+        markColorContinuationPipeline_ = makePipeline(
+            device_, classificationPipelineLayout_, shaderModule_,
+            "mark_coloring_continuation_" + suffix,
+            "solver_mark_coloring_continuation");
         claimPipeline_ = makePipeline(device_, coloringPipelineLayout_,
             shaderModule_, "claim_colors_" + suffix, "solver_claim_colors");
         commitPipeline_ = makePipeline(device_, coloringPipelineLayout_,
@@ -450,7 +459,8 @@ public:
             shaderModule_, "finish_solver_tick", "solver_finish_tick");
         return resetPipeline_ && resetDegreesPipeline_ && countDegreesPipeline_
             && markSmallIslandsPipeline_ && clearClaimsPipeline_
-            && clearRoundClaimsPipeline_ && claimPipeline_
+            && clearRoundClaimsPipeline_ && resetColorContinuationPipeline_
+            && markColorContinuationPipeline_ && claimPipeline_
             && commitPipeline_ && validateClaimPipeline_
             && buildRecordsPipeline_ && buildRangesPipeline_
             && clearAdjacencyPipeline_ && emitAdjacencyPipeline_
@@ -707,7 +717,12 @@ public:
             config_.colorCount + 1u);
         const uint64_t globalClaimOffset = dispatchOffset(
             config_.colorCount + 5u);
-        for (uint32_t round = 0; round < config_.colorCount; ++round) {
+        const uint64_t continuationWorkOffset = dispatchOffset(
+            config_.colorCount + 6u);
+        const uint32_t unconditionalRounds = std::min(
+            config_.colorCount, kUnconditionalColorRounds);
+        const auto encodeColorRound = [&](uint32_t round,
+                                          uint64_t workOffset) {
             offset = writeParams(slot, makeParams(round,
                 config_.overflowIterations));
             bind(coloringGroup, offset);
@@ -716,13 +731,37 @@ public:
                                   : clearRoundClaimsPipeline_);
             wgpuComputePassEncoderDispatchWorkgroupsIndirect(
                 pass, dispatchArgs_,
-                round == 0u ? globalClaimOffset : globalWorkOffset);
+                round == 0u ? globalClaimOffset : workOffset);
             wgpuComputePassEncoderSetPipeline(pass, claimPipeline_);
             wgpuComputePassEncoderDispatchWorkgroupsIndirect(
-                pass, dispatchArgs_, globalWorkOffset);
+                pass, dispatchArgs_, workOffset);
             wgpuComputePassEncoderSetPipeline(pass, commitPipeline_);
             wgpuComputePassEncoderDispatchWorkgroupsIndirect(
-                pass, dispatchArgs_, globalWorkOffset);
+                pass, dispatchArgs_, workOffset);
+        };
+        for (uint32_t round = 0; round < unconditionalRounds; ++round) {
+            encodeColorRound(round, globalWorkOffset);
+        }
+        if (unconditionalRounds < config_.colorCount) {
+            wgpuComputePassEncoderEnd(pass);
+            wgpuComputePassEncoderRelease(pass);
+
+            pass = wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
+            offset = writeParams(slot,
+                makeParams(0u, config_.overflowIterations));
+            bind(classificationGroup, offset);
+            wgpuComputePassEncoderSetPipeline(
+                pass, resetColorContinuationPipeline_);
+            wgpuComputePassEncoderDispatchWorkgroups(pass, 1u, 1u, 1u);
+            dispatchContacts(markColorContinuationPipeline_);
+            wgpuComputePassEncoderEnd(pass);
+            wgpuComputePassEncoderRelease(pass);
+
+            pass = wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
+            for (uint32_t round = unconditionalRounds;
+                 round < config_.colorCount; ++round) {
+                encodeColorRound(round, continuationWorkOffset);
+            }
         }
         offset = writeParams(slot,
             makeParams(0u, config_.overflowIterations));
@@ -948,7 +987,9 @@ public:
         for (WGPUComputePipeline* pipeline : {
                  &resetPipeline_, &resetDegreesPipeline_, &countDegreesPipeline_,
                  &markSmallIslandsPipeline_, &clearClaimsPipeline_,
-                 &clearRoundClaimsPipeline_, &claimPipeline_,
+                 &clearRoundClaimsPipeline_,
+                 &resetColorContinuationPipeline_,
+                 &markColorContinuationPipeline_, &claimPipeline_,
                  &commitPipeline_, &validateClaimPipeline_,
                  &buildRecordsPipeline_, &buildRangesPipeline_,
                  &clearAdjacencyPipeline_, &emitAdjacencyPipeline_,
@@ -1061,6 +1102,8 @@ public:
     WGPUComputePipeline markSmallIslandsPipeline_ = nullptr;
     WGPUComputePipeline clearClaimsPipeline_ = nullptr;
     WGPUComputePipeline clearRoundClaimsPipeline_ = nullptr;
+    WGPUComputePipeline resetColorContinuationPipeline_ = nullptr;
+    WGPUComputePipeline markColorContinuationPipeline_ = nullptr;
     WGPUComputePipeline claimPipeline_ = nullptr;
     WGPUComputePipeline commitPipeline_ = nullptr;
     WGPUComputePipeline validateClaimPipeline_ = nullptr;

@@ -204,7 +204,9 @@ TEST_P(GpuDynamicColoringTest, ColorsConflictsAndGathersOverflowDeterministicall
     constexpr uint32_t bodyCapacity = 32;
     constexpr uint32_t contactCapacity = 32;
     constexpr uint32_t contactCount = 18;
-    constexpr uint32_t colorCount = 4;
+    // Cross the eight-round continuation gate and still leave explicit
+    // overflow in this single-body contact fan.
+    constexpr uint32_t colorCount = 16;
     gpu::Context context;
     gpu::ContextConfig contextConfig;
     contextConfig.enableValidation = false;

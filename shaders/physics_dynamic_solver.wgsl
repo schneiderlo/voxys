@@ -282,6 +282,37 @@ fn clear_round_claims_impl(gid : vec3<u32>) {
     candidateColors[rank] = SENTINEL;
 }
 
+@compute @workgroup_size(1)
+fn reset_coloring_continuation(@builtin(global_invocation_id) gid : vec3<u32>) {
+    if (gid.x == 0u) {
+        store_dispatch(params.capacities.z + 6u, 0u);
+    }
+}
+
+fn mark_coloring_continuation_impl(gid : vec3<u32>) {
+    let rank = gid.x;
+    if (!contact_is_active(rank) || contactColors[rank] != SENTINEL) { return; }
+    let workgroupSize = params.capacities.w >> 8u;
+    store_dispatch(params.capacities.z + 6u,
+        (active_contact_count() + workgroupSize - 1u) / workgroupSize);
+}
+
+@compute @workgroup_size(64)
+fn mark_coloring_continuation_64(
+    @builtin(global_invocation_id) gid : vec3<u32>) {
+    mark_coloring_continuation_impl(gid);
+}
+@compute @workgroup_size(128)
+fn mark_coloring_continuation_128(
+    @builtin(global_invocation_id) gid : vec3<u32>) {
+    mark_coloring_continuation_impl(gid);
+}
+@compute @workgroup_size(256)
+fn mark_coloring_continuation_256(
+    @builtin(global_invocation_id) gid : vec3<u32>) {
+    mark_coloring_continuation_impl(gid);
+}
+
 @compute @workgroup_size(64)
 fn clear_claims_64(@builtin(global_invocation_id) gid : vec3<u32>) {
     clear_claims_impl(gid);
