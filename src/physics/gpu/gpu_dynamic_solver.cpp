@@ -933,7 +933,7 @@ public:
                 wgpuComputePassEncoderDispatchWorkgroups(pass, 1u, 1u, 1u);
                 return;
             }
-            constexpr uint32_t kParallelColorCount = 8u;
+            constexpr uint32_t kParallelColorCount = 6u;
             const uint32_t parallelColors = std::min(
                 config_.colorCount, kParallelColorCount);
             for (uint32_t color = 0; color < parallelColors; ++color) {
