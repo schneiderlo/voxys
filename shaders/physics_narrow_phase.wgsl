@@ -61,6 +61,12 @@ struct CandidateSet {
     count : u32,
 };
 
+struct ReducedCandidateSet {
+    items : array<ContactCandidate, 4>,
+    normal : vec3<f32>,
+    count : u32,
+};
+
 struct Segment {
     first : vec3<f32>,
     second : vec3<f32>,
@@ -473,6 +479,13 @@ fn empty_candidates() -> CandidateSet {
     var result : CandidateSet;
     result.count = 0u;
     result.normal = vec3<f32>(1.0, 0.0, 0.0);
+    return result;
+}
+
+fn empty_reduced_candidates() -> ReducedCandidateSet {
+    var result : ReducedCandidateSet;
+    result.normal = vec3<f32>(1.0, 0.0, 0.0);
+    result.count = 0u;
     return result;
 }
 
@@ -1245,9 +1258,9 @@ fn candidate_precedes(a : ContactCandidate, b : ContactCandidate) -> bool {
     return a.features.y < b.features.y;
 }
 
-fn reduce_candidates(sourceInput : CandidateSet) -> CandidateSet {
+fn reduce_candidates(sourceInput : CandidateSet) -> ReducedCandidateSet {
     var source = sourceInput;
-    var result = empty_candidates();
+    var result = empty_reduced_candidates();
     result.normal = source.normal;
     if (source.count == 0u) { return result; }
     for (var index = 1u; index < source.count; index += 1u) {
