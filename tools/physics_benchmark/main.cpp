@@ -440,8 +440,10 @@ int main(int argc, char** argv) {
 
     PhysicsInitContext context;
     context.requestedBackend = options.backend;
-    if (options.backend == BackendType::JoltLegacy && options.workers > 1) {
-        context.joltJobSystem = voxy::physics::JoltJobSystemMode::ThreadPool;
+    if (options.backend == BackendType::JoltLegacy) {
+        context.joltJobSystem = options.workers == 1
+            ? voxy::physics::JoltJobSystemMode::SingleThreaded
+            : voxy::physics::JoltJobSystemMode::ThreadPool;
         context.joltWorkerThreads = options.workers - 1u;
     }
     context.box3dWorkerThreads = options.workers;
