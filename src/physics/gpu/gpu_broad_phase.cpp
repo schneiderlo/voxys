@@ -934,7 +934,7 @@ public:
         constexpr uint32_t kSmallWorldBodyLimit = 64u;
         constexpr uint32_t kSmallPairBodyLimit = 256u;
         constexpr uint32_t kMediumPairBodyLimit = 512u;
-        constexpr uint32_t kParallelMediumPairBodyLimit = 2'048u;
+        constexpr uint32_t kParallelMediumPairBodyLimit = 1'024u;
         if (bodyCount <= kSmallWorldBodyLimit) {
             writeProfilingBoundary();
             writeProfilingBoundary();

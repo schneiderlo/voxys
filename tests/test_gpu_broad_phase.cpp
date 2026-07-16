@@ -512,8 +512,8 @@ TEST_P(GpuBroadPhaseTest, CooperativeUpperBoundaryKeepsCanonicalPairs) {
     releaseBuffer(poseBuffer);
 }
 
-TEST(GpuBroadPhaseParallelMediumTest,
-     KeepsCanonicalPairsAboveCooperativeLimit) {
+TEST(GpuBroadPhaseGridCrossoverTest,
+     KeepsCanonicalPairsAboveDirectPairLimit) {
     constexpr uint32_t bodyCapacity = 1'300;
     constexpr uint32_t pairCapacity = 4'096;
     constexpr float margin = 0.02f;
