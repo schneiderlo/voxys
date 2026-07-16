@@ -6,8 +6,10 @@ import { fileURLToPath } from "node:url";
 const options = {
     port: 0,
     bodies: [0, 256, 512, 1024, 2048, 4096, 8192, 10112],
+    workload: "preset",
     outputDirectory: "",
     durationMs: 15_000,
+    durationTicks: 300,
     settleMs: 3_000,
     timeoutMs: 180_000,
     expectedWidth: 5504,
@@ -19,7 +21,8 @@ const options = {
 const usage = () => console.error(
     "usage: node scripts/profile_wasm_matrix.mjs --port PORT "
     + "--output-dir DIR [--bodies 0,256,512,1024,2048,4096,8192,10112] "
-    + "[--duration-ms N] [--settle-ms N] [--timeout-ms N] "
+    + "[--workload preset|click-batches] [--duration-ms N] "
+    + "[--duration-ticks N] [--settle-ms N] [--timeout-ms N] "
     + "[--expected-width N] [--expected-height N] [--profile] [--trace]",
 );
 
@@ -36,11 +39,14 @@ for (let index = 2; index < process.argv.length; ++index) {
     const value = () => process.argv[++index] ?? "";
     if (argument === "--port") options.port = readInteger(argument, value());
     else if (argument === "--output-dir") options.outputDirectory = value();
+    else if (argument === "--workload") options.workload = value();
     else if (argument === "--bodies") {
         options.bodies = value().split(",").map((bodyCount) =>
             readInteger(argument, bodyCount));
     } else if (argument === "--duration-ms") {
         options.durationMs = readInteger(argument, value());
+    } else if (argument === "--duration-ticks") {
+        options.durationTicks = readInteger(argument, value());
     } else if (argument === "--settle-ms") {
         options.settleMs = readInteger(argument, value());
     } else if (argument === "--timeout-ms") {
@@ -61,13 +67,15 @@ for (let index = 2; index < process.argv.length; ++index) {
 }
 
 if (!(options.port > 0) || !options.outputDirectory
-    || !(options.durationMs > 0) || !(options.timeoutMs > 0)
+    || !["preset", "click-batches"].includes(options.workload)
+    || !(options.durationMs > 0) || !(options.durationTicks > 0)
+    || !(options.timeoutMs > 0)
     || options.bodies.length === 0) {
     usage();
     process.exit(2);
 }
 for (const bodyCount of options.bodies) {
-    if (bodyCount % 128 !== 0) {
+    if (options.workload === "click-batches" && bodyCount % 128 !== 0) {
         throw new Error(
             `body count ${bodyCount} is not a multiple of the deterministic `
             + "128-body browser batch",
@@ -97,7 +105,7 @@ const findPage = async () => {
     throw new Error("Chrome benchmark page did not start");
 };
 
-const preparePage = async () => {
+const preparePage = async (bodyCount) => {
     const page = await findPage();
     const socket = new WebSocket(page.webSocketDebuggerUrl);
     await new Promise((resolve, reject) => {
@@ -131,7 +139,20 @@ const preparePage = async () => {
         socket.close();
         throw new Error("WebGPU adapter is unavailable");
     }
-    await command("Page.reload", { ignoreCache: true });
+    const currentUrl = new URL(page.url);
+    if (!currentUrl.searchParams.has("profileSession")) {
+        currentUrl.searchParams.set(
+            "profileSession", `${Date.now()}-${process.pid}`);
+    }
+    currentUrl.searchParams.set("matrixRun", `${Date.now()}-${bodyCount}`);
+    if (options.workload === "preset") {
+        currentUrl.searchParams.set("benchmarkBodies", String(bodyCount));
+    } else {
+        currentUrl.searchParams.delete("benchmarkBodies");
+    }
+    await command("Runtime.evaluate", {
+        expression: `location.replace(${JSON.stringify(currentUrl.href)})`,
+    });
     socket.close();
 };
 
@@ -142,13 +163,18 @@ const capture = (bodyCount) => new Promise((resolve, reject) => {
     const arguments_ = [
         profilerPath,
         "--port", String(options.port),
-        "--clicks", String(bodyCount / 128),
         "--duration-ms", String(options.durationMs),
+        "--duration-ticks", String(options.durationTicks),
         "--settle-ms", String(options.settleMs),
         "--timeout-ms", String(options.timeoutMs),
         "--expected-width", String(options.expectedWidth),
         "--expected-height", String(options.expectedHeight),
     ];
+    if (options.workload === "preset") {
+        arguments_.push("--preset-bodies", String(bodyCount));
+    } else {
+        arguments_.push("--clicks", String(bodyCount / 128));
+    }
     if (options.profile) arguments_.push("--profile");
     if (options.trace) arguments_.push("--trace");
     const child = spawn(process.execPath, arguments_, {
@@ -194,7 +220,7 @@ const manifest = {
 
 for (const bodyCount of options.bodies) {
     process.stderr.write(`profiling ${bodyCount} bodies...\n`);
-    await preparePage();
+    await preparePage(bodyCount);
     const result = await capture(bodyCount);
     const profile = result.profile;
     const passed = result.status === 0 && profile.invariants?.overallPassed;

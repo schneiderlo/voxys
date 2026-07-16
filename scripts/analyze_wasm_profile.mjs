@@ -162,8 +162,28 @@ const equivalenceOracle = (baseline, candidate) => {
           candidate.browser.device?.adapter?.vendor);
     exact("device architecture", baseline.browser.device?.adapter?.architecture,
           candidate.browser.device?.adapter?.architecture);
+    exact("browser profile session", baseline.browser.profileSession,
+          candidate.browser.profileSession);
     exact("body count", baseline.workload.observedBodies,
           candidate.workload.observedBodies);
+    exact("workload mode", baseline.workload.mode,
+          candidate.workload.mode);
+    exact("expected body count", baseline.workload.expectedBodies,
+          candidate.workload.expectedBodies);
+    exact("measurement start tick", baseline.workload.measurementStartTick,
+          candidate.workload.measurementStartTick);
+    exact("measurement end tick", baseline.workload.measurementEndTick,
+          candidate.workload.measurementEndTick);
+    exact("telemetry tick", baseline.workload.tick,
+          candidate.workload.tick);
+    exact("candidate pairs", baseline.workload.candidates,
+          candidate.workload.candidates);
+    exact("contacts", baseline.workload.contacts,
+          candidate.workload.contacts);
+    exact("solver mode", baseline.workload.solverMode,
+          candidate.workload.solverMode);
+    exact("scheduled substeps", baseline.workload.substeps,
+          candidate.workload.substeps);
     exact("physics backend", baseline.invariants.backend,
           candidate.invariants.backend);
     exact("arithmetic", baseline.invariants.arithmetic,
@@ -182,6 +202,15 @@ const equivalenceOracle = (baseline, candidate) => {
         if (!sameNumber(left, right, 1e-4)) {
             mismatches.push(`camera ${key}: ${left} != ${right}`);
         }
+    }
+    const baselineInputs = baseline.workload.clickInputs ?? [];
+    const candidateInputs = candidate.workload.clickInputs ?? [];
+    exact("click input count", baselineInputs.length, candidateInputs.length);
+    for (let index = 0;
+         index < Math.min(baselineInputs.length, candidateInputs.length);
+         ++index) {
+        exact(`click ${index} encoded tick`, baselineInputs[index].encodedTick,
+              candidateInputs[index].encodedTick);
     }
     return { passed: mismatches.length === 0, mismatches };
 };

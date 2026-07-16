@@ -735,6 +735,13 @@ int main(int argc, char* argv[]) {
         config.physics.backend);
     appConfig.gpuPhysicsMaxBodies = static_cast<uint32_t>(
         std::max(config.physics.gpuMaxBodies, 2));
+    appConfig.benchmarkBodyCount = static_cast<uint32_t>(EM_ASM_INT({
+        const value = Number.parseInt(
+            new URLSearchParams(globalThis.location.search)
+                .get("benchmarkBodies") ?? "0",
+            10);
+        return Number.isInteger(value) && value > 0 ? value : 0;
+    }));
     // A long GPU tick must not trigger a self-sustaining catch-up spiral in
     // the single browser queue. Interactive WASM advances at most one fixed
     // tick per rendered frame and drops excess wall-clock backlog.

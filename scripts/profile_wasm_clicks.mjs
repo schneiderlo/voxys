@@ -3,8 +3,10 @@ const options = {
     clicks: 3,
     clickIntervalMs: 500,
     durationMs: 15_000,
+    durationTicks: 300,
     settleMs: 2_000,
     warmupTick: 300,
+    presetBodies: null,
     timeoutMs: 120_000,
     expectedWidth: 1236,
     expectedHeight: 777,
@@ -28,6 +30,12 @@ for (let index = 2; index < process.argv.length; ++index) {
             options.clickIntervalMs = readInteger(argument);
             break;
         case "--duration-ms": options.durationMs = readInteger(argument); break;
+        case "--duration-ticks":
+            options.durationTicks = readInteger(argument);
+            break;
+        case "--preset-bodies":
+            options.presetBodies = readInteger(argument);
+            break;
         case "--settle-ms": options.settleMs = readInteger(argument); break;
         case "--warmup-tick": options.warmupTick = readInteger(argument); break;
         case "--timeout-ms": options.timeoutMs = readInteger(argument); break;
@@ -43,10 +51,12 @@ for (let index = 2; index < process.argv.length; ++index) {
     }
 }
 
-if (options.port <= 0 || options.durationMs <= 0 || options.timeoutMs <= 0) {
+if (options.port <= 0 || options.durationMs <= 0 || options.durationTicks <= 0
+    || options.timeoutMs <= 0) {
     throw new Error(
         "usage: profile_wasm_clicks.mjs --port PORT "
         + "[--clicks N] [--click-interval-ms MS] [--duration-ms MS] "
+        + "[--duration-ticks N] [--preset-bodies N] "
         + "[--settle-ms MS] [--warmup-tick TICK] [--timeout-ms MS] "
         + "[--profile] [--trace]",
     );
@@ -55,6 +65,7 @@ if (options.port <= 0 || options.durationMs <= 0 || options.timeoutMs <= 0) {
 const delay = (milliseconds) => new Promise(
     (resolve) => setTimeout(resolve, milliseconds),
 );
+const expectedBodies = options.presetBodies ?? options.clicks * 128;
 const deadline = Date.now() + options.timeoutMs;
 
 let page;
@@ -184,6 +195,8 @@ while (Date.now() < deadline) {
             viewportHeight: innerHeight,
             devicePixelRatio,
             buildId: globalThis.voxyBuildId ?? null,
+            profileSession: new URLSearchParams(location.search)
+                .get("profileSession"),
             profilingEnabled: new URLSearchParams(location.search)
                 .get("physicsProfile") !== "0",
             renderProfilingEnabled: new URLSearchParams(location.search)
@@ -357,55 +370,76 @@ const canvasCenter = await evaluate(`(() => {
     };
 })()`);
 const clickInputs = [];
-await evaluate("voxyModule._voxy_mouse_move(0, 0)");
-for (let click = 0; click < options.clicks; ++click) {
-    clickInputs.push(await evaluate(`(() => {
-        const pointer = voxyModule._voxy_get_telemetry_json();
-        const sample = JSON.parse(voxyModule.UTF8ToString(pointer));
-        return {
-            camera: sample.camera,
-            encodedTick: voxyModule._voxy_get_physics_encoded_tick(),
-            frame: voxyModule._voxy_get_frame_count(),
-        };
-    })()`));
-    await command("Input.dispatchMouseEvent", {
-        type: "mousePressed",
-        x: canvasCenter.x,
-        y: canvasCenter.y,
-        button: "right",
-        buttons: 2,
-        clickCount: 1,
-    });
-    await command("Input.dispatchMouseEvent", {
-        type: "mouseReleased",
-        x: canvasCenter.x,
-        y: canvasCenter.y,
-        button: "right",
-        buttons: 0,
-        clickCount: 1,
-    });
-    const clickBodyCount = (click + 1) * 128;
-    let clickProcessed = false;
-    while (Date.now() < deadline) {
-        const bodies = await evaluate(
-            "voxyModule._voxy_get_physics_resident_bodies()",
-        );
-        if (bodies === clickBodyCount) {
-            clickProcessed = true;
-            break;
+if (options.presetBodies === null) {
+    await evaluate("voxyModule._voxy_mouse_move(0, 0)");
+    for (let click = 0; click < options.clicks; ++click) {
+        clickInputs.push(await evaluate(`(() => {
+            const pointer = voxyModule._voxy_get_telemetry_json();
+            const sample = JSON.parse(voxyModule.UTF8ToString(pointer));
+            return {
+                camera: sample.camera,
+                encodedTick: voxyModule._voxy_get_physics_encoded_tick(),
+                frame: voxyModule._voxy_get_frame_count(),
+            };
+        })()`));
+        await command("Input.dispatchMouseEvent", {
+            type: "mousePressed",
+            x: canvasCenter.x,
+            y: canvasCenter.y,
+            button: "right",
+            buttons: 2,
+            clickCount: 1,
+        });
+        await command("Input.dispatchMouseEvent", {
+            type: "mouseReleased",
+            x: canvasCenter.x,
+            y: canvasCenter.y,
+            button: "right",
+            buttons: 0,
+            clickCount: 1,
+        });
+        const clickBodyCount = (click + 1) * 128;
+        let clickProcessed = false;
+        while (Date.now() < deadline) {
+            const bodies = await evaluate(
+                "voxyModule._voxy_get_physics_resident_bodies()",
+            );
+            if (bodies === clickBodyCount) {
+                clickProcessed = true;
+                break;
+            }
+            await delay(50);
         }
-        await delay(50);
+        if (!clickProcessed) {
+            throw new Error(`body count did not reach ${clickBodyCount}`);
+        }
+        if (click + 1 < options.clicks) await delay(options.clickIntervalMs);
     }
-    if (!clickProcessed) {
-        throw new Error(`body count did not reach ${clickBodyCount}`);
+    await delay(options.settleMs);
+} else {
+    const presetState = await evaluate(`({
+        queryBodies: Number.parseInt(
+            new URLSearchParams(location.search).get("benchmarkBodies") ?? "0",
+            10),
+        residentBodies: voxyModule._voxy_get_physics_resident_bodies(),
+    })`);
+    if (presetState.queryBodies !== options.presetBodies
+        || presetState.residentBodies !== options.presetBodies) {
+        throw new Error(
+            `deterministic preset mismatch: ${JSON.stringify(presetState)}`,
+        );
     }
-    if (click + 1 < options.clicks) await delay(options.clickIntervalMs);
 }
-const expectedBodies = options.clicks * 128;
-await delay(options.settleMs);
 
 let cpuProfileStarted = false;
 let heapProfileStarted = false;
+try {
+    await command("HeapProfiler.enable");
+    await command("HeapProfiler.collectGarbage");
+    if (!options.profile) await command("HeapProfiler.disable");
+} catch (error) {
+    diagnostics.push(`pre-capture garbage collection unavailable: ${error.message}`);
+}
 if (options.profile) {
     await command("Profiler.enable");
     await command("Profiler.setSamplingInterval", { interval: 1000 });
@@ -431,6 +465,29 @@ if (options.trace) {
     });
 }
 
+let fixedMeasurementStartTick = null;
+if (options.presetBodies !== null) {
+    const targetTick = options.warmupTick + 120;
+    fixedMeasurementStartTick = await evaluate(`new Promise((resolve) => {
+        const target = ${JSON.stringify(targetTick)};
+        const waitForTick = () => {
+            const tick = voxyModule._voxy_get_physics_encoded_tick();
+            if (tick >= target) {
+                resolve(tick);
+                return;
+            }
+            requestAnimationFrame(waitForTick);
+        };
+        requestAnimationFrame(waitForTick);
+    })`);
+    if (fixedMeasurementStartTick !== targetTick) {
+        throw new Error(
+            `fixed measurement start missed tick ${targetTick}: `
+            + fixedMeasurementStartTick,
+        );
+    }
+}
+
 await evaluate(`(() => {
     const capture = globalThis.__voxyGoalCapture;
     while (voxyModule._voxy_poll_physics_stage_timing() > 0) {}
@@ -451,18 +508,50 @@ network.requests = 0;
 network.requestBytes = 0;
 network.responseBytes = 0;
 
-await delay(options.durationMs);
-
-const measurementWindow = await evaluate(`(() => {
-    const capture = globalThis.__voxyGoalCapture;
-    capture.recordFrames = false;
-    capture.frameCountEnd = voxyModule._voxy_get_frame_count();
-    capture.stageTickCeiling = voxyModule._voxy_get_physics_encoded_tick();
-    return {
-        elapsedMs: performance.now() - capture.startedMs,
-        stageTickCeiling: capture.stageTickCeiling,
-    };
-})()`);
+let measurementWindow;
+if (options.presetBodies === null) {
+    await delay(options.durationMs);
+    measurementWindow = await evaluate(`(() => {
+        const capture = globalThis.__voxyGoalCapture;
+        capture.recordFrames = false;
+        capture.frameCountEnd = voxyModule._voxy_get_frame_count();
+        capture.stageTickCeiling = voxyModule._voxy_get_physics_encoded_tick();
+        return {
+            elapsedMs: performance.now() - capture.startedMs,
+            stageTickCeiling: capture.stageTickCeiling,
+            telemetry: null,
+        };
+    })()`);
+} else {
+    const targetTick = fixedMeasurementStartTick + options.durationTicks;
+    measurementWindow = await evaluate(`new Promise((resolve) => {
+        const target = ${JSON.stringify(targetTick)};
+        const stopAtTick = () => {
+            const tick = voxyModule._voxy_get_physics_encoded_tick();
+            if (tick < target) {
+                requestAnimationFrame(stopAtTick);
+                return;
+            }
+            const capture = globalThis.__voxyGoalCapture;
+            capture.recordFrames = false;
+            capture.frameCountEnd = voxyModule._voxy_get_frame_count();
+            capture.stageTickCeiling = tick;
+            const pointer = voxyModule._voxy_get_telemetry_json();
+            resolve({
+                elapsedMs: performance.now() - capture.startedMs,
+                stageTickCeiling: tick,
+                telemetry: JSON.parse(voxyModule.UTF8ToString(pointer)),
+            });
+        };
+        requestAnimationFrame(stopAtTick);
+    })`);
+    if (measurementWindow.stageTickCeiling !== targetTick) {
+        throw new Error(
+            `fixed measurement end missed tick ${targetTick}: `
+            + measurementWindow.stageTickCeiling,
+        );
+    }
+}
 if (readyState.profilingEnabled) {
     while (Date.now() < deadline) {
         const latestStageTick = await evaluate(
@@ -494,7 +583,7 @@ if (options.trace) {
     await command("Tracing.end");
     await traceComplete;
 }
-const telemetry = await evaluate(`(() => {
+const telemetry = measurementWindow.telemetry ?? await evaluate(`(() => {
     const pointer = voxyModule._voxy_get_telemetry_json();
     return JSON.parse(voxyModule.UTF8ToString(pointer));
 })()`);
@@ -654,7 +743,7 @@ const renderGpuSamplesPassed = !readyState.renderProfilingEnabled
     || validRenderStageSamples.length >= 10;
 const baseInvariantsPassed = telemetry.physics.backend === "webgpu_soft"
     && telemetry.physics.arithmetic === "fast_float"
-    && telemetry.physics.bodies.current === options.clicks * 128
+    && telemetry.physics.bodies.current === expectedBodies
     && !telemetry.physics.candidate_pairs.overflow
     && !telemetry.physics.pairs.overflow
     && !telemetry.physics.contacts.overflow
@@ -680,16 +769,21 @@ const result = {
         viewportHeight: readyState.viewportHeight,
         devicePixelRatio: readyState.devicePixelRatio,
         buildId: readyState.buildId,
+        profileSession: readyState.profileSession,
         physicsProfiling: readyState.profilingEnabled,
         renderProfiling: readyState.renderProfilingEnabled,
         camera: telemetry.camera,
     },
     workload: {
-        requestedClicks: options.clicks,
-        expectedBodies: options.clicks * 128,
+        mode: options.presetBodies === null
+            ? "interactive_batches" : "deterministic_airborne",
+        requestedClicks: options.presetBodies === null ? options.clicks : 0,
+        expectedBodies,
         observedBodies: telemetry.physics.bodies.current,
         clickInputs,
         benchmarkCamera,
+        measurementStartTick: capture.stageTickFloor,
+        measurementEndTick: capture.stageTickCeiling,
         tick: telemetry.physics.tick,
         candidates: telemetry.physics.candidate_pairs.current,
         contacts: telemetry.physics.contacts.current,
@@ -741,7 +835,7 @@ const result = {
         backend: telemetry.physics.backend,
         arithmetic: telemetry.physics.arithmetic,
         bodyCountPassed:
-            telemetry.physics.bodies.current === options.clicks * 128,
+            telemetry.physics.bodies.current === expectedBodies,
         candidateOverflow: telemetry.physics.candidate_pairs.overflow,
         pairOverflow: telemetry.physics.pairs.overflow,
         contactOverflow: telemetry.physics.contacts.overflow,

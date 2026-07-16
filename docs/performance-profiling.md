@@ -57,23 +57,48 @@ steady-state GPU measurement.
 ## Capture the scaling matrix
 
 The matrix runner reloads between workloads, establishes the same fixed camera,
-checks all correctness invariants, and writes one raw profile per body count:
+checks all correctness invariants, and writes one raw profile per body count.
+It also stamps the browser with a persistent profile-session identity; the A/B
+analyzer rejects captures from different Chrome processes because GPU warm-up,
+browser lifetime, and system load can otherwise create false wins.
+Its default deterministic preset creates every body 100 metres above the real
+terrain with non-zero linear and angular velocity, then measures the exact
+simulation interval from tick 420 through tick 720:
 
 ```bash
 node scripts/profile_wasm_matrix.mjs \
   --port 9333 \
   --output-dir /tmp/voxys-matrix \
+  --workload preset \
   --bodies 0,256,512,1024,2048,4096,8192,10112 \
-  --duration-ms 15000 \
-  --settle-ms 3000 \
+  --duration-ticks 300 \
   --expected-width 5504 \
   --expected-height 2161
 ```
 
 The slightly larger 1024/2048/4096/10112 workloads are conservative stand-ins
 for the 1000/2000/4000/10000 targets, with 8192 showing the curve between 4k
-and 10k. Counts must be multiples of the
-deterministic 128-body batch.
+and 10k. The preset accepts any body count. It uses the production terrain,
+physics, water, ray-cast, lighting, and primitive-render paths; only its body
+initialization and measurement window are automated.
+
+Use the actual right-click interaction path as a separate experience capture:
+
+```bash
+node scripts/profile_wasm_matrix.mjs \
+  --port 9333 \
+  --output-dir /tmp/voxys-click-batches \
+  --workload click-batches \
+  --bodies 256,1024,2048,4096 \
+  --duration-ms 15000 \
+  --settle-ms 3000 \
+  --expected-width 5504 \
+  --expected-height 2161
+```
+
+Click-batch counts must be multiples of 128. This mode is useful for diagnosing
+the deployed interaction, but wall-clock input timing makes it unsuitable as
+an isomorphism oracle.
 
 The runner records every workload even if one workload trips a capacity or
 correctness invariant. The manifest marks that row as failed and the process
@@ -105,7 +130,8 @@ The analyzer provides:
 - p50/p95/p99 latency, throughput, queue depth, pacing skips, and peak memory;
 - the top five GPU hotspots and each stage's measured share;
 - tail-amplification ratios that expose stalls hidden by the median;
-- deterministic-camera, device, canvas, body-count, backend, and arithmetic
+- deterministic-camera, device, canvas, body-count, backend, arithmetic,
+  measurement-tick, candidate-pair, contact, solver, and input-tick
   equivalence checks;
 - deterministic bootstrap confidence intervals for every A/B stage;
 - a machine-readable report suitable for CI thresholds.
@@ -119,6 +145,6 @@ The raw sample `atMs` field is when asynchronous data reached JavaScript. It is
 not a synchronized CPU/GPU clock. Use GPU durations for stage cost and Chrome's
 trace for exact cross-queue scheduling. Do not infer an idle gap from `atMs`.
 
-An optimization is accepted only when the equivalence oracle passes, the
-relevant confidence interval excludes zero, and the complete scaling matrix has
-no correctness or tail-latency regression.
+An optimization is accepted only when the deterministic preset's equivalence
+oracle passes, the relevant confidence interval excludes zero, and the complete
+scaling matrix has no correctness or tail-latency regression.
