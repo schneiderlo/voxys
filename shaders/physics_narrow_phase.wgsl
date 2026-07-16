@@ -423,10 +423,10 @@ fn body_position_in_frame(body : u32, frameBody : u32) -> vec3<f32> {
     return position + vec3<f32>(sectorDelta) * 256.0;
 }
 
-fn make_box(body : u32, frameBody : u32) -> BoxFrame {
+fn make_box_at_center(body : u32, center : vec3<f32>) -> BoxFrame {
     let pose = poses[body];
     var result : BoxFrame;
-    result.center = body_position_in_frame(body, frameBody);
+    result.center = center;
     result.axisX = quaternion_rotate(
         pose.orientation, vec3<f32>(1.0, 0.0, 0.0));
     result.axisY = quaternion_rotate(
@@ -436,6 +436,11 @@ fn make_box(body : u32, frameBody : u32) -> BoxFrame {
     result.half = 0.5 * max(abs(shapes[body].dimensions_type.xyz),
                             vec3<f32>(1e-5));
     return result;
+}
+
+fn make_box(body : u32, frameBody : u32) -> BoxFrame {
+    return make_box_at_center(
+        body, body_position_in_frame(body, frameBody));
 }
 
 fn sphere_radius(body : u32) -> f32 {
@@ -1107,15 +1112,14 @@ fn box_vertex(frame : BoxFrame, index : u32) -> vec3<f32> {
 }
 
 fn cylinder_vertex(body : u32, index : u32,
-                   frameBody : u32) -> vec3<f32> {
+                   center : vec3<f32>) -> vec3<f32> {
     let ring = index & 7u;
     let angle = 0.7853981633974483 * f32(ring);
     let local = vec3<f32>(cos(angle) * cylinder_radius(body),
         select(-cylinder_half_height(body), cylinder_half_height(body),
                index >= 8u),
         sin(angle) * cylinder_radius(body));
-    return body_position_in_frame(body, frameBody)
-        + quaternion_rotate(poses[body].orientation, local);
+    return center + quaternion_rotate(poses[body].orientation, local);
 }
 
 fn poly_vertex_count(shapeCategory : u32) -> u32 {
@@ -1123,11 +1127,11 @@ fn poly_vertex_count(shapeCategory : u32) -> u32 {
 }
 
 fn poly_vertex(body : u32, shapeCategory : u32, index : u32,
-               frameBody : u32) -> vec3<f32> {
+               center : vec3<f32>) -> vec3<f32> {
     if (shapeCategory == 3u) {
-        return cylinder_vertex(body, index, frameBody);
+        return cylinder_vertex(body, index, center);
     }
-    return box_vertex(make_box(body, frameBody), index);
+    return box_vertex(make_box_at_center(body, center), index);
 }
 
 fn poly_face_axis_count(shapeCategory : u32) -> u32 {
@@ -1167,14 +1171,14 @@ fn poly_edge_axis(body : u32, shapeCategory : u32,
 }
 
 fn projected_poly_range(body : u32, shapeCategory : u32,
-                        axis : vec3<f32>, frameBody : u32) -> vec2<f32> {
+                        axis : vec3<f32>, center : vec3<f32>) -> vec2<f32> {
     let count = poly_vertex_count(shapeCategory);
     var minimum = dot(poly_vertex(
-        body, shapeCategory, 0u, frameBody), axis);
+        body, shapeCategory, 0u, center), axis);
     var maximum = minimum;
     for (var index = 1u; index < count; index += 1u) {
         let projection = dot(poly_vertex(
-            body, shapeCategory, index, frameBody), axis);
+            body, shapeCategory, index, center), axis);
         minimum = min(minimum, projection);
         maximum = max(maximum, projection);
     }
@@ -1186,15 +1190,16 @@ fn consider_poly_sat_axis(sat : ptr<function, SatResult>,
                           axisA : u32, axisB : u32,
                           bodyA : u32, categoryA : u32,
                           bodyB : u32, categoryB : u32,
-                          frameBody : u32, centerDelta : vec3<f32>) {
+                          frameBody : u32, centerA : vec3<f32>,
+                          centerB : vec3<f32>, centerDelta : vec3<f32>) {
     let squared = dot(rawAxis, rawAxis);
     if (squared <= 1e-10) { return; }
     var axis = rawAxis * inverseSqrt(squared);
     if (dot(centerDelta, axis) < 0.0) {
         axis = -axis;
     }
-    let rangeA = projected_poly_range(bodyA, categoryA, axis, frameBody);
-    let rangeB = projected_poly_range(bodyB, categoryB, axis, frameBody);
+    let rangeA = projected_poly_range(bodyA, categoryA, axis, centerA);
+    let rangeB = projected_poly_range(bodyB, categoryB, axis, centerB);
     let separation = rangeB.x - rangeA.y;
     if (separation > narrow.tolerances.y) { (*sat).valid = 0u; }
     let candidateCode = kind * 256u + axisA * 16u + axisB;
@@ -1213,7 +1218,8 @@ fn consider_poly_sat_axis(sat : ptr<function, SatResult>,
 
 fn polyhedron_sat(bodyA : u32, categoryA : u32,
                   bodyB : u32, categoryB : u32,
-                  frameBody : u32) -> SatResult {
+                  frameBody : u32, centerA : vec3<f32>,
+                  centerB : vec3<f32>, centerDelta : vec3<f32>) -> SatResult {
     var result : SatResult;
     result.normal = vec3<f32>(1.0, 0.0, 0.0);
     result.separation = -3.402823466e+38;
@@ -1221,14 +1227,12 @@ fn polyhedron_sat(bodyA : u32, categoryA : u32,
     result.axisA = 15u;
     result.axisB = 15u;
     result.valid = 1u;
-    let centerDelta = body_position_in_frame(bodyB, frameBody)
-                    - body_position_in_frame(bodyA, frameBody);
     for (var axis = 0u; axis < poly_face_axis_count(categoryA);
          axis += 1u) {
         consider_poly_sat_axis(&result,
             poly_face_axis(bodyA, categoryA, axis, frameBody),
             0u, axis, 0u, bodyA, categoryA, bodyB, categoryB,
-            frameBody, centerDelta);
+            frameBody, centerA, centerB, centerDelta);
         if (result.valid == 0u) { return result; }
     }
     for (var axis = 0u; axis < poly_face_axis_count(categoryB);
@@ -1236,7 +1240,7 @@ fn polyhedron_sat(bodyA : u32, categoryA : u32,
         consider_poly_sat_axis(&result,
             poly_face_axis(bodyB, categoryB, axis, frameBody),
             1u, 0u, axis, bodyA, categoryA, bodyB, categoryB,
-            frameBody, centerDelta);
+            frameBody, centerA, centerB, centerDelta);
         if (result.valid == 0u) { return result; }
     }
     for (var axisA = 0u; axisA < poly_edge_axis_count(categoryA);
@@ -1248,7 +1252,7 @@ fn polyhedron_sat(bodyA : u32, categoryA : u32,
                 poly_edge_axis(bodyB, categoryB, axisB, frameBody)),
                 2u, axisA, axisB,
                 bodyA, categoryA, bodyB, categoryB,
-                frameBody, centerDelta);
+                frameBody, centerA, centerB, centerDelta);
             if (result.valid == 0u) { return result; }
         }
     }
@@ -1259,14 +1263,18 @@ fn collide_polyhedra(bodyA : u32, categoryA : u32,
                      bodyB : u32, categoryB : u32,
                      frameBody : u32) -> CandidateSet {
     var result = empty_candidates();
+    let centerA = body_position_in_frame(bodyA, frameBody);
+    let centerB = body_position_in_frame(bodyB, frameBody);
+    let centerDelta = centerB - centerA;
     let sat = polyhedron_sat(
-        bodyA, categoryA, bodyB, categoryB, frameBody);
+        bodyA, categoryA, bodyB, categoryB, frameBody,
+        centerA, centerB, centerDelta);
     result.normal = sat.normal;
     if (sat.valid == 0u) { return result; }
     let rangeA = projected_poly_range(
-        bodyA, categoryA, sat.normal, frameBody);
+        bodyA, categoryA, sat.normal, centerA);
     let rangeB = projected_poly_range(
-        bodyB, categoryB, sat.normal, frameBody);
+        bodyB, categoryB, sat.normal, centerB);
     let separation = rangeB.x - rangeA.y;
     let supportTolerance = max(4.0 * narrow.tolerances.x, 1e-4);
     let countA = poly_vertex_count(categoryA);
@@ -1278,7 +1286,7 @@ fn collide_polyhedra(bodyA : u32, categoryA : u32,
     var firstA = 0u;
     var firstB = 0u;
     for (var index = 0u; index < countA; index += 1u) {
-        let vertex = poly_vertex(bodyA, categoryA, index, frameBody);
+        let vertex = poly_vertex(bodyA, categoryA, index, centerA);
         if (dot(vertex, sat.normal) >= rangeA.y - supportTolerance) {
             if (supportA == 0u) { firstA = index; }
             averageA += vertex;
@@ -1286,7 +1294,7 @@ fn collide_polyhedra(bodyA : u32, categoryA : u32,
         }
     }
     for (var index = 0u; index < countB; index += 1u) {
-        let vertex = poly_vertex(bodyB, categoryB, index, frameBody);
+        let vertex = poly_vertex(bodyB, categoryB, index, centerB);
         if (dot(vertex, sat.normal) <= rangeB.x + supportTolerance) {
             if (supportB == 0u) { firstB = index; }
             averageB += vertex;
@@ -1304,7 +1312,7 @@ fn collide_polyhedra(bodyA : u32, categoryA : u32,
                      0x400u + firstA, 0x400u + firstB);
     for (var index = 0u; index < countA && result.count < MAX_CANDIDATES;
          index += 1u) {
-        let vertex = poly_vertex(bodyA, categoryA, index, frameBody);
+        let vertex = poly_vertex(bodyA, categoryA, index, centerA);
         if (dot(vertex, sat.normal) >= rangeA.y - supportTolerance) {
             append_candidate(&result, vertex,
                 vertex + sat.normal * separation, separation,
@@ -1313,7 +1321,7 @@ fn collide_polyhedra(bodyA : u32, categoryA : u32,
     }
     for (var index = 0u; index < countB && result.count < MAX_CANDIDATES;
          index += 1u) {
-        let vertex = poly_vertex(bodyB, categoryB, index, frameBody);
+        let vertex = poly_vertex(bodyB, categoryB, index, centerB);
         if (dot(vertex, sat.normal) <= rangeB.x + supportTolerance) {
             append_candidate(&result,
                 vertex - sat.normal * separation, vertex, separation,
