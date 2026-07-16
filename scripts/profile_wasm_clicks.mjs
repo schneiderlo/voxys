@@ -309,14 +309,21 @@ if (!cameraMatches(benchmarkCamera)) {
     );
 }
 if (options.uncapped) {
-    await pressKey(120);
-    const uncappedFrame = await evaluate(
-        "voxyModule._voxy_get_frame_count()",
+    const alreadyUncapped = await evaluate(
+        "voxyModule._voxy_get_uncapped_fps?.() === 1",
     );
-    while (Date.now() < deadline) {
-        const frame = await evaluate("voxyModule._voxy_get_frame_count()");
-        if (frame > uncappedFrame) break;
-        await delay(25);
+    if (!alreadyUncapped) {
+        await pressKey(120);
+        const uncappedFrame = await evaluate(
+            "voxyModule._voxy_get_frame_count()",
+        );
+        while (Date.now() < deadline) {
+            const frame = await evaluate(
+                "voxyModule._voxy_get_frame_count()",
+            );
+            if (frame > uncappedFrame) break;
+            await delay(25);
+        }
     }
 }
 

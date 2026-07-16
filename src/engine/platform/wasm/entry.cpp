@@ -1017,6 +1017,11 @@ double voxy_get_gpu_pacing_skips() {
 }
 
 EMSCRIPTEN_KEEPALIVE
+int voxy_get_uncapped_fps() {
+    return g_app && g_app->isUncappedFPS() ? 1 : 0;
+}
+
+EMSCRIPTEN_KEEPALIVE
 int voxy_get_physics_substeps() {
     const voxy::physics::PhysicsWorld* world =
         g_app ? g_app->getPhysicsWorld() : nullptr;

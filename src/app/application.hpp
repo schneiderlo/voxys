@@ -555,7 +555,11 @@ private:
     float throwableCooldown_ = 0.0f;
 
     // Uncapped FPS state
+#if defined(VOXY_WASM)
+    bool uncappedFPS_ = true;
+#else
     bool uncappedFPS_ = false;
+#endif
     
     // Benchmark mode
     std::unique_ptr<perf::BenchmarkRunner> benchmarkRunner_;
