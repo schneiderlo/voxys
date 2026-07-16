@@ -525,8 +525,9 @@ bool DeterministicGpuPrimitives::encodeRadixSortBoundedU16Word(
     uint32_t dynamicCountWord, uint32_t dynamicCountScale) {
     if (keyWord >= 2u || exclusiveKeyBound == 0u
         || exclusiveKeyBound > 0xffffu) return false;
+    const uint32_t significantBytes = exclusiveKeyBound <= 0xffu ? 1u : 2u;
     return encodeRadixSortImpl(
-        encoder, input, output, count, keyWord, 1u, 2u,
+        encoder, input, output, count, keyWord, 1u, significantBytes,
         parameterBaseSlot, indirectDispatchBuffer, indirectWorkOffset,
         indirectScalarOffset, dynamicCountBuffer, dynamicCountWord,
         dynamicCountScale);
@@ -542,7 +543,7 @@ bool DeterministicGpuPrimitives::encodeRadixSortImpl(
     if (!encoder || !input || !output || count > capacity_
         || (logicalKeyWords != 1u && logicalKeyWords != 2u)
         || firstKeyWord >= 2u || firstKeyWord + logicalKeyWords > 2u
-        || significantBytesPerWord < 2u || significantBytesPerWord > 4u
+        || significantBytesPerWord < 1u || significantBytesPerWord > 4u
         || parameterBaseSlot
             > kParameterSlots - logicalKeyWords * significantBytesPerWord
         || (dynamicCountScale != 1u && dynamicCountScale != 2u)
@@ -554,9 +555,15 @@ bool DeterministicGpuPrimitives::encodeRadixSortImpl(
     prepareBindGroupCache(passCount);
     std::array<WGPUBindGroup, 8> bindGroups{};
     for (uint32_t passIndex = 0; passIndex < passCount; ++passIndex) {
-        WGPUBuffer passInput = passIndex == 0u
-            ? input : (passIndex & 1u ? radixScratchBuffer_ : output);
-        WGPUBuffer passOutput = passIndex & 1u ? output : radixScratchBuffer_;
+        const uint32_t finalParity = (passCount - 1u) & 1u;
+        WGPUBuffer passInput = input;
+        if (passIndex != 0u) {
+            const bool previousWroteOutput =
+                ((passIndex - 1u) & 1u) == finalParity;
+            passInput = previousWroteOutput ? output : radixScratchBuffer_;
+        }
+        const bool writesOutput = (passIndex & 1u) == finalParity;
+        WGPUBuffer passOutput = writesOutput ? output : radixScratchBuffer_;
         const uint32_t slot = parameterBaseSlot + passIndex;
         const uint32_t countDescriptor = dynamicCountBuffer
             ? dynamicCountWord

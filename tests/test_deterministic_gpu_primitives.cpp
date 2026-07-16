@@ -85,6 +85,7 @@ struct CopyLayout {
     size_t compact = 0;
     size_t compactResult = 0;
     size_t radix32 = 0;
+    size_t radixByte = 0;
     size_t radixWord = 0;
     size_t radix64 = 0;
     size_t unique = 0;
@@ -132,6 +133,7 @@ TEST_P(DeterministicGpuPrimitivesTest, MatchesLargeRandomizedCpuReferences) {
     std::vector<uint32_t> values(count);
     std::vector<uint32_t> predicates(count);
     std::vector<GpuKeyValue> records32(count);
+    std::vector<GpuKeyValue> recordsByte(count);
     std::vector<GpuKeyValue> records64(count);
     for (uint32_t index = 0; index < count; ++index) {
         scanInput[index] = smallValue(random);
@@ -143,6 +145,12 @@ TEST_P(DeterministicGpuPrimitivesTest, MatchesLargeRandomizedCpuReferences) {
             .value = index ^ 0xa5a5u,
             .ordinal = index,
         };
+        recordsByte[index] = records32[index];
+        recordsByte[index].keyHigh &= 31u;
+        if (index % 997u == 0u) {
+            recordsByte[index].keyHigh =
+                std::numeric_limits<uint32_t>::max();
+        }
         records64[index] = {
             .keyLow = boundedKeyValue(random),
             .keyHigh = boundedKeyValue(random),
@@ -172,6 +180,11 @@ TEST_P(DeterministicGpuPrimitivesTest, MatchesLargeRandomizedCpuReferences) {
         });
     auto expectedWord = records32;
     std::stable_sort(expectedWord.begin(), expectedWord.end(),
+        [](const GpuKeyValue& lhs, const GpuKeyValue& rhs) {
+            return lhs.keyHigh < rhs.keyHigh;
+        });
+    auto expectedByte = recordsByte;
+    std::stable_sort(expectedByte.begin(), expectedByte.end(),
         [](const GpuKeyValue& lhs, const GpuKeyValue& rhs) {
             return lhs.keyHigh < rhs.keyHigh;
         });
@@ -262,6 +275,8 @@ TEST_P(DeterministicGpuPrimitivesTest, MatchesLargeRandomizedCpuReferences) {
         context, predicates, "compact_predicates");
     auto records32Buffer = inputBuffer<GpuKeyValue>(
         context, records32, "radix32_input");
+    auto recordsByteBuffer = inputBuffer<GpuKeyValue>(
+        context, recordsByte, "radix_byte_input");
     auto records64Buffer = inputBuffer<GpuKeyValue>(
         context, records64, "radix64_input");
     auto previousBuffer = inputBuffer<GpuKeyValue>(
@@ -274,6 +289,8 @@ TEST_P(DeterministicGpuPrimitivesTest, MatchesLargeRandomizedCpuReferences) {
     auto scanOutput = outputBuffer<uint32_t>(context, count, "scan_output");
     auto compactOutput = outputBuffer<uint32_t>(context, count, "compact_output");
     auto radix32Output = outputBuffer<GpuKeyValue>(context, count, "radix32_output");
+    auto radixByteOutput = outputBuffer<GpuKeyValue>(
+        context, count, "radix_byte_output");
     auto radixWordOutput = outputBuffer<GpuKeyValue>(
         context, count, "radix_word_output");
     auto radix64Output = outputBuffer<GpuKeyValue>(context, count, "radix64_output");
@@ -298,6 +315,9 @@ TEST_P(DeterministicGpuPrimitivesTest, MatchesLargeRandomizedCpuReferences) {
     ASSERT_TRUE(primitives.encodeRadixSortBoundedU16Word(
         encoder, records32Buffer, radixWordOutput, count,
         1u, 0x8000u, 12u));
+    ASSERT_TRUE(primitives.encodeRadixSortBoundedU16Word(
+        encoder, recordsByteBuffer, radixByteOutput, count,
+        1u, 33u, 14u));
     ASSERT_FALSE(primitives.encodeRadixSortBoundedU16Word(
         encoder, records32Buffer, radixWordOutput, count,
         2u, 0x8000u, 12u));
@@ -324,6 +344,7 @@ TEST_P(DeterministicGpuPrimitivesTest, MatchesLargeRandomizedCpuReferences) {
     layout.compact = layout.allocate(expectedCompact.size() * sizeof(uint32_t));
     layout.compactResult = layout.allocate(4u * sizeof(uint32_t));
     layout.radix32 = layout.allocate(recordBytes);
+    layout.radixByte = layout.allocate(recordBytes);
     layout.radixWord = layout.allocate(recordBytes);
     layout.radix64 = layout.allocate(recordBytes);
     layout.unique = layout.allocate(expectedUnique.size() * sizeof(GpuKeyValue));
@@ -356,6 +377,9 @@ TEST_P(DeterministicGpuPrimitivesTest, MatchesLargeRandomizedCpuReferences) {
         layout.compactResult, 4u * sizeof(uint32_t));
     wgpuCommandEncoderCopyBufferToBuffer(
         encoder, radix32Output, 0, readback, layout.radix32, recordBytes);
+    wgpuCommandEncoderCopyBufferToBuffer(
+        encoder, radixByteOutput, 0,
+        readback, layout.radixByte, recordBytes);
     wgpuCommandEncoderCopyBufferToBuffer(
         encoder, radixWordOutput, 0,
         readback, layout.radixWord, recordBytes);
@@ -419,6 +443,7 @@ TEST_P(DeterministicGpuPrimitivesTest, MatchesLargeRandomizedCpuReferences) {
     expectBytes(layout.scan, expectedScan);
     expectBytes(layout.compact, expectedCompact);
     expectBytes(layout.radix32, expected32);
+    expectBytes(layout.radixByte, expectedByte);
     expectBytes(layout.radixWord, expectedWord);
     expectBytes(layout.radix64, expected64);
     expectBytes(layout.unique, expectedUnique);
