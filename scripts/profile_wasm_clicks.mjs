@@ -336,7 +336,6 @@ await evaluate(`(() => {
         frameSamples: [],
         stageSamples: [],
         renderStageSamples: [],
-        lastSubmittedAtMs: null,
         lastSubmittedFrame: voxyModule._voxy_get_frame_count(),
         stageTickFloor: voxyModule._voxy_get_physics_stage_tick(),
         stageTickCeiling: 0,
@@ -364,10 +363,12 @@ await evaluate(`(() => {
         );
         const submittedFrame = voxyModule._voxy_get_frame_count();
         if (submittedFrame !== capture.lastSubmittedFrame) {
-            if (capture.recordFrames && capture.lastSubmittedAtMs !== null) {
-                capture.frameMs.push(now - capture.lastSubmittedAtMs);
+            if (capture.recordFrames) {
+                // Uncapped mode may submit several app frames between RAFs;
+                // sample the app clock instead of the observer's RAF gap.
+                capture.frameMs.push(
+                    voxyModule._voxy_get_last_frame_wall_ms());
             }
-            if (capture.recordFrames) capture.lastSubmittedAtMs = now;
             capture.lastSubmittedFrame = submittedFrame;
             for (;;) {
                 const timingTick =
@@ -617,7 +618,6 @@ await evaluate(`(() => {
         capture.frameSamples.length = 0;
         capture.stageSamples.length = 0;
         capture.renderStageSamples.length = 0;
-        capture.lastSubmittedAtMs = null;
         capture.lastSubmittedFrame = voxyModule._voxy_get_frame_count();
         capture.frameCountStart = capture.lastSubmittedFrame;
         capture.stageTickFloor =

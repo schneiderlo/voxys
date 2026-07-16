@@ -1007,6 +1007,11 @@ double voxy_get_last_frame_cpu_ms() {
 }
 
 EMSCRIPTEN_KEEPALIVE
+double voxy_get_last_frame_wall_ms() {
+    return g_app ? g_app->getStats().frameTimeMs : 0.0;
+}
+
+EMSCRIPTEN_KEEPALIVE
 int voxy_get_gpu_frames_in_flight() {
     return static_cast<int>(g_gpuFramesInFlight);
 }
