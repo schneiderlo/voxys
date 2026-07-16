@@ -1665,10 +1665,28 @@ public:
             // parallel instead.
             constexpr uint32_t kSerialWorldBodyLimit = 256u;
             constexpr uint32_t kCompactIslandBodyLimit = 1'024u;
-            const bool dynamicWorldEncoded = !executeBodyPipeline
-                || (narrowPhaseEncoded && dynamicSolver_.encode(
-                    encoder,
-                    executionBodies <= kSerialWorldBodyLimit));
+            GpuDynamicSolver::ProfilingBoundary solverProfilingBoundary;
+            if (profileThisBatch) {
+                solverProfilingBoundary.callback = [](const void* userData) {
+                    (*static_cast<
+                        const decltype(writeStageTimestamp)*>(userData))();
+                };
+                solverProfilingBoundary.userData = &writeStageTimestamp;
+            }
+            bool dynamicWorldEncoded = true;
+            if (executeBodyPipeline && narrowPhaseEncoded) {
+                dynamicWorldEncoded = dynamicSolver_.encode(
+                    encoder, executionBodies <= kSerialWorldBodyLimit,
+                    solverProfilingBoundary);
+            } else {
+                for (uint32_t boundary = 0u;
+                     boundary
+                        < GpuDynamicSolver::kProfilingInternalBoundaryCount;
+                     ++boundary) {
+                    writeStageTimestamp();
+                }
+                dynamicWorldEncoded = !executeBodyPipeline;
+            }
             if (executeBodyPipeline && !dynamicWorldEncoded) {
                 LOG_ERROR("Failed to encode a GPU dynamic-world stage");
             }

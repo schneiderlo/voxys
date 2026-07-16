@@ -156,7 +156,12 @@ const char* physicsGpuStageName(PhysicsGpuStage stage) noexcept {
         case PhysicsGpuStage::BroadPhaseLifecycle:
             return "broad_lifecycle";
         case PhysicsGpuStage::NarrowPhase: return "narrow_phase";
-        case PhysicsGpuStage::DynamicSolver: return "dynamic_solver";
+        case PhysicsGpuStage::DynamicSolverColoring:
+            return "dynamic_solver_coloring";
+        case PhysicsGpuStage::DynamicSolverGraph:
+            return "dynamic_solver_graph";
+        case PhysicsGpuStage::DynamicSolverSolve:
+            return "dynamic_solver_solve";
         case PhysicsGpuStage::StaticContacts: return "static_contacts";
         case PhysicsGpuStage::IslandsAndSleeping: return "islands_sleeping";
         case PhysicsGpuStage::TickFinalize: return "tick_finalize";

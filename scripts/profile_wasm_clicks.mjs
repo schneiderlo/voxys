@@ -325,7 +325,7 @@ await evaluate(`(() => {
                     voxyModule._voxy_poll_physics_stage_timing();
                 if (timingTick <= 0) break;
                 const stages = [];
-                for (let stage = 0; stage < 14; ++stage) {
+                for (let stage = 0; stage < 16; ++stage) {
                     stages.push(
                         voxyModule._voxy_get_polled_physics_stage_ms(stage),
                     );
@@ -780,8 +780,9 @@ const stageNames = [
     "commands_active_compaction", "ccd", "forces_water",
     "broad_index_build", "broad_index_sort_ranges", "broad_pair_count",
     "broad_pair_scatter", "broad_pair_sort_unique", "broad_lifecycle",
-    "narrow_phase", "dynamic_solver", "static_contacts",
-    "islands_sleeping", "tick_finalize",
+    "narrow_phase", "dynamic_solver_coloring", "dynamic_solver_graph",
+    "dynamic_solver_solve", "static_contacts", "islands_sleeping",
+    "tick_finalize",
 ];
 const gpuStages = Object.fromEntries(stageNames.map((name, stage) => [
     name,

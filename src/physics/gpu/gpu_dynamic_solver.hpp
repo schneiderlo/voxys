@@ -75,6 +75,12 @@ struct GpuDynamicSolverTelemetry {
 class GpuDynamicSolver {
 public:
     static constexpr uint32_t kTelemetryWordCount = 64;
+    static constexpr uint32_t kProfilingInternalBoundaryCount = 2;
+
+    struct ProfilingBoundary {
+        void (*callback)(const void*) = nullptr;
+        const void* userData = nullptr;
+    };
 
     struct Config {
         uint32_t bodyCapacity = 16'384;
@@ -116,6 +122,9 @@ public:
     void setInput(const GpuDynamicSolverInput& input);
     [[nodiscard]] bool encode(WGPUCommandEncoder encoder,
                               bool serialWorldSolve = false);
+    [[nodiscard]] bool encode(
+        WGPUCommandEncoder encoder, bool serialWorldSolve,
+        const ProfilingBoundary& profilingBoundary);
 
     [[nodiscard]] WGPUBuffer colors() const noexcept;
     [[nodiscard]] WGPUBuffer sortedColorRecords() const noexcept;

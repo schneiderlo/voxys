@@ -587,8 +587,15 @@ public:
         return true;
     }
 
-    bool encode(WGPUCommandEncoder encoder, bool serialWorldSolve) {
+    bool encode(
+        WGPUCommandEncoder encoder, bool serialWorldSolve,
+        const GpuDynamicSolver::ProfilingBoundary& profilingBoundary) {
         if (!encoder || !input_.valid()) return false;
+        const auto writeProfilingBoundary = [&] {
+            if (profilingBoundary.callback) {
+                profilingBoundary.callback(profilingBoundary.userData);
+            }
+        };
         CachedInputGroups& inputGroupCache = inputGroups();
         uint32_t slot = 0u;
         const auto parameterEntry = [this] {
@@ -596,6 +603,10 @@ public:
                 parameterBuffer_, 0, sizeof(Params));
         };
         if (serialWorldSolve) {
+            // Serial worlds perform coloring, graph construction, and solving
+            // in one kernel. Attribute the complete kernel to the solve stage.
+            writeProfilingBoundary();
+            writeProfilingBoundary();
             const std::array<gpu::BindGroupEntry, 9> serialEntries = {
                 gpu::BindGroupEntry(0).buffer(input_.poseBuffer),
                 gpu::BindGroupEntry(1).buffer(input_.motionBuffer),
@@ -734,6 +745,7 @@ public:
                 dispatchOffset(config_.colorCount + 1u),
                 dispatchOffset(config_.colorCount + 2u),
                 input_.narrowPhaseTelemetryBuffer, 10u)) return false;
+        writeProfilingBoundary();
 
         const std::array<gpu::BindGroupEntry, 6> rangeEntries = {
             gpu::BindGroupEntry(5).buffer(input_.narrowPhaseTelemetryBuffer),
@@ -777,6 +789,7 @@ public:
                 dispatchOffset(config_.colorCount + 3u),
                 dispatchOffset(config_.colorCount + 4u), colorRanges_,
                 config_.colorCount * 2u + 1u, 2u)) return false;
+        writeProfilingBoundary();
 
         const std::array<gpu::BindGroupEntry, 8> prepareEntries = {
             gpu::BindGroupEntry(0).buffer(input_.poseBuffer),
@@ -1083,7 +1096,12 @@ void GpuDynamicSolver::setInput(const GpuDynamicSolverInput& input) {
 }
 bool GpuDynamicSolver::encode(WGPUCommandEncoder encoder,
                               bool serialWorldSolve) {
-    return impl_->encode(encoder, serialWorldSolve);
+    return impl_->encode(encoder, serialWorldSolve, ProfilingBoundary{});
+}
+bool GpuDynamicSolver::encode(
+    WGPUCommandEncoder encoder, bool serialWorldSolve,
+    const ProfilingBoundary& profilingBoundary) {
+    return impl_->encode(encoder, serialWorldSolve, profilingBoundary);
 }
 WGPUBuffer GpuDynamicSolver::colors() const noexcept { return impl_->colors_; }
 WGPUBuffer GpuDynamicSolver::sortedColorRecords() const noexcept {
