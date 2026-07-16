@@ -184,7 +184,7 @@ if(VOXY_BUILD_WASM)
             "-s STACK_SIZE=1MB"
             "-s MODULARIZE=1"
             "-s EXPORT_NAME='VoxyModule'"
-            "-s EXPORTED_RUNTIME_METHODS=['ccall','cwrap','UTF8ToString']"
+            "-s EXPORTED_RUNTIME_METHODS=['ccall','cwrap','UTF8ToString','HEAPU8']"
             "-s EXPORTED_FUNCTIONS=['_main','_voxy_resize','_voxy_mouse_move','_voxy_key_event','_voxy_get_fps','_voxy_is_initialized','_voxy_get_physics_backend','_voxy_start_physics_self_test','_voxy_get_physics_self_test_status','_voxy_get_physics_self_test_tick']"
             "-s ASYNCIFY"
         )
