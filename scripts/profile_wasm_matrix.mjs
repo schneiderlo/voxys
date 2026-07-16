@@ -10,6 +10,7 @@ const options = {
     outputDirectory: "",
     durationMs: 15_000,
     durationTicks: 300,
+    warmupTick: 300,
     settleMs: 3_000,
     timeoutMs: 180_000,
     expectedWidth: 5504,
@@ -23,6 +24,7 @@ const usage = () => console.error(
     + "--output-dir DIR [--bodies 0,256,512,1024,2048,4096,8192,10112] "
     + "[--workload preset|click-batches|left-stream] [--duration-ms N] "
     + "[--duration-ticks N] [--settle-ms N] [--timeout-ms N] "
+    + "[--warmup-tick N] "
     + "[--expected-width N] [--expected-height N] [--profile] [--trace]",
 );
 
@@ -47,6 +49,8 @@ for (let index = 2; index < process.argv.length; ++index) {
         options.durationMs = readInteger(argument, value());
     } else if (argument === "--duration-ticks") {
         options.durationTicks = readInteger(argument, value());
+    } else if (argument === "--warmup-tick") {
+        options.warmupTick = readInteger(argument, value());
     } else if (argument === "--settle-ms") {
         options.settleMs = readInteger(argument, value());
     } else if (argument === "--timeout-ms") {
@@ -195,6 +199,7 @@ const capture = (bodyCount) => new Promise((resolve, reject) => {
         "--port", String(options.port),
         "--duration-ms", String(options.durationMs),
         "--duration-ticks", String(options.durationTicks),
+        "--warmup-tick", String(options.warmupTick),
         "--settle-ms", String(options.settleMs),
         "--timeout-ms", String(options.timeoutMs),
         "--expected-width", String(options.expectedWidth),
