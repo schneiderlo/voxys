@@ -1228,6 +1228,9 @@ public:
                          kGpuNarrowPhasePairClassCount));
         cachedTelemetry_.solver = GpuDynamicSolver::decodeTelemetry(view.subspan(
             kSolverTelemetryOffset, GpuDynamicSolver::kTelemetryWordCount));
+        dynamicSolver_.updateColorRoundLimit(
+            cachedTelemetry_.solver.maximumBodyDegree,
+            cachedTelemetry_.solver.overflowContacts);
         cachedTelemetry_.islands = GpuIslandManager::decodeTelemetry(view.subspan(
             kIslandTelemetryOffset, GpuIslandManager::kTelemetryWordCount));
     }

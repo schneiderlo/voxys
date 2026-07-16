@@ -308,6 +308,18 @@ TEST(PrimitivePathGPUTest, CompilesPrimitivePipeline) {
     EXPECT_EQ(path.lastCompactUploadStats().writeCalls, 2u);
     EXPECT_EQ(path.lastCompactUploadStats().bytesUploaded,
               bodies.size() * 64u);
+    path.setCompactPhysicsInstances(bodies);
+    EXPECT_FALSE(path.lastCompactUploadStats().fullUpload);
+    EXPECT_EQ(path.lastCompactUploadStats().writeCalls, 1u);
+    EXPECT_EQ(path.lastCompactUploadStats().bytesUploaded,
+              bodies.size() * 32u);
+
+    auto changedBodies = bodies;
+    changedBodies[2].dimensions.x += 0.25f;
+    path.setCompactPhysicsInstances(changedBodies);
+    EXPECT_EQ(path.lastCompactUploadStats().writeCalls, 2u);
+    EXPECT_EQ(path.lastCompactUploadStats().bytesUploaded,
+              bodies.size() * 32u + 32u);
 
     WGPUCommandEncoderDescriptor encoderDesc{};
     auto encoder = wgpuDeviceCreateCommandEncoder(context.getDevice(), &encoderDesc);

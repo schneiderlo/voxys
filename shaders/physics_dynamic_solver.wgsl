@@ -194,6 +194,7 @@ fn reset_body_degrees_impl(gid : vec3<u32>) {
         store_dispatch(params.capacities.z + 3u, 0u);
         store_dispatch(params.capacities.z + 4u, 0u);
         store_dispatch(params.capacities.z + 5u, 0u);
+        store_dispatch(params.capacities.z + 6u, 0u);
     }
 }
 
@@ -541,6 +542,17 @@ fn build_color_ranges_impl(localIndex : u32) {
                 / workgroupSize);
         store_dispatch(params.capacities.z + 4u, 1u);
     }
+    let compactStart = select(0u, 4u, params.capacities.x > 4096u);
+    var compactContacts = 0u;
+    for (var color = compactStart; color < params.capacities.z;
+         color += 1u) {
+        compactContacts += colorRanges[color * 2u + 1u];
+    }
+    // Reuse the continuation slot after coloring has finished. A zero-sized
+    // indirect dispatch avoids entering the compact color loop ten times per
+    // four-substep tick when no globally colored contacts exist.
+    store_dispatch(params.capacities.z + 6u,
+                   select(0u, 1u, compactContacts != 0u));
     atomicMax(&solverTelemetry[40], overflow);
     atomicStore(&solverTelemetry[38], params.control.y);
     atomicStore(&solverTelemetry[42], select(0u, 1u,

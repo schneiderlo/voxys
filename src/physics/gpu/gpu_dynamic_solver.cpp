@@ -94,6 +94,7 @@ public:
         device_ = device;
         queue_ = queue;
         config_ = config;
+        colorRoundLimit_ = config.colorCount;
         claimCapacity_ = static_cast<uint32_t>(claims);
         endpointCapacity_ = static_cast<uint32_t>(endpoints);
 
@@ -508,6 +509,28 @@ public:
         input_ = next;
     }
 
+    void updateColorRoundLimit(uint32_t maximumBodyDegree,
+                               uint32_t overflowContacts) noexcept {
+        if (config_.colorCount == 0u) return;
+        // A greedy edge coloring needs at most roughly twice the maximum
+        // body degree. Keep eight rounds as a latency/robustness floor.
+        const uint64_t degreeEstimate = uint64_t{maximumBodyDegree} * 2u + 1u;
+        uint32_t requested = static_cast<uint32_t>(std::min<uint64_t>(
+            degreeEstimate, config_.colorCount));
+        requested = std::min(
+            config_.colorCount,
+            std::max(kUnconditionalColorRounds, requested));
+        if (overflowContacts != 0u) {
+            // Grow immediately when the delayed estimate was too small. Any
+            // contacts missed meanwhile were still handled by the overflow
+            // solver, so this changes scheduling cost rather than correctness.
+            requested = std::min(
+                config_.colorCount,
+                std::max(requested, colorRoundLimit_ + 8u));
+        }
+        colorRoundLimit_ = requested;
+    }
+
     CachedInputGroups& inputGroups() {
         for (CachedInputGroups& cache : cachedInputGroups_) {
             if (cache.manifoldBuffer == input_.manifoldBuffer) return cache;
@@ -717,8 +740,10 @@ public:
             config_.colorCount + 1u);
         const uint64_t continuationWorkOffset = dispatchOffset(
             config_.colorCount + 6u);
+        const uint32_t roundCount = std::min(
+            config_.colorCount, colorRoundLimit_);
         const uint32_t unconditionalRounds = std::min(
-            config_.colorCount, kUnconditionalColorRounds);
+            roundCount, kUnconditionalColorRounds);
         const bool initializeClaims = !claimsInitialized_;
         const auto encodeColorRound = [&](uint32_t round,
                                           uint64_t workOffset) {
@@ -748,7 +773,7 @@ public:
         for (uint32_t round = 0; round < unconditionalRounds; ++round) {
             encodeColorRound(round, globalWorkOffset);
         }
-        if (unconditionalRounds < config_.colorCount) {
+        if (unconditionalRounds < roundCount) {
             wgpuComputePassEncoderEnd(pass);
             wgpuComputePassEncoderRelease(pass);
 
@@ -765,7 +790,7 @@ public:
 
             pass = wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
             for (uint32_t round = unconditionalRounds;
-                 round < config_.colorCount; ++round) {
+                 round < roundCount; ++round) {
                 encodeColorRound(round, continuationWorkOffset);
             }
         }
@@ -930,7 +955,9 @@ public:
                 bind(solveGroup, colorOffset);
                 wgpuComputePassEncoderSetPipeline(
                     pass, solveCompactColorsPipeline_);
-                wgpuComputePassEncoderDispatchWorkgroups(pass, 1u, 1u, 1u);
+                wgpuComputePassEncoderDispatchWorkgroupsIndirect(
+                    pass, dispatchArgs_,
+                    dispatchOffset(config_.colorCount + 6u));
                 return;
             }
             constexpr uint32_t kParallelColorCount = 4u;
@@ -950,7 +977,9 @@ public:
                 bind(solveGroup, colorOffset);
                 wgpuComputePassEncoderSetPipeline(
                     pass, solveCompactColorsPipeline_);
-                wgpuComputePassEncoderDispatchWorkgroups(pass, 1u, 1u, 1u);
+                wgpuComputePassEncoderDispatchWorkgroupsIndirect(
+                    pass, dispatchArgs_,
+                    dispatchOffset(config_.colorCount + 6u));
             }
         };
         auto solveOverflow = [&](uint32_t stage, uint32_t substep,
@@ -1065,6 +1094,7 @@ public:
         input_ = {};
         claimCapacity_ = 0;
         endpointCapacity_ = 0;
+        colorRoundLimit_ = 0;
         claimsInitialized_ = false;
         inputBindGroupCacheMisses_ = 0;
         scratchBytes_ = 0;
@@ -1076,6 +1106,7 @@ public:
     GpuDynamicSolverInput input_{};
     uint32_t claimCapacity_ = 0;
     uint32_t endpointCapacity_ = 0;
+    uint32_t colorRoundLimit_ = 0;
     bool claimsInitialized_ = false;
     size_t scratchBytes_ = 0;
     size_t inputBindGroupCacheMisses_ = 0;
@@ -1166,6 +1197,10 @@ void GpuDynamicSolver::shutdown() { impl_->shutdown(); }
 void GpuDynamicSolver::setInput(const GpuDynamicSolverInput& input) {
     impl_->setInput(input);
 }
+void GpuDynamicSolver::updateColorRoundLimit(
+    uint32_t maximumBodyDegree, uint32_t overflowContacts) noexcept {
+    impl_->updateColorRoundLimit(maximumBodyDegree, overflowContacts);
+}
 bool GpuDynamicSolver::encode(WGPUCommandEncoder encoder,
                               bool serialWorldSolve) {
     return impl_->encode(encoder, serialWorldSolve, ProfilingBoundary{});
@@ -1190,6 +1225,9 @@ WGPUBuffer GpuDynamicSolver::telemetryBuffer() const noexcept {
 }
 uint32_t GpuDynamicSolver::colorCount() const noexcept {
     return impl_->config_.colorCount;
+}
+uint32_t GpuDynamicSolver::colorRoundLimit() const noexcept {
+    return impl_->colorRoundLimit_;
 }
 size_t GpuDynamicSolver::scratchBytes() const noexcept {
     return impl_->scratchBytes_;

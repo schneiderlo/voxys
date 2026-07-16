@@ -62,6 +62,15 @@ fn scan_block_count() -> u32 {
     return (count + params.counts.z - 1u) / params.counts.z;
 }
 
+fn scan_sum(a : u32, b : u32) -> u32 {
+    let limit = params.counts.w;
+    if (limit == 0xffffffffu) { return a + b; }
+    let sum = a + b;
+    // An overflowing u32 sum is necessarily above every finite clamp.  This
+    // keeps the common sparse case to one add, one comparison, and one min.
+    return select(min(sum, limit), limit, sum < a);
+}
+
 fn scan_blocks_impl(gid : vec3<u32>, lid : vec3<u32>, group : vec3<u32>,
                     groupSize : u32) {
     let index = gid.x;
@@ -74,7 +83,7 @@ fn scan_blocks_impl(gid : vec3<u32>, lid : vec3<u32>, group : vec3<u32>,
         var addend = 0u;
         if (lid.x >= offset) { addend = scanScratch[lid.x - offset]; }
         workgroupBarrier();
-        scanScratch[lid.x] += addend;
+        scanScratch[lid.x] = scan_sum(scanScratch[lid.x], addend);
         workgroupBarrier();
         offset <<= 1u;
     }
@@ -113,13 +122,14 @@ fn scan_prefix(@builtin(global_invocation_id) gid : vec3<u32>) {
     var sum = 0u;
     for (var block = 0u; block < scan_block_count(); block += 1u) {
         scanBlockPrefix[block] = sum;
-        sum += scanBlockSums[block];
+        sum = scan_sum(sum, scanBlockSums[block]);
     }
 }
 
 fn scan_add_impl(gid : vec3<u32>, group : vec3<u32>) {
     if (gid.x < scan_count()) {
-        scanOutput[gid.x] += scanBlockPrefix[group.x];
+        scanOutput[gid.x] = scan_sum(
+            scanOutput[gid.x], scanBlockPrefix[group.x]);
     }
 }
 

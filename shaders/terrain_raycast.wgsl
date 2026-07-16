@@ -331,6 +331,57 @@ fn sampleBakedShadow(worldPos : vec3<f32>, terrainOrigin : vec2<f32>, cellScale 
     return smoothstep(-soft, soft, posY - boundary);
 }
 
+/// Lego terrain still uses the baked terrain shadow. Only the short shadows
+/// cast by studs need extra work. A stud is 0.2 cells tall, so the exact
+/// sunward footprint normally covers four cells (and at most a small bounded
+/// rectangle for low sun angles). This replaces a second hierarchical DDA per
+/// hit pixel with a handful of coherent texture loads and analytic cylinders.
+fn sampleLegoShadow(worldPos : vec3<f32>, lightDir : vec3<f32>,
+                    terrainOrigin : vec2<f32>, cellScale : f32,
+                    hitDistance : f32) -> f32 {
+    let terrainShadow = sampleBakedShadow(
+        worldPos, terrainOrigin, cellScale);
+    // Beyond this distance a stud is smaller than a pixel in the intended
+    // Lego views. Keep the baked brick shadow and skip sub-pixel cylinders.
+    if (terrainShadow <= 0.001 || lightDir.y <= 1e-4
+        || hitDistance > cellScale * 64.0) {
+        return terrainShadow;
+    }
+
+    let studHeight = cellScale * 0.2;
+    let studRadius = cellScale * 0.35;
+    let footprint = vec2<f32>(studRadius)
+        + abs(lightDir.xz) * (studHeight / lightDir.y);
+    let steps = clamp(vec2<i32>(ceil(footprint / cellScale)),
+                      vec2<i32>(1), vec2<i32>(4));
+    let direction = vec2<i32>(select(-1, 1, lightDir.x >= 0.0),
+                              select(-1, 1, lightDir.z >= 0.0));
+    let baseCell = vec2<i32>(floor(
+        (worldPos.xz + terrainOrigin) / cellScale));
+    let terrainSize = vec2<i32>(camera.terrainSize);
+    let shadowOrigin = worldPos + lightDir * studHeight;
+
+    for (var x = 0; x <= steps.x; x += 1) {
+        for (var z = 0; z <= steps.y; z += 1) {
+            let cell = baseCell + vec2<i32>(x * direction.x,
+                                            z * direction.y);
+            if (any(cell < vec2<i32>(0)) || any(cell >= terrainSize)) {
+                continue;
+            }
+            let height = f32(textureLoad(heightTex, cell, 0).x);
+            let brickY = heightmapToWorldHeight(height);
+            let centerXZ = (vec2<f32>(cell) + vec2<f32>(0.5))
+                * cellScale - terrainOrigin;
+            let studBase = vec3<f32>(centerXZ.x, brickY, centerXZ.y);
+            if (intersectStud(shadowOrigin, lightDir, studBase,
+                              studHeight, studRadius) > 0.0) {
+                return 0.0;
+            }
+        }
+    }
+    return terrainShadow;
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Shadow Ray Traversal (Lego mode only — studs are not in the baked field)
 // ─────────────────────────────────────────────────────────────────────────────
@@ -852,10 +903,9 @@ fn main(@builtin(global_invocation_id) gid : vec3<u32>) {
         let hitPos = origin + dir * t;
 
         if (legoMode) {
-            // Studs are not in the baked field: keep the ray-marched shadow.
             let lightDir = camera.lightDirWS.xyz;
-            let shadowOrigin = hitPos + lightDir * (camera.metrics.y * 0.2);
-            shadowFactor = intersectShadow(shadowOrigin, lightDir);
+            shadowFactor = sampleLegoShadow(
+                hitPos, lightDir, terrainOrigin, cellScale, t);
         } else {
             // Static sun + static terrain: one baked-texture lookup replaces
             // the whole shadow DDA.

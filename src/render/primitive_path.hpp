@@ -12,6 +12,7 @@
 #include <vector>
 
 #include <glm/mat4x4.hpp>
+#include <glm/vec4.hpp>
 
 #if defined(VOXY_WASM)
     #include <webgpu/webgpu.h>
@@ -96,6 +97,7 @@ private:
     [[nodiscard]] bool ensureCompactInstanceCapacity(size_t requiredCapacity);
     void updateBindGroup();
     void updateCompactBindGroup();
+    [[nodiscard]] bool rebuildCompactRenderBundle();
 
     WGPUDevice device_ = nullptr;
     WGPUQueue queue_ = nullptr;
@@ -115,6 +117,7 @@ private:
     WGPUPipelineLayout compactPipelineLayout_ = nullptr;
     WGPURenderPipeline compactPipeline_ = nullptr;
     WGPUBindGroup compactBindGroup_ = nullptr;
+    WGPURenderBundle compactRenderBundle_ = nullptr;
     WGPUBuffer cpuPoseBuffer_ = nullptr;
     WGPUBuffer cpuShapeBuffer_ = nullptr;
     WGPUBuffer compactBoundPoseBuffer_ = nullptr;
@@ -127,6 +130,11 @@ private:
     std::array<DrawRange, static_cast<size_t>(physics::PhysicsWorld::ThrowableShape::Count)> ranges_{};
     detail::PrimitiveInstanceCache instanceCache_;
     std::vector<uint64_t> uploadedInstanceCacheTokens_;
+    // Reused CPU fallback staging. Poses change every frame; shapes usually do
+    // not, so their uploaded copy is tracked independently.
+    std::vector<glm::vec4> cpuPoseUpload_;
+    std::vector<glm::vec4> cpuShapeUpload_;
+    std::vector<glm::vec4> uploadedCpuShapeDimensions_;
     PrimitiveUploadStats lastUploadStats_;
     PrimitiveUploadStats lastCompactUploadStats_;
     PrimitiveCpuTimings lastCpuTimings_;
@@ -134,6 +142,9 @@ private:
     size_t compactInstanceCapacity_ = 0;
     uint32_t instanceCount_ = 0;
     bool instanceBufferContentsValid_ = false;
+    bool cpuShapeBufferContentsValid_ = false;
+    WGPUTextureFormat colorFormat_ = WGPUTextureFormat_BGRA8Unorm;
+    WGPUTextureFormat depthFormat_ = WGPUTextureFormat_Depth32Float;
 };
 
 } // namespace voxy::render

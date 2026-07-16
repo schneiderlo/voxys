@@ -3,6 +3,7 @@
 #include "gpu/context.hpp"
 #include "gpu/resources.hpp"
 #include "render/primitive_instance_packing.hpp"
+#include "render/primitive_path.hpp"
 
 #include <algorithm>
 #include <chrono>
@@ -35,6 +36,7 @@ namespace {
 
 using Clock = std::chrono::steady_clock;
 constexpr size_t kIterations = 240;
+constexpr size_t kCompactIterations = 60;
 constexpr size_t kDirtyInstance = 17;
 
 struct Summary {
@@ -229,6 +231,41 @@ Result run(WGPUDevice device, WGPUQueue queue, size_t count,
             dirtyRanges ? sizeof(GpuInstance) : byteCount};
 }
 
+Result runCompactFallback(
+    PrimitivePath& path,
+    std::vector<physics::PhysicsWorld::DynamicBodySnapshot>& bodies,
+    WGPUDevice device, WGPUQueue queue, bool dirtyShapes) {
+    std::vector<double> enqueueSamples;
+    std::vector<double> retiredSamples;
+    enqueueSamples.reserve(kCompactIterations);
+    retiredSamples.reserve(kCompactIterations);
+    PrimitiveUploadStats stats;
+    const auto totalStart = Clock::now();
+    for (size_t iteration = 0; iteration < kCompactIterations; ++iteration) {
+        if (dirtyShapes) {
+            const float delta = (iteration & 1u) == 0u ? 0.001f : -0.001f;
+            bodies.front().dimensions.x += delta;
+            bodies.back().dimensions.z += delta;
+        }
+        bodies[iteration % bodies.size()].position.x += 0.001f;
+        const auto frameStart = Clock::now();
+        path.setCompactPhysicsInstances(bodies);
+        const auto enqueueEnd = Clock::now();
+        stats = path.lastCompactUploadStats();
+        retireQueue(device, queue);
+        const auto retiredEnd = Clock::now();
+        enqueueSamples.push_back(std::chrono::duration<double, std::milli>(
+            enqueueEnd - frameStart).count());
+        retiredSamples.push_back(std::chrono::duration<double, std::milli>(
+            retiredEnd - frameStart).count());
+    }
+    const double elapsedSeconds =
+        std::chrono::duration<double>(Clock::now() - totalStart).count();
+    return {summarize(std::move(enqueueSamples), elapsedSeconds),
+            summarize(std::move(retiredSamples), elapsedSeconds), 0u,
+            stats.bytesUploaded};
+}
+
 TEST(PrimitiveUploadBenchmark, OneDirtyInstanceAtLargeBodyCounts) {
     gpu::Context context;
     gpu::ContextConfig config;
@@ -269,6 +306,43 @@ TEST(PrimitiveUploadBenchmark, OneDirtyInstanceAtLargeBodyCounts) {
                       << std::dec << '\n';
         }
     }
+
+    constexpr size_t compactBodyCount = 100'000;
+    std::vector<physics::PhysicsWorld::DynamicBodySnapshot> bodies(
+        compactBodyCount);
+    for (size_t index = 0; index < bodies.size(); ++index) {
+        bodies[index].shape = static_cast<physics::ThrowableShape>(
+            index % static_cast<size_t>(physics::ThrowableShape::Count));
+        bodies[index].position = glm::vec3(
+            static_cast<float>(index % 400u), 20.0f,
+            static_cast<float>(index / 400u));
+        bodies[index].dimensions = glm::vec3(0.7f, 0.8f, 0.9f);
+    }
+    PrimitivePath path;
+    ASSERT_TRUE(path.init(context.getDevice(), context.getQueue()));
+    path.setCompactPhysicsInstances(bodies);
+    retireQueue(context.getDevice(), context.getQueue());
+    const Result fullShapes = runCompactFallback(
+        path, bodies, context.getDevice(), context.getQueue(), true);
+    path.setCompactPhysicsInstances(bodies);
+    retireQueue(context.getDevice(), context.getQueue());
+    const Result cachedShapes = runCompactFallback(
+        path, bodies, context.getDevice(), context.getQueue(), false);
+    EXPECT_EQ(fullShapes.bytesPerFrame, compactBodyCount * 64u);
+    EXPECT_EQ(cachedShapes.bytesPerFrame, compactBodyCount * 32u);
+    for (const auto& [mode, result] : {
+             std::pair{"full_shape", &fullShapes},
+             std::pair{"cached_shape", &cachedShapes}}) {
+        std::cout << std::fixed << std::setprecision(6)
+                  << "primitive_compact_upload mode=" << mode
+                  << " bodies=" << compactBodyCount
+                  << " bytes=" << result->bytesPerFrame
+                  << " enqueue_p50_ms=" << result->enqueue.p50Ms
+                  << " retired_p50_ms=" << result->retired.p50Ms
+                  << " frames_per_s=" << result->retired.framesPerSecond
+                  << '\n';
+    }
+    path.shutdown();
     context.shutdown();
 }
 

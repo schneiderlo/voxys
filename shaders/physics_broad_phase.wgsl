@@ -459,15 +459,26 @@ fn bodies_overlap(bodyA : u32, bodyB : u32) -> bool {
     return valid && all(abs(delta) <= vec3<f32>(extent));
 }
 
+fn candidate_count_limit() -> u32 {
+    // One value beyond capacity is enough to preserve the overflow signal.
+    // Saturating here also prevents a pathological dense scene from wrapping
+    // the u32 owner prefix back into the writable candidate range.
+    return select(broad.counts.w + 1u, broad.counts.w,
+                  broad.counts.w == SENTINEL);
+}
+
 fn count_range_pairs(rangeA : CellRange, rangeB : CellRange,
-                     sameRange : bool) -> u32 {
+                     sameRange : bool, limit : u32) -> u32 {
     var count = 0u;
     for (var localA = 0u; localA < rangeA.entryCount; localA += 1u) {
         let bodyA = sortedGridEntries[rangeA.firstEntry + localA].value;
         let startB = select(0u, localA + 1u, sameRange);
         for (var localB = startB; localB < rangeB.entryCount; localB += 1u) {
             let bodyB = sortedGridEntries[rangeB.firstEntry + localB].value;
-            count += select(0u, 1u, bodies_overlap(bodyA, bodyB));
+            if (bodies_overlap(bodyA, bodyB)) {
+                count += 1u;
+                if (count >= limit) { return limit; }
+            }
         }
     }
     return count;
@@ -475,10 +486,12 @@ fn count_range_pairs(rangeA : CellRange, rangeB : CellRange,
 
 fn count_pairs_for_owner(owner : u32) -> u32 {
     let rangeCount = occupied_range_count();
+    let limit = candidate_count_limit();
     if (owner < rangeCount) {
         let range = cellRanges[owner];
         if (range.keyHigh == SENTINEL) { return 0u; }
-        var count = count_range_pairs(range, range, true);
+        var count = count_range_pairs(range, range, true, limit);
+        if (count >= limit) { return limit; }
         let cell = decode_cell(range.keyLow, range.keyHigh);
         for (var dx = -1; dx <= 1; dx += 1) {
             for (var dy = -1; dy <= 1; dy += 1) {
@@ -491,8 +504,9 @@ fn count_pairs_for_owner(owner : u32) -> u32 {
                         cell + vec3<i32>(dx, dy, dz));
                     let neighbor = find_cell_range(encode_cell(neighborCell));
                     if (neighbor != SENTINEL) {
-                        count += count_range_pairs(
-                            range, cellRanges[neighbor], false);
+                        count += count_range_pairs(range, cellRanges[neighbor],
+                                                   false, limit - count);
+                        if (count >= limit) { return limit; }
                     }
                 }
             }
@@ -505,7 +519,10 @@ fn count_pairs_for_owner(owner : u32) -> u32 {
     for (var other = 0u; other < broad.counts.x; other += 1u) {
         if (other == body) { continue; }
         if (body_is_oversized(other) && other < body) { continue; }
-        count += select(0u, 1u, bodies_overlap(body, other));
+        if (bodies_overlap(body, other)) {
+            count += 1u;
+            if (count >= limit) { return limit; }
+        }
     }
     return count;
 }
@@ -541,18 +558,21 @@ fn emit_pair(bodyA : u32, bodyB : u32, output : u32) {
 
 fn scatter_range_pairs(rangeA : CellRange, rangeB : CellRange,
                        sameRange : bool, base : u32,
-                       localOffset : ptr<function, u32>) {
+                       localOffset : ptr<function, u32>) -> bool {
+    if (base >= broad.counts.w) { return true; }
     for (var localA = 0u; localA < rangeA.entryCount; localA += 1u) {
         let bodyA = sortedGridEntries[rangeA.firstEntry + localA].value;
         let startB = select(0u, localA + 1u, sameRange);
         for (var localB = startB; localB < rangeB.entryCount; localB += 1u) {
             let bodyB = sortedGridEntries[rangeB.firstEntry + localB].value;
             if (bodies_overlap(bodyA, bodyB)) {
+                if ((*localOffset) >= broad.counts.w - base) { return true; }
                 emit_pair(bodyA, bodyB, base + (*localOffset));
                 (*localOffset) += 1u;
             }
         }
     }
+    return false;
 }
 
 fn scatter_pairs_impl(gid : vec3<u32>) {
@@ -564,7 +584,7 @@ fn scatter_pairs_impl(gid : vec3<u32>) {
     if (owner < rangeCount) {
         let range = cellRanges[owner];
         if (range.keyHigh == SENTINEL) { return; }
-        scatter_range_pairs(range, range, true, base, &local);
+        if (scatter_range_pairs(range, range, true, base, &local)) { return; }
         let cell = decode_cell(range.keyLow, range.keyHigh);
         for (var dx = -1; dx <= 1; dx += 1) {
             for (var dy = -1; dy <= 1; dy += 1) {
@@ -577,8 +597,10 @@ fn scatter_pairs_impl(gid : vec3<u32>) {
                         cell + vec3<i32>(dx, dy, dz));
                     let neighbor = find_cell_range(encode_cell(neighborCell));
                     if (neighbor != SENTINEL) {
-                        scatter_range_pairs(
-                            range, cellRanges[neighbor], false, base, &local);
+                        if (scatter_range_pairs(range, cellRanges[neighbor],
+                                                false, base, &local)) {
+                            return;
+                        }
                     }
                 }
             }
@@ -588,6 +610,8 @@ fn scatter_pairs_impl(gid : vec3<u32>) {
     let body = owner - rangeCount;
     if (body >= broad.counts.x || !body_is_oversized(body)) { return; }
     for (var other = 0u; other < broad.counts.x; other += 1u) {
+        if (base >= broad.counts.w
+            || local >= broad.counts.w - base) { return; }
         if (other == body) { continue; }
         if (body_is_oversized(other) && other < body) { continue; }
         if (bodies_overlap(body, other)) {
@@ -603,7 +627,9 @@ fn clear_pair_candidates_impl(gid : vec3<u32>) {
         let ownerCount = oversizedFlags[broad.counts.x + 1u];
         if (ownerCount != 0u) {
             let last = ownerCount - 1u;
-            rawCandidates = ownerPairOffsets[last] + ownerPairCounts[last];
+            let limit = candidate_count_limit();
+            let offset = min(ownerPairOffsets[last], limit);
+            rawCandidates = offset + min(ownerPairCounts[last], limit - offset);
         }
         atomicStore(&telemetry[2], rawCandidates);
         store_sort_dispatch(12u, min(rawCandidates, broad.counts.w));

@@ -9,7 +9,13 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <cstdlib>
 #include <cstring>
+#include <chrono>
+#include <cmath>
+#include <filesystem>
+#include <iomanip>
+#include <iostream>
 #include <map>
 #include <random>
 #include <set>
@@ -844,6 +850,145 @@ TEST(GpuBroadPhaseOverflowTest, ReportsAndRetainsCanonicalPrefix) {
     EXPECT_EQ(second.telemetry.endEvents, 0u);
     EXPECT_GE(second.telemetry.highCandidatePairs,
               first.telemetry.candidatePairs);
+
+    releaseBuffer(metadataBuffer);
+    releaseBuffer(shapeBuffer);
+    releaseBuffer(poseBuffer);
+}
+
+TEST(GpuBroadPhaseOverflowTest, GridPathClampsPathologicalCandidateCount) {
+    // 1,025 bodies crosses the parallel-medium cutoff and exercises the full
+    // grid/radix path. The true pair count is 524,800, but only capacity + 1
+    // needs to be counted to report overflow safely.
+    constexpr uint32_t bodyCapacity = 1'025;
+    gpu::Context context;
+    gpu::ContextConfig contextConfig;
+    contextConfig.enableValidation = false;
+    if (!context.initHeadless(contextConfig)) {
+        GTEST_SKIP() << "Headless WebGPU is unavailable";
+    }
+
+    std::vector<TestPose> poses(bodyCapacity);
+    std::vector<TestShape> shapes(bodyCapacity);
+    std::vector<TestMetadata> metadata(bodyCapacity);
+    for (uint32_t body = 0; body < bodyCapacity; ++body) {
+        poses[body].positionInvMass = {1.0f, 1.0f, 1.0f, 1.0f};
+        shapes[body].dimensionsType = {0.25f, 0.25f, 0.25f, 0.0f};
+        metadata[body] = makeMetadata(kAlive | kAwake);
+    }
+    WGPUBuffer poseBuffer = makeInput<TestPose>(
+        context, poses, "grid_overflow_poses");
+    WGPUBuffer shapeBuffer = makeInput<TestShape>(
+        context, shapes, "grid_overflow_shapes");
+    WGPUBuffer metadataBuffer = makeInput<TestMetadata>(
+        context, metadata, "grid_overflow_metadata");
+    ASSERT_NE(poseBuffer, nullptr);
+    ASSERT_NE(shapeBuffer, nullptr);
+    ASSERT_NE(metadataBuffer, nullptr);
+
+    GpuBroadPhase broadPhase;
+    GpuBroadPhase::Config config;
+    config.bodyCapacity = bodyCapacity;
+    config.candidatePairCapacity = 16;
+    config.pairCapacity = 8;
+    config.contactCapacity = 4;
+    config.cellSize = 8.0f;
+    config.workgroupSize = 128;
+    ASSERT_TRUE(broadPhase.initialize(
+        context.getDevice(), context.getQueue(), config));
+    broadPhase.setBodyView({
+        poseBuffer, shapeBuffer, metadataBuffer, bodyCapacity});
+
+    const BroadPhaseSnapshot snapshot = runAndRead(context, broadPhase);
+    EXPECT_TRUE(snapshot.telemetry.candidateOverflow);
+    EXPECT_TRUE(snapshot.telemetry.pairOverflow);
+    EXPECT_EQ(snapshot.telemetry.candidatePairs,
+              config.candidatePairCapacity + 1u);
+    ASSERT_EQ(snapshot.pairs.size(), config.pairCapacity);
+    for (uint32_t index = 0; index < snapshot.pairs.size(); ++index) {
+        EXPECT_EQ(snapshot.pairs[index].keyHigh, 0u);
+        EXPECT_EQ(snapshot.pairs[index].keyLow, index + 1u);
+    }
+
+    releaseBuffer(metadataBuffer);
+    releaseBuffer(shapeBuffer);
+    releaseBuffer(poseBuffer);
+}
+
+TEST(GpuBroadPhaseOverflowBenchmark, DenseGridCandidateClamp) {
+    const char* shaderDirectory =
+        std::getenv("VOXY_BROAD_PHASE_BENCHMARK_SHADER_DIR");
+    if (!shaderDirectory || *shaderDirectory == '\0') {
+        GTEST_SKIP() << "Set VOXY_BROAD_PHASE_BENCHMARK_SHADER_DIR to run";
+    }
+    constexpr uint32_t bodyCapacity = 1'025;
+    constexpr uint32_t measuredFrames = 12;
+    gpu::Context context;
+    gpu::ContextConfig contextConfig;
+    contextConfig.enableValidation = false;
+    if (!context.initHeadless(contextConfig)) {
+        GTEST_SKIP() << "Headless WebGPU is unavailable";
+    }
+
+    std::vector<TestPose> poses(bodyCapacity);
+    std::vector<TestShape> shapes(bodyCapacity);
+    std::vector<TestMetadata> metadata(bodyCapacity);
+    for (uint32_t body = 0; body < bodyCapacity; ++body) {
+        poses[body].positionInvMass = {1.0f, 1.0f, 1.0f, 1.0f};
+        shapes[body].dimensionsType = {0.25f, 0.25f, 0.25f, 0.0f};
+        metadata[body] = makeMetadata(kAlive | kAwake);
+    }
+    WGPUBuffer poseBuffer = makeInput<TestPose>(
+        context, poses, "grid_overflow_benchmark_poses");
+    WGPUBuffer shapeBuffer = makeInput<TestShape>(
+        context, shapes, "grid_overflow_benchmark_shapes");
+    WGPUBuffer metadataBuffer = makeInput<TestMetadata>(
+        context, metadata, "grid_overflow_benchmark_metadata");
+    ASSERT_NE(poseBuffer, nullptr);
+    ASSERT_NE(shapeBuffer, nullptr);
+    ASSERT_NE(metadataBuffer, nullptr);
+
+    const std::filesystem::path shaders(shaderDirectory);
+    GpuBroadPhase broadPhase;
+    GpuBroadPhase::Config config;
+    config.bodyCapacity = bodyCapacity;
+    config.candidatePairCapacity = 16;
+    config.pairCapacity = 8;
+    config.contactCapacity = 4;
+    config.cellSize = 8.0f;
+    config.workgroupSize = 128;
+    config.shaderPath = shaders / "physics_broad_phase.wgsl";
+    config.primitivesShaderPath =
+        shaders / "physics_deterministic_primitives.wgsl";
+    ASSERT_TRUE(broadPhase.initialize(
+        context.getDevice(), context.getQueue(), config));
+    broadPhase.setBodyView({
+        poseBuffer, shapeBuffer, metadataBuffer, bodyCapacity});
+
+    std::vector<double> samples;
+    samples.reserve(measuredFrames);
+    BroadPhaseSnapshot snapshot;
+    for (uint32_t frame = 0; frame < measuredFrames + 2u; ++frame) {
+        const auto start = std::chrono::steady_clock::now();
+        snapshot = runAndRead(context, broadPhase);
+        if (frame >= 2u) {
+            samples.push_back(std::chrono::duration<double, std::milli>(
+                std::chrono::steady_clock::now() - start).count());
+        }
+    }
+    std::sort(samples.begin(), samples.end());
+    const double p50 = samples[samples.size() / 2u];
+    const double p95 = samples[static_cast<size_t>(
+        std::ceil(0.95 * static_cast<double>(samples.size()))) - 1u];
+    EXPECT_TRUE(snapshot.telemetry.candidateOverflow);
+    EXPECT_TRUE(snapshot.telemetry.pairOverflow);
+    std::cout << std::fixed << std::setprecision(3)
+              << "broad_phase_dense_grid bodies=" << bodyCapacity
+              << " candidate_capacity=" << config.candidatePairCapacity
+              << " reported_candidates="
+              << snapshot.telemetry.candidatePairs
+              << " retired_p50_ms=" << p50
+              << " retired_p95_ms=" << p95 << '\n';
 
     releaseBuffer(metadataBuffer);
     releaseBuffer(shapeBuffer);

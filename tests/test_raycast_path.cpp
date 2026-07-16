@@ -13,7 +13,29 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <algorithm>
+#include <chrono>
+#include <cmath>
+#include <cstdlib>
 #include <filesystem>
+#include <iomanip>
+#include <iostream>
+#include <vector>
+
+#ifndef WGPUWrappedSubmissionIndex
+using WGPUSubmissionIndex = uint64_t;
+struct WGPUWrappedSubmissionIndex {
+    WGPUQueue queue;
+    WGPUSubmissionIndex submissionIndex;
+};
+#endif
+
+extern "C" WGPUSubmissionIndex wgpuQueueSubmitForIndex(
+    WGPUQueue queue, size_t commandCount,
+    const WGPUCommandBuffer* commands);
+extern "C" WGPUBool wgpuDevicePoll(
+    WGPUDevice device, WGPUBool wait,
+    const WGPUWrappedSubmissionIndex* wrappedSubmissionIndex);
 
 namespace voxy::render {
 
@@ -473,6 +495,103 @@ TEST_F(RaycastPathGPUTest, DispatchWithHeightmap) {
     // Cleanup
     wgpuCommandBufferRelease(commands);
     wgpuCommandEncoderRelease(encoder);
+}
+
+TEST_F(RaycastPathGPUTest, LegoHorizonBenchmark) {
+    constexpr uint32_t benchmarkWidth = 256u;
+    constexpr uint32_t benchmarkHeight = 144u;
+    const char* benchmarkShader =
+        std::getenv("VOXY_RAYCAST_BENCHMARK_SHADER");
+    if (!benchmarkShader || *benchmarkShader == '\0') {
+        GTEST_SKIP() << "Set VOXY_RAYCAST_BENCHMARK_SHADER to run";
+    }
+    if (!gpuContextInitialized_) {
+        GTEST_SKIP() << "GPU context not available";
+    }
+
+    auto config = RaycastPathConfig::defaults();
+    config.shaderPath = benchmarkShader;
+    ASSERT_TRUE(renderer_.init(
+        gpuContext_.getDevice(), gpuContext_.getQueue(),
+        benchmarkWidth, benchmarkHeight, config));
+    createDummyHeightmap(256, 256);
+    ASSERT_NE(heightmapView_, nullptr);
+    renderer_.setHeightmap(heightmapView_, heightmapWidth_, heightmapHeight_);
+    gpu::TextureDesc displacementDesc = gpu::TextureDesc::tex2D(
+        1, 1, WGPUTextureFormat_RGBA16Float,
+        WGPUTextureUsage_TextureBinding, "benchmark_water_displacement");
+    displacementDesc.depthOrArrayLayers = 4u;
+    WGPUTexture displacementTexture = gpu::createTexture(
+        gpuContext_.getDevice(), displacementDesc);
+    gpu::TextureViewDesc displacementViewDesc{};
+    displacementViewDesc.dimension = WGPUTextureViewDimension_2DArray;
+    displacementViewDesc.arrayLayerCount = 4u;
+    WGPUTextureView displacementView = gpu::createTextureView(
+        displacementTexture, displacementViewDesc);
+    WGPUTexture coastTexture = gpu::createTexture(
+        gpuContext_.getDevice(), gpu::TextureDesc::tex2D(
+            1, 1, WGPUTextureFormat_RGBA16Float,
+            WGPUTextureUsage_TextureBinding, "benchmark_water_coast"));
+    WGPUTextureView coastView = gpu::createTextureView(coastTexture);
+    WGPUSampler sampler = gpu::createSampler(
+        gpuContext_.getDevice(), gpu::SamplerDesc::linear(
+            "benchmark_water_sampler"));
+    ASSERT_NE(displacementTexture, nullptr);
+    ASSERT_NE(displacementView, nullptr);
+    ASSERT_NE(coastTexture, nullptr);
+    ASSERT_NE(coastView, nullptr);
+    ASSERT_NE(sampler, nullptr);
+    renderer_.setWaterSimulation(displacementView, coastView, sampler);
+    const glm::vec3 cameraPosition(0.0f, -450.0f, -120.0f);
+    renderer_.updateCamera(
+        glm::lookAt(cameraPosition, glm::vec3(0.0f, -500.0f, 0.0f),
+                    glm::vec3(0.0f, 1.0f, 0.0f)),
+        glm::perspective(glm::radians(70.0f), 16.0f / 9.0f,
+                         0.1f, 2'000.0f),
+        cameraPosition);
+    renderer_.setLegoMode(true);
+
+    constexpr uint32_t warmupFrames = 5u;
+    constexpr uint32_t measuredFrames = 60u;
+    std::vector<double> samples;
+    samples.reserve(measuredFrames);
+    for (uint32_t frame = 0; frame < warmupFrames + measuredFrames; ++frame) {
+        const auto start = std::chrono::steady_clock::now();
+        WGPUCommandEncoderDescriptor encoderDesc{};
+        WGPUCommandEncoder encoder = wgpuDeviceCreateCommandEncoder(
+            gpuContext_.getDevice(), &encoderDesc);
+        renderer_.dispatch(encoder);
+        WGPUCommandBufferDescriptor commandDesc{};
+        WGPUCommandBuffer command =
+            wgpuCommandEncoderFinish(encoder, &commandDesc);
+        const WGPUSubmissionIndex submissionIndex = wgpuQueueSubmitForIndex(
+            gpuContext_.getQueue(), 1u, &command);
+        const WGPUWrappedSubmissionIndex submission{
+            gpuContext_.getQueue(), submissionIndex};
+        static_cast<void>(wgpuDevicePoll(
+            gpuContext_.getDevice(), true, &submission));
+        wgpuCommandBufferRelease(command);
+        wgpuCommandEncoderRelease(encoder);
+        if (frame >= warmupFrames) {
+            samples.push_back(std::chrono::duration<double, std::milli>(
+                std::chrono::steady_clock::now() - start).count());
+        }
+    }
+    std::sort(samples.begin(), samples.end());
+    const double p50 = samples[samples.size() / 2u];
+    const double p95 = samples[static_cast<size_t>(
+        std::ceil(0.95 * static_cast<double>(samples.size()))) - 1u];
+    std::cout << std::fixed << std::setprecision(3)
+              << "raycast_lego_horizon resolution="
+              << benchmarkWidth << 'x' << benchmarkHeight
+              << " retired_p50_ms=" << p50
+              << " retired_p95_ms=" << p95 << '\n';
+    renderer_.shutdown();
+    wgpuSamplerRelease(sampler);
+    wgpuTextureViewRelease(coastView);
+    wgpuTextureRelease(coastTexture);
+    wgpuTextureViewRelease(displacementView);
+    wgpuTextureRelease(displacementTexture);
 }
 
 } // namespace voxy::render

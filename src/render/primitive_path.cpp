@@ -13,6 +13,7 @@
 #include <algorithm>
 #include <chrono>
 #include <cmath>
+#include <cstring>
 #include <numbers>
 #include <vector>
 
@@ -201,6 +202,8 @@ bool PrimitivePath::init(WGPUDevice device, WGPUQueue queue,
     if (!device || !queue) return false;
     device_ = device;
     queue_ = queue;
+    colorFormat_ = config.colorFormat;
+    depthFormat_ = config.depthFormat;
     if (!createGeometry() || !createBuffers()
         || !createLayoutAndPipeline(config)
         || !createCompactLayoutAndPipeline(config)) {
@@ -223,6 +226,7 @@ bool PrimitivePath::init(WGPUDevice device, WGPUQueue queue,
 
 void PrimitivePath::shutdown() {
     gpuCulling_.shutdown();
+    if (compactRenderBundle_) { wgpuRenderBundleRelease(compactRenderBundle_); compactRenderBundle_ = nullptr; }
     if (compactBindGroup_) { wgpuBindGroupRelease(compactBindGroup_); compactBindGroup_ = nullptr; }
     if (compactPipeline_) { wgpuRenderPipelineRelease(compactPipeline_); compactPipeline_ = nullptr; }
     if (compactPipelineLayout_) { wgpuPipelineLayoutRelease(compactPipelineLayout_); compactPipelineLayout_ = nullptr; }
@@ -251,6 +255,9 @@ void PrimitivePath::shutdown() {
     physicsRenderView_ = {};
     instanceCache_ = {};
     uploadedInstanceCacheTokens_ = {};
+    cpuPoseUpload_ = {};
+    cpuShapeUpload_ = {};
+    uploadedCpuShapeDimensions_ = {};
     lastUploadStats_ = {};
     lastCompactUploadStats_ = {};
     lastCpuTimings_ = {};
@@ -258,6 +265,9 @@ void PrimitivePath::shutdown() {
     compactInstanceCapacity_ = 0;
     instanceCount_ = 0;
     instanceBufferContentsValid_ = false;
+    cpuShapeBufferContentsValid_ = false;
+    colorFormat_ = WGPUTextureFormat_BGRA8Unorm;
+    depthFormat_ = WGPUTextureFormat_Depth32Float;
 }
 
 bool PrimitivePath::createGeometry() {
@@ -544,6 +554,7 @@ bool PrimitivePath::ensureCompactInstanceCapacity(size_t requiredCapacity) {
     compactInstanceCapacity_ = newCapacity;
     compactBoundPoseBuffer_ = nullptr;
     compactBoundShapeBuffer_ = nullptr;
+    cpuShapeBufferContentsValid_ = false;
     return true;
 }
 
@@ -578,6 +589,10 @@ void PrimitivePath::updateCompactBindGroup() {
         && compactBoundVisibleSegmentCapacity_ == visibleSegmentCapacity
         && compactBoundRayDepthView_ == rayDepthView_) return;
     if (compactBindGroup_) {
+        if (compactRenderBundle_) {
+            wgpuRenderBundleRelease(compactRenderBundle_);
+            compactRenderBundle_ = nullptr;
+        }
         wgpuBindGroupRelease(compactBindGroup_);
         compactBindGroup_ = nullptr;
     }
@@ -601,7 +616,54 @@ void PrimitivePath::updateCompactBindGroup() {
         compactBoundVisibleBuffer_ = visibleBuffer;
         compactBoundVisibleSegmentCapacity_ = visibleSegmentCapacity;
         compactBoundRayDepthView_ = rayDepthView_;
+        static_cast<void>(rebuildCompactRenderBundle());
     }
+}
+
+bool PrimitivePath::rebuildCompactRenderBundle() {
+    if (compactRenderBundle_) {
+        wgpuRenderBundleRelease(compactRenderBundle_);
+        compactRenderBundle_ = nullptr;
+    }
+    if (!compactBindGroup_ || !compactPipeline_ || !vertexBuffer_
+        || !indexBuffer_ || !gpuCulling_.indirectDrawArgs()) {
+        return false;
+    }
+
+    WGPURenderBundleEncoderDescriptor encoderDesc{};
+    WGPU_SET_LABEL(encoderDesc, "physics_primitive_compact_bundle_encoder");
+    encoderDesc.colorFormatCount = 1u;
+    encoderDesc.colorFormats = &colorFormat_;
+    encoderDesc.depthStencilFormat = depthFormat_;
+    encoderDesc.sampleCount = 1u;
+    encoderDesc.depthReadOnly = false;
+    encoderDesc.stencilReadOnly = true;
+    WGPURenderBundleEncoder bundleEncoder =
+        wgpuDeviceCreateRenderBundleEncoder(device_, &encoderDesc);
+    if (!bundleEncoder) return false;
+
+    wgpuRenderBundleEncoderSetPipeline(bundleEncoder, compactPipeline_);
+    wgpuRenderBundleEncoderSetVertexBuffer(
+        bundleEncoder, 0, vertexBuffer_, 0, WGPU_WHOLE_SIZE);
+    wgpuRenderBundleEncoderSetIndexBuffer(
+        bundleEncoder, indexBuffer_, WGPUIndexFormat_Uint16,
+        0, WGPU_WHOLE_SIZE);
+    for (uint32_t shape = 0; shape < ranges_.size(); ++shape) {
+        const uint32_t visibleOffset = shape
+            * gpuCulling_.segmentCapacity() * sizeof(uint32_t);
+        wgpuRenderBundleEncoderSetBindGroup(
+            bundleEncoder, 0, compactBindGroup_, 1, &visibleOffset);
+        wgpuRenderBundleEncoderDrawIndexedIndirect(
+            bundleEncoder, gpuCulling_.indirectDrawArgs(),
+            uint64_t{shape} * 5u * sizeof(uint32_t));
+    }
+
+    WGPURenderBundleDescriptor bundleDesc{};
+    WGPU_SET_LABEL(bundleDesc, "physics_primitive_compact_bundle");
+    compactRenderBundle_ =
+        wgpuRenderBundleEncoderFinish(bundleEncoder, &bundleDesc);
+    wgpuRenderBundleEncoderRelease(bundleEncoder);
+    return compactRenderBundle_ != nullptr;
 }
 
 void PrimitivePath::setCompactPhysicsInstances(
@@ -615,22 +677,52 @@ void PrimitivePath::setCompactPhysicsInstances(
         clearPhysicsRenderView();
         return;
     }
-    std::vector<CompactPose> poses(bodies.size());
-    std::vector<CompactShape> shapes(bodies.size());
+    cpuPoseUpload_.resize(bodies.size() * 2u);
+    cpuShapeUpload_.resize(bodies.size() * 2u);
+    const bool fullShapeUpload = !cpuShapeBufferContentsValid_;
+    size_t firstDirtyShape = fullShapeUpload ? 0u : bodies.size();
+    size_t lastDirtyShape = fullShapeUpload ? bodies.size() : 0u;
+    const size_t previousShapeCount = uploadedCpuShapeDimensions_.size();
+    uploadedCpuShapeDimensions_.resize(bodies.size());
     for (size_t index = 0; index < bodies.size(); ++index) {
         const auto& body = bodies[index];
-        poses[index].positionInvMass = glm::vec4(body.position, 1.0f);
-        poses[index].orientation = glm::vec4(
+        cpuPoseUpload_[index * 2u] = glm::vec4(body.position, 1.0f);
+        cpuPoseUpload_[index * 2u + 1u] = glm::vec4(
             body.rotation.x, body.rotation.y, body.rotation.z, body.rotation.w);
-        shapes[index].dimensionsType = glm::vec4(
+        const glm::vec4 dimensionsType(
             body.dimensions, static_cast<float>(body.shape));
+        const bool shapeChanged = fullShapeUpload
+            || index >= previousShapeCount
+            || std::memcmp(&dimensionsType,
+                           &uploadedCpuShapeDimensions_[index],
+                           sizeof(glm::vec4)) != 0;
+        if (shapeChanged) {
+            firstDirtyShape = std::min(firstDirtyShape, index);
+            lastDirtyShape = index + 1u;
+            cpuShapeUpload_[index * 2u] = dimensionsType;
+            cpuShapeUpload_[index * 2u + 1u] = glm::vec4(0.0f);
+        }
+        uploadedCpuShapeDimensions_[index] = dimensionsType;
     }
     gpu::writeBuffer(queue_, cpuPoseBuffer_, 0,
-                     std::as_bytes(std::span<const CompactPose>(poses)));
-    gpu::writeBuffer(queue_, cpuShapeBuffer_, 0,
-                     std::as_bytes(std::span<const CompactShape>(shapes)));
+                     std::as_bytes(std::span<const glm::vec4>(cpuPoseUpload_)));
+
+    uint32_t writeCalls = 1u;
+    size_t bytesUploaded = bodies.size() * sizeof(CompactPose);
+    if (firstDirtyShape < lastDirtyShape) {
+        const auto shapes = std::span<const glm::vec4>(cpuShapeUpload_)
+            .subspan(firstDirtyShape * 2u,
+                     (lastDirtyShape - firstDirtyShape) * 2u);
+        gpu::writeBuffer(queue_, cpuShapeBuffer_,
+                         firstDirtyShape * sizeof(CompactShape),
+                         std::as_bytes(shapes));
+        ++writeCalls;
+        bytesUploaded +=
+            (lastDirtyShape - firstDirtyShape) * sizeof(CompactShape);
+    }
+    cpuShapeBufferContentsValid_ = true;
     lastCompactUploadStats_ = {
-        bodies.size() * (sizeof(CompactPose) + sizeof(CompactShape)), 2, true};
+        bytesUploaded, writeCalls, fullShapeUpload};
     setPhysicsRenderView({
         .poseBuffer = cpuPoseBuffer_,
         .shapeBuffer = cpuShapeBuffer_,
@@ -783,19 +875,33 @@ void PrimitivePath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView
     wgpuRenderPassEncoderSetIndexBuffer(pass, indexBuffer_, WGPUIndexFormat_Uint16,
                                         0, WGPU_WHOLE_SIZE);
     if (compactReady) {
-        wgpuRenderPassEncoderSetPipeline(pass, compactPipeline_);
-        for (uint32_t shape = 0; shape < ranges_.size(); ++shape) {
-            const uint32_t visibleOffset = shape
-                * gpuCulling_.segmentCapacity() * sizeof(uint32_t);
-            wgpuRenderPassEncoderSetBindGroup(
-                pass, 0, compactBindGroup_, 1, &visibleOffset);
-            wgpuRenderPassEncoderDrawIndexedIndirect(
-                pass, gpuCulling_.indirectDrawArgs(),
-                uint64_t{shape} * 5u * sizeof(uint32_t));
+        if (compactRenderBundle_) {
+            wgpuRenderPassEncoderExecuteBundles(
+                pass, 1u, &compactRenderBundle_);
+        } else {
+            // Render bundles are core WebGPU, but retain the direct path for
+            // implementations that reject bundle creation at runtime.
+            wgpuRenderPassEncoderSetPipeline(pass, compactPipeline_);
+            for (uint32_t shape = 0; shape < ranges_.size(); ++shape) {
+                const uint32_t visibleOffset = shape
+                    * gpuCulling_.segmentCapacity() * sizeof(uint32_t);
+                wgpuRenderPassEncoderSetBindGroup(
+                    pass, 0, compactBindGroup_, 1, &visibleOffset);
+                wgpuRenderPassEncoderDrawIndexedIndirect(
+                    pass, gpuCulling_.indirectDrawArgs(),
+                    uint64_t{shape} * 5u * sizeof(uint32_t));
+            }
         }
     }
     if (overlayReady) {
         wgpuRenderPassEncoderSetPipeline(pass, pipeline_);
+        // Render bundles have isolated state. Rebind the overlay geometry
+        // after executing the compact-body bundle.
+        wgpuRenderPassEncoderSetVertexBuffer(
+            pass, 0, vertexBuffer_, 0, WGPU_WHOLE_SIZE);
+        wgpuRenderPassEncoderSetIndexBuffer(
+            pass, indexBuffer_, WGPUIndexFormat_Uint16,
+            0, WGPU_WHOLE_SIZE);
         wgpuRenderPassEncoderSetBindGroup(pass, 0, bindGroup_, 0, nullptr);
         for (const DrawRange& range : ranges_) {
             if (range.instanceCount == 0) continue;

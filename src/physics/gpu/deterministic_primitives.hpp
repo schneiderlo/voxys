@@ -67,6 +67,20 @@ public:
                                      WGPUBuffer dynamicCountBuffer = nullptr,
                                      uint32_t dynamicCountWord = 0,
                                      uint32_t dynamicCountScale = 1);
+    // Exclusive scan with every intermediate and output value saturated at
+    // inclusiveLimit. This is used for capacity-bounded work queues: once the
+    // limit is reached, later producers can be skipped without allowing a
+    // u32 prefix sum to wrap back into the valid output range.
+    [[nodiscard]] bool encodeScanU32Clamped(
+        WGPUCommandEncoder encoder, WGPUBuffer input,
+        WGPUBuffer exclusiveOutput, uint32_t count, uint32_t inclusiveLimit,
+        uint32_t parameterSlot = 0,
+        WGPUBuffer indirectDispatchBuffer = nullptr,
+        uint64_t indirectWorkOffset = 0,
+        uint64_t indirectScalarOffset = 0,
+        WGPUBuffer dynamicCountBuffer = nullptr,
+        uint32_t dynamicCountWord = 0,
+        uint32_t dynamicCountScale = 1);
     [[nodiscard]] bool encodeStableCompactU32(WGPUCommandEncoder encoder,
                                               WGPUBuffer values,
                                               WGPUBuffer predicates,
@@ -167,7 +181,8 @@ private:
                                     uint64_t indirectScalarOffset = 0,
                                     WGPUBuffer dynamicCountBuffer = nullptr,
                                     uint32_t dynamicCountWord = 0,
-                                    uint32_t dynamicCountScale = 1);
+                                    uint32_t dynamicCountScale = 1,
+                                    uint32_t inclusiveLimit = UINT32_MAX);
     [[nodiscard]] bool encodeRadixSortImpl(
         WGPUCommandEncoder encoder, WGPUBuffer input, WGPUBuffer output,
         uint32_t count, uint32_t firstKeyWord, uint32_t logicalKeyWords,

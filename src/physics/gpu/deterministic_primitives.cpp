@@ -375,7 +375,8 @@ bool DeterministicGpuPrimitives::encodeScanAt(
     uint32_t count, uint32_t parameterSlot,
     WGPUBuffer indirectDispatchBuffer, uint64_t indirectWorkOffset,
     uint64_t indirectScalarOffset, WGPUBuffer dynamicCountBuffer,
-    uint32_t dynamicCountWord, uint32_t dynamicCountScale) {
+    uint32_t dynamicCountWord, uint32_t dynamicCountScale,
+    uint32_t inclusiveLimit) {
     if (!encoder || !input || !output || count > capacity_
         || parameterSlot >= kParameterSlots
         || (dynamicCountScale != 1u && dynamicCountScale != 2u)
@@ -388,7 +389,7 @@ bool DeterministicGpuPrimitives::encodeScanAt(
             | (dynamicCountScale == 2u ? (1u << 24u) : 0u)
         : std::numeric_limits<uint32_t>::max();
     writeParams(parameterSlot, Params{{count, countDescriptor,
-                                       workgroupSize_, 0u}});
+                                       workgroupSize_, inclusiveLimit}});
     const std::array<gpu::BindGroupEntry, 6> entries = {
         gpu::BindGroupEntry(0).buffer(input),
         gpu::BindGroupEntry(1).buffer(output),
@@ -448,6 +449,18 @@ bool DeterministicGpuPrimitives::encodeScanU32(
                         indirectDispatchBuffer, indirectWorkOffset,
                         indirectScalarOffset, dynamicCountBuffer,
                         dynamicCountWord, dynamicCountScale);
+}
+
+bool DeterministicGpuPrimitives::encodeScanU32Clamped(
+    WGPUCommandEncoder encoder, WGPUBuffer input, WGPUBuffer output,
+    uint32_t count, uint32_t inclusiveLimit, uint32_t parameterSlot,
+    WGPUBuffer indirectDispatchBuffer, uint64_t indirectWorkOffset,
+    uint64_t indirectScalarOffset, WGPUBuffer dynamicCountBuffer,
+    uint32_t dynamicCountWord, uint32_t dynamicCountScale) {
+    return encodeScanAt(encoder, input, output, count, parameterSlot,
+                        indirectDispatchBuffer, indirectWorkOffset,
+                        indirectScalarOffset, dynamicCountBuffer,
+                        dynamicCountWord, dynamicCountScale, inclusiveLimit);
 }
 
 bool DeterministicGpuPrimitives::encodeStableCompactU32(

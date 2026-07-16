@@ -147,6 +147,17 @@ TEST_F(RaycastShaderTest, HasWaterMaterialOutput) {
         << "Shader missing long-wave FFT cascade";
 }
 
+TEST_F(RaycastShaderTest, LegoShadowsUseBakedTerrainAndBoundedStudTests) {
+    ASSERT_FALSE(shaderSource_.empty());
+    EXPECT_NE(shaderSource_.find("fn sampleLegoShadow("), std::string::npos);
+    EXPECT_NE(shaderSource_.find("let steps = clamp("), std::string::npos);
+    EXPECT_NE(shaderSource_.find("shadowFactor = sampleLegoShadow("),
+              std::string::npos);
+    EXPECT_EQ(shaderSource_.find("shadowFactor = intersectShadow("),
+              std::string::npos)
+        << "The main Lego path must not launch a second shadow DDA";
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // Coordinate Space Conversion Tests
 // ═══════════════════════════════════════════════════════════════════════════════

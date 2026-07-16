@@ -1221,8 +1221,14 @@ public:
         wgpuComputePassEncoderEnd(pass);
         wgpuComputePassEncoderRelease(pass);
 
-        if (!primitives_.encodeScanU32(
-                encoder, ownerPairCounts_, ownerPairOffsets_, ownerCount, 1u,
+        const uint32_t candidateCountLimit =
+            config_.candidatePairCapacity
+                == std::numeric_limits<uint32_t>::max()
+            ? config_.candidatePairCapacity
+            : config_.candidatePairCapacity + 1u;
+        if (!primitives_.encodeScanU32Clamped(
+                encoder, ownerPairCounts_, ownerPairOffsets_, ownerCount,
+                candidateCountLimit, 1u,
                 dispatchArgs_, 6u * sizeof(uint32_t),
                 9u * sizeof(uint32_t), oversizedFlags_,
                 bodyCount + 1u))

@@ -120,6 +120,11 @@ public:
                                   const Config& config);
     void shutdown();
     void setInput(const GpuDynamicSolverInput& input);
+    // Uses delayed telemetry to avoid encoding graph-color rounds that the
+    // current contact graph cannot use. The overflow solver remains the
+    // correctness fallback if the graph grows before the next readback.
+    void updateColorRoundLimit(uint32_t maximumBodyDegree,
+                               uint32_t overflowContacts) noexcept;
     [[nodiscard]] bool encode(WGPUCommandEncoder encoder,
                               bool serialWorldSolve = false);
     [[nodiscard]] bool encode(
@@ -132,6 +137,7 @@ public:
     [[nodiscard]] WGPUBuffer constraintCache() const noexcept;
     [[nodiscard]] WGPUBuffer telemetryBuffer() const noexcept;
     [[nodiscard]] uint32_t colorCount() const noexcept;
+    [[nodiscard]] uint32_t colorRoundLimit() const noexcept;
     [[nodiscard]] size_t scratchBytes() const noexcept;
     // Monotonic since initialization; used to guard steady-state cache reuse.
     [[nodiscard]] size_t inputBindGroupCacheMisses() const noexcept;
