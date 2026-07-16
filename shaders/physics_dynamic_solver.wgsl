@@ -1000,7 +1000,9 @@ fn solve_contact(rank : u32, stage : u32) -> VelocityPair {
                                   newRolling - oldRolling);
         }
     }
-    manifolds[rank] = manifold;
+    if (stage != STAGE_WARM_START && stage != STAGE_RESTITUTION) {
+        manifolds[rank] = manifold;
+    }
     return velocities;
 }
 
