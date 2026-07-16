@@ -62,6 +62,7 @@ TEST(ApplicationConfigTest, DefaultsHaveReasonableValues) {
     EXPECT_EQ(config.benchmarkBodyCount, 0u);
     EXPECT_DOUBLE_EQ(config.benchmarkMinimumFps, 0.0);
     EXPECT_FLOAT_EQ(config.benchmarkFixedDeltaSeconds, 0.0f);
+    EXPECT_FLOAT_EQ(config.gpuPhysicsBroadPhaseCellSize, 4.0f);
     
     // Paths
     EXPECT_FALSE(config.shaderDir.empty());

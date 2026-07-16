@@ -6,6 +6,7 @@
 #include "physics/deterministic/lockstep_world.hpp"
 #include "physics/gpu/gpu_lockstep.hpp"
 
+#include <algorithm>
 #include <array>
 #include <bit>
 #include <cmath>
@@ -55,6 +56,49 @@ LockstepBody body(uint32_t id, float x, float y, float z, float radius,
                               isStatic ? 0 : q16(1.0f)};
     result.linearVelocity = {q16(vx), q16(vy), q16(vz), 0};
     return result;
+}
+
+int32_t saturateI32(int64_t value) {
+    return static_cast<int32_t>(std::clamp(
+        value, int64_t{std::numeric_limits<int32_t>::min()},
+        int64_t{std::numeric_limits<int32_t>::max()}));
+}
+
+uint32_t magnitudeI32(int32_t value) {
+    const uint32_t bits = static_cast<uint32_t>(value);
+    return value < 0 ? 0u - bits : bits;
+}
+
+bool bruteForceContact(const LockstepBody& a, const LockstepBody& b) {
+    const auto isAlive = [](const LockstepBody& value) {
+        return (value.identity[2] & LockstepBodyAlive) != 0u;
+    };
+    const auto isDynamic = [&](const LockstepBody& value) {
+        return isAlive(value)
+            && (value.identity[2] & LockstepBodyStatic) == 0u
+            && value.positionInvMass[3] > 0;
+    };
+    if (!isAlive(a) || !isAlive(b) || (!isDynamic(a) && !isDynamic(b))) {
+        return false;
+    }
+
+    uint64_t squaredDistance = 0;
+    for (uint32_t axis = 0; axis < 3u; ++axis) {
+        const int64_t sectorDelta = int64_t{b.sectorRadius[axis]}
+                                  - a.sectorRadius[axis];
+        if (sectorDelta < -1 || sectorDelta > 1) return false;
+        const int32_t delta = saturateI32(
+            sectorDelta * kLockstepSectorSize
+            + int64_t{b.positionInvMass[axis]}
+            - a.positionInvMass[axis]);
+        const uint64_t component = magnitudeI32(delta);
+        squaredDistance += component * component;
+    }
+    const int32_t radiusSum = saturateI32(
+        int64_t{a.sectorRadius[3]} + b.sectorRadius[3]);
+    if (radiusSum <= 0) return false;
+    const uint64_t radius = static_cast<uint32_t>(radiusSum);
+    return squaredDistance < radius * radius;
 }
 
 void releaseBuffer(WGPUBuffer& buffer) {
@@ -140,6 +184,80 @@ TEST(Lockstep, ExtremeSectorsDoNotAliasAndSaturateCanonically) {
               std::numeric_limits<int32_t>::min());
     EXPECT_EQ(world.bodies()[2].positionInvMass[0],
               -kLockstepSectorHalf);
+}
+
+TEST(Lockstep, SweepAndPruneMatchesBruteForceWithSparseSlotsAndOverflow) {
+    constexpr uint32_t bodyCapacity = 4'096;
+    constexpr uint32_t contactCapacity = 32;
+    constexpr uint32_t liveBodies = 192;
+    LockstepWorld world;
+    LockstepWorld::Config config;
+    config.bodyCapacity = bodyCapacity;
+    config.contactCapacity = contactCapacity;
+    config.substeps = 1;
+    config.solverIterations = 1;
+    config.gravityPerSubstepQ16 = 0;
+    ASSERT_TRUE(world.initialize(config));
+
+    std::vector<LockstepBody> initial(bodyCapacity);
+    for (uint32_t ordinal = 0; ordinal < liveBodies; ++ordinal) {
+        const uint32_t id = 1u + ordinal * 20u;
+        const float x = static_cast<float>(ordinal % 16u) * 0.70f;
+        const float y = static_cast<float>((ordinal / 16u) % 4u) * 0.70f;
+        const float z = static_cast<float>(ordinal / 64u) * 0.70f;
+        initial[id] = body(
+            id, x, y, z, 0.45f, 0.0f, 0.0f, 0.0f,
+            ordinal % 9u == 0u);
+        initial[id].identity[2] &= ~LockstepBodyAwake;
+    }
+    ASSERT_TRUE(world.setBodies(initial));
+
+    const LockstepTelemetry telemetry = world.step(1u);
+    std::vector<std::array<uint32_t, 2>> expected;
+    for (uint32_t bodyA = 0; bodyA < bodyCapacity; ++bodyA) {
+        for (uint32_t bodyB = bodyA + 1u; bodyB < bodyCapacity; ++bodyB) {
+            if (bruteForceContact(
+                    world.bodies()[bodyA], world.bodies()[bodyB])) {
+                expected.push_back({bodyA, bodyB});
+            }
+        }
+    }
+
+    const size_t retained = std::min<size_t>(
+        expected.size(), contactCapacity);
+    ASSERT_EQ(world.contacts().size(), retained);
+    EXPECT_EQ(telemetry.contacts, retained);
+    EXPECT_EQ(telemetry.contactOverflow,
+              expected.size() > contactCapacity);
+    for (size_t index = 0; index < retained; ++index) {
+        EXPECT_EQ(world.contacts()[index].ids[0], expected[index][0]);
+        EXPECT_EQ(world.contacts()[index].ids[1], expected[index][1]);
+    }
+}
+
+TEST(Lockstep, SweepAndPruneHandlesTenThousandSeparatedBodies) {
+    constexpr uint32_t liveBodies = 10'000;
+    LockstepWorld world;
+    LockstepWorld::Config config;
+    config.bodyCapacity = liveBodies + 1u;
+    config.contactCapacity = 1u;
+    config.solverIterations = 1u;
+    config.gravityPerSubstepQ16 = 0;
+    ASSERT_TRUE(world.initialize(config));
+
+    std::vector<LockstepBody> initial(config.bodyCapacity);
+    for (uint32_t id = 1u; id <= liveBodies; ++id) {
+        initial[id] = body(id, 0.0f, 0.0f, 0.0f, 0.5f);
+        initial[id].sectorRadius[0] = static_cast<int32_t>(id * 2u);
+        initial[id].identity[2] &= ~LockstepBodyAwake;
+    }
+    ASSERT_TRUE(world.setBodies(initial));
+
+    const LockstepTelemetry telemetry = world.step(1u);
+
+    EXPECT_EQ(telemetry.liveBodies, liveBodies);
+    EXPECT_EQ(telemetry.contacts, 0u);
+    EXPECT_FALSE(telemetry.contactOverflow);
 }
 
 TEST(Lockstep, CpuAndWgslProduceIdenticalStateTopologySolverAndHashes) {

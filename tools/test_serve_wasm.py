@@ -97,14 +97,42 @@ class TelemetryServerTest(unittest.TestCase):
                 "contacts": {"current": 58, "capacity": 16384,
                              "high_water": 58, "overflow": False},
                 "solver_mode": "global",
-                "stages": {"total_ms": 12.0, "broad_phase": 3.0,
-                           "dynamic_solver": 4.0},
+                "stages": {
+                    "total_ms": 12.0,
+                    "broad_index_build": 0.5,
+                    "broad_index_sort_ranges": 0.75,
+                    "broad_pair_count": 0.5,
+                    "broad_pair_scatter": 0.25,
+                    "broad_pair_sort_unique": 0.75,
+                    "broad_lifecycle": 0.25,
+                    "dynamic_solver_coloring": 1.0,
+                    "dynamic_solver_graph": 1.0,
+                    "dynamic_solver_solve": 2.0,
+                },
             },
         }
         report = read_physics_telemetry.format_sample(sample, self.latest)
         self.assertIn("60.0 FPS", report)
         self.assertIn("bodies 1300/131072 h1300", report)
         self.assertIn("broad 3.00", report)
+        self.assertIn("solver 4.00", report)
+        self.assertIn("sort/ranges 0.75", report)
+
+    def test_reader_accepts_legacy_aggregate_stage_fields(self) -> None:
+        sample = {
+            "schema_version": 1,
+            "physics": {
+                "stages": {
+                    "broad_phase": 3.0,
+                    "dynamic_solver": 4.0,
+                },
+            },
+        }
+
+        report = read_physics_telemetry.format_sample(sample, self.latest)
+
+        self.assertIn("broad 3.00", report)
+        self.assertIn("solver 4.00", report)
 
 
 if __name__ == "__main__":

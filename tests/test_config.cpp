@@ -111,6 +111,7 @@ TEST(ConfigDefaultsTest, PhysicsConfig) {
     PhysicsConfig config;
     EXPECT_EQ(config.backend, "webgpu");
     EXPECT_EQ(config.gpuMaxBodies, 131072);
+    EXPECT_FLOAT_EQ(config.broadPhaseCellSize, 4.0f);
     EXPECT_TRUE(config.allowCpuFallback);
     EXPECT_EQ(config.joltJobSystem, "thread_pool");
     EXPECT_EQ(config.joltWorkerThreads, 0);
@@ -376,6 +377,7 @@ height_scale = 1000.0
 [physics]
 backend = "box3d"
 gpu_max_bodies = 200000
+broad_phase_cell_size = 8.0
 allow_cpu_fallback = false
 jolt_job_system = "thread_pool"
 jolt_worker_threads = 3
@@ -399,6 +401,7 @@ log_level = "debug"
     EXPECT_FLOAT_EQ(config.terrain.heightScale, 1000.0f);
     EXPECT_EQ(config.physics.backend, "box3d");
     EXPECT_EQ(config.physics.gpuMaxBodies, 200000);
+    EXPECT_FLOAT_EQ(config.physics.broadPhaseCellSize, 8.0f);
     EXPECT_FALSE(config.physics.allowCpuFallback);
     EXPECT_EQ(config.physics.joltJobSystem, "thread_pool");
     EXPECT_EQ(config.physics.joltWorkerThreads, 3);
@@ -476,6 +479,7 @@ TEST_F(ConfigFileTest, SaveAndReload) {
     original.debug.logLevel = "trace";
     original.physics.backend = "box3d";
     original.physics.gpuMaxBodies = 200000;
+    original.physics.broadPhaseCellSize = 2.0f;
     original.physics.allowCpuFallback = false;
     original.physics.joltJobSystem = "thread_pool";
     original.physics.joltWorkerThreads = 6;
@@ -507,6 +511,18 @@ shore_fade = invalid
 
     EXPECT_FLOAT_EQ(config.water.reflectionStrength, WaterConfig{}.reflectionStrength);
     EXPECT_FLOAT_EQ(config.water.shoreFade, WaterConfig{}.shoreFade);
+}
+
+TEST_F(ConfigFileTest, InvalidBroadPhaseCellSizesKeepCurrentValue) {
+    writeTestConfig(R"(
+[physics]
+broad_phase_cell_size = 8.0
+broad_phase_cell_size = 3.0
+)");
+
+    const auto config = load(testConfigPath);
+
+    EXPECT_FLOAT_EQ(config.physics.broadPhaseCellSize, 8.0f);
 }
 
 TEST_F(ConfigFileTest, InvalidDuplicateValuesKeepEarlierValidValues) {

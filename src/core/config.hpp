@@ -67,6 +67,8 @@ struct WaterConfig {
 struct PhysicsConfig {
     std::string backend = "webgpu";
     int gpuMaxBodies = 131072;
+    // Must evenly divide the GPU world's 256 m sector size.
+    float broadPhaseCellSize = 4.0f;
     bool allowCpuFallback = true;
     std::string joltJobSystem = "thread_pool";
     int joltWorkerThreads = 0; // 0 lets Jolt choose in thread-pool mode.

@@ -750,6 +750,8 @@ int main(int argc, char* argv[]) {
     }
     appConfig.gpuPhysicsMaxBodies = static_cast<uint32_t>(
         std::max(config.physics.gpuMaxBodies, 2));
+    appConfig.gpuPhysicsBroadPhaseCellSize =
+        config.physics.broadPhaseCellSize;
     appConfig.benchmarkBodyCount = static_cast<uint32_t>(EM_ASM_INT({
         const value = Number.parseInt(
             new URLSearchParams(globalThis.location.search)

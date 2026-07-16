@@ -67,6 +67,8 @@ int main(int argc, char* argv[]) {
         config.physics.backend);
     appConfig.gpuPhysicsMaxBodies = static_cast<uint32_t>(
         std::max(config.physics.gpuMaxBodies, 2));
+    appConfig.gpuPhysicsBroadPhaseCellSize =
+        config.physics.broadPhaseCellSize;
     appConfig.physicsCpuFallback = config.physics.allowCpuFallback;
     appConfig.joltJobSystem = voxy::physics::joltJobSystemModeFromName(
         config.physics.joltJobSystem);

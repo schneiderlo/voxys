@@ -14,6 +14,21 @@ import time
 DEFAULT_PATH = Path(os.environ.get(
     "VOXY_TELEMETRY_FILE", "/tmp/voxys-telemetry.json"))
 
+BROAD_PHASE_STAGES = (
+    "broad_index_build",
+    "broad_index_sort_ranges",
+    "broad_pair_count",
+    "broad_pair_scatter",
+    "broad_pair_sort_unique",
+    "broad_lifecycle",
+)
+
+DYNAMIC_SOLVER_STAGES = (
+    "dynamic_solver_coloring",
+    "dynamic_solver_graph",
+    "dynamic_solver_solve",
+)
+
 
 def read_sample(path: Path) -> dict:
     value = json.loads(path.read_text(encoding="utf-8"))
@@ -34,11 +49,24 @@ def number(value: object) -> float:
     return float(value) if isinstance(value, (int, float)) else 0.0
 
 
+def stage_total(stages: dict, legacy_name: str,
+                component_names: tuple[str, ...]) -> float:
+    """Read a legacy aggregate or sum the current detailed stage fields."""
+    legacy = stages.get(legacy_name)
+    if isinstance(legacy, (int, float)):
+        return float(legacy)
+    return sum(number(stages.get(name)) for name in component_names)
+
+
 def format_sample(sample: dict, path: Path) -> str:
     frame = sample.get("frame", {})
     physics = sample.get("physics", {})
     stages = physics.get("stages", {})
     receiver = sample.get("receiver", {})
+    broad_phase_ms = stage_total(
+        stages, "broad_phase", BROAD_PHASE_STAGES)
+    dynamic_solver_ms = stage_total(
+        stages, "dynamic_solver", DYNAMIC_SOLVER_STAGES)
     lines = [
         f"Telemetry: {path}",
         f"Captured: {sample.get('captured_at', 'unknown')}"
@@ -61,11 +89,26 @@ def format_sample(sample: dict, path: Path) -> str:
         f" / {physics.get('compact_bodies', 0)} bodies"
         f" | colors {physics.get('graph_colors', 0)}",
         f"GPU: {number(stages.get('total_ms')):.2f} ms"
-        f" | broad {number(stages.get('broad_phase')):.2f}"
+        f" | broad {broad_phase_ms:.2f}"
         f" | narrow {number(stages.get('narrow_phase')):.2f}"
-        f" | solver {number(stages.get('dynamic_solver')):.2f}"
+        f" | solver {dynamic_solver_ms:.2f}"
         f" | islands {number(stages.get('islands_sleeping')):.2f}",
     ]
+    if any(name in stages
+           for name in BROAD_PHASE_STAGES + DYNAMIC_SOLVER_STAGES):
+        lines.extend([
+            f"Broad: index {number(stages.get('broad_index_build')):.2f}"
+            f" + sort/ranges "
+            f"{number(stages.get('broad_index_sort_ranges')):.2f}"
+            f" | pairs {number(stages.get('broad_pair_count')):.2f}"
+            f" + scatter {number(stages.get('broad_pair_scatter')):.2f}"
+            f" + sort {number(stages.get('broad_pair_sort_unique')):.2f}"
+            f" | lifecycle {number(stages.get('broad_lifecycle')):.2f}",
+            f"Solver: coloring "
+            f"{number(stages.get('dynamic_solver_coloring')):.2f}"
+            f" | graph {number(stages.get('dynamic_solver_graph')):.2f}"
+            f" | solve {number(stages.get('dynamic_solver_solve')):.2f}",
+        ])
     return "\n".join(lines)
 
 

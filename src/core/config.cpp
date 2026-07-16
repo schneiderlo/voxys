@@ -26,6 +26,15 @@ namespace {
 Config globalConfig;
 bool initialized = false;
 
+bool validBroadPhaseCellSize(float cellSize) noexcept {
+    constexpr float worldSectorSize = 256.0f;
+    if (!std::isfinite(cellSize) || cellSize <= 0.0f) return false;
+    const float cellsPerSector = worldSectorSize / cellSize;
+    const float rounded = std::round(cellsPerSector);
+    return rounded >= 1.0f && rounded <= 2'097'152.0f
+        && std::abs(cellsPerSector - rounded) <= 1e-5f;
+}
+
 } // anonymous namespace
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -386,6 +395,16 @@ Config load(std::string_view path) {
                 config.physics.gpuMaxBodies = std::max(
                     parseInt(value, config.physics.gpuMaxBodies), 2);
             }
+            else if (key == "broad_phase_cell_size") {
+                const float parsed = parseFloat(value, -1.0f);
+                if (validBroadPhaseCellSize(parsed)) {
+                    config.physics.broadPhaseCellSize = parsed;
+                } else {
+                    LOG_WARN("Config line {}: [physics] broad_phase_cell_size "
+                             "must be positive and evenly divide 256; keeping {}",
+                             lineNum, config.physics.broadPhaseCellSize);
+                }
+            }
             else if (key == "allow_cpu_fallback") {
                 config.physics.allowCpuFallback = parseBool(
                     value, config.physics.allowCpuFallback);
@@ -503,6 +522,8 @@ bool save(const Config& config, std::string_view path) {
     file << std::format("backend = {}\n", quote(config.physics.backend));
     file << std::format("gpu_max_bodies = {}\n",
                         config.physics.gpuMaxBodies);
+    file << std::format("broad_phase_cell_size = {}\n",
+                        config.physics.broadPhaseCellSize);
     file << std::format("allow_cpu_fallback = {}\n",
                         config.physics.allowCpuFallback ? "true" : "false");
     file << std::format("jolt_job_system = {}\n",

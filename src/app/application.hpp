@@ -159,6 +159,7 @@ struct ApplicationConfig {
     // Physics backend and baseline scheduler selection.
     physics::BackendType physicsBackend = physics::BackendType::WebGpuSoft;
     uint32_t gpuPhysicsMaxBodies = 131'072;
+    float gpuPhysicsBroadPhaseCellSize = 4.0f;
     uint32_t gpuPhysicsMaximumCatchUpTicks = 8;
     bool gpuPhysicsStageProfiling = false;
     bool gpuRenderStageProfiling = false;

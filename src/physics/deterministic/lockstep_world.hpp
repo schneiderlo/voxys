@@ -54,6 +54,12 @@ public:
         uint32_t contactCapacity);
 
 private:
+    struct BroadPhaseProxy {
+        std::array<int64_t, 3> center{};
+        int64_t radius = 0;
+        uint32_t body = 0;
+    };
+
     [[nodiscard]] bool contactFor(uint32_t bodyA, uint32_t bodyB,
                                   LockstepContact& output) const noexcept;
     void buildContacts(LockstepTelemetry& telemetry);
@@ -65,6 +71,8 @@ private:
     std::vector<LockstepBody> bodies_;
     std::vector<LockstepContact> contacts_;
     std::vector<uint32_t> roots_;
+    std::vector<BroadPhaseProxy> broadPhaseProxies_;
+    std::vector<uint32_t> broadPhaseActive_;
     bool initialized_ = false;
 };
 

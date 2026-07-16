@@ -138,6 +138,8 @@ bool LockstepWorld::initialize(const Config& config) {
     bodies_.resize(config_.bodyCapacity);
     roots_.resize(config_.bodyCapacity);
     contacts_.reserve(config_.contactCapacity);
+    broadPhaseProxies_.reserve(config_.bodyCapacity);
+    broadPhaseActive_.reserve(config_.bodyCapacity);
     initialized_ = true;
     return true;
 }
@@ -147,6 +149,8 @@ void LockstepWorld::clear() {
     bodies_.clear();
     contacts_.clear();
     roots_.clear();
+    broadPhaseProxies_.clear();
+    broadPhaseActive_.clear();
     initialized_ = false;
 }
 
@@ -229,17 +233,140 @@ bool LockstepWorld::contactFor(uint32_t bodyA, uint32_t bodyB,
 
 void LockstepWorld::buildContacts(LockstepTelemetry& telemetry) {
     contacts_.clear();
-    uint32_t total = 0;
-    for (uint32_t bodyA = 0; bodyA < bodies_.size(); ++bodyA) {
-        if (!alive(bodies_[bodyA])) continue;
-        for (uint32_t bodyB = bodyA + 1u; bodyB < bodies_.size(); ++bodyB) {
-            LockstepContact contact;
-            if (!contactFor(bodyA, bodyB, contact)) continue;
-            if (contacts_.size() < config_.contactCapacity)
-                contacts_.push_back(contact);
-            ++total;
+    broadPhaseProxies_.clear();
+    broadPhaseActive_.clear();
+
+    // Absolute fixed-point centers fit comfortably in i64 across every i32
+    // sector. Only live slots enter the sort, so dead capacity holes are free.
+    std::array<int64_t, 3> minimumBounds{
+        std::numeric_limits<int64_t>::max(),
+        std::numeric_limits<int64_t>::max(),
+        std::numeric_limits<int64_t>::max()};
+    std::array<int64_t, 3> maximumBounds{
+        std::numeric_limits<int64_t>::min(),
+        std::numeric_limits<int64_t>::min(),
+        std::numeric_limits<int64_t>::min()};
+    for (uint32_t body = 0; body < bodies_.size(); ++body) {
+        const LockstepBody& source = bodies_[body];
+        if (!alive(source)) continue;
+        BroadPhaseProxy proxy;
+        proxy.body = body;
+        proxy.radius = std::max<int64_t>(source.sectorRadius[3], 0);
+        for (uint32_t axis = 0; axis < 3u; ++axis) {
+            proxy.center[axis] = int64_t{source.sectorRadius[axis]}
+                               * kLockstepSectorSize
+                               + source.positionInvMass[axis];
+            minimumBounds[axis] = std::min(
+                minimumBounds[axis], proxy.center[axis] - proxy.radius);
+            maximumBounds[axis] = std::max(
+                maximumBounds[axis], proxy.center[axis] + proxy.radius);
+        }
+        broadPhaseProxies_.push_back(proxy);
+    }
+
+    if (broadPhaseProxies_.empty()) {
+        telemetry.contacts = 0;
+        telemetry.contactOverflow = false;
+        return;
+    }
+
+    uint32_t sweepAxis = 0u;
+    // Pick the widest axis deterministically. This avoids the classic
+    // single-axis SAP failure on walls that are flat on X or Z.
+    for (uint32_t axis = 1u; axis < 3u; ++axis) {
+        if (maximumBounds[axis] - minimumBounds[axis]
+            > maximumBounds[sweepAxis] - minimumBounds[sweepAxis]) {
+            sweepAxis = axis;
         }
     }
+    const auto minimumOnSweep = [sweepAxis](const BroadPhaseProxy& proxy) {
+        return proxy.center[sweepAxis] - proxy.radius;
+    };
+    const auto maximumOnSweep = [sweepAxis](const BroadPhaseProxy& proxy) {
+        return proxy.center[sweepAxis] + proxy.radius;
+    };
+    std::sort(broadPhaseProxies_.begin(), broadPhaseProxies_.end(),
+        [&](const BroadPhaseProxy& lhs, const BroadPhaseProxy& rhs) {
+            const int64_t lhsMinimum = minimumOnSweep(lhs);
+            const int64_t rhsMinimum = minimumOnSweep(rhs);
+            if (lhsMinimum != rhsMinimum) return lhsMinimum < rhsMinimum;
+            const int64_t lhsMaximum = maximumOnSweep(lhs);
+            const int64_t rhsMaximum = maximumOnSweep(rhs);
+            if (lhsMaximum != rhsMaximum) return lhsMaximum < rhsMaximum;
+            return lhs.body < rhs.body;
+        });
+
+    const auto contactKey = [](const LockstepContact& contact) {
+        return (uint64_t{contact.ids[0]} << 32u) | contact.ids[1];
+    };
+    const auto contactLess = [&](const LockstepContact& lhs,
+                                 const LockstepContact& rhs) {
+        return contactKey(lhs) < contactKey(rhs);
+    };
+    // Spatial order is unrelated to stable body IDs. A bounded max-heap keeps
+    // the lexicographically first contacts, exactly matching the old nested
+    // loop when contact capacity overflows. The final sort restores solve order.
+    uint64_t total = 0;
+    for (uint32_t currentIndex = 0;
+         currentIndex < broadPhaseProxies_.size(); ++currentIndex) {
+        const BroadPhaseProxy& current = broadPhaseProxies_[currentIndex];
+        const int64_t currentMinimum = minimumOnSweep(current);
+        size_t retained = 0;
+        for (const uint32_t previousIndex : broadPhaseActive_) {
+            const BroadPhaseProxy& previous =
+                broadPhaseProxies_[previousIndex];
+            if (maximumOnSweep(previous) <= currentMinimum) continue;
+            broadPhaseActive_[retained++] = previousIndex;
+
+            const LockstepBody& previousBody = bodies_[previous.body];
+            const LockstepBody& currentBody = bodies_[current.body];
+            if (!dynamic(previousBody) && !dynamic(currentBody)) continue;
+
+            bool adjacentSectors = true;
+            for (uint32_t axis = 0; axis < 3u; ++axis) {
+                const int64_t sectorDelta =
+                    int64_t{currentBody.sectorRadius[axis]}
+                    - previousBody.sectorRadius[axis];
+                if (sectorDelta < -1 || sectorDelta > 1) {
+                    adjacentSectors = false;
+                    break;
+                }
+            }
+            if (!adjacentSectors) continue;
+
+            const int64_t radiusSum = previous.radius + current.radius;
+            bool boundsOverlap = radiusSum > 0;
+            for (uint32_t axis = 0; boundsOverlap && axis < 3u; ++axis) {
+                const int64_t delta = current.center[axis]
+                                    - previous.center[axis];
+                const uint64_t distance = delta < 0
+                    ? static_cast<uint64_t>(-delta)
+                    : static_cast<uint64_t>(delta);
+                boundsOverlap = distance < static_cast<uint64_t>(radiusSum);
+            }
+            if (!boundsOverlap) continue;
+
+            const uint32_t bodyA = std::min(previous.body, current.body);
+            const uint32_t bodyB = std::max(previous.body, current.body);
+            LockstepContact contact;
+            if (!contactFor(bodyA, bodyB, contact)) continue;
+            ++total;
+            if (contacts_.size() < config_.contactCapacity) {
+                contacts_.push_back(contact);
+                std::push_heap(
+                    contacts_.begin(), contacts_.end(), contactLess);
+            } else if (contactKey(contact) < contactKey(contacts_.front())) {
+                std::pop_heap(
+                    contacts_.begin(), contacts_.end(), contactLess);
+                contacts_.back() = contact;
+                std::push_heap(
+                    contacts_.begin(), contacts_.end(), contactLess);
+            }
+        }
+        broadPhaseActive_.resize(retained);
+        broadPhaseActive_.push_back(currentIndex);
+    }
+    std::sort(contacts_.begin(), contacts_.end(), contactLess);
     telemetry.contacts = static_cast<uint32_t>(contacts_.size());
     telemetry.contactOverflow = total > config_.contactCapacity;
 }

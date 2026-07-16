@@ -1336,6 +1336,8 @@ bool Application::initCamera() {
     if (config_.physicsBackend == physics::BackendType::WebGpuSoft) {
         physicsContext.maxBodies = config_.gpuPhysicsMaxBodies;
         physicsContext.maxActiveBodies = config_.gpuPhysicsMaxBodies;
+        physicsContext.gpu.broadPhaseCellSize =
+            config_.gpuPhysicsBroadPhaseCellSize;
         physicsContext.gpu.maximumCatchUpTicks =
             config_.gpuPhysicsMaximumCatchUpTicks;
     }
