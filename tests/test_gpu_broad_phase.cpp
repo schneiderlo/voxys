@@ -514,7 +514,7 @@ TEST_P(GpuBroadPhaseTest, CooperativeUpperBoundaryKeepsCanonicalPairs) {
 
 TEST(GpuBroadPhaseGridCrossoverTest,
      KeepsCanonicalPairsAcrossAdaptivePath) {
-    constexpr uint32_t bodyCapacity = 1'300;
+    constexpr uint32_t bodyCapacity = 4'100;
     constexpr uint32_t pairCapacity = 4'096;
     constexpr float margin = 0.02f;
     gpu::Context context;
@@ -536,7 +536,7 @@ TEST(GpuBroadPhaseGridCrossoverTest,
     poses[700].positionInvMass = poses[10].positionInvMass;
     poses[256].positionInvMass = poses[255].positionInvMass;
     poses[1'023].positionInvMass = poses[512].positionInvMass;
-    poses[1'299].positionInvMass = poses[1'100].positionInvMass;
+    poses[4'099].positionInvMass = poses[3'900].positionInvMass;
 
     WGPUBuffer poseBuffer = makeInput<TestPose>(
         context, poses, "parallel_medium_poses");
@@ -566,7 +566,7 @@ TEST(GpuBroadPhaseGridCrossoverTest,
         {10u, 700u, false},
         {255u, 256u, false},
         {512u, 1'023u, false},
-        {1'100u, 1'299u, false},
+        {3'900u, 4'099u, false},
     };
     const BroadPhaseSnapshot first = runAndRead(context, broadPhase);
     EXPECT_EQ(snapshotPairs(first), expected);
