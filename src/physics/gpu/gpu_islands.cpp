@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <array>
+#include <bit>
 #include <cmath>
 #include <string>
 #include <utility>
@@ -676,7 +677,18 @@ public:
 
         pass = wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
         wgpuComputePassEncoderSetBindGroup(pass, 0, unionGroup, 0, nullptr);
-        for (uint32_t round = 0; round < config_.unionRounds; ++round) {
+        // Hooking propagates the minimum component label across one edge,
+        // then pointer jumping doubles the covered distance. Therefore
+        // ceil(log2(bodyCapacity)) rounds reach every vertex in any component.
+        // Keep a smaller explicit configuration intact for callers that chose
+        // an approximate budget, and preserve configured-round telemetry.
+        const uint32_t convergenceRounds = std::min(
+            config_.unionRounds,
+            std::max(
+                static_cast<uint32_t>(
+                    std::bit_width(input_.bodyCapacity - 1u)),
+                1u));
+        for (uint32_t round = 0; round < convergenceRounds; ++round) {
             wgpuComputePassEncoderSetPipeline(pass, unionPipeline_);
             wgpuComputePassEncoderDispatchWorkgroupsIndirect(
                 pass, telemetry_, 25u * sizeof(uint32_t));

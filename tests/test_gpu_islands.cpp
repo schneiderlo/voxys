@@ -192,6 +192,72 @@ TEST(GpuIslandSectorTest, RejectsCellSizeThatDoesNotDivideSector) {
         context.getDevice(), context.getQueue(), config));
 }
 
+TEST(GpuIslandGlobalTest, LogarithmicRoundsConvergeLongChain) {
+    constexpr uint32_t bodyCapacity = 256;
+    constexpr uint32_t contactCapacity = bodyCapacity - 1u;
+    gpu::Context context;
+    gpu::ContextConfig contextConfig;
+    contextConfig.enableValidation = false;
+    if (!context.initHeadless(contextConfig)) {
+        GTEST_SKIP() << "Headless WebGPU is unavailable";
+    }
+
+    std::vector<TestPose> poses(bodyCapacity);
+    std::vector<TestMotion> motions(bodyCapacity);
+    std::vector<TestMetadata> metadata(bodyCapacity);
+    std::vector<GpuContactManifold> manifolds(contactCapacity);
+    for (uint32_t body = 1u; body < bodyCapacity; ++body) {
+        metadata[body] = awakeMetadata();
+    }
+    for (uint32_t contact = 0u; contact + 1u < bodyCapacity - 1u;
+         ++contact) {
+        const uint32_t bodyA = contact + 1u;
+        const uint32_t bodyB = bodyA + 1u;
+        manifolds[contact].pair = {bodyB, bodyA, contact, contact};
+        manifolds[contact].state = {1u, 0u, 0u, 0u};
+    }
+    std::array<uint32_t, 32> narrowTelemetry{};
+    narrowTelemetry[10] = bodyCapacity - 2u;
+
+    WGPUBuffer poseBuffer = makeStorage<TestPose>(
+        context, poses, "island_chain_poses");
+    WGPUBuffer motionBuffer = makeStorage<TestMotion>(
+        context, motions, "island_chain_motions");
+    WGPUBuffer metadataBuffer = makeStorage<TestMetadata>(
+        context, metadata, "island_chain_metadata");
+    WGPUBuffer manifoldBuffer = makeStorage<GpuContactManifold>(
+        context, manifolds, "island_chain_manifolds");
+    WGPUBuffer narrowTelemetryBuffer = makeStorage<uint32_t>(
+        context, narrowTelemetry, "island_chain_narrow_telemetry");
+
+    GpuIslandManager manager;
+    GpuIslandManager::Config config;
+    config.bodyCapacity = bodyCapacity;
+    config.contactCapacity = contactCapacity;
+    config.eventCapacity = bodyCapacity;
+    config.unionRounds = 32u;
+    ASSERT_TRUE(manager.initialize(
+        context.getDevice(), context.getQueue(), config));
+    manager.setInput({poseBuffer, motionBuffer, metadataBuffer,
+                      manifoldBuffer, narrowTelemetryBuffer,
+                      bodyCapacity, contactCapacity});
+
+    const IslandSnapshot snapshot = runAndRead(
+        context, manager, metadataBuffer, bodyCapacity, bodyCapacity, false);
+    EXPECT_EQ(snapshot.telemetry.unionRounds, config.unionRounds);
+    EXPECT_EQ(snapshot.telemetry.islandCount, 1u);
+    for (uint32_t body = 1u; body < bodyCapacity; ++body) {
+        EXPECT_EQ(snapshot.roots[body], 1u) << "body " << body;
+    }
+
+    manager.setInput({});
+    releaseBuffer(narrowTelemetryBuffer);
+    releaseBuffer(manifoldBuffer);
+    releaseBuffer(metadataBuffer);
+    releaseBuffer(motionBuffer);
+    releaseBuffer(poseBuffer);
+}
+
 TEST_P(GpuIslandTest, CompactsSleepsWakesAndMaintainsSleepingGrid) {
     constexpr uint32_t bodyCapacity = 32;
     constexpr uint32_t contactCapacity = 32;
