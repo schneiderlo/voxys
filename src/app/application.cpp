@@ -2159,13 +2159,15 @@ void Application::processThrowableInput(float deltaTime) {
         physics::PhysicsWorld::throwableShapeDimensions(shape);
     const auto throwSelected = [&](const glm::vec3& spawnOrigin,
                                    const glm::vec3& spawnDirection) {
-        if (physicsWorld_->capabilities().gpuResidentState) {
-            physics::BodySpawnDesc desc;
-            desc.shape = shape;
-            desc.position = spawnOrigin;
-            desc.sector = camera_->worldSector();
-            desc.linearVelocity = spawnDirection * throwSpeed;
-            desc.dimensions = dimensions;
+        physics::BodySpawnDesc desc;
+        desc.shape = shape;
+        desc.position = spawnOrigin;
+        desc.sector = camera_->worldSector();
+        desc.linearVelocity = spawnDirection * throwSpeed;
+        desc.angularVelocity = {3.5f, 5.0f, 2.5f};
+        desc.dimensions = dimensions;
+        if (physicsWorld_->backendType()
+            != physics::BackendType::Box3DReference) {
             return physicsWorld_->spawnBody(desc).valid();
         }
         return physicsWorld_->throwBody(
