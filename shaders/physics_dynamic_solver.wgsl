@@ -742,6 +742,16 @@ fn inverse_inertia_world(body : u32, vector : vec3<f32>) -> vec3<f32> {
     return inverse_inertia_state(poses[body], shapes[body], vector);
 }
 
+fn combined_restitution(shapeA : BodyShape, shapeB : BodyShape) -> f32 {
+    let typeA = u32(clamp(shapeA.dimensions_type.w, 0.0, 4.0));
+    let typeB = u32(clamp(shapeB.dimensions_type.w, 0.0, 4.0));
+    let restitutionA = select(
+        params.solver.w, params.material.y, typeA == 0u);
+    let restitutionB = select(
+        params.solver.w, params.material.y, typeB == 0u);
+    return max(restitutionA, restitutionB);
+}
+
 fn point_velocity(linear : vec3<f32>, angular : vec3<f32>,
                   lever : vec3<f32>) -> vec3<f32> {
     return linear + cross(angular, lever);
@@ -918,7 +928,8 @@ fn solve_contact(rank : u32, stage : u32) -> VelocityPair {
                     < -params.material.w
                 && manifold.points[pointIndex]
                     .localAnchorB_normalImpulse.w > 0.0) {
-                let restitutionVelocity = -params.material.y
+                let restitutionVelocity = -combined_restitution(
+                    shapeA, shapeB)
                     * cache.preImpactVelocity[pointIndex];
                 incremental = cache.normalMass[pointIndex]
                     * max(restitutionVelocity - normalVelocity, 0.0);
@@ -1108,7 +1119,8 @@ fn solve_contact_state(manifoldState : ptr<function, ContactManifold>,
             if (cache.preImpactVelocity[pointIndex] < -params.material.w
                 && manifold.points[pointIndex]
                     .localAnchorB_normalImpulse.w > 0.0) {
-                let restitutionVelocity = -params.material.y
+                let restitutionVelocity = -combined_restitution(
+                    shapeA, shapeB)
                     * cache.preImpactVelocity[pointIndex];
                 incremental = cache.normalMass[pointIndex]
                     * max(restitutionVelocity - normalVelocity, 0.0);

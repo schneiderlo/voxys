@@ -442,7 +442,6 @@ public:
         solverConfig.linearSlop = config_.linearSlop;
         solverConfig.speculativeDistance = config_.speculativeDistance;
         solverConfig.friction = config_.terrainFriction;
-        solverConfig.restitution = config_.terrainRestitution;
         solverConfig.shaderPath = shaderFile("physics_dynamic_solver.wgsl");
         solverConfig.primitivesShaderPath = shaderFile(
             "physics_deterministic_primitives.wgsl");

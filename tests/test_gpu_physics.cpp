@@ -350,6 +350,109 @@ TEST_F(GpuPhysicsTest, SpeculativeSweepPreventsThrownCapsulesFromCrossing) {
     EXPECT_GT(rightState.linearVelocity.x, -throwSpeed * 0.75f);
 }
 
+class GpuPhysicsRestitutionParityTest
+    : public GpuPhysicsTest,
+      public ::testing::WithParamInterface<ThrowableShape> {};
+
+TEST_P(GpuPhysicsRestitutionParityTest, MatchesJoltHeadOnBounceDistance) {
+    PhysicsWorld gpuParityWorld;
+    PhysicsInitContext gpuContextConfig;
+    gpuContextConfig.requestedBackend = BackendType::WebGpuSoft;
+    gpuContextConfig.device = gpuContext.getDevice();
+    gpuContextConfig.queue = gpuContext.getQueue();
+    gpuContextConfig.maxBodies = 64u;
+    gpuContextConfig.maxActiveBodies = 64u;
+    gpuContextConfig.maxPairs = 64u;
+    gpuContextConfig.maxContacts = 64u;
+    gpuContextConfig.maxManifolds = 64u;
+    gpuContextConfig.gpu.commandCapacity = 64u;
+    gpuContextConfig.gpu.debugReadbackSlots = 2u;
+    gpuContextConfig.gpu.debugReadbackBodyCapacity = 2u;
+    gpuContextConfig.gpu.enableTelemetryReadback = false;
+    ASSERT_TRUE(gpuParityWorld.initialize(gpuContextConfig));
+
+    PhysicsWorld joltWorld;
+    PhysicsInitContext joltContext;
+    joltContext.requestedBackend = BackendType::JoltLegacy;
+    joltContext.maxBodies = 64u;
+    joltContext.maxActiveBodies = 64u;
+    joltContext.maxPairs = 64u;
+    joltContext.maxContacts = 64u;
+    joltContext.maxManifolds = 64u;
+    joltContext.joltJobSystem = JoltJobSystemMode::SingleThreaded;
+    ASSERT_TRUE(joltWorld.initialize(joltContext));
+
+    BodySpawnDesc leftDesc;
+    leftDesc.shape = GetParam();
+    leftDesc.dimensions = throwableShapeDimensions(leftDesc.shape);
+    leftDesc.position = {-1.0f, 50.0f, 0.0f};
+    leftDesc.linearVelocity = {2.0f, 0.0f, 0.0f};
+    BodySpawnDesc rightDesc = leftDesc;
+    rightDesc.position.x = 1.0f;
+    rightDesc.linearVelocity.x = -2.0f;
+
+    const BodyHandle gpuLeft = gpuParityWorld.spawnBody(leftDesc);
+    const BodyHandle gpuRight = gpuParityWorld.spawnBody(rightDesc);
+    ASSERT_TRUE(gpuLeft.valid());
+    ASSERT_TRUE(gpuRight.valid());
+    ASSERT_TRUE(joltWorld.spawnBody(leftDesc).valid());
+    ASSERT_TRUE(joltWorld.spawnBody(rightDesc).valid());
+
+    constexpr uint32_t tickCount = 60u;
+    for (uint32_t tick = 0u; tick < tickCount; ++tick) {
+        joltWorld.update(1.0f / 60.0f);
+        gpuParityWorld.update(1.0f / 60.0f);
+
+        WGPUCommandEncoderDescriptor encoderDesc{};
+        WGPUCommandEncoder encoder = wgpuDeviceCreateCommandEncoder(
+            gpuContext.getDevice(), &encoderDesc);
+        gpuParityWorld.encodeGpuStep(encoder);
+        WGPUCommandBufferDescriptor commandDesc{};
+        WGPUCommandBuffer command =
+            wgpuCommandEncoderFinish(encoder, &commandDesc);
+        wgpuQueueSubmit(gpuContext.getQueue(), 1u, &command);
+        wgpuCommandBufferRelease(command);
+        wgpuCommandEncoderRelease(encoder);
+    }
+
+    gpuParityWorld.requestDebugSnapshot({gpuLeft.index, 2u});
+    WGPUCommandEncoderDescriptor encoderDesc{};
+    WGPUCommandEncoder encoder = wgpuDeviceCreateCommandEncoder(
+        gpuContext.getDevice(), &encoderDesc);
+    gpuParityWorld.encodeGpuStep(encoder);
+    WGPUCommandBufferDescriptor commandDesc{};
+    WGPUCommandBuffer command =
+        wgpuCommandEncoderFinish(encoder, &commandDesc);
+    wgpuQueueSubmit(gpuContext.getQueue(), 1u, &command);
+    wgpuCommandBufferRelease(command);
+    wgpuCommandEncoderRelease(encoder);
+
+    auto gpuSnapshot = gpuParityWorld.pollDebugSnapshot();
+    for (uint32_t attempt = 0u; !gpuSnapshot && attempt < 8u; ++attempt) {
+        static_cast<void>(wgpuDevicePoll(
+            gpuContext.getDevice(), true, nullptr));
+        gpuSnapshot = gpuParityWorld.pollDebugSnapshot();
+    }
+    ASSERT_TRUE(gpuSnapshot.has_value());
+    ASSERT_EQ(gpuSnapshot->bodies.size(), 2u);
+    const auto joltSnapshot = joltWorld.dynamicBodies();
+    ASSERT_EQ(joltSnapshot.size(), 2u);
+
+    const float leftError = std::abs(
+        gpuSnapshot->bodies[0].position.x - joltSnapshot[0].position.x);
+    const float rightError = std::abs(
+        gpuSnapshot->bodies[1].position.x - joltSnapshot[1].position.x);
+    EXPECT_LT(leftError, 0.04f);
+    EXPECT_LT(rightError, 0.04f);
+    EXPECT_LT(gpuSnapshot->bodies[0].position.x,
+              gpuSnapshot->bodies[1].position.x);
+    EXPECT_LT(joltSnapshot[0].position.x, joltSnapshot[1].position.x);
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    Materials, GpuPhysicsRestitutionParityTest,
+    ::testing::Values(ThrowableShape::Sphere, ThrowableShape::Box));
+
 TEST_F(GpuPhysicsTest, UsesGlobalSolverAboveSerialWorldLimit) {
     constexpr uint32_t bodyCount = 257u;
     for (uint32_t index = 0u; index < bodyCount; ++index) {

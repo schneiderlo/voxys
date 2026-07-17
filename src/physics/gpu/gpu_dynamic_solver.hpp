@@ -101,7 +101,8 @@ public:
         float biasRate = 0.2f;
         float maximumPushSpeed = 3.0f;
         float friction = 0.65f;
-        float restitution = 0.2f;
+        float sphereRestitution = 0.55f;
+        float otherRestitution = 0.25f;
         float rollingResistance = 0.01f;
         float restitutionThreshold = 1.0f;
         std::filesystem::path shaderPath = "shaders/physics_dynamic_solver.wgsl";

@@ -577,8 +577,8 @@ public:
             .dampingSlop = {config_.linearDamping, config_.angularDamping,
                             config_.linearSlop, config_.speculativeDistance},
             .solver = {config_.speculativeDistance, config_.biasRate,
-                       config_.maximumPushSpeed, 0.0f},
-            .material = {config_.friction, config_.restitution,
+                       config_.maximumPushSpeed, config_.otherRestitution},
+            .material = {config_.friction, config_.sphereRestitution,
                          config_.rollingResistance,
                          config_.restitutionThreshold},
         };
