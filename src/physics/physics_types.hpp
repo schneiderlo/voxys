@@ -120,8 +120,16 @@ struct PhysicsInitContext {
         float angularDamping = 0.05f;
         float maximumLinearSpeed = 500.0f;
         float maximumAngularSpeed = 100.0f;
-        float terrainFriction = 0.65f;
-        float terrainRestitution = 0.20f;
+        float bodyFriction = 0.65f;
+        // Jolt combines the 0.65 body friction with its default 0.20 terrain
+        // friction using the geometric mean.
+        float terrainFriction = 0.36055514f;
+        float bodySphereRestitution = 0.55f;
+        float bodyOtherRestitution = 0.25f;
+        // The four-substep terrain solver's effective bounce matches Jolt's
+        // 0.55 sphere material at this calibrated impulse coefficient.
+        float terrainSphereRestitution = 0.38f;
+        float terrainOtherRestitution = 0.20f;
         float linearSlop = 0.005f;
         float speculativeDistance = 0.02f;
         // Production keeps the complete dynamic world enabled. Earlier

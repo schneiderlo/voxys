@@ -74,6 +74,7 @@ struct SimulationUniforms {
     water : vec4<f32>,
     contact : vec4<f32>,
     solver : vec4<f32>,
+    terrainMaterials : vec4<f32>,
     worldSector : vec4<i32>,
 };
 
@@ -105,6 +106,12 @@ struct TerrainContactCache {
 @group(0) @binding(14) var maxHeightTexture : texture_2d<u32>;
 @group(0) @binding(15) var<storage, read_write> terrainContactCaches :
     array<TerrainContactCache>;
+
+fn body_restitution(shapeType : u32) -> f32 {
+    return select(
+        sim.terrainMaterials.z, sim.terrainMaterials.y,
+        shapeType == SHAPE_SPHERE);
+}
 
 fn is_live(index : u32, generation : u32) -> bool {
     return index > 0u && index < sim.counts.x
@@ -1028,7 +1035,8 @@ fn integrate_bodies(@builtin(global_invocation_id) gid : vec3<u32>) {
             let penetrationBias = sim.solver.y
                 * max(-contact.separation - sim.contact.w, 0.0) / dt;
             let restitutionVelocity = select(
-                0.0, -sim.contact.z * normalVelocity, normalVelocity < -1.0);
+                0.0, -body_restitution(shapeType) * normalVelocity,
+                normalVelocity < -1.0);
             let effectiveMass = contact_effective_mass(
                 leverArm, contact.normal, inverseMass, inverseInertia,
                 pose.orientation);
@@ -1324,7 +1332,8 @@ fn solve_static_contacts(@builtin(global_invocation_id) gid : vec3<u32>) {
         let penetrationBias = sim.solver.y
             * max(-contact.separation - sim.contact.w, 0.0) / max(dt, 1e-7);
         let restitutionVelocity = select(
-            0.0, -sim.contact.z * normalVelocity, normalVelocity < -1.0);
+            0.0, -body_restitution(shapeType) * normalVelocity,
+            normalVelocity < -1.0);
         let effectiveMass = contact_effective_mass(
             leverArm, contact.normal, inverseMass, inverseInertia,
             pose.orientation);

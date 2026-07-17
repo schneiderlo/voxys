@@ -110,6 +110,7 @@ struct alignas(16) SimulationUniforms {
     glm::vec4 water{0.0f};
     glm::vec4 contact{0.0f};
     glm::vec4 solver{0.0f};
+    glm::vec4 terrainMaterials{0.0f};
     glm::ivec4 worldSector{0};
 };
 
@@ -163,7 +164,7 @@ static_assert(sizeof(GpuPose) == 32);
 static_assert(sizeof(GpuMotion) == 32);
 static_assert(sizeof(GpuShape) == 32);
 static_assert(sizeof(GpuCommand) == 112);
-static_assert(sizeof(SimulationUniforms) == 160);
+static_assert(sizeof(SimulationUniforms) == 176);
 static_assert(sizeof(GpuTerrainContactCache) == 48);
 
 uint32_t commandPriority(PhysicsCommandType type) noexcept {
@@ -441,7 +442,9 @@ public:
         solverConfig.angularDamping = 0.0f;
         solverConfig.linearSlop = config_.linearSlop;
         solverConfig.speculativeDistance = config_.speculativeDistance;
-        solverConfig.friction = config_.terrainFriction;
+        solverConfig.friction = config_.bodyFriction;
+        solverConfig.sphereRestitution = config_.bodySphereRestitution;
+        solverConfig.otherRestitution = config_.bodyOtherRestitution;
         solverConfig.shaderPath = shaderFile("physics_dynamic_solver.wgsl");
         solverConfig.primitivesShaderPath = shaderFile(
             "physics_deterministic_primitives.wgsl");
@@ -1543,9 +1546,12 @@ public:
             config_.waterBuoyancy, config_.waterLinearDrag);
         uniforms.contact = glm::vec4(
             config_.waterAngularDrag, config_.terrainFriction,
-            config_.terrainRestitution, config_.linearSlop);
+            config_.terrainSphereRestitution, config_.linearSlop);
         uniforms.solver = glm::vec4(
             config_.speculativeDistance, 0.20f, 0.05f, 0.50f);
+        uniforms.terrainMaterials = glm::vec4(
+            config_.terrainFriction, config_.terrainSphereRestitution,
+            config_.terrainOtherRestitution, 0.0f);
         uniforms.worldSector = glm::ivec4(0);
         gpu::writeBuffer(queue_, uniformBuffer_, 0, uniforms);
         lastGpuUploadBytes_ += sizeof(SimulationUniforms);
