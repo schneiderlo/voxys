@@ -6,6 +6,10 @@ const SHAPE_CYLINDER : u32 = 4u;
 const PAIR_CLASS_COUNT : u32 = 10u;
 const MAX_CANDIDATES : u32 = 16u;
 const SENTINEL : u32 = 0xffffffffu;
+const BODY_AWAKE : u32 = 1u << 21u;
+// Must match physics_ballistic.wgsl. The fractional shape-type payload is a
+// conservative one-tick linear travel bound for tunnelling-risk bodies.
+const SHAPE_SWEEP_RANGE : f32 = 256.0;
 
 struct BodyPose {
     position_invMass : vec4<f32>,
@@ -134,6 +138,8 @@ struct ClipPolygon {
 @group(0) @binding(12) var<storage, read_write> activeManifolds : array<ContactManifold>;
 @group(0) @binding(13) var<storage, read_write> activePredicates : array<u32>;
 @group(0) @binding(14) var<storage, read> activeOffsets : array<u32>;
+
+var<private> currentSpeculativeDistance : f32 = 0.0;
 
 fn canonical_shape(shapeValue : f32) -> u32 {
     let shapeType = u32(clamp(shapeValue, 0.0, 4.0));
@@ -516,11 +522,23 @@ fn shape_bounding_radius(body : u32) -> f32 {
     return 0.5 * length(dimensions);
 }
 
+fn shape_sweep_distance(body : u32) -> f32 {
+    if ((u32(metadata[body].w) & BODY_AWAKE) == 0u) { return 0.0; }
+    return fract(max(shapes[body].dimensions_type.w, 0.0))
+        * SHAPE_SWEEP_RANGE;
+}
+
+fn pair_speculative_distance(bodyA : u32, bodyB : u32) -> f32 {
+    return narrow.tolerances.y
+        + shape_sweep_distance(bodyA) + shape_sweep_distance(bodyB);
+}
+
 fn bounding_spheres_may_touch(bodyA : u32, bodyB : u32) -> bool {
     let delta = body_position_in_frame(bodyB, bodyA)
               - body_position_in_frame(bodyA, bodyA);
     let reach = shape_bounding_radius(bodyA)
-              + shape_bounding_radius(bodyB) + narrow.tolerances.y;
+              + shape_bounding_radius(bodyB)
+              + pair_speculative_distance(bodyA, bodyB);
     return dot(delta, delta) <= reach * reach;
 }
 
@@ -572,7 +590,7 @@ fn append_candidate(candidateSet : ptr<function, CandidateSet>,
                     pointA : vec3<f32>, pointB : vec3<f32>, separation : f32,
                     featureA : u32, featureB : u32) {
     if ((*candidateSet).count >= MAX_CANDIDATES
-        || separation > narrow.tolerances.y
+        || separation > currentSpeculativeDistance
         || any(abs(pointA) > vec3<f32>(1e15))
         || any(abs(pointB) > vec3<f32>(1e15))) { return; }
     let slot = (*candidateSet).count;
@@ -917,7 +935,7 @@ fn consider_box_sat_axis(sat : ptr<function, SatResult>, rawAxis : vec3<f32>,
     let separation = abs(signedDistance)
         - box_projection_radius(frameA, axis)
         - box_projection_radius(frameB, axis);
-    if (separation > narrow.tolerances.y) {
+    if (separation > currentSpeculativeDistance) {
         (*sat).valid = 0u;
     }
     let candidateCode = kind * 16u + axisA * 4u + axisB;
@@ -1226,7 +1244,7 @@ fn consider_poly_sat_axis(sat : ptr<function, SatResult>,
     let rangeA = projected_poly_range(frameA, categoryA, axis);
     let rangeB = projected_poly_range(frameB, categoryB, axis);
     let separation = rangeB.x - rangeA.y;
-    if (separation > narrow.tolerances.y) { (*sat).valid = 0u; }
+    if (separation > currentSpeculativeDistance) { (*sat).valid = 0u; }
     let candidateCode = kind * 256u + axisA * 16u + axisB;
     let currentCode = (*sat).axisKind * 256u
         + (*sat).axisA * 16u + (*sat).axisB;
@@ -1517,7 +1535,7 @@ fn build_manifold(pairRecord : KeyValue,
                                 candidate.pointA_separation.w);
         let weight = clamp(1.0
             - max(candidate.pointA_separation.w, 0.0)
-              / max(narrow.tolerances.y, 1e-6), 0.05, 1.0);
+              / max(currentSpeculativeDistance, 1e-6), 0.05, 1.0);
         weightedCenter += 0.5 * (candidate.pointA_separation.xyz
                                + candidate.pointB.xyz) * weight;
         totalWeight += weight;
@@ -1614,7 +1632,10 @@ fn class_pair_record(gid : vec3<u32>, pairClass : u32) -> KeyValue {
     }
     let bucketIndex = atomicLoad(
         &classTable[PAIR_CLASS_COUNT + pairClass]) + localIndex;
-    return bucketedPairs[bucketIndex];
+    let pairRecord = bucketedPairs[bucketIndex];
+    currentSpeculativeDistance = pair_speculative_distance(
+        pairRecord.keyHigh, pairRecord.keyLow);
+    return pairRecord;
 }
 
 fn write_class_manifold(pairRecord : KeyValue, candidates : CandidateSet) {

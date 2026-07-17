@@ -6,6 +6,12 @@ const CELL_MASK : u32 = 0x1fffffu;
 const CELL_BIAS : i32 = 1048576;
 const WORLD_SECTOR_SIZE : f32 = 256.0;
 const SMALL_LIFECYCLE_CONTACT_LIMIT : u32 = 1024u;
+const SPATIAL_CLASS_COMMON : u32 = 0u;
+const SPATIAL_CLASS_PHYSICAL_OVERSIZED : u32 = 1u;
+const SPATIAL_CLASS_SWEPT_OVERSIZED : u32 = 2u;
+// Must match physics_ballistic.wgsl. The fractional shape-type payload is a
+// conservative one-tick linear travel bound for tunnelling-risk bodies.
+const SHAPE_SWEEP_RANGE : f32 = 256.0;
 
 struct BodyPose {
     position_invMass : vec4<f32>,
@@ -117,12 +123,22 @@ fn key_equal(a : KeyValue, b : KeyValue) -> bool {
     return a.keyLow == b.keyLow && a.keyHigh == b.keyHigh;
 }
 
-fn shape_radius(body : u32) -> f32 {
+fn body_flags(body : u32) -> u32 {
+    return u32(metadata[body].w) & ~GENERATION_MASK;
+}
+
+fn shape_sweep_distance(body : u32) -> f32 {
+    if ((body_flags(body) & BODY_AWAKE) == 0u) { return 0.0; }
+    return fract(max(shapes[body].dimensions_type.w, 0.0))
+        * SHAPE_SWEEP_RANGE;
+}
+
+fn physical_shape_radius(body : u32) -> f32 {
     return 0.5 * length(abs(shapes[body].dimensions_type.xyz)) + broad.grid.y;
 }
 
-fn body_flags(body : u32) -> u32 {
-    return u32(metadata[body].w) & ~GENERATION_MASK;
+fn shape_radius(body : u32) -> f32 {
+    return physical_shape_radius(body) + shape_sweep_distance(body);
 }
 
 fn adjacent_sector_delta(reference : i32, other : i32) -> i32 {
@@ -213,8 +229,12 @@ struct CellBounds {
     maximum : vec3<i32>,
 };
 
-fn body_cell_bounds(body : u32) -> CellBounds {
-    let radius = shape_radius(body);
+fn swept_search_cell_bounds(body : u32) -> CellBounds {
+    // The larger-sweep body owns a swept/swept pair. Its own sweep therefore
+    // bounds the other sweep, while every center-cell body's physical radius
+    // is at most half a cell.
+    let radius = physical_shape_radius(body)
+        + 2.0 * shape_sweep_distance(body) + 0.5 * broad.grid.x;
     let position = poses[body].position_invMass.xyz;
     let minimum = vec3<i32>(floor((position - vec3<f32>(radius)) / broad.grid.x));
     let maximum = vec3<i32>(floor((position + vec3<f32>(radius)) / broad.grid.x));
@@ -228,6 +248,30 @@ fn body_is_oversized(body : u32) -> bool {
     let cell = body_cell(body, &valid);
     return radius * 2.0 > broad.grid.x
         || !valid || !coordinate_is_encodable(cell);
+}
+
+fn body_spatial_class(body : u32) -> u32 {
+    if (!body_is_alive(body)) { return SPATIAL_CLASS_COMMON; }
+    var valid = false;
+    let cell = body_cell(body, &valid);
+    if (physical_shape_radius(body) * 2.0 > broad.grid.x
+        || !valid || !coordinate_is_encodable(cell)) {
+        return SPATIAL_CLASS_PHYSICAL_OVERSIZED;
+    }
+    if (shape_radius(body) * 2.0 > broad.grid.x) {
+        return SPATIAL_CLASS_SWEPT_OVERSIZED;
+    }
+    return SPATIAL_CLASS_COMMON;
+}
+
+fn swept_pair_is_owned(body : u32, other : u32) -> bool {
+    if (body_spatial_class(other) != SPATIAL_CLASS_SWEPT_OVERSIZED) {
+        return true;
+    }
+    let bodySweep = shape_sweep_distance(body);
+    let otherSweep = shape_sweep_distance(other);
+    return bodySweep > otherSweep
+        || (bodySweep == otherSweep && body < other);
 }
 
 @compute @workgroup_size(1)
@@ -263,9 +307,12 @@ fn count_grid_entries_impl(gid : vec3<u32>) {
     if (!body_is_alive(body)) { return; }
     // Center-cell insertion plus the 13-cell forward neighborhood is exact
     // while any two common-body radii sum to at most one cell width.
-    if (body_is_oversized(body)) {
-        oversizedFlags[body] = 1u;
+    let spatialClass = body_spatial_class(body);
+    oversizedFlags[body] = spatialClass;
+    if (spatialClass != SPATIAL_CLASS_COMMON) {
         atomicAdd(&telemetry[5], 1u);
+    }
+    if (spatialClass == SPATIAL_CLASS_PHYSICAL_OVERSIZED) {
         return;
     }
     bodyEntryCounts[body] = 1u;
@@ -484,6 +531,42 @@ fn count_range_pairs(rangeA : CellRange, rangeB : CellRange,
     return count;
 }
 
+fn count_swept_body_pairs(body : u32, limit : u32) -> u32 {
+    var centerValid = false;
+    let centerCell = body_cell(body, &centerValid);
+    if (!centerValid) { return 0u; }
+    let localCenter = vec3<i32>(floor(
+        poses[body].position_invMass.xyz / broad.grid.x));
+    let bounds = swept_search_cell_bounds(body);
+    let minimumOffset = bounds.minimum - localCenter;
+    let maximumOffset = bounds.maximum - localCenter;
+    var count = 0u;
+    for (var dx = minimumOffset.x; dx <= maximumOffset.x; dx += 1) {
+        for (var dy = minimumOffset.y; dy <= maximumOffset.y; dy += 1) {
+            for (var dz = minimumOffset.z; dz <= maximumOffset.z; dz += 1) {
+                // The ordinary center-cell path already owns this neighborhood.
+                if (abs(dx) <= 1 && abs(dy) <= 1 && abs(dz) <= 1) {
+                    continue;
+                }
+                let cell = wrap_cell(centerCell + vec3<i32>(dx, dy, dz));
+                let rangeIndex = find_cell_range(encode_cell(cell));
+                if (rangeIndex == SENTINEL) { continue; }
+                let range = cellRanges[rangeIndex];
+                for (var local = 0u; local < range.entryCount; local += 1u) {
+                    let other = sortedGridEntries[range.firstEntry + local].value;
+                    if (other == body) { continue; }
+                    if (!swept_pair_is_owned(body, other)) { continue; }
+                    if (bodies_overlap(body, other)) {
+                        count += 1u;
+                        if (count >= limit) { return limit; }
+                    }
+                }
+            }
+        }
+    }
+    return count;
+}
+
 fn count_pairs_for_owner(owner : u32) -> u32 {
     let rangeCount = occupied_range_count();
     let limit = candidate_count_limit();
@@ -514,11 +597,17 @@ fn count_pairs_for_owner(owner : u32) -> u32 {
         return count;
     }
     let body = owner - rangeCount;
-    if (body >= broad.counts.x || !body_is_oversized(body)) { return 0u; }
+    if (body >= broad.counts.x) { return 0u; }
+    let spatialClass = body_spatial_class(body);
+    if (spatialClass == SPATIAL_CLASS_COMMON) { return 0u; }
+    if (spatialClass == SPATIAL_CLASS_SWEPT_OVERSIZED) {
+        return count_swept_body_pairs(body, limit);
+    }
     var count = 0u;
     for (var other = 0u; other < broad.counts.x; other += 1u) {
         if (other == body) { continue; }
-        if (body_is_oversized(other) && other < body) { continue; }
+        if (body_spatial_class(other) == SPATIAL_CLASS_PHYSICAL_OVERSIZED
+            && other < body) { continue; }
         if (bodies_overlap(body, other)) {
             count += 1u;
             if (count >= limit) { return limit; }
@@ -575,6 +664,41 @@ fn scatter_range_pairs(rangeA : CellRange, rangeB : CellRange,
     return false;
 }
 
+fn scatter_swept_body_pairs(body : u32, base : u32,
+                            localOffset : ptr<function, u32>) {
+    var centerValid = false;
+    let centerCell = body_cell(body, &centerValid);
+    if (!centerValid || base >= broad.counts.w) { return; }
+    let localCenter = vec3<i32>(floor(
+        poses[body].position_invMass.xyz / broad.grid.x));
+    let bounds = swept_search_cell_bounds(body);
+    let minimumOffset = bounds.minimum - localCenter;
+    let maximumOffset = bounds.maximum - localCenter;
+    for (var dx = minimumOffset.x; dx <= maximumOffset.x; dx += 1) {
+        for (var dy = minimumOffset.y; dy <= maximumOffset.y; dy += 1) {
+            for (var dz = minimumOffset.z; dz <= maximumOffset.z; dz += 1) {
+                if (abs(dx) <= 1 && abs(dy) <= 1 && abs(dz) <= 1) {
+                    continue;
+                }
+                let cell = wrap_cell(centerCell + vec3<i32>(dx, dy, dz));
+                let rangeIndex = find_cell_range(encode_cell(cell));
+                if (rangeIndex == SENTINEL) { continue; }
+                let range = cellRanges[rangeIndex];
+                for (var local = 0u; local < range.entryCount; local += 1u) {
+                    if ((*localOffset) >= broad.counts.w - base) { return; }
+                    let other = sortedGridEntries[range.firstEntry + local].value;
+                    if (other == body) { continue; }
+                    if (!swept_pair_is_owned(body, other)) { continue; }
+                    if (bodies_overlap(body, other)) {
+                        emit_pair(body, other, base + (*localOffset));
+                        (*localOffset) += 1u;
+                    }
+                }
+            }
+        }
+    }
+}
+
 fn scatter_pairs_impl(gid : vec3<u32>) {
     let owner = gid.x;
     if (owner >= broad.counts.z || ownerPairCounts[owner] == 0u) { return; }
@@ -608,12 +732,19 @@ fn scatter_pairs_impl(gid : vec3<u32>) {
         return;
     }
     let body = owner - rangeCount;
-    if (body >= broad.counts.x || !body_is_oversized(body)) { return; }
+    if (body >= broad.counts.x) { return; }
+    let spatialClass = body_spatial_class(body);
+    if (spatialClass == SPATIAL_CLASS_COMMON) { return; }
+    if (spatialClass == SPATIAL_CLASS_SWEPT_OVERSIZED) {
+        scatter_swept_body_pairs(body, base, &local);
+        return;
+    }
     for (var other = 0u; other < broad.counts.x; other += 1u) {
         if (base >= broad.counts.w
             || local >= broad.counts.w - base) { return; }
         if (other == body) { continue; }
-        if (body_is_oversized(other) && other < body) { continue; }
+        if (body_spatial_class(other) == SPATIAL_CLASS_PHYSICAL_OVERSIZED
+            && other < body) { continue; }
         if (bodies_overlap(body, other)) {
             emit_pair(body, other, base + local);
             local += 1u;
@@ -1103,7 +1234,7 @@ fn load_medium_body(body : u32) -> MediumBodyProxy {
         return proxy;
     }
 
-    let radius = 0.5 * length(dimensions) + broad.grid.y;
+    let radius = shape_radius(body);
     proxy.positionRadius = vec4<f32>(
         poses[body].position_invMass.xyz, radius);
     proxy.sectorFlags = vec4<i32>(metadata[body].xyz, i32(flags));

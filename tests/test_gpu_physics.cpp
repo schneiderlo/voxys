@@ -287,6 +287,69 @@ TEST_F(GpuPhysicsTest, ComposesBodyContactsEventsAndAsyncQueries) {
               queries->outputs[0].hits[1].distance);
 }
 
+TEST_F(GpuPhysicsTest, SpeculativeSweepPreventsThrownCapsulesFromCrossing) {
+    PhysicsWorld crossingWorld;
+    PhysicsInitContext context;
+    context.requestedBackend = BackendType::WebGpuSoft;
+    context.device = gpuContext.getDevice();
+    context.queue = gpuContext.getQueue();
+    context.maxBodies = 64;
+    context.maxActiveBodies = 64;
+    context.maxPairs = 64;
+    context.maxContacts = 32;
+    context.maxManifolds = 64;
+    context.gpu.commandCapacity = 64;
+    context.gpu.debugReadbackSlots = 2;
+    context.gpu.debugReadbackBodyCapacity = 2;
+    context.gpu.gravity = glm::vec3(0.0f);
+    context.gpu.maximumLinearSpeed = 500.0f;
+    ASSERT_TRUE(crossingWorld.initialize(context));
+
+    BodySpawnDesc leftDesc;
+    leftDesc.shape = ThrowableShape::Capsule;
+    leftDesc.dimensions = throwableShapeDimensions(leftDesc.shape);
+    constexpr float initialGap = 0.03f;
+    constexpr float throwSpeed = 28.0f;
+    const float halfSeparation =
+        0.5f * (leftDesc.dimensions.x + initialGap);
+    leftDesc.position = {-halfSeparation, 5.0f, 0.0f};
+    leftDesc.linearVelocity = {throwSpeed, 0.0f, 0.0f};
+    BodySpawnDesc rightDesc = leftDesc;
+    rightDesc.position.x = halfSeparation;
+    rightDesc.linearVelocity.x = -throwSpeed;
+    const BodyHandle left = crossingWorld.spawnBody(leftDesc);
+    const BodyHandle right = crossingWorld.spawnBody(rightDesc);
+    ASSERT_TRUE(left.valid());
+    ASSERT_TRUE(right.valid());
+
+    crossingWorld.update(1.0f / 60.0f);
+    crossingWorld.requestDebugSnapshot({left.index, 2u});
+    WGPUCommandEncoderDescriptor encoderDesc{};
+    WGPUCommandEncoder encoder = wgpuDeviceCreateCommandEncoder(
+        gpuContext.getDevice(), &encoderDesc);
+    crossingWorld.encodeGpuStep(encoder);
+    WGPUCommandBufferDescriptor commandDesc{};
+    WGPUCommandBuffer command =
+        wgpuCommandEncoderFinish(encoder, &commandDesc);
+    wgpuQueueSubmit(gpuContext.getQueue(), 1u, &command);
+    wgpuCommandBufferRelease(command);
+    wgpuCommandEncoderRelease(encoder);
+
+    auto snapshot = crossingWorld.pollDebugSnapshot();
+    for (uint32_t attempt = 0u; !snapshot && attempt < 8u; ++attempt) {
+        static_cast<void>(wgpuDevicePoll(
+            gpuContext.getDevice(), true, nullptr));
+        snapshot = crossingWorld.pollDebugSnapshot();
+    }
+    ASSERT_TRUE(snapshot.has_value());
+    ASSERT_EQ(snapshot->bodies.size(), 2u);
+    const DebugBodyState& leftState = snapshot->bodies[0];
+    const DebugBodyState& rightState = snapshot->bodies[1];
+    EXPECT_LT(leftState.position.x, rightState.position.x);
+    EXPECT_LT(leftState.linearVelocity.x, throwSpeed * 0.75f);
+    EXPECT_GT(rightState.linearVelocity.x, -throwSpeed * 0.75f);
+}
+
 TEST_F(GpuPhysicsTest, UsesGlobalSolverAboveSerialWorldLimit) {
     constexpr uint32_t bodyCount = 257u;
     for (uint32_t index = 0u; index < bodyCount; ++index) {

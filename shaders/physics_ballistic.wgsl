@@ -10,6 +10,13 @@ const SHAPE_CUBE : u32 = 1u;
 const SHAPE_BOX : u32 = 2u;
 const SHAPE_CAPSULE : u32 = 3u;
 const SHAPE_CYLINDER : u32 = 4u;
+// The integer part of dimensions_type.w remains the public shape type. The
+// fractional part carries a conservative one-tick linear-motion bound to broad and
+// narrow phase without adding another storage-buffer binding. 256 m is well
+// above the configured 500 m/s linear clamp at 60 Hz; 0.999 keeps every
+// packed type below the next integer after f32 rounding.
+const SHAPE_SWEEP_RANGE : f32 = 256.0;
+const SHAPE_SWEEP_MAX_FRACTION : f32 = 0.999;
 const MAX_TERRAIN_CANDIDATES : u32 = 16u;
 const MAX_TERRAIN_CONTACTS : u32 = 4u;
 const TERRAIN_MIP_REJECTED : u32 = 1u << 25u;
@@ -408,6 +415,12 @@ fn shape_bounding_radius(shape : BodyShape) -> f32 {
         return length(vec2<f32>(radius, 0.5 * dimensions.y));
     }
     return 0.5 * length(dimensions);
+}
+
+fn pack_shape_type_sweep(shapeType : u32, sweepDistance : f32) -> f32 {
+    let fraction = clamp(sweepDistance / SHAPE_SWEEP_RANGE,
+                         0.0, SHAPE_SWEEP_MAX_FRACTION);
+    return f32(shapeType) + fraction;
 }
 
 fn shape_vertical_extent(shape : BodyShape, orientation : vec4<f32>) -> f32 {
@@ -1166,9 +1179,12 @@ fn prepare_dynamic_bodies(@builtin(global_invocation_id) gid : vec3<u32>) {
         != (BODY_ALIVE | BODY_AWAKE)) { return; }
 
     let pose = poses[body];
-    let shape = shapes[body];
+    var shape = shapes[body];
+    let shapeType = u32(clamp(shape.dimensions_type.w, 0.0, 4.0));
     let inverseMass = pose.position_invMass.w;
     if (inverseMass <= 1e-7) {
+        shape.dimensions_type.w = f32(shapeType);
+        shapes[body] = shape;
         motions[body].linearVelocity_sleep = vec4<f32>(0.0);
         motions[body].angularVelocity_flags = vec4<f32>(
             vec3<f32>(0.0), motions[body].angularVelocity_flags.w);
@@ -1177,7 +1193,6 @@ fn prepare_dynamic_bodies(@builtin(global_invocation_id) gid : vec3<u32>) {
     }
 
     var motion = motions[body];
-    let shapeType = u32(clamp(shape.dimensions_type.w, 0.0, 4.0));
     let inverseInertia = shape_inverse_inertia(
         shape.dimensions_type.xyz, shapeType, inverseMass);
     let substeps = max(sim.counts.w, 1u);
@@ -1226,6 +1241,21 @@ fn prepare_dynamic_bodies(@builtin(global_invocation_id) gid : vec3<u32>) {
         flags |= BODY_SUBMERGED;
         atomicAdd(&counters[5], 1u);
     }
+    let linearSweep = sim.gravity_dt.w
+        * length(motion.linearVelocity_sleep.xyz);
+    let dimensions = abs(shape.dimensions_type.xyz);
+    let minimumThickness = max(min(dimensions.x,
+        min(dimensions.y, dimensions.z)), 1e-4);
+    // If every body moves less than half its own minimum thickness, a pair
+    // cannot exchange sides during this tick: their combined travel is no
+    // greater than their combined minimum support radii. Keep ordinary pile
+    // bodies on the exact discrete path and pay the broader search only for a
+    // body that can actually tunnel.
+    let sweepDistance = select(0.0, linearSweep,
+        linearSweep >= 0.5 * minimumThickness);
+    shape.dimensions_type.w = pack_shape_type_sweep(
+        shapeType, sweepDistance);
+    shapes[body] = shape;
     set_body_flags(body, flags);
     motions[body] = motion;
     forces[body] = vec4<f32>(0.0);

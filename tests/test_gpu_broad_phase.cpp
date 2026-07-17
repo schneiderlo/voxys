@@ -705,6 +705,69 @@ TEST(GpuBroadPhaseGridCrossoverTest,
     releaseBuffer(poseBuffer);
 }
 
+TEST(GpuBroadPhaseGridCrossoverTest,
+     SweptBodyFindsPairBeyondImmediateNeighborCells) {
+    // 1,025 bodies selects the full grid path. Only two slots are alive so the
+    // test isolates the swept-body search without creating unrelated pairs.
+    constexpr uint32_t bodyCapacity = 1'025;
+    constexpr float sweepDistance = 4.0f;
+    constexpr float sweepEncodingRange = 256.0f;
+    gpu::Context context;
+    gpu::ContextConfig contextConfig;
+    contextConfig.enableValidation = false;
+    if (!context.initHeadless(contextConfig)) {
+        GTEST_SKIP() << "Headless WebGPU is unavailable";
+    }
+
+    std::vector<TestPose> poses(bodyCapacity);
+    std::vector<TestShape> shapes(bodyCapacity);
+    std::vector<TestMetadata> metadata(bodyCapacity);
+    poses[0].positionInvMass = {-4.1f, 0.0f, 0.0f, 1.0f};
+    poses[1].positionInvMass = {0.0f, 0.0f, 0.0f, 1.0f};
+    shapes[0].dimensionsType = {
+        0.7f, 1.8f, 0.7f, 3.0f + sweepDistance / sweepEncodingRange};
+    shapes[1].dimensionsType = {0.7f, 1.8f, 0.7f, 3.0f};
+    metadata[0] = makeMetadata(kAlive | kAwake);
+    metadata[1] = makeMetadata(kAlive | kAwake);
+
+    WGPUBuffer poseBuffer = makeInput<TestPose>(
+        context, poses, "swept_grid_poses");
+    WGPUBuffer shapeBuffer = makeInput<TestShape>(
+        context, shapes, "swept_grid_shapes");
+    WGPUBuffer metadataBuffer = makeInput<TestMetadata>(
+        context, metadata, "swept_grid_metadata");
+    ASSERT_NE(poseBuffer, nullptr);
+    ASSERT_NE(shapeBuffer, nullptr);
+    ASSERT_NE(metadataBuffer, nullptr);
+
+    GpuBroadPhase broadPhase;
+    GpuBroadPhase::Config config;
+    config.bodyCapacity = bodyCapacity;
+    config.candidatePairCapacity = 64;
+    config.pairCapacity = 64;
+    config.contactCapacity = 64;
+    config.cellSize = 4.0f;
+    config.speculativeMargin = 0.02f;
+    config.workgroupSize = 128;
+    ASSERT_TRUE(broadPhase.initialize(
+        context.getDevice(), context.getQueue(), config));
+    broadPhase.setBodyView({
+        poseBuffer, shapeBuffer, metadataBuffer, bodyCapacity});
+
+    const BroadPhaseSnapshot snapshot = runAndRead(context, broadPhase);
+    const std::vector<PairKey> expected = {{0u, 1u, false}};
+    EXPECT_EQ(snapshotPairs(snapshot), expected);
+    EXPECT_EQ(snapshot.telemetry.gridEntries, 2u);
+    EXPECT_EQ(snapshot.telemetry.oversizedBodies, 1u);
+    EXPECT_FALSE(snapshot.telemetry.candidateOverflow);
+    EXPECT_FALSE(snapshot.telemetry.pairOverflow);
+    EXPECT_FALSE(snapshot.telemetry.contactOverflow);
+
+    releaseBuffer(metadataBuffer);
+    releaseBuffer(shapeBuffer);
+    releaseBuffer(poseBuffer);
+}
+
 INSTANTIATE_TEST_SUITE_P(
     TuningProfiles, GpuBroadPhaseTest,
     ::testing::Values(64u, 128u, 256u));
