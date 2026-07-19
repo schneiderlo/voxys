@@ -44,9 +44,15 @@ BlitPath::BlitPath(BlitPath&& other) noexcept
     , shaderModule_(other.shaderModule_)
     , pipelineLayout_(other.pipelineLayout_)
     , pipeline_(other.pipeline_)
+    , cachedPipelineLayout_(other.cachedPipelineLayout_)
+    , cachedPipeline_(other.cachedPipeline_)
     , bindGroupLayout_(other.bindGroupLayout_)
     , bindGroup_(other.bindGroup_)
+    , cachedBindGroupLayout_(other.cachedBindGroupLayout_)
+    , staticBindGroup_(other.staticBindGroup_)
+    , cachedBindGroup_(other.cachedBindGroup_)
     , uniformBuffer_(other.uniformBuffer_)
+    , staticUniformBuffer_(other.staticUniformBuffer_)
     , debugUniformBuffer_(other.debugUniformBuffer_)
     , sampler_(other.sampler_)
     , skyLutShaderModule_(other.skyLutShaderModule_)
@@ -60,9 +66,15 @@ BlitPath::BlitPath(BlitPath&& other) noexcept
     , waterNoiseTexture_(other.waterNoiseTexture_)
     , waterNoiseView_(other.waterNoiseView_)
     , noiseSampler_(other.noiseSampler_)
+    , backgroundTexture_(other.backgroundTexture_)
+    , backgroundView_(other.backgroundView_)
+    , outputWidth_(other.outputWidth_)
+    , outputHeight_(other.outputHeight_)
     , depthView_(other.depthView_)
     , shadowView_(other.shadowView_)
     , materialView_(other.materialView_)
+    , staticDepthView_(other.staticDepthView_)
+    , staticShadowView_(other.staticShadowView_)
     , terrainView_(other.terrainView_)
     , lightmapView_(other.lightmapView_)
     , waterDisplacementView_(other.waterDisplacementView_)
@@ -72,9 +84,14 @@ BlitPath::BlitPath(BlitPath&& other) noexcept
     , terrainWidth_(other.terrainWidth_)
     , terrainHeight_(other.terrainHeight_)
     , uniforms_(other.uniforms_)
+    , staticUniforms_(other.staticUniforms_)
     , config_(other.config_)
     , uniformsDirty_(other.uniformsDirty_)
+    , staticUniformsDirty_(other.staticUniformsDirty_)
     , bindGroupDirty_(other.bindGroupDirty_)
+    , staticCacheActive_(other.staticCacheActive_)
+    , backgroundValid_(other.backgroundValid_)
+    , backgroundDirty_(other.backgroundDirty_)
     , debugMode_(other.debugMode_)
     , debugMaxDepth_(other.debugMaxDepth_)
     , debugUniformsDirty_(other.debugUniformsDirty_)
@@ -85,9 +102,15 @@ BlitPath::BlitPath(BlitPath&& other) noexcept
     other.shaderModule_ = nullptr;
     other.pipelineLayout_ = nullptr;
     other.pipeline_ = nullptr;
+    other.cachedPipelineLayout_ = nullptr;
+    other.cachedPipeline_ = nullptr;
     other.bindGroupLayout_ = nullptr;
     other.bindGroup_ = nullptr;
+    other.cachedBindGroupLayout_ = nullptr;
+    other.staticBindGroup_ = nullptr;
+    other.cachedBindGroup_ = nullptr;
     other.uniformBuffer_ = nullptr;
+    other.staticUniformBuffer_ = nullptr;
     other.debugUniformBuffer_ = nullptr;
     other.sampler_ = nullptr;
     other.skyLutShaderModule_ = nullptr;
@@ -100,9 +123,13 @@ BlitPath::BlitPath(BlitPath&& other) noexcept
     other.waterNoiseTexture_ = nullptr;
     other.waterNoiseView_ = nullptr;
     other.noiseSampler_ = nullptr;
+    other.backgroundTexture_ = nullptr;
+    other.backgroundView_ = nullptr;
     other.depthView_ = nullptr;
     other.shadowView_ = nullptr;
     other.materialView_ = nullptr;
+    other.staticDepthView_ = nullptr;
+    other.staticShadowView_ = nullptr;
     other.terrainView_ = nullptr;
     other.lightmapView_ = nullptr;
     other.waterDisplacementView_ = nullptr;
@@ -110,6 +137,7 @@ BlitPath::BlitPath(BlitPath&& other) noexcept
     other.waterCoastView_ = nullptr;
     other.waterDisplacementSampler_ = nullptr;
     other.uniforms_ = nullptr;
+    other.staticUniforms_ = nullptr;
 }
 
 BlitPath& BlitPath::operator=(BlitPath&& other) noexcept {
@@ -121,9 +149,15 @@ BlitPath& BlitPath::operator=(BlitPath&& other) noexcept {
         shaderModule_ = other.shaderModule_;
         pipelineLayout_ = other.pipelineLayout_;
         pipeline_ = other.pipeline_;
+        cachedPipelineLayout_ = other.cachedPipelineLayout_;
+        cachedPipeline_ = other.cachedPipeline_;
         bindGroupLayout_ = other.bindGroupLayout_;
         bindGroup_ = other.bindGroup_;
+        cachedBindGroupLayout_ = other.cachedBindGroupLayout_;
+        staticBindGroup_ = other.staticBindGroup_;
+        cachedBindGroup_ = other.cachedBindGroup_;
         uniformBuffer_ = other.uniformBuffer_;
+        staticUniformBuffer_ = other.staticUniformBuffer_;
         debugUniformBuffer_ = other.debugUniformBuffer_;
         sampler_ = other.sampler_;
         skyLutShaderModule_ = other.skyLutShaderModule_;
@@ -137,9 +171,15 @@ BlitPath& BlitPath::operator=(BlitPath&& other) noexcept {
         waterNoiseTexture_ = other.waterNoiseTexture_;
         waterNoiseView_ = other.waterNoiseView_;
         noiseSampler_ = other.noiseSampler_;
+        backgroundTexture_ = other.backgroundTexture_;
+        backgroundView_ = other.backgroundView_;
+        outputWidth_ = other.outputWidth_;
+        outputHeight_ = other.outputHeight_;
         depthView_ = other.depthView_;
         shadowView_ = other.shadowView_;
         materialView_ = other.materialView_;
+        staticDepthView_ = other.staticDepthView_;
+        staticShadowView_ = other.staticShadowView_;
         terrainView_ = other.terrainView_;
         lightmapView_ = other.lightmapView_;
         waterDisplacementView_ = other.waterDisplacementView_;
@@ -149,9 +189,14 @@ BlitPath& BlitPath::operator=(BlitPath&& other) noexcept {
         terrainWidth_ = other.terrainWidth_;
         terrainHeight_ = other.terrainHeight_;
         uniforms_ = other.uniforms_;
+        staticUniforms_ = other.staticUniforms_;
         config_ = other.config_;
         uniformsDirty_ = other.uniformsDirty_;
+        staticUniformsDirty_ = other.staticUniformsDirty_;
         bindGroupDirty_ = other.bindGroupDirty_;
+        staticCacheActive_ = other.staticCacheActive_;
+        backgroundValid_ = other.backgroundValid_;
+        backgroundDirty_ = other.backgroundDirty_;
         debugMode_ = other.debugMode_;
         debugMaxDepth_ = other.debugMaxDepth_;
         debugUniformsDirty_ = other.debugUniformsDirty_;
@@ -161,9 +206,15 @@ BlitPath& BlitPath::operator=(BlitPath&& other) noexcept {
         other.shaderModule_ = nullptr;
         other.pipelineLayout_ = nullptr;
         other.pipeline_ = nullptr;
+        other.cachedPipelineLayout_ = nullptr;
+        other.cachedPipeline_ = nullptr;
         other.bindGroupLayout_ = nullptr;
         other.bindGroup_ = nullptr;
+        other.cachedBindGroupLayout_ = nullptr;
+        other.staticBindGroup_ = nullptr;
+        other.cachedBindGroup_ = nullptr;
         other.uniformBuffer_ = nullptr;
+        other.staticUniformBuffer_ = nullptr;
         other.debugUniformBuffer_ = nullptr;
         other.sampler_ = nullptr;
         other.skyLutShaderModule_ = nullptr;
@@ -176,9 +227,13 @@ BlitPath& BlitPath::operator=(BlitPath&& other) noexcept {
         other.waterNoiseTexture_ = nullptr;
         other.waterNoiseView_ = nullptr;
         other.noiseSampler_ = nullptr;
+        other.backgroundTexture_ = nullptr;
+        other.backgroundView_ = nullptr;
         other.depthView_ = nullptr;
         other.shadowView_ = nullptr;
         other.materialView_ = nullptr;
+        other.staticDepthView_ = nullptr;
+        other.staticShadowView_ = nullptr;
         other.terrainView_ = nullptr;
         other.lightmapView_ = nullptr;
         other.waterDisplacementView_ = nullptr;
@@ -186,11 +241,20 @@ BlitPath& BlitPath::operator=(BlitPath&& other) noexcept {
         other.waterCoastView_ = nullptr;
         other.waterDisplacementSampler_ = nullptr;
         other.uniforms_ = nullptr;
+        other.staticUniforms_ = nullptr;
     }
     return *this;
 }
 
 void BlitPath::shutdown() {
+    if (cachedBindGroup_) {
+        wgpuBindGroupRelease(cachedBindGroup_);
+        cachedBindGroup_ = nullptr;
+    }
+    if (staticBindGroup_) {
+        wgpuBindGroupRelease(staticBindGroup_);
+        staticBindGroup_ = nullptr;
+    }
     if (bindGroup_) {
         wgpuBindGroupRelease(bindGroup_);
         bindGroup_ = nullptr;
@@ -198,6 +262,18 @@ void BlitPath::shutdown() {
     if (bindGroupLayout_) {
         wgpuBindGroupLayoutRelease(bindGroupLayout_);
         bindGroupLayout_ = nullptr;
+    }
+    if (cachedBindGroupLayout_) {
+        wgpuBindGroupLayoutRelease(cachedBindGroupLayout_);
+        cachedBindGroupLayout_ = nullptr;
+    }
+    if (cachedPipeline_) {
+        wgpuRenderPipelineRelease(cachedPipeline_);
+        cachedPipeline_ = nullptr;
+    }
+    if (cachedPipelineLayout_) {
+        wgpuPipelineLayoutRelease(cachedPipelineLayout_);
+        cachedPipelineLayout_ = nullptr;
     }
     if (pipeline_) {
         wgpuRenderPipelineRelease(pipeline_);
@@ -214,6 +290,10 @@ void BlitPath::shutdown() {
     if (uniformBuffer_) {
         wgpuBufferRelease(uniformBuffer_);
         uniformBuffer_ = nullptr;
+    }
+    if (staticUniformBuffer_) {
+        wgpuBufferRelease(staticUniformBuffer_);
+        staticUniformBuffer_ = nullptr;
     }
     if (debugUniformBuffer_) {
         wgpuBufferRelease(debugUniformBuffer_);
@@ -264,15 +344,27 @@ void BlitPath::shutdown() {
         wgpuSamplerRelease(noiseSampler_);
         noiseSampler_ = nullptr;
     }
+    if (backgroundView_) {
+        wgpuTextureViewRelease(backgroundView_);
+        backgroundView_ = nullptr;
+    }
+    if (backgroundTexture_) {
+        wgpuTextureRelease(backgroundTexture_);
+        backgroundTexture_ = nullptr;
+    }
 
     // Free heap-allocated uniforms
     delete uniforms_;
     uniforms_ = nullptr;
+    delete staticUniforms_;
+    staticUniforms_ = nullptr;
     
     // Note: We don't own texture views, so don't release them
     depthView_ = nullptr;
     shadowView_ = nullptr;
     materialView_ = nullptr;
+    staticDepthView_ = nullptr;
+    staticShadowView_ = nullptr;
     terrainView_ = nullptr;
     lightmapView_ = nullptr;
     waterDisplacementView_ = nullptr;
@@ -281,6 +373,11 @@ void BlitPath::shutdown() {
     waterDisplacementSampler_ = nullptr;
     device_ = nullptr;
     queue_ = nullptr;
+    outputWidth_ = 0;
+    outputHeight_ = 0;
+    staticCacheActive_ = false;
+    backgroundValid_ = false;
+    backgroundDirty_ = true;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -308,6 +405,8 @@ bool BlitPath::init(WGPUDevice device, WGPUQueue queue, const BlitPathConfig& co
     uniforms_ = new CameraUniforms();
     uniforms_->setTerrain(terrainWidth_, terrainHeight_, config.heightScale, 
                           config.cellScale, 1.0f, config.fogDensity);
+    staticUniforms_ = new CameraUniforms(*uniforms_);
+    updateStaticUniforms();
     
     // Create resources in order
     if (!createUniformBuffer()) {
@@ -347,6 +446,65 @@ bool BlitPath::init(WGPUDevice device, WGPUQueue queue, const BlitPathConfig& co
     }
 
     LOG_INFO("BlitPath initialized successfully");
+    return true;
+}
+
+bool BlitPath::resize(uint32_t width, uint32_t height) {
+    if (!device_ || width == 0 || height == 0) {
+        LOG_ERROR("BlitPath::resize: invalid device or dimensions");
+        return false;
+    }
+    if (width == outputWidth_ && height == outputHeight_ && backgroundView_) {
+        return true;
+    }
+
+    // These groups retain the old framebuffer-sized cache views.
+    if (staticBindGroup_) {
+        wgpuBindGroupRelease(staticBindGroup_);
+        staticBindGroup_ = nullptr;
+    }
+    if (cachedBindGroup_) {
+        wgpuBindGroupRelease(cachedBindGroup_);
+        cachedBindGroup_ = nullptr;
+    }
+    if (backgroundView_) {
+        wgpuTextureViewRelease(backgroundView_);
+        backgroundView_ = nullptr;
+    }
+    if (backgroundTexture_) {
+        wgpuTextureRelease(backgroundTexture_);
+        backgroundTexture_ = nullptr;
+    }
+
+    outputWidth_ = width;
+    outputHeight_ = height;
+    backgroundValid_ = false;
+    backgroundDirty_ = true;
+    bindGroupDirty_ = true;
+    return createBackgroundTexture();
+}
+
+bool BlitPath::createBackgroundTexture() {
+    gpu::TextureDesc desc = gpu::TextureDesc::renderTarget(
+        outputWidth_, outputHeight_, config_.colorFormat,
+        "blit_static_background");
+    backgroundTexture_ = gpu::createTexture(device_, desc);
+    if (!backgroundTexture_) {
+        LOG_ERROR("Failed to create static background texture");
+        return false;
+    }
+
+    gpu::TextureViewDesc viewDesc{};
+    viewDesc.label = "blit_static_background_view";
+    viewDesc.format = config_.colorFormat;
+    backgroundView_ = gpu::createTextureView(backgroundTexture_, viewDesc);
+    if (!backgroundView_) {
+        LOG_ERROR("Failed to create static background texture view");
+        return false;
+    }
+
+    LOG_DEBUG("Created static background cache: {}x{}", outputWidth_,
+              outputHeight_);
     return true;
 }
 
@@ -570,6 +728,13 @@ bool BlitPath::createUniformBuffer() {
         LOG_ERROR("Failed to create uniform buffer");
         return false;
     }
+
+    bufferDesc.label = "blit_static_camera_uniforms";
+    staticUniformBuffer_ = gpu::createBuffer(device_, bufferDesc);
+    if (!staticUniformBuffer_) {
+        LOG_ERROR("Failed to create static camera uniform buffer");
+        return false;
+    }
     
     // Create debug uniform buffer
     uint64_t debugAlignedSize = gpu::alignUniformBufferSize(sizeof(DebugUniforms));
@@ -588,6 +753,8 @@ bool BlitPath::createUniformBuffer() {
     
     // Upload initial data
     updateUniformBuffer();
+    gpu::writeBuffer(queue_, staticUniformBuffer_, 0, *staticUniforms_);
+    staticUniformsDirty_ = false;
     
     // Upload initial debug uniforms
     DebugUniforms debugUniforms;
@@ -655,7 +822,7 @@ bool BlitPath::createBindGroupLayout() {
             .texture(WGPUTextureSampleType_UnfilterableFloat, WGPUTextureViewDimension_2D, false),
         gpu::BindGroupLayoutEntry(3)
             .fragmentVisible()
-            .texture(WGPUTextureSampleType_UnfilterableFloat, WGPUTextureViewDimension_2D, false),
+            .texture(WGPUTextureSampleType_Float, WGPUTextureViewDimension_2D, false),
         gpu::BindGroupLayoutEntry(4)
             .fragmentVisible()
             .texture(WGPUTextureSampleType_Float, WGPUTextureViewDimension_2D, false),
@@ -695,6 +862,77 @@ bool BlitPath::createBindGroupLayout() {
     
     if (!bindGroupLayout_) {
         LOG_ERROR("Failed to create bind group layout");
+        return false;
+    }
+
+    // The settled-camera pipeline has one extra input: the exact terrain/sky
+    // color rendered when the static ray cache was refreshed.
+    std::array<gpu::BindGroupLayoutEntry, 16> cachedEntries = {
+        gpu::BindGroupLayoutEntry(0)
+            .vertexVisible()
+            .fragmentVisible()
+            .uniformBuffer(false, sizeof(CameraUniforms)),
+        gpu::BindGroupLayoutEntry(1)
+            .fragmentVisible()
+            .texture(WGPUTextureSampleType_UnfilterableFloat,
+                     WGPUTextureViewDimension_2D, false),
+        gpu::BindGroupLayoutEntry(2)
+            .fragmentVisible()
+            .texture(WGPUTextureSampleType_UnfilterableFloat,
+                     WGPUTextureViewDimension_2D, false),
+        gpu::BindGroupLayoutEntry(3)
+            .fragmentVisible()
+            .texture(WGPUTextureSampleType_Float,
+                     WGPUTextureViewDimension_2D, false),
+        gpu::BindGroupLayoutEntry(4)
+            .fragmentVisible()
+            .texture(WGPUTextureSampleType_Float,
+                     WGPUTextureViewDimension_2D, false),
+        gpu::BindGroupLayoutEntry(5)
+            .fragmentVisible()
+            .texture(WGPUTextureSampleType_Float,
+                     WGPUTextureViewDimension_2D, false),
+        gpu::BindGroupLayoutEntry(6)
+            .fragmentVisible()
+            .sampler(WGPUSamplerBindingType_Filtering),
+        gpu::BindGroupLayoutEntry(7)
+            .fragmentVisible()
+            .uniformBuffer(false, sizeof(DebugUniforms)),
+        gpu::BindGroupLayoutEntry(8)
+            .fragmentVisible()
+            .texture(WGPUTextureSampleType_Float,
+                     WGPUTextureViewDimension_2D, false),
+        gpu::BindGroupLayoutEntry(9)
+            .fragmentVisible()
+            .texture(WGPUTextureSampleType_Float,
+                     WGPUTextureViewDimension_2D, false),
+        gpu::BindGroupLayoutEntry(10)
+            .fragmentVisible()
+            .sampler(WGPUSamplerBindingType_Filtering),
+        gpu::BindGroupLayoutEntry(11)
+            .fragmentVisible()
+            .texture(WGPUTextureSampleType_Float,
+                     WGPUTextureViewDimension_2DArray, false),
+        gpu::BindGroupLayoutEntry(12)
+            .fragmentVisible()
+            .sampler(WGPUSamplerBindingType_Filtering),
+        gpu::BindGroupLayoutEntry(13)
+            .fragmentVisible()
+            .texture(WGPUTextureSampleType_Float,
+                     WGPUTextureViewDimension_2D, false),
+        gpu::BindGroupLayoutEntry(14)
+            .fragmentVisible()
+            .texture(WGPUTextureSampleType_Float,
+                     WGPUTextureViewDimension_2D, false),
+        gpu::BindGroupLayoutEntry(15)
+            .fragmentVisible()
+            .texture(WGPUTextureSampleType_Float,
+                     WGPUTextureViewDimension_2D, false)
+    };
+    cachedBindGroupLayout_ = gpu::createBindGroupLayout(
+        device_, cachedEntries, "blit_cached_bind_group_layout");
+    if (!cachedBindGroupLayout_) {
+        LOG_ERROR("Failed to create cached blit bind group layout");
         return false;
     }
     
@@ -770,7 +1008,26 @@ bool BlitPath::createPipeline(const BlitPathConfig& config) {
         LOG_ERROR("Failed to create blit render pipeline");
         return false;
     }
-    
+
+    std::array<WGPUBindGroupLayout, 1> cachedLayouts = {
+        cachedBindGroupLayout_
+    };
+    cachedPipelineLayout_ = gpu::createPipelineLayout(
+        device_, cachedLayouts, "blit_cached_pipeline_layout");
+    if (!cachedPipelineLayout_) {
+        LOG_ERROR("Failed to create cached blit pipeline layout");
+        return false;
+    }
+
+    WGPU_SET_ENTRY_POINT(fragmentState, "fsCached");
+    pipelineDesc.layout = cachedPipelineLayout_;
+    WGPU_SET_LABEL(pipelineDesc, "blit_cached_pipeline");
+    cachedPipeline_ = wgpuDeviceCreateRenderPipeline(device_, &pipelineDesc);
+    if (!cachedPipeline_) {
+        LOG_ERROR("Failed to create cached blit render pipeline");
+        return false;
+    }
+
     LOG_DEBUG("Created blit render pipeline");
     return true;
 }
@@ -815,7 +1072,14 @@ bool BlitPath::createBindGroup() {
         wgpuBindGroupRelease(bindGroup_);
         bindGroup_ = nullptr;
     }
-    
+    if (staticBindGroup_) {
+        wgpuBindGroupRelease(staticBindGroup_);
+        staticBindGroup_ = nullptr;
+    }
+    if (cachedBindGroup_) {
+        wgpuBindGroupRelease(cachedBindGroup_);
+        cachedBindGroup_ = nullptr;
+    }
     std::array<gpu::BindGroupEntry, 15> entries = {
         gpu::BindGroupEntry(0).buffer(uniformBuffer_, 0, sizeof(CameraUniforms)),
         gpu::BindGroupEntry(1).textureView(depthView_),
@@ -839,6 +1103,64 @@ bool BlitPath::createBindGroup() {
     if (!bindGroup_) {
         LOG_ERROR("Failed to create blit bind group");
         return false;
+    }
+
+    if (staticDepthView_ && staticShadowView_ && backgroundView_) {
+        std::array<gpu::BindGroupEntry, 15> staticEntries = {
+            gpu::BindGroupEntry(0).buffer(
+                staticUniformBuffer_, 0, sizeof(CameraUniforms)),
+            gpu::BindGroupEntry(1).textureView(staticDepthView_),
+            gpu::BindGroupEntry(2).textureView(staticShadowView_),
+            gpu::BindGroupEntry(3).textureView(materialView_),
+            gpu::BindGroupEntry(4).textureView(terrainView_),
+            gpu::BindGroupEntry(5).textureView(lightmapView_),
+            gpu::BindGroupEntry(6).sampler(sampler_),
+            gpu::BindGroupEntry(7).buffer(
+                debugUniformBuffer_, 0, sizeof(DebugUniforms)),
+            gpu::BindGroupEntry(8).textureView(skyLutView_),
+            gpu::BindGroupEntry(9).textureView(waterNoiseView_),
+            gpu::BindGroupEntry(10).sampler(noiseSampler_),
+            gpu::BindGroupEntry(11).textureView(waterDisplacementView_),
+            gpu::BindGroupEntry(12).sampler(waterDisplacementSampler_),
+            gpu::BindGroupEntry(13).textureView(waterFoamView_),
+            gpu::BindGroupEntry(14).textureView(waterCoastView_)
+        };
+        staticBindGroup_ = gpu::createBindGroup(
+            device_, bindGroupLayout_, staticEntries,
+            "blit_static_bind_group");
+        if (!staticBindGroup_) {
+            LOG_ERROR("Failed to create static blit bind group");
+            return false;
+        }
+
+        std::array<gpu::BindGroupEntry, 16> cachedEntries = {
+            gpu::BindGroupEntry(0).buffer(
+                uniformBuffer_, 0, sizeof(CameraUniforms)),
+            gpu::BindGroupEntry(1).textureView(depthView_),
+            gpu::BindGroupEntry(2).textureView(shadowView_),
+            gpu::BindGroupEntry(3).textureView(materialView_),
+            gpu::BindGroupEntry(4).textureView(terrainView_),
+            gpu::BindGroupEntry(5).textureView(lightmapView_),
+            gpu::BindGroupEntry(6).sampler(sampler_),
+            gpu::BindGroupEntry(7).buffer(
+                debugUniformBuffer_, 0, sizeof(DebugUniforms)),
+            gpu::BindGroupEntry(8).textureView(skyLutView_),
+            gpu::BindGroupEntry(9).textureView(waterNoiseView_),
+            gpu::BindGroupEntry(10).sampler(noiseSampler_),
+            gpu::BindGroupEntry(11).textureView(waterDisplacementView_),
+            gpu::BindGroupEntry(12).sampler(waterDisplacementSampler_),
+            gpu::BindGroupEntry(13).textureView(waterFoamView_),
+            gpu::BindGroupEntry(14).textureView(waterCoastView_),
+            gpu::BindGroupEntry(15).textureView(backgroundView_)
+        };
+        cachedBindGroup_ = gpu::createBindGroup(
+            device_, cachedBindGroupLayout_, cachedEntries,
+            "blit_cached_bind_group");
+        if (!cachedBindGroup_) {
+            LOG_ERROR("Failed to create cached blit bind group");
+            return false;
+        }
+
     }
     
     bindGroupDirty_ = false;
@@ -868,15 +1190,35 @@ void BlitPath::setMaterialTexture(WGPUTextureView materialView) {
     LOG_DEBUG("Set material texture view");
 }
 
+void BlitPath::setStaticTerrainTextures(WGPUTextureView depthView,
+                                        WGPUTextureView shadowView) {
+    staticDepthView_ = depthView;
+    staticShadowView_ = shadowView;
+    bindGroupDirty_ = true;
+    backgroundValid_ = false;
+    backgroundDirty_ = true;
+    LOG_DEBUG("Set camera-static terrain depth and shadow textures");
+}
+
+void BlitPath::setStaticCacheState(bool active,
+                                   bool terrainCacheRefreshed) {
+    staticCacheActive_ = active;
+    if (terrainCacheRefreshed) {
+        backgroundDirty_ = true;
+    }
+}
+
 void BlitPath::setTerrainTexture(WGPUTextureView terrainView) {
     terrainView_ = terrainView;
     bindGroupDirty_ = true;
+    backgroundDirty_ = true;
     LOG_DEBUG("Set terrain texture view");
 }
 
 void BlitPath::setLightmapTexture(WGPUTextureView lightmapView) {
     lightmapView_ = lightmapView;
     bindGroupDirty_ = true;
+    backgroundDirty_ = true;
     LOG_DEBUG("Set lightmap texture view");
 }
 
@@ -900,6 +1242,7 @@ void BlitPath::setTerrainSize(uint32_t width, uint32_t height) {
         uniforms_->setTerrain(width, height, config_.heightScale, config_.cellScale,
                               1.0f, config_.fogDensity);
         uniformsDirty_ = true;
+        updateStaticUniforms();
     }
     
     LOG_DEBUG("Set terrain size: {}x{}", width, height);
@@ -920,12 +1263,14 @@ void BlitPath::updateCamera(const glm::mat4& view, const glm::mat4& proj,
     uniforms_->setLightDirection(worldLightDir, view, ambientIntensity);
     
     uniformsDirty_ = true;
+    updateStaticUniforms();
 }
 
 void BlitPath::setLegoMode(bool enabled) {
     if (uniforms_) {
         uniforms_->setLegoMode(enabled);
         uniformsDirty_ = true;
+        updateStaticUniforms();
     }
 }
 
@@ -934,6 +1279,7 @@ void BlitPath::setCameraUniforms(const CameraUniforms& uniforms) {
 
     *uniforms_ = uniforms;
     uniformsDirty_ = true;
+    updateStaticUniforms();
 }
 
 void BlitPath::updateUniformBuffer() {
@@ -941,6 +1287,22 @@ void BlitPath::updateUniformBuffer() {
     
     gpu::writeBuffer(queue_, uniformBuffer_, 0, *uniforms_);
     uniformsDirty_ = false;
+}
+
+void BlitPath::updateStaticUniforms() {
+    if (!uniforms_ || !staticUniforms_) return;
+
+    CameraUniforms next = *uniforms_;
+    // Simulation time changes every frame but cannot affect static terrain or
+    // sky. All other fields remain exact so lighting/config edits invalidate.
+    next.waterMotion = glm::vec4(0.0f);
+    if (std::memcmp(staticUniforms_, &next, sizeof(CameraUniforms)) == 0) {
+        return;
+    }
+
+    *staticUniforms_ = next;
+    staticUniformsDirty_ = true;
+    backgroundDirty_ = true;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1000,38 +1362,61 @@ void BlitPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
         LOG_DEBUG("Baked sky LUT");
     }
 
-    // Create render pass
-    WGPURenderPassColorAttachment colorAttachment{};
-    colorAttachment.view = colorView;
-    colorAttachment.depthSlice = WGPU_DEPTH_SLICE_UNDEFINED;
-    colorAttachment.loadOp = WGPULoadOp_Clear;
-    colorAttachment.storeOp = WGPUStoreOp_Store;
-    colorAttachment.clearValue = {0.0, 0.0, 0.0, 1.0};
-    
-    WGPURenderPassDescriptor renderPassDesc{};
-    WGPU_SET_LABEL(renderPassDesc, "blit_render_pass");
-    renderPassDesc.colorAttachmentCount = 1;
-    renderPassDesc.colorAttachments = &colorAttachment;
-    // No depth attachment - depth was computed by ray-caster
-    gpu::CompatRenderPassTimestampWrites timestampWrites{};
-    if (timestampQuerySet) {
-        timestampWrites.querySet = timestampQuerySet;
-        timestampWrites.beginningOfPassWriteIndex = timestampBegin;
-        timestampWrites.endOfPassWriteIndex = timestampEnd;
-        renderPassDesc.timestampWrites = &timestampWrites;
+    const auto drawFullscreen = [&](WGPUTextureView target,
+                                    WGPURenderPipeline selectedPipeline,
+                                    WGPUBindGroup selectedBindGroup,
+                                    const char* label,
+                                    bool writeTimestamps) {
+        WGPURenderPassColorAttachment colorAttachment{};
+        colorAttachment.view = target;
+        colorAttachment.depthSlice = WGPU_DEPTH_SLICE_UNDEFINED;
+        colorAttachment.loadOp = WGPULoadOp_Clear;
+        colorAttachment.storeOp = WGPUStoreOp_Store;
+        colorAttachment.clearValue = {0.0, 0.0, 0.0, 1.0};
+
+        WGPURenderPassDescriptor renderPassDesc{};
+        WGPU_SET_LABEL(renderPassDesc, label);
+        renderPassDesc.colorAttachmentCount = 1;
+        renderPassDesc.colorAttachments = &colorAttachment;
+        gpu::CompatRenderPassTimestampWrites timestampWrites{};
+        if (writeTimestamps && timestampQuerySet) {
+            timestampWrites.querySet = timestampQuerySet;
+            timestampWrites.beginningOfPassWriteIndex = timestampBegin;
+            timestampWrites.endOfPassWriteIndex = timestampEnd;
+            renderPassDesc.timestampWrites = &timestampWrites;
+        }
+
+        WGPURenderPassEncoder renderPass =
+            wgpuCommandEncoderBeginRenderPass(encoder, &renderPassDesc);
+        wgpuRenderPassEncoderSetPipeline(renderPass, selectedPipeline);
+        wgpuRenderPassEncoderSetBindGroup(
+            renderPass, 0, selectedBindGroup, 0, nullptr);
+        wgpuRenderPassEncoderDraw(renderPass, 3, 1, 0, 0);
+        wgpuRenderPassEncoderEnd(renderPass);
+        wgpuRenderPassEncoderRelease(renderPass);
+    };
+
+    const bool useCachedPath = staticCacheActive_ && backgroundView_ &&
+        staticBindGroup_ && cachedBindGroup_ && cachedPipeline_;
+    if (useCachedPath && (!backgroundValid_ || backgroundDirty_)) {
+        if (staticUniformsDirty_) {
+            gpu::writeBuffer(queue_, staticUniformBuffer_, 0,
+                             *staticUniforms_);
+            staticUniformsDirty_ = false;
+        }
+        drawFullscreen(backgroundView_, pipeline_, staticBindGroup_,
+                       "blit_static_background_pass", false);
+        backgroundValid_ = true;
+        backgroundDirty_ = false;
     }
-    
-    WGPURenderPassEncoder renderPass = wgpuCommandEncoderBeginRenderPass(encoder, &renderPassDesc);
-    
-    // Set pipeline and bind group
-    wgpuRenderPassEncoderSetPipeline(renderPass, pipeline_);
-    wgpuRenderPassEncoderSetBindGroup(renderPass, 0, bindGroup_, 0, nullptr);
-    
-    // Draw fullscreen triangle (3 vertices, no index buffer)
-    wgpuRenderPassEncoderDraw(renderPass, 3, 1, 0, 0);
-    
-    wgpuRenderPassEncoderEnd(renderPass);
-    wgpuRenderPassEncoderRelease(renderPass);
+
+    if (useCachedPath && backgroundValid_) {
+        drawFullscreen(colorView, cachedPipeline_, cachedBindGroup_,
+                       "blit_cached_water_pass", true);
+    } else {
+        drawFullscreen(colorView, pipeline_, bindGroup_,
+                       "blit_render_pass", true);
+    }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1042,6 +1427,7 @@ void BlitPath::setDebugMode(uint32_t mode) {
     if (debugMode_ != mode) {
         debugMode_ = mode;
         debugUniformsDirty_ = true;
+        backgroundDirty_ = true;
     }
 }
 
@@ -1049,6 +1435,7 @@ void BlitPath::setDebugMaxDepth(float maxDepth) {
     if (debugMaxDepth_ != maxDepth) {
         debugMaxDepth_ = maxDepth;
         debugUniformsDirty_ = true;
+        backgroundDirty_ = true;
     }
 }
 

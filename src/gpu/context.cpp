@@ -32,6 +32,44 @@ struct Context::CallbackState {
     Context* context = nullptr;
 };
 
+namespace {
+
+#if !defined(VOXY_WASM)
+const char* presentModeToString(WGPUPresentMode mode) noexcept {
+    switch (mode) {
+        case WGPUPresentMode_Fifo: return "Fifo (VSync)";
+        case WGPUPresentMode_FifoRelaxed: return "FifoRelaxed";
+        case WGPUPresentMode_Immediate: return "Immediate (uncapped)";
+        case WGPUPresentMode_Mailbox: return "Mailbox";
+        default: return "Unknown";
+    }
+}
+
+bool supportsPresentMode(const WGPUSurfaceCapabilities& caps,
+                         WGPUPresentMode mode) noexcept {
+    for (size_t index = 0; index < caps.presentModeCount; ++index) {
+        if (caps.presentModes[index] == mode) return true;
+    }
+    return false;
+}
+
+WGPUPresentMode selectPresentMode(const WGPUSurfaceCapabilities& caps,
+                                  WGPUPresentMode requested) noexcept {
+    if (supportsPresentMode(caps, requested)) return requested;
+    if (requested == WGPUPresentMode_Immediate
+        && supportsPresentMode(caps, WGPUPresentMode_Mailbox)) {
+        return WGPUPresentMode_Mailbox;
+    }
+    if (supportsPresentMode(caps, WGPUPresentMode_Fifo)) {
+        return WGPUPresentMode_Fifo;
+    }
+    return caps.presentModeCount > 0u
+        ? caps.presentModes[0] : WGPUPresentMode_Fifo;
+}
+#endif
+
+} // namespace
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Constructor / Destructor
 // ─────────────────────────────────────────────────────────────────────────────
@@ -361,12 +399,27 @@ bool Context::createSurface(Window& window) {
     surfaceDesc.nextInChain = &windowsDesc.chain;
     
     #elif defined(__linux__)
-    // Linux: Use X11
+    WGPUSurfaceDescriptorFromWaylandSurface waylandDesc = {};
     WGPUSurfaceDescriptorFromXlibWindow x11Desc = {};
-    x11Desc.chain.sType = WGPUSType_SurfaceDescriptorFromXlibWindow;
-    x11Desc.display = window.getX11Display();
-    x11Desc.window = window.getX11Window();
-    surfaceDesc.nextInChain = &x11Desc.chain;
+    switch (window.getNativePlatform()) {
+        case NativeWindowPlatform::Wayland:
+            waylandDesc.chain.sType =
+                WGPUSType_SurfaceDescriptorFromWaylandSurface;
+            waylandDesc.display = window.getWaylandDisplay();
+            waylandDesc.surface = window.getWaylandSurface();
+            surfaceDesc.nextInChain = &waylandDesc.chain;
+            break;
+        case NativeWindowPlatform::X11:
+            x11Desc.chain.sType = WGPUSType_SurfaceDescriptorFromXlibWindow;
+            x11Desc.display = window.getX11Display();
+            x11Desc.window = window.getX11Window();
+            surfaceDesc.nextInChain = &x11Desc.chain;
+            break;
+        default:
+            LOG_ERROR("Unsupported Linux window backend: {}",
+                      nativeWindowPlatformName(window.getNativePlatform()));
+            return false;
+    }
     #endif
     
     surface_ = wgpuInstanceCreateSurface(instance_, &surfaceDesc);
@@ -375,7 +428,8 @@ bool Context::createSurface(Window& window) {
         return false;
     }
     
-    LOG_DEBUG("WebGPU surface created");
+    LOG_DEBUG("WebGPU surface created for {}",
+              nativeWindowPlatformName(window.getNativePlatform()));
     return true;
     
 #elif defined(VOXY_WASM)
@@ -640,6 +694,14 @@ bool Context::configureSurface(const ContextConfig& config) {
     // Use provided dimensions or default to reasonable size
     swapchainWidth_ = config.swapchainWidth > 0 ? config.swapchainWidth : 1280;
     swapchainHeight_ = config.swapchainHeight > 0 ? config.swapchainHeight : 720;
+
+    const WGPUPresentMode selectedPresentMode =
+        selectPresentMode(caps, config.presentMode);
+    if (selectedPresentMode != config.presentMode) {
+        LOG_WARN("Requested presentation mode {} is unavailable; using {}",
+                 presentModeToString(config.presentMode),
+                 presentModeToString(selectedPresentMode));
+    }
     
     WGPUSurfaceConfiguration surfaceConfig = {};
     surfaceConfig.device = device_;
@@ -650,16 +712,17 @@ bool Context::configureSurface(const ContextConfig& config) {
     surfaceConfig.alphaMode = WGPUCompositeAlphaMode_Auto;
     surfaceConfig.width = swapchainWidth_;
     surfaceConfig.height = swapchainHeight_;
-    surfaceConfig.presentMode = config.presentMode;
+    surfaceConfig.presentMode = selectedPresentMode;
     
     // Cache configuration
     lastSurfaceConfig_ = surfaceConfig;
 
     wgpuSurfaceConfigure(surface_, &surfaceConfig);
     
-    LOG_DEBUG("Surface configured: {}x{}, format={}", 
+    LOG_INFO("Surface configured: {}x{}, format={}, presentation={}",
               swapchainWidth_, swapchainHeight_,
-              textureFormatToString(swapchainFormat_));
+              textureFormatToString(swapchainFormat_),
+              presentModeToString(selectedPresentMode));
     
     // Free capabilities
     wgpuSurfaceCapabilitiesFreeMembers(caps);
@@ -755,7 +818,17 @@ void Context::setPresentMode(WGPUPresentMode mode) {
         return;
     }
 
-    if (lastSurfaceConfig_.presentMode == mode) {
+    WGPUSurfaceCapabilities caps = {};
+    wgpuSurfaceGetCapabilities(surface_, adapter_, &caps);
+    const WGPUPresentMode selectedMode = selectPresentMode(caps, mode);
+    wgpuSurfaceCapabilitiesFreeMembers(caps);
+    if (selectedMode != mode) {
+        LOG_WARN("Requested presentation mode {} is unavailable; using {}",
+                 presentModeToString(mode),
+                 presentModeToString(selectedMode));
+    }
+
+    if (lastSurfaceConfig_.presentMode == selectedMode) {
         return;
     }
 
@@ -770,13 +843,11 @@ void Context::setPresentMode(WGPUPresentMode mode) {
         currentTexture_ = nullptr;
     }
 
-    lastSurfaceConfig_.presentMode = mode;
+    lastSurfaceConfig_.presentMode = selectedMode;
     wgpuSurfaceConfigure(surface_, &lastSurfaceConfig_);
 
     LOG_INFO("Presentation mode changed to: {}",
-             (mode == WGPUPresentMode_Fifo) ? "Fifo (VSync)" :
-             (mode == WGPUPresentMode_Immediate) ? "Immediate (Uncapped)" :
-             (mode == WGPUPresentMode_Mailbox) ? "Mailbox" : "Unknown");
+             presentModeToString(selectedMode));
 #endif
 }
 

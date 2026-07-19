@@ -100,7 +100,6 @@ int main(int argc, char* argv[]) {
     appConfig.enableValidation = config.debug.enableValidation;
     appConfig.showFPS = config.debug.showStats;
     appConfig.fpsLogIntervalSeconds = 2.0f;
-
     // Automation settings
     appConfig.benchmarkOnStartup = config.automation.benchmark;
     appConfig.exitAfterBenchmark = config.automation.benchmark;

@@ -186,6 +186,7 @@ bool Application::init(const ApplicationConfig& config) {
     }
 
     config_ = config;
+    uncappedFPS_ = !config_.vsync;
     primitiveCullController_.reset();
 
     // Initialize teleport targets
@@ -274,6 +275,7 @@ bool Application::init(const ApplicationConfig& config) {
     LOG_INFO("  F6        - Toggle mip level heat map");
     LOG_INFO("  F7        - Toggle benchmark mode");
     LOG_INFO("  F8        - Toggle controller (free-fly/character)");
+    LOG_INFO("  F9        - Toggle uncapped/VSync presentation");
     LOG_INFO("  Escape    - Release mouse / Exit");
     LOG_INFO("  Wheel     - Select throwable object");
     LOG_INFO("  Left click- Capture mouse / throw selected object");
@@ -909,17 +911,18 @@ void Application::toggleRenderPath() {
 // ─────────────────────────────────────────────────────────────────────────────
 
 void Application::toggleUncappedFPS() {
-#if defined(VOXY_WASM)
     uncappedFPS_ = !uncappedFPS_;
-    LOG_INFO("Uncapped FPS mode: {}", uncappedFPS_ ? "ENABLED (VSync Off, Immediate Loop)" : "DISABLED (VSync On, RAF Loop)");
+    config_.vsync = !uncappedFPS_;
+    LOG_INFO("Uncapped FPS mode: {}", uncappedFPS_
+        ? "ENABLED (immediate presentation)"
+        : "DISABLED (FIFO VSync)");
 
     // Update GPU context immediately
     if (gpuContext_) {
         gpuContext_->setPresentMode(uncappedFPS_ ? WGPUPresentMode_Immediate : WGPUPresentMode_Fifo);
     }
+#if defined(VOXY_WASM)
     // Loop strategy update is handled by the platform entry point (entry.cpp) via isUncappedFPS()
-#else
-    LOG_WARN("Uncapped FPS toggling is currently only implemented for WASM builds.");
 #endif
 }
 
@@ -939,12 +942,24 @@ void Application::onResize(uint32_t width, uint32_t height) {
     if (gpuContext_) {
         gpuContext_->resizeSwapchain(width, height);
     }
+
+    if (config_.benchmarkOnStartup
+        && !createBenchmarkTarget(width, height)) {
+        LOG_ERROR("Failed to resize the benchmark render target to {}x{}",
+                  width, height);
+    }
     
     // Update camera aspect ratio
     if (camera_) {
         camera_->setAspectRatio(width, height);
     }
     
+    // Release the blit's framebuffer-sized cache bindings before the ray-caster
+    // replaces the borrowed depth/shadow views.
+    if (blitPath_) {
+        [[maybe_unused]] bool resized = blitPath_->resize(width, height);
+    }
+
     // Resize raycast path output textures
     if (raycastPath_) {
         [[maybe_unused]] bool resized = raycastPath_->resize(width, height);
@@ -953,6 +968,9 @@ void Application::onResize(uint32_t width, uint32_t height) {
             blitPath_->setDepthTexture(raycastPath_->getDepthOutputView());
             blitPath_->setShadowTexture(raycastPath_->getShadowOutputView());
             blitPath_->setMaterialTexture(raycastPath_->getMaterialOutputView());
+            blitPath_->setStaticTerrainTextures(
+                raycastPath_->getTerrainDepthCacheView(),
+                raycastPath_->getTerrainShadowCacheView());
         }
         if (primitivePath_) {
             primitivePath_->setRayDepthTexture(raycastPath_->getDepthOutputView());
@@ -1212,16 +1230,8 @@ bool Application::initGPU() {
 #endif
 
     if (config_.benchmarkOnStartup) {
-        gpu::TextureDesc targetDesc = gpu::TextureDesc::renderTarget(
-            gpuContext_->getSwapchainWidth(),
-            gpuContext_->getSwapchainHeight(),
-            gpuContext_->getSwapchainFormat(), "benchmark_offscreen_target");
-        targetDesc.usage = WGPUTextureUsage_RenderAttachment
-                         | WGPUTextureUsage_CopySrc;
-        benchmarkTargetTexture_ = gpu::createTexture(
-            gpuContext_->getDevice(), targetDesc);
-        benchmarkTargetView_ = gpu::createTextureView(benchmarkTargetTexture_);
-        if (!benchmarkTargetTexture_ || !benchmarkTargetView_) {
+        if (!createBenchmarkTarget(gpuContext_->getSwapchainWidth(),
+                                   gpuContext_->getSwapchainHeight())) {
             LOG_ERROR("Failed to create the benchmark offscreen target");
             return false;
         }
@@ -1229,6 +1239,32 @@ bool Application::initGPU() {
 
     LOG_DEBUG("GPU context initialized");
     return true;
+}
+
+bool Application::createBenchmarkTarget(uint32_t width, uint32_t height) {
+    if (!gpuContext_ || width == 0u || height == 0u) return false;
+
+    // Releasing the application handles is safe with in-flight submissions:
+    // WebGPU command buffers retain the resources they reference.
+    if (benchmarkTargetView_) {
+        wgpuTextureViewRelease(benchmarkTargetView_);
+        benchmarkTargetView_ = nullptr;
+    }
+    if (benchmarkTargetTexture_) {
+        wgpuTextureRelease(benchmarkTargetTexture_);
+        benchmarkTargetTexture_ = nullptr;
+    }
+
+    gpu::TextureDesc targetDesc = gpu::TextureDesc::renderTarget(
+        width, height, gpuContext_->getSwapchainFormat(),
+        "benchmark_offscreen_target");
+    targetDesc.usage = WGPUTextureUsage_RenderAttachment
+                     | WGPUTextureUsage_CopySrc;
+    benchmarkTargetTexture_ = gpu::createTexture(
+        gpuContext_->getDevice(), targetDesc);
+    if (!benchmarkTargetTexture_) return false;
+    benchmarkTargetView_ = gpu::createTextureView(benchmarkTargetTexture_);
+    return benchmarkTargetTexture_ && benchmarkTargetView_;
 }
 
 bool Application::initRenderGpuProfiling() {
@@ -1658,6 +1694,11 @@ bool Application::initRenderers() {
             LOG_ERROR("Failed to initialize blit path");
             return false;
         }
+        if (!blitPath_->resize(raycastPath_->getOutputWidth(),
+                               raycastPath_->getOutputHeight())) {
+            LOG_ERROR("Failed to create blit background cache");
+            return false;
+        }
 
         // Create placeholder terrain texture (white)
         {
@@ -1725,6 +1766,9 @@ bool Application::initRenderers() {
         blitPath_->setDepthTexture(raycastPath_->getDepthOutputView());
         blitPath_->setShadowTexture(raycastPath_->getShadowOutputView());
         blitPath_->setMaterialTexture(raycastPath_->getMaterialOutputView());
+        blitPath_->setStaticTerrainTextures(
+            raycastPath_->getTerrainDepthCacheView(),
+            raycastPath_->getTerrainShadowCacheView());
         blitPath_->setWaterSimulation(waterSimulation_->getOutputView(),
                                       waterSimulation_->getFoamView(),
                                       waterSimulation_->getCoastView(),
@@ -1848,6 +1892,9 @@ void Application::renderRaycastPath(WGPUCommandEncoder encoder, WGPUTextureView 
         raycastStage * kRenderGpuQueriesPerStage,
         raycastStage * kRenderGpuQueriesPerStage + 1u);
 
+    blitPath_->setStaticCacheState(
+        raycastPath_->isUsingStaticCache(),
+        raycastPath_->didRefreshStaticCache());
     // Render blit pass
     constexpr uint32_t blitStage =
         static_cast<uint32_t>(RenderGpuStage::LightingBlit);
@@ -2337,7 +2384,7 @@ void Application::handleKeyboardShortcuts() {
         toggleControllerMode();
     }
 
-    // F9 - toggle uncapped FPS mode (WASM only)
+    // F9 - toggle uncapped FPS mode
     if (input_->wasKeyPressed(Key::F9)) {
         toggleUncappedFPS();
     }

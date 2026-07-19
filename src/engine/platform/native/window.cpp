@@ -6,7 +6,18 @@
 #include "core/log.hpp"
 
 #include <atomic>
+#include <cstdlib>
+#include <string_view>
 #include <utility>
+
+#if defined(__linux__) && !defined(GLFW_EXPOSE_NATIVE_WAYLAND)
+struct wl_display;
+struct wl_surface;
+extern "C" {
+GLFWAPI wl_display* glfwGetWaylandDisplay(void);
+GLFWAPI wl_surface* glfwGetWaylandWindow(GLFWwindow* window);
+}
+#endif
 
 namespace voxy {
 
@@ -16,6 +27,18 @@ namespace voxy {
 
 static std::atomic<int> s_glfwRefCount{0};
 static bool s_glfwInitialized = false;
+
+const char* nativeWindowPlatformName(
+    NativeWindowPlatform platform) noexcept {
+    switch (platform) {
+        case NativeWindowPlatform::Cocoa: return "Cocoa";
+        case NativeWindowPlatform::Win32: return "Win32";
+        case NativeWindowPlatform::X11: return "X11";
+        case NativeWindowPlatform::Wayland: return "Wayland";
+        case NativeWindowPlatform::Unknown: return "unknown";
+    }
+    return "unknown";
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Global GLFW Management
@@ -27,21 +50,34 @@ bool Window::initGLFW() {
     }
     
     glfwSetErrorCallback(glfwErrorCallback);
-    // [FIX] Force X11 platform on Linux for wgpu-native compatibility
-    // wgpu-native (via Context::createSurface) currently expects an X11 Display pointer
+    bool requestedWayland = false;
     #if defined(__linux__)
-        #ifndef GLFW_PLATFORM
-        #define GLFW_PLATFORM 0x00050003
-        #endif
-        #ifndef GLFW_PLATFORM_X11
-        #define GLFW_PLATFORM_X11 0x00060002
-        #endif
-        glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_X11);
+        // Prefer the session-native backend.  On fractionally scaled desktops,
+        // forcing XWayland may expose a compositor supersampling buffer instead
+        // of the monitor's physical pixel dimensions.
+        const char* waylandDisplay = std::getenv("WAYLAND_DISPLAY");
+        requestedWayland = waylandDisplay != nullptr
+                        && std::string_view{waylandDisplay}.size() != 0u;
+        if (requestedWayland) {
+            glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_WAYLAND);
+        }
     #endif
     
     if (!glfwInit()) {
-        LOG_ERROR("Failed to initialize GLFW");
-        return false;
+        #if defined(__linux__)
+        if (requestedWayland) {
+            LOG_WARN("Native Wayland initialization failed; falling back to X11");
+            glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_X11);
+            if (!glfwInit()) {
+                LOG_ERROR("Failed to initialize GLFW on Wayland or X11");
+                return false;
+            }
+        } else
+        #endif
+        {
+            LOG_ERROR("Failed to initialize GLFW");
+            return false;
+        }
     }
     
     s_glfwInitialized = true;
@@ -78,6 +114,7 @@ Window::Window(Window&& other) noexcept
     , fbWidth_(other.fbWidth_)
     , fbHeight_(other.fbHeight_)
     , cursorCaptured_(other.cursorCaptured_)
+    , nativePlatform_(other.nativePlatform_)
     , onResize_(std::move(other.onResize_))
     , onClose_(std::move(other.onClose_))
     , onKey_(std::move(other.onKey_))
@@ -93,6 +130,7 @@ Window::Window(Window&& other) noexcept
     other.height_ = 0;
     other.fbWidth_ = 0;
     other.fbHeight_ = 0;
+    other.nativePlatform_ = NativeWindowPlatform::Unknown;
 }
 
 Window& Window::operator=(Window&& other) noexcept {
@@ -109,6 +147,7 @@ Window& Window::operator=(Window&& other) noexcept {
         fbWidth_ = other.fbWidth_;
         fbHeight_ = other.fbHeight_;
         cursorCaptured_ = other.cursorCaptured_;
+        nativePlatform_ = other.nativePlatform_;
         onResize_ = std::move(other.onResize_);
         onClose_ = std::move(other.onClose_);
         onKey_ = std::move(other.onKey_);
@@ -120,6 +159,7 @@ Window& Window::operator=(Window&& other) noexcept {
         other.height_ = 0;
         other.fbWidth_ = 0;
         other.fbHeight_ = 0;
+        other.nativePlatform_ = NativeWindowPlatform::Unknown;
     }
     return *this;
 }
@@ -174,11 +214,34 @@ bool Window::init(const WindowConfig& config) {
     // Get initial dimensions
     glfwGetWindowSize(window_, &width_, &height_);
     updateFramebufferSize();
+
+    #if defined(__APPLE__)
+        nativePlatform_ = NativeWindowPlatform::Cocoa;
+    #elif defined(_WIN32)
+        nativePlatform_ = NativeWindowPlatform::Win32;
+    #elif defined(__linux__)
+        switch (glfwGetPlatform()) {
+            case GLFW_PLATFORM_WAYLAND:
+                nativePlatform_ = NativeWindowPlatform::Wayland;
+                break;
+            case GLFW_PLATFORM_X11:
+                nativePlatform_ = NativeWindowPlatform::X11;
+                break;
+            default:
+                nativePlatform_ = NativeWindowPlatform::Unknown;
+                break;
+        }
+    #endif
     
     ++s_glfwRefCount;
     
-    LOG_INFO("Window created: {}x{} (framebuffer: {}x{})", 
-             width_, height_, fbWidth_, fbHeight_);
+    float xscale = 1.0f;
+    float yscale = 1.0f;
+    glfwGetWindowContentScale(window_, &xscale, &yscale);
+    LOG_INFO("Window created via {}: {}x{} logical, {}x{} framebuffer "
+             "({:.2f}x{:.2f} scale)",
+             nativeWindowPlatformName(nativePlatform_), width_, height_,
+             fbWidth_, fbHeight_, xscale, yscale);
     
     return true;
 }
@@ -194,6 +257,7 @@ void Window::shutdown() {
     height_ = 0;
     fbWidth_ = 0;
     fbHeight_ = 0;
+    nativePlatform_ = NativeWindowPlatform::Unknown;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -259,11 +323,21 @@ void* Window::getWin32Instance() const {
     return GetModuleHandle(nullptr);
 }
 #elif defined(__linux__)
+void* Window::getWaylandDisplay() const {
+    return window_ && nativePlatform_ == NativeWindowPlatform::Wayland
+        ? glfwGetWaylandDisplay() : nullptr;
+}
+void* Window::getWaylandSurface() const {
+    return window_ && nativePlatform_ == NativeWindowPlatform::Wayland
+        ? glfwGetWaylandWindow(window_) : nullptr;
+}
 void* Window::getX11Display() const {
-    return window_ ? glfwGetX11Display() : nullptr;
+    return window_ && nativePlatform_ == NativeWindowPlatform::X11
+        ? glfwGetX11Display() : nullptr;
 }
 unsigned long Window::getX11Window() const {
-    return window_ ? glfwGetX11Window(window_) : 0;
+    return window_ && nativePlatform_ == NativeWindowPlatform::X11
+        ? glfwGetX11Window(window_) : 0;
 }
 #endif
 

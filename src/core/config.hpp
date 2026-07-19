@@ -164,6 +164,7 @@ struct CommandLineArgs {
     std::optional<int> box3dWorkerThreads;
     std::optional<int> width;
     std::optional<int> height;
+    std::optional<bool> vsync;
     bool fullscreen = false;
     std::optional<std::string> logLevel;
     bool noValidation = false;

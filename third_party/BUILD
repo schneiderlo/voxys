@@ -124,37 +124,13 @@ cc_library(
     includes = ["x11_headers/include"],
 )
 
-# GLFW (Linux/X11)
+# GLFW 3.4 supplied by the native toolchain.  The Nix shell provides a build
+# with both Wayland and X11 backends; keeping the vendored headers here also
+# preserves Bazel include paths for non-Nix system installations.
 cc_library(
     name = "glfw",
-    srcs = glob([
-        "glfw/src/context.c",
-        "glfw/src/init.c",
-        "glfw/src/input.c",
-        "glfw/src/monitor.c",
-        "glfw/src/vulkan.c",
-        "glfw/src/window.c",
-        "glfw/src/platform.c",
-        "glfw/src/null_*.c",
-        "glfw/src/x11_*.c",
-        "glfw/src/xkb_unicode.c",
-        "glfw/src/posix_*.c",
-        "glfw/src/linux_*.c",
-        "glfw/src/egl_context.c",
-        "glfw/src/glx_context.c",
-        "glfw/src/osmesa_context.c",
-        "glfw/src/internal.h",
-        "glfw/src/mappings.h",
-        "glfw/src/x11_platform.h",
-        "glfw/src/xkb_unicode.h",
-        "glfw/src/posix_*.h",
-        "glfw/src/linux_*.h",
-        "glfw/src/null_*.h",
-        "glfw/src/platform.h",
-    ]),
     hdrs = glob(["glfw/include/GLFW/*.h"]),
     includes = ["glfw/include"],
-    defines = ["_GLFW_X11"],
     deps = [":x11"],
-    linkopts = ["-lX11", "-lpthread", "-ldl", "-lrt", "-lm"],
+    linkopts = ["-lglfw"],
 )

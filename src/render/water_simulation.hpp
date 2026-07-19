@@ -107,6 +107,7 @@ private:
     WGPUBuffer initialSpectrumBuffer_ = nullptr;
     WGPUBuffer pongBuffer_ = nullptr;
     WGPUBuffer simulationUniformBuffer_ = nullptr;
+    WGPUBuffer fftTwiddleBuffer_ = nullptr;
     std::array<WGPUBuffer, 2> axisUniformBuffers_{};
 
     WGPUTexture outputTexture_ = nullptr;

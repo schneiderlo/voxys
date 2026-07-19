@@ -6,18 +6,51 @@ This project supports multiple build systems. **Bazel** is recommended for devel
 
 ## Nix Development Shell
 
-The repo includes `shell.nix` for local toolchain setup. Use it before fetching
-vendored third-party dependencies or building:
+The repo includes a flake and `shell.nix` for local toolchain setup. Use it
+before fetching vendored third-party dependencies or building:
 
 ```bash
 nix-shell
 ./scripts/fetch_deps.sh
-bazel build //:voxy_native
+bazel build -c opt //:voxy_native
 bazel test //tests:config
 ```
 
-The shell provides GCC, Bazelisk-backed `bazel`, CMake, Rust, `uv`, X11/Vulkan
-development libraries, and runtime library paths for native WebGPU runs.
+`nix develop` provides the same toolchain through `flake.nix`. `nix-shell` is
+recommended for this asset-heavy checkout because it does not copy the whole
+working tree into the Nix store.
+
+The shell provides GCC, Bazelisk-backed `bazel`, CMake, Rust, `uv`, dual-backend
+GLFW 3.4, Wayland/X11, Vulkan, and runtime paths for native WebGPU runs. Native
+Linux sessions prefer Wayland so fractional desktop scaling does not make the
+renderer process an oversized XWayland framebuffer; X11 remains the fallback.
+
+For physical-resolution fullscreen rendering without a display-refresh cap:
+
+```bash
+bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+```
+
+Use `--vsync` to opt back into FIFO presentation. Neither option changes the
+internal resolution scale or scene quality.
+
+The fullscreen performance path keeps the terrain, sky, shadow field, and
+depth result cached while the camera is stationary. The animated water stays
+live in a separate full-resolution compute/composite pass, including all three
+FFT cascades, coastal refraction, foam, SSR, and underwater shading. Moving the
+camera automatically invalidates and rebuilds the camera-dependent caches.
+
+Run the five-view native benchmark with:
+
+```bash
+bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+```
+
+On an AMD Radeon 890M at a physical 3440x1440 framebuffer, a warmed run measured
+303.3 FPS overall across 1500 frames. Individual views ranged from 226.3 FPS for
+the horizon-heavy case to 422.9 FPS at ground level; wide horizon and
+high-altitude views therefore still fall below 300 FPS even though aggregate
+throughput exceeds it.
 
 Physics is selected through a backend facade:
 

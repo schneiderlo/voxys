@@ -21,14 +21,26 @@
     #elif defined(_WIN32)
         #define GLFW_EXPOSE_NATIVE_WIN32
     #elif defined(__linux__)
-        // Check for Wayland vs X11 at runtime, but expose both
+        // GLFW 3.4 can select Wayland or X11 at runtime.  X11 needs its native
+        // types here; Wayland handles stay opaque to avoid leaking its headers
+        // through every consumer of this cross-platform interface.
         #define GLFW_EXPOSE_NATIVE_X11
-        // Note: Wayland support requires additional setup
     #endif
     #include <GLFW/glfw3native.h>
 #endif
 
 namespace voxy {
+
+enum class NativeWindowPlatform : uint8_t {
+    Unknown,
+    Cocoa,
+    Win32,
+    X11,
+    Wayland,
+};
+
+[[nodiscard]] const char* nativeWindowPlatformName(
+    NativeWindowPlatform platform) noexcept;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Window Configuration
@@ -91,6 +103,11 @@ public:
     
     // Check if window is valid/initialized
     [[nodiscard]] bool isValid() const;
+
+    // Native GLFW backend selected for this window.
+    [[nodiscard]] NativeWindowPlatform getNativePlatform() const noexcept {
+        return nativePlatform_;
+    }
     
     // ─────────────────────────────────────────────────────────────────────────
     // Dimensions
@@ -134,6 +151,10 @@ public:
     // Get Win32 instance handle (HINSTANCE)
     [[nodiscard]] void* getWin32Instance() const;
     #elif defined(__linux__)
+    // Get Wayland display (wl_display*)
+    [[nodiscard]] void* getWaylandDisplay() const;
+    // Get Wayland surface (wl_surface*)
+    [[nodiscard]] void* getWaylandSurface() const;
     // Get X11 display
     [[nodiscard]] void* getX11Display() const;
     // Get X11 window
@@ -184,6 +205,7 @@ private:
     int fbWidth_ = 0;
     int fbHeight_ = 0;
     bool cursorCaptured_ = false;
+    NativeWindowPlatform nativePlatform_ = NativeWindowPlatform::Unknown;
     
     // Callbacks
     ResizeCallback onResize_;
@@ -208,4 +230,3 @@ private:
 };
 
 } // namespace voxy
-

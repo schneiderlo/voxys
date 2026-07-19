@@ -94,7 +94,13 @@ endif()
 # https://github.com/glfw/glfw
 # ─────────────────────────────────────────────────────────────────────────────
 if(NOT EMSCRIPTEN)
-    if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/glfw/CMakeLists.txt")
+    # Prefer the toolchain GLFW 3.4 package because it is built with runtime
+    # Wayland/X11 selection.  Retain the vendored X11 build as a fallback for
+    # environments that do not provide a system package.
+    find_package(glfw3 3.4 QUIET CONFIG)
+    if(TARGET glfw)
+        message(STATUS "  GLFW: Found system package (Wayland + X11)")
+    elseif(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/glfw/CMakeLists.txt")
         # Disable GLFW extras
         set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
         set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
@@ -112,7 +118,7 @@ if(NOT EMSCRIPTEN)
         
         add_subdirectory(glfw)
         
-        message(STATUS "  GLFW: Found")
+        message(STATUS "  GLFW: Found vendored fallback")
     else()
         message(STATUS "  GLFW: Not found - run scripts/fetch_deps.sh")
     endif()

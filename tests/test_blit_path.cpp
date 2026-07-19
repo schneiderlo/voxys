@@ -151,10 +151,10 @@ protected:
         shadowView_ = gpu::createTextureView(shadowTexture_, shadowViewDesc);
         if (!shadowView_) return false;
 
-        // Create material texture (R32Float - from ray-caster)
+        // Create water-attribute texture (RGBA16Float - from ray-caster)
         gpu::TextureDesc materialDesc = gpu::TextureDesc::tex2D(
             320, 240,
-            WGPUTextureFormat_R32Float,
+            WGPUTextureFormat_RGBA16Float,
             WGPUTextureUsage_TextureBinding | WGPUTextureUsage_StorageBinding,
             "test_material_texture"
         );
@@ -163,7 +163,7 @@ protected:
 
         gpu::TextureViewDesc materialViewDesc{};
         materialViewDesc.label = "test_material_view";
-        materialViewDesc.format = WGPUTextureFormat_R32Float;
+        materialViewDesc.format = WGPUTextureFormat_RGBA16Float;
         materialView_ = gpu::createTextureView(materialTexture_, materialViewDesc);
         if (!materialView_) return false;
         

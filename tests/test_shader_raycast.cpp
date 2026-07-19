@@ -119,7 +119,7 @@ TEST_F(RaycastShaderTest, HasOutDepthBinding) {
         << "Shader missing outDepth storage texture declaration";
     EXPECT_NE(shaderSource_.find("var outShadow : texture_storage_2d<r32float, write>"), std::string::npos)
         << "Shader missing outShadow storage texture declaration";
-    EXPECT_NE(shaderSource_.find("var outMaterial : texture_storage_2d<r32float, write>"), std::string::npos)
+    EXPECT_NE(shaderSource_.find("var outMaterial : texture_storage_2d<rgba16float, write>"), std::string::npos)
         << "Shader missing outMaterial storage texture declaration";
 }
 

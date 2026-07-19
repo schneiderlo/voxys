@@ -101,6 +101,9 @@ public:
     /// Release all GPU resources
     void shutdown();
 
+    /// Resize the camera-static color cache to the physical framebuffer.
+    [[nodiscard]] bool resize(uint32_t width, uint32_t height);
+
     // ─────────────────────────────────────────────────────────────────────────
     // Input Bindings
     // ─────────────────────────────────────────────────────────────────────────
@@ -115,8 +118,15 @@ public:
     void setShadowTexture(WGPUTextureView shadowView);
 
     /// Set the material texture from the ray-cast pass.
-    /// Values: 0 sky, 1 terrain, 2 water.
+    /// RGBA16Float values for water: slope X, slope Z, crest, shore influence.
     void setMaterialTexture(WGPUTextureView materialView);
+
+    /// Set the ray-caster's camera-static terrain depth and shadow caches.
+    void setStaticTerrainTextures(WGPUTextureView depthView,
+                                  WGPUTextureView shadowView);
+
+    /// Select the cached settled-camera path for this frame.
+    void setStaticCacheState(bool active, bool terrainCacheRefreshed);
 
     /// Set the terrain albedo texture
     /// @param terrainView Texture view of terrain color/albedo
@@ -199,9 +209,11 @@ private:
     bool createBindGroupLayout();
     bool createPipeline(const BlitPathConfig& config);
     bool createBindGroup();
+    bool createBackgroundTexture();
     bool createSkyLut(const BlitPathConfig& config);
     bool createWaterNoise();
     void updateUniformBuffer();
+    void updateStaticUniforms();
 
     // ─────────────────────────────────────────────────────────────────────────
     // GPU Resources
@@ -214,13 +226,19 @@ private:
     WGPUShaderModule shaderModule_ = nullptr;
     WGPUPipelineLayout pipelineLayout_ = nullptr;
     WGPURenderPipeline pipeline_ = nullptr;
+    WGPUPipelineLayout cachedPipelineLayout_ = nullptr;
+    WGPURenderPipeline cachedPipeline_ = nullptr;
 
     // Bind group resources
     WGPUBindGroupLayout bindGroupLayout_ = nullptr;
     WGPUBindGroup bindGroup_ = nullptr;
+    WGPUBindGroupLayout cachedBindGroupLayout_ = nullptr;
+    WGPUBindGroup staticBindGroup_ = nullptr;
+    WGPUBindGroup cachedBindGroup_ = nullptr;
 
     // Buffers
     WGPUBuffer uniformBuffer_ = nullptr;
+    WGPUBuffer staticUniformBuffer_ = nullptr;
     WGPUBuffer debugUniformBuffer_ = nullptr;
 
     // Sampler
@@ -241,10 +259,18 @@ private:
     WGPUTextureView waterNoiseView_ = nullptr;
     WGPUSampler noiseSampler_ = nullptr;   // repeat addressing for tiling
 
+    // Full-resolution camera-static terrain/sky color.
+    WGPUTexture backgroundTexture_ = nullptr;
+    WGPUTextureView backgroundView_ = nullptr;
+    uint32_t outputWidth_ = 0;
+    uint32_t outputHeight_ = 0;
+
     // Input textures (not owned)
     WGPUTextureView depthView_ = nullptr;
     WGPUTextureView shadowView_ = nullptr;
     WGPUTextureView materialView_ = nullptr;
+    WGPUTextureView staticDepthView_ = nullptr;
+    WGPUTextureView staticShadowView_ = nullptr;
     WGPUTextureView terrainView_ = nullptr;
     WGPUTextureView lightmapView_ = nullptr;
     WGPUTextureView waterDisplacementView_ = nullptr;
@@ -258,9 +284,14 @@ private:
 
     // State
     CameraUniforms* uniforms_ = nullptr;  // Pointer to heap-allocated uniforms
+    CameraUniforms* staticUniforms_ = nullptr;
     BlitPathConfig config_ = BlitPathConfig::defaults();
     bool uniformsDirty_ = true;
+    bool staticUniformsDirty_ = true;
     bool bindGroupDirty_ = true;
+    bool staticCacheActive_ = false;
+    bool backgroundValid_ = false;
+    bool backgroundDirty_ = true;
     
     // Debug visualization state
     uint32_t debugMode_ = 0;

@@ -3,6 +3,7 @@
 let
   runtimeLibs = with pkgs; [
     libGL
+    glfw
     libx11
     libxcursor
     libxext
@@ -72,7 +73,8 @@ pkgs.mkShell {
 
     echo "voxys Nix shell"
     echo "  setup deps: ./scripts/fetch_deps.sh"
-    echo "  build:      bazel build //:voxy_native"
-    echo "  benchmark:  bazel run //:voxy_native -- --benchmark --no-validation"
+    echo "  build:      bazel build -c opt //:voxy_native"
+    echo "  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped"
+    echo "  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation"
   '';
 }

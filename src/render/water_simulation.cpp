@@ -428,6 +428,22 @@ bool WaterSimulation::createSpectrum() {
                 packed[index].displacementX = {
                     conjugateMirror.real(), conjugateMirror.imag()
                 };
+                const int32_t sx = x <= RESOLUTION / 2
+                    ? static_cast<int32_t>(x)
+                    : static_cast<int32_t>(x) - static_cast<int32_t>(RESOLUTION);
+                const int32_t sy = y <= RESOLUTION / 2
+                    ? static_cast<int32_t>(y)
+                    : static_cast<int32_t>(y) - static_cast<int32_t>(RESOLUTION);
+                const float indexLength = glm::length(glm::vec2(
+                    static_cast<float>(sx), static_cast<float>(sy)));
+                const float waveNumber = indexLength *
+                    (2.0f * std::numbers::pi_v<float> / kPatchLengths[cascade]);
+                // These two floats were padding. Evolve now reads its invariant
+                // angular frequency and reciprocal integer-space length here.
+                packed[index].padding = {
+                    std::sqrt(9.81f * waveNumber),
+                    indexLength > 1e-5f ? 1.0f / indexLength : 0.0f
+                };
             }
         }
     }
@@ -502,6 +518,29 @@ bool WaterSimulation::createBuffers() {
         return false;
     }
 
+    // All 256-point FFT workgroups use the same 255 radix-2 twiddles. Baking
+    // them once avoids millions of repeated sin/cos evaluations per frame.
+    std::array<glm::vec2, RESOLUTION - 1> twiddles{};
+    for (uint32_t stage = 0; stage < FFT_STAGE_COUNT; ++stage) {
+        const uint32_t halfSpan = 1u << stage;
+        const uint32_t span = halfSpan << 1u;
+        const uint32_t offset = halfSpan - 1u;
+        for (uint32_t j = 0; j < halfSpan; ++j) {
+            const float angle = 2.0f * std::numbers::pi_v<float> *
+                                static_cast<float>(j) /
+                                static_cast<float>(span);
+            twiddles[offset + j] = {std::cos(angle), std::sin(angle)};
+        }
+    }
+    auto twiddleDesc = gpu::BufferDesc::storage(
+        sizeof(twiddles), true, "water_fft_twiddles");
+    fftTwiddleBuffer_ = gpu::createBufferWithData(
+        device_, queue_, twiddleDesc,
+        std::span<const glm::vec2>(twiddles));
+    if (!fftTwiddleBuffer_) {
+        return false;
+    }
+
     for (uint32_t axis = 0; axis < axisUniformBuffers_.size(); ++axis) {
         SimParams params{.time = 0.0f, .stage = 0, .axis = axis, .size = RESOLUTION};
         auto desc = gpu::BufferDesc::uniform(sizeof(SimParams), "water_fft_axis_params");
@@ -542,10 +581,11 @@ bool WaterSimulation::createPipelines(const std::filesystem::path& shaderDirecto
                                        "water_fft.wgsl");
     if (!fftShader_) return false;
 
-    std::array<gpu::BindGroupLayoutEntry, 3> fftEntries = {
+    std::array<gpu::BindGroupLayoutEntry, 4> fftEntries = {
         gpu::BindGroupLayoutEntry(0).computeVisible().uniformBuffer(false, sizeof(SimParams)),
         gpu::BindGroupLayoutEntry(1).computeVisible().storageBuffer(true),
         gpu::BindGroupLayoutEntry(2).computeVisible().storageBuffer(false),
+        gpu::BindGroupLayoutEntry(3).computeVisible().storageBuffer(true),
     };
     fftBindGroupLayout_ = gpu::createBindGroupLayout(
         device_, fftEntries, "water_fft_bind_group_layout");
@@ -584,20 +624,24 @@ bool WaterSimulation::createPipelines(const std::filesystem::path& shaderDirecto
 
 bool WaterSimulation::createBindGroups() {
     const uint64_t byteSize = static_cast<uint64_t>(kElementCount) * sizeof(WaveData);
-    std::array<gpu::BindGroupEntry, 3> evolveEntries = {
+    std::array<gpu::BindGroupEntry, 4> evolveEntries = {
         gpu::BindGroupEntry(0).buffer(simulationUniformBuffer_, 0, sizeof(SimParams)),
         gpu::BindGroupEntry(1).buffer(initialSpectrumBuffer_, 0, byteSize),
         gpu::BindGroupEntry(2).buffer(pongBuffer_, 0, byteSize),
+        gpu::BindGroupEntry(3).buffer(
+            fftTwiddleBuffer_, 0, (RESOLUTION - 1u) * sizeof(glm::vec2)),
     };
     evolveBindGroup_ = gpu::createBindGroup(
         device_, fftBindGroupLayout_, evolveEntries, "water_evolve_bind_group");
     if (!evolveBindGroup_) return false;
 
     for (uint32_t axis = 0; axis < fftAxisBindGroups_.size(); ++axis) {
-        std::array<gpu::BindGroupEntry, 3> entries = {
+        std::array<gpu::BindGroupEntry, 4> entries = {
             gpu::BindGroupEntry(0).buffer(axisUniformBuffers_[axis], 0, sizeof(SimParams)),
             gpu::BindGroupEntry(1).buffer(initialSpectrumBuffer_, 0, byteSize),
             gpu::BindGroupEntry(2).buffer(pongBuffer_, 0, byteSize),
+            gpu::BindGroupEntry(3).buffer(
+                fftTwiddleBuffer_, 0, (RESOLUTION - 1u) * sizeof(glm::vec2)),
         };
         fftAxisBindGroups_[axis] = gpu::createBindGroup(
             device_, fftBindGroupLayout_, entries, "water_fft_axis_bind_group");
@@ -778,6 +822,7 @@ void WaterSimulation::shutdown() {
     if (outputTexture_) wgpuTextureRelease(outputTexture_);
     for (auto& buffer : axisUniformBuffers_) if (buffer) wgpuBufferRelease(buffer);
     if (simulationUniformBuffer_) wgpuBufferRelease(simulationUniformBuffer_);
+    if (fftTwiddleBuffer_) wgpuBufferRelease(fftTwiddleBuffer_);
     if (pongBuffer_) wgpuBufferRelease(pongBuffer_);
     if (initialSpectrumBuffer_) wgpuBufferRelease(initialSpectrumBuffer_);
 
@@ -815,6 +860,7 @@ void WaterSimulation::shutdown() {
     outputTexture_ = nullptr;
     axisUniformBuffers_.fill(nullptr);
     simulationUniformBuffer_ = nullptr;
+    fftTwiddleBuffer_ = nullptr;
     pongBuffer_ = nullptr;
     initialSpectrumBuffer_ = nullptr;
     device_ = nullptr;

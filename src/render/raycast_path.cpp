@@ -28,15 +28,26 @@ RaycastPath::RaycastPath(RaycastPath&& other) noexcept
     , shaderModule_(other.shaderModule_)
     , pipelineLayout_(other.pipelineLayout_)
     , pipeline_(other.pipeline_)
+    , compositeShaderModule_(other.compositeShaderModule_)
+    , compositePipelineLayout_(other.compositePipelineLayout_)
+    , compositePipeline_(other.compositePipeline_)
     , bindGroupLayout_(other.bindGroupLayout_)
     , bindGroup_(other.bindGroup_)
+    , staticBindGroup_(other.staticBindGroup_)
+    , compositeBindGroupLayout_(other.compositeBindGroupLayout_)
+    , compositeBindGroup_(other.compositeBindGroup_)
     , uniformBuffer_(other.uniformBuffer_)
+    , staticUniformBuffer_(other.staticUniformBuffer_)
     , depthOutputTexture_(other.depthOutputTexture_)
     , depthOutputView_(other.depthOutputView_)
     , shadowOutputTexture_(other.shadowOutputTexture_)
     , shadowOutputView_(other.shadowOutputView_)
     , materialOutputTexture_(other.materialOutputTexture_)
     , materialOutputView_(other.materialOutputView_)
+    , terrainDepthCacheTexture_(other.terrainDepthCacheTexture_)
+    , terrainDepthCacheView_(other.terrainDepthCacheView_)
+    , terrainShadowCacheTexture_(other.terrainShadowCacheTexture_)
+    , terrainShadowCacheView_(other.terrainShadowCacheView_)
     , outputWidth_(other.outputWidth_)
     , outputHeight_(other.outputHeight_)
     , heightmapView_(other.heightmapView_)
@@ -49,8 +60,14 @@ RaycastPath::RaycastPath(RaycastPath&& other) noexcept
     , waterCoastView_(other.waterCoastView_)
     , waterDisplacementSampler_(other.waterDisplacementSampler_)
     , uniforms_(other.uniforms_)
+    , staticUniforms_(other.staticUniforms_)
     , config_(other.config_)
     , uniformsDirty_(other.uniformsDirty_)
+    , staticUniformsDirty_(other.staticUniformsDirty_)
+    , staticCacheDirty_(other.staticCacheDirty_)
+    , staticStateChangedSinceDispatch_(other.staticStateChangedSinceDispatch_)
+    , usingStaticCache_(other.usingStaticCache_)
+    , staticCacheRefreshed_(other.staticCacheRefreshed_)
     , bindGroupDirty_(other.bindGroupDirty_)
 {
     // Null out the source
@@ -59,15 +76,26 @@ RaycastPath::RaycastPath(RaycastPath&& other) noexcept
     other.shaderModule_ = nullptr;
     other.pipelineLayout_ = nullptr;
     other.pipeline_ = nullptr;
+    other.compositeShaderModule_ = nullptr;
+    other.compositePipelineLayout_ = nullptr;
+    other.compositePipeline_ = nullptr;
     other.bindGroupLayout_ = nullptr;
     other.bindGroup_ = nullptr;
+    other.staticBindGroup_ = nullptr;
+    other.compositeBindGroupLayout_ = nullptr;
+    other.compositeBindGroup_ = nullptr;
     other.uniformBuffer_ = nullptr;
+    other.staticUniformBuffer_ = nullptr;
     other.depthOutputTexture_ = nullptr;
     other.depthOutputView_ = nullptr;
     other.shadowOutputTexture_ = nullptr;
     other.shadowOutputView_ = nullptr;
     other.materialOutputTexture_ = nullptr;
     other.materialOutputView_ = nullptr;
+    other.terrainDepthCacheTexture_ = nullptr;
+    other.terrainDepthCacheView_ = nullptr;
+    other.terrainShadowCacheTexture_ = nullptr;
+    other.terrainShadowCacheView_ = nullptr;
     other.heightmapView_ = nullptr;
     other.shadowMapView_ = nullptr;
     other.fallbackShadowTexture_ = nullptr;
@@ -76,6 +104,7 @@ RaycastPath::RaycastPath(RaycastPath&& other) noexcept
     other.waterCoastView_ = nullptr;
     other.waterDisplacementSampler_ = nullptr;
     other.uniforms_ = nullptr;
+    other.staticUniforms_ = nullptr;
 }
 
 RaycastPath& RaycastPath::operator=(RaycastPath&& other) noexcept {
@@ -87,15 +116,26 @@ RaycastPath& RaycastPath::operator=(RaycastPath&& other) noexcept {
         shaderModule_ = other.shaderModule_;
         pipelineLayout_ = other.pipelineLayout_;
         pipeline_ = other.pipeline_;
+        compositeShaderModule_ = other.compositeShaderModule_;
+        compositePipelineLayout_ = other.compositePipelineLayout_;
+        compositePipeline_ = other.compositePipeline_;
         bindGroupLayout_ = other.bindGroupLayout_;
         bindGroup_ = other.bindGroup_;
+        staticBindGroup_ = other.staticBindGroup_;
+        compositeBindGroupLayout_ = other.compositeBindGroupLayout_;
+        compositeBindGroup_ = other.compositeBindGroup_;
         uniformBuffer_ = other.uniformBuffer_;
+        staticUniformBuffer_ = other.staticUniformBuffer_;
         depthOutputTexture_ = other.depthOutputTexture_;
         depthOutputView_ = other.depthOutputView_;
         shadowOutputTexture_ = other.shadowOutputTexture_;
         shadowOutputView_ = other.shadowOutputView_;
         materialOutputTexture_ = other.materialOutputTexture_;
         materialOutputView_ = other.materialOutputView_;
+        terrainDepthCacheTexture_ = other.terrainDepthCacheTexture_;
+        terrainDepthCacheView_ = other.terrainDepthCacheView_;
+        terrainShadowCacheTexture_ = other.terrainShadowCacheTexture_;
+        terrainShadowCacheView_ = other.terrainShadowCacheView_;
         outputWidth_ = other.outputWidth_;
         outputHeight_ = other.outputHeight_;
         heightmapView_ = other.heightmapView_;
@@ -108,8 +148,14 @@ RaycastPath& RaycastPath::operator=(RaycastPath&& other) noexcept {
         waterCoastView_ = other.waterCoastView_;
         waterDisplacementSampler_ = other.waterDisplacementSampler_;
         uniforms_ = other.uniforms_;
+        staticUniforms_ = other.staticUniforms_;
         config_ = other.config_;
         uniformsDirty_ = other.uniformsDirty_;
+        staticUniformsDirty_ = other.staticUniformsDirty_;
+        staticCacheDirty_ = other.staticCacheDirty_;
+        staticStateChangedSinceDispatch_ = other.staticStateChangedSinceDispatch_;
+        usingStaticCache_ = other.usingStaticCache_;
+        staticCacheRefreshed_ = other.staticCacheRefreshed_;
         bindGroupDirty_ = other.bindGroupDirty_;
         
         other.device_ = nullptr;
@@ -117,15 +163,26 @@ RaycastPath& RaycastPath::operator=(RaycastPath&& other) noexcept {
         other.shaderModule_ = nullptr;
         other.pipelineLayout_ = nullptr;
         other.pipeline_ = nullptr;
+        other.compositeShaderModule_ = nullptr;
+        other.compositePipelineLayout_ = nullptr;
+        other.compositePipeline_ = nullptr;
         other.bindGroupLayout_ = nullptr;
         other.bindGroup_ = nullptr;
+        other.staticBindGroup_ = nullptr;
+        other.compositeBindGroupLayout_ = nullptr;
+        other.compositeBindGroup_ = nullptr;
         other.uniformBuffer_ = nullptr;
+        other.staticUniformBuffer_ = nullptr;
         other.depthOutputTexture_ = nullptr;
         other.depthOutputView_ = nullptr;
         other.shadowOutputTexture_ = nullptr;
         other.shadowOutputView_ = nullptr;
         other.materialOutputTexture_ = nullptr;
         other.materialOutputView_ = nullptr;
+        other.terrainDepthCacheTexture_ = nullptr;
+        other.terrainDepthCacheView_ = nullptr;
+        other.terrainShadowCacheTexture_ = nullptr;
+        other.terrainShadowCacheView_ = nullptr;
         other.heightmapView_ = nullptr;
         other.shadowMapView_ = nullptr;
         other.fallbackShadowTexture_ = nullptr;
@@ -134,14 +191,27 @@ RaycastPath& RaycastPath::operator=(RaycastPath&& other) noexcept {
         other.waterCoastView_ = nullptr;
         other.waterDisplacementSampler_ = nullptr;
         other.uniforms_ = nullptr;
+        other.staticUniforms_ = nullptr;
     }
     return *this;
 }
 
 void RaycastPath::shutdown() {
+    if (compositeBindGroup_) {
+        wgpuBindGroupRelease(compositeBindGroup_);
+        compositeBindGroup_ = nullptr;
+    }
+    if (staticBindGroup_) {
+        wgpuBindGroupRelease(staticBindGroup_);
+        staticBindGroup_ = nullptr;
+    }
     if (bindGroup_) {
         wgpuBindGroupRelease(bindGroup_);
         bindGroup_ = nullptr;
+    }
+    if (compositeBindGroupLayout_) {
+        wgpuBindGroupLayoutRelease(compositeBindGroupLayout_);
+        compositeBindGroupLayout_ = nullptr;
     }
     if (bindGroupLayout_) {
         wgpuBindGroupLayoutRelease(bindGroupLayout_);
@@ -151,6 +221,14 @@ void RaycastPath::shutdown() {
         wgpuComputePipelineRelease(pipeline_);
         pipeline_ = nullptr;
     }
+    if (compositePipeline_) {
+        wgpuComputePipelineRelease(compositePipeline_);
+        compositePipeline_ = nullptr;
+    }
+    if (compositePipelineLayout_) {
+        wgpuPipelineLayoutRelease(compositePipelineLayout_);
+        compositePipelineLayout_ = nullptr;
+    }
     if (pipelineLayout_) {
         wgpuPipelineLayoutRelease(pipelineLayout_);
         pipelineLayout_ = nullptr;
@@ -159,9 +237,17 @@ void RaycastPath::shutdown() {
         wgpuShaderModuleRelease(shaderModule_);
         shaderModule_ = nullptr;
     }
+    if (compositeShaderModule_) {
+        wgpuShaderModuleRelease(compositeShaderModule_);
+        compositeShaderModule_ = nullptr;
+    }
     if (uniformBuffer_) {
         wgpuBufferRelease(uniformBuffer_);
         uniformBuffer_ = nullptr;
+    }
+    if (staticUniformBuffer_) {
+        wgpuBufferRelease(staticUniformBuffer_);
+        staticUniformBuffer_ = nullptr;
     }
     if (depthOutputView_) {
         wgpuTextureViewRelease(depthOutputView_);
@@ -187,6 +273,22 @@ void RaycastPath::shutdown() {
         wgpuTextureRelease(materialOutputTexture_);
         materialOutputTexture_ = nullptr;
     }
+    if (terrainDepthCacheView_) {
+        wgpuTextureViewRelease(terrainDepthCacheView_);
+        terrainDepthCacheView_ = nullptr;
+    }
+    if (terrainDepthCacheTexture_) {
+        wgpuTextureRelease(terrainDepthCacheTexture_);
+        terrainDepthCacheTexture_ = nullptr;
+    }
+    if (terrainShadowCacheView_) {
+        wgpuTextureViewRelease(terrainShadowCacheView_);
+        terrainShadowCacheView_ = nullptr;
+    }
+    if (terrainShadowCacheTexture_) {
+        wgpuTextureRelease(terrainShadowCacheTexture_);
+        terrainShadowCacheTexture_ = nullptr;
+    }
     
     if (fallbackShadowView_) {
         wgpuTextureViewRelease(fallbackShadowView_);
@@ -200,6 +302,8 @@ void RaycastPath::shutdown() {
     // Free heap-allocated uniforms
     delete uniforms_;
     uniforms_ = nullptr;
+    delete staticUniforms_;
+    staticUniforms_ = nullptr;
 
     // Note: We don't own heightmapView_ or shadowMapView_, so don't release them
     heightmapView_ = nullptr;
@@ -209,6 +313,13 @@ void RaycastPath::shutdown() {
     waterDisplacementSampler_ = nullptr;
     device_ = nullptr;
     queue_ = nullptr;
+    uniformsDirty_ = true;
+    staticUniformsDirty_ = true;
+    staticCacheDirty_ = true;
+    staticStateChangedSinceDispatch_ = true;
+    usingStaticCache_ = false;
+    staticCacheRefreshed_ = false;
+    bindGroupDirty_ = true;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -239,6 +350,8 @@ bool RaycastPath::init(WGPUDevice device, WGPUQueue queue,
     // Allocate uniforms on heap (reuses CameraUniforms from triangle_path)
     uniforms_ = new CameraUniforms();
     uniforms_->setTerrain(256, 256, config.heightScale, config.cellScale, 1.0f, config.fogDensity);
+    staticUniforms_ = new CameraUniforms(*uniforms_);
+    updateStaticUniforms();
     
     // Create resources in order
     if (!createDepthOutputTexture()) {
@@ -306,7 +419,6 @@ bool RaycastPath::createDepthOutputTexture() {
         WGPUTextureFormat_R32Float,
         "raycast_depth_output"
     );
-    
     depthOutputTexture_ = gpu::createTexture(device_, depthDesc);
     
     if (!depthOutputTexture_) {
@@ -354,7 +466,7 @@ bool RaycastPath::createDepthOutputTexture() {
 
     gpu::TextureDesc materialDesc = gpu::TextureDesc::storage(
         outputWidth_, outputHeight_,
-        WGPUTextureFormat_R32Float,
+        WGPUTextureFormat_RGBA16Float,
         "raycast_material_output"
     );
 
@@ -367,7 +479,7 @@ bool RaycastPath::createDepthOutputTexture() {
 
     gpu::TextureViewDesc materialViewDesc{};
     materialViewDesc.label = "raycast_material_output_view";
-    materialViewDesc.format = WGPUTextureFormat_R32Float;
+    materialViewDesc.format = WGPUTextureFormat_RGBA16Float;
 
     materialOutputView_ = gpu::createTextureView(materialOutputTexture_, materialViewDesc);
 
@@ -375,8 +487,54 @@ bool RaycastPath::createDepthOutputTexture() {
         LOG_ERROR("Failed to create material output texture view");
         return false;
     }
+
+    // The expensive terrain traversal is invariant while the camera and terrain
+    // stay fixed. Cache its exact per-pixel depth so only animated water needs
+    // to be recomputed on settled frames.
+    gpu::TextureDesc cacheDesc = gpu::TextureDesc::storage(
+        outputWidth_, outputHeight_,
+        WGPUTextureFormat_R32Float,
+        "raycast_terrain_depth_cache"
+    );
+
+    terrainDepthCacheTexture_ = gpu::createTexture(device_, cacheDesc);
+    if (!terrainDepthCacheTexture_) {
+        LOG_ERROR("Failed to create terrain depth cache texture");
+        return false;
+    }
+
+    gpu::TextureViewDesc cacheViewDesc{};
+    cacheViewDesc.label = "raycast_terrain_depth_cache_view";
+    cacheViewDesc.format = WGPUTextureFormat_R32Float;
+    terrainDepthCacheView_ = gpu::createTextureView(
+        terrainDepthCacheTexture_, cacheViewDesc);
+    if (!terrainDepthCacheView_) {
+        LOG_ERROR("Failed to create terrain depth cache texture view");
+        return false;
+    }
+
+    gpu::TextureDesc shadowCacheDesc = gpu::TextureDesc::storage(
+        outputWidth_, outputHeight_,
+        WGPUTextureFormat_R32Float,
+        "raycast_terrain_shadow_cache"
+    );
+    terrainShadowCacheTexture_ = gpu::createTexture(device_, shadowCacheDesc);
+    if (!terrainShadowCacheTexture_) {
+        LOG_ERROR("Failed to create terrain shadow cache texture");
+        return false;
+    }
+
+    gpu::TextureViewDesc shadowCacheViewDesc{};
+    shadowCacheViewDesc.label = "raycast_terrain_shadow_cache_view";
+    shadowCacheViewDesc.format = WGPUTextureFormat_R32Float;
+    terrainShadowCacheView_ = gpu::createTextureView(
+        terrainShadowCacheTexture_, shadowCacheViewDesc);
+    if (!terrainShadowCacheView_) {
+        LOG_ERROR("Failed to create terrain shadow cache texture view");
+        return false;
+    }
     
-    LOG_DEBUG("Created raycast output textures: {}x{} depth/material/shadow R32Float",
+    LOG_DEBUG("Created raycast output textures: {}x{} depth/shadow R32Float, water data RGBA16Float",
               outputWidth_, outputHeight_);
     return true;
 }
@@ -400,9 +558,18 @@ bool RaycastPath::createUniformBuffer() {
         LOG_ERROR("Failed to create uniform buffer");
         return false;
     }
+
+    bufferDesc.label = "raycast_static_camera_uniforms";
+    staticUniformBuffer_ = gpu::createBuffer(device_, bufferDesc);
+    if (!staticUniformBuffer_) {
+        LOG_ERROR("Failed to create static terrain uniform buffer");
+        return false;
+    }
     
     // Upload initial data
     updateUniformBuffer();
+    gpu::writeBuffer(queue_, staticUniformBuffer_, 0, *staticUniforms_);
+    staticUniformsDirty_ = false;
     
     LOG_DEBUG("Created raycast uniform buffer: {} bytes (aligned from {})",
               alignedSize, sizeof(CameraUniforms));
@@ -419,7 +586,7 @@ bool RaycastPath::createBindGroupLayout() {
     // @group(0) @binding(1) var heightTex : texture_2d<u32>;
     // @group(0) @binding(2) var outDepth : texture_storage_2d<r32float, write>;
     // @group(0) @binding(3) var outShadow : texture_storage_2d<r32float, write>;
-    // @group(0) @binding(4) var outMaterial : texture_storage_2d<r32float, write>;
+    // @group(0) @binding(4) var outMaterial : texture_storage_2d<rgba16float, write>;
     // @group(0) @binding(5) var shadowHeightTex : texture_2d<u32>;
     // @group(0) @binding(6) var waterDisplacementTex : texture_2d_array<f32>;
     // @group(0) @binding(7) var waterDisplacementSampler : sampler;
@@ -445,7 +612,7 @@ bool RaycastPath::createBindGroupLayout() {
         gpu::BindGroupLayoutEntry(4)
             .computeVisible()
             .storageTexture(WGPUStorageTextureAccess_WriteOnly,
-                           WGPUTextureFormat_R32Float,
+                           WGPUTextureFormat_RGBA16Float,
                            WGPUTextureViewDimension_2D),
         gpu::BindGroupLayoutEntry(5)
             .computeVisible()
@@ -465,6 +632,61 @@ bool RaycastPath::createBindGroupLayout() {
     
     if (!bindGroupLayout_) {
         LOG_ERROR("Failed to create bind group layout");
+        return false;
+    }
+
+    // Layout for water_composite.wgsl. The cached R32Float terrain depth is a
+    // read-only texture here; final depth, shadow, and material remain the same
+    // full-resolution storage outputs consumed by RayBlitPath.
+    std::array<gpu::BindGroupLayoutEntry, 11> compositeEntries = {
+        gpu::BindGroupLayoutEntry(0)
+            .computeVisible()
+            .uniformBuffer(false, sizeof(CameraUniforms)),
+        gpu::BindGroupLayoutEntry(1)
+            .computeVisible()
+            .texture(WGPUTextureSampleType_Uint, WGPUTextureViewDimension_2D, false),
+        gpu::BindGroupLayoutEntry(2)
+            .computeVisible()
+            .texture(WGPUTextureSampleType_UnfilterableFloat,
+                     WGPUTextureViewDimension_2D, false),
+        gpu::BindGroupLayoutEntry(3)
+            .computeVisible()
+            .texture(WGPUTextureSampleType_UnfilterableFloat,
+                     WGPUTextureViewDimension_2D, false),
+        gpu::BindGroupLayoutEntry(4)
+            .computeVisible()
+            .storageTexture(WGPUStorageTextureAccess_WriteOnly,
+                           WGPUTextureFormat_R32Float,
+                           WGPUTextureViewDimension_2D),
+        gpu::BindGroupLayoutEntry(5)
+            .computeVisible()
+            .storageTexture(WGPUStorageTextureAccess_WriteOnly,
+                           WGPUTextureFormat_R32Float,
+                           WGPUTextureViewDimension_2D),
+        gpu::BindGroupLayoutEntry(6)
+            .computeVisible()
+            .storageTexture(WGPUStorageTextureAccess_WriteOnly,
+                           WGPUTextureFormat_RGBA16Float,
+                           WGPUTextureViewDimension_2D),
+        gpu::BindGroupLayoutEntry(7)
+            .computeVisible()
+            .texture(WGPUTextureSampleType_Uint, WGPUTextureViewDimension_2D, false),
+        gpu::BindGroupLayoutEntry(8)
+            .computeVisible()
+            .texture(WGPUTextureSampleType_Float,
+                     WGPUTextureViewDimension_2DArray, false),
+        gpu::BindGroupLayoutEntry(9)
+            .computeVisible()
+            .sampler(WGPUSamplerBindingType_Filtering),
+        gpu::BindGroupLayoutEntry(10)
+            .computeVisible()
+            .texture(WGPUTextureSampleType_Float, WGPUTextureViewDimension_2D, false)
+    };
+
+    compositeBindGroupLayout_ = gpu::createBindGroupLayout(
+        device_, compositeEntries, "water_composite_bind_group_layout");
+    if (!compositeBindGroupLayout_) {
+        LOG_ERROR("Failed to create water composite bind group layout");
         return false;
     }
     
@@ -507,6 +729,38 @@ bool RaycastPath::createPipeline(const RaycastPathConfig& config) {
         LOG_ERROR("Failed to create raycast compute pipeline");
         return false;
     }
+
+    const std::filesystem::path compositeShaderPath =
+        config.shaderPath.parent_path() / "water_composite.wgsl";
+    compositeShaderModule_ = gpu::loadShaderModule(
+        device_, compositeShaderPath, "water_composite.wgsl");
+    if (!compositeShaderModule_) {
+        LOG_ERROR("Failed to load water composite shader from: {}",
+                  compositeShaderPath.string());
+        return false;
+    }
+
+    std::array<WGPUBindGroupLayout, 1> compositeLayouts = {
+        compositeBindGroupLayout_
+    };
+    compositePipelineLayout_ = gpu::createPipelineLayout(
+        device_, compositeLayouts, "water_composite_pipeline_layout");
+    if (!compositePipelineLayout_) {
+        LOG_ERROR("Failed to create water composite pipeline layout");
+        return false;
+    }
+
+    WGPUComputePipelineDescriptor compositePipelineDesc{};
+    WGPU_SET_LABEL(compositePipelineDesc, "water_composite_pipeline");
+    compositePipelineDesc.layout = compositePipelineLayout_;
+    compositePipelineDesc.compute.module = compositeShaderModule_;
+    WGPU_SET_ENTRY_POINT(compositePipelineDesc.compute, "main");
+    compositePipeline_ = wgpuDeviceCreateComputePipeline(
+        device_, &compositePipelineDesc);
+    if (!compositePipeline_) {
+        LOG_ERROR("Failed to create water composite compute pipeline");
+        return false;
+    }
     
     LOG_DEBUG("Created raycast compute pipeline");
     return true;
@@ -536,6 +790,14 @@ bool RaycastPath::createBindGroup() {
         LOG_ERROR("Cannot create bind group: no material output view");
         return false;
     }
+    if (!terrainDepthCacheView_) {
+        LOG_ERROR("Cannot create bind group: no terrain depth cache view");
+        return false;
+    }
+    if (!terrainShadowCacheView_) {
+        LOG_ERROR("Cannot create bind group: no terrain shadow cache view");
+        return false;
+    }
     if (!waterDisplacementView_ || !waterCoastView_ || !waterDisplacementSampler_) {
         LOG_ERROR("Cannot create bind group: no FFT water simulation");
         return false;
@@ -545,6 +807,14 @@ bool RaycastPath::createBindGroup() {
     if (bindGroup_) {
         wgpuBindGroupRelease(bindGroup_);
         bindGroup_ = nullptr;
+    }
+    if (staticBindGroup_) {
+        wgpuBindGroupRelease(staticBindGroup_);
+        staticBindGroup_ = nullptr;
+    }
+    if (compositeBindGroup_) {
+        wgpuBindGroupRelease(compositeBindGroup_);
+        compositeBindGroup_ = nullptr;
     }
     
     std::array<gpu::BindGroupEntry, 9> entries = {
@@ -564,6 +834,47 @@ bool RaycastPath::createBindGroup() {
     
     if (!bindGroup_) {
         LOG_ERROR("Failed to create raycast bind group");
+        return false;
+    }
+
+    std::array<gpu::BindGroupEntry, 9> staticEntries = {
+        gpu::BindGroupEntry(0).buffer(staticUniformBuffer_, 0, sizeof(CameraUniforms)),
+        gpu::BindGroupEntry(1).textureView(heightmapView_),
+        gpu::BindGroupEntry(2).textureView(terrainDepthCacheView_),
+        gpu::BindGroupEntry(3).textureView(terrainShadowCacheView_),
+        gpu::BindGroupEntry(4).textureView(materialOutputView_),
+        gpu::BindGroupEntry(5).textureView(shadowMapView_ ? shadowMapView_
+                                                          : fallbackShadowView_),
+        gpu::BindGroupEntry(6).textureView(waterDisplacementView_),
+        gpu::BindGroupEntry(7).sampler(waterDisplacementSampler_),
+        gpu::BindGroupEntry(8).textureView(waterCoastView_)
+    };
+    staticBindGroup_ = gpu::createBindGroup(
+        device_, bindGroupLayout_, staticEntries, "raycast_static_bind_group");
+    if (!staticBindGroup_) {
+        LOG_ERROR("Failed to create static terrain bind group");
+        return false;
+    }
+
+    std::array<gpu::BindGroupEntry, 11> compositeEntries = {
+        gpu::BindGroupEntry(0).buffer(uniformBuffer_, 0, sizeof(CameraUniforms)),
+        gpu::BindGroupEntry(1).textureView(heightmapView_),
+        gpu::BindGroupEntry(2).textureView(terrainDepthCacheView_),
+        gpu::BindGroupEntry(3).textureView(terrainShadowCacheView_),
+        gpu::BindGroupEntry(4).textureView(depthOutputView_),
+        gpu::BindGroupEntry(5).textureView(shadowOutputView_),
+        gpu::BindGroupEntry(6).textureView(materialOutputView_),
+        gpu::BindGroupEntry(7).textureView(shadowMapView_ ? shadowMapView_
+                                                          : fallbackShadowView_),
+        gpu::BindGroupEntry(8).textureView(waterDisplacementView_),
+        gpu::BindGroupEntry(9).sampler(waterDisplacementSampler_),
+        gpu::BindGroupEntry(10).textureView(waterCoastView_)
+    };
+    compositeBindGroup_ = gpu::createBindGroup(
+        device_, compositeBindGroupLayout_, compositeEntries,
+        "water_composite_bind_group");
+    if (!compositeBindGroup_) {
+        LOG_ERROR("Failed to create water composite bind group");
         return false;
     }
     
@@ -589,7 +900,22 @@ bool RaycastPath::resize(uint32_t width, uint32_t height) {
     LOG_DEBUG("Resizing raycast output: {}x{} -> {}x{}", 
               outputWidth_, outputHeight_, width, height);
     
-    // Release old depth output resources
+    // Bind groups retain the old views. Release them before replacing the
+    // framebuffer-sized textures.
+    if (compositeBindGroup_) {
+        wgpuBindGroupRelease(compositeBindGroup_);
+        compositeBindGroup_ = nullptr;
+    }
+    if (staticBindGroup_) {
+        wgpuBindGroupRelease(staticBindGroup_);
+        staticBindGroup_ = nullptr;
+    }
+    if (bindGroup_) {
+        wgpuBindGroupRelease(bindGroup_);
+        bindGroup_ = nullptr;
+    }
+
+    // Release old output resources.
     if (depthOutputView_) {
         wgpuTextureViewRelease(depthOutputView_);
         depthOutputView_ = nullptr;
@@ -614,6 +940,22 @@ bool RaycastPath::resize(uint32_t width, uint32_t height) {
         wgpuTextureRelease(materialOutputTexture_);
         materialOutputTexture_ = nullptr;
     }
+    if (terrainDepthCacheView_) {
+        wgpuTextureViewRelease(terrainDepthCacheView_);
+        terrainDepthCacheView_ = nullptr;
+    }
+    if (terrainDepthCacheTexture_) {
+        wgpuTextureRelease(terrainDepthCacheTexture_);
+        terrainDepthCacheTexture_ = nullptr;
+    }
+    if (terrainShadowCacheView_) {
+        wgpuTextureViewRelease(terrainShadowCacheView_);
+        terrainShadowCacheView_ = nullptr;
+    }
+    if (terrainShadowCacheTexture_) {
+        wgpuTextureRelease(terrainShadowCacheTexture_);
+        terrainShadowCacheTexture_ = nullptr;
+    }
     
     outputWidth_ = width;
     outputHeight_ = height;
@@ -626,6 +968,7 @@ bool RaycastPath::resize(uint32_t width, uint32_t height) {
     
     // Need to recreate bind group with new depth output view
     bindGroupDirty_ = true;
+    staticCacheDirty_ = true;
     
     return true;
 }
@@ -644,10 +987,12 @@ void RaycastPath::setHeightmap(WGPUTextureView heightmapView, uint32_t width, ui
         uniforms_->setTerrain(width, height, config_.heightScale, config_.cellScale,
                               1.0f, config_.fogDensity);
         uniformsDirty_ = true;
+        updateStaticUniforms();
     }
     
     // Need to recreate bind group
     bindGroupDirty_ = true;
+    staticCacheDirty_ = true;
 
     LOG_DEBUG("Set heightmap: {}x{}", width, height);
 }
@@ -683,12 +1028,14 @@ void RaycastPath::updateCamera(const glm::mat4& view, const glm::mat4& proj,
     uniforms_->setLightDirection(worldLightDir, view, ambientIntensity);
     
     uniformsDirty_ = true;
+    updateStaticUniforms();
 }
 
 void RaycastPath::setLegoMode(bool enabled) {
     if (uniforms_) {
         uniforms_->setLegoMode(enabled);
         uniformsDirty_ = true;
+        updateStaticUniforms();
     }
 }
 
@@ -697,6 +1044,7 @@ void RaycastPath::setCameraUniforms(const CameraUniforms& uniforms) {
 
     *uniforms_ = uniforms;
     uniformsDirty_ = true;
+    updateStaticUniforms();
 }
 
 void RaycastPath::updateUniformBuffer() {
@@ -704,6 +1052,29 @@ void RaycastPath::updateUniformBuffer() {
     
     gpu::writeBuffer(queue_, uniformBuffer_, 0, *uniforms_);
     uniformsDirty_ = false;
+}
+
+void RaycastPath::updateStaticUniforms() {
+    if (!uniforms_ || !staticUniforms_) return;
+
+    CameraUniforms next = *uniforms_;
+
+    // The cached pass renders terrain only. Canonicalizing every water field
+    // prevents animated simulation time and art-control edits from invalidating
+    // terrain depth that they cannot affect.
+    next.waterParams = glm::vec4(0.0f);
+    next.waterColorA = glm::vec4(0.0f);
+    next.waterColorB = glm::vec4(0.0f);
+    next.waterMotion = glm::vec4(0.0f);
+
+    if (std::memcmp(staticUniforms_, &next, sizeof(CameraUniforms)) == 0) {
+        return;
+    }
+
+    *staticUniforms_ = next;
+    staticUniformsDirty_ = true;
+    staticCacheDirty_ = true;
+    staticStateChangedSinceDispatch_ = true;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -714,7 +1085,7 @@ void RaycastPath::dispatch(WGPUCommandEncoder encoder,
                            WGPUQuerySet timestampQuerySet,
                            uint32_t timestampBegin,
                            uint32_t timestampEnd) {
-    if (!pipeline_) {
+    if (!pipeline_ || !compositePipeline_) {
         LOG_WARN("RaycastPath::dispatch: not initialized");
         return;
     }
@@ -737,7 +1108,20 @@ void RaycastPath::dispatch(WGPUCommandEncoder encoder,
         }
     }
     
-    // Create compute pass
+    const bool legoMode = uniforms_ && uniforms_->invProjParams.z > 0.5f;
+    const bool useDirectPath = legoMode || staticStateChangedSinceDispatch_;
+    usingStaticCache_ = !useDirectPath;
+    staticCacheRefreshed_ = false;
+
+    // Upload the terrain-only snapshot only when it will actually be consumed.
+    if (!useDirectPath && staticCacheDirty_ && staticUniformsDirty_) {
+        gpu::writeBuffer(queue_, staticUniformBuffer_, 0, *staticUniforms_);
+        staticUniformsDirty_ = false;
+    }
+
+    // A changing view uses the original monolithic pass, avoiding extra work
+    // while the camera moves. Once settled, refresh terrain depth once and run
+    // only the much cheaper animated-water composite on subsequent frames.
     WGPUComputePassDescriptor computePassDesc{};
     WGPU_SET_LABEL(computePassDesc, "raycast_compute_pass");
     gpu::CompatPassTimestampWrites timestampWrites{};
@@ -750,16 +1134,33 @@ void RaycastPath::dispatch(WGPUCommandEncoder encoder,
     
     WGPUComputePassEncoder computePass = wgpuCommandEncoderBeginComputePass(encoder, &computePassDesc);
     
-    // Set pipeline and bind group
-    wgpuComputePassEncoderSetPipeline(computePass, pipeline_);
-    wgpuComputePassEncoderSetBindGroup(computePass, 0, bindGroup_, 0, nullptr);
-    
-    // Calculate workgroup counts
-    uint32_t workgroupsX = (outputWidth_ + WORKGROUP_SIZE_X - 1) / WORKGROUP_SIZE_X;
-    uint32_t workgroupsY = (outputHeight_ + WORKGROUP_SIZE_Y - 1) / WORKGROUP_SIZE_Y;
-    
-    // Dispatch
-    wgpuComputePassEncoderDispatchWorkgroups(computePass, workgroupsX, workgroupsY, 1);
+    const uint32_t workgroupsX = getWorkgroupCountX();
+    const uint32_t workgroupsY = getWorkgroupCountY();
+
+    if (useDirectPath) {
+        wgpuComputePassEncoderSetPipeline(computePass, pipeline_);
+        wgpuComputePassEncoderSetBindGroup(
+            computePass, 0, bindGroup_, 0, nullptr);
+        wgpuComputePassEncoderDispatchWorkgroups(
+            computePass, workgroupsX, workgroupsY, 1);
+        staticStateChangedSinceDispatch_ = false;
+    } else {
+        if (staticCacheDirty_) {
+            wgpuComputePassEncoderSetPipeline(computePass, pipeline_);
+            wgpuComputePassEncoderSetBindGroup(
+                computePass, 0, staticBindGroup_, 0, nullptr);
+            wgpuComputePassEncoderDispatchWorkgroups(
+                computePass, workgroupsX, workgroupsY, 1);
+            staticCacheDirty_ = false;
+            staticCacheRefreshed_ = true;
+        }
+
+        wgpuComputePassEncoderSetPipeline(computePass, compositePipeline_);
+        wgpuComputePassEncoderSetBindGroup(
+            computePass, 0, compositeBindGroup_, 0, nullptr);
+        wgpuComputePassEncoderDispatchWorkgroups(
+            computePass, workgroupsX, workgroupsY, 1);
+    }
     
     wgpuComputePassEncoderEnd(computePass);
     wgpuComputePassEncoderRelease(computePass);

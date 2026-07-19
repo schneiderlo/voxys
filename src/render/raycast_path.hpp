@@ -5,7 +5,7 @@
 // Features:
 //   - Compute shader ray-caster with 8×8 workgroups
 //   - Hierarchical traversal using max-height mip pyramid
-//   - R32Float depth, material, and packed shadow output textures for compositing
+//   - R32Float depth/shadow plus RGBA16Float water attributes for compositing
 //   - Distance-based LOD termination
 // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -179,6 +179,26 @@ public:
     /// Get material output texture (for advanced usage)
     [[nodiscard]] WGPUTexture getMaterialOutputTexture() const noexcept { return materialOutputTexture_; }
 
+    /// Get the camera-static terrain depth cache used by the water composite.
+    [[nodiscard]] WGPUTextureView getTerrainDepthCacheView() const noexcept {
+        return terrainDepthCacheView_;
+    }
+
+    /// Get the matching camera-static terrain shadow cache.
+    [[nodiscard]] WGPUTextureView getTerrainShadowCacheView() const noexcept {
+        return terrainShadowCacheView_;
+    }
+
+    /// True when this frame used the settled-camera terrain cache.
+    [[nodiscard]] bool isUsingStaticCache() const noexcept {
+        return usingStaticCache_;
+    }
+
+    /// True only on a frame which refreshed the settled-camera terrain cache.
+    [[nodiscard]] bool didRefreshStaticCache() const noexcept {
+        return staticCacheRefreshed_;
+    }
+
     /// Get current camera uniforms (for debugging)
     [[nodiscard]] const CameraUniforms& getUniforms() const noexcept;
 
@@ -197,6 +217,7 @@ private:
     bool createPipeline(const RaycastPathConfig& config);
     bool createBindGroup();
     void updateUniformBuffer();
+    void updateStaticUniforms();
 
     // ─────────────────────────────────────────────────────────────────────────
     // GPU Resources
@@ -209,13 +230,20 @@ private:
     WGPUShaderModule shaderModule_ = nullptr;
     WGPUPipelineLayout pipelineLayout_ = nullptr;
     WGPUComputePipeline pipeline_ = nullptr;
+    WGPUShaderModule compositeShaderModule_ = nullptr;
+    WGPUPipelineLayout compositePipelineLayout_ = nullptr;
+    WGPUComputePipeline compositePipeline_ = nullptr;
 
     // Bind group resources
     WGPUBindGroupLayout bindGroupLayout_ = nullptr;
     WGPUBindGroup bindGroup_ = nullptr;
+    WGPUBindGroup staticBindGroup_ = nullptr;
+    WGPUBindGroupLayout compositeBindGroupLayout_ = nullptr;
+    WGPUBindGroup compositeBindGroup_ = nullptr;
 
     // Buffers
     WGPUBuffer uniformBuffer_ = nullptr;
+    WGPUBuffer staticUniformBuffer_ = nullptr;
 
     // Output textures
     WGPUTexture depthOutputTexture_ = nullptr;
@@ -224,6 +252,10 @@ private:
     WGPUTextureView shadowOutputView_ = nullptr;
     WGPUTexture materialOutputTexture_ = nullptr;
     WGPUTextureView materialOutputView_ = nullptr;
+    WGPUTexture terrainDepthCacheTexture_ = nullptr;
+    WGPUTextureView terrainDepthCacheView_ = nullptr;
+    WGPUTexture terrainShadowCacheTexture_ = nullptr;
+    WGPUTextureView terrainShadowCacheView_ = nullptr;
     uint32_t outputWidth_ = 0;
     uint32_t outputHeight_ = 0;
 
@@ -244,8 +276,14 @@ private:
 
     // State
     CameraUniforms* uniforms_ = nullptr;  // Pointer to heap-allocated uniforms
+    CameraUniforms* staticUniforms_ = nullptr;
     RaycastPathConfig config_ = RaycastPathConfig::defaults();
     bool uniformsDirty_ = true;
+    bool staticUniformsDirty_ = true;
+    bool staticCacheDirty_ = true;
+    bool staticStateChangedSinceDispatch_ = true;
+    bool usingStaticCache_ = false;
+    bool staticCacheRefreshed_ = false;
     bool bindGroupDirty_ = true;
 };
 

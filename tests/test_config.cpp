@@ -170,6 +170,7 @@ TEST(CommandLineArgsTest, DefaultValues) {
     EXPECT_FALSE(args.box3dWorkerThreads.has_value());
     EXPECT_FALSE(args.width.has_value());
     EXPECT_FALSE(args.height.has_value());
+    EXPECT_FALSE(args.vsync.has_value());
     EXPECT_FALSE(args.fullscreen);
     EXPECT_FALSE(args.logLevel.has_value());
     EXPECT_FALSE(args.noValidation);
@@ -316,6 +317,20 @@ TEST(CommandLineArgsTest, MultipleArgs) {
     EXPECT_EQ(*args.width, 2560);
 }
 
+TEST(CommandLineArgsTest, PresentationOverrides) {
+    char* uncappedArgv[] = {
+        const_cast<char*>("voxy"), const_cast<char*>("--uncapped")};
+    const auto uncapped = parseArgs(2, uncappedArgv);
+    ASSERT_TRUE(uncapped.vsync.has_value());
+    EXPECT_FALSE(*uncapped.vsync);
+
+    char* vsyncArgv[] = {
+        const_cast<char*>("voxy"), const_cast<char*>("--vsync")};
+    const auto vsync = parseArgs(2, vsyncArgv);
+    ASSERT_TRUE(vsync.vsync.has_value());
+    EXPECT_TRUE(*vsync.vsync);
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Config File Loading Tests
 // ─────────────────────────────────────────────────────────────────────────────
@@ -439,6 +454,7 @@ height = 600
     args.renderPath = "triangle";
     args.physicsBackend = "webgpu";
     args.width = 1920;
+    args.vsync = false;
     
     auto config = load(testConfigPath, args);
     
@@ -446,6 +462,7 @@ height = 600
     EXPECT_EQ(config.physics.backend, "webgpu");
     EXPECT_EQ(config.window.width, 1920);        // Overridden
     EXPECT_EQ(config.window.height, 600);        // From file
+    EXPECT_FALSE(config.render.vsync);
 }
 
 TEST_F(ConfigFileTest, CommandLineBenchmarkEnablesAutomation) {

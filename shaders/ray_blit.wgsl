@@ -69,6 +69,9 @@ struct DebugUniforms {
 @group(0) @binding(12) var waterDisplacementSampler : sampler;
 @group(0) @binding(13) var waterFoamTex : texture_2d<f32>;
 @group(0) @binding(14) var waterCoastFieldTex : texture_2d<f32>;
+// Exact terrain/sky color for a settled camera. Only fsCached references it;
+// the direct and background-refresh pipelines retain their original layout.
+@group(0) @binding(15) var backgroundTex : texture_2d<f32>;
 
 const MATERIAL_SKY : u32 = 0u;
 const MATERIAL_TERRAIN : u32 = 1u;
@@ -292,17 +295,29 @@ fn sampleScreenTerrainReflection(origin : vec3<f32>, dir : vec3<f32>, dims : vec
         return vec4<f32>(0.0);
     }
     let stepCount = 24u;
+    var enteredViewport = false;
     for (var step = 1u; step <= stepCount; step++) {
         let s = f32(step) / f32(stepCount);
         let clip = mix(clipA, clipB, s);
-        if (clip.w <= 0.0) { continue; }
-        let ndc = clip.xy / clip.w;
-        if (any(ndc < vec2<f32>(-1.0, -1.0)) || any(ndc > vec2<f32>(1.0, 1.0))) {
+        if (clip.w <= 0.0) {
+            if (enteredViewport) { break; }
             continue;
         }
+        let ndc = clip.xy / clip.w;
+        if (any(ndc < vec2<f32>(-1.0, -1.0)) || any(ndc > vec2<f32>(1.0, 1.0))) {
+            // A projected line intersects the convex viewport in one interval;
+            // after leaving it cannot produce a later on-screen sample.
+            if (enteredViewport) { break; }
+            continue;
+        }
+        enteredViewport = true;
         let uv = vec2<f32>(ndc.x * 0.5 + 0.5, 0.5 - ndc.y * 0.5);
         let pixel = clamp(vec2<i32>(floor(uv * dimsF)), vec2<i32>(0, 0), maxCoord);
         let sceneDepth = textureLoad(depthTex, pixel, 0).x;
+        // Sky dominates most reflected rays. Reject it before reconstructing
+        // the candidate's world-space distance; this preserves every terrain
+        // hit while removing unnecessary vector math and a square root.
+        if (sceneDepth <= 0.0) { continue; }
 
         // Projection is linear in homogeneous coordinates. Because clip is the
         // same interpolation of the projected endpoints, its world-space point
@@ -311,8 +326,7 @@ fn sampleScreenTerrainReflection(origin : vec3<f32>, dir : vec3<f32>, dims : vec
         let candidateDepth = length(candidate - camera.cameraPos.xyz);
         let tolerance = max(4.0, candidateDepth * 0.06);
 
-        if (sceneDepth > 0.0 &&
-            abs(sceneDepth - candidateDepth) < tolerance) {
+        if (abs(sceneDepth - candidateDepth) < tolerance) {
             // Only accept terrain hits. Terrain shadows are in [0, 1], while
             // water stores signed depth + 1 and therefore has magnitude > 1.
             // Load this only after the much cheaper depth rejection succeeds.
@@ -596,21 +610,19 @@ fn fs(i : VSOut) -> @location(0) vec4<f32> {
     let packedShadow = textureLoad(shadowTex, pixelI, 0).x;
 
     // Terrain shadows are in [0, 1]. Water stores signed depth + 1 and its
-    // accepted depth is always above MIN_WATER_DEPTH, so these ranges cannot
+    // accepted water depth is always positive, so these ranges cannot
     // overlap. Only water needs the material texture's shoreline fraction.
     if (abs(packedShadow) > 1.0) {
-        let materialRaw = textureLoad(materialTex, pixelI, 0).x;
+        let waterData = textureLoad(materialTex, pixelI, 0);
         let viewDirWS = normalize(camera.cameraPos.xyz - posCWorld);
         // Water packs depth in the magnitude and its binary shadow in the sign.
         let waterDepth = max(abs(packedShadow) - 1.0, 0.0);
         let waterShadow = select(0.0, 1.0, packedShadow >= 0.0);
-        // Shore proximity computed once in the raycast pass (world space),
-        // unpacked from the material fraction. Replaces a 32-tap screen mask.
-        let shoreMask = clamp(
-            (materialRaw - f32(MATERIAL_WATER)) / 0.49, 0.0, 1.0);
-        // Compute the wave normal once, here, so the debug normal view shows
-        // the real surface normal instead of a flat placeholder.
-        let waterWave = waterWaveField(posCWorld.xz);
+        // The intersection pass already sampled this exact FFT/coastal field at
+        // the accepted hit. Reuse its slope and crest instead of evaluating the
+        // same wave four textures and trigonometry a second time.
+        let shoreMask = clamp(waterData.w, 0.0, 1.0);
+        let waterWave = vec4<f32>(0.0, waterData.x, waterData.y, waterData.z);
         let waterNormal = waterWaveNormal(waterWave);
         let waterColor = shadeWater(posCWorld, posCView, viewDirWS, waterNormal,
                                     waterWave.w, waterDepth, shoreMask, waterShadow, dims);
@@ -774,4 +786,47 @@ fn applyDebugVisualization(finalColor : vec3<f32>, depth : f32,
             return finalColor;
         }
     }
+}
+
+// Settled-camera specialization. Static terrain and sky are copied from the
+// exact full-resolution background refresh; only genuinely animated water
+// keeps the complete refraction, SSR, foam, caustics, and underwater model.
+@fragment
+fn fsCached(i : VSOut) -> @location(0) vec4<f32> {
+    let dims = textureDimensions(depthTex, 0);
+    let dimsF = vec2<f32>(f32(dims.x), f32(dims.y));
+    let maxCoord = vec2<i32>(i32(dims.x) - 1, i32(dims.y) - 1);
+    let pixelI = clamp(
+        vec2<i32>(floor(i.uv * dimsF)), vec2<i32>(0, 0), maxCoord);
+    let depthCenter = textureLoad(depthTex, pixelI, 0).x;
+
+    // Check depth first because sky pixels intentionally leave the other
+    // raycast outputs untouched.
+    if (depthCenter < 0.0) {
+        return textureLoad(backgroundTex, pixelI, 0);
+    }
+
+    let packedShadow = textureLoad(shadowTex, pixelI, 0).x;
+    if (abs(packedShadow) <= 1.0) {
+        return textureLoad(backgroundTex, pixelI, 0);
+    }
+
+    let ndcCenter = ndcFromPixel(pixelI, dimsF);
+    let posCView = viewPosFromDepth(
+        camera.invProjParams.xy, ndcCenter, depthCenter);
+    let posCWorld = viewToWorld(camera.invView, posCView);
+    let waterData = textureLoad(materialTex, pixelI, 0);
+    let viewDirWS = normalize(camera.cameraPos.xyz - posCWorld);
+    let waterDepth = max(abs(packedShadow) - 1.0, 0.0);
+    let waterShadow = select(0.0, 1.0, packedShadow >= 0.0);
+    let shoreMask = clamp(waterData.w, 0.0, 1.0);
+    let waterWave = vec4<f32>(
+        0.0, waterData.x, waterData.y, waterData.z);
+    let waterNormal = waterWaveNormal(waterWave);
+    let waterColor = shadeWater(
+        posCWorld, posCView, viewDirWS, waterNormal, waterWave.w,
+        waterDepth, shoreMask, waterShadow, dims);
+    let outputColor = applyDebugVisualization(
+        waterColor, depthCenter, waterNormal);
+    return vec4<f32>(outputColor, 1.0);
 }

@@ -17,6 +17,7 @@ struct WaveData {
 @group(0) @binding(0) var<uniform> params : SimParams;
 @group(0) @binding(1) var<storage, read> inputData : array<WaveData>;
 @group(0) @binding(2) var<storage, read_write> outputData : array<WaveData>;
+@group(0) @binding(3) var<storage, read> twiddleData : array<vec2<f32>>;
 
 const PI : f32 = 3.141592653589793;
 const GRAVITY : f32 = 9.81;
@@ -88,11 +89,8 @@ fn evolve(@builtin(global_invocation_id) gid : vec3<u32>) {
     let y = local / n;
     let sx = select(f32(x), f32(i32(x) - i32(n)), x > n / 2u);
     let sy = select(f32(y), f32(i32(y) - i32(n)), y > n / 2u);
-    let k = vec2<f32>(sx, sy) * (2.0 * PI / patchLength(cascade));
-    let kLength = length(k);
-
     let initial = inputData[index];
-    let omega = sqrt(GRAVITY * kLength);
+    let omega = initial.padding.x;
     // This inverse FFT uses +i*k*x. A negative temporal phase therefore makes
     // wind-favoured +k modes travel along +k instead of away from the wind.
     let phase = -omega * params.time;
@@ -103,10 +101,11 @@ fn evolve(@builtin(global_invocation_id) gid : vec3<u32>) {
 
     var result : WaveData;
     result.height = h;
-    if (kLength > 1e-5) {
+    if (initial.padding.y > 0.0) {
         let ih = vec2<f32>(-h.y, h.x);
-        result.displacementX = ih * (-k.x / kLength);
-        result.displacementZ = ih * (-k.y / kLength);
+        let invIndexLength = initial.padding.y;
+        result.displacementX = ih * (-sx * invIndexLength);
+        result.displacementZ = ih * (-sy * invIndexLength);
     } else {
         result.displacementX = vec2<f32>(0.0);
         result.displacementZ = vec2<f32>(0.0);
@@ -141,8 +140,7 @@ fn fftAxis(@builtin(local_invocation_id) lid : vec3<u32>,
             let j = sample - group * halfSpan;
             let i0 = group * span + j;
             let i1 = i0 + halfSpan;
-            let angle = 2.0 * PI * f32(j) / f32(span);
-            let twiddle = vec2<f32>(cos(angle), sin(angle));
+            let twiddle = twiddleData[halfSpan - 1u + j];
             let a = lineData[i0];
             let b = mulWave(lineData[i1], twiddle);
             lineData[i0] = addWave(a, b);

@@ -215,6 +215,10 @@ CommandLineArgs parseArgs(std::span<char*> args) {
             result.width = parseInt(args[++i], 1280);
         } else if (arg == "--height" && i + 1 < args.size()) {
             result.height = parseInt(args[++i], 720);
+        } else if (arg == "--vsync") {
+            result.vsync = true;
+        } else if (arg == "--uncapped" || arg == "--no-vsync") {
+            result.vsync = false;
         } else if (arg == "--fullscreen") {
             result.fullscreen = true;
         } else if (arg == "--log-level" && i + 1 < args.size()) {
@@ -273,6 +277,8 @@ void printHelp(std::string_view programName) {
         "  --box3d-workers <n>     Box3D worker threads (default: 1)\n"
         "  --width <n>             Window width\n"
         "  --height <n>            Window height\n"
+        "  --uncapped              Use immediate presentation (no refresh cap)\n"
+        "  --vsync                 Use FIFO presentation\n"
         "  --fullscreen            Start in fullscreen mode\n"
         "  --log-level <level>     Set log level (trace|debug|info|warn|error)\n"
         "  --no-validation         Disable WebGPU validation layers\n"
@@ -473,6 +479,7 @@ Config load(std::string_view path, const CommandLineArgs& args) {
     }
     if (args.width) config.window.width = *args.width;
     if (args.height) config.window.height = *args.height;
+    if (args.vsync) config.render.vsync = *args.vsync;
     if (args.fullscreen) config.window.fullscreen = true;
     if (args.logLevel) config.debug.logLevel = *args.logLevel;
     if (args.noValidation) config.debug.enableValidation = false;

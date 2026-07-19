@@ -497,6 +497,7 @@ private:
     bool initTerrain();
     bool initRenderers();
     bool initRenderGpuProfiling();
+    bool createBenchmarkTarget(uint32_t width, uint32_t height);
     bool spawnBenchmarkBodies();
     void retireBenchmarkSubmissions(bool drain);
     void setupCallbacks();
