@@ -1920,6 +1920,9 @@ void Application::renderRaycastPath(WGPUCommandEncoder encoder, WGPUTextureView 
     blitPath_->setStaticCacheState(
         raycastPath_->isUsingStaticCache(),
         raycastPath_->didRefreshStaticCache());
+    blitPath_->setLinearDepthRequired(
+        primitivePath_ && primitivePath_->isInitialized() &&
+        stats_.physicsResidentBodies != 0u);
     // Render blit pass
     constexpr uint32_t blitStage =
         static_cast<uint32_t>(RenderGpuStage::LightingBlit);

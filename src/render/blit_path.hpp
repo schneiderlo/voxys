@@ -143,6 +143,12 @@ public:
     /// Select the terrain-cache HDR composition path for this frame.
     void setStaticCacheState(bool active, bool terrainCacheRefreshed);
 
+    /// Preserve the combined scene linear-depth target for a later consumer.
+    /// Color-only frames use an otherwise identical single-target pipeline.
+    void setLinearDepthRequired(bool required) noexcept {
+        linearDepthRequired_ = required;
+    }
+
     /// Set the terrain albedo texture
     /// @param terrainView Texture view of terrain color/albedo
     void setTerrainTexture(WGPUTextureView terrainView);
@@ -245,8 +251,10 @@ private:
     WGPURenderPipeline backgroundPipeline_ = nullptr;
     WGPUPipelineLayout cachedPipelineLayout_ = nullptr;
     WGPURenderPipeline cachedPipeline_ = nullptr;
+    WGPURenderPipeline cachedColorPipeline_ = nullptr;
     WGPUShaderModule waterClipmapShaderModule_ = nullptr;
     WGPURenderPipeline waterClipmapPipeline_ = nullptr;
+    WGPURenderPipeline waterClipmapColorPipeline_ = nullptr;
     WGPUBuffer waterClipmapVertexBuffer_ = nullptr;
     WGPUBuffer waterClipmapIndexBuffer_ = nullptr;
     uint32_t waterClipmapIndexCount_ = 0;
@@ -334,6 +342,7 @@ private:
     bool staticCacheActive_ = false;
     bool backgroundValid_ = false;
     bool backgroundDirty_ = true;
+    bool linearDepthRequired_ = true;
     bool usedGeometryWaterPathLastRender_ = false;
     
     // Debug visualization state

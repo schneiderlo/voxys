@@ -186,6 +186,7 @@ const sampleState = () => evaluate(`(() => {
 })()`);
 
 let initial;
+let resizeRequested = false;
 const initializationDeadline = deadline();
 while (Date.now() < initializationDeadline) {
     initial = await sampleState();
@@ -199,6 +200,18 @@ while (Date.now() < initializationDeadline) {
                 errors: initial.gpuErrors,
             })}`,
         );
+    }
+    if (initial.initialized && !resizeRequested
+        && (initial.width !== options.expectedWidth
+            || initial.height !== options.expectedHeight)) {
+        await evaluate(`(() => {
+            const canvas = document.getElementById("voxy-canvas");
+            canvas.width = ${options.expectedWidth};
+            canvas.height = ${options.expectedHeight};
+            voxyModule._voxy_resize(
+                ${options.expectedWidth}, ${options.expectedHeight});
+        })()`);
+        resizeRequested = true;
     }
     if (initial.initialized
         && initial.width === options.expectedWidth
@@ -293,7 +306,10 @@ for (let repeat = 0; repeat < options.repeats; ++repeat) {
         || result.batch_frames !== options.batchFrames
         || result.static_cache_frames !== options.measuredFrames
         || result.geometry_water_frames !== options.measuredFrames
-        || result.terrain_cache_refreshes !== 5
+        // The first scenario may reuse the identical warmed camera cache;
+        // the remaining four transitions must each refresh it.
+        || result.terrain_cache_refreshes < 4
+        || result.terrain_cache_refreshes > 5
         || !(result.encoding_ms >= 0)
         || !(result.elapsed_ms > 0) || !(result.fps > 0)) {
         throw new Error(

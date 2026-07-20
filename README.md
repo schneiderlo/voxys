@@ -65,8 +65,8 @@ node scripts/benchmark_wasm_render.mjs \
 ```
 
 On an AMD Radeon 890M (RDNA 3, Chrome 149, Vulkan/ANGLE), the final full-quality
-WASM build measured 870.42, 875.91, and 871.74 FPS at 3440×1454. The minimum was
-870.42 FPS and the aggregate was 872.68 FPS. All 4,500 measured frames were
+WASM build measured 944.76, 944.52, and 949.73 FPS at 3440×1454. The minimum was
+944.52 FPS and the aggregate was 946.33 FPS. All 4,500 measured frames were
 retired by the WebGPU queue. This is engine renderer throughput into a
 physical-size offscreen target, not displayed monitor refresh or a submission
 counter.

@@ -55,8 +55,9 @@ adds the analytic long-wave normal. It then applies:
   depth-occluded suspended-particle billboards.
 
 The generated material packs whitecap coverage and seabed albedo into one
-1024² mipmapped texture. The sky is baked once to a 512² full-sphere HDR LUT
-with a complete roughness mip chain. No ocean bitmap or model is required.
+1024² mipmapped texture. An original environment image is decoded to linear
+light and baked once to a 512² full-sphere HDR LUT with a complete roughness
+mip chain. The water and seabed themselves require no bitmap or model.
 
 The full geometry/material path remains active while the camera moves. When
 the camera is stationary, only opaque terrain/background work is cached; the
@@ -68,8 +69,8 @@ WASM, AMD Radeon 890M (RDNA 3), Chrome 149, Vulkan/ANGLE, 3440×1454
 full-resolution target, 8192² terrain:
 
 - three runs of 1,500 frames across five standard camera views;
-- 870.42, 875.91, and 871.74 FPS;
-- 870.42 FPS minimum and 872.68 FPS aggregate;
+- 944.76, 944.52, and 949.73 FPS;
+- 944.52 FPS minimum and 946.33 FPS aggregate;
 - all 4,500 measured frames confirmed retired by the WebGPU queue.
 
 The benchmark keeps the complete geometry/material and physical-resolution

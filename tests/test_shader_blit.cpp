@@ -200,6 +200,8 @@ TEST_F(BlitShaderTest, HasWaterShading) {
         << "Shader missing the linear-HDR opaque scene pass";
     EXPECT_NE(shaderSource_.find("fn fsCachedOpaque("), std::string::npos)
         << "Shader missing the cached opaque HDR/depth pass used before geometry water";
+    EXPECT_NE(shaderSource_.find("fn fsCachedOpaqueColor("), std::string::npos)
+        << "Shader missing the exact color-only cached presentation pass";
     EXPECT_NE(shaderSource_.find("backgroundDepthTex"), std::string::npos)
         << "Shader missing opaque depth for refraction rejection";
 }
@@ -217,6 +219,10 @@ TEST_F(BlitShaderTest, GeometryClipmapCarriesTheCompleteOceanMaterial) {
         << "Ocean clipmap must displace real vertices";
     EXPECT_NE(source.find("@fragment\nfn fs("), std::string::npos)
         << "Ocean clipmap must shade its own fragments";
+    EXPECT_NE(source.find("fn shadeWaterFragment("), std::string::npos)
+        << "Depth and color-only ocean pipelines must share one material";
+    EXPECT_NE(source.find("@fragment\nfn fsColor("), std::string::npos)
+        << "Ocean clipmap is missing the color-only full-quality entry point";
     EXPECT_NE(source.find(
                   "@binding(15) var displacementTexture : texture_2d_array<f32>"),
               std::string::npos)

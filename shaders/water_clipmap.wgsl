@@ -46,8 +46,8 @@ const WATER_RESOLUTION : f32 = 256.0;
 const BROAD_SCALE : f32 = 1949.0;
 const DETAIL_SCALE : f32 = 326.0;
 const NORMAL_LAYER : i32 = 2;
-const SKY_LUT_WIDTH : f32 = 1024.0;
-const SKY_LUT_HEIGHT : f32 = 512.0;
+const SKY_LUT_WIDTH : f32 = 1774.0;
+const SKY_LUT_HEIGHT : f32 = 887.0;
 
 const OCEAN_ABSORPTION : vec3<f32> =
     vec3<f32>(0.015208514, 0.009134059, 0.008568126);
@@ -352,8 +352,7 @@ struct FragmentOutput {
     @location(1) linearDepth : f32,
 };
 
-@fragment
-fn fs(input : VertexOutput) -> FragmentOutput {
+fn shadeWaterFragment(input : VertexOutput) -> FragmentOutput {
     if (camera.waterParams.y <= 0.5) {
         discard;
     }
@@ -485,29 +484,19 @@ fn fs(input : VertexOutput) -> FragmentOutput {
     } else {
         refractedRay = normalize(refractedRay);
     }
-    var thickness = clamp(waterDepth / max(abs(incomingRay.y), 0.12),
-                          0.0, 500.0);
     let hasOpaqueRefraction = selectedRefractionDepth > 0.0;
+    // Use the continuous heightfield depth wherever the surface lies inside
+    // the terrain domain. Whether a distorted screen ray lands on an opaque
+    // texel must not change the optical thickness; that created hard turquoise
+    // islands at refraction silhouettes.
     let bedDepth = select(OCEAN_PROCEDURAL_SEABED_DEPTH, waterDepth,
-                          hasOpaqueRefraction);
+                          insideTerrain);
     let bedTravel = bedDepth / max(-refractedRay.y, 0.12);
+    let thickness = clamp(bedTravel, 0.0, 500.0);
     var refracted = proceduralSeabed(
         (input.worldPosition + refractedRay * bedTravel).xz,
         bedTravel, worldPerPixel) *
         (0.34 + 0.66 * max(light.y, 0.0)) * shadow;
-    if (!hasOpaqueRefraction) {
-        // The reference scene has a camera-following floor beneath the ocean,
-        // so shallow turquoise transmission remains visible from above as well
-        // as underwater. Reconstruct that layer procedurally when the terrain
-        // cache has no finite opaque sample.
-        thickness = clamp(bedTravel, 0.0, 500.0);
-    } else {
-        // The terrain geometry supplies the real shoreline and bed depth, but
-        // its land albedo is not an underwater material. Shade that geometry
-        // with the generated sand/rock layer so refraction stays continuous
-        // instead of exposing the old green terrain in hard-edged patches.
-        thickness = clamp(sceneThickness, 0.0, 500.0);
-    }
 
     let transmittance = exp(-OCEAN_ABSORPTION * thickness);
     let refractedWater = refracted * transmittance +
@@ -565,4 +554,17 @@ fn fs(input : VertexOutput) -> FragmentOutput {
     output.color = vec4<f32>(presented, 1.0);
     output.linearDepth = distanceToCamera;
     return output;
+}
+
+@fragment
+fn fs(input : VertexOutput) -> FragmentOutput {
+    return shadeWaterFragment(input);
+}
+
+// When no later primitive or underwater-particle pass consumes linear depth,
+// use the identical material result without exporting a redundant 20 MB R32
+// surface at full-window resolution.
+@fragment
+fn fsColor(input : VertexOutput) -> @location(0) vec4<f32> {
+    return shadeWaterFragment(input).color;
 }

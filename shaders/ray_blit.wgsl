@@ -110,8 +110,8 @@ const OCEAN_UNDERWATER_SCALE : f32 = 4.0;
 const OCEAN_UNDERWATER_SPEED : f32 = 1.2;
 const OCEAN_SUN_SHAFT_INTENSITY : f32 = 0.20;
 const OCEAN_PROCEDURAL_SEABED_DEPTH : f32 = 100.0;
-const SKY_LUT_WIDTH : f32 = 1024.0;
-const SKY_LUT_HEIGHT : f32 = 512.0;
+const SKY_LUT_WIDTH : f32 = 1774.0;
+const SKY_LUT_HEIGHT : f32 = 887.0;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Vertex Shader (Fullscreen Triangle)
@@ -440,10 +440,9 @@ fn shadeOcean(posWorld : vec3<f32>, posView : vec3<f32>,
                       OCEAN_SUN_INTENSITY * 4.0;
 
     let incomingRay = -view;
-    var thickness = clamp(
-        waterDepth / max(abs(incomingRay.y), 0.12), 0.0, 500.0);
     let refractedRay = refract(incomingRay, normal, 1.0 / OCEAN_IOR);
     let refractedTravel = waterDepth / max(-refractedRay.y, 0.12);
+    var thickness = clamp(refractedTravel, 0.0, 500.0);
     var bedWorld = posWorld + refractedRay * refractedTravel;
 
     // Project a normal-offset point, then intersect that camera ray with the
@@ -481,12 +480,6 @@ fn shadeOcean(posWorld : vec3<f32>, posView : vec3<f32>,
         refracted = proceduralSeabed(bedWorld.xz, floorTravel) *
                     (0.34 + 0.66 * max(light.y, 0.0));
         thickness = clamp(floorTravel, 0.0, 500.0);
-    } else if (hasSceneRefraction) {
-        // Keep the real heightfield depth and screen-space occlusion, but do
-        // not leak the land texture through the surface. The generated
-        // sand/rock layer is the underwater material on both sides of the
-        // finite terrain boundary.
-        thickness = clamp(sceneThickness, 0.0, 500.0);
     }
     let transmittance = exp(-OCEAN_ABSORPTION * thickness);
     let refractedWater = refracted * transmittance +
@@ -566,8 +559,12 @@ fn backgroundSky(pixel : vec2<i32>, dims : vec2<u32>) -> vec3<f32> {
                                   max(camera.lightDirWS.y, 0.0);
                 let floorColor = proceduralSeabed(
                     floorPosition.xz, floorTravel) * directLight;
-                return applyUnderwaterMedium(
+                let submergedFloor = applyUnderwaterMedium(
                     floorColor, worldRay, floorTravel);
+                let distantWater = applyUnderwaterMedium(
+                    color, worldRay, 500.0);
+                return mix(submergedFloor, distantWater,
+                           smoothstep(330.0, 495.0, floorTravel));
             }
         }
         color = applyUnderwaterMedium(color, worldRay, 500.0);
@@ -1023,6 +1020,17 @@ fn fsCachedOpaque(i : VSOut) -> CachedOpaqueOutput {
     output.color = vec4<f32>(presentColor(hdr, i.uv, dims), 1.0);
     output.linearDepth = linearDepth;
     return output;
+}
+
+@fragment
+fn fsCachedOpaqueColor(i : VSOut) -> @location(0) vec4<f32> {
+    let dims = textureDimensions(backgroundDepthTex, 0);
+    let dimsF = vec2<f32>(dims);
+    let maxCoord = vec2<i32>(i32(dims.x) - 1, i32(dims.y) - 1);
+    let pixel = clamp(vec2<i32>(floor(i.uv * dimsF)),
+                      vec2<i32>(0), maxCoord);
+    let hdr = textureLoad(backgroundTex, pixel, 0).rgb;
+    return vec4<f32>(presentColor(hdr, i.uv, dims), 1.0);
 }
 
 // Fused animated-water intersection and material
