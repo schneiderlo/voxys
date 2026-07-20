@@ -59,7 +59,7 @@ CameraUniforms::CameraUniforms() {
     glm::vec3 defaultLightDir = glm::normalize(glm::vec3(0.3f, 0.8f, 0.4f));
     lightDirVS = glm::vec4(defaultLightDir, 0.0f);
     lightDirWS = glm::vec4(defaultLightDir, 0.0f);
-    waterParams = glm::vec4(-230.0f, 1.0f, 0.08f, 0.05f);
+    waterParams = glm::vec4(-230.0f, 1.0f, 1.0f, 0.05f);
     waterColorA = glm::vec4(0.12f, 0.46f, 0.50f, 0.42f);
     waterColorB = glm::vec4(0.0f, 0.28f, 0.42f, 30.0f);
     waterMotion = glm::vec4(0.0f);

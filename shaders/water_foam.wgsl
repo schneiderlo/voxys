@@ -35,8 +35,8 @@ fn main(@builtin(global_invocation_id) gid : vec3<u32>) {
 
     // Advect more slowly than the wave phase velocity: foam rides the surface
     // and drifts with the dominant wind/current after a crest has broken.
-    let windVelocity = vec2<f32>(1.35, 0.58);
-    let cellSize = 96.0 / f32(RESOLUTION);
+    let windVelocity = vec2<f32>(1.09, 1.69);
+    let cellSize = 1949.0 / f32(RESOLUTION);
     let previousPosition = vec2<f32>(gid.xy) -
                            windVelocity * (params.deltaTime / cellSize);
     let history = sampleHistory(previousPosition) * exp(-params.deltaTime * 0.32);

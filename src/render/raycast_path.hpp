@@ -152,7 +152,8 @@ public:
         WGPUCommandEncoder encoder,
         WGPUQuerySet timestampQuerySet = nullptr,
         uint32_t timestampBegin = WGPU_QUERY_SET_INDEX_UNDEFINED,
-        uint32_t timestampEnd = WGPU_QUERY_SET_INDEX_UNDEFINED);
+        uint32_t timestampEnd = WGPU_QUERY_SET_INDEX_UNDEFINED,
+        bool deferWaterComposite = false);
 
     // ─────────────────────────────────────────────────────────────────────────
     // Accessors
@@ -189,12 +190,17 @@ public:
         return terrainShadowCacheView_;
     }
 
-    /// True when this frame used the settled-camera terrain cache.
+    /// Get the baked shadow-height field, including the always-valid fallback.
+    [[nodiscard]] WGPUTextureView getShadowMapView() const noexcept {
+        return shadowMapView_ ? shadowMapView_ : fallbackShadowView_;
+    }
+
+    /// True when this frame used the terrain-cache water composition path.
     [[nodiscard]] bool isUsingStaticCache() const noexcept {
         return usingStaticCache_;
     }
 
-    /// True only on a frame which refreshed the settled-camera terrain cache.
+    /// True only on a frame which refreshed the terrain cache.
     [[nodiscard]] bool didRefreshStaticCache() const noexcept {
         return staticCacheRefreshed_;
     }

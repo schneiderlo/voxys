@@ -144,7 +144,7 @@ struct ApplicationConfig {
     uint32_t heightmapHeight = 256;        ///< Height for RAW or procedural heightmaps
     float heightScale = 1.0f;             ///< Reduced height for realistic hills
     float cellScale = 1.0f;                ///< World-space size per heightmap cell
-    float ambientIntensity = 0.3f;         ///< Ambient light intensity associated with the sunlight
+    float ambientIntensity = 1.3f;         ///< Ambient light intensity associated with the sunlight
 
     // Water settings
     bool waterEnabled = true;
@@ -152,7 +152,7 @@ struct ApplicationConfig {
     glm::vec3 waterShallowColor = {0.12f, 0.46f, 0.50f};
     glm::vec3 waterDeepColor = {0.0f, 0.28f, 0.42f};
     float waterRoughness = 0.05f;
-    float waterWaveStrength = 0.08f;
+    float waterWaveStrength = 1.0f;
     float waterReflectionStrength = 0.42f;
     float waterShoreFade = 30.0f;
 
@@ -234,6 +234,9 @@ struct ApplicationStats {
     bool primitiveInstanceFullUpload = false;
     uint32_t primitiveBodyLockedReadCount = 0;
     uint32_t primitiveBodyCachedReadCount = 0;
+    uint64_t raycastTerrainCacheRefreshes = 0;
+    uint64_t raycastStaticCacheFrames = 0;
+    uint64_t geometryWaterFrames = 0;
 
     physics::BackendType physicsBackend = physics::BackendType::JoltLegacy;
     physics::PhysicsStats physics{};

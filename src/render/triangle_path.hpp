@@ -51,7 +51,7 @@ struct CameraUniforms {
     glm::vec4 waterParams;     ///< offset: 384, size: 16 - (height, enabled, waveStrength, roughness)
     glm::vec4 waterColorA;     ///< offset: 400, size: 16 - shallow color rgb, reflection strength
     glm::vec4 waterColorB;     ///< offset: 416, size: 16 - deep color rgb, shore fade
-    glm::vec4 waterMotion;     ///< offset: 432, size: 16 - (simulation time, reserved...)
+    glm::vec4 waterMotion;     ///< offset: 432, size: 16 - (time, local surface offset, submerged, reserved)
     // Total: 448 bytes
 
     /// Default constructor with sensible defaults
@@ -80,6 +80,13 @@ struct CameraUniforms {
 
     /// Advance animated water without changing its art controls.
     void setWaterTime(float seconds) { waterMotion.x = seconds; }
+
+    /// Set the animated surface directly above/below the camera.
+    void setCameraWaterSurfaceOffset(float offset) {
+        waterMotion.y = offset;
+        waterMotion.z = waterParams.y > 0.5f &&
+                        cameraPos.y < waterParams.x + offset ? 1.0f : 0.0f;
+    }
 };
 
 static_assert(sizeof(CameraUniforms) == 448, "CameraUniforms must be 448 bytes");

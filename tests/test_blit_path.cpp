@@ -245,6 +245,8 @@ TEST_F(BlitPathTest, DefaultConfigValues) {
     auto config = render::BlitPathConfig::defaults();
     
     EXPECT_EQ(config.shaderPath, "shaders/ray_blit.wgsl");
+    EXPECT_EQ(config.environmentPath,
+              "data/generated/ocean_environment.png");
     EXPECT_EQ(config.colorFormat, WGPUTextureFormat_BGRA8Unorm);
     EXPECT_FLOAT_EQ(config.heightScale, 500.0f);
     EXPECT_FLOAT_EQ(config.cellScale, 1.0f);

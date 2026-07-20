@@ -21,6 +21,8 @@ const VOXY_SHADER_PARITY_FILES = Object.freeze([
     "sky_lut_mip.wgsl",
     "terrain.wgsl",
     "terrain_raycast.wgsl",
+    "underwater_particles.wgsl",
+    "water_clipmap.wgsl",
     "water_composite.wgsl",
     "water_fft.wgsl",
     "water_finalize.wgsl",

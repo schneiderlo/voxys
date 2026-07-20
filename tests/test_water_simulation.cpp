@@ -21,7 +21,8 @@ std::filesystem::path findShaderDirectory() {
              std::filesystem::path("../../../shaders")}) {
         if (std::filesystem::exists(candidate / "water_fft.wgsl") &&
             std::filesystem::exists(candidate / "water_finalize.wgsl") &&
-            std::filesystem::exists(candidate / "water_foam.wgsl")) {
+            std::filesystem::exists(candidate / "water_foam.wgsl") &&
+            std::filesystem::exists(candidate / "water_clipmap.wgsl")) {
             return candidate;
         }
     }
@@ -39,7 +40,8 @@ std::string readTextFile(const std::filesystem::path& path) {
 
 TEST(WaterSimulationTest, SpectralGridConstantsAreCoherent) {
     EXPECT_EQ(WaterSimulation::RESOLUTION, 1u << WaterSimulation::FFT_STAGE_COUNT);
-    EXPECT_EQ(WaterSimulation::CASCADE_COUNT, 3u);
+    EXPECT_EQ(WaterSimulation::CASCADE_COUNT, 2u);
+    EXPECT_EQ(WaterSimulation::OUTPUT_LAYER_COUNT, 4u);
     EXPECT_EQ(WaterSimulation::COAST_FIELD_RESOLUTION, 1024u);
     EXPECT_EQ(WaterSimulation::RESOLUTION & (WaterSimulation::RESOLUTION - 1u), 0u);
 }
@@ -98,7 +100,9 @@ TEST(WaterSimulationGPUTest, BuildsAndDispatchesCompleteOceanPipeline) {
     // Compile both consumers as part of the isolated ocean test. Full pipeline
     // binding is exercised by the native screenshot run; this catches WGSL
     // regressions without pulling unrelated application dependencies here.
-    for (const char* shaderName : {"terrain_raycast.wgsl", "ray_blit.wgsl"}) {
+    for (const char* shaderName : {
+             "terrain_raycast.wgsl", "ray_blit.wgsl",
+             "water_clipmap.wgsl"}) {
         const std::string source = readTextFile(shaderDirectory / shaderName);
         ASSERT_FALSE(source.empty()) << shaderName;
         WGPUShaderModule module = gpu::createShaderModule(

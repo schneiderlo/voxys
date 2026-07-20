@@ -2097,7 +2097,11 @@ public:
             config_.bodyOtherRestitution, 0.01f);
         uniforms.waterSurface = glm::vec4(
             externalWaterView_ ? waterSurfaceStrength_ : 0.0f,
-            0.0f, 0.0f, 0.0f);
+            static_cast<float>(std::fmod(
+                static_cast<double>(finalTick) *
+                    static_cast<double>(config_.fixedTickSeconds),
+                4096.0)),
+            0.0f, 0.0f);
         uniforms.worldSector = glm::ivec4(0);
         gpu::writeBuffer(queue_, uniformBuffer_, 0, uniforms);
         lastGpuUploadBytes_ += sizeof(SimulationUniforms);

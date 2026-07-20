@@ -126,9 +126,9 @@ TEST(PrimitivePathTest, PlansOnlyProvenDifferentInstanceRanges) {
         previousInstances[index].model[3][0] = static_cast<float>(index);
     }
     auto currentInstances = previousInstances;
-    currentInstances[7].model[3][0] = -0.0f;
-    currentInstances[8].model[3][0] = 123.0f;
-    currentInstances[40].color.x = 0.25f;
+    currentInstances.at(7).model[3][0] = -0.0f;
+    currentInstances.at(8).model[3][0] = 123.0f;
+    currentInstances.at(40).color.x = 0.25f;
     auto mirror = previousInstances;
     for (size_t index = 0; index < sparse.rangeCount; ++index) {
         const auto& range = sparse.ranges[index];

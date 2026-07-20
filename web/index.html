@@ -877,18 +877,29 @@
                 }
 
                 updateProgress(10, 'Creating GPU device...');
-                const physicsProfiling = new URLSearchParams(location.search)
-                    .get('physicsProfile') !== '0';
+                const profileParameters = new URLSearchParams(location.search);
+                const timestampProfiling =
+                    profileParameters.get('physicsProfile') === '1'
+                    || profileParameters.get('renderProfile') === '1';
                 const deviceRequest = await VoxyLoader.requestVoxyDevice(
                     adapter,
-                    {enableTimestamps: physicsProfiling}
+                    {enableTimestamps: timestampProfiling}
                 );
                 const device = deviceRequest.device;
                 window.voxyDeviceProfile = deviceRequest.profile;
+                globalThis.voxyUncapturedGpuErrors = [];
+                globalThis.voxyDeviceLost = null;
                 device.addEventListener('uncapturederror', (event) => {
-                    console.error('WebGPU uncaptured error:', event.error);
+                    const message = event.error?.message
+                        ?? String(event.error ?? 'unknown WebGPU error');
+                    globalThis.voxyUncapturedGpuErrors.push(message);
+                    console.error('WebGPU uncaptured error:', message);
                 });
                 device.lost.then((info) => {
+                    globalThis.voxyDeviceLost = {
+                        reason: String(info.reason),
+                        message: info.message,
+                    };
                     console.error(
                         `WebGPU device lost (${info.reason}): ${info.message}`
                     );

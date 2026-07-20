@@ -31,6 +31,39 @@ http://127.0.0.1:8081/index.html?physicsProfile=1&renderProfile=1&telemetry=0
 Start Chrome with a remote-debugging port such as `9333`. Keep the canvas size,
 GPU, camera, build mode, and browser flags identical between captures.
 
+## Full-resolution WASM renderer gate
+
+Stage probes answer where time goes. The completion benchmark separately
+answers whether the complete renderer clears a throughput target. Open the app
+with the hardware WebGPU backend and `renderThroughput=1`:
+
+```text
+http://127.0.0.1:8081/index.html?physicsBackend=webgpu&benchmarkBodies=0&telemetry=0&renderThroughput=1
+```
+
+Then run the gate against Chrome's remote-debugging port:
+
+```bash
+node scripts/benchmark_wasm_render.mjs \
+  --port 9333 \
+  --expected-width 3440 --expected-height 1454 \
+  --warmup-frames 128 --measured-frames 1500 \
+  --batch-frames 64 --repeats 3 --minimum-fps 700 \
+  --output /tmp/voxys-wasm-render.json
+```
+
+The runner rejects fallback adapters, a non-WebGPU physics backend, a reduced
+framebuffer, a non-raycast renderer, a non-8192² terrain, or a missing
+full-quality flag. The engine drains prior work, advances the normal five-view
+workload with live water, and waits for `onSubmittedWorkDone` after every
+batch. Only completed frames enter the result. The target is a full-size
+offscreen texture so compositor pacing, occlusion, scan-out, and display
+refresh do not contaminate renderer throughput.
+
+This number is not displayed FPS. Interactive display rate remains bounded by
+the browser compositor and monitor refresh even when renderer throughput is
+much higher.
+
 ## Capture one workload
 
 One deterministic right-click batch is 128 bodies. This command profiles 256

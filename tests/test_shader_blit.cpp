@@ -176,7 +176,7 @@ TEST_F(BlitShaderTest, HasWaterShading) {
               std::string::npos)
         << "Fragment paths must call the ocean material";
     EXPECT_NE(shaderSource_.find("waterWaveNormal"), std::string::npos)
-        << "Shader must consume the FFT/coastal slope packed by the intersection pass";
+        << "Shader must consume the spectral/long-wave normal packed by the intersection pass";
     EXPECT_NE(shaderSource_.find("dielectricFresnel"), std::string::npos)
         << "Shader missing exact unpolarized dielectric Fresnel";
     EXPECT_NE(shaderSource_.find("OCEAN_IOR : f32 = 1.31"), std::string::npos)
@@ -196,6 +196,75 @@ TEST_F(BlitShaderTest, HasWaterShading) {
         << "Shader missing underwater absorption and sun shafts";
     EXPECT_NE(shaderSource_.find("underwaterDistortionUv"), std::string::npos)
         << "Shader missing underwater distortion";
+    EXPECT_NE(shaderSource_.find("fn fsBackground("), std::string::npos)
+        << "Shader missing the linear-HDR opaque scene pass";
+    EXPECT_NE(shaderSource_.find("fn fsCachedOpaque("), std::string::npos)
+        << "Shader missing the cached opaque HDR/depth pass used before geometry water";
+    EXPECT_NE(shaderSource_.find("backgroundDepthTex"), std::string::npos)
+        << "Shader missing opaque depth for refraction rejection";
+}
+
+TEST_F(BlitShaderTest, GeometryClipmapCarriesTheCompleteOceanMaterial) {
+    const auto clipmapPath = shaderPath_.parent_path() / "water_clipmap.wgsl";
+    std::ifstream clipmapFile(clipmapPath);
+    ASSERT_TRUE(clipmapFile.is_open())
+        << "water_clipmap.wgsl not found at " << clipmapPath;
+    std::stringstream clipmapBuffer;
+    clipmapBuffer << clipmapFile.rdbuf();
+    const std::string source = clipmapBuffer.str();
+
+    EXPECT_NE(source.find("@vertex\nfn vs("), std::string::npos)
+        << "Ocean clipmap must displace real vertices";
+    EXPECT_NE(source.find("@fragment\nfn fs("), std::string::npos)
+        << "Ocean clipmap must shade its own fragments";
+    EXPECT_NE(source.find(
+                  "@binding(15) var displacementTexture : texture_2d_array<f32>"),
+              std::string::npos)
+        << "Ocean clipmap must consume live spectral displacement";
+    EXPECT_NE(source.find("sampleDisplacement(base.xz, BROAD_SCALE, 0)"),
+              std::string::npos)
+        << "Broad FFT cascade is not applied to clipmap geometry";
+    EXPECT_NE(source.find("sampleDisplacement(base.xz, DETAIL_SCALE, 1)"),
+              std::string::npos)
+        << "Detail FFT cascade is not applied to clipmap geometry";
+    EXPECT_NE(source.find("let swell = longWaves(base.xz, strength)"),
+              std::string::npos)
+        << "Analytic long swells are not applied to clipmap geometry";
+    EXPECT_NE(source.find("dielectricFresnel"), std::string::npos);
+    EXPECT_NE(source.find("OCEAN_IOR : f32 = 1.31"), std::string::npos);
+    EXPECT_NE(source.find("exp(-OCEAN_ABSORPTION * thickness)"),
+              std::string::npos)
+        << "Geometry water is missing Beer-Lambert transmission";
+    EXPECT_NE(source.find("underwaterDistortionUv"), std::string::npos);
+    EXPECT_NE(source.find("material.gba"), std::string::npos)
+        << "Generated seabed material is not used by refraction";
+    EXPECT_NE(source.find("threshold = 1.0 - OCEAN_FOAM_COVERAGE"),
+              std::string::npos);
+    EXPECT_NE(source.find("struct FragmentOutput"), std::string::npos);
+    EXPECT_NE(source.find("output.linearDepth = distanceToCamera"),
+              std::string::npos)
+        << "Ocean clipmap must update shared linear depth for later passes";
+}
+
+TEST_F(BlitShaderTest, UnderwaterParticlesAreRealDepthOccludedBillboards) {
+    const auto particlePath =
+        shaderPath_.parent_path() / "underwater_particles.wgsl";
+    std::ifstream particleFile(particlePath);
+    ASSERT_TRUE(particleFile.is_open())
+        << "underwater_particles.wgsl not found at " << particlePath;
+    std::stringstream particleBuffer;
+    particleBuffer << particleFile.rdbuf();
+    const std::string source = particleBuffer.str();
+    EXPECT_NE(source.find("@builtin(instance_index)"), std::string::npos)
+        << "Underwater particles must be instanced billboards";
+    EXPECT_NE(source.find("var<storage, read> particles"), std::string::npos)
+        << "Underwater particle positions must come from a camera-local shell";
+    EXPECT_NE(source.find("PARTICLE_NEAR : f32 = 9.0"), std::string::npos);
+    EXPECT_NE(source.find("PARTICLE_FAR : f32 = 209.0"), std::string::npos);
+    EXPECT_NE(source.find("textureLoad(rayDepth"), std::string::npos)
+        << "Particles must be occluded by the ray-rendered scene";
+    EXPECT_NE(source.find("radialFade"), std::string::npos)
+        << "Particle fragments must have a soft radial profile";
 }
 
 TEST_F(BlitShaderTest, OceanMaterialIsLive) {
@@ -296,37 +365,38 @@ TEST_F(BlitShaderTest, HasTerrainUVFunction) {
 
 TEST_F(BlitShaderTest, HasSkyRendering) {
     ASSERT_FALSE(shaderSource_.empty());
-    // The static parts of the sky (scattering, gradient, clouds) are baked
-    // into a LUT by sky_lut.wgsl; the blit samples it and adds the sun disc.
+    // The complete static HDR environment is baked once by sky_lut.wgsl.
     EXPECT_NE(shaderSource_.find("sampleSkyLUT"), std::string::npos)
         << "Shader missing sky LUT sample";
     EXPECT_NE(shaderSource_.find("skyColor"), std::string::npos)
         << "Shader missing skyColor variable";
-    EXPECT_NE(shaderSource_.find("sunDisc"), std::string::npos)
-        << "Shader missing analytic sun disc";
+    EXPECT_NE(shaderSource_.find("visibleSkyRadiance"), std::string::npos)
+        << "Shader missing visible HDR sky composition";
+    EXPECT_NE(shaderSource_.find("environmentUv"), std::string::npos)
+        << "Shader missing full-sphere environment mapping";
 }
 
-TEST_F(BlitShaderTest, AtmosphericScatteringLivesInSkyLut) {
+TEST_F(BlitShaderTest, ProceduralEnvironmentLivesInSkyLut) {
     ASSERT_FALSE(shaderSource_.empty());
-    // Per-pixel scattering was moved to the baked LUT; recomputing it every
-    // frame in the blit pass would be a performance regression.
-    EXPECT_EQ(shaderSource_.find("rayleigh"), std::string::npos)
-        << "Rayleigh scattering should be baked in sky_lut.wgsl, not "
-           "recomputed per pixel in the blit pass";
+    EXPECT_EQ(shaderSource_.find("simplexNoise2D"), std::string::npos)
+        << "Procedural sky noise must not run in the per-pixel blit";
 
-    // The LUT shader itself must implement the scattering.
+    // The LUT shader itself must provide the atmosphere, clouds, and HDR
+    // emitter used by both visible sky and water reflections.
     const auto lutPath = shaderPath_.parent_path() / "sky_lut.wgsl";
     std::ifstream lutFile(lutPath);
     ASSERT_TRUE(lutFile.is_open()) << "sky_lut.wgsl not found at " << lutPath;
     std::stringstream lutBuffer;
     lutBuffer << lutFile.rdbuf();
     const std::string lutSource = lutBuffer.str();
-    EXPECT_NE(lutSource.find("rayleigh"), std::string::npos)
-        << "sky_lut.wgsl missing Rayleigh scattering";
-    EXPECT_NE(lutSource.find("mie"), std::string::npos)
-        << "sky_lut.wgsl missing Mie scattering";
+    EXPECT_NE(lutSource.find("fn skyRadiance"), std::string::npos)
+        << "sky_lut.wgsl missing procedural sky radiance";
     EXPECT_NE(lutSource.find("cloudNoise"), std::string::npos)
         << "sky_lut.wgsl missing procedural clouds";
+    EXPECT_NE(lutSource.find("corona"), std::string::npos)
+        << "sky_lut.wgsl missing the HDR directional emitter";
+    EXPECT_NE(lutSource.find("equirectangularDirection"), std::string::npos)
+        << "sky_lut.wgsl missing full-sphere mapping";
 }
 
 TEST_F(BlitShaderTest, ChecksForSkyPixels) {
@@ -517,6 +587,34 @@ TEST_F(BlitShaderGPUTest, ShaderCompilesOnGPU) {
     // Clean up
     if (shaderModule) {
         wgpuShaderModuleRelease(shaderModule);
+    }
+
+    const auto particlePath =
+        shaderPath_.parent_path() / "underwater_particles.wgsl";
+    std::ifstream particleFile(particlePath);
+    ASSERT_TRUE(particleFile.is_open());
+    std::stringstream particleBuffer;
+    particleBuffer << particleFile.rdbuf();
+    auto particleModule = gpu::createShaderModule(
+        device, particleBuffer.str(), "underwater_particles.wgsl");
+    EXPECT_NE(particleModule, nullptr)
+        << "Failed to compile underwater particle shader on GPU";
+    if (particleModule) {
+        wgpuShaderModuleRelease(particleModule);
+    }
+
+    const auto clipmapPath =
+        shaderPath_.parent_path() / "water_clipmap.wgsl";
+    std::ifstream clipmapFile(clipmapPath);
+    ASSERT_TRUE(clipmapFile.is_open());
+    std::stringstream clipmapBuffer;
+    clipmapBuffer << clipmapFile.rdbuf();
+    auto clipmapModule = gpu::createShaderModule(
+        device, clipmapBuffer.str(), "water_clipmap.wgsl");
+    EXPECT_NE(clipmapModule, nullptr)
+        << "Failed to compile geometry ocean clipmap shader on GPU";
+    if (clipmapModule) {
+        wgpuShaderModuleRelease(clipmapModule);
     }
 }
 

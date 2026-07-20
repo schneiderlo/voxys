@@ -696,4 +696,3 @@ bool isDepthStencilFormat(WGPUTextureFormat format) noexcept {
 
 } // namespace voxy::gpu
 
-

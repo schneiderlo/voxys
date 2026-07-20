@@ -15,6 +15,7 @@
 
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
 #include <filesystem>
 #include <vector>
@@ -42,6 +43,7 @@ namespace voxy::render {
 /// Configuration for the blit path renderer
 struct BlitPathConfig {
     std::filesystem::path shaderPath;    ///< Path to ray_blit.wgsl shader
+    std::filesystem::path environmentPath; ///< Original generated sky map
     WGPUTextureFormat colorFormat;       ///< Output color format (default: BGRA8Unorm)
     float heightScale;                   ///< World-space height range
     float cellScale;                     ///< World-space size per heightmap cell
@@ -51,6 +53,7 @@ struct BlitPathConfig {
     static BlitPathConfig defaults() {
         return BlitPathConfig{
             .shaderPath = "shaders/ray_blit.wgsl",
+            .environmentPath = "data/generated/ocean_environment.png",
             .colorFormat = WGPUTextureFormat_BGRA8Unorm,
             .heightScale = 500.0f,
             .cellScale = 1.0f,
@@ -99,6 +102,11 @@ public:
     /// Check if initialized
     [[nodiscard]] bool isInitialized() const noexcept { return pipeline_ != nullptr; }
 
+    /// True only when the latest render used the fused cached-opaque plus
+    /// displaced geometry-water path rather than the legacy fullscreen path.
+    [[nodiscard]] bool didUseGeometryWaterPath() const noexcept {
+        return usedGeometryWaterPathLastRender_;
+    }
     /// Release all GPU resources
     void shutdown();
 
@@ -126,7 +134,13 @@ public:
     void setStaticTerrainTextures(WGPUTextureView depthView,
                                   WGPUTextureView shadowView);
 
-    /// Select the cached settled-camera path for this frame.
+    /// Bind the geometry inputs used by the fused water/material pass.
+    void setWaterCompositeResources(WGPUTextureView heightmapView,
+                                    WGPUTextureView shadowHeightView,
+                                    WGPUTextureView displacementView,
+                                    WGPUSampler displacementSampler);
+
+    /// Select the terrain-cache HDR composition path for this frame.
     void setStaticCacheState(bool active, bool terrainCacheRefreshed);
 
     /// Set the terrain albedo texture
@@ -203,10 +217,17 @@ private:
     bool createSampler();
     bool createBindGroupLayout();
     bool createPipeline(const BlitPathConfig& config);
+    bool createWaterClipmapResources(const BlitPathConfig& config);
     bool createBindGroup();
     bool createBackgroundTexture();
     bool createSkyLut(const BlitPathConfig& config);
     bool createSurfaceFoamTexture();
+    bool createUnderwaterParticleResources(const BlitPathConfig& config);
+    void updateUnderwaterParticles();
+    [[nodiscard]] float nextParticleRandom();
+    [[nodiscard]] bool respawnUnderwaterParticle(size_t index,
+                                                 const glm::vec3& cameraPos,
+                                                 float surfaceHeight);
     void updateUniformBuffer();
     void updateStaticUniforms();
 
@@ -221,8 +242,14 @@ private:
     WGPUShaderModule shaderModule_ = nullptr;
     WGPUPipelineLayout pipelineLayout_ = nullptr;
     WGPURenderPipeline pipeline_ = nullptr;
+    WGPURenderPipeline backgroundPipeline_ = nullptr;
     WGPUPipelineLayout cachedPipelineLayout_ = nullptr;
     WGPURenderPipeline cachedPipeline_ = nullptr;
+    WGPUShaderModule waterClipmapShaderModule_ = nullptr;
+    WGPURenderPipeline waterClipmapPipeline_ = nullptr;
+    WGPUBuffer waterClipmapVertexBuffer_ = nullptr;
+    WGPUBuffer waterClipmapIndexBuffer_ = nullptr;
+    uint32_t waterClipmapIndexCount_ = 0;
 
     // Bind group resources
     WGPUBindGroupLayout bindGroupLayout_ = nullptr;
@@ -239,7 +266,7 @@ private:
     // Sampler
     WGPUSampler sampler_ = nullptr;
 
-    // Baked sky LUT (paraboloid map, rendered once by sky_lut.wgsl)
+    // Baked full-sphere sky LUT (equirectangular map, rendered once).
     WGPUShaderModule skyLutShaderModule_ = nullptr;
     WGPUPipelineLayout skyLutPipelineLayout_ = nullptr;
     WGPUComputePipeline skyLutPipeline_ = nullptr;
@@ -261,9 +288,23 @@ private:
     WGPUTextureView surfaceFoamView_ = nullptr;
     WGPUSampler surfaceFoamSampler_ = nullptr;
 
+    // Camera-local underwater particle billboards.
+    WGPUShaderModule particleShaderModule_ = nullptr;
+    WGPUPipelineLayout particlePipelineLayout_ = nullptr;
+    WGPURenderPipeline particlePipeline_ = nullptr;
+    WGPUBindGroupLayout particleBindGroupLayout_ = nullptr;
+    WGPUBindGroup particleBindGroup_ = nullptr;
+    WGPUBuffer particleBuffer_ = nullptr;
+    std::vector<glm::vec4> underwaterParticles_;
+    uint32_t particleRandomState_ = 0x52522024u;
+    bool particlesInitialized_ = false;
+
     // Full-resolution camera-static terrain/sky color.
     WGPUTexture backgroundTexture_ = nullptr;
     WGPUTextureView backgroundView_ = nullptr;
+    // Transient depth/stencil target used only as a water coverage mask.
+    WGPUTexture coverageMaskTexture_ = nullptr;
+    WGPUTextureView coverageMaskView_ = nullptr;
     uint32_t outputWidth_ = 0;
     uint32_t outputHeight_ = 0;
 
@@ -273,6 +314,10 @@ private:
     WGPUTextureView materialView_ = nullptr;
     WGPUTextureView staticDepthView_ = nullptr;
     WGPUTextureView staticShadowView_ = nullptr;
+    WGPUTextureView heightmapView_ = nullptr;
+    WGPUTextureView shadowHeightView_ = nullptr;
+    WGPUTextureView waterDisplacementView_ = nullptr;
+    WGPUSampler waterDisplacementSampler_ = nullptr;
     WGPUTextureView terrainView_ = nullptr;
     WGPUTextureView lightmapView_ = nullptr;
     // Terrain parameters
@@ -289,6 +334,7 @@ private:
     bool staticCacheActive_ = false;
     bool backgroundValid_ = false;
     bool backgroundDirty_ = true;
+    bool usedGeometryWaterPathLastRender_ = false;
     
     // Debug visualization state
     uint32_t debugMode_ = 0;

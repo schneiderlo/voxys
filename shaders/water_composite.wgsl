@@ -34,12 +34,14 @@ struct CameraUniforms {
 const MATERIAL_SKY : u32 = 0u;
 const MATERIAL_TERRAIN : u32 = 1u;
 const MATERIAL_WATER : u32 = 2u;
-const MIN_WATER_DEPTH : f32 = 0.5;
+const MIN_WATER_DEPTH : f32 = 0.05;
 const SHORE_DEPTH : f32 = 7.5;
-const WATER_SURFACE_AMPLITUDE : f32 = 1.0;
+const SHORE_SURFACE_OVERLAP : f32 = 2.0;
 const WATER_TAU : f32 = 6.283185307179586;
-const WATER_GRAVITY : f32 = 9.81;
-const WATER_INCOMING_DIRECTION : vec2<f32> = vec2<f32>(0.9100, 0.4146);
+const WATER_RESOLUTION : f32 = 256.0;
+const WATER_BROAD_SCALE : f32 = 1949.0;
+const WATER_DETAIL_SCALE : f32 = 326.0;
+const WATER_NORMAL_LAYER : i32 = 2;
 
 fn toHeightmapCoordinate(height : f32) -> f32 {
     let normalized = (height / camera.metrics.x) * 0.5 + 0.5;
@@ -69,134 +71,189 @@ fn maxTraversalMip() -> u32 {
     return level;
 }
 
-struct CoastalWave {
-    wave : vec4<f32>,
-    blend : f32,
-    exposure : f32,
-};
-
 struct WaterSurfaceSample {
     height : f32,
     geometrySlope : vec2<f32>,
     shadingWave : vec4<f32>,
 };
 
-fn coastFieldUv(worldXZ : vec2<f32>) -> vec2<f32> {
-    let cells = max(camera.terrainSize - vec2<f32>(1.0), vec2<f32>(1.0));
-    let extent = cells * camera.metrics.y;
-    let rawUv = (worldXZ + extent * 0.5) / extent;
-    let dims = vec2<f32>(textureDimensions(waterCoastFieldTex));
-    let halfTexel = 0.5 / dims;
-    return clamp(rawUv, halfTexel, vec2<f32>(1.0) - halfTexel);
+struct WaterRayHit {
+    distance : f32,
+    surface : WaterSurfaceSample,
+};
+
+struct SpectralSurface {
+    displacement : vec3<f32>,
+    normalVector : vec3<f32>,
+    compression : f32,
+};
+
+struct LongWaveSurface {
+    displacement : vec3<f32>,
+    normalVector : vec3<f32>,
+    fold : f32,
+};
+
+fn cascadeUv(position : vec2<f32>, scale : f32) -> vec2<f32> {
+    return position / scale +
+           vec2<f32>(0.5 + 0.5 / WATER_RESOLUTION);
 }
 
-fn coastalWaveField(worldXZ : vec2<f32>) -> CoastalWave {
-    let coast = textureSampleLevel(waterCoastFieldTex,
-        waterDisplacementSampler, coastFieldUv(worldXZ), 0.0);
-    let coastDistance = max(coast.z, 0.0);
-    let waterDepth = max(coast.w, 0.0);
-    let rawOnshore = coast.xy;
-    let directionalExposure = clamp(length(rawOnshore), 0.0, 1.0);
-    var onshore = WATER_INCOMING_DIRECTION;
-    if (dot(rawOnshore, rawOnshore) > 0.01) {
-        onshore = normalize(rawOnshore);
+fn spectralSurface(worldXZ : vec2<f32>, strength : f32,
+                   distance : f32) -> SpectralSurface {
+    let detailWeight = 1.0 - smoothstep(900.0, 3500.0, max(distance, 0.0));
+    let broadFirst = textureSampleLevel(
+        waterDisplacementTex, waterDisplacementSampler,
+        cascadeUv(worldXZ, WATER_BROAD_SCALE), 0, 0.0);
+    var detailFirst = vec4<f32>(0.0);
+    if (detailWeight > 0.0) {
+        detailFirst = textureSampleLevel(
+            waterDisplacementTex, waterDisplacementSampler,
+            cascadeUv(worldXZ, WATER_DETAIL_SCALE), 1, 0.0) * detailWeight;
     }
-
-    let turn = 1.0 - smoothstep(55.0, 420.0, coastDistance);
-    let wet = smoothstep(0.55, 2.8, waterDepth);
-    let facing = smoothstep(-0.20, 0.55,
-                            dot(WATER_INCOMING_DIRECTION, onshore));
-    let coastResponse = directionalExposure * mix(0.12, 1.0, facing);
-    let blend = turn * wet * coastResponse;
-    let shelterInfluence = 1.0 - smoothstep(220.0, 850.0, coastDistance);
-    let waveExposure = mix(1.0, max(0.16, directionalExposure),
-                           shelterInfluence);
-    if (blend == 0.0) {
-        return CoastalWave(vec4<f32>(0.0), 0.0, waveExposure);
+    let baseXZ = worldXZ - (broadFirst.xz + detailFirst.xz) * strength;
+    let broad = textureSampleLevel(
+        waterDisplacementTex, waterDisplacementSampler,
+        cascadeUv(baseXZ, WATER_BROAD_SCALE), 0, 0.0);
+    let broadNormal = textureSampleLevel(
+        waterDisplacementTex, waterDisplacementSampler,
+        cascadeUv(baseXZ, WATER_BROAD_SCALE), WATER_NORMAL_LAYER, 0.0).xyz;
+    var detail = vec4<f32>(0.0);
+    var detailNormal = vec3<f32>(0.0, 1.0, 0.0);
+    if (detailWeight > 0.0) {
+        detail = textureSampleLevel(
+            waterDisplacementTex, waterDisplacementSampler,
+            cascadeUv(baseXZ, WATER_DETAIL_SCALE), 1, 0.0) * detailWeight;
+        detailNormal = textureSampleLevel(
+            waterDisplacementTex, waterDisplacementSampler,
+            cascadeUv(baseXZ, WATER_DETAIL_SCALE),
+            WATER_NORMAL_LAYER + 1, 0.0).xyz;
     }
-    let shallow = 1.0 - smoothstep(4.0, 28.0, waterDepth);
-    let wavelengthCompression = mix(1.0, 1.58, shallow);
-    let offshoreCoordinate = -dot(worldXZ, WATER_INCOMING_DIRECTION);
-    let phaseCoordinate = mix(offshoreCoordinate, coastDistance, turn) +
-                          coastDistance * (wavelengthCompression - 1.0) * turn;
-    let phaseGradient = normalize(mix(-WATER_INCOMING_DIRECTION,
-                                      -onshore * wavelengthCompression, turn));
-    let tangent = vec2<f32>(-onshore.y, onshore.x);
-    let alongshore = dot(worldXZ, tangent);
-
-    let k0 = WATER_TAU / 27.0;
-    let k1 = WATER_TAU / 12.5;
-    let phase0 = k0 * phaseCoordinate + sqrt(WATER_GRAVITY * k0) *
-                 camera.waterMotion.x + 0.20 * sin(alongshore * 0.031);
-    let phase1 = k1 * phaseCoordinate + sqrt(WATER_GRAVITY * k1) *
-                 camera.waterMotion.x + 1.7 + 0.12 * sin(alongshore * 0.067);
-    let shoaling = mix(1.0, 1.42, shallow);
-    let amplitude0 = 0.62 * shoaling * wet;
-    let amplitude1 = 0.19 * mix(1.0, 1.20, shallow) * wet;
-    let height = sin(phase0) * amplitude0 + sin(phase1) * amplitude1;
-    let derivative = cos(phase0) * amplitude0 * k0 +
-                     cos(phase1) * amplitude1 * k1;
-    let slope = phaseGradient * derivative;
-    let crest = smoothstep(0.58, 0.94, sin(phase0) * 0.5 + 0.5);
-    let breaking = blend * (1.0 - smoothstep(6.0, 16.0, waterDepth)) * crest;
-    return CoastalWave(vec4<f32>(height, slope.x, slope.y, breaking),
-                       blend, waveExposure);
+    let up = vec3<f32>(0.0, 1.0, 0.0);
+    return SpectralSurface(
+        (broad.xyz + detail.xyz) * strength,
+        up + ((broadNormal - up) +
+              (detailNormal - up) * detailWeight) * strength,
+        max(broad.w, detail.w) * strength);
 }
 
-fn waterSurfaceOffset(worldXZ : vec2<f32>) -> f32 {
-    let strength = clamp(camera.waterParams.z, 0.0, 1.0);
-    let shortWaves = textureSampleLevel(waterDisplacementTex,
-        waterDisplacementSampler, worldXZ / 96.0, 0, 0.0).x;
-    let mediumWaves = textureSampleLevel(waterDisplacementTex,
-        waterDisplacementSampler, worldXZ / 384.0, 1, 0.0).x;
-    let longWaves = textureSampleLevel(waterDisplacementTex,
-        waterDisplacementSampler, worldXZ / 1536.0, 2, 0.0).x;
-    let fftHeight = shortWaves + mediumWaves + longWaves;
-    let coast = coastalWaveField(worldXZ);
-    return mix(fftHeight * coast.exposure, coast.wave.x, coast.blend) *
-           WATER_SURFACE_AMPLITUDE * strength;
+fn oneLongWave(position : vec2<f32>, wave : vec4<f32>,
+               dynamics : vec3<f32>, strength : f32) -> LongWaveSurface {
+    let waveNumber = WATER_TAU / (wave.w + 1.0e-4);
+    let phase = waveNumber * dot(wave.xy, position) -
+                dynamics.z * camera.waterMotion.x + dynamics.y;
+    let sine = sin(phase);
+    let cosine = cos(phase);
+    let amplitude = wave.z * strength;
+    let ka = waveNumber * amplitude;
+    return LongWaveSurface(
+        vec3<f32>(-dynamics.x * amplitude * wave.x * sine,
+                  amplitude * cosine,
+                  -dynamics.x * amplitude * wave.y * sine),
+        vec3<f32>(wave.x * ka * sine,
+                  -dynamics.x * ka * cosine,
+                  wave.y * ka * sine),
+        dynamics.x * ka * sine);
 }
 
-fn sampleWaterSurface(worldXZ : vec2<f32>) -> WaterSurfaceSample {
-    let strength = clamp(camera.waterParams.z, 0.0, 1.0);
-    let cameraDistance = length(worldXZ - camera.cameraPos.xz);
-    let shortWeight = 1.0 - smoothstep(520.0, 1450.0, cameraDistance);
-    let mediumWeight = 1.0 - smoothstep(1900.0, 5200.0, cameraDistance);
-    var shortWaves = vec4<f32>(0.0);
-    var mediumWaves = vec4<f32>(0.0);
-    if (shortWeight > 0.0) {
-        shortWaves = textureSampleLevel(waterDisplacementTex,
-            waterDisplacementSampler, worldXZ / 96.0, 0, 0.0);
-    }
-    if (mediumWeight > 0.0) {
-        mediumWaves = textureSampleLevel(waterDisplacementTex,
-            waterDisplacementSampler, worldXZ / 384.0, 1, 0.0);
-    }
-    let longWaves = textureSampleLevel(waterDisplacementTex,
-        waterDisplacementSampler, worldXZ / 1536.0, 2, 0.0);
-    let coast = coastalWaveField(worldXZ);
+fn longWaveSurface(position : vec2<f32>, strength : f32) -> LongWaveSurface {
+    let a = oneLongWave(
+        position, vec4<f32>(0.923059017, 0.384658357, 5.1541, 440.298507),
+        vec3<f32>(1.0, 0.000000000, 0.374291312), strength);
+    let b = oneLongWave(
+        position, vec4<f32>(0.700400636, 0.713749921, 5.1541, 701.258144),
+        vec3<f32>(1.0, 5.553108549, 0.296825282), strength);
+    let c = oneLongWave(
+        position, vec4<f32>(0.367164395, 0.930156066, 5.1541, 1116.885424),
+        vec3<f32>(1.0, 4.823031791, 0.234699061), strength);
+    let d = oneLongWave(
+        position, vec4<f32>(-0.024039031, 0.999711021, 5.1541, 1778.85),
+        vec3<f32>(1.0, 4.092955033, 0.186378666), strength);
+    return LongWaveSurface(
+        a.displacement + b.displacement + c.displacement + d.displacement,
+        vec3<f32>(0.0, 1.0, 0.0) +
+            a.normalVector + b.normalVector + c.normalVector + d.normalVector,
+        a.fold + b.fold + c.fold + d.fold);
+}
 
-    // Geometry and lighting share one analytic band-limit. Sub-pixel short
-    // waves otherwise move a hit without contributing visible detail.
-    let fftHeight = shortWaves.x * shortWeight +
-                    mediumWaves.x * mediumWeight + longWaves.x;
-    let height = mix(fftHeight * coast.exposure, coast.wave.x, coast.blend) *
-                 WATER_SURFACE_AMPLITUDE * strength;
-    let fftGeometrySlope = shortWaves.yz * shortWeight +
-                           mediumWaves.yz * mediumWeight + longWaves.yz;
-    let geometrySlope = mix(fftGeometrySlope * coast.exposure,
-                            coast.wave.yz, coast.blend) *
-                        WATER_SURFACE_AMPLITUDE * strength;
+fn sampleWaterSurface(worldXZ : vec2<f32>, distance : f32) -> WaterSurfaceSample {
+    if (distance >= 6500.0) {
+        return WaterSurfaceSample(
+            0.0, vec2<f32>(0.0), vec4<f32>(0.0));
+    }
+    let strength = clamp(camera.waterParams.z, 0.0, 2.0);
+    let spectral = spectralSurface(worldXZ, strength, distance);
+    let longWaves = longWaveSurface(
+        worldXZ - spectral.displacement.xz, strength);
+    var normal = spectral.normalVector +
+                 longWaves.normalVector - vec3<f32>(0.0, 1.0, 0.0);
+    if (dot(normal, normal) > 1.0e-8) {
+        normal = normalize(normal);
+    } else {
+        normal = vec3<f32>(0.0, 1.0, 0.0);
+    }
+    let normalY = max(normal.y, 0.08);
+    let geometrySlope = -normal.xz / normalY;
+    let displacement = spectral.displacement + longWaves.displacement;
+    let compression = max(spectral.compression,
+                          clamp(longWaves.fold, 0.0, 2.0));
+    return WaterSurfaceSample(
+        displacement.y, geometrySlope,
+        vec4<f32>(displacement.y, normal.x, normal.z, compression));
+}
 
-    let summed = shortWaves * shortWeight +
-                 mediumWaves * mediumWeight + longWaves;
-    let compression = max(max(shortWaves.w * shortWeight,
-                              mediumWaves.w * mediumWeight), longWaves.w);
-    let refracted = mix(summed.xyz * coast.exposure,
-                        coast.wave.xyz, coast.blend) * strength;
-    let shadingWave = vec4<f32>(
-        refracted, max(compression * coast.exposure, coast.wave.w));
-    return WaterSurfaceSample(height, geometrySlope, shadingWave);
+fn filterWaterSurfaceForHorizon(surfaceIn : WaterSurfaceSample,
+                                distance : f32) -> WaterSurfaceSample {
+    var surface = surfaceIn;
+    let detail = 1.0 - smoothstep(1800.0, 6500.0, max(distance, 0.0));
+    surface.height *= detail;
+    surface.geometrySlope *= detail;
+    surface.shadingWave = vec4<f32>(
+        surface.shadingWave.x * detail,
+        surface.shadingWave.yz * detail,
+        surface.shadingWave.w * detail);
+    return surface;
+}
+
+fn intersectWaterSurface(origin : vec3<f32>, dir : vec3<f32>,
+                         waterHeight : f32) -> WaterRayHit {
+    let maximumWaveHeight = 48.0 * clamp(camera.waterParams.z, 0.0, 2.0);
+    let envelopeA =
+        (waterHeight - maximumWaveHeight - origin.y) / dir.y;
+    let envelopeB =
+        (waterHeight + maximumWaveHeight - origin.y) / dir.y;
+    let minimumDistance = max(min(envelopeA, envelopeB), 1.0e-3);
+    let maximumDistance = max(max(envelopeA, envelopeB), minimumDistance);
+    var distance = (waterHeight - origin.y) / dir.y;
+    distance = clamp(distance, minimumDistance, maximumDistance);
+    var position = origin + dir * distance;
+    var surface = filterWaterSurfaceForHorizon(
+        sampleWaterSurface(position.xz, distance), distance);
+    var residual = position.y - waterHeight - surface.height;
+    var derivative = dir.y - dot(surface.geometrySlope, dir.xz);
+    if (abs(derivative) > 1.0e-4) {
+        let maximumStep = 32.0 / max(abs(dir.y), 0.002);
+        distance = clamp(
+            distance - clamp(residual / derivative,
+                             -maximumStep, maximumStep),
+            minimumDistance, maximumDistance);
+    }
+    if (abs(dir.y) < 0.065) {
+        position = origin + dir * distance;
+        surface = filterWaterSurfaceForHorizon(
+            sampleWaterSurface(position.xz, distance), distance);
+        residual = position.y - waterHeight - surface.height;
+        derivative = dir.y - dot(surface.geometrySlope, dir.xz);
+        if (abs(derivative) > 1.0e-4) {
+            let maximumStep = 16.0 / max(abs(dir.y), 0.002);
+            distance = clamp(
+                distance - clamp(residual / derivative,
+                                 -maximumStep, maximumStep),
+                minimumDistance, maximumDistance);
+        }
+    }
+    surface.height = origin.y + dir.y * distance - waterHeight;
+    return WaterRayHit(distance, surface);
 }
 
 fn nearbyShoreInfluence(cell : vec2<i32>, baseSize : vec2<i32>,
@@ -275,8 +332,30 @@ fn main(@builtin(global_invocation_id) gid : vec3<u32>) {
         terrainSize.x * cellScale - terrainOrigin.x - borderMargin,
         camera.metrics.x,
         terrainSize.y * cellScale - terrainOrigin.y - borderMargin);
+    let waterEnabled = camera.waterParams.y > 0.5;
+    let waterHeight = camera.waterParams.x;
+    var waterHit = WaterRayHit(
+        -1.0, WaterSurfaceSample(0.0, vec2<f32>(0.0), vec4<f32>(0.0)));
+    if (waterEnabled && abs(dir.y) > 1e-5) {
+        let flatWaterDistance = (waterHeight - origin.y) / dir.y;
+        if (flatWaterDistance > 0.0 && flatWaterDistance < 50000.0) {
+            waterHit = intersectWaterSurface(origin, dir, waterHeight);
+        }
+    }
+
     let range = intersectAabb(origin, dir, boundsMin, boundsMax);
     if (range.y < 0.0 || range.x > range.y) {
+        if (waterHit.distance > 0.0 && waterHit.distance < 50000.0) {
+            textureStore(outDepth, vec2<i32>(gid.xy),
+                         vec4<f32>(waterHit.distance, 0.0, 0.0, 0.0));
+            textureStore(outShadow, vec2<i32>(gid.xy),
+                         vec4<f32>(501.0, 0.0, 0.0, 0.0));
+            textureStore(outMaterial, vec2<i32>(gid.xy),
+                         vec4<f32>(waterHit.surface.shadingWave.y,
+                                   waterHit.surface.shadingWave.z,
+                                   waterHit.surface.shadingWave.w, 0.0));
+            return;
+        }
         textureStore(outDepth, vec2<i32>(gid.xy),
                      vec4<f32>(-1.0, 0.0, 0.0, 0.0));
         return;
@@ -284,64 +363,48 @@ fn main(@builtin(global_invocation_id) gid : vec3<u32>) {
 
     var t = textureLoad(terrainDepth, vec2<i32>(gid.xy), 0).x;
     var waterDepthUnder = 0.0;
+    var waterHasTerrainBed = false;
     var shoreInfluence = 0.0;
     var waterShadingWave = vec4<f32>(0.0);
     var material = select(MATERIAL_SKY, MATERIAL_TERRAIN, t > 0.0);
 
-    let waterEnabled = camera.waterParams.y > 0.5;
-    let waterHeight = camera.waterParams.x;
-    if (waterEnabled && abs(dir.y) > 1e-5) {
-        var tWater = (waterHeight - origin.y) / dir.y;
-        var surface = WaterSurfaceSample(
-            0.0, vec2<f32>(0.0), vec4<f32>(0.0));
-        var sampledSurface = false;
-        if (abs(dir.y) > 0.02) {
-            // One slope-aware Newton step converges more accurately than two
-            // fixed-point updates. Its result lies on this sampled tangent
-            // plane, so a second FFT/coast sample would be redundant.
-            let p = origin + dir * tWater;
-            surface = sampleWaterSurface(p.xz);
-            sampledSurface = true;
-            let residual = origin.y + dir.y * tWater -
-                           waterHeight - surface.height;
-            let derivative = dir.y -
-                dot(surface.geometrySlope, dir.xz);
-            if (abs(derivative) > 1e-4) {
-                tWater -= residual / derivative;
-            } else {
-                tWater = (waterHeight + surface.height - origin.y) /
-                         dir.y;
-            }
-            surface.height = origin.y + dir.y * tWater - waterHeight;
-        }
-        if (t > -1.5 && tWater > max(range.x, 0.0) && tWater < range.y &&
-            (t <= 0.0 || tWater < t)) {
+    if (waterHit.distance > 0.0 && waterHit.distance < 50000.0) {
+        let tWater = waterHit.distance;
+        let surface = waterHit.surface;
+        if (t > -1.5 && (t <= 0.0 || tWater < t)) {
             let waterPos = origin + dir * tWater;
-            if (!sampledSurface) {
-                surface = sampleWaterSurface(waterPos.xz);
-            }
             let surfaceHeight = waterHeight + surface.height;
             let waterCoord = (waterPos.xz + terrainOrigin) / cellScale;
             let waterCell = vec2<i32>(floor(waterCoord));
             let baseW = i32(camera.terrainSize.x);
             let baseH = i32(camera.terrainSize.y);
             let baseSize = vec2<i32>(baseW, baseH);
-            if (waterCell.x >= 0 && waterCell.y >= 0 &&
-                waterCell.x < baseW && waterCell.y < baseH) {
+            if (waterCell.x >= 1 && waterCell.y >= 1 &&
+                waterCell.x < baseW - 1 && waterCell.y < baseH - 1) {
                 let terrainHeightRaw =
                     f32(textureLoad(heightTex, waterCell, 0).x);
                 let terrainHeightWorld =
                     heightmapToWorldHeight(terrainHeightRaw);
-                if (terrainHeightWorld < surfaceHeight - MIN_WATER_DEPTH) {
+                if (terrainHeightWorld <
+                    max(surfaceHeight,
+                        waterHeight + SHORE_SURFACE_OVERLAP) -
+                        MIN_WATER_DEPTH) {
                     t = tWater;
                     material = MATERIAL_WATER;
+                    waterHasTerrainBed = true;
                     waterShadingWave = surface.shadingWave;
-                    let realDepth = surfaceHeight - terrainHeightWorld;
+                    let realDepth = max(
+                        surfaceHeight - terrainHeightWorld, MIN_WATER_DEPTH);
                     shoreInfluence = nearbyShoreInfluence(
                         waterCell, baseSize, surfaceHeight);
                     waterDepthUnder = mix(
                         realDepth, min(realDepth, SHORE_DEPTH), shoreInfluence);
                 }
+            } else {
+                t = tWater;
+                material = MATERIAL_WATER;
+                waterShadingWave = surface.shadingWave;
+                waterDepthUnder = 500.0;
             }
         }
     }
@@ -350,9 +413,11 @@ fn main(@builtin(global_invocation_id) gid : vec3<u32>) {
     // its depth. Only displaced water needs a fresh lookup at its moving hit.
     var shadowFactor = textureLoad(
         terrainShadow, vec2<i32>(gid.xy), 0).x;
-    if (t > 0.0 && material == MATERIAL_WATER) {
+    if (t > 0.0 && material == MATERIAL_WATER && waterHasTerrainBed) {
         shadowFactor = sampleBakedShadow(
             origin + dir * t, terrainOrigin, cellScale);
+    } else if (t > 0.0 && material == MATERIAL_WATER) {
+        shadowFactor = 1.0;
     }
 
     var packedShadow = shadowFactor;

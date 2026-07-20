@@ -36,13 +36,16 @@ internal resolution scale or scene quality.
 
 The fullscreen performance path keeps the terrain, sky, shadow field, and
 depth result cached while the camera is stationary. The animated water stays
-live in a separate full-resolution compute/composite pass, including all three
-FFT cascades and coastal refraction. The final ocean material provides exact
-dielectric Fresnel/TIR, Beer–Lambert scattering, ACES output, and a dedicated
-underwater distortion/shaft path. Its tileable foam mask is generated
-procedurally at startup, with no external image or model dependency.
-Moving the camera automatically invalidates and rebuilds camera-dependent
-caches.
+live in a separate full-resolution indexed-geometry pass. Five nested 64×64
+camera-following clipmap rings and a stretched horizon ring are displaced by
+two 256² directional spectrum cascades plus four long swells. The same live
+surface drives geometry and material normals. The final ocean path includes exact
+dielectric Fresnel/TIR, Beer–Lambert refraction and scattering, filtered HDR
+environment reflection, foam, ACES output, and a dedicated underwater
+distortion/shaft/particle pass. The cloud environment, foam field, and
+infinite-ocean sand/rock material are generated procedurally in code. Moving
+the camera refreshes camera-dependent opaque data without switching the ocean
+back to the legacy fullscreen material.
 
 Run the five-view native benchmark with:
 
@@ -50,11 +53,27 @@ Run the five-view native benchmark with:
 bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
 ```
 
-On an AMD Radeon 890M at a physical 3440x1440 framebuffer, a warmed run measured
-303.3 FPS overall across 1500 frames. Individual views ranged from 226.3 FPS for
-the horizon-heavy case to 422.9 FPS at ground level; wide horizon and
-high-altitude views therefore still fall below 300 FPS even though aggregate
-throughput exceeds it.
+For the authoritative WASM renderer-throughput gate, open the app in a hardware
+WebGPU Chrome instance with `renderThroughput=1`, then run:
+
+```bash
+node scripts/benchmark_wasm_render.mjs \
+  --port 9333 \
+  --expected-width 3440 --expected-height 1454 \
+  --warmup-frames 128 --measured-frames 1500 \
+  --batch-frames 64 --repeats 3 --minimum-fps 700
+```
+
+On an AMD Radeon 890M (RDNA 3, Chrome 149, Vulkan/ANGLE), the final full-quality
+WASM build measured 870.42, 875.91, and 871.74 FPS at 3440×1454. The minimum was
+870.42 FPS and the aggregate was 872.68 FPS. All 4,500 measured frames were
+retired by the WebGPU queue. This is engine renderer throughput into a
+physical-size offscreen target, not displayed monitor refresh or a submission
+counter.
+
+For comparison, the native five-view benchmark previously measured 393.6 FPS
+overall at a physical 3440×1440 framebuffer, with individual views from 304.2
+to 545.7 FPS.
 
 Physics is selected through a backend facade:
 
@@ -115,8 +134,8 @@ Bazel provides hermetic builds, fast incremental compilation, and easy sanitizer
 | **Build Native** | `bazel build //:voxy_native` |
 | **Run Native** | `bazel run //:voxy_native` |
 | **Run Tests** | `bazel test //tests:voxy_tests` |
-| **Build ASM** | `bazel build --config=wasm //:voxy_wasm` |
-| **Serve ASM** | `bazel run --config=wasm //tools:serve_wasm` |
+| **Build WASM** | `bazel build --config=wasm //:voxy_wasm` |
+| **Serve WASM** | `bazel run --config=wasm //tools:serve_wasm` |
 | **IDE Setup** | `bazel run @hedron_compile_commands//:refresh_all` |
 
 ### Browser Physics Telemetry

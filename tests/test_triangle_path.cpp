@@ -54,7 +54,7 @@ TEST(CameraUniformsTest, DefaultConstruction) {
 
     EXPECT_FLOAT_EQ(uniforms.waterParams.x, -230.0f);
     EXPECT_FLOAT_EQ(uniforms.waterParams.y, 1.0f);
-    EXPECT_FLOAT_EQ(uniforms.waterParams.z, 0.08f);
+    EXPECT_FLOAT_EQ(uniforms.waterParams.z, 1.0f);
     EXPECT_FLOAT_EQ(uniforms.waterParams.w, 0.05f);
     EXPECT_FLOAT_EQ(uniforms.waterColorA.w, 0.42f);
     EXPECT_FLOAT_EQ(uniforms.waterColorB.w, 30.0f);

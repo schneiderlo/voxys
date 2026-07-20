@@ -8,12 +8,20 @@
 #include "gpu/webgpu_compat.hpp"
 #include "core/log.hpp"
 
+#include <glm/gtc/packing.hpp>
 #include <glm/gtc/matrix_inverse.hpp>
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <cstring>
+#include <fstream>
+#include <limits>
 #include <span>
 #include <vector>
+
+#if __has_include(<stb_image.h>)
+    #include <stb_image.h>
+#endif
 
 namespace voxy::render {
 
@@ -30,6 +38,120 @@ struct DebugUniforms {
 
 static_assert(sizeof(DebugUniforms) == 16, "DebugUniforms must be 16 bytes");
 
+namespace {
+
+struct WaterClipmapVertex {
+    float x = 0.0f;
+    float y = 0.0f;
+    float z = 0.0f;
+};
+static_assert(sizeof(WaterClipmapVertex) == 12u);
+
+struct WaterClipmapMesh {
+    std::vector<WaterClipmapVertex> vertices;
+    std::vector<uint32_t> indices;
+};
+
+[[nodiscard]] WaterClipmapMesh makeWaterClipmap() {
+    constexpr uint32_t kSegments = 64u;
+    constexpr uint32_t kLevels = 5u;
+    constexpr float kBasePatchSize = 800.0f;
+    constexpr float kFarExtent = 47'500.0f;
+    constexpr uint32_t kRowSize = kSegments + 1u;
+    constexpr uint32_t kMissing = std::numeric_limits<uint32_t>::max();
+
+    WaterClipmapMesh mesh;
+    constexpr size_t kApproximateCells =
+        static_cast<size_t>(kSegments) * kSegments *
+        (1u + 3u * (kLevels - 1u) / 4u);
+    mesh.vertices.reserve(kApproximateCells * 4u);
+    mesh.indices.reserve(kApproximateCells * 6u);
+
+    for (uint32_t level = 0u; level < kLevels; ++level) {
+        const float extent = kBasePatchSize * static_cast<float>(1u << level);
+        const float half = extent * 0.5f;
+        const float cell = extent / static_cast<float>(kSegments);
+        const float innerHalf = level == 0u ? -1.0f : half * 0.5f;
+        std::vector<uint32_t> grid(
+            static_cast<size_t>(kRowSize) * kRowSize, kMissing);
+        const auto vertexAt = [&](uint32_t x, uint32_t z) {
+            uint32_t& index = grid[static_cast<size_t>(z) * kRowSize + x];
+            if (index == kMissing) {
+                index = static_cast<uint32_t>(mesh.vertices.size());
+                mesh.vertices.push_back({
+                    -half + static_cast<float>(x) * cell,
+                    0.0f,
+                    -half + static_cast<float>(z) * cell});
+            }
+            return index;
+        };
+
+        for (uint32_t z = 0u; z < kSegments; ++z) {
+            const float z0 = -half + static_cast<float>(z) * cell;
+            const float z1 = z0 + cell;
+            for (uint32_t x = 0u; x < kSegments; ++x) {
+                const float x0 = -half + static_cast<float>(x) * cell;
+                const float x1 = x0 + cell;
+                if (level > 0u && x0 >= -innerHalf && x1 <= innerHalf &&
+                    z0 >= -innerHalf && z1 <= innerHalf) {
+                    continue;
+                }
+                const uint32_t a = vertexAt(x, z);
+                const uint32_t b = vertexAt(x + 1u, z);
+                const uint32_t c = vertexAt(x, z + 1u);
+                const uint32_t d = vertexAt(x + 1u, z + 1u);
+                mesh.indices.insert(mesh.indices.end(), {a, c, b, b, c, d});
+            }
+        }
+    }
+
+    // Four radially stretched strips close the underwater horizon beyond the
+    // last regular ring without increasing its tessellation density.
+    constexpr float kOuterLevelExtent =
+        kBasePatchSize * static_cast<float>(1u << (kLevels - 1u));
+    constexpr float kInnerHalf = kOuterLevelExtent * 0.5f;
+    constexpr float kOuterHalf = kFarExtent * 0.5f;
+    constexpr float kRadialScale = kOuterHalf / kInnerHalf;
+    constexpr float kStep = kOuterLevelExtent / static_cast<float>(kSegments);
+    const auto addQuad = [&mesh](WaterClipmapVertex innerA,
+                                 WaterClipmapVertex innerB,
+                                 WaterClipmapVertex outerA,
+                                 WaterClipmapVertex outerB,
+                                 bool reverse) {
+        const uint32_t first = static_cast<uint32_t>(mesh.vertices.size());
+        mesh.vertices.insert(mesh.vertices.end(),
+                             {innerA, innerB, outerA, outerB});
+        if (reverse) {
+            mesh.indices.insert(mesh.indices.end(),
+                                {first, first + 1u, first + 3u,
+                                 first, first + 3u, first + 2u});
+        } else {
+            mesh.indices.insert(mesh.indices.end(),
+                                {first, first + 2u, first + 3u,
+                                 first, first + 3u, first + 1u});
+        }
+    };
+    for (uint32_t segment = 0u; segment < kSegments; ++segment) {
+        const float a = static_cast<float>(segment) * kStep - kInnerHalf;
+        const float b = segment + 1u == kSegments
+            ? kInnerHalf
+            : static_cast<float>(segment + 1u) * kStep - kInnerHalf;
+        const float outerA = a * kRadialScale;
+        const float outerB = b * kRadialScale;
+        addQuad({a, 0.0f, kInnerHalf}, {b, 0.0f, kInnerHalf},
+                {outerA, 0.0f, kOuterHalf}, {outerB, 0.0f, kOuterHalf}, false);
+        addQuad({a, 0.0f, -kInnerHalf}, {b, 0.0f, -kInnerHalf},
+                {outerA, 0.0f, -kOuterHalf}, {outerB, 0.0f, -kOuterHalf}, true);
+        addQuad({kInnerHalf, 0.0f, a}, {kInnerHalf, 0.0f, b},
+                {kOuterHalf, 0.0f, outerA}, {kOuterHalf, 0.0f, outerB}, true);
+        addQuad({-kInnerHalf, 0.0f, a}, {-kInnerHalf, 0.0f, b},
+                {-kOuterHalf, 0.0f, outerA}, {-kOuterHalf, 0.0f, outerB}, false);
+    }
+    return mesh;
+}
+
+} // namespace
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // BlitPath Implementation
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -44,8 +166,14 @@ BlitPath::BlitPath(BlitPath&& other) noexcept
     , shaderModule_(other.shaderModule_)
     , pipelineLayout_(other.pipelineLayout_)
     , pipeline_(other.pipeline_)
+    , backgroundPipeline_(other.backgroundPipeline_)
     , cachedPipelineLayout_(other.cachedPipelineLayout_)
     , cachedPipeline_(other.cachedPipeline_)
+    , waterClipmapShaderModule_(other.waterClipmapShaderModule_)
+    , waterClipmapPipeline_(other.waterClipmapPipeline_)
+    , waterClipmapVertexBuffer_(other.waterClipmapVertexBuffer_)
+    , waterClipmapIndexBuffer_(other.waterClipmapIndexBuffer_)
+    , waterClipmapIndexCount_(other.waterClipmapIndexCount_)
     , bindGroupLayout_(other.bindGroupLayout_)
     , bindGroup_(other.bindGroup_)
     , cachedBindGroupLayout_(other.cachedBindGroupLayout_)
@@ -73,8 +201,19 @@ BlitPath::BlitPath(BlitPath&& other) noexcept
     , surfaceFoamTexture_(other.surfaceFoamTexture_)
     , surfaceFoamView_(other.surfaceFoamView_)
     , surfaceFoamSampler_(other.surfaceFoamSampler_)
+    , particleShaderModule_(other.particleShaderModule_)
+    , particlePipelineLayout_(other.particlePipelineLayout_)
+    , particlePipeline_(other.particlePipeline_)
+    , particleBindGroupLayout_(other.particleBindGroupLayout_)
+    , particleBindGroup_(other.particleBindGroup_)
+    , particleBuffer_(other.particleBuffer_)
+    , underwaterParticles_(std::move(other.underwaterParticles_))
+    , particleRandomState_(other.particleRandomState_)
+    , particlesInitialized_(other.particlesInitialized_)
     , backgroundTexture_(other.backgroundTexture_)
     , backgroundView_(other.backgroundView_)
+    , coverageMaskTexture_(other.coverageMaskTexture_)
+    , coverageMaskView_(other.coverageMaskView_)
     , outputWidth_(other.outputWidth_)
     , outputHeight_(other.outputHeight_)
     , depthView_(other.depthView_)
@@ -82,6 +221,10 @@ BlitPath::BlitPath(BlitPath&& other) noexcept
     , materialView_(other.materialView_)
     , staticDepthView_(other.staticDepthView_)
     , staticShadowView_(other.staticShadowView_)
+    , heightmapView_(other.heightmapView_)
+    , shadowHeightView_(other.shadowHeightView_)
+    , waterDisplacementView_(other.waterDisplacementView_)
+    , waterDisplacementSampler_(other.waterDisplacementSampler_)
     , terrainView_(other.terrainView_)
     , lightmapView_(other.lightmapView_)
     , terrainWidth_(other.terrainWidth_)
@@ -95,6 +238,8 @@ BlitPath::BlitPath(BlitPath&& other) noexcept
     , staticCacheActive_(other.staticCacheActive_)
     , backgroundValid_(other.backgroundValid_)
     , backgroundDirty_(other.backgroundDirty_)
+    , usedGeometryWaterPathLastRender_(
+          other.usedGeometryWaterPathLastRender_)
     , debugMode_(other.debugMode_)
     , debugMaxDepth_(other.debugMaxDepth_)
     , debugUniformsDirty_(other.debugUniformsDirty_)
@@ -105,8 +250,14 @@ BlitPath::BlitPath(BlitPath&& other) noexcept
     other.shaderModule_ = nullptr;
     other.pipelineLayout_ = nullptr;
     other.pipeline_ = nullptr;
+    other.backgroundPipeline_ = nullptr;
     other.cachedPipelineLayout_ = nullptr;
     other.cachedPipeline_ = nullptr;
+    other.waterClipmapShaderModule_ = nullptr;
+    other.waterClipmapPipeline_ = nullptr;
+    other.waterClipmapVertexBuffer_ = nullptr;
+    other.waterClipmapIndexBuffer_ = nullptr;
+    other.waterClipmapIndexCount_ = 0u;
     other.bindGroupLayout_ = nullptr;
     other.bindGroup_ = nullptr;
     other.cachedBindGroupLayout_ = nullptr;
@@ -133,13 +284,27 @@ BlitPath::BlitPath(BlitPath&& other) noexcept
     other.surfaceFoamTexture_ = nullptr;
     other.surfaceFoamView_ = nullptr;
     other.surfaceFoamSampler_ = nullptr;
+    other.particleShaderModule_ = nullptr;
+    other.particlePipelineLayout_ = nullptr;
+    other.particlePipeline_ = nullptr;
+    other.particleBindGroupLayout_ = nullptr;
+    other.particleBindGroup_ = nullptr;
+    other.particleBuffer_ = nullptr;
+    other.underwaterParticles_.clear();
+    other.particlesInitialized_ = false;
     other.backgroundTexture_ = nullptr;
     other.backgroundView_ = nullptr;
+    other.coverageMaskTexture_ = nullptr;
+    other.coverageMaskView_ = nullptr;
     other.depthView_ = nullptr;
     other.shadowView_ = nullptr;
     other.materialView_ = nullptr;
     other.staticDepthView_ = nullptr;
     other.staticShadowView_ = nullptr;
+    other.heightmapView_ = nullptr;
+    other.shadowHeightView_ = nullptr;
+    other.waterDisplacementView_ = nullptr;
+    other.waterDisplacementSampler_ = nullptr;
     other.terrainView_ = nullptr;
     other.lightmapView_ = nullptr;
     other.uniforms_ = nullptr;
@@ -155,8 +320,14 @@ BlitPath& BlitPath::operator=(BlitPath&& other) noexcept {
         shaderModule_ = other.shaderModule_;
         pipelineLayout_ = other.pipelineLayout_;
         pipeline_ = other.pipeline_;
+        backgroundPipeline_ = other.backgroundPipeline_;
         cachedPipelineLayout_ = other.cachedPipelineLayout_;
         cachedPipeline_ = other.cachedPipeline_;
+        waterClipmapShaderModule_ = other.waterClipmapShaderModule_;
+        waterClipmapPipeline_ = other.waterClipmapPipeline_;
+        waterClipmapVertexBuffer_ = other.waterClipmapVertexBuffer_;
+        waterClipmapIndexBuffer_ = other.waterClipmapIndexBuffer_;
+        waterClipmapIndexCount_ = other.waterClipmapIndexCount_;
         bindGroupLayout_ = other.bindGroupLayout_;
         bindGroup_ = other.bindGroup_;
         cachedBindGroupLayout_ = other.cachedBindGroupLayout_;
@@ -184,8 +355,19 @@ BlitPath& BlitPath::operator=(BlitPath&& other) noexcept {
         surfaceFoamTexture_ = other.surfaceFoamTexture_;
         surfaceFoamView_ = other.surfaceFoamView_;
         surfaceFoamSampler_ = other.surfaceFoamSampler_;
+        particleShaderModule_ = other.particleShaderModule_;
+        particlePipelineLayout_ = other.particlePipelineLayout_;
+        particlePipeline_ = other.particlePipeline_;
+        particleBindGroupLayout_ = other.particleBindGroupLayout_;
+        particleBindGroup_ = other.particleBindGroup_;
+        particleBuffer_ = other.particleBuffer_;
+        underwaterParticles_ = std::move(other.underwaterParticles_);
+        particleRandomState_ = other.particleRandomState_;
+        particlesInitialized_ = other.particlesInitialized_;
         backgroundTexture_ = other.backgroundTexture_;
         backgroundView_ = other.backgroundView_;
+        coverageMaskTexture_ = other.coverageMaskTexture_;
+        coverageMaskView_ = other.coverageMaskView_;
         outputWidth_ = other.outputWidth_;
         outputHeight_ = other.outputHeight_;
         depthView_ = other.depthView_;
@@ -193,6 +375,10 @@ BlitPath& BlitPath::operator=(BlitPath&& other) noexcept {
         materialView_ = other.materialView_;
         staticDepthView_ = other.staticDepthView_;
         staticShadowView_ = other.staticShadowView_;
+        heightmapView_ = other.heightmapView_;
+        shadowHeightView_ = other.shadowHeightView_;
+        waterDisplacementView_ = other.waterDisplacementView_;
+        waterDisplacementSampler_ = other.waterDisplacementSampler_;
         terrainView_ = other.terrainView_;
         lightmapView_ = other.lightmapView_;
         terrainWidth_ = other.terrainWidth_;
@@ -206,6 +392,8 @@ BlitPath& BlitPath::operator=(BlitPath&& other) noexcept {
         staticCacheActive_ = other.staticCacheActive_;
         backgroundValid_ = other.backgroundValid_;
         backgroundDirty_ = other.backgroundDirty_;
+        usedGeometryWaterPathLastRender_ =
+            other.usedGeometryWaterPathLastRender_;
         debugMode_ = other.debugMode_;
         debugMaxDepth_ = other.debugMaxDepth_;
         debugUniformsDirty_ = other.debugUniformsDirty_;
@@ -215,8 +403,14 @@ BlitPath& BlitPath::operator=(BlitPath&& other) noexcept {
         other.shaderModule_ = nullptr;
         other.pipelineLayout_ = nullptr;
         other.pipeline_ = nullptr;
+        other.backgroundPipeline_ = nullptr;
         other.cachedPipelineLayout_ = nullptr;
         other.cachedPipeline_ = nullptr;
+        other.waterClipmapShaderModule_ = nullptr;
+        other.waterClipmapPipeline_ = nullptr;
+        other.waterClipmapVertexBuffer_ = nullptr;
+        other.waterClipmapIndexBuffer_ = nullptr;
+        other.waterClipmapIndexCount_ = 0u;
         other.bindGroupLayout_ = nullptr;
         other.bindGroup_ = nullptr;
         other.cachedBindGroupLayout_ = nullptr;
@@ -243,13 +437,27 @@ BlitPath& BlitPath::operator=(BlitPath&& other) noexcept {
         other.surfaceFoamTexture_ = nullptr;
         other.surfaceFoamView_ = nullptr;
         other.surfaceFoamSampler_ = nullptr;
+        other.particleShaderModule_ = nullptr;
+        other.particlePipelineLayout_ = nullptr;
+        other.particlePipeline_ = nullptr;
+        other.particleBindGroupLayout_ = nullptr;
+        other.particleBindGroup_ = nullptr;
+        other.particleBuffer_ = nullptr;
+        other.underwaterParticles_.clear();
+        other.particlesInitialized_ = false;
         other.backgroundTexture_ = nullptr;
         other.backgroundView_ = nullptr;
+        other.coverageMaskTexture_ = nullptr;
+        other.coverageMaskView_ = nullptr;
         other.depthView_ = nullptr;
         other.shadowView_ = nullptr;
         other.materialView_ = nullptr;
         other.staticDepthView_ = nullptr;
         other.staticShadowView_ = nullptr;
+        other.heightmapView_ = nullptr;
+        other.shadowHeightView_ = nullptr;
+        other.waterDisplacementView_ = nullptr;
+        other.waterDisplacementSampler_ = nullptr;
         other.terrainView_ = nullptr;
         other.lightmapView_ = nullptr;
         other.uniforms_ = nullptr;
@@ -259,6 +467,47 @@ BlitPath& BlitPath::operator=(BlitPath&& other) noexcept {
 }
 
 void BlitPath::shutdown() {
+    if (waterClipmapIndexBuffer_) {
+        wgpuBufferRelease(waterClipmapIndexBuffer_);
+        waterClipmapIndexBuffer_ = nullptr;
+    }
+    if (waterClipmapVertexBuffer_) {
+        wgpuBufferRelease(waterClipmapVertexBuffer_);
+        waterClipmapVertexBuffer_ = nullptr;
+    }
+    if (waterClipmapPipeline_) {
+        wgpuRenderPipelineRelease(waterClipmapPipeline_);
+        waterClipmapPipeline_ = nullptr;
+    }
+    if (waterClipmapShaderModule_) {
+        wgpuShaderModuleRelease(waterClipmapShaderModule_);
+        waterClipmapShaderModule_ = nullptr;
+    }
+    waterClipmapIndexCount_ = 0u;
+    if (particleBindGroup_) {
+        wgpuBindGroupRelease(particleBindGroup_);
+        particleBindGroup_ = nullptr;
+    }
+    if (particleBindGroupLayout_) {
+        wgpuBindGroupLayoutRelease(particleBindGroupLayout_);
+        particleBindGroupLayout_ = nullptr;
+    }
+    if (particlePipeline_) {
+        wgpuRenderPipelineRelease(particlePipeline_);
+        particlePipeline_ = nullptr;
+    }
+    if (particlePipelineLayout_) {
+        wgpuPipelineLayoutRelease(particlePipelineLayout_);
+        particlePipelineLayout_ = nullptr;
+    }
+    if (particleShaderModule_) {
+        wgpuShaderModuleRelease(particleShaderModule_);
+        particleShaderModule_ = nullptr;
+    }
+    if (particleBuffer_) {
+        wgpuBufferRelease(particleBuffer_);
+        particleBuffer_ = nullptr;
+    }
     if (cachedBindGroup_) {
         wgpuBindGroupRelease(cachedBindGroup_);
         cachedBindGroup_ = nullptr;
@@ -286,6 +535,10 @@ void BlitPath::shutdown() {
     if (cachedPipelineLayout_) {
         wgpuPipelineLayoutRelease(cachedPipelineLayout_);
         cachedPipelineLayout_ = nullptr;
+    }
+    if (backgroundPipeline_) {
+        wgpuRenderPipelineRelease(backgroundPipeline_);
+        backgroundPipeline_ = nullptr;
     }
     if (pipeline_) {
         wgpuRenderPipelineRelease(pipeline_);
@@ -396,6 +649,16 @@ void BlitPath::shutdown() {
         wgpuTextureRelease(backgroundTexture_);
         backgroundTexture_ = nullptr;
     }
+    if (coverageMaskView_) {
+        wgpuTextureViewRelease(coverageMaskView_);
+        coverageMaskView_ = nullptr;
+    }
+    if (coverageMaskTexture_) {
+        wgpuTextureRelease(coverageMaskTexture_);
+        coverageMaskTexture_ = nullptr;
+    }
+    underwaterParticles_.clear();
+    particlesInitialized_ = false;
 
     // Free heap-allocated uniforms
     delete uniforms_;
@@ -409,6 +672,10 @@ void BlitPath::shutdown() {
     materialView_ = nullptr;
     staticDepthView_ = nullptr;
     staticShadowView_ = nullptr;
+    heightmapView_ = nullptr;
+    shadowHeightView_ = nullptr;
+    waterDisplacementView_ = nullptr;
+    waterDisplacementSampler_ = nullptr;
     terrainView_ = nullptr;
     lightmapView_ = nullptr;
     device_ = nullptr;
@@ -418,6 +685,7 @@ void BlitPath::shutdown() {
     staticCacheActive_ = false;
     backgroundValid_ = false;
     backgroundDirty_ = true;
+    usedGeometryWaterPathLastRender_ = false;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -473,6 +741,12 @@ bool BlitPath::init(WGPUDevice device, WGPUQueue queue, const BlitPathConfig& co
         return false;
     }
 
+    if (!createWaterClipmapResources(config)) {
+        LOG_ERROR("Failed to create water clipmap resources");
+        shutdown();
+        return false;
+    }
+
     if (!createSkyLut(config)) {
         LOG_ERROR("Failed to create sky LUT resources");
         shutdown();
@@ -481,6 +755,12 @@ bool BlitPath::init(WGPUDevice device, WGPUQueue queue, const BlitPathConfig& co
 
     if (!createSurfaceFoamTexture()) {
         LOG_ERROR("Failed to create procedural ocean foam texture");
+        shutdown();
+        return false;
+    }
+
+    if (!createUnderwaterParticleResources(config)) {
+        LOG_ERROR("Failed to create underwater particle resources");
         shutdown();
         return false;
     }
@@ -494,7 +774,8 @@ bool BlitPath::resize(uint32_t width, uint32_t height) {
         LOG_ERROR("BlitPath::resize: invalid device or dimensions");
         return false;
     }
-    if (width == outputWidth_ && height == outputHeight_ && backgroundView_) {
+    if (width == outputWidth_ && height == outputHeight_ && backgroundView_ &&
+        coverageMaskView_) {
         return true;
     }
 
@@ -515,6 +796,14 @@ bool BlitPath::resize(uint32_t width, uint32_t height) {
         wgpuTextureRelease(backgroundTexture_);
         backgroundTexture_ = nullptr;
     }
+    if (coverageMaskView_) {
+        wgpuTextureViewRelease(coverageMaskView_);
+        coverageMaskView_ = nullptr;
+    }
+    if (coverageMaskTexture_) {
+        wgpuTextureRelease(coverageMaskTexture_);
+        coverageMaskTexture_ = nullptr;
+    }
 
     outputWidth_ = width;
     outputHeight_ = height;
@@ -526,7 +815,7 @@ bool BlitPath::resize(uint32_t width, uint32_t height) {
 
 bool BlitPath::createBackgroundTexture() {
     gpu::TextureDesc desc = gpu::TextureDesc::renderTarget(
-        outputWidth_, outputHeight_, config_.colorFormat,
+        outputWidth_, outputHeight_, WGPUTextureFormat_RGBA16Float,
         "blit_static_background");
     backgroundTexture_ = gpu::createTexture(device_, desc);
     if (!backgroundTexture_) {
@@ -536,10 +825,30 @@ bool BlitPath::createBackgroundTexture() {
 
     gpu::TextureViewDesc viewDesc{};
     viewDesc.label = "blit_static_background_view";
-    viewDesc.format = config_.colorFormat;
+    viewDesc.format = WGPUTextureFormat_RGBA16Float;
     backgroundView_ = gpu::createTextureView(backgroundTexture_, viewDesc);
     if (!backgroundView_) {
         LOG_ERROR("Failed to create static background texture view");
+        return false;
+    }
+
+    gpu::TextureDesc maskDesc = gpu::TextureDesc::depth(
+        outputWidth_, outputHeight_,
+        WGPUTextureFormat_Depth24PlusStencil8,
+        "blit_water_coverage_mask");
+    maskDesc.usage = WGPUTextureUsage_RenderAttachment;
+    coverageMaskTexture_ = gpu::createTexture(device_, maskDesc);
+    if (!coverageMaskTexture_) {
+        LOG_ERROR("Failed to create water coverage mask texture");
+        return false;
+    }
+    gpu::TextureViewDesc maskViewDesc{};
+    maskViewDesc.label = "blit_water_coverage_mask_view";
+    maskViewDesc.format = WGPUTextureFormat_Depth24PlusStencil8;
+    coverageMaskView_ = gpu::createTextureView(
+        coverageMaskTexture_, maskViewDesc);
+    if (!coverageMaskView_) {
+        LOG_ERROR("Failed to create water coverage mask view");
         return false;
     }
 
@@ -639,14 +948,57 @@ constexpr uint32_t kSurfaceFoamSize = 1024;
     return std::clamp(0.5f + 0.5f * result / normalization, 0.0f, 1.0f);
 }
 
-[[nodiscard]] uint8_t proceduralFoamTexel(uint32_t x, uint32_t y) noexcept {
+[[nodiscard]] float periodicCellularEdge(float u, float v, int32_t period,
+                                         uint32_t seed) noexcept {
+    const float px = u * static_cast<float>(period);
+    const float py = v * static_cast<float>(period);
+    const int32_t cellX = static_cast<int32_t>(std::floor(px));
+    const int32_t cellY = static_cast<int32_t>(std::floor(py));
+    float nearest = 1.0e9f;
+    float second = 1.0e9f;
+    for (int32_t offsetY = -1; offsetY <= 1; ++offsetY) {
+        for (int32_t offsetX = -1; offsetX <= 1; ++offsetX) {
+            const int32_t candidateX = cellX + offsetX;
+            const int32_t candidateY = cellY + offsetY;
+            const uint32_t hashX = foamHash(
+                static_cast<uint32_t>(foamWrap(candidateX, period)),
+                static_cast<uint32_t>(foamWrap(candidateY, period)), seed);
+            const uint32_t hashY = foamHash(
+                static_cast<uint32_t>(foamWrap(candidateX, period)),
+                static_cast<uint32_t>(foamWrap(candidateY, period)),
+                seed ^ 0x9e3779b9u);
+            const float featureX = static_cast<float>(hashX & 0xffffu) /
+                                   65535.0f;
+            const float featureY = static_cast<float>(hashY & 0xffffu) /
+                                   65535.0f;
+            const float dx = static_cast<float>(candidateX) + featureX - px;
+            const float dy = static_cast<float>(candidateY) + featureY - py;
+            const float distanceSquared = dx * dx + dy * dy;
+            if (distanceSquared < nearest) {
+                second = nearest;
+                nearest = distanceSquared;
+            } else if (distanceSquared < second) {
+                second = distanceSquared;
+            }
+        }
+    }
+    const float boundaryDistance =
+        std::sqrt(second) - std::sqrt(nearest);
+    return 1.0f - foamSmoothstep(0.008f, 0.072f, boundaryDistance);
+}
+
+[[nodiscard]] std::array<uint8_t, 4> proceduralOceanMaterialTexel(
+    uint32_t x, uint32_t y) noexcept {
     const float u = (static_cast<float>(x) + 0.5f) /
                     static_cast<float>(kSurfaceFoamSize);
     const float v = (static_cast<float>(y) + 0.5f) /
                     static_cast<float>(kSurfaceFoamSize);
 
-    // A seamless vector warp prevents the iso-lines below from exposing their
-    // underlying noise lattice. Integer periods keep both tile edges exact.
+    // A seamless domain warp feeds three cellular scales. The cellular edges
+    // are admitted only inside irregular low-frequency patches: an ungated
+    // Voronoi edge field reads as a continuous polygon grid once projected
+    // across the ocean, while real surface foam breaks into nested islands,
+    // bubbles, and short branching strands.
     const float warpX = periodicGradientNoise(u, v, 3, 0x37d4f12bu) +
         0.35f * periodicGradientNoise(u, v, 7, 0x7f4a7c15u);
     const float warpY = periodicGradientNoise(u, v, 3, 0xb49a85d1u) +
@@ -654,36 +1006,101 @@ constexpr uint32_t kSurfaceFoamSize = 1024;
     const float warpedU = u + warpX * 0.085f;
     const float warpedV = v + warpY * 0.085f;
 
-    const float broadField =
-        periodicGradientNoise(warpedU, warpedV, 7, 0x6c8e9cf5u) * 0.64f +
-        periodicGradientNoise(warpedU, warpedV, 14, 0x1f123bb5u) * 0.25f +
-        periodicGradientNoise(warpedU, warpedV, 28, 0xc2b2ae35u) * 0.11f;
-    const float broadRidge = 1.0f - foamSmoothstep(
-        0.008f, 0.070f, std::abs(broadField));
+    const float broad = periodicFbm(
+        warpedU, warpedV, 5, 0x6c8e9cf5u);
+    const float flowU = warpedU + warpedV;
+    const float flowV = -warpedU + 2.0f * warpedV;
+    const float erosion = periodicFbm(
+        flowU, flowV, 9, 0x85ebca6bu);
+    const float breakup = periodicFbm(
+        2.0f * warpedU + warpedV,
+        -warpedU + warpedV, 17, 0x165667b1u);
+    const float foamRegion = foamSmoothstep(
+        0.54f, 0.74f, broad * 0.62f + erosion * 0.38f);
+    const float largeWeb = periodicCellularEdge(
+        warpedU, warpedV, 13, 0x6c8e9cf5u);
+    const float mediumWeb = periodicCellularEdge(
+        2.0f * warpedU + warpedV, -warpedU + 2.0f * warpedV,
+        29, 0x85ebca6bu);
+    const float bubbleWeb = periodicCellularEdge(
+        3.0f * warpedU - 2.0f * warpedV,
+        2.0f * warpedU + 3.0f * warpedV, 67, 0x165667b1u);
+    const float network = std::max(
+        largeWeb * foamRegion,
+        std::max(mediumWeb * foamRegion * breakup,
+                 bubbleWeb * foamRegion * breakup * 0.72f));
+    const float mask = std::clamp(
+        0.46f + broad * 0.14f + erosion * 0.06f + breakup * 0.04f +
+            foamRegion * 0.05f + network * 0.30f,
+        0.0f, 1.0f);
 
-    // An integer torus transform changes orientation without breaking tiling.
-    const float detailU = warpedU + warpedV;
-    const float detailV = -warpedU + 2.0f * warpedV;
-    const float detailField =
-        periodicGradientNoise(detailU, detailV, 13, 0x85ebca6bu) * 0.72f +
-        periodicGradientNoise(detailU, detailV, 26, 0x27d4eb2fu) * 0.28f;
-    const float detailRidge = 1.0f - foamSmoothstep(
-        0.006f, 0.045f, std::abs(detailField));
+    // Pack a completely generated seabed albedo into GBA. Integer domain
+    // transforms keep every octave tileable while producing rock shelves,
+    // shell flecks, and crossed sand ripples at independent scales. R remains
+    // the whitecap mask used by the surface material.
+    const float sediment = periodicFbm(
+        3.0f * u + 2.0f * v, -2.0f * u + 3.0f * v,
+        7, 0xd1b54a35u);
+    const float stoneField = periodicFbm(
+        2.0f * u - v, u + 2.0f * v, 11, 0xa24baed5u);
+    const float grain = periodicGradientNoise(
+        5.0f * u + 3.0f * v, -3.0f * u + 5.0f * v,
+        29, 0x9fb21c65u) * 0.5f + 0.5f;
+    constexpr float kTau = 6.28318530717958647692f;
+    const float rippleA = 0.5f + 0.5f * std::sin(
+        kTau * (23.0f * u + 7.0f * v) + sediment * 2.2f);
+    const float rippleB = 0.5f + 0.5f * std::sin(
+        kTau * (-5.0f * u + 19.0f * v) - erosion * 1.7f);
+    const float ripples = rippleA * 0.72f + rippleB * 0.28f;
+    const float rock = foamSmoothstep(
+        0.58f, 0.76f, stoneField + (sediment - 0.5f) * 0.36f);
+    const float shells = foamSmoothstep(0.72f, 0.93f, grain) *
+        (1.0f - rock) * foamSmoothstep(0.32f, 0.66f, breakup);
 
-    // Independent fractal fields break the contours into foam fragments and
-    // vary their width. Only the bright cores survive the shader threshold.
-    const float breakup = periodicFbm(u, v, 4, 0x165667b1u);
-    const float detailBreakup = periodicFbm(
-        u + v, -u + 2.0f * v, 6, 0xd3a2646cu);
-    const float broadStrands = broadRidge *
-        (0.30f + 0.82f * foamSmoothstep(0.40f, 0.68f, breakup));
-    const float detailStrands = detailRidge *
-        (0.26f + 0.78f * foamSmoothstep(
-            0.44f, 0.72f, detailBreakup));
-    float mask = std::max(broadStrands, detailStrands * 0.90f);
-    mask = foamSmoothstep(0.18f, 0.98f, mask);
-    return static_cast<uint8_t>(
-        std::lround(std::clamp(mask, 0.0f, 1.0f) * 255.0f));
+    // Irregular plates and buried seams provide readable metre-scale detail
+    // from an underwater camera. They are generated into the same tile as the
+    // fine sand, so no external floor image or extra recurring texture lookup
+    // is required.
+    const float plateRegion = foamSmoothstep(
+        0.46f, 0.70f, stoneField * 0.72f + sediment * 0.28f);
+    const float plateEdge = periodicCellularEdge(
+        2.0f * u + v, -u + 2.0f * v, 23, 0x4cf5ad43u) *
+        plateRegion * foamSmoothstep(0.24f, 0.68f, erosion);
+    const float buriedSeam = periodicCellularEdge(
+        3.0f * u - 2.0f * v, 2.0f * u + 3.0f * v,
+        41, 0x27d4eb2fu) * (1.0f - plateRegion) * 0.42f;
+    const float mineral = foamSmoothstep(
+        0.55f, 0.82f, sediment * 0.54f + breakup * 0.46f) *
+        (1.0f - plateEdge);
+
+    const std::array<float, 3> darkSand{0.32f, 0.32f, 0.20f};
+    const std::array<float, 3> lightSand{0.91f, 0.84f, 0.62f};
+    const std::array<float, 3> darkStone{0.085f, 0.12f, 0.085f};
+    const std::array<float, 3> litStone{0.52f, 0.56f, 0.40f};
+    const std::array<float, 3> shellColor{0.96f, 0.91f, 0.72f};
+    const std::array<float, 3> mineralColor{0.57f, 0.49f, 0.29f};
+    std::array<uint8_t, 4> packed{};
+    packed[0] = static_cast<uint8_t>(std::lround(mask * 255.0f));
+    for (size_t channel = 0; channel < 3; ++channel) {
+        const float sandMix = std::clamp(
+            0.16f + sediment * 0.72f + ripples * 0.12f,
+            0.0f, 1.0f);
+        const float sand = darkSand[channel] +
+            (lightSand[channel] - darkSand[channel]) * sandMix;
+        const float stoneMix = std::clamp(
+            0.18f + grain * 0.42f + erosion * 0.28f,
+            0.0f, 1.0f);
+        const float stone = darkStone[channel] +
+            (litStone[channel] - darkStone[channel]) * stoneMix;
+        float base = (sand + (stone - sand) * rock) *
+            (0.94f + grain * 0.12f + (rippleA - 0.5f) * 0.03f);
+        base += (mineralColor[channel] - base) * mineral * 0.22f;
+        base *= 1.0f - plateEdge * 0.48f - buriedSeam * 0.20f;
+        const float albedo = base + (shellColor[channel] - base) * shells;
+        packed[channel + 1] = static_cast<uint8_t>(std::lround(
+            std::clamp(albedo, 0.0f, 1.0f) * 255.0f));
+    }
+    return packed;
 }
 
 } // namespace
@@ -691,48 +1108,53 @@ constexpr uint32_t kSurfaceFoamSize = 1024;
 bool BlitPath::createSurfaceFoamTexture() {
     uint32_t width = kSurfaceFoamSize;
     uint32_t height = kSurfaceFoamSize;
-    std::vector<uint8_t> mip(static_cast<size_t>(width) * height);
+    constexpr uint32_t kChannels = 4u;
+    std::vector<uint8_t> mip(
+        static_cast<size_t>(width) * height * kChannels);
     for (uint32_t y = 0; y < height; ++y) {
         for (uint32_t x = 0; x < width; ++x) {
-            mip[static_cast<size_t>(y) * width + x] =
-                proceduralFoamTexel(x, y);
+            const auto texel = proceduralOceanMaterialTexel(x, y);
+            const size_t offset =
+                (static_cast<size_t>(y) * width + x) * kChannels;
+            std::memcpy(mip.data() + offset, texel.data(), texel.size());
         }
     }
 
     gpu::TextureDesc desc = gpu::TextureDesc::tex2DMipmapped(
-        width, height, WGPUTextureFormat_R8Unorm,
+        width, height, WGPUTextureFormat_RGBA8Unorm,
         WGPUTextureUsage_TextureBinding | WGPUTextureUsage_CopyDst,
-        "ocean_procedural_foam");
+        "ocean_procedural_material");
     surfaceFoamTexture_ = gpu::createTexture(device_, desc);
     if (!surfaceFoamTexture_) return false;
 
     for (uint32_t level = 0; level < desc.mipLevelCount; ++level) {
         gpu::writeTexture(queue_, surfaceFoamTexture_,
                           std::as_bytes(std::span<const uint8_t>(mip)),
-                          width, height, width, level);
+                          width, height, width * kChannels, level);
         if (width == 1 && height == 1) break;
 
         const uint32_t nextWidth = std::max(width / 2, 1u);
         const uint32_t nextHeight = std::max(height / 2, 1u);
         std::vector<uint8_t> next(
-            static_cast<size_t>(nextWidth) * nextHeight);
+            static_cast<size_t>(nextWidth) * nextHeight * kChannels);
         for (uint32_t y = 0; y < nextHeight; ++y) {
             for (uint32_t x = 0; x < nextWidth; ++x) {
                 const uint32_t x0 = std::min(x * 2, width - 1);
                 const uint32_t x1 = std::min(x0 + 1, width - 1);
                 const uint32_t y0 = std::min(y * 2, height - 1);
                 const uint32_t y1 = std::min(y0 + 1, height - 1);
-                const uint32_t sum =
-                    static_cast<uint32_t>(
-                        mip[static_cast<size_t>(y0) * width + x0]) +
-                    static_cast<uint32_t>(
-                        mip[static_cast<size_t>(y0) * width + x1]) +
-                    static_cast<uint32_t>(
-                        mip[static_cast<size_t>(y1) * width + x0]) +
-                    static_cast<uint32_t>(
-                        mip[static_cast<size_t>(y1) * width + x1]);
-                next[static_cast<size_t>(y) * nextWidth + x] =
-                    static_cast<uint8_t>((sum + 2u) / 4u);
+                for (uint32_t channel = 0; channel < kChannels; ++channel) {
+                    const auto source = [&](uint32_t sx, uint32_t sy) {
+                        return static_cast<uint32_t>(mip[
+                            (static_cast<size_t>(sy) * width + sx) *
+                                kChannels + channel]);
+                    };
+                    const uint32_t sum = source(x0, y0) + source(x1, y0) +
+                                         source(x0, y1) + source(x1, y1);
+                    next[(static_cast<size_t>(y) * nextWidth + x) *
+                             kChannels + channel] =
+                        static_cast<uint8_t>((sum + 2u) / 4u);
+                }
             }
         }
         mip = std::move(next);
@@ -741,22 +1163,183 @@ bool BlitPath::createSurfaceFoamTexture() {
     }
 
     gpu::TextureViewDesc viewDesc{};
-    viewDesc.label = "ocean_procedural_foam_view";
-    viewDesc.format = WGPUTextureFormat_R8Unorm;
+    viewDesc.label = "ocean_procedural_material_view";
+    viewDesc.format = WGPUTextureFormat_RGBA8Unorm;
     viewDesc.mipLevelCount = desc.mipLevelCount;
     surfaceFoamView_ = gpu::createTextureView(surfaceFoamTexture_, viewDesc);
     if (!surfaceFoamView_) return false;
 
     gpu::SamplerDesc samplerDesc =
-        gpu::SamplerDesc::linear("ocean_procedural_foam_sampler");
+        gpu::SamplerDesc::linear("ocean_procedural_material_sampler");
     samplerDesc.addressModeU = WGPUAddressMode_Repeat;
     samplerDesc.addressModeV = WGPUAddressMode_Repeat;
     surfaceFoamSampler_ = gpu::createSampler(device_, samplerDesc);
     if (!surfaceFoamSampler_) return false;
 
-    LOG_DEBUG("Generated procedural ocean foam ({}x{}, {} mips)",
+    LOG_DEBUG("Generated procedural ocean material ({}x{}, {} mips)",
               kSurfaceFoamSize, kSurfaceFoamSize, desc.mipLevelCount);
     return true;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Underwater Particle Creation
+// ─────────────────────────────────────────────────────────────────────────────
+
+namespace {
+constexpr uint32_t kUnderwaterParticleCount = 1000u;
+constexpr float kParticleNearDistance = 9.0f;
+constexpr float kParticleFarDistance = 209.0f;
+constexpr float kParticleTau = 6.28318530717958647692f;
+} // namespace
+
+bool BlitPath::createUnderwaterParticleResources(
+    const BlitPathConfig& config) {
+    underwaterParticles_.assign(kUnderwaterParticleCount, glm::vec4(0.0f));
+    for (glm::vec4& particle : underwaterParticles_) {
+        particle.w = nextParticleRandom();
+    }
+    const uint64_t byteSize =
+        underwaterParticles_.size() * sizeof(glm::vec4);
+    particleBuffer_ = gpu::createBuffer(
+        device_, gpu::BufferDesc::storage(
+                     byteSize, true, "underwater_particle_instances"));
+    if (!particleBuffer_) return false;
+    gpu::writeBuffer(queue_, particleBuffer_, 0,
+                     std::span<const glm::vec4>(underwaterParticles_));
+
+    std::array<gpu::BindGroupLayoutEntry, 3> entries = {
+        gpu::BindGroupLayoutEntry(0)
+            .vertexVisible()
+            .uniformBuffer(false, sizeof(CameraUniforms)),
+        gpu::BindGroupLayoutEntry(1)
+            .fragmentVisible()
+            .texture(WGPUTextureSampleType_UnfilterableFloat,
+                     WGPUTextureViewDimension_2D, false),
+        gpu::BindGroupLayoutEntry(2)
+            .vertexVisible()
+            .storageBuffer(true, false, sizeof(glm::vec4))
+    };
+    particleBindGroupLayout_ = gpu::createBindGroupLayout(
+        device_, entries, "underwater_particle_bind_group_layout");
+    if (!particleBindGroupLayout_) return false;
+
+    const std::array<WGPUBindGroupLayout, 1> layouts = {
+        particleBindGroupLayout_};
+    particlePipelineLayout_ = gpu::createPipelineLayout(
+        device_, layouts, "underwater_particle_pipeline_layout");
+    if (!particlePipelineLayout_) return false;
+
+    const std::filesystem::path shaderPath =
+        config.shaderPath.parent_path() / "underwater_particles.wgsl";
+    particleShaderModule_ = gpu::loadShaderModule(
+        device_, shaderPath, "underwater_particles.wgsl");
+    if (!particleShaderModule_) return false;
+
+    WGPUVertexState vertexState{};
+    vertexState.module = particleShaderModule_;
+    WGPU_SET_ENTRY_POINT(vertexState, "vs");
+
+    WGPUBlendState blend{};
+    blend.color.operation = WGPUBlendOperation_Add;
+    blend.color.srcFactor = WGPUBlendFactor_SrcAlpha;
+    blend.color.dstFactor = WGPUBlendFactor_OneMinusSrcAlpha;
+    blend.alpha.operation = WGPUBlendOperation_Add;
+    blend.alpha.srcFactor = WGPUBlendFactor_One;
+    blend.alpha.dstFactor = WGPUBlendFactor_OneMinusSrcAlpha;
+
+    WGPUColorTargetState colorTarget{};
+    colorTarget.format = config.colorFormat;
+    colorTarget.blend = &blend;
+    colorTarget.writeMask = WGPUColorWriteMask_All;
+    WGPUFragmentState fragmentState{};
+    fragmentState.module = particleShaderModule_;
+    WGPU_SET_ENTRY_POINT(fragmentState, "fs");
+    fragmentState.targetCount = 1;
+    fragmentState.targets = &colorTarget;
+
+    WGPUPrimitiveState primitiveState{};
+    primitiveState.topology = WGPUPrimitiveTopology_TriangleList;
+    primitiveState.frontFace = WGPUFrontFace_CCW;
+    primitiveState.cullMode = WGPUCullMode_None;
+    WGPUMultisampleState multisample{};
+    multisample.count = 1;
+    multisample.mask = ~0u;
+
+    WGPURenderPipelineDescriptor descriptor{};
+    WGPU_SET_LABEL(descriptor, "underwater_particle_pipeline");
+    descriptor.layout = particlePipelineLayout_;
+    descriptor.vertex = vertexState;
+    descriptor.fragment = &fragmentState;
+    descriptor.primitive = primitiveState;
+    descriptor.multisample = multisample;
+    particlePipeline_ = wgpuDeviceCreateRenderPipeline(device_, &descriptor);
+    return particlePipeline_ != nullptr;
+}
+
+float BlitPath::nextParticleRandom() {
+    // Small deterministic generator: only 24 high bits are consumed so the
+    // generated values have stable fp32 precision on native and WASM.
+    particleRandomState_ ^= particleRandomState_ << 13u;
+    particleRandomState_ ^= particleRandomState_ >> 17u;
+    particleRandomState_ ^= particleRandomState_ << 5u;
+    return static_cast<float>(particleRandomState_ >> 8u) *
+           (1.0f / 16777216.0f);
+}
+
+bool BlitPath::respawnUnderwaterParticle(size_t index,
+                                         const glm::vec3& cameraPos,
+                                         float surfaceHeight) {
+    constexpr size_t kAttempts = 20;
+    constexpr float kNearCubed = kParticleNearDistance *
+        kParticleNearDistance * kParticleNearDistance;
+    constexpr float kFarCubed = kParticleFarDistance *
+        kParticleFarDistance * kParticleFarDistance;
+    for (size_t attempt = 0; attempt < kAttempts; ++attempt) {
+        const float angle = nextParticleRandom() * kParticleTau;
+        const float polarCosine = nextParticleRandom() * 2.0f - 1.0f;
+        const float polarSine = std::sqrt(
+            std::max(1.0f - polarCosine * polarCosine, 0.0f));
+        const glm::vec3 direction{
+            polarSine * std::cos(angle), polarSine * std::sin(angle),
+            polarCosine};
+        const float radius = std::cbrt(
+            kNearCubed + nextParticleRandom() * (kFarCubed - kNearCubed));
+        const glm::vec3 position = cameraPos + direction * radius;
+        if (position.y < surfaceHeight - 0.5f) {
+            underwaterParticles_[index].x = position.x;
+            underwaterParticles_[index].y = position.y;
+            underwaterParticles_[index].z = position.z;
+            return true;
+        }
+    }
+    underwaterParticles_[index].w = 0.0f;
+    return false;
+}
+
+void BlitPath::updateUnderwaterParticles() {
+    if (!uniforms_ || !particleBuffer_ || underwaterParticles_.empty()) return;
+    const glm::vec3 cameraPos{uniforms_->cameraPos};
+    const float surfaceHeight = uniforms_->waterParams.x +
+                                uniforms_->waterMotion.y;
+    constexpr float kNearSquared =
+        kParticleNearDistance * kParticleNearDistance;
+    constexpr float kFarSquared =
+        kParticleFarDistance * kParticleFarDistance;
+    for (size_t index = 0; index < underwaterParticles_.size(); ++index) {
+        glm::vec4& particle = underwaterParticles_[index];
+        const glm::vec3 offset = glm::vec3(particle) - cameraPos;
+        const float distanceSquared = glm::dot(offset, offset);
+        if (!particlesInitialized_ || distanceSquared < kNearSquared ||
+            distanceSquared > kFarSquared ||
+            particle.y > surfaceHeight - 0.5f || particle.w <= 0.0f) {
+            if (particle.w <= 0.0f) particle.w = nextParticleRandom();
+            (void)respawnUnderwaterParticle(
+                index, cameraPos, surfaceHeight);
+        }
+    }
+    particlesInitialized_ = true;
+    gpu::writeBuffer(queue_, particleBuffer_, 0,
+                     std::span<const glm::vec4>(underwaterParticles_));
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -764,17 +1347,143 @@ bool BlitPath::createSurfaceFoamTexture() {
 // ─────────────────────────────────────────────────────────────────────────────
 
 namespace {
-/// Resolution of the baked paraboloid sky map. The sky is low-frequency
-/// (the sharp sun disc stays analytic in the blit shader), so 512 is plenty.
-constexpr uint32_t kSkyLutSize = 512;
+/// The original environment is generated specifically for this renderer in a
+/// full-sphere 2:1 projection. Keeping its native resolution retains the fine
+/// cloud edges seen in near-field wave reflections at no recurring sample cost.
+constexpr uint32_t kSkyLutWidth = 1774;
+constexpr uint32_t kSkyLutHeight = 887;
 constexpr uint32_t kSkyLutMipCount =
-    gpu::calculateMipLevelCount(kSkyLutSize, kSkyLutSize);
+    gpu::calculateMipLevelCount(kSkyLutWidth, kSkyLutHeight);
+
+[[nodiscard]] float skySrgbToLinear(float value) noexcept {
+    return value <= 0.04045f
+        ? value / 12.92f
+        : std::pow((value + 0.055f) / 1.055f, 2.4f);
+}
+
+[[nodiscard]] bool uploadGeneratedEnvironment(
+    WGPUQueue queue, WGPUTexture texture,
+    const std::filesystem::path& path) {
+    if (path.empty() || !std::filesystem::exists(path)) return false;
+
+    std::ifstream file(path, std::ios::binary | std::ios::ate);
+    if (!file.is_open()) return false;
+    const std::streamsize size = file.tellg();
+    if (size <= 0 || size > std::numeric_limits<int>::max()) return false;
+    file.seekg(0, std::ios::beg);
+    std::vector<uint8_t> encoded(static_cast<size_t>(size));
+    if (!file.read(reinterpret_cast<char*>(encoded.data()), size)) {
+        return false;
+    }
+
+    int decodedWidth = 0;
+    int decodedHeight = 0;
+    int channels = 0;
+    uint8_t* decoded = stbi_load_from_memory(
+        encoded.data(), static_cast<int>(encoded.size()),
+        &decodedWidth, &decodedHeight, &channels, 4);
+    if (!decoded) return false;
+    if (decodedWidth != static_cast<int>(kSkyLutWidth) ||
+        decodedHeight != static_cast<int>(kSkyLutHeight)) {
+        LOG_ERROR("Generated environment has unexpected dimensions {}x{}; "
+                  "expected {}x{}", decodedWidth, decodedHeight,
+                  kSkyLutWidth, kSkyLutHeight);
+        stbi_image_free(decoded);
+        return false;
+    }
+
+    uint32_t width = kSkyLutWidth;
+    uint32_t height = kSkyLutHeight;
+    std::vector<float> linear(
+        static_cast<size_t>(width) * height * 4u, 1.0f);
+    for (size_t pixel = 0;
+         pixel < static_cast<size_t>(width) * height; ++pixel) {
+        const float red = static_cast<float>(decoded[pixel * 4u]) / 255.0f;
+        const float green =
+            static_cast<float>(decoded[pixel * 4u + 1u]) / 255.0f;
+        const float blue =
+            static_cast<float>(decoded[pixel * 4u + 2u]) / 255.0f;
+        const float luminance =
+            red * 0.2126f + green * 0.7152f + blue * 0.0722f;
+        const float highlight = std::clamp(
+            (luminance - 0.52f) / 0.44f, 0.0f, 1.0f);
+        const float radianceScale = 0.82f + highlight * highlight * 2.45f;
+        linear[pixel * 4u] = skySrgbToLinear(red) * radianceScale;
+        linear[pixel * 4u + 1u] = skySrgbToLinear(green) * radianceScale;
+        linear[pixel * 4u + 2u] = skySrgbToLinear(blue) * radianceScale;
+    }
+    stbi_image_free(decoded);
+
+    // Cross-fade paired border texels so filtering remains continuous even if
+    // the generated panorama contains a small residual exposure difference at
+    // its horizontal join.
+    constexpr uint32_t kSeamBlendWidth = 48u;
+    for (uint32_t y = 0; y < height; ++y) {
+        for (uint32_t x = 0; x < kSeamBlendWidth; ++x) {
+            const uint32_t oppositeX = width - 1u - x;
+            const float strength = 1.0f -
+                static_cast<float>(x) /
+                    static_cast<float>(kSeamBlendWidth);
+            for (uint32_t channel = 0; channel < 3u; ++channel) {
+                const size_t left =
+                    (static_cast<size_t>(y) * width + x) * 4u + channel;
+                const size_t right =
+                    (static_cast<size_t>(y) * width + oppositeX) * 4u +
+                    channel;
+                const float average = (linear[left] + linear[right]) * 0.5f;
+                linear[left] += (average - linear[left]) * strength;
+                linear[right] += (average - linear[right]) * strength;
+            }
+        }
+    }
+
+    for (uint32_t level = 0; level < kSkyLutMipCount; ++level) {
+        std::vector<uint16_t> packed(linear.size());
+        for (size_t component = 0; component < linear.size(); ++component) {
+            packed[component] = glm::packHalf1x16(
+                std::clamp(linear[component], 0.0f, 65504.0f));
+        }
+        gpu::writeTexture(queue, texture,
+                          std::as_bytes(std::span<const uint16_t>(packed)),
+                          width, height, width * 8u, level);
+        if (width == 1u && height == 1u) break;
+
+        const uint32_t nextWidth = std::max(width / 2u, 1u);
+        const uint32_t nextHeight = std::max(height / 2u, 1u);
+        std::vector<float> next(
+            static_cast<size_t>(nextWidth) * nextHeight * 4u, 1.0f);
+        for (uint32_t y = 0; y < nextHeight; ++y) {
+            for (uint32_t x = 0; x < nextWidth; ++x) {
+                const uint32_t x0 = std::min(x * 2u, width - 1u);
+                const uint32_t x1 = std::min(x0 + 1u, width - 1u);
+                const uint32_t y0 = std::min(y * 2u, height - 1u);
+                const uint32_t y1 = std::min(y0 + 1u, height - 1u);
+                for (uint32_t channel = 0; channel < 4u; ++channel) {
+                    const auto sample = [&](uint32_t sx, uint32_t sy) {
+                        return linear[(static_cast<size_t>(sy) * width + sx) *
+                                      4u + channel];
+                    };
+                    next[(static_cast<size_t>(y) * nextWidth + x) * 4u +
+                         channel] =
+                        (sample(x0, y0) + sample(x1, y0) +
+                         sample(x0, y1) + sample(x1, y1)) * 0.25f;
+                }
+            }
+        }
+        linear = std::move(next);
+        width = nextWidth;
+        height = nextHeight;
+    }
+    LOG_INFO("Loaded original generated ocean environment: {}", path.string());
+    return true;
+}
 } // namespace
 
 bool BlitPath::createSkyLut(const BlitPathConfig& config) {
     // Output texture: storage write for the bake, sampled read for the blit.
     gpu::TextureDesc lutDesc = gpu::TextureDesc::storage(
-        kSkyLutSize, kSkyLutSize, WGPUTextureFormat_RGBA16Float, "sky_lut");
+        kSkyLutWidth, kSkyLutHeight, WGPUTextureFormat_RGBA16Float,
+        "sky_lut");
     lutDesc.mipLevelCount = kSkyLutMipCount;
     skyLutTexture_ = gpu::createTexture(device_, lutDesc);
     if (!skyLutTexture_) {
@@ -790,6 +1499,14 @@ bool BlitPath::createSkyLut(const BlitPathConfig& config) {
         LOG_ERROR("Failed to create sky LUT texture view");
         return false;
     }
+
+    if (uploadGeneratedEnvironment(
+            queue_, skyLutTexture_, config.environmentPath)) {
+        skyLutBaked_ = true;
+        return true;
+    }
+
+    LOG_WARN("Generated environment unavailable; using procedural sky bake");
     skyLutBaseView_ = gpu::createMipView(
         skyLutTexture_, 0, WGPUTextureFormat_RGBA16Float);
     if (!skyLutBaseView_) {
@@ -935,7 +1652,7 @@ bool BlitPath::createSkyLut(const BlitPathConfig& config) {
     }
 
     LOG_DEBUG("Created sky LUT resources ({}x{}, {} mips)",
-              kSkyLutSize, kSkyLutSize, kSkyLutMipCount);
+              kSkyLutWidth, kSkyLutHeight, kSkyLutMipCount);
     return true;
 }
 
@@ -1079,9 +1796,10 @@ bool BlitPath::createBindGroupLayout() {
         return false;
     }
 
-    // The settled-camera pipeline has one extra input: the exact terrain/sky
-    // color rendered when the static ray cache was refreshed.
-    std::array<gpu::BindGroupLayoutEntry, 12> cachedEntries = {
+    // The settled-camera pipeline shades animated water directly over the exact
+    // cached HDR terrain/sky. Bindings 13-16 are the same geometry inputs used
+    // by the old intermediate water-composite compute pass.
+    std::array<gpu::BindGroupLayoutEntry, 17> cachedEntries = {
         gpu::BindGroupLayoutEntry(0)
             .vertexVisible()
             .fragmentVisible()
@@ -1126,7 +1844,28 @@ bool BlitPath::createBindGroupLayout() {
         gpu::BindGroupLayoutEntry(11)
             .fragmentVisible()
             .texture(WGPUTextureSampleType_Float,
-                     WGPUTextureViewDimension_2D, false)
+                     WGPUTextureViewDimension_2D, false),
+        gpu::BindGroupLayoutEntry(12)
+            .fragmentVisible()
+            .texture(WGPUTextureSampleType_UnfilterableFloat,
+                     WGPUTextureViewDimension_2D, false),
+        gpu::BindGroupLayoutEntry(13)
+            .fragmentVisible()
+            .texture(WGPUTextureSampleType_Uint,
+                     WGPUTextureViewDimension_2D, false),
+        gpu::BindGroupLayoutEntry(14)
+            .fragmentVisible()
+            .texture(WGPUTextureSampleType_Uint,
+                     WGPUTextureViewDimension_2D, false),
+        gpu::BindGroupLayoutEntry(15)
+            .vertexVisible()
+            .fragmentVisible()
+            .texture(WGPUTextureSampleType_Float,
+                     WGPUTextureViewDimension_2DArray, false),
+        gpu::BindGroupLayoutEntry(16)
+            .vertexVisible()
+            .fragmentVisible()
+            .sampler(WGPUSamplerBindingType_Filtering)
     };
     cachedBindGroupLayout_ = gpu::createBindGroupLayout(
         device_, cachedEntries, "blit_cached_bind_group_layout");
@@ -1208,6 +1947,18 @@ bool BlitPath::createPipeline(const BlitPathConfig& config) {
         return false;
     }
 
+    // The cached opaque scene stays in linear HDR so water can refract it
+    // before the one and only presentation transform.
+    colorTarget.format = WGPUTextureFormat_RGBA16Float;
+    WGPU_SET_ENTRY_POINT(fragmentState, "fsBackground");
+    WGPU_SET_LABEL(pipelineDesc, "blit_background_pipeline");
+    backgroundPipeline_ =
+        wgpuDeviceCreateRenderPipeline(device_, &pipelineDesc);
+    if (!backgroundPipeline_) {
+        LOG_ERROR("Failed to create linear background pipeline");
+        return false;
+    }
+
     std::array<WGPUBindGroupLayout, 1> cachedLayouts = {
         cachedBindGroupLayout_
     };
@@ -1218,9 +1969,28 @@ bool BlitPath::createPipeline(const BlitPathConfig& config) {
         return false;
     }
 
-    WGPU_SET_ENTRY_POINT(fragmentState, "fsCached");
+    std::array<WGPUColorTargetState, 2> cachedTargets{};
+    cachedTargets[0].format = config.colorFormat;
+    cachedTargets[0].writeMask = WGPUColorWriteMask_All;
+    cachedTargets[1].format = WGPUTextureFormat_R32Float;
+    cachedTargets[1].writeMask = WGPUColorWriteMask_All;
+    fragmentState.targetCount = cachedTargets.size();
+    fragmentState.targets = cachedTargets.data();
+    WGPU_SET_ENTRY_POINT(fragmentState, "fsCachedOpaque");
     pipelineDesc.layout = cachedPipelineLayout_;
-    WGPU_SET_LABEL(pipelineDesc, "blit_cached_pipeline");
+    WGPUDepthStencilState opaqueMaskState{};
+    opaqueMaskState.format = WGPUTextureFormat_Depth24PlusStencil8;
+    opaqueMaskState.depthWriteEnabled = gpu::toOptionalBool(false);
+    opaqueMaskState.depthCompare = WGPUCompareFunction_Always;
+    opaqueMaskState.stencilFront.compare = WGPUCompareFunction_Equal;
+    opaqueMaskState.stencilFront.failOp = WGPUStencilOperation_Keep;
+    opaqueMaskState.stencilFront.depthFailOp = WGPUStencilOperation_Keep;
+    opaqueMaskState.stencilFront.passOp = WGPUStencilOperation_Keep;
+    opaqueMaskState.stencilBack = opaqueMaskState.stencilFront;
+    opaqueMaskState.stencilReadMask = 1u;
+    opaqueMaskState.stencilWriteMask = 0u;
+    pipelineDesc.depthStencil = &opaqueMaskState;
+    WGPU_SET_LABEL(pipelineDesc, "blit_cached_opaque_pipeline");
     cachedPipeline_ = wgpuDeviceCreateRenderPipeline(device_, &pipelineDesc);
     if (!cachedPipeline_) {
         LOG_ERROR("Failed to create cached blit render pipeline");
@@ -1232,6 +2002,107 @@ bool BlitPath::createPipeline(const BlitPathConfig& config) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+bool BlitPath::createWaterClipmapResources(const BlitPathConfig& config) {
+    const std::filesystem::path shaderPath =
+        config.shaderPath.parent_path() / "water_clipmap.wgsl";
+    waterClipmapShaderModule_ = gpu::loadShaderModule(
+        device_, shaderPath, "water_clipmap.wgsl");
+    if (!waterClipmapShaderModule_) {
+        LOG_ERROR("Failed to load water clipmap shader from: {}",
+                  shaderPath.string());
+        return false;
+    }
+
+    WGPUVertexAttribute attribute{};
+    attribute.format = WGPUVertexFormat_Float32x3;
+    attribute.offset = 0u;
+    attribute.shaderLocation = 0u;
+    WGPUVertexBufferLayout vertexBufferLayout{};
+    vertexBufferLayout.arrayStride = sizeof(WaterClipmapVertex);
+    vertexBufferLayout.stepMode = WGPUVertexStepMode_Vertex;
+    vertexBufferLayout.attributeCount = 1u;
+    vertexBufferLayout.attributes = &attribute;
+
+    WGPUVertexState vertexState{};
+    vertexState.module = waterClipmapShaderModule_;
+    WGPU_SET_ENTRY_POINT(vertexState, "vs");
+    vertexState.bufferCount = 1u;
+    vertexState.buffers = &vertexBufferLayout;
+
+    std::array<WGPUColorTargetState, 2> colorTargets{};
+    colorTargets[0].format = config.colorFormat;
+    colorTargets[0].writeMask = WGPUColorWriteMask_All;
+    colorTargets[1].format = WGPUTextureFormat_R32Float;
+    colorTargets[1].writeMask = WGPUColorWriteMask_All;
+    WGPUFragmentState fragmentState{};
+    fragmentState.module = waterClipmapShaderModule_;
+    WGPU_SET_ENTRY_POINT(fragmentState, "fs");
+    fragmentState.targetCount = colorTargets.size();
+    fragmentState.targets = colorTargets.data();
+
+    WGPUPrimitiveState primitiveState{};
+    primitiveState.topology = WGPUPrimitiveTopology_TriangleList;
+    primitiveState.frontFace = WGPUFrontFace_CCW;
+    // Both faces are required when the camera crosses the live surface.
+    primitiveState.cullMode = WGPUCullMode_None;
+    WGPUMultisampleState multisampleState{};
+    multisampleState.count = 1u;
+    multisampleState.mask = ~0u;
+
+    WGPURenderPipelineDescriptor pipelineDesc{};
+    WGPU_SET_LABEL(pipelineDesc, "water_clipmap_pipeline");
+    pipelineDesc.layout = cachedPipelineLayout_;
+    pipelineDesc.vertex = vertexState;
+    pipelineDesc.fragment = &fragmentState;
+    pipelineDesc.primitive = primitiveState;
+    WGPUDepthStencilState waterMaskState{};
+    waterMaskState.format = WGPUTextureFormat_Depth24PlusStencil8;
+    waterMaskState.depthWriteEnabled = gpu::toOptionalBool(false);
+    waterMaskState.depthCompare = WGPUCompareFunction_Always;
+    waterMaskState.stencilFront.compare = WGPUCompareFunction_Always;
+    waterMaskState.stencilFront.failOp = WGPUStencilOperation_Keep;
+    waterMaskState.stencilFront.depthFailOp = WGPUStencilOperation_Keep;
+    waterMaskState.stencilFront.passOp = WGPUStencilOperation_Replace;
+    waterMaskState.stencilBack = waterMaskState.stencilFront;
+    waterMaskState.stencilReadMask = 1u;
+    waterMaskState.stencilWriteMask = 1u;
+    pipelineDesc.depthStencil = &waterMaskState;
+    pipelineDesc.multisample = multisampleState;
+    waterClipmapPipeline_ =
+        wgpuDeviceCreateRenderPipeline(device_, &pipelineDesc);
+    if (!waterClipmapPipeline_) {
+        LOG_ERROR("Failed to create water clipmap render pipeline");
+        return false;
+    }
+
+    const WaterClipmapMesh mesh = makeWaterClipmap();
+    if (mesh.vertices.empty() || mesh.indices.empty() ||
+        mesh.indices.size() > std::numeric_limits<uint32_t>::max()) {
+        LOG_ERROR("Generated invalid water clipmap topology");
+        return false;
+    }
+    waterClipmapVertexBuffer_ = gpu::createBufferWithData(
+        device_, queue_,
+        gpu::BufferDesc::vertex(
+            mesh.vertices.size() * sizeof(WaterClipmapVertex),
+            "water_clipmap_vertices"),
+        std::span<const WaterClipmapVertex>(mesh.vertices));
+    waterClipmapIndexBuffer_ = gpu::createBufferWithData(
+        device_, queue_,
+        gpu::BufferDesc::index(
+            mesh.indices.size() * sizeof(uint32_t),
+            "water_clipmap_indices"),
+        std::span<const uint32_t>(mesh.indices));
+    if (!waterClipmapVertexBuffer_ || !waterClipmapIndexBuffer_) {
+        LOG_ERROR("Failed to upload water clipmap topology");
+        return false;
+    }
+    waterClipmapIndexCount_ = static_cast<uint32_t>(mesh.indices.size());
+    LOG_INFO("Created water clipmap: {} vertices, {} triangles",
+             mesh.vertices.size(), mesh.indices.size() / 3u);
+    return true;
+}
+
 // Bind Group Creation
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -1278,6 +2149,10 @@ bool BlitPath::createBindGroup() {
         wgpuBindGroupRelease(cachedBindGroup_);
         cachedBindGroup_ = nullptr;
     }
+    if (particleBindGroup_) {
+        wgpuBindGroupRelease(particleBindGroup_);
+        particleBindGroup_ = nullptr;
+    }
     std::array<gpu::BindGroupEntry, 11> entries = {
         gpu::BindGroupEntry(0).buffer(uniformBuffer_, 0, sizeof(CameraUniforms)),
         gpu::BindGroupEntry(1).textureView(depthView_),
@@ -1297,6 +2172,24 @@ bool BlitPath::createBindGroup() {
     if (!bindGroup_) {
         LOG_ERROR("Failed to create blit bind group");
         return false;
+    }
+
+    if (particleBindGroupLayout_ && particleBuffer_) {
+        const uint64_t byteSize =
+            underwaterParticles_.size() * sizeof(glm::vec4);
+        std::array<gpu::BindGroupEntry, 3> particleEntries = {
+            gpu::BindGroupEntry(0).buffer(
+                uniformBuffer_, 0, sizeof(CameraUniforms)),
+            gpu::BindGroupEntry(1).textureView(depthView_),
+            gpu::BindGroupEntry(2).buffer(particleBuffer_, 0, byteSize)
+        };
+        particleBindGroup_ = gpu::createBindGroup(
+            device_, particleBindGroupLayout_, particleEntries,
+            "underwater_particle_bind_group");
+        if (!particleBindGroup_) {
+            LOG_ERROR("Failed to create underwater particle bind group");
+            return false;
+        }
     }
 
     if (staticDepthView_ && staticShadowView_ && backgroundView_) {
@@ -1323,11 +2216,20 @@ bool BlitPath::createBindGroup() {
             return false;
         }
 
-        std::array<gpu::BindGroupEntry, 12> cachedEntries = {
+        if (!heightmapView_ || !shadowHeightView_ ||
+            !waterDisplacementView_ || !waterDisplacementSampler_) {
+            LOG_ERROR("Cannot create fused water bind group: missing geometry resources");
+            return false;
+        }
+
+        std::array<gpu::BindGroupEntry, 17> cachedEntries = {
             gpu::BindGroupEntry(0).buffer(
                 uniformBuffer_, 0, sizeof(CameraUniforms)),
-            gpu::BindGroupEntry(1).textureView(depthView_),
-            gpu::BindGroupEntry(2).textureView(shadowView_),
+            // The dynamic depth texture is a render attachment in this pass;
+            // bind the static cache in unused legacy slots to avoid a WebGPU
+            // read/write usage conflict.
+            gpu::BindGroupEntry(1).textureView(staticDepthView_),
+            gpu::BindGroupEntry(2).textureView(staticShadowView_),
             gpu::BindGroupEntry(3).textureView(materialView_),
             gpu::BindGroupEntry(4).textureView(terrainView_),
             gpu::BindGroupEntry(5).textureView(lightmapView_),
@@ -1337,7 +2239,12 @@ bool BlitPath::createBindGroup() {
             gpu::BindGroupEntry(8).textureView(skyLutView_),
             gpu::BindGroupEntry(9).textureView(surfaceFoamView_),
             gpu::BindGroupEntry(10).sampler(surfaceFoamSampler_),
-            gpu::BindGroupEntry(11).textureView(backgroundView_)
+            gpu::BindGroupEntry(11).textureView(backgroundView_),
+            gpu::BindGroupEntry(12).textureView(staticDepthView_),
+            gpu::BindGroupEntry(13).textureView(heightmapView_),
+            gpu::BindGroupEntry(14).textureView(shadowHeightView_),
+            gpu::BindGroupEntry(15).textureView(waterDisplacementView_),
+            gpu::BindGroupEntry(16).sampler(waterDisplacementSampler_)
         };
         cachedBindGroup_ = gpu::createBindGroup(
             device_, cachedBindGroupLayout_, cachedEntries,
@@ -1384,6 +2291,19 @@ void BlitPath::setStaticTerrainTextures(WGPUTextureView depthView,
     backgroundValid_ = false;
     backgroundDirty_ = true;
     LOG_DEBUG("Set camera-static terrain depth and shadow textures");
+}
+
+void BlitPath::setWaterCompositeResources(
+    WGPUTextureView heightmapView,
+    WGPUTextureView shadowHeightView,
+    WGPUTextureView displacementView,
+    WGPUSampler displacementSampler) {
+    heightmapView_ = heightmapView;
+    shadowHeightView_ = shadowHeightView;
+    waterDisplacementView_ = displacementView;
+    waterDisplacementSampler_ = displacementSampler;
+    bindGroupDirty_ = true;
+    LOG_DEBUG("Set fused water geometry resources");
 }
 
 void BlitPath::setStaticCacheState(bool active,
@@ -1467,9 +2387,11 @@ void BlitPath::updateStaticUniforms() {
     if (!uniforms_ || !staticUniforms_) return;
 
     CameraUniforms next = *uniforms_;
-    // Simulation time changes every frame but cannot affect static terrain or
-    // sky. All other fields remain exact so lighting/config edits invalidate.
-    next.waterMotion = glm::vec4(0.0f);
+    // Simulation time and the precise local wave offset change every frame,
+    // but only the above/below-water transition affects the opaque backdrop.
+    next.waterMotion.x = 0.0f;
+    next.waterMotion.y = 0.0f;
+    next.waterMotion.w = 0.0f;
     if (std::memcmp(staticUniforms_, &next, sizeof(CameraUniforms)) == 0) {
         return;
     }
@@ -1487,6 +2409,7 @@ void BlitPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
                       WGPUQuerySet timestampQuerySet,
                       uint32_t timestampBegin,
                       uint32_t timestampEnd) {
+    usedGeometryWaterPathLastRender_ = false;
     if (!pipeline_) {
         LOG_WARN("BlitPath::render: not initialized");
         return;
@@ -1528,8 +2451,9 @@ void BlitPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
             wgpuCommandEncoderBeginComputePass(encoder, &computePassDesc);
         wgpuComputePassEncoderSetPipeline(computePass, skyLutPipeline_);
         wgpuComputePassEncoderSetBindGroup(computePass, 0, skyLutBindGroup_, 0, nullptr);
-        const uint32_t groups = (kSkyLutSize + 7) / 8;
-        wgpuComputePassEncoderDispatchWorkgroups(computePass, groups, groups, 1);
+        wgpuComputePassEncoderDispatchWorkgroups(
+            computePass, (kSkyLutWidth + 7) / 8,
+            (kSkyLutHeight + 7) / 8, 1);
         wgpuComputePassEncoderEnd(computePass);
         wgpuComputePassEncoderRelease(computePass);
 
@@ -1546,10 +2470,13 @@ void BlitPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
                                                   skyLutMipPipeline_);
                 wgpuComputePassEncoderSetBindGroup(
                     mipPass, 0, skyLutMipBindGroups_[level - 1], 0, nullptr);
-                const uint32_t mipSize =
-                    std::max(kSkyLutSize >> level, 1u);
+                const uint32_t mipWidth =
+                    std::max(kSkyLutWidth >> level, 1u);
+                const uint32_t mipHeight =
+                    std::max(kSkyLutHeight >> level, 1u);
                 wgpuComputePassEncoderDispatchWorkgroups(
-                    mipPass, (mipSize + 7) / 8, (mipSize + 7) / 8, 1);
+                    mipPass, (mipWidth + 7) / 8,
+                    (mipHeight + 7) / 8, 1);
                 wgpuComputePassEncoderEnd(mipPass);
                 wgpuComputePassEncoderRelease(mipPass);
             }
@@ -1562,18 +2489,26 @@ void BlitPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
                                     WGPURenderPipeline selectedPipeline,
                                     WGPUBindGroup selectedBindGroup,
                                     const char* label,
-                                    bool writeTimestamps) {
-        WGPURenderPassColorAttachment colorAttachment{};
-        colorAttachment.view = target;
-        colorAttachment.depthSlice = WGPU_DEPTH_SLICE_UNDEFINED;
-        colorAttachment.loadOp = WGPULoadOp_Clear;
-        colorAttachment.storeOp = WGPUStoreOp_Store;
-        colorAttachment.clearValue = {0.0, 0.0, 0.0, 1.0};
+                                    bool writeTimestamps,
+                                    bool writeLinearDepth) {
+        std::array<WGPURenderPassColorAttachment, 2> colorAttachments{};
+        colorAttachments[0].view = target;
+        colorAttachments[0].depthSlice = WGPU_DEPTH_SLICE_UNDEFINED;
+        colorAttachments[0].loadOp = WGPULoadOp_Clear;
+        colorAttachments[0].storeOp = WGPUStoreOp_Store;
+        colorAttachments[0].clearValue = {0.0, 0.0, 0.0, 1.0};
+        if (writeLinearDepth) {
+            colorAttachments[1].view = depthView_;
+            colorAttachments[1].depthSlice = WGPU_DEPTH_SLICE_UNDEFINED;
+            colorAttachments[1].loadOp = WGPULoadOp_Clear;
+            colorAttachments[1].storeOp = WGPUStoreOp_Store;
+            colorAttachments[1].clearValue = {-1.0, 0.0, 0.0, 0.0};
+        }
 
         WGPURenderPassDescriptor renderPassDesc{};
         WGPU_SET_LABEL(renderPassDesc, label);
-        renderPassDesc.colorAttachmentCount = 1;
-        renderPassDesc.colorAttachments = &colorAttachment;
+        renderPassDesc.colorAttachmentCount = writeLinearDepth ? 2u : 1u;
+        renderPassDesc.colorAttachments = colorAttachments.data();
         gpu::CompatRenderPassTimestampWrites timestampWrites{};
         if (writeTimestamps && timestampQuerySet) {
             timestampWrites.querySet = timestampQuerySet;
@@ -1593,25 +2528,116 @@ void BlitPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
     };
 
     const bool useCachedPath = staticCacheActive_ && backgroundView_ &&
-        staticBindGroup_ && cachedBindGroup_ && cachedPipeline_;
+        coverageMaskView_ &&
+        staticBindGroup_ && cachedBindGroup_ && cachedPipeline_ &&
+        backgroundPipeline_ && waterClipmapPipeline_ &&
+        waterClipmapVertexBuffer_ && waterClipmapIndexBuffer_ &&
+        waterClipmapIndexCount_ != 0u;
     if (useCachedPath && (!backgroundValid_ || backgroundDirty_)) {
         if (staticUniformsDirty_) {
             gpu::writeBuffer(queue_, staticUniformBuffer_, 0,
                              *staticUniforms_);
             staticUniformsDirty_ = false;
         }
-        drawFullscreen(backgroundView_, pipeline_, staticBindGroup_,
-                       "blit_static_background_pass", false);
+        drawFullscreen(backgroundView_, backgroundPipeline_, staticBindGroup_,
+                       "blit_static_background_pass", false, false);
         backgroundValid_ = true;
         backgroundDirty_ = false;
     }
 
     if (useCachedPath && backgroundValid_) {
-        drawFullscreen(colorView, cachedPipeline_, cachedBindGroup_,
-                       "blit_cached_water_pass", true);
+        usedGeometryWaterPathLastRender_ = true;
+        std::array<WGPURenderPassColorAttachment, 2> colorAttachments{};
+        colorAttachments[0].view = colorView;
+        colorAttachments[0].depthSlice = WGPU_DEPTH_SLICE_UNDEFINED;
+        colorAttachments[0].loadOp = WGPULoadOp_Clear;
+        colorAttachments[0].storeOp = WGPUStoreOp_Store;
+        colorAttachments[0].clearValue = {0.0, 0.0, 0.0, 1.0};
+        colorAttachments[1].view = depthView_;
+        colorAttachments[1].depthSlice = WGPU_DEPTH_SLICE_UNDEFINED;
+        colorAttachments[1].loadOp = WGPULoadOp_Clear;
+        colorAttachments[1].storeOp = WGPUStoreOp_Store;
+        colorAttachments[1].clearValue = {-1.0, 0.0, 0.0, 0.0};
+
+        WGPURenderPassDescriptor renderPassDesc{};
+        WGPU_SET_LABEL(renderPassDesc, "blit_water_clipmap_pass");
+        renderPassDesc.colorAttachmentCount = colorAttachments.size();
+        renderPassDesc.colorAttachments = colorAttachments.data();
+        WGPURenderPassDepthStencilAttachment maskAttachment{};
+        maskAttachment.view = coverageMaskView_;
+        maskAttachment.depthLoadOp = WGPULoadOp_Clear;
+        maskAttachment.depthStoreOp = WGPUStoreOp_Discard;
+        maskAttachment.depthClearValue = 1.0f;
+        maskAttachment.stencilLoadOp = WGPULoadOp_Clear;
+        maskAttachment.stencilStoreOp = WGPUStoreOp_Discard;
+        maskAttachment.stencilClearValue = 0u;
+        maskAttachment.depthReadOnly = false;
+        maskAttachment.stencilReadOnly = false;
+        renderPassDesc.depthStencilAttachment = &maskAttachment;
+        gpu::CompatRenderPassTimestampWrites timestampWrites{};
+        if (timestampQuerySet) {
+            timestampWrites.querySet = timestampQuerySet;
+            timestampWrites.beginningOfPassWriteIndex = timestampBegin;
+            timestampWrites.endOfPassWriteIndex = timestampEnd;
+            renderPassDesc.timestampWrites = &timestampWrites;
+        }
+
+        WGPURenderPassEncoder renderPass =
+            wgpuCommandEncoderBeginRenderPass(encoder, &renderPassDesc);
+        if (uniforms_->waterParams.y > 0.5f) {
+            wgpuRenderPassEncoderSetStencilReference(renderPass, 1u);
+            wgpuRenderPassEncoderSetPipeline(
+                renderPass, waterClipmapPipeline_);
+            wgpuRenderPassEncoderSetBindGroup(
+                renderPass, 0, cachedBindGroup_, 0, nullptr);
+            wgpuRenderPassEncoderSetVertexBuffer(
+                renderPass, 0, waterClipmapVertexBuffer_, 0,
+                WGPU_WHOLE_SIZE);
+            wgpuRenderPassEncoderSetIndexBuffer(
+                renderPass, waterClipmapIndexBuffer_,
+                WGPUIndexFormat_Uint32, 0, WGPU_WHOLE_SIZE);
+            wgpuRenderPassEncoderDrawIndexed(
+                renderPass, waterClipmapIndexCount_, 1, 0, 0, 0);
+        }
+        // Fill only pixels which the water pass did not cover. The stencil
+        // test rejects them before the cached opaque fragment shader, avoiding
+        // a complete second presentation transform underneath the ocean.
+        wgpuRenderPassEncoderSetStencilReference(renderPass, 0u);
+        wgpuRenderPassEncoderSetPipeline(renderPass, cachedPipeline_);
+        wgpuRenderPassEncoderSetBindGroup(
+            renderPass, 0, cachedBindGroup_, 0, nullptr);
+        wgpuRenderPassEncoderDraw(renderPass, 3, 1, 0, 0);
+        wgpuRenderPassEncoderEnd(renderPass);
+        wgpuRenderPassEncoderRelease(renderPass);
     } else {
         drawFullscreen(colorView, pipeline_, bindGroup_,
-                       "blit_render_pass", true);
+                       "blit_render_pass", true, false);
+    }
+
+    const bool cameraUnderwater = uniforms_->waterParams.y > 0.5f &&
+                                  uniforms_->waterMotion.z > 0.5f;
+    if (cameraUnderwater && particlePipeline_ && particleBindGroup_) {
+        updateUnderwaterParticles();
+
+        WGPURenderPassColorAttachment colorAttachment{};
+        colorAttachment.view = colorView;
+        colorAttachment.depthSlice = WGPU_DEPTH_SLICE_UNDEFINED;
+        colorAttachment.loadOp = WGPULoadOp_Load;
+        colorAttachment.storeOp = WGPUStoreOp_Store;
+
+        WGPURenderPassDescriptor passDescriptor{};
+        WGPU_SET_LABEL(passDescriptor, "underwater_particle_pass");
+        passDescriptor.colorAttachmentCount = 1;
+        passDescriptor.colorAttachments = &colorAttachment;
+        WGPURenderPassEncoder pass =
+            wgpuCommandEncoderBeginRenderPass(encoder, &passDescriptor);
+        wgpuRenderPassEncoderSetPipeline(pass, particlePipeline_);
+        wgpuRenderPassEncoderSetBindGroup(
+            pass, 0, particleBindGroup_, 0, nullptr);
+        wgpuRenderPassEncoderDraw(
+            pass, 6, kUnderwaterParticleCount, 0, 0);
+        wgpuRenderPassEncoderEnd(pass);
+        wgpuRenderPassEncoderRelease(pass);
     }
 }
 

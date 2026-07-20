@@ -1,4 +1,4 @@
-// Resolve inverse-FFT complex fields into filterable displacement cascades.
+// Resolve inverse-FFT fields into displacement and exact normal layers.
 
 struct WaveData {
     height : vec2<f32>,
@@ -11,28 +11,30 @@ struct WaveData {
 @group(0) @binding(1) var outputTexture : texture_storage_2d_array<rgba16float, write>;
 
 const RESOLUTION : u32 = 256u;
-const CASCADE_COUNT : u32 = 3u;
+const CASCADE_COUNT : u32 = 2u;
+const CHOPPINESS : f32 = 2.24;
 
 fn patchLength(cascade : u32) -> f32 {
-    switch cascade {
-        case 0u: { return 96.0; }
-        case 1u: { return 384.0; }
-        default: { return 1536.0; }
-    }
+    return select(1949.0, 326.0, cascade == 1u);
 }
 
-fn choppiness(cascade : u32) -> f32 {
-    switch cascade {
-        case 0u: { return 0.72; }
-        case 1u: { return 1.05; }
-        default: { return 1.22; }
-    }
+fn cascadeAmplitude(cascade : u32) -> f32 {
+    return select(0.33, 0.07, cascade == 1u);
 }
 
 fn loadWave(coord : vec2<u32>, cascade : u32) -> WaveData {
     let wrapped = coord & vec2<u32>(RESOLUTION - 1u);
     return spatialData[cascade * RESOLUTION * RESOLUTION +
                        wrapped.y * RESOLUTION + wrapped.x];
+}
+
+fn resolvedDisplacement(coord : vec2<u32>, cascade : u32) -> vec3<f32> {
+    let wave = loadWave(coord, cascade);
+    let sign = select(-1.0, 1.0, ((coord.x + coord.y) & 1u) == 0u);
+    let amplitude = cascadeAmplitude(cascade);
+    return vec3<f32>(wave.displacementX.x * amplitude * CHOPPINESS,
+                     -wave.height.x * amplitude,
+                     wave.displacementZ.x * amplitude * CHOPPINESS) * sign;
 }
 
 @compute @workgroup_size(8, 8, 1)
@@ -43,26 +45,35 @@ fn main(@builtin(global_invocation_id) gid : vec3<u32>) {
 
     let coord = gid.xy;
     let cascade = gid.z;
-    let center = loadWave(coord, cascade);
-    let left = loadWave(coord + vec2<u32>(RESOLUTION - 1u, 0u), cascade);
-    let right = loadWave(coord + vec2<u32>(1u, 0u), cascade);
-    let down = loadWave(coord + vec2<u32>(0u, RESOLUTION - 1u), cascade);
-    let up = loadWave(coord + vec2<u32>(0u, 1u), cascade);
+    let center = resolvedDisplacement(coord, cascade);
+    let left = resolvedDisplacement(
+        coord + vec2<u32>(RESOLUTION - 1u, 0u), cascade);
+    let right = resolvedDisplacement(coord + vec2<u32>(1u, 0u), cascade);
+    let down = resolvedDisplacement(
+        coord + vec2<u32>(0u, RESOLUTION - 1u), cascade);
+    let up = resolvedDisplacement(coord + vec2<u32>(0u, 1u), cascade);
 
-    let chop = choppiness(cascade);
     let derivativeScale = 0.5 * f32(RESOLUTION) / patchLength(cascade);
-    let dDxDx = (right.displacementX.x - left.displacementX.x) * derivativeScale * chop;
-    let dDxDz = (up.displacementX.x - down.displacementX.x) * derivativeScale * chop;
-    let dDzDx = (right.displacementZ.x - left.displacementZ.x) * derivativeScale * chop;
-    let dDzDz = (up.displacementZ.x - down.displacementZ.x) * derivativeScale * chop;
-    let dHeightDx = (right.height.x - left.height.x) * derivativeScale;
-    let dHeightDz = (up.height.x - down.height.x) * derivativeScale;
+    let derivativeX = (right - left) * derivativeScale;
+    let derivativeZ = (up - down) * derivativeScale;
+    let tangentX = vec3<f32>(1.0, 0.0, 0.0) + derivativeX;
+    let tangentZ = vec3<f32>(0.0, 0.0, 1.0) + derivativeZ;
+    var normal = cross(tangentZ, tangentX);
+    if (dot(normal, normal) > 1.0e-12) {
+        normal = normalize(normal);
+    } else {
+        normal = vec3<f32>(0.0, 1.0, 0.0);
+    }
+    let dDxDx = derivativeX.x;
+    let dDxDz = derivativeZ.x;
+    let dDzDx = derivativeX.z;
+    let dDzDz = derivativeZ.z;
     let jacobian = (1.0 + dDxDx) * (1.0 + dDzDz) - dDxDz * dDzDx;
     let compression = clamp(1.0 - jacobian, 0.0, 2.0);
 
     textureStore(outputTexture, vec2<i32>(coord), i32(cascade),
-                 vec4<f32>(center.height.x,
-                           dHeightDx,
-                           dHeightDz,
-                           compression));
+                 vec4<f32>(center, compression));
+    textureStore(outputTexture, vec2<i32>(coord),
+                 i32(cascade + CASCADE_COUNT),
+                 vec4<f32>(normal, compression));
 }

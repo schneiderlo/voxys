@@ -56,7 +56,7 @@ struct WaterConfig {
     std::array<float, 3> shallowColor = {0.12f, 0.46f, 0.50f};
     std::array<float, 3> deepColor = {0.0f, 0.28f, 0.42f};
     float roughness = 0.05f;
-    float waveStrength = 0.08f;
+    float waveStrength = 1.0f;
     float reflectionStrength = 0.42f;   // Reflection amount, valid range [0, 1]
     float shoreFade = 12.0f;            // Water depth (world units) over which
                                         // the colour fades from shallow to deep
@@ -92,7 +92,7 @@ struct LightingConfig {
     std::array<float, 3> sunDirection = {0.5f, 0.8f, 0.3f};
     std::array<float, 3> sunColor = {1.0f, 0.95f, 0.9f};
     std::array<float, 3> ambientColor = {0.1f, 0.12f, 0.15f};
-    float ambientIntensity = 0.3f;
+    float ambientIntensity = 1.3f;
     float fogDensity = 0.0001f;
     std::array<float, 3> fogColor = {0.6f, 0.7f, 0.8f};
     

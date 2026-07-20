@@ -10,7 +10,6 @@
 #include <complex>
 #include <limits>
 #include <numbers>
-#include <random>
 #include <span>
 #include <vector>
 
@@ -25,8 +24,9 @@ constexpr uint32_t kElementCount = WaterSimulation::RESOLUTION *
                                    WaterSimulation::CASCADE_COUNT;
 constexpr size_t kCpuWaveModeCount = 24;
 
-// Matches WaveData in water_fft.wgsl. Two complex displacement spectra plus
-// height are padded to two vec4s for naturally aligned storage-buffer access.
+// Matches WaveData in water_fft.wgsl. Before evolution the first four complex
+// lanes hold the pre-expanded temporal coefficients and normalized wavevector.
+// The same storage becomes three complex displacement spectra for the FFT.
 struct alignas(16) WaveData {
     glm::vec2 height{};
     glm::vec2 displacementX{};
@@ -49,23 +49,89 @@ CoastPixel packCoastPixel(const glm::vec2& onshoreDirection,
     };
 }
 
+constexpr float kPi = std::numbers::pi_v<float>;
+constexpr float kTau = 2.0f * kPi;
+constexpr float kGravity = 9.81f;
+constexpr float kFrequencyTick = kTau / 8192.0f;
+constexpr float kSignificantWaveHeight = 25.9f;
+constexpr float kWaveDirection = 0.9948376736367679f;
+constexpr float kChoppiness = 2.24f;
+constexpr float kPeakEnhancement = 0.65f;
+constexpr float kWindAlignment = 0.32f;
+constexpr float kAnimationSpeed = 2.0f;
 constexpr std::array<float, WaterSimulation::CASCADE_COUNT> kPatchLengths = {
-    96.0f, 384.0f, 1536.0f
+    1949.0f, 326.0f
 };
-constexpr std::array<glm::vec2, WaterSimulation::CASCADE_COUNT> kWavelengthBands = {
-    glm::vec2(1.5f, 36.0f),
-    glm::vec2(18.0f, 150.0f),
-    glm::vec2(76.0f, 900.0f),
+constexpr std::array<float, WaterSimulation::CASCADE_COUNT> kCascadeAmplitudes = {
+    0.33f, 0.07f
 };
 
-float smoothBand(float wavelength, glm::vec2 band) {
-    const auto smooth = [](float a, float b, float x) {
-        const float t = std::clamp((x - a) / std::max(b - a, 1e-6f), 0.0f, 1.0f);
-        return t * t * (3.0f - 2.0f * t);
-    };
-    const float lower = smooth(band.x * 0.72f, band.x, wavelength);
-    const float upper = 1.0f - smooth(band.y, band.y * 1.25f, wavelength);
-    return lower * upper;
+float fract(float value) {
+    return value - std::floor(value);
+}
+
+float spectrumHash(float value) {
+    const float p = fract(value * 0.1031f);
+    const float q = p + 19.19f;
+    return fract(q * (q + 47.43f) * p);
+}
+
+float smoothTransition(float edge0, float edge1, float value) {
+    if (edge0 == edge1) return value < edge0 ? 0.0f : 1.0f;
+    const float x = std::clamp((value - edge0) / (edge1 - edge0),
+                               0.0f, 1.0f);
+    return x * x * (3.0f - 2.0f * x);
+}
+
+float directionalIntegral(float exponent, float blend) {
+    double sum = 0.0;
+    for (uint32_t index = 0; index < 64; ++index) {
+        const double angle = (static_cast<double>(index) + 0.5) / 64.0 *
+                             2.0 * std::numbers::pi;
+        const double cosineLobe = 0.5 * (1.0 + std::cos(angle));
+        sum += std::pow(cosineLobe, static_cast<double>(exponent)) *
+               (static_cast<double>(blend) +
+                (1.0 - static_cast<double>(blend)) * cosineLobe);
+    }
+    return static_cast<float>(2.0 * sum * std::numbers::pi / 64.0);
+}
+
+float integrateSpectrum(float minimum, float maximum, float lengthScale,
+                        float directionalBlend) {
+    if (maximum <= minimum) return 0.0f;
+    const double logMinimum = std::log(static_cast<double>(minimum));
+    const double step = (std::log(static_cast<double>(maximum)) - logMinimum) /
+                        64.0;
+    const double peakFrequency = 0.877 * static_cast<double>(kGravity) /
+                                 static_cast<double>(kSignificantWaveHeight);
+    double sum = 0.0;
+    for (uint32_t index = 0; index <= 64; ++index) {
+        const double waveNumber =
+            std::exp(logMinimum + static_cast<double>(index) * step);
+        const double frequency =
+            std::sqrt(static_cast<double>(kGravity) * waveNumber);
+        const double ratio = frequency / std::max(peakFrequency, 1.0e-4);
+        const double exponent = ratio <= 1.0
+            ? 9.77 * std::pow(ratio, 5.0)
+            : 9.77 * std::pow(ratio, -2.5);
+        const float spreadExponent = static_cast<float>(
+            std::max(0.5, exponent * 0.65));
+        const double direction = directionalIntegral(
+            spreadExponent, directionalBlend);
+        const double sigma = frequency < peakFrequency ? 0.07 : 0.09;
+        const double difference = frequency - peakFrequency;
+        const double peakShape = std::exp(
+            -(difference * difference) /
+            (2.0 * sigma * sigma * peakFrequency * peakFrequency + 1.0e-4));
+        const double peak = std::pow(
+            static_cast<double>(kPeakEnhancement), peakShape);
+        const double density =
+            std::exp(-1.0 /
+                     std::pow(waveNumber * static_cast<double>(lengthScale), 2.0)) *
+            peak * direction / (waveNumber * waveNumber);
+        sum += density * (index == 0 || index == 64 ? 0.5 : 1.0) * step;
+    }
+    return static_cast<float>(sum);
 }
 
 glm::vec2 complexMultiply(glm::vec2 a, glm::vec2 b) {
@@ -314,47 +380,106 @@ bool WaterSimulation::createCoastField(
 
 bool WaterSimulation::createSpectrum() {
     std::vector<std::complex<float>> h0(kElementCount);
-    std::mt19937 rng(0x5ea5ca1eu);
-    std::normal_distribution<float> gaussian(0.0f, 1.0f);
+    std::array<float, CASCADE_COUNT> minimum{};
+    std::array<float, CASCADE_COUNT> maximum{};
+    std::array<float, CASCADE_COUNT> lowCutoff{};
+    std::array<float, CASCADE_COUNT> highCutoff{};
+    std::array<float, CASCADE_COUNT> normalization{};
+    for (uint32_t cascade = 0; cascade < CASCADE_COUNT; ++cascade) {
+        minimum[cascade] = kTau / kPatchLengths[cascade];
+        maximum[cascade] = kPi * static_cast<float>(RESOLUTION) /
+                           kPatchLengths[cascade];
+    }
 
-    constexpr float gravity = 9.81f;
-    constexpr float windSpeed = 19.0f;
-    constexpr float phillipsAmplitude = 0.00055f;
-    const glm::vec2 windDirection = glm::normalize(glm::vec2(0.91f, 0.414f));
-    const float largestWave = windSpeed * windSpeed / gravity;
+    const float lengthScale = kSignificantWaveHeight * kSignificantWaveHeight /
+                              kGravity;
+    const float directionalBlend = 0.07f + 0.93f * kWindAlignment;
+    for (uint32_t cascade = 0; cascade < CASCADE_COUNT; ++cascade) {
+        lowCutoff[cascade] = cascade > 0
+            ? std::sqrt(maximum[cascade - 1] * minimum[cascade])
+            : minimum[cascade];
+        highCutoff[cascade] = cascade + 1 < CASCADE_COUNT
+            ? std::sqrt(maximum[cascade] * minimum[cascade + 1])
+            : maximum[cascade];
+        const float own = integrateSpectrum(
+            minimum[cascade], maximum[cascade], lengthScale,
+            directionalBlend);
+        const float band = integrateSpectrum(
+            lowCutoff[cascade], highCutoff[cascade], lengthScale,
+            directionalBlend);
+        normalization[cascade] = band > 1.0e-30f
+            ? std::sqrt(own / band) : 1.0f;
+    }
+
+    const float peakFrequency = 0.877f * kGravity /
+                                kSignificantWaveHeight;
+    const glm::vec2 dominantDirection{
+        std::cos(kWaveDirection), std::sin(kWaveDirection)};
 
     for (uint32_t cascade = 0; cascade < CASCADE_COUNT; ++cascade) {
         const float patchLength = kPatchLengths[cascade];
-        const float deltaK = 2.0f * std::numbers::pi_v<float> / patchLength;
+        const float deltaK = kTau / patchLength;
+        const float seed = static_cast<float>(cascade + 1u);
         for (uint32_t y = 0; y < RESOLUTION; ++y) {
-            const int32_t sy = y <= RESOLUTION / 2 ? static_cast<int32_t>(y)
-                                                   : static_cast<int32_t>(y) - static_cast<int32_t>(RESOLUTION);
             for (uint32_t x = 0; x < RESOLUTION; ++x) {
-                const int32_t sx = x <= RESOLUTION / 2 ? static_cast<int32_t>(x)
-                                                       : static_cast<int32_t>(x) - static_cast<int32_t>(RESOLUTION);
-                const glm::vec2 k = glm::vec2(static_cast<float>(sx), static_cast<float>(sy)) * deltaK;
-                const float kLength = glm::length(k);
-                const uint32_t index = cascade * RESOLUTION * RESOLUTION + y * RESOLUTION + x;
-                if (kLength < 1e-5f) {
-                    h0[index] = {};
-                    continue;
-                }
-
-                const float wavelength = 2.0f * std::numbers::pi_v<float> / kLength;
-                const float band = smoothBand(wavelength, kWavelengthBands[cascade]);
-                const glm::vec2 kDirection = k / kLength;
-                const float alignment = glm::dot(kDirection, windDirection);
-                const float directional = alignment >= 0.0f
-                    ? std::pow(alignment, 4.0f)
-                    : 0.075f * std::pow(-alignment, 4.0f);
-                const float k2 = kLength * kLength;
-                const float phillips = phillipsAmplitude *
-                    std::exp(-1.0f / (k2 * largestWave * largestWave)) /
-                    (k2 * k2) * directional *
-                    std::exp(-k2 * 0.045f * 0.045f) * band;
-                const float sigma = std::sqrt(std::max(phillips, 0.0f) *
-                                              deltaK * deltaK * 0.5f);
-                h0[index] = std::complex<float>(gaussian(rng), gaussian(rng)) * sigma;
+                const uint32_t localIndex = y * RESOLUTION + x;
+                const uint32_t index = cascade * RESOLUTION * RESOLUTION +
+                                       localIndex;
+                const float kx =
+                    (static_cast<float>(x) - 0.5f * RESOLUTION) * deltaK;
+                const float kz =
+                    (static_cast<float>(y) - 0.5f * RESOLUTION) * deltaK;
+                const float magnitude =
+                    std::max(std::sqrt(kx * kx + kz * kz), 1.0e-4f);
+                const float alignment =
+                    (kx * dominantDirection.x + kz * dominantDirection.y) /
+                    magnitude;
+                const float frequency = std::sqrt(kGravity * magnitude);
+                const float ratio = frequency /
+                    std::max(peakFrequency, 1.0e-4f);
+                const float spreadingExponent = std::max(
+                    (ratio <= 1.0f ? 9.77f * std::pow(ratio, 5.0f)
+                                   : 9.77f * std::pow(ratio, -2.5f)) * 0.65f,
+                    0.5f);
+                const float directionLobe = std::pow(
+                    std::sqrt(std::max((alignment + 1.0f) * 0.5f,
+                                       1.0e-4f)),
+                    spreadingExponent * 2.0f);
+                const float directionWeight = directionLobe *
+                    (directionalBlend +
+                     (1.0f - directionalBlend) * (alignment + 1.0f) * 0.5f);
+                const float magnitude2 = magnitude * magnitude;
+                const float base =
+                    std::exp(-1.0f /
+                             (magnitude2 * lengthScale * lengthScale)) /
+                    (magnitude2 * magnitude2) * directionWeight /
+                    (patchLength * patchLength);
+                const float sigma = frequency < peakFrequency ? 0.07f : 0.09f;
+                const float difference = frequency - peakFrequency;
+                const float peakShape = std::exp(
+                    -(difference * difference) /
+                    (2.0f * std::pow(sigma * peakFrequency, 2.0f) + 1.0e-4f));
+                const float peaked = base *
+                    std::pow(kPeakEnhancement, peakShape);
+                const float window =
+                    smoothTransition(lowCutoff[cascade],
+                                     lowCutoff[cascade] * 1.5f, magnitude) *
+                    (1.0f - smoothTransition(highCutoff[cascade] / 1.5f,
+                                             highCutoff[cascade], magnitude));
+                const float density = std::max(peaked * window, 0.0f);
+                const float randomIndex = static_cast<float>(localIndex) +
+                                          seed * 100000.0f;
+                const float randomA =
+                    std::max(spectrumHash(randomIndex), 1.0e-4f);
+                const float randomB = spectrumHash(randomIndex + 1000.0f);
+                const float gaussianRadius =
+                    std::sqrt(-2.0f * std::log(randomA));
+                const float gaussianAngle = kTau * randomB;
+                const float magnitudeScale = gaussianRadius *
+                    std::sqrt(density) * 0.707107f * normalization[cascade];
+                h0[index] = {
+                    magnitudeScale * std::cos(gaussianAngle),
+                    magnitudeScale * std::sin(gaussianAngle)};
             }
         }
     }
@@ -367,11 +492,8 @@ bool WaterSimulation::createSpectrum() {
     candidates.reserve(kElementCount / 2);
     for (uint32_t cascade = 0; cascade < CASCADE_COUNT; ++cascade) {
         const uint32_t base = cascade * RESOLUTION * RESOLUTION;
-        const float deltaK = 2.0f * std::numbers::pi_v<float> /
-                             kPatchLengths[cascade];
+        const float deltaK = kTau / kPatchLengths[cascade];
         for (uint32_t y = 0; y < RESOLUTION; ++y) {
-            const int32_t sy = y <= RESOLUTION / 2 ? static_cast<int32_t>(y)
-                : static_cast<int32_t>(y) - static_cast<int32_t>(RESOLUTION);
             for (uint32_t x = 0; x < RESOLUTION; ++x) {
                 const uint32_t mirrorX = (RESOLUTION - x) % RESOLUTION;
                 const uint32_t mirrorY = (RESOLUTION - y) % RESOLUTION;
@@ -379,10 +501,9 @@ bool WaterSimulation::createSpectrum() {
                 const uint32_t mirror = base + mirrorY * RESOLUTION + mirrorX;
                 if (index >= mirror) continue;
 
-                const int32_t sx = x <= RESOLUTION / 2 ? static_cast<int32_t>(x)
-                    : static_cast<int32_t>(x) - static_cast<int32_t>(RESOLUTION);
                 const glm::vec2 waveVector =
-                    glm::vec2(static_cast<float>(sx), static_cast<float>(sy)) * deltaK;
+                    (glm::vec2(static_cast<float>(x), static_cast<float>(y)) -
+                     glm::vec2(0.5f * RESOLUTION)) * deltaK;
                 const float waveNumber = glm::length(waveVector);
                 if (waveNumber < 1e-5f) continue;
 
@@ -396,7 +517,9 @@ bool WaterSimulation::createSpectrum() {
                         glm::vec2(h0[index].real(), h0[index].imag()),
                         glm::vec2(std::conj(h0[mirror]).real(),
                                   std::conj(h0[mirror]).imag()),
-                        std::sqrt(gravity * waveNumber)}});
+                        std::round(std::sqrt(kGravity * (waveNumber + 1.0e-4f)) /
+                                   kFrequencyTick) * kFrequencyTick,
+                        kCascadeAmplitudes[cascade]}});
             }
         }
     }
@@ -423,26 +546,24 @@ bool WaterSimulation::createSpectrum() {
                 const uint32_t mirrorY = (RESOLUTION - y) % RESOLUTION;
                 const uint32_t index = base + y * RESOLUTION + x;
                 const uint32_t mirror = base + mirrorY * RESOLUTION + mirrorX;
-                packed[index].height = {h0[index].real(), h0[index].imag()};
                 const auto conjugateMirror = std::conj(h0[mirror]);
+                packed[index].height = {
+                    h0[index].real() + conjugateMirror.real(),
+                    h0[index].imag() - conjugateMirror.imag()};
                 packed[index].displacementX = {
-                    conjugateMirror.real(), conjugateMirror.imag()
+                    h0[index].imag() + conjugateMirror.imag(),
+                    -h0[index].real() + conjugateMirror.real()
                 };
-                const int32_t sx = x <= RESOLUTION / 2
-                    ? static_cast<int32_t>(x)
-                    : static_cast<int32_t>(x) - static_cast<int32_t>(RESOLUTION);
-                const int32_t sy = y <= RESOLUTION / 2
-                    ? static_cast<int32_t>(y)
-                    : static_cast<int32_t>(y) - static_cast<int32_t>(RESOLUTION);
-                const float indexLength = glm::length(glm::vec2(
-                    static_cast<float>(sx), static_cast<float>(sy)));
-                const float waveNumber = indexLength *
-                    (2.0f * std::numbers::pi_v<float> / kPatchLengths[cascade]);
-                // These two floats were padding. Evolve now reads its invariant
-                // angular frequency and reciprocal integer-space length here.
+                const glm::vec2 k =
+                    (glm::vec2(static_cast<float>(x), static_cast<float>(y)) -
+                     glm::vec2(0.5f * RESOLUTION)) *
+                    (kTau / kPatchLengths[cascade]);
+                const float magnitude = glm::length(k) + 1.0e-4f;
+                packed[index].displacementZ = k / magnitude;
                 packed[index].padding = {
-                    std::sqrt(9.81f * waveNumber),
-                    indexLength > 1e-5f ? 1.0f / indexLength : 0.0f
+                    std::round(std::sqrt(kGravity * magnitude) /
+                               kFrequencyTick) * kFrequencyTick,
+                    0.0f
                 };
             }
         }
@@ -475,8 +596,8 @@ void WaterSimulation::updateCpuWaveCache(float timeSeconds) const {
 WaterSimulation::SurfaceSample WaterSimulation::sampleSurface(
     glm::vec2 worldPosition, float timeSeconds, float strength) const {
     SurfaceSample sample;
-    if (cpuWaveModes_.empty() || !std::isfinite(timeSeconds)) return sample;
-    updateCpuWaveCache(timeSeconds);
+    if (!std::isfinite(timeSeconds)) return sample;
+    updateCpuWaveCache(timeSeconds * kAnimationSpeed);
 
     for (size_t index = 0; index < cpuWaveModes_.size(); ++index) {
         const CpuWaveMode& mode = cpuWaveModes_[index];
@@ -489,19 +610,55 @@ WaterSimulation::SurfaceSample WaterSimulation::sampleSurface(
             complexMultiply(cpuEvolvedVelocity_[index], spatialPhase);
         const float waveNumber = glm::length(mode.waveVector);
 
-        sample.heightOffset += 2.0f * spatialHeight.x;
-        sample.slope -= 2.0f * spatialHeight.y * mode.waveVector;
-        sample.velocity.y += 2.0f * spatialVelocity.x;
+        sample.heightOffset -= 2.0f * spatialHeight.x * mode.amplitude;
+        sample.slope += 2.0f * spatialHeight.y * mode.waveVector *
+                        mode.amplitude;
+        sample.velocity.y -= 2.0f * spatialVelocity.x * mode.amplitude *
+                             kAnimationSpeed;
         if (waveNumber > 1e-5f) {
             const glm::vec2 horizontal = mode.waveVector / waveNumber
                                        * (2.0f * mode.angularFrequency
-                                          * spatialHeight.x);
+                                          * spatialHeight.x * mode.amplitude *
+                                          kChoppiness * kAnimationSpeed);
             sample.velocity.x += horizontal.x;
             sample.velocity.z += horizontal.y;
         }
     }
 
-    const float amplitude = std::clamp(strength, 0.0f, 1.0f);
+    struct LongWave {
+        glm::vec2 direction;
+        float amplitude;
+        float wavelength;
+        float phase;
+        float omega;
+    };
+    constexpr std::array<LongWave, 4> longWaves{{
+        {{ 0.923059017f, 0.384658357f}, 5.1541f,  440.298507f,
+         0.0f,       0.374291312f},
+        {{ 0.700400636f, 0.713749921f}, 5.1541f,  701.258144f,
+         5.553108549f, 0.296825282f},
+        {{ 0.367164395f, 0.930156066f}, 5.1541f, 1116.885424f,
+         4.823031791f, 0.234699061f},
+        {{-0.024039031f, 0.999711021f}, 5.1541f, 1778.85f,
+         4.092955033f, 0.186378666f},
+    }};
+    for (const LongWave& wave : longWaves) {
+        const float waveNumber = kTau / (wave.wavelength + 1.0e-4f);
+        const float phase = waveNumber * glm::dot(wave.direction, worldPosition) -
+                            wave.omega * timeSeconds + wave.phase;
+        const float sine = std::sin(phase);
+        const float cosine = std::cos(phase);
+        sample.heightOffset += wave.amplitude * cosine;
+        sample.slope -= wave.direction *
+                        (waveNumber * wave.amplitude * sine);
+        sample.velocity.y += wave.amplitude * wave.omega * sine;
+        const glm::vec2 horizontalVelocity = wave.direction *
+            (wave.amplitude * wave.omega * cosine);
+        sample.velocity.x += horizontalVelocity.x;
+        sample.velocity.z += horizontalVelocity.y;
+    }
+
+    const float amplitude = std::clamp(strength, 0.0f, 2.0f);
     sample.heightOffset *= amplitude;
     sample.slope *= amplitude;
     sample.velocity *= amplitude;
@@ -557,7 +714,7 @@ bool WaterSimulation::createOutputTexture() {
     gpu::TextureDesc desc = gpu::TextureDesc::storage(
         RESOLUTION, RESOLUTION, WGPUTextureFormat_RGBA16Float,
         "water_displacement_cascades");
-    desc.depthOrArrayLayers = CASCADE_COUNT;
+    desc.depthOrArrayLayers = OUTPUT_LAYER_COUNT;
     outputTexture_ = gpu::createTexture(device_, desc);
     if (!outputTexture_) return false;
 
@@ -565,7 +722,7 @@ bool WaterSimulation::createOutputTexture() {
     viewDesc.label = "water_displacement_cascades_view";
     viewDesc.format = WGPUTextureFormat_RGBA16Float;
     viewDesc.dimension = WGPUTextureViewDimension_2DArray;
-    viewDesc.arrayLayerCount = CASCADE_COUNT;
+    viewDesc.arrayLayerCount = OUTPUT_LAYER_COUNT;
     outputView_ = gpu::createTextureView(outputTexture_, viewDesc);
     if (!outputView_) return false;
 
@@ -737,21 +894,33 @@ void WaterSimulation::update(WGPUCommandEncoder encoder, float timeSeconds,
                              uint32_t timestampEnd) {
     if (!isInitialized() || !encoder) return;
 
-    SimParams params{.time = timeSeconds, .stage = 0, .axis = 0, .size = RESOLUTION};
+    // The display on this target retires at 85 Hz. Running the complete 256²
+    // FFT hundreds of times between visible scans cannot add image detail, so
+    // keep its physical state at a conservative 120 Hz while the analytic long
+    // swells, material, refraction, foam and presentation continue every frame.
+    // This is a simulation-rate decoupling, never a spatial-resolution change.
+    float elapsed = timeSeconds - lastUpdateTime_;
+    if (elapsed < 0.0f) elapsed += 4096.0f;
+    if (foamFrame_ != 0u && elapsed < 1.0f / SPECTRAL_UPDATE_HZ) {
+        if (timestampQuerySet) {
+            WGPUComputePassDescriptor idlePassDesc{};
+            WGPU_SET_LABEL(idlePassDesc, "water_fft_idle_pass");
+            gpu::CompatPassTimestampWrites idleTimestampWrites{};
+            idleTimestampWrites.querySet = timestampQuerySet;
+            idleTimestampWrites.beginningOfPassWriteIndex = timestampBegin;
+            idleTimestampWrites.endOfPassWriteIndex = timestampEnd;
+            idlePassDesc.timestampWrites = &idleTimestampWrites;
+            WGPUComputePassEncoder idlePass =
+                wgpuCommandEncoderBeginComputePass(encoder, &idlePassDesc);
+            wgpuComputePassEncoderEnd(idlePass);
+            wgpuComputePassEncoderRelease(idlePass);
+        }
+        return;
+    }
+
+    SimParams params{.time = timeSeconds * kAnimationSpeed,
+                     .stage = 0, .axis = 0, .size = RESOLUTION};
     gpu::writeBuffer(queue_, simulationUniformBuffer_, 0, params);
-    struct FoamParams {
-        float deltaTime;
-        float time;
-        glm::vec2 padding;
-    };
-    const float rawDelta = foamFrame_ == 0 ? 1.0f / 60.0f : timeSeconds - lastUpdateTime_;
-    const FoamParams foamParams{
-        .deltaTime = std::clamp(rawDelta < 0.0f ? rawDelta + 4096.0f : rawDelta,
-                                1.0f / 240.0f, 0.1f),
-        .time = timeSeconds,
-        .padding = glm::vec2(0.0f),
-    };
-    gpu::writeBuffer(queue_, foamUniformBuffer_, 0, foamParams);
 
     WGPUComputePassDescriptor passDesc{};
     WGPU_SET_LABEL(passDesc, "water_fft_compute_pass");
@@ -781,16 +950,10 @@ void WaterSimulation::update(WGPUCommandEncoder encoder, float timeSeconds,
     wgpuComputePassEncoderDispatchWorkgroups(
         pass, (RESOLUTION + 7u) / 8u, (RESOLUTION + 7u) / 8u, CASCADE_COUNT);
 
-    wgpuComputePassEncoderSetPipeline(pass, foamPipeline_);
-    wgpuComputePassEncoderSetBindGroup(
-        pass, 0, foamBindGroups_[foamFrame_ & 1u], 0, nullptr);
-    wgpuComputePassEncoderDispatchWorkgroups(
-        pass, (RESOLUTION + 7u) / 8u, (RESOLUTION + 7u) / 8u, 1);
-
     wgpuComputePassEncoderEnd(pass);
     wgpuComputePassEncoderRelease(pass);
     lastUpdateTime_ = timeSeconds;
-    foamFrame_++;
+    ++foamFrame_;
 }
 
 void WaterSimulation::shutdown() {

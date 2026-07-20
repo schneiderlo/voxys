@@ -17,18 +17,20 @@
 
 namespace voxy::render {
 
-/// Three-cascade Tessendorf ocean evaluated entirely on the GPU.
+/// Two-cascade ocean evaluated entirely on the GPU.
 ///
-/// Each cascade evolves a directional Phillips spectrum, performs a 2D inverse
-/// FFT, and writes height, horizontal displacement, and Jacobian compression to
-/// a filterable texture array. The renderer consumes this one authoritative
-/// surface in both the ray intersection and lighting passes.
+/// Each cascade evolves a band-limited peaked spectrum, performs a 2D inverse
+/// FFT, and writes displacement plus the displaced-surface normal to a
+/// filterable texture array. Four quantized long swells are evaluated by every
+/// consumer on top of the spectral surface.
 class WaterSimulation {
 public:
     static constexpr uint32_t RESOLUTION = 256;
-    static constexpr uint32_t CASCADE_COUNT = 3;
+    static constexpr uint32_t CASCADE_COUNT = 2;
+    static constexpr uint32_t OUTPUT_LAYER_COUNT = CASCADE_COUNT * 2;
     static constexpr uint32_t FFT_STAGE_COUNT = 8;
     static constexpr uint32_t COAST_FIELD_RESOLUTION = 1024;
+    static constexpr float SPECTRAL_UPDATE_HZ = 120.0f;
 
     WaterSimulation() = default;
     ~WaterSimulation();
@@ -87,6 +89,7 @@ private:
         glm::vec2 initialPositive{0.0f};
         glm::vec2 conjugateNegative{0.0f};
         float angularFrequency = 0.0f;
+        float amplitude = 1.0f;
     };
 
     bool createSpectrum();

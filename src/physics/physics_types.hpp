@@ -438,9 +438,9 @@ struct TerrainGpuResources {
 };
 
 // GPU-resident water displacement shared with rendering. The view must be a
-// filterable 2D array with the 96 m, 384 m, and 1536 m FFT cascades in layers
-// 0..2; each texel stores height and x/z slope in xyz. Handles are borrowed and
-// must outlive the binding (or be cleared before their owner is destroyed).
+// filterable 2D array. Layers 0..1 contain broad/detail displacement and layers
+// 2..3 contain their displaced-surface normals. Handles are borrowed and must
+// outlive the binding (or be cleared before their owner is destroyed).
 struct WaterGpuResources {
     WGPUTextureView displacementTexture = nullptr;
     WGPUSampler displacementSampler = nullptr;

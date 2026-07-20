@@ -1,4 +1,4 @@
-// Tessendorf spectrum evolution and separable inverse FFT.
+// Peaked directional spectrum evolution and separable inverse FFT.
 
 struct SimParams {
     time : f32,
@@ -19,21 +19,12 @@ struct WaveData {
 @group(0) @binding(2) var<storage, read_write> outputData : array<WaveData>;
 @group(0) @binding(3) var<storage, read> twiddleData : array<vec2<f32>>;
 
-const PI : f32 = 3.141592653589793;
-const GRAVITY : f32 = 9.81;
-const CASCADE_COUNT : u32 = 3u;
+const CASCADE_COUNT : u32 = 2u;
+const DIRECTIONAL_SINE_SCALE : f32 = 0.68;
 
 // One 256-sample row or column. Keeping all eight radix-2 stages here avoids
 // round-tripping the complete spectrum through device memory for every stage.
 var<workgroup> lineData : array<WaveData, 256>;
-
-fn patchLength(cascade : u32) -> f32 {
-    switch cascade {
-        case 0u: { return 96.0; }
-        case 1u: { return 384.0; }
-        default: { return 1536.0; }
-    }
-}
 
 fn complexMul(a : vec2<f32>, b : vec2<f32>) -> vec2<f32> {
     return vec2<f32>(a.x * b.x - a.y * b.y,
@@ -85,31 +76,22 @@ fn evolve(@builtin(global_invocation_id) gid : vec3<u32>) {
 
     let cascade = index / layerStride;
     let local = index - cascade * layerStride;
-    let x = local % n;
-    let y = local / n;
-    let sx = select(f32(x), f32(i32(x) - i32(n)), x > n / 2u);
-    let sy = select(f32(y), f32(i32(y) - i32(n)), y > n / 2u);
     let initial = inputData[index];
     let omega = initial.padding.x;
-    // This inverse FFT uses +i*k*x. A negative temporal phase therefore makes
-    // wind-favoured +k modes travel along +k instead of away from the wind.
-    let phase = -omega * params.time;
-    let positive = vec2<f32>(cos(phase), sin(phase));
-    let negative = vec2<f32>(positive.x, -positive.y);
-    let h = complexMul(initial.height, positive) +
-            complexMul(initial.displacementX, negative);
+    let phaseCosine = cos(omega * params.time);
+    let phaseSine = sin(omega * params.time) * DIRECTIONAL_SINE_SCALE;
+    let b = initial.height.x * phaseCosine +
+            initial.height.y * phaseSine;
+    let c = initial.displacementX.x * phaseCosine +
+            initial.displacementX.y * phaseSine;
+    let normalizedK = initial.displacementZ;
 
     var result : WaveData;
-    result.height = h;
-    if (initial.padding.y > 0.0) {
-        let ih = vec2<f32>(-h.y, h.x);
-        let invIndexLength = initial.padding.y;
-        result.displacementX = ih * (-sx * invIndexLength);
-        result.displacementZ = ih * (-sy * invIndexLength);
-    } else {
-        result.displacementX = vec2<f32>(0.0);
-        result.displacementZ = vec2<f32>(0.0);
-    }
+    result.height = vec2<f32>(b, c);
+    result.displacementX = vec2<f32>(c * normalizedK.x,
+                                     -b * normalizedK.x);
+    result.displacementZ = vec2<f32>(c * normalizedK.y,
+                                     -b * normalizedK.y);
     result.padding = vec2<f32>(0.0);
     outputData[index] = result;
 }

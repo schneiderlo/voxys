@@ -419,6 +419,10 @@ bool RaycastPath::createDepthOutputTexture() {
         WGPUTextureFormat_R32Float,
         "raycast_depth_output"
     );
+    // The fused settled-camera pass writes linear scene depth as a second
+    // color attachment.  Keep storage usage for the direct/Lego compute path
+    // and texture usage for primitive occlusion.
+    depthDesc.usage |= WGPUTextureUsage_RenderAttachment;
     depthOutputTexture_ = gpu::createTexture(device_, depthDesc);
     
     if (!depthOutputTexture_) {
@@ -1084,7 +1088,8 @@ void RaycastPath::updateStaticUniforms() {
 void RaycastPath::dispatch(WGPUCommandEncoder encoder,
                            WGPUQuerySet timestampQuerySet,
                            uint32_t timestampBegin,
-                           uint32_t timestampEnd) {
+                           uint32_t timestampEnd,
+                           bool deferWaterComposite) {
     if (!pipeline_ || !compositePipeline_) {
         LOG_WARN("RaycastPath::dispatch: not initialized");
         return;
@@ -1109,7 +1114,11 @@ void RaycastPath::dispatch(WGPUCommandEncoder encoder,
     }
     
     const bool legoMode = uniforms_ && uniforms_->invProjParams.z > 0.5f;
-    const bool useDirectPath = legoMode || staticStateChangedSinceDispatch_;
+    // Water must use the same scene-color/depth composition while the camera
+    // moves and while it is still.  Refreshing the terrain-only buffers on a
+    // view change lets the lightweight water pass and HDR refraction remain
+    // authoritative for every non-Lego frame.
+    const bool useDirectPath = legoMode;
     usingStaticCache_ = !useDirectPath;
     staticCacheRefreshed_ = false;
 
@@ -1119,9 +1128,15 @@ void RaycastPath::dispatch(WGPUCommandEncoder encoder,
         staticUniformsDirty_ = false;
     }
 
-    // A changing view uses the original monolithic pass, avoiding extra work
-    // while the camera moves. Once settled, refresh terrain depth once and run
-    // only the much cheaper animated-water composite on subsequent frames.
+    // A changed view refreshes terrain once. The fused lighting path consumes
+    // that cache directly and writes final color plus linear depth in one
+    // render pass, so settled frames need no raycast compute work at all.
+    if (!useDirectPath && deferWaterComposite && !staticCacheDirty_
+        && !timestampQuerySet) {
+        staticStateChangedSinceDispatch_ = false;
+        return;
+    }
+
     WGPUComputePassDescriptor computePassDesc{};
     WGPU_SET_LABEL(computePassDesc, "raycast_compute_pass");
     gpu::CompatPassTimestampWrites timestampWrites{};
@@ -1155,11 +1170,14 @@ void RaycastPath::dispatch(WGPUCommandEncoder encoder,
             staticCacheRefreshed_ = true;
         }
 
-        wgpuComputePassEncoderSetPipeline(computePass, compositePipeline_);
-        wgpuComputePassEncoderSetBindGroup(
-            computePass, 0, compositeBindGroup_, 0, nullptr);
-        wgpuComputePassEncoderDispatchWorkgroups(
-            computePass, workgroupsX, workgroupsY, 1);
+        if (!deferWaterComposite) {
+            wgpuComputePassEncoderSetPipeline(computePass, compositePipeline_);
+            wgpuComputePassEncoderSetBindGroup(
+                computePass, 0, compositeBindGroup_, 0, nullptr);
+            wgpuComputePassEncoderDispatchWorkgroups(
+                computePass, workgroupsX, workgroupsY, 1);
+        }
+        staticStateChangedSinceDispatch_ = false;
     }
     
     wgpuComputePassEncoderEnd(computePass);

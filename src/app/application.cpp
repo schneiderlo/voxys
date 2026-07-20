@@ -71,7 +71,8 @@ namespace voxy {
 
 // World-space direction toward the sun. Single source of truth: the per-frame
 // light uniform and the baked shadow height field must agree.
-constexpr glm::vec3 kSunDirection = {0.3f, 0.8f, 0.4f};
+constexpr glm::vec3 kSunDirection = {
+    0.6040228f, 0.7660444f, 0.2198463f};
 constexpr size_t kPrimitiveOverlayHeadroom = 1u + 5u * 7u;
 constexpr uint32_t kRenderGpuQueriesPerStage = 2u;
 constexpr uint32_t kRenderGpuTimestampCount =
@@ -198,6 +199,9 @@ bool Application::init(const ApplicationConfig& config) {
         { { 179.01f, 121.64f, -28.72f }, -2.0606f, -0.0380f },
         { { -885.41f, -59.61f, 170.87f }, -1.3456f, -0.0578f },
         { { -876.38f, -61.58f, 158.43f }, -4.3228f, -0.2176f },
+        { { -885.41f, -180.0f, 170.87f }, -1.3456f, -0.0578f },
+        { { 5000.0f, -215.0f, 0.0f }, 1.7960f, -0.3000f },
+        { { 5000.0f, -180.0f, 0.0f }, 1.7960f, -0.0578f },
     };
 
     LOG_INFO("═══════════════════════════════════════════════════════════════");
@@ -504,8 +508,9 @@ void Application::update(float deltaTime) {
 void Application::update(float simulationDeltaTime, float frameDeltaTime) {
     // Command-line benchmarks are scripted workloads. Ignoring gameplay input
     // keeps their camera and body count stable even if the window has focus.
-    const bool scriptedBenchmark = config_.exitAfterBenchmark
-                                && isBenchmarkRunning();
+    const bool scriptedBenchmark =
+        (config_.benchmarkOnStartup || config_.exitAfterBenchmark)
+        && isBenchmarkRunning();
     if (!scriptedBenchmark) {
         processInput(simulationDeltaTime);
         handleKeyboardShortcuts();
@@ -1793,6 +1798,9 @@ bool Application::initRenderers() {
         blitPath_->setStaticTerrainTextures(
             raycastPath_->getTerrainDepthCacheView(),
             raycastPath_->getTerrainShadowCacheView());
+        blitPath_->setWaterCompositeResources(
+            heightmap_->getTextureView(), raycastPath_->getShadowMapView(),
+            waterSimulation_->getOutputView(), waterSimulation_->getSampler());
         
         // TerrainTextures guarantees valid views after init (either loaded or placeholder)
         blitPath_->setTerrainTexture(terrainTextures_->getAlbedoView());
@@ -1899,7 +1907,15 @@ void Application::renderRaycastPath(WGPUCommandEncoder encoder, WGPUTextureView 
     raycastPath_->dispatch(
         encoder, renderGpuProfilingFrame_ ? renderGpuQuerySet_ : nullptr,
         raycastStage * kRenderGpuQueriesPerStage,
-        raycastStage * kRenderGpuQueriesPerStage + 1u);
+        raycastStage * kRenderGpuQueriesPerStage + 1u,
+        true);
+
+    if (raycastPath_->isUsingStaticCache()) {
+        ++stats_.raycastStaticCacheFrames;
+    }
+    if (raycastPath_->didRefreshStaticCache()) {
+        ++stats_.raycastTerrainCacheRefreshes;
+    }
 
     blitPath_->setStaticCacheState(
         raycastPath_->isUsingStaticCache(),
@@ -1912,6 +1928,9 @@ void Application::renderRaycastPath(WGPUCommandEncoder encoder, WGPUTextureView 
         renderGpuProfilingFrame_ ? renderGpuQuerySet_ : nullptr,
         blitStage * kRenderGpuQueriesPerStage,
         blitStage * kRenderGpuQueriesPerStage + 1u);
+    if (blitPath_->didUseGeometryWaterPath()) {
+        ++stats_.geometryWaterFrames;
+    }
 }
 
 void Application::updateCameraUniforms() {
@@ -1965,7 +1984,17 @@ void Application::updateCameraUniforms() {
                       config_.waterReflectionStrength,
                       config_.waterShoreFade);
     // Wrap before fp32 loses the sub-frame precision used by short waves.
-    uniforms.setWaterTime(static_cast<float>(std::fmod(stats_.totalTimeSeconds, 4096.0)));
+    const float waterTime = static_cast<float>(
+        std::fmod(stats_.totalTimeSeconds, 4096.0));
+    uniforms.setWaterTime(waterTime);
+    float cameraSurfaceOffset = 0.0f;
+    if (config_.waterEnabled && waterSimulation_ &&
+        waterSimulation_->isInitialized()) {
+        cameraSurfaceOffset = waterSimulation_->sampleSurface(
+            glm::vec2{terrainPosition.x, terrainPosition.z}, waterTime,
+            config_.waterWaveStrength).heightOffset;
+    }
+    uniforms.setCameraWaterSurfaceOffset(cameraSurfaceOffset);
 
     if (config_.renderPath == RenderPath::Triangle &&
         trianglePath_ && trianglePath_->isInitialized()) {

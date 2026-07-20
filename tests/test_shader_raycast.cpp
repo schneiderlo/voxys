@@ -137,14 +137,18 @@ TEST_F(RaycastShaderTest, HasWaterMaterialOutput) {
         << "Shader missing heightfield shoreline influence for water depth";
     EXPECT_NE(shaderSource_.find("SHORE_DEPTH"), std::string::npos)
         << "Shader missing shallow shoreline depth clamp";
-    EXPECT_NE(shaderSource_.find("waterSurfaceOffset"), std::string::npos)
+    EXPECT_NE(shaderSource_.find("sampleWaterSurface"), std::string::npos)
         << "Shader missing displaced water surface helper";
-    EXPECT_NE(shaderSource_.find("WATER_SURFACE_AMPLITUDE"), std::string::npos)
-        << "Shader missing water surface displacement amplitude";
+    EXPECT_NE(shaderSource_.find("WATER_BROAD_SCALE"), std::string::npos)
+        << "Shader missing broad spectrum scale";
+    EXPECT_NE(shaderSource_.find("WATER_DETAIL_SCALE"), std::string::npos)
+        << "Shader missing detail spectrum scale";
     EXPECT_NE(shaderSource_.find("waterDisplacementTex"), std::string::npos)
         << "Shader missing FFT displacement cascade input";
-    EXPECT_NE(shaderSource_.find("worldXZ / 1536.0"), std::string::npos)
-        << "Shader missing long-wave FFT cascade";
+    EXPECT_NE(shaderSource_.find("longWaveSurface"), std::string::npos)
+        << "Shader missing four long swells";
+    EXPECT_NE(shaderSource_.find("maximumWaveHeight"), std::string::npos)
+        << "Shader missing watertight intersection bracket";
 }
 
 TEST_F(RaycastShaderTest, LegoShadowsUseBakedTerrainAndBoundedStudTests) {
@@ -202,12 +206,16 @@ TEST_F(RaycastShaderTest, HasRayDirFromPixelFunction) {
         << "Shader missing rayDirFromPixel function";
 }
 
-TEST_F(RaycastShaderTest, WaterIntersectionUsesCoastalRefractionField) {
+TEST_F(RaycastShaderTest, WaterIntersectionUsesCompleteSpectralSurface) {
     ASSERT_FALSE(shaderSource_.empty());
-    EXPECT_NE(shaderSource_.find("waterCoastFieldTex"), std::string::npos)
-        << "Ray intersection must bind the shoreline direction field";
-    EXPECT_NE(shaderSource_.find("coastalWaveField"), std::string::npos)
-        << "Ray intersection must use the same refracted surface as shading";
+    EXPECT_NE(shaderSource_.find("spectralSurface"), std::string::npos)
+        << "Ray intersection must evaluate spectral displacement";
+    EXPECT_NE(shaderSource_.find("longWaveSurface"), std::string::npos)
+        << "Ray intersection must evaluate the long swells";
+    EXPECT_NE(shaderSource_.find("intersectWaterSurface"), std::string::npos)
+        << "Ray intersection must solve the displaced surface";
+    EXPECT_NE(shaderSource_.find("minimumDistance"), std::string::npos)
+        << "Displaced surface solve must remain inside its wave envelope";
 }
 
 TEST_F(RaycastShaderTest, RayGenerationUsesProjectionScaleAndViewRotation) {

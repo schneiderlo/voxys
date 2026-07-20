@@ -67,8 +67,159 @@ namespace {
     double g_lastFrameCpuMilliseconds = 0.0;
     uint32_t g_gpuFramesInFlight = 0;
     uint64_t g_gpuPacingSkips = 0;
+    bool g_gpuPacingPaused = false;
+    bool g_renderThroughputMode = false;
+    bool g_renderThroughputFullQuality = false;
 
     constexpr uint32_t kMaximumGpuFramesInFlight = 4;
+
+    enum class RenderThroughputStatus : int {
+        Failed = -1,
+        Idle = 0,
+        Draining = 1,
+        Warming = 2,
+        Measuring = 3,
+        Complete = 4,
+    };
+
+    struct RenderThroughputState {
+        RenderThroughputStatus status = RenderThroughputStatus::Idle;
+        uint32_t warmupRemaining = 0;
+        uint32_t measuredRemaining = 0;
+        uint32_t batchFrames = 0;
+        uint32_t pendingBatchFrames = 0;
+        uint64_t submittedMeasuredFrames = 0;
+        uint64_t completedMeasuredFrames = 0;
+        uint64_t terrainCacheRefreshesAtStart = 0;
+        uint64_t staticCacheFramesAtStart = 0;
+        uint64_t geometryWaterFramesAtStart = 0;
+        double startMilliseconds = 0.0;
+        double endMilliseconds = 0.0;
+        double encodingMilliseconds = 0.0;
+    };
+
+    RenderThroughputState g_renderThroughput;
+
+    [[nodiscard]] bool renderThroughputRunning() noexcept {
+        return g_renderThroughput.status ==
+                   RenderThroughputStatus::Draining ||
+               g_renderThroughput.status ==
+                   RenderThroughputStatus::Warming ||
+               g_renderThroughput.status ==
+                   RenderThroughputStatus::Measuring;
+    }
+
+    void submitRenderThroughputBatch();
+
+    void renderThroughputBatchCompleted(
+        WGPUQueueWorkDoneStatus status, WGPUStringView /*message*/,
+        void* /*userdata1*/, void* /*userdata2*/) {
+        if (status != WGPUQueueWorkDoneStatus_Success) {
+            g_renderThroughput.status = RenderThroughputStatus::Failed;
+            return;
+        }
+
+        if (g_renderThroughput.status == RenderThroughputStatus::Warming) {
+            if (g_renderThroughput.warmupRemaining == 0u) {
+                // Measure the same five deterministic camera scenarios on
+                // every run, independent of how many warmup frames were used.
+                g_app->startBenchmark();
+                const voxy::ApplicationStats stats = g_app->getStats();
+                g_renderThroughput.terrainCacheRefreshesAtStart =
+                    stats.raycastTerrainCacheRefreshes;
+                g_renderThroughput.staticCacheFramesAtStart =
+                    stats.raycastStaticCacheFrames;
+                g_renderThroughput.geometryWaterFramesAtStart =
+                    stats.geometryWaterFrames;
+                g_renderThroughput.status =
+                    RenderThroughputStatus::Measuring;
+            }
+        } else if (g_renderThroughput.status ==
+                   RenderThroughputStatus::Measuring) {
+            g_renderThroughput.completedMeasuredFrames +=
+                g_renderThroughput.pendingBatchFrames;
+            if (g_renderThroughput.measuredRemaining == 0u) {
+                g_renderThroughput.endMilliseconds = emscripten_get_now();
+                g_renderThroughput.status =
+                    RenderThroughputStatus::Complete;
+                return;
+            }
+        }
+        submitRenderThroughputBatch();
+    }
+
+    void renderThroughputDrainCompleted(
+        WGPUQueueWorkDoneStatus status, WGPUStringView /*message*/,
+        void* /*userdata1*/, void* /*userdata2*/) {
+        if (status != WGPUQueueWorkDoneStatus_Success || !g_app) {
+            g_renderThroughput.status = RenderThroughputStatus::Failed;
+            return;
+        }
+        g_gpuFramesInFlight = 0u;
+        if (g_renderThroughput.warmupRemaining != 0u) {
+            g_renderThroughput.status = RenderThroughputStatus::Warming;
+        } else {
+            g_app->startBenchmark();
+            const voxy::ApplicationStats stats = g_app->getStats();
+            g_renderThroughput.terrainCacheRefreshesAtStart =
+                stats.raycastTerrainCacheRefreshes;
+            g_renderThroughput.staticCacheFramesAtStart =
+                stats.raycastStaticCacheFrames;
+            g_renderThroughput.geometryWaterFramesAtStart =
+                stats.geometryWaterFrames;
+            g_renderThroughput.status =
+                RenderThroughputStatus::Measuring;
+        }
+        submitRenderThroughputBatch();
+    }
+
+    void submitRenderThroughputBatch() {
+        if (!g_app || !renderThroughputRunning() ||
+            g_renderThroughput.status == RenderThroughputStatus::Draining) {
+            return;
+        }
+
+        uint32_t frameCount = 0u;
+        if (g_renderThroughput.status == RenderThroughputStatus::Warming) {
+            frameCount = std::min(g_renderThroughput.batchFrames,
+                                  g_renderThroughput.warmupRemaining);
+            g_renderThroughput.warmupRemaining -= frameCount;
+        } else {
+            frameCount = std::min(g_renderThroughput.batchFrames,
+                                  g_renderThroughput.measuredRemaining);
+            if (g_renderThroughput.submittedMeasuredFrames == 0u) {
+                g_renderThroughput.startMilliseconds = emscripten_get_now();
+            }
+            g_renderThroughput.measuredRemaining -= frameCount;
+            g_renderThroughput.submittedMeasuredFrames += frameCount;
+        }
+        if (frameCount == 0u) {
+            g_renderThroughput.status = RenderThroughputStatus::Failed;
+            return;
+        }
+        g_renderThroughput.pendingBatchFrames = frameCount;
+
+        // Fixed visual time advances all analytic waves every frame while the
+        // full 256x256 spectral state retains its independent 120 Hz cadence.
+        constexpr float kBenchmarkDeltaSeconds = 1.0f / 700.0f;
+        const double encodingStartMilliseconds = emscripten_get_now();
+        for (uint32_t frame = 0u; frame < frameCount; ++frame) {
+            g_app->processFrame(kBenchmarkDeltaSeconds,
+                                kBenchmarkDeltaSeconds);
+        }
+        if (g_renderThroughput.status ==
+            RenderThroughputStatus::Measuring) {
+            g_renderThroughput.encodingMilliseconds +=
+                emscripten_get_now() - encodingStartMilliseconds;
+        }
+
+        WGPUQueueWorkDoneCallbackInfo callbackInfo =
+            WGPU_QUEUE_WORK_DONE_CALLBACK_INFO_INIT;
+        callbackInfo.mode = WGPUCallbackMode_AllowSpontaneous;
+        callbackInfo.callback = renderThroughputBatchCompleted;
+        static_cast<void>(wgpuQueueOnSubmittedWorkDone(
+            g_app->getGPUContext()->getQueue(), callbackInfo));
+    }
 
     void appendJsonNumber(std::ostream& out, double value) {
         if (std::isfinite(value)) {
@@ -114,6 +265,18 @@ namespace {
             }
         }
         const voxy::physics::PhysicsStats& physics = app.physics;
+        const double renderThroughputElapsed = std::max(
+            g_renderThroughput.endMilliseconds -
+                g_renderThroughput.startMilliseconds,
+            0.0);
+        const double renderThroughputFps =
+            renderThroughputElapsed > 0.0
+            ? static_cast<double>(
+                  g_renderThroughput.completedMeasuredFrames) *
+                  1000.0 / renderThroughputElapsed
+            : 0.0;
+        const voxy::gpu::Context* gpuContext =
+            g_app ? g_app->getGPUContext() : nullptr;
 
         std::ostringstream out;
         out << std::setprecision(10);
@@ -135,8 +298,44 @@ namespace {
             << ",\"terrain_width\":" << app.terrainWidth
             << ",\"terrain_height\":" << app.terrainHeight
             << ",\"terrain_mips\":" << app.terrainMipLevels
+            << ",\"terrain_cache_refreshes\":"
+            << app.raycastTerrainCacheRefreshes
+            << ",\"static_cache_frames\":"
+            << app.raycastStaticCacheFrames
+            << ",\"geometry_water_frames\":"
+            << app.geometryWaterFrames
             << ",\"submitted_primitives\":"
             << app.primitiveSubmittedCount << '}';
+
+        out << ",\"render_throughput\":{\"status\":"
+            << static_cast<int>(g_renderThroughput.status)
+            << ",\"full_quality\":"
+            << (g_renderThroughputFullQuality ? "true" : "false")
+            << ",\"width\":"
+            << (gpuContext ? gpuContext->getSwapchainWidth() : 0u)
+            << ",\"height\":"
+            << (gpuContext ? gpuContext->getSwapchainHeight() : 0u)
+            << ",\"batch_frames\":" << g_renderThroughput.batchFrames
+            << ",\"submitted_frames\":"
+            << g_renderThroughput.submittedMeasuredFrames
+            << ",\"completed_frames\":"
+            << g_renderThroughput.completedMeasuredFrames
+            << ",\"encoding_ms\":";
+        appendJsonNumber(out, g_renderThroughput.encodingMilliseconds);
+        out << ",\"terrain_cache_refreshes\":"
+            << (app.raycastTerrainCacheRefreshes -
+                g_renderThroughput.terrainCacheRefreshesAtStart)
+            << ",\"static_cache_frames\":"
+            << (app.raycastStaticCacheFrames -
+                g_renderThroughput.staticCacheFramesAtStart)
+            << ",\"geometry_water_frames\":"
+            << (app.geometryWaterFrames -
+                g_renderThroughput.geometryWaterFramesAtStart)
+            << ",\"elapsed_ms\":";
+        appendJsonNumber(out, renderThroughputElapsed);
+        out << ",\"fps\":";
+        appendJsonNumber(out, renderThroughputFps);
+        out << '}';
 
         out << ",\"physics\":{\"backend\":\""
             << voxy::physics::backendTypeName(physics.backend) << "\""
@@ -302,6 +501,10 @@ namespace {
                            WGPUStringView /*message*/, void* /*userdata1*/,
                            void* /*userdata2*/) {
         if (g_gpuFramesInFlight != 0u) --g_gpuFramesInFlight;
+        if (g_gpuPacingPaused && !renderThroughputRunning()) {
+            g_gpuPacingPaused = false;
+            emscripten_resume_main_loop();
+        }
     }
 
     constexpr int32_t kPhysicsSelfTestBaseSector = 1'500'000;
@@ -816,6 +1019,21 @@ int main(int argc, char* argv[]) {
             .get("renderProfile") === "1" ? 1 : 0;
     }) != 0;
 
+    g_renderThroughputMode = EM_ASM_INT({
+        return new URLSearchParams(globalThis.location.search)
+            .get("renderThroughput") === "1" ? 1 : 0;
+    }) != 0;
+    if (g_renderThroughputMode) {
+        // Use a physical-size offscreen target so compositor refresh rate,
+        // occlusion, and scan-out do not contaminate completed GPU throughput.
+        appConfig.benchmarkOnStartup = true;
+        appConfig.benchmarkFixedDeltaSeconds = 1.0f / 700.0f;
+        g_renderThroughputFullQuality =
+            appConfig.renderPath == voxy::RenderPath::Raycast &&
+            std::abs(appConfig.resolutionScale - 1.0f) < 1.0e-6f &&
+            appConfig.waterEnabled;
+    }
+
     // Automation settings
     appConfig.initialTeleportIndex = config.automation.teleportIndex;
     appConfig.screenshotPath = config.automation.screenshotPath;
@@ -877,6 +1095,14 @@ int main(int argc, char* argv[]) {
             // GPU work. The next submitted frame resumes from this RAF edge.
             lastSimulationTime = emscripten_get_now() / 1000.0;
             ++g_gpuPacingSkips;
+            if (g_app->isUncappedFPS()) {
+                // Do not busy-spin an immediate callback while all four queue
+                // slots are occupied. Pause only Emscripten's main-loop task;
+                // the spontaneous queue callback remains live and resumes us
+                // as soon as real GPU work retires.
+                g_gpuPacingPaused = true;
+                emscripten_pause_main_loop();
+            }
             return;
         }
 
@@ -884,11 +1110,13 @@ int main(int argc, char* argv[]) {
         if (g_app->isUncappedFPS() != currentUncapped) {
             currentUncapped = g_app->isUncappedFPS();
             if (currentUncapped) {
-                // Switch to Immediate/SetTimeout loop (uncapped)
-                // EM_TIMING_SETIMMEDIATE attempts to run as fast as possible but starves the browser event loop
-                // EM_TIMING_SETTIMEOUT (0ms) is more cooperative, allowing compositing and input processing
-                emscripten_set_main_loop_timing(EM_TIMING_SETTIMEOUT, 0);
-                LOG_INFO("Switched to Uncapped Loop (SETTIMEOUT)");
+                // Browser setTimeout enters the mandatory nested-timer clamp
+                // (typically 4 ms), limiting an otherwise idle renderer to
+                // roughly 250 submissions/s. Emscripten's immediate scheduler
+                // still yields between callbacks, so GPU completions and input
+                // remain serviced without imposing that artificial ceiling.
+                emscripten_set_main_loop_timing(EM_TIMING_SETIMMEDIATE, 0);
+                LOG_INFO("Switched to Uncapped Loop (SETIMMEDIATE)");
             } else {
                 // Switch back to RAF loop (capped)
                 emscripten_set_main_loop_timing(EM_TIMING_RAF, 1);
@@ -952,6 +1180,17 @@ void voxy_mouse_move(float dx, float dy) {
         glm::vec2 pos = input->mousePosition();
         input->onMouseMove(pos.x + dx, pos.y + dy);
     }
+}
+
+EMSCRIPTEN_KEEPALIVE
+int voxy_set_camera_pose(float x, float y, float z,
+                         float yaw, float pitch) {
+    if (!g_app || !g_app->getCamera()) return 0;
+    voxy::Camera* camera = g_app->getCamera();
+    camera->setWorldPosition(glm::ivec3(0), glm::vec3(x, y, z));
+    camera->setYaw(yaw);
+    camera->setPitch(pitch);
+    return 1;
 }
 
 // Helper to convert JS keyCode to voxy::Key
@@ -1019,6 +1258,65 @@ int voxy_get_gpu_frames_in_flight() {
 EMSCRIPTEN_KEEPALIVE
 double voxy_get_gpu_pacing_skips() {
     return static_cast<double>(g_gpuPacingSkips);
+}
+
+EMSCRIPTEN_KEEPALIVE
+int voxy_start_render_throughput_benchmark(
+    int warmupFrames, int measuredFrames, int batchFrames) {
+    if (!g_app || !g_app->getGPUContext() || !g_renderThroughputMode ||
+        !g_renderThroughputFullQuality || warmupFrames < 0 ||
+        measuredFrames <= 0 || batchFrames <= 0 ||
+        batchFrames > measuredFrames || renderThroughputRunning()) {
+        return 0;
+    }
+
+    g_renderThroughput = RenderThroughputState{
+        .status = RenderThroughputStatus::Draining,
+        .warmupRemaining = static_cast<uint32_t>(warmupFrames),
+        .measuredRemaining = static_cast<uint32_t>(measuredFrames),
+        .batchFrames = static_cast<uint32_t>(batchFrames),
+    };
+    // Stop only Emscripten's interactive scheduling task. Queue callbacks stay
+    // live and drive completion-verified batches until every measured frame
+    // has retired on the GPU.
+    g_gpuPacingPaused = false;
+    emscripten_pause_main_loop();
+
+    WGPUQueueWorkDoneCallbackInfo callbackInfo =
+        WGPU_QUEUE_WORK_DONE_CALLBACK_INFO_INIT;
+    callbackInfo.mode = WGPUCallbackMode_AllowSpontaneous;
+    callbackInfo.callback = renderThroughputDrainCompleted;
+    static_cast<void>(wgpuQueueOnSubmittedWorkDone(
+        g_app->getGPUContext()->getQueue(), callbackInfo));
+    return 1;
+}
+
+EMSCRIPTEN_KEEPALIVE
+int voxy_get_render_throughput_status() {
+    return static_cast<int>(g_renderThroughput.status);
+}
+
+EMSCRIPTEN_KEEPALIVE
+double voxy_get_render_throughput_fps() {
+    const double elapsed = g_renderThroughput.endMilliseconds -
+                           g_renderThroughput.startMilliseconds;
+    return elapsed > 0.0
+        ? static_cast<double>(
+              g_renderThroughput.completedMeasuredFrames) * 1000.0 / elapsed
+        : 0.0;
+}
+
+EMSCRIPTEN_KEEPALIVE
+double voxy_get_render_throughput_elapsed_ms() {
+    return std::max(g_renderThroughput.endMilliseconds -
+                        g_renderThroughput.startMilliseconds,
+                    0.0);
+}
+
+EMSCRIPTEN_KEEPALIVE
+double voxy_get_render_throughput_completed_frames() {
+    return static_cast<double>(
+        g_renderThroughput.completedMeasuredFrames);
 }
 
 EMSCRIPTEN_KEEPALIVE

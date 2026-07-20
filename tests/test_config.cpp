@@ -102,7 +102,7 @@ TEST(ConfigDefaultsTest, WaterConfig) {
     EXPECT_FLOAT_EQ(config.deepColor[1], 0.28f);
     EXPECT_FLOAT_EQ(config.deepColor[2], 0.42f);
     EXPECT_FLOAT_EQ(config.roughness, 0.05f);
-    EXPECT_FLOAT_EQ(config.waveStrength, 0.08f);
+    EXPECT_FLOAT_EQ(config.waveStrength, 1.0f);
     EXPECT_FLOAT_EQ(config.reflectionStrength, 0.42f);
     EXPECT_FLOAT_EQ(config.shoreFade, 12.0f);
 }

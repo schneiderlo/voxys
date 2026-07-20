@@ -918,18 +918,27 @@ struct GpuWaterSurface {
     normal : vec3<f32>,
 };
 
+fn physics_long_wave(position : vec2<f32>, direction : vec2<f32>,
+                     wavelength : f32, phaseOffset : f32, omega : f32,
+                     time : f32, strength : f32) -> vec4<f32> {
+    let waveNumber = 6.283185307179586 / wavelength;
+    let phase = waveNumber * dot(direction, position) -
+                omega * time + phaseOffset;
+    let amplitude = 5.1541 * strength;
+    let ka = waveNumber * amplitude;
+    return vec4<f32>(
+        amplitude * cos(phase), direction.x * ka * sin(phase),
+        -ka * cos(phase), direction.y * ka * sin(phase));
+}
+
 fn water_cascade_uv(localXZ : vec2<f32>, sectorXZ : vec2<i32>,
                     cascade : u32) -> vec2<f32> {
-    let longCascade = cascade == 2u;
-    let sectorCycle = select(3, 6, longCascade);
-    let patchLength = select(
-        select(96.0, 384.0, cascade == 1u), 1536.0, longCascade);
-    // 256 m sectors repeat every 3, 3, and 6 sectors for the three FFT
-    // periods. Reducing in integer space preserves phase even near i32 world
-    // limits, where converting an absolute coordinate to f32 would not.
-    let wrappedSector = sectorXZ % vec2<i32>(sectorCycle);
+    let patchLength = select(1949.0, 326.0, cascade == 1u);
+    // Bound the f32 conversion while keeping normal play-space positions
+    // continuous. Texture repeat performs the final spectral-period wrap.
+    let wrappedSector = sectorXZ % vec2<i32>(8192);
     return (localXZ + vec2<f32>(wrappedSector) * WORLD_SECTOR_SIZE)
-        / patchLength;
+        / patchLength + vec2<f32>(0.5 + 0.5 / 256.0);
 }
 
 fn sample_gpu_water_surface(pose : BodyPose,
@@ -942,18 +951,39 @@ fn sample_gpu_water_surface(pose : BodyPose,
 
     let localXZ = pose.position_invMass.xz;
     let sectorXZ = worldMeta.xz;
-    let shortWaves = textureSampleLevel(
+    let broad = textureSampleLevel(
         waterDisplacementTexture, waterDisplacementSampler,
         water_cascade_uv(localXZ, sectorXZ, 0u), 0, 0.0);
-    let mediumWaves = textureSampleLevel(
+    let detail = textureSampleLevel(
         waterDisplacementTexture, waterDisplacementSampler,
         water_cascade_uv(localXZ, sectorXZ, 1u), 1, 0.0);
-    let longWaves = textureSampleLevel(
+    let broadNormal = textureSampleLevel(
         waterDisplacementTexture, waterDisplacementSampler,
-        water_cascade_uv(localXZ, sectorXZ, 2u), 2, 0.0);
-    let waves = (shortWaves + mediumWaves + longWaves) * strength;
-    result.heightOffset = waves.x;
-    result.normal = normalize(vec3<f32>(-waves.y, 1.0, -waves.z));
+        water_cascade_uv(localXZ, sectorXZ, 0u), 2, 0.0).xyz;
+    let detailNormal = textureSampleLevel(
+        waterDisplacementTexture, waterDisplacementSampler,
+        water_cascade_uv(localXZ, sectorXZ, 1u), 3, 0.0).xyz;
+    let worldXZ = localXZ + vec2<f32>(sectorXZ % vec2<i32>(8192)) *
+                  WORLD_SECTOR_SIZE;
+    let longA = physics_long_wave(
+        worldXZ, vec2<f32>(0.923059017, 0.384658357), 440.298507,
+        0.000000000, 0.374291312, sim.waterSurface.y, strength);
+    let longB = physics_long_wave(
+        worldXZ, vec2<f32>(0.700400636, 0.713749921), 701.258144,
+        5.553108549, 0.296825282, sim.waterSurface.y, strength);
+    let longC = physics_long_wave(
+        worldXZ, vec2<f32>(0.367164395, 0.930156066), 1116.885424,
+        4.823031791, 0.234699061, sim.waterSurface.y, strength);
+    let longD = physics_long_wave(
+        worldXZ, vec2<f32>(-0.024039031, 0.999711021), 1778.85,
+        4.092955033, 0.186378666, sim.waterSurface.y, strength);
+    let longWaves = longA + longB + longC + longD;
+    result.heightOffset = (broad.y + detail.y) * strength + longWaves.x;
+    result.normal = normalize(
+        vec3<f32>(0.0, 1.0, 0.0) +
+        (broadNormal - vec3<f32>(0.0, 1.0, 0.0) +
+         detailNormal - vec3<f32>(0.0, 1.0, 0.0)) * strength +
+        longWaves.yzw);
     return result;
 }
 
