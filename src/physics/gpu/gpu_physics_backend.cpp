@@ -392,6 +392,8 @@ public:
         generations_.assign(bodyCapacity_, 1u);
         generations_[0] = 0u;
         hostAlive_.assign(bodyCapacity_, false);
+        scheduledSpawnTicks_.assign(bodyCapacity_, 0u);
+        scheduledDestroyTicks_.assign(bodyCapacity_, 0u);
         arena_.initialize(device_);
         if (!characterMover_.initialize()) {
             shutdown();
@@ -768,6 +770,8 @@ public:
         freeIndices_.clear();
         generations_.clear();
         hostAlive_.clear();
+        scheduledSpawnTicks_.clear();
+        scheduledDestroyTicks_.clear();
         debugRequest_.reset();
         cachedDebugBodies_.clear();
         terrainAttached_ = false;
@@ -781,6 +785,7 @@ public:
         terrainHeight_ = 0;
         terrainMipLevelCount_ = 0;
         externalTerrainMipLevelCount_ = 0;
+        ownedTerrainMipLevelCount_ = 0;
         terrainHeightScale_ = 0.0f;
         terrainCellScale_ = 0.0f;
         ownedTerrainBytes_ = 0;
@@ -853,18 +858,17 @@ public:
 
     bool createOwnedTerrain(std::span<const uint16_t> samples,
                             uint32_t width, uint32_t height) {
-        releaseTerrainTexture(ownedTerrainTexture_, ownedTerrainView_);
-        ownedTerrainBytes_ = 0;
         const uint32_t mipCount = terrain::calculateMipLevelCount(width, height);
         auto desc = gpu::TextureDesc::tex2D(
             width, height, WGPUTextureFormat_R16Uint,
             WGPUTextureUsage_TextureBinding | WGPUTextureUsage_CopyDst,
             "physics_owned_heightmap");
         desc.mipLevelCount = mipCount;
-        ownedTerrainTexture_ = gpu::createTexture(device_, desc);
-        if (!ownedTerrainTexture_) return false;
+        WGPUTexture replacementTexture = gpu::createTexture(device_, desc);
+        WGPUTextureView replacementView = nullptr;
+        if (!replacementTexture) return false;
 
-        gpu::writeTexture(queue_, ownedTerrainTexture_,
+        gpu::writeTexture(queue_, replacementTexture,
                           std::as_bytes(samples), width, height,
                           width * sizeof(uint16_t), 0);
         size_t allocatedBytes = samples.size_bytes();
@@ -876,10 +880,10 @@ public:
             terrain::MipLevel next = terrain::generateNextMipLevel(
                 previous, previousWidth, previousHeight);
             if (!next.isValid()) {
-                releaseTerrainTexture(ownedTerrainTexture_, ownedTerrainView_);
+                releaseTerrainTexture(replacementTexture, replacementView);
                 return false;
             }
-            gpu::writeTexture(queue_, ownedTerrainTexture_,
+            gpu::writeTexture(queue_, replacementTexture,
                               std::as_bytes(std::span<const uint16_t>(next.data)),
                               next.width, next.height,
                               next.width * sizeof(uint16_t), level);
@@ -894,13 +898,18 @@ public:
         viewDesc.label = "physics_owned_heightmap_view";
         viewDesc.format = WGPUTextureFormat_R16Uint;
         viewDesc.mipLevelCount = mipCount;
-        ownedTerrainView_ = gpu::createTextureView(
-            ownedTerrainTexture_, viewDesc);
-        if (!ownedTerrainView_) {
-            releaseTerrainTexture(ownedTerrainTexture_, ownedTerrainView_);
+        replacementView = gpu::createTextureView(replacementTexture, viewDesc);
+        if (!replacementView
+            || !replaceIntegrateBindGroup(
+                replacementView, waterBindingView(), waterBindingSampler())) {
+            releaseTerrainTexture(replacementTexture, replacementView);
             return false;
         }
+        releaseTerrainTexture(ownedTerrainTexture_, ownedTerrainView_);
+        ownedTerrainTexture_ = replacementTexture;
+        ownedTerrainView_ = replacementView;
         terrainMipLevelCount_ = mipCount;
+        ownedTerrainMipLevelCount_ = mipCount;
         ownedTerrainBytes_ = allocatedBytes;
         return true;
     }
@@ -1038,11 +1047,12 @@ public:
             && rebuildIntegrateBindGroup();
     }
 
-    bool rebuildIntegrateBindGroup() {
+    bool replaceIntegrateBindGroup(WGPUTextureView terrainView,
+                                   WGPUTextureView waterView,
+                                   WGPUSampler waterSampler) {
         using BE = gpu::BindGroupEntry;
-        if (!integrateLayout_ || !terrainBindingView()
-            || !waterBindingView() || !waterBindingSampler()) return false;
-        releaseHandle(integrateBindGroup_, wgpuBindGroupRelease);
+        if (!integrateLayout_ || !terrainView || !waterView || !waterSampler)
+            return false;
         const std::array<BE, 12> bindings = {
             BE(0).buffer(poseBuffer_),
             BE(1).buffer(motionBuffer_),
@@ -1053,13 +1063,21 @@ public:
             BE(9).buffer(activeIdsBuffer_),
             BE(15).buffer(terrainContactCacheBuffer_),
             BE(8).buffer(uniformBuffer_),
-            BE(14).textureView(terrainBindingView()),
-            BE(16).textureView(waterBindingView()),
-            BE(17).sampler(waterBindingSampler()),
+            BE(14).textureView(terrainView),
+            BE(16).textureView(waterView),
+            BE(17).sampler(waterSampler),
         };
-        integrateBindGroup_ = gpu::createBindGroup(
+        WGPUBindGroup replacement = gpu::createBindGroup(
             device_, integrateLayout_, bindings, "physics_integration");
-        return integrateBindGroup_ != nullptr;
+        if (!replacement) return false;
+        releaseHandle(integrateBindGroup_, wgpuBindGroupRelease);
+        integrateBindGroup_ = replacement;
+        return true;
+    }
+
+    bool rebuildIntegrateBindGroup() {
+        return replaceIntegrateBindGroup(
+            terrainBindingView(), waterBindingView(), waterBindingSampler());
     }
 
     bool setTerrain(std::span<const uint16_t> samples,
@@ -1095,8 +1113,10 @@ public:
         terrainHeight_ = height;
         terrainHeightScale_ = heightScale;
         terrainCellScale_ = cellScale;
+        bool terrainBindingReady = false;
         if (externalTerrainView_) {
             terrainMipLevelCount_ = std::max(externalTerrainMipLevelCount_, 1u);
+            terrainBindingReady = rebuildIntegrateBindGroup();
         } else if (!createOwnedTerrain(samples.first(expected), width, height)) {
             terrainStateNeedsClear_ = terrainStateNeedsClear_
                 || terrainAttached_;
@@ -1104,9 +1124,18 @@ public:
             characterMover_.clearTerrain();
             refreshCcdInput();
             return false;
+        } else {
+            terrainBindingReady = true;
         }
-        terrainAttached_ = rebuildIntegrateBindGroup();
-        if (terrainAttached_ && !characterMover_.setTerrain(
+        if (!terrainBindingReady) {
+            terrainStateNeedsClear_ = terrainStateNeedsClear_ || hadTerrain;
+            terrainAttached_ = false;
+            characterMover_.clearTerrain();
+            refreshCcdInput();
+            return false;
+        }
+        terrainAttached_ = true;
+        if (!characterMover_.setTerrain(
                 samples.first(expected), width, height,
                 heightScale, cellScale)) {
             terrainStateNeedsClear_ = terrainStateNeedsClear_ || hadTerrain;
@@ -1312,46 +1341,95 @@ public:
         }
     }
 
-    void releaseHostBody(uint32_t index, uint64_t freeTick = 0u) {
-        hostAlive_[index] = false;
-        generations_[index] = nextBodyGeneration(generations_[index]);
-        if (residentBodies_ != 0u) --residentBodies_;
-        if (freeTick == 0u) {
-            freeIndices_.insert(index);
-            shrinkUnusedTail();
-        } else {
-            pendingFrees_.push_back({freeTick, index});
-        }
+    [[nodiscard]] bool hostHandleAllocated(BodyHandle handle) const noexcept {
+        return initialized_ && handle.valid() && handle.index < bodyCapacity_
+            && hostAlive_[handle.index]
+            && generations_[handle.index] == handle.generation;
     }
 
-    bool cancelPendingSpawn(BodyHandle handle) {
+    [[nodiscard]] bool hostHandleAliveAt(
+        BodyHandle handle, uint64_t targetTick) const noexcept {
+        if (!hostHandleAllocated(handle)) return false;
+        const uint64_t spawnTick = scheduledSpawnTicks_[handle.index];
+        const uint64_t destroyTick = scheduledDestroyTicks_[handle.index];
+        return (spawnTick == 0u || targetTick >= spawnTick)
+            && (destroyTick == 0u || targetTick < destroyTick);
+    }
+
+    uint64_t assignCommandSequence(uint64_t requested = 0u) noexcept {
+        if (requested != 0u) {
+            if (requested >= nextSequence_) {
+                nextSequence_ = requested == std::numeric_limits<uint64_t>::max()
+                    ? requested : requested + 1u;
+            }
+            return requested;
+        }
+        const uint64_t assigned = nextSequence_;
+        if (nextSequence_ != std::numeric_limits<uint64_t>::max()) {
+            ++nextSequence_;
+        }
+        return assigned;
+    }
+
+    void releaseHostBody(uint32_t index) {
+        hostAlive_[index] = false;
+        scheduledSpawnTicks_[index] = 0u;
+        scheduledDestroyTicks_[index] = 0u;
+        generations_[index] = nextBodyGeneration(generations_[index]);
+        if (residentBodies_ != 0u) --residentBodies_;
+        freeIndices_.insert(index);
+        shrinkUnusedTail();
+    }
+
+    bool cancelPendingSpawn(BodyHandle handle, uint64_t destroyTick) {
         const auto pendingSpawn = std::find_if(
-            commands_.begin(), commands_.end(), [handle, this](const auto& command) {
+            commands_.begin(), commands_.end(), [handle](const auto& command) {
                 return command.type == PhysicsCommandType::SpawnBody
-                    && command.body == handle
-                    && command.targetTick > encodedTick_;
+                    && command.body == handle;
             });
-        if (pendingSpawn == commands_.end()) return false;
+        if (pendingSpawn == commands_.end()
+            || destroyTick > pendingSpawn->targetTick) return false;
         commands_.erase(std::remove_if(
-            commands_.begin(), commands_.end(), [handle, this](const auto& command) {
-                return command.body == handle
-                    && command.targetTick > encodedTick_;
+            commands_.begin(), commands_.end(), [handle](const auto& command) {
+                return command.body == handle;
             }), commands_.end());
+        pendingFrees_.erase(std::remove_if(
+            pendingFrees_.begin(), pendingFrees_.end(),
+            [handle](const PendingFree& pending) {
+                return pending.index == handle.index
+                    && pending.generation == handle.generation;
+            }), pendingFrees_.end());
         releaseHostBody(handle.index);
         return true;
     }
 
     bool queueDestroy(BodyHandle handle, uint64_t targetTick,
                       uint64_t sequence) {
-        if (!initialized_ || !handle.valid() || handle.index >= bodyCapacity_
-            || !hostAlive_[handle.index]
-            || generations_[handle.index] != handle.generation) {
+        if (!hostHandleAllocated(handle) || targetTick <= encodedTick_) {
             return false;
         }
-        // A body that has not reached the GPU yet must be cancelled on the host.
-        // Emitting Destroy before its same-tick Spawn would leave an alive GPU
-        // body whose generation no longer exists on the host.
-        if (cancelPendingSpawn(handle)) return true;
+        // Destroying on or before a not-yet-executed spawn cancels that entire
+        // lifetime. A later destroy must remain queued so the body exists for
+        // every intervening tick.
+        if (cancelPendingSpawn(handle, targetTick)) return true;
+
+        const uint64_t previousDestroy = scheduledDestroyTicks_[handle.index];
+        if (previousDestroy != 0u) {
+            if (previousDestroy <= targetTick) return false;
+            commands_.erase(std::remove_if(
+                commands_.begin(), commands_.end(),
+                [handle](const PhysicsCommand& command) {
+                    return command.type == PhysicsCommandType::DestroyBody
+                        && command.body == handle;
+                }), commands_.end());
+            pendingFrees_.erase(std::remove_if(
+                pendingFrees_.begin(), pendingFrees_.end(),
+                [handle](const PendingFree& pending) {
+                    return pending.index == handle.index
+                        && pending.generation == handle.generation;
+                }), pendingFrees_.end());
+            scheduledDestroyTicks_[handle.index] = 0u;
+        }
         if (commands_.size() >= config_.commandCapacity) {
             commandCapacityOverflow_ = true;
             return false;
@@ -1362,7 +1440,8 @@ public:
         command.targetTick = targetTick;
         command.sequence = sequence;
         commands_.push_back(command);
-        releaseHostBody(handle.index, targetTick);
+        scheduledDestroyTicks_[handle.index] = targetTick;
+        pendingFrees_.push_back({targetTick, handle.index, handle.generation});
         return true;
     }
 
@@ -1427,7 +1506,7 @@ public:
         command.type = PhysicsCommandType::SpawnBody;
         command.body = handle;
         command.targetTick = nextMutationTick();
-        command.sequence = nextSequence_++;
+        command.sequence = assignCommandSequence();
         command.shape = desc.shape;
         command.a = glm::vec4(desc.position, desc.inverseMass);
         command.b = glm::vec4(desc.orientation.x, desc.orientation.y,
@@ -1440,16 +1519,65 @@ public:
         command.material = desc.material;
         commands_.push_back(command);
         hostAlive_[index] = true;
+        scheduledSpawnTicks_[index] = command.targetTick;
+        scheduledDestroyTicks_[index] = 0u;
         ++residentBodies_;
         highResidentBodies_ = std::max(highResidentBodies_, residentBodies_);
         return handle;
     }
 
     bool destroy(BodyHandle handle) {
-        return queueDestroy(handle, nextMutationTick(), nextSequence_++);
+        return queueDestroy(
+            handle, nextMutationTick(), assignCommandSequence());
+    }
+
+    void sortAndCoalesceKinematicTargets() {
+        std::stable_sort(commands_.begin(), commands_.end(),
+            [](const PhysicsCommand& lhs, const PhysicsCommand& rhs) {
+                if (lhs.targetTick != rhs.targetTick)
+                    return lhs.targetTick < rhs.targetTick;
+                const uint32_t lp = commandPriority(lhs.type);
+                const uint32_t rp = commandPriority(rhs.type);
+                if (lp != rp) return lp < rp;
+                return lhs.sequence < rhs.sequence;
+            });
+
+        // A kinematic target describes the pose at the end of a tick, not an
+        // incremental move. Applying several targets for the same body/tick
+        // would otherwise derive velocity from only the last tiny segment.
+        // Retain the final target in each uninterrupted pose-command run.
+        std::vector<bool> superseded(commands_.size(), false);
+        std::unordered_set<uint64_t> laterTargets;
+        uint64_t reverseTick = std::numeric_limits<uint64_t>::max();
+        for (size_t offset = commands_.size(); offset != 0u; --offset) {
+            const size_t index = offset - 1u;
+            const PhysicsCommand& command = commands_[index];
+            if (command.targetTick != reverseTick) {
+                reverseTick = command.targetTick;
+                laterTargets.clear();
+            }
+            const uint64_t bodyKey =
+                (uint64_t{command.body.index} << 32u)
+                | command.body.generation;
+            if (command.type == PhysicsCommandType::SetKinematicTarget) {
+                if (!laterTargets.insert(bodyKey).second) {
+                    superseded[index] = true;
+                }
+            } else if (command.type == PhysicsCommandType::Teleport
+                       || command.type == PhysicsCommandType::SpawnBody
+                       || command.type == PhysicsCommandType::DestroyBody) {
+                laterTargets.erase(bodyKey);
+            }
+        }
+        size_t index = 0u;
+        commands_.erase(std::remove_if(
+            commands_.begin(), commands_.end(), [&superseded, &index](const auto&) {
+                return superseded[index++];
+            }), commands_.end());
     }
 
     void enqueueCommands(std::span<const PhysicsCommand> input) {
+        bool queuedKinematicTarget = false;
         for (PhysicsCommand command : input) {
             if (static_cast<uint32_t>(command.type)
                     > static_cast<uint32_t>(
@@ -1471,7 +1599,7 @@ public:
                          command.targetTick, encodedTick_);
                 continue;
             }
-            if (command.sequence == 0u) command.sequence = nextSequence_++;
+            command.sequence = assignCommandSequence(command.sequence);
 
             if (command.type == PhysicsCommandType::DestroyBody) {
                 static_cast<void>(queueDestroy(
@@ -1479,10 +1607,15 @@ public:
                 continue;
             }
             if (commands_.size() >= config_.commandCapacity) {
-                commandCapacityOverflow_ = true;
-                LOG_WARN("GPU physics command capacity {} exceeded",
-                         config_.commandCapacity);
-                break;
+                sortAndCoalesceKinematicTargets();
+                if (commands_.size() >= config_.commandCapacity
+                    && command.type
+                        != PhysicsCommandType::SetKinematicTarget) {
+                    commandCapacityOverflow_ = true;
+                    LOG_WARN("GPU physics command capacity {} exceeded",
+                             config_.commandCapacity);
+                    break;
+                }
             }
             if (!command.body.valid() || command.body.index >= bodyCapacity_)
                 continue;
@@ -1518,6 +1651,8 @@ public:
                     freeIndices_.erase(index);
                 }
                 hostAlive_[index] = true;
+                scheduledSpawnTicks_[index] = command.targetTick;
+                scheduledDestroyTicks_[index] = 0u;
                 ++residentBodies_;
                 highResidentBodies_ = std::max(
                     highResidentBodies_, residentBodies_);
@@ -1532,9 +1667,8 @@ public:
                         .flags = 0u,
                     };
                 }
-            } else if (!hostAlive_[command.body.index]
-                       || generations_[command.body.index]
-                              != command.body.generation) {
+            } else if (!hostHandleAliveAt(
+                           command.body, command.targetTick)) {
                 continue;
             }
             if (command.type == PhysicsCommandType::SpawnBody
@@ -1545,8 +1679,28 @@ public:
                 command.sector = position.sector;
                 command.a = glm::vec4(position.local, command.a.w);
             }
+            if (commands_.size() >= config_.commandCapacity) {
+                // At capacity, a final same-tick kinematic pose can still be
+                // admitted by replacing the superseded target it authorizes.
+                // Preserve the exact queue if it does not coalesce.
+                std::vector<PhysicsCommand> previous = commands_;
+                commands_.push_back(command);
+                sortAndCoalesceKinematicTargets();
+                if (commands_.size() > config_.commandCapacity) {
+                    commands_ = std::move(previous);
+                    commandCapacityOverflow_ = true;
+                    LOG_WARN("GPU physics command capacity {} exceeded",
+                             config_.commandCapacity);
+                } else {
+                    queuedKinematicTarget = true;
+                }
+                continue;
+            }
             commands_.push_back(command);
+            queuedKinematicTarget = queuedKinematicTarget
+                || command.type == PhysicsCommandType::SetKinematicTarget;
         }
+        if (queuedKinematicTarget) sortAndCoalesceKinematicTargets();
     }
 
     uint64_t nextMutationTick() const noexcept {
@@ -1858,50 +2012,13 @@ public:
         lastGpuUploadBytes_ = 0u;
         lastGpuReadbackBytes_ = 0u;
         const uint64_t finalTick = encodedTick_ + pendingTicks_;
-        std::stable_sort(commands_.begin(), commands_.end(),
-            [](const PhysicsCommand& lhs, const PhysicsCommand& rhs) {
-                if (lhs.targetTick != rhs.targetTick)
-                    return lhs.targetTick < rhs.targetTick;
-                const uint32_t lp = commandPriority(lhs.type);
-                const uint32_t rp = commandPriority(rhs.type);
-                if (lp != rp) return lp < rp;
-                return lhs.sequence < rhs.sequence;
-            });
-
-        // A kinematic target describes the pose at the end of a tick, not an
-        // incremental move. Applying several targets for the same body/tick
-        // would otherwise derive velocity from only the last tiny segment.
-        // Retain the final target in each uninterrupted pose-command run.
-        std::vector<bool> supersededTarget(commands_.size(), false);
-        std::unordered_set<uint64_t> laterTargets;
-        uint64_t reverseTick = std::numeric_limits<uint64_t>::max();
-        for (size_t offset = commands_.size(); offset != 0u; --offset) {
-            const size_t index = offset - 1u;
-            const PhysicsCommand& command = commands_[index];
-            if (command.targetTick != reverseTick) {
-                reverseTick = command.targetTick;
-                laterTargets.clear();
-            }
-            const uint64_t bodyKey =
-                (uint64_t{command.body.index} << 32u)
-                | command.body.generation;
-            if (command.type == PhysicsCommandType::SetKinematicTarget) {
-                if (!laterTargets.insert(bodyKey).second) {
-                    supersededTarget[index] = true;
-                }
-            } else if (command.type == PhysicsCommandType::Teleport
-                       || command.type == PhysicsCommandType::SpawnBody
-                       || command.type == PhysicsCommandType::DestroyBody) {
-                laterTargets.erase(bodyKey);
-            }
-        }
+        sortAndCoalesceKinematicTargets();
 
         std::vector<GpuCommand> upload;
         upload.reserve(std::min<size_t>(commands_.size(),
                                         config_.commandCapacity));
         for (size_t commandIndex = 0u; commandIndex < commands_.size();
              ++commandIndex) {
-            if (supersededTarget[commandIndex]) continue;
             const auto& command = commands_[commandIndex];
             if (command.targetTick > finalTick) continue;
             if (upload.size() >= config_.commandCapacity) break;
@@ -1918,7 +2035,7 @@ public:
             gpuCommand.p5 = glm::ivec4(
                 command.sector,
                 command.material
-                    ? static_cast<int32_t>(command.material->flags) : 0);
+                    ? std::bit_cast<int32_t>(command.material->flags) : 0);
             if (command.material) {
                 gpuCommand.p6 = materialCoefficients(*command.material);
             }
@@ -2320,13 +2437,29 @@ public:
 
         encodedTick_ = finalTick;
         pendingTicks_ = 0;
+        for (const PhysicsCommand& command : commands_) {
+            if (command.type == PhysicsCommandType::SpawnBody
+                && command.targetTick <= finalTick
+                && command.body.index < scheduledSpawnTicks_.size()
+                && generations_[command.body.index]
+                    == command.body.generation
+                && scheduledSpawnTicks_[command.body.index]
+                    == command.targetTick) {
+                scheduledSpawnTicks_[command.body.index] = 0u;
+            }
+        }
         commands_.erase(std::remove_if(commands_.begin(), commands_.end(),
             [finalTick](const PhysicsCommand& command) {
                 return command.targetTick <= finalTick;
             }), commands_.end());
         for (auto it = pendingFrees_.begin(); it != pendingFrees_.end();) {
             if (it->tick <= finalTick) {
-                freeIndices_.insert(it->index);
+                if (it->index < bodyCapacity_
+                    && hostAlive_[it->index]
+                    && generations_[it->index] == it->generation
+                    && scheduledDestroyTicks_[it->index] == it->tick) {
+                    releaseHostBody(it->index);
+                }
                 it = pendingFrees_.erase(it);
             } else {
                 ++it;
@@ -2636,6 +2769,7 @@ public:
     struct PendingFree {
         uint64_t tick = 0;
         uint32_t index = 0;
+        uint32_t generation = 0;
     };
 
     struct CachedTelemetry {
@@ -2658,6 +2792,7 @@ public:
     uint32_t terrainHeight_ = 0;
     uint32_t terrainMipLevelCount_ = 0;
     uint32_t externalTerrainMipLevelCount_ = 0;
+    uint32_t ownedTerrainMipLevelCount_ = 0;
     float terrainHeightScale_ = 0.0f;
     float terrainCellScale_ = 0.0f;
     size_t ownedTerrainBytes_ = 0;
@@ -2699,6 +2834,8 @@ public:
     DynamicBodyReadStats lastReadStats_{};
     std::vector<uint32_t> generations_;
     std::vector<bool> hostAlive_;
+    std::vector<uint64_t> scheduledSpawnTicks_;
+    std::vector<uint64_t> scheduledDestroyTicks_;
     std::set<uint32_t> freeIndices_;
     std::vector<PendingFree> pendingFrees_;
     std::vector<PhysicsCommand> commands_;

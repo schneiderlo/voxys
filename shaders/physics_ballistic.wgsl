@@ -258,7 +258,7 @@ fn apply_commands(@builtin(global_invocation_id) gid : vec3<u32>) {
             shapes[body].dimensions_type = command.p4;
             shapes[body].invInertia_material = vec4<f32>(shape_inverse_inertia(
                 command.p4.xyz, u32(clamp(command.p4.w, 0.0, 4.0)),
-                command.p0.w), bitcast<f32>(u32(command.p5.w)));
+                command.p0.w), bitcast<f32>(bitcast<u32>(command.p5.w)));
             shapes[body].material_coefficients = command.p6;
             forces[body] = vec4<f32>(0.0);
             let spawnFlags = BODY_ALIVE | BODY_AWAKE
@@ -359,7 +359,7 @@ fn apply_commands(@builtin(global_invocation_id) gid : vec3<u32>) {
                 body_flags(body) | BODY_AWAKE | BODY_KINEMATIC);
         } else if (commandType == COMMAND_SET_MATERIAL) {
             shapes[body].invInertia_material.w =
-                bitcast<f32>(u32(command.p5.w));
+                bitcast<f32>(bitcast<u32>(command.p5.w));
             shapes[body].material_coefficients = command.p6;
         } else if (commandType == COMMAND_WAKE) {
             motions[body].linearVelocity_sleep.w = 0.0;

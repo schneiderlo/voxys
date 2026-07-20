@@ -1075,6 +1075,78 @@ TEST_F(GpuPhysicsTest, CancelsSpawnDestroyedBeforeItsFirstGpuTick) {
     EXPECT_EQ(world.stats().residentBodies, 1u);
 }
 
+TEST_F(GpuPhysicsTest, FutureDestroyKeepsBodyAliveUntilItsTargetTick) {
+    BodySpawnDesc desc;
+    desc.position = {0.0f, 20.0f, 0.0f};
+    desc.dimensions = throwableShapeDimensions(desc.shape);
+    const BodyHandle body = world.spawnBody(desc);
+    ASSERT_TRUE(body.valid());
+    stepTicks(1u);
+
+    PhysicsCommand destroy;
+    destroy.type = PhysicsCommandType::DestroyBody;
+    destroy.body = body;
+    destroy.targetTick = world.encodedTick() + 3u;
+    PhysicsCommand velocity;
+    velocity.type = PhysicsCommandType::SetVelocity;
+    velocity.body = body;
+    velocity.targetTick = world.encodedTick() + 2u;
+    velocity.a = glm::vec4(4.0f, 0.0f, 0.0f, 0.0f);
+    const std::array commands{destroy, velocity};
+    world.enqueue(commands);
+
+    EXPECT_EQ(world.stats().residentBodies, 1u);
+    EXPECT_TRUE(world.renderView().valid());
+    stepTicks(2u);
+    const auto beforeDestroy = snapshotRange(body.index, 1u);
+    ASSERT_TRUE(beforeDestroy.has_value());
+    ASSERT_EQ(beforeDestroy->bodies.size(), 1u);
+    EXPECT_TRUE(beforeDestroy->bodies[0].alive);
+    EXPECT_GT(beforeDestroy->bodies[0].linearVelocity.x, 3.0f);
+    EXPECT_EQ(world.stats().residentBodies, 1u);
+
+    stepTicks(1u);
+    const auto destroyed = snapshotRange(body.index, 1u);
+    ASSERT_TRUE(destroyed.has_value());
+    ASSERT_EQ(destroyed->bodies.size(), 1u);
+    EXPECT_FALSE(destroyed->bodies[0].alive);
+    EXPECT_EQ(world.stats().residentBodies, 0u);
+    EXPECT_FALSE(world.renderView().valid());
+}
+
+TEST_F(GpuPhysicsTest, LaterDestroyDoesNotCancelScheduledReplaySpawn) {
+    PhysicsCommand spawn;
+    spawn.type = PhysicsCommandType::SpawnBody;
+    spawn.body = {1u, 1u};
+    spawn.targetTick = 2u;
+    spawn.a = glm::vec4(2.0f, 20.0f, 0.0f, 1.0f);
+    spawn.b = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+    spawn.e = glm::vec4(1.0f, 1.0f, 1.0f, 0.0f);
+    PhysicsCommand destroy;
+    destroy.type = PhysicsCommandType::DestroyBody;
+    destroy.body = spawn.body;
+    destroy.targetTick = 4u;
+    const std::array commands{spawn, destroy};
+    world.enqueue(commands);
+
+    EXPECT_EQ(world.stats().residentBodies, 1u);
+    stepTicks(2u);
+    const auto spawned = snapshotRange(spawn.body.index, 1u);
+    ASSERT_TRUE(spawned.has_value());
+    ASSERT_EQ(spawned->bodies.size(), 1u);
+    EXPECT_TRUE(spawned->bodies[0].alive);
+    EXPECT_EQ(spawned->bodies[0].handle, spawn.body);
+
+    stepTicks(2u);
+    const auto destroyed = snapshotRange(spawn.body.index, 1u);
+    ASSERT_TRUE(destroyed.has_value());
+    ASSERT_EQ(destroyed->bodies.size(), 1u);
+    EXPECT_FALSE(destroyed->bodies[0].alive);
+    const BodyHandle replacement = world.spawnBody({});
+    EXPECT_EQ(replacement.index, spawn.body.index);
+    EXPECT_EQ(replacement.generation, spawn.body.generation + 1u);
+}
+
 TEST_F(GpuPhysicsTest, ReplayLifecycleCommandsMaintainHostAllocationState) {
     PhysicsCommand spawn;
     spawn.type = PhysicsCommandType::SpawnBody;
@@ -1107,6 +1179,32 @@ TEST_F(GpuPhysicsTest, ReplayLifecycleCommandsMaintainHostAllocationState) {
     const BodyHandle replacement = world.spawnBody(replacementDesc);
     EXPECT_EQ(replacement.index, 1u);
     EXPECT_EQ(replacement.generation, 2u);
+}
+
+TEST_F(GpuPhysicsTest, AutomaticSequencesFollowExplicitReplaySequences) {
+    BodySpawnDesc desc;
+    desc.position = {0.0f, 20.0f, 0.0f};
+    desc.linearVelocity = {1.0f, 0.0f, 0.0f};
+    desc.dimensions = throwableShapeDimensions(desc.shape);
+    const BodyHandle body = world.spawnBody(desc);
+    ASSERT_TRUE(body.valid());
+    stepTicks(1u);
+
+    PhysicsCommand sleep;
+    sleep.type = PhysicsCommandType::Sleep;
+    sleep.body = body;
+    sleep.sequence = 100u;
+    PhysicsCommand wake;
+    wake.type = PhysicsCommandType::Wake;
+    wake.body = body;
+    const std::array commands{sleep, wake};
+    world.enqueue(commands);
+    stepTicks(1u);
+
+    const auto snapshot = snapshotRange(body.index, 1u);
+    ASSERT_TRUE(snapshot.has_value());
+    ASSERT_EQ(snapshot->bodies.size(), 1u);
+    EXPECT_TRUE(snapshot->bodies[0].awake);
 }
 
 TEST_F(GpuPhysicsTest, AppliesOrderedCommandsClampsSpeedsAndCompactsSleep) {
@@ -1312,6 +1410,34 @@ TEST_F(GpuPhysicsTest, LastSameTickKinematicTargetUsesWholeTickVelocity) {
     EXPECT_NEAR(snapshot->bodies[0].linearVelocity.x, 2.4f, 1.0e-4f);
 }
 
+TEST_F(GpuPhysicsTest, RedundantKinematicTargetsDoNotDropFinalPoseAtCapacity) {
+    BodySpawnDesc desc;
+    desc.shape = ThrowableShape::Cube;
+    desc.position = {0.0f, 20.0f, 0.0f};
+    desc.dimensions = glm::vec3(1.0f);
+    desc.inverseMass = 0.0f;
+    const BodyHandle body = world.spawnBody(desc);
+    ASSERT_TRUE(body.valid());
+    stepTicks(1u);
+
+    std::vector<PhysicsCommand> targets(2'049u);
+    for (PhysicsCommand& target : targets) {
+        target.type = PhysicsCommandType::SetKinematicTarget;
+        target.body = body;
+        target.a = glm::vec4(1.0f, 20.0f, 0.0f, 0.0f);
+        target.b = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+    }
+    targets.back().a.x = 10.0f;
+    world.enqueue(targets);
+    stepTicks(1u);
+
+    const auto snapshot = snapshotRange(body.index, 1u);
+    ASSERT_TRUE(snapshot.has_value());
+    ASSERT_EQ(snapshot->bodies.size(), 1u);
+    EXPECT_NEAR(snapshot->bodies[0].position.x, 10.0f, 1.0e-6f);
+    EXPECT_FALSE(world.stats().commandCapacityOverflow);
+}
+
 TEST_F(GpuPhysicsTest, SetMaterialChangesResidentContactResponse) {
     const auto spawnPair = [&](float y) {
         BodySpawnDesc left;
@@ -1340,7 +1466,7 @@ TEST_F(GpuPhysicsTest, SetMaterialChangesResidentContactResponse) {
             .restitution = index < 2u ? 0.0f : 1.0f,
             .rollingResistance = 0.0f,
             .density = 1.0f,
-            .flags = 0x55u + static_cast<uint32_t>(index),
+            .flags = 0xf123'4560u + static_cast<uint32_t>(index),
         };
     }
     world.enqueue(commands);
@@ -1354,7 +1480,7 @@ TEST_F(GpuPhysicsTest, SetMaterialChangesResidentContactResponse) {
         EXPECT_FLOAT_EQ(snapshot->bodies[index].material.restitution,
                         index < 2u ? 0.0f : 1.0f);
         EXPECT_EQ(snapshot->bodies[index].material.flags,
-                  0x55u + static_cast<uint32_t>(index));
+                  0xf123'4560u + static_cast<uint32_t>(index));
     }
     const float inelasticSeparationVelocity =
         snapshot->bodies[1].linearVelocity.x
