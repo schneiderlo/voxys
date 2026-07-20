@@ -93,7 +93,7 @@ test_suite(
 # Combined test target that runs all tests
 cc_test(
     name = "voxy_tests",
-    srcs = TEST_SRCS,
+    srcs = TEST_SRCS + ["test_water_clipmap_mesh.cpp"],
     copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
     deps = [
         "//src:voxy_core",
@@ -241,6 +241,16 @@ cc_test(
         "@googletest//:gtest_main",
     ],
     data = ["//shaders:shaders"],
+)
+
+cc_test(
+    name = "water_clipmap_mesh",
+    srcs = ["test_water_clipmap_mesh.cpp"],
+    copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
+    deps = [
+        "//src/render:water_clipmap_mesh",
+        "@googletest//:gtest_main",
+    ],
 )
 
 # Standalone SVO core test - uses only header-only voxel_types (no GPU/GLFW deps)

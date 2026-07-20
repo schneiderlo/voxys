@@ -9,7 +9,11 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 
 #include <gtest/gtest.h>
+#include <array>
 #include <filesystem>
+#include <limits>
+#include <string_view>
+#include <utility>
 
 #include <glm/glm.hpp>
 
@@ -176,6 +180,101 @@ TEST(ApplicationTest, RenderPathAccessBeforeInit) {
     
     // Default should be Raycast
     EXPECT_EQ(app.getRenderPath(), RenderPath::Raycast);
+}
+
+TEST(ApplicationTest, RuntimeRendererSettingsValidateAndClamp) {
+    Application app;
+
+    EXPECT_TRUE(app.setRendererSetting("water.waveStrength", 1.75, false));
+    ASSERT_TRUE(app.getRendererSetting("water.waveStrength").has_value());
+    EXPECT_DOUBLE_EQ(*app.getRendererSetting("water.waveStrength"), 1.75);
+
+    EXPECT_TRUE(app.setRendererSetting("camera.fov", 500.0, true));
+    EXPECT_DOUBLE_EQ(*app.getRendererSetting("camera.fov"), 120.0);
+
+    EXPECT_FALSE(app.setRendererSetting("not.a.setting", 1.0, true));
+    EXPECT_FALSE(app.getRendererSetting("not.a.setting").has_value());
+    EXPECT_FALSE(app.setRendererSetting(
+        "camera.fov", std::numeric_limits<double>::quiet_NaN(), true));
+}
+
+TEST(ApplicationTest, RuntimeRendererSchemaRoundTripsEveryEngineSetting) {
+    Application app;
+    constexpr std::array<std::pair<std::string_view, double>, 52> settings{{
+        {"lighting.sunAzimuth", -42.0},
+        {"lighting.sunElevation", 37.0},
+        {"lighting.sunColor.r", 0.91},
+        {"lighting.sunColor.g", 0.82},
+        {"lighting.sunColor.b", 0.73},
+        {"lighting.sunIntensity", 2.2},
+        {"lighting.ambientColor.r", 0.12},
+        {"lighting.ambientColor.g", 0.18},
+        {"lighting.ambientColor.b", 0.24},
+        {"lighting.ambientIntensity", 0.6},
+        {"lighting.fogColor.r", 0.2},
+        {"lighting.fogColor.g", 0.3},
+        {"lighting.fogColor.b", 0.4},
+        {"lighting.fogDensity", 0.0002},
+        {"lighting.exposure", 1.2},
+        {"water.enabled", 0.0},
+        {"water.height", -100.0},
+        {"water.shallowColor.r", 0.11},
+        {"water.shallowColor.g", 0.32},
+        {"water.shallowColor.b", 0.54},
+        {"water.deepColor.r", 0.03},
+        {"water.deepColor.g", 0.16},
+        {"water.deepColor.b", 0.28},
+        {"water.roughness", 0.18},
+        {"water.waveStrength", 1.1},
+        {"water.reflectionStrength", 0.6},
+        {"water.shoreFade", 45.0},
+        {"water.ior", 1.34},
+        {"water.distortion", 0.1},
+        {"water.absorptionScale", 1.2},
+        {"water.scatterStrength", 1.3},
+        {"water.foamSize", 200.0},
+        {"water.foamOpacity", 0.4},
+        {"water.foamCoverage", 0.3},
+        {"water.reflectionDistance", 1300.0},
+        {"water.spectrum.significantHeight", 12.0},
+        {"water.spectrum.direction", -25.0},
+        {"water.spectrum.choppiness", 1.8},
+        {"water.spectrum.peakEnhancement", 1.4},
+        {"water.spectrum.windAlignment", 0.7},
+        {"water.spectrum.speed", 1.5},
+        {"water.spectrum.largePatch", 2048.0},
+        {"water.spectrum.detailPatch", 384.0},
+        {"water.spectrum.largeAmplitude", 0.4},
+        {"water.spectrum.detailAmplitude", 0.09},
+        {"water.spectrum.directionalSine", 0.55},
+        {"camera.fov", 72.0},
+        {"camera.near", 0.2},
+        {"camera.far", 20000.0},
+        {"camera.moveSpeed", 16.0},
+        {"camera.mouseSensitivity", 0.003},
+        {"camera.eyeHeight", 1.9},
+    }};
+
+    for (const auto& [name, value] : settings) {
+        EXPECT_TRUE(app.setRendererSetting(name, value, true)) << name;
+        const auto actual = app.getRendererSetting(name);
+        ASSERT_TRUE(actual.has_value()) << name;
+        EXPECT_NEAR(*actual, value, 1.0e-4) << name;
+    }
+}
+
+TEST(ApplicationTest, RuntimeRendererPathUsesTheExistingSwitch) {
+    Application app;
+
+    EXPECT_TRUE(app.setRendererSetting("render.path", 0.0, true));
+    EXPECT_EQ(app.getRenderPath(), RenderPath::Triangle);
+    EXPECT_DOUBLE_EQ(*app.getRendererSetting("render.path"), 0.0);
+
+    EXPECT_TRUE(app.setRendererSetting("render.path", 1.0, true));
+    EXPECT_EQ(app.getRenderPath(), RenderPath::Raycast);
+    EXPECT_FALSE(app.setRendererSetting("render.path", -0.5, true));
+    EXPECT_FALSE(app.setRendererSetting("render.path", 1.5, true));
+    EXPECT_FALSE(app.setRendererSetting("render.path", 3.0, true));
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════

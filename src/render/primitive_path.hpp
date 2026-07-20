@@ -12,6 +12,7 @@
 #include <vector>
 
 #include <glm/mat4x4.hpp>
+#include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
 
 #if defined(VOXY_WASM)
@@ -39,6 +40,18 @@ struct PrimitiveUploadStats {
 struct PrimitiveCpuTimings {
     double packingMs = 0.0;
     double uploadMs = 0.0;
+};
+
+/// Frame-wide lighting shared with terrain and water presentation.
+struct PrimitiveLighting {
+    glm::vec3 direction{0.3f, 0.8f, 0.4f};
+    glm::vec3 sunColor{1.0f, 0.95f, 0.9f};
+    float sunIntensity = 1.0f;
+    glm::vec3 ambientColor{0.1f, 0.12f, 0.15f};
+    float ambientIntensity = 1.3f;
+    glm::vec3 fogColor{0.36f, 0.58f, 0.64f};
+    float fogDensity = 0.0001f;
+    float exposure = 1.0f;
 };
 
 class PrimitivePath {
@@ -75,6 +88,16 @@ public:
                 const glm::mat4& projection, const glm::vec3& cameraPosition,
                 const glm::vec3& lightDirection, uint32_t width, uint32_t height,
                 bool useRayDepth,
+                const glm::ivec3& cameraSector = glm::ivec3(0),
+                WGPUQuerySet timestampQuerySet = nullptr,
+                uint32_t timestampBegin = WGPU_QUERY_SET_INDEX_UNDEFINED,
+                uint32_t timestampEnd = WGPU_QUERY_SET_INDEX_UNDEFINED);
+
+    void render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
+                WGPUTextureView depthView, const glm::mat4& view,
+                const glm::mat4& projection, const glm::vec3& cameraPosition,
+                const PrimitiveLighting& lighting, uint32_t width,
+                uint32_t height, bool useRayDepth,
                 const glm::ivec3& cameraSector = glm::ivec3(0),
                 WGPUQuerySet timestampQuerySet = nullptr,
                 uint32_t timestampBegin = WGPU_QUERY_SET_INDEX_UNDEFINED,

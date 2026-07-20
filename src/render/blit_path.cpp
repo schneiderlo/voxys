@@ -4,6 +4,7 @@
 
 #include "render/blit_path.hpp"
 #include "render/triangle_path.hpp"  // For CameraUniforms
+#include "render/water_clipmap_mesh.hpp"
 #include "gpu/resources.hpp"
 #include "gpu/webgpu_compat.hpp"
 #include "core/log.hpp"
@@ -37,120 +38,6 @@ struct DebugUniforms {
 };
 
 static_assert(sizeof(DebugUniforms) == 16, "DebugUniforms must be 16 bytes");
-
-namespace {
-
-struct WaterClipmapVertex {
-    float x = 0.0f;
-    float y = 0.0f;
-    float z = 0.0f;
-};
-static_assert(sizeof(WaterClipmapVertex) == 12u);
-
-struct WaterClipmapMesh {
-    std::vector<WaterClipmapVertex> vertices;
-    std::vector<uint32_t> indices;
-};
-
-[[nodiscard]] WaterClipmapMesh makeWaterClipmap() {
-    constexpr uint32_t kSegments = 64u;
-    constexpr uint32_t kLevels = 5u;
-    constexpr float kBasePatchSize = 800.0f;
-    constexpr float kFarExtent = 47'500.0f;
-    constexpr uint32_t kRowSize = kSegments + 1u;
-    constexpr uint32_t kMissing = std::numeric_limits<uint32_t>::max();
-
-    WaterClipmapMesh mesh;
-    constexpr size_t kApproximateCells =
-        static_cast<size_t>(kSegments) * kSegments *
-        (1u + 3u * (kLevels - 1u) / 4u);
-    mesh.vertices.reserve(kApproximateCells * 4u);
-    mesh.indices.reserve(kApproximateCells * 6u);
-
-    for (uint32_t level = 0u; level < kLevels; ++level) {
-        const float extent = kBasePatchSize * static_cast<float>(1u << level);
-        const float half = extent * 0.5f;
-        const float cell = extent / static_cast<float>(kSegments);
-        const float innerHalf = level == 0u ? -1.0f : half * 0.5f;
-        std::vector<uint32_t> grid(
-            static_cast<size_t>(kRowSize) * kRowSize, kMissing);
-        const auto vertexAt = [&](uint32_t x, uint32_t z) {
-            uint32_t& index = grid[static_cast<size_t>(z) * kRowSize + x];
-            if (index == kMissing) {
-                index = static_cast<uint32_t>(mesh.vertices.size());
-                mesh.vertices.push_back({
-                    -half + static_cast<float>(x) * cell,
-                    0.0f,
-                    -half + static_cast<float>(z) * cell});
-            }
-            return index;
-        };
-
-        for (uint32_t z = 0u; z < kSegments; ++z) {
-            const float z0 = -half + static_cast<float>(z) * cell;
-            const float z1 = z0 + cell;
-            for (uint32_t x = 0u; x < kSegments; ++x) {
-                const float x0 = -half + static_cast<float>(x) * cell;
-                const float x1 = x0 + cell;
-                if (level > 0u && x0 >= -innerHalf && x1 <= innerHalf &&
-                    z0 >= -innerHalf && z1 <= innerHalf) {
-                    continue;
-                }
-                const uint32_t a = vertexAt(x, z);
-                const uint32_t b = vertexAt(x + 1u, z);
-                const uint32_t c = vertexAt(x, z + 1u);
-                const uint32_t d = vertexAt(x + 1u, z + 1u);
-                mesh.indices.insert(mesh.indices.end(), {a, c, b, b, c, d});
-            }
-        }
-    }
-
-    // Four radially stretched strips close the underwater horizon beyond the
-    // last regular ring without increasing its tessellation density.
-    constexpr float kOuterLevelExtent =
-        kBasePatchSize * static_cast<float>(1u << (kLevels - 1u));
-    constexpr float kInnerHalf = kOuterLevelExtent * 0.5f;
-    constexpr float kOuterHalf = kFarExtent * 0.5f;
-    constexpr float kRadialScale = kOuterHalf / kInnerHalf;
-    constexpr float kStep = kOuterLevelExtent / static_cast<float>(kSegments);
-    const auto addQuad = [&mesh](WaterClipmapVertex innerA,
-                                 WaterClipmapVertex innerB,
-                                 WaterClipmapVertex outerA,
-                                 WaterClipmapVertex outerB,
-                                 bool reverse) {
-        const uint32_t first = static_cast<uint32_t>(mesh.vertices.size());
-        mesh.vertices.insert(mesh.vertices.end(),
-                             {innerA, innerB, outerA, outerB});
-        if (reverse) {
-            mesh.indices.insert(mesh.indices.end(),
-                                {first, first + 1u, first + 3u,
-                                 first, first + 3u, first + 2u});
-        } else {
-            mesh.indices.insert(mesh.indices.end(),
-                                {first, first + 2u, first + 3u,
-                                 first, first + 3u, first + 1u});
-        }
-    };
-    for (uint32_t segment = 0u; segment < kSegments; ++segment) {
-        const float a = static_cast<float>(segment) * kStep - kInnerHalf;
-        const float b = segment + 1u == kSegments
-            ? kInnerHalf
-            : static_cast<float>(segment + 1u) * kStep - kInnerHalf;
-        const float outerA = a * kRadialScale;
-        const float outerB = b * kRadialScale;
-        addQuad({a, 0.0f, kInnerHalf}, {b, 0.0f, kInnerHalf},
-                {outerA, 0.0f, kOuterHalf}, {outerB, 0.0f, kOuterHalf}, false);
-        addQuad({a, 0.0f, -kInnerHalf}, {b, 0.0f, -kInnerHalf},
-                {outerA, 0.0f, -kOuterHalf}, {outerB, 0.0f, -kOuterHalf}, true);
-        addQuad({kInnerHalf, 0.0f, a}, {kInnerHalf, 0.0f, b},
-                {kOuterHalf, 0.0f, outerA}, {kOuterHalf, 0.0f, outerB}, true);
-        addQuad({-kInnerHalf, 0.0f, a}, {-kInnerHalf, 0.0f, b},
-                {-kOuterHalf, 0.0f, outerA}, {-kOuterHalf, 0.0f, outerB}, false);
-    }
-    return mesh;
-}
-
-} // namespace
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // BlitPath Implementation
@@ -2068,7 +1955,7 @@ bool BlitPath::createWaterClipmapResources(const BlitPathConfig& config) {
     attribute.offset = 0u;
     attribute.shaderLocation = 0u;
     WGPUVertexBufferLayout vertexBufferLayout{};
-    vertexBufferLayout.arrayStride = sizeof(WaterClipmapVertex);
+    vertexBufferLayout.arrayStride = sizeof(detail::WaterClipmapVertex);
     vertexBufferLayout.stepMode = WGPUVertexStepMode_Vertex;
     vertexBufferLayout.attributeCount = 1u;
     vertexBufferLayout.attributes = &attribute;
@@ -2136,7 +2023,7 @@ bool BlitPath::createWaterClipmapResources(const BlitPathConfig& config) {
         return false;
     }
 
-    const WaterClipmapMesh mesh = makeWaterClipmap();
+    const detail::WaterClipmapMesh mesh = detail::makeWaterClipmap();
     if (mesh.vertices.empty() || mesh.indices.empty() ||
         mesh.indices.size() > std::numeric_limits<uint32_t>::max()) {
         LOG_ERROR("Generated invalid water clipmap topology");
@@ -2145,9 +2032,9 @@ bool BlitPath::createWaterClipmapResources(const BlitPathConfig& config) {
     waterClipmapVertexBuffer_ = gpu::createBufferWithData(
         device_, queue_,
         gpu::BufferDesc::vertex(
-            mesh.vertices.size() * sizeof(WaterClipmapVertex),
+            mesh.vertices.size() * sizeof(detail::WaterClipmapVertex),
             "water_clipmap_vertices"),
-        std::span<const WaterClipmapVertex>(mesh.vertices));
+        std::span<const detail::WaterClipmapVertex>(mesh.vertices));
     waterClipmapIndexBuffer_ = gpu::createBufferWithData(
         device_, queue_,
         gpu::BufferDesc::index(
@@ -2364,6 +2251,7 @@ void BlitPath::setWaterCompositeResources(
     waterDisplacementView_ = displacementView;
     waterDisplacementSampler_ = displacementSampler;
     bindGroupDirty_ = true;
+    backgroundDirty_ = true;
     LOG_DEBUG("Set fused water geometry resources");
 }
 
@@ -2453,6 +2341,24 @@ void BlitPath::updateStaticUniforms() {
     next.waterMotion.x = 0.0f;
     next.waterMotion.y = 0.0f;
     next.waterMotion.w = 0.0f;
+    // Presentation and surface-only controls do not alter the cached opaque
+    // HDR scene. Canonicalizing them keeps live material scrubbing cheap.
+    next.ambientExposure.w = 0.0f;
+    next.waterParams.z = 0.0f;
+    next.waterParams.w = 0.0f;
+    next.waterColorA = glm::vec4(0.0f);
+    next.waterColorB.w = 0.0f;
+    next.waterOptics.x = 0.0f;
+    next.waterOptics.y = 0.0f;
+    next.waterFoam = glm::vec4(0.0f);
+    next.waterSpectrum = glm::vec4(0.0f);
+    if (next.waterMotion.z <= 0.5f) {
+        // The opaque scene is water-independent while the camera is above the
+        // surface. The geometry pass still consumes the live water values.
+        next.waterParams = glm::vec4(0.0f);
+        next.waterColorB = glm::vec4(0.0f);
+        next.waterOptics = glm::vec4(0.0f);
+    }
     if (std::memcmp(staticUniforms_, &next, sizeof(CameraUniforms)) == 0) {
         return;
     }

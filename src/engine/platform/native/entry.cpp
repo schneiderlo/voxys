@@ -47,6 +47,19 @@ int main(int argc, char* argv[]) {
     appConfig.heightScale = config.terrain.heightScale;
     appConfig.cellScale = config.terrain.cellScale;
     appConfig.ambientIntensity = config.lighting.ambientIntensity;
+    appConfig.sunDirection = {
+        config.lighting.sunDirection[0], config.lighting.sunDirection[1],
+        config.lighting.sunDirection[2]};
+    appConfig.sunColor = {
+        config.lighting.sunColor[0], config.lighting.sunColor[1],
+        config.lighting.sunColor[2]};
+    appConfig.ambientColor = {
+        config.lighting.ambientColor[0], config.lighting.ambientColor[1],
+        config.lighting.ambientColor[2]};
+    appConfig.fogDensity = config.lighting.fogDensity;
+    appConfig.fogColor = {
+        config.lighting.fogColor[0], config.lighting.fogColor[1],
+        config.lighting.fogColor[2]};
     appConfig.waterEnabled = config.water.enabled;
     appConfig.waterHeight = config.water.height;
     appConfig.waterShallowColor = {

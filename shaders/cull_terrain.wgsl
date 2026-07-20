@@ -18,7 +18,7 @@ struct CameraUniforms {
     lightDirVS : vec4<f32>,
     frustumPlanes : array<vec4<f32>, 6>, // Left, Right, Bottom, Top, Near, Far
     // The trailing fields are unused by culling but must be present so this
-    // struct's size matches the C++ CameraUniforms (448 bytes). Strict WebGPU
+    // struct's size matches the C++ CameraUniforms (544 bytes). Strict WebGPU
     // implementations validate the shader-reflected binding size against the
     // buffer/minBindingSize and reject a mismatch.
     lightDirWS : vec4<f32>,
@@ -26,6 +26,12 @@ struct CameraUniforms {
     waterColorA : vec4<f32>,
     waterColorB : vec4<f32>,
     waterMotion : vec4<f32>,
+    lightingColor : vec4<f32>,
+    ambientExposure : vec4<f32>,
+    fogColor : vec4<f32>,
+    waterOptics : vec4<f32>,
+    waterFoam : vec4<f32>,
+    waterSpectrum : vec4<f32>,
 };
 
 struct IndirectArgs {

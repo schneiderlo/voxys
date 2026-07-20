@@ -32,6 +32,12 @@ struct CameraUniforms {
     waterColorA : vec4<f32>,      // shallow color rgb, reflection strength
     waterColorB : vec4<f32>,      // deep color rgb, shore fade distance
     waterMotion : vec4<f32>,      // simulation time, reserved...
+    lightingColor : vec4<f32>,
+    ambientExposure : vec4<f32>,
+    fogColor : vec4<f32>,
+    waterOptics : vec4<f32>,
+    waterFoam : vec4<f32>,
+    waterSpectrum : vec4<f32>,
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -64,8 +70,6 @@ const SHORE_DEPTH : f32 = 7.5;
 const SHORE_SURFACE_OVERLAP : f32 = 2.0;
 const WATER_TAU : f32 = 6.283185307179586;
 const WATER_RESOLUTION : f32 = 256.0;
-const WATER_BROAD_SCALE : f32 = 1949.0;
-const WATER_DETAIL_SCALE : f32 = 326.0;
 const WATER_NORMAL_LAYER : i32 = 2;
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -155,12 +159,12 @@ fn spectralSurface(worldXZ : vec2<f32>, strength : f32,
     let detailWeight = 1.0 - smoothstep(900.0, 3500.0, max(distance, 0.0));
     let broadFirst = textureSampleLevel(
         waterDisplacementTex, waterDisplacementSampler,
-        cascadeUv(worldXZ, WATER_BROAD_SCALE), 0, 0.0);
+        cascadeUv(worldXZ, camera.waterSpectrum.x), 0, 0.0);
     var detailFirst = vec4<f32>(0.0);
     if (detailWeight > 0.0) {
         detailFirst = textureSampleLevel(
             waterDisplacementTex, waterDisplacementSampler,
-            cascadeUv(worldXZ, WATER_DETAIL_SCALE), 1, 0.0) * detailWeight;
+            cascadeUv(worldXZ, camera.waterSpectrum.y), 1, 0.0) * detailWeight;
     }
     // Horizontal displacement changes which base-grid point reaches this world
     // position. One inverse step captures the sharp crest compression without
@@ -168,19 +172,19 @@ fn spectralSurface(worldXZ : vec2<f32>, strength : f32,
     let baseXZ = worldXZ - (broadFirst.xz + detailFirst.xz) * strength;
     let broad = textureSampleLevel(
         waterDisplacementTex, waterDisplacementSampler,
-        cascadeUv(baseXZ, WATER_BROAD_SCALE), 0, 0.0);
+        cascadeUv(baseXZ, camera.waterSpectrum.x), 0, 0.0);
     let broadNormal = textureSampleLevel(
         waterDisplacementTex, waterDisplacementSampler,
-        cascadeUv(baseXZ, WATER_BROAD_SCALE), WATER_NORMAL_LAYER, 0.0).xyz;
+        cascadeUv(baseXZ, camera.waterSpectrum.x), WATER_NORMAL_LAYER, 0.0).xyz;
     var detail = vec4<f32>(0.0);
     var detailNormal = vec3<f32>(0.0, 1.0, 0.0);
     if (detailWeight > 0.0) {
         detail = textureSampleLevel(
             waterDisplacementTex, waterDisplacementSampler,
-            cascadeUv(baseXZ, WATER_DETAIL_SCALE), 1, 0.0) * detailWeight;
+            cascadeUv(baseXZ, camera.waterSpectrum.y), 1, 0.0) * detailWeight;
         detailNormal = textureSampleLevel(
             waterDisplacementTex, waterDisplacementSampler,
-            cascadeUv(baseXZ, WATER_DETAIL_SCALE),
+            cascadeUv(baseXZ, camera.waterSpectrum.y),
             WATER_NORMAL_LAYER + 1, 0.0).xyz;
     }
     let up = vec3<f32>(0.0, 1.0, 0.0);

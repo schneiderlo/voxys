@@ -23,6 +23,14 @@ cc_library(
 )
 
 cc_library(
+    name = "water_clipmap_mesh",
+    srcs = ["water_clipmap_mesh.cpp"],
+    hdrs = ["water_clipmap_mesh.hpp"],
+    copts = PROJECT_DEFAULT_COPTS,
+    includes = [".."],
+)
+
+cc_library(
     name = "water_simulation",
     srcs = ["water_simulation.cpp"],
     hdrs = ["water_simulation.hpp"],
@@ -85,6 +93,7 @@ cc_library(
         ":frustum",
         ":primitive_culling",
         ":primitive_instance_packing",
+        ":water_clipmap_mesh",
         ":water_simulation",
         "//src/camera:camera",
         "//src/core:core",

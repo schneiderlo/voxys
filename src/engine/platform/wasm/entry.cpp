@@ -13,6 +13,7 @@
 #include <algorithm>
 #include <cmath>
 #include <iomanip>
+#include <limits>
 #include <memory>
 #include <numeric>
 #include <optional>
@@ -931,6 +932,19 @@ int main(int argc, char* argv[]) {
     appConfig.heightScale = config.terrain.heightScale;
     appConfig.cellScale = config.terrain.cellScale;
     appConfig.ambientIntensity = config.lighting.ambientIntensity;
+    appConfig.sunDirection = {
+        config.lighting.sunDirection[0], config.lighting.sunDirection[1],
+        config.lighting.sunDirection[2]};
+    appConfig.sunColor = {
+        config.lighting.sunColor[0], config.lighting.sunColor[1],
+        config.lighting.sunColor[2]};
+    appConfig.ambientColor = {
+        config.lighting.ambientColor[0], config.lighting.ambientColor[1],
+        config.lighting.ambientColor[2]};
+    appConfig.fogDensity = config.lighting.fogDensity;
+    appConfig.fogColor = {
+        config.lighting.fogColor[0], config.lighting.fogColor[1],
+        config.lighting.fogColor[2]};
     appConfig.waterEnabled = config.water.enabled;
     appConfig.waterHeight = config.water.height;
     appConfig.waterShallowColor = {
@@ -1168,6 +1182,31 @@ void voxy_resize(int width, int height) {
     if (g_app && width > 0 && height > 0) {
         g_app->onResize(static_cast<uint32_t>(width), static_cast<uint32_t>(height));
     }
+}
+
+EMSCRIPTEN_KEEPALIVE
+int voxy_renderer_set_number(const char* name, double value, int commit) {
+    if (!g_app || !name) return 0;
+    return g_app->setRendererSetting(name, value, commit != 0) ? 1 : 0;
+}
+
+EMSCRIPTEN_KEEPALIVE
+double voxy_renderer_get_number(const char* name) {
+    if (!g_app || !name) return std::numeric_limits<double>::quiet_NaN();
+    const auto value = g_app->getRendererSetting(name);
+    return value.value_or(std::numeric_limits<double>::quiet_NaN());
+}
+
+EMSCRIPTEN_KEEPALIVE
+double voxy_renderer_get_revision() {
+    return g_app
+        ? static_cast<double>(g_app->getRendererSettingsRevision()) : 0.0;
+}
+
+EMSCRIPTEN_KEEPALIVE
+double voxy_renderer_get_applied_revision() {
+    return g_app
+        ? static_cast<double>(g_app->getAppliedRendererSettingsRevision()) : 0.0;
 }
 
 EMSCRIPTEN_KEEPALIVE

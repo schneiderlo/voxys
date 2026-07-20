@@ -35,7 +35,7 @@ namespace voxy::render {
 
 /// Unified camera uniforms structure shared between all shaders.
 /// Must match the WGSL CameraUniforms struct exactly.
-/// Total size: 448 bytes (aligned to 16 bytes)
+/// Total size: 544 bytes (aligned to 16 bytes)
 struct CameraUniforms {
     glm::mat4 viewProj;        ///< offset: 0,   size: 64 - View-projection matrix
     glm::mat4 invViewProj;     ///< offset: 64,  size: 64 - Inverse view-projection
@@ -52,7 +52,13 @@ struct CameraUniforms {
     glm::vec4 waterColorA;     ///< offset: 400, size: 16 - shallow color rgb, reflection strength
     glm::vec4 waterColorB;     ///< offset: 416, size: 16 - deep color rgb, shore fade
     glm::vec4 waterMotion;     ///< offset: 432, size: 16 - (time, local surface offset, submerged, reserved)
-    // Total: 448 bytes
+    glm::vec4 lightingColor;   ///< offset: 448, size: 16 - sun rgb, intensity
+    glm::vec4 ambientExposure; ///< offset: 464, size: 16 - ambient rgb, exposure
+    glm::vec4 fogColor;        ///< offset: 480, size: 16 - fog rgb, reserved
+    glm::vec4 waterOptics;     ///< offset: 496, size: 16 - IOR, distortion, absorption, scatter
+    glm::vec4 waterFoam;       ///< offset: 512, size: 16 - size, opacity, coverage, reflection distance
+    glm::vec4 waterSpectrum;   ///< offset: 528, size: 16 - broad/detail patch lengths
+    // Total: 544 bytes
 
     /// Default constructor with sensible defaults
     CameraUniforms();
@@ -78,6 +84,16 @@ struct CameraUniforms {
                   const glm::vec3& deepColor, float roughness,
                   float waveStrength, float reflectionStrength, float shoreFade);
 
+    void setRendererMaterial(const glm::vec3& sunColor, float sunIntensity,
+                             const glm::vec3& ambientColor,
+                             const glm::vec3& atmosphericFogColor,
+                             float exposure, float waterIor,
+                             float waterDistortion, float waterAbsorptionScale,
+                             float waterScatterStrength, float foamSize,
+                             float foamOpacity, float foamCoverage,
+                             float reflectionDistance,
+                             const glm::vec2& spectrumPatchLengths);
+
     /// Advance animated water without changing its art controls.
     void setWaterTime(float seconds) { waterMotion.x = seconds; }
 
@@ -89,7 +105,7 @@ struct CameraUniforms {
     }
 };
 
-static_assert(sizeof(CameraUniforms) == 448, "CameraUniforms must be 448 bytes");
+static_assert(sizeof(CameraUniforms) == 544, "CameraUniforms must be 544 bytes");
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Triangle Path Configuration

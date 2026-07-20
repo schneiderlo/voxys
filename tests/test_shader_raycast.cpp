@@ -139,10 +139,10 @@ TEST_F(RaycastShaderTest, HasWaterMaterialOutput) {
         << "Shader missing shallow shoreline depth clamp";
     EXPECT_NE(shaderSource_.find("sampleWaterSurface"), std::string::npos)
         << "Shader missing displaced water surface helper";
-    EXPECT_NE(shaderSource_.find("WATER_BROAD_SCALE"), std::string::npos)
-        << "Shader missing broad spectrum scale";
-    EXPECT_NE(shaderSource_.find("WATER_DETAIL_SCALE"), std::string::npos)
-        << "Shader missing detail spectrum scale";
+    EXPECT_NE(shaderSource_.find("camera.waterSpectrum.x"), std::string::npos)
+        << "Shader missing runtime broad spectrum scale";
+    EXPECT_NE(shaderSource_.find("camera.waterSpectrum.y"), std::string::npos)
+        << "Shader missing runtime detail spectrum scale";
     EXPECT_NE(shaderSource_.find("waterDisplacementTex"), std::string::npos)
         << "Shader missing FFT displacement cascade input";
     EXPECT_NE(shaderSource_.find("longWaveSurface"), std::string::npos)

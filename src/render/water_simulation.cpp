@@ -53,18 +53,10 @@ constexpr float kPi = std::numbers::pi_v<float>;
 constexpr float kTau = 2.0f * kPi;
 constexpr float kGravity = 9.81f;
 constexpr float kFrequencyTick = kTau / 8192.0f;
-constexpr float kSignificantWaveHeight = 25.9f;
-constexpr float kWaveDirection = 0.9948376736367679f;
-constexpr float kChoppiness = 2.24f;
-constexpr float kPeakEnhancement = 0.65f;
-constexpr float kWindAlignment = 0.32f;
-constexpr float kAnimationSpeed = 2.0f;
-constexpr std::array<float, WaterSimulation::CASCADE_COUNT> kPatchLengths = {
-    1949.0f, 326.0f
-};
-constexpr std::array<float, WaterSimulation::CASCADE_COUNT> kCascadeAmplitudes = {
-    0.33f, 0.07f
-};
+
+float cascadeValue(const glm::vec2& values, uint32_t cascade) {
+    return cascade == 0u ? values.x : values.y;
+}
 
 float fract(float value) {
     return value - std::floor(value);
@@ -97,13 +89,14 @@ float directionalIntegral(float exponent, float blend) {
 }
 
 float integrateSpectrum(float minimum, float maximum, float lengthScale,
-                        float directionalBlend) {
+                        float directionalBlend, float significantWaveHeight,
+                        float peakEnhancement) {
     if (maximum <= minimum) return 0.0f;
     const double logMinimum = std::log(static_cast<double>(minimum));
     const double step = (std::log(static_cast<double>(maximum)) - logMinimum) /
                         64.0;
     const double peakFrequency = 0.877 * static_cast<double>(kGravity) /
-                                 static_cast<double>(kSignificantWaveHeight);
+                                 static_cast<double>(significantWaveHeight);
     double sum = 0.0;
     for (uint32_t index = 0; index <= 64; ++index) {
         const double waveNumber =
@@ -116,15 +109,15 @@ float integrateSpectrum(float minimum, float maximum, float lengthScale,
             : 9.77 * std::pow(ratio, -2.5);
         const float spreadExponent = static_cast<float>(
             std::max(0.5, exponent * 0.65));
-        const double direction = directionalIntegral(
-            spreadExponent, directionalBlend);
+        const double direction = static_cast<double>(directionalIntegral(
+            spreadExponent, directionalBlend));
         const double sigma = frequency < peakFrequency ? 0.07 : 0.09;
         const double difference = frequency - peakFrequency;
         const double peakShape = std::exp(
             -(difference * difference) /
             (2.0 * sigma * sigma * peakFrequency * peakFrequency + 1.0e-4));
-        const double peak = std::pow(
-            static_cast<double>(kPeakEnhancement), peakShape);
+    const double peak = std::pow(
+            static_cast<double>(peakEnhancement), peakShape);
         const double density =
             std::exp(-1.0 /
                      std::pow(waveNumber * static_cast<double>(lengthScale), 2.0)) *
@@ -152,6 +145,33 @@ WGPUComputePipeline createComputePipeline(WGPUDevice device,
     return wgpuDeviceCreateComputePipeline(device, &desc);
 }
 
+WaterSpectrumConfig sanitizeSpectrum(WaterSpectrumConfig config) {
+    config.significantWaveHeight = std::clamp(
+        config.significantWaveHeight, 0.1f, 100.0f);
+    config.directionRadians = std::remainder(config.directionRadians, kTau);
+    config.choppiness = std::clamp(config.choppiness, 0.0f, 5.0f);
+    config.peakEnhancement = std::clamp(config.peakEnhancement, 0.05f, 10.0f);
+    config.windAlignment = std::clamp(config.windAlignment, 0.0f, 1.0f);
+    config.animationSpeed = std::clamp(config.animationSpeed, 0.0f, 5.0f);
+    config.patchLengths.x = std::clamp(config.patchLengths.x, 64.0f, 8192.0f);
+    config.patchLengths.y = std::clamp(config.patchLengths.y, 16.0f, 2048.0f);
+    config.cascadeAmplitudes = glm::clamp(
+        config.cascadeAmplitudes, glm::vec2(0.0f), glm::vec2(2.0f));
+    config.directionalSineScale = std::clamp(
+        config.directionalSineScale, 0.0f, 1.5f);
+    return config;
+}
+
+bool spectrumShapeMatches(const WaterSpectrumConfig& a,
+                          const WaterSpectrumConfig& b) {
+    return a.significantWaveHeight == b.significantWaveHeight &&
+           a.directionRadians == b.directionRadians &&
+           a.peakEnhancement == b.peakEnhancement &&
+           a.windAlignment == b.windAlignment &&
+           a.patchLengths.x == b.patchLengths.x &&
+           a.patchLengths.y == b.patchLengths.y;
+}
+
 } // namespace
 
 WaterSimulation::~WaterSimulation() {
@@ -163,13 +183,15 @@ bool WaterSimulation::init(WGPUDevice device, WGPUQueue queue,
                            std::span<const uint16_t> terrainHeights,
                            uint32_t terrainWidth, uint32_t terrainHeight,
                            float terrainHeightScale, float cellScale,
-                           float waterHeight) {
+                           float waterHeight,
+                           const WaterSpectrumConfig& spectrum) {
     if (!device || !queue) {
         LOG_ERROR("WaterSimulation::init: device or queue is null");
         return false;
     }
     device_ = device;
     queue_ = queue;
+    spectrumConfig_ = sanitizeSpectrum(spectrum);
 
     if (!createSpectrum() || !createBuffers() || !createOutputTexture() ||
         !createCoastField(terrainHeights, terrainWidth, terrainHeight,
@@ -184,6 +206,41 @@ bool WaterSimulation::init(WGPUDevice device, WGPUQueue queue,
     LOG_INFO("FFT water simulation initialized: {} cascades at {}x{}",
              CASCADE_COUNT, RESOLUTION, RESOLUTION);
     return true;
+}
+
+bool WaterSimulation::reconfigure(const WaterSpectrumConfig& spectrum) {
+    const WaterSpectrumConfig next = sanitizeSpectrum(spectrum);
+    const bool rebuildSpectrum = !spectrumShapeMatches(spectrumConfig_, next);
+    const WaterSpectrumConfig previous = spectrumConfig_;
+    spectrumConfig_ = next;
+    cpuCacheTime_ = -1.0f;
+    if (!rebuildSpectrum || !device_ || !queue_) return true;
+
+    releaseSimulationBindGroups();
+    if (!createSpectrum()) {
+        spectrumConfig_ = previous;
+        static_cast<void>(createBindGroups());
+        LOG_ERROR("Failed to rebuild FFT water spectrum; keeping previous GPU data");
+        return false;
+    }
+    if (!createBindGroups()) {
+        LOG_ERROR("Failed to bind rebuilt FFT water spectrum");
+        return false;
+    }
+    foamFrame_ = 0u;
+    LOG_INFO("Rebuilt FFT water spectrum: Hs {:.2f}, direction {:.1f} degrees",
+             spectrumConfig_.significantWaveHeight,
+             spectrumConfig_.directionRadians * 180.0f / kPi);
+    return true;
+}
+
+bool WaterSimulation::rebuildCoastField(
+    std::span<const uint16_t> terrainHeights,
+    uint32_t terrainWidth, uint32_t terrainHeight,
+    float terrainHeightScale, float cellScale, float waterHeight) {
+    if (!device_ || !queue_) return false;
+    return createCoastField(terrainHeights, terrainWidth, terrainHeight,
+                            terrainHeightScale, cellScale, waterHeight);
 }
 
 bool WaterSimulation::createCoastField(
@@ -367,12 +424,20 @@ bool WaterSimulation::createCoastField(
         fieldWidth, fieldHeight, WGPUTextureFormat_RGBA16Float,
         WGPUTextureUsage_TextureBinding | WGPUTextureUsage_CopyDst,
         "water_coast_field");
-    coastTexture_ = gpu::createTextureWithData(
+    WGPUTexture nextTexture = gpu::createTextureWithData(
         device_, queue_, desc, std::as_bytes(std::span<const CoastPixel>(pixels)),
         fieldWidth * sizeof(CoastPixel));
-    if (!coastTexture_) return false;
-    coastView_ = gpu::createTextureView(coastTexture_);
-    if (!coastView_) return false;
+    if (!nextTexture) return false;
+    WGPUTextureView nextView = gpu::createTextureView(nextTexture);
+    if (!nextView) {
+        wgpuTextureRelease(nextTexture);
+        return false;
+    }
+
+    if (coastView_) wgpuTextureViewRelease(coastView_);
+    if (coastTexture_) wgpuTextureRelease(coastTexture_);
+    coastTexture_ = nextTexture;
+    coastView_ = nextView;
 
     LOG_INFO("Coastal refraction field initialized: {}x{}", fieldWidth, fieldHeight);
     return true;
@@ -386,14 +451,15 @@ bool WaterSimulation::createSpectrum() {
     std::array<float, CASCADE_COUNT> highCutoff{};
     std::array<float, CASCADE_COUNT> normalization{};
     for (uint32_t cascade = 0; cascade < CASCADE_COUNT; ++cascade) {
-        minimum[cascade] = kTau / kPatchLengths[cascade];
+        minimum[cascade] = kTau /
+                           cascadeValue(spectrumConfig_.patchLengths, cascade);
         maximum[cascade] = kPi * static_cast<float>(RESOLUTION) /
-                           kPatchLengths[cascade];
+                           cascadeValue(spectrumConfig_.patchLengths, cascade);
     }
 
-    const float lengthScale = kSignificantWaveHeight * kSignificantWaveHeight /
-                              kGravity;
-    const float directionalBlend = 0.07f + 0.93f * kWindAlignment;
+    const float lengthScale = spectrumConfig_.significantWaveHeight *
+                              spectrumConfig_.significantWaveHeight / kGravity;
+    const float directionalBlend = 0.07f + 0.93f * spectrumConfig_.windAlignment;
     for (uint32_t cascade = 0; cascade < CASCADE_COUNT; ++cascade) {
         lowCutoff[cascade] = cascade > 0
             ? std::sqrt(maximum[cascade - 1] * minimum[cascade])
@@ -403,21 +469,25 @@ bool WaterSimulation::createSpectrum() {
             : maximum[cascade];
         const float own = integrateSpectrum(
             minimum[cascade], maximum[cascade], lengthScale,
-            directionalBlend);
+            directionalBlend, spectrumConfig_.significantWaveHeight,
+            spectrumConfig_.peakEnhancement);
         const float band = integrateSpectrum(
             lowCutoff[cascade], highCutoff[cascade], lengthScale,
-            directionalBlend);
+            directionalBlend, spectrumConfig_.significantWaveHeight,
+            spectrumConfig_.peakEnhancement);
         normalization[cascade] = band > 1.0e-30f
             ? std::sqrt(own / band) : 1.0f;
     }
 
     const float peakFrequency = 0.877f * kGravity /
-                                kSignificantWaveHeight;
+                                spectrumConfig_.significantWaveHeight;
     const glm::vec2 dominantDirection{
-        std::cos(kWaveDirection), std::sin(kWaveDirection)};
+        std::cos(spectrumConfig_.directionRadians),
+        std::sin(spectrumConfig_.directionRadians)};
 
     for (uint32_t cascade = 0; cascade < CASCADE_COUNT; ++cascade) {
-        const float patchLength = kPatchLengths[cascade];
+        const float patchLength =
+            cascadeValue(spectrumConfig_.patchLengths, cascade);
         const float deltaK = kTau / patchLength;
         const float seed = static_cast<float>(cascade + 1u);
         for (uint32_t y = 0; y < RESOLUTION; ++y) {
@@ -460,7 +530,7 @@ bool WaterSimulation::createSpectrum() {
                     -(difference * difference) /
                     (2.0f * std::pow(sigma * peakFrequency, 2.0f) + 1.0e-4f));
                 const float peaked = base *
-                    std::pow(kPeakEnhancement, peakShape);
+                    std::pow(spectrumConfig_.peakEnhancement, peakShape);
                 const float window =
                     smoothTransition(lowCutoff[cascade],
                                      lowCutoff[cascade] * 1.5f, magnitude) *
@@ -492,7 +562,9 @@ bool WaterSimulation::createSpectrum() {
     candidates.reserve(kElementCount / 2);
     for (uint32_t cascade = 0; cascade < CASCADE_COUNT; ++cascade) {
         const uint32_t base = cascade * RESOLUTION * RESOLUTION;
-        const float deltaK = kTau / kPatchLengths[cascade];
+        const float patchLength =
+            cascadeValue(spectrumConfig_.patchLengths, cascade);
+        const float deltaK = kTau / patchLength;
         for (uint32_t y = 0; y < RESOLUTION; ++y) {
             for (uint32_t x = 0; x < RESOLUTION; ++x) {
                 const uint32_t mirrorX = (RESOLUTION - x) % RESOLUTION;
@@ -512,14 +584,15 @@ bool WaterSimulation::createSpectrum() {
                     energy,
                     CpuWaveMode{
                         waveVector,
-                        glm::vec2(-0.5f * kPatchLengths[cascade] /
+                        glm::vec2(-0.5f * patchLength /
                                   static_cast<float>(RESOLUTION)),
                         glm::vec2(h0[index].real(), h0[index].imag()),
                         glm::vec2(std::conj(h0[mirror]).real(),
                                   std::conj(h0[mirror]).imag()),
                         std::round(std::sqrt(kGravity * (waveNumber + 1.0e-4f)) /
                                    kFrequencyTick) * kFrequencyTick,
-                        kCascadeAmplitudes[cascade]}});
+                        cascadeValue(spectrumConfig_.cascadeAmplitudes, cascade),
+                        cascade}});
             }
         }
     }
@@ -557,7 +630,8 @@ bool WaterSimulation::createSpectrum() {
                 const glm::vec2 k =
                     (glm::vec2(static_cast<float>(x), static_cast<float>(y)) -
                      glm::vec2(0.5f * RESOLUTION)) *
-                    (kTau / kPatchLengths[cascade]);
+                    (kTau / cascadeValue(
+                        spectrumConfig_.patchLengths, cascade));
                 const float magnitude = glm::length(k) + 1.0e-4f;
                 packed[index].displacementZ = k / magnitude;
                 packed[index].padding = {
@@ -571,9 +645,12 @@ bool WaterSimulation::createSpectrum() {
 
     const uint64_t byteSize = packed.size() * sizeof(WaveData);
     auto desc = gpu::BufferDesc::storage(byteSize, true, "water_initial_spectrum");
-    initialSpectrumBuffer_ = gpu::createBufferWithData(
+    WGPUBuffer nextSpectrum = gpu::createBufferWithData(
         device_, queue_, desc, std::span<const WaveData>(packed));
-    return initialSpectrumBuffer_ != nullptr;
+    if (!nextSpectrum) return false;
+    if (initialSpectrumBuffer_) wgpuBufferRelease(initialSpectrumBuffer_);
+    initialSpectrumBuffer_ = nextSpectrum;
+    return true;
 }
 
 void WaterSimulation::updateCpuWaveCache(float timeSeconds) const {
@@ -597,7 +674,7 @@ WaterSimulation::SurfaceSample WaterSimulation::sampleSurface(
     glm::vec2 worldPosition, float timeSeconds, float strength) const {
     SurfaceSample sample;
     if (!std::isfinite(timeSeconds)) return sample;
-    updateCpuWaveCache(timeSeconds * kAnimationSpeed);
+    updateCpuWaveCache(timeSeconds * spectrumConfig_.animationSpeed);
 
     for (size_t index = 0; index < cpuWaveModes_.size(); ++index) {
         const CpuWaveMode& mode = cpuWaveModes_[index];
@@ -609,17 +686,20 @@ WaterSimulation::SurfaceSample WaterSimulation::sampleSurface(
         const glm::vec2 spatialVelocity =
             complexMultiply(cpuEvolvedVelocity_[index], spatialPhase);
         const float waveNumber = glm::length(mode.waveVector);
+        const float modeAmplitude = cascadeValue(
+            spectrumConfig_.cascadeAmplitudes, mode.cascade);
 
-        sample.heightOffset -= 2.0f * spatialHeight.x * mode.amplitude;
+        sample.heightOffset -= 2.0f * spatialHeight.x * modeAmplitude;
         sample.slope += 2.0f * spatialHeight.y * mode.waveVector *
-                        mode.amplitude;
-        sample.velocity.y -= 2.0f * spatialVelocity.x * mode.amplitude *
-                             kAnimationSpeed;
+                        modeAmplitude;
+        sample.velocity.y -= 2.0f * spatialVelocity.x * modeAmplitude *
+                             spectrumConfig_.animationSpeed;
         if (waveNumber > 1e-5f) {
             const glm::vec2 horizontal = mode.waveVector / waveNumber
                                        * (2.0f * mode.angularFrequency
-                                          * spatialHeight.x * mode.amplitude *
-                                          kChoppiness * kAnimationSpeed);
+                                          * spatialHeight.x * modeAmplitude *
+                                          spectrumConfig_.choppiness *
+                                          spectrumConfig_.animationSpeed);
             sample.velocity.x += horizontal.x;
             sample.velocity.z += horizontal.y;
         }
@@ -761,11 +841,13 @@ bool WaterSimulation::createPipelines(const std::filesystem::path& shaderDirecto
     finalizeShader_ = gpu::loadShaderModule(device_, shaderDirectory / "water_finalize.wgsl",
                                             "water_finalize.wgsl");
     if (!finalizeShader_) return false;
-    std::array<gpu::BindGroupLayoutEntry, 2> finalizeEntries = {
+    std::array<gpu::BindGroupLayoutEntry, 3> finalizeEntries = {
         gpu::BindGroupLayoutEntry(0).computeVisible().storageBuffer(true),
         gpu::BindGroupLayoutEntry(1).computeVisible().storageTexture(
             WGPUStorageTextureAccess_WriteOnly, WGPUTextureFormat_RGBA16Float,
             WGPUTextureViewDimension_2DArray),
+        gpu::BindGroupLayoutEntry(2).computeVisible().uniformBuffer(
+            false, sizeof(SimParams)),
     };
     finalizeBindGroupLayout_ = gpu::createBindGroupLayout(
         device_, finalizeEntries, "water_finalize_bind_group_layout");
@@ -780,6 +862,7 @@ bool WaterSimulation::createPipelines(const std::filesystem::path& shaderDirecto
 }
 
 bool WaterSimulation::createBindGroups() {
+    releaseSimulationBindGroups();
     const uint64_t byteSize = static_cast<uint64_t>(kElementCount) * sizeof(WaveData);
     std::array<gpu::BindGroupEntry, 4> evolveEntries = {
         gpu::BindGroupEntry(0).buffer(simulationUniformBuffer_, 0, sizeof(SimParams)),
@@ -805,14 +888,31 @@ bool WaterSimulation::createBindGroups() {
         if (!fftAxisBindGroups_[axis]) return false;
     }
 
-    std::array<gpu::BindGroupEntry, 2> finalizeEntries = {
+    std::array<gpu::BindGroupEntry, 3> finalizeEntries = {
         gpu::BindGroupEntry(0).buffer(pongBuffer_, 0, byteSize),
         gpu::BindGroupEntry(1).textureView(outputView_),
+        gpu::BindGroupEntry(2).buffer(
+            simulationUniformBuffer_, 0, sizeof(SimParams)),
     };
     finalizeBindGroup_ = gpu::createBindGroup(
         device_, finalizeBindGroupLayout_, finalizeEntries,
         "water_finalize_bind_group");
     return finalizeBindGroup_ != nullptr;
+}
+
+void WaterSimulation::releaseSimulationBindGroups() {
+    if (finalizeBindGroup_) {
+        wgpuBindGroupRelease(finalizeBindGroup_);
+        finalizeBindGroup_ = nullptr;
+    }
+    for (auto& group : fftAxisBindGroups_) {
+        if (group) wgpuBindGroupRelease(group);
+        group = nullptr;
+    }
+    if (evolveBindGroup_) {
+        wgpuBindGroupRelease(evolveBindGroup_);
+        evolveBindGroup_ = nullptr;
+    }
 }
 
 bool WaterSimulation::createFoamResources(
@@ -918,8 +1018,16 @@ void WaterSimulation::update(WGPUCommandEncoder encoder, float timeSeconds,
         return;
     }
 
-    SimParams params{.time = timeSeconds * kAnimationSpeed,
-                     .stage = 0, .axis = 0, .size = RESOLUTION};
+    SimParams params{
+        .time = timeSeconds * spectrumConfig_.animationSpeed,
+        .stage = 0,
+        .axis = 0,
+        .size = RESOLUTION,
+        .patchLengths = spectrumConfig_.patchLengths,
+        .cascadeAmplitudes = spectrumConfig_.cascadeAmplitudes,
+        .choppiness = spectrumConfig_.choppiness,
+        .directionalSineScale = spectrumConfig_.directionalSineScale,
+    };
     gpu::writeBuffer(queue_, simulationUniformBuffer_, 0, params);
 
     WGPUComputePassDescriptor passDesc{};

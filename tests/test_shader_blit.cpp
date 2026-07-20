@@ -179,15 +179,17 @@ TEST_F(BlitShaderTest, HasWaterShading) {
         << "Shader must consume the spectral/long-wave normal packed by the intersection pass";
     EXPECT_NE(shaderSource_.find("dielectricFresnel"), std::string::npos)
         << "Shader missing exact unpolarized dielectric Fresnel";
-    EXPECT_NE(shaderSource_.find("OCEAN_IOR : f32 = 1.31"), std::string::npos)
-        << "Shader missing water index of refraction";
-    EXPECT_NE(shaderSource_.find("OCEAN_ABSORPTION"), std::string::npos)
-        << "Shader missing Beer-Lambert absorption coefficient";
+    EXPECT_NE(shaderSource_.find("fn oceanIor()"), std::string::npos)
+        << "Shader missing runtime water index of refraction";
+    EXPECT_NE(shaderSource_.find("camera.waterOptics.x"), std::string::npos)
+        << "Shader index of refraction is not runtime-controlled";
+    EXPECT_NE(shaderSource_.find("fn oceanAbsorption()"), std::string::npos)
+        << "Shader missing runtime Beer-Lambert absorption coefficient";
     EXPECT_NE(shaderSource_.find("oceanFoamTex"), std::string::npos)
         << "Shader missing the procedural scalar foam mask";
-    EXPECT_NE(shaderSource_.find("threshold = 1.0 - OCEAN_FOAM_COVERAGE"),
+    EXPECT_NE(shaderSource_.find("threshold = 1.0 - oceanFoamCoverage()"),
               std::string::npos)
-        << "Shader missing foam threshold equation";
+        << "Shader missing runtime foam threshold equation";
     EXPECT_NE(shaderSource_.find("acesFilmic"), std::string::npos)
         << "Shader missing ACES output transform";
     EXPECT_NE(shaderSource_.find("totalInternalReflection"), std::string::npos)
@@ -227,24 +229,26 @@ TEST_F(BlitShaderTest, GeometryClipmapCarriesTheCompleteOceanMaterial) {
                   "@binding(15) var displacementTexture : texture_2d_array<f32>"),
               std::string::npos)
         << "Ocean clipmap must consume live spectral displacement";
-    EXPECT_NE(source.find("sampleDisplacement(base.xz, BROAD_SCALE, 0)"),
+    EXPECT_NE(source.find(
+                  "sampleDisplacement(base.xz, camera.waterSpectrum.x, 0)"),
               std::string::npos)
         << "Broad FFT cascade is not applied to clipmap geometry";
-    EXPECT_NE(source.find("sampleDisplacement(base.xz, DETAIL_SCALE, 1)"),
+    EXPECT_NE(source.find(
+                  "sampleDisplacement(base.xz, camera.waterSpectrum.y, 1)"),
               std::string::npos)
         << "Detail FFT cascade is not applied to clipmap geometry";
     EXPECT_NE(source.find("let swell = longWaves(base.xz, strength)"),
               std::string::npos)
         << "Analytic long swells are not applied to clipmap geometry";
     EXPECT_NE(source.find("dielectricFresnel"), std::string::npos);
-    EXPECT_NE(source.find("OCEAN_IOR : f32 = 1.31"), std::string::npos);
-    EXPECT_NE(source.find("exp(-OCEAN_ABSORPTION * thickness)"),
+    EXPECT_NE(source.find("fn oceanIor()"), std::string::npos);
+    EXPECT_NE(source.find("exp(-oceanAbsorption() * thickness)"),
               std::string::npos)
         << "Geometry water is missing Beer-Lambert transmission";
     EXPECT_NE(source.find("underwaterDistortionUv"), std::string::npos);
     EXPECT_NE(source.find("material.gba"), std::string::npos)
         << "Generated seabed material is not used by refraction";
-    EXPECT_NE(source.find("threshold = 1.0 - OCEAN_FOAM_COVERAGE"),
+    EXPECT_NE(source.find("threshold = 1.0 - oceanFoamCoverage()"),
               std::string::npos);
     EXPECT_NE(source.find("struct FragmentOutput"), std::string::npos);
     EXPECT_NE(source.find("output.linearDepth = distanceToCamera"),
@@ -499,28 +503,28 @@ TEST_F(BlitShaderTest, UsesLightDirFromUniforms) {
 
 TEST_F(BlitShaderTest, HasFogCalculation) {
     ASSERT_FALSE(shaderSource_.empty());
-    EXPECT_NE(shaderSource_.find("OCEAN_FOG_NEAR"), std::string::npos)
-        << "Shader missing ocean fog near distance";
-    EXPECT_NE(shaderSource_.find("OCEAN_FOG_FAR"), std::string::npos)
-        << "Shader missing ocean fog far distance";
-    EXPECT_NE(shaderSource_.find("OCEAN_FOG_COLOR"), std::string::npos)
-        << "Shader missing ocean fog color";
+    EXPECT_NE(shaderSource_.find("fn atmosphericFog("), std::string::npos)
+        << "Shader missing atmospheric fog";
+    EXPECT_NE(shaderSource_.find("camera.metrics.w"), std::string::npos)
+        << "Shader fog density is not runtime-controlled";
+    EXPECT_NE(shaderSource_.find("camera.fogColor.rgb"), std::string::npos)
+        << "Shader fog colour is not runtime-controlled";
 }
 
-TEST_F(BlitShaderTest, UsesSourceSmoothstepFog) {
+TEST_F(BlitShaderTest, UsesExponentialRuntimeFog) {
     ASSERT_FALSE(shaderSource_.empty());
     EXPECT_NE(shaderSource_.find(
-                  "smoothstep(OCEAN_FOG_NEAR, OCEAN_FOG_FAR"),
+                  "1.0 - exp(-max(camera.metrics.w, 0.0) * distanceToCamera)"),
               std::string::npos)
-        << "Shader should use smoothstep ocean fog";
+        << "Shader should use exponential runtime fog";
 }
 
 TEST_F(BlitShaderTest, UnderwaterUsesBeerLambert) {
     ASSERT_FALSE(shaderSource_.empty());
     EXPECT_NE(shaderSource_.find(
-                  "exp(-OCEAN_ABSORPTION * pathLength)"),
+                  "exp(-oceanAbsorption() * pathLength)"),
               std::string::npos)
-        << "Submerged geometry must use the source Beer-Lambert medium";
+        << "Submerged geometry must use the runtime Beer-Lambert medium";
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════

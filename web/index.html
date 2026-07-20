@@ -7,6 +7,7 @@
     <title>voxy — WebGPU Terrain Renderer</title>
     <link rel="icon" href="data:,">
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="renderer_inspector.css">
 
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-TVBHPYQCGP"></script>
@@ -52,7 +53,7 @@
 
     <div id="overlay" style="display: none;">
         <div class="controls-hint">
-            <p><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> Move</p>
+            <p><kbd>WASD</kbd> / <kbd>ZQSD</kbd> Move</p>
             <p><kbd>Mouse</kbd> Look around</p>
             <p><kbd>Shift</kbd> Speed boost</p>
             <p><kbd>F1</kbd> Debug overlay</p>
@@ -64,6 +65,7 @@
             <p><kbd>F7</kbd> Benchmark</p>
             <p><kbd>F8</kbd> Toggle Controller</p>
             <p><kbd>F9</kbd> Toggle FPS cap</p>
+            <p><kbd>`</kbd> Renderer panel</p>
             <p><kbd>F11</kbd> Fullscreen</p>
             <p><kbd>Esc</kbd> Release cursor</p>
         </div>
@@ -143,6 +145,7 @@
 
     <script src="network_transport.js"></script>
     <script src="loader.js"></script>
+    <script src="renderer_inspector.js"></script>
     <script>
         window.voxyBuildId = '__VOXY_BUILD_ID__';
     </script>
@@ -157,9 +160,12 @@
         // Ray casting and terrain shadows scale directly with canvas pixel count.
         // Full phone/Retina DPR often costs 4-9x more GPU work than CSS resolution.
         const maxRenderDpr = isTouchDevice ? 1.25 : 1.5;
+        let rendererResolutionScale =
+            VoxyRendererInspector.getStoredRenderScale();
 
         function sizeCanvas(canvas) {
-            const size = VoxyLoader.calculateCanvasSize(maxRenderDpr);
+            const size = VoxyLoader.calculateCanvasSize(
+                maxRenderDpr, rendererResolutionScale);
             canvas.width = size.width;
             canvas.height = size.height;
             canvas.style.width = window.innerWidth + 'px';
@@ -966,6 +972,17 @@
 
                 setupPhysicsBackendSwitcher();
 
+                VoxyRendererInspector.mount({
+                    module: voxyModule,
+                    canvas,
+                    onRenderScale(scale, commit) {
+                        rendererResolutionScale = scale;
+                        if (!commit || !voxyModule._voxy_resize) return;
+                        const size = sizeCanvas(canvas);
+                        voxyModule._voxy_resize(size.width, size.height);
+                    },
+                });
+
                 // Keep browser-only pacing evidence beside the low-rate GPU
                 // physics diagnostics. DOM updates happen only while the F1
                 // overlay is open.
@@ -1128,11 +1145,13 @@
                     }
                 });
 
-                // Handle keyboard input
+                // Keyboard input reaches the engine through its Emscripten
+                // callbacks, which use KeyboardEvent.code (physical position).
+                // Do not mirror it through legacy keyCode here: on AZERTY that
+                // would deliver both KeyA and Q when the physical Q key is held.
+                // This listener owns browser-only shortcuts only.
                 document.addEventListener('keydown', (e) => {
-                    if (voxyModule && voxyModule._voxy_key_event) {
-                        voxyModule._voxy_key_event(e.keyCode, 1);
-                    }
+                    if (e.target.closest?.('[data-voxy-ui]')) return;
                     // Release pointer lock on Escape
                     if (e.key === 'Escape' && document.pointerLockElement) {
                         document.exitPointerLock();
@@ -1141,12 +1160,6 @@
                     if (e.key === 'F11') {
                         e.preventDefault();
                         toggleFullscreen();
-                    }
-                });
-
-                document.addEventListener('keyup', (e) => {
-                    if (voxyModule && voxyModule._voxy_key_event) {
-                        voxyModule._voxy_key_event(e.keyCode, 0);
                     }
                 });
 

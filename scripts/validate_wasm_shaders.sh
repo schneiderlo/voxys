@@ -71,10 +71,9 @@ env -u VK_ICD_FILENAMES -u VK_DRIVER_FILES "$browser" \
     --disable-gpu-sandbox \
     --enable-unsafe-webgpu \
     --enable-unsafe-swiftshader \
-    --enable-features=Vulkan \
-    --use-angle=swiftshader \
-    --use-vulkan=swiftshader \
-    --disable-vulkan-surface \
+    --use-webgpu-adapter=swiftshader \
+    --use-gpu-in-tests \
+    --disable-gpu-watchdog \
     --remote-debugging-port="$debug_port" \
     "http://127.0.0.1:$port/web/shader_parity.html" \
     >"$temporary_directory/chrome.log" 2>&1 &

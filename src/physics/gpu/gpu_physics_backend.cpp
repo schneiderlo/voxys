@@ -780,6 +780,7 @@ public:
         externalWaterView_ = nullptr;
         externalWaterSampler_ = nullptr;
         waterSurfaceStrength_ = 0.0f;
+        waterPatchLengths_ = {1949.0f, 326.0f};
         warnedCpuWaterSampler_ = false;
         terrainWidth_ = 0;
         terrainHeight_ = 0;
@@ -1194,16 +1195,20 @@ public:
             externalWaterView_ = resources.displacementTexture;
             externalWaterSampler_ = resources.displacementSampler;
             waterSurfaceStrength_ = resources.strength;
+            waterPatchLengths_ = {
+                resources.broadPatchLength, resources.detailPatchLength};
         } else {
             externalWaterView_ = nullptr;
             externalWaterSampler_ = nullptr;
             waterSurfaceStrength_ = 0.0f;
+            waterPatchLengths_ = {1949.0f, 326.0f};
         }
         if (initialized_ && !rebuildIntegrateBindGroup()) {
             LOG_ERROR("Failed to bind GPU water-surface resources");
             externalWaterView_ = nullptr;
             externalWaterSampler_ = nullptr;
             waterSurfaceStrength_ = 0.0f;
+            waterPatchLengths_ = {1949.0f, 326.0f};
             static_cast<void>(rebuildIntegrateBindGroup());
         }
     }
@@ -2101,7 +2106,7 @@ public:
                 static_cast<double>(finalTick) *
                     static_cast<double>(config_.fixedTickSeconds),
                 4096.0)),
-            0.0f, 0.0f);
+            waterPatchLengths_.x, waterPatchLengths_.y);
         uniforms.worldSector = glm::ivec4(0);
         gpu::writeBuffer(queue_, uniformBuffer_, 0, uniforms);
         lastGpuUploadBytes_ += sizeof(SimulationUniforms);
@@ -2832,6 +2837,7 @@ public:
     uint64_t lastStageProfileTick_ = 0u;
     uint64_t lastTelemetryReadbackTick_ = 0u;
     float waterSurfaceStrength_ = 0.0f;
+    glm::vec2 waterPatchLengths_{1949.0f, 326.0f};
     bool warnedCpuWaterSampler_ = false;
     PhysicsStepStats lastStepStats_{};
     CachedTelemetry cachedTelemetry_{};

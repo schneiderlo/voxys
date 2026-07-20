@@ -34,6 +34,12 @@ struct CameraUniforms {
     waterColorA : vec4<f32>,      // shallow color rgb, reflection strength
     waterColorB : vec4<f32>,      // deep color rgb, shore fade distance
     waterMotion : vec4<f32>,      // simulation time, reserved...
+    lightingColor : vec4<f32>,
+    ambientExposure : vec4<f32>,
+    fogColor : vec4<f32>,
+    waterOptics : vec4<f32>,
+    waterFoam : vec4<f32>,
+    waterSpectrum : vec4<f32>,
 };
 
 // Debug visualization uniforms
@@ -82,26 +88,10 @@ const MATERIAL_WATER : u32 = 2u;
 
 // Ocean colors are linear sRGB. Absorption is a Beer-Lambert coefficient,
 // not a display tint.
-const OCEAN_ABSORPTION : vec3<f32> =
+const OCEAN_BASE_ABSORPTION : vec3<f32> =
     vec3<f32>(0.015208514, 0.009134059, 0.008568126);
-const OCEAN_SURFACE_COLOR : vec3<f32> =
-    vec3<f32>(0.015996293, 0.135633330, 0.090841711);
-const OCEAN_SCATTER_COLOR : vec3<f32> =
-    vec3<f32>(0.015996293, 0.061246054, 0.099898728);
-const OCEAN_FOG_COLOR : vec3<f32> =
-    vec3<f32>(0.274677312, 0.327778098, 0.366252596);
 const OCEAN_SKY_BRIGHTNESS : f32 = 0.9;
-const OCEAN_SUN_INTENSITY : f32 = 2.5;
-const OCEAN_IOR : f32 = 1.31;
-const OCEAN_DISTORTION_STRENGTH : f32 = 0.20;
-const OCEAN_REFLECTION_ROUGHNESS_DISTANCE : f32 = 1500.0;
 const OCEAN_REFLECTION_ROUGHNESS_STRENGTH : f32 = 0.50;
-const OCEAN_MINIMUM_ROUGHNESS : f32 = 0.02;
-const OCEAN_FOG_NEAR : f32 = 1000.0;
-const OCEAN_FOG_FAR : f32 = 10000.0;
-const OCEAN_FOAM_SIZE : f32 = 261.0;
-const OCEAN_FOAM_OPACITY : f32 = 0.30;
-const OCEAN_FOAM_COVERAGE : f32 = 0.21;
 const OCEAN_FILM_GRAIN : f32 = 0.06;
 const OCEAN_VIGNETTE : f32 = 0.25;
 const OCEAN_VIGNETTE_SMOOTHNESS : f32 = 0.85;
@@ -112,6 +102,36 @@ const OCEAN_SUN_SHAFT_INTENSITY : f32 = 0.20;
 const OCEAN_PROCEDURAL_SEABED_DEPTH : f32 = 100.0;
 const SKY_LUT_WIDTH : f32 = 1774.0;
 const SKY_LUT_HEIGHT : f32 = 887.0;
+
+fn oceanAbsorption() -> vec3<f32> {
+    return OCEAN_BASE_ABSORPTION * camera.waterOptics.z;
+}
+fn oceanSurfaceColor() -> vec3<f32> { return camera.waterColorA.rgb; }
+fn oceanScatterColor() -> vec3<f32> {
+    return camera.waterColorB.rgb * camera.waterOptics.w;
+}
+fn oceanFogColor() -> vec3<f32> { return camera.fogColor.rgb; }
+fn oceanSunIntensity() -> f32 { return 2.5 * camera.lightingColor.w; }
+fn oceanIor() -> f32 { return camera.waterOptics.x; }
+fn oceanDistortion() -> f32 { return camera.waterOptics.y; }
+fn oceanReflectionDistance() -> f32 { return camera.waterFoam.w; }
+fn oceanMinimumRoughness() -> f32 { return camera.waterParams.w; }
+fn oceanFoamSize() -> f32 { return camera.waterFoam.x; }
+fn oceanFoamOpacity() -> f32 { return camera.waterFoam.y; }
+fn oceanFoamCoverage() -> f32 { return camera.waterFoam.z; }
+fn atmosphericFog(distanceToCamera : f32) -> f32 {
+    return clamp(1.0 - exp(-max(camera.metrics.w, 0.0) * distanceToCamera),
+                 0.0, 0.98);
+}
+fn ambientTint() -> vec3<f32> {
+    let maximum = max(max(camera.ambientExposure.r,
+                          camera.ambientExposure.g),
+                      max(camera.ambientExposure.b, 0.001));
+    return camera.ambientExposure.rgb / maximum;
+}
+fn sunRadiance() -> vec3<f32> {
+    return camera.lightingColor.rgb * camera.lightingColor.w;
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Vertex Shader (Fullscreen Triangle)
@@ -319,7 +339,8 @@ fn applyPostEffects(colorIn : vec3<f32>, uv : vec2<f32>,
 fn presentColor(color : vec3<f32>, uv : vec2<f32>,
                    dims : vec2<u32>) -> vec3<f32> {
     return linearToSrgb(
-        applyPostEffects(acesFilmic(color), uv, dims));
+        applyPostEffects(
+            acesFilmic(color * camera.ambientExposure.w), uv, dims));
 }
 
 fn sampleWaterEnvironment(directionIn : vec3<f32>, roughness : f32) -> vec3<f32> {
@@ -373,8 +394,8 @@ fn underwaterDistortionUv(uv : vec2<f32>) -> vec2<f32> {
 
 fn applyUnderwaterMedium(color : vec3<f32>, toFragment : vec3<f32>,
                             pathLength : f32) -> vec3<f32> {
-    let transmittance = exp(-OCEAN_ABSORPTION * pathLength);
-    var submerged = mix(OCEAN_SCATTER_COLOR, color, transmittance);
+    let transmittance = exp(-oceanAbsorption() * pathLength);
+    var submerged = mix(oceanScatterColor(), color, transmittance);
     let sunAlignment = max(dot(normalize(toFragment),
                                normalize(camera.lightDirWS.xyz)), 0.0);
     var shaft = pow(sunAlignment, 12.0) * OCEAN_SUN_SHAFT_INTENSITY;
@@ -417,30 +438,31 @@ fn shadeOcean(posWorld : vec3<f32>, posView : vec3<f32>,
     let distanceToCamera = max(length(posView), 1.0e-6);
     let light = normalize(camera.lightDirWS.xyz);
     let viewFacing = dot(normal, view);
-    let fresnel = dielectricFresnel(viewFacing, OCEAN_IOR);
+    let fresnel = dielectricFresnel(viewFacing, oceanIor());
 
     let reflected = reflect(-view, normal);
-    let reflectionRoughness = OCEAN_MINIMUM_ROUGHNESS +
-        clamp(distanceToCamera / OCEAN_REFLECTION_ROUGHNESS_DISTANCE,
+    let reflectionRoughness = oceanMinimumRoughness() +
+        clamp(distanceToCamera / oceanReflectionDistance(),
               0.0, 1.0) * OCEAN_REFLECTION_ROUGHNESS_STRENGTH;
-    let environment = sampleWaterEnvironment(reflected, reflectionRoughness);
+    let environment = sampleWaterEnvironment(reflected, reflectionRoughness) *
+                      camera.waterColorA.w;
 
     let scatterLobe =
         pow(clamp((dot(view, -light) + 0.5) / 1.5, 0.0, 1.0) *
             clamp(dot(normal, -light) + 0.3, 0.0, 1.0), 0.85) *
-        OCEAN_SUN_INTENSITY * 0.35 *
+        oceanSunIntensity() * 0.35 *
         (1.0 - smoothstep(100.0, 6400.0, distanceToCamera));
-    let body = mix(OCEAN_SCATTER_COLOR, OCEAN_SURFACE_COLOR,
+    let body = mix(oceanScatterColor(), oceanSurfaceColor(),
                    clamp(scatterLobe, 0.0, 1.0));
     let forwardScatter = pow(max(dot(view, -light), 0.0), 3.0) *
                          max(1.0 - normal.y, 0.0);
 
     let halfway = normalize(light + view);
     let sunSpecular = pow(max(dot(normal, halfway), 0.0), 420.0) *
-                      OCEAN_SUN_INTENSITY * 4.0;
+                      oceanSunIntensity() * 4.0;
 
     let incomingRay = -view;
-    let refractedRay = refract(incomingRay, normal, 1.0 / OCEAN_IOR);
+    let refractedRay = refract(incomingRay, normal, 1.0 / oceanIor());
     let refractedTravel = waterDepth / max(-refractedRay.y, 0.12);
     var thickness = clamp(refractedTravel, 0.0, 500.0);
     var bedWorld = posWorld + refractedRay * refractedTravel;
@@ -449,7 +471,7 @@ fn shadeOcean(posWorld : vec3<f32>, posView : vec3<f32>,
     // packed bed plane. This retains magnification without an opaque
     // scene-color target.
     let distortionDistance = min(thickness, 80.0) *
-                             OCEAN_DISTORTION_STRENGTH;
+                             oceanDistortion();
     let distortedClip = camera.viewProj *
                         vec4<f32>(posWorld + normal * distortionDistance, 1.0);
     if (distortedClip.w > 1.0e-5) {
@@ -481,30 +503,31 @@ fn shadeOcean(posWorld : vec3<f32>, posView : vec3<f32>,
                     (0.34 + 0.66 * max(light.y, 0.0));
         thickness = clamp(floorTravel, 0.0, 500.0);
     }
-    let transmittance = exp(-OCEAN_ABSORPTION * thickness);
+    let transmittance = exp(-oceanAbsorption() * thickness);
     let refractedWater = refracted * transmittance +
                          body * (vec3<f32>(1.0) - transmittance);
     let reflectedWater = environment +
-        vec3<f32>(1.0, 0.96, 0.82) * sunSpecular +
-        OCEAN_SCATTER_COLOR * forwardScatter * OCEAN_SUN_INTENSITY;
+        camera.lightingColor.rgb * sunSpecular +
+        oceanScatterColor() * camera.lightingColor.rgb *
+        forwardScatter * oceanSunIntensity();
 
-    let foamUv = posWorld.xz / OCEAN_FOAM_SIZE;
+    let foamUv = posWorld.xz / oceanFoamSize();
     let worldPerPixel = distanceToCamera * 2.0 *
         max(camera.invProjParams.x / f32(max(dims.x, 1u)),
             camera.invProjParams.y / f32(max(dims.y, 1u)));
-    let foamLod = log2(max(worldPerPixel * 1024.0 / OCEAN_FOAM_SIZE,
+    let foamLod = log2(max(worldPerPixel * 1024.0 / oceanFoamSize(),
                            1.0));
     let foamPattern = textureSampleLevel(oceanFoamTex,
         oceanFoamSampler, foamUv, foamLod).r;
-    let threshold = 1.0 - OCEAN_FOAM_COVERAGE;
+    let threshold = 1.0 - oceanFoamCoverage();
     let coverage = foamPattern *
         smoothstep(threshold, threshold + 0.15, foamPattern);
-    let foamStrength = clamp(coverage * OCEAN_FOAM_OPACITY, 0.0, 1.0);
+    let foamStrength = clamp(coverage * oceanFoamOpacity(), 0.0, 1.0);
 
     if (camera.waterMotion.z > 0.5) {
         let undersideNormal = -normal;
         var transmissionDirection =
-            refract(-view, undersideNormal, OCEAN_IOR);
+            refract(-view, undersideNormal, oceanIor());
         let totalInternalReflection =
             dot(transmissionDirection, transmissionDirection) < 0.001;
         if (totalInternalReflection) {
@@ -519,12 +542,12 @@ fn shadeOcean(posWorld : vec3<f32>, posView : vec3<f32>,
             transmitted = mix(transmittedEnvironment, refracted, 0.75);
         }
         var underside = mix(transmitted, environment, fresnel);
-        underside += vec3<f32>(1.0, 0.96, 0.82) * sunSpecular;
+        underside += camera.lightingColor.rgb * sunSpecular;
         underside = mix(underside, vec3<f32>(0.94, 0.98, 1.0),
                         foamStrength * 0.35);
         let cameraTransmittance =
-            exp(-OCEAN_ABSORPTION * distanceToCamera);
-        return mix(OCEAN_SCATTER_COLOR, underside,
+            exp(-oceanAbsorption() * distanceToCamera);
+        return mix(oceanScatterColor(), underside,
                    cameraTransmittance);
     }
 
@@ -532,9 +555,8 @@ fn shadeOcean(posWorld : vec3<f32>, posView : vec3<f32>,
     var color = mix(refractedWater, reflectedWater,
                     fresnel * clamp(1.0 - foamStrength * 2.0, 0.0, 1.0));
     color = mix(color, vec3<f32>(0.94, 0.98, 1.0), foamStrength);
-    let fog = smoothstep(OCEAN_FOG_NEAR, OCEAN_FOG_FAR,
-                         distanceToCamera);
-    return mix(color, OCEAN_FOG_COLOR, fog);
+    let fog = atmosphericFog(distanceToCamera);
+    return mix(color, oceanFogColor(), fog);
 }
 
 fn backgroundSky(pixel : vec2<i32>, dims : vec2<u32>) -> vec3<f32> {
@@ -639,16 +661,16 @@ fn backgroundTerrain(pixel : vec2<i32>, dims : vec2<u32>,
     let coolShadow = vec3<f32>(0.90, 0.96, 1.02);
     let grade = mix(coolShadow, warmLight,
         clamp(diffuse * lightVisibility + 0.35, 0.0, 1.0));
-    let lit = albedo * (diffuse * lightVisibility + ambient) * grade +
-              specular * vec3<f32>(1.0, 0.88, 0.70);
+    let lit = albedo *
+        (diffuse * lightVisibility * sunRadiance() + ambient * ambientTint()) *
+        grade + specular * sunRadiance();
     let distanceToCamera = length(posCenterView);
     if (underwaterTerrain) {
         return applyUnderwaterMedium(
             lit, posCenterWorld - camera.cameraPos.xyz, distanceToCamera);
     }
-    let fog = smoothstep(OCEAN_FOG_NEAR, OCEAN_FOG_FAR,
-                         distanceToCamera);
-    return mix(lit, OCEAN_FOG_COLOR, fog);
+    let fog = atmosphericFog(distanceToCamera);
+    return mix(lit, oceanFogColor(), fog);
 }
 
 // Linear-HDR opaque scene used by the water pass for exact
@@ -836,7 +858,9 @@ fn fs(i : VSOut) -> @location(0) vec4<f32> {
     let warmLight = vec3<f32>(1.10, 0.96, 0.84);
     let coolShadow = vec3<f32>(0.90, 0.96, 1.02);
     let grade = mix(coolShadow, warmLight, clamp(finalDiffuse * lightVisibility + 0.35, 0.0, 1.0));
-    let litColor = albedo * (finalDiffuse * lightVisibility + ambient) * grade + specular * vec3<f32>(1.0, 0.88, 0.70);
+    let litColor = albedo *
+        (finalDiffuse * lightVisibility * sunRadiance() +
+         ambient * ambientTint()) * grade + specular * sunRadiance();
     
     // ─────────────────────────────────────────────────────────────────────────
     // Fog / Underwater Medium
@@ -853,8 +877,8 @@ fn fs(i : VSOut) -> @location(0) vec4<f32> {
             finalColor = litColor;
         }
     } else {
-        let fog = smoothstep(OCEAN_FOG_NEAR, OCEAN_FOG_FAR, dist);
-        finalColor = mix(litColor, OCEAN_FOG_COLOR, fog);
+        let fog = atmosphericFog(dist);
+        finalColor = mix(litColor, oceanFogColor(), fog);
     }
     
     // ─────────────────────────────────────────────────────────────────────────
@@ -957,7 +981,7 @@ fn fsCached(i : VSOut) -> @location(0) vec4<f32> {
     let sceneThickness = select(
         500.0, max(opaqueDepth - depthCenter, 0.0), opaqueDepth > 0.0);
     let distortionDistance = min(sceneThickness, 80.0) *
-                             OCEAN_DISTORTION_STRENGTH;
+                             oceanDistortion();
     let distortedClip = camera.viewProj *
         vec4<f32>(posCWorld + waterNormal * distortionDistance, 1.0);
     if (distortedClip.w > 1.0e-5) {
@@ -1041,8 +1065,6 @@ const FUSED_SHORE_DEPTH : f32 = 7.5;
 const FUSED_SHORE_SURFACE_OVERLAP : f32 = 2.0;
 const FUSED_WATER_TAU : f32 = 6.283185307179586;
 const FUSED_WATER_RESOLUTION : f32 = 256.0;
-const FUSED_WATER_BROAD_SCALE : f32 = 1949.0;
-const FUSED_WATER_DETAIL_SCALE : f32 = 326.0;
 const FUSED_WATER_NORMAL_LAYER : i32 = 2;
 
 struct FusedWaterSurfaceSample {
@@ -1117,32 +1139,32 @@ fn fusedSpectralSurface(worldXZ : vec2<f32>, strength : f32,
     let detailWeight = 1.0 - smoothstep(900.0, 3500.0, max(distance, 0.0));
     let broadFirst = textureSampleLevel(
         fusedWaterDisplacementTex, fusedWaterDisplacementSampler,
-        fusedCascadeUv(worldXZ, FUSED_WATER_BROAD_SCALE), 0, 0.0);
+        fusedCascadeUv(worldXZ, camera.waterSpectrum.x), 0, 0.0);
     var detailFirst = vec4<f32>(0.0);
     if (detailWeight > 0.0) {
         detailFirst = textureSampleLevel(
             fusedWaterDisplacementTex, fusedWaterDisplacementSampler,
-            fusedCascadeUv(worldXZ, FUSED_WATER_DETAIL_SCALE), 1, 0.0) *
+            fusedCascadeUv(worldXZ, camera.waterSpectrum.y), 1, 0.0) *
             detailWeight;
     }
     let baseXZ = worldXZ - (broadFirst.xz + detailFirst.xz) * strength;
     let broad = textureSampleLevel(
         fusedWaterDisplacementTex, fusedWaterDisplacementSampler,
-        fusedCascadeUv(baseXZ, FUSED_WATER_BROAD_SCALE), 0, 0.0);
+        fusedCascadeUv(baseXZ, camera.waterSpectrum.x), 0, 0.0);
     let broadNormal = textureSampleLevel(
         fusedWaterDisplacementTex, fusedWaterDisplacementSampler,
-        fusedCascadeUv(baseXZ, FUSED_WATER_BROAD_SCALE),
+        fusedCascadeUv(baseXZ, camera.waterSpectrum.x),
         FUSED_WATER_NORMAL_LAYER, 0.0).xyz;
     var detail = vec4<f32>(0.0);
     var detailNormal = vec3<f32>(0.0, 1.0, 0.0);
     if (detailWeight > 0.0) {
         detail = textureSampleLevel(
             fusedWaterDisplacementTex, fusedWaterDisplacementSampler,
-            fusedCascadeUv(baseXZ, FUSED_WATER_DETAIL_SCALE), 1, 0.0) *
+            fusedCascadeUv(baseXZ, camera.waterSpectrum.y), 1, 0.0) *
             detailWeight;
         detailNormal = textureSampleLevel(
             fusedWaterDisplacementTex, fusedWaterDisplacementSampler,
-            fusedCascadeUv(baseXZ, FUSED_WATER_DETAIL_SCALE),
+            fusedCascadeUv(baseXZ, camera.waterSpectrum.y),
             FUSED_WATER_NORMAL_LAYER + 1, 0.0).xyz;
     }
     let up = vec3<f32>(0.0, 1.0, 0.0);
@@ -1443,7 +1465,7 @@ fn fsFused(i : VSOut) -> FusedFragmentOutput {
     let sceneThickness = select(
         500.0, max(opaqueDepth - scene.depth, 0.0), opaqueDepth > 0.0);
     let distortionDistance = min(sceneThickness, 80.0) *
-                             OCEAN_DISTORTION_STRENGTH;
+                             oceanDistortion();
     let distortedClip = camera.viewProj *
         vec4<f32>(posWorld + waterNormal * distortionDistance, 1.0);
     if (distortedClip.w > 1.0e-5) {

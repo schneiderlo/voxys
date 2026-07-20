@@ -63,6 +63,12 @@ CameraUniforms::CameraUniforms() {
     waterColorA = glm::vec4(0.12f, 0.46f, 0.50f, 0.42f);
     waterColorB = glm::vec4(0.0f, 0.28f, 0.42f, 30.0f);
     waterMotion = glm::vec4(0.0f);
+    lightingColor = glm::vec4(1.0f, 0.95f, 0.9f, 1.0f);
+    ambientExposure = glm::vec4(0.1f, 0.12f, 0.15f, 1.0f);
+    fogColor = glm::vec4(0.36f, 0.58f, 0.64f, 0.0f);
+    waterOptics = glm::vec4(1.31f, 0.20f, 1.0f, 1.0f);
+    waterFoam = glm::vec4(261.0f, 0.30f, 0.21f, 1500.0f);
+    waterSpectrum = glm::vec4(1949.0f, 326.0f, 0.0f, 0.0f);
 
     // Default frustum (all zeros)
     std::memset(frustumPlanes, 0, sizeof(frustumPlanes));
@@ -117,6 +123,31 @@ void CameraUniforms::setWater(bool enabled, float height, const glm::vec3& shall
                             std::clamp(reflectionStrength, 0.0f, 1.0f));
     waterColorB = glm::vec4(glm::clamp(deepColor, glm::vec3(0.0f), glm::vec3(1.0f)),
                             std::max(shoreFade, 0.001f));
+}
+
+void CameraUniforms::setRendererMaterial(
+    const glm::vec3& sunColor, float sunIntensity,
+    const glm::vec3& ambientColor, const glm::vec3& atmosphericFogColor,
+    float exposure, float waterIor, float waterDistortion,
+    float waterAbsorptionScale, float waterScatterStrength, float foamSize,
+    float foamOpacity, float foamCoverage, float reflectionDistance,
+    const glm::vec2& spectrumPatchLengths) {
+    lightingColor = glm::vec4(glm::max(sunColor, glm::vec3(0.0f)),
+                              std::max(sunIntensity, 0.0f));
+    ambientExposure = glm::vec4(glm::max(ambientColor, glm::vec3(0.0f)),
+                                std::max(exposure, 0.0f));
+    fogColor = glm::vec4(glm::max(atmosphericFogColor, glm::vec3(0.0f)), 0.0f);
+    waterOptics = glm::vec4(std::clamp(waterIor, 1.0f, 2.0f),
+                            std::max(waterDistortion, 0.0f),
+                            std::max(waterAbsorptionScale, 0.0f),
+                            std::max(waterScatterStrength, 0.0f));
+    waterFoam = glm::vec4(std::max(foamSize, 1.0f),
+                          std::clamp(foamOpacity, 0.0f, 1.0f),
+                          std::clamp(foamCoverage, 0.0f, 1.0f),
+                          std::max(reflectionDistance, 1.0f));
+    waterSpectrum = glm::vec4(glm::max(spectrumPatchLengths,
+                                      glm::vec2(1.0f)),
+                              0.0f, 0.0f);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════

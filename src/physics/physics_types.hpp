@@ -445,11 +445,15 @@ struct WaterGpuResources {
     WGPUTextureView displacementTexture = nullptr;
     WGPUSampler displacementSampler = nullptr;
     float strength = 1.0f;
+    float broadPatchLength = 1949.0f;
+    float detailPatchLength = 326.0f;
 
     [[nodiscard]] bool valid() const noexcept {
         return displacementTexture != nullptr
             && displacementSampler != nullptr
-            && std::isfinite(strength) && strength >= 0.0f;
+            && std::isfinite(strength) && strength >= 0.0f
+            && std::isfinite(broadPatchLength) && broadPatchLength > 0.0f
+            && std::isfinite(detailPatchLength) && detailPatchLength > 0.0f;
     }
 };
 

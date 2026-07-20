@@ -34,10 +34,13 @@ struct alignas(16) PrimitiveUniforms {
     glm::vec4 cameraPos{0.0f};
     glm::vec4 lightDirAndRayDepth{0.0f, 1.0f, 0.0f, 0.0f};
     glm::vec4 viewport{1.0f};
+    glm::vec4 lightingColor{1.0f, 0.95f, 0.9f, 1.0f};
+    glm::vec4 ambientColor{0.1f, 0.12f, 0.15f, 1.3f};
+    glm::vec4 fogColorExposure{0.36f, 0.58f, 0.64f, 1.0f};
 };
 
 static_assert(sizeof(Vertex) == 24);
-static_assert(sizeof(PrimitiveUniforms) == 112);
+static_assert(sizeof(PrimitiveUniforms) == 160);
 
 struct alignas(16) CompactPose {
     glm::vec4 positionInvMass{0.0f};
@@ -814,6 +817,23 @@ void PrimitivePath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView
                            WGPUQuerySet timestampQuerySet,
                            uint32_t timestampBegin,
                            uint32_t timestampEnd) {
+    PrimitiveLighting lighting;
+    lighting.direction = lightDirection;
+    render(encoder, colorView, depthView, view, projection, cameraPosition,
+           lighting, width, height, useRayDepth, cameraSector,
+           timestampQuerySet, timestampBegin, timestampEnd);
+}
+
+void PrimitivePath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
+                           WGPUTextureView depthView, const glm::mat4& view,
+                           const glm::mat4& projection,
+                           const glm::vec3& cameraPosition,
+                           const PrimitiveLighting& lighting, uint32_t width,
+                           uint32_t height, bool useRayDepth,
+                           const glm::ivec3& cameraSector,
+                           WGPUQuerySet timestampQuerySet,
+                           uint32_t timestampBegin,
+                           uint32_t timestampEnd) {
     if (!pipeline_ || !compactPipeline_ || !encoder || !colorView || !depthView)
         return;
 
@@ -837,10 +857,20 @@ void PrimitivePath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView
     PrimitiveUniforms uniforms;
     uniforms.viewProj = projection * view;
     uniforms.cameraPos = glm::vec4(cameraPosition, 1.0f);
-    uniforms.lightDirAndRayDepth = glm::vec4(glm::normalize(lightDirection),
+    uniforms.lightDirAndRayDepth = glm::vec4(glm::normalize(lighting.direction),
                                              useRayDepth ? 1.0f : 0.0f);
     uniforms.viewport = glm::vec4(static_cast<float>(width),
-                                  static_cast<float>(height), 0.0f, 0.0f);
+                                  static_cast<float>(height),
+                                  std::max(lighting.fogDensity, 0.0f), 0.0f);
+    uniforms.lightingColor = glm::vec4(
+        glm::max(lighting.sunColor, glm::vec3(0.0f)),
+        std::max(lighting.sunIntensity, 0.0f));
+    uniforms.ambientColor = glm::vec4(
+        glm::max(lighting.ambientColor, glm::vec3(0.0f)),
+        std::max(lighting.ambientIntensity, 0.0f));
+    uniforms.fogColorExposure = glm::vec4(
+        glm::max(lighting.fogColor, glm::vec3(0.0f)),
+        std::max(lighting.exposure, 0.0f));
     gpu::writeBuffer(queue_, uniformBuffer_, 0, uniforms);
 
     WGPURenderPassColorAttachment colorAttachment{};

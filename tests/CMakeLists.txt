@@ -35,6 +35,7 @@ set(TEST_SOURCES
     test_physics_world.cpp
     test_terrain_topology.cpp
     test_vertical_slices.cpp
+    test_water_clipmap_mesh.cpp
     test_svo_core.cpp
 )
 

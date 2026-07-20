@@ -69,10 +69,64 @@
 
 namespace voxy {
 
-// World-space direction toward the sun. Single source of truth: the per-frame
-// light uniform and the baked shadow height field must agree.
-constexpr glm::vec3 kSunDirection = {
-    0.6040228f, 0.7660444f, 0.2198463f};
+namespace {
+
+enum RendererSettingsDirty : uint32_t {
+    RendererUniformsDirty = 1u << 0u,
+    RendererCameraDirty = 1u << 1u,
+    RendererWaterPhysicsDirty = 1u << 2u,
+    RendererWaterCoastDirty = 1u << 3u,
+    RendererWaterSpectrumDirty = 1u << 4u,
+    RendererSunShadowDirty = 1u << 5u,
+};
+
+constexpr float kDegreesToRadians = std::numbers::pi_v<float> / 180.0f;
+constexpr float kRadiansToDegrees = 180.0f / std::numbers::pi_v<float>;
+
+[[nodiscard]] float finiteClamp(double value, float minimum, float maximum) {
+    if (!std::isfinite(value)) return minimum;
+    return std::clamp(static_cast<float>(value), minimum, maximum);
+}
+
+[[nodiscard]] float sunAzimuthDegrees(const glm::vec3& direction) {
+    return std::atan2(direction.z, direction.x) * kRadiansToDegrees;
+}
+
+[[nodiscard]] float sunElevationDegrees(const glm::vec3& direction) {
+    const glm::vec3 normalized = glm::dot(direction, direction) > 1.0e-10f
+        ? glm::normalize(direction) : glm::vec3(0.0f, 1.0f, 0.0f);
+    return std::asin(std::clamp(normalized.y, -1.0f, 1.0f))
+         * kRadiansToDegrees;
+}
+
+[[nodiscard]] glm::vec3 sunDirectionFromDegrees(float azimuth,
+                                                float elevation) {
+    const float azimuthRadians = azimuth * kDegreesToRadians;
+    const float elevationRadians = elevation * kDegreesToRadians;
+    const float horizontal = std::cos(elevationRadians);
+    return glm::normalize(glm::vec3(
+        horizontal * std::cos(azimuthRadians),
+        std::sin(elevationRadians),
+        horizontal * std::sin(azimuthRadians)));
+}
+
+[[nodiscard]] render::WaterSpectrumConfig makeWaterSpectrumConfig(
+    const WaterSpectrumSettings& settings) {
+    return render::WaterSpectrumConfig{
+        .significantWaveHeight = settings.significantWaveHeight,
+        .directionRadians = settings.directionDegrees * kDegreesToRadians,
+        .choppiness = settings.choppiness,
+        .peakEnhancement = settings.peakEnhancement,
+        .windAlignment = settings.windAlignment,
+        .animationSpeed = settings.animationSpeed,
+        .patchLengths = settings.patchLengths,
+        .cascadeAmplitudes = settings.cascadeAmplitudes,
+        .directionalSineScale = settings.directionalSineScale,
+    };
+}
+
+} // namespace
+
 constexpr size_t kPrimitiveOverlayHeadroom = 1u + 5u * 7u;
 constexpr uint32_t kRenderGpuQueriesPerStage = 2u;
 constexpr uint32_t kRenderGpuTimestampCount =
@@ -187,6 +241,33 @@ bool Application::init(const ApplicationConfig& config) {
     }
 
     config_ = config;
+    rendererSettings_.sunDirection = glm::dot(config_.sunDirection,
+                                              config_.sunDirection) > 1.0e-10f
+        ? glm::normalize(config_.sunDirection)
+        : RendererRuntimeSettings{}.sunDirection;
+    rendererSettings_.sunColor = config_.sunColor;
+    rendererSettings_.ambientColor = config_.ambientColor;
+    rendererSettings_.ambientIntensity = config_.ambientIntensity;
+    rendererSettings_.fogDensity = config_.fogDensity;
+    rendererSettings_.fogColor = config_.fogColor;
+    rendererSettings_.waterEnabled = config_.waterEnabled;
+    rendererSettings_.waterHeight = config_.waterHeight;
+    rendererSettings_.waterShallowColor = config_.waterShallowColor;
+    rendererSettings_.waterDeepColor = config_.waterDeepColor;
+    rendererSettings_.waterRoughness = config_.waterRoughness;
+    rendererSettings_.waterWaveStrength = config_.waterWaveStrength;
+    rendererSettings_.waterReflectionStrength = config_.waterReflectionStrength;
+    rendererSettings_.waterShoreFade = config_.waterShoreFade;
+    rendererSettings_.waterSpectrum = config_.waterSpectrum;
+    rendererSettings_.cameraFovDegrees = config_.cameraFovDegrees;
+    rendererSettings_.cameraNear = config_.cameraNear;
+    rendererSettings_.cameraFar = config_.cameraFar;
+    rendererSettings_.cameraMoveSpeed = config_.cameraMoveSpeed;
+    rendererSettings_.cameraMouseSensitivity = config_.cameraMouseSensitivity;
+    rendererSettings_.cameraEyeHeight = config_.cameraEyeHeight;
+    rendererSettingsRevision_ = 1u;
+    appliedRendererSettingsRevision_ = 1u;
+    rendererSettingsDirty_ = 0u;
     uncappedFPS_ = !config_.vsync;
     primitiveCullController_.reset();
 
@@ -506,6 +587,8 @@ void Application::update(float deltaTime) {
 }
 
 void Application::update(float simulationDeltaTime, float frameDeltaTime) {
+    applyRendererSettings();
+
     // Command-line benchmarks are scripted workloads. Ignoring gameplay input
     // keeps their camera and body count stable even if the window has focus.
     const bool scriptedBenchmark =
@@ -600,7 +683,7 @@ void Application::render() {
     // Evolve the authoritative surface before physics samples it. Keeping
     // this outside the raycast path also gives the triangle renderer and GPU
     // physics the same animated ocean instead of a never-updated texture.
-    if (config_.waterEnabled && waterSimulation_
+    if (rendererSettings_.waterEnabled && waterSimulation_
         && waterSimulation_->isInitialized()) {
         constexpr uint32_t stage =
             static_cast<uint32_t>(RenderGpuStage::WaterSimulation);
@@ -701,10 +784,21 @@ void Application::render() {
                                            || compactUploadStats.fullUpload;
         WGPUTextureView objectDepth = getOrCreateDepthView();
         if (objectDepth) {
+            const render::PrimitiveLighting primitiveLighting{
+                .direction = rendererSettings_.sunDirection,
+                .sunColor = rendererSettings_.sunColor,
+                .sunIntensity = rendererSettings_.sunIntensity,
+                .ambientColor = rendererSettings_.ambientColor,
+                .ambientIntensity = rendererSettings_.ambientIntensity,
+                .fogColor = rendererSettings_.fogColor,
+                .fogDensity = rendererSettings_.fogDensity,
+                .exposure = rendererSettings_.exposure,
+            };
             primitiveStageTimer.restart();
             primitivePath_->render(
                 encoder, targetView, objectDepth, camera_->viewMatrix(),
-                camera_->projectionMatrix(), camera_->position(), kSunDirection,
+                camera_->projectionMatrix(), camera_->position(),
+                primitiveLighting,
                 gpuContext_->getSwapchainWidth(), gpuContext_->getSwapchainHeight(),
                 config_.renderPath == RenderPath::Raycast,
                 camera_->worldSector(),
@@ -1003,6 +1097,364 @@ void Application::onResize(uint32_t width, uint32_t height) {
     // Invalidate depth buffer for triangle path
     depthWidth_ = 0;
     depthHeight_ = 0;
+}
+
+bool Application::setRendererSetting(std::string_view name, double value,
+                                     bool commit) {
+    if (!std::isfinite(value)) return false;
+    uint32_t dirty = RendererUniformsDirty;
+    auto setScalar = [&](float& destination, float minimum, float maximum) {
+        destination = finiteClamp(value, minimum, maximum);
+    };
+    auto setColor = [&](float& destination) {
+        setScalar(destination, 0.0f, 4.0f);
+    };
+
+    if (name == "render.path") {
+        if (value != 0.0 && value != 1.0) return false;
+        setRenderPath(value == 0.0 ? RenderPath::Triangle
+                                   : RenderPath::Raycast);
+    } else if (name == "lighting.sunAzimuth") {
+        const float azimuth = finiteClamp(value, -180.0f, 180.0f);
+        rendererSettings_.sunDirection = sunDirectionFromDegrees(
+            azimuth, sunElevationDegrees(rendererSettings_.sunDirection));
+        if (commit) dirty |= RendererSunShadowDirty;
+    } else if (name == "lighting.sunElevation") {
+        const float elevation = finiteClamp(value, 1.0f, 89.0f);
+        rendererSettings_.sunDirection = sunDirectionFromDegrees(
+            sunAzimuthDegrees(rendererSettings_.sunDirection), elevation);
+        if (commit) dirty |= RendererSunShadowDirty;
+    } else if (name == "lighting.sunColor.r") {
+        setColor(rendererSettings_.sunColor.r);
+    } else if (name == "lighting.sunColor.g") {
+        setColor(rendererSettings_.sunColor.g);
+    } else if (name == "lighting.sunColor.b") {
+        setColor(rendererSettings_.sunColor.b);
+    } else if (name == "lighting.sunIntensity") {
+        setScalar(rendererSettings_.sunIntensity, 0.0f, 10.0f);
+    } else if (name == "lighting.ambientColor.r") {
+        setColor(rendererSettings_.ambientColor.r);
+    } else if (name == "lighting.ambientColor.g") {
+        setColor(rendererSettings_.ambientColor.g);
+    } else if (name == "lighting.ambientColor.b") {
+        setColor(rendererSettings_.ambientColor.b);
+    } else if (name == "lighting.ambientIntensity") {
+        setScalar(rendererSettings_.ambientIntensity, 0.0f, 4.0f);
+    } else if (name == "lighting.fogColor.r") {
+        setColor(rendererSettings_.fogColor.r);
+    } else if (name == "lighting.fogColor.g") {
+        setColor(rendererSettings_.fogColor.g);
+    } else if (name == "lighting.fogColor.b") {
+        setColor(rendererSettings_.fogColor.b);
+    } else if (name == "lighting.fogDensity") {
+        setScalar(rendererSettings_.fogDensity, 0.0f, 0.01f);
+    } else if (name == "lighting.exposure") {
+        setScalar(rendererSettings_.exposure, 0.05f, 8.0f);
+    } else if (name == "water.enabled") {
+        rendererSettings_.waterEnabled = value >= 0.5;
+        dirty |= RendererWaterPhysicsDirty;
+    } else if (name == "water.height") {
+        setScalar(rendererSettings_.waterHeight, -4000.0f, 4000.0f);
+        dirty |= RendererWaterPhysicsDirty;
+        if (commit) dirty |= RendererWaterCoastDirty;
+    } else if (name == "water.shallowColor.r") {
+        setColor(rendererSettings_.waterShallowColor.r);
+    } else if (name == "water.shallowColor.g") {
+        setColor(rendererSettings_.waterShallowColor.g);
+    } else if (name == "water.shallowColor.b") {
+        setColor(rendererSettings_.waterShallowColor.b);
+    } else if (name == "water.deepColor.r") {
+        setColor(rendererSettings_.waterDeepColor.r);
+    } else if (name == "water.deepColor.g") {
+        setColor(rendererSettings_.waterDeepColor.g);
+    } else if (name == "water.deepColor.b") {
+        setColor(rendererSettings_.waterDeepColor.b);
+    } else if (name == "water.roughness") {
+        setScalar(rendererSettings_.waterRoughness, 0.02f, 1.0f);
+    } else if (name == "water.waveStrength") {
+        setScalar(rendererSettings_.waterWaveStrength, 0.0f, 2.0f);
+        dirty |= RendererWaterPhysicsDirty;
+    } else if (name == "water.reflectionStrength") {
+        setScalar(rendererSettings_.waterReflectionStrength, 0.0f, 1.0f);
+    } else if (name == "water.shoreFade") {
+        setScalar(rendererSettings_.waterShoreFade, 0.01f, 500.0f);
+    } else if (name == "water.ior") {
+        setScalar(rendererSettings_.waterIor, 1.0f, 2.0f);
+    } else if (name == "water.distortion") {
+        setScalar(rendererSettings_.waterDistortion, 0.0f, 1.0f);
+    } else if (name == "water.absorptionScale") {
+        setScalar(rendererSettings_.waterAbsorptionScale, 0.0f, 5.0f);
+    } else if (name == "water.scatterStrength") {
+        setScalar(rendererSettings_.waterScatterStrength, 0.0f, 5.0f);
+    } else if (name == "water.foamSize") {
+        setScalar(rendererSettings_.waterFoamSize, 8.0f, 2000.0f);
+    } else if (name == "water.foamOpacity") {
+        setScalar(rendererSettings_.waterFoamOpacity, 0.0f, 1.0f);
+    } else if (name == "water.foamCoverage") {
+        setScalar(rendererSettings_.waterFoamCoverage, 0.0f, 1.0f);
+    } else if (name == "water.reflectionDistance") {
+        setScalar(rendererSettings_.waterReflectionDistance, 10.0f, 20000.0f);
+    } else if (name == "water.spectrum.significantHeight") {
+        setScalar(rendererSettings_.waterSpectrum.significantWaveHeight, 0.1f, 100.0f);
+        if (commit) dirty |= RendererWaterSpectrumDirty;
+    } else if (name == "water.spectrum.direction") {
+        setScalar(rendererSettings_.waterSpectrum.directionDegrees, -180.0f, 180.0f);
+        if (commit) dirty |= RendererWaterSpectrumDirty;
+    } else if (name == "water.spectrum.choppiness") {
+        setScalar(rendererSettings_.waterSpectrum.choppiness, 0.0f, 5.0f);
+        dirty |= RendererWaterSpectrumDirty;
+    } else if (name == "water.spectrum.peakEnhancement") {
+        setScalar(rendererSettings_.waterSpectrum.peakEnhancement, 0.05f, 10.0f);
+        if (commit) dirty |= RendererWaterSpectrumDirty;
+    } else if (name == "water.spectrum.windAlignment") {
+        setScalar(rendererSettings_.waterSpectrum.windAlignment, 0.0f, 1.0f);
+        if (commit) dirty |= RendererWaterSpectrumDirty;
+    } else if (name == "water.spectrum.speed") {
+        setScalar(rendererSettings_.waterSpectrum.animationSpeed, 0.0f, 5.0f);
+        dirty |= RendererWaterSpectrumDirty;
+    } else if (name == "water.spectrum.largePatch") {
+        setScalar(rendererSettings_.waterSpectrum.patchLengths.x, 64.0f, 8192.0f);
+        if (commit) dirty |= RendererWaterSpectrumDirty;
+    } else if (name == "water.spectrum.detailPatch") {
+        setScalar(rendererSettings_.waterSpectrum.patchLengths.y, 16.0f, 2048.0f);
+        if (commit) dirty |= RendererWaterSpectrumDirty;
+    } else if (name == "water.spectrum.largeAmplitude") {
+        setScalar(rendererSettings_.waterSpectrum.cascadeAmplitudes.x, 0.0f, 2.0f);
+        dirty |= RendererWaterSpectrumDirty;
+    } else if (name == "water.spectrum.detailAmplitude") {
+        setScalar(rendererSettings_.waterSpectrum.cascadeAmplitudes.y, 0.0f, 2.0f);
+        dirty |= RendererWaterSpectrumDirty;
+    } else if (name == "water.spectrum.directionalSine") {
+        setScalar(rendererSettings_.waterSpectrum.directionalSineScale, 0.0f, 1.5f);
+        dirty |= RendererWaterSpectrumDirty;
+    } else if (name == "camera.fov") {
+        setScalar(rendererSettings_.cameraFovDegrees, 20.0f, 120.0f);
+        dirty |= RendererCameraDirty;
+    } else if (name == "camera.near") {
+        setScalar(rendererSettings_.cameraNear, 0.01f,
+                  std::max(rendererSettings_.cameraFar - 0.01f, 0.01f));
+        dirty |= RendererCameraDirty;
+    } else if (name == "camera.far") {
+        setScalar(rendererSettings_.cameraFar,
+                  rendererSettings_.cameraNear + 0.01f, 100000.0f);
+        dirty |= RendererCameraDirty;
+    } else if (name == "camera.moveSpeed") {
+        setScalar(rendererSettings_.cameraMoveSpeed, 0.1f, 1000.0f);
+        dirty |= RendererCameraDirty;
+    } else if (name == "camera.mouseSensitivity") {
+        setScalar(rendererSettings_.cameraMouseSensitivity, 0.00001f, 0.02f);
+        dirty |= RendererCameraDirty;
+    } else if (name == "camera.eyeHeight") {
+        setScalar(rendererSettings_.cameraEyeHeight, 0.5f, 10.0f);
+        dirty |= RendererCameraDirty;
+    } else {
+        return false;
+    }
+
+    rendererSettingsDirty_ |= dirty;
+    ++rendererSettingsRevision_;
+    return true;
+}
+
+std::optional<double> Application::getRendererSetting(
+    std::string_view name) const noexcept {
+    const auto& s = rendererSettings_;
+    if (name == "render.path") {
+        return static_cast<double>(config_.renderPath);
+    }
+    if (name == "lighting.sunAzimuth") return sunAzimuthDegrees(s.sunDirection);
+    if (name == "lighting.sunElevation") return sunElevationDegrees(s.sunDirection);
+    if (name == "lighting.sunColor.r") return s.sunColor.r;
+    if (name == "lighting.sunColor.g") return s.sunColor.g;
+    if (name == "lighting.sunColor.b") return s.sunColor.b;
+    if (name == "lighting.sunIntensity") return s.sunIntensity;
+    if (name == "lighting.ambientColor.r") return s.ambientColor.r;
+    if (name == "lighting.ambientColor.g") return s.ambientColor.g;
+    if (name == "lighting.ambientColor.b") return s.ambientColor.b;
+    if (name == "lighting.ambientIntensity") return s.ambientIntensity;
+    if (name == "lighting.fogColor.r") return s.fogColor.r;
+    if (name == "lighting.fogColor.g") return s.fogColor.g;
+    if (name == "lighting.fogColor.b") return s.fogColor.b;
+    if (name == "lighting.fogDensity") return s.fogDensity;
+    if (name == "lighting.exposure") return s.exposure;
+    if (name == "water.enabled") return s.waterEnabled ? 1.0 : 0.0;
+    if (name == "water.height") return s.waterHeight;
+    if (name == "water.shallowColor.r") return s.waterShallowColor.r;
+    if (name == "water.shallowColor.g") return s.waterShallowColor.g;
+    if (name == "water.shallowColor.b") return s.waterShallowColor.b;
+    if (name == "water.deepColor.r") return s.waterDeepColor.r;
+    if (name == "water.deepColor.g") return s.waterDeepColor.g;
+    if (name == "water.deepColor.b") return s.waterDeepColor.b;
+    if (name == "water.roughness") return s.waterRoughness;
+    if (name == "water.waveStrength") return s.waterWaveStrength;
+    if (name == "water.reflectionStrength") return s.waterReflectionStrength;
+    if (name == "water.shoreFade") return s.waterShoreFade;
+    if (name == "water.ior") return s.waterIor;
+    if (name == "water.distortion") return s.waterDistortion;
+    if (name == "water.absorptionScale") return s.waterAbsorptionScale;
+    if (name == "water.scatterStrength") return s.waterScatterStrength;
+    if (name == "water.foamSize") return s.waterFoamSize;
+    if (name == "water.foamOpacity") return s.waterFoamOpacity;
+    if (name == "water.foamCoverage") return s.waterFoamCoverage;
+    if (name == "water.reflectionDistance") return s.waterReflectionDistance;
+    if (name == "water.spectrum.significantHeight") return s.waterSpectrum.significantWaveHeight;
+    if (name == "water.spectrum.direction") return s.waterSpectrum.directionDegrees;
+    if (name == "water.spectrum.choppiness") return s.waterSpectrum.choppiness;
+    if (name == "water.spectrum.peakEnhancement") return s.waterSpectrum.peakEnhancement;
+    if (name == "water.spectrum.windAlignment") return s.waterSpectrum.windAlignment;
+    if (name == "water.spectrum.speed") return s.waterSpectrum.animationSpeed;
+    if (name == "water.spectrum.largePatch") return s.waterSpectrum.patchLengths.x;
+    if (name == "water.spectrum.detailPatch") return s.waterSpectrum.patchLengths.y;
+    if (name == "water.spectrum.largeAmplitude") return s.waterSpectrum.cascadeAmplitudes.x;
+    if (name == "water.spectrum.detailAmplitude") return s.waterSpectrum.cascadeAmplitudes.y;
+    if (name == "water.spectrum.directionalSine") return s.waterSpectrum.directionalSineScale;
+    if (name == "camera.fov") return s.cameraFovDegrees;
+    if (name == "camera.near") return s.cameraNear;
+    if (name == "camera.far") return s.cameraFar;
+    if (name == "camera.moveSpeed") return s.cameraMoveSpeed;
+    if (name == "camera.mouseSensitivity") return s.cameraMouseSensitivity;
+    if (name == "camera.eyeHeight") return s.cameraEyeHeight;
+    return std::nullopt;
+}
+
+void Application::applyRendererSettings() {
+    if (rendererSettingsDirty_ == 0u) return;
+    const uint32_t dirty = rendererSettingsDirty_;
+    rendererSettingsDirty_ = 0u;
+
+    if ((dirty & RendererCameraDirty) != 0u) {
+        if (camera_) {
+            camera_->setFovYDegrees(rendererSettings_.cameraFovDegrees);
+            camera_->setClipPlanes(rendererSettings_.cameraNear,
+                                   rendererSettings_.cameraFar);
+        }
+        if (freeFlyController_) {
+            freeFlyController_->setBaseSpeed(rendererSettings_.cameraMoveSpeed);
+            freeFlyController_->setMouseSensitivity(
+                rendererSettings_.cameraMouseSensitivity);
+        }
+        if (characterController_) {
+            CharacterConfig character = characterController_->config();
+            character.walkSpeed = rendererSettings_.cameraMoveSpeed;
+            character.runSpeed = rendererSettings_.cameraMoveSpeed * 2.0f;
+            character.mouseSensitivity = rendererSettings_.cameraMouseSensitivity;
+            character.groundOffset = rendererSettings_.cameraEyeHeight;
+            character.collisionHeight = std::max(
+                rendererSettings_.cameraEyeHeight, 0.82f);
+            characterController_->setConfig(character);
+        }
+    }
+
+    if ((dirty & RendererWaterSpectrumDirty) != 0u && waterSimulation_) {
+        if (!waterSimulation_->reconfigure(makeWaterSpectrumConfig(
+                rendererSettings_.waterSpectrum))) {
+            LOG_ERROR("Runtime water-spectrum update failed");
+        }
+        updateWaterPhysicsBindings();
+    } else if ((dirty & RendererWaterPhysicsDirty) != 0u) {
+        updateWaterPhysicsBindings();
+    }
+
+    if ((dirty & RendererWaterCoastDirty) != 0u &&
+        !rebuildWaterCoastField()) {
+        LOG_ERROR("Runtime coastal-field update failed");
+    }
+    if ((dirty & RendererSunShadowDirty) != 0u &&
+        !rebuildSunShadowMap()) {
+        LOG_ERROR("Runtime sun-shadow update failed");
+    }
+
+    appliedRendererSettingsRevision_ = rendererSettingsRevision_;
+}
+
+void Application::updateWaterPhysicsBindings() {
+    if (!physicsWorld_) return;
+    physicsWorld_->setWaterPlane(rendererSettings_.waterHeight,
+                                 rendererSettings_.waterEnabled);
+    if (!waterSimulation_) return;
+
+    const float strength = rendererSettings_.waterWaveStrength;
+    if (physicsWorld_->backendType() == physics::BackendType::WebGpuSoft) {
+        physicsWorld_->setWaterGpuResources({
+            waterSimulation_->getOutputView(), waterSimulation_->getSampler(),
+            strength,
+            rendererSettings_.waterSpectrum.patchLengths.x,
+            rendererSettings_.waterSpectrum.patchLengths.y});
+    } else {
+        physicsWorld_->setWaterSurfaceSampler(
+            [simulation = waterSimulation_.get(), strength](
+                glm::vec2 position, float timeSeconds) {
+                const auto sample = simulation->sampleSurface(
+                    position, timeSeconds, strength);
+                return physics::PhysicsWorld::WaterSurfaceSample{
+                    sample.heightOffset, sample.slope, sample.velocity};
+            });
+    }
+}
+
+bool Application::rebuildWaterCoastField() {
+    if (!waterSimulation_ || !heightmap_) return false;
+    if (!waterSimulation_->rebuildCoastField(
+            heightmap_->getData(), heightmap_->getWidth(),
+            heightmap_->getHeight(), config_.heightScale,
+            config_.cellScale, rendererSettings_.waterHeight)) {
+        return false;
+    }
+    if (raycastPath_) {
+        raycastPath_->setWaterSimulation(
+            waterSimulation_->getOutputView(),
+            waterSimulation_->getCoastView(),
+            waterSimulation_->getSampler());
+    }
+    return true;
+}
+
+bool Application::rebuildSunShadowMap() {
+    if (!gpuContext_ || !heightmap_ || !raycastPath_) return false;
+
+    perf::Timer bakeTimer;
+    bakeTimer.start();
+    terrain::ShadowBakeConfig bakeConfig;
+    bakeConfig.lightDir = rendererSettings_.sunDirection;
+    bakeConfig.heightScale = config_.heightScale;
+    bakeConfig.cellScale = config_.cellScale;
+    const auto baked = terrain::bakeShadowHeightField(
+        heightmap_->getData(), heightmap_->getWidth(),
+        heightmap_->getHeight(), bakeConfig);
+    if (baked.data.empty()) return false;
+
+    const WGPUDevice device = gpuContext_->getDevice();
+    const WGPUQueue queue = gpuContext_->getQueue();
+    gpu::TextureDesc desc = gpu::TextureDesc::tex2D(
+        baked.width, baked.height, WGPUTextureFormat_R16Uint,
+        WGPUTextureUsage_TextureBinding | WGPUTextureUsage_CopyDst,
+        "baked_shadow_height_runtime");
+    WGPUTexture nextTexture = gpu::createTextureWithData(
+        device, queue, desc,
+        std::as_bytes(std::span<const uint16_t>(baked.data)),
+        baked.width * sizeof(uint16_t));
+    if (!nextTexture) return false;
+    WGPUTextureView nextView = gpu::createTextureView(nextTexture);
+    if (!nextView) {
+        wgpuTextureRelease(nextTexture);
+        return false;
+    }
+
+    raycastPath_->setShadowMap(nextView);
+    if (blitPath_ && waterSimulation_) {
+        blitPath_->setWaterCompositeResources(
+            heightmap_->getTextureView(), nextView,
+            waterSimulation_->getOutputView(),
+            waterSimulation_->getSampler());
+    }
+
+    if (shadowMapView_) wgpuTextureViewRelease(shadowMapView_);
+    if (shadowMapTexture_) wgpuTextureRelease(shadowMapTexture_);
+    shadowMapTexture_ = nextTexture;
+    shadowMapView_ = nextView;
+    LOG_INFO("Rebuilt sun shadow field: {}x{} ({:.1f} ms)",
+             baked.width, baked.height, bakeTimer.elapsedMs());
+    return true;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1431,7 +1883,8 @@ bool Application::initCamera() {
     LOG_INFO("Physics backend: {} (scheduler {}, concurrency {})",
              physics::backendTypeName(physicsWorld_->backendType()),
              scheduler, physicsWorld_->stats().workerConcurrency);
-    physicsWorld_->setWaterPlane(config_.waterHeight, config_.waterEnabled);
+    physicsWorld_->setWaterPlane(rendererSettings_.waterHeight,
+                                 rendererSettings_.waterEnabled);
 
     // Create character controller (will be fully initialized after terrain loads)
     CharacterConfig charConfig;
@@ -1585,16 +2038,20 @@ bool Application::initRenderers() {
     if (!waterSimulation_->init(device, queue, config_.shaderDir,
                                 heightmap_->getData(), heightmap_->getWidth(),
                                 heightmap_->getHeight(), config_.heightScale,
-                                config_.cellScale, config_.waterHeight)) {
+                                config_.cellScale, rendererSettings_.waterHeight,
+                                makeWaterSpectrumConfig(
+                                    rendererSettings_.waterSpectrum))) {
         LOG_ERROR("Failed to initialize FFT water simulation");
         return false;
     }
     if (physicsWorld_) {
-        const float waveStrength = config_.waterWaveStrength;
+        const float waveStrength = rendererSettings_.waterWaveStrength;
         if (physicsWorld_->backendType() == physics::BackendType::WebGpuSoft) {
             physicsWorld_->setWaterGpuResources({
                 waterSimulation_->getOutputView(),
-                waterSimulation_->getSampler(), waveStrength});
+                waterSimulation_->getSampler(), waveStrength,
+                rendererSettings_.waterSpectrum.patchLengths.x,
+                rendererSettings_.waterSpectrum.patchLengths.y});
         } else {
             physicsWorld_->setWaterSurfaceSampler(
                 [simulation = waterSimulation_.get(), waveStrength](
@@ -1659,7 +2116,7 @@ bool Application::initRenderers() {
             perf::Timer bakeTimer;
             bakeTimer.start();
             terrain::ShadowBakeConfig bakeConfig;
-            bakeConfig.lightDir = kSunDirection;
+            bakeConfig.lightDir = rendererSettings_.sunDirection;
             bakeConfig.heightScale = config_.heightScale;
             bakeConfig.cellScale = config_.cellScale;
 
@@ -1958,13 +2415,12 @@ void Application::updateCameraUniforms() {
     const glm::mat4 terrainViewRotation{glm::mat3(cameraView)};
     const glm::mat4 terrainView = terrainViewRotation
         * glm::translate(glm::mat4(1.0f), -terrainPosition);
-    const float ambient = config_.ambientIntensity;
+    const float ambient = rendererSettings_.ambientIntensity;
     const uint32_t terrainWidth = heightmap_ ? heightmap_->getWidth() : stats_.terrainWidth;
     const uint32_t terrainHeight = heightmap_ ? heightmap_->getHeight() : stats_.terrainHeight;
     const uint32_t lodStep =
         (config_.renderPath == RenderPath::Triangle && trianglePath_) ? trianglePath_->getLODStep() : 1u;
-    const glm::vec3 worldLightDir = glm::normalize(kSunDirection);
-    constexpr float fogDensity = 0.0001f;
+    const glm::vec3 worldLightDir = glm::normalize(rendererSettings_.sunDirection);
 
     render::CameraUniforms uniforms;
     uniforms.setTerrain(
@@ -1973,29 +2429,44 @@ void Application::updateCameraUniforms() {
         config_.heightScale,
         config_.cellScale,
         static_cast<float>(lodStep),
-        fogDensity
+        rendererSettings_.fogDensity
     );
     uniforms.setCamera(terrainView, proj, terrainPosition);
     uniforms.setLightDirection(worldLightDir, terrainView, ambient);
     uniforms.setLegoMode(legoMode_);
-    uniforms.setWater(config_.waterEnabled,
-                      config_.waterHeight,
-                      config_.waterShallowColor,
-                      config_.waterDeepColor,
-                      config_.waterRoughness,
-                      config_.waterWaveStrength,
-                      config_.waterReflectionStrength,
-                      config_.waterShoreFade);
+    uniforms.setWater(rendererSettings_.waterEnabled,
+                      rendererSettings_.waterHeight,
+                      rendererSettings_.waterShallowColor,
+                      rendererSettings_.waterDeepColor,
+                      rendererSettings_.waterRoughness,
+                      rendererSettings_.waterWaveStrength,
+                      rendererSettings_.waterReflectionStrength,
+                      rendererSettings_.waterShoreFade);
+    uniforms.setRendererMaterial(
+        rendererSettings_.sunColor,
+        rendererSettings_.sunIntensity,
+        rendererSettings_.ambientColor,
+        rendererSettings_.fogColor,
+        rendererSettings_.exposure,
+        rendererSettings_.waterIor,
+        rendererSettings_.waterDistortion,
+        rendererSettings_.waterAbsorptionScale,
+        rendererSettings_.waterScatterStrength,
+        rendererSettings_.waterFoamSize,
+        rendererSettings_.waterFoamOpacity,
+        rendererSettings_.waterFoamCoverage,
+        rendererSettings_.waterReflectionDistance,
+        rendererSettings_.waterSpectrum.patchLengths);
     // Wrap before fp32 loses the sub-frame precision used by short waves.
     const float waterTime = static_cast<float>(
         std::fmod(stats_.totalTimeSeconds, 4096.0));
     uniforms.setWaterTime(waterTime);
     float cameraSurfaceOffset = 0.0f;
-    if (config_.waterEnabled && waterSimulation_ &&
+    if (rendererSettings_.waterEnabled && waterSimulation_ &&
         waterSimulation_->isInitialized()) {
         cameraSurfaceOffset = waterSimulation_->sampleSurface(
             glm::vec2{terrainPosition.x, terrainPosition.z}, waterTime,
-            config_.waterWaveStrength).heightOffset;
+            rendererSettings_.waterWaveStrength).heightOffset;
     }
     uniforms.setCameraWaterSurfaceOffset(cameraSurfaceOffset);
 

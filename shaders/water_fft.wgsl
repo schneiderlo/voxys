@@ -5,6 +5,11 @@ struct SimParams {
     stage : u32,
     axis : u32,
     size : u32,
+    patchLengths : vec2<f32>,
+    cascadeAmplitudes : vec2<f32>,
+    choppiness : f32,
+    directionalSineScale : f32,
+    padding : vec2<f32>,
 };
 
 struct WaveData {
@@ -20,8 +25,6 @@ struct WaveData {
 @group(0) @binding(3) var<storage, read> twiddleData : array<vec2<f32>>;
 
 const CASCADE_COUNT : u32 = 2u;
-const DIRECTIONAL_SINE_SCALE : f32 = 0.68;
-
 // One 256-sample row or column. Keeping all eight radix-2 stages here avoids
 // round-tripping the complete spectrum through device memory for every stage.
 var<workgroup> lineData : array<WaveData, 256>;
@@ -79,7 +82,7 @@ fn evolve(@builtin(global_invocation_id) gid : vec3<u32>) {
     let initial = inputData[index];
     let omega = initial.padding.x;
     let phaseCosine = cos(omega * params.time);
-    let phaseSine = sin(omega * params.time) * DIRECTIONAL_SINE_SCALE;
+    let phaseSine = sin(omega * params.time) * params.directionalSineScale;
     let b = initial.height.x * phaseCosine +
             initial.height.y * phaseSine;
     let c = initial.displacementX.x * phaseCosine +

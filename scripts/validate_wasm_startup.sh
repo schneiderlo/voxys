@@ -74,7 +74,8 @@ trap cleanup EXIT
 
 mkdir -p "$deployment"
 cp web/index.html "$deployment/index.html"
-cp web/loader.js web/network_transport.js web/style.css "$deployment/"
+cp web/loader.js web/network_transport.js web/style.css \
+    web/renderer_inspector.js web/renderer_inspector.css "$deployment/"
 cp "$artifact_directory/$artifact_base.js" "$deployment/voxy_wasm.js"
 cp "$artifact_directory/$artifact_base.wasm" "$deployment/"
 cp "$artifact_directory/$artifact_base.data" "$deployment/"

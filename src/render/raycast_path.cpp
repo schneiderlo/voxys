@@ -1004,6 +1004,8 @@ void RaycastPath::setHeightmap(WGPUTextureView heightmapView, uint32_t width, ui
 void RaycastPath::setShadowMap(WGPUTextureView shadowMapView) {
     shadowMapView_ = shadowMapView;
     bindGroupDirty_ = true;
+    staticCacheDirty_ = true;
+    staticStateChangedSinceDispatch_ = true;
     LOG_DEBUG("Set baked shadow map");
 }
 
@@ -1070,6 +1072,23 @@ void RaycastPath::updateStaticUniforms() {
     next.waterColorA = glm::vec4(0.0f);
     next.waterColorB = glm::vec4(0.0f);
     next.waterMotion = glm::vec4(0.0f);
+    next.waterOptics = glm::vec4(0.0f);
+    next.waterFoam = glm::vec4(0.0f);
+    next.waterSpectrum = glm::vec4(0.0f);
+    // These fields are consumed only by the later lighting/material pass.
+    // Keeping them out of the terrain snapshot lets colour grading, fog and
+    // light colour scrub at uniform speed without relaunching the ray caster.
+    next.metrics.z = 0.0f;
+    next.metrics.w = 0.0f;
+    next.lightDirVS = glm::vec4(0.0f);
+    next.lightingColor = glm::vec4(0.0f);
+    next.ambientExposure = glm::vec4(0.0f);
+    next.fogColor = glm::vec4(0.0f);
+    if (next.invProjParams.z <= 0.5f) {
+        // Normal mode samples the baked shadow texture. Sun direction only
+        // affects this pass in Lego mode, where shadows are traced directly.
+        next.lightDirWS = glm::vec4(0.0f);
+    }
 
     if (std::memcmp(staticUniforms_, &next, sizeof(CameraUniforms)) == 0) {
         return;

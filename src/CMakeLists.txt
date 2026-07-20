@@ -167,6 +167,7 @@ endif()
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/render/blit_path.cpp")
     list(APPEND RENDER_SOURCES
         render/blit_path.cpp
+        render/water_clipmap_mesh.cpp
     )
 endif()
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/render/water_simulation.cpp")

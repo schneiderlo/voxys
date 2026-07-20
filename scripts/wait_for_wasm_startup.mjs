@@ -84,10 +84,82 @@ while (Date.now() < deadline) {
                 && typeof voxyModule._voxy_get_physics_self_test_status
                     === "function"
                 ? voxyModule._voxy_get_physics_self_test_status() : -100;
+            // The self-test URL intentionally initializes only its small
+            // physics world, not the full Application. Validate that the
+            // browser UI and renderer ABI are present here; full live binding
+            // is exercised by the normal application path.
+            const rendererBridgeExported = moduleReady
+                && typeof voxyModule._voxy_renderer_set_number === "function"
+                && typeof voxyModule._voxy_renderer_get_number === "function";
+            const rendererInspectorMounted = Boolean(
+                globalThis.VoxyRendererInspector?.instance);
+            let rendererKeyboardForwarding =
+                globalThis.voxyRendererKeyboardForwardingSelfTest ?? null;
+            if (rendererInspectorMounted && rendererKeyboardForwarding === null) {
+                const inspector = globalThis.VoxyRendererInspector.instance;
+                const originalModule = inspector.module;
+                const calls = [];
+                const testModule = Object.create(originalModule);
+                Object.defineProperty(testModule, "_voxy_key_event", {
+                    value: (key, down) => calls.push([key, down]),
+                });
+                inspector.module = testModule;
+                try {
+                    inspector.setOpen(true, false);
+                    const numberField = document.querySelector(
+                        "#renderer-inspector input[type=number]");
+                    const searchField = document.querySelector(
+                        "#renderer-inspector input[type=search]");
+                    numberField.focus();
+                    numberField.dispatchEvent(new KeyboardEvent("keydown", {
+                        bubbles: true, code: "KeyW", key: "z",
+                    }));
+                    numberField.dispatchEvent(new KeyboardEvent("keydown", {
+                        bubbles: true, code: "KeyW", key: "z", repeat: true,
+                    }));
+                    numberField.dispatchEvent(new KeyboardEvent("keyup", {
+                        bubbles: true, code: "KeyW", key: "z",
+                    }));
+                    searchField.focus();
+                    searchField.dispatchEvent(new KeyboardEvent("keydown", {
+                        bubbles: true, code: "KeyW", key: "z",
+                    }));
+                    searchField.dispatchEvent(new KeyboardEvent("keyup", {
+                        bubbles: true, code: "KeyW", key: "z",
+                    }));
+                    document.body.dispatchEvent(new KeyboardEvent("keydown", {
+                        bubbles: true, code: "KeyA", key: "q",
+                    }));
+                    numberField.focus();
+                    numberField.dispatchEvent(new KeyboardEvent("keyup", {
+                        bubbles: true, code: "KeyA", key: "q",
+                    }));
+                    rendererKeyboardForwarding = JSON.stringify(calls)
+                        === JSON.stringify([
+                            [87, 1], [87, 0], [87, 0], [65, 0],
+                        ]);
+                } catch (error) {
+                    globalThis.voxyRendererKeyboardForwardingSelfTestError =
+                        String(error);
+                    rendererKeyboardForwarding = false;
+                } finally {
+                    inspector.setOpen(false, false);
+                    inspector.module = originalModule;
+                }
+                globalThis.voxyRendererKeyboardForwardingSelfTest =
+                    rendererKeyboardForwarding;
+            }
             return JSON.stringify({
                 initialized,
                 physicsBackend,
                 physicsSelfTestStatus,
+                rendererBridgeExported,
+                rendererInspectorMounted,
+                rendererKeyboardForwarding,
+                rendererKeyboardForwardingError:
+                    globalThis.voxyRendererKeyboardForwardingSelfTestError ?? "",
+                rendererControlCount: document.querySelectorAll(
+                    "#renderer-inspector .ri-row").length,
                 physicsSelfTestTick: moduleReady
                     && typeof voxyModule._voxy_get_physics_self_test_tick
                         === "function"
@@ -110,11 +182,17 @@ while (Date.now() < deadline) {
     const value = JSON.parse(evaluated.result.value);
     lastState = value;
     if (value.initialized && value.physicsBackend === 2
-        && value.physicsSelfTestStatus === 2) {
+        && value.physicsSelfTestStatus === 2
+        && value.rendererBridgeExported
+        && value.rendererInspectorMounted
+        && value.rendererKeyboardForwarding
+        && value.rendererControlCount >= 44) {
         console.log(
             `WASM GPU physics self-test passed at tick ${
                 value.physicsSelfTestTick
-            } (${value.profile?.name ?? "unknown"})`,
+            } (${value.profile?.name ?? "unknown"}); renderer inspector has ${
+                value.rendererControlCount
+            } controls mounted; AZERTY movement forwarding passed`,
         );
         socket.close();
         process.exit(0);

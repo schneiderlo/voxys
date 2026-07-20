@@ -10,6 +10,9 @@ simulation runs on WebGPU for both native and WASM builds.
 | 0 | 1949 m | broad band | wind sea and distant silhouette |
 | 1 | 326 m | detail band | short waves and crest detail |
 
+These are startup defaults. The browser renderer panel can change both patch
+lengths and rebuild the spectrum without reloading the application.
+
 Each cascade is 256×256. A spectral update performs:
 
 1. Quantized deep-water dispersion evolution: `omega = sqrt(g * |k|)`.
@@ -30,6 +33,7 @@ then drawn as real indexed geometry into those same color/depth targets:
 
 - five camera-following 64×64 clipmap levels, beginning at an 800 m patch;
 - holes in outer levels so tessellation is concentrated near the camera;
+- stitched 2:1 level borders so displaced waves remain watertight;
 - four stretched outer strips extending the surface to 47.5 km;
 - vertex displacement from both live FFT cascades and all four long swells;
 - terrain-height rejection at coasts and exact opaque-depth occlusion.
@@ -81,3 +85,16 @@ measures renderer throughput rather than monitor refresh or raw submissions.
 
 The complete `//:voxy_wasm` application uses this same geometry and material;
 the ocean path does not rely on native-only GPU features.
+
+## Live browser controls
+
+Press the backquote key (`` ` ``) or the **Renderer** button to open the live
+panel. Wave shape, cascade scales, material, lighting, camera, render path, and
+physical resolution can be edited while the simulation keeps running.
+WASD (QWERTY) and ZQSD (AZERTY) movement remains active while sliders and
+numeric controls have focus. Text search and colour-hex fields keep normal text
+entry behaviour.
+
+Spectrum, coastline, and sun-shadow changes preview cheaply and rebuild their
+dependent resource when the edit is committed. Settings persist in browser
+storage; presets and JSON copy/paste are available from the panel toolbar.

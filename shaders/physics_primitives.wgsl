@@ -3,6 +3,9 @@ struct PrimitiveUniforms {
     cameraPos : vec4<f32>,
     lightDirAndRayDepth : vec4<f32>,
     viewport : vec4<f32>,
+    lightingColor : vec4<f32>,
+    ambientColor : vec4<f32>,
+    fogColorExposure : vec4<f32>,
 };
 
 struct InstanceData {
@@ -40,6 +43,30 @@ fn vs(input : VSIn) -> VSOut {
     return output;
 }
 
+fn acesFilmic(inputColor : vec3<f32>) -> vec3<f32> {
+    let inputMatrix = mat3x3<f32>(
+        vec3<f32>(0.59719, 0.07600, 0.02840),
+        vec3<f32>(0.35458, 0.90834, 0.13383),
+        vec3<f32>(0.04823, 0.01566, 0.83777));
+    let outputMatrix = mat3x3<f32>(
+        vec3<f32>(1.60475, -0.10208, -0.00327),
+        vec3<f32>(-0.53108, 1.10813, -0.07276),
+        vec3<f32>(-0.07367, -0.00605, 1.07602));
+    let color = inputMatrix * (inputColor / 0.6);
+    let a = color * (color + vec3<f32>(0.0245786)) -
+            vec3<f32>(0.000090537);
+    let b = color * ((color + vec3<f32>(0.432951)) * 0.983729) +
+            vec3<f32>(0.238081);
+    return clamp(outputMatrix * (a / b), vec3<f32>(0.0), vec3<f32>(1.0));
+}
+
+fn linearToSrgb(linear : vec3<f32>) -> vec3<f32> {
+    let low = linear * 12.92;
+    let high = 1.055 * pow(max(linear, vec3<f32>(0.0)),
+                           vec3<f32>(1.0 / 2.4)) - vec3<f32>(0.055);
+    return select(high, low, linear <= vec3<f32>(0.0031308));
+}
+
 @fragment
 fn fs(input : VSOut) -> @location(0) vec4<f32> {
     if (uniforms.lightDirAndRayDepth.w > 0.5) {
@@ -58,6 +85,23 @@ fn fs(input : VSOut) -> @location(0) vec4<f32> {
     let viewDir = normalize(uniforms.cameraPos.xyz - input.worldPosition);
     let halfVector = normalize(lightDir + viewDir);
     let specular = pow(max(dot(normalize(input.worldNormal), halfVector), 0.0), 32.0);
-    let lit = input.color * (0.22 + 0.78 * diffuse) + vec3<f32>(0.22) * specular;
-    return vec4<f32>(lit, 1.0);
+    let ambientMaximum = max(max(uniforms.ambientColor.r,
+                                 uniforms.ambientColor.g),
+                             max(uniforms.ambientColor.b, 0.001));
+    let ambientTint = uniforms.ambientColor.rgb / ambientMaximum;
+    let sunRadiance = uniforms.lightingColor.rgb * uniforms.lightingColor.w;
+    let illumination = ambientTint * max(uniforms.ambientColor.w, 0.05) +
+                       sunRadiance * diffuse;
+    var lit = input.color * illumination + sunRadiance * (0.22 * specular);
+    let distanceToCamera = length(input.worldPosition - uniforms.cameraPos.xyz);
+    let maximumFog = select(0.7, 1.0,
+                            uniforms.lightDirAndRayDepth.w > 0.5);
+    let fog = clamp(1.0 - exp(-max(uniforms.viewport.z, 0.0) *
+                              distanceToCamera), 0.0, maximumFog);
+    lit = mix(lit, uniforms.fogColorExposure.rgb, fog);
+    var presented = lit * max(uniforms.fogColorExposure.w, 0.0);
+    if (uniforms.lightDirAndRayDepth.w > 0.5) {
+        presented = linearToSrgb(acesFilmic(presented));
+    }
+    return vec4<f32>(presented, 1.0);
 }

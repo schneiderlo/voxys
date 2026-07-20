@@ -17,6 +17,18 @@
 
 namespace voxy::render {
 
+struct WaterSpectrumConfig {
+    float significantWaveHeight = 25.9f;
+    float directionRadians = 0.9948376736367679f;
+    float choppiness = 2.24f;
+    float peakEnhancement = 0.65f;
+    float windAlignment = 0.32f;
+    float animationSpeed = 2.0f;
+    glm::vec2 patchLengths = {1949.0f, 326.0f};
+    glm::vec2 cascadeAmplitudes = {0.33f, 0.07f};
+    float directionalSineScale = 0.68f;
+};
+
 /// Two-cascade ocean evaluated entirely on the GPU.
 ///
 /// Each cascade evolves a band-limited peaked spectrum, performs a 2D inverse
@@ -51,8 +63,23 @@ public:
                             uint32_t terrainHeight = 0,
                             float terrainHeightScale = 1.0f,
                             float cellScale = 1.0f,
-                            float waterHeight = 0.0f);
+                            float waterHeight = 0.0f,
+                            const WaterSpectrumConfig& spectrum = {});
     void shutdown();
+
+    /// Apply live wave controls. Spectrum-shape changes rebuild the 4 MiB
+    /// initial spectrum and its bind groups; animation-only changes are cheap.
+    [[nodiscard]] bool reconfigure(const WaterSpectrumConfig& spectrum);
+
+    /// Rebuild the terrain-dependent coastal field after changing water level.
+    [[nodiscard]] bool rebuildCoastField(
+        std::span<const uint16_t> terrainHeights,
+        uint32_t terrainWidth, uint32_t terrainHeight,
+        float terrainHeightScale, float cellScale, float waterHeight);
+
+    [[nodiscard]] const WaterSpectrumConfig& spectrumConfig() const noexcept {
+        return spectrumConfig_;
+    }
 
     /// Record spectrum evolution, two workgroup-local FFT axes, and resolve.
     void update(
@@ -80,8 +107,13 @@ private:
         uint32_t stage = 0;
         uint32_t axis = 0;
         uint32_t size = RESOLUTION;
+        glm::vec2 patchLengths = {1949.0f, 326.0f};
+        glm::vec2 cascadeAmplitudes = {0.33f, 0.07f};
+        float choppiness = 2.24f;
+        float directionalSineScale = 0.68f;
+        glm::vec2 padding{0.0f};
     };
-    static_assert(sizeof(SimParams) == 16);
+    static_assert(sizeof(SimParams) == 48);
 
     struct CpuWaveMode {
         glm::vec2 waveVector{0.0f};
@@ -90,6 +122,7 @@ private:
         glm::vec2 conjugateNegative{0.0f};
         float angularFrequency = 0.0f;
         float amplitude = 1.0f;
+        uint32_t cascade = 0u;
     };
 
     bool createSpectrum();
@@ -102,10 +135,12 @@ private:
     bool createPipelines(const std::filesystem::path& shaderDirectory);
     bool createBindGroups();
     bool createFoamResources(const std::filesystem::path& shaderDirectory);
+    void releaseSimulationBindGroups();
     void updateCpuWaveCache(float timeSeconds) const;
 
     WGPUDevice device_ = nullptr;
     WGPUQueue queue_ = nullptr;
+    WaterSpectrumConfig spectrumConfig_{};
 
     WGPUBuffer initialSpectrumBuffer_ = nullptr;
     WGPUBuffer pongBuffer_ = nullptr;

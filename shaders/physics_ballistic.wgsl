@@ -933,7 +933,8 @@ fn physics_long_wave(position : vec2<f32>, direction : vec2<f32>,
 
 fn water_cascade_uv(localXZ : vec2<f32>, sectorXZ : vec2<i32>,
                     cascade : u32) -> vec2<f32> {
-    let patchLength = select(1949.0, 326.0, cascade == 1u);
+    let patchLength = select(sim.waterSurface.z, sim.waterSurface.w,
+                             cascade == 1u);
     // Bound the f32 conversion while keeping normal play-space positions
     // continuous. Texture repeat performs the final spectral-period wrap.
     let wrappedSector = sectorXZ % vec2<i32>(8192);

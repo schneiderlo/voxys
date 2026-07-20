@@ -31,6 +31,12 @@ struct CameraUniforms {
     waterColorA : vec4<f32>,      // shallow color rgb, reflection strength
     waterColorB : vec4<f32>,      // deep color rgb, shore fade depth
     waterMotion : vec4<f32>,      // simulation time, reserved...
+    lightingColor : vec4<f32>,    // sun colour rgb, intensity
+    ambientExposure : vec4<f32>,  // ambient colour rgb, exposure
+    fogColor : vec4<f32>,         // atmospheric fog colour
+    waterOptics : vec4<f32>,      // IOR, distortion, absorption, scatter
+    waterFoam : vec4<f32>,        // size, opacity, coverage, reflection distance
+    waterSpectrum : vec4<f32>,    // broad/detail patch lengths
 };
 
 // Beer-Lambert extinction per world unit of water (matches ray_blit.wgsl).
@@ -356,8 +362,13 @@ fn fs(input : VSOut) -> @location(0) vec4<f32> {
     
     // Combine lighting
     // Shadow affects diffuse term. Lightmap (baked sky visibility) modulates diffuse + shadow.
-    // Ray Blit logic: albedo * (diffuse * shadow * lightmap + ambient)
-    var litColor = albedo.rgb * (diffuse * shadow * lightmap + ambient);
+    let sunRadiance = camera.lightingColor.rgb * camera.lightingColor.w;
+    let ambientMaximum = max(max(camera.ambientExposure.r,
+                                 camera.ambientExposure.g),
+                             max(camera.ambientExposure.b, 0.001));
+    let ambientTint = camera.ambientExposure.rgb / ambientMaximum;
+    var litColor = albedo.rgb *
+        (diffuse * shadow * lightmap * sunRadiance + ambient * ambientTint);
 
     // Fallback water: the triangle path has no water surface geometry, so tint
     // submerged terrain by the column of water above it (Beer-Lambert). This
@@ -375,10 +386,10 @@ fn fs(input : VSOut) -> @location(0) vec4<f32> {
 
     // Fog
     let fogDensity = max(camera.metrics.w, 0.0);
-    let fogColor = vec3<f32>(0.6, 0.68, 0.76);
     let dist = length(input.worldPos - camera.cameraPos.xyz);
     let fogFactor = clamp(1.0 - exp(-fogDensity * dist), 0.0, 0.7);
-    let finalColor = mix(litColor, fogColor, fogFactor);
+    let finalColor = mix(litColor, camera.fogColor.rgb, fogFactor) *
+                     camera.ambientExposure.w;
     
     return vec4<f32>(finalColor, 1.0);
 }

@@ -176,10 +176,12 @@ function getDevicePixelRatio() {
 /**
  * Calculate canvas size based on window size and DPR
  * @param {number} maxDpr - Maximum DPR to use (for performance)
+ * @param {number} renderScale - User-selected internal resolution multiplier
  * @returns {{width: number, height: number, dpr: number}}
  */
-function calculateCanvasSize(maxDpr = 2) {
-    const dpr = Math.min(getDevicePixelRatio(), maxDpr);
+function calculateCanvasSize(maxDpr = 2, renderScale = 1) {
+    const scale = Math.min(Math.max(Number(renderScale) || 1, 0.35), 1.5);
+    const dpr = Math.min(getDevicePixelRatio(), maxDpr) * scale;
     return {
         width: Math.floor(window.innerWidth * dpr),
         height: Math.floor(window.innerHeight * dpr),

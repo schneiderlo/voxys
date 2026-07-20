@@ -26,9 +26,9 @@ namespace voxy::render {
 // CameraUniforms Tests
 // ═══════════════════════════════════════════════════════════════════════════════
 
-TEST(CameraUniformsTest, SizeIs448Bytes) {
+TEST(CameraUniformsTest, SizeIs544Bytes) {
     // Critical: Must match WGSL struct exactly
-    EXPECT_EQ(sizeof(CameraUniforms), 448u);
+    EXPECT_EQ(sizeof(CameraUniforms), 544u);
 }
 
 TEST(CameraUniformsTest, DefaultConstruction) {
@@ -59,6 +59,11 @@ TEST(CameraUniformsTest, DefaultConstruction) {
     EXPECT_FLOAT_EQ(uniforms.waterColorA.w, 0.42f);
     EXPECT_FLOAT_EQ(uniforms.waterColorB.w, 30.0f);
     EXPECT_FLOAT_EQ(uniforms.waterMotion.x, 0.0f);
+    EXPECT_FLOAT_EQ(uniforms.lightingColor.w, 1.0f);
+    EXPECT_FLOAT_EQ(uniforms.ambientExposure.w, 1.0f);
+    EXPECT_FLOAT_EQ(uniforms.waterOptics.x, 1.31f);
+    EXPECT_FLOAT_EQ(uniforms.waterSpectrum.x, 1949.0f);
+    EXPECT_FLOAT_EQ(uniforms.waterSpectrum.y, 326.0f);
 }
 
 TEST(CameraUniformsTest, SetWaterTime) {
@@ -87,6 +92,23 @@ TEST(CameraUniformsTest, SetWater) {
     EXPECT_FLOAT_EQ(uniforms.waterColorB.y, 0.1f);
     EXPECT_FLOAT_EQ(uniforms.waterColorB.z, 0.2f);
     EXPECT_FLOAT_EQ(uniforms.waterColorB.w, 32.0f);
+}
+
+TEST(CameraUniformsTest, SetRendererMaterial) {
+    CameraUniforms uniforms;
+    uniforms.setRendererMaterial(
+        {0.9f, 0.8f, 0.7f}, 2.5f,
+        {0.1f, 0.2f, 0.3f}, {0.4f, 0.5f, 0.6f},
+        1.4f, 1.333f, 0.25f, 0.8f, 1.2f,
+        180.0f, 0.6f, 0.4f, 2500.0f,
+        {2048.0f, 384.0f});
+
+    EXPECT_EQ(uniforms.lightingColor, glm::vec4(0.9f, 0.8f, 0.7f, 2.5f));
+    EXPECT_EQ(uniforms.ambientExposure, glm::vec4(0.1f, 0.2f, 0.3f, 1.4f));
+    EXPECT_EQ(uniforms.fogColor, glm::vec4(0.4f, 0.5f, 0.6f, 0.0f));
+    EXPECT_EQ(uniforms.waterOptics, glm::vec4(1.333f, 0.25f, 0.8f, 1.2f));
+    EXPECT_EQ(uniforms.waterFoam, glm::vec4(180.0f, 0.6f, 0.4f, 2500.0f));
+    EXPECT_EQ(uniforms.waterSpectrum, glm::vec4(2048.0f, 384.0f, 0.0f, 0.0f));
 }
 
 TEST(CameraUniformsTest, SetTerrain) {
