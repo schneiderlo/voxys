@@ -2,8 +2,10 @@
 
 #include "gpu/webgpu_compat.hpp"
 
+#include <atomic>
 #include <cstddef>
 #include <cstdint>
+#include <memory>
 #include <optional>
 #include <vector>
 
@@ -39,9 +41,17 @@ public:
 
 private:
     enum class State : uint8_t { Idle, CopyEncoded, Mapping, Ready, Failed };
+    struct MappingState {
+        std::atomic<State> state{State::Mapping};
+    };
+    struct CallbackPayload {
+        std::shared_ptr<MappingState> mapping;
+    };
     struct Slot {
         WGPUBuffer buffer = nullptr;
         State state = State::Idle;
+        std::shared_ptr<MappingState> mapping;
+        uint64_t sequence = 0;
         uint64_t tick = 0;
         uint32_t firstBody = 0;
         uint32_t bodyCount = 0;
@@ -58,6 +68,7 @@ private:
     WGPUDevice device_ = nullptr;
     size_t slotBytes_ = 0;
     size_t nextSlot_ = 0;
+    uint64_t nextSequence_ = 1;
     std::vector<Slot> slots_;
 };
 

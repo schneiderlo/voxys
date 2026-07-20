@@ -31,6 +31,7 @@
 #include <filesystem>
 #include <limits>
 #include <set>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -38,13 +39,16 @@ namespace voxy::physics {
 namespace {
 
 constexpr uint32_t kWorkgroupSize = 256;
+constexpr uint32_t kMaximumSubsteps = 16;
+constexpr uint32_t kMaximumCatchUpTicks = 1'024;
+constexpr uint32_t kMaximumReadbackSlots = 1'024;
 // The terrain kernel is register-heavy; smaller groups expose more parallelism.
 constexpr uint32_t kStaticContactWorkgroupSize = 128;
 // The command and integration layouts are the widest physics layouts. Each
 // exposes eight storage buffers, matching WebGPU's guaranteed minimum.
 constexpr uint32_t kRequiredStorageBuffersPerShaderStage = 8;
-constexpr size_t kGpuBodyBytes = 112;
-constexpr size_t kDebugVec4Count = 7;
+constexpr size_t kDebugVec4Count = 9;
+constexpr size_t kGpuBodyBytes = kDebugVec4Count * sizeof(glm::uvec4);
 constexpr uint32_t kStageBoundaryCount =
     static_cast<uint32_t>(kPhysicsGpuStageCount) + 1u;
 #if defined(VOXY_WASM)
@@ -88,6 +92,7 @@ struct alignas(16) GpuMotion {
 struct alignas(16) GpuShape {
     glm::vec4 dimensionsType{0.0f};
     glm::vec4 invInertiaMaterial{0.0f};
+    glm::vec4 materialCoefficients{0.0f};
 };
 
 struct alignas(16) GpuCommand {
@@ -98,6 +103,7 @@ struct alignas(16) GpuCommand {
     glm::vec4 p3{0.0f};
     glm::vec4 p4{0.0f};
     glm::ivec4 p5{0};
+    glm::vec4 p6{0.0f};
 };
 
 struct alignas(16) SimulationUniforms {
@@ -111,6 +117,8 @@ struct alignas(16) SimulationUniforms {
     glm::vec4 contact{0.0f};
     glm::vec4 solver{0.0f};
     glm::vec4 terrainMaterials{0.0f};
+    glm::vec4 bodyMaterials{0.0f};
+    glm::vec4 waterSurface{0.0f};
     glm::ivec4 worldSector{0};
 };
 
@@ -136,6 +144,7 @@ struct CoreGpuTelemetry {
     uint32_t highWaterSamples = 0;
     uint32_t highCommands = 0;
     bool activeOverflow = false;
+    uint32_t kinematicBodies = 0;
 };
 
 CoreGpuTelemetry decodeCoreTelemetry(
@@ -157,14 +166,15 @@ CoreGpuTelemetry decodeCoreTelemetry(
     result.highWaterSamples = words[12];
     result.highCommands = words[13];
     result.activeOverflow = words[14] != 0u;
+    result.kinematicBodies = words[15];
     return result;
 }
 
 static_assert(sizeof(GpuPose) == 32);
 static_assert(sizeof(GpuMotion) == 32);
-static_assert(sizeof(GpuShape) == 32);
-static_assert(sizeof(GpuCommand) == 112);
-static_assert(sizeof(SimulationUniforms) == 176);
+static_assert(sizeof(GpuShape) == 48);
+static_assert(sizeof(GpuCommand) == 128);
+static_assert(sizeof(SimulationUniforms) == 208);
 static_assert(sizeof(GpuTerrainContactCache) == 48);
 
 uint32_t commandPriority(PhysicsCommandType type) noexcept {
@@ -187,6 +197,37 @@ uint32_t commandPriority(PhysicsCommandType type) noexcept {
 uint32_t nextBodyGeneration(uint32_t generation) noexcept {
     generation = (generation + 1u) & kGpuBodyGenerationMask;
     return generation == 0u ? 1u : generation;
+}
+
+bool finiteVector(const glm::vec3& value) noexcept {
+    return std::isfinite(value.x) && std::isfinite(value.y)
+        && std::isfinite(value.z);
+}
+
+bool finiteQuaternion(const glm::quat& value) noexcept {
+    return std::isfinite(value.w) && std::isfinite(value.x)
+        && std::isfinite(value.y) && std::isfinite(value.z);
+}
+
+bool finiteVector(const glm::vec4& value) noexcept {
+    return std::isfinite(value.x) && std::isfinite(value.y)
+        && std::isfinite(value.z) && std::isfinite(value.w);
+}
+
+bool validMaterial(const PhysicsMaterial& material) noexcept {
+    return std::isfinite(material.friction)
+        && std::isfinite(material.restitution)
+        && std::isfinite(material.rollingResistance)
+        && std::isfinite(material.density)
+        && material.friction >= 0.0f
+        && material.restitution >= 0.0f
+        && material.rollingResistance >= 0.0f
+        && material.density > 0.0f;
+}
+
+glm::vec4 materialCoefficients(const PhysicsMaterial& material) noexcept {
+    return {material.friction, material.restitution,
+            material.rollingResistance, material.density};
 }
 
 WGPUComputePipeline makeComputePipeline(WGPUDevice device,
@@ -218,12 +259,63 @@ public:
 
     bool initialize(const PhysicsInitContext& context) {
         if (initialized_) return true;
-        if (!context.device || !context.queue || context.maxBodies < 2
-            || context.gpu.fixedTickSeconds <= 0.0f
-            || context.gpu.substeps == 0
+        const auto& gpuConfig = context.gpu;
+        const bool validScalars = finiteVector(gpuConfig.gravity)
+            && std::isfinite(gpuConfig.fixedTickSeconds)
+            && gpuConfig.fixedTickSeconds > 0.0f
+            && std::isfinite(gpuConfig.linearDamping)
+            && gpuConfig.linearDamping >= 0.0f
+            && std::isfinite(gpuConfig.angularDamping)
+            && gpuConfig.angularDamping >= 0.0f
+            && std::isfinite(gpuConfig.maximumLinearSpeed)
+            && gpuConfig.maximumLinearSpeed > 0.0f
+            && std::isfinite(gpuConfig.maximumAngularSpeed)
+            && gpuConfig.maximumAngularSpeed > 0.0f
+            && std::isfinite(gpuConfig.bodyFriction)
+            && gpuConfig.bodyFriction >= 0.0f
+            && std::isfinite(gpuConfig.terrainFriction)
+            && gpuConfig.terrainFriction >= 0.0f
+            && std::isfinite(gpuConfig.bodySphereRestitution)
+            && gpuConfig.bodySphereRestitution >= 0.0f
+            && std::isfinite(gpuConfig.bodyOtherRestitution)
+            && gpuConfig.bodyOtherRestitution >= 0.0f
+            && std::isfinite(gpuConfig.terrainSphereRestitution)
+            && gpuConfig.terrainSphereRestitution >= 0.0f
+            && std::isfinite(gpuConfig.terrainOtherRestitution)
+            && gpuConfig.terrainOtherRestitution >= 0.0f
+            && std::isfinite(gpuConfig.linearSlop)
+            && gpuConfig.linearSlop > 0.0f
+            && std::isfinite(gpuConfig.speculativeDistance)
+            && gpuConfig.speculativeDistance >= 0.0f
+            && std::isfinite(gpuConfig.waterBuoyancy)
+            && gpuConfig.waterBuoyancy >= 0.0f
+            && std::isfinite(gpuConfig.waterLinearDrag)
+            && gpuConfig.waterLinearDrag >= 0.0f
+            && std::isfinite(gpuConfig.waterAngularDrag)
+            && gpuConfig.waterAngularDrag >= 0.0f;
+        if (!context.device || !context.queue || context.maxBodies == 0u
+            || context.maxBodies == std::numeric_limits<uint32_t>::max()
+            || !validScalars
+            || gpuConfig.substeps == 0
+            || gpuConfig.substeps > kMaximumSubsteps
+            || gpuConfig.maximumCatchUpTicks == 0
+            || gpuConfig.maximumCatchUpTicks > kMaximumCatchUpTicks
             || context.gpu.commandCapacity == 0
+            || context.gpu.debugReadbackSlots == 0
+            || context.gpu.debugReadbackSlots > kMaximumReadbackSlots
+            || context.gpu.debugReadbackBodyCapacity == 0
             || context.gpu.asyncQueryCapacity == 0
-            || context.gpu.asyncQueryReadbackSlots == 0) {
+            || context.gpu.asyncQueryReadbackSlots == 0
+            || context.gpu.asyncQueryReadbackSlots > kMaximumReadbackSlots
+            || context.gpu.eventReadbackSlots > kMaximumReadbackSlots
+            || (context.gpu.enableTelemetryReadback
+                && (context.gpu.telemetryReadbackSlots == 0
+                    || context.gpu.telemetryReadbackSlots
+                        > kMaximumReadbackSlots))
+            || (context.gpu.enableStageProfiling
+                && (context.gpu.stageProfilingReadbackSlots == 0
+                    || context.gpu.stageProfilingReadbackSlots
+                        > kMaximumReadbackSlots))) {
             LOG_ERROR("WebGPU physics requires a device, queue, and valid capacities");
             return false;
         }
@@ -246,11 +338,46 @@ public:
             return false;
         }
 
+        const uint64_t maximumStorageBytes = std::min(
+            static_cast<uint64_t>(limits.maxStorageBufferBindingSize),
+            static_cast<uint64_t>(limits.maxBufferSize));
+        const auto fitsStorage = [maximumStorageBytes](
+                                     uint64_t count, uint64_t stride) {
+            return stride != 0u && count <= maximumStorageBytes / stride;
+        };
+        const uint64_t bodyCapacity = uint64_t{context.maxBodies} + 1u;
+        const uint64_t candidateCapacity = std::min(
+            uint64_t{context.maxPairs} * 4u,
+            uint64_t{std::numeric_limits<uint32_t>::max()});
+        const uint64_t maximumEventRecords =
+            uint64_t{context.maxManifolds} * 3u + context.maxBodies;
+        if (maximumEventRecords > std::numeric_limits<uint32_t>::max()
+            || !fitsStorage(bodyCapacity, 128u) // solver color claims
+            || !fitsStorage(candidateCapacity, sizeof(GpuKeyValue))
+            || !fitsStorage(context.maxPairs, sizeof(GpuKeyValue))
+            || !fitsStorage(context.maxContacts,
+                            sizeof(GpuContactManifold))
+            || !fitsStorage(context.maxManifolds,
+                            sizeof(GpuContactManifold))
+            || !fitsStorage(maximumEventRecords, sizeof(GpuPhysicsEvent))
+            || !fitsStorage(context.gpu.commandCapacity,
+                            sizeof(GpuCommand))
+            || !fitsStorage(context.gpu.debugReadbackBodyCapacity,
+                            kGpuBodyBytes)
+            || !fitsStorage(context.gpu.asyncQueryCapacity,
+                            sizeof(GpuQueryOutput))) {
+            LOG_ERROR("WebGPU physics capacities exceed device buffer limits");
+            return false;
+        }
+
         device_ = context.device;
         queue_ = context.queue;
         deviceLimits_ = limits;
         config_ = context.gpu;
-        bodyCapacity_ = context.maxBodies;
+        // Slot zero is the invalid-handle sentinel. Allocate one additional GPU
+        // slot so the public maxBodies value remains the number of usable bodies.
+        bodyLimit_ = context.maxBodies;
+        bodyCapacity_ = bodyLimit_ + 1u;
         activeCapacity_ = std::min(context.maxActiveBodies, context.maxBodies);
         pairCapacity_ = context.maxPairs;
         contactCapacity_ = context.maxContacts;
@@ -329,7 +456,7 @@ public:
         const std::array<uint32_t, kCoreTelemetryWordCount> zeroCounters{};
         gpu::writeBuffer(queue_, countersBuffer_, 0, zeroCounters);
 
-        if (!createFallbackTerrain()) {
+        if (!createFallbackTerrain() || !createFallbackWater()) {
             shutdown();
             return false;
         }
@@ -359,7 +486,7 @@ public:
         GpuCcd::Config ccdConfig;
         ccdConfig.bodyCapacity = bodyCapacity_;
         ccdConfig.bulletCapacity = std::min(
-            std::max(config_.ccdBulletCapacity, 1u), bodyCapacity_);
+            std::max(config_.ccdBulletCapacity, 1u), bodyLimit_);
         ccdBulletCapacity_ = ccdConfig.bulletCapacity;
         ccdConfig.workgroupSize = config_.ccdWorkgroupSize;
         ccdConfig.coarseSteps = config_.ccdCoarseSteps;
@@ -456,7 +583,7 @@ public:
         GpuIslandManager::Config islandConfig;
         islandConfig.bodyCapacity = bodyCapacity_;
         islandConfig.contactCapacity = contactCapacity_;
-        islandConfig.eventCapacity = bodyCapacity_;
+        islandConfig.eventCapacity = bodyLimit_;
         islandConfig.sleepingCellSize = config_.broadPhaseCellSize;
         islandConfig.shaderPath = shaderFile("physics_islands.wgsl");
         islandConfig.primitivesShaderPath = shaderFile(
@@ -484,7 +611,7 @@ public:
         });
 
         const uint64_t maximumEvents = uint64_t{manifoldCapacity_} * 3u
-                                     + bodyCapacity_;
+                                     + bodyLimit_;
         if (maximumEvents > std::numeric_limits<uint32_t>::max()) {
             LOG_ERROR("WebGPU physics event capacity exceeds u32 range");
             shutdown();
@@ -538,8 +665,8 @@ public:
         }
 
         initialized_ = true;
-        LOG_INFO("WebGPU physics initialized: {} body slots, {} MiB resident, {} MiB scratch",
-                 bodyCapacity_, arena_.persistentBytes() / (1024 * 1024),
+        LOG_INFO("WebGPU physics initialized: {} usable body slots, {} MiB resident, {} MiB scratch",
+                 bodyLimit_, arena_.persistentBytes() / (1024 * 1024),
                  arena_.scratchBytes() / (1024 * 1024));
         return true;
     }
@@ -586,6 +713,8 @@ public:
         releaseHandle(shaderModule_, wgpuShaderModuleRelease);
         releaseTerrainTexture(ownedTerrainTexture_, ownedTerrainView_);
         releaseTerrainTexture(fallbackTerrainTexture_, fallbackTerrainView_);
+        releaseHandle(fallbackWaterSampler_, wgpuSamplerRelease);
+        releaseTerrainTexture(fallbackWaterTexture_, fallbackWaterView_);
         arena_.shutdown();
         poseBuffer_ = nullptr;
         motionBuffer_ = nullptr;
@@ -606,6 +735,7 @@ public:
         queue_ = nullptr;
         deviceLimits_ = {};
         bodyCapacity_ = 0;
+        bodyLimit_ = 0;
         activeCapacity_ = 0;
         pairCapacity_ = 0;
         contactCapacity_ = 0;
@@ -643,6 +773,10 @@ public:
         terrainAttached_ = false;
         terrainStateNeedsClear_ = false;
         externalTerrainView_ = nullptr;
+        externalWaterView_ = nullptr;
+        externalWaterSampler_ = nullptr;
+        waterSurfaceStrength_ = 0.0f;
+        warnedCpuWaterSampler_ = false;
         terrainWidth_ = 0;
         terrainHeight_ = 0;
         terrainMipLevelCount_ = 0;
@@ -682,10 +816,39 @@ public:
         return fallbackTerrainView_ != nullptr;
     }
 
+    bool createFallbackWater() {
+        auto desc = gpu::TextureDesc::storage(
+            1, 1, WGPUTextureFormat_RGBA16Float,
+            "physics_fallback_water_displacement");
+        desc.depthOrArrayLayers = 3u;
+        fallbackWaterTexture_ = gpu::createTexture(device_, desc);
+        if (!fallbackWaterTexture_) return false;
+        gpu::TextureViewDesc viewDesc;
+        viewDesc.label = "physics_fallback_water_displacement_view";
+        viewDesc.format = WGPUTextureFormat_RGBA16Float;
+        viewDesc.dimension = WGPUTextureViewDimension_2DArray;
+        viewDesc.arrayLayerCount = 3u;
+        fallbackWaterView_ = gpu::createTextureView(
+            fallbackWaterTexture_, viewDesc);
+        auto samplerDesc = gpu::SamplerDesc::repeat(
+            WGPUFilterMode_Linear, "physics_fallback_water_sampler");
+        fallbackWaterSampler_ = gpu::createSampler(device_, samplerDesc);
+        return fallbackWaterView_ && fallbackWaterSampler_;
+    }
+
     [[nodiscard]] WGPUTextureView terrainBindingView() const noexcept {
         if (externalTerrainView_) return externalTerrainView_;
         if (ownedTerrainView_) return ownedTerrainView_;
         return fallbackTerrainView_;
+    }
+
+    [[nodiscard]] WGPUTextureView waterBindingView() const noexcept {
+        return externalWaterView_ ? externalWaterView_ : fallbackWaterView_;
+    }
+
+    [[nodiscard]] WGPUSampler waterBindingSampler() const noexcept {
+        return externalWaterSampler_
+            ? externalWaterSampler_ : fallbackWaterSampler_;
     }
 
     bool createOwnedTerrain(std::span<const uint16_t> samples,
@@ -781,6 +944,13 @@ public:
         integrateEntries.emplace_back(14u);
         integrateEntries.back().computeVisible().texture(
             WGPUTextureSampleType_Uint, WGPUTextureViewDimension_2D, false);
+        integrateEntries.emplace_back(16u);
+        integrateEntries.back().computeVisible().texture(
+            WGPUTextureSampleType_Float,
+            WGPUTextureViewDimension_2DArray, false);
+        integrateEntries.emplace_back(17u);
+        integrateEntries.back().computeVisible().sampler(
+            WGPUSamplerBindingType_Filtering);
         integrateLayout_ = gpu::createBindGroupLayout(
             device_, integrateEntries, "physics_integrate_layout");
 
@@ -846,8 +1016,7 @@ public:
             BE(0).buffer(poseBuffer_), BE(1).buffer(motionBuffer_),
             BE(2).buffer(shapeBuffer_), BE(3).buffer(metadataBuffer_),
             BE(5).buffer(forceBuffer_), BE(6).buffer(countersBuffer_),
-            BE(7).buffer(commandBuffer_),
-            BE(8).buffer(uniformBuffer_)};
+            BE(7).buffer(commandBuffer_), BE(8).buffer(uniformBuffer_)};
         commandBindGroup_ = gpu::createBindGroup(
             device_, commandLayout_, commandBindings, "physics_commands");
 
@@ -871,9 +1040,10 @@ public:
 
     bool rebuildIntegrateBindGroup() {
         using BE = gpu::BindGroupEntry;
-        if (!integrateLayout_ || !terrainBindingView()) return false;
+        if (!integrateLayout_ || !terrainBindingView()
+            || !waterBindingView() || !waterBindingSampler()) return false;
         releaseHandle(integrateBindGroup_, wgpuBindGroupRelease);
-        const std::array<BE, 10> bindings = {
+        const std::array<BE, 12> bindings = {
             BE(0).buffer(poseBuffer_),
             BE(1).buffer(motionBuffer_),
             BE(2).buffer(shapeBuffer_),
@@ -884,6 +1054,8 @@ public:
             BE(15).buffer(terrainContactCacheBuffer_),
             BE(8).buffer(uniformBuffer_),
             BE(14).textureView(terrainBindingView()),
+            BE(16).textureView(waterBindingView()),
+            BE(17).sampler(waterBindingSampler()),
         };
         integrateBindGroup_ = gpu::createBindGroup(
             device_, integrateLayout_, bindings, "physics_integration");
@@ -894,10 +1066,23 @@ public:
                     uint32_t width, uint32_t height,
                     float heightScale, float cellScale) {
         const bool hadTerrain = terrainAttached_;
-        const size_t expected = size_t{width} * height;
         if (!initialized_ || width < 2 || height < 2
-            || samples.size() < expected || heightScale <= 0.0f
-            || cellScale <= 0.0f) {
+            || !std::isfinite(heightScale) || heightScale <= 0.0f
+            || !std::isfinite(cellScale) || cellScale <= 0.0f
+            || uint64_t{width} * height
+                > std::numeric_limits<size_t>::max()
+            || (!externalTerrainView_
+                && (width > deviceLimits_.maxTextureDimension2D
+                    || height > deviceLimits_.maxTextureDimension2D))) {
+            terrainStateNeedsClear_ = terrainStateNeedsClear_
+                || terrainAttached_;
+            terrainAttached_ = false;
+            characterMover_.clearTerrain();
+            refreshCcdInput();
+            return false;
+        }
+        const size_t expected = size_t{width} * height;
+        if (samples.size() < expected) {
             terrainStateNeedsClear_ = terrainStateNeedsClear_
                 || terrainAttached_;
             terrainAttached_ = false;
@@ -969,6 +1154,29 @@ public:
             LOG_ERROR("Failed to restore fallback terrain binding");
         }
         refreshCcdInput();
+    }
+
+    void setWaterGpuResources(const WaterGpuResources& resources) {
+        if (resources.displacementTexture || resources.displacementSampler) {
+            if (!resources.valid()) {
+                LOG_WARN("Ignoring invalid GPU water-surface resources");
+                return;
+            }
+            externalWaterView_ = resources.displacementTexture;
+            externalWaterSampler_ = resources.displacementSampler;
+            waterSurfaceStrength_ = resources.strength;
+        } else {
+            externalWaterView_ = nullptr;
+            externalWaterSampler_ = nullptr;
+            waterSurfaceStrength_ = 0.0f;
+        }
+        if (initialized_ && !rebuildIntegrateBindGroup()) {
+            LOG_ERROR("Failed to bind GPU water-surface resources");
+            externalWaterView_ = nullptr;
+            externalWaterSampler_ = nullptr;
+            waterSurfaceStrength_ = 0.0f;
+            static_cast<void>(rebuildIntegrateBindGroup());
+        }
     }
 
     [[nodiscard]] uint32_t executionBodyCount() const noexcept {
@@ -1043,6 +1251,8 @@ public:
             .manifolds = narrowPhase_.manifolds(),
             .narrowPhaseTelemetry = narrowPhase_.telemetryBuffer(),
             .manifoldCapacity = manifoldCapacity_,
+            .metadata = metadataBuffer_,
+            .bodyCapacity = executionBodies,
         });
     }
 
@@ -1093,8 +1303,82 @@ public:
         refreshEventSources(executionBodies);
     }
 
+    void shrinkUnusedTail() {
+        while (nextUnusedIndex_ > 1u) {
+            const uint32_t last = nextUnusedIndex_ - 1u;
+            if (hostAlive_[last] || !freeIndices_.contains(last)) break;
+            freeIndices_.erase(last);
+            --nextUnusedIndex_;
+        }
+    }
+
+    void releaseHostBody(uint32_t index, uint64_t freeTick = 0u) {
+        hostAlive_[index] = false;
+        generations_[index] = nextBodyGeneration(generations_[index]);
+        if (residentBodies_ != 0u) --residentBodies_;
+        if (freeTick == 0u) {
+            freeIndices_.insert(index);
+            shrinkUnusedTail();
+        } else {
+            pendingFrees_.push_back({freeTick, index});
+        }
+    }
+
+    bool cancelPendingSpawn(BodyHandle handle) {
+        const auto pendingSpawn = std::find_if(
+            commands_.begin(), commands_.end(), [handle, this](const auto& command) {
+                return command.type == PhysicsCommandType::SpawnBody
+                    && command.body == handle
+                    && command.targetTick > encodedTick_;
+            });
+        if (pendingSpawn == commands_.end()) return false;
+        commands_.erase(std::remove_if(
+            commands_.begin(), commands_.end(), [handle, this](const auto& command) {
+                return command.body == handle
+                    && command.targetTick > encodedTick_;
+            }), commands_.end());
+        releaseHostBody(handle.index);
+        return true;
+    }
+
+    bool queueDestroy(BodyHandle handle, uint64_t targetTick,
+                      uint64_t sequence) {
+        if (!initialized_ || !handle.valid() || handle.index >= bodyCapacity_
+            || !hostAlive_[handle.index]
+            || generations_[handle.index] != handle.generation) {
+            return false;
+        }
+        // A body that has not reached the GPU yet must be cancelled on the host.
+        // Emitting Destroy before its same-tick Spawn would leave an alive GPU
+        // body whose generation no longer exists on the host.
+        if (cancelPendingSpawn(handle)) return true;
+        if (commands_.size() >= config_.commandCapacity) {
+            commandCapacityOverflow_ = true;
+            return false;
+        }
+        PhysicsCommand command;
+        command.type = PhysicsCommandType::DestroyBody;
+        command.body = handle;
+        command.targetTick = targetTick;
+        command.sequence = sequence;
+        commands_.push_back(command);
+        releaseHostBody(handle.index, targetTick);
+        return true;
+    }
+
     BodyHandle spawn(const BodySpawnDesc& requested) {
         if (!initialized_) return {};
+        if (!finiteVector(requested.position)
+            || !finiteQuaternion(requested.orientation)
+            || !finiteVector(requested.linearVelocity)
+            || !finiteVector(requested.angularVelocity)
+            || !finiteVector(requested.dimensions)
+            || !std::isfinite(requested.inverseMass)
+            || (requested.material
+                && !validMaterial(*requested.material))) {
+            LOG_WARN("Discarding non-finite GPU body spawn");
+            return {};
+        }
         if (commands_.size() >= config_.commandCapacity) {
             commandCapacityOverflow_ = true;
             return {};
@@ -1118,6 +1402,17 @@ public:
             desc.dimensions = throwableShapeDimensions(desc.shape);
         }
         desc.inverseMass = std::max(desc.inverseMass, 0.0f);
+        if (!desc.material) {
+            desc.material = PhysicsMaterial{
+                .friction = config_.bodyFriction,
+                .restitution = desc.shape == ThrowableShape::Sphere
+                    ? config_.bodySphereRestitution
+                    : config_.bodyOtherRestitution,
+                .rollingResistance = 0.01f,
+                .density = 1.0f,
+                .flags = 0u,
+            };
+        }
         const float quaternionLength = glm::length(desc.orientation);
         desc.orientation = quaternionLength > 1e-6f
             ? desc.orientation / quaternionLength
@@ -1142,6 +1437,7 @@ public:
         command.e = glm::vec4(desc.dimensions,
                               static_cast<float>(desc.shape));
         command.sector = desc.sector;
+        command.material = desc.material;
         commands_.push_back(command);
         hostAlive_[index] = true;
         ++residentBodies_;
@@ -1150,29 +1446,38 @@ public:
     }
 
     bool destroy(BodyHandle handle) {
-        if (!initialized_ || !handle.valid() || handle.index >= bodyCapacity_
-            || !hostAlive_[handle.index]
-            || generations_[handle.index] != handle.generation) return false;
-        if (commands_.size() >= config_.commandCapacity) {
-            commandCapacityOverflow_ = true;
-            return false;
-        }
-        PhysicsCommand command;
-        command.type = PhysicsCommandType::DestroyBody;
-        command.body = handle;
-        command.targetTick = nextMutationTick();
-        command.sequence = nextSequence_++;
-        commands_.push_back(command);
-        hostAlive_[handle.index] = false;
-        generations_[handle.index] = nextBodyGeneration(
-            generations_[handle.index]);
-        pendingFrees_.push_back({command.targetTick, handle.index});
-        if (residentBodies_ != 0) --residentBodies_;
-        return true;
+        return queueDestroy(handle, nextMutationTick(), nextSequence_++);
     }
 
     void enqueueCommands(std::span<const PhysicsCommand> input) {
         for (PhysicsCommand command : input) {
+            if (static_cast<uint32_t>(command.type)
+                    > static_cast<uint32_t>(
+                        PhysicsCommandType::SetKinematicTarget)
+                || !finiteVector(command.a) || !finiteVector(command.b)
+                || !finiteVector(command.c) || !finiteVector(command.d)
+                || !finiteVector(command.e)
+                || (command.material
+                    && !validMaterial(*command.material))
+                || (command.type == PhysicsCommandType::SetMaterial
+                    && !command.material)) {
+                LOG_WARN("Discarding invalid or non-finite GPU physics command");
+                continue;
+            }
+            if (command.targetTick == 0u) {
+                command.targetTick = nextMutationTick();
+            } else if (command.targetTick <= encodedTick_) {
+                LOG_WARN("Discarding GPU physics command for retired tick {} (current {})",
+                         command.targetTick, encodedTick_);
+                continue;
+            }
+            if (command.sequence == 0u) command.sequence = nextSequence_++;
+
+            if (command.type == PhysicsCommandType::DestroyBody) {
+                static_cast<void>(queueDestroy(
+                    command.body, command.targetTick, command.sequence));
+                continue;
+            }
             if (commands_.size() >= config_.commandCapacity) {
                 commandCapacityOverflow_ = true;
                 LOG_WARN("GPU physics command capacity {} exceeded",
@@ -1181,6 +1486,57 @@ public:
             }
             if (!command.body.valid() || command.body.index >= bodyCapacity_)
                 continue;
+            if (command.type == PhysicsCommandType::SpawnBody) {
+                const uint32_t index = command.body.index;
+                const bool nextSlot = index == nextUnusedIndex_
+                    && nextUnusedIndex_ < bodyCapacity_;
+                const bool reusableSlot = freeIndices_.contains(index);
+                if (hostAlive_[index]
+                    || generations_[index] != command.body.generation
+                    || (!nextSlot && !reusableSlot)) {
+                    LOG_WARN("Discarding invalid replay SpawnBody for slot {} generation {}",
+                             index, command.body.generation);
+                    continue;
+                }
+                command.shape = std::min(
+                    command.shape, ThrowableShape::Cylinder);
+                command.a.w = std::max(command.a.w, 0.0f);
+                const float quaternionLength = glm::length(command.b);
+                command.b = quaternionLength > 1.0e-6f
+                    ? command.b / quaternionLength
+                    : glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+                command.e.w = static_cast<float>(command.shape);
+                if (glm::any(glm::lessThanEqual(
+                        glm::vec3(command.e), glm::vec3(0.0f)))) {
+                    command.e = glm::vec4(
+                        throwableShapeDimensions(command.shape),
+                        static_cast<float>(command.shape));
+                }
+                if (nextSlot) {
+                    ++nextUnusedIndex_;
+                } else {
+                    freeIndices_.erase(index);
+                }
+                hostAlive_[index] = true;
+                ++residentBodies_;
+                highResidentBodies_ = std::max(
+                    highResidentBodies_, residentBodies_);
+                if (!command.material) {
+                    command.material = PhysicsMaterial{
+                        .friction = config_.bodyFriction,
+                        .restitution = command.shape == ThrowableShape::Sphere
+                            ? config_.bodySphereRestitution
+                            : config_.bodyOtherRestitution,
+                        .rollingResistance = 0.01f,
+                        .density = 1.0f,
+                        .flags = 0u,
+                    };
+                }
+            } else if (!hostAlive_[command.body.index]
+                       || generations_[command.body.index]
+                              != command.body.generation) {
+                continue;
+            }
             if (command.type == PhysicsCommandType::SpawnBody
                 || command.type == PhysicsCommandType::Teleport
                 || command.type == PhysicsCommandType::SetKinematicTarget) {
@@ -1189,8 +1545,6 @@ public:
                 command.sector = position.sector;
                 command.a = glm::vec4(position.local, command.a.w);
             }
-            if (command.targetTick == 0) command.targetTick = nextMutationTick();
-            if (command.sequence == 0) command.sequence = nextSequence_++;
             commands_.push_back(command);
         }
     }
@@ -1246,10 +1600,19 @@ public:
         }
         const double maximumDelta = double{config_.fixedTickSeconds}
                                   * config_.maximumCatchUpTicks;
-        accumulator_ += std::min(
-            static_cast<double>(deltaTime), maximumDelta);
-        uint32_t scheduled = 0;
         const double fixedTick = static_cast<double>(config_.fixedTickSeconds);
+        // A minimized or occluded application may keep stepping the CPU side
+        // while no command encoder is submitted. Bound pending ticks and their
+        // companion accumulator as one debt; otherwise every such frame adds
+        // another catch-up batch and restoring the window can spend hundreds
+        // of frames behind real time.
+        const double pendingDebt = fixedTick * pendingTicks_;
+        const double availableDebt = std::max(maximumDelta - pendingDebt, 0.0);
+        accumulator_ = std::min(
+            accumulator_ + std::min(
+                static_cast<double>(deltaTime), maximumDelta),
+            availableDebt);
+        uint32_t scheduled = 0;
         while (accumulator_ + 1e-12 >= fixedTick
                && pendingTicks_ < config_.maximumCatchUpTicks) {
             accumulator_ -= fixedTick;
@@ -1286,7 +1649,18 @@ public:
                     PhysicsQueryType::CapsuleCast)
                 || request.maximumHits == 0 || request.radius < 0.0f
                 || request.maximumDistance < 0.0f
-                || request.capsuleHalfHeight < 0.0f) {
+                || request.capsuleHalfHeight < 0.0f
+                || (request.flags & ~kPhysicsQueryKnownFlags) != 0u
+                || ((request.flags & PhysicsQueryExcludeStatic) != 0u
+                    && (request.flags & PhysicsQueryExcludeDynamic) != 0u)
+                || ((request.flags & PhysicsQueryExcludeSleeping) != 0u
+                    && (request.flags & PhysicsQueryExcludeAwake) != 0u)
+                || (request.type != PhysicsQueryType::OverlapSphere
+                    && glm::dot(request.direction, request.direction)
+                        <= 1e-12f)
+                || (request.type == PhysicsQueryType::CapsuleCast
+                    && glm::dot(request.capsuleAxis, request.capsuleAxis)
+                        <= 1e-12f)) {
                 return false;
             }
             const WorldPosition queryOrigin = canonicalWorldPosition(
@@ -1361,6 +1735,8 @@ public:
                 PhysicsQueryHit hit;
                 hit.requestId = sourceHit.ids[0];
                 hit.bodyIndex = sourceHit.ids[1];
+                hit.bodyGeneration = static_cast<uint32_t>(
+                    sourceHit.sector[3]);
                 hit.featureId = sourceHit.ids[2];
                 hit.type = static_cast<PhysicsQueryType>(std::min(
                     sourceHit.ids[3],
@@ -1406,11 +1782,21 @@ public:
             if (event.type == PhysicsEventType::ContactBegin
                 || event.type == PhysicsEventType::ContactEnd
                 || event.type == PhysicsEventType::ContactHit) {
-                event.bodyA = std::min(source.header[2], source.header[3]);
-                event.bodyB = std::max(source.header[2], source.header[3]);
+                const bool sourceIsSorted =
+                    source.header[2] <= source.header[3];
+                event.bodyA = sourceIsSorted
+                    ? source.header[2] : source.header[3];
+                event.bodyB = sourceIsSorted
+                    ? source.header[3] : source.header[2];
+                event.bodyGenerationA = sourceIsSorted
+                    ? source.identity[0] : source.identity[1];
+                event.bodyGenerationB = sourceIsSorted
+                    ? source.identity[1] : source.identity[0];
             } else {
                 event.bodyA = source.header[2];
                 event.bodyB = source.header[3];
+                event.bodyGenerationA = source.identity[0];
+                event.bodyGenerationB = source.identity[1];
             }
             event.featureId = source.detail[0];
             event.sourceId = source.detail[1];
@@ -1482,10 +1868,41 @@ public:
                 return lhs.sequence < rhs.sequence;
             });
 
+        // A kinematic target describes the pose at the end of a tick, not an
+        // incremental move. Applying several targets for the same body/tick
+        // would otherwise derive velocity from only the last tiny segment.
+        // Retain the final target in each uninterrupted pose-command run.
+        std::vector<bool> supersededTarget(commands_.size(), false);
+        std::unordered_set<uint64_t> laterTargets;
+        uint64_t reverseTick = std::numeric_limits<uint64_t>::max();
+        for (size_t offset = commands_.size(); offset != 0u; --offset) {
+            const size_t index = offset - 1u;
+            const PhysicsCommand& command = commands_[index];
+            if (command.targetTick != reverseTick) {
+                reverseTick = command.targetTick;
+                laterTargets.clear();
+            }
+            const uint64_t bodyKey =
+                (uint64_t{command.body.index} << 32u)
+                | command.body.generation;
+            if (command.type == PhysicsCommandType::SetKinematicTarget) {
+                if (!laterTargets.insert(bodyKey).second) {
+                    supersededTarget[index] = true;
+                }
+            } else if (command.type == PhysicsCommandType::Teleport
+                       || command.type == PhysicsCommandType::SpawnBody
+                       || command.type == PhysicsCommandType::DestroyBody) {
+                laterTargets.erase(bodyKey);
+            }
+        }
+
         std::vector<GpuCommand> upload;
         upload.reserve(std::min<size_t>(commands_.size(),
                                         config_.commandCapacity));
-        for (const auto& command : commands_) {
+        for (size_t commandIndex = 0u; commandIndex < commands_.size();
+             ++commandIndex) {
+            if (supersededTarget[commandIndex]) continue;
+            const auto& command = commands_[commandIndex];
             if (command.targetTick > finalTick) continue;
             if (upload.size() >= config_.commandCapacity) break;
             GpuCommand gpuCommand;
@@ -1498,7 +1915,13 @@ public:
             gpuCommand.p2 = command.c;
             gpuCommand.p3 = command.d;
             gpuCommand.p4 = command.e;
-            gpuCommand.p5 = glm::ivec4(command.sector, 0);
+            gpuCommand.p5 = glm::ivec4(
+                command.sector,
+                command.material
+                    ? static_cast<int32_t>(command.material->flags) : 0);
+            if (command.material) {
+                gpuCommand.p6 = materialCoefficients(*command.material);
+            }
             upload.push_back(gpuCommand);
         }
         if (!upload.empty()) {
@@ -1552,6 +1975,12 @@ public:
         uniforms.terrainMaterials = glm::vec4(
             config_.terrainFriction, config_.terrainSphereRestitution,
             config_.terrainOtherRestitution, 0.0f);
+        uniforms.bodyMaterials = glm::vec4(
+            config_.bodyFriction, config_.bodySphereRestitution,
+            config_.bodyOtherRestitution, 0.01f);
+        uniforms.waterSurface = glm::vec4(
+            externalWaterView_ ? waterSurfaceStrength_ : 0.0f,
+            0.0f, 0.0f, 0.0f);
         uniforms.worldSector = glm::ivec4(0);
         gpu::writeBuffer(queue_, uniformBuffer_, 0, uniforms);
         lastGpuUploadBytes_ += sizeof(SimulationUniforms);
@@ -1596,6 +2025,7 @@ public:
             wgpuComputePassEncoderEnd(timestampPass);
             wgpuComputePassEncoderRelease(timestampPass);
         };
+        bool batchSucceeded = true;
         for (uint32_t tick = 0; tick < pendingTicks_; ++tick) {
             writeStageTimestamp();
             WGPUComputePassEncoder pass =
@@ -1623,7 +2053,9 @@ public:
 
             if (executeBodyPipeline && terrainAttached_ && !ccd_.encode(
                     encoder, config_.fixedTickSeconds)) {
-                LOG_WARN("Failed to encode GPU CCD pass");
+                LOG_ERROR("Failed to encode GPU CCD pass");
+                batchSucceeded = false;
+                break;
             }
             writeStageTimestamp();
 
@@ -1676,6 +2108,12 @@ public:
                 && (!narrowPhaseEnabled
                     || narrowPhase_.encode(
                         encoder, narrowProfilingBoundary));
+            if (executeBodyPipeline && dynamicContactsEnabled
+                && !narrowPhaseEncoded) {
+                LOG_ERROR("Failed to encode a GPU broad/narrow-phase stage");
+                batchSucceeded = false;
+                break;
+            }
             if (!narrowPhaseEnabled) {
                 for (uint32_t boundary = 0u;
                      boundary
@@ -1726,12 +2164,16 @@ public:
             }
             if (executeBodyPipeline && !dynamicWorldEncoded) {
                 LOG_ERROR("Failed to encode a GPU dynamic-world stage");
+                batchSucceeded = false;
+                break;
             }
             if (executeBodyPipeline && dynamicContactsEnabled
                 && narrowPhaseEncoded && dynamicWorldEncoded
                 && !narrowPhase_.encodeCommitActiveManifolds(encoder)) {
                 LOG_ERROR("Failed to commit dense GPU contact manifolds");
                 dynamicWorldEncoded = false;
+                batchSucceeded = false;
+                break;
             }
             writeStageTimestamp();
 
@@ -1756,6 +2198,8 @@ public:
                     encoder,
                     executionBodies <= kCompactIslandBodyLimit)) {
                 LOG_ERROR("Failed to encode the GPU island stage");
+                batchSucceeded = false;
+                break;
             }
             writeStageTimestamp();
 
@@ -1777,6 +2221,17 @@ public:
                 }
             }
             writeStageTimestamp();
+        }
+
+        if (!batchSucceeded) {
+            // Earlier passes may already be present in the caller's encoder.
+            // Do not pretend that the authoritative tick completed or retire
+            // its commands. Mark the backend unusable so a fresh world must be
+            // initialized instead of replaying against partially mutated GPU
+            // state.
+            initialized_ = false;
+            LOG_ERROR("WebGPU physics stopped after an incomplete encoded tick; reinitialize the world");
+            return;
         }
 
         const bool sampleTelemetry = config_.enableTelemetryReadback
@@ -1877,12 +2332,7 @@ public:
                 ++it;
             }
         }
-        while (nextUnusedIndex_ > 1u) {
-            const uint32_t last = nextUnusedIndex_ - 1u;
-            if (hostAlive_[last] || !freeIndices_.contains(last)) break;
-            freeIndices_.erase(last);
-            --nextUnusedIndex_;
-        }
+        shrinkUnusedTail();
 
         if (debugRequest_) {
             const size_t bytes = size_t{debugRequest_->bodyCount} * kGpuBodyBytes;
@@ -1934,7 +2384,9 @@ public:
             const glm::vec4 linear = asFloat(body[2]);
             const glm::vec4 angular = asFloat(body[3]);
             const glm::vec4 shape = asFloat(body[4]);
-            const uint32_t packedMetadata = body[6].w;
+            const glm::vec4 inertia = asFloat(body[5]);
+            const glm::vec4 material = asFloat(body[6]);
+            const uint32_t packedMetadata = body[8].w;
             const uint32_t flags =
                 packedMetadata & ~kGpuBodyGenerationMask;
             DebugBodyState state;
@@ -1942,13 +2394,22 @@ public:
                 raw->firstBody + local,
                 packedMetadata & kGpuBodyGenerationMask};
             glm::ivec4 signedMetadata;
-            std::memcpy(&signedMetadata, &body[6], sizeof(signedMetadata));
+            std::memcpy(&signedMetadata, &body[8], sizeof(signedMetadata));
             state.sector = glm::ivec3(signedMetadata);
             state.position = glm::vec3(position);
             state.orientation = glm::quat(
                 orientation.w, orientation.x, orientation.y, orientation.z);
             state.linearVelocity = glm::vec3(linear);
             state.angularVelocity = glm::vec3(angular);
+            state.dimensions = glm::vec3(shape);
+            state.inverseInertia = glm::vec3(inertia);
+            state.material = {
+                .friction = material.x,
+                .restitution = material.y,
+                .rollingResistance = material.z,
+                .density = material.w,
+                .flags = body[7].x,
+            };
             state.shape = static_cast<ThrowableShape>(std::min(
                 static_cast<uint32_t>(std::max(shape.w, 0.0f)),
                 static_cast<uint32_t>(ThrowableShape::Count) - 1u));
@@ -1960,6 +2421,8 @@ public:
             state.terrainRejectedByMip =
                 (flags & kGpuBodyTerrainMipRejectedFlag) != 0;
             state.submerged = (flags & kGpuBodySubmergedFlag) != 0;
+            state.kinematic = (flags & kGpuBodyKinematicFlag) != 0;
+            state.runtimeFlags = flags;
             result.bodies.push_back(state);
         }
         cachedDebugBodies_ = result.bodies;
@@ -1985,7 +2448,7 @@ public:
         result.substeps = config_.substeps;
         result.residentBodies = residentBodies_;
         result.activeBodies = residentBodies_;
-        result.bodyCapacity = bodyCapacity_;
+        result.bodyCapacity = bodyLimit_;
         result.pairCapacity = pairCapacity_;
         result.contactCapacity = contactCapacity_;
         result.manifoldCapacity = manifoldCapacity_;
@@ -2028,7 +2491,7 @@ public:
             uint64_t{activeCapacity_} * 8u
             * std::max(config_.substeps, 1u));
         result.residentBodyUsage = {
-            residentBodies_, bodyCapacity_,
+            residentBodies_, bodyLimit_,
             std::max(highResidentBodies_, residentBodies_),
             bodyCapacityOverflow_};
         result.activeBodyUsage = {
@@ -2045,8 +2508,8 @@ public:
         result.terrainContactUsage.capacity = terrainContactCapacity;
         result.overflowConstraintUsage.capacity = contactCapacity_;
         result.eventUsage.capacity = eventCapacity_;
-        result.visibleBodyUsage.capacity = bodyCapacity_;
-        result.sleepingGridUsage.capacity = bodyCapacity_;
+        result.visibleBodyUsage.capacity = bodyLimit_;
+        result.sleepingGridUsage.capacity = bodyLimit_;
         result.bulletUsage.capacity = ccdBulletCapacity_;
         result.waterSampleUsage.capacity = waterSampleCapacity;
         if (!cachedTelemetry_.valid) return result;
@@ -2095,7 +2558,7 @@ public:
             saturatingU32(uint64_t{broad.highEvents} + islands.highEvents),
             broad.eventOverflow || islands.eventOverflow};
         result.sleepingGridUsage = {
-            islands.sleepingGridEntries, bodyCapacity_,
+            islands.sleepingGridEntries, bodyLimit_,
             islands.highSleepingGridEntries, islands.gridOverflow};
         const bool ccdIsCurrent = ccd.tick == core.tick;
         result.bulletUsage = {
@@ -2119,6 +2582,7 @@ public:
         result.maximumTerrainContactsPerBody =
             core.maximumTerrainContactsPerBody;
         result.submergedBodies = core.submergedBodies;
+        result.kinematicBodies = core.kinematicBodies;
         result.compactIslandContacts = solver.smallIslandContacts;
         result.compactIslandBodies = solver.smallIslandBodies;
         result.serialWorldSolver = solver.serialWorld;
@@ -2202,6 +2666,7 @@ public:
     PhysicsInitContext::GpuConfig config_{};
     WGPULimits deviceLimits_{};
     uint32_t bodyCapacity_ = 0;
+    uint32_t bodyLimit_ = 0;
     uint32_t activeCapacity_ = 0;
     uint32_t pairCapacity_ = 0;
     uint32_t contactCapacity_ = 0;
@@ -2227,7 +2692,8 @@ public:
     uint32_t stageQueryCapacity_ = 0u;
     uint64_t lastStageProfileTick_ = 0u;
     uint64_t lastTelemetryReadbackTick_ = 0u;
-    WaterSurfaceSampler waterSampler_;
+    float waterSurfaceStrength_ = 0.0f;
+    bool warnedCpuWaterSampler_ = false;
     PhysicsStepStats lastStepStats_{};
     CachedTelemetry cachedTelemetry_{};
     DynamicBodyReadStats lastReadStats_{};
@@ -2274,6 +2740,11 @@ public:
     WGPUTexture ownedTerrainTexture_ = nullptr;
     WGPUTextureView ownedTerrainView_ = nullptr;
     WGPUTextureView externalTerrainView_ = nullptr;
+    WGPUTexture fallbackWaterTexture_ = nullptr;
+    WGPUTextureView fallbackWaterView_ = nullptr;
+    WGPUSampler fallbackWaterSampler_ = nullptr;
+    WGPUTextureView externalWaterView_ = nullptr;
+    WGPUSampler externalWaterSampler_ = nullptr;
     WGPUShaderModule shaderModule_ = nullptr;
     WGPUBindGroupLayout commandLayout_ = nullptr;
     WGPUBindGroupLayout compactLayout_ = nullptr;
@@ -2333,11 +2804,23 @@ void GpuPhysicsBackend::setTerrainGpuResources(
 void GpuPhysicsBackend::clearTerrain() { impl_->clearTerrain(); }
 bool GpuPhysicsBackend::hasTerrain() const noexcept { return impl_->terrainAttached_; }
 void GpuPhysicsBackend::setWaterPlane(float height, bool enabled) {
+    if (!std::isfinite(height)) {
+        LOG_WARN("Ignoring non-finite GPU water-plane height");
+        impl_->waterEnabled_ = false;
+        return;
+    }
     impl_->waterHeight_ = height;
     impl_->waterEnabled_ = enabled;
 }
 void GpuPhysicsBackend::setWaterSurfaceSampler(WaterSurfaceSampler sampler) {
-    impl_->waterSampler_ = std::move(sampler);
+    if (sampler && !impl_->warnedCpuWaterSampler_) {
+        LOG_WARN("WebGPU physics cannot execute a CPU water callback; bind the shared displacement texture with setWaterGpuResources instead");
+        impl_->warnedCpuWaterSampler_ = true;
+    }
+}
+void GpuPhysicsBackend::setWaterGpuResources(
+    const WaterGpuResources& resources) {
+    impl_->setWaterGpuResources(resources);
 }
 CharacterHandle GpuPhysicsBackend::createCharacter(
     const glm::vec3& feetPosition, const CharacterSettings& settings) {
@@ -2419,7 +2902,7 @@ std::vector<DynamicBodySnapshot> GpuPhysicsBackend::dynamicBodies(
     for (const auto& body : impl_->cachedDebugBodies_) {
         if (!body.alive) continue;
         result.push_back({body.shape, body.position, body.orientation,
-                          throwableShapeDimensions(body.shape), body.awake,
+                          body.dimensions, body.awake,
                           body.sector});
     }
     impl_->lastReadStats_ = {

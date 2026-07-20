@@ -129,6 +129,10 @@ void PhysicsWorld::setWaterSurfaceSampler(WaterSurfaceSampler sampler) {
     if (backend_) backend_->setWaterSurfaceSampler(std::move(sampler));
 }
 
+void PhysicsWorld::setWaterGpuResources(const WaterGpuResources& resources) {
+    if (backend_) backend_->setWaterGpuResources(resources);
+}
+
 PhysicsWorld::CharacterHandle PhysicsWorld::createCharacter(
     const glm::vec3& feetPosition, const CharacterSettings& settings) {
     return backend_

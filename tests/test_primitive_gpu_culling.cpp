@@ -42,6 +42,7 @@ struct alignas(16) TestPose {
 struct alignas(16) TestShape {
     glm::vec4 dimensionsType{0.0f};
     glm::vec4 properties{0.0f};
+    glm::vec4 material{-1.0f, -1.0f, -1.0f, 1.0f};
 };
 
 struct alignas(16) TestMetadata {
@@ -57,7 +58,7 @@ struct IndirectDrawArgs {
 };
 
 static_assert(sizeof(TestPose) == 32);
-static_assert(sizeof(TestShape) == 32);
+static_assert(sizeof(TestShape) == 48);
 static_assert(sizeof(TestMetadata) == 16);
 static_assert(sizeof(IndirectDrawArgs) == 20);
 

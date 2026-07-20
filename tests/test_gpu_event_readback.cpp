@@ -2,6 +2,7 @@
 
 #include "gpu/context.hpp"
 #include "gpu/resources.hpp"
+#include "physics/gpu/gpu_body_metadata.hpp"
 #include "physics/gpu/gpu_broad_phase.hpp"
 #include "physics/gpu/gpu_event_readback.hpp"
 #include "physics/gpu/gpu_islands.hpp"
@@ -86,10 +87,13 @@ TEST(GpuEventReadback, PacksPriorityAndStableKeysThroughAsyncRing) {
     std::array<GpuContactEvent, contactCapacity * 2u> contacts{};
     contacts[0] = {2u, 5u,
         static_cast<uint32_t>(ContactEventType::Begin), 7u};
+    contacts[0].identity = {102u, 105u, 0u, 0u};
     contacts[1] = {4u, 6u,
         static_cast<uint32_t>(ContactEventType::Begin), 8u};
+    contacts[1].identity = {104u, 106u, 0u, 0u};
     contacts[contactCapacity] = {
         1u, 3u, static_cast<uint32_t>(ContactEventType::End), 9u};
+    contacts[contactCapacity].identity = {71u, 73u, 0u, 0u};
     std::array<uint32_t, 32> contactTelemetry{};
     contactTelemetry[7] = 2u;
     contactTelemetry[8] = 1u;
@@ -108,6 +112,11 @@ TEST(GpuEventReadback, PacksPriorityAndStableKeysThroughAsyncRing) {
     manifolds[0].points[0].impulses[1] = 3.0f;
     std::array<uint32_t, 32> narrowTelemetry{};
     narrowTelemetry[11] = 1u;
+    std::array<std::array<uint32_t, 4>, 13> metadata{};
+    for (uint32_t body = 1u; body < metadata.size(); ++body) {
+        metadata[body][3] = packGpuBodyMetadata(
+            100u + body, kGpuBodyAliveFlag);
+    }
 
     WGPUBuffer contactBuffer = makeStorage<GpuContactEvent>(
         context, contacts, "event_test_contacts");
@@ -121,6 +130,8 @@ TEST(GpuEventReadback, PacksPriorityAndStableKeysThroughAsyncRing) {
         context, manifolds, "event_test_manifolds");
     WGPUBuffer narrowTelemetryBuffer = makeStorage<uint32_t>(
         context, narrowTelemetry, "event_test_narrow_telemetry");
+    WGPUBuffer metadataBuffer = makeStorage<std::array<uint32_t, 4>>(
+        context, metadata, "event_test_metadata");
 
     const GpuEventSources sources{
         .contactEvents = contactBuffer,
@@ -132,6 +143,8 @@ TEST(GpuEventReadback, PacksPriorityAndStableKeysThroughAsyncRing) {
         .manifolds = manifoldBuffer,
         .narrowPhaseTelemetry = narrowTelemetryBuffer,
         .manifoldCapacity = static_cast<uint32_t>(manifolds.size()),
+        .metadata = metadataBuffer,
+        .bodyCapacity = static_cast<uint32_t>(metadata.size()),
     };
     GpuEventReadbackRing ring;
     GpuEventReadbackRing::Config config;
@@ -165,9 +178,17 @@ TEST(GpuEventReadback, PacksPriorityAndStableKeysThroughAsyncRing) {
     EXPECT_EQ(batch->events[3].header[3], 12u);
     EXPECT_EQ(batch->events[3].detail[0], 42u);
     EXPECT_EQ(batch->events[3].detail[1], 77u);
+    EXPECT_EQ(batch->events[0].identity[0], 102u);
+    EXPECT_EQ(batch->events[0].identity[1], 105u);
+    EXPECT_EQ(batch->events[2].identity[0], 71u);
+    EXPECT_EQ(batch->events[2].identity[1], 73u);
+    EXPECT_EQ(batch->events[3].identity[0], 110u);
+    EXPECT_EQ(batch->events[3].identity[1], 112u);
     EXPECT_EQ(batch->events[4].header[2], 4u);
     EXPECT_EQ(batch->events[4].detail[2], 3u);
     EXPECT_EQ(batch->events[5].header[2], 9u);
+    EXPECT_EQ(batch->events[4].identity[0], 104u);
+    EXPECT_EQ(batch->events[5].identity[0], 109u);
     EXPECT_GT(ring.allocatedBytes(), 0u);
     ring.shutdown();
 
@@ -186,6 +207,7 @@ TEST(GpuEventReadback, PacksPriorityAndStableKeysThroughAsyncRing) {
               static_cast<uint32_t>(GpuPhysicsEventType::ContactEnd));
     limited.shutdown();
 
+    releaseBuffer(metadataBuffer);
     releaseBuffer(narrowTelemetryBuffer);
     releaseBuffer(manifoldBuffer);
     releaseBuffer(islandTelemetryBuffer);

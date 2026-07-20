@@ -426,7 +426,10 @@ void Application::shutdown() {
         trianglePath_.reset();
     }
     if (waterSimulation_) {
-        if (physicsWorld_) physicsWorld_->setWaterSurfaceSampler({});
+        if (physicsWorld_) {
+            physicsWorld_->setWaterSurfaceSampler({});
+            physicsWorld_->setWaterGpuResources({});
+        }
         waterSimulation_->shutdown();
         waterSimulation_.reset();
     }
@@ -583,17 +586,32 @@ void Application::render() {
     // Update camera uniforms for all renderers
     updateCameraUniforms();
 
-    // GPU physics writes persistent poses into this frame's command stream.
-    // CPU backends intentionally no-op here.
-    if (physicsWorld_) {
-        physicsWorld_->encodeGpuStep(encoder);
-    }
-
     renderGpuProfilingFrame_ = renderGpuQuerySet_
         && config_.renderPath == RenderPath::Raycast
         && raycastPath_ && raycastPath_->isInitialized()
         && blitPath_ && blitPath_->isInitialized()
         && stats_.frameCount % kRenderGpuProfilingIntervalFrames == 0u;
+
+    // Evolve the authoritative surface before physics samples it. Keeping
+    // this outside the raycast path also gives the triangle renderer and GPU
+    // physics the same animated ocean instead of a never-updated texture.
+    if (config_.waterEnabled && waterSimulation_
+        && waterSimulation_->isInitialized()) {
+        constexpr uint32_t stage =
+            static_cast<uint32_t>(RenderGpuStage::WaterSimulation);
+        waterSimulation_->update(
+            encoder,
+            static_cast<float>(std::fmod(stats_.totalTimeSeconds, 4096.0)),
+            renderGpuProfilingFrame_ ? renderGpuQuerySet_ : nullptr,
+            stage * kRenderGpuQueriesPerStage,
+            stage * kRenderGpuQueriesPerStage + 1u);
+    }
+
+    // GPU physics writes persistent poses into this frame's command stream.
+    // CPU backends intentionally no-op here.
+    if (physicsWorld_) {
+        physicsWorld_->encodeGpuStep(encoder);
+    }
 
     // Render based on active path
     switch (config_.renderPath) {
@@ -1568,14 +1586,20 @@ bool Application::initRenderers() {
     }
     if (physicsWorld_) {
         const float waveStrength = config_.waterWaveStrength;
-        physicsWorld_->setWaterSurfaceSampler(
-            [simulation = waterSimulation_.get(), waveStrength](
-                glm::vec2 position, float timeSeconds) {
-                const auto sample = simulation->sampleSurface(
-                    position, timeSeconds, waveStrength);
-                return physics::PhysicsWorld::WaterSurfaceSample{
-                    sample.heightOffset, sample.slope, sample.velocity};
-            });
+        if (physicsWorld_->backendType() == physics::BackendType::WebGpuSoft) {
+            physicsWorld_->setWaterGpuResources({
+                waterSimulation_->getOutputView(),
+                waterSimulation_->getSampler(), waveStrength});
+        } else {
+            physicsWorld_->setWaterSurfaceSampler(
+                [simulation = waterSimulation_.get(), waveStrength](
+                    glm::vec2 position, float timeSeconds) {
+                    const auto sample = simulation->sampleSurface(
+                        position, timeSeconds, waveStrength);
+                    return physics::PhysicsWorld::WaterSurfaceSample{
+                        sample.heightOffset, sample.slope, sample.velocity};
+                });
+        }
     }
 
     // Initialize triangle path
@@ -1871,17 +1895,6 @@ void Application::renderRaycastPath(WGPUCommandEncoder encoder, WGPUTextureView 
     }
     if (!blitPath_ || !blitPath_->isInitialized()) {
         return;
-    }
-
-    if (config_.waterEnabled && waterSimulation_ && waterSimulation_->isInitialized()) {
-        constexpr uint32_t stage =
-            static_cast<uint32_t>(RenderGpuStage::WaterSimulation);
-        waterSimulation_->update(
-            encoder,
-            static_cast<float>(std::fmod(stats_.totalTimeSeconds, 4096.0)),
-            renderGpuProfilingFrame_ ? renderGpuQuerySet_ : nullptr,
-            stage * kRenderGpuQueriesPerStage,
-            stage * kRenderGpuQueriesPerStage + 1u);
     }
 
     // Dispatch ray-cast compute shader

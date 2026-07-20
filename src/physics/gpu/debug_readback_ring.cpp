@@ -34,7 +34,17 @@ bool DebugReadbackRing::initialize(WGPUDevice device, uint32_t slotCount,
 void DebugReadbackRing::shutdown() {
     for (auto& slot : slots_) {
         if (!slot.buffer) continue;
-        if (slot.state == State::Ready) wgpuBufferUnmap(slot.buffer);
+        const State mappingState = slot.mapping
+            ? slot.mapping->state.load(std::memory_order_acquire)
+            : slot.state;
+        if (slot.state == State::Mapping || slot.state == State::Ready
+            || mappingState == State::Mapping
+            || mappingState == State::Ready) {
+            // Unmap also cancels an outstanding map request. The callback owns
+            // only its heap payload/shared state, so an asynchronous Abort
+            // cannot touch this ring after shutdown.
+            wgpuBufferUnmap(slot.buffer);
+        }
         wgpuBufferDestroy(slot.buffer);
         wgpuBufferRelease(slot.buffer);
     }
@@ -42,6 +52,7 @@ void DebugReadbackRing::shutdown() {
     device_ = nullptr;
     slotBytes_ = 0;
     nextSlot_ = 0;
+    nextSequence_ = 1;
 }
 
 bool DebugReadbackRing::encodeCopy(WGPUCommandEncoder encoder,
@@ -57,6 +68,7 @@ bool DebugReadbackRing::encodeCopy(WGPUCommandEncoder encoder,
         wgpuCommandEncoderCopyBufferToBuffer(
             encoder, source, sourceOffset, slot.buffer, 0, byteCount);
         slot.tick = tick;
+        slot.sequence = nextSequence_++;
         slot.firstBody = firstBody;
         slot.bodyCount = bodyCount;
         slot.byteCount = static_cast<size_t>(byteCount);
@@ -71,16 +83,22 @@ bool DebugReadbackRing::encodeCopy(WGPUCommandEncoder encoder,
 void DebugReadbackRing::mapCallback(WGPUMapAsyncStatus status,
                                     WGPUStringView, void* userdata,
                                     void*) {
-    auto& slot = *static_cast<Slot*>(userdata);
-    slot.state = status == WGPUMapAsyncStatus_Success
-        ? State::Ready : State::Failed;
+    std::unique_ptr<CallbackPayload> payload(
+        static_cast<CallbackPayload*>(userdata));
+    payload->mapping->state.store(
+        status == WGPUMapAsyncStatus_Success
+            ? State::Ready : State::Failed,
+        std::memory_order_release);
 }
 #else
 void DebugReadbackRing::mapCallback(WGPUBufferMapAsyncStatus status,
                                     void* userdata) {
-    auto& slot = *static_cast<Slot*>(userdata);
-    slot.state = status == WGPUBufferMapAsyncStatus_Success
-        ? State::Ready : State::Failed;
+    std::unique_ptr<CallbackPayload> payload(
+        static_cast<CallbackPayload*>(userdata));
+    payload->mapping->state.store(
+        status == WGPUBufferMapAsyncStatus_Success
+            ? State::Ready : State::Failed,
+        std::memory_order_release);
 }
 #endif
 
@@ -88,40 +106,63 @@ std::optional<RawDebugReadback> DebugReadbackRing::poll() {
     for (auto& slot : slots_) {
         if (slot.state == State::CopyEncoded) {
             slot.state = State::Mapping;
+            slot.mapping = std::make_shared<MappingState>();
+            auto* payload = new CallbackPayload{slot.mapping};
 #if defined(VOXY_WASM)
             WGPUBufferMapCallbackInfo callbackInfo =
                 WGPU_BUFFER_MAP_CALLBACK_INFO_INIT;
             callbackInfo.mode = WGPUCallbackMode_AllowSpontaneous;
             callbackInfo.callback = mapCallback;
-            callbackInfo.userdata1 = &slot;
+            callbackInfo.userdata1 = payload;
             static_cast<void>(wgpuBufferMapAsync(
                 slot.buffer, WGPUMapMode_Read, 0, slot.byteCount,
                 callbackInfo));
 #else
             wgpuBufferMapAsync(slot.buffer, WGPUMapMode_Read, 0,
-                               slot.byteCount, mapCallback, &slot);
+                               slot.byteCount, mapCallback, payload);
 #endif
         }
     }
+
     for (auto& slot : slots_) {
-        if (slot.state == State::Failed) {
-            slot.state = State::Idle;
+        if (slot.state != State::Mapping || !slot.mapping) continue;
+        const State mapped = slot.mapping->state.load(std::memory_order_acquire);
+        if (mapped == State::Ready || mapped == State::Failed) {
+            slot.state = mapped;
+            slot.mapping.reset();
+        }
+    }
+
+    while (true) {
+        Slot* oldest = nullptr;
+        for (auto& slot : slots_) {
+            if (slot.state == State::Idle) continue;
+            if (!oldest || slot.sequence < oldest->sequence) oldest = &slot;
+        }
+        if (!oldest) return std::nullopt;
+        if (oldest->state == State::Failed) {
+            oldest->state = State::Idle;
             continue;
         }
-        if (slot.state != State::Ready) continue;
+        if (oldest->state != State::Ready) return std::nullopt;
+
         RawDebugReadback result;
-        result.tick = slot.tick;
-        result.firstBody = slot.firstBody;
-        result.bodyCount = slot.bodyCount;
-        result.bytes.resize(slot.byteCount);
+        result.tick = oldest->tick;
+        result.firstBody = oldest->firstBody;
+        result.bodyCount = oldest->bodyCount;
+        result.bytes.resize(oldest->byteCount);
         const void* mapped = wgpuBufferGetConstMappedRange(
-            slot.buffer, 0, slot.byteCount);
-        if (mapped) std::memcpy(result.bytes.data(), mapped, slot.byteCount);
-        wgpuBufferUnmap(slot.buffer);
-        slot.state = State::Idle;
+            oldest->buffer, 0, oldest->byteCount);
+        if (!mapped) {
+            wgpuBufferUnmap(oldest->buffer);
+            oldest->state = State::Idle;
+            return std::nullopt;
+        }
+        std::memcpy(result.bytes.data(), mapped, oldest->byteCount);
+        wgpuBufferUnmap(oldest->buffer);
+        oldest->state = State::Idle;
         return result;
     }
-    return std::nullopt;
 }
 
 } // namespace voxy::physics

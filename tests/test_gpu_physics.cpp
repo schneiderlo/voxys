@@ -1,11 +1,14 @@
 #include <gtest/gtest.h>
 
 #include "gpu/context.hpp"
+#include "gpu/resources.hpp"
 #include "physics/physics_world.hpp"
 
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <iostream>
+#include <limits>
 #include <optional>
 #include <vector>
 
@@ -87,9 +90,9 @@ protected:
         return result;
     }
 
-    PhysicsStats retireTelemetry() {
+    PhysicsStats retireTelemetry(uint64_t minimumTick = 1u) {
         PhysicsStats stats = world.stats();
-        for (uint32_t attempt = 0; stats.telemetryTick == 0u
+        for (uint32_t attempt = 0; stats.telemetryTick < minimumTick
              && attempt < 8u; ++attempt) {
             world.update(1.0e-6f);
             static_cast<void>(wgpuDevicePoll(
@@ -236,8 +239,10 @@ TEST_F(GpuPhysicsTest, ComposesBodyContactsEventsAndAsyncQueries) {
     EXPECT_TRUE(std::any_of(events->events.begin(), events->events.end(),
         [left, right](const PhysicsEvent& event) {
             return event.type == PhysicsEventType::ContactBegin
-                && event.bodyA == std::min(left.index, right.index)
-                && event.bodyB == std::max(left.index, right.index);
+                && ((event.bodyHandleA() == left
+                     && event.bodyHandleB() == right)
+                    || (event.bodyHandleA() == right
+                        && event.bodyHandleB() == left));
         })) << "first type=" << static_cast<uint32_t>(events->events[0].type)
             << " bodies=" << events->events[0].bodyA << ','
             << events->events[0].bodyB;
@@ -285,6 +290,14 @@ TEST_F(GpuPhysicsTest, ComposesBodyContactsEventsAndAsyncQueries) {
     EXPECT_GE(queries->outputs[0].hits.size(), 2u);
     EXPECT_LE(queries->outputs[0].hits[0].distance,
               queries->outputs[0].hits[1].distance);
+    for (const PhysicsQueryHit& hit : queries->outputs[0].hits) {
+        if (hit.bodyIndex == left.index) {
+            EXPECT_EQ(hit.bodyHandle(), left);
+        }
+        if (hit.bodyIndex == right.index) {
+            EXPECT_EQ(hit.bodyHandle(), right);
+        }
+    }
 }
 
 TEST_F(GpuPhysicsTest, SpeculativeSweepPreventsThrownCapsulesFromCrossing) {
@@ -551,6 +564,89 @@ TEST_F(GpuPhysicsTest, MatchesJoltSphereTerrainBounceTrajectory) {
     EXPECT_LT(maximumHorizontalError, 0.12f);
 }
 
+TEST_F(GpuPhysicsTest, ReportsJoltWebGpuSphereWaterTrajectory) {
+    PhysicsWorld gpuParityWorld;
+    PhysicsInitContext gpuConfig;
+    gpuConfig.requestedBackend = BackendType::WebGpuSoft;
+    gpuConfig.device = gpuContext.getDevice();
+    gpuConfig.queue = gpuContext.getQueue();
+    gpuConfig.maxBodies = 64u;
+    gpuConfig.maxActiveBodies = 64u;
+    gpuConfig.maxPairs = 64u;
+    gpuConfig.maxContacts = 64u;
+    gpuConfig.maxManifolds = 64u;
+    gpuConfig.gpu.commandCapacity = 64u;
+    gpuConfig.gpu.debugReadbackSlots = 2u;
+    gpuConfig.gpu.debugReadbackBodyCapacity = 1u;
+    gpuConfig.gpu.enableTelemetryReadback = false;
+    gpuConfig.gpu.waterLinearDrag = 0.93f;
+    ASSERT_TRUE(gpuParityWorld.initialize(gpuConfig));
+
+    PhysicsWorld joltWorld;
+    PhysicsInitContext joltConfig;
+    joltConfig.requestedBackend = BackendType::JoltLegacy;
+    joltConfig.maxBodies = 64u;
+    joltConfig.maxActiveBodies = 64u;
+    joltConfig.maxPairs = 64u;
+    joltConfig.maxContacts = 64u;
+    joltConfig.maxManifolds = 64u;
+    joltConfig.joltJobSystem = JoltJobSystemMode::SingleThreaded;
+    ASSERT_TRUE(joltWorld.initialize(joltConfig));
+    gpuParityWorld.setWaterPlane(0.0f, true);
+    joltWorld.setWaterPlane(0.0f, true);
+
+    BodySpawnDesc desc;
+    desc.shape = ThrowableShape::Sphere;
+    desc.dimensions = throwableShapeDimensions(desc.shape);
+    desc.position = {0.0f, 0.0f, 0.0f};
+    desc.linearVelocity = {0.0f, -2.0f, 0.0f};
+    const BodyHandle gpuBody = gpuParityWorld.spawnBody(desc);
+    ASSERT_TRUE(gpuBody.valid());
+    ASSERT_TRUE(joltWorld.spawnBody(desc).valid());
+
+    constexpr uint32_t tickCount = 120u;
+    float squaredError = 0.0f;
+    float maximumError = 0.0f;
+    float finalGpuY = 0.0f;
+    float finalJoltY = 0.0f;
+    for (uint32_t tick = 0u; tick < tickCount; ++tick) {
+        joltWorld.update(1.0f / 60.0f);
+        gpuParityWorld.update(1.0f / 60.0f);
+        gpuParityWorld.requestDebugSnapshot({gpuBody.index, 1u});
+        WGPUCommandEncoderDescriptor encoderDesc{};
+        WGPUCommandEncoder encoder = wgpuDeviceCreateCommandEncoder(
+            gpuContext.getDevice(), &encoderDesc);
+        gpuParityWorld.encodeGpuStep(encoder);
+        WGPUCommandBufferDescriptor commandDesc{};
+        WGPUCommandBuffer command =
+            wgpuCommandEncoderFinish(encoder, &commandDesc);
+        wgpuQueueSubmit(gpuContext.getQueue(), 1u, &command);
+        wgpuCommandBufferRelease(command);
+        wgpuCommandEncoderRelease(encoder);
+
+        auto gpuSnapshot = gpuParityWorld.pollDebugSnapshot();
+        for (uint32_t attempt = 0u; !gpuSnapshot && attempt < 8u;
+             ++attempt) {
+            static_cast<void>(wgpuDevicePoll(
+                gpuContext.getDevice(), true, nullptr));
+            gpuSnapshot = gpuParityWorld.pollDebugSnapshot();
+        }
+        ASSERT_TRUE(gpuSnapshot.has_value());
+        const auto joltSnapshot = joltWorld.dynamicBodies();
+        ASSERT_EQ(joltSnapshot.size(), 1u);
+        finalGpuY = gpuSnapshot->bodies[0].position.y;
+        finalJoltY = joltSnapshot[0].position.y;
+        const float error = std::abs(finalGpuY - finalJoltY);
+        squaredError += error * error;
+        maximumError = std::max(maximumError, error);
+    }
+
+    std::cerr << "water sphere y: gpu=" << finalGpuY
+              << " jolt=" << finalJoltY
+              << " rms=" << std::sqrt(squaredError / tickCount)
+              << " max=" << maximumError << '\n';
+}
+
 TEST_F(GpuPhysicsTest, UsesGlobalSolverAboveSerialWorldLimit) {
     constexpr uint32_t bodyCount = 257u;
     for (uint32_t index = 0u; index < bodyCount; ++index) {
@@ -808,6 +904,110 @@ TEST_F(GpuPhysicsTest, ActiveCapacityClampsWithoutWritingPastCompactList) {
     EXPECT_TRUE(telemetry.activeCapacityOverflow);
 }
 
+TEST_F(GpuPhysicsTest, RejectsConfigurationAndSpawnValuesThatPoisonGpuMath) {
+    const auto makeContext = [&] {
+        PhysicsInitContext context;
+        context.requestedBackend = BackendType::WebGpuSoft;
+        context.device = gpuContext.getDevice();
+        context.queue = gpuContext.getQueue();
+        context.maxBodies = 16u;
+        context.maxActiveBodies = 16u;
+        context.maxPairs = 16u;
+        context.maxContacts = 16u;
+        context.maxManifolds = 16u;
+        context.gpu.commandCapacity = 16u;
+        return context;
+    };
+
+    PhysicsWorld invalidCatchUp;
+    auto context = makeContext();
+    context.gpu.maximumCatchUpTicks = 0u;
+    EXPECT_FALSE(invalidCatchUp.initialize(context));
+
+    PhysicsWorld invalidSubsteps;
+    context = makeContext();
+    context.gpu.substeps = 17u;
+    EXPECT_FALSE(invalidSubsteps.initialize(context));
+
+    PhysicsWorld invalidTimeStep;
+    context = makeContext();
+    context.gpu.fixedTickSeconds =
+        std::numeric_limits<float>::quiet_NaN();
+    EXPECT_FALSE(invalidTimeStep.initialize(context));
+
+    PhysicsWorld excessiveCatchUp;
+    context = makeContext();
+    context.gpu.maximumCatchUpTicks = std::numeric_limits<uint32_t>::max();
+    EXPECT_FALSE(excessiveCatchUp.initialize(context));
+
+    PhysicsWorld oversizedBuffers;
+    context = makeContext();
+    context.maxManifolds = std::numeric_limits<uint32_t>::max() / 2u;
+    EXPECT_FALSE(oversizedBuffers.initialize(context));
+
+    BodySpawnDesc invalidSpawn;
+    invalidSpawn.dimensions = throwableShapeDimensions(invalidSpawn.shape);
+    invalidSpawn.linearVelocity.x =
+        std::numeric_limits<float>::infinity();
+    EXPECT_FALSE(world.spawnBody(invalidSpawn).valid());
+    const std::array<uint16_t, 4> terrain{};
+    EXPECT_FALSE(world.setTerrain(
+        terrain, 2u, 2u, std::numeric_limits<float>::quiet_NaN(), 1.0f));
+    const BodyHandle valid = world.spawnBody({});
+    EXPECT_EQ(valid.index, 1u);
+}
+
+TEST_F(GpuPhysicsTest, MaxBodiesCountsUsableHandlesNotTheNullSentinel) {
+    PhysicsWorld tinyWorld;
+    PhysicsInitContext context;
+    context.requestedBackend = BackendType::WebGpuSoft;
+    context.device = gpuContext.getDevice();
+    context.queue = gpuContext.getQueue();
+    context.maxBodies = 3u;
+    context.maxActiveBodies = 3u;
+    context.maxPairs = 8u;
+    context.maxContacts = 8u;
+    context.maxManifolds = 8u;
+    context.gpu.commandCapacity = 8u;
+    context.gpu.debugReadbackBodyCapacity = 3u;
+    ASSERT_TRUE(tinyWorld.initialize(context));
+
+    BodySpawnDesc desc;
+    desc.dimensions = throwableShapeDimensions(desc.shape);
+    const BodyHandle first = tinyWorld.spawnBody(desc);
+    const BodyHandle second = tinyWorld.spawnBody(desc);
+    const BodyHandle third = tinyWorld.spawnBody(desc);
+    EXPECT_EQ(first.index, 1u);
+    EXPECT_EQ(second.index, 2u);
+    EXPECT_EQ(third.index, 3u);
+    EXPECT_FALSE(tinyWorld.spawnBody(desc).valid());
+    EXPECT_EQ(tinyWorld.stats().bodyCapacity, 3u);
+    EXPECT_EQ(tinyWorld.stats().residentBodies, 3u);
+
+    tinyWorld.update(1.0f / 60.0f);
+    tinyWorld.requestDebugSnapshot({1u, 3u});
+    WGPUCommandEncoderDescriptor encoderDesc{};
+    WGPUCommandEncoder encoder = wgpuDeviceCreateCommandEncoder(
+        gpuContext.getDevice(), &encoderDesc);
+    tinyWorld.encodeGpuStep(encoder);
+    WGPUCommandBufferDescriptor commandDesc{};
+    WGPUCommandBuffer command = wgpuCommandEncoderFinish(
+        encoder, &commandDesc);
+    wgpuQueueSubmit(gpuContext.getQueue(), 1u, &command);
+    wgpuCommandBufferRelease(command);
+    wgpuCommandEncoderRelease(encoder);
+    auto snapshot = tinyWorld.pollDebugSnapshot();
+    for (uint32_t attempt = 0u; !snapshot && attempt < 8u; ++attempt) {
+        static_cast<void>(wgpuDevicePoll(
+            gpuContext.getDevice(), true, nullptr));
+        snapshot = tinyWorld.pollDebugSnapshot();
+    }
+    ASSERT_TRUE(snapshot.has_value());
+    ASSERT_EQ(snapshot->bodies.size(), 3u);
+    EXPECT_TRUE(std::ranges::all_of(
+        snapshot->bodies, [](const auto& body) { return body.alive; }));
+}
+
 TEST_F(GpuPhysicsTest, ReusesFreedHandlesInAscendingOrderAtTickBoundary) {
     BodySpawnDesc desc;
     desc.dimensions = throwableShapeDimensions(desc.shape);
@@ -824,6 +1024,89 @@ TEST_F(GpuPhysicsTest, ReusesFreedHandlesInAscendingOrderAtTickBoundary) {
     const BodyHandle reused = world.spawnBody(desc);
     EXPECT_EQ(reused.index, first.index);
     EXPECT_EQ(reused.generation, first.generation + 1u);
+}
+
+TEST_F(GpuPhysicsTest, CatchUpDebtStaysBoundedWhileGpuEncodingIsPaused) {
+    constexpr uint64_t maximumCatchUpTicks = 8u;
+    // Simulate an application that keeps receiving update callbacks while its
+    // minimized window does not produce command encoders.
+    for (uint32_t frame = 0u; frame < 100u; ++frame) {
+        world.update(1.0f / 60.0f);
+    }
+
+    encodeAndSubmit();
+    EXPECT_EQ(world.encodedTick(), maximumCatchUpTicks);
+
+    // The cap includes both already-pending ticks and fractional accumulated
+    // time, so the first ordinary frame immediately resumes one-tick pacing.
+    world.update(1.0f / 60.0f);
+    encodeAndSubmit();
+    EXPECT_EQ(world.encodedTick(), maximumCatchUpTicks + 1u);
+
+    world.update(1.0f / 60.0f);
+    encodeAndSubmit();
+    EXPECT_EQ(world.encodedTick(), maximumCatchUpTicks + 2u);
+}
+
+TEST_F(GpuPhysicsTest, CancelsSpawnDestroyedBeforeItsFirstGpuTick) {
+    BodySpawnDesc discardedDesc;
+    discardedDesc.position = {-20.0f, 10.0f, 0.0f};
+    discardedDesc.dimensions = throwableShapeDimensions(discardedDesc.shape);
+    const BodyHandle discarded = world.spawnBody(discardedDesc);
+    ASSERT_TRUE(discarded.valid());
+    ASSERT_TRUE(world.destroyBody(discarded));
+
+    BodySpawnDesc replacementDesc = discardedDesc;
+    replacementDesc.position.x = 20.0f;
+    const BodyHandle replacement = world.spawnBody(replacementDesc);
+    ASSERT_TRUE(replacement.valid());
+    EXPECT_EQ(replacement.index, discarded.index);
+    EXPECT_EQ(replacement.generation, discarded.generation + 1u);
+
+    world.update(1.0f / 60.0f);
+    world.requestDebugSnapshot({replacement.index, 1u});
+    encodeAndSubmit();
+    const auto snapshot = retireDebugReadback();
+    ASSERT_TRUE(snapshot.has_value());
+    ASSERT_EQ(snapshot->bodies.size(), 1u);
+    EXPECT_EQ(snapshot->bodies[0].handle, replacement);
+    EXPECT_TRUE(snapshot->bodies[0].alive);
+    EXPECT_GT(snapshot->bodies[0].position.x, 19.0f);
+    EXPECT_EQ(world.stats().residentBodies, 1u);
+}
+
+TEST_F(GpuPhysicsTest, ReplayLifecycleCommandsMaintainHostAllocationState) {
+    PhysicsCommand spawn;
+    spawn.type = PhysicsCommandType::SpawnBody;
+    spawn.body = {1u, 1u};
+    spawn.shape = ThrowableShape::Box;
+    spawn.a = glm::vec4(3.0f, 10.0f, -2.0f, 1.0f);
+    spawn.b = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+    spawn.e = glm::vec4(1.0f, 2.0f, 3.0f, 0.0f);
+    world.enqueue(std::span<const PhysicsCommand>(&spawn, 1u));
+    stepTicks(1u);
+
+    const auto spawned = snapshotRange(1u, 1u);
+    ASSERT_TRUE(spawned.has_value());
+    ASSERT_EQ(spawned->bodies.size(), 1u);
+    EXPECT_TRUE(spawned->bodies[0].alive);
+    EXPECT_EQ(spawned->bodies[0].shape, ThrowableShape::Box);
+    EXPECT_EQ(world.stats().residentBodies, 1u);
+
+    PhysicsCommand destroy;
+    destroy.type = PhysicsCommandType::DestroyBody;
+    destroy.body = spawn.body;
+    world.enqueue(std::span<const PhysicsCommand>(&destroy, 1u));
+    stepTicks(1u);
+    EXPECT_EQ(world.stats().residentBodies, 0u);
+    EXPECT_FALSE(world.renderView().valid());
+
+    BodySpawnDesc replacementDesc;
+    replacementDesc.dimensions = throwableShapeDimensions(
+        replacementDesc.shape);
+    const BodyHandle replacement = world.spawnBody(replacementDesc);
+    EXPECT_EQ(replacement.index, 1u);
+    EXPECT_EQ(replacement.generation, 2u);
 }
 
 TEST_F(GpuPhysicsTest, AppliesOrderedCommandsClampsSpeedsAndCompactsSleep) {
@@ -876,6 +1159,248 @@ TEST_F(GpuPhysicsTest, AppliesOrderedCommandsClampsSpeedsAndCompactsSleep) {
     const DebugBodyState awakened = snapshot->bodies.front();
     EXPECT_TRUE(awakened.awake);
     EXPECT_GT(awakened.position.x, sleeping.position.x);
+}
+
+TEST_F(GpuPhysicsTest, VelocityCommandsWakeSleepingBodies) {
+    BodySpawnDesc desc;
+    desc.position = {0.0f, 20.0f, 0.0f};
+    desc.dimensions = throwableShapeDimensions(desc.shape);
+    const BodyHandle body = world.spawnBody(desc);
+    ASSERT_TRUE(body.valid());
+    stepTicks(1u);
+
+    PhysicsCommand sleep;
+    sleep.type = PhysicsCommandType::Sleep;
+    sleep.body = body;
+    world.enqueue(std::span<const PhysicsCommand>(&sleep, 1u));
+    stepTicks(1u);
+    const auto sleeping = snapshotRange(body.index, 1u);
+    ASSERT_TRUE(sleeping.has_value());
+    ASSERT_FALSE(sleeping->bodies[0].awake);
+
+    PhysicsCommand velocity;
+    velocity.type = PhysicsCommandType::SetVelocity;
+    velocity.body = body;
+    velocity.a = glm::vec4(2.0f, 0.0f, 0.0f, 0.0f);
+    world.enqueue(std::span<const PhysicsCommand>(&velocity, 1u));
+    stepTicks(1u);
+    const auto linear = snapshotRange(body.index, 1u);
+    ASSERT_TRUE(linear.has_value());
+    EXPECT_TRUE(linear->bodies[0].awake);
+    EXPECT_GT(linear->bodies[0].position.x,
+              sleeping->bodies[0].position.x);
+
+    world.enqueue(std::span<const PhysicsCommand>(&sleep, 1u));
+    stepTicks(1u);
+    PhysicsCommand angular;
+    angular.type = PhysicsCommandType::SetAngularVelocity;
+    angular.body = body;
+    angular.a = glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);
+    world.enqueue(std::span<const PhysicsCommand>(&angular, 1u));
+    stepTicks(1u);
+    const auto rotating = snapshotRange(body.index, 1u);
+    ASSERT_TRUE(rotating.has_value());
+    EXPECT_TRUE(rotating->bodies[0].awake);
+    EXPECT_GT(glm::length(rotating->bodies[0].angularVelocity), 0.1f);
+}
+
+TEST_F(GpuPhysicsTest, SleepClearsSameTickForceInsteadOfDeferringIt) {
+    BodySpawnDesc desc;
+    desc.position = {0.0f, 20.0f, 0.0f};
+    desc.dimensions = throwableShapeDimensions(desc.shape);
+    const BodyHandle body = world.spawnBody(desc);
+    ASSERT_TRUE(body.valid());
+    stepTicks(1u);
+
+    std::array<PhysicsCommand, 2u> commands;
+    commands[0].type = PhysicsCommandType::ApplyForce;
+    commands[0].body = body;
+    commands[0].a = glm::vec4(300.0f, 0.0f, 0.0f, 0.0f);
+    commands[1].type = PhysicsCommandType::Sleep;
+    commands[1].body = body;
+    world.enqueue(commands);
+    stepTicks(1u);
+    const auto sleeping = snapshotRange(body.index, 1u);
+    ASSERT_TRUE(sleeping.has_value());
+    ASSERT_FALSE(sleeping->bodies[0].awake);
+
+    PhysicsCommand wake;
+    wake.type = PhysicsCommandType::Wake;
+    wake.body = body;
+    world.enqueue(std::span<const PhysicsCommand>(&wake, 1u));
+    stepTicks(1u);
+    const auto awakened = snapshotRange(body.index, 1u);
+    ASSERT_TRUE(awakened.has_value());
+    EXPECT_NEAR(awakened->bodies[0].position.x,
+                sleeping->bodies[0].position.x, 1.0e-5f);
+    EXPECT_NEAR(awakened->bodies[0].linearVelocity.x, 0.0f, 1.0e-5f);
+}
+
+TEST_F(GpuPhysicsTest, KinematicTargetsCarryVelocityIntoContactsThenStop) {
+    BodySpawnDesc moverDesc;
+    moverDesc.shape = ThrowableShape::Cube;
+    moverDesc.position = {-1.0f, 20.0f, 0.0f};
+    moverDesc.dimensions = glm::vec3(1.0f);
+    moverDesc.inverseMass = 0.0f;
+    const BodyHandle mover = world.spawnBody(moverDesc);
+
+    BodySpawnDesc dynamicDesc;
+    dynamicDesc.shape = ThrowableShape::Sphere;
+    dynamicDesc.position = {1.0f, 20.0f, 0.0f};
+    dynamicDesc.dimensions = glm::vec3(1.0f);
+    const BodyHandle dynamic = world.spawnBody(dynamicDesc);
+    ASSERT_TRUE(mover.valid());
+    ASSERT_TRUE(dynamic.valid());
+    stepTicks(1u);
+
+    PhysicsCommand target;
+    target.type = PhysicsCommandType::SetKinematicTarget;
+    target.body = mover;
+    target.a = glm::vec4(0.0f, 20.0f, 0.0f, 0.0f);
+    target.b = glm::vec4(0.0f, 0.0f, std::sin(0.3926990817f),
+                         std::cos(0.3926990817f));
+    world.enqueue(std::span<const PhysicsCommand>(&target, 1u));
+    world.update(1.0f / 60.0f);
+    world.requestDebugSnapshot({mover.index, 2u});
+    encodeAndSubmit();
+    const auto moving = retireDebugReadback();
+    ASSERT_TRUE(moving.has_value());
+    ASSERT_EQ(moving->bodies.size(), 2u);
+    EXPECT_TRUE(moving->bodies[0].kinematic)
+        << "runtime flags=" << std::hex << moving->bodies[0].runtimeFlags;
+    EXPECT_NEAR(moving->bodies[0].position.x, 0.0f, 1e-5f);
+    EXPECT_GT(moving->bodies[1].linearVelocity.x, 0.1f)
+        << "a zero-penetration kinematic contact did not transfer motion";
+
+    world.update(1.0f / 60.0f);
+    world.requestDebugSnapshot({mover.index, 1u});
+    encodeAndSubmit();
+    const auto stopped = retireDebugReadback();
+    ASSERT_TRUE(stopped.has_value());
+    ASSERT_EQ(stopped->bodies.size(), 1u);
+    EXPECT_TRUE(stopped->bodies[0].kinematic);
+    EXPECT_EQ(stopped->bodies[0].linearVelocity, glm::vec3(0.0f));
+    EXPECT_EQ(stopped->bodies[0].angularVelocity, glm::vec3(0.0f));
+    EXPECT_EQ(retireTelemetry(world.encodedTick()).kinematicBodies, 1u);
+}
+
+TEST_F(GpuPhysicsTest, LastSameTickKinematicTargetUsesWholeTickVelocity) {
+    BodySpawnDesc desc;
+    desc.shape = ThrowableShape::Cube;
+    desc.position = {0.0f, 20.0f, 0.0f};
+    desc.dimensions = glm::vec3(1.0f);
+    desc.inverseMass = 0.0f;
+    const BodyHandle body = world.spawnBody(desc);
+    ASSERT_TRUE(body.valid());
+    stepTicks(1u);
+
+    PhysicsCommand first;
+    first.type = PhysicsCommandType::SetKinematicTarget;
+    first.body = body;
+    first.a = glm::vec4(0.02f, 20.0f, 0.0f, 0.0f);
+    first.b = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+    PhysicsCommand last = first;
+    last.a.x = 0.04f;
+    const std::array targets{first, last};
+    world.enqueue(targets);
+    stepTicks(1u);
+
+    const auto snapshot = snapshotRange(body.index, 1u);
+    ASSERT_TRUE(snapshot.has_value());
+    ASSERT_EQ(snapshot->bodies.size(), 1u);
+    EXPECT_NEAR(snapshot->bodies[0].position.x, 0.04f, 1.0e-6f);
+    EXPECT_NEAR(snapshot->bodies[0].linearVelocity.x, 2.4f, 1.0e-4f);
+}
+
+TEST_F(GpuPhysicsTest, SetMaterialChangesResidentContactResponse) {
+    const auto spawnPair = [&](float y) {
+        BodySpawnDesc left;
+        left.position = {-0.5f, y, 0.0f};
+        left.linearVelocity = {2.0f, 0.0f, 0.0f};
+        left.dimensions = glm::vec3(1.0f);
+        BodySpawnDesc right = left;
+        right.position.x = 0.5f;
+        right.linearVelocity.x = -2.0f;
+        return std::array{world.spawnBody(left), world.spawnBody(right)};
+    };
+    const auto inelastic = spawnPair(30.0f);
+    const auto elastic = spawnPair(40.0f);
+    ASSERT_TRUE(std::ranges::all_of(inelastic,
+        [](BodyHandle handle) { return handle.valid(); }));
+    ASSERT_TRUE(std::ranges::all_of(elastic,
+        [](BodyHandle handle) { return handle.valid(); }));
+
+    std::array<PhysicsCommand, 4u> commands;
+    for (size_t index = 0; index < commands.size(); ++index) {
+        commands[index].type = PhysicsCommandType::SetMaterial;
+        commands[index].body = index < 2u
+            ? inelastic[index] : elastic[index - 2u];
+        commands[index].material = PhysicsMaterial{
+            .friction = 0.0f,
+            .restitution = index < 2u ? 0.0f : 1.0f,
+            .rollingResistance = 0.0f,
+            .density = 1.0f,
+            .flags = 0x55u + static_cast<uint32_t>(index),
+        };
+    }
+    world.enqueue(commands);
+    world.update(1.0f / 60.0f);
+    world.requestDebugSnapshot({inelastic[0].index, 4u});
+    encodeAndSubmit();
+    const auto snapshot = retireDebugReadback();
+    ASSERT_TRUE(snapshot.has_value());
+    ASSERT_EQ(snapshot->bodies.size(), 4u);
+    for (size_t index = 0; index < snapshot->bodies.size(); ++index) {
+        EXPECT_FLOAT_EQ(snapshot->bodies[index].material.restitution,
+                        index < 2u ? 0.0f : 1.0f);
+        EXPECT_EQ(snapshot->bodies[index].material.flags,
+                  0x55u + static_cast<uint32_t>(index));
+    }
+    const float inelasticSeparationVelocity =
+        snapshot->bodies[1].linearVelocity.x
+        - snapshot->bodies[0].linearVelocity.x;
+    const float elasticSeparationVelocity =
+        snapshot->bodies[3].linearVelocity.x
+        - snapshot->bodies[2].linearVelocity.x;
+    EXPECT_GT(elasticSeparationVelocity,
+              inelasticSeparationVelocity + 1.0f);
+    EXPECT_GT(elasticSeparationVelocity, 1.0f);
+}
+
+TEST_F(GpuPhysicsTest, CapsuleUsesSpherocylinderInertiaAndSnapshotsDimensions) {
+    BodySpawnDesc desc;
+    desc.shape = ThrowableShape::Capsule;
+    desc.position = {0.0f, 30.0f, 0.0f};
+    desc.dimensions = {1.0f, 4.0f, 1.0f};
+    desc.inverseMass = 1.0f;
+    const BodyHandle body = world.spawnBody(desc);
+    ASSERT_TRUE(body.valid());
+    world.update(1.0f / 60.0f);
+    world.requestDebugSnapshot({body.index, 1u});
+    encodeAndSubmit();
+    const auto snapshot = retireDebugReadback();
+    ASSERT_TRUE(snapshot.has_value());
+    ASSERT_EQ(snapshot->bodies.size(), 1u);
+    const DebugBodyState& state = snapshot->bodies[0];
+    EXPECT_EQ(state.dimensions, desc.dimensions);
+
+    constexpr float radius = 0.5f;
+    constexpr float cylinderLength = 3.0f;
+    constexpr float cylinderFraction = cylinderLength
+        / (cylinderLength + (4.0f / 3.0f) * radius);
+    constexpr float capFraction = 1.0f - cylinderFraction;
+    constexpr float axial = cylinderFraction * 0.5f * radius * radius
+        + capFraction * 0.4f * radius * radius;
+    constexpr float capCenter = 0.5f * cylinderLength + 0.375f * radius;
+    constexpr float transverse = cylinderFraction
+            * (3.0f * radius * radius
+                + cylinderLength * cylinderLength) / 12.0f
+        + capFraction * ((83.0f / 320.0f) * radius * radius
+                         + capCenter * capCenter);
+    EXPECT_NEAR(state.inverseInertia.x, 1.0f / transverse, 1e-5f);
+    EXPECT_NEAR(state.inverseInertia.y, 1.0f / axial, 1e-5f);
+    EXPECT_NEAR(state.inverseInertia.z, 1.0f / transverse, 1e-5f);
+    EXPECT_GT(state.inverseInertia.y, 8.0f);
 }
 
 TEST_F(GpuPhysicsTest, MaxHeightMipRejectsBodyFarAboveTerrain) {
@@ -1088,6 +1613,60 @@ TEST_F(GpuPhysicsTest, WaterKeepsBodyAfloatAndDryBodyFallsToSeabed) {
     EXPECT_FALSE(seabed.submerged);
     EXPECT_LT(seabed.position.y, -8.5f);
     EXPECT_GT(seabed.position.y, -10.2f);
+}
+
+TEST_F(GpuPhysicsTest, SamplesSharedGpuWaterDisplacementWithoutReadback) {
+    gpu::TextureDesc textureDesc = gpu::TextureDesc::tex2D(
+        1u, 1u, WGPUTextureFormat_RGBA8Unorm,
+        WGPUTextureUsage_TextureBinding | WGPUTextureUsage_CopyDst,
+        "physics_test_water_displacement");
+    textureDesc.depthOrArrayLayers = 3u;
+    WGPUTexture texture = gpu::createTexture(
+        gpuContext.getDevice(), textureDesc);
+    ASSERT_NE(texture, nullptr);
+    const std::array<uint8_t, 4> raisedSurface{255u, 0u, 0u, 0u};
+    gpu::writeTexture(
+        gpuContext.getQueue(), texture, std::as_bytes(std::span(raisedSurface)),
+        1u, 1u, 4u);
+    gpu::TextureViewDesc viewDesc;
+    viewDesc.format = WGPUTextureFormat_RGBA8Unorm;
+    viewDesc.dimension = WGPUTextureViewDimension_2DArray;
+    viewDesc.arrayLayerCount = 3u;
+    WGPUTextureView view = gpu::createTextureView(texture, viewDesc);
+    WGPUSampler sampler = gpu::createSampler(
+        gpuContext.getDevice(), gpu::SamplerDesc::repeat(
+            WGPUFilterMode_Linear, "physics_test_water_sampler"));
+    ASSERT_NE(view, nullptr);
+    ASSERT_NE(sampler, nullptr);
+
+    world.setWaterPlane(0.0f, true);
+    world.setWaterGpuResources({view, sampler, 1.0f});
+    BodySpawnDesc raisedDesc;
+    raisedDesc.position = {0.0f, 1.25f, 0.0f};
+    raisedDesc.dimensions = throwableShapeDimensions(raisedDesc.shape);
+    const BodyHandle raised = world.spawnBody(raisedDesc);
+    ASSERT_TRUE(raised.valid());
+    stepTicks(1u);
+    auto snapshot = snapshotRange(raised.index, 1u);
+    ASSERT_TRUE(snapshot.has_value());
+    ASSERT_EQ(snapshot->bodies.size(), 1u);
+    EXPECT_TRUE(snapshot->bodies.front().submerged);
+
+    world.setWaterGpuResources({});
+    BodySpawnDesc flatDesc = raisedDesc;
+    flatDesc.position.x = 4.0f;
+    const BodyHandle flat = world.spawnBody(flatDesc);
+    ASSERT_TRUE(flat.valid());
+    stepTicks(1u);
+    snapshot = snapshotRange(flat.index, 1u);
+    ASSERT_TRUE(snapshot.has_value());
+    ASSERT_EQ(snapshot->bodies.size(), 1u);
+    EXPECT_FALSE(snapshot->bodies.front().submerged);
+
+    wgpuSamplerRelease(sampler);
+    wgpuTextureViewRelease(view);
+    wgpuTextureDestroy(texture);
+    wgpuTextureRelease(texture);
 }
 
 TEST_F(GpuPhysicsTest, ShorelineBodyHasTerrainAndWaterContact) {

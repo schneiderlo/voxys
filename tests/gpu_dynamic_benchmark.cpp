@@ -56,6 +56,7 @@ struct alignas(16) BenchmarkMotion {
 struct alignas(16) BenchmarkShape {
     glm::vec4 dimensionsType{0.0f};
     glm::vec4 inverseInertiaMaterial{0.0f};
+    glm::vec4 materialCoefficients{-1.0f, -1.0f, -1.0f, 1.0f};
 };
 
 using BenchmarkMetadata = std::array<uint32_t, 4>;

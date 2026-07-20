@@ -33,6 +33,7 @@ public:
 
     void setWaterPlane(float height, bool enabled) override;
     void setWaterSurfaceSampler(WaterSurfaceSampler sampler) override;
+    void setWaterGpuResources(const WaterGpuResources& resources) override;
 
     [[nodiscard]] CharacterHandle createCharacter(
         const glm::vec3& feetPosition,

@@ -21,6 +21,7 @@ struct BodyPose {
 struct BodyShape {
     dimensions_type : vec4<f32>,
     invInertia_material : vec4<f32>,
+    material_coefficients : vec4<f32>,
 };
 
 struct KeyValue {
@@ -47,6 +48,7 @@ struct ContactEvent {
     pairHigh : u32,
     eventType : u32,
     contactId : u32,
+    identity : vec4<u32>,
 };
 
 struct BroadPhaseParams {
@@ -909,7 +911,6 @@ fn lifecycle_prepare_impl(gid : vec3<u32>) {
         if (previousIndex != SENTINEL) {
             var state = previousContacts[previousIndex].state;
             state.y += 1u;
-            state.w = 0u;
             nextContacts[index].state = state;
             if (state.x < broad.capacities.y) {
                 contactOccupancy[state.x] = 1u;
@@ -974,12 +975,15 @@ fn lifecycle_assign_begin_impl(gid : vec3<u32>) {
     let freeCount = lifecycleState[3];
     if (rank >= freeCount) { return; }
     let contactId = lifecycleFreeIds[rank];
-    nextContacts[index].state = vec4<u32>(
-        contactId, 0u, SENTINEL, 0u);
-    contactOccupancy[contactId] = 1u;
     let pair = nextContacts[index].pair;
+    nextContacts[index].state = vec4<u32>(
+        contactId, 0u,
+        u32(metadata[pair.keyLow].w) & GENERATION_MASK,
+        u32(metadata[pair.keyHigh].w) & GENERATION_MASK);
+    contactOccupancy[contactId] = 1u;
     contactEvents[rank] = ContactEvent(
-        pair.keyLow, pair.keyHigh, 1u, contactId);
+        pair.keyLow, pair.keyHigh, 1u, contactId,
+        vec4<u32>(nextContacts[index].state.zw, 0u, 0u));
 }
 
 fn lifecycle_scatter_end_impl(gid : vec3<u32>) {
@@ -990,7 +994,7 @@ fn lifecycle_scatter_end_impl(gid : vec3<u32>) {
     let previous = previousContacts[index];
     contactEvents[broad.capacities.y + rank] = ContactEvent(
         previous.pair.keyLow, previous.pair.keyHigh, 2u,
-        previous.state.x);
+        previous.state.x, vec4<u32>(previous.state.zw, 0u, 0u));
 }
 
 @compute @workgroup_size(64)
@@ -1237,7 +1241,8 @@ fn load_medium_body(body : u32) -> MediumBodyProxy {
     let radius = shape_radius(body);
     proxy.positionRadius = vec4<f32>(
         poses[body].position_invMass.xyz, radius);
-    proxy.sectorFlags = vec4<i32>(metadata[body].xyz, i32(flags));
+    proxy.sectorFlags = vec4<i32>(
+        metadata[body].xyz, bitcast<i32>(flags));
     var valid = false;
     let cell = body_cell(body, &valid);
     if (radius * 2.0 <= broad.grid.x && valid
@@ -1362,7 +1367,8 @@ fn parallel_small_world_pairs(@builtin(local_invocation_id) lid : vec3<u32>) {
         flags = body_flags(lane);
         smallPairPositionRadius[lane] = vec4<f32>(
             poses[lane].position_invMass.xyz, shape_radius(lane));
-        smallPairSectorFlags[lane] = vec4<i32>(metadata[lane].xyz, i32(flags));
+        smallPairSectorFlags[lane] = vec4<i32>(
+            metadata[lane].xyz, bitcast<i32>(flags));
         if (!body_is_oversized(lane)) {
             var valid = false;
             let bodyCell = body_cell(lane, &valid);
@@ -1842,7 +1848,6 @@ fn small_world_lifecycle_impl() {
         if (previousIndex != SENTINEL) {
             var state = previousContacts[previousIndex].state;
             state.y += 1u;
-            state.w = 0u;
             if (state.x < broad.capacities.y) {
                 nextContacts[index].state = state;
                 contactOccupancy[state.x] = 1u;
@@ -1861,7 +1866,8 @@ fn small_world_lifecycle_impl() {
         if (find_current_pair(previous) != SENTINEL) { continue; }
         contactEvents[broad.capacities.y + endCount] = ContactEvent(
             previous.pair.keyLow, previous.pair.keyHigh, 2u,
-            previous.state.x);
+            previous.state.x,
+            vec4<u32>(previous.state.zw, 0u, 0u));
         endCount += 1u;
     }
 
@@ -1870,17 +1876,20 @@ fn small_world_lifecycle_impl() {
     var nextFreeId = 0u;
     for (var index = 0u; index < currentCount; index += 1u) {
         if (nextContacts[index].state.x != SENTINEL) { continue; }
+        let pair = nextContacts[index].pair;
         while (nextFreeId < broad.capacities.y
             && contactOccupancy[nextFreeId] != 0u) {
             nextFreeId += 1u;
         }
         if (nextFreeId < broad.capacities.y) {
             nextContacts[index].state = vec4<u32>(
-                nextFreeId, 0u, SENTINEL, 0u);
+                nextFreeId, 0u,
+                u32(metadata[pair.keyLow].w) & GENERATION_MASK,
+                u32(metadata[pair.keyHigh].w) & GENERATION_MASK);
             contactOccupancy[nextFreeId] = 1u;
-            let pair = nextContacts[index].pair;
             contactEvents[beginRank] = ContactEvent(
-                pair.keyLow, pair.keyHigh, 1u, nextFreeId);
+                pair.keyLow, pair.keyHigh, 1u, nextFreeId,
+                vec4<u32>(nextContacts[index].state.zw, 0u, 0u));
             nextFreeId += 1u;
         }
         beginRank += 1u;
@@ -1919,7 +1928,10 @@ fn hybrid_lifecycle(@builtin(global_invocation_id) gid : vec3<u32>) {
         && lifecycle_previous_count() <= SMALL_LIFECYCLE_CONTACT_LIMIT;
     store_sort_dispatch(18u, select(
         broad.capacities.y, 0u, useSmall));
-    if (useSmall) {
-        small_world_lifecycle_impl();
-    }
+    // Keep the selector below WebGPU's guaranteed eight-storage-buffer
+    // limit. The serial lifecycle is launched indirectly with this separate
+    // argument instead of being fused into this kernel.
+    sortDispatchArgs[24] = select(0u, 1u, useSmall);
+    sortDispatchArgs[25] = 1u;
+    sortDispatchArgs[26] = 1u;
 }

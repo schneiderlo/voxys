@@ -30,6 +30,7 @@ public:
 
     virtual void setWaterPlane(float height, bool enabled) = 0;
     virtual void setWaterSurfaceSampler(WaterSurfaceSampler sampler) = 0;
+    virtual void setWaterGpuResources(const WaterGpuResources&) {}
 
     [[nodiscard]] virtual CharacterHandle createCharacter(
         const glm::vec3& feetPosition,

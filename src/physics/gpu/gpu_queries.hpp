@@ -45,6 +45,7 @@ struct alignas(16) GpuQueryHit {
     std::array<float, 4> metricDistance{};
     std::array<float, 4> point{};
     std::array<float, 4> normal{};
+    // Query-frame sector xyz, body generation in w.
     std::array<int32_t, 4> sector{};
 };
 

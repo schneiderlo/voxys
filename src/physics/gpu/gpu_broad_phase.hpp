@@ -40,6 +40,8 @@ struct alignas(16) GpuContactEvent {
     uint32_t pairHigh = 0;
     uint32_t type = 0;
     uint32_t contactId = 0;
+    // Body generations in pairLow/pairHigh order.
+    std::array<uint32_t, 4> identity{};
 };
 
 enum class ContactEventType : uint32_t {
@@ -136,6 +138,6 @@ private:
 
 static_assert(sizeof(GpuCellRange) == 16);
 static_assert(sizeof(GpuPersistentContact) == 32);
-static_assert(sizeof(GpuContactEvent) == 16);
+static_assert(sizeof(GpuContactEvent) == 32);
 
 } // namespace voxy::physics

@@ -26,6 +26,7 @@ struct BodyMotion {
 struct BodyShape {
     dimensions_type : vec4<f32>,
     invInertia_material : vec4<f32>,
+    material_coefficients : vec4<f32>,
 };
 
 struct KeyValue {
@@ -742,14 +743,34 @@ fn inverse_inertia_world(body : u32, vector : vec3<f32>) -> vec3<f32> {
     return inverse_inertia_state(poses[body], shapes[body], vector);
 }
 
-fn combined_restitution(shapeA : BodyShape, shapeB : BodyShape) -> f32 {
-    let typeA = u32(clamp(shapeA.dimensions_type.w, 0.0, 4.0));
-    let typeB = u32(clamp(shapeB.dimensions_type.w, 0.0, 4.0));
-    let restitutionA = select(
-        params.solver.w, params.material.y, typeA == 0u);
-    let restitutionB = select(
-        params.solver.w, params.material.y, typeB == 0u);
+fn body_material(body : u32, shape : BodyShape) -> vec3<f32> {
+    let raw = shape.material_coefficients.xyz;
+    let shapeType = u32(clamp(shape.dimensions_type.w, 0.0, 4.0));
+    let defaultRestitution = select(
+        params.solver.w, params.material.y, shapeType == 0u);
+    return vec3<f32>(
+        select(params.material.x, max(raw.x, 0.0), raw.x >= 0.0),
+        select(defaultRestitution, max(raw.y, 0.0), raw.y >= 0.0),
+        select(params.material.z, max(raw.z, 0.0), raw.z >= 0.0));
+}
+
+fn combined_friction(bodyA : u32, shapeA : BodyShape,
+                     bodyB : u32, shapeB : BodyShape) -> f32 {
+    return sqrt(body_material(bodyA, shapeA).x
+              * body_material(bodyB, shapeB).x);
+}
+
+fn combined_restitution(bodyA : u32, shapeA : BodyShape,
+                        bodyB : u32, shapeB : BodyShape) -> f32 {
+    let restitutionA = body_material(bodyA, shapeA).y;
+    let restitutionB = body_material(bodyB, shapeB).y;
     return max(restitutionA, restitutionB);
+}
+
+fn combined_rolling_resistance(bodyA : u32, shapeA : BodyShape,
+                               bodyB : u32, shapeB : BodyShape) -> f32 {
+    return sqrt(body_material(bodyA, shapeA).z
+              * body_material(bodyB, shapeB).z);
 }
 
 fn point_velocity(linear : vec3<f32>, angular : vec3<f32>,
@@ -929,7 +950,7 @@ fn solve_contact(rank : u32, stage : u32) -> VelocityPair {
                 && manifold.points[pointIndex]
                     .localAnchorB_normalImpulse.w > 0.0) {
                 let restitutionVelocity = -combined_restitution(
-                    shapeA, shapeB)
+                    bodyA, shapeA, bodyB, shapeB)
                     * cache.preImpactVelocity[pointIndex];
                 incremental = cache.normalMass[pointIndex]
                     * max(restitutionVelocity - normalVelocity, 0.0);
@@ -998,7 +1019,9 @@ fn solve_contact(rank : u32, stage : u32) -> VelocityPair {
                     + cache.tangentMass.y * velocity2,
                 cache.tangentMass.y * velocity1
                     + cache.tangentMass.z * velocity2);
-            let frictionLimit = params.material.x * normalSum;
+            let friction = combined_friction(
+                bodyA, shapeA, bodyB, shapeB);
+            let frictionLimit = friction * normalSum;
             let frictionLength = length(newFriction);
             if (frictionLength > frictionLimit && frictionLength > 0.0) {
                 newFriction *= frictionLimit / frictionLength;
@@ -1012,7 +1035,7 @@ fn solve_contact(rank : u32, stage : u32) -> VelocityPair {
 
             let relativeAngular = velocities.angularB - velocities.angularA;
             let oldTwist = manifold.frictionAnchorA.w;
-            let twistLimit = params.material.x * normalSum
+            let twistLimit = friction * normalSum
                            * cache.angularMass.z;
             let newTwist = clamp(oldTwist
                 - cache.angularMass.x * dot(relativeAngular, normal),
@@ -1027,7 +1050,8 @@ fn solve_contact(rank : u32, stage : u32) -> VelocityPair {
             let oldRolling = manifold.rollingImpulse.xyz;
             var newRolling = oldRolling
                 - cache.angularMass.y * rollingVelocity;
-            let rollingLimit = params.material.z * normalSum;
+            let rollingLimit = combined_rolling_resistance(
+                bodyA, shapeA, bodyB, shapeB) * normalSum;
             let rollingLength = length(newRolling);
             if (rollingLength > rollingLimit && rollingLength > 0.0) {
                 newRolling *= rollingLimit / rollingLength;
@@ -1080,6 +1104,7 @@ fn apply_angular_impulse_state(velocities : ptr<function, VelocityPair>,
 
 fn solve_contact_state(manifoldState : ptr<function, ContactManifold>,
                        cache : ConstraintCache,
+                       bodyA : u32, bodyB : u32,
                        poseA : BodyPose, motionA : BodyMotion,
                        shapeA : BodyShape,
                        poseB : BodyPose, motionB : BodyMotion,
@@ -1120,7 +1145,7 @@ fn solve_contact_state(manifoldState : ptr<function, ContactManifold>,
                 && manifold.points[pointIndex]
                     .localAnchorB_normalImpulse.w > 0.0) {
                 let restitutionVelocity = -combined_restitution(
-                    shapeA, shapeB)
+                    bodyA, shapeA, bodyB, shapeB)
                     * cache.preImpactVelocity[pointIndex];
                 incremental = cache.normalMass[pointIndex]
                     * max(restitutionVelocity - normalVelocity, 0.0);
@@ -1190,7 +1215,9 @@ fn solve_contact_state(manifoldState : ptr<function, ContactManifold>,
                     + cache.tangentMass.y * velocity2,
                 cache.tangentMass.y * velocity1
                     + cache.tangentMass.z * velocity2);
-            let frictionLimit = params.material.x * normalSum;
+            let friction = combined_friction(
+                bodyA, shapeA, bodyB, shapeB);
+            let frictionLimit = friction * normalSum;
             let frictionLength = length(newFriction);
             if (frictionLength > frictionLimit && frictionLength > 0.0) {
                 newFriction *= frictionLimit / frictionLength;
@@ -1204,7 +1231,7 @@ fn solve_contact_state(manifoldState : ptr<function, ContactManifold>,
 
             let relativeAngular = velocities.angularB - velocities.angularA;
             let oldTwist = manifold.frictionAnchorA.w;
-            let twistLimit = params.material.x * normalSum
+            let twistLimit = friction * normalSum
                            * cache.angularMass.z;
             let newTwist = clamp(oldTwist
                 - cache.angularMass.x * dot(relativeAngular, normal),
@@ -1219,7 +1246,8 @@ fn solve_contact_state(manifoldState : ptr<function, ContactManifold>,
             let oldRolling = manifold.rollingImpulse.xyz;
             var newRolling = oldRolling
                 - cache.angularMass.y * rollingVelocity;
-            let rollingLimit = params.material.z * normalSum;
+            let rollingLimit = combined_rolling_resistance(
+                bodyA, shapeA, bodyB, shapeB) * normalSum;
             let rollingLength = length(newRolling);
             if (rollingLength > rollingLimit && rollingLength > 0.0) {
                 newRolling *= rollingLimit / rollingLength;
@@ -1579,20 +1607,24 @@ fn solve_small_islands_impl(gid : vec3<u32>) {
         integrate_velocity_state(poseB, shapeB, metadataB, &motionB);
         if (substep == 0u) {
             store_state_velocities(&motionA, &motionB, solve_contact_state(
-                &manifold, cache, poseA, motionA, shapeA,
+                &manifold, cache, pair.keyHigh, pair.keyLow,
+                poseA, motionA, shapeA,
                 poseB, motionB, shapeB, STAGE_WARM_START));
         }
         store_state_velocities(&motionA, &motionB, solve_contact_state(
-            &manifold, cache, poseA, motionA, shapeA,
+            &manifold, cache, pair.keyHigh, pair.keyLow,
+            poseA, motionA, shapeA,
             poseB, motionB, shapeB, STAGE_BIASED));
         integrate_position_state(motionA, metadataA, &poseA);
         integrate_position_state(motionB, metadataB, &poseB);
         store_state_velocities(&motionA, &motionB, solve_contact_state(
-            &manifold, cache, poseA, motionA, shapeA,
+            &manifold, cache, pair.keyHigh, pair.keyLow,
+            poseA, motionA, shapeA,
             poseB, motionB, shapeB, STAGE_RELAX));
     }
     store_state_velocities(&motionA, &motionB, solve_contact_state(
-        &manifold, cache, poseA, motionA, shapeA,
+        &manifold, cache, pair.keyHigh, pair.keyLow,
+        poseA, motionA, shapeA,
         poseB, motionB, shapeB, STAGE_RESTITUTION));
     normalize_world_position(&poseA, &metadataA);
     normalize_world_position(&poseB, &metadataB);

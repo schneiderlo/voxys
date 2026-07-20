@@ -17,6 +17,7 @@ inline constexpr uint32_t kGpuBodySubmergedFlag = 1u << 26u;
 inline constexpr uint32_t kGpuBodyTerrainContactShift = 27u;
 inline constexpr uint32_t kGpuBodyTerrainContactMask =
     0x0fu << kGpuBodyTerrainContactShift;
+inline constexpr uint32_t kGpuBodyKinematicFlag = 1u << 31u;
 
 [[nodiscard]] constexpr uint32_t packGpuBodyMetadata(
     uint32_t generation, uint32_t flags) noexcept {

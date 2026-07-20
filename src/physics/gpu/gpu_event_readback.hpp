@@ -25,6 +25,8 @@ struct alignas(16) GpuPhysicsEvent {
     std::array<uint32_t, 4> header{};
     // feature ID, source/contact ID, auxiliary count, flags.
     std::array<uint32_t, 4> detail{};
+    // Body/root A generation, body B generation, reserved, reserved.
+    std::array<uint32_t, 4> identity{};
 };
 
 struct GpuEventSources {
@@ -37,6 +39,8 @@ struct GpuEventSources {
     WGPUBuffer manifolds = nullptr;
     WGPUBuffer narrowPhaseTelemetry = nullptr;
     uint32_t manifoldCapacity = 0;
+    WGPUBuffer metadata = nullptr;
+    uint32_t bodyCapacity = 0;
 
     [[nodiscard]] bool hasContacts() const noexcept {
         return contactEvents && contactTelemetry && contactCapacity != 0;
@@ -90,6 +94,6 @@ private:
     std::unique_ptr<Impl> impl_;
 };
 
-static_assert(sizeof(GpuPhysicsEvent) == 32);
+static_assert(sizeof(GpuPhysicsEvent) == 48);
 
 } // namespace voxy::physics

@@ -21,6 +21,7 @@ struct BodyMotion {
 struct BodyShape {
     dimensions_type : vec4<f32>,
     invInertia_material : vec4<f32>,
+    material_coefficients : vec4<f32>,
 };
 
 struct CcdParams {
@@ -275,7 +276,8 @@ fn mark_bullets_impl(gid : vec3<u32>) {
     bulletPredicates[body] = select(0u, 1u,
         (flags & (BODY_ALIVE | BODY_AWAKE)) == (BODY_ALIVE | BODY_AWAKE)
         && (flags & BODY_BULLET) != 0u);
-    metadata[body].w = i32(flags & ~(BODY_CCD_HIT | BODY_CCD_FAILURE));
+    metadata[body].w = bitcast<i32>(
+        flags & ~(BODY_CCD_HIT | BODY_CCD_FAILURE));
 }
 
 @compute @workgroup_size(64)
@@ -333,7 +335,7 @@ fn process_body(body : u32, bullet : bool) {
     atomicMax(&telemetry[7], sweep.iterations);
     if (!sweep.hit) {
         if (bullet && underResolved) {
-            metadata[body].w = i32(
+            metadata[body].w = bitcast<i32>(
                 u32(metadata[body].w) | BODY_CCD_FAILURE);
             atomicAdd(&telemetry[6], 1u);
         }
@@ -353,7 +355,7 @@ fn process_body(body : u32, bullet : bool) {
     normalize_world_position(&pose, &worldMeta);
     poses[body] = pose;
     motions[body] = motion;
-    worldMeta.w = i32(u32(worldMeta.w) | BODY_CCD_HIT);
+    worldMeta.w = bitcast<i32>(u32(worldMeta.w) | BODY_CCD_HIT);
     metadata[body] = worldMeta;
     atomicAdd(&telemetry[4], 1u);
 }

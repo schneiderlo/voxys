@@ -50,6 +50,7 @@ struct alignas(16) TestPose {
 struct alignas(16) TestShape {
     glm::vec4 dimensionsType{0.0f};
     glm::vec4 properties{0.0f};
+    glm::vec4 material{-1.0f, -1.0f, -1.0f, 1.0f};
 };
 
 struct NarrowSnapshot {

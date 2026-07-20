@@ -626,7 +626,7 @@ fn apply_states_impl(gid : vec3<u32>) {
         packedMetadata |= BODY_AWAKE;
         sleepingGrid[body] = sentinel_record();
     }
-    bodyMetadata.w = i32(packedMetadata);
+    bodyMetadata.w = bitcast<i32>(packedMetadata);
     metadata[body] = bodyMetadata;
     let persistent = bodyPersistent[body];
     let quietTicks = select(persistent.reserved1, 0u,
@@ -1196,7 +1196,7 @@ fn small_world_decide(@builtin(global_invocation_id) gid : vec3<u32>) {
         } else {
             packedMetadata |= BODY_AWAKE;
         }
-        bodyMetadata.w = i32(packedMetadata);
+        bodyMetadata.w = bitcast<i32>(packedMetadata);
         metadata[body] = bodyMetadata;
         let persistent = bodyPersistent[body];
         let quietTicks = select(persistent.reserved1, 0u,

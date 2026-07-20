@@ -47,10 +47,11 @@ struct alignas(16) CompactPose {
 struct alignas(16) CompactShape {
     glm::vec4 dimensionsType{0.0f};
     glm::vec4 invInertiaMaterial{0.0f};
+    glm::vec4 materialCoefficients{-1.0f, -1.0f, -1.0f, 1.0f};
 };
 
 static_assert(sizeof(CompactPose) == 32);
-static_assert(sizeof(CompactShape) == 32);
+static_assert(sizeof(CompactShape) == 48);
 
 using Shape = physics::PhysicsWorld::ThrowableShape;
 using detail::GpuInstance;

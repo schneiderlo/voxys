@@ -1,11 +1,23 @@
 const GENERATION_MASK : u32 = 0x000fffffu;
 const BODY_ALIVE : u32 = 1u << 20u;
+const BODY_AWAKE : u32 = 1u << 21u;
+const BODY_BULLET : u32 = 1u << 22u;
+
 const QUERY_RAY : u32 = 0u;
 const QUERY_OVERLAP_SPHERE : u32 = 1u;
 const QUERY_SPHERE_CAST : u32 = 2u;
 const QUERY_CAPSULE_CAST : u32 = 3u;
+const QUERY_EXCLUDE_STATIC : u32 = 1u << 0u;
+const QUERY_EXCLUDE_DYNAMIC : u32 = 1u << 1u;
+const QUERY_EXCLUDE_SLEEPING : u32 = 1u << 2u;
+const QUERY_EXCLUDE_AWAKE : u32 = 1u << 3u;
+const QUERY_EXCLUDE_BULLETS : u32 = 1u << 4u;
+
+const SHAPE_SPHERE : u32 = 0u;
 const SHAPE_CUBE : u32 = 1u;
 const SHAPE_BOX : u32 = 2u;
+const SHAPE_CAPSULE : u32 = 3u;
+const SHAPE_CYLINDER : u32 = 4u;
 const MAX_HITS : u32 = 16u;
 const SENTINEL : u32 = 0xffffffffu;
 
@@ -17,6 +29,7 @@ struct BodyPose {
 struct BodyShape {
     dimensions_type : vec4<f32>,
     invInertia_material : vec4<f32>,
+    material_coefficients : vec4<f32>,
 };
 
 struct QueryRequest {
@@ -44,11 +57,40 @@ struct QueryParams {
     counts : vec4<u32>,
 };
 
+struct Segment {
+    first : vec3<f32>,
+    second : vec3<f32>,
+};
+
+struct ClosestSegments {
+    pointA : vec3<f32>,
+    pointB : vec3<f32>,
+    fractionA : f32,
+    fractionB : f32,
+};
+
+// signedDistance is negative inside the target.  normal points from the
+// target toward the sample point (or toward the nearest exit when inside).
+struct Surface {
+    signedDistance : f32,
+    point : vec3<f32>,
+    normal : vec3<f32>,
+    feature : u32,
+};
+
+struct Separation {
+    gap : f32,
+    point : vec3<f32>,
+    normal : vec3<f32>,
+    feature : u32,
+};
+
 struct Intersection {
     hit : bool,
     distance : f32,
     point : vec3<f32>,
     normal : vec3<f32>,
+    feature : u32,
 };
 
 @group(0) @binding(0) var<storage, read> poses : array<BodyPose>;
@@ -57,6 +99,18 @@ struct Intersection {
 @group(0) @binding(3) var<storage, read> requests : array<QueryRequest>;
 @group(0) @binding(4) var<storage, read_write> outputs : array<QueryOutput>;
 @group(0) @binding(5) var<uniform> params : QueryParams;
+
+fn safe_normalize(value : vec3<f32>, fallback : vec3<f32>) -> vec3<f32> {
+    let squared = dot(value, value);
+    return select(fallback, value * inverseSqrt(max(squared, 1e-30)),
+                  squared > 1e-20);
+}
+
+fn component(value : vec3<f32>, axis : u32) -> f32 {
+    if (axis == 0u) { return value.x; }
+    if (axis == 1u) { return value.y; }
+    return value.z;
+}
 
 fn bounded_sector_delta(reference : i32, other : i32,
                         maximum : u32) -> i32 {
@@ -94,29 +148,285 @@ fn quaternion_inverse_rotate(q : vec4<f32>, value : vec3<f32>) -> vec3<f32> {
     return quaternion_rotate(vec4<f32>(-q.xyz, q.w), value);
 }
 
-fn shape_radius(shape : BodyShape) -> f32 {
-    let shapeType = u32(clamp(shape.dimensions_type.w, 0.0, 4.0));
-    let dimensions = 0.5 * abs(shape.dimensions_type.xyz);
-    if (shapeType == 0u) { return dimensions.x; }
-    if (shapeType == 3u) {
-        let radius = 0.5 * (dimensions.x + dimensions.z);
-        return max(dimensions.y, radius);
+fn shape_type(shape : BodyShape) -> u32 {
+    return u32(clamp(shape.dimensions_type.w, 0.0, 4.0));
+}
+
+fn sphere_radius(shape : BodyShape) -> f32 {
+    return 0.5 * max(abs(shape.dimensions_type.x), 1e-5);
+}
+
+fn capsule_radius(shape : BodyShape) -> f32 {
+    let dimensions = max(abs(shape.dimensions_type.xyz), vec3<f32>(1e-5));
+    return 0.25 * (dimensions.x + dimensions.z);
+}
+
+fn capsule_segment(pose : BodyPose, shape : BodyShape) -> Segment {
+    let radius = capsule_radius(shape);
+    let halfSegment = max(
+        0.5 * abs(shape.dimensions_type.y) - radius, 0.0);
+    let offset = quaternion_rotate(
+        pose.orientation, vec3<f32>(0.0, halfSegment, 0.0));
+    return Segment(pose.position_invMass.xyz - offset,
+                   pose.position_invMass.xyz + offset);
+}
+
+fn cylinder_radius(shape : BodyShape) -> f32 {
+    let dimensions = max(abs(shape.dimensions_type.xyz), vec3<f32>(1e-5));
+    return 0.25 * (dimensions.x + dimensions.z);
+}
+
+fn cylinder_half_height(shape : BodyShape) -> f32 {
+    return 0.5 * max(abs(shape.dimensions_type.y), 1e-5);
+}
+
+fn closest_point_segment(point : vec3<f32>, segment : Segment) -> vec4<f32> {
+    let edge = segment.second - segment.first;
+    let denominator = dot(edge, edge);
+    let fraction = select(0.0, clamp(
+        dot(point - segment.first, edge) / max(denominator, 1e-30),
+        0.0, 1.0), denominator > 1e-20);
+    return vec4<f32>(segment.first + fraction * edge, fraction);
+}
+
+fn closest_segments(a : Segment, b : Segment) -> ClosestSegments {
+    let directionA = a.second - a.first;
+    let directionB = b.second - b.first;
+    let offset = a.first - b.first;
+    let aa = dot(directionA, directionA);
+    let bb = dot(directionB, directionB);
+    let ab = dot(directionA, directionB);
+    let ao = dot(directionA, offset);
+    let bo = dot(directionB, offset);
+    let denominator = aa * bb - ab * ab;
+    var fractionA = 0.0;
+    if (aa > 1e-20 && denominator > 1e-20) {
+        fractionA = clamp((ab * bo - bb * ao) / denominator, 0.0, 1.0);
     }
-    return length(dimensions);
+    var fractionB = 0.0;
+    if (bb > 1e-20) {
+        fractionB = clamp((ab * fractionA + bo) / bb, 0.0, 1.0);
+    }
+    if (aa > 1e-20) {
+        fractionA = clamp((ab * fractionB - ao) / aa, 0.0, 1.0);
+    }
+    return ClosestSegments(
+        a.first + fractionA * directionA,
+        b.first + fractionB * directionB,
+        fractionA, fractionB);
+}
+
+fn feature_from_fraction(fraction : f32, base : u32) -> u32 {
+    if (fraction <= 1e-4) { return base; }
+    if (fraction >= 0.9999) { return base + 1u; }
+    return base + 2u;
+}
+
+fn sphere_surface(pose : BodyPose, shape : BodyShape,
+                  point : vec3<f32>) -> Surface {
+    let delta = point - pose.position_invMass.xyz;
+    let distance = length(delta);
+    let normal = safe_normalize(delta, vec3<f32>(0.0, 1.0, 0.0));
+    let radius = sphere_radius(shape);
+    return Surface(distance - radius,
+        pose.position_invMass.xyz + normal * radius, normal, 0u);
+}
+
+fn capsule_surface(pose : BodyPose, shape : BodyShape,
+                   point : vec3<f32>) -> Surface {
+    let closest = closest_point_segment(point, capsule_segment(pose, shape));
+    let delta = point - closest.xyz;
+    let normal = safe_normalize(delta, quaternion_rotate(
+        pose.orientation, vec3<f32>(1.0, 0.0, 0.0)));
+    let radius = capsule_radius(shape);
+    return Surface(length(delta) - radius, closest.xyz + normal * radius,
+        normal, feature_from_fraction(closest.w, 0x100u));
+}
+
+fn box_surface(pose : BodyPose, shape : BodyShape,
+               point : vec3<f32>) -> Surface {
+    let local = quaternion_inverse_rotate(
+        pose.orientation, point - pose.position_invMass.xyz);
+    let half = 0.5 * max(abs(shape.dimensions_type.xyz), vec3<f32>(1e-5));
+    var closest = clamp(local, -half, half);
+    let outside = local - closest;
+    let outsideSquared = dot(outside, outside);
+    if (outsideSquared > 1e-20) {
+        let distance = sqrt(outsideSquared);
+        let localNormal = outside / distance;
+        let absoluteNormal = abs(localNormal);
+        var axis = 0u;
+        if (absoluteNormal.y > absoluteNormal.x) { axis = 1u; }
+        if (absoluteNormal.z > component(absoluteNormal, axis)) { axis = 2u; }
+        let signValue = component(localNormal, axis);
+        return Surface(distance,
+            pose.position_invMass.xyz
+                + quaternion_rotate(pose.orientation, closest),
+            quaternion_rotate(pose.orientation, localNormal),
+            0x200u + axis * 2u + select(0u, 1u, signValue > 0.0));
+    }
+
+    let gaps = half - abs(local);
+    var axis = 0u;
+    if (gaps.y < gaps.x) { axis = 1u; }
+    if (gaps.z < component(gaps, axis)) { axis = 2u; }
+    let signValue = select(-1.0, 1.0, component(local, axis) >= 0.0);
+    closest[axis] = signValue * half[axis];
+    var localNormal = vec3<f32>(0.0);
+    localNormal[axis] = signValue;
+    return Surface(-component(gaps, axis),
+        pose.position_invMass.xyz
+            + quaternion_rotate(pose.orientation, closest),
+        quaternion_rotate(pose.orientation, localNormal),
+        0x200u + axis * 2u + select(0u, 1u, signValue > 0.0));
+}
+
+fn cylinder_surface(pose : BodyPose, shape : BodyShape,
+                    point : vec3<f32>) -> Surface {
+    let local = quaternion_inverse_rotate(
+        pose.orientation, point - pose.position_invMass.xyz);
+    let radius = cylinder_radius(shape);
+    let halfHeight = cylinder_half_height(shape);
+    let radialLength = length(local.xz);
+    let radialDirection = select(vec2<f32>(1.0, 0.0),
+        local.xz / max(radialLength, 1e-30), radialLength > 1e-10);
+    var closest = vec3<f32>(
+        radialDirection.x * min(radialLength, radius),
+        clamp(local.y, -halfHeight, halfHeight),
+        radialDirection.y * min(radialLength, radius));
+    if (radialLength > radius || abs(local.y) > halfHeight) {
+        let delta = local - closest;
+        let distance = length(delta);
+        let localNormal = safe_normalize(delta, vec3<f32>(1.0, 0.0, 0.0));
+        let capOutside = abs(local.y) > halfHeight;
+        let feature = select(0x310u,
+            0x300u + select(0u, 1u, local.y > 0.0), capOutside);
+        return Surface(distance,
+            pose.position_invMass.xyz
+                + quaternion_rotate(pose.orientation, closest),
+            quaternion_rotate(pose.orientation, localNormal), feature);
+    }
+
+    let radialGap = radius - radialLength;
+    let capGap = halfHeight - abs(local.y);
+    var localNormal = vec3<f32>(radialDirection.x, 0.0,
+                                radialDirection.y);
+    var feature = 0x310u;
+    var gap = radialGap;
+    if (capGap < radialGap) {
+        let signValue = select(-1.0, 1.0, local.y >= 0.0);
+        closest.y = signValue * halfHeight;
+        localNormal = vec3<f32>(0.0, signValue, 0.0);
+        feature = 0x300u + select(0u, 1u, signValue > 0.0);
+        gap = capGap;
+    } else {
+        closest.x = radialDirection.x * radius;
+        closest.z = radialDirection.y * radius;
+    }
+    return Surface(-gap,
+        pose.position_invMass.xyz
+            + quaternion_rotate(pose.orientation, closest),
+        quaternion_rotate(pose.orientation, localNormal), feature);
+}
+
+fn shape_surface(pose : BodyPose, shape : BodyShape,
+                 point : vec3<f32>) -> Surface {
+    let kind = shape_type(shape);
+    if (kind == SHAPE_SPHERE) {
+        return sphere_surface(pose, shape, point);
+    }
+    if (kind == SHAPE_CAPSULE) {
+        return capsule_surface(pose, shape, point);
+    }
+    if (kind == SHAPE_CYLINDER) {
+        return cylinder_surface(pose, shape, point);
+    }
+    return box_surface(pose, shape, point);
+}
+
+fn closest_segment_surface(segment : Segment, pose : BodyPose,
+                           shape : BodyShape) -> Surface {
+    var bestFraction = 0.0;
+    var best = shape_surface(pose, shape, segment.first);
+    for (var sample = 1u; sample <= 24u; sample += 1u) {
+        let fraction = f32(sample) / 24.0;
+        let candidate = shape_surface(
+            pose, shape, mix(segment.first, segment.second, fraction));
+        if (candidate.signedDistance < best.signedDistance) {
+            best = candidate;
+            bestFraction = fraction;
+        }
+    }
+    var low = max(bestFraction - 1.0 / 24.0, 0.0);
+    var high = min(bestFraction + 1.0 / 24.0, 1.0);
+    for (var iteration = 0u; iteration < 12u; iteration += 1u) {
+        let left = mix(low, high, 0.3333333333);
+        let right = mix(low, high, 0.6666666667);
+        let leftSurface = shape_surface(
+            pose, shape, mix(segment.first, segment.second, left));
+        let rightSurface = shape_surface(
+            pose, shape, mix(segment.first, segment.second, right));
+        if (leftSurface.signedDistance <= rightSurface.signedDistance) {
+            high = right;
+        } else {
+            low = left;
+        }
+    }
+    return shape_surface(pose, shape,
+        mix(segment.first, segment.second, 0.5 * (low + high)));
+}
+
+fn sphere_separation(center : vec3<f32>, radius : f32,
+                     pose : BodyPose, shape : BodyShape) -> Separation {
+    let surface = shape_surface(pose, shape, center);
+    return Separation(surface.signedDistance - radius, surface.point,
+                      surface.normal, surface.feature);
+}
+
+fn capsule_separation(center : vec3<f32>, axis : vec3<f32>,
+                      halfHeight : f32, radius : f32,
+                      pose : BodyPose, shape : BodyShape) -> Separation {
+    let offset = safe_normalize(axis, vec3<f32>(0.0, 1.0, 0.0))
+        * halfHeight;
+    let querySegment = Segment(center - offset, center + offset);
+    let kind = shape_type(shape);
+    if (kind == SHAPE_SPHERE) {
+        let closest = closest_point_segment(
+            pose.position_invMass.xyz, querySegment);
+        let delta = closest.xyz - pose.position_invMass.xyz;
+        let normal = safe_normalize(delta, vec3<f32>(0.0, 1.0, 0.0));
+        let targetRadius = sphere_radius(shape);
+        return Separation(length(delta) - radius - targetRadius,
+            pose.position_invMass.xyz + normal * targetRadius, normal, 0u);
+    }
+    if (kind == SHAPE_CAPSULE) {
+        let targetSegment = capsule_segment(pose, shape);
+        let closest = closest_segments(querySegment, targetSegment);
+        let delta = closest.pointA - closest.pointB;
+        let normal = safe_normalize(delta, vec3<f32>(0.0, 1.0, 0.0));
+        let targetRadius = capsule_radius(shape);
+        return Separation(length(delta) - radius - targetRadius,
+            closest.pointB + normal * targetRadius, normal,
+            feature_from_fraction(closest.fractionB, 0x100u));
+    }
+    let surface = closest_segment_surface(querySegment, pose, shape);
+    return Separation(surface.signedDistance - radius, surface.point,
+                      surface.normal, surface.feature);
 }
 
 fn miss() -> Intersection {
-    return Intersection(false, 0.0, vec3<f32>(0.0), vec3<f32>(0.0));
+    return Intersection(false, 0.0, vec3<f32>(0.0),
+                        vec3<f32>(0.0), SENTINEL);
 }
 
 fn ray_sphere(origin : vec3<f32>, direction : vec3<f32>, maximum : f32,
-              center : vec3<f32>, radius : f32) -> Intersection {
+              center : vec3<f32>, radius : f32, feature : u32) -> Intersection {
     let offset = origin - center;
     let c = dot(offset, offset) - radius * radius;
     if (c <= 0.0) {
-        let normal = normalize(select(vec3<f32>(0.0, 1.0, 0.0), offset,
-            dot(offset, offset) > 1e-12));
-        return Intersection(true, 0.0, origin, normal);
+        let normal = safe_normalize(offset, vec3<f32>(0.0, 1.0, 0.0));
+        return Intersection(true, 0.0, center + normal * radius,
+                            normal, feature);
     }
     let b = dot(offset, direction);
     let discriminant = b * b - c;
@@ -124,14 +434,23 @@ fn ray_sphere(origin : vec3<f32>, direction : vec3<f32>, maximum : f32,
     let distance = -b - sqrt(discriminant);
     if (distance < 0.0 || distance > maximum) { return miss(); }
     let point = origin + direction * distance;
-    return Intersection(true, distance, point, normalize(point - center));
+    return Intersection(true, distance, point,
+                        safe_normalize(point - center,
+                                       vec3<f32>(0.0, 1.0, 0.0)),
+                        feature);
 }
 
 fn ray_box(origin : vec3<f32>, direction : vec3<f32>, maximum : f32,
-           pose : BodyPose, extents : vec3<f32>) -> Intersection {
+           pose : BodyPose, shape : BodyShape) -> Intersection {
+    let initialSurface = box_surface(pose, shape, origin);
+    if (initialSurface.signedDistance <= 0.0) {
+        return Intersection(true, 0.0, initialSurface.point,
+            initialSurface.normal, initialSurface.feature);
+    }
     let localOrigin = quaternion_inverse_rotate(
         pose.orientation, origin - pose.position_invMass.xyz);
     let localDirection = quaternion_inverse_rotate(pose.orientation, direction);
+    let extents = 0.5 * max(abs(shape.dimensions_type.xyz), vec3<f32>(1e-5));
     var near = 0.0;
     var far = maximum;
     var nearAxis = 0u;
@@ -145,17 +464,17 @@ fn ray_box(origin : vec3<f32>, direction : vec3<f32>, maximum : f32,
         let inverseDirection = 1.0 / localDirection[axis];
         var first = (-extents[axis] - localOrigin[axis]) * inverseDirection;
         var second = (extents[axis] - localOrigin[axis]) * inverseDirection;
-        var sign = -1.0;
+        var signValue = -1.0;
         if (first > second) {
             let temporary = first;
             first = second;
             second = temporary;
-            sign = 1.0;
+            signValue = 1.0;
         }
         if (first > near) {
             near = first;
             nearAxis = axis;
-            nearSign = sign;
+            nearSign = signValue;
         }
         far = min(far, second);
         if (near > far) { return miss(); }
@@ -163,8 +482,176 @@ fn ray_box(origin : vec3<f32>, direction : vec3<f32>, maximum : f32,
     if (near > maximum) { return miss(); }
     var localNormal = vec3<f32>(0.0);
     localNormal[nearAxis] = nearSign;
-    return Intersection(true, near, origin + direction * near,
-        quaternion_rotate(pose.orientation, localNormal));
+    let normal = quaternion_rotate(pose.orientation, localNormal);
+    return Intersection(true, near, origin + direction * near, normal,
+        0x200u + nearAxis * 2u + select(0u, 1u, nearSign > 0.0));
+}
+
+fn nearer(first : Intersection, second : Intersection) -> Intersection {
+    if (!first.hit) { return second; }
+    if (!second.hit) { return first; }
+    if (first.distance <= second.distance) { return first; }
+    return second;
+}
+
+fn ray_capsule(origin : vec3<f32>, direction : vec3<f32>, maximum : f32,
+               pose : BodyPose, shape : BodyShape) -> Intersection {
+    let initialSurface = capsule_surface(pose, shape, origin);
+    if (initialSurface.signedDistance <= 0.0) {
+        return Intersection(true, 0.0, initialSurface.point,
+            initialSurface.normal, initialSurface.feature);
+    }
+    let segment = capsule_segment(pose, shape);
+    let radius = capsule_radius(shape);
+    let axis = segment.second - segment.first;
+    let offset = origin - segment.first;
+    let axisSquared = dot(axis, axis);
+    let axisRay = dot(axis, direction);
+    let axisOffset = dot(axis, offset);
+    let rayOffset = dot(direction, offset);
+    let offsetSquared = dot(offset, offset);
+    let coefficientA = axisSquared - axisRay * axisRay;
+    let coefficientB = axisSquared * rayOffset - axisOffset * axisRay;
+    let coefficientC = axisSquared * offsetSquared
+        - axisOffset * axisOffset - radius * radius * axisSquared;
+    var result = miss();
+    let discriminant = coefficientB * coefficientB
+        - coefficientA * coefficientC;
+    if (abs(coefficientA) > 1e-20 && discriminant >= 0.0) {
+        let distance = (-coefficientB - sqrt(discriminant)) / coefficientA;
+        let height = axisOffset + distance * axisRay;
+        if (distance >= 0.0 && distance <= maximum
+            && height > 0.0 && height < axisSquared) {
+            let point = origin + direction * distance;
+            let axisPoint = segment.first + axis * (height / axisSquared);
+            result = Intersection(true, distance, point,
+                safe_normalize(point - axisPoint,
+                               vec3<f32>(1.0, 0.0, 0.0)), 0x102u);
+        }
+    }
+    result = nearer(result, ray_sphere(origin, direction, maximum,
+        segment.first, radius, 0x100u));
+    result = nearer(result, ray_sphere(origin, direction, maximum,
+        segment.second, radius, 0x101u));
+    return result;
+}
+
+fn ray_cylinder(origin : vec3<f32>, direction : vec3<f32>, maximum : f32,
+                pose : BodyPose, shape : BodyShape) -> Intersection {
+    let initialSurface = cylinder_surface(pose, shape, origin);
+    if (initialSurface.signedDistance <= 0.0) {
+        return Intersection(true, 0.0, initialSurface.point,
+            initialSurface.normal, initialSurface.feature);
+    }
+    let localOrigin = quaternion_inverse_rotate(
+        pose.orientation, origin - pose.position_invMass.xyz);
+    let localDirection = quaternion_inverse_rotate(pose.orientation, direction);
+    let radius = cylinder_radius(shape);
+    let halfHeight = cylinder_half_height(shape);
+    var result = miss();
+
+    let coefficientA = dot(localDirection.xz, localDirection.xz);
+    let coefficientB = dot(localOrigin.xz, localDirection.xz);
+    let coefficientC = dot(localOrigin.xz, localOrigin.xz) - radius * radius;
+    let discriminant = coefficientB * coefficientB
+        - coefficientA * coefficientC;
+    if (coefficientA > 1e-20 && discriminant >= 0.0) {
+        let distance = (-coefficientB - sqrt(discriminant)) / coefficientA;
+        let height = localOrigin.y + localDirection.y * distance;
+        if (distance >= 0.0 && distance <= maximum
+            && abs(height) <= halfHeight) {
+            let localPoint = localOrigin + localDirection * distance;
+            let localNormal = safe_normalize(
+                vec3<f32>(localPoint.x, 0.0, localPoint.z),
+                vec3<f32>(1.0, 0.0, 0.0));
+            result = Intersection(true, distance,
+                origin + direction * distance,
+                quaternion_rotate(pose.orientation, localNormal), 0x310u);
+        }
+    }
+    if (abs(localDirection.y) > 1e-20) {
+        for (var cap = 0u; cap < 2u; cap += 1u) {
+            let signValue = select(-1.0, 1.0, cap == 1u);
+            let distance = (signValue * halfHeight - localOrigin.y)
+                / localDirection.y;
+            let localPoint = localOrigin + localDirection * distance;
+            if (distance >= 0.0 && distance <= maximum
+                && dot(localPoint.xz, localPoint.xz) <= radius * radius) {
+                let candidate = Intersection(true, distance,
+                    origin + direction * distance,
+                    quaternion_rotate(pose.orientation,
+                        vec3<f32>(0.0, signValue, 0.0)),
+                    0x300u + cap);
+                result = nearer(result, candidate);
+            }
+        }
+    }
+    return result;
+}
+
+fn ray_shape(origin : vec3<f32>, direction : vec3<f32>, maximum : f32,
+             pose : BodyPose, shape : BodyShape) -> Intersection {
+    let kind = shape_type(shape);
+    if (kind == SHAPE_SPHERE) {
+        return ray_sphere(origin, direction, maximum,
+            pose.position_invMass.xyz, sphere_radius(shape), 0u);
+    }
+    if (kind == SHAPE_CAPSULE) {
+        return ray_capsule(origin, direction, maximum, pose, shape);
+    }
+    if (kind == SHAPE_CYLINDER) {
+        return ray_cylinder(origin, direction, maximum, pose, shape);
+    }
+    return ray_box(origin, direction, maximum, pose, shape);
+}
+
+fn sphere_cast(origin : vec3<f32>, radius : f32,
+               direction : vec3<f32>, maximum : f32,
+               pose : BodyPose, shape : BodyShape) -> Intersection {
+    var distance = 0.0;
+    for (var iteration = 0u; iteration < 64u; iteration += 1u) {
+        let center = origin + direction * distance;
+        let separation = sphere_separation(center, radius, pose, shape);
+        if (separation.gap <= 1e-4) {
+            return Intersection(true, distance, separation.point,
+                separation.normal, separation.feature);
+        }
+        if (distance >= maximum) { return miss(); }
+        distance = min(distance + max(separation.gap, 1e-5), maximum);
+    }
+    return miss();
+}
+
+fn capsule_cast(origin : vec3<f32>, radius : f32,
+                axis : vec3<f32>, halfHeight : f32,
+                direction : vec3<f32>, maximum : f32,
+                pose : BodyPose, shape : BodyShape) -> Intersection {
+    var distance = 0.0;
+    for (var iteration = 0u; iteration < 96u; iteration += 1u) {
+        let center = origin + direction * distance;
+        let separation = capsule_separation(
+            center, axis, halfHeight, radius, pose, shape);
+        if (separation.gap <= 1e-4) {
+            return Intersection(true, distance, separation.point,
+                separation.normal, separation.feature);
+        }
+        if (distance >= maximum) { return miss(); }
+        // The sampled segment distance is deliberately advanced
+        // conservatively so a narrow edge/cap cannot be skipped.
+        distance = min(distance + max(0.8 * separation.gap, 1e-5), maximum);
+    }
+    return miss();
+}
+
+fn body_is_filtered(flags : u32, pose : BodyPose, packedMetadata : u32) -> bool {
+    let isStatic = pose.position_invMass.w <= 0.0;
+    let isAwake = (packedMetadata & BODY_AWAKE) != 0u;
+    let isBullet = (packedMetadata & BODY_BULLET) != 0u;
+    return (isStatic && (flags & QUERY_EXCLUDE_STATIC) != 0u)
+        || (!isStatic && (flags & QUERY_EXCLUDE_DYNAMIC) != 0u)
+        || (!isAwake && (flags & QUERY_EXCLUDE_SLEEPING) != 0u)
+        || (isAwake && (flags & QUERY_EXCLUDE_AWAKE) != 0u)
+        || (isBullet && (flags & QUERY_EXCLUDE_BULLETS) != 0u);
 }
 
 fn hit_less(a : QueryHit, b : QueryHit) -> bool {
@@ -212,71 +699,71 @@ fn execute_queries(@builtin(global_invocation_id) gid : vec3<u32>) {
     let emptyHit = QueryHit(
         vec4<u32>(request.ids.x, SENTINEL, SENTINEL, queryType),
         vec4<f32>(1e30), vec4<f32>(0.0), vec4<f32>(0.0),
-        request.sector);
+        vec4<i32>(request.sector.xyz, 0));
     for (var hitIndex = 0u; hitIndex < MAX_HITS; hitIndex += 1u) {
         outputs[query].hits[hitIndex] = emptyHit;
     }
     let directionLength = length(request.directionDistance.xyz);
-    let direction = select(vec3<f32>(1.0, 0.0, 0.0),
-        request.directionDistance.xyz / max(directionLength, 1e-12),
-        directionLength > 1e-12);
+    let direction = request.directionDistance.xyz
+        / max(directionLength, 1e-20);
     let maximumDistance = max(request.directionDistance.w, 0.0);
+    let queryRadius = max(request.originRadius.w, 0.0);
+    let capsuleAxis = request.dimensions.xyz
+        / max(length(request.dimensions.xyz), 1e-20);
+    let capsuleHalfHeight = max(request.dimensions.w, 0.0);
     var hitCount = 0u;
     var overflow = 0u;
     for (var body = 0u; body < params.counts.x; body += 1u) {
-        if ((u32(metadata[body].w) & BODY_ALIVE) == 0u) { continue; }
-        let pose = poses[body];
+        let packedMetadata = u32(metadata[body].w);
+        if ((packedMetadata & BODY_ALIVE) == 0u) { continue; }
+        let sourcePose = poses[body];
+        if (body_is_filtered(request.ids.w, sourcePose, packedMetadata)) {
+            continue;
+        }
         let bodyPosition = body_position_in_query_frame(
             body, request.sector.xyz, u32(max(request.sector.w, 0)));
         if (bodyPosition.x > 1e30) { continue; }
-        var queryPose = pose;
-        queryPose.position_invMass = vec4<f32>(
-            bodyPosition, pose.position_invMass.w);
+        var pose = sourcePose;
+        pose.position_invMass = vec4<f32>(
+            bodyPosition, sourcePose.position_invMass.w);
         let shape = shapes[body];
-        let shapeType = u32(clamp(shape.dimensions_type.w, 0.0, 4.0));
-        let bodyRadius = shape_radius(shape);
         var intersection = miss();
         var metric = 0.0;
         if (queryType == QUERY_OVERLAP_SPHERE) {
-            let offset = request.originRadius.xyz - bodyPosition;
-            let centerDistance = length(offset);
-            let combined = max(request.originRadius.w, 0.0) + bodyRadius;
-            if (centerDistance <= combined) {
-                let normal = normalize(select(vec3<f32>(0.0, 1.0, 0.0),
-                    offset, centerDistance > 1e-8));
-                metric = max(centerDistance - combined, 0.0);
-                intersection = Intersection(true, metric,
-                    bodyPosition + normal * bodyRadius, normal);
+            let separation = sphere_separation(
+                request.originRadius.xyz, queryRadius, pose, shape);
+            if (separation.gap <= 0.0) {
+                intersection = Intersection(true, max(-separation.gap, 0.0),
+                    separation.point, separation.normal, separation.feature);
             }
-        } else {
-            var queryRadius = 0.0;
-            if (queryType == QUERY_SPHERE_CAST) {
-                queryRadius = max(request.originRadius.w, 0.0);
-            } else if (queryType == QUERY_CAPSULE_CAST) {
-                queryRadius = max(request.originRadius.w, 0.0)
-                    + max(request.dimensions.w, 0.0);
+        } else if (queryType == QUERY_RAY) {
+            if (directionLength > 1e-12) {
+                intersection = ray_shape(request.originRadius.xyz,
+                    direction, maximumDistance, pose, shape);
             }
-            if (shapeType == SHAPE_CUBE || shapeType == SHAPE_BOX) {
-                intersection = ray_box(
-                    request.originRadius.xyz, direction, maximumDistance,
-                    queryPose, max(0.5 * abs(shape.dimensions_type.xyz)
-                                  + vec3<f32>(queryRadius),
-                              vec3<f32>(0.0)));
-            } else {
-                intersection = ray_sphere(
-                    request.originRadius.xyz, direction, maximumDistance,
-                    bodyPosition, bodyRadius + queryRadius);
+        } else if (queryType == QUERY_SPHERE_CAST) {
+            if (directionLength > 1e-12) {
+                intersection = sphere_cast(request.originRadius.xyz,
+                    queryRadius, direction, maximumDistance, pose, shape);
             }
-            if (maximumDistance > 1e-12) {
-                metric = intersection.distance / maximumDistance;
-            }
+        } else if (directionLength > 1e-12
+                   && length(request.dimensions.xyz) > 1e-12) {
+            intersection = capsule_cast(request.originRadius.xyz,
+                queryRadius, capsuleAxis, capsuleHalfHeight,
+                direction, maximumDistance, pose, shape);
         }
         if (!intersection.hit) { continue; }
+        if (queryType != QUERY_OVERLAP_SPHERE
+            && maximumDistance > 1e-12) {
+            metric = intersection.distance / maximumDistance;
+        }
         let hit = QueryHit(
-            vec4<u32>(request.ids.x, body, 0u, queryType),
+            vec4<u32>(request.ids.x, body, intersection.feature, queryType),
             vec4<f32>(metric, intersection.distance, 0.0, 0.0),
             vec4<f32>(intersection.point, 0.0),
-            vec4<f32>(intersection.normal, 0.0), request.sector);
+            vec4<f32>(intersection.normal, 0.0),
+            vec4<i32>(request.sector.xyz,
+                i32(packedMetadata & GENERATION_MASK)));
         insert_hit(query, hit, maximumHits, &hitCount, &overflow);
     }
     outputs[query].header = vec4<u32>(

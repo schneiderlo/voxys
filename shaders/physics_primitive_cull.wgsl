@@ -12,6 +12,7 @@ struct BodyPose {
 struct BodyShape {
     dimensions_type : vec4<f32>,
     invInertia_material : vec4<f32>,
+    material_coefficients : vec4<f32>,
 };
 
 struct IndirectDrawArgs {

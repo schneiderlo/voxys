@@ -10,6 +10,7 @@
 
 #include <cstddef>
 #include <array>
+#include <cmath>
 #include <cstdint>
 #include <functional>
 #include <optional>
@@ -138,9 +139,9 @@ struct PhysicsInitContext {
         bool enableBodyBodyContacts = true;
         // Must evenly divide the 256 m world sector for sector-aware grid keys.
         float broadPhaseCellSize = 4.0f;
-        float waterBuoyancy = 1.05f;
-        float waterLinearDrag = 1.5f;
-        float waterAngularDrag = 0.8f;
+        float waterBuoyancy = 1.08f;
+        float waterLinearDrag = 0.55f;
+        float waterAngularDrag = 0.08f;
         uint32_t substeps = 4;
         uint32_t maximumCatchUpTicks = 8;
         uint32_t commandCapacity = 262'144;
@@ -347,6 +348,18 @@ struct BodyHandle {
     [[nodiscard]] constexpr auto operator<=>(const BodyHandle&) const noexcept = default;
 };
 
+struct PhysicsMaterial {
+    float friction = 0.65f;
+    float restitution = 0.25f;
+    float rollingResistance = 0.01f;
+    // Resident gameplay metadata. BodySpawnDesc::inverseMass remains the
+    // authoritative mass input; changing density does not silently resize it.
+    float density = 1.0f;
+    // Opaque resident application bits; the built-in solver does not interpret
+    // them.
+    uint32_t flags = 0u;
+};
+
 struct BodySpawnDesc {
     ThrowableShape shape = ThrowableShape::Sphere;
     glm::vec3 position{0.0f};
@@ -356,6 +369,10 @@ struct BodySpawnDesc {
     glm::vec3 dimensions{1.0f};
     float inverseMass = 1.0f;
     bool bullet = false;
+    // Null selects the backend configuration (including the sphere-specific
+    // restitution). Friction, restitution, and rolling resistance are consumed
+    // by contact solving; density and flags remain resident metadata.
+    std::optional<PhysicsMaterial> material;
     // position is sector-local. Legacy callers leave sector at zero; spawn
     // canonicalization migrates out-of-range local values automatically.
     glm::ivec3 sector{0};
@@ -389,6 +406,9 @@ struct PhysicsCommand {
     glm::vec4 d{0.0f};
     glm::vec4 e{0.0f};
     glm::ivec3 sector{0};
+    // SpawnBody may leave this null to select backend defaults.
+    // SetMaterial requires a value.
+    std::optional<PhysicsMaterial> material;
 };
 
 struct PhysicsRenderView {
@@ -417,6 +437,22 @@ struct TerrainGpuResources {
     uint32_t mipLevelCount = 0;
 };
 
+// GPU-resident water displacement shared with rendering. The view must be a
+// filterable 2D array with the 96 m, 384 m, and 1536 m FFT cascades in layers
+// 0..2; each texel stores height and x/z slope in xyz. Handles are borrowed and
+// must outlive the binding (or be cleared before their owner is destroyed).
+struct WaterGpuResources {
+    WGPUTextureView displacementTexture = nullptr;
+    WGPUSampler displacementSampler = nullptr;
+    float strength = 1.0f;
+
+    [[nodiscard]] bool valid() const noexcept {
+        return displacementTexture != nullptr
+            && displacementSampler != nullptr
+            && std::isfinite(strength) && strength >= 0.0f;
+    }
+};
+
 struct DebugSnapshotRequest {
     uint32_t firstBody = 1;
     uint32_t bodyCount = 0;
@@ -428,12 +464,17 @@ struct DebugBodyState {
     glm::quat orientation{1.0f, 0.0f, 0.0f, 0.0f};
     glm::vec3 linearVelocity{0.0f};
     glm::vec3 angularVelocity{0.0f};
+    glm::vec3 dimensions{0.0f};
+    glm::vec3 inverseInertia{0.0f};
+    PhysicsMaterial material{};
     ThrowableShape shape = ThrowableShape::Sphere;
     bool alive = false;
     bool awake = false;
     uint32_t staticContactCount = 0;
     bool terrainRejectedByMip = false;
     bool submerged = false;
+    bool kinematic = false;
+    uint32_t runtimeFlags = 0u;
     glm::ivec3 sector{0};
 };
 
@@ -448,6 +489,22 @@ enum class PhysicsQueryType : uint32_t {
     SphereCast,
     CapsuleCast,
 };
+
+// Query filters are exclusions so the default value continues to include
+// every live body.  Static bodies have zero inverse mass; awake/sleeping and
+// bullet state are read from the resident GPU metadata at query execution.
+enum PhysicsQueryFlag : uint32_t {
+    PhysicsQueryExcludeStatic = 1u << 0u,
+    PhysicsQueryExcludeDynamic = 1u << 1u,
+    PhysicsQueryExcludeSleeping = 1u << 2u,
+    PhysicsQueryExcludeAwake = 1u << 3u,
+    PhysicsQueryExcludeBullets = 1u << 4u,
+};
+
+inline constexpr uint32_t kPhysicsQueryKnownFlags =
+    PhysicsQueryExcludeStatic | PhysicsQueryExcludeDynamic
+    | PhysicsQueryExcludeSleeping | PhysicsQueryExcludeAwake
+    | PhysicsQueryExcludeBullets;
 
 struct PhysicsQueryRequest {
     uint32_t requestId = 0;
@@ -466,6 +523,7 @@ struct PhysicsQueryRequest {
 struct PhysicsQueryHit {
     uint32_t requestId = 0;
     uint32_t bodyIndex = 0;
+    uint32_t bodyGeneration = 0;
     uint32_t featureId = 0;
     PhysicsQueryType type = PhysicsQueryType::RayCast;
     float fraction = 0.0f;
@@ -473,6 +531,10 @@ struct PhysicsQueryHit {
     glm::vec3 point{0.0f};
     glm::vec3 normal{0.0f};
     glm::ivec3 sector{0};
+
+    [[nodiscard]] constexpr BodyHandle bodyHandle() const noexcept {
+        return BodyHandle{bodyIndex, bodyGeneration};
+    }
 };
 
 struct PhysicsQueryOutput {
@@ -500,10 +562,19 @@ struct PhysicsEvent {
     PhysicsEventType type = PhysicsEventType::ContactBegin;
     uint32_t bodyA = 0;
     uint32_t bodyB = 0;
+    uint32_t bodyGenerationA = 0;
+    uint32_t bodyGenerationB = 0;
     uint32_t featureId = 0;
     uint32_t sourceId = 0;
     uint32_t auxiliaryCount = 0;
     uint32_t flags = 0;
+
+    [[nodiscard]] constexpr BodyHandle bodyHandleA() const noexcept {
+        return BodyHandle{bodyA, bodyGenerationA};
+    }
+    [[nodiscard]] constexpr BodyHandle bodyHandleB() const noexcept {
+        return BodyHandle{bodyB, bodyGenerationB};
+    }
 };
 
 struct PhysicsEventBatch {

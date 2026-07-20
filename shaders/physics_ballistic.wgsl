@@ -4,6 +4,7 @@ const BODY_AWAKE : u32 = 1u << 21u;
 const BODY_BULLET : u32 = 1u << 22u;
 const BODY_CCD_HIT : u32 = 1u << 23u;
 const BODY_CCD_FAILURE : u32 = 1u << 24u;
+const BODY_KINEMATIC : u32 = 1u << 31u;
 const WORKGROUP_SIZE : u32 = 256u;
 const SHAPE_SPHERE : u32 = 0u;
 const SHAPE_CUBE : u32 = 1u;
@@ -52,6 +53,7 @@ struct BodyMotion {
 struct BodyShape {
     dimensions_type : vec4<f32>,
     invInertia_material : vec4<f32>,
+    material_coefficients : vec4<f32>,
 };
 
 struct GpuCommand {
@@ -62,6 +64,7 @@ struct GpuCommand {
     p3 : vec4<f32>,
     p4 : vec4<f32>,
     p5 : vec4<i32>,
+    p6 : vec4<f32>,
 };
 
 struct SimulationUniforms {
@@ -75,6 +78,8 @@ struct SimulationUniforms {
     contact : vec4<f32>,
     solver : vec4<f32>,
     terrainMaterials : vec4<f32>,
+    bodyMaterials : vec4<f32>,
+    waterSurface : vec4<f32>,
     worldSector : vec4<i32>,
 };
 
@@ -94,7 +99,7 @@ struct TerrainContactCache {
 //  0 active, 1 tick, 2 terrain bodies, 3 terrain points,
 //  4 max terrain points/body, 5 submerged bodies, 6 water samples,
 //  7 applied commands, 8..13 matching high-water marks,
-// 14 active-list overflow, 15 reserved.
+// 14 active-list overflow, 15 resident kinematic bodies.
 @group(0) @binding(6) var<storage, read_write> counters : array<atomic<u32>>;
 @group(0) @binding(7) var<storage, read> commands : array<GpuCommand>;
 @group(0) @binding(8) var<uniform> sim : SimulationUniforms;
@@ -106,11 +111,36 @@ struct TerrainContactCache {
 @group(0) @binding(14) var maxHeightTexture : texture_2d<u32>;
 @group(0) @binding(15) var<storage, read_write> terrainContactCaches :
     array<TerrainContactCache>;
+@group(0) @binding(16) var waterDisplacementTexture :
+    texture_2d_array<f32>;
+@group(0) @binding(17) var waterDisplacementSampler : sampler;
+fn terrain_friction(body : u32) -> f32 {
+    let ratio = max(shapes[body].material_coefficients.x, 0.0)
+        / max(sim.bodyMaterials.x, 1e-7);
+    return sim.contact.y * sqrt(ratio);
+}
 
-fn body_restitution(shapeType : u32) -> f32 {
-    return select(
+fn terrain_restitution(body : u32, shapeType : u32) -> f32 {
+    let terrainDefault = select(
         sim.terrainMaterials.z, sim.terrainMaterials.y,
         shapeType == SHAPE_SPHERE);
+    let bodyDefault = select(
+        sim.bodyMaterials.z, sim.bodyMaterials.y,
+        shapeType == SHAPE_SPHERE);
+    return terrainDefault * shapes[body].material_coefficients.y
+        / max(bodyDefault, 1e-7);
+}
+
+fn terrain_rolling_resistance(body : u32) -> f32 {
+    return max(shapes[body].material_coefficients.z, 0.0);
+}
+
+fn body_buoyancy(shapeType : u32) -> f32 {
+    if (shapeType == SHAPE_SPHERE) { return sim.water.z; }
+    if (shapeType == SHAPE_CUBE) { return 0.94; }
+    if (shapeType == SHAPE_BOX) { return 1.18; }
+    if (shapeType == SHAPE_CAPSULE) { return 1.10; }
+    return 0.98;
 }
 
 fn is_live(index : u32, generation : u32) -> bool {
@@ -124,7 +154,7 @@ fn body_flags(body : u32) -> u32 {
 }
 
 fn set_body_flags(body : u32, flags : u32) {
-    metadata[body].w = i32(metadata_generation(body)
+    metadata[body].w = bitcast<i32>(metadata_generation(body)
         | (flags & ~GENERATION_MASK));
 }
 
@@ -133,7 +163,7 @@ fn metadata_generation(body : u32) -> u32 {
 }
 
 fn pack_generation_flags(generation : u32, flags : u32) -> i32 {
-    return i32((generation & GENERATION_MASK)
+    return bitcast<i32>((generation & GENERATION_MASK)
         | (flags & ~GENERATION_MASK));
 }
 
@@ -206,6 +236,7 @@ fn apply_commands(@builtin(global_invocation_id) gid : vec3<u32>) {
     for (var counter = 2u; counter < 8u; counter += 1u) {
         atomicStore(&counters[counter], 0u);
     }
+    atomicStore(&counters[15], 0u);
     let targetTick = atomicLoad(&counters[1]) + 1u;
     var appliedCommands = 0u;
     for (var commandIndex = 0u; commandIndex < sim.counts.y;
@@ -227,7 +258,8 @@ fn apply_commands(@builtin(global_invocation_id) gid : vec3<u32>) {
             shapes[body].dimensions_type = command.p4;
             shapes[body].invInertia_material = vec4<f32>(shape_inverse_inertia(
                 command.p4.xyz, u32(clamp(command.p4.w, 0.0, 4.0)),
-                command.p0.w), 0.0);
+                command.p0.w), bitcast<f32>(u32(command.p5.w)));
+            shapes[body].material_coefficients = command.p6;
             forces[body] = vec4<f32>(0.0);
             let spawnFlags = BODY_ALIVE | BODY_AWAKE
                 | select(0u, BODY_BULLET, command.p3.w > 0.5);
@@ -248,25 +280,29 @@ fn apply_commands(@builtin(global_invocation_id) gid : vec3<u32>) {
                 pose.position_invMass.xyz, 0.0);
             shapes[body].dimensions_type = vec4<f32>(0.0);
             shapes[body].invInertia_material = vec4<f32>(0.0);
+            shapes[body].material_coefficients = vec4<f32>(0.0);
             motions[body] = BodyMotion(vec4<f32>(0.0), vec4<f32>(0.0));
         } else if (commandType == COMMAND_IMPULSE) {
             let motion = motions[body];
             motions[body].linearVelocity_sleep = vec4<f32>(
                 motion.linearVelocity_sleep.xyz
                     + command.p0.xyz * poses[body].position_invMass.w,
-                motion.linearVelocity_sleep.w);
+                0.0);
             set_body_flags(body, body_flags(body) | BODY_AWAKE);
         } else if (commandType == COMMAND_FORCE) {
             forces[body] = vec4<f32>(forces[body].xyz + command.p0.xyz, 0.0);
+            motions[body].linearVelocity_sleep.w = 0.0;
             set_body_flags(body, body_flags(body) | BODY_AWAKE);
         } else if (commandType == COMMAND_SET_VELOCITY) {
             motions[body].linearVelocity_sleep = vec4<f32>(
-                command.p0.xyz, motions[body].linearVelocity_sleep.w);
+                command.p0.xyz, 0.0);
+            set_body_flags(body, body_flags(body) | BODY_AWAKE);
         } else if (commandType == COMMAND_SET_ANGULAR_VELOCITY) {
             motions[body].angularVelocity_flags = vec4<f32>(
                 command.p0.xyz, motions[body].angularVelocity_flags.w);
-        } else if (commandType == COMMAND_TELEPORT
-                   || commandType == COMMAND_KINEMATIC_TARGET) {
+            motions[body].linearVelocity_sleep.w = 0.0;
+            set_body_flags(body, body_flags(body) | BODY_AWAKE);
+        } else if (commandType == COMMAND_TELEPORT) {
             let oldPose = poses[body];
             poses[body].position_invMass = vec4<f32>(
                 command.p0.xyz, oldPose.position_invMass.w);
@@ -274,10 +310,59 @@ fn apply_commands(@builtin(global_invocation_id) gid : vec3<u32>) {
             if (qLength > 1e-7) { poses[body].orientation = command.p1 / qLength; }
             metadata[body] = vec4<i32>(command.p5.xyz, metadata[body].w);
             set_body_flags(body, body_flags(body) | BODY_AWAKE);
-        } else if (commandType == COMMAND_SET_MATERIAL) {
+        } else if (commandType == COMMAND_KINEMATIC_TARGET) {
+            let oldPose = poses[body];
+            let oldMetadata = metadata[body];
+            var targetOrientation = oldPose.orientation;
+            let qLength = length(command.p1);
+            if (qLength > 1e-7) {
+                targetOrientation = command.p1 / qLength;
+            }
+
+            let sectorDelta = vec3<i32>(
+                bounded_sector_delta(oldMetadata.x, command.p5.x, 4096u),
+                bounded_sector_delta(oldMetadata.y, command.p5.y, 4096u),
+                bounded_sector_delta(oldMetadata.z, command.p5.z, 4096u));
+            var linear = vec3<f32>(0.0);
+            if (all(sectorDelta != vec3<i32>(2147483647))) {
+                let translation = command.p0.xyz - oldPose.position_invMass.xyz
+                    + vec3<f32>(sectorDelta) * WORLD_SECTOR_SIZE;
+                linear = clamp_length(
+                    translation / max(sim.gravity_dt.w, 1e-7),
+                    sim.damping_clamps.z);
+            }
+            var deltaOrientation = quaternion_multiply(
+                targetOrientation,
+                vec4<f32>(-oldPose.orientation.xyz, oldPose.orientation.w));
+            if (deltaOrientation.w < 0.0) {
+                deltaOrientation = -deltaOrientation;
+            }
+            let sinHalfAngle = length(deltaOrientation.xyz);
+            let angle = 2.0 * atan2(sinHalfAngle, deltaOrientation.w);
+            var angular = vec3<f32>(0.0);
+            if (sinHalfAngle > 1e-7) {
+                angular = clamp_length(
+                    deltaOrientation.xyz / sinHalfAngle
+                        * (angle / max(sim.gravity_dt.w, 1e-7)),
+                    sim.damping_clamps.w);
+            }
+
+            poses[body].position_invMass = vec4<f32>(command.p0.xyz, 0.0);
+            poses[body].orientation = targetOrientation;
             shapes[body].invInertia_material = vec4<f32>(
-                shapes[body].invInertia_material.xyz, command.p0.x);
+                vec3<f32>(0.0), shapes[body].invInertia_material.w);
+            motions[body].linearVelocity_sleep = vec4<f32>(linear, 0.0);
+            motions[body].angularVelocity_flags = vec4<f32>(
+                angular, bitcast<f32>(targetTick));
+            metadata[body] = vec4<i32>(command.p5.xyz, oldMetadata.w);
+            set_body_flags(body,
+                body_flags(body) | BODY_AWAKE | BODY_KINEMATIC);
+        } else if (commandType == COMMAND_SET_MATERIAL) {
+            shapes[body].invInertia_material.w =
+                bitcast<f32>(u32(command.p5.w));
+            shapes[body].material_coefficients = command.p6;
         } else if (commandType == COMMAND_WAKE) {
+            motions[body].linearVelocity_sleep.w = 0.0;
             set_body_flags(body, body_flags(body) | BODY_AWAKE);
         } else if (commandType == COMMAND_SLEEP) {
             let sleepingFlags = body_flags(body) & ~BODY_AWAKE;
@@ -287,6 +372,7 @@ fn apply_commands(@builtin(global_invocation_id) gid : vec3<u32>) {
                 vec3<f32>(0.0), motion.linearVelocity_sleep.w);
             motions[body].angularVelocity_flags = vec4<f32>(
                 vec3<f32>(0.0), motion.angularVelocity_flags.w);
+            forces[body] = vec4<f32>(0.0);
         }
         appliedCommands += 1u;
     }
@@ -304,6 +390,10 @@ fn compact_blocks(@builtin(global_invocation_id) gid : vec3<u32>,
     var predicate = 0u;
     if (body < sim.counts.x) {
         let flags = body_flags(body);
+        if ((flags & (BODY_ALIVE | BODY_KINEMATIC))
+                == (BODY_ALIVE | BODY_KINEMATIC)) {
+            atomicAdd(&counters[15], 1u);
+        }
         predicate = select(0u, 1u,
             (flags & (BODY_ALIVE | BODY_AWAKE)) == (BODY_ALIVE | BODY_AWAKE));
     }
@@ -385,6 +475,26 @@ fn shape_inverse_inertia(dimensionsInput : vec3<f32>, shapeType : u32,
     if (shapeType == SHAPE_SPHERE) {
         let radius = 0.5 * dimensions.x;
         return vec3<f32>(inverseMass / max(0.4 * radius * radius, 1e-7));
+    }
+    if (shapeType == SHAPE_CAPSULE) {
+        let radius = 0.25 * (dimensions.x + dimensions.z);
+        let cylinderLength = max(dimensions.y - 2.0 * radius, 0.0);
+        let denominator = cylinderLength + (4.0 / 3.0) * radius;
+        let cylinderFraction = cylinderLength / max(denominator, 1e-7);
+        let capFraction = 1.0 - cylinderFraction;
+        let axial = cylinderFraction * 0.5 * radius * radius
+            + capFraction * 0.4 * radius * radius;
+        let capCenter = 0.5 * cylinderLength + 0.375 * radius;
+        let transverse = cylinderFraction
+                * (3.0 * radius * radius
+                    + cylinderLength * cylinderLength) / 12.0
+            + capFraction
+                * ((83.0 / 320.0) * radius * radius
+                    + capCenter * capCenter);
+        return vec3<f32>(
+            inverseMass / max(transverse, 1e-7),
+            inverseMass / max(axial, 1e-7),
+            inverseMass / max(transverse, 1e-7));
     }
     if (shapeType == SHAPE_CYLINDER) {
         let radius = 0.25 * (dimensions.x + dimensions.z);
@@ -803,6 +913,50 @@ fn cached_normal_impulse(cache : TerrainContactCache,
     return 0.0;
 }
 
+struct GpuWaterSurface {
+    heightOffset : f32,
+    normal : vec3<f32>,
+};
+
+fn water_cascade_uv(localXZ : vec2<f32>, sectorXZ : vec2<i32>,
+                    cascade : u32) -> vec2<f32> {
+    let longCascade = cascade == 2u;
+    let sectorCycle = select(3, 6, longCascade);
+    let patchLength = select(
+        select(96.0, 384.0, cascade == 1u), 1536.0, longCascade);
+    // 256 m sectors repeat every 3, 3, and 6 sectors for the three FFT
+    // periods. Reducing in integer space preserves phase even near i32 world
+    // limits, where converting an absolute coordinate to f32 would not.
+    let wrappedSector = sectorXZ % vec2<i32>(sectorCycle);
+    return (localXZ + vec2<f32>(wrappedSector) * WORLD_SECTOR_SIZE)
+        / patchLength;
+}
+
+fn sample_gpu_water_surface(pose : BodyPose,
+                            worldMeta : vec4<i32>) -> GpuWaterSurface {
+    var result : GpuWaterSurface;
+    result.heightOffset = 0.0;
+    result.normal = vec3<f32>(0.0, 1.0, 0.0);
+    let strength = max(sim.waterSurface.x, 0.0);
+    if (sim.water.y < 0.5 || strength <= 0.0) { return result; }
+
+    let localXZ = pose.position_invMass.xz;
+    let sectorXZ = worldMeta.xz;
+    let shortWaves = textureSampleLevel(
+        waterDisplacementTexture, waterDisplacementSampler,
+        water_cascade_uv(localXZ, sectorXZ, 0u), 0, 0.0);
+    let mediumWaves = textureSampleLevel(
+        waterDisplacementTexture, waterDisplacementSampler,
+        water_cascade_uv(localXZ, sectorXZ, 1u), 1, 0.0);
+    let longWaves = textureSampleLevel(
+        waterDisplacementTexture, waterDisplacementSampler,
+        water_cascade_uv(localXZ, sectorXZ, 2u), 2, 0.0);
+    let waves = (shortWaves + mediumWaves + longWaves) * strength;
+    result.heightOffset = waves.x;
+    result.normal = normalize(vec3<f32>(-waves.y, 1.0, -waves.z));
+    return result;
+}
+
 struct WaterSampleAccumulator {
     weightedSubmersion : f32,
     totalWeight : f32,
@@ -813,16 +967,18 @@ struct WaterSampleAccumulator {
 struct WaterState {
     fraction : f32,
     buoyancyCenter : vec3<f32>,
+    normal : vec3<f32>,
 };
 
 fn append_water_sample(accumulator : ptr<function, WaterSampleAccumulator>,
                        pose : BodyPose, localPoint : vec3<f32>,
-                       sampleRadius : f32, weight : f32) {
+                       sampleRadius : f32, weight : f32,
+                       waterHeight : f32) {
     let point = pose.position_invMass.xyz
         + rotate_by_quaternion(pose.orientation, localPoint);
     let radius = max(sampleRadius, 1e-4);
     let submersion = clamp(
-        (sim.water.x - point.y + radius) / (2.0 * radius), 0.0, 1.0);
+        (waterHeight - point.y + radius) / (2.0 * radius), 0.0, 1.0);
     (*accumulator).weightedSubmersion += submersion * weight;
     (*accumulator).totalWeight += weight;
     (*accumulator).weightedCenter += point * submersion * weight;
@@ -830,10 +986,12 @@ fn append_water_sample(accumulator : ptr<function, WaterSampleAccumulator>,
 }
 
 fn sample_water_state_in_frame(pose : BodyPose,
-                               shape : BodyShape) -> WaterState {
+                               shape : BodyShape,
+                               surface : GpuWaterSurface) -> WaterState {
     var result : WaterState;
     result.fraction = 0.0;
     result.buoyancyCenter = pose.position_invMass.xyz;
+    result.normal = surface.normal;
     if (sim.water.y < 0.5) { return result; }
 
     let dimensions = max(abs(shape.dimensions_type.xyz), vec3<f32>(1e-5));
@@ -848,20 +1006,26 @@ fn sample_water_state_in_frame(pose : BodyPose,
         let radius = half.x;
         append_water_sample(&accumulator, pose,
                             vec3<f32>(0.0, -0.5 * radius, 0.0),
-                            0.5 * radius, 1.0);
+                            0.5 * radius, 1.0,
+                            sim.water.x + surface.heightOffset);
         append_water_sample(&accumulator, pose, vec3<f32>(0.0),
-                            0.5 * radius, 1.0);
+                            0.5 * radius, 1.0,
+                            sim.water.x + surface.heightOffset);
         append_water_sample(&accumulator, pose,
                             vec3<f32>(0.0, 0.5 * radius, 0.0),
-                            0.5 * radius, 1.0);
+                            0.5 * radius, 1.0,
+                            sim.water.x + surface.heightOffset);
     } else if (shapeType == SHAPE_CAPSULE) {
         let radius = 0.25 * (dimensions.x + dimensions.z);
         let segmentHalf = max(half.y - radius, 0.0);
         append_water_sample(&accumulator, pose,
-                            vec3<f32>(0.0, -segmentHalf, 0.0), radius, 1.0);
-        append_water_sample(&accumulator, pose, vec3<f32>(0.0), radius, 1.0);
+                            vec3<f32>(0.0, -segmentHalf, 0.0), radius, 1.0,
+                            sim.water.x + surface.heightOffset);
+        append_water_sample(&accumulator, pose, vec3<f32>(0.0), radius, 1.0,
+                            sim.water.x + surface.heightOffset);
         append_water_sample(&accumulator, pose,
-                            vec3<f32>(0.0, segmentHalf, 0.0), radius, 1.0);
+                            vec3<f32>(0.0, segmentHalf, 0.0), radius, 1.0,
+                            sim.water.x + surface.heightOffset);
     } else if (shapeType == SHAPE_CYLINDER) {
         let radius = 0.25 * (dimensions.x + dimensions.z);
         let sampleRadius = max(min(radius, half.y) * 0.5, 1e-4);
@@ -871,7 +1035,8 @@ fn sample_water_state_in_frame(pose : BodyPose,
                 let angle = 1.5707963267948966 * f32(vertex);
                 append_water_sample(&accumulator, pose,
                     vec3<f32>(cos(angle) * radius, localY,
-                              sin(angle) * radius), sampleRadius, 1.0);
+                              sin(angle) * radius), sampleRadius, 1.0,
+                    sim.water.x + surface.heightOffset);
             }
         }
     } else {
@@ -883,13 +1048,15 @@ fn sample_water_state_in_frame(pose : BodyPose,
                 select(-1.0, 1.0, (corner & 2u) != 0u),
                 select(-1.0, 1.0, (corner & 4u) != 0u));
             append_water_sample(&accumulator, pose, signs * half,
-                                sampleRadius, 1.0);
+                                sampleRadius, 1.0,
+                                sim.water.x + surface.heightOffset);
         }
     }
 
     let extent = max(shape_vertical_extent(shape, pose.orientation), 1e-5);
     let analyticFraction = clamp(
-        (sim.water.x - (pose.position_invMass.y - extent)) / (2.0 * extent),
+        (sim.water.x + surface.heightOffset
+            - (pose.position_invMass.y - extent)) / (2.0 * extent),
         0.0, 1.0);
     let sampledFraction = accumulator.weightedSubmersion
         / max(accumulator.totalWeight, 1e-5);
@@ -903,10 +1070,12 @@ fn sample_water_state_in_frame(pose : BodyPose,
 }
 
 fn sample_water_state(pose : BodyPose, shape : BodyShape,
-                      worldMeta : vec4<i32>) -> WaterState {
+                      worldMeta : vec4<i32>,
+                      surface : GpuWaterSurface) -> WaterState {
     var result : WaterState;
     result.fraction = 0.0;
     result.buoyancyCenter = pose.position_invMass.xyz;
+    result.normal = surface.normal;
     if (sim.water.y < 0.5) { return result; }
 
     let sectorDelta = bounded_sector_delta(
@@ -924,7 +1093,7 @@ fn sample_water_state(pose : BodyPose, shape : BodyShape,
     waterPose.position_invMass = vec4<f32>(
         pose.position_invMass.xyz + vec3<f32>(0.0, frameOffset, 0.0),
         pose.position_invMass.w);
-    let framed = sample_water_state_in_frame(waterPose, shape);
+    let framed = sample_water_state_in_frame(waterPose, shape, surface);
     result.fraction = framed.fraction;
     result.buoyancyCenter = framed.buoyancyCenter
         - vec3<f32>(0.0, frameOffset, 0.0);
@@ -981,14 +1150,22 @@ fn integrate_bodies(@builtin(global_invocation_id) gid : vec3<u32>) {
     var lastContactCount = 0u;
     var rejectedByMip = 0u;
     var submergedAny = false;
+    let waterSurface = sample_gpu_water_surface(pose, metadata[body]);
     for (var substep = 0u; substep < substeps; substep = substep + 1u) {
-        let waterState = sample_water_state(pose, shape, metadata[body]);
+        let waterState = sample_water_state(
+            pose, shape, metadata[body], waterSurface);
         let submerged = waterState.fraction;
         submergedAny = submergedAny || submerged > 1e-4;
-        let buoyancyAcceleration = -sim.gravity_dt.xyz * sim.water.z * submerged;
-        // The speed term is bounded quadratic drag. It arrests fast water entry
-        // without changing the low-speed equilibrium set by displaced volume.
-        let waterExtent = max(shape_vertical_extent(shape, pose.orientation), 0.1);
+        let buoyancyAcceleration = waterState.normal
+            * length(sim.gravity_dt.xyz)
+            * body_buoyancy(shapeType) * submerged;
+        // Linear damping alone lets fast entries travel several body lengths
+        // below their hydrostatic equilibrium before buoyancy can arrest
+        // them. Add bounded quadratic drag in inverse-scale form; this stays
+        // unconditionally stable at large substeps and vanishes smoothly at
+        // rest, so it does not move the buoyancy equilibrium.
+        let waterExtent = max(
+            shape_vertical_extent(shape, pose.orientation), 0.1);
         let waterDrag = sim.water.w
             + 2.0 * length(motion.linearVelocity_sleep.xyz) / waterExtent;
         let waterLinearScale = 1.0 / (1.0 + waterDrag * submerged * dt);
@@ -1035,7 +1212,7 @@ fn integrate_bodies(@builtin(global_invocation_id) gid : vec3<u32>) {
             let penetrationBias = sim.solver.y
                 * max(-contact.separation - sim.contact.w, 0.0) / dt;
             let restitutionVelocity = select(
-                0.0, -body_restitution(shapeType) * normalVelocity,
+                0.0, -terrain_restitution(body, shapeType) * normalVelocity,
                 normalVelocity < -1.0);
             let effectiveMass = contact_effective_mass(
                 leverArm, contact.normal, inverseMass, inverseInertia,
@@ -1063,7 +1240,7 @@ fn integrate_bodies(@builtin(global_invocation_id) gid : vec3<u32>) {
                 let tangentMass = contact_effective_mass(
                     leverArm, tangent, inverseMass, inverseInertia,
                     pose.orientation);
-                let maximumFriction = sim.contact.y
+                let maximumFriction = terrain_friction(body)
                     * accumulatedImpulses[contactIndex];
                 let frictionMagnitude = min(
                     tangentSpeed * tangentMass, maximumFriction);
@@ -1191,11 +1368,24 @@ fn prepare_dynamic_bodies(@builtin(global_invocation_id) gid : vec3<u32>) {
     let shapeType = u32(clamp(shape.dimensions_type.w, 0.0, 4.0));
     let inverseMass = pose.position_invMass.w;
     if (inverseMass <= 1e-7) {
-        shape.dimensions_type.w = f32(shapeType);
+        let flags = body_flags(body);
+        let targetTick = atomicLoad(&counters[1]) + 1u;
+        let hasKinematicTarget = (flags & BODY_KINEMATIC) != 0u
+            && bitcast<u32>(motions[body].angularVelocity_flags.w)
+                == targetTick;
+        let sweepDistance = select(0.0,
+            sim.gravity_dt.w * length(motions[body].linearVelocity_sleep.xyz),
+            hasKinematicTarget);
+        shape.dimensions_type.w = pack_shape_type_sweep(
+            shapeType, sweepDistance);
         shapes[body] = shape;
-        motions[body].linearVelocity_sleep = vec4<f32>(0.0);
-        motions[body].angularVelocity_flags = vec4<f32>(
-            vec3<f32>(0.0), motions[body].angularVelocity_flags.w);
+        if (!hasKinematicTarget) {
+            motions[body].linearVelocity_sleep = vec4<f32>(0.0);
+            motions[body].angularVelocity_flags = vec4<f32>(0.0);
+            if ((flags & BODY_KINEMATIC) != 0u) {
+                set_body_flags(body, flags & ~BODY_AWAKE);
+            }
+        }
         forces[body] = vec4<f32>(0.0);
         return;
     }
@@ -1212,12 +1402,17 @@ fn prepare_dynamic_bodies(@builtin(global_invocation_id) gid : vec3<u32>) {
     let angularScale = 1.0 / (1.0 + sim.damping_clamps.y * dt);
     let dryAcceleration = sim.gravity_dt.xyz + forces[body].xyz * inverseMass;
     var submergedAny = false;
+    let waterSurface = sample_gpu_water_surface(pose, metadata[body]);
     for (var substep = 0u; substep < substeps; substep += 1u) {
-        let waterState = sample_water_state(pose, shape, metadata[body]);
+        let waterState = sample_water_state(
+            pose, shape, metadata[body], waterSurface);
         let submerged = waterState.fraction;
         submergedAny = submergedAny || submerged > 1e-4;
-        let buoyancyAcceleration = -sim.gravity_dt.xyz * sim.water.z * submerged;
-        let waterExtent = max(shape_vertical_extent(shape, pose.orientation), 0.1);
+        let buoyancyAcceleration = waterState.normal
+            * length(sim.gravity_dt.xyz)
+            * body_buoyancy(shapeType) * submerged;
+        let waterExtent = max(
+            shape_vertical_extent(shape, pose.orientation), 0.1);
         let waterDrag = sim.water.w
             + 2.0 * length(motion.linearVelocity_sleep.xyz) / waterExtent;
         let waterLinearScale = 1.0 / (1.0 + waterDrag * submerged * dt);
@@ -1332,7 +1527,7 @@ fn solve_static_contacts(@builtin(global_invocation_id) gid : vec3<u32>) {
         let penetrationBias = sim.solver.y
             * max(-contact.separation - sim.contact.w, 0.0) / max(dt, 1e-7);
         let restitutionVelocity = select(
-            0.0, -body_restitution(shapeType) * normalVelocity,
+            0.0, -terrain_restitution(body, shapeType) * normalVelocity,
             normalVelocity < -1.0);
         let effectiveMass = contact_effective_mass(
             leverArm, contact.normal, inverseMass, inverseInertia,
@@ -1367,7 +1562,7 @@ fn solve_static_contacts(@builtin(global_invocation_id) gid : vec3<u32>) {
             let tangentMass = contact_effective_mass(
                 leverArm, tangent, inverseMass, inverseInertia,
                 pose.orientation);
-            let maximumFriction = sim.contact.y
+            let maximumFriction = terrain_friction(body)
                 * normalImpulse;
             let frictionMagnitude = min(
                 tangentSpeed * tangentMass, maximumFriction);
@@ -1390,7 +1585,7 @@ fn solve_static_contacts(@builtin(global_invocation_id) gid : vec3<u32>) {
                 inverse_inertia_world(
                     pose.orientation, inverseInertia, supportNormal));
             if (twistInverseMass > 1e-7) {
-                let maximumTwistImpulse = sim.contact.y
+                let maximumTwistImpulse = terrain_friction(body)
                     * supportImpulse * supportRadius;
                 let twistImpulse = clamp(
                     -twistSpeed / twistInverseMass,
@@ -1413,7 +1608,7 @@ fn solve_static_contacts(@builtin(global_invocation_id) gid : vec3<u32>) {
                 if (rollingInverseMass > 1e-7) {
                     let rollingImpulse = min(
                         rollingSpeed / rollingInverseMass,
-                        TERRAIN_ROLLING_RESISTANCE * supportImpulse);
+                        terrain_rolling_resistance(body) * supportImpulse);
                     velocities.angular += inverse_inertia_world(
                         pose.orientation, inverseInertia,
                         -rollingDirection * rollingImpulse);
@@ -1482,12 +1677,16 @@ fn pack_debug(@builtin(global_invocation_id) gid : vec3<u32>) {
     if (gid.x >= sim.debugRange.y) { return; }
     let body = sim.debugRange.x + gid.x;
     if (body >= sim.counts.x) { return; }
-    let output = gid.x * 7u;
+    let output = gid.x * 9u;
     debugPacked[output + 0u] = bitcast<vec4<u32>>(poses[body].position_invMass);
     debugPacked[output + 1u] = bitcast<vec4<u32>>(poses[body].orientation);
     debugPacked[output + 2u] = bitcast<vec4<u32>>(motions[body].linearVelocity_sleep);
     debugPacked[output + 3u] = bitcast<vec4<u32>>(motions[body].angularVelocity_flags);
     debugPacked[output + 4u] = bitcast<vec4<u32>>(shapes[body].dimensions_type);
     debugPacked[output + 5u] = bitcast<vec4<u32>>(shapes[body].invInertia_material);
-    debugPacked[output + 6u] = bitcast<vec4<u32>>(metadata[body]);
+    debugPacked[output + 6u] =
+        bitcast<vec4<u32>>(shapes[body].material_coefficients);
+    debugPacked[output + 7u] = vec4<u32>(
+        bitcast<u32>(shapes[body].invInertia_material.w), 0u, 0u, 0u);
+    debugPacked[output + 8u] = bitcast<vec4<u32>>(metadata[body]);
 }

@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <array>
+#include <cmath>
 #include <limits>
 #include <string>
 #include <utility>
@@ -15,6 +16,7 @@ namespace {
 
 constexpr uint32_t kParameterStride = 256;
 constexpr uint32_t kParameterSlots = 512;
+constexpr uint32_t kMaximumSubsteps = 16;
 constexpr uint32_t kTelemetryWords = GpuDynamicSolver::kTelemetryWordCount;
 constexpr uint32_t kUnconditionalColorRounds = 8;
 
@@ -79,8 +81,13 @@ public:
         if (device_ || !device || !queue || config.bodyCapacity == 0
             || config.contactCapacity == 0 || config.colorCount == 0
             || config.colorCount > kGpuSolverMaximumColors
-            || config.substeps == 0 || config.overflowIterations == 0
-            || config.tickSeconds <= 0.0f || config.linearSlop <= 0.0f
+            || config.substeps == 0 || config.substeps > kMaximumSubsteps
+            || config.overflowIterations == 0
+            || !std::isfinite(config.tickSeconds)
+            || config.tickSeconds <= 0.0f
+            || !std::isfinite(config.linearSlop)
+            || config.linearSlop <= 0.0f
+            || !std::isfinite(config.speculativeDistance)
             || config.speculativeDistance < 0.0f
             || (config.workgroupSize != 64 && config.workgroupSize != 128
                 && config.workgroupSize != 256)) {

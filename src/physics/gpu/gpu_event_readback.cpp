@@ -88,6 +88,7 @@ public:
         entries[4] = LE(4).computeVisible().storageBuffer(false);
         entries.emplace_back(7).computeVisible().uniformBuffer(
             false, sizeof(Params));
+        entries.emplace_back(8).computeVisible().storageBuffer(true);
         bindGroupLayout_ = gpu::createBindGroupLayout(
             device_, entries, "physics_event_readback_layout");
         pipelineLayout_ = gpu::createPipelineLayout(
@@ -146,10 +147,11 @@ public:
                        config_.eventCapacity, sourceFlags},
             .tick = {static_cast<uint32_t>(tick),
                      static_cast<uint32_t>(tick >> 32u),
-                     sources_.hasHits() ? sources_.manifoldCapacity : 0u, 0u},
+                     sources_.hasHits() ? sources_.manifoldCapacity : 0u,
+                     sources_.metadata ? sources_.bodyCapacity : 0u},
         };
         gpu::writeBuffer(queue_, parameterBuffer_, 0, params);
-        const std::array<gpu::BindGroupEntry, 8> entries = {
+        const std::array<gpu::BindGroupEntry, 9> entries = {
             gpu::BindGroupEntry(0).buffer(sources_.hasContacts()
                 ? sources_.contactEvents : fallbackBuffer_),
             gpu::BindGroupEntry(1).buffer(sources_.hasContacts()
@@ -164,6 +166,8 @@ public:
             gpu::BindGroupEntry(6).buffer(sources_.hasHits()
                 ? sources_.narrowPhaseTelemetry : fallbackBuffer_),
             gpu::BindGroupEntry(7).buffer(parameterBuffer_),
+            gpu::BindGroupEntry(8).buffer(sources_.metadata
+                ? sources_.metadata : fallbackBuffer_),
         };
         WGPUBindGroup group = gpu::createBindGroup(
             device_, bindGroupLayout_, entries,
