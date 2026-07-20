@@ -1,17 +1,17 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // ray_blit.wgsl - Fullscreen Lighting Pass Shader
 // ═══════════════════════════════════════════════════════════════════════════════
-// Composites the ray-caster output into a final shaded image with lighting,
-// fog, and sky rendering.
+// Composites the ray-caster output into a final linear-HDR image and applies
+// voxys' physically based ocean material.
 // Features:
 //   - Fullscreen triangle vertex shader (single oversized triangle)
 //   - Depth texture sampling from ray-cast pass
-//   - Sky rendering with vertical gradient and S-curve interpolation
+//   - Mip-filtered baked sky/environment rendering
 //   - Position reconstruction from depth
 //   - Screen-space normal reconstruction (picking closer neighbor)
-//   - Terrain UV computation
-//   - Lighting (diffuse, ambient, roughness-based specular)
-//   - Exponential fog (capped at 0.7)
+//   - Exact dielectric Fresnel, Beer-Lambert refraction, foam, and TIR
+//   - ACES/grain/vignette presentation
+//   - Underwater distortion, absorption, and sun shafts
 // ═══════════════════════════════════════════════════════════════════════════════
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -51,7 +51,7 @@ struct DebugUniforms {
 @group(0) @binding(0) var<uniform> camera : CameraUniforms;
 @group(0) @binding(1) var depthTex : texture_2d<f32>;
 @group(0) @binding(2) var shadowTex : texture_2d<f32>;
-// Water-only auxiliary output: material id plus shoreline influence.
+// Water-only auxiliary output: accepted surface slope and crest/shore data.
 @group(0) @binding(3) var materialTex : texture_2d<f32>;
 @group(0) @binding(4) var terrainTex : texture_2d<f32>;
 @group(0) @binding(5) var lightmapTex : texture_2d<f32>;
@@ -60,29 +60,47 @@ struct DebugUniforms {
 // Paraboloid-mapped static sky (scattering + gradient + clouds), baked once
 // by sky_lut.wgsl. See that file for the mapping.
 @group(0) @binding(8) var skyLUT : texture_2d<f32>;
-// Tiling water detail noise, CPU-baked once (see BlitPath::createWaterNoise):
-// R,G = detail-wave gradient (dx, dz) encoded as v*4+0.5; B = flow noise,
-// A = ripple noise, both stored as v*0.5+0.5. One tile = 1024 world units.
-@group(0) @binding(9) var waterNoiseTex : texture_2d<f32>;
-@group(0) @binding(10) var waterNoiseSampler : sampler;
-@group(0) @binding(11) var waterDisplacementTex : texture_2d_array<f32>;
-@group(0) @binding(12) var waterDisplacementSampler : sampler;
-@group(0) @binding(13) var waterFoamTex : texture_2d<f32>;
-@group(0) @binding(14) var waterCoastFieldTex : texture_2d<f32>;
+// Asset-free surface-foam network generated deterministically by BlitPath.
+// It is a scalar linear mask with a complete mip chain and repeat addressing.
+@group(0) @binding(9) var oceanFoamTex : texture_2d<f32>;
+@group(0) @binding(10) var oceanFoamSampler : sampler;
 // Exact terrain/sky color for a settled camera. Only fsCached references it;
 // the direct and background-refresh pipelines retain their original layout.
-@group(0) @binding(15) var backgroundTex : texture_2d<f32>;
+@group(0) @binding(11) var backgroundTex : texture_2d<f32>;
 
 const MATERIAL_SKY : u32 = 0u;
 const MATERIAL_TERRAIN : u32 = 1u;
 const MATERIAL_WATER : u32 = 2u;
 
-// Beer-Lambert extinction per world unit of water. Red is absorbed fastest,
-// so the water tends blue-green as the light path lengthens.
-const WATER_EXTINCTION : vec3<f32> = vec3<f32>(0.135, 0.052, 0.033);
-const WATER_TAU : f32 = 6.283185307179586;
-const WATER_GRAVITY : f32 = 9.81;
-const WATER_INCOMING_DIRECTION : vec2<f32> = vec2<f32>(0.9100, 0.4146);
+// Ocean colors are linear sRGB. Absorption is a Beer-Lambert coefficient,
+// not a display tint.
+const OCEAN_ABSORPTION : vec3<f32> =
+    vec3<f32>(0.015208514, 0.009134059, 0.008568126);
+const OCEAN_SURFACE_COLOR : vec3<f32> =
+    vec3<f32>(0.015996293, 0.135633330, 0.090841711);
+const OCEAN_SCATTER_COLOR : vec3<f32> =
+    vec3<f32>(0.015996293, 0.061246054, 0.099898728);
+const OCEAN_FOG_COLOR : vec3<f32> =
+    vec3<f32>(0.274677312, 0.327778098, 0.366252596);
+const OCEAN_SKY_BRIGHTNESS : f32 = 0.9;
+const OCEAN_SUN_INTENSITY : f32 = 2.5;
+const OCEAN_IOR : f32 = 1.31;
+const OCEAN_DISTORTION_STRENGTH : f32 = 0.20;
+const OCEAN_REFLECTION_ROUGHNESS_DISTANCE : f32 = 1500.0;
+const OCEAN_REFLECTION_ROUGHNESS_STRENGTH : f32 = 0.50;
+const OCEAN_MINIMUM_ROUGHNESS : f32 = 0.02;
+const OCEAN_FOG_NEAR : f32 = 1000.0;
+const OCEAN_FOG_FAR : f32 = 10000.0;
+const OCEAN_FOAM_SIZE : f32 = 261.0;
+const OCEAN_FOAM_OPACITY : f32 = 0.30;
+const OCEAN_FOAM_COVERAGE : f32 = 0.21;
+const OCEAN_FILM_GRAIN : f32 = 0.06;
+const OCEAN_VIGNETTE : f32 = 0.25;
+const OCEAN_VIGNETTE_SMOOTHNESS : f32 = 0.85;
+const OCEAN_UNDERWATER_DISTORTION : f32 = 0.015;
+const OCEAN_UNDERWATER_SCALE : f32 = 4.0;
+const OCEAN_UNDERWATER_SPEED : f32 = 1.2;
+const OCEAN_SUN_SHAFT_INTENSITY : f32 = 0.20;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Vertex Shader (Fullscreen Triangle)
@@ -177,376 +195,267 @@ fn sampleSkyLUT(dir : vec3<f32>) -> vec3<f32> {
     return textureSampleLevel(skyLUT, terrainSampler, uv, 0.0).rgb;
 }
 
-/// Sum three band-limited Tessendorf cascades resolved by the GPU inverse FFT.
-/// Returns (height, dh/dx, dh/dz, Jacobian compression).
-struct CoastalWave {
-    wave : vec4<f32>,
-    blend : f32,
-    exposure : f32,
-};
 
-fn coastFieldUv(worldXZ : vec2<f32>) -> vec2<f32> {
-    let cells = max(camera.terrainSize - vec2<f32>(1.0), vec2<f32>(1.0));
-    let extent = cells * camera.metrics.y;
-    let rawUv = (worldXZ + extent * 0.5) / extent;
-    let dims = vec2<f32>(textureDimensions(waterCoastFieldTex));
-    let halfTexel = 0.5 / dims;
-    return clamp(rawUv, halfTexel, vec2<f32>(1.0) - halfTexel);
-}
-
-fn coastalWaveField(worldXZ : vec2<f32>) -> CoastalWave {
-    let coast = textureSampleLevel(waterCoastFieldTex,
-        waterDisplacementSampler, coastFieldUv(worldXZ), 0.0);
-    let coastDistance = max(coast.z, 0.0);
-    let waterDepth = max(coast.w, 0.0);
-    let rawOnshore = coast.xy;
-    let directionalExposure = clamp(length(rawOnshore), 0.0, 1.0);
-    var onshore = WATER_INCOMING_DIRECTION;
-    if (dot(rawOnshore, rawOnshore) > 0.01) {
-        onshore = normalize(rawOnshore);
-    }
-
-    let turn = 1.0 - smoothstep(55.0, 420.0, coastDistance);
-    let wet = smoothstep(0.55, 2.8, waterDepth);
-    let facing = smoothstep(-0.20, 0.55,
-                            dot(WATER_INCOMING_DIRECTION, onshore));
-    let coastResponse = directionalExposure * mix(0.12, 1.0, facing);
-    let blend = turn * wet * coastResponse;
-    let shelterInfluence = 1.0 - smoothstep(220.0, 850.0, coastDistance);
-    let waveExposure = mix(1.0, max(0.16, directionalExposure), shelterInfluence);
-    let shallow = 1.0 - smoothstep(4.0, 28.0, waterDepth);
-    let wavelengthCompression = mix(1.0, 1.58, shallow);
-    let offshoreCoordinate = -dot(worldXZ, WATER_INCOMING_DIRECTION);
-    let phaseCoordinate = mix(offshoreCoordinate, coastDistance, turn) +
-                          coastDistance * (wavelengthCompression - 1.0) * turn;
-    let phaseGradient = normalize(mix(-WATER_INCOMING_DIRECTION,
-                                      -onshore * wavelengthCompression, turn));
-    let tangent = vec2<f32>(-onshore.y, onshore.x);
-    let alongshore = dot(worldXZ, tangent);
-
-    let k0 = WATER_TAU / 27.0;
-    let k1 = WATER_TAU / 12.5;
-    let phase0 = k0 * phaseCoordinate + sqrt(WATER_GRAVITY * k0) *
-                 camera.waterMotion.x + 0.20 * sin(alongshore * 0.031);
-    let phase1 = k1 * phaseCoordinate + sqrt(WATER_GRAVITY * k1) *
-                 camera.waterMotion.x + 1.7 + 0.12 * sin(alongshore * 0.067);
-    let shoaling = mix(1.0, 1.42, shallow);
-    let amplitude0 = 0.62 * shoaling * wet;
-    let amplitude1 = 0.19 * mix(1.0, 1.20, shallow) * wet;
-    let height = sin(phase0) * amplitude0 + sin(phase1) * amplitude1;
-    let derivative = cos(phase0) * amplitude0 * k0 +
-                     cos(phase1) * amplitude1 * k1;
-    let slope = phaseGradient * derivative;
-    let crest = smoothstep(0.58, 0.94, sin(phase0) * 0.5 + 0.5);
-    let breaking = blend * (1.0 - smoothstep(6.0, 16.0, waterDepth)) * crest;
-    return CoastalWave(vec4<f32>(height, slope.x, slope.y, breaking),
-                       blend, waveExposure);
-}
-
-fn fftWaterWaveField(p : vec2<f32>) -> vec4<f32> {
-    let shortWaves = textureSampleLevel(waterDisplacementTex,
-        waterDisplacementSampler, p / 96.0, 0, 0.0);
-    let mediumWaves = textureSampleLevel(waterDisplacementTex,
-        waterDisplacementSampler, p / 384.0, 1, 0.0);
-    let longWaves = textureSampleLevel(waterDisplacementTex,
-        waterDisplacementSampler, p / 1536.0, 2, 0.0);
-    // Manual cascade LOD. The simulation texture has no mip chain because it
-    // is rewritten every frame; fading bands before they become sub-pixel
-    // prevents the glittering horizon that an unfiltered slope field creates.
-    let cameraDistance = length(p - camera.cameraPos.xz);
-    let shortWeight = 1.0 - smoothstep(520.0, 1450.0, cameraDistance);
-    let mediumWeight = 1.0 - smoothstep(1900.0, 5200.0, cameraDistance);
-    let summed = shortWaves * shortWeight +
-                 mediumWaves * mediumWeight + longWaves;
-    let compression = max(max(shortWaves.w * shortWeight,
-                              mediumWaves.w * mediumWeight), longWaves.w);
-    return vec4<f32>(summed.xyz, compression);
-}
-
-fn waterWaveField(p : vec2<f32>) -> vec4<f32> {
-    let strength = clamp(camera.waterParams.z, 0.0, 1.0);
-    let fft = fftWaterWaveField(p);
-    let coast = coastalWaveField(p);
-    let refracted = mix(fft.xyz * coast.exposure,
-                        coast.wave.xyz, coast.blend) * strength;
-    return vec4<f32>(refracted,
-                     max(fft.w * coast.exposure, coast.wave.w));
-}
+// ─────────────────────────────────────────────────────────────────────────────
+// Ocean material and underwater composite
+// ─────────────────────────────────────────────────────────────────────────────
 
 fn waterWaveNormal(wave : vec4<f32>) -> vec3<f32> {
     return normalize(vec3<f32>(-wave.y, 1.0, -wave.z));
 }
 
-/// RGB is reflected radiance; A is confidence.  A confidence channel avoids
-/// the old binary sky/terrain transition at the first missing SSR sample.
-fn sampleScreenTerrainReflection(origin : vec3<f32>, dir : vec3<f32>, dims : vec2<u32>) -> vec4<f32> {
-    let dimsF = vec2<f32>(f32(dims.x), f32(dims.y));
-    let maxCoord = vec2<i32>(i32(dims.x) - 1, i32(dims.y) - 1);
-
-    // March in screen space: project only the two ray endpoints and step by
-    // lerping their clip coordinates, instead of a mat4 projection per step.
-    // Uniform screen steps also cover each on-screen region exactly once, so
-    // thin walls cannot be skipped the way growing world strides could.
-    let maxDist = 1400.0;
-    let endPoint = origin + dir * maxDist;
-    let clipA = camera.viewProj * vec4<f32>(origin, 1.0);
-    let clipB = camera.viewProj * vec4<f32>(endPoint, 1.0);
-    if (clipA.w <= 0.0 && clipB.w <= 0.0) {
-        return vec4<f32>(0.0);
+// Exact unpolarized dielectric Fresnel. The sign of cosine
+// distinguishes air-to-water from water-to-air and preserves total internal
+// reflection on the underside.
+fn dielectricFresnel(cosine : f32, eta : f32) -> f32 {
+    let enteringFromBelow = cosine < 0.0;
+    let incident = abs(cosine);
+    let ratio = select(eta, 1.0 / eta, enteringFromBelow);
+    let transmittedSquared =
+        (1.0 - incident * incident) / (ratio * ratio);
+    if (transmittedSquared >= 1.0) {
+        return 1.0;
     }
-    let stepCount = 24u;
-    var enteredViewport = false;
-    for (var step = 1u; step <= stepCount; step++) {
-        let s = f32(step) / f32(stepCount);
-        let clip = mix(clipA, clipB, s);
-        if (clip.w <= 0.0) {
-            if (enteredViewport) { break; }
-            continue;
-        }
-        let ndc = clip.xy / clip.w;
-        if (any(ndc < vec2<f32>(-1.0, -1.0)) || any(ndc > vec2<f32>(1.0, 1.0))) {
-            // A projected line intersects the convex viewport in one interval;
-            // after leaving it cannot produce a later on-screen sample.
-            if (enteredViewport) { break; }
-            continue;
-        }
-        enteredViewport = true;
-        let uv = vec2<f32>(ndc.x * 0.5 + 0.5, 0.5 - ndc.y * 0.5);
-        let pixel = clamp(vec2<i32>(floor(uv * dimsF)), vec2<i32>(0, 0), maxCoord);
-        let sceneDepth = textureLoad(depthTex, pixel, 0).x;
-        // Sky dominates most reflected rays. Reject it before reconstructing
-        // the candidate's world-space distance; this preserves every terrain
-        // hit while removing unnecessary vector math and a square root.
-        if (sceneDepth <= 0.0) { continue; }
-
-        // Projection is linear in homogeneous coordinates. Because clip is the
-        // same interpolation of the projected endpoints, its world-space point
-        // is the same interpolation of the ray endpoints (no second 1/w pass).
-        let candidate = mix(origin, endPoint, s);
-        let candidateDepth = length(candidate - camera.cameraPos.xyz);
-        let tolerance = max(4.0, candidateDepth * 0.06);
-
-        if (abs(sceneDepth - candidateDepth) < tolerance) {
-            // Only accept terrain hits. Terrain shadows are in [0, 1], while
-            // water stores signed depth + 1 and therefore has magnitude > 1.
-            // Load this only after the much cheaper depth rejection succeeds.
-            let sceneShadow = textureLoad(shadowTex, pixel, 0).x;
-            if (abs(sceneShadow) > 1.0) { continue; }
-
-            let ndcHit = ndcFromPixel(pixel, dimsF);
-            let hitView = viewPosFromDepth(camera.invProjParams.xy, ndcHit, sceneDepth);
-            let hitWorld = viewToWorld(camera.invView, hitView);
-            let hitUV = terrainUV(hitWorld);
-            // Approximate the lit look of the reflected wall: modulate the
-            // albedo by the hit pixel's sun shadow and baked light so the
-            // reflection carries shadow / ambient occlusion instead of
-            // looking flat and unlit.
-            let albedoHit = textureSampleLevel(terrainTex, terrainSampler, hitUV, 0.0).rgb;
-            let hitShadow = clamp(sceneShadow, 0.0, 1.0);
-            let hitLight = textureSampleLevel(lightmapTex, terrainSampler, hitUV, 0.0).x;
-            let edge = max(abs(ndc.x), abs(ndc.y));
-            let confidence = (1.0 - smoothstep(0.72, 0.98, edge)) *
-                             mix(0.95, 0.25, s);
-            return vec4<f32>(albedoHit * (0.35 + 0.65 * hitShadow * hitLight),
-                             confidence);
-        }
-    }
-
-    return vec4<f32>(0.0);
+    let transmitted = sqrt(max(0.0, 1.0 - transmittedSquared));
+    let a = ratio * incident;
+    let b = ratio * transmitted;
+    let parallel = (a - transmitted) / max(a + transmitted, 1.0e-5);
+    let perpendicular = (incident - b) / max(incident + b, 1.0e-5);
+    return 0.5 * (parallel * parallel + perpendicular * perpendicular);
 }
 
-/// Trace the incoming sunlight through the local surface normal to the bed,
-/// then measure convergence in the simulated FFT slope field. Brightness now
-/// comes from the surface lens Jacobian rather than an unrelated noise grid.
-fn refractedRayCaustics(posWorld : vec3<f32>, waterDepth : f32,
-                        n : vec3<f32>, sunDir : vec3<f32>) -> f32 {
-    if (waterDepth <= 0.0 || waterDepth > 22.0 || sunDir.y <= 0.02) {
-        return 0.0;
-    }
-    let ray = refract(-sunDir, n, 0.7502);
-    let travel = waterDepth / max(-ray.y, 0.12);
-    let bedPoint = posWorld.xz + ray.xz * travel;
-    let epsilon = mix(0.45, 1.5, clamp(waterDepth / 22.0, 0.0, 1.0));
-    // Caustics use the spectral slopes directly. Re-evaluating the full
-    // coastal phase four times here adds no visible focusing detail and makes
-    // water-heavy views unnecessarily expensive.
-    let slopeLeft = fftWaterWaveField(bedPoint - vec2<f32>(epsilon, 0.0)).y;
-    let slopeRight = fftWaterWaveField(bedPoint + vec2<f32>(epsilon, 0.0)).y;
-    let slopeDown = fftWaterWaveField(bedPoint - vec2<f32>(0.0, epsilon)).z;
-    let slopeUp = fftWaterWaveField(bedPoint + vec2<f32>(0.0, epsilon)).z;
-    let divergence = ((slopeRight - slopeLeft) + (slopeUp - slopeDown)) /
-                     (2.0 * epsilon);
-    let convergence = max(-divergence, 0.0);
-    let focusLines = smoothstep(0.006, 0.065, convergence * (1.0 + waterDepth * 0.08));
-    let breakup = textureSampleLevel(waterNoiseTex, waterNoiseSampler,
-        bedPoint / 380.0, 0.0).b;
-    return focusLines * mix(0.72, 1.0, breakup) *
-           exp(-waterDepth * 0.105) * smoothstep(0.02, 0.35, sunDir.y);
+fn acesFilmic(inputColor : vec3<f32>) -> vec3<f32> {
+    let inputMatrix = mat3x3<f32>(
+        vec3<f32>(0.59719, 0.07600, 0.02840),
+        vec3<f32>(0.35458, 0.90834, 0.13383),
+        vec3<f32>(0.04823, 0.01566, 0.83777));
+    let outputMatrix = mat3x3<f32>(
+        vec3<f32>(1.60475, -0.10208, -0.00327),
+        vec3<f32>(-0.53108, 1.10813, -0.07276),
+        vec3<f32>(-0.07367, -0.00605, 1.07602));
+    let color = inputMatrix * (inputColor / 0.6);
+    let a = color * (color + vec3<f32>(0.0245786)) -
+            vec3<f32>(0.000090537);
+    let b = color * ((color + vec3<f32>(0.432951)) * 0.983729) +
+            vec3<f32>(0.238081);
+    return clamp(outputMatrix * (a / b), vec3<f32>(0.0), vec3<f32>(1.0));
 }
 
-fn shadeWater(posWorld : vec3<f32>, posView : vec3<f32>, viewDirWS : vec3<f32>,
-              n : vec3<f32>, waveCrest : f32, waterDepth : f32, shoreMask : f32,
-              shadowVisibility : f32, dims : vec2<u32>) -> vec3<f32> {
-    let sunDir = normalize(camera.lightDirWS.xyz);
-    let shallow = camera.waterColorA.rgb;
-    let deep = camera.waterColorB.rgb;
+fn linearToSrgb(linear : vec3<f32>) -> vec3<f32> {
+    let low = linear * 12.92;
+    let high = 1.055 * pow(max(linear, vec3<f32>(0.0)),
+                            vec3<f32>(1.0 / 2.4)) - vec3<f32>(0.055);
+    return select(high, low, linear <= vec3<f32>(0.0031308));
+}
 
-    // ── Underwater: camera below the surface, looking up at it ───────────────
-    // (The flat plane height ignores the wave offset; right at the surface the
-    // two shading modes may alternate for a frame, which reads as splashing.)
+fn srgbToLinear(encoded : vec3<f32>) -> vec3<f32> {
+    let low = encoded / 12.92;
+    let high = pow((encoded + vec3<f32>(0.055)) / 1.055,
+                   vec3<f32>(2.4));
+    return select(high, low, encoded <= vec3<f32>(0.04045));
+}
+
+fn applyPostEffects(colorIn : vec3<f32>, uv : vec2<f32>,
+                       dims : vec2<u32>) -> vec3<f32> {
+    let pixel = uv * vec2<f32>(f32(max(dims.x, 1u)),
+                               f32(max(dims.y, 1u)));
+    let grain = fract(52.9829189 *
+        fract(dot(pixel + vec2<f32>(camera.waterMotion.x),
+                  vec2<f32>(0.06711056, 0.00583715))));
+    var color = colorIn *
+        (1.0 + OCEAN_FILM_GRAIN * clamp(grain + 0.1, 0.0, 1.0));
+    let radius = length(uv - vec2<f32>(0.5)) * 2.0;
+    let vignette = smoothstep(1.0 - OCEAN_VIGNETTE_SMOOTHNESS,
+                              1.0, radius);
+    color *= 1.0 - vignette * OCEAN_VIGNETTE;
+    return color;
+}
+
+// The swapchain uses BGRA8Unorm, so perform the final transfer explicitly.
+fn presentColor(color : vec3<f32>, uv : vec2<f32>,
+                   dims : vec2<u32>) -> vec3<f32> {
+    return linearToSrgb(
+        applyPostEffects(acesFilmic(color), uv, dims));
+}
+
+fn sampleWaterEnvironment(directionIn : vec3<f32>, roughness : f32) -> vec3<f32> {
+    let direction = normalize(directionIn);
+    let uv = direction.xz / (1.0 + max(direction.y, 0.0)) * 0.5 +
+             vec2<f32>(0.5);
+    // Same footprint-to-mip conversion as the Vulkan material, adjusted from
+    // its 4K HDRI to voxys's 512px baked environment.
+    let lod = log2(max(roughness * 0.035 * 512.0, 1.0));
+    return textureSampleLevel(skyLUT, terrainSampler, uv, lod).rgb *
+           OCEAN_SKY_BRIGHTNESS;
+}
+
+fn periodicGradientHash(cellIn : vec2<f32>) -> vec2<f32> {
+    let cell = cellIn - floor(cellIn / 16.0) * 16.0;
+    let phase = vec2<f32>(dot(cell, vec2<f32>(127.1, 311.7)),
+                          dot(cell, vec2<f32>(269.5, 183.3)));
+    return fract(sin(phase) * 43758.5453123) * 2.0 - vec2<f32>(1.0);
+}
+
+fn periodicGradientNoise(point : vec2<f32>) -> f32 {
+    let cell = floor(point);
+    let local = fract(point);
+    let fade = local * local * local *
+               (local * (local * 6.0 - vec2<f32>(15.0)) +
+                vec2<f32>(10.0));
+    let a = dot(periodicGradientHash(cell), local);
+    let b = dot(periodicGradientHash(cell + vec2<f32>(1.0, 0.0)),
+                local - vec2<f32>(1.0, 0.0));
+    let c = dot(periodicGradientHash(cell + vec2<f32>(0.0, 1.0)),
+                local - vec2<f32>(0.0, 1.0));
+    let d = dot(periodicGradientHash(cell + vec2<f32>(1.0)),
+                local - vec2<f32>(1.0));
+    return mix(mix(a, b, fade.x), mix(c, d, fade.x), fade.y);
+}
+
+fn underwaterDistortionUv(uv : vec2<f32>) -> vec2<f32> {
+    let motion = camera.waterMotion.x * OCEAN_UNDERWATER_SPEED;
+    let first = vec2<f32>(uv.x * OCEAN_UNDERWATER_SCALE + motion,
+                          uv.y * OCEAN_UNDERWATER_SCALE + motion * 0.7);
+    let second = vec2<f32>(uv.x * OCEAN_UNDERWATER_SCALE + motion * 0.8,
+                           uv.y * OCEAN_UNDERWATER_SCALE - motion * 0.5);
+    let edgeFade = smoothstep(0.0, 0.1, uv.x) *
+                   (1.0 - smoothstep(0.9, 1.0, uv.x)) *
+                   smoothstep(0.0, 0.1, uv.y) *
+                   (1.0 - smoothstep(0.9, 1.0, uv.y));
+    let offset = vec2<f32>(periodicGradientNoise(first),
+                           periodicGradientNoise(second));
+    return clamp(uv + offset * OCEAN_UNDERWATER_DISTORTION * edgeFade,
+                 vec2<f32>(0.001), vec2<f32>(0.999));
+}
+
+fn applyUnderwaterMedium(color : vec3<f32>, toFragment : vec3<f32>,
+                            pathLength : f32) -> vec3<f32> {
+    let transmittance = exp(-OCEAN_ABSORPTION * pathLength);
+    var submerged = mix(OCEAN_SCATTER_COLOR, color, transmittance);
+    let sunAlignment = max(dot(normalize(toFragment),
+                               normalize(camera.lightDirWS.xyz)), 0.0);
+    var shaft = pow(sunAlignment, 12.0) * OCEAN_SUN_SHAFT_INTENSITY;
+    shaft *= 1.0 - exp(-pathLength * 0.015);
+    submerged += vec3<f32>(1.0, 0.95, 0.85) * shaft;
+    return submerged;
+}
+
+// Refraction reconstructs the distorted bed lookup from terrain albedo,
+// light visibility, and the packed vertical water depth.
+fn shadeOcean(posWorld : vec3<f32>, posView : vec3<f32>,
+                 view : vec3<f32>, normal : vec3<f32>, waterDepth : f32,
+                 shadowVisibility : f32, dims : vec2<u32>) -> vec3<f32> {
+    let distanceToCamera = max(length(posView), 1.0e-6);
+    let light = normalize(camera.lightDirWS.xyz);
+    let viewFacing = dot(normal, view);
+    let fresnel = dielectricFresnel(viewFacing, OCEAN_IOR);
+
+    let reflected = reflect(-view, normal);
+    let reflectionRoughness = OCEAN_MINIMUM_ROUGHNESS +
+        clamp(distanceToCamera / OCEAN_REFLECTION_ROUGHNESS_DISTANCE,
+              0.0, 1.0) * OCEAN_REFLECTION_ROUGHNESS_STRENGTH;
+    let environment = sampleWaterEnvironment(reflected, reflectionRoughness);
+
+    let scatterLobe =
+        pow(clamp((dot(view, -light) + 0.5) / 1.5, 0.0, 1.0) *
+            clamp(dot(normal, -light) + 0.3, 0.0, 1.0), 0.85) *
+        OCEAN_SUN_INTENSITY * 0.35 *
+        (1.0 - smoothstep(100.0, 6400.0, distanceToCamera));
+    let body = mix(OCEAN_SCATTER_COLOR, OCEAN_SURFACE_COLOR,
+                   clamp(scatterLobe, 0.0, 1.0));
+    let forwardScatter = pow(max(dot(view, -light), 0.0), 3.0) *
+                         max(1.0 - normal.y, 0.0);
+
+    let halfway = normalize(light + view);
+    let sunSpecular = pow(max(dot(normal, halfway), 0.0), 420.0) *
+                      OCEAN_SUN_INTENSITY * 4.0;
+
+    let incomingRay = -view;
+    let thickness = clamp(
+        waterDepth / max(abs(incomingRay.y), 0.12), 0.0, 500.0);
+    let refractedRay = refract(incomingRay, normal, 1.0 / OCEAN_IOR);
+    let refractedTravel = waterDepth / max(-refractedRay.y, 0.12);
+    var bedWorld = posWorld + refractedRay * refractedTravel;
+
+    // Project a normal-offset point, then intersect that camera ray with the
+    // packed bed plane. This retains magnification without an opaque
+    // scene-color target.
+    let distortionDistance = min(thickness, 80.0) *
+                             OCEAN_DISTORTION_STRENGTH;
+    let distortedClip = camera.viewProj *
+                        vec4<f32>(posWorld + normal * distortionDistance, 1.0);
+    if (distortedClip.w > 1.0e-5) {
+        let distortedNdc = distortedClip.xy / distortedClip.w;
+        let distortedViewRay = rayDirFromPixel(camera.invProjParams.xy,
+                                               distortedNdc);
+        let distortedWorldRay = normalize(
+            (camera.invView * vec4<f32>(distortedViewRay, 0.0)).xyz);
+        let bedY = posWorld.y - waterDepth;
+        let bedTravel = (bedY - camera.cameraPos.y) /
+                        min(distortedWorldRay.y, -1.0e-4);
+        if (bedTravel > 0.0 && bedTravel < 50000.0) {
+            bedWorld = camera.cameraPos.xyz + distortedWorldRay * bedTravel;
+        }
+    }
+
+    let bedUv = terrainUV(bedWorld);
+    let bedEncoded = textureSampleLevel(terrainTex, terrainSampler,
+                                        bedUv, 0.0).rgb;
+    let bedAlbedo = srgbToLinear(bedEncoded);
+    let bedLight = textureSampleLevel(lightmapTex, terrainSampler,
+                                      bedUv, 0.0).x;
+    let refracted = bedAlbedo *
+                    (0.25 + 0.75 * bedLight * shadowVisibility);
+    let transmittance = exp(-OCEAN_ABSORPTION * thickness);
+    let refractedWater = refracted * transmittance +
+                         body * (vec3<f32>(1.0) - transmittance);
+    let reflectedWater = environment +
+        vec3<f32>(1.0, 0.96, 0.82) * sunSpecular +
+        OCEAN_SCATTER_COLOR * forwardScatter * OCEAN_SUN_INTENSITY;
+
+    let foamUv = posWorld.xz / OCEAN_FOAM_SIZE;
+    let worldPerPixel = distanceToCamera * 2.0 *
+        max(camera.invProjParams.x / f32(max(dims.x, 1u)),
+            camera.invProjParams.y / f32(max(dims.y, 1u)));
+    let foamLod = log2(max(worldPerPixel * 1024.0 / OCEAN_FOAM_SIZE,
+                           1.0));
+    let foamPattern = textureSampleLevel(oceanFoamTex,
+        oceanFoamSampler, foamUv, foamLod).r;
+    let threshold = 1.0 - OCEAN_FOAM_COVERAGE;
+    let coverage = foamPattern *
+        smoothstep(threshold, threshold + 0.15, foamPattern);
+    let foamStrength = clamp(coverage * OCEAN_FOAM_OPACITY, 0.0, 1.0);
+
     if (camera.cameraPos.y < camera.waterParams.x) {
-        // Seen from below, the surface normal faces away; flip it.
-        let nUp = -n;
-        let cosTheta = clamp(dot(nUp, viewDirWS), 0.0, 1.0);
-        let reflectionStrength = clamp(camera.waterColorA.a, 0.0, 1.0);
-        let reflectance = clamp(reflectionStrength * (0.05 + 0.95 * pow(1.0 - cosTheta, 4.0)),
-                                0.0, 0.9);
-        // What comes through the surface is skylight, attenuated by the water
-        // between the camera and the surface.
-        let pathLen = length(posView);
-        let transmit = exp(-WATER_EXTINCTION * pathLen);
-        let skyThrough = skyGradient(vec3<f32>(0.0, 1.0, 0.0));
-        let refracted = skyThrough * transmit + deep * (1.0 - transmit);
-        // Internal reflection shows the water body itself, not the sky.
-        let surface = mix(refracted, deep * 0.8, reflectance);
-        // Inside the medium everything fades to the deep colour with distance.
-        let fogFactor = clamp(1.0 - exp(-0.02 * pathLen), 0.0, 0.85);
-        return mix(surface, deep, fogFactor);
+        let undersideNormal = -normal;
+        var transmissionDirection =
+            refract(-view, undersideNormal, OCEAN_IOR);
+        let totalInternalReflection =
+            dot(transmissionDirection, transmissionDirection) < 0.001;
+        if (totalInternalReflection) {
+            transmissionDirection = vec3<f32>(0.0, 1.0, 0.0);
+        } else {
+            transmissionDirection = normalize(transmissionDirection);
+        }
+        let transmitted = sampleWaterEnvironment(transmissionDirection,
+                                               reflectionRoughness);
+        var underside = mix(transmitted, environment, fresnel);
+        underside += vec3<f32>(1.0, 0.96, 0.82) * sunSpecular;
+        underside = mix(underside, vec3<f32>(0.94, 0.98, 1.0),
+                        foamStrength * 0.35);
+        let cameraTransmittance =
+            exp(-OCEAN_ABSORPTION * distanceToCamera);
+        return mix(OCEAN_SCATTER_COLOR, underside,
+                   cameraTransmittance);
     }
 
-    // waterColorB.a ("shore_fade") is the column depth, in world units, over
-    // which the water colour fades from shallow to deep.
-    let shoreFade = max(camera.waterColorB.a, 0.001);
-    let depth01 = clamp(waterDepth / shoreFade, 0.0, 1.0);
-    let depthCurve = smoothstep(0.0, 1.0, depth01);
-
-    // ── Refraction: the riverbed seen through the water ──────────────────────
-    // Follow the eye ray through the air/water interface.  This replaces the
-    // old normal-offset UV trick with Snell refraction and gives shallows a
-    // convincing magnifying/wobbling motion.
-    let refractedViewRay = refract(-viewDirWS, n, 0.7502);
-    let refractedTravel = min(waterDepth / max(-refractedViewRay.y, 0.12), 48.0);
-    let bedWorld = posWorld + vec3<f32>(refractedViewRay.x * refractedTravel,
-                                       -waterDepth,
-                                       refractedViewRay.z * refractedTravel);
-    let bedUV = terrainUV(bedWorld);
-    let bedAlbedo = textureSampleLevel(terrainTex, terrainSampler, bedUV, 0.0).rgb;
-    let bedLight = textureSampleLevel(lightmapTex, terrainSampler, bedUV, 0.0).x;
-    // The bed is lit by the (shadow-attenuated) sun plus ambient fill.
-    let caustic = refractedRayCaustics(posWorld, waterDepth, n, sunDir) *
-                   shadowVisibility;
-    let bedLit = bedAlbedo * (0.25 + 0.75 * bedLight * shadowVisibility) *
-                 (vec3<f32>(1.0) + vec3<f32>(1.00, 0.82, 0.48) * caustic * 0.52);
-
-    // Beer-Lambert extinction follows the refracted path, not just vertical depth.
-    let opticalDepth = min(refractedTravel, waterDepth * 3.0);
-    let transmit = exp(-WATER_EXTINCTION * max(opticalDepth, 0.0));
-    // Flow noise from the baked tiling texture. The texture's noise has 8
-    // periods per tile, so sampling at k/8 reproduces the feature size of
-    // the old simplexNoise2D(p * k).
-    let flow1 = textureSampleLevel(waterNoiseTex, waterNoiseSampler,
-                                   posWorld.xz * (0.014 / 8.0) + vec2<f32>(0.31, 0.17) +
-                                   vec2<f32>(camera.waterMotion.x * 0.0012, 0.0),
-                                   0.0).b * 2.0 - 1.0;
-    let flow2 = textureSampleLevel(waterNoiseTex, waterNoiseSampler,
-                                   posWorld.xz * (0.032 / 8.0) + vec2<f32>(0.67, 0.41) +
-                                   vec2<f32>(0.0, -camera.waterMotion.x * 0.0017),
-                                   0.0).b * 2.0 - 1.0;
-    let flowBands = flow1 * 0.5 + flow2 * 0.22;
-    let flowLift = clamp(flowBands * 0.5 + 0.5, 0.0, 1.0);
-    // The water's own in-scattered colour. Reservoir water is a near-uniform
-    // depth, so let the flow noise shift the shallow↔deep colour a little to give
-    // the turquoise some mottled tonal life instead of a flat painted sheet.
-    let bandMix = clamp(depthCurve + (flowLift - 0.5) * 0.55, 0.0, 1.0);
-    let waterTint = mix(shallow, deep, bandMix) * mix(0.90, 1.10, flowLift) *
-                    mix(0.72, 1.0, shadowVisibility);
-    // Skylight scatters inside the water column, keeping it luminous even when
-    // viewed from above where the Fresnel mirror term is nearly zero.
-    let skyAmbient = skyGradient(vec3<f32>(0.0, 1.0, 0.0)) * 0.10;
-    // Looking straight into the water: bed dimmed by the column + water scatter.
-    let refracted = bedLit * transmit + (waterTint + skyAmbient) * (1.0 - transmit);
-
-    // ── Reflection ───────────────────────────────────────────────────────────
-    // Exact Schlick Fresnel for air/water (IOR 1.333).  The art control scales
-    // physical reflectance but never turns normal-incidence water into a mirror.
-    let cosTheta = clamp(dot(n, viewDirWS), 0.0, 1.0);
-    let reflectionStrength = clamp(camera.waterColorA.a, 0.0, 1.0);
-    let waterF0 = 0.02037;
-    let reflectance = clamp((waterF0 + (1.0 - waterF0) *
-                            pow(1.0 - cosTheta, 5.0)) * reflectionStrength,
-                            0.0, 0.96);
-
-    let reflectedDir = reflect(-viewDirWS, n);
-    // The LUT is HDR, while this path writes directly to an unorm target.
-    // Bound just the reflected radiance so glancing water retains hue instead
-    // of becoming a featureless white sheet before presentation.
-    let reflectedSky = min(sampleSkyLUT(reflectedDir), vec3<f32>(1.15));
-    let warmSky = mix(reflectedSky, vec3<f32>(0.96, 0.68, 0.50), 0.22);
-
-    // Near normal incidence the terrain reflection contributes only a few
-    // percent. Keep smooth sky reflection and avoid a 48-step SSR march there.
-    // Grazing water, where reflections are visible, retains the full path.
-    var terrainReflection = vec4<f32>(0.0);
-    if (reflectance > 0.08) {
-        terrainReflection = sampleScreenTerrainReflection(posWorld + n * 0.25, reflectedDir, dims);
-    }
-    // Single-frame SSR is useful as a hint near cliffs, not as the base mirror.
-    // Keep its weight conservative so ray misses cannot carve dark islands into
-    // the ocean.  The stable sky LUT remains the reflection fallback.
-    let ssrWeight = terrainReflection.a * 0.24 * smoothstep(0.08, 0.30, reflectance);
-    let reflectedScene = mix(warmSky, terrainReflection.rgb, ssrWeight);
-
-    var surface = mix(refracted, reflectedScene, reflectance);
-
-    // ── Sun glint (specular) ─────────────────────────────────────────────────
-    // GGX microfacet highlight.  Unlike the old Blinn exponent this preserves
-    // an intense, compact glint while roughness broadens it naturally.
-    let halfVec = normalize(sunDir + viewDirWS);
-    let roughness = clamp(camera.waterParams.w, 0.02, 1.0);
-    let noV = max(dot(n, viewDirWS), 0.001);
-    let noL = max(dot(n, sunDir), 0.0);
-    let noH = max(dot(n, halfVec), 0.0);
-    let voH = max(dot(viewDirWS, halfVec), 0.0);
-    let alpha = max(roughness * roughness, 0.0025);
-    let alpha2 = alpha * alpha;
-    let denom = noH * noH * (alpha2 - 1.0) + 1.0;
-    let distribution = alpha2 / max(3.14159265 * denom * denom, 0.0001);
-    let gv = noL * sqrt(noV * noV * (1.0 - alpha2) + alpha2);
-    let gl = noV * sqrt(noL * noL * (1.0 - alpha2) + alpha2);
-    let visibility = 0.5 / max(gv + gl, 0.0001);
-    let microFresnel = waterF0 + (1.0 - waterF0) * pow(1.0 - voH, 5.0);
-    let sunGlint = min(distribution * visibility * microFresnel * noL, 0.65);
-    surface += vec3<f32>(1.0, 0.86, 0.58) * sunGlint * 0.18 * shadowVisibility;
-
-    // ── Shore foam ───────────────────────────────────────────────────────────
-    // Foam hugs the waterline (shallow depth). It is lit geometry, so darken it
-    // by the sun shadow — otherwise it glows in the dark at the canyon bottom.
-    let waveArrival = smoothstep(0.055, 0.42, waveCrest);
-    let shoreline = shoreMask * (1.0 - smoothstep(0.05, 0.5, depth01)) *
-                    waveArrival;
-    // Ripple noise (A channel, 16 periods per tile) replaces per-pixel simplex.
-    let shoreRipple = textureSampleLevel(waterNoiseTex, waterNoiseSampler,
-                                         posWorld.xz * (0.18 / 16.0) + vec2<f32>(0.13, 0.57) +
-                                         vec2<f32>(camera.waterMotion.x * 0.003, 0.0),
-                                         0.0).a;
-    let persistentFoam = textureSampleLevel(
-        waterFoamTex, waterDisplacementSampler, posWorld.xz / 96.0, 0.0).x;
-    let fftWhitecap = persistentFoam * smoothstep(0.025, 0.12, waveCrest);
-    let coastalBreaker = smoothstep(0.42, 0.90, waveCrest) * 0.82;
-    let whitecap = max(fftWhitecap, coastalBreaker);
-    let foamAmount = shoreline * smoothstep(0.30, 0.85, shoreRipple) * 0.58 +
-                     whitecap * mix(0.55, 0.90, shoreRipple);
-    let foam = vec3<f32>(0.90, 0.88, 0.78) * foamAmount;
-    let shoreShadow = mix(0.4, 1.0, shadowVisibility);
-    surface += foam * shoreShadow;
-
-    // ── Distance fog ─────────────────────────────────────────────────────────
-    // Same exponential fog as the terrain pass (colour and 0.7 cap) so distant
-    // water sinks into the canyon haze instead of popping against it.
-    let dist = length(posView);
-    let fogColor = vec3<f32>(0.78, 0.64, 0.54);
-    let fogFactor = clamp(1.0 - exp(-camera.metrics.w * dist), 0.0, 0.7);
-    return mix(surface, fogColor, fogFactor);
+    // Foam suppresses Fresnel before its own color is composited.
+    var color = mix(refractedWater, reflectedWater,
+                    fresnel * clamp(1.0 - foamStrength * 2.0, 0.0, 1.0));
+    color = mix(color, vec3<f32>(0.94, 0.98, 1.0), foamStrength);
+    let fog = smoothstep(OCEAN_FOG_NEAR, OCEAN_FOG_FAR,
+                         distanceToCamera);
+    return mix(color, OCEAN_FOG_COLOR, fog);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -560,7 +469,19 @@ fn fs(i : VSOut) -> @location(0) vec4<f32> {
     let dimsF = vec2<f32>(f32(dims.x), f32(dims.y));
     let maxCoord = vec2<i32>(i32(dims.x) - 1, i32(dims.y) - 1);
     let pixF = i.uv * dimsF;
-    let pixelI = clamp(vec2<i32>(floor(pixF)), vec2<i32>(0, 0), maxCoord);
+    let outputPixelI = clamp(vec2<i32>(floor(pixF)),
+                             vec2<i32>(0, 0), maxCoord);
+    let cameraUnderwater = camera.waterParams.y > 0.5 &&
+                           camera.cameraPos.y < camera.waterParams.x;
+    var pixelI = outputPixelI;
+    // Distort the resolved scene wherever the camera-to-fragment path is
+    // submerged. Static-cache refreshes deliberately
+    // carry time zero; fsCached applies the live offset when it reuses them.
+    if (cameraUnderwater && abs(camera.waterMotion.x) > 1.0e-6) {
+        let underwaterUv = underwaterDistortionUv(i.uv);
+        pixelI = clamp(vec2<i32>(floor(underwaterUv * dimsF)),
+                       vec2<i32>(0, 0), maxCoord);
+    }
     let ndcCenter = ndcFromPixel(pixelI, dimsF);
     let depthCenter = textureLoad(depthTex, pixelI, 0).x;
 
@@ -595,11 +516,12 @@ fn fs(i : VSOut) -> @location(0) vec4<f32> {
                     exp(-sunAngle * 1.0) * 0.1;
         skyColor += sunColor * sunDisc + vec3<f32>(1.0, 0.9, 0.7) * bloom;
 
-        // Tone mapping (simple Reinhard), gamma, warm grade
-        skyColor = skyColor / (skyColor + vec3<f32>(1.0));
-        skyColor = pow(skyColor, vec3<f32>(1.0 / 2.2));
-        skyColor = mix(skyColor, vec3<f32>(1.00, 0.64, 0.54), 0.18);
-        return vec4<f32>(skyColor, 1.0);
+        if (cameraUnderwater) {
+            // The source's enclosure supplies a finite path for rays which do
+            // not meet the seabed, preventing bright horizon cracks.
+            skyColor = applyUnderwaterMedium(skyColor, worldDir, 500.0);
+        }
+        return vec4<f32>(presentColor(skyColor, i.uv, dims), 1.0);
     }
     
     // ─────────────────────────────────────────────────────────────────────────
@@ -619,14 +541,18 @@ fn fs(i : VSOut) -> @location(0) vec4<f32> {
         let waterDepth = max(abs(packedShadow) - 1.0, 0.0);
         let waterShadow = select(0.0, 1.0, packedShadow >= 0.0);
         // The intersection pass already sampled this exact FFT/coastal field at
-        // the accepted hit. Reuse its slope and crest instead of evaluating the
-        // same wave four textures and trigonometry a second time.
-        let shoreMask = clamp(waterData.w, 0.0, 1.0);
+        // the accepted hit. Reuse its slope instead of evaluating the wave
+        // cascades and coastal field a second time.
         let waterWave = vec4<f32>(0.0, waterData.x, waterData.y, waterData.z);
         let waterNormal = waterWaveNormal(waterWave);
-        let waterColor = shadeWater(posCWorld, posCView, viewDirWS, waterNormal,
-                                    waterWave.w, waterDepth, shoreMask, waterShadow, dims);
-        let outputColor = applyDebugVisualization(waterColor, depthCenter, waterNormal);
+        let waterColor = shadeOcean(posCWorld, posCView, viewDirWS,
+                                       waterNormal, waterDepth, waterShadow,
+                                       dims);
+        var outputColor = presentColor(waterColor, i.uv, dims);
+        if (debug.mode != 0u) {
+            outputColor = applyDebugVisualization(waterColor, depthCenter,
+                                                  waterNormal);
+        }
         return vec4<f32>(outputColor, 1.0);
     }
     
@@ -678,7 +604,12 @@ fn fs(i : VSOut) -> @location(0) vec4<f32> {
     // Texture Sampling
     // ─────────────────────────────────────────────────────────────────────────
     let uvTerrain = terrainUV(posCWorld);
-    let albedo = textureSampleLevel(terrainTex, terrainSampler, uvTerrain, 0.0).xyz;
+    let albedoEncoded = textureSampleLevel(
+        terrainTex, terrainSampler, uvTerrain, 0.0).xyz;
+    // Terrain JPEGs are currently uploaded as UNORM. Decode them here so the
+    // refracted bed, opaque scene, ACES curve, and Vulkan path share one linear
+    // working space.
+    let albedo = srgbToLinear(albedoEncoded);
     let lightVisibility = textureSampleLevel(lightmapTex, terrainSampler, uvTerrain, 0.0).x;
     
     // ─────────────────────────────────────────────────────────────────────────
@@ -722,25 +653,27 @@ fn fs(i : VSOut) -> @location(0) vec4<f32> {
     // ─────────────────────────────────────────────────────────────────────────
     let dist = length(posCView);
     var finalColor : vec3<f32>;
-    let cameraUnderwater = camera.waterParams.y > 0.5 &&
-                           camera.cameraPos.y < camera.waterParams.x;
     if (cameraUnderwater) {
-        // The medium is water, not air: attenuate the bed by the path length
-        // through the water and fade toward the deep water colour.
-        let transmit = exp(-WATER_EXTINCTION * dist);
-        finalColor = litColor * transmit + camera.waterColorB.rgb * (1.0 - transmit);
+        // Only attenuate geometry below the current water surface; cliffs above
+        // it remain in air even when the camera is submerged.
+        if (posCWorld.y <= camera.waterParams.x + 0.5) {
+            finalColor = applyUnderwaterMedium(
+                litColor, posCWorld - camera.cameraPos.xyz, dist);
+        } else {
+            finalColor = litColor;
+        }
     } else {
-        // Exponential fog capped at 0.7 to maintain visibility at distance
-        let fogDensity = camera.metrics.w;
-        let fogColor = vec3<f32>(0.78, 0.64, 0.54);  // Warm canyon haze
-        let fogFactor = clamp(1.0 - exp(-fogDensity * dist), 0.0, 0.7);
-        finalColor = mix(litColor, fogColor, fogFactor);
+        let fog = smoothstep(OCEAN_FOG_NEAR, OCEAN_FOG_FAR, dist);
+        finalColor = mix(litColor, OCEAN_FOG_COLOR, fog);
     }
     
     // ─────────────────────────────────────────────────────────────────────────
     // Apply Debug Visualization (if enabled)
     // ─────────────────────────────────────────────────────────────────────────
-    let outputColor = applyDebugVisualization(finalColor, depthCenter, normal);
+    var outputColor = presentColor(finalColor, i.uv, dims);
+    if (debug.mode != 0u) {
+        outputColor = applyDebugVisualization(finalColor, depthCenter, normal);
+    }
     
     return vec4<f32>(outputColor, 1.0);
 }
@@ -789,15 +722,23 @@ fn applyDebugVisualization(finalColor : vec3<f32>, depth : f32,
 }
 
 // Settled-camera specialization. Static terrain and sky are copied from the
-// exact full-resolution background refresh; only genuinely animated water
-// keeps the complete refraction, SSR, foam, caustics, and underwater model.
+// exact full-resolution background refresh; animated ocean shading remains
+// live, and submerged views apply screen-space distortion.
 @fragment
 fn fsCached(i : VSOut) -> @location(0) vec4<f32> {
     let dims = textureDimensions(depthTex, 0);
     let dimsF = vec2<f32>(f32(dims.x), f32(dims.y));
     let maxCoord = vec2<i32>(i32(dims.x) - 1, i32(dims.y) - 1);
-    let pixelI = clamp(
+    let outputPixelI = clamp(
         vec2<i32>(floor(i.uv * dimsF)), vec2<i32>(0, 0), maxCoord);
+    let cameraUnderwater = camera.waterParams.y > 0.5 &&
+                           camera.cameraPos.y < camera.waterParams.x;
+    var pixelI = outputPixelI;
+    if (cameraUnderwater) {
+        pixelI = clamp(vec2<i32>(floor(
+                           underwaterDistortionUv(i.uv) * dimsF)),
+                       vec2<i32>(0, 0), maxCoord);
+    }
     let depthCenter = textureLoad(depthTex, pixelI, 0).x;
 
     // Check depth first because sky pixels intentionally leave the other
@@ -819,14 +760,16 @@ fn fsCached(i : VSOut) -> @location(0) vec4<f32> {
     let viewDirWS = normalize(camera.cameraPos.xyz - posCWorld);
     let waterDepth = max(abs(packedShadow) - 1.0, 0.0);
     let waterShadow = select(0.0, 1.0, packedShadow >= 0.0);
-    let shoreMask = clamp(waterData.w, 0.0, 1.0);
     let waterWave = vec4<f32>(
         0.0, waterData.x, waterData.y, waterData.z);
     let waterNormal = waterWaveNormal(waterWave);
-    let waterColor = shadeWater(
-        posCWorld, posCView, viewDirWS, waterNormal, waterWave.w,
-        waterDepth, shoreMask, waterShadow, dims);
-    let outputColor = applyDebugVisualization(
-        waterColor, depthCenter, waterNormal);
+    let waterColor = shadeOcean(
+        posCWorld, posCView, viewDirWS, waterNormal, waterDepth,
+        waterShadow, dims);
+    var outputColor = presentColor(waterColor, i.uv, dims);
+    if (debug.mode != 0u) {
+        outputColor = applyDebugVisualization(
+            waterColor, depthCenter, waterNormal);
+    }
     return vec4<f32>(outputColor, 1.0);
 }

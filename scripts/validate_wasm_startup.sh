@@ -14,12 +14,19 @@ if [[ -z "$browser" ]]; then
 fi
 
 artifact_directory="${1:-bazel-bin/voxy_wasm}"
-for artifact in voxy_wasm_cc.js voxy_wasm_cc.wasm voxy_wasm_cc.data; do
-    if [[ ! -f "$artifact_directory/$artifact" ]]; then
-        echo "Missing WASM artifact: $artifact_directory/$artifact" >&2
-        exit 2
+artifact_base=""
+for candidate in voxy_wasm_cc voxy_wasm; do
+    if [[ -f "$artifact_directory/$candidate.js" &&
+          -f "$artifact_directory/$candidate.wasm" &&
+          -f "$artifact_directory/$candidate.data" ]]; then
+        artifact_base="$candidate"
+        break
     fi
 done
+if [[ -z "$artifact_base" ]]; then
+    echo "Missing WASM .js/.wasm/.data set in: $artifact_directory" >&2
+    exit 2
+fi
 
 temporary_directory="$(mktemp -d)"
 deployment="$temporary_directory/deployment"
@@ -68,9 +75,9 @@ trap cleanup EXIT
 mkdir -p "$deployment"
 cp web/index.html "$deployment/index.html"
 cp web/loader.js web/network_transport.js web/style.css "$deployment/"
-cp "$artifact_directory/voxy_wasm_cc.js" "$deployment/voxy_wasm.js"
-cp "$artifact_directory/voxy_wasm_cc.wasm" "$deployment/"
-cp "$artifact_directory/voxy_wasm_cc.data" "$deployment/"
+cp "$artifact_directory/$artifact_base.js" "$deployment/voxy_wasm.js"
+cp "$artifact_directory/$artifact_base.wasm" "$deployment/"
+cp "$artifact_directory/$artifact_base.data" "$deployment/"
 
 python3 -m http.server "$port" --bind 127.0.0.1 \
     --directory "$deployment" >"$server_log" 2>&1 &

@@ -37,8 +37,12 @@ internal resolution scale or scene quality.
 The fullscreen performance path keeps the terrain, sky, shadow field, and
 depth result cached while the camera is stationary. The animated water stays
 live in a separate full-resolution compute/composite pass, including all three
-FFT cascades, coastal refraction, foam, SSR, and underwater shading. Moving the
-camera automatically invalidates and rebuilds the camera-dependent caches.
+FFT cascades and coastal refraction. The final ocean material provides exact
+dielectric Fresnel/TIR, Beer–Lambert scattering, ACES output, and a dedicated
+underwater distortion/shaft path. Its tileable foam mask is generated
+procedurally at startup, with no external image or model dependency.
+Moving the camera automatically invalidates and rebuilds camera-dependent
+caches.
 
 Run the five-view native benchmark with:
 

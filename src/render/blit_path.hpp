@@ -17,6 +17,7 @@
 
 #include <cstdint>
 #include <filesystem>
+#include <vector>
 
 #include <glm/glm.hpp>
 
@@ -136,12 +137,6 @@ public:
     /// @param lightmapView Texture view of lightmap
     void setLightmapTexture(WGPUTextureView lightmapView);
 
-    /// Bind the shared FFT displacement cascades.
-    void setWaterSimulation(WGPUTextureView displacementView,
-                            WGPUTextureView foamView,
-                            WGPUTextureView coastView,
-                            WGPUSampler sampler);
-
     /// Set terrain parameters (size, scale)
     /// @param width Heightmap width in samples
     /// @param height Heightmap height in samples
@@ -211,7 +206,7 @@ private:
     bool createBindGroup();
     bool createBackgroundTexture();
     bool createSkyLut(const BlitPathConfig& config);
-    bool createWaterNoise();
+    bool createSurfaceFoamTexture();
     void updateUniformBuffer();
     void updateStaticUniforms();
 
@@ -252,12 +247,19 @@ private:
     WGPUBindGroup skyLutBindGroup_ = nullptr;
     WGPUTexture skyLutTexture_ = nullptr;
     WGPUTextureView skyLutView_ = nullptr;
+    WGPUTextureView skyLutBaseView_ = nullptr;
+    WGPUShaderModule skyLutMipShaderModule_ = nullptr;
+    WGPUPipelineLayout skyLutMipPipelineLayout_ = nullptr;
+    WGPUComputePipeline skyLutMipPipeline_ = nullptr;
+    WGPUBindGroupLayout skyLutMipBindGroupLayout_ = nullptr;
+    std::vector<WGPUTextureView> skyLutMipViews_;
+    std::vector<WGPUBindGroup> skyLutMipBindGroups_;
     bool skyLutBaked_ = false;
 
-    // Tiling water detail noise (CPU-baked once, replaces per-pixel simplex)
-    WGPUTexture waterNoiseTexture_ = nullptr;
-    WGPUTextureView waterNoiseView_ = nullptr;
-    WGPUSampler noiseSampler_ = nullptr;   // repeat addressing for tiling
+    // Asset-free, tileable procedural foam network with CPU-built mips.
+    WGPUTexture surfaceFoamTexture_ = nullptr;
+    WGPUTextureView surfaceFoamView_ = nullptr;
+    WGPUSampler surfaceFoamSampler_ = nullptr;
 
     // Full-resolution camera-static terrain/sky color.
     WGPUTexture backgroundTexture_ = nullptr;
@@ -273,11 +275,6 @@ private:
     WGPUTextureView staticShadowView_ = nullptr;
     WGPUTextureView terrainView_ = nullptr;
     WGPUTextureView lightmapView_ = nullptr;
-    WGPUTextureView waterDisplacementView_ = nullptr;
-    WGPUTextureView waterFoamView_ = nullptr;
-    WGPUTextureView waterCoastView_ = nullptr;
-    WGPUSampler waterDisplacementSampler_ = nullptr;
-
     // Terrain parameters
     uint32_t terrainWidth_ = 256;
     uint32_t terrainHeight_ = 256;

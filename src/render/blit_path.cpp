@@ -62,10 +62,17 @@ BlitPath::BlitPath(BlitPath&& other) noexcept
     , skyLutBindGroup_(other.skyLutBindGroup_)
     , skyLutTexture_(other.skyLutTexture_)
     , skyLutView_(other.skyLutView_)
+    , skyLutBaseView_(other.skyLutBaseView_)
+    , skyLutMipShaderModule_(other.skyLutMipShaderModule_)
+    , skyLutMipPipelineLayout_(other.skyLutMipPipelineLayout_)
+    , skyLutMipPipeline_(other.skyLutMipPipeline_)
+    , skyLutMipBindGroupLayout_(other.skyLutMipBindGroupLayout_)
+    , skyLutMipViews_(std::move(other.skyLutMipViews_))
+    , skyLutMipBindGroups_(std::move(other.skyLutMipBindGroups_))
     , skyLutBaked_(other.skyLutBaked_)
-    , waterNoiseTexture_(other.waterNoiseTexture_)
-    , waterNoiseView_(other.waterNoiseView_)
-    , noiseSampler_(other.noiseSampler_)
+    , surfaceFoamTexture_(other.surfaceFoamTexture_)
+    , surfaceFoamView_(other.surfaceFoamView_)
+    , surfaceFoamSampler_(other.surfaceFoamSampler_)
     , backgroundTexture_(other.backgroundTexture_)
     , backgroundView_(other.backgroundView_)
     , outputWidth_(other.outputWidth_)
@@ -77,10 +84,6 @@ BlitPath::BlitPath(BlitPath&& other) noexcept
     , staticShadowView_(other.staticShadowView_)
     , terrainView_(other.terrainView_)
     , lightmapView_(other.lightmapView_)
-    , waterDisplacementView_(other.waterDisplacementView_)
-    , waterFoamView_(other.waterFoamView_)
-    , waterCoastView_(other.waterCoastView_)
-    , waterDisplacementSampler_(other.waterDisplacementSampler_)
     , terrainWidth_(other.terrainWidth_)
     , terrainHeight_(other.terrainHeight_)
     , uniforms_(other.uniforms_)
@@ -120,9 +123,16 @@ BlitPath::BlitPath(BlitPath&& other) noexcept
     other.skyLutBindGroup_ = nullptr;
     other.skyLutTexture_ = nullptr;
     other.skyLutView_ = nullptr;
-    other.waterNoiseTexture_ = nullptr;
-    other.waterNoiseView_ = nullptr;
-    other.noiseSampler_ = nullptr;
+    other.skyLutBaseView_ = nullptr;
+    other.skyLutMipShaderModule_ = nullptr;
+    other.skyLutMipPipelineLayout_ = nullptr;
+    other.skyLutMipPipeline_ = nullptr;
+    other.skyLutMipBindGroupLayout_ = nullptr;
+    other.skyLutMipViews_.clear();
+    other.skyLutMipBindGroups_.clear();
+    other.surfaceFoamTexture_ = nullptr;
+    other.surfaceFoamView_ = nullptr;
+    other.surfaceFoamSampler_ = nullptr;
     other.backgroundTexture_ = nullptr;
     other.backgroundView_ = nullptr;
     other.depthView_ = nullptr;
@@ -132,10 +142,6 @@ BlitPath::BlitPath(BlitPath&& other) noexcept
     other.staticShadowView_ = nullptr;
     other.terrainView_ = nullptr;
     other.lightmapView_ = nullptr;
-    other.waterDisplacementView_ = nullptr;
-    other.waterFoamView_ = nullptr;
-    other.waterCoastView_ = nullptr;
-    other.waterDisplacementSampler_ = nullptr;
     other.uniforms_ = nullptr;
     other.staticUniforms_ = nullptr;
 }
@@ -167,10 +173,17 @@ BlitPath& BlitPath::operator=(BlitPath&& other) noexcept {
         skyLutBindGroup_ = other.skyLutBindGroup_;
         skyLutTexture_ = other.skyLutTexture_;
         skyLutView_ = other.skyLutView_;
+        skyLutBaseView_ = other.skyLutBaseView_;
+        skyLutMipShaderModule_ = other.skyLutMipShaderModule_;
+        skyLutMipPipelineLayout_ = other.skyLutMipPipelineLayout_;
+        skyLutMipPipeline_ = other.skyLutMipPipeline_;
+        skyLutMipBindGroupLayout_ = other.skyLutMipBindGroupLayout_;
+        skyLutMipViews_ = std::move(other.skyLutMipViews_);
+        skyLutMipBindGroups_ = std::move(other.skyLutMipBindGroups_);
         skyLutBaked_ = other.skyLutBaked_;
-        waterNoiseTexture_ = other.waterNoiseTexture_;
-        waterNoiseView_ = other.waterNoiseView_;
-        noiseSampler_ = other.noiseSampler_;
+        surfaceFoamTexture_ = other.surfaceFoamTexture_;
+        surfaceFoamView_ = other.surfaceFoamView_;
+        surfaceFoamSampler_ = other.surfaceFoamSampler_;
         backgroundTexture_ = other.backgroundTexture_;
         backgroundView_ = other.backgroundView_;
         outputWidth_ = other.outputWidth_;
@@ -182,10 +195,6 @@ BlitPath& BlitPath::operator=(BlitPath&& other) noexcept {
         staticShadowView_ = other.staticShadowView_;
         terrainView_ = other.terrainView_;
         lightmapView_ = other.lightmapView_;
-        waterDisplacementView_ = other.waterDisplacementView_;
-        waterFoamView_ = other.waterFoamView_;
-        waterCoastView_ = other.waterCoastView_;
-        waterDisplacementSampler_ = other.waterDisplacementSampler_;
         terrainWidth_ = other.terrainWidth_;
         terrainHeight_ = other.terrainHeight_;
         uniforms_ = other.uniforms_;
@@ -224,9 +233,16 @@ BlitPath& BlitPath::operator=(BlitPath&& other) noexcept {
         other.skyLutBindGroup_ = nullptr;
         other.skyLutTexture_ = nullptr;
         other.skyLutView_ = nullptr;
-        other.waterNoiseTexture_ = nullptr;
-        other.waterNoiseView_ = nullptr;
-        other.noiseSampler_ = nullptr;
+        other.skyLutBaseView_ = nullptr;
+        other.skyLutMipShaderModule_ = nullptr;
+        other.skyLutMipPipelineLayout_ = nullptr;
+        other.skyLutMipPipeline_ = nullptr;
+        other.skyLutMipBindGroupLayout_ = nullptr;
+        other.skyLutMipViews_.clear();
+        other.skyLutMipBindGroups_.clear();
+        other.surfaceFoamTexture_ = nullptr;
+        other.surfaceFoamView_ = nullptr;
+        other.surfaceFoamSampler_ = nullptr;
         other.backgroundTexture_ = nullptr;
         other.backgroundView_ = nullptr;
         other.depthView_ = nullptr;
@@ -236,10 +252,6 @@ BlitPath& BlitPath::operator=(BlitPath&& other) noexcept {
         other.staticShadowView_ = nullptr;
         other.terrainView_ = nullptr;
         other.lightmapView_ = nullptr;
-        other.waterDisplacementView_ = nullptr;
-        other.waterFoamView_ = nullptr;
-        other.waterCoastView_ = nullptr;
-        other.waterDisplacementSampler_ = nullptr;
         other.uniforms_ = nullptr;
         other.staticUniforms_ = nullptr;
     }
@@ -307,6 +319,34 @@ void BlitPath::shutdown() {
         wgpuBindGroupRelease(skyLutBindGroup_);
         skyLutBindGroup_ = nullptr;
     }
+    for (WGPUBindGroup bindGroup : skyLutMipBindGroups_) {
+        if (bindGroup) {
+            wgpuBindGroupRelease(bindGroup);
+        }
+    }
+    skyLutMipBindGroups_.clear();
+    for (WGPUTextureView view : skyLutMipViews_) {
+        if (view) {
+            wgpuTextureViewRelease(view);
+        }
+    }
+    skyLutMipViews_.clear();
+    if (skyLutMipBindGroupLayout_) {
+        wgpuBindGroupLayoutRelease(skyLutMipBindGroupLayout_);
+        skyLutMipBindGroupLayout_ = nullptr;
+    }
+    if (skyLutMipPipeline_) {
+        wgpuComputePipelineRelease(skyLutMipPipeline_);
+        skyLutMipPipeline_ = nullptr;
+    }
+    if (skyLutMipPipelineLayout_) {
+        wgpuPipelineLayoutRelease(skyLutMipPipelineLayout_);
+        skyLutMipPipelineLayout_ = nullptr;
+    }
+    if (skyLutMipShaderModule_) {
+        wgpuShaderModuleRelease(skyLutMipShaderModule_);
+        skyLutMipShaderModule_ = nullptr;
+    }
     if (skyLutBindGroupLayout_) {
         wgpuBindGroupLayoutRelease(skyLutBindGroupLayout_);
         skyLutBindGroupLayout_ = nullptr;
@@ -327,22 +367,26 @@ void BlitPath::shutdown() {
         wgpuTextureViewRelease(skyLutView_);
         skyLutView_ = nullptr;
     }
+    if (skyLutBaseView_) {
+        wgpuTextureViewRelease(skyLutBaseView_);
+        skyLutBaseView_ = nullptr;
+    }
     if (skyLutTexture_) {
         wgpuTextureRelease(skyLutTexture_);
         skyLutTexture_ = nullptr;
     }
     skyLutBaked_ = false;
-    if (waterNoiseView_) {
-        wgpuTextureViewRelease(waterNoiseView_);
-        waterNoiseView_ = nullptr;
+    if (surfaceFoamView_) {
+        wgpuTextureViewRelease(surfaceFoamView_);
+        surfaceFoamView_ = nullptr;
     }
-    if (waterNoiseTexture_) {
-        wgpuTextureRelease(waterNoiseTexture_);
-        waterNoiseTexture_ = nullptr;
+    if (surfaceFoamTexture_) {
+        wgpuTextureRelease(surfaceFoamTexture_);
+        surfaceFoamTexture_ = nullptr;
     }
-    if (noiseSampler_) {
-        wgpuSamplerRelease(noiseSampler_);
-        noiseSampler_ = nullptr;
+    if (surfaceFoamSampler_) {
+        wgpuSamplerRelease(surfaceFoamSampler_);
+        surfaceFoamSampler_ = nullptr;
     }
     if (backgroundView_) {
         wgpuTextureViewRelease(backgroundView_);
@@ -367,10 +411,6 @@ void BlitPath::shutdown() {
     staticShadowView_ = nullptr;
     terrainView_ = nullptr;
     lightmapView_ = nullptr;
-    waterDisplacementView_ = nullptr;
-    waterFoamView_ = nullptr;
-    waterCoastView_ = nullptr;
-    waterDisplacementSampler_ = nullptr;
     device_ = nullptr;
     queue_ = nullptr;
     outputWidth_ = 0;
@@ -439,8 +479,8 @@ bool BlitPath::init(WGPUDevice device, WGPUQueue queue, const BlitPathConfig& co
         return false;
     }
 
-    if (!createWaterNoise()) {
-        LOG_ERROR("Failed to create water noise texture");
+    if (!createSurfaceFoamTexture()) {
+        LOG_ERROR("Failed to create procedural ocean foam texture");
         shutdown();
         return false;
     }
@@ -509,120 +549,213 @@ bool BlitPath::createBackgroundTexture() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Water Detail Noise Creation
+// Asset-Free Surface Foam Creation
 // ─────────────────────────────────────────────────────────────────────────────
 
 namespace {
 
-/// One tile of the water noise texture covers this many world units.
-constexpr float kWaterNoiseTileWorld = 1024.0f;
-constexpr uint32_t kWaterNoiseSize = 512;
+constexpr uint32_t kSurfaceFoamSize = 1024;
 
-/// Gradient direction on a wrapped lattice (periodic Perlin noise).
-glm::vec2 latticeGradient(uint32_t ix, uint32_t iy, uint32_t period, uint32_t seed) {
-    uint32_t h = (ix % period) * 374761393u + (iy % period) * 668265263u +
-                 seed * 2246822519u;
-    h = (h ^ (h >> 13)) * 1274126177u;
-    h ^= h >> 16;
-    const float angle = static_cast<float>(h & 0xffffu) *
-                        (6.2831853f / 65536.0f);
-    return {std::cos(angle), std::sin(angle)};
+[[nodiscard]] uint32_t foamHash(uint32_t x, uint32_t y,
+                                uint32_t seed) noexcept {
+    uint32_t value = x * 0x9e3779b9u ^ y * 0x85ebca6bu ^ seed;
+    value ^= value >> 16u;
+    value *= 0x7feb352du;
+    value ^= value >> 15u;
+    value *= 0x846ca68bu;
+    return value ^ (value >> 16u);
 }
 
-/// Periodic Perlin noise, p in lattice units, output roughly [-1, 1].
-float periodicPerlin(glm::vec2 p, uint32_t period, uint32_t seed) {
-    const glm::vec2 cell = glm::floor(p);
-    const glm::vec2 f = p - cell;
-    const auto ix = static_cast<uint32_t>(cell.x);
-    const auto iy = static_cast<uint32_t>(cell.y);
+[[nodiscard]] int32_t foamWrap(int32_t value, int32_t period) noexcept {
+    const int32_t remainder = value % period;
+    return remainder < 0 ? remainder + period : remainder;
+}
 
-    const auto corner = [&](uint32_t cx, uint32_t cy) {
-        const glm::vec2 g = latticeGradient(ix + cx, iy + cy, period, seed);
-        return glm::dot(g, f - glm::vec2(static_cast<float>(cx), static_cast<float>(cy)));
+[[nodiscard]] float foamSmoothstep(float edge0, float edge1,
+                                   float value) noexcept {
+    const float t = std::clamp((value - edge0) / (edge1 - edge0),
+                               0.0f, 1.0f);
+    return t * t * (3.0f - 2.0f * t);
+}
+
+[[nodiscard]] float foamGradientDot(uint32_t hash, float x,
+                                    float y) noexcept {
+    constexpr float kDiagonal = 0.70710678118f;
+    switch (hash & 7u) {
+        case 0u: return x;
+        case 1u: return -x;
+        case 2u: return y;
+        case 3u: return -y;
+        case 4u: return (x + y) * kDiagonal;
+        case 5u: return (x - y) * kDiagonal;
+        case 6u: return (-x + y) * kDiagonal;
+        default: return (-x - y) * kDiagonal;
+    }
+}
+
+[[nodiscard]] float periodicGradientNoise(float u, float v, int32_t period,
+                                          uint32_t seed) noexcept {
+    const float px = u * static_cast<float>(period);
+    const float py = v * static_cast<float>(period);
+    const float floorX = std::floor(px);
+    const float floorY = std::floor(py);
+    const int32_t ix = static_cast<int32_t>(floorX);
+    const int32_t iy = static_cast<int32_t>(floorY);
+    const float tx = px - floorX;
+    const float ty = py - floorY;
+    const float sx = tx * tx * tx *
+        (tx * (tx * 6.0f - 15.0f) + 10.0f);
+    const float sy = ty * ty * ty *
+        (ty * (ty * 6.0f - 15.0f) + 10.0f);
+
+    const auto cornerHash = [period, seed](int32_t x, int32_t y) noexcept {
+        return foamHash(
+            static_cast<uint32_t>(foamWrap(x, period)),
+            static_cast<uint32_t>(foamWrap(y, period)), seed);
     };
+    const float n00 = foamGradientDot(cornerHash(ix, iy), tx, ty);
+    const float n10 = foamGradientDot(cornerHash(ix + 1, iy), tx - 1.0f, ty);
+    const float n01 = foamGradientDot(cornerHash(ix, iy + 1), tx, ty - 1.0f);
+    const float n11 = foamGradientDot(
+        cornerHash(ix + 1, iy + 1), tx - 1.0f, ty - 1.0f);
+    const float nx0 = n00 + (n10 - n00) * sx;
+    const float nx1 = n01 + (n11 - n01) * sx;
+    return (nx0 + (nx1 - nx0) * sy) * 1.41421356237f;
+}
 
-    // Quintic fade for C2-continuous interpolation
-    const glm::vec2 u = f * f * f * (f * (f * 6.0f - 15.0f) + 10.0f);
-    const float top = corner(0, 0) + (corner(1, 0) - corner(0, 0)) * u.x;
-    const float bottom = corner(0, 1) + (corner(1, 1) - corner(0, 1)) * u.x;
-    return (top + (bottom - top) * u.y) * 1.6f;
+[[nodiscard]] float periodicFbm(float u, float v, int32_t basePeriod,
+                                uint32_t seed) noexcept {
+    float result = 0.0f;
+    float normalization = 0.0f;
+    float weight = 0.55f;
+    int32_t period = basePeriod;
+    for (uint32_t octave = 0; octave < 5u; ++octave) {
+        result += periodicGradientNoise(
+            u, v, period, seed + octave * 0x9e3779b9u) * weight;
+        normalization += weight;
+        weight *= 0.5f;
+        period *= 2;
+    }
+    return std::clamp(0.5f + 0.5f * result / normalization, 0.0f, 1.0f);
+}
+
+[[nodiscard]] uint8_t proceduralFoamTexel(uint32_t x, uint32_t y) noexcept {
+    const float u = (static_cast<float>(x) + 0.5f) /
+                    static_cast<float>(kSurfaceFoamSize);
+    const float v = (static_cast<float>(y) + 0.5f) /
+                    static_cast<float>(kSurfaceFoamSize);
+
+    // A seamless vector warp prevents the iso-lines below from exposing their
+    // underlying noise lattice. Integer periods keep both tile edges exact.
+    const float warpX = periodicGradientNoise(u, v, 3, 0x37d4f12bu) +
+        0.35f * periodicGradientNoise(u, v, 7, 0x7f4a7c15u);
+    const float warpY = periodicGradientNoise(u, v, 3, 0xb49a85d1u) +
+        0.35f * periodicGradientNoise(u, v, 7, 0x94d049bbu);
+    const float warpedU = u + warpX * 0.085f;
+    const float warpedV = v + warpY * 0.085f;
+
+    const float broadField =
+        periodicGradientNoise(warpedU, warpedV, 7, 0x6c8e9cf5u) * 0.64f +
+        periodicGradientNoise(warpedU, warpedV, 14, 0x1f123bb5u) * 0.25f +
+        periodicGradientNoise(warpedU, warpedV, 28, 0xc2b2ae35u) * 0.11f;
+    const float broadRidge = 1.0f - foamSmoothstep(
+        0.008f, 0.070f, std::abs(broadField));
+
+    // An integer torus transform changes orientation without breaking tiling.
+    const float detailU = warpedU + warpedV;
+    const float detailV = -warpedU + 2.0f * warpedV;
+    const float detailField =
+        periodicGradientNoise(detailU, detailV, 13, 0x85ebca6bu) * 0.72f +
+        periodicGradientNoise(detailU, detailV, 26, 0x27d4eb2fu) * 0.28f;
+    const float detailRidge = 1.0f - foamSmoothstep(
+        0.006f, 0.045f, std::abs(detailField));
+
+    // Independent fractal fields break the contours into foam fragments and
+    // vary their width. Only the bright cores survive the shader threshold.
+    const float breakup = periodicFbm(u, v, 4, 0x165667b1u);
+    const float detailBreakup = periodicFbm(
+        u + v, -u + 2.0f * v, 6, 0xd3a2646cu);
+    const float broadStrands = broadRidge *
+        (0.30f + 0.82f * foamSmoothstep(0.40f, 0.68f, breakup));
+    const float detailStrands = detailRidge *
+        (0.26f + 0.78f * foamSmoothstep(
+            0.44f, 0.72f, detailBreakup));
+    float mask = std::max(broadStrands, detailStrands * 0.90f);
+    mask = foamSmoothstep(0.18f, 0.98f, mask);
+    return static_cast<uint8_t>(
+        std::lround(std::clamp(mask, 0.0f, 1.0f) * 255.0f));
 }
 
 } // namespace
 
-bool BlitPath::createWaterNoise() {
-    // R,G: gradient (dx, dz) of the three high-frequency detail waves that
-    //      used to be evaluated as cosines per pixel. Wave vectors are
-    //      snapped to whole periods of the tile so the texture repeats.
-    // B:   flow noise (period 8)  — sampled at two scales for the bands.
-    // A:   ripple noise (period 16) — drives the shore foam.
-    const float base = 6.2831853f / kWaterNoiseTileWorld;
-    const glm::vec2 waveK[3] = {
-        glm::vec2(10.0f, 4.0f) * base,   // ~ (0.060, 0.022)
-        glm::vec2(-3.0f, 8.0f) * base,   // ~ (-0.018, 0.052)
-        glm::vec2(6.0f, -7.0f) * base,   // ~ (0.035, -0.041)
-    };
-    const float wavePhase[3] = {0.0f, 1.7f, 3.1f};
-
-    std::vector<uint8_t> pixels(static_cast<size_t>(kWaterNoiseSize) * kWaterNoiseSize * 4);
-    for (uint32_t y = 0; y < kWaterNoiseSize; ++y) {
-        for (uint32_t x = 0; x < kWaterNoiseSize; ++x) {
-            const glm::vec2 world = {
-                (static_cast<float>(x) + 0.5f) / kWaterNoiseSize * kWaterNoiseTileWorld,
-                (static_cast<float>(y) + 0.5f) / kWaterNoiseSize * kWaterNoiseTileWorld,
-            };
-
-            glm::vec2 grad{0.0f};
-            for (int i = 0; i < 3; ++i) {
-                grad += waveK[i] * std::cos(glm::dot(waveK[i], world) + wavePhase[i]);
-            }
-
-            const glm::vec2 latticeUV = {
-                static_cast<float>(x) / kWaterNoiseSize,
-                static_cast<float>(y) / kWaterNoiseSize,
-            };
-            const float flow = periodicPerlin(latticeUV * 8.0f, 8, 101);
-            const float ripple = periodicPerlin(latticeUV * 16.0f, 16, 202);
-
-            const auto encode = [](float v) {
-                return static_cast<uint8_t>(std::clamp(v, 0.0f, 1.0f) * 255.0f + 0.5f);
-            };
-            const size_t idx = (static_cast<size_t>(y) * kWaterNoiseSize + x) * 4;
-            pixels[idx + 0] = encode(grad.x * 4.0f + 0.5f);   // decode: (v-0.5)/4
-            pixels[idx + 1] = encode(grad.y * 4.0f + 0.5f);
-            pixels[idx + 2] = encode(flow * 0.5f + 0.5f);     // decode: v*2-1
-            pixels[idx + 3] = encode(ripple * 0.5f + 0.5f);
+bool BlitPath::createSurfaceFoamTexture() {
+    uint32_t width = kSurfaceFoamSize;
+    uint32_t height = kSurfaceFoamSize;
+    std::vector<uint8_t> mip(static_cast<size_t>(width) * height);
+    for (uint32_t y = 0; y < height; ++y) {
+        for (uint32_t x = 0; x < width; ++x) {
+            mip[static_cast<size_t>(y) * width + x] =
+                proceduralFoamTexel(x, y);
         }
     }
 
-    gpu::TextureDesc desc = gpu::TextureDesc::tex2D(
-        kWaterNoiseSize, kWaterNoiseSize, WGPUTextureFormat_RGBA8Unorm,
+    gpu::TextureDesc desc = gpu::TextureDesc::tex2DMipmapped(
+        width, height, WGPUTextureFormat_R8Unorm,
         WGPUTextureUsage_TextureBinding | WGPUTextureUsage_CopyDst,
-        "water_noise");
-    waterNoiseTexture_ = gpu::createTextureWithData(
-        device_, queue_, desc,
-        std::as_bytes(std::span<const uint8_t>(pixels)),
-        kWaterNoiseSize * 4);
-    if (!waterNoiseTexture_) {
-        LOG_ERROR("Failed to create water noise texture");
-        return false;
-    }
-    waterNoiseView_ = gpu::createTextureView(waterNoiseTexture_);
-    if (!waterNoiseView_) {
-        LOG_ERROR("Failed to create water noise texture view");
-        return false;
+        "ocean_procedural_foam");
+    surfaceFoamTexture_ = gpu::createTexture(device_, desc);
+    if (!surfaceFoamTexture_) return false;
+
+    for (uint32_t level = 0; level < desc.mipLevelCount; ++level) {
+        gpu::writeTexture(queue_, surfaceFoamTexture_,
+                          std::as_bytes(std::span<const uint8_t>(mip)),
+                          width, height, width, level);
+        if (width == 1 && height == 1) break;
+
+        const uint32_t nextWidth = std::max(width / 2, 1u);
+        const uint32_t nextHeight = std::max(height / 2, 1u);
+        std::vector<uint8_t> next(
+            static_cast<size_t>(nextWidth) * nextHeight);
+        for (uint32_t y = 0; y < nextHeight; ++y) {
+            for (uint32_t x = 0; x < nextWidth; ++x) {
+                const uint32_t x0 = std::min(x * 2, width - 1);
+                const uint32_t x1 = std::min(x0 + 1, width - 1);
+                const uint32_t y0 = std::min(y * 2, height - 1);
+                const uint32_t y1 = std::min(y0 + 1, height - 1);
+                const uint32_t sum =
+                    static_cast<uint32_t>(
+                        mip[static_cast<size_t>(y0) * width + x0]) +
+                    static_cast<uint32_t>(
+                        mip[static_cast<size_t>(y0) * width + x1]) +
+                    static_cast<uint32_t>(
+                        mip[static_cast<size_t>(y1) * width + x0]) +
+                    static_cast<uint32_t>(
+                        mip[static_cast<size_t>(y1) * width + x1]);
+                next[static_cast<size_t>(y) * nextWidth + x] =
+                    static_cast<uint8_t>((sum + 2u) / 4u);
+            }
+        }
+        mip = std::move(next);
+        width = nextWidth;
+        height = nextHeight;
     }
 
-    gpu::SamplerDesc samplerDesc = gpu::SamplerDesc::linear("water_noise_sampler");
+    gpu::TextureViewDesc viewDesc{};
+    viewDesc.label = "ocean_procedural_foam_view";
+    viewDesc.format = WGPUTextureFormat_R8Unorm;
+    viewDesc.mipLevelCount = desc.mipLevelCount;
+    surfaceFoamView_ = gpu::createTextureView(surfaceFoamTexture_, viewDesc);
+    if (!surfaceFoamView_) return false;
+
+    gpu::SamplerDesc samplerDesc =
+        gpu::SamplerDesc::linear("ocean_procedural_foam_sampler");
     samplerDesc.addressModeU = WGPUAddressMode_Repeat;
     samplerDesc.addressModeV = WGPUAddressMode_Repeat;
-    noiseSampler_ = gpu::createSampler(device_, samplerDesc);
-    if (!noiseSampler_) {
-        LOG_ERROR("Failed to create water noise sampler");
-        return false;
-    }
+    surfaceFoamSampler_ = gpu::createSampler(device_, samplerDesc);
+    if (!surfaceFoamSampler_) return false;
 
-    LOG_DEBUG("Created water noise texture ({}x{})", kWaterNoiseSize, kWaterNoiseSize);
+    LOG_DEBUG("Generated procedural ocean foam ({}x{}, {} mips)",
+              kSurfaceFoamSize, kSurfaceFoamSize, desc.mipLevelCount);
     return true;
 }
 
@@ -634,20 +767,33 @@ namespace {
 /// Resolution of the baked paraboloid sky map. The sky is low-frequency
 /// (the sharp sun disc stays analytic in the blit shader), so 512 is plenty.
 constexpr uint32_t kSkyLutSize = 512;
+constexpr uint32_t kSkyLutMipCount =
+    gpu::calculateMipLevelCount(kSkyLutSize, kSkyLutSize);
 } // namespace
 
 bool BlitPath::createSkyLut(const BlitPathConfig& config) {
     // Output texture: storage write for the bake, sampled read for the blit.
     gpu::TextureDesc lutDesc = gpu::TextureDesc::storage(
         kSkyLutSize, kSkyLutSize, WGPUTextureFormat_RGBA16Float, "sky_lut");
+    lutDesc.mipLevelCount = kSkyLutMipCount;
     skyLutTexture_ = gpu::createTexture(device_, lutDesc);
     if (!skyLutTexture_) {
         LOG_ERROR("Failed to create sky LUT texture");
         return false;
     }
-    skyLutView_ = gpu::createTextureView(skyLutTexture_);
+    gpu::TextureViewDesc sampledViewDesc{};
+    sampledViewDesc.label = "sky_lut_sampled_view";
+    sampledViewDesc.format = WGPUTextureFormat_RGBA16Float;
+    sampledViewDesc.mipLevelCount = kSkyLutMipCount;
+    skyLutView_ = gpu::createTextureView(skyLutTexture_, sampledViewDesc);
     if (!skyLutView_) {
         LOG_ERROR("Failed to create sky LUT texture view");
+        return false;
+    }
+    skyLutBaseView_ = gpu::createMipView(
+        skyLutTexture_, 0, WGPUTextureFormat_RGBA16Float);
+    if (!skyLutBaseView_) {
+        LOG_ERROR("Failed to create sky LUT base-mip storage view");
         return false;
     }
 
@@ -696,7 +842,7 @@ bool BlitPath::createSkyLut(const BlitPathConfig& config) {
 
     std::array<gpu::BindGroupEntry, 2> groupEntries = {
         gpu::BindGroupEntry(0).buffer(uniformBuffer_, 0, sizeof(CameraUniforms)),
-        gpu::BindGroupEntry(1).textureView(skyLutView_)
+        gpu::BindGroupEntry(1).textureView(skyLutBaseView_)
     };
     skyLutBindGroup_ =
         gpu::createBindGroup(device_, skyLutBindGroupLayout_, groupEntries, "sky_lut_bind_group");
@@ -705,7 +851,91 @@ bool BlitPath::createSkyLut(const BlitPathConfig& config) {
         return false;
     }
 
-    LOG_DEBUG("Created sky LUT resources ({}x{})", kSkyLutSize, kSkyLutSize);
+    // Build every roughness level explicitly. WebGPU has no implicit mip
+    // generation and the reflection shader samples a continuous mip LOD.
+    const auto mipShaderPath =
+        config.shaderPath.parent_path() / "sky_lut_mip.wgsl";
+    skyLutMipShaderModule_ = gpu::loadShaderModule(
+        device_, mipShaderPath, "sky_lut_mip.wgsl");
+    if (!skyLutMipShaderModule_) {
+        LOG_ERROR("Failed to load sky LUT mip shader from: {}",
+                  mipShaderPath.string());
+        return false;
+    }
+
+    std::array<gpu::BindGroupLayoutEntry, 2> mipLayoutEntries = {
+        gpu::BindGroupLayoutEntry(0)
+            .computeVisible()
+            .texture(WGPUTextureSampleType_UnfilterableFloat),
+        gpu::BindGroupLayoutEntry(1)
+            .computeVisible()
+            .storageTexture(WGPUStorageTextureAccess_WriteOnly,
+                            WGPUTextureFormat_RGBA16Float,
+                            WGPUTextureViewDimension_2D)
+    };
+    skyLutMipBindGroupLayout_ = gpu::createBindGroupLayout(
+        device_, mipLayoutEntries, "sky_lut_mip_bind_group_layout");
+    if (!skyLutMipBindGroupLayout_) {
+        LOG_ERROR("Failed to create sky LUT mip bind group layout");
+        return false;
+    }
+
+    std::array<WGPUBindGroupLayout, 1> mipLayouts = {
+        skyLutMipBindGroupLayout_
+    };
+    skyLutMipPipelineLayout_ = gpu::createPipelineLayout(
+        device_, mipLayouts, "sky_lut_mip_pipeline_layout");
+    if (!skyLutMipPipelineLayout_) {
+        LOG_ERROR("Failed to create sky LUT mip pipeline layout");
+        return false;
+    }
+
+    WGPUComputePipelineDescriptor mipPipelineDesc{};
+    WGPU_SET_LABEL(mipPipelineDesc, "sky_lut_mip_pipeline");
+    mipPipelineDesc.layout = skyLutMipPipelineLayout_;
+    mipPipelineDesc.compute.module = skyLutMipShaderModule_;
+    WGPU_SET_ENTRY_POINT(mipPipelineDesc.compute, "main");
+    skyLutMipPipeline_ =
+        wgpuDeviceCreateComputePipeline(device_, &mipPipelineDesc);
+    if (!skyLutMipPipeline_) {
+        LOG_ERROR("Failed to create sky LUT mip compute pipeline");
+        return false;
+    }
+
+    skyLutMipViews_.reserve((kSkyLutMipCount - 1) * 2);
+    skyLutMipBindGroups_.reserve(kSkyLutMipCount - 1);
+    for (uint32_t level = 1; level < kSkyLutMipCount; ++level) {
+        WGPUTextureView sourceView = gpu::createMipView(
+            skyLutTexture_, level - 1, WGPUTextureFormat_RGBA16Float);
+        WGPUTextureView destinationView = gpu::createMipView(
+            skyLutTexture_, level, WGPUTextureFormat_RGBA16Float);
+        if (!sourceView || !destinationView) {
+            if (sourceView) wgpuTextureViewRelease(sourceView);
+            if (destinationView) wgpuTextureViewRelease(destinationView);
+            LOG_ERROR("Failed to create sky LUT mip {} views", level);
+            return false;
+        }
+
+        std::array<gpu::BindGroupEntry, 2> mipGroupEntries = {
+            gpu::BindGroupEntry(0).textureView(sourceView),
+            gpu::BindGroupEntry(1).textureView(destinationView)
+        };
+        WGPUBindGroup mipBindGroup = gpu::createBindGroup(
+            device_, skyLutMipBindGroupLayout_, mipGroupEntries,
+            "sky_lut_mip_bind_group");
+        if (!mipBindGroup) {
+            wgpuTextureViewRelease(sourceView);
+            wgpuTextureViewRelease(destinationView);
+            LOG_ERROR("Failed to create sky LUT mip {} bind group", level);
+            return false;
+        }
+        skyLutMipViews_.push_back(sourceView);
+        skyLutMipViews_.push_back(destinationView);
+        skyLutMipBindGroups_.push_back(mipBindGroup);
+    }
+
+    LOG_DEBUG("Created sky LUT resources ({}x{}, {} mips)",
+              kSkyLutSize, kSkyLutSize, kSkyLutMipCount);
     return true;
 }
 
@@ -802,14 +1032,10 @@ bool BlitPath::createBindGroupLayout() {
     // @group(0) @binding(6) var terrainSampler : sampler;
     // @group(0) @binding(7) var<uniform> debug : DebugUniforms;
     // @group(0) @binding(8) var skyLUT : texture_2d<f32>;
-    // @group(0) @binding(9) var waterNoiseTex : texture_2d<f32>;
-    // @group(0) @binding(10) var waterNoiseSampler : sampler;
-    // @group(0) @binding(11) var waterDisplacementTex : texture_2d_array<f32>;
-    // @group(0) @binding(12) var waterDisplacementSampler : sampler;
-    // @group(0) @binding(13) var waterFoamTex : texture_2d<f32>;
-    // @group(0) @binding(14) var waterCoastFieldTex : texture_2d<f32>;
+    // @group(0) @binding(9) var oceanFoamTex : texture_2d<f32>;
+    // @group(0) @binding(10) var oceanFoamSampler : sampler;
 
-    std::array<gpu::BindGroupLayoutEntry, 15> entries = {
+    std::array<gpu::BindGroupLayoutEntry, 11> entries = {
         gpu::BindGroupLayoutEntry(0)
             .vertexVisible()
             .fragmentVisible()
@@ -843,19 +1069,7 @@ bool BlitPath::createBindGroupLayout() {
             .texture(WGPUTextureSampleType_Float, WGPUTextureViewDimension_2D, false),
         gpu::BindGroupLayoutEntry(10)
             .fragmentVisible()
-            .sampler(WGPUSamplerBindingType_Filtering),
-        gpu::BindGroupLayoutEntry(11)
-            .fragmentVisible()
-            .texture(WGPUTextureSampleType_Float, WGPUTextureViewDimension_2DArray, false),
-        gpu::BindGroupLayoutEntry(12)
-            .fragmentVisible()
-            .sampler(WGPUSamplerBindingType_Filtering),
-        gpu::BindGroupLayoutEntry(13)
-            .fragmentVisible()
-            .texture(WGPUTextureSampleType_Float, WGPUTextureViewDimension_2D, false),
-        gpu::BindGroupLayoutEntry(14)
-            .fragmentVisible()
-            .texture(WGPUTextureSampleType_Float, WGPUTextureViewDimension_2D, false)
+            .sampler(WGPUSamplerBindingType_Filtering)
     };
     
     bindGroupLayout_ = gpu::createBindGroupLayout(device_, entries, "blit_bind_group_layout");
@@ -867,7 +1081,7 @@ bool BlitPath::createBindGroupLayout() {
 
     // The settled-camera pipeline has one extra input: the exact terrain/sky
     // color rendered when the static ray cache was refreshed.
-    std::array<gpu::BindGroupLayoutEntry, 16> cachedEntries = {
+    std::array<gpu::BindGroupLayoutEntry, 12> cachedEntries = {
         gpu::BindGroupLayoutEntry(0)
             .vertexVisible()
             .fragmentVisible()
@@ -910,21 +1124,6 @@ bool BlitPath::createBindGroupLayout() {
             .fragmentVisible()
             .sampler(WGPUSamplerBindingType_Filtering),
         gpu::BindGroupLayoutEntry(11)
-            .fragmentVisible()
-            .texture(WGPUTextureSampleType_Float,
-                     WGPUTextureViewDimension_2DArray, false),
-        gpu::BindGroupLayoutEntry(12)
-            .fragmentVisible()
-            .sampler(WGPUSamplerBindingType_Filtering),
-        gpu::BindGroupLayoutEntry(13)
-            .fragmentVisible()
-            .texture(WGPUTextureSampleType_Float,
-                     WGPUTextureViewDimension_2D, false),
-        gpu::BindGroupLayoutEntry(14)
-            .fragmentVisible()
-            .texture(WGPUTextureSampleType_Float,
-                     WGPUTextureViewDimension_2D, false),
-        gpu::BindGroupLayoutEntry(15)
             .fragmentVisible()
             .texture(WGPUTextureSampleType_Float,
                      WGPUTextureViewDimension_2D, false)
@@ -1061,9 +1260,8 @@ bool BlitPath::createBindGroup() {
         LOG_ERROR("Cannot create bind group: no lightmap view set");
         return false;
     }
-    if (!waterDisplacementView_ || !waterFoamView_ || !waterCoastView_ ||
-        !waterDisplacementSampler_) {
-        LOG_ERROR("Cannot create bind group: no FFT water simulation");
+    if (!surfaceFoamView_ || !surfaceFoamSampler_) {
+        LOG_ERROR("Cannot create bind group: no procedural ocean foam texture");
         return false;
     }
     
@@ -1080,7 +1278,7 @@ bool BlitPath::createBindGroup() {
         wgpuBindGroupRelease(cachedBindGroup_);
         cachedBindGroup_ = nullptr;
     }
-    std::array<gpu::BindGroupEntry, 15> entries = {
+    std::array<gpu::BindGroupEntry, 11> entries = {
         gpu::BindGroupEntry(0).buffer(uniformBuffer_, 0, sizeof(CameraUniforms)),
         gpu::BindGroupEntry(1).textureView(depthView_),
         gpu::BindGroupEntry(2).textureView(shadowView_),
@@ -1090,12 +1288,8 @@ bool BlitPath::createBindGroup() {
         gpu::BindGroupEntry(6).sampler(sampler_),
         gpu::BindGroupEntry(7).buffer(debugUniformBuffer_, 0, sizeof(DebugUniforms)),
         gpu::BindGroupEntry(8).textureView(skyLutView_),
-        gpu::BindGroupEntry(9).textureView(waterNoiseView_),
-        gpu::BindGroupEntry(10).sampler(noiseSampler_),
-        gpu::BindGroupEntry(11).textureView(waterDisplacementView_),
-        gpu::BindGroupEntry(12).sampler(waterDisplacementSampler_),
-        gpu::BindGroupEntry(13).textureView(waterFoamView_),
-        gpu::BindGroupEntry(14).textureView(waterCoastView_)
+        gpu::BindGroupEntry(9).textureView(surfaceFoamView_),
+        gpu::BindGroupEntry(10).sampler(surfaceFoamSampler_)
     };
     
     bindGroup_ = gpu::createBindGroup(device_, bindGroupLayout_, entries, "blit_bind_group");
@@ -1106,7 +1300,7 @@ bool BlitPath::createBindGroup() {
     }
 
     if (staticDepthView_ && staticShadowView_ && backgroundView_) {
-        std::array<gpu::BindGroupEntry, 15> staticEntries = {
+        std::array<gpu::BindGroupEntry, 11> staticEntries = {
             gpu::BindGroupEntry(0).buffer(
                 staticUniformBuffer_, 0, sizeof(CameraUniforms)),
             gpu::BindGroupEntry(1).textureView(staticDepthView_),
@@ -1118,12 +1312,8 @@ bool BlitPath::createBindGroup() {
             gpu::BindGroupEntry(7).buffer(
                 debugUniformBuffer_, 0, sizeof(DebugUniforms)),
             gpu::BindGroupEntry(8).textureView(skyLutView_),
-            gpu::BindGroupEntry(9).textureView(waterNoiseView_),
-            gpu::BindGroupEntry(10).sampler(noiseSampler_),
-            gpu::BindGroupEntry(11).textureView(waterDisplacementView_),
-            gpu::BindGroupEntry(12).sampler(waterDisplacementSampler_),
-            gpu::BindGroupEntry(13).textureView(waterFoamView_),
-            gpu::BindGroupEntry(14).textureView(waterCoastView_)
+            gpu::BindGroupEntry(9).textureView(surfaceFoamView_),
+            gpu::BindGroupEntry(10).sampler(surfaceFoamSampler_)
         };
         staticBindGroup_ = gpu::createBindGroup(
             device_, bindGroupLayout_, staticEntries,
@@ -1133,7 +1323,7 @@ bool BlitPath::createBindGroup() {
             return false;
         }
 
-        std::array<gpu::BindGroupEntry, 16> cachedEntries = {
+        std::array<gpu::BindGroupEntry, 12> cachedEntries = {
             gpu::BindGroupEntry(0).buffer(
                 uniformBuffer_, 0, sizeof(CameraUniforms)),
             gpu::BindGroupEntry(1).textureView(depthView_),
@@ -1145,13 +1335,9 @@ bool BlitPath::createBindGroup() {
             gpu::BindGroupEntry(7).buffer(
                 debugUniformBuffer_, 0, sizeof(DebugUniforms)),
             gpu::BindGroupEntry(8).textureView(skyLutView_),
-            gpu::BindGroupEntry(9).textureView(waterNoiseView_),
-            gpu::BindGroupEntry(10).sampler(noiseSampler_),
-            gpu::BindGroupEntry(11).textureView(waterDisplacementView_),
-            gpu::BindGroupEntry(12).sampler(waterDisplacementSampler_),
-            gpu::BindGroupEntry(13).textureView(waterFoamView_),
-            gpu::BindGroupEntry(14).textureView(waterCoastView_),
-            gpu::BindGroupEntry(15).textureView(backgroundView_)
+            gpu::BindGroupEntry(9).textureView(surfaceFoamView_),
+            gpu::BindGroupEntry(10).sampler(surfaceFoamSampler_),
+            gpu::BindGroupEntry(11).textureView(backgroundView_)
         };
         cachedBindGroup_ = gpu::createBindGroup(
             device_, cachedBindGroupLayout_, cachedEntries,
@@ -1220,18 +1406,6 @@ void BlitPath::setLightmapTexture(WGPUTextureView lightmapView) {
     bindGroupDirty_ = true;
     backgroundDirty_ = true;
     LOG_DEBUG("Set lightmap texture view");
-}
-
-void BlitPath::setWaterSimulation(WGPUTextureView displacementView,
-                                  WGPUTextureView foamView,
-                                  WGPUTextureView coastView,
-                                  WGPUSampler sampler) {
-    waterDisplacementView_ = displacementView;
-    waterFoamView_ = foamView;
-    waterCoastView_ = coastView;
-    waterDisplacementSampler_ = sampler;
-    bindGroupDirty_ = true;
-    LOG_DEBUG("Set FFT water displacement cascades");
 }
 
 void BlitPath::setTerrainSize(uint32_t width, uint32_t height) {
@@ -1358,8 +1532,30 @@ void BlitPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
         wgpuComputePassEncoderDispatchWorkgroups(computePass, groups, groups, 1);
         wgpuComputePassEncoderEnd(computePass);
         wgpuComputePassEncoderRelease(computePass);
+
+        // One pass per level gives each read-after-write dependency its own
+        // WebGPU usage scope. This executes only once, during the first frame.
+        if (skyLutMipPipeline_ &&
+            skyLutMipBindGroups_.size() == kSkyLutMipCount - 1) {
+            for (uint32_t level = 1; level < kSkyLutMipCount; ++level) {
+                WGPUComputePassDescriptor mipPassDesc{};
+                WGPU_SET_LABEL(mipPassDesc, "sky_lut_mip_pass");
+                WGPUComputePassEncoder mipPass =
+                    wgpuCommandEncoderBeginComputePass(encoder, &mipPassDesc);
+                wgpuComputePassEncoderSetPipeline(mipPass,
+                                                  skyLutMipPipeline_);
+                wgpuComputePassEncoderSetBindGroup(
+                    mipPass, 0, skyLutMipBindGroups_[level - 1], 0, nullptr);
+                const uint32_t mipSize =
+                    std::max(kSkyLutSize >> level, 1u);
+                wgpuComputePassEncoderDispatchWorkgroups(
+                    mipPass, (mipSize + 7) / 8, (mipSize + 7) / 8, 1);
+                wgpuComputePassEncoderEnd(mipPass);
+                wgpuComputePassEncoderRelease(mipPass);
+            }
+        }
         skyLutBaked_ = true;
-        LOG_DEBUG("Baked sky LUT");
+        LOG_DEBUG("Baked sky LUT and roughness mip chain");
     }
 
     const auto drawFullscreen = [&](WGPUTextureView target,

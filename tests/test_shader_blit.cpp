@@ -170,60 +170,62 @@ TEST_F(BlitShaderTest, HasWaterShading) {
     ASSERT_FALSE(shaderSource_.empty());
     EXPECT_NE(shaderSource_.find("MATERIAL_WATER"), std::string::npos)
         << "Shader missing water material path";
-    EXPECT_NE(shaderSource_.find("fn shadeWater("), std::string::npos)
-        << "Shader missing water shading function";
+    EXPECT_NE(shaderSource_.find("fn shadeOcean("), std::string::npos)
+        << "Shader missing ocean material";
+    EXPECT_NE(shaderSource_.find("let waterColor = shadeOcean("),
+              std::string::npos)
+        << "Fragment paths must call the ocean material";
     EXPECT_NE(shaderSource_.find("waterWaveNormal"), std::string::npos)
-        << "Shader missing procedural water normal";
-    EXPECT_NE(shaderSource_.find("reflectance"), std::string::npos)
-        << "Shader missing Fresnel reflection term";
-    EXPECT_NE(shaderSource_.find("sampleScreenTerrainReflection"), std::string::npos)
-        << "Shader missing screen-space terrain reflection approximation";
-    EXPECT_NE(shaderSource_.find("transmit"), std::string::npos)
-        << "Shader missing depth-based water bed transmission";
-    EXPECT_NE(shaderSource_.find("WATER_EXTINCTION"), std::string::npos)
-        << "Shader missing depth-based water absorption";
-    EXPECT_NE(shaderSource_.find("warmSky"), std::string::npos)
-        << "Shader missing warm sky reflection tint";
-    EXPECT_EQ(shaderSource_.find("waterHaze"), std::string::npos)
-        << "Water should share the terrain distance fog (colour and cap) "
-           "instead of a separate haze term that pops at distance";
-    EXPECT_NE(shaderSource_.find("terrainReflection"), std::string::npos)
-        << "Shader missing terrain reflection";
-    EXPECT_EQ(shaderSource_.find("screenSpaceShoreMask"), std::string::npos)
-        << "Shore proximity should come packed in the material texture "
-           "fraction, not from a multi-tap screen-space mask";
-    EXPECT_NE(shaderSource_.find("shoreMask"), std::string::npos)
-        << "Shader missing shoreline mask decode";
-    EXPECT_NE(shaderSource_.find("let foam"), std::string::npos)
-        << "Shader missing shoreline foam term";
-    EXPECT_NE(shaderSource_.find("waterWaveField"), std::string::npos)
-        << "Shader missing coherent directional wave field";
-    EXPECT_NE(shaderSource_.find("refractedRayCaustics"), std::string::npos)
-        << "Shader missing refracted-ray caustics";
-    EXPECT_NE(shaderSource_.find("waterF0"), std::string::npos)
-        << "Shader missing physical water Fresnel";
-    EXPECT_NE(shaderSource_.find("waterDisplacementTex"), std::string::npos)
-        << "Shader missing FFT displacement cascades";
-    EXPECT_NE(shaderSource_.find("waterFoamTex"), std::string::npos)
-        << "Shader missing persistent simulated foam";
-    EXPECT_NE(shaderSource_.find("coastalWaveField"), std::string::npos)
-        << "Shader missing depth-aware coastal refraction";
-    EXPECT_NE(shaderSource_.find("waterCoastFieldTex"), std::string::npos)
-        << "Shader missing shoreline direction field";
-    EXPECT_NE(shaderSource_.find("directionalExposure"), std::string::npos)
-        << "Shader missing island sheltering";
-    EXPECT_NE(shaderSource_.find("Manual cascade LOD"), std::string::npos)
-        << "Shader missing distance-aware spectral filtering";
-    EXPECT_EQ(shaderSource_.find("let bedTint = textureSampleLevel(terrainTex"), std::string::npos)
-        << "Water shading should not reveal vertical terrain walls through bed tint";
+        << "Shader must consume the FFT/coastal slope packed by the intersection pass";
+    EXPECT_NE(shaderSource_.find("dielectricFresnel"), std::string::npos)
+        << "Shader missing exact unpolarized dielectric Fresnel";
+    EXPECT_NE(shaderSource_.find("OCEAN_IOR : f32 = 1.31"), std::string::npos)
+        << "Shader missing water index of refraction";
+    EXPECT_NE(shaderSource_.find("OCEAN_ABSORPTION"), std::string::npos)
+        << "Shader missing Beer-Lambert absorption coefficient";
+    EXPECT_NE(shaderSource_.find("oceanFoamTex"), std::string::npos)
+        << "Shader missing the procedural scalar foam mask";
+    EXPECT_NE(shaderSource_.find("threshold = 1.0 - OCEAN_FOAM_COVERAGE"),
+              std::string::npos)
+        << "Shader missing foam threshold equation";
+    EXPECT_NE(shaderSource_.find("acesFilmic"), std::string::npos)
+        << "Shader missing ACES output transform";
+    EXPECT_NE(shaderSource_.find("totalInternalReflection"), std::string::npos)
+        << "Shader missing underside total internal reflection";
+    EXPECT_NE(shaderSource_.find("applyUnderwaterMedium"), std::string::npos)
+        << "Shader missing underwater absorption and sun shafts";
+    EXPECT_NE(shaderSource_.find("underwaterDistortionUv"), std::string::npos)
+        << "Shader missing underwater distortion";
 }
 
-TEST_F(BlitShaderTest, ScreenReflectionUsesMatchingWorldInterpolation) {
+TEST_F(BlitShaderTest, OceanMaterialIsLive) {
     ASSERT_FALSE(shaderSource_.empty());
-    EXPECT_NE(shaderSource_.find("let candidate = mix(origin, endPoint, s)"), std::string::npos)
-        << "Clip-space endpoint interpolation must use the matching linear world point";
-    EXPECT_EQ(shaderSource_.find("mix(origin * invWA, endPoint * invWB"), std::string::npos)
-        << "The candidate point must not apply inverse-W interpolation twice";
+    EXPECT_EQ(shaderSource_.find("let waterColor = shadeWater("),
+              std::string::npos)
+        << "No fragment entry point may invoke the old SSR/GGX material";
+    EXPECT_NE(shaderSource_.find("let environment = sampleWaterEnvironment"),
+              std::string::npos)
+        << "Ocean environment reflection is not live";
+}
+
+TEST_F(BlitShaderTest, OceanRoughReflectionsHaveARealMipChain) {
+    ASSERT_FALSE(shaderSource_.empty());
+    EXPECT_NE(shaderSource_.find(
+                  "textureSampleLevel(skyLUT, terrainSampler, uv, lod)"),
+              std::string::npos)
+        << "Ocean roughness must select the baked environment mip";
+
+    const auto mipPath = shaderPath_.parent_path() / "sky_lut_mip.wgsl";
+    std::ifstream mipFile(mipPath);
+    ASSERT_TRUE(mipFile.is_open())
+        << "sky_lut_mip.wgsl not found at " << mipPath;
+    std::stringstream mipBuffer;
+    mipBuffer << mipFile.rdbuf();
+    const std::string mipSource = mipBuffer.str();
+    EXPECT_NE(mipSource.find("textureLoad(sourceMip"), std::string::npos)
+        << "Sky mip shader must read the preceding roughness level";
+    EXPECT_NE(mipSource.find("textureStore(destinationMip"), std::string::npos)
+        << "Sky mip shader must write the next roughness level";
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -421,26 +423,28 @@ TEST_F(BlitShaderTest, UsesLightDirFromUniforms) {
 
 TEST_F(BlitShaderTest, HasFogCalculation) {
     ASSERT_FALSE(shaderSource_.empty());
-    EXPECT_NE(shaderSource_.find("fogDensity"), std::string::npos)
-        << "Shader missing fog density";
-    EXPECT_NE(shaderSource_.find("fogColor"), std::string::npos)
-        << "Shader missing fog color";
-    EXPECT_NE(shaderSource_.find("fogFactor"), std::string::npos)
-        << "Shader missing fog factor";
+    EXPECT_NE(shaderSource_.find("OCEAN_FOG_NEAR"), std::string::npos)
+        << "Shader missing ocean fog near distance";
+    EXPECT_NE(shaderSource_.find("OCEAN_FOG_FAR"), std::string::npos)
+        << "Shader missing ocean fog far distance";
+    EXPECT_NE(shaderSource_.find("OCEAN_FOG_COLOR"), std::string::npos)
+        << "Shader missing ocean fog color";
 }
 
-TEST_F(BlitShaderTest, HasExponentialFog) {
+TEST_F(BlitShaderTest, UsesSourceSmoothstepFog) {
     ASSERT_FALSE(shaderSource_.empty());
-    // Exponential fog: exp(-fogDensity * dist)
-    EXPECT_NE(shaderSource_.find("exp(-fogDensity"), std::string::npos)
-        << "Shader should use exponential fog";
+    EXPECT_NE(shaderSource_.find(
+                  "smoothstep(OCEAN_FOG_NEAR, OCEAN_FOG_FAR"),
+              std::string::npos)
+        << "Shader should use smoothstep ocean fog";
 }
 
-TEST_F(BlitShaderTest, FogIsCappedAt07) {
+TEST_F(BlitShaderTest, UnderwaterUsesBeerLambert) {
     ASSERT_FALSE(shaderSource_.empty());
-    // Fog should be capped at 0.7
-    EXPECT_NE(shaderSource_.find("0.0, 0.7"), std::string::npos)
-        << "Fog factor should be clamped to max 0.7";
+    EXPECT_NE(shaderSource_.find(
+                  "exp(-OCEAN_ABSORPTION * pathLength)"),
+              std::string::npos)
+        << "Submerged geometry must use the source Beer-Lambert medium";
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════

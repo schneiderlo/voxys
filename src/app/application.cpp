@@ -1793,10 +1793,6 @@ bool Application::initRenderers() {
         blitPath_->setStaticTerrainTextures(
             raycastPath_->getTerrainDepthCacheView(),
             raycastPath_->getTerrainShadowCacheView());
-        blitPath_->setWaterSimulation(waterSimulation_->getOutputView(),
-                                      waterSimulation_->getFoamView(),
-                                      waterSimulation_->getCoastView(),
-                                      waterSimulation_->getSampler());
         
         // TerrainTextures guarantees valid views after init (either loaded or placeholder)
         blitPath_->setTerrainTexture(terrainTextures_->getAlbedoView());

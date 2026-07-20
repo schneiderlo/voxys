@@ -46,16 +46,20 @@ The ray-caster and lighting pass sample the same displacement texture. This
 keeps the visible normal aligned with the surface hit instead of layering
 unrelated normal noise over a flat plane.
 
-The lighting pass adds:
+The intersection pass packs its accepted FFT/coastal slope for the lighting
+pass, avoiding duplicate cascade evaluation. The lighting pass adds:
 
-- physical air/water Fresnel;
-- GGX sun reflection;
-- Snell-law bed refraction;
-- FFT-slope-derived refracted caustics;
-- persistent whitecaps sourced from Jacobian compression;
-- shoreline foam;
-- windward breaking and leeward wave shelter;
-- distance-aware cascade filtering.
+- exact unpolarized dielectric Fresnel and underside TIR at IOR 1.31;
+- sun-specular and subsurface-scatter lobes;
+- distorted bed refraction with Beer–Lambert absorption;
+- an asset-free procedural foam network using the material's threshold formula;
+- distance-dependent environment roughness and source fog;
+- ACES, film grain, and vignette presentation;
+- underwater absorption, animated distortion, and sun shafts.
+
+FFT displacement, coastal shoaling, breaking, and sheltering remain in the
+intersection/simulation stages. They are geometry inputs to the ocean material
+rather than a second custom surface material.
 
 ## Performance reference
 

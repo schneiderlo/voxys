@@ -153,12 +153,14 @@ if(VOXY_BUILD_WASM)
     message(STATUS "Configuring WASM target: voxy_wasm")
     
     if(EXISTS "${CMAKE_SOURCE_DIR}/src/engine/platform/wasm/entry.cpp")
-        # Add configuration and shaders as sources to ensure they are tracked for changes
+        # Every runtime shader must relink the preload package when it changes.
+        file(GLOB VOXY_WASM_SHADER_SOURCES CONFIGURE_DEPENDS
+            "${CMAKE_SOURCE_DIR}/shaders/*.wgsl"
+        )
         add_executable(voxy_wasm
             src/engine/platform/wasm/entry.cpp
             voxy.cfg
-            shaders/terrain.wgsl
-            shaders/ray_blit.wgsl
+            ${VOXY_WASM_SHADER_SOURCES}
         )
         
         if(TARGET voxy_core)
