@@ -132,6 +132,7 @@ the fix.
 | VOX-125 | Critical | Fixed | Native and browser startup resized the screenshot-tour vector directly from a signed command-line count. `INT_MAX` requested billions of entries before application validation. A programmatic list of invalid stops was also skipped through one recursive call per entry and could exhaust the CPU stack. | Command-line tour counts are clamped to 256 before allocation, direct application configurations enforce the same bound, and invalid stops are skipped iteratively. Covered by `//tests:config` and `//tests:application`. |
 | VOX-126 | High | Fixed | Platform input accepted NaN/Inf and extreme pointer or scroll values, allowing browser exports or malformed native events to poison deltas and camera state. Key/button event vectors were unbounded between frames, so a script could also grow them indefinitely; simply dropping overflowed releases would leave controls stuck. | Pointer inputs are finite and bounded, scroll accumulation saturates, and both event queues recover at 4,096 entries by synthesizing releases for held controls before accepting new input. Hostile-value and event-flood behavior is covered by `//tests:input`; the WASM build compiles the mirrored browser path. |
 | VOX-127 | High | Fixed | Benchmark telemetry rejected NaN and infinity but accepted finite values near `DBL_MAX`. Two such frames overflowed aggregate timing to infinity, allowing reports, percentiles, and throughput guardrails to operate on poisoned results. | Every timing metric is bounded relative to the one-million-frame aggregate ceiling, mathematically guaranteeing that all scenario sums remain finite. Covered by `//tests:benchmark`. |
+| VOX-128 | Medium | Fixed | The documented ThreadSanitizer configuration could not compile the combined suite under GCC 15: TSan's required `-O1` exposed a known `libstdc++` stream-iterator `-Wnull-dereference` false positive, and the project's warnings-as-errors policy stopped the build before race detection ran. Its suppressions also missed repeated reports from Mesa/RADV teardown and GLFW's uninstrumented Wayland font/portal workers. | TSan now carries the same targeted compiler-warning override already required by ASan, without weakening normal-build warnings, plus narrow external-library suppressions for Mesa, GLib, GIO, Fontconfig, and Pango synchronization. Verified by building and running `//tests:voxy_tests` with `--config=tsan` through Nix. |
 
 ## Verification
 
@@ -145,6 +146,8 @@ the fix.
 - Result: the full combined suite passed under UBSan.
 - 2026-07-28: `nix-shell --run 'bazel test --config=asan --test_output=errors //tests:voxy_tests'`
 - Result: the full combined suite passed under ASan.
+- 2026-07-28: built `//tests:voxy_tests` with `--config=tsan`, then ran it under `setarch x86_64 -R` with `.tsan_suppressions`.
+- Result: 980 passed, 2 skipped, and no unsuppressed ThreadSanitizer reports.
 - 2026-07-28: changed-area UBSan rerun covering application, benchmark, blit, config, GPU resources, input, mip pipeline, and terrain textures.
 - Result: all eight targets passed.
 

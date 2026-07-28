@@ -64,6 +64,9 @@ build:tsan --copt=-fno-omit-frame-pointer
 build:tsan --copt=-O1
 build:tsan --copt=-g
 build:tsan --strip=never
+# GCC's optimized libstdc++ stream iterators trigger the same
+# -Wnull-dereference false positive seen under ASan.
+build:tsan --per_file_copt=.*@-Wno-null-dereference
 # TSan suppression file for GPU library false positives
 test:tsan --test_env=TSAN_OPTIONS=suppressions=.tsan_suppressions
 
