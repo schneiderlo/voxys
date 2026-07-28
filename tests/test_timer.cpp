@@ -7,6 +7,7 @@
 
 #include <thread>
 #include <chrono>
+#include <limits>
 
 namespace voxy::perf {
 
@@ -224,6 +225,18 @@ TEST(FrameTimerTest, ResetAverage) {
     EXPECT_DOUBLE_EQ(timer.getAverageFrameTimeMs(), 0.0);
 }
 
+TEST(FrameTimerTest, IgnoresMarksAndEndsOutsideAnActiveFrame) {
+    FrameTimer timer;
+    timer.markUpdate();
+    timer.markRender();
+    timer.markPresent();
+    timer.endFrame();
+
+    EXPECT_EQ(timer.getFrameNumber(), 0u);
+    EXPECT_DOUBLE_EQ(timer.getLastFrameStats().totalMs, 0.0);
+    EXPECT_DOUBLE_EQ(timer.getAverageFrameTimeMs(), 0.0);
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Utility Function Tests
 // ─────────────────────────────────────────────────────────────────────────────
@@ -236,5 +249,14 @@ TEST(TimerUtilsTest, CurrentTimeMs) {
     EXPECT_GT(time2, time1);
 }
 
-} // namespace voxy::perf
+TEST(TimerUtilsTest, InvalidSleepDurationsReturnImmediately) {
+    const auto start = Timer::Clock::now();
+    sleepMs(std::numeric_limits<double>::quiet_NaN());
+    sleepMs(std::numeric_limits<double>::infinity());
+    sleepMs(-1.0);
+    const auto elapsed = std::chrono::duration<double, std::milli>(
+        Timer::Clock::now() - start).count();
+    EXPECT_LT(elapsed, 50.0);
+}
 
+} // namespace voxy::perf

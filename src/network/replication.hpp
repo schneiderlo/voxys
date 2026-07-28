@@ -105,6 +105,8 @@ struct SnapshotReadResult {
 
 [[nodiscard]] uint32_t snapshotStateHash(
     const AuthoritativeSnapshot& snapshot);
+[[nodiscard]] bool isCanonicalAuthoritativeSnapshot(
+    const AuthoritativeSnapshot& snapshot);
 
 class SnapshotCodec {
 public:

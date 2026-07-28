@@ -165,6 +165,7 @@ public:
         bool completed = false;
         std::optional<ReplayDivergence> divergence;
         LockstepTelemetry finalTelemetry{};
+        std::string error;
     };
 
     [[nodiscard]] Result play(const ReplayRecording& recording) const;

@@ -7,7 +7,9 @@
 
 #include <fstream>
 #include <cstdio>
+#include <cstdint>
 #include <filesystem>
+#include <limits>
 
 namespace voxy::config {
 
@@ -70,6 +72,17 @@ TEST(ConfigUtilsTest, ParseInt) {
     EXPECT_EQ(parseInt("invalid", 100), 100);
     EXPECT_EQ(parseInt("42px", 100), 100);
     EXPECT_EQ(parseInt("", 50), 50);
+}
+
+TEST(ConfigUtilsTest, GenericParseSupportsItsAdvertisedTypes) {
+    EXPECT_EQ(parse<uint64_t>("18446744073709551615", 7u),
+              std::numeric_limits<uint64_t>::max());
+    EXPECT_EQ(parse<uint64_t>("-1", 7u), 7u);
+    EXPECT_DOUBLE_EQ(parse<double>("2.5", 9.0), 2.5);
+    EXPECT_DOUBLE_EQ(parse<double>("nan", 9.0), 9.0);
+    EXPECT_EQ(parse<std::string>("hello"), "hello");
+    static_assert(noexcept(parse<int>("1", 0)));
+    static_assert(!noexcept(parse<std::string>("value")));
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -299,6 +312,22 @@ TEST(CommandLineArgsTest, BenchmarkFixedHzEnablesBenchmark) {
     EXPECT_FLOAT_EQ(args.benchmarkFixedHz, 400.0f);
 }
 
+TEST(CommandLineArgsTest, ScreenshotTourCountIsBoundedBeforeAllocation) {
+    char* hugeArgv[] = {
+        const_cast<char*>("voxy"),
+        const_cast<char*>("--screenshot-tour"),
+        const_cast<char*>("2147483647"),
+    };
+    EXPECT_EQ(parseArgs(3, hugeArgv).screenshotTourCount, 256);
+
+    char* negativeArgv[] = {
+        const_cast<char*>("voxy"),
+        const_cast<char*>("--screenshot-tour"),
+        const_cast<char*>("-1"),
+    };
+    EXPECT_EQ(parseArgs(3, negativeArgv).screenshotTourCount, 0);
+}
+
 TEST(CommandLineArgsTest, MultipleArgs) {
     char* argv[] = {
         const_cast<char*>("voxy"),
@@ -329,6 +358,21 @@ TEST(CommandLineArgsTest, PresentationOverrides) {
     const auto vsync = parseArgs(2, vsyncArgv);
     ASSERT_TRUE(vsync.vsync.has_value());
     EXPECT_TRUE(*vsync.vsync);
+}
+
+TEST(CommandLineArgsTest, InvalidArgcAndNullEntriesAreSafe) {
+    const auto empty = parseArgs(-1, nullptr);
+    EXPECT_EQ(empty.configPath, "voxy.cfg");
+
+    char* argv[] = {
+        const_cast<char*>("voxy"),
+        const_cast<char*>("--width"),
+        nullptr,
+        const_cast<char*>("--fullscreen"),
+    };
+    const auto args = parseArgs(4, argv);
+    EXPECT_FALSE(args.width.has_value());
+    EXPECT_TRUE(args.fullscreen);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -563,11 +607,35 @@ width = invalid
     EXPECT_EQ(config.window.width, 1600);
 }
 
+TEST_F(ConfigFileTest, MalformedVectorsAndQuotesPreserveEarlierValues) {
+    writeTestConfig(R"(
+[lighting]
+sun_direction = [0.1, 0.2, 0.3]
+sun_direction = [1.0, 2.0]
+sun_direction = [1.0, 2.0, 3.0, 4.0]
+sun_direction = [1.0, nan, 3.0]
+
+[window]
+title = "Working title"
+title = "unterminated
+title = "also rejected" trailing-junk
+)");
+
+    const auto config = load(testConfigPath);
+    EXPECT_EQ(
+        config.lighting.sunDirection,
+        (std::array<float, 3>{0.1f, 0.2f, 0.3f}));
+    EXPECT_EQ(config.window.title, "Working title");
+}
+
 TEST_F(ConfigFileTest, SaveAndReloadEscapedStrings) {
     Config original;
     original.render.path = "ray\"cast";
     original.terrain.heightmap = R"(C:\terrain\"quoted\"#1.ldh)";
-    original.window.title = "Voxy \"Nightly\" #1";
+    original.window.title =
+        "Voxy \"Nightly\"\n[window]\nwidth = 1\r\t#1";
+    original.debug.logLevel =
+        std::string{"tr\0ace", 7u};
 
     ASSERT_TRUE(save(original, testConfigPath));
     const auto loaded = load(testConfigPath);
@@ -575,6 +643,8 @@ TEST_F(ConfigFileTest, SaveAndReloadEscapedStrings) {
     EXPECT_EQ(loaded.render.path, original.render.path);
     EXPECT_EQ(loaded.terrain.heightmap, original.terrain.heightmap);
     EXPECT_EQ(loaded.window.title, original.window.title);
+    EXPECT_EQ(loaded.window.width, original.window.width);
+    EXPECT_EQ(loaded.debug.logLevel, original.debug.logLevel);
 }
 
 TEST_F(ConfigFileTest, ReflectionStrengthIsClampedToDocumentedRange) {
@@ -589,6 +659,11 @@ reflection_strength = 1.5
 reflection_strength = -0.25
 )");
     EXPECT_FLOAT_EQ(load(testConfigPath).water.reflectionStrength, 0.0f);
+}
+
+TEST_F(ConfigFileTest, SaveReportsDeviceWriteFailure) {
+    if (!std::filesystem::exists("/dev/full")) GTEST_SKIP();
+    EXPECT_FALSE(save(Config{}, "/dev/full"));
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

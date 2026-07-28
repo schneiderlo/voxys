@@ -77,6 +77,35 @@ TEST(BufferDescTest, StagingFactory) {
     EXPECT_TRUE(desc.mappedAtCreation);
 }
 
+TEST(BufferDescTest, DescriptorValidation) {
+    EXPECT_TRUE(isBufferDescriptorValid(BufferDesc::uniform(16)));
+    EXPECT_TRUE(isBufferDescriptorValid(BufferDesc::staging(16)));
+
+    BufferDesc invalid{};
+    invalid.size = 16;
+    EXPECT_FALSE(isBufferDescriptorValid(invalid));
+    invalid.usage = WGPUBufferUsage_MapRead | WGPUBufferUsage_Vertex;
+    EXPECT_FALSE(isBufferDescriptorValid(invalid));
+    invalid.usage = WGPUBufferUsage_MapRead | WGPUBufferUsage_MapWrite;
+    EXPECT_FALSE(isBufferDescriptorValid(invalid));
+    invalid = BufferDesc::staging(3);
+    EXPECT_FALSE(isBufferDescriptorValid(invalid));
+}
+
+TEST(BufferDescTest, QueueWriteValidation) {
+    constexpr WGPUBufferUsageFlags copyDestination =
+        WGPUBufferUsage_Uniform | WGPUBufferUsage_CopyDst;
+    EXPECT_TRUE(isBufferWriteDataValid(64, copyDestination, 0, 64));
+    EXPECT_TRUE(isBufferWriteDataValid(64, copyDestination, 64, 0));
+    EXPECT_FALSE(isBufferWriteDataValid(
+        64, WGPUBufferUsage_Uniform, 0, 4));
+    EXPECT_FALSE(isBufferWriteDataValid(64, copyDestination, 2, 4));
+    EXPECT_FALSE(isBufferWriteDataValid(64, copyDestination, 0, 3));
+    EXPECT_FALSE(isBufferWriteDataValid(64, copyDestination, 60, 8));
+    EXPECT_FALSE(isBufferWriteDataValid(
+        64, copyDestination, std::numeric_limits<uint64_t>::max(), 4));
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // TextureDesc Tests
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -168,6 +197,22 @@ TEST(TextureViewDescTest, DefaultValues) {
     EXPECT_EQ(desc.aspect, WGPUTextureAspect_All);
 }
 
+TEST(TextureViewDescTest, RangeValidation) {
+    TextureViewDesc desc;
+    EXPECT_TRUE(isTextureViewRangeValid(4, 2, desc));
+    desc.baseMipLevel = 3;
+    desc.mipLevelCount = 2;
+    EXPECT_FALSE(isTextureViewRangeValid(4, 2, desc));
+    desc = {};
+    desc.baseArrayLayer = 1;
+    desc.arrayLayerCount = 2;
+    EXPECT_FALSE(isTextureViewRangeValid(4, 2, desc));
+    desc = {};
+    desc.mipLevelCount = 0;
+    EXPECT_FALSE(isTextureViewRangeValid(4, 2, desc));
+    EXPECT_FALSE(isTextureViewRangeValid(0, 2, TextureViewDesc{}));
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // SamplerDesc Tests
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -226,6 +271,26 @@ TEST(SamplerDescTest, AnisotropicFactory) {
     
     EXPECT_EQ(desc.label, "aniso_sampler");
     EXPECT_EQ(desc.maxAnisotropy, 8u);
+}
+
+TEST(SamplerDescTest, DescriptorValidation) {
+    EXPECT_TRUE(isSamplerDescriptorValid(SamplerDesc::linear()));
+    EXPECT_TRUE(isSamplerDescriptorValid(SamplerDesc::anisotropic(16)));
+
+    SamplerDesc invalid = SamplerDesc::linear();
+    invalid.lodMinClamp = std::numeric_limits<float>::quiet_NaN();
+    EXPECT_FALSE(isSamplerDescriptorValid(invalid));
+    invalid = SamplerDesc::linear();
+    invalid.lodMinClamp = 4.0f;
+    invalid.lodMaxClamp = 2.0f;
+    EXPECT_FALSE(isSamplerDescriptorValid(invalid));
+    invalid = SamplerDesc::anisotropic(0);
+    EXPECT_FALSE(isSamplerDescriptorValid(invalid));
+    invalid = SamplerDesc::anisotropic(17);
+    EXPECT_FALSE(isSamplerDescriptorValid(invalid));
+    invalid = SamplerDesc::nearest();
+    invalid.maxAnisotropy = 2;
+    EXPECT_FALSE(isSamplerDescriptorValid(invalid));
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -398,9 +463,13 @@ TEST(UtilityTest, AlignUniformBufferSize) {
     EXPECT_EQ(alignUniformBufferSize(257), 512u);
     EXPECT_EQ(alignUniformBufferSize(512), 512u);
     EXPECT_EQ(alignUniformBufferSize(1000), 1024u);
+    EXPECT_EQ(
+        alignUniformBufferSize(std::numeric_limits<uint64_t>::max()), 0u);
 }
 
 TEST(UtilityTest, CalculateMipLevelCount) {
+    EXPECT_EQ(calculateMipLevelCount(0, 0), 0u);
+    EXPECT_EQ(calculateMipLevelCount(1, 0), 0u);
     // Power of two textures
     EXPECT_EQ(calculateMipLevelCount(1, 1), 1u);
     EXPECT_EQ(calculateMipLevelCount(2, 2), 2u);
@@ -415,11 +484,20 @@ TEST(UtilityTest, CalculateMipLevelCount) {
 }
 
 TEST(UtilityTest, TextureUploadDataValidation) {
-    EXPECT_TRUE(isTextureUploadDataValid(4u * 3u * 2u, 3u, 2u, 12u));
-    EXPECT_FALSE(isTextureUploadDataValid(23u, 3u, 2u, 12u));
-    EXPECT_FALSE(isTextureUploadDataValid(24u, 0u, 2u, 12u));
-    EXPECT_FALSE(isTextureUploadDataValid(24u, 3u, 0u, 12u));
-    EXPECT_FALSE(isTextureUploadDataValid(24u, 3u, 2u, 0u));
+    EXPECT_TRUE(isTextureUploadDataValid(
+        4u * 3u * 2u, 3u, 2u, 12u, 4u));
+    EXPECT_FALSE(isTextureUploadDataValid(23u, 3u, 2u, 12u, 4u));
+    EXPECT_FALSE(isTextureUploadDataValid(24u, 0u, 2u, 12u, 4u));
+    EXPECT_FALSE(isTextureUploadDataValid(24u, 3u, 0u, 12u, 4u));
+    EXPECT_FALSE(isTextureUploadDataValid(24u, 3u, 2u, 0u, 4u));
+    EXPECT_FALSE(isTextureUploadDataValid(24u, 3u, 2u, 11u, 4u));
+    // Padding after the final row is not required by writeTexture.
+    EXPECT_TRUE(isTextureUploadDataValid(20u, 2u, 2u, 12u, 4u));
+    EXPECT_FALSE(isTextureUploadDataValid(
+        std::numeric_limits<size_t>::max(),
+        std::numeric_limits<uint32_t>::max(),
+        std::numeric_limits<uint32_t>::max(),
+        std::numeric_limits<uint32_t>::max(), 16u));
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -493,6 +571,3 @@ TEST(BufferUsageTest, OrOperatorWithFlags) {
 }
 
 } // namespace voxy::gpu
-
-
-

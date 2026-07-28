@@ -6,8 +6,8 @@
 #include "core/log.hpp"
 
 #include <fstream>
-#include <sstream>
 #include <cstring>
+#include <cmath>
 #include <limits>
 
 namespace voxy::gpu {
@@ -16,20 +16,62 @@ namespace voxy::gpu {
 // Buffer Creation
 // ═══════════════════════════════════════════════════════════════════════════════
 
+bool isBufferDescriptorValid(const BufferDesc& desc) noexcept {
+    if (desc.size == 0u || desc.usage == WGPUBufferUsage_None) return false;
+
+    constexpr WGPUBufferUsageFlags knownUsage =
+        WGPUBufferUsage_MapRead | WGPUBufferUsage_MapWrite
+        | WGPUBufferUsage_CopySrc | WGPUBufferUsage_CopyDst
+        | WGPUBufferUsage_Index | WGPUBufferUsage_Vertex
+        | WGPUBufferUsage_Uniform | WGPUBufferUsage_Storage
+        | WGPUBufferUsage_Indirect | WGPUBufferUsage_QueryResolve;
+    if ((desc.usage & ~knownUsage) != 0u) return false;
+
+    const bool mapRead = (desc.usage & WGPUBufferUsage_MapRead) != 0u;
+    const bool mapWrite = (desc.usage & WGPUBufferUsage_MapWrite) != 0u;
+    constexpr WGPUBufferUsageFlags mapReadUsage =
+        WGPUBufferUsage_MapRead | WGPUBufferUsage_CopyDst;
+    constexpr WGPUBufferUsageFlags mapWriteUsage =
+        WGPUBufferUsage_MapWrite | WGPUBufferUsage_CopySrc;
+    if (mapRead && mapWrite) return false;
+    if (mapRead && (desc.usage & ~mapReadUsage) != 0u) {
+        return false;
+    }
+    if (mapWrite && (desc.usage & ~mapWriteUsage) != 0u) {
+        return false;
+    }
+    return !desc.mappedAtCreation || (desc.size & 3u) == 0u;
+}
+
+bool isBufferWriteDataValid(
+    uint64_t bufferSize, WGPUBufferUsageFlags usage, uint64_t offset,
+    size_t dataSize) noexcept {
+    if ((usage & WGPUBufferUsage_CopyDst) == 0u
+        || (offset & 3u) != 0u || (dataSize & 3u) != 0u
+        || offset > bufferSize) {
+        return false;
+    }
+    return static_cast<uint64_t>(dataSize) <= bufferSize - offset;
+}
+
 WGPUBuffer createBuffer(WGPUDevice device, const BufferDesc& desc) {
     if (!device) {
         LOG_ERROR("Cannot create buffer: device is null");
         return nullptr;
     }
     
-    if (desc.size == 0) {
-        LOG_ERROR("Cannot create buffer: size is 0");
+    if (!isBufferDescriptorValid(desc)) {
+        LOG_ERROR("Cannot create buffer: invalid descriptor for '{}' "
+                  "(size {}, usage {}, mapped {})",
+                  desc.label, desc.size, static_cast<uint64_t>(desc.usage),
+                  desc.mappedAtCreation);
         return nullptr;
     }
     
     WGPUBufferDescriptor bufferDesc{};
     bufferDesc.nextInChain = nullptr;
-    WGPU_SET_LABEL(bufferDesc, desc.label.empty() ? nullptr : desc.label.data());
+    const std::string label(desc.label);
+    WGPU_SET_LABEL(bufferDesc, label.empty() ? nullptr : label.c_str());
     bufferDesc.usage = desc.usage;
     bufferDesc.size = desc.size;
     bufferDesc.mappedAtCreation = desc.mappedAtCreation;
@@ -53,6 +95,10 @@ WGPUBuffer createBufferWithData(WGPUDevice device, WGPUQueue queue,
         LOG_ERROR("Cannot create buffer with data: queue is null");
         return nullptr;
     }
+    if (desc.mappedAtCreation) {
+        LOG_ERROR("Cannot queue-upload into a buffer mapped at creation");
+        return nullptr;
+    }
     
     if (data.size() > desc.size) {
         LOG_ERROR("Data size ({}) exceeds buffer size ({})", data.size(), desc.size);
@@ -71,19 +117,37 @@ WGPUBuffer createBufferWithData(WGPUDevice device, WGPUQueue queue,
     }
     
     // Upload data
-    wgpuQueueWriteBuffer(queue, buffer, 0, data.data(), data.size());
+    if (!data.empty() && !writeBuffer(queue, buffer, 0, data)) {
+        wgpuBufferDestroy(buffer);
+        wgpuBufferRelease(buffer);
+        return nullptr;
+    }
     
     return buffer;
 }
 
-void writeBuffer(WGPUQueue queue, WGPUBuffer buffer, uint64_t offset,
+bool writeBuffer(WGPUQueue queue, WGPUBuffer buffer, uint64_t offset,
                  std::span<const std::byte> data) {
     if (!queue || !buffer) {
         LOG_ERROR("Cannot write buffer: queue or buffer is null");
-        return;
+        return false;
+    }
+    const uint64_t bufferSize = wgpuBufferGetSize(buffer);
+    const WGPUBufferUsageFlags usage = wgpuBufferGetUsage(buffer);
+    if (!isBufferWriteDataValid(
+            bufferSize, usage, offset, data.size())) {
+        LOG_ERROR("Cannot write {} bytes at offset {} into a {}-byte buffer "
+                  "with usage {}",
+                  data.size(), offset, bufferSize,
+                  static_cast<uint64_t>(usage));
+        return false;
+    }
+    if (data.empty()) {
+        return true;
     }
     
     wgpuQueueWriteBuffer(queue, buffer, offset, data.data(), data.size());
+    return true;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -96,15 +160,28 @@ WGPUTexture createTexture(WGPUDevice device, const TextureDesc& desc) {
         return nullptr;
     }
     
-    if (desc.width == 0 || desc.height == 0) {
-        LOG_ERROR("Cannot create texture: invalid dimensions ({}x{})", 
-                  desc.width, desc.height);
+    const uint32_t maximumMipLevels =
+        calculateMipLevelCount(desc.width, desc.height);
+    if (desc.width == 0 || desc.height == 0
+        || desc.depthOrArrayLayers == 0 || desc.mipLevelCount == 0
+        || desc.mipLevelCount > maximumMipLevels
+        || (desc.sampleCount != 1 && desc.sampleCount != 4)
+        || (desc.sampleCount > 1 && desc.mipLevelCount != 1)
+        || desc.format == WGPUTextureFormat_Undefined
+        || desc.usage == WGPUTextureUsage_None) {
+        LOG_ERROR("Cannot create texture: invalid descriptor for '{}' "
+                  "({}x{}x{}, {} mips, {} samples, format {}, usage {})",
+                  desc.label, desc.width, desc.height,
+                  desc.depthOrArrayLayers, desc.mipLevelCount,
+                  desc.sampleCount, static_cast<int>(desc.format),
+                  static_cast<uint64_t>(desc.usage));
         return nullptr;
     }
     
     WGPUTextureDescriptor textureDesc{};
     textureDesc.nextInChain = nullptr;
-    WGPU_SET_LABEL(textureDesc, desc.label.empty() ? nullptr : desc.label.data());
+    const std::string label(desc.label);
+    WGPU_SET_LABEL(textureDesc, label.empty() ? nullptr : label.c_str());
     textureDesc.usage = desc.usage;
     textureDesc.dimension = desc.dimension;
     textureDesc.size.width = desc.width;
@@ -138,7 +215,10 @@ WGPUTexture createTextureWithData(WGPUDevice device, WGPUQueue queue,
         return nullptr;
     }
 
-    if (!isTextureUploadDataValid(data.size(), desc.width, desc.height, bytesPerRow)) {
+    const uint32_t bytesPerTexel = getBytesPerPixel(desc.format);
+    if (!isTextureUploadDataValid(
+            data.size(), desc.width, desc.height, bytesPerRow,
+            bytesPerTexel)) {
         LOG_ERROR("Texture data is too small or has an invalid row stride: {} bytes for {}x{} at {} bytes/row",
                   data.size(), desc.width, desc.height, bytesPerRow);
         return nullptr;
@@ -156,40 +236,50 @@ WGPUTexture createTextureWithData(WGPUDevice device, WGPUQueue queue,
     }
     
     // Upload data to base mip level
-    writeTexture(queue, texture, data, desc.width, desc.height, bytesPerRow, 0);
+    if (!writeTexture(
+            queue, texture, data, desc.width, desc.height, bytesPerRow, 0)) {
+        wgpuTextureDestroy(texture);
+        wgpuTextureRelease(texture);
+        return nullptr;
+    }
     
     return texture;
 }
 
-/// WebGPU requires bytesPerRow to be aligned to 256 bytes for texture writes
-constexpr uint32_t TEXTURE_BYTES_PER_ROW_ALIGNMENT = 256;
-
-/// Align a value up to the given alignment
-[[nodiscard]] constexpr uint32_t alignUp(uint32_t value, uint32_t alignment) noexcept {
-    return (value + alignment - 1) & ~(alignment - 1);
-}
-
-void writeTexture(WGPUQueue queue, WGPUTexture texture,
+bool writeTexture(WGPUQueue queue, WGPUTexture texture,
                   std::span<const std::byte> data,
                   uint32_t width, uint32_t height, uint32_t bytesPerRow,
                   uint32_t mipLevel) {
     if (!queue || !texture) {
         LOG_ERROR("Cannot write texture: queue or texture is null");
-        return;
+        return false;
     }
 
-    if (!isTextureUploadDataValid(data.size(), width, height, bytesPerRow)) {
+    const uint32_t mipLevelCount = wgpuTextureGetMipLevelCount(texture);
+    const uint32_t textureWidth = wgpuTextureGetWidth(texture);
+    const uint32_t textureHeight = wgpuTextureGetHeight(texture);
+    if (mipLevel >= mipLevelCount) {
+        LOG_ERROR("Texture upload mip {} is outside {} levels",
+                  mipLevel, mipLevelCount);
+        return false;
+    }
+    const uint32_t mipWidth = std::max(textureWidth >> mipLevel, 1u);
+    const uint32_t mipHeight = std::max(textureHeight >> mipLevel, 1u);
+    if (width > mipWidth || height > mipHeight) {
+        LOG_ERROR("Texture upload extent {}x{} exceeds mip {} extent {}x{}",
+                  width, height, mipLevel, mipWidth, mipHeight);
+        return false;
+    }
+
+    const uint32_t bytesPerTexel =
+        getBytesPerPixel(wgpuTextureGetFormat(texture));
+    if (!isTextureUploadDataValid(
+            data.size(), width, height, bytesPerRow, bytesPerTexel)) {
         LOG_ERROR("Texture data is too small or has an invalid row stride: {} bytes for {}x{} at {} bytes/row",
                   data.size(), width, height, bytesPerRow);
-        return;
+        return false;
     }
 
-    if (bytesPerRow > std::numeric_limits<uint32_t>::max() -
-                          (TEXTURE_BYTES_PER_ROW_ALIGNMENT - 1)) {
-        LOG_ERROR("Texture row stride is too large to align: {}", bytesPerRow);
-        return;
-    }
-    
     CompatImageCopyTexture destination = makeTextureCopyDest(texture, mipLevel, {0, 0, 0});
     
     WGPUExtent3D writeSize{};
@@ -197,52 +287,109 @@ void writeTexture(WGPUQueue queue, WGPUTexture texture,
     writeSize.height = height;
     writeSize.depthOrArrayLayers = 1;
     
-    // WebGPU requires bytesPerRow to be a multiple of 256 bytes
-    const uint32_t alignedBytesPerRow = alignUp(bytesPerRow, TEXTURE_BYTES_PER_ROW_ALIGNMENT);
-    
-    if (alignedBytesPerRow == bytesPerRow) {
-        // Data is already aligned, upload directly
-        CompatTextureDataLayout dataLayout = makeTextureDataLayout(0, bytesPerRow, height);
-        
-        wgpuQueueWriteTexture(queue, &destination, data.data(), data.size(),
-                              &dataLayout, &writeSize);
-    } else {
-        // Need to copy data with padding to meet alignment requirements
-        const size_t alignedDataSize = static_cast<size_t>(alignedBytesPerRow) * height;
-        std::vector<std::byte> alignedData(alignedDataSize, std::byte{0});
-        
-        // Copy each row with proper alignment
-        const std::byte* srcPtr = data.data();
-        std::byte* dstPtr = alignedData.data();
-        for (uint32_t row = 0; row < height; ++row) {
-            std::memcpy(dstPtr, srcPtr, bytesPerRow);
-            srcPtr += bytesPerRow;
-            dstPtr += alignedBytesPerRow;
-        }
-        
-        CompatTextureDataLayout dataLayout = makeTextureDataLayout(0, alignedBytesPerRow, height);
-        
-        wgpuQueueWriteTexture(queue, &destination, alignedData.data(), alignedData.size(),
-                              &dataLayout, &writeSize);
-        
-        LOG_TRACE("Texture write required row alignment: {} -> {} bytes/row", 
-                  bytesPerRow, alignedBytesPerRow);
-    }
+    // queue.writeTexture only requires block-byte alignment. The separate
+    // 256-byte rule applies to buffer-to-texture command copies.
+    CompatTextureDataLayout dataLayout =
+        makeTextureDataLayout(0, bytesPerRow, height);
+    wgpuQueueWriteTexture(queue, &destination, data.data(), data.size(),
+                          &dataLayout, &writeSize);
+    return true;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Texture View Creation
 // ═══════════════════════════════════════════════════════════════════════════════
 
+bool isTextureViewRangeValid(
+    uint32_t textureMipLevels, uint32_t textureLayers,
+    const TextureViewDesc& desc) noexcept {
+    return textureMipLevels != 0u && textureLayers != 0u
+        && desc.mipLevelCount != 0u && desc.arrayLayerCount != 0u
+        && desc.baseMipLevel < textureMipLevels
+        && desc.mipLevelCount
+            <= textureMipLevels - desc.baseMipLevel
+        && desc.baseArrayLayer < textureLayers
+        && desc.arrayLayerCount
+            <= textureLayers - desc.baseArrayLayer;
+}
+
 WGPUTextureView createTextureView(WGPUTexture texture, const TextureViewDesc& desc) {
     if (!texture) {
         LOG_ERROR("Cannot create texture view: texture is null");
         return nullptr;
     }
+
+    const uint32_t textureMipLevels = wgpuTextureGetMipLevelCount(texture);
+    const uint32_t textureLayers = wgpuTextureGetDepthOrArrayLayers(texture);
+    const WGPUTextureDimension textureDimension =
+        wgpuTextureGetDimension(texture);
+    const WGPUTextureFormat textureFormat = wgpuTextureGetFormat(texture);
+    const uint32_t sampleCount = wgpuTextureGetSampleCount(texture);
+    if (!isTextureViewRangeValid(textureMipLevels, textureLayers, desc)
+        || (desc.format != WGPUTextureFormat_Undefined
+            && desc.format != textureFormat)) {
+        LOG_ERROR("Cannot create texture view '{}': invalid format or range",
+                  desc.label);
+        return nullptr;
+    }
+
+    const bool validDimension = [&]() {
+        switch (desc.dimension) {
+            case WGPUTextureViewDimension_Undefined:
+                return true;
+            case WGPUTextureViewDimension_1D:
+                return textureDimension == WGPUTextureDimension_1D
+                    && desc.arrayLayerCount == 1u;
+            case WGPUTextureViewDimension_2D:
+                return textureDimension == WGPUTextureDimension_2D
+                    && desc.arrayLayerCount == 1u;
+            case WGPUTextureViewDimension_2DArray:
+                return textureDimension == WGPUTextureDimension_2D;
+            case WGPUTextureViewDimension_Cube:
+                return textureDimension == WGPUTextureDimension_2D
+                    && desc.arrayLayerCount == 6u
+                    && std::max(
+                        wgpuTextureGetWidth(texture) >> desc.baseMipLevel, 1u)
+                        == std::max(
+                            wgpuTextureGetHeight(texture)
+                                >> desc.baseMipLevel, 1u);
+            case WGPUTextureViewDimension_CubeArray:
+                return textureDimension == WGPUTextureDimension_2D
+                    && (desc.arrayLayerCount % 6u) == 0u
+                    && std::max(
+                        wgpuTextureGetWidth(texture) >> desc.baseMipLevel, 1u)
+                        == std::max(
+                            wgpuTextureGetHeight(texture)
+                                >> desc.baseMipLevel, 1u);
+            case WGPUTextureViewDimension_3D:
+                return textureDimension == WGPUTextureDimension_3D
+                    && desc.baseArrayLayer == 0u
+                    && desc.arrayLayerCount == 1u;
+            default:
+                return false;
+        }
+    }();
+    const bool validAspect =
+        desc.aspect == WGPUTextureAspect_All
+        || (desc.aspect == WGPUTextureAspect_DepthOnly
+            && isDepthStencilFormat(textureFormat))
+        || (desc.aspect == WGPUTextureAspect_StencilOnly
+            && (textureFormat == WGPUTextureFormat_Depth24PlusStencil8
+                || textureFormat
+                    == WGPUTextureFormat_Depth32FloatStencil8));
+    if (!validDimension || !validAspect
+        || (sampleCount > 1u
+            && (desc.dimension != WGPUTextureViewDimension_2D
+                || desc.mipLevelCount != 1u))) {
+        LOG_ERROR("Cannot create texture view '{}': incompatible dimension, "
+                  "aspect, or sample count", desc.label);
+        return nullptr;
+    }
     
     WGPUTextureViewDescriptor viewDesc{};
     viewDesc.nextInChain = nullptr;
-    WGPU_SET_LABEL(viewDesc, desc.label.empty() ? nullptr : desc.label.data());
+    const std::string label(desc.label);
+    WGPU_SET_LABEL(viewDesc, label.empty() ? nullptr : label.c_str());
     viewDesc.format = desc.format;
     viewDesc.dimension = desc.dimension;
     viewDesc.baseMipLevel = desc.baseMipLevel;
@@ -274,15 +421,56 @@ WGPUTextureView createMipView(WGPUTexture texture, uint32_t mipLevel,
 // Sampler Creation
 // ═══════════════════════════════════════════════════════════════════════════════
 
+bool isSamplerDescriptorValid(const SamplerDesc& desc) noexcept {
+    const auto validAddressMode = [](WGPUAddressMode mode) {
+        return mode == WGPUAddressMode_ClampToEdge
+            || mode == WGPUAddressMode_Repeat
+            || mode == WGPUAddressMode_MirrorRepeat;
+    };
+    const auto validFilter = [](WGPUFilterMode mode) {
+        return mode == WGPUFilterMode_Nearest
+            || mode == WGPUFilterMode_Linear;
+    };
+    const auto validMipmapFilter = [](WGPUMipmapFilterMode mode) {
+        return mode == WGPUMipmapFilterMode_Nearest
+            || mode == WGPUMipmapFilterMode_Linear;
+    };
+
+    if (!validAddressMode(desc.addressModeU)
+        || !validAddressMode(desc.addressModeV)
+        || !validAddressMode(desc.addressModeW)
+        || !validFilter(desc.magFilter)
+        || !validFilter(desc.minFilter)
+        || !validMipmapFilter(desc.mipmapFilter)
+        || !std::isfinite(desc.lodMinClamp)
+        || !std::isfinite(desc.lodMaxClamp)
+        || desc.lodMinClamp < 0.0f
+        || desc.lodMaxClamp < desc.lodMinClamp
+        || desc.maxAnisotropy < 1u
+        || desc.maxAnisotropy > 16u) {
+        return false;
+    }
+
+    return desc.maxAnisotropy == 1u
+        || (desc.magFilter == WGPUFilterMode_Linear
+            && desc.minFilter == WGPUFilterMode_Linear
+            && desc.mipmapFilter == WGPUMipmapFilterMode_Linear);
+}
+
 WGPUSampler createSampler(WGPUDevice device, const SamplerDesc& desc) {
     if (!device) {
         LOG_ERROR("Cannot create sampler: device is null");
         return nullptr;
     }
+    if (!isSamplerDescriptorValid(desc)) {
+        LOG_ERROR("Cannot create sampler '{}': invalid descriptor", desc.label);
+        return nullptr;
+    }
     
     WGPUSamplerDescriptor samplerDesc{};
     samplerDesc.nextInChain = nullptr;
-    WGPU_SET_LABEL(samplerDesc, desc.label.empty() ? nullptr : desc.label.data());
+    const std::string label(desc.label);
+    WGPU_SET_LABEL(samplerDesc, label.empty() ? nullptr : label.c_str());
     samplerDesc.addressModeU = desc.addressModeU;
     samplerDesc.addressModeV = desc.addressModeV;
     samplerDesc.addressModeW = desc.addressModeW;
@@ -407,7 +595,9 @@ WGPUBindGroupLayout createBindGroupLayout(WGPUDevice device,
     
     WGPUBindGroupLayoutDescriptor layoutDesc{};
     layoutDesc.nextInChain = nullptr;
-    WGPU_SET_LABEL(layoutDesc, label.empty() ? nullptr : label.data());
+    const std::string labelString(label);
+    WGPU_SET_LABEL(
+        layoutDesc, labelString.empty() ? nullptr : labelString.c_str());
     layoutDesc.entryCount = entries.size();
     layoutDesc.entries = entries.data();
     
@@ -480,7 +670,9 @@ WGPUBindGroup createBindGroup(WGPUDevice device,
     
     WGPUBindGroupDescriptor bindGroupDesc{};
     bindGroupDesc.nextInChain = nullptr;
-    WGPU_SET_LABEL(bindGroupDesc, label.empty() ? nullptr : label.data());
+    const std::string labelString(label);
+    WGPU_SET_LABEL(
+        bindGroupDesc, labelString.empty() ? nullptr : labelString.c_str());
     bindGroupDesc.layout = layout;
     bindGroupDesc.entryCount = entries.size();
     bindGroupDesc.entries = entries.data();
@@ -522,16 +714,21 @@ WGPUShaderModule createShaderModule(WGPUDevice device,
     
     WGPUShaderModuleDescriptor moduleDesc{};
     moduleDesc.nextInChain = &wgslDesc.chain;
-    WGPU_SET_LABEL(moduleDesc, label.empty() ? nullptr : label.data());
+    const std::string labelString(label);
+    WGPU_SET_LABEL(
+        moduleDesc, labelString.empty() ? nullptr : labelString.c_str());
 #else
     // wgpu-native API
+    const std::string source(wgslSource);
     WGPUShaderModuleWGSLDescriptor wgslDesc{};
     wgslDesc.chain.sType = WGPUSType_ShaderModuleWGSLDescriptor;
-    wgslDesc.code = wgslSource.data();
+    wgslDesc.code = source.c_str();
     
     WGPUShaderModuleDescriptor moduleDesc{};
     moduleDesc.nextInChain = &wgslDesc.chain;
-    WGPU_SET_LABEL(moduleDesc, label.empty() ? nullptr : label.data());
+    const std::string labelString(label);
+    WGPU_SET_LABEL(
+        moduleDesc, labelString.empty() ? nullptr : labelString.c_str());
 #endif
     
     WGPUShaderModule module = wgpuDeviceCreateShaderModule(device, &moduleDesc);
@@ -548,6 +745,11 @@ WGPUShaderModule createShaderModule(WGPUDevice device,
 WGPUShaderModule loadShaderModule(WGPUDevice device,
                                    const std::filesystem::path& path,
                                    std::string_view label) {
+    if (!device) {
+        LOG_ERROR("Cannot load shader module: device is null");
+        return nullptr;
+    }
+
     std::ifstream file(path, std::ios::ate | std::ios::binary);
     if (!file.is_open()) {
         LOG_ERROR("Failed to open shader file: {}", path.string());
@@ -556,8 +758,10 @@ WGPUShaderModule loadShaderModule(WGPUDevice device,
     
     // Get file size and read content
     const auto size = file.tellg();
+    constexpr std::streamoff kMaximumShaderBytes = 16ll * 1024ll * 1024ll;
     if (size <= 0
-        || size > std::numeric_limits<std::streamsize>::max()) {
+        || size > std::numeric_limits<std::streamsize>::max()
+        || size > kMaximumShaderBytes) {
         LOG_ERROR("Shader file is empty or too large: {}", path.string());
         return nullptr;
     }
@@ -592,7 +796,9 @@ WGPUPipelineLayout createPipelineLayout(WGPUDevice device,
     
     WGPUPipelineLayoutDescriptor layoutDesc{};
     layoutDesc.nextInChain = nullptr;
-    WGPU_SET_LABEL(layoutDesc, label.empty() ? nullptr : label.data());
+    const std::string labelString(label);
+    WGPU_SET_LABEL(
+        layoutDesc, labelString.empty() ? nullptr : labelString.c_str());
     layoutDesc.bindGroupLayoutCount = bindGroupLayouts.size();
     layoutDesc.bindGroupLayouts = bindGroupLayouts.data();
     
@@ -675,9 +881,7 @@ uint32_t getBytesPerPixel(WGPUTextureFormat format) noexcept {
             return 16;
         
         default:
-            LOG_WARN("Unknown texture format {} - assuming 4 bytes per pixel", 
-                     static_cast<int>(format));
-            return 4;
+            return 0;
     }
 }
 
@@ -695,4 +899,3 @@ bool isDepthStencilFormat(WGPUTextureFormat format) noexcept {
 }
 
 } // namespace voxy::gpu
-

@@ -8,8 +8,12 @@
 
 #pragma once
 
+#include <algorithm>
+#include <cstddef>
 #include <cstdint>
+#include <limits>
 #include <span>
+#include <utility>
 #include <vector>
 
 namespace voxy::terrain {
@@ -20,6 +24,7 @@ namespace voxy::terrain {
 
 /// Maximum supported mip levels (enough for 16384×16384 textures)
 constexpr uint32_t kMaxMipLevels = 15;
+constexpr uint32_t kMaxMipDimension = 1u << (kMaxMipLevels - 1u);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // MipLevel Structure
@@ -33,12 +38,19 @@ struct MipLevel {
     
     /// Get total number of samples
     [[nodiscard]] constexpr size_t sampleCount() const noexcept {
-        return static_cast<size_t>(width) * static_cast<size_t>(height);
+        return width != 0u && height != 0u
+                && static_cast<size_t>(width)
+                    <= std::numeric_limits<size_t>::max() / height
+            ? static_cast<size_t>(width) * height
+            : 0u;
     }
     
     /// Get size in bytes
     [[nodiscard]] constexpr size_t sizeBytes() const noexcept {
-        return sampleCount() * sizeof(uint16_t);
+        const size_t count = sampleCount();
+        return count <= std::numeric_limits<size_t>::max() / sizeof(uint16_t)
+            ? count * sizeof(uint16_t)
+            : 0u;
     }
     
     /// Check if this level is valid
@@ -52,7 +64,7 @@ struct MipLevel {
         if (!isValid()) return 0;
         x = std::min(x, width - 1);
         y = std::min(y, height - 1);
-        return data[y * width + x];
+        return data[static_cast<size_t>(y) * width + x];
     }
 };
 
@@ -166,6 +178,7 @@ private:
 /// @param height  Base height
 /// @return Number of mip levels (including base level)
 [[nodiscard]] constexpr uint32_t calculateMipLevelCount(uint32_t width, uint32_t height) noexcept {
+    if (width == 0u || height == 0u) return 0u;
     uint32_t size = std::max(width, height);
     uint32_t levels = 1;
     while (size > 1) {
@@ -183,11 +196,11 @@ private:
 /// @return Pair of (width, height) for the requested level
 [[nodiscard]] constexpr std::pair<uint32_t, uint32_t> 
 getMipLevelDimensions(uint32_t baseWidth, uint32_t baseHeight, uint32_t level) noexcept {
+    if (baseWidth == 0u || baseHeight == 0u) return {0u, 0u};
+    if (level >= 32u) return {1u, 1u};
     uint32_t w = std::max(1u, baseWidth >> level);
     uint32_t h = std::max(1u, baseHeight >> level);
     return {w, h};
 }
 
 } // namespace voxy::terrain
-
-

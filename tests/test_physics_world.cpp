@@ -6,6 +6,7 @@
 #include <bit>
 #include <cmath>
 #include <cstdint>
+#include <limits>
 #include <string>
 #include <vector>
 
@@ -70,6 +71,30 @@ TEST(WorldPositionTest, RoundTripsLargeAbsoluteCoordinatesOnHost) {
     EXPECT_TRUE(isValidWorldPosition(position));
 }
 
+TEST(WorldPositionTest, ExtremeLocalOffsetsSaturateTheWholeWorldRange) {
+    const double maximum = std::numeric_limits<double>::max();
+    const WorldPosition position = canonicalWorldPosition(
+        glm::ivec3(
+            std::numeric_limits<int32_t>::min(),
+            std::numeric_limits<int32_t>::max(),
+            17),
+        glm::dvec3(maximum, -maximum, 0.0));
+
+    EXPECT_EQ(
+        position.sector.x, std::numeric_limits<int32_t>::max());
+    EXPECT_EQ(
+        position.sector.y, std::numeric_limits<int32_t>::min());
+    EXPECT_EQ(position.sector.z, 17);
+    EXPECT_EQ(
+        position.local.x,
+        std::nextafter(
+            kWorldSectorHalf,
+            -std::numeric_limits<float>::infinity()));
+    EXPECT_EQ(position.local.y, -kWorldSectorHalf);
+    EXPECT_EQ(position.local.z, 0.0f);
+    EXPECT_TRUE(isValidWorldPosition(position));
+}
+
 class PhysicsWorldTest : public ::testing::TestWithParam<BackendType> {
 protected:
     void SetUp() override {
@@ -117,6 +142,21 @@ TEST_P(PhysicsWorldTest, InitializesWithTerrain) {
     EXPECT_GT(stats.estimatedPersistentBytes + stats.scratchBytes, 0u);
 }
 
+TEST_P(PhysicsWorldTest, InvalidTerrainReplacementPreservesLiveTerrain) {
+    const float nan = std::numeric_limits<float>::quiet_NaN();
+    EXPECT_FALSE(world.setTerrain(
+        heights, kTerrainSize, kTerrainSize, nan, 1.0f));
+    EXPECT_FALSE(world.setTerrain(
+        heights, kTerrainSize, kTerrainSize, 32.0f,
+        std::numeric_limits<float>::max()));
+    EXPECT_TRUE(world.hasTerrain());
+
+    const auto character = world.createCharacter(
+        glm::vec3(0.0f, 4.0f, 0.0f), CharacterSettings{});
+    ASSERT_NE(character, PhysicsWorld::InvalidCharacter);
+    EXPECT_TRUE(settle(character).grounded);
+}
+
 TEST(PhysicsWorldBackendConfigurationTest, RejectsUnavailableBackendExplicitly) {
     PhysicsWorld world;
     PhysicsInitContext context;
@@ -141,6 +181,32 @@ TEST(PhysicsWorldBackendConfigurationTest,
     // Repeating the same requested configuration is idempotent even though
     // the selected backend is the configured fallback.
     EXPECT_TRUE(world.initialize(context));
+}
+
+TEST(PhysicsWorldBackendConfigurationTest,
+     RejectsUnboundedCpuBackendCapacities) {
+    for (const BackendType backend : {
+             BackendType::JoltLegacy,
+             BackendType::Box3DReference}) {
+        PhysicsWorld world;
+        PhysicsInitContext context;
+        context.requestedBackend = backend;
+        context.maxPairs = std::numeric_limits<uint32_t>::max();
+        EXPECT_FALSE(world.initialize(context));
+        EXPECT_FALSE(world.isInitialized());
+    }
+
+    PhysicsWorld boxWorld;
+    PhysicsInitContext boxContext;
+    boxContext.requestedBackend = BackendType::Box3DReference;
+    boxContext.maxBodies = 1'000'001u;
+    EXPECT_FALSE(boxWorld.initialize(boxContext));
+
+    PhysicsWorld joltWorld;
+    PhysicsInitContext joltContext;
+    joltContext.requestedBackend = BackendType::JoltLegacy;
+    joltContext.joltWorkerThreads = 257u;
+    EXPECT_FALSE(joltWorld.initialize(joltContext));
 }
 
 #if !defined(__EMSCRIPTEN__)
@@ -187,6 +253,38 @@ TEST(PhysicsWorldBackendConfigurationTest, JoltSpawnsBodyDescriptors) {
     EXPECT_NEAR(bodies.front().rotation.y, desc.orientation.y, 1e-6f);
 }
 
+TEST(PhysicsWorldBackendConfigurationTest,
+     JoltRejectsMalformedBodyDescriptors) {
+    PhysicsWorld world;
+    PhysicsInitContext context;
+    context.requestedBackend = BackendType::JoltLegacy;
+    context.joltJobSystem = JoltJobSystemMode::SingleThreaded;
+    ASSERT_TRUE(world.initialize(context));
+    const float nan = std::numeric_limits<float>::quiet_NaN();
+    const float infinity = std::numeric_limits<float>::infinity();
+
+    EXPECT_FALSE(world.throwBody(
+        ThrowableShape::Sphere, glm::vec3(nan, 0.0f, 0.0f),
+        glm::vec3(0.0f)));
+    EXPECT_FALSE(world.throwBody(
+        ThrowableShape::Sphere, glm::vec3(0.0f),
+        glm::vec3(0.0f, infinity, 0.0f)));
+
+    BodySpawnDesc desc;
+    desc.linearVelocity.x = nan;
+    EXPECT_FALSE(world.spawnBody(desc).valid());
+    desc = {};
+    desc.angularVelocity.z = infinity;
+    EXPECT_FALSE(world.spawnBody(desc).valid());
+    desc = {};
+    desc.inverseMass = nan;
+    EXPECT_FALSE(world.spawnBody(desc).valid());
+    desc = {};
+    desc.material = PhysicsMaterial{.friction = nan};
+    EXPECT_FALSE(world.spawnBody(desc).valid());
+    EXPECT_TRUE(world.dynamicBodies().empty());
+}
+
 TEST(PhysicsWorldBackendConfigurationTest, SupportsMultithreadedBox3DBaseline) {
     PhysicsWorld world;
     PhysicsInitContext context;
@@ -222,6 +320,71 @@ TEST_P(PhysicsWorldTest, CharacterMovesAndJumps) {
     EXPECT_FALSE(motion.grounded);
 }
 
+TEST_P(PhysicsWorldTest, ContainsMalformedCharacterInputs) {
+    const float nan = std::numeric_limits<float>::quiet_NaN();
+    const float infinity = std::numeric_limits<float>::infinity();
+    PhysicsWorld::CharacterSettings settings;
+    settings.radius = nan;
+    settings.height = infinity;
+    settings.maxSlopeAngleDegrees = nan;
+    settings.stepUp = -infinity;
+    settings.stepDown = infinity;
+
+    EXPECT_EQ(world.createCharacter(glm::vec3(nan, 0.0f, 0.0f), settings),
+              PhysicsWorld::InvalidCharacter);
+    EXPECT_EQ(world.createCharacter(
+                  glm::vec3(std::numeric_limits<float>::max(), 0.0f, 0.0f),
+                  settings),
+              PhysicsWorld::InvalidCharacter);
+    const auto character = world.createCharacter(
+        glm::vec3(0.0f, 4.0f, 0.0f), settings);
+    ASSERT_NE(character, PhysicsWorld::InvalidCharacter);
+    EXPECT_FALSE(world.setCharacterPosition(
+        character, glm::vec3(0.0f, infinity, 0.0f)));
+    EXPECT_FALSE(world.setCharacterPosition(
+        character,
+        glm::vec3(std::numeric_limits<float>::max(), 0.0f, 0.0f)));
+
+    const auto motion = world.moveCharacter(
+        character, glm::vec3(nan, infinity, -infinity), true,
+        nan, nan, nan, 1.0f / 60.0f);
+    EXPECT_TRUE(std::isfinite(motion.position.x));
+    EXPECT_TRUE(std::isfinite(motion.position.y));
+    EXPECT_TRUE(std::isfinite(motion.position.z));
+    EXPECT_TRUE(std::isfinite(motion.velocity.x));
+    EXPECT_TRUE(std::isfinite(motion.velocity.y));
+    EXPECT_TRUE(std::isfinite(motion.velocity.z));
+
+    const float maximum = std::numeric_limits<float>::max();
+    const auto extreme = world.moveCharacter(
+        character, glm::vec3(maximum), true,
+        maximum, maximum, maximum, 1.0f);
+    EXPECT_TRUE(std::isfinite(extreme.position.x));
+    EXPECT_TRUE(std::isfinite(extreme.position.y));
+    EXPECT_TRUE(std::isfinite(extreme.position.z));
+    EXPECT_TRUE(std::isfinite(extreme.velocity.x));
+    EXPECT_TRUE(std::isfinite(extreme.velocity.y));
+    EXPECT_TRUE(std::isfinite(extreme.velocity.z));
+}
+
+TEST_P(PhysicsWorldTest, StaleCharacterHandleCannotControlReusedSlot) {
+    const auto first = world.createCharacter(
+        glm::vec3(0.0f, 4.0f, 0.0f), CharacterSettings{});
+    ASSERT_NE(first, PhysicsWorld::InvalidCharacter);
+    world.destroyCharacter(first);
+
+    const auto replacement = world.createCharacter(
+        glm::vec3(1.0f, 4.0f, 0.0f), CharacterSettings{});
+    ASSERT_NE(replacement, PhysicsWorld::InvalidCharacter);
+    EXPECT_NE(replacement, first);
+    EXPECT_FALSE(world.setCharacterPosition(
+        first, glm::vec3(100.0f)));
+
+    world.destroyCharacter(first);
+    EXPECT_TRUE(world.setCharacterPosition(
+        replacement, glm::vec3(2.0f, 4.0f, 0.0f)));
+}
+
 TEST_P(PhysicsWorldTest, TerrainSupportsTeleportedCharacter) {
     PhysicsWorld::CharacterSettings settings;
     const auto character = world.createCharacter(glm::vec3(-450.0f, 3.0f, 0.0f), settings);
@@ -233,6 +396,21 @@ TEST_P(PhysicsWorldTest, TerrainSupportsTeleportedCharacter) {
     const auto motion = settle(character);
     EXPECT_TRUE(motion.grounded);
     EXPECT_NEAR(motion.position.x, 450.0f, 0.01f);
+}
+
+TEST_P(PhysicsWorldTest, InvalidFrameTimeDoesNotAdvancePhysics) {
+    ASSERT_TRUE(world.throwBody(
+        ThrowableShape::Sphere, glm::vec3(0.0f, 8.0f, 0.0f),
+        glm::vec3(3.0f, 0.0f, 0.0f)));
+    const auto before = world.dynamicBodies();
+    ASSERT_EQ(before.size(), 1u);
+
+    world.update(std::numeric_limits<float>::quiet_NaN());
+    const auto after = world.dynamicBodies();
+    ASSERT_EQ(after.size(), 1u);
+    EXPECT_EQ(world.lastStepStats().substepCount, 0u);
+    EXPECT_EQ(after.front().position, before.front().position);
+    EXPECT_EQ(after.front().rotation, before.front().rotation);
 }
 
 TEST_P(PhysicsWorldTest, ThrownBodyMovesUnderSimulation) {

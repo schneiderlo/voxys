@@ -45,6 +45,8 @@ struct WorldPosition {
 [[nodiscard]] bool worldPositionRelativeToSector(
     const WorldPosition& position, const glm::ivec3& referenceSector,
     glm::vec3& relative, int32_t maximumSectorDelta = 1) noexcept;
+[[nodiscard]] bool isRepresentableAbsolutePosition(
+    const glm::vec3& position) noexcept;
 
 enum class BackendType : uint8_t {
     JoltLegacy,
@@ -597,6 +599,26 @@ struct ShapeHandle {
 
 using CharacterHandle = uint32_t;
 inline constexpr CharacterHandle InvalidCharacter = 0;
+inline constexpr uint32_t kMaximumCharacterSlots = 0xffffu;
+
+[[nodiscard]] inline constexpr CharacterHandle makeCharacterHandle(
+    uint32_t zeroBasedSlot, uint16_t generation) noexcept {
+    return zeroBasedSlot >= kMaximumCharacterSlots
+        ? InvalidCharacter
+        : (static_cast<uint32_t>(generation) << 16u)
+            | (zeroBasedSlot + 1u);
+}
+
+[[nodiscard]] inline constexpr uint32_t characterHandleSlot(
+    CharacterHandle handle) noexcept {
+    const uint32_t encoded = handle & kMaximumCharacterSlots;
+    return encoded == 0u ? kMaximumCharacterSlots : encoded - 1u;
+}
+
+[[nodiscard]] inline constexpr uint16_t characterHandleGeneration(
+    CharacterHandle handle) noexcept {
+    return static_cast<uint16_t>(handle >> 16u);
+}
 
 struct DynamicBodySnapshot {
     ThrowableShape shape = ThrowableShape::Sphere;
@@ -630,6 +652,12 @@ struct CharacterSettings {
     float stepUp = 0.5f;
     float stepDown = 0.5f;
 };
+
+// Character shapes must fit inside one canonical sector. Besides keeping the
+// three backends consistent, this prevents malformed finite values from
+// overflowing shape construction and collision arithmetic.
+[[nodiscard]] CharacterSettings sanitizeCharacterSettings(
+    const CharacterSettings& settings) noexcept;
 
 struct CharacterMotion {
     glm::vec3 position{0.0f}; // Feet position local to sector.

@@ -147,10 +147,12 @@ public:
             || requests.size() > config_.requestCapacity) {
             return false;
         }
-        gpu::writeBuffer(queue_, requestBuffer_, 0,
-            std::span<const std::byte>(
-                reinterpret_cast<const std::byte*>(requests.data()),
-                requests.size_bytes()));
+        if (!gpu::writeBuffer(queue_, requestBuffer_, 0,
+                std::span<const std::byte>(
+                    reinterpret_cast<const std::byte*>(requests.data()),
+                    requests.size_bytes()))) {
+            return false;
+        }
         pendingCount_ = static_cast<uint32_t>(requests.size());
         pendingTick_ = tick;
         return true;
@@ -162,7 +164,8 @@ public:
             .counts = {bodyView_.bodyCapacity, pendingCount_,
                        kGpuQueryMaximumHits, 0u},
         };
-        gpu::writeBuffer(queue_, parameterBuffer_, 0, params);
+        if (!gpu::writeBuffer(queue_, parameterBuffer_, 0, params))
+            return false;
         const std::array<gpu::BindGroupEntry, 6> entries = {
             gpu::BindGroupEntry(0).buffer(bodyView_.poseBuffer),
             gpu::BindGroupEntry(1).buffer(bodyView_.shapeBuffer),
@@ -178,6 +181,10 @@ public:
         WGPUComputePassDescriptor passDesc{};
         WGPUComputePassEncoder pass =
             wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
+        if (!pass) {
+            wgpuBindGroupRelease(group);
+            return false;
+        }
         wgpuComputePassEncoderSetPipeline(pass, pipeline_);
         wgpuComputePassEncoderSetBindGroup(pass, 0, group, 0, nullptr);
         wgpuComputePassEncoderDispatchWorkgroups(pass, pendingCount_, 1, 1);
@@ -235,27 +242,32 @@ GpuAsyncQuerySystem& GpuAsyncQuerySystem::operator=(
 
 bool GpuAsyncQuerySystem::initialize(WGPUDevice device, WGPUQueue queue,
                                      const Config& config) {
-    return impl_->initialize(device, queue, config);
+    auto replacement = std::make_unique<Impl>();
+    if (!replacement->initialize(device, queue, config)) return false;
+    impl_ = std::move(replacement);
+    return true;
 }
-void GpuAsyncQuerySystem::shutdown() { impl_->shutdown(); }
+void GpuAsyncQuerySystem::shutdown() {
+    if (impl_) impl_->shutdown();
+}
 void GpuAsyncQuerySystem::setBodyView(const GpuQueryBodyView& view) {
-    impl_->setBodyView(view);
+    if (impl_) impl_->setBodyView(view);
 }
 bool GpuAsyncQuerySystem::submit(
     std::span<const GpuQueryRequest> requests, uint64_t tick) {
-    return impl_->submit(requests, tick);
+    return impl_ && impl_->submit(requests, tick);
 }
 bool GpuAsyncQuerySystem::encode(WGPUCommandEncoder encoder) {
-    return impl_->encode(encoder);
+    return impl_ && impl_->encode(encoder);
 }
 std::optional<GpuQueryBatchResult> GpuAsyncQuerySystem::poll() {
-    return impl_->poll();
+    return impl_ ? impl_->poll() : std::nullopt;
 }
 WGPUBuffer GpuAsyncQuerySystem::outputBuffer() const noexcept {
-    return impl_->outputBuffer_;
+    return impl_ ? impl_->outputBuffer_ : nullptr;
 }
 size_t GpuAsyncQuerySystem::allocatedBytes() const noexcept {
-    return impl_->allocatedBytes_;
+    return impl_ ? impl_->allocatedBytes_ : 0u;
 }
 
 } // namespace voxy::physics

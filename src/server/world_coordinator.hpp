@@ -141,17 +141,17 @@ private:
     [[nodiscard]] std::optional<uint32_t> chooseWorker(
         std::span<const uint64_t> component,
         std::optional<uint32_t> excludedWorker = std::nullopt) const;
-    [[nodiscard]] uint32_t effectiveLoad(uint32_t workerId) const noexcept;
+    [[nodiscard]] uint64_t effectiveLoad(uint32_t workerId) const noexcept;
     [[nodiscard]] bool schedule(
         uint64_t islandId, uint32_t destinationWorker,
         uint64_t scheduledTick, uint64_t switchTick);
+    void eraseBoundaryProxy(uint64_t islandId) noexcept;
     void refreshLoads();
 
     Config config_{};
     std::vector<WorkerDescriptor> workers_;
     std::vector<IslandDescriptor> islands_;
     std::vector<SweptBoundaryProxy> proxies_;
-    std::vector<IslandPair> latestConnectedPairs_;
     std::vector<IslandMigration> migrations_;
     CoordinatorFault nextFault_ = CoordinatorFault::None;
     CoordinatorTelemetry telemetry_{};

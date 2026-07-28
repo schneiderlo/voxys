@@ -300,12 +300,12 @@ void DeterministicGpuPrimitives::writeParams(uint32_t slot,
                 &params, sizeof(params));
 }
 
-void DeterministicGpuPrimitives::flushParams(uint32_t firstSlot,
-                                              uint32_t slotCount) {
-    if (slotCount == 0u) return;
+bool DeterministicGpuPrimitives::flushParams(uint32_t firstSlot,
+                                             uint32_t slotCount) {
+    if (slotCount == 0u) return true;
     const size_t offset = size_t{firstSlot} * kParameterStride;
     const size_t bytes = size_t{slotCount} * kParameterStride;
-    gpu::writeBuffer(
+    return gpu::writeBuffer(
         queue_, parameterBuffer_, offset,
         std::span<const std::byte>(parameterUpload_.data() + offset, bytes));
 }
@@ -407,6 +407,7 @@ bool DeterministicGpuPrimitives::encodeScanAt(
     WGPU_SET_LABEL(passDesc, "deterministic_scan");
     WGPUComputePassEncoder pass =
         wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
+    if (!pass) return false;
     wgpuComputePassEncoderSetBindGroup(pass, 0, bindGroup, 1, &dynamicOffset);
     if (blocks != 0u) {
         wgpuComputePassEncoderSetPipeline(pass, scanBlocksPipeline_);
@@ -435,8 +436,7 @@ bool DeterministicGpuPrimitives::encodeScanAt(
     }
     wgpuComputePassEncoderEnd(pass);
     wgpuComputePassEncoderRelease(pass);
-    flushParams(parameterSlot, 1u);
-    return true;
+    return flushParams(parameterSlot, 1u);
 }
 
 bool DeterministicGpuPrimitives::encodeScanU32(
@@ -486,6 +486,7 @@ bool DeterministicGpuPrimitives::encodeStableCompactU32(
     WGPUComputePassDescriptor passDesc{};
     WGPUComputePassEncoder pass =
         wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
+    if (!pass) return false;
     wgpuComputePassEncoderSetBindGroup(pass, 0, bindGroup, 1, &dynamicOffset);
     if (blocks != 0u) {
         wgpuComputePassEncoderSetPipeline(pass, compactScatterPipeline_);
@@ -495,8 +496,7 @@ bool DeterministicGpuPrimitives::encodeStableCompactU32(
     wgpuComputePassEncoderDispatchWorkgroups(pass, 1, 1, 1);
     wgpuComputePassEncoderEnd(pass);
     wgpuComputePassEncoderRelease(pass);
-    flushParams(1u, 1u);
-    return true;
+    return flushParams(1u, 1u);
 }
 
 bool DeterministicGpuPrimitives::encodeRadixSort(
@@ -606,6 +606,7 @@ bool DeterministicGpuPrimitives::encodeRadixSortImpl(
     WGPUComputePassDescriptor passDesc{};
     WGPUComputePassEncoder compute =
         wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
+    if (!compute) return false;
     for (uint32_t passIndex = 0; passIndex < passCount; ++passIndex) {
         const uint32_t dynamicOffset =
             (parameterBaseSlot + passIndex) * kParameterStride;
@@ -639,8 +640,7 @@ bool DeterministicGpuPrimitives::encodeRadixSortImpl(
     }
     wgpuComputePassEncoderEnd(compute);
     wgpuComputePassEncoderRelease(compute);
-    flushParams(parameterBaseSlot, passCount);
-    return true;
+    return flushParams(parameterBaseSlot, passCount);
 }
 
 bool DeterministicGpuPrimitives::encodeAdjacentUnique(
@@ -663,6 +663,7 @@ bool DeterministicGpuPrimitives::encodeAdjacentUnique(
     WGPUComputePassDescriptor passDesc{};
     WGPUComputePassEncoder markPass =
         wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
+    if (!markPass) return false;
     wgpuComputePassEncoderSetBindGroup(
         markPass, 0, markBindGroup, 1, &markOffset);
     if (blocks != 0u) {
@@ -688,6 +689,7 @@ bool DeterministicGpuPrimitives::encodeAdjacentUnique(
     if (!scatterBindGroup) return false;
     WGPUComputePassEncoder scatterPass =
         wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
+    if (!scatterPass) return false;
     wgpuComputePassEncoderSetBindGroup(
         scatterPass, 0, scatterBindGroup, 1, &markOffset);
     if (blocks != 0u) {
@@ -698,8 +700,7 @@ bool DeterministicGpuPrimitives::encodeAdjacentUnique(
     wgpuComputePassEncoderDispatchWorkgroups(scatterPass, 1, 1, 1);
     wgpuComputePassEncoderEnd(scatterPass);
     wgpuComputePassEncoderRelease(scatterPass);
-    flushParams(2u, 1u);
-    return true;
+    return flushParams(2u, 1u);
 }
 
 bool DeterministicGpuPrimitives::encodeSortedMerge(
@@ -724,13 +725,13 @@ bool DeterministicGpuPrimitives::encodeSortedMerge(
     WGPUComputePassDescriptor passDesc{};
     WGPUComputePassEncoder pass =
         wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
+    if (!pass) return false;
     wgpuComputePassEncoderSetBindGroup(pass, 0, bindGroup, 1, &dynamicOffset);
     wgpuComputePassEncoderSetPipeline(pass, mergePipeline_);
     wgpuComputePassEncoderDispatchWorkgroups(pass, 1, 1, 1);
     wgpuComputePassEncoderEnd(pass);
     wgpuComputePassEncoderRelease(pass);
-    flushParams(16u, 1u);
-    return true;
+    return flushParams(16u, 1u);
 }
 
 bool DeterministicGpuPrimitives::encodeAssignFreeIds(
@@ -758,6 +759,7 @@ bool DeterministicGpuPrimitives::encodeAssignFreeIds(
     WGPUComputePassDescriptor passDesc{};
     WGPUComputePassEncoder pass =
         wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
+    if (!pass) return false;
     wgpuComputePassEncoderSetBindGroup(pass, 0, bindGroup, 1, &dynamicOffset);
     if (blocks != 0u) {
         wgpuComputePassEncoderSetPipeline(pass, assignScatterPipeline_);
@@ -767,8 +769,7 @@ bool DeterministicGpuPrimitives::encodeAssignFreeIds(
     wgpuComputePassEncoderDispatchWorkgroups(pass, 1, 1, 1);
     wgpuComputePassEncoderEnd(pass);
     wgpuComputePassEncoderRelease(pass);
-    flushParams(3u, 1u);
-    return true;
+    return flushParams(3u, 1u);
 }
 
 void DeterministicGpuPrimitives::shutdown() {

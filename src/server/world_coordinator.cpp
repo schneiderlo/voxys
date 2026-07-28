@@ -48,14 +48,18 @@ WorldCoordinator::WorldCoordinator(Config config) : config_(config) {
 }
 
 bool WorldCoordinator::registerWorker(const WorkerDescriptor& source) {
-    if (source.capacityUnits == 0u) return false;
+    if (source.workerId == kAutomaticWorker || source.capacityUnits == 0u)
+        return false;
     auto iterator = std::lower_bound(
         workers_.begin(), workers_.end(), source.workerId,
         [](const WorkerDescriptor& worker, uint32_t id) {
             return worker.workerId < id;
         });
     if (iterator != workers_.end() && iterator->workerId == source.workerId) {
-        if (iterator->loadUnits > source.capacityUnits) return false;
+        if (source.online
+            && effectiveLoad(source.workerId) > source.capacityUnits) {
+            return false;
+        }
         const uint32_t load = iterator->loadUnits;
         *iterator = source;
         iterator->loadUnits = load;
@@ -84,11 +88,11 @@ bool WorldCoordinator::registerIsland(IslandDescriptor descriptor) {
         uint64_t bestScore = std::numeric_limits<uint64_t>::max();
         uint32_t selected = kAutomaticWorker;
         for (const auto& worker : workers_) {
-            if (!worker.online
-                || uint64_t{worker.loadUnits} + descriptor.loadUnits
-                    > worker.capacityUnits) continue;
-            const uint64_t projected = uint64_t{worker.loadUnits}
+            const uint64_t projected = effectiveLoad(worker.workerId)
                 + descriptor.loadUnits;
+            if (!worker.online
+                || projected
+                    > worker.capacityUnits) continue;
             const uint64_t score = (projected << 32u) / worker.capacityUnits;
             if (score < bestScore
                 || (score == bestScore && worker.workerId < selected)) {
@@ -101,14 +105,20 @@ bool WorldCoordinator::registerIsland(IslandDescriptor descriptor) {
     }
     const auto assignedWorker = worker(descriptor.workerId);
     if (!assignedWorker.has_value() || !assignedWorker->online
-        || uint64_t{assignedWorker->loadUnits} + descriptor.loadUnits
+        || effectiveLoad(descriptor.workerId) + descriptor.loadUnits
             > assignedWorker->capacityUnits) return false;
     descriptor.checkpoint.islandId = descriptor.islandId;
     descriptor.checkpoint.authorityEpoch = descriptor.authorityEpoch;
     descriptor.checkpoint.tick = descriptor.authorityStartTick;
+    descriptor.checkpoint.baselineTick = 0u;
     descriptor.checkpoint.full = true;
+    descriptor.checkpoint.removedBodyIds.clear();
     descriptor.checkpoint.stateHash = network::snapshotStateHash(
         descriptor.checkpoint);
+    if (!network::isCanonicalAuthoritativeSnapshot(
+            descriptor.checkpoint)) {
+        return false;
+    }
     islands_.insert(existing, std::move(descriptor));
     refreshLoads();
     return true;
@@ -122,10 +132,14 @@ bool WorldCoordinator::updateCheckpoint(
             return island.islandId < id;
         });
     if (iterator == islands_.end() || iterator->islandId != islandId
-        || !checkpoint.full || checkpoint.islandId != islandId
+        || !checkpoint.full
+        || !network::isCanonicalAuthoritativeSnapshot(checkpoint)
+        || checkpoint.islandId != islandId
         || checkpoint.authorityEpoch != iterator->authorityEpoch
         || checkpoint.tick < iterator->authorityStartTick
-        || network::snapshotStateHash(checkpoint) != checkpoint.stateHash) {
+        || checkpoint.tick < iterator->checkpoint.tick
+        || (checkpoint.tick == iterator->checkpoint.tick
+            && checkpoint.stateHash != iterator->checkpoint.stateHash)) {
         return false;
     }
     iterator->checkpoint = std::move(checkpoint);
@@ -141,9 +155,13 @@ bool WorldCoordinator::publishBoundaryProxy(
         return false;
     }
     const auto descriptor = island(proxy.islandId);
+    const auto owner = descriptor.has_value()
+        ? worker(descriptor->workerId) : std::nullopt;
     if (!descriptor.has_value() || proxy.horizonTicks == 0u
+        || !owner.has_value() || !owner->online
         || descriptor->workerId != proxy.workerId
-        || descriptor->authorityEpoch != proxy.authorityEpoch) return false;
+        || descriptor->authorityEpoch != proxy.authorityEpoch
+        || proxy.startTick < descriptor->authorityStartTick) return false;
     for (uint32_t axis = 0; axis < 3u; ++axis) {
         if (proxy.minimumQ12[axis] > proxy.maximumQ12[axis]) return false;
     }
@@ -174,10 +192,24 @@ std::vector<IslandPair> WorldCoordinator::crossWorkerPairs(
                                    proxies_.size()));
     for (size_t first = 0; first < proxies_.size(); ++first) {
         const auto& lhs = proxies_[first];
-        if (tick < lhs.startTick || tick > endTick(lhs)) continue;
+        const auto lhsIsland = island(lhs.islandId);
+        const auto lhsWorker = worker(lhs.workerId);
+        if (!lhsIsland.has_value() || !lhsWorker.has_value()
+            || !lhsWorker->online
+            || lhsIsland->workerId != lhs.workerId
+            || lhsIsland->authorityEpoch != lhs.authorityEpoch
+            || lhs.startTick < lhsIsland->authorityStartTick
+            || tick < lhs.startTick || tick > endTick(lhs)) continue;
         for (size_t second = first + 1u; second < proxies_.size(); ++second) {
             const auto& rhs = proxies_[second];
-            if (tick < rhs.startTick || tick > endTick(rhs)
+            const auto rhsIsland = island(rhs.islandId);
+            const auto rhsWorker = worker(rhs.workerId);
+            if (!rhsIsland.has_value() || !rhsWorker.has_value()
+                || !rhsWorker->online
+                || rhsIsland->workerId != rhs.workerId
+                || rhsIsland->authorityEpoch != rhs.authorityEpoch
+                || rhs.startTick < rhsIsland->authorityStartTick
+                || tick < rhs.startTick || tick > endTick(rhs)
                 || lhs.workerId == rhs.workerId || !overlaps(lhs, rhs)) continue;
             if (pairs.size() >= config_.maximumCrossWorkerPairs) return pairs;
             pairs.push_back({lhs.islandId, rhs.islandId});
@@ -186,10 +218,14 @@ std::vector<IslandPair> WorldCoordinator::crossWorkerPairs(
     return pairs;
 }
 
-uint32_t WorldCoordinator::effectiveLoad(uint32_t workerId) const noexcept {
-    const auto descriptor = worker(workerId);
-    if (!descriptor.has_value()) return std::numeric_limits<uint32_t>::max();
-    uint64_t load = descriptor->loadUnits;
+uint64_t WorldCoordinator::effectiveLoad(uint32_t workerId) const noexcept {
+    if (!worker(workerId).has_value())
+        return std::numeric_limits<uint64_t>::max();
+    uint64_t load = 0u;
+    for (const auto& descriptor : islands_) {
+        if (descriptor.workerId == workerId)
+            load += descriptor.loadUnits;
+    }
     for (const auto& migration : migrations_) {
         if (!activeMigration(migration.status)
             || migration.destinationWorker != workerId) continue;
@@ -197,8 +233,7 @@ uint32_t WorldCoordinator::effectiveLoad(uint32_t workerId) const noexcept {
         if (moving.has_value() && moving->workerId != workerId)
             load += moving->loadUnits;
     }
-    return static_cast<uint32_t>(std::min<uint64_t>(
-        load, std::numeric_limits<uint32_t>::max()));
+    return load;
 }
 
 std::optional<uint32_t> WorldCoordinator::chooseWorker(
@@ -274,11 +309,6 @@ std::vector<IslandMigration> WorldCoordinator::planMigrations(uint64_t tick) {
     telemetry_.crossWorkerPairs += pairs.size();
     telemetry_.pairHighWater = std::max(
         telemetry_.pairHighWater, static_cast<uint32_t>(pairs.size()));
-    for (const auto& pair : pairs) latestConnectedPairs_.push_back(pair);
-    std::sort(latestConnectedPairs_.begin(), latestConnectedPairs_.end());
-    latestConnectedPairs_.erase(
-        std::unique(latestConnectedPairs_.begin(), latestConnectedPairs_.end()),
-        latestConnectedPairs_.end());
     if (pairs.empty()) return {};
 
     std::vector<uint32_t> roots(islands_.size());
@@ -323,6 +353,15 @@ std::vector<IslandMigration> WorldCoordinator::planMigrations(uint64_t tick) {
                     != island(component[0])->workerId;
         }
         if (!spansWorkers) continue;
+        const bool alreadyMigrating = std::any_of(
+            migrations_.begin(), migrations_.end(),
+            [&component](const IslandMigration& migration) {
+                return activeMigration(migration.status)
+                    && std::binary_search(
+                        component.begin(), component.end(),
+                        migration.islandId);
+            });
+        if (alreadyMigrating) continue;
         const auto destination = chooseWorker(component);
         if (!destination.has_value()) continue;
         uint64_t switchTick = tick > std::numeric_limits<uint64_t>::max()
@@ -340,8 +379,7 @@ std::vector<IslandMigration> WorldCoordinator::planMigrations(uint64_t tick) {
                 latestSwitch = std::min(latestSwitch, endTick(*proxy));
         }
         switchTick = std::min(switchTick, latestSwitch);
-        if (switchTick <= tick && tick != std::numeric_limits<uint64_t>::max())
-            switchTick = tick + 1u;
+        if (switchTick <= tick) continue;
         for (uint64_t islandId : component) {
             if (island(islandId)->workerId != *destination
                 && schedule(islandId, *destination, tick, switchTick)) {
@@ -415,7 +453,9 @@ uint32_t WorldCoordinator::commitMigrations(uint64_t tick) {
         if (source == islands_.end() || source->islandId != migration.islandId
             || !destination.has_value() || !destination->online
             || source->workerId != migration.sourceWorker
-            || source->authorityEpoch != migration.sourceEpoch) {
+            || source->authorityEpoch != migration.sourceEpoch
+            || effectiveLoad(migration.destinationWorker)
+                > destination->capacityUnits) {
             migration.status = MigrationStatus::Aborted;
             ++telemetry_.migrationAborts;
             continue;
@@ -427,6 +467,7 @@ uint32_t WorldCoordinator::commitMigrations(uint64_t tick) {
         source->checkpoint.tick = migration.switchTick;
         source->checkpoint.stateHash = network::snapshotStateHash(
             source->checkpoint);
+        eraseBoundaryProxy(migration.islandId);
         migration.rollbackRetainUntilTick = migration.switchTick
             > std::numeric_limits<uint64_t>::max()
                     - config_.rollbackRetentionTicks
@@ -465,6 +506,24 @@ bool WorldCoordinator::loseWorker(uint32_t workerId, uint64_t tick) {
             affected.push_back(descriptor.islandId);
     }
     if (affected.empty()) return true;
+    const auto recoverableEnd = std::remove_if(
+        affected.begin(), affected.end(),
+        [this](uint64_t islandId) {
+            const auto descriptor = island(islandId);
+            if (!descriptor.has_value()
+                || descriptor->authorityEpoch
+                    == std::numeric_limits<uint32_t>::max()) {
+                ++telemetry_.unrecoveredIslands;
+                return true;
+            }
+            return false;
+        });
+    const bool unrecovered = recoverableEnd != affected.end();
+    affected.erase(recoverableEnd, affected.end());
+    if (affected.empty()) {
+        refreshLoads();
+        return false;
+    }
     const auto destination = chooseWorker(affected, workerId);
     if (!destination.has_value()) {
         telemetry_.unrecoveredIslands += affected.size();
@@ -496,11 +555,12 @@ bool WorldCoordinator::loseWorker(uint32_t workerId, uint64_t tick) {
         descriptor->checkpoint.tick = tick;
         descriptor->checkpoint.stateHash = network::snapshotStateHash(
             descriptor->checkpoint);
+        eraseBoundaryProxy(islandId);
         migrations_.push_back(std::move(recovery));
         ++telemetry_.recoveredIslands;
     }
     refreshLoads();
-    return true;
+    return !unrecovered;
 }
 
 std::optional<WorkerDescriptor> WorldCoordinator::worker(
@@ -538,6 +598,16 @@ bool WorldCoordinator::ownershipValid(
         if (!owner.has_value() || !owner->online) return false;
     }
     return true;
+}
+
+void WorldCoordinator::eraseBoundaryProxy(uint64_t islandId) noexcept {
+    const auto iterator = std::lower_bound(
+        proxies_.begin(), proxies_.end(), islandId,
+        [](const SweptBoundaryProxy& proxy, uint64_t id) {
+            return proxy.islandId < id;
+        });
+    if (iterator != proxies_.end() && iterator->islandId == islandId)
+        proxies_.erase(iterator);
 }
 
 void WorldCoordinator::refreshLoads() {

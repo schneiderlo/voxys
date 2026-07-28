@@ -610,6 +610,12 @@ bool BlitPath::init(WGPUDevice device, WGPUQueue queue, const BlitPathConfig& co
         LOG_ERROR("BlitPath::init: device or queue is null");
         return false;
     }
+    if (!std::isfinite(config.heightScale) || config.heightScale <= 0.0f
+        || !std::isfinite(config.cellScale) || config.cellScale <= 0.0f
+        || !std::isfinite(config.fogDensity) || config.fogDensity < 0.0f) {
+        LOG_ERROR("BlitPath::init: invalid renderer configuration");
+        return false;
+    }
     
     device_ = device;
     queue_ = queue;
@@ -617,8 +623,12 @@ bool BlitPath::init(WGPUDevice device, WGPUQueue queue, const BlitPathConfig& co
     
     // Allocate uniforms on heap (reuses CameraUniforms from triangle_path)
     uniforms_ = new CameraUniforms();
-    uniforms_->setTerrain(terrainWidth_, terrainHeight_, config.heightScale, 
-                          config.cellScale, 1.0f, config.fogDensity);
+    if (!uniforms_->setTerrain(
+            terrainWidth_, terrainHeight_, config.heightScale,
+            config.cellScale, 1.0f, config.fogDensity)) {
+        shutdown();
+        return false;
+    }
     staticUniforms_ = new CameraUniforms(*uniforms_);
     updateStaticUniforms();
     
@@ -685,46 +695,32 @@ bool BlitPath::resize(uint32_t width, uint32_t height) {
         return true;
     }
 
-    // These groups retain the old framebuffer-sized cache views.
-    if (staticBindGroup_) {
-        wgpuBindGroupRelease(staticBindGroup_);
-        staticBindGroup_ = nullptr;
-    }
-    if (cachedBindGroup_) {
-        wgpuBindGroupRelease(cachedBindGroup_);
-        cachedBindGroup_ = nullptr;
-    }
-    if (backgroundView_) {
-        wgpuTextureViewRelease(backgroundView_);
-        backgroundView_ = nullptr;
-    }
-    if (backgroundTexture_) {
-        wgpuTextureRelease(backgroundTexture_);
-        backgroundTexture_ = nullptr;
-    }
-    if (coverageMaskView_) {
-        wgpuTextureViewRelease(coverageMaskView_);
-        coverageMaskView_ = nullptr;
-    }
-    if (coverageMaskTexture_) {
-        wgpuTextureRelease(coverageMaskTexture_);
-        coverageMaskTexture_ = nullptr;
-    }
-
-    outputWidth_ = width;
-    outputHeight_ = height;
+    if (!createBackgroundTexture(width, height)) return false;
+    // Existing groups retain the previous views. createBindGroup() swaps them
+    // only after all dynamic/static/cached replacements have been created.
     backgroundValid_ = false;
     backgroundDirty_ = true;
     bindGroupDirty_ = true;
-    return createBackgroundTexture();
+    return true;
 }
 
-bool BlitPath::createBackgroundTexture() {
+bool BlitPath::createBackgroundTexture(uint32_t width, uint32_t height) {
+    WGPUTexture nextBackgroundTexture = nullptr;
+    WGPUTextureView nextBackgroundView = nullptr;
+    WGPUTexture nextCoverageTexture = nullptr;
+    WGPUTextureView nextCoverageView = nullptr;
+    const auto cleanup = [&]() {
+        if (nextCoverageView) wgpuTextureViewRelease(nextCoverageView);
+        if (nextCoverageTexture) wgpuTextureRelease(nextCoverageTexture);
+        if (nextBackgroundView) wgpuTextureViewRelease(nextBackgroundView);
+        if (nextBackgroundTexture) wgpuTextureRelease(nextBackgroundTexture);
+    };
+
     gpu::TextureDesc desc = gpu::TextureDesc::renderTarget(
-        outputWidth_, outputHeight_, WGPUTextureFormat_RGBA16Float,
+        width, height, WGPUTextureFormat_RGBA16Float,
         "blit_static_background");
-    backgroundTexture_ = gpu::createTexture(device_, desc);
-    if (!backgroundTexture_) {
+    nextBackgroundTexture = gpu::createTexture(device_, desc);
+    if (!nextBackgroundTexture) {
         LOG_ERROR("Failed to create static background texture");
         return false;
     }
@@ -732,34 +728,48 @@ bool BlitPath::createBackgroundTexture() {
     gpu::TextureViewDesc viewDesc{};
     viewDesc.label = "blit_static_background_view";
     viewDesc.format = WGPUTextureFormat_RGBA16Float;
-    backgroundView_ = gpu::createTextureView(backgroundTexture_, viewDesc);
-    if (!backgroundView_) {
+    nextBackgroundView = gpu::createTextureView(
+        nextBackgroundTexture, viewDesc);
+    if (!nextBackgroundView) {
         LOG_ERROR("Failed to create static background texture view");
+        cleanup();
         return false;
     }
 
     gpu::TextureDesc maskDesc = gpu::TextureDesc::depth(
-        outputWidth_, outputHeight_,
+        width, height,
         WGPUTextureFormat_Depth24PlusStencil8,
         "blit_water_coverage_mask");
     maskDesc.usage = WGPUTextureUsage_RenderAttachment;
-    coverageMaskTexture_ = gpu::createTexture(device_, maskDesc);
-    if (!coverageMaskTexture_) {
+    nextCoverageTexture = gpu::createTexture(device_, maskDesc);
+    if (!nextCoverageTexture) {
         LOG_ERROR("Failed to create water coverage mask texture");
+        cleanup();
         return false;
     }
     gpu::TextureViewDesc maskViewDesc{};
     maskViewDesc.label = "blit_water_coverage_mask_view";
     maskViewDesc.format = WGPUTextureFormat_Depth24PlusStencil8;
-    coverageMaskView_ = gpu::createTextureView(
-        coverageMaskTexture_, maskViewDesc);
-    if (!coverageMaskView_) {
+    nextCoverageView = gpu::createTextureView(
+        nextCoverageTexture, maskViewDesc);
+    if (!nextCoverageView) {
         LOG_ERROR("Failed to create water coverage mask view");
+        cleanup();
         return false;
     }
 
-    LOG_DEBUG("Created static background cache: {}x{}", outputWidth_,
-              outputHeight_);
+    if (backgroundView_) wgpuTextureViewRelease(backgroundView_);
+    if (backgroundTexture_) wgpuTextureRelease(backgroundTexture_);
+    if (coverageMaskView_) wgpuTextureViewRelease(coverageMaskView_);
+    if (coverageMaskTexture_) wgpuTextureRelease(coverageMaskTexture_);
+    backgroundTexture_ = nextBackgroundTexture;
+    backgroundView_ = nextBackgroundView;
+    coverageMaskTexture_ = nextCoverageTexture;
+    coverageMaskView_ = nextCoverageView;
+    outputWidth_ = width;
+    outputHeight_ = height;
+
+    LOG_DEBUG("Created static background cache: {}x{}", width, height);
     return true;
 }
 
@@ -1048,9 +1058,12 @@ bool BlitPath::createSurfaceFoamTexture() {
     if (!surfaceFoamTexture_) return false;
 
     for (uint32_t level = 0; level < desc.mipLevelCount; ++level) {
-        gpu::writeTexture(queue_, surfaceFoamTexture_,
-                          std::as_bytes(std::span<const uint8_t>(mip)),
-                          width, height, width * kChannels, level);
+        if (!gpu::writeTexture(
+                queue_, surfaceFoamTexture_,
+                std::as_bytes(std::span<const uint8_t>(mip)),
+                width, height, width * kChannels, level)) {
+            return false;
+        }
         if (width == 1 && height == 1) break;
 
         const uint32_t nextWidth = std::max(width / 2, 1u);
@@ -1124,8 +1137,11 @@ bool BlitPath::createUnderwaterParticleResources(
         device_, gpu::BufferDesc::storage(
                      byteSize, true, "underwater_particle_instances"));
     if (!particleBuffer_) return false;
-    gpu::writeBuffer(queue_, particleBuffer_, 0,
-                     std::span<const glm::vec4>(underwaterParticles_));
+    if (!gpu::writeBuffer(
+            queue_, particleBuffer_, 0,
+            std::span<const glm::vec4>(underwaterParticles_))) {
+        return false;
+    }
 
     std::array<gpu::BindGroupLayoutEntry, 3> entries = {
         gpu::BindGroupLayoutEntry(0)
@@ -1236,8 +1252,10 @@ bool BlitPath::respawnUnderwaterParticle(size_t index,
     return false;
 }
 
-void BlitPath::updateUnderwaterParticles() {
-    if (!uniforms_ || !particleBuffer_ || underwaterParticles_.empty()) return;
+bool BlitPath::updateUnderwaterParticles() {
+    if (!uniforms_ || !particleBuffer_ || underwaterParticles_.empty()) {
+        return false;
+    }
     const glm::vec3 cameraPos{uniforms_->cameraPos};
     const float surfaceHeight = uniforms_->waterParams.x +
                                 uniforms_->waterMotion.y;
@@ -1257,9 +1275,13 @@ void BlitPath::updateUnderwaterParticles() {
                 index, cameraPos, surfaceHeight);
         }
     }
+    if (!gpu::writeBuffer(
+            queue_, particleBuffer_, 0,
+            std::span<const glm::vec4>(underwaterParticles_))) {
+        return false;
+    }
     particlesInitialized_ = true;
-    gpu::writeBuffer(queue_, particleBuffer_, 0,
-                     std::span<const glm::vec4>(underwaterParticles_));
+    return true;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1274,6 +1296,8 @@ constexpr uint32_t kSkyLutWidth = 1774;
 constexpr uint32_t kSkyLutHeight = 887;
 constexpr uint32_t kSkyLutMipCount =
     gpu::calculateMipLevelCount(kSkyLutWidth, kSkyLutHeight);
+constexpr std::streamoff kMaximumEncodedEnvironmentBytes =
+    64ll * 1024ll * 1024ll;
 
 [[nodiscard]] float skySrgbToLinear(float value) noexcept {
     return value <= 0.04045f
@@ -1291,7 +1315,8 @@ constexpr uint32_t kSkyLutMipCount =
     const auto fileSize = file.tellg();
     if (fileSize <= 0 ||
         fileSize > std::numeric_limits<std::streamsize>::max() ||
-        fileSize > std::numeric_limits<int>::max()) {
+        fileSize > std::numeric_limits<int>::max() ||
+        fileSize > kMaximumEncodedEnvironmentBytes) {
         return false;
     }
     const auto size = static_cast<std::streamsize>(fileSize);
@@ -1304,6 +1329,17 @@ constexpr uint32_t kSkyLutMipCount =
     int decodedWidth = 0;
     int decodedHeight = 0;
     int channels = 0;
+    if (!stbi_info_from_memory(
+            encoded.data(), static_cast<int>(encoded.size()),
+            &decodedWidth, &decodedHeight, &channels)
+        || decodedWidth != static_cast<int>(kSkyLutWidth)
+        || decodedHeight != static_cast<int>(kSkyLutHeight)) {
+        LOG_ERROR("Generated environment has unexpected dimensions {}x{}; "
+                  "expected {}x{}", decodedWidth, decodedHeight,
+                  kSkyLutWidth, kSkyLutHeight);
+        return false;
+    }
+
     uint8_t* decoded = stbi_load_from_memory(
         encoded.data(), static_cast<int>(encoded.size()),
         &decodedWidth, &decodedHeight, &channels, 4);
@@ -1368,9 +1404,12 @@ constexpr uint32_t kSkyLutMipCount =
             packed[component] = glm::packHalf1x16(
                 std::clamp(linear[component], 0.0f, 65504.0f));
         }
-        gpu::writeTexture(queue, texture,
-                          std::as_bytes(std::span<const uint16_t>(packed)),
-                          width, height, width * 8u, level);
+        if (!gpu::writeTexture(
+                queue, texture,
+                std::as_bytes(std::span<const uint16_t>(packed)),
+                width, height, width * 8u, level)) {
+            return false;
+        }
         if (width == 1u && height == 1u) break;
 
         const uint32_t nextWidth = std::max(width / 2u, 1u);
@@ -1625,15 +1664,21 @@ bool BlitPath::createUniformBuffer() {
     }
     
     // Upload initial data
-    updateUniformBuffer();
-    gpu::writeBuffer(queue_, staticUniformBuffer_, 0, *staticUniforms_);
+    if (!updateUniformBuffer()
+        || !gpu::writeBuffer(
+            queue_, staticUniformBuffer_, 0, *staticUniforms_)) {
+        return false;
+    }
     staticUniformsDirty_ = false;
     
     // Upload initial debug uniforms
     DebugUniforms debugUniforms;
     debugUniforms.mode = debugMode_;
     debugUniforms.maxDepth = debugMaxDepth_;
-    gpu::writeBuffer(queue_, debugUniformBuffer_, 0, debugUniforms);
+    if (!gpu::writeBuffer(
+            queue_, debugUniformBuffer_, 0, debugUniforms)) {
+        return false;
+    }
     debugUniformsDirty_ = false;
     
     LOG_DEBUG("Created blit uniform buffers: camera {} bytes, debug {} bytes",
@@ -2083,24 +2128,29 @@ bool BlitPath::createBindGroup() {
         LOG_ERROR("Cannot create bind group: no procedural ocean foam texture");
         return false;
     }
-    
-    // Release old bind group if exists
-    if (bindGroup_) {
-        wgpuBindGroupRelease(bindGroup_);
-        bindGroup_ = nullptr;
+    const bool createStaticGroups =
+        staticDepthView_ && staticShadowView_ && backgroundView_;
+    if (createStaticGroups
+        && (!heightmapView_ || !shadowHeightView_
+            || !waterDisplacementView_ || !waterDisplacementSampler_)) {
+        LOG_ERROR(
+            "Cannot create fused water bind group: missing geometry resources");
+        return false;
     }
-    if (staticBindGroup_) {
-        wgpuBindGroupRelease(staticBindGroup_);
-        staticBindGroup_ = nullptr;
-    }
-    if (cachedBindGroup_) {
-        wgpuBindGroupRelease(cachedBindGroup_);
-        cachedBindGroup_ = nullptr;
-    }
-    if (particleBindGroup_) {
-        wgpuBindGroupRelease(particleBindGroup_);
-        particleBindGroup_ = nullptr;
-    }
+
+    WGPUBindGroup nextBindGroup = nullptr;
+    WGPUBindGroup nextStaticBindGroup = nullptr;
+    WGPUBindGroup nextCachedBindGroup = nullptr;
+    WGPUBindGroup nextParticleBindGroup = nullptr;
+    const auto cleanup = [&]() {
+        if (nextParticleBindGroup) {
+            wgpuBindGroupRelease(nextParticleBindGroup);
+        }
+        if (nextCachedBindGroup) wgpuBindGroupRelease(nextCachedBindGroup);
+        if (nextStaticBindGroup) wgpuBindGroupRelease(nextStaticBindGroup);
+        if (nextBindGroup) wgpuBindGroupRelease(nextBindGroup);
+    };
+
     std::array<gpu::BindGroupEntry, 11> entries = {
         gpu::BindGroupEntry(0).buffer(uniformBuffer_, 0, sizeof(CameraUniforms)),
         gpu::BindGroupEntry(1).textureView(depthView_),
@@ -2115,9 +2165,10 @@ bool BlitPath::createBindGroup() {
         gpu::BindGroupEntry(10).sampler(surfaceFoamSampler_)
     };
     
-    bindGroup_ = gpu::createBindGroup(device_, bindGroupLayout_, entries, "blit_bind_group");
+    nextBindGroup = gpu::createBindGroup(
+        device_, bindGroupLayout_, entries, "blit_bind_group");
     
-    if (!bindGroup_) {
+    if (!nextBindGroup) {
         LOG_ERROR("Failed to create blit bind group");
         return false;
     }
@@ -2131,16 +2182,17 @@ bool BlitPath::createBindGroup() {
             gpu::BindGroupEntry(1).textureView(depthView_),
             gpu::BindGroupEntry(2).buffer(particleBuffer_, 0, byteSize)
         };
-        particleBindGroup_ = gpu::createBindGroup(
+        nextParticleBindGroup = gpu::createBindGroup(
             device_, particleBindGroupLayout_, particleEntries,
             "underwater_particle_bind_group");
-        if (!particleBindGroup_) {
+        if (!nextParticleBindGroup) {
             LOG_ERROR("Failed to create underwater particle bind group");
+            cleanup();
             return false;
         }
     }
 
-    if (staticDepthView_ && staticShadowView_ && backgroundView_) {
+    if (createStaticGroups) {
         std::array<gpu::BindGroupEntry, 11> staticEntries = {
             gpu::BindGroupEntry(0).buffer(
                 staticUniformBuffer_, 0, sizeof(CameraUniforms)),
@@ -2156,17 +2208,12 @@ bool BlitPath::createBindGroup() {
             gpu::BindGroupEntry(9).textureView(surfaceFoamView_),
             gpu::BindGroupEntry(10).sampler(surfaceFoamSampler_)
         };
-        staticBindGroup_ = gpu::createBindGroup(
+        nextStaticBindGroup = gpu::createBindGroup(
             device_, bindGroupLayout_, staticEntries,
             "blit_static_bind_group");
-        if (!staticBindGroup_) {
+        if (!nextStaticBindGroup) {
             LOG_ERROR("Failed to create static blit bind group");
-            return false;
-        }
-
-        if (!heightmapView_ || !shadowHeightView_ ||
-            !waterDisplacementView_ || !waterDisplacementSampler_) {
-            LOG_ERROR("Cannot create fused water bind group: missing geometry resources");
+            cleanup();
             return false;
         }
 
@@ -2194,15 +2241,24 @@ bool BlitPath::createBindGroup() {
             gpu::BindGroupEntry(15).textureView(waterDisplacementView_),
             gpu::BindGroupEntry(16).sampler(waterDisplacementSampler_)
         };
-        cachedBindGroup_ = gpu::createBindGroup(
+        nextCachedBindGroup = gpu::createBindGroup(
             device_, cachedBindGroupLayout_, cachedEntries,
             "blit_cached_bind_group");
-        if (!cachedBindGroup_) {
+        if (!nextCachedBindGroup) {
             LOG_ERROR("Failed to create cached blit bind group");
+            cleanup();
             return false;
         }
-
     }
+
+    if (particleBindGroup_) wgpuBindGroupRelease(particleBindGroup_);
+    if (cachedBindGroup_) wgpuBindGroupRelease(cachedBindGroup_);
+    if (staticBindGroup_) wgpuBindGroupRelease(staticBindGroup_);
+    if (bindGroup_) wgpuBindGroupRelease(bindGroup_);
+    bindGroup_ = nextBindGroup;
+    staticBindGroup_ = nextStaticBindGroup;
+    cachedBindGroup_ = nextCachedBindGroup;
+    particleBindGroup_ = nextParticleBindGroup;
     
     bindGroupDirty_ = false;
     LOG_DEBUG("Created blit bind group");
@@ -2278,15 +2334,20 @@ void BlitPath::setLightmapTexture(WGPUTextureView lightmapView) {
 }
 
 void BlitPath::setTerrainSize(uint32_t width, uint32_t height) {
-    terrainWidth_ = width;
-    terrainHeight_ = height;
-    
     if (uniforms_) {
-        uniforms_->setTerrain(width, height, config_.heightScale, config_.cellScale,
-                              1.0f, config_.fogDensity);
+        CameraUniforms next = *uniforms_;
+        if (!next.setTerrain(
+                width, height, config_.heightScale, config_.cellScale,
+                1.0f, config_.fogDensity)) {
+            LOG_ERROR("BlitPath::setTerrainSize: invalid terrain size");
+            return;
+        }
+        *uniforms_ = next;
         uniformsDirty_ = true;
         updateStaticUniforms();
     }
+    terrainWidth_ = width;
+    terrainHeight_ = height;
     
     LOG_DEBUG("Set terrain size: {}x{}", width, height);
 }
@@ -2298,13 +2359,14 @@ void BlitPath::setTerrainSize(uint32_t width, uint32_t height) {
 void BlitPath::updateCamera(const glm::mat4& view, const glm::mat4& proj, 
                             const glm::vec3& cameraPos, float ambientIntensity) {
     if (!uniforms_) return;
-    
-    uniforms_->setCamera(view, proj, cameraPos);
+    CameraUniforms next = *uniforms_;
+    if (!next.setCamera(view, proj, cameraPos)) return;
     
     // Update light direction in view space (using hardcoded world direction)
     glm::vec3 worldLightDir = glm::normalize(glm::vec3(0.3f, 0.8f, 0.4f));
-    uniforms_->setLightDirection(worldLightDir, view, ambientIntensity);
+    if (!next.setLightDirection(worldLightDir, view, ambientIntensity)) return;
     
+    *uniforms_ = next;
     uniformsDirty_ = true;
     updateStaticUniforms();
 }
@@ -2319,17 +2381,22 @@ void BlitPath::setLegoMode(bool enabled) {
 
 void BlitPath::setCameraUniforms(const CameraUniforms& uniforms) {
     if (!uniforms_) return;
+    if (!uniforms.isValid()) {
+        LOG_ERROR("BlitPath::setCameraUniforms: invalid uniform block");
+        return;
+    }
 
     *uniforms_ = uniforms;
     uniformsDirty_ = true;
     updateStaticUniforms();
 }
 
-void BlitPath::updateUniformBuffer() {
-    if (!uniformBuffer_ || !queue_ || !uniforms_) return;
+bool BlitPath::updateUniformBuffer() {
+    if (!uniformBuffer_ || !queue_ || !uniforms_) return false;
     
-    gpu::writeBuffer(queue_, uniformBuffer_, 0, *uniforms_);
+    if (!gpu::writeBuffer(queue_, uniformBuffer_, 0, *uniforms_)) return false;
     uniformsDirty_ = false;
+    return true;
 }
 
 void BlitPath::updateStaticUniforms() {
@@ -2381,6 +2448,10 @@ void BlitPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
         LOG_WARN("BlitPath::render: not initialized");
         return;
     }
+    if (!encoder || !colorView) {
+        LOG_ERROR("BlitPath::render: invalid encoder or color view");
+        return;
+    }
     
     if (!depthView_ || !shadowView_ || !materialView_ || !terrainView_ || !lightmapView_) {
         LOG_WARN("BlitPath::render: missing required texture bindings");
@@ -2388,8 +2459,8 @@ void BlitPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
     }
     
     // Update uniform buffer if dirty
-    if (uniformsDirty_) {
-        updateUniformBuffer();
+    if (uniformsDirty_ && !updateUniformBuffer()) {
+        return;
     }
     
     // Update debug uniform buffer if dirty
@@ -2397,7 +2468,10 @@ void BlitPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
         DebugUniforms debugUniforms;
         debugUniforms.mode = debugMode_;
         debugUniforms.maxDepth = debugMaxDepth_;
-        gpu::writeBuffer(queue_, debugUniformBuffer_, 0, debugUniforms);
+        if (!gpu::writeBuffer(
+                queue_, debugUniformBuffer_, 0, debugUniforms)) {
+            return;
+        }
         debugUniformsDirty_ = false;
     }
     
@@ -2416,6 +2490,10 @@ void BlitPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
         WGPU_SET_LABEL(computePassDesc, "sky_lut_bake_pass");
         WGPUComputePassEncoder computePass =
             wgpuCommandEncoderBeginComputePass(encoder, &computePassDesc);
+        if (!computePass) {
+            LOG_ERROR("BlitPath::render: failed to begin sky LUT pass");
+            return;
+        }
         wgpuComputePassEncoderSetPipeline(computePass, skyLutPipeline_);
         wgpuComputePassEncoderSetBindGroup(computePass, 0, skyLutBindGroup_, 0, nullptr);
         wgpuComputePassEncoderDispatchWorkgroups(
@@ -2433,6 +2511,10 @@ void BlitPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
                 WGPU_SET_LABEL(mipPassDesc, "sky_lut_mip_pass");
                 WGPUComputePassEncoder mipPass =
                     wgpuCommandEncoderBeginComputePass(encoder, &mipPassDesc);
+                if (!mipPass) {
+                    LOG_ERROR("BlitPath::render: failed to begin sky LUT mip pass");
+                    return;
+                }
                 wgpuComputePassEncoderSetPipeline(mipPass,
                                                   skyLutMipPipeline_);
                 wgpuComputePassEncoderSetBindGroup(
@@ -2457,7 +2539,7 @@ void BlitPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
                                     WGPUBindGroup selectedBindGroup,
                                     const char* label,
                                     bool writeTimestamps,
-                                    bool writeLinearDepth) {
+                                    bool writeLinearDepth) -> bool {
         std::array<WGPURenderPassColorAttachment, 2> colorAttachments{};
         colorAttachments[0].view = target;
         colorAttachments[0].depthSlice = WGPU_DEPTH_SLICE_UNDEFINED;
@@ -2486,12 +2568,17 @@ void BlitPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
 
         WGPURenderPassEncoder renderPass =
             wgpuCommandEncoderBeginRenderPass(encoder, &renderPassDesc);
+        if (!renderPass) {
+            LOG_ERROR("BlitPath::render: failed to begin '{}'", label);
+            return false;
+        }
         wgpuRenderPassEncoderSetPipeline(renderPass, selectedPipeline);
         wgpuRenderPassEncoderSetBindGroup(
             renderPass, 0, selectedBindGroup, 0, nullptr);
         wgpuRenderPassEncoderDraw(renderPass, 3, 1, 0, 0);
         wgpuRenderPassEncoderEnd(renderPass);
         wgpuRenderPassEncoderRelease(renderPass);
+        return true;
     };
 
     const bool useCachedPath = staticCacheActive_ && backgroundView_ &&
@@ -2504,12 +2591,17 @@ void BlitPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
         waterClipmapIndexCount_ != 0u;
     if (useCachedPath && (!backgroundValid_ || backgroundDirty_)) {
         if (staticUniformsDirty_) {
-            gpu::writeBuffer(queue_, staticUniformBuffer_, 0,
-                             *staticUniforms_);
+            if (!gpu::writeBuffer(
+                    queue_, staticUniformBuffer_, 0, *staticUniforms_)) {
+                return;
+            }
             staticUniformsDirty_ = false;
         }
-        drawFullscreen(backgroundView_, backgroundPipeline_, staticBindGroup_,
-                       "blit_static_background_pass", false, false);
+        if (!drawFullscreen(backgroundView_, backgroundPipeline_,
+                            staticBindGroup_,
+                            "blit_static_background_pass", false, false)) {
+            return;
+        }
         backgroundValid_ = true;
         backgroundDirty_ = false;
     }
@@ -2519,7 +2611,6 @@ void BlitPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
     const bool preserveLinearDepth =
         linearDepthRequired_ || cameraUnderwater;
     if (useCachedPath && backgroundValid_) {
-        usedGeometryWaterPathLastRender_ = true;
         std::array<WGPURenderPassColorAttachment, 2> colorAttachments{};
         colorAttachments[0].view = colorView;
         colorAttachments[0].depthSlice = WGPU_DEPTH_SLICE_UNDEFINED;
@@ -2558,6 +2649,11 @@ void BlitPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
 
         WGPURenderPassEncoder renderPass =
             wgpuCommandEncoderBeginRenderPass(encoder, &renderPassDesc);
+        if (!renderPass) {
+            LOG_ERROR("BlitPath::render: failed to begin water clipmap pass");
+            return;
+        }
+        usedGeometryWaterPathLastRender_ = true;
         if (uniforms_->waterParams.y > 0.5f) {
             wgpuRenderPassEncoderSetStencilReference(renderPass, 1u);
             wgpuRenderPassEncoderSetPipeline(
@@ -2589,12 +2685,14 @@ void BlitPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
         wgpuRenderPassEncoderEnd(renderPass);
         wgpuRenderPassEncoderRelease(renderPass);
     } else {
-        drawFullscreen(colorView, pipeline_, bindGroup_,
-                       "blit_render_pass", true, false);
+        if (!drawFullscreen(colorView, pipeline_, bindGroup_,
+                            "blit_render_pass", true, false)) {
+            return;
+        }
     }
 
     if (cameraUnderwater && particlePipeline_ && particleBindGroup_) {
-        updateUnderwaterParticles();
+        if (!updateUnderwaterParticles()) return;
 
         WGPURenderPassColorAttachment colorAttachment{};
         colorAttachment.view = colorView;
@@ -2608,6 +2706,10 @@ void BlitPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
         passDescriptor.colorAttachments = &colorAttachment;
         WGPURenderPassEncoder pass =
             wgpuCommandEncoderBeginRenderPass(encoder, &passDescriptor);
+        if (!pass) {
+            LOG_ERROR("BlitPath::render: failed to begin underwater particle pass");
+            return;
+        }
         wgpuRenderPassEncoderSetPipeline(pass, particlePipeline_);
         wgpuRenderPassEncoderSetBindGroup(
             pass, 0, particleBindGroup_, 0, nullptr);
@@ -2623,6 +2725,10 @@ void BlitPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
 // ─────────────────────────────────────────────────────────────────────────────
 
 void BlitPath::setDebugMode(uint32_t mode) {
+    if (mode > 3u) {
+        LOG_ERROR("BlitPath::setDebugMode: invalid mode {}", mode);
+        return;
+    }
     if (debugMode_ != mode) {
         debugMode_ = mode;
         debugUniformsDirty_ = true;
@@ -2631,6 +2737,10 @@ void BlitPath::setDebugMode(uint32_t mode) {
 }
 
 void BlitPath::setDebugMaxDepth(float maxDepth) {
+    if (!std::isfinite(maxDepth) || maxDepth <= 0.0f) {
+        LOG_ERROR("BlitPath::setDebugMaxDepth: invalid depth");
+        return;
+    }
     if (debugMaxDepth_ != maxDepth) {
         debugMaxDepth_ = maxDepth;
         debugUniformsDirty_ = true;

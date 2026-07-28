@@ -7,9 +7,14 @@
     #include "engine/platform/window.hpp"
 #endif
 #include "core/log.hpp"
+#include "gpu/webgpu_compat.hpp"
 
 #include <cstring>
 #include <vector>
+
+#if defined(VOXY_NATIVE)
+    #include <wgpu/wgpu.h>
+#endif
 
 // Platform-specific sleep includes for Dawn async polling
 #if defined(VOXY_USE_DAWN)
@@ -67,6 +72,15 @@ WGPUPresentMode selectPresentMode(const WGPUSurfaceCapabilities& caps,
         ? caps.presentModes[0] : WGPUPresentMode_Fifo;
 }
 #endif
+
+bool validSurfaceExtent(
+    WGPUDevice device, uint32_t width, uint32_t height) {
+    if (!device || width == 0u || height == 0u) return false;
+    WGPULimits limits{};
+    return getDeviceLimits(device, limits)
+        && width <= limits.maxTextureDimension2D
+        && height <= limits.maxTextureDimension2D;
+}
 
 } // namespace
 
@@ -157,21 +171,32 @@ bool Context::init(Window& window, const ContextConfig& config) {
     
     // wgpu-native uses standard WebGPU C API - no proc table setup needed
     
-    if (!createInstance()) {
+    if (!createInstance(config)) {
+        shutdown();
         return false;
     }
     
     if (!createSurface(window)) {
+        shutdown();
         return false;
     }
     
     if (!requestAdapter(config)) {
+        shutdown();
         return false;
     }
     
     queryAdapterInfo();
+    if (config.forceDiscreteGPU
+        && adapterInfo_.adapterType != WGPUAdapterType_DiscreteGPU) {
+        LOG_ERROR("A discrete GPU was required, but the selected adapter is {}",
+                  adapterTypeToString(adapterInfo_.adapterType));
+        shutdown();
+        return false;
+    }
     
     if (!requestDevice(config)) {
+        shutdown();
         return false;
     }
     
@@ -179,10 +204,12 @@ bool Context::init(Window& window, const ContextConfig& config) {
     queue_ = wgpuDeviceGetQueue(device_);
     if (!queue_) {
         LOG_ERROR("Failed to get device queue");
+        shutdown();
         return false;
     }
     
     if (!configureSurface(config)) {
+        shutdown();
         return false;
     }
     
@@ -198,23 +225,34 @@ bool Context::initHeadless(const ContextConfig& config) {
         return true;
     }
     
-    if (!createInstance()) {
+    if (!createInstance(config)) {
+        shutdown();
         return false;
     }
     
     if (!requestAdapter(config)) {
+        shutdown();
         return false;
     }
     
     queryAdapterInfo();
+    if (config.forceDiscreteGPU
+        && adapterInfo_.adapterType != WGPUAdapterType_DiscreteGPU) {
+        LOG_ERROR("A discrete GPU was required, but the selected adapter is {}",
+                  adapterTypeToString(adapterInfo_.adapterType));
+        shutdown();
+        return false;
+    }
     
     if (!requestDevice(config)) {
+        shutdown();
         return false;
     }
     
     queue_ = wgpuDeviceGetQueue(device_);
     if (!queue_) {
         LOG_ERROR("Failed to get device queue");
+        shutdown();
         return false;
     }
     
@@ -231,11 +269,13 @@ bool Context::initFromCanvas(const char* canvasSelector, const ContextConfig& co
         return true;
     }
     
-    if (!createInstance()) {
+    if (!createInstance(config)) {
+        shutdown();
         return false;
     }
     
     if (!createSurfaceFromCanvas(canvasSelector)) {
+        shutdown();
         return false;
     }
 
@@ -243,16 +283,23 @@ bool Context::initFromCanvas(const char* canvasSelector, const ContextConfig& co
     device_ = emscripten_webgpu_get_device();
     if (!device_) {
         LOG_ERROR("emscripten_webgpu_get_device returned null");
+        shutdown();
         return false;
     }
+    if (!callbackState_) {
+        callbackState_ = std::make_unique<CallbackState>();
+    }
+    callbackState_->context = this;
     
     queue_ = wgpuDeviceGetQueue(device_);
     if (!queue_) {
         LOG_ERROR("Failed to get device queue");
+        shutdown();
         return false;
     }
     
     if (!configureSurface(config)) {
+        shutdown();
         return false;
     }
     
@@ -260,22 +307,26 @@ bool Context::initFromCanvas(const char* canvasSelector, const ContextConfig& co
     return true;
 #else
     if (!requestAdapter(config)) {
+        shutdown();
         return false;
     }
     
     queryAdapterInfo();
     
     if (!requestDevice(config)) {
+        shutdown();
         return false;
     }
     
     queue_ = wgpuDeviceGetQueue(device_);
     if (!queue_) {
         LOG_ERROR("Failed to get device queue");
+        shutdown();
         return false;
     }
     
     if (!configureSurface(config)) {
+        shutdown();
         return false;
     }
     
@@ -314,6 +365,12 @@ bool Context::createSurfaceFromCanvas(const char* selector) {
 #endif
 
 void Context::shutdown() {
+    // A final device callback may be delivered while the backend releases its
+    // last handle. Never let that callback re-enter a half-torn-down Context.
+    if (callbackState_) {
+        callbackState_->context = nullptr;
+    }
+
     if (currentTextureView_) {
         wgpuTextureViewRelease(currentTextureView_);
         currentTextureView_ = nullptr;
@@ -361,9 +418,27 @@ void Context::shutdown() {
 // Instance Creation
 // ─────────────────────────────────────────────────────────────────────────────
 
-bool Context::createInstance() {
+bool Context::createInstance(const ContextConfig& config) {
     WGPUInstanceDescriptor instanceDesc = {};
     instanceDesc.nextInChain = nullptr;
+
+#if defined(VOXY_NATIVE)
+    WGPUInstanceExtras extras{};
+    extras.chain.sType =
+        static_cast<WGPUSType>(WGPUSType_InstanceExtras);
+    extras.backends = WGPUInstanceBackend_All;
+    // A nonzero non-validation flag is deliberate: in wgpu-native, zero asks
+    // for build-dependent defaults rather than an explicitly lean instance.
+    extras.flags = config.enableValidation
+        ? WGPUInstanceFlag_Validation
+        : WGPUInstanceFlag_DiscardHalLabels;
+    extras.dx12ShaderCompiler = WGPUDx12Compiler_Undefined;
+    extras.gles3MinorVersion = WGPUGles3MinorVersion_Automatic;
+    instanceDesc.nextInChain =
+        reinterpret_cast<WGPUChainedStruct*>(&extras);
+#else
+    static_cast<void>(config);
+#endif
     
     instance_ = wgpuCreateInstance(&instanceDesc);
     if (!instance_) {
@@ -495,23 +570,16 @@ bool Context::requestAdapter(const ContextConfig& config) {
     // in a loop until the callback fires. For Dawn compatibility, we poll events.
     // Note: If using Dawn, this requires linking against Dawn's implementation.
 #if defined(VOXY_USE_DAWN)
-    // Dawn is asynchronous - poll events until callback is done
-    constexpr int maxPollAttempts = 1000;
-    int pollAttempt = 0;
-    while (!userData.done && pollAttempt < maxPollAttempts) {
+    // This callback owns pointers to stack state. The legacy callback API has
+    // no cancellation operation, so returning on an arbitrary timeout would
+    // leave Dawn able to write through a dangling userdata pointer.
+    while (!userData.done) {
         wgpuInstanceProcessEvents(instance_);
-        pollAttempt++;
-        // Small sleep to avoid busy-waiting (platform-specific)
         #if defined(_WIN32)
             Sleep(1);
         #else
             usleep(1000);
         #endif
-    }
-    
-    if (pollAttempt >= maxPollAttempts) {
-        LOG_ERROR("Adapter request timed out after {} poll attempts", maxPollAttempts);
-        return false;
     }
 #endif
     
@@ -570,6 +638,8 @@ bool Context::requestDevice(const ContextConfig& config) {
     // Set up device lost callback
     deviceDesc.deviceLostCallback = onDeviceLost;
     deviceDesc.deviceLostUserdata = callbackState_.get();
+    deviceDesc.uncapturedErrorCallbackInfo.callback = onUncapturedError;
+    deviceDesc.uncapturedErrorCallbackInfo.userdata = callbackState_.get();
     
     // Synchronous device request
     struct DeviceUserData {
@@ -593,22 +663,15 @@ bool Context::requestDevice(const ContextConfig& config) {
     // wgpu-native calls the callback synchronously.
     // Dawn (and browser WebGPU) requires wgpuInstanceProcessEvents() to be called.
 #if defined(VOXY_USE_DAWN)
-    // Dawn is asynchronous - poll events until callback is done
-    constexpr int maxPollAttempts = 1000;
-    int pollAttempt = 0;
-    while (!userData.done && pollAttempt < maxPollAttempts) {
+    // See requestAdapter(): request userdata must remain alive until Dawn
+    // invokes the non-cancellable legacy callback.
+    while (!userData.done) {
         wgpuInstanceProcessEvents(instance_);
-        pollAttempt++;
         #if defined(_WIN32)
             Sleep(1);
         #else
             usleep(1000);
         #endif
-    }
-    
-    if (pollAttempt >= maxPollAttempts) {
-        LOG_ERROR("Device request timed out after {} poll attempts", maxPollAttempts);
-        return false;
     }
 #endif
     
@@ -641,6 +704,11 @@ bool Context::configureSurface(const ContextConfig& config) {
         return true;  // Headless mode
     }
     
+    if ((config.swapchainWidth == 0u) != (config.swapchainHeight == 0u)) {
+        LOG_ERROR("Surface dimensions must both be zero or both be nonzero");
+        return false;
+    }
+
 #if defined(VOXY_WASM)
     swapchainFormat_ = (config.preferredFormat != WGPUTextureFormat_Undefined)
         ? config.preferredFormat
@@ -648,6 +716,12 @@ bool Context::configureSurface(const ContextConfig& config) {
     
     swapchainWidth_ = config.swapchainWidth > 0 ? config.swapchainWidth : 1280;
     swapchainHeight_ = config.swapchainHeight > 0 ? config.swapchainHeight : 720;
+    if (!validSurfaceExtent(
+            device_, swapchainWidth_, swapchainHeight_)) {
+        LOG_ERROR("Invalid or unsupported surface extent: {}x{}",
+                  swapchainWidth_, swapchainHeight_);
+        return false;
+    }
     
     WGPUSurfaceConfiguration surfaceConfig = {};
     surfaceConfig.device = device_;
@@ -674,6 +748,19 @@ bool Context::configureSurface(const ContextConfig& config) {
     // Get surface capabilities
     WGPUSurfaceCapabilities caps = {};
     wgpuSurfaceGetCapabilities(surface_, adapter_, &caps);
+    if (caps.formatCount == 0u || !caps.formats) {
+        LOG_ERROR("Surface reports no supported texture formats");
+        wgpuSurfaceCapabilitiesFreeMembers(caps);
+        return false;
+    }
+    constexpr WGPUTextureUsageFlags requiredSurfaceUsage =
+        WGPUTextureUsage_RenderAttachment | WGPUTextureUsage_CopySrc;
+    if ((caps.usages & requiredSurfaceUsage) != requiredSurfaceUsage
+        || caps.presentModeCount == 0u || !caps.presentModes) {
+        LOG_ERROR("Surface lacks required usage or presentation support");
+        wgpuSurfaceCapabilitiesFreeMembers(caps);
+        return false;
+    }
     
     // Choose format
     swapchainFormat_ = config.preferredFormat;
@@ -694,6 +781,13 @@ bool Context::configureSurface(const ContextConfig& config) {
     // Use provided dimensions or default to reasonable size
     swapchainWidth_ = config.swapchainWidth > 0 ? config.swapchainWidth : 1280;
     swapchainHeight_ = config.swapchainHeight > 0 ? config.swapchainHeight : 720;
+    if (!validSurfaceExtent(
+            device_, swapchainWidth_, swapchainHeight_)) {
+        LOG_ERROR("Invalid or unsupported surface extent: {}x{}",
+                  swapchainWidth_, swapchainHeight_);
+        wgpuSurfaceCapabilitiesFreeMembers(caps);
+        return false;
+    }
 
     const WGPUPresentMode selectedPresentMode =
         selectPresentMode(caps, config.presentMode);
@@ -767,13 +861,14 @@ void Context::queryAdapterInfo() {
 // Swapchain Management
 // ─────────────────────────────────────────────────────────────────────────────
 
-void Context::resizeSwapchain(uint32_t width, uint32_t height) {
-    if (!surface_ || width == 0 || height == 0) {
-        return;
+bool Context::resizeSwapchain(uint32_t width, uint32_t height) {
+    if (!surface_ || !validSurfaceExtent(device_, width, height)
+        || lastSurfaceConfig_.format == WGPUTextureFormat_Undefined) {
+        return false;
     }
     
     if (width == swapchainWidth_ && height == swapchainHeight_) {
-        return;
+        return true;
     }
     
     // Release current texture view if any
@@ -802,9 +897,10 @@ void Context::resizeSwapchain(uint32_t width, uint32_t height) {
     wgpuSurfaceConfigure(surface_, &surfaceConfig);
     
     LOG_DEBUG("Swapchain resized: {}x{}", swapchainWidth_, swapchainHeight_);
+    return true;
 }
 
-void Context::setPresentMode(WGPUPresentMode mode) {
+bool Context::setPresentMode(WGPUPresentMode mode) {
 #if defined(VOXY_WASM)
     // Browser WebGPU only supports Fifo present mode.
     // Uncapped FPS on WASM is achieved via Emscripten's main loop timing
@@ -812,14 +908,18 @@ void Context::setPresentMode(WGPUPresentMode mode) {
     // Attempting to configure with Immediate mode would cause an assertion failure.
     (void)mode;
     LOG_DEBUG("setPresentMode ignored on WASM (browser only supports Fifo)");
-    return;
+    return true;
 #else
     if (!surface_ || lastSurfaceConfig_.width == 0) {
-        return;
+        return false;
     }
 
     WGPUSurfaceCapabilities caps = {};
     wgpuSurfaceGetCapabilities(surface_, adapter_, &caps);
+    if (caps.presentModeCount == 0u || !caps.presentModes) {
+        wgpuSurfaceCapabilitiesFreeMembers(caps);
+        return false;
+    }
     const WGPUPresentMode selectedMode = selectPresentMode(caps, mode);
     wgpuSurfaceCapabilitiesFreeMembers(caps);
     if (selectedMode != mode) {
@@ -829,7 +929,9 @@ void Context::setPresentMode(WGPUPresentMode mode) {
     }
 
     if (lastSurfaceConfig_.presentMode == selectedMode) {
-        return;
+        return mode == selectedMode
+            || (mode == WGPUPresentMode_Immediate
+                && selectedMode == WGPUPresentMode_Mailbox);
     }
 
     // Release current resources if any, though usually handled in next frame loop
@@ -848,6 +950,9 @@ void Context::setPresentMode(WGPUPresentMode mode) {
 
     LOG_INFO("Presentation mode changed to: {}",
              presentModeToString(selectedMode));
+    return mode == selectedMode
+        || (mode == WGPUPresentMode_Immediate
+            && selectedMode == WGPUPresentMode_Mailbox);
 #endif
 }
 
@@ -873,16 +978,23 @@ WGPUTextureView Context::getCurrentTextureView() {
     if (surfaceTexture.status != WGPUSurfaceGetCurrentTextureStatus_SuccessOptimal &&
         surfaceTexture.status != WGPUSurfaceGetCurrentTextureStatus_SuccessSuboptimal) {
         LOG_ERROR("Failed to get current surface texture: status={}", static_cast<int>(surfaceTexture.status));
+        if (surfaceTexture.texture) {
+            wgpuTextureRelease(surfaceTexture.texture);
+        }
         return nullptr;
     }
 #else
     if (surfaceTexture.status != WGPUSurfaceGetCurrentTextureStatus_Success) {
         LOG_ERROR("Failed to get current surface texture: status={}", static_cast<int>(surfaceTexture.status));
+        if (surfaceTexture.texture) {
+            wgpuTextureRelease(surfaceTexture.texture);
+        }
         return nullptr;
     }
 #endif
     
     if (!surfaceTexture.texture) {
+        LOG_ERROR("Surface acquisition succeeded without a texture");
         return nullptr;
     }
     
@@ -899,6 +1011,12 @@ WGPUTextureView Context::getCurrentTextureView() {
     viewDesc.aspect = WGPUTextureAspect_All;
     
     currentTextureView_ = wgpuTextureCreateView(currentTexture_, &viewDesc);
+    if (!currentTextureView_) {
+        LOG_ERROR("Failed to create the current surface texture view");
+        wgpuTextureRelease(currentTexture_);
+        currentTexture_ = nullptr;
+        return nullptr;
+    }
     
     return currentTextureView_;
 }
@@ -926,9 +1044,14 @@ void Context::present() {
 }
 
 void Context::tick() {
-    // In wgpu-native, work is processed automatically
-    // This function is kept for API compatibility
+#if defined(VOXY_USE_DAWN)
+    if (instance_) {
+        wgpuInstanceProcessEvents(instance_);
+    }
+#else
+    // wgpu-native and browser event loops process callbacks automatically.
     (void)device_;
+#endif
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

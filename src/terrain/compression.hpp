@@ -11,6 +11,7 @@
 
 #include <cstdint>
 #include <filesystem>
+#include <limits>
 #include <span>
 #include <string>
 #include <string_view>
@@ -31,6 +32,12 @@ constexpr uint32_t LDH_VERSION = 1;
 
 /// LDH header size in bytes
 constexpr size_t LDH_HEADER_SIZE = 64;
+
+/// WebGPU's guaranteed 2D texture limit and a practical decompression ceiling.
+/// This also prevents tiny hostile files from requesting multi-gigabyte output.
+constexpr uint32_t LDH_MAX_DIMENSION = 8'192;
+constexpr size_t LDH_MAX_SAMPLE_COUNT =
+    static_cast<size_t>(LDH_MAX_DIMENSION) * LDH_MAX_DIMENSION;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // LDH Flags
@@ -96,7 +103,10 @@ struct LDHHeader {
         return magic == LDH_MAGIC && 
                version == LDH_VERSION &&
                width > 0 && 
-               height > 0;
+               height > 0 &&
+               width <= LDH_MAX_DIMENSION &&
+               height <= LDH_MAX_DIMENSION &&
+               sampleCount() <= LDH_MAX_SAMPLE_COUNT;
     }
     
     /// Get flags as enum
@@ -121,13 +131,28 @@ struct LDHHeader {
     
     /// Get total compressed data size (low + high streams)
     [[nodiscard]] size_t compressedDataSize() const noexcept {
-        return static_cast<size_t>(lowStreamSize) + static_cast<size_t>(highStreamSize);
+        if (static_cast<size_t>(lowStreamSize)
+            > std::numeric_limits<size_t>::max()
+                - static_cast<size_t>(highStreamSize)) {
+            return 0;
+        }
+        return static_cast<size_t>(lowStreamSize)
+             + static_cast<size_t>(highStreamSize);
     }
     
     /// Get expected file size
     [[nodiscard]] size_t expectedFileSize() const noexcept {
-        size_t size = LDH_HEADER_SIZE + compressedDataSize();
+        const size_t compressed = compressedDataSize();
+        if (compressed > std::numeric_limits<size_t>::max()
+                             - LDH_HEADER_SIZE) {
+            return 0;
+        }
+        size_t size = LDH_HEADER_SIZE + compressed;
         if (hasFlag(getFlags(), LDHFlags::HasChecksum)) {
+            if (size > std::numeric_limits<size_t>::max()
+                           - sizeof(uint32_t)) {
+                return 0;
+            }
             size += sizeof(uint32_t);
         }
         return size;
@@ -420,4 +445,3 @@ void decodeWithPredictor(std::span<const uint8_t> lowStream,
 } // namespace detail
 
 } // namespace voxy::terrain
-

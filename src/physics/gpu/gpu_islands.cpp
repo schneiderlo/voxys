@@ -169,7 +169,10 @@ public:
             return false;
         }
         const std::array<uint32_t, kTelemetryWords> zeroTelemetry{};
-        gpu::writeBuffer(queue_, telemetry_, 0, zeroTelemetry);
+        if (!gpu::writeBuffer(queue_, telemetry_, 0, zeroTelemetry)) {
+            shutdown();
+            return false;
+        }
         scratchBytes_ = gpu::saturatingSize(
             primitives_.scratchBytes()
             + gpu::alignUniformBufferSize(sizeof(Params))
@@ -564,7 +567,8 @@ public:
             config_.linearSleepThreshold * config_.linearSleepThreshold,
             config_.angularSleepThreshold * config_.angularSleepThreshold,
             config_.sleepingCellSize, cellsPerSector};
-        gpu::writeBuffer(queue_, parameterBuffer_, 0, params);
+        if (!gpu::writeBuffer(queue_, parameterBuffer_, 0, params))
+            return false;
         const auto parameterEntry = [this] {
             return gpu::BindGroupEntry(10).buffer(
                 parameterBuffer_, 0, sizeof(Params));
@@ -611,6 +615,7 @@ public:
             WGPUComputePassDescriptor passDesc{};
             WGPUComputePassEncoder pass =
                 wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
+            if (!pass) return false;
             wgpuComputePassEncoderSetBindGroup(
                 pass, 0, buildGroup, 0, nullptr);
             wgpuComputePassEncoderSetPipeline(pass, smallBuildPipeline_);
@@ -677,6 +682,7 @@ public:
         WGPUComputePassDescriptor passDesc{};
         WGPUComputePassEncoder pass =
             wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
+        if (!pass) return false;
         wgpuComputePassEncoderSetBindGroup(pass, 0, resetGroup, 0, nullptr);
         wgpuComputePassEncoderSetPipeline(pass, resetPipeline_);
         wgpuComputePassEncoderDispatchWorkgroups(
@@ -689,6 +695,7 @@ public:
         wgpuComputePassEncoderRelease(pass);
 
         pass = wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
+        if (!pass) return false;
         wgpuComputePassEncoderSetBindGroup(pass, 0, unionGroup, 0, nullptr);
         // Hooking propagates the minimum component label across one edge,
         // then pointer jumping doubles the covered distance. Therefore
@@ -722,6 +729,7 @@ public:
         wgpuComputePassEncoderRelease(pass);
 
         pass = wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
+        if (!pass) return false;
         wgpuComputePassEncoderSetBindGroup(pass, 0, recordGroup, 0, nullptr);
         wgpuComputePassEncoderSetPipeline(pass, recordPipeline_);
         wgpuComputePassEncoderDispatchWorkgroups(pass, bodyGroups, 1, 1);
@@ -786,6 +794,7 @@ public:
         if (!rangeGroup || !classifyGroup || !decideGroup || !eventGroup
             || !applyGroup) return false;
         pass = wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
+        if (!pass) return false;
         wgpuComputePassEncoderSetBindGroup(pass, 0, rangeGroup, 0, nullptr);
         wgpuComputePassEncoderSetPipeline(pass, markRangePipeline_);
         wgpuComputePassEncoderDispatchWorkgroups(pass, bodyGroups, 1, 1);
@@ -797,6 +806,7 @@ public:
                 input_.bodyCapacity, 2u)) return false;
 
         pass = wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
+        if (!pass) return false;
         wgpuComputePassEncoderSetBindGroup(pass, 0, rangeGroup, 0, nullptr);
         wgpuComputePassEncoderSetPipeline(pass, finalizeRangePipeline_);
         wgpuComputePassEncoderDispatchWorkgroups(pass, 1, 1, 1);
@@ -818,6 +828,7 @@ public:
                 input_.bodyCapacity, 3u)) return false;
 
         pass = wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
+        if (!pass) return false;
         wgpuComputePassEncoderSetBindGroup(pass, 0, eventGroup, 0, nullptr);
         wgpuComputePassEncoderSetPipeline(pass, finalizeEventsPipeline_);
         wgpuComputePassEncoderDispatchWorkgroups(pass, 1, 1, 1);
@@ -831,6 +842,7 @@ public:
 
         WGPUBindGroup sleepingRangeGroup = cachedStaticGroups_[1];
         pass = wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
+        if (!pass) return false;
         wgpuComputePassEncoderSetBindGroup(
             pass, 0, sleepingRangeGroup, 0, nullptr);
         wgpuComputePassEncoderSetPipeline(pass, markSleepingEntriesPipeline_);
@@ -845,6 +857,7 @@ public:
         }
 
         pass = wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
+        if (!pass) return false;
         wgpuComputePassEncoderSetBindGroup(
             pass, 0, sleepingRangeGroup, 0, nullptr);
         wgpuComputePassEncoderSetPipeline(pass, compactSleepingEntriesPipeline_);
@@ -863,6 +876,7 @@ public:
         }
 
         pass = wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
+        if (!pass) return false;
         wgpuComputePassEncoderSetBindGroup(
             pass, 0, sleepingRangeGroup, 0, nullptr);
         wgpuComputePassEncoderSetPipeline(pass, markSleepingRangePipeline_);
@@ -879,6 +893,7 @@ public:
         }
 
         pass = wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
+        if (!pass) return false;
         wgpuComputePassEncoderSetBindGroup(
             pass, 0, sleepingRangeGroup, 0, nullptr);
         wgpuComputePassEncoderSetPipeline(pass, finalizeSleepingRangePipeline_);

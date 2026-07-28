@@ -73,7 +73,10 @@ public:
             return false;
         }
         const std::array<uint32_t, 32> zeros{};
-        gpu::writeBuffer(queue_, fallbackBuffer_, 0, zeros);
+        if (!gpu::writeBuffer(queue_, fallbackBuffer_, 0, zeros)) {
+            shutdown();
+            return false;
+        }
 
         shader_ = gpu::loadShaderModule(
             device_, config_.shaderPath, "physics_event_readback.wgsl");
@@ -150,7 +153,8 @@ public:
                      sources_.hasHits() ? sources_.manifoldCapacity : 0u,
                      sources_.metadata ? sources_.bodyCapacity : 0u},
         };
-        gpu::writeBuffer(queue_, parameterBuffer_, 0, params);
+        if (!gpu::writeBuffer(queue_, parameterBuffer_, 0, params))
+            return false;
         const std::array<gpu::BindGroupEntry, 9> entries = {
             gpu::BindGroupEntry(0).buffer(sources_.hasContacts()
                 ? sources_.contactEvents : fallbackBuffer_),
@@ -176,6 +180,10 @@ public:
         WGPUComputePassDescriptor passDesc{};
         WGPUComputePassEncoder pass =
             wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
+        if (!pass) {
+            wgpuBindGroupRelease(group);
+            return false;
+        }
         wgpuComputePassEncoderSetPipeline(pass, pipeline_);
         wgpuComputePassEncoderSetBindGroup(pass, 0, group, 0, nullptr);
         wgpuComputePassEncoderDispatchWorkgroups(pass, 1, 1, 1);
@@ -231,24 +239,29 @@ GpuEventReadbackRing& GpuEventReadbackRing::operator=(
 
 bool GpuEventReadbackRing::initialize(
     WGPUDevice device, WGPUQueue queue, const Config& config) {
-    return impl_->initialize(device, queue, config);
+    auto replacement = std::make_unique<Impl>();
+    if (!replacement->initialize(device, queue, config)) return false;
+    impl_ = std::move(replacement);
+    return true;
 }
-void GpuEventReadbackRing::shutdown() { impl_->shutdown(); }
+void GpuEventReadbackRing::shutdown() {
+    if (impl_) impl_->shutdown();
+}
 void GpuEventReadbackRing::setSources(const GpuEventSources& sources) {
-    impl_->setSources(sources);
+    if (impl_) impl_->setSources(sources);
 }
 bool GpuEventReadbackRing::encodeReadback(
     WGPUCommandEncoder encoder, uint64_t tick) {
-    return impl_->encodeReadback(encoder, tick);
+    return impl_ && impl_->encodeReadback(encoder, tick);
 }
 std::optional<GpuEventBatch> GpuEventReadbackRing::poll() {
-    return impl_->poll();
+    return impl_ ? impl_->poll() : std::nullopt;
 }
 WGPUBuffer GpuEventReadbackRing::packedEventBuffer() const noexcept {
-    return impl_->packedEvents_;
+    return impl_ ? impl_->packedEvents_ : nullptr;
 }
 size_t GpuEventReadbackRing::allocatedBytes() const noexcept {
-    return impl_->allocatedBytes_;
+    return impl_ ? impl_->allocatedBytes_ : 0u;
 }
 
 } // namespace voxy::physics

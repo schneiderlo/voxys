@@ -12,6 +12,7 @@ namespace {
 
 constexpr uint32_t kSnapshotSchemaVersion = 1;
 constexpr uint32_t kMaximumSnapshotBodies = 1'048'576;
+constexpr uint64_t kSnapshotHeaderBytes = 52u;
 constexpr uint32_t kFnvOffset = 2'166'136'261u;
 constexpr uint32_t kFnvPrime = 16'777'619u;
 
@@ -117,6 +118,72 @@ void canonicalizeBodies(
         }), bodies.end());
 }
 
+bool canonicalBodies(
+    std::span<const physics::deterministic::LockstepBody> bodies) noexcept {
+    for (size_t index = 0; index < bodies.size(); ++index) {
+        if (!bodyAlive(bodies[index]) || bodies[index].sectorRadius[3] <= 0
+            || (index != 0u
+                && bodies[index - 1u].identity[0]
+                    >= bodies[index].identity[0])) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool canonicalRemovals(std::span<const uint32_t> removals) noexcept {
+    return std::is_sorted(removals.begin(), removals.end())
+        && std::adjacent_find(removals.begin(), removals.end())
+            == removals.end();
+}
+
+bool snapshotWireSize(
+    size_t bodyCount, size_t removedCount, uint64_t& bytes) noexcept {
+    if (bodyCount > kMaximumSnapshotBodies
+        || removedCount > kMaximumSnapshotBodies) {
+        return false;
+    }
+    bytes = kSnapshotHeaderBytes
+        + uint64_t{bodyCount}
+            * sizeof(physics::deterministic::LockstepBody)
+        + uint64_t{removedCount} * sizeof(uint32_t);
+    return bytes <= kMaximumReliableFrameBytes
+        - kNetworkPacketOverheadBytes;
+}
+
+bool validSnapshotShape(const AuthoritativeSnapshot& snapshot) noexcept {
+    uint64_t wireBytes = 0u;
+    if (snapshot.islandId == 0u || snapshot.authorityEpoch == 0u
+        || !snapshotWireSize(
+            snapshot.bodies.size(), snapshot.removedBodyIds.size(), wireBytes)
+        || !canonicalBodies(snapshot.bodies)
+        || !canonicalRemovals(snapshot.removedBodyIds)) {
+        return false;
+    }
+    if (snapshot.full) {
+        return snapshot.baselineTick == 0u
+            && snapshot.removedBodyIds.empty();
+    }
+    if (snapshot.baselineTick >= snapshot.tick) return false;
+    for (const auto& body : snapshot.bodies) {
+        if (std::binary_search(snapshot.removedBodyIds.begin(),
+                               snapshot.removedBodyIds.end(),
+                               body.identity[0])) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool sameSnapshotState(
+    const AuthoritativeSnapshot& lhs,
+    const AuthoritativeSnapshot& rhs) noexcept {
+    return lhs.stateHash == rhs.stateHash
+        && lhs.bodies.size() == rhs.bodies.size()
+        && std::equal(lhs.bodies.begin(), lhs.bodies.end(),
+                      rhs.bodies.begin(), sameBody);
+}
+
 int64_t floorDivide(int64_t numerator, int64_t denominator) noexcept {
     int64_t quotient = numerator / denominator;
     if (numerator < 0 && numerator % denominator != 0) --quotient;
@@ -161,7 +228,9 @@ std::vector<InputFrame> InputRedundancyBuffer::bundle(
 
 std::vector<InputFrame> InputRedundancyBuffer::ingest(
     std::span<const InputFrame> redundantFrames) {
+    if (redundantFrames.size() > kMaximumInputFramesPerBundle) return {};
     std::vector<InputFrame> accepted;
+    accepted.reserve(redundantFrames.size());
     for (const auto& frame : redundantFrames) {
         if (push(frame)) accepted.push_back(frame);
     }
@@ -182,15 +251,19 @@ void InputRedundancyBuffer::acknowledge(uint64_t tick) {
 
 std::vector<std::byte> InputRedundancyBuffer::encode(
     std::span<const InputFrame> input) {
-    std::vector<InputFrame> frames(input.begin(), input.end());
-    std::stable_sort(frames.begin(), frames.end(),
-        [](const InputFrame& lhs, const InputFrame& rhs) {
-            return std::tie(lhs.tick, lhs.sequence)
-                 < std::tie(rhs.tick, rhs.sequence);
-        });
-    if (frames.size() > kMaximumInputFramesPerBundle) {
-        frames.erase(frames.begin(), frames.end()
-            - static_cast<std::ptrdiff_t>(kMaximumInputFramesPerBundle));
+    std::vector<InputFrame> frames;
+    frames.reserve(std::min<size_t>(
+        input.size(), kMaximumInputFramesPerBundle));
+    for (const auto& frame : input) {
+        const auto iterator = std::upper_bound(
+            frames.begin(), frames.end(), frame,
+            [](const InputFrame& value, const InputFrame& existing) {
+                return std::tie(value.tick, value.sequence)
+                    < std::tie(existing.tick, existing.sequence);
+            });
+        frames.insert(iterator, frame);
+        if (frames.size() > kMaximumInputFramesPerBundle)
+            frames.erase(frames.begin());
     }
     Writer writer;
     writer.u32(static_cast<uint32_t>(frames.size()));
@@ -255,8 +328,9 @@ bool TickSynchronizer::observe(const TickSyncSample& sample) {
         samples_ = 0;
         minimumRttMicros_ = 0;
     }
+    const bool haveMinimum = samples_ != 0u;
     ++samples_;
-    if (minimumRttMicros_ != 0 && rtt > minimumRttMicros_) return true;
+    if (haveMinimum && rtt > minimumRttMicros_) return true;
     minimumRttMicros_ = rtt;
     const uint64_t oneWayTicks =
         (rtt * config_.tickRateHz + 1'000'000u) / 2'000'000u;
@@ -311,17 +385,47 @@ uint32_t snapshotStateHash(const AuthoritativeSnapshot& source) {
     return hash;
 }
 
+bool isCanonicalAuthoritativeSnapshot(
+    const AuthoritativeSnapshot& snapshot) {
+    return validSnapshotShape(snapshot)
+        && (!snapshot.full
+            || snapshotStateHash(snapshot) == snapshot.stateHash);
+}
+
 std::vector<std::byte> SnapshotCodec::encode(
     const AuthoritativeSnapshot& source) {
+    uint64_t sourceBytes = 0u;
+    if (!snapshotWireSize(
+            source.bodies.size(), source.removedBodyIds.size(), sourceBytes)) {
+        return {};
+    }
     AuthoritativeSnapshot snapshot = source;
     canonicalizeBodies(snapshot.bodies);
     std::sort(snapshot.removedBodyIds.begin(), snapshot.removedBodyIds.end());
     snapshot.removedBodyIds.erase(std::unique(snapshot.removedBodyIds.begin(),
                                               snapshot.removedBodyIds.end()),
                                   snapshot.removedBodyIds.end());
-    if (snapshot.bodies.size() > kMaximumSnapshotBodies
-        || snapshot.removedBodyIds.size() > kMaximumSnapshotBodies) return {};
-    if (snapshot.full) snapshot.stateHash = snapshotStateHash(snapshot);
+    if (snapshot.full) {
+        snapshot.baselineTick = 0u;
+        snapshot.removedBodyIds.clear();
+        snapshot.stateHash = snapshotStateHash(snapshot);
+    } else {
+        std::erase_if(snapshot.removedBodyIds, [&snapshot](uint32_t bodyId) {
+            const auto changed = std::lower_bound(
+                snapshot.bodies.begin(), snapshot.bodies.end(), bodyId,
+                [](const auto& body, uint32_t id) {
+                    return body.identity[0] < id;
+                });
+            return changed != snapshot.bodies.end()
+                && changed->identity[0] == bodyId;
+        });
+    }
+    uint64_t wireBytes = 0u;
+    if (!validSnapshotShape(snapshot)
+        || !snapshotWireSize(snapshot.bodies.size(),
+                             snapshot.removedBodyIds.size(), wireBytes)) {
+        return {};
+    }
     Writer writer;
     writer.u32(kSnapshotSchemaVersion);
     writer.u32(snapshot.full ? 1u : 0u);
@@ -363,8 +467,8 @@ SnapshotReadResult SnapshotCodec::decode(std::span<const std::byte> bytes) {
     const uint64_t required = uint64_t{bodyCount}
             * sizeof(physics::deterministic::LockstepBody)
         + uint64_t{removedCount} * sizeof(uint32_t);
-    if (bodyCount > kMaximumSnapshotBodies
-        || removedCount > kMaximumSnapshotBodies
+    uint64_t wireBytes = 0u;
+    if (!snapshotWireSize(bodyCount, removedCount, wireBytes)
         || required != reader.remaining()) {
         result.error = "invalid snapshot element counts";
         return result;
@@ -384,21 +488,8 @@ SnapshotReadResult SnapshotCodec::decode(std::span<const std::byte> bytes) {
             return result;
         }
     }
-    for (size_t index = 0; index < snapshot.bodies.size(); ++index) {
-        if (!bodyAlive(snapshot.bodies[index])
-            || (index != 0u
-                && snapshot.bodies[index - 1u].identity[0]
-                    >= snapshot.bodies[index].identity[0])) {
-            result.error = "snapshot bodies are not canonical";
-            return result;
-        }
-    }
-    if (!std::is_sorted(snapshot.removedBodyIds.begin(),
-                        snapshot.removedBodyIds.end())
-        || std::adjacent_find(snapshot.removedBodyIds.begin(),
-                              snapshot.removedBodyIds.end())
-            != snapshot.removedBodyIds.end()) {
-        result.error = "snapshot removals are not canonical";
+    if (!validSnapshotShape(snapshot)) {
+        result.error = "snapshot payload is not canonical";
         return result;
     }
     if (snapshot.full && snapshotStateHash(snapshot) != snapshot.stateHash) {
@@ -413,17 +504,25 @@ SnapshotHistory::SnapshotHistory(uint32_t capacity)
     : capacity_(std::max(capacity, 1u)) {}
 
 bool SnapshotHistory::store(AuthoritativeSnapshot snapshot) {
-    if (!snapshot.full || snapshot.islandId == 0u) return false;
+    uint64_t wireBytes = 0u;
+    if (!snapshot.full || snapshot.islandId == 0u
+        || snapshot.authorityEpoch == 0u || snapshot.baselineTick != 0u
+        || !snapshot.removedBodyIds.empty()
+        || !snapshotWireSize(snapshot.bodies.size(), 0u, wireBytes)) {
+        return false;
+    }
     canonicalizeBodies(snapshot.bodies);
     snapshot.stateHash = snapshotStateHash(snapshot);
+    if (!validSnapshotShape(snapshot)) return false;
     auto existing = std::find_if(snapshots_.begin(), snapshots_.end(),
         [&snapshot](const auto& value) {
             return value.islandId == snapshot.islandId
                 && value.authorityEpoch == snapshot.authorityEpoch
                 && value.tick == snapshot.tick;
         });
-    if (existing != snapshots_.end()) *existing = std::move(snapshot);
-    else snapshots_.push_back(std::move(snapshot));
+    if (existing != snapshots_.end())
+        return sameSnapshotState(*existing, snapshot);
+    snapshots_.push_back(std::move(snapshot));
     std::stable_sort(snapshots_.begin(), snapshots_.end(),
         [](const auto& lhs, const auto& rhs) {
             return std::tie(lhs.tick, lhs.islandId, lhs.authorityEpoch)
@@ -449,7 +548,15 @@ std::optional<AuthoritativeSnapshot> SnapshotHistory::find(
 
 std::optional<AuthoritativeSnapshot> SnapshotHistory::deltaFrom(
     const AuthoritativeSnapshot& source, uint64_t acknowledgedTick) const {
-    if (!source.full) return std::nullopt;
+    uint64_t sourceBytes = 0u;
+    if (!source.full || source.islandId == 0u
+        || source.authorityEpoch == 0u || source.baselineTick != 0u
+        || !source.removedBodyIds.empty()
+        || acknowledgedTick >= source.tick
+        || !snapshotWireSize(
+            source.bodies.size(), 0u, sourceBytes)) {
+        return std::nullopt;
+    }
     const auto baseline = find(source.islandId, source.authorityEpoch,
                                acknowledgedTick);
     if (!baseline.has_value()) return std::nullopt;
@@ -477,15 +584,19 @@ std::optional<AuthoritativeSnapshot> SnapshotHistory::deltaFrom(
         if (now == current.bodies.end() || now->identity[0] != body.identity[0])
             delta.removedBodyIds.push_back(body.identity[0]);
     }
-    return delta;
+    return validSnapshotShape(delta)
+        ? std::optional<AuthoritativeSnapshot>(std::move(delta))
+        : std::nullopt;
 }
 
 std::optional<AuthoritativeSnapshot> SnapshotHistory::applyDelta(
     const AuthoritativeSnapshot& delta) const {
     if (delta.full) {
-        return snapshotStateHash(delta) == delta.stateHash
+        return validSnapshotShape(delta)
+                && snapshotStateHash(delta) == delta.stateHash
             ? std::optional<AuthoritativeSnapshot>(delta) : std::nullopt;
     }
+    if (!validSnapshotShape(delta)) return std::nullopt;
     auto result = find(delta.islandId, delta.authorityEpoch,
                        delta.baselineTick);
     if (!result.has_value()) return std::nullopt;
@@ -507,7 +618,12 @@ std::optional<AuthoritativeSnapshot> SnapshotHistory::applyDelta(
     }
     result->full = true;
     canonicalizeBodies(result->bodies);
-    if (snapshotStateHash(*result) != delta.stateHash) return std::nullopt;
+    uint64_t wireBytes = 0u;
+    if (!snapshotWireSize(result->bodies.size(), 0u, wireBytes)
+        || !validSnapshotShape(*result)
+        || snapshotStateHash(*result) != delta.stateHash) {
+        return std::nullopt;
+    }
     return result;
 }
 
@@ -553,23 +669,25 @@ InterestCell InterestGrid::cellFor(
 
 bool InterestGrid::rebuild(
     std::span<const physics::deterministic::LockstepBody> bodies) {
-    entries_.clear();
+    std::vector<Entry> replacement;
+    replacement.reserve(std::min<size_t>(
+        bodies.size(), config_.maximumEntries));
     uint64_t count = 0;
     for (const auto& body : bodies) {
         if (!bodyAlive(body)) continue;
         ++count;
-        entries_.push_back({cellFor(body), body.identity[0]});
+        if (replacement.size() < config_.maximumEntries)
+            replacement.push_back({cellFor(body), body.identity[0]});
     }
     highWater_ = std::max(highWater_, static_cast<uint32_t>(
         std::min<uint64_t>(count, std::numeric_limits<uint32_t>::max())));
     overflowed_ = count > config_.maximumEntries;
-    std::stable_sort(entries_.begin(), entries_.end(),
+    std::stable_sort(replacement.begin(), replacement.end(),
         [](const Entry& lhs, const Entry& rhs) {
             return std::tie(lhs.cell.coordinate, lhs.bodyId)
                  < std::tie(rhs.cell.coordinate, rhs.bodyId);
         });
-    if (entries_.size() > config_.maximumEntries)
-        entries_.resize(config_.maximumEntries);
+    entries_ = std::move(replacement);
     return !overflowed_;
 }
 
@@ -577,7 +695,7 @@ InterestQueryResult InterestGrid::query(
     InterestCell center, uint32_t radiusCells) const {
     InterestQueryResult result;
     const uint32_t radius = std::min(radiusCells, 64u);
-    result.overflow = radius != radiusCells;
+    result.overflow = overflowed_ || radius != radiusCells;
     for (const auto& entry : entries_) {
         bool inside = true;
         for (uint32_t axis = 0; axis < 3u; ++axis) {
@@ -607,9 +725,13 @@ bool AuthorityTable::assign(const IslandAuthority& authority) {
             return value.islandId < id;
         });
     if (iterator != entries_.end() && iterator->islandId == authority.islandId) {
-        if (authority.epoch < iterator->epoch
-            || (authority.epoch == iterator->epoch
-                && authority.startTick < iterator->startTick)) return false;
+        if (authority.epoch < iterator->epoch) return false;
+        if (authority.epoch == iterator->epoch) {
+            return authority.workerId == iterator->workerId
+                && authority.startTick == iterator->startTick
+                && authority.checkpointHash == iterator->checkpointHash;
+        }
+        if (authority.startTick <= iterator->startTick) return false;
         *iterator = authority;
     } else {
         entries_.insert(iterator, authority);
@@ -656,11 +778,23 @@ bool PredictionBubble::initialize(
     const Config& config, uint64_t islandId, uint32_t authorityEpoch,
     uint32_t controlledBody,
     std::span<const physics::deterministic::LockstepBody> bodies) {
-    config_ = config;
     if (islandId == 0u || authorityEpoch == 0u
-        || config_.historyTicks == 0u || config_.maximumPredictedBodies == 0u
-        || !world_.initialize(config_.world) || !world_.setBodies(bodies)
-        || controlledBody >= world_.bodies().size()) return false;
+        || config.historyTicks == 0u
+        || config.maximumPredictedBodies == 0u
+        || controlledBody >= config.world.bodyCapacity) {
+        return false;
+    }
+    physics::deterministic::LockstepWorld replacement;
+    if (!replacement.initialize(config.world)
+        || !replacement.setBodies(bodies)
+        || controlledBody >= replacement.bodies().size()
+        || !bodyAlive(replacement.bodies()[controlledBody])
+        || replacement.bodies()[controlledBody].identity[0]
+            != controlledBody) {
+        return false;
+    }
+    config_ = config;
+    world_ = std::move(replacement);
     islandId_ = islandId;
     authorityEpoch_ = authorityEpoch;
     controlledBody_ = controlledBody;
@@ -694,10 +828,12 @@ bool PredictionBubble::setMembership(
         || !std::binary_search(predicted.begin(), predicted.end(),
                                controlledBody_)
         || std::any_of(predicted.begin(), predicted.end(), [this](uint32_t id) {
-            return id >= world_.bodies().size();
+            return id >= world_.bodies().size()
+                || !bodyAlive(world_.bodies()[id]);
         })
         || std::any_of(ghosts.begin(), ghosts.end(), [this](uint32_t id) {
-            return id >= world_.bodies().size();
+            return id >= world_.bodies().size()
+                || !bodyAlive(world_.bodies()[id]);
         })) {
         return false;
     }
@@ -736,19 +872,31 @@ bool PredictionBubble::predict(
     uint64_t tick,
     std::span<const physics::deterministic::CanonicalReplayCommand> source) {
     if (tick != currentTick_ + 1u
-        || tick > std::numeric_limits<uint32_t>::max()) return false;
+        || tick > std::numeric_limits<uint32_t>::max()
+        || source.size() > kMaximumCommandsPerPacket) return false;
     std::vector<physics::deterministic::CanonicalReplayCommand> commands(
         source.begin(), source.end());
     std::stable_sort(commands.begin(), commands.end(),
                      physics::deterministic::canonicalReplayCommandLess);
+    if (std::any_of(commands.begin(), commands.end(),
+                    [tick](const auto& command) {
+                        return command.tick != tick;
+                    })) {
+        return false;
+    }
+    auto replacement = world_;
     for (const auto& command : commands) {
-        if (command.tick != tick) return false;
+        if (!physics::deterministic::applyCanonicalReplayCommand(
+                replacement, command)) {
+            return false;
+        }
+    }
+    static_cast<void>(replacement.step(static_cast<uint32_t>(tick)));
+    world_ = std::move(replacement);
+    for (const auto& command : commands) {
         inputs_.push_back(command);
         recordCommand(command);
-        static_cast<void>(physics::deterministic::applyCanonicalReplayCommand(
-            world_, command));
     }
-    static_cast<void>(world_.step(static_cast<uint32_t>(tick)));
     currentTick_ = tick;
     storeHistory(tick);
     return true;
@@ -768,7 +916,8 @@ PredictionBubble::expandSnapshot(
 PredictionBubble::ReconcileResult PredictionBubble::reconcile(
     const AuthoritativeSnapshot& authoritative) {
     ReconcileResult result;
-    if (!authoritative.full || authoritative.islandId != islandId_
+    if (!authoritative.full || !validSnapshotShape(authoritative)
+        || authoritative.islandId != islandId_
         || authoritative.authorityEpoch != authorityEpoch_
         || authoritative.tick > currentTick_
         || authoritative.tick > std::numeric_limits<uint32_t>::max()
@@ -835,13 +984,17 @@ PredictionBubble::ReconcileResult PredictionBubble::reconcile(
     size_t commandIndex = 0;
     while (commandIndex < inputs_.size()
            && inputs_[commandIndex].tick <= authoritative.tick) ++commandIndex;
+    std::vector<physics::deterministic::CanonicalReplayCommand>
+        retainedInputs;
+    retainedInputs.reserve(inputs_.size() - commandIndex);
     for (uint64_t tick = authoritative.tick + 1u;
          tick <= targetTick; ++tick) {
         while (commandIndex < inputs_.size()
                && inputs_[commandIndex].tick == tick) {
-            static_cast<void>(
-                physics::deterministic::applyCanonicalReplayCommand(
-                    world_, inputs_[commandIndex]));
+            if (physics::deterministic::applyCanonicalReplayCommand(
+                    world_, inputs_[commandIndex])) {
+                retainedInputs.push_back(inputs_[commandIndex]);
+            }
             ++commandIndex;
         }
         static_cast<void>(world_.step(static_cast<uint32_t>(tick)));
@@ -849,6 +1002,7 @@ PredictionBubble::ReconcileResult PredictionBubble::reconcile(
         storeHistory(tick);
         ++result.replayedTicks;
     }
+    inputs_ = std::move(retainedInputs);
     result.rolledBack = true;
     result.finalHash = snapshot().stateHash;
     ++telemetry_.rollbacks;

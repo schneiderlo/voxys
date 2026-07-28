@@ -96,10 +96,13 @@ public:
             return false;
         }
         std::vector<LockstepBody> empty(config_.bodyCapacity);
-        gpu::writeBuffer(queue_, bodies_, 0,
-                         std::span<const LockstepBody>(empty));
         const std::array<uint32_t, kTelemetryWords> zeros{};
-        gpu::writeBuffer(queue_, telemetry_, 0, zeros);
+        if (!gpu::writeBuffer(queue_, bodies_, 0,
+                std::span<const LockstepBody>(empty))
+            || !gpu::writeBuffer(queue_, telemetry_, 0, zeros)) {
+            shutdown();
+            return false;
+        }
 
         shader_ = gpu::loadShaderModule(
             device_, config_.shaderPath, "physics_lockstep.wgsl");
@@ -163,9 +166,8 @@ public:
         if (!queue_ || input.size() > config_.bodyCapacity) return false;
         std::vector<LockstepBody> upload(config_.bodyCapacity);
         std::copy(input.begin(), input.end(), upload.begin());
-        gpu::writeBuffer(queue_, bodies_, 0,
-                         std::span<const LockstepBody>(upload));
-        return true;
+        return gpu::writeBuffer(queue_, bodies_, 0,
+                                std::span<const LockstepBody>(upload));
     }
 
     bool encode(WGPUCommandEncoder encoder, uint32_t tick) {
@@ -180,7 +182,8 @@ public:
                             kLockstepSectorSize, kLockstepSectorHalf},
             .tick = {tick, 0u, kLockstepSchemaVersion, 0u},
         };
-        gpu::writeBuffer(queue_, params_, 0, values);
+        if (!gpu::writeBuffer(queue_, params_, 0, values))
+            return false;
         const std::array<gpu::BindGroupEntry, 8> entries = {
             gpu::BindGroupEntry(0).buffer(bodies_),
             gpu::BindGroupEntry(1).buffer(contacts_),
@@ -197,6 +200,10 @@ public:
         WGPUComputePassDescriptor passDesc{};
         WGPUComputePassEncoder pass =
             wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
+        if (!pass) {
+            wgpuBindGroupRelease(group);
+            return false;
+        }
         wgpuComputePassEncoderSetPipeline(pass, pipeline_);
         wgpuComputePassEncoderSetBindGroup(pass, 0, group, 0, nullptr);
         wgpuComputePassEncoderDispatchWorkgroups(pass, 1, 1, 1);
@@ -232,34 +239,43 @@ GpuLockstepWorld& GpuLockstepWorld::operator=(
 
 bool GpuLockstepWorld::initialize(
     WGPUDevice device, WGPUQueue queue, const Config& config) {
-    return impl_->initialize(device, queue, config);
+    auto replacement = std::make_unique<Impl>();
+    if (!replacement->initialize(device, queue, config)) return false;
+    impl_ = std::move(replacement);
+    return true;
 }
-void GpuLockstepWorld::shutdown() { impl_->shutdown(); }
+void GpuLockstepWorld::shutdown() {
+    if (impl_) impl_->shutdown();
+}
 bool GpuLockstepWorld::uploadBodies(std::span<const LockstepBody> bodies) {
-    return impl_->uploadBodies(bodies);
+    return impl_ && impl_->uploadBodies(bodies);
 }
 bool GpuLockstepWorld::encode(WGPUCommandEncoder encoder, uint32_t tick) {
-    return impl_->encode(encoder, tick);
+    return impl_ && impl_->encode(encoder, tick);
 }
-WGPUBuffer GpuLockstepWorld::bodyBuffer() const noexcept { return impl_->bodies_; }
+WGPUBuffer GpuLockstepWorld::bodyBuffer() const noexcept {
+    return impl_ ? impl_->bodies_ : nullptr;
+}
 WGPUBuffer GpuLockstepWorld::contactBuffer() const noexcept {
-    return impl_->contacts_;
+    return impl_ ? impl_->contacts_ : nullptr;
 }
-WGPUBuffer GpuLockstepWorld::rootBuffer() const noexcept { return impl_->roots_; }
+WGPUBuffer GpuLockstepWorld::rootBuffer() const noexcept {
+    return impl_ ? impl_->roots_ : nullptr;
+}
 WGPUBuffer GpuLockstepWorld::bodyHashBuffer() const noexcept {
-    return impl_->bodyHashes_;
+    return impl_ ? impl_->bodyHashes_ : nullptr;
 }
 WGPUBuffer GpuLockstepWorld::contactHashBuffer() const noexcept {
-    return impl_->contactHashes_;
+    return impl_ ? impl_->contactHashes_ : nullptr;
 }
 WGPUBuffer GpuLockstepWorld::islandHashBuffer() const noexcept {
-    return impl_->islandHashes_;
+    return impl_ ? impl_->islandHashes_ : nullptr;
 }
 WGPUBuffer GpuLockstepWorld::telemetryBuffer() const noexcept {
-    return impl_->telemetry_;
+    return impl_ ? impl_->telemetry_ : nullptr;
 }
 size_t GpuLockstepWorld::allocatedBytes() const noexcept {
-    return impl_->allocatedBytes_;
+    return impl_ ? impl_->allocatedBytes_ : 0u;
 }
 
 LockstepTelemetry GpuLockstepWorld::decodeTelemetry(

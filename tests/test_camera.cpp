@@ -8,6 +8,7 @@
 #include <glm/gtc/matrix_access.hpp>
 #include <cmath>
 #include <cstdio>
+#include <limits>
 
 #include "camera/camera.hpp"
 
@@ -247,6 +248,58 @@ TEST(CameraTest, DirectionVectorsNormalized) {
     EXPECT_NEAR(glm::length(cam.forward()), 1.0f, 0.001f);
     EXPECT_NEAR(glm::length(cam.right()), 1.0f, 0.001f);
     EXPECT_NEAR(glm::length(cam.up()), 1.0f, 0.001f);
+}
+
+TEST(CameraTest, RejectsNonFiniteStateAndDegenerateProjection) {
+    Camera cam;
+    cam.setPosition({2.0f, 3.0f, 4.0f});
+    cam.setYaw(0.75f);
+    cam.setPitch(0.25f);
+    cam.setFovY(1.0f);
+    cam.setAspectRatio(2.0f);
+    cam.setClipPlanes(0.5f, 500.0f);
+
+    const float nan = std::numeric_limits<float>::quiet_NaN();
+    const float inf = std::numeric_limits<float>::infinity();
+    cam.setPosition({nan, 0.0f, 0.0f});
+    cam.move({0.0f, inf, 0.0f});
+    cam.setYaw(nan);
+    cam.setPitch(inf);
+    cam.rotate(nan, 1.0f);
+    cam.lookAt({inf, 0.0f, 0.0f});
+    cam.setFovY(0.0f);
+    cam.setFovY(inf);
+    cam.setAspectRatio(-1.0f);
+    cam.setAspectRatio(0, 1080);
+    cam.setClipPlanes(1.0f, 1.0f);
+    cam.setClipPlanes(nan, 1000.0f);
+
+    EXPECT_EQ(cam.position(), glm::vec3(2.0f, 3.0f, 4.0f));
+    EXPECT_FLOAT_EQ(cam.yaw(), 0.75f);
+    EXPECT_FLOAT_EQ(cam.pitch(), 0.25f);
+    EXPECT_FLOAT_EQ(cam.fovY(), 1.0f);
+    EXPECT_FLOAT_EQ(cam.aspectRatio(), 2.0f);
+    EXPECT_FLOAT_EQ(cam.nearPlane(), 0.5f);
+    EXPECT_FLOAT_EQ(cam.farPlane(), 500.0f);
+
+    const glm::mat4 matrix = cam.viewProjectionMatrix();
+    for (int column = 0; column < 4; ++column) {
+        for (int row = 0; row < 4; ++row) {
+            EXPECT_TRUE(std::isfinite(matrix[column][row]));
+        }
+    }
+}
+
+TEST(CameraTest, CanonicalizesYawDuringLongRunningRotation) {
+    Camera cam;
+    for (int i = 0; i < 100'000; ++i) {
+        cam.rotate(1.0f, 0.0f);
+    }
+
+    EXPECT_LE(std::abs(cam.yaw()), glm::pi<float>());
+    EXPECT_NEAR(glm::length(cam.forward()), 1.0f, 0.0001f);
+    EXPECT_TRUE(std::isfinite(cam.forward().x));
+    EXPECT_TRUE(std::isfinite(cam.forward().z));
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -502,6 +555,12 @@ TEST(CameraTest, ScreenToWorldRayIsNormalized) {
     }
 }
 
+TEST(CameraTest, ScreenToWorldRayRejectsNonFiniteCoordinates) {
+    Camera cam;
+    const float nan = std::numeric_limits<float>::quiet_NaN();
+    EXPECT_EQ(cam.screenToWorldRay({nan, 0.0f}), cam.forward());
+}
+
 TEST(CameraTest, UpdateMatricesForcesComputation) {
     Camera cam;
     cam.setPosition({1.0f, 2.0f, 3.0f});
@@ -521,4 +580,3 @@ TEST(CameraTest, UpdateMatricesForcesComputation) {
 }
 
 } // namespace voxy::test
-

@@ -5,6 +5,8 @@
 
 #include <algorithm>
 #include <bit>
+#include <cmath>
+#include <limits>
 
 namespace voxy::render::detail {
 namespace {
@@ -42,6 +44,43 @@ bool sameBodyInput(const physics::PhysicsWorld::DynamicBodySnapshot& lhs,
         && sameFloatBits(lhs.dimensions.z, rhs.dimensions.z);
 }
 
+bool finiteVec(const glm::vec3& value) noexcept {
+    return std::isfinite(value.x) && std::isfinite(value.y)
+        && std::isfinite(value.z);
+}
+
+bool finiteQuat(const glm::quat& value) noexcept {
+    return std::isfinite(value.w) && std::isfinite(value.x)
+        && std::isfinite(value.y) && std::isfinite(value.z);
+}
+
+bool finiteMat(const glm::mat4& value) noexcept {
+    for (glm::length_t column = 0; column < 4; ++column) {
+        for (glm::length_t row = 0; row < 4; ++row) {
+            if (!std::isfinite(value[column][row])) return false;
+        }
+    }
+    return true;
+}
+
+bool buildGpuInstance(
+    const physics::PhysicsWorld::DynamicBodySnapshot& body,
+    GpuInstance& instance) noexcept {
+    if (!isRenderablePrimitiveSnapshot(body)) return false;
+    const float rotationLengthSquared =
+        glm::dot(body.rotation, body.rotation);
+    const glm::quat rotation =
+        rotationLengthSquared > std::numeric_limits<float>::min()
+            ? glm::normalize(body.rotation)
+            : glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
+    instance.model = glm::translate(glm::mat4(1.0f), body.position)
+                   * glm::mat4_cast(rotation)
+                   * glm::scale(glm::mat4(1.0f), body.dimensions);
+    if (!finiteMat(instance.model)) return false;
+    instance.color = shapeColor(body.shape);
+    return true;
+}
+
 PrimitiveInstanceBatch packPrimitiveInstancesImpl(
     std::span<const physics::PhysicsWorld::DynamicBodySnapshot> bodies) {
     PrimitiveInstanceBatch batch;
@@ -55,10 +94,7 @@ PrimitiveInstanceBatch packPrimitiveInstancesImpl(
             if (static_cast<uint32_t>(body.shape) != shapeIndex) continue;
 
             GpuInstance instance;
-            instance.model = glm::translate(glm::mat4(1.0f), body.position)
-                           * glm::mat4_cast(body.rotation)
-                           * glm::scale(glm::mat4(1.0f), body.dimensions);
-            instance.color = shapeColor(body.shape);
+            if (!buildGpuInstance(body, instance)) continue;
             batch.instances.push_back(instance);
             ++batch.instanceCounts[shapeIndex];
         }
@@ -83,6 +119,7 @@ PrimitiveInstanceBatch packPrimitiveInstancesCached(
         for (size_t bodyIndex = 0; bodyIndex < bodies.size(); ++bodyIndex) {
             const auto& body = bodies[bodyIndex];
             if (static_cast<uint32_t>(body.shape) != shapeIndex) continue;
+            if (!isRenderablePrimitiveSnapshot(body)) continue;
 
             if (!body.active) {
                 auto& cached = cache.entries[bodyIndex];
@@ -102,12 +139,10 @@ PrimitiveInstanceBatch packPrimitiveInstancesCached(
                     cache.nextToken = 1;
                     batch.forceFullUpload = true;
                 }
+                GpuInstance nextInstance;
+                if (!buildGpuInstance(body, nextInstance)) continue;
                 cached.body = body;
-                cached.instance.model =
-                    glm::translate(glm::mat4(1.0f), body.position)
-                  * glm::mat4_cast(body.rotation)
-                  * glm::scale(glm::mat4(1.0f), body.dimensions);
-                cached.instance.color = shapeColor(body.shape);
+                cached.instance = nextInstance;
                 cached.token = cache.nextToken++;
                 batch.instances.push_back(cached.instance);
                 batch.cacheTokens.push_back(cached.token);
@@ -116,10 +151,7 @@ PrimitiveInstanceBatch packPrimitiveInstancesCached(
             }
 
             GpuInstance instance;
-            instance.model = glm::translate(glm::mat4(1.0f), body.position)
-                           * glm::mat4_cast(body.rotation)
-                           * glm::scale(glm::mat4(1.0f), body.dimensions);
-            instance.color = shapeColor(body.shape);
+            if (!buildGpuInstance(body, instance)) continue;
             batch.instances.push_back(instance);
             batch.cacheTokens.push_back(0);
             ++batch.instanceCounts[shapeIndex];
@@ -144,6 +176,21 @@ bool shouldUseInstanceCache(
 }
 
 } // namespace
+
+bool isRenderablePrimitiveSnapshot(
+    const physics::PhysicsWorld::DynamicBodySnapshot& body) noexcept {
+    const uint32_t shape = static_cast<uint32_t>(body.shape);
+    if (shape >= static_cast<uint32_t>(Shape::Count)
+        || !finiteVec(body.position) || !finiteQuat(body.rotation)
+        || !finiteVec(body.dimensions)
+        || body.dimensions.x <= 0.0f || body.dimensions.y <= 0.0f
+        || body.dimensions.z <= 0.0f) {
+        return false;
+    }
+    const float rotationLengthSquared =
+        glm::dot(body.rotation, body.rotation);
+    return std::isfinite(rotationLengthSquared);
+}
 
 PrimitiveInstanceBatch packPrimitiveInstances(
     std::span<const physics::PhysicsWorld::DynamicBodySnapshot> bodies) {

@@ -10,8 +10,10 @@
 
 #pragma once
 
-#include <cstdint>
 #include <array>
+#include <cmath>
+#include <cstdint>
+#include <limits>
 #include <glm/glm.hpp>
 
 namespace voxy::voxel {
@@ -44,7 +46,8 @@ constexpr uint32_t MAX_TRAVERSAL_ITERATIONS = 256;
 
 /// Get child index from 3D coordinates (each 0 or 1)
 [[nodiscard]] constexpr uint8_t childIndex(uint32_t x, uint32_t y, uint32_t z) noexcept {
-    return static_cast<uint8_t>((z << 2) | (y << 1) | x);
+    return static_cast<uint8_t>(
+        ((z & 1u) << 2u) | ((y & 1u) << 1u) | (x & 1u));
 }
 
 /// Get 3D coordinates from child index
@@ -107,26 +110,31 @@ struct SVOInteriorNode {
 
     /// Check if child exists at given index (0-7)
     [[nodiscard]] constexpr bool hasChild(uint8_t childIdx) const noexcept {
+        if (childIdx >= CHILDREN_PER_NODE) return false;
         return (childMask & (1u << childIdx)) != 0;
     }
 
     /// Check if child at given index is a leaf (vs interior)
     [[nodiscard]] constexpr bool isChildLeaf(uint8_t childIdx) const noexcept {
-        return (leafMask & (1u << childIdx)) != 0;
+        return hasChild(childIdx)
+            && (leafMask & (1u << childIdx)) != 0;
     }
 
     /// Set child exists at given index
     constexpr void setChildExists(uint8_t childIdx, bool exists) noexcept {
+        if (childIdx >= CHILDREN_PER_NODE) return;
         if (exists) {
             childMask |= (1u << childIdx);
         } else {
             childMask &= ~(1u << childIdx);
+            leafMask &= ~(1u << childIdx);
         }
     }
 
     /// Set whether child is a leaf
     constexpr void setChildIsLeaf(uint8_t childIdx, bool isLeaf) noexcept {
-        if (isLeaf) {
+        if (childIdx >= CHILDREN_PER_NODE) return;
+        if (isLeaf && hasChild(childIdx)) {
             leafMask |= (1u << childIdx);
         } else {
             leafMask &= ~(1u << childIdx);
@@ -140,13 +148,17 @@ struct SVOInteriorNode {
 
     /// Count children before given index (for offset calculation)
     [[nodiscard]] constexpr uint32_t childrenBefore(uint8_t childIdx) const noexcept {
+        if (childIdx >= CHILDREN_PER_NODE) return childCount();
         uint8_t mask = childMask & ((1u << childIdx) - 1);
         return static_cast<uint32_t>(__builtin_popcount(mask));
     }
 
     /// Get actual index of child at logical position childIdx
     [[nodiscard]] constexpr uint32_t getChildIndex(uint8_t childIdx) const noexcept {
-        return childOffset + childrenBefore(childIdx);
+        const uint32_t before = childrenBefore(childIdx);
+        if (childOffset > std::numeric_limits<uint32_t>::max() - before)
+            return std::numeric_limits<uint32_t>::max();
+        return childOffset + before;
     }
 
     /// Check if this is the root node
@@ -196,11 +208,13 @@ struct SVOLeafBrick {
 
     /// Check if voxel at Morton index is occupied
     [[nodiscard]] constexpr bool isOccupied(uint32_t mortonIdx) const noexcept {
+        if (mortonIdx >= VOXELS_PER_BRICK) return false;
         return (occupancy & (1ULL << mortonIdx)) != 0;
     }
 
     /// Set occupancy at Morton index
     constexpr void setOccupied(uint32_t mortonIdx, bool occupied) noexcept {
+        if (mortonIdx >= VOXELS_PER_BRICK) return;
         if (occupied) {
             occupancy |= (1ULL << mortonIdx);
         } else {
@@ -263,17 +277,39 @@ struct SVOUniforms {
     float     lodBias;        ///< LOD bias for distance-based termination (1.0-2.0)
     uint32_t  _pad1[3];       ///< Padding to 48 bytes
 
+    [[nodiscard]] static constexpr float calculateBrickScale(
+        float scale, uint32_t depth) noexcept {
+        // 512 halvings fully underflow every finite IEEE-754 float.
+        const uint32_t steps = depth < 512u ? depth : 512u;
+        for (uint32_t i = 0; i < steps; ++i)
+            scale *= 0.5f;
+        return scale * static_cast<float>(BRICK_SIZE);
+    }
+
     /// Default constructor
     constexpr SVOUniforms() noexcept
-        : rootNodeIndex(0), maxDepth(12), worldScale(4096.0f), brickScale(1.0f),
+        : rootNodeIndex(0), maxDepth(12), worldScale(4096.0f),
+          brickScale(calculateBrickScale(4096.0f, 12u)),
           worldOrigin(0.0f), _pad0(0.0f), lodBias(1.5f), _pad1{0, 0, 0} {}
 
     /// Full constructor
-    constexpr SVOUniforms(uint32_t root, uint32_t depth, float scale, 
+    constexpr SVOUniforms(uint32_t root, uint32_t depth, float scale,
                            const glm::vec3& origin, float lod = 1.5f) noexcept
         : rootNodeIndex(root), maxDepth(depth), worldScale(scale),
-          brickScale(scale / static_cast<float>(1u << depth) * BRICK_SIZE),
+          brickScale(calculateBrickScale(scale, depth)),
           worldOrigin(origin), _pad0(0.0f), lodBias(lod), _pad1{0, 0, 0} {}
+
+    [[nodiscard]] bool valid() const noexcept {
+        return maxDepth <= MAX_SVO_DEPTH
+            && std::isfinite(worldScale) && worldScale > 0.0f
+            && std::isfinite(brickScale) && brickScale > 0.0f
+            && brickScale == calculateBrickScale(worldScale, maxDepth)
+            && std::isfinite(worldOrigin.x)
+            && std::isfinite(worldOrigin.y)
+            && std::isfinite(worldOrigin.z)
+            && std::isfinite(lodBias)
+            && lodBias >= 1.0f && lodBias <= 2.0f;
+    }
 };
 
 static_assert(sizeof(SVOUniforms) == 48, "SVOUniforms must be 48 bytes (16-byte aligned)");

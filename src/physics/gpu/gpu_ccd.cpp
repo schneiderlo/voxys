@@ -121,7 +121,10 @@ public:
             return false;
         }
         const std::array<uint32_t, kTelemetryWords> zeros{};
-        gpu::writeBuffer(queue_, telemetry_, 0, zeros);
+        if (!gpu::writeBuffer(queue_, telemetry_, 0, zeros)) {
+            shutdown();
+            return false;
+        }
 
         shader_ = gpu::loadShaderModule(
             device_, config_.shaderPath, "physics_ccd.wgsl");
@@ -223,7 +226,8 @@ public:
             .worldSector = {input_.terrainSector[0], input_.terrainSector[1],
                             input_.terrainSector[2], 0},
         };
-        gpu::writeBuffer(queue_, parameterBuffer_, 0, params);
+        if (!gpu::writeBuffer(queue_, parameterBuffer_, 0, params))
+            return false;
 
         const std::array<gpu::BindGroupEntry, 4> markEntries = {
             gpu::BindGroupEntry(3).buffer(input_.metadataBuffer),
@@ -237,6 +241,10 @@ public:
         WGPUComputePassDescriptor passDesc{};
         WGPUComputePassEncoder markPass =
             wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
+        if (!markPass) {
+            wgpuBindGroupRelease(markGroup);
+            return false;
+        }
         wgpuComputePassEncoderSetPipeline(markPass, markPipeline_);
         wgpuComputePassEncoderSetBindGroup(markPass, 0, markGroup, 0, nullptr);
         const uint32_t groups = (input_.bodyCapacity
@@ -279,6 +287,11 @@ public:
 
         WGPUComputePassEncoder pass =
             wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
+        if (!pass) {
+            wgpuBindGroupRelease(executeGroup);
+            wgpuBindGroupRelease(telemetryGroup);
+            return false;
+        }
         wgpuComputePassEncoderSetBindGroup(
             pass, 0, telemetryGroup, 0, nullptr);
         wgpuComputePassEncoderSetPipeline(pass, preparePipeline_);
@@ -353,16 +366,29 @@ GpuCcd& GpuCcd::operator=(GpuCcd&&) noexcept = default;
 
 bool GpuCcd::initialize(WGPUDevice device, WGPUQueue queue,
                         const Config& config) {
-    return impl_->initialize(device, queue, config);
+    auto replacement = std::make_unique<Impl>();
+    if (!replacement->initialize(device, queue, config)) return false;
+    impl_ = std::move(replacement);
+    return true;
 }
-void GpuCcd::shutdown() { impl_->shutdown(); }
-void GpuCcd::setInput(const GpuCcdInput& input) { impl_->setInput(input); }
+void GpuCcd::shutdown() {
+    if (impl_) impl_->shutdown();
+}
+void GpuCcd::setInput(const GpuCcdInput& input) {
+    if (impl_) impl_->setInput(input);
+}
 bool GpuCcd::encode(WGPUCommandEncoder encoder, float deltaTime) {
-    return impl_->encode(encoder, deltaTime);
+    return impl_ && impl_->encode(encoder, deltaTime);
 }
-WGPUBuffer GpuCcd::bulletBodyIds() const noexcept { return impl_->bulletIds_; }
-WGPUBuffer GpuCcd::telemetryBuffer() const noexcept { return impl_->telemetry_; }
-size_t GpuCcd::allocatedBytes() const noexcept { return impl_->allocatedBytes_; }
+WGPUBuffer GpuCcd::bulletBodyIds() const noexcept {
+    return impl_ ? impl_->bulletIds_ : nullptr;
+}
+WGPUBuffer GpuCcd::telemetryBuffer() const noexcept {
+    return impl_ ? impl_->telemetry_ : nullptr;
+}
+size_t GpuCcd::allocatedBytes() const noexcept {
+    return impl_ ? impl_->allocatedBytes_ : 0u;
+}
 
 GpuCcdTelemetry GpuCcd::decodeTelemetry(
     std::span<const uint32_t> words) noexcept {

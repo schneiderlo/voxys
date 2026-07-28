@@ -15,6 +15,7 @@ struct SandboxTelemetry {
     uint64_t acceptedCommands = 0;
     uint64_t rejectedCommands = 0;
     uint64_t duplicateInputs = 0;
+    uint64_t duplicateCommands = 0;
     uint64_t staleEpochCommands = 0;
     uint64_t spawnedMeteors = 0;
     uint64_t correctionEvents = 0;
@@ -77,6 +78,7 @@ private:
         uint32_t clientId = 0;
         uint32_t controlledBody = 0;
         InputRedundancyBuffer receivedInputs{64};
+        AckWindow receivedCommands{};
     };
 
     [[nodiscard]] ClientState* client(uint32_t clientId) noexcept;

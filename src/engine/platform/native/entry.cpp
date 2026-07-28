@@ -150,7 +150,7 @@ int main(int argc, char* argv[]) {
     // Run the main loop (blocking)
     LOG_INFO("Starting main loop (native)...");
 
-    using Clock = std::chrono::high_resolution_clock;
+    using Clock = std::chrono::steady_clock;
     auto lastTime = Clock::now();
 
     while (!app.shouldExit() && app.getWindow() && !app.getWindow()->shouldClose()) {
@@ -159,7 +159,7 @@ int main(int argc, char* argv[]) {
         lastTime = now;
 
         // Clamp delta time to avoid huge jumps
-        deltaTime = std::min(deltaTime, 0.1f);
+        deltaTime = std::clamp(deltaTime, 0.0f, 0.1f);
 
         if (appConfig.benchmarkOnStartup
             && appConfig.benchmarkFixedDeltaSeconds > 0.0f) {

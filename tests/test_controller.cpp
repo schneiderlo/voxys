@@ -8,6 +8,7 @@
 #include "engine/platform/input.hpp"
 
 #include <cmath>
+#include <limits>
 
 namespace voxy {
 
@@ -577,5 +578,57 @@ TEST(FreeFlyControllerTest, VelocityZeroWhenStopped) {
     EXPECT_FLOAT_EQ(glm::length(controller.velocity()), 0.0f);
 }
 
-} // namespace voxy
+TEST(FreeFlyControllerTest, VelocityIsPerSecondAndFrameRateIndependent) {
+    Camera camera(glm::vec3(0.0f));
+    FreeFlyConfig config;
+    config.baseSpeed = 10.0f;
+    FreeFlyController controller(camera, config);
+    Input input;
+    input.onKeyDown(static_cast<int>(Key::W));
+    input.beginFrame();
+    controller.update(0.25f, input);
+    input.endFrame();
 
+    EXPECT_NEAR(glm::length(controller.velocity()), 10.0f, 0.0001f);
+    EXPECT_NEAR(glm::length(camera.position()), 2.5f, 0.0001f);
+}
+
+TEST(FreeFlyControllerTest, InvalidTimeAndConfigurationCannotPoisonCamera) {
+    Camera camera(glm::vec3(0.0f));
+    FreeFlyController controller(camera);
+    const FreeFlyConfig original = controller.config();
+    FreeFlyConfig invalid = original;
+    invalid.baseSpeed = -1.0f;
+    invalid.boostMultiplier = std::numeric_limits<float>::infinity();
+    invalid.mouseSensitivity = std::numeric_limits<float>::quiet_NaN();
+    controller.setConfig(invalid);
+
+    EXPECT_FLOAT_EQ(controller.baseSpeed(), original.baseSpeed);
+    EXPECT_FLOAT_EQ(controller.boostMultiplier(), original.boostMultiplier);
+    EXPECT_FLOAT_EQ(controller.mouseSensitivity(), original.mouseSensitivity);
+
+    Input input;
+    input.onKeyDown(static_cast<int>(Key::W));
+    input.beginFrame();
+    controller.update(std::numeric_limits<float>::quiet_NaN(), input);
+    input.endFrame();
+    EXPECT_EQ(camera.position(), glm::vec3(0.0f));
+}
+
+TEST(FreeFlyControllerTest, DetachingClearsReportedMotion) {
+    Camera camera(glm::vec3(0.0f));
+    FreeFlyController controller(camera);
+    Input input;
+    input.onKeyDown(static_cast<int>(Key::W));
+    input.beginFrame();
+    controller.update(0.1f, input);
+    input.endFrame();
+    ASSERT_TRUE(controller.isMoving());
+
+    controller.detachCamera();
+    EXPECT_FALSE(controller.isMoving());
+    EXPECT_FLOAT_EQ(controller.currentSpeed(), 0.0f);
+    EXPECT_EQ(controller.velocity(), glm::vec3(0.0f));
+}
+
+} // namespace voxy

@@ -2,7 +2,7 @@
 // mip_pipeline.hpp - GPU Max-Height Mip Chain Generation Pipeline (C++20)
 // ═══════════════════════════════════════════════════════════════════════════════
 // Provides GPU-accelerated generation of max-height mip chains for hierarchical
-// ray-casting. Uses a compute shader to perform 2×2 max reduction per level.
+// ray-casting. Uses a compute shader to perform conservative max reduction.
 // ═══════════════════════════════════════════════════════════════════════════════
 
 #pragma once
@@ -43,7 +43,7 @@ static_assert(sizeof(MipParams) == 16, "MipParams must be 16 bytes for GPU align
 /// 
 /// This class manages the compute pipeline that generates mip levels for
 /// heightmap textures. Each mip level stores the maximum height of its
-/// corresponding 2×2 block from the previous level, enabling efficient
+/// complete footprint from the previous level, enabling efficient
 /// hierarchical ray-casting.
 /// 
 /// Usage:
@@ -95,14 +95,14 @@ public:
     /// Generate a full mip chain for a heightmap texture.
     /// 
     /// The texture must be created with:
-    /// - Format: R16Uint
+    /// - Format: R32Uint
     /// - Usage: TextureBinding | StorageBinding (for writing mips)
     /// - MipLevelCount > 1
     /// 
     /// @param device       WebGPU device
     /// @param queue        WebGPU queue (for submitting commands)
     /// @param texture      Heightmap texture with pre-allocated mip levels
-    /// @param mipLevelCount Number of mip levels to generate (excluding base)
+    /// @param mipLevelCount Total mip count, including the base level
     /// @return True if mip generation succeeded
     [[nodiscard]] bool generateMipChain(WGPUDevice device, WGPUQueue queue,
                                          WGPUTexture texture, uint32_t mipLevelCount);
@@ -129,11 +129,13 @@ public:
     
     /// Calculate dispatch dimensions for a given output size
     [[nodiscard]] static constexpr uint32_t calculateDispatchX(uint32_t width) noexcept {
-        return (width + getWorkgroupSizeX() - 1) / getWorkgroupSizeX();
+        return width / getWorkgroupSizeX()
+            + (width % getWorkgroupSizeX() != 0u ? 1u : 0u);
     }
     
     [[nodiscard]] static constexpr uint32_t calculateDispatchY(uint32_t height) noexcept {
-        return (height + getWorkgroupSizeY() - 1) / getWorkgroupSizeY();
+        return height / getWorkgroupSizeY()
+            + (height % getWorkgroupSizeY() != 0u ? 1u : 0u);
     }
 
 private:
@@ -158,6 +160,7 @@ private:
 
 /// Calculate the number of mip levels for given dimensions
 [[nodiscard]] constexpr uint32_t calculateMipLevelCount(uint32_t width, uint32_t height) noexcept {
+    if (width == 0u || height == 0u) return 0u;
     uint32_t size = std::max(width, height);
     uint32_t count = 1;
     while (size > 1) {
@@ -170,6 +173,8 @@ private:
 /// Calculate dimensions for a specific mip level
 [[nodiscard]] constexpr std::pair<uint32_t, uint32_t> 
 getMipDimensions(uint32_t baseWidth, uint32_t baseHeight, uint32_t level) noexcept {
+    if (baseWidth == 0u || baseHeight == 0u) return {0u, 0u};
+    if (level >= 32u) return {1u, 1u};
     return {
         std::max(1u, baseWidth >> level),
         std::max(1u, baseHeight >> level)
@@ -177,6 +182,3 @@ getMipDimensions(uint32_t baseWidth, uint32_t baseHeight, uint32_t level) noexce
 }
 
 } // namespace voxy::render
-
-
-

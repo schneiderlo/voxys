@@ -9,8 +9,17 @@
 #include <chrono>
 #include <cmath>
 #include <limits>
+#include <utility>
 
 namespace {
+
+constexpr uint32_t kMaximumBenchmarkFrames = 1'000'000u;
+constexpr uint64_t kMaximumBenchmarkTotalFrames = 1'000'000u;
+constexpr size_t kMaximumBenchmarkScenarios = 1'024u;
+constexpr size_t kMaximumBenchmarkScenarioNameBytes = 256u;
+constexpr double kMaximumBenchmarkMetricMilliseconds =
+    std::numeric_limits<double>::max()
+    / static_cast<double>(kMaximumBenchmarkTotalFrames + 1u);
 
 double observedPercentile(const std::vector<double>& sortedSamples,
                           double percentile) {
@@ -19,6 +28,27 @@ double observedPercentile(const std::vector<double>& sortedSamples,
         std::ceil(percentile * static_cast<double>(sortedSamples.size())));
     return sortedSamples[std::min(std::max<size_t>(rank, 1u) - 1u,
                                   sortedSamples.size() - 1u)];
+}
+
+bool finiteVec3(const glm::vec3& value) noexcept {
+    return std::isfinite(value.x)
+        && std::isfinite(value.y)
+        && std::isfinite(value.z);
+}
+
+bool validFrameStats(const voxy::perf::FrameStats& stats) noexcept {
+    for (const double value : {
+             stats.totalMs, stats.updateMs, stats.renderMs, stats.presentMs,
+             stats.physicsSimulationMs, stats.physicsWaterMs,
+             stats.physicsSnapshotMs, stats.primitiveCullMs,
+             stats.primitivePackingMs, stats.primitiveUploadMs,
+             stats.primitiveRenderMs}) {
+        if (!std::isfinite(value) || value < 0.0
+            || value > kMaximumBenchmarkMetricMilliseconds) {
+            return false;
+        }
+    }
+    return true;
 }
 
 } // namespace
@@ -56,6 +86,7 @@ void BenchmarkRunner::setExpectedBodyCount(uint32_t bodyCount) noexcept {
 }
 
 void BenchmarkRunner::setMinimumThroughputFps(double minimumFps) noexcept {
+    if (!std::isfinite(minimumFps)) return;
     minimumThroughputFps_ = std::max(minimumFps, 0.0);
 }
 
@@ -86,11 +117,38 @@ bool BenchmarkRunner::passed() const noexcept {
 }
 
 void BenchmarkRunner::start(const std::vector<BenchmarkScenario>& scenarios) {
-    if (scenarios.empty()) {
-        scenarios_ = BenchmarkScenario::getDefaultScenarios();
-    } else {
-        scenarios_ = scenarios;
+    if (scenarios.size() > kMaximumBenchmarkScenarios) {
+        LOG_ERROR("Cannot start benchmark: invalid scenario list");
+        return;
     }
+    const auto validScenarios = [](const auto& candidates) {
+        if (candidates.empty()) return false;
+        uint64_t totalFrames = 0u;
+        for (const BenchmarkScenario& scenario : candidates) {
+            if (scenario.name.size() > kMaximumBenchmarkScenarioNameBytes
+                || scenario.frameCount == 0u
+                || scenario.frameCount > kMaximumBenchmarkFrames
+                || scenario.frameCount
+                    > kMaximumBenchmarkTotalFrames - totalFrames
+                || !finiteVec3(scenario.cameraPos)
+                || !finiteVec3(scenario.cameraTarget)) {
+                return false;
+            }
+            totalFrames += scenario.frameCount;
+        }
+        return true;
+    };
+    if (!scenarios.empty() && !validScenarios(scenarios)) {
+        LOG_ERROR("Cannot start benchmark: invalid scenario list");
+        return;
+    }
+    std::vector<BenchmarkScenario> replacement = scenarios.empty()
+        ? BenchmarkScenario::getDefaultScenarios() : scenarios;
+    if (!validScenarios(replacement)) {
+        LOG_ERROR("Cannot start benchmark: invalid default scenarios");
+        return;
+    }
+    scenarios_ = std::move(replacement);
     
     results_.clear();
     results_.reserve(scenarios_.size());
@@ -120,6 +178,11 @@ bool BenchmarkRunner::willCompleteScenarioAfterCurrentFrame() const noexcept {
 
 bool BenchmarkRunner::onFrame(const FrameStats& frameStats) {
     if (!running_ || currentScenario_ >= scenarios_.size()) {
+        return false;
+    }
+    if (!validFrameStats(frameStats)) {
+        running_ = false;
+        LOG_ERROR("Benchmark stopped: frame telemetry is not finite/nonnegative");
         return false;
     }
     
@@ -193,7 +256,7 @@ void BenchmarkRunner::beginScenario() {
     }
     
     // Reset accumulators
-    auto now = std::chrono::high_resolution_clock::now();
+    auto now = std::chrono::steady_clock::now();
     scenarioStartTime_ = std::chrono::duration<double, std::milli>(now.time_since_epoch()).count();
     scenarioMinFrame_ = std::numeric_limits<double>::max();
     scenarioMaxFrame_ = 0.0;
@@ -219,7 +282,7 @@ void BenchmarkRunner::beginScenario() {
 void BenchmarkRunner::endScenario() {
     const auto& scenario = scenarios_[currentScenario_];
     
-    auto now = std::chrono::high_resolution_clock::now();
+    auto now = std::chrono::steady_clock::now();
     double endTime = std::chrono::duration<double, std::milli>(now.time_since_epoch()).count();
     double totalTime = endTime - scenarioStartTime_;
     
@@ -238,8 +301,10 @@ void BenchmarkRunner::endScenario() {
     result.p50FrameMs = observedPercentile(scenarioFrameTimes_, 0.50);
     result.p95FrameMs = observedPercentile(scenarioFrameTimes_, 0.95);
     result.p99FrameMs = observedPercentile(scenarioFrameTimes_, 0.99);
-    result.minFrameMs = scenarioMinFrame_;
-    result.maxFrameMs = scenarioMaxFrame_;
+    result.minFrameMs = scenarioFrameTimes_.empty()
+        ? 0.0 : scenarioFrameTimes_.front();
+    result.maxFrameMs = scenarioFrameTimes_.empty()
+        ? 0.0 : scenarioFrameTimes_.back();
     result.fps = (result.avgFrameMs > 0.0) ? (1000.0 / result.avgFrameMs) : 0.0;
     result.avgUpdateMs = scenarioSumUpdate_ / static_cast<double>(scenario.frameCount);
     result.avgRenderMs = scenarioSumRender_ / static_cast<double>(scenario.frameCount);
@@ -289,7 +354,7 @@ void BenchmarkRunner::printResults() const {
     LOG_INFO("=== Benchmark Results ===");
     LOG_INFO("");
     
-    uint32_t totalFrames = 0;
+    uint64_t totalFrames = 0;
     
     for (const auto& result : results_) {
         LOG_INFO("Scenario: {}", result.scenarioName);

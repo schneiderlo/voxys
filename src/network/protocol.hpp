@@ -14,6 +14,8 @@ namespace voxy::network {
 
 inline constexpr uint32_t kNetworkProtocolVersion = 1;
 inline constexpr size_t kConservativeRealtimeMtu = 1'200;
+inline constexpr size_t kMaximumReliableFrameBytes = 16u * 1024u * 1024u;
+inline constexpr size_t kNetworkPacketOverheadBytes = 84u;
 inline constexpr uint32_t kMaximumCommandsPerPacket = 256;
 
 enum class PacketPayloadType : uint32_t {

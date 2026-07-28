@@ -10,6 +10,7 @@
 
 #include <gtest/gtest.h>
 #include <filesystem>
+#include <limits>
 
 #include "terrain/textures.hpp"
 #include "gpu/context.hpp"
@@ -52,6 +53,19 @@ TEST_F(TerrainTexturesTest, DefaultConfigValues) {
     EXPECT_TRUE(config.lightmapPath.empty());
     EXPECT_EQ(config.placeholderWidth, 256u);
     EXPECT_EQ(config.placeholderHeight, 256u);
+}
+
+TEST(TerrainTextureGenerationTest, RejectsZeroAndOverflowingDimensions) {
+    EXPECT_TRUE(terrain::generateTerrainColorData(0u, 32u).empty());
+    EXPECT_TRUE(terrain::generateWhiteLightmapData(32u, 0u).empty());
+    EXPECT_TRUE(terrain::generateTerrainColorData(8'193u, 1u).empty());
+    EXPECT_TRUE(terrain::generateWhiteLightmapData(1u, 8'193u).empty());
+    EXPECT_TRUE(terrain::generateTerrainColorData(
+        std::numeric_limits<uint32_t>::max(),
+        std::numeric_limits<uint32_t>::max()).empty());
+    EXPECT_TRUE(terrain::generateWhiteLightmapData(
+        std::numeric_limits<uint32_t>::max(),
+        std::numeric_limits<uint32_t>::max()).empty());
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -183,6 +197,29 @@ TEST_F(TerrainTexturesTest, CustomPlaceholderDimensions) {
     EXPECT_EQ(textures_.getAlbedoHeight(), 512u);
     EXPECT_EQ(textures_.getLightmapWidth(), 1u);
     EXPECT_EQ(textures_.getLightmapHeight(), 1u);
+}
+
+TEST_F(TerrainTexturesTest, RejectedOversizedReplacementPreservesTextures) {
+    if (!gpuContextInitialized_) {
+        GTEST_SKIP() << "GPU context not available";
+    }
+
+    ASSERT_TRUE(textures_.init(
+        gpuContext_.getDevice(), gpuContext_.getQueue()));
+
+    const auto albedoTexture = textures_.getAlbedoTexture();
+    const auto albedoView = textures_.getAlbedoView();
+    const auto lightmapTexture = textures_.getLightmapTexture();
+    const auto lightmapView = textures_.getLightmapView();
+
+    EXPECT_FALSE(textures_.createPlaceholderAlbedo(8'193u, 1u));
+    EXPECT_FALSE(textures_.createWhiteLightmap(1u, 8'193u));
+
+    EXPECT_EQ(textures_.getAlbedoTexture(), albedoTexture);
+    EXPECT_EQ(textures_.getAlbedoView(), albedoView);
+    EXPECT_EQ(textures_.getLightmapTexture(), lightmapTexture);
+    EXPECT_EQ(textures_.getLightmapView(), lightmapView);
+    EXPECT_TRUE(textures_.isInitialized());
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════

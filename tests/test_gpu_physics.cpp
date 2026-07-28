@@ -2,6 +2,7 @@
 
 #include "gpu/context.hpp"
 #include "gpu/resources.hpp"
+#include "physics/gpu/gpu_buffer_arena.hpp"
 #include "physics/physics_world.hpp"
 
 #include <algorithm>
@@ -22,6 +23,29 @@ extern "C" WGPUBool wgpuDevicePoll(
 
 namespace voxy::physics {
 namespace {
+
+TEST(GpuBufferArenaTest, TracksAndReleasesSuccessfulAllocations) {
+    gpu::Context context;
+    gpu::ContextConfig config;
+    config.enableValidation = false;
+    if (!context.initHeadless(config)) {
+        GTEST_SKIP() << "Headless WebGPU is unavailable";
+    }
+
+    GpuBufferArena arena;
+    arena.initialize(context.getDevice());
+    ASSERT_NE(arena.create(
+        "persistent", 64u,
+        WGPUBufferUsage_Storage | WGPUBufferUsage_CopyDst), nullptr);
+    ASSERT_NE(arena.create(
+        "scratch", 128u,
+        WGPUBufferUsage_Storage | WGPUBufferUsage_CopySrc, true), nullptr);
+    EXPECT_EQ(arena.persistentBytes(), 64u);
+    EXPECT_EQ(arena.scratchBytes(), 128u);
+    arena.shutdown();
+    EXPECT_EQ(arena.persistentBytes(), 0u);
+    EXPECT_EQ(arena.scratchBytes(), 0u);
+}
 
 class GpuPhysicsTest : public ::testing::Test {
 protected:

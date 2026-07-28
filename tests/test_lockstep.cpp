@@ -136,6 +136,44 @@ TEST(FixedPoint, SaturatesRoundsAndUsesIntegerSquareRoot) {
     }
 }
 
+TEST(Lockstep, RejectedBodyUploadPreservesWorkingState) {
+    LockstepWorld world;
+    LockstepWorld::Config config;
+    config.bodyCapacity = 4;
+    config.contactCapacity = 4;
+    ASSERT_TRUE(world.initialize(config));
+
+    std::array<LockstepBody, 4> accepted{};
+    accepted[1] = body(1u, 1.0f, 2.0f, 3.0f, 0.5f);
+    ASSERT_TRUE(world.setBodies(accepted));
+
+    auto invalid = accepted;
+    invalid[1].identity[0] = 2u;
+    EXPECT_FALSE(world.setBodies(invalid));
+    EXPECT_EQ(std::memcmp(
+                  world.bodies().data(), accepted.data(), sizeof(accepted)),
+              0);
+
+    invalid = accepted;
+    invalid[1].sectorRadius[3] = 0;
+    EXPECT_FALSE(world.setBodies(invalid));
+    EXPECT_EQ(std::memcmp(
+                  world.bodies().data(), accepted.data(), sizeof(accepted)),
+              0);
+
+    ASSERT_TRUE(world.setBodies(world.bodies()));
+    EXPECT_EQ(std::memcmp(
+                  world.bodies().data(), accepted.data(), sizeof(accepted)),
+              0);
+
+    LockstepWorld::Config invalidConfig = config;
+    invalidConfig.substeps = 0;
+    EXPECT_FALSE(world.initialize(invalidConfig));
+    EXPECT_EQ(std::memcmp(
+                  world.bodies().data(), accepted.data(), sizeof(accepted)),
+              0);
+}
+
 TEST(Lockstep, ExtremeSectorsDoNotAliasAndSaturateCanonically) {
     LockstepWorld world;
     LockstepWorld::Config config;
@@ -311,6 +349,12 @@ TEST(Lockstep, CpuAndWgslProduceIdenticalStateTopologySolverAndHashes) {
     gpuConfig.contactCapacity = contactCapacity;
     ASSERT_TRUE(gpuWorld.initialize(
         context.getDevice(), context.getQueue(), gpuConfig));
+    const WGPUBuffer workingBodyBuffer = gpuWorld.bodyBuffer();
+    auto invalidGpuConfig = gpuConfig;
+    invalidGpuConfig.bodyCapacity = 0u;
+    EXPECT_FALSE(gpuWorld.initialize(
+        context.getDevice(), context.getQueue(), invalidGpuConfig));
+    EXPECT_EQ(gpuWorld.bodyBuffer(), workingBodyBuffer);
     ASSERT_TRUE(gpuWorld.uploadBodies(initial));
 
     LockstepTelemetry cpuTelemetry;

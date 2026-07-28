@@ -257,7 +257,10 @@ cc_test(
 cc_test(
     name = "svo_core_standalone",
     srcs = ["test_svo_core.cpp"],
-    copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
+    copts = PROJECT_TEST_COPTS + [
+        "-DVOXY_NATIVE=1",
+        "-DVOXY_SVO_STANDALONE=1",
+    ],
     deps = [
         "//src/voxel:voxel_types",
         "@googletest//:gtest_main",

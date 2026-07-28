@@ -33,6 +33,14 @@ TEST(ShadowBakeTest, RejectsInvalidInput) {
     auto badScale = testConfig();
     badScale.heightScale = 0.0f;
     EXPECT_TRUE(bakeShadowHeightField(heights, 4, 4, badScale).data.empty());
+
+    badScale = testConfig();
+    badScale.cellScale = std::numeric_limits<float>::max();
+    EXPECT_TRUE(bakeShadowHeightField(
+        heights, 4, 4, badScale).data.empty());
+
+    EXPECT_TRUE(bakeShadowHeightField(
+        heights, 8'193u, 1u, testConfig()).data.empty());
 }
 
 TEST(ShadowBakeTest, OutputDimensionsFollowDownsample) {

@@ -130,6 +130,7 @@ Window::Window(Window&& other) noexcept
     other.height_ = 0;
     other.fbWidth_ = 0;
     other.fbHeight_ = 0;
+    other.cursorCaptured_ = false;
     other.nativePlatform_ = NativeWindowPlatform::Unknown;
 }
 
@@ -159,6 +160,7 @@ Window& Window::operator=(Window&& other) noexcept {
         other.height_ = 0;
         other.fbWidth_ = 0;
         other.fbHeight_ = 0;
+        other.cursorCaptured_ = false;
         other.nativePlatform_ = NativeWindowPlatform::Unknown;
     }
     return *this;
@@ -172,6 +174,12 @@ bool Window::init(const WindowConfig& config) {
     if (window_) {
         LOG_WARN("Window already initialized");
         return true;
+    }
+    if (config.width <= 0 || config.height <= 0 || !config.title) {
+        LOG_ERROR("Invalid window configuration: {}x{}, title={}",
+                  config.width, config.height,
+                  config.title ? config.title : "<null>");
+        return false;
     }
     
     if (!initGLFW()) {
@@ -189,7 +197,15 @@ bool Window::init(const WindowConfig& config) {
     
     if (config.fullscreen) {
         monitor = glfwGetPrimaryMonitor();
+        if (!monitor) {
+            LOG_ERROR("Cannot create fullscreen window: no primary monitor");
+            return false;
+        }
         const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+        if (!mode || mode->width <= 0 || mode->height <= 0) {
+            LOG_ERROR("Cannot create fullscreen window: no valid video mode");
+            return false;
+        }
         windowWidth = mode->width;
         windowHeight = mode->height;
     }
@@ -214,6 +230,7 @@ bool Window::init(const WindowConfig& config) {
     // Get initial dimensions
     glfwGetWindowSize(window_, &width_, &height_);
     updateFramebufferSize();
+    cursorCaptured_ = false;
 
     #if defined(__APPLE__)
         nativePlatform_ = NativeWindowPlatform::Cocoa;
@@ -257,6 +274,7 @@ void Window::shutdown() {
     height_ = 0;
     fbWidth_ = 0;
     fbHeight_ = 0;
+    cursorCaptured_ = false;
     nativePlatform_ = NativeWindowPlatform::Unknown;
 }
 
@@ -300,11 +318,15 @@ void Window::updateFramebufferSize() {
 // ─────────────────────────────────────────────────────────────────────────────
 
 void Window::pollEvents() {
-    glfwPollEvents();
+    if (s_glfwInitialized) {
+        glfwPollEvents();
+    }
 }
 
 void Window::waitEvents() {
-    glfwWaitEvents();
+    if (s_glfwInitialized) {
+        glfwWaitEvents();
+    }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -6,6 +6,8 @@
 #include "gpu/resources.hpp"
 #include "core/log.hpp"
 
+#include <cmath>
+
 namespace voxy::render {
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -118,6 +120,14 @@ bool DebugVisualizer::init(WGPUDevice device, WGPUQueue queue,
         LOG_ERROR("DebugVisualizer::init: device or queue is null");
         return false;
     }
+    const uint32_t mode = static_cast<uint32_t>(config.mode);
+    if (!std::isfinite(config.nearDist) || config.nearDist < 0.0f
+        || !std::isfinite(config.farDist)
+        || config.farDist <= config.nearDist
+        || mode > static_cast<uint32_t>(DebugVisMode::RawDepth)) {
+        LOG_ERROR("DebugVisualizer::init: invalid visualization configuration");
+        return false;
+    }
     
     device_ = device;
     queue_ = queue;
@@ -172,7 +182,7 @@ bool DebugVisualizer::createUniformBuffer() {
     }
     
     // Upload initial data
-    updateUniformBuffer();
+    if (!updateUniformBuffer()) return false;
     
     LOG_DEBUG("Created debug uniform buffer: {} bytes", alignedSize);
     return true;
@@ -330,31 +340,41 @@ void DebugVisualizer::setDepthTexture(WGPUTextureView depthView) {
 // Visualization Settings
 // ─────────────────────────────────────────────────────────────────────────────
 
-void DebugVisualizer::setDepthRange(float near, float far) {
+bool DebugVisualizer::setDepthRange(float near, float far) {
+    if (!std::isfinite(near) || near < 0.0f
+        || !std::isfinite(far) || far <= near) {
+        return false;
+    }
     if (params_.nearDist != near || params_.farDist != far) {
         params_.nearDist = near;
         params_.farDist = far;
         uniformsDirty_ = true;
     }
+    return true;
 }
 
-void DebugVisualizer::setMode(DebugVisMode mode) {
-    uint32_t modeVal = static_cast<uint32_t>(mode);
+bool DebugVisualizer::setMode(DebugVisMode mode) {
+    const uint32_t modeVal = static_cast<uint32_t>(mode);
+    if (modeVal > static_cast<uint32_t>(DebugVisMode::RawDepth)) {
+        return false;
+    }
     if (params_.mode != modeVal) {
         params_.mode = modeVal;
         uniformsDirty_ = true;
     }
+    return true;
 }
 
 DebugVisMode DebugVisualizer::getMode() const noexcept {
     return static_cast<DebugVisMode>(params_.mode);
 }
 
-void DebugVisualizer::updateUniformBuffer() {
-    if (!uniformBuffer_ || !queue_) return;
+bool DebugVisualizer::updateUniformBuffer() {
+    if (!uniformBuffer_ || !queue_) return false;
     
-    gpu::writeBuffer(queue_, uniformBuffer_, 0, params_);
+    if (!gpu::writeBuffer(queue_, uniformBuffer_, 0, params_)) return false;
     uniformsDirty_ = false;
+    return true;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -366,6 +386,10 @@ void DebugVisualizer::render(WGPUCommandEncoder encoder, WGPUTextureView colorVi
         LOG_WARN("DebugVisualizer::render: not initialized");
         return;
     }
+    if (!encoder || !colorView) {
+        LOG_ERROR("DebugVisualizer::render: invalid encoder or color view");
+        return;
+    }
     
     if (!depthView_) {
         LOG_WARN("DebugVisualizer::render: no depth texture set");
@@ -373,8 +397,8 @@ void DebugVisualizer::render(WGPUCommandEncoder encoder, WGPUTextureView colorVi
     }
     
     // Update uniform buffer if dirty
-    if (uniformsDirty_) {
-        updateUniformBuffer();
+    if (uniformsDirty_ && !updateUniformBuffer()) {
+        return;
     }
     
     // Create bind group if dirty
@@ -400,6 +424,10 @@ void DebugVisualizer::render(WGPUCommandEncoder encoder, WGPUTextureView colorVi
     renderPassDesc.depthStencilAttachment = nullptr;
     
     WGPURenderPassEncoder renderPass = wgpuCommandEncoderBeginRenderPass(encoder, &renderPassDesc);
+    if (!renderPass) {
+        LOG_ERROR("DebugVisualizer::render: failed to begin render pass");
+        return;
+    }
     
     // Set pipeline and bind group
     wgpuRenderPassEncoderSetPipeline(renderPass, pipeline_);
@@ -413,5 +441,3 @@ void DebugVisualizer::render(WGPUCommandEncoder encoder, WGPUTextureView colorVi
 }
 
 } // namespace voxy::render
-
-

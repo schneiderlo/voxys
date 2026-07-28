@@ -4,6 +4,8 @@
 
 #include <algorithm>
 #include <cstring>
+#include <limits>
+#include <utility>
 
 namespace voxy::physics {
 
@@ -11,23 +13,34 @@ DebugReadbackRing::~DebugReadbackRing() { shutdown(); }
 
 bool DebugReadbackRing::initialize(WGPUDevice device, uint32_t slotCount,
                                    size_t slotBytes) {
-    shutdown();
-    if (!device || slotCount == 0 || slotBytes == 0) return false;
-    device_ = device;
-    slotBytes_ = slotBytes;
-    slots_.resize(slotCount);
-    for (auto& slot : slots_) {
+    constexpr uint32_t maximumReadbackSlots = 64u;
+    if (!device || slotCount == 0 || slotCount > maximumReadbackSlots
+        || slotBytes == 0
+        || slotBytes > std::numeric_limits<size_t>::max() / slotCount) {
+        return false;
+    }
+    std::vector<Slot> replacement(slotCount);
+    for (auto& slot : replacement) {
         const gpu::BufferDesc desc{
             .label = "physics_debug_readback",
             .size = slotBytes,
             .usage = WGPUBufferUsage_CopyDst | WGPUBufferUsage_MapRead,
         };
-        slot.buffer = gpu::createBuffer(device_, desc);
+        slot.buffer = gpu::createBuffer(device, desc);
         if (!slot.buffer) {
-            shutdown();
+            for (auto& created : replacement) {
+                if (!created.buffer) continue;
+                wgpuBufferDestroy(created.buffer);
+                wgpuBufferRelease(created.buffer);
+                created.buffer = nullptr;
+            }
             return false;
         }
     }
+    shutdown();
+    device_ = device;
+    slotBytes_ = slotBytes;
+    slots_ = std::move(replacement);
     return true;
 }
 
@@ -61,6 +74,15 @@ bool DebugReadbackRing::encodeCopy(WGPUCommandEncoder encoder,
                                    uint32_t firstBody, uint32_t bodyCount) {
     if (!encoder || !source || byteCount == 0 || byteCount > slotBytes_)
         return false;
+    const uint64_t sourceBytes = wgpuBufferGetSize(source);
+    const gpu::WGPUBufferUsageFlags sourceUsage =
+        wgpuBufferGetUsage(source);
+    if ((sourceUsage & WGPUBufferUsage_CopySrc) == 0u
+        || sourceOffset % 4u != 0u || byteCount % 4u != 0u
+        || sourceOffset > sourceBytes
+        || byteCount > sourceBytes - sourceOffset) {
+        return false;
+    }
     for (size_t attempt = 0; attempt < slots_.size(); ++attempt) {
         const size_t index = (nextSlot_ + attempt) % slots_.size();
         auto& slot = slots_[index];

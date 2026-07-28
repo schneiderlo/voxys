@@ -32,11 +32,13 @@
 #include <chrono>
 #include <algorithm>
 #include <array>
+#include <atomic>
 #include <cmath>
 #include <cstring>
 #include <filesystem>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
+#include <limits>
 #include <numbers>
 #include <span>
 #include <system_error>
@@ -82,6 +84,7 @@ enum RendererSettingsDirty : uint32_t {
 
 constexpr float kDegreesToRadians = std::numbers::pi_v<float> / 180.0f;
 constexpr float kRadiansToDegrees = 180.0f / std::numbers::pi_v<float>;
+constexpr uint32_t kPortableMaximumTextureDimension2D = 8'192u;
 
 [[nodiscard]] float finiteClamp(double value, float minimum, float maximum) {
     if (!std::isfinite(value)) return minimum;
@@ -124,6 +127,183 @@ constexpr float kRadiansToDegrees = 180.0f / std::numbers::pi_v<float>;
         .directionalSineScale = settings.directionalSineScale,
     };
 }
+
+[[nodiscard]] WaterSpectrumSettings makeWaterSpectrumSettings(
+    const render::WaterSpectrumConfig& config) {
+    return WaterSpectrumSettings{
+        .significantWaveHeight = config.significantWaveHeight,
+        .directionDegrees = config.directionRadians * kRadiansToDegrees,
+        .choppiness = config.choppiness,
+        .peakEnhancement = config.peakEnhancement,
+        .windAlignment = config.windAlignment,
+        .animationSpeed = config.animationSpeed,
+        .patchLengths = config.patchLengths,
+        .cascadeAmplitudes = config.cascadeAmplitudes,
+        .directionalSineScale = config.directionalSineScale,
+    };
+}
+
+[[nodiscard]] bool finiteVector(const glm::vec2& value) noexcept {
+    return std::isfinite(value.x) && std::isfinite(value.y);
+}
+
+[[nodiscard]] bool finiteVector(const glm::vec3& value) noexcept {
+    return std::isfinite(value.x) && std::isfinite(value.y)
+        && std::isfinite(value.z);
+}
+
+[[nodiscard]] bool validApplicationConfig(
+    const ApplicationConfig& config) noexcept {
+    const bool validRenderPath = config.renderPath == RenderPath::Triangle
+                              || config.renderPath == RenderPath::Raycast;
+    const bool validPhysicsBackend =
+        config.physicsBackend == physics::BackendType::JoltLegacy
+        || config.physicsBackend == physics::BackendType::Box3DReference
+        || config.physicsBackend == physics::BackendType::WebGpuSoft;
+    const bool validScheduler =
+        config.joltJobSystem == physics::JoltJobSystemMode::SingleThreaded
+        || config.joltJobSystem == physics::JoltJobSystemMode::ThreadPool;
+    const auto& spectrum = config.waterSpectrum;
+    const uint64_t heightSamples =
+        static_cast<uint64_t>(config.heightmapWidth)
+        * config.heightmapHeight;
+    const float cellsPerSector =
+        256.0f / config.gpuPhysicsBroadPhaseCellSize;
+    const float roundedCellsPerSector = std::round(cellsPerSector);
+    const double scaledWindowWidth =
+        static_cast<double>(config.windowWidth)
+        * static_cast<double>(config.resolutionScale);
+    const double scaledWindowHeight =
+        static_cast<double>(config.windowHeight)
+        * static_cast<double>(config.resolutionScale);
+    const bool validGpuCellSize =
+        std::isfinite(config.gpuPhysicsBroadPhaseCellSize)
+        && config.gpuPhysicsBroadPhaseCellSize > 0.0f
+        && std::isfinite(cellsPerSector)
+        && roundedCellsPerSector >= 1.0f
+        && roundedCellsPerSector <= 2'097'152.0f
+        && std::abs(cellsPerSector - roundedCellsPerSector) <= 1.0e-5f;
+    constexpr uint32_t kCpuBenchmarkBodyCapacity = 16'384u;
+    const uint32_t benchmarkBodyCapacity =
+        config.physicsBackend == physics::BackendType::WebGpuSoft
+        ? config.gpuPhysicsMaxBodies
+        : kCpuBenchmarkBodyCapacity;
+    return validRenderPath && validPhysicsBackend && validScheduler
+        && config.windowWidth > 0 && config.windowHeight > 0
+        && config.heightmapWidth > 0u && config.heightmapHeight > 0u
+        && config.heightmapWidth <= kPortableMaximumTextureDimension2D
+        && config.heightmapHeight <= kPortableMaximumTextureDimension2D
+        && heightSamples
+            <= std::numeric_limits<size_t>::max() / sizeof(uint16_t)
+        && std::isfinite(config.resolutionScale)
+        && config.resolutionScale >= 0.25f
+        && config.resolutionScale <= 2.0f
+        && scaledWindowWidth
+            <= static_cast<double>(kPortableMaximumTextureDimension2D)
+        && scaledWindowHeight
+            <= static_cast<double>(kPortableMaximumTextureDimension2D)
+        && std::isfinite(config.heightScale) && config.heightScale > 0.0f
+        && config.heightScale <= 1.0e6f
+        && std::isfinite(config.cellScale) && config.cellScale > 0.0f
+        && config.cellScale <= 1.0e6f
+        && finiteVector(config.sunDirection)
+        && finiteVector(config.sunColor)
+        && finiteVector(config.ambientColor)
+        && std::isfinite(config.ambientIntensity)
+        && std::isfinite(config.fogDensity)
+        && finiteVector(config.fogColor)
+        && std::isfinite(config.waterHeight)
+        && finiteVector(config.waterShallowColor)
+        && finiteVector(config.waterDeepColor)
+        && std::isfinite(config.waterRoughness)
+        && std::isfinite(config.waterWaveStrength)
+        && std::isfinite(config.waterReflectionStrength)
+        && std::isfinite(config.waterShoreFade)
+        && config.waterShoreFade > 0.0f
+        && std::isfinite(spectrum.significantWaveHeight)
+        && std::isfinite(spectrum.directionDegrees)
+        && std::isfinite(spectrum.choppiness)
+        && std::isfinite(spectrum.peakEnhancement)
+        && std::isfinite(spectrum.windAlignment)
+        && std::isfinite(spectrum.animationSpeed)
+        && finiteVector(spectrum.patchLengths)
+        && spectrum.patchLengths.x > 0.0f
+        && spectrum.patchLengths.y > 0.0f
+        && finiteVector(spectrum.cascadeAmplitudes)
+        && std::isfinite(spectrum.directionalSineScale)
+        && config.gpuPhysicsMaxBodies > 0u
+        && config.gpuPhysicsMaxBodies
+            != std::numeric_limits<uint32_t>::max()
+        && config.benchmarkBodyCount <= kMaximumBenchmarkBodyCount
+        && config.benchmarkBodyCount <= benchmarkBodyCapacity
+        && validGpuCellSize
+        && config.gpuPhysicsMaximumCatchUpTicks > 0u
+        && config.gpuPhysicsMaximumCatchUpTicks <= 1'024u
+        && std::isfinite(config.gpuPhysicsTimestampPeriodNanoseconds)
+        && config.gpuPhysicsTimestampPeriodNanoseconds > 0.0
+        && config.box3dWorkerThreads > 0u
+        && finiteVector(config.cameraStartPos)
+        && std::isfinite(config.cameraFovDegrees)
+        && config.cameraFovDegrees > 0.0f
+        && config.cameraFovDegrees < 180.0f
+        && std::isfinite(config.cameraNear) && config.cameraNear > 0.0f
+        && std::isfinite(config.cameraFar)
+        && config.cameraFar > config.cameraNear
+        && std::isfinite(config.cameraMoveSpeed)
+        && config.cameraMoveSpeed >= 0.0f
+        && config.cameraMoveSpeed <= 1'000.0f
+        && std::isfinite(config.cameraMouseSensitivity)
+        && config.cameraMouseSensitivity >= 0.0f
+        && config.cameraMouseSensitivity <= 0.02f
+        && std::isfinite(config.cameraEyeHeight)
+        && config.cameraEyeHeight > 0.0f
+        && config.cameraEyeHeight <= 10.0f
+        && std::isfinite(config.fpsLogIntervalSeconds)
+        && config.fpsLogIntervalSeconds > 0.0f
+        && std::isfinite(config.benchmarkMinimumFps)
+        && config.benchmarkMinimumFps >= 0.0
+        && std::isfinite(config.benchmarkFixedDeltaSeconds)
+        && config.benchmarkFixedDeltaSeconds >= 0.0f
+        && config.screenshotFrameDelay >= 0
+        && config.screenshotTourIndices.size() <= 256u;
+}
+
+[[nodiscard]] uint32_t scaledRenderExtent(uint32_t extent,
+                                          float scale) noexcept {
+    const double scaled = std::round(
+        static_cast<double>(extent) * static_cast<double>(scale));
+    return static_cast<uint32_t>(std::clamp(
+        scaled, 1.0,
+        static_cast<double>(kPortableMaximumTextureDimension2D)));
+}
+
+#if defined(VOXY_NATIVE)
+struct ScreenshotMapState {
+    std::atomic<uint32_t> references{2u};
+    std::atomic<bool> done{false};
+    std::atomic<bool> succeeded{false};
+};
+
+void releaseScreenshotMapState(ScreenshotMapState* state) noexcept {
+    if (state->references.fetch_sub(1u, std::memory_order_acq_rel) == 1u) {
+        delete state;
+    }
+}
+
+void onScreenshotBufferMapped(WGPUBufferMapAsyncStatus status,
+                              void* userdata) {
+    auto* state = static_cast<ScreenshotMapState*>(userdata);
+    state->succeeded.store(
+        status == WGPUBufferMapAsyncStatus_Success,
+        std::memory_order_relaxed);
+    state->done.store(true, std::memory_order_release);
+    if (status != WGPUBufferMapAsyncStatus_Success) {
+        LOG_ERROR("Failed to map screenshot buffer: status={}",
+                  static_cast<int>(status));
+    }
+    releaseScreenshotMapState(state);
+}
+#endif
 
 } // namespace
 
@@ -239,6 +419,41 @@ bool Application::init(const ApplicationConfig& config) {
         LOG_WARN("Application already initialized");
         return true;
     }
+    if (!validApplicationConfig(config)) {
+        LOG_ERROR("Application configuration is invalid "
+                  "(window {}x{}, heightmap {}x{}, scale {})",
+                  config.windowWidth, config.windowHeight,
+                  config.heightmapWidth, config.heightmapHeight,
+                  config.resolutionScale);
+        return false;
+    }
+
+    stats_ = {};
+    physicsGpuTimingSamples_ = {};
+    physicsGpuTimingSampleHead_ = 0u;
+    physicsGpuTimingSampleCount_ = 0u;
+    renderGpuTimingSamples_ = {};
+    renderGpuTimingSampleHead_ = 0u;
+    renderGpuTimingSampleCount_ = 0u;
+    shouldExit_ = false;
+    debugVisMode_ = DebugVisMode::Off;
+    wireframeEnabled_ = false;
+    legoMode_ = false;
+    controllerMode_ = ControllerMode::FreeFly;
+    selectedThrowable_ = 0u;
+    throwableBodyLimit_ = 0u;
+    throwableWheelAccumulator_ = 0.0f;
+    throwableCooldown_ = 0.0f;
+    benchmarkRunner_.reset();
+    benchmarkSubmissionIndices_.clear();
+    lastFrameTime_ = 0.0;
+    fpsAccumulator_ = 0.0;
+    fpsFrameCount_ = 0;
+    recordedPositions_.clear();
+    tourActive_ = false;
+    tourStep_ = 0u;
+    tourFrameCounter_ = 0u;
+    tourCurrentPath_.clear();
 
     config_ = config;
     rendererSettings_.sunDirection = glm::dot(config_.sunDirection,
@@ -265,6 +480,8 @@ bool Application::init(const ApplicationConfig& config) {
     rendererSettings_.cameraMoveSpeed = config_.cameraMoveSpeed;
     rendererSettings_.cameraMouseSensitivity = config_.cameraMouseSensitivity;
     rendererSettings_.cameraEyeHeight = config_.cameraEyeHeight;
+    appliedWaterCoastHeight_ = rendererSettings_.waterHeight;
+    appliedShadowSunDirection_ = rendererSettings_.sunDirection;
     rendererSettingsRevision_ = 1u;
     appliedRendererSettingsRevision_ = 1u;
     rendererSettingsDirty_ = 0u;
@@ -295,43 +512,48 @@ bool Application::init(const ApplicationConfig& config) {
     LOG_INFO("  Render path: {}", renderPathToString(config_.renderPath));
     LOG_INFO("═══════════════════════════════════════════════════════════════");
 
+    const auto failInitialization = [this]() {
+        shutdown();
+        return false;
+    };
+
     // Initialize subsystems in order
     {
         LOG_SCOPE("Application::init");
 
         if (!initWindow()) {
             LOG_ERROR("Failed to initialize window");
-            return false;
+            return failInitialization();
         }
 
         if (!initGPU()) {
             LOG_ERROR("Failed to initialize GPU context");
-            return false;
+            return failInitialization();
         }
 
         if (!initRenderGpuProfiling()) {
             LOG_ERROR("Failed to initialize render GPU profiling");
-            return false;
+            return failInitialization();
         }
 
         if (!initInput()) {
             LOG_ERROR("Failed to initialize input system");
-            return false;
+            return failInitialization();
         }
 
         if (!initCamera()) {
             LOG_ERROR("Failed to initialize camera");
-            return false;
+            return failInitialization();
         }
 
         if (!initTerrain()) {
             LOG_ERROR("Failed to initialize terrain");
-            return false;
+            return failInitialization();
         }
 
         if (!initRenderers()) {
             LOG_ERROR("Failed to initialize renderers");
-            return false;
+            return failInitialization();
         }
 
         setupCallbacks();
@@ -393,7 +615,7 @@ bool Application::init(const ApplicationConfig& config) {
 
     if (!spawnBenchmarkBodies()) {
         LOG_ERROR("Failed to create the deterministic benchmark body set");
-        return false;
+        return failInitialization();
     }
 
     if (config_.benchmarkOnStartup) {
@@ -422,7 +644,16 @@ void Application::requestExit() {
 }
 
 void Application::shutdown() {
-    if (!initialized_) {
+    const bool hasResources = initialized_
+        || window_ || gpuContext_ || input_ || camera_ || freeFlyController_
+        || physicsWorld_ || characterController_ || heightmap_
+        || terrainTextures_ || waterSimulation_ || primitivePath_
+        || trianglePath_ || raycastPath_ || blitPath_
+        || renderGpuQuerySet_ || renderGpuResolveBuffer_
+        || depthTexture_ || depthView_
+        || benchmarkTargetTexture_ || benchmarkTargetView_
+        || shadowMapTexture_ || shadowMapView_;
+    if (!hasResources) {
         return;
     }
 
@@ -461,26 +692,6 @@ void Application::shutdown() {
         wgpuTextureDestroy(benchmarkTargetTexture_);
         wgpuTextureRelease(benchmarkTargetTexture_);
         benchmarkTargetTexture_ = nullptr;
-    }
-
-    if (placeholderTerrainView_) {
-        wgpuTextureViewRelease(placeholderTerrainView_);
-        placeholderTerrainView_ = nullptr;
-    }
-    if (placeholderTerrainTexture_) {
-        wgpuTextureDestroy(placeholderTerrainTexture_);
-        wgpuTextureRelease(placeholderTerrainTexture_);
-        placeholderTerrainTexture_ = nullptr;
-    }
-
-    if (placeholderLightmapView_) {
-        wgpuTextureViewRelease(placeholderLightmapView_);
-        placeholderLightmapView_ = nullptr;
-    }
-    if (placeholderLightmapTexture_) {
-        wgpuTextureDestroy(placeholderLightmapTexture_);
-        wgpuTextureRelease(placeholderLightmapTexture_);
-        placeholderLightmapTexture_ = nullptr;
     }
 
     if (shadowMapView_) {
@@ -587,6 +798,13 @@ void Application::update(float deltaTime) {
 }
 
 void Application::update(float simulationDeltaTime, float frameDeltaTime) {
+    if (!std::isfinite(simulationDeltaTime)
+        || simulationDeltaTime < 0.0f) {
+        simulationDeltaTime = 0.0f;
+    }
+    if (!std::isfinite(frameDeltaTime) || frameDeltaTime < 0.0f) {
+        frameDeltaTime = 0.0f;
+    }
     applyRendererSettings();
 
     // Command-line benchmarks are scripted workloads. Ignoring gameplay input
@@ -670,6 +888,10 @@ void Application::render() {
     WGPUCommandEncoderDescriptor encoderDesc = {};
     WGPUCommandEncoder encoder = wgpuDeviceCreateCommandEncoder(
         gpuContext_->getDevice(), &encoderDesc);
+    if (!encoder) {
+        LOG_ERROR("Failed to create the frame command encoder");
+        return;
+    }
 
     // Update camera uniforms for all renderers
     updateCameraUniforms();
@@ -825,6 +1047,11 @@ void Application::render() {
     // Submit commands
     WGPUCommandBufferDescriptor cmdBufferDesc = {};
     WGPUCommandBuffer cmdBuffer = wgpuCommandEncoderFinish(encoder, &cmdBufferDesc);
+    if (!cmdBuffer) {
+        LOG_ERROR("Failed to finish the frame command buffer");
+        wgpuCommandEncoderRelease(encoder);
+        return;
+    }
 #if defined(VOXY_NATIVE)
     if (config_.benchmarkOnStartup) {
         benchmarkSubmissionIndices_.push_back(wgpuQueueSubmitForIndex(
@@ -924,29 +1151,31 @@ void Application::scheduleNextTourStep() {
         return;
     }
 
-    if (tourStep_ >= config_.screenshotTourIndices.size()) {
-        // Tour complete
-        tourActive_ = false;
-        requestExit();
-        return;
-    }
-
-    int index = config_.screenshotTourIndices[tourStep_];
-    if (camera_ && index >= 0 && static_cast<size_t>(index) < teleportTargets_.size()) {
-        const auto& target = teleportTargets_[static_cast<size_t>(index)];
-        camera_->setWorldPosition(target.sector, target.position);
-        camera_->setYaw(target.yaw);
-        camera_->setPitch(target.pitch);
-        LOG_INFO("Screenshot tour: teleported to index {} (step {})", index, tourStep_);
-    } else {
-        LOG_WARN("Screenshot tour: invalid teleport index {} (step {}), skipping", index, tourStep_);
+    while (tourStep_ < config_.screenshotTourIndices.size()) {
+        const int index = config_.screenshotTourIndices[tourStep_];
+        if (camera_ && index >= 0
+            && static_cast<size_t>(index) < teleportTargets_.size()) {
+            const auto& target = teleportTargets_[static_cast<size_t>(index)];
+            camera_->setWorldPosition(target.sector, target.position);
+            camera_->setYaw(target.yaw);
+            camera_->setPitch(target.pitch);
+            LOG_INFO(
+                "Screenshot tour: teleported to index {} (step {})",
+                index, tourStep_);
+            tourCurrentPath_ = (
+                config_.screenshotTourDir
+                / ("view_" + std::to_string(tourStep_) + ".png")).string();
+            tourFrameCounter_ = 0;
+            return;
+        }
+        LOG_WARN(
+            "Screenshot tour: invalid teleport index {} (step {}), skipping",
+            index, tourStep_);
         tourStep_++;
-        scheduleNextTourStep();
-        return;
     }
 
-    tourCurrentPath_ = (config_.screenshotTourDir / ("view_" + std::to_string(tourStep_) + ".png")).string();
-    tourFrameCounter_ = 0;
+    tourActive_ = false;
+    requestExit();
 }
 
 void Application::processFrame(float deltaTime) {
@@ -1005,6 +1234,11 @@ void Application::processFrame(float simulationDeltaTime,
 // ─────────────────────────────────────────────────────────────────────────────
 
 void Application::setRenderPath(RenderPath path) {
+    if (path != RenderPath::Triangle && path != RenderPath::Raycast) {
+        LOG_ERROR("Ignoring invalid render path {}",
+                  static_cast<int>(path));
+        return;
+    }
     if (config_.renderPath != path) {
         config_.renderPath = path;
         stats_.activeRenderPath = path;
@@ -1028,16 +1262,20 @@ void Application::toggleRenderPath() {
 // ─────────────────────────────────────────────────────────────────────────────
 
 void Application::toggleUncappedFPS() {
-    uncappedFPS_ = !uncappedFPS_;
-    config_.vsync = !uncappedFPS_;
+    const bool nextUncapped = !uncappedFPS_;
+    if (gpuContext_
+        && !gpuContext_->setPresentMode(
+            nextUncapped ? WGPUPresentMode_Immediate
+                         : WGPUPresentMode_Fifo)) {
+        LOG_WARN("Requested presentation behavior is unavailable");
+        return;
+    }
+    uncappedFPS_ = nextUncapped;
+    config_.vsync = !nextUncapped;
     LOG_INFO("Uncapped FPS mode: {}", uncappedFPS_
         ? "ENABLED (immediate presentation)"
         : "DISABLED (FIFO VSync)");
 
-    // Update GPU context immediately
-    if (gpuContext_) {
-        gpuContext_->setPresentMode(uncappedFPS_ ? WGPUPresentMode_Immediate : WGPUPresentMode_Fifo);
-    }
 #if defined(VOXY_WASM)
     // Loop strategy update is handled by the platform entry point (entry.cpp) via isUncappedFPS()
 #endif
@@ -1054,33 +1292,40 @@ void Application::onResize(uint32_t width, uint32_t height) {
     if (width == 0 || height == 0) {
         return;
     }
-    
-    // Resize swapchain
-    if (gpuContext_) {
-        gpuContext_->resizeSwapchain(width, height);
-    }
+    const uint32_t renderWidth =
+        scaledRenderExtent(width, config_.resolutionScale);
+    const uint32_t renderHeight =
+        scaledRenderExtent(height, config_.resolutionScale);
 
+    // The benchmark color attachment must remain the same size as the depth
+    // attachment. Its replacement is transactional, so stop before committing
+    // any other size when allocation fails.
     if (config_.benchmarkOnStartup
-        && !createBenchmarkTarget(width, height)) {
+        && !createBenchmarkTarget(renderWidth, renderHeight)) {
         LOG_ERROR("Failed to resize the benchmark render target to {}x{}",
-                  width, height);
-    }
-    
-    // Update camera aspect ratio
-    if (camera_) {
-        camera_->setAspectRatio(width, height);
-    }
-    
-    // Release the blit's framebuffer-sized cache bindings before the ray-caster
-    // replaces the borrowed depth/shadow views.
-    if (blitPath_) {
-        [[maybe_unused]] bool resized = blitPath_->resize(width, height);
+                  renderWidth, renderHeight);
+        return;
     }
 
-    // Resize raycast path output textures
+    if (gpuContext_
+        && !gpuContext_->resizeSwapchain(renderWidth, renderHeight)) {
+        LOG_ERROR("Failed to resize the swapchain to {}x{}",
+                  renderWidth, renderHeight);
+        return;
+    }
+
+    bool raycastResizeSucceeded = true;
     if (raycastPath_) {
-        [[maybe_unused]] bool resized = raycastPath_->resize(width, height);
-        // Rebind depth texture after resize
+        raycastResizeSucceeded =
+            raycastPath_->resize(renderWidth, renderHeight);
+    }
+    if (raycastResizeSucceeded && blitPath_) {
+        raycastResizeSucceeded =
+            blitPath_->resize(renderWidth, renderHeight);
+    }
+    if (raycastPath_) {
+        // Rebind every borrowed view after a successful ray-output replacement.
+        // This is also required when the later blit-cache allocation failed.
         if (blitPath_) {
             blitPath_->setDepthTexture(raycastPath_->getDepthOutputView());
             blitPath_->setShadowTexture(raycastPath_->getShadowOutputView());
@@ -1092,6 +1337,21 @@ void Application::onResize(uint32_t width, uint32_t height) {
         if (primitivePath_) {
             primitivePath_->setRayDepthTexture(raycastPath_->getDepthOutputView());
         }
+    }
+
+    if (!raycastResizeSucceeded) {
+        LOG_ERROR(
+            "Raycast renderer resize failed at {}x{}; using the independent triangle path",
+            renderWidth, renderHeight);
+        if (config_.renderPath == RenderPath::Raycast) {
+            setRenderPath(RenderPath::Triangle);
+        }
+    }
+
+    // Projection must match the actual render target after independent extent
+    // rounding, especially at fractional resolution scales.
+    if (camera_) {
+        camera_->setAspectRatio(renderWidth, renderHeight);
     }
     
     // Invalidate depth buffer for triangle path
@@ -1349,6 +1609,10 @@ void Application::applyRendererSettings() {
         if (!waterSimulation_->reconfigure(makeWaterSpectrumConfig(
                 rendererSettings_.waterSpectrum))) {
             LOG_ERROR("Runtime water-spectrum update failed");
+            // Keep uniforms and CPU/GPU physics matched to the spectrum which
+            // is still live after the transactional rebuild failed.
+            rendererSettings_.waterSpectrum = makeWaterSpectrumSettings(
+                waterSimulation_->spectrumConfig());
         }
         updateWaterPhysicsBindings();
     } else if ((dirty & RendererWaterPhysicsDirty) != 0u) {
@@ -1358,10 +1622,13 @@ void Application::applyRendererSettings() {
     if ((dirty & RendererWaterCoastDirty) != 0u &&
         !rebuildWaterCoastField()) {
         LOG_ERROR("Runtime coastal-field update failed");
+        rendererSettings_.waterHeight = appliedWaterCoastHeight_;
+        updateWaterPhysicsBindings();
     }
     if ((dirty & RendererSunShadowDirty) != 0u &&
         !rebuildSunShadowMap()) {
         LOG_ERROR("Runtime sun-shadow update failed");
+        rendererSettings_.sunDirection = appliedShadowSunDirection_;
     }
 
     appliedRendererSettingsRevision_ = rendererSettingsRevision_;
@@ -1406,6 +1673,7 @@ bool Application::rebuildWaterCoastField() {
             waterSimulation_->getCoastView(),
             waterSimulation_->getSampler());
     }
+    appliedWaterCoastHeight_ = rendererSettings_.waterHeight;
     return true;
 }
 
@@ -1452,6 +1720,7 @@ bool Application::rebuildSunShadowMap() {
     if (shadowMapTexture_) wgpuTextureRelease(shadowMapTexture_);
     shadowMapTexture_ = nextTexture;
     shadowMapView_ = nextView;
+    appliedShadowSunDirection_ = rendererSettings_.sunDirection;
     LOG_INFO("Rebuilt sun shadow field: {}x{} ({:.1f} ms)",
              baked.width, baked.height, bakeTimer.elapsedMs());
     return true;
@@ -1688,21 +1957,31 @@ bool Application::initGPU() {
         return false;
     }
 
-    gpuConfig.swapchainWidth = static_cast<uint32_t>(window_->getFramebufferWidth());
-    gpuConfig.swapchainHeight = static_cast<uint32_t>(window_->getFramebufferHeight());
+    gpuConfig.swapchainWidth = scaledRenderExtent(
+        static_cast<uint32_t>(window_->getFramebufferWidth()),
+        config_.resolutionScale);
+    gpuConfig.swapchainHeight = scaledRenderExtent(
+        static_cast<uint32_t>(window_->getFramebufferHeight()),
+        config_.resolutionScale);
 
     if (!gpuContext_->init(*window_, gpuConfig)) {
         return false;
     }
 
 #elif defined(VOXY_WASM)
-    gpuConfig.swapchainWidth = static_cast<uint32_t>(config_.windowWidth);
-    gpuConfig.swapchainHeight = static_cast<uint32_t>(config_.windowHeight);
+    gpuConfig.swapchainWidth = scaledRenderExtent(
+        static_cast<uint32_t>(config_.windowWidth), config_.resolutionScale);
+    gpuConfig.swapchainHeight = scaledRenderExtent(
+        static_cast<uint32_t>(config_.windowHeight), config_.resolutionScale);
 
     if (!gpuContext_->initFromCanvas("#voxy-canvas", gpuConfig)) {
         return false;
     }
 #endif
+
+    // Surface capability negotiation may select a different format than the
+    // preference. Every attachment pipeline must use the negotiated format.
+    config_.colorFormat = gpuContext_->getSwapchainFormat();
 
     if (config_.benchmarkOnStartup) {
         if (!createBenchmarkTarget(gpuContext_->getSwapchainWidth(),
@@ -1719,27 +1998,27 @@ bool Application::initGPU() {
 bool Application::createBenchmarkTarget(uint32_t width, uint32_t height) {
     if (!gpuContext_ || width == 0u || height == 0u) return false;
 
-    // Releasing the application handles is safe with in-flight submissions:
-    // WebGPU command buffers retain the resources they reference.
-    if (benchmarkTargetView_) {
-        wgpuTextureViewRelease(benchmarkTargetView_);
-        benchmarkTargetView_ = nullptr;
-    }
-    if (benchmarkTargetTexture_) {
-        wgpuTextureRelease(benchmarkTargetTexture_);
-        benchmarkTargetTexture_ = nullptr;
-    }
-
     gpu::TextureDesc targetDesc = gpu::TextureDesc::renderTarget(
         width, height, gpuContext_->getSwapchainFormat(),
         "benchmark_offscreen_target");
     targetDesc.usage = WGPUTextureUsage_RenderAttachment
                      | WGPUTextureUsage_CopySrc;
-    benchmarkTargetTexture_ = gpu::createTexture(
+    WGPUTexture nextTexture = gpu::createTexture(
         gpuContext_->getDevice(), targetDesc);
-    if (!benchmarkTargetTexture_) return false;
-    benchmarkTargetView_ = gpu::createTextureView(benchmarkTargetTexture_);
-    return benchmarkTargetTexture_ && benchmarkTargetView_;
+    if (!nextTexture) return false;
+    WGPUTextureView nextView = gpu::createTextureView(nextTexture);
+    if (!nextView) {
+        wgpuTextureRelease(nextTexture);
+        return false;
+    }
+
+    // Releasing the application handles is safe with in-flight submissions:
+    // WebGPU command buffers retain the resources they reference.
+    if (benchmarkTargetView_) wgpuTextureViewRelease(benchmarkTargetView_);
+    if (benchmarkTargetTexture_) wgpuTextureRelease(benchmarkTargetTexture_);
+    benchmarkTargetTexture_ = nextTexture;
+    benchmarkTargetView_ = nextView;
+    return true;
 }
 
 bool Application::initRenderGpuProfiling() {
@@ -1806,15 +2085,9 @@ bool Application::initCamera() {
     camConfig.nearPlane = config_.cameraNear;
     camConfig.farPlane = config_.cameraFar;
 
-#if defined(VOXY_NATIVE)
-    if (window_) {
-        camConfig.aspectRatio = static_cast<float>(window_->getFramebufferWidth()) /
-                                static_cast<float>(window_->getFramebufferHeight());
-    }
-#else
-    camConfig.aspectRatio = static_cast<float>(config_.windowWidth) /
-                            static_cast<float>(config_.windowHeight);
-#endif
+    camConfig.aspectRatio =
+        static_cast<float>(gpuContext_->getSwapchainWidth())
+        / static_cast<float>(gpuContext_->getSwapchainHeight());
 
     const glm::vec3 defaultStart{0.0f, 80.0f, 0.0f};
     glm::vec3 startPos = config_.cameraStartPos;
@@ -1956,7 +2229,8 @@ bool Application::initTerrain() {
         // Create procedural wavy heightmap
         uint32_t w = config_.heightmapWidth;
         uint32_t h = config_.heightmapHeight;
-        std::vector<uint16_t> data(w * h);
+        std::vector<uint16_t> data(
+            static_cast<size_t>(w) * static_cast<size_t>(h));
         
         for (uint32_t y = 0; y < h; ++y) {
             for (uint32_t x = 0; x < w; ++x) {
@@ -1964,7 +2238,8 @@ bool Application::initTerrain() {
                 float u = static_cast<float>(x) / static_cast<float>(w) * 10.0f;
                 float v = static_cast<float>(y) / static_cast<float>(h) * 10.0f;
                 float height = 0.5f + 0.2f * std::sin(u) + 0.2f * std::cos(v);
-                data[y * w + x] = static_cast<uint16_t>(height * 65535.0f);
+                data[static_cast<size_t>(y) * w + x] =
+                    static_cast<uint16_t>(height * 65535.0f);
             }
         }
         *heightmap_ = terrain::Heightmap::createFromData(std::move(data), w, h);
@@ -2044,6 +2319,10 @@ bool Application::initRenderers() {
         LOG_ERROR("Failed to initialize FFT water simulation");
         return false;
     }
+    // WaterSimulation owns the canonical clamping/wrapping rules. Use exactly
+    // the values represented by its newly-created CPU and GPU spectrum.
+    rendererSettings_.waterSpectrum = makeWaterSpectrumSettings(
+        waterSimulation_->spectrumConfig());
     if (physicsWorld_) {
         const float waveStrength = rendererSettings_.waterWaveStrength;
         if (physicsWorld_->backendType() == physics::BackendType::WebGpuSoft) {
@@ -2079,12 +2358,14 @@ bool Application::initRenderers() {
         }
 
         // Bind heightmap
-        trianglePath_->setHeightmap(
-            heightmap_->getTextureView(),
-            heightmap_->getWidth(),
-            heightmap_->getHeight(),
-            heightmap_->getData()
-        );
+        if (!trianglePath_->setHeightmap(
+                heightmap_->getTextureView(),
+                heightmap_->getWidth(),
+                heightmap_->getHeight(),
+                heightmap_->getData())) {
+            LOG_ERROR("Failed to bind terrain to triangle path");
+            return false;
+        }
     }
 
     // Initialize raycast path
@@ -2101,11 +2382,13 @@ bool Application::initRenderers() {
         }
 
         // Bind heightmap
-        raycastPath_->setHeightmap(
-            heightmap_->getTextureView(),
-            heightmap_->getWidth(),
-            heightmap_->getHeight()
-        );
+        if (!raycastPath_->setHeightmap(
+                heightmap_->getTextureView(),
+                heightmap_->getWidth(),
+                heightmap_->getHeight())) {
+            LOG_ERROR("Failed to bind terrain to raycast path");
+            return false;
+        }
         raycastPath_->setWaterSimulation(waterSimulation_->getOutputView(),
                                          waterSimulation_->getCoastView(),
                                          waterSimulation_->getSampler());
@@ -2159,7 +2442,8 @@ bool Application::initRenderers() {
     textureConfig.placeholderHeight = config_.heightmapHeight;
 
     if (!terrainTextures_->init(device, queue, textureConfig)) {
-        LOG_WARN("Failed to initialize terrain textures (using defaults/placeholders)");
+        LOG_ERROR("Failed to initialize terrain textures and fallbacks");
+        return false;
     }
 
     // Pass textures to triangle path
@@ -2184,68 +2468,6 @@ bool Application::initRenderers() {
                                raycastPath_->getOutputHeight())) {
             LOG_ERROR("Failed to create blit background cache");
             return false;
-        }
-
-        // Create placeholder terrain texture (white)
-        {
-            WGPUTextureDescriptor desc = {};
-            WGPU_SET_LABEL(desc, "placeholder_terrain");
-            desc.usage = WGPUTextureUsage_TextureBinding | WGPUTextureUsage_CopyDst;
-            desc.dimension = WGPUTextureDimension_2D;
-            desc.size = {1, 1, 1};
-            desc.format = WGPUTextureFormat_RGBA8Unorm;
-            desc.mipLevelCount = 1;
-            desc.sampleCount = 1;
-
-            placeholderTerrainTexture_ = wgpuDeviceCreateTexture(device, &desc);
-
-            uint8_t greenPixel[4] = {50, 160, 50, 255}; // Forest Green
-            gpu::CompatImageCopyTexture dstTexture = gpu::makeTextureCopyDest(
-                placeholderTerrainTexture_, 0, {0, 0, 0});
-            gpu::CompatTextureDataLayout layout = gpu::makeTextureDataLayout(0, 4, 1);
-
-            WGPUExtent3D writeSize = {1, 1, 1};
-            wgpuQueueWriteTexture(queue, &dstTexture, greenPixel, 4, &layout, &writeSize);
-
-            WGPUTextureViewDescriptor viewDesc = {};
-            viewDesc.format = WGPUTextureFormat_RGBA8Unorm;
-            viewDesc.dimension = WGPUTextureViewDimension_2D;
-            viewDesc.baseMipLevel = 0;
-            viewDesc.mipLevelCount = 1;
-            viewDesc.baseArrayLayer = 0;
-            viewDesc.arrayLayerCount = 1;
-            placeholderTerrainView_ = wgpuTextureCreateView(placeholderTerrainTexture_, &viewDesc);
-        }
-
-        // Create placeholder lightmap texture (white/fully lit)
-        {
-            WGPUTextureDescriptor desc = {};
-            WGPU_SET_LABEL(desc, "placeholder_lightmap");
-            desc.usage = WGPUTextureUsage_TextureBinding | WGPUTextureUsage_CopyDst;
-            desc.dimension = WGPUTextureDimension_2D;
-            desc.size = {1, 1, 1};
-            desc.format = WGPUTextureFormat_RGBA8Unorm;
-            desc.mipLevelCount = 1;
-            desc.sampleCount = 1;
-
-            placeholderLightmapTexture_ = wgpuDeviceCreateTexture(device, &desc);
-
-            uint8_t whitePixel[4] = {255, 255, 255, 255};
-            gpu::CompatImageCopyTexture dstTexture = gpu::makeTextureCopyDest(
-                placeholderLightmapTexture_, 0, {0, 0, 0});
-            gpu::CompatTextureDataLayout layout = gpu::makeTextureDataLayout(0, 4, 1);
-
-            WGPUExtent3D writeSize = {1, 1, 1};
-            wgpuQueueWriteTexture(queue, &dstTexture, whitePixel, 4, &layout, &writeSize);
-
-            WGPUTextureViewDescriptor viewDesc = {};
-            viewDesc.format = WGPUTextureFormat_RGBA8Unorm;
-            viewDesc.dimension = WGPUTextureViewDimension_2D;
-            viewDesc.baseMipLevel = 0;
-            viewDesc.mipLevelCount = 1;
-            viewDesc.baseArrayLayer = 0;
-            viewDesc.arrayLayerCount = 1;
-            placeholderLightmapView_ = wgpuTextureCreateView(placeholderLightmapTexture_, &viewDesc);
         }
 
         // Bind textures to blit path
@@ -2287,6 +2509,7 @@ void Application::setupCallbacks() {
 
     // Resize callback - use shared onResize() method
     window_->setResizeCallback([this](int width, int height) {
+        if (width <= 0 || height <= 0) return;
         onResize(static_cast<uint32_t>(width), static_cast<uint32_t>(height));
     });
 
@@ -2420,47 +2643,48 @@ void Application::updateCameraUniforms() {
     const uint32_t terrainHeight = heightmap_ ? heightmap_->getHeight() : stats_.terrainHeight;
     const uint32_t lodStep =
         (config_.renderPath == RenderPath::Triangle && trianglePath_) ? trianglePath_->getLODStep() : 1u;
-    const glm::vec3 worldLightDir = glm::normalize(rendererSettings_.sunDirection);
+    const glm::vec3 worldLightDir = rendererSettings_.sunDirection;
 
     render::CameraUniforms uniforms;
-    uniforms.setTerrain(
-        std::max(terrainWidth, 1u),
-        std::max(terrainHeight, 1u),
-        config_.heightScale,
-        config_.cellScale,
-        static_cast<float>(lodStep),
-        rendererSettings_.fogDensity
-    );
-    uniforms.setCamera(terrainView, proj, terrainPosition);
-    uniforms.setLightDirection(worldLightDir, terrainView, ambient);
+    if (!uniforms.setTerrain(
+            std::max(terrainWidth, 1u), std::max(terrainHeight, 1u),
+            config_.heightScale, config_.cellScale,
+            static_cast<float>(lodStep), rendererSettings_.fogDensity)
+        || !uniforms.setCamera(terrainView, proj, terrainPosition)
+        || !uniforms.setLightDirection(
+            worldLightDir, terrainView, ambient)
+        || !uniforms.setWater(
+            rendererSettings_.waterEnabled,
+            rendererSettings_.waterHeight,
+            rendererSettings_.waterShallowColor,
+            rendererSettings_.waterDeepColor,
+            rendererSettings_.waterRoughness,
+            rendererSettings_.waterWaveStrength,
+            rendererSettings_.waterReflectionStrength,
+            rendererSettings_.waterShoreFade)
+        || !uniforms.setRendererMaterial(
+            rendererSettings_.sunColor,
+            rendererSettings_.sunIntensity,
+            rendererSettings_.ambientColor,
+            rendererSettings_.fogColor,
+            rendererSettings_.exposure,
+            rendererSettings_.waterIor,
+            rendererSettings_.waterDistortion,
+            rendererSettings_.waterAbsorptionScale,
+            rendererSettings_.waterScatterStrength,
+            rendererSettings_.waterFoamSize,
+            rendererSettings_.waterFoamOpacity,
+            rendererSettings_.waterFoamCoverage,
+            rendererSettings_.waterReflectionDistance,
+            rendererSettings_.waterSpectrum.patchLengths)) {
+        LOG_ERROR("Application: refused invalid camera uniform state");
+        return;
+    }
     uniforms.setLegoMode(legoMode_);
-    uniforms.setWater(rendererSettings_.waterEnabled,
-                      rendererSettings_.waterHeight,
-                      rendererSettings_.waterShallowColor,
-                      rendererSettings_.waterDeepColor,
-                      rendererSettings_.waterRoughness,
-                      rendererSettings_.waterWaveStrength,
-                      rendererSettings_.waterReflectionStrength,
-                      rendererSettings_.waterShoreFade);
-    uniforms.setRendererMaterial(
-        rendererSettings_.sunColor,
-        rendererSettings_.sunIntensity,
-        rendererSettings_.ambientColor,
-        rendererSettings_.fogColor,
-        rendererSettings_.exposure,
-        rendererSettings_.waterIor,
-        rendererSettings_.waterDistortion,
-        rendererSettings_.waterAbsorptionScale,
-        rendererSettings_.waterScatterStrength,
-        rendererSettings_.waterFoamSize,
-        rendererSettings_.waterFoamOpacity,
-        rendererSettings_.waterFoamCoverage,
-        rendererSettings_.waterReflectionDistance,
-        rendererSettings_.waterSpectrum.patchLengths);
     // Wrap before fp32 loses the sub-frame precision used by short waves.
     const float waterTime = static_cast<float>(
         std::fmod(stats_.totalTimeSeconds, 4096.0));
-    uniforms.setWaterTime(waterTime);
+    if (!uniforms.setWaterTime(waterTime)) return;
     float cameraSurfaceOffset = 0.0f;
     if (rendererSettings_.waterEnabled && waterSimulation_ &&
         waterSimulation_->isInitialized()) {
@@ -2468,7 +2692,7 @@ void Application::updateCameraUniforms() {
             glm::vec2{terrainPosition.x, terrainPosition.z}, waterTime,
             rendererSettings_.waterWaveStrength).heightOffset;
     }
-    uniforms.setCameraWaterSurfaceOffset(cameraSurfaceOffset);
+    if (!uniforms.setCameraWaterSurfaceOffset(cameraSurfaceOffset)) return;
 
     if (config_.renderPath == RenderPath::Triangle &&
         trianglePath_ && trianglePath_->isInitialized()) {
@@ -2618,17 +2842,6 @@ WGPUTextureView Application::getOrCreateDepthView() {
         return depthView_;
     }
 
-    // Release old resources
-    if (depthView_) {
-        wgpuTextureViewRelease(depthView_);
-        depthView_ = nullptr;
-    }
-    if (depthTexture_) {
-        wgpuTextureDestroy(depthTexture_);
-        wgpuTextureRelease(depthTexture_);
-        depthTexture_ = nullptr;
-    }
-
     // Create depth texture
     WGPUTextureDescriptor desc = {};
     WGPU_SET_LABEL(desc, "depth_texture");
@@ -2639,8 +2852,9 @@ WGPUTextureView Application::getOrCreateDepthView() {
     desc.mipLevelCount = 1;
     desc.sampleCount = 1;
 
-    depthTexture_ = wgpuDeviceCreateTexture(gpuContext_->getDevice(), &desc);
-    if (!depthTexture_) {
+    WGPUTexture nextTexture =
+        wgpuDeviceCreateTexture(gpuContext_->getDevice(), &desc);
+    if (!nextTexture) {
         LOG_ERROR("Failed to create depth texture");
         return nullptr;
     }
@@ -2655,7 +2869,21 @@ WGPUTextureView Application::getOrCreateDepthView() {
     viewDesc.arrayLayerCount = 1;
     viewDesc.aspect = WGPUTextureAspect_DepthOnly;
 
-    depthView_ = wgpuTextureCreateView(depthTexture_, &viewDesc);
+    WGPUTextureView nextView = wgpuTextureCreateView(nextTexture, &viewDesc);
+    if (!nextView) {
+        LOG_ERROR("Failed to create depth texture view");
+        wgpuTextureDestroy(nextTexture);
+        wgpuTextureRelease(nextTexture);
+        return nullptr;
+    }
+
+    if (depthView_) wgpuTextureViewRelease(depthView_);
+    if (depthTexture_) {
+        wgpuTextureDestroy(depthTexture_);
+        wgpuTextureRelease(depthTexture_);
+    }
+    depthTexture_ = nextTexture;
+    depthView_ = nextView;
     depthWidth_ = width;
     depthHeight_ = height;
 
@@ -2971,7 +3199,8 @@ void Application::captureScreenshot(const std::string& filepath) {
 
     WGPUDevice device = gpuContext_->getDevice();
     WGPUQueue queue = gpuContext_->getQueue();
-    WGPUTexture sourceTexture = gpuContext_->getCurrentTexture();
+    WGPUTexture sourceTexture = config_.benchmarkOnStartup
+        ? benchmarkTargetTexture_ : gpuContext_->getCurrentTexture();
 
     if (!sourceTexture) {
         LOG_ERROR("No current texture to capture");
@@ -2981,22 +3210,64 @@ void Application::captureScreenshot(const std::string& filepath) {
     uint32_t width = gpuContext_->getSwapchainWidth();
     uint32_t height = gpuContext_->getSwapchainHeight();
 
-    // Bytes per row must be multiple of 256
-    uint32_t bytesPerPixel = 4; // BGRA8
-    uint32_t unalignedBytesPerRow = width * bytesPerPixel;
-    uint32_t align = 256;
-    uint32_t bytesPerRow = (unalignedBytesPerRow + align - 1) & ~(align - 1);
-    uint32_t size = bytesPerRow * height;
+    const WGPUTextureFormat format = gpuContext_->getSwapchainFormat();
+    const bool bgra = format == WGPUTextureFormat_BGRA8Unorm
+                   || format == WGPUTextureFormat_BGRA8UnormSrgb;
+    const bool rgba = format == WGPUTextureFormat_RGBA8Unorm
+                   || format == WGPUTextureFormat_RGBA8UnormSrgb;
+    if (!bgra && !rgba) {
+        LOG_ERROR("Screenshot capture does not support texture format {}",
+                  gpu::textureFormatToString(format));
+        return;
+    }
+    if (width == 0u || height == 0u
+        || width > static_cast<uint32_t>(std::numeric_limits<int>::max())
+        || height > static_cast<uint32_t>(std::numeric_limits<int>::max())) {
+        LOG_ERROR("Invalid screenshot dimensions: {}x{}", width, height);
+        return;
+    }
+
+    // Bytes per row must be a multiple of 256.
+    constexpr uint64_t bytesPerPixel = 4u;
+    constexpr uint64_t rowAlignment = 256u;
+    const uint64_t unalignedBytesPerRow =
+        static_cast<uint64_t>(width) * bytesPerPixel;
+    const uint64_t alignedBytesPerRow =
+        (unalignedBytesPerRow + rowAlignment - 1u)
+        & ~(rowAlignment - 1u);
+    const uint64_t bufferSize =
+        alignedBytesPerRow * static_cast<uint64_t>(height);
+    const uint64_t pixelBytes =
+        static_cast<uint64_t>(width) * height * bytesPerPixel;
+    if (alignedBytesPerRow > std::numeric_limits<uint32_t>::max()
+        || bufferSize > std::numeric_limits<size_t>::max()
+        || pixelBytes > std::numeric_limits<size_t>::max()) {
+        LOG_ERROR("Screenshot dimensions overflow the readback layout");
+        return;
+    }
+    const uint32_t bytesPerRow =
+        static_cast<uint32_t>(alignedBytesPerRow);
+    const size_t mappedSize = static_cast<size_t>(bufferSize);
 
     WGPUBufferDescriptor bufferDesc = {};
     bufferDesc.label = "screenshot_buffer";
-    bufferDesc.size = size;
+    bufferDesc.size = bufferSize;
     bufferDesc.usage = WGPUBufferUsage_CopyDst | WGPUBufferUsage_MapRead;
     WGPUBuffer buffer = wgpuDeviceCreateBuffer(device, &bufferDesc);
+    if (!buffer) {
+        LOG_ERROR("Failed to create screenshot readback buffer");
+        return;
+    }
 
     WGPUCommandEncoderDescriptor encoderDesc = {};
     encoderDesc.label = "screenshot_encoder";
     WGPUCommandEncoder encoder = wgpuDeviceCreateCommandEncoder(device, &encoderDesc);
+    if (!encoder) {
+        LOG_ERROR("Failed to create screenshot command encoder");
+        wgpuBufferDestroy(buffer);
+        wgpuBufferRelease(buffer);
+        return;
+    }
 
     WGPUImageCopyTexture src = {};
     src.texture = sourceTexture;
@@ -3014,6 +3285,13 @@ void Application::captureScreenshot(const std::string& filepath) {
 
     WGPUCommandBufferDescriptor cmdDesc = {};
     WGPUCommandBuffer cmd = wgpuCommandEncoderFinish(encoder, &cmdDesc);
+    wgpuCommandEncoderRelease(encoder);
+    if (!cmd) {
+        LOG_ERROR("Failed to finish screenshot command buffer");
+        wgpuBufferDestroy(buffer);
+        wgpuBufferRelease(buffer);
+        return;
+    }
 
 #if defined(VOXY_USE_DAWN)
     wgpuQueueSubmit(queue, 1, &cmd);
@@ -3023,29 +3301,28 @@ void Application::captureScreenshot(const std::string& filepath) {
     WGPUSubmissionIndex submissionIndex = wgpuQueueSubmitForIndex(queue, 1, &cmd);
     WGPUWrappedSubmissionIndex submission = {queue, submissionIndex};
 #endif
+    wgpuCommandBufferRelease(cmd);
 
-    // Map buffer
-    bool done = false;
-    auto callback = [](WGPUBufferMapAsyncStatus status, void* userdata) {
-        if (status == WGPUBufferMapAsyncStatus_Success) {
-            *static_cast<bool*>(userdata) = true;
-        } else {
-            LOG_ERROR("Failed to map buffer: status={}", static_cast<int>(status));
-            *static_cast<bool*>(userdata) = true; // Unblock but fail
-        }
-    };
-
-    wgpuBufferMapAsync(buffer, WGPUMapMode_Read, 0, size, callback, &done);
+    auto* mapState = new ScreenshotMapState;
+    wgpuBufferMapAsync(
+        buffer, WGPUMapMode_Read, 0, mappedSize,
+        onScreenshotBufferMapped, mapState);
 
     // Wait for mapping
     // Process events to allow callbacks to fire
     // wgpu-native callbacks are typically synchronous, but Dawn requires polling
     constexpr int maxPollAttempts = 1000;
     int pollAttempt = 0;
-    while (!done && pollAttempt < maxPollAttempts) {
+    while (!mapState->done.load(std::memory_order_acquire)
+           && pollAttempt < maxPollAttempts) {
 #if defined(VOXY_USE_DAWN)
         WGPUInstance instance = gpuContext_->getInstance();
         wgpuInstanceProcessEvents(instance);
+    #if defined(_WIN32)
+        Sleep(1);
+    #else
+        usleep(1000);
+    #endif
 #else
         // Pump the wgpu-native device, waiting on our submission.
         wgpuDevicePoll(device, /*wait=*/true, &submission);
@@ -3054,38 +3331,52 @@ void Application::captureScreenshot(const std::string& filepath) {
         pollAttempt++;
     }
     
-    if (pollAttempt >= maxPollAttempts) {
+    const bool mappingDone =
+        mapState->done.load(std::memory_order_acquire);
+    const bool mappingSucceeded = mappingDone
+        && mapState->succeeded.load(std::memory_order_relaxed);
+    releaseScreenshotMapState(mapState);
+    if (!mappingDone) {
         LOG_ERROR("Buffer mapping timed out after {} poll attempts", maxPollAttempts);
+        wgpuBufferDestroy(buffer);
+        wgpuBufferRelease(buffer);
+        return;
+    }
+    if (!mappingSucceeded) {
+        wgpuBufferDestroy(buffer);
+        wgpuBufferRelease(buffer);
         return;
     }
 
     // Read data
-    const uint8_t* data = static_cast<const uint8_t*>(wgpuBufferGetConstMappedRange(buffer, 0, size));
+    const uint8_t* data = static_cast<const uint8_t*>(
+        wgpuBufferGetConstMappedRange(buffer, 0, mappedSize));
     if (!data) {
         LOG_ERROR("Failed to map buffer range");
+        wgpuBufferUnmap(buffer);
+        wgpuBufferDestroy(buffer);
+        wgpuBufferRelease(buffer);
         return;
     }
 
-    // Convert BGRA to RGBA and remove padding
-    std::vector<uint8_t> pngData(width * height * 4);
+    // Convert to RGBA and remove row padding.
+    std::vector<uint8_t> pngData(static_cast<size_t>(pixelBytes));
     for (uint32_t y = 0; y < height; ++y) {
         for (uint32_t x = 0; x < width; ++x) {
-            uint32_t srcIndex = y * bytesPerRow + x * 4;
-            uint32_t dstIndex = (y * width + x) * 4;
-
-            // Swap B and R (assuming BGRA input)
-            // Note: Check swapchain format. Usually BGRA8Unorm.
-            pngData[dstIndex + 0] = data[srcIndex + 2]; // R
+            const size_t srcIndex = static_cast<size_t>(y) * bytesPerRow
+                                  + static_cast<size_t>(x) * 4u;
+            const size_t dstIndex =
+                (static_cast<size_t>(y) * width + x) * 4u;
+            pngData[dstIndex + 0] = data[srcIndex + (bgra ? 2u : 0u)];
             pngData[dstIndex + 1] = data[srcIndex + 1]; // G
-            pngData[dstIndex + 2] = data[srcIndex + 0]; // B
+            pngData[dstIndex + 2] = data[srcIndex + (bgra ? 0u : 2u)];
             pngData[dstIndex + 3] = data[srcIndex + 3]; // A
         }
     }
 
     wgpuBufferUnmap(buffer);
+    wgpuBufferDestroy(buffer);
     wgpuBufferRelease(buffer);
-    wgpuCommandBufferRelease(cmd);
-    wgpuCommandEncoderRelease(encoder);
 
     if (stbi_write_png(filepath.c_str(), static_cast<int>(width), static_cast<int>(height), 4, pngData.data(), static_cast<int>(width) * 4)) {
         LOG_INFO("Saved screenshot to: {}", filepath);

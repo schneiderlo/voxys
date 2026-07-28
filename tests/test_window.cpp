@@ -121,6 +121,25 @@ TEST(WindowTest, CursorStateDefault) {
     EXPECT_FALSE(window.isCursorCaptured());
 }
 
+TEST(WindowTest, RejectsInvalidConfigurationBeforeGlfw) {
+    Window window;
+    WindowConfig config;
+
+    config.width = 0;
+    EXPECT_FALSE(window.init(config));
+    EXPECT_FALSE(window.isValid());
+
+    config = {};
+    config.height = -1;
+    EXPECT_FALSE(window.init(config));
+    EXPECT_FALSE(window.isValid());
+
+    config = {};
+    config.title = nullptr;
+    EXPECT_FALSE(window.init(config));
+    EXPECT_FALSE(window.isValid());
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // GLFW Initialization Tests (conditional on display availability)
 // ─────────────────────────────────────────────────────────────────────────────
@@ -199,4 +218,3 @@ TEST_F(WindowGLFWTest, ContentScaleDefault) {
 #endif  // VOXY_NATIVE
 
 } // namespace voxy
-

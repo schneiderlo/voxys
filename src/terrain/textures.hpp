@@ -74,7 +74,10 @@ public:
                             const TerrainTextureConfig& config = TerrainTextureConfig::defaults());
 
     /// Check if initialized
-    [[nodiscard]] bool isInitialized() const noexcept { return albedoTexture_ != nullptr; }
+    [[nodiscard]] bool isInitialized() const noexcept {
+        return albedoTexture_ && albedoView_ && lightmapTexture_
+            && lightmapView_ && sampler_;
+    }
 
     /// Release all GPU resources
     void shutdown();
@@ -187,4 +190,3 @@ private:
 [[nodiscard]] std::vector<uint8_t> generateWhiteLightmapData(uint32_t width, uint32_t height);
 
 } // namespace voxy::terrain
-

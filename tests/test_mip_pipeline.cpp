@@ -7,10 +7,27 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 
 #include <gtest/gtest.h>
+#include "gpu/context.hpp"
+#include "gpu/resources.hpp"
 #include "render/mip_pipeline.hpp"
 
+#include <array>
 #include <cmath>
+#include <cstdint>
+#include <cstring>
+#include <filesystem>
+#include <fstream>
+#include <limits>
+#include <span>
 #include <vector>
+
+#ifndef WGPUWrappedSubmissionIndex
+struct WGPUWrappedSubmissionIndex;
+#endif
+
+extern "C" WGPUBool wgpuDevicePoll(
+    WGPUDevice device, WGPUBool wait,
+    const WGPUWrappedSubmissionIndex* wrappedSubmissionIndex);
 
 namespace voxy::render {
 
@@ -19,6 +36,8 @@ namespace voxy::render {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 TEST(MipPipelineUtilityTest, CalculateMipLevelCount) {
+    EXPECT_EQ(calculateMipLevelCount(0, 0), 0u);
+    EXPECT_EQ(calculateMipLevelCount(1, 0), 0u);
     // Power of two dimensions
     EXPECT_EQ(calculateMipLevelCount(1, 1), 1u);
     EXPECT_EQ(calculateMipLevelCount(2, 2), 2u);
@@ -38,6 +57,10 @@ TEST(MipPipelineUtilityTest, CalculateMipLevelCount) {
 }
 
 TEST(MipPipelineUtilityTest, GetMipDimensions) {
+    EXPECT_EQ(getMipDimensions(0, 8, 0),
+              (std::pair<uint32_t, uint32_t>{0u, 0u}));
+    EXPECT_EQ(getMipDimensions(8, 8, 32),
+              (std::pair<uint32_t, uint32_t>{1u, 1u}));
     // 8×8 base
     auto [w0, h0] = getMipDimensions(8, 8, 0);
     EXPECT_EQ(w0, 8u);
@@ -121,6 +144,10 @@ TEST(MipGeneratorPipelineTest, WorkgroupSize) {
 }
 
 TEST(MipGeneratorPipelineTest, CalculateDispatch) {
+    EXPECT_EQ(
+        MipGeneratorPipeline::calculateDispatchX(
+            std::numeric_limits<uint32_t>::max()),
+        536'870'912u);
     // Exact multiples of workgroup size
     EXPECT_EQ(MipGeneratorPipeline::calculateDispatchX(8), 1u);
     EXPECT_EQ(MipGeneratorPipeline::calculateDispatchX(16), 2u);
@@ -171,6 +198,125 @@ TEST(MipGeneratorPipelineTest, ShutdownWithoutInit) {
     // Should not crash
     pipeline.shutdown();
     EXPECT_FALSE(pipeline.isInitialized());
+}
+
+TEST(MipGeneratorPipelineTest, FailedReinitPreservesWorkingPipeline) {
+    gpu::Context context;
+    if (!context.initHeadless()) GTEST_SKIP() << "No WebGPU adapter";
+
+    MipGeneratorPipeline pipeline;
+    ASSERT_TRUE(pipeline.init(
+        context.getDevice(), "shaders/mip_generate.wgsl"));
+    ASSERT_TRUE(pipeline.isInitialized());
+    EXPECT_FALSE(pipeline.initWithSource(context.getDevice(), {}));
+    EXPECT_TRUE(pipeline.isInitialized());
+
+    const auto oversizedPath =
+        std::filesystem::temp_directory_path()
+        / "voxy_oversized_mip_shader.wgsl";
+    {
+        std::ofstream oversized(
+            oversizedPath, std::ios::binary | std::ios::trunc);
+        ASSERT_TRUE(oversized.is_open());
+        oversized.seekp(16ll * 1024ll * 1024ll);
+        oversized.put('\n');
+        ASSERT_TRUE(oversized.good());
+    }
+    EXPECT_FALSE(pipeline.init(context.getDevice(), oversizedPath));
+    EXPECT_TRUE(pipeline.isInitialized());
+    std::error_code removeError;
+    std::filesystem::remove(oversizedPath, removeError);
+}
+
+TEST(MipGeneratorPipelineTest, OddSourceEdgesReachTopMip) {
+    gpu::Context context;
+    if (!context.initHeadless()) GTEST_SKIP() << "No WebGPU adapter";
+
+    MipGeneratorPipeline pipeline;
+    ASSERT_TRUE(pipeline.init(
+        context.getDevice(), "shaders/mip_generate.wgsl"));
+
+    gpu::TextureDesc textureDesc = gpu::TextureDesc::tex2D(
+        5u, 3u, WGPUTextureFormat_R32Uint,
+        WGPUTextureUsage_TextureBinding | WGPUTextureUsage_StorageBinding
+            | WGPUTextureUsage_CopyDst | WGPUTextureUsage_CopySrc,
+        "odd_mip_test");
+    textureDesc.mipLevelCount = 3u;
+    std::array<uint32_t, 15> source{};
+    source.back() = 0x00c0ffeeu;
+    WGPUTexture texture = gpu::createTextureWithData(
+        context.getDevice(), context.getQueue(), textureDesc,
+        std::as_bytes(std::span(source)), 5u * sizeof(uint32_t));
+    ASSERT_NE(texture, nullptr);
+
+    EXPECT_FALSE(pipeline.generateMipChain(
+        context.getDevice(), context.getQueue(), texture, 4u));
+    EXPECT_FALSE(pipeline.generateSingleMip(
+        context.getDevice(), context.getQueue(), texture, 1u, 1u));
+    ASSERT_TRUE(pipeline.generateMipChain(
+        context.getDevice(), context.getQueue(), texture, 3u));
+
+    constexpr uint64_t readbackBytes = 256u;
+    WGPUBuffer readback = gpu::createBuffer(
+        context.getDevice(), gpu::BufferDesc{
+            .label = "odd_mip_readback",
+            .size = readbackBytes,
+            .usage = WGPUBufferUsage_CopyDst | WGPUBufferUsage_MapRead,
+        });
+    ASSERT_NE(readback, nullptr);
+
+    WGPUCommandEncoderDescriptor encoderDesc{};
+    WGPUCommandEncoder encoder =
+        wgpuDeviceCreateCommandEncoder(context.getDevice(), &encoderDesc);
+    ASSERT_NE(encoder, nullptr);
+    WGPUImageCopyTexture copySource{};
+    copySource.texture = texture;
+    copySource.mipLevel = 2u;
+    copySource.aspect = WGPUTextureAspect_All;
+    WGPUImageCopyBuffer copyDestination{};
+    copyDestination.buffer = readback;
+    copyDestination.layout.bytesPerRow = 256u;
+    copyDestination.layout.rowsPerImage = 1u;
+    const WGPUExtent3D copyExtent{1u, 1u, 1u};
+    wgpuCommandEncoderCopyTextureToBuffer(
+        encoder, &copySource, &copyDestination, &copyExtent);
+
+    WGPUCommandBufferDescriptor commandDesc{};
+    WGPUCommandBuffer command =
+        wgpuCommandEncoderFinish(encoder, &commandDesc);
+    ASSERT_NE(command, nullptr);
+    wgpuQueueSubmit(context.getQueue(), 1u, &command);
+
+    struct MapState {
+        bool done = false;
+        bool success = false;
+    } state;
+    const auto callback = [](WGPUBufferMapAsyncStatus status, void* userdata) {
+        auto& map = *static_cast<MapState*>(userdata);
+        map.success = status == WGPUBufferMapAsyncStatus_Success;
+        map.done = true;
+    };
+    wgpuBufferMapAsync(
+        readback, WGPUMapMode_Read, 0u, readbackBytes, callback, &state);
+    while (!state.done) {
+        static_cast<void>(wgpuDevicePoll(
+            context.getDevice(), true, nullptr));
+    }
+    ASSERT_TRUE(state.success);
+    const void* mapped =
+        wgpuBufferGetConstMappedRange(readback, 0u, readbackBytes);
+    ASSERT_NE(mapped, nullptr);
+    uint32_t topMip = 0u;
+    std::memcpy(&topMip, mapped, sizeof(topMip));
+    EXPECT_EQ(topMip, source.back());
+
+    wgpuBufferUnmap(readback);
+    wgpuBufferDestroy(readback);
+    wgpuBufferRelease(readback);
+    wgpuCommandBufferRelease(command);
+    wgpuCommandEncoderRelease(encoder);
+    wgpuTextureDestroy(texture);
+    wgpuTextureRelease(texture);
 }
 
 TEST(MipGeneratorPipelineTest, GenerateMipChainWithoutInit) {
@@ -273,6 +419,3 @@ TEST(MipGeneratorPipelineTest, LargeTerrainMipChainMemory) {
 }
 
 } // namespace voxy::render
-
-
-

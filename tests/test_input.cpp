@@ -5,6 +5,9 @@
 #include <gtest/gtest.h>
 #include "engine/platform/input.hpp"
 
+#include <limits>
+#include <type_traits>
+
 namespace voxy {
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -80,21 +83,9 @@ TEST(InputTest, DefaultConstruction) {
     EXPECT_FLOAT_EQ(input.scrollDelta(), 0.0f);
 }
 
-TEST(InputTest, MoveConstruction) {
-    Input input1;
-    input1.onKeyDown(static_cast<int>(Key::W));
-    input1.beginFrame();
-    
-    Input input2(std::move(input1));
-    
-    // Moved-to object should have the state
-    EXPECT_TRUE(input2.isKeyDown(Key::W));
-    
-    // Moved-from object is in valid but unspecified state
-    // (std::array moves are actually copies, so state may still be present)
-    // We just verify it doesn't crash when accessed
-    (void)input1.isKeyDown(Key::W);
-    SUCCEED();
+TEST(InputTest, CallbackOwnerHasStableAddress) {
+    EXPECT_FALSE(std::is_move_constructible_v<Input>);
+    EXPECT_FALSE(std::is_move_assignable_v<Input>);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -155,6 +146,22 @@ TEST(InputTest, KeyReleasedDetection) {
     input.beginFrame();
     EXPECT_FALSE(input.wasKeyReleased(Key::W));
     input.endFrame();
+}
+
+TEST(InputTest, QuickKeyTapPreservesBothEdges) {
+    Input input;
+
+    input.onKeyDown(static_cast<int>(Key::W));
+    input.onKeyUp(static_cast<int>(Key::W));
+    input.beginFrame();
+
+    EXPECT_TRUE(input.wasKeyPressed(Key::W));
+    EXPECT_TRUE(input.wasKeyReleased(Key::W));
+    EXPECT_FALSE(input.isKeyDown(Key::W));
+
+    input.beginFrame();
+    EXPECT_FALSE(input.wasKeyPressed(Key::W));
+    EXPECT_FALSE(input.wasKeyReleased(Key::W));
 }
 
 TEST(InputTest, MultipleKeysTracking) {
@@ -235,6 +242,54 @@ TEST(InputTest, MouseDeltaFirstMoveZero) {
     EXPECT_FLOAT_EQ(input.mouseDelta().y, 0.0f);
 }
 
+TEST(InputTest, InvalidPointerAndScrollInputCannotPoisonState) {
+    Input input;
+    input.onMouseMove(10.0f, 20.0f);
+    input.beginFrame();
+    input.computeDeltas();
+    input.endFrame();
+
+    input.beginFrame();
+    input.onMouseMove(
+        std::numeric_limits<float>::quiet_NaN(), 30.0f);
+    input.onMouseMove(std::numeric_limits<float>::infinity(), 30.0f);
+    input.onMouseMove(1.1e9f, 30.0f);
+    input.onScroll(std::numeric_limits<float>::quiet_NaN());
+    input.onScroll(std::numeric_limits<float>::infinity());
+    input.computeDeltas();
+
+    EXPECT_EQ(input.mousePosition(), glm::vec2(10.0f, 20.0f));
+    EXPECT_EQ(input.mouseDelta(), glm::vec2(0.0f));
+    EXPECT_FLOAT_EQ(input.scrollDelta(), 0.0f);
+
+    input.onScroll(std::numeric_limits<float>::max());
+    input.onScroll(std::numeric_limits<float>::max());
+    input.computeDeltas();
+    EXPECT_FLOAT_EQ(input.scrollDelta(), 10'000.0f);
+}
+
+TEST(InputTest, FloodedEventQueuesFailClosedAndRemainUsable) {
+    Input input;
+    input.onKeyDown(static_cast<int>(Key::W));
+    input.onMouseDown(static_cast<int>(MouseButton::Left));
+    input.beginFrame();
+    ASSERT_TRUE(input.isKeyDown(Key::W));
+    ASSERT_TRUE(input.isMouseButtonDown(MouseButton::Left));
+
+    for (size_t event = 0; event < 5'000u; ++event) {
+        input.onKeyDown(static_cast<int>(Key::A));
+        input.onMouseDown(static_cast<int>(MouseButton::Right));
+    }
+    input.onKeyUp(static_cast<int>(Key::A));
+    input.onMouseUp(static_cast<int>(MouseButton::Right));
+    input.computeDeltas();
+
+    EXPECT_FALSE(input.isKeyDown(Key::W));
+    EXPECT_FALSE(input.isKeyDown(Key::A));
+    EXPECT_FALSE(input.isMouseButtonDown(MouseButton::Left));
+    EXPECT_FALSE(input.isMouseButtonDown(MouseButton::Right));
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Mouse Button Tests
 // ─────────────────────────────────────────────────────────────────────────────
@@ -291,6 +346,22 @@ TEST(InputTest, MouseButtonReleasedDetection) {
     input.beginFrame();
     EXPECT_FALSE(input.wasMouseButtonReleased(MouseButton::Left));
     input.endFrame();
+}
+
+TEST(InputTest, QuickMouseClickPreservesBothEdges) {
+    Input input;
+
+    input.onMouseDown(static_cast<int>(MouseButton::Left));
+    input.onMouseUp(static_cast<int>(MouseButton::Left));
+    input.beginFrame();
+
+    EXPECT_TRUE(input.wasMouseButtonPressed(MouseButton::Left));
+    EXPECT_TRUE(input.wasMouseButtonReleased(MouseButton::Left));
+    EXPECT_FALSE(input.isMouseButtonDown(MouseButton::Left));
+
+    input.beginFrame();
+    EXPECT_FALSE(input.wasMouseButtonPressed(MouseButton::Left));
+    EXPECT_FALSE(input.wasMouseButtonReleased(MouseButton::Left));
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -406,6 +477,34 @@ TEST(InputTest, EventsQueuedAfterBeginFrameAreVisibleAfterPolling) {
     EXPECT_TRUE(input.isMouseButtonDown(MouseButton::Left));
     EXPECT_TRUE(input.wasMouseButtonPressed(MouseButton::Left));
     EXPECT_FLOAT_EQ(input.scrollDelta(), 1.5f);
+}
+
+TEST(InputTest, FocusLossClearsHeldAndQueuedInput) {
+    Input input;
+    input.onKeyDown(static_cast<int>(Key::W));
+    input.onMouseDown(static_cast<int>(MouseButton::Left));
+    input.onScroll(2.0f);
+    input.beginFrame();
+    input.captureMouse();
+
+    ASSERT_TRUE(input.isKeyDown(Key::W));
+    ASSERT_TRUE(input.isMouseButtonDown(MouseButton::Left));
+    ASSERT_TRUE(input.isMouseCaptured());
+
+    // A queued press must not resurrect a key after focus returns.
+    input.onKeyDown(static_cast<int>(Key::A));
+    input.resetState();
+    input.beginFrame();
+
+    EXPECT_FALSE(input.isKeyDown(Key::W));
+    EXPECT_FALSE(input.isKeyDown(Key::A));
+    EXPECT_FALSE(input.isMouseButtonDown(MouseButton::Left));
+    EXPECT_FALSE(input.isMouseCaptured());
+    EXPECT_FALSE(input.wasKeyPressed(Key::W));
+    EXPECT_FALSE(input.wasKeyPressed(Key::A));
+    EXPECT_FALSE(input.wasMouseButtonPressed(MouseButton::Left));
+    EXPECT_EQ(input.mouseDelta(), glm::vec2(0.0f));
+    EXPECT_FLOAT_EQ(input.scrollDelta(), 0.0f);
 }
 
 TEST(InputTest, FrameOrderingMatters) {

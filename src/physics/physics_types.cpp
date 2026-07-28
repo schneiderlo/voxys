@@ -29,23 +29,23 @@ WorldPosition canonicalWorldPosition(
         const double shiftValue = std::floor(
             (local[axis] + double{kWorldSectorHalf})
             / double{kWorldSectorSize});
-        const int64_t shift = shiftValue <= double{minimumSector}
-            ? minimumSector
-            : shiftValue >= double{maximumSector}
-                ? maximumSector
-                : static_cast<int64_t>(shiftValue);
-        const int64_t candidate = int64_t{sector[axis]} + shift;
-        if (candidate < minimumSector) {
+        const int64_t minimumShift =
+            minimumSector - int64_t{sector[axis]};
+        const int64_t maximumShift =
+            maximumSector - int64_t{sector[axis]};
+        if (shiftValue < static_cast<double>(minimumShift)) {
             result.sector[axis] = std::numeric_limits<int32_t>::min();
             result.local[axis] = -kWorldSectorHalf;
             continue;
         }
-        if (candidate > maximumSector) {
+        if (shiftValue > static_cast<double>(maximumShift)) {
             result.sector[axis] = std::numeric_limits<int32_t>::max();
             result.local[axis] = std::nextafter(
                 kWorldSectorHalf, -std::numeric_limits<float>::infinity());
             continue;
         }
+        const int64_t shift = static_cast<int64_t>(shiftValue);
+        const int64_t candidate = int64_t{sector[axis]} + shift;
         result.sector[axis] = static_cast<int32_t>(candidate);
         const double canonical = local[axis]
             - static_cast<double>(shift) * double{kWorldSectorSize};
@@ -68,6 +68,39 @@ glm::dvec3 worldPositionToAbsolute(
          + glm::dvec3(position.local);
 }
 
+CharacterSettings sanitizeCharacterSettings(
+    const CharacterSettings& requested) noexcept {
+    constexpr CharacterSettings defaults{};
+    constexpr float minimumRadius = 0.05f;
+    constexpr float shapeClearance = 0.02f;
+    constexpr float maximumHeight = kWorldSectorHalf;
+    constexpr float maximumRadius =
+        0.5f * (maximumHeight - shapeClearance);
+    const auto finiteOr = [](float value, float fallback) noexcept {
+        return std::isfinite(value) ? value : fallback;
+    };
+
+    CharacterSettings result;
+    result.radius = std::clamp(
+        finiteOr(requested.radius, defaults.radius),
+        minimumRadius, maximumRadius);
+    const float minimumHeight = 2.0f * result.radius + shapeClearance;
+    result.height = std::clamp(
+        finiteOr(requested.height, defaults.height),
+        minimumHeight, maximumHeight);
+    result.maxSlopeAngleDegrees = std::clamp(
+        finiteOr(requested.maxSlopeAngleDegrees,
+                 defaults.maxSlopeAngleDegrees),
+        0.0f, 89.0f);
+    result.stepUp = std::clamp(
+        finiteOr(requested.stepUp, defaults.stepUp),
+        0.0f, kWorldSectorHalf);
+    result.stepDown = std::clamp(
+        finiteOr(requested.stepDown, defaults.stepDown),
+        0.0f, kWorldSectorHalf);
+    return result;
+}
+
 bool worldPositionRelativeToSector(
     const WorldPosition& position, const glm::ivec3& referenceSector,
     glm::vec3& relative, int32_t maximumSectorDelta) noexcept {
@@ -82,6 +115,25 @@ bool worldPositionRelativeToSector(
         delta[axis] = static_cast<int32_t>(wideDelta);
     }
     relative = position.local + glm::vec3(delta) * kWorldSectorSize;
+    return true;
+}
+
+bool isRepresentableAbsolutePosition(
+    const glm::vec3& position) noexcept {
+    constexpr double minimum =
+        double{std::numeric_limits<int32_t>::min()}
+            * double{kWorldSectorSize}
+        - double{kWorldSectorHalf};
+    constexpr double maximum =
+        double{std::numeric_limits<int32_t>::max()}
+            * double{kWorldSectorSize}
+        + double{kWorldSectorHalf};
+    for (int axis = 0; axis < 3; ++axis) {
+        const double value = static_cast<double>(position[axis]);
+        if (!std::isfinite(value) || value < minimum || value >= maximum) {
+            return false;
+        }
+    }
     return true;
 }
 

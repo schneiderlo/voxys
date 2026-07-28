@@ -6,6 +6,7 @@
 #include "app/application.hpp"
 #include "core/log.hpp"
 
+#include <cmath>
 #include <cstdio>
 #include <iomanip>
 #include <numeric>
@@ -100,6 +101,12 @@ void DebugOverlay::toggle() {
     setVisible(!visible_);
 }
 
+bool DebugOverlay::setLogInterval(float seconds) noexcept {
+    if (!std::isfinite(seconds) || seconds <= 0.0f) return false;
+    logIntervalSeconds_ = seconds;
+    return true;
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Update Statistics
 // ─────────────────────────────────────────────────────────────────────────────
@@ -108,7 +115,9 @@ void DebugOverlay::update(const DebugOverlayStats& stats) {
     stats_ = stats;
     
     // Track time for logging interval
-    timeSinceLastLog_ += static_cast<double>(stats.frameTimeMs) / 1000.0;
+    if (std::isfinite(stats.frameTimeMs) && stats.frameTimeMs >= 0.0) {
+        timeSinceLastLog_ += stats.frameTimeMs / 1000.0;
+    }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -370,7 +379,7 @@ void DebugOverlay::displayWasm() {
         var pathText = UTF8ToString($2);
         var terrainText = UTF8ToString($3);
         var memText = UTF8ToString($4);
-        var frameCount = $5;
+        var frameCount = UTF8ToString($5);
         var physicsIdentity = UTF8ToString($6);
         var physicsBodies = UTF8ToString($7);
         var physicsBroad = UTF8ToString($8);
@@ -445,7 +454,7 @@ void DebugOverlay::displayWasm() {
        formatRenderPath().c_str(),
        formatTerrain().c_str(),
        formatMemory().c_str(),
-       static_cast<int>(stats_.frameCount),
+       std::to_string(stats_.frameCount).c_str(),
        formatPhysicsIdentity().c_str(),
        formatPhysicsBodies().c_str(),
        formatPhysicsBroadPhase().c_str(),

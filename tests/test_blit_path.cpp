@@ -10,7 +10,9 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 
 #include <gtest/gtest.h>
+#include <cstdint>
 #include <filesystem>
+#include <limits>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -257,6 +259,29 @@ TEST_F(BlitPathTest, InitWithNullDeviceFails) {
     EXPECT_FALSE(blitPath_.init(nullptr, nullptr));
 }
 
+TEST_F(BlitPathTest, RejectsInvalidConfigBeforeGpuCalls) {
+    auto config = render::BlitPathConfig::defaults();
+    config.heightScale = std::numeric_limits<float>::quiet_NaN();
+    const auto device = reinterpret_cast<WGPUDevice>(uintptr_t{1});
+    const auto queue = reinterpret_cast<WGPUQueue>(uintptr_t{2});
+    EXPECT_FALSE(blitPath_.init(device, queue, config));
+}
+
+TEST_F(BlitPathTest, RejectsInvalidDebugControls) {
+    const float originalMaxDepth = blitPath_.getDebugMaxDepth();
+    blitPath_.setDebugMode(99u);
+    blitPath_.setDebugMaxDepth(
+        std::numeric_limits<float>::quiet_NaN());
+    blitPath_.setDebugMaxDepth(0.0f);
+    EXPECT_EQ(blitPath_.getDebugMode(), 0u);
+    EXPECT_FLOAT_EQ(blitPath_.getDebugMaxDepth(), originalMaxDepth);
+
+    blitPath_.setDebugMode(3u);
+    blitPath_.setDebugMaxDepth(2500.0f);
+    EXPECT_EQ(blitPath_.getDebugMode(), 3u);
+    EXPECT_FLOAT_EQ(blitPath_.getDebugMaxDepth(), 2500.0f);
+}
+
 TEST_F(BlitPathTest, NotInitializedByDefault) {
     EXPECT_FALSE(blitPath_.isInitialized());
 }
@@ -376,6 +401,10 @@ TEST_F(BlitPathTest, TerrainSizeUpdatesUniforms) {
     const auto& uniforms = blitPath_.getUniforms();
     EXPECT_FLOAT_EQ(uniforms.terrainSize.x, 512.0f);
     EXPECT_FLOAT_EQ(uniforms.terrainSize.y, 512.0f);
+
+    blitPath_.setTerrainSize(0, 512);
+    EXPECT_FLOAT_EQ(blitPath_.getUniforms().terrainSize.x, 512.0f);
+    EXPECT_FLOAT_EQ(blitPath_.getUniforms().terrainSize.y, 512.0f);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════

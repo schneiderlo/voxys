@@ -42,6 +42,10 @@ LogState& state() {
     return s;
 }
 
+bool validLevel(Level level) noexcept {
+    return level >= Level::Trace && level <= Level::Fatal;
+}
+
 thread_local std::vector<std::string> scopeStack;
 thread_local std::string currentScopeStr;
 
@@ -115,19 +119,24 @@ void outputMessageInternal(Level level, std::string_view message) {
     std::FILE* stream = (level >= Level::Warn) ? stderr : stdout;
     
     if (s.colorEnabled) {
-        std::fprintf(stream, "%.*s%.*s%.*s\n", 
-                     static_cast<int>(levelColor(level).size()), levelColor(level).data(),
-                     static_cast<int>(message.size()), message.data(),
-                     static_cast<int>(COLOR_RESET.size()), COLOR_RESET.data());
+        const auto color = levelColor(level);
+        std::fwrite(color.data(), 1u, color.size(), stream);
+        if (!message.empty())
+            std::fwrite(message.data(), 1u, message.size(), stream);
+        std::fwrite(COLOR_RESET.data(), 1u, COLOR_RESET.size(), stream);
     } else {
-        std::fprintf(stream, "%.*s\n", static_cast<int>(message.size()), message.data());
+        if (!message.empty())
+            std::fwrite(message.data(), 1u, message.size(), stream);
     }
+    std::fputc('\n', stream);
     std::fflush(stream);
 #endif
     
     // File output (if enabled)
     if (s.logFile) {
-        std::fprintf(s.logFile, "%.*s\n", static_cast<int>(message.size()), message.data());
+        if (!message.empty())
+            std::fwrite(message.data(), 1u, message.size(), s.logFile);
+        std::fputc('\n', s.logFile);
         std::fflush(s.logFile);
     }
 }
@@ -168,6 +177,7 @@ Level levelFromString(std::string_view str) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 void setLevel(Level minLevel) {
+    if (!validLevel(minLevel)) minLevel = Level::Info;
     state().minLevel.store(minLevel, std::memory_order_relaxed);
 }
 
@@ -186,22 +196,21 @@ void setTimestampEnabled(bool enabled) {
 }
 
 void setLogFile(const std::string& path) {
-    std::lock_guard lock(state().mutex);
-    auto& s = state();
-    
-    // Close existing file
-    if (s.logFile) {
-        std::fclose(s.logFile);
-        s.logFile = nullptr;
-    }
-    
-    // Open new file
+    std::FILE* replacement = nullptr;
     if (!path.empty()) {
-        s.logFile = std::fopen(path.c_str(), "w");
-        if (!s.logFile) {
-            std::fprintf(stderr, "[WARN] Failed to open log file: %s\n", path.c_str());
+        replacement = std::fopen(path.c_str(), "w");
+        if (!replacement) {
+            std::fprintf(stderr, "[WARN] Failed to open log file: %s\n",
+                         path.c_str());
+            return;
         }
     }
+
+    std::lock_guard lock(state().mutex);
+    auto& s = state();
+    std::FILE* previous = s.logFile;
+    s.logFile = replacement;
+    if (previous) std::fclose(previous);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -209,10 +218,12 @@ void setLogFile(const std::string& path) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 bool shouldLog(Level level) {
-    return level >= state().minLevel.load(std::memory_order_relaxed);
+    return validLevel(level)
+        && level >= state().minLevel.load(std::memory_order_relaxed);
 }
 
 void outputMessage(Level level, std::string_view message) {
+    if (!validLevel(level)) return;
     auto& s = state();
     
     std::lock_guard lock(s.mutex);
@@ -249,19 +260,25 @@ void outputMessage(Level level, std::string_view message) {
 
 void logv(Level level, const char* fmt, std::va_list args) {
     if (!shouldLog(level)) return;
+    if (!fmt) {
+        outputMessage(level, "(null log format)");
+        return;
+    }
     
     // Format user message
-    char userMsg[2048];
+    char userMsg[2048]{};
 #if defined(__clang__)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wformat-nonliteral"
 #endif
-    std::vsnprintf(userMsg, sizeof(userMsg), fmt, args);
+    const int written = std::vsnprintf(userMsg, sizeof(userMsg), fmt, args);
 #if defined(__clang__)
 #pragma clang diagnostic pop
 #endif
     
-    outputMessage(level, userMsg);
+    outputMessage(
+        level, written < 0 ? std::string_view{"(invalid log format)"}
+                           : std::string_view{userMsg});
 }
 
 void log_c(Level level, const char* fmt, ...) {
@@ -368,6 +385,8 @@ void init() {
     
     s.startTime = std::chrono::steady_clock::now();
     s.initialized = true;
+    s.timestampEnabled = true;
+    s.colorEnabled = true;
     
 #if defined(NDEBUG)
     s.minLevel = Level::Info;

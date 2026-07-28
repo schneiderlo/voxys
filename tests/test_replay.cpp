@@ -274,6 +274,7 @@ TEST(Replay, PlayerMatchesEveryHashAndReportsFirstDivergence) {
     const ReplayPlayer::Result exact = ReplayPlayer{}.play(recording);
     EXPECT_TRUE(exact.completed);
     EXPECT_FALSE(exact.divergence.has_value());
+    EXPECT_TRUE(exact.error.empty());
     EXPECT_EQ(exact.finalTelemetry.tick, 5u);
 
     ReplayRecording changed = recording;
@@ -293,6 +294,91 @@ TEST(Replay, PlayerMatchesEveryHashAndReportsFirstDivergence) {
     EXPECT_NE(divergent.divergence->actual, mismatch->hash);
     EXPECT_NE(divergent.divergence->message.find("first replay divergence"),
               std::string::npos);
+}
+
+TEST(Replay, CodecRejectsUnrepresentableOrNonCanonicalRecordings) {
+    ReplayRecording invalid = makeRecording();
+    invalid.header.buildFingerprint.resize(4'097u, 'x');
+    EXPECT_TRUE(ReplayCodec::encode(invalid).empty());
+
+    invalid = makeRecording();
+    invalid.commands.front().type =
+        static_cast<ReplayCommandType>(std::numeric_limits<uint32_t>::max());
+    EXPECT_TRUE(ReplayCodec::encode(invalid).empty());
+
+    invalid = makeRecording();
+    invalid.commands.front().tick = invalid.checkpoint.tick;
+    EXPECT_TRUE(ReplayCodec::encode(invalid).empty());
+
+    invalid = makeRecording();
+    invalid.header.capacity.residentBodies = 1u;
+    EXPECT_TRUE(ReplayCodec::encode(invalid).empty());
+
+    invalid = makeRecording();
+    invalid.hashes.push_back(invalid.hashes.front());
+    EXPECT_TRUE(ReplayCodec::encode(invalid).empty());
+}
+
+TEST(Replay, PlayerReportsRejectedCommandsAndMissingHashObjects) {
+    ReplayRecording stale = makeRecording();
+    stale.commands.front().generation = 99u;
+    const ReplayPlayer::Result staleResult = ReplayPlayer{}.play(stale);
+    EXPECT_FALSE(staleResult.completed);
+    EXPECT_FALSE(staleResult.error.empty());
+
+    ReplayRecording invalidHash = makeRecording();
+    invalidHash.hashes.push_back({
+        .tick = 5u,
+        .stage = ReplayHashStage::Contact,
+        .objectId = invalidHash.header.capacity.contacts - 1u,
+        .hash = 0u,
+    });
+    const ReplayPlayer::Result hashResult =
+        ReplayPlayer{}.play(invalidHash);
+    EXPECT_FALSE(hashResult.completed);
+    EXPECT_EQ(
+        hashResult.error,
+        "replay hash references an unavailable object");
+}
+
+TEST(Replay, GenerationExhaustionRetiresSlotsAndSpawnIsValidated) {
+    LockstepWorld world;
+    LockstepWorld::Config config;
+    config.bodyCapacity = 2;
+    config.contactCapacity = 2;
+    ASSERT_TRUE(world.initialize(config));
+    std::array<LockstepBody, 2> bodies{};
+    bodies[1] = makeBody(1u, 0.0f, 0.5f);
+    bodies[1].identity[1] = std::numeric_limits<uint32_t>::max();
+    ASSERT_TRUE(world.setBodies(bodies));
+
+    const auto destroy = command(
+        1u, 0u, 0u, ReplayCommandType::DestroyBody, 1u,
+        std::numeric_limits<uint32_t>::max());
+    ASSERT_TRUE(applyCanonicalReplayCommand(world, destroy));
+    EXPECT_EQ(
+        world.bodies()[1].identity[1],
+        std::numeric_limits<uint32_t>::max());
+    EXPECT_EQ(world.bodies()[1].identity[2] & LockstepBodyAlive, 0u);
+
+    auto spawn = command(
+        2u, 1u, 0u, ReplayCommandType::SpawnBody, 1u,
+        std::numeric_limits<uint32_t>::max());
+    spawn.payload = {
+        0, 0, 0, position(0.5f),
+        0, 0, 0, velocity(1.0f),
+        0, 0, 0,
+        static_cast<int32_t>(LockstepBodyAlive | LockstepBodyAwake)};
+    EXPECT_FALSE(applyCanonicalReplayCommand(world, spawn));
+
+    ASSERT_TRUE(world.initialize(config));
+    spawn.generation = 0u;
+    spawn.payload[3] = 0;
+    EXPECT_FALSE(applyCanonicalReplayCommand(world, spawn));
+    spawn.payload[3] = position(0.5f);
+    spawn.payload[11] = static_cast<int32_t>(
+        LockstepBodyAlive | (1u << 31u));
+    EXPECT_FALSE(applyCanonicalReplayCommand(world, spawn));
 }
 
 TEST(Replay, RejectsCorruptionAndStaleHandles) {

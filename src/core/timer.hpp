@@ -8,9 +8,12 @@
 #pragma once
 
 #include <chrono>
-#include <cstdint>
+#include <cmath>
 #include <concepts>
+#include <cstdint>
+#include <limits>
 #include <string_view>
+#include <thread>
 
 namespace voxy::perf {
 
@@ -29,7 +32,7 @@ concept Duration = requires(T t) {
 
 class Timer {
 public:
-    using Clock = std::chrono::high_resolution_clock;
+    using Clock = std::chrono::steady_clock;
     using TimePoint = Clock::time_point;
     using Duration = std::chrono::duration<double, std::milli>;
     
@@ -171,14 +174,22 @@ public:
     
     // Call at the start of each frame
     void beginFrame() noexcept {
+        if (frameActive_) return;
         frameStart_ = Timer::Clock::now();
-        stats_.frameNumber++;
+        frameActive_ = true;
+        stats_.updateMs = 0.0;
+        stats_.renderMs = 0.0;
+        stats_.presentMs = 0.0;
+        if (stats_.frameNumber != std::numeric_limits<uint32_t>::max())
+            ++stats_.frameNumber;
     }
     
     // Call at the end of each frame
     void endFrame() noexcept {
+        if (!frameActive_) return;
         auto now = Timer::Clock::now();
         stats_.totalMs = std::chrono::duration_cast<Timer::Duration>(now - frameStart_).count();
+        frameActive_ = false;
         
         // Update average
         avgAccum_ += stats_.totalMs;
@@ -187,17 +198,20 @@ public:
     
     // Mark timing sections within a frame
     void markUpdate() noexcept {
+        if (!frameActive_) return;
         auto now = Timer::Clock::now();
         stats_.updateMs = std::chrono::duration_cast<Timer::Duration>(now - frameStart_).count();
     }
     
     void markRender() noexcept {
+        if (!frameActive_) return;
         auto now = Timer::Clock::now();
         stats_.renderMs = std::chrono::duration_cast<Timer::Duration>(now - frameStart_).count() 
                         - stats_.updateMs;
     }
     
     void markPresent() noexcept {
+        if (!frameActive_) return;
         auto now = Timer::Clock::now();
         stats_.presentMs = std::chrono::duration_cast<Timer::Duration>(now - frameStart_).count()
                          - stats_.updateMs - stats_.renderMs;
@@ -234,30 +248,26 @@ private:
     Timer::TimePoint frameStart_{};
     FrameStats stats_{};
     double avgAccum_ = 0.0;
-    uint32_t avgCount_ = 0;
+    uint64_t avgCount_ = 0;
+    bool frameActive_ = false;
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Utility Functions
 // ─────────────────────────────────────────────────────────────────────────────
 
-// Get current time in milliseconds since epoch (for absolute timestamps)
+// Get monotonic milliseconds since the steady clock's implementation epoch.
 [[nodiscard]] inline double currentTimeMs() noexcept {
-    auto now = std::chrono::system_clock::now();
+    auto now = Timer::Clock::now();
     auto duration = now.time_since_epoch();
     return std::chrono::duration_cast<std::chrono::duration<double, std::milli>>(duration).count();
 }
 
-// Sleep for specified milliseconds (use sparingly)
-// C++20: Can use std::this_thread::sleep_for, but keeping busy-wait option
+// Sleep for a finite, positive number of milliseconds.
 inline void sleepMs(double ms) noexcept {
-    if (ms > 0) [[likely]] {
-        auto start = Timer::Clock::now();
-        while (std::chrono::duration_cast<std::chrono::duration<double, std::milli>>(
-                   Timer::Clock::now() - start).count() < ms) {
-            // Busy wait for small durations
-        }
-    }
+    if (!std::isfinite(ms) || ms <= 0.0) return;
+    std::this_thread::sleep_for(
+        std::chrono::duration<double, std::milli>{ms});
 }
 
 // C++20: Helper to convert any duration to milliseconds

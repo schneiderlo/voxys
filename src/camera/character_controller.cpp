@@ -14,6 +14,55 @@
 
 namespace voxy {
 
+namespace {
+
+[[nodiscard]] bool finiteNonNegative(float value) noexcept {
+    return std::isfinite(value) && value >= 0.0f;
+}
+
+[[nodiscard]] bool isValidCharacterConfig(
+    const CharacterConfig& config) noexcept {
+    const double jumpVelocitySquared =
+        2.0 * static_cast<double>(config.gravity)
+            * static_cast<double>(config.jumpHeight);
+    return finiteNonNegative(config.walkSpeed)
+        && finiteNonNegative(config.runSpeed)
+        && finiteNonNegative(config.gravity)
+        && finiteNonNegative(config.jumpHeight)
+        && std::isfinite(jumpVelocitySquared)
+        && jumpVelocitySquared
+            <= static_cast<double>(std::numeric_limits<float>::max())
+        && std::isfinite(config.terminalVelocity)
+        && config.terminalVelocity > 0.0f
+        && finiteNonNegative(config.groundOffset)
+        && std::isfinite(config.collisionRadius)
+        && config.collisionRadius > 0.0f
+        && std::isfinite(config.collisionHeight)
+        && config.collisionHeight >= 2.0f * config.collisionRadius
+        && std::isfinite(config.maxSlopeAngle)
+        && config.maxSlopeAngle >= 0.0f
+        && config.maxSlopeAngle < 90.0f
+        && finiteNonNegative(config.slopeSlideSpeed)
+        && finiteNonNegative(config.maxStepDown)
+        && finiteNonNegative(config.mouseSensitivity)
+        && std::isfinite(config.heightScale)
+        && config.heightScale > 0.0f
+        && std::isfinite(config.cellScale)
+        && config.cellScale > 0.0f
+        && std::isfinite(config.terrainWidth)
+        && config.terrainWidth > 0.0f
+        && std::isfinite(config.terrainHeight)
+        && config.terrainHeight > 0.0f;
+}
+
+[[nodiscard]] bool finiteVector(const glm::vec3& value) noexcept {
+    return std::isfinite(value.x)
+        && std::isfinite(value.y)
+        && std::isfinite(value.z);
+}
+
+} // anonymous namespace
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // Construction
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -22,8 +71,8 @@ CharacterController::CharacterController(Camera& camera, const terrain::Heightma
                                          const CharacterConfig& config)
     : camera_(&camera)
     , heightmap_(heightmap)
-    , config_(config)
 {
+    setConfig(config);
     // Initialize on terrain
     if (camera_) {
         const auto pos = camera_->position();
@@ -38,11 +87,38 @@ CharacterController::~CharacterController() {
 }
 
 void CharacterController::setConfig(const CharacterConfig& config) {
+    if (!isValidCharacterConfig(config)) {
+        LOG_ERROR("Rejected invalid character-controller configuration");
+        return;
+    }
     config_ = config;
     if (physicsWorld_ && physicsCharacter_ != physics::PhysicsWorld::InvalidCharacter) {
         physicsWorld_->destroyCharacter(physicsCharacter_);
         physicsCharacter_ = physics::PhysicsWorld::InvalidCharacter;
     }
+}
+
+void CharacterController::attachCamera(Camera& camera) {
+    if (camera_ == &camera) return;
+    if (physicsWorld_ && physicsCharacter_ != physics::PhysicsWorld::InvalidCharacter) {
+        physicsWorld_->destroyCharacter(physicsCharacter_);
+        physicsCharacter_ = physics::PhysicsWorld::InvalidCharacter;
+    }
+    camera_ = &camera;
+    velocity_ = glm::vec3(0.0f);
+    state_ = CharacterState::Falling;
+    jumpRequested_ = false;
+}
+
+void CharacterController::detachCamera() {
+    if (physicsWorld_ && physicsCharacter_ != physics::PhysicsWorld::InvalidCharacter) {
+        physicsWorld_->destroyCharacter(physicsCharacter_);
+        physicsCharacter_ = physics::PhysicsWorld::InvalidCharacter;
+    }
+    camera_ = nullptr;
+    velocity_ = glm::vec3(0.0f);
+    state_ = CharacterState::Falling;
+    jumpRequested_ = false;
 }
 
 void CharacterController::attachPhysicsWorld(physics::PhysicsWorld& world) {
@@ -80,6 +156,11 @@ void CharacterController::syncPhysicsPosition() {
 void CharacterController::update(float deltaTime, Input& input) {
     if (!camera_) {
         return;
+    }
+    if (!std::isfinite(deltaTime) || deltaTime < 0.0f) {
+        deltaTime = 0.0f;
+    } else {
+        deltaTime = std::min(deltaTime, 0.1f);
     }
     
     // Handle mouse capture/release
@@ -368,6 +449,9 @@ void CharacterController::handleGroundCollision(float deltaTime) {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 glm::vec2 CharacterController::worldToHeightmapUV(float worldX, float worldZ) const {
+    if (!std::isfinite(worldX) || !std::isfinite(worldZ)) {
+        return glm::vec2(0.5f);
+    }
     // Convert world coordinates to UV in [0, 1]
     // Assumes terrain is centered at origin
     const float halfWidth = config_.terrainWidth * 0.5f;
@@ -384,9 +468,13 @@ glm::vec2 CharacterController::worldToHeightmapUV(float worldX, float worldZ) co
 }
 
 float CharacterController::sampleTerrainHeight(float worldX, float worldZ) const {
+    if (!std::isfinite(worldX) || !std::isfinite(worldZ)) {
+        return 0.0f;
+    }
     // Use custom sampler if provided
     if (heightSampler_) {
-        return heightSampler_(worldX, worldZ);
+        const float height = heightSampler_(worldX, worldZ);
+        return std::isfinite(height) ? height : 0.0f;
     }
     
     // Use heightmap if available
@@ -401,8 +489,9 @@ float CharacterController::sampleTerrainHeight(float worldX, float worldZ) const
     float hmZ = uv.y * static_cast<float>(heightmap_->getHeight() - 1);
     
     // Sample with bilinear interpolation
-    return physics::terrain_topology::worldHeight(
+    const float height = physics::terrain_topology::worldHeight(
         heightmap_->sampleBilinear(hmX, hmZ), config_.heightScale);
+    return std::isfinite(height) ? height : 0.0f;
 }
 
 glm::vec3 CharacterController::sampleTerrainNormal(float worldX, float worldZ) const {
@@ -420,12 +509,22 @@ glm::vec3 CharacterController::sampleTerrainNormal(float worldX, float worldZ) c
     normal.y = 1.0f;
     normal.z = (hU - hD) / (2.0f * step);
     
-    return glm::normalize(normal);
+    const float length = glm::length(normal);
+    if (!finiteVector(normal) || !std::isfinite(length)
+        || length < 1.0e-6f) {
+        return glm::vec3(0.0f, 1.0f, 0.0f);
+    }
+    return normal / length;
 }
 
 bool CharacterController::canWalkOnSlope(const glm::vec3& normal) const {
     // Check if slope angle is within walkable limit
-    float cosAngle = glm::dot(normal, glm::vec3{0.0f, 1.0f, 0.0f});
+    const float length = glm::length(normal);
+    if (!finiteVector(normal) || !std::isfinite(length)
+        || length < 1.0e-6f) {
+        return false;
+    }
+    const float cosAngle = normal.y / length;
     float maxCosAngle = std::cos(glm::radians(config_.maxSlopeAngle));
     return cosAngle >= maxCosAngle;
 }

@@ -15,7 +15,6 @@ constexpr std::array<std::byte, 8> kPacketMagic{
     std::byte{'N'}, std::byte{'E'}, std::byte{'T'}, std::byte{0}};
 constexpr uint32_t kFnvOffset = 2'166'136'261u;
 constexpr uint32_t kFnvPrime = 16'777'619u;
-constexpr size_t kPacketHeaderBytes = 84u;
 constexpr size_t kEncodedCommandBytes = 96u;
 
 uint32_t checksum(std::span<const std::byte> bytes) noexcept {
@@ -92,6 +91,16 @@ bool validPayloadType(uint32_t value) noexcept {
         && value <= static_cast<uint32_t>(PacketPayloadType::Correction);
 }
 
+bool validDeliveryClass(DeliveryClass delivery) noexcept {
+    switch (delivery) {
+        case DeliveryClass::Realtime:
+        case DeliveryClass::ReliableEvent:
+        case DeliveryClass::ReliableControl:
+            return true;
+    }
+    return false;
+}
+
 bool validCommandType(uint32_t value) noexcept {
     switch (static_cast<NetworkCommandType>(value)) {
         case NetworkCommandType::MoveInput:
@@ -128,8 +137,23 @@ uint32_t commandPriority(NetworkCommandType type) noexcept {
 PacketWriteResult PacketCodec::encode(
     const Packet& packet, DeliveryClass delivery) {
     PacketWriteResult result;
-    if (packet.payload.size() > std::numeric_limits<uint32_t>::max()) {
-        result.error = "network payload exceeds u32 length";
+    if (!validDeliveryClass(delivery)) {
+        result.error = "invalid network delivery class";
+        return result;
+    }
+    if (packet.header.protocolVersion != kNetworkProtocolVersion
+        || !validPayloadType(
+            static_cast<uint32_t>(packet.header.payloadType))) {
+        result.error = "invalid network packet header";
+        return result;
+    }
+    const size_t frameLimit = delivery == DeliveryClass::Realtime
+        ? kConservativeRealtimeMtu : kMaximumReliableFrameBytes;
+    if (packet.payload.size() > std::numeric_limits<uint32_t>::max()
+        || packet.payload.size() > frameLimit - kNetworkPacketOverheadBytes) {
+        result.error = delivery == DeliveryClass::Realtime
+            ? "realtime packet exceeds conservative MTU"
+            : "reliable packet exceeds frame limit";
         return result;
     }
     Writer writer;
@@ -148,11 +172,6 @@ PacketWriteResult PacketCodec::encode(
     writer.u64(packet.header.tick);
     writer.raw(packet.payload);
     writer.u32(checksum(writer.bytes()));
-    if (delivery == DeliveryClass::Realtime
-        && writer.bytes().size() > kConservativeRealtimeMtu) {
-        result.error = "realtime packet exceeds conservative MTU";
-        return result;
-    }
     result.bytes = std::move(writer.bytes());
     return result;
 }
@@ -160,14 +179,21 @@ PacketWriteResult PacketCodec::encode(
 PacketReadResult PacketCodec::decode(
     std::span<const std::byte> bytes, DeliveryClass delivery) {
     PacketReadResult result;
-    if (bytes.size() < kPacketHeaderBytes
+    if (!validDeliveryClass(delivery)) {
+        result.error = "invalid network delivery class";
+        return result;
+    }
+    if (bytes.size() < kNetworkPacketOverheadBytes
         || !std::equal(kPacketMagic.begin(), kPacketMagic.end(), bytes.begin())) {
         result.error = "invalid network packet magic or length";
         return result;
     }
-    if (delivery == DeliveryClass::Realtime
-        && bytes.size() > kConservativeRealtimeMtu) {
-        result.error = "realtime packet exceeds conservative MTU";
+    const size_t frameLimit = delivery == DeliveryClass::Realtime
+        ? kConservativeRealtimeMtu : kMaximumReliableFrameBytes;
+    if (bytes.size() > frameLimit) {
+        result.error = delivery == DeliveryClass::Realtime
+            ? "realtime packet exceeds conservative MTU"
+            : "reliable packet exceeds frame limit";
         return result;
     }
     const size_t checksumOffset = bytes.size() - sizeof(uint32_t);
@@ -282,6 +308,8 @@ toReplayCommand(const CanonicalNetworkCommand& source) noexcept {
         case NetworkCommandType::SetAwake:
             result.type = ReplayCommandType::SetAwake;
             break;
+        default:
+            return std::nullopt;
     }
     return result;
 }
@@ -289,6 +317,15 @@ toReplayCommand(const CanonicalNetworkCommand& source) noexcept {
 std::vector<std::byte> NetworkCommandCodec::encode(
     std::span<const CanonicalNetworkCommand> input) {
     if (input.size() > kMaximumCommandsPerPacket) return {};
+    if (std::any_of(input.begin(), input.end(), [](const auto& command) {
+            constexpr uint32_t allowedFlags = NetworkCommandServerIssued
+                | NetworkCommandCorrectionEvent;
+            return !validCommandType(
+                       static_cast<uint32_t>(command.type))
+                || (command.flags & ~allowedFlags) != 0u;
+        })) {
+        return {};
+    }
     std::vector<CanonicalNetworkCommand> commands(input.begin(), input.end());
     std::stable_sort(commands.begin(), commands.end(), canonicalNetworkCommandLess);
     Writer writer;
@@ -336,6 +373,12 @@ NetworkCommandReadResult NetworkCommandCodec::decode(
         }
         if (!validCommandType(type)) {
             result.error = "invalid network command type";
+            return result;
+        }
+        constexpr uint32_t knownFlags = NetworkCommandServerIssued
+            | NetworkCommandCorrectionEvent;
+        if ((command.flags & ~knownFlags) != 0u) {
+            result.error = "invalid network command flags";
             return result;
         }
         command.type = static_cast<NetworkCommandType>(type);

@@ -147,10 +147,13 @@ public:
     // ─────────────────────────────────────────────────────────────────────────
     
     // Resize swapchain (call on window resize)
-    void resizeSwapchain(uint32_t width, uint32_t height);
+    [[nodiscard]] bool resizeSwapchain(uint32_t width, uint32_t height);
     
     // Update presentation mode (e.g., VSync On/Off)
-    void setPresentMode(WGPUPresentMode mode);
+    [[nodiscard]] bool setPresentMode(WGPUPresentMode mode);
+    [[nodiscard]] constexpr WGPUPresentMode getPresentMode() const noexcept {
+        return lastSurfaceConfig_.presentMode;
+    }
 
     // Get current swapchain texture for rendering
     [[nodiscard]] WGPUTextureView getCurrentTextureView();
@@ -205,7 +208,7 @@ private:
     std::unique_ptr<CallbackState> callbackState_;
     
     // Internal initialization helpers
-    bool createInstance();
+    bool createInstance(const ContextConfig& config);
     bool requestAdapter(const ContextConfig& config);
     bool requestDevice(const ContextConfig& config);
     bool createSurface(Window& window);

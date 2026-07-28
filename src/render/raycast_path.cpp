@@ -9,10 +9,16 @@
 #include "core/log.hpp"
 
 #include <glm/gtc/matrix_inverse.hpp>
+#include <cmath>
 #include <cstring>
 #include <span>
 
 namespace voxy::render {
+namespace {
+
+constexpr uint32_t kMaximumTextureDimension2D = 8'192u;
+
+} // namespace
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // RaycastPath Implementation
@@ -336,25 +342,36 @@ bool RaycastPath::init(WGPUDevice device, WGPUQueue queue,
         return false;
     }
     
-    if (outputWidth == 0 || outputHeight == 0) {
-        LOG_ERROR("RaycastPath::init: output dimensions cannot be zero");
+    if (outputWidth == 0 || outputHeight == 0
+        || outputWidth > kMaximumTextureDimension2D
+        || outputHeight > kMaximumTextureDimension2D) {
+        LOG_ERROR("RaycastPath::init: invalid output dimensions");
+        return false;
+    }
+    if (!std::isfinite(config.heightScale) || config.heightScale <= 0.0f
+        || !std::isfinite(config.cellScale) || config.cellScale <= 0.0f
+        || !std::isfinite(config.fogDensity) || config.fogDensity < 0.0f) {
+        LOG_ERROR("RaycastPath::init: invalid renderer configuration");
         return false;
     }
     
     device_ = device;
     queue_ = queue;
     config_ = config;
-    outputWidth_ = outputWidth;
-    outputHeight_ = outputHeight;
     
     // Allocate uniforms on heap (reuses CameraUniforms from triangle_path)
     uniforms_ = new CameraUniforms();
-    uniforms_->setTerrain(256, 256, config.heightScale, config.cellScale, 1.0f, config.fogDensity);
+    if (!uniforms_->setTerrain(
+            256, 256, config.heightScale, config.cellScale, 1.0f,
+            config.fogDensity)) {
+        shutdown();
+        return false;
+    }
     staticUniforms_ = new CameraUniforms(*uniforms_);
     updateStaticUniforms();
     
     // Create resources in order
-    if (!createDepthOutputTexture()) {
+    if (!createDepthOutputTexture(outputWidth, outputHeight)) {
         LOG_ERROR("Failed to create depth output texture");
         shutdown();
         return false;
@@ -412,10 +429,48 @@ bool RaycastPath::init(WGPUDevice device, WGPUQueue queue,
 // Depth Output Texture Creation
 // ─────────────────────────────────────────────────────────────────────────────
 
-bool RaycastPath::createDepthOutputTexture() {
+bool RaycastPath::createDepthOutputTexture(uint32_t width, uint32_t height) {
+    WGPUTexture nextDepthTexture = nullptr;
+    WGPUTextureView nextDepthView = nullptr;
+    WGPUTexture nextShadowTexture = nullptr;
+    WGPUTextureView nextShadowView = nullptr;
+    WGPUTexture nextMaterialTexture = nullptr;
+    WGPUTextureView nextMaterialView = nullptr;
+    WGPUTexture nextTerrainDepthTexture = nullptr;
+    WGPUTextureView nextTerrainDepthView = nullptr;
+    WGPUTexture nextTerrainShadowTexture = nullptr;
+    WGPUTextureView nextTerrainShadowView = nullptr;
+    const auto releaseView = [](WGPUTextureView& view) {
+        if (!view) return;
+        wgpuTextureViewRelease(view);
+        view = nullptr;
+    };
+    const auto releaseTexture = [](WGPUTexture& texture) {
+        if (!texture) return;
+        wgpuTextureRelease(texture);
+        texture = nullptr;
+    };
+    const auto cleanup = [&]() {
+        releaseView(nextTerrainShadowView);
+        releaseTexture(nextTerrainShadowTexture);
+        releaseView(nextTerrainDepthView);
+        releaseTexture(nextTerrainDepthTexture);
+        releaseView(nextMaterialView);
+        releaseTexture(nextMaterialTexture);
+        releaseView(nextShadowView);
+        releaseTexture(nextShadowTexture);
+        releaseView(nextDepthView);
+        releaseTexture(nextDepthTexture);
+    };
+    const auto fail = [&](const char* message) {
+        LOG_ERROR("{}", message);
+        cleanup();
+        return false;
+    };
+
     // Create separate R32Float storage textures for ray-cast depth and shadow data.
     gpu::TextureDesc depthDesc = gpu::TextureDesc::storage(
-        outputWidth_, outputHeight_,
+        width, height,
         WGPUTextureFormat_R32Float,
         "raycast_depth_output"
     );
@@ -423,123 +478,136 @@ bool RaycastPath::createDepthOutputTexture() {
     // color attachment.  Keep storage usage for the direct/Lego compute path
     // and texture usage for primitive occlusion.
     depthDesc.usage |= WGPUTextureUsage_RenderAttachment;
-    depthOutputTexture_ = gpu::createTexture(device_, depthDesc);
+    nextDepthTexture = gpu::createTexture(device_, depthDesc);
     
-    if (!depthOutputTexture_) {
-        LOG_ERROR("Failed to create depth output texture");
-        return false;
-    }
+    if (!nextDepthTexture) return fail("Failed to create depth output texture");
     
     // Create texture view
     gpu::TextureViewDesc viewDesc{};
     viewDesc.label = "raycast_depth_output_view";
     viewDesc.format = WGPUTextureFormat_R32Float;
     
-    depthOutputView_ = gpu::createTextureView(depthOutputTexture_, viewDesc);
+    nextDepthView = gpu::createTextureView(nextDepthTexture, viewDesc);
     
-    if (!depthOutputView_) {
-        LOG_ERROR("Failed to create depth output texture view");
-        return false;
-    }
+    if (!nextDepthView) return fail("Failed to create depth output texture view");
 
     // Shadow output packs terrain shadow or signed water depth into one float.
     // See terrain_raycast.wgsl for the water depth/shadow sign encoding.
     gpu::TextureDesc shadowDesc = gpu::TextureDesc::storage(
-        outputWidth_, outputHeight_,
+        width, height,
         WGPUTextureFormat_R32Float,
         "raycast_shadow_output"
     );
 
-    shadowOutputTexture_ = gpu::createTexture(device_, shadowDesc);
+    nextShadowTexture = gpu::createTexture(device_, shadowDesc);
 
-    if (!shadowOutputTexture_) {
-        LOG_ERROR("Failed to create shadow output texture");
-        return false;
-    }
+    if (!nextShadowTexture) return fail("Failed to create shadow output texture");
 
     gpu::TextureViewDesc shadowViewDesc{};
     shadowViewDesc.label = "raycast_shadow_output_view";
     shadowViewDesc.format = WGPUTextureFormat_R32Float;
 
-    shadowOutputView_ = gpu::createTextureView(shadowOutputTexture_, shadowViewDesc);
+    nextShadowView = gpu::createTextureView(nextShadowTexture, shadowViewDesc);
 
-    if (!shadowOutputView_) {
-        LOG_ERROR("Failed to create shadow output texture view");
-        return false;
-    }
+    if (!nextShadowView) return fail("Failed to create shadow output texture view");
 
     gpu::TextureDesc materialDesc = gpu::TextureDesc::storage(
-        outputWidth_, outputHeight_,
+        width, height,
         WGPUTextureFormat_RGBA16Float,
         "raycast_material_output"
     );
 
-    materialOutputTexture_ = gpu::createTexture(device_, materialDesc);
+    nextMaterialTexture = gpu::createTexture(device_, materialDesc);
 
-    if (!materialOutputTexture_) {
-        LOG_ERROR("Failed to create material output texture");
-        return false;
-    }
+    if (!nextMaterialTexture) return fail("Failed to create material output texture");
 
     gpu::TextureViewDesc materialViewDesc{};
     materialViewDesc.label = "raycast_material_output_view";
     materialViewDesc.format = WGPUTextureFormat_RGBA16Float;
 
-    materialOutputView_ = gpu::createTextureView(materialOutputTexture_, materialViewDesc);
+    nextMaterialView = gpu::createTextureView(
+        nextMaterialTexture, materialViewDesc);
 
-    if (!materialOutputView_) {
-        LOG_ERROR("Failed to create material output texture view");
-        return false;
-    }
+    if (!nextMaterialView) return fail("Failed to create material output texture view");
 
     // The expensive terrain traversal is invariant while the camera and terrain
     // stay fixed. Cache its exact per-pixel depth so only animated water needs
     // to be recomputed on settled frames.
     gpu::TextureDesc cacheDesc = gpu::TextureDesc::storage(
-        outputWidth_, outputHeight_,
+        width, height,
         WGPUTextureFormat_R32Float,
         "raycast_terrain_depth_cache"
     );
 
-    terrainDepthCacheTexture_ = gpu::createTexture(device_, cacheDesc);
-    if (!terrainDepthCacheTexture_) {
-        LOG_ERROR("Failed to create terrain depth cache texture");
-        return false;
+    nextTerrainDepthTexture = gpu::createTexture(device_, cacheDesc);
+    if (!nextTerrainDepthTexture) {
+        return fail("Failed to create terrain depth cache texture");
     }
 
     gpu::TextureViewDesc cacheViewDesc{};
     cacheViewDesc.label = "raycast_terrain_depth_cache_view";
     cacheViewDesc.format = WGPUTextureFormat_R32Float;
-    terrainDepthCacheView_ = gpu::createTextureView(
-        terrainDepthCacheTexture_, cacheViewDesc);
-    if (!terrainDepthCacheView_) {
-        LOG_ERROR("Failed to create terrain depth cache texture view");
-        return false;
+    nextTerrainDepthView = gpu::createTextureView(
+        nextTerrainDepthTexture, cacheViewDesc);
+    if (!nextTerrainDepthView) {
+        return fail("Failed to create terrain depth cache texture view");
     }
 
     gpu::TextureDesc shadowCacheDesc = gpu::TextureDesc::storage(
-        outputWidth_, outputHeight_,
+        width, height,
         WGPUTextureFormat_R32Float,
         "raycast_terrain_shadow_cache"
     );
-    terrainShadowCacheTexture_ = gpu::createTexture(device_, shadowCacheDesc);
-    if (!terrainShadowCacheTexture_) {
-        LOG_ERROR("Failed to create terrain shadow cache texture");
-        return false;
+    nextTerrainShadowTexture = gpu::createTexture(device_, shadowCacheDesc);
+    if (!nextTerrainShadowTexture) {
+        return fail("Failed to create terrain shadow cache texture");
     }
 
     gpu::TextureViewDesc shadowCacheViewDesc{};
     shadowCacheViewDesc.label = "raycast_terrain_shadow_cache_view";
     shadowCacheViewDesc.format = WGPUTextureFormat_R32Float;
-    terrainShadowCacheView_ = gpu::createTextureView(
-        terrainShadowCacheTexture_, shadowCacheViewDesc);
-    if (!terrainShadowCacheView_) {
-        LOG_ERROR("Failed to create terrain shadow cache texture view");
-        return false;
+    nextTerrainShadowView = gpu::createTextureView(
+        nextTerrainShadowTexture, shadowCacheViewDesc);
+    if (!nextTerrainShadowView) {
+        return fail("Failed to create terrain shadow cache texture view");
     }
+
+    releaseView(terrainShadowCacheView_);
+    releaseTexture(terrainShadowCacheTexture_);
+    releaseView(terrainDepthCacheView_);
+    releaseTexture(terrainDepthCacheTexture_);
+    releaseView(materialOutputView_);
+    releaseTexture(materialOutputTexture_);
+    releaseView(shadowOutputView_);
+    releaseTexture(shadowOutputTexture_);
+    releaseView(depthOutputView_);
+    releaseTexture(depthOutputTexture_);
+
+    depthOutputTexture_ = nextDepthTexture;
+    depthOutputView_ = nextDepthView;
+    shadowOutputTexture_ = nextShadowTexture;
+    shadowOutputView_ = nextShadowView;
+    materialOutputTexture_ = nextMaterialTexture;
+    materialOutputView_ = nextMaterialView;
+    terrainDepthCacheTexture_ = nextTerrainDepthTexture;
+    terrainDepthCacheView_ = nextTerrainDepthView;
+    terrainShadowCacheTexture_ = nextTerrainShadowTexture;
+    terrainShadowCacheView_ = nextTerrainShadowView;
+    nextDepthTexture = nullptr;
+    nextDepthView = nullptr;
+    nextShadowTexture = nullptr;
+    nextShadowView = nullptr;
+    nextMaterialTexture = nullptr;
+    nextMaterialView = nullptr;
+    nextTerrainDepthTexture = nullptr;
+    nextTerrainDepthView = nullptr;
+    nextTerrainShadowTexture = nullptr;
+    nextTerrainShadowView = nullptr;
+    outputWidth_ = width;
+    outputHeight_ = height;
     
     LOG_DEBUG("Created raycast output textures: {}x{} depth/shadow R32Float, water data RGBA16Float",
-              outputWidth_, outputHeight_);
+              width, height);
     return true;
 }
 
@@ -571,8 +639,11 @@ bool RaycastPath::createUniformBuffer() {
     }
     
     // Upload initial data
-    updateUniformBuffer();
-    gpu::writeBuffer(queue_, staticUniformBuffer_, 0, *staticUniforms_);
+    if (!updateUniformBuffer()
+        || !gpu::writeBuffer(
+            queue_, staticUniformBuffer_, 0, *staticUniforms_)) {
+        return false;
+    }
     staticUniformsDirty_ = false;
     
     LOG_DEBUG("Created raycast uniform buffer: {} bytes (aligned from {})",
@@ -807,20 +878,6 @@ bool RaycastPath::createBindGroup() {
         return false;
     }
     
-    // Release old bind group if exists
-    if (bindGroup_) {
-        wgpuBindGroupRelease(bindGroup_);
-        bindGroup_ = nullptr;
-    }
-    if (staticBindGroup_) {
-        wgpuBindGroupRelease(staticBindGroup_);
-        staticBindGroup_ = nullptr;
-    }
-    if (compositeBindGroup_) {
-        wgpuBindGroupRelease(compositeBindGroup_);
-        compositeBindGroup_ = nullptr;
-    }
-    
     std::array<gpu::BindGroupEntry, 9> entries = {
         gpu::BindGroupEntry(0).buffer(uniformBuffer_, 0, sizeof(CameraUniforms)),
         gpu::BindGroupEntry(1).textureView(heightmapView_),
@@ -834,9 +891,10 @@ bool RaycastPath::createBindGroup() {
         gpu::BindGroupEntry(8).textureView(waterCoastView_)
     };
     
-    bindGroup_ = gpu::createBindGroup(device_, bindGroupLayout_, entries, "raycast_bind_group");
+    WGPUBindGroup nextBindGroup = gpu::createBindGroup(
+        device_, bindGroupLayout_, entries, "raycast_bind_group");
     
-    if (!bindGroup_) {
+    if (!nextBindGroup) {
         LOG_ERROR("Failed to create raycast bind group");
         return false;
     }
@@ -853,10 +911,11 @@ bool RaycastPath::createBindGroup() {
         gpu::BindGroupEntry(7).sampler(waterDisplacementSampler_),
         gpu::BindGroupEntry(8).textureView(waterCoastView_)
     };
-    staticBindGroup_ = gpu::createBindGroup(
+    WGPUBindGroup nextStaticBindGroup = gpu::createBindGroup(
         device_, bindGroupLayout_, staticEntries, "raycast_static_bind_group");
-    if (!staticBindGroup_) {
+    if (!nextStaticBindGroup) {
         LOG_ERROR("Failed to create static terrain bind group");
+        wgpuBindGroupRelease(nextBindGroup);
         return false;
     }
 
@@ -874,13 +933,22 @@ bool RaycastPath::createBindGroup() {
         gpu::BindGroupEntry(9).sampler(waterDisplacementSampler_),
         gpu::BindGroupEntry(10).textureView(waterCoastView_)
     };
-    compositeBindGroup_ = gpu::createBindGroup(
+    WGPUBindGroup nextCompositeBindGroup = gpu::createBindGroup(
         device_, compositeBindGroupLayout_, compositeEntries,
         "water_composite_bind_group");
-    if (!compositeBindGroup_) {
+    if (!nextCompositeBindGroup) {
         LOG_ERROR("Failed to create water composite bind group");
+        wgpuBindGroupRelease(nextStaticBindGroup);
+        wgpuBindGroupRelease(nextBindGroup);
         return false;
     }
+
+    if (compositeBindGroup_) wgpuBindGroupRelease(compositeBindGroup_);
+    if (staticBindGroup_) wgpuBindGroupRelease(staticBindGroup_);
+    if (bindGroup_) wgpuBindGroupRelease(bindGroup_);
+    bindGroup_ = nextBindGroup;
+    staticBindGroup_ = nextStaticBindGroup;
+    compositeBindGroup_ = nextCompositeBindGroup;
     
     bindGroupDirty_ = false;
     LOG_DEBUG("Created raycast bind group");
@@ -892,8 +960,10 @@ bool RaycastPath::createBindGroup() {
 // ─────────────────────────────────────────────────────────────────────────────
 
 bool RaycastPath::resize(uint32_t width, uint32_t height) {
-    if (width == 0 || height == 0) {
-        LOG_ERROR("RaycastPath::resize: dimensions cannot be zero");
+    if (width == 0 || height == 0
+        || width > kMaximumTextureDimension2D
+        || height > kMaximumTextureDimension2D) {
+        LOG_ERROR("RaycastPath::resize: invalid dimensions");
         return false;
     }
     
@@ -904,73 +974,15 @@ bool RaycastPath::resize(uint32_t width, uint32_t height) {
     LOG_DEBUG("Resizing raycast output: {}x{} -> {}x{}", 
               outputWidth_, outputHeight_, width, height);
     
-    // Bind groups retain the old views. Release them before replacing the
-    // framebuffer-sized textures.
-    if (compositeBindGroup_) {
-        wgpuBindGroupRelease(compositeBindGroup_);
-        compositeBindGroup_ = nullptr;
-    }
-    if (staticBindGroup_) {
-        wgpuBindGroupRelease(staticBindGroup_);
-        staticBindGroup_ = nullptr;
-    }
-    if (bindGroup_) {
-        wgpuBindGroupRelease(bindGroup_);
-        bindGroup_ = nullptr;
-    }
-
-    // Release old output resources.
-    if (depthOutputView_) {
-        wgpuTextureViewRelease(depthOutputView_);
-        depthOutputView_ = nullptr;
-    }
-    if (depthOutputTexture_) {
-        wgpuTextureRelease(depthOutputTexture_);
-        depthOutputTexture_ = nullptr;
-    }
-    if (shadowOutputView_) {
-        wgpuTextureViewRelease(shadowOutputView_);
-        shadowOutputView_ = nullptr;
-    }
-    if (shadowOutputTexture_) {
-        wgpuTextureRelease(shadowOutputTexture_);
-        shadowOutputTexture_ = nullptr;
-    }
-    if (materialOutputView_) {
-        wgpuTextureViewRelease(materialOutputView_);
-        materialOutputView_ = nullptr;
-    }
-    if (materialOutputTexture_) {
-        wgpuTextureRelease(materialOutputTexture_);
-        materialOutputTexture_ = nullptr;
-    }
-    if (terrainDepthCacheView_) {
-        wgpuTextureViewRelease(terrainDepthCacheView_);
-        terrainDepthCacheView_ = nullptr;
-    }
-    if (terrainDepthCacheTexture_) {
-        wgpuTextureRelease(terrainDepthCacheTexture_);
-        terrainDepthCacheTexture_ = nullptr;
-    }
-    if (terrainShadowCacheView_) {
-        wgpuTextureViewRelease(terrainShadowCacheView_);
-        terrainShadowCacheView_ = nullptr;
-    }
-    if (terrainShadowCacheTexture_) {
-        wgpuTextureRelease(terrainShadowCacheTexture_);
-        terrainShadowCacheTexture_ = nullptr;
-    }
-    
-    outputWidth_ = width;
-    outputHeight_ = height;
-    
-    // Create new depth output texture
-    if (!createDepthOutputTexture()) {
+    // Build every replacement before disturbing the working output set.
+    if (!createDepthOutputTexture(width, height)) {
         LOG_ERROR("Failed to recreate depth output texture after resize");
         return false;
     }
-    
-    // Need to recreate bind group with new depth output view
+
+    // Keep the old complete group set alive until createBindGroup() has built
+    // every replacement. The groups retain the old views, so a failed rebuild
+    // remains retryable without leaving this object half initialized.
     bindGroupDirty_ = true;
     staticCacheDirty_ = true;
     
@@ -981,24 +993,37 @@ bool RaycastPath::resize(uint32_t width, uint32_t height) {
 // Heightmap Binding
 // ─────────────────────────────────────────────────────────────────────────────
 
-void RaycastPath::setHeightmap(WGPUTextureView heightmapView, uint32_t width, uint32_t height) {
-    heightmapView_ = heightmapView;
-    heightmapWidth_ = width;
-    heightmapHeight_ = height;
-    
+bool RaycastPath::setHeightmap(
+    WGPUTextureView heightmapView, uint32_t width, uint32_t height) {
+    if (!heightmapView || width < 2u || height < 2u
+        || width > kMaximumTextureDimension2D
+        || height > kMaximumTextureDimension2D) {
+        LOG_ERROR("RaycastPath::setHeightmap: invalid terrain binding");
+        return false;
+    }
     // Update uniforms with terrain size
     if (uniforms_) {
-        uniforms_->setTerrain(width, height, config_.heightScale, config_.cellScale,
-                              1.0f, config_.fogDensity);
+        CameraUniforms next = *uniforms_;
+        if (!next.setTerrain(
+                width, height, config_.heightScale, config_.cellScale,
+                1.0f, config_.fogDensity)) {
+            return false;
+        }
+        *uniforms_ = next;
         uniformsDirty_ = true;
         updateStaticUniforms();
     }
+
+    heightmapView_ = heightmapView;
+    heightmapWidth_ = width;
+    heightmapHeight_ = height;
     
     // Need to recreate bind group
     bindGroupDirty_ = true;
     staticCacheDirty_ = true;
 
     LOG_DEBUG("Set heightmap: {}x{}", width, height);
+    return true;
 }
 
 void RaycastPath::setShadowMap(WGPUTextureView shadowMapView) {
@@ -1026,13 +1051,14 @@ void RaycastPath::setWaterSimulation(WGPUTextureView displacementView,
 void RaycastPath::updateCamera(const glm::mat4& view, const glm::mat4& proj, 
                                const glm::vec3& cameraPos, float ambientIntensity) {
     if (!uniforms_) return;
-    
-    uniforms_->setCamera(view, proj, cameraPos);
+    CameraUniforms next = *uniforms_;
+    if (!next.setCamera(view, proj, cameraPos)) return;
     
     // Update light direction in view space (using hardcoded world direction)
     glm::vec3 worldLightDir = glm::normalize(glm::vec3(0.3f, 0.8f, 0.4f));
-    uniforms_->setLightDirection(worldLightDir, view, ambientIntensity);
+    if (!next.setLightDirection(worldLightDir, view, ambientIntensity)) return;
     
+    *uniforms_ = next;
     uniformsDirty_ = true;
     updateStaticUniforms();
 }
@@ -1047,17 +1073,24 @@ void RaycastPath::setLegoMode(bool enabled) {
 
 void RaycastPath::setCameraUniforms(const CameraUniforms& uniforms) {
     if (!uniforms_) return;
+    if (!uniforms.isValid()) {
+        LOG_ERROR("RaycastPath::setCameraUniforms: invalid uniform block");
+        return;
+    }
 
     *uniforms_ = uniforms;
     uniformsDirty_ = true;
     updateStaticUniforms();
 }
 
-void RaycastPath::updateUniformBuffer() {
-    if (!uniformBuffer_ || !queue_ || !uniforms_) return;
+bool RaycastPath::updateUniformBuffer() {
+    if (!uniformBuffer_ || !queue_ || !uniforms_) return false;
     
-    gpu::writeBuffer(queue_, uniformBuffer_, 0, *uniforms_);
+    if (!gpu::writeBuffer(queue_, uniformBuffer_, 0, *uniforms_)) {
+        return false;
+    }
     uniformsDirty_ = false;
+    return true;
 }
 
 void RaycastPath::updateStaticUniforms() {
@@ -1113,6 +1146,10 @@ void RaycastPath::dispatch(WGPUCommandEncoder encoder,
         LOG_WARN("RaycastPath::dispatch: not initialized");
         return;
     }
+    if (!encoder) {
+        LOG_ERROR("RaycastPath::dispatch: null command encoder");
+        return;
+    }
     
     if (!heightmapView_) {
         LOG_WARN("RaycastPath::dispatch: no heightmap set");
@@ -1120,8 +1157,8 @@ void RaycastPath::dispatch(WGPUCommandEncoder encoder,
     }
     
     // Update uniform buffer if dirty
-    if (uniformsDirty_) {
-        updateUniformBuffer();
+    if (uniformsDirty_ && !updateUniformBuffer()) {
+        return;
     }
     
     // Create bind group if dirty
@@ -1143,7 +1180,10 @@ void RaycastPath::dispatch(WGPUCommandEncoder encoder,
 
     // Upload the terrain-only snapshot only when it will actually be consumed.
     if (!useDirectPath && staticCacheDirty_ && staticUniformsDirty_) {
-        gpu::writeBuffer(queue_, staticUniformBuffer_, 0, *staticUniforms_);
+        if (!gpu::writeBuffer(
+                queue_, staticUniformBuffer_, 0, *staticUniforms_)) {
+            return;
+        }
         staticUniformsDirty_ = false;
     }
 
@@ -1167,6 +1207,10 @@ void RaycastPath::dispatch(WGPUCommandEncoder encoder,
     }
     
     WGPUComputePassEncoder computePass = wgpuCommandEncoderBeginComputePass(encoder, &computePassDesc);
+    if (!computePass) {
+        LOG_ERROR("RaycastPath::dispatch: failed to begin compute pass");
+        return;
+    }
     
     const uint32_t workgroupsX = getWorkgroupCountX();
     const uint32_t workgroupsY = getWorkgroupCountY();

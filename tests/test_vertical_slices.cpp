@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <array>
 #include <cstdint>
+#include <limits>
 #include <vector>
 
 namespace voxy::gameplay {
@@ -84,6 +85,22 @@ TEST(StructuralAssemblyTest, CanonicalDamageProducesStableComponents) {
     ASSERT_EQ(first.fractureEvents().size(), 1u);
     EXPECT_EQ(first.fractureEvents()[0].brokenEdgeIds,
               (std::vector<uint32_t>{11u, 12u}));
+    EXPECT_FALSE(first.queueDamage(AssemblyDamageCommand{
+        .tick = 2,
+        .sequence = 3,
+        .source = 7,
+        .edgeId = 11,
+        .damageQ16 = kScalarOne,
+    }));
+    const uint32_t workingHash = first.stateHash();
+    const std::array<AssemblyNode, 2> invalidReplacement{{
+        {1u, {}, kScalarOne, kScalarOne, 0u},
+        {1u, {}, kScalarOne, kScalarOne, 0u},
+    }};
+    EXPECT_FALSE(first.initialize(invalidReplacement, {}));
+    EXPECT_TRUE(first.initialized());
+    EXPECT_EQ(first.currentTick(), 1u);
+    EXPECT_EQ(first.stateHash(), workingHash);
 
     StructuralAssembly second(StructuralAssembly::Config{
         .maximumNodes = 8,
@@ -137,6 +154,30 @@ TEST(DeterministicWaterTest, IsPeriodicAndNativeIntegerStable) {
         }, water, 0);
     EXPECT_GT(floating.submergedVolumeQ16, 0);
     EXPECT_GT(floating.accelerationQ16, -kGravityQ16);
+    EXPECT_EQ(water.sample(0, 0, std::numeric_limits<uint64_t>::max())
+                  .verticalVelocityQ16,
+              0);
+
+    const std::array<BuoyancyPointQ, 3> extremePoints{{
+        {{0, std::numeric_limits<int32_t>::min(), 0},
+         std::numeric_limits<int32_t>::max(), 0},
+        {{0, std::numeric_limits<int32_t>::min(), 0},
+         std::numeric_limits<int32_t>::max(), 0},
+        {{0, std::numeric_limits<int32_t>::min(), 0},
+         std::numeric_limits<int32_t>::max(), 0},
+    }};
+    const auto extreme = evaluateBuoyancy(
+        extremePoints,
+        BuoyancyInputQ{
+            .worldVerticalOffsetQ12 =
+                std::numeric_limits<int32_t>::min(),
+            .massQ16 = 1,
+        },
+        water, 0u);
+    EXPECT_EQ(extreme.effectiveVolumeQ16,
+              std::numeric_limits<int32_t>::max());
+    EXPECT_EQ(extreme.submergedVolumeQ16,
+              std::numeric_limits<int32_t>::max());
 }
 
 TEST(DemolitionLeagueSliceTest, CollapseScoresAndReplaysExactly) {
@@ -145,6 +186,13 @@ TEST(DemolitionLeagueSliceTest, CollapseScoresAndReplaysExactly) {
         .significantMassQ16 = 2 * kScalarOne,
     });
     ASSERT_TRUE(first.initialize());
+    EXPECT_FALSE(first.submitImpact(AssemblyDamageCommand{
+        .tick = 241,
+        .sequence = 99,
+        .source = 1,
+        .edgeId = 101,
+        .damageQ16 = kScalarOne,
+    }));
     const AssemblyDamageCommand impact{
         .tick = 1,
         .sequence = 1,
@@ -202,6 +250,14 @@ TEST(DeadweightSliceTest, RejectsUntrustedOrImpossibleInputs) {
     EXPECT_TRUE(slice.submitInput(valid));
     EXPECT_EQ(slice.telemetry().duplicateInputs, 1u);
     EXPECT_EQ(slice.telemetry().rejectedInputs, 2u);
+    std::array<DeadweightInput, 17> oversized{};
+    EXPECT_FALSE(slice.submitRedundantInputs(oversized));
+
+    DeadweightSlice overflowing(DeadweightSlice::Config{
+        .roundTicks = std::numeric_limits<uint64_t>::max(),
+        .inputFutureWindow = 8u,
+    });
+    EXPECT_FALSE(overflowing.initialize());
 }
 
 TEST(DeadweightSliceTest, TwoClientsCrossHazardsAndReplayExactly) {
@@ -283,6 +339,13 @@ TEST(WreckwaterSliceTest, FractureFloodingAndBuoyancyReplayExactly) {
     EXPECT_GT(first.flooding()[0].floodedFractionQ16, 0);
     EXPECT_GT(first.telemetry().floodedNodeTicks, 0u);
     EXPECT_EQ(first.replayCommands().size(), impacts.size());
+}
+
+TEST(WreckwaterSliceTest, RejectsClampedAwayDragConfiguration) {
+    WreckwaterSlice invalid(WreckwaterSlice::Config{
+        .dragCoefficientQ16 = 4 * kScalarOne + 1,
+    });
+    EXPECT_FALSE(invalid.initialize());
 }
 
 PlaytestObservation observation(

@@ -90,6 +90,18 @@ TEST(LoadResultTest, SampleNormalized) {
     EXPECT_FLOAT_EQ(result.sampleNormalized(1, 0), 1.0f);
 }
 
+TEST(LoadResultTest, OverflowingLayoutIsInvalid) {
+    LoadResult result;
+    result.width = std::numeric_limits<uint32_t>::max();
+    result.height = std::numeric_limits<uint32_t>::max();
+    result.data = {123};
+
+    EXPECT_FALSE(result.isValid());
+    EXPECT_EQ(result.sampleCount(), 0u);
+    EXPECT_EQ(result.sizeBytes(), 0u);
+    EXPECT_EQ(result.sample(0, 0), 0u);
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // Result Type Tests
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -159,6 +171,14 @@ TEST(HeightmapUtilityTest, IsPowerOfTwo) {
     EXPECT_FALSE(isPowerOfTwo(8191));
 }
 
+TEST(HeightmapUtilityTest, NextPowerOfTwoReportsUnrepresentableResult) {
+    EXPECT_EQ(nextPowerOfTwo(0), 1u);
+    EXPECT_EQ(nextPowerOfTwo(3), 4u);
+    EXPECT_EQ(nextPowerOfTwo(uint32_t{1} << 31), uint32_t{1} << 31);
+    EXPECT_EQ(nextPowerOfTwo((uint32_t{1} << 31) + 1), 0u);
+    EXPECT_EQ(nextPowerOfTwo(std::numeric_limits<uint32_t>::max()), 0u);
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // Heightmap Class Tests
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -217,6 +237,17 @@ TEST(HeightmapTest, CreateFromDataRejectsMismatchedDimensions) {
     EXPECT_EQ(hm.getHeight(), 0u);
 }
 
+TEST(HeightmapTest, FactoriesRejectOverflowingDimensions) {
+    const uint32_t max = std::numeric_limits<uint32_t>::max();
+
+    auto flat = Heightmap::createFlat(max, max, 1);
+    EXPECT_FALSE(flat.isLoaded());
+
+    auto supplied =
+        Heightmap::createFromData(std::vector<uint16_t>{1}, max, max);
+    EXPECT_FALSE(supplied.isLoaded());
+}
+
 TEST(HeightmapTest, Sample) {
     std::vector<uint16_t> testData(16);
     for (size_t i = 0; i < 16; i++) {
@@ -262,12 +293,15 @@ TEST(HeightmapTest, SampleBilinear) {
     EXPECT_NEAR(hm.sampleBilinear(0.5f, 0.5f), 15000.0f, 1.0f);
 }
 
-TEST(HeightmapTest, SampleBilinearRejectsNaNCoordinates) {
+TEST(HeightmapTest, SampleBilinearRejectsNonFiniteCoordinates) {
     auto hm = Heightmap::createFlat(2, 2, 12345);
     const float nan = std::numeric_limits<float>::quiet_NaN();
+    const float infinity = std::numeric_limits<float>::infinity();
 
     EXPECT_FLOAT_EQ(hm.sampleBilinear(nan, 0.0f), 0.0f);
     EXPECT_FLOAT_EQ(hm.sampleBilinear(0.0f, nan), 0.0f);
+    EXPECT_FLOAT_EQ(hm.sampleBilinear(infinity, 0.0f), 0.0f);
+    EXPECT_FLOAT_EQ(hm.sampleBilinear(0.0f, -infinity), 0.0f);
 }
 
 TEST(HeightmapTest, GetMinMax) {
@@ -375,6 +409,33 @@ TEST(HeightmapTest, LoadRawFromMemoryZeroDimensions) {
     
     EXPECT_FALSE(result.has_value());
     EXPECT_EQ(result.error(), HeightmapError::InvalidDimensions);
+}
+
+TEST(HeightmapTest, RejectedRawLoadPreservesWorkingHeightmap) {
+    auto hm = Heightmap::createFlat(2, 2, 4321);
+    const std::vector<std::byte> badBytes(2);
+    const uint32_t max = std::numeric_limits<uint32_t>::max();
+
+    const auto result = hm.loadRawFromMemory(badBytes, max, max);
+
+    EXPECT_FALSE(result.has_value());
+    EXPECT_TRUE(hm.isLoaded());
+    EXPECT_EQ(hm.getWidth(), 2u);
+    EXPECT_EQ(hm.getHeight(), 2u);
+    EXPECT_EQ(hm.sample(1, 1), 4321u);
+}
+
+TEST(HeightmapTest, RejectedResizePreservesWorkingHeightmap) {
+    auto hm = Heightmap::createFlat(2, 2, 9876);
+    const uint32_t max = std::numeric_limits<uint32_t>::max();
+
+    const auto result = hm.resize(max, max);
+
+    EXPECT_FALSE(result.has_value());
+    EXPECT_TRUE(hm.isLoaded());
+    EXPECT_EQ(hm.getWidth(), 2u);
+    EXPECT_EQ(hm.getHeight(), 2u);
+    EXPECT_EQ(hm.sample(1, 1), 9876u);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════

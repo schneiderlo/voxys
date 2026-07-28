@@ -6,6 +6,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
 
+#include <limits>
+
 #include "camera/character_controller.hpp"
 #include "camera/camera.hpp"
 #include "terrain/heightmap.hpp"
@@ -76,6 +78,17 @@ TEST_F(CharacterControllerTest, ConfigCanBeModified) {
     
     EXPECT_FLOAT_EQ(controller_->config().walkSpeed, 10.0f);
     EXPECT_FLOAT_EQ(controller_->config().runSpeed, 20.0f);
+}
+
+TEST_F(CharacterControllerTest, InvalidConfigPreservesWorkingConfiguration) {
+    const CharacterConfig before = controller_->config();
+    CharacterConfig invalid = before;
+    invalid.cellScale = 0.0f;
+    invalid.gravity = std::numeric_limits<float>::quiet_NaN();
+    controller_->setConfig(invalid);
+
+    EXPECT_FLOAT_EQ(controller_->config().cellScale, before.cellScale);
+    EXPECT_FLOAT_EQ(controller_->config().gravity, before.gravity);
 }
 
 TEST(CharacterConfigTest, TerrainExtentCountsIntervalsBetweenSamples) {
@@ -233,6 +246,27 @@ TEST_F(CharacterControllerTest, CustomHeightSamplerOverridesHeightmap) {
     
     float height = controller_->sampleTerrainHeight(0.0f, 0.0f);
     EXPECT_FLOAT_EQ(height, 25.0f);
+}
+
+TEST_F(CharacterControllerTest, NonFiniteSamplerCannotPoisonTerrainState) {
+    controller_->setHeightSampler([](float, float) {
+        return std::numeric_limits<float>::quiet_NaN();
+    });
+
+    EXPECT_FLOAT_EQ(controller_->sampleTerrainHeight(0.0f, 0.0f), 0.0f);
+    EXPECT_EQ(controller_->sampleTerrainNormal(0.0f, 0.0f),
+              glm::vec3(0.0f, 1.0f, 0.0f));
+    EXPECT_FALSE(controller_->canWalkOnSlope(
+        glm::vec3(std::numeric_limits<float>::quiet_NaN())));
+}
+
+TEST_F(CharacterControllerTest, InvalidDeltaCannotPoisonCamera) {
+    Input input;
+    controller_->update(std::numeric_limits<float>::quiet_NaN(), input);
+    const glm::vec3 position = camera_->position();
+    EXPECT_TRUE(std::isfinite(position.x));
+    EXPECT_TRUE(std::isfinite(position.y));
+    EXPECT_TRUE(std::isfinite(position.z));
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════

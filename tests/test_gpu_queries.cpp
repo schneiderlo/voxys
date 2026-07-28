@@ -35,6 +35,14 @@ extern "C" WGPUBool wgpuDevicePoll(
 namespace voxy::physics {
 namespace {
 
+TEST(DebugReadbackRing, RejectsOverflowingTotalAllocation) {
+    DebugReadbackRing ring;
+    const auto device = reinterpret_cast<WGPUDevice>(uintptr_t{1});
+    EXPECT_FALSE(ring.initialize(
+        device, 2u, std::numeric_limits<size_t>::max()));
+    EXPECT_EQ(ring.allocatedBytes(), 0u);
+}
+
 struct alignas(16) TestPose {
     glm::vec4 positionInvMass{0.0f};
     glm::vec4 orientation{0.0f, 0.0f, 0.0f, 1.0f};
@@ -142,6 +150,12 @@ TEST(GpuAsyncQueries, SortsBatchesAndReportsOverflowWithoutBlockingPhysics) {
     config.readbackSlots = 3;
     ASSERT_TRUE(queries.initialize(
         context.getDevice(), context.getQueue(), config));
+    const WGPUBuffer workingOutput = queries.outputBuffer();
+    auto invalidConfig = config;
+    invalidConfig.requestCapacity = 0u;
+    EXPECT_FALSE(queries.initialize(
+        context.getDevice(), context.getQueue(), invalidConfig));
+    EXPECT_EQ(queries.outputBuffer(), workingOutput);
     queries.setBodyView({poseBuffer, shapeBuffer, metadataBuffer,
                          bodyCapacity});
 
@@ -410,6 +424,18 @@ TEST(DebugReadbackRing, RetiresWrappedSlotsInSubmissionOrder) {
     ASSERT_NE(source, nullptr);
     DebugReadbackRing ring;
     ASSERT_TRUE(ring.initialize(context.getDevice(), 3u, sizeof(uint32_t)));
+    const size_t workingBytes = ring.allocatedBytes();
+    EXPECT_FALSE(ring.initialize(
+        context.getDevice(), 65u, sizeof(uint32_t)));
+    EXPECT_EQ(ring.allocatedBytes(), workingBytes);
+    WGPUCommandEncoderDescriptor invalidEncoderDesc{};
+    WGPUCommandEncoder invalidEncoder = wgpuDeviceCreateCommandEncoder(
+        context.getDevice(), &invalidEncoderDesc);
+    ASSERT_NE(invalidEncoder, nullptr);
+    EXPECT_FALSE(ring.encodeCopy(
+        invalidEncoder, source, sizeof(sourceValue), sizeof(sourceValue),
+        0u, 0u, 1u));
+    wgpuCommandEncoderRelease(invalidEncoder);
 
     const auto submit = [&](uint64_t tick) {
         sourceValue = static_cast<uint32_t>(tick);

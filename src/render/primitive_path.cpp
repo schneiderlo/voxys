@@ -5,6 +5,7 @@
 #include "core/log.hpp"
 #include "gpu/resources.hpp"
 #include "gpu/webgpu_compat.hpp"
+#include "render/frustum.hpp"
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
@@ -14,6 +15,7 @@
 #include <chrono>
 #include <cmath>
 #include <cstring>
+#include <limits>
 #include <numbers>
 #include <vector>
 
@@ -58,6 +60,35 @@ static_assert(sizeof(CompactShape) == 48);
 
 using Shape = physics::PhysicsWorld::ThrowableShape;
 using detail::GpuInstance;
+
+bool finiteVec(const glm::vec3& value) noexcept {
+    return std::isfinite(value.x) && std::isfinite(value.y)
+        && std::isfinite(value.z);
+}
+
+bool finiteMat(const glm::mat4& value) noexcept {
+    for (glm::length_t column = 0; column < 4; ++column) {
+        for (glm::length_t row = 0; row < 4; ++row) {
+            if (!std::isfinite(value[column][row])) return false;
+        }
+    }
+    return true;
+}
+
+bool validLighting(const PrimitiveLighting& lighting) noexcept {
+    const float directionLengthSquared =
+        glm::dot(lighting.direction, lighting.direction);
+    return finiteVec(lighting.direction)
+        && std::isfinite(directionLengthSquared)
+        && directionLengthSquared > std::numeric_limits<float>::min()
+        && finiteVec(lighting.sunColor)
+        && std::isfinite(lighting.sunIntensity)
+        && finiteVec(lighting.ambientColor)
+        && std::isfinite(lighting.ambientIntensity)
+        && finiteVec(lighting.fogColor)
+        && std::isfinite(lighting.fogDensity)
+        && std::isfinite(lighting.exposure);
+}
 
 void appendSphere(std::vector<Vertex>& vertices, std::vector<uint16_t>& indices) {
     const uint16_t base = static_cast<uint16_t>(vertices.size());
@@ -673,26 +704,36 @@ bool PrimitivePath::rebuildCompactRenderBundle() {
 void PrimitivePath::setCompactPhysicsInstances(
     std::span<const physics::PhysicsWorld::DynamicBodySnapshot> bodies) {
     lastCompactUploadStats_ = {};
-    if (bodies.empty()) {
+    const size_t validBodyCount = static_cast<size_t>(std::count_if(
+        bodies.begin(), bodies.end(), detail::isRenderablePrimitiveSnapshot));
+    if (validBodyCount == 0u
+        || validBodyCount > std::numeric_limits<uint32_t>::max()) {
         clearPhysicsRenderView();
         return;
     }
-    if (!ensureCompactInstanceCapacity(bodies.size())) {
+    if (!ensureCompactInstanceCapacity(validBodyCount)) {
         clearPhysicsRenderView();
         return;
     }
-    cpuPoseUpload_.resize(bodies.size() * 2u);
-    cpuShapeUpload_.resize(bodies.size() * 2u);
+    cpuPoseUpload_.resize(validBodyCount * 2u);
+    cpuShapeUpload_.resize(validBodyCount * 2u);
     const bool fullShapeUpload = !cpuShapeBufferContentsValid_;
-    size_t firstDirtyShape = fullShapeUpload ? 0u : bodies.size();
-    size_t lastDirtyShape = fullShapeUpload ? bodies.size() : 0u;
+    size_t firstDirtyShape = fullShapeUpload ? 0u : validBodyCount;
+    size_t lastDirtyShape = fullShapeUpload ? validBodyCount : 0u;
     const size_t previousShapeCount = uploadedCpuShapeDimensions_.size();
-    uploadedCpuShapeDimensions_.resize(bodies.size());
-    for (size_t index = 0; index < bodies.size(); ++index) {
-        const auto& body = bodies[index];
+    uploadedCpuShapeDimensions_.resize(validBodyCount);
+    size_t index = 0u;
+    for (const auto& body : bodies) {
+        if (!detail::isRenderablePrimitiveSnapshot(body)) continue;
         cpuPoseUpload_[index * 2u] = glm::vec4(body.position, 1.0f);
+        const float rotationLengthSquared =
+            glm::dot(body.rotation, body.rotation);
+        const glm::quat rotation =
+            rotationLengthSquared > std::numeric_limits<float>::min()
+                ? glm::normalize(body.rotation)
+                : glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
         cpuPoseUpload_[index * 2u + 1u] = glm::vec4(
-            body.rotation.x, body.rotation.y, body.rotation.z, body.rotation.w);
+            rotation.x, rotation.y, rotation.z, rotation.w);
         const glm::vec4 dimensionsType(
             body.dimensions, static_cast<float>(body.shape));
         const bool shapeChanged = fullShapeUpload
@@ -707,19 +748,30 @@ void PrimitivePath::setCompactPhysicsInstances(
             cpuShapeUpload_[index * 2u + 1u] = glm::vec4(0.0f);
         }
         uploadedCpuShapeDimensions_[index] = dimensionsType;
+        ++index;
     }
-    gpu::writeBuffer(queue_, cpuPoseBuffer_, 0,
-                     std::as_bytes(std::span<const glm::vec4>(cpuPoseUpload_)));
+    if (!gpu::writeBuffer(
+            queue_, cpuPoseBuffer_, 0,
+            std::as_bytes(std::span<const glm::vec4>(cpuPoseUpload_)))) {
+        cpuShapeBufferContentsValid_ = false;
+        clearPhysicsRenderView();
+        return;
+    }
 
     uint32_t writeCalls = 1u;
-    size_t bytesUploaded = bodies.size() * sizeof(CompactPose);
+    size_t bytesUploaded = validBodyCount * sizeof(CompactPose);
     if (firstDirtyShape < lastDirtyShape) {
         const auto shapes = std::span<const glm::vec4>(cpuShapeUpload_)
             .subspan(firstDirtyShape * 2u,
                      (lastDirtyShape - firstDirtyShape) * 2u);
-        gpu::writeBuffer(queue_, cpuShapeBuffer_,
-                         firstDirtyShape * sizeof(CompactShape),
-                         std::as_bytes(shapes));
+        if (!gpu::writeBuffer(
+                queue_, cpuShapeBuffer_,
+                firstDirtyShape * sizeof(CompactShape),
+                std::as_bytes(shapes))) {
+            cpuShapeBufferContentsValid_ = false;
+            clearPhysicsRenderView();
+            return;
+        }
         ++writeCalls;
         bytesUploaded +=
             (lastDirtyShape - firstDirtyShape) * sizeof(CompactShape);
@@ -727,16 +779,26 @@ void PrimitivePath::setCompactPhysicsInstances(
     cpuShapeBufferContentsValid_ = true;
     lastCompactUploadStats_ = {
         bytesUploaded, writeCalls, fullShapeUpload};
-    setPhysicsRenderView({
+    if (!gpuCulling_.setBodyView({
         .poseBuffer = cpuPoseBuffer_,
         .shapeBuffer = cpuShapeBuffer_,
-        .residentBodyCapacity = static_cast<uint32_t>(bodies.size()),
+        .residentBodyCapacity = static_cast<uint32_t>(validBodyCount),
         .shapeCount = static_cast<uint32_t>(Shape::Count),
-    });
+    })) {
+        clearPhysicsRenderView();
+        return;
+    }
+    physicsRenderView_ = {
+        .poseBuffer = cpuPoseBuffer_,
+        .shapeBuffer = cpuShapeBuffer_,
+        .residentBodyCapacity = static_cast<uint32_t>(validBodyCount),
+        .shapeCount = static_cast<uint32_t>(Shape::Count),
+    };
 }
 
 void PrimitivePath::setPhysicsRenderView(
     const physics::PhysicsRenderView& view) {
+    if (!gpuCulling_.setBodyView(view)) return;
     if (physicsRenderView_.poseBuffer != view.poseBuffer
         || physicsRenderView_.shapeBuffer != view.shapeBuffer
         || physicsRenderView_.metadataBuffer != view.metadataBuffer) {
@@ -744,11 +806,11 @@ void PrimitivePath::setPhysicsRenderView(
         compactBoundShapeBuffer_ = nullptr;
     }
     physicsRenderView_ = view;
-    gpuCulling_.setBodyView(view);
 }
 
 void PrimitivePath::clearPhysicsRenderView() {
-    setPhysicsRenderView({});
+    (void)gpuCulling_.setBodyView({});
+    physicsRenderView_ = {};
 }
 
 void PrimitivePath::setInstances(
@@ -781,10 +843,20 @@ void PrimitivePath::setInstances(
         batch.instances.size(), batch.cacheTokens,
         uploadedInstanceCacheTokens_, instanceBufferContentsValid_,
         batch.forceFullUpload);
+    bool uploadSucceeded = true;
     if (uploadPlan.fullUpload) {
-        gpu::writeBuffer(queue_, instanceBuffer_, 0,
-                         std::as_bytes(std::span<const GpuInstance>(batch.instances)));
-        lastUploadStats_ = {uploadPlan.byteCount, 1, true};
+        if (!batch.instances.empty()) {
+            uploadSucceeded = gpu::writeBuffer(
+                queue_, instanceBuffer_, 0,
+                std::as_bytes(
+                    std::span<const GpuInstance>(batch.instances)));
+        }
+        if (uploadSucceeded) {
+            lastUploadStats_ = {
+                uploadPlan.byteCount,
+                batch.instances.empty() ? 0u : 1u,
+                true};
+        }
     } else {
         for (size_t rangeIndex = 0;
              rangeIndex < uploadPlan.rangeCount; ++rangeIndex) {
@@ -792,13 +864,28 @@ void PrimitivePath::setInstances(
             const auto instances = std::span<const GpuInstance>(batch.instances)
                                        .subspan(range.firstInstance,
                                                 range.instanceCount);
-            gpu::writeBuffer(queue_, instanceBuffer_,
-                             range.firstInstance * sizeof(GpuInstance),
-                             std::as_bytes(instances));
+            if (!gpu::writeBuffer(
+                    queue_, instanceBuffer_,
+                    range.firstInstance * sizeof(GpuInstance),
+                    std::as_bytes(instances))) {
+                uploadSucceeded = false;
+                break;
+            }
         }
-        lastUploadStats_ = {
-            uploadPlan.byteCount,
-            static_cast<uint32_t>(uploadPlan.rangeCount), false};
+        if (uploadSucceeded) {
+            lastUploadStats_ = {
+                uploadPlan.byteCount,
+                static_cast<uint32_t>(uploadPlan.rangeCount), false};
+        }
+    }
+    if (!uploadSucceeded) {
+        instanceCount_ = 0;
+        instanceBufferContentsValid_ = false;
+        lastUploadStats_ = {};
+        lastCpuTimings_.uploadMs =
+            std::chrono::duration<double, std::milli>(
+                Clock::now() - uploadStart).count();
+        return;
     }
     uploadedInstanceCacheTokens_ = std::move(batch.cacheTokens);
     instanceBufferContentsValid_ = instanceBuffer_ != nullptr;
@@ -836,26 +923,27 @@ void PrimitivePath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView
                            uint32_t timestampEnd) {
     if (!pipeline_ || !compactPipeline_ || !encoder || !colorView || !depthView)
         return;
+    const glm::mat4 viewProjection = projection * view;
+    if (width == 0u || height == 0u || width > 8'192u || height > 8'192u
+        || !finiteMat(view) || !finiteMat(projection)
+        || !finiteMat(viewProjection) || !finiteVec(cameraPosition)
+        || !validLighting(lighting)
+        || !Frustum::fromViewProj(viewProjection).valid()) {
+        LOG_ERROR("PrimitivePath::render: invalid frame inputs");
+        return;
+    }
 
     bool overlayReady = instanceCount_ != 0;
     if (overlayReady) {
         updateBindGroup();
         overlayReady = bindGroup_ != nullptr;
     }
-    bool compactReady = false;
-    if (physicsRenderView_.valid()
-        && physicsRenderView_.residentBodyCapacity != 0) {
-        compactReady = gpuCulling_.encode(
-            encoder, projection * view, cameraSector);
-        if (compactReady) {
-            updateCompactBindGroup();
-            compactReady = compactBindGroup_ != nullptr;
-        }
-    }
-    if (!overlayReady && !compactReady) return;
+    const bool compactCandidate = physicsRenderView_.valid()
+        && physicsRenderView_.residentBodyCapacity != 0;
+    if (!overlayReady && !compactCandidate) return;
 
     PrimitiveUniforms uniforms;
-    uniforms.viewProj = projection * view;
+    uniforms.viewProj = viewProjection;
     uniforms.cameraPos = glm::vec4(cameraPosition, 1.0f);
     uniforms.lightDirAndRayDepth = glm::vec4(glm::normalize(lighting.direction),
                                              useRayDepth ? 1.0f : 0.0f);
@@ -871,7 +959,18 @@ void PrimitivePath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView
     uniforms.fogColorExposure = glm::vec4(
         glm::max(lighting.fogColor, glm::vec3(0.0f)),
         std::max(lighting.exposure, 0.0f));
-    gpu::writeBuffer(queue_, uniformBuffer_, 0, uniforms);
+    if (!gpu::writeBuffer(queue_, uniformBuffer_, 0, uniforms)) return;
+
+    bool compactReady = false;
+    if (compactCandidate) {
+        compactReady = gpuCulling_.encode(
+            encoder, viewProjection, cameraSector);
+        if (compactReady) {
+            updateCompactBindGroup();
+            compactReady = compactBindGroup_ != nullptr;
+        }
+    }
+    if (!overlayReady && !compactReady) return;
 
     WGPURenderPassColorAttachment colorAttachment{};
     colorAttachment.view = colorView;
@@ -902,6 +1001,10 @@ void PrimitivePath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView
         passDesc.timestampWrites = &timestampWrites;
     }
     WGPURenderPassEncoder pass = wgpuCommandEncoderBeginRenderPass(encoder, &passDesc);
+    if (!pass) {
+        LOG_ERROR("PrimitivePath::render: failed to begin render pass");
+        return;
+    }
     wgpuRenderPassEncoderSetVertexBuffer(pass, 0, vertexBuffer_, 0, WGPU_WHOLE_SIZE);
     wgpuRenderPassEncoderSetIndexBuffer(pass, indexBuffer_, WGPUIndexFormat_Uint16,
                                         0, WGPU_WHOLE_SIZE);

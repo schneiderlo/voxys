@@ -46,6 +46,7 @@ Window::Window(Window&& other) noexcept
     other.height_ = 0;
     other.fbWidth_ = 0;
     other.fbHeight_ = 0;
+    other.cursorCaptured_ = false;
 }
 
 Window& Window::operator=(Window&& other) noexcept {
@@ -68,6 +69,7 @@ Window& Window::operator=(Window&& other) noexcept {
         other.height_ = 0;
         other.fbWidth_ = 0;
         other.fbHeight_ = 0;
+        other.cursorCaptured_ = false;
     }
     return *this;
 }
@@ -78,10 +80,16 @@ Window& Window::operator=(Window&& other) noexcept {
 
 bool Window::init(const WindowConfig& config) {
     // WASM uses canvas, not GLFW
+    if (config.width <= 0 || config.height <= 0 || !config.title) {
+        LOG_ERROR("Invalid canvas configuration: {}x{}", config.width,
+                  config.height);
+        return false;
+    }
     width_ = config.width;
     height_ = config.height;
     fbWidth_ = config.width;
     fbHeight_ = config.height;
+    cursorCaptured_ = false;
     return true;
 }
 
@@ -90,6 +98,7 @@ void Window::shutdown() {
     height_ = 0;
     fbWidth_ = 0;
     fbHeight_ = 0;
+    cursorCaptured_ = false;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

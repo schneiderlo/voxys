@@ -20,11 +20,12 @@
 
 #include "svo_types.hpp"
 
+#include <algorithm>
+#include <limits>
 #include <cstdint>
-#include <vector>
 #include <span>
-#include <optional>
 #include <string_view>
+#include <vector>
 
 // WebGPU header - same API for native (wgpu-native) and WASM
 #if defined(VOXY_WASM)
@@ -84,31 +85,52 @@ struct SVOBufferData {
 
     /// Add an interior node, returns its index
     uint32_t addNode(const SVOInteriorNode& node) {
-        uint32_t idx = nodeCount++;
+        if (nodeMasks.size() >= std::numeric_limits<uint32_t>::max())
+            return std::numeric_limits<uint32_t>::max();
+        const uint32_t idx = static_cast<uint32_t>(nodeMasks.size());
         nodeMasks.push_back(node.packMasks());
         nodeChildPtrs.push_back(node.childOffset);
+        nodeCount = static_cast<uint32_t>(nodeMasks.size());
         return idx;
     }
 
     /// Add a leaf brick, returns its index
     uint32_t addBrick(const SVOLeafBrick& brick, const ContourData* contour = nullptr) {
-        uint32_t idx = brickCount++;
+        if (brickOccupancyLo.size() >= std::numeric_limits<uint32_t>::max())
+            return std::numeric_limits<uint32_t>::max();
+        const uint32_t idx = static_cast<uint32_t>(brickOccupancyLo.size());
         brickOccupancyLo.push_back(brick.occupancyLo());
         brickOccupancyHi.push_back(brick.occupancyHi());
-        brickMeta.push_back(brick.packMeta());
+        uint32_t meta = brick.packMeta();
+        constexpr uint32_t contourFlag =
+            static_cast<uint32_t>(BrickFlags::HasContour) << 16;
+        if (contour)
+            meta |= contourFlag;
+        else
+            meta &= ~contourFlag;
+        brickMeta.push_back(meta);
         if (contour) {
+            if (contourNormals.empty() && idx != 0u)
+                contourNormals.resize(idx);
             contourNormals.push_back(glm::vec4(contour->normal, contour->intersectOffset));
+        } else if (!contourNormals.empty()) {
+            contourNormals.emplace_back();
         }
+        brickCount = static_cast<uint32_t>(brickOccupancyLo.size());
         return idx;
     }
 
     /// Get node by index
     [[nodiscard]] SVOInteriorNode getNode(uint32_t idx) const noexcept {
+        if (idx >= nodeMasks.size() || idx >= nodeChildPtrs.size()) return {};
         return SVOInteriorNode::unpackMasks(nodeMasks[idx], nodeChildPtrs[idx]);
     }
 
     /// Get brick by index
     [[nodiscard]] SVOLeafBrick getBrick(uint32_t idx) const noexcept {
+        if (idx >= brickOccupancyLo.size()
+            || idx >= brickOccupancyHi.size()
+            || idx >= brickMeta.size()) return {};
         uint64_t occ = SVOLeafBrick::makeOccupancy(brickOccupancyLo[idx], brickOccupancyHi[idx]);
         uint32_t meta = brickMeta[idx];
         return SVOLeafBrick(occ, 
@@ -118,17 +140,51 @@ struct SVOBufferData {
 
     /// Check if contour data is present
     [[nodiscard]] bool hasContours() const noexcept {
-        return !contourNormals.empty();
+        return brickCount != 0u && contourNormals.size() == brickCount;
+    }
+
+    /// Check that metadata and every SoA lane describe the same elements.
+    [[nodiscard]] bool valid() const noexcept {
+        if (nodeMasks.size() != nodeChildPtrs.size()
+            || nodeMasks.size() != nodeCount
+            || brickOccupancyLo.size() != brickOccupancyHi.size()
+            || brickOccupancyLo.size() != brickMeta.size()
+            || brickOccupancyLo.size() != brickCount
+            || (!contourNormals.empty()
+                && contourNormals.size() != brickCount)) {
+            return false;
+        }
+        for (const uint32_t packed : nodeMasks) {
+            const uint32_t children = packed & 0xffu;
+            const uint32_t leaves = (packed >> 8u) & 0xffu;
+            if ((leaves & ~children) != 0u) return false;
+        }
+        constexpr uint32_t contourFlag =
+            static_cast<uint32_t>(BrickFlags::HasContour) << 16u;
+        return !contourNormals.empty()
+            || std::none_of(
+                brickMeta.begin(), brickMeta.end(),
+                [](uint32_t meta) {
+                    return (meta & contourFlag) != 0u;
+                });
     }
 
     /// Calculate total memory usage in bytes
     [[nodiscard]] size_t memoryUsage() const noexcept {
-        return nodeMasks.size() * sizeof(uint32_t) +
-               nodeChildPtrs.size() * sizeof(uint32_t) +
-               brickOccupancyLo.size() * sizeof(uint32_t) +
-               brickOccupancyHi.size() * sizeof(uint32_t) +
-               brickMeta.size() * sizeof(uint32_t) +
-               contourNormals.size() * sizeof(glm::vec4);
+        size_t total = 0u;
+        const auto add = [&total](size_t count, size_t stride) {
+            if (count > (std::numeric_limits<size_t>::max() - total) / stride)
+                total = std::numeric_limits<size_t>::max();
+            else
+                total += count * stride;
+        };
+        add(nodeMasks.size(), sizeof(uint32_t));
+        add(nodeChildPtrs.size(), sizeof(uint32_t));
+        add(brickOccupancyLo.size(), sizeof(uint32_t));
+        add(brickOccupancyHi.size(), sizeof(uint32_t));
+        add(brickMeta.size(), sizeof(uint32_t));
+        add(contourNormals.size(), sizeof(glm::vec4));
+        return total;
     }
 };
 
@@ -163,20 +219,29 @@ public:
                               std::string_view label = "svo");
 
     /// Update just the uniform buffer (for camera/LOD changes)
-    void updateUniforms(WGPUQueue queue, const SVOUniforms& uniforms);
+    [[nodiscard]] bool updateUniforms(
+        WGPUQueue queue, const SVOUniforms& uniforms);
 
     /// Update a range of brick data (for dynamic editing)
     /// @param queue WebGPU queue
     /// @param startBrick First brick index to update
     /// @param bricks Brick data to upload
-    void updateBricks(WGPUQueue queue, uint32_t startBrick,
-                      std::span<const SVOLeafBrick> bricks);
+    [[nodiscard]] bool updateBricks(
+        WGPUQueue queue, uint32_t startBrick,
+        std::span<const SVOLeafBrick> bricks);
 
     /// Release all GPU resources
     void release();
 
     /// Check if buffers are valid
-    [[nodiscard]] bool isValid() const noexcept { return uniformBuffer_ != nullptr; }
+    [[nodiscard]] bool isValid() const noexcept {
+        return uniformBuffer_
+            && (nodeCount_ == 0u
+                || (nodeMasksBuffer_ && nodeChildPtrsBuffer_))
+            && (brickCount_ == 0u
+                || (brickOccLoBuffer_ && brickOccHiBuffer_
+                    && brickMetaBuffer_));
+    }
 
     /// Get uniform buffer
     [[nodiscard]] WGPUBuffer getUniformBuffer() const noexcept { return uniformBuffer_; }
@@ -220,16 +285,14 @@ private:
     uint32_t brickCount_ = 0;
 
     /// Helper to create a storage buffer
-    [[nodiscard]] static WGPUBuffer createStorageBuffer(WGPUDevice device, 
-                                                         const void* data, 
-                                                         size_t size,
-                                                         std::string_view label);
+    [[nodiscard]] static WGPUBuffer createStorageBuffer(
+        WGPUDevice device, WGPUQueue queue, const void* data,
+        size_t size, std::string_view label);
 
     /// Helper to create a uniform buffer
-    [[nodiscard]] static WGPUBuffer createUniformBuffer(WGPUDevice device,
-                                                         const void* data,
-                                                         size_t size,
-                                                         std::string_view label);
+    [[nodiscard]] static WGPUBuffer createUniformBuffer(
+        WGPUDevice device, WGPUQueue queue, const void* data,
+        size_t size, std::string_view label);
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -244,11 +307,17 @@ constexpr size_t STORAGE_BUFFER_ALIGNMENT = 16;
 
 /// Align size to WebGPU uniform buffer requirements
 [[nodiscard]] constexpr size_t alignToUniformBuffer(size_t size) noexcept {
+    if (size > std::numeric_limits<size_t>::max()
+            - (UNIFORM_BUFFER_ALIGNMENT - 1))
+        return 0u;
     return (size + UNIFORM_BUFFER_ALIGNMENT - 1) & ~(UNIFORM_BUFFER_ALIGNMENT - 1);
 }
 
 /// Align size to WebGPU storage buffer requirements
 [[nodiscard]] constexpr size_t alignToStorageBuffer(size_t size) noexcept {
+    if (size > std::numeric_limits<size_t>::max()
+            - (STORAGE_BUFFER_ALIGNMENT - 1))
+        return 0u;
     return (size + STORAGE_BUFFER_ALIGNMENT - 1) & ~(STORAGE_BUFFER_ALIGNMENT - 1);
 }
 

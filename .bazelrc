@@ -41,8 +41,16 @@ build:asan --copt=-fno-omit-frame-pointer
 build:asan --copt=-O1
 build:asan --copt=-g
 build:asan --strip=never
+# GCC's optimized libstdc++ unordered containers trigger a
+# -Wnull-dereference false positive under ASan. Per-file options are appended
+# after each target's strict warning set, so this reliably wins over the
+# project's later -Wnull-dereference.
+build:asan --per_file_copt=.*@-Wno-null-dereference
 # LeakSanitizer suppression file for GPU library false positives
-test:asan --test_env=LSAN_OPTIONS=suppressions=.asan_suppressions
+# Sanitizers resolve relative suppression paths beside the test executable,
+# not from Bazel's runfiles working directory. Tests live one package below
+# bazel-out/<config>/bin, so this points back to the workspace input symlink.
+test:asan --test_env=LSAN_OPTIONS=suppressions=../../../../.asan_suppressions
 
 # ThreadSanitizer - detects data races
 # NOTE: TSan requires disabling ASLR (Address Space Layout Randomization).

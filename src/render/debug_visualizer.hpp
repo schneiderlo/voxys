@@ -121,10 +121,10 @@ public:
     /// Set depth range for visualization
     /// @param near Near distance (maps to white/start of gradient)
     /// @param far Far distance (maps to black/end of gradient)
-    void setDepthRange(float near, float far);
+    [[nodiscard]] bool setDepthRange(float near, float far);
 
     /// Set visualization mode
-    void setMode(DebugVisMode mode);
+    [[nodiscard]] bool setMode(DebugVisMode mode);
 
     /// Get current visualization mode
     [[nodiscard]] DebugVisMode getMode() const noexcept;
@@ -153,7 +153,7 @@ private:
     bool createBindGroupLayout();
     bool createPipeline(const DebugVisualizerConfig& config);
     bool createBindGroup();
-    void updateUniformBuffer();
+    [[nodiscard]] bool updateUniformBuffer();
 
     // ─────────────────────────────────────────────────────────────────────────
     // GPU Resources
@@ -185,6 +185,4 @@ private:
 };
 
 } // namespace voxy::render
-
-
 

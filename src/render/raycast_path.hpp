@@ -119,7 +119,8 @@ public:
     /// @param heightmapView Texture view of R16Uint heightmap with mip chain
     /// @param width Heightmap width in samples
     /// @param height Heightmap height in samples
-    void setHeightmap(WGPUTextureView heightmapView, uint32_t width, uint32_t height);
+    [[nodiscard]] bool setHeightmap(
+        WGPUTextureView heightmapView, uint32_t width, uint32_t height);
 
     /// Set the baked shadow height field texture (R16Uint, see shadow_bake.hpp).
     /// Optional: without it a 1x1 zero fallback is bound (everything lit).
@@ -217,12 +218,12 @@ private:
     // Internal Methods
     // ─────────────────────────────────────────────────────────────────────────
 
-    bool createDepthOutputTexture();
+    bool createDepthOutputTexture(uint32_t width, uint32_t height);
     bool createUniformBuffer();
     bool createBindGroupLayout();
     bool createPipeline(const RaycastPathConfig& config);
     bool createBindGroup();
-    void updateUniformBuffer();
+    [[nodiscard]] bool updateUniformBuffer();
     void updateStaticUniforms();
 
     // ─────────────────────────────────────────────────────────────────────────

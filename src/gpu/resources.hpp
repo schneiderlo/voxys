@@ -111,6 +111,14 @@ struct BufferDesc {
     }
 };
 
+/// Validate descriptor rules shared by native and browser WebGPU.
+[[nodiscard]] bool isBufferDescriptorValid(const BufferDesc& desc) noexcept;
+
+/// Validate queue.writeBuffer alignment, usage, and destination range.
+[[nodiscard]] bool isBufferWriteDataValid(
+    uint64_t bufferSize, WGPUBufferUsageFlags usage, uint64_t offset,
+    size_t dataSize) noexcept;
+
 /// Create a GPU buffer
 /// @param device The WebGPU device
 /// @param desc Buffer descriptor
@@ -121,7 +129,7 @@ struct BufferDesc {
 /// @param device The WebGPU device
 /// @param queue The WebGPU queue
 /// @param desc Buffer descriptor
-/// @param data Data to upload (size must match desc.size)
+/// @param data Data to upload (size must not exceed desc.size)
 /// @return The created buffer, or nullptr on failure
 [[nodiscard]] WGPUBuffer createBufferWithData(WGPUDevice device, WGPUQueue queue,
                                                const BufferDesc& desc, 
@@ -138,20 +146,22 @@ template<typename T>
 }
 
 /// Write data to an existing buffer
-void writeBuffer(WGPUQueue queue, WGPUBuffer buffer, uint64_t offset, 
-                 std::span<const std::byte> data);
+bool writeBuffer(
+    WGPUQueue queue, WGPUBuffer buffer, uint64_t offset,
+    std::span<const std::byte> data);
 
 /// Typed spans upload their elements, not the small span descriptor object.
 template<typename T>
-void writeBuffer(WGPUQueue queue, WGPUBuffer buffer, uint64_t offset,
-                 std::span<const T> data) {
-    writeBuffer(queue, buffer, offset, std::as_bytes(data));
+bool writeBuffer(WGPUQueue queue, WGPUBuffer buffer,
+                 uint64_t offset, std::span<const T> data) {
+    return writeBuffer(queue, buffer, offset, std::as_bytes(data));
 }
 
 /// Templated version for typed data
 template<typename T>
-void writeBuffer(WGPUQueue queue, WGPUBuffer buffer, uint64_t offset, const T& data) {
-    writeBuffer(queue, buffer, offset, 
+bool writeBuffer(WGPUQueue queue, WGPUBuffer buffer,
+                 uint64_t offset, const T& data) {
+    return writeBuffer(queue, buffer, offset,
         std::span<const std::byte>(reinterpret_cast<const std::byte*>(&data), sizeof(T)));
 }
 
@@ -254,9 +264,27 @@ struct TextureDesc {
 
 /// Validate the byte span needed for an uncompressed 2D texture upload.
 [[nodiscard]] constexpr bool isTextureUploadDataValid(
-    size_t dataSize, uint32_t width, uint32_t height, uint32_t bytesPerRow) noexcept {
-    return width > 0 && height > 0 && bytesPerRow > 0 &&
-           static_cast<size_t>(bytesPerRow) <= dataSize / height;
+    size_t dataSize, uint32_t width, uint32_t height, uint32_t bytesPerRow,
+    uint32_t bytesPerTexel) noexcept {
+    if (width == 0 || height == 0 || bytesPerRow == 0
+        || bytesPerTexel == 0
+        || width > std::numeric_limits<uint32_t>::max() / bytesPerTexel) {
+        return false;
+    }
+    const uint32_t lastRowBytes = width * bytesPerTexel;
+    if (bytesPerRow < lastRowBytes
+        || bytesPerRow % bytesPerTexel != 0) {
+        return false;
+    }
+    const size_t precedingRows = static_cast<size_t>(height - 1);
+    if (precedingRows
+        > (std::numeric_limits<size_t>::max() - lastRowBytes)
+            / bytesPerRow) {
+        return false;
+    }
+    const size_t requiredBytes =
+        precedingRows * bytesPerRow + lastRowBytes;
+    return requiredBytes <= dataSize;
 }
 
 /// Create a texture and immediately upload data to it
@@ -272,7 +300,7 @@ struct TextureDesc {
                                                  uint32_t bytesPerRow);
 
 /// Write data to an existing texture
-void writeTexture(WGPUQueue queue, WGPUTexture texture, 
+bool writeTexture(WGPUQueue queue, WGPUTexture texture,
                   std::span<const std::byte> data,
                   uint32_t width, uint32_t height, uint32_t bytesPerRow,
                   uint32_t mipLevel = 0);
@@ -292,6 +320,10 @@ struct TextureViewDesc {
     uint32_t arrayLayerCount = 1;
     WGPUTextureAspect aspect = WGPUTextureAspect_All;
 };
+
+[[nodiscard]] bool isTextureViewRangeValid(
+    uint32_t textureMipLevels, uint32_t textureLayers,
+    const TextureViewDesc& desc) noexcept;
 
 /// Create a texture view
 /// @param texture The source texture
@@ -368,6 +400,9 @@ struct SamplerDesc {
         };
     }
 };
+
+[[nodiscard]] bool isSamplerDescriptorValid(
+    const SamplerDesc& desc) noexcept;
 
 /// Create a GPU sampler
 /// @param device The WebGPU device
@@ -538,11 +573,15 @@ private:
 /// Calculate aligned size for uniform buffers (WebGPU requires 256-byte alignment)
 [[nodiscard]] constexpr uint64_t alignUniformBufferSize(uint64_t size) noexcept {
     constexpr uint64_t alignment = 256;
+    if (size > std::numeric_limits<uint64_t>::max() - (alignment - 1)) {
+        return 0;
+    }
     return (size + alignment - 1) & ~(alignment - 1);
 }
 
 /// Calculate mip level count for a texture dimension
 [[nodiscard]] constexpr uint32_t calculateMipLevelCount(uint32_t width, uint32_t height) noexcept {
+    if (width == 0u || height == 0u) return 0u;
     uint32_t size = std::max(width, height);
     uint32_t count = 1;
     while (size > 1) {
@@ -553,4 +592,3 @@ private:
 }
 
 } // namespace voxy::gpu
-

@@ -50,18 +50,24 @@ std::string trim(std::string_view str) {
 
 bool parseBool(std::string_view value, bool defaultValue) noexcept {
     if (value.empty()) return defaultValue;
-    
-    // Convert to lowercase for comparison
-    std::string lower;
-    lower.reserve(value.size());
-    for (char c : value) {
-        lower += static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
-    }
-    
-    if (lower == "true" || lower == "yes" || lower == "1" || lower == "on") {
+
+    const auto equalsIgnoringCase = [value](std::string_view expected) {
+        if (value.size() != expected.size()) return false;
+        for (size_t index = 0; index < value.size(); ++index) {
+            if (std::tolower(static_cast<unsigned char>(value[index]))
+                != std::tolower(
+                    static_cast<unsigned char>(expected[index])))
+                return false;
+        }
+        return true;
+    };
+
+    if (equalsIgnoringCase("true") || equalsIgnoringCase("yes")
+        || value == "1" || equalsIgnoringCase("on")) {
         return true;
     }
-    if (lower == "false" || lower == "no" || lower == "0" || lower == "off") {
+    if (equalsIgnoringCase("false") || equalsIgnoringCase("no")
+        || value == "0" || equalsIgnoringCase("off")) {
         return false;
     }
     return defaultValue;
@@ -95,33 +101,30 @@ namespace {
 
 // Parse a vec3 from string like "[0.5, 0.8, 0.3]"
 std::array<float, 3> parseVec3(std::string_view value, const std::array<float, 3>& defaultValue) {
-    std::array<float, 3> result = defaultValue;
-    
-    // Find brackets
-    auto start = value.find('[');
-    auto end = value.find(']');
-    if (start == std::string_view::npos || end == std::string_view::npos) {
+    if (value.size() < 2u || value.front() != '[' || value.back() != ']')
         return defaultValue;
-    }
-    
-    auto inner = value.substr(start + 1, end - start - 1);
-    
-    // Parse comma-separated values
-    size_t i = 0;
+    const auto inner = value.substr(1u, value.size() - 2u);
+    std::array<float, 3> result{};
     size_t pos = 0;
-    while (pos < inner.size() && i < 3) {
-        auto comma = inner.find(',', pos);
-        auto token = (comma != std::string_view::npos) 
-                   ? inner.substr(pos, comma - pos) 
-                   : inner.substr(pos);
-        
-        result[i] = parseFloat(trim(token), defaultValue[i]);
-        i++;
-        
+    for (size_t component = 0; component < result.size(); ++component) {
+        const auto comma = inner.find(',', pos);
+        if ((component + 1u < result.size())
+                != (comma != std::string_view::npos))
+            return defaultValue;
+        const auto token = comma == std::string_view::npos
+            ? inner.substr(pos) : inner.substr(pos, comma - pos);
+        const std::string clean = trim(token);
+        float parsed = 0.0f;
+        const auto [end, error] = std::from_chars(
+            clean.data(), clean.data() + clean.size(), parsed);
+        if (clean.empty() || error != std::errc{}
+            || end != clean.data() + clean.size()
+            || !std::isfinite(parsed))
+            return defaultValue;
+        result[component] = parsed;
         if (comma == std::string_view::npos) break;
         pos = comma + 1;
     }
-    
     return result;
 }
 
@@ -135,12 +138,30 @@ std::string unquote(std::string_view str) {
         result.reserve(str.size() - 2);
         const auto inner = str.substr(1, str.size() - 2);
         for (size_t i = 0; i < inner.size(); ++i) {
-            if (inner[i] == '\\' && i + 1 < inner.size() &&
-                (inner[i + 1] == quote || inner[i + 1] == '\\')) {
-                result += inner[++i];
-            } else {
+            if (inner[i] != '\\' || i + 1u >= inner.size()) {
                 result += inner[i];
+                continue;
             }
+            const char escaped = inner[i + 1u];
+            switch (escaped) {
+                case '0': result += '\0'; break;
+                case 'b': result += '\b'; break;
+                case 'f': result += '\f'; break;
+                case 'n': result += '\n'; break;
+                case 'r': result += '\r'; break;
+                case 't': result += '\t'; break;
+                case '\\': result += '\\'; break;
+                default:
+                    if (escaped == quote) {
+                        result += quote;
+                    } else {
+                        // Keep unknown escapes lossless.
+                        result += '\\';
+                        continue;
+                    }
+                    break;
+            }
+            ++i;
         }
         return result;
     }
@@ -168,10 +189,17 @@ std::string quote(std::string_view value) {
     result.reserve(value.size() + 2);
     result += '"';
     for (const char c : value) {
-        if (c == '"' || c == '\\') {
-            result += '\\';
+        switch (c) {
+            case '\0': result += R"(\0)"; break;
+            case '\b': result += R"(\b)"; break;
+            case '\f': result += R"(\f)"; break;
+            case '\n': result += R"(\n)"; break;
+            case '\r': result += R"(\r)"; break;
+            case '\t': result += R"(\t)"; break;
+            case '"': result += R"(\")"; break;
+            case '\\': result += R"(\\)"; break;
+            default: result += c; break;
         }
-        result += c;
     }
     result += '"';
     return result;
@@ -187,33 +215,40 @@ CommandLineArgs parseArgs(std::span<char*> args) {
     CommandLineArgs result;
     
     for (size_t i = 1; i < args.size(); ++i) {
+        if (!args[i]) {
+            LOG_WARN("Ignoring null command-line argument {}", i);
+            continue;
+        }
         std::string_view arg = args[i];
+        const auto hasNext = [&] {
+            return i + 1u < args.size() && args[i + 1u] != nullptr;
+        };
         
         if (arg == "--help" || arg == "-h") {
             result.help = true;
-        } else if (arg == "--config" && i + 1 < args.size()) {
+        } else if (arg == "--config" && hasNext()) {
             result.configPath = args[++i];
-        } else if (arg == "--render-path" && i + 1 < args.size()) {
+        } else if (arg == "--render-path" && hasNext()) {
             result.renderPath = args[++i];
-        } else if (arg == "--heightmap" && i + 1 < args.size()) {
+        } else if (arg == "--heightmap" && hasNext()) {
             result.heightmap = args[++i];
-        } else if (arg == "--physics-backend" && i + 1 < args.size()) {
+        } else if (arg == "--physics-backend" && hasNext()) {
             result.physicsBackend = args[++i];
-        } else if (arg == "--physics-max-bodies" && i + 1 < args.size()) {
+        } else if (arg == "--physics-max-bodies" && hasNext()) {
             result.gpuMaxBodies = std::max(parseInt(args[++i], 131072), 2);
         } else if (arg == "--physics-cpu-fallback") {
             result.physicsCpuFallback = true;
         } else if (arg == "--no-physics-cpu-fallback") {
             result.physicsCpuFallback = false;
-        } else if (arg == "--jolt-job-system" && i + 1 < args.size()) {
+        } else if (arg == "--jolt-job-system" && hasNext()) {
             result.joltJobSystem = args[++i];
-        } else if (arg == "--jolt-workers" && i + 1 < args.size()) {
+        } else if (arg == "--jolt-workers" && hasNext()) {
             result.joltWorkerThreads = std::max(parseInt(args[++i], 0), 0);
-        } else if (arg == "--box3d-workers" && i + 1 < args.size()) {
+        } else if (arg == "--box3d-workers" && hasNext()) {
             result.box3dWorkerThreads = std::max(parseInt(args[++i], 1), 1);
-        } else if (arg == "--width" && i + 1 < args.size()) {
+        } else if (arg == "--width" && hasNext()) {
             result.width = parseInt(args[++i], 1280);
-        } else if (arg == "--height" && i + 1 < args.size()) {
+        } else if (arg == "--height" && hasNext()) {
             result.height = parseInt(args[++i], 720);
         } else if (arg == "--vsync") {
             result.vsync = true;
@@ -221,32 +256,33 @@ CommandLineArgs parseArgs(std::span<char*> args) {
             result.vsync = false;
         } else if (arg == "--fullscreen") {
             result.fullscreen = true;
-        } else if (arg == "--log-level" && i + 1 < args.size()) {
+        } else if (arg == "--log-level" && hasNext()) {
             result.logLevel = args[++i];
         } else if (arg == "--no-validation") {
             result.noValidation = true;
         } else if (arg == "--benchmark") {
             result.benchmark = true;
-        } else if (arg == "--benchmark-bodies" && i + 1 < args.size()) {
+        } else if (arg == "--benchmark-bodies" && hasNext()) {
             result.benchmarkBodies = std::max(parseInt(args[++i], 0), 0);
             result.benchmark = true;
-        } else if (arg == "--benchmark-min-fps" && i + 1 < args.size()) {
+        } else if (arg == "--benchmark-min-fps" && hasNext()) {
             result.benchmarkMinimumFps = std::max(
                 parseFloat(args[++i], 0.0f), 0.0f);
             result.benchmark = true;
-        } else if (arg == "--benchmark-fixed-hz" && i + 1 < args.size()) {
+        } else if (arg == "--benchmark-fixed-hz" && hasNext()) {
             result.benchmarkFixedHz = std::max(
                 parseFloat(args[++i], 0.0f), 0.0f);
             result.benchmark = true;
-        } else if (arg == "--teleport-index" && i + 1 < args.size()) {
+        } else if (arg == "--teleport-index" && hasNext()) {
             result.teleportIndex = parseInt(args[++i], 0);
-        } else if (arg == "--screenshot" && i + 1 < args.size()) {
+        } else if (arg == "--screenshot" && hasNext()) {
             result.screenshotPath = args[++i];
-        } else if (arg == "--screenshot-frames" && i + 1 < args.size()) {
+        } else if (arg == "--screenshot-frames" && hasNext()) {
             result.screenshotFrames = parseInt(args[++i], 10);
-        } else if (arg == "--screenshot-tour" && i + 1 < args.size()) {
-            result.screenshotTourCount = parseInt(args[++i], 0);
-        } else if (arg == "--screenshot-dir" && i + 1 < args.size()) {
+        } else if (arg == "--screenshot-tour" && hasNext()) {
+            result.screenshotTourCount = std::clamp(
+                parseInt(args[++i], 0), 0, 256);
+        } else if (arg == "--screenshot-dir" && hasNext()) {
             result.screenshotDir = args[++i];
         } else {
             LOG_WARN("Unknown argument: {}", arg);
@@ -257,6 +293,7 @@ CommandLineArgs parseArgs(std::span<char*> args) {
 }
 
 CommandLineArgs parseArgs(int argc, char** argv) {
+    if (argc <= 0 || !argv) return {};
     return parseArgs(std::span{argv, static_cast<size_t>(argc)});
 }
 
@@ -305,6 +342,10 @@ Config load(std::string_view path) {
     
     std::ifstream file{std::string{path}};
     if (!file.is_open()) {
+        if (path != "voxy.cfg") {
+            LOG_DEBUG("Config file not found: {} (using defaults)", path);
+            return config;
+        }
         // Try absolute path at root (common for WASM virtual filesystem)
         std::string absPath = "/voxy.cfg";
         file.open(absPath);
@@ -318,7 +359,7 @@ Config load(std::string_view path) {
     }
     std::string currentSection;
     std::string line;
-    int lineNum = 0;
+    uint64_t lineNum = 0;
     
     while (std::getline(file, line)) {
         lineNum++;
@@ -348,9 +389,17 @@ Config load(std::string_view path) {
         // Strip inline comments (but be careful with # inside quotes)
         if (!value.empty() && (value[0] == '"' || value[0] == '\'')) {
             auto closeQuote = findClosingQuote(value);
-            if (closeQuote != std::string::npos) {
-                value = value.substr(0, closeQuote + 1);
+            if (closeQuote == std::string::npos) {
+                LOG_WARN("Config line {}: unterminated quoted value", lineNum);
+                continue;
             }
+            const std::string trailing = trim(value.substr(closeQuote + 1u));
+            if (!trailing.empty() && trailing.front() != '#') {
+                LOG_WARN("Config line {}: invalid text after quoted value",
+                         lineNum);
+                continue;
+            }
+            value = value.substr(0, closeQuote + 1);
         } else {
             auto commentPos = value.find('#');
             if (commentPos != std::string::npos) {
@@ -595,6 +644,11 @@ bool save(const Config& config, std::string_view path) {
     file << std::format("fullscreen = {}\n", config.window.fullscreen ? "true" : "false");
     file << std::format("title = {}\n", quote(config.window.title));
     
+    file.close();
+    if (file.fail()) {
+        LOG_ERROR("Failed while writing config: {}", path);
+        return false;
+    }
     LOG_INFO("Saved config: {}", path);
     return true;
 }
@@ -607,7 +661,8 @@ void init(int argc, char** argv) {
     auto args = parseArgs(argc, argv);
     
     if (args.help) {
-        printHelp(argv[0]);
+        printHelp(argc > 0 && argv && argv[0]
+            ? std::string_view{argv[0]} : std::string_view{"voxy"});
         std::exit(0);
     }
     

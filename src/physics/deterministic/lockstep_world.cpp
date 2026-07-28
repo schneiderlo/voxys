@@ -5,6 +5,7 @@
 #include <bit>
 #include <cmath>
 #include <limits>
+#include <utility>
 
 namespace voxy::physics::deterministic {
 namespace {
@@ -121,7 +122,6 @@ uint32_t lockstepHashWord(uint32_t hash, uint32_t word) noexcept {
 }
 
 bool LockstepWorld::initialize(const Config& config) {
-    clear();
     if (config.bodyCapacity == 0 || config.contactCapacity == 0
         || config.tickRateHz == 0
         || config.substeps == 0 || config.substeps > 16
@@ -134,13 +134,16 @@ bool LockstepWorld::initialize(const Config& config) {
         > static_cast<uint32_t>(std::numeric_limits<int32_t>::max())
             / divisorScale)
         return false;
-    config_ = config;
-    bodies_.resize(config_.bodyCapacity);
-    roots_.resize(config_.bodyCapacity);
-    contacts_.reserve(config_.contactCapacity);
-    broadPhaseProxies_.reserve(config_.bodyCapacity);
-    broadPhaseActive_.reserve(config_.bodyCapacity);
-    initialized_ = true;
+
+    LockstepWorld replacement;
+    replacement.config_ = config;
+    replacement.bodies_.resize(config.bodyCapacity);
+    replacement.roots_.resize(config.bodyCapacity);
+    replacement.contacts_.reserve(config.contactCapacity);
+    replacement.broadPhaseProxies_.reserve(config.bodyCapacity);
+    replacement.broadPhaseActive_.reserve(config.bodyCapacity);
+    replacement.initialized_ = true;
+    *this = std::move(replacement);
     return true;
 }
 
@@ -156,13 +159,30 @@ void LockstepWorld::clear() {
 
 bool LockstepWorld::setBodies(std::span<const LockstepBody> bodies) {
     if (!initialized_ || bodies.size() > bodies_.size()) return false;
+    for (size_t index = 0; index < bodies.size(); ++index) {
+        if (!alive(bodies[index])) continue;
+        if (bodies[index].identity[0] != index) return false;
+        if (bodies[index].sectorRadius[3] <= 0) return false;
+    }
+    const uintptr_t sourceBegin =
+        reinterpret_cast<uintptr_t>(bodies.data());
+    const uintptr_t sourceEnd =
+        sourceBegin + bodies.size_bytes();
+    const uintptr_t destinationBegin =
+        reinterpret_cast<uintptr_t>(bodies_.data());
+    const uintptr_t destinationEnd =
+        destinationBegin + bodies_.size() * sizeof(LockstepBody);
+    const bool overlaps = !bodies.empty()
+        && sourceBegin < destinationEnd
+        && destinationBegin < sourceEnd;
+    if (overlaps) {
+        const std::vector<LockstepBody> copy(bodies.begin(), bodies.end());
+        std::fill(bodies_.begin(), bodies_.end(), LockstepBody{});
+        std::copy(copy.begin(), copy.end(), bodies_.begin());
+        return true;
+    }
     std::fill(bodies_.begin(), bodies_.end(), LockstepBody{});
     std::copy(bodies.begin(), bodies.end(), bodies_.begin());
-    for (uint32_t index = 0; index < bodies_.size(); ++index) {
-        if (!alive(bodies_[index])) continue;
-        if (bodies_[index].identity[0] != index) return false;
-        if (bodies_[index].sectorRadius[3] <= 0) return false;
-    }
     return true;
 }
 

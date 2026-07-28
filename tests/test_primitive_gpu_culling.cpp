@@ -103,12 +103,28 @@ TEST(PrimitiveGpuCullingTest, StablyBucketsVisibleBodiesByShape) {
     ASSERT_TRUE(culling.initialize(
         context.getDevice(), context.getQueue(),
         "shaders/physics_primitive_cull.wgsl", geometry));
-    culling.setBodyView({
+    EXPECT_FALSE(culling.setBodyView({
+        .poseBuffer = poseBuffer,
+        .shapeBuffer = shapeBuffer,
+        .residentBodyCapacity = bodyCount,
+        .shapeCount = 0u,
+    }));
+    ASSERT_TRUE(culling.setBodyView({
         .poseBuffer = poseBuffer,
         .shapeBuffer = shapeBuffer,
         .residentBodyCapacity = bodyCount,
         .shapeCount = PrimitiveGpuCulling::kShapeCount,
-    });
+    }));
+    EXPECT_FALSE(culling.initialize(
+        nullptr, context.getQueue(),
+        "shaders/physics_primitive_cull.wgsl", geometry));
+    EXPECT_TRUE(culling.hasBodies());
+    auto invalidGeometry = geometry;
+    invalidGeometry[0].indexCount = 0u;
+    EXPECT_FALSE(culling.initialize(
+        context.getDevice(), context.getQueue(),
+        "shaders/physics_primitive_cull.wgsl", invalidGeometry));
+    EXPECT_TRUE(culling.hasBodies());
 
     WGPUCommandEncoderDescriptor encoderDesc{};
     WGPUCommandEncoder encoder = wgpuDeviceCreateCommandEncoder(
@@ -238,13 +254,13 @@ TEST(PrimitiveGpuCullingTest,
     ASSERT_TRUE(culling.initialize(
         context.getDevice(), context.getQueue(),
         "shaders/physics_primitive_cull.wgsl", geometry));
-    culling.setBodyView({
+    ASSERT_TRUE(culling.setBodyView({
         .poseBuffer = poseBuffer,
         .shapeBuffer = shapeBuffer,
         .metadataBuffer = metadataBuffer,
         .residentBodyCapacity = bodyCount,
         .shapeCount = PrimitiveGpuCulling::kShapeCount,
-    });
+    }));
 
     WGPUCommandEncoderDescriptor encoderDesc{};
     WGPUCommandEncoder encoder = wgpuDeviceCreateCommandEncoder(
@@ -379,7 +395,7 @@ TEST(PrimitiveGpuCullingTest,
     ASSERT_TRUE(culling.initialize(
         context.getDevice(), context.getQueue(),
         "shaders/physics_primitive_cull.wgsl", geometry));
-    culling.setBodyView(world.renderView());
+    ASSERT_TRUE(culling.setBodyView(world.renderView()));
 
     WGPUCommandEncoderDescriptor encoderDesc{};
     WGPUCommandEncoder encoder = wgpuDeviceCreateCommandEncoder(

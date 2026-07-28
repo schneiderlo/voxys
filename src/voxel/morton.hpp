@@ -26,6 +26,7 @@ namespace voxy::voxel {
 /// Input:   ........ ..XXXXXX XXXXXXXX XX
 /// Output:  ..X..X.. X..X..X. .X..X..X ..X..X..
 [[nodiscard]] constexpr uint32_t expandBits(uint32_t v) noexcept {
+    v &= 0x3ffu;
     // Spread bits using magic numbers
     v = (v * 0x00010001u) & 0xFF0000FFu;
     v = (v * 0x00000101u) & 0x0F00F00Fu;
@@ -108,6 +109,7 @@ constexpr void inverseMorton3D(uint32_t code, uint32_t& x, uint32_t& y, uint32_t
 
 /// Expand 21 bits to 63 bits (for 64-bit Morton codes)
 [[nodiscard]] constexpr uint64_t expandBits64(uint64_t v) noexcept {
+    v &= 0x1fffffull;
     v = (v | (v << 32)) & 0x1F00000000FFFFull;
     v = (v | (v << 16)) & 0x1F0000FF0000FFull;
     v = (v | (v << 8))  & 0x100F00F00F00F00Full;
@@ -175,7 +177,7 @@ constexpr void inverseMorton3D(uint32_t code, uint32_t& x, uint32_t& y, uint32_t
 
 /// Convert brick coordinate and local coordinate back to global
 [[nodiscard]] constexpr glm::uvec3 brickLocalToGlobal(const glm::uvec3& brickCoord, const glm::uvec3& local) noexcept {
-    return (brickCoord << 2u) | local;
+    return (brickCoord << 2u) | (local & 3u);
 }
 
 } // namespace voxy::voxel

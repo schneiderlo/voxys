@@ -8,13 +8,16 @@
 
 #pragma once
 
-#include <string>
-#include <string_view>
-#include <optional>
 #include <array>
-#include <span>
+#include <charconv>
+#include <cmath>
 #include <concepts>
 #include <cstdint>
+#include <optional>
+#include <span>
+#include <string>
+#include <string_view>
+#include <type_traits>
 
 namespace voxy::config {
 
@@ -23,8 +26,8 @@ namespace voxy::config {
 // ─────────────────────────────────────────────────────────────────────────────
 
 template<typename T>
-concept ConfigValue = std::integral<T> || std::floating_point<T> || 
-                      std::same_as<T, std::string> || std::same_as<T, bool>;
+concept ConfigValue = std::integral<T> || std::floating_point<T>
+                   || std::same_as<std::remove_cv_t<T>, std::string>;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Configuration Structures (using C++20 designated initializers style)
@@ -235,13 +238,22 @@ void init(int argc, char** argv);
 
 // C++20: Concept-constrained parse function template
 template<ConfigValue T>
-[[nodiscard]] T parse(std::string_view value, T defaultValue = T{}) noexcept {
+[[nodiscard]] T parse(std::string_view value, T defaultValue = T{})
+    noexcept(!std::same_as<std::remove_cv_t<T>, std::string>) {
     if constexpr (std::same_as<T, bool>) {
         return parseBool(value, defaultValue);
-    } else if constexpr (std::same_as<T, float>) {
-        return parseFloat(value, defaultValue);
-    } else if constexpr (std::same_as<T, int>) {
-        return parseInt(value, defaultValue);
+    } else if constexpr (std::integral<T>) {
+        T result = defaultValue;
+        const auto [end, error] = std::from_chars(
+            value.data(), value.data() + value.size(), result);
+        return error == std::errc{} && end == value.data() + value.size()
+            ? result : defaultValue;
+    } else if constexpr (std::floating_point<T>) {
+        T result = defaultValue;
+        const auto [end, error] = std::from_chars(
+            value.data(), value.data() + value.size(), result);
+        return error == std::errc{} && end == value.data() + value.size()
+            && std::isfinite(result) ? result : defaultValue;
     } else if constexpr (std::same_as<T, std::string>) {
         return std::string{value};
     }

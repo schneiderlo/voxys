@@ -17,7 +17,10 @@ constexpr std::array<std::byte, 8> kMagic{
     std::byte{'V'}, std::byte{'O'}, std::byte{'X'}, std::byte{'Y'},
     std::byte{'R'}, std::byte{'P'}, std::byte{'L'}, std::byte{0}};
 constexpr uint32_t kMaximumReplayElements = 16u * 1024u * 1024u;
+constexpr uint32_t kMaximumReplayCapacity = 1024u * 1024u;
 constexpr uint32_t kMaximumBuildFingerprintBytes = 4'096u;
+constexpr uint64_t kMaximumReplayBytes = 64ull * 1024ull * 1024ull;
+constexpr uint64_t kReplayFixedBytes = 204u;
 constexpr uint32_t kFnvOffset = 2'166'136'261u;
 constexpr uint32_t kFnvPrime = 16'777'619u;
 
@@ -142,22 +145,162 @@ uint32_t commandPriority(ReplayCommandType type) noexcept {
     return static_cast<uint32_t>(type);
 }
 
-uint32_t actualHash(const LockstepTelemetry& telemetry,
-                    const ReplayHashRecord& expected) {
+bool validCommandType(ReplayCommandType type) noexcept {
+    return type >= ReplayCommandType::DestroyBody
+        && type <= ReplayCommandType::SetAwake;
+}
+
+bool validHashStage(ReplayHashStage stage) noexcept {
+    return stage >= ReplayHashStage::Body
+        && stage <= ReplayHashStage::World;
+}
+
+uint64_t serializedElementBytes(
+    const ReplayRecording& recording) noexcept {
+    return uint64_t{recording.checkpoint.bodies.size()}
+               * sizeof(LockstepBody)
+        + uint64_t{recording.checkpoint.contacts.size()}
+               * sizeof(LockstepContact)
+        + (uint64_t{recording.checkpoint.islandRoots.size()}
+           + recording.checkpoint.freeBodyIds.size()
+           + recording.checkpoint.manifoldWords.size()
+           + recording.checkpoint.graphColors.size()
+           + recording.checkpoint.sleepCounters.size())
+               * sizeof(uint32_t)
+        + uint64_t{recording.commands.size()} * 80u
+        + uint64_t{recording.hashes.size()} * 24u;
+}
+
+std::string validateReplayShape(const ReplayRecording& recording) {
+    if (recording.header.schemaVersion != kLockstepSchemaVersion)
+        return "unsupported replay schema version";
+    if (recording.header.arithmeticMode < ArithmeticMode::DeterministicFloat
+        || recording.header.arithmeticMode > ArithmeticMode::Lockstep)
+        return "invalid arithmetic mode";
+    if (recording.header.backend < ReplayBackend::Box3DReference
+        || recording.header.backend > ReplayBackend::CpuLockstepReference)
+        return "invalid replay backend";
+    if (recording.header.buildFingerprint.size()
+        > kMaximumBuildFingerprintBytes)
+        return "excessive build fingerprint";
+    const auto exceedsElementLimit = [](size_t size) {
+        return size > kMaximumReplayElements;
+    };
+    if (exceedsElementLimit(recording.checkpoint.bodies.size())
+        || exceedsElementLimit(recording.checkpoint.contacts.size())
+        || exceedsElementLimit(recording.checkpoint.islandRoots.size())
+        || exceedsElementLimit(recording.checkpoint.freeBodyIds.size())
+        || exceedsElementLimit(recording.checkpoint.manifoldWords.size())
+        || exceedsElementLimit(recording.checkpoint.graphColors.size())
+        || exceedsElementLimit(recording.checkpoint.sleepCounters.size())
+        || exceedsElementLimit(recording.commands.size())
+        || exceedsElementLimit(recording.hashes.size()))
+        return "excessive replay element count";
+    if (serializedElementBytes(recording)
+            + recording.header.buildFingerprint.size()
+            + kReplayFixedBytes > kMaximumReplayBytes)
+        return "replay payload exceeds maximum size";
+    if (recording.checkpoint.tick
+        > std::numeric_limits<uint32_t>::max())
+        return "checkpoint tick exceeds lockstep range";
+    const auto& capacity = recording.header.capacity;
+    if (capacity.residentBodies > kMaximumReplayCapacity
+        || capacity.activeBodies > capacity.residentBodies
+        || capacity.contacts > kMaximumReplayCapacity
+        || capacity.commandsPerTick > kMaximumReplayCapacity)
+        return "invalid replay capacity profile";
+    if (recording.checkpoint.bodies.size() > capacity.residentBodies
+        || recording.checkpoint.contacts.size() > capacity.contacts
+        || recording.checkpoint.islandRoots.size() > capacity.residentBodies
+        || recording.checkpoint.sleepCounters.size()
+               > capacity.residentBodies)
+        return "checkpoint exceeds replay capacity profile";
+    return {};
+}
+
+// Call after commands and hashes have been sorted canonically.
+std::string validateCanonicalReplay(
+    const ReplayRecording& recording,
+    std::span<const CanonicalReplayCommand> commands,
+    std::span<const ReplayHashRecord> hashes) {
+    if (std::string error = validateReplayShape(recording); !error.empty())
+        return error;
+
+    uint64_t commandTick = 0;
+    uint32_t commandsAtTick = 0;
+    for (const auto& command : commands) {
+        if (!validCommandType(command.type))
+            return "invalid replay command type";
+        if (command.tick <= recording.checkpoint.tick
+            || command.tick > std::numeric_limits<uint32_t>::max())
+            return "replay command tick is outside the playable range";
+        if (command.body >= recording.header.capacity.residentBodies)
+            return "replay command body exceeds capacity";
+        if (command.tick != commandTick) {
+            commandTick = command.tick;
+            commandsAtTick = 0;
+        }
+        ++commandsAtTick;
+        if (commandsAtTick > recording.header.capacity.commandsPerTick)
+            return "replay commands exceed per-tick capacity";
+    }
+
+    for (size_t index = 0; index < hashes.size(); ++index) {
+        const auto& hash = hashes[index];
+        if (!validHashStage(hash.stage))
+            return "invalid replay hash stage";
+        if (hash.tick < recording.checkpoint.tick
+            || hash.tick > std::numeric_limits<uint32_t>::max())
+            return "replay hash tick is outside the playable range";
+        const bool objectInRange = [&] {
+            switch (hash.stage) {
+                case ReplayHashStage::Body:
+                case ReplayHashStage::Island:
+                    return hash.objectId
+                        < recording.header.capacity.residentBodies;
+                case ReplayHashStage::Contact:
+                    return hash.objectId
+                        < recording.header.capacity.contacts;
+                case ReplayHashStage::World:
+                    return hash.objectId == 0u;
+            }
+            return false;
+        }();
+        if (!objectInRange) return "replay hash object exceeds capacity";
+        if (index != 0u) {
+            const auto& previous = hashes[index - 1u];
+            if (std::tie(previous.tick, previous.stage, previous.objectId)
+                == std::tie(hash.tick, hash.stage, hash.objectId))
+                return "duplicate replay hash record";
+        }
+    }
+    return {};
+}
+
+std::optional<uint32_t> actualHash(
+    const LockstepTelemetry& telemetry,
+    const ReplayHashRecord& expected) {
     switch (expected.stage) {
         case ReplayHashStage::Body:
             return expected.objectId < telemetry.hashes.bodies.size()
-                ? telemetry.hashes.bodies[expected.objectId] : 0u;
+                ? std::optional{telemetry.hashes.bodies[expected.objectId]}
+                : std::nullopt;
         case ReplayHashStage::Contact:
-            return expected.objectId < telemetry.hashes.contacts.size()
-                ? telemetry.hashes.contacts[expected.objectId] : 0u;
+            return expected.objectId < telemetry.contacts
+                && expected.objectId < telemetry.hashes.contacts.size()
+                ? std::optional{telemetry.hashes.contacts[expected.objectId]}
+                : std::nullopt;
         case ReplayHashStage::Island:
             return expected.objectId < telemetry.hashes.islands.size()
-                ? telemetry.hashes.islands[expected.objectId] : 0u;
+                && telemetry.hashes.islands[expected.objectId] != 0u
+                ? std::optional{telemetry.hashes.islands[expected.objectId]}
+                : std::nullopt;
         case ReplayHashStage::World:
-            return telemetry.hashes.world;
+            return expected.objectId == 0u
+                ? std::optional{telemetry.hashes.world}
+                : std::nullopt;
     }
-    return 0u;
+    return std::nullopt;
 }
 
 } // namespace
@@ -172,6 +315,7 @@ bool canonicalReplayCommandLess(
 }
 
 std::vector<std::byte> ReplayCodec::encode(const ReplayRecording& source) {
+    if (!validateReplayShape(source).empty()) return {};
     ReplayRecording recording = source;
     std::stable_sort(recording.commands.begin(), recording.commands.end(),
                      canonicalReplayCommandLess);
@@ -180,6 +324,9 @@ std::vector<std::byte> ReplayCodec::encode(const ReplayRecording& source) {
             return std::tie(lhs.tick, lhs.stage, lhs.objectId)
                  < std::tie(rhs.tick, rhs.stage, rhs.objectId);
         });
+    if (!validateCanonicalReplay(
+            recording, recording.commands, recording.hashes).empty())
+        return {};
     Writer writer;
     writer.raw(kMagic);
     writer.u32(recording.header.schemaVersion);
@@ -248,6 +395,10 @@ std::vector<std::byte> ReplayCodec::encode(const ReplayRecording& source) {
 
 ReplayReadResult ReplayCodec::decode(std::span<const std::byte> bytes) {
     ReplayReadResult result;
+    if (bytes.size() > kMaximumReplayBytes) {
+        result.error = "replay exceeds maximum size";
+        return result;
+    }
     if (bytes.size() < kMagic.size() + 4u
         || !std::equal(kMagic.begin(), kMagic.end(), bytes.begin())) {
         result.error = "invalid replay magic";
@@ -333,15 +484,27 @@ ReplayReadResult ReplayCodec::decode(std::span<const std::byte> bytes) {
             return result;
         }
     }
+    if (capacity.residentBodies > kMaximumReplayCapacity
+        || capacity.activeBodies > capacity.residentBodies
+        || capacity.contacts > kMaximumReplayCapacity
+        || capacity.commandsPerTick > kMaximumReplayCapacity
+        || counts[0] > capacity.residentBodies
+        || counts[1] > capacity.contacts
+        || counts[2] > capacity.residentBodies
+        || counts[6] > capacity.residentBodies) {
+        result.error = "replay counts exceed capacity profile";
+        return result;
+    }
     const uint64_t requiredBytes =
           uint64_t{counts[0]} * sizeof(LockstepBody)
         + uint64_t{counts[1]} * sizeof(LockstepContact)
-        + uint64_t{counts[2] + counts[3] + counts[4] + counts[5] + counts[6]}
-            * sizeof(uint32_t)
+        + (uint64_t{counts[2]} + counts[3] + counts[4]
+           + counts[5] + counts[6]) * sizeof(uint32_t)
         + uint64_t{counts[7]} * 80u
         + uint64_t{counts[8]} * 24u;
-    if (requiredBytes > reader.remaining()) {
-        result.error = "replay element counts exceed payload";
+    if (requiredBytes != reader.remaining()
+        || requiredBytes > kMaximumReplayBytes) {
+        result.error = "replay element counts do not match payload";
         return result;
     }
     recording.checkpoint.bodies.resize(counts[0]);
@@ -415,6 +578,11 @@ ReplayReadResult ReplayCodec::decode(std::span<const std::byte> bytes) {
             return std::tie(lhs.tick, lhs.stage, lhs.objectId)
                  < std::tie(rhs.tick, rhs.stage, rhs.objectId);
         });
+    if (result.error = validateCanonicalReplay(
+            recording, recording.commands, recording.hashes);
+        !result.error.empty()) {
+        return result;
+    }
     result.recording = std::move(recording);
     return result;
 }
@@ -448,6 +616,8 @@ bool applyCanonicalReplayCommand(
     auto& body = world.bodies()[command.body];
     const bool isAlive = (body.identity[2] & LockstepBodyAlive) != 0u;
     if (command.type == ReplayCommandType::SpawnBody) {
+        if (command.generation == std::numeric_limits<uint32_t>::max())
+            return false;
         const bool firstGeneration = body.identity[1]
             != std::numeric_limits<uint32_t>::max()
             && body.identity[1] + 1u == command.generation;
@@ -459,11 +629,33 @@ bool applyCanonicalReplayCommand(
     switch (command.type) {
         case ReplayCommandType::DestroyBody:
             body = {};
-            body.identity[1] = command.generation + 1u;
+            body.identity[1] = command.generation
+                == std::numeric_limits<uint32_t>::max()
+                ? command.generation : command.generation + 1u;
             return true;
-        case ReplayCommandType::SpawnBody:
+        case ReplayCommandType::SpawnBody: {
+            constexpr uint32_t validFlags =
+                LockstepBodyAlive | LockstepBodyAwake | LockstepBodyStatic;
+            const uint32_t flags =
+                static_cast<uint32_t>(command.payload[11]);
+            const bool canonicalPosition =
+                command.payload[4] >= -kLockstepSectorHalf
+                && command.payload[4] < kLockstepSectorHalf
+                && command.payload[5] >= -kLockstepSectorHalf
+                && command.payload[5] < kLockstepSectorHalf
+                && command.payload[6] >= -kLockstepSectorHalf
+                && command.payload[6] < kLockstepSectorHalf;
+            const bool isStatic = (flags & LockstepBodyStatic) != 0u;
+            if ((flags & LockstepBodyAlive) == 0u
+                || (flags & ~validFlags) != 0u
+                || command.payload[3] <= 0
+                || !canonicalPosition
+                || command.payload[7] < 0
+                || (isStatic && command.payload[7] != 0)
+                || (!isStatic && command.payload[7] == 0))
+                return false;
             body.identity = {command.body, command.generation,
-                             static_cast<uint32_t>(command.payload[11]), 0u};
+                             flags, 0u};
             body.sectorRadius = {command.payload[0], command.payload[1],
                                  command.payload[2], command.payload[3]};
             body.positionInvMass = {command.payload[4], command.payload[5],
@@ -471,6 +663,7 @@ bool applyCanonicalReplayCommand(
             body.linearVelocity = {command.payload[8], command.payload[9],
                                    command.payload[10], 0};
             return true;
+        }
         case ReplayCommandType::Correction:
             body.sectorRadius[0] = command.payload[0];
             body.sectorRadius[1] = command.payload[1];
@@ -506,7 +699,12 @@ ReplayPlayer::Result ReplayPlayer::play(
     const ReplayRecording& recording) const {
     Result result;
     if (recording.header.arithmeticMode != ArithmeticMode::Lockstep
-        || recording.checkpoint.bodies.empty()) return result;
+        || recording.checkpoint.bodies.empty()) {
+        result.error = "replay is not a playable lockstep recording";
+        return result;
+    }
+    if (result.error = validateReplayShape(recording);
+        !result.error.empty()) return result;
     LockstepWorld world;
     LockstepWorld::Config config;
     config.bodyCapacity = std::max(
@@ -521,7 +719,10 @@ ReplayPlayer::Result ReplayPlayer::play(
     config.gravityPerSubstepQ16 =
         recording.header.simulation.gravityPerSubstepQ16;
     if (!world.initialize(config)
-        || !world.setBodies(recording.checkpoint.bodies)) return result;
+        || !world.setBodies(recording.checkpoint.bodies)) {
+        result.error = "replay checkpoint cannot initialize lockstep world";
+        return result;
+    }
 
     std::vector<CanonicalReplayCommand> commands = recording.commands;
     std::stable_sort(commands.begin(), commands.end(), canonicalReplayCommandLess);
@@ -531,8 +732,9 @@ ReplayPlayer::Result ReplayPlayer::play(
             return std::tie(lhs.tick, lhs.stage, lhs.objectId)
                  < std::tie(rhs.tick, rhs.stage, rhs.objectId);
         });
-    if (recording.checkpoint.tick > std::numeric_limits<uint32_t>::max())
-        return result;
+    if (result.error = validateCanonicalReplay(
+            recording, commands, hashes);
+        !result.error.empty()) return result;
     uint64_t finalTick = recording.checkpoint.tick;
     for (const auto& command : commands) finalTick = std::max(finalTick, command.tick);
     for (const auto& hash : hashes) finalTick = std::max(finalTick, hash.tick);
@@ -564,34 +766,49 @@ ReplayPlayer::Result ReplayPlayer::play(
     while (hashIndex < hashes.size()
            && hashes[hashIndex].tick == recording.checkpoint.tick) {
         const auto& expected = hashes[hashIndex];
-        const uint32_t actual = actualHash(result.finalTelemetry, expected);
-        if (actual != expected.hash) {
+        const auto actual = actualHash(result.finalTelemetry, expected);
+        if (!actual) {
+            result.error = "replay hash references an unavailable object";
+            return result;
+        }
+        if (*actual != expected.hash) {
             result.divergence = ReplayDivergence{
                 .tick = recording.checkpoint.tick,
                 .stage = expected.stage,
                 .objectId = expected.objectId,
                 .expected = expected.hash,
-                .actual = actual,
+                .actual = *actual,
                 .message = "first replay divergence in checkpoint",
             };
             return result;
         }
         ++hashIndex;
     }
-    if (finalTick > std::numeric_limits<uint32_t>::max()) return result;
+    if (finalTick > std::numeric_limits<uint32_t>::max()) {
+        result.error = "replay final tick exceeds lockstep range";
+        return result;
+    }
     for (uint64_t tick = recording.checkpoint.tick + 1u;
          tick <= finalTick; ++tick) {
         while (commandIndex < commands.size()
                && commands[commandIndex].tick == tick) {
-            static_cast<void>(applyCanonicalReplayCommand(
-                world, commands[commandIndex]));
+            if (!applyCanonicalReplayCommand(
+                    world, commands[commandIndex])) {
+                result.error = "replay command failed canonical application";
+                return result;
+            }
             ++commandIndex;
         }
         result.finalTelemetry = world.step(static_cast<uint32_t>(tick));
         while (hashIndex < hashes.size() && hashes[hashIndex].tick == tick) {
             const auto& expected = hashes[hashIndex];
-            const uint32_t actual = actualHash(result.finalTelemetry, expected);
-            if (actual != expected.hash) {
+            const auto actual = actualHash(result.finalTelemetry, expected);
+            if (!actual) {
+                result.error =
+                    "replay hash references an unavailable object";
+                return result;
+            }
+            if (*actual != expected.hash) {
                 std::ostringstream message;
                 message << "first replay divergence at tick " << tick
                         << ", stage " << static_cast<uint32_t>(expected.stage)
@@ -601,7 +818,7 @@ ReplayPlayer::Result ReplayPlayer::play(
                     .stage = expected.stage,
                     .objectId = expected.objectId,
                     .expected = expected.hash,
-                    .actual = actual,
+                    .actual = *actual,
                     .message = message.str(),
                 };
                 return result;
@@ -609,7 +826,8 @@ ReplayPlayer::Result ReplayPlayer::play(
             ++hashIndex;
         }
     }
-    result.completed = hashIndex == hashes.size();
+    result.completed = hashIndex == hashes.size()
+        && commandIndex == commands.size();
     return result;
 }
 

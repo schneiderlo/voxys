@@ -5,6 +5,9 @@
 #include <gtest/gtest.h>
 #include "core/log.hpp"
 #include <barrier>
+#include <cstdio>
+#include <fstream>
+#include <iterator>
 #include <string>
 #include <thread>
 
@@ -201,6 +204,32 @@ TEST_F(LogConfigTest, LogLevelFiltering) {
     error("Should appear");
     
     SUCCEED();
+}
+
+TEST_F(LogConfigTest, FailedLogFileReplacementPreservesWorkingFile) {
+    constexpr const char* path = "test_log_output.log";
+    setColorEnabled(false);
+    setTimestampEnabled(false);
+    setLogFile(path);
+    info("before failed replacement");
+    setLogFile("/directory/that/does/not/exist/voxy.log");
+    info("after failed replacement");
+    setLogFile("");
+
+    std::ifstream file(path);
+    const std::string contents(
+        std::istreambuf_iterator<char>{file},
+        std::istreambuf_iterator<char>{});
+    EXPECT_NE(contents.find("before failed replacement"), std::string::npos);
+    EXPECT_NE(contents.find("after failed replacement"), std::string::npos);
+    std::remove(path);
+}
+
+TEST_F(LogConfigTest, InvalidLevelsAndNullLegacyFormatsAreSafe) {
+    setLevel(static_cast<Level>(999));
+    EXPECT_EQ(getLevel(), Level::Info);
+    EXPECT_FALSE(shouldLog(static_cast<Level>(999)));
+    log_c(Level::Info, nullptr);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

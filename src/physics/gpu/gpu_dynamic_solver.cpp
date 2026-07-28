@@ -181,7 +181,10 @@ public:
             return false;
         }
         const std::array<uint32_t, kTelemetryWords> zeroTelemetry{};
-        gpu::writeBuffer(queue_, telemetry_, 0, zeroTelemetry);
+        if (!gpu::writeBuffer(queue_, telemetry_, 0, zeroTelemetry)) {
+            shutdown();
+            return false;
+        }
         scratchBytes_ = gpu::saturatingSize(
             primitives_.scratchBytes()
             + uint64_t{kParameterSlots} * kParameterStride
@@ -667,17 +670,17 @@ public:
             WGPUComputePassDescriptor passDesc{};
             WGPUComputePassEncoder pass =
                 wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
+            if (!pass) return false;
             wgpuComputePassEncoderSetBindGroup(
                 pass, 0, serialGroup, 1, &offset);
             wgpuComputePassEncoderSetPipeline(pass, serialPipeline_);
             wgpuComputePassEncoderDispatchWorkgroups(pass, 1u, 1u, 1u);
             wgpuComputePassEncoderEnd(pass);
             wgpuComputePassEncoderRelease(pass);
-            gpu::writeBuffer(
+            return gpu::writeBuffer(
                 queue_, parameterBuffer_, 0u,
                 std::span<const ParameterUploadSlot>(
                     parameterUpload_.data(), slot));
-            return true;
         }
         const std::array<gpu::BindGroupEntry, 9> coloringEntries = {
             gpu::BindGroupEntry(4).buffer(input_.manifoldBuffer),
@@ -705,6 +708,7 @@ public:
         WGPUComputePassDescriptor passDesc{};
         WGPUComputePassEncoder pass =
             wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
+        if (!pass) return false;
         const uint32_t bodyGroups = (input_.bodyCapacity + config_.workgroupSize - 1u)
                                   / config_.workgroupSize;
         const uint32_t contactGroups =
@@ -742,6 +746,7 @@ public:
         wgpuComputePassEncoderRelease(pass);
 
         pass = wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
+        if (!pass) return false;
         bind(coloringGroup, offset);
         const uint64_t globalWorkOffset = dispatchOffset(
             config_.colorCount + 1u);
@@ -785,6 +790,7 @@ public:
             wgpuComputePassEncoderRelease(pass);
 
             pass = wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
+            if (!pass) return false;
             offset = writeParams(slot,
                 makeParams(0u, config_.overflowIterations));
             bind(classificationGroup, offset);
@@ -796,6 +802,7 @@ public:
             wgpuComputePassEncoderRelease(pass);
 
             pass = wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
+            if (!pass) return false;
             for (uint32_t round = unconditionalRounds;
                  round < roundCount; ++round) {
                 encodeColorRound(round, continuationWorkOffset);
@@ -845,6 +852,7 @@ public:
             "solver_adjacency_bind_group");
         if (!rangeGroup || !adjacencyGroup) return false;
         pass = wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
+        if (!pass) return false;
         offset = writeParams(slot,
             makeParams(0u, config_.overflowIterations));
         bind(rangeGroup, offset);
@@ -937,6 +945,7 @@ public:
         }
 
         pass = wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
+        if (!pass) return false;
         offset = writeParams(slot,
             makeParams(0u, config_.overflowIterations));
         bind(bodyRangeGroup, offset);
@@ -1034,10 +1043,12 @@ public:
         wgpuComputePassEncoderEnd(pass);
         wgpuComputePassEncoderRelease(pass);
         if (slot > kParameterSlots) return false;
-        gpu::writeBuffer(
-            queue_, parameterBuffer_, 0u,
-            std::span<const ParameterUploadSlot>(
-                parameterUpload_.data(), slot));
+        if (!gpu::writeBuffer(
+                queue_, parameterBuffer_, 0u,
+                std::span<const ParameterUploadSlot>(
+                    parameterUpload_.data(), slot))) {
+            return false;
+        }
         claimsInitialized_ = true;
         return true;
     }

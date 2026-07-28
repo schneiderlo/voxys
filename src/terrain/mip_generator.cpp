@@ -6,9 +6,22 @@
 #include "core/log.hpp"
 
 #include <algorithm>
+#include <limits>
 #include <numeric>
 
 namespace voxy::terrain {
+namespace {
+
+bool validMipSource(std::span<const uint16_t> data,
+                    uint32_t width, uint32_t height) noexcept {
+    return !data.empty() && width != 0u && height != 0u
+        && width <= kMaxMipDimension && height <= kMaxMipDimension
+        && static_cast<size_t>(width)
+            <= std::numeric_limits<size_t>::max() / height
+        && data.size() == static_cast<size_t>(width) * height;
+}
+
+} // namespace
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Free Functions
@@ -17,6 +30,15 @@ namespace voxy::terrain {
 MipLevel generateNextMipLevel(std::span<const uint16_t> srcData,
                                uint32_t srcWidth, uint32_t srcHeight) {
     MipLevel result;
+    if (srcWidth == 0u || srcHeight == 0u
+        || static_cast<size_t>(srcWidth)
+            > std::numeric_limits<size_t>::max() / srcHeight
+        || srcData.size()
+            != static_cast<size_t>(srcWidth) * srcHeight) {
+        LOG_ERROR("Cannot generate mip from invalid {}x{} source with {} samples",
+                  srcWidth, srcHeight, srcData.size());
+        return result;
+    }
     
     // Calculate output dimensions (half of source, minimum 1)
     result.width = std::max(1u, srcWidth / 2);
@@ -68,23 +90,27 @@ MipLevel generateNextMipLevel(std::span<const uint16_t> srcData,
     } else {
         for (uint32_t y = 0; y < result.height; y++) {
             for (uint32_t x = 0; x < result.width; x++) {
-                // Source coordinates
-                const uint32_t sx = x * 2;
-                const uint32_t sy = y * 2;
-
-                // Sample 2×2 block with bounds checking
                 uint16_t maxVal = 0;
-
-                for (uint32_t dy = 0; dy < 2; dy++) {
-                    for (uint32_t dx = 0; dx < 2; dx++) {
-                        const uint32_t px = std::min(sx + dx, srcWidth - 1);
-                        const uint32_t py = std::min(sy + dy, srcHeight - 1);
-                        const uint16_t sample = srcData[py * srcWidth + px];
-                        maxVal = std::max(maxVal, sample);
+                const uint32_t beginX = static_cast<uint32_t>(
+                    static_cast<uint64_t>(x) * srcWidth / result.width);
+                const uint32_t endX = static_cast<uint32_t>(
+                    static_cast<uint64_t>(x + 1u) * srcWidth
+                    / result.width);
+                const uint32_t beginY = static_cast<uint32_t>(
+                    static_cast<uint64_t>(y) * srcHeight / result.height);
+                const uint32_t endY = static_cast<uint32_t>(
+                    static_cast<uint64_t>(y + 1u) * srcHeight
+                    / result.height);
+                for (uint32_t py = beginY; py < endY; ++py) {
+                    for (uint32_t px = beginX; px < endX; ++px) {
+                        maxVal = std::max(
+                            maxVal,
+                            srcData[static_cast<size_t>(py) * srcWidth + px]);
                     }
                 }
 
-                result.data[y * result.width + x] = maxVal;
+                result.data[static_cast<size_t>(y) * result.width + x] =
+                    maxVal;
             }
         }
     }
@@ -98,115 +124,83 @@ MipLevel generateNextMipLevel(std::span<const uint16_t> srcData,
 
 bool MaxHeightMipChain::generate(std::span<const uint16_t> baseData, 
                                   uint32_t width, uint32_t height) {
-    // Validate input
-    if (baseData.empty() || width == 0 || height == 0) {
-        LOG_ERROR("MipChain: Invalid input (empty data or zero dimensions)");
+    if (!validMipSource(baseData, width, height)) {
+        LOG_ERROR("MipChain: Invalid {}x{} source with {} samples",
+                  width, height, baseData.size());
         return false;
     }
-    
-    const size_t expectedSize = static_cast<size_t>(width) * height;
-    if (baseData.size() != expectedSize) {
-        LOG_ERROR("MipChain: Data size mismatch (expected {}, got {})", 
-                  expectedSize, baseData.size());
-        return false;
-    }
-    
-    // Clear any existing data
-    clear();
-    
-    // Store base dimensions
-    baseWidth_ = width;
-    baseHeight_ = height;
-    hasBaseLevel_ = true;
-    
-    // Calculate number of mip levels
+
+    MaxHeightMipChain replacement;
+    replacement.baseWidth_ = width;
+    replacement.baseHeight_ = height;
+    replacement.hasBaseLevel_ = true;
+
     const uint32_t levelCount = calculateMipLevelCount(width, height);
-    levels_.reserve(levelCount);
-    
-    // Store level 0 (base level)
+    replacement.levels_.reserve(levelCount);
+
     MipLevel level0;
     level0.width = width;
     level0.height = height;
     level0.data.assign(baseData.begin(), baseData.end());
-    levels_.push_back(std::move(level0));
-    
-    // Generate subsequent levels
+    replacement.levels_.push_back(std::move(level0));
+
     for (uint32_t i = 1; i < levelCount; i++) {
-        const MipLevel& prevLevel = levels_.back();
-        
-        // Stop if previous level is 1×1
+        const MipLevel& prevLevel = replacement.levels_.back();
         if (prevLevel.width == 1 && prevLevel.height == 1) {
             break;
         }
-        
-        MipLevel nextLevel = generateNextMipLevel(prevLevel.data, 
-                                                   prevLevel.width, 
-                                                   prevLevel.height);
-        levels_.push_back(std::move(nextLevel));
+        MipLevel nextLevel = generateNextMipLevel(
+            prevLevel.data, prevLevel.width, prevLevel.height);
+        if (!nextLevel.isValid()) return false;
+        replacement.levels_.push_back(std::move(nextLevel));
     }
-    
+
+    *this = std::move(replacement);
     LOG_DEBUG("MipChain: Generated {} levels for {}×{} heightmap ({:.2f} KB total)",
               levels_.size(), width, height, 
               static_cast<double>(getTotalSizeBytes()) / 1024.0);
-    
     return true;
 }
 
 bool MaxHeightMipChain::generateWithoutBase(std::span<const uint16_t> baseData, 
                                              uint32_t width, uint32_t height) {
-    // Validate input
-    if (baseData.empty() || width == 0 || height == 0) {
-        LOG_ERROR("MipChain: Invalid input (empty data or zero dimensions)");
+    if (!validMipSource(baseData, width, height)) {
+        LOG_ERROR("MipChain: Invalid {}x{} source with {} samples",
+                  width, height, baseData.size());
         return false;
     }
-    
-    const size_t expectedSize = static_cast<size_t>(width) * height;
-    if (baseData.size() != expectedSize) {
-        LOG_ERROR("MipChain: Data size mismatch (expected {}, got {})", 
-                  expectedSize, baseData.size());
-        return false;
-    }
-    
-    // Clear any existing data
-    clear();
-    
-    // Store base dimensions
-    baseWidth_ = width;
-    baseHeight_ = height;
-    hasBaseLevel_ = false;
-    
-    // Calculate number of mip levels (excluding base)
+
+    MaxHeightMipChain replacement;
+    replacement.baseWidth_ = width;
+    replacement.baseHeight_ = height;
+    replacement.hasBaseLevel_ = false;
+
     const uint32_t levelCount = calculateMipLevelCount(width, height);
     if (levelCount <= 1) {
-        // Only base level exists, nothing to generate
+        *this = std::move(replacement);
         return true;
     }
-    
-    levels_.reserve(levelCount - 1);
-    
-    // Generate level 1 from the provided base data
+
+    replacement.levels_.reserve(levelCount - 1);
     MipLevel level1 = generateNextMipLevel(baseData, width, height);
-    levels_.push_back(std::move(level1));
-    
-    // Generate subsequent levels
+    if (!level1.isValid()) return false;
+    replacement.levels_.push_back(std::move(level1));
+
     for (uint32_t i = 2; i < levelCount; i++) {
-        const MipLevel& prevLevel = levels_.back();
-        
-        // Stop if previous level is 1×1
+        const MipLevel& prevLevel = replacement.levels_.back();
         if (prevLevel.width == 1 && prevLevel.height == 1) {
             break;
         }
-        
-        MipLevel nextLevel = generateNextMipLevel(prevLevel.data, 
-                                                   prevLevel.width, 
-                                                   prevLevel.height);
-        levels_.push_back(std::move(nextLevel));
+        MipLevel nextLevel = generateNextMipLevel(
+            prevLevel.data, prevLevel.width, prevLevel.height);
+        if (!nextLevel.isValid()) return false;
+        replacement.levels_.push_back(std::move(nextLevel));
     }
-    
+
+    *this = std::move(replacement);
     LOG_DEBUG("MipChain: Generated {} levels (without base) for {}×{} heightmap ({:.2f} KB total)",
               levels_.size(), width, height, 
               static_cast<double>(getTotalSizeBytes()) / 1024.0);
-    
     return true;
 }
 
@@ -249,4 +243,3 @@ void MaxHeightMipChain::clear() {
 }
 
 } // namespace voxy::terrain
-

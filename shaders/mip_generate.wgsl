@@ -2,8 +2,8 @@
 // mip_generate.wgsl - Max-Height Mip Generation Compute Shader
 // ═══════════════════════════════════════════════════════════════════════════════
 // Generates the max-height mip pyramid used by the ray-caster for hierarchical
-// traversal. Each output texel contains the maximum height of a 2×2 block from
-// the source mip level.
+// traversal. Each output texel contains the maximum height of its complete
+// source footprint. Proportional footprints preserve odd right/bottom edges.
 // ═══════════════════════════════════════════════════════════════════════════════
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -37,24 +37,23 @@ fn cs_generate_mip(@builtin(global_invocation_id) globalId : vec3<u32>) {
         return;
     }
     
-    // Source coordinates (2×2 block origin)
-    let srcX = globalId.x * 2u;
-    let srcY = globalId.y * 2u;
-    
-    // Clamp to valid source coordinates
-    let maxX = params.srcSize.x - 1u;
-    let maxY = params.srcSize.y - 1u;
-    
-    // Sample 2×2 block with edge clamping and take maximum
-    let h00 = textureLoad(srcMip, vec2<i32>(i32(min(srcX, maxX)), i32(min(srcY, maxY))), 0).r;
-    let h10 = textureLoad(srcMip, vec2<i32>(i32(min(srcX + 1u, maxX)), i32(min(srcY, maxY))), 0).r;
-    let h01 = textureLoad(srcMip, vec2<i32>(i32(min(srcX, maxX)), i32(min(srcY + 1u, maxY))), 0).r;
-    let h11 = textureLoad(srcMip, vec2<i32>(i32(min(srcX + 1u, maxX)), i32(min(srcY + 1u, maxY))), 0).r;
-    
-    let maxHeight = max(max(h00, h10), max(h01, h11));
+    // A floor-sized mip of an odd source has one footprint wider/taller than
+    // 2. Mapping both boundaries proportionally covers every source texel.
+    let beginX = globalId.x * params.srcSize.x / params.dstSize.x;
+    let endX = (globalId.x + 1u) * params.srcSize.x / params.dstSize.x;
+    let beginY = globalId.y * params.srcSize.y / params.dstSize.y;
+    let endY = (globalId.y + 1u) * params.srcSize.y / params.dstSize.y;
+
+    var maxHeight = 0u;
+    for (var y = beginY; y < endY; y++) {
+        for (var x = beginX; x < endX; x++) {
+            maxHeight = max(
+                maxHeight,
+                textureLoad(srcMip, vec2<i32>(i32(x), i32(y)), 0).r);
+        }
+    }
     
     // Write to destination mip level
     textureStore(dstMip, vec2<i32>(globalId.xy), vec4<u32>(maxHeight, 0u, 0u, 1u));
 }
-
 

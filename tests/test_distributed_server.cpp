@@ -13,6 +13,7 @@
 #include <cstring>
 #include <limits>
 #include <span>
+#include <utility>
 #include <vector>
 
 #ifndef WGPUWrappedSubmissionIndex
@@ -62,13 +63,14 @@ network::AuthoritativeSnapshot checkpoint(
 
 SweptBoundaryProxy proxy(
     uint64_t islandId, uint32_t worker, uint32_t epoch,
-    uint64_t tick, int64_t minimumX, int64_t maximumX) {
+    uint64_t tick, int64_t minimumX, int64_t maximumX,
+    uint32_t horizonTicks = 5u) {
     return {
         .islandId = islandId,
         .workerId = worker,
         .authorityEpoch = epoch,
         .startTick = tick,
-        .horizonTicks = 5,
+        .horizonTicks = horizonTicks,
         .minimumQ12 = {minimumX, 0, 0},
         .maximumQ12 = {maximumX, 100, 100},
     };
@@ -79,6 +81,19 @@ void releaseBuffer(WGPUBuffer& buffer) {
     wgpuBufferDestroy(buffer);
     wgpuBufferRelease(buffer);
     buffer = nullptr;
+}
+
+TEST(NativeServerGpu, MovedFromBackendFailsSafely) {
+    NativeServerGpuBackend source;
+    NativeServerGpuBackend destination(std::move(source));
+    source.shutdown();
+    EXPECT_FALSE(source.createWorld({
+        .worldId = 1u,
+        .islandId = 1u,
+    }).has_value());
+    EXPECT_FALSE(source.initialize(nullptr, nullptr, {.maximumWorlds = 1u}));
+    EXPECT_EQ(source.telemetry().activeWorlds, 0u);
+    destination.shutdown();
 }
 
 TEST(WorldCoordinator, MigratesWholeConnectivityAndRecoversWorkerLoss) {
@@ -147,6 +162,9 @@ TEST(WorldCoordinator, MigratesWholeConnectivityAndRecoversWorkerLoss) {
     EXPECT_EQ(coordinator.island(2u)->workerId, 1u);
     EXPECT_EQ(coordinator.island(2u)->authorityEpoch, 2u);
     EXPECT_TRUE(coordinator.ownershipValid(cross, 12u));
+    EXPECT_TRUE(coordinator.crossWorkerPairs(12u).empty());
+    EXPECT_FALSE(coordinator.publishBoundaryProxy(
+        proxy(2u, 1u, 2u, 11u, 5, 15)));
     const auto committed = std::find_if(
         coordinator.migrations().begin(), coordinator.migrations().end(),
         [](const IslandMigration& migration) {
@@ -182,6 +200,134 @@ TEST(WorldCoordinator, MigratesWholeConnectivityAndRecoversWorkerLoss) {
     EXPECT_EQ(coordinator.telemetry().recoveredIslands, 3u);
     EXPECT_EQ(coordinator.telemetry().unrecoveredIslands, 0u);
     EXPECT_GE(coordinator.telemetry().rollbackCopiesRetained, 1u);
+}
+
+TEST(WorldCoordinator, ReservesCapacityAndKeepsCheckpointsMonotonic) {
+    WorldCoordinator coordinator;
+    ASSERT_TRUE(coordinator.registerWorker({1u, 100u, 0u, true}));
+    ASSERT_TRUE(coordinator.registerWorker({2u, 100u, 0u, true}));
+    ASSERT_TRUE(coordinator.registerIsland({
+        .islandId = 1u,
+        .workerId = 1u,
+        .loadUnits = 80u,
+        .checkpoint = checkpoint(1u, 1u, 0u),
+    }));
+    ASSERT_TRUE(coordinator.registerIsland({
+        .islandId = 2u,
+        .workerId = 2u,
+        .loadUnits = 20u,
+        .checkpoint = checkpoint(2u, 1u, 0u),
+    }));
+
+    const auto newest = checkpoint(1u, 1u, 5u);
+    ASSERT_TRUE(coordinator.updateCheckpoint(1u, newest));
+    EXPECT_FALSE(coordinator.updateCheckpoint(
+        1u, checkpoint(1u, 1u, 4u)));
+    auto conflicting = newest;
+    conflicting.bodies.front().positionInvMass[0] += 1;
+    conflicting.stateHash = network::snapshotStateHash(conflicting);
+    EXPECT_FALSE(coordinator.updateCheckpoint(1u, conflicting));
+    EXPECT_EQ(coordinator.island(1u)->checkpoint.tick, 5u);
+    EXPECT_EQ(coordinator.island(1u)->checkpoint.stateHash, newest.stateHash);
+
+    ASSERT_TRUE(coordinator.publishBoundaryProxy(
+        proxy(1u, 1u, 1u, 10u, 0, 10)));
+    ASSERT_TRUE(coordinator.publishBoundaryProxy(
+        proxy(2u, 2u, 1u, 10u, 5, 15)));
+    const auto planned = coordinator.planMigrations(10u);
+    ASSERT_EQ(planned.size(), 1u);
+    ASSERT_EQ(planned.front().islandId, 2u);
+    ASSERT_EQ(planned.front().destinationWorker, 1u);
+
+    EXPECT_FALSE(coordinator.registerIsland({
+        .islandId = 3u,
+        .workerId = 1u,
+        .loadUnits = 1u,
+        .checkpoint = checkpoint(3u, 1u, 0u),
+    }));
+    EXPECT_FALSE(coordinator.registerWorker({1u, 99u, 0u, true}));
+    ASSERT_TRUE(coordinator.beginShadow(2u));
+    ASSERT_TRUE(coordinator.submitShadowHashes(2u, 123u, 123u));
+    EXPECT_EQ(coordinator.commitMigrations(12u), 1u);
+    EXPECT_EQ(coordinator.worker(1u)->loadUnits, 100u);
+}
+
+TEST(WorldCoordinator, RejectsExpiredHandoffsAndEpochWrap) {
+    WorldCoordinator coordinator;
+    EXPECT_FALSE(coordinator.registerWorker(
+        {kAutomaticWorker, 100u, 0u, true}));
+    ASSERT_TRUE(coordinator.registerWorker({1u, 100u, 0u, true}));
+    ASSERT_TRUE(coordinator.registerWorker({2u, 100u, 0u, true}));
+    ASSERT_TRUE(coordinator.registerIsland({
+        .islandId = 1u,
+        .workerId = 1u,
+        .loadUnits = 50u,
+        .checkpoint = checkpoint(1u, 1u, 0u),
+    }));
+    ASSERT_TRUE(coordinator.registerIsland({
+        .islandId = 2u,
+        .workerId = 2u,
+        .loadUnits = 50u,
+        .checkpoint = checkpoint(2u, 1u, 0u),
+    }));
+    ASSERT_TRUE(coordinator.publishBoundaryProxy(
+        proxy(1u, 1u, 1u, 10u, 0, 10, 1u)));
+    ASSERT_TRUE(coordinator.publishBoundaryProxy(
+        proxy(2u, 2u, 1u, 10u, 5, 15, 1u)));
+    ASSERT_EQ(coordinator.crossWorkerPairs(11u).size(), 1u);
+    EXPECT_TRUE(coordinator.planMigrations(11u).empty());
+    EXPECT_TRUE(coordinator.migrations().empty());
+
+    WorldCoordinator exhausted;
+    ASSERT_TRUE(exhausted.registerWorker({1u, 100u, 0u, true}));
+    ASSERT_TRUE(exhausted.registerWorker({2u, 100u, 0u, true}));
+    constexpr uint32_t finalEpoch = std::numeric_limits<uint32_t>::max();
+    ASSERT_TRUE(exhausted.registerIsland({
+        .islandId = 9u,
+        .workerId = 1u,
+        .authorityEpoch = finalEpoch,
+        .loadUnits = 10u,
+        .checkpoint = checkpoint(9u, finalEpoch, 0u),
+    }));
+    EXPECT_FALSE(exhausted.loseWorker(1u, 20u));
+    ASSERT_TRUE(exhausted.island(9u).has_value());
+    EXPECT_EQ(exhausted.island(9u)->workerId, 1u);
+    EXPECT_EQ(exhausted.island(9u)->authorityEpoch, finalEpoch);
+    EXPECT_EQ(exhausted.telemetry().unrecoveredIslands, 1u);
+}
+
+TEST(WorldCoordinator, DoesNotSplitComponentAroundActiveMigration) {
+    WorldCoordinator coordinator;
+    for (uint32_t workerId = 1u; workerId <= 3u; ++workerId)
+        ASSERT_TRUE(coordinator.registerWorker(
+            {workerId, 300u, 0u, true}));
+    for (uint64_t islandId = 1u; islandId <= 3u; ++islandId) {
+        ASSERT_TRUE(coordinator.registerIsland({
+            .islandId = islandId,
+            .workerId = static_cast<uint32_t>(islandId),
+            .loadUnits = 50u,
+            .checkpoint = checkpoint(islandId, 1u, 0u),
+        }));
+    }
+    ASSERT_TRUE(coordinator.publishBoundaryProxy(
+        proxy(1u, 1u, 1u, 10u, 0, 10)));
+    ASSERT_TRUE(coordinator.publishBoundaryProxy(
+        proxy(2u, 2u, 1u, 10u, 5, 15)));
+    ASSERT_TRUE(coordinator.publishBoundaryProxy(
+        proxy(3u, 3u, 1u, 10u, 100, 110)));
+    const auto initial = coordinator.planMigrations(10u);
+    ASSERT_EQ(initial.size(), 1u);
+    ASSERT_EQ(initial.front().islandId, 2u);
+
+    ASSERT_TRUE(coordinator.publishBoundaryProxy(
+        proxy(1u, 1u, 1u, 11u, 0, 10)));
+    ASSERT_TRUE(coordinator.publishBoundaryProxy(
+        proxy(2u, 2u, 1u, 11u, 5, 15)));
+    ASSERT_TRUE(coordinator.publishBoundaryProxy(
+        proxy(3u, 3u, 1u, 11u, 10, 20)));
+    EXPECT_TRUE(coordinator.planMigrations(11u).empty());
+    ASSERT_EQ(coordinator.migrations().size(), 1u);
+    EXPECT_EQ(coordinator.migrations().front().islandId, 2u);
 }
 
 TEST(NativeServerGpu, BatchesWorldsInOneSubmissionWithSharedHashes) {
@@ -222,6 +368,13 @@ TEST(NativeServerGpu, BatchesWorldsInOneSubmissionWithSharedHashes) {
         ASSERT_TRUE(cpuWorlds[world].initialize(cpuConfig));
         ASSERT_TRUE(cpuWorlds[world].setBodies(initial[world]));
         ASSERT_TRUE(backend.uploadBodies(handles[world], initial[world]));
+    }
+    EXPECT_FALSE(backend.initialize(
+        context.getDevice(), context.getQueue(),
+        {.maximumWorlds = 65'537u}));
+    for (const auto handle : handles) {
+        EXPECT_TRUE(backend.descriptor(handle).has_value());
+        EXPECT_NE(backend.bodyBuffer(handle), nullptr);
     }
 
     WGPUSubmissionIndex finalSubmission = 0;

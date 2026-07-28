@@ -7,6 +7,25 @@
 
 #include <gtest/gtest.h>
 #include "gpu/context.hpp"
+#include "perf/gpu_timer.hpp"
+
+#include <cstddef>
+#include <cstdint>
+
+#ifndef WGPUWrappedSubmissionIndex
+using WGPUSubmissionIndex = uint64_t;
+struct WGPUWrappedSubmissionIndex {
+    WGPUQueue queue;
+    WGPUSubmissionIndex submissionIndex;
+};
+#endif
+
+extern "C" WGPUSubmissionIndex wgpuQueueSubmitForIndex(
+    WGPUQueue queue, size_t commandCount,
+    const WGPUCommandBuffer* commands);
+extern "C" WGPUBool wgpuDevicePoll(
+    WGPUDevice device, WGPUBool wait,
+    const WGPUWrappedSubmissionIndex* wrappedSubmissionIndex);
 
 namespace voxy::gpu {
 
@@ -144,9 +163,8 @@ TEST(ContextTest, TickWithoutInit) {
 TEST(ContextTest, ResizeSwapchainWithoutInit) {
     Context context;
     
-    // Should not crash
-    context.resizeSwapchain(1920, 1080);
-    SUCCEED();
+    EXPECT_FALSE(context.resizeSwapchain(1920, 1080));
+    EXPECT_FALSE(context.resizeSwapchain(0, 1080));
 }
 
 TEST(ContextTest, ShutdownWithoutInit) {
@@ -155,6 +173,59 @@ TEST(ContextTest, ShutdownWithoutInit) {
     // Should not crash
     context.shutdown();
     EXPECT_FALSE(context.isInitialized());
+}
+
+TEST(GPUTimerTest, ResolvesTimestampQueriesAndPreservesLiveState) {
+    Context context;
+    ContextConfig config;
+    config.enableTimestamps = true;
+    if (!context.initHeadless(config)) GTEST_SKIP() << "No WebGPU adapter";
+    if (!wgpuDeviceHasFeature(
+            context.getDevice(), WGPUFeatureName_TimestampQuery)) {
+        GTEST_SKIP() << "Timestamp queries unavailable";
+    }
+
+    perf::GPUTimer timer;
+    ASSERT_TRUE(timer.init(context.getDevice()));
+    EXPECT_FALSE(timer.init(nullptr));
+    EXPECT_TRUE(timer.isSupported());
+    ASSERT_TRUE(timer.beginFrame());
+
+    WGPUCommandEncoderDescriptor encoderDesc{};
+    WGPUCommandEncoder encoder =
+        wgpuDeviceCreateCommandEncoder(context.getDevice(), &encoderDesc);
+    ASSERT_NE(encoder, nullptr);
+    EXPECT_FALSE(timer.writeTimestamp(encoder, nullptr));
+    ASSERT_TRUE(timer.writeTimestamp(encoder, "begin"));
+    ASSERT_TRUE(timer.writeTimestamp(encoder, "end"));
+    ASSERT_TRUE(timer.resolve(encoder));
+    EXPECT_FALSE(timer.beginFrame());
+
+    WGPUCommandBufferDescriptor commandDesc{};
+    WGPUCommandBuffer command =
+        wgpuCommandEncoderFinish(encoder, &commandDesc);
+    ASSERT_NE(command, nullptr);
+    const WGPUSubmissionIndex submissionIndex = wgpuQueueSubmitForIndex(
+        context.getQueue(), 1u, &command);
+    const WGPUWrappedSubmissionIndex submission{
+        context.getQueue(), submissionIndex};
+    wgpuCommandBufferRelease(command);
+    wgpuCommandEncoderRelease(encoder);
+
+    perf::GPUTimingResult result = timer.readResults();
+    for (uint32_t attempt = 0; !result.valid && attempt < 64u; ++attempt) {
+        static_cast<void>(wgpuDevicePoll(
+            context.getDevice(), true, &submission));
+        result = timer.readResults();
+    }
+    ASSERT_TRUE(result.valid);
+    ASSERT_EQ(result.timestamps.size(), 2u);
+    EXPECT_EQ(result.timestamps[0].label, "begin");
+    EXPECT_EQ(result.timestamps[1].label, "end");
+    EXPECT_DOUBLE_EQ(result.timestamps[0].timeMs, 0.0);
+    EXPECT_GE(result.timestamps[1].timeMs, 0.0);
+    EXPECT_EQ(timer.getLastResults().timestamps.size(), 2u);
+    EXPECT_TRUE(timer.beginFrame());
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -198,4 +269,3 @@ TEST(ContextUtilsTest, TextureFormatToString) {
 }
 
 } // namespace voxy::gpu
-

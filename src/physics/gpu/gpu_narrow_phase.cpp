@@ -122,7 +122,10 @@ public:
             return false;
         }
         const std::array<uint32_t, kTelemetryWords> zeroTelemetry{};
-        gpu::writeBuffer(queue_, telemetry_, 0, zeroTelemetry);
+        if (!gpu::writeBuffer(queue_, telemetry_, 0, zeroTelemetry)) {
+            shutdown();
+            return false;
+        }
 
         DeterministicGpuPrimitives::Config primitiveConfig;
         primitiveConfig.capacity = config_.dispatchContactCapacity;
@@ -475,7 +478,8 @@ public:
                            config_.recycleDistance, 0.0f},
             .dispatch = {config_.dispatchContactCapacity, 0u, 0u, 0u},
         };
-        gpu::writeBuffer(queue_, parameterBuffer_, 0, params);
+        if (!gpu::writeBuffer(queue_, parameterBuffer_, 0, params))
+            return false;
         if (!ensureCachedInputGroups()) return false;
         const uint32_t parity = manifoldsAreB_ ? 1u : 0u;
         WGPUBindGroup bucketGroup = cachedInputGroups_[0];
@@ -487,6 +491,7 @@ public:
         WGPUComputePassDescriptor passDesc{};
         WGPUComputePassEncoder pass =
             wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
+        if (!pass) return false;
         wgpuComputePassEncoderSetBindGroup(pass, 0, bucketGroup, 0, nullptr);
         const uint32_t groups =
             (input_.pairCapacity + config_.workgroupSize - 1u)
@@ -509,6 +514,7 @@ public:
         writeProfilingBoundary();
 
         pass = wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
+        if (!pass) return false;
         wgpuComputePassEncoderSetBindGroup(pass, 0, narrowGroup, 0, nullptr);
         for (uint32_t index = 0u; index < classPipelines_.size(); ++index) {
             wgpuComputePassEncoderSetPipeline(pass, classPipelines_[index]);
@@ -527,6 +533,7 @@ public:
             (config_.dispatchContactCapacity + config_.workgroupSize - 1u)
             / config_.workgroupSize;
         pass = wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
+        if (!pass) return false;
         wgpuComputePassEncoderSetBindGroup(
             pass, 0, compactGroup, 0, nullptr);
         wgpuComputePassEncoderSetPipeline(pass, markActivePipeline_);
@@ -540,6 +547,7 @@ public:
             return false;
         }
         pass = wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
+        if (!pass) return false;
         wgpuComputePassEncoderSetBindGroup(
             pass, 0, compactGroup, 0, nullptr);
         wgpuComputePassEncoderSetPipeline(pass, scatterActivePipeline_);
@@ -559,6 +567,7 @@ public:
         WGPUComputePassDescriptor passDesc{};
         WGPUComputePassEncoder pass =
             wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
+        if (!pass) return false;
         wgpuComputePassEncoderSetBindGroup(
             pass, 0, compactGroups_[compactParity], 0, nullptr);
         wgpuComputePassEncoderSetPipeline(pass, commitActivePipeline_);

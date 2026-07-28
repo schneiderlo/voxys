@@ -98,7 +98,7 @@ private:
     float terrainHeightScale_ = 0.0f;
     float terrainCellScale_ = 0.0f;
     std::vector<CharacterSlot> characters_;
-    std::vector<CharacterHandle> freeCharacters_;
+    std::vector<uint32_t> freeCharacterSlots_;
     bool initialized_ = false;
 };
 

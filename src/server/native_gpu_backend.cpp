@@ -1,6 +1,7 @@
 #include "server/native_gpu_backend.hpp"
 
 #include <algorithm>
+#include <limits>
 #include <tuple>
 #include <utility>
 
@@ -11,17 +12,23 @@ public:
     struct Slot {
         uint32_t generation = 1;
         bool active = false;
+        bool retired = false;
         ServerWorldDescriptor descriptor{};
         std::unique_ptr<physics::deterministic::GpuLockstepWorld> world;
     };
 
     bool initialize(WGPUDevice device, WGPUQueue queue, const Config& config) {
+        constexpr uint32_t maximumSlotCount = 65'536u;
+        if (!device || !queue || config.maximumWorlds == 0u
+            || config.maximumWorlds > maximumSlotCount) {
+            return false;
+        }
+        std::vector<Slot> replacement(config.maximumWorlds);
         shutdown();
-        if (!device || !queue || config.maximumWorlds == 0u) return false;
         device_ = device;
         queue_ = queue;
         config_ = config;
-        slots_.resize(config_.maximumWorlds);
+        slots_ = std::move(replacement);
         initialized_ = true;
         return true;
     }
@@ -58,7 +65,12 @@ public:
         for (const auto& slot : slots_) {
             if (!slot.active || !slot.world) continue;
             ++telemetry_.activeWorlds;
-            telemetry_.allocatedBytes += slot.world->allocatedBytes();
+            const size_t bytes = slot.world->allocatedBytes();
+            telemetry_.allocatedBytes =
+                telemetry_.allocatedBytes
+                    > std::numeric_limits<size_t>::max() - bytes
+                ? std::numeric_limits<size_t>::max()
+                : telemetry_.allocatedBytes + bytes;
         }
         telemetry_.worldHighWater = std::max(
             telemetry_.worldHighWater, telemetry_.activeWorlds);
@@ -84,14 +96,17 @@ NativeServerGpuBackend& NativeServerGpuBackend::operator=(
 
 bool NativeServerGpuBackend::initialize(
     WGPUDevice device, WGPUQueue queue, const Config& config) {
+    if (!impl_) impl_ = std::make_unique<Impl>();
     return impl_->initialize(device, queue, config);
 }
 
-void NativeServerGpuBackend::shutdown() { impl_->shutdown(); }
+void NativeServerGpuBackend::shutdown() {
+    if (impl_) impl_->shutdown();
+}
 
 std::optional<ServerWorldHandle> NativeServerGpuBackend::createWorld(
     const ServerWorldDescriptor& descriptor) {
-    if (!impl_->initialized_ || descriptor.worldId == 0u
+    if (!impl_ || !impl_->initialized_ || descriptor.worldId == 0u
         || descriptor.islandId == 0u) return std::nullopt;
     const bool duplicate = std::any_of(
         impl_->slots_.begin(), impl_->slots_.end(),
@@ -103,7 +118,9 @@ std::optional<ServerWorldHandle> NativeServerGpuBackend::createWorld(
     if (duplicate) return std::nullopt;
     auto iterator = std::find_if(
         impl_->slots_.begin(), impl_->slots_.end(),
-        [](const Impl::Slot& slot) { return !slot.active; });
+        [](const Impl::Slot& slot) {
+            return !slot.active && !slot.retired;
+        });
     if (iterator == impl_->slots_.end()) return std::nullopt;
     auto world = std::make_unique<physics::deterministic::GpuLockstepWorld>();
     if (!world->initialize(
@@ -122,14 +139,17 @@ std::optional<ServerWorldHandle> NativeServerGpuBackend::createWorld(
 }
 
 bool NativeServerGpuBackend::destroyWorld(ServerWorldHandle handle) {
+    if (!impl_) return false;
     Impl::Slot* slot = impl_->slot(handle);
     if (slot == nullptr) return false;
     slot->world->shutdown();
     slot->world.reset();
     slot->descriptor = {};
     slot->active = false;
-    ++slot->generation;
-    if (slot->generation == 0u) slot->generation = 1u;
+    if (slot->generation == std::numeric_limits<uint32_t>::max())
+        slot->retired = true;
+    else
+        ++slot->generation;
     impl_->refreshTelemetry();
     return true;
 }
@@ -137,16 +157,24 @@ bool NativeServerGpuBackend::destroyWorld(ServerWorldHandle handle) {
 bool NativeServerGpuBackend::uploadBodies(
     ServerWorldHandle handle,
     std::span<const physics::deterministic::LockstepBody> bodies) {
+    if (!impl_) return false;
     Impl::Slot* slot = impl_->slot(handle);
     if (slot == nullptr || !slot->world->uploadBodies(bodies)) return false;
-    impl_->telemetry_.uploadedBodies += bodies.size();
+    const uint64_t count = bodies.size();
+    impl_->telemetry_.uploadedBodies =
+        impl_->telemetry_.uploadedBodies
+                > std::numeric_limits<uint64_t>::max() - count
+            ? std::numeric_limits<uint64_t>::max()
+            : impl_->telemetry_.uploadedBodies + count;
     return true;
 }
 
 bool NativeServerGpuBackend::encodeBatch(
     WGPUCommandEncoder encoder, uint32_t tick,
     std::span<const ServerWorldHandle> input) {
-    if (!encoder || input.empty()) {
+    if (!impl_ || !impl_->initialized_ || !encoder || input.empty()
+        || input.size() > impl_->config_.maximumWorlds) {
+        if (!impl_) return false;
         ++impl_->telemetry_.rejectedBatches;
         return false;
     }
@@ -185,6 +213,7 @@ bool NativeServerGpuBackend::encodeBatch(
 
 std::optional<ServerWorldDescriptor> NativeServerGpuBackend::descriptor(
     ServerWorldHandle handle) const {
+    if (!impl_) return std::nullopt;
     const Impl::Slot* slot = impl_->slot(handle);
     return slot != nullptr
         ? std::optional<ServerWorldDescriptor>(slot->descriptor) : std::nullopt;
@@ -192,17 +221,21 @@ std::optional<ServerWorldDescriptor> NativeServerGpuBackend::descriptor(
 
 WGPUBuffer NativeServerGpuBackend::bodyBuffer(
     ServerWorldHandle handle) const noexcept {
+    if (!impl_) return nullptr;
     const Impl::Slot* slot = impl_->slot(handle);
     return slot != nullptr ? slot->world->bodyBuffer() : nullptr;
 }
 
 WGPUBuffer NativeServerGpuBackend::telemetryBuffer(
     ServerWorldHandle handle) const noexcept {
+    if (!impl_) return nullptr;
     const Impl::Slot* slot = impl_->slot(handle);
     return slot != nullptr ? slot->world->telemetryBuffer() : nullptr;
 }
 
 const NativeServerGpuTelemetry& NativeServerGpuBackend::telemetry() const noexcept {
+    static const NativeServerGpuTelemetry empty{};
+    if (!impl_) return empty;
     return impl_->telemetry_;
 }
 

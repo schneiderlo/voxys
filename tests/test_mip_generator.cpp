@@ -7,6 +7,7 @@
 #include <gtest/gtest.h>
 #include "terrain/mip_generator.hpp"
 
+#include <array>
 #include <cmath>
 #include <numeric>
 #include <vector>
@@ -18,6 +19,8 @@ namespace voxy::terrain {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 TEST(MipGeneratorUtilityTest, CalculateMipLevelCount) {
+    EXPECT_EQ(calculateMipLevelCount(0, 0), 0u);
+    EXPECT_EQ(calculateMipLevelCount(1, 0), 0u);
     // Power of two dimensions
     EXPECT_EQ(calculateMipLevelCount(1, 1), 1u);
     EXPECT_EQ(calculateMipLevelCount(2, 2), 2u);
@@ -37,6 +40,10 @@ TEST(MipGeneratorUtilityTest, CalculateMipLevelCount) {
 }
 
 TEST(MipGeneratorUtilityTest, GetMipLevelDimensions) {
+    EXPECT_EQ(getMipLevelDimensions(0, 8, 0),
+              (std::pair<uint32_t, uint32_t>{0u, 0u}));
+    EXPECT_EQ(getMipLevelDimensions(8, 8, 32),
+              (std::pair<uint32_t, uint32_t>{1u, 1u}));
     // 8×8 base
     auto [w0, h0] = getMipLevelDimensions(8, 8, 0);
     EXPECT_EQ(w0, 8u);
@@ -225,7 +232,8 @@ TEST(GenerateNextMipLevelTest, NonSquare) {
 }
 
 TEST(GenerateNextMipLevelTest, OddDimensions) {
-    // 5×3 -> 2×1 (should handle edge clamping)
+    // 5×3 -> 2×1. The last destination footprint expands to include the
+    // odd source edge so a tall boundary sample is never lost.
     std::vector<uint16_t> src = {
         10, 20, 30, 40, 50,
         60, 70, 80, 90, 100,
@@ -237,10 +245,14 @@ TEST(GenerateNextMipLevelTest, OddDimensions) {
     EXPECT_EQ(result.width, 2u);
     EXPECT_EQ(result.height, 1u);
     
-    // Block (0,0): samples at (0,0), (1,0), (0,1), (1,1) = max(10,20,60,70) = 70
-    // Block (1,0): samples at (2,0), (3,0), (2,1), (3,1) = max(30,40,80,90) = 90
-    EXPECT_EQ(result.sample(0, 0), 70u);
-    EXPECT_EQ(result.sample(1, 0), 90u);
+    EXPECT_EQ(result.sample(0, 0), 120u);
+    EXPECT_EQ(result.sample(1, 0), 150u);
+}
+
+TEST(GenerateNextMipLevelTest, RejectsInvalidSourceLayout) {
+    EXPECT_FALSE(generateNextMipLevel({}, 0u, 0u).isValid());
+    const std::array<uint16_t, 3> tooShort{1u, 2u, 3u};
+    EXPECT_FALSE(generateNextMipLevel(tooShort, 2u, 2u).isValid());
 }
 
 TEST(GenerateNextMipLevelTest, AllSameValue) {
@@ -502,6 +514,32 @@ TEST(MaxHeightMipChainTest, Regenerate) {
     EXPECT_EQ(chain.getLevel(3)->sample(0, 0), 200u);
 }
 
+TEST(MaxHeightMipChainTest, RegeneratesSafelyFromAliasedBase) {
+    MaxHeightMipChain chain;
+    std::vector<uint16_t> data(16);
+    std::iota(data.begin(), data.end(), uint16_t{1});
+    ASSERT_TRUE(chain.generate(data, 4u, 4u));
+
+    const auto* base = chain.getLevel(0u);
+    ASSERT_NE(base, nullptr);
+    ASSERT_TRUE(chain.generate(base->data, 4u, 4u));
+    ASSERT_NE(chain.getLevel(2u), nullptr);
+    EXPECT_EQ(chain.getLevel(2u)->data[0], 16u);
+}
+
+TEST(MaxHeightMipChainTest, FailedReplacementPreservesWorkingChain) {
+    MaxHeightMipChain chain;
+    const std::vector<uint16_t> data(16u, 777u);
+    ASSERT_TRUE(chain.generate(data, 4u, 4u));
+
+    EXPECT_FALSE(chain.generate(
+        data, kMaxMipDimension + 1u, 1u));
+    ASSERT_TRUE(chain.isValid());
+    EXPECT_EQ(chain.getBaseWidth(), 4u);
+    ASSERT_NE(chain.getLevel(2u), nullptr);
+    EXPECT_EQ(chain.getLevel(2u)->data[0], 777u);
+}
+
 TEST(MaxHeightMipChainTest, GetLevels) {
     MaxHeightMipChain chain;
     std::vector<uint16_t> data(16, 500);
@@ -634,5 +672,3 @@ TEST(MaxHeightMipChainIntegrationTest, MemoryEfficiency) {
 }
 
 } // namespace voxy::terrain
-
-

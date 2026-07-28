@@ -85,6 +85,10 @@ TEST(LDHHeaderTest, IsValid) {
     LDHHeader badHeight = header;
     badHeight.height = 0;
     EXPECT_FALSE(badHeight.isValid());
+
+    LDHHeader tooWide = header;
+    tooWide.width = LDH_MAX_DIMENSION + 1u;
+    EXPECT_FALSE(tooWide.isValid());
 }
 
 TEST(LDHHeaderTest, SampleCount) {
@@ -309,6 +313,17 @@ TEST(CompressionTest, InvalidDimensions) {
     EXPECT_EQ(result3.error(), CompressionError::InvalidDimensions);
 }
 
+TEST(CompressionTest, RejectsInvalidCompressionLevel) {
+    std::vector<uint16_t> data(16, 1000);
+    CompressionOptions options = CompressionOptions::fast();
+    options.zstdLevel = std::numeric_limits<int>::max();
+
+    const auto result = compress(data, 4, 4, options);
+
+    EXPECT_FALSE(result.has_value());
+    EXPECT_EQ(result.error(), CompressionError::InvalidInput);
+}
+
 TEST(CompressionTest, SmallFlat) {
     // 4x4 flat heightmap (too small for actual compression due to header overhead)
     std::vector<uint16_t> data(16, 32768);
@@ -515,6 +530,70 @@ TEST(HeaderTest, InvalidMagic) {
     auto result = readHeader(data);
     EXPECT_FALSE(result.has_value());
     EXPECT_EQ(result.error(), CompressionError::InvalidHeader);
+}
+
+TEST(HeaderTest, RejectsOversizedOrUnsupportedPayloadsBeforeAllocation) {
+    const auto makeHeaderBytes = [](LDHHeader header) {
+        std::vector<uint8_t> bytes(
+            LDH_HEADER_SIZE + header.lowStreamSize + header.highStreamSize);
+        std::memcpy(bytes.data(), &header, LDH_HEADER_SIZE);
+        return bytes;
+    };
+
+    LDHHeader oversized;
+    oversized.init(LDH_MAX_DIMENSION + 1u, 1u);
+    oversized.lowStreamSize = 1u;
+    oversized.highStreamSize = 1u;
+    auto result = readHeader(makeHeaderBytes(oversized));
+    EXPECT_FALSE(result.has_value());
+    EXPECT_EQ(result.error(), CompressionError::InvalidHeader);
+
+    LDHHeader missingEncoding;
+    missingEncoding.init(1u, 1u);
+    missingEncoding.flags = 0u;
+    missingEncoding.lowStreamSize = 1u;
+    missingEncoding.highStreamSize = 1u;
+    result = readHeader(makeHeaderBytes(missingEncoding));
+    EXPECT_FALSE(result.has_value());
+    EXPECT_EQ(result.error(), CompressionError::InvalidHeader);
+
+    LDHHeader unknownFlag;
+    unknownFlag.init(1u, 1u);
+    unknownFlag.flags |= 0x80000000u;
+    unknownFlag.lowStreamSize = 1u;
+    unknownFlag.highStreamSize = 1u;
+    result = readHeader(makeHeaderBytes(unknownFlag));
+    EXPECT_FALSE(result.has_value());
+    EXPECT_EQ(result.error(), CompressionError::InvalidHeader);
+
+    LDHHeader nonzeroReserved;
+    nonzeroReserved.init(1u, 1u);
+    nonzeroReserved.lowStreamSize = 1u;
+    nonzeroReserved.highStreamSize = 1u;
+    nonzeroReserved.reserved[0] = 1u;
+    result = readHeader(makeHeaderBytes(nonzeroReserved));
+    EXPECT_FALSE(result.has_value());
+    EXPECT_EQ(result.error(), CompressionError::InvalidHeader);
+
+    LDHHeader impossibleStreams;
+    impossibleStreams.init(1u, 1u);
+    impossibleStreams.lowStreamSize = 1024u;
+    impossibleStreams.highStreamSize = 1024u;
+    result = readHeader(makeHeaderBytes(impossibleStreams));
+    EXPECT_FALSE(result.has_value());
+    EXPECT_EQ(result.error(), CompressionError::InvalidHeader);
+}
+
+TEST(HeaderTest, RejectsTrailingBytes) {
+    const std::vector<uint16_t> data(16, 1000);
+    auto compressed = compress(data, 4, 4);
+    ASSERT_TRUE(compressed.has_value());
+    compressed.value().data.push_back(0u);
+
+    const auto result = decompress(compressed.value().data);
+
+    EXPECT_FALSE(result.has_value());
+    EXPECT_EQ(result.error(), CompressionError::SizeMismatch);
 }
 
 TEST(HeaderTest, GetInfoString) {
@@ -886,4 +965,3 @@ TEST_F(FileIOTest, CompressionStatsFromFile) {
 }
 
 } // namespace voxy::terrain
-

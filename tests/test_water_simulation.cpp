@@ -7,8 +7,11 @@
 #include <cmath>
 #include <filesystem>
 #include <fstream>
+#include <limits>
 #include <sstream>
 #include <vector>
+
+#include <glm/geometric.hpp>
 
 namespace voxy::render {
 namespace {
@@ -21,7 +24,6 @@ std::filesystem::path findShaderDirectory() {
              std::filesystem::path("../../../shaders")}) {
         if (std::filesystem::exists(candidate / "water_fft.wgsl") &&
             std::filesystem::exists(candidate / "water_finalize.wgsl") &&
-            std::filesystem::exists(candidate / "water_foam.wgsl") &&
             std::filesystem::exists(candidate / "water_clipmap.wgsl")) {
             return candidate;
         }
@@ -50,7 +52,6 @@ TEST(WaterSimulationTest, DefaultConstructionOwnsNoGPUResources) {
     WaterSimulation simulation;
     EXPECT_FALSE(simulation.isInitialized());
     EXPECT_EQ(simulation.getOutputView(), nullptr);
-    EXPECT_EQ(simulation.getFoamView(), nullptr);
     EXPECT_EQ(simulation.getCoastView(), nullptr);
     EXPECT_EQ(simulation.getSampler(), nullptr);
 }
@@ -81,8 +82,13 @@ TEST(WaterSimulationGPUTest, BuildsAndDispatchesCompleteOceanPipeline) {
                                 terrain, terrainSize, terrainSize, 500.0f, 1.0f, 0.0f));
     ASSERT_TRUE(simulation.isInitialized());
     ASSERT_NE(simulation.getOutputView(), nullptr);
-    ASSERT_NE(simulation.getFoamView(), nullptr);
     ASSERT_NE(simulation.getCoastView(), nullptr);
+
+    const auto noGpuSurface = WaterSimulation{}.sampleSurface(
+        glm::vec2(1.0f), 1.0f, 1.0f);
+    EXPECT_EQ(noGpuSurface.heightOffset, 0.0f);
+    EXPECT_EQ(noGpuSurface.slope, glm::vec2(0.0f));
+    EXPECT_EQ(noGpuSurface.velocity, glm::vec3(0.0f));
 
     const auto still = simulation.sampleSurface(glm::vec2(14.0f, -27.0f),
                                                 0.0f, 0.0f);
@@ -96,6 +102,83 @@ TEST(WaterSimulationGPUTest, BuildsAndDispatchesCompleteOceanPipeline) {
     EXPECT_TRUE(std::isfinite(first.heightOffset));
     EXPECT_TRUE(std::isfinite(later.heightOffset));
     EXPECT_NE(first.heightOffset, later.heightOffset);
+
+    const glm::vec2 parityPosition(137.25f, -81.5f);
+    constexpr float parityTime = 3.125f;
+    WaterSpectrumConfig liveSpectrum = simulation.spectrumConfig();
+    liveSpectrum.directionalSineScale = 0.0f;
+    ASSERT_TRUE(simulation.reconfigure(liveSpectrum));
+    const auto zeroSine = simulation.sampleSurface(
+        parityPosition, parityTime, 1.0f);
+    liveSpectrum.directionalSineScale = 1.5f;
+    ASSERT_TRUE(simulation.reconfigure(liveSpectrum));
+    const auto strongSine = simulation.sampleSurface(
+        parityPosition, parityTime, 1.0f);
+    EXPECT_GT(std::abs(strongSine.heightOffset - zeroSine.heightOffset),
+              1.0e-5f);
+    EXPECT_GT(glm::length(strongSine.velocity - zeroSine.velocity),
+              1.0e-5f);
+
+    const WaterSpectrumConfig beforeInvalid = simulation.spectrumConfig();
+    WaterSpectrumConfig invalidSpectrum = beforeInvalid;
+    invalidSpectrum.significantWaveHeight =
+        std::numeric_limits<float>::quiet_NaN();
+    invalidSpectrum.directionRadians =
+        std::numeric_limits<float>::infinity();
+    invalidSpectrum.choppiness =
+        -std::numeric_limits<float>::infinity();
+    invalidSpectrum.patchLengths.x =
+        std::numeric_limits<float>::quiet_NaN();
+    invalidSpectrum.cascadeAmplitudes.y =
+        std::numeric_limits<float>::quiet_NaN();
+    invalidSpectrum.directionalSineScale =
+        std::numeric_limits<float>::quiet_NaN();
+    ASSERT_TRUE(simulation.reconfigure(invalidSpectrum));
+    const WaterSpectrumConfig afterInvalid = simulation.spectrumConfig();
+    EXPECT_FLOAT_EQ(afterInvalid.significantWaveHeight,
+                    beforeInvalid.significantWaveHeight);
+    EXPECT_FLOAT_EQ(afterInvalid.directionRadians,
+                    beforeInvalid.directionRadians);
+    EXPECT_FLOAT_EQ(afterInvalid.choppiness,
+                    beforeInvalid.choppiness);
+    EXPECT_FLOAT_EQ(afterInvalid.patchLengths.x,
+                    beforeInvalid.patchLengths.x);
+    EXPECT_FLOAT_EQ(afterInvalid.cascadeAmplitudes.y,
+                    beforeInvalid.cascadeAmplitudes.y);
+    EXPECT_FLOAT_EQ(afterInvalid.directionalSineScale,
+                    beforeInvalid.directionalSineScale);
+
+    WaterSpectrumConfig rebuiltSpectrum = simulation.spectrumConfig();
+    rebuiltSpectrum.significantWaveHeight += 0.75f;
+    rebuiltSpectrum.directionRadians += 0.1f;
+    WGPUTextureView outputBeforeRebuild = simulation.getOutputView();
+    ASSERT_TRUE(simulation.reconfigure(rebuiltSpectrum));
+    EXPECT_TRUE(simulation.isInitialized());
+    EXPECT_EQ(simulation.getOutputView(), outputBeforeRebuild);
+    EXPECT_FLOAT_EQ(simulation.spectrumConfig().significantWaveHeight,
+                    rebuiltSpectrum.significantWaveHeight);
+    EXPECT_FLOAT_EQ(simulation.spectrumConfig().directionRadians,
+                    rebuiltSpectrum.directionRadians);
+    const auto rebuiltSample = simulation.sampleSurface(
+        parityPosition, parityTime, 1.0f);
+    EXPECT_TRUE(std::isfinite(rebuiltSample.heightOffset));
+    EXPECT_TRUE(std::isfinite(glm::length(rebuiltSample.slope)));
+    EXPECT_TRUE(std::isfinite(glm::length(rebuiltSample.velocity)));
+
+    const float nan = std::numeric_limits<float>::quiet_NaN();
+    for (const auto invalidSample : {
+             simulation.sampleSurface({nan, 0.0f}, 1.0f, 1.0f),
+             simulation.sampleSurface({0.0f, nan}, 1.0f, 1.0f),
+             simulation.sampleSurface({0.0f, 0.0f}, nan, 1.0f),
+             simulation.sampleSurface({0.0f, 0.0f}, 1.0f, nan)}) {
+        EXPECT_EQ(invalidSample.heightOffset, 0.0f);
+        EXPECT_EQ(invalidSample.slope, glm::vec2(0.0f));
+        EXPECT_EQ(invalidSample.velocity, glm::vec3(0.0f));
+    }
+    WGPUTextureView coastBeforeInvalid = simulation.getCoastView();
+    EXPECT_FALSE(simulation.rebuildCoastField(
+        terrain, terrainSize, terrainSize, 500.0f, 1.0f, nan));
+    EXPECT_EQ(simulation.getCoastView(), coastBeforeInvalid);
 
     // Compile both consumers as part of the isolated ocean test. Full pipeline
     // binding is exercised by the native screenshot run; this catches WGSL
@@ -115,6 +198,7 @@ TEST(WaterSimulationGPUTest, BuildsAndDispatchesCompleteOceanPipeline) {
     WGPUCommandEncoder encoder =
         wgpuDeviceCreateCommandEncoder(context.getDevice(), &encoderDesc);
     ASSERT_NE(encoder, nullptr);
+    simulation.update(encoder, nan);
     simulation.update(encoder, 1.25f);
 
     WGPUCommandBufferDescriptor commandDesc{};

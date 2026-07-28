@@ -102,6 +102,16 @@ TEST(NetworkProtocol, CanonicalCommandsPacketsAndAcknowledgements) {
     const auto replay = toReplayCommand(move);
     ASSERT_TRUE(replay.has_value());
     EXPECT_EQ(replay->type, ReplayCommandType::ApplyImpulse);
+    auto invalidCommand = move;
+    invalidCommand.type = static_cast<NetworkCommandType>(999u);
+    EXPECT_FALSE(toReplayCommand(invalidCommand).has_value());
+    EXPECT_TRUE(NetworkCommandCodec::encode(
+        std::span<const CanonicalNetworkCommand>(&invalidCommand, 1u)).empty());
+    auto invalidFlags = commandBytes;
+    ASSERT_GT(invalidFlags.size(), 48u);
+    invalidFlags[48] |= std::byte{0x80};
+    EXPECT_FALSE(NetworkCommandCodec::decode(invalidFlags)
+                     .commands.has_value());
 
     Packet packet;
     packet.header.payloadType = PacketPayloadType::Command;
@@ -129,6 +139,14 @@ TEST(NetworkProtocol, CanonicalCommandsPacketsAndAcknowledgements) {
               "network packet checksum mismatch");
     packet.payload.resize(kConservativeRealtimeMtu);
     EXPECT_FALSE(PacketCodec::encode(packet, DeliveryClass::Realtime)
+                     .error.empty());
+    const auto invalidDelivery = static_cast<DeliveryClass>(99u);
+    EXPECT_FALSE(PacketCodec::encode(packet, invalidDelivery).error.empty());
+    EXPECT_FALSE(PacketCodec::decode(encoded.bytes, invalidDelivery)
+                     .error.empty());
+    packet.payload.clear();
+    packet.header.protocolVersion = kNetworkProtocolVersion + 1u;
+    EXPECT_FALSE(PacketCodec::encode(packet, DeliveryClass::ReliableControl)
                      .error.empty());
 
     AckWindow acknowledgements;
@@ -188,6 +206,13 @@ TEST(NetworkTransport, WebTransportFailsOverToThreeDataChannels) {
     EXPECT_TRUE(gateway.send(DeliveryClass::ReliableControl, payload));
     EXPECT_EQ(fallbackChannels, (std::vector<uint32_t>{0u, 1u, 2u}));
     ASSERT_TRUE(gateway.poll().has_value());
+    incoming.push_back({
+        static_cast<DeliveryClass>(99u),
+        std::vector<std::byte>{std::byte{9}},
+    });
+    EXPECT_FALSE(gateway.poll().has_value());
+    EXPECT_FALSE(gateway.send(static_cast<DeliveryClass>(99u), payload));
+    EXPECT_EQ(fallbackChannels, (std::vector<uint32_t>{0u, 1u, 2u}));
     EXPECT_EQ(gateway.telemetry().failovers, 1u);
     EXPECT_EQ(gateway.telemetry().receivedFrames, 1u);
     std::vector<std::byte> tooLarge(kConservativeRealtimeMtu + 1u);
@@ -214,6 +239,8 @@ TEST(NetworkReplication, InputTickDeltaInterestAndAuthorityContracts) {
     InputRedundancyBuffer receiver;
     EXPECT_EQ(receiver.ingest(*decodedInputs.frames).size(), bundle.size());
     EXPECT_TRUE(receiver.ingest(*decodedInputs.frames).empty());
+    std::array<InputFrame, kMaximumInputFramesPerBundle + 1u> oversizedInputs{};
+    EXPECT_TRUE(receiver.ingest(oversizedInputs).empty());
     sender.acknowledge(3);
     EXPECT_EQ(sender.acknowledgedTick(), 3u);
 
@@ -228,6 +255,23 @@ TEST(NetworkReplication, InputTickDeltaInterestAndAuthorityContracts) {
     EXPECT_EQ(synchronizer.offsetTicks(), 11);
     EXPECT_EQ(synchronizer.estimatedServerTick(120), 131u);
     EXPECT_EQ(synchronizer.recommendedInputTick(120), 133u);
+    TickSynchronizer zeroRtt;
+    ASSERT_TRUE(zeroRtt.observe({
+        .clientSendMicros = 1'000,
+        .clientReceiveMicros = 1'000,
+        .localReceiveTick = 10,
+        .serverTick = 15,
+    }));
+    EXPECT_EQ(zeroRtt.minimumRttMicros(), 0u);
+    EXPECT_EQ(zeroRtt.offsetTicks(), 5);
+    ASSERT_TRUE(zeroRtt.observe({
+        .clientSendMicros = 2'000,
+        .clientReceiveMicros = 102'000,
+        .localReceiveTick = 10,
+        .serverTick = 1'000,
+    }));
+    EXPECT_EQ(zeroRtt.minimumRttMicros(), 0u);
+    EXPECT_EQ(zeroRtt.offsetTicks(), 5);
 
     AuthoritativeSnapshot first;
     first.tick = 1;
@@ -256,6 +300,31 @@ TEST(NetworkReplication, InputTickDeltaInterestAndAuthorityContracts) {
     const auto decodedFull = SnapshotCodec::decode(SnapshotCodec::encode(first));
     ASSERT_TRUE(decodedFull.snapshot.has_value()) << decodedFull.error;
     EXPECT_EQ(decodedFull.snapshot->stateHash, first.stateHash);
+    EXPECT_FALSE(history.deltaFrom(first, first.tick).has_value());
+    auto conflicting = first;
+    conflicting.bodies.front().positionInvMass[0] += 1;
+    conflicting.stateHash = snapshotStateHash(conflicting);
+    EXPECT_FALSE(history.store(conflicting));
+    EXPECT_EQ(history.find(first.islandId, first.authorityEpoch, first.tick)
+                  ->stateHash,
+              first.stateHash);
+    auto duplicate = first;
+    duplicate.bodies.push_back(first.bodies.front());
+    duplicate.stateHash = snapshotStateHash(duplicate);
+    EXPECT_FALSE(history.applyDelta(duplicate).has_value());
+    auto noncanonicalDeltaBytes = SnapshotCodec::encode(*delta);
+    ASSERT_GE(noncanonicalDeltaBytes.size(), 4u);
+    noncanonicalDeltaBytes[noncanonicalDeltaBytes.size() - 4u] = std::byte{1};
+    noncanonicalDeltaBytes[noncanonicalDeltaBytes.size() - 3u] = std::byte{0};
+    noncanonicalDeltaBytes[noncanonicalDeltaBytes.size() - 2u] = std::byte{0};
+    noncanonicalDeltaBytes[noncanonicalDeltaBytes.size() - 1u] = std::byte{0};
+    EXPECT_FALSE(SnapshotCodec::decode(noncanonicalDeltaBytes)
+                     .snapshot.has_value());
+    auto noncanonicalFullBytes = SnapshotCodec::encode(first);
+    ASSERT_GT(noncanonicalFullBytes.size(), 32u);
+    noncanonicalFullBytes[32] = std::byte{1};
+    EXPECT_FALSE(SnapshotCodec::decode(noncanonicalFullBytes)
+                     .snapshot.has_value());
 
     std::vector<LockstepBody> worldBodies(8);
     worldBodies[1] = body(1u, -1, 0);
@@ -264,6 +333,14 @@ TEST(NetworkReplication, InputTickDeltaInterestAndAuthorityContracts) {
     EXPECT_TRUE(grid.rebuild(worldBodies));
     const auto nearby = grid.query(grid.cellFor(worldBodies[1]), 0u);
     EXPECT_EQ(nearby.bodyIds, (std::vector<uint32_t>{1u}));
+    InterestGrid limited({
+        .cellSizeQ12 =
+            32 * physics::deterministic::kLockstepPositionOne,
+        .maximumEntries = 1u,
+        .maximumQueryBodies = 8u,
+    });
+    EXPECT_FALSE(limited.rebuild(worldBodies));
+    EXPECT_TRUE(limited.query(limited.cellFor(worldBodies[1]), 0u).overflow);
 
     AuthorityTable authority;
     EXPECT_TRUE(authority.assign({
@@ -278,6 +355,19 @@ TEST(NetworkReplication, InputTickDeltaInterestAndAuthorityContracts) {
     EXPECT_EQ(migrated->epoch, 2u);
     EXPECT_FALSE(authority.accepts(9, 1, 10));
     EXPECT_TRUE(authority.accepts(9, 2, 10));
+    EXPECT_FALSE(authority.assign({
+        .islandId = 9,
+        .epoch = 2,
+        .workerId = 99,
+        .startTick = 10,
+        .checkpointHash = {1u, 2u},
+    }));
+    EXPECT_FALSE(authority.assign({
+        .islandId = 9,
+        .epoch = 3,
+        .workerId = 99,
+        .startTick = 9,
+    }));
 
     SnapshotAckTracker acknowledgements;
     EXPECT_FALSE(acknowledgements.acknowledgedTick(1).has_value());
@@ -348,6 +438,41 @@ TEST(NetworkPrediction, RestoresIslandAndReplaysBufferedInputs) {
     stale.stateHash = snapshotStateHash(stale);
     EXPECT_FALSE(prediction.reconcile(stale).accepted);
     EXPECT_EQ(prediction.telemetry().staleSnapshots, 1u);
+}
+
+TEST(NetworkPrediction, RejectedUpdatesPreserveTheWorkingTick) {
+    PredictionBubble::Config config;
+    config.world.bodyCapacity = 8u;
+    config.world.contactCapacity = 16u;
+    std::vector<LockstepBody> initial(config.world.bodyCapacity);
+    initial[1] = body(1u, 0, 8'192);
+    PredictionBubble prediction;
+    ASSERT_TRUE(prediction.initialize(config, 1u, 1u, 1u, initial));
+    const auto initialHash = prediction.snapshot().stateHash;
+
+    std::array commands{
+        impulse(1u, 1u, 1u, 1'024),
+        impulse(1u, 7u, 1u, 1'024),
+    };
+    EXPECT_FALSE(prediction.predict(1u, commands));
+    EXPECT_EQ(prediction.currentTick(), 0u);
+    EXPECT_EQ(prediction.snapshot().stateHash, initialHash);
+    EXPECT_TRUE(prediction.recordedCommands().empty());
+
+    auto wrongTick = impulse(2u, 1u, 1u, 1'024);
+    EXPECT_FALSE(prediction.predict(
+        1u, std::span<const CanonicalReplayCommand>(&wrongTick, 1u)));
+    EXPECT_EQ(prediction.currentTick(), 0u);
+    EXPECT_EQ(prediction.snapshot().stateHash, initialHash);
+
+    auto malformed = initial;
+    malformed[1].sectorRadius[3] = 0;
+    EXPECT_FALSE(prediction.initialize(config, 2u, 1u, 1u, malformed));
+    EXPECT_EQ(prediction.currentTick(), 0u);
+    EXPECT_EQ(prediction.snapshot().stateHash, initialHash);
+    EXPECT_FALSE(prediction.setMembership(
+        std::array<uint32_t, 2>{1u, 7u},
+        std::span<const uint32_t>{}));
 }
 
 TEST(NetworkSandbox, TwoClientsPredictMeteorsRollbackAndRejectTransforms) {
@@ -437,6 +562,23 @@ TEST(NetworkSandbox, TwoClientsPredictMeteorsRollbackAndRejectTransforms) {
     EXPECT_GE(server.telemetry().duplicateInputs, 1u);
     EXPECT_GE(clientOne.telemetry().rollbacks, 1u);
     EXPECT_GE(clientTwo.telemetry().rollbacks, 1u);
+
+    CanonicalNetworkCommand direct;
+    direct.tick = server.currentTick() + 1u;
+    direct.sequence = 10'000u;
+    direct.islandId = server.islandId();
+    direct.authorityEpoch = server.authorityEpoch();
+    direct.clientId = 1u;
+    direct.type = NetworkCommandType::MoveInput;
+    direct.body = 1u;
+    direct.generation = server.bodies()[1].identity[1];
+    ASSERT_TRUE(server.submitCommand(direct));
+    EXPECT_FALSE(server.submitCommand(direct));
+    EXPECT_EQ(server.telemetry().duplicateCommands, 1u);
+
+    auto wrongGeneration = server.bodies()[1];
+    ++wrongGeneration.identity[1];
+    EXPECT_FALSE(server.queueCorrection(1u, wrongGeneration));
 
     CanonicalNetworkCommand malicious;
     malicious.tick = server.currentTick() + 1u;

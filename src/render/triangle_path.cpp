@@ -10,6 +10,7 @@
 
 #include <glm/gtc/matrix_inverse.hpp>
 #include <algorithm>
+#include <cmath>
 #include <vector>
 #include <cstring>
 #include <array>
@@ -29,6 +30,29 @@ struct CullUniforms {
 };
 
 static_assert(sizeof(CullUniforms) == 112, "CullUniforms must be 112 bytes");
+
+constexpr uint32_t kMaximumTerrainDimension = 8'192u;
+
+bool finiteVec(const glm::vec2& value) noexcept {
+    return std::isfinite(value.x) && std::isfinite(value.y);
+}
+
+bool finiteVec(const glm::vec3& value) noexcept {
+    return std::isfinite(value.x) && std::isfinite(value.y)
+        && std::isfinite(value.z);
+}
+
+bool finiteVec(const glm::vec4& value) noexcept {
+    return std::isfinite(value.x) && std::isfinite(value.y)
+        && std::isfinite(value.z) && std::isfinite(value.w);
+}
+
+bool finiteMat(const glm::mat4& value) noexcept {
+    for (glm::length_t column = 0; column < 4; ++column) {
+        if (!finiteVec(value[column])) return false;
+    }
+    return true;
+}
 
 } // namespace
 
@@ -74,48 +98,94 @@ CameraUniforms::CameraUniforms() {
     std::memset(frustumPlanes, 0, sizeof(frustumPlanes));
 }
 
-void CameraUniforms::setTerrain(uint32_t width, uint32_t height, float heightScale,
-                                 float cellScale, float step, float fogDensity) {
+bool CameraUniforms::setTerrain(
+    uint32_t width, uint32_t height, float heightScale, float cellScale,
+    float step, float fogDensity) {
+    if (width == 0u || height == 0u
+        || width > kMaximumTerrainDimension
+        || height > kMaximumTerrainDimension
+        || !std::isfinite(heightScale) || heightScale <= 0.0f
+        || !std::isfinite(cellScale) || cellScale <= 0.0f
+        || !std::isfinite(step) || step <= 0.0f
+        || !std::isfinite(fogDensity) || fogDensity < 0.0f) {
+        return false;
+    }
     terrainSize = glm::vec2(static_cast<float>(width), static_cast<float>(height));
     invTerrainSize = glm::vec2(1.0f / terrainSize.x, 1.0f / terrainSize.y);
     metrics = glm::vec4(heightScale, cellScale, step, fogDensity);
+    return true;
 }
 
-void CameraUniforms::setCamera(const glm::mat4& view, const glm::mat4& proj, 
-                                const glm::vec3& position) {
-    viewProj = proj * view;
+bool CameraUniforms::setCamera(
+    const glm::mat4& view, const glm::mat4& proj,
+    const glm::vec3& position) {
+    if (!finiteMat(view) || !finiteMat(proj) || !finiteVec(position)) {
+        return false;
+    }
+    const glm::mat4 nextViewProj = proj * view;
     // Invert view and projection separately, then compose. Inverting the combined
     // view-projection directly in fp32 amplifies rounding error from the non-uniform
     // Z scaling, which shows up as jitter for raycast elements at far distances.
     // inverse(proj * view) == inverse(view) * inverse(proj).
-    invView = glm::inverse(view);
-    glm::mat4 invProj = glm::inverse(proj);
-    invViewProj = invView * invProj;
-    cameraPos = glm::vec4(position, 1.0f);
+    const glm::mat4 nextInvView = glm::inverse(view);
+    const glm::mat4 invProj = glm::inverse(proj);
+    const glm::mat4 nextInvViewProj = nextInvView * invProj;
+    if (!finiteMat(nextViewProj) || !finiteMat(nextInvView)
+        || !finiteMat(invProj) || !finiteMat(nextInvViewProj)) {
+        return false;
+    }
+
+    const Frustum frustum = Frustum::fromViewProj(nextViewProj);
+    if (!frustum.valid()) return false;
 
     // Compute inverse projection parameters for ray generation
     // invProjParams.xy = tan(fov/2) * aspect, tan(fov/2) for NDC to view-space ray
     // Extract from inverse projection matrix
+    viewProj = nextViewProj;
+    invView = nextInvView;
+    invViewProj = nextInvViewProj;
+    cameraPos = glm::vec4(position, 1.0f);
     invProjParams.x = invProj[0][0];  // Scale for X
     invProjParams.y = invProj[1][1];  // Scale for Y
 
     // Update Frustum planes
-    Frustum frustum = Frustum::fromViewProj(viewProj);
     for(size_t i=0; i<6; ++i) {
         frustumPlanes[i] = glm::vec4(frustum.planes[i].normal, frustum.planes[i].distance);
     }
+    return true;
 }
 
-void CameraUniforms::setLightDirection(const glm::vec3& worldDir, const glm::mat4& view, float ambient) {
+bool CameraUniforms::setLightDirection(
+    const glm::vec3& worldDir, const glm::mat4& view, float ambient) {
+    if (!finiteVec(worldDir) || !finiteMat(view)
+        || !std::isfinite(ambient) || ambient < 0.0f
+        || glm::dot(worldDir, worldDir)
+            <= std::numeric_limits<float>::min()) {
+        return false;
+    }
     // Transform world-space direction to view-space
-    glm::vec3 viewDir = glm::vec3(view * glm::vec4(worldDir, 0.0f));
+    const glm::vec3 viewDir = glm::vec3(view * glm::vec4(worldDir, 0.0f));
+    if (!finiteVec(viewDir)
+        || glm::dot(viewDir, viewDir)
+            <= std::numeric_limits<float>::min()) {
+        return false;
+    }
     lightDirVS = glm::vec4(glm::normalize(viewDir), ambient);
     lightDirWS = glm::vec4(glm::normalize(worldDir), 0.0f); // Store world-space dir
+    return true;
 }
 
-void CameraUniforms::setWater(bool enabled, float height, const glm::vec3& shallowColor,
-                              const glm::vec3& deepColor, float roughness,
-                              float waveStrength, float reflectionStrength, float shoreFade) {
+bool CameraUniforms::setWater(
+    bool enabled, float height, const glm::vec3& shallowColor,
+    const glm::vec3& deepColor, float roughness, float waveStrength,
+    float reflectionStrength, float shoreFade) {
+    if (!std::isfinite(height) || !finiteVec(shallowColor)
+        || !finiteVec(deepColor) || !std::isfinite(roughness)
+        || !std::isfinite(waveStrength)
+        || !std::isfinite(reflectionStrength)
+        || !std::isfinite(shoreFade)) {
+        return false;
+    }
     waterParams = glm::vec4(height, enabled ? 1.0f : 0.0f,
                             std::max(waveStrength, 0.0f),
                             std::clamp(roughness, 0.02f, 1.0f));
@@ -123,15 +193,28 @@ void CameraUniforms::setWater(bool enabled, float height, const glm::vec3& shall
                             std::clamp(reflectionStrength, 0.0f, 1.0f));
     waterColorB = glm::vec4(glm::clamp(deepColor, glm::vec3(0.0f), glm::vec3(1.0f)),
                             std::max(shoreFade, 0.001f));
+    return true;
 }
 
-void CameraUniforms::setRendererMaterial(
+bool CameraUniforms::setRendererMaterial(
     const glm::vec3& sunColor, float sunIntensity,
     const glm::vec3& ambientColor, const glm::vec3& atmosphericFogColor,
     float exposure, float waterIor, float waterDistortion,
     float waterAbsorptionScale, float waterScatterStrength, float foamSize,
     float foamOpacity, float foamCoverage, float reflectionDistance,
     const glm::vec2& spectrumPatchLengths) {
+    if (!finiteVec(sunColor) || !std::isfinite(sunIntensity)
+        || !finiteVec(ambientColor) || !finiteVec(atmosphericFogColor)
+        || !std::isfinite(exposure) || !std::isfinite(waterIor)
+        || !std::isfinite(waterDistortion)
+        || !std::isfinite(waterAbsorptionScale)
+        || !std::isfinite(waterScatterStrength)
+        || !std::isfinite(foamSize) || !std::isfinite(foamOpacity)
+        || !std::isfinite(foamCoverage)
+        || !std::isfinite(reflectionDistance)
+        || !finiteVec(spectrumPatchLengths)) {
+        return false;
+    }
     lightingColor = glm::vec4(glm::max(sunColor, glm::vec3(0.0f)),
                               std::max(sunIntensity, 0.0f));
     ambientExposure = glm::vec4(glm::max(ambientColor, glm::vec3(0.0f)),
@@ -148,6 +231,49 @@ void CameraUniforms::setRendererMaterial(
     waterSpectrum = glm::vec4(glm::max(spectrumPatchLengths,
                                       glm::vec2(1.0f)),
                               0.0f, 0.0f);
+    return true;
+}
+
+bool CameraUniforms::setWaterTime(float seconds) {
+    if (!std::isfinite(seconds)) return false;
+    waterMotion.x = seconds;
+    return true;
+}
+
+bool CameraUniforms::setCameraWaterSurfaceOffset(float offset) {
+    if (!std::isfinite(offset)) return false;
+    waterMotion.y = offset;
+    waterMotion.z = waterParams.y > 0.5f
+        && cameraPos.y < waterParams.x + offset ? 1.0f : 0.0f;
+    return true;
+}
+
+bool CameraUniforms::isValid() const noexcept {
+    if (!finiteMat(viewProj) || !finiteMat(invViewProj)
+        || !finiteMat(invView) || !finiteVec(terrainSize)
+        || !finiteVec(invTerrainSize) || !finiteVec(metrics)
+        || !finiteVec(cameraPos) || !finiteVec(invProjParams)
+        || !finiteVec(lightDirVS) || !finiteVec(lightDirWS)
+        || !finiteVec(waterParams) || !finiteVec(waterColorA)
+        || !finiteVec(waterColorB) || !finiteVec(waterMotion)
+        || !finiteVec(lightingColor) || !finiteVec(ambientExposure)
+        || !finiteVec(fogColor) || !finiteVec(waterOptics)
+        || !finiteVec(waterFoam) || !finiteVec(waterSpectrum)) {
+        return false;
+    }
+    for (const glm::vec4& plane : frustumPlanes) {
+        if (!finiteVec(plane)) return false;
+    }
+    return terrainSize.x > 0.0f && terrainSize.y > 0.0f
+        && invTerrainSize.x > 0.0f && invTerrainSize.y > 0.0f
+        && metrics.x > 0.0f && metrics.y > 0.0f
+        && metrics.z > 0.0f && metrics.w >= 0.0f
+        && std::abs(glm::determinant(viewProj))
+            > std::numeric_limits<float>::min()
+        && std::abs(glm::determinant(invViewProj))
+            > std::numeric_limits<float>::min()
+        && std::abs(glm::determinant(invView))
+            > std::numeric_limits<float>::min();
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -394,14 +520,25 @@ bool TrianglePath::init(WGPUDevice device, WGPUQueue queue, const TrianglePathCo
         LOG_ERROR("TrianglePath::init: device or queue is null");
         return false;
     }
+    if (!std::isfinite(config.heightScale) || config.heightScale <= 0.0f
+        || !std::isfinite(config.cellScale) || config.cellScale <= 0.0f
+        || !std::isfinite(config.fogDensity) || config.fogDensity < 0.0f
+        || config.lodStep == 0u) {
+        LOG_ERROR("TrianglePath::init: invalid renderer configuration");
+        return false;
+    }
     
     device_ = device;
     queue_ = queue;
     config_ = config;
     
     // Initialize uniforms with config values
-    uniforms_.setTerrain(256, 256, config.heightScale, config.cellScale, 
-                         static_cast<float>(config.lodStep), config.fogDensity);
+    if (!uniforms_.setTerrain(
+            256, 256, config.heightScale, config.cellScale,
+            static_cast<float>(config.lodStep), config.fogDensity)) {
+        shutdown();
+        return false;
+    }
     
     // Create resources in order
     if (!createIndexBuffer()) {
@@ -540,7 +677,7 @@ bool TrianglePath::createUniformBuffer() {
     }
     
     // Upload initial data
-    updateUniformBuffer();
+    if (!updateUniformBuffer()) return false;
     
     LOG_DEBUG("Created uniform buffer: {} bytes (aligned from {})",
               alignedSize, sizeof(CameraUniforms));
@@ -723,12 +860,6 @@ bool TrianglePath::createBindGroup() {
         return false;
     }
     
-    // Release old bind group if exists
-    if (bindGroup_) {
-        wgpuBindGroupRelease(bindGroup_);
-        bindGroup_ = nullptr;
-    }
-    
     std::array<gpu::BindGroupEntry, 6> entries = {
         gpu::BindGroupEntry(0).buffer(uniformBuffer_, 0, sizeof(CameraUniforms)),
         gpu::BindGroupEntry(1).textureView(heightmapView_),
@@ -740,12 +871,16 @@ bool TrianglePath::createBindGroup() {
             static_cast<uint64_t>(visibilitySegmentCapacity_) * sizeof(uint32_t))
     };
     
-    bindGroup_ = gpu::createBindGroup(device_, bindGroupLayout_, entries, "terrain_bind_group");
+    WGPUBindGroup nextBindGroup = gpu::createBindGroup(
+        device_, bindGroupLayout_, entries, "terrain_bind_group");
     
-    if (!bindGroup_) {
+    if (!nextBindGroup) {
         LOG_ERROR("Failed to create terrain bind group");
         return false;
     }
+
+    if (bindGroup_) wgpuBindGroupRelease(bindGroup_);
+    bindGroup_ = nextBindGroup;
     
     bindGroupDirty_ = false;
     LOG_DEBUG("Created terrain bind group");
@@ -756,54 +891,128 @@ bool TrianglePath::createBindGroup() {
 // Heightmap Binding
 // ─────────────────────────────────────────────────────────────────────────────
 
-void TrianglePath::setHeightmap(WGPUTextureView heightmapView, uint32_t width, uint32_t height,
-                                std::span<const uint16_t> heightData) {
+bool TrianglePath::setHeightmap(
+    WGPUTextureView heightmapView, uint32_t width, uint32_t height,
+    std::span<const uint16_t> heightData) {
+    if (!device_ || !heightmapView || width == 0u || height == 0u
+        || width > kMaximumTerrainDimension
+        || height > kMaximumTerrainDimension) {
+        LOG_ERROR("TrianglePath::setHeightmap: invalid terrain binding");
+        return false;
+    }
+    const size_t sampleCount =
+        static_cast<size_t>(width) * static_cast<size_t>(height);
+    if (!heightData.empty() && heightData.size() != sampleCount) {
+        LOG_ERROR("TrianglePath::setHeightmap: expected {} CPU samples, got {}",
+                  sampleCount, heightData.size());
+        return false;
+    }
+
+    const WGPUTextureView oldHeightmapView = heightmapView_;
+    const uint32_t oldWidth = heightmapWidth_;
+    const uint32_t oldHeight = heightmapHeight_;
+    const CameraUniforms oldUniforms = uniforms_;
+    const uint32_t oldTilesX = tilesX_;
+    const uint32_t oldTilesY = tilesY_;
+    const auto oldLevelTilesX = levelTilesX_;
+    const auto oldLevelTilesY = levelTilesY_;
+    const auto oldLevelCandidateOffsets = levelCandidateOffsets_;
+    const uint32_t oldCandidateCount = totalCandidateCount_;
+    const bool oldUniformsDirty = uniformsDirty_;
+    const bool oldCullUniformsDirty = cullUniformsDirty_;
+    const bool oldBindGroupDirty = bindGroupDirty_;
+
     heightmapView_ = heightmapView;
     heightmapWidth_ = width;
     heightmapHeight_ = height;
     
     // Update uniforms with terrain size
-    uniforms_.setTerrain(width, height, config_.heightScale, config_.cellScale,
-                         static_cast<float>(config_.lodStep), config_.fogDensity);
+    if (!uniforms_.setTerrain(
+            width, height, config_.heightScale, config_.cellScale,
+            static_cast<float>(config_.lodStep), config_.fogDensity)) {
+        heightmapView_ = oldHeightmapView;
+        heightmapWidth_ = oldWidth;
+        heightmapHeight_ = oldHeight;
+        uniforms_ = oldUniforms;
+        return false;
+    }
     uniformsDirty_ = true;
     
     // Need to recreate bind group
     bindGroupDirty_ = true;
     
     // Recalculate tile count
-    calculateTileCount();
-
-    if (!rebuildTerrainBuffers(heightData)) {
+    if (!calculateTileCount() || !rebuildTerrainBuffers(heightData)) {
         LOG_ERROR("Failed to build adaptive terrain buffers");
+        heightmapView_ = oldHeightmapView;
+        heightmapWidth_ = oldWidth;
+        heightmapHeight_ = oldHeight;
+        uniforms_ = oldUniforms;
+        tilesX_ = oldTilesX;
+        tilesY_ = oldTilesY;
+        levelTilesX_ = oldLevelTilesX;
+        levelTilesY_ = oldLevelTilesY;
+        levelCandidateOffsets_ = oldLevelCandidateOffsets;
+        totalCandidateCount_ = oldCandidateCount;
+        uniformsDirty_ = oldUniformsDirty;
+        cullUniformsDirty_ = oldCullUniformsDirty;
+        bindGroupDirty_ = oldBindGroupDirty;
+        return false;
     }
     
     LOG_DEBUG("Set heightmap: {}x{}, tiles: {}x{}", width, height, tilesX_, tilesY_);
+    return true;
 }
 
-void TrianglePath::calculateTileCount() {
+bool TrianglePath::calculateTileCount() {
     if (heightmapWidth_ == 0 || heightmapHeight_ == 0) {
         tilesX_ = 0;
         tilesY_ = 0;
-        return;
+        levelTilesX_.fill(0u);
+        levelTilesY_.fill(0u);
+        levelCandidateOffsets_.fill(0u);
+        totalCandidateCount_ = 0u;
+        return true;
     }
     
-    const uint32_t cellsX = std::max(heightmapWidth_ - 1, 1u);
-    const uint32_t cellsY = std::max(heightmapHeight_ - 1, 1u);
-    const uint32_t baseStep = std::max(config_.lodStep, 1u);
-
-    totalCandidateCount_ = 0;
+    const uint64_t cellsX = std::max(heightmapWidth_ - 1, 1u);
+    const uint64_t cellsY = std::max(heightmapHeight_ - 1, 1u);
+    const uint64_t baseStep = std::max(config_.lodStep, 1u);
+    std::array<uint32_t, LOD_COUNT> nextTilesX{};
+    std::array<uint32_t, LOD_COUNT> nextTilesY{};
+    std::array<uint32_t, LOD_COUNT> nextOffsets{};
+    uint64_t nextCandidateCount = 0u;
     for (uint32_t lod = 0; lod < LOD_COUNT; ++lod) {
-        const uint32_t step = baseStep << lod;
-        const uint32_t tileSpan = TILE_QUADS * step;
-        levelCandidateOffsets_[lod] = totalCandidateCount_;
-        levelTilesX_[lod] = std::max((cellsX + tileSpan - 1) / tileSpan, 1u);
-        levelTilesY_[lod] = std::max((cellsY + tileSpan - 1) / tileSpan, 1u);
-        totalCandidateCount_ += levelTilesX_[lod] * levelTilesY_[lod];
+        const uint64_t step = baseStep << lod;
+        const uint64_t tileSpan = static_cast<uint64_t>(TILE_QUADS) * step;
+        const uint64_t levelX = std::max(
+            (cellsX + tileSpan - 1u) / tileSpan, uint64_t{1});
+        const uint64_t levelY = std::max(
+            (cellsY + tileSpan - 1u) / tileSpan, uint64_t{1});
+        const uint64_t levelCount = levelX * levelY;
+        if (levelX > std::numeric_limits<uint32_t>::max()
+            || levelY > std::numeric_limits<uint32_t>::max()
+            || nextCandidateCount > std::numeric_limits<uint32_t>::max()
+            || levelCount > std::numeric_limits<uint32_t>::max()
+            || nextCandidateCount + levelCount
+                > std::numeric_limits<uint32_t>::max()) {
+            LOG_ERROR("Triangle terrain tile layout is not representable");
+            return false;
+        }
+        nextOffsets[lod] = static_cast<uint32_t>(nextCandidateCount);
+        nextTilesX[lod] = static_cast<uint32_t>(levelX);
+        nextTilesY[lod] = static_cast<uint32_t>(levelY);
+        nextCandidateCount += levelCount;
     }
 
-    tilesX_ = levelTilesX_[0];
-    tilesY_ = levelTilesY_[0];
+    levelTilesX_ = nextTilesX;
+    levelTilesY_ = nextTilesY;
+    levelCandidateOffsets_ = nextOffsets;
+    totalCandidateCount_ = static_cast<uint32_t>(nextCandidateCount);
+    tilesX_ = nextTilesX[0];
+    tilesY_ = nextTilesY[0];
     cullUniformsDirty_ = true;
+    return true;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -812,16 +1021,22 @@ void TrianglePath::calculateTileCount() {
 
 void TrianglePath::updateCamera(const glm::mat4& view, const glm::mat4& proj, 
                                  const glm::vec3& cameraPos, float ambientIntensity) {
-    uniforms_.setCamera(view, proj, cameraPos);
+    CameraUniforms next = uniforms_;
+    if (!next.setCamera(view, proj, cameraPos)) return;
     
     // Update light direction in view space (using hardcoded world direction)
     glm::vec3 worldLightDir = glm::normalize(glm::vec3(0.3f, 0.8f, 0.4f));
-    uniforms_.setLightDirection(worldLightDir, view, ambientIntensity);
+    if (!next.setLightDirection(worldLightDir, view, ambientIntensity)) return;
     
+    uniforms_ = next;
     uniformsDirty_ = true;
 }
 
 void TrianglePath::setCameraUniforms(const CameraUniforms& uniforms) {
+    if (!uniforms.isValid()) {
+        LOG_ERROR("TrianglePath::setCameraUniforms: invalid uniform block");
+        return;
+    }
     uniforms_ = uniforms;
     uniformsDirty_ = true;
 }
@@ -836,7 +1051,7 @@ void TrianglePath::setLODStep(uint32_t step) {
         config_.lodStep = step;
         uniforms_.metrics.z = static_cast<float>(step);
         uniformsDirty_ = true;
-        calculateTileCount();
+        (void)calculateTileCount();
     }
 }
 
@@ -844,15 +1059,16 @@ uint32_t TrianglePath::getLODStep() const noexcept {
     return config_.lodStep;
 }
 
-void TrianglePath::updateUniformBuffer() {
-    if (!uniformBuffer_ || !queue_) return;
+bool TrianglePath::updateUniformBuffer() {
+    if (!uniformBuffer_ || !queue_) return false;
     
-    gpu::writeBuffer(queue_, uniformBuffer_, 0, uniforms_);
+    if (!gpu::writeBuffer(queue_, uniformBuffer_, 0, uniforms_)) return false;
     uniformsDirty_ = false;
+    return true;
 }
 
-void TrianglePath::updateCullUniformBuffer() {
-    if (!cullUniformBuffer_ || !queue_) return;
+bool TrianglePath::updateCullUniformBuffer() {
+    if (!cullUniformBuffer_ || !queue_) return false;
 
     const uint32_t terrainWidth = std::max(heightmapWidth_, 1u);
     const uint32_t terrainHeight = std::max(heightmapHeight_, 1u);
@@ -878,8 +1094,11 @@ void TrianglePath::updateCullUniformBuffer() {
     uniforms.metadata = glm::uvec4(
         totalCandidateCount_, step, visibilitySegmentCapacity_, 0u);
 
-    gpu::writeBuffer(queue_, cullUniformBuffer_, 0, uniforms);
+    if (!gpu::writeBuffer(queue_, cullUniformBuffer_, 0, uniforms)) {
+        return false;
+    }
     cullUniformsDirty_ = false;
+    return true;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -893,6 +1112,10 @@ void TrianglePath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
         LOG_WARN("TrianglePath::render: not initialized");
         return;
     }
+    if (!encoder || !colorView || !depthView) {
+        LOG_ERROR("TrianglePath::render: invalid command encoder or attachment");
+        return;
+    }
     
     if (!heightmapView_) {
         LOG_WARN("TrianglePath::render: no heightmap set");
@@ -900,12 +1123,12 @@ void TrianglePath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
     }
     
     // Update uniform buffer if dirty
-    if (uniformsDirty_) {
-        updateUniformBuffer();
+    if (uniformsDirty_ && !updateUniformBuffer()) {
+        return;
     }
 
-    if (cullUniformsDirty_) {
-        updateCullUniformBuffer();
+    if (cullUniformsDirty_ && !updateCullUniformBuffer()) {
+        return;
     }
     
     // Update Compute Bind Group (if needed) and Main Bind Group
@@ -914,7 +1137,10 @@ void TrianglePath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
             LOG_ERROR("Failed to create bind group during render");
             return;
         }
-        updateComputeBindGroup();
+        if (!computeBindGroup_) {
+            LOG_ERROR("Failed to create terrain compute bind group");
+            return;
+        }
     }
     
     // ─────────────────────────────────────────────────────────────────────────
@@ -935,6 +1161,10 @@ void TrianglePath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
     WGPU_SET_LABEL(computePassDesc, "terrain_cull_pass");
 
     WGPUComputePassEncoder computePass = wgpuCommandEncoderBeginComputePass(encoder, &computePassDesc);
+    if (!computePass) {
+        LOG_ERROR("TrianglePath::render: failed to begin culling pass");
+        return;
+    }
     wgpuComputePassEncoderSetPipeline(computePass, computePipeline_);
     wgpuComputePassEncoderSetBindGroup(computePass, 0, computeBindGroup_, 0, nullptr);
 
@@ -973,6 +1203,10 @@ void TrianglePath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
     renderPassDesc.depthStencilAttachment = &depthAttachment;
     
     WGPURenderPassEncoder renderPass = wgpuCommandEncoderBeginRenderPass(encoder, &renderPassDesc);
+    if (!renderPass) {
+        LOG_ERROR("TrianglePath::render: failed to begin terrain pass");
+        return;
+    }
     
     // Set pipeline and bind group (use wireframe pipeline if enabled and available)
     WGPURenderPipeline activePipeline = (wireframeEnabled_ && wireframePipeline_) ? wireframePipeline_ : pipeline_;
@@ -1013,7 +1247,7 @@ bool TrianglePath::createComputeResources(const TrianglePathConfig& config) {
 
     cullUniformBuffer_ = gpu::createBuffer(device_, cullDesc);
     if (!cullUniformBuffer_) return false;
-    updateCullUniformBuffer();
+    if (!updateCullUniformBuffer()) return false;
 
     // 2. Load Compute Shader
     std::filesystem::path cullShaderPath = config.shaderPath.parent_path() / "cull_terrain.wgsl";
@@ -1089,28 +1323,53 @@ void TrianglePath::releaseTerrainBuffers() {
         wgpuBufferRelease(tileBoundsBuffer_);
         tileBoundsBuffer_ = nullptr;
     }
+    visibilitySegmentCapacity_ = 0u;
 }
 
 bool TrianglePath::rebuildTerrainBuffers(std::span<const uint16_t> heightData) {
-    releaseTerrainBuffers();
-
     if (totalCandidateCount_ == 0) {
         return false;
     }
 
     // Every draw gets one 256-byte-aligned visibility segment. Indirect draws
     // can then keep firstInstance at zero and remain valid on baseline WebGPU.
-    const uint32_t largestLevel = levelTilesX_[0] * levelTilesY_[0];
+    const uint64_t largestLevel =
+        static_cast<uint64_t>(levelTilesX_[0]) * levelTilesY_[0];
     constexpr uint32_t entriesPerAlignment = 256u / sizeof(uint32_t);
-    visibilitySegmentCapacity_ =
-        (largestLevel + entriesPerAlignment - 1u) & ~(entriesPerAlignment - 1u);
+    const uint64_t alignedCapacity =
+        (largestLevel + entriesPerAlignment - 1u)
+        & ~static_cast<uint64_t>(entriesPerAlignment - 1u);
+    if (alignedCapacity == 0u
+        || alignedCapacity > std::numeric_limits<uint32_t>::max()) {
+        LOG_ERROR("Triangle visibility segment is not representable");
+        return false;
+    }
+    const uint32_t nextVisibilitySegmentCapacity =
+        static_cast<uint32_t>(alignedCapacity);
     const uint64_t visibleEntryCount =
-        static_cast<uint64_t>(visibilitySegmentCapacity_) * INDIRECT_DRAW_COUNT;
+        alignedCapacity * INDIRECT_DRAW_COUNT;
+
+    WGPUBuffer nextVisibleIndicesBuffer = nullptr;
+    WGPUBuffer nextTileBoundsBuffer = nullptr;
+    WGPUBuffer nextIndirectBuffer = nullptr;
+    WGPUBuffer nextIndirectTemplateBuffer = nullptr;
+    WGPUBindGroup nextComputeBindGroup = nullptr;
+    WGPUBindGroup nextRenderBindGroup = nullptr;
+    const auto cleanup = [&]() {
+        if (nextRenderBindGroup) wgpuBindGroupRelease(nextRenderBindGroup);
+        if (nextComputeBindGroup) wgpuBindGroupRelease(nextComputeBindGroup);
+        if (nextIndirectTemplateBuffer) {
+            wgpuBufferRelease(nextIndirectTemplateBuffer);
+        }
+        if (nextIndirectBuffer) wgpuBufferRelease(nextIndirectBuffer);
+        if (nextTileBoundsBuffer) wgpuBufferRelease(nextTileBoundsBuffer);
+        if (nextVisibleIndicesBuffer) wgpuBufferRelease(nextVisibleIndicesBuffer);
+    };
+
     gpu::BufferDesc visibleDesc = gpu::BufferDesc::storage(
         visibleEntryCount * sizeof(uint32_t), false, "terrain_visible_indices_buffer");
-    visibleIndicesBuffer_ = gpu::createBuffer(device_, visibleDesc);
-    if (!visibleIndicesBuffer_) {
-        releaseTerrainBuffers();
+    nextVisibleIndicesBuffer = gpu::createBuffer(device_, visibleDesc);
+    if (!nextVisibleIndicesBuffer) {
         return false;
     }
 
@@ -1122,13 +1381,26 @@ bool TrianglePath::rebuildTerrainBuffers(std::span<const uint16_t> heightData) {
 
     if (hasHeightData) {
         const uint32_t baseStep = std::max(config_.lodStep, 1u);
-        const uint32_t baseSpan = TILE_QUADS * baseStep;
+        const uint64_t baseSpan =
+            static_cast<uint64_t>(TILE_QUADS) * baseStep;
         for (uint32_t tileY = 0; tileY < levelTilesY_[0]; ++tileY) {
             for (uint32_t tileX = 0; tileX < levelTilesX_[0]; ++tileX) {
-                const uint32_t startX = tileX * baseSpan;
-                const uint32_t startY = tileY * baseSpan;
-                const uint32_t endX = std::min(startX + baseSpan, heightmapWidth_ - 1);
-                const uint32_t endY = std::min(startY + baseSpan, heightmapHeight_ - 1);
+                const uint64_t startX64 =
+                    static_cast<uint64_t>(tileX) * baseSpan;
+                const uint64_t startY64 =
+                    static_cast<uint64_t>(tileY) * baseSpan;
+                const uint32_t startX = static_cast<uint32_t>(
+                    std::min(startX64,
+                             static_cast<uint64_t>(heightmapWidth_ - 1u)));
+                const uint32_t startY = static_cast<uint32_t>(
+                    std::min(startY64,
+                             static_cast<uint64_t>(heightmapHeight_ - 1u)));
+                const uint32_t endX = static_cast<uint32_t>(
+                    std::min(startX64 + baseSpan,
+                             static_cast<uint64_t>(heightmapWidth_ - 1u)));
+                const uint32_t endY = static_cast<uint32_t>(
+                    std::min(startY64 + baseSpan,
+                             static_cast<uint64_t>(heightmapHeight_ - 1u)));
                 uint16_t minHeight = std::numeric_limits<uint16_t>::max();
                 uint16_t maxHeight = 0;
 
@@ -1180,10 +1452,10 @@ bool TrianglePath::rebuildTerrainBuffers(std::span<const uint16_t> heightData) {
 
     gpu::BufferDesc boundsDesc = gpu::BufferDesc::storage(
         packedBounds.size() * sizeof(uint32_t), true, "terrain_tile_bounds_buffer");
-    tileBoundsBuffer_ = gpu::createBufferWithData(
+    nextTileBoundsBuffer = gpu::createBufferWithData(
         device_, queue_, boundsDesc, std::span<const uint32_t>(packedBounds));
-    if (!tileBoundsBuffer_) {
-        releaseTerrainBuffers();
+    if (!nextTileBoundsBuffer) {
+        cleanup();
         return false;
     }
 
@@ -1205,47 +1477,83 @@ bool TrianglePath::rebuildTerrainBuffers(std::span<const uint16_t> heightData) {
     indirectDesc.size = indirectData.size() * sizeof(uint32_t);
     indirectDesc.usage = WGPUBufferUsage_Indirect | WGPUBufferUsage_Storage |
                          WGPUBufferUsage_CopyDst;
-    indirectBuffer_ = gpu::createBufferWithData(
+    nextIndirectBuffer = gpu::createBufferWithData(
         device_, queue_, indirectDesc, std::span<const uint32_t>(indirectData));
 
     gpu::BufferDesc templateDesc;
     templateDesc.label = "terrain_indirect_template_buffer";
     templateDesc.size = indirectData.size() * sizeof(uint32_t);
     templateDesc.usage = WGPUBufferUsage_CopySrc;
-    indirectTemplateBuffer_ = gpu::createBufferWithData(
+    nextIndirectTemplateBuffer = gpu::createBufferWithData(
         device_, queue_, templateDesc, std::span<const uint32_t>(indirectData));
 
-    if (!indirectBuffer_ || !indirectTemplateBuffer_) {
-        releaseTerrainBuffers();
+    if (!nextIndirectBuffer || !nextIndirectTemplateBuffer) {
+        cleanup();
         return false;
     }
 
-    cullUniformsDirty_ = true;
-    bindGroupDirty_ = true;
-    updateCullUniformBuffer();
-    updateComputeBindGroup();
-    return computeBindGroup_ != nullptr;
-}
-
-void TrianglePath::updateComputeBindGroup() {
-    if (!computeBindGroupLayout_ || !indirectBuffer_ || !visibleIndicesBuffer_ ||
-        !tileBoundsBuffer_ || !uniformBuffer_ || !cullUniformBuffer_) return;
-
-    if (computeBindGroup_) {
-        wgpuBindGroupRelease(computeBindGroup_);
-        computeBindGroup_ = nullptr;
+    const std::array<gpu::BindGroupEntry, 5> computeEntries = {
+        gpu::BindGroupEntry(0).buffer(
+            uniformBuffer_, 0, sizeof(CameraUniforms)),
+        gpu::BindGroupEntry(1).buffer(
+            nextIndirectBuffer, 0,
+            INDIRECT_DRAW_COUNT * 5u * sizeof(uint32_t)),
+        gpu::BindGroupEntry(2).buffer(
+            nextVisibleIndicesBuffer, 0, WGPU_WHOLE_SIZE),
+        gpu::BindGroupEntry(3).buffer(
+            cullUniformBuffer_, 0, sizeof(CullUniforms)),
+        gpu::BindGroupEntry(4).buffer(
+            nextTileBoundsBuffer, 0, WGPU_WHOLE_SIZE)
+    };
+    nextComputeBindGroup = gpu::createBindGroup(
+        device_, computeBindGroupLayout_, computeEntries, "cull_bind_group");
+    if (!nextComputeBindGroup) {
+        cleanup();
+        return false;
     }
 
-    std::array<gpu::BindGroupEntry, 5> entries = {
-        gpu::BindGroupEntry(0).buffer(uniformBuffer_, 0, sizeof(CameraUniforms)),
-        gpu::BindGroupEntry(1).buffer(
-            indirectBuffer_, 0, INDIRECT_DRAW_COUNT * 5u * sizeof(uint32_t)),
-        gpu::BindGroupEntry(2).buffer(visibleIndicesBuffer_, 0, WGPU_WHOLE_SIZE),
-        gpu::BindGroupEntry(3).buffer(cullUniformBuffer_, 0, sizeof(CullUniforms)),
-        gpu::BindGroupEntry(4).buffer(tileBoundsBuffer_, 0, WGPU_WHOLE_SIZE)
-    };
+    // A live renderer must replace the render binding in the same transaction:
+    // its visible-index buffer must match the newly-created culling buffers.
+    if (bindGroup_) {
+        const std::array<gpu::BindGroupEntry, 6> renderEntries = {
+            gpu::BindGroupEntry(0).buffer(
+                uniformBuffer_, 0, sizeof(CameraUniforms)),
+            gpu::BindGroupEntry(1).textureView(heightmapView_),
+            gpu::BindGroupEntry(2).textureView(albedoView_),
+            gpu::BindGroupEntry(3).textureView(lightmapView_),
+            gpu::BindGroupEntry(4).sampler(sampler_),
+            gpu::BindGroupEntry(5).buffer(
+                nextVisibleIndicesBuffer, 0,
+                static_cast<uint64_t>(nextVisibilitySegmentCapacity)
+                    * sizeof(uint32_t))
+        };
+        nextRenderBindGroup = gpu::createBindGroup(
+            device_, bindGroupLayout_, renderEntries, "terrain_bind_group");
+        if (!nextRenderBindGroup) {
+            cleanup();
+            return false;
+        }
+    }
 
-    computeBindGroup_ = gpu::createBindGroup(device_, computeBindGroupLayout_, entries, "cull_bind_group");
+    releaseTerrainBuffers();
+    visibleIndicesBuffer_ = nextVisibleIndicesBuffer;
+    tileBoundsBuffer_ = nextTileBoundsBuffer;
+    indirectBuffer_ = nextIndirectBuffer;
+    indirectTemplateBuffer_ = nextIndirectTemplateBuffer;
+    computeBindGroup_ = nextComputeBindGroup;
+    bindGroup_ = nextRenderBindGroup;
+    visibilitySegmentCapacity_ = nextVisibilitySegmentCapacity;
+
+    nextVisibleIndicesBuffer = nullptr;
+    nextTileBoundsBuffer = nullptr;
+    nextIndirectBuffer = nullptr;
+    nextIndirectTemplateBuffer = nullptr;
+    nextComputeBindGroup = nullptr;
+    nextRenderBindGroup = nullptr;
+
+    cullUniformsDirty_ = true;
+    bindGroupDirty_ = bindGroup_ == nullptr;
+    return true;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

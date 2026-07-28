@@ -11,10 +11,11 @@
 
 #pragma once
 
+#include <atomic>
 #include <cstdint>
+#include <memory>
 #include <string>
 #include <vector>
-#include <functional>
 
 // WebGPU header
 #if defined(VOXY_WASM)
@@ -76,16 +77,17 @@ public:
     void shutdown();
     
     /// Begin a new frame's timing (resets query index)
-    void beginFrame();
+    [[nodiscard]] bool beginFrame();
     
     /// Write a timestamp at the current point in the command encoder
     /// @param encoder Command encoder to write timestamp to
     /// @param label Label for this timestamp
-    void writeTimestamp(WGPUCommandEncoder encoder, const char* label);
+    [[nodiscard]] bool writeTimestamp(
+        WGPUCommandEncoder encoder, const char* label);
     
     /// Resolve timestamp queries after all commands are recorded
     /// @param encoder Command encoder to use for resolve
-    void resolve(WGPUCommandEncoder encoder);
+    [[nodiscard]] bool resolve(WGPUCommandEncoder encoder);
     
     /// Read back timing results (call after queue submission completes)
     /// @return Timing results, or invalid result if not ready
@@ -101,15 +103,18 @@ private:
     WGPUBuffer readbackBuffer_ = nullptr;
     
     std::vector<std::string> labels_;
+    std::vector<std::string> resolvedLabels_;
     uint32_t queryIndex_ = 0;
+    uint32_t resolvedQueryCount_ = 0;
     uint64_t timestampPeriod_ = 1;  // Nanoseconds per tick
     bool supported_ = false;
     bool pendingReadback_ = false;
+    bool mappingStarted_ = false;
+    std::shared_ptr<std::atomic<uint32_t>> mappingState_;
     
     GPUTimingResult lastResults_;
 };
 
 } // namespace voxy::perf
-
 
 

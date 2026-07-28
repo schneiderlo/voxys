@@ -64,15 +64,21 @@ struct CameraUniforms {
     CameraUniforms();
 
     /// Configure terrain parameters
-    void setTerrain(uint32_t width, uint32_t height, float heightScale = 500.0f, 
-                    float cellScale = 1.0f, float step = 1.0f, float fogDensity = 0.0001f);
+    [[nodiscard]] bool setTerrain(
+        uint32_t width, uint32_t height, float heightScale = 500.0f,
+        float cellScale = 1.0f, float step = 1.0f,
+        float fogDensity = 0.0001f);
 
     /// Update camera matrices from view and projection matrices
-    void setCamera(const glm::mat4& view, const glm::mat4& proj, const glm::vec3& position);
+    [[nodiscard]] bool setCamera(
+        const glm::mat4& view, const glm::mat4& proj,
+        const glm::vec3& position);
 
     /// Set light direction in world space (will be converted to view space internally)
     /// Also sets ambient intensity in the w component
-    void setLightDirection(const glm::vec3& worldDir, const glm::mat4& view, float ambient = 0.3f);
+    [[nodiscard]] bool setLightDirection(
+        const glm::vec3& worldDir, const glm::mat4& view,
+        float ambient = 0.3f);
 
     /// Set Lego Mode flag (packed into invProjParams.z)
     void setLegoMode(bool enabled) {
@@ -80,29 +86,28 @@ struct CameraUniforms {
     }
 
     /// Configure water rendering parameters used by the raycast/blit path.
-    void setWater(bool enabled, float height, const glm::vec3& shallowColor,
-                  const glm::vec3& deepColor, float roughness,
-                  float waveStrength, float reflectionStrength, float shoreFade);
+    [[nodiscard]] bool setWater(
+        bool enabled, float height, const glm::vec3& shallowColor,
+        const glm::vec3& deepColor, float roughness, float waveStrength,
+        float reflectionStrength, float shoreFade);
 
-    void setRendererMaterial(const glm::vec3& sunColor, float sunIntensity,
-                             const glm::vec3& ambientColor,
-                             const glm::vec3& atmosphericFogColor,
-                             float exposure, float waterIor,
-                             float waterDistortion, float waterAbsorptionScale,
-                             float waterScatterStrength, float foamSize,
-                             float foamOpacity, float foamCoverage,
-                             float reflectionDistance,
-                             const glm::vec2& spectrumPatchLengths);
+    [[nodiscard]] bool setRendererMaterial(
+        const glm::vec3& sunColor, float sunIntensity,
+        const glm::vec3& ambientColor,
+        const glm::vec3& atmosphericFogColor, float exposure, float waterIor,
+        float waterDistortion, float waterAbsorptionScale,
+        float waterScatterStrength, float foamSize, float foamOpacity,
+        float foamCoverage, float reflectionDistance,
+        const glm::vec2& spectrumPatchLengths);
 
     /// Advance animated water without changing its art controls.
-    void setWaterTime(float seconds) { waterMotion.x = seconds; }
+    [[nodiscard]] bool setWaterTime(float seconds);
 
     /// Set the animated surface directly above/below the camera.
-    void setCameraWaterSurfaceOffset(float offset) {
-        waterMotion.y = offset;
-        waterMotion.z = waterParams.y > 0.5f &&
-                        cameraPos.y < waterParams.x + offset ? 1.0f : 0.0f;
-    }
+    [[nodiscard]] bool setCameraWaterSurfaceOffset(float offset);
+
+    /// Verify a block before accepting a direct public copy.
+    [[nodiscard]] bool isValid() const noexcept;
 };
 
 static_assert(sizeof(CameraUniforms) == 544, "CameraUniforms must be 544 bytes");
@@ -194,8 +199,9 @@ public:
     /// @param heightmapView Texture view of R16Uint heightmap
     /// @param width Heightmap width in samples
     /// @param height Heightmap height in samples
-    void setHeightmap(WGPUTextureView heightmapView, uint32_t width, uint32_t height,
-                      std::span<const uint16_t> heightData = {});
+    [[nodiscard]] bool setHeightmap(
+        WGPUTextureView heightmapView, uint32_t width, uint32_t height,
+        std::span<const uint16_t> heightData = {});
 
     // ─────────────────────────────────────────────────────────────────────────
     // Texture Binding
@@ -282,16 +288,15 @@ private:
     bool createBindGroupLayout();
     bool createPipeline(const TrianglePathConfig& config);
     bool createBindGroup();
-    void updateUniformBuffer();
+    [[nodiscard]] bool updateUniformBuffer();
 
     bool createComputeResources(const TrianglePathConfig& config);
     bool rebuildTerrainBuffers(std::span<const uint16_t> heightData);
     void releaseTerrainBuffers();
-    void updateComputeBindGroup();
-    void updateCullUniformBuffer();
+    [[nodiscard]] bool updateCullUniformBuffer();
 
     /// Calculate number of tiles for current terrain size and LOD
-    void calculateTileCount();
+    [[nodiscard]] bool calculateTileCount();
 
     // ─────────────────────────────────────────────────────────────────────────
     // GPU Resources

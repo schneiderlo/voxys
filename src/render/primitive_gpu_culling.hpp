@@ -33,7 +33,8 @@ public:
         const std::array<PrimitiveDrawGeometry, kShapeCount>& geometry);
     void shutdown();
 
-    void setBodyView(const physics::PhysicsRenderView& view);
+    [[nodiscard]] bool setBodyView(
+        const physics::PhysicsRenderView& view);
     [[nodiscard]] bool encode(WGPUCommandEncoder encoder,
                               const glm::mat4& viewProjection,
                               const glm::ivec3& cameraSector = glm::ivec3(0));
@@ -59,6 +60,11 @@ public:
     }
 
 private:
+    [[nodiscard]] bool initializeFresh(
+        WGPUDevice device, WGPUQueue queue,
+        const std::filesystem::path& shaderPath,
+        const std::array<PrimitiveDrawGeometry, kShapeCount>& geometry);
+    void swap(PrimitiveGpuCulling& other) noexcept;
     [[nodiscard]] bool ensureCapacity(uint32_t bodyCapacity);
     [[nodiscard]] bool updateBindGroup();
     void releaseCapacityBuffers();

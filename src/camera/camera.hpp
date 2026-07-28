@@ -15,6 +15,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
 
+#include <cmath>
+
 namespace voxy {
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -76,8 +78,10 @@ public:
     }
 
     void setWorldPosition(const glm::ivec3& sector, const glm::vec3& local) {
-        worldSector_ = sector;
-        setPosition(local);
+        if (isFinite(local)) {
+            worldSector_ = sector;
+            setPosition(local);
+        }
     }
 
     /// Set camera world-space position
@@ -208,6 +212,10 @@ private:
     /// Ensure view-projection matrix is up to date
     void ensureViewProjectionMatrix() const;
 
+    [[nodiscard]] static bool isFinite(const glm::vec2& value) noexcept;
+    [[nodiscard]] static bool isFinite(const glm::vec3& value) noexcept;
+    [[nodiscard]] static float canonicalYaw(float yaw) noexcept;
+
     // ─────────────────────────────────────────────────────────────────────────
     // State
     // ─────────────────────────────────────────────────────────────────────────
@@ -250,27 +258,37 @@ private:
 // ─────────────────────────────────────────────────────────────────────────────
 
 inline void Camera::setPosition(const glm::vec3& pos) {
+    if (!isFinite(pos)) return;
     position_ = pos;
     markViewDirty();
 }
 
 inline void Camera::move(const glm::vec3& offset) {
-    position_ += offset;
+    if (!isFinite(offset)) return;
+    const glm::vec3 next = position_ + offset;
+    if (!isFinite(next)) return;
+    position_ = next;
     markViewDirty();
 }
 
 inline void Camera::moveLocal(const glm::vec3& offset) {
-    position_ += right_ * offset.x + up_ * offset.y + forward_ * offset.z;
+    if (!isFinite(offset)) return;
+    const glm::vec3 next =
+        position_ + right_ * offset.x + up_ * offset.y + forward_ * offset.z;
+    if (!isFinite(next)) return;
+    position_ = next;
     markViewDirty();
 }
 
 inline void Camera::setYaw(float yaw) {
-    yaw_ = yaw;
+    if (!std::isfinite(yaw)) return;
+    yaw_ = canonicalYaw(yaw);
     updateOrientation();
     markViewDirty();
 }
 
 inline void Camera::setPitch(float pitch) {
+    if (!std::isfinite(pitch)) return;
     // Clamp pitch to avoid gimbal lock
     constexpr float maxPitch = glm::half_pi<float>() - 0.01f;
     pitch_ = glm::clamp(pitch, -maxPitch, maxPitch);
@@ -279,7 +297,8 @@ inline void Camera::setPitch(float pitch) {
 }
 
 inline void Camera::rotate(float deltaYaw, float deltaPitch) {
-    yaw_ += deltaYaw;
+    if (!std::isfinite(deltaYaw) || !std::isfinite(deltaPitch)) return;
+    yaw_ = canonicalYaw(yaw_ + canonicalYaw(deltaYaw));
     constexpr float maxPitch = glm::half_pi<float>() - 0.01f;
     pitch_ = glm::clamp(pitch_ + deltaPitch, -maxPitch, maxPitch);
     updateOrientation();
@@ -287,28 +306,35 @@ inline void Camera::rotate(float deltaYaw, float deltaPitch) {
 }
 
 inline void Camera::setFovY(float fov) {
+    if (!std::isfinite(fov) || fov <= 0.0f || fov >= glm::pi<float>()) {
+        return;
+    }
     fovY_ = fov;
     markProjectionDirty();
 }
 
 inline void Camera::setFovYDegrees(float fovDegrees) {
-    fovY_ = glm::radians(fovDegrees);
-    markProjectionDirty();
+    setFovY(glm::radians(fovDegrees));
 }
 
 inline void Camera::setAspectRatio(float aspect) {
+    if (!std::isfinite(aspect) || aspect <= 0.0f) return;
     aspectRatio_ = aspect;
     markProjectionDirty();
 }
 
 inline void Camera::setAspectRatio(uint32_t width, uint32_t height) {
-    if (height > 0) {
+    if (width > 0 && height > 0) {
         aspectRatio_ = static_cast<float>(width) / static_cast<float>(height);
         markProjectionDirty();
     }
 }
 
 inline void Camera::setClipPlanes(float nearPlane, float farPlane) {
+    if (!std::isfinite(nearPlane) || !std::isfinite(farPlane)
+        || nearPlane <= 0.0f || farPlane <= nearPlane) {
+        return;
+    }
     nearPlane_ = nearPlane;
     farPlane_ = farPlane;
     markProjectionDirty();
@@ -325,6 +351,4 @@ inline void Camera::markProjectionDirty() const {
 }
 
 } // namespace voxy
-
-
 

@@ -7,8 +7,10 @@
 
 #pragma once
 
+#include <algorithm>
 #include <cstdint>
 #include <filesystem>
+#include <limits>
 #include <optional>
 #include <span>
 #include <string>
@@ -114,6 +116,33 @@ private:
 // Type aliases for common result types
 using VoidResult = Result<void, HeightmapError>;
 
+/// Calculate both element and byte counts without allowing either
+/// multiplication to wrap.
+[[nodiscard]] constexpr bool tryCalculateHeightmapLayout(
+    uint32_t width,
+    uint32_t height,
+    size_t& sampleCount,
+    size_t& byteCount) noexcept {
+    sampleCount = 0;
+    byteCount = 0;
+    if (width == 0 || height == 0
+        || static_cast<size_t>(width)
+               > std::numeric_limits<size_t>::max()
+                   / static_cast<size_t>(height)) {
+        return false;
+    }
+
+    sampleCount = static_cast<size_t>(width) * static_cast<size_t>(height);
+    if (sampleCount
+        > std::numeric_limits<size_t>::max() / sizeof(uint16_t)) {
+        sampleCount = 0;
+        return false;
+    }
+
+    byteCount = sampleCount * sizeof(uint16_t);
+    return true;
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Load Result
 // ─────────────────────────────────────────────────────────────────────────────
@@ -127,12 +156,20 @@ struct LoadResult {
     
     /// Get total number of samples
     [[nodiscard]] constexpr size_t sampleCount() const noexcept {
-        return static_cast<size_t>(width) * static_cast<size_t>(height);
+        size_t samples = 0;
+        size_t bytes = 0;
+        return tryCalculateHeightmapLayout(width, height, samples, bytes)
+            ? samples
+            : 0;
     }
     
     /// Get size in bytes
     [[nodiscard]] constexpr size_t sizeBytes() const noexcept {
-        return sampleCount() * sizeof(uint16_t);
+        size_t samples = 0;
+        size_t bytes = 0;
+        return tryCalculateHeightmapLayout(width, height, samples, bytes)
+            ? bytes
+            : 0;
     }
     
     /// Check if this result is valid
@@ -146,7 +183,7 @@ struct LoadResult {
         if (!isValid()) return 0;
         x = std::min(x, width - 1);
         y = std::min(y, height - 1);
-        return data[y * width + x];
+        return data[static_cast<size_t>(y) * width + x];
     }
     
     /// Get normalized height value [0.0, 1.0] at (x, y)
@@ -220,12 +257,20 @@ public:
     
     /// Get total sample count
     [[nodiscard]] constexpr size_t getSampleCount() const noexcept {
-        return static_cast<size_t>(width_) * static_cast<size_t>(height_);
+        size_t samples = 0;
+        size_t bytes = 0;
+        return tryCalculateHeightmapLayout(width_, height_, samples, bytes)
+            ? samples
+            : 0;
     }
     
     /// Get size in bytes
     [[nodiscard]] constexpr size_t getSizeBytes() const noexcept {
-        return getSampleCount() * sizeof(uint16_t);
+        size_t samples = 0;
+        size_t bytes = 0;
+        return tryCalculateHeightmapLayout(width_, height_, samples, bytes)
+            ? bytes
+            : 0;
     }
     
     /// Get load time in milliseconds
@@ -238,10 +283,7 @@ public:
     
     /// Get raw data as bytes
     [[nodiscard]] std::span<const std::byte> getDataBytes() const noexcept {
-        return std::span<const std::byte>(
-            reinterpret_cast<const std::byte*>(data_.data()),
-            getSizeBytes()
-        );
+        return std::as_bytes(std::span<const uint16_t>(data_));
     }
     
     /// Sample height at (x, y), clamped to bounds
@@ -347,7 +389,8 @@ private:
     readFileToMemory(const std::filesystem::path& path);
     
     /// Helper for CPU mip generation and upload
-    [[nodiscard]] bool uploadMipsFromCPU(WGPUDevice device, WGPUQueue queue);
+    [[nodiscard]] bool uploadMipsFromCPU(
+        WGPUQueue queue, WGPUTexture texture, uint32_t mipLevelCount);
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -374,6 +417,7 @@ private:
 [[nodiscard]] constexpr uint32_t nextPowerOfTwo(uint32_t value) noexcept {
     if (value == 0) return 1;
     if (isPowerOfTwo(value)) return value;
+    if (value > (uint32_t{1} << 31)) return 0;
     value--;
     value |= value >> 1;
     value |= value >> 2;

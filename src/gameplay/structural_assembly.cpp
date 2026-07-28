@@ -39,23 +39,18 @@ StructuralAssembly::StructuralAssembly(Config config) : config_(config) {}
 bool StructuralAssembly::initialize(
     std::span<const AssemblyNode> nodes,
     std::span<const AssemblyEdge> edges) {
-    initialized_ = false;
-    nodes_.assign(nodes.begin(), nodes.end());
-    edges_.assign(edges.begin(), edges.end());
-    std::sort(nodes_.begin(), nodes_.end(),
+    StructuralAssembly replacement(config_);
+    replacement.nodes_.assign(nodes.begin(), nodes.end());
+    replacement.edges_.assign(edges.begin(), edges.end());
+    std::sort(replacement.nodes_.begin(), replacement.nodes_.end(),
         [](const auto& lhs, const auto& rhs) { return lhs.id < rhs.id; });
-    std::sort(edges_.begin(), edges_.end(),
+    std::sort(replacement.edges_.begin(), replacement.edges_.end(),
         [](const auto& lhs, const auto& rhs) { return lhs.id < rhs.id; });
-    pendingDamage_.clear();
-    commandRecording_.clear();
-    components_.clear();
-    fractureEvents_.clear();
-    lastBrokenEdges_.clear();
-    currentTick_ = 0;
-    stateHash_ = 0;
-    if (!validate() || !rebuildComponents()) return false;
-    initialized_ = true;
-    updateStateHash();
+    if (!replacement.validate() || !replacement.rebuildComponents())
+        return false;
+    replacement.initialized_ = true;
+    replacement.updateStateHash();
+    *this = std::move(replacement);
     return true;
 }
 
@@ -132,9 +127,10 @@ bool StructuralAssembly::queueDamage(const AssemblyDamageCommand& command) {
                 && existing.sequence == command.sequence;
         });
     if (duplicate != commandRecording_.end()) return *duplicate == command;
+    const AssemblyEdge* target = edge(command.edgeId);
     if (command.tick <= currentTick_ || command.damageQ16 <= 0
         || command.damageQ16 > kMaximumImpactQ16
-        || edge(command.edgeId) == nullptr) return false;
+        || target == nullptr || target->healthQ16 <= 0) return false;
 
     const auto insertPending = std::upper_bound(
         pendingDamage_.begin(), pendingDamage_.end(), command,

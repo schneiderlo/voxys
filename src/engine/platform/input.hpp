@@ -100,15 +100,15 @@ enum class MouseButton : int {
 class Input {
 public:
     Input();
-    ~Input() = default;
+    ~Input();
     
     // Non-copyable
     Input(const Input&) = delete;
     Input& operator=(const Input&) = delete;
     
-    // Movable
-    Input(Input&&) noexcept = default;
-    Input& operator=(Input&&) noexcept = default;
+    // Callback targets have stable addresses for their whole lifetime.
+    Input(Input&&) = delete;
+    Input& operator=(Input&&) = delete;
     
     // ─────────────────────────────────────────────────────────────────────────
     // Frame Update
@@ -123,6 +123,10 @@ public:
     
     // Call once per frame after processing events to finalize state.
     void endFrame();
+
+    /// Clear held and queued input after focus loss. This also releases mouse
+    /// capture so the next click can acquire pointer lock again.
+    void resetState();
     
     // ─────────────────────────────────────────────────────────────────────────
     // Keyboard State
@@ -193,6 +197,23 @@ public:
     void onMouseDown(int button);
     void onMouseUp(int button);
     void onScroll(float delta);
+
+    /// Synchronize capture state after a browser/OS pointer-lock change.
+    /// Losing capture also clears held buttons because their release events
+    /// are not guaranteed to reach the canvas.
+    void onMouseCaptureChanged(bool captured) {
+        captured_ = captured;
+        firstMouseMove_ = true;
+        mouseDelta_ = glm::vec2(0.0f);
+        prevMousePos_ = mousePos_;
+        if (!captured) {
+            currentButtons_.fill(false);
+            previousButtons_.fill(false);
+            buttonsPressedThisFrame_.fill(false);
+            buttonsReleasedThisFrame_.fill(false);
+            mouseButtonQueue_.clear();
+        }
+    }
     
     // ─────────────────────────────────────────────────────────────────────────
     // Accessors for Window (for cursor mode changes)
@@ -211,6 +232,7 @@ private:
     // Track keys pressed this frame (even if released before frame end)
     // This prevents losing quick press+release events within a single frame
     std::array<bool, kMaxKeys> keysPressedThisFrame_{};
+    std::array<bool, kMaxKeys> keysReleasedThisFrame_{};
     
     // Mouse position and delta
     glm::vec2 mousePos_{0.0f, 0.0f};
@@ -223,6 +245,7 @@ private:
     std::array<bool, kMaxButtons> previousButtons_{};
     // Track buttons pressed this frame (even if released before frame end)
     std::array<bool, kMaxButtons> buttonsPressedThisFrame_{};
+    std::array<bool, kMaxButtons> buttonsReleasedThisFrame_{};
     
     // Scroll
     float scrollDelta_ = 0.0f;
@@ -274,5 +297,3 @@ int emscriptenKeyToCode(const char* code);
 #endif
 
 } // namespace voxy
-
-

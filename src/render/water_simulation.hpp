@@ -89,10 +89,24 @@ public:
         uint32_t timestampEnd = WGPU_QUERY_SET_INDEX_UNDEFINED);
 
     [[nodiscard]] bool isInitialized() const noexcept {
-        return evolvePipeline_ != nullptr && outputView_ != nullptr;
+        return device_ != nullptr &&
+               queue_ != nullptr &&
+               initialSpectrumBuffer_ != nullptr &&
+               pongBuffer_ != nullptr &&
+               simulationUniformBuffer_ != nullptr &&
+               fftTwiddleBuffer_ != nullptr &&
+               axisUniformBuffers_[0] != nullptr &&
+               axisUniformBuffers_[1] != nullptr &&
+               outputView_ != nullptr &&
+               evolvePipeline_ != nullptr &&
+               fftPipeline_ != nullptr &&
+               finalizePipeline_ != nullptr &&
+               evolveBindGroup_ != nullptr &&
+               fftAxisBindGroups_[0] != nullptr &&
+               fftAxisBindGroups_[1] != nullptr &&
+               finalizeBindGroup_ != nullptr;
     }
     [[nodiscard]] WGPUTextureView getOutputView() const noexcept { return outputView_; }
-    [[nodiscard]] WGPUTextureView getFoamView() const noexcept { return foamView_; }
     [[nodiscard]] WGPUTextureView getCoastView() const noexcept { return coastView_; }
     [[nodiscard]] WGPUSampler getSampler() const noexcept { return sampler_; }
 
@@ -125,7 +139,9 @@ private:
         uint32_t cascade = 0u;
     };
 
-    bool createSpectrum();
+    bool createSpectrum(const WaterSpectrumConfig& spectrum,
+                        WGPUBuffer& spectrumBuffer,
+                        std::vector<CpuWaveMode>& cpuWaveModes);
     bool createBuffers();
     bool createOutputTexture();
     bool createCoastField(std::span<const uint16_t> terrainHeights,
@@ -133,9 +149,16 @@ private:
                           float terrainHeightScale, float cellScale,
                           float waterHeight);
     bool createPipelines(const std::filesystem::path& shaderDirectory);
-    bool createBindGroups();
-    bool createFoamResources(const std::filesystem::path& shaderDirectory);
+    bool createBindGroups(
+        WGPUBuffer spectrumBuffer,
+        WGPUBindGroup& evolveBindGroup,
+        std::array<WGPUBindGroup, 2>& fftAxisBindGroups,
+        WGPUBindGroup& finalizeBindGroup);
     void releaseSimulationBindGroups();
+    static void releaseSimulationBindGroups(
+        WGPUBindGroup& evolveBindGroup,
+        std::array<WGPUBindGroup, 2>& fftAxisBindGroups,
+        WGPUBindGroup& finalizeBindGroup);
     void updateCpuWaveCache(float timeSeconds) const;
 
     WGPUDevice device_ = nullptr;
@@ -154,16 +177,7 @@ private:
     WGPUTextureView coastView_ = nullptr;
     WGPUSampler sampler_ = nullptr;
 
-    WGPUBuffer foamUniformBuffer_ = nullptr;
-    std::array<WGPUBuffer, 2> foamBuffers_{};
-    WGPUTexture foamTexture_ = nullptr;
-    WGPUTextureView foamView_ = nullptr;
-    WGPUShaderModule foamShader_ = nullptr;
-    WGPUBindGroupLayout foamBindGroupLayout_ = nullptr;
-    WGPUPipelineLayout foamPipelineLayout_ = nullptr;
-    WGPUComputePipeline foamPipeline_ = nullptr;
-    std::array<WGPUBindGroup, 2> foamBindGroups_{};
-    uint32_t foamFrame_ = 0;
+    uint32_t spectralFrame_ = 0;
     float lastUpdateTime_ = 0.0f;
 
     std::vector<CpuWaveMode> cpuWaveModes_;

@@ -127,7 +127,8 @@ bool DemolitionLeagueSlice::initialize() {
 
 bool DemolitionLeagueSlice::submitImpact(
     const AssemblyDamageCommand& impact) {
-    if (!initialized_ || roundComplete() || !building_.queueDamage(impact)) {
+    if (!initialized_ || roundComplete() || impact.tick > config_.roundTicks
+        || !building_.queueDamage(impact)) {
         ++telemetry_.rejectedImpacts;
         return false;
     }
@@ -252,7 +253,9 @@ bool DeadweightSlice::initialize() {
         || config_.historyTicks == 0u || config_.cargoMassQ16 <= 0
         || config_.winchForceQ16 <= 0 || config_.objectiveZQ12 <= 0
         || config_.deliveryHalfWidthQ12 <= 0
-        || config_.lossHalfWidthQ12 <= config_.deliveryHalfWidthQ12)
+        || config_.lossHalfWidthQ12 <= config_.deliveryHalfWidthQ12
+        || config_.roundTicks > std::numeric_limits<uint64_t>::max()
+                - config_.inputFutureWindow)
         return false;
     pending_.clear();
     recording_.clear();
@@ -322,6 +325,12 @@ bool DeadweightSlice::submitInput(const DeadweightInput& input) {
 
 bool DeadweightSlice::submitRedundantInputs(
     std::span<const DeadweightInput> inputs) {
+    const uint64_t maximumBundle =
+        uint64_t{config_.inputFutureWindow} * 2u;
+    if (inputs.size() > maximumBundle) {
+        telemetry_.rejectedInputs += inputs.size();
+        return false;
+    }
     bool allAccepted = true;
     for (const auto& input : inputs)
         allAccepted = submitInput(input) && allAccepted;
@@ -468,7 +477,9 @@ bool WreckwaterSlice::initialize() {
     if (config_.significantMassQ16 <= 0
         || config_.floodRatePerTickQ16 <= 0
         || config_.floodRatePerTickQ16 > kScalarOne
-        || config_.dragCoefficientQ16 < 0 || !water_.valid()) return false;
+        || config_.dragCoefficientQ16 < 0
+        || config_.dragCoefficientQ16 > 4 * kScalarOne
+        || !water_.valid()) return false;
     const auto nodes = wreckwaterNodes();
     const auto edges = wreckwaterEdges();
     if (!assembly_.initialize(nodes, edges)) return false;

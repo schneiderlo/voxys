@@ -8,6 +8,7 @@
 #include <filesystem>
 #include <array>
 #include <bit>
+#include <cmath>
 #include <cstring>
 #include <limits>
 #include <span>
@@ -27,6 +28,43 @@ namespace voxy::render {
 TEST(PrimitivePathTest, RejectsNullGpuHandles) {
     PrimitivePath path;
     EXPECT_FALSE(path.init(nullptr, nullptr));
+}
+
+TEST(PrimitivePathTest, SkipsMalformedSnapshotsAndNormalizesRotations) {
+    using Shape = physics::PhysicsWorld::ThrowableShape;
+    const float nan = std::numeric_limits<float>::quiet_NaN();
+    const std::array bodies = {
+        physics::DynamicBodySnapshot{
+            Shape::Sphere, glm::vec3(1.0f), glm::quat(2.0f, 0.0f, 0.0f, 0.0f),
+            glm::vec3(1.0f)},
+        physics::DynamicBodySnapshot{
+            Shape::Cube, glm::vec3(nan), glm::quat(1.0f, 0.0f, 0.0f, 0.0f),
+            glm::vec3(1.0f)},
+        physics::DynamicBodySnapshot{
+            Shape::Box, glm::vec3(0.0f),
+            glm::quat(nan, 0.0f, 0.0f, 0.0f),
+            glm::vec3(1.0f)},
+        physics::DynamicBodySnapshot{
+            Shape::Capsule, glm::vec3(0.0f),
+            glm::quat(1.0f, 0.0f, 0.0f, 0.0f),
+            glm::vec3(1.0f, -1.0f, 1.0f)},
+        physics::DynamicBodySnapshot{
+            Shape::Count, glm::vec3(0.0f),
+            glm::quat(1.0f, 0.0f, 0.0f, 0.0f), glm::vec3(1.0f)},
+    };
+
+    EXPECT_TRUE(detail::isRenderablePrimitiveSnapshot(bodies[0]));
+    for (size_t index = 1; index < bodies.size(); ++index) {
+        EXPECT_FALSE(detail::isRenderablePrimitiveSnapshot(bodies[index]));
+    }
+    const auto batch = detail::packPrimitiveInstances(bodies);
+    ASSERT_EQ(batch.instances.size(), 1u);
+    EXPECT_EQ(batch.instanceCounts[static_cast<size_t>(Shape::Sphere)], 1u);
+    for (glm::length_t column = 0; column < 4; ++column) {
+        for (glm::length_t row = 0; row < 4; ++row) {
+            EXPECT_TRUE(std::isfinite(batch.instances[0].model[column][row]));
+        }
+    }
 }
 
 TEST(PrimitivePathTest, SleepingInstanceCacheIsBitExact) {

@@ -73,6 +73,8 @@ namespace {
     bool g_renderThroughputFullQuality = false;
 
     constexpr uint32_t kMaximumGpuFramesInFlight = 4;
+    constexpr int kMaximumRenderThroughputFrames = 1'000'000;
+    constexpr int kMaximumRenderThroughputBatchFrames = 256;
 
     enum class RenderThroughputStatus : int {
         Failed = -1,
@@ -769,12 +771,12 @@ int main(int argc, char* argv[]) {
             .get("physicsSelfTest") === "1" ? 1 : 0;
     }) != 0;
     g_physicsBenchmarkBodies = static_cast<uint32_t>(EM_ASM_INT({
-        const value = Number.parseInt(
+        const value = Number(
             new URLSearchParams(globalThis.location.search)
-                .get("physicsBenchmarkBodies") ?? "0",
-            10);
-        return Number.isInteger(value) && value > 0 ? value : 0;
-    }));
+                .get("physicsBenchmarkBodies") ?? "0");
+        return Number.isSafeInteger(value) && value > 0 && value <= $0
+            ? value : 0;
+    }, voxy::kMaximumBenchmarkBodyCount));
     if (g_physicsBenchmarkBodies != 0u) {
         g_physicsBenchmarkRuntimeReady = true;
         g_physicsSelfTestDevice = emscripten_webgpu_get_device();
@@ -983,12 +985,12 @@ int main(int argc, char* argv[]) {
     appConfig.gpuPhysicsBroadPhaseCellSize =
         config.physics.broadPhaseCellSize;
     appConfig.benchmarkBodyCount = static_cast<uint32_t>(EM_ASM_INT({
-        const value = Number.parseInt(
+        const value = Number(
             new URLSearchParams(globalThis.location.search)
-                .get("benchmarkBodies") ?? "0",
-            10);
-        return Number.isInteger(value) && value > 0 ? value : 0;
-    }));
+                .get("benchmarkBodies") ?? "0");
+        return Number.isSafeInteger(value) && value > 0 && value <= $0
+            ? value : 0;
+    }, voxy::kMaximumBenchmarkBodyCount));
     // A long GPU tick must not trigger a self-sustaining catch-up spiral in
     // the single browser queue. Interactive WASM advances at most one fixed
     // tick per rendered frame and drops excess wall-clock backlog.
@@ -1224,7 +1226,12 @@ void voxy_mouse_move(float dx, float dy) {
 EMSCRIPTEN_KEEPALIVE
 int voxy_set_camera_pose(float x, float y, float z,
                          float yaw, float pitch) {
-    if (!g_app || !g_app->getCamera()) return 0;
+    if (!g_app || !g_app->getCamera()
+        || !std::isfinite(x) || !std::isfinite(y)
+        || !std::isfinite(z) || !std::isfinite(yaw)
+        || !std::isfinite(pitch)) {
+        return 0;
+    }
     voxy::Camera* camera = g_app->getCamera();
     camera->setWorldPosition(glm::ivec3(0), glm::vec3(x, y, z));
     camera->setYaw(yaw);
@@ -1305,6 +1312,9 @@ int voxy_start_render_throughput_benchmark(
     if (!g_app || !g_app->getGPUContext() || !g_renderThroughputMode ||
         !g_renderThroughputFullQuality || warmupFrames < 0 ||
         measuredFrames <= 0 || batchFrames <= 0 ||
+        warmupFrames > kMaximumRenderThroughputFrames ||
+        measuredFrames > kMaximumRenderThroughputFrames ||
+        batchFrames > kMaximumRenderThroughputBatchFrames ||
         batchFrames > measuredFrames || renderThroughputRunning()) {
         return 0;
     }

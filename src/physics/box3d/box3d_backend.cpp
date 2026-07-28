@@ -37,6 +37,12 @@ constexpr float kGravityMagnitude = 9.81f;
 constexpr int kCylinderSides = 16;
 constexpr int kMoverPlaneCapacity = 16;
 constexpr int kMoverIterations = 5;
+constexpr float kMaximumCharacterRate = 10'000.0f;
+constexpr float kMaximumTerrainScale = 1.0e6f;
+constexpr uint32_t kMaximumTerrainExtent = 8'192u;
+constexpr uint32_t kMaximumBodyCapacity = 1'000'000u;
+constexpr uint32_t kMaximumPairCapacity = 1'048'576u;
+constexpr uint32_t kMaximumContactCapacity = 1'048'576u;
 
 [[nodiscard]] bool finiteVector(const glm::vec3& value) noexcept {
     return std::isfinite(value.x) && std::isfinite(value.y)
@@ -123,18 +129,26 @@ public:
     };
 
     [[nodiscard]] CharacterSlot* findCharacter(CharacterHandle handle) {
-        if (handle == InvalidCharacter || handle > characters.size()) {
+        const uint32_t index = characterHandleSlot(handle);
+        if (index >= characters.size()
+            || index >= characterGenerations.size()
+            || characterGenerations[index]
+                != characterHandleGeneration(handle)) {
             return nullptr;
         }
-        return characters[handle - 1].get();
+        return characters[index].get();
     }
 
     [[nodiscard]] const CharacterSlot* findCharacter(
         CharacterHandle handle) const {
-        if (handle == InvalidCharacter || handle > characters.size()) {
+        const uint32_t index = characterHandleSlot(handle);
+        if (index >= characters.size()
+            || index >= characterGenerations.size()
+            || characterGenerations[index]
+                != characterHandleGeneration(handle)) {
             return nullptr;
         }
-        return characters[handle - 1].get();
+        return characters[index].get();
     }
 
     [[nodiscard]] b3Capsule characterCapsule(
@@ -332,6 +346,7 @@ public:
     uint32_t terrainHeight = 0;
     std::vector<DynamicSlot> dynamicBodies;
     std::vector<std::unique_ptr<CharacterSlot>> characters;
+    std::vector<uint16_t> characterGenerations;
     WaterSurfaceSampler waterSurfaceSampler;
     float waterHeight = 0.0f;
     float waterTime = 0.0f;
@@ -364,8 +379,13 @@ bool Box3DReferenceBackend::initialize(const PhysicsInitContext& context) {
                   backendTypeName(context.requestedBackend));
         return false;
     }
-    if (context.maxBodies == 0 || context.maxContacts == 0) {
-        LOG_ERROR("Box3D backend requires non-zero body/contact capacities");
+    if (context.maxBodies == 0
+        || context.maxBodies > kMaximumBodyCapacity
+        || context.maxPairs == 0
+        || context.maxPairs > kMaximumPairCapacity
+        || context.maxContacts == 0
+        || context.maxContacts > kMaximumContactCapacity) {
+        LOG_ERROR("Box3D backend capacities are invalid or unbounded");
         return false;
     }
 
@@ -373,8 +393,10 @@ bool Box3DReferenceBackend::initialize(const PhysicsInitContext& context) {
     b3WorldDef worldDef = b3DefaultWorldDef();
     worldDef.gravity = {0.0f, -kGravityMagnitude, 0.0f};
     worldDef.workerCount = std::clamp(context.box3dWorkerThreads, 1u, 32u);
-    worldDef.capacity.staticBodyCount = 1;
-    worldDef.capacity.staticShapeCount = 1;
+    // A second static slot lets setTerrain build a complete replacement while
+    // the working terrain remains live.
+    worldDef.capacity.staticBodyCount = 2;
+    worldDef.capacity.staticShapeCount = 2;
     worldDef.capacity.dynamicBodyCount = static_cast<int>(
         std::min<uint32_t>(context.maxBodies,
                            static_cast<uint32_t>(std::numeric_limits<int>::max())));
@@ -406,6 +428,7 @@ void Box3DReferenceBackend::shutdown() {
     impl_->world = b3_nullWorldId;
     impl_->dynamicBodies.clear();
     impl_->characters.clear();
+    impl_->characterGenerations.clear();
     impl_->waterSurfaceSampler = {};
     impl_->lastReadStats = {};
     impl_->lastStepStats = {};
@@ -441,15 +464,18 @@ bool Box3DReferenceBackend::setTerrain(
     std::span<const uint16_t> samples, uint32_t width, uint32_t height,
     float heightScale, float cellScale) {
     if (!isInitialized() || width < 2 || height < 2
+        || width > kMaximumTerrainExtent
+        || height > kMaximumTerrainExtent
         || !std::isfinite(heightScale) || heightScale <= 0.0f
+        || heightScale > kMaximumTerrainScale
         || !std::isfinite(cellScale) || cellScale <= 0.0f
+        || cellScale > kMaximumTerrainScale
         || samples.size() != static_cast<size_t>(width) * height
         || width > static_cast<uint32_t>(std::numeric_limits<int>::max())
         || height > static_cast<uint32_t>(std::numeric_limits<int>::max())) {
         return false;
     }
 
-    impl_->clearTerrain();
     const box3d_conversion::CanonicalHeightFieldLayout layout{
         width, height};
     std::vector<float> rotatedHeights(samples.size());
@@ -471,8 +497,9 @@ bool Box3DReferenceBackend::setTerrain(
     heightFieldDef.globalMinimumHeight = -heightScale;
     heightFieldDef.globalMaximumHeight = heightScale;
     heightFieldDef.clockwiseWinding = false;
-    impl_->terrainData = b3CreateHeightField(&heightFieldDef);
-    if (impl_->terrainData == nullptr) {
+    b3HeightFieldData* replacementData =
+        b3CreateHeightField(&heightFieldDef);
+    if (replacementData == nullptr) {
         LOG_ERROR("Box3D failed to cook {}x{} terrain", width, height);
         return false;
     }
@@ -484,22 +511,28 @@ bool Box3DReferenceBackend::setTerrain(
     bodyDef.position = {-origin.x, 0.0f, origin.y};
     bodyDef.rotation = {{0.0f, kSinCos45, 0.0f}, kSinCos45};
     bodyDef.name = "voxys_canonical_terrain";
-    impl_->terrainBody = b3CreateBody(impl_->world, &bodyDef);
-    if (!b3Body_IsValid(impl_->terrainBody)) {
-        impl_->clearTerrain();
+    const b3BodyId replacementBody = b3CreateBody(impl_->world, &bodyDef);
+    if (!b3Body_IsValid(replacementBody)) {
+        b3DestroyHeightField(replacementData);
         LOG_ERROR("Box3D failed to create terrain body");
         return false;
     }
 
     b3ShapeDef shapeDef = b3DefaultShapeDef();
     shapeDef.baseMaterial.friction = 0.8f;
-    impl_->terrainShape = b3CreateHeightFieldShape(
-        impl_->terrainBody, &shapeDef, impl_->terrainData);
-    if (!b3Shape_IsValid(impl_->terrainShape)) {
-        impl_->clearTerrain();
+    const b3ShapeId replacementShape = b3CreateHeightFieldShape(
+        replacementBody, &shapeDef, replacementData);
+    if (!b3Shape_IsValid(replacementShape)) {
+        b3DestroyBody(replacementBody);
+        b3DestroyHeightField(replacementData);
         LOG_ERROR("Box3D failed to create terrain shape");
         return false;
     }
+
+    impl_->clearTerrain();
+    impl_->terrainData = replacementData;
+    impl_->terrainBody = replacementBody;
+    impl_->terrainShape = replacementShape;
     impl_->terrainWidth = width;
     impl_->terrainHeight = height;
     return true;
@@ -535,47 +568,59 @@ void Box3DReferenceBackend::setWaterSurfaceSampler(
 CharacterHandle Box3DReferenceBackend::createCharacter(
     const glm::vec3& feetPosition,
     const CharacterSettings& requestedSettings) {
-    if (!isInitialized() || !finiteVector(feetPosition)) {
+    if (!isInitialized()
+        || !isRepresentableAbsolutePosition(feetPosition)) {
         return InvalidCharacter;
+    }
+
+    size_t targetIndex = impl_->characters.size();
+    for (size_t index = 0; index < impl_->characters.size(); ++index) {
+        if (!impl_->characters[index]
+            && impl_->characterGenerations[index]
+                != std::numeric_limits<uint16_t>::max()) {
+            targetIndex = index;
+            break;
+        }
+    }
+    if (targetIndex == impl_->characters.size()) {
+        if (impl_->characters.size() >= kMaximumCharacterSlots) {
+            return InvalidCharacter;
+        }
+        // Keep the two parallel arrays consistent even if growth throws.
+        impl_->characters.reserve(impl_->characters.size() + 1u);
+        impl_->characterGenerations.reserve(
+            impl_->characterGenerations.size() + 1u);
     }
 
     auto slot = std::make_unique<Impl::CharacterSlot>();
     slot->position = feetPosition;
-    slot->settings.radius = std::max(
-        finiteOr(requestedSettings.radius, 0.4f), 0.05f);
-    slot->settings.height = std::max(
-        finiteOr(requestedSettings.height, 1.8f),
-        2.0f * slot->settings.radius + 0.02f);
-    slot->settings.maxSlopeAngleDegrees = std::clamp(
-        finiteOr(requestedSettings.maxSlopeAngleDegrees, 45.0f),
-        0.0f, 89.0f);
-    slot->settings.stepUp = std::max(
-        finiteOr(requestedSettings.stepUp, 0.5f), 0.0f);
-    slot->settings.stepDown = std::max(
-        finiteOr(requestedSettings.stepDown, 0.5f), 0.0f);
+    slot->settings = sanitizeCharacterSettings(requestedSettings);
     impl_->refreshCharacterGround(*slot, true);
 
-    for (size_t index = 0; index < impl_->characters.size(); ++index) {
-        if (!impl_->characters[index]) {
-            impl_->characters[index] = std::move(slot);
-            return static_cast<CharacterHandle>(index + 1u);
-        }
+    if (targetIndex < impl_->characters.size()) {
+        impl_->characters[targetIndex] = std::move(slot);
+        return makeCharacterHandle(
+            static_cast<uint32_t>(targetIndex),
+            impl_->characterGenerations[targetIndex]);
     }
     impl_->characters.push_back(std::move(slot));
-    return static_cast<CharacterHandle>(impl_->characters.size());
+    impl_->characterGenerations.push_back(0u);
+    return makeCharacterHandle(
+        static_cast<uint32_t>(impl_->characters.size() - 1u), 0u);
 }
 
 void Box3DReferenceBackend::destroyCharacter(CharacterHandle handle) {
-    if (!impl_ || handle == InvalidCharacter
-        || handle > impl_->characters.size()) {
-        return;
-    }
-    impl_->characters[handle - 1u].reset();
+    if (!impl_ || !impl_->findCharacter(handle)) return;
+    const uint32_t index = characterHandleSlot(handle);
+    impl_->characters[index].reset();
+    auto& generation = impl_->characterGenerations[index];
+    if (generation != std::numeric_limits<uint16_t>::max()) ++generation;
 }
 
 bool Box3DReferenceBackend::setCharacterPosition(
     CharacterHandle handle, const glm::vec3& feetPosition) {
-    if (!isInitialized() || !finiteVector(feetPosition)) {
+    if (!isInitialized()
+        || !isRepresentableAbsolutePosition(feetPosition)) {
         return false;
     }
     Impl::CharacterSlot* character = impl_->findCharacter(handle);
@@ -606,12 +651,19 @@ CharacterMotion Box3DReferenceBackend::moveCharacter(
     const int substepCount = std::max(
         1, static_cast<int>(std::ceil(frameTime / kFixedTimeStep)));
     const float substepTime = frameTime / static_cast<float>(substepCount);
-    gravity = std::max(finiteOr(gravity, 0.0f), 0.0f);
-    terminalVelocity = std::max(
-        finiteOr(terminalVelocity, 0.0f), 0.0f);
-    jumpSpeed = std::max(finiteOr(jumpSpeed, 0.0f), 0.0f);
+    gravity = std::clamp(
+        finiteOr(gravity, 0.0f), 0.0f, kMaximumCharacterRate);
+    terminalVelocity = std::clamp(
+        finiteOr(terminalVelocity, 0.0f),
+        0.0f, kMaximumCharacterRate);
+    jumpSpeed = std::clamp(
+        finiteOr(jumpSpeed, 0.0f), 0.0f, kMaximumCharacterRate);
     const glm::vec3 desired = finiteVector(desiredHorizontalVelocity)
-        ? desiredHorizontalVelocity : glm::vec3(0.0f);
+        ? glm::clamp(
+            desiredHorizontalVelocity,
+            glm::vec3(-kMaximumCharacterRate),
+            glm::vec3(kMaximumCharacterRate))
+        : glm::vec3(0.0f);
 
     for (int substep = 0;
          substep < substepCount && substepTime > 0.0f; ++substep) {

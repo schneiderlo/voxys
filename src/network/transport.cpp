@@ -5,6 +5,16 @@
 namespace voxy::network {
 namespace {
 
+bool validDeliveryClass(DeliveryClass delivery) noexcept {
+    switch (delivery) {
+        case DeliveryClass::Realtime:
+        case DeliveryClass::ReliableEvent:
+        case DeliveryClass::ReliableControl:
+            return true;
+    }
+    return false;
+}
+
 uint32_t webTransportChannel(DeliveryClass delivery) noexcept {
     return delivery == DeliveryClass::Realtime ? 0u : 1u;
 }
@@ -19,10 +29,10 @@ uint32_t webRtcChannel(DeliveryClass delivery) noexcept {
 }
 
 bool validFrameSize(DeliveryClass delivery, size_t bytes) noexcept {
-    if (bytes == 0u) return false;
+    if (!validDeliveryClass(delivery) || bytes == 0u) return false;
     if (delivery == DeliveryClass::Realtime)
         return bytes <= kConservativeRealtimeMtu;
-    return bytes <= 16u * 1024u * 1024u;
+    return bytes <= kMaximumReliableFrameBytes;
 }
 
 template <typename Endpoint>
@@ -59,7 +69,12 @@ std::optional<TransportFrame> pollCallbacks(
     TransportCallbacks& callbacks, TransportState state) {
     if (state != TransportState::Connected || !callbacks.poll)
         return std::nullopt;
-    return callbacks.poll();
+    auto frame = callbacks.poll();
+    if (!frame.has_value()
+        || !validFrameSize(frame->delivery, frame->bytes.size())) {
+        return std::nullopt;
+    }
+    return frame;
 }
 
 void closeCallbacks(TransportCallbacks& callbacks, TransportState& state) {
@@ -165,6 +180,11 @@ bool RealtimeGateway::send(
 std::optional<TransportFrame> RealtimeGateway::poll() {
     if (active_ == nullptr) return std::nullopt;
     auto frame = active_->poll();
+    if (frame.has_value()
+        && !validFrameSize(frame->delivery, frame->bytes.size())) {
+        ++telemetry_.rejectedFrames;
+        return std::nullopt;
+    }
     if (frame.has_value()) ++telemetry_.receivedFrames;
     return frame;
 }

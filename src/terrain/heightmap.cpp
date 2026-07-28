@@ -7,11 +7,6 @@
 #include "core/log.hpp"
 #include "gpu/resources.hpp"
 
-// Only include mip pipeline when WebGPU is available
-#if defined(VOXY_NATIVE) || defined(VOXY_WASM)
-    #include "render/mip_pipeline.hpp"
-#endif
-
 #include <algorithm>
 #include <chrono>
 #include <cmath>
@@ -190,29 +185,34 @@ VoidResult Heightmap::loadRawFromMemory(std::span<const std::byte> data,
                                          uint32_t width, uint32_t height) {
     const auto startTime = std::chrono::high_resolution_clock::now();
 
-    if (width == 0 || height == 0) {
+    size_t sampleCount = 0;
+    size_t expectedSize = 0;
+    if (!tryCalculateHeightmapLayout(
+            width, height, sampleCount, expectedSize)
+        || sampleCount > data_.max_size()) {
         LOG_ERROR("Invalid heightmap dimensions: {}x{}", width, height);
         return HeightmapError::InvalidDimensions;
     }
 
-    const size_t expectedSize = static_cast<size_t>(width) * height * sizeof(uint16_t);
     if (data.size() != expectedSize) {
         LOG_ERROR("RAW heightmap size mismatch: expected {} bytes for {}x{}, got {} bytes",
                   expectedSize, width, height, data.size());
         return HeightmapError::InvalidDimensions;
     }
 
-    // Release previous data
-    release();
-
-    // Copy data
-    width_ = width;
-    height_ = height;
-    data_.resize(static_cast<size_t>(width) * height);
-    std::memcpy(data_.data(), data.data(), data.size());
+    std::vector<uint16_t> nextData(sampleCount);
+    std::memcpy(nextData.data(), data.data(), data.size());
 
     const auto endTime = std::chrono::high_resolution_clock::now();
-    loadTimeMs_ = std::chrono::duration<double, std::milli>(endTime - startTime).count();
+    const double nextLoadTimeMs =
+        std::chrono::duration<double, std::milli>(endTime - startTime).count();
+
+    // Commit only after validation, allocation, and copy all succeeded.
+    release();
+    width_ = width;
+    height_ = height;
+    data_ = std::move(nextData);
+    loadTimeMs_ = nextLoadTimeMs;
 
     LOG_INFO("Loaded RAW heightmap: {}x{} ({:.2f} MB, {:.2f} ms)",
              width_, height_,
@@ -240,6 +240,16 @@ VoidResult Heightmap::resize(uint32_t targetWidth, uint32_t targetHeight) {
         targetHeight = nextPowerOfTwo(height_);
     }
 
+    size_t targetSampleCount = 0;
+    size_t targetByteCount = 0;
+    if (!tryCalculateHeightmapLayout(
+            targetWidth, targetHeight, targetSampleCount, targetByteCount)
+        || targetSampleCount > data_.max_size()) {
+        LOG_ERROR("Cannot resize heightmap to invalid dimensions: {}x{}",
+                  targetWidth, targetHeight);
+        return HeightmapError::InvalidDimensions;
+    }
+
     // Skip if already the right size
     if (targetWidth == width_ && targetHeight == height_) {
         LOG_DEBUG("Heightmap already {}x{}, no resize needed", width_, height_);
@@ -252,7 +262,7 @@ VoidResult Heightmap::resize(uint32_t targetWidth, uint32_t targetHeight) {
              width_, height_, targetWidth, targetHeight);
 
     // Allocate new buffer
-    std::vector<uint16_t> newData(static_cast<size_t>(targetWidth) * targetHeight);
+    std::vector<uint16_t> newData(targetSampleCount);
 
     struct AxisSample {
         uint32_t i0 = 0;
@@ -341,29 +351,37 @@ uint16_t Heightmap::sample(uint32_t x, uint32_t y) const noexcept {
     if (data_.empty()) return 0;
     x = std::min(x, width_ - 1);
     y = std::min(y, height_ - 1);
-    return data_[y * width_ + x];
+    return data_[static_cast<size_t>(y) * width_ + x];
 }
 
 float Heightmap::sampleBilinear(float x, float y) const noexcept {
-    if (data_.empty() || std::isnan(x) || std::isnan(y)) return 0.0f;
+    if (data_.empty() || !std::isfinite(x) || !std::isfinite(y)) {
+        return 0.0f;
+    }
 
     // Clamp coordinates
-    x = std::clamp(x, 0.0f, static_cast<float>(width_ - 1));
-    y = std::clamp(y, 0.0f, static_cast<float>(height_ - 1));
+    const double sampleX = std::clamp(
+        static_cast<double>(x), 0.0, static_cast<double>(width_ - 1));
+    const double sampleY = std::clamp(
+        static_cast<double>(y), 0.0, static_cast<double>(height_ - 1));
 
     // Get integer and fractional parts
-    const uint32_t x0 = static_cast<uint32_t>(x);
-    const uint32_t y0 = static_cast<uint32_t>(y);
-    const uint32_t x1 = std::min(x0 + 1, width_ - 1);
-    const uint32_t y1 = std::min(y0 + 1, height_ - 1);
-    const float fx = x - static_cast<float>(x0);
-    const float fy = y - static_cast<float>(y0);
+    const uint32_t x0 = static_cast<uint32_t>(sampleX);
+    const uint32_t y0 = static_cast<uint32_t>(sampleY);
+    const uint32_t x1 = x0 < width_ - 1 ? x0 + 1 : x0;
+    const uint32_t y1 = y0 < height_ - 1 ? y0 + 1 : y0;
+    const float fx = static_cast<float>(
+        sampleX - static_cast<double>(x0));
+    const float fy = static_cast<float>(
+        sampleY - static_cast<double>(y0));
 
     // Sample four corners
-    const float s00 = static_cast<float>(data_[y0 * width_ + x0]);
-    const float s10 = static_cast<float>(data_[y0 * width_ + x1]);
-    const float s01 = static_cast<float>(data_[y1 * width_ + x0]);
-    const float s11 = static_cast<float>(data_[y1 * width_ + x1]);
+    const size_t row0 = static_cast<size_t>(y0) * width_;
+    const size_t row1 = static_cast<size_t>(y1) * width_;
+    const float s00 = static_cast<float>(data_[row0 + x0]);
+    const float s10 = static_cast<float>(data_[row0 + x1]);
+    const float s01 = static_cast<float>(data_[row1 + x0]);
+    const float s11 = static_cast<float>(data_[row1 + x1]);
 
     // Bilinear interpolation
     const float s0 = s00 * (1.0f - fx) + s10 * fx;
@@ -405,9 +423,11 @@ VoidResult Heightmap::uploadToGPU(WGPUDevice device, WGPUQueue queue,
         LOG_ERROR("Cannot upload heightmap to GPU: invalid device or queue");
         return HeightmapError::UploadFailed;
     }
-
-    // Release existing GPU resources
-    releaseGPU();
+    if (width_ > std::numeric_limits<uint32_t>::max()
+                     / sizeof(uint16_t)) {
+        LOG_ERROR("Heightmap row is too wide for WebGPU upload");
+        return HeightmapError::UploadFailed;
+    }
 
     // Create texture descriptor (single mip level)
     auto desc = gpu::TextureDesc::tex2D(
@@ -419,13 +439,33 @@ VoidResult Heightmap::uploadToGPU(WGPUDevice device, WGPUQueue queue,
 
     // Create texture with data
     const uint32_t bytesPerRow = width_ * sizeof(uint16_t);
-    texture_ = gpu::createTextureWithData(device, queue, desc, getDataBytes(), bytesPerRow);
+    WGPUTexture nextTexture = gpu::createTextureWithData(
+        device, queue, desc, getDataBytes(), bytesPerRow);
 
-    if (!texture_) {
+    if (!nextTexture) {
         LOG_ERROR("Failed to create heightmap GPU texture");
         return HeightmapError::TextureCreationFailed;
     }
 
+    gpu::TextureViewDesc viewDesc{};
+    viewDesc.label = "heightmap_view";
+    viewDesc.format = WGPUTextureFormat_R16Uint;
+    viewDesc.dimension = WGPUTextureViewDimension_2D;
+    viewDesc.baseMipLevel = 0;
+    viewDesc.mipLevelCount = 1;
+    viewDesc.baseArrayLayer = 0;
+    viewDesc.arrayLayerCount = 1;
+    WGPUTextureView nextView = gpu::createTextureView(
+        nextTexture, viewDesc);
+    if (!nextView) {
+        wgpuTextureDestroy(nextTexture);
+        wgpuTextureRelease(nextTexture);
+        return HeightmapError::TextureCreationFailed;
+    }
+
+    releaseGPU();
+    texture_ = nextTexture;
+    textureView_ = nextView;
     mipLevelCount_ = 1;  // Single mip level
     LOG_DEBUG("Uploaded heightmap to GPU: {}x{} (R16Uint, 1 mip level)", width_, height_);
     return VoidResult();
@@ -498,113 +538,112 @@ VoidResult Heightmap::uploadToGPUWithMips(WGPUDevice device, WGPUQueue queue,
         LOG_ERROR("Cannot upload heightmap to GPU: invalid device or queue");
         return HeightmapError::UploadFailed;
     }
+    if (width_ > std::numeric_limits<uint32_t>::max()
+                     / sizeof(uint16_t)) {
+        LOG_ERROR("Heightmap row is too wide for WebGPU upload");
+        return HeightmapError::UploadFailed;
+    }
 
-    // Release existing GPU resources
-    releaseGPU();
-
-    // Calculate mip levels
-    mipLevelCount_ = calculateMipLevels(width_, height_);
+    const uint32_t nextMipLevelCount = calculateMipLevels(width_, height_);
 
     // Create texture descriptor with mip chain
-    // Note: For GPU mip generation, we need StorageBinding usage (not supported on all devices)
     WGPUTextureDescriptor texDesc{};
     texDesc.nextInChain = nullptr;
-    WGPU_SET_LABEL(texDesc, label.data());
+    const std::string labelString(label);
+    WGPU_SET_LABEL(texDesc, labelString.c_str());
     texDesc.usage = WGPUTextureUsage_TextureBinding | WGPUTextureUsage_CopyDst;
     texDesc.dimension = WGPUTextureDimension_2D;
     texDesc.size.width = width_;
     texDesc.size.height = height_;
     texDesc.size.depthOrArrayLayers = 1;
     texDesc.format = WGPUTextureFormat_R16Uint;
-    texDesc.mipLevelCount = mipLevelCount_;
+    texDesc.mipLevelCount = nextMipLevelCount;
     texDesc.sampleCount = 1;
     texDesc.viewFormatCount = 0;
     texDesc.viewFormats = nullptr;
 
-    // GPU mip generation is NOT supported for R16Uint textures because:
-    // 1. r16uint is NOT a valid storage texture format in WebGPU 1.0
-    // 2. Only 32-bit formats (r32uint, r32sint, r32float, etc.) are supported
-    // We always fall back to CPU mip generation for R16Uint heightmaps.
-    // For GPU mip generation, the texture would need to be R32Uint format.
-    bool canUseGPUMips = false;
     if (useGPUMips) {
-        // Note: R16Uint cannot be used as a storage texture in WebGPU.
-        // The shader uses r32uint for storage textures, but we can't use that
-        // with our R16Uint heightmap without format conversion.
         LOG_WARN("GPU mip generation requested but R16Uint is not a valid storage texture format in WebGPU 1.0. "
                  "Falling back to CPU mip generation.");
     }
+    static_cast<void>(shaderPath);
 
-    // Create texture without storage binding if needed
-    if (!texture_) {
-        texture_ = wgpuDeviceCreateTexture(device, &texDesc);
-    }
+    WGPUTexture nextTexture = wgpuDeviceCreateTexture(device, &texDesc);
 
-    if (!texture_) {
+    if (!nextTexture) {
         LOG_ERROR("Failed to create mipped heightmap texture");
-        mipLevelCount_ = 0;
         return HeightmapError::TextureCreationFailed;
     }
 
     // Upload base level (level 0)
-    gpu::writeTexture(queue, texture_, getDataBytes(), width_, height_,
-                      width_ * sizeof(uint16_t), 0);
-
-    // Generate mip levels
-    bool mipsGenerated = false;
-
-#if defined(VOXY_NATIVE) || defined(VOXY_WASM)
-    if (canUseGPUMips && !shaderPath.empty()) {
-        // Try GPU mip generation
-        render::MipGeneratorPipeline mipPipeline;
-        if (mipPipeline.init(device, shaderPath)) {
-            mipsGenerated = mipPipeline.generateMipChain(device, queue, texture_, mipLevelCount_);
-            if (mipsGenerated) {
-                LOG_DEBUG("Generated {} mip levels on GPU for {}x{} heightmap",
-                          mipLevelCount_ - 1, width_, height_);
-            }
-        }
+    if (!gpu::writeTexture(
+            queue, nextTexture, getDataBytes(), width_, height_,
+            width_ * sizeof(uint16_t), 0)) {
+        wgpuTextureDestroy(nextTexture);
+        wgpuTextureRelease(nextTexture);
+        return HeightmapError::UploadFailed;
     }
-#endif
 
-    if (!mipsGenerated) {
-        // Fall back to CPU mip generation
-        if (!uploadMipsFromCPU(device, queue)) {
-            LOG_ERROR("Failed to generate mip chain (CPU fallback)");
-            // Note: Texture is still valid, just without full mip chain
-        } else {
-            LOG_DEBUG("Generated {} mip levels on CPU for {}x{} heightmap",
-                      mipLevelCount_ - 1, width_, height_);
-        }
+    if (!uploadMipsFromCPU(queue, nextTexture, nextMipLevelCount)) {
+        LOG_ERROR("Failed to generate mip chain (CPU fallback)");
+        wgpuTextureDestroy(nextTexture);
+        wgpuTextureRelease(nextTexture);
+        return HeightmapError::UploadFailed;
     }
+    LOG_DEBUG("Generated {} mip levels on CPU for {}x{} heightmap",
+              nextMipLevelCount - 1, width_, height_);
+
+    gpu::TextureViewDesc viewDesc{};
+    viewDesc.label = "heightmap_view";
+    viewDesc.format = WGPUTextureFormat_R16Uint;
+    viewDesc.dimension = WGPUTextureViewDimension_2D;
+    viewDesc.baseMipLevel = 0;
+    viewDesc.mipLevelCount = nextMipLevelCount;
+    viewDesc.baseArrayLayer = 0;
+    viewDesc.arrayLayerCount = 1;
+    WGPUTextureView nextView = gpu::createTextureView(
+        nextTexture, viewDesc);
+    if (!nextView) {
+        wgpuTextureDestroy(nextTexture);
+        wgpuTextureRelease(nextTexture);
+        return HeightmapError::TextureCreationFailed;
+    }
+
+    releaseGPU();
+    texture_ = nextTexture;
+    textureView_ = nextView;
+    mipLevelCount_ = nextMipLevelCount;
 
     LOG_INFO("Uploaded heightmap to GPU with mips: {}x{} ({} levels, {:.2f} MB total)",
              width_, height_, mipLevelCount_,
-             static_cast<double>(getSizeBytes() * 4 / 3) / (1024.0 * 1024.0));
+             static_cast<double>(getSizeBytes()) * (4.0 / 3.0)
+                 / (1024.0 * 1024.0));
 
     return VoidResult();
 }
 
-bool Heightmap::uploadMipsFromCPU(WGPUDevice /*device*/, WGPUQueue queue) {
-    if (!texture_) {
+bool Heightmap::uploadMipsFromCPU(
+    WGPUQueue queue, WGPUTexture texture,
+    uint32_t mipLevelCount) {
+    if (!texture || !queue) {
         LOG_WARN("uploadMipsFromCPU: No texture to upload mips to");
         return false;  // This is an error condition - texture should exist
     }
 
-    if (mipLevelCount_ < 2) {
+    if (mipLevelCount < 2) {
         // Single mip level (or none) - no additional mips to generate
         LOG_DEBUG("uploadMipsFromCPU: Texture has {} mip levels, no additional mips to generate",
-                  mipLevelCount_);
+                  mipLevelCount);
         return true;
     }
 
     // The terrain ray-caster shader relies on mips existing up to level 7 for
     // hierarchical traversal. Warn if we have fewer mip levels than expected.
     constexpr uint32_t RAYCAST_EXPECTED_MIP_LEVELS = 8;  // levels 0-7
-    if (mipLevelCount_ < RAYCAST_EXPECTED_MIP_LEVELS) {
+    if (mipLevelCount < RAYCAST_EXPECTED_MIP_LEVELS) {
         LOG_WARN("Heightmap has {} mip levels, but ray-caster expects {}. "
                  "This may affect hierarchical traversal performance for smaller heightmaps.",
-                 mipLevelCount_, RAYCAST_EXPECTED_MIP_LEVELS);
+                 mipLevelCount, RAYCAST_EXPECTED_MIP_LEVELS);
     }
 
     std::span<const uint16_t> previousData = data_;
@@ -612,7 +651,7 @@ bool Heightmap::uploadMipsFromCPU(WGPUDevice /*device*/, WGPUQueue queue) {
     uint32_t previousHeight = height_;
     MipLevel currentLevel;
 
-    for (uint32_t level = 1; level < mipLevelCount_; level++) {
+    for (uint32_t level = 1; level < mipLevelCount; level++) {
         MipLevel nextLevel = generateNextMipLevel(previousData, previousWidth, previousHeight);
         if (!nextLevel.isValid()) {
             LOG_ERROR("Failed to generate CPU mip level {}", level);
@@ -624,9 +663,12 @@ bool Heightmap::uploadMipsFromCPU(WGPUDevice /*device*/, WGPUQueue queue) {
             nextLevel.sizeBytes()
         );
 
-        gpu::writeTexture(queue, texture_, levelBytes,
-                          nextLevel.width, nextLevel.height,
-                          nextLevel.width * sizeof(uint16_t), level);
+        if (!gpu::writeTexture(
+                queue, texture, levelBytes,
+                nextLevel.width, nextLevel.height,
+                nextLevel.width * sizeof(uint16_t), level)) {
+            return false;
+        }
 
         currentLevel = std::move(nextLevel);
         previousData = currentLevel.data;
@@ -661,17 +703,31 @@ Heightmap::load(const std::filesystem::path& path) {
 
 Heightmap Heightmap::createFlat(uint32_t width, uint32_t height, uint16_t value) {
     Heightmap hm;
+    size_t sampleCount = 0;
+    size_t byteCount = 0;
+    if (!tryCalculateHeightmapLayout(
+            width, height, sampleCount, byteCount)
+        || sampleCount > hm.data_.max_size()) {
+        LOG_ERROR("Cannot create flat heightmap with invalid dimensions: {}x{}",
+                  width, height);
+        return hm;
+    }
+
     hm.width_ = width;
     hm.height_ = height;
-    hm.data_.resize(static_cast<size_t>(width) * height, value);
+    hm.data_.resize(sampleCount, value);
     return hm;
 }
 
 Heightmap Heightmap::createFromData(std::vector<uint16_t>&& data,
                                      uint32_t width, uint32_t height) {
     Heightmap hm;
-    const size_t expectedSize = static_cast<size_t>(width) * height;
-    if (width == 0 || height == 0 || data.size() != expectedSize) {
+    size_t expectedSize = 0;
+    size_t expectedBytes = 0;
+    if (!tryCalculateHeightmapLayout(
+            width, height, expectedSize, expectedBytes)
+        || expectedSize > data.max_size()
+        || data.size() != expectedSize) {
         LOG_ERROR("Cannot create heightmap: expected {} samples for {}x{}, got {}",
                   expectedSize, width, height, data.size());
         return hm;

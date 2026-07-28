@@ -7,9 +7,19 @@
 #include "core/log.hpp"
 
 #include <emscripten/html5.h>
+#include <algorithm>
+#include <cmath>
 #include <cstring>
 
 namespace voxy {
+
+namespace {
+
+constexpr size_t kMaximumQueuedInputEvents = 4'096u;
+constexpr float kMaximumMouseCoordinate = 1.0e9f;
+constexpr double kMaximumAccumulatedScroll = 10'000.0;
+
+} // namespace
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Forward Declarations
@@ -25,9 +35,11 @@ Input::Input() {
     currentKeys_.fill(false);
     previousKeys_.fill(false);
     keysPressedThisFrame_.fill(false);
+    keysReleasedThisFrame_.fill(false);
     currentButtons_.fill(false);
     previousButtons_.fill(false);
     buttonsPressedThisFrame_.fill(false);
+    buttonsReleasedThisFrame_.fill(false);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -41,7 +53,9 @@ void Input::beginFrame() {
     
     // Clear per-frame press accumulators
     keysPressedThisFrame_.fill(false);
+    keysReleasedThisFrame_.fill(false);
     buttonsPressedThisFrame_.fill(false);
+    buttonsReleasedThisFrame_.fill(false);
     
     // Process buffered events
     processEvents();
@@ -66,6 +80,9 @@ void Input::processEvents() {
                 }
                 currentKeys_[key] = true;
             } else {
+                if (currentKeys_[key]) {
+                    keysReleasedThisFrame_[key] = true;
+                }
                 currentKeys_[key] = false;
             }
         }
@@ -77,9 +94,14 @@ void Input::processEvents() {
         if (isValidButton(event.button)) {
             const size_t button = static_cast<size_t>(event.button);
             if (event.down) {
+                if (!currentButtons_[button]) {
+                    buttonsPressedThisFrame_[button] = true;
+                }
                 currentButtons_[button] = true;
-                buttonsPressedThisFrame_[button] = true;
             } else {
+                if (currentButtons_[button]) {
+                    buttonsReleasedThisFrame_[button] = true;
+                }
                 currentButtons_[button] = false;
             }
         }
@@ -108,6 +130,25 @@ void Input::endFrame() {
     // Nothing to do here
 }
 
+void Input::resetState() {
+    releaseMouse();
+    currentKeys_.fill(false);
+    previousKeys_.fill(false);
+    keysPressedThisFrame_.fill(false);
+    keysReleasedThisFrame_.fill(false);
+    currentButtons_.fill(false);
+    previousButtons_.fill(false);
+    buttonsPressedThisFrame_.fill(false);
+    buttonsReleasedThisFrame_.fill(false);
+    keyQueue_.clear();
+    mouseButtonQueue_.clear();
+    mouseDelta_ = glm::vec2(0.0f);
+    prevMousePos_ = mousePos_;
+    firstMouseMove_ = true;
+    scrollDelta_ = 0.0f;
+    accumulatedScroll_ = 0.0f;
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Keyboard State
 // ─────────────────────────────────────────────────────────────────────────────
@@ -132,7 +173,8 @@ bool Input::wasKeyReleased(Key key) const {
     const int code = static_cast<int>(key);
     if (!isValidKey(code)) return false;
     const size_t index = static_cast<size_t>(code);
-    return !currentKeys_[index] && previousKeys_[index];
+    return (!currentKeys_[index] && previousKeys_[index])
+        || keysReleasedThisFrame_[index];
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -160,7 +202,8 @@ bool Input::wasMouseButtonReleased(MouseButton button) const {
     const int idx = static_cast<int>(button);
     if (!isValidButton(idx)) return false;
     const size_t index = static_cast<size_t>(idx);
-    return !currentButtons_[index] && previousButtons_[index];
+    return (!currentButtons_[index] && previousButtons_[index])
+        || buttonsReleasedThisFrame_[index];
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -177,7 +220,13 @@ void Input::captureMouse() {
         window_->setCursorCaptured(true);
     }
     
-    emscripten_request_pointerlock("#voxy-canvas", EM_TRUE);
+    const EMSCRIPTEN_RESULT result =
+        emscripten_request_pointerlock("#voxy-canvas", EM_TRUE);
+    if (result < EMSCRIPTEN_RESULT_SUCCESS) {
+        onMouseCaptureChanged(false);
+        LOG_WARN("Pointer lock request failed: {}", result);
+        return;
+    }
     
     LOG_DEBUG("Mouse captured");
 }
@@ -210,17 +259,40 @@ void Input::toggleMouseCapture() {
 
 void Input::onKeyDown(int keyCode) {
     if (isValidKey(keyCode)) {
+        if (keyQueue_.size() >= kMaximumQueuedInputEvents) {
+            keyQueue_.clear();
+            for (size_t key = 0; key < currentKeys_.size(); ++key) {
+                if (currentKeys_[key]) {
+                    keyQueue_.push_back(
+                        {static_cast<int>(key), false});
+                }
+            }
+        }
         keyQueue_.push_back({keyCode, true});
     }
 }
 
 void Input::onKeyUp(int keyCode) {
     if (isValidKey(keyCode)) {
+        if (keyQueue_.size() >= kMaximumQueuedInputEvents) {
+            keyQueue_.clear();
+            for (size_t key = 0; key < currentKeys_.size(); ++key) {
+                if (currentKeys_[key]) {
+                    keyQueue_.push_back(
+                        {static_cast<int>(key), false});
+                }
+            }
+        }
         keyQueue_.push_back({keyCode, false});
     }
 }
 
 void Input::onMouseMove(float x, float y) {
+    if (!std::isfinite(x) || !std::isfinite(y)
+        || std::abs(x) > kMaximumMouseCoordinate
+        || std::abs(y) > kMaximumMouseCoordinate) {
+        return;
+    }
     if (firstMouseMove_) {
         prevMousePos_ = glm::vec2(x, y);
         firstMouseMove_ = false;
@@ -230,18 +302,40 @@ void Input::onMouseMove(float x, float y) {
 
 void Input::onMouseDown(int button) {
     if (isValidButton(button)) {
+        if (mouseButtonQueue_.size() >= kMaximumQueuedInputEvents) {
+            mouseButtonQueue_.clear();
+            for (size_t index = 0; index < currentButtons_.size(); ++index) {
+                if (currentButtons_[index]) {
+                    mouseButtonQueue_.push_back(
+                        {static_cast<int>(index), false});
+                }
+            }
+        }
         mouseButtonQueue_.push_back({button, true});
     }
 }
 
 void Input::onMouseUp(int button) {
     if (isValidButton(button)) {
+        if (mouseButtonQueue_.size() >= kMaximumQueuedInputEvents) {
+            mouseButtonQueue_.clear();
+            for (size_t index = 0; index < currentButtons_.size(); ++index) {
+                if (currentButtons_[index]) {
+                    mouseButtonQueue_.push_back(
+                        {static_cast<int>(index), false});
+                }
+            }
+        }
         mouseButtonQueue_.push_back({button, false});
     }
 }
 
 void Input::onScroll(float delta) {
-    accumulatedScroll_ += delta;
+    if (!std::isfinite(delta)) return;
+    accumulatedScroll_ = static_cast<float>(std::clamp(
+        static_cast<double>(accumulatedScroll_)
+            + static_cast<double>(delta),
+        -kMaximumAccumulatedScroll, kMaximumAccumulatedScroll));
 }
 
 void Input::attachToWindow(Window& /*window*/) {
@@ -330,6 +424,23 @@ EM_BOOL emWheelCallback(int /*eventType*/, const EmscriptenWheelEvent* e, void* 
     return EM_TRUE;
 }
 
+EM_BOOL emBlurCallback(int /*eventType*/, const EmscriptenFocusEvent* /*event*/,
+                       void* /*userData*/) {
+    if (g_inputInstance) {
+        g_inputInstance->resetState();
+    }
+    return EM_FALSE;
+}
+
+EM_BOOL emPointerLockChangeCallback(
+    int /*eventType*/, const EmscriptenPointerlockChangeEvent* event,
+    void* /*userData*/) {
+    if (g_inputInstance) {
+        g_inputInstance->onMouseCaptureChanged(event->isActive);
+    }
+    return EM_FALSE;
+}
+
 }  // namespace
 
 void Input::setupEmscriptenCallbacks(const char* canvasSelector) {
@@ -347,6 +458,13 @@ void Input::setupEmscriptenCallbacks(const char* canvasSelector) {
     // browsers. The game owns the full document, so listen there reliably.
     emscripten_set_wheel_callback(EMSCRIPTEN_EVENT_TARGET_DOCUMENT, nullptr,
                                   false, emWheelCallback);
+    // Browsers do not guarantee keyup or mouseup delivery after a tab/window
+    // loses focus. Clear all held state before it can become a stuck control.
+    emscripten_set_blur_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, nullptr,
+                                 false, emBlurCallback);
+    emscripten_set_pointerlockchange_callback(
+        EMSCRIPTEN_EVENT_TARGET_DOCUMENT, nullptr, false,
+        emPointerLockChangeCallback);
     
     LOG_DEBUG("Emscripten input callbacks set up for {}", canvasSelector);
 }
@@ -401,6 +519,15 @@ int emscriptenKeyToCode(const char* code) {
     
     // Unknown key
     return -1;
+}
+
+Input::~Input() {
+    if (g_inputInstance == this) {
+        g_inputInstance = nullptr;
+    }
+    if (captured_) {
+        releaseMouse();
+    }
 }
 
 } // namespace voxy

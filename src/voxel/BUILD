@@ -16,6 +16,7 @@ cc_library(
     includes = [".."],
     deps = [
         "//src/core:core",
+        "//src/gpu:gpu",
         "//third_party:glm",
         "//third_party:wgpu",
     ],

@@ -423,12 +423,19 @@ TEST_F(RaycastPathGPUTest, SetHeightmap) {
     ASSERT_NE(heightmapView_, nullptr);
     
     // This should not crash
-    renderer_.setHeightmap(heightmapView_, heightmapWidth_, heightmapHeight_);
+    ASSERT_TRUE(renderer_.setHeightmap(
+        heightmapView_, heightmapWidth_, heightmapHeight_));
     
     // Uniforms should be updated with terrain size
     const auto& uniforms = renderer_.getUniforms();
     EXPECT_FLOAT_EQ(uniforms.terrainSize.x, 256.0f);
     EXPECT_FLOAT_EQ(uniforms.terrainSize.y, 256.0f);
+
+    EXPECT_FALSE(renderer_.setHeightmap(nullptr, 256, 256));
+    EXPECT_FALSE(renderer_.setHeightmap(heightmapView_, 0, 256));
+    EXPECT_FALSE(renderer_.setHeightmap(heightmapView_, 8'193, 256));
+    EXPECT_FLOAT_EQ(renderer_.getUniforms().terrainSize.x, 256.0f);
+    EXPECT_FLOAT_EQ(renderer_.getUniforms().terrainSize.y, 256.0f);
 }
 
 TEST_F(RaycastPathGPUTest, UpdateCamera) {
@@ -472,7 +479,8 @@ TEST_F(RaycastPathGPUTest, DispatchWithHeightmap) {
     createDummyHeightmap(256, 256);
     ASSERT_NE(heightmapView_, nullptr);
     
-    renderer_.setHeightmap(heightmapView_, heightmapWidth_, heightmapHeight_);
+    ASSERT_TRUE(renderer_.setHeightmap(
+        heightmapView_, heightmapWidth_, heightmapHeight_));
     
     // Create command encoder and dispatch
     WGPUCommandEncoderDescriptor encDesc{};
@@ -516,7 +524,8 @@ TEST_F(RaycastPathGPUTest, LegoHorizonBenchmark) {
         benchmarkWidth, benchmarkHeight, config));
     createDummyHeightmap(256, 256);
     ASSERT_NE(heightmapView_, nullptr);
-    renderer_.setHeightmap(heightmapView_, heightmapWidth_, heightmapHeight_);
+    ASSERT_TRUE(renderer_.setHeightmap(
+        heightmapView_, heightmapWidth_, heightmapHeight_));
     gpu::TextureDesc displacementDesc = gpu::TextureDesc::tex2D(
         1, 1, WGPUTextureFormat_RGBA16Float,
         WGPUTextureUsage_TextureBinding, "benchmark_water_displacement");

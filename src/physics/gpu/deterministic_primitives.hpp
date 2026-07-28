@@ -191,7 +191,7 @@ private:
         uint64_t indirectScalarOffset, WGPUBuffer dynamicCountBuffer,
         uint32_t dynamicCountWord, uint32_t dynamicCountScale);
     void writeParams(uint32_t slot, const Params& params);
-    void flushParams(uint32_t firstSlot, uint32_t slotCount);
+    [[nodiscard]] bool flushParams(uint32_t firstSlot, uint32_t slotCount);
     void prepareBindGroupCache(size_t requiredEntries);
     void releaseCachedBindGroups();
     [[nodiscard]] WGPUBindGroup cachedBindGroup(

@@ -8,7 +8,8 @@
 
 #include <array>
 #include <fstream>
-#include <sstream>
+#include <limits>
+#include <utility>
 #include <vector>
 
 namespace voxy::render {
@@ -93,31 +94,46 @@ bool MipGeneratorPipeline::init(WGPUDevice device, const std::filesystem::path& 
     }
     
     // Load shader source from file
-    std::ifstream file(shaderPath);
+    std::ifstream file(shaderPath, std::ios::ate | std::ios::binary);
     if (!file.is_open()) {
         LOG_ERROR("MipGeneratorPipeline: Failed to open shader file: {}", shaderPath.string());
         return false;
     }
-    
-    std::stringstream buffer;
-    buffer << file.rdbuf();
-    std::string source = buffer.str();
-    
+
+    constexpr std::streamoff kMaximumShaderBytes = 16ll * 1024ll * 1024ll;
+    const auto fileSize = file.tellg();
+    if (fileSize <= 0
+        || fileSize > std::numeric_limits<std::streamsize>::max()
+        || fileSize > kMaximumShaderBytes) {
+        LOG_ERROR("MipGeneratorPipeline: Shader file is empty or too large: {}",
+                  shaderPath.string());
+        return false;
+    }
+    file.seekg(0, std::ios::beg);
+
+    std::string source(static_cast<size_t>(fileSize), '\0');
+    if (!file.read(
+            source.data(), static_cast<std::streamsize>(fileSize))) {
+        LOG_ERROR("MipGeneratorPipeline: Failed to read shader file: {}",
+                  shaderPath.string());
+        return false;
+    }
+
     return initWithSource(device, source);
 }
 
 bool MipGeneratorPipeline::initWithSource(WGPUDevice device, std::string_view shaderSource) {
-    if (!device) {
-        LOG_ERROR("MipGeneratorPipeline: Cannot init with null device");
+    if (!device || shaderSource.empty()) {
+        LOG_ERROR("MipGeneratorPipeline: Cannot init with invalid input");
         return false;
     }
-    
-    // Release any existing resources
-    shutdown();
+
+    MipGeneratorPipeline replacement;
     
     // Create shader module
-    shaderModule_ = gpu::createShaderModule(device, shaderSource, "mip_generate");
-    if (!shaderModule_) {
+    replacement.shaderModule_ =
+        gpu::createShaderModule(device, shaderSource, "mip_generate");
+    if (!replacement.shaderModule_) {
         LOG_ERROR("MipGeneratorPipeline: Failed to create shader module");
         return false;
     }
@@ -143,20 +159,20 @@ bool MipGeneratorPipeline::initWithSource(WGPUDevice device, std::string_view sh
             .uniformBuffer(false, sizeof(MipParams))
     };
     
-    bindGroupLayout_ = gpu::createBindGroupLayout(device, layoutEntries, "mip_generate_layout");
-    if (!bindGroupLayout_) {
+    replacement.bindGroupLayout_ = gpu::createBindGroupLayout(
+        device, layoutEntries, "mip_generate_layout");
+    if (!replacement.bindGroupLayout_) {
         LOG_ERROR("MipGeneratorPipeline: Failed to create bind group layout");
-        shutdown();
         return false;
     }
     
     // Create pipeline layout
-    pipelineLayout_ = gpu::createPipelineLayout(device, 
-        std::span<const WGPUBindGroupLayout>(&bindGroupLayout_, 1),
+    replacement.pipelineLayout_ = gpu::createPipelineLayout(device,
+        std::span<const WGPUBindGroupLayout>(
+            &replacement.bindGroupLayout_, 1),
         "mip_generate_pipeline_layout");
-    if (!pipelineLayout_) {
+    if (!replacement.pipelineLayout_) {
         LOG_ERROR("MipGeneratorPipeline: Failed to create pipeline layout");
-        shutdown();
         return false;
     }
     
@@ -164,28 +180,27 @@ bool MipGeneratorPipeline::initWithSource(WGPUDevice device, std::string_view sh
     WGPUComputePipelineDescriptor pipelineDesc{};
     pipelineDesc.nextInChain = nullptr;
     WGPU_SET_LABEL(pipelineDesc, "mip_generate_pipeline");
-    pipelineDesc.layout = pipelineLayout_;
-    pipelineDesc.compute.module = shaderModule_;
+    pipelineDesc.layout = replacement.pipelineLayout_;
+    pipelineDesc.compute.module = replacement.shaderModule_;
     WGPU_SET_ENTRY_POINT(pipelineDesc.compute, "cs_generate_mip");
     pipelineDesc.compute.constantCount = 0;
     pipelineDesc.compute.constants = nullptr;
     
-    pipeline_ = wgpuDeviceCreateComputePipeline(device, &pipelineDesc);
-    if (!pipeline_) {
+    replacement.pipeline_ =
+        wgpuDeviceCreateComputePipeline(device, &pipelineDesc);
+    if (!replacement.pipeline_) {
         LOG_ERROR("MipGeneratorPipeline: Failed to create compute pipeline");
-        shutdown();
         return false;
     }
     
     // Create params uniform buffer
     auto bufferDesc = gpu::BufferDesc::uniform(sizeof(MipParams), "mip_params");
-    paramsBuffer_ = gpu::createBuffer(device, bufferDesc);
-    if (!paramsBuffer_) {
+    replacement.paramsBuffer_ = gpu::createBuffer(device, bufferDesc);
+    if (!replacement.paramsBuffer_) {
         LOG_ERROR("MipGeneratorPipeline: Failed to create params buffer");
-        shutdown();
         return false;
     }
-    
+    *this = std::move(replacement);
     LOG_DEBUG("MipGeneratorPipeline: Initialized successfully");
     return true;
 }
@@ -209,6 +224,14 @@ bool MipGeneratorPipeline::generateMipChain(WGPUDevice device, WGPUQueue queue,
     // Get texture base dimensions
     uint32_t baseWidth = wgpuTextureGetWidth(texture);
     uint32_t baseHeight = wgpuTextureGetHeight(texture);
+    const uint32_t availableMipLevels =
+        wgpuTextureGetMipLevelCount(texture);
+    if (wgpuTextureGetFormat(texture) != WGPUTextureFormat_R32Uint
+        || mipLevelCount > availableMipLevels
+        || mipLevelCount > calculateMipLevelCount(baseWidth, baseHeight)) {
+        LOG_ERROR("MipGeneratorPipeline: Texture cannot provide requested chain");
+        return false;
+    }
     
     // Create a single command encoder for all mip levels (batched submission)
     // This significantly reduces CPU overhead compared to submitting per-level
@@ -302,6 +325,13 @@ bool MipGeneratorPipeline::generateMipChain(WGPUDevice device, WGPUQueue queue,
         WGPUComputePassDescriptor passDesc{};
         WGPU_SET_LABEL(passDesc, "mip_generate_pass");
         WGPUComputePassEncoder pass = wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
+        if (!pass) {
+            LOG_ERROR("MipGeneratorPipeline: Failed to begin pass for level {}",
+                      level);
+            releaseRecordedResources();
+            wgpuCommandEncoderRelease(encoder);
+            return false;
+        }
         
         wgpuComputePassEncoderSetPipeline(pass, pipeline_);
         wgpuComputePassEncoderSetBindGroup(pass, 0, bindGroup, 0, nullptr);
@@ -319,6 +349,12 @@ bool MipGeneratorPipeline::generateMipChain(WGPUDevice device, WGPUQueue queue,
     WGPUCommandBufferDescriptor cmdDesc{};
     WGPU_SET_LABEL(cmdDesc, "mip_generate_commands_batched");
     WGPUCommandBuffer commands = wgpuCommandEncoderFinish(encoder, &cmdDesc);
+    if (!commands) {
+        LOG_ERROR("MipGeneratorPipeline: Failed to finish command buffer");
+        wgpuCommandEncoderRelease(encoder);
+        releaseRecordedResources();
+        return false;
+    }
     wgpuQueueSubmit(queue, 1, &commands);
     
     // Release all resources
@@ -340,6 +376,16 @@ bool MipGeneratorPipeline::generateSingleMip(WGPUDevice device, WGPUQueue queue,
     
     if (!device || !queue || !texture) {
         LOG_ERROR("MipGeneratorPipeline: Invalid device, queue, or texture");
+        return false;
+    }
+    const uint32_t availableMipLevels =
+        wgpuTextureGetMipLevelCount(texture);
+    if (wgpuTextureGetFormat(texture) != WGPUTextureFormat_R32Uint
+        || srcMipLevel >= availableMipLevels
+        || srcMipLevel == std::numeric_limits<uint32_t>::max()
+        || dstMipLevel != srcMipLevel + 1u
+        || dstMipLevel >= availableMipLevels) {
+        LOG_ERROR("MipGeneratorPipeline: Invalid source/destination mip pair");
         return false;
     }
     
@@ -382,7 +428,11 @@ bool MipGeneratorPipeline::generateSingleMip(WGPUDevice device, WGPUQueue queue,
         .dstWidth = dstWidth,
         .dstHeight = dstHeight
     };
-    gpu::writeBuffer(queue, paramsBuffer_, 0, params);
+    if (!gpu::writeBuffer(queue, paramsBuffer_, 0, params)) {
+        wgpuTextureViewRelease(srcView);
+        wgpuTextureViewRelease(dstView);
+        return false;
+    }
     
     // Create bind group for this pass
     std::array<gpu::BindGroupEntry, 3> entries = {
@@ -415,6 +465,14 @@ bool MipGeneratorPipeline::generateSingleMip(WGPUDevice device, WGPUQueue queue,
     WGPUComputePassDescriptor passDesc{};
     WGPU_SET_LABEL(passDesc, "mip_generate_pass");
     WGPUComputePassEncoder pass = wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
+    if (!pass) {
+        LOG_ERROR("MipGeneratorPipeline: Failed to begin compute pass");
+        wgpuCommandEncoderRelease(encoder);
+        wgpuBindGroupRelease(bindGroup);
+        wgpuTextureViewRelease(srcView);
+        wgpuTextureViewRelease(dstView);
+        return false;
+    }
     
     wgpuComputePassEncoderSetPipeline(pass, pipeline_);
     wgpuComputePassEncoderSetBindGroup(pass, 0, bindGroup, 0, nullptr);
@@ -431,6 +489,14 @@ bool MipGeneratorPipeline::generateSingleMip(WGPUDevice device, WGPUQueue queue,
     WGPUCommandBufferDescriptor cmdDesc{};
     WGPU_SET_LABEL(cmdDesc, "mip_generate_commands");
     WGPUCommandBuffer commands = wgpuCommandEncoderFinish(encoder, &cmdDesc);
+    if (!commands) {
+        LOG_ERROR("MipGeneratorPipeline: Failed to finish command buffer");
+        wgpuCommandEncoderRelease(encoder);
+        wgpuBindGroupRelease(bindGroup);
+        wgpuTextureViewRelease(srcView);
+        wgpuTextureViewRelease(dstView);
+        return false;
+    }
     wgpuQueueSubmit(queue, 1, &commands);
     
     // Release resources

@@ -11,6 +11,7 @@
 #include <cmath>
 #include <cstdint>
 #include <filesystem>
+#include <limits>
 #include <string_view>
 
 #include <glm/glm.hpp>
@@ -19,6 +20,7 @@
 #define private public
 #include "render/triangle_path.hpp"
 #undef private
+#include "render/frustum.hpp"
 
 namespace voxy::render {
 
@@ -68,17 +70,16 @@ TEST(CameraUniformsTest, DefaultConstruction) {
 
 TEST(CameraUniformsTest, SetWaterTime) {
     CameraUniforms uniforms;
-    uniforms.setWaterTime(12.5f);
+    ASSERT_TRUE(uniforms.setWaterTime(12.5f));
     EXPECT_FLOAT_EQ(uniforms.waterMotion.x, 12.5f);
 }
 
 TEST(CameraUniformsTest, SetWater) {
     CameraUniforms uniforms;
 
-    uniforms.setWater(false, -12.5f,
-                      glm::vec3(0.2f, 0.7f, 0.8f),
-                      glm::vec3(0.0f, 0.1f, 0.2f),
-                      0.12f, 0.2f, 0.75f, 32.0f);
+    ASSERT_TRUE(uniforms.setWater(
+        false, -12.5f, glm::vec3(0.2f, 0.7f, 0.8f),
+        glm::vec3(0.0f, 0.1f, 0.2f), 0.12f, 0.2f, 0.75f, 32.0f));
 
     EXPECT_FLOAT_EQ(uniforms.waterParams.x, -12.5f);
     EXPECT_FLOAT_EQ(uniforms.waterParams.y, 0.0f);
@@ -96,12 +97,12 @@ TEST(CameraUniformsTest, SetWater) {
 
 TEST(CameraUniformsTest, SetRendererMaterial) {
     CameraUniforms uniforms;
-    uniforms.setRendererMaterial(
+    ASSERT_TRUE(uniforms.setRendererMaterial(
         {0.9f, 0.8f, 0.7f}, 2.5f,
         {0.1f, 0.2f, 0.3f}, {0.4f, 0.5f, 0.6f},
         1.4f, 1.333f, 0.25f, 0.8f, 1.2f,
         180.0f, 0.6f, 0.4f, 2500.0f,
-        {2048.0f, 384.0f});
+        {2048.0f, 384.0f}));
 
     EXPECT_EQ(uniforms.lightingColor, glm::vec4(0.9f, 0.8f, 0.7f, 2.5f));
     EXPECT_EQ(uniforms.ambientExposure, glm::vec4(0.1f, 0.2f, 0.3f, 1.4f));
@@ -114,7 +115,8 @@ TEST(CameraUniformsTest, SetRendererMaterial) {
 TEST(CameraUniformsTest, SetTerrain) {
     CameraUniforms uniforms;
     
-    uniforms.setTerrain(8192, 4096, 1000.0f, 2.0f, 4.0f, 0.0005f);
+    ASSERT_TRUE(uniforms.setTerrain(
+        8192, 4096, 1000.0f, 2.0f, 4.0f, 0.0005f));
     
     EXPECT_FLOAT_EQ(uniforms.terrainSize.x, 8192.0f);
     EXPECT_FLOAT_EQ(uniforms.terrainSize.y, 4096.0f);
@@ -133,7 +135,7 @@ TEST(CameraUniformsTest, SetCamera) {
     glm::mat4 view = glm::lookAt(position, glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     glm::mat4 proj = glm::perspective(glm::radians(60.0f), 16.0f / 9.0f, 0.1f, 10000.0f);
     
-    uniforms.setCamera(view, proj, position);
+    ASSERT_TRUE(uniforms.setCamera(view, proj, position));
     
     // Check camera position
     EXPECT_FLOAT_EQ(uniforms.cameraPos.x, 100.0f);
@@ -178,7 +180,7 @@ TEST(CameraUniformsTest, SetLightDirection) {
         glm::vec3(0.0f, 1.0f, 0.0f)    // Up is Y
     );
     
-    uniforms.setLightDirection(worldLightDir, view);
+    ASSERT_TRUE(uniforms.setLightDirection(worldLightDir, view));
     
     // Light direction should be normalized
     float length = glm::length(glm::vec3(uniforms.lightDirVS));
@@ -188,8 +190,55 @@ TEST(CameraUniformsTest, SetLightDirection) {
     EXPECT_FLOAT_EQ(uniforms.lightDirVS.w, 0.3f);
     
     // Test with explicit ambient intensity
-    uniforms.setLightDirection(worldLightDir, view, 0.5f);
+    ASSERT_TRUE(uniforms.setLightDirection(worldLightDir, view, 0.5f));
     EXPECT_FLOAT_EQ(uniforms.lightDirVS.w, 0.5f);
+}
+
+TEST(CameraUniformsTest, RejectsNonFiniteAndSingularMutations) {
+    CameraUniforms uniforms;
+    ASSERT_TRUE(uniforms.isValid());
+    const CameraUniforms original = uniforms;
+    const float nan = std::numeric_limits<float>::quiet_NaN();
+
+    EXPECT_FALSE(uniforms.setTerrain(0, 256));
+    EXPECT_FALSE(uniforms.setTerrain(256, 256, nan));
+    EXPECT_EQ(uniforms.terrainSize, original.terrainSize);
+    EXPECT_EQ(uniforms.metrics, original.metrics);
+
+    EXPECT_FALSE(uniforms.setCamera(
+        glm::mat4(0.0f), glm::mat4(1.0f), glm::vec3(0.0f)));
+    EXPECT_FALSE(uniforms.setCamera(
+        glm::mat4(1.0f), glm::mat4(1.0f), glm::vec3(nan)));
+    EXPECT_EQ(uniforms.viewProj, original.viewProj);
+    EXPECT_EQ(uniforms.cameraPos, original.cameraPos);
+
+    EXPECT_FALSE(uniforms.setLightDirection(
+        glm::vec3(0.0f), glm::mat4(1.0f)));
+    EXPECT_FALSE(uniforms.setWater(
+        true, nan, glm::vec3(0.0f), glm::vec3(0.0f),
+        0.5f, 1.0f, 1.0f, 1.0f));
+    EXPECT_FALSE(uniforms.setRendererMaterial(
+        glm::vec3(nan), 1.0f, glm::vec3(0.0f), glm::vec3(0.0f),
+        1.0f, 1.33f, 0.1f, 1.0f, 1.0f, 10.0f, 0.5f, 0.5f,
+        100.0f, glm::vec2(100.0f)));
+    EXPECT_FALSE(uniforms.setWaterTime(nan));
+    EXPECT_FALSE(uniforms.setCameraWaterSurfaceOffset(nan));
+    EXPECT_TRUE(uniforms.isValid());
+
+    CameraUniforms poisoned = uniforms;
+    poisoned.viewProj[0][0] = nan;
+    EXPECT_FALSE(poisoned.isValid());
+}
+
+TEST(FrustumTest, DegenerateMatrixFailsSafelyWithoutNaNs) {
+    const Frustum frustum = Frustum::fromViewProj(glm::mat4(0.0f));
+    EXPECT_FALSE(frustum.valid());
+    for (const Plane& plane : frustum.planes) {
+        EXPECT_TRUE(std::isfinite(plane.normal.x));
+        EXPECT_TRUE(std::isfinite(plane.normal.y));
+        EXPECT_TRUE(std::isfinite(plane.normal.z));
+        EXPECT_TRUE(std::isfinite(plane.distance));
+    }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -268,6 +317,19 @@ TEST(TrianglePathTest, InitWithNullDevice) {
     // Should fail gracefully with null device
     EXPECT_FALSE(renderer.init(nullptr, nullptr));
     EXPECT_FALSE(renderer.isInitialized());
+}
+
+TEST(TrianglePathTest, RejectsInvalidConfigBeforeGpuCalls) {
+    TrianglePath renderer;
+    TrianglePathConfig config = TrianglePathConfig::defaults();
+    config.cellScale = std::numeric_limits<float>::quiet_NaN();
+    const auto device = reinterpret_cast<WGPUDevice>(uintptr_t{1});
+    const auto queue = reinterpret_cast<WGPUQueue>(uintptr_t{2});
+    EXPECT_FALSE(renderer.init(device, queue, config));
+
+    config = TrianglePathConfig::defaults();
+    config.lodStep = 0u;
+    EXPECT_FALSE(renderer.init(device, queue, config));
 }
 
 TEST(TrianglePathTest, GetUniformsDefault) {
@@ -382,6 +444,32 @@ void clearFakeComputeHandles(TrianglePath& renderer) {
 }
 
 } // namespace
+
+TEST(TrianglePathBindingTest, RejectsInvalidTerrainBeforeGpuAllocation) {
+    TrianglePath renderer;
+    renderer.device_ = fakeHandle<WGPUDevice>(0x201);
+    const WGPUTextureView view = fakeHandle<WGPUTextureView>(0x202);
+
+    EXPECT_FALSE(renderer.setHeightmap(nullptr, 64, 64));
+    EXPECT_FALSE(renderer.setHeightmap(view, 0, 64));
+    EXPECT_FALSE(renderer.setHeightmap(view, 8'193, 64));
+    const std::array<uint16_t, 3> wrongSampleCount{};
+    EXPECT_FALSE(renderer.setHeightmap(view, 2, 2, wrongSampleCount));
+
+    renderer.device_ = nullptr;
+}
+
+TEST(TrianglePathBindingTest, ExtremeLodStepUsesCheckedTileArithmetic) {
+    TrianglePath renderer;
+    renderer.heightmapWidth_ = 8'192;
+    renderer.heightmapHeight_ = 8'192;
+    renderer.config_.lodStep = std::numeric_limits<uint32_t>::max();
+
+    EXPECT_TRUE(renderer.calculateTileCount());
+    EXPECT_EQ(renderer.totalCandidateCount_, TrianglePath::LOD_COUNT);
+    EXPECT_EQ(renderer.tilesX_, 1u);
+    EXPECT_EQ(renderer.tilesY_, 1u);
+}
 
 TEST(TrianglePathLifetimeTest, MoveConstructorTransfersComputeCullingResources) {
     TrianglePath source;

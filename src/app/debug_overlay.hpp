@@ -38,7 +38,7 @@ struct DebugOverlayStats {
     float cameraPitch = 0.0f;
     
     // Render path
-    RenderPath renderPath;
+    RenderPath renderPath{};
     
     // Terrain
     uint32_t terrainWidth = 0;
@@ -107,7 +107,7 @@ public:
     // ─────────────────────────────────────────────────────────────────────────
     
     /// Set console log interval (native only, in seconds)
-    void setLogInterval(float seconds) { logIntervalSeconds_ = seconds; }
+    [[nodiscard]] bool setLogInterval(float seconds) noexcept;
     
     /// Get console log interval
     [[nodiscard]] float getLogInterval() const noexcept { return logIntervalSeconds_; }

@@ -456,7 +456,10 @@ public:
         }
 
         const std::array<uint32_t, kCoreTelemetryWordCount> zeroCounters{};
-        gpu::writeBuffer(queue_, countersBuffer_, 0, zeroCounters);
+        if (!gpu::writeBuffer(queue_, countersBuffer_, 0, zeroCounters)) {
+            shutdown();
+            return false;
+        }
 
         if (!createFallbackTerrain() || !createFallbackWater()) {
             shutdown();
@@ -869,9 +872,12 @@ public:
         WGPUTextureView replacementView = nullptr;
         if (!replacementTexture) return false;
 
-        gpu::writeTexture(queue_, replacementTexture,
-                          std::as_bytes(samples), width, height,
-                          width * sizeof(uint16_t), 0);
+        if (!gpu::writeTexture(
+                queue_, replacementTexture, std::as_bytes(samples),
+                width, height, width * sizeof(uint16_t), 0)) {
+            releaseTerrainTexture(replacementTexture, replacementView);
+            return false;
+        }
         size_t allocatedBytes = samples.size_bytes();
         std::span<const uint16_t> previous = samples;
         uint32_t previousWidth = width;
@@ -884,10 +890,16 @@ public:
                 releaseTerrainTexture(replacementTexture, replacementView);
                 return false;
             }
-            gpu::writeTexture(queue_, replacementTexture,
-                              std::as_bytes(std::span<const uint16_t>(next.data)),
-                              next.width, next.height,
-                              next.width * sizeof(uint16_t), level);
+            if (!gpu::writeTexture(
+                    queue_, replacementTexture,
+                    std::as_bytes(
+                        std::span<const uint16_t>(next.data)),
+                    next.width, next.height,
+                    next.width * sizeof(uint16_t), level)) {
+                releaseTerrainTexture(
+                    replacementTexture, replacementView);
+                return false;
+            }
             allocatedBytes += next.sizeBytes();
             current = std::move(next);
             previous = current.data;
@@ -2047,8 +2059,12 @@ public:
             upload.push_back(gpuCommand);
         }
         if (!upload.empty()) {
-            gpu::writeBuffer(queue_, commandBuffer_, 0,
-                std::as_bytes(std::span<const GpuCommand>(upload)));
+            if (!gpu::writeBuffer(
+                    queue_, commandBuffer_, 0,
+                    std::as_bytes(std::span<const GpuCommand>(upload)))) {
+                LOG_ERROR("Failed to upload GPU physics commands");
+                return;
+            }
             lastGpuUploadBytes_ +=
                 uint64_t{upload.size()} * sizeof(GpuCommand);
         }
@@ -2108,7 +2124,10 @@ public:
                 4096.0)),
             waterPatchLengths_.x, waterPatchLengths_.y);
         uniforms.worldSector = glm::ivec4(0);
-        gpu::writeBuffer(queue_, uniformBuffer_, 0, uniforms);
+        if (!gpu::writeBuffer(queue_, uniformBuffer_, 0, uniforms)) {
+            LOG_ERROR("Failed to upload GPU physics uniforms");
+            return;
+        }
         lastGpuUploadBytes_ += sizeof(SimulationUniforms);
 
         WGPUComputePassDescriptor passDesc{};
@@ -2132,13 +2151,14 @@ public:
             && uint64_t{profileTickCount} * kStagePacketWordCount
                 <= stageQueryCapacity_;
         uint32_t profileQueryCount = 0u;
+        bool timestampEncodingFailed = false;
         const auto writeStageTimestamp = [&] {
-            if (!profileThisBatch) return;
+            if (!profileThisBatch || timestampEncodingFailed) return;
             gpu::CompatPassTimestampWrites writes{};
             writes.querySet = stageQuerySet_;
-            writes.beginningOfPassWriteIndex = profileQueryCount++;
+            writes.beginningOfPassWriteIndex = profileQueryCount;
 #if defined(VOXY_WASM)
-            writes.endOfPassWriteIndex = profileQueryCount++;
+            writes.endOfPassWriteIndex = profileQueryCount + 1u;
 #else
             writes.endOfPassWriteIndex = WGPU_QUERY_SET_INDEX_UNDEFINED;
 #endif
@@ -2148,14 +2168,27 @@ public:
             WGPUComputePassEncoder timestampPass =
                 wgpuCommandEncoderBeginComputePass(
                     encoder, &timestampPassDesc);
+            if (!timestampPass) {
+                timestampEncodingFailed = true;
+                return;
+            }
             wgpuComputePassEncoderEnd(timestampPass);
             wgpuComputePassEncoderRelease(timestampPass);
+#if defined(VOXY_WASM)
+            profileQueryCount += 2u;
+#else
+            ++profileQueryCount;
+#endif
         };
         bool batchSucceeded = true;
         for (uint32_t tick = 0; tick < pendingTicks_; ++tick) {
             writeStageTimestamp();
             WGPUComputePassEncoder pass =
                 wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
+            if (!pass) {
+                batchSucceeded = false;
+                break;
+            }
             wgpuComputePassEncoderSetPipeline(pass, applyCommandsPipeline_);
             wgpuComputePassEncoderSetBindGroup(
                 pass, 0, commandBindGroup_, 0, nullptr);
@@ -2187,6 +2220,10 @@ public:
 
             if (executeBodyPipeline) {
                 pass = wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
+                if (!pass) {
+                    batchSucceeded = false;
+                    break;
+                }
                 wgpuComputePassEncoderSetPipeline(pass, preparePipeline_);
                 wgpuComputePassEncoderSetBindGroup(
                     pass, 0, integrateBindGroup_, 0, nullptr);
@@ -2306,6 +2343,10 @@ public:
             if (executeBodyPipeline
                 && (terrainAttached_ || terrainStateNeedsClear_)) {
                 pass = wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
+                if (!pass) {
+                    batchSucceeded = false;
+                    break;
+                }
                 wgpuComputePassEncoderSetPipeline(pass, staticContactPipeline_);
                 wgpuComputePassEncoderSetBindGroup(
                     pass, 0, integrateBindGroup_, 0, nullptr);
@@ -2330,6 +2371,10 @@ public:
             writeStageTimestamp();
 
             pass = wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
+            if (!pass) {
+                batchSucceeded = false;
+                break;
+            }
             wgpuComputePassEncoderSetBindGroup(
                 pass, 0, integrateBindGroup_, 0, nullptr);
             wgpuComputePassEncoderSetPipeline(pass, advanceTickPipeline_);
@@ -2414,20 +2459,26 @@ public:
                 pendingQueryCount_ = 0u;
             }
         }
+        bool debugPassEncoded = !debugRequest_.has_value();
         if (debugRequest_) {
             WGPUComputePassEncoder pass =
                 wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
-            wgpuComputePassEncoderSetPipeline(pass, packDebugPipeline_);
-            wgpuComputePassEncoderSetBindGroup(
-                pass, 0, debugBindGroup_, 0, nullptr);
-            wgpuComputePassEncoderDispatchWorkgroups(
-                pass, (debugRequest_->bodyCount + kWorkgroupSize - 1u)
-                    / kWorkgroupSize, 1, 1);
-            wgpuComputePassEncoderEnd(pass);
-            wgpuComputePassEncoderRelease(pass);
+            if (!pass) {
+                LOG_WARN("Failed to encode GPU physics debug snapshot");
+            } else {
+                wgpuComputePassEncoderSetPipeline(pass, packDebugPipeline_);
+                wgpuComputePassEncoderSetBindGroup(
+                    pass, 0, debugBindGroup_, 0, nullptr);
+                wgpuComputePassEncoderDispatchWorkgroups(
+                    pass, (debugRequest_->bodyCount + kWorkgroupSize - 1u)
+                        / kWorkgroupSize, 1, 1);
+                wgpuComputePassEncoderEnd(pass);
+                wgpuComputePassEncoderRelease(pass);
+                debugPassEncoded = true;
+            }
         }
 
-        if (profileQueryCount != 0u) {
+        if (profileQueryCount != 0u && !timestampEncodingFailed) {
             wgpuCommandEncoderResolveQuerySet(
                 encoder, stageQuerySet_, 0u, profileQueryCount,
                 stageResolveBuffer_, 0u);
@@ -2476,7 +2527,7 @@ public:
         }
         shrinkUnusedTail();
 
-        if (debugRequest_) {
+        if (debugRequest_ && debugPassEncoded) {
             const size_t bytes = size_t{debugRequest_->bodyCount} * kGpuBodyBytes;
             if (!readbackRing_.encodeCopy(
                     encoder, debugPackedBuffer_, 0, bytes, encodedTick_,

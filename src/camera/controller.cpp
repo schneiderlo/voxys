@@ -9,13 +9,26 @@
 
 namespace voxy {
 
+void FreeFlyController::setConfig(const FreeFlyConfig& config) {
+    setBaseSpeed(config.baseSpeed);
+    setBoostMultiplier(config.boostMultiplier);
+    setMouseSensitivity(config.mouseSensitivity);
+    config_.invertY = config.invertY;
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // Update
 // ═══════════════════════════════════════════════════════════════════════════════
 
 void FreeFlyController::update(float deltaTime, Input& input) {
     if (!camera_) {
+        velocity_ = glm::vec3(0.0f);
+        currentSpeed_ = 0.0f;
+        isMoving_ = false;
         return;
+    }
+    if (!std::isfinite(deltaTime) || deltaTime < 0.0f) {
+        deltaTime = 0.0f;
     }
     
     // Handle mouse capture/release
@@ -57,7 +70,8 @@ void FreeFlyController::processMouseLook(const Input& input) {
     
     glm::vec2 delta = input.mouseDelta();
     
-    if (delta.x == 0.0f && delta.y == 0.0f) {
+    if (!std::isfinite(delta.x) || !std::isfinite(delta.y)
+        || (delta.x == 0.0f && delta.y == 0.0f)) {
         return;
     }
     
@@ -127,14 +141,16 @@ void FreeFlyController::processMovement(float deltaTime, const Input& input) {
     // Calculate speed (with boost)
     currentSpeed_ = config_.baseSpeed;
     if (input.isKeyDown(Key::Shift)) {
-        currentSpeed_ *= config_.boostMultiplier;
+        const float boosted = currentSpeed_ * config_.boostMultiplier;
+        if (std::isfinite(boosted)) {
+            currentSpeed_ = boosted;
+        }
     }
     
-    // Calculate velocity and apply to camera
-    velocity_ = moveDir * currentSpeed_ * deltaTime;
-    camera_->move(velocity_);
+    // Velocity is measured in world units per second; integrate it exactly once.
+    velocity_ = moveDir * currentSpeed_;
+    camera_->move(velocity_ * deltaTime);
 }
 
 } // namespace voxy
-
 

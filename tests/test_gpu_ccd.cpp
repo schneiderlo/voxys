@@ -223,6 +223,12 @@ TEST_P(GpuCcdTest, StopsFastSphereAndCapsuleWithBoundedBulletOverflow) {
     config.workgroupSize = GetParam();
     ASSERT_TRUE(ccd.initialize(
         context.getDevice(), context.getQueue(), config));
+    const WGPUBuffer workingTelemetry = ccd.telemetryBuffer();
+    auto invalidConfig = config;
+    invalidConfig.bodyCapacity = 0u;
+    EXPECT_FALSE(ccd.initialize(
+        context.getDevice(), context.getQueue(), invalidConfig));
+    EXPECT_EQ(ccd.telemetryBuffer(), workingTelemetry);
     ccd.setInput({
         .poseBuffer = poseBuffer,
         .motionBuffer = motionBuffer,

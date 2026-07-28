@@ -83,6 +83,8 @@ enum class RenderPath {
     Raycast     ///< Primary compute ray-caster with blit pass
 };
 
+inline constexpr uint32_t kMaximumBenchmarkBodyCount = 131'072u;
+
 /// Convert RenderPath to string
 [[nodiscard]] const char* renderPathToString(RenderPath path) noexcept;
 
@@ -619,6 +621,9 @@ private:
     uint64_t rendererSettingsRevision_ = 0;
     uint64_t appliedRendererSettingsRevision_ = 0;
     uint32_t rendererSettingsDirty_ = 0;
+    float appliedWaterCoastHeight_ = -230.0f;
+    glm::vec3 appliedShadowSunDirection_ =
+        RendererRuntimeSettings{}.sunDirection;
     ApplicationStats stats_;
     static constexpr size_t kPhysicsGpuTimingSampleCapacity = 64u;
     std::array<physics::PhysicsGpuStageTiming,
@@ -686,12 +691,6 @@ private:
     uint32_t depthHeight_ = 0;
     WGPUTexture benchmarkTargetTexture_ = nullptr;
     WGPUTextureView benchmarkTargetView_ = nullptr;
-
-    // Placeholder textures for blit path
-    WGPUTexture placeholderTerrainTexture_ = nullptr;
-    WGPUTextureView placeholderTerrainView_ = nullptr;
-    WGPUTexture placeholderLightmapTexture_ = nullptr;
-    WGPUTextureView placeholderLightmapView_ = nullptr;
 
     // Baked shadow height field for the raycast path (static sun)
     WGPUTexture shadowMapTexture_ = nullptr;

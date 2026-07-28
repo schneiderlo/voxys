@@ -38,6 +38,7 @@
 #include <cstdarg>
 #include <cstdio>
 #include <chrono>
+#include <limits>
 #include <mutex>
 #include <unordered_map>
 #include <unordered_set>
@@ -155,10 +156,41 @@ constexpr uint32_t kTileSampleCount = 256;
 constexpr uint32_t kTileCellCount = kTileSampleCount - 1;
 constexpr int32_t kTileRadius = 1;
 constexpr uint32_t kMaxBodies = 16384;
+constexpr uint32_t kMaximumPairCapacity = 1'048'576u;
+constexpr uint32_t kMaximumContactCapacity = 1'048'576u;
+constexpr uint32_t kMaximumWorkerThreads = 256u;
+constexpr float kMaximumTerrainScale = 1.0e6f;
+constexpr uint32_t kMaximumTerrainExtent = 8'192u;
 constexpr size_t kTempAllocatorBytes = 16u * 1024u * 1024u;
 constexpr float kMaxFrameTime = 8.0f / 60.0f;
 constexpr float kMaxSubstep = 1.0f / 60.0f;
+constexpr float kMaximumCharacterRate = 10'000.0f;
 constexpr float kWaterWaveSampleBand = 8.0f;
+
+bool finiteVector(const glm::vec3& value) noexcept {
+    return std::isfinite(value.x) && std::isfinite(value.y)
+        && std::isfinite(value.z);
+}
+
+bool finiteQuaternion(const glm::quat& value) noexcept {
+    return std::isfinite(value.w) && std::isfinite(value.x)
+        && std::isfinite(value.y) && std::isfinite(value.z);
+}
+
+bool validMaterial(const PhysicsMaterial& material) noexcept {
+    return std::isfinite(material.friction)
+        && std::isfinite(material.restitution)
+        && std::isfinite(material.rollingResistance)
+        && std::isfinite(material.density)
+        && material.friction >= 0.0f
+        && material.restitution >= 0.0f
+        && material.rollingResistance >= 0.0f
+        && material.density > 0.0f;
+}
+
+float finiteOr(float value, float fallback) noexcept {
+    return std::isfinite(value) ? value : fallback;
+}
 
 float throwableBuoyancy(JoltBackend::ThrowableShape shape) {
     using Shape = JoltBackend::ThrowableShape;
@@ -203,7 +235,13 @@ public:
         std::unordered_map<uint64_t, JPH::BodyID> bodies;
 
         [[nodiscard]] bool valid() const noexcept {
-            return width >= 2 && height >= 2 && cellScale > 0.0f
+            return width >= 2 && height >= 2
+                && width <= kMaximumTerrainExtent
+                && height <= kMaximumTerrainExtent
+                && std::isfinite(heightScale) && heightScale > 0.0f
+                && heightScale <= kMaximumTerrainScale
+                && std::isfinite(cellScale) && cellScale > 0.0f
+                && cellScale <= kMaximumTerrainScale
                 && samples.size() == static_cast<size_t>(width) * height;
         }
     };
@@ -242,7 +280,15 @@ public:
 
         if (context.requestedBackend != BackendType::JoltLegacy ||
             context.maxBodies == 0 || context.maxBodies > kMaxBodies ||
-            context.maxPairs == 0 || context.maxContacts == 0) {
+            context.maxPairs == 0
+            || context.maxPairs > kMaximumPairCapacity
+            || context.maxContacts == 0
+            || context.maxContacts > kMaximumContactCapacity
+            || (context.joltJobSystem
+                    != JoltJobSystemMode::SingleThreaded
+                && context.joltJobSystem
+                    != JoltJobSystemMode::ThreadPool)
+            || context.joltWorkerThreads > kMaximumWorkerThreads) {
             LOG_ERROR(
                 "Invalid Jolt physics capacities: bodies={} (max {}), pairs={}, "
                 "contacts={}",
@@ -292,6 +338,7 @@ public:
 
         if (system) system->SetBodyActivationListener(nullptr);
         characters.clear();
+        characterGenerations.clear();
         clearDynamicBodies();
         clearTerrain();
         system.reset();
@@ -411,16 +458,24 @@ public:
                                                      / kTileCellCount);
         const int32_t maxTileZ = static_cast<int32_t>((terrain.height - 2)
                                                      / kTileCellCount);
-        const int32_t centerX = std::clamp(
-            static_cast<int32_t>(std::floor(
-                (position.x + terrainOrigin.x) /
-                terrain.cellScale / kTileCellCount)),
-            0, maxTileX);
-        const int32_t centerZ = std::clamp(
-            static_cast<int32_t>(std::floor(
-                (position.z + terrainOrigin.y) /
-                terrain.cellScale / kTileCellCount)),
-            0, maxTileZ);
+        const auto tileCoordinate = [&](float coordinate, float origin,
+                                        int32_t maximum) noexcept {
+            const double scaled =
+                (static_cast<double>(coordinate)
+                    + static_cast<double>(origin))
+                / (static_cast<double>(terrain.cellScale)
+                    * kTileCellCount);
+            if (!std::isfinite(scaled)) {
+                return scaled < 0.0 ? 0 : maximum;
+            }
+            return static_cast<int32_t>(std::clamp(
+                std::floor(scaled), 0.0,
+                static_cast<double>(maximum)));
+        };
+        const int32_t centerX = tileCoordinate(
+            position.x, terrainOrigin.x, maxTileX);
+        const int32_t centerZ = tileCoordinate(
+            position.z, terrainOrigin.y, maxTileZ);
 
         std::unordered_set<uint64_t> wanted;
         for (int32_t z = std::max(0, centerZ - kTileRadius);
@@ -448,10 +503,14 @@ public:
     }
 
     CharacterSlot* findCharacter(CharacterHandle handle) {
-        if (handle == InvalidCharacter || handle > characters.size()) {
+        const uint32_t index = characterHandleSlot(handle);
+        if (index >= characters.size()
+            || index >= characterGenerations.size()
+            || characterGenerations[index]
+                != characterHandleGeneration(handle)) {
             return nullptr;
         }
-        return characters[handle - 1].get();
+        return characters[index].get();
     }
 
     void refreshContacts(CharacterSlot& slot) {
@@ -469,6 +528,7 @@ public:
     std::unique_ptr<JPH::PhysicsSystem> system;
     Terrain terrain;
     std::vector<std::unique_ptr<CharacterSlot>> characters;
+    std::vector<uint16_t> characterGenerations;
     std::vector<DynamicSlot> dynamicBodies;
     std::array<std::atomic_bool, kMaxBodies> snapshotTransformDirty{};
     mutable DynamicBodyReadStats lastDynamicBodyReadStats;
@@ -523,8 +583,13 @@ BackendCapabilities JoltBackend::capabilities() const noexcept {
 bool JoltBackend::setTerrain(std::span<const uint16_t> samples,
                               uint32_t width, uint32_t height,
                               float heightScale, float cellScale) {
-    if (!isInitialized() || width < 2 || height < 2 || heightScale <= 0.0f
-        || cellScale <= 0.0f
+    if (!isInitialized() || width < 2 || height < 2
+        || width > kMaximumTerrainExtent
+        || height > kMaximumTerrainExtent
+        || !std::isfinite(heightScale) || heightScale <= 0.0f
+        || heightScale > kMaximumTerrainScale
+        || !std::isfinite(cellScale) || cellScale <= 0.0f
+        || cellScale > kMaximumTerrainScale
         || samples.size() != static_cast<size_t>(width) * height) {
         return false;
     }
@@ -568,17 +633,31 @@ void JoltBackend::setWaterSurfaceSampler(WaterSurfaceSampler sampler) {
 
 JoltBackend::CharacterHandle JoltBackend::createCharacter(
     const glm::vec3& feetPosition, const CharacterSettings& requestedSettings) {
-    if (!isInitialized()) {
+    if (!isInitialized()
+        || !isRepresentableAbsolutePosition(feetPosition)) {
         return InvalidCharacter;
     }
 
-    CharacterSettings settings = requestedSettings;
-    settings.radius = std::max(settings.radius, 0.05f);
-    settings.height = std::max(settings.height, 2.0f * settings.radius + 0.02f);
-    settings.maxSlopeAngleDegrees = std::clamp(
-        settings.maxSlopeAngleDegrees, 0.0f, 89.0f);
-    settings.stepUp = std::max(settings.stepUp, 0.0f);
-    settings.stepDown = std::max(settings.stepDown, 0.0f);
+    size_t targetIndex = impl_->characters.size();
+    for (size_t index = 0; index < impl_->characters.size(); ++index) {
+        if (!impl_->characters[index]
+            && impl_->characterGenerations[index]
+                != std::numeric_limits<uint16_t>::max()) {
+            targetIndex = index;
+            break;
+        }
+    }
+    if (targetIndex == impl_->characters.size()) {
+        if (impl_->characters.size() >= kMaximumCharacterSlots) {
+            return InvalidCharacter;
+        }
+        impl_->characters.reserve(impl_->characters.size() + 1u);
+        impl_->characterGenerations.reserve(
+            impl_->characterGenerations.size() + 1u);
+    }
+
+    const CharacterSettings settings =
+        sanitizeCharacterSettings(requestedSettings);
 
     impl_->streamTerrainAt(feetPosition);
 
@@ -608,26 +687,30 @@ JoltBackend::CharacterHandle JoltBackend::createCharacter(
         0, impl_->system.get());
     impl_->refreshContacts(*slot);
 
-    for (size_t i = 0; i < impl_->characters.size(); ++i) {
-        if (!impl_->characters[i]) {
-            impl_->characters[i] = std::move(slot);
-            return static_cast<CharacterHandle>(i + 1);
-        }
+    if (targetIndex < impl_->characters.size()) {
+        impl_->characters[targetIndex] = std::move(slot);
+        return makeCharacterHandle(
+            static_cast<uint32_t>(targetIndex),
+            impl_->characterGenerations[targetIndex]);
     }
     impl_->characters.push_back(std::move(slot));
-    return static_cast<CharacterHandle>(impl_->characters.size());
+    impl_->characterGenerations.push_back(0u);
+    return makeCharacterHandle(
+        static_cast<uint32_t>(impl_->characters.size() - 1u), 0u);
 }
 
 void JoltBackend::destroyCharacter(CharacterHandle handle) {
-    if (!impl_ || handle == InvalidCharacter || handle > impl_->characters.size()) {
-        return;
-    }
-    impl_->characters[handle - 1].reset();
+    if (!impl_ || !impl_->findCharacter(handle)) return;
+    const uint32_t index = characterHandleSlot(handle);
+    impl_->characters[index].reset();
+    auto& generation = impl_->characterGenerations[index];
+    if (generation != std::numeric_limits<uint16_t>::max()) ++generation;
 }
 
 bool JoltBackend::setCharacterPosition(CharacterHandle handle,
                                         const glm::vec3& feetPosition) {
-    if (!isInitialized()) {
+    if (!isInitialized()
+        || !isRepresentableAbsolutePosition(feetPosition)) {
         return false;
     }
     auto* slot = impl_->findCharacter(handle);
@@ -656,11 +739,23 @@ JoltBackend::CharacterMotion JoltBackend::moveCharacter(
     }
 
     auto& character = *slot->character;
-    const float frameTime = std::clamp(deltaTime, 0.0f, kMaxFrameTime);
+    const float frameTime = std::clamp(
+        finiteOr(deltaTime, 0.0f), 0.0f, kMaxFrameTime);
     const int substeps = std::max(1, static_cast<int>(std::ceil(frameTime / kMaxSubstep)));
     const float stepTime = frameTime / static_cast<float>(substeps);
-    gravity = std::max(gravity, 0.0f);
-    terminalVelocity = std::max(terminalVelocity, 0.0f);
+    gravity = std::clamp(
+        finiteOr(gravity, 0.0f), 0.0f, kMaximumCharacterRate);
+    terminalVelocity = std::clamp(
+        finiteOr(terminalVelocity, 0.0f),
+        0.0f, kMaximumCharacterRate);
+    jumpSpeed = std::clamp(
+        finiteOr(jumpSpeed, 0.0f), 0.0f, kMaximumCharacterRate);
+    const glm::vec3 desired = finiteVector(desiredHorizontalVelocity)
+        ? glm::clamp(
+            desiredHorizontalVelocity,
+            glm::vec3(-kMaximumCharacterRate),
+            glm::vec3(kMaximumCharacterRate))
+        : glm::vec3(0.0f);
 
     for (int step = 0; step < substeps && stepTime > 0.0f; ++step) {
         impl_->streamTerrainAt(toGlmPosition(character.GetPosition()));
@@ -680,12 +775,11 @@ JoltBackend::CharacterMotion JoltBackend::moveCharacter(
             ? groundVelocity
             : verticalVelocity;
         JPH::Vec3 horizontal = character.CancelVelocityTowardsSteepSlopes(
-            JPH::Vec3(desiredHorizontalVelocity.x, 0.0f,
-                      desiredHorizontalVelocity.z));
+            JPH::Vec3(desired.x, 0.0f, desired.z));
         velocity += horizontal;
 
         if (jump && step == 0 && supported && movingTowardsGround) {
-            velocity += std::max(jumpSpeed, 0.0f) * up;
+            velocity += jumpSpeed * up;
         } else {
             velocity -= gravity * stepTime * up;
         }
@@ -718,7 +812,8 @@ JoltBackend::CharacterMotion JoltBackend::moveCharacter(
 
 bool JoltBackend::throwBody(ThrowableShape shape, const glm::vec3& position,
                              const glm::vec3& velocity) {
-    if (!isInitialized() || shape >= ThrowableShape::Count) {
+    if (!isInitialized() || shape >= ThrowableShape::Count
+        || !finiteVector(position) || !finiteVector(velocity)) {
         return false;
     }
 
@@ -769,7 +864,14 @@ bool JoltBackend::throwBody(ThrowableShape shape, const glm::vec3& position,
 
 BodyHandle JoltBackend::spawnBody(const BodySpawnDesc& requested) {
     if (!isInitialized() || requested.shape >= ThrowableShape::Count
-        || impl_->dynamicBodies.size() >= impl_->initContext.maxBodies) {
+        || impl_->dynamicBodies.size() >= impl_->initContext.maxBodies
+        || !finiteVector(requested.position)
+        || !finiteQuaternion(requested.orientation)
+        || !finiteVector(requested.linearVelocity)
+        || !finiteVector(requested.angularVelocity)
+        || !finiteVector(requested.dimensions)
+        || !std::isfinite(requested.inverseMass)
+        || (requested.material && !validMaterial(*requested.material))) {
         return {};
     }
 
@@ -831,9 +933,16 @@ BodyHandle JoltBackend::spawnBody(const BodySpawnDesc& requested) {
     JPH::BodyCreationSettings settings(
         bodyShape, toJoltPosition(position), rotation,
         JPH::EMotionType::Dynamic, Layers::Moving);
-    settings.mFriction = 0.65f;
-    settings.mRestitution =
-        desc.shape == ThrowableShape::Sphere ? 0.55f : 0.25f;
+    const PhysicsMaterial material = desc.material.value_or(PhysicsMaterial{
+        .friction = 0.65f,
+        .restitution =
+            desc.shape == ThrowableShape::Sphere ? 0.55f : 0.25f,
+        .rollingResistance = 0.01f,
+        .density = 1.0f,
+        .flags = 0u,
+    });
+    settings.mFriction = material.friction;
+    settings.mRestitution = material.restitution;
     settings.mMotionQuality = desc.bullet
         ? JPH::EMotionQuality::LinearCast : JPH::EMotionQuality::Discrete;
     settings.mOverrideMassProperties = JPH::EOverrideMassProperties::CalculateInertia;
@@ -869,7 +978,8 @@ void JoltBackend::stepCpu(float deltaTime) {
     if (!isInitialized()) {
         return;
     }
-    const float frameTime = std::clamp(deltaTime, 0.0f, kMaxFrameTime);
+    const float frameTime = std::clamp(
+        finiteOr(deltaTime, 0.0f), 0.0f, kMaxFrameTime);
     if (frameTime <= 0.0f) {
         return;
     }

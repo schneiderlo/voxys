@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
+#include <limits>
 #include <vector>
 
 namespace voxy::physics {
@@ -190,6 +191,128 @@ TEST(CpuCapsuleMover, SamplesTerrainAcrossSectorBoundaryInLocalFrame) {
     EXPECT_EQ(motion.sector, glm::ivec3(1, 0, 0));
     EXPECT_NEAR(motion.position.x, -127.75f, 1e-5f);
     EXPECT_NEAR(motion.position.y, 0.0f, 2e-4f);
+}
+
+TEST(CpuCapsuleMover, ContainsMalformedCharacterInputs) {
+    CpuCapsuleMoverWorld mover;
+    ASSERT_TRUE(mover.initialize());
+    const float nan = std::numeric_limits<float>::quiet_NaN();
+    const float infinity = std::numeric_limits<float>::infinity();
+
+    CharacterSettings settings;
+    settings.radius = nan;
+    settings.height = infinity;
+    settings.maxSlopeAngleDegrees = nan;
+    settings.stepUp = -infinity;
+    settings.stepDown = infinity;
+    const CharacterHandle character = mover.createCharacter(
+        glm::vec3(1.0f, 2.0f, 3.0f), settings);
+    ASSERT_NE(character, InvalidCharacter);
+
+    const CharacterMotion motion = mover.moveCharacter(
+        character, glm::vec3(nan, infinity, -infinity), true,
+        nan, nan, nan, 1.0f / 60.0f);
+    EXPECT_TRUE(std::isfinite(motion.position.x));
+    EXPECT_TRUE(std::isfinite(motion.position.y));
+    EXPECT_TRUE(std::isfinite(motion.position.z));
+    EXPECT_TRUE(std::isfinite(motion.velocity.x));
+    EXPECT_TRUE(std::isfinite(motion.velocity.y));
+    EXPECT_TRUE(std::isfinite(motion.velocity.z));
+    EXPECT_FALSE(mover.setCharacterPosition(
+        character, glm::vec3(infinity, 0.0f, 0.0f)));
+    EXPECT_EQ(mover.createCharacter(
+                  glm::vec3(nan, 0.0f, 0.0f), CharacterSettings{}),
+              InvalidCharacter);
+
+    const float maximum = std::numeric_limits<float>::max();
+    const CharacterMotion extreme = mover.moveCharacter(
+        character, glm::vec3(maximum), true,
+        maximum, maximum, maximum, 1.0f);
+    EXPECT_TRUE(std::isfinite(extreme.position.x));
+    EXPECT_TRUE(std::isfinite(extreme.position.y));
+    EXPECT_TRUE(std::isfinite(extreme.position.z));
+    EXPECT_TRUE(std::isfinite(extreme.velocity.x));
+    EXPECT_TRUE(std::isfinite(extreme.velocity.y));
+    EXPECT_TRUE(std::isfinite(extreme.velocity.z));
+}
+
+TEST(CpuCapsuleMover, InvalidReinitializePreservesLiveWorld) {
+    CpuCapsuleMoverWorld mover;
+    ASSERT_TRUE(mover.initialize());
+    constexpr float scale = 10.0f;
+    const std::vector<uint16_t> samples(4u, rawHeight(0.0f, scale));
+    ASSERT_TRUE(mover.setTerrain(samples, 2u, 2u, scale, 1.0f));
+    const CharacterHandle character = mover.createCharacter(
+        glm::vec3(0.0f, 1.0f, 0.0f), CharacterSettings{});
+    ASSERT_NE(character, InvalidCharacter);
+
+    CpuCapsuleMoverWorld::Config invalid;
+    invalid.maximumCharacters = 0u;
+    EXPECT_FALSE(mover.initialize(invalid));
+    EXPECT_TRUE(mover.hasTerrain());
+    EXPECT_TRUE(mover.setCharacterPosition(
+        character, glm::vec3(1.0f, 2.0f, 3.0f)));
+
+    invalid = {};
+    invalid.maximumCharacters = 65'536u;
+    EXPECT_FALSE(mover.initialize(invalid));
+    invalid = {};
+    invalid.nearbyDynamicPolicy =
+        static_cast<NearbyDynamicBodyPolicy>(255u);
+    EXPECT_FALSE(mover.initialize(invalid));
+
+    EXPECT_FALSE(mover.setTerrain(
+        samples, 2u, 2u,
+        std::numeric_limits<float>::max(), 1.0f));
+    EXPECT_TRUE(mover.hasTerrain());
+}
+
+TEST(CpuCapsuleMover, StaleHandleCannotControlReusedSlot) {
+    CpuCapsuleMoverWorld mover;
+    CpuCapsuleMoverWorld::Config config;
+    config.maximumCharacters = 1u;
+    ASSERT_TRUE(mover.initialize(config));
+
+    const CharacterHandle first = mover.createCharacter(
+        glm::vec3(0.0f), CharacterSettings{});
+    ASSERT_NE(first, InvalidCharacter);
+    mover.destroyCharacter(first);
+
+    const CharacterHandle replacement = mover.createCharacter(
+        glm::vec3(1.0f), CharacterSettings{});
+    ASSERT_NE(replacement, InvalidCharacter);
+    EXPECT_NE(replacement, first);
+    EXPECT_FALSE(mover.setCharacterPosition(
+        first, glm::vec3(100.0f)));
+
+    mover.destroyCharacter(first);
+    EXPECT_TRUE(mover.setCharacterPosition(
+        replacement, glm::vec3(2.0f)));
+}
+
+TEST(CpuCapsuleMover, ExhaustedCharacterSlotNeverWrapsToStaleHandle) {
+    CpuCapsuleMoverWorld mover;
+    CpuCapsuleMoverWorld::Config config;
+    config.maximumCharacters = 1u;
+    ASSERT_TRUE(mover.initialize(config));
+
+    CharacterHandle handle = mover.createCharacter(
+        glm::vec3(0.0f), CharacterSettings{});
+    ASSERT_NE(handle, InvalidCharacter);
+    for (uint32_t generation = 0u;
+         generation <= std::numeric_limits<uint16_t>::max();
+         ++generation) {
+        ASSERT_EQ(characterHandleGeneration(handle), generation);
+        mover.destroyCharacter(handle);
+        if (generation != std::numeric_limits<uint16_t>::max()) {
+            handle = mover.createCharacter(
+                glm::vec3(0.0f), CharacterSettings{});
+            ASSERT_NE(handle, InvalidCharacter);
+        }
+    }
+    EXPECT_EQ(mover.createCharacter(
+                  glm::vec3(0.0f), CharacterSettings{}),
+              InvalidCharacter);
 }
 
 } // namespace

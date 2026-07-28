@@ -3,6 +3,8 @@
 #include "core/log.hpp"
 #include "gpu/resources.hpp"
 
+#include <limits>
+
 namespace voxy::physics {
 
 GpuBufferArena::~GpuBufferArena() { shutdown(); }
@@ -17,23 +19,39 @@ WGPUBuffer GpuBufferArena::create(std::string_view label, uint64_t size,
     if (!device_ || size == 0) {
         return nullptr;
     }
+    if (size > std::numeric_limits<size_t>::max()) {
+        LOG_ERROR("GPU physics buffer '{}' cannot be represented in host "
+                  "memory telemetry ({} bytes)", label, size);
+        return nullptr;
+    }
+    const size_t accountedSize = static_cast<size_t>(size);
+    const size_t previousBytes = scratch ? scratchBytes_ : persistentBytes_;
+    if (accountedSize > std::numeric_limits<size_t>::max() - previousBytes) {
+        LOG_ERROR("GPU physics buffer '{}' would overflow memory telemetry",
+                  label);
+        return nullptr;
+    }
 
     const gpu::BufferDesc desc{
         .label = label,
         .size = size,
         .usage = static_cast<decltype(gpu::BufferDesc{}.usage)>(usage),
     };
+    // Reserve the owning record before creating the WebGPU object. If vector
+    // growth throws, there is no live GPU allocation to leak.
+    allocations_.push_back({nullptr, size, scratch});
     WGPUBuffer buffer = gpu::createBuffer(device_, desc);
     if (!buffer) {
+        allocations_.pop_back();
         LOG_ERROR("Failed to allocate GPU physics buffer '{}' ({} bytes)",
                   label, size);
         return nullptr;
     }
-    allocations_.push_back({buffer, size, scratch});
+    allocations_.back().buffer = buffer;
     if (scratch) {
-        scratchBytes_ += static_cast<size_t>(size);
+        scratchBytes_ += accountedSize;
     } else {
-        persistentBytes_ += static_cast<size_t>(size);
+        persistentBytes_ += accountedSize;
     }
     return buffer;
 }

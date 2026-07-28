@@ -2,6 +2,8 @@
 
 #include <glm/glm.hpp>
 #include <array>
+#include <cmath>
+#include <limits>
 
 namespace voxy::render {
 
@@ -10,10 +12,18 @@ struct Plane {
     float distance;
 
     // Normalize the plane equation
-    void normalize() {
-        float mag = glm::length(normal);
+    [[nodiscard]] bool normalize() noexcept {
+        const float mag = glm::length(normal);
+        if (!std::isfinite(mag)
+            || mag <= std::numeric_limits<float>::min()
+            || !std::isfinite(distance)) {
+            normal = glm::vec3(0.0f);
+            distance = 0.0f;
+            return false;
+        }
         normal /= mag;
         distance /= mag;
+        return true;
     }
 };
 
@@ -64,10 +74,22 @@ struct Frustum {
         frustum.planes[5].distance = m[3][3] - m[3][2];
 
         for (auto& plane : frustum.planes) {
-            plane.normalize();
+            (void)plane.normalize();
         }
 
         return frustum;
+    }
+
+    [[nodiscard]] bool valid() const noexcept {
+        for (const Plane& plane : planes) {
+            const float length = glm::length(plane.normal);
+            if (!std::isfinite(length)
+                || length <= std::numeric_limits<float>::min()
+                || !std::isfinite(plane.distance)) {
+                return false;
+            }
+        }
+        return true;
     }
 };
 

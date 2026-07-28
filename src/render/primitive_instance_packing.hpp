@@ -57,6 +57,9 @@ struct PrimitiveInstanceCache {
     uint64_t nextToken = 1;
 };
 
+[[nodiscard]] bool isRenderablePrimitiveSnapshot(
+    const physics::PhysicsWorld::DynamicBodySnapshot& body) noexcept;
+
 [[nodiscard]] PrimitiveInstanceBatch packPrimitiveInstances(
     std::span<const physics::PhysicsWorld::DynamicBodySnapshot> bodies);
 [[nodiscard]] PrimitiveInstanceBatch packPrimitiveInstances(

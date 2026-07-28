@@ -175,6 +175,9 @@ public:
 
     /// Set max depth for depth visualization
     void setDebugMaxDepth(float maxDepth);
+    [[nodiscard]] float getDebugMaxDepth() const noexcept {
+        return debugMaxDepth_;
+    }
 
     // ─────────────────────────────────────────────────────────────────────────
     // Rendering
@@ -225,16 +228,16 @@ private:
     bool createPipeline(const BlitPathConfig& config);
     bool createWaterClipmapResources(const BlitPathConfig& config);
     bool createBindGroup();
-    bool createBackgroundTexture();
+    bool createBackgroundTexture(uint32_t width, uint32_t height);
     bool createSkyLut(const BlitPathConfig& config);
     bool createSurfaceFoamTexture();
     bool createUnderwaterParticleResources(const BlitPathConfig& config);
-    void updateUnderwaterParticles();
+    [[nodiscard]] bool updateUnderwaterParticles();
     [[nodiscard]] float nextParticleRandom();
     [[nodiscard]] bool respawnUnderwaterParticle(size_t index,
                                                  const glm::vec3& cameraPos,
                                                  float surfaceHeight);
-    void updateUniformBuffer();
+    [[nodiscard]] bool updateUniformBuffer();
     void updateStaticUniforms();
 
     // ─────────────────────────────────────────────────────────────────────────

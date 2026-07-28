@@ -20,6 +20,45 @@
 
 namespace voxy::terrain {
 
+namespace {
+
+constexpr uint32_t kMaximumTextureExtent = 8'192u;
+constexpr std::streamoff kMaximumEncodedTextureBytes =
+    512ll * 1024ll * 1024ll;
+
+bool validImageLayout(uint32_t width, uint32_t height,
+                      uint32_t bytesPerPixel, size_t& byteCount,
+                      uint32_t& bytesPerRow) noexcept {
+    if (width == 0u || height == 0u
+        || width > kMaximumTextureExtent
+        || height > kMaximumTextureExtent
+        || bytesPerPixel == 0u) {
+        return false;
+    }
+    const uint64_t row =
+        static_cast<uint64_t>(width) * bytesPerPixel;
+    const uint64_t total = row * height;
+    if (row > std::numeric_limits<uint32_t>::max()
+        || total > std::numeric_limits<size_t>::max()
+        || total > std::vector<uint8_t>{}.max_size()) {
+        return false;
+    }
+    bytesPerRow = static_cast<uint32_t>(row);
+    byteCount = static_cast<size_t>(total);
+    return true;
+}
+
+bool validDecodedImage(
+    int width, int height, uint32_t bytesPerPixel,
+    size_t& byteCount, uint32_t& bytesPerRow) noexcept {
+    return width > 0 && height > 0
+        && validImageLayout(
+            static_cast<uint32_t>(width), static_cast<uint32_t>(height),
+            bytesPerPixel, byteCount, bytesPerRow);
+}
+
+} // namespace
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // TerrainTextures Implementation
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -214,7 +253,8 @@ bool TerrainTextures::loadAlbedo(const std::filesystem::path& path) {
     const auto fileSize = file.tellg();
     if (fileSize <= 0
         || fileSize > std::numeric_limits<std::streamsize>::max()
-        || fileSize > std::numeric_limits<int>::max()) {
+        || fileSize > std::numeric_limits<int>::max()
+        || fileSize > kMaximumEncodedTextureBytes) {
         LOG_ERROR("Albedo texture file is empty or too large: {}",
                   path.string());
         return false;
@@ -229,20 +269,42 @@ bool TerrainTextures::loadAlbedo(const std::filesystem::path& path) {
         return false;
     }
     file.close();
-    
-    int width, height, channels;
-    uint8_t* data = stbi_load_from_memory(fileData.data(), static_cast<int>(fileData.size()),
-                                           &width, &height, &channels, 4);
+
+    int width = 0;
+    int height = 0;
+    int channels = 0;
+    size_t pixelBytes = 0u;
+    uint32_t bytesPerRow = 0u;
+    if (!stbi_info_from_memory(
+            fileData.data(), static_cast<int>(fileData.size()),
+            &width, &height, &channels)
+        || !validDecodedImage(
+            width, height, 4u, pixelBytes, bytesPerRow)) {
+        LOG_ERROR("Albedo texture dimensions are invalid or too large: {}x{}",
+                  width, height);
+        return false;
+    }
+
+    uint8_t* data = stbi_load_from_memory(
+        fileData.data(), static_cast<int>(fileData.size()),
+        &width, &height, &channels, 4);
     
     if (!data) {
         LOG_ERROR("Failed to decode albedo texture: {}", path.string());
+        return false;
+    }
+    if (!validDecodedImage(
+            width, height, 4u, pixelBytes, bytesPerRow)) {
+        stbi_image_free(data);
+        LOG_ERROR("Decoded albedo dimensions are too large: {}x{}",
+                  width, height);
         return false;
     }
     
     LOG_DEBUG("Loaded albedo texture: {}x{} from {}", width, height, path.string());
     
     // Copy data to vector
-    std::vector<uint8_t> pixels(data, data + (width * height * 4));
+    std::vector<uint8_t> pixels(data, data + pixelBytes);
     stbi_image_free(data);
     
     return uploadAlbedoTexture(pixels, static_cast<uint32_t>(width), static_cast<uint32_t>(height));
@@ -261,7 +323,8 @@ bool TerrainTextures::loadLightmap(const std::filesystem::path& path) {
     const auto fileSize = file.tellg();
     if (fileSize <= 0
         || fileSize > std::numeric_limits<std::streamsize>::max()
-        || fileSize > std::numeric_limits<int>::max()) {
+        || fileSize > std::numeric_limits<int>::max()
+        || fileSize > kMaximumEncodedTextureBytes) {
         LOG_ERROR("Lightmap texture file is empty or too large: {}",
                   path.string());
         return false;
@@ -276,20 +339,42 @@ bool TerrainTextures::loadLightmap(const std::filesystem::path& path) {
         return false;
     }
     file.close();
-    
-    int width, height, channels;
-    uint8_t* data = stbi_load_from_memory(fileData.data(), static_cast<int>(fileData.size()),
-                                           &width, &height, &channels, 1);
+
+    int width = 0;
+    int height = 0;
+    int channels = 0;
+    size_t pixelBytes = 0u;
+    uint32_t bytesPerRow = 0u;
+    if (!stbi_info_from_memory(
+            fileData.data(), static_cast<int>(fileData.size()),
+            &width, &height, &channels)
+        || !validDecodedImage(
+            width, height, 1u, pixelBytes, bytesPerRow)) {
+        LOG_ERROR("Lightmap dimensions are invalid or too large: {}x{}",
+                  width, height);
+        return false;
+    }
+
+    uint8_t* data = stbi_load_from_memory(
+        fileData.data(), static_cast<int>(fileData.size()),
+        &width, &height, &channels, 1);
     
     if (!data) {
         LOG_ERROR("Failed to decode lightmap texture: {}", path.string());
+        return false;
+    }
+    if (!validDecodedImage(
+            width, height, 1u, pixelBytes, bytesPerRow)) {
+        stbi_image_free(data);
+        LOG_ERROR("Decoded lightmap dimensions are too large: {}x{}",
+                  width, height);
         return false;
     }
     
     LOG_DEBUG("Loaded lightmap texture: {}x{} from {}", width, height, path.string());
     
     // Copy data to vector
-    std::vector<uint8_t> pixels(data, data + (width * height));
+    std::vector<uint8_t> pixels(data, data + pixelBytes);
     stbi_image_free(data);
     
     return uploadLightmapTexture(pixels, static_cast<uint32_t>(width), static_cast<uint32_t>(height));
@@ -319,14 +404,14 @@ bool TerrainTextures::createWhiteLightmap(uint32_t width, uint32_t height) {
 
 bool TerrainTextures::uploadAlbedoTexture(const std::vector<uint8_t>& data,
                                            uint32_t width, uint32_t height) {
-    // Release old texture if exists
-    if (albedoView_) {
-        wgpuTextureViewRelease(albedoView_);
-        albedoView_ = nullptr;
-    }
-    if (albedoTexture_) {
-        wgpuTextureRelease(albedoTexture_);
-        albedoTexture_ = nullptr;
+    size_t expectedBytes = 0u;
+    [[maybe_unused]] uint32_t bytesPerRow = 0u;
+    if (!validImageLayout(
+            width, height, 4u, expectedBytes, bytesPerRow)
+        || data.size() < expectedBytes) {
+        LOG_ERROR("Invalid albedo upload: {} bytes for {}x{}",
+                  data.size(), width, height);
+        return false;
     }
     
     // Create texture
@@ -337,28 +422,39 @@ bool TerrainTextures::uploadAlbedoTexture(const std::vector<uint8_t>& data,
         "terrain_albedo"
     );
     
-    albedoTexture_ = gpu::createTexture(device_, texDesc);
-    if (!albedoTexture_) {
+    WGPUTexture nextTexture = gpu::createTexture(device_, texDesc);
+    if (!nextTexture) {
         LOG_ERROR("Failed to create albedo texture");
         return false;
     }
     
     // Upload data
-    uint32_t bytesPerRow = width * 4;
-    gpu::writeTexture(queue_, albedoTexture_,
-                      std::span<const std::byte>(reinterpret_cast<const std::byte*>(data.data()), data.size()),
-                      width, height, bytesPerRow);
+    if (!gpu::writeTexture(
+            queue_, nextTexture,
+            std::span<const std::byte>(
+                reinterpret_cast<const std::byte*>(data.data()), data.size()),
+            width, height, bytesPerRow)) {
+        wgpuTextureDestroy(nextTexture);
+        wgpuTextureRelease(nextTexture);
+        return false;
+    }
     
     // Create texture view
     gpu::TextureViewDesc viewDesc{};
     viewDesc.label = "terrain_albedo_view";
     viewDesc.format = WGPUTextureFormat_RGBA8Unorm;
     
-    albedoView_ = gpu::createTextureView(albedoTexture_, viewDesc);
-    if (!albedoView_) {
+    WGPUTextureView nextView = gpu::createTextureView(nextTexture, viewDesc);
+    if (!nextView) {
         LOG_ERROR("Failed to create albedo texture view");
+        wgpuTextureRelease(nextTexture);
         return false;
     }
+
+    if (albedoView_) wgpuTextureViewRelease(albedoView_);
+    if (albedoTexture_) wgpuTextureRelease(albedoTexture_);
+    albedoTexture_ = nextTexture;
+    albedoView_ = nextView;
     
     albedoWidth_ = width;
     albedoHeight_ = height;
@@ -369,14 +465,14 @@ bool TerrainTextures::uploadAlbedoTexture(const std::vector<uint8_t>& data,
 
 bool TerrainTextures::uploadLightmapTexture(const std::vector<uint8_t>& data,
                                              uint32_t width, uint32_t height) {
-    // Release old texture if exists
-    if (lightmapView_) {
-        wgpuTextureViewRelease(lightmapView_);
-        lightmapView_ = nullptr;
-    }
-    if (lightmapTexture_) {
-        wgpuTextureRelease(lightmapTexture_);
-        lightmapTexture_ = nullptr;
+    size_t expectedBytes = 0u;
+    [[maybe_unused]] uint32_t bytesPerRow = 0u;
+    if (!validImageLayout(
+            width, height, 1u, expectedBytes, bytesPerRow)
+        || data.size() < expectedBytes) {
+        LOG_ERROR("Invalid lightmap upload: {} bytes for {}x{}",
+                  data.size(), width, height);
+        return false;
     }
     
     // Create texture
@@ -387,28 +483,39 @@ bool TerrainTextures::uploadLightmapTexture(const std::vector<uint8_t>& data,
         "terrain_lightmap"
     );
     
-    lightmapTexture_ = gpu::createTexture(device_, texDesc);
-    if (!lightmapTexture_) {
+    WGPUTexture nextTexture = gpu::createTexture(device_, texDesc);
+    if (!nextTexture) {
         LOG_ERROR("Failed to create lightmap texture");
         return false;
     }
     
     // Upload data
-    uint32_t bytesPerRow = width;
-    gpu::writeTexture(queue_, lightmapTexture_,
-                      std::span<const std::byte>(reinterpret_cast<const std::byte*>(data.data()), data.size()),
-                      width, height, bytesPerRow);
+    if (!gpu::writeTexture(
+            queue_, nextTexture,
+            std::span<const std::byte>(
+                reinterpret_cast<const std::byte*>(data.data()), data.size()),
+            width, height, bytesPerRow)) {
+        wgpuTextureDestroy(nextTexture);
+        wgpuTextureRelease(nextTexture);
+        return false;
+    }
     
     // Create texture view
     gpu::TextureViewDesc viewDesc{};
     viewDesc.label = "terrain_lightmap_view";
     viewDesc.format = WGPUTextureFormat_R8Unorm;
     
-    lightmapView_ = gpu::createTextureView(lightmapTexture_, viewDesc);
-    if (!lightmapView_) {
+    WGPUTextureView nextView = gpu::createTextureView(nextTexture, viewDesc);
+    if (!nextView) {
         LOG_ERROR("Failed to create lightmap texture view");
+        wgpuTextureRelease(nextTexture);
         return false;
     }
+
+    if (lightmapView_) wgpuTextureViewRelease(lightmapView_);
+    if (lightmapTexture_) wgpuTextureRelease(lightmapTexture_);
+    lightmapTexture_ = nextTexture;
+    lightmapView_ = nextView;
     
     lightmapWidth_ = width;
     lightmapHeight_ = height;
@@ -422,7 +529,13 @@ bool TerrainTextures::uploadLightmapTexture(const std::vector<uint8_t>& data,
 // ═══════════════════════════════════════════════════════════════════════════════
 
 std::vector<uint8_t> generateTerrainColorData(uint32_t width, uint32_t height) {
-    std::vector<uint8_t> data(width * height * 4);
+    size_t byteCount = 0u;
+    [[maybe_unused]] uint32_t bytesPerRow = 0u;
+    if (!validImageLayout(
+            width, height, 4u, byteCount, bytesPerRow)) {
+        return {};
+    }
+    std::vector<uint8_t> data(byteCount);
     
     // Generate a procedural terrain color pattern for Canyon biome
     // Base colors for canyon (reddish/brownish rock)
@@ -433,7 +546,8 @@ std::vector<uint8_t> generateTerrainColorData(uint32_t width, uint32_t height) {
     
     for (uint32_t y = 0; y < height; ++y) {
         for (uint32_t x = 0; x < width; ++x) {
-            size_t idx = (y * width + x) * 4;
+            const size_t idx =
+                (static_cast<size_t>(y) * width + x) * 4u;
             
             // Add some subtle variation based on position
             // Using a simple pseudo-random pattern based on coordinates
@@ -464,7 +578,13 @@ std::vector<uint8_t> generateTerrainColorData(uint32_t width, uint32_t height) {
 
 std::vector<uint8_t> generateWhiteLightmapData(uint32_t width, uint32_t height) {
     // Create a white lightmap (full light visibility everywhere)
-    std::vector<uint8_t> data(width * height, 255);
+    size_t byteCount = 0u;
+    [[maybe_unused]] uint32_t bytesPerRow = 0u;
+    if (!validImageLayout(
+            width, height, 1u, byteCount, bytesPerRow)) {
+        return {};
+    }
+    std::vector<uint8_t> data(byteCount, 255);
     return data;
 }
 

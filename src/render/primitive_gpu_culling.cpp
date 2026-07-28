@@ -7,6 +7,8 @@
 #include <algorithm>
 #include <array>
 #include <bit>
+#include <limits>
+#include <utility>
 #include <vector>
 
 namespace voxy::render {
@@ -15,6 +17,9 @@ namespace {
 constexpr uint32_t kWorkgroupSize = 256;
 constexpr uint32_t kStorageOffsetAlignmentWords = 64;
 constexpr int32_t kMaximumRenderSectorDelta = 4096;
+constexpr uint64_t kPoseStride = 32u;
+constexpr uint64_t kShapeStride = 48u;
+constexpr uint64_t kMetadataStride = 16u;
 
 struct alignas(16) CullUniforms {
     std::array<glm::vec4, 6> planes{};
@@ -60,6 +65,20 @@ void destroyBuffer(WGPUBuffer& buffer) {
     buffer = nullptr;
 }
 
+bool validStorageBuffer(
+    WGPUBuffer buffer, uint64_t requiredSize) noexcept {
+    return buffer
+        && wgpuBufferGetSize(buffer) >= requiredSize
+        && (wgpuBufferGetUsage(buffer) & WGPUBufferUsage_Storage) != 0;
+}
+
+bool emptyBodyView(const physics::PhysicsRenderView& view) noexcept {
+    return !view.poseBuffer && !view.shapeBuffer && !view.metadataBuffer
+        && !view.activeBodyIds && !view.visibleBodyIds
+        && !view.perShapeRanges && !view.indirectDrawArgs
+        && view.residentBodyCapacity == 0u && view.shapeCount == 0u;
+}
+
 } // namespace
 
 PrimitiveGpuCulling::~PrimitiveGpuCulling() { shutdown(); }
@@ -67,8 +86,29 @@ PrimitiveGpuCulling::~PrimitiveGpuCulling() { shutdown(); }
 bool PrimitiveGpuCulling::initialize(
     WGPUDevice device, WGPUQueue queue, const std::filesystem::path& shaderPath,
     const std::array<PrimitiveDrawGeometry, kShapeCount>& geometry) {
-    shutdown();
-    if (!device || !queue) return false;
+    if (!device || !queue
+        || std::any_of(
+            geometry.begin(), geometry.end(),
+            [](const PrimitiveDrawGeometry& draw) {
+                return draw.indexCount == 0u
+                    || draw.indexCount - 1u
+                        > std::numeric_limits<uint32_t>::max()
+                            - draw.firstIndex;
+            })) {
+        return false;
+    }
+    PrimitiveGpuCulling replacement;
+    if (!replacement.initializeFresh(
+            device, queue, shaderPath, geometry)) {
+        return false;
+    }
+    swap(replacement);
+    return true;
+}
+
+bool PrimitiveGpuCulling::initializeFresh(
+    WGPUDevice device, WGPUQueue queue, const std::filesystem::path& shaderPath,
+    const std::array<PrimitiveDrawGeometry, kShapeCount>& geometry) {
     device_ = device;
     queue_ = queue;
     geometry_ = geometry;
@@ -149,6 +189,38 @@ bool PrimitiveGpuCulling::initialize(
     return true;
 }
 
+void PrimitiveGpuCulling::swap(PrimitiveGpuCulling& other) noexcept {
+    using std::swap;
+    swap(device_, other.device_);
+    swap(queue_, other.queue_);
+    swap(bodyView_, other.bodyView_);
+    swap(geometry_, other.geometry_);
+    swap(allocatedBodyCapacity_, other.allocatedBodyCapacity_);
+    swap(segmentCapacity_, other.segmentCapacity_);
+    swap(blockCapacity_, other.blockCapacity_);
+    swap(bindGroupDirty_, other.bindGroupDirty_);
+    swap(rebaseBindGroupDirty_, other.rebaseBindGroupDirty_);
+    swap(shaderModule_, other.shaderModule_);
+    swap(bindGroupLayout_, other.bindGroupLayout_);
+    swap(pipelineLayout_, other.pipelineLayout_);
+    swap(blocksPipeline_, other.blocksPipeline_);
+    swap(scanPipeline_, other.scanPipeline_);
+    swap(scatterPipeline_, other.scatterPipeline_);
+    swap(bindGroup_, other.bindGroup_);
+    swap(rebaseBindGroupLayout_, other.rebaseBindGroupLayout_);
+    swap(rebasePipelineLayout_, other.rebasePipelineLayout_);
+    swap(rebasePipeline_, other.rebasePipeline_);
+    swap(rebaseBindGroup_, other.rebaseBindGroup_);
+    swap(uniformBuffer_, other.uniformBuffer_);
+    swap(cameraRelativePoses_, other.cameraRelativePoses_);
+    swap(visibility_, other.visibility_);
+    swap(localOffsets_, other.localOffsets_);
+    swap(blockSums_, other.blockSums_);
+    swap(blockPrefix_, other.blockPrefix_);
+    swap(visibleBodyIds_, other.visibleBodyIds_);
+    swap(indirectDrawArgs_, other.indirectDrawArgs_);
+}
+
 void PrimitiveGpuCulling::shutdown() {
     releaseHandle(rebaseBindGroup_, wgpuBindGroupRelease);
     releaseHandle(bindGroup_, wgpuBindGroupRelease);
@@ -173,7 +245,22 @@ void PrimitiveGpuCulling::shutdown() {
     rebaseBindGroupDirty_ = true;
 }
 
-void PrimitiveGpuCulling::setBodyView(const physics::PhysicsRenderView& view) {
+bool PrimitiveGpuCulling::setBodyView(
+    const physics::PhysicsRenderView& view) {
+    if (!emptyBodyView(view)) {
+        const uint64_t capacity = view.residentBodyCapacity;
+        if (!view.valid() || view.shapeCount != kShapeCount
+            || !validStorageBuffer(
+                view.poseBuffer, capacity * kPoseStride)
+            || !validStorageBuffer(
+                view.shapeBuffer, capacity * kShapeStride)
+            || (view.metadataBuffer
+                && !validStorageBuffer(
+                    view.metadataBuffer, capacity * kMetadataStride))) {
+            LOG_ERROR("PrimitiveGpuCulling: invalid physics render view");
+            return false;
+        }
+    }
     if (bodyView_.poseBuffer != view.poseBuffer
         || bodyView_.shapeBuffer != view.shapeBuffer
         || bodyView_.metadataBuffer != view.metadataBuffer) {
@@ -181,6 +268,7 @@ void PrimitiveGpuCulling::setBodyView(const physics::PhysicsRenderView& view) {
         rebaseBindGroupDirty_ = true;
     }
     bodyView_ = view;
+    return true;
 }
 
 void PrimitiveGpuCulling::releaseCapacityBuffers() {
@@ -200,43 +288,55 @@ void PrimitiveGpuCulling::releaseCapacityBuffers() {
 bool PrimitiveGpuCulling::ensureCapacity(uint32_t bodyCapacity) {
     if (bodyCapacity <= allocatedBodyCapacity_ && visibleBodyIds_)
         return true;
-    uint32_t newCapacity = std::max(256u, allocatedBodyCapacity_);
-    while (newCapacity < bodyCapacity) {
-        if (newCapacity > std::numeric_limits<uint32_t>::max() / 2u)
+    uint64_t nextCapacity = std::max(256u, allocatedBodyCapacity_);
+    while (nextCapacity < bodyCapacity) {
+        if (nextCapacity > std::numeric_limits<uint32_t>::max() / 2u)
             return false;
-        newCapacity *= 2u;
+        nextCapacity *= 2u;
     }
-    releaseCapacityBuffers();
-    allocatedBodyCapacity_ = newCapacity;
-    segmentCapacity_ = (newCapacity + kStorageOffsetAlignmentWords - 1u)
-                     & ~(kStorageOffsetAlignmentWords - 1u);
-    blockCapacity_ = (newCapacity + kWorkgroupSize - 1u) / kWorkgroupSize;
+    const uint64_t nextSegmentCapacity =
+        (nextCapacity + kStorageOffsetAlignmentWords - 1u)
+        & ~uint64_t{kStorageOffsetAlignmentWords - 1u};
+    const uint64_t nextBlockCapacity =
+        (nextCapacity + kWorkgroupSize - 1u) / kWorkgroupSize;
+    if (nextCapacity > std::numeric_limits<uint32_t>::max()
+        || nextSegmentCapacity > std::numeric_limits<uint32_t>::max()
+        || nextBlockCapacity > std::numeric_limits<uint32_t>::max()) {
+        return false;
+    }
+    const uint32_t newCapacity = static_cast<uint32_t>(nextCapacity);
+    const uint32_t newSegmentCapacity =
+        static_cast<uint32_t>(nextSegmentCapacity);
+    const uint32_t newBlockCapacity =
+        static_cast<uint32_t>(nextBlockCapacity);
 
     const gpu::BufferDesc scratchDesc{
         .label = "physics_primitive_cull_scratch",
         .size = uint64_t{newCapacity} * sizeof(uint32_t),
         .usage = WGPUBufferUsage_Storage | WGPUBufferUsage_CopyDst,
     };
-    visibility_ = gpu::createBuffer(device_, scratchDesc);
-    localOffsets_ = gpu::createBuffer(device_, scratchDesc);
-    cameraRelativePoses_ = gpu::createBuffer(
+    WGPUBuffer nextVisibility = gpu::createBuffer(device_, scratchDesc);
+    WGPUBuffer nextLocalOffsets = gpu::createBuffer(device_, scratchDesc);
+    WGPUBuffer nextCameraRelativePoses = gpu::createBuffer(
         device_, gpu::BufferDesc::storage(
             uint64_t{newCapacity} * 2u * sizeof(glm::vec4), false,
             "physics_primitive_camera_relative_poses"));
     const gpu::BufferDesc blockDesc{
         .label = "physics_primitive_cull_blocks",
-        .size = uint64_t{blockCapacity_} * kShapeCount * sizeof(uint32_t),
+        .size = uint64_t{newBlockCapacity}
+              * kShapeCount * sizeof(uint32_t),
         .usage = WGPUBufferUsage_Storage | WGPUBufferUsage_CopyDst,
     };
-    blockSums_ = gpu::createBuffer(device_, blockDesc);
-    blockPrefix_ = gpu::createBuffer(device_, blockDesc);
+    WGPUBuffer nextBlockSums = gpu::createBuffer(device_, blockDesc);
+    WGPUBuffer nextBlockPrefix = gpu::createBuffer(device_, blockDesc);
     const gpu::BufferDesc visibleDesc{
         .label = "physics_primitive_visible_body_ids",
-        .size = uint64_t{segmentCapacity_} * kShapeCount * sizeof(uint32_t),
+        .size = uint64_t{newSegmentCapacity}
+              * kShapeCount * sizeof(uint32_t),
         .usage = WGPUBufferUsage_Storage | WGPUBufferUsage_CopyDst
                | WGPUBufferUsage_CopySrc,
     };
-    visibleBodyIds_ = gpu::createBuffer(device_, visibleDesc);
+    WGPUBuffer nextVisibleBodyIds = gpu::createBuffer(device_, visibleDesc);
 
     std::array<IndirectDrawArgs, kShapeCount> indirect{};
     for (uint32_t shape = 0; shape < kShapeCount; ++shape) {
@@ -249,13 +349,35 @@ bool PrimitiveGpuCulling::ensureCapacity(uint32_t bodyCapacity) {
         .usage = WGPUBufferUsage_Storage | WGPUBufferUsage_Indirect
                | WGPUBufferUsage_CopyDst | WGPUBufferUsage_CopySrc,
     };
-    indirectDrawArgs_ = gpu::createBufferWithData(
+    WGPUBuffer nextIndirectDrawArgs = gpu::createBufferWithData(
         device_, queue_, indirectDesc,
         std::span<const IndirectDrawArgs>(indirect));
+    if (!nextCameraRelativePoses || !nextVisibility || !nextLocalOffsets
+        || !nextBlockSums || !nextBlockPrefix || !nextVisibleBodyIds
+        || !nextIndirectDrawArgs) {
+        destroyBuffer(nextCameraRelativePoses);
+        destroyBuffer(nextVisibility);
+        destroyBuffer(nextLocalOffsets);
+        destroyBuffer(nextBlockSums);
+        destroyBuffer(nextBlockPrefix);
+        destroyBuffer(nextVisibleBodyIds);
+        destroyBuffer(nextIndirectDrawArgs);
+        return false;
+    }
+
+    releaseCapacityBuffers();
+    cameraRelativePoses_ = nextCameraRelativePoses;
+    visibility_ = nextVisibility;
+    localOffsets_ = nextLocalOffsets;
+    blockSums_ = nextBlockSums;
+    blockPrefix_ = nextBlockPrefix;
+    visibleBodyIds_ = nextVisibleBodyIds;
+    indirectDrawArgs_ = nextIndirectDrawArgs;
+    allocatedBodyCapacity_ = newCapacity;
+    segmentCapacity_ = newSegmentCapacity;
+    blockCapacity_ = newBlockCapacity;
     bindGroupDirty_ = true;
-    return cameraRelativePoses_ && visibility_ && localOffsets_
-        && blockSums_ && blockPrefix_
-        && visibleBodyIds_ && indirectDrawArgs_;
+    return true;
 }
 
 bool PrimitiveGpuCulling::updateBindGroup() {
@@ -313,6 +435,7 @@ bool PrimitiveGpuCulling::encode(WGPUCommandEncoder encoder,
 
     CullUniforms uniforms;
     const Frustum frustum = Frustum::fromViewProj(viewProjection);
+    if (!frustum.valid()) return false;
     for (size_t index = 0; index < frustum.planes.size(); ++index) {
         uniforms.planes[index] = glm::vec4(
             frustum.planes[index].normal, frustum.planes[index].distance);
@@ -325,12 +448,18 @@ bool PrimitiveGpuCulling::encode(WGPUCommandEncoder encoder,
         kShapeCount);
     uniforms.cameraSector = glm::ivec4(
         cameraSector, kMaximumRenderSectorDelta);
-    gpu::writeBuffer(queue_, uniformBuffer_, 0, uniforms);
+    if (!gpu::writeBuffer(queue_, uniformBuffer_, 0, uniforms)) {
+        return false;
+    }
 
     WGPUComputePassDescriptor passDesc{};
     WGPU_SET_LABEL(passDesc, "physics_primitive_culling");
     WGPUComputePassEncoder pass =
         wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
+    if (!pass) {
+        LOG_ERROR("PrimitiveGpuCulling: failed to begin compute pass");
+        return false;
+    }
     if (bodyView_.metadataBuffer) {
         wgpuComputePassEncoderSetBindGroup(
             pass, 0, rebaseBindGroup_, 0, nullptr);

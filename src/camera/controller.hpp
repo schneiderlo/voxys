@@ -10,6 +10,8 @@
 #include "camera/camera.hpp"
 #include "engine/platform/input.hpp"
 
+#include <cmath>
+
 namespace voxy {
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -65,25 +67,37 @@ public:
     [[nodiscard]] const FreeFlyConfig& config() const noexcept { return config_; }
     
     /// Set configuration
-    void setConfig(const FreeFlyConfig& config) { config_ = config; }
+    void setConfig(const FreeFlyConfig& config);
     
     /// Get base movement speed
     [[nodiscard]] float baseSpeed() const noexcept { return config_.baseSpeed; }
     
     /// Set base movement speed
-    void setBaseSpeed(float speed) { config_.baseSpeed = speed; }
+    void setBaseSpeed(float speed) {
+        if (std::isfinite(speed) && speed >= 0.0f) {
+            config_.baseSpeed = speed;
+        }
+    }
     
     /// Get boost multiplier
     [[nodiscard]] float boostMultiplier() const noexcept { return config_.boostMultiplier; }
     
     /// Set boost multiplier
-    void setBoostMultiplier(float multiplier) { config_.boostMultiplier = multiplier; }
+    void setBoostMultiplier(float multiplier) {
+        if (std::isfinite(multiplier) && multiplier >= 0.0f) {
+            config_.boostMultiplier = multiplier;
+        }
+    }
     
     /// Get mouse sensitivity
     [[nodiscard]] float mouseSensitivity() const noexcept { return config_.mouseSensitivity; }
     
     /// Set mouse sensitivity
-    void setMouseSensitivity(float sensitivity) { config_.mouseSensitivity = sensitivity; }
+    void setMouseSensitivity(float sensitivity) {
+        if (std::isfinite(sensitivity) && sensitivity >= 0.0f) {
+            config_.mouseSensitivity = sensitivity;
+        }
+    }
     
     /// Get invert Y setting
     [[nodiscard]] bool invertY() const noexcept { return config_.invertY; }
@@ -96,10 +110,20 @@ public:
     // ─────────────────────────────────────────────────────────────────────────
     
     /// Attach to a camera
-    void attachCamera(Camera& camera) { camera_ = &camera; }
+    void attachCamera(Camera& camera) {
+        camera_ = &camera;
+        velocity_ = glm::vec3(0.0f);
+        currentSpeed_ = 0.0f;
+        isMoving_ = false;
+    }
     
     /// Detach from camera
-    void detachCamera() { camera_ = nullptr; }
+    void detachCamera() {
+        camera_ = nullptr;
+        velocity_ = glm::vec3(0.0f);
+        currentSpeed_ = 0.0f;
+        isMoving_ = false;
+    }
     
     /// Check if camera is attached
     [[nodiscard]] bool hasCamera() const noexcept { return camera_ != nullptr; }
@@ -163,9 +187,8 @@ private:
 
 inline FreeFlyController::FreeFlyController(Camera& camera, const FreeFlyConfig& config)
     : camera_(&camera)
-    , config_(config)
 {
+    setConfig(config);
 }
 
 } // namespace voxy
-

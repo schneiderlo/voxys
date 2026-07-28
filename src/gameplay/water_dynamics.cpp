@@ -35,6 +35,14 @@ int64_t periodicAdvance(
     return static_cast<int64_t>(tick % cycle) * advanceQ12;
 }
 
+int64_t saturatingAdd(int64_t lhs, int64_t rhs) noexcept {
+    if (rhs > 0 && lhs > std::numeric_limits<int64_t>::max() - rhs)
+        return std::numeric_limits<int64_t>::max();
+    if (rhs < 0 && lhs < std::numeric_limits<int64_t>::min() - rhs)
+        return std::numeric_limits<int64_t>::min();
+    return lhs + rhs;
+}
+
 } // namespace
 
 DeterministicWaterField::DeterministicWaterField()
@@ -75,7 +83,8 @@ int32_t DeterministicWaterField::height(
 WaterSurfaceSampleQ DeterministicWaterField::sample(
     int32_t xQ12, int32_t zQ12, uint64_t tick) const noexcept {
     const int32_t current = height(xQ12, zQ12, tick);
-    const int32_t next = height(xQ12, zQ12, tick + 1u);
+    const int32_t next = tick == std::numeric_limits<uint64_t>::max()
+        ? current : height(xQ12, zQ12, tick + 1u);
     // Q12 metres/tick -> Q16 metres/second.
     const int64_t velocity = (int64_t{next} - current)
         * int64_t{kGameplayTickRateHz} * 16;
@@ -116,7 +125,7 @@ BuoyancyResultQ evaluateBuoyancy(
         const int32_t pointVolume = multiplyQ16(
             point.displacedVolumeQ16, dryFraction);
         if (pointVolume <= 0) continue;
-        effectiveVolume += pointVolume;
+        effectiveVolume = saturatingAdd(effectiveVolume, pointVolume);
         const auto surface = water.sample(
             point.localPositionQ12[0], point.localPositionQ12[2], tick);
         const int32_t worldY = saturateI32(
@@ -130,10 +139,12 @@ BuoyancyResultQ evaluateBuoyancy(
             0, kScalarOne);
         const int32_t submerged = multiplyQ16(
             pointVolume, submergedFraction);
-        submergedVolume += submerged;
-        weightedCenter += int64_t{submerged} * worldY;
-        weightedWaterVelocity += int64_t{submerged}
-            * surface.verticalVelocityQ16;
+        submergedVolume = saturatingAdd(submergedVolume, submerged);
+        weightedCenter = saturatingAdd(
+            weightedCenter, int64_t{submerged} * worldY);
+        weightedWaterVelocity = saturatingAdd(
+            weightedWaterVelocity,
+            int64_t{submerged} * surface.verticalVelocityQ16);
     }
     result.effectiveVolumeQ16 = saturateI32(effectiveVolume);
     result.submergedVolumeQ16 = saturateI32(submergedVolume);

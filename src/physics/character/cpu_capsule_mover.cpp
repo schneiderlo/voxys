@@ -6,6 +6,7 @@
 #include <array>
 #include <cmath>
 #include <limits>
+#include <utility>
 
 #include <glm/geometric.hpp>
 #include <glm/trigonometric.hpp>
@@ -18,6 +19,25 @@ bool finiteVector(const glm::vec3& value) noexcept {
         && std::isfinite(value.z);
 }
 
+float finiteOr(float value, float fallback) noexcept {
+    return std::isfinite(value) ? value : fallback;
+}
+
+// Direct mover users rely on coarse, half-second deterministic steps in tools
+// and tests. Keep that supported while preventing unbounded displacement from
+// malformed frame input.
+constexpr float kMaximumFrameTime = 1.0f;
+constexpr float kMaximumCharacterRate = 10'000.0f;
+constexpr float kMaximumTerrainScale = 1.0e6f;
+constexpr uint32_t kMaximumCharacters = 65'535u;
+constexpr uint32_t kMaximumTerrainExtent = 8'192u;
+
+bool validPolicy(NearbyDynamicBodyPolicy policy) noexcept {
+    return policy == NearbyDynamicBodyPolicy::TerrainOnly
+        || policy == NearbyDynamicBodyPolicy::AsyncQueryMirror
+        || policy == NearbyDynamicBodyPolicy::CpuAuthoritativeSet;
+}
+
 } // namespace
 
 struct CpuCapsuleMoverWorld::CharacterSlot {
@@ -26,6 +46,7 @@ struct CpuCapsuleMoverWorld::CharacterSlot {
     glm::vec3 velocity{0.0f};
     glm::vec3 groundNormal{0.0f, 1.0f, 0.0f};
     CharacterSettings settings{};
+    uint16_t generation = 0;
     bool active = false;
     bool grounded = false;
     bool steep = false;
@@ -52,23 +73,26 @@ CpuCapsuleMoverWorld::~CpuCapsuleMoverWorld() = default;
 bool CpuCapsuleMoverWorld::initialize() { return initialize(Config{}); }
 
 bool CpuCapsuleMoverWorld::initialize(const Config& config) {
-    shutdown();
     if (config.maximumCharacters == 0 || config.maximumPlanes == 0
+        || config.maximumCharacters > kMaximumCharacters
         || config.maximumPlanes > 8 || config.maximumCastSamples == 0
         || config.maximumCastSamples > 64 || config.bisectionIterations == 0
         || config.bisectionIterations > 16 || !std::isfinite(config.skin)
-        || config.skin < 0.0f) {
+        || config.skin < 0.0f || config.skin > 1.0f
+        || !validPolicy(config.nearbyDynamicPolicy)) {
         return false;
     }
+    std::vector<CharacterSlot> replacement(config.maximumCharacters);
+    shutdown();
     config_ = config;
-    characters_.resize(config_.maximumCharacters);
+    characters_ = std::move(replacement);
     initialized_ = true;
     return true;
 }
 
 void CpuCapsuleMoverWorld::shutdown() {
     characters_.clear();
-    freeCharacters_.clear();
+    freeCharacterSlots_.clear();
     terrainSamples_.clear();
     terrainWidth_ = 0;
     terrainHeight_ = 0;
@@ -81,14 +105,20 @@ void CpuCapsuleMoverWorld::shutdown() {
 bool CpuCapsuleMoverWorld::setTerrain(
     std::span<const uint16_t> samples, uint32_t width, uint32_t height,
     float heightScale, float cellScale) {
-    const size_t count = size_t{width} * height;
-    if (!initialized_ || width < 2 || height < 2 || samples.size() < count
+    if (!initialized_ || width < 2u || height < 2u
+        || width > kMaximumTerrainExtent
+        || height > kMaximumTerrainExtent
         || !std::isfinite(heightScale) || heightScale <= 0.0f
-        || !std::isfinite(cellScale) || cellScale <= 0.0f) {
+        || heightScale > kMaximumTerrainScale
+        || !std::isfinite(cellScale) || cellScale <= 0.0f
+        || cellScale > kMaximumTerrainScale) {
         return false;
     }
+    const size_t count = size_t{width} * height;
+    if (samples.size() < count) return false;
     const auto selected = samples.first(count);
-    terrainSamples_.assign(selected.begin(), selected.end());
+    std::vector<uint16_t> replacement(selected.begin(), selected.end());
+    terrainSamples_ = std::move(replacement);
     terrainWidth_ = width;
     terrainHeight_ = height;
     terrainHeightScale_ = heightScale;
@@ -308,7 +338,7 @@ CpuCapsuleMoverWorld::CastHit CpuCapsuleMoverWorld::castCapsule(
 
 CharacterHandle CpuCapsuleMoverWorld::createCharacter(
     const glm::vec3& feetPosition, const CharacterSettings& requested) {
-    if (!initialized_ || !finiteVector(feetPosition))
+    if (!initialized_ || !isRepresentableAbsolutePosition(feetPosition))
         return InvalidCharacter;
     return createCharacter(
         worldPositionFromAbsolute(glm::dvec3(feetPosition)), requested);
@@ -318,28 +348,29 @@ CharacterHandle CpuCapsuleMoverWorld::createCharacter(
     const WorldPosition& feetPosition, const CharacterSettings& requested) {
     if (!initialized_ || !isValidWorldPosition(feetPosition))
         return InvalidCharacter;
-    CharacterSettings settings = requested;
-    settings.radius = std::max(settings.radius, 0.01f);
-    settings.height = std::max(settings.height, 2.0f * settings.radius);
-    settings.maxSlopeAngleDegrees = std::clamp(
-        settings.maxSlopeAngleDegrees, 0.0f, 89.9f);
-    settings.stepUp = std::max(settings.stepUp, 0.0f);
-    settings.stepDown = std::max(settings.stepDown, 0.0f);
-    CharacterHandle handle = InvalidCharacter;
-    if (!freeCharacters_.empty()) {
-        handle = freeCharacters_.front();
-        freeCharacters_.erase(freeCharacters_.begin());
+    const CharacterSettings settings = sanitizeCharacterSettings(requested);
+    uint32_t slotIndex = kMaximumCharacterSlots;
+    if (!freeCharacterSlots_.empty()) {
+        slotIndex = freeCharacterSlots_.front();
+        freeCharacterSlots_.erase(freeCharacterSlots_.begin());
     } else {
         for (uint32_t index = 0; index < characters_.size(); ++index) {
-            if (!characters_[index].active) {
-                handle = index + 1u;
+            if (!characters_[index].active
+                && characters_[index].generation
+                    != std::numeric_limits<uint16_t>::max()) {
+                slotIndex = index;
                 break;
             }
         }
     }
+    const CharacterHandle handle = slotIndex < characters_.size()
+        ? makeCharacterHandle(slotIndex, characters_[slotIndex].generation)
+        : InvalidCharacter;
     if (handle == InvalidCharacter) return handle;
-    auto& slot = characters_[handle - 1u];
+    auto& slot = characters_[slotIndex];
+    const uint16_t generation = slot.generation;
     slot = {};
+    slot.generation = generation;
     slot.position = feetPosition.local;
     slot.sector = feetPosition.sector;
     slot.settings = settings;
@@ -364,16 +395,21 @@ CharacterHandle CpuCapsuleMoverWorld::createCharacter(
 void CpuCapsuleMoverWorld::destroyCharacter(CharacterHandle handle) {
     CharacterSlot* slot = find(handle);
     if (!slot) return;
+    const uint32_t slotIndex = characterHandleSlot(handle);
+    const uint16_t generation = slot->generation;
     *slot = {};
+    slot->generation = generation;
+    if (generation == std::numeric_limits<uint16_t>::max()) return;
+    ++slot->generation;
     const auto insertion = std::lower_bound(
-        freeCharacters_.begin(), freeCharacters_.end(), handle);
-    if (insertion == freeCharacters_.end() || *insertion != handle)
-        freeCharacters_.insert(insertion, handle);
+        freeCharacterSlots_.begin(), freeCharacterSlots_.end(), slotIndex);
+    if (insertion == freeCharacterSlots_.end() || *insertion != slotIndex)
+        freeCharacterSlots_.insert(insertion, slotIndex);
 }
 
 bool CpuCapsuleMoverWorld::setCharacterPosition(
     CharacterHandle handle, const glm::vec3& feetPosition) {
-    if (!finiteVector(feetPosition)) return false;
+    if (!isRepresentableAbsolutePosition(feetPosition)) return false;
     return setCharacterPosition(
         handle, worldPositionFromAbsolute(glm::dvec3(feetPosition)));
 }
@@ -397,29 +433,41 @@ CharacterMotion CpuCapsuleMoverWorld::moveCharacter(
     CharacterMotion result;
     CharacterSlot* slot = find(handle);
     if (!slot) return result;
-    if (!std::isfinite(deltaTime) || deltaTime <= 0.0f
-        || !finiteVector(desiredHorizontalVelocity)) {
+    const float frameTime = std::clamp(
+        finiteOr(deltaTime, 0.0f), 0.0f, kMaximumFrameTime);
+    if (frameTime <= 0.0f) {
         return {slot->position, slot->velocity, slot->groundNormal,
                 slot->grounded, slot->steep, slot->sector};
     }
-    gravity = std::max(gravity, 0.0f);
-    terminalVelocity = std::max(terminalVelocity, 0.0f);
-    slot->velocity.x = desiredHorizontalVelocity.x;
-    slot->velocity.z = desiredHorizontalVelocity.z;
+    const glm::vec3 desired = finiteVector(desiredHorizontalVelocity)
+        ? glm::clamp(
+            desiredHorizontalVelocity,
+            glm::vec3(-kMaximumCharacterRate),
+            glm::vec3(kMaximumCharacterRate))
+        : glm::vec3(0.0f);
+    gravity = std::clamp(
+        finiteOr(gravity, 0.0f), 0.0f, kMaximumCharacterRate);
+    terminalVelocity = std::clamp(
+        finiteOr(terminalVelocity, 0.0f),
+        0.0f, kMaximumCharacterRate);
+    jumpSpeed = std::clamp(
+        finiteOr(jumpSpeed, 0.0f), 0.0f, kMaximumCharacterRate);
+    slot->velocity.x = desired.x;
+    slot->velocity.z = desired.z;
     if (jump && slot->grounded) {
-        slot->velocity.y = std::max(jumpSpeed, 0.0f);
+        slot->velocity.y = jumpSpeed;
         slot->grounded = false;
     } else if (slot->grounded) {
         slot->velocity.y = 0.0f;
     } else {
         slot->velocity.y = std::max(
-            slot->velocity.y - gravity * deltaTime, -terminalVelocity);
+            slot->velocity.y - gravity * frameTime, -terminalVelocity);
     }
 
     const float minimumGroundNormal = std::cos(glm::radians(
         slot->settings.maxSlopeAngleDegrees));
     bool encounteredSteep = slot->steep;
-    glm::vec3 translation = slot->velocity * deltaTime;
+    glm::vec3 translation = slot->velocity * frameTime;
     const glm::vec3 horizontalTarget(
         slot->position.x + translation.x,
         slot->position.y,
@@ -526,16 +574,24 @@ CharacterMotion CpuCapsuleMoverWorld::moveCharacter(
 
 CpuCapsuleMoverWorld::CharacterSlot* CpuCapsuleMoverWorld::find(
     CharacterHandle handle) noexcept {
-    if (handle == InvalidCharacter || handle > characters_.size()) return nullptr;
-    auto& slot = characters_[handle - 1u];
-    return slot.active ? &slot : nullptr;
+    const uint32_t slotIndex = characterHandleSlot(handle);
+    if (slotIndex >= characters_.size()) return nullptr;
+    auto& slot = characters_[slotIndex];
+    return slot.active
+            && slot.generation == characterHandleGeneration(handle)
+        ? &slot
+        : nullptr;
 }
 
 const CpuCapsuleMoverWorld::CharacterSlot* CpuCapsuleMoverWorld::find(
     CharacterHandle handle) const noexcept {
-    if (handle == InvalidCharacter || handle > characters_.size()) return nullptr;
-    const auto& slot = characters_[handle - 1u];
-    return slot.active ? &slot : nullptr;
+    const uint32_t slotIndex = characterHandleSlot(handle);
+    if (slotIndex >= characters_.size()) return nullptr;
+    const auto& slot = characters_[slotIndex];
+    return slot.active
+            && slot.generation == characterHandleGeneration(handle)
+        ? &slot
+        : nullptr;
 }
 
 } // namespace voxy::physics

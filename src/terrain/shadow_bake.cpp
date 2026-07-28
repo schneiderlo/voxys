@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <limits>
 
 namespace voxy::terrain {
 
@@ -13,10 +14,17 @@ ShadowBakeResult bakeShadowHeightField(std::span<const uint16_t> heights,
                                        uint32_t width, uint32_t height,
                                        const ShadowBakeConfig& config) {
     ShadowBakeResult empty;
-    if (width == 0 || height == 0 ||
-        heights.size() < static_cast<size_t>(width) * height ||
+    constexpr uint32_t kMaximumTerrainExtent = 8'192u;
+    constexpr float kMaximumTerrainScale = 1.0e6f;
+    if (width == 0 || height == 0
+        || width > kMaximumTerrainExtent || height > kMaximumTerrainExtent
+        || static_cast<size_t>(width)
+            > std::numeric_limits<size_t>::max() / height
+        || heights.size() < static_cast<size_t>(width) * height ||
         !std::isfinite(config.heightScale) || config.heightScale <= 0.0f ||
+        config.heightScale > kMaximumTerrainScale ||
         !std::isfinite(config.cellScale) || config.cellScale <= 0.0f ||
+        config.cellScale > kMaximumTerrainScale ||
         config.downsample == 0) {
         return empty;
     }

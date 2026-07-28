@@ -15,7 +15,9 @@
 #include "physics/physics_types.hpp"
 
 #include <glm/glm.hpp>
+#include <cmath>
 #include <functional>
+#include <limits>
 
 namespace voxy {
 
@@ -87,7 +89,14 @@ struct CharacterConfig {
     /// Calculate jump velocity from jump height and gravity
     [[nodiscard]] float jumpVelocity() const noexcept {
         // v = sqrt(2 * g * h)
-        return std::sqrt(2.0f * gravity * jumpHeight);
+        const double squared = 2.0 * static_cast<double>(gravity)
+                             * static_cast<double>(jumpHeight);
+        if (!std::isfinite(squared) || squared < 0.0
+            || squared > static_cast<double>(
+                std::numeric_limits<float>::max())) {
+            return 0.0f;
+        }
+        return static_cast<float>(std::sqrt(squared));
     }
     
     /// Create config with custom speeds
@@ -163,10 +172,10 @@ public:
     // ─────────────────────────────────────────────────────────────────────────
     
     /// Attach to a camera
-    void attachCamera(Camera& camera) { camera_ = &camera; }
+    void attachCamera(Camera& camera);
     
     /// Detach from camera
-    void detachCamera() { camera_ = nullptr; }
+    void detachCamera();
     
     /// Check if camera is attached
     [[nodiscard]] bool hasCamera() const noexcept { return camera_ != nullptr; }

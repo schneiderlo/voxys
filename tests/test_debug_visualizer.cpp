@@ -16,6 +16,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <filesystem>
 #include <fstream>
+#include <limits>
 #include <sstream>
 #include <vector>
 
@@ -171,6 +172,35 @@ TEST(DebugVisualizerTest, InitWithNullDevice) {
     
     EXPECT_FALSE(visualizer.init(nullptr, nullptr));
     EXPECT_FALSE(visualizer.isInitialized());
+}
+
+TEST(DebugVisualizerTest, RejectsInvalidRangesAndModes) {
+    DebugVisualizer visualizer;
+    const float nan = std::numeric_limits<float>::quiet_NaN();
+
+    EXPECT_FALSE(visualizer.setDepthRange(nan, 100.0f));
+    EXPECT_FALSE(visualizer.setDepthRange(10.0f, 10.0f));
+    EXPECT_FALSE(visualizer.setDepthRange(-1.0f, 10.0f));
+    EXPECT_FLOAT_EQ(visualizer.getNearDist(), 1.0f);
+    EXPECT_FLOAT_EQ(visualizer.getFarDist(), 5000.0f);
+
+    EXPECT_FALSE(visualizer.setMode(static_cast<DebugVisMode>(99u)));
+    EXPECT_EQ(visualizer.getMode(), DebugVisMode::GrayscaleDepth);
+    EXPECT_TRUE(visualizer.setDepthRange(10.0f, 100.0f));
+    EXPECT_TRUE(visualizer.setMode(DebugVisMode::ColorGradient));
+}
+
+TEST(DebugVisualizerTest, RejectsInvalidConfigBeforeGpuCalls) {
+    const auto device = reinterpret_cast<WGPUDevice>(uintptr_t{1});
+    const auto queue = reinterpret_cast<WGPUQueue>(uintptr_t{2});
+    DebugVisualizerConfig config = DebugVisualizerConfig::defaults();
+    config.farDist = config.nearDist;
+    DebugVisualizer visualizer;
+    EXPECT_FALSE(visualizer.init(device, queue, config));
+
+    config = DebugVisualizerConfig::defaults();
+    config.mode = static_cast<DebugVisMode>(99u);
+    EXPECT_FALSE(visualizer.init(device, queue, config));
 }
 
 TEST(DebugVisualizerTest, ShutdownWithoutInit) {
@@ -397,7 +427,7 @@ TEST_F(DebugVisualizerGPUTest, SetDepthRange) {
         getDebugConfig()
     ));
     
-    visualizer_.setDepthRange(10.0f, 10000.0f);
+    ASSERT_TRUE(visualizer_.setDepthRange(10.0f, 10000.0f));
     
     EXPECT_FLOAT_EQ(visualizer_.getNearDist(), 10.0f);
     EXPECT_FLOAT_EQ(visualizer_.getFarDist(), 10000.0f);
@@ -415,10 +445,10 @@ TEST_F(DebugVisualizerGPUTest, SetMode) {
         getDebugConfig()
     ));
     
-    visualizer_.setMode(DebugVisMode::ColorGradient);
+    ASSERT_TRUE(visualizer_.setMode(DebugVisMode::ColorGradient));
     EXPECT_EQ(visualizer_.getMode(), DebugVisMode::ColorGradient);
     
-    visualizer_.setMode(DebugVisMode::RawDepth);
+    ASSERT_TRUE(visualizer_.setMode(DebugVisMode::RawDepth));
     EXPECT_EQ(visualizer_.getMode(), DebugVisMode::RawDepth);
 }
 
@@ -444,7 +474,8 @@ TEST_F(DebugVisualizerGPUTest, RenderWithRaycastOutput) {
     createTestHeightmap(terrainSize, terrainSize);
     ASSERT_NE(heightmapView_, nullptr);
     
-    raycastPath_.setHeightmap(heightmapView_, heightmapWidth_, heightmapHeight_);
+    ASSERT_TRUE(raycastPath_.setHeightmap(
+        heightmapView_, heightmapWidth_, heightmapHeight_));
     
     // Set up camera looking at terrain
     glm::vec3 camPos(0.0f, 200.0f, 0.0f);
@@ -561,6 +592,4 @@ TEST_F(DebugVisualizerGPUTest, VerifyWorkgroupCoverage) {
 }
 
 } // namespace voxy::render
-
-
 

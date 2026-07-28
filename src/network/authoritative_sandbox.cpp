@@ -91,8 +91,10 @@ bool TwoClientMeteorBoxSandbox::initialize() {
         })) return false;
     snapshots_ = SnapshotHistory(config_.historyTicks);
     acknowledgements_ = {};
-    clients_[0] = ClientState{1u, 1u, InputRedundancyBuffer(64)};
-    clients_[1] = ClientState{2u, 2u, InputRedundancyBuffer(64)};
+    clients_[0] = ClientState{
+        1u, 1u, InputRedundancyBuffer(64), AckWindow{}};
+    clients_[1] = ClientState{
+        2u, 2u, InputRedundancyBuffer(64), AckWindow{}};
     pending_.clear();
     networkRecording_.clear();
     replayRecording_.clear();
@@ -137,6 +139,10 @@ bool TwoClientMeteorBoxSandbox::submitInputs(
         telemetry_.rejectedCommands += redundantFrames.size();
         return false;
     }
+    if (redundantFrames.size() > kMaximumInputFramesPerBundle) {
+        telemetry_.rejectedCommands += redundantFrames.size();
+        return false;
+    }
     if (islandId != config_.islandId
         || !authority_.accepts(islandId, authorityEpoch, currentTick_ + 1u)) {
         telemetry_.staleEpochCommands += redundantFrames.size();
@@ -164,6 +170,10 @@ bool TwoClientMeteorBoxSandbox::submitInputs(
     const auto accepted = state->receivedInputs.ingest(valid);
     telemetry_.duplicateInputs += valid.size() - accepted.size();
     for (const auto& frame : accepted) {
+        if (!state->receivedCommands.observe(frame.sequence)) {
+            ++telemetry_.duplicateCommands;
+            continue;
+        }
         CanonicalNetworkCommand command;
         command.tick = frame.tick;
         command.sequence = frame.sequence;
@@ -208,11 +218,17 @@ bool TwoClientMeteorBoxSandbox::validateClientCommand(
 
 bool TwoClientMeteorBoxSandbox::submitCommand(
     const CanonicalNetworkCommand& command) {
-    if (!initialized_ || !validateClientCommand(command)) {
+    ClientState* state = initialized_ ? client(command.clientId) : nullptr;
+    if (state == nullptr || !validateClientCommand(command)) {
         ++telemetry_.rejectedCommands;
         if (command.islandId == config_.islandId
             && command.authorityEpoch != config_.authorityEpoch)
             ++telemetry_.staleEpochCommands;
+        return false;
+    }
+    if (!state->receivedCommands.observe(command.sequence)) {
+        ++telemetry_.duplicateCommands;
+        ++telemetry_.rejectedCommands;
         return false;
     }
     pending_.push_back(command);
@@ -223,7 +239,12 @@ bool TwoClientMeteorBoxSandbox::queueCorrection(
     uint32_t bodyId, const LockstepBody& authoritativeBody) {
     if (!initialized_ || bodyId == 0u || bodyId >= world_.bodies().size()
         || authoritativeBody.identity[0] != bodyId
-        || !bodyAlive(authoritativeBody)) return false;
+        || !bodyAlive(authoritativeBody)
+        || !bodyAlive(world_.bodies()[bodyId])
+        || authoritativeBody.identity[1]
+            != world_.bodies()[bodyId].identity[1]) {
+        return false;
+    }
     CanonicalNetworkCommand correction;
     correction.tick = currentTick_ + 1u;
     correction.sequence = nextServerSequence_++;
@@ -278,15 +299,10 @@ void TwoClientMeteorBoxSandbox::recordNetwork(
 bool TwoClientMeteorBoxSandbox::execute(CanonicalNetworkCommand command) {
     command.flags |= NetworkCommandServerIssued;
     command.sequence = nextServerSequence_++;
-    recordNetwork(command);
-    ++telemetry_.acceptedCommands;
 
     if (command.type == NetworkCommandType::FireMeteorRequest) {
         const uint32_t bodyId = allocateBodyId();
-        if (bodyId == 0u) {
-            ++telemetry_.rejectedCommands;
-            return false;
-        }
+        if (bodyId == 0u) return false;
         const auto& owner = world_.bodies()[command.body];
         const uint32_t generation = world_.bodies()[bodyId].identity[1] == 0u
             ? 1u : world_.bodies()[bodyId].identity[1];
@@ -312,12 +328,14 @@ bool TwoClientMeteorBoxSandbox::execute(CanonicalNetworkCommand command) {
             0,
             static_cast<int32_t>(LockstepBodyAlive | LockstepBodyAwake),
         };
-        recordNetwork(spawn);
         const auto replay = toReplayCommand(spawn);
         if (!replay.has_value()
             || !physics::deterministic::applyCanonicalReplayCommand(
                 world_, *replay)) return false;
+        recordNetwork(command);
+        recordNetwork(spawn);
         recordReplay(*replay);
+        ++telemetry_.acceptedCommands;
         ++telemetry_.spawnedMeteors;
         return true;
     }
@@ -333,11 +351,14 @@ bool TwoClientMeteorBoxSandbox::execute(CanonicalNetworkCommand command) {
     }
     const bool applied = physics::deterministic::applyCanonicalReplayCommand(
         world_, *replay);
+    if (!applied) return false;
+    recordNetwork(command);
     recordReplay(*replay);
+    ++telemetry_.acceptedCommands;
     if (command.type == NetworkCommandType::Correction) {
         ++telemetry_.correctionEvents;
     }
-    return applied;
+    return true;
 }
 
 bool TwoClientMeteorBoxSandbox::step() {
@@ -363,7 +384,10 @@ bool TwoClientMeteorBoxSandbox::step() {
             ++telemetry_.rejectedCommands;
             continue;
         }
-        success = execute(command) && success;
+        if (!execute(command)) {
+            ++telemetry_.rejectedCommands;
+            success = false;
+        }
     }
     pending_ = std::move(future);
     const auto stepTelemetry = world_.step(static_cast<uint32_t>(tick));

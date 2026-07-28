@@ -11,11 +11,13 @@
 #include "voxel/svo_types.hpp"
 
 // Only include buffer utilities when full voxy_core is available (has GPU deps)
-#ifdef VOXY_HAS_BUFFERS
+#if !defined(VOXY_SVO_STANDALONE)
+#include "gpu/context.hpp"
 #include "voxel/svo_buffers.hpp"
 #endif
 
 #include <algorithm>
+#include <limits>
 #include <vector>
 #include <random>
 
@@ -49,6 +51,14 @@ TEST(MortonTest, ExpandCompactRoundtrip) {
         uint32_t compacted = compactBits(expanded);
         EXPECT_EQ(compacted, i) << "Failed for i = " << i;
     }
+}
+
+TEST(MortonTest, EncodingMasksCoordinatesToAdvertisedWidth) {
+    EXPECT_EQ(expandBits(1u << 10u), 0u);
+    EXPECT_EQ(morton3D(1u << 10u, 0u, 0u), 0u);
+    EXPECT_EQ(
+        morton3D(UINT32_MAX, UINT32_MAX, UINT32_MAX),
+        morton3D(1023u, 1023u, 1023u));
 }
 
 TEST(MortonTest, Morton3DOrigin) {
@@ -142,6 +152,13 @@ TEST(MortonTest, GlobalToBrickAndLocal) {
     EXPECT_EQ(reconstructed, global);
 }
 
+TEST(MortonTest, BrickLocalToGlobalMasksInvalidLocalBits) {
+    EXPECT_EQ(
+        brickLocalToGlobal(glm::uvec3(2u, 3u, 4u),
+                           glm::uvec3(7u, 8u, UINT32_MAX)),
+        glm::uvec3(11u, 12u, 19u));
+}
+
 TEST(MortonTest, VoxelMortonInBrick) {
     // voxelMortonInBrick should give same result as brickMorton with local coords
     uint32_t gx = 17, gy = 23, gz = 45;
@@ -195,10 +212,17 @@ TEST(SVOInteriorNodeTest, SetChildExists) {
     SVOInteriorNode node;
     node.setChildExists(3, true);
     node.setChildExists(7, true);
+    node.setChildIsLeaf(3, true);
     EXPECT_EQ(node.childMask, 0b10001000);
+    EXPECT_TRUE(node.isChildLeaf(3));
     
     node.setChildExists(3, false);
     EXPECT_EQ(node.childMask, 0b10000000);
+    EXPECT_FALSE(node.isChildLeaf(3));
+    EXPECT_EQ(node.leafMask & (1u << 3u), 0u);
+
+    node.setChildIsLeaf(3, true);
+    EXPECT_FALSE(node.isChildLeaf(3));
 }
 
 TEST(SVOInteriorNodeTest, ChildCount) {
@@ -237,6 +261,22 @@ TEST(SVOInteriorNodeTest, GetChildIndex) {
     EXPECT_EQ(node.getChildIndex(5), 102u);
     // Child at position 7 is fourth → offset 103
     EXPECT_EQ(node.getChildIndex(7), 103u);
+}
+
+TEST(SVOInteriorNodeTest, InvalidChildIndicesAreSafe) {
+    SVOInteriorNode node(0xFF, 0xFF, 0, 10);
+    node.setChildExists(8, false);
+    node.setChildIsLeaf(255, false);
+
+    EXPECT_EQ(node.childMask, 0xFF);
+    EXPECT_EQ(node.leafMask, 0xFF);
+    EXPECT_FALSE(node.hasChild(8));
+    EXPECT_FALSE(node.isChildLeaf(255));
+    EXPECT_EQ(node.childrenBefore(8), 8u);
+
+    node.childOffset = std::numeric_limits<uint32_t>::max() - 3u;
+    EXPECT_EQ(
+        node.getChildIndex(8), std::numeric_limits<uint32_t>::max());
 }
 
 TEST(SVOInteriorNodeTest, PackUnpackMasks) {
@@ -298,6 +338,16 @@ TEST(SVOLeafBrickTest, SetOccupied) {
     EXPECT_FALSE(brick.isOccupied(0));
 }
 
+TEST(SVOLeafBrickTest, InvalidVoxelIndicesAreSafe) {
+    SVOLeafBrick brick(1, 0);
+    brick.setOccupied(64, true);
+    brick.setOccupied(std::numeric_limits<uint32_t>::max(), false);
+
+    EXPECT_EQ(brick.occupancy, 1u);
+    EXPECT_FALSE(brick.isOccupied(64));
+    EXPECT_FALSE(brick.isOccupied(std::numeric_limits<uint32_t>::max()));
+}
+
 TEST(SVOLeafBrickTest, IsEmptyAndIsFull) {
     SVOLeafBrick brick;
     EXPECT_TRUE(brick.isEmpty());
@@ -356,7 +406,9 @@ TEST(SVOUniformsTest, DefaultConstruction) {
     EXPECT_EQ(uniforms.rootNodeIndex, 0u);
     EXPECT_EQ(uniforms.maxDepth, 12u);
     EXPECT_EQ(uniforms.worldScale, 4096.0f);
+    EXPECT_EQ(uniforms.brickScale, 4.0f);
     EXPECT_EQ(uniforms.lodBias, 1.5f);
+    EXPECT_TRUE(uniforms.valid());
 }
 
 TEST(SVOUniformsTest, FullConstruction) {
@@ -371,6 +423,29 @@ TEST(SVOUniformsTest, FullConstruction) {
     // Check brickScale calculation: worldScale / 2^maxDepth * BRICK_SIZE
     float expectedBrickScale = 1024.0f / static_cast<float>(1u << 10) * 4.0f;
     EXPECT_FLOAT_EQ(uniforms.brickScale, expectedBrickScale);
+}
+
+TEST(SVOUniformsTest, LargeDepthDoesNotShiftPastIntegerWidth) {
+    const SVOUniforms uniforms(
+        0, std::numeric_limits<uint32_t>::max(), 1024.0f, glm::vec3(0.0f));
+    EXPECT_EQ(uniforms.brickScale, 0.0f);
+    EXPECT_FALSE(uniforms.valid());
+}
+
+TEST(SVOUniformsTest, RejectsPoisonedOrInconsistentValues) {
+    EXPECT_TRUE(SVOUniforms{}.valid());
+
+    SVOUniforms uniforms;
+    uniforms.worldScale = std::numeric_limits<float>::quiet_NaN();
+    EXPECT_FALSE(uniforms.valid());
+
+    uniforms = SVOUniforms{};
+    uniforms.brickScale *= 2.0f;
+    EXPECT_FALSE(uniforms.valid());
+
+    uniforms = SVOUniforms{};
+    uniforms.lodBias = 3.0f;
+    EXPECT_FALSE(uniforms.valid());
 }
 
 TEST(SVOUniformsTest, SizeIs48Bytes) {
@@ -417,11 +492,16 @@ TEST(ChildIndexTest, ChildCoordRoundtrip) {
     }
 }
 
+TEST(ChildIndexTest, MasksCoordinatesToOneBit) {
+    EXPECT_EQ(childIndex(2u, 4u, 8u), 0u);
+    EXPECT_EQ(childIndex(3u, 5u, 9u), 7u);
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // SVOBufferData Tests (requires svo_buffers.hpp - GPU deps)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-#ifdef VOXY_HAS_BUFFERS
+#if !defined(VOXY_SVO_STANDALONE)
 
 TEST(SVOBufferDataTest, DefaultConstruction) {
     SVOBufferData data;
@@ -475,8 +555,53 @@ TEST(SVOBufferDataTest, AddBrickWithContour) {
     
     EXPECT_TRUE(data.hasContours());
     EXPECT_EQ(data.contourNormals.size(), 1u);
-    EXPECT_EQ(data.contourNormals[0].xyz(), contour.normal);
+    EXPECT_EQ(glm::vec3(data.contourNormals[0]), contour.normal);
     EXPECT_EQ(data.contourNormals[0].w, contour.intersectOffset);
+    EXPECT_TRUE(hasFlag(data.getBrick(0).flags, BrickFlags::HasContour));
+}
+
+TEST(SVOBufferDataTest, LateContourKeepsBrickIndicesAligned) {
+    SVOBufferData data;
+    const ContourData contour(glm::vec3(1.0f, 0.0f, 0.0f), 0.25f);
+
+    data.addBrick(SVOLeafBrick(1, 1, BrickFlags::HasContour));
+    data.addBrick(SVOLeafBrick(2, 2), &contour);
+    data.addBrick(SVOLeafBrick(4, 3, BrickFlags::HasContour));
+
+    ASSERT_TRUE(data.valid());
+    ASSERT_EQ(data.contourNormals.size(), 3u);
+    EXPECT_EQ(data.contourNormals[0], glm::vec4(0.0f));
+    EXPECT_EQ(data.contourNormals[1], glm::vec4(contour.normal, 0.25f));
+    EXPECT_EQ(data.contourNormals[2], glm::vec4(0.0f));
+    EXPECT_FALSE(hasFlag(data.getBrick(0).flags, BrickFlags::HasContour));
+    EXPECT_TRUE(hasFlag(data.getBrick(1).flags, BrickFlags::HasContour));
+    EXPECT_FALSE(hasFlag(data.getBrick(2).flags, BrickFlags::HasContour));
+}
+
+TEST(SVOBufferDataTest, RejectsMismatchedSoALanesAndBoundsAccess) {
+    SVOBufferData data;
+    data.addNode(SVOInteriorNode(1, 0, 0, 0));
+    data.addBrick(SVOLeafBrick(1, 1));
+    EXPECT_TRUE(data.valid());
+
+    EXPECT_EQ(data.getNode(999).childMask, 0u);
+    EXPECT_EQ(data.getBrick(999).occupancy, 0u);
+
+    data.brickMeta.clear();
+    EXPECT_FALSE(data.valid());
+}
+
+TEST(SVOBufferDataTest, RejectsImpossibleLeafAndContourMetadata) {
+    SVOBufferData data;
+    data.addNode(SVOInteriorNode(0u, 1u, 0xffffu, 0u));
+    EXPECT_FALSE(data.valid());
+
+    data.clear();
+    data.addBrick(SVOLeafBrick(
+        1u, 1u, BrickFlags::HasContour));
+    data.brickMeta[0] |=
+        static_cast<uint32_t>(BrickFlags::HasContour) << 16u;
+    EXPECT_FALSE(data.valid());
 }
 
 TEST(SVOBufferDataTest, Clear) {
@@ -527,7 +652,49 @@ TEST(AlignmentTest, StorageBufferAlignment) {
     EXPECT_EQ(alignToStorageBuffer(100), 112u);
 }
 
-#endif // VOXY_HAS_BUFFERS
+TEST(SVOGPUBuffersTest, FailedRecreatePreservesLiveBuffers) {
+    gpu::Context context;
+    if (!context.initHeadless()) GTEST_SKIP() << "No WebGPU adapter";
+
+    SVOBufferData data;
+    data.addNode(SVOInteriorNode(1, 1, 0xFFFF, 0));
+    data.addBrick(SVOLeafBrick(1, 7));
+
+    SVOGPUBuffers buffers;
+    ASSERT_TRUE(buffers.create(
+        context.getDevice(), context.getQueue(), data, SVOUniforms{}));
+    const WGPUBuffer uniform = buffers.getUniformBuffer();
+
+    data.nodeCount = 2;
+    EXPECT_FALSE(buffers.create(
+        context.getDevice(), context.getQueue(), data, SVOUniforms{}));
+    EXPECT_EQ(buffers.getUniformBuffer(), uniform);
+    EXPECT_EQ(buffers.getNodeCount(), 1u);
+    EXPECT_EQ(buffers.getBrickCount(), 1u);
+
+    EXPECT_TRUE(buffers.updateUniforms(context.getQueue(), SVOUniforms{}));
+    SVOUniforms invalidUniforms;
+    invalidUniforms.rootNodeIndex = 1u;
+    EXPECT_FALSE(
+        buffers.updateUniforms(context.getQueue(), invalidUniforms));
+    const std::array bricks{SVOLeafBrick(2, 8)};
+    EXPECT_TRUE(buffers.updateBricks(context.getQueue(), 0, bricks));
+    const std::array contourBricks{
+        SVOLeafBrick(2, 8, BrickFlags::HasContour)};
+    EXPECT_FALSE(
+        buffers.updateBricks(context.getQueue(), 0, contourBricks));
+    EXPECT_FALSE(buffers.updateBricks(context.getQueue(), 1, bricks));
+    EXPECT_FALSE(buffers.updateBricks(nullptr, 0, bricks));
+}
+
+TEST(AlignmentTest, OverflowIsRejected) {
+    EXPECT_EQ(
+        alignToUniformBuffer(std::numeric_limits<size_t>::max()), 0u);
+    EXPECT_EQ(
+        alignToStorageBuffer(std::numeric_limits<size_t>::max()), 0u);
+}
+
+#endif // !VOXY_SVO_STANDALONE
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // 64-bit Morton Tests (for larger worlds)
@@ -542,6 +709,14 @@ TEST(Morton64Test, ExpandCompact64Roundtrip) {
         uint64_t compacted = compactBits64(expanded);
         EXPECT_EQ(compacted, val) << "Failed for value = " << val;
     }
+}
+
+TEST(Morton64Test, EncodingMasksCoordinatesToAdvertisedWidth) {
+    constexpr uint64_t coordinateMask = (uint64_t{1} << 21u) - 1u;
+    EXPECT_EQ(expandBits64(uint64_t{1} << 21u), 0u);
+    EXPECT_EQ(
+        morton3D64(UINT64_MAX, UINT64_MAX, UINT64_MAX),
+        morton3D64(coordinateMask, coordinateMask, coordinateMask));
 }
 
 TEST(Morton64Test, Morton3D64Roundtrip) {

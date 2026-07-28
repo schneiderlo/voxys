@@ -151,6 +151,12 @@ TEST(GpuEventReadback, PacksPriorityAndStableKeysThroughAsyncRing) {
     config.eventCapacity = 8;
     ASSERT_TRUE(ring.initialize(
         context.getDevice(), context.getQueue(), config));
+    const WGPUBuffer workingEvents = ring.packedEventBuffer();
+    auto invalidConfig = config;
+    invalidConfig.eventCapacity = 0u;
+    EXPECT_FALSE(ring.initialize(
+        context.getDevice(), context.getQueue(), invalidConfig));
+    EXPECT_EQ(ring.packedEventBuffer(), workingEvents);
     ring.setSources(sources);
     constexpr uint64_t tick = (uint64_t{3} << 32u) | 41u;
     const auto batch = encodeAndPoll(context, ring, tick);

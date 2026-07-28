@@ -2,6 +2,8 @@
 
 #include "perf/benchmark.hpp"
 
+#include <limits>
+
 namespace voxy::perf {
 
 TEST(BenchmarkRunnerTest, ReportsObservedLatencyPercentilesAfterWarmup) {
@@ -152,6 +154,83 @@ TEST(BenchmarkRunnerTest, AggregateThroughputIsNotMeanScenarioFps) {
 
     runner.setMinimumThroughputFps(200.0);
     EXPECT_TRUE(runner.passed());
+    EXPECT_DOUBLE_EQ(runner.getResults()[0].minFrameMs, 1.0);
+    EXPECT_DOUBLE_EQ(runner.getResults()[0].maxFrameMs, 1.0);
+}
+
+TEST(BenchmarkRunnerTest, RejectsInvalidScenariosBeforeStarting) {
+    BenchmarkRunner runner;
+    runner.start({BenchmarkScenario{
+        .name = "Zero frames",
+        .cameraPos = {},
+        .cameraTarget = {},
+        .frameCount = 0,
+    }});
+    EXPECT_FALSE(runner.isRunning());
+    EXPECT_TRUE(runner.getResults().empty());
+
+    runner.start({BenchmarkScenario{
+        .name = "Non-finite camera",
+        .cameraPos = {
+            std::numeric_limits<float>::quiet_NaN(), 0.0f, 0.0f},
+        .cameraTarget = {},
+        .frameCount = 1,
+    }});
+    EXPECT_FALSE(runner.isRunning());
+
+    runner.start({
+        BenchmarkScenario{
+            .name = "Too many total frames A",
+            .cameraPos = {},
+            .cameraTarget = {},
+            .frameCount = 600'000u,
+        },
+        BenchmarkScenario{
+            .name = "Too many total frames B",
+            .cameraPos = {},
+            .cameraTarget = {},
+            .frameCount = 600'000u,
+        },
+    });
+    EXPECT_FALSE(runner.isRunning());
+
+    std::vector<BenchmarkScenario> tooMany(1'025u);
+    for (auto& scenario : tooMany) {
+        scenario.name = "bounded";
+        scenario.frameCount = 1u;
+    }
+    runner.start(tooMany);
+    EXPECT_FALSE(runner.isRunning());
+}
+
+TEST(BenchmarkRunnerTest, InvalidFrameTelemetryCannotProduceAPassingRun) {
+    BenchmarkRunner runner;
+    runner.start({BenchmarkScenario{
+        .name = "Invalid telemetry",
+        .cameraPos = {},
+        .cameraTarget = {},
+        .frameCount = 1,
+    }});
+
+    FrameStats stats;
+    stats.totalMs = std::numeric_limits<double>::quiet_NaN();
+    EXPECT_FALSE(runner.onFrame(stats));
+    EXPECT_FALSE(runner.isRunning());
+    EXPECT_TRUE(runner.getResults().empty());
+    EXPECT_FALSE(runner.passed());
+
+    runner.start({BenchmarkScenario{
+        .name = "Finite overflow telemetry",
+        .cameraPos = {},
+        .cameraTarget = {},
+        .frameCount = 2,
+    }});
+    stats = {};
+    stats.totalMs = std::numeric_limits<double>::max();
+    EXPECT_FALSE(runner.onFrame(stats));
+    EXPECT_FALSE(runner.isRunning());
+    EXPECT_TRUE(runner.getResults().empty());
+    EXPECT_FALSE(runner.passed());
 }
 
 } // namespace voxy::perf

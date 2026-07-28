@@ -6,9 +6,19 @@
 #include "engine/platform/window.hpp"
 #include "core/log.hpp"
 
+#include <algorithm>
+#include <cmath>
 #include <cstring>
 
 namespace voxy {
+
+namespace {
+
+constexpr size_t kMaximumQueuedInputEvents = 4'096u;
+constexpr float kMaximumMouseCoordinate = 1.0e9f;
+constexpr double kMaximumAccumulatedScroll = 10'000.0;
+
+} // namespace
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Constructor
@@ -18,10 +28,14 @@ Input::Input() {
     currentKeys_.fill(false);
     previousKeys_.fill(false);
     keysPressedThisFrame_.fill(false);
+    keysReleasedThisFrame_.fill(false);
     currentButtons_.fill(false);
     previousButtons_.fill(false);
     buttonsPressedThisFrame_.fill(false);
+    buttonsReleasedThisFrame_.fill(false);
 }
+
+Input::~Input() = default;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Frame Update
@@ -34,7 +48,9 @@ void Input::beginFrame() {
 
     // Clear per-frame press accumulators
     keysPressedThisFrame_.fill(false);
+    keysReleasedThisFrame_.fill(false);
     buttonsPressedThisFrame_.fill(false);
+    buttonsReleasedThisFrame_.fill(false);
 
     // Process buffered events
     processEvents();
@@ -58,6 +74,9 @@ void Input::processEvents() {
                 }
                 currentKeys_[static_cast<size_t>(event.key)] = true;
             } else {
+                if (currentKeys_[static_cast<size_t>(event.key)]) {
+                    keysReleasedThisFrame_[static_cast<size_t>(event.key)] = true;
+                }
                 currentKeys_[static_cast<size_t>(event.key)] = false;
             }
         }
@@ -68,10 +87,17 @@ void Input::processEvents() {
     for (const auto& event : mouseButtonQueue_) {
         if (isValidButton(event.button)) {
             if (event.down) {
-                currentButtons_[static_cast<size_t>(event.button)] = true;
-                buttonsPressedThisFrame_[static_cast<size_t>(event.button)] = true;
+                const size_t button = static_cast<size_t>(event.button);
+                if (!currentButtons_[button]) {
+                    buttonsPressedThisFrame_[button] = true;
+                }
+                currentButtons_[button] = true;
             } else {
-                currentButtons_[static_cast<size_t>(event.button)] = false;
+                const size_t button = static_cast<size_t>(event.button);
+                if (currentButtons_[button]) {
+                    buttonsReleasedThisFrame_[button] = true;
+                }
+                currentButtons_[button] = false;
             }
         }
     }
@@ -100,6 +126,25 @@ void Input::endFrame() {
     // Nothing to do here
 }
 
+void Input::resetState() {
+    releaseMouse();
+    currentKeys_.fill(false);
+    previousKeys_.fill(false);
+    keysPressedThisFrame_.fill(false);
+    keysReleasedThisFrame_.fill(false);
+    currentButtons_.fill(false);
+    previousButtons_.fill(false);
+    buttonsPressedThisFrame_.fill(false);
+    buttonsReleasedThisFrame_.fill(false);
+    keyQueue_.clear();
+    mouseButtonQueue_.clear();
+    mouseDelta_ = glm::vec2(0.0f);
+    prevMousePos_ = mousePos_;
+    firstMouseMove_ = true;
+    scrollDelta_ = 0.0f;
+    accumulatedScroll_ = 0.0f;
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Keyboard State
 // ─────────────────────────────────────────────────────────────────────────────
@@ -121,7 +166,9 @@ bool Input::wasKeyPressed(Key key) const {
 bool Input::wasKeyReleased(Key key) const {
     int code = static_cast<int>(key);
     if (!isValidKey(code)) return false;
-    return !currentKeys_[static_cast<size_t>(code)] && previousKeys_[static_cast<size_t>(code)];
+    const size_t index = static_cast<size_t>(code);
+    return (!currentKeys_[index] && previousKeys_[index])
+        || keysReleasedThisFrame_[index];
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -146,7 +193,9 @@ bool Input::wasMouseButtonPressed(MouseButton button) const {
 bool Input::wasMouseButtonReleased(MouseButton button) const {
     int code = static_cast<int>(button);
     if (!isValidButton(code)) return false;
-    return !currentButtons_[static_cast<size_t>(code)] && previousButtons_[static_cast<size_t>(code)];
+    const size_t index = static_cast<size_t>(code);
+    return (!currentButtons_[index] && previousButtons_[index])
+        || buttonsReleasedThisFrame_[index];
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -192,17 +241,40 @@ void Input::toggleMouseCapture() {
 
 void Input::onKeyDown(int keyCode) {
     if (isValidKey(keyCode)) {
+        if (keyQueue_.size() >= kMaximumQueuedInputEvents) {
+            keyQueue_.clear();
+            for (size_t key = 0; key < currentKeys_.size(); ++key) {
+                if (currentKeys_[key]) {
+                    keyQueue_.push_back(
+                        {static_cast<int>(key), false});
+                }
+            }
+        }
         keyQueue_.push_back({keyCode, true});
     }
 }
 
 void Input::onKeyUp(int keyCode) {
     if (isValidKey(keyCode)) {
+        if (keyQueue_.size() >= kMaximumQueuedInputEvents) {
+            keyQueue_.clear();
+            for (size_t key = 0; key < currentKeys_.size(); ++key) {
+                if (currentKeys_[key]) {
+                    keyQueue_.push_back(
+                        {static_cast<int>(key), false});
+                }
+            }
+        }
         keyQueue_.push_back({keyCode, false});
     }
 }
 
 void Input::onMouseMove(float x, float y) {
+    if (!std::isfinite(x) || !std::isfinite(y)
+        || std::abs(x) > kMaximumMouseCoordinate
+        || std::abs(y) > kMaximumMouseCoordinate) {
+        return;
+    }
     if (firstMouseMove_) {
         prevMousePos_ = glm::vec2(x, y);
         firstMouseMove_ = false;
@@ -212,18 +284,40 @@ void Input::onMouseMove(float x, float y) {
 
 void Input::onMouseDown(int button) {
     if (isValidButton(button)) {
+        if (mouseButtonQueue_.size() >= kMaximumQueuedInputEvents) {
+            mouseButtonQueue_.clear();
+            for (size_t index = 0; index < currentButtons_.size(); ++index) {
+                if (currentButtons_[index]) {
+                    mouseButtonQueue_.push_back(
+                        {static_cast<int>(index), false});
+                }
+            }
+        }
         mouseButtonQueue_.push_back({button, true});
     }
 }
 
 void Input::onMouseUp(int button) {
     if (isValidButton(button)) {
+        if (mouseButtonQueue_.size() >= kMaximumQueuedInputEvents) {
+            mouseButtonQueue_.clear();
+            for (size_t index = 0; index < currentButtons_.size(); ++index) {
+                if (currentButtons_[index]) {
+                    mouseButtonQueue_.push_back(
+                        {static_cast<int>(index), false});
+                }
+            }
+        }
         mouseButtonQueue_.push_back({button, false});
     }
 }
 
 void Input::onScroll(float delta) {
-    accumulatedScroll_ += delta;
+    if (!std::isfinite(delta)) return;
+    accumulatedScroll_ = static_cast<float>(std::clamp(
+        static_cast<double>(accumulatedScroll_)
+            + static_cast<double>(delta),
+        -kMaximumAccumulatedScroll, kMaximumAccumulatedScroll));
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

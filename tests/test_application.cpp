@@ -18,6 +18,7 @@
 #include <glm/glm.hpp>
 
 #include "app/application.hpp"
+#include "app/debug_overlay.hpp"
 
 namespace voxy {
 
@@ -31,6 +32,25 @@ TEST(RenderPathTest, ToStringTriangle) {
 
 TEST(RenderPathTest, ToStringRaycast) {
     EXPECT_STREQ(renderPathToString(RenderPath::Raycast), "raycast");
+}
+
+TEST(RenderPathTest, ApplicationRejectsInvalidRuntimePath) {
+    Application app;
+    EXPECT_EQ(app.getRenderPath(), RenderPath::Raycast);
+    app.setRenderPath(static_cast<RenderPath>(99));
+    EXPECT_EQ(app.getRenderPath(), RenderPath::Raycast);
+}
+
+TEST(DebugOverlayTest, RejectsInvalidLogIntervals) {
+    DebugOverlay overlay;
+    EXPECT_EQ(DebugOverlayStats{}.renderPath, RenderPath::Triangle);
+    EXPECT_FLOAT_EQ(overlay.getLogInterval(), 0.5f);
+    EXPECT_FALSE(overlay.setLogInterval(
+        std::numeric_limits<float>::quiet_NaN()));
+    EXPECT_FALSE(overlay.setLogInterval(-1.0f));
+    EXPECT_FLOAT_EQ(overlay.getLogInterval(), 0.5f);
+    EXPECT_TRUE(overlay.setLogInterval(1.25f));
+    EXPECT_FLOAT_EQ(overlay.getLogInterval(), 1.25f);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -156,6 +176,129 @@ TEST(ApplicationTest, ShutdownBeforeInit) {
     // Should be safe to call even if never initialized
     app.shutdown();
     EXPECT_FALSE(app.isInitialized());
+}
+
+TEST(ApplicationTest, RejectsInvalidDimensionsBeforeCreatingResources) {
+    for (const auto [width, height] : {
+             std::pair{0, 720},
+             std::pair{1280, 0},
+             std::pair{-1, 720},
+             std::pair{1280, -1}}) {
+        Application app;
+        ApplicationConfig config;
+        config.windowWidth = width;
+        config.windowHeight = height;
+
+        EXPECT_FALSE(app.init(config));
+        EXPECT_FALSE(app.isInitialized());
+        EXPECT_EQ(app.getWindow(), nullptr);
+        EXPECT_EQ(app.getGPUContext(), nullptr);
+    }
+
+    Application app;
+    ApplicationConfig config;
+    config.heightmapWidth = 0u;
+    EXPECT_FALSE(app.init(config));
+    EXPECT_EQ(app.getHeightmap(), nullptr);
+
+    config = {};
+    config.heightmapWidth = 8'193u;
+    EXPECT_FALSE(app.init(config));
+    EXPECT_EQ(app.getHeightmap(), nullptr);
+
+    config = {};
+    config.windowWidth = 8'193;
+    EXPECT_FALSE(app.init(config));
+    EXPECT_EQ(app.getWindow(), nullptr);
+
+    for (const float scale : {
+             0.0f,
+             0.24f,
+             2.01f,
+             std::numeric_limits<float>::infinity(),
+             std::numeric_limits<float>::quiet_NaN()}) {
+        Application scaledApp;
+        ApplicationConfig scaledConfig;
+        scaledConfig.resolutionScale = scale;
+        EXPECT_FALSE(scaledApp.init(scaledConfig));
+        EXPECT_EQ(scaledApp.getGPUContext(), nullptr);
+    }
+}
+
+TEST(ApplicationTest, RejectsNonFiniteAndUnsafeConfigurationBeforeGpu) {
+    const auto rejected = [](const ApplicationConfig& config) {
+        Application app;
+        EXPECT_FALSE(app.init(config));
+        EXPECT_EQ(app.getWindow(), nullptr);
+        EXPECT_EQ(app.getGPUContext(), nullptr);
+    };
+
+    ApplicationConfig config;
+    config.heightScale = 0.0f;
+    rejected(config);
+
+    config = {};
+    config.cellScale = std::numeric_limits<float>::quiet_NaN();
+    rejected(config);
+
+    config = {};
+    config.waterShoreFade = 0.0f;
+    rejected(config);
+
+    config = {};
+    config.waterSpectrum.patchLengths.x = 0.0f;
+    rejected(config);
+
+    config = {};
+    config.cameraStartPos.x = std::numeric_limits<float>::infinity();
+    rejected(config);
+
+    config = {};
+    config.cameraNear = config.cameraFar;
+    rejected(config);
+
+    config = {};
+    config.gpuPhysicsBroadPhaseCellSize = 3.0f;
+    rejected(config);
+
+    config = {};
+    config.gpuPhysicsMaximumCatchUpTicks = 0u;
+    rejected(config);
+
+    config = {};
+    config.fpsLogIntervalSeconds =
+        std::numeric_limits<float>::quiet_NaN();
+    rejected(config);
+
+    config = {};
+    config.screenshotFrameDelay = -1;
+    rejected(config);
+
+    config = {};
+    config.screenshotTourIndices.resize(257u);
+    rejected(config);
+
+    config = {};
+    config.cameraMoveSpeed = 1'001.0f;
+    rejected(config);
+
+    config = {};
+    config.cameraMouseSensitivity = 0.021f;
+    rejected(config);
+
+    config = {};
+    config.benchmarkBodyCount = kMaximumBenchmarkBodyCount + 1u;
+    rejected(config);
+
+    config = {};
+    config.gpuPhysicsMaxBodies = 32u;
+    config.benchmarkBodyCount = 33u;
+    rejected(config);
+
+    config = {};
+    config.physicsBackend = physics::BackendType::JoltLegacy;
+    config.benchmarkBodyCount = 16'385u;
+    rejected(config);
 }
 
 TEST(ApplicationTest, StatsAccessBeforeInit) {

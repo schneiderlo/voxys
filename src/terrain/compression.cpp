@@ -12,7 +12,9 @@
 #include <fstream>
 #include <iomanip>
 #include <limits>
+#include <new>
 #include <sstream>
+#include <stdexcept>
 
 // zstd for compression
 #include <zstd.h>
@@ -233,6 +235,47 @@ private:
     bool finished_ = false;
 };
 
+[[nodiscard]] CompressionError validateHeaderAndSize(
+    const LDHHeader& header, size_t inputSize) {
+    if (header.magic != LDH_MAGIC) {
+        LOG_ERROR("Invalid LDH magic: expected 0x{:08X}, got 0x{:08X}",
+                  LDH_MAGIC, header.magic);
+        return CompressionError::InvalidHeader;
+    }
+    if (header.version != LDH_VERSION) {
+        LOG_ERROR("Unsupported LDH version: {}", header.version);
+        return CompressionError::UnsupportedVersion;
+    }
+    if (!header.isValid()) {
+        LOG_ERROR("Invalid LDH header");
+        return CompressionError::InvalidHeader;
+    }
+
+    constexpr uint32_t supportedFlags =
+        static_cast<uint32_t>(LDHFlags::SplitBytes)
+        | static_cast<uint32_t>(LDHFlags::HasChecksum);
+    const size_t maximumCanonicalStreamSize =
+        ZSTD_compressBound(header.sampleCount());
+    if (!hasFlag(header.getFlags(), LDHFlags::SplitBytes)
+        || (header.flags & ~supportedFlags) != 0u
+        || header.lowStreamSize == 0u || header.highStreamSize == 0u
+        || header.lowStreamSize > maximumCanonicalStreamSize
+        || header.highStreamSize > maximumCanonicalStreamSize
+        || std::any_of(std::begin(header.reserved), std::end(header.reserved),
+                       [](uint32_t value) { return value != 0u; })) {
+        LOG_ERROR("Unsupported or malformed LDH v1 payload descriptor");
+        return CompressionError::InvalidHeader;
+    }
+
+    const size_t expectedSize = header.expectedFileSize();
+    if (expectedSize == 0u || inputSize != expectedSize) {
+        LOG_ERROR("LDH size mismatch: expected {} bytes, got {}",
+                  expectedSize, inputSize);
+        return CompressionError::SizeMismatch;
+    }
+    return CompressionError::None;
+}
+
 } // anonymous namespace
 
 uint32_t calculateCRC32(std::span<const uint8_t> data) {
@@ -357,6 +400,9 @@ CompressionResult<CompressResult> compress(
     uint32_t width,
     uint32_t height,
     const CompressionOptions& options) {
+#if defined(__cpp_exceptions)
+    try {
+#endif
     
     using Clock = std::chrono::high_resolution_clock;
     const auto startTime = Clock::now();
@@ -367,7 +413,8 @@ CompressionResult<CompressResult> compress(
         return CompressionError::InvalidInput;
     }
     
-    if (width == 0 || height == 0) {
+    if (width == 0 || height == 0
+        || width > LDH_MAX_DIMENSION || height > LDH_MAX_DIMENSION) {
         LOG_ERROR("Compression failed: invalid dimensions {}x{}", width, height);
         return CompressionError::InvalidDimensions;
     }
@@ -377,6 +424,12 @@ CompressionResult<CompressResult> compress(
         LOG_ERROR("Compression failed: size mismatch (expected {}, got {})", 
                   sampleCount, input.size());
         return CompressionError::InvalidDimensions;
+    }
+    if (options.zstdLevel < ZSTD_minCLevel()
+        || options.zstdLevel > ZSTD_maxCLevel()) {
+        LOG_ERROR("Compression failed: invalid zstd level {}",
+                  options.zstdLevel);
+        return CompressionError::InvalidInput;
     }
     
     CompressionStats stats;
@@ -423,6 +476,11 @@ CompressionResult<CompressResult> compress(
         LOG_ERROR("zstd compression failed for high stream: {}", 
                   ZSTD_getErrorName(highCompressedSize));
         return CompressionError::ZstdCompressFailed;
+    }
+    if (lowCompressedSize > std::numeric_limits<uint32_t>::max()
+        || highCompressedSize > std::numeric_limits<uint32_t>::max()) {
+        LOG_ERROR("Compressed LDH streams exceed the v1 size fields");
+        return CompressionError::InvalidInput;
     }
     
     const auto zstdEnd = Clock::now();
@@ -480,6 +538,15 @@ CompressionResult<CompressResult> compress(
         .data = std::move(output),
         .stats = stats
     };
+#if defined(__cpp_exceptions)
+    } catch (const std::bad_alloc&) {
+        LOG_ERROR("Compression failed: out of memory");
+        return CompressionError::OutOfMemory;
+    } catch (const std::length_error&) {
+        LOG_ERROR("Compression failed: allocation size is not representable");
+        return CompressionError::OutOfMemory;
+    }
+#endif
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -487,6 +554,9 @@ CompressionResult<CompressResult> compress(
 // ═══════════════════════════════════════════════════════════════════════════════
 
 CompressionResult<DecompressResult> decompress(std::span<const uint8_t> input) {
+#if defined(__cpp_exceptions)
+    try {
+#endif
     using Clock = std::chrono::high_resolution_clock;
     const auto startTime = Clock::now();
     
@@ -565,6 +635,15 @@ CompressionResult<DecompressResult> decompress(std::span<const uint8_t> input) {
         .height = header.height,
         .stats = stats
     };
+#if defined(__cpp_exceptions)
+    } catch (const std::bad_alloc&) {
+        LOG_ERROR("Decompression failed: out of memory");
+        return CompressionError::OutOfMemory;
+    } catch (const std::length_error&) {
+        LOG_ERROR("Decompression failed: allocation size is not representable");
+        return CompressionError::OutOfMemory;
+    }
+#endif
 }
 
 CompressionResult<DecompressResult> decompress(
@@ -600,30 +679,10 @@ CompressionResult<LDHHeader> readHeader(std::span<const uint8_t> input) {
     
     LDHHeader header;
     std::memcpy(&header, input.data(), LDH_HEADER_SIZE);
-    
-    if (header.magic != LDH_MAGIC) {
-        LOG_ERROR("Invalid LDH magic: expected 0x{:08X}, got 0x{:08X}", 
-                  LDH_MAGIC, header.magic);
-        return CompressionError::InvalidHeader;
-    }
-    
-    if (header.version != LDH_VERSION) {
-        LOG_ERROR("Unsupported LDH version: {}", header.version);
-        return CompressionError::UnsupportedVersion;
-    }
-    
-    if (!header.isValid()) {
-        LOG_ERROR("Invalid LDH header");
-        return CompressionError::InvalidHeader;
-    }
-    
-    // Verify file size is sufficient
-    const size_t expectedMinSize = header.expectedFileSize();
-    if (input.size() < expectedMinSize) {
-        LOG_ERROR("File too small: expected at least {} bytes, got {}", 
-                  expectedMinSize, input.size());
-        return CompressionError::SizeMismatch;
-    }
+
+    const CompressionError validation =
+        validateHeaderAndSize(header, input.size());
+    if (validation != CompressionError::None) return validation;
     
     return header;
 }
@@ -678,36 +737,41 @@ namespace {
 /// Helper to read entire file into memory
 [[nodiscard]] CompressionResult<std::vector<uint8_t>> readFileToMemory(
     const std::filesystem::path& path) {
-    
-    if (!std::filesystem::exists(path)) {
-        LOG_ERROR("LDH file not found: {}", path.string());
-        return CompressionError::FileNotFound;
-    }
-    
-    std::ifstream file(path, std::ios::binary | std::ios::ate);
+
+    // Validate the fixed-size header and exact on-disk length before allocating
+    // storage proportional to a file controlled by the caller.
+    auto headerResult = readHeaderFromFile(path);
+    if (!headerResult) return headerResult.error();
+    const size_t expectedSize = headerResult.value().expectedFileSize();
+
+    std::ifstream file(path, std::ios::binary);
     if (!file.is_open()) {
         LOG_ERROR("Failed to open LDH file: {}", path.string());
         return CompressionError::InvalidInput;
     }
-    
-    const auto fileSize = file.tellg();
-    if (fileSize <= 0
-        || fileSize > std::numeric_limits<std::streamsize>::max()) {
-        LOG_ERROR("LDH file is empty, unreadable, or too large: {}",
-                  path.string());
-        return CompressionError::InvalidInput;
-    }
-    
-    file.seekg(0, std::ios::beg);
-    
-    std::vector<uint8_t> buffer(static_cast<size_t>(fileSize));
+
+#if defined(__cpp_exceptions)
+    try {
+#endif
+    std::vector<uint8_t> buffer(expectedSize);
     if (!file.read(reinterpret_cast<char*>(buffer.data()),
-                   static_cast<std::streamsize>(fileSize))) {
+                   static_cast<std::streamsize>(expectedSize))) {
         LOG_ERROR("Failed to read LDH file: {}", path.string());
         return CompressionError::InvalidInput;
     }
-    
+    if (file.peek() != std::char_traits<char>::eof()) {
+        LOG_ERROR("LDH file changed or contains trailing data: {}",
+                  path.string());
+        return CompressionError::SizeMismatch;
+    }
     return buffer;
+#if defined(__cpp_exceptions)
+    } catch (const std::bad_alloc&) {
+        return CompressionError::OutOfMemory;
+    } catch (const std::length_error&) {
+        return CompressionError::OutOfMemory;
+    }
+#endif
 }
 
 /// Helper to write data to file
@@ -794,10 +858,12 @@ CompressionResult<DecompressResult> decompressFromFile(
 
 CompressionResult<LDHHeader> readHeaderFromFile(
     const std::filesystem::path& inputPath) {
-    
-    if (!std::filesystem::exists(inputPath)) {
+
+    std::error_code existsError;
+    if (!std::filesystem::exists(inputPath, existsError)) {
         LOG_ERROR("LDH file not found: {}", inputPath.string());
-        return CompressionError::FileNotFound;
+        return existsError ? CompressionError::InvalidInput
+                           : CompressionError::FileNotFound;
     }
     
     std::ifstream file(inputPath, std::ios::binary);
@@ -805,6 +871,14 @@ CompressionResult<LDHHeader> readHeaderFromFile(
         LOG_ERROR("Failed to open LDH file: {}", inputPath.string());
         return CompressionError::InvalidInput;
     }
+    file.seekg(0, std::ios::end);
+    const auto fileSize = file.tellg();
+    if (fileSize < static_cast<std::streamoff>(LDH_HEADER_SIZE)) {
+        LOG_ERROR("LDH file is too small for a header: {}", inputPath.string());
+        return CompressionError::InvalidHeader;
+    }
+    const auto fileSizeOffset = static_cast<std::streamoff>(fileSize);
+    file.seekg(0, std::ios::beg);
     
     // Read just the header
     std::vector<uint8_t> headerData(LDH_HEADER_SIZE);
@@ -816,22 +890,14 @@ CompressionResult<LDHHeader> readHeaderFromFile(
     // Parse header without full file size validation
     LDHHeader header;
     std::memcpy(&header, headerData.data(), LDH_HEADER_SIZE);
-    
-    if (header.magic != LDH_MAGIC) {
-        LOG_ERROR("Invalid LDH magic: expected 0x{:08X}, got 0x{:08X}", 
-                  LDH_MAGIC, header.magic);
-        return CompressionError::InvalidHeader;
+
+    if (static_cast<uintmax_t>(fileSizeOffset)
+        > std::numeric_limits<size_t>::max()) {
+        return CompressionError::SizeMismatch;
     }
-    
-    if (header.version != LDH_VERSION) {
-        LOG_ERROR("Unsupported LDH version: {}", header.version);
-        return CompressionError::UnsupportedVersion;
-    }
-    
-    if (!header.isValid()) {
-        LOG_ERROR("Invalid LDH header");
-        return CompressionError::InvalidHeader;
-    }
+    const CompressionError validation = validateHeaderAndSize(
+        header, static_cast<size_t>(fileSizeOffset));
+    if (validation != CompressionError::None) return validation;
     
     return header;
 }

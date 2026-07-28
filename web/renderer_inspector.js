@@ -565,6 +565,19 @@
         }
 
         installGlobalEvents() {
+            const releaseForwardedMovementKeys = () => {
+                for (const code of this.forwardedMovementKeys) {
+                    const movementKey = MOVEMENT_KEY_CODES.get(code);
+                    if (movementKey !== undefined) {
+                        this.module?._voxy_key_event?.(movementKey, 0);
+                    }
+                }
+                this.forwardedMovementKeys.clear();
+            };
+            window.addEventListener('blur', releaseForwardedMovementKeys);
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) releaseForwardedMovementKeys();
+            });
             document.addEventListener('keydown', event => {
                 const inside = this.root.contains(event.target);
                 if (event.code === 'Backquote' && !event.repeat) {
