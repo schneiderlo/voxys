@@ -922,7 +922,11 @@ int main(int argc, char* argv[]) {
                           ? "voxy - WebGPU Terrain Renderer" 
                           : config.window.title;
     appConfig.fullscreen = config.window.fullscreen;
-    appConfig.vsync = config.render.vsync;
+    // The web build historically starts with the immediate Emscripten loop.
+    // Using the native VSync default here silently caps a normal browser tab
+    // to the monitor refresh rate (about 85 FPS on the development display).
+    // F9 remains available for users who prefer RAF pacing.
+    appConfig.vsync = false;
 
     // Render path selection
     if (config.render.path == "triangle") {

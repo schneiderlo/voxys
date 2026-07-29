@@ -1060,6 +1060,9 @@ const runWorkload = async (
             );
         }
 
+        const initialUncapped = await cdp.evaluate(
+            "voxyModule._voxy_get_uncapped_fps() === 1",
+        );
         await cdp.evaluate(
             `voxyModule._voxy_set_uncapped_fps(${uncapped ? 1 : 0})`,
         );
@@ -1185,6 +1188,7 @@ const runWorkload = async (
             pageVisibleAtEnd: end.visibility === "visible",
             canvasPassed: end.canvas.width === expectedCanvasWidth
                 && end.canvas.height === expectedCanvasHeight,
+            initialUncappedPassed: initialUncapped,
             firstPartyFailures: diagnostics.firstPartyFailures.length,
             exceptions: diagnostics.exceptions.length,
             consoleErrors: diagnostics.consoleErrors.length,
@@ -1213,6 +1217,7 @@ const runWorkload = async (
             && invariants.ccdFailures === 0
             && invariants.pageVisibleAtEnd
             && invariants.canvasPassed
+            && invariants.initialUncappedPassed
             && invariants.firstPartyFailures === 0
             && invariants.exceptions === 0
             && invariants.consoleErrors === 0
@@ -1235,6 +1240,7 @@ const runWorkload = async (
                 executable: browser.executable,
                 arguments: browser.arguments,
                 headless: browser.headless,
+                initialUncapped,
                 authoritativeExperienceScore: !browser.headless
                     && mode === "score",
                 canvas: end.canvas,
@@ -1558,6 +1564,9 @@ const describeFailure = (run) => {
     if (run.invariants.exceptions !== 0) reasons.push("exception");
     if (run.invariants.consoleErrors !== 0) reasons.push("console");
     if (!run.invariants.canvasPassed) reasons.push("canvas");
+    if (!run.invariants.initialUncappedPassed) {
+        reasons.push("initial-loop-capped");
+    }
     if (!run.invariants.pageVisibleAtEnd) reasons.push("page-hidden");
     if (!run.invariants.gpuSamplesPassed
         || !run.invariants.renderGpuSamplesPassed) {
