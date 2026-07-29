@@ -102,6 +102,8 @@ struct PhysicsInitContext {
     uint32_t maxBodies = 16'384;
     uint32_t maxActiveBodies = 16'384;
     uint32_t maxPairs = 65'536;
+    // Zero derives a four-to-one broad-phase candidate budget from maxPairs.
+    uint32_t maxCandidatePairs = 0;
     uint32_t maxContacts = 16'384;
     uint32_t maxManifolds = 65'536;
     bool enableValidation = false;
@@ -145,6 +147,7 @@ struct PhysicsInitContext {
         float waterLinearDrag = 0.55f;
         float waterAngularDrag = 0.08f;
         uint32_t substeps = 4;
+        uint32_t solverWorkgroupSize = 128;
         uint32_t maximumCatchUpTicks = 8;
         uint32_t commandCapacity = 262'144;
         uint32_t debugReadbackSlots = 3;
@@ -229,6 +232,8 @@ struct PhysicsStats {
     BackendType backend = BackendType::JoltLegacy;
     PhysicsArithmeticMode arithmeticMode = PhysicsArithmeticMode::FastFloat;
     uint32_t substeps = 0;
+    float broadPhaseCellSize = 0.0f;
+    uint32_t solverWorkgroupSize = 0;
     uint32_t residentBodies = 0;
     uint32_t activeBodies = 0;
     uint32_t sleepingBodies = 0;

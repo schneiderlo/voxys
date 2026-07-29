@@ -296,6 +296,15 @@ TEST(ApplicationTest, RejectsNonFiniteAndUnsafeConfigurationBeforeGpu) {
     rejected(config);
 
     config = {};
+    config.gpuPhysicsMaxCandidatePairs =
+        config.gpuPhysicsMaxPairs - 1u;
+    rejected(config);
+
+    config = {};
+    config.gpuPhysicsSolverWorkgroupSize = 64u;
+    rejected(config);
+
+    config = {};
     config.physicsBackend = physics::BackendType::JoltLegacy;
     config.benchmarkBodyCount = 16'385u;
     rejected(config);

@@ -16,7 +16,9 @@ namespace voxy::physics {
 namespace {
 
 constexpr uint32_t kTelemetryWords = GpuBroadPhase::kTelemetryWordCount;
-constexpr uint32_t kDenseParallelPairBodyLimit = 10'112u;
+// Covers a 20k thrown-body pile while keeping each reused predicate buffer
+// below 13 MiB. The grid route remains preferable for larger sparse worlds.
+constexpr uint32_t kDenseParallelPairBodyLimit = 20'480u;
 
 uint64_t alignedPairPredicateWordCount(uint32_t bodyCapacity) noexcept {
     if (bodyCapacity <= 1u) return 0u;

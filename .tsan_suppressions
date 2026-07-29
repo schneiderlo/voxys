@@ -7,6 +7,7 @@ race:libvulkan_lvp.so
 # Mesa Gallium/RADV reinitializes a worker barrier while its teardown thread
 # destroys the previous barrier. This is external driver shutdown state.
 race:util_queue_finish
+race:util_queue_thread_func
 
 # GLFW's Wayland decoration and portal paths use uninstrumented GLib, GIO,
 # Fontconfig, and Pango worker synchronization that TSan cannot observe.

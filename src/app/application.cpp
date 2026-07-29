@@ -248,6 +248,10 @@ void setCameraWorldPose(
         && config.gpuPhysicsMaxBodies > 0u
         && config.gpuPhysicsMaxBodies
             != std::numeric_limits<uint32_t>::max()
+        && config.gpuPhysicsMaxPairs > 0u
+        && config.gpuPhysicsMaxCandidatePairs >= config.gpuPhysicsMaxPairs
+        && (config.gpuPhysicsSolverWorkgroupSize == 128u
+            || config.gpuPhysicsSolverWorkgroupSize == 256u)
         && config.benchmarkBodyCount <= kMaximumBenchmarkBodyCount
         && config.benchmarkBodyCount <= benchmarkBodyCapacity
         && validGpuCellSize
@@ -1912,7 +1916,7 @@ void Application::toggleBenchmark() {
 bool Application::startBrowserJourneyBenchmark(
     uint32_t targetBodies, uint32_t warmupTicks, uint32_t impactTicks,
     uint32_t settleTicks, uint32_t bodiesPerVolley,
-    uint32_t ticksPerVolley) {
+    uint32_t ticksPerVolley, perf::BrowserJourneyLayout layout) {
     if (!initialized_ || !physicsWorld_ || !camera_ || !characterController_
         || isBenchmarkRunning()
         || (browserJourneyBenchmark_
@@ -1943,6 +1947,7 @@ bool Application::startBrowserJourneyBenchmark(
         .settleTicks = settleTicks,
         .bodiesPerVolley = bodiesPerVolley,
         .ticksPerVolley = ticksPerVolley,
+        .layout = layout,
     };
     const bool started = browserJourneyBenchmark_->start(
         journeyConfig, physicsStats.residentBodies, stats_.frameCount,
@@ -1950,9 +1955,10 @@ bool Application::startBrowserJourneyBenchmark(
     if (started) {
         prepareBrowserJourneyCamera();
         LOG_INFO(
-            "Browser journey armed: {} bodies, {} per real volley every {} ticks, phases {} warmup / {} impact / {} settle",
-            targetBodies, bodiesPerVolley, ticksPerVolley, warmupTicks,
-            impactTicks, settleTicks);
+            "Browser journey armed: {} bodies, {} layout, {} per real volley every {} ticks, phases {} warmup / {} impact / {} settle",
+            targetBodies, perf::browserJourneyLayoutName(layout),
+            bodiesPerVolley, ticksPerVolley, warmupTicks, impactTicks,
+            settleTicks);
     } else {
         LOG_ERROR("Browser journey rejected: {}",
                   browserJourneyBenchmark_->failureReason());
@@ -2050,7 +2056,10 @@ void Application::updateBrowserJourneyBenchmark() {
     const uint32_t requested = browserJourneyBenchmark_->advance(
         physicsTick, physicsWorld_->stats().residentBodies);
     if (requested != 0u) {
-        aimBrowserJourneyVolley(browserJourneyBenchmark_->volleyCount());
+        if (browserJourneyBenchmark_->layout()
+            == perf::BrowserJourneyLayout::TerrainSweep) {
+            aimBrowserJourneyVolley(browserJourneyBenchmark_->volleyCount());
+        }
         constexpr uint32_t shapeCount =
             static_cast<uint32_t>(physics::ThrowableShape::Count);
         selectedThrowable_ =
@@ -2061,7 +2070,9 @@ void Application::updateBrowserJourneyBenchmark() {
         static_cast<void>(browserJourneyBenchmark_->reportVolley(
             physicsTick, requested, spawned));
         if (browserJourneyBenchmark_->status()
-            == perf::BrowserJourneyStatus::Impact) {
+                == perf::BrowserJourneyStatus::Impact
+            && browserJourneyBenchmark_->layout()
+                == perf::BrowserJourneyLayout::TerrainSweep) {
             prepareBrowserJourneyOverview(
                 browserJourneyBenchmark_->volleyCount());
         }
@@ -2339,8 +2350,13 @@ bool Application::initCamera() {
     if (config_.physicsBackend == physics::BackendType::WebGpuSoft) {
         physicsContext.maxBodies = config_.gpuPhysicsMaxBodies;
         physicsContext.maxActiveBodies = config_.gpuPhysicsMaxBodies;
+        physicsContext.maxPairs = config_.gpuPhysicsMaxPairs;
+        physicsContext.maxCandidatePairs =
+            config_.gpuPhysicsMaxCandidatePairs;
         physicsContext.gpu.broadPhaseCellSize =
             config_.gpuPhysicsBroadPhaseCellSize;
+        physicsContext.gpu.solverWorkgroupSize =
+            config_.gpuPhysicsSolverWorkgroupSize;
         physicsContext.gpu.maximumCatchUpTicks =
             config_.gpuPhysicsMaximumCatchUpTicks;
     }

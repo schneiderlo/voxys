@@ -53,6 +53,11 @@ const options = {
     settleTicks: 180,
     bodiesPerVolley: 128,
     ticksPerVolley: 4,
+    layout: "pile",
+    broadPhaseCellSize: 4,
+    pairCapacity: 65_536,
+    candidatePairCapacity: 262_144,
+    solverWorkgroupSize: 256,
     timeoutMs: 180_000,
     chrome: "",
     displayMode: "auto",
@@ -84,6 +89,11 @@ Workload:
   --settle-ticks N              Default: 180
   --bodies-per-volley N         1..128, default: real 128-body volley
   --ticks-per-volley N          Physics ticks between volleys (default: 4)
+  --layout pile|sweep           Fixed player pile (default) or terrain sweep
+  --broad-cell-size N           Broad-phase grid size (default: 4)
+  --pair-capacity N             Filtered pair capacity (default: 65536)
+  --candidate-capacity N        Candidate pair capacity (default: 262144)
+  --solver-workgroup N          128 or 256 (default: 256)
   --quick                       One short correctness run
 
 Browser:
@@ -180,6 +190,21 @@ for (let index = 2; index < process.argv.length; ++index) {
         case "--ticks-per-volley":
             options.ticksPerVolley = readInteger(argument, value());
             break;
+        case "--layout":
+            options.layout = value();
+            break;
+        case "--broad-cell-size":
+            options.broadPhaseCellSize = readNumber(argument, value());
+            break;
+        case "--pair-capacity":
+            options.pairCapacity = readInteger(argument, value());
+            break;
+        case "--candidate-capacity":
+            options.candidatePairCapacity = readInteger(argument, value());
+            break;
+        case "--solver-workgroup":
+            options.solverWorkgroupSize = readInteger(argument, value());
+            break;
         case "--timeout-ms":
             options.timeoutMs = readInteger(argument, value());
             break;
@@ -253,6 +278,20 @@ if (options.bodiesPerVolley > 128) {
 }
 if (options.ticksPerVolley > 3_600) {
     throw new Error("--ticks-per-volley cannot exceed 3600");
+}
+if (!["pile", "sweep"].includes(options.layout)) {
+    throw new Error("--layout must be pile or sweep");
+}
+const cellsPerSector = 256 / options.broadPhaseCellSize;
+if (!Number.isInteger(cellsPerSector)
+    || cellsPerSector < 1 || cellsPerSector > 2_097_152) {
+    throw new Error("--broad-cell-size must evenly divide 256");
+}
+if (options.candidatePairCapacity < options.pairCapacity) {
+    throw new Error("--candidate-capacity cannot be smaller than --pair-capacity");
+}
+if (![128, 256].includes(options.solverWorkgroupSize)) {
+    throw new Error("--solver-workgroup must be 128 or 256");
 }
 if (options.width > 16_384 || options.height > 16_384
     || options.devicePixelRatio > 4) {
@@ -832,6 +871,15 @@ const readReadyStateExpression = `(() => {
         tick: telemetry?.physics?.tick ?? 0,
         backend: telemetry?.physics?.backend ?? null,
         arithmetic: telemetry?.physics?.arithmetic ?? null,
+        physicsConfiguration: {
+            broadPhaseCellSize:
+                telemetry?.physics?.broad_phase_cell_size ?? null,
+            pairCapacity: telemetry?.physics?.pairs?.capacity ?? null,
+            candidatePairCapacity:
+                telemetry?.physics?.candidate_pairs?.capacity ?? null,
+            solverWorkgroupSize:
+                telemetry?.physics?.solver_workgroup_size ?? null,
+        },
         render: telemetry?.render ?? null,
         canvasWidth: canvas?.width ?? 0,
         canvasHeight: canvas?.height ?? 0,
@@ -948,6 +996,14 @@ const runWorkload = async (
     url.searchParams.set("physicsBackend", "webgpu");
     url.searchParams.set("telemetry", "0");
     url.searchParams.set("browserBenchmarkRun", runId);
+    url.searchParams.set(
+        "broadPhaseCellSize", String(options.broadPhaseCellSize));
+    url.searchParams.set("physicsPairCapacity", String(options.pairCapacity));
+    url.searchParams.set(
+        "physicsCandidatePairCapacity",
+        String(options.candidatePairCapacity));
+    url.searchParams.set(
+        "physicsSolverWorkgroup", String(options.solverWorkgroupSize));
     url.searchParams.delete("benchmarkBodies");
     url.searchParams.delete("renderThroughput");
     if (profileEnabled) {
@@ -972,6 +1028,24 @@ const runWorkload = async (
             || ready.render?.terrain_height !== 8192
             || ready.render?.terrain_mips !== 14) {
             throw new Error(`unexpected production workload: ${JSON.stringify(ready)}`);
+        }
+        const appliedPhysics = ready.physicsConfiguration;
+        const cellSizeMatches = Number.isFinite(
+            appliedPhysics?.broadPhaseCellSize)
+            && Math.abs(
+                appliedPhysics.broadPhaseCellSize
+                    - options.broadPhaseCellSize)
+                <= Math.max(1e-6, options.broadPhaseCellSize * 1e-6);
+        if (!cellSizeMatches
+            || appliedPhysics?.pairCapacity !== options.pairCapacity
+            || appliedPhysics?.candidatePairCapacity
+                !== options.candidatePairCapacity
+            || appliedPhysics?.solverWorkgroupSize
+                !== options.solverWorkgroupSize) {
+            throw new Error(
+                "browser did not apply the requested physics configuration: "
+                + JSON.stringify(appliedPhysics),
+            );
         }
         if (ready.visibility !== "visible") {
             throw new Error(`benchmark page is ${ready.visibility}, not visible`);
@@ -1009,7 +1083,8 @@ const runWorkload = async (
             `voxyModule._voxy_start_browser_journey_benchmark(`
             + `${bodyCount},${options.warmupTicks},${options.impactTicks},`
             + `${options.settleTicks},${options.bodiesPerVolley},`
-            + `${options.ticksPerVolley})`,
+            + `${options.ticksPerVolley},`
+            + `${options.layout === "pile" ? 0 : 1})`,
         );
         if (started !== 1) {
             throw new Error("engine rejected the browser journey");
@@ -1071,8 +1146,22 @@ const runWorkload = async (
         );
 
         const physics = telemetry.physics;
+        const finalCellSizeMatches = Number.isFinite(
+            physics.broad_phase_cell_size)
+            && Math.abs(
+                physics.broad_phase_cell_size
+                    - options.broadPhaseCellSize)
+                <= Math.max(1e-6, options.broadPhaseCellSize * 1e-6);
         const invariants = {
             journeyPassed: journey.passed,
+            layoutPassed: journey.config?.layout === options.layout,
+            physicsConfigurationPassed:
+                finalCellSizeMatches
+                && physics.pairs.capacity === options.pairCapacity
+                && physics.candidate_pairs.capacity
+                    === options.candidatePairCapacity
+                && physics.solver_workgroup_size
+                    === options.solverWorkgroupSize,
             bodyCountPassed:
                 physics.bodies.current
                 === journey.counts.expected_final_bodies,
@@ -1107,6 +1196,8 @@ const runWorkload = async (
                 || renderGpuSamples.length > 0,
         };
         invariants.overallPassed = invariants.journeyPassed
+            && invariants.layoutPassed
+            && invariants.physicsConfigurationPassed
             && invariants.bodyCountPassed
             && invariants.renderBodyRangePassed
             && invariants.terrainContactObserved
@@ -1176,10 +1267,27 @@ const runWorkload = async (
             physics: {
                 backend: physics.backend,
                 arithmetic: physics.arithmetic,
+                configuration: {
+                    broadPhaseCellSize: physics.broad_phase_cell_size,
+                    pairCapacity: physics.pairs.capacity,
+                    candidatePairCapacity:
+                        physics.candidate_pairs.capacity,
+                    solverWorkgroupSize:
+                        physics.solver_workgroup_size,
+                },
                 candidates: physics.candidate_pairs.current,
+                pairs: physics.pairs.current,
                 contacts: physics.contacts.current,
+                manifolds: physics.manifolds.current,
                 terrainContacts: physics.terrain_contacts.current,
                 terrainContactBodies: physics.terrain_contact_bodies,
+                narrowPairClasses: physics.narrow_pair_classes,
+                narrowCollisionPairClasses:
+                    physics.narrow_collision_pair_classes,
+                graphColors: physics.graph_colors,
+                solverOverflowContacts:
+                    physics.solver_overflow.current,
+                maximumBodyDegree: physics.maximum_body_degree,
                 sleepingBodies: physics.sleeping_bodies,
                 memory: physics.memory,
                 io: physics.io,
@@ -1287,6 +1395,11 @@ const compareBaseline = (summary, baseline, runs) => {
         settleTicks: options.settleTicks,
         bodiesPerVolley: options.bodiesPerVolley,
         ticksPerVolley: options.ticksPerVolley,
+        layout: options.layout,
+        broadPhaseCellSize: options.broadPhaseCellSize,
+        pairCapacity: options.pairCapacity,
+        candidatePairCapacity: options.candidatePairCapacity,
+        solverWorkgroupSize: options.solverWorkgroupSize,
         expectedBackend: options.expectedBackend,
     })) {
         if (baseline.options?.[field] !== currentValue) {
@@ -1405,6 +1518,10 @@ const describeFailure = (run) => {
     const reasons = [];
     if (!run.journey.passed) {
         reasons.push(run.journey.failure ?? "journey");
+    }
+    if (!run.invariants.layoutPassed) reasons.push("layout");
+    if (!run.invariants.physicsConfigurationPassed) {
+        reasons.push("physics-configuration");
     }
     if (!run.invariants.bodyCountPassed) reasons.push("body-count");
     if (!run.invariants.renderBodyRangePassed) reasons.push("render-range");
@@ -1581,6 +1698,11 @@ try {
             settleTicks: options.settleTicks,
             bodiesPerVolley: options.bodiesPerVolley,
             ticksPerVolley: options.ticksPerVolley,
+            layout: options.layout,
+            broadPhaseCellSize: options.broadPhaseCellSize,
+            pairCapacity: options.pairCapacity,
+            candidatePairCapacity: options.candidatePairCapacity,
+            solverWorkgroupSize: options.solverWorkgroupSize,
             expectedBackend: options.expectedBackend,
             expectedBuild: options.expectedBuild || null,
         },

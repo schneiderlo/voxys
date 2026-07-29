@@ -8,6 +8,7 @@
 #include "core/config.hpp"
 #include "engine/platform/input.hpp"
 #include "gpu/context.hpp"
+#include "perf/benchmark.hpp"
 #include "physics/physics_world.hpp"
 
 #include <algorithm>
@@ -347,6 +348,10 @@ namespace {
                    physics.arithmeticMode) << "\""
             << ",\"tick\":" << physics.telemetryTick
             << ",\"substeps\":" << physics.substeps
+            << ",\"broad_phase_cell_size\":";
+        appendJsonNumber(out, physics.broadPhaseCellSize);
+        out << ",\"solver_workgroup_size\":"
+            << physics.solverWorkgroupSize
             << ",\"scheduled_substeps\":"
             << (world ? world->lastStepStats().substepCount : 0u);
 
@@ -984,6 +989,33 @@ int main(int argc, char* argv[]) {
         std::max(config.physics.gpuMaxBodies, 2));
     appConfig.gpuPhysicsBroadPhaseCellSize =
         config.physics.broadPhaseCellSize;
+    appConfig.gpuPhysicsBroadPhaseCellSize = static_cast<float>(
+        EM_ASM_DOUBLE({
+            const value = Number(new URLSearchParams(globalThis.location.search)
+                .get("broadPhaseCellSize") ?? $0);
+            return Number.isFinite(value) && value > 0 ? value : $0;
+        }, appConfig.gpuPhysicsBroadPhaseCellSize));
+    appConfig.gpuPhysicsMaxPairs = static_cast<uint32_t>(EM_ASM_INT({
+        const value = Number(new URLSearchParams(globalThis.location.search)
+            .get("physicsPairCapacity") ?? $0);
+        return Number.isSafeInteger(value) && value > 0
+            && value <= 2147483647 ? value : $0;
+    }, appConfig.gpuPhysicsMaxPairs));
+    appConfig.gpuPhysicsMaxCandidatePairs =
+        static_cast<uint32_t>(EM_ASM_INT({
+            const value = Number(
+                new URLSearchParams(globalThis.location.search)
+                    .get("physicsCandidatePairCapacity") ?? $0);
+            return Number.isSafeInteger(value) && value > 0
+                && value <= 2147483647 ? value : $0;
+        }, appConfig.gpuPhysicsMaxCandidatePairs));
+    appConfig.gpuPhysicsSolverWorkgroupSize =
+        static_cast<uint32_t>(EM_ASM_INT({
+            const value = Number(
+                new URLSearchParams(globalThis.location.search)
+                    .get("physicsSolverWorkgroup") ?? $0);
+            return value === 128 || value === 256 ? value : $0;
+        }, appConfig.gpuPhysicsSolverWorkgroupSize));
     appConfig.benchmarkBodyCount = static_cast<uint32_t>(EM_ASM_INT({
         const value = Number(
             new URLSearchParams(globalThis.location.search)
@@ -1381,13 +1413,13 @@ void voxy_set_uncapped_fps(int enabled) {
 EMSCRIPTEN_KEEPALIVE
 int voxy_start_browser_journey_benchmark(
     int targetBodies, int warmupTicks, int impactTicks, int settleTicks,
-    int bodiesPerVolley, int ticksPerVolley) {
+    int bodiesPerVolley, int ticksPerVolley, int layout) {
     if (!g_app || targetBodies <= 0
         || targetBodies > static_cast<int>(voxy::kMaximumBenchmarkBodyCount)
         || warmupTicks < 0 || impactTicks <= 0 || settleTicks <= 0
         || bodiesPerVolley <= 0
         || bodiesPerVolley > 128 || ticksPerVolley <= 0
-        || ticksPerVolley > 3'600) {
+        || ticksPerVolley > 3'600 || layout < 0 || layout > 1) {
         return 0;
     }
     return g_app->startBrowserJourneyBenchmark(
@@ -1396,7 +1428,8 @@ int voxy_start_browser_journey_benchmark(
         static_cast<uint32_t>(impactTicks),
         static_cast<uint32_t>(settleTicks),
         static_cast<uint32_t>(bodiesPerVolley),
-        static_cast<uint32_t>(ticksPerVolley)) ? 1 : 0;
+        static_cast<uint32_t>(ticksPerVolley),
+        static_cast<voxy::perf::BrowserJourneyLayout>(layout)) ? 1 : 0;
 }
 
 EMSCRIPTEN_KEEPALIVE

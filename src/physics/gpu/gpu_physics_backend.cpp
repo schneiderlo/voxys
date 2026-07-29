@@ -296,8 +296,13 @@ public:
         if (!context.device || !context.queue || context.maxBodies == 0u
             || context.maxBodies == std::numeric_limits<uint32_t>::max()
             || !validScalars
+            || (context.maxCandidatePairs != 0u
+                && context.maxCandidatePairs < context.maxPairs)
             || gpuConfig.substeps == 0
             || gpuConfig.substeps > kMaximumSubsteps
+            || (gpuConfig.solverWorkgroupSize != 64u
+                && gpuConfig.solverWorkgroupSize != 128u
+                && gpuConfig.solverWorkgroupSize != 256u)
             || gpuConfig.maximumCatchUpTicks == 0
             || gpuConfig.maximumCatchUpTicks > kMaximumCatchUpTicks
             || context.gpu.commandCapacity == 0
@@ -325,16 +330,20 @@ public:
             LOG_ERROR("WebGPU physics could not query device limits");
             return false;
         }
+        const uint32_t requiredWorkgroupSize = std::max(
+            kWorkgroupSize, gpuConfig.solverWorkgroupSize);
         if (limits.maxStorageBuffersPerShaderStage
                 < kRequiredStorageBuffersPerShaderStage
-            || limits.maxComputeInvocationsPerWorkgroup < kWorkgroupSize
-            || limits.maxComputeWorkgroupSizeX < kWorkgroupSize) {
+            || limits.maxComputeInvocationsPerWorkgroup
+                < requiredWorkgroupSize
+            || limits.maxComputeWorkgroupSizeX < requiredWorkgroupSize) {
             LOG_WARN(
                 "WebGPU physics device profile rejected: storage buffers {}/{}, compute invocations {}/{}, workgroup X {}/{}",
                 limits.maxStorageBuffersPerShaderStage,
                 kRequiredStorageBuffersPerShaderStage,
-                limits.maxComputeInvocationsPerWorkgroup, kWorkgroupSize,
-                limits.maxComputeWorkgroupSizeX, kWorkgroupSize);
+                limits.maxComputeInvocationsPerWorkgroup,
+                requiredWorkgroupSize,
+                limits.maxComputeWorkgroupSizeX, requiredWorkgroupSize);
             return false;
         }
 
@@ -346,9 +355,11 @@ public:
             return stride != 0u && count <= maximumStorageBytes / stride;
         };
         const uint64_t bodyCapacity = uint64_t{context.maxBodies} + 1u;
-        const uint64_t candidateCapacity = std::min(
-            uint64_t{context.maxPairs} * 4u,
-            uint64_t{std::numeric_limits<uint32_t>::max()});
+        const uint64_t candidateCapacity = context.maxCandidatePairs != 0u
+            ? context.maxCandidatePairs
+            : std::min(
+                uint64_t{context.maxPairs} * 4u,
+                uint64_t{std::numeric_limits<uint32_t>::max()});
         const uint64_t maximumEventRecords =
             uint64_t{context.maxManifolds} * 3u + context.maxBodies;
         if (maximumEventRecords > std::numeric_limits<uint32_t>::max()
@@ -380,6 +391,7 @@ public:
         bodyCapacity_ = bodyLimit_ + 1u;
         activeCapacity_ = std::min(context.maxActiveBodies, context.maxBodies);
         pairCapacity_ = context.maxPairs;
+        candidatePairCapacity_ = static_cast<uint32_t>(candidateCapacity);
         contactCapacity_ = context.maxContacts;
         manifoldCapacity_ = context.maxManifolds;
         if (activeCapacity_ == 0 || pairCapacity_ == 0
@@ -518,9 +530,7 @@ public:
         broadConfig.bodyCapacity = bodyCapacity_;
         broadConfig.pairCapacity = pairCapacity_;
         broadConfig.contactCapacity = manifoldCapacity_;
-        broadConfig.candidatePairCapacity = static_cast<uint32_t>(std::min(
-            uint64_t{pairCapacity_} * 4u,
-            uint64_t{std::numeric_limits<uint32_t>::max()}));
+        broadConfig.candidatePairCapacity = candidatePairCapacity_;
         broadConfig.cellSize = config_.broadPhaseCellSize;
         broadConfig.speculativeMargin = config_.speculativeDistance;
         broadConfig.shaderPath = shaderFile("physics_broad_phase.wgsl");
@@ -565,6 +575,7 @@ public:
         GpuDynamicSolver::Config solverConfig;
         solverConfig.bodyCapacity = bodyCapacity_;
         solverConfig.contactCapacity = contactCapacity_;
+        solverConfig.workgroupSize = config_.solverWorkgroupSize;
         solverConfig.substeps = config_.substeps;
         solverConfig.tickSeconds = config_.fixedTickSeconds;
         // The ballistic preparation pass applies forces, gravity, damping,
@@ -743,6 +754,7 @@ public:
         bodyLimit_ = 0;
         activeCapacity_ = 0;
         pairCapacity_ = 0;
+        candidatePairCapacity_ = 0;
         contactCapacity_ = 0;
         manifoldCapacity_ = 0;
         eventCapacity_ = 0;
@@ -2641,6 +2653,8 @@ public:
         result.backend = BackendType::WebGpuSoft;
         result.arithmeticMode = PhysicsArithmeticMode::FastFloat;
         result.substeps = config_.substeps;
+        result.broadPhaseCellSize = config_.broadPhaseCellSize;
+        result.solverWorkgroupSize = config_.solverWorkgroupSize;
         result.residentBodies = residentBodies_;
         result.activeBodies = residentBodies_;
         result.bodyCapacity = bodyLimit_;
@@ -2716,7 +2730,9 @@ public:
         const auto& solver = cachedTelemetry_.solver;
         const auto& islands = cachedTelemetry_.islands;
         result.telemetryTick = cachedTelemetry_.tick;
-        result.activeBodies = islands.awakeBodies;
+        // The compacted active list is the authoritative awake-body count.
+        // Island telemetry can span several GPU-resident catch-up ticks.
+        result.activeBodies = core.activeBodies;
         result.sleepingBodies = islands.sleepingBodies;
         result.activeBodyUsage = {
             core.activeBodies, activeCapacity_, core.highActiveBodies,
@@ -2866,6 +2882,7 @@ public:
     uint32_t bodyLimit_ = 0;
     uint32_t activeCapacity_ = 0;
     uint32_t pairCapacity_ = 0;
+    uint32_t candidatePairCapacity_ = 0;
     uint32_t contactCapacity_ = 0;
     uint32_t manifoldCapacity_ = 0;
     uint32_t eventCapacity_ = 0;

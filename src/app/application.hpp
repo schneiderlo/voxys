@@ -72,6 +72,7 @@ namespace render {
 namespace perf {
     class BenchmarkRunner;
     class BrowserJourneyBenchmark;
+    enum class BrowserJourneyLayout : uint32_t;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -221,6 +222,9 @@ struct ApplicationConfig {
     // Physics backend and baseline scheduler selection.
     physics::BackendType physicsBackend = physics::BackendType::WebGpuSoft;
     uint32_t gpuPhysicsMaxBodies = 131'072;
+    uint32_t gpuPhysicsMaxPairs = 65'536;
+    uint32_t gpuPhysicsMaxCandidatePairs = 262'144;
+    uint32_t gpuPhysicsSolverWorkgroupSize = 256;
     float gpuPhysicsBroadPhaseCellSize = 4.0f;
     uint32_t gpuPhysicsMaximumCatchUpTicks = 8;
     bool gpuPhysicsStageProfiling = false;
@@ -467,7 +471,8 @@ public:
         uint32_t impactTicks,
         uint32_t settleTicks,
         uint32_t bodiesPerVolley,
-        uint32_t ticksPerVolley);
+        uint32_t ticksPerVolley,
+        perf::BrowserJourneyLayout layout);
 
     /// Stable integer state consumed by browser automation.
     [[nodiscard]] int browserJourneyBenchmarkStatus() const noexcept;

@@ -43,18 +43,31 @@ The defaults run 100, 1,000, 5,000, and 10,000 bodies three times in each mode:
   stage. It is opt-in because measurement itself has a cost.
 
 The body order alternates upward and downward between repetitions. Each page
-load gets the same camera warm-up, then sweeps real volleys deterministically
-across the terrain every four physics ticks, followed by impact and settling
-windows. This avoids an artificial single-column pile while retaining
-body-body and terrain contacts. A partial final volley creates exactly the
-requested total rather than rounding it to 128. Use `--ticks-per-volley` to
-model a slower or more aggressive player.
+load gets the same camera warm-up, then repeatedly fires real volleys from one
+fixed player view every four physics ticks. This default `pile` layout preserves
+the dense body-body and terrain load seen when a player keeps throwing into one
+area. A partial final volley creates exactly the requested total rather than
+rounding it to 128. Use `--ticks-per-volley` to model a slower or more
+aggressive player.
+
+Use the deterministic terrain sweep as a secondary scalability control:
+
+```bash
+node scripts/benchmark_browser.mjs \
+  --layout sweep --modes score,headroom --headed
+```
+
+The sweep gives every volley a new impact zone. It answers how cost scales when
+the same bodies are spread across the terrain, but it is not a substitute for
+the default dense-pile result.
 
 The runner fails a workload if any of these are wrong:
 
 - hardware WebGPU, fast-float GPU physics, raycast rendering, or 8192² terrain;
 - physical canvas size, page visibility, build identity, or fallback-adapter
   selection;
+- requested pile/sweep layout and physics tuning values actually applied by
+  the loaded build;
 - exact resident-body and renderer-input counts;
 - observed real-terrain contacts;
 - physics capacity overflows, solver errors, first-party load failures,

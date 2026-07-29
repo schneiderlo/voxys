@@ -549,6 +549,14 @@ const char* browserJourneyStatusName(BrowserJourneyStatus status) noexcept {
     return "unknown";
 }
 
+const char* browserJourneyLayoutName(BrowserJourneyLayout layout) noexcept {
+    switch (layout) {
+        case BrowserJourneyLayout::FixedPile: return "pile";
+        case BrowserJourneyLayout::TerrainSweep: return "sweep";
+    }
+    return "unknown";
+}
+
 bool BrowserJourneyBenchmark::start(const BrowserJourneyConfig& config,
                                     uint32_t baselineBodies,
                                     uint64_t startFrame,
@@ -594,6 +602,8 @@ bool BrowserJourneyBenchmark::start(const BrowserJourneyConfig& config,
         || config.impactTicks > kMaximumBrowserJourneyPhaseTicks
         || config.settleTicks == 0u
         || config.settleTicks > kMaximumBrowserJourneyPhaseTicks
+        || (config.layout != BrowserJourneyLayout::FixedPile
+            && config.layout != BrowserJourneyLayout::TerrainSweep)
         || finalBodyCount > std::numeric_limits<uint32_t>::max()
         || measuredTicks > kMaximumBrowserJourneyPhaseTicks) {
         fail(Failure::InvalidConfiguration);
@@ -836,7 +846,9 @@ std::string BrowserJourneyBenchmark::resultJson() const {
         << ",\"impact_ticks\":" << config_.impactTicks
         << ",\"settle_ticks\":" << config_.settleTicks
         << ",\"bodies_per_volley\":" << config_.bodiesPerVolley
-        << ",\"ticks_per_volley\":" << config_.ticksPerVolley << '}'
+        << ",\"ticks_per_volley\":" << config_.ticksPerVolley
+        << ",\"layout\":\""
+        << browserJourneyLayoutName(config_.layout) << "\"}"
         << ",\"counts\":{\"baseline_bodies\":" << baselineBodies_
         << ",\"spawned_bodies\":" << spawnedBodies_
         << ",\"expected_final_bodies\":"
