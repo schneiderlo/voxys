@@ -1157,16 +1157,22 @@ fn box_vertex(frame : BoxFrame, index : u32) -> vec3<f32> {
         + frame.axisZ * frame.half.z * signs.z;
 }
 
-fn cylinder_vertex(frame : PolyFrame, index : u32) -> vec3<f32> {
+fn prepared_cylinder_vertex(frame : PolyFrame, index : u32,
+                            radius : f32, halfHeight : f32) -> vec3<f32> {
     let ring = index & 7u;
     let angle = 0.7853981633974483 * f32(ring);
-    let dimensions = max(abs(frame.dimensions), vec3<f32>(1e-5));
-    let radius = 0.25 * (dimensions.x + dimensions.z);
-    let halfHeight = 0.5 * max(abs(frame.dimensions.y), 1e-5);
     let local = vec3<f32>(cos(angle) * radius,
         select(-halfHeight, halfHeight, index >= 8u),
         sin(angle) * radius);
     return frame.center + quaternion_rotate(frame.orientation, local);
+}
+
+fn cylinder_vertex(frame : PolyFrame, index : u32) -> vec3<f32> {
+    let dimensions = max(abs(frame.dimensions), vec3<f32>(1e-5));
+    let radius = 0.25 * (dimensions.x + dimensions.z);
+    let halfHeight = 0.5 * max(abs(frame.dimensions.y), 1e-5);
+    return prepared_cylinder_vertex(
+        frame, index, radius, halfHeight);
 }
 
 fn poly_vertex_count(shapeCategory : u32) -> u32 {
@@ -1185,10 +1191,10 @@ fn poly_face_axis_count(shapeCategory : u32) -> u32 {
     return select(3u, 9u, shapeCategory == 3u);
 }
 
-fn poly_face_axis(frame : PolyFrame, shapeCategory : u32,
-                  index : u32) -> vec3<f32> {
+fn poly_face_axis(frame : PolyFrame, box : BoxFrame,
+                  shapeCategory : u32, index : u32) -> vec3<f32> {
     if (shapeCategory != 3u) {
-        return axis_value(make_box_from_poly(frame), index);
+        return axis_value(box, index);
     }
     if (index == 0u) {
         return quaternion_rotate(
@@ -1203,10 +1209,10 @@ fn poly_edge_axis_count(shapeCategory : u32) -> u32 {
     return select(3u, 9u, shapeCategory == 3u);
 }
 
-fn poly_edge_axis(frame : PolyFrame, shapeCategory : u32,
-                  index : u32) -> vec3<f32> {
+fn poly_edge_axis(frame : PolyFrame, box : BoxFrame,
+                  shapeCategory : u32, index : u32) -> vec3<f32> {
     if (shapeCategory != 3u) {
-        return axis_value(make_box_from_poly(frame), index);
+        return axis_value(box, index);
     }
     if (index == 0u) {
         return quaternion_rotate(
@@ -1217,17 +1223,52 @@ fn poly_edge_axis(frame : PolyFrame, shapeCategory : u32,
         vec3<f32>(-sin(angle), 0.0, cos(angle)));
 }
 
-fn projected_poly_range(frame : PolyFrame, shapeCategory : u32,
-                        axis : vec3<f32>) -> vec2<f32> {
-    let count = poly_vertex_count(shapeCategory);
-    var minimum = dot(poly_vertex(frame, shapeCategory, 0u), axis);
-    var maximum = minimum;
-    for (var index = 1u; index < count; index += 1u) {
-        let projection = dot(poly_vertex(frame, shapeCategory, index), axis);
-        minimum = min(minimum, projection);
+fn projected_poly_maximum(frame : PolyFrame, box : BoxFrame,
+                          shapeCategory : u32, axis : vec3<f32>) -> f32 {
+    if (shapeCategory != 3u) {
+        var maximum = dot(box_vertex(box, 0u), axis);
+        for (var index = 1u; index < 8u; index += 1u) {
+            maximum = max(maximum, dot(box_vertex(box, index), axis));
+        }
+        return maximum;
+    }
+    let dimensions = max(abs(frame.dimensions), vec3<f32>(1e-5));
+    let radius = 0.25 * (dimensions.x + dimensions.z);
+    let halfHeight = 0.5 * max(abs(frame.dimensions.y), 1e-5);
+    var maximum = dot(
+        prepared_cylinder_vertex(frame, 0u, radius, halfHeight), axis);
+    for (var index = 1u; index < 16u; index += 1u) {
+        let projection = dot(
+            prepared_cylinder_vertex(
+                frame, index, radius, halfHeight),
+            axis);
         maximum = max(maximum, projection);
     }
-    return vec2<f32>(minimum, maximum);
+    return maximum;
+}
+
+fn projected_poly_minimum(frame : PolyFrame, box : BoxFrame,
+                          shapeCategory : u32, axis : vec3<f32>) -> f32 {
+    if (shapeCategory != 3u) {
+        var minimum = dot(box_vertex(box, 0u), axis);
+        for (var index = 1u; index < 8u; index += 1u) {
+            minimum = min(minimum, dot(box_vertex(box, index), axis));
+        }
+        return minimum;
+    }
+    let dimensions = max(abs(frame.dimensions), vec3<f32>(1e-5));
+    let radius = 0.25 * (dimensions.x + dimensions.z);
+    let halfHeight = 0.5 * max(abs(frame.dimensions.y), 1e-5);
+    var minimum = dot(
+        prepared_cylinder_vertex(frame, 0u, radius, halfHeight), axis);
+    for (var index = 1u; index < 16u; index += 1u) {
+        let projection = dot(
+            prepared_cylinder_vertex(
+                frame, index, radius, halfHeight),
+            axis);
+        minimum = min(minimum, projection);
+    }
+    return minimum;
 }
 
 fn consider_poly_sat_axis(sat : ptr<function, SatResult>,
@@ -1235,6 +1276,7 @@ fn consider_poly_sat_axis(sat : ptr<function, SatResult>,
                           axisA : u32, axisB : u32,
                           categoryA : u32, categoryB : u32,
                           frameA : PolyFrame, frameB : PolyFrame,
+                          boxA : BoxFrame, boxB : BoxFrame,
                           centerDelta : vec3<f32>) {
     let squared = dot(rawAxis, rawAxis);
     if (squared <= 1e-10) { return; }
@@ -1242,9 +1284,11 @@ fn consider_poly_sat_axis(sat : ptr<function, SatResult>,
     if (dot(centerDelta, axis) < 0.0) {
         axis = -axis;
     }
-    let rangeA = projected_poly_range(frameA, categoryA, axis);
-    let rangeB = projected_poly_range(frameB, categoryB, axis);
-    let separation = rangeB.x - rangeA.y;
+    let maximumA = projected_poly_maximum(
+        frameA, boxA, categoryA, axis);
+    let minimumB = projected_poly_minimum(
+        frameB, boxB, categoryB, axis);
+    let separation = minimumB - maximumA;
     if (separation > currentSpeculativeDistance) { (*sat).valid = 0u; }
     let candidateCode = kind * 256u + axisA * 16u + axisB;
     let currentCode = (*sat).axisKind * 256u
@@ -1262,6 +1306,7 @@ fn consider_poly_sat_axis(sat : ptr<function, SatResult>,
 
 fn polyhedron_sat(categoryA : u32, categoryB : u32,
                   frameA : PolyFrame, frameB : PolyFrame,
+                  boxA : BoxFrame, boxB : BoxFrame,
                   centerDelta : vec3<f32>) -> SatResult {
     var result : SatResult;
     result.normal = vec3<f32>(1.0, 0.0, 0.0);
@@ -1273,28 +1318,31 @@ fn polyhedron_sat(categoryA : u32, categoryB : u32,
     for (var axis = 0u; axis < poly_face_axis_count(categoryA);
         axis += 1u) {
         consider_poly_sat_axis(&result,
-            poly_face_axis(frameA, categoryA, axis),
+            poly_face_axis(frameA, boxA, categoryA, axis),
             0u, axis, 0u, categoryA, categoryB,
-            frameA, frameB, centerDelta);
+            frameA, frameB, boxA, boxB, centerDelta);
         if (result.valid == 0u) { return result; }
     }
     for (var axis = 0u; axis < poly_face_axis_count(categoryB);
         axis += 1u) {
         consider_poly_sat_axis(&result,
-            poly_face_axis(frameB, categoryB, axis),
+            poly_face_axis(frameB, boxB, categoryB, axis),
             1u, 0u, axis, categoryA, categoryB,
-            frameA, frameB, centerDelta);
+            frameA, frameB, boxA, boxB, centerDelta);
         if (result.valid == 0u) { return result; }
     }
     for (var axisA = 0u; axisA < poly_edge_axis_count(categoryA);
          axisA += 1u) {
+        let edgeAxisA = poly_edge_axis(
+            frameA, boxA, categoryA, axisA);
         for (var axisB = 0u; axisB < poly_edge_axis_count(categoryB);
              axisB += 1u) {
             consider_poly_sat_axis(&result, cross(
-                poly_edge_axis(frameA, categoryA, axisA),
-                poly_edge_axis(frameB, categoryB, axisB)),
+                edgeAxisA,
+                poly_edge_axis(frameB, boxB, categoryB, axisB)),
                 2u, axisA, axisB,
-                categoryA, categoryB, frameA, frameB, centerDelta);
+                categoryA, categoryB, frameA, frameB,
+                boxA, boxB, centerDelta);
             if (result.valid == 0u) { return result; }
         }
     }
@@ -1310,13 +1358,20 @@ fn collide_polyhedra(bodyA : u32, categoryA : u32,
     let centerDelta = centerB - centerA;
     let frameA = make_poly_frame(bodyA, centerA);
     let frameB = make_poly_frame(bodyB, centerB);
+    var boxA : BoxFrame;
+    var boxB : BoxFrame;
+    if (categoryA != 3u) { boxA = make_box_from_poly(frameA); }
+    if (categoryB != 3u) { boxB = make_box_from_poly(frameB); }
     let sat = polyhedron_sat(
-        categoryA, categoryB, frameA, frameB, centerDelta);
+        categoryA, categoryB, frameA, frameB,
+        boxA, boxB, centerDelta);
     result.normal = sat.normal;
     if (sat.valid == 0u) { return result; }
-    let rangeA = projected_poly_range(frameA, categoryA, sat.normal);
-    let rangeB = projected_poly_range(frameB, categoryB, sat.normal);
-    let separation = rangeB.x - rangeA.y;
+    let maximumA = projected_poly_maximum(
+        frameA, boxA, categoryA, sat.normal);
+    let minimumB = projected_poly_minimum(
+        frameB, boxB, categoryB, sat.normal);
+    let separation = minimumB - maximumA;
     let supportTolerance = max(4.0 * narrow.tolerances.x, 1e-4);
     let countA = poly_vertex_count(categoryA);
     let countB = poly_vertex_count(categoryB);
@@ -1328,7 +1383,7 @@ fn collide_polyhedra(bodyA : u32, categoryA : u32,
     var firstB = 0u;
     for (var index = 0u; index < countA; index += 1u) {
         let vertex = poly_vertex(frameA, categoryA, index);
-        if (dot(vertex, sat.normal) >= rangeA.y - supportTolerance) {
+        if (dot(vertex, sat.normal) >= maximumA - supportTolerance) {
             if (supportA == 0u) { firstA = index; }
             averageA += vertex;
             supportA += 1u;
@@ -1336,7 +1391,7 @@ fn collide_polyhedra(bodyA : u32, categoryA : u32,
     }
     for (var index = 0u; index < countB; index += 1u) {
         let vertex = poly_vertex(frameB, categoryB, index);
-        if (dot(vertex, sat.normal) <= rangeB.x + supportTolerance) {
+        if (dot(vertex, sat.normal) <= minimumB + supportTolerance) {
             if (supportB == 0u) { firstB = index; }
             averageB += vertex;
             supportB += 1u;
@@ -1347,14 +1402,14 @@ fn collide_polyhedra(bodyA : u32, categoryA : u32,
     let transverseMidpoint = 0.5 * (averageA + averageB);
     let transverse = transverseMidpoint
         - sat.normal * dot(transverseMidpoint, sat.normal);
-    let primaryA = transverse + sat.normal * rangeA.y;
-    let primaryB = transverse + sat.normal * rangeB.x;
+    let primaryA = transverse + sat.normal * maximumA;
+    let primaryB = transverse + sat.normal * minimumB;
     append_candidate(&result, primaryA, primaryB, separation,
                      0x400u + firstA, 0x400u + firstB);
     for (var index = 0u; index < countA && result.count < MAX_CANDIDATES;
          index += 1u) {
         let vertex = poly_vertex(frameA, categoryA, index);
-        if (dot(vertex, sat.normal) >= rangeA.y - supportTolerance) {
+        if (dot(vertex, sat.normal) >= maximumA - supportTolerance) {
             append_candidate(&result, vertex,
                 vertex + sat.normal * separation, separation,
                 0x400u + index, 0x480u + firstB);
@@ -1363,7 +1418,7 @@ fn collide_polyhedra(bodyA : u32, categoryA : u32,
     for (var index = 0u; index < countB && result.count < MAX_CANDIDATES;
          index += 1u) {
         let vertex = poly_vertex(frameB, categoryB, index);
-        if (dot(vertex, sat.normal) <= rangeB.x + supportTolerance) {
+        if (dot(vertex, sat.normal) <= minimumB + supportTolerance) {
             append_candidate(&result,
                 vertex - sat.normal * separation, vertex, separation,
                 0x480u + firstA, 0x400u + index);
