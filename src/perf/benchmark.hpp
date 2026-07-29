@@ -10,10 +10,12 @@
 
 #pragma once
 
+#include <array>
+#include <cstddef>
 #include <cstdint>
+#include <functional>
 #include <string>
 #include <vector>
-#include <functional>
 
 #include <glm/glm.hpp>
 
@@ -174,6 +176,136 @@ private:
     uint32_t scenarioMinActiveBodies_ = 0;
     uint32_t scenarioActiveBodySamples_ = 0;
     std::vector<double> scenarioFrameTimes_;
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Production Browser Journey Benchmark
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// State values are part of the WASM automation ABI. Do not renumber them.
+enum class BrowserJourneyStatus : int32_t {
+    Failed = -1,
+    Idle = 0,
+    Warming = 1,
+    Throwing = 2,
+    Impact = 3,
+    Settling = 4,
+    Complete = 5,
+};
+
+[[nodiscard]] const char*
+browserJourneyStatusName(BrowserJourneyStatus status) noexcept;
+
+/// Fixed-tick production workload with deterministic volley pacing.
+struct BrowserJourneyConfig {
+    uint32_t targetBodies = 0;
+    uint32_t warmupTicks = 120;
+    uint32_t impactTicks = 300;
+    uint32_t settleTicks = 180;
+    uint32_t bodiesPerVolley = 128;
+    uint32_t ticksPerVolley = 4;
+};
+
+/// One submitted browser frame. Wall time includes missed RAF opportunities;
+/// CPU time is command generation and submission, not asynchronous GPU work.
+struct BrowserJourneyFrameSample {
+    uint64_t frame = 0;
+    uint64_t physicsTick = 0;
+    BrowserJourneyStatus phase = BrowserJourneyStatus::Idle;
+    float wallMilliseconds = 0.0f;
+    float cpuMilliseconds = 0.0f;
+    uint32_t residentBodies = 0;
+    uint32_t activeBodies = 0;
+    uint32_t candidatePairs = 0;
+    uint32_t contacts = 0;
+    uint32_t terrainContactBodies = 0;
+    uint32_t submittedPrimitives = 0;
+    uint32_t capacityOverflowMask = 0;
+    uint32_t physicsErrorMask = 0;
+};
+
+/// Drives and records the real-browser throwing journey without allocating in
+/// the measured frame loop. Application supplies the actual throwing callback.
+class BrowserJourneyBenchmark {
+public:
+    static constexpr size_t kSampleCapacity = 65'536u;
+    static constexpr uint32_t kMaximumBodiesPerVolley = 128u;
+
+    /// Reset and arm a new journey.
+    [[nodiscard]] bool start(const BrowserJourneyConfig& config,
+                             uint32_t baselineBodies,
+                             uint64_t startFrame,
+                             uint64_t startPhysicsTick) noexcept;
+
+    /// Advance phase timing and return the exact body count for this tick's
+    /// real throwing volley. Returns zero when no volley is due.
+    [[nodiscard]] uint32_t advance(uint64_t physicsTick,
+                                   uint32_t residentBodies) noexcept;
+
+    /// Complete the pending volley. Partial spawns fail the workload rather
+    /// than silently changing its collision density.
+    [[nodiscard]] bool reportVolley(uint64_t physicsTick,
+                                    uint32_t requestedBodies,
+                                    uint32_t spawnedBodies) noexcept;
+
+    /// Record one submitted application frame after presentation.
+    void recordFrame(const BrowserJourneyFrameSample& sample) noexcept;
+
+    [[nodiscard]] BrowserJourneyStatus status() const noexcept {
+        return status_;
+    }
+    [[nodiscard]] bool isRunning() const noexcept;
+    [[nodiscard]] bool passed() const noexcept;
+    [[nodiscard]] uint32_t spawnedBodies() const noexcept {
+        return spawnedBodies_;
+    }
+    [[nodiscard]] uint32_t volleyCount() const noexcept {
+        return volleyCount_;
+    }
+    [[nodiscard]] size_t sampleCount() const noexcept {
+        return sampleCount_;
+    }
+    [[nodiscard]] const char* failureReason() const noexcept;
+
+    /// Full summary plus compact raw samples, generated only when requested.
+    [[nodiscard]] std::string resultJson() const;
+
+private:
+    enum class Failure : uint8_t {
+        NoFailure,
+        InvalidConfiguration,
+        ClockRegression,
+        PendingVolley,
+        SpawnFailure,
+        BodyCountMismatch,
+        InvalidFrameSample,
+        SampleCapacity,
+        NoFrameSamples,
+    };
+
+    void fail(Failure failure) noexcept;
+    void transition(BrowserJourneyStatus status,
+                    uint64_t physicsTick) noexcept;
+
+    BrowserJourneyConfig config_{};
+    BrowserJourneyStatus status_ = BrowserJourneyStatus::Idle;
+    BrowserJourneyStatus framePhase_ = BrowserJourneyStatus::Idle;
+    Failure failure_ = Failure::NoFailure;
+    uint32_t baselineBodies_ = 0;
+    uint32_t spawnedBodies_ = 0;
+    uint32_t volleyCount_ = 0;
+    uint32_t pendingVolleyBodies_ = 0;
+    uint32_t finalResidentBodies_ = 0;
+    uint32_t finalActiveBodies_ = 0;
+    uint64_t startFrame_ = 0;
+    uint64_t startPhysicsTick_ = 0;
+    uint64_t phaseStartTick_ = 0;
+    uint64_t lastObservedTick_ = 0;
+    uint64_t pendingVolleyTick_ = 0;
+    uint64_t lastVolleyTick_ = 0;
+    bool hasVolleyTick_ = false;
+    std::array<BrowserJourneyFrameSample, kSampleCapacity> samples_{};
+    size_t sampleCount_ = 0;
 };
 
 } // namespace voxy::perf

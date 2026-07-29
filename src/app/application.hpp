@@ -71,6 +71,7 @@ namespace render {
 
 namespace perf {
     class BenchmarkRunner;
+    class BrowserJourneyBenchmark;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -458,6 +459,22 @@ public:
     /// Toggle benchmark mode on/off.
     void toggleBenchmark();
 
+    /// Start the production-browser journey. It reuses the real throwable
+    /// volley path and records submitted-frame timing inside the application.
+    [[nodiscard]] bool startBrowserJourneyBenchmark(
+        uint32_t targetBodies,
+        uint32_t warmupTicks,
+        uint32_t impactTicks,
+        uint32_t settleTicks,
+        uint32_t bodiesPerVolley,
+        uint32_t ticksPerVolley);
+
+    /// Stable integer state consumed by browser automation.
+    [[nodiscard]] int browserJourneyBenchmarkStatus() const noexcept;
+
+    /// Complete summary plus compact raw frame samples.
+    [[nodiscard]] std::string browserJourneyBenchmarkJson() const;
+
     // ─────────────────────────────────────────────────────────────────────────
     // Controller Mode
     // ─────────────────────────────────────────────────────────────────────────
@@ -477,6 +494,9 @@ public:
 
     /// Toggle uncapped FPS mode (VSync Off + Immediate loop).
     void toggleUncappedFPS();
+
+    /// Set browser loop timing explicitly for deterministic automation.
+    void setUncappedFPS(bool enabled) noexcept { uncappedFPS_ = enabled; }
 
     /// Check if uncapped FPS mode is enabled.
     [[nodiscard]] bool isUncappedFPS() const noexcept { return uncappedFPS_; }
@@ -583,6 +603,10 @@ private:
     bool initRenderGpuProfiling();
     bool createBenchmarkTarget(uint32_t width, uint32_t height);
     bool spawnBenchmarkBodies();
+    void prepareBrowserJourneyCamera();
+    void aimBrowserJourneyVolley(uint32_t volleyIndex);
+    void prepareBrowserJourneyOverview(uint32_t volleyCount);
+    void updateBrowserJourneyBenchmark();
     void retireBenchmarkSubmissions(bool drain);
     void setupCallbacks();
 
@@ -610,6 +634,13 @@ private:
 
     void processInput(float deltaTime);
     void processThrowableInput(float deltaTime);
+    [[nodiscard]] bool spawnThrowable(
+        physics::ThrowableShape shape,
+        const glm::vec3& origin,
+        const glm::vec3& direction,
+        const glm::ivec3& sector);
+    [[nodiscard]] uint32_t throwThrowableBatch(
+        physics::ThrowableShape shape, uint32_t maximumBodies);
     void handleKeyboardShortcuts();
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -659,6 +690,7 @@ private:
     
     // Benchmark mode
     std::unique_ptr<perf::BenchmarkRunner> benchmarkRunner_;
+    std::unique_ptr<perf::BrowserJourneyBenchmark> browserJourneyBenchmark_;
     std::deque<uint64_t> benchmarkSubmissionIndices_;
 
     // Subsystems (order matters for destruction)

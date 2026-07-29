@@ -20,6 +20,93 @@ Small-world direct-pair kernels intentionally leave the unused grid fields near
 zero. These extra timestamp boundaries are emitted only when physics profiling
 is enabled.
 
+## Real browser journey
+
+This is the primary experience benchmark. It launches a fresh Chrome profile,
+opens the deployed site, fixes the physical canvas at 1920×1080, aims at the
+real 8192² terrain, and throws exact body counts through the production
+right-click volley path:
+
+```bash
+node scripts/benchmark_browser.mjs \
+  --headed \
+  --output /tmp/voxys-browser-baseline.json
+```
+
+The defaults run 100, 1,000, 5,000, and 10,000 bodies three times in each mode:
+
+- `score` uses normal `requestAnimationFrame` pacing. This is the displayed
+  browser experience: frame intervals, 1% low FPS, and missed refresh periods.
+- `headroom` uses the production uncapped loop. This exposes improvements that
+  remain hidden while `score` is pinned to the monitor refresh rate.
+- `diagnose` enables GPU timestamp queries and reports every physics and render
+  stage. It is opt-in because measurement itself has a cost.
+
+The body order alternates upward and downward between repetitions. Each page
+load gets the same camera warm-up, then sweeps real volleys deterministically
+across the terrain every four physics ticks, followed by impact and settling
+windows. This avoids an artificial single-column pile while retaining
+body-body and terrain contacts. A partial final volley creates exactly the
+requested total rather than rounding it to 128. Use `--ticks-per-volley` to
+model a slower or more aggressive player.
+
+The runner fails a workload if any of these are wrong:
+
+- hardware WebGPU, fast-float GPU physics, raycast rendering, or 8192² terrain;
+- physical canvas size, page visibility, build identity, or fallback-adapter
+  selection;
+- exact resident-body and renderer-input counts;
+- observed real-terrain contacts;
+- physics capacity overflows, solver errors, first-party load failures,
+  JavaScript exceptions, or engine console errors.
+
+The JSON contains compact raw samples for every submitted frame, per-phase
+p50/p95/p99 timing, CPU time, refresh misses, collision-density peaks, memory,
+browser/GPU identity, and all correctness checks.
+
+A red capacity row is a measured engine limit, not a runner crash. Its timing
+is still printed and stored, but it must not be accepted as a valid performance
+win until the overflow is fixed.
+
+Use a headless short run as a local correctness smoke test:
+
+```bash
+node scripts/benchmark_browser.mjs \
+  --target local --build-local --quick --headless
+```
+
+Run the full local experience before deployment:
+
+```bash
+node scripts/benchmark_browser.mjs \
+  --target local --build-local --headed \
+  --output /tmp/voxys-browser-candidate.json
+```
+
+Add larger real workloads without changing the journey:
+
+```bash
+node scripts/benchmark_browser.mjs \
+  --bodies 100,1000,5000,10000,20000 \
+  --modes score,headroom --runs 3 --headed
+```
+
+Compare a candidate with a capture from the same machine, Chrome, GPU, display,
+resolution, and browser mode:
+
+```bash
+node scripts/benchmark_browser.mjs \
+  --target local --build-local --headed \
+  --baseline /tmp/voxys-browser-baseline.json \
+  --output /tmp/voxys-browser-candidate.json
+```
+
+The comparison exits with status 2 when median FPS falls or p95 frame time
+rises beyond the default 7.5% threshold. Use `--expect-build SHA` when a
+deployed result must come from one exact commit. Comparison also rejects
+mismatched Chrome versions or flags, GPU adapters, headed/headless modes,
+canvas sizes, repetition counts, and journey timing.
+
 ## Enable the probes
 
 Open the benchmark page with both opt-in probes:

@@ -1374,6 +1374,44 @@ int voxy_get_uncapped_fps() {
 }
 
 EMSCRIPTEN_KEEPALIVE
+void voxy_set_uncapped_fps(int enabled) {
+    if (g_app) g_app->setUncappedFPS(enabled != 0);
+}
+
+EMSCRIPTEN_KEEPALIVE
+int voxy_start_browser_journey_benchmark(
+    int targetBodies, int warmupTicks, int impactTicks, int settleTicks,
+    int bodiesPerVolley, int ticksPerVolley) {
+    if (!g_app || targetBodies <= 0
+        || targetBodies > static_cast<int>(voxy::kMaximumBenchmarkBodyCount)
+        || warmupTicks < 0 || impactTicks <= 0 || settleTicks <= 0
+        || bodiesPerVolley <= 0
+        || bodiesPerVolley > 128 || ticksPerVolley <= 0
+        || ticksPerVolley > 3'600) {
+        return 0;
+    }
+    return g_app->startBrowserJourneyBenchmark(
+        static_cast<uint32_t>(targetBodies),
+        static_cast<uint32_t>(warmupTicks),
+        static_cast<uint32_t>(impactTicks),
+        static_cast<uint32_t>(settleTicks),
+        static_cast<uint32_t>(bodiesPerVolley),
+        static_cast<uint32_t>(ticksPerVolley)) ? 1 : 0;
+}
+
+EMSCRIPTEN_KEEPALIVE
+int voxy_get_browser_journey_benchmark_status() {
+    return g_app ? g_app->browserJourneyBenchmarkStatus() : 0;
+}
+
+EMSCRIPTEN_KEEPALIVE
+const char* voxy_get_browser_journey_benchmark_json() {
+    static std::string snapshot;
+    snapshot = g_app ? g_app->browserJourneyBenchmarkJson() : std::string{};
+    return snapshot.empty() ? nullptr : snapshot.c_str();
+}
+
+EMSCRIPTEN_KEEPALIVE
 int voxy_get_physics_substeps() {
     const voxy::physics::PhysicsWorld* world =
         g_app ? g_app->getPhysicsWorld() : nullptr;

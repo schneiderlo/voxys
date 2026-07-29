@@ -157,6 +157,9 @@ protected:
 TEST_F(GpuPhysicsTest, RenderViewTracksSparseBodyRange) {
     const PhysicsRenderView empty = world.renderView();
     EXPECT_FALSE(empty.valid());
+    EXPECT_EQ(empty.poseBuffer, nullptr);
+    EXPECT_EQ(empty.shapeBuffer, nullptr);
+    EXPECT_EQ(empty.metadataBuffer, nullptr);
     EXPECT_EQ(empty.residentBodyCapacity, 0u);
     // Empty ticks still advance the device-side tick used by later commands.
     stepTicks(2u);

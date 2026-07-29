@@ -2623,13 +2623,15 @@ public:
     }
 
     PhysicsRenderView view() const noexcept {
+        if (residentBodies_ == 0u) {
+            return {};
+        }
         return {
             .poseBuffer = poseBuffer_,
             .shapeBuffer = shapeBuffer_,
             .metadataBuffer = metadataBuffer_,
             .activeBodyIds = activeIdsBuffer_,
-            .residentBodyCapacity = residentBodies_ == 0u
-                ? 0u : nextUnusedIndex_,
+            .residentBodyCapacity = nextUnusedIndex_,
             .shapeCount = static_cast<uint32_t>(ThrowableShape::Count),
         };
     }

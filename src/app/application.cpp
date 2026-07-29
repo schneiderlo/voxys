@@ -85,6 +85,20 @@ enum RendererSettingsDirty : uint32_t {
 constexpr float kDegreesToRadians = std::numbers::pi_v<float> / 180.0f;
 constexpr float kRadiansToDegrees = 180.0f / std::numbers::pi_v<float>;
 constexpr uint32_t kPortableMaximumTextureDimension2D = 8'192u;
+constexpr float kBrowserJourneyTargetX = 250.0f;
+constexpr float kBrowserJourneyTargetZ = 0.0f;
+
+void setCameraWorldPose(
+    Camera& camera, const glm::dvec3& absolutePosition,
+    const glm::dvec3& absoluteTarget) {
+    const physics::WorldPosition position =
+        physics::worldPositionFromAbsolute(absolutePosition);
+    const glm::dvec3 sectorOrigin =
+        glm::dvec3(position.sector) *
+        static_cast<double>(physics::kWorldSectorSize);
+    camera.setWorldPosition(position.sector, position.local);
+    camera.lookAt(glm::vec3(absoluteTarget - sectorOrigin));
+}
 
 [[nodiscard]] float finiteClamp(double value, float minimum, float maximum) {
     if (!std::isfinite(value)) return minimum;
@@ -445,6 +459,7 @@ bool Application::init(const ApplicationConfig& config) {
     throwableWheelAccumulator_ = 0.0f;
     throwableCooldown_ = 0.0f;
     benchmarkRunner_.reset();
+    browserJourneyBenchmark_.reset();
     benchmarkSubmissionIndices_.clear();
     lastFrameTime_ = 0.0;
     fpsAccumulator_ = 0.0;
@@ -807,12 +822,18 @@ void Application::update(float simulationDeltaTime, float frameDeltaTime) {
     }
     applyRendererSettings();
 
+    const bool browserJourneyWasRunning = browserJourneyBenchmark_
+        && browserJourneyBenchmark_->isRunning();
+    if (browserJourneyWasRunning) {
+        updateBrowserJourneyBenchmark();
+    }
+
     // Command-line benchmarks are scripted workloads. Ignoring gameplay input
     // keeps their camera and body count stable even if the window has focus.
     const bool scriptedBenchmark =
         (config_.benchmarkOnStartup || config_.exitAfterBenchmark)
         && isBenchmarkRunning();
-    if (!scriptedBenchmark) {
+    if (!scriptedBenchmark && !browserJourneyWasRunning) {
         processInput(simulationDeltaTime);
         handleKeyboardShortcuts();
 
@@ -1206,6 +1227,34 @@ void Application::processFrame(float simulationDeltaTime,
     
     // End frame timing
     frameTimer.endFrame();
+
+    if (browserJourneyBenchmark_) {
+        const perf::FrameStats frameStats = frameTimer.getLastFrameStats();
+        browserJourneyBenchmark_->recordFrame({
+            .frame = stats_.frameCount,
+            .physicsTick = physicsWorld_ ? physicsWorld_->encodedTick() : 0u,
+            .phase = perf::BrowserJourneyStatus::Idle,
+            .wallMilliseconds = static_cast<float>(stats_.frameTimeMs),
+            .cpuMilliseconds = static_cast<float>(frameStats.totalMs),
+            .residentBodies = stats_.physicsResidentBodies,
+            .activeBodies = stats_.physicsActiveBodies,
+            .candidatePairs = stats_.physics.candidatePairUsage.current,
+            .contacts = stats_.physics.contactUsage.current,
+            .terrainContactBodies = stats_.physics.terrainContactBodies,
+            .submittedPrimitives = stats_.primitiveSubmittedCount,
+            .capacityOverflowMask =
+                (stats_.physics.candidatePairUsage.overflow ? 1u : 0u)
+                | (stats_.physics.uniquePairUsage.overflow ? 2u : 0u)
+                | (stats_.physics.contactUsage.overflow ? 4u : 0u)
+                | (stats_.physics.overflowConstraintUsage.overflow
+                       ? 8u : 0u),
+            .physicsErrorMask =
+                (stats_.physics.invalidManifolds != 0u ? 1u : 0u)
+                | (stats_.physics.colorConflictErrors != 0u ? 2u : 0u)
+                | (stats_.physics.islandRootErrors != 0u ? 4u : 0u)
+                | (stats_.physics.ccdFailures != 0u ? 8u : 0u),
+        });
+    }
     
     // Update benchmark if running (use frame timer stats)
     if (benchmarkRunner_ && benchmarkRunner_->isRunning()) {
@@ -1857,6 +1906,176 @@ void Application::toggleBenchmark() {
         stopBenchmark();
     } else {
         startBenchmark();
+    }
+}
+
+bool Application::startBrowserJourneyBenchmark(
+    uint32_t targetBodies, uint32_t warmupTicks, uint32_t impactTicks,
+    uint32_t settleTicks, uint32_t bodiesPerVolley,
+    uint32_t ticksPerVolley) {
+    if (!initialized_ || !physicsWorld_ || !camera_ || !characterController_
+        || isBenchmarkRunning()
+        || (browserJourneyBenchmark_
+            && browserJourneyBenchmark_->isRunning())) {
+        return false;
+    }
+
+    const physics::PhysicsStats physicsStats = physicsWorld_->stats();
+    const uint32_t availableBodies =
+        physicsStats.bodyCapacity >= physicsStats.residentBodies
+        ? physicsStats.bodyCapacity - physicsStats.residentBodies : 0u;
+    if (uint64_t{physicsStats.residentBodies} + targetBodies
+        > physicsStats.bodyCapacity) {
+        LOG_ERROR(
+            "Browser journey requires {} additional bodies, but only {} slots remain",
+            targetBodies, availableBodies);
+        return false;
+    }
+
+    if (!browserJourneyBenchmark_) {
+        browserJourneyBenchmark_ =
+            std::make_unique<perf::BrowserJourneyBenchmark>();
+    }
+    const perf::BrowserJourneyConfig journeyConfig{
+        .targetBodies = targetBodies,
+        .warmupTicks = warmupTicks,
+        .impactTicks = impactTicks,
+        .settleTicks = settleTicks,
+        .bodiesPerVolley = bodiesPerVolley,
+        .ticksPerVolley = ticksPerVolley,
+    };
+    const bool started = browserJourneyBenchmark_->start(
+        journeyConfig, physicsStats.residentBodies, stats_.frameCount,
+        physicsWorld_->encodedTick());
+    if (started) {
+        prepareBrowserJourneyCamera();
+        LOG_INFO(
+            "Browser journey armed: {} bodies, {} per real volley every {} ticks, phases {} warmup / {} impact / {} settle",
+            targetBodies, bodiesPerVolley, ticksPerVolley, warmupTicks,
+            impactTicks, settleTicks);
+    } else {
+        LOG_ERROR("Browser journey rejected: {}",
+                  browserJourneyBenchmark_->failureReason());
+    }
+    return started;
+}
+
+int Application::browserJourneyBenchmarkStatus() const noexcept {
+    return browserJourneyBenchmark_
+        ? static_cast<int>(browserJourneyBenchmark_->status())
+        : static_cast<int>(perf::BrowserJourneyStatus::Idle);
+}
+
+std::string Application::browserJourneyBenchmarkJson() const {
+    return browserJourneyBenchmark_
+        ? browserJourneyBenchmark_->resultJson() : std::string{};
+}
+
+void Application::prepareBrowserJourneyCamera() {
+    if (!camera_ || !characterController_) return;
+
+    // Aim a repeatable player-like view at the actual production terrain.
+    // The downward ray makes each rapid volley enter a dense terrain/contact
+    // phase within a few seconds instead of remaining airborne for the run.
+    const float terrainY =
+        characterController_->sampleTerrainHeight(
+            kBrowserJourneyTargetX, kBrowserJourneyTargetZ);
+    const glm::dvec3 target{
+        kBrowserJourneyTargetX, terrainY + 2.0f,
+        kBrowserJourneyTargetZ};
+    const glm::dvec3 position{
+        kBrowserJourneyTargetX - 36.0f, terrainY + 24.0f,
+        kBrowserJourneyTargetZ - 20.0f};
+    setCameraWorldPose(*camera_, position, target);
+    controllerMode_ = ControllerMode::FreeFly;
+    stats_.activeController = controllerMode_;
+}
+
+void Application::aimBrowserJourneyVolley(uint32_t volleyIndex) {
+    if (!camera_ || !characterController_) return;
+
+    // A deterministic sunflower sweep models a player traversing the terrain
+    // and changing aim. It keeps thousands of bodies from becoming an
+    // artificial single-column pile.
+    // The production body limit needs at most 1,024 full volleys, so each
+    // volley gets its own terrain zone.
+    constexpr uint32_t impactZoneCount = 1'024u;
+    constexpr float impactZoneSpacing = 24.0f;
+    constexpr float goldenAngle = 2.39996323f;
+    const uint32_t zone = volleyIndex % impactZoneCount;
+    const float radius = impactZoneSpacing
+        * std::sqrt(static_cast<float>(zone));
+    const float angle = static_cast<float>(zone) * goldenAngle;
+    const float targetX =
+        kBrowserJourneyTargetX + std::cos(angle) * radius;
+    const float targetZ =
+        kBrowserJourneyTargetZ + std::sin(angle) * radius;
+    const float terrainY =
+        characterController_->sampleTerrainHeight(targetX, targetZ);
+    const glm::dvec3 target{targetX, terrainY + 2.0f, targetZ};
+    const glm::dvec3 position{
+        targetX - 36.0f, terrainY + 24.0f, targetZ - 20.0f};
+    setCameraWorldPose(*camera_, position, target);
+}
+
+void Application::prepareBrowserJourneyOverview(uint32_t volleyCount) {
+    if (!camera_ || !characterController_) return;
+
+    constexpr float impactZoneSpacing = 24.0f;
+    const float radius = volleyCount > 1u
+        ? impactZoneSpacing
+            * std::sqrt(static_cast<float>(volleyCount - 1u))
+        : 0.0f;
+    const float terrainY =
+        characterController_->sampleTerrainHeight(
+            kBrowserJourneyTargetX, kBrowserJourneyTargetZ);
+    const float distance = 60.0f + radius * 2.3f;
+    const float height = 60.0f + radius * 1.3f;
+    const glm::dvec3 position{
+        kBrowserJourneyTargetX, terrainY + height,
+        kBrowserJourneyTargetZ - distance};
+    const glm::dvec3 target{
+        kBrowserJourneyTargetX, terrainY + 2.0f,
+        kBrowserJourneyTargetZ};
+    setCameraWorldPose(*camera_, position, target);
+}
+
+void Application::updateBrowserJourneyBenchmark() {
+    if (!browserJourneyBenchmark_ || !physicsWorld_
+        || !browserJourneyBenchmark_->isRunning()) {
+        return;
+    }
+
+    const uint64_t physicsTick = physicsWorld_->encodedTick();
+    const uint32_t requested = browserJourneyBenchmark_->advance(
+        physicsTick, physicsWorld_->stats().residentBodies);
+    if (requested != 0u) {
+        aimBrowserJourneyVolley(browserJourneyBenchmark_->volleyCount());
+        constexpr uint32_t shapeCount =
+            static_cast<uint32_t>(physics::ThrowableShape::Count);
+        selectedThrowable_ =
+            browserJourneyBenchmark_->volleyCount() % shapeCount;
+        const auto shape =
+            static_cast<physics::ThrowableShape>(selectedThrowable_);
+        const uint32_t spawned = throwThrowableBatch(shape, requested);
+        static_cast<void>(browserJourneyBenchmark_->reportVolley(
+            physicsTick, requested, spawned));
+        if (browserJourneyBenchmark_->status()
+            == perf::BrowserJourneyStatus::Impact) {
+            prepareBrowserJourneyOverview(
+                browserJourneyBenchmark_->volleyCount());
+        }
+    }
+
+    if (!browserJourneyBenchmark_->isRunning()) {
+        if (browserJourneyBenchmark_->passed()) {
+            LOG_INFO("Browser journey complete: {} bodies across {} volleys",
+                     browserJourneyBenchmark_->spawnedBodies(),
+                     browserJourneyBenchmark_->volleyCount());
+        } else {
+            LOG_ERROR("Browser journey failed: {}",
+                      browserJourneyBenchmark_->failureReason());
+        }
     }
 }
 
@@ -2898,6 +3117,121 @@ void Application::processInput(float deltaTime) {
     processThrowableInput(deltaTime);
 }
 
+bool Application::spawnThrowable(
+    physics::ThrowableShape shape, const glm::vec3& origin,
+    const glm::vec3& direction, const glm::ivec3& sector) {
+    if (!physicsWorld_
+        || static_cast<uint32_t>(shape)
+            >= static_cast<uint32_t>(physics::ThrowableShape::Count)
+        || !std::isfinite(origin.x) || !std::isfinite(origin.y)
+        || !std::isfinite(origin.z) || !std::isfinite(direction.x)
+        || !std::isfinite(direction.y) || !std::isfinite(direction.z)
+        || glm::dot(direction, direction) < 1.0e-8f) {
+        return false;
+    }
+
+    constexpr float throwSpeed = 28.0f;
+    const glm::vec3 normalizedDirection = glm::normalize(direction);
+    if (physicsWorld_->backendType()
+        == physics::BackendType::Box3DReference) {
+        return physicsWorld_->throwBody(
+            shape, origin, normalizedDirection * throwSpeed);
+    }
+
+    physics::BodySpawnDesc desc;
+    desc.shape = shape;
+    desc.position = origin;
+    desc.sector = sector;
+    desc.linearVelocity = normalizedDirection * throwSpeed;
+    desc.angularVelocity = {3.5f, 5.0f, 2.5f};
+    desc.dimensions = physics::throwableShapeDimensions(shape);
+    return physicsWorld_->spawnBody(desc).valid();
+}
+
+uint32_t Application::throwThrowableBatch(
+    physics::ThrowableShape shape, uint32_t maximumBodies) {
+    if (!camera_ || !physicsWorld_ || maximumBodies == 0u) return 0u;
+
+    constexpr uint32_t columns = 16u;
+    constexpr uint32_t maximumRows = 8u;
+    constexpr uint32_t fullBatchSize = columns * maximumRows;
+    const uint32_t batchSize = std::min(maximumBodies, fullBatchSize);
+    const uint32_t rows = (batchSize + columns - 1u) / columns;
+    const glm::vec3 direction = glm::normalize(camera_->forward());
+    const glm::vec3 dimensions =
+        physics::throwableShapeDimensions(shape);
+    const float maximumDimension = std::max(
+        dimensions.x, std::max(dimensions.y, dimensions.z));
+    const float spacing = maximumDimension * 1.08f + 0.02f;
+    const float halfWidth = 0.5f * static_cast<float>(columns - 1u)
+                          * spacing + 0.5f * maximumDimension;
+    const float halfHeight = 0.5f * static_cast<float>(rows - 1u)
+                           * spacing + 0.5f * maximumDimension;
+    const float tanHalfFov = std::max(
+        std::tan(camera_->fovY() * 0.5f), 1.0e-3f);
+    const float verticalDistance = halfHeight / tanHalfFov;
+    const float horizontalDistance = halfWidth
+        / (tanHalfFov * std::max(camera_->aspectRatio(), 1.0e-3f));
+    const uint32_t batchLane =
+        (physicsWorld_->stats().residentBodies / fullBatchSize) % 4u;
+    const float batchDistance = std::max(
+        2.2f, std::max(verticalDistance, horizontalDistance) + 0.5f)
+        + static_cast<float>(batchLane) * spacing * 1.5f;
+    const glm::vec3 batchCenter =
+        camera_->position() + direction * batchDistance;
+    const glm::vec3 cameraRight = glm::normalize(camera_->right());
+    const glm::vec3 cameraUp = glm::normalize(camera_->up());
+    const glm::ivec3 cameraSector = camera_->worldSector();
+
+    uint32_t thrown = 0u;
+    for (uint32_t index = 0u; index < batchSize; ++index) {
+        const uint32_t column = index % columns;
+        const uint32_t row = index / columns;
+        const float x = (static_cast<float>(column)
+            - 0.5f * static_cast<float>(columns - 1u)) * spacing;
+        const float y = (static_cast<float>(row)
+            - 0.5f * static_cast<float>(rows - 1u)) * spacing;
+        const float coneX = x / std::max(halfWidth, 1.0e-3f);
+        const float coneY = y / std::max(halfHeight, 1.0e-3f);
+        glm::vec3 launchDirection = glm::normalize(
+            direction + cameraRight * (coneX * 0.08f)
+                      + cameraUp * (coneY * 0.08f));
+        glm::vec3 spawnOrigin = batchCenter
+                              + cameraRight * x + cameraUp * y;
+        if (characterController_) {
+            const float worldX = spawnOrigin.x
+                + static_cast<float>(cameraSector.x)
+                * physics::kWorldSectorSize;
+            const float worldZ = spawnOrigin.z
+                + static_cast<float>(cameraSector.z)
+                * physics::kWorldSectorSize;
+            const float terrainHeight =
+                characterController_->sampleTerrainHeight(worldX, worldZ);
+            const float clearance = dimensions.y * 0.5f + 0.05f;
+            const float minimumY = terrainHeight
+                - static_cast<float>(cameraSector.y)
+                * physics::kWorldSectorSize
+                + clearance;
+            if (spawnOrigin.y < minimumY) {
+                spawnOrigin.y = minimumY;
+                const glm::vec3 terrainNormal = glm::normalize(
+                    characterController_->sampleTerrainNormal(
+                        worldX, worldZ));
+                const float intoTerrain =
+                    glm::dot(launchDirection, terrainNormal);
+                if (intoTerrain < 0.0f) {
+                    launchDirection = glm::normalize(
+                        launchDirection - terrainNormal * intoTerrain
+                        + terrainNormal * 0.1f);
+                }
+            }
+        }
+        thrown += spawnThrowable(
+            shape, spawnOrigin, launchDirection, cameraSector) ? 1u : 0u;
+    }
+    return thrown;
+}
+
 void Application::processThrowableInput(float deltaTime) {
     if (!input_ || !camera_ || !physicsWorld_) {
         return;
@@ -2941,98 +3275,10 @@ void Application::processThrowableInput(float deltaTime) {
         selectedThrowable_);
     const glm::vec3 direction = glm::normalize(camera_->forward());
     const glm::vec3 origin = camera_->position() + direction * 2.2f;
-    constexpr float throwSpeed = 28.0f;
-    const glm::vec3 dimensions =
-        physics::PhysicsWorld::throwableShapeDimensions(shape);
-    const auto throwSelected = [&](const glm::vec3& spawnOrigin,
-                                   const glm::vec3& spawnDirection) {
-        physics::BodySpawnDesc desc;
-        desc.shape = shape;
-        desc.position = spawnOrigin;
-        desc.sector = camera_->worldSector();
-        desc.linearVelocity = spawnDirection * throwSpeed;
-        desc.angularVelocity = {3.5f, 5.0f, 2.5f};
-        desc.dimensions = dimensions;
-        if (physicsWorld_->backendType()
-            != physics::BackendType::Box3DReference) {
-            return physicsWorld_->spawnBody(desc).valid();
-        }
-        return physicsWorld_->throwBody(
-            shape, spawnOrigin, spawnDirection * throwSpeed);
-    };
 
     if (batchRequested) {
-        constexpr uint32_t columns = 16u;
-        constexpr uint32_t rows = 8u;
-        constexpr uint32_t batchSize = columns * rows;
-        const float maximumDimension = std::max(
-            dimensions.x, std::max(dimensions.y, dimensions.z));
-        const float spacing = maximumDimension * 1.08f + 0.02f;
-        const float halfWidth = 0.5f * static_cast<float>(columns - 1u)
-                              * spacing + 0.5f * maximumDimension;
-        const float halfHeight = 0.5f * static_cast<float>(rows - 1u)
-                               * spacing + 0.5f * maximumDimension;
-        const float tanHalfFov = std::max(
-            std::tan(camera_->fovY() * 0.5f), 1.0e-3f);
-        const float verticalDistance = halfHeight / tanHalfFov;
-        const float horizontalDistance = halfWidth
-            / (tanHalfFov * std::max(camera_->aspectRatio(), 1.0e-3f));
-        const uint32_t batchLane =
-            (physicsWorld_->stats().residentBodies / batchSize) % 4u;
-        const float batchDistance = std::max(
-            2.2f, std::max(verticalDistance, horizontalDistance) + 0.5f)
-            + static_cast<float>(batchLane) * spacing * 1.5f;
-        const glm::vec3 batchCenter =
-            camera_->position() + direction * batchDistance;
-        const glm::vec3 cameraRight = glm::normalize(camera_->right());
-        const glm::vec3 cameraUp = glm::normalize(camera_->up());
-        uint32_t thrown = 0;
-        for (uint32_t i = 0; i < batchSize; ++i) {
-            const uint32_t column = i % columns;
-            const uint32_t row = i / columns;
-            const float x = (static_cast<float>(column)
-                - 0.5f * static_cast<float>(columns - 1u)) * spacing;
-            const float y = (static_cast<float>(row)
-                - 0.5f * static_cast<float>(rows - 1u)) * spacing;
-            const float coneX = x / std::max(halfWidth, 1.0e-3f);
-            const float coneY = y / std::max(halfHeight, 1.0e-3f);
-            glm::vec3 launchDirection = glm::normalize(
-                direction + cameraRight * (coneX * 0.08f)
-                          + cameraUp * (coneY * 0.08f));
-            glm::vec3 spawnOrigin = batchCenter
-                                  + cameraRight * x + cameraUp * y;
-            if (characterController_) {
-                const glm::ivec3 cameraSector = camera_->worldSector();
-                const float worldX = spawnOrigin.x
-                    + static_cast<float>(cameraSector.x)
-                    * physics::kWorldSectorSize;
-                const float worldZ = spawnOrigin.z
-                    + static_cast<float>(cameraSector.z)
-                    * physics::kWorldSectorSize;
-                const float terrainHeight =
-                    characterController_->sampleTerrainHeight(
-                        worldX, worldZ);
-                const float clearance = dimensions.y * 0.5f + 0.05f;
-                const float minimumY = terrainHeight
-                    - static_cast<float>(cameraSector.y)
-                    * physics::kWorldSectorSize
-                    + clearance;
-                if (spawnOrigin.y < minimumY) {
-                    spawnOrigin.y = minimumY;
-                    const glm::vec3 terrainNormal = glm::normalize(
-                        characterController_->sampleTerrainNormal(
-                            worldX, worldZ));
-                    const float intoTerrain =
-                        glm::dot(launchDirection, terrainNormal);
-                    if (intoTerrain < 0.0f) {
-                        launchDirection = glm::normalize(
-                            launchDirection - terrainNormal * intoTerrain
-                            + terrainNormal * 0.1f);
-                    }
-                }
-            }
-            thrown += throwSelected(spawnOrigin, launchDirection) ? 1u : 0u;
-        }
+        constexpr uint32_t batchSize = 16u * 8u;
+        const uint32_t thrown = throwThrowableBatch(shape, batchSize);
         LOG_INFO("Threw {} x {}", thrown,
                  physics::PhysicsWorld::throwableShapeName(shape));
     }
@@ -3051,7 +3297,8 @@ void Application::processThrowableInput(float deltaTime) {
                 >= throwableBodyLimit_) {
             break;
         }
-        if (throwSelected(origin, direction)) {
+        if (spawnThrowable(
+                shape, origin, direction, camera_->worldSector())) {
             LOG_INFO("Threw {}", physics::PhysicsWorld::throwableShapeName(shape));
         }
         throwableCooldown_ += throwInterval;

@@ -233,4 +233,238 @@ TEST(BenchmarkRunnerTest, InvalidFrameTelemetryCannotProduceAPassingRun) {
     EXPECT_FALSE(runner.passed());
 }
 
+TEST(BrowserJourneyBenchmarkTest, DrivesExactRealVolleysAndCompletes) {
+    BrowserJourneyBenchmark journey;
+    ASSERT_TRUE(journey.start(
+        BrowserJourneyConfig{
+            .targetBodies = 100,
+            .warmupTicks = 2,
+            .impactTicks = 3,
+            .settleTicks = 2,
+            .bodiesPerVolley = 64,
+            .ticksPerVolley = 1,
+        },
+        3, 10, 20));
+
+    EXPECT_EQ(journey.status(), BrowserJourneyStatus::Warming);
+    EXPECT_EQ(journey.advance(20, 3), 0u);
+    EXPECT_EQ(journey.advance(21, 3), 0u);
+
+    EXPECT_EQ(journey.advance(22, 3), 64u);
+    ASSERT_TRUE(journey.reportVolley(22, 64, 64));
+    journey.recordFrame({
+        .frame = 11,
+        .physicsTick = 22,
+        .wallMilliseconds = 16.7f,
+        .cpuMilliseconds = 2.0f,
+        .residentBodies = 67,
+        .activeBodies = 64,
+    });
+
+    // An uncapped renderer may submit multiple frames per physics tick. Only
+    // the first one can create another production volley.
+    EXPECT_EQ(journey.advance(22, 67), 0u);
+    journey.recordFrame({
+        .frame = 12,
+        .physicsTick = 22,
+        .wallMilliseconds = 1.0f,
+        .cpuMilliseconds = 0.4f,
+        .residentBodies = 67,
+        .activeBodies = 64,
+    });
+
+    EXPECT_EQ(journey.advance(23, 67), 36u);
+    ASSERT_TRUE(journey.reportVolley(23, 36, 36));
+    journey.recordFrame({
+        .frame = 13,
+        .physicsTick = 23,
+        .wallMilliseconds = 34.0f,
+        .cpuMilliseconds = 2.5f,
+        .residentBodies = 103,
+        .activeBodies = 100,
+        .candidatePairs = 700,
+        .contacts = 250,
+        .terrainContactBodies = 90,
+        .submittedPrimitives = 103,
+    });
+    EXPECT_EQ(journey.spawnedBodies(), 100u);
+    EXPECT_EQ(journey.volleyCount(), 2u);
+    EXPECT_EQ(journey.status(), BrowserJourneyStatus::Impact);
+
+    EXPECT_EQ(journey.advance(24, 103), 0u);
+    journey.recordFrame({
+        .frame = 14,
+        .physicsTick = 24,
+        .wallMilliseconds = 16.7f,
+        .cpuMilliseconds = 1.5f,
+        .residentBodies = 103,
+        .activeBodies = 100,
+    });
+    EXPECT_EQ(journey.advance(26, 103), 0u);
+    journey.recordFrame({
+        .frame = 15,
+        .physicsTick = 26,
+        .wallMilliseconds = 16.7f,
+        .cpuMilliseconds = 1.2f,
+        .residentBodies = 103,
+        .activeBodies = 80,
+    });
+    EXPECT_EQ(journey.status(), BrowserJourneyStatus::Settling);
+
+    EXPECT_EQ(journey.advance(28, 103), 0u);
+    journey.recordFrame({
+        .frame = 16,
+        .physicsTick = 28,
+        .wallMilliseconds = 16.7f,
+        .cpuMilliseconds = 1.0f,
+        .residentBodies = 103,
+        .activeBodies = 25,
+    });
+
+    EXPECT_EQ(journey.status(), BrowserJourneyStatus::Complete);
+    EXPECT_TRUE(journey.passed());
+    EXPECT_EQ(journey.sampleCount(), 6u);
+    journey.recordFrame({
+        .frame = 17,
+        .physicsTick = 29,
+        .wallMilliseconds = 50.0f,
+        .cpuMilliseconds = 10.0f,
+        .residentBodies = 103,
+        .activeBodies = 25,
+    });
+    EXPECT_EQ(journey.sampleCount(), 6u);
+
+    const std::string json = journey.resultJson();
+    EXPECT_NE(json.find("\"schema\":\"voxys.browser_journey.v1\""),
+              std::string::npos);
+    EXPECT_NE(json.find("\"missed_deadlines_60hz\":1"),
+              std::string::npos);
+    EXPECT_NE(json.find("\"missed_deadlines_90hz\":6"),
+              std::string::npos);
+    EXPECT_NE(json.find("\"missed_deadlines_120hz\":7"),
+              std::string::npos);
+    EXPECT_NE(json.find("\"expected_final_bodies\":103"),
+              std::string::npos);
+    EXPECT_NE(json.find("\"terrain_contact_bodies\":90"),
+              std::string::npos);
+    EXPECT_NE(json.find("\"submitted_primitives\":103"),
+              std::string::npos);
+    EXPECT_NE(json.find("\"throwing\":{\"frame\":{\"count\":3"),
+              std::string::npos);
+}
+
+TEST(BrowserJourneyBenchmarkTest, PartialVolleyFailsImmediately) {
+    BrowserJourneyBenchmark journey;
+    ASSERT_TRUE(journey.start(
+        BrowserJourneyConfig{
+            .targetBodies = 128,
+            .warmupTicks = 0,
+            .impactTicks = 1,
+            .settleTicks = 1,
+            .bodiesPerVolley = 128,
+        },
+        0, 0, 5));
+
+    EXPECT_EQ(journey.advance(5, 0), 128u);
+    EXPECT_FALSE(journey.reportVolley(5, 128, 127));
+    EXPECT_EQ(journey.status(), BrowserJourneyStatus::Failed);
+    EXPECT_STREQ(journey.failureReason(), "partial_spawn");
+    EXPECT_FALSE(journey.passed());
+}
+
+TEST(BrowserJourneyBenchmarkTest, PacesVolleysByPhysicsTick) {
+    BrowserJourneyBenchmark journey;
+    ASSERT_TRUE(journey.start(
+        BrowserJourneyConfig{
+            .targetBodies = 256,
+            .warmupTicks = 0,
+            .impactTicks = 1,
+            .settleTicks = 1,
+            .bodiesPerVolley = 128,
+            .ticksPerVolley = 4,
+        },
+        0, 0, 10));
+
+    ASSERT_EQ(journey.advance(10, 0), 128u);
+    ASSERT_TRUE(journey.reportVolley(10, 128, 128));
+    EXPECT_EQ(journey.advance(11, 128), 0u);
+    EXPECT_EQ(journey.advance(13, 128), 0u);
+    EXPECT_EQ(journey.advance(14, 128), 128u);
+}
+
+TEST(BrowserJourneyBenchmarkTest, RejectsClockAndFinalBodyMismatch) {
+    BrowserJourneyBenchmark journey;
+    ASSERT_TRUE(journey.start(
+        BrowserJourneyConfig{
+            .targetBodies = 1,
+            .warmupTicks = 1,
+            .impactTicks = 1,
+            .settleTicks = 1,
+            .bodiesPerVolley = 1,
+        },
+        0, 0, 10));
+    EXPECT_EQ(journey.advance(9, 0), 0u);
+    EXPECT_EQ(journey.status(), BrowserJourneyStatus::Failed);
+    EXPECT_STREQ(journey.failureReason(), "physics_clock_regression");
+
+    ASSERT_TRUE(journey.start(
+        BrowserJourneyConfig{
+            .targetBodies = 1,
+            .warmupTicks = 0,
+            .impactTicks = 1,
+            .settleTicks = 1,
+            .bodiesPerVolley = 1,
+        },
+        0, 0, 10));
+    ASSERT_EQ(journey.advance(10, 0), 1u);
+    ASSERT_TRUE(journey.reportVolley(10, 1, 1));
+    journey.recordFrame({
+        .frame = 1,
+        .physicsTick = 10,
+        .wallMilliseconds = 16.7f,
+        .cpuMilliseconds = 1.0f,
+        .residentBodies = 1,
+        .activeBodies = 1,
+    });
+    EXPECT_EQ(journey.advance(11, 1), 0u);
+    journey.recordFrame({
+        .frame = 2,
+        .physicsTick = 11,
+        .wallMilliseconds = 16.7f,
+        .cpuMilliseconds = 1.0f,
+        .residentBodies = 1,
+        .activeBodies = 1,
+    });
+    EXPECT_EQ(journey.advance(12, 0), 0u);
+    EXPECT_EQ(journey.status(), BrowserJourneyStatus::Failed);
+    EXPECT_STREQ(journey.failureReason(), "body_count_mismatch");
+}
+
+TEST(BrowserJourneyBenchmarkTest, RejectsInvalidConfiguration) {
+    BrowserJourneyBenchmark journey;
+    EXPECT_FALSE(journey.start(
+        BrowserJourneyConfig{
+            .targetBodies = 0,
+            .warmupTicks = 1,
+            .impactTicks = 1,
+            .settleTicks = 1,
+            .bodiesPerVolley = 128,
+        },
+        0, 0, 0));
+    EXPECT_EQ(journey.status(), BrowserJourneyStatus::Failed);
+    EXPECT_STREQ(journey.failureReason(), "invalid_configuration");
+
+    EXPECT_FALSE(journey.start(
+        BrowserJourneyConfig{
+            .targetBodies = 1,
+            .warmupTicks = 1,
+            .impactTicks = 1,
+            .settleTicks = 1,
+            .bodiesPerVolley = 1,
+            .ticksPerVolley = 0,
+        },
+        0, 0, 0));
+    EXPECT_STREQ(journey.failureReason(), "invalid_configuration");
+}
+
 } // namespace voxy::perf

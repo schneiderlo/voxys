@@ -53,6 +53,15 @@ Run the five-view native benchmark with:
 bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
 ```
 
+Run the deployed, real-interaction browser matrix with:
+
+```bash
+node scripts/benchmark_browser.mjs --headed
+```
+
+It throws exact 100, 1,000, 5,000, and 10,000 body workloads onto the real
+terrain. It records both normal displayed pacing and uncapped headroom.
+
 For the authoritative WASM renderer-throughput gate, open the app in a hardware
 WebGPU Chrome instance with `renderThroughput=1`, then run:
 
