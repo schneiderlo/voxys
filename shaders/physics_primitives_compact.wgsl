@@ -104,22 +104,25 @@ fn linearToSrgb(linear : vec3<f32>) -> vec3<f32> {
 
 @fragment
 fn fs(input : VSOut) -> @location(0) vec4<f32> {
+    let cameraDelta = uniforms.cameraPos.xyz - input.worldPosition;
+    let distanceToCamera = length(cameraDelta);
     if (uniforms.lightDirAndRayDepth.w > 0.5) {
         let dims = textureDimensions(rayDepth, 0);
         let pixel = clamp(vec2<i32>(input.position.xy), vec2<i32>(0),
                           vec2<i32>(dims) - vec2<i32>(1));
         let terrainDistance = textureLoad(rayDepth, pixel, 0).x;
-        let objectDistance = length(input.worldPosition - uniforms.cameraPos.xyz);
-        if (terrainDistance >= 0.0 && objectDistance > terrainDistance + 0.02) {
+        if (terrainDistance >= 0.0
+            && distanceToCamera > terrainDistance + 0.02) {
             discard;
         }
     }
 
-    let lightDir = normalize(uniforms.lightDirAndRayDepth.xyz);
-    let diffuse = max(dot(normalize(input.worldNormal), lightDir), 0.0);
-    let viewDir = normalize(uniforms.cameraPos.xyz - input.worldPosition);
+    let normal = normalize(input.worldNormal);
+    let lightDir = uniforms.lightDirAndRayDepth.xyz;
+    let diffuse = max(dot(normal, lightDir), 0.0);
+    let viewDir = cameraDelta / max(distanceToCamera, 1e-20);
     let halfVector = normalize(lightDir + viewDir);
-    let specular = pow(max(dot(normalize(input.worldNormal), halfVector), 0.0), 32.0);
+    let specular = pow(max(dot(normal, halfVector), 0.0), 32.0);
     let ambientMaximum = max(max(uniforms.ambientColor.r,
                                  uniforms.ambientColor.g),
                              max(uniforms.ambientColor.b, 0.001));
@@ -128,7 +131,6 @@ fn fs(input : VSOut) -> @location(0) vec4<f32> {
     let illumination = ambientTint * max(uniforms.ambientColor.w, 0.05) +
                        sunRadiance * diffuse;
     var lit = input.color * illumination + sunRadiance * (0.22 * specular);
-    let distanceToCamera = length(input.worldPosition - uniforms.cameraPos.xyz);
     let maximumFog = select(0.7, 1.0,
                             uniforms.lightDirAndRayDepth.w > 0.5);
     let fog = clamp(1.0 - exp(-max(uniforms.viewport.z, 0.0) *
