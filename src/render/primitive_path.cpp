@@ -400,7 +400,7 @@ bool PrimitivePath::createLayoutAndPipeline(const PrimitivePathConfig& config) {
     WGPUPrimitiveState primitiveState{};
     primitiveState.topology = WGPUPrimitiveTopology_TriangleList;
     primitiveState.frontFace = WGPUFrontFace_CCW;
-    primitiveState.cullMode = WGPUCullMode_None;
+    primitiveState.cullMode = WGPUCullMode_Back;
 
     WGPUDepthStencilState depthState{};
     depthState.format = config.depthFormat;
@@ -490,7 +490,7 @@ bool PrimitivePath::createCompactLayoutAndPipeline(
     WGPUPrimitiveState primitiveState{};
     primitiveState.topology = WGPUPrimitiveTopology_TriangleList;
     primitiveState.frontFace = WGPUFrontFace_CCW;
-    primitiveState.cullMode = WGPUCullMode_None;
+    primitiveState.cullMode = WGPUCullMode_Back;
     WGPUDepthStencilState depthState{};
     depthState.format = config.depthFormat;
     depthState.depthWriteEnabled = gpu::toOptionalBool(true);
