@@ -2351,6 +2351,7 @@ bool Application::initCamera() {
         physicsContext.maxBodies = config_.gpuPhysicsMaxBodies;
         physicsContext.maxActiveBodies = config_.gpuPhysicsMaxBodies;
         physicsContext.maxPairs = config_.gpuPhysicsMaxPairs;
+        physicsContext.maxContacts = config_.gpuPhysicsMaxPairs;
         physicsContext.maxCandidatePairs =
             config_.gpuPhysicsMaxCandidatePairs;
         physicsContext.gpu.broadPhaseCellSize =
