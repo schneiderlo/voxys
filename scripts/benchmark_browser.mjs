@@ -1063,13 +1063,18 @@ const runWorkload = async (
         const initialUncapped = await cdp.evaluate(
             "voxyModule._voxy_get_uncapped_fps() === 1",
         );
+        const loopModeRequestFrame = await cdp.evaluate(
+            "voxyModule._voxy_get_frame_count()",
+        );
         await cdp.evaluate(
             `voxyModule._voxy_set_uncapped_fps(${uncapped ? 1 : 0})`,
         );
         let loopModeReady = false;
         while (Date.now() < deadline) {
             loopModeReady = await cdp.evaluate(
-                `voxyModule._voxy_get_uncapped_fps() === ${uncapped ? 1 : 0}`,
+                `voxyModule._voxy_get_uncapped_fps() === ${uncapped ? 1 : 0}`
+                + ` && voxyModule._voxy_get_frame_count()`
+                + ` > ${loopModeRequestFrame}`,
             );
             if (loopModeReady) break;
             await delay(25);
