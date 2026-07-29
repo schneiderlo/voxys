@@ -441,13 +441,24 @@ public:
         preparePipeline_ = makePipeline(device_, preparePipelineLayout_,
             shaderModule_, "prepare_constraints_" + suffix,
             "solver_prepare_constraints");
-        solveColoredPipeline_ = makePipeline(device_, solvePipelineLayout_,
-            shaderModule_, "solve_colored_" + suffix,
-            "solver_solve_colored");
-        solveCompactColorsPipeline_ = makePipeline(
-            device_, solvePipelineLayout_, shaderModule_,
-            "solve_compact_colors_" + suffix,
-            "solver_solve_compact_colors");
+        // Give each solver stage its own entry point. The stage is then a
+        // shader constant, so unused warm-start/bias/friction/restitution
+        // branches and their register pressure disappear from each pipeline.
+        constexpr std::array<const char*, 4> stageNames = {
+            "warm_start", "biased", "relax", "restitution",
+        };
+        for (uint32_t stage = 0u; stage < stageNames.size(); ++stage) {
+            solveColoredPipelines_[stage] = makePipeline(
+                device_, solvePipelineLayout_, shaderModule_,
+                "solve_colored_" + std::string(stageNames[stage])
+                    + "_" + suffix,
+                "solver_solve_colored");
+            solveCompactColorsPipelines_[stage] = makePipeline(
+                device_, solvePipelineLayout_, shaderModule_,
+                "solve_compact_colors_" + std::string(stageNames[stage])
+                    + "_" + suffix,
+                "solver_solve_compact_colors");
+        }
         solveOverflowPipeline_ = makePipeline(device_, solvePipelineLayout_,
             shaderModule_, "solve_overflow_" + suffix,
             "solver_solve_overflow");
@@ -468,6 +479,14 @@ public:
             "solve_serial_world", "solver_solve_serial_world");
         finishPipeline_ = makePipeline(device_, finishPipelineLayout_,
             shaderModule_, "finish_solver_tick", "solver_finish_tick");
+        const bool coloredPipelinesReady = std::all_of(
+            solveColoredPipelines_.begin(),
+            solveColoredPipelines_.end(),
+            [](WGPUComputePipeline pipeline) { return pipeline != nullptr; });
+        const bool compactPipelinesReady = std::all_of(
+            solveCompactColorsPipelines_.begin(),
+            solveCompactColorsPipelines_.end(),
+            [](WGPUComputePipeline pipeline) { return pipeline != nullptr; });
         return resetPipeline_ && resetDegreesPipeline_ && countDegreesPipeline_
             && markSmallIslandsPipeline_ && clearClaimsPipeline_
             && clearRoundClaimsPipeline_ && resetColorContinuationPipeline_
@@ -476,7 +495,7 @@ public:
             && buildRecordsPipeline_ && buildRangesPipeline_
             && clearAdjacencyPipeline_ && emitAdjacencyPipeline_
             && buildBodyRangesPipeline_ && preparePipeline_
-            && solveColoredPipeline_ && solveCompactColorsPipeline_
+            && coloredPipelinesReady && compactPipelinesReady
             && solveOverflowPipeline_
             && gatherPipeline_ && integrateVelocityPipeline_
             && integratePositionPipeline_ && solveSmallIslandsPipeline_
@@ -970,7 +989,7 @@ public:
                     slot, makeParams(0u, stage, substep, 0u));
                 bind(solveGroup, colorOffset);
                 wgpuComputePassEncoderSetPipeline(
-                    pass, solveCompactColorsPipeline_);
+                    pass, solveCompactColorsPipelines_[stage]);
                 wgpuComputePassEncoderDispatchWorkgroupsIndirect(
                     pass, dispatchArgs_,
                     dispatchOffset(config_.colorCount + 6u));
@@ -983,7 +1002,8 @@ public:
                 const uint32_t colorOffset = writeParams(
                     slot, makeParams(color, stage, substep, 0u));
                 bind(solveGroup, colorOffset);
-                wgpuComputePassEncoderSetPipeline(pass, solveColoredPipeline_);
+                wgpuComputePassEncoderSetPipeline(
+                    pass, solveColoredPipelines_[stage]);
                 wgpuComputePassEncoderDispatchWorkgroupsIndirect(
                     pass, dispatchArgs_, uint64_t{color} * 4u * sizeof(uint32_t));
             }
@@ -992,7 +1012,7 @@ public:
                     slot, makeParams(parallelColors, stage, substep, 0u));
                 bind(solveGroup, colorOffset);
                 wgpuComputePassEncoderSetPipeline(
-                    pass, solveCompactColorsPipeline_);
+                    pass, solveCompactColorsPipelines_[stage]);
                 wgpuComputePassEncoderDispatchWorkgroupsIndirect(
                     pass, dispatchArgs_,
                     dispatchOffset(config_.colorCount + 6u));
@@ -1068,13 +1088,18 @@ public:
                  &buildRecordsPipeline_, &buildRangesPipeline_,
                  &clearAdjacencyPipeline_, &emitAdjacencyPipeline_,
                  &buildBodyRangesPipeline_, &preparePipeline_,
-                 &solveColoredPipeline_, &solveCompactColorsPipeline_,
                  &solveOverflowPipeline_,
                  &gatherPipeline_, &integrateVelocityPipeline_,
                  &integratePositionPipeline_, &solveSmallIslandsPipeline_,
                  &serialPipeline_,
                  &finishPipeline_}) {
             releaseHandle(*pipeline, wgpuComputePipelineRelease);
+        }
+        for (WGPUComputePipeline& pipeline : solveColoredPipelines_) {
+            releaseHandle(pipeline, wgpuComputePipelineRelease);
+        }
+        for (WGPUComputePipeline& pipeline : solveCompactColorsPipelines_) {
+            releaseHandle(pipeline, wgpuComputePipelineRelease);
         }
         for (WGPUPipelineLayout* layout : {
                  &coloringPipelineLayout_, &classificationPipelineLayout_,
@@ -1191,8 +1216,8 @@ public:
     WGPUComputePipeline emitAdjacencyPipeline_ = nullptr;
     WGPUComputePipeline buildBodyRangesPipeline_ = nullptr;
     WGPUComputePipeline preparePipeline_ = nullptr;
-    WGPUComputePipeline solveColoredPipeline_ = nullptr;
-    WGPUComputePipeline solveCompactColorsPipeline_ = nullptr;
+    std::array<WGPUComputePipeline, 4> solveColoredPipelines_{};
+    std::array<WGPUComputePipeline, 4> solveCompactColorsPipelines_{};
     WGPUComputePipeline solveOverflowPipeline_ = nullptr;
     WGPUComputePipeline gatherPipeline_ = nullptr;
     WGPUComputePipeline integrateVelocityPipeline_ = nullptr;

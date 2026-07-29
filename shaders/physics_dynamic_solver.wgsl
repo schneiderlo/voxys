@@ -1273,43 +1273,108 @@ fn store_contact_velocities(pair : KeyValue, velocities : VelocityPair) {
         velocities.angularB, motions[pair.keyLow].angularVelocity_flags.w);
 }
 
-fn solve_colored_contact(color : u32, localIndex : u32) {
+fn solve_colored_contact(color : u32, localIndex : u32,
+                         stage : u32) {
     let first = colorRanges[color * 2u];
     let count = colorRanges[color * 2u + 1u];
     if (localIndex >= count) { return; }
     let rank = sortedColorRecords[first + localIndex].value;
     let pair = manifolds[rank].pair;
-    let velocities = solve_contact(rank, params.control.y);
+    let velocities = solve_contact(rank, stage);
     store_contact_velocities(pair, velocities);
 }
 
-fn solve_colored_impl(gid : vec3<u32>) {
+fn solve_colored_impl(gid : vec3<u32>, stage : u32) {
     let color = params.control.x;
     if (color >= params.capacities.z) { return; }
-    solve_colored_contact(color, gid.x);
+    solve_colored_contact(color, gid.x, stage);
 }
 
 @compute @workgroup_size(64)
 fn solve_colored_64(@builtin(global_invocation_id) gid : vec3<u32>) {
-    solve_colored_impl(gid);
+    solve_colored_impl(gid, params.control.y);
 }
 @compute @workgroup_size(128)
 fn solve_colored_128(@builtin(global_invocation_id) gid : vec3<u32>) {
-    solve_colored_impl(gid);
+    solve_colored_impl(gid, params.control.y);
 }
 @compute @workgroup_size(256)
 fn solve_colored_256(@builtin(global_invocation_id) gid : vec3<u32>) {
-    solve_colored_impl(gid);
+    solve_colored_impl(gid, params.control.y);
 }
 
-fn solve_compact_colors_impl(localIndex : u32) {
+@compute @workgroup_size(64)
+fn solve_colored_warm_start_64(
+    @builtin(global_invocation_id) gid : vec3<u32>) {
+    solve_colored_impl(gid, STAGE_WARM_START);
+}
+@compute @workgroup_size(128)
+fn solve_colored_warm_start_128(
+    @builtin(global_invocation_id) gid : vec3<u32>) {
+    solve_colored_impl(gid, STAGE_WARM_START);
+}
+@compute @workgroup_size(256)
+fn solve_colored_warm_start_256(
+    @builtin(global_invocation_id) gid : vec3<u32>) {
+    solve_colored_impl(gid, STAGE_WARM_START);
+}
+
+@compute @workgroup_size(64)
+fn solve_colored_biased_64(
+    @builtin(global_invocation_id) gid : vec3<u32>) {
+    solve_colored_impl(gid, STAGE_BIASED);
+}
+@compute @workgroup_size(128)
+fn solve_colored_biased_128(
+    @builtin(global_invocation_id) gid : vec3<u32>) {
+    solve_colored_impl(gid, STAGE_BIASED);
+}
+@compute @workgroup_size(256)
+fn solve_colored_biased_256(
+    @builtin(global_invocation_id) gid : vec3<u32>) {
+    solve_colored_impl(gid, STAGE_BIASED);
+}
+
+@compute @workgroup_size(64)
+fn solve_colored_relax_64(
+    @builtin(global_invocation_id) gid : vec3<u32>) {
+    solve_colored_impl(gid, STAGE_RELAX);
+}
+@compute @workgroup_size(128)
+fn solve_colored_relax_128(
+    @builtin(global_invocation_id) gid : vec3<u32>) {
+    solve_colored_impl(gid, STAGE_RELAX);
+}
+@compute @workgroup_size(256)
+fn solve_colored_relax_256(
+    @builtin(global_invocation_id) gid : vec3<u32>) {
+    solve_colored_impl(gid, STAGE_RELAX);
+}
+
+@compute @workgroup_size(64)
+fn solve_colored_restitution_64(
+    @builtin(global_invocation_id) gid : vec3<u32>) {
+    solve_colored_impl(gid, STAGE_RESTITUTION);
+}
+@compute @workgroup_size(128)
+fn solve_colored_restitution_128(
+    @builtin(global_invocation_id) gid : vec3<u32>) {
+    solve_colored_impl(gid, STAGE_RESTITUTION);
+}
+@compute @workgroup_size(256)
+fn solve_colored_restitution_256(
+    @builtin(global_invocation_id) gid : vec3<u32>) {
+    solve_colored_impl(gid, STAGE_RESTITUTION);
+}
+
+fn solve_compact_colors_impl(localIndex : u32, stage : u32) {
     let workgroupSize = params.capacities.w >> 8u;
     for (var color = params.control.x; color < params.capacities.z;
          color += 1u) {
         let count = colorRanges[color * 2u + 1u];
         var contact = localIndex;
         while (contact < count) {
-            solve_colored_contact(color, contact);
+            solve_colored_contact(color, contact, stage);
             contact += workgroupSize;
         }
         // Contacts within one color never share a body. The barrier only
@@ -1322,17 +1387,81 @@ fn solve_compact_colors_impl(localIndex : u32) {
 @compute @workgroup_size(64)
 fn solve_compact_colors_64(
     @builtin(local_invocation_index) localIndex : u32) {
-    solve_compact_colors_impl(localIndex);
+    solve_compact_colors_impl(localIndex, params.control.y);
 }
 @compute @workgroup_size(128)
 fn solve_compact_colors_128(
     @builtin(local_invocation_index) localIndex : u32) {
-    solve_compact_colors_impl(localIndex);
+    solve_compact_colors_impl(localIndex, params.control.y);
 }
 @compute @workgroup_size(256)
 fn solve_compact_colors_256(
     @builtin(local_invocation_index) localIndex : u32) {
-    solve_compact_colors_impl(localIndex);
+    solve_compact_colors_impl(localIndex, params.control.y);
+}
+
+@compute @workgroup_size(64)
+fn solve_compact_colors_warm_start_64(
+    @builtin(local_invocation_index) localIndex : u32) {
+    solve_compact_colors_impl(localIndex, STAGE_WARM_START);
+}
+@compute @workgroup_size(128)
+fn solve_compact_colors_warm_start_128(
+    @builtin(local_invocation_index) localIndex : u32) {
+    solve_compact_colors_impl(localIndex, STAGE_WARM_START);
+}
+@compute @workgroup_size(256)
+fn solve_compact_colors_warm_start_256(
+    @builtin(local_invocation_index) localIndex : u32) {
+    solve_compact_colors_impl(localIndex, STAGE_WARM_START);
+}
+
+@compute @workgroup_size(64)
+fn solve_compact_colors_biased_64(
+    @builtin(local_invocation_index) localIndex : u32) {
+    solve_compact_colors_impl(localIndex, STAGE_BIASED);
+}
+@compute @workgroup_size(128)
+fn solve_compact_colors_biased_128(
+    @builtin(local_invocation_index) localIndex : u32) {
+    solve_compact_colors_impl(localIndex, STAGE_BIASED);
+}
+@compute @workgroup_size(256)
+fn solve_compact_colors_biased_256(
+    @builtin(local_invocation_index) localIndex : u32) {
+    solve_compact_colors_impl(localIndex, STAGE_BIASED);
+}
+
+@compute @workgroup_size(64)
+fn solve_compact_colors_relax_64(
+    @builtin(local_invocation_index) localIndex : u32) {
+    solve_compact_colors_impl(localIndex, STAGE_RELAX);
+}
+@compute @workgroup_size(128)
+fn solve_compact_colors_relax_128(
+    @builtin(local_invocation_index) localIndex : u32) {
+    solve_compact_colors_impl(localIndex, STAGE_RELAX);
+}
+@compute @workgroup_size(256)
+fn solve_compact_colors_relax_256(
+    @builtin(local_invocation_index) localIndex : u32) {
+    solve_compact_colors_impl(localIndex, STAGE_RELAX);
+}
+
+@compute @workgroup_size(64)
+fn solve_compact_colors_restitution_64(
+    @builtin(local_invocation_index) localIndex : u32) {
+    solve_compact_colors_impl(localIndex, STAGE_RESTITUTION);
+}
+@compute @workgroup_size(128)
+fn solve_compact_colors_restitution_128(
+    @builtin(local_invocation_index) localIndex : u32) {
+    solve_compact_colors_impl(localIndex, STAGE_RESTITUTION);
+}
+@compute @workgroup_size(256)
+fn solve_compact_colors_restitution_256(
+    @builtin(local_invocation_index) localIndex : u32) {
+    solve_compact_colors_impl(localIndex, STAGE_RESTITUTION);
 }
 
 fn solve_overflow_impl(gid : vec3<u32>) {
