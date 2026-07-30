@@ -67,6 +67,7 @@ const options = {
     screenshot: "",
     baseline: "",
     maximumRegressionPercent: 7.5,
+    maximumProfilingSlowdownPercent: 50,
     expectedBackend: "webgpu_soft",
     expectedBuild: "",
     keepProfile: false,
@@ -119,6 +120,8 @@ Results:
   --screenshot FILE             Save the first workload's final viewport as PNG
   --baseline FILE               Compare against an earlier result
   --max-regression-percent N    Baseline failure threshold (default: 7.5)
+  --max-profiling-slowdown-percent N
+                                Diagnose/headroom guard (default: 50)
   --expected-backend NAME       Default: webgpu_soft
   --expect-build SHA            Reject a different deployed build
   --keep-profile                Keep the temporary isolated Chrome profile
@@ -253,6 +256,10 @@ for (let index = 2; index < process.argv.length; ++index) {
             break;
         case "--max-regression-percent":
             options.maximumRegressionPercent = readNumber(argument, value());
+            break;
+        case "--max-profiling-slowdown-percent":
+            options.maximumProfilingSlowdownPercent =
+                readNumber(argument, value());
             break;
         case "--expected-backend":
             options.expectedBackend = value();
@@ -1652,6 +1659,40 @@ const summarizeRuns = (runs) => {
         || left.bodies - right.bodies);
 };
 
+const assessProfilingImpact = (summary) => {
+    const rowsByKey = new Map(summary.map(
+        (row) => [`${row.mode}:${row.bodies}`, row],
+    ));
+    const rows = [];
+    for (const bodies of options.bodies) {
+        const headroom = rowsByKey.get(`headroom:${bodies}`);
+        const diagnose = rowsByKey.get(`diagnose:${bodies}`);
+        if (!headroom || !diagnose
+            || !Number.isFinite(headroom.medianFps)
+            || !Number.isFinite(diagnose.medianFps)
+            || headroom.medianFps <= 0) {
+            continue;
+        }
+        const fpsRatio = diagnose.medianFps / headroom.medianFps;
+        const slowdownPercent = Math.max(0, (1 - fpsRatio) * 100);
+        rows.push({
+            bodies,
+            headroomFps: headroom.medianFps,
+            diagnoseFps: diagnose.medianFps,
+            fpsRatio,
+            slowdownPercent,
+            passed: slowdownPercent
+                <= options.maximumProfilingSlowdownPercent,
+        });
+    }
+    return {
+        evaluated: rows.length !== 0,
+        maximumSlowdownPercent: options.maximumProfilingSlowdownPercent,
+        rows,
+        passed: rows.every((row) => row.passed),
+    };
+};
+
 const compareBaseline = (summary, baseline, runs) => {
     const compatibilityErrors = [];
     if (baseline.schema !== "voxys.browser_benchmark.v1") {
@@ -1971,6 +2012,7 @@ try {
     }
 
     const summary = summarizeRuns(runs);
+    const profilingImpact = assessProfilingImpact(summary);
     const baseline = options.baseline
         ? JSON.parse(fs.readFileSync(options.baseline, "utf8"))
         : null;
@@ -2003,6 +2045,8 @@ try {
             solverWorkgroupSize: options.solverWorkgroupSize,
             expectedBackend: options.expectedBackend,
             expectedBuild: options.expectedBuild || null,
+            maximumProfilingSlowdownPercent:
+                options.maximumProfilingSlowdownPercent,
         },
         browser: {
             executable: browser.executable,
@@ -2012,8 +2056,10 @@ try {
                 ? browser.profileDirectory : null,
         },
         overallPassed: runs.every((run) => run.passed)
+            && profilingImpact.passed
             && (!comparison || comparison.passed),
         summary,
+        profilingImpact,
         comparison,
         runs,
     };
@@ -2026,6 +2072,17 @@ try {
     fs.mkdirSync(path.dirname(options.output), { recursive: true });
     fs.writeFileSync(options.output, `${JSON.stringify(result, null, 2)}\n`);
     printSummary(summary);
+    if (profilingImpact.evaluated) {
+        const worst = Math.max(...profilingImpact.rows.map(
+            (row) => row.slowdownPercent));
+        console.log("");
+        console.log(
+            `profiling impact: ${profilingImpact.passed ? "PASS" : "FAIL"}`
+            + ` — worst slowdown ${formatNumber(worst)}%`
+            + ` (limit ${formatNumber(
+                profilingImpact.maximumSlowdownPercent)}%)`,
+        );
+    }
     if (comparison) {
         console.log("");
         if (comparison.compatibilityErrors.length !== 0) {

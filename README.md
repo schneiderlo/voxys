@@ -61,8 +61,9 @@ node scripts/benchmark_browser.mjs --headed
 
 It throws exact 100, 1,000, 5,000, and 10,000 body workloads from one player
 view onto the real terrain. It records uncapped headroom and GPU stage
-diagnostics. Add `--modes score,headroom,diagnose` only while the headed Chrome
-window is genuinely visible; the runner rejects compositor-throttled RAF.
+diagnostics, and rejects a profiler-induced throughput collapse. Add
+`--modes score,headroom,diagnose` only while the headed Chrome window is
+genuinely visible; the runner rejects compositor-throttled RAF.
 
 For the authoritative WASM renderer-throughput gate, open the app in a hardware
 WebGPU Chrome instance with `renderThroughput=1`, then run:

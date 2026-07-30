@@ -39,7 +39,13 @@ reliable uncapped mode:
 - `headroom` uses the production uncapped loop. This exposes improvements that
   would remain hidden at the monitor refresh rate.
 - `diagnose` enables GPU timestamp queries and reports every physics and render
-  stage.
+  stage. Interactive physics timestamps are sampled every 30 ticks so the
+  profiler does not serialize every browser GPU submission.
+
+When both modes are present, the runner also fails if `diagnose` is more than
+50% slower than `headroom`. This guard catches a profiler that changes the
+performance it is meant to measure. Override it with
+`--max-profiling-slowdown-percent` only for a deliberate profiling experiment.
 
 `score` is opt-in because it uses `requestAnimationFrame`. Run it only while
 the headed Chrome window is genuinely visible. Some automation desktops
