@@ -1982,11 +1982,12 @@ bool Application::spawnCubePyramidExperiment() {
     // One cube of thickness. Row widths are 2n, 2(n-1), ... 2, so a complete
     // n-row wall contains n(n+1) cubes and has 45-degree sides.
     constexpr float cubeSize = 1.1f;
-    // Keep columns outside the 20 mm speculative-contact distance. A single
-    // impact then wakes the struck stack instead of instantly turning all
-    // 20k staged cubes into one solver island. The explicit 128-projectile
-    // benchmark still exercises a wide collapse.
-    constexpr float horizontalPitch = 1.15f;
+    // Leave 160 mm between columns, safely outside the 20 mm
+    // speculative-contact distance. A single impact then wakes the struck
+    // stacks instead of instantly turning all 20k staged cubes into one
+    // solver island. The explicit 128-projectile benchmark still exercises
+    // a wide collapse.
+    constexpr float horizontalPitch = cubeSize + 0.16f;
     // Sleeping rows have a 20 mm gap. They remain perfectly staged until an
     // impact wakes them, then gravity closes the gap and propagates locally.
     constexpr float verticalPitch = 1.12f;
