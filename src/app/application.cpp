@@ -2699,20 +2699,17 @@ bool Application::initCamera() {
         (config_.shaderDir / "physics_ballistic.wgsl").string();
     physicsContext.gpu.enableStageProfiling =
         config_.gpuPhysicsStageProfiling;
-    // Profiling samples every tick. Interactive play samples asynchronously at
-    // a low rate so body, solver, and awake/sleeping counts remain useful
-    // without paying a browser buffer map on every physics tick. In
-    // particular, the large triangle must not turn normal play into a
-    // per-tick readback workload.
+    // Interactive diagnostics sample asynchronously at a low rate. Timestamp
+    // queries remain enabled, but resolving and mapping them every physics
+    // tick serializes browser GPU work and makes the profiler change the
+    // performance it is measuring.
     constexpr uint32_t kInteractiveTelemetryIntervalTicks = 30u;
     const uint32_t profilingInterval =
-        config_.gpuPhysicsStageProfiling ? 1u
-                                         : kInteractiveTelemetryIntervalTicks;
+        config_.benchmarkBodyCount != 0u
+            ? 1u : kInteractiveTelemetryIntervalTicks;
     const uint32_t telemetryInterval =
-        config_.gpuPhysicsStageProfiling
-            || config_.benchmarkBodyCount != 0u
-        ? 1u
-        : kInteractiveTelemetryIntervalTicks;
+        config_.benchmarkBodyCount != 0u
+            ? 1u : kInteractiveTelemetryIntervalTicks;
     physicsContext.gpu.stageProfilingIntervalTicks = profilingInterval;
     physicsContext.gpu.enableTelemetryReadback = true;
     physicsContext.gpu.telemetryReadbackIntervalTicks = telemetryInterval;
