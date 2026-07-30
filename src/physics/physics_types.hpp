@@ -287,8 +287,10 @@ struct PhysicsStats {
 
     uint32_t kinematicBodies = 0;
     uint32_t occupiedCells = 0;
+    uint32_t maximumCellBodies = 0;
     uint32_t activeSleepingPairs = 0;
     uint32_t oversizedBodies = 0;
+    uint32_t broadPhasePairDrivingBodies = 0;
     uint32_t persistentContacts = 0;
     std::array<uint32_t, 10> narrowPairClasses{};
     std::array<uint32_t, 10> narrowCollisionPairClasses{};

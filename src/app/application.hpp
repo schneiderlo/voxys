@@ -87,7 +87,12 @@ enum class RenderPath {
 };
 
 inline constexpr uint32_t kMaximumBenchmarkBodyCount = 131'072u;
-inline constexpr uint32_t kDefaultCubePyramidBodyCount = 20'000u;
+inline constexpr uint32_t kDefaultCubeTriangleRowCount = 141u;
+inline constexpr uint32_t kDefaultCubeTriangleBodyCount =
+    kDefaultCubeTriangleRowCount * (kDefaultCubeTriangleRowCount + 1u);
+// Legacy internal name retained while the browser ABI still uses "pyramid".
+inline constexpr uint32_t kDefaultCubePyramidBodyCount =
+    kDefaultCubeTriangleBodyCount;
 
 /// Convert RenderPath to string
 [[nodiscard]] const char* renderPathToString(RenderPath path) noexcept;

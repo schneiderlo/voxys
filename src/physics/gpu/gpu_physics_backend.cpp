@@ -709,6 +709,7 @@ public:
         releaseHandle(commandBindGroup_, wgpuBindGroupRelease);
         releaseHandle(compactBindGroup_, wgpuBindGroupRelease);
         releaseHandle(integrateBindGroup_, wgpuBindGroupRelease);
+        releaseHandle(tickBindGroup_, wgpuBindGroupRelease);
         releaseHandle(debugBindGroup_, wgpuBindGroupRelease);
         releaseHandle(applyCommandsPipeline_, wgpuComputePipelineRelease);
         releaseHandle(compactBlocksPipeline_, wgpuComputePipelineRelease);
@@ -721,10 +722,12 @@ public:
         releaseHandle(commandPipelineLayout_, wgpuPipelineLayoutRelease);
         releaseHandle(compactPipelineLayout_, wgpuPipelineLayoutRelease);
         releaseHandle(integratePipelineLayout_, wgpuPipelineLayoutRelease);
+        releaseHandle(tickPipelineLayout_, wgpuPipelineLayoutRelease);
         releaseHandle(debugPipelineLayout_, wgpuPipelineLayoutRelease);
         releaseHandle(commandLayout_, wgpuBindGroupLayoutRelease);
         releaseHandle(compactLayout_, wgpuBindGroupLayoutRelease);
         releaseHandle(integrateLayout_, wgpuBindGroupLayoutRelease);
+        releaseHandle(tickLayout_, wgpuBindGroupLayoutRelease);
         releaseHandle(debugLayout_, wgpuBindGroupLayoutRelease);
         releaseHandle(shaderModule_, wgpuShaderModuleRelease);
         releaseTerrainTexture(ownedTerrainTexture_, ownedTerrainView_);
@@ -778,6 +781,9 @@ public:
         stageQueryCapacity_ = 0u;
         lastStageProfileTick_ = 0u;
         lastTelemetryReadbackTick_ = 0u;
+        lastMutationTick_ = 0u;
+        idleWorldConfirmed_ = false;
+        gpuTickSynchronized_ = true;
         stageTimingResults_.clear();
         cachedTelemetry_ = {};
         commands_.clear();
@@ -988,6 +994,12 @@ public:
         integrateLayout_ = gpu::createBindGroupLayout(
             device_, integrateEntries, "physics_integrate_layout");
 
+        std::vector<LE> tickEntries;
+        tickEntries.emplace_back(6u);
+        tickEntries.back().computeVisible().storageBuffer(false);
+        tickLayout_ = gpu::createBindGroupLayout(
+            device_, tickEntries, "physics_tick_layout");
+
         std::vector<LE> debugEntries;
         for (uint32_t binding : {0u, 1u, 2u, 3u, 13u}) {
             debugEntries.emplace_back(binding);
@@ -999,11 +1011,12 @@ public:
         debugLayout_ = gpu::createBindGroupLayout(
             device_, debugEntries, "physics_debug_layout");
         if (!commandLayout_ || !compactLayout_ || !integrateLayout_
-            || !debugLayout_) return false;
+            || !tickLayout_ || !debugLayout_) return false;
 
         const std::array<WGPUBindGroupLayout, 1> commandLayouts{commandLayout_};
         const std::array<WGPUBindGroupLayout, 1> compactLayouts{compactLayout_};
         const std::array<WGPUBindGroupLayout, 1> integrateLayouts{integrateLayout_};
+        const std::array<WGPUBindGroupLayout, 1> tickLayouts{tickLayout_};
         const std::array<WGPUBindGroupLayout, 1> debugLayouts{debugLayout_};
         commandPipelineLayout_ = gpu::createPipelineLayout(
             device_, commandLayouts, "physics_command_pipeline_layout");
@@ -1011,10 +1024,13 @@ public:
             device_, compactLayouts, "physics_compact_pipeline_layout");
         integratePipelineLayout_ = gpu::createPipelineLayout(
             device_, integrateLayouts, "physics_integrate_pipeline_layout");
+        tickPipelineLayout_ = gpu::createPipelineLayout(
+            device_, tickLayouts, "physics_tick_pipeline_layout");
         debugPipelineLayout_ = gpu::createPipelineLayout(
             device_, debugLayouts, "physics_debug_pipeline_layout");
         if (!commandPipelineLayout_ || !compactPipelineLayout_
-            || !integratePipelineLayout_ || !debugPipelineLayout_) return false;
+            || !integratePipelineLayout_ || !tickPipelineLayout_
+            || !debugPipelineLayout_) return false;
 
         applyCommandsPipeline_ = makeComputePipeline(
             device_, commandPipelineLayout_, shaderModule_, "apply_commands",
@@ -1035,7 +1051,7 @@ public:
             device_, integratePipelineLayout_, shaderModule_,
             "solve_static_contacts", "physics_solve_static_contacts");
         advanceTickPipeline_ = makeComputePipeline(
-            device_, integratePipelineLayout_, shaderModule_, "advance_tick",
+            device_, tickPipelineLayout_, shaderModule_, "advance_tick",
             "physics_advance_tick");
         packDebugPipeline_ = makeComputePipeline(
             device_, debugPipelineLayout_, shaderModule_, "pack_debug",
@@ -1062,14 +1078,19 @@ public:
         compactBindGroup_ = gpu::createBindGroup(
             device_, compactLayout_, compactBindings, "physics_compaction");
 
+        const std::array<BE, 1> tickBindings = {
+            BE(6).buffer(countersBuffer_)};
+        tickBindGroup_ = gpu::createBindGroup(
+            device_, tickLayout_, tickBindings, "physics_tick");
+
         const std::array<BE, 6> debugBindings = {
             BE(0).buffer(poseBuffer_), BE(1).buffer(motionBuffer_),
             BE(2).buffer(shapeBuffer_), BE(3).buffer(metadataBuffer_),
             BE(13).buffer(debugPackedBuffer_), BE(8).buffer(uniformBuffer_)};
         debugBindGroup_ = gpu::createBindGroup(
             device_, debugLayout_, debugBindings, "physics_debug_pack");
-        return commandBindGroup_ && compactBindGroup_ && debugBindGroup_
-            && rebuildIntegrateBindGroup();
+        return commandBindGroup_ && compactBindGroup_ && tickBindGroup_
+            && debugBindGroup_ && rebuildIntegrateBindGroup();
     }
 
     bool replaceIntegrateBindGroup(WGPUTextureView terrainView,
@@ -1759,7 +1780,9 @@ public:
             kBroadTelemetryOffset, GpuBroadPhase::kTelemetryWordCount));
         broadPhase_.updateMediumPairPath(
             cachedTelemetry_.broad.gridEntries,
-            cachedTelemetry_.broad.occupiedCells);
+            cachedTelemetry_.broad.occupiedCells,
+            cachedTelemetry_.broad.pairDrivingBodies,
+            cachedTelemetry_.broad.maximumCellBodies);
         cachedTelemetry_.narrow = GpuNarrowPhase::decodeTelemetry(
             view.subspan(kNarrowTelemetryOffset,
                          GpuNarrowPhase::kTelemetryWordCount),
@@ -1772,6 +1795,12 @@ public:
             cachedTelemetry_.solver.overflowContacts);
         cachedTelemetry_.islands = GpuIslandManager::decodeTelemetry(view.subspan(
             kIslandTelemetryOffset, GpuIslandManager::kTelemetryWordCount));
+        if (raw->tick >= lastMutationTick_) {
+            idleWorldConfirmed_ =
+                cachedTelemetry_.core.activeBodies == 0u
+                && cachedTelemetry_.core.kinematicBodies == 0u
+                && cachedTelemetry_.broad.pairDrivingBodies == 0u;
+        }
     }
 
     void schedule(float deltaTime) {
@@ -1781,8 +1810,14 @@ public:
             lastStepStats_ = {};
             return;
         }
+        // The encoded batch stays strictly capped, but retain enough clock
+        // debt to bridge Chrome's coarse queue-completion callbacks. Recovery
+        // happens over later submissions; no submission can exceed the
+        // configured maximumCatchUpTicks.
+        const uint32_t accumulatorCatchUpTicks =
+            std::max(config_.maximumCatchUpTicks, 4u);
         const double maximumDelta = double{config_.fixedTickSeconds}
-                                  * config_.maximumCatchUpTicks;
+                                  * accumulatorCatchUpTicks;
         const double fixedTick = static_cast<double>(config_.fixedTickSeconds);
         // A minimized or occluded application may keep stepping the CPU side
         // while no command encoder is submitted. Bound pending ticks and their
@@ -2079,6 +2114,11 @@ public:
             }
             lastGpuUploadBytes_ +=
                 uint64_t{upload.size()} * sizeof(GpuCommand);
+            // Telemetry from before this mutation cannot prove that the
+            // resulting world is idle. A readback tagged at or after this
+            // batch will re-arm the idle path when appropriate.
+            lastMutationTick_ = finalTick;
+            idleWorldConfirmed_ = false;
         }
 
         uint32_t executionBodies = executionBodyCount();
@@ -2091,6 +2131,38 @@ public:
             (executionBodies + kWorkgroupSize - 1u) / kWorkgroupSize;
         const bool executeBodyPipeline = residentBodies_ != 0u
             || !upload.empty() || !pendingFrees_.empty();
+        // A telemetry-confirmed sleeping world has no state to integrate or
+        // contacts to discover. Keep the authoritative GPU tick moving while
+        // avoiding dozens of empty passes. Any mutation or observer that
+        // needs current body data takes the complete pipeline below.
+        const bool idleOnlyBatch = pendingTicks_ != 0u
+            && idleWorldConfirmed_
+            && commands_.empty()
+            && pendingFrees_.empty()
+            && !queryPending_
+            && !debugRequest_.has_value()
+            && !terrainStateNeedsClear_;
+        if (idleOnlyBatch) {
+            // No GPU-visible state can change while the world is confirmed
+            // asleep. Advance the host clock without submitting even a
+            // one-workgroup pass: on browser WebGPU, any write-capable physics
+            // dispatch serializes the directly rendered body buffers. The GPU
+            // counter is restored before the next real physics tick.
+            encodedTick_ = finalTick;
+            pendingTicks_ = 0u;
+            gpuTickSynchronized_ = false;
+            return;
+        }
+        if (pendingTicks_ != 0u && !gpuTickSynchronized_) {
+            const uint32_t gpuTick = static_cast<uint32_t>(encodedTick_);
+            if (!gpu::writeBuffer(
+                    queue_, countersBuffer_, sizeof(uint32_t), gpuTick)) {
+                LOG_ERROR("Failed to synchronize the GPU physics tick");
+                return;
+            }
+            lastGpuUploadBytes_ += sizeof(gpuTick);
+            gpuTickSynchronized_ = true;
+        }
         refreshExecutionInputs(executionBodies);
 
         SimulationUniforms uniforms;
@@ -2157,6 +2229,7 @@ public:
         // most useful. Do not make an overloaded world wait for the cadence.
         const bool forceDiagnosticsSample = !upload.empty();
         const bool profileThisBatch = stageProfilingEnabled_
+            && !idleOnlyBatch
             && (forceDiagnosticsSample
                 || intervalElapsed(finalTick, lastStageProfileTick_,
                                    config_.stageProfilingIntervalTicks))
@@ -2388,7 +2461,7 @@ public:
                 break;
             }
             wgpuComputePassEncoderSetBindGroup(
-                pass, 0, integrateBindGroup_, 0, nullptr);
+                pass, 0, tickBindGroup_, 0, nullptr);
             wgpuComputePassEncoderSetPipeline(pass, advanceTickPipeline_);
             wgpuComputePassEncoderDispatchWorkgroups(pass, 1, 1, 1);
             wgpuComputePassEncoderEnd(pass);
@@ -2419,6 +2492,7 @@ public:
 
         const bool sampleTelemetry = config_.enableTelemetryReadback
             && profileTickCount != 0u
+            && !idleOnlyBatch
             && (forceDiagnosticsSample
                 || intervalElapsed(finalTick, lastTelemetryReadbackTick_,
                                    config_.telemetryReadbackIntervalTicks));
@@ -2731,7 +2805,11 @@ public:
         const auto& narrow = cachedTelemetry_.narrow;
         const auto& solver = cachedTelemetry_.solver;
         const auto& islands = cachedTelemetry_.islands;
-        result.telemetryTick = cachedTelemetry_.tick;
+        // An idle-only batch changes no body or contact state. The last
+        // confirmed snapshot therefore remains authoritative at the current
+        // encoded tick without another mapped GPU readback.
+        result.telemetryTick = idleWorldConfirmed_
+            ? encodedTick_ : cachedTelemetry_.tick;
         // The compacted active list is the authoritative awake-body count.
         // Island telemetry can span several GPU-resident catch-up ticks.
         result.activeBodies = core.activeBodies;
@@ -2783,8 +2861,10 @@ public:
             false};
 
         result.occupiedCells = broad.occupiedCells;
+        result.maximumCellBodies = broad.maximumCellBodies;
         result.activeSleepingPairs = broad.activeSleepingPairs;
         result.oversizedBodies = broad.oversizedBodies;
+        result.broadPhasePairDrivingBodies = broad.pairDrivingBodies;
         result.persistentContacts = broad.persistentContacts;
         result.narrowPairClasses = narrow.pairClasses;
         result.narrowCollisionPairClasses = narrow.collisionPairClasses;
@@ -2908,6 +2988,9 @@ public:
     uint32_t stageQueryCapacity_ = 0u;
     uint64_t lastStageProfileTick_ = 0u;
     uint64_t lastTelemetryReadbackTick_ = 0u;
+    uint64_t lastMutationTick_ = 0u;
+    bool idleWorldConfirmed_ = false;
+    bool gpuTickSynchronized_ = true;
     float waterSurfaceStrength_ = 0.0f;
     glm::vec2 waterPatchLengths_{1949.0f, 326.0f};
     bool warnedCpuWaterSampler_ = false;
@@ -2968,10 +3051,12 @@ public:
     WGPUBindGroupLayout commandLayout_ = nullptr;
     WGPUBindGroupLayout compactLayout_ = nullptr;
     WGPUBindGroupLayout integrateLayout_ = nullptr;
+    WGPUBindGroupLayout tickLayout_ = nullptr;
     WGPUBindGroupLayout debugLayout_ = nullptr;
     WGPUPipelineLayout commandPipelineLayout_ = nullptr;
     WGPUPipelineLayout compactPipelineLayout_ = nullptr;
     WGPUPipelineLayout integratePipelineLayout_ = nullptr;
+    WGPUPipelineLayout tickPipelineLayout_ = nullptr;
     WGPUPipelineLayout debugPipelineLayout_ = nullptr;
     WGPUComputePipeline applyCommandsPipeline_ = nullptr;
     WGPUComputePipeline compactBlocksPipeline_ = nullptr;
@@ -2984,6 +3069,7 @@ public:
     WGPUBindGroup commandBindGroup_ = nullptr;
     WGPUBindGroup compactBindGroup_ = nullptr;
     WGPUBindGroup integrateBindGroup_ = nullptr;
+    WGPUBindGroup tickBindGroup_ = nullptr;
     WGPUBindGroup debugBindGroup_ = nullptr;
 };
 

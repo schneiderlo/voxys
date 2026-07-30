@@ -225,6 +225,7 @@ std::string DebugOverlay::formatPhysicsBroadPhase() const {
     std::ostringstream out;
     out << formatUsage("Grid", value.gridEntryUsage)
         << " | cells " << value.occupiedCells
+        << " | max-cell " << value.maximumCellBodies
         << " | " << formatUsage("candidates", value.candidatePairUsage)
         << " | " << formatUsage("pairs", value.uniquePairUsage)
         << " | sleep-pairs " << value.activeSleepingPairs

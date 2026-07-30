@@ -12,6 +12,8 @@ const SPATIAL_CLASS_SWEPT_OVERSIZED : u32 = 2u;
 const SHAPE_SPHERE : u32 = 0u;
 const SHAPE_CAPSULE : u32 = 3u;
 const SHAPE_CYLINDER : u32 = 4u;
+const CELL_RANGE_AWAKE_BIT : u32 = 0x80000000u;
+const CELL_RANGE_COUNT_MASK : u32 = 0x7fffffffu;
 // Must match physics_ballistic.wgsl. The fractional shape-type payload is a
 // conservative one-tick linear travel bound for tunnelling-risk bodies.
 const SHAPE_SWEEP_RANGE : f32 = 256.0;
@@ -124,12 +126,27 @@ fn occupied_range_count() -> u32 {
     return cellRanges[broad.counts.y].entryCount;
 }
 
+fn cell_range_entry_count(range : CellRange) -> u32 {
+    return range.entryCount & CELL_RANGE_COUNT_MASK;
+}
+
+fn cell_range_has_awake(range : CellRange) -> bool {
+    return (range.entryCount & CELL_RANGE_AWAKE_BIT) != 0u;
+}
+
 fn key_equal(a : KeyValue, b : KeyValue) -> bool {
     return a.keyLow == b.keyLow && a.keyHigh == b.keyHigh;
 }
 
 fn body_flags(body : u32) -> u32 {
-    return u32(metadata[body].w) & ~GENERATION_MASK;
+    var flags = u32(metadata[body].w) & ~GENERATION_MASK;
+    // Static bodies can retain the metadata awake bit after creation, but
+    // they never drive a pair. Treat them as sleeping here so an entirely
+    // staged dynamic world can take the zero-awake path.
+    if (poses[body].position_invMass.w <= 0.0) {
+        flags &= ~BODY_AWAKE;
+    }
+    return flags;
 }
 
 fn shape_sweep_distance(body : u32) -> f32 {
@@ -347,6 +364,7 @@ fn reset_telemetry(@builtin(global_invocation_id) gid : vec3<u32>) {
     for (var index = 0u; index < 14u; index += 1u) {
         atomicStore(&telemetry[index], 0u);
     }
+    atomicStore(&telemetry[21], 0u);
 }
 
 fn clear_grid_entries_impl(gid : vec3<u32>) {
@@ -372,6 +390,12 @@ fn count_grid_entries_impl(gid : vec3<u32>) {
     bodyEntryCounts[body] = 0u;
     oversizedFlags[body] = 0u;
     if (!body_is_alive(body)) { return; }
+    if ((body_flags(body) & BODY_AWAKE) != 0u) {
+        // Word 13 is deliberately outside the public telemetry schema. It is
+        // an encoded-work predicate: an all-sleeping world can bypass pair
+        // traversal without a CPU readback.
+        atomicAdd(&telemetry[13], 1u);
+    }
     // Center-cell insertion plus the 13-cell forward neighborhood is exact
     // while any two common-body radii sum to at most one cell width.
     let spatialClass = body_spatial_class(body);
@@ -482,9 +506,12 @@ fn finalize_cell_range_count(@builtin(global_invocation_id) gid : vec3<u32>) {
     atomicStore(&telemetry[1], rangeCount);
     cellRanges[broad.counts.y].entryCount = rangeCount;
     oversizedFlags[broad.counts.x] = rangeCount;
-    oversizedFlags[broad.counts.x + 1u] = rangeCount + broad.counts.x;
+    let ownerCount = select(
+        0u, rangeCount + broad.counts.x,
+        atomicLoad(&telemetry[13]) != 0u);
+    oversizedFlags[broad.counts.x + 1u] = ownerCount;
     atomicMax(&telemetry[15], rangeCount);
-    store_sort_dispatch(6u, rangeCount + broad.counts.x);
+    store_sort_dispatch(6u, ownerCount);
 }
 
 fn scatter_cell_range_starts_impl(gid : vec3<u32>) {
@@ -524,8 +551,18 @@ fn scatter_cell_range_ends_impl(gid : vec3<u32>) {
     if (!isEnd) { return; }
     var range = entryRangeIndices[index];
     if (rangePredicates[index] == 0u) { range -= 1u; }
-    cellRanges[range].entryCount = index + 1u
-        - cellRanges[range].firstEntry;
+    let firstEntry = cellRanges[range].firstEntry;
+    let rangeEntryCount = index + 1u - firstEntry;
+    atomicMax(&telemetry[21], rangeEntryCount);
+    var hasAwake = false;
+    for (var local = 0u; local < rangeEntryCount; local += 1u) {
+        if (sortedGridEntries[firstEntry + local].ordinal == 0u) {
+            hasAwake = true;
+            break;
+        }
+    }
+    cellRanges[range].entryCount = rangeEntryCount
+        | select(0u, CELL_RANGE_AWAKE_BIT, hasAwake);
 }
 
 @compute @workgroup_size(64)
@@ -587,11 +624,17 @@ fn candidate_count_limit() -> u32 {
 
 fn count_range_pairs(rangeA : CellRange, rangeB : CellRange,
                      sameRange : bool, limit : u32) -> u32 {
+    if (!cell_range_has_awake(rangeA)
+        && !cell_range_has_awake(rangeB)) {
+        return 0u;
+    }
+    let countA = cell_range_entry_count(rangeA);
+    let countB = cell_range_entry_count(rangeB);
     var count = 0u;
-    for (var localA = 0u; localA < rangeA.entryCount; localA += 1u) {
+    for (var localA = 0u; localA < countA; localA += 1u) {
         let bodyA = sortedGridEntries[rangeA.firstEntry + localA].value;
         let startB = select(0u, localA + 1u, sameRange);
-        for (var localB = startB; localB < rangeB.entryCount; localB += 1u) {
+        for (var localB = startB; localB < countB; localB += 1u) {
             let bodyB = sortedGridEntries[rangeB.firstEntry + localB].value;
             if (bodies_overlap(bodyA, bodyB)) {
                 count += 1u;
@@ -623,7 +666,8 @@ fn count_swept_body_pairs(body : u32, limit : u32) -> u32 {
                 let rangeIndex = find_cell_range(encode_cell(cell));
                 if (rangeIndex == SENTINEL) { continue; }
                 let range = cellRanges[rangeIndex];
-                for (var local = 0u; local < range.entryCount; local += 1u) {
+                let rangeEntryCount = cell_range_entry_count(range);
+                for (var local = 0u; local < rangeEntryCount; local += 1u) {
                     let other = sortedGridEntries[range.firstEntry + local].value;
                     if (other == body) { continue; }
                     if (!swept_pair_is_owned(body, other)) { continue; }
@@ -689,6 +733,10 @@ fn count_pairs_for_owner(owner : u32) -> u32 {
 
 fn count_pairs_impl(gid : vec3<u32>) {
     if (gid.x < broad.counts.z) {
+        if (atomicLoad(&telemetry[13]) == 0u) {
+            ownerPairCounts[gid.x] = 0u;
+            return;
+        }
         ownerPairCounts[gid.x] = count_pairs_for_owner(gid.x);
     }
 }
@@ -720,10 +768,16 @@ fn scatter_range_pairs(rangeA : CellRange, rangeB : CellRange,
                        sameRange : bool, base : u32,
                        localOffset : ptr<function, u32>) -> bool {
     if (base >= broad.counts.w) { return true; }
-    for (var localA = 0u; localA < rangeA.entryCount; localA += 1u) {
+    if (!cell_range_has_awake(rangeA)
+        && !cell_range_has_awake(rangeB)) {
+        return false;
+    }
+    let countA = cell_range_entry_count(rangeA);
+    let countB = cell_range_entry_count(rangeB);
+    for (var localA = 0u; localA < countA; localA += 1u) {
         let bodyA = sortedGridEntries[rangeA.firstEntry + localA].value;
         let startB = select(0u, localA + 1u, sameRange);
-        for (var localB = startB; localB < rangeB.entryCount; localB += 1u) {
+        for (var localB = startB; localB < countB; localB += 1u) {
             let bodyB = sortedGridEntries[rangeB.firstEntry + localB].value;
             if (bodies_overlap(bodyA, bodyB)) {
                 if ((*localOffset) >= broad.counts.w - base) { return true; }
@@ -755,7 +809,8 @@ fn scatter_swept_body_pairs(body : u32, base : u32,
                 let rangeIndex = find_cell_range(encode_cell(cell));
                 if (rangeIndex == SENTINEL) { continue; }
                 let range = cellRanges[rangeIndex];
-                for (var local = 0u; local < range.entryCount; local += 1u) {
+                let rangeEntryCount = cell_range_entry_count(range);
+                for (var local = 0u; local < rangeEntryCount; local += 1u) {
                     if ((*localOffset) >= broad.counts.w - base) { return; }
                     let other = sortedGridEntries[range.firstEntry + local].value;
                     if (other == body) { continue; }
@@ -1175,6 +1230,7 @@ fn small_world_pairs(@builtin(global_invocation_id) gid : vec3<u32>) {
     for (var index = 0u; index < 14u; index += 1u) {
         atomicStore(&telemetry[index], 0u);
     }
+    atomicStore(&telemetry[21], 0u);
 
     var gridEntryCount = 0u;
     var occupiedCellCount = 0u;
@@ -1451,6 +1507,7 @@ fn parallel_small_world_pairs(@builtin(local_invocation_id) lid : vec3<u32>) {
     for (var index = lane; index < 14u; index += 256u) {
         atomicStore(&telemetry[index], 0u);
     }
+    if (lane == 0u) { atomicStore(&telemetry[21], 0u); }
     storageBarrier();
     workgroupBarrier();
 
@@ -1605,6 +1662,7 @@ fn medium_world_pairs(@builtin(local_invocation_id) lid : vec3<u32>) {
     for (var index = lane; index < 14u; index += 256u) {
         atomicStore(&telemetry[index], 0u);
     }
+    if (lane == 0u) { atomicStore(&telemetry[21], 0u); }
     if (lane == 0u) { smallPairOutputBase = 0u; }
     storageBarrier();
     workgroupBarrier();
@@ -1725,7 +1783,11 @@ fn medium_world_pairs(@builtin(local_invocation_id) lid : vec3<u32>) {
 // medium-sized browser worlds concurrently.
 fn precompute_medium_body_proxies_impl(gid : vec3<u32>) {
     if (gid.x < broad.counts.x) {
-        store_medium_body_proxy(gid.x, load_medium_body(gid.x));
+        let proxy = load_medium_body(gid.x);
+        store_medium_body_proxy(gid.x, proxy);
+        if ((u32(proxy.sectorFlags.w) & BODY_AWAKE) != 0u) {
+            atomicAdd(&telemetry[13], 1u);
+        }
     }
 }
 

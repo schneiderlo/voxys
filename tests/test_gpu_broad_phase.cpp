@@ -685,21 +685,41 @@ TEST(GpuBroadPhaseGridCrossoverTest,
     EXPECT_FALSE(first.telemetry.candidateOverflow);
     EXPECT_FALSE(first.telemetry.pairOverflow);
     EXPECT_FALSE(first.telemetry.contactOverflow);
+    EXPECT_EQ(first.telemetry.pairDrivingBodies, bodyCapacity);
+    EXPECT_EQ(first.telemetry.maximumCellBodies, 2u);
 
     const auto firstIds = contactIds(first);
-    broadPhase.updateMediumPairPath(bodyCapacity, bodyCapacity / 4u);
+    broadPhase.updateMediumPairPath(
+        bodyCapacity, bodyCapacity / 4u, bodyCapacity, 32u);
     const BroadPhaseSnapshot second = runAndRead(context, broadPhase);
     EXPECT_EQ(snapshotPairs(second), expected);
     EXPECT_EQ(contactIds(second), firstIds);
     EXPECT_EQ(second.telemetry.beginEvents, 0u);
     EXPECT_EQ(second.telemetry.endEvents, 0u);
+    EXPECT_EQ(second.telemetry.pairDrivingBodies, bodyCapacity);
 
-    broadPhase.updateMediumPairPath(bodyCapacity, bodyCapacity);
+    broadPhase.updateMediumPairPath(
+        bodyCapacity, bodyCapacity, bodyCapacity, 0u);
     const BroadPhaseSnapshot third = runAndRead(context, broadPhase);
     EXPECT_EQ(snapshotPairs(third), expected);
     EXPECT_EQ(contactIds(third), firstIds);
     EXPECT_EQ(third.telemetry.beginEvents, 0u);
     EXPECT_EQ(third.telemetry.endEvents, 0u);
+
+    for (TestMetadata& bodyMetadata : metadata) {
+        bodyMetadata[3] &= ~kAwake;
+    }
+    ASSERT_TRUE(gpu::writeBuffer(
+        context.getQueue(), metadataBuffer, 0,
+        std::as_bytes(std::span<const TestMetadata>(metadata))));
+    broadPhase.updateMediumPairPath(
+        bodyCapacity, bodyCapacity / 4u, 0u, 0u);
+    const BroadPhaseSnapshot sleeping = runAndRead(context, broadPhase);
+    EXPECT_EQ(sleeping.telemetry.pairDrivingBodies, 0u);
+    EXPECT_EQ(sleeping.telemetry.candidatePairs, 0u);
+    EXPECT_EQ(sleeping.telemetry.uniquePairs, 0u);
+    EXPECT_EQ(sleeping.telemetry.persistentContacts, 0u);
+    EXPECT_EQ(sleeping.telemetry.endEvents, expected.size());
 
     releaseBuffer(metadataBuffer);
     releaseBuffer(shapeBuffer);

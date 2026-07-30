@@ -608,8 +608,7 @@ bool BrowserJourneyBenchmark::start(const BrowserJourneyConfig& config,
         && config.targetBodies == 0u
         && config.shape == BrowserJourneyShape::Cube;
     const bool throwsBodies =
-        config.layout != BrowserJourneyLayout::CubePyramid
-        && config.targetBodies != 0u;
+        config.targetBodies != 0u;
     if ((!observesCubePyramid && !throwsBodies)
         || config.targetBodies > kMaximumBrowserJourneyBodies
         || config.bodiesPerVolley == 0u

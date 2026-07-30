@@ -61,7 +61,7 @@ The sweep gives every volley a new impact zone. It answers how cost scales when
 the same bodies are spread across the terrain, but it is not a substitute for
 the default dense-pile result.
 
-## 20,000-cube triangle experiment
+## 20,022-cube triangle experiment
 
 Open the deployed interactive experiment directly:
 
@@ -69,35 +69,43 @@ Open the deployed interactive experiment directly:
 https://schneiderlo.github.io/voxys/?experiment=triangle
 ```
 
-It creates exactly 20,000 cubes as a triangular wall: 71 rows, a 70-cube
-base, and 8 cubes of depth. For this experiment only, a 280×200 m arena is
+It creates exactly 20,022 cubes as a one-cube-thick triangular wall. Its 141
+rows have widths `282, 280, 278, ..., 2`, giving the closest `n(n+1)` count to
+20,000: `141×142 = 20,022`. For this experiment only, a 360×1040 m arena is
 flattened in the runtime heightmap with a 40 m smooth edge. Rendering and
-terrain collision consume the same modified samples. The bottom 560 cubes are
-static; the remaining 19,440 are staged asleep and wake locally when struck.
+terrain collision consume the same modified samples. The bottom 282 cubes are
+static; the remaining 19,740 are staged asleep and wake locally when struck.
 They still use the production dynamic-body, collision, solver, culling, and
 primitive-render paths. This terrain and foundation cheat isolates wall
 behavior from the original slope without hiding a collision shape.
 
 The browser automatically uses the measured 131,072 pair/manifold capacity for
-this scene. It runs physics at 30 Hz with four 120 Hz solver substeps and one
-bounded catch-up tick, keeping motion tied to wall time without rebuilding the
-old GPU queue spiral. `triangleBodies=N` overrides the count for exploratory
-runs. The old `experiment=pyramid` URL remains an alias.
+this scene. It also defaults its broad-phase cells to 2 m;
+`broadPhaseCellSize=N` can still override that value. It runs physics at 30 Hz
+with four 120 Hz solver substeps and one bounded catch-up tick, keeping motion
+tied to wall time without rebuilding the old GPU queue spiral.
+`triangleBodies=N` overrides the count for exploratory runs. The old
+`experiment=pyramid` URL remains an alias.
 
 Run the same scene through the browser benchmark:
 
 ```bash
 node scripts/benchmark_browser.mjs \
-  --layout triangle --bodies 20000 --runs 1 \
+  --layout triangle --bodies 20022 --runs 1 \
   --modes score,headroom,diagnose --headed
 ```
+
+The benchmark fires one cube into the wall by default. That represents the
+normal left-click interaction. Use `--triangle-projectiles 128` to reproduce
+the much harsher right-click volley stress test, or `--triangle-projectiles 0`
+to measure the untouched sleeping wall.
 
 `--layout triangle` selects cubes automatically. At a 2269×844 CSS viewport and
 the desktop 1.5 render scale used for visual testing:
 
 ```bash
 node scripts/benchmark_browser.mjs \
-  --layout triangle --bodies 20000 --runs 1 --modes diagnose \
+  --layout triangle --bodies 20022 --runs 1 --modes diagnose \
   --resolution 2269x844 --dpr 1.5 --headed
 ```
 
@@ -114,8 +122,9 @@ The runner fails a workload if any of these are wrong:
   JavaScript exceptions, or engine console errors.
 
 The JSON contains compact raw samples for every submitted frame, per-phase
-p50/p95/p99 timing, CPU time, refresh misses, collision-density peaks, memory,
-browser/GPU identity, and all correctness checks.
+p50/p95/p99 timing, CPU time, refresh misses, broad-phase occupancy and maximum
+cell density, collision-density peaks, memory, browser/GPU identity, and all
+correctness checks.
 
 A red capacity row is a measured engine limit, not a runner crash. Its timing
 is still printed and stored, but it must not be accepted as a valid performance

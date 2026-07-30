@@ -68,13 +68,20 @@ namespace {
     std::optional<voxy::RenderGpuStageTiming> g_polledRenderTiming;
     double g_lastFrameCpuMilliseconds = 0.0;
     uint32_t g_gpuFramesInFlight = 0;
+    uint64_t g_gpuSubmittedFrames = 0;
+    uint64_t g_gpuCompletedFrames = 0;
+    uint64_t g_gpuCompletionTarget = 0;
+    bool g_gpuCompletionPending = false;
     uint64_t g_gpuPacingSkips = 0;
     bool g_gpuPacingPaused = false;
     bool g_preserveSimulationWallTime = false;
     bool g_renderThroughputMode = false;
     bool g_renderThroughputFullQuality = false;
 
-    constexpr uint32_t kMaximumGpuFramesInFlight = 4;
+    // One outstanding callback covers a complete submission batch. This
+    // avoids registering a callback per frame, which Chrome can deliver in
+    // large latency spikes, while keeping the actual unconfirmed batch small.
+    constexpr uint32_t kMaximumGpuFramesInFlight = 8;
     constexpr int kMaximumRenderThroughputFrames = 1'000'000;
     constexpr int kMaximumRenderThroughputBatchFrames = 256;
 
@@ -161,6 +168,7 @@ namespace {
             return;
         }
         g_gpuFramesInFlight = 0u;
+        g_gpuCompletedFrames = g_gpuSubmittedFrames;
         if (g_renderThroughput.warmupRemaining != 0u) {
             g_renderThroughput.status = RenderThroughputStatus::Warming;
         } else {
@@ -371,7 +379,11 @@ namespace {
 
         out << ",\"grid_entries\":";
         appendCapacityUsage(out, physics.gridEntryUsage);
-        out << ",\"occupied_cells\":" << physics.occupiedCells;
+        out << ",\"occupied_cells\":" << physics.occupiedCells
+            << ",\"maximum_cell_bodies\":"
+            << physics.maximumCellBodies
+            << ",\"pair_driving_bodies\":"
+            << physics.broadPhasePairDrivingBodies;
         out << ",\"candidate_pairs\":";
         appendCapacityUsage(out, physics.candidatePairUsage);
         out << ",\"pairs\":";
@@ -510,14 +522,38 @@ namespace {
         return out.str();
     }
 
+    void requestGpuFrameCompletion();
+
     void gpuFrameCompleted(WGPUQueueWorkDoneStatus /*status*/,
                            WGPUStringView /*message*/, void* /*userdata1*/,
                            void* /*userdata2*/) {
-        if (g_gpuFramesInFlight != 0u) --g_gpuFramesInFlight;
+        g_gpuCompletedFrames = std::max(
+            g_gpuCompletedFrames, g_gpuCompletionTarget);
+        g_gpuCompletionPending = false;
+        const uint64_t outstanding =
+            g_gpuSubmittedFrames - g_gpuCompletedFrames;
+        g_gpuFramesInFlight = static_cast<uint32_t>(std::min<uint64_t>(
+            outstanding, std::numeric_limits<uint32_t>::max()));
         if (g_gpuPacingPaused && !renderThroughputRunning()) {
             g_gpuPacingPaused = false;
             emscripten_resume_main_loop();
         }
+        if (!renderThroughputRunning()) requestGpuFrameCompletion();
+    }
+
+    void requestGpuFrameCompletion() {
+        if (!g_app || g_gpuCompletionPending
+            || g_gpuCompletedFrames == g_gpuSubmittedFrames) {
+            return;
+        }
+        g_gpuCompletionPending = true;
+        g_gpuCompletionTarget = g_gpuSubmittedFrames;
+        WGPUQueueWorkDoneCallbackInfo callbackInfo =
+            WGPU_QUEUE_WORK_DONE_CALLBACK_INFO_INIT;
+        callbackInfo.mode = WGPUCallbackMode_AllowSpontaneous;
+        callbackInfo.callback = gpuFrameCompleted;
+        static_cast<void>(wgpuQueueOnSubmittedWorkDone(
+            g_app->getGPUContext()->getQueue(), callbackInfo));
     }
 
     constexpr int32_t kPhysicsSelfTestBaseSector = 1'500'000;
@@ -1029,8 +1065,15 @@ int main(int argc, char* argv[]) {
         g_preserveSimulationWallTime = true;
     }
     if (appConfig.cubePyramidBodyCount != 0u) {
-        // The connected 20k triangular wall stays below four pairs per body
-        // in measured runs. Other exploratory sizes keep a wider reserve.
+        const bool broadPhaseCellSizeExplicit = EM_ASM_INT({
+            return new URLSearchParams(globalThis.location.search)
+                .has("broadPhaseCellSize");
+        }) != 0;
+        if (!broadPhaseCellSizeExplicit) {
+            appConfig.gpuPhysicsBroadPhaseCellSize = 2.0f;
+        }
+        // The staged one-thick 20k triangular wall stays below four pairs per
+        // body in measured runs. Other exploratory sizes keep a wider reserve.
         const uint64_t pairsPerBody =
             appConfig.cubePyramidBodyCount
                 == voxy::kDefaultCubePyramidBodyCount ? 4u : 6u;
@@ -1201,10 +1244,6 @@ int main(int argc, char* argv[]) {
             }
             ++g_gpuPacingSkips;
             if (g_app->isUncappedFPS()) {
-                // Do not busy-spin an immediate callback while all four queue
-                // slots are occupied. Pause only Emscripten's main-loop task;
-                // the spontaneous queue callback remains live and resumes us
-                // as soon as real GPU work retires.
                 g_gpuPacingPaused = true;
                 emscripten_pause_main_loop();
             }
@@ -1215,11 +1254,9 @@ int main(int argc, char* argv[]) {
         if (g_app->isUncappedFPS() != currentUncapped) {
             currentUncapped = g_app->isUncappedFPS();
             if (currentUncapped) {
-                // Browser setTimeout enters the mandatory nested-timer clamp
-                // (typically 4 ms), limiting an otherwise idle renderer to
-                // roughly 250 submissions/s. Emscripten's immediate scheduler
-                // still yields between callbacks, so GPU completions and input
-                // remain serviced without imposing that artificial ceiling.
+                // Submit immediately while queue headroom exists. Once the
+                // bounded queue fills, its one completion callback wakes this
+                // loop directly; no timer polls or per-frame callbacks.
                 emscripten_set_main_loop_timing(EM_TIMING_SETIMMEDIATE, 0);
                 LOG_INFO("Switched to Uncapped Loop (SETIMMEDIATE)");
             } else {
@@ -1246,13 +1283,12 @@ int main(int argc, char* argv[]) {
         g_lastFrameCpuMilliseconds =
             emscripten_get_now() - frameStartMilliseconds;
 
-        WGPUQueueWorkDoneCallbackInfo callbackInfo =
-            WGPU_QUEUE_WORK_DONE_CALLBACK_INFO_INIT;
-        callbackInfo.mode = WGPUCallbackMode_AllowSpontaneous;
-        callbackInfo.callback = gpuFrameCompleted;
-        ++g_gpuFramesInFlight;
-        static_cast<void>(wgpuQueueOnSubmittedWorkDone(
-            g_app->getGPUContext()->getQueue(), callbackInfo));
+        ++g_gpuSubmittedFrames;
+        const uint64_t outstanding =
+            g_gpuSubmittedFrames - g_gpuCompletedFrames;
+        g_gpuFramesInFlight = static_cast<uint32_t>(std::min<uint64_t>(
+            outstanding, std::numeric_limits<uint32_t>::max()));
+        requestGpuFrameCompletion();
     };
 
     // 0 = use requestAnimationFrame, false = don't simulate infinite loop
@@ -1478,7 +1514,7 @@ int voxy_start_browser_journey_benchmark(
     int bodiesPerVolley, int ticksPerVolley, int layout, int shape) {
     const bool observesCubePyramid =
         layout == 2 && targetBodies == 0 && shape == 1;
-    const bool throwsBodies = layout >= 0 && layout < 2 && targetBodies > 0;
+    const bool throwsBodies = layout >= 0 && layout <= 2 && targetBodies > 0;
     if (!g_app || (!observesCubePyramid && !throwsBodies)
         || targetBodies > static_cast<int>(voxy::kMaximumBenchmarkBodyCount)
         || warmupTicks < 0 || impactTicks <= 0 || settleTicks <= 0

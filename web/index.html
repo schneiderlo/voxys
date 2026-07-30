@@ -884,6 +884,8 @@
 
                 updateProgress(10, 'Creating GPU device...');
                 const profileParameters = new URLSearchParams(location.search);
+                const browserBenchmarkRun =
+                    profileParameters.has('browserBenchmarkRun');
                 const timestampProfiling =
                     profileParameters.get('physicsProfile') === '1'
                     || profileParameters.get('renderProfile') === '1';
@@ -1077,15 +1079,23 @@
                 roller.land(); // Triggers deceleration and snap
 
                 // 3. Wait for the animation to finish visuals (approx 1.5s - 2s)
-                // We poll the roller state
-                await new Promise(resolve => {
-                    const check = setInterval(() => {
-                        if (roller.state === 'LOCKED') {
-                            clearInterval(check);
-                            setTimeout(resolve, 500); // Small pause to admire the "READY"
-                        }
-                    }, 100);
-                });
+                // Browser automation measures the engine, not this decorative
+                // requestAnimationFrame sequence. It can be compositor-
+                // throttled even while the uncapped WASM loop remains active.
+                if (browserBenchmarkRun) {
+                    cancelAnimationFrame(roller.rAF);
+                    roller.state = 'LOCKED';
+                } else {
+                    // We poll the roller state.
+                    await new Promise(resolve => {
+                        const check = setInterval(() => {
+                            if (roller.state === 'LOCKED') {
+                                clearInterval(check);
+                                setTimeout(resolve, 500); // Admire "READY".
+                            }
+                        }, 100);
+                    });
+                }
 
                 // Build the large experiment only when the cover is ready to
                 // lift. This avoids spending its first simulated seconds hidden

@@ -57,6 +57,8 @@ struct GpuBroadPhaseTelemetry {
     uint32_t uniquePairs = 0;
     uint32_t activeSleepingPairs = 0;
     uint32_t oversizedBodies = 0;
+    uint32_t pairDrivingBodies = 0;
+    uint32_t maximumCellBodies = 0;
     uint32_t persistentContacts = 0;
     uint32_t beginEvents = 0;
     uint32_t endEvents = 0;
@@ -109,8 +111,9 @@ public:
     void setBodyView(const BroadPhaseBodyView& view);
     // Selects between equivalent canonical pair enumerators using delayed
     // occupancy telemetry. Threshold hysteresis prevents route thrashing.
-    void updateMediumPairPath(uint32_t gridEntries,
-                              uint32_t occupiedCells) noexcept;
+    void updateMediumPairPath(uint32_t gridEntries, uint32_t occupiedCells,
+                              uint32_t pairDrivingBodies,
+                              uint32_t maximumCellBodies) noexcept;
     [[nodiscard]] bool encode(WGPUCommandEncoder encoder);
     [[nodiscard]] bool encode(
         WGPUCommandEncoder encoder,

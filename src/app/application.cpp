@@ -95,8 +95,13 @@ bool flattenCubeTriangleArena(
         return false;
     }
 
-    constexpr float innerHalfWidth = 140.0f;
-    constexpr float innerHalfDepth = 100.0f;
+    // The 141-row wall is roughly 316 m wide. Flatten enough land to contain
+    // its base and the starting camera, while sampling the target height only
+    // near the wall so distant terrain cannot bias the platform elevation.
+    constexpr float innerHalfWidth = 180.0f;
+    constexpr float innerHalfDepth = 520.0f;
+    constexpr float heightSampleHalfWidth = 160.0f;
+    constexpr float heightSampleHalfDepth = 10.0f;
     constexpr float feather = 40.0f;
     const uint32_t width = heightmap.getWidth();
     const uint32_t height = heightmap.getHeight();
@@ -110,10 +115,6 @@ bool flattenCubeTriangleArena(
         kBrowserJourneyTargetX, width);
     const int32_t centerZ = sampleCoordinate(
         kBrowserJourneyTargetZ, height);
-    const int32_t innerSamplesX =
-        static_cast<int32_t>(std::ceil(innerHalfWidth / cellScale));
-    const int32_t innerSamplesZ =
-        static_cast<int32_t>(std::ceil(innerHalfDepth / cellScale));
     const int32_t outerSamplesX =
         static_cast<int32_t>(std::ceil(
             (innerHalfWidth + feather) / cellScale));
@@ -127,16 +128,22 @@ bool flattenCubeTriangleArena(
     const auto clampZ = [height](int32_t value) {
         return std::clamp(value, 0, static_cast<int32_t>(height) - 1);
     };
-    const int32_t innerMinX = clampX(centerX - innerSamplesX);
-    const int32_t innerMaxX = clampX(centerX + innerSamplesX);
-    const int32_t innerMinZ = clampZ(centerZ - innerSamplesZ);
-    const int32_t innerMaxZ = clampZ(centerZ + innerSamplesZ);
+    const int32_t heightSamplesX =
+        static_cast<int32_t>(std::ceil(
+            heightSampleHalfWidth / cellScale));
+    const int32_t heightSamplesZ =
+        static_cast<int32_t>(std::ceil(
+            heightSampleHalfDepth / cellScale));
+    const int32_t sampleMinX = clampX(centerX - heightSamplesX);
+    const int32_t sampleMaxX = clampX(centerX + heightSamplesX);
+    const int32_t sampleMinZ = clampZ(centerZ - heightSamplesZ);
+    const int32_t sampleMaxZ = clampZ(centerZ + heightSamplesZ);
 
     uint64_t sum = 0u;
     uint64_t samples = 0u;
     const std::span<const uint16_t> source = heightmap.getData();
-    for (int32_t z = innerMinZ; z <= innerMaxZ; ++z) {
-        for (int32_t x = innerMinX; x <= innerMaxX; ++x) {
+    for (int32_t z = sampleMinZ; z <= sampleMaxZ; ++z) {
+        for (int32_t x = sampleMinX; x <= sampleMaxX; ++x) {
             sum += source[static_cast<size_t>(z) * width
                           + static_cast<uint32_t>(x)];
             ++samples;
@@ -1972,44 +1979,48 @@ bool Application::spawnCubePyramidExperiment() {
     if (bodyCount == 0u) return true;
     if (!physicsWorld_ || !characterController_ || !camera_) return false;
 
-    // This is a triangular wall, not a square pyramid. Eight slices give it
-    // enough depth to resist immediately toppling out of the screen.
+    // One cube of thickness. Row widths are 2n, 2(n-1), ... 2, so a complete
+    // n-row wall contains n(n+1) cubes and has 45-degree sides.
     constexpr float cubeSize = 1.1f;
-    constexpr float horizontalPitch = 1.12f;
+    // Keep columns outside the 20 mm speculative-contact distance. A single
+    // impact then wakes the struck stack instead of instantly turning all
+    // 20k staged cubes into one solver island. The explicit 128-projectile
+    // benchmark still exercises a wide collapse.
+    constexpr float horizontalPitch = 1.15f;
     // Sleeping rows have a 20 mm gap. They remain perfectly staged until an
     // impact wakes them, then gravity closes the gap and propagates locally.
     constexpr float verticalPitch = 1.12f;
-    constexpr float depthPitch = 1.12f;
     constexpr float terrainClearance = 0.05f;
-    constexpr uint32_t triangleDepth = 8u;
 
     struct TriangleRow {
         uint32_t width = 0u;
         uint32_t bodies = 0u;
     };
     std::vector<TriangleRow> rows;
-    if (bodyCount == kDefaultCubePyramidBodyCount) {
-        // 8 * (triangle(70) + 15) = 20,000. Width 15 is repeated once,
-        // producing an exact count with only a one-row step in the silhouette.
+    if (bodyCount == kDefaultCubeTriangleBodyCount) {
+        // 141 * 142 = 20,022: the closest n(n+1) triangle to 20,000.
         static_assert(
-            triangleDepth * ((70u * 71u) / 2u + 15u)
-            == kDefaultCubePyramidBodyCount);
-        rows.reserve(71u);
-        for (uint32_t width = 70u; width != 0u; --width) {
-            rows.push_back({width, width * triangleDepth});
-            if (width == 15u) {
-                rows.push_back({width, width * triangleDepth});
-            }
+            kDefaultCubeTriangleRowCount
+                * (kDefaultCubeTriangleRowCount + 1u)
+            == kDefaultCubeTriangleBodyCount);
+        rows.reserve(kDefaultCubeTriangleRowCount);
+        for (uint32_t halfWidth = kDefaultCubeTriangleRowCount;
+             halfWidth != 0u; --halfWidth) {
+            const uint32_t width = 2u * halfWidth;
+            rows.push_back({width, width});
         }
     } else {
-        const auto completeTriangleBodies = [](uint32_t width) {
-            return uint64_t{triangleDepth} * width * (width + 1u) / 2u;
+        const auto completeTriangleBodies = [](uint32_t rowCount) {
+            return uint64_t{rowCount} * (rowCount + 1u);
         };
-        uint32_t baseWidth = 1u;
-        while (completeTriangleBodies(baseWidth) < bodyCount) ++baseWidth;
+        uint32_t rowCount = 1u;
+        while (completeTriangleBodies(rowCount) < bodyCount) ++rowCount;
+        rows.reserve(rowCount);
         uint32_t remaining = bodyCount;
-        for (uint32_t width = baseWidth; remaining != 0u; --width) {
-            const uint32_t capacity = width * triangleDepth;
+        for (uint32_t halfWidth = rowCount;
+             remaining != 0u; --halfWidth) {
+            const uint32_t width = 2u * halfWidth;
+            const uint32_t capacity = width;
             const uint32_t rowBodies = std::min(remaining, capacity);
             rows.push_back({width, rowBodies});
             remaining -= rowBodies;
@@ -2021,16 +2032,14 @@ bool Application::spawnCubePyramidExperiment() {
     const float halfWidth =
         0.5f * static_cast<float>(baseWidth - 1u) * horizontalPitch
         + cubeSize * 0.5f;
-    const float halfDepth =
-        0.5f * static_cast<float>(triangleDepth - 1u) * depthPitch
-        + cubeSize * 0.5f;
+    const float halfDepth = cubeSize * 0.5f;
 
     // Find a horizontal plane above the complete footprint. The experiment
     // already flattened this runtime heightmap for render and collision. The
     // static bottom row remains a cube-built foundation, with no hidden shape.
     float maximumTerrainHeight = -std::numeric_limits<float>::infinity();
     const uint32_t xSampleIntervals = std::max(baseWidth * 2u, 1u);
-    const uint32_t zSampleIntervals = triangleDepth * 2u;
+    constexpr uint32_t zSampleIntervals = 2u;
     for (uint32_t z = 0u; z <= zSampleIntervals; ++z) {
         const float zOffset = -halfDepth + 2.0f * halfDepth
                 * static_cast<float>(z)
@@ -2066,7 +2075,7 @@ bool Application::spawnCubePyramidExperiment() {
         bodyCount - std::min(bodyCount, rows.front().bodies));
     for (size_t row = 0u; row < rows.size(); ++row) {
         const uint32_t width = rows[row].width;
-        const uint32_t capacity = width * triangleDepth;
+        const uint32_t capacity = width;
         const uint32_t rowBodies = rows[row].bodies;
         std::vector<uint32_t> slots(capacity);
         for (uint32_t slot = 0u; slot < capacity; ++slot) {
@@ -2079,30 +2088,23 @@ bool Application::spawnCubePyramidExperiment() {
             std::stable_sort(
                 slots.begin(), slots.end(),
                 [width](uint32_t lhs, uint32_t rhs) {
-                    const auto radiusSquared = [width](uint32_t slot) {
-                        const int32_t x = static_cast<int32_t>(
-                            2u * (slot % width))
-                            - static_cast<int32_t>(width - 1u);
-                        const int32_t z = static_cast<int32_t>(
-                            2u * (slot / width))
-                            - static_cast<int32_t>(triangleDepth - 1u);
-                        return x * x + z * z;
+                    const auto distanceFromCenter = [width](uint32_t slot) {
+                        return std::abs(
+                            static_cast<int32_t>(2u * slot)
+                            - static_cast<int32_t>(width - 1u));
                     };
-                    const int32_t lhsRadius = radiusSquared(lhs);
-                    const int32_t rhsRadius = radiusSquared(rhs);
-                    return lhsRadius != rhsRadius
-                        ? lhsRadius < rhsRadius : lhs < rhs;
+                    const int32_t lhsDistance = distanceFromCenter(lhs);
+                    const int32_t rhsDistance = distanceFromCenter(rhs);
+                    return lhsDistance != rhsDistance
+                        ? lhsDistance < rhsDistance : lhs < rhs;
                 });
         }
 
         const float rowHalf =
             0.5f * static_cast<float>(width - 1u) * horizontalPitch;
-        const float depthHalf =
-            0.5f * static_cast<float>(triangleDepth - 1u) * depthPitch;
         for (uint32_t index = 0u; index < rowBodies; ++index) {
             const uint32_t slot = slots[index];
-            const uint32_t column = slot % width;
-            const uint32_t depth = slot / width;
+            const uint32_t column = slot;
 
             physics::BodySpawnDesc body;
             body.shape = physics::ThrowableShape::Cube;
@@ -2111,9 +2113,7 @@ bool Application::spawnCubePyramidExperiment() {
                     + static_cast<float>(column) * horizontalPitch
                     - rowHalf,
                 baseCenterY + static_cast<float>(row) * verticalPitch,
-                kBrowserJourneyTargetZ
-                    + static_cast<float>(depth) * depthPitch
-                    - depthHalf,
+                kBrowserJourneyTargetZ,
             };
             body.dimensions = glm::vec3(cubeSize);
             body.inverseMass = row == 0u ? 0.0f : 1.0f;
@@ -2139,7 +2139,7 @@ bool Application::spawnCubePyramidExperiment() {
 
     const float triangleHeight =
         cubeSize + static_cast<float>(rows.size() - 1u) * verticalPitch;
-    const float viewDistance = std::max(60.0f, halfWidth * 3.1f);
+    const float viewDistance = std::max(80.0f, halfWidth * 1.45f);
     const glm::dvec3 target{
         kBrowserJourneyTargetX,
         baseCenterY + triangleHeight * 0.46f,
@@ -2155,8 +2155,8 @@ bool Application::spawnCubePyramidExperiment() {
         static_cast<uint32_t>(physics::ThrowableShape::Cube);
 
     LOG_INFO(
-        "Cube triangle experiment: {} cubes, {} base width, {} rows, {} deep, {} static foundation cubes",
-        spawned, baseWidth, rows.size(), triangleDepth, rows.front().bodies);
+        "Cube triangle experiment: {} cubes, {} base width, {} rows, one cube thick, {} static foundation cubes",
+        spawned, baseWidth, rows.size(), rows.front().bodies);
     return spawned == bodyCount;
 }
 
@@ -3487,18 +3487,57 @@ bool Application::spawnThrowable(
         return false;
     }
 
-    constexpr float throwSpeed = 28.0f;
     const glm::vec3 normalizedDirection = glm::normalize(direction);
+    glm::vec3 launchOrigin = origin;
+    glm::ivec3 launchSector = sector;
+    if (config_.cubePyramidBodyCount != 0u) {
+        // The complete wall needs a distant overview camera. Preserve the
+        // ordinary 28 m/s projectile and its real collision response, but
+        // move its starting point along the same sight line to a launch plane
+        // 20 m before the wall. This avoids turning a normal click into a
+        // 160 m/s cannon shot merely to cover the camera distance.
+        constexpr double launchPlaneZ =
+            static_cast<double>(kBrowserJourneyTargetZ) - 20.0;
+        const physics::WorldPosition source =
+            physics::canonicalWorldPosition(sector, glm::dvec3(origin));
+        glm::dvec3 absolute =
+            physics::worldPositionToAbsolute(source);
+        const double directionZ =
+            static_cast<double>(normalizedDirection.z);
+        if (std::abs(directionZ) > 1.0e-6) {
+            const double distance =
+                (launchPlaneZ - absolute.z) / directionZ;
+            if (distance > 0.0 && distance <= 512.0) {
+                const glm::dvec3 candidate = absolute
+                    + glm::dvec3(normalizedDirection) * distance;
+                constexpr double wallHalfWidth = 180.0;
+                constexpr double wallVerticalMargin = 200.0;
+                if (std::abs(
+                        candidate.x
+                        - static_cast<double>(kBrowserJourneyTargetX))
+                        <= wallHalfWidth
+                    && std::abs(candidate.y - absolute.y)
+                        <= wallVerticalMargin) {
+                    const physics::WorldPosition launch =
+                        physics::worldPositionFromAbsolute(candidate);
+                    launchOrigin = launch.local;
+                    launchSector = launch.sector;
+                }
+            }
+        }
+    }
+
+    constexpr float throwSpeed = 28.0f;
     if (physicsWorld_->backendType()
         == physics::BackendType::Box3DReference) {
         return physicsWorld_->throwBody(
-            shape, origin, normalizedDirection * throwSpeed);
+            shape, launchOrigin, normalizedDirection * throwSpeed);
     }
 
     physics::BodySpawnDesc desc;
     desc.shape = shape;
-    desc.position = origin;
-    desc.sector = sector;
+    desc.position = launchOrigin;
+    desc.sector = launchSector;
     desc.linearVelocity = normalizedDirection * throwSpeed;
     desc.angularVelocity = {3.5f, 5.0f, 2.5f};
     desc.dimensions = physics::throwableShapeDimensions(shape);
@@ -3509,10 +3548,11 @@ uint32_t Application::throwThrowableBatch(
     physics::ThrowableShape shape, uint32_t maximumBodies) {
     if (!camera_ || !physicsWorld_ || maximumBodies == 0u) return 0u;
 
-    constexpr uint32_t columns = 16u;
+    constexpr uint32_t maximumColumns = 16u;
     constexpr uint32_t maximumRows = 8u;
-    constexpr uint32_t fullBatchSize = columns * maximumRows;
+    constexpr uint32_t fullBatchSize = maximumColumns * maximumRows;
     const uint32_t batchSize = std::min(maximumBodies, fullBatchSize);
+    const uint32_t columns = std::min(batchSize, maximumColumns);
     const uint32_t rows = (batchSize + columns - 1u) / columns;
     const glm::vec3 direction = glm::normalize(camera_->forward());
     const glm::vec3 dimensions =

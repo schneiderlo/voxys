@@ -298,6 +298,7 @@ public:
         std::vector<LE> pairCountEntries;
         for (uint32_t binding : {0u, 1u, 2u, 8u})
             storage(pairCountEntries, binding, true);
+        storage(pairCountEntries, 6, false);
         storage(pairCountEntries, 9, false);
         storage(pairCountEntries, 11, false);
         uniform(pairCountEntries);
@@ -395,7 +396,7 @@ public:
         std::vector<LE> mediumProxyEntries;
         for (uint32_t binding : {0u, 1u, 2u})
             storage(mediumProxyEntries, binding, true);
-        for (uint32_t binding : {4u, 5u, 9u, 11u})
+        for (uint32_t binding : {4u, 5u, 6u, 9u, 11u})
             storage(mediumProxyEntries, binding, false);
         uniform(mediumProxyEntries);
         mediumProxyLayout_ = gpu::createBindGroupLayout(
@@ -642,16 +643,29 @@ public:
         bodyView_ = next;
     }
 
-    void updateMediumPairPath(uint32_t gridEntries,
-                              uint32_t occupiedCells) noexcept {
+    void updateMediumPairPath(uint32_t gridEntries, uint32_t occupiedCells,
+                              uint32_t pairDrivingBodies,
+                              uint32_t maximumCellBodies) noexcept {
         if (gridEntries == 0u) return;
+        if (maximumCellBodies != 0u) {
+            lastGridMaximumCellBodies_ = maximumCellBodies;
+        }
+        // The canonical dense route walks every body pair. Cell density alone
+        // is not enough to justify that when most of a staged world sleeps.
+        // Keep local impacts on the grid until at least a quarter of resident
+        // grid bodies can actually drive a pair.
+        if (uint64_t{pairDrivingBodies} * 4u < gridEntries) {
+            denseMediumPairPath_ = false;
+            return;
+        }
         // Dense cells make the grid's local quadratic walks and candidate
         // radix sort costlier than one canonical minimum/maximum pair walk.
         if (denseMediumPairPath_) {
             if (uint64_t{occupiedCells} * 2u >= gridEntries) {
                 denseMediumPairPath_ = false;
             }
-        } else if (uint64_t{occupiedCells} * 3u < gridEntries) {
+        } else if (lastGridMaximumCellBodies_ >= 32u
+                   && uint64_t{occupiedCells} * 3u < gridEntries) {
             denseMediumPairPath_ = true;
         }
     }
@@ -703,10 +717,11 @@ public:
             gpu::BindGroupEntry(23).buffer(dispatchArgs_),
             gpu::BindGroupEntry(7).buffer(parameterBuffer_),
         };
-        const std::array<gpu::BindGroupEntry, 7> pairCountEntries = {
+        const std::array<gpu::BindGroupEntry, 8> pairCountEntries = {
             gpu::BindGroupEntry(0).buffer(bodyView_.poseBuffer),
             gpu::BindGroupEntry(1).buffer(bodyView_.shapeBuffer),
             gpu::BindGroupEntry(2).buffer(bodyView_.metadataBuffer),
+            gpu::BindGroupEntry(6).buffer(telemetry_),
             gpu::BindGroupEntry(8).buffer(sortedGridEntries_),
             gpu::BindGroupEntry(9).buffer(cellRanges_),
             gpu::BindGroupEntry(11).buffer(ownerPairCounts_),
@@ -841,12 +856,13 @@ public:
         cachedBindGroups_[15] = bindGroup(
             smallPairLayout_, smallPairEntries,
             "broad_phase_small_pair_group");
-        const std::array<gpu::BindGroupEntry, 8> mediumProxyEntries = {
+        const std::array<gpu::BindGroupEntry, 9> mediumProxyEntries = {
             gpu::BindGroupEntry(0).buffer(bodyView_.poseBuffer),
             gpu::BindGroupEntry(1).buffer(bodyView_.shapeBuffer),
             gpu::BindGroupEntry(2).buffer(bodyView_.metadataBuffer),
             gpu::BindGroupEntry(4).buffer(bodyEntryOffsets_),
             gpu::BindGroupEntry(5).buffer(gridEntries_),
+            gpu::BindGroupEntry(6).buffer(telemetry_),
             gpu::BindGroupEntry(9).buffer(cellRanges_),
             gpu::BindGroupEntry(11).buffer(ownerPairCounts_),
             gpu::BindGroupEntry(7).buffer(parameterBuffer_),
@@ -1434,6 +1450,7 @@ public:
         scratchBytes_ = 0;
         contactsAreB_ = false;
         denseMediumPairPath_ = false;
+        lastGridMaximumCellBodies_ = 0u;
     }
 
     WGPUDevice device_ = nullptr;
@@ -1448,6 +1465,7 @@ public:
     size_t scratchBytes_ = 0;
     bool contactsAreB_ = false;
     bool denseMediumPairPath_ = false;
+    uint32_t lastGridMaximumCellBodies_ = 0u;
     std::array<WGPUBindGroup, 22> cachedBindGroups_{};
     DeterministicGpuPrimitives primitives_;
 
@@ -1560,8 +1578,10 @@ void GpuBroadPhase::setBodyView(const BroadPhaseBodyView& view) {
     impl_->setBodyView(view);
 }
 void GpuBroadPhase::updateMediumPairPath(
-    uint32_t gridEntries, uint32_t occupiedCells) noexcept {
-    impl_->updateMediumPairPath(gridEntries, occupiedCells);
+    uint32_t gridEntries, uint32_t occupiedCells,
+    uint32_t pairDrivingBodies, uint32_t maximumCellBodies) noexcept {
+    impl_->updateMediumPairPath(
+        gridEntries, occupiedCells, pairDrivingBodies, maximumCellBodies);
 }
 bool GpuBroadPhase::encode(WGPUCommandEncoder encoder) {
     return impl_->encode(encoder, ProfilingBoundary{});
@@ -1603,7 +1623,7 @@ size_t GpuBroadPhase::scratchBytes() const noexcept { return impl_->scratchBytes
 
 GpuBroadPhaseTelemetry GpuBroadPhase::decodeTelemetry(
     std::span<const uint32_t> words) noexcept {
-    if (words.size() < 21) return {};
+    if (words.size() < 22) return {};
     return {
         .gridEntries = words[0],
         .occupiedCells = words[1],
@@ -1611,6 +1631,8 @@ GpuBroadPhaseTelemetry GpuBroadPhase::decodeTelemetry(
         .uniquePairs = words[3],
         .activeSleepingPairs = words[4],
         .oversizedBodies = words[5],
+        .pairDrivingBodies = words[13],
+        .maximumCellBodies = words[21],
         .persistentContacts = words[6],
         .beginEvents = words[7],
         .endEvents = words[8],

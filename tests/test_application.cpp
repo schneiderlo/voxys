@@ -22,6 +22,23 @@
 
 namespace voxy {
 
+TEST(CubeTriangleExperimentTest, DefaultIsOneLayerAndClosestNProduct) {
+    EXPECT_EQ(kDefaultCubeTriangleRowCount, 141u);
+    EXPECT_EQ(kDefaultCubeTriangleBodyCount, 20'022u);
+    EXPECT_EQ(
+        kDefaultCubeTriangleBodyCount,
+        kDefaultCubeTriangleRowCount
+            * (kDefaultCubeTriangleRowCount + 1u));
+
+    uint32_t oneLayerBodies = 0u;
+    for (uint32_t halfWidth = 1u;
+         halfWidth <= kDefaultCubeTriangleRowCount; ++halfWidth) {
+        oneLayerBodies += 2u * halfWidth;
+    }
+    EXPECT_EQ(oneLayerBodies, kDefaultCubeTriangleBodyCount);
+    EXPECT_EQ(kDefaultCubeTriangleBodyCount - 20'000u, 22u);
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // RenderPath Tests
 // ═══════════════════════════════════════════════════════════════════════════════
