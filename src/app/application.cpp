@@ -87,6 +87,10 @@ constexpr float kRadiansToDegrees = 180.0f / std::numbers::pi_v<float>;
 constexpr uint32_t kPortableMaximumTextureDimension2D = 8'192u;
 constexpr float kBrowserJourneyTargetX = 250.0f;
 constexpr float kBrowserJourneyTargetZ = 0.0f;
+constexpr float kCubeTriangleCubeSize = 1.1f;
+constexpr float kCubeTriangleHorizontalPitch =
+    kCubeTriangleCubeSize + 0.16f;
+constexpr uint32_t kCubeTriangleImpactWakeRadiusColumns = 2u;
 
 bool flattenCubeTriangleArena(
     terrain::Heightmap& heightmap, float cellScale) {
@@ -898,6 +902,9 @@ void Application::shutdown() {
     initialized_ = false;
     cubePyramidSpawnAttempted_ = false;
     cubePyramidSpawned_ = false;
+    cubeTriangleColumns_.clear();
+    cubeTriangleColumnsWokenThisTick_.clear();
+    cubeTriangleWakeDedupTick_ = std::numeric_limits<uint64_t>::max();
     LOG_INFO("Application shutdown complete");
 }
 
@@ -1981,16 +1988,17 @@ bool Application::spawnCubePyramidExperiment() {
 
     // One cube of thickness. Row widths are 2n, 2(n-1), ... 2, so a complete
     // n-row wall contains n(n+1) cubes and has 45-degree sides.
-    constexpr float cubeSize = 1.1f;
+    constexpr float cubeSize = kCubeTriangleCubeSize;
     // Leave 160 mm between columns, safely outside the 20 mm
     // speculative-contact distance. A single impact then wakes the struck
     // stacks instead of instantly turning all 20k staged cubes into one
     // solver island. The explicit 128-projectile benchmark still exercises
     // a wide collapse.
-    constexpr float horizontalPitch = cubeSize + 0.16f;
-    // Sleeping rows have a 20 mm gap. They remain perfectly staged until an
-    // impact wakes them, then gravity closes the gap and propagates locally.
-    constexpr float verticalPitch = 1.12f;
+    constexpr float horizontalPitch = kCubeTriangleHorizontalPitch;
+    // Exact face contact keeps the staged towers physically supported. Before
+    // an impact, selected complete columns are woken together so removing a
+    // lower cube cannot strand a still-sleeping cube above it.
+    constexpr float verticalPitch = cubeSize;
     constexpr float terrainClearance = 0.05f;
 
     struct TriangleRow {
@@ -2029,6 +2037,9 @@ bool Application::spawnCubePyramidExperiment() {
     }
     if (rows.empty()) return false;
     const uint32_t baseWidth = rows.front().width;
+    cubeTriangleColumns_.assign(baseWidth, {});
+    cubeTriangleColumnsWokenThisTick_.assign(baseWidth, 0u);
+    cubeTriangleWakeDedupTick_ = std::numeric_limits<uint64_t>::max();
 
     const float halfWidth =
         0.5f * static_cast<float>(baseWidth - 1u) * horizontalPitch
@@ -2106,6 +2117,8 @@ bool Application::spawnCubePyramidExperiment() {
         for (uint32_t index = 0u; index < rowBodies; ++index) {
             const uint32_t slot = slots[index];
             const uint32_t column = slot;
+            const uint32_t foundationColumn =
+                static_cast<uint32_t>(row) + column;
 
             physics::BodySpawnDesc body;
             body.shape = physics::ThrowableShape::Cube;
@@ -2127,6 +2140,7 @@ bool Application::spawnCubePyramidExperiment() {
                 return false;
             }
             if (row != 0u) {
+                cubeTriangleColumns_[foundationColumn].push_back(handle);
                 physics::PhysicsCommand sleep;
                 sleep.type = physics::PhysicsCommandType::Sleep;
                 sleep.body = handle;
@@ -2159,6 +2173,55 @@ bool Application::spawnCubePyramidExperiment() {
         "Cube triangle experiment: {} cubes, {} base width, {} rows, one cube thick, {} static foundation cubes",
         spawned, baseWidth, rows.size(), rows.front().bodies);
     return spawned == bodyCount;
+}
+
+void Application::wakeCubeTriangleImpactColumns(double impactWorldX) {
+    if (!physicsWorld_ || cubeTriangleColumns_.empty()
+        || !std::isfinite(impactWorldX)) {
+        return;
+    }
+
+    const uint64_t tick = physicsWorld_->encodedTick();
+    if (cubeTriangleWakeDedupTick_ != tick) {
+        std::fill(
+            cubeTriangleColumnsWokenThisTick_.begin(),
+            cubeTriangleColumnsWokenThisTick_.end(), 0u);
+        cubeTriangleWakeDedupTick_ = tick;
+    }
+
+    const double rowHalf = 0.5
+        * static_cast<double>(cubeTriangleColumns_.size() - 1u)
+        * static_cast<double>(kCubeTriangleHorizontalPitch);
+    const double columnPosition =
+        (impactWorldX - static_cast<double>(kBrowserJourneyTargetX)
+            + rowHalf)
+        / static_cast<double>(kCubeTriangleHorizontalPitch);
+    const int64_t centerColumn =
+        static_cast<int64_t>(std::llround(columnPosition));
+    const int64_t firstColumn = std::max<int64_t>(
+        0, centerColumn
+            - static_cast<int64_t>(kCubeTriangleImpactWakeRadiusColumns));
+    const int64_t lastColumn = std::min<int64_t>(
+        static_cast<int64_t>(cubeTriangleColumns_.size()) - 1,
+        centerColumn
+            + static_cast<int64_t>(kCubeTriangleImpactWakeRadiusColumns));
+    if (firstColumn > lastColumn) return;
+
+    std::vector<physics::PhysicsCommand> commands;
+    for (int64_t column = firstColumn; column <= lastColumn; ++column) {
+        const size_t index = static_cast<size_t>(column);
+        if (cubeTriangleColumnsWokenThisTick_[index] != 0u) continue;
+        cubeTriangleColumnsWokenThisTick_[index] = 1u;
+        for (const physics::BodyHandle body : cubeTriangleColumns_[index]) {
+            physics::PhysicsCommand wake;
+            wake.type = physics::PhysicsCommandType::Wake;
+            wake.body = body;
+            commands.push_back(wake);
+        }
+    }
+    if (!commands.empty()) {
+        physicsWorld_->enqueue(commands);
+    }
 }
 
 bool Application::startCubePyramidExperiment() {
@@ -3497,6 +3560,7 @@ bool Application::spawnThrowable(
     const glm::vec3 normalizedDirection = glm::normalize(direction);
     glm::vec3 launchOrigin = origin;
     glm::ivec3 launchSector = sector;
+    std::optional<double> cubeTriangleImpactX;
     if (config_.cubePyramidBodyCount != 0u) {
         // The complete wall needs a distant overview camera. Preserve the
         // ordinary 28 m/s projectile and its real collision response, but
@@ -3529,9 +3593,13 @@ bool Application::spawnThrowable(
                         physics::worldPositionFromAbsolute(candidate);
                     launchOrigin = launch.local;
                     launchSector = launch.sector;
+                    cubeTriangleImpactX = candidate.x;
                 }
             }
         }
+    }
+    if (cubeTriangleImpactX) {
+        wakeCubeTriangleImpactColumns(*cubeTriangleImpactX);
     }
 
     constexpr float throwSpeed = 28.0f;

@@ -20,6 +20,7 @@
 #include <deque>
 #include <filesystem>
 #include <functional>
+#include <limits>
 #include <memory>
 #include <optional>
 #include <string>
@@ -625,6 +626,7 @@ private:
     bool createBenchmarkTarget(uint32_t width, uint32_t height);
     bool spawnBenchmarkBodies();
     bool spawnCubePyramidExperiment();
+    void wakeCubeTriangleImpactColumns(double impactWorldX);
     void prepareBrowserJourneyCamera();
     void aimBrowserJourneyVolley(uint32_t volleyIndex);
     void prepareBrowserJourneyOverview(uint32_t volleyCount);
@@ -704,6 +706,10 @@ private:
     float throwableCooldown_ = 0.0f;
     bool cubePyramidSpawnAttempted_ = false;
     bool cubePyramidSpawned_ = false;
+    std::vector<std::vector<physics::BodyHandle>> cubeTriangleColumns_;
+    std::vector<uint8_t> cubeTriangleColumnsWokenThisTick_;
+    uint64_t cubeTriangleWakeDedupTick_ =
+        std::numeric_limits<uint64_t>::max();
 
     // Uncapped FPS state
 #if defined(VOXY_WASM)
