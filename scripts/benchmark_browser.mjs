@@ -990,7 +990,7 @@ const runWorkload = async (
 ) => {
     const { cdp } = browser;
     const profileEnabled = mode === "diagnose";
-    const uncapped = mode === "headroom";
+    const uncapped = mode === "headroom" || mode === "diagnose";
     const runId = `${Date.now()}-${mode}-${bodyCount}-${iteration}`;
     const url = new URL(targetUrl);
     url.searchParams.set("physicsBackend", "webgpu");
