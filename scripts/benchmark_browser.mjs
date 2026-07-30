@@ -1126,8 +1126,8 @@ const runWorkload = async (
         url.searchParams.set("physicsProfile", "1");
         url.searchParams.set("renderProfile", "1");
     } else {
-        url.searchParams.delete("physicsProfile");
-        url.searchParams.delete("renderProfile");
+        url.searchParams.set("physicsProfile", "0");
+        url.searchParams.set("renderProfile", "0");
     }
 
     const diagnostics = createDiagnostics(url.href);

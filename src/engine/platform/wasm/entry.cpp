@@ -1159,12 +1159,16 @@ int main(int argc, char* argv[]) {
     appConfig.showFPS = config.debug.showStats;
     appConfig.fpsLogIntervalSeconds = 2.0f;
     appConfig.gpuPhysicsStageProfiling = EM_ASM_INT({
-        return new URLSearchParams(globalThis.location.search)
-            .get("physicsProfile") === "1" ? 1 : 0;
+        const params = new URLSearchParams(globalThis.location.search);
+        const value = params.get("physicsProfile");
+        return value === "1"
+            || (value !== "0" && params.get("renderThroughput") !== "1");
     }) != 0;
     appConfig.gpuRenderStageProfiling = EM_ASM_INT({
-        return new URLSearchParams(globalThis.location.search)
-            .get("renderProfile") === "1" ? 1 : 0;
+        const params = new URLSearchParams(globalThis.location.search);
+        const value = params.get("renderProfile");
+        return value === "1"
+            || (value !== "0" && params.get("renderThroughput") !== "1");
     }) != 0;
 
     g_renderThroughputMode = EM_ASM_INT({

@@ -180,13 +180,18 @@ deployed result must come from one exact commit. Comparison also rejects
 mismatched Chrome versions or flags, GPU adapters, headed/headless modes,
 canvas sizes, repetition counts, and journey timing.
 
-## Enable the probes
+## Profiling controls
 
-Open the benchmark page with both opt-in probes:
+Physics and render stage profiling are enabled by default in the interactive
+browser. Disable both for an explicit unprofiled headroom capture:
 
 ```text
-http://127.0.0.1:8081/index.html?physicsProfile=1&renderProfile=1&telemetry=0
+http://127.0.0.1:8081/index.html?physicsProfile=0&renderProfile=0&telemetry=0
 ```
+
+`renderThroughput=1` also defaults to unprofiled so its completion gate stays
+independent; add `physicsProfile=1` or `renderProfile=1` only for a deliberate
+probe.
 
 Start Chrome with a remote-debugging port such as `9333`. Keep the canvas size,
 GPU, camera, build mode, and browser flags identical between captures.

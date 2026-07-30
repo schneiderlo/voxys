@@ -886,9 +886,15 @@
                 const profileParameters = new URLSearchParams(location.search);
                 const browserBenchmarkRun =
                     profileParameters.has('browserBenchmarkRun');
+                const profilingEnabled = (name) => {
+                    const value = profileParameters.get(name);
+                    if (value === '1') return true;
+                    if (value === '0') return false;
+                    return profileParameters.get('renderThroughput') !== '1';
+                };
                 const timestampProfiling =
-                    profileParameters.get('physicsProfile') === '1'
-                    || profileParameters.get('renderProfile') === '1';
+                    profilingEnabled('physicsProfile')
+                    || profilingEnabled('renderProfile');
                 const deviceRequest = await VoxyLoader.requestVoxyDevice(
                     adapter,
                     {enableTimestamps: timestampProfiling}
