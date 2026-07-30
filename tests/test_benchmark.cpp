@@ -446,6 +446,70 @@ TEST(BrowserJourneyBenchmarkTest, RejectsClockAndFinalBodyMismatch) {
     EXPECT_STREQ(journey.failureReason(), "body_count_mismatch");
 }
 
+TEST(BrowserJourneyBenchmarkTest, ObservesPrebuiltCubePyramidWithoutSpawning) {
+    BrowserJourneyBenchmark journey;
+    ASSERT_TRUE(journey.start(
+        BrowserJourneyConfig{
+            .targetBodies = 0,
+            .warmupTicks = 1,
+            .impactTicks = 2,
+            .settleTicks = 1,
+            .bodiesPerVolley = 128,
+            .ticksPerVolley = 4,
+            .layout = BrowserJourneyLayout::CubePyramid,
+            .shape = BrowserJourneyShape::Cube,
+        },
+        20'000, 5, 10));
+
+    EXPECT_EQ(journey.advance(10, 20'000), 0u);
+    EXPECT_EQ(journey.advance(11, 20'000), 0u);
+    EXPECT_EQ(journey.status(), BrowserJourneyStatus::Impact);
+    journey.recordFrame({
+        .frame = 6,
+        .physicsTick = 11,
+        .wallMilliseconds = 12.0f,
+        .cpuMilliseconds = 1.0f,
+        .residentBodies = 20'000,
+        .activeBodies = 17'696,
+        .candidatePairs = 80'000,
+        .contacts = 72'000,
+        .submittedPrimitives = 20'000,
+    });
+
+    EXPECT_EQ(journey.advance(13, 20'000), 0u);
+    EXPECT_EQ(journey.status(), BrowserJourneyStatus::Settling);
+    journey.recordFrame({
+        .frame = 7,
+        .physicsTick = 13,
+        .wallMilliseconds = 10.0f,
+        .cpuMilliseconds = 0.8f,
+        .residentBodies = 20'000,
+        .activeBodies = 17'696,
+        .submittedPrimitives = 20'000,
+    });
+    EXPECT_EQ(journey.advance(14, 20'000), 0u);
+    journey.recordFrame({
+        .frame = 8,
+        .physicsTick = 14,
+        .wallMilliseconds = 9.0f,
+        .cpuMilliseconds = 0.7f,
+        .residentBodies = 20'000,
+        .activeBodies = 17'696,
+        .submittedPrimitives = 20'000,
+    });
+
+    EXPECT_TRUE(journey.passed());
+    EXPECT_EQ(journey.spawnedBodies(), 0u);
+    EXPECT_EQ(journey.volleyCount(), 0u);
+    EXPECT_EQ(journey.layout(), BrowserJourneyLayout::CubePyramid);
+    const std::string json = journey.resultJson();
+    EXPECT_NE(json.find("\"layout\":\"pyramid\""), std::string::npos);
+    EXPECT_NE(json.find("\"baseline_bodies\":20000"),
+              std::string::npos);
+    EXPECT_NE(json.find("\"expected_final_bodies\":20000"),
+              std::string::npos);
+}
+
 TEST(BrowserJourneyBenchmarkTest, RejectsInvalidConfiguration) {
     BrowserJourneyBenchmark journey;
     EXPECT_FALSE(journey.start(
@@ -458,6 +522,20 @@ TEST(BrowserJourneyBenchmarkTest, RejectsInvalidConfiguration) {
         },
         0, 0, 0));
     EXPECT_EQ(journey.status(), BrowserJourneyStatus::Failed);
+    EXPECT_STREQ(journey.failureReason(), "invalid_configuration");
+
+    EXPECT_FALSE(journey.start(
+        BrowserJourneyConfig{
+            .targetBodies = 1,
+            .warmupTicks = 1,
+            .impactTicks = 1,
+            .settleTicks = 1,
+            .bodiesPerVolley = 1,
+            .ticksPerVolley = 1,
+            .layout = BrowserJourneyLayout::CubePyramid,
+            .shape = BrowserJourneyShape::Cube,
+        },
+        20'000, 0, 0));
     EXPECT_STREQ(journey.failureReason(), "invalid_configuration");
 
     EXPECT_FALSE(journey.start(

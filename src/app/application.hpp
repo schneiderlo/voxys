@@ -87,6 +87,7 @@ enum class RenderPath {
 };
 
 inline constexpr uint32_t kMaximumBenchmarkBodyCount = 131'072u;
+inline constexpr uint32_t kDefaultCubePyramidBodyCount = 20'000u;
 
 /// Convert RenderPath to string
 [[nodiscard]] const char* renderPathToString(RenderPath path) noexcept;
@@ -259,6 +260,10 @@ struct ApplicationConfig {
     bool benchmarkOnStartup = false;
     bool exitAfterBenchmark = false;
     uint32_t benchmarkBodyCount = 0;
+    // Interactive browser stress scene selected by ?experiment=pyramid.
+    // The bottom cube layer is static so the real terrain cannot tilt the
+    // deterministic stack before it is measured.
+    uint32_t cubePyramidBodyCount = 0;
     double benchmarkMinimumFps = 0.0;
     float benchmarkFixedDeltaSeconds = 0.0f;
     std::optional<int> initialTeleportIndex;
@@ -482,6 +487,10 @@ public:
     /// Complete summary plus compact raw frame samples.
     [[nodiscard]] std::string browserJourneyBenchmarkJson() const;
 
+    /// Spawn the configured browser cube-pyramid scene once. The web shell
+    /// calls this when its loading cover is ready to reveal the experiment.
+    [[nodiscard]] bool startCubePyramidExperiment();
+
     // ─────────────────────────────────────────────────────────────────────────
     // Controller Mode
     // ─────────────────────────────────────────────────────────────────────────
@@ -610,6 +619,7 @@ private:
     bool initRenderGpuProfiling();
     bool createBenchmarkTarget(uint32_t width, uint32_t height);
     bool spawnBenchmarkBodies();
+    bool spawnCubePyramidExperiment();
     void prepareBrowserJourneyCamera();
     void aimBrowserJourneyVolley(uint32_t volleyIndex);
     void prepareBrowserJourneyOverview(uint32_t volleyCount);
@@ -687,6 +697,8 @@ private:
     uint32_t throwableBodyLimit_ = 0;
     float throwableWheelAccumulator_ = 0.0f;
     float throwableCooldown_ = 0.0f;
+    bool cubePyramidSpawnAttempted_ = false;
+    bool cubePyramidSpawned_ = false;
 
     // Uncapped FPS state
 #if defined(VOXY_WASM)

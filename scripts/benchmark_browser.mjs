@@ -63,6 +63,7 @@ const options = {
     chrome: "",
     displayMode: "auto",
     output: "",
+    screenshot: "",
     baseline: "",
     maximumRegressionPercent: 7.5,
     expectedBackend: "webgpu_soft",
@@ -70,6 +71,9 @@ const options = {
     keepProfile: false,
     chromeArguments: [],
 };
+let shapeExplicit = false;
+let pairCapacityExplicit = false;
+let candidatePairCapacityExplicit = false;
 
 const usage = () => {
     console.log(`Usage:
@@ -90,7 +94,7 @@ Workload:
   --settle-ticks N              Default: 180
   --bodies-per-volley N         1..128, default: real 128-body volley
   --ticks-per-volley N          Physics ticks between volleys (default: 4)
-  --layout pile|sweep           Fixed player pile (default) or terrain sweep
+  --layout pile|sweep|pyramid   Throwing pile (default), sweep, or prebuilt pyramid
   --shape mixed|sphere|cube|box|capsule|cylinder
                                 Throwable mix (default: mixed)
   --broad-cell-size N           Broad-phase grid size (default: 4)
@@ -109,6 +113,7 @@ Browser:
 
 Results:
   --output FILE                 JSON output (default: timestamped /tmp file)
+  --screenshot FILE             Save the first workload's final viewport as PNG
   --baseline FILE               Compare against an earlier result
   --max-regression-percent N    Baseline failure threshold (default: 7.5)
   --expected-backend NAME       Default: webgpu_soft
@@ -198,15 +203,18 @@ for (let index = 2; index < process.argv.length; ++index) {
             break;
         case "--shape":
             options.shape = value();
+            shapeExplicit = true;
             break;
         case "--broad-cell-size":
             options.broadPhaseCellSize = readNumber(argument, value());
             break;
         case "--pair-capacity":
             options.pairCapacity = readInteger(argument, value());
+            pairCapacityExplicit = true;
             break;
         case "--candidate-capacity":
             options.candidatePairCapacity = readInteger(argument, value());
+            candidatePairCapacityExplicit = true;
             break;
         case "--solver-workgroup":
             options.solverWorkgroupSize = readInteger(argument, value());
@@ -228,6 +236,9 @@ for (let index = 2; index < process.argv.length; ++index) {
             break;
         case "--output":
             options.output = path.resolve(value());
+            break;
+        case "--screenshot":
+            options.screenshot = path.resolve(value());
             break;
         case "--baseline":
             options.baseline = path.resolve(value());
@@ -285,8 +296,8 @@ if (options.bodiesPerVolley > 128) {
 if (options.ticksPerVolley > 3_600) {
     throw new Error("--ticks-per-volley cannot exceed 3600");
 }
-if (!["pile", "sweep"].includes(options.layout)) {
-    throw new Error("--layout must be pile or sweep");
+if (!["pile", "sweep", "pyramid"].includes(options.layout)) {
+    throw new Error("--layout must be pile, sweep, or pyramid");
 }
 const shapeCodes = new Map([
     ["sphere", 0],
@@ -296,6 +307,29 @@ const shapeCodes = new Map([
     ["cylinder", 4],
     ["mixed", 5],
 ]);
+const layoutCodes = new Map([
+    ["pile", 0],
+    ["sweep", 1],
+    ["pyramid", 2],
+]);
+if (options.layout === "pyramid") {
+    if (shapeExplicit && options.shape !== "cube") {
+        throw new Error("--layout pyramid only supports --shape cube");
+    }
+    options.shape = "cube";
+    const largestPyramid = Math.max(...options.bodies);
+    const pairsPerBody = largestPyramid === 20_000 ? 4 : 6;
+    const desiredPairs = largestPyramid * pairsPerBody;
+    const automaticPairCapacity = 2 ** Math.ceil(Math.log2(desiredPairs));
+    if (!pairCapacityExplicit) {
+        options.pairCapacity = Math.max(
+            options.pairCapacity, automaticPairCapacity);
+    }
+    if (!candidatePairCapacityExplicit) {
+        options.candidatePairCapacity = Math.max(
+            options.candidatePairCapacity, options.pairCapacity * 2);
+    }
+}
 if (!shapeCodes.has(options.shape)) {
     throw new Error(
         "--shape must be mixed, sphere, cube, box, capsule, or cylinder",
@@ -808,12 +842,25 @@ const createDiagnostics = (targetUrl) => ({
     firstPartyFailures: [],
     exceptions: [],
     consoleErrors: [],
+    recentConsole: [],
     ignored: [],
     requestCount: 0,
     responseBytes: 0,
 });
 
 const handleDiagnosticEvent = (diagnostics, message) => {
+    if (message.method === "Runtime.consoleAPICalled") {
+        diagnostics.recentConsole.push({
+            type: message.params.type,
+            text: message.params.args.map(
+                (argument) =>
+                    argument.value ?? argument.description ?? "",
+            ).join(" "),
+        });
+        if (diagnostics.recentConsole.length > 64) {
+            diagnostics.recentConsole.shift();
+        }
+    }
     if (message.method === "Network.requestWillBeSent") {
         const request = message.params.request;
         diagnostics.requests.set(message.params.requestId, request.url);
@@ -888,12 +935,17 @@ const readReadyStateExpression = `(() => {
             === "function",
         frame: moduleReady ? voxyModule._voxy_get_frame_count() : 0,
         tick: telemetry?.physics?.tick ?? 0,
+        residentBodies: telemetry?.physics?.bodies?.current ?? 0,
         backend: telemetry?.physics?.backend ?? null,
         arithmetic: telemetry?.physics?.arithmetic ?? null,
         physicsConfiguration: {
             broadPhaseCellSize:
                 telemetry?.physics?.broad_phase_cell_size ?? null,
             pairCapacity: telemetry?.physics?.pairs?.capacity ?? null,
+            contactCapacity:
+                telemetry?.physics?.contacts?.capacity ?? null,
+            manifoldCapacity:
+                telemetry?.physics?.manifolds?.capacity ?? null,
             candidatePairCapacity:
                 telemetry?.physics?.candidate_pairs?.capacity ?? null,
             solverWorkgroupSize:
@@ -917,7 +969,7 @@ const readReadyStateExpression = `(() => {
     };
 })()`;
 
-const waitForReady = async (cdp, deadline) => {
+const waitForReady = async (cdp, deadline, expectedResidentBodies = 0) => {
     let state = null;
     let stableCanvasPolls = 0;
     while (Date.now() < deadline) {
@@ -932,8 +984,10 @@ const waitForReady = async (cdp, deadline) => {
                 && state.viewportHeight === options.height
                 && Math.abs(state.devicePixelRatio
                             - options.devicePixelRatio) < 1.0e-6;
+            const bodiesReady = expectedResidentBodies === 0
+                || state.residentBodies === expectedResidentBodies;
             stableCanvasPolls = exactCanvas ? stableCanvasPolls + 1 : 0;
-            if (state.initialized && stableCanvasPolls >= 3) {
+            if (state.initialized && bodiesReady && stableCanvasPolls >= 3) {
                 if (!state.journeyApi) {
                     throw new Error(
                         "WASM artifact lacks the browser journey API; "
@@ -1025,6 +1079,13 @@ const runWorkload = async (
         "physicsSolverWorkgroup", String(options.solverWorkgroupSize));
     url.searchParams.delete("benchmarkBodies");
     url.searchParams.delete("renderThroughput");
+    if (options.layout === "pyramid") {
+        url.searchParams.set("experiment", "pyramid");
+        url.searchParams.set("pyramidBodies", String(bodyCount));
+    } else {
+        url.searchParams.delete("experiment");
+        url.searchParams.delete("pyramidBodies");
+    }
     if (profileEnabled) {
         url.searchParams.set("physicsProfile", "1");
         url.searchParams.set("renderProfile", "1");
@@ -1039,7 +1100,9 @@ const runWorkload = async (
     const deadline = Date.now() + options.timeoutMs;
     try {
         await cdp.command("Page.navigate", { url: url.href });
-        const ready = await waitForReady(cdp, deadline);
+        const ready = await waitForReady(
+            cdp, deadline,
+            options.layout === "pyramid" ? bodyCount : 0);
         if (ready.backend !== options.expectedBackend
             || ready.arithmetic !== "fast_float"
             || ready.render?.path !== "raycast"
@@ -1057,6 +1120,8 @@ const runWorkload = async (
                 <= Math.max(1e-6, options.broadPhaseCellSize * 1e-6);
         if (!cellSizeMatches
             || appliedPhysics?.pairCapacity !== options.pairCapacity
+            || appliedPhysics?.contactCapacity !== options.pairCapacity
+            || appliedPhysics?.manifoldCapacity !== options.pairCapacity
             || appliedPhysics?.candidatePairCapacity
                 !== options.candidatePairCapacity
             || appliedPhysics?.solverWorkgroupSize
@@ -1108,10 +1173,11 @@ const runWorkload = async (
         })`);
         const started = await cdp.evaluate(
             `voxyModule._voxy_start_browser_journey_benchmark(`
-            + `${bodyCount},${options.warmupTicks},${options.impactTicks},`
+            + `${options.layout === "pyramid" ? 0 : bodyCount},`
+            + `${options.warmupTicks},${options.impactTicks},`
             + `${options.settleTicks},${options.bodiesPerVolley},`
             + `${options.ticksPerVolley},`
-            + `${options.layout === "pile" ? 0 : 1},`
+            + `${layoutCodes.get(options.layout)},`
             + `${shapeCodes.get(options.shape)})`,
         );
         if (started !== 1) {
@@ -1172,6 +1238,29 @@ const runWorkload = async (
                 (metric) => [metric.name, metric.value],
             ),
         );
+        let screenshot = null;
+        if (options.screenshot && sequence === 1) {
+            await cdp.evaluate(`new Promise((resolve) => {
+                document.getElementById("overlay")?.style
+                    .setProperty("display", "none");
+                document.getElementById("debug-overlay")?.style
+                    .setProperty("display", "none");
+                requestAnimationFrame(() => requestAnimationFrame(resolve));
+            })`);
+            const capture = await cdp.command("Page.captureScreenshot", {
+                format: "png",
+                fromSurface: true,
+                captureBeyondViewport: false,
+            });
+            fs.mkdirSync(path.dirname(options.screenshot), {
+                recursive: true,
+            });
+            fs.writeFileSync(
+                options.screenshot,
+                Buffer.from(capture.data, "base64"),
+            );
+            screenshot = options.screenshot;
+        }
 
         const physics = telemetry.physics;
         const finalCellSizeMatches = Number.isFinite(
@@ -1187,6 +1276,8 @@ const runWorkload = async (
             physicsConfigurationPassed:
                 finalCellSizeMatches
                 && physics.pairs.capacity === options.pairCapacity
+                && physics.contacts.capacity === options.pairCapacity
+                && physics.manifolds.capacity === options.pairCapacity
                 && physics.candidate_pairs.capacity
                     === options.candidatePairCapacity
                 && physics.solver_workgroup_size
@@ -1194,11 +1285,15 @@ const runWorkload = async (
             bodyCountPassed:
                 physics.bodies.current
                 === journey.counts.expected_final_bodies,
+            startupBodyCountPassed:
+                options.layout !== "pyramid"
+                || journey.counts.baseline_bodies === bodyCount,
             renderBodyRangePassed:
                 journey.peaks.submitted_primitives
                 >= journey.counts.expected_final_bodies,
             terrainContactObserved:
-                journey.peaks.terrain_contact_bodies > 0,
+                options.layout === "pyramid"
+                || journey.peaks.terrain_contact_bodies > 0,
             observedCapacityOverflowMask:
                 journey.peaks.capacity_overflow_mask,
             observedPhysicsErrorMask:
@@ -1230,6 +1325,7 @@ const runWorkload = async (
             && invariants.shapePassed
             && invariants.physicsConfigurationPassed
             && invariants.bodyCountPassed
+            && invariants.startupBodyCountPassed
             && invariants.renderBodyRangePassed
             && invariants.terrainContactObserved
             && invariants.observedCapacityOverflowMask === 0
@@ -1270,6 +1366,7 @@ const runWorkload = async (
                 initialUncapped,
                 authoritativeExperienceScore: !browser.headless
                     && mode === "score",
+                screenshot,
                 canvas: end.canvas,
                 viewport: {
                     width: ready.viewportWidth,
@@ -1303,6 +1400,8 @@ const runWorkload = async (
                 configuration: {
                     broadPhaseCellSize: physics.broad_phase_cell_size,
                     pairCapacity: physics.pairs.capacity,
+                    contactCapacity: physics.contacts.capacity,
+                    manifoldCapacity: physics.manifolds.capacity,
                     candidatePairCapacity:
                         physics.candidate_pairs.capacity,
                     solverWorkgroupSize:
@@ -1345,6 +1444,20 @@ const runWorkload = async (
                 ignored: diagnostics.ignored,
             },
         };
+    } catch (error) {
+        const evidence = {
+            firstPartyFailures: diagnostics.firstPartyFailures,
+            exceptions: diagnostics.exceptions,
+            consoleErrors: diagnostics.consoleErrors,
+            recentConsole: diagnostics.recentConsole,
+        };
+        const hasEvidence = Object.values(evidence)
+            .some((entries) => entries.length !== 0);
+        if (!hasEvidence) throw error;
+        throw new Error(
+            `${error.message}; page diagnostics: ${JSON.stringify(evidence)}`,
+            { cause: error },
+        );
     } finally {
         removeListener();
     }
@@ -1559,6 +1672,9 @@ const describeFailure = (run) => {
         reasons.push("physics-configuration");
     }
     if (!run.invariants.bodyCountPassed) reasons.push("body-count");
+    if (!run.invariants.startupBodyCountPassed) {
+        reasons.push("startup-body-count");
+    }
     if (!run.invariants.renderBodyRangePassed) reasons.push("render-range");
     if (!run.invariants.terrainContactObserved) reasons.push("no-terrain-contact");
     const overflowMask = run.invariants.observedCapacityOverflowMask;

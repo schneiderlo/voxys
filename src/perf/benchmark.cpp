@@ -553,6 +553,7 @@ const char* browserJourneyLayoutName(BrowserJourneyLayout layout) noexcept {
     switch (layout) {
         case BrowserJourneyLayout::FixedPile: return "pile";
         case BrowserJourneyLayout::TerrainSweep: return "sweep";
+        case BrowserJourneyLayout::CubePyramid: return "pyramid";
     }
     return "unknown";
 }
@@ -602,7 +603,14 @@ bool BrowserJourneyBenchmark::start(const BrowserJourneyConfig& config,
     const uint64_t measuredTicks = uint64_t{config.impactTicks}
                                  + config.settleTicks
                                  + throwingTicks;
-    if (config.targetBodies == 0u
+    const bool observesCubePyramid =
+        config.layout == BrowserJourneyLayout::CubePyramid
+        && config.targetBodies == 0u
+        && config.shape == BrowserJourneyShape::Cube;
+    const bool throwsBodies =
+        config.layout != BrowserJourneyLayout::CubePyramid
+        && config.targetBodies != 0u;
+    if ((!observesCubePyramid && !throwsBodies)
         || config.targetBodies > kMaximumBrowserJourneyBodies
         || config.bodiesPerVolley == 0u
         || config.bodiesPerVolley > kMaximumBodiesPerVolley
@@ -615,7 +623,8 @@ bool BrowserJourneyBenchmark::start(const BrowserJourneyConfig& config,
         || config.settleTicks == 0u
         || config.settleTicks > kMaximumBrowserJourneyPhaseTicks
         || (config.layout != BrowserJourneyLayout::FixedPile
-            && config.layout != BrowserJourneyLayout::TerrainSweep)
+            && config.layout != BrowserJourneyLayout::TerrainSweep
+            && config.layout != BrowserJourneyLayout::CubePyramid)
         || config.shape > BrowserJourneyShape::Mixed
         || finalBodyCount > std::numeric_limits<uint32_t>::max()
         || measuredTicks > kMaximumBrowserJourneyPhaseTicks) {

@@ -999,6 +999,47 @@ int main(int argc, char* argv[]) {
                 .get("broadPhaseCellSize") ?? $0);
             return Number.isFinite(value) && value > 0 ? value : $0;
         }, appConfig.gpuPhysicsBroadPhaseCellSize));
+    appConfig.cubePyramidBodyCount =
+        static_cast<uint32_t>(EM_ASM_INT({
+            const parameters =
+                new URLSearchParams(globalThis.location.search);
+            const experiment =
+                (parameters.get("experiment") ?? "").toLowerCase();
+            const fallback =
+                experiment === "pyramid"
+                || experiment === "cube-pyramid" ? $0 : 0;
+            const value = Number(
+                parameters.get("pyramidBodies") ?? fallback);
+            return Number.isSafeInteger(value) && value > 0 && value <= $1
+                ? value : 0;
+        }, voxy::kDefaultCubePyramidBodyCount,
+           voxy::kMaximumBenchmarkBodyCount));
+    if (appConfig.cubePyramidBodyCount != 0u) {
+        LOG_INFO("Browser requested a {}-cube pyramid",
+                 appConfig.cubePyramidBodyCount);
+    }
+    if (appConfig.cubePyramidBodyCount != 0u) {
+        // The 20k pyramid is mostly one-support vertical stacks. Four pairs
+        // per body covers its measured settling drift and rounds to a 131k
+        // pair/manifold allocation. Other sizes reserve six pairs per body
+        // because their generic layout can have more lateral support.
+        const uint64_t pairsPerBody =
+            appConfig.cubePyramidBodyCount
+                == voxy::kDefaultCubePyramidBodyCount ? 4u : 6u;
+        const uint64_t desiredPairs = std::max(
+            uint64_t{appConfig.gpuPhysicsMaxPairs},
+            uint64_t{appConfig.cubePyramidBodyCount} * pairsPerBody);
+        uint32_t pyramidPairCapacity = 1u;
+        while (pyramidPairCapacity < desiredPairs
+               && pyramidPairCapacity <= (1u << 30u)) {
+            pyramidPairCapacity <<= 1u;
+        }
+        appConfig.gpuPhysicsMaxPairs =
+            std::max(appConfig.gpuPhysicsMaxPairs, pyramidPairCapacity);
+        appConfig.gpuPhysicsMaxCandidatePairs = std::max(
+            appConfig.gpuPhysicsMaxCandidatePairs,
+            appConfig.gpuPhysicsMaxPairs * 2u);
+    }
     appConfig.gpuPhysicsMaxPairs = static_cast<uint32_t>(EM_ASM_INT({
         const value = Number(new URLSearchParams(globalThis.location.search)
             .get("physicsPairCapacity") ?? $0);
@@ -1415,15 +1456,23 @@ void voxy_set_uncapped_fps(int enabled) {
 }
 
 EMSCRIPTEN_KEEPALIVE
+int voxy_start_cube_pyramid_experiment() {
+    return g_app && g_app->startCubePyramidExperiment() ? 1 : 0;
+}
+
+EMSCRIPTEN_KEEPALIVE
 int voxy_start_browser_journey_benchmark(
     int targetBodies, int warmupTicks, int impactTicks, int settleTicks,
     int bodiesPerVolley, int ticksPerVolley, int layout, int shape) {
-    if (!g_app || targetBodies <= 0
+    const bool observesCubePyramid =
+        layout == 2 && targetBodies == 0 && shape == 1;
+    const bool throwsBodies = layout >= 0 && layout < 2 && targetBodies > 0;
+    if (!g_app || (!observesCubePyramid && !throwsBodies)
         || targetBodies > static_cast<int>(voxy::kMaximumBenchmarkBodyCount)
         || warmupTicks < 0 || impactTicks <= 0 || settleTicks <= 0
         || bodiesPerVolley <= 0
         || bodiesPerVolley > 128 || ticksPerVolley <= 0
-        || ticksPerVolley > 3'600 || layout < 0 || layout > 1
+        || ticksPerVolley > 3'600 || layout < 0 || layout > 2
         || shape < 0 || shape > 5) {
         return 0;
     }

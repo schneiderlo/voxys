@@ -61,15 +61,50 @@ The sweep gives every volley a new impact zone. It answers how cost scales when
 the same bodies are spread across the terrain, but it is not a substitute for
 the default dense-pile result.
 
+## 20,000-cube pyramid experiment
+
+Open the deployed interactive experiment directly:
+
+```text
+https://schneiderlo.github.io/voxys/?experiment=pyramid
+```
+
+It creates exactly 20,000 cubes in 18 centered square layers, from a 58×58
+base to a 2×2 crown. The bottom 3,364 cubes are static and placed on one level
+above the highest terrain point under the footprint. The remaining 16,636
+cubes use the production dynamic body, collision, solver, culling, and
+primitive-render paths. This explicit foundation cheat isolates stack behavior
+from terrain slope without hiding or adding a non-cube body.
+
+The browser automatically uses the measured 131,072 pair/manifold capacity for
+this scene. `pyramidBodies=N` overrides the count for exploratory runs.
+
+Run the same scene through the browser benchmark:
+
+```bash
+node scripts/benchmark_browser.mjs \
+  --layout pyramid --bodies 20000 --runs 1 \
+  --modes score,headroom,diagnose --headed
+```
+
+`--layout pyramid` selects cubes automatically. At a 2269×844 CSS viewport and
+the desktop 1.5 render scale used for visual testing:
+
+```bash
+node scripts/benchmark_browser.mjs \
+  --layout pyramid --bodies 20000 --runs 1 --modes diagnose \
+  --resolution 2269x844 --dpr 1.5 --headed
+```
+
 The runner fails a workload if any of these are wrong:
 
 - hardware WebGPU, fast-float GPU physics, raycast rendering, or 8192² terrain;
 - physical canvas size, page visibility, build identity, or fallback-adapter
   selection;
-- requested pile/sweep layout and physics tuning values actually applied by
-  the loaded build;
+- requested pile/sweep/pyramid layout and physics tuning values actually
+  applied by the loaded build;
 - exact resident-body and renderer-input counts;
-- observed real-terrain contacts;
+- observed real-terrain contacts for throwing layouts;
 - physics capacity overflows, solver errors, first-party load failures,
   JavaScript exceptions, or engine console errors.
 

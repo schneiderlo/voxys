@@ -202,6 +202,9 @@ void setCameraWorldPose(
         config.physicsBackend == physics::BackendType::WebGpuSoft
         ? config.gpuPhysicsMaxBodies
         : kCpuBenchmarkBodyCapacity;
+    const uint64_t startupBodyCount =
+        uint64_t{config.benchmarkBodyCount}
+        + config.cubePyramidBodyCount;
     return validRenderPath && validPhysicsBackend && validScheduler
         && config.windowWidth > 0 && config.windowHeight > 0
         && config.heightmapWidth > 0u && config.heightmapHeight > 0u
@@ -253,7 +256,10 @@ void setCameraWorldPose(
         && (config.gpuPhysicsSolverWorkgroupSize == 128u
             || config.gpuPhysicsSolverWorkgroupSize == 256u)
         && config.benchmarkBodyCount <= kMaximumBenchmarkBodyCount
-        && config.benchmarkBodyCount <= benchmarkBodyCapacity
+        && config.cubePyramidBodyCount <= kMaximumBenchmarkBodyCount
+        && (config.benchmarkBodyCount == 0u
+            || config.cubePyramidBodyCount == 0u)
+        && startupBodyCount <= benchmarkBodyCapacity
         && validGpuCellSize
         && config.gpuPhysicsMaximumCatchUpTicks > 0u
         && config.gpuPhysicsMaximumCatchUpTicks <= 1'024u
@@ -636,6 +642,13 @@ bool Application::init(const ApplicationConfig& config) {
         LOG_ERROR("Failed to create the deterministic benchmark body set");
         return failInitialization();
     }
+#if !defined(VOXY_WASM)
+    if (config_.cubePyramidBodyCount != 0u
+        && !startCubePyramidExperiment()) {
+        LOG_ERROR("Failed to create the cube pyramid experiment");
+        return failInitialization();
+    }
+#endif
 
     if (config_.benchmarkOnStartup) {
         startBenchmark();
@@ -786,6 +799,8 @@ void Application::shutdown() {
 #endif
 
     initialized_ = false;
+    cubePyramidSpawnAttempted_ = false;
+    cubePyramidSpawned_ = false;
     LOG_INFO("Application shutdown complete");
 }
 
@@ -1862,6 +1877,205 @@ bool Application::spawnBenchmarkBodies() {
     return true;
 }
 
+bool Application::spawnCubePyramidExperiment() {
+    const uint32_t bodyCount = config_.cubePyramidBodyCount;
+    if (bodyCount == 0u) return true;
+    if (!physicsWorld_ || !characterController_ || !camera_) return false;
+
+    // Small same-layer gaps remove contacts that do not support weight.
+    // Two-cell tapers align each upper cube with one cube below it. The few
+    // one-cell tapers needed for an exact body count use four supports.
+    constexpr float cubeSize = 1.1f;
+    constexpr float horizontalPitch = 1.3f;
+    // Start 10 mm inside the resting manifold. A positive gap makes every
+    // dynamic layer free-fall together until a destructive compression wave
+    // propagates upward from the static base.
+    constexpr float verticalPitch = 1.09f;
+    constexpr float terrainClearance = 0.05f;
+
+    struct PyramidLayer {
+        uint32_t side = 0u;
+        uint32_t bodies = 0u;
+    };
+    std::vector<PyramidLayer> layers;
+    if (bodyCount == kDefaultCubePyramidBodyCount) {
+        // Exact sum of squares: 20,000. All layers have even side lengths, so
+        // every upper cube is centered directly over one support. The shorter
+        // 18-layer contact chains remain stable with the production solver.
+        constexpr std::array<uint32_t, 18> sides{
+            58u, 54u, 50u, 48u, 44u, 40u, 36u, 34u, 30u,
+            26u, 22u, 18u, 14u, 12u, 10u, 8u, 6u, 2u,
+        };
+        static_assert([](const auto& values) {
+            uint32_t sum = 0u;
+            for (const uint32_t side : values) sum += side * side;
+            return sum;
+        }(sides) == kDefaultCubePyramidBodyCount);
+        layers.reserve(sides.size());
+        for (const uint32_t side : sides) {
+            layers.push_back({side, side * side});
+        }
+    } else {
+        const auto completePyramidBodies = [](uint32_t side) {
+            return uint64_t{side} * (side + 1u)
+                 * (2u * side + 1u) / 6u;
+        };
+        uint32_t baseSide = 1u;
+        while (completePyramidBodies(baseSide) < bodyCount) ++baseSide;
+        uint32_t remaining = bodyCount;
+        for (uint32_t side = baseSide; remaining != 0u; --side) {
+            const uint32_t capacity = side * side;
+            const uint32_t layerBodies = std::min(remaining, capacity);
+            layers.push_back({side, layerBodies});
+            remaining -= layerBodies;
+        }
+    }
+    if (layers.empty()) return false;
+    const uint32_t baseSide = layers.front().side;
+
+    const float halfGrid =
+        0.5f * static_cast<float>(baseSide - 1u) * horizontalPitch;
+    const float footprintHalfExtent = halfGrid + cubeSize * 0.5f;
+
+    // Find a horizontal plane above the complete footprint. The bottom layer
+    // is static: it acts as a cube-built foundation without changing terrain
+    // assets or adding a hidden non-cube collision shape.
+    float maximumTerrainHeight = -std::numeric_limits<float>::infinity();
+    const uint32_t sampleIntervals = std::max(baseSide * 2u, 1u);
+    for (uint32_t z = 0u; z <= sampleIntervals; ++z) {
+        const float zOffset = -footprintHalfExtent
+            + 2.0f * footprintHalfExtent
+                * static_cast<float>(z)
+                / static_cast<float>(sampleIntervals);
+        for (uint32_t x = 0u; x <= sampleIntervals; ++x) {
+            const float xOffset = -footprintHalfExtent
+                + 2.0f * footprintHalfExtent
+                    * static_cast<float>(x)
+                    / static_cast<float>(sampleIntervals);
+            const float height = characterController_->sampleTerrainHeight(
+                kBrowserJourneyTargetX + xOffset,
+                kBrowserJourneyTargetZ + zOffset);
+            if (std::isfinite(height)) {
+                maximumTerrainHeight =
+                    std::max(maximumTerrainHeight, height);
+            }
+        }
+    }
+    if (!std::isfinite(maximumTerrainHeight)) return false;
+
+    const float baseCenterY =
+        maximumTerrainHeight + terrainClearance + cubeSize * 0.5f;
+    const physics::PhysicsMaterial pyramidMaterial{
+        .friction = 0.85f,
+        .restitution = 0.0f,
+        .rollingResistance = 0.02f,
+        .density = 1.0f,
+        .flags = 0u,
+    };
+
+    uint32_t spawned = 0u;
+    for (size_t layer = 0u; layer < layers.size(); ++layer) {
+        const uint32_t side = layers[layer].side;
+        const uint32_t capacity = side * side;
+        const uint32_t layerBodies = layers[layer].bodies;
+        std::vector<uint32_t> slots(capacity);
+        for (uint32_t slot = 0u; slot < capacity; ++slot) {
+            slots[slot] = slot;
+        }
+
+        // A partial final layer is filled from the center out. This preserves
+        // symmetry and support instead of leaving a heavy cap on one corner.
+        if (layerBodies != capacity) {
+            std::stable_sort(
+                slots.begin(), slots.end(),
+                [side](uint32_t lhs, uint32_t rhs) {
+                    const auto radiusSquared = [side](uint32_t slot) {
+                        const int32_t x = static_cast<int32_t>(
+                            2u * (slot % side))
+                            - static_cast<int32_t>(side - 1u);
+                        const int32_t z = static_cast<int32_t>(
+                            2u * (slot / side))
+                            - static_cast<int32_t>(side - 1u);
+                        return x * x + z * z;
+                    };
+                    const int32_t lhsRadius = radiusSquared(lhs);
+                    const int32_t rhsRadius = radiusSquared(rhs);
+                    return lhsRadius != rhsRadius
+                        ? lhsRadius < rhsRadius : lhs < rhs;
+                });
+        }
+
+        const float layerHalf =
+            0.5f * static_cast<float>(side - 1u) * horizontalPitch;
+        for (uint32_t index = 0u; index < layerBodies; ++index) {
+            const uint32_t slot = slots[index];
+            const uint32_t column = slot % side;
+            const uint32_t row = slot / side;
+
+            physics::BodySpawnDesc body;
+            body.shape = physics::ThrowableShape::Cube;
+            body.position = {
+                kBrowserJourneyTargetX
+                    + static_cast<float>(column) * horizontalPitch
+                    - layerHalf,
+                baseCenterY + static_cast<float>(layer) * verticalPitch,
+                kBrowserJourneyTargetZ
+                    + static_cast<float>(row) * horizontalPitch
+                    - layerHalf,
+            };
+            body.dimensions = glm::vec3(cubeSize);
+            body.inverseMass = layer == 0u ? 0.0f : 1.0f;
+            body.material = pyramidMaterial;
+            if (!physicsWorld_->spawnBody(body).valid()) {
+                LOG_ERROR(
+                    "Cube pyramid stopped at body {} of {}",
+                    spawned, bodyCount);
+                return false;
+            }
+            ++spawned;
+        }
+
+    }
+
+    const float pyramidHeight =
+        cubeSize + static_cast<float>(layers.size() - 1u) * verticalPitch;
+    const float viewDistance = std::max(45.0f, footprintHalfExtent * 2.4f);
+    const glm::dvec3 target{
+        kBrowserJourneyTargetX,
+        baseCenterY + pyramidHeight * 0.42f,
+        kBrowserJourneyTargetZ};
+    const glm::dvec3 position{
+        kBrowserJourneyTargetX - viewDistance,
+        baseCenterY + pyramidHeight * 1.35f,
+        kBrowserJourneyTargetZ - viewDistance};
+    setCameraWorldPose(*camera_, position, target);
+    controllerMode_ = ControllerMode::FreeFly;
+    stats_.activeController = controllerMode_;
+    selectedThrowable_ =
+        static_cast<uint32_t>(physics::ThrowableShape::Cube);
+
+    LOG_INFO(
+        "Cube pyramid experiment: {} cubes, {} base side, {} layers, {} static foundation cubes",
+        spawned, baseSide, layers.size(), baseSide * baseSide);
+    return spawned == bodyCount;
+}
+
+bool Application::startCubePyramidExperiment() {
+    if (!initialized_) {
+        LOG_ERROR("Cannot create the cube pyramid before application initialization");
+        return false;
+    }
+    if (config_.cubePyramidBodyCount == 0u) {
+        LOG_ERROR("No cube pyramid was configured at application initialization");
+        return false;
+    }
+    if (cubePyramidSpawnAttempted_) return cubePyramidSpawned_;
+
+    cubePyramidSpawnAttempted_ = true;
+    cubePyramidSpawned_ = spawnCubePyramidExperiment();
+    return cubePyramidSpawned_;
+}
+
 void Application::startBenchmark() {
     if (!benchmarkRunner_) {
         benchmarkRunner_ = std::make_unique<perf::BenchmarkRunner>();
@@ -1955,7 +2169,9 @@ bool Application::startBrowserJourneyBenchmark(
         journeyConfig, physicsStats.residentBodies, stats_.frameCount,
         physicsWorld_->encodedTick());
     if (started) {
-        prepareBrowserJourneyCamera();
+        if (layout != perf::BrowserJourneyLayout::CubePyramid) {
+            prepareBrowserJourneyCamera();
+        }
         LOG_INFO(
             "Browser journey armed: {} bodies, {} layout, {} shapes, {} per real volley every {} ticks, phases {} warmup / {} impact / {} settle",
             targetBodies, perf::browserJourneyLayoutName(layout),
@@ -2358,6 +2574,7 @@ bool Application::initCamera() {
         physicsContext.maxActiveBodies = config_.gpuPhysicsMaxBodies;
         physicsContext.maxPairs = config_.gpuPhysicsMaxPairs;
         physicsContext.maxContacts = config_.gpuPhysicsMaxPairs;
+        physicsContext.maxManifolds = config_.gpuPhysicsMaxPairs;
         physicsContext.maxCandidatePairs =
             config_.gpuPhysicsMaxCandidatePairs;
         physicsContext.gpu.broadPhaseCellSize =
@@ -2375,7 +2592,9 @@ bool Application::initCamera() {
     // a low rate so body, solver, and awake/sleeping counts remain useful
     // without paying readback overhead on every frame.
     constexpr uint32_t kInteractiveTelemetryIntervalTicks = 30u;
-    const uint32_t diagnosticsInterval = config_.benchmarkBodyCount != 0u
+    const uint32_t diagnosticsInterval =
+        (config_.benchmarkBodyCount != 0u
+         || config_.cubePyramidBodyCount != 0u)
         ? 1u : kInteractiveTelemetryIntervalTicks;
     physicsContext.gpu.stageProfilingIntervalTicks = diagnosticsInterval;
     physicsContext.gpu.enableTelemetryReadback = true;

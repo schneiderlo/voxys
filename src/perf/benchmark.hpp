@@ -199,6 +199,7 @@ browserJourneyStatusName(BrowserJourneyStatus status) noexcept;
 enum class BrowserJourneyLayout : uint32_t {
     FixedPile = 0,
     TerrainSweep = 1,
+    CubePyramid = 2,
 };
 
 [[nodiscard]] const char*

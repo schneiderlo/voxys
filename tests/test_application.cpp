@@ -84,6 +84,7 @@ TEST(ApplicationConfigTest, DefaultsHaveReasonableValues) {
     EXPECT_GT(config.cameraMoveSpeed, 0.0f);
     EXPECT_GT(config.cameraMouseSensitivity, 0.0f);
     EXPECT_EQ(config.benchmarkBodyCount, 0u);
+    EXPECT_EQ(config.cubePyramidBodyCount, 0u);
     EXPECT_DOUBLE_EQ(config.benchmarkMinimumFps, 0.0);
     EXPECT_FLOAT_EQ(config.benchmarkFixedDeltaSeconds, 0.0f);
     EXPECT_FLOAT_EQ(config.gpuPhysicsBroadPhaseCellSize, 4.0f);
@@ -296,6 +297,20 @@ TEST(ApplicationTest, RejectsNonFiniteAndUnsafeConfigurationBeforeGpu) {
     rejected(config);
 
     config = {};
+    config.cubePyramidBodyCount = kMaximumBenchmarkBodyCount + 1u;
+    rejected(config);
+
+    config = {};
+    config.gpuPhysicsMaxBodies = 32u;
+    config.cubePyramidBodyCount = 33u;
+    rejected(config);
+
+    config = {};
+    config.benchmarkBodyCount = 1u;
+    config.cubePyramidBodyCount = 1u;
+    rejected(config);
+
+    config = {};
     config.gpuPhysicsMaxCandidatePairs =
         config.gpuPhysicsMaxPairs - 1u;
     rejected(config);
@@ -307,6 +322,11 @@ TEST(ApplicationTest, RejectsNonFiniteAndUnsafeConfigurationBeforeGpu) {
     config = {};
     config.physicsBackend = physics::BackendType::JoltLegacy;
     config.benchmarkBodyCount = 16'385u;
+    rejected(config);
+
+    config = {};
+    config.physicsBackend = physics::BackendType::JoltLegacy;
+    config.cubePyramidBodyCount = 16'385u;
     rejected(config);
 }
 
@@ -435,6 +455,8 @@ TEST(ApplicationTest, RuntimeRendererPathUsesTheExistingSwitch) {
 
 TEST(RenderPathSwitchingTest, ToggleRenderPathBeforeInit) {
     Application app;
+
+    EXPECT_FALSE(app.startCubePyramidExperiment());
     
     // Default is Raycast
     EXPECT_EQ(app.getRenderPath(), RenderPath::Raycast);
