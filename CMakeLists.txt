@@ -246,6 +246,7 @@ if(VOXY_BUILD_WASM)
         foreach(VOXY_WASM_DATA_FILE
             data/generated/td_seed_1234_8192.ldh
             data/generated/td_seed_1234_8192_albedo.jpg
+            data/generated/ocean_environment.png
         )
             if(NOT EXISTS "${CMAKE_SOURCE_DIR}/${VOXY_WASM_DATA_FILE}")
                 message(FATAL_ERROR "Required WASM data file not found: ${VOXY_WASM_DATA_FILE}")
