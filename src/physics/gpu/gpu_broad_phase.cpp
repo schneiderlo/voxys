@@ -16,9 +16,12 @@ namespace voxy::physics {
 namespace {
 
 constexpr uint32_t kTelemetryWords = GpuBroadPhase::kTelemetryWordCount;
-// Covers a 20k thrown-body pile while keeping each reused predicate buffer
-// below 13 MiB. The grid route remains preferable for larger sparse worlds.
-constexpr uint32_t kDenseParallelPairBodyLimit = 20'480u;
+// Keep dense player-made piles on the balanced per-body path. The cell-owner
+// route gives one invocation an entire dense cell's quadratic walk and falls
+// off a severe cliff immediately above 20k bodies. At 32k each reused
+// predicate buffer remains below 32 MiB and the sparse grid route still owns
+// larger worlds.
+constexpr uint32_t kDenseParallelPairBodyLimit = 32'768u;
 
 uint64_t alignedPairPredicateWordCount(uint32_t bodyCapacity) noexcept {
     if (bodyCapacity <= 1u) return 0u;
