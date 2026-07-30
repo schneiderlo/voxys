@@ -73,6 +73,7 @@ namespace perf {
     class BenchmarkRunner;
     class BrowserJourneyBenchmark;
     enum class BrowserJourneyLayout : uint32_t;
+    enum class BrowserJourneyShape : uint32_t;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -472,7 +473,8 @@ public:
         uint32_t settleTicks,
         uint32_t bodiesPerVolley,
         uint32_t ticksPerVolley,
-        perf::BrowserJourneyLayout layout);
+        perf::BrowserJourneyLayout layout,
+        perf::BrowserJourneyShape shape);
 
     /// Stable integer state consumed by browser automation.
     [[nodiscard]] int browserJourneyBenchmarkStatus() const noexcept;

@@ -204,6 +204,18 @@ enum class BrowserJourneyLayout : uint32_t {
 [[nodiscard]] const char*
 browserJourneyLayoutName(BrowserJourneyLayout layout) noexcept;
 
+enum class BrowserJourneyShape : uint32_t {
+    Sphere = 0,
+    Cube,
+    Box,
+    Capsule,
+    Cylinder,
+    Mixed,
+};
+
+[[nodiscard]] const char*
+browserJourneyShapeName(BrowserJourneyShape shape) noexcept;
+
 /// Fixed-tick production workload with deterministic volley pacing.
 struct BrowserJourneyConfig {
     uint32_t targetBodies = 0;
@@ -213,6 +225,7 @@ struct BrowserJourneyConfig {
     uint32_t bodiesPerVolley = 128;
     uint32_t ticksPerVolley = 4;
     BrowserJourneyLayout layout = BrowserJourneyLayout::FixedPile;
+    BrowserJourneyShape shape = BrowserJourneyShape::Mixed;
 };
 
 /// One submitted browser frame. Wall time includes missed RAF opportunities;
@@ -276,6 +289,9 @@ public:
     }
     [[nodiscard]] BrowserJourneyLayout layout() const noexcept {
         return config_.layout;
+    }
+    [[nodiscard]] BrowserJourneyShape shape() const noexcept {
+        return config_.shape;
     }
     [[nodiscard]] const char* failureReason() const noexcept;
 

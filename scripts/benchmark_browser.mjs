@@ -54,6 +54,7 @@ const options = {
     bodiesPerVolley: 128,
     ticksPerVolley: 4,
     layout: "pile",
+    shape: "mixed",
     broadPhaseCellSize: 4,
     pairCapacity: 65_536,
     candidatePairCapacity: 262_144,
@@ -90,6 +91,8 @@ Workload:
   --bodies-per-volley N         1..128, default: real 128-body volley
   --ticks-per-volley N          Physics ticks between volleys (default: 4)
   --layout pile|sweep           Fixed player pile (default) or terrain sweep
+  --shape mixed|sphere|cube|box|capsule|cylinder
+                                Throwable mix (default: mixed)
   --broad-cell-size N           Broad-phase grid size (default: 4)
   --pair-capacity N             Filtered pair capacity (default: 65536)
   --candidate-capacity N        Candidate pair capacity (default: 262144)
@@ -193,6 +196,9 @@ for (let index = 2; index < process.argv.length; ++index) {
         case "--layout":
             options.layout = value();
             break;
+        case "--shape":
+            options.shape = value();
+            break;
         case "--broad-cell-size":
             options.broadPhaseCellSize = readNumber(argument, value());
             break;
@@ -281,6 +287,19 @@ if (options.ticksPerVolley > 3_600) {
 }
 if (!["pile", "sweep"].includes(options.layout)) {
     throw new Error("--layout must be pile or sweep");
+}
+const shapeCodes = new Map([
+    ["sphere", 0],
+    ["cube", 1],
+    ["box", 2],
+    ["capsule", 3],
+    ["cylinder", 4],
+    ["mixed", 5],
+]);
+if (!shapeCodes.has(options.shape)) {
+    throw new Error(
+        "--shape must be mixed, sphere, cube, box, capsule, or cylinder",
+    );
 }
 const cellsPerSector = 256 / options.broadPhaseCellSize;
 if (!Number.isInteger(cellsPerSector)
@@ -1092,7 +1111,8 @@ const runWorkload = async (
             + `${bodyCount},${options.warmupTicks},${options.impactTicks},`
             + `${options.settleTicks},${options.bodiesPerVolley},`
             + `${options.ticksPerVolley},`
-            + `${options.layout === "pile" ? 0 : 1})`,
+            + `${options.layout === "pile" ? 0 : 1},`
+            + `${shapeCodes.get(options.shape)})`,
         );
         if (started !== 1) {
             throw new Error("engine rejected the browser journey");
@@ -1163,6 +1183,7 @@ const runWorkload = async (
         const invariants = {
             journeyPassed: journey.passed,
             layoutPassed: journey.config?.layout === options.layout,
+            shapePassed: journey.config?.shape === options.shape,
             physicsConfigurationPassed:
                 finalCellSizeMatches
                 && physics.pairs.capacity === options.pairCapacity
@@ -1206,6 +1227,7 @@ const runWorkload = async (
         };
         invariants.overallPassed = invariants.journeyPassed
             && invariants.layoutPassed
+            && invariants.shapePassed
             && invariants.physicsConfigurationPassed
             && invariants.bodyCountPassed
             && invariants.renderBodyRangePassed
@@ -1407,6 +1429,7 @@ const compareBaseline = (summary, baseline, runs) => {
         bodiesPerVolley: options.bodiesPerVolley,
         ticksPerVolley: options.ticksPerVolley,
         layout: options.layout,
+        shape: options.shape,
         broadPhaseCellSize: options.broadPhaseCellSize,
         pairCapacity: options.pairCapacity,
         candidatePairCapacity: options.candidatePairCapacity,
@@ -1531,6 +1554,7 @@ const describeFailure = (run) => {
         reasons.push(run.journey.failure ?? "journey");
     }
     if (!run.invariants.layoutPassed) reasons.push("layout");
+    if (!run.invariants.shapePassed) reasons.push("shape");
     if (!run.invariants.physicsConfigurationPassed) {
         reasons.push("physics-configuration");
     }
@@ -1713,6 +1737,7 @@ try {
             bodiesPerVolley: options.bodiesPerVolley,
             ticksPerVolley: options.ticksPerVolley,
             layout: options.layout,
+            shape: options.shape,
             broadPhaseCellSize: options.broadPhaseCellSize,
             pairCapacity: options.pairCapacity,
             candidatePairCapacity: options.candidatePairCapacity,

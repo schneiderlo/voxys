@@ -1916,7 +1916,8 @@ void Application::toggleBenchmark() {
 bool Application::startBrowserJourneyBenchmark(
     uint32_t targetBodies, uint32_t warmupTicks, uint32_t impactTicks,
     uint32_t settleTicks, uint32_t bodiesPerVolley,
-    uint32_t ticksPerVolley, perf::BrowserJourneyLayout layout) {
+    uint32_t ticksPerVolley, perf::BrowserJourneyLayout layout,
+    perf::BrowserJourneyShape shape) {
     if (!initialized_ || !physicsWorld_ || !camera_ || !characterController_
         || isBenchmarkRunning()
         || (browserJourneyBenchmark_
@@ -1948,6 +1949,7 @@ bool Application::startBrowserJourneyBenchmark(
         .bodiesPerVolley = bodiesPerVolley,
         .ticksPerVolley = ticksPerVolley,
         .layout = layout,
+        .shape = shape,
     };
     const bool started = browserJourneyBenchmark_->start(
         journeyConfig, physicsStats.residentBodies, stats_.frameCount,
@@ -1955,8 +1957,9 @@ bool Application::startBrowserJourneyBenchmark(
     if (started) {
         prepareBrowserJourneyCamera();
         LOG_INFO(
-            "Browser journey armed: {} bodies, {} layout, {} per real volley every {} ticks, phases {} warmup / {} impact / {} settle",
+            "Browser journey armed: {} bodies, {} layout, {} shapes, {} per real volley every {} ticks, phases {} warmup / {} impact / {} settle",
             targetBodies, perf::browserJourneyLayoutName(layout),
+            perf::browserJourneyShapeName(shape),
             bodiesPerVolley, ticksPerVolley, warmupTicks, impactTicks,
             settleTicks);
     } else {
@@ -2062,8 +2065,11 @@ void Application::updateBrowserJourneyBenchmark() {
         }
         constexpr uint32_t shapeCount =
             static_cast<uint32_t>(physics::ThrowableShape::Count);
-        selectedThrowable_ =
-            browserJourneyBenchmark_->volleyCount() % shapeCount;
+        const uint32_t benchmarkShape = static_cast<uint32_t>(
+            browserJourneyBenchmark_->shape());
+        selectedThrowable_ = benchmarkShape < shapeCount
+            ? benchmarkShape
+            : browserJourneyBenchmark_->volleyCount() % shapeCount;
         const auto shape =
             static_cast<physics::ThrowableShape>(selectedThrowable_);
         const uint32_t spawned = throwThrowableBatch(shape, requested);

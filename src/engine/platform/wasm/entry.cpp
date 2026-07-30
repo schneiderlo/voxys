@@ -1417,13 +1417,14 @@ void voxy_set_uncapped_fps(int enabled) {
 EMSCRIPTEN_KEEPALIVE
 int voxy_start_browser_journey_benchmark(
     int targetBodies, int warmupTicks, int impactTicks, int settleTicks,
-    int bodiesPerVolley, int ticksPerVolley, int layout) {
+    int bodiesPerVolley, int ticksPerVolley, int layout, int shape) {
     if (!g_app || targetBodies <= 0
         || targetBodies > static_cast<int>(voxy::kMaximumBenchmarkBodyCount)
         || warmupTicks < 0 || impactTicks <= 0 || settleTicks <= 0
         || bodiesPerVolley <= 0
         || bodiesPerVolley > 128 || ticksPerVolley <= 0
-        || ticksPerVolley > 3'600 || layout < 0 || layout > 1) {
+        || ticksPerVolley > 3'600 || layout < 0 || layout > 1
+        || shape < 0 || shape > 5) {
         return 0;
     }
     return g_app->startBrowserJourneyBenchmark(
@@ -1433,7 +1434,8 @@ int voxy_start_browser_journey_benchmark(
         static_cast<uint32_t>(settleTicks),
         static_cast<uint32_t>(bodiesPerVolley),
         static_cast<uint32_t>(ticksPerVolley),
-        static_cast<voxy::perf::BrowserJourneyLayout>(layout)) ? 1 : 0;
+        static_cast<voxy::perf::BrowserJourneyLayout>(layout),
+        static_cast<voxy::perf::BrowserJourneyShape>(shape)) ? 1 : 0;
 }
 
 EMSCRIPTEN_KEEPALIVE

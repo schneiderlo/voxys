@@ -243,6 +243,7 @@ TEST(BrowserJourneyBenchmarkTest, DrivesExactRealVolleysAndCompletes) {
             .settleTicks = 2,
             .bodiesPerVolley = 64,
             .ticksPerVolley = 1,
+            .shape = BrowserJourneyShape::Sphere,
         },
         3, 10, 20));
 
@@ -289,6 +290,7 @@ TEST(BrowserJourneyBenchmarkTest, DrivesExactRealVolleysAndCompletes) {
     });
     EXPECT_EQ(journey.spawnedBodies(), 100u);
     EXPECT_EQ(journey.volleyCount(), 2u);
+    EXPECT_EQ(journey.shape(), BrowserJourneyShape::Sphere);
     EXPECT_EQ(journey.status(), BrowserJourneyStatus::Impact);
 
     EXPECT_EQ(journey.advance(24, 103), 0u);
@@ -346,6 +348,8 @@ TEST(BrowserJourneyBenchmarkTest, DrivesExactRealVolleysAndCompletes) {
     EXPECT_NE(json.find("\"expected_final_bodies\":103"),
               std::string::npos);
     EXPECT_NE(json.find("\"layout\":\"pile\""),
+              std::string::npos);
+    EXPECT_NE(json.find("\"shape\":\"sphere\""),
               std::string::npos);
     EXPECT_NE(json.find("\"terrain_contact_bodies\":90"),
               std::string::npos);
@@ -477,6 +481,19 @@ TEST(BrowserJourneyBenchmarkTest, RejectsInvalidConfiguration) {
             .bodiesPerVolley = 1,
             .ticksPerVolley = 1,
             .layout = static_cast<BrowserJourneyLayout>(99u),
+        },
+        0, 0, 0));
+    EXPECT_STREQ(journey.failureReason(), "invalid_configuration");
+
+    EXPECT_FALSE(journey.start(
+        BrowserJourneyConfig{
+            .targetBodies = 1,
+            .warmupTicks = 1,
+            .impactTicks = 1,
+            .settleTicks = 1,
+            .bodiesPerVolley = 1,
+            .ticksPerVolley = 1,
+            .shape = static_cast<BrowserJourneyShape>(99u),
         },
         0, 0, 0));
     EXPECT_STREQ(journey.failureReason(), "invalid_configuration");
