@@ -1296,8 +1296,11 @@ int main(int argc, char* argv[]) {
     // throttled browser at frame zero (the deployed benchmark caught this).
     currentUncapped = g_app->isUncappedFPS();
 
-    // 0 = use requestAnimationFrame, false = don't simulate infinite loop
-    emscripten_set_main_loop(mainLoop, 0, false);
+    // A positive initial rate makes Emscripten schedule the very first call
+    // with a timer. Setting SETIMMEDIATE after a zero-rate registration can
+    // leave one already-scheduled RAF callback in front of it.
+    const int initialLoopRate = currentUncapped ? 1'000 : 0;
+    emscripten_set_main_loop(mainLoop, initialLoopRate, false);
     if (currentUncapped) {
         emscripten_set_main_loop_timing(EM_TIMING_SETIMMEDIATE, 0);
         LOG_INFO("Started Uncapped Loop (SETIMMEDIATE)");
