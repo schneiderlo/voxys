@@ -264,7 +264,7 @@ public:
         std::vector<LE> gridEntries;
         for (uint32_t binding : {0u, 1u, 2u}) storage(gridEntries, binding, true);
         storage(gridEntries, 3, false);
-        storage(gridEntries, 4, true);
+        storage(gridEntries, 4, false);
         storage(gridEntries, 5, false);
         storage(gridEntries, 6, false);
         storage(gridEntries, 10, false);
@@ -284,7 +284,7 @@ public:
 
         std::vector<LE> finalizeEntries;
         storage(finalizeEntries, 3, false);
-        storage(finalizeEntries, 4, true);
+        storage(finalizeEntries, 4, false);
         storage(finalizeEntries, 6, false);
         storage(finalizeEntries, 9, false);
         storage(finalizeEntries, 10, false);
@@ -395,7 +395,7 @@ public:
         std::vector<LE> mediumProxyEntries;
         for (uint32_t binding : {0u, 1u, 2u})
             storage(mediumProxyEntries, binding, true);
-        for (uint32_t binding : {5u, 9u, 11u})
+        for (uint32_t binding : {4u, 5u, 9u, 11u})
             storage(mediumProxyEntries, binding, false);
         uniform(mediumProxyEntries);
         mediumProxyLayout_ = gpu::createBindGroupLayout(
@@ -403,7 +403,7 @@ public:
             "broad_phase_medium_proxy_layout");
 
         std::vector<LE> parallelMediumPairCountEntries;
-        for (uint32_t binding : {3u, 5u, 6u, 9u, 11u, 31u, 32u})
+        for (uint32_t binding : {3u, 4u, 5u, 6u, 9u, 11u, 31u, 32u})
             storage(parallelMediumPairCountEntries, binding, false);
         uniform(parallelMediumPairCountEntries);
         parallelMediumPairCountLayout_ = gpu::createBindGroupLayout(
@@ -412,7 +412,7 @@ public:
 
         std::vector<LE> parallelMediumPairScatterEntries;
         storage(parallelMediumPairScatterEntries, 3u, false);
-        storage(parallelMediumPairScatterEntries, 4u, true);
+        storage(parallelMediumPairScatterEntries, 4u, false);
         for (uint32_t binding : {6u, 9u, 15u, 31u, 32u})
             storage(parallelMediumPairScatterEntries, binding, false);
         uniform(parallelMediumPairScatterEntries);
@@ -841,10 +841,11 @@ public:
         cachedBindGroups_[15] = bindGroup(
             smallPairLayout_, smallPairEntries,
             "broad_phase_small_pair_group");
-        const std::array<gpu::BindGroupEntry, 7> mediumProxyEntries = {
+        const std::array<gpu::BindGroupEntry, 8> mediumProxyEntries = {
             gpu::BindGroupEntry(0).buffer(bodyView_.poseBuffer),
             gpu::BindGroupEntry(1).buffer(bodyView_.shapeBuffer),
             gpu::BindGroupEntry(2).buffer(bodyView_.metadataBuffer),
+            gpu::BindGroupEntry(4).buffer(bodyEntryOffsets_),
             gpu::BindGroupEntry(5).buffer(gridEntries_),
             gpu::BindGroupEntry(9).buffer(cellRanges_),
             gpu::BindGroupEntry(11).buffer(ownerPairCounts_),
@@ -853,9 +854,10 @@ public:
         cachedBindGroups_[19] = bindGroup(
             mediumProxyLayout_, mediumProxyEntries,
             "broad_phase_medium_proxy_group");
-        const std::array<gpu::BindGroupEntry, 8>
+        const std::array<gpu::BindGroupEntry, 9>
             parallelMediumPairCountEntries{
             gpu::BindGroupEntry(3).buffer(bodyEntryCounts_),
+            gpu::BindGroupEntry(4).buffer(bodyEntryOffsets_),
             gpu::BindGroupEntry(5).buffer(gridEntries_),
             gpu::BindGroupEntry(6).buffer(telemetry_),
             gpu::BindGroupEntry(9).buffer(cellRanges_),

@@ -9,6 +9,9 @@ const SMALL_LIFECYCLE_CONTACT_LIMIT : u32 = 1024u;
 const SPATIAL_CLASS_COMMON : u32 = 0u;
 const SPATIAL_CLASS_PHYSICAL_OVERSIZED : u32 = 1u;
 const SPATIAL_CLASS_SWEPT_OVERSIZED : u32 = 2u;
+const SHAPE_SPHERE : u32 = 0u;
+const SHAPE_CAPSULE : u32 = 3u;
+const SHAPE_CYLINDER : u32 = 4u;
 // Must match physics_ballistic.wgsl. The fractional shape-type payload is a
 // conservative one-tick linear travel bound for tunnelling-risk bodies.
 const SHAPE_SWEEP_RANGE : f32 = 256.0;
@@ -61,7 +64,7 @@ struct BroadPhaseParams {
 @group(0) @binding(1) var<storage, read> shapes : array<BodyShape>;
 @group(0) @binding(2) var<storage, read> metadata : array<vec4<i32>>;
 @group(0) @binding(3) var<storage, read_write> bodyEntryCounts : array<u32>;
-@group(0) @binding(4) var<storage, read> bodyEntryOffsets : array<u32>;
+@group(0) @binding(4) var<storage, read_write> bodyEntryOffsets : array<u32>;
 @group(0) @binding(5) var<storage, read_write> gridEntries : array<KeyValue>;
 @group(0) @binding(6) var<storage, read_write> telemetry : array<atomic<u32>>;
 @group(0) @binding(7) var<uniform> broad : BroadPhaseParams;
@@ -137,6 +140,68 @@ fn shape_sweep_distance(body : u32) -> f32 {
 
 fn physical_shape_radius(body : u32) -> f32 {
     return 0.5 * length(abs(shapes[body].dimensions_type.xyz)) + broad.grid.y;
+}
+
+fn rotate_vector(q : vec4<f32>, value : vec3<f32>) -> vec3<f32> {
+    let twiceCross = 2.0 * cross(q.xyz, value);
+    return value + q.w * twiceCross + cross(q.xyz, twiceCross);
+}
+
+fn shape_aabb_extent(body : u32) -> vec3<f32> {
+    let shape = shapes[body];
+    let dimensions = max(abs(shape.dimensions_type.xyz), vec3<f32>(1e-5));
+    let shapeType = u32(clamp(shape.dimensions_type.w, 0.0, 4.0));
+    let orientation = poses[body].orientation;
+    var extent = vec3<f32>(0.5 * dimensions.x);
+    if (shapeType == SHAPE_SPHERE) {
+        extent = vec3<f32>(0.5 * dimensions.x);
+    } else if (shapeType == SHAPE_CAPSULE) {
+        let capsuleRadius = 0.25 * (dimensions.x + dimensions.z);
+        let segmentHalf = max(
+            0.5 * dimensions.y - capsuleRadius, 0.0);
+        let axis = abs(rotate_vector(
+            orientation, vec3<f32>(0.0, 1.0, 0.0)));
+        extent = vec3<f32>(capsuleRadius) + axis * segmentHalf;
+    } else if (shapeType == SHAPE_CYLINDER) {
+        let cylinderRadius = 0.25 * (dimensions.x + dimensions.z);
+        let axis = abs(rotate_vector(
+            orientation, vec3<f32>(0.0, 1.0, 0.0)));
+        let radial = sqrt(max(
+            vec3<f32>(1.0) - axis * axis, vec3<f32>(0.0)));
+        extent = axis * (0.5 * dimensions.y)
+               + radial * cylinderRadius;
+    } else {
+        let axisX = abs(rotate_vector(
+            orientation, vec3<f32>(1.0, 0.0, 0.0)));
+        let axisY = abs(rotate_vector(
+            orientation, vec3<f32>(0.0, 1.0, 0.0)));
+        let axisZ = abs(rotate_vector(
+            orientation, vec3<f32>(0.0, 0.0, 1.0)));
+        extent = axisX * (0.5 * dimensions.x)
+               + axisY * (0.5 * dimensions.y)
+               + axisZ * (0.5 * dimensions.z);
+    }
+    return extent + vec3<f32>(
+        broad.grid.y + shape_sweep_distance(body));
+}
+
+fn medium_shape_radius(body : u32) -> f32 {
+    let shape = shapes[body];
+    let dimensions = max(abs(shape.dimensions_type.xyz), vec3<f32>(1e-5));
+    let shapeType = u32(clamp(shape.dimensions_type.w, 0.0, 4.0));
+    var radius = 0.5 * length(dimensions);
+    if (shapeType == SHAPE_SPHERE) {
+        radius = 0.5 * dimensions.x;
+    } else if (shapeType == SHAPE_CAPSULE) {
+        let capsuleRadius = 0.25 * (dimensions.x + dimensions.z);
+        radius = max(0.5 * dimensions.y - capsuleRadius, 0.0)
+               + capsuleRadius;
+    } else if (shapeType == SHAPE_CYLINDER) {
+        let cylinderRadius = 0.25 * (dimensions.x + dimensions.z);
+        radius = length(vec2<f32>(
+            cylinderRadius, 0.5 * dimensions.y));
+    }
+    return radius + broad.grid.y + shape_sweep_distance(body);
 }
 
 fn shape_radius(body : u32) -> f32 {
@@ -502,10 +567,14 @@ fn bodies_overlap(bodyA : u32, bodyB : u32) -> bool {
     }
     if ((body_flags(bodyA) & BODY_AWAKE) == 0u
         && (body_flags(bodyB) & BODY_AWAKE) == 0u) { return false; }
-    let extent = shape_radius(bodyA) + shape_radius(bodyB);
     var valid = false;
     let delta = position_delta(bodyA, bodyB, &valid);
-    return valid && all(abs(delta) <= vec3<f32>(extent));
+    if (!valid) { return false; }
+    let extent = shape_aabb_extent(bodyA) + shape_aabb_extent(bodyB);
+    if (!all(abs(delta) <= extent)) { return false; }
+    let radius = medium_shape_radius(bodyA)
+               + medium_shape_radius(bodyB);
+    return dot(delta, delta) <= radius * radius;
 }
 
 fn candidate_count_limit() -> u32 {
@@ -1221,14 +1290,17 @@ fn cached_small_bodies_overlap(bodyA : u32, bodyB : u32,
 }
 
 struct MediumBodyProxy {
-    positionRadius : vec4<f32>,
+    positionExtentX : vec4<f32>,
+    extentYZ : vec2<f32>,
+    radius : f32,
     sectorFlags : vec4<i32>,
     cellKey : vec2<u32>,
 };
 
 fn load_medium_body(body : u32) -> MediumBodyProxy {
     var proxy = MediumBodyProxy(
-        vec4<f32>(0.0), vec4<i32>(0), vec2<u32>(SENTINEL));
+        vec4<f32>(0.0), vec2<f32>(0.0),
+        0.0, vec4<i32>(0), vec2<u32>(SENTINEL));
     if (body >= broad.counts.x) { return proxy; }
 
     let dimensions = abs(shapes[body].dimensions_type.xyz);
@@ -1238,14 +1310,17 @@ fn load_medium_body(body : u32) -> MediumBodyProxy {
         return proxy;
     }
 
-    let radius = shape_radius(body);
-    proxy.positionRadius = vec4<f32>(
-        poses[body].position_invMass.xyz, radius);
+    let extent = shape_aabb_extent(body);
+    proxy.positionExtentX = vec4<f32>(
+        poses[body].position_invMass.xyz, extent.x);
+    proxy.extentYZ = extent.yz;
+    proxy.radius = medium_shape_radius(body);
     proxy.sectorFlags = vec4<i32>(
         metadata[body].xyz, bitcast<i32>(flags));
     var valid = false;
     let cell = body_cell(body, &valid);
-    if (radius * 2.0 <= broad.grid.x && valid
+    if (max(extent.x, max(extent.y, extent.z)) * 2.0
+            <= broad.grid.x && valid
         && coordinate_is_encodable(cell)) {
         proxy.cellKey = encode_cell(cell);
     }
@@ -1253,24 +1328,37 @@ fn load_medium_body(body : u32) -> MediumBodyProxy {
 }
 
 fn store_medium_body_proxy(body : u32, proxy : MediumBodyProxy) {
-    let positionRadius = bitcast<vec4<u32>>(proxy.positionRadius);
+    let positionExtentX = bitcast<vec4<u32>>(proxy.positionExtentX);
     let sectorFlags = bitcast<vec4<u32>>(proxy.sectorFlags);
+    // Both values are inflated before f16 packing, preserving a conservative
+    // broad-phase bound after quantization.
+    let packedExtentXRadius = pack2x16float(
+        vec2<f32>(proxy.positionExtentX.w, proxy.radius)
+            * 1.001 + vec2<f32>(1e-4));
     gridEntries[body] = KeyValue(
-        positionRadius.x, positionRadius.y,
-        positionRadius.z, positionRadius.w);
+        positionExtentX.x, positionExtentX.y,
+        positionExtentX.z, packedExtentXRadius);
     cellRanges[body] = CellRange(
         sectorFlags.x, sectorFlags.y, sectorFlags.z, sectorFlags.w);
     ownerPairCounts[body * 2u] = proxy.cellKey.x;
     ownerPairCounts[body * 2u + 1u] = proxy.cellKey.y;
+    // The reused offset buffer stores two extents as f16 until the prefix
+    // scan overwrites it. Inflate before packing so f16 rounding cannot turn
+    // a touching pair into a false negative.
+    bodyEntryOffsets[body] = pack2x16float(
+        proxy.extentYZ * 1.001 + vec2<f32>(1e-4));
 }
 
 fn load_precomputed_medium_body(body : u32) -> MediumBodyProxy {
-    let positionRadius = gridEntries[body];
+    let positionExtentX = gridEntries[body];
     let sectorFlags = cellRanges[body];
+    let packedExtentXRadius = unpack2x16float(positionExtentX.ordinal);
     return MediumBodyProxy(
-        bitcast<vec4<f32>>(vec4<u32>(
-            positionRadius.keyLow, positionRadius.keyHigh,
-            positionRadius.value, positionRadius.ordinal)),
+        vec4<f32>(bitcast<vec3<f32>>(vec3<u32>(
+            positionExtentX.keyLow, positionExtentX.keyHigh,
+            positionExtentX.value)), packedExtentXRadius.x),
+        unpack2x16float(bodyEntryOffsets[body]),
+        packedExtentXRadius.y,
         bitcast<vec4<i32>>(vec4<u32>(
             sectorFlags.keyLow, sectorFlags.keyHigh,
             sectorFlags.firstEntry, sectorFlags.entryCount)),
@@ -1292,11 +1380,15 @@ fn medium_bodies_overlap(a : MediumBodyProxy,
             return false;
         }
     }
-    let extent = a.positionRadius.w + b.positionRadius.w;
-    let localDelta = b.positionRadius.xyz - a.positionRadius.xyz;
+    let extent = vec3<f32>(
+        a.positionExtentX.w + b.positionExtentX.w,
+        a.extentYZ + b.extentYZ);
+    let localDelta = b.positionExtentX.xyz - a.positionExtentX.xyz;
     // Same-sector pairs have a zero world offset; skip three wrapped deltas.
     if (all(a.sectorFlags.xyz == b.sectorFlags.xyz)) {
-        return all(abs(localDelta) <= vec3<f32>(extent));
+        if (!all(abs(localDelta) <= extent)) { return false; }
+        let radius = a.radius + b.radius;
+        return dot(localDelta, localDelta) <= radius * radius;
     }
     var sectorDelta = vec3<i32>(0);
     for (var axis = 0u; axis < 3u; axis += 1u) {
@@ -1305,7 +1397,9 @@ fn medium_bodies_overlap(a : MediumBodyProxy,
         if (abs(sectorDelta[axis]) > 1) { return false; }
     }
     let delta = localDelta + vec3<f32>(sectorDelta) * WORLD_SECTOR_SIZE;
-    return all(abs(delta) <= vec3<f32>(extent));
+    if (!all(abs(delta) <= extent)) { return false; }
+    let radius = a.radius + b.radius;
+    return dot(delta, delta) <= radius * radius;
 }
 
 // Rows are word-aligned so one minimum-body invocation owns every cache word
@@ -1657,7 +1751,8 @@ fn parallel_medium_world_pair_counts_impl(gid : vec3<u32>,
     let bodyCount = broad.counts.x;
     let validMinimum = minimum < bodyCount;
     var minimumProxy = MediumBodyProxy(
-        vec4<f32>(0.0), vec4<i32>(0), vec2<u32>(SENTINEL));
+        vec4<f32>(0.0), vec2<f32>(0.0),
+        0.0, vec4<i32>(0), vec2<u32>(SENTINEL));
     if (validMinimum) {
         minimumProxy = load_precomputed_medium_body(minimum);
     }
@@ -1676,11 +1771,15 @@ fn parallel_medium_world_pair_counts_impl(gid : vec3<u32>,
     for (var base = 0u; base < bodyCount; base += tileSize) {
         let loadIndex = base + lid.x;
         var loaded = MediumBodyProxy(
-            vec4<f32>(0.0), vec4<i32>(0), vec2<u32>(SENTINEL));
+            vec4<f32>(0.0), vec2<f32>(0.0),
+            0.0, vec4<i32>(0), vec2<u32>(SENTINEL));
         if (loadIndex < bodyCount) {
             loaded = load_precomputed_medium_body(loadIndex);
         }
-        smallPairPositionRadius[lid.x] = loaded.positionRadius;
+        smallPairPositionRadius[lid.x] = vec4<f32>(
+            loaded.positionExtentX.xyz, loaded.radius);
+        smallPairOffsets[lid.x] = pack2x16float(loaded.extentYZ);
+        smallPairFlags[lid.x] = bitcast<u32>(loaded.positionExtentX.w);
         smallPairSectorFlags[lid.x] = loaded.sectorFlags;
         smallPairCellKeys[lid.x] = loaded.cellKey;
         workgroupBarrier();
@@ -1690,7 +1789,11 @@ fn parallel_medium_world_pair_counts_impl(gid : vec3<u32>,
                 let maximum = base + local;
                 if (maximum <= minimum) { continue; }
                 let maximumProxy = MediumBodyProxy(
-                    smallPairPositionRadius[local],
+                    vec4<f32>(
+                        smallPairPositionRadius[local].xyz,
+                        bitcast<f32>(smallPairFlags[local])),
+                    unpack2x16float(smallPairOffsets[local]),
+                    smallPairPositionRadius[local].w,
                     smallPairSectorFlags[local],
                     smallPairCellKeys[local]);
                 if (cellRepresentative

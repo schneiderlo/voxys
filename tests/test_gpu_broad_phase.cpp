@@ -804,8 +804,8 @@ TEST(GpuBroadPhaseSectorTest,
     std::vector<TestPose> poses(bodyCapacity);
     std::vector<TestShape> shapes(bodyCapacity);
     std::vector<TestMetadata> metadata(bodyCapacity);
-    poses[0].positionInvMass = {-0.4f, 0.0f, 0.0f, 1.0f};
-    poses[1].positionInvMass = {0.4f, 0.0f, 0.0f, 1.0f};
+    poses[0].positionInvMass = {-0.2f, 0.0f, 0.0f, 1.0f};
+    poses[1].positionInvMass = {0.2f, 0.0f, 0.0f, 1.0f};
     poses[2].positionInvMass = poses[1].positionInvMass;
     for (uint32_t body = 0; body < bodyCapacity; ++body) {
         shapes[body].dimensionsType = {0.5f, 0.5f, 0.5f, 0.0f};
