@@ -1291,8 +1291,20 @@ int main(int argc, char* argv[]) {
         requestGpuFrameCompletion();
     };
 
+    // Select the initial scheduler here. Waiting for the first RAF callback
+    // to discover that the application is uncapped can deadlock a compositor-
+    // throttled browser at frame zero (the deployed benchmark caught this).
+    currentUncapped = g_app->isUncappedFPS();
+
     // 0 = use requestAnimationFrame, false = don't simulate infinite loop
     emscripten_set_main_loop(mainLoop, 0, false);
+    if (currentUncapped) {
+        emscripten_set_main_loop_timing(EM_TIMING_SETIMMEDIATE, 0);
+        LOG_INFO("Started Uncapped Loop (SETIMMEDIATE)");
+    } else {
+        emscripten_set_main_loop_timing(EM_TIMING_RAF, 1);
+        LOG_INFO("Started Capped Loop (RAF)");
+    }
 
     return 0;
 }
