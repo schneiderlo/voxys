@@ -33,14 +33,19 @@ node scripts/benchmark_browser.mjs \
   --output /tmp/voxys-browser-baseline.json
 ```
 
-The defaults run 100, 1,000, 5,000, and 10,000 bodies three times in each mode:
+The defaults run 100, 1,000, 5,000, and 10,000 bodies three times in each
+reliable uncapped mode:
 
-- `score` uses normal `requestAnimationFrame` pacing. This is the displayed
-  browser experience: frame intervals, 1% low FPS, and missed refresh periods.
 - `headroom` uses the production uncapped loop. This exposes improvements that
-  remain hidden while `score` is pinned to the monitor refresh rate.
+  would remain hidden at the monitor refresh rate.
 - `diagnose` enables GPU timestamp queries and reports every physics and render
-  stage. It is opt-in because measurement itself has a cost.
+  stage.
+
+`score` is opt-in because it uses `requestAnimationFrame`. Run it only while
+the headed Chrome window is genuinely visible. Some automation desktops
+throttle RAF without changing page visibility; the runner detects an empty
+GPU queue receiving fewer than two callbacks per second and rejects that result
+instead of reporting fake engine FPS.
 
 The body order alternates upward and downward between repetitions. Each page
 load gets the same camera warm-up, then repeatedly fires real volleys from one
@@ -54,7 +59,7 @@ Use the deterministic terrain sweep as a secondary scalability control:
 
 ```bash
 node scripts/benchmark_browser.mjs \
-  --layout sweep --modes score,headroom --headed
+  --layout sweep --modes headroom,diagnose --headed
 ```
 
 The sweep gives every volley a new impact zone. It answers how cost scales when
@@ -82,7 +87,7 @@ behavior from the original slope without hiding a collision shape.
 The browser automatically uses the measured 131,072 pair/manifold capacity for
 this scene. It also defaults its broad-phase cells to 2 m;
 `broadPhaseCellSize=N` can still override that value. It runs physics at 30 Hz
-with two 60 Hz solver substeps and two bounded catch-up ticks, keeping motion
+with two 60 Hz solver substeps and three bounded catch-up ticks, keeping motion
 tied to wall time without rebuilding the old GPU queue spiral.
 `triangleBodies=N` overrides the count for exploratory runs. The old
 `experiment=pyramid` URL remains an alias.
@@ -92,7 +97,7 @@ Run the same scene through the browser benchmark:
 ```bash
 node scripts/benchmark_browser.mjs \
   --layout triangle --bodies 20022 --runs 1 \
-  --modes score,headroom,diagnose --headed
+  --modes headroom,diagnose --headed
 ```
 
 The benchmark fires one cube into the wall by default. That represents the
@@ -150,7 +155,7 @@ Add larger real workloads without changing the journey:
 ```bash
 node scripts/benchmark_browser.mjs \
   --bodies 100,1000,5000,10000,20000 \
-  --modes score,headroom --runs 3 --headed
+  --modes headroom,diagnose --runs 3 --headed
 ```
 
 Compare a candidate with a capture from the same machine, Chrome, GPU, display,

@@ -43,7 +43,7 @@ const options = {
     artifactDirectory: "",
     buildLocal: false,
     bodies: [100, 1_000, 5_000, 10_000],
-    modes: ["score", "headroom"],
+    modes: ["headroom", "diagnose"],
     runs: 3,
     width: 1920,
     height: 1080,
@@ -89,7 +89,7 @@ Targets:
 
 Workload:
   --bodies 100,1000,5000,10000 Exact final body counts
-  --modes score,headroom        Add diagnose for GPU timestamp stages
+  --modes headroom,diagnose     Add score only with a visible, unthrottled window
   --runs N                      Repetitions per mode/count (default: 3)
   --warmup-ticks N              Default: 120
   --impact-ticks N              Default: 300
@@ -126,7 +126,7 @@ Results:
 
 Examples:
   node scripts/benchmark_browser.mjs
-  node scripts/benchmark_browser.mjs --modes score,headroom,diagnose --runs 5
+  node scripts/benchmark_browser.mjs --modes headroom,diagnose --runs 5
   node scripts/benchmark_browser.mjs --target local --build-local --quick
 `);
 };
@@ -268,7 +268,7 @@ for (let index = 2; index < process.argv.length; ++index) {
             options.warmupTicks = 30;
             options.impactTicks = 60;
             options.settleTicks = 30;
-            options.modes = ["score"];
+            options.modes = ["headroom"];
             break;
         case "--help":
         case "-h":
@@ -1236,6 +1236,7 @@ const runWorkload = async (
             throw new Error("engine rejected the browser journey");
         }
 
+        const journeyStartedAt = Date.now();
         const physicsGpuSamples = [];
         const renderGpuSamples = [];
         let progress = null;
@@ -1246,6 +1247,22 @@ const runWorkload = async (
                 renderGpuSamples.push(...progress.render);
             }
             if (progress.status === 5 || progress.status === -1) break;
+            const elapsedJourneyMs = Date.now() - journeyStartedAt;
+            const submittedFrames = progress.frame - start.frame;
+            const pacingSkips =
+                progress.pacingSkips - start.pacingSkips;
+            if (!uncapped && elapsedJourneyMs >= 15_000
+                && submittedFrames < 30
+                && progress.queue === 0
+                && pacingSkips === 0) {
+                throw new Error(
+                    "score mode received fewer than 2 RAF callbacks/sec "
+                    + "with an empty GPU queue; the window is RAF-starved "
+                    + "or compositor-throttled, so its FPS is not a valid "
+                    + "engine measurement (use headroom/diagnose or expose "
+                    + "the headed window)",
+                );
+            }
             await delay(profileEnabled || uncapped ? 25 : 100);
         }
         if (!progress || ![5, -1].includes(progress.status)) {

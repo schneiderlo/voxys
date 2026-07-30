@@ -1241,7 +1241,7 @@ int main(int argc, char* argv[]) {
         if (g_gpuFramesInFlight >= kMaximumGpuFramesInFlight) {
             // Do not turn time spent waiting for the GPU into another burst of
             // GPU work. Normal play drops this wall-time debt. The staged
-            // triangle uses a cheaper 30 Hz clock and a strict two-tick cap,
+            // triangle uses a cheaper 30 Hz clock and a strict three-tick cap,
             // so preserve its small debt to keep gravity at real speed.
             if (!g_preserveSimulationWallTime) {
                 lastSimulationTime = emscripten_get_now() / 1000.0;
