@@ -88,6 +88,96 @@ constexpr uint32_t kPortableMaximumTextureDimension2D = 8'192u;
 constexpr float kBrowserJourneyTargetX = 250.0f;
 constexpr float kBrowserJourneyTargetZ = 0.0f;
 
+bool flattenCubeTriangleArena(
+    terrain::Heightmap& heightmap, float cellScale) {
+    if (!heightmap.isLoaded() || !std::isfinite(cellScale)
+        || cellScale <= 0.0f) {
+        return false;
+    }
+
+    constexpr float innerHalfWidth = 140.0f;
+    constexpr float innerHalfDepth = 100.0f;
+    constexpr float feather = 40.0f;
+    const uint32_t width = heightmap.getWidth();
+    const uint32_t height = heightmap.getHeight();
+    const auto sampleCoordinate = [cellScale](
+        float world, uint32_t sampleCount) {
+        return static_cast<int32_t>(std::lround(
+            world / cellScale
+            + 0.5f * static_cast<float>(sampleCount - 1u)));
+    };
+    const int32_t centerX = sampleCoordinate(
+        kBrowserJourneyTargetX, width);
+    const int32_t centerZ = sampleCoordinate(
+        kBrowserJourneyTargetZ, height);
+    const int32_t innerSamplesX =
+        static_cast<int32_t>(std::ceil(innerHalfWidth / cellScale));
+    const int32_t innerSamplesZ =
+        static_cast<int32_t>(std::ceil(innerHalfDepth / cellScale));
+    const int32_t outerSamplesX =
+        static_cast<int32_t>(std::ceil(
+            (innerHalfWidth + feather) / cellScale));
+    const int32_t outerSamplesZ =
+        static_cast<int32_t>(std::ceil(
+            (innerHalfDepth + feather) / cellScale));
+
+    const auto clampX = [width](int32_t value) {
+        return std::clamp(value, 0, static_cast<int32_t>(width) - 1);
+    };
+    const auto clampZ = [height](int32_t value) {
+        return std::clamp(value, 0, static_cast<int32_t>(height) - 1);
+    };
+    const int32_t innerMinX = clampX(centerX - innerSamplesX);
+    const int32_t innerMaxX = clampX(centerX + innerSamplesX);
+    const int32_t innerMinZ = clampZ(centerZ - innerSamplesZ);
+    const int32_t innerMaxZ = clampZ(centerZ + innerSamplesZ);
+
+    uint64_t sum = 0u;
+    uint64_t samples = 0u;
+    const std::span<const uint16_t> source = heightmap.getData();
+    for (int32_t z = innerMinZ; z <= innerMaxZ; ++z) {
+        for (int32_t x = innerMinX; x <= innerMaxX; ++x) {
+            sum += source[static_cast<size_t>(z) * width
+                          + static_cast<uint32_t>(x)];
+            ++samples;
+        }
+    }
+    if (samples == 0u) return false;
+    const uint16_t arenaHeight = static_cast<uint16_t>(
+        std::min<uint64_t>((sum + samples / 2u) / samples, 65'535u));
+
+    std::span<uint16_t> data = heightmap.getMutableData();
+    const int32_t outerMinX = clampX(centerX - outerSamplesX);
+    const int32_t outerMaxX = clampX(centerX + outerSamplesX);
+    const int32_t outerMinZ = clampZ(centerZ - outerSamplesZ);
+    const int32_t outerMaxZ = clampZ(centerZ + outerSamplesZ);
+    for (int32_t z = outerMinZ; z <= outerMaxZ; ++z) {
+        const float distanceZ =
+            std::abs(static_cast<float>(z - centerZ)) * cellScale;
+        const float edgeZ =
+            (distanceZ - innerHalfDepth) / feather;
+        for (int32_t x = outerMinX; x <= outerMaxX; ++x) {
+            const float distanceX =
+                std::abs(static_cast<float>(x - centerX)) * cellScale;
+            const float edgeX =
+                (distanceX - innerHalfWidth) / feather;
+            const float edge = std::clamp(
+                std::max(edgeX, edgeZ), 0.0f, 1.0f);
+            const float smoothEdge = edge * edge * (3.0f - 2.0f * edge);
+            const size_t index = static_cast<size_t>(z) * width
+                               + static_cast<uint32_t>(x);
+            data[index] = static_cast<uint16_t>(std::lround(
+                static_cast<float>(arenaHeight) * (1.0f - smoothEdge)
+                + static_cast<float>(data[index]) * smoothEdge));
+        }
+    }
+
+    LOG_INFO(
+        "Flattened cube-triangle arena: {:.0f}x{:.0f} m with {:.0f} m feather",
+        innerHalfWidth * 2.0f, innerHalfDepth * 2.0f, feather);
+    return true;
+}
+
 void setCameraWorldPose(
     Camera& camera, const glm::dvec3& absolutePosition,
     const glm::dvec3& absoluteTarget) {
@@ -645,7 +735,7 @@ bool Application::init(const ApplicationConfig& config) {
 #if !defined(VOXY_WASM)
     if (config_.cubePyramidBodyCount != 0u
         && !startCubePyramidExperiment()) {
-        LOG_ERROR("Failed to create the cube pyramid experiment");
+        LOG_ERROR("Failed to create the cube triangle experiment");
         return failInitialization();
     }
 #endif
@@ -1882,76 +1972,73 @@ bool Application::spawnCubePyramidExperiment() {
     if (bodyCount == 0u) return true;
     if (!physicsWorld_ || !characterController_ || !camera_) return false;
 
-    // Small same-layer gaps remove contacts that do not support weight.
-    // Two-cell tapers align each upper cube with one cube below it. The few
-    // one-cell tapers needed for an exact body count use four supports.
+    // This is a triangular wall, not a square pyramid. Eight slices give it
+    // enough depth to resist immediately toppling out of the screen.
     constexpr float cubeSize = 1.1f;
-    constexpr float horizontalPitch = 1.3f;
-    // Start 10 mm inside the resting manifold. A positive gap makes every
-    // dynamic layer free-fall together until a destructive compression wave
-    // propagates upward from the static base.
-    constexpr float verticalPitch = 1.09f;
+    constexpr float horizontalPitch = 1.12f;
+    // Sleeping rows have a 20 mm gap. They remain perfectly staged until an
+    // impact wakes them, then gravity closes the gap and propagates locally.
+    constexpr float verticalPitch = 1.12f;
+    constexpr float depthPitch = 1.12f;
     constexpr float terrainClearance = 0.05f;
+    constexpr uint32_t triangleDepth = 8u;
 
-    struct PyramidLayer {
-        uint32_t side = 0u;
+    struct TriangleRow {
+        uint32_t width = 0u;
         uint32_t bodies = 0u;
     };
-    std::vector<PyramidLayer> layers;
+    std::vector<TriangleRow> rows;
     if (bodyCount == kDefaultCubePyramidBodyCount) {
-        // Exact sum of squares: 20,000. All layers have even side lengths, so
-        // every upper cube is centered directly over one support. The shorter
-        // 18-layer contact chains remain stable with the production solver.
-        constexpr std::array<uint32_t, 18> sides{
-            58u, 54u, 50u, 48u, 44u, 40u, 36u, 34u, 30u,
-            26u, 22u, 18u, 14u, 12u, 10u, 8u, 6u, 2u,
-        };
-        static_assert([](const auto& values) {
-            uint32_t sum = 0u;
-            for (const uint32_t side : values) sum += side * side;
-            return sum;
-        }(sides) == kDefaultCubePyramidBodyCount);
-        layers.reserve(sides.size());
-        for (const uint32_t side : sides) {
-            layers.push_back({side, side * side});
+        // 8 * (triangle(70) + 15) = 20,000. Width 15 is repeated once,
+        // producing an exact count with only a one-row step in the silhouette.
+        static_assert(
+            triangleDepth * ((70u * 71u) / 2u + 15u)
+            == kDefaultCubePyramidBodyCount);
+        rows.reserve(71u);
+        for (uint32_t width = 70u; width != 0u; --width) {
+            rows.push_back({width, width * triangleDepth});
+            if (width == 15u) {
+                rows.push_back({width, width * triangleDepth});
+            }
         }
     } else {
-        const auto completePyramidBodies = [](uint32_t side) {
-            return uint64_t{side} * (side + 1u)
-                 * (2u * side + 1u) / 6u;
+        const auto completeTriangleBodies = [](uint32_t width) {
+            return uint64_t{triangleDepth} * width * (width + 1u) / 2u;
         };
-        uint32_t baseSide = 1u;
-        while (completePyramidBodies(baseSide) < bodyCount) ++baseSide;
+        uint32_t baseWidth = 1u;
+        while (completeTriangleBodies(baseWidth) < bodyCount) ++baseWidth;
         uint32_t remaining = bodyCount;
-        for (uint32_t side = baseSide; remaining != 0u; --side) {
-            const uint32_t capacity = side * side;
-            const uint32_t layerBodies = std::min(remaining, capacity);
-            layers.push_back({side, layerBodies});
-            remaining -= layerBodies;
+        for (uint32_t width = baseWidth; remaining != 0u; --width) {
+            const uint32_t capacity = width * triangleDepth;
+            const uint32_t rowBodies = std::min(remaining, capacity);
+            rows.push_back({width, rowBodies});
+            remaining -= rowBodies;
         }
     }
-    if (layers.empty()) return false;
-    const uint32_t baseSide = layers.front().side;
+    if (rows.empty()) return false;
+    const uint32_t baseWidth = rows.front().width;
 
-    const float halfGrid =
-        0.5f * static_cast<float>(baseSide - 1u) * horizontalPitch;
-    const float footprintHalfExtent = halfGrid + cubeSize * 0.5f;
+    const float halfWidth =
+        0.5f * static_cast<float>(baseWidth - 1u) * horizontalPitch
+        + cubeSize * 0.5f;
+    const float halfDepth =
+        0.5f * static_cast<float>(triangleDepth - 1u) * depthPitch
+        + cubeSize * 0.5f;
 
-    // Find a horizontal plane above the complete footprint. The bottom layer
-    // is static: it acts as a cube-built foundation without changing terrain
-    // assets or adding a hidden non-cube collision shape.
+    // Find a horizontal plane above the complete footprint. The experiment
+    // already flattened this runtime heightmap for render and collision. The
+    // static bottom row remains a cube-built foundation, with no hidden shape.
     float maximumTerrainHeight = -std::numeric_limits<float>::infinity();
-    const uint32_t sampleIntervals = std::max(baseSide * 2u, 1u);
-    for (uint32_t z = 0u; z <= sampleIntervals; ++z) {
-        const float zOffset = -footprintHalfExtent
-            + 2.0f * footprintHalfExtent
+    const uint32_t xSampleIntervals = std::max(baseWidth * 2u, 1u);
+    const uint32_t zSampleIntervals = triangleDepth * 2u;
+    for (uint32_t z = 0u; z <= zSampleIntervals; ++z) {
+        const float zOffset = -halfDepth + 2.0f * halfDepth
                 * static_cast<float>(z)
-                / static_cast<float>(sampleIntervals);
-        for (uint32_t x = 0u; x <= sampleIntervals; ++x) {
-            const float xOffset = -footprintHalfExtent
-                + 2.0f * footprintHalfExtent
+                / static_cast<float>(zSampleIntervals);
+        for (uint32_t x = 0u; x <= xSampleIntervals; ++x) {
+            const float xOffset = -halfWidth + 2.0f * halfWidth
                     * static_cast<float>(x)
-                    / static_cast<float>(sampleIntervals);
+                    / static_cast<float>(xSampleIntervals);
             const float height = characterController_->sampleTerrainHeight(
                 kBrowserJourneyTargetX + xOffset,
                 kBrowserJourneyTargetZ + zOffset);
@@ -1965,7 +2052,7 @@ bool Application::spawnCubePyramidExperiment() {
 
     const float baseCenterY =
         maximumTerrainHeight + terrainClearance + cubeSize * 0.5f;
-    const physics::PhysicsMaterial pyramidMaterial{
+    const physics::PhysicsMaterial triangleMaterial{
         .friction = 0.85f,
         .restitution = 0.0f,
         .rollingResistance = 0.02f,
@@ -1974,28 +2061,31 @@ bool Application::spawnCubePyramidExperiment() {
     };
 
     uint32_t spawned = 0u;
-    for (size_t layer = 0u; layer < layers.size(); ++layer) {
-        const uint32_t side = layers[layer].side;
-        const uint32_t capacity = side * side;
-        const uint32_t layerBodies = layers[layer].bodies;
+    std::vector<physics::PhysicsCommand> initialSleepCommands;
+    initialSleepCommands.reserve(
+        bodyCount - std::min(bodyCount, rows.front().bodies));
+    for (size_t row = 0u; row < rows.size(); ++row) {
+        const uint32_t width = rows[row].width;
+        const uint32_t capacity = width * triangleDepth;
+        const uint32_t rowBodies = rows[row].bodies;
         std::vector<uint32_t> slots(capacity);
         for (uint32_t slot = 0u; slot < capacity; ++slot) {
             slots[slot] = slot;
         }
 
-        // A partial final layer is filled from the center out. This preserves
-        // symmetry and support instead of leaving a heavy cap on one corner.
-        if (layerBodies != capacity) {
+        // Exploratory non-20k counts can end in a partial row. Fill it from
+        // the center out so the visible triangle stays balanced.
+        if (rowBodies != capacity) {
             std::stable_sort(
                 slots.begin(), slots.end(),
-                [side](uint32_t lhs, uint32_t rhs) {
-                    const auto radiusSquared = [side](uint32_t slot) {
+                [width](uint32_t lhs, uint32_t rhs) {
+                    const auto radiusSquared = [width](uint32_t slot) {
                         const int32_t x = static_cast<int32_t>(
-                            2u * (slot % side))
-                            - static_cast<int32_t>(side - 1u);
+                            2u * (slot % width))
+                            - static_cast<int32_t>(width - 1u);
                         const int32_t z = static_cast<int32_t>(
-                            2u * (slot / side))
-                            - static_cast<int32_t>(side - 1u);
+                            2u * (slot / width))
+                            - static_cast<int32_t>(triangleDepth - 1u);
                         return x * x + z * z;
                     };
                     const int32_t lhsRadius = radiusSquared(lhs);
@@ -2005,48 +2095,58 @@ bool Application::spawnCubePyramidExperiment() {
                 });
         }
 
-        const float layerHalf =
-            0.5f * static_cast<float>(side - 1u) * horizontalPitch;
-        for (uint32_t index = 0u; index < layerBodies; ++index) {
+        const float rowHalf =
+            0.5f * static_cast<float>(width - 1u) * horizontalPitch;
+        const float depthHalf =
+            0.5f * static_cast<float>(triangleDepth - 1u) * depthPitch;
+        for (uint32_t index = 0u; index < rowBodies; ++index) {
             const uint32_t slot = slots[index];
-            const uint32_t column = slot % side;
-            const uint32_t row = slot / side;
+            const uint32_t column = slot % width;
+            const uint32_t depth = slot / width;
 
             physics::BodySpawnDesc body;
             body.shape = physics::ThrowableShape::Cube;
             body.position = {
                 kBrowserJourneyTargetX
                     + static_cast<float>(column) * horizontalPitch
-                    - layerHalf,
-                baseCenterY + static_cast<float>(layer) * verticalPitch,
+                    - rowHalf,
+                baseCenterY + static_cast<float>(row) * verticalPitch,
                 kBrowserJourneyTargetZ
-                    + static_cast<float>(row) * horizontalPitch
-                    - layerHalf,
+                    + static_cast<float>(depth) * depthPitch
+                    - depthHalf,
             };
             body.dimensions = glm::vec3(cubeSize);
-            body.inverseMass = layer == 0u ? 0.0f : 1.0f;
-            body.material = pyramidMaterial;
-            if (!physicsWorld_->spawnBody(body).valid()) {
+            body.inverseMass = row == 0u ? 0.0f : 1.0f;
+            body.material = triangleMaterial;
+            const physics::BodyHandle handle = physicsWorld_->spawnBody(body);
+            if (!handle.valid()) {
                 LOG_ERROR(
-                    "Cube pyramid stopped at body {} of {}",
+                    "Cube triangle stopped at body {} of {}",
                     spawned, bodyCount);
                 return false;
+            }
+            if (row != 0u) {
+                physics::PhysicsCommand sleep;
+                sleep.type = physics::PhysicsCommandType::Sleep;
+                sleep.body = handle;
+                initialSleepCommands.push_back(sleep);
             }
             ++spawned;
         }
 
     }
+    physicsWorld_->enqueue(initialSleepCommands);
 
-    const float pyramidHeight =
-        cubeSize + static_cast<float>(layers.size() - 1u) * verticalPitch;
-    const float viewDistance = std::max(45.0f, footprintHalfExtent * 2.4f);
+    const float triangleHeight =
+        cubeSize + static_cast<float>(rows.size() - 1u) * verticalPitch;
+    const float viewDistance = std::max(60.0f, halfWidth * 3.1f);
     const glm::dvec3 target{
         kBrowserJourneyTargetX,
-        baseCenterY + pyramidHeight * 0.42f,
+        baseCenterY + triangleHeight * 0.46f,
         kBrowserJourneyTargetZ};
     const glm::dvec3 position{
-        kBrowserJourneyTargetX - viewDistance,
-        baseCenterY + pyramidHeight * 1.35f,
+        kBrowserJourneyTargetX - halfWidth * 0.12f,
+        baseCenterY + triangleHeight * 0.52f,
         kBrowserJourneyTargetZ - viewDistance};
     setCameraWorldPose(*camera_, position, target);
     controllerMode_ = ControllerMode::FreeFly;
@@ -2055,18 +2155,18 @@ bool Application::spawnCubePyramidExperiment() {
         static_cast<uint32_t>(physics::ThrowableShape::Cube);
 
     LOG_INFO(
-        "Cube pyramid experiment: {} cubes, {} base side, {} layers, {} static foundation cubes",
-        spawned, baseSide, layers.size(), baseSide * baseSide);
+        "Cube triangle experiment: {} cubes, {} base width, {} rows, {} deep, {} static foundation cubes",
+        spawned, baseWidth, rows.size(), triangleDepth, rows.front().bodies);
     return spawned == bodyCount;
 }
 
 bool Application::startCubePyramidExperiment() {
     if (!initialized_) {
-        LOG_ERROR("Cannot create the cube pyramid before application initialization");
+        LOG_ERROR("Cannot create the cube triangle before application initialization");
         return false;
     }
     if (config_.cubePyramidBodyCount == 0u) {
-        LOG_ERROR("No cube pyramid was configured at application initialization");
+        LOG_ERROR("No cube triangle was configured at application initialization");
         return false;
     }
     if (cubePyramidSpawnAttempted_) return cubePyramidSpawned_;
@@ -2577,12 +2677,21 @@ bool Application::initCamera() {
         physicsContext.maxManifolds = config_.gpuPhysicsMaxPairs;
         physicsContext.maxCandidatePairs =
             config_.gpuPhysicsMaxCandidatePairs;
+        if (config_.cubePyramidBodyCount != 0u) {
+            // A 30 Hz broad/narrow phase with four 120 Hz solver substeps is
+            // affordable for 20k cubes. Permit one catch-up tick so the
+            // simulation clock remains real-time when rendering dips below
+            // 30 FPS, without restoring the old unbounded queue spiral.
+            physicsContext.gpu.fixedTickSeconds = 1.0f / 30.0f;
+            physicsContext.gpu.maximumCatchUpTicks = 2u;
+        } else {
+            physicsContext.gpu.maximumCatchUpTicks =
+                config_.gpuPhysicsMaximumCatchUpTicks;
+        }
         physicsContext.gpu.broadPhaseCellSize =
             config_.gpuPhysicsBroadPhaseCellSize;
         physicsContext.gpu.solverWorkgroupSize =
             config_.gpuPhysicsSolverWorkgroupSize;
-        physicsContext.gpu.maximumCatchUpTicks =
-            config_.gpuPhysicsMaximumCatchUpTicks;
     }
     physicsContext.gpu.shaderPath =
         (config_.shaderDir / "physics_ballistic.wgsl").string();
@@ -2706,6 +2815,12 @@ bool Application::initTerrain() {
         *heightmap_ = terrain::Heightmap::createFromData(std::move(data), w, h);
         LOG_INFO("Created procedural heightmap: {}x{}", 
                  config_.heightmapWidth, config_.heightmapHeight);
+    }
+
+    if (config_.cubePyramidBodyCount != 0u
+        && !flattenCubeTriangleArena(*heightmap_, config_.cellScale)) {
+        LOG_ERROR("Failed to flatten the cube-triangle terrain arena");
+        return false;
     }
 
     // Upload to GPU with mip chain

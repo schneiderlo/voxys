@@ -280,6 +280,12 @@ public:
     [[nodiscard]] std::span<const uint16_t> getData() const noexcept {
         return data_;
     }
+
+    /// Get writable raw samples and invalidate cached CPU statistics.
+    [[nodiscard]] std::span<uint16_t> getMutableData() noexcept {
+        cachedMinMax_.reset();
+        return data_;
+    }
     
     /// Get raw data as bytes
     [[nodiscard]] std::span<const std::byte> getDataBytes() const noexcept {

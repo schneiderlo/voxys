@@ -61,38 +61,43 @@ The sweep gives every volley a new impact zone. It answers how cost scales when
 the same bodies are spread across the terrain, but it is not a substitute for
 the default dense-pile result.
 
-## 20,000-cube pyramid experiment
+## 20,000-cube triangle experiment
 
 Open the deployed interactive experiment directly:
 
 ```text
-https://schneiderlo.github.io/voxys/?experiment=pyramid
+https://schneiderlo.github.io/voxys/?experiment=triangle
 ```
 
-It creates exactly 20,000 cubes in 18 centered square layers, from a 58×58
-base to a 2×2 crown. The bottom 3,364 cubes are static and placed on one level
-above the highest terrain point under the footprint. The remaining 16,636
-cubes use the production dynamic body, collision, solver, culling, and
-primitive-render paths. This explicit foundation cheat isolates stack behavior
-from terrain slope without hiding or adding a non-cube body.
+It creates exactly 20,000 cubes as a triangular wall: 71 rows, a 70-cube
+base, and 8 cubes of depth. For this experiment only, a 280×200 m arena is
+flattened in the runtime heightmap with a 40 m smooth edge. Rendering and
+terrain collision consume the same modified samples. The bottom 560 cubes are
+static; the remaining 19,440 are staged asleep and wake locally when struck.
+They still use the production dynamic-body, collision, solver, culling, and
+primitive-render paths. This terrain and foundation cheat isolates wall
+behavior from the original slope without hiding a collision shape.
 
 The browser automatically uses the measured 131,072 pair/manifold capacity for
-this scene. `pyramidBodies=N` overrides the count for exploratory runs.
+this scene. It runs physics at 30 Hz with four 120 Hz solver substeps and one
+bounded catch-up tick, keeping motion tied to wall time without rebuilding the
+old GPU queue spiral. `triangleBodies=N` overrides the count for exploratory
+runs. The old `experiment=pyramid` URL remains an alias.
 
 Run the same scene through the browser benchmark:
 
 ```bash
 node scripts/benchmark_browser.mjs \
-  --layout pyramid --bodies 20000 --runs 1 \
+  --layout triangle --bodies 20000 --runs 1 \
   --modes score,headroom,diagnose --headed
 ```
 
-`--layout pyramid` selects cubes automatically. At a 2269×844 CSS viewport and
+`--layout triangle` selects cubes automatically. At a 2269×844 CSS viewport and
 the desktop 1.5 render scale used for visual testing:
 
 ```bash
 node scripts/benchmark_browser.mjs \
-  --layout pyramid --bodies 20000 --runs 1 --modes diagnose \
+  --layout triangle --bodies 20000 --runs 1 --modes diagnose \
   --resolution 2269x844 --dpr 1.5 --headed
 ```
 
@@ -101,7 +106,7 @@ The runner fails a workload if any of these are wrong:
 - hardware WebGPU, fast-float GPU physics, raycast rendering, or 8192² terrain;
 - physical canvas size, page visibility, build identity, or fallback-adapter
   selection;
-- requested pile/sweep/pyramid layout and physics tuning values actually
+- requested pile/sweep/triangle layout and physics tuning values actually
   applied by the loaded build;
 - exact resident-body and renderer-input counts;
 - observed real-terrain contacts for throwing layouts;

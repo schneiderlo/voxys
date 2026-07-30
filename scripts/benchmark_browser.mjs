@@ -94,7 +94,7 @@ Workload:
   --settle-ticks N              Default: 180
   --bodies-per-volley N         1..128, default: real 128-body volley
   --ticks-per-volley N          Physics ticks between volleys (default: 4)
-  --layout pile|sweep|pyramid   Throwing pile (default), sweep, or prebuilt pyramid
+  --layout pile|sweep|triangle  Throwing pile (default), sweep, or triangular wall
   --shape mixed|sphere|cube|box|capsule|cylinder
                                 Throwable mix (default: mixed)
   --broad-cell-size N           Broad-phase grid size (default: 4)
@@ -296,8 +296,9 @@ if (options.bodiesPerVolley > 128) {
 if (options.ticksPerVolley > 3_600) {
     throw new Error("--ticks-per-volley cannot exceed 3600");
 }
-if (!["pile", "sweep", "pyramid"].includes(options.layout)) {
-    throw new Error("--layout must be pile, sweep, or pyramid");
+if (options.layout === "pyramid") options.layout = "triangle";
+if (!["pile", "sweep", "triangle"].includes(options.layout)) {
+    throw new Error("--layout must be pile, sweep, or triangle");
 }
 const shapeCodes = new Map([
     ["sphere", 0],
@@ -310,16 +311,16 @@ const shapeCodes = new Map([
 const layoutCodes = new Map([
     ["pile", 0],
     ["sweep", 1],
-    ["pyramid", 2],
+    ["triangle", 2],
 ]);
-if (options.layout === "pyramid") {
+if (options.layout === "triangle") {
     if (shapeExplicit && options.shape !== "cube") {
-        throw new Error("--layout pyramid only supports --shape cube");
+        throw new Error("--layout triangle only supports --shape cube");
     }
     options.shape = "cube";
-    const largestPyramid = Math.max(...options.bodies);
-    const pairsPerBody = largestPyramid === 20_000 ? 4 : 6;
-    const desiredPairs = largestPyramid * pairsPerBody;
+    const largestTriangle = Math.max(...options.bodies);
+    const pairsPerBody = largestTriangle === 20_000 ? 4 : 6;
+    const desiredPairs = largestTriangle * pairsPerBody;
     const automaticPairCapacity = 2 ** Math.ceil(Math.log2(desiredPairs));
     if (!pairCapacityExplicit) {
         options.pairCapacity = Math.max(
@@ -939,6 +940,10 @@ const readReadyStateExpression = `(() => {
         backend: telemetry?.physics?.backend ?? null,
         arithmetic: telemetry?.physics?.arithmetic ?? null,
         physicsConfiguration: {
+            fixedTickSeconds:
+                telemetry?.physics?.fixed_tick_seconds ?? null,
+            maximumCatchUpTicks:
+                telemetry?.physics?.maximum_catch_up_ticks ?? null,
             broadPhaseCellSize:
                 telemetry?.physics?.broad_phase_cell_size ?? null,
             pairCapacity: telemetry?.physics?.pairs?.capacity ?? null,
@@ -1079,11 +1084,13 @@ const runWorkload = async (
         "physicsSolverWorkgroup", String(options.solverWorkgroupSize));
     url.searchParams.delete("benchmarkBodies");
     url.searchParams.delete("renderThroughput");
-    if (options.layout === "pyramid") {
-        url.searchParams.set("experiment", "pyramid");
-        url.searchParams.set("pyramidBodies", String(bodyCount));
+    if (options.layout === "triangle") {
+        url.searchParams.set("experiment", "triangle");
+        url.searchParams.set("triangleBodies", String(bodyCount));
+        url.searchParams.delete("pyramidBodies");
     } else {
         url.searchParams.delete("experiment");
+        url.searchParams.delete("triangleBodies");
         url.searchParams.delete("pyramidBodies");
     }
     if (profileEnabled) {
@@ -1102,7 +1109,7 @@ const runWorkload = async (
         await cdp.command("Page.navigate", { url: url.href });
         const ready = await waitForReady(
             cdp, deadline,
-            options.layout === "pyramid" ? bodyCount : 0);
+            options.layout === "triangle" ? bodyCount : 0);
         if (ready.backend !== options.expectedBackend
             || ready.arithmetic !== "fast_float"
             || ready.render?.path !== "raycast"
@@ -1112,13 +1119,25 @@ const runWorkload = async (
             throw new Error(`unexpected production workload: ${JSON.stringify(ready)}`);
         }
         const appliedPhysics = ready.physicsConfiguration;
+        const expectedFixedTickSeconds =
+            options.layout === "triangle" ? 1 / 30 : 1 / 60;
+        const expectedMaximumCatchUpTicks =
+            options.layout === "triangle" ? 2 : 1;
+        const fixedTickMatches = Number.isFinite(
+            appliedPhysics?.fixedTickSeconds)
+            && Math.abs(
+                appliedPhysics.fixedTickSeconds
+                    - expectedFixedTickSeconds) <= 1e-6;
         const cellSizeMatches = Number.isFinite(
             appliedPhysics?.broadPhaseCellSize)
             && Math.abs(
                 appliedPhysics.broadPhaseCellSize
                     - options.broadPhaseCellSize)
                 <= Math.max(1e-6, options.broadPhaseCellSize * 1e-6);
-        if (!cellSizeMatches
+        if (!fixedTickMatches
+            || appliedPhysics?.maximumCatchUpTicks
+                !== expectedMaximumCatchUpTicks
+            || !cellSizeMatches
             || appliedPhysics?.pairCapacity !== options.pairCapacity
             || appliedPhysics?.contactCapacity !== options.pairCapacity
             || appliedPhysics?.manifoldCapacity !== options.pairCapacity
@@ -1173,7 +1192,7 @@ const runWorkload = async (
         })`);
         const started = await cdp.evaluate(
             `voxyModule._voxy_start_browser_journey_benchmark(`
-            + `${options.layout === "pyramid" ? 0 : bodyCount},`
+            + `${options.layout === "triangle" ? 0 : bodyCount},`
             + `${options.warmupTicks},${options.impactTicks},`
             + `${options.settleTicks},${options.bodiesPerVolley},`
             + `${options.ticksPerVolley},`
@@ -1263,18 +1282,39 @@ const runWorkload = async (
         }
 
         const physics = telemetry.physics;
+        const finalFixedTickMatches =
+            Number.isFinite(physics.fixed_tick_seconds)
+            && Math.abs(
+                physics.fixed_tick_seconds
+                    - expectedFixedTickSeconds) <= 1e-6;
         const finalCellSizeMatches = Number.isFinite(
             physics.broad_phase_cell_size)
             && Math.abs(
                 physics.broad_phase_cell_size
                     - options.broadPhaseCellSize)
                 <= Math.max(1e-6, options.broadPhaseCellSize * 1e-6);
+        const firstJourneySample = journey.samples?.[0] ?? null;
+        const lastJourneySample =
+            journey.samples?.[journey.samples.length - 1] ?? null;
+        const sampledPhysicsTicks =
+            firstJourneySample && lastJourneySample
+                ? Math.max(lastJourneySample[1] - firstJourneySample[1], 0)
+                : 0;
+        const sampledSimulationSeconds =
+            sampledPhysicsTicks * physics.fixed_tick_seconds;
+        const sampledWallSeconds = journey.frame.total_ms / 1000;
+        const realtimeFactor = sampledWallSeconds > 0
+            ? sampledSimulationSeconds / sampledWallSeconds
+            : 0;
         const invariants = {
             journeyPassed: journey.passed,
             layoutPassed: journey.config?.layout === options.layout,
             shapePassed: journey.config?.shape === options.shape,
             physicsConfigurationPassed:
-                finalCellSizeMatches
+                finalFixedTickMatches
+                && physics.maximum_catch_up_ticks
+                    === expectedMaximumCatchUpTicks
+                && finalCellSizeMatches
                 && physics.pairs.capacity === options.pairCapacity
                 && physics.contacts.capacity === options.pairCapacity
                 && physics.manifolds.capacity === options.pairCapacity
@@ -1286,13 +1326,16 @@ const runWorkload = async (
                 physics.bodies.current
                 === journey.counts.expected_final_bodies,
             startupBodyCountPassed:
-                options.layout !== "pyramid"
+                options.layout !== "triangle"
                 || journey.counts.baseline_bodies === bodyCount,
+            simulationRealtimePassed:
+                options.layout !== "triangle"
+                || (realtimeFactor >= 0.9 && realtimeFactor <= 1.1),
             renderBodyRangePassed:
                 journey.peaks.submitted_primitives
                 >= journey.counts.expected_final_bodies,
             terrainContactObserved:
-                options.layout === "pyramid"
+                options.layout === "triangle"
                 || journey.peaks.terrain_contact_bodies > 0,
             observedCapacityOverflowMask:
                 journey.peaks.capacity_overflow_mask,
@@ -1326,6 +1369,7 @@ const runWorkload = async (
             && invariants.physicsConfigurationPassed
             && invariants.bodyCountPassed
             && invariants.startupBodyCountPassed
+            && invariants.simulationRealtimePassed
             && invariants.renderBodyRangePassed
             && invariants.terrainContactObserved
             && invariants.observedCapacityOverflowMask === 0
@@ -1394,10 +1438,23 @@ const runWorkload = async (
                 skipsEnd: end.pacingSkips,
                 skips: end.pacingSkips - start.pacingSkips,
             },
+            simulation: {
+                fixedTickSeconds: physics.fixed_tick_seconds,
+                fixedTickHz: 1 / physics.fixed_tick_seconds,
+                maximumCatchUpTicks:
+                    physics.maximum_catch_up_ticks,
+                sampledPhysicsTicks,
+                sampledSimulationSeconds,
+                sampledWallSeconds,
+                realtimeFactor,
+            },
             physics: {
                 backend: physics.backend,
                 arithmetic: physics.arithmetic,
                 configuration: {
+                    fixedTickSeconds: physics.fixed_tick_seconds,
+                    maximumCatchUpTicks:
+                        physics.maximum_catch_up_ticks,
                     broadPhaseCellSize: physics.broad_phase_cell_size,
                     pairCapacity: physics.pairs.capacity,
                     contactCapacity: physics.contacts.capacity,
@@ -1488,6 +1545,8 @@ const summarizeRuns = (runs) => {
             measuredRuns: measuredRuns.length,
             passed: passedRuns.length === group.length,
             medianFps: median(values((run) => run.journey.frame.fps)),
+            medianRealtimeFactor: median(values(
+                (run) => run.simulation.realtimeFactor)),
             medianLowOnePercentFps: median(values(
                 (run) => run.journey.frame.low_1_percent_fps)),
             medianP95Ms: median(values(
@@ -1675,6 +1734,12 @@ const describeFailure = (run) => {
     if (!run.invariants.startupBodyCountPassed) {
         reasons.push("startup-body-count");
     }
+    if (!run.invariants.simulationRealtimePassed) {
+        reasons.push(
+            `simulation-speed=${formatNumber(
+                run.simulation.realtimeFactor)}x`,
+        );
+    }
     if (!run.invariants.renderBodyRangePassed) reasons.push("render-range");
     if (!run.invariants.terrainContactObserved) reasons.push("no-terrain-contact");
     const overflowMask = run.invariants.observedCapacityOverflowMask;
@@ -1723,7 +1788,7 @@ const describeFailure = (run) => {
 const printSummary = (summary) => {
     console.log("");
     console.log(
-        "mode       bodies  pass  fps       1% low    p95 ms   p99 ms   "
+        "mode       bodies  pass  fps       sim x   1% low    p95 ms   p99 ms   "
         + "miss60  cpu95   terrain  physicsGPU  renderGPU",
     );
     for (const row of summary) {
@@ -1732,6 +1797,7 @@ const printSummary = (summary) => {
             + `${String(row.bodies).padStart(6)}  `
             + `${`${row.passedRuns}/${row.runs}`.padStart(4)}  `
             + `${formatNumber(row.medianFps).padStart(8)}  `
+            + `${formatNumber(row.medianRealtimeFactor).padStart(6)}  `
             + `${formatNumber(row.medianLowOnePercentFps).padStart(8)}  `
             + `${formatNumber(row.medianP95Ms).padStart(7)}  `
             + `${formatNumber(row.medianP99Ms).padStart(7)}  `

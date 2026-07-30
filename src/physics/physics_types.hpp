@@ -232,6 +232,8 @@ struct PhysicsStats {
     BackendType backend = BackendType::JoltLegacy;
     PhysicsArithmeticMode arithmeticMode = PhysicsArithmeticMode::FastFloat;
     uint32_t substeps = 0;
+    float fixedTickSeconds = 0.0f;
+    uint32_t maximumCatchUpTicks = 0;
     float broadPhaseCellSize = 0.0f;
     uint32_t solverWorkgroupSize = 0;
     uint32_t residentBodies = 0;

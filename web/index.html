@@ -1090,16 +1090,18 @@
                 // Build the large experiment only when the cover is ready to
                 // lift. This avoids spending its first simulated seconds hidden
                 // behind the loading animation.
-                const pyramidExperiment =
-                    ['pyramid', 'cube-pyramid'].includes(
+                const triangleExperiment =
+                    ['triangle', 'cube-triangle',
+                     'pyramid', 'cube-pyramid'].includes(
                         (profileParameters.get('experiment') ?? '')
                             .toLowerCase())
                     || (() => {
                         const value = Number(
-                            profileParameters.get('pyramidBodies'));
+                            profileParameters.get('triangleBodies')
+                            ?? profileParameters.get('pyramidBodies'));
                         return Number.isSafeInteger(value) && value > 0;
                     })();
-                if (pyramidExperiment) {
+                if (triangleExperiment) {
                     const initializationDeadline = Date.now() + 30000;
                     while (voxyModule._voxy_is_initialized?.() !== 1
                            && Date.now() < initializationDeadline) {
@@ -1108,13 +1110,13 @@
                     }
                     if (voxyModule._voxy_is_initialized?.() !== 1) {
                         throw new Error(
-                            'The engine did not become ready for the cube pyramid');
+                            'The engine did not become ready for the cube triangle');
                     }
                     if (!voxyModule._voxy_start_cube_pyramid_experiment
                         || voxyModule._voxy_start_cube_pyramid_experiment()
                             !== 1) {
                         throw new Error(
-                            'Could not create the cube pyramid experiment');
+                            'Could not create the cube triangle experiment');
                     }
                 }
 

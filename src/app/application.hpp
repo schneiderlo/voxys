@@ -260,9 +260,9 @@ struct ApplicationConfig {
     bool benchmarkOnStartup = false;
     bool exitAfterBenchmark = false;
     uint32_t benchmarkBodyCount = 0;
-    // Interactive browser stress scene selected by ?experiment=pyramid.
-    // The bottom cube layer is static so the real terrain cannot tilt the
-    // deterministic stack before it is measured.
+    // Interactive browser stress scene selected by ?experiment=triangle.
+    // Its runtime terrain is flattened for both render and collision. The
+    // bottom cube row is static so the staged wall cannot drift before impact.
     uint32_t cubePyramidBodyCount = 0;
     double benchmarkMinimumFps = 0.0;
     float benchmarkFixedDeltaSeconds = 0.0f;
@@ -487,7 +487,7 @@ public:
     /// Complete summary plus compact raw frame samples.
     [[nodiscard]] std::string browserJourneyBenchmarkJson() const;
 
-    /// Spawn the configured browser cube-pyramid scene once. The web shell
+    /// Spawn the configured browser cube-triangle scene once. The web shell
     /// calls this when its loading cover is ready to reveal the experiment.
     [[nodiscard]] bool startCubePyramidExperiment();
 

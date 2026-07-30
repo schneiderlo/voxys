@@ -2653,6 +2653,8 @@ public:
         result.backend = BackendType::WebGpuSoft;
         result.arithmeticMode = PhysicsArithmeticMode::FastFloat;
         result.substeps = config_.substeps;
+        result.fixedTickSeconds = config_.fixedTickSeconds;
+        result.maximumCatchUpTicks = config_.maximumCatchUpTicks;
         result.broadPhaseCellSize = config_.broadPhaseCellSize;
         result.solverWorkgroupSize = config_.solverWorkgroupSize;
         result.residentBodies = residentBodies_;

@@ -553,7 +553,7 @@ const char* browserJourneyLayoutName(BrowserJourneyLayout layout) noexcept {
     switch (layout) {
         case BrowserJourneyLayout::FixedPile: return "pile";
         case BrowserJourneyLayout::TerrainSweep: return "sweep";
-        case BrowserJourneyLayout::CubePyramid: return "pyramid";
+        case BrowserJourneyLayout::CubePyramid: return "triangle";
     }
     return "unknown";
 }

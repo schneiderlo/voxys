@@ -503,7 +503,7 @@ TEST(BrowserJourneyBenchmarkTest, ObservesPrebuiltCubePyramidWithoutSpawning) {
     EXPECT_EQ(journey.volleyCount(), 0u);
     EXPECT_EQ(journey.layout(), BrowserJourneyLayout::CubePyramid);
     const std::string json = journey.resultJson();
-    EXPECT_NE(json.find("\"layout\":\"pyramid\""), std::string::npos);
+    EXPECT_NE(json.find("\"layout\":\"triangle\""), std::string::npos);
     EXPECT_NE(json.find("\"baseline_bodies\":20000"),
               std::string::npos);
     EXPECT_NE(json.find("\"expected_final_bodies\":20000"),

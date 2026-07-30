@@ -70,6 +70,7 @@ namespace {
     uint32_t g_gpuFramesInFlight = 0;
     uint64_t g_gpuPacingSkips = 0;
     bool g_gpuPacingPaused = false;
+    bool g_preserveSimulationWallTime = false;
     bool g_renderThroughputMode = false;
     bool g_renderThroughputFullQuality = false;
 
@@ -348,6 +349,10 @@ namespace {
                    physics.arithmeticMode) << "\""
             << ",\"tick\":" << physics.telemetryTick
             << ",\"substeps\":" << physics.substeps
+            << ",\"fixed_tick_seconds\":";
+        appendJsonNumber(out, physics.fixedTickSeconds);
+        out << ",\"maximum_catch_up_ticks\":"
+            << physics.maximumCatchUpTicks
             << ",\"broad_phase_cell_size\":";
         appendJsonNumber(out, physics.broadPhaseCellSize);
         out << ",\"solver_workgroup_size\":"
@@ -1006,23 +1011,26 @@ int main(int argc, char* argv[]) {
             const experiment =
                 (parameters.get("experiment") ?? "").toLowerCase();
             const fallback =
-                experiment === "pyramid"
+                experiment === "triangle"
+                || experiment === "cube-triangle"
+                || experiment === "pyramid"
                 || experiment === "cube-pyramid" ? $0 : 0;
             const value = Number(
-                parameters.get("pyramidBodies") ?? fallback);
+                parameters.get("triangleBodies")
+                ?? parameters.get("pyramidBodies")
+                ?? fallback);
             return Number.isSafeInteger(value) && value > 0 && value <= $1
                 ? value : 0;
         }, voxy::kDefaultCubePyramidBodyCount,
            voxy::kMaximumBenchmarkBodyCount));
     if (appConfig.cubePyramidBodyCount != 0u) {
-        LOG_INFO("Browser requested a {}-cube pyramid",
+        LOG_INFO("Browser requested a {}-cube triangle",
                  appConfig.cubePyramidBodyCount);
+        g_preserveSimulationWallTime = true;
     }
     if (appConfig.cubePyramidBodyCount != 0u) {
-        // The 20k pyramid is mostly one-support vertical stacks. Four pairs
-        // per body covers its measured settling drift and rounds to a 131k
-        // pair/manifold allocation. Other sizes reserve six pairs per body
-        // because their generic layout can have more lateral support.
+        // The connected 20k triangular wall stays below four pairs per body
+        // in measured runs. Other exploratory sizes keep a wider reserve.
         const uint64_t pairsPerBody =
             appConfig.cubePyramidBodyCount
                 == voxy::kDefaultCubePyramidBodyCount ? 4u : 6u;
@@ -1185,8 +1193,12 @@ int main(int argc, char* argv[]) {
         // responds by encoding six catch-up ticks, creating a feedback loop.
         if (g_gpuFramesInFlight >= kMaximumGpuFramesInFlight) {
             // Do not turn time spent waiting for the GPU into another burst of
-            // GPU work. The next submitted frame resumes from this RAF edge.
-            lastSimulationTime = emscripten_get_now() / 1000.0;
+            // GPU work. Normal play drops this wall-time debt. The staged
+            // triangle uses a cheaper 30 Hz clock and a strict two-tick cap,
+            // so preserve its small debt to keep gravity at real speed.
+            if (!g_preserveSimulationWallTime) {
+                lastSimulationTime = emscripten_get_now() / 1000.0;
+            }
             ++g_gpuPacingSkips;
             if (g_app->isUncappedFPS()) {
                 // Do not busy-spin an immediate callback while all four queue
