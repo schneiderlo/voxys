@@ -300,6 +300,10 @@ public:
                 && context.maxCandidatePairs < context.maxPairs)
             || gpuConfig.substeps == 0
             || gpuConfig.substeps > kMaximumSubsteps
+            || gpuConfig.solverColorCount == 0
+            || gpuConfig.solverColorCount > kGpuSolverMaximumColors
+            || gpuConfig.solverParallelColorCount
+                > gpuConfig.solverColorCount
             || (gpuConfig.solverWorkgroupSize != 64u
                 && gpuConfig.solverWorkgroupSize != 128u
                 && gpuConfig.solverWorkgroupSize != 256u)
@@ -576,6 +580,9 @@ public:
         solverConfig.bodyCapacity = bodyCapacity_;
         solverConfig.contactCapacity = contactCapacity_;
         solverConfig.workgroupSize = config_.solverWorkgroupSize;
+        solverConfig.colorCount = config_.solverColorCount;
+        solverConfig.parallelColorCount =
+            config_.solverParallelColorCount;
         solverConfig.substeps = config_.substeps;
         solverConfig.tickSeconds = config_.fixedTickSeconds;
         // The ballistic preparation pass applies forces, gravity, damping,
@@ -2731,6 +2738,9 @@ public:
         result.maximumCatchUpTicks = config_.maximumCatchUpTicks;
         result.broadPhaseCellSize = config_.broadPhaseCellSize;
         result.solverWorkgroupSize = config_.solverWorkgroupSize;
+        result.solverColorCount = config_.solverColorCount;
+        result.solverParallelColorCount =
+            config_.solverParallelColorCount;
         result.residentBodies = residentBodies_;
         result.activeBodies = residentBodies_;
         result.bodyCapacity = bodyLimit_;

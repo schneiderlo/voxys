@@ -86,6 +86,7 @@ public:
         uint32_t bodyCapacity = 16'384;
         uint32_t contactCapacity = 65'536;
         uint32_t colorCount = 32;
+        uint32_t parallelColorCount = 4;
         uint32_t workgroupSize = 128;
         uint32_t substeps = 4;
         uint32_t overflowIterations = 2;

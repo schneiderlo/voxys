@@ -162,6 +162,13 @@ if(VOXY_BUILD_WASM)
             voxy.cfg
             ${VOXY_WASM_SHADER_SOURCES}
         )
+        # WGSL is preloaded by the Emscripten link step rather than compiled as
+        # a CMake source language. Make the dependency explicit so an
+        # incremental shader edit rebuilds voxy_wasm.data instead of silently
+        # benchmarking stale shader code.
+        set_property(TARGET voxy_wasm APPEND PROPERTY
+            LINK_DEPENDS ${VOXY_WASM_SHADER_SOURCES}
+        )
         
         if(TARGET voxy_core)
             target_link_libraries(voxy_wasm PRIVATE voxy_core)

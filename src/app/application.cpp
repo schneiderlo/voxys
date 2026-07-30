@@ -2678,12 +2678,13 @@ bool Application::initCamera() {
         physicsContext.maxCandidatePairs =
             config_.gpuPhysicsMaxCandidatePairs;
         if (config_.cubePyramidBodyCount != 0u) {
-            // A 30 Hz broad/narrow phase with four 120 Hz solver substeps is
-            // affordable for 20k cubes. Permit one catch-up tick so the
-            // simulation clock remains real-time when rendering dips below
-            // 30 FPS, without restoring the old unbounded queue spiral.
+            // Run broad/narrow at 30 Hz and solve at 60 Hz. Two substeps avoid
+            // the extra overlap seen at one while CCD protects the projectile.
             physicsContext.gpu.fixedTickSeconds = 1.0f / 30.0f;
-            physicsContext.gpu.maximumCatchUpTicks = 2u;
+            physicsContext.gpu.substeps = 2u;
+            physicsContext.gpu.solverColorCount = 8u;
+            physicsContext.gpu.solverParallelColorCount = 0u;
+            physicsContext.gpu.maximumCatchUpTicks = 3u;
         } else {
             physicsContext.gpu.maximumCatchUpTicks =
                 config_.gpuPhysicsMaximumCatchUpTicks;
@@ -2697,17 +2698,23 @@ bool Application::initCamera() {
         (config_.shaderDir / "physics_ballistic.wgsl").string();
     physicsContext.gpu.enableStageProfiling =
         config_.gpuPhysicsStageProfiling;
-    // Benchmarks sample every tick. Interactive play samples asynchronously at
+    // Profiling samples every tick. Interactive play samples asynchronously at
     // a low rate so body, solver, and awake/sleeping counts remain useful
-    // without paying readback overhead on every frame.
+    // without paying a browser buffer map on every physics tick. In
+    // particular, the large triangle must not turn normal play into a
+    // per-tick readback workload.
     constexpr uint32_t kInteractiveTelemetryIntervalTicks = 30u;
-    const uint32_t diagnosticsInterval =
-        (config_.benchmarkBodyCount != 0u
-         || config_.cubePyramidBodyCount != 0u)
-        ? 1u : kInteractiveTelemetryIntervalTicks;
-    physicsContext.gpu.stageProfilingIntervalTicks = diagnosticsInterval;
+    const uint32_t profilingInterval =
+        config_.gpuPhysicsStageProfiling ? 1u
+                                         : kInteractiveTelemetryIntervalTicks;
+    const uint32_t telemetryInterval =
+        config_.gpuPhysicsStageProfiling
+            || config_.benchmarkBodyCount != 0u
+        ? 1u
+        : kInteractiveTelemetryIntervalTicks;
+    physicsContext.gpu.stageProfilingIntervalTicks = profilingInterval;
     physicsContext.gpu.enableTelemetryReadback = true;
-    physicsContext.gpu.telemetryReadbackIntervalTicks = diagnosticsInterval;
+    physicsContext.gpu.telemetryReadbackIntervalTicks = telemetryInterval;
     physicsContext.gpu.stageProfilingTimestampPeriodNanoseconds =
         config_.gpuPhysicsTimestampPeriodNanoseconds;
     physicsContext.enableValidation = config_.enableValidation;

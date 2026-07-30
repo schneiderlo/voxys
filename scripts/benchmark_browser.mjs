@@ -973,6 +973,10 @@ const readReadyStateExpression = `(() => {
                 telemetry?.physics?.candidate_pairs?.capacity ?? null,
             solverWorkgroupSize:
                 telemetry?.physics?.solver_workgroup_size ?? null,
+            solverColorCount:
+                telemetry?.physics?.solver_color_count ?? null,
+            solverParallelColorCount:
+                telemetry?.physics?.solver_parallel_color_count ?? null,
         },
         render: telemetry?.render ?? null,
         canvasWidth: canvas?.width ?? 0,
@@ -1140,8 +1144,12 @@ const runWorkload = async (
         const expectedFixedTickSeconds =
             options.layout === "triangle" ? 1 / 30 : 1 / 60;
         const expectedMaximumCatchUpTicks =
-            options.layout === "triangle" ? 2 : 1;
-        const expectedSubsteps = 4;
+            options.layout === "triangle" ? 3 : 1;
+        const expectedSubsteps = options.layout === "triangle" ? 2 : 4;
+        const expectedSolverColorCount =
+            options.layout === "triangle" ? 8 : 32;
+        const expectedSolverParallelColorCount =
+            options.layout === "triangle" ? 0 : 4;
         const fixedTickMatches = Number.isFinite(
             appliedPhysics?.fixedTickSeconds)
             && Math.abs(
@@ -1164,7 +1172,11 @@ const runWorkload = async (
             || appliedPhysics?.candidatePairCapacity
                 !== options.candidatePairCapacity
             || appliedPhysics?.solverWorkgroupSize
-                !== options.solverWorkgroupSize) {
+                !== options.solverWorkgroupSize
+            || appliedPhysics?.solverColorCount
+                !== expectedSolverColorCount
+            || appliedPhysics?.solverParallelColorCount
+                !== expectedSolverParallelColorCount) {
             throw new Error(
                 "browser did not apply the requested physics configuration: "
                 + JSON.stringify(appliedPhysics),
@@ -1343,7 +1355,11 @@ const runWorkload = async (
                 && physics.candidate_pairs.capacity
                     === options.candidatePairCapacity
                 && physics.solver_workgroup_size
-                    === options.solverWorkgroupSize,
+                    === options.solverWorkgroupSize
+                && physics.solver_color_count
+                    === expectedSolverColorCount
+                && physics.solver_parallel_color_count
+                    === expectedSolverParallelColorCount,
             bodyCountPassed:
                 physics.bodies.current
                 === journey.counts.expected_final_bodies,
@@ -1497,6 +1513,10 @@ const runWorkload = async (
                         physics.candidate_pairs.capacity,
                     solverWorkgroupSize:
                         physics.solver_workgroup_size,
+                    solverColorCount:
+                        physics.solver_color_count,
+                    solverParallelColorCount:
+                        physics.solver_parallel_color_count,
                 },
                 gridEntries: physics.grid_entries,
                 occupiedCells: physics.occupied_cells,

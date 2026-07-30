@@ -956,6 +956,17 @@ TEST_F(GpuPhysicsTest, RejectsConfigurationAndSpawnValuesThatPoisonGpuMath) {
     context.gpu.substeps = 17u;
     EXPECT_FALSE(invalidSubsteps.initialize(context));
 
+    PhysicsWorld invalidColorCount;
+    context = makeContext();
+    context.gpu.solverColorCount = 0u;
+    EXPECT_FALSE(invalidColorCount.initialize(context));
+
+    PhysicsWorld invalidParallelColorCount;
+    context = makeContext();
+    context.gpu.solverColorCount = 8u;
+    context.gpu.solverParallelColorCount = 9u;
+    EXPECT_FALSE(invalidParallelColorCount.initialize(context));
+
     PhysicsWorld invalidTimeStep;
     context = makeContext();
     context.gpu.fixedTickSeconds =

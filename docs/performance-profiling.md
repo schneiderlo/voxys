@@ -82,7 +82,7 @@ behavior from the original slope without hiding a collision shape.
 The browser automatically uses the measured 131,072 pair/manifold capacity for
 this scene. It also defaults its broad-phase cells to 2 m;
 `broadPhaseCellSize=N` can still override that value. It runs physics at 30 Hz
-with four 120 Hz solver substeps and one bounded catch-up tick, keeping motion
+with two 60 Hz solver substeps and two bounded catch-up ticks, keeping motion
 tied to wall time without rebuilding the old GPU queue spiral.
 `triangleBodies=N` overrides the count for exploratory runs. The old
 `experiment=pyramid` URL remains an alias.

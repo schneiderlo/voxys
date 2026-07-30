@@ -456,6 +456,23 @@ fn make_box(body : u32, frameBody : u32) -> BoxFrame {
         body, body_position_in_frame(body, frameBody));
 }
 
+fn has_identity_rotation(body : u32) -> bool {
+    let orientation = poses[body].orientation;
+    return all(orientation.xyz == vec3<f32>(0.0))
+        && abs(orientation.w) == 1.0;
+}
+
+fn make_axis_aligned_box(body : u32, frameBody : u32) -> BoxFrame {
+    var result : BoxFrame;
+    result.center = body_position_in_frame(body, frameBody);
+    result.axisX = vec3<f32>(1.0, 0.0, 0.0);
+    result.axisY = vec3<f32>(0.0, 1.0, 0.0);
+    result.axisZ = vec3<f32>(0.0, 0.0, 1.0);
+    result.half = 0.5 * max(abs(shapes[body].dimensions_type.xyz),
+                            vec3<f32>(1e-5));
+    return result;
+}
+
 fn make_poly_frame(body : u32, center : vec3<f32>) -> PolyFrame {
     var result : PolyFrame;
     result.center = center;
@@ -980,6 +997,36 @@ fn box_box_sat(frameA : BoxFrame, frameB : BoxFrame) -> SatResult {
     return result;
 }
 
+fn axis_aligned_box_sat(frameA : BoxFrame,
+                        frameB : BoxFrame) -> SatResult {
+    var result : SatResult;
+    result.normal = vec3<f32>(1.0, 0.0, 0.0);
+    result.separation = -3.402823466e+38;
+    result.axisKind = 0u;
+    result.axisA = 3u;
+    result.axisB = 0u;
+    result.valid = 1u;
+    let centerDelta = frameB.center - frameA.center;
+    let separations = abs(centerDelta) - frameA.half - frameB.half;
+    for (var axis = 0u; axis < 3u; axis += 1u) {
+        let separation = separations[axis];
+        if (separation > currentSpeculativeDistance) {
+            result.valid = 0u;
+            return result;
+        }
+        if (separation > result.separation + 1e-6
+            || (abs(separation - result.separation) <= 1e-6
+                && axis < result.axisA)) {
+            var normal = vec3<f32>(0.0);
+            normal[axis] = select(-1.0, 1.0, centerDelta[axis] >= 0.0);
+            result.normal = normal;
+            result.separation = separation;
+            result.axisA = axis;
+        }
+    }
+    return result;
+}
+
 fn clip_against_plane(source : ClipPolygon, planeNormal : vec3<f32>,
                       planeCenter : vec3<f32>, limit : f32,
                       planeIndex : u32) -> ClipPolygon {
@@ -1116,9 +1163,20 @@ fn box_support_edge(frame : BoxFrame, direction : vec3<f32>,
 fn collide_box_box(bodyA : u32, bodyB : u32,
                    frameBody : u32) -> CandidateSet {
     var result = empty_candidates();
-    let frameA = make_box(bodyA, frameBody);
-    let frameB = make_box(bodyB, frameBody);
-    let sat = box_box_sat(frameA, frameB);
+    let axisAligned = has_identity_rotation(bodyA)
+        && has_identity_rotation(bodyB);
+    var frameA : BoxFrame;
+    var frameB : BoxFrame;
+    var sat : SatResult;
+    if (axisAligned) {
+        frameA = make_axis_aligned_box(bodyA, frameBody);
+        frameB = make_axis_aligned_box(bodyB, frameBody);
+        sat = axis_aligned_box_sat(frameA, frameB);
+    } else {
+        frameA = make_box(bodyA, frameBody);
+        frameB = make_box(bodyB, frameBody);
+        sat = box_box_sat(frameA, frameB);
+    }
     result.normal = sat.normal;
     if (sat.valid == 0u) { return result; }
     if (sat.axisKind == 0u) {

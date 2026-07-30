@@ -365,6 +365,10 @@ namespace {
         appendJsonNumber(out, physics.broadPhaseCellSize);
         out << ",\"solver_workgroup_size\":"
             << physics.solverWorkgroupSize
+            << ",\"solver_color_count\":"
+            << physics.solverColorCount
+            << ",\"solver_parallel_color_count\":"
+            << physics.solverParallelColorCount
             << ",\"scheduled_substeps\":"
             << (world ? world->lastStepStats().substepCount : 0u);
 

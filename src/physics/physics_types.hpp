@@ -148,6 +148,10 @@ struct PhysicsInitContext {
         float waterAngularDrag = 0.08f;
         uint32_t substeps = 4;
         uint32_t solverWorkgroupSize = 128;
+        uint32_t solverColorCount = 32;
+        // The first colors use separate indirect dispatches. The remainder
+        // use one compact dispatch to reduce browser command-stream overhead.
+        uint32_t solverParallelColorCount = 4;
         uint32_t maximumCatchUpTicks = 8;
         uint32_t commandCapacity = 262'144;
         uint32_t debugReadbackSlots = 3;
@@ -236,6 +240,8 @@ struct PhysicsStats {
     uint32_t maximumCatchUpTicks = 0;
     float broadPhaseCellSize = 0.0f;
     uint32_t solverWorkgroupSize = 0;
+    uint32_t solverColorCount = 0;
+    uint32_t solverParallelColorCount = 0;
     uint32_t residentBodies = 0;
     uint32_t activeBodies = 0;
     uint32_t sleepingBodies = 0;

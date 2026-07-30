@@ -81,6 +81,7 @@ public:
         if (device_ || !device || !queue || config.bodyCapacity == 0
             || config.contactCapacity == 0 || config.colorCount == 0
             || config.colorCount > kGpuSolverMaximumColors
+            || config.parallelColorCount > config.colorCount
             || config.substeps == 0 || config.substeps > kMaximumSubsteps
             || config.overflowIterations == 0
             || !std::isfinite(config.tickSeconds)
@@ -995,9 +996,8 @@ public:
                     dispatchOffset(config_.colorCount + 6u));
                 return;
             }
-            constexpr uint32_t kParallelColorCount = 4u;
             const uint32_t parallelColors = std::min(
-                config_.colorCount, kParallelColorCount);
+                config_.colorCount, config_.parallelColorCount);
             for (uint32_t color = 0; color < parallelColors; ++color) {
                 const uint32_t colorOffset = writeParams(
                     slot, makeParams(color, stage, substep, 0u));
