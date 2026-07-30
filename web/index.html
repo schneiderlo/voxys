@@ -1151,13 +1151,20 @@
                         voxyModule._voxy_resize(size.width, size.height);
                     }
                 }
-                // Wait for the first animation frame to ensure the C++ side is ready
-                requestAnimationFrame(() => {
+                const scheduleResize = () => {
                     notifyResize();
-                    // Also trigger a second resize after a short delay as a safety net
-                    // Some browsers may report stale dimensions on the first frame
+                    // Trigger a second resize after a short delay as a safety
+                    // net. Some browsers report stale dimensions initially.
                     setTimeout(notifyResize, 100);
-                });
+                };
+                if (browserBenchmarkRun) {
+                    // A headed Wayland/Vulkan browser can throttle RAF even
+                    // while the uncapped Emscripten timer loop is healthy.
+                    // The module is initialized here, so resize immediately.
+                    scheduleResize();
+                } else {
+                    requestAnimationFrame(scheduleResize);
+                }
 
                 // Handle window resize
                 function resize() {
