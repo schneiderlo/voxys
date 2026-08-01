@@ -636,6 +636,12 @@ void SnapshotAckTracker::acknowledge(uint32_t clientId, uint64_t tick) {
     else entries_.insert(iterator, Entry{clientId, tick});
 }
 
+void SnapshotAckTracker::reset(uint32_t clientId) {
+    std::erase_if(entries_, [clientId](const Entry& entry) {
+        return entry.clientId == clientId;
+    });
+}
+
 std::optional<uint64_t> SnapshotAckTracker::acknowledgedTick(
     uint32_t clientId) const noexcept {
     auto iterator = std::lower_bound(
@@ -777,10 +783,12 @@ std::optional<IslandAuthority> AuthorityTable::advanceEpoch(
 bool PredictionBubble::initialize(
     const Config& config, uint64_t islandId, uint32_t authorityEpoch,
     uint32_t controlledBody,
-    std::span<const physics::deterministic::LockstepBody> bodies) {
+    std::span<const physics::deterministic::LockstepBody> bodies,
+    uint64_t initialTick) {
     if (islandId == 0u || authorityEpoch == 0u
         || config.historyTicks == 0u
         || config.maximumPredictedBodies == 0u
+        || initialTick > std::numeric_limits<uint32_t>::max()
         || controlledBody >= config.world.bodyCapacity) {
         return false;
     }
@@ -793,20 +801,30 @@ bool PredictionBubble::initialize(
             != controlledBody) {
         return false;
     }
+    const size_t liveBodies = static_cast<size_t>(std::count_if(
+        replacement.bodies().begin(), replacement.bodies().end(),
+        [](const auto& body) { return bodyAlive(body); }));
+    if (liveBodies > config.maximumPredictedBodies) return false;
     config_ = config;
     world_ = std::move(replacement);
     islandId_ = islandId;
     authorityEpoch_ = authorityEpoch;
     controlledBody_ = controlledBody;
-    currentTick_ = 0;
-    predictedBodies_ = {controlledBody};
+    currentTick_ = initialTick;
+    predictedBodies_.clear();
+    predictedBodies_.reserve(liveBodies);
+    for (const auto& body : world_.bodies()) {
+        if (bodyAlive(body))
+            predictedBodies_.push_back(body.identity[0]);
+    }
+    std::sort(predictedBodies_.begin(), predictedBodies_.end());
     boundaryGhosts_.clear();
     history_.clear();
     inputs_.clear();
     recordedCommands_.clear();
     correctionEvents_.clear();
     telemetry_ = {};
-    storeHistory(0u);
+    storeHistory(initialTick);
     return true;
 }
 
@@ -834,6 +852,17 @@ bool PredictionBubble::setMembership(
         || std::any_of(ghosts.begin(), ghosts.end(), [this](uint32_t id) {
             return id >= world_.bodies().size()
                 || !bodyAlive(world_.bodies()[id]);
+        })
+        || std::any_of(
+            world_.bodies().begin(), world_.bodies().end(),
+            [&predicted, &ghosts](const auto& body) {
+                return bodyAlive(body)
+                    && !std::binary_search(
+                        predicted.begin(), predicted.end(),
+                        body.identity[0])
+                    && !std::binary_search(
+                        ghosts.begin(), ghosts.end(),
+                        body.identity[0]);
         })) {
         return false;
     }
@@ -879,8 +908,12 @@ bool PredictionBubble::predict(
     std::stable_sort(commands.begin(), commands.end(),
                      physics::deterministic::canonicalReplayCommandLess);
     if (std::any_of(commands.begin(), commands.end(),
-                    [tick](const auto& command) {
-                        return command.tick != tick;
+                    [this, tick](const auto& command) {
+                        return command.tick != tick
+                            || !std::binary_search(
+                                predictedBodies_.begin(),
+                                predictedBodies_.end(),
+                                command.body);
                     })) {
         return false;
     }

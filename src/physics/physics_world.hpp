@@ -87,15 +87,31 @@ public:
     [[nodiscard]] BodyHandle spawnBody(const BodySpawnDesc& desc);
     [[nodiscard]] bool destroyBody(BodyHandle handle);
     void enqueue(std::span<const PhysicsCommand> commands);
+    [[nodiscard]] AttachmentHandle createDistanceAttachment(
+        const DistanceAttachmentDesc& desc);
+    [[nodiscard]] bool destroyAttachment(AttachmentHandle handle);
+    [[nodiscard]] bool setAttachmentTargetLength(
+        AttachmentHandle handle, float targetLength);
+    [[nodiscard]] bool setAttachmentMotorSpeed(
+        AttachmentHandle handle, float motorSpeed);
+    [[nodiscard]] PreparedPhysicsMutation prepareMutationBatch(
+        const PhysicsMutationBatch& batch) noexcept;
+    [[nodiscard]] PhysicsMutationResult commitPrepared(
+        const PreparedPhysicsMutation& prepared) noexcept;
+    [[nodiscard]] bool discardPrepared(
+        const PreparedPhysicsMutation& prepared) noexcept;
 
     void update(float deltaTime);
+    [[nodiscard]] bool scheduleFixedTicks(uint32_t tickCount);
     void encodeGpuStep(WGPUCommandEncoder encoder);
+    [[nodiscard]] PhysicsEncodeReport encodeGpuStepChecked(
+        WGPUCommandEncoder encoder);
 
     [[nodiscard]] bool submitQueries(
         std::span<const PhysicsQueryRequest> requests,
         uint64_t resultTick = 0);
     [[nodiscard]] std::optional<PhysicsQueryBatch> pollQueryResults();
-    void setEventReadbackEnabled(bool enabled);
+    bool setEventReadbackEnabled(bool enabled);
     [[nodiscard]] std::optional<PhysicsEventBatch> pollEvents();
     [[nodiscard]] std::optional<PhysicsGpuStageTiming> pollGpuStageTimings();
 

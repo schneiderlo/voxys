@@ -8,9 +8,13 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <fstream>
 #include <iostream>
 #include <limits>
 #include <optional>
+#include <tuple>
+#include <type_traits>
+#include <utility>
 #include <vector>
 
 #ifndef WGPUWrappedSubmissionIndex
@@ -23,6 +27,17 @@ extern "C" WGPUBool wgpuDevicePoll(
 
 namespace voxy::physics {
 namespace {
+
+static_assert(std::is_trivially_copyable_v<PreparedPhysicsMutation>);
+static_assert(noexcept(
+    std::declval<PhysicsWorld&>().prepareMutationBatch(
+        std::declval<const PhysicsMutationBatch&>())));
+static_assert(noexcept(
+    std::declval<PhysicsWorld&>().commitPrepared(
+        std::declval<const PreparedPhysicsMutation&>())));
+static_assert(noexcept(
+    std::declval<PhysicsWorld&>().discardPrepared(
+        std::declval<const PreparedPhysicsMutation&>())));
 
 TEST(GpuBufferArenaTest, TracksAndReleasesSuccessfulAllocations) {
     gpu::Context context;
@@ -154,6 +169,71 @@ protected:
     PhysicsWorld world;
 };
 
+TEST(
+    GpuPhysicsAuthorityShaderTest,
+    MissingEmbeddedEventShaderFailsWithoutFilesystemFallback) {
+    gpu::Context gpuContext;
+    gpu::ContextConfig gpuConfig;
+    gpuConfig.enableValidation = false;
+    if (!gpuContext.initHeadless(gpuConfig)) {
+        GTEST_SKIP() << "Headless WebGPU is unavailable";
+    }
+
+    constexpr std::array<std::string_view, 9> paths{{
+        "shaders/physics_attachments.wgsl",
+        "shaders/physics_ballistic.wgsl",
+        "shaders/physics_broad_phase.wgsl",
+        "shaders/physics_ccd.wgsl",
+        "shaders/physics_deterministic_primitives.wgsl",
+        "shaders/physics_dynamic_solver.wgsl",
+        "shaders/physics_islands.wgsl",
+        "shaders/physics_narrow_phase.wgsl",
+        "shaders/physics_queries.wgsl",
+    }};
+    std::array<std::string, paths.size()> sourceStorage{};
+    std::array<gpu::ShaderSource, paths.size()> sources{};
+    for (size_t index = 0u; index < paths.size(); ++index) {
+        std::ifstream input(
+            std::string(paths[index]),
+            std::ios::binary | std::ios::ate);
+        ASSERT_TRUE(input);
+        const std::streamoff bytes = input.tellg();
+        ASSERT_GT(bytes, 0);
+        ASSERT_TRUE(std::in_range<std::streamsize>(bytes));
+        sourceStorage[index].resize(static_cast<size_t>(bytes));
+        input.seekg(0);
+        ASSERT_TRUE(input.read(
+            sourceStorage[index].data(),
+            static_cast<std::streamsize>(bytes)));
+        sources[index] = {
+            .logicalPath = paths[index],
+            .wgsl = sourceStorage[index],
+        };
+    }
+
+    PhysicsInitContext context;
+    context.requestedBackend = BackendType::WebGpuSoft;
+    context.device = gpuContext.getDevice();
+    context.queue = gpuContext.getQueue();
+    context.maxBodies = 8u;
+    context.maxActiveBodies = 8u;
+    context.maxPairs = 16u;
+    context.maxCandidatePairs = 32u;
+    context.maxContacts = 16u;
+    context.maxManifolds = 16u;
+    context.gpu.commandCapacity = 32u;
+    context.gpu.attachmentCapacity = 4u;
+    context.gpu.attachmentCommandCapacity = 8u;
+    context.gpu.debugReadbackBodyCapacity = 4u;
+    context.gpu.asyncQueryCapacity = 1u;
+    context.gpu.asyncQueryReadbackSlots = 1u;
+    context.gpu.shaderSources = sources;
+
+    PhysicsWorld world;
+    ASSERT_TRUE(world.initialize(context));
+    EXPECT_FALSE(world.setEventReadbackEnabled(true));
+}
+
 TEST_F(GpuPhysicsTest, RenderViewTracksSparseBodyRange) {
     const PhysicsRenderView empty = world.renderView();
     EXPECT_FALSE(empty.valid());
@@ -273,12 +353,48 @@ TEST_F(GpuPhysicsTest, ComposesBodyContactsEventsAndAsyncQueries) {
         })) << "first type=" << static_cast<uint32_t>(events->events[0].type)
             << " bodies=" << events->events[0].bodyA << ','
             << events->events[0].bodyB;
-    EXPECT_TRUE(std::any_of(events->events.begin(), events->events.end(),
+    const auto contactHit = std::find_if(
+        events->events.begin(), events->events.end(),
         [left, right](const PhysicsEvent& event) {
             return event.type == PhysicsEventType::ContactHit
-                && event.bodyA == std::min(left.index, right.index)
-                && event.bodyB == std::max(left.index, right.index);
-        }));
+                && event.bodyHandleA() == std::min(left, right)
+                && event.bodyHandleB() == std::max(left, right);
+        });
+    ASSERT_NE(contactHit, events->events.end());
+    EXPECT_GT(contactHit->auxiliaryCount, 0u);
+    EXPECT_TRUE(std::isfinite(contactHit->impulse));
+    EXPECT_GT(contactHit->impulse, 0.0f);
+    EXPECT_TRUE(std::isfinite(contactHit->impactSpeed));
+    EXPECT_GE(contactHit->impactSpeed, 1.0f);
+    EXPECT_TRUE(std::isfinite(contactHit->localAnchorA.x));
+    EXPECT_TRUE(std::isfinite(contactHit->localAnchorA.y));
+    EXPECT_TRUE(std::isfinite(contactHit->localAnchorA.z));
+    EXPECT_TRUE(std::isfinite(contactHit->localAnchorB.x));
+    EXPECT_TRUE(std::isfinite(contactHit->localAnchorB.y));
+    EXPECT_TRUE(std::isfinite(contactHit->localAnchorB.z));
+    EXPECT_NEAR(
+        glm::dot(contactHit->normalAtoB, contactHit->normalAtoB),
+        1.0f, 1.0e-4f);
+    EXPECT_GT(contactHit->normalAtoB.x, 0.9f);
+    EXPECT_GT(contactHit->localAnchorA.x, 0.0f);
+    EXPECT_LT(contactHit->localAnchorB.x, 0.0f);
+    for (size_t index = 1u; index < events->events.size(); ++index) {
+        const PhysicsEvent& prior = events->events[index - 1u];
+        const PhysicsEvent& current = events->events[index];
+        EXPECT_LE(
+            (std::tuple{
+                static_cast<uint32_t>(prior.type),
+                prior.bodyA, prior.bodyGenerationA,
+                prior.bodyB, prior.bodyGenerationB,
+                prior.sourceId, prior.featureId,
+                prior.otherFeatureId}),
+            (std::tuple{
+                static_cast<uint32_t>(current.type),
+                current.bodyA, current.bodyGenerationA,
+                current.bodyB, current.bodyGenerationB,
+                current.sourceId, current.featureId,
+                current.otherFeatureId}));
+    }
 
     const PhysicsStats telemetry = retireTelemetry();
     EXPECT_EQ(telemetry.telemetryTick, 1u);
@@ -1297,6 +1413,73 @@ TEST_F(GpuPhysicsTest, AppliesOrderedCommandsClampsSpeedsAndCompactsSleep) {
     EXPECT_GT(awakened.position.x, sleeping.position.x);
 }
 
+TEST_F(
+    GpuPhysicsTest,
+    CheckedForceAtLocalPointAppliesWorldForceAndRotatedLeverTorque) {
+    BodySpawnDesc dynamicDesc;
+    dynamicDesc.shape = ThrowableShape::Box;
+    dynamicDesc.position = {0.0f, 20.0f, 0.0f};
+    dynamicDesc.sector = {100'000, 17, -100'000};
+    dynamicDesc.orientation = glm::angleAxis(
+        glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    dynamicDesc.dimensions = {2.0f, 1.0f, 4.0f};
+    dynamicDesc.inverseMass = 1.0f / 100.0f;
+    const BodyHandle dynamic = world.spawnBody(dynamicDesc);
+    BodySpawnDesc staticDesc = dynamicDesc;
+    staticDesc.position.x = 10.0f;
+    staticDesc.inverseMass = 0.0f;
+    const BodyHandle fixed = world.spawnBody(staticDesc);
+    ASSERT_TRUE(dynamic.valid());
+    ASSERT_TRUE(fixed.valid());
+
+    std::array<PhysicsCommand, 2u> commands{};
+    for (size_t index = 0u; index < commands.size(); ++index) {
+        commands[index].type =
+            PhysicsCommandType::ApplyForceAtLocalPoint;
+        commands[index].body =
+            index == 0u ? dynamic : fixed;
+        // Gravity/floodwater is world-down. The application point is local
+        // +X, which the 90-degree yaw rotates onto world -Z.
+        commands[index].a =
+            glm::vec4(0.0f, -60'000.0f, 0.0f, 0.0f);
+        commands[index].b =
+            glm::vec4(1.0f, 0.0f, 0.0f, 0.0f);
+    }
+    world.enqueue(commands);
+    world.setEventReadbackEnabled(true);
+    world.update(1.0f / 60.0f);
+    world.requestDebugSnapshot({dynamic.index, 2u});
+
+    WGPUCommandEncoderDescriptor encoderDesc{};
+    WGPUCommandEncoder encoder = wgpuDeviceCreateCommandEncoder(
+        gpuContext.getDevice(), &encoderDesc);
+    const PhysicsEncodeReport report =
+        world.encodeGpuStepChecked(encoder);
+    ASSERT_TRUE(report)
+        << static_cast<uint32_t>(report.status);
+    ASSERT_FALSE(report.failStopped);
+    ASSERT_EQ(report.tickCount, 1u);
+    WGPUCommandBufferDescriptor commandDesc{};
+    WGPUCommandBuffer command =
+        wgpuCommandEncoderFinish(encoder, &commandDesc);
+    ASSERT_NE(command, nullptr);
+    wgpuQueueSubmit(gpuContext.getQueue(), 1u, &command);
+    wgpuCommandBufferRelease(command);
+    wgpuCommandEncoderRelease(encoder);
+
+    const auto snapshot = retireDebugReadback();
+    ASSERT_TRUE(snapshot.has_value());
+    ASSERT_EQ(snapshot->bodies.size(), 2u);
+    const DebugBodyState& moved = snapshot->bodies[0];
+    const DebugBodyState& unmoved = snapshot->bodies[1];
+    EXPECT_EQ(moved.sector, dynamicDesc.sector);
+    EXPECT_LT(moved.linearVelocity.y, 0.0f);
+    EXPECT_LT(moved.angularVelocity.x, -0.01f);
+    EXPECT_NEAR(moved.angularVelocity.z, 0.0f, 1.0e-3f);
+    EXPECT_EQ(unmoved.linearVelocity, glm::vec3(0.0f));
+    EXPECT_EQ(unmoved.angularVelocity, glm::vec3(0.0f));
+}
+
 TEST_F(GpuPhysicsTest, VelocityCommandsWakeSleepingBodies) {
     BodySpawnDesc desc;
     desc.position = {0.0f, 20.0f, 0.0f};
@@ -1467,6 +1650,45 @@ TEST_F(GpuPhysicsTest, RedundantKinematicTargetsDoNotDropFinalPoseAtCapacity) {
     }
     targets.back().a.x = 10.0f;
     world.enqueue(targets);
+    stepTicks(1u);
+
+    const auto snapshot = snapshotRange(body.index, 1u);
+    ASSERT_TRUE(snapshot.has_value());
+    ASSERT_EQ(snapshot->bodies.size(), 1u);
+    EXPECT_NEAR(snapshot->bodies[0].position.x, 10.0f, 1.0e-6f);
+    EXPECT_FALSE(world.stats().commandCapacityOverflow);
+}
+
+TEST_F(
+    GpuPhysicsTest,
+    FullCommandQueueReplacesSupersededKinematicTargetInPlace) {
+    BodySpawnDesc desc;
+    desc.shape = ThrowableShape::Cube;
+    desc.position = {0.0f, 20.0f, 0.0f};
+    desc.dimensions = glm::vec3(1.0f);
+    desc.inverseMass = 0.0f;
+    const BodyHandle body = world.spawnBody(desc);
+    ASSERT_TRUE(body.valid());
+    stepTicks(1u);
+
+    std::vector<PhysicsCommand> commands(2'048u);
+    for (PhysicsCommand& command : commands) {
+        command.type = PhysicsCommandType::ApplyForce;
+        command.body = body;
+        command.a = glm::vec4(1.0f, 0.0f, 0.0f, 0.0f);
+    }
+    commands.front().type =
+        PhysicsCommandType::SetKinematicTarget;
+    commands.front().a =
+        glm::vec4(1.0f, 20.0f, 0.0f, 0.0f);
+    commands.front().b =
+        glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+    world.enqueue(commands);
+
+    PhysicsCommand replacement = commands.front();
+    replacement.a.x = 10.0f;
+    world.enqueue(
+        std::span<const PhysicsCommand>(&replacement, 1u));
     stepTicks(1u);
 
     const auto snapshot = snapshotRange(body.index, 1u);
@@ -1900,6 +2122,751 @@ TEST_F(GpuPhysicsTest, ExplicitBulletDoesNotTunnelThroughTerrain) {
     EXPECT_GT(snapshot->bodies[0].position.y, 0.45f);
     EXPECT_LT(snapshot->bodies[0].position.y, 0.60f);
     EXPECT_GE(snapshot->bodies[0].linearVelocity.y, -0.1f);
+}
+
+TEST_F(GpuPhysicsTest, DistanceAttachmentTowsAResidentBody) {
+    EXPECT_TRUE(world.capabilities().distanceAttachments);
+    BodySpawnDesc anchorDesc;
+    anchorDesc.position = {0.0f, 20.0f, 0.0f};
+    anchorDesc.inverseMass = 0.0f;
+    BodySpawnDesc loadDesc = anchorDesc;
+    loadDesc.position.x = 8.0f;
+    loadDesc.inverseMass = 1.0f;
+    const BodyHandle anchor = world.spawnBody(anchorDesc);
+    const BodyHandle load = world.spawnBody(loadDesc);
+    ASSERT_TRUE(anchor.valid());
+    ASSERT_TRUE(load.valid());
+
+    DistanceAttachmentDesc rope;
+    rope.bodyA = anchor;
+    rope.bodyB = load;
+    rope.targetLength = 4.0f;
+    rope.maximumForce = 2'000.0f;
+    ASSERT_TRUE(world.createDistanceAttachment(rope).valid());
+    stepTicks(4u);
+
+    const auto snapshot = snapshotRange(anchor.index, 2u);
+    ASSERT_TRUE(snapshot.has_value());
+    ASSERT_EQ(snapshot->bodies.size(), 2u);
+    EXPECT_NEAR(snapshot->bodies[0].position.x, 0.0f, 1.0e-4f);
+    EXPECT_LT(snapshot->bodies[1].position.x, 7.9f);
+    EXPECT_LT(snapshot->bodies[1].linearVelocity.x, 0.0f);
+}
+
+TEST_F(GpuPhysicsTest, DistanceAttachmentRemainsSlackBelowTargetLength) {
+    BodySpawnDesc anchorDesc;
+    anchorDesc.position = {0.0f, 20.0f, 0.0f};
+    anchorDesc.inverseMass = 0.0f;
+    BodySpawnDesc loadDesc = anchorDesc;
+    loadDesc.position.x = 5.0f;
+    loadDesc.inverseMass = 1.0f;
+    const BodyHandle anchor = world.spawnBody(anchorDesc);
+    const BodyHandle load = world.spawnBody(loadDesc);
+
+    DistanceAttachmentDesc rope;
+    rope.bodyA = anchor;
+    rope.bodyB = load;
+    rope.targetLength = 10.0f;
+    ASSERT_TRUE(world.createDistanceAttachment(rope).valid());
+    stepTicks(1u);
+
+    const auto snapshot = snapshotRange(anchor.index, 2u);
+    ASSERT_TRUE(snapshot.has_value());
+    EXPECT_NEAR(snapshot->bodies[1].position.x, 5.0f, 1.0e-4f);
+    EXPECT_NEAR(snapshot->bodies[1].linearVelocity.x, 0.0f, 1.0e-4f);
+    const PhysicsStats stats = retireTelemetry();
+    EXPECT_EQ(stats.slackAttachments, 1u);
+    EXPECT_EQ(stats.tautAttachments, 0u);
+}
+
+TEST_F(GpuPhysicsTest, PositiveAttachmentMotorSpeedReelsIn) {
+    BodySpawnDesc anchorDesc;
+    anchorDesc.position = {0.0f, 20.0f, 0.0f};
+    anchorDesc.inverseMass = 0.0f;
+    BodySpawnDesc loadDesc = anchorDesc;
+    loadDesc.position.x = 5.0f;
+    loadDesc.inverseMass = 1.0f;
+    const BodyHandle anchor = world.spawnBody(anchorDesc);
+    const BodyHandle load = world.spawnBody(loadDesc);
+
+    DistanceAttachmentDesc winch;
+    winch.bodyA = anchor;
+    winch.bodyB = load;
+    winch.targetLength = 5.0f;
+    winch.motorSpeed = 3.0f;
+    winch.maximumForce = 2'000.0f;
+    const AttachmentHandle handle =
+        world.createDistanceAttachment(winch);
+    ASSERT_TRUE(handle.valid());
+    stepTicks(10u);
+
+    const auto snapshot = snapshotRange(anchor.index, 2u);
+    ASSERT_TRUE(snapshot.has_value());
+    EXPECT_LT(snapshot->bodies[1].position.x, 4.9f);
+    ASSERT_TRUE(world.setAttachmentMotorSpeed(handle, 0.0f));
+}
+
+TEST_F(GpuPhysicsTest, BrokenAttachmentEmitsForceAndImpulseEvidence) {
+    world.setEventReadbackEnabled(true);
+    BodySpawnDesc anchorDesc;
+    anchorDesc.position = {0.0f, 20.0f, 0.0f};
+    anchorDesc.inverseMass = 0.0f;
+    BodySpawnDesc loadDesc = anchorDesc;
+    loadDesc.position.x = 8.0f;
+    loadDesc.inverseMass = 1.0f;
+    const BodyHandle anchor = world.spawnBody(anchorDesc);
+    const BodyHandle load = world.spawnBody(loadDesc);
+
+    DistanceAttachmentDesc rope;
+    rope.bodyA = anchor;
+    rope.bodyB = load;
+    rope.targetLength = 1.0f;
+    rope.breakForce = 10.0f;
+    rope.maximumForce = 2'000.0f;
+    const AttachmentHandle handle =
+        world.createDistanceAttachment(rope);
+    ASSERT_TRUE(handle.valid());
+    stepTicks(1u);
+
+    const auto batch = retireEventReadback();
+    ASSERT_TRUE(batch.has_value());
+    const auto event = std::find_if(
+        batch->events.begin(), batch->events.end(),
+        [](const PhysicsEvent& candidate) {
+            return candidate.type
+                == PhysicsEventType::AttachmentBreak;
+        });
+    ASSERT_NE(event, batch->events.end());
+    EXPECT_EQ(event->attachmentHandle(), handle);
+    EXPECT_EQ(event->bodyHandleA(), anchor);
+    EXPECT_EQ(event->bodyHandleB(), load);
+    EXPECT_GT(event->impulse, 0.0f);
+    EXPECT_GT(event->force, rope.breakForce);
+
+    const auto snapshot = snapshotRange(anchor.index, 2u);
+    ASSERT_TRUE(snapshot.has_value());
+    EXPECT_NEAR(snapshot->bodies[1].position.x, 8.0f, 1.0e-4f);
+    const PhysicsStats stats = retireTelemetry();
+    EXPECT_EQ(stats.attachmentBreakEvents, 1u);
+}
+
+TEST_F(GpuPhysicsTest, DestroyedAttachmentHandlesStayStaleAfterReuse) {
+    BodySpawnDesc anchorDesc;
+    anchorDesc.position = {0.0f, 20.0f, 0.0f};
+    anchorDesc.inverseMass = 0.0f;
+    BodySpawnDesc loadDesc = anchorDesc;
+    loadDesc.position.x = 5.0f;
+    loadDesc.inverseMass = 1.0f;
+    const BodyHandle anchor = world.spawnBody(anchorDesc);
+    const BodyHandle load = world.spawnBody(loadDesc);
+    DistanceAttachmentDesc rope;
+    rope.bodyA = anchor;
+    rope.bodyB = load;
+    const AttachmentHandle first =
+        world.createDistanceAttachment(rope);
+    ASSERT_TRUE(first.valid());
+    ASSERT_TRUE(world.destroyAttachment(first));
+    EXPECT_FALSE(world.setAttachmentTargetLength(first, 2.0f));
+    EXPECT_FALSE(world.setAttachmentMotorSpeed(first, 1.0f));
+    EXPECT_FALSE(world.destroyAttachment(first));
+
+    const AttachmentHandle replacement =
+        world.createDistanceAttachment(rope);
+    ASSERT_TRUE(replacement.valid());
+    EXPECT_EQ(replacement.index, first.index);
+    EXPECT_NE(replacement.generation, first.generation);
+}
+
+TEST_F(
+    GpuPhysicsTest,
+    PreparedAttachmentMutationIsInvisibleAndDiscardConsumesNothing) {
+    EXPECT_TRUE(world.capabilities().atomicMutationBatches);
+    EXPECT_TRUE(world.capabilities().fixedTickScheduling);
+    EXPECT_TRUE(world.capabilities().checkedGpuEncoding);
+
+    BodySpawnDesc anchorDesc;
+    anchorDesc.position = {0.0f, 20.0f, 0.0f};
+    anchorDesc.inverseMass = 0.0f;
+    BodySpawnDesc loadDesc = anchorDesc;
+    loadDesc.position.x = 5.0f;
+    loadDesc.inverseMass = 1.0f;
+    const BodyHandle anchor = world.spawnBody(anchorDesc);
+    const BodyHandle load = world.spawnBody(loadDesc);
+    ASSERT_TRUE(anchor.valid());
+    ASSERT_TRUE(load.valid());
+
+    DistanceAttachmentDesc rope;
+    rope.bodyA = anchor;
+    rope.bodyB = load;
+    rope.targetLength = 2.0f;
+    const std::array creates{rope};
+    const PhysicsStats before = world.stats();
+    const PreparedPhysicsMutation prepared =
+        world.prepareMutationBatch({
+            .attachmentCreates = creates,
+        });
+    ASSERT_TRUE(prepared.ready());
+    ASSERT_EQ(prepared.createdAttachments.size(), 1u);
+    const AttachmentHandle reserved =
+        prepared.createdAttachments.front();
+    const AttachmentHandle* const preparedStorage =
+        prepared.createdAttachments.data();
+    EXPECT_EQ(world.stats().attachmentUsage.current,
+              before.attachmentUsage.current);
+
+    // No legacy mutation or clock advance may invalidate a prepared token.
+    EXPECT_FALSE(world.createDistanceAttachment(rope).valid());
+    EXPECT_FALSE(world.scheduleFixedTicks(1u));
+    WGPUCommandEncoderDescriptor encoderDesc{};
+    WGPUCommandEncoder encoder = wgpuDeviceCreateCommandEncoder(
+        gpuContext.getDevice(), &encoderDesc);
+    const PhysicsEncodeReport blocked =
+        world.encodeGpuStepChecked(encoder);
+    EXPECT_EQ(blocked.status,
+              PhysicsEncodeStatus::PreparedMutationPending);
+    EXPECT_FALSE(blocked.failStopped);
+    wgpuCommandEncoderRelease(encoder);
+
+    ASSERT_TRUE(world.discardPrepared(prepared));
+    EXPECT_FALSE(world.discardPrepared(prepared));
+    EXPECT_EQ(
+        world.commitPrepared(prepared).status,
+        PhysicsMutationStatus::InvalidToken);
+    EXPECT_EQ(world.stats().attachmentUsage.current,
+              before.attachmentUsage.current);
+
+    // Preparation reuses backend-owned result storage; it does not allocate a
+    // caller-owned vector on a live authority tick.
+    const PreparedPhysicsMutation preparedAgain =
+        world.prepareMutationBatch({
+            .attachmentCreates = creates,
+        });
+    ASSERT_TRUE(preparedAgain.ready());
+    ASSERT_EQ(preparedAgain.createdAttachments.size(), 1u);
+    EXPECT_EQ(preparedAgain.createdAttachments.data(), preparedStorage);
+    EXPECT_EQ(preparedAgain.createdAttachments.front(), reserved);
+    ASSERT_TRUE(world.discardPrepared(preparedAgain));
+
+    // Discard did not burn either the slot or its generation.
+    const AttachmentHandle direct =
+        world.createDistanceAttachment(rope);
+    ASSERT_TRUE(direct.valid());
+    EXPECT_EQ(direct, reserved);
+}
+
+TEST_F(
+    GpuPhysicsTest,
+    InvalidPreparedTransferLeavesOriginalAttachmentAndGenerationLive) {
+    BodySpawnDesc anchorDesc;
+    anchorDesc.position = {0.0f, 20.0f, 0.0f};
+    anchorDesc.inverseMass = 0.0f;
+    BodySpawnDesc loadDesc = anchorDesc;
+    loadDesc.position.x = 5.0f;
+    loadDesc.inverseMass = 1.0f;
+    const BodyHandle anchor = world.spawnBody(anchorDesc);
+    const BodyHandle load = world.spawnBody(loadDesc);
+    DistanceAttachmentDesc rope;
+    rope.bodyA = anchor;
+    rope.bodyB = load;
+    const AttachmentHandle original =
+        world.createDistanceAttachment(rope);
+    ASSERT_TRUE(original.valid());
+
+    DistanceAttachmentDesc malformed = rope;
+    malformed.bodyB = anchor;
+    const std::array destroys{original};
+    const std::array creates{malformed};
+    const PreparedPhysicsMutation rejected =
+        world.prepareMutationBatch({
+            .attachmentDestroys = destroys,
+            .attachmentCreates = creates,
+        });
+    EXPECT_EQ(rejected.status,
+              PhysicsMutationStatus::InvalidInput);
+    EXPECT_FALSE(rejected.ready());
+    EXPECT_TRUE(
+        world.setAttachmentTargetLength(original, 3.0f));
+
+    const std::array validCreates{rope};
+    const PreparedPhysicsMutation replacement =
+        world.prepareMutationBatch({
+            .attachmentDestroys = destroys,
+            .attachmentCreates = validCreates,
+        });
+    ASSERT_TRUE(replacement.ready());
+    ASSERT_EQ(replacement.createdAttachments.size(), 1u);
+    EXPECT_EQ(replacement.createdAttachments[0].index,
+              original.index);
+    EXPECT_EQ(
+        replacement.createdAttachments[0].generation,
+        original.generation + 1u);
+    const AttachmentHandle replacementHandle =
+        replacement.createdAttachments[0];
+    ASSERT_TRUE(world.commitPrepared(replacement));
+    EXPECT_FALSE(world.setAttachmentTargetLength(original, 2.0f));
+    EXPECT_TRUE(world.setAttachmentTargetLength(
+        replacementHandle, 2.0f));
+}
+
+TEST_F(
+    GpuPhysicsTest,
+    FullCapacityTransferCommitsAndCheckedEncodingAdvancesExactlyOnce) {
+    PhysicsWorld limitedWorld;
+    PhysicsInitContext context;
+    context.requestedBackend = BackendType::WebGpuSoft;
+    context.device = gpuContext.getDevice();
+    context.queue = gpuContext.getQueue();
+    context.maxBodies = 8u;
+    context.maxActiveBodies = 8u;
+    context.maxPairs = 16u;
+    context.maxContacts = 16u;
+    context.maxManifolds = 16u;
+    context.gpu.commandCapacity = 16u;
+    context.gpu.attachmentCapacity = 1u;
+    context.gpu.attachmentCommandCapacity = 2u;
+    context.gpu.debugReadbackBodyCapacity = 4u;
+    ASSERT_TRUE(limitedWorld.initialize(context));
+
+    BodySpawnDesc anchorDesc;
+    anchorDesc.position = {0.0f, 20.0f, 0.0f};
+    anchorDesc.inverseMass = 0.0f;
+    BodySpawnDesc firstLoadDesc = anchorDesc;
+    firstLoadDesc.position.x = 5.0f;
+    firstLoadDesc.inverseMass = 1.0f;
+    BodySpawnDesc secondLoadDesc = firstLoadDesc;
+    secondLoadDesc.position.x = -5.0f;
+    const BodyHandle anchor = limitedWorld.spawnBody(anchorDesc);
+    const BodyHandle firstLoad =
+        limitedWorld.spawnBody(firstLoadDesc);
+    const BodyHandle secondLoad =
+        limitedWorld.spawnBody(secondLoadDesc);
+    ASSERT_TRUE(anchor.valid());
+    ASSERT_TRUE(firstLoad.valid());
+    ASSERT_TRUE(secondLoad.valid());
+
+    DistanceAttachmentDesc originalDesc;
+    originalDesc.bodyA = anchor;
+    originalDesc.bodyB = firstLoad;
+    const AttachmentHandle original =
+        limitedWorld.createDistanceAttachment(originalDesc);
+    ASSERT_TRUE(original.valid());
+
+    const auto submit = [&](bool checked) {
+        WGPUCommandEncoderDescriptor encoderDesc{};
+        WGPUCommandEncoder encoder = wgpuDeviceCreateCommandEncoder(
+            gpuContext.getDevice(), &encoderDesc);
+        PhysicsEncodeReport report;
+        if (checked) {
+            report = limitedWorld.encodeGpuStepChecked(encoder);
+        } else {
+            limitedWorld.encodeGpuStep(encoder);
+        }
+        WGPUCommandBufferDescriptor commandDesc{};
+        WGPUCommandBuffer command =
+            wgpuCommandEncoderFinish(encoder, &commandDesc);
+        EXPECT_NE(command, nullptr);
+        if (command) {
+            wgpuQueueSubmit(gpuContext.getQueue(), 1u, &command);
+            wgpuCommandBufferRelease(command);
+        }
+        wgpuCommandEncoderRelease(encoder);
+        return report;
+    };
+    ASSERT_TRUE(limitedWorld.scheduleFixedTicks(1u));
+    static_cast<void>(submit(false));
+    ASSERT_EQ(limitedWorld.encodedTick(), 1u);
+
+    DistanceAttachmentDesc replacementDesc = originalDesc;
+    replacementDesc.bodyB = secondLoad;
+    const std::array destroys{original};
+    const std::array creates{replacementDesc};
+    const PreparedPhysicsMutation prepared =
+        limitedWorld.prepareMutationBatch({
+            .attachmentDestroys = destroys,
+            .attachmentCreates = creates,
+        });
+    ASSERT_TRUE(prepared.ready());
+    ASSERT_EQ(prepared.createdAttachments.size(), 1u);
+    const AttachmentHandle replacement =
+        prepared.createdAttachments[0];
+    EXPECT_EQ(replacement.index, original.index);
+    EXPECT_NE(replacement.generation, original.generation);
+    EXPECT_EQ(limitedWorld.stats().attachmentUsage.current, 1u);
+
+    const PhysicsMutationResult committed =
+        limitedWorld.commitPrepared(prepared);
+    ASSERT_TRUE(committed);
+    EXPECT_EQ(committed.destroyedAttachmentCount, 1u);
+    EXPECT_EQ(committed.createdAttachmentCount, 1u);
+    EXPECT_EQ(
+        limitedWorld.commitPrepared(prepared).status,
+        PhysicsMutationStatus::InvalidToken);
+    EXPECT_EQ(limitedWorld.stats().attachmentUsage.current, 1u);
+    EXPECT_FALSE(
+        limitedWorld.setAttachmentTargetLength(original, 2.0f));
+
+    ASSERT_TRUE(limitedWorld.scheduleFixedTicks(1u));
+    const PhysicsEncodeReport encoded = submit(true);
+    EXPECT_EQ(encoded.status, PhysicsEncodeStatus::Encoded);
+    EXPECT_EQ(encoded.firstTick, 2u);
+    EXPECT_EQ(encoded.finalTick, 2u);
+    EXPECT_EQ(encoded.tickCount, 1u);
+    EXPECT_FALSE(encoded.failStopped);
+    EXPECT_EQ(limitedWorld.encodedTick(), 2u);
+    EXPECT_TRUE(
+        limitedWorld.setAttachmentTargetLength(replacement, 2.0f));
+}
+
+TEST_F(
+    GpuPhysicsTest,
+    PreparedBodyCommandCommitsAtItsExactExplicitTick) {
+    BodySpawnDesc desc;
+    desc.position = {0.0f, 20.0f, 0.0f};
+    const BodyHandle body = world.spawnBody(desc);
+    ASSERT_TRUE(body.valid());
+
+    PhysicsCommand velocity;
+    velocity.type = PhysicsCommandType::SetVelocity;
+    velocity.body = body;
+    velocity.a = {3.0f, 0.0f, 0.0f, 0.0f};
+    const std::array commands{velocity};
+    const PreparedPhysicsMutation prepared =
+        world.prepareMutationBatch({
+            .bodyCommands = commands,
+        });
+    ASSERT_TRUE(prepared.ready());
+    EXPECT_EQ(prepared.targetTick, 1u);
+    const PhysicsMutationResult committed =
+        world.commitPrepared(prepared);
+    ASSERT_TRUE(committed);
+    EXPECT_EQ(committed.bodyCommandCount, 1u);
+    ASSERT_TRUE(world.scheduleFixedTicks(1u));
+
+    world.requestDebugSnapshot({body.index, 1u});
+    WGPUCommandEncoderDescriptor encoderDesc{};
+    WGPUCommandEncoder encoder = wgpuDeviceCreateCommandEncoder(
+        gpuContext.getDevice(), &encoderDesc);
+    const PhysicsEncodeReport report =
+        world.encodeGpuStepChecked(encoder);
+    ASSERT_EQ(report.status, PhysicsEncodeStatus::Encoded);
+    EXPECT_EQ(report.firstTick, prepared.targetTick);
+    EXPECT_EQ(report.finalTick, prepared.targetTick);
+    WGPUCommandBufferDescriptor commandDesc{};
+    WGPUCommandBuffer command =
+        wgpuCommandEncoderFinish(encoder, &commandDesc);
+    ASSERT_NE(command, nullptr);
+    wgpuQueueSubmit(gpuContext.getQueue(), 1u, &command);
+    wgpuCommandBufferRelease(command);
+    wgpuCommandEncoderRelease(encoder);
+
+    const auto snapshot = retireDebugReadback();
+    ASSERT_TRUE(snapshot.has_value());
+    ASSERT_EQ(snapshot->bodies.size(), 1u);
+    EXPECT_GT(snapshot->bodies[0].linearVelocity.x, 2.9f);
+    EXPECT_EQ(world.encodedTick(), prepared.targetTick);
+}
+
+TEST_F(
+    GpuPhysicsTest,
+    AccumulatorAndExplicitFixedTickSchedulingCannotBeMixed) {
+    BodySpawnDesc anchorDesc;
+    anchorDesc.position = {0.0f, 20.0f, 0.0f};
+    anchorDesc.inverseMass = 0.0f;
+    BodySpawnDesc loadDesc = anchorDesc;
+    loadDesc.position.x = 5.0f;
+    loadDesc.inverseMass = 1.0f;
+    const BodyHandle anchor = world.spawnBody(anchorDesc);
+    const BodyHandle load = world.spawnBody(loadDesc);
+    DistanceAttachmentDesc rope;
+    rope.bodyA = anchor;
+    rope.bodyB = load;
+    const std::array creates{rope};
+
+    // Half a tick selects accumulator mode without scheduling a tick.
+    world.update(0.5f / 60.0f);
+    EXPECT_EQ(world.encodedTick(), 0u);
+    const PreparedPhysicsMutation rejected =
+        world.prepareMutationBatch({
+            .attachmentCreates = creates,
+        });
+    EXPECT_EQ(
+        rejected.status,
+        PhysicsMutationStatus::IncompatibleSchedulingMode);
+    EXPECT_FALSE(world.scheduleFixedTicks(1u));
+    EXPECT_TRUE(world.createDistanceAttachment(rope).valid());
+}
+
+TEST_F(
+    GpuPhysicsTest,
+    CheckedEncodingFailStopsWhenEventClosureCannotBeReserved) {
+    PhysicsWorld strictWorld;
+    PhysicsInitContext context;
+    context.requestedBackend = BackendType::WebGpuSoft;
+    context.device = gpuContext.getDevice();
+    context.queue = gpuContext.getQueue();
+    context.maxBodies = 8u;
+    context.maxActiveBodies = 8u;
+    context.maxPairs = 16u;
+    context.maxContacts = 16u;
+    context.maxManifolds = 16u;
+    context.gpu.commandCapacity = 16u;
+    context.gpu.maximumCatchUpTicks = 1u;
+    context.gpu.eventReadbackSlots = 1u;
+    context.gpu.debugReadbackBodyCapacity = 4u;
+    ASSERT_TRUE(strictWorld.initialize(context));
+    strictWorld.setEventReadbackEnabled(true);
+
+    BodySpawnDesc desc;
+    desc.position = {0.0f, 20.0f, 0.0f};
+    ASSERT_TRUE(strictWorld.spawnBody(desc).valid());
+    ASSERT_TRUE(strictWorld.scheduleFixedTicks(1u));
+
+    WGPUCommandEncoderDescriptor encoderDesc{};
+    WGPUCommandEncoder firstEncoder =
+        wgpuDeviceCreateCommandEncoder(
+            gpuContext.getDevice(), &encoderDesc);
+    const PhysicsEncodeReport first =
+        strictWorld.encodeGpuStepChecked(firstEncoder);
+    ASSERT_EQ(first.status, PhysicsEncodeStatus::Encoded);
+    WGPUCommandBufferDescriptor commandDesc{};
+    WGPUCommandBuffer firstCommand =
+        wgpuCommandEncoderFinish(firstEncoder, &commandDesc);
+    ASSERT_NE(firstCommand, nullptr);
+    wgpuQueueSubmit(gpuContext.getQueue(), 1u, &firstCommand);
+    wgpuCommandBufferRelease(firstCommand);
+    wgpuCommandEncoderRelease(firstEncoder);
+
+    // Do not poll the one-slot readback ring. The next authority tick cannot
+    // prove an event-free interval and must fail-stop before publication.
+    ASSERT_TRUE(strictWorld.scheduleFixedTicks(1u));
+    WGPUCommandEncoder secondEncoder =
+        wgpuDeviceCreateCommandEncoder(
+            gpuContext.getDevice(), &encoderDesc);
+    const PhysicsEncodeReport second =
+        strictWorld.encodeGpuStepChecked(secondEncoder);
+    EXPECT_EQ(
+        second.status,
+        PhysicsEncodeStatus::EventReadbackUnavailable);
+    EXPECT_TRUE(second.failStopped);
+    EXPECT_FALSE(strictWorld.isInitialized());
+    wgpuCommandEncoderRelease(secondEncoder);
+}
+
+TEST_F(
+    GpuPhysicsTest,
+    CheckedEncodingFailStopsBeforeRetiringTickWhenDebugReadbackIsFull) {
+    PhysicsWorld strictWorld;
+    PhysicsInitContext context;
+    context.requestedBackend = BackendType::WebGpuSoft;
+    context.device = gpuContext.getDevice();
+    context.queue = gpuContext.getQueue();
+    context.maxBodies = 8u;
+    context.maxActiveBodies = 8u;
+    context.maxPairs = 16u;
+    context.maxContacts = 16u;
+    context.maxManifolds = 16u;
+    context.gpu.commandCapacity = 16u;
+    context.gpu.maximumCatchUpTicks = 1u;
+    context.gpu.debugReadbackSlots = 1u;
+    context.gpu.debugReadbackBodyCapacity = 1u;
+    context.gpu.enableTelemetryReadback = false;
+    ASSERT_TRUE(strictWorld.initialize(context));
+
+    BodySpawnDesc desc;
+    desc.position = {0.0f, 20.0f, 0.0f};
+    const BodyHandle body = strictWorld.spawnBody(desc);
+    ASSERT_TRUE(body.valid());
+    ASSERT_TRUE(strictWorld.scheduleFixedTicks(1u));
+    strictWorld.requestDebugSnapshot({body.index, 1u});
+
+    WGPUCommandEncoderDescriptor encoderDesc{};
+    WGPUCommandEncoder firstEncoder =
+        wgpuDeviceCreateCommandEncoder(
+            gpuContext.getDevice(), &encoderDesc);
+    const PhysicsEncodeReport first =
+        strictWorld.encodeGpuStepChecked(firstEncoder);
+    ASSERT_EQ(first.status, PhysicsEncodeStatus::Encoded);
+    ASSERT_EQ(strictWorld.encodedTick(), 1u);
+    WGPUCommandBufferDescriptor commandDesc{};
+    WGPUCommandBuffer firstCommand =
+        wgpuCommandEncoderFinish(firstEncoder, &commandDesc);
+    ASSERT_NE(firstCommand, nullptr);
+    wgpuQueueSubmit(gpuContext.getQueue(), 1u, &firstCommand);
+    wgpuCommandBufferRelease(firstCommand);
+    wgpuCommandEncoderRelease(firstEncoder);
+
+    // Leave the sole pose slot occupied. Checked authority encoding must
+    // reject tick 2 now, while its host tick and commands are unretired.
+    ASSERT_TRUE(strictWorld.scheduleFixedTicks(1u));
+    strictWorld.requestDebugSnapshot({body.index, 1u});
+    WGPUCommandEncoder secondEncoder =
+        wgpuDeviceCreateCommandEncoder(
+            gpuContext.getDevice(), &encoderDesc);
+    const PhysicsEncodeReport second =
+        strictWorld.encodeGpuStepChecked(secondEncoder);
+    EXPECT_EQ(
+        second.status,
+        PhysicsEncodeStatus::DebugReadbackUnavailable);
+    EXPECT_EQ(second.firstTick, 2u);
+    EXPECT_EQ(second.finalTick, 2u);
+    EXPECT_EQ(second.tickCount, 1u);
+    EXPECT_TRUE(second.failStopped);
+    EXPECT_EQ(strictWorld.encodedTick(), 1u);
+    EXPECT_FALSE(strictWorld.isInitialized());
+    wgpuCommandEncoderRelease(secondEncoder);
+}
+
+TEST_F(GpuPhysicsTest, AttachmentCapacityAndSameTickOrderAreDeterministic) {
+    PhysicsWorld limitedWorld;
+    PhysicsInitContext context;
+    context.requestedBackend = BackendType::WebGpuSoft;
+    context.device = gpuContext.getDevice();
+    context.queue = gpuContext.getQueue();
+    context.maxBodies = 8u;
+    context.maxActiveBodies = 8u;
+    context.maxPairs = 16u;
+    context.maxContacts = 16u;
+    context.maxManifolds = 16u;
+    context.gpu.attachmentCapacity = 1u;
+    context.gpu.attachmentCommandCapacity = 2u;
+    context.gpu.debugReadbackBodyCapacity = 4u;
+    context.gpu.maximumLinearSpeed = 5.0f;
+    ASSERT_TRUE(limitedWorld.initialize(context));
+
+    BodySpawnDesc anchorDesc;
+    anchorDesc.position = {0.0f, 20.0f, 0.0f};
+    anchorDesc.inverseMass = 0.0f;
+    BodySpawnDesc loadDesc = anchorDesc;
+    loadDesc.position.x = 5.0f;
+    loadDesc.inverseMass = 1.0f;
+    const BodyHandle anchor = limitedWorld.spawnBody(anchorDesc);
+    const BodyHandle load = limitedWorld.spawnBody(loadDesc);
+    DistanceAttachmentDesc rope;
+    rope.bodyA = anchor;
+    rope.bodyB = load;
+    rope.targetLength = 8.0f;
+    const AttachmentHandle attachment =
+        limitedWorld.createDistanceAttachment(rope);
+    ASSERT_TRUE(attachment.valid());
+    EXPECT_FALSE(limitedWorld.createDistanceAttachment(rope).valid());
+    // Create sorts before updates on one target tick, regardless of API call
+    // sequence. The final target therefore takes effect immediately.
+    ASSERT_TRUE(limitedWorld.setAttachmentTargetLength(
+        attachment, 2.0f));
+    EXPECT_FALSE(limitedWorld.setAttachmentMotorSpeed(
+        attachment, 1.0f));
+
+    limitedWorld.update(1.0f / 60.0f);
+    limitedWorld.requestDebugSnapshot({anchor.index, 2u});
+    WGPUCommandEncoderDescriptor encoderDesc{};
+    WGPUCommandEncoder encoder = wgpuDeviceCreateCommandEncoder(
+        gpuContext.getDevice(), &encoderDesc);
+    limitedWorld.encodeGpuStep(encoder);
+    WGPUCommandBufferDescriptor commandDesc{};
+    WGPUCommandBuffer command =
+        wgpuCommandEncoderFinish(encoder, &commandDesc);
+    wgpuQueueSubmit(gpuContext.getQueue(), 1u, &command);
+    wgpuCommandBufferRelease(command);
+    wgpuCommandEncoderRelease(encoder);
+    auto snapshot = limitedWorld.pollDebugSnapshot();
+    for (uint32_t attempt = 0u; !snapshot && attempt < 8u; ++attempt) {
+        static_cast<void>(wgpuDevicePoll(
+            gpuContext.getDevice(), true, nullptr));
+        snapshot = limitedWorld.pollDebugSnapshot();
+    }
+    ASSERT_TRUE(snapshot.has_value());
+    EXPECT_LT(snapshot->bodies[1].position.x, 5.0f);
+    EXPECT_TRUE(limitedWorld.stats().attachmentCapacityOverflow);
+    EXPECT_TRUE(
+        limitedWorld.stats().attachmentCommandCapacityOverflow);
+}
+
+TEST_F(GpuPhysicsTest, AttachmentSolvesAcrossCanonicalSectorBoundary) {
+    BodySpawnDesc anchorDesc;
+    anchorDesc.position = {127.0f, 20.0f, 0.0f};
+    anchorDesc.sector = {0, 0, 0};
+    anchorDesc.inverseMass = 0.0f;
+    BodySpawnDesc loadDesc = anchorDesc;
+    loadDesc.position.x = -127.0f;
+    loadDesc.sector = {1, 0, 0};
+    loadDesc.inverseMass = 1.0f;
+    const BodyHandle anchor = world.spawnBody(anchorDesc);
+    const BodyHandle load = world.spawnBody(loadDesc);
+    DistanceAttachmentDesc rope;
+    rope.bodyA = anchor;
+    rope.bodyB = load;
+    rope.targetLength = 1.0f;
+    rope.maximumForce = 2'000.0f;
+    ASSERT_TRUE(world.createDistanceAttachment(rope).valid());
+    stepTicks(1u);
+
+    const auto snapshot = snapshotRange(anchor.index, 2u);
+    ASSERT_TRUE(snapshot.has_value());
+    EXPECT_EQ(snapshot->bodies[0].sector.x, 0);
+    EXPECT_EQ(snapshot->bodies[1].sector.x, 1);
+    EXPECT_LT(snapshot->bodies[1].position.x, -127.0f);
+    EXPECT_LT(snapshot->bodies[1].linearVelocity.x, 0.0f);
+}
+
+TEST(GpuAttachmentValidationTest, EncodesWithoutWebGpuValidationErrors) {
+    gpu::Context validationContext;
+    gpu::ContextConfig gpuConfig;
+    gpuConfig.enableValidation = true;
+    if (!validationContext.initHeadless(gpuConfig)) {
+        GTEST_SKIP() << "Headless WebGPU is unavailable";
+    }
+    PhysicsInitContext context;
+    context.requestedBackend = BackendType::WebGpuSoft;
+    context.device = validationContext.getDevice();
+    context.queue = validationContext.getQueue();
+    context.maxBodies = 8u;
+    context.maxActiveBodies = 8u;
+    context.maxPairs = 16u;
+    context.maxContacts = 16u;
+    context.maxManifolds = 16u;
+    context.gpu.attachmentCapacity = 2u;
+    context.gpu.attachmentCommandCapacity = 4u;
+    context.gpu.debugReadbackBodyCapacity = 4u;
+    PhysicsWorld validationWorld;
+    ASSERT_TRUE(validationWorld.initialize(context));
+
+    BodySpawnDesc anchorDesc;
+    anchorDesc.position = {0.0f, 20.0f, 0.0f};
+    anchorDesc.inverseMass = 0.0f;
+    BodySpawnDesc loadDesc = anchorDesc;
+    loadDesc.position.x = 5.0f;
+    loadDesc.inverseMass = 1.0f;
+    const BodyHandle anchor = validationWorld.spawnBody(anchorDesc);
+    const BodyHandle load = validationWorld.spawnBody(loadDesc);
+    DistanceAttachmentDesc rope;
+    rope.bodyA = anchor;
+    rope.bodyB = load;
+    rope.targetLength = 2.0f;
+    ASSERT_TRUE(validationWorld.createDistanceAttachment(rope).valid());
+
+    validationWorld.update(1.0f / 60.0f);
+    validationWorld.requestDebugSnapshot({anchor.index, 2u});
+    WGPUCommandEncoderDescriptor encoderDesc{};
+    WGPUCommandEncoder encoder = wgpuDeviceCreateCommandEncoder(
+        validationContext.getDevice(), &encoderDesc);
+    validationWorld.encodeGpuStep(encoder);
+    WGPUCommandBufferDescriptor commandDesc{};
+    WGPUCommandBuffer command =
+        wgpuCommandEncoderFinish(encoder, &commandDesc);
+    ASSERT_NE(command, nullptr);
+    wgpuQueueSubmit(validationContext.getQueue(), 1u, &command);
+    wgpuCommandBufferRelease(command);
+    wgpuCommandEncoderRelease(encoder);
+
+    auto snapshot = validationWorld.pollDebugSnapshot();
+    for (uint32_t attempt = 0u; !snapshot && attempt < 8u; ++attempt) {
+        static_cast<void>(wgpuDevicePoll(
+            validationContext.getDevice(), true, nullptr));
+        snapshot = validationWorld.pollDebugSnapshot();
+    }
+    ASSERT_TRUE(snapshot.has_value());
+    ASSERT_EQ(snapshot->bodies.size(), 2u);
+    EXPECT_LT(snapshot->bodies[1].position.x, 5.0f);
 }
 
 } // namespace

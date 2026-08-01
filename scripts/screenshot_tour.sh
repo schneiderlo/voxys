@@ -1,34 +1,73 @@
-#!/bin/bash
-# Usage: ./scripts/screenshot_tour.sh [output_dir]
+#!/usr/bin/env bash
+# Usage:
+#   ./scripts/screenshot_tour.sh [output_dir] [view_count] [width] [height]
+
+set -euo pipefail
 
 OUT_DIR=${1:-"screenshots"}
+VIEW_COUNT=${2:-9}
+WIDTH=${3:-3440}
+HEIGHT=${4:-1440}
+
+for VALUE_NAME in VIEW_COUNT WIDTH HEIGHT; do
+    VALUE=${!VALUE_NAME}
+    if ! [[ "$VALUE" =~ ^[1-9][0-9]*$ ]]; then
+        echo "${VALUE_NAME,,} must be a positive integer" >&2
+        exit 2
+    fi
+done
+
 mkdir -p "$OUT_DIR"
 
 echo "Building voxy..."
-# Build native binary first
 bazel build //:voxy_native
-
-# Check if build was successful
-if [ $? -ne 0 ]; then
-    echo "Build failed!"
-    exit 1
-fi
 
 BINARY="bazel-bin/voxy_native"
 if [ ! -f "$BINARY" ]; then
-    # Fallback to CMake build location if bazel is not used
     BINARY="build/voxy_native"
     if [ ! -f "$BINARY" ]; then
-        echo "Could not find voxy binary. Please build it first."
+        echo "Could not find the built voxy binary." >&2
         exit 1
     fi
 fi
 
-# Capture all viewpoints in a single run (faster: no reload between shots)
-# Update NUM_TARGETS when adding new teleport targets
-NUM_TARGETS=6
+echo "Capturing $VIEW_COUNT viewpoints at ${WIDTH}x${HEIGHT}..."
+"$BINARY" \
+    --width "$WIDTH" \
+    --height "$HEIGHT" \
+    --screenshot-tour "$VIEW_COUNT" \
+    --screenshot-dir "$OUT_DIR" \
+    --screenshot-frames 60
 
-echo "Capturing $NUM_TARGETS viewpoints in one run..."
-"$BINARY" --screenshot-tour $NUM_TARGETS --screenshot-dir "$OUT_DIR" --screenshot-frames 60
+python3 - "$OUT_DIR" "$VIEW_COUNT" "$WIDTH" "$HEIGHT" <<'PY'
+from pathlib import Path
+import struct
+import sys
+
+directory = Path(sys.argv[1])
+count, expected_width, expected_height = map(int, sys.argv[2:])
+png_signature = b"\x89PNG\r\n\x1a\n"
+
+for index in range(count):
+    path = directory / f"view_{index}.png"
+    try:
+        with path.open("rb") as stream:
+            header = stream.read(24)
+    except OSError as error:
+        raise SystemExit(f"missing screenshot {path}: {error}")
+    if (
+        len(header) != 24
+        or header[:8] != png_signature
+        or header[12:16] != b"IHDR"
+    ):
+        raise SystemExit(f"invalid PNG header: {path}")
+    width, height = struct.unpack(">II", header[16:24])
+    if (width, height) != (expected_width, expected_height):
+        raise SystemExit(
+            f"wrong screenshot size for {path}: "
+            f"{width}x{height}, expected "
+            f"{expected_width}x{expected_height}"
+        )
+PY
 
 echo "Screenshot tour complete. Images saved to $OUT_DIR/"

@@ -8,6 +8,7 @@
 #include "physics/gpu/gpu_broad_phase.hpp"
 #include "physics/gpu/gpu_buffer_arena.hpp"
 #include "physics/gpu/gpu_ccd.hpp"
+#include "physics/gpu/gpu_attachments.hpp"
 #include "physics/gpu/gpu_dynamic_solver.hpp"
 #include "physics/gpu/gpu_event_readback.hpp"
 #include "physics/gpu/gpu_islands.hpp"
@@ -31,7 +32,7 @@
 #include <filesystem>
 #include <limits>
 #include <set>
-#include <unordered_set>
+#include <tuple>
 #include <utility>
 #include <vector>
 
@@ -72,8 +73,10 @@ constexpr uint32_t kSolverTelemetryOffset =
     kNarrowTelemetryOffset + GpuNarrowPhase::kTelemetryWordCount;
 constexpr uint32_t kIslandTelemetryOffset =
     kSolverTelemetryOffset + GpuDynamicSolver::kTelemetryWordCount;
-constexpr uint32_t kNarrowCollisionPairClassOffset =
+constexpr uint32_t kAttachmentTelemetryOffset =
     kIslandTelemetryOffset + GpuIslandManager::kTelemetryWordCount;
+constexpr uint32_t kNarrowCollisionPairClassOffset =
+    kAttachmentTelemetryOffset + GpuAttachmentSolver::kTelemetryWordCount;
 constexpr uint32_t kTelemetrySnapshotWordCount =
     kNarrowCollisionPairClassOffset + kGpuNarrowPhasePairClassCount;
 constexpr size_t kTelemetrySnapshotBytes =
@@ -187,7 +190,8 @@ uint32_t commandPriority(PhysicsCommandType type) noexcept {
         case PhysicsCommandType::SetVelocity:
         case PhysicsCommandType::SetAngularVelocity: return 4;
         case PhysicsCommandType::ApplyImpulse:
-        case PhysicsCommandType::ApplyForce: return 5;
+        case PhysicsCommandType::ApplyForce:
+        case PhysicsCommandType::ApplyForceAtLocalPoint: return 5;
         case PhysicsCommandType::Wake:
         case PhysicsCommandType::Sleep: return 6;
     }
@@ -198,6 +202,15 @@ uint32_t nextBodyGeneration(uint32_t generation) noexcept {
     generation = (generation + 1u) & kGpuBodyGenerationMask;
     return generation == 0u ? 1u : generation;
 }
+
+struct AttachmentMutation {
+    GpuAttachmentCommandType type = GpuAttachmentCommandType::CreateDistance;
+    AttachmentHandle attachment{};
+    uint64_t targetTick = 0u;
+    uint64_t sequence = 0u;
+    DistanceAttachmentDesc desc{};
+    float value = 0.0f;
+};
 
 bool finiteVector(const glm::vec3& value) noexcept {
     return std::isfinite(value.x) && std::isfinite(value.y)
@@ -255,6 +268,30 @@ void releaseHandle(T& handle, void (*release)(T)) {
 
 class GpuPhysicsBackend::Impl {
 public:
+    enum class SchedulingMode : uint8_t {
+        Undecided = 0u,
+        Accumulator,
+        FixedTicks,
+    };
+
+    struct PreparedMutationState {
+        uint64_t token = 0u;
+        uint64_t targetTick = 0u;
+        uint32_t bodyCommandCount = 0u;
+        uint32_t destroyedAttachmentCount = 0u;
+        uint32_t createdAttachmentCount = 0u;
+        uint64_t nextSequence = 1u;
+        uint32_t nextUnusedAttachmentIndex = 1u;
+        uint32_t residentAttachments = 0u;
+        uint32_t highResidentAttachments = 0u;
+        std::vector<PhysicsCommand> commands;
+        std::vector<AttachmentMutation> attachmentCommands;
+        std::vector<uint32_t> attachmentGenerations;
+        std::vector<bool> hostAttachmentAlive;
+        std::vector<uint32_t> freeAttachmentIndices;
+        std::vector<AttachmentHandle> createdAttachments;
+    };
+
     ~Impl() { shutdown(); }
 
     bool initialize(const PhysicsInitContext& context) {
@@ -310,6 +347,10 @@ public:
             || gpuConfig.maximumCatchUpTicks == 0
             || gpuConfig.maximumCatchUpTicks > kMaximumCatchUpTicks
             || context.gpu.commandCapacity == 0
+            || context.gpu.attachmentCapacity == 0u
+            || context.gpu.attachmentCapacity
+                == std::numeric_limits<uint32_t>::max()
+            || context.gpu.attachmentCommandCapacity == 0u
             || context.gpu.debugReadbackSlots == 0
             || context.gpu.debugReadbackSlots > kMaximumReadbackSlots
             || context.gpu.debugReadbackBodyCapacity == 0
@@ -365,7 +406,8 @@ public:
                 uint64_t{context.maxPairs} * 4u,
                 uint64_t{std::numeric_limits<uint32_t>::max()});
         const uint64_t maximumEventRecords =
-            uint64_t{context.maxManifolds} * 3u + context.maxBodies;
+            uint64_t{context.maxManifolds} * 3u + context.maxBodies
+            + context.gpu.attachmentCapacity;
         if (maximumEventRecords > std::numeric_limits<uint32_t>::max()
             || !fitsStorage(bodyCapacity, 128u) // solver color claims
             || !fitsStorage(candidateCapacity, sizeof(GpuKeyValue))
@@ -377,6 +419,11 @@ public:
             || !fitsStorage(maximumEventRecords, sizeof(GpuPhysicsEvent))
             || !fitsStorage(context.gpu.commandCapacity,
                             sizeof(GpuCommand))
+            || !fitsStorage(
+                uint64_t{context.gpu.attachmentCapacity} + 1u,
+                sizeof(GpuDistanceAttachment))
+            || !fitsStorage(context.gpu.attachmentCommandCapacity,
+                            sizeof(GpuAttachmentCommand))
             || !fitsStorage(context.gpu.debugReadbackBodyCapacity,
                             kGpuBodyBytes)
             || !fitsStorage(context.gpu.asyncQueryCapacity,
@@ -398,6 +445,8 @@ public:
         candidatePairCapacity_ = static_cast<uint32_t>(candidateCapacity);
         contactCapacity_ = context.maxContacts;
         manifoldCapacity_ = context.maxManifolds;
+        attachmentLimit_ = config_.attachmentCapacity;
+        attachmentCapacity_ = attachmentLimit_ + 1u;
         if (activeCapacity_ == 0 || pairCapacity_ == 0
             || contactCapacity_ == 0 || manifoldCapacity_ == 0) {
             LOG_ERROR("WebGPU physics capacities must all be non-zero");
@@ -410,6 +459,40 @@ public:
         hostAlive_.assign(bodyCapacity_, false);
         scheduledSpawnTicks_.assign(bodyCapacity_, 0u);
         scheduledDestroyTicks_.assign(bodyCapacity_, 0u);
+        attachmentGenerations_.assign(attachmentCapacity_, 1u);
+        attachmentGenerations_[0] = 0u;
+        hostAttachmentAlive_.assign(attachmentCapacity_, false);
+        commands_.reserve(
+            size_t{config_.commandCapacity} + 1u);
+        commandSortScratch_.reserve(
+            size_t{config_.commandCapacity} + 1u);
+        commandSuperseded_.reserve(
+            size_t{config_.commandCapacity} + 1u);
+        commandUpload_.reserve(config_.commandCapacity);
+        latestKinematicIndex_.assign(
+            bodyCapacity_, std::numeric_limits<size_t>::max());
+        latestKinematicTick_.assign(bodyCapacity_, 0u);
+        latestKinematicGeneration_.assign(bodyCapacity_, 0u);
+        attachmentCommands_.reserve(
+            config_.attachmentCommandCapacity);
+        attachmentCommandSortScratch_.reserve(
+            config_.attachmentCommandCapacity);
+        attachmentUpload_.reserve(
+            config_.attachmentCommandCapacity);
+        freeAttachmentIndices_.reserve(attachmentLimit_);
+        preparedMutation_.emplace();
+        preparedMutation_->commands.reserve(
+            size_t{config_.commandCapacity} + 1u);
+        preparedMutation_->attachmentCommands.reserve(
+            config_.attachmentCommandCapacity);
+        preparedMutation_->attachmentGenerations.assign(
+            attachmentCapacity_, 1u);
+        preparedMutation_->hostAttachmentAlive.assign(
+            attachmentCapacity_, false);
+        preparedMutation_->freeAttachmentIndices.reserve(
+            attachmentLimit_);
+        preparedMutation_->createdAttachments.reserve(
+            attachmentLimit_);
         arena_.initialize(device_);
         if (!characterMover_.initialize()) {
             shutdown();
@@ -483,7 +566,8 @@ public:
         }
 
         shaderModule_ = gpu::loadShaderModule(
-            device_, config_.shaderPath, "physics_ballistic.wgsl");
+            device_, config_.shaderPath, "physics_ballistic.wgsl",
+            config_.shaderSources);
         if (!shaderModule_ || !createPipelinesAndBindings()) {
             shutdown();
             return false;
@@ -525,6 +609,7 @@ public:
         ccdConfig.shaderPath = shaderFile("physics_ccd.wgsl");
         ccdConfig.primitivesShaderPath = shaderFile(
             "physics_deterministic_primitives.wgsl");
+        ccdConfig.shaderSources = config_.shaderSources;
         if (!ccd_.initialize(device_, queue_, ccdConfig)) {
             shutdown();
             return false;
@@ -540,6 +625,7 @@ public:
         broadConfig.shaderPath = shaderFile("physics_broad_phase.wgsl");
         broadConfig.primitivesShaderPath = shaderFile(
             "physics_deterministic_primitives.wgsl");
+        broadConfig.shaderSources = config_.shaderSources;
         if (!broadPhase_.initialize(device_, queue_, broadConfig)) {
             shutdown();
             return false;
@@ -562,6 +648,7 @@ public:
         narrowConfig.shaderPath = shaderFile("physics_narrow_phase.wgsl");
         narrowConfig.primitivesShaderPath = shaderFile(
             "physics_deterministic_primitives.wgsl");
+        narrowConfig.shaderSources = config_.shaderSources;
         if (!narrowPhase_.initialize(device_, queue_, narrowConfig)) {
             shutdown();
             return false;
@@ -598,10 +685,35 @@ public:
         solverConfig.shaderPath = shaderFile("physics_dynamic_solver.wgsl");
         solverConfig.primitivesShaderPath = shaderFile(
             "physics_deterministic_primitives.wgsl");
+        solverConfig.shaderSources = config_.shaderSources;
         if (!dynamicSolver_.initialize(device_, queue_, solverConfig)) {
             shutdown();
             return false;
         }
+
+        GpuAttachmentSolver::Config attachmentConfig;
+        attachmentConfig.attachmentCapacity = attachmentCapacity_;
+        attachmentConfig.commandCapacity =
+            config_.attachmentCommandCapacity;
+        attachmentConfig.tickSeconds = config_.fixedTickSeconds;
+        attachmentConfig.linearSlop = config_.linearSlop;
+        attachmentConfig.biasFactor = 0.2f;
+        attachmentConfig.shaderPath =
+            shaderFile("physics_attachments.wgsl");
+        attachmentConfig.shaderSources = config_.shaderSources;
+        if (!attachmentSolver_.initialize(
+                device_, queue_, attachmentConfig)) {
+            shutdown();
+            return false;
+        }
+        attachmentSolver_.setInput({
+            .poseBuffer = poseBuffer_,
+            .motionBuffer = motionBuffer_,
+            .shapeBuffer = shapeBuffer_,
+            .metadataBuffer = metadataBuffer_,
+            .coreCountersBuffer = countersBuffer_,
+            .bodyCapacity = 1u,
+        });
 
         GpuIslandManager::Config islandConfig;
         islandConfig.bodyCapacity = bodyCapacity_;
@@ -611,6 +723,7 @@ public:
         islandConfig.shaderPath = shaderFile("physics_islands.wgsl");
         islandConfig.primitivesShaderPath = shaderFile(
             "physics_deterministic_primitives.wgsl");
+        islandConfig.shaderSources = config_.shaderSources;
         if (!islandManager_.initialize(device_, queue_, islandConfig)) {
             shutdown();
             return false;
@@ -622,6 +735,7 @@ public:
         queryConfig.requestCapacity = config_.asyncQueryCapacity;
         queryConfig.readbackSlots = config_.asyncQueryReadbackSlots;
         queryConfig.shaderPath = shaderFile("physics_queries.wgsl");
+        queryConfig.shaderSources = config_.shaderSources;
         if (!querySystem_.initialize(device_, queue_, queryConfig)) {
             shutdown();
             return false;
@@ -634,7 +748,7 @@ public:
         });
 
         const uint64_t maximumEvents = uint64_t{manifoldCapacity_} * 3u
-                                     + bodyLimit_;
+                                     + bodyLimit_ + attachmentLimit_;
         if (maximumEvents > std::numeric_limits<uint32_t>::max()) {
             LOG_ERROR("WebGPU physics event capacity exceeds u32 range");
             shutdown();
@@ -708,6 +822,7 @@ public:
         eventReadback_.shutdown();
         querySystem_.shutdown();
         islandManager_.shutdown();
+        attachmentSolver_.shutdown();
         dynamicSolver_.shutdown();
         narrowPhase_.shutdown();
         broadPhase_.shutdown();
@@ -767,20 +882,30 @@ public:
         candidatePairCapacity_ = 0;
         contactCapacity_ = 0;
         manifoldCapacity_ = 0;
+        attachmentCapacity_ = 0u;
+        attachmentLimit_ = 0u;
         eventCapacity_ = 0;
         ccdBulletCapacity_ = 0;
         blockCount_ = 0;
         nextUnusedIndex_ = 1;
+        nextUnusedAttachmentIndex_ = 1u;
         residentBodies_ = 0;
+        residentAttachments_ = 0u;
         highResidentBodies_ = 0;
+        highResidentAttachments_ = 0u;
         bodyCapacityOverflow_ = false;
         commandCapacityOverflow_ = false;
+        attachmentCapacityOverflow_ = false;
+        attachmentCommandCapacityOverflow_ = false;
         lastGpuUploadBytes_ = 0;
         lastGpuReadbackBytes_ = 0;
         accumulator_ = 0.0;
         pendingTicks_ = 0;
+        schedulingMode_ = SchedulingMode::Undecided;
         encodedTick_ = 0;
         nextSequence_ = 1;
+        nextPreparedMutationToken_ = 1u;
+        preparedMutation_.reset();
         queryPending_ = false;
         pendingQueryCount_ = 0;
         eventReadbackEnabled_ = false;
@@ -794,10 +919,22 @@ public:
         stageTimingResults_.clear();
         cachedTelemetry_ = {};
         commands_.clear();
+        commandSortScratch_.clear();
+        commandSuperseded_.clear();
+        commandUpload_.clear();
+        latestKinematicIndex_.clear();
+        latestKinematicTick_.clear();
+        latestKinematicGeneration_.clear();
+        attachmentCommands_.clear();
+        attachmentCommandSortScratch_.clear();
+        attachmentUpload_.clear();
         pendingFrees_.clear();
         freeIndices_.clear();
+        freeAttachmentIndices_.clear();
         generations_.clear();
         hostAlive_.clear();
+        attachmentGenerations_.clear();
+        hostAttachmentAlive_.clear();
         scheduledSpawnTicks_.clear();
         scheduledDestroyTicks_.clear();
         debugRequest_.reset();
@@ -1339,6 +1476,8 @@ public:
             .manifoldCapacity = manifoldCapacity_,
             .metadata = metadataBuffer_,
             .bodyCapacity = executionBodies,
+            .attachments = attachmentSolver_.attachmentBuffer(),
+            .attachmentCapacity = attachmentCapacity_,
         });
     }
 
@@ -1354,6 +1493,7 @@ public:
                 ? std::filesystem::path("shaders")
                 : mainShaderPath.parent_path())
             / "physics_event_readback.wgsl";
+        eventConfig.shaderSources = config_.shaderSources;
         if (!eventReadback_.initialize(device_, queue_, eventConfig)) {
             LOG_ERROR("Failed to allocate GPU physics event readback");
             return false;
@@ -1384,6 +1524,14 @@ public:
             .metadataBuffer = metadataBuffer_,
             .bodyCapacity = executionBodies,
         });
+        attachmentSolver_.setInput({
+            .poseBuffer = poseBuffer_,
+            .motionBuffer = motionBuffer_,
+            .shapeBuffer = shapeBuffer_,
+            .metadataBuffer = metadataBuffer_,
+            .coreCountersBuffer = countersBuffer_,
+            .bodyCapacity = executionBodies,
+        });
         refreshCcdInput(executionBodies);
         refreshContactInputs(executionBodies);
         refreshEventSources(executionBodies);
@@ -1402,6 +1550,11 @@ public:
         return initialized_ && handle.valid() && handle.index < bodyCapacity_
             && hostAlive_[handle.index]
             && generations_[handle.index] == handle.generation;
+    }
+
+    [[nodiscard]] bool preparedMutationActive() const noexcept {
+        return preparedMutation_.has_value()
+            && preparedMutation_->token != 0u;
     }
 
     [[nodiscard]] bool hostHandleAliveAt(
@@ -1503,7 +1656,7 @@ public:
     }
 
     BodyHandle spawn(const BodySpawnDesc& requested) {
-        if (!initialized_) return {};
+        if (!initialized_ || preparedMutationActive()) return {};
         if (!finiteVector(requested.position)
             || !finiteQuaternion(requested.orientation)
             || !finiteVector(requested.linearVelocity)
@@ -1584,12 +1737,51 @@ public:
     }
 
     bool destroy(BodyHandle handle) {
+        if (preparedMutationActive()) return false;
         return queueDestroy(
             handle, nextMutationTick(), assignCommandSequence());
     }
 
-    void sortAndCoalesceKinematicTargets() {
-        std::stable_sort(commands_.begin(), commands_.end(),
+    template <typename Value, typename Less>
+    static void stableSortWithScratch(
+        std::vector<Value>& values,
+        std::vector<Value>& scratch,
+        Less less) noexcept {
+        const size_t count = values.size();
+        if (count < 2u) return;
+        for (size_t width = 1u; width < count;) {
+            scratch.clear();
+            for (size_t begin = 0u; begin < count;
+                 begin += 2u * width) {
+                const size_t middle =
+                    std::min(begin + width, count);
+                const size_t end =
+                    std::min(begin + 2u * width, count);
+                size_t left = begin;
+                size_t right = middle;
+                while (left < middle && right < end) {
+                    if (less(values[right], values[left])) {
+                        scratch.push_back(values[right++]);
+                    } else {
+                        scratch.push_back(values[left++]);
+                    }
+                }
+                while (left < middle) {
+                    scratch.push_back(values[left++]);
+                }
+                while (right < end) {
+                    scratch.push_back(values[right++]);
+                }
+            }
+            values.swap(scratch);
+            if (width > count / 2u) break;
+            width *= 2u;
+        }
+    }
+
+    void sortAndCoalesceKinematicTargets() noexcept {
+        stableSortWithScratch(
+            commands_, commandSortScratch_,
             [](const PhysicsCommand& lhs, const PhysicsCommand& rhs) {
                 if (lhs.targetTick != rhs.targetTick)
                     return lhs.targetTick < rhs.targetTick;
@@ -1603,42 +1795,57 @@ public:
         // incremental move. Applying several targets for the same body/tick
         // would otherwise derive velocity from only the last tiny segment.
         // Retain the final target in each uninterrupted pose-command run.
-        std::vector<bool> superseded(commands_.size(), false);
-        std::unordered_set<uint64_t> laterTargets;
-        uint64_t reverseTick = std::numeric_limits<uint64_t>::max();
-        for (size_t offset = commands_.size(); offset != 0u; --offset) {
-            const size_t index = offset - 1u;
+        commandSuperseded_.assign(commands_.size(), uint8_t{0u});
+        std::fill(
+            latestKinematicIndex_.begin(),
+            latestKinematicIndex_.end(),
+            std::numeric_limits<size_t>::max());
+        for (size_t index = 0u; index < commands_.size(); ++index) {
             const PhysicsCommand& command = commands_[index];
-            if (command.targetTick != reverseTick) {
-                reverseTick = command.targetTick;
-                laterTargets.clear();
-            }
-            const uint64_t bodyKey =
-                (uint64_t{command.body.index} << 32u)
-                | command.body.generation;
+            if (command.body.index >= bodyCapacity_) continue;
+            const uint32_t body = command.body.index;
             if (command.type == PhysicsCommandType::SetKinematicTarget) {
-                if (!laterTargets.insert(bodyKey).second) {
-                    superseded[index] = true;
+                if (latestKinematicTick_[body] == command.targetTick
+                    && latestKinematicGeneration_[body]
+                        == command.body.generation
+                    && latestKinematicIndex_[body]
+                        != std::numeric_limits<size_t>::max()) {
+                    commandSuperseded_[latestKinematicIndex_[body]] = 1u;
                 }
+                latestKinematicTick_[body] = command.targetTick;
+                latestKinematicGeneration_[body] =
+                    command.body.generation;
+                latestKinematicIndex_[body] = index;
             } else if (command.type == PhysicsCommandType::Teleport
                        || command.type == PhysicsCommandType::SpawnBody
                        || command.type == PhysicsCommandType::DestroyBody) {
-                laterTargets.erase(bodyKey);
+                if (latestKinematicTick_[body] == command.targetTick
+                    && latestKinematicGeneration_[body]
+                        == command.body.generation) {
+                    latestKinematicIndex_[body] =
+                        std::numeric_limits<size_t>::max();
+                }
             }
         }
-        size_t index = 0u;
-        commands_.erase(std::remove_if(
-            commands_.begin(), commands_.end(), [&superseded, &index](const auto&) {
-                return superseded[index++];
-            }), commands_.end());
+        size_t destination = 0u;
+        for (size_t source = 0u; source < commands_.size(); ++source) {
+            if (commandSuperseded_[source] != 0u) continue;
+            if (destination != source) {
+                commands_[destination] =
+                    std::move(commands_[source]);
+            }
+            ++destination;
+        }
+        commands_.resize(destination);
     }
 
     void enqueueCommands(std::span<const PhysicsCommand> input) {
+        if (preparedMutationActive()) return;
         bool queuedKinematicTarget = false;
         for (PhysicsCommand command : input) {
             if (static_cast<uint32_t>(command.type)
                     > static_cast<uint32_t>(
-                        PhysicsCommandType::SetKinematicTarget)
+                        PhysicsCommandType::ApplyForceAtLocalPoint)
                 || !finiteVector(command.a) || !finiteVector(command.b)
                 || !finiteVector(command.c) || !finiteVector(command.d)
                 || !finiteVector(command.e)
@@ -1737,20 +1944,124 @@ public:
                 command.a = glm::vec4(position.local, command.a.w);
             }
             if (commands_.size() >= config_.commandCapacity) {
-                // At capacity, a final same-tick kinematic pose can still be
-                // admitted by replacing the superseded target it authorizes.
-                // Preserve the exact queue if it does not coalesce.
-                std::vector<PhysicsCommand> previous = commands_;
-                commands_.push_back(command);
-                sortAndCoalesceKinematicTargets();
-                if (commands_.size() > config_.commandCapacity) {
-                    commands_ = std::move(previous);
-                    commandCapacityOverflow_ = true;
-                    LOG_WARN("GPU physics command capacity {} exceeded",
-                             config_.commandCapacity);
-                } else {
-                    queuedKinematicTarget = true;
+                // The queue is already sorted and coalesced here. Admit a
+                // final target without allocating a rollback vector: either a
+                // later target in the same uninterrupted pose run already
+                // supersedes it, or it replaces the one earlier target that
+                // it supersedes. A teleport is a run boundary.
+                const auto less =
+                    [](const PhysicsCommand& lhs,
+                       const PhysicsCommand& rhs) {
+                        if (lhs.targetTick != rhs.targetTick) {
+                            return lhs.targetTick < rhs.targetTick;
+                        }
+                        const uint32_t lhsPriority =
+                            commandPriority(lhs.type);
+                        const uint32_t rhsPriority =
+                            commandPriority(rhs.type);
+                        if (lhsPriority != rhsPriority) {
+                            return lhsPriority < rhsPriority;
+                        }
+                        return lhs.sequence < rhs.sequence;
+                    };
+                const size_t insertion = static_cast<size_t>(
+                    std::distance(
+                        commands_.begin(),
+                        std::upper_bound(
+                            commands_.begin(), commands_.end(),
+                            command, less)));
+                constexpr size_t kNoCommand =
+                    std::numeric_limits<size_t>::max();
+                size_t previousTarget = kNoCommand;
+                for (size_t cursor = insertion; cursor > 0u;) {
+                    --cursor;
+                    const PhysicsCommand& existing =
+                        commands_[cursor];
+                    if (existing.targetTick
+                        != command.targetTick) {
+                        break;
+                    }
+                    if (existing.body.index
+                        != command.body.index) {
+                        continue;
+                    }
+                    if (existing.type
+                            == PhysicsCommandType::
+                                SetKinematicTarget
+                        && existing.body.generation
+                            != command.body.generation) {
+                        break;
+                    }
+                    if (existing.body.generation
+                        != command.body.generation) {
+                        continue;
+                    }
+                    if (existing.type
+                        == PhysicsCommandType::
+                            SetKinematicTarget) {
+                        previousTarget = cursor;
+                        break;
+                    }
+                    if (existing.type
+                            == PhysicsCommandType::Teleport
+                        || existing.type
+                            == PhysicsCommandType::SpawnBody
+                        || existing.type
+                            == PhysicsCommandType::DestroyBody) {
+                        break;
+                    }
                 }
+                bool supersededByLaterTarget = false;
+                for (size_t cursor = insertion;
+                     cursor < commands_.size(); ++cursor) {
+                    const PhysicsCommand& existing =
+                        commands_[cursor];
+                    if (existing.targetTick
+                        != command.targetTick) {
+                        break;
+                    }
+                    if (existing.body.index
+                        != command.body.index) {
+                        continue;
+                    }
+                    if (existing.type
+                            == PhysicsCommandType::
+                                SetKinematicTarget
+                        && existing.body.generation
+                            != command.body.generation) {
+                        break;
+                    }
+                    if (existing.body.generation
+                        != command.body.generation) {
+                        continue;
+                    }
+                    if (existing.type
+                        == PhysicsCommandType::
+                            SetKinematicTarget) {
+                        supersededByLaterTarget = true;
+                        break;
+                    }
+                    if (existing.type
+                            == PhysicsCommandType::Teleport
+                        || existing.type
+                            == PhysicsCommandType::SpawnBody
+                        || existing.type
+                            == PhysicsCommandType::DestroyBody) {
+                        break;
+                    }
+                }
+                if (supersededByLaterTarget) {
+                    continue;
+                }
+                if (previousTarget != kNoCommand) {
+                    commands_[previousTarget] =
+                        std::move(command);
+                    queuedKinematicTarget = true;
+                    continue;
+                }
+                commandCapacityOverflow_ = true;
+                LOG_WARN("GPU physics command capacity {} exceeded",
+                         config_.commandCapacity);
                 continue;
             }
             commands_.push_back(command);
@@ -1758,6 +2069,554 @@ public:
                 || command.type == PhysicsCommandType::SetKinematicTarget;
         }
         if (queuedKinematicTarget) sortAndCoalesceKinematicTargets();
+    }
+
+    void shrinkUnusedAttachmentTail() {
+        while (nextUnusedAttachmentIndex_ > 1u) {
+            const uint32_t last = nextUnusedAttachmentIndex_ - 1u;
+            const auto free = std::lower_bound(
+                freeAttachmentIndices_.begin(),
+                freeAttachmentIndices_.end(), last);
+            if (hostAttachmentAlive_[last]
+                || free == freeAttachmentIndices_.end()
+                || *free != last) {
+                break;
+            }
+            freeAttachmentIndices_.erase(free);
+            --nextUnusedAttachmentIndex_;
+        }
+    }
+
+    [[nodiscard]] bool hostAttachmentAllocated(
+        AttachmentHandle handle) const noexcept {
+        return initialized_ && handle.valid()
+            && handle.index < attachmentCapacity_
+            && hostAttachmentAlive_[handle.index]
+            && attachmentGenerations_[handle.index] == handle.generation;
+    }
+
+    [[nodiscard]] bool validAttachmentDesc(
+        const DistanceAttachmentDesc& desc, uint64_t targetTick) const noexcept {
+        return desc.bodyA != desc.bodyB
+            && hostHandleAliveAt(desc.bodyA, targetTick)
+            && hostHandleAliveAt(desc.bodyB, targetTick)
+            && finiteVector(desc.localAnchorA)
+            && finiteVector(desc.localAnchorB)
+            && std::isfinite(desc.targetLength)
+            && std::isfinite(desc.minimumLength)
+            && std::isfinite(desc.maximumLength)
+            && std::isfinite(desc.motorSpeed)
+            && std::isfinite(desc.maximumForce)
+            && std::isfinite(desc.breakForce)
+            && desc.targetLength >= 0.0f
+            && desc.minimumLength >= 0.0f
+            && desc.maximumLength >= desc.minimumLength
+            && desc.maximumForce > 0.0f
+            && desc.breakForce >= 0.0f;
+    }
+
+    AttachmentHandle createAttachment(
+        const DistanceAttachmentDesc& requested) {
+        if (!initialized_ || preparedMutationActive()) return {};
+        const uint64_t targetTick = nextMutationTick();
+        if (!validAttachmentDesc(requested, targetTick)) {
+            LOG_WARN("Discarding invalid GPU distance attachment");
+            return {};
+        }
+        if (attachmentCommands_.size()
+            >= config_.attachmentCommandCapacity) {
+            attachmentCommandCapacityOverflow_ = true;
+            return {};
+        }
+        uint32_t index = 0u;
+        if (!freeAttachmentIndices_.empty()) {
+            const auto first = freeAttachmentIndices_.begin();
+            index = *first;
+            freeAttachmentIndices_.erase(first);
+        } else if (nextUnusedAttachmentIndex_ < attachmentCapacity_) {
+            index = nextUnusedAttachmentIndex_++;
+        }
+        if (index == 0u) {
+            attachmentCapacityOverflow_ = true;
+            return {};
+        }
+
+        DistanceAttachmentDesc desc = requested;
+        desc.targetLength = std::clamp(
+            desc.targetLength, desc.minimumLength, desc.maximumLength);
+        const AttachmentHandle handle{
+            index, attachmentGenerations_[index]};
+        attachmentCommands_.push_back({
+            .type = GpuAttachmentCommandType::CreateDistance,
+            .attachment = handle,
+            .targetTick = targetTick,
+            .sequence = assignCommandSequence(),
+            .desc = desc,
+        });
+        hostAttachmentAlive_[index] = true;
+        ++residentAttachments_;
+        highResidentAttachments_ = std::max(
+            highResidentAttachments_, residentAttachments_);
+        idleWorldConfirmed_ = false;
+        return handle;
+    }
+
+    bool destroyAttachment(AttachmentHandle handle) {
+        if (preparedMutationActive()) return false;
+        if (!hostAttachmentAllocated(handle)) return false;
+        const bool pendingCreate = std::any_of(
+            attachmentCommands_.begin(), attachmentCommands_.end(),
+            [handle](const AttachmentMutation& mutation) {
+                return mutation.attachment == handle
+                    && mutation.type
+                        == GpuAttachmentCommandType::CreateDistance;
+            });
+        if (pendingCreate) {
+            attachmentCommands_.erase(std::remove_if(
+                attachmentCommands_.begin(), attachmentCommands_.end(),
+                [handle](const AttachmentMutation& mutation) {
+                    return mutation.attachment == handle;
+                }), attachmentCommands_.end());
+        } else {
+            if (attachmentCommands_.size()
+                >= config_.attachmentCommandCapacity) {
+                attachmentCommandCapacityOverflow_ = true;
+                return false;
+            }
+            attachmentCommands_.push_back({
+                .type = GpuAttachmentCommandType::Destroy,
+                .attachment = handle,
+                .targetTick = nextMutationTick(),
+                .sequence = assignCommandSequence(),
+            });
+        }
+        hostAttachmentAlive_[handle.index] = false;
+        attachmentGenerations_[handle.index] =
+            nextBodyGeneration(attachmentGenerations_[handle.index]);
+        if (residentAttachments_ != 0u) --residentAttachments_;
+        freeAttachmentIndices_.insert(
+            std::lower_bound(
+                freeAttachmentIndices_.begin(),
+                freeAttachmentIndices_.end(), handle.index),
+            handle.index);
+        shrinkUnusedAttachmentTail();
+        return true;
+    }
+
+    bool setAttachmentTarget(
+        AttachmentHandle handle, float targetLength) {
+        if (preparedMutationActive() || !hostAttachmentAllocated(handle)
+            || !std::isfinite(targetLength) || targetLength < 0.0f) {
+            return false;
+        }
+        if (attachmentCommands_.size()
+            >= config_.attachmentCommandCapacity) {
+            attachmentCommandCapacityOverflow_ = true;
+            return false;
+        }
+        attachmentCommands_.push_back({
+            .type = GpuAttachmentCommandType::SetTargetLength,
+            .attachment = handle,
+            .targetTick = nextMutationTick(),
+            .sequence = assignCommandSequence(),
+            .value = targetLength,
+        });
+        idleWorldConfirmed_ = false;
+        return true;
+    }
+
+    bool setAttachmentMotor(
+        AttachmentHandle handle, float motorSpeed) {
+        if (preparedMutationActive() || !hostAttachmentAllocated(handle)
+            || !std::isfinite(motorSpeed)) {
+            return false;
+        }
+        if (attachmentCommands_.size()
+            >= config_.attachmentCommandCapacity) {
+            attachmentCommandCapacityOverflow_ = true;
+            return false;
+        }
+        attachmentCommands_.push_back({
+            .type = GpuAttachmentCommandType::SetMotorSpeed,
+            .attachment = handle,
+            .targetTick = nextMutationTick(),
+            .sequence = assignCommandSequence(),
+            .value = motorSpeed,
+        });
+        idleWorldConfirmed_ = false;
+        return true;
+    }
+
+    PreparedPhysicsMutation prepareMutationBatch(
+        const PhysicsMutationBatch& batch) noexcept {
+        PreparedPhysicsMutation result;
+        if (!initialized_) {
+            result.status = PhysicsMutationStatus::NotInitialized;
+            return result;
+        }
+        result.targetTick = nextMutationTick();
+        if (preparedMutationActive()) {
+            result.status = PhysicsMutationStatus::PendingMutation;
+            return result;
+        }
+        // The authority path prepares immediately after the preceding tick is
+        // closed, then schedules exactly one tick after commit. Admitting a
+        // transaction into accumulated clock debt would make its application
+        // tick ambiguous.
+        if (pendingTicks_ != 0u) {
+            result.status = PhysicsMutationStatus::PendingPhysicsTicks;
+            return result;
+        }
+        if (schedulingMode_ == SchedulingMode::Accumulator) {
+            result.status =
+                PhysicsMutationStatus::IncompatibleSchedulingMode;
+            return result;
+        }
+        if (batch.bodyCommands.empty()
+            && batch.attachmentDestroys.empty()
+            && batch.attachmentCreates.empty()) {
+            result.status = PhysicsMutationStatus::EmptyBatch;
+            return result;
+        }
+        if (commands_.size() > config_.commandCapacity
+            || batch.bodyCommands.size()
+                > config_.commandCapacity - commands_.size()
+            || batch.attachmentDestroys.size()
+                > config_.attachmentCommandCapacity
+            || batch.attachmentCreates.size()
+                > config_.attachmentCommandCapacity) {
+            result.status = PhysicsMutationStatus::CapacityExceeded;
+            return result;
+        }
+
+        {
+            if (!preparedMutation_) {
+                result.status = PhysicsMutationStatus::NotInitialized;
+                return result;
+            }
+            PreparedMutationState& staged = *preparedMutation_;
+            // Preparation is a fixed-tick runtime path. All scratch storage is
+            // allocated by initialize(); fail closed if a later refactor ever
+            // violates that capacity invariant instead of allocating here.
+            if (staged.commands.capacity()
+                    < commands_.size() + batch.bodyCommands.size()
+                || staged.attachmentCommands.capacity()
+                    < attachmentCommands_.size()
+                || staged.attachmentGenerations.capacity()
+                    < attachmentGenerations_.size()
+                || staged.hostAttachmentAlive.capacity()
+                    < hostAttachmentAlive_.size()
+                || staged.freeAttachmentIndices.capacity()
+                    < freeAttachmentIndices_.size()
+                || staged.createdAttachments.capacity()
+                    < batch.attachmentCreates.size()) {
+                result.status = PhysicsMutationStatus::CapacityExceeded;
+                return result;
+            }
+            staged.token = 0u;
+            staged.targetTick = result.targetTick;
+            staged.bodyCommandCount = 0u;
+            staged.destroyedAttachmentCount = 0u;
+            staged.createdAttachmentCount = 0u;
+            staged.nextSequence = nextSequence_;
+            staged.nextUnusedAttachmentIndex =
+                nextUnusedAttachmentIndex_;
+            staged.residentAttachments = residentAttachments_;
+            staged.highResidentAttachments =
+                highResidentAttachments_;
+            staged.commands = commands_;
+            staged.attachmentCommands = attachmentCommands_;
+            staged.attachmentGenerations = attachmentGenerations_;
+            staged.hostAttachmentAlive = hostAttachmentAlive_;
+            staged.freeAttachmentIndices = freeAttachmentIndices_;
+            staged.createdAttachments.clear();
+
+            const auto assignStagedSequence =
+                [&staged](uint64_t requested = 0u) {
+                    if (requested != 0u) {
+                        if (requested >= staged.nextSequence) {
+                            staged.nextSequence =
+                                requested
+                                    == std::numeric_limits<uint64_t>::max()
+                                ? requested
+                                : requested + 1u;
+                        }
+                        return requested;
+                    }
+                    const uint64_t assigned = staged.nextSequence;
+                    if (staged.nextSequence
+                        != std::numeric_limits<uint64_t>::max()) {
+                        ++staged.nextSequence;
+                    }
+                    return assigned;
+                };
+
+            for (PhysicsCommand command : batch.bodyCommands) {
+                if (static_cast<uint32_t>(command.type)
+                        > static_cast<uint32_t>(
+                            PhysicsCommandType::ApplyForceAtLocalPoint)
+                    || command.type == PhysicsCommandType::SpawnBody
+                    || command.type == PhysicsCommandType::DestroyBody
+                    || !finiteVector(command.a)
+                    || !finiteVector(command.b)
+                    || !finiteVector(command.c)
+                    || !finiteVector(command.d)
+                    || !finiteVector(command.e)
+                    || (command.material
+                        && !validMaterial(*command.material))
+                    || (command.type == PhysicsCommandType::SetMaterial
+                        && !command.material)
+                    || (command.targetTick != 0u
+                        && command.targetTick != result.targetTick)
+                    || !hostHandleAliveAt(
+                        command.body, result.targetTick)) {
+                    result.status = PhysicsMutationStatus::InvalidInput;
+                    return result;
+                }
+                command.targetTick = result.targetTick;
+                command.sequence =
+                    assignStagedSequence(command.sequence);
+                if (command.type == PhysicsCommandType::Teleport
+                    || command.type
+                        == PhysicsCommandType::SetKinematicTarget) {
+                    const WorldPosition position =
+                        canonicalWorldPosition(
+                            command.sector, glm::dvec3(command.a));
+                    command.sector = position.sector;
+                    command.a =
+                        glm::vec4(position.local, command.a.w);
+                }
+                staged.commands.push_back(command);
+                ++staged.bodyCommandCount;
+            }
+
+            const auto stagedAttachmentAllocated =
+                [&staged, this](AttachmentHandle handle) {
+                    return handle.valid()
+                        && handle.index < attachmentCapacity_
+                        && staged.hostAttachmentAlive[handle.index]
+                        && staged.attachmentGenerations[handle.index]
+                            == handle.generation;
+                };
+            const auto shrinkStagedAttachmentTail =
+                [&staged] {
+                    while (staged.nextUnusedAttachmentIndex > 1u) {
+                        const uint32_t last =
+                            staged.nextUnusedAttachmentIndex - 1u;
+                        const auto free = std::lower_bound(
+                            staged.freeAttachmentIndices.begin(),
+                            staged.freeAttachmentIndices.end(), last);
+                        if (staged.hostAttachmentAlive[last]
+                            || free
+                                == staged.freeAttachmentIndices.end()
+                            || *free != last) {
+                            break;
+                        }
+                        staged.freeAttachmentIndices.erase(free);
+                        --staged.nextUnusedAttachmentIndex;
+                    }
+                };
+
+            // Destruction is deliberately staged first. A transfer therefore
+            // succeeds at full attachment capacity and creates the replacement
+            // in the retired slot with the next generation.
+            for (const AttachmentHandle handle
+                 : batch.attachmentDestroys) {
+                if (!stagedAttachmentAllocated(handle)) {
+                    result.status =
+                        PhysicsMutationStatus::InvalidInput;
+                    return result;
+                }
+                const bool pendingCreate = std::any_of(
+                    staged.attachmentCommands.begin(),
+                    staged.attachmentCommands.end(),
+                    [handle](const AttachmentMutation& mutation) {
+                        return mutation.attachment == handle
+                            && mutation.type
+                                == GpuAttachmentCommandType::
+                                    CreateDistance;
+                    });
+                if (pendingCreate) {
+                    staged.attachmentCommands.erase(
+                        std::remove_if(
+                            staged.attachmentCommands.begin(),
+                            staged.attachmentCommands.end(),
+                            [handle](
+                                const AttachmentMutation& mutation) {
+                                return mutation.attachment == handle;
+                            }),
+                        staged.attachmentCommands.end());
+                } else {
+                    if (staged.attachmentCommands.size()
+                        >= config_.attachmentCommandCapacity) {
+                        result.status =
+                            PhysicsMutationStatus::CapacityExceeded;
+                        return result;
+                    }
+                    staged.attachmentCommands.push_back({
+                        .type = GpuAttachmentCommandType::Destroy,
+                        .attachment = handle,
+                        .targetTick = result.targetTick,
+                        .sequence = assignStagedSequence(),
+                    });
+                }
+                staged.hostAttachmentAlive[handle.index] = false;
+                staged.attachmentGenerations[handle.index] =
+                    nextBodyGeneration(
+                        staged.attachmentGenerations[handle.index]);
+                if (staged.residentAttachments != 0u) {
+                    --staged.residentAttachments;
+                }
+                staged.freeAttachmentIndices.insert(
+                    std::lower_bound(
+                        staged.freeAttachmentIndices.begin(),
+                        staged.freeAttachmentIndices.end(),
+                        handle.index),
+                    handle.index);
+                shrinkStagedAttachmentTail();
+                ++staged.destroyedAttachmentCount;
+            }
+
+            for (const DistanceAttachmentDesc& requested
+                 : batch.attachmentCreates) {
+                if (!validAttachmentDesc(
+                        requested, result.targetTick)) {
+                    result.status =
+                        PhysicsMutationStatus::InvalidInput;
+                    return result;
+                }
+                if (staged.attachmentCommands.size()
+                    >= config_.attachmentCommandCapacity) {
+                    result.status =
+                        PhysicsMutationStatus::CapacityExceeded;
+                    return result;
+                }
+                uint32_t index = 0u;
+                if (!staged.freeAttachmentIndices.empty()) {
+                    const auto first =
+                        staged.freeAttachmentIndices.begin();
+                    index = *first;
+                    staged.freeAttachmentIndices.erase(first);
+                } else if (staged.nextUnusedAttachmentIndex
+                           < attachmentCapacity_) {
+                    index = staged.nextUnusedAttachmentIndex++;
+                }
+                if (index == 0u) {
+                    result.status =
+                        PhysicsMutationStatus::CapacityExceeded;
+                    return result;
+                }
+
+                DistanceAttachmentDesc desc = requested;
+                desc.targetLength = std::clamp(
+                    desc.targetLength, desc.minimumLength,
+                    desc.maximumLength);
+                const AttachmentHandle handle{
+                    index, staged.attachmentGenerations[index]};
+                staged.attachmentCommands.push_back({
+                    .type =
+                        GpuAttachmentCommandType::CreateDistance,
+                    .attachment = handle,
+                    .targetTick = result.targetTick,
+                    .sequence = assignStagedSequence(),
+                    .desc = desc,
+                });
+                staged.hostAttachmentAlive[index] = true;
+                ++staged.residentAttachments;
+                staged.highResidentAttachments = std::max(
+                    staged.highResidentAttachments,
+                    staged.residentAttachments);
+                staged.createdAttachments.push_back(handle);
+                ++staged.createdAttachmentCount;
+            }
+
+            const uint64_t token = nextPreparedMutationToken_;
+            if (token == 0u) {
+                result.status =
+                    PhysicsMutationStatus::TokenExhausted;
+                return result;
+            }
+            nextPreparedMutationToken_ =
+                token == std::numeric_limits<uint64_t>::max()
+                ? 0u : token + 1u;
+            staged.token = token;
+            result.status = PhysicsMutationStatus::Prepared;
+            result.token = token;
+            result.createdAttachments = staged.createdAttachments;
+            return result;
+        }
+    }
+
+    PhysicsMutationResult commitPrepared(
+        const PreparedPhysicsMutation& prepared) noexcept {
+        PhysicsMutationResult result;
+        if (!initialized_) {
+            result.status = PhysicsMutationStatus::NotInitialized;
+            return result;
+        }
+        if (!prepared.ready() || !preparedMutationActive()
+            || prepared.token != preparedMutation_->token
+            || prepared.targetTick
+                != preparedMutation_->targetTick) {
+            result.status = PhysicsMutationStatus::InvalidToken;
+            return result;
+        }
+
+        PreparedMutationState& staged = *preparedMutation_;
+        result.status = PhysicsMutationStatus::Committed;
+        result.targetTick = staged.targetTick;
+        result.bodyCommandCount = staged.bodyCommandCount;
+        result.destroyedAttachmentCount =
+            staged.destroyedAttachmentCount;
+        result.createdAttachmentCount =
+            staged.createdAttachmentCount;
+
+        // Every operation below is a noexcept scalar assignment or container
+        // swap. All validation and allocation happened during preparation.
+        commands_.swap(staged.commands);
+        attachmentCommands_.swap(staged.attachmentCommands);
+        attachmentGenerations_.swap(
+            staged.attachmentGenerations);
+        hostAttachmentAlive_.swap(staged.hostAttachmentAlive);
+        freeAttachmentIndices_.swap(
+            staged.freeAttachmentIndices);
+        nextSequence_ = staged.nextSequence;
+        nextUnusedAttachmentIndex_ =
+            staged.nextUnusedAttachmentIndex;
+        residentAttachments_ = staged.residentAttachments;
+        highResidentAttachments_ =
+            staged.highResidentAttachments;
+        idleWorldConfirmed_ = false;
+        staged.token = 0u;
+        return result;
+    }
+
+    bool discardPrepared(
+        const PreparedPhysicsMutation& prepared) noexcept {
+        if (!prepared.ready() || !preparedMutationActive()
+            || prepared.token != preparedMutation_->token
+            || prepared.targetTick
+                != preparedMutation_->targetTick) {
+            return false;
+        }
+        preparedMutation_->token = 0u;
+        return true;
+    }
+
+    void sortAttachmentCommands() noexcept {
+        stableSortWithScratch(
+            attachmentCommands_, attachmentCommandSortScratch_,
+            [](const AttachmentMutation& lhs,
+               const AttachmentMutation& rhs) {
+                if (lhs.targetTick != rhs.targetTick) {
+                    return lhs.targetTick < rhs.targetTick;
+                }
+                if (lhs.type != rhs.type) {
+                    return static_cast<uint32_t>(lhs.type)
+                        < static_cast<uint32_t>(rhs.type);
+                }
+                return lhs.sequence < rhs.sequence;
+            });
     }
 
     uint64_t nextMutationTick() const noexcept {
@@ -1802,6 +2661,10 @@ public:
             cachedTelemetry_.solver.overflowContacts);
         cachedTelemetry_.islands = GpuIslandManager::decodeTelemetry(view.subspan(
             kIslandTelemetryOffset, GpuIslandManager::kTelemetryWordCount));
+        cachedTelemetry_.attachments =
+            GpuAttachmentSolver::decodeTelemetry(view.subspan(
+                kAttachmentTelemetryOffset,
+                GpuAttachmentSolver::kTelemetryWordCount));
         if (raw->tick >= lastMutationTick_) {
             idleWorldConfirmed_ =
                 cachedTelemetry_.core.activeBodies == 0u
@@ -1813,10 +2676,13 @@ public:
     void schedule(float deltaTime) {
         const auto start = std::chrono::steady_clock::now();
         pollTelemetry();
-        if (!initialized_ || !std::isfinite(deltaTime) || deltaTime <= 0.0f) {
+        if (!initialized_ || preparedMutationActive()
+            || schedulingMode_ == SchedulingMode::FixedTicks
+            || !std::isfinite(deltaTime) || deltaTime <= 0.0f) {
             lastStepStats_ = {};
             return;
         }
+        schedulingMode_ = SchedulingMode::Accumulator;
         // The encoded batch stays strictly capped, but retain enough clock
         // debt to bridge Chrome's coarse queue-completion callbacks. Recovery
         // happens over later submissions; no submission can exceed the
@@ -1851,6 +2717,26 @@ public:
             .simulationMs = elapsed,
             .substepCount = scheduled * config_.substeps,
         };
+    }
+
+    bool scheduleFixedTicks(uint32_t tickCount) noexcept {
+        if (!initialized_ || preparedMutationActive()
+            || schedulingMode_ == SchedulingMode::Accumulator
+            || tickCount == 0u
+            || tickCount > config_.maximumCatchUpTicks
+            || pendingTicks_
+                > config_.maximumCatchUpTicks - tickCount
+            || encodedTick_
+                > std::numeric_limits<uint64_t>::max()
+                    - pendingTicks_ - tickCount) {
+            return false;
+        }
+        schedulingMode_ = SchedulingMode::FixedTicks;
+        pendingTicks_ += tickCount;
+        lastStepStats_ = {
+            .substepCount = tickCount * config_.substeps,
+        };
+        return true;
     }
 
     bool submitQueries(std::span<const PhysicsQueryRequest> requests,
@@ -1984,10 +2870,12 @@ public:
         return result;
     }
 
-    void setEventReadbackEnabled(bool enabled) noexcept {
+    bool setEventReadbackEnabled(bool enabled) noexcept {
         eventReadbackEnabled_ = false;
-        if (!initialized_ || !enabled) return;
+        if (!initialized_) return false;
+        if (!enabled) return true;
         eventReadbackEnabled_ = initializeEventReadback();
+        return eventReadbackEnabled_;
     }
 
     std::optional<PhysicsEventBatch> pollEvents() {
@@ -2003,12 +2891,15 @@ public:
             event.type = static_cast<PhysicsEventType>(std::clamp(
                 source.header[1],
                 static_cast<uint32_t>(PhysicsEventType::ContactBegin),
-                static_cast<uint32_t>(PhysicsEventType::IslandWake)));
-            if (event.type == PhysicsEventType::ContactBegin
+                static_cast<uint32_t>(
+                    PhysicsEventType::AttachmentBreak)));
+            const bool contactEvent =
+                event.type == PhysicsEventType::ContactBegin
                 || event.type == PhysicsEventType::ContactEnd
-                || event.type == PhysicsEventType::ContactHit) {
-                const bool sourceIsSorted =
-                    source.header[2] <= source.header[3];
+                || event.type == PhysicsEventType::ContactHit;
+            const bool sourceIsSorted =
+                source.header[2] <= source.header[3];
+            if (contactEvent) {
                 event.bodyA = sourceIsSorted
                     ? source.header[2] : source.header[3];
                 event.bodyB = sourceIsSorted
@@ -2023,12 +2914,66 @@ public:
                 event.bodyGenerationA = source.identity[0];
                 event.bodyGenerationB = source.identity[1];
             }
-            event.featureId = source.detail[0];
+            if (event.type == PhysicsEventType::ContactHit) {
+                event.featureId = sourceIsSorted
+                    ? source.detail[0] : source.detail[3];
+                event.otherFeatureId = sourceIsSorted
+                    ? source.detail[3] : source.detail[0];
+            } else {
+                event.featureId = source.detail[0];
+            }
             event.sourceId = source.detail[1];
             event.auxiliaryCount = source.detail[2];
-            event.flags = source.detail[3];
+            event.flags =
+                event.type == PhysicsEventType::ContactHit
+                    ? 0u : source.detail[3];
+            if (event.type == PhysicsEventType::ContactHit) {
+                const glm::vec3 sourceAnchorA{
+                    source.localAnchorASeparation[0],
+                    source.localAnchorASeparation[1],
+                    source.localAnchorASeparation[2],
+                };
+                const glm::vec3 sourceAnchorB{
+                    source.localAnchorBImpulse[0],
+                    source.localAnchorBImpulse[1],
+                    source.localAnchorBImpulse[2],
+                };
+                const glm::vec3 sourceNormal{
+                    source.normalSpeed[0],
+                    source.normalSpeed[1],
+                    source.normalSpeed[2],
+                };
+                event.localAnchorA = sourceIsSorted
+                    ? sourceAnchorA : sourceAnchorB;
+                event.localAnchorB = sourceIsSorted
+                    ? sourceAnchorB : sourceAnchorA;
+                event.normalAtoB = sourceIsSorted
+                    ? sourceNormal : -sourceNormal;
+                event.impulse = source.localAnchorBImpulse[3];
+                event.impactSpeed = source.normalSpeed[3];
+            } else if (
+                event.type == PhysicsEventType::AttachmentBreak) {
+                event.impulse = std::bit_cast<float>(source.detail[2]);
+                event.force = std::bit_cast<float>(source.detail[3]);
+            }
             result.events.push_back(event);
         }
+        std::stable_sort(
+            result.events.begin(), result.events.end(),
+            [](const PhysicsEvent& lhs, const PhysicsEvent& rhs) {
+                return std::tuple{
+                    static_cast<uint32_t>(lhs.type),
+                    lhs.bodyA, lhs.bodyGenerationA,
+                    lhs.bodyB, lhs.bodyGenerationB,
+                    lhs.sourceId, lhs.featureId,
+                    lhs.otherFeatureId}
+                    < std::tuple{
+                    static_cast<uint32_t>(rhs.type),
+                    rhs.bodyA, rhs.bodyGenerationA,
+                    rhs.bodyB, rhs.bodyGenerationB,
+                    rhs.sourceId, rhs.featureId,
+                    rhs.otherFeatureId};
+            });
         return result;
     }
 
@@ -2078,16 +3023,47 @@ public:
         return result;
     }
 
-    void encode(WGPUCommandEncoder encoder) {
-        if (!initialized_ || !encoder) return;
+    PhysicsEncodeReport encode(
+        WGPUCommandEncoder encoder, bool requireClosedReadbacks) {
+        PhysicsEncodeReport report;
+        if (!initialized_) {
+            report.status = PhysicsEncodeStatus::NotInitialized;
+            return report;
+        }
+        if (preparedMutationActive()) {
+            report.status =
+                PhysicsEncodeStatus::PreparedMutationPending;
+            return report;
+        }
+        if (!encoder) {
+            report.status = PhysicsEncodeStatus::InvalidEncoder;
+            return report;
+        }
         lastGpuUploadBytes_ = 0u;
         lastGpuReadbackBytes_ = 0u;
         const uint64_t finalTick = encodedTick_ + pendingTicks_;
+        report.firstTick =
+            pendingTicks_ != 0u ? encodedTick_ + 1u : encodedTick_;
+        report.finalTick = finalTick;
+        report.tickCount = pendingTicks_;
+        const auto completeReport =
+            [&](PhysicsEncodeStatus status, bool failStopped = false) {
+                report.status = status;
+                report.gpuUploadBytes = lastGpuUploadBytes_;
+                report.gpuReadbackBytes = lastGpuReadbackBytes_;
+                report.failStopped = failStopped;
+                return report;
+            };
+        const auto failStop =
+            [&](PhysicsEncodeStatus status) {
+                initialized_ = false;
+                return completeReport(status, true);
+            };
         sortAndCoalesceKinematicTargets();
+        sortAttachmentCommands();
 
-        std::vector<GpuCommand> upload;
-        upload.reserve(std::min<size_t>(commands_.size(),
-                                        config_.commandCapacity));
+        std::vector<GpuCommand>& upload = commandUpload_;
+        upload.clear();
         for (size_t commandIndex = 0u; commandIndex < commands_.size();
              ++commandIndex) {
             const auto& command = commands_[commandIndex];
@@ -2117,13 +3093,77 @@ public:
                     queue_, commandBuffer_, 0,
                     std::as_bytes(std::span<const GpuCommand>(upload)))) {
                 LOG_ERROR("Failed to upload GPU physics commands");
-                return;
+                return failStop(PhysicsEncodeStatus::UploadFailed);
             }
             lastGpuUploadBytes_ +=
                 uint64_t{upload.size()} * sizeof(GpuCommand);
             // Telemetry from before this mutation cannot prove that the
             // resulting world is idle. A readback tagged at or after this
             // batch will re-arm the idle path when appropriate.
+            lastMutationTick_ = finalTick;
+            idleWorldConfirmed_ = false;
+        }
+
+        std::vector<GpuAttachmentCommand>& attachmentUpload =
+            attachmentUpload_;
+        attachmentUpload.clear();
+        for (const AttachmentMutation& mutation : attachmentCommands_) {
+            if (mutation.targetTick > finalTick) continue;
+            if (attachmentUpload.size()
+                >= config_.attachmentCommandCapacity) {
+                break;
+            }
+            GpuAttachmentCommand command;
+            command.header = {
+                static_cast<uint32_t>(mutation.type),
+                mutation.attachment.index,
+                mutation.attachment.generation & kGpuBodyGenerationMask,
+                static_cast<uint32_t>(mutation.targetTick),
+            };
+            if (mutation.type
+                == GpuAttachmentCommandType::CreateDistance) {
+                command.bodies = {
+                    mutation.desc.bodyA.index,
+                    mutation.desc.bodyA.generation
+                        & kGpuBodyGenerationMask,
+                    mutation.desc.bodyB.index,
+                    mutation.desc.bodyB.generation
+                        & kGpuBodyGenerationMask,
+                };
+                command.anchorATarget = {
+                    mutation.desc.localAnchorA.x,
+                    mutation.desc.localAnchorA.y,
+                    mutation.desc.localAnchorA.z,
+                    mutation.desc.targetLength,
+                };
+                command.anchorBMotor = {
+                    mutation.desc.localAnchorB.x,
+                    mutation.desc.localAnchorB.y,
+                    mutation.desc.localAnchorB.z,
+                    mutation.desc.motorSpeed,
+                };
+                command.limits = {
+                    mutation.desc.minimumLength,
+                    mutation.desc.maximumLength,
+                    mutation.desc.maximumForce,
+                    mutation.desc.breakForce,
+                };
+            } else if (mutation.type
+                       == GpuAttachmentCommandType::SetTargetLength) {
+                command.anchorATarget[3] = mutation.value;
+            } else if (mutation.type
+                       == GpuAttachmentCommandType::SetMotorSpeed) {
+                command.anchorBMotor[3] = mutation.value;
+            }
+            attachmentUpload.push_back(command);
+        }
+        if (!attachmentSolver_.uploadCommands(attachmentUpload)) {
+            LOG_ERROR("Failed to upload GPU attachment commands");
+            return failStop(PhysicsEncodeStatus::UploadFailed);
+        }
+        if (!attachmentUpload.empty()) {
+            lastGpuUploadBytes_ += uint64_t{attachmentUpload.size()}
+                * sizeof(GpuAttachmentCommand);
             lastMutationTick_ = finalTick;
             idleWorldConfirmed_ = false;
         }
@@ -2136,8 +3176,11 @@ public:
         }
         const uint32_t executionBlocks =
             (executionBodies + kWorkgroupSize - 1u) / kWorkgroupSize;
+        const bool executeAttachmentPipeline =
+            residentAttachments_ != 0u || !attachmentUpload.empty();
         const bool executeBodyPipeline = residentBodies_ != 0u
-            || !upload.empty() || !pendingFrees_.empty();
+            || !upload.empty() || !pendingFrees_.empty()
+            || executeAttachmentPipeline;
         // A telemetry-confirmed sleeping world has no state to integrate or
         // contacts to discover. Keep the authoritative GPU tick moving while
         // avoiding dozens of empty passes. Any mutation or observer that
@@ -2145,6 +3188,8 @@ public:
         const bool idleOnlyBatch = pendingTicks_ != 0u
             && idleWorldConfirmed_
             && commands_.empty()
+            && attachmentCommands_.empty()
+            && residentAttachments_ == 0u
             && pendingFrees_.empty()
             && !queryPending_
             && !debugRequest_.has_value()
@@ -2158,14 +3203,14 @@ public:
             encodedTick_ = finalTick;
             pendingTicks_ = 0u;
             gpuTickSynchronized_ = false;
-            return;
+            return completeReport(PhysicsEncodeStatus::Encoded);
         }
         if (pendingTicks_ != 0u && !gpuTickSynchronized_) {
             const uint32_t gpuTick = static_cast<uint32_t>(encodedTick_);
             if (!gpu::writeBuffer(
                     queue_, countersBuffer_, sizeof(uint32_t), gpuTick)) {
                 LOG_ERROR("Failed to synchronize the GPU physics tick");
-                return;
+                return failStop(PhysicsEncodeStatus::UploadFailed);
             }
             lastGpuUploadBytes_ += sizeof(gpuTick);
             gpuTickSynchronized_ = true;
@@ -2217,7 +3262,7 @@ public:
         uniforms.worldSector = glm::ivec4(0);
         if (!gpu::writeBuffer(queue_, uniformBuffer_, 0, uniforms)) {
             LOG_ERROR("Failed to upload GPU physics uniforms");
-            return;
+            return failStop(PhysicsEncodeStatus::UploadFailed);
         }
         lastGpuUploadBytes_ += sizeof(SimulationUniforms);
 
@@ -2234,7 +3279,8 @@ public:
         };
         // Body mutations are exactly when an interactive diagnostic sample is
         // most useful. Do not make an overloaded world wait for the cadence.
-        const bool forceDiagnosticsSample = !upload.empty();
+        const bool forceDiagnosticsSample =
+            !upload.empty() || !attachmentUpload.empty();
         const bool profileThisBatch = stageProfilingEnabled_
             && !idleOnlyBatch
             && (forceDiagnosticsSample
@@ -2273,6 +3319,8 @@ public:
 #endif
         };
         bool batchSucceeded = true;
+        PhysicsEncodeStatus batchFailure =
+            PhysicsEncodeStatus::PipelineFailed;
         for (uint32_t tick = 0; tick < pendingTicks_; ++tick) {
             writeStageTimestamp();
             WGPUComputePassEncoder pass =
@@ -2323,6 +3371,12 @@ public:
                     pass, executionBlocks, 1, 1);
                 wgpuComputePassEncoderEnd(pass);
                 wgpuComputePassEncoderRelease(pass);
+            }
+            if (executeAttachmentPipeline
+                && !attachmentSolver_.encode(encoder)) {
+                LOG_ERROR("Failed to encode GPU distance attachments");
+                batchSucceeded = false;
+                break;
             }
             writeStageTimestamp();
 
@@ -2478,6 +3532,13 @@ public:
                 if (!eventReadback_.encodeReadback(
                         encoder, encodedTick_ + tick + 1u)) {
                     LOG_WARN("GPU physics event readback ring is full");
+                    if (requireClosedReadbacks) {
+                        batchFailure =
+                            PhysicsEncodeStatus::
+                                EventReadbackUnavailable;
+                        batchSucceeded = false;
+                        break;
+                    }
                 } else {
                     lastGpuReadbackBytes_ += 16u
                         + uint64_t{eventCapacity_} * sizeof(GpuPhysicsEvent);
@@ -2494,7 +3555,7 @@ public:
             // state.
             initialized_ = false;
             LOG_ERROR("WebGPU physics stopped after an incomplete encoded tick; reinitialize the world");
-            return;
+            return completeReport(batchFailure, true);
         }
 
         const bool sampleTelemetry = config_.enableTelemetryReadback
@@ -2528,6 +3589,9 @@ public:
             copyTelemetry(islandManager_.telemetryBuffer(),
                           kIslandTelemetryOffset,
                           GpuIslandManager::kTelemetryWordCount);
+            copyTelemetry(attachmentSolver_.telemetryBuffer(),
+                          kAttachmentTelemetryOffset,
+                          GpuAttachmentSolver::kTelemetryWordCount);
             copyTelemetry(narrowPhase_.pairClassTable(),
                           kNarrowCollisionPairClassOffset,
                           kGpuNarrowPhasePairClassCount);
@@ -2570,6 +3634,32 @@ public:
                 debugPassEncoded = true;
             }
         }
+        if (debugRequest_ && debugPassEncoded) {
+            const size_t bytes =
+                size_t{debugRequest_->bodyCount} * kGpuBodyBytes;
+            if (!readbackRing_.encodeCopy(
+                    encoder, debugPackedBuffer_, 0u, bytes, finalTick,
+                    debugRequest_->firstBody,
+                    debugRequest_->bodyCount)) {
+                LOG_WARN("GPU physics debug readback ring is full");
+                if (requireClosedReadbacks) {
+                    debugRequest_.reset();
+                    return failStop(
+                        PhysicsEncodeStatus::
+                            DebugReadbackUnavailable);
+                }
+            } else {
+                lastGpuReadbackBytes_ += bytes;
+            }
+            debugRequest_.reset();
+        } else if (debugRequest_) {
+            if (requireClosedReadbacks) {
+                debugRequest_.reset();
+                return failStop(
+                    PhysicsEncodeStatus::DebugReadbackUnavailable);
+            }
+            debugRequest_.reset();
+        }
 
         if (profileQueryCount != 0u && !timestampEncodingFailed) {
             wgpuCommandEncoderResolveQuerySet(
@@ -2605,6 +3695,11 @@ public:
             [finalTick](const PhysicsCommand& command) {
                 return command.targetTick <= finalTick;
             }), commands_.end());
+        attachmentCommands_.erase(std::remove_if(
+            attachmentCommands_.begin(), attachmentCommands_.end(),
+            [finalTick](const AttachmentMutation& mutation) {
+                return mutation.targetTick <= finalTick;
+            }), attachmentCommands_.end());
         for (auto it = pendingFrees_.begin(); it != pendingFrees_.end();) {
             if (it->tick <= finalTick) {
                 if (it->index < bodyCapacity_
@@ -2620,17 +3715,10 @@ public:
         }
         shrinkUnusedTail();
 
-        if (debugRequest_ && debugPassEncoded) {
-            const size_t bytes = size_t{debugRequest_->bodyCount} * kGpuBodyBytes;
-            if (!readbackRing_.encodeCopy(
-                    encoder, debugPackedBuffer_, 0, bytes, encodedTick_,
-                    debugRequest_->firstBody, debugRequest_->bodyCount)) {
-                LOG_WARN("GPU physics debug readback ring is full");
-            } else {
-                lastGpuReadbackBytes_ += bytes;
-            }
-            debugRequest_.reset();
-        }
+        return completeReport(
+            report.tickCount == 0u
+                ? PhysicsEncodeStatus::NothingScheduled
+                : PhysicsEncodeStatus::Encoded);
     }
 
     void requestDebug(DebugSnapshotRequest request) {
@@ -2751,6 +3839,7 @@ public:
         result.eventCapacity = eventCapacity_;
         result.workerConcurrency = 1;
         result.estimatedPersistentBytes = arena_.persistentBytes()
+                                        + attachmentSolver_.persistentBytes()
                                         + ownedTerrainBytes_;
         result.scratchBytes = arena_.scratchBytes()
                             + readbackRing_.allocatedBytes()
@@ -2759,6 +3848,7 @@ public:
                             + broadPhase_.scratchBytes()
                             + narrowPhase_.scratchBytes()
                             + dynamicSolver_.scratchBytes()
+                            + attachmentSolver_.scratchBytes()
                             + islandManager_.scratchBytes()
                             + querySystem_.allocatedBytes()
                             + eventReadback_.allocatedBytes()
@@ -2775,6 +3865,10 @@ public:
         result.deviceMaxBufferSize = deviceLimits_.maxBufferSize;
         result.bodyCapacityOverflow = bodyCapacityOverflow_;
         result.commandCapacityOverflow = commandCapacityOverflow_;
+        result.attachmentCapacityOverflow =
+            attachmentCapacityOverflow_;
+        result.attachmentCommandCapacityOverflow =
+            attachmentCommandCapacityOverflow_;
 
         const auto saturatingU32 = [](uint64_t value) {
             return static_cast<uint32_t>(std::min(
@@ -2794,6 +3888,15 @@ public:
         result.commandUsage = {
             saturatingU32(commands_.size()), config_.commandCapacity,
             saturatingU32(commands_.size()), commandCapacityOverflow_};
+        result.attachmentUsage = {
+            residentAttachments_, attachmentLimit_,
+            std::max(highResidentAttachments_, residentAttachments_),
+            attachmentCapacityOverflow_};
+        result.attachmentCommandUsage = {
+            saturatingU32(attachmentCommands_.size()),
+            config_.attachmentCommandCapacity,
+            saturatingU32(attachmentCommands_.size()),
+            attachmentCommandCapacityOverflow_};
         result.gridEntryUsage.capacity = broadPhase_.gridEntryCapacity();
         result.candidatePairUsage.capacity =
             broadPhase_.candidatePairCapacity();
@@ -2815,6 +3918,7 @@ public:
         const auto& narrow = cachedTelemetry_.narrow;
         const auto& solver = cachedTelemetry_.solver;
         const auto& islands = cachedTelemetry_.islands;
+        const auto& attachments = cachedTelemetry_.attachments;
         // An idle-only batch changes no body or contact state. The last
         // confirmed snapshot therefore remains authoritative at the current
         // encoded tick without another mapped GPU readback.
@@ -2830,6 +3934,12 @@ public:
         result.commandUsage = {
             core.commands, config_.commandCapacity, core.highCommands,
             commandCapacityOverflow_};
+        result.attachmentUsage = {
+            attachments.live, attachmentLimit_, attachments.highLive,
+            attachmentCapacityOverflow_};
+        result.attachmentCommandUsage = {
+            attachments.commands, config_.attachmentCommandCapacity,
+            attachments.highCommands, attachmentCommandCapacityOverflow_};
         result.gridEntryUsage = {
             broad.gridEntries, broadPhase_.gridEntryCapacity(),
             broad.highGridEntries, false};
@@ -2854,9 +3964,10 @@ public:
             solver.contactOverflow};
         result.eventUsage = {
             saturatingU32(uint64_t{broad.beginEvents} + broad.endEvents
-                          + islands.events),
+                          + islands.events + attachments.breaks),
             eventCapacity_,
-            saturatingU32(uint64_t{broad.highEvents} + islands.highEvents),
+            saturatingU32(uint64_t{broad.highEvents} + islands.highEvents
+                          + attachments.highBreaks),
             broad.eventOverflow || islands.eventOverflow};
         result.sleepingGridUsage = {
             islands.sleepingGridEntries, bodyLimit_,
@@ -2910,6 +4021,11 @@ public:
         result.contactBeginEvents = broad.beginEvents;
         result.contactEndEvents = broad.endEvents;
         result.islandEvents = islands.events;
+        result.tautAttachments = attachments.taut;
+        result.slackAttachments = attachments.slack;
+        result.attachmentBreakEvents = attachments.breaks;
+        result.staleAttachmentCommands = attachments.staleCommands;
+        result.invalidAttachmentEndpoints = attachments.invalidEndpoints;
         result.highGridEntries = broad.highGridEntries;
         result.highOccupiedCells = broad.highOccupiedCells;
         result.highCandidatePairs = broad.highCandidatePairs;
@@ -2951,6 +4067,7 @@ public:
         GpuNarrowPhaseTelemetry narrow{};
         GpuDynamicSolverTelemetry solver{};
         GpuIslandTelemetry islands{};
+        GpuAttachmentTelemetry attachments{};
     };
 
     bool initialized_ = false;
@@ -2977,20 +4094,29 @@ public:
     uint32_t candidatePairCapacity_ = 0;
     uint32_t contactCapacity_ = 0;
     uint32_t manifoldCapacity_ = 0;
+    uint32_t attachmentCapacity_ = 0;
+    uint32_t attachmentLimit_ = 0;
     uint32_t eventCapacity_ = 0;
     uint32_t ccdBulletCapacity_ = 0;
     uint32_t blockCount_ = 0;
     uint32_t nextUnusedIndex_ = 1;
+    uint32_t nextUnusedAttachmentIndex_ = 1;
     uint32_t residentBodies_ = 0;
+    uint32_t residentAttachments_ = 0;
     uint32_t highResidentBodies_ = 0;
+    uint32_t highResidentAttachments_ = 0;
     bool bodyCapacityOverflow_ = false;
     bool commandCapacityOverflow_ = false;
+    bool attachmentCapacityOverflow_ = false;
+    bool attachmentCommandCapacityOverflow_ = false;
     uint64_t lastGpuUploadBytes_ = 0;
     uint64_t lastGpuReadbackBytes_ = 0;
     double accumulator_ = 0.0;
     uint32_t pendingTicks_ = 0;
+    SchedulingMode schedulingMode_ = SchedulingMode::Undecided;
     uint64_t encodedTick_ = 0;
     uint64_t nextSequence_ = 1;
+    uint64_t nextPreparedMutationToken_ = 1u;
     bool queryPending_ = false;
     uint32_t pendingQueryCount_ = 0;
     bool eventReadbackEnabled_ = false;
@@ -3012,8 +4138,21 @@ public:
     std::vector<uint64_t> scheduledSpawnTicks_;
     std::vector<uint64_t> scheduledDestroyTicks_;
     std::set<uint32_t> freeIndices_;
+    std::vector<uint32_t> attachmentGenerations_;
+    std::vector<bool> hostAttachmentAlive_;
+    std::vector<uint32_t> freeAttachmentIndices_;
     std::vector<PendingFree> pendingFrees_;
     std::vector<PhysicsCommand> commands_;
+    std::vector<PhysicsCommand> commandSortScratch_;
+    std::vector<uint8_t> commandSuperseded_;
+    std::vector<GpuCommand> commandUpload_;
+    std::vector<size_t> latestKinematicIndex_;
+    std::vector<uint64_t> latestKinematicTick_;
+    std::vector<uint32_t> latestKinematicGeneration_;
+    std::vector<AttachmentMutation> attachmentCommands_;
+    std::vector<AttachmentMutation> attachmentCommandSortScratch_;
+    std::vector<GpuAttachmentCommand> attachmentUpload_;
+    std::optional<PreparedMutationState> preparedMutation_;
     std::optional<DebugSnapshotRequest> debugRequest_;
     std::vector<DebugBodyState> cachedDebugBodies_;
 
@@ -3026,6 +4165,7 @@ public:
     GpuBroadPhase broadPhase_;
     GpuNarrowPhase narrowPhase_;
     GpuDynamicSolver dynamicSolver_;
+    GpuAttachmentSolver attachmentSolver_;
     GpuIslandManager islandManager_;
     GpuAsyncQuerySystem querySystem_;
     GpuEventReadbackRing eventReadback_;
@@ -3105,6 +4245,10 @@ BackendCapabilities GpuPhysicsBackend::capabilities() const noexcept {
         .continuousCollision = true,
         .asynchronousQueries = true,
         .eventReadback = true,
+        .distanceAttachments = true,
+        .atomicMutationBatches = true,
+        .fixedTickScheduling = true,
+        .checkedGpuEncoding = true,
     };
 }
 bool GpuPhysicsBackend::setTerrain(std::span<const uint16_t> samples,
@@ -3182,9 +4326,43 @@ bool GpuPhysicsBackend::destroyBody(BodyHandle handle) {
 void GpuPhysicsBackend::enqueue(std::span<const PhysicsCommand> commands) {
     impl_->enqueueCommands(commands);
 }
+AttachmentHandle GpuPhysicsBackend::createDistanceAttachment(
+    const DistanceAttachmentDesc& desc) {
+    return impl_->createAttachment(desc);
+}
+bool GpuPhysicsBackend::destroyAttachment(AttachmentHandle handle) {
+    return impl_->destroyAttachment(handle);
+}
+bool GpuPhysicsBackend::setAttachmentTargetLength(
+    AttachmentHandle handle, float targetLength) {
+    return impl_->setAttachmentTarget(handle, targetLength);
+}
+bool GpuPhysicsBackend::setAttachmentMotorSpeed(
+    AttachmentHandle handle, float motorSpeed) {
+    return impl_->setAttachmentMotor(handle, motorSpeed);
+}
+PreparedPhysicsMutation GpuPhysicsBackend::prepareMutationBatch(
+    const PhysicsMutationBatch& batch) noexcept {
+    return impl_->prepareMutationBatch(batch);
+}
+PhysicsMutationResult GpuPhysicsBackend::commitPrepared(
+    const PreparedPhysicsMutation& prepared) noexcept {
+    return impl_->commitPrepared(prepared);
+}
+bool GpuPhysicsBackend::discardPrepared(
+    const PreparedPhysicsMutation& prepared) noexcept {
+    return impl_->discardPrepared(prepared);
+}
 void GpuPhysicsBackend::stepCpu(float deltaTime) { impl_->schedule(deltaTime); }
+bool GpuPhysicsBackend::scheduleFixedTicks(uint32_t tickCount) {
+    return impl_->scheduleFixedTicks(tickCount);
+}
 void GpuPhysicsBackend::encodeGpuStep(WGPUCommandEncoder encoder) {
-    impl_->encode(encoder);
+    static_cast<void>(impl_->encode(encoder, false));
+}
+PhysicsEncodeReport GpuPhysicsBackend::encodeGpuStepChecked(
+    WGPUCommandEncoder encoder) {
+    return impl_->encode(encoder, true);
 }
 bool GpuPhysicsBackend::submitQueries(
     std::span<const PhysicsQueryRequest> requests, uint64_t tick) {
@@ -3193,8 +4371,8 @@ bool GpuPhysicsBackend::submitQueries(
 std::optional<PhysicsQueryBatch> GpuPhysicsBackend::pollQueryResults() {
     return impl_->pollQueryResults();
 }
-void GpuPhysicsBackend::setEventReadbackEnabled(bool enabled) {
-    impl_->setEventReadbackEnabled(enabled);
+bool GpuPhysicsBackend::setEventReadbackEnabled(bool enabled) {
+    return impl_->setEventReadbackEnabled(enabled);
 }
 std::optional<PhysicsEventBatch> GpuPhysicsBackend::pollEvents() {
     return impl_->pollEvents();

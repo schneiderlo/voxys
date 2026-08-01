@@ -59,15 +59,31 @@ public:
     [[nodiscard]] BodyHandle spawnBody(const BodySpawnDesc& desc) override;
     [[nodiscard]] bool destroyBody(BodyHandle handle) override;
     void enqueue(std::span<const PhysicsCommand> commands) override;
+    [[nodiscard]] AttachmentHandle createDistanceAttachment(
+        const DistanceAttachmentDesc& desc) override;
+    [[nodiscard]] bool destroyAttachment(AttachmentHandle handle) override;
+    [[nodiscard]] bool setAttachmentTargetLength(
+        AttachmentHandle handle, float targetLength) override;
+    [[nodiscard]] bool setAttachmentMotorSpeed(
+        AttachmentHandle handle, float motorSpeed) override;
+    [[nodiscard]] PreparedPhysicsMutation prepareMutationBatch(
+        const PhysicsMutationBatch& batch) noexcept override;
+    [[nodiscard]] PhysicsMutationResult commitPrepared(
+        const PreparedPhysicsMutation& prepared) noexcept override;
+    [[nodiscard]] bool discardPrepared(
+        const PreparedPhysicsMutation& prepared) noexcept override;
 
     void stepCpu(float deltaTime) override;
+    [[nodiscard]] bool scheduleFixedTicks(uint32_t tickCount) override;
     void encodeGpuStep(WGPUCommandEncoder encoder) override;
+    [[nodiscard]] PhysicsEncodeReport encodeGpuStepChecked(
+        WGPUCommandEncoder encoder) override;
     [[nodiscard]] bool submitQueries(
         std::span<const PhysicsQueryRequest> requests,
         uint64_t tick) override;
     [[nodiscard]] std::optional<PhysicsQueryBatch>
         pollQueryResults() override;
-    void setEventReadbackEnabled(bool enabled) override;
+    bool setEventReadbackEnabled(bool enabled) override;
     [[nodiscard]] std::optional<PhysicsEventBatch> pollEvents() override;
     [[nodiscard]] std::optional<PhysicsGpuStageTiming>
         pollGpuStageTimings() override;

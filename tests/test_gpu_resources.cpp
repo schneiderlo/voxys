@@ -548,6 +548,43 @@ TEST(ErrorHandlingTest, CreateShaderModuleEmptySource) {
     EXPECT_EQ(createShaderModule(nullptr, ""), nullptr);
 }
 
+TEST(ErrorHandlingTest, EmbeddedShaderSourceLookupFailsClosed) {
+    const std::array sources{
+        ShaderSource{
+            .logicalPath = "shaders/a.wgsl",
+            .wgsl = "@compute fn a() {}",
+        },
+        ShaderSource{
+            .logicalPath = "shaders/b.wgsl",
+            .wgsl = "@compute fn b() {}",
+        },
+    };
+    EXPECT_EQ(
+        findEmbeddedShaderSource("shaders/a.wgsl", sources),
+        std::optional<std::string_view>("@compute fn a() {}"));
+    EXPECT_FALSE(
+        findEmbeddedShaderSource("shaders/missing.wgsl", sources));
+
+    const std::array duplicate{
+        sources[0],
+        ShaderSource{
+            .logicalPath = "shaders/a.wgsl",
+            .wgsl = "@compute fn other() {}",
+        },
+    };
+    EXPECT_FALSE(
+        findEmbeddedShaderSource("shaders/a.wgsl", duplicate));
+
+    const std::array empty{
+        ShaderSource{
+            .logicalPath = "shaders/empty.wgsl",
+            .wgsl = "",
+        },
+    };
+    EXPECT_FALSE(
+        findEmbeddedShaderSource("shaders/empty.wgsl", empty));
+}
+
 TEST(ErrorHandlingTest, CreatePipelineLayoutNullDevice) {
     std::vector<WGPUBindGroupLayout> layouts;
     EXPECT_EQ(createPipelineLayout(nullptr, layouts), nullptr);

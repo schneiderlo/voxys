@@ -7,6 +7,9 @@
 
 #pragma once
 
+#include "shader_source.hpp"
+#include "webgpu_compat.hpp"
+
 #include <cstdint>
 #include <span>
 #include <string>
@@ -15,9 +18,6 @@
 #include <optional>
 #include <filesystem>
 #include <limits>
-
-// WebGPU compatibility layer - handles API differences between implementations
-#include "webgpu_compat.hpp"
 
 namespace voxy::gpu {
 
@@ -537,14 +537,25 @@ private:
                                                    std::string_view wgslSource,
                                                    std::string_view label = "");
 
-/// Load a shader module from a file
+// Returns one exact nonempty source. Missing, empty, or duplicate logical
+// paths fail closed.
+[[nodiscard]] std::optional<std::string_view> findEmbeddedShaderSource(
+    std::string_view logicalPath,
+    std::span<const ShaderSource> embeddedSources) noexcept;
+
+/// Load a shader module from a strict embedded source bundle when one is
+/// supplied, otherwise from a file. A nonempty bundle never falls back to the
+/// filesystem when the requested logical path is missing.
 /// @param device The WebGPU device
 /// @param path Path to the WGSL shader file
 /// @param label Optional label (uses filename if empty)
+/// @param embeddedSources Trusted build-generated WGSL sources
 /// @return The created shader module, or nullptr on failure
 [[nodiscard]] WGPUShaderModule loadShaderModule(WGPUDevice device,
                                                  const std::filesystem::path& path,
-                                                 std::string_view label = "");
+                                                 std::string_view label = "",
+                                                 std::span<const ShaderSource>
+                                                     embeddedSources = {});
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Pipeline Layout Creation

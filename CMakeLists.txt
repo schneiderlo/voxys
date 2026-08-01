@@ -67,6 +67,141 @@ if(EXISTS "${CMAKE_SOURCE_DIR}/third_party/CMakeLists.txt")
     add_subdirectory(third_party)
 endif()
 
+# A config-package target imported inside third_party/ is scoped to that
+# directory. Import it at the root before voxy_core is configured so the
+# library can publish GLFW to every native consumer, including tests.
+if(NOT EMSCRIPTEN AND NOT TARGET glfw)
+    find_package(glfw3 3.4 QUIET CONFIG)
+endif()
+
+# ─────────────────────────────────────────────────────────────────────────────
+# WRECKWATER authority build-content identity
+# ─────────────────────────────────────────────────────────────────────────────
+if(VOXY_BUILD_NATIVE)
+    find_package(Python3 REQUIRED COMPONENTS Interpreter)
+
+    # Keep this dependency declaration exact. The generator compares it with
+    # the checked-in allowlist and rejects missing or extra inputs.
+    set(VOXY_WRECKWATER_AUTHORITY_CONTENT_RELATIVE_INPUTS
+        shaders/physics_attachments.wgsl
+        shaders/physics_ballistic.wgsl
+        shaders/physics_broad_phase.wgsl
+        shaders/physics_ccd.wgsl
+        shaders/physics_deterministic_primitives.wgsl
+        shaders/physics_dynamic_solver.wgsl
+        shaders/physics_event_readback.wgsl
+        shaders/physics_islands.wgsl
+        shaders/physics_narrow_phase.wgsl
+        shaders/physics_queries.wgsl
+        src/core/log.cpp
+        src/core/log.hpp
+        src/game/wreckwater_character_authority_bridge.cpp
+        src/game/wreckwater_character_authority_bridge.hpp
+        src/game/wreckwater_character_movement.cpp
+        src/game/wreckwater_character_movement.hpp
+        src/game/wreckwater_character_step.cpp
+        src/game/wreckwater_character_step.hpp
+        src/game/wreckwater_live_world.cpp
+        src/game/wreckwater_live_world.hpp
+        src/game/wreckwater_match.cpp
+        src/game/wreckwater_match.hpp
+        src/game/wreckwater_replay.cpp
+        src/game/wreckwater_replay.hpp
+        src/game/wreckwater_vessel_damage.cpp
+        src/game/wreckwater_vessel_damage.hpp
+        src/gpu/context.cpp
+        src/gpu/context.hpp
+        src/gpu/resources.cpp
+        src/gpu/resources.hpp
+        src/gpu/shader_source.hpp
+        src/gpu/webgpu_compat.hpp
+        src/network/native_tcp_transport.cpp
+        src/network/native_tcp_transport.hpp
+        src/network/protocol.cpp
+        src/network/protocol.hpp
+        src/network/session_transport.hpp
+        src/network/wreckwater_protocol.cpp
+        src/network/wreckwater_protocol.hpp
+        src/physics/character/cpu_capsule_mover.cpp
+        src/physics/character/cpu_capsule_mover.hpp
+        src/physics/deterministic/lockstep_types.hpp
+        src/physics/deterministic/lockstep_world.hpp
+        src/physics/deterministic/replay.hpp
+        src/physics/gpu/debug_readback_ring.cpp
+        src/physics/gpu/debug_readback_ring.hpp
+        src/physics/gpu/deterministic_primitives.cpp
+        src/physics/gpu/deterministic_primitives.hpp
+        src/physics/gpu/gpu_attachments.cpp
+        src/physics/gpu/gpu_attachments.hpp
+        src/physics/gpu/gpu_body_metadata.hpp
+        src/physics/gpu/gpu_broad_phase.cpp
+        src/physics/gpu/gpu_broad_phase.hpp
+        src/physics/gpu/gpu_buffer_arena.cpp
+        src/physics/gpu/gpu_buffer_arena.hpp
+        src/physics/gpu/gpu_ccd.cpp
+        src/physics/gpu/gpu_ccd.hpp
+        src/physics/gpu/gpu_dynamic_solver.cpp
+        src/physics/gpu/gpu_dynamic_solver.hpp
+        src/physics/gpu/gpu_event_readback.cpp
+        src/physics/gpu/gpu_event_readback.hpp
+        src/physics/gpu/gpu_islands.cpp
+        src/physics/gpu/gpu_islands.hpp
+        src/physics/gpu/gpu_narrow_phase.cpp
+        src/physics/gpu/gpu_narrow_phase.hpp
+        src/physics/gpu/gpu_physics_backend.cpp
+        src/physics/gpu/gpu_physics_backend.hpp
+        src/physics/gpu/gpu_queries.cpp
+        src/physics/gpu/gpu_queries.hpp
+        src/physics/physics_backend.hpp
+        src/physics/physics_backend_factory.hpp
+        src/physics/physics_types.cpp
+        src/physics/physics_types.hpp
+        src/physics/physics_world.cpp
+        src/physics/physics_world.hpp
+        src/physics/terrain_topology.hpp
+        src/physics/wreckwater_authority_backend_factory.cpp
+        src/server/wreckwater_authority_runtime.cpp
+        src/server/wreckwater_authority_runtime.hpp
+        src/server/wreckwater_server_main.cpp
+        src/terrain/mip_generator.cpp
+        src/terrain/mip_generator.hpp
+    )
+    set(VOXY_WRECKWATER_AUTHORITY_CONTENT_INPUTS "")
+    foreach(VOXY_WRECKWATER_AUTHORITY_CONTENT_INPUT
+            IN LISTS VOXY_WRECKWATER_AUTHORITY_CONTENT_RELATIVE_INPUTS)
+        list(APPEND VOXY_WRECKWATER_AUTHORITY_CONTENT_INPUTS
+            "${CMAKE_SOURCE_DIR}/${VOXY_WRECKWATER_AUTHORITY_CONTENT_INPUT}"
+        )
+    endforeach()
+
+    set(VOXY_WRECKWATER_BUILD_CONTENT_HEADER
+        "${CMAKE_BINARY_DIR}/generated/wreckwater_build_content.hpp")
+    add_custom_command(
+        OUTPUT "${VOXY_WRECKWATER_BUILD_CONTENT_HEADER}"
+        COMMAND "${Python3_EXECUTABLE}"
+            "${CMAKE_SOURCE_DIR}/tools/generate_wreckwater_build_content.py"
+            --root "${CMAKE_SOURCE_DIR}"
+            --allowlist
+                "${CMAKE_SOURCE_DIR}/wreckwater_authority_content.allowlist"
+            --output "${VOXY_WRECKWATER_BUILD_CONTENT_HEADER}"
+            --inputs ${VOXY_WRECKWATER_AUTHORITY_CONTENT_INPUTS}
+        DEPENDS
+            "${CMAKE_SOURCE_DIR}/tools/generate_wreckwater_build_content.py"
+            "${CMAKE_SOURCE_DIR}/wreckwater_authority_content.allowlist"
+            ${VOXY_WRECKWATER_AUTHORITY_CONTENT_INPUTS}
+        COMMENT "Generating checked WRECKWATER build-content identity"
+        VERBATIM
+    )
+    add_custom_target(wreckwater_build_content_header
+        DEPENDS "${VOXY_WRECKWATER_BUILD_CONTENT_HEADER}")
+    add_library(wreckwater_build_content INTERFACE)
+    add_dependencies(
+        wreckwater_build_content wreckwater_build_content_header)
+    target_include_directories(wreckwater_build_content INTERFACE
+        "${CMAKE_BINARY_DIR}"
+        "${CMAKE_SOURCE_DIR}/src")
+endif()
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Core Library
 # ─────────────────────────────────────────────────────────────────────────────
@@ -88,7 +223,12 @@ if(VOXY_BUILD_NATIVE)
         
         # Link core library if available
         if(TARGET voxy_core)
-            target_link_libraries(voxy_native PRIVATE voxy_core)
+            target_link_libraries(
+                voxy_native PRIVATE
+                voxy_core
+                wreckwater_build_content)
+            add_dependencies(
+                voxy_native wreckwater_build_content_header)
         endif()
         
         # Link Dawn if available
@@ -144,6 +284,72 @@ if(VOXY_BUILD_NATIVE)
     else()
         message(STATUS "  src/engine/platform/native/entry.cpp not found - native target deferred")
     endif()
+
+    if(EXISTS "${CMAKE_SOURCE_DIR}/src/server/wreckwater_server_main.cpp")
+        add_executable(wreckwater_server
+            src/server/wreckwater_server_main.cpp
+        )
+
+        if(NOT TARGET wreckwater_headless_authority)
+            message(FATAL_ERROR
+                "The narrow WRECKWATER authority target is unavailable")
+        endif()
+        target_link_libraries(
+            wreckwater_server PRIVATE
+                wreckwater_build_content
+                wreckwater_headless_authority
+        )
+        add_dependencies(
+            wreckwater_server wreckwater_build_content_header)
+
+        target_compile_definitions(wreckwater_server PRIVATE VOXY_NATIVE=1)
+        set_project_warnings(wreckwater_server)
+
+        # Linux release/CI proof: compare compile_commands against the 32
+        # manifested TUs, then reject client, presentation, Jolt, and Box3D
+        # symbols or dynamic dependencies in the linked server.
+        if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+            find_program(VOXY_LDD_EXECUTABLE ldd)
+            if(CMAKE_NM AND VOXY_LDD_EXECUTABLE)
+                add_custom_target(wreckwater_server_closure_check
+                    COMMAND "${Python3_EXECUTABLE}"
+                        "${CMAKE_SOURCE_DIR}/tools/check_wreckwater_authority_cmake_closure.py"
+                        --workspace "${CMAKE_SOURCE_DIR}"
+                        --compile-commands
+                            "${CMAKE_BINARY_DIR}/compile_commands.json"
+                        --binary "$<TARGET_FILE:wreckwater_server>"
+                        --nm "${CMAKE_NM}"
+                        --ldd "${VOXY_LDD_EXECUTABLE}"
+                    DEPENDS wreckwater_server
+                    COMMENT
+                        "Checking narrow WRECKWATER CMake authority closure"
+                    VERBATIM
+                )
+            else()
+                message(WARNING
+                    "nm or ldd unavailable; CMake authority binary closure "
+                    "check target was not created")
+            endif()
+        endif()
+    endif()
+
+    if(EXISTS "${CMAKE_SOURCE_DIR}/src/client/wreckwater_client_probe_main.cpp")
+        add_executable(wreckwater_client_probe
+            src/client/wreckwater_client_probe.cpp
+            src/client/wreckwater_client_probe_main.cpp
+        )
+
+        if(TARGET voxy_core)
+            target_link_libraries(wreckwater_client_probe PRIVATE voxy_core)
+        endif()
+        target_link_libraries(
+            wreckwater_client_probe PRIVATE wreckwater_build_content)
+        add_dependencies(
+            wreckwater_client_probe wreckwater_build_content_header)
+        target_compile_definitions(
+            wreckwater_client_probe PRIVATE VOXY_NATIVE=1)
+        set_project_warnings(wreckwater_client_probe)
+    endif()
 endif()
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -157,6 +363,9 @@ if(VOXY_BUILD_WASM)
         file(GLOB VOXY_WASM_SHADER_SOURCES CONFIGURE_DEPENDS
             "${CMAKE_SOURCE_DIR}/shaders/*.wgsl"
         )
+        file(GLOB VOXY_WASM_MATERIAL_SOURCES CONFIGURE_DEPENDS
+            "${CMAKE_SOURCE_DIR}/data/materials/*.jpg"
+        )
         add_executable(voxy_wasm
             src/engine/platform/wasm/entry.cpp
             voxy.cfg
@@ -167,7 +376,9 @@ if(VOXY_BUILD_WASM)
         # incremental shader edit rebuilds voxy_wasm.data instead of silently
         # benchmarking stale shader code.
         set_property(TARGET voxy_wasm APPEND PROPERTY
-            LINK_DEPENDS ${VOXY_WASM_SHADER_SOURCES}
+            LINK_DEPENDS
+                ${VOXY_WASM_SHADER_SOURCES}
+                ${VOXY_WASM_MATERIAL_SOURCES}
         )
         
         if(TARGET voxy_core)
@@ -255,6 +466,12 @@ if(VOXY_BUILD_WASM)
                 "--preload-file ${CMAKE_SOURCE_DIR}/${VOXY_WASM_DATA_FILE}@/${VOXY_WASM_DATA_FILE}"
             )
         endforeach()
+        if(NOT EXISTS "${CMAKE_SOURCE_DIR}/data/materials")
+            message(FATAL_ERROR "Required terrain material directory not found")
+        endif()
+        list(APPEND WASM_LINK_FLAGS
+            "--preload-file ${CMAKE_SOURCE_DIR}/data/materials@/data/materials"
+        )
 
         string(JOIN " " WASM_LINK_FLAGS_STR ${WASM_LINK_FLAGS})
         set_target_properties(voxy_wasm PROPERTIES
@@ -283,6 +500,15 @@ if(VOXY_BUILD_TESTS AND NOT EMSCRIPTEN)
     # Enable CTest
     include(CTest)
     enable_testing()
+    if(NOT Python3_Interpreter_FOUND)
+        find_package(Python3 REQUIRED COMPONENTS Interpreter)
+    endif()
+
+    add_test(
+        NAME wreckwater_build_content_generator
+        COMMAND "${Python3_EXECUTABLE}"
+            "${CMAKE_SOURCE_DIR}/tools/test_generate_wreckwater_build_content.py"
+    )
     
     if(EXISTS "${CMAKE_SOURCE_DIR}/tests/CMakeLists.txt")
         add_subdirectory(tests)

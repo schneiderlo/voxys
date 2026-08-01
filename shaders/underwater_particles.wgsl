@@ -26,10 +26,10 @@ struct CameraUniforms {
 @group(0) @binding(1) var rayDepth : texture_2d<f32>;
 @group(0) @binding(2) var<storage, read> particles : array<vec4<f32>>;
 
-const PARTICLE_NEAR : f32 = 9.0;
-const PARTICLE_FAR : f32 = 209.0;
-const PARTICLE_MIN_SIZE : f32 = 0.1;
-const PARTICLE_MAX_SIZE : f32 = 0.5;
+const PARTICLE_NEAR : f32 = 2.5;
+const PARTICLE_FAR : f32 = 65.0;
+const PARTICLE_MIN_SIZE : f32 = 0.028;
+const PARTICLE_MAX_SIZE : f32 = 0.100;
 
 struct ParticleVertex {
     @builtin(position) position : vec4<f32>,
@@ -96,9 +96,9 @@ fn fs(input : ParticleVertex) -> @location(0) vec4<f32> {
     }
     let centered = (input.uv - vec2<f32>(0.5)) * 2.0;
     let radialFade = 1.0 - smoothstep(0.5, 1.0, length(centered));
-    let alpha = 0.5 * input.visibility * radialFade;
+    let alpha = 0.26 * input.visibility * radialFade;
     if (alpha < 0.001) {
         discard;
     }
-    return vec4<f32>(vec3<f32>(1.0), alpha);
+    return vec4<f32>(vec3<f32>(0.72, 0.88, 0.82), alpha);
 }

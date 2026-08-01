@@ -1,5 +1,6 @@
 #pragma once
 
+#include "gpu/shader_source.hpp"
 #include "gpu/webgpu_compat.hpp"
 
 #include <cstddef>
@@ -93,6 +94,7 @@ public:
         std::filesystem::path shaderPath = "shaders/physics_islands.wgsl";
         std::filesystem::path primitivesShaderPath =
             "shaders/physics_deterministic_primitives.wgsl";
+        std::span<const gpu::ShaderSource> shaderSources{};
     };
 
     GpuIslandManager();

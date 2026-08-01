@@ -5,6 +5,7 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 
 #include <gtest/gtest.h>
+#include "terrain/authored_cove.hpp"
 #include "terrain/heightmap.hpp"
 #include "terrain/mip_generator.hpp"
 
@@ -177,6 +178,115 @@ TEST(HeightmapUtilityTest, NextPowerOfTwoReportsUnrepresentableResult) {
     EXPECT_EQ(nextPowerOfTwo(uint32_t{1} << 31), uint32_t{1} << 31);
     EXPECT_EQ(nextPowerOfTwo((uint32_t{1} << 31) + 1), 0u);
     EXPECT_EQ(nextPowerOfTwo(std::numeric_limits<uint32_t>::max()), 0u);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Authored Wreckwater cove
+// ═══════════════════════════════════════════════════════════════════════════════
+
+TEST(AuthoredCoveTest, ProfileHasReadableCoastalHierarchy) {
+    const AuthoredCoveConfig config;
+    const auto worldAt = [&config](float inland, float alongshore) {
+        return config.center +
+               config.inlandNormal * inland +
+               config.alongshoreTangent * alongshore;
+    };
+
+    const auto offshore =
+        sampleAuthoredCove(worldAt(-36.0f, 0.0f), config);
+    const auto swash =
+        sampleAuthoredCove(worldAt(20.0f, 0.0f), config);
+    const auto berm =
+        sampleAuthoredCove(worldAt(31.0f, 0.0f), config);
+    const auto backshore =
+        sampleAuthoredCove(worldAt(46.0f, 0.0f), config);
+    const auto bluff =
+        sampleAuthoredCove(worldAt(65.0f, 0.0f), config);
+
+    EXPECT_LT(offshore.height, config.waterHeight - 5.0f);
+    EXPECT_NEAR(swash.height, config.waterHeight, 1.5f);
+    EXPECT_GT(berm.height, swash.height + 1.0f);
+    EXPECT_GT(backshore.height, berm.height + 2.0f);
+    EXPECT_GT(bluff.height, backshore.height + 4.5f);
+    EXPECT_LT(offshore.signedShoreDistance,
+              swash.signedShoreDistance);
+    EXPECT_LT(swash.signedShoreDistance,
+              backshore.signedShoreDistance);
+}
+
+TEST(AuthoredCoveTest, BayIsConcaveAndErodedAsymmetrically) {
+    const AuthoredCoveConfig config;
+    const auto worldAt = [&config](float inland, float alongshore) {
+        return config.center +
+               config.inlandNormal * inland +
+               config.alongshoreTangent * alongshore;
+    };
+
+    const auto bayCenter =
+        sampleAuthoredCove(worldAt(0.0f, 0.0f), config);
+    const auto horn =
+        sampleAuthoredCove(worldAt(0.0f, 48.0f), config);
+    EXPECT_LT(bayCenter.signedShoreDistance,
+              horn.signedShoreDistance - 13.0f);
+
+    const auto firstHorn =
+        sampleAuthoredCove(worldAt(7.0f, -32.0f), config);
+    const auto secondHorn =
+        sampleAuthoredCove(worldAt(7.0f, 32.0f), config);
+    EXPECT_GT(std::abs(
+                  firstHorn.signedShoreDistance -
+                  secondHorn.signedShoreDistance),
+              0.35f);
+}
+
+TEST(AuthoredCoveTest, MaterialZonesAreNormalizedAndDistinct) {
+    const auto wet = classifyCoveMaterial(0.8f, 0.98f);
+    const auto dry = classifyCoveMaterial(4.8f, 0.98f);
+    const auto soil = classifyCoveMaterial(10.0f, 0.88f);
+    const auto grass = classifyCoveMaterial(18.0f, 0.98f);
+    const auto rock = classifyCoveMaterial(8.0f, 0.45f);
+
+    const auto sum = [](const CoveMaterialWeights& value) {
+        return value.drySand + value.soil +
+               value.grass + value.rock;
+    };
+    for (const CoveMaterialWeights value :
+         {wet, dry, soil, grass, rock}) {
+        EXPECT_NEAR(sum(value), 1.0f, 1.0e-5f);
+    }
+    EXPECT_GT(wet.wetSand, 0.65f);
+    EXPECT_GT(dry.drySand, 0.75f);
+    EXPECT_GT(soil.soil, 0.62f);
+    EXPECT_GT(grass.grass, 0.85f);
+    EXPECT_GT(rock.rock, 0.9f);
+}
+
+TEST(AuthoredCoveTest, SculptIsBoundedAndRejectsInvalidLayouts) {
+    constexpr uint32_t width = 256u;
+    constexpr uint32_t height = 256u;
+    constexpr uint16_t flat = 32768u;
+    std::vector<uint16_t> samples(
+        static_cast<size_t>(width) * height, flat);
+    const std::vector<uint16_t> original = samples;
+    AuthoredCoveConfig config;
+    config.center = {0.0f, 0.0f};
+    config.waterHeight = 0.0f;
+    AuthoredCoveStats stats;
+
+    ASSERT_TRUE(applyAuthoredCove(
+        samples, width, height, 100.0f, 1.0f, config, &stats));
+    EXPECT_GT(stats.fullyAuthoredSamples, 7'500u);
+    EXPECT_GT(stats.touchedSamples, stats.fullyAuthoredSamples);
+    EXPECT_LT(stats.touchedSamples, 23'000u);
+    EXPECT_EQ(samples.front(), flat);
+    EXPECT_EQ(samples.back(), flat);
+    EXPECT_NE(samples[128u * width + 128u], flat);
+
+    std::vector<uint16_t> invalid = original;
+    EXPECT_FALSE(applyAuthoredCove(
+        std::span<uint16_t>(invalid).first(invalid.size() - 1u),
+        width, height, 100.0f, 1.0f, config));
+    EXPECT_EQ(invalid, original);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════

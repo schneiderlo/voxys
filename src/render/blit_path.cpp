@@ -116,6 +116,9 @@ BlitPath::BlitPath(BlitPath&& other) noexcept
     , waterDisplacementSampler_(other.waterDisplacementSampler_)
     , terrainView_(other.terrainView_)
     , lightmapView_(other.lightmapView_)
+    , terrainMaterialAlbedoView_(other.terrainMaterialAlbedoView_)
+    , terrainMaterialNormalRoughnessView_(
+          other.terrainMaterialNormalRoughnessView_)
     , terrainWidth_(other.terrainWidth_)
     , terrainHeight_(other.terrainHeight_)
     , uniforms_(other.uniforms_)
@@ -199,6 +202,8 @@ BlitPath::BlitPath(BlitPath&& other) noexcept
     other.waterDisplacementSampler_ = nullptr;
     other.terrainView_ = nullptr;
     other.lightmapView_ = nullptr;
+    other.terrainMaterialAlbedoView_ = nullptr;
+    other.terrainMaterialNormalRoughnessView_ = nullptr;
     other.uniforms_ = nullptr;
     other.staticUniforms_ = nullptr;
 }
@@ -275,6 +280,9 @@ BlitPath& BlitPath::operator=(BlitPath&& other) noexcept {
         waterDisplacementSampler_ = other.waterDisplacementSampler_;
         terrainView_ = other.terrainView_;
         lightmapView_ = other.lightmapView_;
+        terrainMaterialAlbedoView_ = other.terrainMaterialAlbedoView_;
+        terrainMaterialNormalRoughnessView_ =
+            other.terrainMaterialNormalRoughnessView_;
         terrainWidth_ = other.terrainWidth_;
         terrainHeight_ = other.terrainHeight_;
         uniforms_ = other.uniforms_;
@@ -357,6 +365,8 @@ BlitPath& BlitPath::operator=(BlitPath&& other) noexcept {
         other.waterDisplacementSampler_ = nullptr;
         other.terrainView_ = nullptr;
         other.lightmapView_ = nullptr;
+        other.terrainMaterialAlbedoView_ = nullptr;
+        other.terrainMaterialNormalRoughnessView_ = nullptr;
         other.uniforms_ = nullptr;
         other.staticUniforms_ = nullptr;
     }
@@ -583,6 +593,8 @@ void BlitPath::shutdown() {
     waterDisplacementSampler_ = nullptr;
     terrainView_ = nullptr;
     lightmapView_ = nullptr;
+    terrainMaterialAlbedoView_ = nullptr;
+    terrainMaterialNormalRoughnessView_ = nullptr;
     device_ = nullptr;
     queue_ = nullptr;
     outputWidth_ = 0;
@@ -1106,6 +1118,10 @@ bool BlitPath::createSurfaceFoamTexture() {
         gpu::SamplerDesc::linear("ocean_procedural_material_sampler");
     samplerDesc.addressModeU = WGPUAddressMode_Repeat;
     samplerDesc.addressModeV = WGPUAddressMode_Repeat;
+    // This repeat sampler is shared by the ocean field and terrain detail
+    // arrays. Anisotropy keeps world-projected material stable at shore-grazing
+    // angles without consuming another portable sampler slot.
+    samplerDesc.maxAnisotropy = 8u;
     surfaceFoamSampler_ = gpu::createSampler(device_, samplerDesc);
     if (!surfaceFoamSampler_) return false;
 
@@ -1119,9 +1135,9 @@ bool BlitPath::createSurfaceFoamTexture() {
 // ─────────────────────────────────────────────────────────────────────────────
 
 namespace {
-constexpr uint32_t kUnderwaterParticleCount = 1000u;
-constexpr float kParticleNearDistance = 9.0f;
-constexpr float kParticleFarDistance = 209.0f;
+constexpr uint32_t kUnderwaterParticleCount = 7200u;
+constexpr float kParticleNearDistance = 2.5f;
+constexpr float kParticleFarDistance = 65.0f;
 constexpr float kParticleTau = 6.28318530717958647692f;
 } // namespace
 
@@ -1722,8 +1738,11 @@ bool BlitPath::createBindGroupLayout() {
     // @group(0) @binding(8) var skyLUT : texture_2d<f32>;
     // @group(0) @binding(9) var oceanFoamTex : texture_2d<f32>;
     // @group(0) @binding(10) var oceanFoamSampler : sampler;
+    // @group(0) @binding(17) var terrainMaterialAlbedo : texture_2d_array<f32>;
+    // @group(0) @binding(18) var terrainMaterialNormalRoughness :
+    //     texture_2d_array<f32>;
 
-    std::array<gpu::BindGroupLayoutEntry, 11> entries = {
+    std::array<gpu::BindGroupLayoutEntry, 13> entries = {
         gpu::BindGroupLayoutEntry(0)
             .vertexVisible()
             .fragmentVisible()
@@ -1757,7 +1776,15 @@ bool BlitPath::createBindGroupLayout() {
             .texture(WGPUTextureSampleType_Float, WGPUTextureViewDimension_2D, false),
         gpu::BindGroupLayoutEntry(10)
             .fragmentVisible()
-            .sampler(WGPUSamplerBindingType_Filtering)
+            .sampler(WGPUSamplerBindingType_Filtering),
+        gpu::BindGroupLayoutEntry(17)
+            .fragmentVisible()
+            .texture(WGPUTextureSampleType_Float,
+                     WGPUTextureViewDimension_2DArray, false),
+        gpu::BindGroupLayoutEntry(18)
+            .fragmentVisible()
+            .texture(WGPUTextureSampleType_Float,
+                     WGPUTextureViewDimension_2DArray, false)
     };
     
     bindGroupLayout_ = gpu::createBindGroupLayout(device_, entries, "blit_bind_group_layout");
@@ -1770,7 +1797,7 @@ bool BlitPath::createBindGroupLayout() {
     // The settled-camera pipeline shades animated water directly over the exact
     // cached HDR terrain/sky. Bindings 13-16 are the same geometry inputs used
     // by the old intermediate water-composite compute pass.
-    std::array<gpu::BindGroupLayoutEntry, 17> cachedEntries = {
+    std::array<gpu::BindGroupLayoutEntry, 19> cachedEntries = {
         gpu::BindGroupLayoutEntry(0)
             .vertexVisible()
             .fragmentVisible()
@@ -1836,7 +1863,15 @@ bool BlitPath::createBindGroupLayout() {
         gpu::BindGroupLayoutEntry(16)
             .vertexVisible()
             .fragmentVisible()
-            .sampler(WGPUSamplerBindingType_Filtering)
+            .sampler(WGPUSamplerBindingType_Filtering),
+        gpu::BindGroupLayoutEntry(17)
+            .fragmentVisible()
+            .texture(WGPUTextureSampleType_Float,
+                     WGPUTextureViewDimension_2DArray, false),
+        gpu::BindGroupLayoutEntry(18)
+            .fragmentVisible()
+            .texture(WGPUTextureSampleType_Float,
+                     WGPUTextureViewDimension_2DArray, false)
     };
     cachedBindGroupLayout_ = gpu::createBindGroupLayout(
         device_, cachedEntries, "blit_cached_bind_group_layout");
@@ -2124,6 +2159,11 @@ bool BlitPath::createBindGroup() {
         LOG_ERROR("Cannot create bind group: no lightmap view set");
         return false;
     }
+    if (!terrainMaterialAlbedoView_
+        || !terrainMaterialNormalRoughnessView_) {
+        LOG_ERROR("Cannot create bind group: terrain material arrays are missing");
+        return false;
+    }
     if (!surfaceFoamView_ || !surfaceFoamSampler_) {
         LOG_ERROR("Cannot create bind group: no procedural ocean foam texture");
         return false;
@@ -2151,7 +2191,7 @@ bool BlitPath::createBindGroup() {
         if (nextBindGroup) wgpuBindGroupRelease(nextBindGroup);
     };
 
-    std::array<gpu::BindGroupEntry, 11> entries = {
+    std::array<gpu::BindGroupEntry, 13> entries = {
         gpu::BindGroupEntry(0).buffer(uniformBuffer_, 0, sizeof(CameraUniforms)),
         gpu::BindGroupEntry(1).textureView(depthView_),
         gpu::BindGroupEntry(2).textureView(shadowView_),
@@ -2162,7 +2202,10 @@ bool BlitPath::createBindGroup() {
         gpu::BindGroupEntry(7).buffer(debugUniformBuffer_, 0, sizeof(DebugUniforms)),
         gpu::BindGroupEntry(8).textureView(skyLutView_),
         gpu::BindGroupEntry(9).textureView(surfaceFoamView_),
-        gpu::BindGroupEntry(10).sampler(surfaceFoamSampler_)
+        gpu::BindGroupEntry(10).sampler(surfaceFoamSampler_),
+        gpu::BindGroupEntry(17).textureView(terrainMaterialAlbedoView_),
+        gpu::BindGroupEntry(18).textureView(
+            terrainMaterialNormalRoughnessView_)
     };
     
     nextBindGroup = gpu::createBindGroup(
@@ -2193,7 +2236,7 @@ bool BlitPath::createBindGroup() {
     }
 
     if (createStaticGroups) {
-        std::array<gpu::BindGroupEntry, 11> staticEntries = {
+        std::array<gpu::BindGroupEntry, 13> staticEntries = {
             gpu::BindGroupEntry(0).buffer(
                 staticUniformBuffer_, 0, sizeof(CameraUniforms)),
             gpu::BindGroupEntry(1).textureView(staticDepthView_),
@@ -2206,7 +2249,11 @@ bool BlitPath::createBindGroup() {
                 debugUniformBuffer_, 0, sizeof(DebugUniforms)),
             gpu::BindGroupEntry(8).textureView(skyLutView_),
             gpu::BindGroupEntry(9).textureView(surfaceFoamView_),
-            gpu::BindGroupEntry(10).sampler(surfaceFoamSampler_)
+            gpu::BindGroupEntry(10).sampler(surfaceFoamSampler_),
+            gpu::BindGroupEntry(17).textureView(
+                terrainMaterialAlbedoView_),
+            gpu::BindGroupEntry(18).textureView(
+                terrainMaterialNormalRoughnessView_)
         };
         nextStaticBindGroup = gpu::createBindGroup(
             device_, bindGroupLayout_, staticEntries,
@@ -2217,7 +2264,7 @@ bool BlitPath::createBindGroup() {
             return false;
         }
 
-        std::array<gpu::BindGroupEntry, 17> cachedEntries = {
+        std::array<gpu::BindGroupEntry, 19> cachedEntries = {
             gpu::BindGroupEntry(0).buffer(
                 uniformBuffer_, 0, sizeof(CameraUniforms)),
             // The dynamic depth texture is a render attachment in this pass;
@@ -2239,7 +2286,11 @@ bool BlitPath::createBindGroup() {
             gpu::BindGroupEntry(13).textureView(heightmapView_),
             gpu::BindGroupEntry(14).textureView(shadowHeightView_),
             gpu::BindGroupEntry(15).textureView(waterDisplacementView_),
-            gpu::BindGroupEntry(16).sampler(waterDisplacementSampler_)
+            gpu::BindGroupEntry(16).sampler(waterDisplacementSampler_),
+            gpu::BindGroupEntry(17).textureView(
+                terrainMaterialAlbedoView_),
+            gpu::BindGroupEntry(18).textureView(
+                terrainMaterialNormalRoughnessView_)
         };
         nextCachedBindGroup = gpu::createBindGroup(
             device_, cachedBindGroupLayout_, cachedEntries,
@@ -2324,6 +2375,16 @@ void BlitPath::setTerrainTexture(WGPUTextureView terrainView) {
     bindGroupDirty_ = true;
     backgroundDirty_ = true;
     LOG_DEBUG("Set terrain texture view");
+}
+
+void BlitPath::setTerrainMaterialTextures(
+    WGPUTextureView albedoView,
+    WGPUTextureView normalRoughnessView) {
+    terrainMaterialAlbedoView_ = albedoView;
+    terrainMaterialNormalRoughnessView_ = normalRoughnessView;
+    bindGroupDirty_ = true;
+    backgroundDirty_ = true;
+    LOG_DEBUG("Set terrain material array views");
 }
 
 void BlitPath::setLightmapTexture(WGPUTextureView lightmapView) {
@@ -2420,9 +2481,9 @@ void BlitPath::updateStaticUniforms() {
     next.waterFoam = glm::vec4(0.0f);
     next.waterSpectrum = glm::vec4(0.0f);
     if (next.waterMotion.z <= 0.5f) {
-        // The opaque scene is water-independent while the camera is above the
-        // surface. The geometry pass still consumes the live water values.
-        next.waterParams = glm::vec4(0.0f);
+        // Sea level and the enabled flag also classify the cached shoreline
+        // terrain (sand, run-up wetness, soil, and grass). Keep x/y stable;
+        // z/w were canonicalized above because only live water consumes them.
         next.waterColorB = glm::vec4(0.0f);
         next.waterOptics = glm::vec4(0.0f);
     }

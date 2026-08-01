@@ -1,5 +1,6 @@
 #pragma once
 
+#include "gpu/shader_source.hpp"
 #include "gpu/webgpu_compat.hpp"
 
 #include <array>
@@ -78,6 +79,7 @@ public:
         uint32_t requestCapacity = 256;
         uint32_t readbackSlots = 3;
         std::filesystem::path shaderPath = "shaders/physics_queries.wgsl";
+        std::span<const gpu::ShaderSource> shaderSources{};
     };
 
     GpuAsyncQuerySystem();

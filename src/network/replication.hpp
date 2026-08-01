@@ -136,6 +136,7 @@ private:
 class SnapshotAckTracker {
 public:
     void acknowledge(uint32_t clientId, uint64_t tick);
+    void reset(uint32_t clientId);
     [[nodiscard]] std::optional<uint64_t> acknowledgedTick(
         uint32_t clientId) const noexcept;
 
@@ -241,7 +242,8 @@ public:
     [[nodiscard]] bool initialize(
         const Config& config, uint64_t islandId, uint32_t authorityEpoch,
         uint32_t controlledBody,
-        std::span<const physics::deterministic::LockstepBody> bodies);
+        std::span<const physics::deterministic::LockstepBody> bodies,
+        uint64_t initialTick = 0);
     [[nodiscard]] bool setMembership(
         std::span<const uint32_t> predictedBodies,
         std::span<const uint32_t> boundaryGhosts);

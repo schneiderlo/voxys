@@ -8,6 +8,8 @@
 #include "physics/gpu/gpu_islands.hpp"
 #include "physics/gpu/gpu_narrow_phase.hpp"
 
+#include <glm/vec3.hpp>
+
 #include <array>
 #include <cstddef>
 #include <cstdint>
@@ -32,6 +34,8 @@ extern "C" WGPUBool wgpuDevicePoll(
 
 namespace voxy::physics {
 namespace {
+
+static_assert(sizeof(GpuPhysicsEvent) == 96u);
 
 template <typename T>
 WGPUBuffer makeStorage(gpu::Context& context, std::span<const T> values,
@@ -105,11 +109,24 @@ TEST(GpuEventReadback, PacksPriorityAndStableKeysThroughAsyncRing) {
     islandTelemetry[8] = 2u;
 
     std::array<GpuContactManifold, 1> manifolds{};
-    manifolds[0].pair = {12u, 10u, 0u, 77u};
-    manifolds[0].state[0] = 1u;
-    manifolds[0].points[0].localAnchorBNormalImpulse[3] = 2.0f;
-    manifolds[0].points[0].features[0] = 42u;
+    // Source manifold A is body 12 and B is body 10. Event packing must
+    // canonicalize to 10/12, swap both local anchors/features, and invert the
+    // A->B normal while retaining summed multi-point evidence.
+    manifolds[0].pair = {10u, 12u, 0u, 77u};
+    manifolds[0].state[0] = 2u;
+    manifolds[0].normal = {1.0f, 0.0f, 0.0f, 0.0f};
+    manifolds[0].points[0].localAnchorASeparation =
+        {1.0f, 0.0f, 0.0f, -0.10f};
+    manifolds[0].points[0].localAnchorBNormalImpulse =
+        {10.0f, 0.0f, 0.0f, 2.0f};
+    manifolds[0].points[0].features = {42u, 52u, 0u, 0u};
     manifolds[0].points[0].impulses[1] = 3.0f;
+    manifolds[0].points[1].localAnchorASeparation =
+        {3.0f, 0.0f, 0.0f, -0.20f};
+    manifolds[0].points[1].localAnchorBNormalImpulse =
+        {14.0f, 0.0f, 0.0f, 3.0f};
+    manifolds[0].points[1].features = {43u, 53u, 0u, 0u};
+    manifolds[0].points[1].impulses[1] = 5.0f;
     std::array<uint32_t, 32> narrowTelemetry{};
     narrowTelemetry[11] = 1u;
     std::array<std::array<uint32_t, 4>, 13> metadata{};
@@ -182,20 +199,39 @@ TEST(GpuEventReadback, PacksPriorityAndStableKeysThroughAsyncRing) {
     EXPECT_EQ(batch->events[2].header[2], 1u);
     EXPECT_EQ(batch->events[3].header[2], 10u);
     EXPECT_EQ(batch->events[3].header[3], 12u);
-    EXPECT_EQ(batch->events[3].detail[0], 42u);
+    EXPECT_EQ(batch->events[3].detail[0], 53u);
     EXPECT_EQ(batch->events[3].detail[1], 77u);
+    EXPECT_EQ(batch->events[3].detail[2], 2u);
+    EXPECT_EQ(batch->events[3].detail[3], 43u);
     EXPECT_EQ(batch->events[0].identity[0], 102u);
     EXPECT_EQ(batch->events[0].identity[1], 105u);
     EXPECT_EQ(batch->events[2].identity[0], 71u);
     EXPECT_EQ(batch->events[2].identity[1], 73u);
     EXPECT_EQ(batch->events[3].identity[0], 110u);
     EXPECT_EQ(batch->events[3].identity[1], 112u);
+    EXPECT_FLOAT_EQ(
+        batch->events[3].localAnchorASeparation[0], 12.4f);
+    EXPECT_FLOAT_EQ(
+        batch->events[3].localAnchorASeparation[3], -0.16f);
+    EXPECT_FLOAT_EQ(
+        batch->events[3].localAnchorBImpulse[0], 2.2f);
+    EXPECT_FLOAT_EQ(
+        batch->events[3].localAnchorBImpulse[3], 5.0f);
+    EXPECT_EQ(
+        glm::vec3(
+            batch->events[3].normalSpeed[0],
+            batch->events[3].normalSpeed[1],
+            batch->events[3].normalSpeed[2]),
+        glm::vec3(-1.0f, 0.0f, 0.0f));
+    EXPECT_FLOAT_EQ(batch->events[3].normalSpeed[3], 5.0f);
     EXPECT_EQ(batch->events[4].header[2], 4u);
     EXPECT_EQ(batch->events[4].detail[2], 3u);
     EXPECT_EQ(batch->events[5].header[2], 9u);
     EXPECT_EQ(batch->events[4].identity[0], 104u);
     EXPECT_EQ(batch->events[5].identity[0], 109u);
-    EXPECT_GT(ring.allocatedBytes(), 0u);
+    EXPECT_GE(
+        ring.allocatedBytes(),
+        16u + 8u * sizeof(GpuPhysicsEvent));
     ring.shutdown();
 
     GpuEventReadbackRing limited;

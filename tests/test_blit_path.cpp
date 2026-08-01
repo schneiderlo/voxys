@@ -102,6 +102,22 @@ protected:
             wgpuTextureRelease(lightmapTexture_);
             lightmapTexture_ = nullptr;
         }
+        if (terrainMaterialAlbedoView_) {
+            wgpuTextureViewRelease(terrainMaterialAlbedoView_);
+            terrainMaterialAlbedoView_ = nullptr;
+        }
+        if (terrainMaterialAlbedoTexture_) {
+            wgpuTextureRelease(terrainMaterialAlbedoTexture_);
+            terrainMaterialAlbedoTexture_ = nullptr;
+        }
+        if (terrainMaterialNormalRoughnessView_) {
+            wgpuTextureViewRelease(terrainMaterialNormalRoughnessView_);
+            terrainMaterialNormalRoughnessView_ = nullptr;
+        }
+        if (terrainMaterialNormalRoughnessTexture_) {
+            wgpuTextureRelease(terrainMaterialNormalRoughnessTexture_);
+            terrainMaterialNormalRoughnessTexture_ = nullptr;
+        }
         if (colorView_) {
             wgpuTextureViewRelease(colorView_);
             colorView_ = nullptr;
@@ -200,6 +216,39 @@ protected:
         lightmapViewDesc.format = WGPUTextureFormat_R8Unorm;
         lightmapView_ = gpu::createTextureView(lightmapTexture_, lightmapViewDesc);
         if (!lightmapView_) return false;
+
+        gpu::TextureDesc terrainMaterialDesc =
+            gpu::TextureDesc::tex2D(
+                16, 16, WGPUTextureFormat_RGBA8UnormSrgb,
+                WGPUTextureUsage_TextureBinding | WGPUTextureUsage_CopyDst,
+                "test_terrain_material_albedo");
+        terrainMaterialDesc.depthOrArrayLayers = 4u;
+        terrainMaterialAlbedoTexture_ =
+            gpu::createTexture(device, terrainMaterialDesc);
+        if (!terrainMaterialAlbedoTexture_) return false;
+        terrainMaterialDesc.label = "test_terrain_material_normal_roughness";
+        terrainMaterialDesc.format = WGPUTextureFormat_RGBA8Unorm;
+        terrainMaterialNormalRoughnessTexture_ =
+            gpu::createTexture(device, terrainMaterialDesc);
+        if (!terrainMaterialNormalRoughnessTexture_) return false;
+
+        gpu::TextureViewDesc terrainMaterialViewDesc{};
+        terrainMaterialViewDesc.dimension =
+            WGPUTextureViewDimension_2DArray;
+        terrainMaterialViewDesc.arrayLayerCount = 4u;
+        terrainMaterialViewDesc.format = WGPUTextureFormat_RGBA8UnormSrgb;
+        terrainMaterialViewDesc.label =
+            "test_terrain_material_albedo_view";
+        terrainMaterialAlbedoView_ = gpu::createTextureView(
+            terrainMaterialAlbedoTexture_, terrainMaterialViewDesc);
+        if (!terrainMaterialAlbedoView_) return false;
+        terrainMaterialViewDesc.label =
+            "test_terrain_material_normal_roughness_view";
+        terrainMaterialViewDesc.format = WGPUTextureFormat_RGBA8Unorm;
+        terrainMaterialNormalRoughnessView_ = gpu::createTextureView(
+            terrainMaterialNormalRoughnessTexture_,
+            terrainMaterialViewDesc);
+        if (!terrainMaterialNormalRoughnessView_) return false;
         
         // Create color output texture (BGRA8 - swapchain format)
         gpu::TextureDesc colorDesc = gpu::TextureDesc::renderTarget(
@@ -235,6 +284,10 @@ protected:
     WGPUTextureView terrainView_ = nullptr;
     WGPUTexture lightmapTexture_ = nullptr;
     WGPUTextureView lightmapView_ = nullptr;
+    WGPUTexture terrainMaterialAlbedoTexture_ = nullptr;
+    WGPUTextureView terrainMaterialAlbedoView_ = nullptr;
+    WGPUTexture terrainMaterialNormalRoughnessTexture_ = nullptr;
+    WGPUTextureView terrainMaterialNormalRoughnessView_ = nullptr;
     WGPUTexture colorTexture_ = nullptr;
     WGPUTextureView colorView_ = nullptr;
 };
@@ -427,6 +480,9 @@ TEST_F(BlitPathTest, CanSetInputTextures) {
     blitPath_.setShadowTexture(shadowView_);
     blitPath_.setMaterialTexture(materialView_);
     blitPath_.setTerrainTexture(terrainView_);
+    blitPath_.setTerrainMaterialTextures(
+        terrainMaterialAlbedoView_,
+        terrainMaterialNormalRoughnessView_);
     blitPath_.setLightmapTexture(lightmapView_);
 }
 
@@ -473,6 +529,9 @@ TEST_F(BlitPathTest, RenderWithAllTexturesSucceeds) {
     blitPath_.setShadowTexture(shadowView_);
     blitPath_.setMaterialTexture(materialView_);
     blitPath_.setTerrainTexture(terrainView_);
+    blitPath_.setTerrainMaterialTextures(
+        terrainMaterialAlbedoView_,
+        terrainMaterialNormalRoughnessView_);
     blitPath_.setLightmapTexture(lightmapView_);
     blitPath_.setTerrainSize(256, 256);
     

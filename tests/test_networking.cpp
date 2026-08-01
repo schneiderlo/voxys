@@ -470,9 +470,46 @@ TEST(NetworkPrediction, RejectedUpdatesPreserveTheWorkingTick) {
     EXPECT_FALSE(prediction.initialize(config, 2u, 1u, 1u, malformed));
     EXPECT_EQ(prediction.currentTick(), 0u);
     EXPECT_EQ(prediction.snapshot().stateHash, initialHash);
+    auto overCapacity = initial;
+    overCapacity[2] = body(2u, 4'096, 8'192);
+    auto limited = config;
+    limited.maximumPredictedBodies = 1u;
+    EXPECT_FALSE(prediction.initialize(
+        limited, 2u, 1u, 1u, overCapacity));
+    EXPECT_EQ(prediction.snapshot().stateHash, initialHash);
     EXPECT_FALSE(prediction.setMembership(
         std::array<uint32_t, 2>{1u, 7u},
         std::span<const uint32_t>{}));
+}
+
+TEST(NetworkPrediction, MembershipSeparatesPredictedBodiesFromGhosts) {
+    PredictionBubble::Config config;
+    config.world.bodyCapacity = 8u;
+    config.world.contactCapacity = 16u;
+    config.maximumPredictedBodies = 2u;
+    std::vector<LockstepBody> initial(config.world.bodyCapacity);
+    initial[1] = body(1u, 0, 8'192);
+    initial[2] = body(2u, 4'096, 8'192);
+
+    PredictionBubble prediction;
+    ASSERT_TRUE(prediction.initialize(
+        config, 1u, 1u, 1u, initial));
+    EXPECT_FALSE(prediction.setMembership(
+        std::array<uint32_t, 1>{1u},
+        std::span<const uint32_t>{}));
+    ASSERT_TRUE(prediction.setMembership(
+        std::array<uint32_t, 1>{1u},
+        std::array<uint32_t, 1>{2u}));
+
+    const auto ghostImpulse = impulse(1u, 2u, 1u, 1'024);
+    EXPECT_FALSE(prediction.predict(
+        1u, std::span<const CanonicalReplayCommand>(
+            &ghostImpulse, 1u)));
+    EXPECT_EQ(prediction.currentTick(), 0u);
+    const auto ownedImpulse = impulse(1u, 1u, 1u, 1'024);
+    EXPECT_TRUE(prediction.predict(
+        1u, std::span<const CanonicalReplayCommand>(
+            &ownedImpulse, 1u)));
 }
 
 TEST(NetworkSandbox, TwoClientsPredictMeteorsRollbackAndRejectTransforms) {

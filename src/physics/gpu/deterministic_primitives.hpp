@@ -1,5 +1,6 @@
 #pragma once
 
+#include "gpu/shader_source.hpp"
 #include "gpu/webgpu_compat.hpp"
 
 #include <array>
@@ -41,6 +42,7 @@ public:
         uint32_t workgroupSize = 256;
         std::filesystem::path shaderPath =
             "shaders/physics_deterministic_primitives.wgsl";
+        std::span<const gpu::ShaderSource> shaderSources{};
     };
 
     DeterministicGpuPrimitives() = default;
@@ -206,6 +208,7 @@ private:
     uint32_t blockCapacity_ = 0;
     size_t scratchBytes_ = 0;
     std::filesystem::path shaderPath_;
+    std::span<const gpu::ShaderSource> shaderSources_{};
 
     WGPUBuffer parameterBuffer_ = nullptr;
     WGPUBuffer blockSumsBuffer_ = nullptr;

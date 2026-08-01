@@ -49,14 +49,8 @@ struct alignas(16) CompactPose {
     glm::vec4 orientation{0.0f, 0.0f, 0.0f, 1.0f};
 };
 
-struct alignas(16) CompactShape {
-    glm::vec4 dimensionsType{0.0f};
-    glm::vec4 invInertiaMaterial{0.0f};
-    glm::vec4 materialCoefficients{-1.0f, -1.0f, -1.0f, 1.0f};
-};
-
 static_assert(sizeof(CompactPose) == 32);
-static_assert(sizeof(CompactShape) == 48);
+static_assert(sizeof(detail::CompactPrimitiveShapeGpu) == 48);
 
 using Shape = physics::PhysicsWorld::ThrowableShape;
 using detail::GpuInstance;
@@ -438,7 +432,8 @@ bool PrimitivePath::createCompactLayoutAndPipeline(
         gpu::BindGroupLayoutEntry(1).vertexVisible()
             .storageBuffer(true, false, sizeof(CompactPose)),
         gpu::BindGroupLayoutEntry(2).vertexVisible()
-            .storageBuffer(true, false, sizeof(CompactShape)),
+            .storageBuffer(
+                true, false, sizeof(detail::CompactPrimitiveShapeGpu)),
         gpu::BindGroupLayoutEntry(3).vertexVisible()
             .storageBuffer(true, true, sizeof(uint32_t)),
         gpu::BindGroupLayoutEntry(4).fragmentVisible()
@@ -561,7 +556,7 @@ bool PrimitivePath::ensureCompactInstanceCapacity(size_t requiredCapacity) {
             "physics_primitive_cpu_compact_poses"));
     WGPUBuffer newShapeBuffer = gpu::createBuffer(
         device_, gpu::BufferDesc::storage(
-            newCapacity * sizeof(CompactShape), true,
+            newCapacity * sizeof(detail::CompactPrimitiveShapeGpu), true,
             "physics_primitive_cpu_compact_shapes"));
     if (!newPoseBuffer || !newShapeBuffer) {
         if (newPoseBuffer) {
@@ -716,7 +711,7 @@ void PrimitivePath::setCompactPhysicsInstances(
         return;
     }
     cpuPoseUpload_.resize(validBodyCount * 2u);
-    cpuShapeUpload_.resize(validBodyCount * 2u);
+    cpuShapeUpload_.resize(validBodyCount);
     const bool fullShapeUpload = !cpuShapeBufferContentsValid_;
     size_t firstDirtyShape = fullShapeUpload ? 0u : validBodyCount;
     size_t lastDirtyShape = fullShapeUpload ? validBodyCount : 0u;
@@ -744,8 +739,12 @@ void PrimitivePath::setCompactPhysicsInstances(
         if (shapeChanged) {
             firstDirtyShape = std::min(firstDirtyShape, index);
             lastDirtyShape = index + 1u;
-            cpuShapeUpload_[index * 2u] = dimensionsType;
-            cpuShapeUpload_[index * 2u + 1u] = glm::vec4(0.0f);
+            cpuShapeUpload_[index] = detail::CompactPrimitiveShapeGpu{
+                .dimensionsType = dimensionsType,
+                .inverseInertiaMaterial = glm::vec4(0.0f),
+                .materialCoefficients =
+                    glm::vec4(-1.0f, -1.0f, -1.0f, 1.0f),
+            };
         }
         uploadedCpuShapeDimensions_[index] = dimensionsType;
         ++index;
@@ -761,12 +760,13 @@ void PrimitivePath::setCompactPhysicsInstances(
     uint32_t writeCalls = 1u;
     size_t bytesUploaded = validBodyCount * sizeof(CompactPose);
     if (firstDirtyShape < lastDirtyShape) {
-        const auto shapes = std::span<const glm::vec4>(cpuShapeUpload_)
-            .subspan(firstDirtyShape * 2u,
-                     (lastDirtyShape - firstDirtyShape) * 2u);
+        const auto shapes =
+            std::span<const detail::CompactPrimitiveShapeGpu>(cpuShapeUpload_)
+                .subspan(firstDirtyShape, lastDirtyShape - firstDirtyShape);
         if (!gpu::writeBuffer(
                 queue_, cpuShapeBuffer_,
-                firstDirtyShape * sizeof(CompactShape),
+                firstDirtyShape
+                    * sizeof(detail::CompactPrimitiveShapeGpu),
                 std::as_bytes(shapes))) {
             cpuShapeBufferContentsValid_ = false;
             clearPhysicsRenderView();
@@ -774,7 +774,8 @@ void PrimitivePath::setCompactPhysicsInstances(
         }
         ++writeCalls;
         bytesUploaded +=
-            (lastDirtyShape - firstDirtyShape) * sizeof(CompactShape);
+            (lastDirtyShape - firstDirtyShape)
+            * sizeof(detail::CompactPrimitiveShapeGpu);
     }
     cpuShapeBufferContentsValid_ = true;
     lastCompactUploadStats_ = {

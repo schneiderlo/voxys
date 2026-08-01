@@ -1,5 +1,6 @@
 #pragma once
 
+#include "gpu/shader_source.hpp"
 #include "gpu/webgpu_compat.hpp"
 #include "physics/gpu/gpu_body_metadata.hpp"
 
@@ -66,6 +67,7 @@ public:
         std::filesystem::path shaderPath = "shaders/physics_ccd.wgsl";
         std::filesystem::path primitivesShaderPath =
             "shaders/physics_deterministic_primitives.wgsl";
+        std::span<const gpu::ShaderSource> shaderSources{};
     };
 
     GpuCcd();

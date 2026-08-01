@@ -36,6 +36,14 @@ struct VSOut {
     @location(0) worldPosition : vec3<f32>,
     @location(1) worldNormal : vec3<f32>,
     @location(2) color : vec3<f32>,
+    @location(3) material : vec3<f32>,
+};
+
+struct SurfaceMaterial {
+    baseColor : vec3<f32>,
+    roughness : f32,
+    metallic : f32,
+    clearcoat : f32,
 };
 
 fn rotate_by_quaternion(qInput : vec4<f32>, value : vec3<f32>) -> vec3<f32> {
@@ -47,15 +55,33 @@ fn rotate_by_quaternion(qInput : vec4<f32>, value : vec3<f32>) -> vec3<f32> {
     return value + q.w * twiceCross + cross(q.xyz, twiceCross);
 }
 
-fn shape_color(shape : u32) -> vec3<f32> {
+fn fallback_material(shape : u32) -> SurfaceMaterial {
+    var color = vec3<f32>(1.0);
     switch shape {
-        case 0u: { return vec3<f32>(0.95, 0.28, 0.18); }
-        case 1u: { return vec3<f32>(0.20, 0.62, 0.95); }
-        case 2u: { return vec3<f32>(0.96, 0.70, 0.16); }
-        case 3u: { return vec3<f32>(0.42, 0.85, 0.36); }
-        case 4u: { return vec3<f32>(0.68, 0.38, 0.92); }
-        default: { return vec3<f32>(1.0); }
+        case 0u: { color = vec3<f32>(0.95, 0.28, 0.18); }
+        case 1u: { color = vec3<f32>(0.20, 0.62, 0.95); }
+        case 2u: { color = vec3<f32>(0.96, 0.70, 0.16); }
+        case 3u: { color = vec3<f32>(0.42, 0.85, 0.36); }
+        case 4u: { color = vec3<f32>(0.68, 0.38, 0.92); }
+        default: {}
     }
+    return SurfaceMaterial(color, 0.48, 0.0, 0.0);
+}
+
+fn decode_material(shape : BodyShape, shapeIndex : u32) -> SurfaceMaterial {
+    let packed = bitcast<u32>(shape.invInertia_material.w);
+    if ((packed & 0xf0000000u) != 0xa0000000u) {
+        return fallback_material(shapeIndex);
+    }
+    let color = vec3<f32>(
+        f32(packed & 31u) / 31.0,
+        f32((packed >> 5u) & 63u) / 63.0,
+        f32((packed >> 11u) & 31u) / 31.0);
+    return SurfaceMaterial(
+        color,
+        max(f32((packed >> 16u) & 63u) / 63.0, 0.045),
+        f32((packed >> 22u) & 31u) / 31.0,
+        f32((packed >> 27u) & 1u));
 }
 
 @vertex
@@ -69,12 +95,15 @@ fn vs(input : VSIn) -> VSOut {
     let worldNormal = normalize(rotate_by_quaternion(
         pose.orientation, input.normal / dimensions));
     let shapeIndex = u32(clamp(shape.dimensions_type.w, 0.0, 4.0));
+    let material = decode_material(shape, shapeIndex);
 
     var output : VSOut;
     output.position = uniforms.viewProj * vec4<f32>(worldPosition, 1.0);
     output.worldPosition = worldPosition;
     output.worldNormal = worldNormal;
-    output.color = shape_color(shapeIndex);
+    output.color = material.baseColor;
+    output.material =
+        vec3<f32>(material.roughness, material.metallic, material.clearcoat);
     return output;
 }
 
@@ -102,6 +131,30 @@ fn linearToSrgb(linear : vec3<f32>) -> vec3<f32> {
     return select(high, low, linear <= vec3<f32>(0.0031308));
 }
 
+fn distributionGgx(noh : f32, roughness : f32) -> f32 {
+    let alpha = roughness * roughness;
+    let alphaSquared = alpha * alpha;
+    let denominator = noh * noh * (alphaSquared - 1.0) + 1.0;
+    return alphaSquared /
+        max(3.14159265359 * denominator * denominator, 1e-6);
+}
+
+fn visibilitySmithGgxCorrelated(
+    nov : f32, nol : f32, roughness : f32) -> f32 {
+    let alpha = roughness * roughness;
+    let alphaSquared = alpha * alpha;
+    let lambdaV = nol * sqrt(max(
+        nov * nov * (1.0 - alphaSquared) + alphaSquared, 1e-7));
+    let lambdaL = nov * sqrt(max(
+        nol * nol * (1.0 - alphaSquared) + alphaSquared, 1e-7));
+    return 0.5 / max(lambdaV + lambdaL, 1e-6);
+}
+
+fn fresnelSchlick(f0 : vec3<f32>, voh : f32) -> vec3<f32> {
+    let factor = pow(clamp(1.0 - voh, 0.0, 1.0), 5.0);
+    return f0 + (vec3<f32>(1.0) - f0) * factor;
+}
+
 @fragment
 fn fs(input : VSOut) -> @location(0) vec4<f32> {
     let cameraDelta = uniforms.cameraPos.xyz - input.worldPosition;
@@ -119,18 +172,38 @@ fn fs(input : VSOut) -> @location(0) vec4<f32> {
 
     let normal = normalize(input.worldNormal);
     let lightDir = uniforms.lightDirAndRayDepth.xyz;
-    let diffuse = max(dot(normal, lightDir), 0.0);
     let viewDir = cameraDelta / max(distanceToCamera, 1e-20);
     let halfVector = normalize(lightDir + viewDir);
-    let specular = pow(max(dot(normal, halfVector), 0.0), 32.0);
+    let nol = max(dot(normal, lightDir), 0.0);
+    let nov = max(dot(normal, viewDir), 1e-4);
+    let noh = max(dot(normal, halfVector), 0.0);
+    let voh = max(dot(viewDir, halfVector), 0.0);
+    let roughness = clamp(input.material.x, 0.045, 1.0);
+    let metallic = clamp(input.material.y, 0.0, 1.0);
+    let f0 = mix(vec3<f32>(0.04), input.color, metallic);
+    let fresnel = fresnelSchlick(f0, voh);
+    let distribution = distributionGgx(noh, roughness);
+    let visibility =
+        visibilitySmithGgxCorrelated(nov, nol, roughness);
+    let specular = fresnel * distribution * visibility;
+    let diffuse = (vec3<f32>(1.0) - fresnel)
+        * (1.0 - metallic) * input.color * (1.0 / 3.14159265359);
+
+    let coatRoughness = mix(0.18, 0.10, input.material.z);
+    let coatFresnel = fresnelSchlick(vec3<f32>(0.04), voh);
+    let clearcoat = input.material.z * coatFresnel
+        * distributionGgx(noh, coatRoughness)
+        * visibilitySmithGgxCorrelated(nov, nol, coatRoughness) * 0.25;
     let ambientMaximum = max(max(uniforms.ambientColor.r,
                                  uniforms.ambientColor.g),
                              max(uniforms.ambientColor.b, 0.001));
     let ambientTint = uniforms.ambientColor.rgb / ambientMaximum;
     let sunRadiance = uniforms.lightingColor.rgb * uniforms.lightingColor.w;
-    let illumination = ambientTint * max(uniforms.ambientColor.w, 0.05) +
-                       sunRadiance * diffuse;
-    var lit = input.color * illumination + sunRadiance * (0.22 * specular);
+    let ambient = input.color * ambientTint
+        * max(uniforms.ambientColor.w, 0.05)
+        * mix(1.0, 0.35, metallic);
+    var lit = ambient + sunRadiance * nol
+        * (diffuse + specular + clearcoat) * 3.14159265359;
     let maximumFog = select(0.7, 1.0,
                             uniforms.lightDirAndRayDepth.w > 0.5);
     let fog = clamp(1.0 - exp(-max(uniforms.viewport.z, 0.0) *

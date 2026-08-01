@@ -1,5 +1,6 @@
 #pragma once
 
+#include "gpu/shader_source.hpp"
 #include "gpu/webgpu_compat.hpp"
 
 #include <array>
@@ -8,6 +9,7 @@
 #include <filesystem>
 #include <memory>
 #include <optional>
+#include <span>
 #include <vector>
 
 namespace voxy::physics {
@@ -18,15 +20,23 @@ enum class GpuPhysicsEventType : uint32_t {
     ContactHit = 3,
     IslandSleep = 4,
     IslandWake = 5,
+    AttachmentBreak = 6,
 };
 
 struct alignas(16) GpuPhysicsEvent {
     // tick low word, event type, body/root A, body B or UINT_MAX.
     std::array<uint32_t, 4> header{};
-    // feature ID, source/contact ID, auxiliary count, flags.
+    // ContactHit: feature A, source/contact ID, point count, feature B.
+    // Other events retain feature ID, source ID, auxiliary count, flags.
     std::array<uint32_t, 4> detail{};
     // Body/root A generation, body B generation, reserved, reserved.
     std::array<uint32_t, 4> identity{};
+    // ContactHit evidence follows canonical header body order. Non-hit events
+    // zero all three vectors.
+    std::array<float, 4> localAnchorASeparation{};
+    std::array<float, 4> localAnchorBImpulse{};
+    // xyz points from canonical body A toward body B; w is impact speed.
+    std::array<float, 4> normalSpeed{};
 };
 
 struct GpuEventSources {
@@ -41,6 +51,8 @@ struct GpuEventSources {
     uint32_t manifoldCapacity = 0;
     WGPUBuffer metadata = nullptr;
     uint32_t bodyCapacity = 0;
+    WGPUBuffer attachments = nullptr;
+    uint32_t attachmentCapacity = 0;
 
     [[nodiscard]] bool hasContacts() const noexcept {
         return contactEvents && contactTelemetry && contactCapacity != 0;
@@ -51,8 +63,12 @@ struct GpuEventSources {
     [[nodiscard]] bool hasHits() const noexcept {
         return manifolds && narrowPhaseTelemetry && manifoldCapacity != 0;
     }
+    [[nodiscard]] bool hasAttachments() const noexcept {
+        return attachments && attachmentCapacity > 1u;
+    }
     [[nodiscard]] bool valid() const noexcept {
-        return hasContacts() || hasIslands() || hasHits();
+        return hasContacts() || hasIslands() || hasHits()
+            || hasAttachments();
     }
 };
 
@@ -69,6 +85,7 @@ public:
         uint32_t readbackSlots = 3;
         std::filesystem::path shaderPath =
             "shaders/physics_event_readback.wgsl";
+        std::span<const gpu::ShaderSource> shaderSources{};
     };
 
     GpuEventReadbackRing();
@@ -94,6 +111,6 @@ private:
     std::unique_ptr<Impl> impl_;
 };
 
-static_assert(sizeof(GpuPhysicsEvent) == 48);
+static_assert(sizeof(GpuPhysicsEvent) == 96);
 
 } // namespace voxy::physics

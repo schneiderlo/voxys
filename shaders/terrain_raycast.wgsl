@@ -7,7 +7,7 @@
 //   - Ray generation from pixel coordinates using inverse view-projection
 //   - AABB intersection for early ray clipping
 //   - Hierarchical DDA traversal with mip level transitions
-//   - Distance-based LOD termination
+//   - Exact bilinear base-heightfield hit refinement
 //   - Max-height mip pyramid for efficient empty-space skipping
 //   - Shadow ray traversal
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -94,6 +94,60 @@ fn heightmapToWorldHeight(height : f32) -> f32 {
     return ((height / 65535.0) * 2.0 - 1.0) * camera.metrics.x;
 }
 
+fn terrainSurfaceNormal(
+    worldPosition : vec3<f32>, terrainOrigin : vec2<f32>,
+    cellScale : f32) -> vec3<f32> {
+    let dimensions = vec2<i32>(
+        i32(camera.terrainSize.x), i32(camera.terrainSize.y));
+    let coordinate =
+        (worldPosition.xz + terrainOrigin) / cellScale;
+    let cell = clamp(
+        vec2<i32>(floor(coordinate)),
+        vec2<i32>(1), dimensions - vec2<i32>(3));
+    let uv = clamp(
+        coordinate - vec2<f32>(cell), vec2<f32>(0.0), vec2<f32>(1.0));
+    let h00 = heightmapToWorldHeight(
+        f32(textureLoad(heightTex, cell, 0).x));
+    let h10 = heightmapToWorldHeight(
+        f32(textureLoad(heightTex, cell + vec2<i32>(1, 0), 0).x));
+    let h01 = heightmapToWorldHeight(
+        f32(textureLoad(heightTex, cell + vec2<i32>(0, 1), 0).x));
+    let h11 = heightmapToWorldHeight(
+        f32(textureLoad(heightTex, cell + vec2<i32>(1, 1), 0).x));
+
+    // Bilinearly interpolate central differences at the four patch vertices.
+    // This is the continuous shading normal of the sampled heightfield rather
+    // than the visibly faceted derivative of one isolated one-metre patch.
+    let hLeft0 = heightmapToWorldHeight(
+        f32(textureLoad(heightTex, cell + vec2<i32>(-1, 0), 0).x));
+    let hLeft1 = heightmapToWorldHeight(
+        f32(textureLoad(heightTex, cell + vec2<i32>(-1, 1), 0).x));
+    let hRight0 = heightmapToWorldHeight(
+        f32(textureLoad(heightTex, cell + vec2<i32>(2, 0), 0).x));
+    let hRight1 = heightmapToWorldHeight(
+        f32(textureLoad(heightTex, cell + vec2<i32>(2, 1), 0).x));
+    let hUp0 = heightmapToWorldHeight(
+        f32(textureLoad(heightTex, cell + vec2<i32>(0, -1), 0).x));
+    let hUp1 = heightmapToWorldHeight(
+        f32(textureLoad(heightTex, cell + vec2<i32>(1, -1), 0).x));
+    let hDown0 = heightmapToWorldHeight(
+        f32(textureLoad(heightTex, cell + vec2<i32>(0, 2), 0).x));
+    let hDown1 = heightmapToWorldHeight(
+        f32(textureLoad(heightTex, cell + vec2<i32>(1, 2), 0).x));
+
+    let dxNear = mix(
+        0.5 * (h10 - hLeft0), 0.5 * (hRight0 - h00), uv.x);
+    let dxFar = mix(
+        0.5 * (h11 - hLeft1), 0.5 * (hRight1 - h01), uv.x);
+    let dzNear = mix(
+        0.5 * (h01 - hUp0), 0.5 * (h11 - hUp1), uv.x);
+    let dzFar = mix(
+        0.5 * (hDown0 - h00), 0.5 * (hDown1 - h10), uv.x);
+    let heightDx = mix(dxNear, dxFar, uv.y) / cellScale;
+    let heightDz = mix(dzNear, dzFar, uv.y) / cellScale;
+    return normalize(vec3<f32>(-heightDx, 1.0, -heightDz));
+}
+
 /// Coarsest level that both exists in the texture and has at least one cell
 /// on each terrain axis. This keeps traversal valid for small/non-square maps.
 fn maxTraversalMip() -> u32 {
@@ -110,17 +164,93 @@ fn maxTraversalMip() -> u32 {
     return level;
 }
 
-fn lodDistanceForMip(level : u32) -> f32 {
-    switch level {
-        case 0u: { return 0.0; }
-        case 1u: { return 1096.6332; }
-        case 2u: { return 2980.9580; }
-        case 3u: { return 8103.0839; }
-        case 4u: { return 22026.4658; }
-        case 5u: { return 59874.1417; }
-        case 6u: { return 162754.7914; }
-        default: { return 442413.3920; }
+fn rootInsideHeightCell(
+    tau : f32, tEntry : f32, duration : f32, uvAtEntry : vec2<f32>,
+    uvSlope : vec2<f32>) -> bool {
+    let tolerance = 1e-3;
+    let uv = uvAtEntry + uvSlope * tau;
+    // Packed hierarchical descent can retain an entry time slightly ahead of
+    // the selected child. The UV bounds are the authoritative cell test, so
+    // permit an earlier root as long as it remains in front of the camera.
+    return tEntry + tau >= tolerance && tau <= duration + tolerance
+        && all(uv >= vec2<f32>(-tolerance))
+        && all(uv <= vec2<f32>(1.0 + tolerance));
+}
+
+// Intersect one continuous bilinear base-heightfield patch. Hierarchical mips
+// are conservative acceleration data only; accepting their maximum height as
+// geometry creates the visible square columns and moving contour bands which
+// plagued the old distance-LOD path.
+fn intersectBilinearHeightCell(
+    origin : vec3<f32>, dir : vec3<f32>, terrainOrigin : vec2<f32>,
+    cellScale : f32, cell : vec2<i32>, tEntry : f32, tExit : f32,
+    originY : f32, slopeY : f32) -> f32 {
+    let h00 = f32(textureLoad(heightTex, cell, 0).x) - originY;
+    let h10 = f32(textureLoad(
+        heightTex, cell + vec2<i32>(1, 0), 0).x) - originY;
+    let h01 = f32(textureLoad(
+        heightTex, cell + vec2<i32>(0, 1), 0).x) - originY;
+    let h11 = f32(textureLoad(
+        heightTex, cell + vec2<i32>(1, 1), 0).x) - originY;
+
+    let duration = max(tExit - tEntry, 0.0);
+    let entryPosition = origin.xz + dir.xz * tEntry;
+    let uvAtEntry =
+        (entryPosition + terrainOrigin) / cellScale - vec2<f32>(cell);
+    let uvSlope = dir.xz / cellScale;
+
+    let hx = h10 - h00;
+    let hz = h01 - h00;
+    let hxz = h11 - h10 - h01 + h00;
+    let heightConstant = h00 + hx * uvAtEntry.x + hz * uvAtEntry.y
+        + hxz * uvAtEntry.x * uvAtEntry.y;
+    let heightLinear = hx * uvSlope.x + hz * uvSlope.y
+        + hxz * (uvAtEntry.x * uvSlope.y
+               + uvAtEntry.y * uvSlope.x);
+    let heightQuadratic = hxz * uvSlope.x * uvSlope.y;
+
+    // rayY(tEntry + tau) - bilinearHeight(tEntry + tau) = 0.
+    let a = -heightQuadratic;
+    let b = slopeY - heightLinear;
+    let c = slopeY * tEntry - heightConstant;
+    var best = -1.0;
+    let coefficientEpsilon = 1e-6;
+
+    if (abs(a) <= coefficientEpsilon) {
+        if (abs(b) > coefficientEpsilon) {
+            let tau = -c / b;
+            if (rootInsideHeightCell(
+                    tau, tEntry, duration, uvAtEntry, uvSlope)) {
+                best = tEntry + min(tau, duration);
+            }
+        } else if (abs(c) <= 1e-3
+                   && rootInsideHeightCell(
+                       0.0, tEntry, duration, uvAtEntry, uvSlope)) {
+            best = tEntry;
+        }
+    } else {
+        let discriminant = b * b - 4.0 * a * c;
+        if (discriminant >= 0.0) {
+            let squareRoot = sqrt(discriminant);
+            let q = -0.5 * (b + select(-squareRoot, squareRoot, b >= 0.0));
+            var first = -b / (2.0 * a);
+            var second = first;
+            if (abs(q) > coefficientEpsilon) {
+                first = q / a;
+                second = c / q;
+            }
+            let low = min(first, second);
+            let high = max(first, second);
+            if (rootInsideHeightCell(
+                    low, tEntry, duration, uvAtEntry, uvSlope)) {
+                best = tEntry + min(low, duration);
+            } else if (rootInsideHeightCell(
+                           high, tEntry, duration, uvAtEntry, uvSlope)) {
+                best = tEntry + min(high, duration);
+            }
+        }
     }
+    return best;
 }
 
 struct WaterSurfaceSample {
@@ -724,8 +854,8 @@ fn intersectShadow(origin : vec3<f32>, dir : vec3<f32>) -> f32 {
 //   1. Start at coarse mip level (7 for 8192×8192 = 64×64 cells)
 //   2. Sample max-height at current cell and mip level
 //   3. If ray potentially intersects cell's max height:
-//      a. If at LOD-appropriate level for distance, accept hit
-//      b. Otherwise descend to finer mip level
+//      a. Descend to the full-resolution cell
+//      b. Solve its continuous bilinear patch exactly
 //   4. If ray clearly misses, step to next cell
 //   5. Ascend to coarser mip when far from terrain surface (level-up)
 
@@ -857,6 +987,21 @@ fn main(@builtin(global_invocation_id) gid : vec3<u32>) {
 
         if (cellX >= 0 && cellX < levelW && cellZ >= 0 && cellZ < levelH) {
             h = f32(textureLoad(heightTex, vec2<i32>(cellX, cellZ), i32(mipLevel)).x) - originY;
+            // Level zero is the raw vertex field, so a cell's conservative
+            // height uses all four corners. Coarser levels were generated with
+            // overlapping shared boundaries and need only this one lookup.
+            if (!legoMode && mipLevel == 0u
+                && cellX + 1 < levelW && cellZ + 1 < levelH) {
+                h = max(h, f32(textureLoad(
+                    heightTex, vec2<i32>(cellX + 1, cellZ), 0).x)
+                    - originY);
+                h = max(h, f32(textureLoad(
+                    heightTex, vec2<i32>(cellX, cellZ + 1), 0).x)
+                    - originY);
+                h = max(h, f32(textureLoad(
+                    heightTex, vec2<i32>(cellX + 1, cellZ + 1), 0).x)
+                    - originY);
+            }
         }
         
         // ─────────────────────────────────────────────────────────────────────
@@ -922,14 +1067,19 @@ fn main(@builtin(global_invocation_id) gid : vec3<u32>) {
                     // Just ensure we don't set hitFound = true prematurely for LODs
                 }
             } else {
-                if (slopeY < 0.0 && yEnter > h) {
-                    t = h / slopeY;
-                }
-
-                // Constant distance thresholds avoid a transcendental operation
-                // inside the divergent traversal loop.
-                if (t >= lodDistanceForMip(mipLevel)) {
-                    hitFound = true;
+                // Coarse maximum-height mips accelerate traversal but never
+                // become visible geometry. Refine all the way to a base cell,
+                // then solve its bilinear patch exactly.
+                if (mipLevel == 0u
+                    && cellX + 1 < levelW && cellZ + 1 < levelH) {
+                    let refinedHit = intersectBilinearHeightCell(
+                        origin, dir, terrainOrigin, cellScale,
+                        vec2<i32>(cellX, cellZ), t, tNext,
+                        originY, slopeY);
+                    if (refinedHit > 0.0) {
+                        t = refinedHit;
+                        hitFound = true;
+                    }
                 }
             }
             
@@ -1079,5 +1229,13 @@ fn main(@builtin(global_invocation_id) gid : vec3<u32>) {
         textureStore(outMaterial, vec2<i32>(gid.xy),
                      vec4<f32>(waterShadingWave.y, waterShadingWave.z,
                                waterShadingWave.w, shoreInfluence));
+    } else if (material == MATERIAL_TERRAIN) {
+        // Preserve the smoothly interpolated heightfield derivative.
+        // Reconstructing terrain normals from neighboring screen depths
+        // exaggerates one-metre cell boundaries at grazing angles.
+        let terrainNormal = terrainSurfaceNormal(
+            origin + dir * t, terrainOrigin, cellScale);
+        textureStore(outMaterial, vec2<i32>(gid.xy),
+                     vec4<f32>(terrainNormal, 1.0));
     }
 }

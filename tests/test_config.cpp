@@ -6,9 +6,9 @@
 #include "core/config.hpp"
 
 #include <fstream>
-#include <cstdio>
 #include <cstdint>
 #include <filesystem>
+#include <iterator>
 #include <limits>
 
 namespace voxy::config {
@@ -192,6 +192,101 @@ TEST(CommandLineArgsTest, DefaultValues) {
     EXPECT_FLOAT_EQ(args.benchmarkMinimumFps, 0.0f);
     EXPECT_FLOAT_EQ(args.benchmarkFixedHz, 0.0f);
     EXPECT_FALSE(args.help);
+    EXPECT_EQ(
+        validateWreckwaterClientConfig(args.wreckwaterClient),
+        WreckwaterClientConfigStatus::Disabled);
+}
+
+TEST(CommandLineArgsTest,
+     CompleteWreckwaterBootstrapParsesBinaryKey) {
+    char key[] =
+        "000102030405060708090a0b0c0d0e0f"
+        "101112131415161718191a1b1c1d1e1f";
+    char* argv[] = {
+        const_cast<char*>("voxy"),
+        const_cast<char*>("--wreckwater-server"),
+        const_cast<char*>("127.0.0.1"),
+        const_cast<char*>("--wreckwater-port"),
+        const_cast<char*>("45000"),
+        const_cast<char*>("--wreckwater-peer"),
+        const_cast<char*>("2"),
+        const_cast<char*>("--wreckwater-key"),
+        key,
+        const_cast<char*>("--wreckwater-session"),
+        const_cast<char*>("101"),
+        const_cast<char*>("--wreckwater-match"),
+        const_cast<char*>("202"),
+        const_cast<char*>("--wreckwater-world"),
+        const_cast<char*>("303"),
+        const_cast<char*>("--wreckwater-world-epoch"),
+        const_cast<char*>("4"),
+        const_cast<char*>("--wreckwater-authority-epoch"),
+        const_cast<char*>("5"),
+    };
+    const auto args = parseArgs(
+        static_cast<int>(std::size(argv)), argv);
+
+    EXPECT_EQ(
+        validateWreckwaterClientConfig(args.wreckwaterClient),
+        WreckwaterClientConfigStatus::Ready);
+    EXPECT_EQ(args.wreckwaterClient.server, "127.0.0.1");
+    EXPECT_EQ(args.wreckwaterClient.port, 45'000u);
+    EXPECT_EQ(args.wreckwaterClient.peerId, 2u);
+    EXPECT_EQ(
+        args.wreckwaterClient.authenticationKey.front(),
+        std::byte{0x00});
+    EXPECT_EQ(
+        args.wreckwaterClient.authenticationKey.back(),
+        std::byte{0x1f});
+}
+
+TEST(CommandLineArgsTest,
+     WreckwaterBootstrapIsAllOrNoneAndMalformedKeysFail) {
+    char* incompleteArgv[] = {
+        const_cast<char*>("voxy"),
+        const_cast<char*>("--wreckwater-server"),
+        const_cast<char*>("localhost"),
+    };
+    const auto incomplete = parseArgs(
+        static_cast<int>(std::size(incompleteArgv)),
+        incompleteArgv);
+    EXPECT_EQ(
+        validateWreckwaterClientConfig(
+            incomplete.wreckwaterClient),
+        WreckwaterClientConfigStatus::Incomplete);
+
+    char* malformedArgv[] = {
+        const_cast<char*>("voxy"),
+        const_cast<char*>("--wreckwater-key"),
+        const_cast<char*>("not-a-32-byte-hex-key"),
+    };
+    const auto malformed = parseArgs(
+        static_cast<int>(std::size(malformedArgv)),
+        malformedArgv);
+    EXPECT_EQ(
+        validateWreckwaterClientConfig(
+            malformed.wreckwaterClient),
+        WreckwaterClientConfigStatus::MalformedValue);
+}
+
+TEST(ConfigUtilsTest, WreckwaterKeyParserIsExactAndTransactional) {
+    std::array<std::byte, 32> key{};
+    key.fill(std::byte{0x5a});
+    EXPECT_FALSE(parseWreckwaterAuthenticationKey("00", key));
+    EXPECT_EQ(key.front(), std::byte{0x5a});
+
+    EXPECT_FALSE(parseWreckwaterAuthenticationKey(
+        "zz0102030405060708090a0b0c0d0e0f"
+        "101112131415161718191a1b1c1d1e1f",
+        key));
+    EXPECT_EQ(key.front(), std::byte{0x5a});
+
+    EXPECT_TRUE(parseWreckwaterAuthenticationKey(
+        "000102030405060708090A0B0C0D0E0F"
+        "101112131415161718191A1B1C1D1E1F",
+        key));
+    EXPECT_EQ(key.front(), std::byte{0x00});
+    EXPECT_EQ(key.back(), std::byte{0x1f});
 }
 
 TEST(CommandLineArgsTest, HelpFlag) {
@@ -381,10 +476,24 @@ TEST(CommandLineArgsTest, InvalidArgcAndNullEntriesAreSafe) {
 
 class ConfigFileTest : public ::testing::Test {
 protected:
-    std::string testConfigPath = "test_config_temp.cfg";
+    std::string testConfigPath;
+
+    void SetUp() override {
+        const ::testing::TestInfo* info =
+            ::testing::UnitTest::GetInstance()->current_test_info();
+        ASSERT_NE(info, nullptr);
+        testConfigPath = (
+            std::filesystem::temp_directory_path()
+            / (std::string{"voxy_"} + info->test_suite_name()
+                + "_" + info->name() + ".cfg"))
+                             .string();
+        std::error_code ignored;
+        std::filesystem::remove(testConfigPath, ignored);
+    }
     
     void TearDown() override {
-        std::remove(testConfigPath.c_str());
+        std::error_code ignored;
+        std::filesystem::remove(testConfigPath, ignored);
     }
     
     void writeTestConfig(const std::string& content) {
@@ -420,6 +529,92 @@ fullscreen = true
     EXPECT_EQ(config.window.width, 1920);
     EXPECT_EQ(config.window.height, 1080);
     EXPECT_TRUE(config.window.fullscreen);
+}
+
+TEST_F(ConfigFileTest,
+       LoadsCompleteWreckwaterBootstrapWithoutPrintableKeyState) {
+    writeTestConfig(R"(
+[wreckwater_client]
+server = "10.0.0.12"
+port = 45000
+peer = 3
+key = "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f"
+session = 101
+match = 202
+world = 303
+world_epoch = 4
+authority_epoch = 5
+)");
+
+    const Config config = load(testConfigPath);
+    EXPECT_EQ(
+        validateWreckwaterClientConfig(config.wreckwaterClient),
+        WreckwaterClientConfigStatus::Ready);
+    EXPECT_EQ(config.wreckwaterClient.server, "10.0.0.12");
+    EXPECT_EQ(
+        config.wreckwaterClient.authenticationKey[1],
+        std::byte{0x01});
+
+    ASSERT_TRUE(save(config, testConfigPath));
+    std::ifstream saved(testConfigPath);
+    const std::string contents{
+        std::istreambuf_iterator<char>{saved},
+        std::istreambuf_iterator<char>{}};
+    EXPECT_EQ(
+        contents.find("[wreckwater_client]"),
+        std::string::npos);
+    EXPECT_EQ(
+        contents.find(
+            "000102030405060708090a0b0c0d0e0f"),
+        std::string::npos);
+}
+
+TEST_F(ConfigFileTest,
+       CommandLineCanCompleteWreckwaterFileAtomically) {
+    writeTestConfig(R"(
+[wreckwater_client]
+port = 45000
+peer = 1
+key = "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f"
+session = 101
+match = 202
+world = 303
+world_epoch = 4
+authority_epoch = 5
+)");
+    CommandLineArgs args;
+    args.wreckwaterClient.server = "localhost";
+    args.wreckwaterClient.presentFields =
+        kWreckwaterClientServerField;
+
+    const Config config = load(testConfigPath, args);
+    EXPECT_EQ(
+        validateWreckwaterClientConfig(config.wreckwaterClient),
+        WreckwaterClientConfigStatus::Ready);
+    EXPECT_EQ(config.wreckwaterClient.server, "localhost");
+}
+
+TEST_F(ConfigFileTest,
+       ZeroWreckwaterKeyAndIdentityFailValidation) {
+    WreckwaterClientConfig config;
+    config.presentFields = kWreckwaterClientRequiredFields;
+    config.server = "localhost";
+    config.port = 45'000u;
+    config.peerId = 1u;
+    config.sessionId = 1u;
+    config.matchId = 2u;
+    config.worldId = 3u;
+    config.worldEpoch = 4u;
+    config.authorityEpoch = 5u;
+    EXPECT_EQ(
+        validateWreckwaterClientConfig(config),
+        WreckwaterClientConfigStatus::InvalidKey);
+
+    config.authenticationKey[0] = std::byte{0x01};
+    config.sessionId = 0u;
+    EXPECT_EQ(
+        validateWreckwaterClientConfig(config),
+        WreckwaterClientConfigStatus::InvalidIdentity);
 }
 
 TEST_F(ConfigFileTest, LoadAllSections) {

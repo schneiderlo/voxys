@@ -3,6 +3,7 @@
 #include "gpu/context.hpp"
 #include "gpu/resources.hpp"
 #include "physics/physics_world.hpp"
+#include "render/primitive_material.hpp"
 #include "render/primitive_path.hpp"
 
 #include <filesystem>
@@ -24,6 +25,55 @@ extern "C" WGPUBool wgpuDevicePoll(
     const WGPUWrappedSubmissionIndex* wrappedSubmissionIndex);
 
 namespace voxy::render {
+
+TEST(PrimitivePathLayoutTest, CpuShapeMirrorMatchesGpuStride) {
+    EXPECT_EQ(sizeof(detail::CompactPrimitiveShapeGpu), 48u);
+    EXPECT_EQ(alignof(detail::CompactPrimitiveShapeGpu), 16u);
+    EXPECT_EQ(offsetof(detail::CompactPrimitiveShapeGpu, dimensionsType), 0u);
+    EXPECT_EQ(
+        offsetof(detail::CompactPrimitiveShapeGpu, inverseInertiaMaterial),
+        16u);
+    EXPECT_EQ(
+        offsetof(detail::CompactPrimitiveShapeGpu, materialCoefficients),
+        32u);
+}
+
+TEST(PrimitiveMaterialTest, PacksStableGpuResidentPbrParameters) {
+    const PrimitiveMaterial expected{
+        .baseColor = {0.08f, 0.32f, 0.74f},
+        .roughness = 0.27f,
+        .metallic = 0.83f,
+        .clearcoat = true,
+    };
+    const uint32_t packed = packPrimitiveMaterial(expected);
+    ASSERT_TRUE(hasPrimitiveMaterial(packed));
+
+    const PrimitiveMaterial actual = unpackPrimitiveMaterial(packed);
+    EXPECT_NEAR(actual.baseColor.r, expected.baseColor.r, 1.0f / 31.0f);
+    EXPECT_NEAR(actual.baseColor.g, expected.baseColor.g, 1.0f / 63.0f);
+    EXPECT_NEAR(actual.baseColor.b, expected.baseColor.b, 1.0f / 31.0f);
+    EXPECT_NEAR(actual.roughness, expected.roughness, 1.0f / 63.0f);
+    EXPECT_NEAR(actual.metallic, expected.metallic, 1.0f / 31.0f);
+    EXPECT_TRUE(actual.clearcoat);
+
+    EXPECT_FALSE(hasPrimitiveMaterial(0u));
+    EXPECT_EQ(unpackPrimitiveMaterial(0u).baseColor, glm::vec3(0.5f));
+}
+
+TEST(PrimitiveMaterialTest, SanitizesNonFiniteAuthoringValues) {
+    const float nan = std::numeric_limits<float>::quiet_NaN();
+    const PrimitiveMaterial actual = unpackPrimitiveMaterial(
+        packPrimitiveMaterial({
+            .baseColor = {nan, -1.0f, 4.0f},
+            .roughness = nan,
+            .metallic = -2.0f,
+        }));
+    EXPECT_NEAR(actual.baseColor.r, 0.5f, 1.0f / 31.0f);
+    EXPECT_FLOAT_EQ(actual.baseColor.g, 0.0f);
+    EXPECT_FLOAT_EQ(actual.baseColor.b, 1.0f);
+    EXPECT_NEAR(actual.roughness, 0.5f, 1.0f / 63.0f);
+    EXPECT_FLOAT_EQ(actual.metallic, 0.0f);
+}
 
 TEST(PrimitivePathTest, RejectsNullGpuHandles) {
     PrimitivePath path;

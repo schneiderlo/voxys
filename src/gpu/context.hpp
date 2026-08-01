@@ -182,7 +182,9 @@ public:
     void tick();
     
 private:
-    struct CallbackState;
+    struct CallbackState {
+        Context* context = nullptr;
+    };
 
     // WebGPU objects
     WGPUInstance instance_ = nullptr;

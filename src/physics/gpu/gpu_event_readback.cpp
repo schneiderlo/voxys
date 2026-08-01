@@ -37,6 +37,8 @@ public:
         std::array<uint32_t, 4> counts{};
         // 64-bit tick split into low/high words.
         std::array<uint32_t, 4> tick{};
+        // Attachment capacity, reserved.
+        std::array<uint32_t, 4> attachments{};
     };
 
     ~Impl() { shutdown(); }
@@ -66,7 +68,13 @@ public:
             .size = 128,
             .usage = WGPUBufferUsage_Storage | WGPUBufferUsage_CopyDst,
         });
+        sourceTelemetry_ = gpu::createBuffer(device_, gpu::BufferDesc{
+            .label = "physics_event_source_telemetry",
+            .size = 32,
+            .usage = WGPUBufferUsage_Storage | WGPUBufferUsage_CopyDst,
+        });
         if (!packedEvents_ || !parameterBuffer_ || !fallbackBuffer_
+            || !sourceTelemetry_
             || !readback_.initialize(
                 device_, config_.readbackSlots, packetBytes_)) {
             shutdown();
@@ -79,19 +87,23 @@ public:
         }
 
         shader_ = gpu::loadShaderModule(
-            device_, config_.shaderPath, "physics_event_readback.wgsl");
+            device_, config_.shaderPath, "physics_event_readback.wgsl",
+            config_.shaderSources);
         if (!shader_) {
             shutdown();
             return false;
         }
         using LE = gpu::BindGroupLayoutEntry;
         std::vector<LE> entries;
-        for (uint32_t binding = 0; binding < 7; ++binding)
-            entries.emplace_back(binding).computeVisible().storageBuffer(true);
-        entries[4] = LE(4).computeVisible().storageBuffer(false);
+        entries.emplace_back(0).computeVisible().storageBuffer(true);
+        entries.emplace_back(1).computeVisible().storageBuffer(true);
+        entries.emplace_back(2).computeVisible().storageBuffer(true);
+        entries.emplace_back(4).computeVisible().storageBuffer(false);
+        entries.emplace_back(5).computeVisible().storageBuffer(true);
         entries.emplace_back(7).computeVisible().uniformBuffer(
             false, sizeof(Params));
         entries.emplace_back(8).computeVisible().storageBuffer(true);
+        entries.emplace_back(9).computeVisible().storageBuffer(true);
         bindGroupLayout_ = gpu::createBindGroupLayout(
             device_, entries, "physics_event_readback_layout");
         pipelineLayout_ = gpu::createPipelineLayout(
@@ -112,7 +124,7 @@ public:
             return false;
         }
         allocatedBytes_ = packetBytes_ + gpu::alignUniformBufferSize(
-            sizeof(Params)) + 128 + readback_.allocatedBytes();
+            sizeof(Params)) + 160 + readback_.allocatedBytes();
         return true;
     }
 
@@ -122,6 +134,7 @@ public:
         releaseHandle(pipelineLayout_, wgpuPipelineLayoutRelease);
         releaseHandle(bindGroupLayout_, wgpuBindGroupLayoutRelease);
         releaseHandle(shader_, wgpuShaderModuleRelease);
+        releaseBuffer(sourceTelemetry_);
         releaseBuffer(fallbackBuffer_);
         releaseBuffer(parameterBuffer_);
         releaseBuffer(packedEvents_);
@@ -143,6 +156,7 @@ public:
         if (sources_.hasContacts()) sourceFlags |= 1u;
         if (sources_.hasIslands()) sourceFlags |= 2u;
         if (sources_.hasHits()) sourceFlags |= 4u;
+        if (sources_.hasAttachments()) sourceFlags |= 8u;
         const Params params{
             .counts = {sources_.hasContacts() ? sources_.contactCapacity : 0u,
                        sources_.hasIslands()
@@ -152,26 +166,56 @@ public:
                      static_cast<uint32_t>(tick >> 32u),
                      sources_.hasHits() ? sources_.manifoldCapacity : 0u,
                      sources_.metadata ? sources_.bodyCapacity : 0u},
+            .attachments = {
+                sources_.hasAttachments()
+                    ? sources_.attachmentCapacity : 0u,
+                0u, 0u, 0u},
         };
         if (!gpu::writeBuffer(queue_, parameterBuffer_, 0, params))
             return false;
-        const std::array<gpu::BindGroupEntry, 9> entries = {
+        // Compact only the words consumed by the packet shader. This replaces
+        // three telemetry bindings with one and leaves room for attachment
+        // records inside WebGPU's guaranteed storage-buffer profile.
+        if (sources_.hasContacts()) {
+            wgpuCommandEncoderCopyBufferToBuffer(
+                encoder, sources_.contactTelemetry, 7u * sizeof(uint32_t),
+                sourceTelemetry_, 0u, 2u * sizeof(uint32_t));
+            wgpuCommandEncoderCopyBufferToBuffer(
+                encoder, sources_.contactTelemetry, 12u * sizeof(uint32_t),
+                sourceTelemetry_, 2u * sizeof(uint32_t), sizeof(uint32_t));
+        }
+        if (sources_.hasIslands()) {
+            wgpuCommandEncoderCopyBufferToBuffer(
+                encoder, sources_.islandTelemetry, 8u * sizeof(uint32_t),
+                sourceTelemetry_, 3u * sizeof(uint32_t), sizeof(uint32_t));
+            wgpuCommandEncoderCopyBufferToBuffer(
+                encoder, sources_.islandTelemetry, 17u * sizeof(uint32_t),
+                sourceTelemetry_, 4u * sizeof(uint32_t), sizeof(uint32_t));
+        }
+        if (sources_.hasHits()) {
+            wgpuCommandEncoderCopyBufferToBuffer(
+                encoder, sources_.narrowPhaseTelemetry,
+                11u * sizeof(uint32_t), sourceTelemetry_,
+                5u * sizeof(uint32_t), sizeof(uint32_t));
+            wgpuCommandEncoderCopyBufferToBuffer(
+                encoder, sources_.narrowPhaseTelemetry,
+                17u * sizeof(uint32_t), sourceTelemetry_,
+                6u * sizeof(uint32_t), sizeof(uint32_t));
+        }
+        const std::array<gpu::BindGroupEntry, 8> entries = {
             gpu::BindGroupEntry(0).buffer(sources_.hasContacts()
                 ? sources_.contactEvents : fallbackBuffer_),
-            gpu::BindGroupEntry(1).buffer(sources_.hasContacts()
-                ? sources_.contactTelemetry : fallbackBuffer_),
+            gpu::BindGroupEntry(1).buffer(sourceTelemetry_),
             gpu::BindGroupEntry(2).buffer(sources_.hasIslands()
                 ? sources_.islandEvents : fallbackBuffer_),
-            gpu::BindGroupEntry(3).buffer(sources_.hasIslands()
-                ? sources_.islandTelemetry : fallbackBuffer_),
             gpu::BindGroupEntry(4).buffer(packedEvents_),
             gpu::BindGroupEntry(5).buffer(sources_.hasHits()
                 ? sources_.manifolds : fallbackBuffer_),
-            gpu::BindGroupEntry(6).buffer(sources_.hasHits()
-                ? sources_.narrowPhaseTelemetry : fallbackBuffer_),
             gpu::BindGroupEntry(7).buffer(parameterBuffer_),
             gpu::BindGroupEntry(8).buffer(sources_.metadata
                 ? sources_.metadata : fallbackBuffer_),
+            gpu::BindGroupEntry(9).buffer(sources_.hasAttachments()
+                ? sources_.attachments : fallbackBuffer_),
         };
         WGPUBindGroup group = gpu::createBindGroup(
             device_, bindGroupLayout_, entries,
@@ -222,6 +266,7 @@ public:
     WGPUBuffer packedEvents_ = nullptr;
     WGPUBuffer parameterBuffer_ = nullptr;
     WGPUBuffer fallbackBuffer_ = nullptr;
+    WGPUBuffer sourceTelemetry_ = nullptr;
     WGPUShaderModule shader_ = nullptr;
     WGPUBindGroupLayout bindGroupLayout_ = nullptr;
     WGPUPipelineLayout pipelineLayout_ = nullptr;

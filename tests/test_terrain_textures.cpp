@@ -9,6 +9,7 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 
 #include <gtest/gtest.h>
+#include <array>
 #include <filesystem>
 #include <limits>
 
@@ -51,6 +52,7 @@ TEST_F(TerrainTexturesTest, DefaultConfigValues) {
     
     EXPECT_TRUE(config.albedoPath.empty());
     EXPECT_TRUE(config.lightmapPath.empty());
+    EXPECT_EQ(config.materialDirectory, "data/materials");
     EXPECT_EQ(config.placeholderWidth, 256u);
     EXPECT_EQ(config.placeholderHeight, 256u);
 }
@@ -134,6 +136,10 @@ TEST_F(TerrainTexturesTest, AlbedoTextureCreated) {
     
     EXPECT_NE(textures_.getAlbedoTexture(), nullptr);
     EXPECT_NE(textures_.getAlbedoView(), nullptr);
+    EXPECT_EQ(
+        wgpuTextureGetMipLevelCount(textures_.getAlbedoTexture()),
+        gpu::calculateMipLevelCount(
+            textures_.getAlbedoWidth(), textures_.getAlbedoHeight()));
 }
 
 TEST_F(TerrainTexturesTest, LightmapTextureCreated) {
@@ -148,6 +154,65 @@ TEST_F(TerrainTexturesTest, LightmapTextureCreated) {
     
     EXPECT_NE(textures_.getLightmapTexture(), nullptr);
     EXPECT_NE(textures_.getLightmapView(), nullptr);
+}
+
+TEST_F(TerrainTexturesTest, MaterialArraysAreCompleteAndMipmapped) {
+    if (!gpuContextInitialized_) {
+        GTEST_SKIP() << "GPU context not available";
+    }
+
+    ASSERT_TRUE(textures_.init(
+        gpuContext_.getDevice(), gpuContext_.getQueue()));
+    ASSERT_NE(textures_.getMaterialAlbedoTexture(), nullptr);
+    ASSERT_NE(textures_.getMaterialAlbedoView(), nullptr);
+    ASSERT_NE(textures_.getMaterialNormalRoughnessTexture(), nullptr);
+    ASSERT_NE(textures_.getMaterialNormalRoughnessView(), nullptr);
+    EXPECT_EQ(
+        wgpuTextureGetFormat(textures_.getMaterialAlbedoTexture()),
+        WGPUTextureFormat_RGBA8UnormSrgb);
+    EXPECT_EQ(
+        wgpuTextureGetFormat(
+            textures_.getMaterialNormalRoughnessTexture()),
+        WGPUTextureFormat_RGBA8Unorm);
+    EXPECT_EQ(
+        wgpuTextureGetDepthOrArrayLayers(
+            textures_.getMaterialAlbedoTexture()),
+        terrain::TerrainTextures::kMaterialLayerCount);
+    EXPECT_EQ(
+        wgpuTextureGetMipLevelCount(
+            textures_.getMaterialAlbedoTexture()),
+        gpu::calculateMipLevelCount(
+            textures_.getMaterialWidth(), textures_.getMaterialHeight()));
+    EXPECT_EQ(
+        wgpuTextureGetMipLevelCount(
+            textures_.getMaterialNormalRoughnessTexture()),
+        wgpuTextureGetMipLevelCount(
+            textures_.getMaterialAlbedoTexture()));
+}
+
+TEST_F(TerrainTexturesTest, MissingMaterialPackUsesCompleteFallback) {
+    if (!gpuContextInitialized_) {
+        GTEST_SKIP() << "GPU context not available";
+    }
+
+    terrain::TerrainTextureConfig config;
+    config.placeholderWidth = 8u;
+    config.placeholderHeight = 8u;
+    config.materialDirectory =
+        "data/materials/intentionally_missing_test_pack";
+    ASSERT_TRUE(textures_.init(
+        gpuContext_.getDevice(), gpuContext_.getQueue(), config));
+
+    EXPECT_EQ(textures_.getMaterialWidth(), 64u);
+    EXPECT_EQ(textures_.getMaterialHeight(), 64u);
+    EXPECT_EQ(
+        wgpuTextureGetDepthOrArrayLayers(
+            textures_.getMaterialAlbedoTexture()),
+        terrain::TerrainTextures::kMaterialLayerCount);
+    EXPECT_EQ(
+        wgpuTextureGetMipLevelCount(
+            textures_.getMaterialAlbedoTexture()),
+        gpu::calculateMipLevelCount(64u, 64u));
 }
 
 TEST_F(TerrainTexturesTest, SamplerCreated) {
@@ -326,6 +391,99 @@ TEST(TerrainTextureUtilTest, GenerateWhiteLightmapDataDifferentSizes) {
     // Non-square sizes
     auto dataRect = terrain::generateWhiteLightmapData(256, 128);
     EXPECT_EQ(dataRect.size(), 256u * 128u);
+}
+
+TEST(TerrainTextureUtilTest, AlbedoMipAveragesSrgbInLinearLight) {
+    // Two black and two white pixels have a linear-light midpoint which
+    // encodes to roughly sRGB 188, not the gamma-incorrect value 128.
+    const std::array<uint8_t, 16> checker{
+        0u, 0u, 0u, 0u,
+        255u, 255u, 255u, 64u,
+        255u, 255u, 255u, 128u,
+        0u, 0u, 0u, 255u,
+    };
+
+    const auto mip = terrain::downsampleTerrainAlbedoSrgb(checker, 2u, 2u);
+
+    ASSERT_EQ(mip.size(), 4u);
+    EXPECT_NEAR(mip[0], 188, 1);
+    EXPECT_NEAR(mip[1], 188, 1);
+    EXPECT_NEAR(mip[2], 188, 1);
+    EXPECT_EQ(mip[3], 112u);
+}
+
+TEST(TerrainTextureUtilTest, AlbedoMipKeepsOddDimensionEdges) {
+    // A 3x1 mip becomes 1x1. Area filtering must include the final blue texel
+    // instead of silently dropping it.
+    const std::array<uint8_t, 12> colors{
+        255u, 0u, 0u, 255u,
+        0u, 255u, 0u, 255u,
+        0u, 0u, 255u, 255u,
+    };
+
+    const auto mip = terrain::downsampleTerrainAlbedoSrgb(colors, 3u, 1u);
+
+    ASSERT_EQ(mip.size(), 4u);
+    EXPECT_NEAR(mip[0], 156, 1);
+    EXPECT_NEAR(mip[1], 156, 1);
+    EXPECT_NEAR(mip[2], 156, 1);
+    EXPECT_EQ(mip[3], 255u);
+}
+
+TEST(TerrainTextureUtilTest, AlbedoMipRejectsInvalidOrTerminalInput) {
+    const std::array<uint8_t, 4> pixel{1u, 2u, 3u, 4u};
+    EXPECT_TRUE(
+        terrain::downsampleTerrainAlbedoSrgb(pixel, 1u, 1u).empty());
+    EXPECT_TRUE(
+        terrain::downsampleTerrainAlbedoSrgb({}, 2u, 2u).empty());
+}
+
+TEST(TerrainTextureUtilTest, NormalRoughnessMipRenormalizesFlatNormal) {
+    const std::array<uint8_t, 16> flat{
+        128u, 128u, 255u, 128u,
+        128u, 128u, 255u, 128u,
+        128u, 128u, 255u, 128u,
+        128u, 128u, 255u, 128u,
+    };
+
+    const auto mip =
+        terrain::downsampleTerrainNormalRoughness(flat, 2u, 2u);
+
+    ASSERT_EQ(mip.size(), 4u);
+    EXPECT_NEAR(mip[0], 128, 1);
+    EXPECT_NEAR(mip[1], 128, 1);
+    EXPECT_NEAR(mip[2], 255, 1);
+    EXPECT_NEAR(mip[3], 128, 1);
+}
+
+TEST(TerrainTextureUtilTest, NormalVarianceRaisesMipRoughness) {
+    // Opposing high-frequency normals average to low length. The filtered mip
+    // must become rougher instead of producing a distant specular sparkle.
+    const std::array<uint8_t, 16> opposed{
+        252u, 128u, 153u, 0u,
+        3u, 127u, 153u, 0u,
+        252u, 128u, 153u, 0u,
+        3u, 127u, 153u, 0u,
+    };
+
+    const auto mip =
+        terrain::downsampleTerrainNormalRoughness(opposed, 2u, 2u);
+
+    ASSERT_EQ(mip.size(), 4u);
+    EXPECT_NEAR(mip[0], 128, 2);
+    EXPECT_NEAR(mip[1], 128, 2);
+    EXPECT_GT(mip[2], 250u);
+    EXPECT_GT(mip[3], 150u);
+}
+
+TEST(TerrainTextureUtilTest, NormalRoughnessMipRejectsInvalidInput) {
+    const std::array<uint8_t, 4> pixel{128u, 128u, 255u, 200u};
+    EXPECT_TRUE(
+        terrain::downsampleTerrainNormalRoughness(
+            pixel, 1u, 1u).empty());
+    EXPECT_TRUE(
+        terrain::downsampleTerrainNormalRoughness(
+            {}, 2u, 2u).empty());
 }
 
 } // namespace voxy

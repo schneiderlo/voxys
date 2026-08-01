@@ -272,12 +272,33 @@ TEST_F(RaycastShaderTest, HasMipLevelTransitions) {
         << "Shader missing mip level ascent";
 }
 
-TEST_F(RaycastShaderTest, HasLODTermination) {
+TEST_F(RaycastShaderTest, CoarseMipsNeverBecomeVisibleGeometry) {
     ASSERT_FALSE(shaderSource_.empty());
-    EXPECT_NE(shaderSource_.find("lodDistanceForMip"), std::string::npos)
-        << "Shader missing distance-based LOD termination thresholds";
-    EXPECT_EQ(shaderSource_.find("log(t)"), std::string::npos)
-        << "Traversal should not evaluate a logarithm in its hot loop";
+    EXPECT_EQ(shaderSource_.find("lodDistanceForMip"), std::string::npos)
+        << "Distance-based coarse hit acceptance creates terrain columns";
+    EXPECT_NE(
+        shaderSource_.find("fn intersectBilinearHeightCell("),
+        std::string::npos)
+        << "Every terrain hit must refine against a bilinear base cell";
+    EXPECT_NE(
+        shaderSource_.find("if (mipLevel == 0u"),
+        std::string::npos)
+        << "Coarse maximum-height cells must be acceleration data only";
+}
+
+TEST_F(RaycastShaderTest, EmitsStableFilteredTerrainNormal) {
+    ASSERT_FALSE(shaderSource_.empty());
+    EXPECT_NE(
+        shaderSource_.find("fn terrainSurfaceNormal("),
+        std::string::npos);
+    EXPECT_NE(
+        shaderSource_.find("vec4<f32>(terrainNormal, 1.0)"),
+        std::string::npos)
+        << "Terrain material output must carry the filtered height derivative";
+    EXPECT_NE(
+        shaderSource_.find("hLeft0"),
+        std::string::npos)
+        << "Terrain normals must interpolate central vertex differences";
 }
 
 TEST_F(RaycastShaderTest, HasLevelUpCheck) {

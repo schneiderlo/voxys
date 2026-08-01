@@ -1,29 +1,12 @@
 #include "physics/physics_world.hpp"
 
 #include "core/log.hpp"
-#include "physics/box3d/box3d_backend.hpp"
-#include "physics/gpu/gpu_physics_backend.hpp"
-#include "physics/jolt/jolt_backend.hpp"
+#include "physics/physics_backend_factory.hpp"
 #include "physics/physics_backend.hpp"
 
 #include <utility>
 
 namespace voxy::physics {
-namespace {
-
-std::unique_ptr<IPhysicsBackend> createBackend(BackendType type) {
-    switch (type) {
-        case BackendType::JoltLegacy:
-            return std::make_unique<JoltBackend>();
-        case BackendType::Box3DReference:
-            return std::make_unique<Box3DReferenceBackend>();
-        case BackendType::WebGpuSoft:
-            return std::make_unique<GpuPhysicsBackend>();
-    }
-    return nullptr;
-}
-
-} // namespace
 
 PhysicsWorld::PhysicsWorld() = default;
 PhysicsWorld::~PhysicsWorld() = default;
@@ -48,7 +31,8 @@ bool PhysicsWorld::initialize(const PhysicsInitContext& context) {
         return false;
     }
 
-    auto backend = createBackend(context.requestedBackend);
+    auto backend = detail::createPhysicsBackend(
+        context.requestedBackend);
     if (backend && backend->initialize(context)) {
         backend_ = std::move(backend);
         return true;
@@ -61,7 +45,8 @@ bool PhysicsWorld::initialize(const PhysicsInitContext& context) {
     fallbackContext.requestedBackend = BackendType::Box3DReference;
     fallbackContext.device = nullptr;
     fallbackContext.queue = nullptr;
-    auto fallback = createBackend(fallbackContext.requestedBackend);
+    auto fallback = detail::createPhysicsBackend(
+        fallbackContext.requestedBackend);
     if (!fallback || !fallback->initialize(fallbackContext)) {
         LOG_ERROR("WebGPU physics failed and Box3D CPU fallback could not initialize");
         return false;
@@ -191,12 +176,65 @@ void PhysicsWorld::enqueue(std::span<const PhysicsCommand> commands) {
     if (backend_) backend_->enqueue(commands);
 }
 
+AttachmentHandle PhysicsWorld::createDistanceAttachment(
+    const DistanceAttachmentDesc& desc) {
+    return backend_
+        ? backend_->createDistanceAttachment(desc)
+        : AttachmentHandle{};
+}
+
+bool PhysicsWorld::destroyAttachment(AttachmentHandle handle) {
+    return backend_ && backend_->destroyAttachment(handle);
+}
+
+bool PhysicsWorld::setAttachmentTargetLength(
+    AttachmentHandle handle, float targetLength) {
+    return backend_
+        && backend_->setAttachmentTargetLength(handle, targetLength);
+}
+
+bool PhysicsWorld::setAttachmentMotorSpeed(
+    AttachmentHandle handle, float motorSpeed) {
+    return backend_
+        && backend_->setAttachmentMotorSpeed(handle, motorSpeed);
+}
+
+PreparedPhysicsMutation PhysicsWorld::prepareMutationBatch(
+    const PhysicsMutationBatch& batch) noexcept {
+    return backend_
+        ? backend_->prepareMutationBatch(batch)
+        : PreparedPhysicsMutation{};
+}
+
+PhysicsMutationResult PhysicsWorld::commitPrepared(
+    const PreparedPhysicsMutation& prepared) noexcept {
+    return backend_
+        ? backend_->commitPrepared(prepared)
+        : PhysicsMutationResult{};
+}
+
+bool PhysicsWorld::discardPrepared(
+    const PreparedPhysicsMutation& prepared) noexcept {
+    return backend_ && backend_->discardPrepared(prepared);
+}
+
 void PhysicsWorld::update(float deltaTime) {
     if (backend_) backend_->stepCpu(deltaTime);
 }
 
+bool PhysicsWorld::scheduleFixedTicks(uint32_t tickCount) {
+    return backend_ && backend_->scheduleFixedTicks(tickCount);
+}
+
 void PhysicsWorld::encodeGpuStep(WGPUCommandEncoder encoder) {
     if (backend_) backend_->encodeGpuStep(encoder);
+}
+
+PhysicsEncodeReport PhysicsWorld::encodeGpuStepChecked(
+    WGPUCommandEncoder encoder) {
+    return backend_
+        ? backend_->encodeGpuStepChecked(encoder)
+        : PhysicsEncodeReport{};
 }
 
 bool PhysicsWorld::submitQueries(
@@ -208,8 +246,8 @@ std::optional<PhysicsQueryBatch> PhysicsWorld::pollQueryResults() {
     return backend_ ? backend_->pollQueryResults() : std::nullopt;
 }
 
-void PhysicsWorld::setEventReadbackEnabled(bool enabled) {
-    if (backend_) backend_->setEventReadbackEnabled(enabled);
+bool PhysicsWorld::setEventReadbackEnabled(bool enabled) {
+    return backend_ && backend_->setEventReadbackEnabled(enabled);
 }
 
 std::optional<PhysicsEventBatch> PhysicsWorld::pollEvents() {

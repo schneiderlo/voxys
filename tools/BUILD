@@ -1,5 +1,50 @@
 package(default_visibility = ["//visibility:public"])
 
+py_binary(
+    name = "generate_wreckwater_build_content",
+    srcs = ["generate_wreckwater_build_content.py"],
+    main = "generate_wreckwater_build_content.py",
+)
+
+py_binary(
+    name = "check_wreckwater_authority_bazel_closure",
+    srcs = ["check_wreckwater_authority_bazel_closure.py"],
+    main = "check_wreckwater_authority_bazel_closure.py",
+)
+
+py_binary(
+    name = "check_wreckwater_authority_cmake_closure",
+    srcs = ["check_wreckwater_authority_cmake_closure.py"],
+    main = "check_wreckwater_authority_cmake_closure.py",
+)
+
+py_test(
+    name = "check_wreckwater_authority_bazel_closure_test",
+    srcs = [
+        "check_wreckwater_authority_bazel_closure.py",
+        "test_check_wreckwater_authority_bazel_closure.py",
+    ],
+    main = "test_check_wreckwater_authority_bazel_closure.py",
+)
+
+py_test(
+    name = "check_wreckwater_authority_cmake_closure_test",
+    srcs = [
+        "check_wreckwater_authority_cmake_closure.py",
+        "test_check_wreckwater_authority_cmake_closure.py",
+    ],
+    main = "test_check_wreckwater_authority_cmake_closure.py",
+)
+
+py_test(
+    name = "generate_wreckwater_build_content_test",
+    srcs = [
+        "generate_wreckwater_build_content.py",
+        "test_generate_wreckwater_build_content.py",
+    ],
+    main = "test_generate_wreckwater_build_content.py",
+)
+
 sh_binary(
     name = "terrain_diffusion_import",
     srcs = ["terrain_diffusion_import.py"],

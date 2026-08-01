@@ -74,6 +74,7 @@ bool DeterministicGpuPrimitives::initialize(WGPUDevice device, WGPUQueue queue,
     workgroupSize_ = config.workgroupSize;
     blockCapacity_ = (capacity_ + workgroupSize_ - 1u) / workgroupSize_;
     shaderPath_ = config.shaderPath;
+    shaderSources_ = config.shaderSources;
 
     parameterBuffer_ = gpu::createBuffer(
         device_, gpu::BufferDesc::uniform(
@@ -134,7 +135,8 @@ bool DeterministicGpuPrimitives::initialize(WGPUDevice device, WGPUQueue queue,
         + 4u * sizeof(uint32_t));
 
     shaderModule_ = gpu::loadShaderModule(
-        device_, shaderPath_, "physics_deterministic_primitives.wgsl");
+        device_, shaderPath_, "physics_deterministic_primitives.wgsl",
+        shaderSources_);
     if (!shaderModule_ || !createLayoutsAndPipelines()) {
         shutdown();
         return false;
@@ -821,6 +823,7 @@ void DeterministicGpuPrimitives::shutdown() {
     blockCapacity_ = 0;
     scratchBytes_ = 0;
     shaderPath_.clear();
+    shaderSources_ = {};
 }
 
 } // namespace voxy::physics

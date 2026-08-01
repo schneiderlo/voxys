@@ -17,9 +17,11 @@
 #include <iomanip>
 #include <iostream>
 #include <map>
+#include <mutex>
 #include <random>
 #include <set>
 #include <span>
+#include <string>
 #include <vector>
 
 #include <glm/vec4.hpp>
@@ -237,6 +239,47 @@ std::map<std::pair<uint32_t, uint32_t>, uint32_t> contactIds(
 }
 
 class GpuBroadPhaseTest : public ::testing::TestWithParam<uint32_t> {};
+
+TEST(GpuBroadPhaseValidationTest,
+     ExplicitPipelineLayoutsMatchShaderRequirements) {
+    // Keep callback storage alive until after the context/device is destroyed.
+    std::mutex errorMutex;
+    std::vector<std::string> validationErrors;
+    gpu::Context context;
+    gpu::ContextConfig contextConfig;
+    contextConfig.enableValidation = true;
+    if (!context.initHeadless(contextConfig)) {
+        GTEST_SKIP() << "Headless WebGPU is unavailable";
+    }
+
+    context.setErrorCallback(
+        [&](WGPUErrorType type, const char* message) {
+            if (type != WGPUErrorType_Validation) return;
+            const std::scoped_lock lock(errorMutex);
+            validationErrors.emplace_back(message ? message : "unknown");
+        });
+
+    // Pipeline creation validates every broad-phase entry point, including
+    // grid scatter/finalize, sparse pair counting, and the medium direct path.
+    GpuBroadPhase broadPhase;
+    GpuBroadPhase::Config config;
+    config.bodyCapacity = 1'025u;
+    config.candidatePairCapacity = 4'096u;
+    config.pairCapacity = 4'096u;
+    config.contactCapacity = 4'096u;
+    config.cellSize = 8.0f;
+    config.workgroupSize = 128u;
+    ASSERT_TRUE(broadPhase.initialize(
+        context.getDevice(), context.getQueue(), config));
+
+    context.tick();
+    static_cast<void>(wgpuDevicePoll(
+        context.getDevice(), true, nullptr));
+    const std::scoped_lock lock(errorMutex);
+    EXPECT_TRUE(validationErrors.empty())
+        << (validationErrors.empty() ? std::string{}
+                                     : validationErrors.front());
+}
 
 TEST_P(GpuBroadPhaseTest, MatchesBruteForceAndPersistsLifecycle) {
     // Exercise the cooperative pair enumerator's inclusive upper boundary.

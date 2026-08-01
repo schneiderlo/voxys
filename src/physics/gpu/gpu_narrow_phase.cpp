@@ -131,6 +131,7 @@ public:
         primitiveConfig.capacity = config_.dispatchContactCapacity;
         primitiveConfig.workgroupSize = config_.workgroupSize;
         primitiveConfig.shaderPath = config_.primitivesShaderPath;
+        primitiveConfig.shaderSources = config_.shaderSources;
         if (!primitives_.initialize(device_, queue_, primitiveConfig)) {
             shutdown();
             return false;
@@ -148,7 +149,8 @@ public:
             + kTelemetryWords * sizeof(uint32_t));
 
         shaderModule_ = gpu::loadShaderModule(
-            device_, config.shaderPath, "physics_narrow_phase.wgsl");
+            device_, config.shaderPath, "physics_narrow_phase.wgsl",
+            config.shaderSources);
         if (!shaderModule_ || !createPipelines()
             || !createCompactionGroups()) {
             shutdown();

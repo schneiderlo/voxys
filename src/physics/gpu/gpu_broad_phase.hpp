@@ -96,6 +96,7 @@ public:
         std::filesystem::path shaderPath = "shaders/physics_broad_phase.wgsl";
         std::filesystem::path primitivesShaderPath =
             "shaders/physics_deterministic_primitives.wgsl";
+        std::span<const gpu::ShaderSource> shaderSources{};
     };
 
     GpuBroadPhase();

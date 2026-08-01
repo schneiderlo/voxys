@@ -86,6 +86,7 @@ public:
         primitiveConfig.capacity = config_.bodyCapacity;
         primitiveConfig.workgroupSize = config_.workgroupSize;
         primitiveConfig.shaderPath = config_.primitivesShaderPath;
+        primitiveConfig.shaderSources = config_.shaderSources;
         if (!primitives_.initialize(device_, queue_, primitiveConfig)) {
             shutdown();
             return false;
@@ -127,7 +128,8 @@ public:
         }
 
         shader_ = gpu::loadShaderModule(
-            device_, config_.shaderPath, "physics_ccd.wgsl");
+            device_, config_.shaderPath, "physics_ccd.wgsl",
+            config_.shaderSources);
         if (!shader_ || !createPipelines()) {
             shutdown();
             return false;

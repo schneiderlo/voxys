@@ -123,6 +123,7 @@ public:
         primitiveConfig.capacity = primitiveCapacity;
         primitiveConfig.workgroupSize = config.workgroupSize;
         primitiveConfig.shaderPath = config.primitivesShaderPath;
+        primitiveConfig.shaderSources = config.shaderSources;
         if (!primitives_.initialize(device_, queue_, primitiveConfig)) {
             shutdown();
             return false;
@@ -230,7 +231,8 @@ public:
             + sizeof(Params) + (kTelemetryWords + 4u) * sizeof(uint32_t));
 
         shaderModule_ = gpu::loadShaderModule(
-            device_, config.shaderPath, "physics_broad_phase.wgsl");
+            device_, config.shaderPath, "physics_broad_phase.wgsl",
+            config.shaderSources);
         if (!shaderModule_ || !createPipelines()) {
             shutdown();
             return false;

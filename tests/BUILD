@@ -39,6 +39,7 @@ TEST_SRCS = [
     "test_benchmark.cpp",
     "test_debug_visualizer.cpp",
     "test_mip_pipeline.cpp",
+    "test_multiplayer_session.cpp",
     "test_primitive_path.cpp",
     "test_primitive_gpu_culling.cpp",
     "test_primitive_culling.cpp",
@@ -77,7 +78,23 @@ test_suite(
 
 test_suite(
     name = "networking_ci",
-    tests = [":networking"],
+    tests = [
+        ":deterministic_adversity_transport",
+        ":multiplayer_session",
+        ":native_tcp_transport",
+        ":networking",
+        ":wreckwater_character_controller",
+        ":wreckwater_application_client",
+        ":wreckwater_character_platform_timeline",
+        ":wreckwater_character_presentation",
+        ":wreckwater_graphical_client_loop",
+        ":wreckwater_client_visual_clock",
+        ":wreckwater_third_person_camera",
+        ":wreckwater_client_probe",
+        ":wreckwater_client_replication",
+        ":wreckwater_client_runtime",
+        ":wreckwater_protocol",
+    ],
 )
 
 test_suite(
@@ -90,10 +107,441 @@ test_suite(
     tests = [":vertical_slices"],
 )
 
+test_suite(
+    name = "wreckwater_match_ci",
+    tests = [
+        ":wreckwater_authority_gpu",
+        ":wreckwater_authority_runtime",
+        ":wreckwater_character_authority_bridge",
+        ":wreckwater_character_movement",
+        ":wreckwater_character_step",
+        ":wreckwater_content_manifest",
+        ":wreckwater_live_world",
+        ":wreckwater_match",
+        ":wreckwater_replay",
+        ":wreckwater_replay_playback",
+        ":wreckwater_vessel_damage",
+    ],
+)
+
+# Standalone fixed-capacity certified skiff prediction timeline test.
+cc_test(
+    name = "wreckwater_character_platform_timeline",
+    srcs = ["test_wreckwater_character_platform_timeline.cpp"],
+    copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
+    deps = [
+        "//src/client:wreckwater_character_platform_timeline",
+        "@googletest//:gtest_main",
+    ],
+    data = [
+        "//:asan_suppressions",
+        "//:tsan_suppressions",
+        "//:msan_suppressions",
+    ],
+)
+
+# Standalone fixed-capacity local character prediction/reconciliation test.
+cc_test(
+    name = "wreckwater_character_controller",
+    srcs = ["test_wreckwater_character_controller.cpp"],
+    copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
+    deps = [
+        "//src/client:wreckwater_character_controller",
+        "@googletest//:gtest_main",
+    ],
+    data = [
+        "//:asan_suppressions",
+        "//:tsan_suppressions",
+        "//:msan_suppressions",
+    ],
+)
+
+# Standalone fixed-capacity four-avatar presentation adapter test.
+cc_test(
+    name = "wreckwater_application_client",
+    srcs = ["test_wreckwater_application_client.cpp"],
+    copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
+    deps = [
+        "//src/client:wreckwater_application_client",
+        "@googletest//:gtest_main",
+    ],
+    data = [
+        "//:asan_suppressions",
+        "//:tsan_suppressions",
+        "//:msan_suppressions",
+    ],
+)
+
+# Standalone bounded client presentation-buffer test.
+cc_test(
+    name = "wreckwater_character_presentation",
+    srcs = ["test_wreckwater_character_presentation.cpp"],
+    copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
+    deps = [
+        "//src/client:wreckwater_character_presentation",
+        "@googletest//:gtest_main",
+    ],
+    data = [
+        "//:asan_suppressions",
+        "//:tsan_suppressions",
+        "//:msan_suppressions",
+    ],
+)
+
+# Standalone fixed-storage third-person camera and async-probe test.
+cc_test(
+    name = "wreckwater_third_person_camera",
+    srcs = ["test_wreckwater_third_person_camera.cpp"],
+    copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
+    deps = [
+        "//src/client:wreckwater_third_person_camera",
+        "@googletest//:gtest_main",
+    ],
+    data = [
+        "//:asan_suppressions",
+        "//:tsan_suppressions",
+        "//:msan_suppressions",
+    ],
+)
+
+# Standalone certified visual-clock test.
+cc_test(
+    name = "wreckwater_client_visual_clock",
+    srcs = ["test_wreckwater_client_visual_clock.cpp"],
+    copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
+    deps = [
+        "//src/client:wreckwater_client_visual_clock",
+        "@googletest//:gtest_main",
+    ],
+    data = [
+        "//:asan_suppressions",
+        "//:tsan_suppressions",
+        "//:msan_suppressions",
+    ],
+)
+
+# Standalone fixed-step graphical client orchestration test.
+cc_test(
+    name = "wreckwater_graphical_client_loop",
+    srcs = ["test_wreckwater_graphical_client_loop.cpp"],
+    copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
+    deps = [
+        "//src/client:wreckwater_graphical_client_loop",
+        "@googletest//:gtest_main",
+    ],
+    data = [
+        "//:asan_suppressions",
+        "//:tsan_suppressions",
+        "//:msan_suppressions",
+    ],
+)
+
+# Standalone fixed-capacity application-frame adversity scheduler test.
+cc_test(
+    name = "deterministic_adversity_transport",
+    srcs = ["test_deterministic_adversity_transport.cpp"],
+    copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
+    deps = [
+        "//src/network:network",
+        "@googletest//:gtest_main",
+    ],
+    data = [
+        "//:asan_suppressions",
+        "//:tsan_suppressions",
+        "//:msan_suppressions",
+    ],
+)
+
+# Standalone native TCP wire/handshake test. Keeping this independent from
+# voxy_core avoids coupling transport admission checks to renderer or replay
+# compilation.
+cc_test(
+    name = "native_tcp_transport",
+    srcs = ["test_native_tcp_transport.cpp"],
+    copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
+    deps = [
+        "//src/network:native_tcp_transport",
+        "@googletest//:gtest_main",
+    ],
+    data = [
+        "//:asan_suppressions",
+        "//:tsan_suppressions",
+        "//:msan_suppressions",
+    ],
+)
+
+# Standalone native client-probe parser and scripted-role test.
+cc_test(
+    name = "wreckwater_client_probe",
+    srcs = ["test_wreckwater_client_probe.cpp"],
+    copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
+    deps = [
+        "//src/client:wreckwater_client_probe",
+        "@googletest//:gtest_main",
+    ],
+    data = [
+        "//:asan_suppressions",
+        "//:tsan_suppressions",
+        "//:msan_suppressions",
+    ],
+)
+
+# Standalone fixed-capacity certified-pose character authority bridge test.
+cc_test(
+    name = "wreckwater_character_authority_bridge",
+    srcs = ["test_wreckwater_character_authority_bridge.cpp"],
+    copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
+    deps = [
+        "//src/game:wreckwater_character_authority_bridge",
+        "@googletest//:gtest_main",
+    ],
+    data = [
+        "//:asan_suppressions",
+        "//:tsan_suppressions",
+        "//:msan_suppressions",
+    ],
+)
+
+# Standalone fixed-capacity moving-skiff character movement test.
+cc_test(
+    name = "wreckwater_character_movement",
+    srcs = ["test_wreckwater_character_movement.cpp"],
+    copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
+    deps = [
+        "//src/game:wreckwater_character_movement",
+        "@googletest//:gtest_main",
+    ],
+    data = [
+        "//:asan_suppressions",
+        "//:tsan_suppressions",
+        "//:msan_suppressions",
+    ],
+)
+
+# Standalone authority/shared-step exact-parity test.
+cc_test(
+    name = "wreckwater_character_step",
+    srcs = ["test_wreckwater_character_step.cpp"],
+    copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
+    deps = [
+        "//src/game:wreckwater_character_movement",
+        "@googletest//:gtest_main",
+    ],
+    data = [
+        "//:asan_suppressions",
+        "//:tsan_suppressions",
+        "//:msan_suppressions",
+    ],
+)
+
+# Standalone deterministic content-compatibility manifest test.
+cc_test(
+    name = "wreckwater_content_manifest",
+    srcs = ["test_wreckwater_content_manifest.cpp"],
+    copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
+    deps = [
+        "//src/game:wreckwater_content_manifest",
+        "@googletest//:gtest_main",
+    ],
+    data = [
+        "//:asan_suppressions",
+        "//:tsan_suppressions",
+        "//:msan_suppressions",
+    ],
+)
+
+# Standalone authoritative match test. Keeping it independent from voxy_core
+# gives command, replay, and state-machine sanitizer failures a clean signal
+# even while renderer or transport work is in flight.
+cc_test(
+    name = "wreckwater_match",
+    srcs = ["test_wreckwater_match.cpp"],
+    copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
+    deps = [
+        "//src/game:wreckwater_match",
+        "@googletest//:gtest_main",
+    ],
+    data = [
+        "//:asan_suppressions",
+        "//:tsan_suppressions",
+        "//:msan_suppressions",
+    ],
+)
+
+# Standalone bounded certified-state replay archive test.
+cc_test(
+    name = "wreckwater_replay",
+    srcs = ["test_wreckwater_replay.cpp"],
+    copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
+    deps = [
+        "//src/game:wreckwater_replay",
+        "@googletest//:gtest_main",
+    ],
+    data = [
+        "//:asan_suppressions",
+        "//:tsan_suppressions",
+        "//:msan_suppressions",
+    ],
+)
+
+# Standalone fixed-capacity certified replay playback/WreckCam test.
+cc_test(
+    name = "wreckwater_replay_playback",
+    srcs = ["test_wreckwater_replay_playback.cpp"],
+    copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
+    deps = [
+        "//src/game:wreckwater_replay_playback",
+        "@googletest//:gtest_main",
+    ],
+    data = [
+        "//:asan_suppressions",
+        "//:tsan_suppressions",
+        "//:msan_suppressions",
+    ],
+)
+
+# Standalone live GPU-authority adapter transaction test.
+cc_test(
+    name = "wreckwater_live_world",
+    srcs = ["test_wreckwater_live_world.cpp"],
+    copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
+    deps = [
+        "//src/game:wreckwater_live_world",
+        "@googletest//:gtest_main",
+    ],
+    data = [
+        "//:asan_suppressions",
+        "//:tsan_suppressions",
+        "//:msan_suppressions",
+    ],
+)
+
+# Fixed-capacity production vessel damage/flooding authority.
+cc_test(
+    name = "wreckwater_vessel_damage",
+    srcs = ["test_wreckwater_vessel_damage.cpp"],
+    copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
+    deps = [
+        "//src/game:wreckwater_vessel_damage",
+        "@googletest//:gtest_main",
+    ],
+    data = [
+        "//:asan_suppressions",
+        "//:tsan_suppressions",
+        "//:msan_suppressions",
+    ],
+)
+
+# Standalone serial-qualified headless authority orchestration test.
+cc_test(
+    name = "wreckwater_authority_runtime",
+    srcs = ["test_wreckwater_authority_runtime.cpp"],
+    copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
+    deps = [
+        "//src/server:wreckwater_authority_runtime_headless",
+        "@googletest//:gtest_main",
+    ],
+    data = [
+        "//:asan_suppressions",
+        "//:tsan_suppressions",
+        "//:msan_suppressions",
+    ],
+)
+
+# Native WebGPU smoke test for the real headless authority submit path.
+cc_test(
+    name = "wreckwater_authority_gpu",
+    srcs = ["test_wreckwater_authority_gpu.cpp"],
+    copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
+    deps = [
+        "//src/gpu:wreckwater_authority_gpu",
+        "//src/server:wreckwater_authority_runtime_headless",
+        "@googletest//:gtest_main",
+    ],
+    data = [
+        "//shaders:shaders",
+        "//:asan_suppressions",
+        "//:tsan_suppressions",
+        "//:msan_suppressions",
+    ],
+)
+
+# Standalone hostile-input wire-codec test. It links only the two protocol
+# targets used by authority and proves the payload fits PacketCodec's MTU.
+cc_test(
+    name = "wreckwater_protocol",
+    srcs = ["test_wreckwater_protocol.cpp"],
+    copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
+    deps = [
+        "//src/network:protocol",
+        "//src/network:wreckwater_protocol",
+        "@googletest//:gtest_main",
+    ],
+    data = [
+        "//:asan_suppressions",
+        "//:tsan_suppressions",
+        "//:msan_suppressions",
+    ],
+)
+
+# Standalone bounded client presentation-buffer test.
+cc_test(
+    name = "wreckwater_client_replication",
+    srcs = ["test_wreckwater_client_replication.cpp"],
+    copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
+    deps = [
+        "//src/network:wreckwater_client_replication",
+        "@googletest//:gtest_main",
+    ],
+    data = [
+        "//:asan_suppressions",
+        "//:tsan_suppressions",
+        "//:msan_suppressions",
+    ],
+)
+
+# Standalone serial-aware WRECKWATER client runtime test.
+cc_test(
+    name = "wreckwater_client_runtime",
+    srcs = ["test_wreckwater_client_runtime.cpp"],
+    copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
+    deps = [
+        "//src/network:network",
+        "@googletest//:gtest_main",
+    ],
+    data = [
+        "//:asan_suppressions",
+        "//:tsan_suppressions",
+        "//:msan_suppressions",
+    ],
+)
+
 # Combined test target that runs all tests
 cc_test(
     name = "voxy_tests",
-    srcs = TEST_SRCS + ["test_water_clipmap_mesh.cpp"],
+    srcs = TEST_SRCS + [
+        "test_native_tcp_transport.cpp",
+        "test_water_clipmap_mesh.cpp",
+        "test_wreckwater_authority_runtime.cpp",
+        "test_wreckwater_character_authority_bridge.cpp",
+        "test_wreckwater_application_client.cpp",
+        "test_wreckwater_character_controller.cpp",
+        "test_wreckwater_character_platform_timeline.cpp",
+        "test_wreckwater_character_presentation.cpp",
+        "test_wreckwater_graphical_client_loop.cpp",
+        "test_wreckwater_client_visual_clock.cpp",
+        "test_wreckwater_third_person_camera.cpp",
+        "test_wreckwater_character_movement.cpp",
+        "test_wreckwater_character_step.cpp",
+        "test_wreckwater_content_manifest.cpp",
+        "test_wreckwater_live_world.cpp",
+        "test_wreckwater_match.cpp",
+        "test_wreckwater_replay.cpp",
+        "test_wreckwater_replay_playback.cpp",
+        "test_wreckwater_client_replication.cpp",
+        "test_wreckwater_client_runtime.cpp",
+        "test_wreckwater_protocol.cpp",
+    ],
     copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
     deps = [
         "//src:voxy_core",

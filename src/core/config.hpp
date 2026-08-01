@@ -12,6 +12,7 @@
 #include <charconv>
 #include <cmath>
 #include <concepts>
+#include <cstddef>
 #include <cstdint>
 #include <optional>
 #include <span>
@@ -137,6 +138,69 @@ struct AutomationConfig {
     bool operator==(const AutomationConfig&) const = default;
 };
 
+inline constexpr uint32_t kWreckwaterClientServerField =
+    1u << 0u;
+inline constexpr uint32_t kWreckwaterClientPortField =
+    1u << 1u;
+inline constexpr uint32_t kWreckwaterClientPeerField =
+    1u << 2u;
+inline constexpr uint32_t kWreckwaterClientKeyField =
+    1u << 3u;
+inline constexpr uint32_t kWreckwaterClientSessionField =
+    1u << 4u;
+inline constexpr uint32_t kWreckwaterClientMatchField =
+    1u << 5u;
+inline constexpr uint32_t kWreckwaterClientWorldField =
+    1u << 6u;
+inline constexpr uint32_t kWreckwaterClientWorldEpochField =
+    1u << 7u;
+inline constexpr uint32_t kWreckwaterClientAuthorityEpochField =
+    1u << 8u;
+inline constexpr uint32_t kWreckwaterClientRequiredFields =
+    (1u << 9u) - 1u;
+
+struct WreckwaterClientConfig {
+    std::string server;
+    uint16_t port = 0u;
+    uint32_t peerId = 0u;
+    std::array<std::byte, 32> authenticationKey{};
+    uint64_t sessionId = 0u;
+    uint64_t matchId = 0u;
+    uint64_t worldId = 0u;
+    uint32_t worldEpoch = 0u;
+    uint32_t authorityEpoch = 0u;
+    uint32_t presentFields = 0u;
+    bool malformedValue = false;
+
+    [[nodiscard]] bool operator==(
+        const WreckwaterClientConfig&) const = default;
+};
+
+enum class WreckwaterClientConfigStatus : uint32_t {
+    Disabled = 0u,
+    Ready,
+    Incomplete,
+    MalformedValue,
+    InvalidServer,
+    InvalidPort,
+    InvalidPeer,
+    InvalidKey,
+    InvalidIdentity,
+};
+
+[[nodiscard]] const char* wreckwaterClientConfigStatusName(
+    WreckwaterClientConfigStatus status) noexcept;
+
+[[nodiscard]] WreckwaterClientConfigStatus
+validateWreckwaterClientConfig(
+    const WreckwaterClientConfig& config) noexcept;
+
+// Parses exactly 64 hexadecimal digits into 32 bytes. The printable input is
+// never copied into persistent configuration state.
+[[nodiscard]] bool parseWreckwaterAuthenticationKey(
+    std::string_view value,
+    std::array<std::byte, 32>& output) noexcept;
+
 struct Config {
     RenderConfig render;
     TerrainConfig terrain;
@@ -147,6 +211,7 @@ struct Config {
     DebugConfig debug;
     WindowConfig window;
     AutomationConfig automation;
+    WreckwaterClientConfig wreckwaterClient;
     
     [[nodiscard]] constexpr auto operator<=>(const Config&) const = delete;
 };
@@ -183,6 +248,7 @@ struct CommandLineArgs {
     int screenshotFrames = 10;
     int screenshotTourCount = 0;
     std::optional<std::string> screenshotDir;
+    WreckwaterClientConfig wreckwaterClient;
 };
 
 // Parse command-line arguments (C++20: using span for safe array access)

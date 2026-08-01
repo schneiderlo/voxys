@@ -110,6 +110,7 @@ public:
         primitiveConfig.capacity = endpointCapacity_;
         primitiveConfig.workgroupSize = config.workgroupSize;
         primitiveConfig.shaderPath = config.primitivesShaderPath;
+        primitiveConfig.shaderSources = config.shaderSources;
         if (!primitives_.initialize(device_, queue_, primitiveConfig)) {
             shutdown();
             return false;
@@ -201,7 +202,8 @@ public:
             + kTelemetryWords * sizeof(uint32_t));
 
         shaderModule_ = gpu::loadShaderModule(
-            device_, config.shaderPath, "physics_dynamic_solver.wgsl");
+            device_, config.shaderPath, "physics_dynamic_solver.wgsl",
+            config.shaderSources);
         if (!shaderModule_ || !createPipelines()) {
             shutdown();
             return false;

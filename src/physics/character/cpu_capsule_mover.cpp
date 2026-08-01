@@ -519,12 +519,14 @@ CharacterMotion CpuCapsuleMoverWorld::moveCharacter(
         for (uint32_t plane = 0; plane < planeCount; ++plane)
             duplicate = duplicate || planes[plane].first == hit.featureId;
         if (!duplicate && planeCount < planes.size()) {
-            planes[planeCount++] = {hit.featureId, hit.normal};
-            std::sort(planes.begin(),
-                planes.begin() + static_cast<std::ptrdiff_t>(planeCount),
-                [](const auto& lhs, const auto& rhs) {
-                    return lhs.first < rhs.first;
-                });
+            uint32_t insertion = planeCount;
+            while (insertion != 0u
+                && planes[insertion - 1u].first > hit.featureId) {
+                planes[insertion] = planes[insertion - 1u];
+                --insertion;
+            }
+            planes[insertion] = {hit.featureId, hit.normal};
+            ++planeCount;
         }
         glm::vec3 remainder = translation * (1.0f - safeFraction);
         for (uint32_t plane = 0; plane < planeCount; ++plane) {

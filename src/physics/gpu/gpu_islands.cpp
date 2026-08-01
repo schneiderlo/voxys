@@ -91,6 +91,7 @@ public:
         primitiveConfig.capacity = config.bodyCapacity;
         primitiveConfig.workgroupSize = config.workgroupSize;
         primitiveConfig.shaderPath = config.primitivesShaderPath;
+        primitiveConfig.shaderSources = config.shaderSources;
         if (!primitives_.initialize(device_, queue_, primitiveConfig)) {
             shutdown();
             return false;
@@ -184,7 +185,8 @@ public:
             + (kTelemetryWords + 1u) * sizeof(uint32_t));
 
         shaderModule_ = gpu::loadShaderModule(
-            device_, config.shaderPath, "physics_islands.wgsl");
+            device_, config.shaderPath, "physics_islands.wgsl",
+            config.shaderSources);
         if (!shaderModule_ || !createPipelines()) {
             shutdown();
             return false;

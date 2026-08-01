@@ -54,10 +54,10 @@ const SKY_LUT_WIDTH : f32 = 1774.0;
 const SKY_LUT_HEIGHT : f32 = 887.0;
 
 const OCEAN_BASE_ABSORPTION : vec3<f32> =
-    vec3<f32>(0.015208514, 0.009134059, 0.008568126);
-const OCEAN_SKY_BRIGHTNESS : f32 = 0.9;
+    vec3<f32>(0.0580, 0.0290, 0.0120);
+const OCEAN_SKY_BRIGHTNESS : f32 = 0.62;
 const OCEAN_REFLECTION_ROUGHNESS_STRENGTH : f32 = 0.50;
-const OCEAN_FILM_GRAIN : f32 = 0.06;
+const OCEAN_FILM_GRAIN : f32 = 0.015;
 const OCEAN_VIGNETTE : f32 = 0.25;
 const OCEAN_VIGNETTE_SMOOTHNESS : f32 = 0.85;
 const OCEAN_UNDERWATER_DISTORTION : f32 = 0.015;
@@ -91,6 +91,7 @@ struct VertexOutput {
     @location(0) worldPosition : vec3<f32>,
     @location(1) waterCoordinates : vec2<f32>,
     @location(2) lowFrequencyNormal : vec3<f32>,
+    @location(3) crestCompression : f32,
 };
 
 struct LongWave {
@@ -165,12 +166,13 @@ fn vs(@location(0) localPosition : vec3<f32>) -> VertexOutput {
     output.position = camera.viewProj * vec4<f32>(world, 1.0);
     output.worldPosition = world;
     output.waterCoordinates = base.xz;
-    let broadNormal = sampleDisplacement(
-        base.xz, camera.waterSpectrum.x, NORMAL_LAYER).xyz;
-    output.lowFrequencyNormal = broadNormal +
+    let broadWave = sampleDisplacement(
+        base.xz, camera.waterSpectrum.x, NORMAL_LAYER);
+    output.lowFrequencyNormal = broadWave.xyz +
         vec3<f32>(swell.normalVector.x,
                   swell.normalVector.y - 1.0,
                   swell.normalVector.z);
+    output.crestCompression = broadWave.w;
     return output;
 }
 
@@ -178,10 +180,33 @@ fn heightmapWorldHeight(encoded : u32) -> f32 {
     return ((f32(encoded) / 65535.0) * 2.0 - 1.0) * camera.metrics.x;
 }
 
-fn terrainCell(worldXZ : vec2<f32>) -> vec2<i32> {
+fn terrainSampleCoordinate(worldXZ : vec2<f32>) -> vec2<f32> {
     let cellCounts = max(camera.terrainSize - vec2<f32>(1.0), vec2<f32>(1.0));
     let origin = 0.5 * cellCounts * camera.metrics.y;
-    return vec2<i32>(floor((worldXZ + origin) / camera.metrics.y));
+    return (worldXZ + origin) / camera.metrics.y;
+}
+
+fn bilinearTerrainHeight(sampleCoordinate : vec2<f32>) -> f32 {
+    let dimensions = vec2<i32>(textureDimensions(heightTexture));
+    let maximum = dimensions - vec2<i32>(1);
+    let base = clamp(
+        vec2<i32>(floor(sampleCoordinate)),
+        vec2<i32>(0), maximum);
+    let next = min(base + vec2<i32>(1), maximum);
+    let fraction = clamp(fract(sampleCoordinate), vec2<f32>(0.0),
+                         vec2<f32>(1.0));
+    let h00 = heightmapWorldHeight(
+        textureLoad(heightTexture, base, 0).x);
+    let h10 = heightmapWorldHeight(
+        textureLoad(heightTexture, vec2<i32>(next.x, base.y), 0).x);
+    let h01 = heightmapWorldHeight(
+        textureLoad(heightTexture, vec2<i32>(base.x, next.y), 0).x);
+    let h11 = heightmapWorldHeight(
+        textureLoad(heightTexture, next, 0).x);
+    return mix(
+        mix(h00, h10, fraction.x),
+        mix(h01, h11, fraction.x),
+        fraction.y);
 }
 
 fn bakedShadow(worldPosition : vec3<f32>) -> f32 {
@@ -331,9 +356,71 @@ fn proceduralSeabed(worldXZ : vec2<f32>, pathLength : f32,
         foamTexture, foamSampler, rotated / causticScale + motion,
         causticLod).r;
     let distanceFade = 1.0 - smoothstep(95.0, 360.0, pathLength);
-    let caustic = smoothstep(0.60, 0.82, causticPattern) * distanceFade;
-    return albedo * (0.88 + caustic * 0.62) +
-           vec3<f32>(0.08, 0.15, 0.12) * caustic;
+    let caustic = smoothstep(0.53, 0.78, causticPattern) * distanceFade;
+    return albedo * (0.86 + caustic * 0.78) +
+           vec3<f32>(0.09, 0.18, 0.14) * caustic;
+}
+
+fn coastalFoamStrength(
+    position : vec3<f32>,
+    normal : vec3<f32>,
+    waterDepth : f32,
+    crestCompression : f32,
+    distanceToCamera : f32,
+    worldPerPixel : f32) -> f32 {
+    let foamLod = log2(max(
+        worldPerPixel * 1024.0 / oceanFoamSize(), 1.0));
+    let drift = vec2<f32>(
+        camera.waterMotion.x * 0.0017,
+        -camera.waterMotion.x * 0.0011);
+    let foamUv = position.xz / oceanFoamSize() + drift;
+    let pattern = textureSampleLevel(
+        foamTexture, foamSampler, foamUv, foamLod).r;
+    let detail = textureSampleLevel(
+        foamTexture, foamSampler,
+        foamUv * 2.37 + vec2<f32>(0.31, 0.67) - drift * 0.7,
+        foamLod + 0.8).r;
+    let crestEnergy = max(
+        smoothstep(0.045, 0.20, crestCompression),
+        smoothstep(0.018, 0.16, 1.0 - normal.y));
+    let depthWindow =
+        smoothstep(0.07, 0.24, waterDepth) *
+        (1.0 - smoothstep(0.48, 0.92, waterDepth));
+    let proximity =
+        1.0 - smoothstep(0.72, 1.75, waterDepth);
+    let breakingPhase = 0.5 + 0.5 * sin(
+        waterDepth * 1.17 -
+        camera.waterMotion.x * 1.43 +
+        dot(position.xz, vec2<f32>(0.052, 0.023)) +
+        pattern * 3.2);
+    let pulse = smoothstep(0.34, 0.76, breakingPhase);
+    let spatialBreakup =
+        smoothstep(0.56, 0.79, pattern) *
+        mix(0.06, 1.0, smoothstep(0.50, 0.82, detail));
+    let breakerExposure =
+        smoothstep(0.08, 0.58, crestEnergy);
+    let shoreBreaker =
+        proximity * depthWindow *
+        breakerExposure *
+        mix(0.24, 1.0, pulse) * spatialBreakup;
+    let swashResidue =
+        proximity *
+        (1.0 - smoothstep(0.16, 0.62, waterDepth)) *
+        spatialBreakup * breakerExposure *
+        mix(0.05, 0.25, pulse);
+    let threshold = 1.0 - oceanFoamCoverage();
+    let openCoverage = pattern *
+        smoothstep(threshold, threshold + 0.15, pattern);
+    // Open-water foam needs real compression. A coverage-only floor turned
+    // bright sky reflections into a continuous ice-like sheet.
+    let openFoam = openCoverage * oceanFoamOpacity() *
+                   crestEnergy * 0.55;
+    let shoreOpacity =
+        max(oceanFoamOpacity(), 0.68);
+    return clamp(
+        max(openFoam,
+            max(shoreBreaker, swashResidue) * shoreOpacity),
+        0.0, 1.0);
 }
 
 fn debugColor(color : vec3<f32>, depth : f32,
@@ -384,14 +471,17 @@ fn shadeWaterFragment(input : VertexOutput) -> FragmentOutput {
     }
 
     let baseDimensions = vec2<i32>(textureDimensions(heightTexture));
-    let cell = terrainCell(input.worldPosition.xz);
-    let insideTerrain = all(cell >= vec2<i32>(0)) &&
-                          all(cell < baseDimensions);
+    let heightCoordinate =
+        terrainSampleCoordinate(input.worldPosition.xz);
+    let insideTerrain =
+        all(heightCoordinate >= vec2<f32>(0.0)) &&
+        all(heightCoordinate <=
+            vec2<f32>(baseDimensions - vec2<i32>(1)));
     var waterDepth = 500.0;
     var shadow = 1.0;
     if (insideTerrain) {
-        let terrainHeight = heightmapWorldHeight(
-            textureLoad(heightTexture, cell, 0).x);
+        let terrainHeight =
+            bilinearTerrainHeight(heightCoordinate);
         if (terrainHeight >= input.worldPosition.y - 0.05) {
             discard;
         }
@@ -402,15 +492,16 @@ fn shadeWaterFragment(input : VertexOutput) -> FragmentOutput {
 
     let detailWeight = 1.0 - smoothstep(
         900.0, 3500.0, distanceToCamera);
-    var detailNormal = vec3<f32>(0.0, 1.0, 0.0);
+    var detailWave = vec4<f32>(0.0, 1.0, 0.0, 0.0);
     if (detailWeight > 0.0) {
-        detailNormal = sampleDisplacement(
+        detailWave = sampleDisplacement(
             input.waterCoordinates, camera.waterSpectrum.y,
-            NORMAL_LAYER + 1).xyz;
+            NORMAL_LAYER + 1);
     }
     var normal = input.lowFrequencyNormal +
-                 vec3<f32>(detailNormal.x, detailNormal.y - 1.0,
-                           detailNormal.z) * detailWeight;
+                 vec3<f32>(detailWave.x, detailWave.y - 1.0,
+                           detailWave.z) * detailWeight * 0.48;
+    normal = vec3<f32>(normal.x * 0.72, normal.y, normal.z * 0.72);
     if (dot(normal, normal) > 1.0e-12) {
         normal = normalize(normal);
     } else {
@@ -420,7 +511,7 @@ fn shadeWaterFragment(input : VertexOutput) -> FragmentOutput {
     let light = normalize(camera.lightDirWS.xyz);
     let fresnel = dielectricFresnel(dot(normal, view), oceanIor());
     let reflected = reflect(-view, normal);
-    let reflectionRoughness = oceanMinimumRoughness() +
+    let reflectionRoughness = max(oceanMinimumRoughness(), 0.18) +
         clamp(distanceToCamera / oceanReflectionDistance(),
               0.0, 1.0) * OCEAN_REFLECTION_ROUGHNESS_STRENGTH;
     let environment = sampleEnvironment(reflected, reflectionRoughness) *
@@ -437,16 +528,18 @@ fn shadeWaterFragment(input : VertexOutput) -> FragmentOutput {
                          max(1.0 - normal.y, 0.0);
     let halfway = normalize(light + view);
     let sunSpecular = pow(max(dot(normal, halfway), 0.0), 420.0) *
-                      oceanSunIntensity() * 4.0;
+                      oceanSunIntensity() * 1.8;
 
     let cameraUnderwater = camera.waterMotion.z > 0.5;
+    let opticalCoverage = smoothstep(0.12, 12.0, waterDepth);
+    let distortionCoverage = smoothstep(0.04, 0.80, waterDepth);
     var distortedUv = screenUv;
     var selectedRefractionDepth = opaqueDepth;
     let sceneThickness = select(
         500.0, max(opaqueDepth - distanceToCamera, 0.0), opaqueDepth > 0.0);
     if (cameraUnderwater || opaqueDepth > 0.0) {
         let distortionDistance = min(sceneThickness, 80.0) *
-                                 oceanDistortion();
+                                 oceanDistortion() * distortionCoverage;
         let distortedWorld = input.worldPosition +
                              normal * distortionDistance;
         let distortedClip = camera.viewProj *
@@ -507,50 +600,80 @@ fn shadeWaterFragment(input : VertexOutput) -> FragmentOutput {
         (input.worldPosition + refractedRay * bedTravel).xz,
         bedTravel, worldPerPixel) *
         (0.34 + 0.66 * max(light.y, 0.0)) * shadow;
+    if (hasOpaqueRefraction) {
+        // The cached opaque target already contains the exact authored
+        // terrain material at this refracted screen position. Prefer it over
+        // the procedural infinite-floor fallback; the fallback's cellular
+        // plate seams read as cracks when projected through shallow water.
+        refracted = textureSampleLevel(
+            sceneColorTexture, sceneSampler, refractionUv, 0.0).rgb;
+    }
 
     let transmittance = exp(-oceanAbsorption() * thickness);
-    let refractedWater = refracted * transmittance +
+    let clearRefracted = refracted * transmittance +
                          body * (vec3<f32>(1.0) - transmittance);
+    let coastalTurbidity =
+        smoothstep(0.62, 1.70, waterDepth) *
+        (1.0 - smoothstep(6.5, 11.0, waterDepth)) * 0.08;
+    let refractedWater =
+        mix(clearRefracted, body, coastalTurbidity);
     let reflectedWater = environment +
         camera.lightingColor.rgb * sunSpecular +
         oceanScatterColor() * camera.lightingColor.rgb *
         forwardScatter * oceanSunIntensity();
 
-    let foamUv = input.worldPosition.xz / oceanFoamSize();
-    let foamLod = log2(max(
-        worldPerPixel * 1024.0 / oceanFoamSize(), 1.0));
-    let foamPattern = textureSampleLevel(
-        foamTexture, foamSampler, foamUv, foamLod).r;
-    let threshold = 1.0 - oceanFoamCoverage();
-    let coverage = foamPattern *
-        smoothstep(threshold, threshold + 0.15, foamPattern);
-    let foamStrength = clamp(coverage * oceanFoamOpacity(), 0.0, 1.0);
+    let crestCompression = max(
+        input.crestCompression,
+        detailWave.w * detailWeight);
+    let foamStrength = coastalFoamStrength(
+        input.worldPosition, normal, waterDepth,
+        crestCompression, distanceToCamera, worldPerPixel) *
+        smoothstep(0.04, 0.18, waterDepth);
 
     var color : vec3<f32>;
     if (cameraUnderwater) {
         let undersideNormal = -normal;
         var transmissionDirection =
             refract(-view, undersideNormal, oceanIor());
-        if (dot(transmissionDirection, transmissionDirection) < 0.001) {
+        let totalInternalReflection =
+            dot(transmissionDirection, transmissionDirection) < 0.001;
+        if (totalInternalReflection) {
             transmissionDirection = vec3<f32>(0.0, 1.0, 0.0);
         } else {
             transmissionDirection = normalize(transmissionDirection);
         }
         let transmittedEnvironment = sampleEnvironment(
             transmissionDirection, reflectionRoughness);
-        let transmitted = select(
+        var transmitted = select(
             transmittedEnvironment,
             mix(transmittedEnvironment, refracted, 0.75),
             hasOpaqueRefraction);
-        var underside = mix(transmitted, environment, fresnel);
+        let interfacePath = distanceToCamera * 1.55 + 8.0;
+        let interfaceTransmittance =
+            exp(-oceanAbsorption() * interfacePath);
+        transmitted =
+            transmitted * interfaceTransmittance +
+            oceanScatterColor() *
+            (vec3<f32>(1.0) - interfaceTransmittance);
+        let internalReflection =
+            oceanScatterColor() * 0.82 +
+            proceduralSeabed(
+                input.worldPosition.xz + reflected.xz * 18.0,
+                max(distanceToCamera, 1.0), worldPerPixel) * 0.18;
+        var underside = select(
+            mix(transmitted, environment * 0.72, fresnel),
+            internalReflection,
+            totalInternalReflection);
         underside += camera.lightingColor.rgb * sunSpecular;
         underside = mix(underside, vec3<f32>(0.94, 0.98, 1.0),
-                        foamStrength * 0.35);
+                        foamStrength * 0.22);
         color = mix(oceanScatterColor(), underside,
-                    exp(-oceanAbsorption() * distanceToCamera));
+                    exp(-oceanAbsorption() *
+                        distanceToCamera * 1.35));
     } else {
         color = mix(refractedWater, reflectedWater,
-                    fresnel * clamp(1.0 - foamStrength * 2.0, 0.0, 1.0));
+                    fresnel * opticalCoverage *
+                    clamp(1.0 - foamStrength * 2.0, 0.0, 1.0));
         color = mix(color, vec3<f32>(0.94, 0.98, 1.0), foamStrength);
         color = mix(color, oceanFogColor(),
                     atmosphericFog(distanceToCamera));

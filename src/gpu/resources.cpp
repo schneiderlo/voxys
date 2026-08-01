@@ -5,6 +5,7 @@
 #include "gpu/resources.hpp"
 #include "core/log.hpp"
 
+#include <algorithm>
 #include <fstream>
 #include <cstring>
 #include <cmath>
@@ -742,12 +743,43 @@ WGPUShaderModule createShaderModule(WGPUDevice device,
     return module;
 }
 
+std::optional<std::string_view> findEmbeddedShaderSource(
+    std::string_view logicalPath,
+    std::span<const ShaderSource> embeddedSources) noexcept {
+    std::optional<std::string_view> result;
+    for (const ShaderSource& candidate : embeddedSources) {
+        if (candidate.logicalPath != logicalPath) continue;
+        if (result.has_value() || candidate.wgsl.empty())
+            return std::nullopt;
+        result = candidate.wgsl;
+    }
+    return result;
+}
+
 WGPUShaderModule loadShaderModule(WGPUDevice device,
                                    const std::filesystem::path& path,
-                                   std::string_view label) {
+                                   std::string_view label,
+                                   std::span<const ShaderSource>
+                                       embeddedSources) {
     if (!device) {
         LOG_ERROR("Cannot load shader module: device is null");
         return nullptr;
+    }
+
+    if (!embeddedSources.empty()) {
+        const std::string logicalPath = path.generic_string();
+        const std::optional<std::string_view> source =
+            findEmbeddedShaderSource(logicalPath, embeddedSources);
+        if (!source.has_value()) {
+            LOG_ERROR(
+                "Trusted shader bundle has no source for: {}",
+                logicalPath);
+            return nullptr;
+        }
+        const std::string actualLabel =
+            label.empty() ? path.filename().string()
+                          : std::string(label);
+        return createShaderModule(device, *source, actualLabel);
     }
 
     std::ifstream file(path, std::ios::ate | std::ios::binary);

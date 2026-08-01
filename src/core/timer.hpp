@@ -224,7 +224,9 @@ public:
     
     // Get average frame time over recent frames
     [[nodiscard]] constexpr double getAverageFrameTimeMs() const noexcept {
-        return avgCount_ > 0 ? avgAccum_ / avgCount_ : 0.0;
+        return avgCount_ > 0
+            ? avgAccum_ / static_cast<double>(avgCount_)
+            : 0.0;
     }
     
     // Get average FPS

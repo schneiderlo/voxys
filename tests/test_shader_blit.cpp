@@ -250,6 +250,16 @@ TEST_F(BlitShaderTest, GeometryClipmapCarriesTheCompleteOceanMaterial) {
         << "Generated seabed material is not used by refraction";
     EXPECT_NE(source.find("threshold = 1.0 - oceanFoamCoverage()"),
               std::string::npos);
+    EXPECT_NE(source.find("fn coastalFoamStrength("),
+              std::string::npos)
+        << "Coastal foam must have a shared depth/crest response";
+    EXPECT_NE(source.find("crestCompression"),
+              std::string::npos)
+        << "Geometry water must carry FFT breaking energy";
+    EXPECT_NE(source.find("waterDepth * 1.17"),
+              std::string::npos)
+        << "Shore foam must pulse through the depth field, not form a "
+           "constant-width contour";
     EXPECT_NE(source.find("struct FragmentOutput"), std::string::npos);
     EXPECT_NE(source.find("output.linearDepth = distanceToCamera"),
               std::string::npos)
@@ -269,8 +279,8 @@ TEST_F(BlitShaderTest, UnderwaterParticlesAreRealDepthOccludedBillboards) {
         << "Underwater particles must be instanced billboards";
     EXPECT_NE(source.find("var<storage, read> particles"), std::string::npos)
         << "Underwater particle positions must come from a camera-local shell";
-    EXPECT_NE(source.find("PARTICLE_NEAR : f32 = 9.0"), std::string::npos);
-    EXPECT_NE(source.find("PARTICLE_FAR : f32 = 209.0"), std::string::npos);
+    EXPECT_NE(source.find("PARTICLE_NEAR : f32 = 2.5"), std::string::npos);
+    EXPECT_NE(source.find("PARTICLE_FAR : f32 = 65.0"), std::string::npos);
     EXPECT_NE(source.find("textureLoad(rayDepth"), std::string::npos)
         << "Particles must be occluded by the ray-rendered scene";
     EXPECT_NE(source.find("radialFade"), std::string::npos)
@@ -453,6 +463,18 @@ TEST_F(BlitShaderTest, HasNormalFlipRule) {
         << "Shader missing normal flip rule (dx = -dx or dy = -dy)";
 }
 
+TEST_F(BlitShaderTest, UsesRaycastTerrainPatchNormal) {
+    ASSERT_FALSE(shaderSource_.empty());
+    EXPECT_NE(
+        shaderSource_.find("fn worldNormalToView("),
+        std::string::npos);
+    EXPECT_NE(
+        shaderSource_.find(
+            "exactTerrainNormal = textureLoad(materialTex"),
+        std::string::npos)
+        << "Terrain lighting must consume the stable raycast patch normal";
+}
+
 TEST_F(BlitShaderTest, ComputesNormalFromCrossProduct) {
     ASSERT_FALSE(shaderSource_.empty());
     EXPECT_NE(shaderSource_.find("cross(dx, dy)"), std::string::npos)
@@ -485,8 +507,14 @@ TEST_F(BlitShaderTest, HasSpecularLighting) {
     ASSERT_FALSE(shaderSource_.empty());
     EXPECT_NE(shaderSource_.find("specular"), std::string::npos)
         << "Shader missing specular lighting";
-    EXPECT_NE(shaderSource_.find("halfVec"), std::string::npos)
-        << "Shader missing half vector for specular";
+    EXPECT_NE(shaderSource_.find("fn terrainSpecular("), std::string::npos)
+        << "Terrain must use its material roughness in a bounded BRDF";
+    EXPECT_NE(shaderSource_.find("let halfway = select(normal, halfVector"),
+              std::string::npos)
+        << "GGX terrain specular is missing its half vector";
+    EXPECT_NE(shaderSource_.find("let distribution = alphaSquared"),
+              std::string::npos)
+        << "Terrain specular is missing the GGX distribution";
     EXPECT_NE(shaderSource_.find("roughness"), std::string::npos)
         << "Shader missing roughness for specular";
 }
@@ -531,10 +559,128 @@ TEST_F(BlitShaderTest, UnderwaterUsesBeerLambert) {
 // Texture Sampling Tests
 // ═══════════════════════════════════════════════════════════════════════════════
 
-TEST_F(BlitShaderTest, SamplesTerrainTexture) {
+TEST_F(BlitShaderTest, SamplesTerrainTextureWithScreenSpaceMipGradients) {
     ASSERT_FALSE(shaderSource_.empty());
-    EXPECT_NE(shaderSource_.find("textureSampleLevel(terrainTex"), std::string::npos)
-        << "Shader should sample terrain texture";
+    EXPECT_NE(
+        shaderSource_.find("fn sampleTerrainLayer("),
+        std::string::npos)
+        << "Terrain detail needs one canonical explicit-gradient sampler";
+    EXPECT_NE(
+        shaderSource_.find(
+            "textureSampleGrad(\n"
+            "        terrainMaterialAlbedo, oceanFoamSampler"),
+        std::string::npos)
+        << "Terrain detail albedo must select a mip from its warped footprint";
+    EXPECT_NE(
+        shaderSource_.find(
+            "textureSampleGrad(\n"
+            "        terrainMaterialNormalRoughness, oceanFoamSampler"),
+        std::string::npos)
+        << "Terrain normal/roughness must share the albedo footprint";
+    EXPECT_NE(
+        shaderSource_.find("materialWorldX"),
+        std::string::npos)
+        << "Negative neighbor selection must still produce a positive "
+           "screen-space material derivative";
+}
+
+TEST_F(BlitShaderTest, TerrainMaterialPackIsBoundedAndWorldProjected) {
+    ASSERT_FALSE(shaderSource_.empty());
+    EXPECT_NE(
+        shaderSource_.find(
+            "var terrainMaterialAlbedo : texture_2d_array<f32>"),
+        std::string::npos);
+    EXPECT_NE(
+        shaderSource_.find(
+            "var terrainMaterialNormalRoughness :\n"
+            "    texture_2d_array<f32>"),
+        std::string::npos);
+    EXPECT_NE(shaderSource_.find("TERRAIN_LAYER_SAND : i32 = 0"),
+              std::string::npos);
+    EXPECT_NE(shaderSource_.find("TERRAIN_LAYER_ROCK : i32 = 3"),
+              std::string::npos);
+    EXPECT_NE(shaderSource_.find("fn sampleRockTriplanar("),
+              std::string::npos)
+        << "Rock cliffs must not use a stretched top-down projection";
+    EXPECT_NE(shaderSource_.find("fn topProjectionNormal("),
+              std::string::npos)
+        << "Horizontal material normals must conform to the heightfield";
+}
+
+TEST_F(BlitShaderTest, ShorelineBlendAndWetResponseAreContinuous) {
+    ASSERT_FALSE(shaderSource_.empty());
+    EXPECT_NE(shaderSource_.find("fn terrainMaterialWeights("),
+              std::string::npos);
+    EXPECT_NE(shaderSource_.find(
+                  "let beachElevation = 1.0 - smoothstep(4.0, 7.2"),
+              std::string::npos);
+    EXPECT_NE(shaderSource_.find(
+                  "smoothstep(0.03, runupLimit, relativeElevation)"),
+              std::string::npos);
+    EXPECT_NE(shaderSource_.find(
+                  "roughness = mix(roughness, 0.38, wetResponse)"),
+              std::string::npos)
+        << "Wet sand needs a distinct water-film response";
+    EXPECT_NE(shaderSource_.find(
+                  "let slopeRock = smoothstep(0.12, 0.43, steepness)"),
+              std::string::npos)
+        << "Implausibly steep slopes must classify as rock before grass";
+    EXPECT_NE(shaderSource_.find(
+                  "smoothstep(0.78, 0.91, up)"),
+              std::string::npos)
+        << "Grass coverage must require a genuinely stable surface";
+    EXPECT_NE(shaderSource_.find(
+                  "smoothstep(8.0, 14.0, elevation)"),
+              std::string::npos)
+        << "The authored berm must expose a distinct soil-to-grass band";
+}
+
+TEST_F(BlitShaderTest, CoastalFoamUsesDepthCrestAndSpatialDecay) {
+    ASSERT_FALSE(shaderSource_.empty());
+    EXPECT_NE(shaderSource_.find("fn coastalFoamStrength("),
+              std::string::npos);
+    EXPECT_NE(shaderSource_.find(
+                  "smoothstep(0.045, 0.20, crestCompression)"),
+              std::string::npos);
+    EXPECT_NE(shaderSource_.find(
+                  "1.0 - smoothstep(0.8, 1.7, waterDepth)"),
+              std::string::npos);
+    EXPECT_NE(shaderSource_.find(
+                  "waterData.z, waterData.w"),
+              std::string::npos)
+        << "The direct and cached paths must consume both crest and shore "
+           "signals from the intersection pass";
+    EXPECT_NE(shaderSource_.find(
+                  "waterWave.x = shoreInfluence"),
+              std::string::npos)
+        << "The fused path must preserve its independently evaluated shore "
+           "signal";
+}
+
+TEST_F(BlitShaderTest, FiniteUnderwaterTerrainReceivesCaustics) {
+    ASSERT_FALSE(shaderSource_.empty());
+    EXPECT_NE(shaderSource_.find("fn underwaterTerrainCaustic("),
+              std::string::npos);
+    EXPECT_NE(shaderSource_.find(
+                  "exp(-oceanAbsorption() * pathLength)"),
+              std::string::npos)
+        << "Caustics must remain inside the Beer-Lambert medium";
+    EXPECT_NE(shaderSource_.find(
+                  "1.0 - smoothstep(28.0, 52.0, depthBelowSurface)"),
+              std::string::npos)
+        << "Caustics need bounded depth decay";
+}
+
+TEST_F(BlitShaderTest, RefractionUsesRealBedAndWarpedSandFallback) {
+    ASSERT_FALSE(shaderSource_.empty());
+    EXPECT_NE(shaderSource_.find(
+                  "if (hasSceneRefraction && sceneHasOpaque)"),
+              std::string::npos)
+        << "Visible finite seabed must retain its shaded terrain material";
+    EXPECT_NE(shaderSource_.find(
+                  "terrainMaterialUv(worldXZ, TERRAIN_LAYER_SAND)"),
+              std::string::npos)
+        << "Infinite bed fallback must use the non-grid sand projection";
 }
 
 TEST_F(BlitShaderTest, SamplesLightmapTexture) {

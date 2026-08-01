@@ -153,6 +153,12 @@ public:
     /// @param terrainView Texture view of terrain color/albedo
     void setTerrainTexture(WGPUTextureView terrainView);
 
+    /// Bind the four-layer terrain detail arrays. The albedo array and packed
+    /// NormalGL/roughness array must both be 2D-array views with matching mips.
+    void setTerrainMaterialTextures(
+        WGPUTextureView albedoView,
+        WGPUTextureView normalRoughnessView);
+
     /// Set the lightmap texture (ambient occlusion / sky visibility)
     /// @param lightmapView Texture view of lightmap
     void setLightmapTexture(WGPUTextureView lightmapView);
@@ -331,6 +337,8 @@ private:
     WGPUSampler waterDisplacementSampler_ = nullptr;
     WGPUTextureView terrainView_ = nullptr;
     WGPUTextureView lightmapView_ = nullptr;
+    WGPUTextureView terrainMaterialAlbedoView_ = nullptr;
+    WGPUTextureView terrainMaterialNormalRoughnessView_ = nullptr;
     // Terrain parameters
     uint32_t terrainWidth_ = 256;
     uint32_t terrainHeight_ = 256;

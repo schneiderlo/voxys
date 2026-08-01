@@ -74,7 +74,8 @@ public:
         }
 
         shaderModule_ = gpu::loadShaderModule(
-            device_, config_.shaderPath, "physics_queries.wgsl");
+            device_, config_.shaderPath, "physics_queries.wgsl",
+            config_.shaderSources);
         if (!shaderModule_) {
             shutdown();
             return false;

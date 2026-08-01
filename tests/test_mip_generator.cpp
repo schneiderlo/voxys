@@ -275,6 +275,37 @@ TEST(GenerateNextMipLevelTest, MaxValueU16) {
     EXPECT_EQ(result.data[0], 65535u);
 }
 
+TEST(GenerateFirstHeightfieldMipLevelTest, IncludesSharedCellBoundaries) {
+    // The high center vertex is outside every non-overlapping 2x2 footprint's
+    // left/top pair, but it bounds all four adjacent continuous cells.
+    const std::array<uint16_t, 25> source{
+        1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1,
+        1, 1, 999, 1, 1,
+        1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1,
+    };
+
+    const auto level =
+        generateFirstHeightfieldMipLevel(source, 5u, 5u);
+
+    ASSERT_TRUE(level.isValid());
+    ASSERT_EQ(level.width, 2u);
+    ASSERT_EQ(level.height, 2u);
+    EXPECT_EQ(level.sample(0u, 0u), 999u);
+    EXPECT_EQ(level.sample(1u, 0u), 999u);
+    EXPECT_EQ(level.sample(0u, 1u), 999u);
+    EXPECT_EQ(level.sample(1u, 1u), 999u);
+}
+
+TEST(GenerateFirstHeightfieldMipLevelTest, RejectsInvalidInput) {
+    EXPECT_FALSE(
+        generateFirstHeightfieldMipLevel({}, 0u, 0u).isValid());
+    const std::array<uint16_t, 1> terminal{1u};
+    EXPECT_FALSE(
+        generateFirstHeightfieldMipLevel(terminal, 1u, 1u).isValid());
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // MaxHeightMipChain Tests
 // ═══════════════════════════════════════════════════════════════════════════════

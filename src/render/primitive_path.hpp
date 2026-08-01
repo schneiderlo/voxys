@@ -23,6 +23,22 @@
 
 namespace voxy::render {
 
+namespace detail {
+
+// Exact CPU mirror of BodyShape in physics_primitives_compact.wgsl and the
+// persistent WebGpuSoft shape buffer. Keeping the upload typed prevents a
+// packed array of two vec4s from silently walking a three-vec4 GPU stride.
+struct alignas(16) CompactPrimitiveShapeGpu {
+    glm::vec4 dimensionsType{0.0f};
+    glm::vec4 inverseInertiaMaterial{0.0f};
+    glm::vec4 materialCoefficients{-1.0f, -1.0f, -1.0f, 1.0f};
+};
+
+static_assert(sizeof(CompactPrimitiveShapeGpu) == 48u);
+static_assert(alignof(CompactPrimitiveShapeGpu) == 16u);
+
+} // namespace detail
+
 struct PrimitivePathConfig {
     std::filesystem::path shaderPath = "shaders/physics_primitives.wgsl";
     std::filesystem::path compactShaderPath;
@@ -156,7 +172,7 @@ private:
     // Reused CPU fallback staging. Poses change every frame; shapes usually do
     // not, so their uploaded copy is tracked independently.
     std::vector<glm::vec4> cpuPoseUpload_;
-    std::vector<glm::vec4> cpuShapeUpload_;
+    std::vector<detail::CompactPrimitiveShapeGpu> cpuShapeUpload_;
     std::vector<glm::vec4> uploadedCpuShapeDimensions_;
     PrimitiveUploadStats lastUploadStats_;
     PrimitiveUploadStats lastCompactUploadStats_;

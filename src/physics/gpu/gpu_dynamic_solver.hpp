@@ -109,6 +109,7 @@ public:
         std::filesystem::path shaderPath = "shaders/physics_dynamic_solver.wgsl";
         std::filesystem::path primitivesShaderPath =
             "shaders/physics_deterministic_primitives.wgsl";
+        std::span<const gpu::ShaderSource> shaderSources{};
     };
 
     GpuDynamicSolver();

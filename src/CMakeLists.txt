@@ -11,14 +11,30 @@
 
 set(CORE_SOURCES "")
 set(GPU_SOURCES "")
+set(GAME_SOURCES "")
 set(GAMEPLAY_SOURCES "")
 set(TERRAIN_SOURCES "")
 set(RENDER_SOURCES "")
 set(CAMERA_SOURCES "")
 set(PHYSICS_SOURCES "")
 set(NETWORK_SOURCES "")
+set(CLIENT_SOURCES "")
 set(SERVER_SOURCES "")
 set(APP_SOURCES "")
+
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/game/wreckwater_match.cpp")
+    list(APPEND GAME_SOURCES
+        game/wreckwater_character_authority_bridge.cpp
+        game/wreckwater_character_movement.cpp
+        game/wreckwater_character_step.cpp
+        game/wreckwater_content_manifest.cpp
+        game/wreckwater_live_world.cpp
+        game/wreckwater_match.cpp
+        game/wreckwater_replay.cpp
+        game/wreckwater_replay_playback.cpp
+        game/wreckwater_vessel_damage.cpp
+    )
+endif()
 
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/gameplay/vertical_slices.cpp")
     list(APPEND GAMEPLAY_SOURCES
@@ -39,6 +55,7 @@ endif()
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/server/world_coordinator.cpp")
     list(APPEND SERVER_SOURCES
         server/native_gpu_backend.cpp
+        server/wreckwater_authority_runtime.cpp
         server/world_coordinator.cpp
     )
 endif()
@@ -47,9 +64,44 @@ endif()
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/network/protocol.cpp")
     list(APPEND NETWORK_SOURCES
         network/authoritative_sandbox.cpp
+        network/deterministic_adversity_transport.cpp
+        network/multiplayer_session.cpp
+        network/native_tcp_transport.cpp
         network/protocol.cpp
         network/replication.cpp
+        network/session_transport.hpp
         network/transport.cpp
+        network/wreckwater_client_replication.cpp
+        network/wreckwater_client_runtime.cpp
+        network/wreckwater_protocol.cpp
+    )
+endif()
+
+if(EXISTS
+   "${CMAKE_CURRENT_SOURCE_DIR}/client/wreckwater_character_controller.cpp")
+    list(APPEND CLIENT_SOURCES
+        client/wreckwater_character_platform_timeline.cpp
+        client/wreckwater_character_controller.cpp
+    )
+endif()
+if(EXISTS
+   "${CMAKE_CURRENT_SOURCE_DIR}/client/wreckwater_character_presentation.cpp")
+    list(APPEND CLIENT_SOURCES
+        client/wreckwater_character_presentation.cpp
+    )
+endif()
+if(EXISTS
+   "${CMAKE_CURRENT_SOURCE_DIR}/client/wreckwater_third_person_camera.cpp")
+    list(APPEND CLIENT_SOURCES
+        client/wreckwater_third_person_camera.cpp
+    )
+endif()
+if(EXISTS
+   "${CMAKE_CURRENT_SOURCE_DIR}/client/wreckwater_graphical_client_loop.cpp")
+    list(APPEND CLIENT_SOURCES
+        client/wreckwater_application_client.cpp
+        client/wreckwater_client_visual_clock.cpp
+        client/wreckwater_graphical_client_loop.cpp
     )
 endif()
 
@@ -71,6 +123,7 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/gpu/context.cpp")
     if(TARGET wgpu::webgpu OR TARGET dawn::webgpu OR EMSCRIPTEN)
         list(APPEND GPU_SOURCES
             gpu/context.cpp
+            gpu/context_surface.cpp
         )
         set(VOXY_HAS_WEBGPU ON)
         if(EMSCRIPTEN)
@@ -105,6 +158,11 @@ endif()
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/terrain/heightmap.cpp")
     list(APPEND TERRAIN_SOURCES
         terrain/heightmap.cpp
+    )
+endif()
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/terrain/authored_cove.cpp")
+    list(APPEND TERRAIN_SOURCES
+        terrain/authored_cove.cpp
     )
 endif()
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/terrain/compression.cpp")
@@ -213,6 +271,7 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/physics/physics_world.cpp")
         physics/gpu/gpu_buffer_arena.cpp
     physics/gpu/gpu_broad_phase.cpp
     physics/gpu/gpu_ccd.cpp
+    physics/gpu/gpu_attachments.cpp
     physics/gpu/gpu_dynamic_solver.cpp
     physics/gpu/gpu_event_readback.cpp
     physics/gpu/gpu_islands.cpp
@@ -221,9 +280,117 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/physics/physics_world.cpp")
     physics/gpu/gpu_queries.cpp
         physics/gpu/gpu_physics_backend.cpp
         physics/jolt/jolt_backend.cpp
+        physics/physics_backend_factory.cpp
         physics/physics_types.cpp
         physics/physics_world.cpp
     )
+endif()
+
+# Native WRECKWATER authority. Keep this target independent from ALL_SOURCES:
+# the server must not inherit voxy_core's client, presentation, renderer,
+# terrain-presentation, Jolt, or Box3D implementation closure.
+if(VOXY_BUILD_NATIVE
+   AND NOT EMSCRIPTEN
+   AND EXISTS
+       "${CMAKE_CURRENT_SOURCE_DIR}/server/wreckwater_authority_runtime.cpp")
+    set(VOXY_WRECKWATER_HEADLESS_AUTHORITY_SOURCES
+        core/log.cpp
+        game/wreckwater_character_authority_bridge.cpp
+        game/wreckwater_character_movement.cpp
+        game/wreckwater_character_step.cpp
+        game/wreckwater_live_world.cpp
+        game/wreckwater_match.cpp
+        game/wreckwater_replay.cpp
+        game/wreckwater_vessel_damage.cpp
+        gpu/context.cpp
+        gpu/resources.cpp
+        network/native_tcp_transport.cpp
+        network/protocol.cpp
+        network/wreckwater_protocol.cpp
+        physics/character/cpu_capsule_mover.cpp
+        physics/gpu/debug_readback_ring.cpp
+        physics/gpu/deterministic_primitives.cpp
+        physics/gpu/gpu_attachments.cpp
+        physics/gpu/gpu_broad_phase.cpp
+        physics/gpu/gpu_buffer_arena.cpp
+        physics/gpu/gpu_ccd.cpp
+        physics/gpu/gpu_dynamic_solver.cpp
+        physics/gpu/gpu_event_readback.cpp
+        physics/gpu/gpu_islands.cpp
+        physics/gpu/gpu_narrow_phase.cpp
+        physics/gpu/gpu_physics_backend.cpp
+        physics/gpu/gpu_queries.cpp
+        physics/physics_types.cpp
+        physics/physics_world.cpp
+        physics/wreckwater_authority_backend_factory.cpp
+        server/wreckwater_authority_runtime.cpp
+        terrain/mip_generator.cpp
+    )
+
+    # The manifest is the source contract for both build systems. Fail during
+    # configuration if CMake's 31 library TUs plus server main differ from the
+    # 32 source TUs represented by the generated authority identity.
+    set(VOXY_WRECKWATER_CMAKE_AUTHORITY_TUS
+        ${VOXY_WRECKWATER_HEADLESS_AUTHORITY_SOURCES}
+        server/wreckwater_server_main.cpp
+    )
+    set(VOXY_WRECKWATER_MANIFEST_AUTHORITY_TUS "")
+    foreach(VOXY_WRECKWATER_MANIFEST_INPUT
+            IN LISTS VOXY_WRECKWATER_AUTHORITY_CONTENT_RELATIVE_INPUTS)
+        if(VOXY_WRECKWATER_MANIFEST_INPUT
+           MATCHES "^src/(.+\\.cpp)$")
+            list(APPEND VOXY_WRECKWATER_MANIFEST_AUTHORITY_TUS
+                "${CMAKE_MATCH_1}")
+        endif()
+    endforeach()
+    list(SORT VOXY_WRECKWATER_CMAKE_AUTHORITY_TUS)
+    list(SORT VOXY_WRECKWATER_MANIFEST_AUTHORITY_TUS)
+    if(NOT "${VOXY_WRECKWATER_CMAKE_AUTHORITY_TUS}"
+       STREQUAL "${VOXY_WRECKWATER_MANIFEST_AUTHORITY_TUS}")
+        message(FATAL_ERROR
+            "CMake WRECKWATER authority TUs differ from the manifest")
+    endif()
+
+    add_library(wreckwater_headless_authority STATIC
+        ${VOXY_WRECKWATER_HEADLESS_AUTHORITY_SOURCES}
+    )
+    target_include_directories(wreckwater_headless_authority PUBLIC
+        "${CMAKE_CURRENT_SOURCE_DIR}"
+    )
+    target_compile_definitions(
+        wreckwater_headless_authority PRIVATE VOXY_NATIVE=1)
+
+    if(TARGET glm)
+        target_link_libraries(wreckwater_headless_authority PUBLIC glm)
+    else()
+        message(FATAL_ERROR
+            "WRECKWATER headless authority requires the glm target")
+    endif()
+
+    if(TARGET wgpu::webgpu)
+        target_link_libraries(
+            wreckwater_headless_authority PUBLIC wgpu::webgpu)
+        # FindWGPU may resolve include/webgpu for webgpu.h. context.cpp also
+        # consumes wgpu-native's extension header at include/wgpu/wgpu.h.
+        if(WGPU_INCLUDE_DIR)
+            get_filename_component(
+                VOXY_WGPU_INCLUDE_PARENT "${WGPU_INCLUDE_DIR}" DIRECTORY)
+            if(EXISTS "${VOXY_WGPU_INCLUDE_PARENT}/wgpu/wgpu.h")
+                target_include_directories(
+                    wreckwater_headless_authority SYSTEM PRIVATE
+                    "${VOXY_WGPU_INCLUDE_PARENT}"
+                )
+            endif()
+        endif()
+    elseif(TARGET dawn::webgpu)
+        target_link_libraries(
+            wreckwater_headless_authority PUBLIC dawn::webgpu)
+    else()
+        message(FATAL_ERROR
+            "WRECKWATER headless authority requires a WebGPU target")
+    endif()
+
+    set_project_warnings(wreckwater_headless_authority)
 endif()
 
 # Application layer (Phase 4, 9, 10)
@@ -257,6 +424,7 @@ endif()
 set(ALL_SOURCES
     ${CORE_SOURCES}
     ${GPU_SOURCES}
+    ${GAME_SOURCES}
     ${GAMEPLAY_SOURCES}
     ${TERRAIN_SOURCES}
     ${VOXEL_SOURCES}
@@ -264,6 +432,7 @@ set(ALL_SOURCES
     ${CAMERA_SOURCES}
     ${PHYSICS_SOURCES}
     ${NETWORK_SOURCES}
+    ${CLIENT_SOURCES}
     ${SERVER_SOURCES}
     ${APP_SOURCES}
     ${PERF_SOURCES}

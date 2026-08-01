@@ -142,6 +142,17 @@ TEST_P(PhysicsWorldTest, InitializesWithTerrain) {
     EXPECT_GT(stats.estimatedPersistentBytes + stats.scratchBytes, 0u);
 }
 
+TEST_P(PhysicsWorldTest, DistanceAttachmentsRemainExplicitlyUnsupported) {
+    EXPECT_FALSE(world.capabilities().distanceAttachments);
+    DistanceAttachmentDesc desc;
+    desc.bodyA = {1u, 1u};
+    desc.bodyB = {2u, 1u};
+    EXPECT_FALSE(world.createDistanceAttachment(desc).valid());
+    EXPECT_FALSE(world.destroyAttachment({1u, 1u}));
+    EXPECT_FALSE(world.setAttachmentTargetLength({1u, 1u}, 2.0f));
+    EXPECT_FALSE(world.setAttachmentMotorSpeed({1u, 1u}, 1.0f));
+}
+
 TEST_P(PhysicsWorldTest, InvalidTerrainReplacementPreservesLiveTerrain) {
     const float nan = std::numeric_limits<float>::quiet_NaN();
     EXPECT_FALSE(world.setTerrain(

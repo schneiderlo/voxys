@@ -652,7 +652,11 @@ bool Heightmap::uploadMipsFromCPU(
     MipLevel currentLevel;
 
     for (uint32_t level = 1; level < mipLevelCount; level++) {
-        MipLevel nextLevel = generateNextMipLevel(previousData, previousWidth, previousHeight);
+        MipLevel nextLevel = level == 1u
+            ? generateFirstHeightfieldMipLevel(
+                previousData, previousWidth, previousHeight)
+            : generateNextMipLevel(
+                previousData, previousWidth, previousHeight);
         if (!nextLevel.isValid()) {
             LOG_ERROR("Failed to generate CPU mip level {}", level);
             return false;

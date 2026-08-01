@@ -35,6 +35,61 @@ bool validBroadPhaseCellSize(float cellSize) noexcept {
         && std::abs(cellsPerSector - rounded) <= 1e-5f;
 }
 
+template<typename T>
+[[nodiscard]] bool parseExactUnsigned(
+    std::string_view value, T& output) noexcept {
+    static_assert(std::is_unsigned_v<T>);
+    T candidate = 0;
+    const auto [end, error] = std::from_chars(
+        value.data(), value.data() + value.size(), candidate);
+    if (value.empty() || error != std::errc{}
+        || end != value.data() + value.size()) {
+        return false;
+    }
+    output = candidate;
+    return true;
+}
+
+[[nodiscard]] int hexDigit(char value) noexcept {
+    if (value >= '0' && value <= '9') return value - '0';
+    if (value >= 'a' && value <= 'f') return value - 'a' + 10;
+    if (value >= 'A' && value <= 'F') return value - 'A' + 10;
+    return -1;
+}
+
+void scrubString(std::string& value) noexcept {
+    volatile char* bytes = value.data();
+    for (size_t index = 0u; index < value.size(); ++index) {
+        bytes[index] = '\0';
+    }
+    value.clear();
+}
+
+void scrubCString(char* value) noexcept {
+    if (value == nullptr) return;
+    volatile char* bytes = value;
+    while (*bytes != '\0') {
+        *bytes = '\0';
+        ++bytes;
+    }
+}
+
+void scrubWreckwaterKeyArguments(
+    int argc, char** argv) noexcept {
+    if (argc <= 0 || argv == nullptr) return;
+    for (int index = 0; index < argc; ++index) {
+        if (argv[index] == nullptr
+            || std::string_view{argv[index]}
+                != "--wreckwater-key") {
+            continue;
+        }
+        if (index + 1 < argc) {
+            scrubCString(argv[index + 1]);
+            ++index;
+        }
+    }
+}
+
 } // anonymous namespace
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -95,6 +150,90 @@ int parseInt(std::string_view value, int defaultValue) noexcept {
         return result;
     }
     return defaultValue;
+}
+
+bool parseWreckwaterAuthenticationKey(
+    std::string_view value,
+    std::array<std::byte, 32>& output) noexcept {
+    if (value.size() != output.size() * 2u) return false;
+    std::array<std::byte, 32> candidate{};
+    for (size_t index = 0u; index < candidate.size(); ++index) {
+        const int high = hexDigit(value[index * 2u]);
+        const int low = hexDigit(value[index * 2u + 1u]);
+        if (high < 0 || low < 0) return false;
+        candidate[index] = static_cast<std::byte>(
+            static_cast<uint8_t>((high << 4) | low));
+    }
+    output = candidate;
+    return true;
+}
+
+const char* wreckwaterClientConfigStatusName(
+    WreckwaterClientConfigStatus status) noexcept {
+    switch (status) {
+        case WreckwaterClientConfigStatus::Disabled:
+            return "disabled";
+        case WreckwaterClientConfigStatus::Ready:
+            return "ready";
+        case WreckwaterClientConfigStatus::Incomplete:
+            return "incomplete";
+        case WreckwaterClientConfigStatus::MalformedValue:
+            return "malformed value";
+        case WreckwaterClientConfigStatus::InvalidServer:
+            return "invalid server";
+        case WreckwaterClientConfigStatus::InvalidPort:
+            return "invalid port";
+        case WreckwaterClientConfigStatus::InvalidPeer:
+            return "invalid peer";
+        case WreckwaterClientConfigStatus::InvalidKey:
+            return "invalid key";
+        case WreckwaterClientConfigStatus::InvalidIdentity:
+            return "invalid identity";
+    }
+    return "unknown";
+}
+
+WreckwaterClientConfigStatus validateWreckwaterClientConfig(
+    const WreckwaterClientConfig& config) noexcept {
+    if (config.presentFields == 0u && !config.malformedValue) {
+        return WreckwaterClientConfigStatus::Disabled;
+    }
+    if (config.malformedValue) {
+        return WreckwaterClientConfigStatus::MalformedValue;
+    }
+    if (config.presentFields != kWreckwaterClientRequiredFields) {
+        return WreckwaterClientConfigStatus::Incomplete;
+    }
+    if (config.server.empty() || config.server.size() > 255u) {
+        return WreckwaterClientConfigStatus::InvalidServer;
+    }
+    for (const char character : config.server) {
+        const auto value =
+            static_cast<unsigned char>(character);
+        if (value <= 0x20u || value == 0x7fu) {
+            return WreckwaterClientConfigStatus::InvalidServer;
+        }
+    }
+    if (config.port == 0u) {
+        return WreckwaterClientConfigStatus::InvalidPort;
+    }
+    // The graphical roster is the fixed four-player 2v2 product roster.
+    if (config.peerId == 0u || config.peerId > 4u) {
+        return WreckwaterClientConfigStatus::InvalidPeer;
+    }
+    bool anyKeyByte = false;
+    for (const std::byte value : config.authenticationKey) {
+        anyKeyByte = anyKeyByte || value != std::byte{};
+    }
+    if (!anyKeyByte) {
+        return WreckwaterClientConfigStatus::InvalidKey;
+    }
+    if (config.sessionId == 0u || config.matchId == 0u
+        || config.worldId == 0u || config.worldEpoch == 0u
+        || config.authorityEpoch == 0u) {
+        return WreckwaterClientConfigStatus::InvalidIdentity;
+    }
+    return WreckwaterClientConfigStatus::Ready;
 }
 
 namespace {
@@ -284,6 +423,102 @@ CommandLineArgs parseArgs(std::span<char*> args) {
                 parseInt(args[++i], 0), 0, 256);
         } else if (arg == "--screenshot-dir" && hasNext()) {
             result.screenshotDir = args[++i];
+        } else if (arg == "--wreckwater-server") {
+            result.wreckwaterClient.presentFields |=
+                kWreckwaterClientServerField;
+            if (hasNext()) {
+                result.wreckwaterClient.server = args[++i];
+            } else {
+                result.wreckwaterClient.malformedValue = true;
+            }
+        } else if (arg == "--wreckwater-port") {
+            result.wreckwaterClient.presentFields |=
+                kWreckwaterClientPortField;
+            uint16_t value = 0u;
+            if (hasNext()
+                && parseExactUnsigned(
+                    std::string_view{args[++i]}, value)) {
+                result.wreckwaterClient.port = value;
+            } else {
+                result.wreckwaterClient.malformedValue = true;
+            }
+        } else if (arg == "--wreckwater-peer") {
+            result.wreckwaterClient.presentFields |=
+                kWreckwaterClientPeerField;
+            uint32_t value = 0u;
+            if (hasNext()
+                && parseExactUnsigned(
+                    std::string_view{args[++i]}, value)) {
+                result.wreckwaterClient.peerId = value;
+            } else {
+                result.wreckwaterClient.malformedValue = true;
+            }
+        } else if (arg == "--wreckwater-key") {
+            result.wreckwaterClient.presentFields |=
+                kWreckwaterClientKeyField;
+            std::array<std::byte, 32> value{};
+            if (hasNext()
+                && parseWreckwaterAuthenticationKey(
+                    std::string_view{args[++i]}, value)) {
+                result.wreckwaterClient.authenticationKey = value;
+            } else {
+                result.wreckwaterClient.malformedValue = true;
+            }
+        } else if (arg == "--wreckwater-session") {
+            result.wreckwaterClient.presentFields |=
+                kWreckwaterClientSessionField;
+            uint64_t value = 0u;
+            if (hasNext()
+                && parseExactUnsigned(
+                    std::string_view{args[++i]}, value)) {
+                result.wreckwaterClient.sessionId = value;
+            } else {
+                result.wreckwaterClient.malformedValue = true;
+            }
+        } else if (arg == "--wreckwater-match") {
+            result.wreckwaterClient.presentFields |=
+                kWreckwaterClientMatchField;
+            uint64_t value = 0u;
+            if (hasNext()
+                && parseExactUnsigned(
+                    std::string_view{args[++i]}, value)) {
+                result.wreckwaterClient.matchId = value;
+            } else {
+                result.wreckwaterClient.malformedValue = true;
+            }
+        } else if (arg == "--wreckwater-world") {
+            result.wreckwaterClient.presentFields |=
+                kWreckwaterClientWorldField;
+            uint64_t value = 0u;
+            if (hasNext()
+                && parseExactUnsigned(
+                    std::string_view{args[++i]}, value)) {
+                result.wreckwaterClient.worldId = value;
+            } else {
+                result.wreckwaterClient.malformedValue = true;
+            }
+        } else if (arg == "--wreckwater-world-epoch") {
+            result.wreckwaterClient.presentFields |=
+                kWreckwaterClientWorldEpochField;
+            uint32_t value = 0u;
+            if (hasNext()
+                && parseExactUnsigned(
+                    std::string_view{args[++i]}, value)) {
+                result.wreckwaterClient.worldEpoch = value;
+            } else {
+                result.wreckwaterClient.malformedValue = true;
+            }
+        } else if (arg == "--wreckwater-authority-epoch") {
+            result.wreckwaterClient.presentFields |=
+                kWreckwaterClientAuthorityEpochField;
+            uint32_t value = 0u;
+            if (hasNext()
+                && parseExactUnsigned(
+                    std::string_view{args[++i]}, value)) {
+                result.wreckwaterClient.authorityEpoch = value;
+            } else {
+                result.wreckwaterClient.malformedValue = true;
+            }
         } else {
             LOG_WARN("Unknown argument: {}", arg);
         }
@@ -328,6 +563,17 @@ void printHelp(std::string_view programName) {
         "  --screenshot-frames <n> Frames to render before screenshot (default: 10)\n"
         "  --screenshot-tour <n>   Capture screenshots for teleport indices [0..n-1]\n"
         "  --screenshot-dir <dir>  Output directory for screenshot tour (default: screenshots)\n"
+        "\n"
+        "Native WRECKWATER client (all fields are required):\n"
+        "  --wreckwater-server <host>\n"
+        "  --wreckwater-port <1..65535>\n"
+        "  --wreckwater-peer <1..4>\n"
+        "  --wreckwater-key <64 hex digits>\n"
+        "  --wreckwater-session <nonzero id>\n"
+        "  --wreckwater-match <nonzero id>\n"
+        "  --wreckwater-world <nonzero id>\n"
+        "  --wreckwater-world-epoch <nonzero id>\n"
+        "  --wreckwater-authority-epoch <nonzero id>\n"
         "\n",
         static_cast<int>(programName.size()), programName.data()
     );
@@ -408,6 +654,7 @@ Config load(std::string_view path) {
         }
         
         value = unquote(value);
+        bool sensitiveValue = false;
         
         // Apply value based on section and key
         if (currentSection == "render") {
@@ -503,6 +750,93 @@ Config load(std::string_view path) {
             else if (key == "fullscreen") config.window.fullscreen = parseBool(value, config.window.fullscreen);
             else if (key == "title") config.window.title = value;
         }
+        else if (currentSection == "wreckwater_client") {
+            auto& client = config.wreckwaterClient;
+            if (key == "server") {
+                client.presentFields |=
+                    kWreckwaterClientServerField;
+                client.server = value;
+            } else if (key == "port") {
+                client.presentFields |=
+                    kWreckwaterClientPortField;
+                uint16_t parsed = 0u;
+                if (parseExactUnsigned(value, parsed)) {
+                    client.port = parsed;
+                } else {
+                    client.malformedValue = true;
+                }
+            } else if (key == "peer") {
+                client.presentFields |=
+                    kWreckwaterClientPeerField;
+                uint32_t parsed = 0u;
+                if (parseExactUnsigned(value, parsed)) {
+                    client.peerId = parsed;
+                } else {
+                    client.malformedValue = true;
+                }
+            } else if (key == "key") {
+                sensitiveValue = true;
+                client.presentFields |=
+                    kWreckwaterClientKeyField;
+                std::array<std::byte, 32> parsed{};
+                if (parseWreckwaterAuthenticationKey(
+                        value, parsed)) {
+                    client.authenticationKey = parsed;
+                } else {
+                    client.malformedValue = true;
+                }
+            } else if (key == "session") {
+                client.presentFields |=
+                    kWreckwaterClientSessionField;
+                uint64_t parsed = 0u;
+                if (parseExactUnsigned(value, parsed)) {
+                    client.sessionId = parsed;
+                } else {
+                    client.malformedValue = true;
+                }
+            } else if (key == "match") {
+                client.presentFields |=
+                    kWreckwaterClientMatchField;
+                uint64_t parsed = 0u;
+                if (parseExactUnsigned(value, parsed)) {
+                    client.matchId = parsed;
+                } else {
+                    client.malformedValue = true;
+                }
+            } else if (key == "world") {
+                client.presentFields |=
+                    kWreckwaterClientWorldField;
+                uint64_t parsed = 0u;
+                if (parseExactUnsigned(value, parsed)) {
+                    client.worldId = parsed;
+                } else {
+                    client.malformedValue = true;
+                }
+            } else if (key == "world_epoch") {
+                client.presentFields |=
+                    kWreckwaterClientWorldEpochField;
+                uint32_t parsed = 0u;
+                if (parseExactUnsigned(value, parsed)) {
+                    client.worldEpoch = parsed;
+                } else {
+                    client.malformedValue = true;
+                }
+            } else if (key == "authority_epoch") {
+                client.presentFields |=
+                    kWreckwaterClientAuthorityEpochField;
+                uint32_t parsed = 0u;
+                if (parseExactUnsigned(value, parsed)) {
+                    client.authorityEpoch = parsed;
+                } else {
+                    client.malformedValue = true;
+                }
+            }
+        }
+        if (sensitiveValue) {
+            scrubString(value);
+            scrubString(trimmedLine);
+            scrubString(line);
+        }
     }
     
     return config;
@@ -543,6 +877,48 @@ Config load(std::string_view path, const CommandLineArgs& args) {
     config.automation.screenshotFrames = args.screenshotFrames;
     config.automation.screenshotTourCount = args.screenshotTourCount;
     config.automation.screenshotDir = args.screenshotDir;
+
+    const auto& source = args.wreckwaterClient;
+    auto& target = config.wreckwaterClient;
+    if ((source.presentFields
+         & kWreckwaterClientServerField) != 0u) {
+        target.server = source.server;
+    }
+    if ((source.presentFields
+         & kWreckwaterClientPortField) != 0u) {
+        target.port = source.port;
+    }
+    if ((source.presentFields
+         & kWreckwaterClientPeerField) != 0u) {
+        target.peerId = source.peerId;
+    }
+    if ((source.presentFields
+         & kWreckwaterClientKeyField) != 0u) {
+        target.authenticationKey = source.authenticationKey;
+    }
+    if ((source.presentFields
+         & kWreckwaterClientSessionField) != 0u) {
+        target.sessionId = source.sessionId;
+    }
+    if ((source.presentFields
+         & kWreckwaterClientMatchField) != 0u) {
+        target.matchId = source.matchId;
+    }
+    if ((source.presentFields
+         & kWreckwaterClientWorldField) != 0u) {
+        target.worldId = source.worldId;
+    }
+    if ((source.presentFields
+         & kWreckwaterClientWorldEpochField) != 0u) {
+        target.worldEpoch = source.worldEpoch;
+    }
+    if ((source.presentFields
+         & kWreckwaterClientAuthorityEpochField) != 0u) {
+        target.authorityEpoch = source.authorityEpoch;
+    }
+    target.presentFields |= source.presentFields;
+    target.malformedValue =
+        target.malformedValue || source.malformedValue;
     
     return config;
 }
@@ -667,6 +1043,11 @@ void init(int argc, char** argv) {
     }
     
     globalConfig = load(args.configPath, args);
+    // C and C++ entry-point argument strings are writable. Remove the
+    // printable CLI credential as soon as its binary form is loaded.
+    // Shell history and process-monitor snapshots taken before this point
+    // remain outside the process's control.
+    scrubWreckwaterKeyArguments(argc, argv);
     initialized = true;
     
     // Apply log level from config

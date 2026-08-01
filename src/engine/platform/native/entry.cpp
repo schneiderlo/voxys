@@ -6,6 +6,7 @@
 #include "engine/platform/window.hpp"
 #include "core/log.hpp"
 #include "core/config.hpp"
+#include "generated/wreckwater_build_content.hpp"
 
 #include <memory>
 #include <chrono>
@@ -19,6 +20,21 @@ int main(int argc, char* argv[]) {
     // Parse command-line arguments and load config
     voxy::config::init(argc, argv);
     const auto& config = voxy::config::get();
+    const auto wreckwaterStatus =
+        voxy::config::validateWreckwaterClientConfig(
+            config.wreckwaterClient);
+    if (wreckwaterStatus
+            != voxy::config::WreckwaterClientConfigStatus::Disabled
+        && wreckwaterStatus
+            != voxy::config::WreckwaterClientConfigStatus::Ready) {
+        LOG_ERROR(
+            "WRECKWATER client bootstrap is {}. Supply every "
+            "server/port/peer/key/session identity field or none.",
+            voxy::config::wreckwaterClientConfigStatusName(
+                wreckwaterStatus));
+        voxy::log::shutdown();
+        return 1;
+    }
 
     // Configure the application from loaded config file
     voxy::ApplicationConfig appConfig;
@@ -108,6 +124,29 @@ int main(int argc, char* argv[]) {
     appConfig.cameraMoveSpeed = config.camera.moveSpeed;
     appConfig.cameraMouseSensitivity = config.camera.mouseSensitivity;
     appConfig.cameraEyeHeight = config.camera.eyeHeight;
+    if (wreckwaterStatus
+        == voxy::config::WreckwaterClientConfigStatus::Ready) {
+        appConfig.wreckwaterClient =
+            voxy::WreckwaterApplicationClientConfig{
+                .serverAddress =
+                    config.wreckwaterClient.server,
+                .serverPort = config.wreckwaterClient.port,
+                .peerId = config.wreckwaterClient.peerId,
+                .authenticationKey =
+                    config.wreckwaterClient.authenticationKey,
+                .expectedContentDigest =
+                    voxy::build_content::
+                        kWreckwaterAuthorityContentDigest,
+                .sessionId =
+                    config.wreckwaterClient.sessionId,
+                .matchId = config.wreckwaterClient.matchId,
+                .worldId = config.wreckwaterClient.worldId,
+                .worldEpoch =
+                    config.wreckwaterClient.worldEpoch,
+                .authorityEpoch =
+                    config.wreckwaterClient.authorityEpoch,
+            };
+    }
 
     // Debug settings
     appConfig.enableValidation = config.debug.enableValidation;

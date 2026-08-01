@@ -1,5 +1,6 @@
 #pragma once
 
+#include "gpu/shader_source.hpp"
 #include "gpu/webgpu_compat.hpp"
 
 #include <glm/gtc/quaternion.hpp>
@@ -90,6 +91,20 @@ struct BackendCapabilities {
     bool continuousCollision = false;
     bool asynchronousQueries = false;
     bool eventReadback = false;
+    // GPU-resident, tension-only distance attachments with winch and
+    // deterministic break events. CPU reference backends intentionally leave
+    // this false until they implement the same stable-handle contract.
+    bool distanceAttachments = false;
+    // A complete gameplay mutation can be validated and staged without
+    // changing live host state, then committed without further allocation or
+    // validation. This is the authority boundary used by the live server.
+    bool atomicMutationBatches = false;
+    // The server may advance an exact number of fixed ticks without routing
+    // through a wall-clock accumulator.
+    bool fixedTickScheduling = false;
+    // GPU encoding returns a synchronous success/fail-stop report instead of
+    // relying on logs from the legacy render-loop entry point.
+    bool checkedGpuEncoding = false;
 };
 
 struct PhysicsInitContext {
@@ -154,6 +169,9 @@ struct PhysicsInitContext {
         uint32_t solverParallelColorCount = 4;
         uint32_t maximumCatchUpTicks = 8;
         uint32_t commandCapacity = 262'144;
+        // Slot zero is reserved as the invalid attachment handle.
+        uint32_t attachmentCapacity = 1'024;
+        uint32_t attachmentCommandCapacity = 4'096;
         uint32_t debugReadbackSlots = 3;
         uint32_t debugReadbackBodyCapacity = 4'096;
         uint32_t asyncQueryCapacity = 256;
@@ -183,6 +201,10 @@ struct PhysicsInitContext {
         uint32_t ccdBisectionIterations = 8;
         float ccdFastDistanceRatio = 0.5f;
         std::string shaderPath = "shaders/physics_ballistic.wgsl";
+        // A nonempty bundle is a strict trusted-source policy. Every WGSL
+        // requested by WebGpuSoft must exist in it; filesystem fallback is
+        // disabled. The caller owns the source storage for this world.
+        std::span<const gpu::ShaderSource> shaderSources{};
     } gpu;
 };
 
@@ -290,6 +312,8 @@ struct PhysicsStats {
     PhysicsCapacityUsage sleepingGridUsage{};
     PhysicsCapacityUsage bulletUsage{};
     PhysicsCapacityUsage waterSampleUsage{};
+    PhysicsCapacityUsage attachmentUsage{};
+    PhysicsCapacityUsage attachmentCommandUsage{};
 
     uint32_t kinematicBodies = 0;
     uint32_t occupiedCells = 0;
@@ -327,6 +351,11 @@ struct PhysicsStats {
     uint32_t contactBeginEvents = 0;
     uint32_t contactEndEvents = 0;
     uint32_t islandEvents = 0;
+    uint32_t tautAttachments = 0;
+    uint32_t slackAttachments = 0;
+    uint32_t attachmentBreakEvents = 0;
+    uint32_t staleAttachmentCommands = 0;
+    uint32_t invalidAttachmentEndpoints = 0;
     uint64_t gpuUploadBytes = 0;
     uint64_t gpuReadbackBytes = 0;
     uint64_t worldHash = 0;
@@ -339,6 +368,8 @@ struct PhysicsStats {
     bool commandCapacityOverflow = false;
     bool manifoldCapacityOverflow = false;
     bool bulletCapacityOverflow = false;
+    bool attachmentCapacityOverflow = false;
+    bool attachmentCommandCapacityOverflow = false;
 };
 
 struct PhysicsStepStats {
@@ -363,6 +394,35 @@ struct BodyHandle {
 
     [[nodiscard]] constexpr bool valid() const noexcept { return index != 0; }
     [[nodiscard]] constexpr auto operator<=>(const BodyHandle&) const noexcept = default;
+};
+
+struct AttachmentHandle {
+    uint32_t index = 0;
+    uint32_t generation = 0;
+
+    [[nodiscard]] constexpr bool valid() const noexcept { return index != 0; }
+    [[nodiscard]] constexpr auto operator<=>(
+        const AttachmentHandle&) const noexcept = default;
+};
+
+// A tension-only rope between two resident bodies. Positive motor speed reels
+// in; negative speed pays out. The target is clamped to [minimumLength,
+// maximumLength] once per fixed tick. breakForce == 0 makes the rope
+// unbreakable. maximumForce caps the impulse actually applied, while break
+// evidence reports the uncapped force required by the constraint.
+// A broken rope stays allocated but inert until destroyAttachment() is called;
+// optional event readback never changes host-side handle lifetime.
+struct DistanceAttachmentDesc {
+    BodyHandle bodyA{};
+    BodyHandle bodyB{};
+    glm::vec3 localAnchorA{0.0f};
+    glm::vec3 localAnchorB{0.0f};
+    float targetLength = 1.0f;
+    float minimumLength = 0.0f;
+    float maximumLength = 1'000'000.0f;
+    float motorSpeed = 0.0f;
+    float maximumForce = 1'000'000.0f;
+    float breakForce = 0.0f;
 };
 
 struct PhysicsMaterial {
@@ -407,6 +467,9 @@ enum class PhysicsCommandType : uint32_t {
     Wake,
     Sleep,
     SetKinematicTarget,
+    // a.xyz is a world-space force. b.xyz is a body-local application point.
+    // The checked GPU path applies both F and r x F for exactly one tick.
+    ApplyForceAtLocalPoint,
 };
 
 // Plain command payloads keep mutation replayable and make GPU upload packing
@@ -426,6 +489,93 @@ struct PhysicsCommand {
     // SpawnBody may leave this null to select backend defaults.
     // SetMaterial requires a value.
     std::optional<PhysicsMaterial> material;
+};
+
+// The live authority prepares one complete gameplay mutation before it lets
+// match state commit. Attachment destroys are staged before creates, so a
+// transfer can reuse a full-capacity slot with the next generation.
+struct PhysicsMutationBatch {
+    std::span<const PhysicsCommand> bodyCommands{};
+    std::span<const AttachmentHandle> attachmentDestroys{};
+    std::span<const DistanceAttachmentDesc> attachmentCreates{};
+};
+
+enum class PhysicsMutationStatus : uint32_t {
+    Prepared = 0u,
+    Committed,
+    Unsupported,
+    NotInitialized,
+    EmptyBatch,
+    InvalidInput,
+    CapacityExceeded,
+    PendingMutation,
+    PendingPhysicsTicks,
+    IncompatibleSchedulingMode,
+    InvalidToken,
+    TokenExhausted,
+};
+
+// This is an opaque authorization token plus a borrowed view of the stable
+// handles reserved for create requests, in request order. The view remains
+// valid only until this token is committed/discarded or another preparation is
+// attempted. Copying a token does not duplicate the transaction.
+struct PreparedPhysicsMutation {
+    PhysicsMutationStatus status = PhysicsMutationStatus::Unsupported;
+    uint64_t token = 0u;
+    uint64_t targetTick = 0u;
+    std::span<const AttachmentHandle> createdAttachments{};
+
+    [[nodiscard]] bool ready() const noexcept {
+        return status == PhysicsMutationStatus::Prepared && token != 0u;
+    }
+    [[nodiscard]] explicit operator bool() const noexcept { return ready(); }
+};
+
+struct PhysicsMutationResult {
+    PhysicsMutationStatus status = PhysicsMutationStatus::Unsupported;
+    uint64_t targetTick = 0u;
+    uint32_t bodyCommandCount = 0u;
+    uint32_t destroyedAttachmentCount = 0u;
+    uint32_t createdAttachmentCount = 0u;
+
+    [[nodiscard]] bool committed() const noexcept {
+        return status == PhysicsMutationStatus::Committed;
+    }
+    [[nodiscard]] explicit operator bool() const noexcept {
+        return committed();
+    }
+};
+
+enum class PhysicsEncodeStatus : uint32_t {
+    Encoded = 0u,
+    NothingScheduled,
+    Unsupported,
+    NotInitialized,
+    InvalidEncoder,
+    PreparedMutationPending,
+    UploadFailed,
+    PipelineFailed,
+    EventReadbackUnavailable,
+    DebugReadbackUnavailable,
+};
+
+struct PhysicsEncodeReport {
+    PhysicsEncodeStatus status = PhysicsEncodeStatus::Unsupported;
+    uint64_t firstTick = 0u;
+    uint64_t finalTick = 0u;
+    uint32_t tickCount = 0u;
+    uint64_t gpuUploadBytes = 0u;
+    uint64_t gpuReadbackBytes = 0u;
+    // Once true, the backend cannot be used again without initialize().
+    bool failStopped = false;
+
+    [[nodiscard]] bool succeeded() const noexcept {
+        return status == PhysicsEncodeStatus::Encoded
+            || status == PhysicsEncodeStatus::NothingScheduled;
+    }
+    [[nodiscard]] explicit operator bool() const noexcept {
+        return succeeded();
+    }
 };
 
 struct PhysicsRenderView {
@@ -576,6 +726,7 @@ enum class PhysicsEventType : uint32_t {
     ContactHit = 3,
     IslandSleep = 4,
     IslandWake = 5,
+    AttachmentBreak = 6,
 };
 
 struct PhysicsEvent {
@@ -586,15 +737,32 @@ struct PhysicsEvent {
     uint32_t bodyGenerationA = 0;
     uint32_t bodyGenerationB = 0;
     uint32_t featureId = 0;
+    uint32_t otherFeatureId = 0;
     uint32_t sourceId = 0;
     uint32_t auxiliaryCount = 0;
     uint32_t flags = 0;
+    // ContactHit evidence follows bodyA/bodyB canonical order. normal points
+    // from A toward B. impulse is the summed normal impulse over all manifold
+    // points and impactSpeed is the greatest pre-solve closing speed.
+    glm::vec3 localAnchorA{0.0f};
+    glm::vec3 localAnchorB{0.0f};
+    glm::vec3 normalAtoB{0.0f};
+    float impactSpeed = 0.0f;
+    // ContactHit: summed normal impulse. AttachmentBreak: uncapped impulse.
+    float impulse = 0.0f;
+    // AttachmentBreak only: uncapped force that made the rope fail.
+    float force = 0.0f;
 
     [[nodiscard]] constexpr BodyHandle bodyHandleA() const noexcept {
         return BodyHandle{bodyA, bodyGenerationA};
     }
     [[nodiscard]] constexpr BodyHandle bodyHandleB() const noexcept {
         return BodyHandle{bodyB, bodyGenerationB};
+    }
+    [[nodiscard]] constexpr AttachmentHandle attachmentHandle() const noexcept {
+        return type == PhysicsEventType::AttachmentBreak
+            ? AttachmentHandle{sourceId, featureId}
+            : AttachmentHandle{};
     }
 };
 

@@ -9,16 +9,25 @@
 #include "app/application.hpp"
 #include "engine/platform/window.hpp"
 #include "engine/platform/input.hpp"
+
+// Xlib exports `None` as a macro. Do not let that platform detail rewrite
+// scoped Wreckwater enum values in headers included below.
+#if defined(None)
+    #undef None
+#endif
+
 #include "app/debug_overlay.hpp"
 #include "camera/camera.hpp"
 #include "camera/controller.hpp"
 #include "camera/character_controller.hpp"
+#include "client/wreckwater_application_client.hpp"
 #include "core/timer.hpp"
 #include "perf/benchmark.hpp"
 #include "core/log.hpp"
 #include "core/timer.hpp"
 #include "gpu/context.hpp"
 #include "gpu/resources.hpp"
+#include "terrain/authored_cove.hpp"
 #include "terrain/textures.hpp"
 #include "terrain/shadow_bake.hpp"
 #include "render/triangle_path.hpp"
@@ -28,6 +37,10 @@
 #include "render/primitive_path.hpp"
 #include "render/primitive_culling.hpp"
 #include "physics/physics_world.hpp"
+
+#if !defined(VOXY_WASM)
+    #include "network/native_tcp_transport.hpp"
+#endif
 
 #include <chrono>
 #include <algorithm>
@@ -70,6 +83,24 @@
 #endif
 
 namespace voxy {
+
+struct WreckwaterApplicationClientState {
+    client::WreckwaterApplicationClient client;
+    client::WreckwaterCameraObstructionProbeRequest
+        cameraProbe{};
+    client::WreckwaterCameraTerrainCastResult
+        terrainProbe{};
+    bool cameraProbeSubmitted = false;
+#if !defined(VOXY_WASM)
+    network::NativeTcpClientTransport* transport = nullptr;
+    network::NativeTcpClientState observedTransportState =
+        network::NativeTcpClientState::Disconnected;
+#endif
+    client::WreckwaterGraphicalClientFrameStatus observedFrameStatus =
+        client::WreckwaterGraphicalClientFrameStatus::NotInitialized;
+    network::WreckwaterClientRuntimeError observedRuntimeError =
+        network::WreckwaterClientRuntimeError::None;
+};
 
 namespace {
 
@@ -267,6 +298,88 @@ void setCameraWorldPose(
         && std::isfinite(value.z);
 }
 
+[[nodiscard]] bool validWreckwaterApplicationClientConfig(
+    const ApplicationConfig& application) noexcept {
+    if (!application.wreckwaterClient) return true;
+#if defined(VOXY_WASM)
+    return false;
+#else
+    const auto& config = *application.wreckwaterClient;
+    if (config.serverAddress.empty()
+        || config.serverAddress.size() > 255u
+        || config.serverPort == 0u
+        || config.peerId == 0u || config.peerId > 4u
+        || config.sessionId == 0u || config.matchId == 0u
+        || config.worldId == 0u || config.worldEpoch == 0u
+        || config.authorityEpoch == 0u
+        || config.inputLeadTicks == 0u
+        || config.inputLeadTicks > 16u
+        || config.interpolationDelayTicks
+            > client::
+                kWreckwaterClientVisualClockMaximumInterpolationDelayTicks) {
+        return false;
+    }
+    for (const char character : config.serverAddress) {
+        const auto value =
+            static_cast<unsigned char>(character);
+        if (value <= 0x20u || value == 0x7fu) return false;
+    }
+    bool anyKeyByte = false;
+    bool anyDigestByte = false;
+    for (const std::byte value : config.authenticationKey) {
+        anyKeyByte = anyKeyByte || value != std::byte{};
+    }
+    for (const std::byte value : config.expectedContentDigest) {
+        anyDigestByte = anyDigestByte || value != std::byte{};
+    }
+    const bool automationDisabled =
+        !application.benchmarkOnStartup
+        && !application.exitAfterBenchmark
+        && application.benchmarkBodyCount == 0u
+        && application.cubePyramidBodyCount == 0u
+        && !application.initialTeleportIndex
+        && !application.screenshotPath
+        && application.screenshotTourIndices.empty();
+    return anyKeyByte && anyDigestByte && automationDisabled;
+#endif
+}
+
+#if !defined(VOXY_WASM)
+[[nodiscard]] WreckwaterApplicationConnectionState
+wreckwaterApplicationConnectionState(
+    network::NativeTcpClientState state) noexcept {
+    switch (state) {
+        case network::NativeTcpClientState::Disconnected:
+        case network::NativeTcpClientState::Connecting:
+            return WreckwaterApplicationConnectionState::Connecting;
+        case network::NativeTcpClientState::Authenticating:
+            return WreckwaterApplicationConnectionState::Authenticating;
+        case network::NativeTcpClientState::Connected:
+            return WreckwaterApplicationConnectionState::Connected;
+        case network::NativeTcpClientState::Failed:
+            return WreckwaterApplicationConnectionState::Failed;
+    }
+    return WreckwaterApplicationConnectionState::Failed;
+}
+
+[[nodiscard]] const char* nativeTcpClientStateName(
+    network::NativeTcpClientState state) noexcept {
+    switch (state) {
+        case network::NativeTcpClientState::Disconnected:
+            return "disconnected";
+        case network::NativeTcpClientState::Connecting:
+            return "connecting";
+        case network::NativeTcpClientState::Authenticating:
+            return "authenticating";
+        case network::NativeTcpClientState::Connected:
+            return "connected";
+        case network::NativeTcpClientState::Failed:
+            return "failed";
+    }
+    return "unknown";
+}
+#endif
+
 [[nodiscard]] bool validApplicationConfig(
     const ApplicationConfig& config) noexcept {
     const bool validRenderPath = config.renderPath == RenderPath::Triangle
@@ -307,6 +420,7 @@ void setCameraWorldPose(
         uint64_t{config.benchmarkBodyCount}
         + config.cubePyramidBodyCount;
     return validRenderPath && validPhysicsBackend && validScheduler
+        && validWreckwaterApplicationClientConfig(config)
         && config.windowWidth > 0 && config.windowHeight > 0
         && config.heightmapWidth > 0u && config.heightmapHeight > 0u
         && config.heightmapWidth <= kPortableMaximumTextureDimension2D
@@ -539,6 +653,149 @@ Application::~Application() {
 // Lifecycle
 // ─────────────────────────────────────────────────────────────────────────────
 
+bool Application::initWreckwaterClient() {
+    wreckwaterClientState_.reset();
+    wreckwaterClientTelemetry_ = {};
+    if (!config_.wreckwaterClient) return true;
+#if defined(VOXY_WASM)
+    LOG_ERROR(
+        "WRECKWATER native TCP bootstrap is unavailable on WebAssembly");
+    return false;
+#else
+    const auto& bootstrap = *config_.wreckwaterClient;
+    const client::WreckwaterThirdPersonCameraRig::Config
+        cameraConfig;
+    const client::WreckwaterCameraTerrainView terrainView{
+        .samples = heightmap_ != nullptr
+            ? heightmap_->getData()
+            : std::span<const uint16_t>{},
+        .width = heightmap_ != nullptr
+            ? heightmap_->getWidth() : 0u,
+        .height = heightmap_ != nullptr
+            ? heightmap_->getHeight() : 0u,
+        .heightScale = config_.heightScale,
+        .cellScale = config_.cellScale,
+    };
+    constexpr float maximumCameraProbePath = 16.0f;
+    const float cameraProbeRadius =
+        cameraConfig.obstructionProbeRadius
+        + cameraConfig.maximumProbeEndpointDrift;
+    if (!physicsWorld_
+        || !physicsWorld_->capabilities().asynchronousQueries
+        || !client::wreckwaterCameraTerrainViewSupports(
+            terrainView, maximumCameraProbePath,
+            cameraProbeRadius)) {
+        LOG_ERROR(
+            "WRECKWATER camera requires async rigid-body queries "
+            "and bounded CPU heightfield probe coverage");
+        return false;
+    }
+
+    network::NativeTcpClientConfig transportConfig;
+    transportConfig.serverAddress = bootstrap.serverAddress;
+    transportConfig.serverPort = bootstrap.serverPort;
+    transportConfig.credential = {
+        .peerId = bootstrap.peerId,
+        .authenticationKey = bootstrap.authenticationKey,
+    };
+    transportConfig.expectedContentDigest =
+        bootstrap.expectedContentDigest;
+    transportConfig.requirePrivateServerAddress = true;
+
+    std::string transportError;
+    network::NativeTcpClientCreateStatus transportStatus =
+        network::NativeTcpClientCreateStatus::
+            InvalidConfiguration;
+    auto transport = network::NativeTcpClientTransport::create(
+        std::move(transportConfig), &transportError,
+        &transportStatus);
+    if (transport == nullptr) {
+        LOG_ERROR(
+            "Failed to create WRECKWATER native TCP client ({}): {}",
+            network::nativeTcpClientCreateStatusName(
+                transportStatus),
+            transportError);
+        return false;
+    }
+
+    auto state =
+        std::make_unique<WreckwaterApplicationClientState>();
+    state->transport = transport.get();
+
+    client::WreckwaterApplicationClient::Config clientConfig;
+    clientConfig.runtime = {
+        .serverPeerId = 0u,
+        .serverConnectionSerial = 0u,
+        .sessionId = bootstrap.sessionId,
+        .matchId = bootstrap.matchId,
+        .worldId = bootstrap.worldId,
+        .worldEpoch = bootstrap.worldEpoch,
+        .authorityEpoch = bootstrap.authorityEpoch,
+        .localPlayerId = bootstrap.peerId,
+        .maximumFramesPerPump = 64u,
+        .firstClientRequestSequence = 1u,
+    };
+    clientConfig.graphical.maximumCatchUpTicks = 4u;
+    clientConfig.graphical.inputLeadTicks =
+        bootstrap.inputLeadTicks;
+    clientConfig.graphical.useCertifiedVisualClock = true;
+    clientConfig.graphical.visualClock.interpolationDelayTicks =
+        bootstrap.interpolationDelayTicks;
+    clientConfig.graphical.visualClock.maximumExtrapolationTicks =
+        network::kWreckwaterClientMaximumExtrapolationTicks;
+    clientConfig.graphical.controller.localPlayerId =
+        bootstrap.peerId;
+    clientConfig.graphical.presentation.localPlayerId =
+        bootstrap.peerId;
+    clientConfig.graphical.presentation.roster = {{
+        {
+            .playerId = 1u,
+            .crew = game::CrewId::CrewOne,
+            .crewSlot = 0u,
+        },
+        {
+            .playerId = 2u,
+            .crew = game::CrewId::CrewOne,
+            .crewSlot = 1u,
+        },
+        {
+            .playerId = 3u,
+            .crew = game::CrewId::CrewTwo,
+            .crewSlot = 0u,
+        },
+        {
+            .playerId = 4u,
+            .crew = game::CrewId::CrewTwo,
+            .crewSlot = 1u,
+        },
+    }};
+    clientConfig.camera = cameraConfig;
+    if (!state->client.initialize(
+            clientConfig, std::move(transport))) {
+        LOG_ERROR(
+            "Failed to initialize WRECKWATER graphical client");
+        return false;
+    }
+
+    state->observedTransportState = state->transport->state();
+    wreckwaterClientTelemetry_.enabled = true;
+    wreckwaterClientTelemetry_.connectionState =
+        wreckwaterApplicationConnectionState(
+            state->observedTransportState);
+    wreckwaterClientState_ = std::move(state);
+
+    LOG_WARN(
+        "WRECKWATER native TCP sends its bootstrap credential in "
+        "plaintext; use only loopback or a trusted private development "
+        "network");
+    LOG_INFO(
+        "WRECKWATER client starting: {}:{} peer {}",
+        bootstrap.serverAddress, bootstrap.serverPort,
+        bootstrap.peerId);
+    return true;
+#endif
+}
+
 bool Application::init(const ApplicationConfig& config) {
     if (initialized_) {
         LOG_WARN("Application already initialized");
@@ -621,9 +878,12 @@ bool Application::init(const ApplicationConfig& config) {
         { { 202.53f, 120.92f, -27.16f }, -0.2070f, -0.3556f },
         { { 179.01f, 121.64f, -28.72f }, -1.3958f, -0.1900f },
         { { 179.01f, 121.64f, -28.72f }, -2.0606f, -0.0380f },
-        { { -885.41f, -59.61f, 170.87f }, -1.3456f, -0.0578f },
-        { { -876.38f, -61.58f, 158.43f }, -4.3228f, -0.2176f },
-        { { -885.41f, -180.0f, 170.87f }, -1.3456f, -0.0578f },
+        // Wreckwater authored-cove review triplet: landward wide, landward
+        // close, and underwater. The first two look across the wreck to sea
+        // instead of flattening it against the featureless inland bank.
+        { { -635.30f, -160.00f, 3558.30f }, -2.9750f, -0.2500f },
+        { { -644.15f, -174.00f, 3516.30f }, -3.0100f, -0.2600f },
+        { { -610.00f, -220.00f, 3386.00f }, -1.0500f, -0.0800f },
         { { 5000.0f, -215.0f, 0.0f }, 1.7960f, -0.3000f },
         { { 5000.0f, -180.0f, 0.0f }, 1.7960f, -0.0578f },
     };
@@ -682,6 +942,10 @@ bool Application::init(const ApplicationConfig& config) {
             return failInitialization();
         }
 
+        if (!initWreckwaterClient()) {
+            return failInitialization();
+        }
+
         setupCallbacks();
     }
 
@@ -695,11 +959,20 @@ bool Application::init(const ApplicationConfig& config) {
     LOG_INFO("  Render path: {}", renderPathToString(config_.renderPath));
     LOG_INFO("");
     LOG_INFO("Controls:");
-    LOG_INFO("  WASD      - Move camera");
-    LOG_INFO("  Mouse     - Look around (click to capture)");
-    LOG_INFO("  Shift     - Speed boost / Run");
-    LOG_INFO("  E/Space   - Move up / Jump");
-    LOG_INFO("  Q/Ctrl    - Move down");
+    if (wreckwaterClientState_) {
+        LOG_INFO("  WASD      - Camera-relative movement");
+        LOG_INFO("  Space     - Jump / swim stroke");
+        LOG_INFO("  E         - Board");
+        LOG_INFO("  Mouse     - Orbit (click to capture)");
+        LOG_INFO("  Wheel     - Camera distance");
+        LOG_INFO("  Q         - Swap camera shoulder");
+    } else {
+        LOG_INFO("  WASD      - Move camera");
+        LOG_INFO("  Mouse     - Look around (click to capture)");
+        LOG_INFO("  Shift     - Speed boost / Run");
+        LOG_INFO("  E/Space   - Move up / Jump");
+        LOG_INFO("  Q/Ctrl    - Move down");
+    }
     LOG_INFO("  F1        - Toggle debug overlay");
     LOG_INFO("  F2        - Toggle wireframe mode");
     LOG_INFO("  F3        - Toggle render path");
@@ -710,9 +983,12 @@ bool Application::init(const ApplicationConfig& config) {
     LOG_INFO("  F8        - Toggle controller (free-fly/character)");
     LOG_INFO("  F9        - Toggle uncapped/VSync presentation");
     LOG_INFO("  Escape    - Release mouse / Exit");
-    LOG_INFO("  Wheel     - Select throwable object");
-    LOG_INFO("  Left click- Capture mouse / throw selected object");
-    LOG_INFO("  Right click- Throw 128 selected objects");
+    if (!wreckwaterClientState_) {
+        LOG_INFO("  Wheel     - Select throwable object");
+        LOG_INFO(
+            "  Left click- Capture mouse / throw selected object");
+        LOG_INFO("  Right click- Throw 128 selected objects");
+    }
     LOG_INFO("");
 
 #if defined(VOXY_WASM)
@@ -778,6 +1054,7 @@ void Application::requestExit() {
 
 void Application::shutdown() {
     const bool hasResources = initialized_
+        || wreckwaterClientState_
         || window_ || gpuContext_ || input_ || camera_ || freeFlyController_
         || physicsWorld_ || characterController_ || heightmap_
         || terrainTextures_ || waterSimulation_ || primitivePath_
@@ -791,6 +1068,16 @@ void Application::shutdown() {
     }
 
     LOG_INFO("Shutting down application...");
+
+    if (wreckwaterClientState_) {
+        wreckwaterClientState_->client.close();
+        wreckwaterClientState_.reset();
+    }
+    wreckwaterClientTelemetry_ = {};
+    if (config_.wreckwaterClient) {
+        config_.wreckwaterClient->authenticationKey.fill(
+            std::byte{});
+    }
 
     retireBenchmarkSubmissions(true);
 
@@ -935,6 +1222,274 @@ void Application::update(float deltaTime) {
     update(deltaTime, deltaTime);
 }
 
+void Application::updateWreckwaterClient(float deltaTime) {
+    if (!wreckwaterClientState_) return;
+
+    pollWreckwaterCameraProbe();
+
+    client::WreckwaterApplicationClientFrameInput frame;
+    const double elapsedNanoseconds =
+        static_cast<double>(deltaTime) * 1'000'000'000.0;
+    frame.elapsedNanoseconds =
+        elapsedNanoseconds
+                >= static_cast<double>(
+                    std::numeric_limits<uint64_t>::max())
+        ? std::numeric_limits<uint64_t>::max()
+        : static_cast<uint64_t>(
+            std::llround(elapsedNanoseconds));
+
+    if (camera_) {
+        frame.cameraSector = camera_->worldSector();
+    }
+    if (input_ && camera_) {
+        client::WreckwaterApplicationDigitalControls digital;
+        digital.forward =
+            input_->isKeyDown(Key::W)
+            || input_->isKeyDown(Key::Up);
+        digital.backward =
+            input_->isKeyDown(Key::S)
+            || input_->isKeyDown(Key::Down);
+        digital.left =
+            input_->isKeyDown(Key::A)
+            || input_->isKeyDown(Key::Left);
+        digital.right =
+            input_->isKeyDown(Key::D)
+            || input_->isKeyDown(Key::Right);
+        digital.jumpDown = input_->isKeyDown(Key::Space);
+        digital.boardDown = input_->isKeyDown(Key::E);
+        if (!client::mapWreckwaterCameraRelativeControls(
+                digital, camera_->forward(), camera_->right(),
+                frame.controls)) {
+            frame.controls = {
+                .jumpDown = digital.jumpDown,
+                .boardDown = digital.boardDown,
+            };
+        }
+
+        if (input_->wasMouseButtonPressed(MouseButton::Left)
+            && !input_->isMouseCaptured()
+            && !input_->wasKeyPressed(Key::Escape)) {
+            input_->captureMouse();
+        }
+        const float cameraDelta =
+            std::clamp(deltaTime, 0.0f, 0.05f);
+        if (input_->isMouseCaptured()
+            && cameraDelta > 0.0f) {
+            const glm::vec2 mouse = input_->mouseDelta();
+            constexpr float yawSpeed = 3.5f;
+            constexpr float pitchSpeed = 2.5f;
+            frame.camera.orbit.x = std::clamp(
+                mouse.x * config_.cameraMouseSensitivity
+                    / (yawSpeed * cameraDelta),
+                -1.0f, 1.0f);
+            frame.camera.orbit.y = std::clamp(
+                -mouse.y * config_.cameraMouseSensitivity
+                    / (pitchSpeed * cameraDelta),
+                -1.0f, 1.0f);
+        }
+        if (cameraDelta > 0.0f) {
+            constexpr float zoomSpeed = 5.0f;
+            constexpr float metersPerWheelStep = 0.35f;
+            frame.camera.zoom = std::clamp(
+                -input_->scrollDelta() * metersPerWheelStep
+                    / (zoomSpeed * cameraDelta),
+                -1.0f, 1.0f);
+        }
+        frame.camera.shoulderSwapDown =
+            input_->isKeyDown(Key::Q);
+    }
+
+    const client::WreckwaterApplicationClientFrameResult result =
+        wreckwaterClientState_->client.frame(frame);
+    if (result.cameraUpdated && camera_) {
+        const auto& pose =
+            wreckwaterClientState_->client.cameraRig().pose();
+        camera_->setWorldPosition(
+            pose.cameraPosition.sector,
+            pose.cameraPosition.local);
+        camera_->lookAt(pose.cameraSectorLookTarget);
+        camera_->setFovY(pose.fovYRadians);
+    }
+
+    auto addSaturated = [](uint64_t& value, uint64_t amount) {
+        if (amount
+            > std::numeric_limits<uint64_t>::max() - value) {
+            value = std::numeric_limits<uint64_t>::max();
+        } else {
+            value += amount;
+        }
+    };
+    addSaturated(wreckwaterClientTelemetry_.frames, 1u);
+    addSaturated(
+        wreckwaterClientTelemetry_.snapshotsAccepted,
+        result.graphical.runtime.snapshotsAccepted);
+    addSaturated(
+        wreckwaterClientTelemetry_.rejectedFrames,
+        result.graphical.runtime.framesRejected);
+    wreckwaterClientTelemetry_.visibleProxies =
+        static_cast<uint32_t>(
+            wreckwaterClientState_->client
+                .visibleInstances().size());
+    wreckwaterClientTelemetry_.lastFrameStatus =
+        static_cast<uint32_t>(result.graphical.status);
+    wreckwaterClientTelemetry_.lastRuntimeError =
+        static_cast<uint32_t>(
+            result.graphical.runtime.lastError);
+    wreckwaterClientTelemetry_.lastReplicationError =
+        static_cast<uint32_t>(
+            result.graphical.runtime.lastReplicationError);
+    wreckwaterClientTelemetry_.cameraValid =
+        result.cameraUpdated;
+    wreckwaterClientTelemetry_.cameraProbeOutstanding =
+        wreckwaterClientState_->cameraProbeSubmitted;
+
+#if !defined(VOXY_WASM)
+    const network::NativeTcpClientState transportState =
+        wreckwaterClientState_->transport->state();
+    wreckwaterClientTelemetry_.connectionState =
+        wreckwaterApplicationConnectionState(transportState);
+    const auto& transportTelemetry =
+        wreckwaterClientState_->transport->telemetry();
+    wreckwaterClientTelemetry_.socketErrors =
+        transportTelemetry.socketErrors;
+    if (transportState
+        != wreckwaterClientState_->observedTransportState) {
+        if (transportState
+            == network::NativeTcpClientState::Failed) {
+            LOG_ERROR(
+                "WRECKWATER connection state: failed "
+                "(auth failures {}, content mismatches {}, "
+                "socket errors {})",
+                transportTelemetry.authenticationFailures,
+                transportTelemetry.contentDigestMismatches,
+                transportTelemetry.socketErrors);
+        } else {
+            LOG_INFO(
+                "WRECKWATER connection state: {}",
+                nativeTcpClientStateName(transportState));
+        }
+        wreckwaterClientState_->observedTransportState =
+            transportState;
+    }
+#endif
+
+    if (result.graphical.runtime.lastError
+            != network::WreckwaterClientRuntimeError::None
+        && result.graphical.runtime.lastError
+            != wreckwaterClientState_->observedRuntimeError) {
+        LOG_WARN(
+            "WRECKWATER runtime frame: {}",
+            network::wreckwaterClientRuntimeErrorName(
+                result.graphical.runtime.lastError));
+    }
+    wreckwaterClientState_->observedRuntimeError =
+        result.graphical.runtime.lastError;
+    wreckwaterClientState_->observedFrameStatus =
+        result.graphical.status;
+
+    submitWreckwaterCameraProbe();
+    wreckwaterClientTelemetry_.cameraProbeOutstanding =
+        wreckwaterClientState_->cameraProbeSubmitted;
+}
+
+void Application::pollWreckwaterCameraProbe() {
+    if (!wreckwaterClientState_
+        || !wreckwaterClientState_->cameraProbeSubmitted
+        || !physicsWorld_) {
+        return;
+    }
+    const std::optional<physics::PhysicsQueryBatch> batch =
+        physicsWorld_->pollQueryResults();
+    if (!batch) return;
+
+    const client::WreckwaterCameraObstructionProbeResult merged =
+        client::mergeWreckwaterCameraObstructionProbeResult(
+            wreckwaterClientState_->cameraProbe,
+            wreckwaterClientState_->terrainProbe, *batch);
+    const client::WreckwaterThirdPersonCameraStatus status =
+        wreckwaterClientState_->client
+            .resolveCameraObstructionProbe(merged);
+    wreckwaterClientState_->cameraProbeSubmitted = false;
+    wreckwaterClientState_->cameraProbe = {};
+    wreckwaterClientState_->terrainProbe = {};
+    if (status
+        != client::WreckwaterThirdPersonCameraStatus::Accepted) {
+        if (wreckwaterClientTelemetry_.cameraProbeFailures
+            != std::numeric_limits<uint64_t>::max()) {
+            ++wreckwaterClientTelemetry_.cameraProbeFailures;
+        }
+    }
+}
+
+void Application::submitWreckwaterCameraProbe() {
+    if (!wreckwaterClientState_
+        || wreckwaterClientState_->cameraProbeSubmitted
+        || !physicsWorld_ || !heightmap_) {
+        return;
+    }
+
+    client::WreckwaterCameraObstructionProbeRequest request;
+    const client::WreckwaterThirdPersonCameraStatus takeStatus =
+        wreckwaterClientState_->client
+            .takeCameraObstructionProbe(request);
+    if (takeStatus
+        == client::WreckwaterThirdPersonCameraStatus::
+            ProbeUnavailable
+        || takeStatus
+        == client::WreckwaterThirdPersonCameraStatus::
+            ProbeOutstanding) {
+        return;
+    }
+    if (takeStatus
+        != client::WreckwaterThirdPersonCameraStatus::Accepted) {
+        if (wreckwaterClientTelemetry_.cameraProbeFailures
+            != std::numeric_limits<uint64_t>::max()) {
+            ++wreckwaterClientTelemetry_.cameraProbeFailures;
+        }
+        return;
+    }
+
+    const client::WreckwaterCameraTerrainView terrainView{
+        .samples = heightmap_->getData(),
+        .width = heightmap_->getWidth(),
+        .height = heightmap_->getHeight(),
+        .heightScale = config_.heightScale,
+        .cellScale = config_.cellScale,
+    };
+    const client::WreckwaterCameraTerrainCastResult terrain =
+        client::wreckwaterCameraTerrainSphereCast(
+            request, terrainView);
+    if (!terrain) {
+        client::WreckwaterCameraObstructionProbeResult failed;
+        failed.identity = request.identity;
+        failed.overflow = true;
+        static_cast<void>(
+            wreckwaterClientState_->client
+                .resolveCameraObstructionProbe(failed));
+        if (wreckwaterClientTelemetry_.cameraProbeFailures
+            != std::numeric_limits<uint64_t>::max()) {
+            ++wreckwaterClientTelemetry_.cameraProbeFailures;
+        }
+        return;
+    }
+
+    if (!physicsWorld_->submitQueries(
+            std::span(&request.physicsQuery, 1u))) {
+        static_cast<void>(
+            wreckwaterClientState_->client
+                .cancelCameraObstructionProbe(
+                    request.identity));
+        if (wreckwaterClientTelemetry_.cameraProbeFailures
+            != std::numeric_limits<uint64_t>::max()) {
+            ++wreckwaterClientTelemetry_.cameraProbeFailures;
+        }
+        return;
+    }
+    wreckwaterClientState_->cameraProbe = request;
+    wreckwaterClientState_->terrainProbe = terrain;
+    wreckwaterClientState_->cameraProbeSubmitted = true;
+}
+
 void Application::update(float simulationDeltaTime, float frameDeltaTime) {
     if (!std::isfinite(simulationDeltaTime)
         || simulationDeltaTime < 0.0f) {
@@ -956,7 +1511,10 @@ void Application::update(float simulationDeltaTime, float frameDeltaTime) {
     const bool scriptedBenchmark =
         (config_.benchmarkOnStartup || config_.exitAfterBenchmark)
         && isBenchmarkRunning();
-    if (!scriptedBenchmark && !browserJourneyWasRunning) {
+    if (wreckwaterClientState_) {
+        handleKeyboardShortcuts();
+        updateWreckwaterClient(simulationDeltaTime);
+    } else if (!scriptedBenchmark && !browserJourneyWasRunning) {
         processInput(simulationDeltaTime);
         handleKeyboardShortcuts();
 
@@ -1102,38 +1660,75 @@ void Application::render() {
             primitivePath_->setCompactPhysicsInstances(bodies);
         }
 
+        std::span<const physics::DynamicBodySnapshot> avatarProxies;
+        if (wreckwaterClientState_) {
+            avatarProxies =
+                wreckwaterClientState_->client.visibleInstances();
+        }
         std::vector<physics::PhysicsWorld::DynamicBodySnapshot> overlays;
-        overlays.reserve(kPrimitiveOverlayHeadroom);
-        const auto selectedShape =
-            static_cast<physics::PhysicsWorld::ThrowableShape>(selectedThrowable_);
-        const float previewAngle = static_cast<float>(
-            std::fmod(stats_.totalTimeSeconds * 1.8, 2.0 * std::numbers::pi));
-        const float previewDistance = 1.35f;
-        const float viewportWidth = static_cast<float>(
-            std::max(gpuContext_->getSwapchainWidth(), 1u));
-        const float viewportHeight = static_cast<float>(
-            std::max(gpuContext_->getSwapchainHeight(), 1u));
-        const float halfHeight = std::tan(camera_->fovY() * 0.5f) * previewDistance;
-        const float halfWidth = halfHeight * viewportWidth / viewportHeight;
-        const float previewScale = std::min(halfWidth, halfHeight) * 0.22f;
-        const glm::vec3 previewPlane =
-            camera_->position() + camera_->forward() * previewDistance;
-        const glm::quat cameraRotation = glm::quat_cast(glm::mat3(
-            camera_->right(), camera_->up(), camera_->forward()));
-        overlays.push_back({
-            selectedShape,
-            previewPlane + camera_->right() * (halfWidth * 0.76f)
-                         - camera_->up() * (halfHeight * 0.72f),
-            glm::angleAxis(previewAngle, glm::normalize(glm::vec3(0.3f, 1.0f, 0.2f))),
-            physics::PhysicsWorld::throwableShapeDimensions(selectedShape) * previewScale});
-        appendObjectCount(overlays, objectCount, previewPlane, camera_->right(),
-                          camera_->up(), cameraRotation, halfWidth, halfHeight);
+        overlays.reserve(
+            kPrimitiveOverlayHeadroom + avatarProxies.size());
+        // The camera-locked throwable preview and body counter are developer
+        // controls, not scene content. Keep them out of deterministic review
+        // captures and benchmark workloads so visual evidence is clean and
+        // performance measurements represent the game frame.
+        const bool showPrimitiveHud =
+            !wreckwaterClientState_
+            && !config_.benchmarkOnStartup
+            && !config_.screenshotPath.has_value()
+            && !tourActive_;
+        if (showPrimitiveHud) {
+            const auto selectedShape =
+                static_cast<physics::PhysicsWorld::ThrowableShape>(
+                    selectedThrowable_);
+            const float previewAngle = static_cast<float>(
+                std::fmod(
+                    stats_.totalTimeSeconds * 1.8,
+                    2.0 * std::numbers::pi));
+            const float previewDistance = 1.35f;
+            const float viewportWidth = static_cast<float>(
+                std::max(gpuContext_->getSwapchainWidth(), 1u));
+            const float viewportHeight = static_cast<float>(
+                std::max(gpuContext_->getSwapchainHeight(), 1u));
+            const float halfHeight =
+                std::tan(camera_->fovY() * 0.5f) * previewDistance;
+            const float halfWidth =
+                halfHeight * viewportWidth / viewportHeight;
+            const float previewScale =
+                std::min(halfWidth, halfHeight) * 0.22f;
+            const glm::vec3 previewPlane =
+                camera_->position()
+                + camera_->forward() * previewDistance;
+            const glm::quat cameraRotation = glm::quat_cast(glm::mat3(
+                camera_->right(), camera_->up(), camera_->forward()));
+            overlays.push_back({
+                selectedShape,
+                previewPlane
+                    + camera_->right() * (halfWidth * 0.76f)
+                    - camera_->up() * (halfHeight * 0.72f),
+                glm::angleAxis(
+                    previewAngle,
+                    glm::normalize(glm::vec3(0.3f, 1.0f, 0.2f))),
+                physics::PhysicsWorld::throwableShapeDimensions(
+                    selectedShape) * previewScale});
+            appendObjectCount(
+                overlays, objectCount, previewPlane, camera_->right(),
+                camera_->up(), cameraRotation, halfWidth, halfHeight);
+        }
+        overlays.insert(
+            overlays.end(),
+            avatarProxies.begin(), avatarProxies.end());
+        const size_t submittedObjectCount =
+            objectCount + avatarProxies.size();
         stats_.primitiveCullMs = 0.0;
-        stats_.primitiveInputCount = static_cast<uint32_t>(objectCount);
+        stats_.primitiveInputCount =
+            static_cast<uint32_t>(submittedObjectCount);
         // The exact visible count remains GPU-resident by design.
-        stats_.primitiveSubmittedCount = static_cast<uint32_t>(objectCount);
+        stats_.primitiveSubmittedCount =
+            static_cast<uint32_t>(submittedObjectCount);
         stats_.primitiveCullRejectionRatio = 0.0f;
-        stats_.primitiveCullEvaluated = objectCount != 0;
+        stats_.primitiveCullEvaluated =
+            submittedObjectCount != 0u;
         stats_.primitiveCullingEnabled = true;
         primitivePath_->setInstances(overlays);
         const auto& cpuTimings = primitivePath_->lastCpuTimings();
@@ -2887,6 +3482,34 @@ bool Application::initTerrain() {
                  config_.heightmapWidth, config_.heightmapHeight);
     }
 
+    // The authored cove is content for the canonical Wreckwater terrain, not
+    // a filter applied to arbitrary user heightmaps.
+    if (!config_.heightmapPath.empty() &&
+        config_.heightmapPath.filename() ==
+            "td_seed_1234_8192.ldh") {
+        terrain::AuthoredCoveConfig coveConfig;
+        coveConfig.waterHeight = rendererSettings_.waterHeight;
+        terrain::AuthoredCoveStats coveStats;
+        if (!terrain::applyAuthoredCove(
+                heightmap_->getMutableData(),
+                heightmap_->getWidth(),
+                heightmap_->getHeight(),
+                config_.heightScale,
+                config_.cellScale,
+                coveConfig,
+                &coveStats)) {
+            LOG_ERROR("Failed to author the Wreckwater review cove");
+            return false;
+        }
+        LOG_INFO(
+            "Authored Wreckwater cove: {} core samples, {} feather samples, "
+            "height {:.1f}..{:.1f} m",
+            coveStats.fullyAuthoredSamples,
+            coveStats.touchedSamples - coveStats.fullyAuthoredSamples,
+            coveStats.minimumAuthoredHeight,
+            coveStats.maximumAuthoredHeight);
+    }
+
     if (config_.cubePyramidBodyCount != 0u
         && !flattenCubeTriangleArena(*heightmap_, config_.cellScale)) {
         LOG_ERROR("Failed to flatten the cube-triangle terrain arena");
@@ -3129,6 +3752,9 @@ bool Application::initRenderers() {
         
         // TerrainTextures guarantees valid views after init (either loaded or placeholder)
         blitPath_->setTerrainTexture(terrainTextures_->getAlbedoView());
+        blitPath_->setTerrainMaterialTextures(
+            terrainTextures_->getMaterialAlbedoView(),
+            terrainTextures_->getMaterialNormalRoughnessView());
         blitPath_->setLightmapTexture(terrainTextures_->getLightmapView()); 
         blitPath_->setTerrainSize(heightmap_->getWidth(), heightmap_->getHeight());
     }
@@ -3834,12 +4460,14 @@ void Application::handleKeyboardShortcuts() {
     }
 
     // F7 - toggle benchmark mode
-    if (input_->wasKeyPressed(Key::F7)) {
+    if (!wreckwaterClientState_
+        && input_->wasKeyPressed(Key::F7)) {
         toggleBenchmark();
     }
     
     // F8 - toggle controller mode (free-fly / character)
-    if (input_->wasKeyPressed(Key::F8)) {
+    if (!wreckwaterClientState_
+        && input_->wasKeyPressed(Key::F8)) {
         toggleControllerMode();
     }
 
@@ -3852,6 +4480,10 @@ void Application::handleKeyboardShortcuts() {
     if (input_->wasKeyPressed(Key::K)) {
         toggleLegoMode();
     }
+
+    // Free-fly recording and teleport shortcuts must not move an
+    // authority-following multiplayer camera.
+    if (wreckwaterClientState_) return;
 
     // R - Record camera position
     if (input_->wasKeyPressed(Key::R)) {

@@ -1,5 +1,13 @@
 # Voxys
 
+Voxys is the engine and active game prototype for
+[WRECKWATER: DEAD HAUL](docs/wreckwater_dead_haul.md): an authoritative
+multiplayer salvage game built around physical boats, cargo, damage, flooding,
+and recovery. The linked completion contract is intentionally explicit about
+what is proven and what remains unfinished. Current engine tests and terrain
+captures are foundations; they are not a claim that the 2v2 slice or the
+12-player launch game is complete.
+
 ## Build Systems
 
 This project supports multiple build systems. **Bazel** is recommended for development, while **CMake** is available for standard integration.
@@ -76,16 +84,17 @@ node scripts/benchmark_wasm_render.mjs \
   --batch-frames 64 --repeats 3 --minimum-fps 700
 ```
 
-On an AMD Radeon 890M (RDNA 3, Chrome 149, Vulkan/ANGLE), the final full-quality
-WASM build measured 944.76, 944.52, and 949.73 FPS at 3440×1454. The minimum was
-944.52 FPS and the aggregate was 946.33 FPS. All 4,500 measured frames were
-retired by the WebGPU queue. This is engine renderer throughput into a
-physical-size offscreen target, not displayed monitor refresh or a submission
-counter.
+Historical isolated renderer-throughput runs on an AMD Radeon 890M (RDNA 3,
+Chrome 149, Vulkan/ANGLE) measured 944.76, 944.52, and 949.73 FPS at 3440×1454.
+All 4,500 measured frames retired through the WebGPU queue. A historical native
+five-view run measured 393.6 FPS overall at 3440×1440.
 
-For comparison, the native five-view benchmark previously measured 393.6 FPS
-overall at a physical 3440×1440 framebuffer, with individual views from 304.2
-to 545.7 FPS.
+Those numbers are retained only as engine microbenchmark evidence. They use a
+physical-size offscreen target or heavily cached views and do not represent a
+moving, displayed, composed WRECKWATER match. They must not be used for the
+current 60 FPS product gate; that gate requires the exact visible scene,
+simulation, clients, server, frame-time percentiles, and reference hardware
+defined in the WRECKWATER completion contract.
 
 Physics is selected through a backend facade:
 

@@ -18,9 +18,24 @@ enable_testing()
 set(TEST_SOURCES
     test_log.cpp
     test_lockstep.cpp
+    test_multiplayer_session.cpp
+    test_native_tcp_transport.cpp
     test_networking.cpp
     test_replay.cpp
     test_timer.cpp
+    test_wreckwater_client_replication.cpp
+    test_wreckwater_client_runtime.cpp
+    test_wreckwater_authority_runtime.cpp
+    test_wreckwater_character_authority_bridge.cpp
+    test_wreckwater_character_movement.cpp
+    test_wreckwater_character_step.cpp
+    test_wreckwater_content_manifest.cpp
+    test_wreckwater_live_world.cpp
+    test_wreckwater_match.cpp
+    test_wreckwater_protocol.cpp
+    test_wreckwater_replay.cpp
+    test_wreckwater_replay_playback.cpp
+    test_wreckwater_vessel_damage.cpp
     test_config.cpp
     test_window.cpp
     test_input.cpp
@@ -43,6 +58,7 @@ set(TEST_SOURCES
 if(TARGET wgpu::webgpu OR TARGET dawn::webgpu)
     list(APPEND TEST_SOURCES 
         test_gpu_context.cpp
+        test_wreckwater_authority_gpu.cpp
         test_gpu_ccd.cpp
         test_gpu_dynamic_solver.cpp
         test_gpu_event_readback.cpp
@@ -78,6 +94,276 @@ endif()
 # ─────────────────────────────────────────────────────────────────────────────
 # Test Executable
 # ─────────────────────────────────────────────────────────────────────────────
+add_executable(deterministic_adversity_transport_tests
+    test_deterministic_adversity_transport.cpp
+    ${CMAKE_SOURCE_DIR}/src/network/deterministic_adversity_transport.cpp
+    ${CMAKE_SOURCE_DIR}/src/network/protocol.cpp
+)
+
+target_link_libraries(deterministic_adversity_transport_tests PRIVATE
+    gtest
+    gtest_main
+)
+
+target_include_directories(deterministic_adversity_transport_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+)
+
+if(NOT EMSCRIPTEN)
+    target_compile_definitions(
+        deterministic_adversity_transport_tests PRIVATE VOXY_NATIVE=1)
+endif()
+
+set_project_warnings(deterministic_adversity_transport_tests)
+
+add_executable(wreckwater_protocol_tests
+    test_wreckwater_protocol.cpp
+    ${CMAKE_SOURCE_DIR}/src/network/protocol.cpp
+    ${CMAKE_SOURCE_DIR}/src/network/wreckwater_protocol.cpp
+)
+
+target_link_libraries(wreckwater_protocol_tests PRIVATE
+    gtest
+    gtest_main
+)
+
+target_include_directories(wreckwater_protocol_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+)
+
+if(NOT EMSCRIPTEN)
+    target_compile_definitions(wreckwater_protocol_tests PRIVATE VOXY_NATIVE=1)
+endif()
+
+set_project_warnings(wreckwater_protocol_tests)
+
+add_executable(wreckwater_client_replication_tests
+    test_wreckwater_client_replication.cpp
+    ${CMAKE_SOURCE_DIR}/src/network/wreckwater_client_replication.cpp
+    ${CMAKE_SOURCE_DIR}/src/network/wreckwater_protocol.cpp
+)
+
+target_link_libraries(wreckwater_client_replication_tests PRIVATE
+    gtest
+    gtest_main
+)
+
+target_include_directories(wreckwater_client_replication_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+)
+
+if(NOT EMSCRIPTEN)
+    target_compile_definitions(
+        wreckwater_client_replication_tests PRIVATE VOXY_NATIVE=1)
+endif()
+
+set_project_warnings(wreckwater_client_replication_tests)
+
+add_executable(wreckwater_client_runtime_tests
+    test_wreckwater_client_runtime.cpp
+    ${CMAKE_SOURCE_DIR}/src/network/protocol.cpp
+    ${CMAKE_SOURCE_DIR}/src/network/wreckwater_client_replication.cpp
+    ${CMAKE_SOURCE_DIR}/src/network/wreckwater_client_runtime.cpp
+    ${CMAKE_SOURCE_DIR}/src/network/wreckwater_protocol.cpp
+)
+
+target_link_libraries(wreckwater_client_runtime_tests PRIVATE
+    gtest
+    gtest_main
+)
+
+target_include_directories(wreckwater_client_runtime_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+)
+
+if(NOT EMSCRIPTEN)
+    target_compile_definitions(
+        wreckwater_client_runtime_tests PRIVATE VOXY_NATIVE=1)
+endif()
+
+set_project_warnings(wreckwater_client_runtime_tests)
+
+add_executable(wreckwater_client_probe_tests
+    test_wreckwater_client_probe.cpp
+    ${CMAKE_SOURCE_DIR}/src/client/wreckwater_client_probe.cpp
+)
+
+target_link_libraries(wreckwater_client_probe_tests PRIVATE
+    gtest
+    gtest_main
+)
+
+target_include_directories(wreckwater_client_probe_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+)
+
+if(NOT EMSCRIPTEN)
+    target_compile_definitions(
+        wreckwater_client_probe_tests PRIVATE VOXY_NATIVE=1)
+endif()
+
+set_project_warnings(wreckwater_client_probe_tests)
+
+add_executable(wreckwater_character_controller_tests
+    test_wreckwater_character_controller.cpp
+)
+
+target_link_libraries(wreckwater_character_controller_tests PRIVATE
+    voxy_core
+    gtest
+    gtest_main
+)
+
+target_include_directories(wreckwater_character_controller_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+)
+
+if(NOT EMSCRIPTEN)
+    target_compile_definitions(
+        wreckwater_character_controller_tests PRIVATE VOXY_NATIVE=1)
+endif()
+
+set_project_warnings(wreckwater_character_controller_tests)
+
+add_executable(wreckwater_character_platform_timeline_tests
+    test_wreckwater_character_platform_timeline.cpp
+)
+
+target_link_libraries(
+    wreckwater_character_platform_timeline_tests PRIVATE
+    voxy_core
+    gtest
+    gtest_main
+)
+
+target_include_directories(
+    wreckwater_character_platform_timeline_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+)
+
+if(NOT EMSCRIPTEN)
+    target_compile_definitions(
+        wreckwater_character_platform_timeline_tests
+        PRIVATE VOXY_NATIVE=1)
+endif()
+
+set_project_warnings(
+    wreckwater_character_platform_timeline_tests)
+
+add_executable(wreckwater_character_presentation_tests
+    test_wreckwater_character_presentation.cpp
+)
+
+target_link_libraries(wreckwater_character_presentation_tests PRIVATE
+    voxy_core
+    gtest
+    gtest_main
+)
+
+target_include_directories(wreckwater_character_presentation_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+)
+
+if(NOT EMSCRIPTEN)
+    target_compile_definitions(
+        wreckwater_character_presentation_tests PRIVATE VOXY_NATIVE=1)
+endif()
+
+set_project_warnings(wreckwater_character_presentation_tests)
+
+add_executable(wreckwater_application_client_tests
+    test_wreckwater_application_client.cpp
+)
+
+target_link_libraries(wreckwater_application_client_tests PRIVATE
+    voxy_core
+    gtest
+    gtest_main
+)
+
+target_include_directories(
+    wreckwater_application_client_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+)
+
+if(NOT EMSCRIPTEN)
+    target_compile_definitions(
+        wreckwater_application_client_tests PRIVATE VOXY_NATIVE=1)
+endif()
+
+set_project_warnings(wreckwater_application_client_tests)
+
+add_executable(wreckwater_third_person_camera_tests
+    test_wreckwater_third_person_camera.cpp
+)
+
+target_link_libraries(wreckwater_third_person_camera_tests PRIVATE
+    voxy_core
+    gtest
+    gtest_main
+)
+
+target_include_directories(wreckwater_third_person_camera_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+)
+
+if(NOT EMSCRIPTEN)
+    target_compile_definitions(
+        wreckwater_third_person_camera_tests PRIVATE VOXY_NATIVE=1)
+endif()
+
+set_project_warnings(wreckwater_third_person_camera_tests)
+
+add_executable(wreckwater_graphical_client_loop_tests
+    test_wreckwater_graphical_client_loop.cpp
+)
+
+target_link_libraries(
+    wreckwater_graphical_client_loop_tests PRIVATE
+    voxy_core
+    gtest
+    gtest_main
+)
+
+target_include_directories(
+    wreckwater_graphical_client_loop_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+)
+
+if(NOT EMSCRIPTEN)
+    target_compile_definitions(
+        wreckwater_graphical_client_loop_tests
+        PRIVATE VOXY_NATIVE=1)
+endif()
+
+set_project_warnings(
+    wreckwater_graphical_client_loop_tests)
+
+add_executable(wreckwater_client_visual_clock_tests
+    test_wreckwater_client_visual_clock.cpp
+)
+
+target_link_libraries(
+    wreckwater_client_visual_clock_tests PRIVATE
+    voxy_core
+    gtest
+    gtest_main
+)
+
+target_include_directories(
+    wreckwater_client_visual_clock_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+)
+
+if(NOT EMSCRIPTEN)
+    target_compile_definitions(
+        wreckwater_client_visual_clock_tests
+        PRIVATE VOXY_NATIVE=1)
+endif()
+
+set_project_warnings(
+    wreckwater_client_visual_clock_tests)
+
 add_executable(voxy_tests ${TEST_SOURCES})
 
 target_link_libraries(voxy_tests PRIVATE
@@ -104,6 +390,67 @@ endif()
 # Register Tests with CTest
 # ─────────────────────────────────────────────────────────────────────────────
 include(GoogleTest)
+gtest_discover_tests(deterministic_adversity_transport_tests
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    DISCOVERY_MODE PRE_TEST
+    TEST_PREFIX "deterministic_adversity_transport."
+)
+gtest_discover_tests(wreckwater_protocol_tests
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    DISCOVERY_MODE PRE_TEST
+    TEST_PREFIX "wreckwater_protocol."
+)
+gtest_discover_tests(wreckwater_client_replication_tests
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    DISCOVERY_MODE PRE_TEST
+    TEST_PREFIX "wreckwater_client_replication."
+)
+gtest_discover_tests(wreckwater_client_runtime_tests
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    DISCOVERY_MODE PRE_TEST
+    TEST_PREFIX "wreckwater_client_runtime."
+)
+gtest_discover_tests(wreckwater_client_probe_tests
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    DISCOVERY_MODE PRE_TEST
+    TEST_PREFIX "wreckwater_client_probe."
+)
+gtest_discover_tests(wreckwater_character_controller_tests
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    DISCOVERY_MODE PRE_TEST
+    TEST_PREFIX "wreckwater_character_controller."
+)
+gtest_discover_tests(
+    wreckwater_character_platform_timeline_tests
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    DISCOVERY_MODE PRE_TEST
+    TEST_PREFIX "wreckwater_character_platform_timeline."
+)
+gtest_discover_tests(wreckwater_character_presentation_tests
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    DISCOVERY_MODE PRE_TEST
+    TEST_PREFIX "wreckwater_character_presentation."
+)
+gtest_discover_tests(wreckwater_application_client_tests
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    DISCOVERY_MODE PRE_TEST
+    TEST_PREFIX "wreckwater_application_client."
+)
+gtest_discover_tests(wreckwater_third_person_camera_tests
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    DISCOVERY_MODE PRE_TEST
+    TEST_PREFIX "wreckwater_third_person_camera."
+)
+gtest_discover_tests(wreckwater_graphical_client_loop_tests
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    DISCOVERY_MODE PRE_TEST
+    TEST_PREFIX "wreckwater_graphical_client_loop."
+)
+gtest_discover_tests(wreckwater_client_visual_clock_tests
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    DISCOVERY_MODE PRE_TEST
+    TEST_PREFIX "wreckwater_client_visual_clock."
+)
 gtest_discover_tests(voxy_tests
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     DISCOVERY_MODE PRE_TEST

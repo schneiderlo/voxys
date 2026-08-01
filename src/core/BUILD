@@ -3,6 +3,18 @@ package(default_visibility = ["//visibility:public"])
 load("//settings:configure_copts.bzl", "PROJECT_DEFAULT_COPTS")
 
 cc_library(
+    name = "wreckwater_authority_log",
+    srcs = ["log.cpp"],
+    hdrs = ["log.hpp"],
+    copts = PROJECT_DEFAULT_COPTS,
+    defines = select({
+        "@platforms//cpu:wasm32": ["VOXY_WASM"],
+        "//conditions:default": ["VOXY_NATIVE"],
+    }),
+    includes = [".."],
+)
+
+cc_library(
     name = "core",
     srcs = [
         "config.cpp",

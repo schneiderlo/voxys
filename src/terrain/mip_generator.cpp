@@ -118,6 +118,45 @@ MipLevel generateNextMipLevel(std::span<const uint16_t> srcData,
     return result;
 }
 
+MipLevel generateFirstHeightfieldMipLevel(
+    std::span<const uint16_t> srcData,
+    uint32_t srcWidth, uint32_t srcHeight) {
+    MipLevel result;
+    if (!validMipSource(srcData, srcWidth, srcHeight)
+        || (srcWidth == 1u && srcHeight == 1u)) {
+        return result;
+    }
+
+    result.width = std::max(1u, srcWidth / 2u);
+    result.height = std::max(1u, srcHeight / 2u);
+    result.data.resize(result.sampleCount());
+    for (uint32_t y = 0u; y < result.height; ++y) {
+        const uint32_t sourceY0 = std::min(y * 2u, srcHeight - 1u);
+        const uint32_t sourceY1 =
+            std::min(sourceY0 + 2u, srcHeight - 1u);
+        for (uint32_t x = 0u; x < result.width; ++x) {
+            const uint32_t sourceX0 =
+                std::min(x * 2u, srcWidth - 1u);
+            const uint32_t sourceX1 =
+                std::min(sourceX0 + 2u, srcWidth - 1u);
+            uint16_t maximum = 0u;
+            for (uint32_t sourceY = sourceY0;
+                 sourceY <= sourceY1; ++sourceY) {
+                for (uint32_t sourceX = sourceX0;
+                     sourceX <= sourceX1; ++sourceX) {
+                    maximum = std::max(
+                        maximum,
+                        srcData[static_cast<size_t>(sourceY) * srcWidth
+                                + sourceX]);
+                }
+            }
+            result.data[static_cast<size_t>(y) * result.width + x] =
+                maximum;
+        }
+    }
+    return result;
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // MaxHeightMipChain Implementation
 // ═══════════════════════════════════════════════════════════════════════════════

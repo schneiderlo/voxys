@@ -172,6 +172,13 @@ private:
 [[nodiscard]] MipLevel generateNextMipLevel(std::span<const uint16_t> srcData,
                                              uint32_t srcWidth, uint32_t srcHeight);
 
+/// Generate level one for a continuous heightfield. Each destination texel
+/// includes the shared right and bottom boundary vertices of its 2x2 cell
+/// footprint, so the ray-caster's coarse maximum remains conservative.
+[[nodiscard]] MipLevel generateFirstHeightfieldMipLevel(
+    std::span<const uint16_t> srcData,
+    uint32_t srcWidth, uint32_t srcHeight);
+
 /// Calculate the number of mip levels for given dimensions.
 /// 
 /// @param width   Base width

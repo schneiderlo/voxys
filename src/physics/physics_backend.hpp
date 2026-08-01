@@ -68,18 +68,46 @@ public:
     }
     [[nodiscard]] virtual bool destroyBody(BodyHandle) { return false; }
     virtual void enqueue(std::span<const PhysicsCommand>) {}
+    [[nodiscard]] virtual AttachmentHandle createDistanceAttachment(
+        const DistanceAttachmentDesc&) { return {}; }
+    [[nodiscard]] virtual bool destroyAttachment(AttachmentHandle) {
+        return false;
+    }
+    [[nodiscard]] virtual bool setAttachmentTargetLength(
+        AttachmentHandle, float) { return false; }
+    [[nodiscard]] virtual bool setAttachmentMotorSpeed(
+        AttachmentHandle, float) { return false; }
+    [[nodiscard]] virtual PreparedPhysicsMutation prepareMutationBatch(
+        const PhysicsMutationBatch&) noexcept {
+        return {};
+    }
+    [[nodiscard]] virtual PhysicsMutationResult commitPrepared(
+        const PreparedPhysicsMutation&) noexcept {
+        return {};
+    }
+    [[nodiscard]] virtual bool discardPrepared(
+        const PreparedPhysicsMutation&) noexcept {
+        return false;
+    }
 
     // CPU backends execute here. A GPU backend can use this call to advance its
     // fixed-tick scheduler; GPU command encoding will be a separate interface.
     virtual void stepCpu(float deltaTime) = 0;
+    [[nodiscard]] virtual bool scheduleFixedTicks(uint32_t) { return false; }
     virtual void encodeGpuStep(WGPUCommandEncoder) {}
+    [[nodiscard]] virtual PhysicsEncodeReport encodeGpuStepChecked(
+        WGPUCommandEncoder) {
+        return {};
+    }
 
     [[nodiscard]] virtual bool submitQueries(
         std::span<const PhysicsQueryRequest>, uint64_t) { return false; }
     [[nodiscard]] virtual std::optional<PhysicsQueryBatch> pollQueryResults() {
         return std::nullopt;
     }
-    virtual void setEventReadbackEnabled(bool) {}
+    virtual bool setEventReadbackEnabled(bool enabled) {
+        return !enabled;
+    }
     [[nodiscard]] virtual std::optional<PhysicsEventBatch> pollEvents() {
         return std::nullopt;
     }

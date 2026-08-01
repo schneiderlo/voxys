@@ -48,6 +48,7 @@ namespace voxy {
 class Camera;
 class FreeFlyController;
 class CharacterController;
+struct WreckwaterApplicationClientState;
 
 namespace physics {
     class PhysicsWorld;
@@ -170,12 +171,12 @@ struct RendererRuntimeSettings {
     float waterReflectionStrength = 0.42f;
     float waterShoreFade = 30.0f;
     float waterIor = 1.31f;
-    float waterDistortion = 0.20f;
+    float waterDistortion = 0.04f;
     float waterAbsorptionScale = 1.0f;
     float waterScatterStrength = 1.0f;
-    float waterFoamSize = 261.0f;
-    float waterFoamOpacity = 0.30f;
-    float waterFoamCoverage = 0.21f;
+    float waterFoamSize = 96.0f;
+    float waterFoamOpacity = 0.07f;
+    float waterFoamCoverage = 0.14f;
     float waterReflectionDistance = 1500.0f;
     WaterSpectrumSettings waterSpectrum{};
 
@@ -185,6 +186,46 @@ struct RendererRuntimeSettings {
     float cameraMoveSpeed = 4.0f;
     float cameraMouseSensitivity = 0.002f;
     float cameraEyeHeight = 1.8f;
+};
+
+struct WreckwaterApplicationClientConfig {
+    std::string serverAddress;
+    uint16_t serverPort = 0u;
+    uint32_t peerId = 0u;
+    std::array<std::byte, 32> authenticationKey{};
+    std::array<std::byte, 32> expectedContentDigest{};
+    uint64_t sessionId = 0u;
+    uint64_t matchId = 0u;
+    uint64_t worldId = 0u;
+    uint32_t worldEpoch = 0u;
+    uint32_t authorityEpoch = 0u;
+    uint32_t inputLeadTicks = 8u;
+    uint32_t interpolationDelayTicks = 2u;
+};
+
+enum class WreckwaterApplicationConnectionState : uint32_t {
+    Disabled = 0u,
+    Connecting,
+    Authenticating,
+    Connected,
+    Failed,
+};
+
+struct WreckwaterApplicationClientTelemetry {
+    WreckwaterApplicationConnectionState connectionState =
+        WreckwaterApplicationConnectionState::Disabled;
+    uint64_t frames = 0u;
+    uint64_t snapshotsAccepted = 0u;
+    uint64_t rejectedFrames = 0u;
+    uint64_t socketErrors = 0u;
+    uint64_t cameraProbeFailures = 0u;
+    uint32_t visibleProxies = 0u;
+    uint32_t lastFrameStatus = 0u;
+    uint32_t lastRuntimeError = 0u;
+    uint32_t lastReplicationError = 0u;
+    bool cameraValid = false;
+    bool cameraProbeOutstanding = false;
+    bool enabled = false;
 };
 
 /// Application configuration
@@ -252,6 +293,10 @@ struct ApplicationConfig {
     float cameraMoveSpeed = 4.0f;          // Walking speed (was 50.0)
     float cameraMouseSensitivity = 0.002f;
     float cameraEyeHeight = 1.8f;          // Eye height above ground
+
+    // Default-off native TCP graphical client. WebAssembly rejects a
+    // populated bootstrap because it has no POSIX TCP transport.
+    std::optional<WreckwaterApplicationClientConfig> wreckwaterClient;
 
     // Debug settings
     bool enableValidation = true;          ///< WebGPU validation layers
@@ -569,6 +614,10 @@ public:
 
     /// Get runtime statistics.
     [[nodiscard]] const ApplicationStats& getStats() const noexcept { return stats_; }
+    [[nodiscard]] const WreckwaterApplicationClientTelemetry&
+    getWreckwaterClientTelemetry() const noexcept {
+        return wreckwaterClientTelemetry_;
+    }
 
     /// Drain one raw GPU physics timing packet retained by updateStats().
     /// A fixed ring preserves every profiled tick without allocating per frame.
@@ -623,6 +672,7 @@ private:
     bool initTerrain();
     bool initRenderers();
     bool initRenderGpuProfiling();
+    bool initWreckwaterClient();
     bool createBenchmarkTarget(uint32_t width, uint32_t height);
     bool spawnBenchmarkBodies();
     bool spawnCubePyramidExperiment();
@@ -666,6 +716,9 @@ private:
     [[nodiscard]] uint32_t throwThrowableBatch(
         physics::ThrowableShape shape, uint32_t maximumBodies);
     void handleKeyboardShortcuts();
+    void updateWreckwaterClient(float deltaTime);
+    void pollWreckwaterCameraProbe();
+    void submitWreckwaterCameraProbe();
 
     // ─────────────────────────────────────────────────────────────────────────
     // State
@@ -680,6 +733,10 @@ private:
     glm::vec3 appliedShadowSunDirection_ =
         RendererRuntimeSettings{}.sunDirection;
     ApplicationStats stats_;
+    WreckwaterApplicationClientTelemetry
+        wreckwaterClientTelemetry_{};
+    std::unique_ptr<WreckwaterApplicationClientState>
+        wreckwaterClientState_;
     static constexpr size_t kPhysicsGpuTimingSampleCapacity = 64u;
     std::array<physics::PhysicsGpuStageTiming,
                kPhysicsGpuTimingSampleCapacity> physicsGpuTimingSamples_{};

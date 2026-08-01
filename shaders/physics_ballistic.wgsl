@@ -39,6 +39,7 @@ const COMMAND_SET_MATERIAL : u32 = 7u;
 const COMMAND_WAKE : u32 = 8u;
 const COMMAND_SLEEP : u32 = 9u;
 const COMMAND_KINEMATIC_TARGET : u32 = 10u;
+const COMMAND_FORCE_AT_LOCAL_POINT : u32 = 11u;
 
 struct BodyPose {
     position_invMass : vec4<f32>,
@@ -269,7 +270,7 @@ fn apply_commands(@builtin(global_invocation_id) gid : vec3<u32>) {
             continue;
         }
         if (!is_live(body, generation)
-            || commandType > COMMAND_KINEMATIC_TARGET) { continue; }
+            || commandType > COMMAND_FORCE_AT_LOCAL_POINT) { continue; }
         if (commandType == COMMAND_DESTROY) {
             var nextGeneration = (generation + 1u) & GENERATION_MASK;
             if (nextGeneration == 0u) { nextGeneration = 1u; }
@@ -293,6 +294,29 @@ fn apply_commands(@builtin(global_invocation_id) gid : vec3<u32>) {
             forces[body] = vec4<f32>(forces[body].xyz + command.p0.xyz, 0.0);
             motions[body].linearVelocity_sleep.w = 0.0;
             set_body_flags(body, body_flags(body) | BODY_AWAKE);
+        } else if (commandType == COMMAND_FORCE_AT_LOCAL_POINT) {
+            let inverseMass = poses[body].position_invMass.w;
+            if (inverseMass > 0.0) {
+                let orientation = poses[body].orientation;
+                let shapeType = u32(clamp(
+                    shapes[body].dimensions_type.w, 0.0, 4.0));
+                let inverseInertia = shape_inverse_inertia(
+                    shapes[body].dimensions_type.xyz,
+                    shapeType, inverseMass);
+                let worldLever = rotate_by_quaternion(
+                    orientation, command.p1.xyz);
+                let angularAcceleration = inverse_inertia_world(
+                    orientation, inverseInertia,
+                    cross(worldLever, command.p0.xyz));
+                forces[body] = vec4<f32>(
+                    forces[body].xyz + command.p0.xyz, 0.0);
+                motions[body].angularVelocity_flags = vec4<f32>(
+                    motions[body].angularVelocity_flags.xyz
+                        + angularAcceleration * sim.gravity_dt.w,
+                    motions[body].angularVelocity_flags.w);
+                motions[body].linearVelocity_sleep.w = 0.0;
+                set_body_flags(body, body_flags(body) | BODY_AWAKE);
+            }
         } else if (commandType == COMMAND_SET_VELOCITY) {
             motions[body].linearVelocity_sleep = vec4<f32>(
                 command.p0.xyz, 0.0);

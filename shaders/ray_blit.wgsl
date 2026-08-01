@@ -81,6 +81,11 @@ struct DebugUniforms {
 @group(0) @binding(14) var fusedShadowHeightTex : texture_2d<u32>;
 @group(0) @binding(15) var fusedWaterDisplacementTex : texture_2d_array<f32>;
 @group(0) @binding(16) var fusedWaterDisplacementSampler : sampler;
+// Bounded PBR terrain pack: sand, soil, grass, and exposed rock.
+// Detail stores tangent-space NormalGL XYZ and perceptual roughness in A.
+@group(0) @binding(17) var terrainMaterialAlbedo : texture_2d_array<f32>;
+@group(0) @binding(18) var terrainMaterialNormalRoughness :
+    texture_2d_array<f32>;
 
 const MATERIAL_SKY : u32 = 0u;
 const MATERIAL_TERRAIN : u32 = 1u;
@@ -89,10 +94,10 @@ const MATERIAL_WATER : u32 = 2u;
 // Ocean colors are linear sRGB. Absorption is a Beer-Lambert coefficient,
 // not a display tint.
 const OCEAN_BASE_ABSORPTION : vec3<f32> =
-    vec3<f32>(0.015208514, 0.009134059, 0.008568126);
-const OCEAN_SKY_BRIGHTNESS : f32 = 0.9;
+    vec3<f32>(0.0580, 0.0290, 0.0120);
+const OCEAN_SKY_BRIGHTNESS : f32 = 0.62;
 const OCEAN_REFLECTION_ROUGHNESS_STRENGTH : f32 = 0.50;
-const OCEAN_FILM_GRAIN : f32 = 0.06;
+const OCEAN_FILM_GRAIN : f32 = 0.015;
 const OCEAN_VIGNETTE : f32 = 0.25;
 const OCEAN_VIGNETTE_SMOOTHNESS : f32 = 0.85;
 const OCEAN_UNDERWATER_DISTORTION : f32 = 0.015;
@@ -207,6 +212,24 @@ fn viewToWorld(invView : mat4x4<f32>, viewPos : vec3<f32>) -> vec3<f32> {
     return (invView * vec4<f32>(viewPos, 1.0)).xyz;
 }
 
+fn worldNormalToView(worldNormal : vec3<f32>) -> vec3<f32> {
+    // invView's first three columns are the view basis in world space.
+    return normalize(vec3<f32>(
+        dot(worldNormal, camera.invView[0].xyz),
+        dot(worldNormal, camera.invView[1].xyz),
+        dot(worldNormal, camera.invView[2].xyz)));
+}
+
+fn filterUpFacingTerrainNormal(worldNormal : vec3<f32>) -> vec3<f32> {
+    // Terrain Diffusion preserves useful macro relief but also leaves a
+    // one-cell directional corrugation. Treat that frequency like geometric
+    // normal-map detail on soil/grass, while leaving real rock faces intact.
+    let filterWeight =
+        smoothstep(0.70, 0.94, worldNormal.y) * 0.90;
+    return normalize(mix(
+        worldNormal, vec3<f32>(0.0, 1.0, 0.0), filterWeight));
+}
+
 /// Compute terrain UV coordinates from world-space position
 /// Maps world XZ position to [0, 1] UV range based on terrain dimensions
 fn terrainUV(worldPos : vec3<f32>) -> vec2<f32> {
@@ -263,9 +286,13 @@ fn visibleSkyRadiance(dir : vec3<f32>) -> vec3<f32> {
 // ─────────────────────────────────────────────────────────────────────────────
 
 fn waterWaveNormal(wave : vec4<f32>) -> vec3<f32> {
-    let horizontalSquared = dot(wave.yz, wave.yz);
+    // The FFT normal layers contain sub-pixel slopes that are valid for close
+    // highlights but alias into repeated Fresnel pits after reconstruction.
+    // Keep geometry displacement intact and band-limit only the shading slope.
+    let horizontal = wave.yz * 0.72;
+    let horizontalSquared = dot(horizontal, horizontal);
     let vertical = sqrt(max(1.0 - horizontalSquared, 0.0));
-    return normalize(vec3<f32>(wave.y, vertical, wave.z));
+    return normalize(vec3<f32>(horizontal.x, vertical, horizontal.y));
 }
 
 // Exact unpolarized dielectric Fresnel. The sign of cosine
@@ -317,6 +344,1269 @@ fn srgbToLinear(encoded : vec3<f32>) -> vec3<f32> {
     let high = pow((encoded + vec3<f32>(0.055)) / 1.055,
                    vec3<f32>(2.4));
     return select(high, low, encoded <= vec3<f32>(0.04045));
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Shoreline terrain material
+// ─────────────────────────────────────────────────────────────────────────────
+
+const TERRAIN_LAYER_SAND : i32 = 0;
+const TERRAIN_LAYER_SOIL : i32 = 1;
+const TERRAIN_LAYER_GRASS : i32 = 2;
+const TERRAIN_LAYER_ROCK : i32 = 3;
+
+struct TerrainLayerSample {
+    albedo : vec3<f32>,
+    tangentNormal : vec3<f32>,
+    roughness : f32,
+};
+
+struct TerrainSurface {
+    albedo : vec3<f32>,
+    normal : vec3<f32>,
+    roughness : f32,
+    wetness : f32,
+};
+
+struct CovePropHit {
+    distance : f32,
+    normal : vec3<f32>,
+    grainCoordinate : f32,
+    materialCue : f32,
+};
+
+fn missedCoveProp() -> CovePropHit {
+    return CovePropHit(
+        -1.0, vec3<f32>(0.0, 1.0, 0.0), 0.0, 0.0);
+}
+
+fn intersectCovePropSphere(
+    rayOrigin : vec3<f32>, rayDirection : vec3<f32>,
+    center : vec3<f32>, radius : f32,
+    maximumDistance : f32, grainCoordinate : f32) -> CovePropHit {
+    let offset = rayOrigin - center;
+    let projected = dot(rayDirection, offset);
+    let constant = dot(offset, offset) - radius * radius;
+    let discriminant = projected * projected - constant;
+    if (discriminant < 0.0) {
+        return missedCoveProp();
+    }
+    let distance = -projected - sqrt(discriminant);
+    if (distance <= 0.001 || distance >= maximumDistance) {
+        return missedCoveProp();
+    }
+    let normal = normalize(
+        rayOrigin + rayDirection * distance - center);
+    return CovePropHit(distance, normal, grainCoordinate, 0.0);
+}
+
+fn intersectCovePropCapsule(
+    rayOrigin : vec3<f32>, rayDirection : vec3<f32>,
+    endpointA : vec3<f32>, endpointB : vec3<f32>,
+    radius : f32, maximumDistance : f32) -> CovePropHit {
+    let axis = endpointB - endpointA;
+    let offset = rayOrigin - endpointA;
+    let axisLengthSquared = dot(axis, axis);
+    let axisRay = dot(axis, rayDirection);
+    let axisOffset = dot(axis, offset);
+    let rayOffset = dot(rayDirection, offset);
+    let offsetSquared = dot(offset, offset);
+    let quadratic =
+        axisLengthSquared - axisRay * axisRay;
+    let linear =
+        axisLengthSquared * rayOffset - axisOffset * axisRay;
+    let constant =
+        axisLengthSquared * offsetSquared -
+        axisOffset * axisOffset -
+        radius * radius * axisLengthSquared;
+    var best = missedCoveProp();
+    let discriminant =
+        linear * linear - quadratic * constant;
+    if (quadratic > 1.0e-6 && discriminant >= 0.0) {
+        let distance =
+            (-linear - sqrt(discriminant)) / quadratic;
+        let axisPosition = axisOffset + distance * axisRay;
+        if (distance > 0.001 && distance < maximumDistance &&
+            axisPosition >= 0.0 &&
+            axisPosition <= axisLengthSquared) {
+            let radial =
+                offset + rayDirection * distance -
+                axis * (axisPosition / axisLengthSquared);
+            best = CovePropHit(
+                distance, normalize(radial),
+                axisPosition / sqrt(axisLengthSquared), 0.0);
+        }
+    }
+
+    let axisLength = sqrt(axisLengthSquared);
+    let firstCap = intersectCovePropSphere(
+        rayOrigin, rayDirection, endpointA, radius,
+        select(maximumDistance, best.distance, best.distance > 0.0),
+        0.0);
+    if (firstCap.distance > 0.0) {
+        best = firstCap;
+    }
+    let secondCap = intersectCovePropSphere(
+        rayOrigin, rayDirection, endpointB, radius,
+        select(maximumDistance, best.distance, best.distance > 0.0),
+        axisLength);
+    if (secondCap.distance > 0.0) {
+        best = secondCap;
+    }
+    return best;
+}
+
+fn intersectCovePropCapsuleCue(
+    rayOrigin : vec3<f32>, rayDirection : vec3<f32>,
+    endpointA : vec3<f32>, endpointB : vec3<f32>,
+    radius : f32, materialCue : f32,
+    maximumDistance : f32) -> CovePropHit {
+    var hit = intersectCovePropCapsule(
+        rayOrigin, rayDirection,
+        endpointA, endpointB, radius, maximumDistance);
+    if (hit.distance > 0.0) {
+        hit.materialCue = materialCue;
+    }
+    return hit;
+}
+
+fn intersectCovePropBox(
+    rayOrigin : vec3<f32>, rayDirection : vec3<f32>,
+    center : vec3<f32>, halfExtents : vec3<f32>,
+    materialCue : f32, maximumDistance : f32) -> CovePropHit {
+    let inlandAxis = vec3<f32>(-0.2730, 0.0, 0.9620);
+    let alongshoreAxis = vec3<f32>(-0.9620, 0.0, -0.2730);
+    let offset = rayOrigin - center;
+    let localOrigin = vec3<f32>(
+        dot(offset, inlandAxis),
+        offset.y,
+        dot(offset, alongshoreAxis));
+    let localDirection = vec3<f32>(
+        dot(rayDirection, inlandAxis),
+        rayDirection.y,
+        dot(rayDirection, alongshoreAxis));
+    let safeDirection = select(
+        vec3<f32>(1.0e-6), localDirection,
+        abs(localDirection) > vec3<f32>(1.0e-6));
+    let first = (-halfExtents - localOrigin) / safeDirection;
+    let second = (halfExtents - localOrigin) / safeDirection;
+    let nearPlane = min(first, second);
+    let farPlane = max(first, second);
+    let distance = max(
+        max(nearPlane.x, nearPlane.y), nearPlane.z);
+    let farDistance = min(
+        min(farPlane.x, farPlane.y), farPlane.z);
+    if (distance <= 0.001 || distance >= maximumDistance ||
+        farDistance < distance) {
+        return missedCoveProp();
+    }
+
+    let localHit = localOrigin + localDirection * distance;
+    let face = abs(localHit) / max(halfExtents, vec3<f32>(1.0e-5));
+    var localNormal = vec3<f32>(0.0);
+    if (face.x > face.y && face.x > face.z) {
+        localNormal.x = sign(localHit.x);
+    } else if (face.y > face.z) {
+        localNormal.y = sign(localHit.y);
+    } else {
+        localNormal.z = sign(localHit.z);
+    }
+    let worldNormal =
+        inlandAxis * localNormal.x +
+        vec3<f32>(0.0, 1.0, 0.0) * localNormal.y +
+        alongshoreAxis * localNormal.z;
+    return CovePropHit(
+        distance, worldNormal, localHit.z, materialCue);
+}
+
+fn intersectCovePropHull(
+    rayOrigin : vec3<f32>, rayDirection : vec3<f32>,
+    center : vec3<f32>, radii : vec3<f32>,
+    minimumAlongshore : f32, maximumAlongshore : f32,
+    openTop : f32, maximumDistance : f32) -> CovePropHit {
+    let inlandAxis = vec3<f32>(-0.2730, 0.0, 0.9620);
+    let alongshoreAxis = vec3<f32>(-0.9620, 0.0, -0.2730);
+    let offset = rayOrigin - center;
+    let localOrigin = vec3<f32>(
+        dot(offset, inlandAxis),
+        offset.y,
+        dot(offset, alongshoreAxis));
+    let localDirection = vec3<f32>(
+        dot(rayDirection, inlandAxis),
+        rayDirection.y,
+        dot(rayDirection, alongshoreAxis));
+    let normalizedOrigin = localOrigin / radii;
+    let normalizedDirection = localDirection / radii;
+    let quadratic = dot(normalizedDirection, normalizedDirection);
+    let linear = dot(normalizedOrigin, normalizedDirection);
+    let constant = dot(normalizedOrigin, normalizedOrigin) - 1.0;
+    let discriminant = linear * linear - quadratic * constant;
+    if (discriminant < 0.0 || quadratic <= 1.0e-7) {
+        return missedCoveProp();
+    }
+
+    let root = sqrt(discriminant);
+    let nearDistance = (-linear - root) / quadratic;
+    let farDistance = (-linear + root) / quadratic;
+    var best = missedCoveProp();
+
+    let nearHit = localOrigin + localDirection * nearDistance;
+    if (nearDistance > 0.001 && nearDistance < maximumDistance &&
+        nearHit.z >= minimumAlongshore &&
+        nearHit.z <= maximumAlongshore &&
+        nearHit.y <= openTop) {
+        let localNormal = normalize(nearHit / (radii * radii));
+        let worldNormal =
+            inlandAxis * localNormal.x +
+            vec3<f32>(0.0, 1.0, 0.0) * localNormal.y +
+            alongshoreAxis * localNormal.z;
+        best = CovePropHit(
+            nearDistance, normalize(worldNormal), nearHit.z, 0.30);
+    }
+
+    let farHit = localOrigin + localDirection * farDistance;
+    if (best.distance <= 0.0 &&
+        farDistance > 0.001 && farDistance < maximumDistance &&
+        farHit.z >= minimumAlongshore &&
+        farHit.z <= maximumAlongshore &&
+        farHit.y <= openTop) {
+        let localNormal = normalize(farHit / (radii * radii));
+        let worldNormal =
+            inlandAxis * localNormal.x +
+            vec3<f32>(0.0, 1.0, 0.0) * localNormal.y +
+            alongshoreAxis * localNormal.z;
+        best = CovePropHit(
+            farDistance, normalize(worldNormal), farHit.z, 0.30);
+    }
+    return best;
+}
+
+fn closestCoveProp(
+    first : CovePropHit, second : CovePropHit) -> CovePropHit {
+    if (second.distance > 0.0 &&
+        (first.distance <= 0.0 || second.distance < first.distance)) {
+        return second;
+    }
+    return first;
+}
+
+fn coveHullPoint(
+    inland : f32, alongshore : f32, height : f32) -> vec3<f32> {
+    // Broadside to the authored inlet. Keeping the hull in cove-local
+    // coordinates makes its keel, planking, and contact footprint agree.
+    return vec3<f32>(-650.0, height - 2.60, 3471.0) +
+           vec3<f32>(-0.2730, 0.0, 0.9620) * inland +
+           vec3<f32>(-0.9620, 0.0, -0.2730) * alongshore;
+}
+
+fn authoredCovePropHit(
+    rayOrigin : vec3<f32>, rayDirection : vec3<f32>,
+    maximumDistance : f32) -> CovePropHit {
+    // The wreck is evaluated only inside this conservative local sphere.
+    // Its tallest broken spar still fits, while ordinary cove pixels pay one
+    // quadratic and return.
+    let boundsOffset =
+        rayOrigin - coveHullPoint(0.0, 0.0, -191.5);
+    let boundsProjection = dot(rayDirection, boundsOffset);
+    let boundsDiscriminant =
+        boundsProjection * boundsProjection -
+        (dot(boundsOffset, boundsOffset) - 24.0 * 24.0);
+    if (boundsDiscriminant < 0.0) {
+        return missedCoveProp();
+    }
+    let boundsRoot = sqrt(boundsDiscriminant);
+    if (-boundsProjection + boundsRoot <= 0.001 ||
+        -boundsProjection - boundsRoot >= maximumDistance) {
+        return missedCoveProp();
+    }
+
+    var best = missedCoveProp();
+
+    // A twenty-eight-metre lower hull supplies one uninterrupted silhouette.
+    // Its deeper vertical radius puts the keel below the local sand while
+    // retaining 3–5 metres of readable side above the surf.
+    best = closestCoveProp(best, intersectCovePropHull(
+        rayOrigin, rayDirection,
+        coveHullPoint(0.0, 0.2, -194.40),
+        vec3<f32>(4.60, 6.20, 14.60),
+        -14.1, 14.4, 0.60, maximumDistance));
+
+    // Raised, unequal stems keep the ellipsoid ends from reading as a canoe.
+    best = closestCoveProp(best, intersectCovePropCapsuleCue(
+        rayOrigin, rayDirection,
+        coveHullPoint(0.0, -13.5, -200.0),
+        coveHullPoint(0.15, -15.0, -194.1),
+        0.55, 0.08, maximumDistance));
+    best = closestCoveProp(best, intersectCovePropCapsuleCue(
+        rayOrigin, rayDirection,
+        coveHullPoint(0.15, -15.0, -194.1),
+        coveHullPoint(0.0, -14.25, -190.7),
+        0.48, 0.08, maximumDistance));
+    best = closestCoveProp(best, intersectCovePropCapsuleCue(
+        rayOrigin, rayDirection,
+        coveHullPoint(0.0, 13.8, -200.1),
+        coveHullPoint(0.10, 15.1, -193.6),
+        0.58, 0.08, maximumDistance));
+    best = closestCoveProp(best, intersectCovePropCapsuleCue(
+        rayOrigin, rayDirection,
+        coveHullPoint(0.10, 15.1, -193.6),
+        coveHullPoint(0.0, 14.15, -189.9),
+        0.45, 0.08, maximumDistance));
+
+    // Nine bent near-side frames. Each is two segments rather than one
+    // telephone-pole primitive: keel-to-bilge, then bilge-to-gunwale.
+    best = closestCoveProp(best, intersectCovePropCapsuleCue(
+        rayOrigin, rayDirection,
+        coveHullPoint(0.0, -11.7, -199.1),
+        coveHullPoint(3.45, -11.7, -195.9),
+        0.30, 0.78, maximumDistance));
+    best = closestCoveProp(best, intersectCovePropCapsuleCue(
+        rayOrigin, rayDirection,
+        coveHullPoint(3.45, -11.7, -195.9),
+        coveHullPoint(4.35, -11.7, -191.4),
+        0.27, 0.78, maximumDistance));
+    best = closestCoveProp(best, intersectCovePropCapsuleCue(
+        rayOrigin, rayDirection,
+        coveHullPoint(0.0, -8.8, -199.3),
+        coveHullPoint(3.75, -8.8, -195.8),
+        0.31, 0.84, maximumDistance));
+    best = closestCoveProp(best, intersectCovePropCapsuleCue(
+        rayOrigin, rayDirection,
+        coveHullPoint(3.75, -8.8, -195.8),
+        coveHullPoint(4.65, -8.8, -190.9),
+        0.28, 0.84, maximumDistance));
+    best = closestCoveProp(best, intersectCovePropCapsuleCue(
+        rayOrigin, rayDirection,
+        coveHullPoint(0.0, -5.7, -199.4),
+        coveHullPoint(3.90, -5.7, -195.7),
+        0.30, 0.90, maximumDistance));
+    best = closestCoveProp(best, intersectCovePropCapsuleCue(
+        rayOrigin, rayDirection,
+        coveHullPoint(3.90, -5.7, -195.7),
+        coveHullPoint(4.75, -5.7, -190.6),
+        0.27, 0.90, maximumDistance));
+    best = closestCoveProp(best, intersectCovePropCapsuleCue(
+        rayOrigin, rayDirection,
+        coveHullPoint(0.0, -2.4, -199.5),
+        coveHullPoint(3.98, -2.4, -195.7),
+        0.32, 0.82, maximumDistance));
+    best = closestCoveProp(best, intersectCovePropCapsuleCue(
+        rayOrigin, rayDirection,
+        coveHullPoint(3.98, -2.4, -195.7),
+        coveHullPoint(4.82, -2.4, -190.4),
+        0.29, 0.82, maximumDistance));
+    best = closestCoveProp(best, intersectCovePropCapsuleCue(
+        rayOrigin, rayDirection,
+        coveHullPoint(0.0, 1.0, -199.5),
+        coveHullPoint(4.05, 1.0, -195.6),
+        0.31, 0.88, maximumDistance));
+    best = closestCoveProp(best, intersectCovePropCapsuleCue(
+        rayOrigin, rayDirection,
+        coveHullPoint(4.05, 1.0, -195.6),
+        coveHullPoint(4.88, 1.0, -190.5),
+        0.28, 0.88, maximumDistance));
+    best = closestCoveProp(best, intersectCovePropCapsuleCue(
+        rayOrigin, rayDirection,
+        coveHullPoint(0.0, 4.3, -199.5),
+        coveHullPoint(3.95, 4.3, -195.7),
+        0.30, 0.80, maximumDistance));
+    best = closestCoveProp(best, intersectCovePropCapsuleCue(
+        rayOrigin, rayDirection,
+        coveHullPoint(3.95, 4.3, -195.7),
+        coveHullPoint(4.80, 4.3, -190.7),
+        0.27, 0.80, maximumDistance));
+    best = closestCoveProp(best, intersectCovePropCapsuleCue(
+        rayOrigin, rayDirection,
+        coveHullPoint(0.0, 7.5, -199.4),
+        coveHullPoint(3.80, 7.5, -195.8),
+        0.32, 0.86, maximumDistance));
+    best = closestCoveProp(best, intersectCovePropCapsuleCue(
+        rayOrigin, rayDirection,
+        coveHullPoint(3.80, 7.5, -195.8),
+        coveHullPoint(4.65, 7.5, -190.9),
+        0.29, 0.86, maximumDistance));
+    best = closestCoveProp(best, intersectCovePropCapsuleCue(
+        rayOrigin, rayDirection,
+        coveHullPoint(0.0, 10.3, -199.2),
+        coveHullPoint(3.55, 10.3, -195.9),
+        0.30, 0.92, maximumDistance));
+    best = closestCoveProp(best, intersectCovePropCapsuleCue(
+        rayOrigin, rayDirection,
+        coveHullPoint(3.55, 10.3, -195.9),
+        coveHullPoint(4.40, 10.3, -191.2),
+        0.27, 0.92, maximumDistance));
+    best = closestCoveProp(best, intersectCovePropCapsuleCue(
+        rayOrigin, rayDirection,
+        coveHullPoint(0.0, 12.7, -198.9),
+        coveHullPoint(3.15, 12.7, -195.8),
+        0.29, 0.82, maximumDistance));
+    best = closestCoveProp(best, intersectCovePropCapsuleCue(
+        rayOrigin, rayDirection,
+        coveHullPoint(3.15, 12.7, -195.8),
+        coveHullPoint(3.95, 12.7, -191.5),
+        0.26, 0.82, maximumDistance));
+
+    // Sparse far-side frames make the opened upper hull read as a cavity.
+    best = closestCoveProp(best, intersectCovePropCapsuleCue(
+        rayOrigin, rayDirection,
+        coveHullPoint(-3.65, -9.7, -195.8),
+        coveHullPoint(-4.45, -9.7, -191.1),
+        0.24, 0.98, maximumDistance));
+    best = closestCoveProp(best, intersectCovePropCapsuleCue(
+        rayOrigin, rayDirection,
+        coveHullPoint(-3.95, -5.0, -195.7),
+        coveHullPoint(-4.72, -5.0, -190.8),
+        0.24, 0.98, maximumDistance));
+    best = closestCoveProp(best, intersectCovePropCapsuleCue(
+        rayOrigin, rayDirection,
+        coveHullPoint(-4.05, 0.0, -195.6),
+        coveHullPoint(-4.82, 0.0, -190.7),
+        0.25, 0.98, maximumDistance));
+    best = closestCoveProp(best, intersectCovePropCapsuleCue(
+        rayOrigin, rayDirection,
+        coveHullPoint(-3.92, 5.1, -195.7),
+        coveHullPoint(-4.68, 5.1, -190.9),
+        0.24, 0.98, maximumDistance));
+    best = closestCoveProp(best, intersectCovePropCapsuleCue(
+        rayOrigin, rayDirection,
+        coveHullPoint(-3.58, 9.6, -195.9),
+        coveHullPoint(-4.38, 9.6, -191.3),
+        0.24, 0.98, maximumDistance));
+
+    // Thin, irregular surviving plank courses. Their short unequal runs leave
+    // intentional holes through which the frame chains remain visible.
+    best = closestCoveProp(best, intersectCovePropBox(
+        rayOrigin, rayDirection,
+        coveHullPoint(4.30, -9.0, -194.65),
+        vec3<f32>(0.28, 0.24, 4.2),
+        0.05, maximumDistance));
+    best = closestCoveProp(best, intersectCovePropBox(
+        rayOrigin, rayDirection,
+        coveHullPoint(4.45, 0.2, -194.55),
+        vec3<f32>(0.27, 0.22, 3.2),
+        0.05, maximumDistance));
+    best = closestCoveProp(best, intersectCovePropBox(
+        rayOrigin, rayDirection,
+        coveHullPoint(4.18, 9.3, -194.30),
+        vec3<f32>(0.28, 0.23, 4.0),
+        0.05, maximumDistance));
+    best = closestCoveProp(best, intersectCovePropBox(
+        rayOrigin, rayDirection,
+        coveHullPoint(4.62, -10.2, -192.95),
+        vec3<f32>(0.25, 0.20, 2.9),
+        0.04, maximumDistance));
+    best = closestCoveProp(best, intersectCovePropBox(
+        rayOrigin, rayDirection,
+        coveHullPoint(4.78, -2.8, -192.80),
+        vec3<f32>(0.24, 0.19, 2.4),
+        0.04, maximumDistance));
+    best = closestCoveProp(best, intersectCovePropBox(
+        rayOrigin, rayDirection,
+        coveHullPoint(4.70, 4.6, -192.72),
+        vec3<f32>(0.25, 0.20, 3.0),
+        0.04, maximumDistance));
+    best = closestCoveProp(best, intersectCovePropBox(
+        rayOrigin, rayDirection,
+        coveHullPoint(4.43, 11.2, -192.60),
+        vec3<f32>(0.24, 0.19, 1.7),
+        0.04, maximumDistance));
+    best = closestCoveProp(best, intersectCovePropBox(
+        rayOrigin, rayDirection,
+        coveHullPoint(4.55, -8.2, -191.20),
+        vec3<f32>(0.23, 0.18, 3.6),
+        0.03, maximumDistance));
+    best = closestCoveProp(best, intersectCovePropBox(
+        rayOrigin, rayDirection,
+        coveHullPoint(4.82, 0.0, -191.00),
+        vec3<f32>(0.22, 0.18, 2.2),
+        0.03, maximumDistance));
+    best = closestCoveProp(best, intersectCovePropBox(
+        rayOrigin, rayDirection,
+        coveHullPoint(4.40, 8.5, -190.80),
+        vec3<f32>(0.23, 0.18, 3.7),
+        0.03, maximumDistance));
+
+    // A few far-side plank remnants deepen the opened cavity.
+    best = closestCoveProp(best, intersectCovePropBox(
+        rayOrigin, rayDirection,
+        coveHullPoint(-4.55, -7.2, -190.75),
+        vec3<f32>(0.22, 0.16, 3.1),
+        0.96, maximumDistance));
+    best = closestCoveProp(best, intersectCovePropBox(
+        rayOrigin, rayDirection,
+        coveHullPoint(-4.72, 1.4, -190.55),
+        vec3<f32>(0.22, 0.16, 2.6),
+        0.96, maximumDistance));
+    best = closestCoveProp(best, intersectCovePropBox(
+        rayOrigin, rayDirection,
+        coveHullPoint(-4.35, 9.2, -190.55),
+        vec3<f32>(0.22, 0.16, 2.8),
+        0.96, maximumDistance));
+
+    // Seventeen-metre broken mast and its surviving yard dominate the skyline.
+    best = closestCoveProp(best, intersectCovePropCapsuleCue(
+        rayOrigin, rayDirection,
+        coveHullPoint(0.25, -1.2, -197.6),
+        coveHullPoint(0.10, -5.8, -180.8),
+        0.54, 0.06, maximumDistance));
+    best = closestCoveProp(best, intersectCovePropCapsuleCue(
+        rayOrigin, rayDirection,
+        coveHullPoint(0.10, -12.7, -183.0),
+        coveHullPoint(0.10, -4.8, -180.9),
+        0.30, 0.08, maximumDistance));
+    return best;
+}
+
+fn distanceToCoveSegment(
+    point : vec2<f32>, endpointA : vec2<f32>,
+    endpointB : vec2<f32>) -> f32 {
+    let axis = endpointB - endpointA;
+    let axisLengthSquared = max(dot(axis, axis), 1.0e-5);
+    let fraction = clamp(
+        dot(point - endpointA, axis) / axisLengthSquared,
+        0.0, 1.0);
+    return length(point - (endpointA + axis * fraction));
+}
+
+fn coveDriftwoodContact(worldPosition : vec2<f32>) -> f32 {
+    let offset = worldPosition - vec2<f32>(-650.0, 3471.0);
+    let hullInland = dot(offset, vec2<f32>(-0.2730, 0.9620));
+    let hullAlongshore = dot(offset, vec2<f32>(-0.9620, -0.2730));
+    let footprint = length(vec2<f32>(
+        hullInland / 4.8, hullAlongshore / 14.4));
+    let hullContact =
+        1.0 - smoothstep(0.70, 1.18, footprint);
+    return mix(1.0, 0.92, hullContact);
+}
+
+fn terrainMaterialScale(layer : i32) -> f32 {
+    switch (layer) {
+        case TERRAIN_LAYER_SAND: { return 7.5; }
+        case TERRAIN_LAYER_SOIL: { return 8.5; }
+        case TERRAIN_LAYER_GRASS: { return 6.5; }
+        default: { return 10.0; }
+    }
+}
+
+fn rotateTerrainMaterialUv(value : vec2<f32>, layer : i32) -> vec2<f32> {
+    // Fixed rotations prevent the four source families from sharing axes.
+    switch (layer) {
+        case TERRAIN_LAYER_SAND: {
+            return vec2<f32>(
+                value.x * 0.819152 + value.y * 0.573576,
+                value.y * 0.819152 - value.x * 0.573576);
+        }
+        case TERRAIN_LAYER_SOIL: {
+            return vec2<f32>(
+                value.x * 0.956305 - value.y * 0.292372,
+                value.x * 0.292372 + value.y * 0.956305);
+        }
+        case TERRAIN_LAYER_GRASS: {
+            return vec2<f32>(
+                value.x * 0.731354 + value.y * 0.681998,
+                value.y * 0.731354 - value.x * 0.681998);
+        }
+        default: {
+            return vec2<f32>(
+                value.x * 0.887011 - value.y * 0.461749,
+                value.x * 0.461749 + value.y * 0.887011);
+        }
+    }
+}
+
+fn terrainMaterialUv(projectedWorld : vec2<f32>, layer : i32) -> vec2<f32> {
+    let phase = f32(layer) * 1.713;
+    let scale = terrainMaterialScale(layer);
+    let rotated = rotateTerrainMaterialUv(projectedWorld / scale, layer);
+    // Cross-coupled, axis-independent warp. The previous sum of diagonal dot
+    // products produced long parallel bands at grazing angles. Evaluating this
+    // same function for neighbor positions keeps explicit mip gradients exact.
+    let warp = vec2<f32>(
+        sin(projectedWorld.x * 0.0143 +
+            sin(projectedWorld.y * 0.0091 + phase) * 1.31),
+        sin(projectedWorld.y * 0.0167 +
+            sin(projectedWorld.x * 0.0107 - phase) * 1.17));
+    let broad = sin(projectedWorld.x * 0.0037 + phase) *
+                sin(projectedWorld.y * 0.0049 - phase * 0.63);
+    let noisePoint =
+        projectedWorld * 0.031 +
+        vec2<f32>(phase * 3.17, phase * -2.31);
+    let stochasticWarp = vec2<f32>(
+        periodicGradientNoise(noisePoint),
+        periodicGradientNoise(
+            noisePoint.yx * 1.37 + vec2<f32>(7.1, 11.3)));
+    return rotated + warp * 0.105 + stochasticWarp * 0.38 +
+           vec2<f32>(broad, -broad) * 0.026;
+}
+
+fn sampleTerrainLayer(
+    layer : i32, projectedWorld : vec2<f32>,
+    projectedX : vec2<f32>, projectedY : vec2<f32>) -> TerrainLayerSample {
+    let uv = terrainMaterialUv(projectedWorld, layer);
+    let uvX = terrainMaterialUv(projectedX, layer);
+    let uvY = terrainMaterialUv(projectedY, layer);
+    let gradientX = uvX - uv;
+    let gradientY = uvY - uv;
+    // A second incommensurate, quarter-turned lookup removes the repeated
+    // lawnmower bands that a single world projection exposes at grazing
+    // shoreline angles. Rotate its tangent-space normal back before blending.
+    let secondaryUv =
+        vec2<f32>(-uv.y, uv.x) * 1.618 +
+        vec2<f32>(0.173, 0.619) * (f32(layer) + 1.0);
+    let secondaryGradientX =
+        vec2<f32>(-gradientX.y, gradientX.x) * 1.618;
+    let secondaryGradientY =
+        vec2<f32>(-gradientY.y, gradientY.x) * 1.618;
+    let antiTileBlend = clamp(
+        0.50 + 0.18 *
+        sin(projectedWorld.x * 0.0181 + f32(layer) * 0.73) *
+        sin(projectedWorld.y * 0.0147 - f32(layer) * 0.51),
+        0.28, 0.72);
+    // The sRGB array view performs the transfer to linear light in hardware.
+    let primaryAlbedo = textureSampleGrad(
+        terrainMaterialAlbedo, oceanFoamSampler,
+        uv, layer, gradientX, gradientY).rgb;
+    let secondaryAlbedo = textureSampleGrad(
+        terrainMaterialAlbedo, oceanFoamSampler,
+        secondaryUv, layer,
+        secondaryGradientX, secondaryGradientY).rgb;
+    var albedo = mix(primaryAlbedo, secondaryAlbedo, antiTileBlend);
+    // A heavily filtered, incommensurate lookup carries only broad color
+    // variation. It masks the source tile's repeat without magnifying its
+    // texels or introducing another high-frequency normal field.
+    let macroUv =
+        rotateTerrainMaterialUv(
+            projectedWorld /
+                (terrainMaterialScale(layer) * 11.3),
+            layer) +
+        vec2<f32>(0.193, 0.617) * (f32(layer) + 1.0);
+    let macroAlbedo = textureSampleLevel(
+        terrainMaterialAlbedo, oceanFoamSampler,
+        macroUv, layer, 5.5).rgb;
+    let macroLuminance = dot(
+        macroAlbedo, vec3<f32>(0.2126, 0.7152, 0.0722));
+    let macroGain = clamp(
+        0.92 + (macroLuminance - 0.25) * 0.45,
+        0.84, 1.12);
+    let macroTint =
+        mix(vec3<f32>(macroGain),
+            macroAlbedo / max(macroLuminance, 0.05) * macroGain,
+            0.10);
+    let broadNoise = periodicGradientNoise(
+        projectedWorld * 0.018 +
+        vec2<f32>(f32(layer) * 4.7, f32(layer) * -3.1));
+    let mesoNoise = periodicGradientNoise(
+        projectedWorld.yx * 0.057 +
+        vec2<f32>(f32(layer) * 8.3, f32(layer) * 5.9));
+    let proceduralGain = clamp(
+        1.0 + broadNoise * 0.10 + mesoNoise * 0.035,
+        0.90, 1.10);
+    albedo *= macroTint * proceduralGain;
+    let primaryDetail = textureSampleGrad(
+        terrainMaterialNormalRoughness, oceanFoamSampler,
+        uv, layer, gradientX, gradientY);
+    let secondaryDetail = textureSampleGrad(
+        terrainMaterialNormalRoughness, oceanFoamSampler,
+        secondaryUv, layer,
+        secondaryGradientX, secondaryGradientY);
+    let primaryNormal =
+        primaryDetail.rgb * 2.0 - vec3<f32>(1.0);
+    let sampledSecondaryNormal =
+        secondaryDetail.rgb * 2.0 - vec3<f32>(1.0);
+    let secondaryNormal = vec3<f32>(
+        sampledSecondaryNormal.y,
+        -sampledSecondaryNormal.x,
+        sampledSecondaryNormal.z);
+    let unpackedNormal = mix(
+        primaryNormal, secondaryNormal, antiTileBlend);
+    var normalStrength = 0.68;
+    switch (layer) {
+        case TERRAIN_LAYER_SAND: { normalStrength = 0.18; }
+        case TERRAIN_LAYER_SOIL: { normalStrength = 0.20; }
+        case TERRAIN_LAYER_GRASS: { normalStrength = 0.17; }
+        default: { normalStrength = 0.42; }
+    }
+    let scaledNormal = vec3<f32>(
+        unpackedNormal.xy * normalStrength,
+        max(unpackedNormal.z, 0.18));
+    let normalLength = length(scaledNormal);
+    let tangentNormal = select(
+        vec3<f32>(0.0, 0.0, 1.0),
+        scaledNormal / normalLength,
+        normalLength > 1.0e-5);
+    return TerrainLayerSample(
+        albedo,
+        tangentNormal,
+        clamp(mix(
+            primaryDetail.a, secondaryDetail.a, antiTileBlend),
+            0.045, 1.0));
+}
+
+fn topProjectionNormal(
+    tangentNormal : vec3<f32>,
+    geometryNormal : vec3<f32>) -> vec3<f32> {
+    // Align the top-projected NormalGL map to the real heightfield tangent
+    // plane. On flat ground this basis is +X, -Z, +Y.
+    let primary = vec3<f32>(1.0, 0.0, 0.0) -
+                  geometryNormal * geometryNormal.x;
+    let fallback = vec3<f32>(0.0, 0.0, -1.0) +
+                   geometryNormal * geometryNormal.z;
+    let tangentRaw = select(
+        fallback, primary, dot(primary, primary) > 1.0e-5);
+    let tangent = normalize(tangentRaw);
+    let bitangent = normalize(cross(geometryNormal, tangent));
+    return normalize(
+        tangent * tangentNormal.x +
+        bitangent * tangentNormal.y +
+        geometryNormal * tangentNormal.z);
+}
+
+fn terrainMaterialWeights(
+    worldPosition : vec3<f32>,
+    geometryNormal : vec3<f32>) -> vec4<f32> {
+    let relativeElevation = worldPosition.y - camera.waterParams.x;
+    // Broad two-dimensional variation; no linear diagonal carrier.
+    let macroVariation =
+        sin(worldPosition.x * 0.0061 +
+            sin(worldPosition.z * 0.0103) * 1.4) * 0.85 +
+        sin(worldPosition.z * 0.0087 +
+            sin(worldPosition.x * 0.0043) * 1.1) * 0.55;
+    var elevation = relativeElevation + macroVariation;
+    let up = clamp(geometryNormal.y, 0.0, 1.0);
+    let steepness = 1.0 - up;
+
+    let coveOffset = worldPosition.xz - vec2<f32>(-650.0, 3450.0);
+    let coveInland =
+        dot(coveOffset, vec2<f32>(-0.2730, 0.9620));
+    let coveAlongshore =
+        dot(coveOffset, vec2<f32>(-0.9620, -0.2730));
+    let coveZone = 1.0 - smoothstep(
+        56.0, 80.0,
+        length(vec2<f32>(coveInland, coveAlongshore)));
+    elevation += coveZone * (
+        0.55 * sin(coveAlongshore * 0.143 +
+                   sin(coveInland * 0.071) * 1.3) +
+        0.24 * sin(coveAlongshore * 0.337 -
+                   sin(coveInland * 0.113)));
+    var authoredRock = 0.0;
+    if (length(vec2<f32>(coveInland, coveAlongshore)) < 78.0) {
+        // The four explicit subtidal boulders have shallow tops, so slope alone
+        // cannot identify their material. Keep their footprint compact.
+        let boulder0 = exp(-dot(
+            (vec2<f32>(coveInland, coveAlongshore) -
+             vec2<f32>(-63.0, 8.0)) / 4.0,
+            (vec2<f32>(coveInland, coveAlongshore) -
+             vec2<f32>(-63.0, 8.0)) / 4.0));
+        let boulder1 = exp(-dot(
+            (vec2<f32>(coveInland, coveAlongshore) -
+             vec2<f32>(-58.0, -11.0)) / 4.6,
+            (vec2<f32>(coveInland, coveAlongshore) -
+             vec2<f32>(-58.0, -11.0)) / 4.6));
+        let boulder2 = exp(-dot(
+            (vec2<f32>(coveInland, coveAlongshore) -
+             vec2<f32>(-51.0, 16.0)) / 3.3,
+            (vec2<f32>(coveInland, coveAlongshore) -
+             vec2<f32>(-51.0, 16.0)) / 3.3));
+        let boulder3 = exp(-dot(
+            (vec2<f32>(coveInland, coveAlongshore) -
+             vec2<f32>(-47.0, -21.0)) / 2.7,
+            (vec2<f32>(coveInland, coveAlongshore) -
+             vec2<f32>(-47.0, -21.0)) / 2.7));
+        let boulderMask =
+            max(max(boulder0, boulder1), max(boulder2, boulder3));
+        let landBoulder0Offset =
+            (vec2<f32>(coveInland, coveAlongshore) -
+             vec2<f32>(11.0, -30.0)) / vec2<f32>(4.6, 3.0);
+        let landBoulder1Offset =
+            (vec2<f32>(coveInland, coveAlongshore) -
+             vec2<f32>(15.5, -24.5)) / vec2<f32>(3.2, 2.2);
+        let landBoulder2Offset =
+            (vec2<f32>(coveInland, coveAlongshore) -
+             vec2<f32>(27.0, -34.0)) / vec2<f32>(4.0, 2.5);
+        let landBoulder3Offset =
+            (vec2<f32>(coveInland, coveAlongshore) -
+             vec2<f32>(19.0, 27.0)) / vec2<f32>(4.8, 2.8);
+        let landBoulder4Offset =
+            (vec2<f32>(coveInland, coveAlongshore) -
+             vec2<f32>(25.5, 32.5)) / vec2<f32>(3.1, 2.0);
+        let landBoulder5Offset =
+            (vec2<f32>(coveInland, coveAlongshore) -
+             vec2<f32>(34.0, 23.0)) / vec2<f32>(3.7, 2.4);
+        let landBoulderMask = max(
+            max(
+                exp(-dot(landBoulder0Offset, landBoulder0Offset)),
+                exp(-dot(landBoulder1Offset, landBoulder1Offset))),
+            max(
+                max(
+                    exp(-dot(landBoulder2Offset, landBoulder2Offset)),
+                    exp(-dot(landBoulder3Offset, landBoulder3Offset))),
+                max(
+                    exp(-dot(landBoulder4Offset, landBoulder4Offset)),
+                    exp(-dot(landBoulder5Offset, landBoulder5Offset)))));
+        let outcrop0Offset =
+            (vec2<f32>(coveInland, coveAlongshore) -
+             vec2<f32>(18.0, -47.0)) / vec2<f32>(27.0, 17.0);
+        let outcrop1Offset =
+            (vec2<f32>(coveInland, coveAlongshore) -
+             vec2<f32>(19.0, 47.0)) / vec2<f32>(24.0, 13.0);
+        let outcropMask = max(
+            exp(-dot(outcrop0Offset, outcrop0Offset)),
+            exp(-dot(outcrop1Offset, outcrop1Offset)));
+        authoredRock = max(
+            max(
+                smoothstep(0.14, 0.62, boulderMask) * 0.92,
+                smoothstep(0.18, 0.66, landBoulderMask) * 0.72),
+            smoothstep(0.28, 0.74, outcropMask) * 0.52);
+    }
+
+    let slopeRock = smoothstep(0.12, 0.43, steepness);
+    let highRock = smoothstep(220.0, 410.0, elevation) *
+                   smoothstep(0.04, 0.34, steepness) * 0.55;
+    let rock = clamp(
+        max(max(slopeRock, highRock), authoredRock), 0.0, 1.0);
+
+    let beachElevation = 1.0 - smoothstep(2.8, 5.2, elevation);
+    let beachFlatness = smoothstep(0.48, 0.82, up);
+    var sand = beachElevation * beachFlatness * (1.0 - rock);
+    let beachMottle =
+        0.5 + 0.5 * periodicGradientNoise(
+            vec2<f32>(coveInland, coveAlongshore) * 0.091 +
+            vec2<f32>(4.3, 12.7));
+    let mixedUpperBeach =
+        coveZone *
+        smoothstep(0.65, 2.2, elevation) *
+        (1.0 - smoothstep(4.2, 5.6, elevation));
+    sand *= mix(
+        1.0,
+        mix(0.54, 1.0, smoothstep(0.24, 0.76, beachMottle)),
+        mixedUpperBeach);
+    let transitionSignal =
+        0.5 + 0.5 *
+        sin(coveAlongshore * 0.19 +
+            sin(coveInland * 0.071) * 1.7) *
+        sin(coveInland * 0.23 -
+            sin(coveAlongshore * 0.053) * 1.4);
+    let sparseBackshore =
+        coveZone *
+        smoothstep(4.5, 7.5, elevation) *
+        (1.0 - smoothstep(18.0, 27.0, elevation)) *
+        smoothstep(0.20, 0.86, transitionSignal);
+    sand = clamp(
+        sand + sparseBackshore * (1.0 - rock) * 0.32,
+        0.0, 1.0 - rock);
+
+    let upland = max(1.0 - rock - sand, 0.0);
+    let grassVariation = 0.5 + 0.5 *
+        sin(worldPosition.x * 0.017 +
+            sin(worldPosition.z * 0.011) * 1.6) *
+        sin(worldPosition.z * 0.019 -
+            sin(worldPosition.x * 0.007) * 1.2);
+    let grassSuitability =
+        smoothstep(0.78, 0.91, up) *
+        smoothstep(8.0, 14.0, elevation) *
+        (1.0 - smoothstep(250.0, 390.0, elevation));
+    let washCenter =
+        7.0 +
+        4.1 * sin((coveInland - 12.0) * 0.086) +
+        1.2 * sin((coveInland + 9.0) * 0.217);
+    let washLength =
+        smoothstep(9.0, 18.0, coveInland) *
+        (1.0 - smoothstep(57.0, 68.0, coveInland));
+    let washCore =
+        exp(-pow(
+            (coveAlongshore - washCenter) /
+            (4.8 + 0.75 * sin(coveInland * 0.19)),
+            2.0)) *
+        washLength * coveZone;
+    let erosionPatch = max(
+        coveZone *
+        smoothstep(7.0, 11.0, elevation) *
+        (1.0 - smoothstep(34.0, 48.0, elevation)) *
+        smoothstep(0.34, 0.88, 1.0 - transitionSignal),
+        washCore * 0.55);
+    let grass = upland * grassSuitability *
+                mix(0.20, 1.0, grassVariation) *
+                mix(1.0, 0.30, erosionPatch);
+    let soil = max(upland - grass, 0.0);
+
+    let weights = vec4<f32>(sand, soil, grass, rock);
+    return weights / max(dot(weights, vec4<f32>(1.0)), 1.0e-5);
+}
+
+fn sampleRockTriplanar(
+    worldPosition : vec3<f32>,
+    worldX : vec3<f32>, worldY : vec3<f32>,
+    geometryNormal : vec3<f32>) -> TerrainSurface {
+    let signAxis = select(
+        vec3<f32>(-1.0), vec3<f32>(1.0),
+        geometryNormal >= vec3<f32>(0.0));
+    var weights = pow(abs(geometryNormal), vec3<f32>(4.0));
+    weights /= max(dot(weights, vec3<f32>(1.0)), 1.0e-5);
+
+    let projectionX = vec2<f32>(
+        worldPosition.z, -signAxis.x * worldPosition.y);
+    let projectionXX = vec2<f32>(
+        worldX.z, -signAxis.x * worldX.y);
+    let projectionXY = vec2<f32>(
+        worldY.z, -signAxis.x * worldY.y);
+    let projectionY = vec2<f32>(
+        worldPosition.x, -signAxis.y * worldPosition.z);
+    let projectionYX = vec2<f32>(
+        worldX.x, -signAxis.y * worldX.z);
+    let projectionYY = vec2<f32>(
+        worldY.x, -signAxis.y * worldY.z);
+    let projectionZ = vec2<f32>(
+        worldPosition.x, signAxis.z * worldPosition.y);
+    let projectionZX = vec2<f32>(
+        worldX.x, signAxis.z * worldX.y);
+    let projectionZY = vec2<f32>(
+        worldY.x, signAxis.z * worldY.y);
+
+    var albedo = vec3<f32>(0.0);
+    var worldNormal = vec3<f32>(0.0);
+    var roughness = 0.0;
+    if (weights.x > 0.0005) {
+        let layer = sampleTerrainLayer(
+            TERRAIN_LAYER_ROCK, projectionX, projectionXX, projectionXY);
+        let mapped = vec3<f32>(
+            signAxis.x * layer.tangentNormal.z,
+            -signAxis.x * layer.tangentNormal.y,
+            layer.tangentNormal.x);
+        albedo += layer.albedo * weights.x;
+        worldNormal += mapped * weights.x;
+        roughness += layer.roughness * weights.x;
+    }
+    if (weights.y > 0.0005) {
+        let layer = sampleTerrainLayer(
+            TERRAIN_LAYER_ROCK, projectionY, projectionYX, projectionYY);
+        let mapped = vec3<f32>(
+            layer.tangentNormal.x,
+            signAxis.y * layer.tangentNormal.z,
+            -signAxis.y * layer.tangentNormal.y);
+        albedo += layer.albedo * weights.y;
+        worldNormal += mapped * weights.y;
+        roughness += layer.roughness * weights.y;
+    }
+    if (weights.z > 0.0005) {
+        let layer = sampleTerrainLayer(
+            TERRAIN_LAYER_ROCK, projectionZ, projectionZX, projectionZY);
+        let mapped = vec3<f32>(
+            layer.tangentNormal.x,
+            signAxis.z * layer.tangentNormal.y,
+            signAxis.z * layer.tangentNormal.z);
+        albedo += layer.albedo * weights.z;
+        worldNormal += mapped * weights.z;
+        roughness += layer.roughness * weights.z;
+    }
+    return TerrainSurface(
+        albedo, normalize(worldNormal), roughness, 0.0);
+}
+
+fn sampleTerrainSurface(
+    worldPosition : vec3<f32>,
+    worldX : vec3<f32>, worldY : vec3<f32>,
+    geometryNormalIn : vec3<f32>) -> TerrainSurface {
+    let geometryNormal = normalize(geometryNormalIn);
+    let shadingGeometryNormal =
+        filterUpFacingTerrainNormal(geometryNormal);
+    let weights = terrainMaterialWeights(worldPosition, geometryNormal);
+    let projected = vec2<f32>(worldPosition.x, -worldPosition.z);
+    let projectedX = vec2<f32>(worldX.x, -worldX.z);
+    let projectedY = vec2<f32>(worldY.x, -worldY.z);
+
+    var albedo = vec3<f32>(0.0);
+    var worldNormal = vec3<f32>(0.0);
+    var roughness = 0.0;
+    if (weights.x > 0.0005) {
+        let layer = sampleTerrainLayer(
+            TERRAIN_LAYER_SAND, projected, projectedX, projectedY);
+        albedo += layer.albedo * weights.x;
+        worldNormal += topProjectionNormal(
+            layer.tangentNormal, shadingGeometryNormal) * weights.x;
+        roughness += layer.roughness * weights.x;
+    }
+    if (weights.y > 0.0005) {
+        let layer = sampleTerrainLayer(
+            TERRAIN_LAYER_SOIL, projected, projectedX, projectedY);
+        albedo += layer.albedo * weights.y;
+        worldNormal += topProjectionNormal(
+            layer.tangentNormal, shadingGeometryNormal) * weights.y;
+        roughness += layer.roughness * weights.y;
+    }
+    if (weights.z > 0.0005) {
+        let layer = sampleTerrainLayer(
+            TERRAIN_LAYER_GRASS, projected, projectedX, projectedY);
+        albedo += layer.albedo * weights.z;
+        worldNormal += topProjectionNormal(
+            layer.tangentNormal, shadingGeometryNormal) * weights.z;
+        roughness += layer.roughness * weights.z;
+    }
+    if (weights.w > 0.0005) {
+        let layer = sampleRockTriplanar(
+            worldPosition, worldX, worldY, geometryNormal);
+        albedo += layer.albedo *
+                  vec3<f32>(1.42, 1.34, 1.22) * weights.w;
+        worldNormal += layer.normal * weights.w;
+        roughness += layer.roughness * weights.w;
+    }
+
+    let relativeElevation = worldPosition.y - camera.waterParams.x;
+    let waterEnabled = select(0.0, 1.0, camera.waterParams.y > 0.5);
+    // Static run-up history: the top of the wet band sits above the current
+    // water plane and fades over a narrow irregular band. This remains stable,
+    // unlike wetness derived from one instantaneous crest.
+    let runupBreakup = periodicGradientNoise(
+        worldPosition.xz * 0.054 + vec2<f32>(3.7, 9.1));
+    let runupDetail = periodicGradientNoise(
+        worldPosition.zx * 0.13 + vec2<f32>(12.4, 2.8));
+    let runupLimit =
+        0.10 + runupBreakup * 0.065 + runupDetail * 0.020;
+    let wetness =
+        (1.0 - smoothstep(0.015, max(runupLimit, 0.04),
+                          relativeElevation)) *
+        waterEnabled;
+    let submerged =
+        (1.0 - smoothstep(-0.8, -0.02, relativeElevation)) *
+        waterEnabled;
+    let wetResponse = wetness *
+        (0.92 * weights.x + 0.08 * weights.y);
+    albedo *= mix(
+        vec3<f32>(1.0),
+        vec3<f32>(0.48, 0.42, 0.32),
+        wetResponse * 0.52);
+    albedo *= mix(
+        vec3<f32>(1.0),
+        vec3<f32>(0.76, 0.82, 0.74),
+        submerged * 0.22);
+    let macroBreakup =
+        0.97 + 0.045 *
+        sin(worldPosition.x * 0.031 +
+            sin(worldPosition.z * 0.017) * 1.3) *
+        sin(worldPosition.z * 0.037 -
+            sin(worldPosition.x * 0.013) * 1.1);
+    let coveOffset =
+        worldPosition.xz - vec2<f32>(-650.0, 3450.0);
+    let coveInland =
+        dot(coveOffset, vec2<f32>(-0.2730, 0.9620));
+    let coveAlongshore =
+        dot(coveOffset, vec2<f32>(-0.9620, -0.2730));
+    let coveMask =
+        1.0 - smoothstep(
+            50.0, 78.0,
+            length(vec2<f32>(coveInland, coveAlongshore)));
+    let organicPatch =
+        0.5 + 0.5 *
+        sin(coveInland * 0.097 +
+            sin(coveAlongshore * 0.041) * 1.8) *
+        sin(coveAlongshore * 0.123 -
+            sin(coveInland * 0.063) * 1.4);
+    let backshorePatch =
+        coveMask *
+        smoothstep(5.5, 9.0, relativeElevation) *
+        (1.0 - smoothstep(31.0, 44.0, relativeElevation));
+    albedo *= mix(
+        vec3<f32>(1.0),
+        mix(
+            vec3<f32>(0.72, 0.88, 0.68),
+            vec3<f32>(1.10, 0.84, 0.66),
+            organicPatch),
+        backshorePatch * 0.12);
+    let washCenter =
+        7.0 +
+        4.1 * sin((coveInland - 12.0) * 0.086) +
+        1.2 * sin((coveInland + 9.0) * 0.217);
+    let washMask =
+        exp(-pow(
+            (coveAlongshore - washCenter) /
+            (4.8 + 0.75 * sin(coveInland * 0.19)),
+            2.0)) *
+        smoothstep(9.0, 18.0, coveInland) *
+        (1.0 - smoothstep(57.0, 68.0, coveInland)) *
+        coveMask;
+    albedo *= mix(
+        vec3<f32>(1.0),
+        vec3<f32>(0.70, 0.65, 0.55),
+        washMask * 0.20);
+    let wrackElevation =
+        1.45 +
+        0.22 * sin(
+            coveAlongshore * 0.23 +
+            sin(coveInland * 0.08));
+    let wrackBreakup =
+        smoothstep(
+            0.35, 0.82,
+            0.5 + 0.5 *
+            sin(coveAlongshore * 0.71) *
+            sin(coveAlongshore * 0.19 + 1.3));
+    let wrack =
+        coveMask * weights.x * wrackBreakup *
+        (1.0 - smoothstep(
+            0.10, 0.34,
+            abs(relativeElevation - wrackElevation)));
+    albedo *= mix(
+        vec3<f32>(1.0),
+        vec3<f32>(0.39, 0.31, 0.22),
+        wrack * 0.16);
+    albedo *= macroBreakup *
+              coveDriftwoodContact(worldPosition.xz);
+    roughness = mix(roughness, 0.18, wetResponse);
+    let detailStrength = mix(0.82, 0.38, wetResponse);
+    worldNormal = normalize(mix(
+        geometryNormal, normalize(worldNormal), detailStrength));
+    // Fine shore-parallel sand ripples live in the shading normal only. Their
+    // phase bends slowly along the cove so the highlights do not become a
+    // ruler-straight comb, and they naturally disappear above the run-up zone.
+    let rippleMask =
+        coveMask * weights.x *
+        (1.0 - smoothstep(1.1, 3.1, relativeElevation));
+    let ripplePhase =
+        coveInland * 2.15 +
+        sin(coveAlongshore * 0.17) * 0.78;
+    let rippleSlope =
+        (cos(ripplePhase) * 0.065 +
+         cos(ripplePhase * 2.17 + 1.4) * 0.024) *
+        rippleMask;
+    worldNormal = normalize(
+        worldNormal -
+        vec3<f32>(-0.2730, 0.0, 0.9620) * rippleSlope);
+    // Low sediment mottling breaks the smoothed shelf without adding a new
+    // ruler-straight carrier frequency to the seabed.
+    let subtidalZone =
+        coveMask * weights.x *
+        smoothstep(-42.0, -31.0, relativeElevation) *
+        (1.0 - smoothstep(-4.0, -2.5, relativeElevation));
+    let sedimentPattern =
+        sin(coveInland * 0.73 +
+            sin(coveAlongshore * 0.41) * 1.3) *
+        sin(coveAlongshore * 0.57 -
+            sin(coveInland * 0.29) * 1.1);
+    albedo *= mix(
+        vec3<f32>(1.0),
+        vec3<f32>(0.94 + sedimentPattern * 0.075),
+        subtidalZone * 0.48);
+    return TerrainSurface(
+        max(albedo, vec3<f32>(0.0)),
+        worldNormal,
+        clamp(roughness, 0.08, 1.0),
+        wetness);
+}
+
+fn terrainSpecular(
+    normal : vec3<f32>, view : vec3<f32>, light : vec3<f32>,
+    perceptualRoughness : f32, wetness : f32) -> vec3<f32> {
+    let halfVector = view + light;
+    let halfLength = length(halfVector);
+    let halfway = select(normal, halfVector / halfLength, halfLength > 1.0e-5);
+    let nDotV = max(dot(normal, view), 1.0e-4);
+    let nDotL = max(dot(normal, light), 0.0);
+    let nDotH = max(dot(normal, halfway), 0.0);
+    let vDotH = max(dot(view, halfway), 0.0);
+    let alpha = max(
+        perceptualRoughness * perceptualRoughness, 0.0025);
+    let alphaSquared = alpha * alpha;
+    let denominator =
+        nDotH * nDotH * (alphaSquared - 1.0) + 1.0;
+    let distribution = alphaSquared /
+        max(3.14159265 * denominator * denominator, 1.0e-5);
+    let visibilityV = 2.0 * nDotV /
+        max(nDotV + sqrt(
+            alphaSquared + (1.0 - alphaSquared) * nDotV * nDotV),
+            1.0e-5);
+    let visibilityL = 2.0 * nDotL /
+        max(nDotL + sqrt(
+            alphaSquared + (1.0 - alphaSquared) * nDotL * nDotL),
+            1.0e-5);
+    let fresnelBase = mix(0.04, 0.0204, wetness);
+    let fresnel = fresnelBase +
+        (1.0 - fresnelBase) * pow(1.0 - vDotH, 5.0);
+    let brdf = distribution * visibilityV * visibilityL * fresnel /
+        max(4.0 * nDotV * nDotL, 1.0e-5);
+    return vec3<f32>(brdf * nDotL);
+}
+
+fn shadeCoveProp(
+    hit : CovePropHit, rayDirection : vec3<f32>) -> vec3<f32> {
+    let worldPosition =
+        camera.cameraPos.xyz + rayDirection * hit.distance;
+    var normal = normalize(hit.normal);
+    let barkNormal = vec3<f32>(
+        sin(worldPosition.z * 2.1 + hit.grainCoordinate * 1.7),
+        sin(worldPosition.x * 1.8 - hit.grainCoordinate * 1.3),
+        sin(worldPosition.y * 2.4 + hit.grainCoordinate * 1.1));
+    normal = normalize(normal + barkNormal * 0.022);
+    let light = normalize(camera.lightDirWS.xyz);
+    let view = normalize(-rayDirection);
+    let diffuse = max(dot(normal, light), 0.0);
+    let halfway = normalize(light + view);
+    let interiorMask =
+        smoothstep(0.72, 0.95, hit.materialCue);
+    let hullSkin =
+        smoothstep(0.12, 0.26, hit.materialCue) *
+        (1.0 - interiorMask);
+    let specular =
+        pow(max(dot(normal, halfway), 0.0), 54.0) *
+        mix(0.045, 0.006, interiorMask);
+    let grain =
+        0.96 + 0.035 *
+        sin(hit.grainCoordinate * 2.7 +
+            sin(hit.grainCoordinate * 0.83) * 1.2);
+    let weather =
+        0.94 + 0.06 *
+        periodicGradientNoise(
+            worldPosition.xz * 0.23 +
+            vec2<f32>(hit.grainCoordinate * 0.07, 9.3));
+    let sideDarkening =
+        mix(0.82, 1.0, smoothstep(-0.10, 0.72, normal.y));
+    let dryWood =
+        smoothstep(-204.0, -198.3, worldPosition.y);
+    let saltAge =
+        0.5 + 0.5 *
+        periodicGradientNoise(
+            worldPosition.xz * 0.085 +
+            vec2<f32>(2.7, hit.grainCoordinate * 0.031));
+    let dryWoodColor = mix(
+        vec3<f32>(0.18, 0.095, 0.046),
+        vec3<f32>(0.46, 0.36, 0.25),
+        smoothstep(0.24, 0.78, saltAge));
+    let woodColor = mix(
+        vec3<f32>(0.075, 0.043, 0.025),
+        dryWoodColor,
+        dryWood);
+    let plankSeam =
+        pow(
+            1.0 - abs(sin(
+                worldPosition.y * 4.15 +
+                hit.grainCoordinate * 0.013)),
+            18.0) * hullSkin;
+    let exteriorAlbedo =
+        woodColor *
+        grain * weather * sideDarkening;
+    let interiorAlbedo =
+        vec3<f32>(0.030, 0.018, 0.010) *
+        mix(0.82, 1.08, weather);
+    let albedo = mix(
+        exteriorAlbedo * (1.0 - plankSeam * 0.18),
+        interiorAlbedo, interiorMask);
+    let ambient = max(camera.lightDirVS.w, 0.05);
+    let lit =
+        albedo *
+        (ambient * ambientTint() + diffuse * sunRadiance()) +
+        sunRadiance() * specular;
+    if (camera.waterParams.y > 0.5 &&
+        camera.waterMotion.z > 0.5 &&
+        worldPosition.y <= camera.waterParams.x + 0.5) {
+        let caustic = underwaterTerrainCaustic(
+            worldPosition, normal, hit.distance);
+        let submergedLit =
+            lit * (1.0 + caustic * 0.48) +
+            vec3<f32>(0.012, 0.030, 0.024) * caustic;
+        return applyUnderwaterMedium(
+            submergedLit,
+            worldPosition - camera.cameraPos.xyz,
+            hit.distance);
+    }
+    let fog = atmosphericFog(hit.distance);
+    return mix(lit, oceanFogColor(), fog);
 }
 
 fn applyPostEffects(colorIn : vec3<f32>, uv : vec2<f32>,
@@ -404,17 +1694,53 @@ fn applyUnderwaterMedium(color : vec3<f32>, toFragment : vec3<f32>,
     return submerged;
 }
 
-// Infinite-ocean fallback for rays beyond the finite heightfield. A broad
-// repeatable field and directional sand ripples replace external floor maps
-// while keeping the transmitted water from collapsing to reflected sky.
+fn underwaterTerrainCaustic(
+    worldPosition : vec3<f32>,
+    geometryNormal : vec3<f32>,
+    pathLength : f32) -> f32 {
+    let depthBelowSurface =
+        max(camera.waterParams.x - worldPosition.y, 0.0);
+    let depthFade =
+        smoothstep(0.25, 1.2, depthBelowSurface) *
+        (1.0 - smoothstep(28.0, 52.0, depthBelowSurface));
+    let distanceFade =
+        1.0 - smoothstep(55.0, 145.0, pathLength);
+    let receiver = smoothstep(0.22, 0.82, geometryNormal.y);
+    let motion = vec2<f32>(
+        camera.waterMotion.x * 0.021,
+        -camera.waterMotion.x * 0.016);
+    let first = textureSampleLevel(
+        oceanFoamTex, oceanFoamSampler,
+        worldPosition.xz / 0.72 + motion, 0.0).r;
+    let second = textureSampleLevel(
+        oceanFoamTex, oceanFoamSampler,
+        worldPosition.xz / 1.13 -
+        motion * 0.73 + vec2<f32>(0.37, 0.61), 0.0).r;
+    let textureFocus = smoothstep(
+        0.54, 0.79, first * 0.56 + second * 0.44);
+    let breakup =
+        smoothstep(
+            0.28, 0.78,
+            0.5 + 0.5 *
+            sin(worldPosition.x * 1.37 +
+                sin(worldPosition.z * 0.91 +
+                    camera.waterMotion.x * 0.29)));
+    let focused = textureFocus * mix(0.30, 1.0, breakup);
+    return focused * depthFade * distanceFade * receiver * 0.90;
+}
+
+// Infinite-ocean fallback for rays beyond the finite heightfield. It reuses the
+// same warped CC0 sand layer as the finite shoreline, so the fallback cannot
+// reveal the old square procedural-material repeat.
 fn proceduralSeabed(worldXZ : vec2<f32>, pathLength : f32) -> vec3<f32> {
     let rotated = vec2<f32>(worldXZ.x * 0.82 + worldXZ.y * 0.57,
                             worldXZ.y * 0.82 - worldXZ.x * 0.57);
     let materialLod = clamp(log2(max(pathLength / 180.0, 1.0)), 0.0, 9.0);
-    let material = textureSampleLevel(
-        oceanFoamTex, oceanFoamSampler,
-        rotated / 200.0, materialLod);
-    let albedo = material.gba;
+    let sandUv = terrainMaterialUv(worldXZ, TERRAIN_LAYER_SAND);
+    let albedo = textureSampleLevel(
+        terrainMaterialAlbedo, oceanFoamSampler,
+        sandUv, TERRAIN_LAYER_SAND, materialLod).rgb *
+        vec3<f32>(0.72, 0.79, 0.74);
     let motion = camera.waterMotion.x;
     let causticUv = rotated / 46.0 +
         vec2<f32>(motion * 0.017, -motion * 0.011);
@@ -427,11 +1753,107 @@ fn proceduralSeabed(worldXZ : vec2<f32>, pathLength : f32) -> vec3<f32> {
            vec3<f32>(0.08, 0.15, 0.12) * caustic;
 }
 
+fn coastalFoamStrength(
+    position : vec3<f32>,
+    normal : vec3<f32>,
+    waterDepth : f32,
+    crestCompression : f32,
+    shoreInfluence : f32,
+    distanceToCamera : f32,
+    dims : vec2<u32>) -> f32 {
+    let worldPerPixel = distanceToCamera * 2.0 *
+        max(camera.invProjParams.x / f32(max(dims.x, 1u)),
+            camera.invProjParams.y / f32(max(dims.y, 1u)));
+    let foamLod = log2(max(
+        worldPerPixel * 1024.0 / oceanFoamSize(), 1.0));
+    let drift = vec2<f32>(
+        camera.waterMotion.x * 0.0017,
+        -camera.waterMotion.x * 0.0011);
+    let foamUv = position.xz / oceanFoamSize() + drift;
+    let pattern = textureSampleLevel(
+        oceanFoamTex, oceanFoamSampler, foamUv, foamLod).r;
+    let detail = textureSampleLevel(
+        oceanFoamTex, oceanFoamSampler,
+        foamUv * 2.37 + vec2<f32>(0.31, 0.67) - drift * 0.7,
+        foamLod + 0.8).r;
+
+    let crestEnergy = max(
+        smoothstep(0.045, 0.20, crestCompression),
+        smoothstep(0.018, 0.16, 1.0 - normal.y));
+    let depthWindow =
+        smoothstep(0.07, 0.24, waterDepth) *
+        (1.0 - smoothstep(0.48, 0.92, waterDepth));
+    let proximity = max(
+        clamp(shoreInfluence, 0.0, 1.0) * 0.52,
+        1.0 - smoothstep(0.72, 1.75, waterDepth));
+    let breakingPhase = 0.5 + 0.5 * sin(
+        waterDepth * 1.17 -
+        camera.waterMotion.x * 1.43 +
+        dot(position.xz, vec2<f32>(0.052, 0.023)) +
+        pattern * 3.2);
+    let pulse = smoothstep(0.34, 0.76, breakingPhase);
+    let spatialBreakup =
+        smoothstep(0.56, 0.79, pattern) *
+        mix(0.06, 1.0, smoothstep(0.50, 0.82, detail));
+    let breakerExposure =
+        smoothstep(0.08, 0.58, crestEnergy);
+    let shoreBreaker =
+        proximity * depthWindow *
+        breakerExposure *
+        mix(0.24, 1.0, pulse) * spatialBreakup;
+    let swashResidue =
+        proximity *
+        (1.0 - smoothstep(0.16, 0.62, waterDepth)) *
+        spatialBreakup * breakerExposure *
+        mix(0.05, 0.25, pulse);
+
+    // Surf wraps around the grounded hull's finite footprint. This remains a
+    // broken, depth-gated contact response—not a painted shoreline stripe.
+    let wreckOffset = position.xz - vec2<f32>(-650.0, 3471.0);
+    let wreckInland =
+        dot(wreckOffset, vec2<f32>(-0.2730, 0.9620));
+    let wreckAlongshore =
+        dot(wreckOffset, vec2<f32>(-0.9620, -0.2730));
+    let wreckEllipse = length(vec2<f32>(
+        wreckInland / 5.4, wreckAlongshore / 15.8));
+    let wreckContactBand =
+        smoothstep(0.72, 0.94, wreckEllipse) *
+        (1.0 - smoothstep(1.02, 1.30, wreckEllipse));
+    let wreckSeaward =
+        1.0 - smoothstep(-0.4, 3.2, wreckInland);
+    let wreckDepthWindow =
+        smoothstep(0.035, 0.18, waterDepth) *
+        (1.0 - smoothstep(1.10, 2.35, waterDepth));
+    let wreckBreakup =
+        mix(0.32, 1.0,
+            smoothstep(0.42, 0.76, max(pattern, detail)));
+    let wreckContactFoam =
+        wreckContactBand * wreckSeaward * wreckDepthWindow *
+        wreckBreakup * mix(0.42, 1.0, pulse) * 0.82;
+
+    let threshold = 1.0 - oceanFoamCoverage();
+    let openCoverage =
+        pattern * smoothstep(
+            threshold, threshold + 0.15, pattern);
+    // Open-water foam needs real compression. A coverage-only floor turned
+    // bright sky reflections into a continuous ice-like sheet.
+    let openFoam = openCoverage * oceanFoamOpacity() *
+                   crestEnergy * 0.55;
+    let shoreOpacity =
+        max(oceanFoamOpacity(), 0.68);
+    return clamp(
+        max(
+            max(openFoam, wreckContactFoam),
+            max(shoreBreaker, swashResidue) * shoreOpacity),
+        0.0, 1.0);
+}
+
 // Refraction reconstructs the distorted bed lookup from terrain albedo,
 // light visibility, and the packed vertical water depth.
 fn shadeOcean(posWorld : vec3<f32>, posView : vec3<f32>,
                  view : vec3<f32>, normal : vec3<f32>, waterDepth : f32,
                  shadowVisibility : f32, crestCompression : f32,
+                 shoreInfluence : f32,
                  sceneRefraction : vec3<f32>, sceneThickness : f32,
                  hasSceneRefraction : bool, sceneHasOpaque : bool,
                  dims : vec2<u32>) -> vec3<f32> {
@@ -441,7 +1863,7 @@ fn shadeOcean(posWorld : vec3<f32>, posView : vec3<f32>,
     let fresnel = dielectricFresnel(viewFacing, oceanIor());
 
     let reflected = reflect(-view, normal);
-    let reflectionRoughness = oceanMinimumRoughness() +
+    let reflectionRoughness = max(oceanMinimumRoughness(), 0.18) +
         clamp(distanceToCamera / oceanReflectionDistance(),
               0.0, 1.0) * OCEAN_REFLECTION_ROUGHNESS_STRENGTH;
     let environment = sampleWaterEnvironment(reflected, reflectionRoughness) *
@@ -459,11 +1881,13 @@ fn shadeOcean(posWorld : vec3<f32>, posView : vec3<f32>,
 
     let halfway = normalize(light + view);
     let sunSpecular = pow(max(dot(normal, halfway), 0.0), 420.0) *
-                      oceanSunIntensity() * 4.0;
+                      oceanSunIntensity() * 1.8;
 
     let incomingRay = -view;
     let refractedRay = refract(incomingRay, normal, 1.0 / oceanIor());
     let refractedTravel = waterDepth / max(-refractedRay.y, 0.12);
+    let opticalCoverage = smoothstep(0.12, 12.0, waterDepth);
+    let distortionCoverage = smoothstep(0.04, 0.80, waterDepth);
     var thickness = clamp(refractedTravel, 0.0, 500.0);
     var bedWorld = posWorld + refractedRay * refractedTravel;
 
@@ -471,7 +1895,7 @@ fn shadeOcean(posWorld : vec3<f32>, posView : vec3<f32>,
     // packed bed plane. This retains magnification without an opaque
     // scene-color target.
     let distortionDistance = min(thickness, 80.0) *
-                             oceanDistortion();
+                             oceanDistortion() * distortionCoverage;
     let distortedClip = camera.viewProj *
                         vec4<f32>(posWorld + normal * distortionDistance, 1.0);
     if (distortedClip.w > 1.0e-5) {
@@ -493,6 +1917,13 @@ fn shadeOcean(posWorld : vec3<f32>, posView : vec3<f32>,
                                       bedUv, 0.0).x;
     var refracted = proceduralSeabed(bedWorld.xz, refractedTravel) *
                     (0.25 + 0.75 * bedLight * shadowVisibility);
+    if (hasSceneRefraction && sceneHasOpaque) {
+        // The cached opaque target contains the exact shaded terrain material
+        // at the distorted bed pixel. Reuse it instead of replacing authored
+        // sand/rock transitions with an unrelated procedural floor.
+        refracted = sceneRefraction;
+        thickness = clamp(sceneThickness, 0.0, 500.0);
+    }
     let proceduralFloor = waterDepth >= 499.0 &&
                           camera.waterMotion.z < 0.5;
     if (proceduralFloor) {
@@ -504,25 +1935,24 @@ fn shadeOcean(posWorld : vec3<f32>, posView : vec3<f32>,
         thickness = clamp(floorTravel, 0.0, 500.0);
     }
     let transmittance = exp(-oceanAbsorption() * thickness);
-    let refractedWater = refracted * transmittance +
+    let clearRefracted = refracted * transmittance +
                          body * (vec3<f32>(1.0) - transmittance);
+    // Fine suspended sand gives the breaker zone a restrained teal body.
+    // Pure clear-water refraction made the bright bed read as a sheet of ice.
+    let coastalTurbidity =
+        smoothstep(0.62, 1.70, waterDepth) *
+        (1.0 - smoothstep(6.5, 11.0, waterDepth)) * 0.08;
+    let refractedWater =
+        mix(clearRefracted, body, coastalTurbidity);
     let reflectedWater = environment +
         camera.lightingColor.rgb * sunSpecular +
         oceanScatterColor() * camera.lightingColor.rgb *
         forwardScatter * oceanSunIntensity();
 
-    let foamUv = posWorld.xz / oceanFoamSize();
-    let worldPerPixel = distanceToCamera * 2.0 *
-        max(camera.invProjParams.x / f32(max(dims.x, 1u)),
-            camera.invProjParams.y / f32(max(dims.y, 1u)));
-    let foamLod = log2(max(worldPerPixel * 1024.0 / oceanFoamSize(),
-                           1.0));
-    let foamPattern = textureSampleLevel(oceanFoamTex,
-        oceanFoamSampler, foamUv, foamLod).r;
-    let threshold = 1.0 - oceanFoamCoverage();
-    let coverage = foamPattern *
-        smoothstep(threshold, threshold + 0.15, foamPattern);
-    let foamStrength = clamp(coverage * oceanFoamOpacity(), 0.0, 1.0);
+    let foamStrength = coastalFoamStrength(
+        posWorld, normal, waterDepth, crestCompression,
+        shoreInfluence, distanceToCamera, dims) *
+        smoothstep(0.04, 0.18, waterDepth);
 
     if (camera.waterMotion.z > 0.5) {
         let undersideNormal = -normal;
@@ -541,19 +1971,44 @@ fn shadeOcean(posWorld : vec3<f32>, posView : vec3<f32>,
         if (sceneHasOpaque) {
             transmitted = mix(transmittedEnvironment, refracted, 0.75);
         }
-        var underside = mix(transmitted, environment, fresnel);
+        let interfacePath = distanceToCamera * 1.55 + 8.0;
+        let interfaceTransmittance =
+            exp(-oceanAbsorption() * interfacePath);
+        transmitted =
+            transmitted * interfaceTransmittance +
+            oceanScatterColor() *
+            (vec3<f32>(1.0) - interfaceTransmittance);
+        let internalReflection =
+            oceanScatterColor() * 0.82 +
+            proceduralSeabed(
+                posWorld.xz + reflected.xz * 18.0,
+                max(distanceToCamera, 1.0)) * 0.18;
+        var underside = select(
+            mix(transmitted, environment * 0.72, fresnel),
+            internalReflection,
+            totalInternalReflection);
         underside += camera.lightingColor.rgb * sunSpecular;
         underside = mix(underside, vec3<f32>(0.94, 0.98, 1.0),
-                        foamStrength * 0.35);
+                        foamStrength * 0.22);
+        // At a distant grazing intersection, sub-pixel heightfield and water
+        // coverage can alternate along one scanline. Converge both sides to
+        // the same medium color before that mismatch becomes black dashes.
+        let grazingGuard =
+            (1.0 - smoothstep(
+                0.012, 0.055, abs(dot(normal, view)))) *
+            smoothstep(90.0, 280.0, distanceToCamera);
+        underside = mix(
+            underside, oceanScatterColor() * 1.04, grazingGuard);
         let cameraTransmittance =
-            exp(-oceanAbsorption() * distanceToCamera);
+            exp(-oceanAbsorption() * distanceToCamera * 1.35);
         return mix(oceanScatterColor(), underside,
                    cameraTransmittance);
     }
 
     // Foam suppresses Fresnel before its own color is composited.
     var color = mix(refractedWater, reflectedWater,
-                    fresnel * clamp(1.0 - foamStrength * 2.0, 0.0, 1.0));
+                    fresnel * opticalCoverage *
+                    clamp(1.0 - foamStrength * 2.0, 0.0, 1.0));
     color = mix(color, vec3<f32>(0.94, 0.98, 1.0), foamStrength);
     let fog = atmosphericFog(distanceToCamera);
     return mix(color, oceanFogColor(), fog);
@@ -602,6 +2057,13 @@ fn backgroundTerrain(pixel : vec2<i32>, dims : vec2<u32>,
     let posCenterView = viewPosFromDepth(
         camera.invProjParams.xy, ndcCenter, depthCenter);
     let posCenterWorld = viewToWorld(camera.invView, posCenterView);
+    let propRay = normalize(
+        posCenterWorld - camera.cameraPos.xyz);
+    let coveProp = authoredCovePropHit(
+        camera.cameraPos.xyz, propRay, depthCenter);
+    if (coveProp.distance > 0.0) {
+        return shadeCoveProp(coveProp, propRay);
+    }
 
     let negativeX = sampleDepth(pixel - vec2<i32>(1, 0), maxCoord);
     let positiveX = sampleDepth(pixel + vec2<i32>(1, 0), maxCoord);
@@ -633,17 +2095,44 @@ fn backgroundTerrain(pixel : vec2<i32>, dims : vec2<u32>,
     } else {
         normal = vec3<f32>(0.0, 1.0, 0.0);
     }
+    var geometryNormal = normalize(
+        (camera.invView * vec4<f32>(normal, 0.0)).xyz);
+    let exactTerrainNormal = textureLoad(materialTex, pixel, 0).xyz;
+    if (dot(exactTerrainNormal, exactTerrainNormal) > 0.5) {
+        geometryNormal = normalize(exactTerrainNormal);
+    }
 
     let terrainUv = terrainUV(posCenterWorld);
+    let posXWorld = viewToWorld(camera.invView, posX);
+    let posYWorld = viewToWorld(camera.invView, posY);
+    let terrainUvX = terrainUV(posXWorld);
+    let terrainUvY = terrainUV(posYWorld);
+    let terrainUvDx = select(
+        terrainUvX - terrainUv, terrainUv - terrainUvX, useNegativeX);
+    let terrainUvDy = select(
+        terrainUvY - terrainUv, terrainUv - terrainUvY, useNegativeY);
+    let materialWorldX = select(
+        posXWorld, posCenterWorld * 2.0 - posXWorld, useNegativeX);
+    let materialWorldY = select(
+        posYWorld, posCenterWorld * 2.0 - posYWorld, useNegativeY);
     let underwaterTerrain = camera.waterParams.y > 0.5 &&
         camera.waterMotion.z > 0.5 &&
         posCenterWorld.y <= camera.waterParams.x + 0.5;
-    var albedo = srgbToLinear(textureSampleLevel(terrainTex,
-        terrainSampler, terrainUv, 0.0).rgb);
-    if (underwaterTerrain) {
-        albedo = proceduralSeabed(
-            posCenterWorld.xz, length(posCenterView));
+    var surface = TerrainSurface(
+        vec3<f32>(0.0), geometryNormal, 0.6, 0.0);
+    if (camera.invProjParams.z > 0.5) {
+        // Lego mode intentionally keeps the existing world-baked colors and
+        // smooth plastic response instead of introducing natural detail.
+        surface.albedo = srgbToLinear(textureSampleGrad(
+            terrainTex, terrainSampler, terrainUv,
+            terrainUvDx, terrainUvDy).rgb);
+        surface.roughness = 0.2;
+    } else {
+        surface = sampleTerrainSurface(
+            posCenterWorld, materialWorldX, materialWorldY,
+            geometryNormal);
     }
+    normal = worldNormalToView(surface.normal);
     let lightVisibility = textureSampleLevel(
         lightmapTex, terrainSampler, terrainUv, 0.0).x;
     let shadow = textureLoad(shadowTex, pixel, 0).x;
@@ -651,23 +2140,30 @@ fn backgroundTerrain(pixel : vec2<i32>, dims : vec2<u32>,
     let diffuse = max(dot(normal, light), 0.0) * shadow;
     let ambient = max(camera.lightDirVS.w, 0.05);
     let view = normalize(-posCenterView);
-    let halfway = normalize(light + view);
-    let roughness = 0.6;
-    let specular = mix(0.04, 0.25, 1.0 - roughness) *
-        pow(max(dot(normal, halfway), 0.0),
-            max((1.0 - roughness) * 160.0, 8.0)) *
+    let specular = terrainSpecular(
+        normal, view, light, surface.roughness, surface.wetness) *
         lightVisibility * shadow;
     let warmLight = vec3<f32>(1.10, 0.96, 0.84);
     let coolShadow = vec3<f32>(0.90, 0.96, 1.02);
     let grade = mix(coolShadow, warmLight,
         clamp(diffuse * lightVisibility + 0.35, 0.0, 1.0));
-    let lit = albedo *
+    let lit = surface.albedo *
         (diffuse * lightVisibility * sunRadiance() + ambient * ambientTint()) *
         grade + specular * sunRadiance();
     let distanceToCamera = length(posCenterView);
     if (underwaterTerrain) {
+        // The settled-camera path owns review captures and normal play most of
+        // the time. Keep its submerged receiver lighting identical to the
+        // direct path instead of dropping caustics after the cache refresh.
+        let caustic = underwaterTerrainCaustic(
+            posCenterWorld, geometryNormal, distanceToCamera);
+        let submergedLit = lit *
+            (1.0 + caustic * 0.62) +
+            vec3<f32>(0.018, 0.045, 0.035) * caustic;
         return applyUnderwaterMedium(
-            lit, posCenterWorld - camera.cameraPos.xyz, distanceToCamera);
+            submergedLit,
+            posCenterWorld - camera.cameraPos.xyz,
+            distanceToCamera);
     }
     let fog = atmosphericFog(distanceToCamera);
     return mix(lit, oceanFogColor(), fog);
@@ -740,6 +2236,15 @@ fn fs(i : VSOut) -> @location(0) vec4<f32> {
     // ─────────────────────────────────────────────────────────────────────────
     let posCView = viewPosFromDepth(invProjParams, ndcCenter, depthCenter);
     let posCWorld = viewToWorld(camera.invView, posCView);
+    let propRay = normalize(
+        posCWorld - camera.cameraPos.xyz);
+    let coveProp = authoredCovePropHit(
+        camera.cameraPos.xyz, propRay, depthCenter);
+    if (coveProp.distance > 0.0) {
+        let propColor = shadeCoveProp(coveProp, propRay);
+        return vec4<f32>(
+            presentColor(propColor, i.uv, dims), 1.0);
+    }
     let packedShadow = textureLoad(shadowTex, pixelI, 0).x;
 
     // Terrain shadows are in [0, 1]. Water stores signed depth + 1 and its
@@ -758,7 +2263,8 @@ fn fs(i : VSOut) -> @location(0) vec4<f32> {
         let waterNormal = waterWaveNormal(waterWave);
         let waterColor = shadeOcean(posCWorld, posCView, viewDirWS,
                                        waterNormal, waterDepth, waterShadow,
-                                       waterData.z, vec3<f32>(0.0), 0.0,
+                                       waterData.z, waterData.w,
+                                       vec3<f32>(0.0), 0.0,
                                        false, false, dims);
         var outputColor = presentColor(waterColor, i.uv, dims);
         if (debug.mode != 0u) {
@@ -811,17 +2317,41 @@ fn fs(i : VSOut) -> @location(0) vec4<f32> {
     let n = cross(dx, dy);
     let nLen = length(n);
     var normal = select(vec3<f32>(0.0, 1.0, 0.0), n / nLen, nLen > 1e-6);
+    var geometryNormal = normalize(
+        (camera.invView * vec4<f32>(normal, 0.0)).xyz);
+    let exactTerrainNormal = textureLoad(materialTex, pixelI, 0).xyz;
+    if (dot(exactTerrainNormal, exactTerrainNormal) > 0.5) {
+        geometryNormal = normalize(exactTerrainNormal);
+    }
 
     // ─────────────────────────────────────────────────────────────────────────
     // Texture Sampling
     // ─────────────────────────────────────────────────────────────────────────
     let uvTerrain = terrainUV(posCWorld);
-    let albedoEncoded = textureSampleLevel(
-        terrainTex, terrainSampler, uvTerrain, 0.0).xyz;
-    // Terrain JPEGs are currently uploaded as UNORM. Decode them here so the
-    // refracted bed, opaque scene, ACES curve, and Vulkan path share one linear
-    // working space.
-    let albedo = srgbToLinear(albedoEncoded);
+    let posXWorld = viewToWorld(camera.invView, posXView);
+    let posYWorld = viewToWorld(camera.invView, posYView);
+    let uvTerrainX = terrainUV(posXWorld);
+    let uvTerrainY = terrainUV(posYWorld);
+    let uvTerrainDx = select(
+        uvTerrainX - uvTerrain, uvTerrain - uvTerrainX, useNegX);
+    let uvTerrainDy = select(
+        uvTerrainY - uvTerrain, uvTerrain - uvTerrainY, useNegY);
+    let materialWorldX = select(
+        posXWorld, posCWorld * 2.0 - posXWorld, useNegX);
+    let materialWorldY = select(
+        posYWorld, posCWorld * 2.0 - posYWorld, useNegY);
+    var surface = TerrainSurface(
+        vec3<f32>(0.0), geometryNormal, 0.6, 0.0);
+    if (camera.invProjParams.z > 0.5) {
+        surface.albedo = srgbToLinear(textureSampleGrad(
+            terrainTex, terrainSampler, uvTerrain,
+            uvTerrainDx, uvTerrainDy).rgb);
+        surface.roughness = 0.2;
+    } else {
+        surface = sampleTerrainSurface(
+            posCWorld, materialWorldX, materialWorldY, geometryNormal);
+    }
+    normal = worldNormalToView(surface.normal);
     let lightVisibility = textureSampleLevel(lightmapTex, terrainSampler, uvTerrain, 0.0).x;
     
     // ─────────────────────────────────────────────────────────────────────────
@@ -839,26 +2369,18 @@ fn fs(i : VSOut) -> @location(0) vec4<f32> {
     // Fixed ambient intensity
     let ambient = max(camera.lightDirVS.w, 0.05);
     
-    // Specular (roughness-based Blinn-Phong)
+    // Energy-normalized GGX direct specular. Perceptual roughness comes from
+    // the material mip chain and wet sand uses an air/water dielectric F0.
     let viewDir = normalize(-posCView);
-    let halfVec = normalize(lightDir + viewDir);
-
-    var roughness = 0.6;
-    if (camera.invProjParams.z > 0.5) {
-        roughness = 0.2; // Shiny plastic for Lego
-    }
-
-    let specPower = max((1.0 - roughness) * 160.0, 8.0);  // ~64 for roughness 0.6
-    let specStrength = mix(0.04, 0.25, 1.0 - roughness);  // ~0.124 for roughness 0.6
-    let specularTerm = pow(max(dot(normal, halfVec), 0.0), specPower);
-    // Apply shadow to specular as well
-    let specular = specStrength * specularTerm * lightVisibility * packedShadow;
+    let specular = terrainSpecular(
+        normal, viewDir, lightDir, surface.roughness, surface.wetness) *
+        lightVisibility * packedShadow;
     
     // Combine lighting components
     let warmLight = vec3<f32>(1.10, 0.96, 0.84);
     let coolShadow = vec3<f32>(0.90, 0.96, 1.02);
     let grade = mix(coolShadow, warmLight, clamp(finalDiffuse * lightVisibility + 0.35, 0.0, 1.0));
-    let litColor = albedo *
+    let litColor = surface.albedo *
         (finalDiffuse * lightVisibility * sunRadiance() +
          ambient * ambientTint()) * grade + specular * sunRadiance();
     
@@ -871,8 +2393,15 @@ fn fs(i : VSOut) -> @location(0) vec4<f32> {
         // Only attenuate geometry below the current water surface; cliffs above
         // it remain in air even when the camera is submerged.
         if (posCWorld.y <= camera.waterParams.x + 0.5) {
+            let caustic = underwaterTerrainCaustic(
+                posCWorld, geometryNormal, dist);
+            let submergedLit = litColor *
+                (1.0 + caustic * 0.62) +
+                vec3<f32>(0.018, 0.045, 0.035) * caustic;
             finalColor = applyUnderwaterMedium(
-                litColor, posCWorld - camera.cameraPos.xyz, dist);
+                submergedLit,
+                posCWorld - camera.cameraPos.xyz,
+                dist);
         } else {
             finalColor = litColor;
         }
@@ -1018,7 +2547,8 @@ fn fsCached(i : VSOut) -> @location(0) vec4<f32> {
         backgroundTex, terrainSampler, refractionUv, 0.0).rgb;
     let waterColor = shadeOcean(
         posCWorld, posCView, viewDirWS, waterNormal, waterDepth,
-        waterShadow, waterData.z, sceneRefraction, sceneThickness,
+        waterShadow, waterData.z, waterData.w,
+        sceneRefraction, sceneThickness,
         true, refractionDepth > 0.0, dims);
     var outputColor = presentColor(waterColor, i.uv, dims);
     if (debug.mode != 0u) {
@@ -1170,8 +2700,8 @@ fn fusedSpectralSurface(worldXZ : vec2<f32>, strength : f32,
     let up = vec3<f32>(0.0, 1.0, 0.0);
     return FusedSpectralSurface(
         (broad.xyz + detail.xyz) * strength,
-        up + ((broadNormal - up) +
-              (detailNormal - up) * detailWeight) * strength,
+        up + ((broadNormal - up) * 0.82 +
+              (detailNormal - up) * detailWeight * 0.48) * strength,
         max(broad.w, detail.w) * strength);
 }
 
@@ -1404,6 +2934,7 @@ fn fusedSceneAt(pixel : vec2<i32>, dims : vec2<u32>) -> FusedSceneSample {
                         surfaceHeight - terrainHeight, FUSED_MIN_WATER_DEPTH);
                     let shoreInfluence = fusedNearbyShore(
                         waterCell, baseSize, surfaceHeight);
+                    waterWave.x = shoreInfluence;
                     waterDepthUnder = mix(
                         realDepth, min(realDepth, FUSED_SHORE_DEPTH),
                         shoreInfluence);
@@ -1501,7 +3032,8 @@ fn fsFused(i : VSOut) -> FusedFragmentOutput {
         backgroundTex, terrainSampler, refractionUv, 0.0).rgb;
     let waterColor = shadeOcean(
         posWorld, posView, viewDirWS, waterNormal, waterDepth,
-        waterShadow, scene.wave.w, sceneRefraction, sceneThickness,
+        waterShadow, scene.wave.w, scene.wave.x,
+        sceneRefraction, sceneThickness,
         true, refractionDepth > 0.0, dims);
     var presented = presentColor(waterColor, i.uv, dims);
     if (debug.mode != 0u) {
