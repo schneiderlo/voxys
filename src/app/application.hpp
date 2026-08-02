@@ -69,6 +69,13 @@ namespace render {
     class BlitPath;
     class WaterSimulation;
     class PrimitivePath;
+    class MeshPath;
+}
+
+namespace moto {
+    struct BikeState;
+    class MotoSession;
+    class RaceSession;
 }
 
 namespace perf {
@@ -233,7 +240,7 @@ struct ApplicationConfig {
     // Window settings
     int windowWidth = 1280;
     int windowHeight = 720;
-    std::string windowTitle = "voxy - WebGPU Terrain Renderer";
+    std::string windowTitle = "RIDGEBREAK";
     bool fullscreen = false;
     bool vsync = true;
 
@@ -380,6 +387,28 @@ struct ApplicationStats {
     
     // Controller stats
     ControllerMode activeController = ControllerMode::FreeFly;
+};
+
+/// Small presentation snapshot for platform-native HUDs. Gameplay remains in
+/// MotoSession; this copy prevents browser UI code from reaching into it.
+struct MotoHudState {
+    bool active = false;
+    float speedKilometersPerHour = 0.0f;
+    float engineRpm = 0.0f;
+    uint32_t gear = 0u;
+    uint32_t crashState = 0u;
+    uint32_t combo = 0u;
+    uint64_t score = 0u;
+    bool raceActive = false;
+    uint32_t raceMode = 0u;
+    uint32_t racePhase = 0u;
+    uint32_t nextCheckpoint = 0u;
+    uint32_t checkpointCount = 0u;
+    uint32_t completedLaps = 0u;
+    uint32_t lapCount = 0u;
+    uint32_t countdownTicksRemaining = 0u;
+    uint32_t finishPlace = 0u;
+    bool didNotFinish = false;
 };
 
 // ─────────────────────────────────────────────────════════════════════════────
@@ -614,6 +643,7 @@ public:
 
     /// Get runtime statistics.
     [[nodiscard]] const ApplicationStats& getStats() const noexcept { return stats_; }
+    [[nodiscard]] MotoHudState getMotoHudState() const noexcept;
     [[nodiscard]] const WreckwaterApplicationClientTelemetry&
     getWreckwaterClientTelemetry() const noexcept {
         return wreckwaterClientTelemetry_;
@@ -671,6 +701,8 @@ private:
     bool initCamera();
     bool initTerrain();
     bool initRenderers();
+    bool initMoto();
+    bool startMotoCircuit();
     bool initRenderGpuProfiling();
     bool initWreckwaterClient();
     bool createBenchmarkTarget(uint32_t width, uint32_t height);
@@ -690,6 +722,8 @@ private:
 
     void renderTrianglePath(WGPUCommandEncoder encoder, WGPUTextureView colorView);
     void renderRaycastPath(WGPUCommandEncoder encoder, WGPUTextureView colorView);
+    void clearRayObjectDepth(WGPUCommandEncoder encoder);
+    void renderMoto(WGPUCommandEncoder encoder, WGPUTextureView colorView);
     void pollRenderGpuTimings();
     void updateCameraUniforms();
     void applyRendererSettings();
@@ -707,6 +741,8 @@ private:
     // ─────────────────────────────────────────────────────────────────────────
 
     void processInput(float deltaTime);
+    void updateMoto(float deltaTime);
+    void advanceMotoRaceFixedStep(const moto::BikeState& state);
     void processThrowableInput(float deltaTime);
     [[nodiscard]] bool spawnThrowable(
         physics::ThrowableShape shape,
@@ -719,6 +755,8 @@ private:
     void updateWreckwaterClient(float deltaTime);
     void pollWreckwaterCameraProbe();
     void submitWreckwaterCameraProbe();
+    [[nodiscard]] float sampleTerrainHeight(float worldX, float worldZ) const;
+    [[nodiscard]] glm::vec3 findMotoSpawn() const;
 
     // ─────────────────────────────────────────────────────────────────────────
     // State
@@ -794,6 +832,24 @@ private:
     // Renderers
     std::unique_ptr<render::WaterSimulation> waterSimulation_;
     std::unique_ptr<render::PrimitivePath> primitivePath_;
+    std::unique_ptr<render::MeshPath> meshPath_;
+    std::unique_ptr<moto::MotoSession> motoSession_;
+    std::unique_ptr<moto::RaceSession> motoRaceSession_;
+    glm::vec3 motoWorldSpawn_{0.0f};
+    float motoWorldSpawnYaw_ = 0.0f;
+    std::vector<glm::vec2> motoRaceRoute_;
+    struct MotoTrackRenderPose {
+        uint32_t meshIndex = 0u;
+        glm::mat4 modelMatrix{1.0f};
+        glm::vec4 tintColor{1.0f};
+    };
+    std::vector<MotoTrackRenderPose> motoTrackPoses_;
+    uint32_t motoSurfaceMapSize_ = 0u;
+    std::vector<uint8_t> motoSurfaceMap_;
+    bool motoWorldSpawnValid_ = false;
+    uint64_t motoRaceTrickSequence_ = 0u;
+    uint64_t motoRaceLandingIdentity_ = 0u;
+    uint32_t motoRaceObservedTricksLanded_ = 0u;
     render::PrimitiveCullController primitiveCullController_;
     std::unique_ptr<render::TrianglePath> trianglePath_;
     std::unique_ptr<render::RaycastPath> raycastPath_;

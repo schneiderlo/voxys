@@ -238,7 +238,7 @@
                     <div class="ri-resize" title="Drag to resize"></div>
                     <header class="ri-header">
                         <div class="ri-title-block">
-                            <span class="ri-eyebrow">VOXY</span>
+                            <span class="ri-eyebrow">RIDGEBREAK</span>
                             <h2>Renderer</h2>
                         </div>
                         <div class="ri-header-actions">

@@ -124,6 +124,27 @@ std::vector<std::byte> payload(uint8_t value) {
     };
 }
 
+TEST(DeterministicAdversityTransportTest,
+     LatestRealtimeSendSupersedesQueuedAdversityState) {
+    auto config = testConfig();
+    config.outgoing.minimumDelayServiceQuanta = 4u;
+    config.outgoing.maximumDelayServiceQuanta = 4u;
+    auto harness = makeHarness(config);
+    const auto stale = payload(0x21u);
+    const auto latest = payload(0x71u);
+
+    ASSERT_TRUE(harness.adversity->sendLatestRealtime(1u, 9u, stale));
+    ASSERT_TRUE(harness.adversity->sendLatestRealtime(1u, 9u, latest));
+    EXPECT_EQ(harness.adversity->queuedOutboundFrames(), 1u);
+    EXPECT_EQ(
+        harness.adversity->telemetry().outboundRealtimeSupersessions, 1u);
+
+    for (uint32_t quantum = 0u; quantum < 5u; ++quantum)
+        harness.adversity->service();
+    ASSERT_EQ(harness.underlying->sent.size(), 1u);
+    EXPECT_EQ(harness.underlying->sent.front().bytes, latest);
+}
+
 MultiplayerTransportFrame lifecycle(
     MultiplayerTransportFrameType type, uint64_t serial,
     uint32_t peerId = 0u) {

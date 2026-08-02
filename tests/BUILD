@@ -1,5 +1,6 @@
 # List of test source files
 TEST_SRCS = [
+    "test_bike.cpp",
     "test_log.cpp",
     "test_lockstep.cpp",
     "test_networking.cpp",
@@ -9,6 +10,7 @@ TEST_SRCS = [
     "test_window.cpp",
     "test_input.cpp",
     "test_heightmap.cpp",
+    "test_world.cpp",
     "test_compression.cpp",
     "test_mip_generator.cpp",
     "test_camera.cpp",
@@ -68,6 +70,39 @@ load("//settings:configure_copts.bzl", "PROJECT_TEST_COPTS")
     ],
 ) for src in TEST_SRCS]
 
+cc_test(
+    name = "ridgebreak_authority",
+    srcs = ["test_ridgebreak_authority.cpp"],
+    copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
+    deps = [
+        "//src/network:protocol",
+        "//src/network:ridgebreak_client_replication",
+        "//src/network:ridgebreak_protocol",
+        "//src/server:ridgebreak_authority",
+        "@googletest//:gtest_main",
+    ],
+    data = [
+        "//:asan_suppressions",
+        "//:tsan_suppressions",
+        "//:msan_suppressions",
+    ],
+)
+
+cc_test(
+    name = "ridgebreak_server_runtime",
+    srcs = ["test_ridgebreak_server_runtime.cpp"],
+    copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
+    deps = [
+        "//src/network:deterministic_adversity_transport",
+        "//src/network:native_tcp_transport",
+        "//src/network:protocol",
+        "//src/network:ridgebreak_client_replication",
+        "//src/network:ridgebreak_protocol",
+        "//src/server:ridgebreak_server_runtime",
+        "@googletest//:gtest_main",
+    ],
+)
+
 test_suite(
     name = "determinism_ci",
     tests = [
@@ -121,6 +156,90 @@ test_suite(
         ":wreckwater_replay",
         ":wreckwater_replay_playback",
         ":wreckwater_vessel_damage",
+    ],
+)
+
+# Offline glTF -> .vmesh converter test. Links the library form of the tool
+# (no main()) and drives it entirely in-memory.
+cc_test(
+    name = "gltf_vmesh_tool_test",
+    srcs = ["test_gltf_vmesh_tool.cpp"],
+    copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
+    deps = [
+        "//tools:gltf_vmesh_tool_lib",
+        "@googletest//:gtest_main",
+    ],
+    data = [
+        "//:asan_suppressions",
+        "//:tsan_suppressions",
+        "//:msan_suppressions",
+    ],
+)
+
+cc_test(
+    name = "moto_session",
+    srcs = ["test_moto_session.cpp"],
+    copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
+    deps = [
+        "//src/moto:moto",
+        "@googletest//:gtest_main",
+    ],
+    data = [
+        "//data:data",
+        "//:asan_suppressions",
+        "//:tsan_suppressions",
+        "//:msan_suppressions",
+    ],
+)
+
+cc_test(
+    name = "race",
+    srcs = ["test_race.cpp"],
+    copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
+    deps = [
+        "//src/moto:moto",
+        "@googletest//:gtest_main",
+    ],
+    data = [
+        "//:asan_suppressions",
+        "//:tsan_suppressions",
+        "//:msan_suppressions",
+    ],
+)
+
+# RIDGEBREAK bike dynamics are isolated from the monolithic engine target so
+# fixed-step gameplay tests stay fast and do not require a GPU toolchain.
+cc_test(
+    name = "moto_bike",
+    srcs = ["test_bike.cpp"],
+    copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
+    deps = [
+        "//src/moto:moto",
+        "@googletest//:gtest_main",
+    ],
+    data = [
+        "//:asan_suppressions",
+        "//:tsan_suppressions",
+        "//:msan_suppressions",
+    ],
+)
+
+cc_test(
+    name = "mesh_path_test",
+    srcs = ["test_mesh_path.cpp"],
+    copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
+    deps = [
+        "//src/gpu:gpu",
+        "//src/moto:moto",
+        "//src/render:render",
+        "@googletest//:gtest_main",
+    ],
+    data = [
+        "//data:data",
+        "//shaders:shaders",
+        "//:asan_suppressions",
+        "//:tsan_suppressions",
+        "//:msan_suppressions",
     ],
 )
 
@@ -520,7 +639,12 @@ cc_test(
 cc_test(
     name = "voxy_tests",
     srcs = TEST_SRCS + [
+        "test_deterministic_adversity_transport.cpp",
+        "test_moto_session.cpp",
         "test_native_tcp_transport.cpp",
+        "test_race.cpp",
+        "test_ridgebreak_authority.cpp",
+        "test_ridgebreak_server_runtime.cpp",
         "test_water_clipmap_mesh.cpp",
         "test_wreckwater_authority_runtime.cpp",
         "test_wreckwater_character_authority_bridge.cpp",
@@ -548,6 +672,7 @@ cc_test(
         "@googletest//:gtest_main",
     ],
     data = [
+        "//data:data",
         "//shaders:shaders",
         "//:asan_suppressions",
         "//:tsan_suppressions",

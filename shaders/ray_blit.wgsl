@@ -90,6 +90,9 @@ struct DebugUniforms {
 const MATERIAL_SKY : u32 = 0u;
 const MATERIAL_TERRAIN : u32 = 1u;
 const MATERIAL_WATER : u32 = 2u;
+// WRECKWATER's hard-coded cove and wreck remain in source only for archival
+// comparison. RIDGEBREAK must never shade or intersect that product content.
+const ENABLE_LEGACY_WRECKWATER_COVE : bool = false;
 
 // Ocean colors are linear sRGB. Absorption is a Beer-Lambert coefficient,
 // not a display tint.
@@ -1080,9 +1083,11 @@ fn terrainMaterialWeights(
         dot(coveOffset, vec2<f32>(-0.2730, 0.9620));
     let coveAlongshore =
         dot(coveOffset, vec2<f32>(-0.9620, -0.2730));
-    let coveZone = 1.0 - smoothstep(
-        56.0, 80.0,
-        length(vec2<f32>(coveInland, coveAlongshore)));
+    let coveZone = select(0.0,
+        1.0 - smoothstep(
+            56.0, 80.0,
+            length(vec2<f32>(coveInland, coveAlongshore))),
+        ENABLE_LEGACY_WRECKWATER_COVE);
     elevation += coveZone * (
         0.55 * sin(coveAlongshore * 0.143 +
                    sin(coveInland * 0.071) * 1.3) +
@@ -1224,10 +1229,21 @@ fn terrainMaterialWeights(
         (1.0 - smoothstep(34.0, 48.0, elevation)) *
         smoothstep(0.34, 0.88, 1.0 - transitionSignal),
         washCore * 0.55);
-    let grass = upland * grassSuitability *
+    var grass = upland * grassSuitability *
                 mix(0.20, 1.0, grassVariation) *
                 mix(1.0, 0.30, erosionPatch);
-    let soil = max(upland - grass, 0.0);
+    var soil = max(upland - grass, 0.0);
+
+    // WorldGenResult writes the course, approaches and subtle rut ribbons to
+    // the macro map alpha. Keep the shipped soil layer's color/normal/PBR data;
+    // this mask only controls its weight.
+    let authoredSoil = smoothstep(
+        0.035, 0.72,
+        textureSampleLevel(terrainTex, terrainSampler,
+                           terrainUV(worldPosition), 0.0).a) * (1.0 - rock);
+    sand *= 1.0 - authoredSoil;
+    grass *= 1.0 - authoredSoil;
+    soil = max(soil, authoredSoil);
 
     let weights = vec4<f32>(sand, soil, grass, rock);
     return weights / max(dot(weights, vec4<f32>(1.0)), 1.0e-5);
@@ -1350,6 +1366,14 @@ fn sampleTerrainSurface(
         roughness += layer.roughness * weights.w;
     }
 
+    // Preserve the shipped soil's micro color/normal/roughness while giving
+    // the authored course enough macro value separation to read at speed.
+    let courseSoil = textureSampleLevel(
+        terrainTex, terrainSampler, terrainUV(worldPosition), 0.0).a;
+    albedo *= mix(
+        vec3<f32>(1.0), vec3<f32>(0.30, 0.20, 0.12),
+        smoothstep(0.08, 0.78, courseSoil) * 0.85);
+
     let relativeElevation = worldPosition.y - camera.waterParams.x;
     let waterEnabled = select(0.0, 1.0, camera.waterParams.y > 0.5);
     // Static run-up history: the top of the wet band sits above the current
@@ -1390,10 +1414,11 @@ fn sampleTerrainSurface(
         dot(coveOffset, vec2<f32>(-0.2730, 0.9620));
     let coveAlongshore =
         dot(coveOffset, vec2<f32>(-0.9620, -0.2730));
-    let coveMask =
+    let coveMask = select(0.0,
         1.0 - smoothstep(
             50.0, 78.0,
-            length(vec2<f32>(coveInland, coveAlongshore)));
+            length(vec2<f32>(coveInland, coveAlongshore))),
+        ENABLE_LEGACY_WRECKWATER_COVE);
     let organicPatch =
         0.5 + 0.5 *
         sin(coveInland * 0.097 +
@@ -2059,10 +2084,12 @@ fn backgroundTerrain(pixel : vec2<i32>, dims : vec2<u32>,
     let posCenterWorld = viewToWorld(camera.invView, posCenterView);
     let propRay = normalize(
         posCenterWorld - camera.cameraPos.xyz);
-    let coveProp = authoredCovePropHit(
-        camera.cameraPos.xyz, propRay, depthCenter);
-    if (coveProp.distance > 0.0) {
-        return shadeCoveProp(coveProp, propRay);
+    if (ENABLE_LEGACY_WRECKWATER_COVE) {
+        let coveProp = authoredCovePropHit(
+            camera.cameraPos.xyz, propRay, depthCenter);
+        if (coveProp.distance > 0.0) {
+            return shadeCoveProp(coveProp, propRay);
+        }
     }
 
     let negativeX = sampleDepth(pixel - vec2<i32>(1, 0), maxCoord);
@@ -2238,12 +2265,14 @@ fn fs(i : VSOut) -> @location(0) vec4<f32> {
     let posCWorld = viewToWorld(camera.invView, posCView);
     let propRay = normalize(
         posCWorld - camera.cameraPos.xyz);
-    let coveProp = authoredCovePropHit(
-        camera.cameraPos.xyz, propRay, depthCenter);
-    if (coveProp.distance > 0.0) {
-        let propColor = shadeCoveProp(coveProp, propRay);
-        return vec4<f32>(
-            presentColor(propColor, i.uv, dims), 1.0);
+    if (ENABLE_LEGACY_WRECKWATER_COVE) {
+        let coveProp = authoredCovePropHit(
+            camera.cameraPos.xyz, propRay, depthCenter);
+        if (coveProp.distance > 0.0) {
+            let propColor = shadeCoveProp(coveProp, propRay);
+            return vec4<f32>(
+                presentColor(propColor, i.uv, dims), 1.0);
+        }
     }
     let packedShadow = textureLoad(shadowTex, pixelI, 0).x;
 

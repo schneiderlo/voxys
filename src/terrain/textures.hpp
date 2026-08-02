@@ -112,6 +112,11 @@ public:
     /// @return true on success
     [[nodiscard]] bool createPlaceholderAlbedo(uint32_t width, uint32_t height);
 
+    /// Replace the macro albedo with a deterministic RGBA8 world surface map.
+    /// Alpha remains linear exposed-soil weight for the PBR ray terrain path.
+    [[nodiscard]] bool createWorldSurfaceMap(
+        std::span<const uint8_t> rgba, uint32_t width, uint32_t height);
+
     /// Create white lightmap (full light visibility everywhere)
     /// @param width Texture width
     /// @param height Texture height

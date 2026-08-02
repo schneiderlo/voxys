@@ -1,12 +1,14 @@
 # Voxys
 
 Voxys is the engine and active game prototype for
-[WRECKWATER: DEAD HAUL](docs/wreckwater_dead_haul.md): an authoritative
-multiplayer salvage game built around physical boats, cargo, damage, flooding,
-and recovery. The linked completion contract is intentionally explicit about
-what is proven and what remains unfinished. Current engine tests and terrain
-captures are foundations; they are not a claim that the 2v2 slice or the
-12-player launch game is complete.
+[RIDGEBREAK](docs/ridgebreak.md): a physics-driven motocross game about big
+air, speed, and surviving your own mistakes, built around a purpose-built
+motorcycle simulation, an open mixed-biome world, trick scoring, and
+shareable replay clips.
+The linked completion contract is intentionally explicit about what is proven
+and what remains unfinished. Current engine tests and terrain captures are
+foundations; they are not a claim that the 2v2 slice or the 12-player session
+is complete.
 
 ## Build Systems
 
@@ -91,10 +93,10 @@ five-view run measured 393.6 FPS overall at 3440×1440.
 
 Those numbers are retained only as engine microbenchmark evidence. They use a
 physical-size offscreen target or heavily cached views and do not represent a
-moving, displayed, composed WRECKWATER match. They must not be used for the
+moving, displayed, composed RIDGEBREAK session. They must not be used for the
 current 60 FPS product gate; that gate requires the exact visible scene,
 simulation, clients, server, frame-time percentiles, and reference hardware
-defined in the WRECKWATER completion contract.
+defined in the RIDGEBREAK completion contract.
 
 Physics is selected through a backend facade:
 

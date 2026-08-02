@@ -86,6 +86,9 @@ NativeTcpServerConfig serverConfig(
     NativeTcpServerConfig config;
     config.bindAddress = "127.0.0.1";
     config.port = 0u;
+    // Most transport-only tests exercise the legacy immediate-admission mode.
+    // Runtime integration tests cover the safe two-phase default.
+    config.requireExplicitAdmission = false;
     config.limits = limits;
     config.expectedContentDigest = testContentDigest();
     for (const uint32_t peerId : peerIds)
@@ -946,6 +949,113 @@ TEST(NativeTcpTransportTest, AppliesOutboundAndInboundBackpressure) {
     EXPECT_GT(clients[0]->telemetry().partialWrites, 0u);
     EXPECT_GT(server->telemetry().inboundBackpressure, 0u);
     EXPECT_EQ(server->telemetry().queuedInboundFrames, 0u);
+}
+
+TEST(NativeTcpTransportTest,
+     LatestRealtimeSendSupersedesWhollyUnsentServerState) {
+    const std::array<uint32_t, 1> peerIds{1u};
+    auto server = NativeTcpServerTransport::create(serverConfig(peerIds));
+    ASSERT_NE(server, nullptr);
+    auto client = NativeTcpClientTransport::create(
+        clientConfig(server->listeningPort(), 1u));
+    ASSERT_NE(client, nullptr);
+    std::array<std::unique_ptr<NativeTcpClientTransport>, 1>
+        clients{std::move(client)};
+    ASSERT_TRUE(serviceUntil(
+        *server, clients, [&]() {
+            return clients[0]->connected() && server->connected(1u);
+        }));
+    (void)drainFrames(*server);
+    (void)drainFrames(*clients[0]);
+
+    const uint64_t serial = server->connectionSerial(1u);
+    const auto stale = payload(0x31u, 32u);
+    const auto latest = payload(0x71u, 32u);
+    ASSERT_TRUE(server->sendLatestRealtime(1u, serial, stale));
+    ASSERT_TRUE(server->sendLatestRealtime(1u, serial, latest));
+    EXPECT_EQ(server->telemetry().supersededOutboundFrames, 1u);
+    EXPECT_GT(server->telemetry().supersededOutboundBytes, 0u);
+    EXPECT_EQ(server->telemetry().queuedOutboundFrames, 1u);
+
+    std::optional<MultiplayerTransportFrame> received;
+    ASSERT_TRUE(serviceUntil(
+        *server, clients, [&]() {
+            received = pollData(*clients[0]);
+            return received.has_value();
+        }));
+    EXPECT_EQ(received->bytes, latest);
+    for (uint32_t drain = 0u; drain < 32u; ++drain) {
+        clients[0]->service();
+        server->service();
+    }
+    EXPECT_FALSE(pollData(*clients[0]).has_value());
+}
+
+TEST(NativeTcpTransportTest,
+     ExplicitAdmissionRejectKeepsTheOldSocketAuthoritative) {
+    const std::array<uint32_t, 1> peerIds{1u};
+    NativeTcpServerConfig config = serverConfig(peerIds);
+    config.requireExplicitAdmission = true;
+    auto server = NativeTcpServerTransport::create(config);
+    ASSERT_NE(server, nullptr);
+    std::vector<std::unique_ptr<NativeTcpClientTransport>> clients;
+    clients.push_back(NativeTcpClientTransport::create(
+        clientConfig(server->listeningPort(), 1u)));
+    ASSERT_NE(clients[0], nullptr);
+
+    std::optional<MultiplayerTransportFrame> firstRequest;
+    ASSERT_TRUE(serviceUntil(
+        *server, clients, [&]() {
+            firstRequest = server->poll();
+            return firstRequest.has_value();
+        }));
+    ASSERT_EQ(firstRequest->type,
+              MultiplayerTransportFrameType::ConnectionRequested);
+    const uint64_t firstSerial = firstRequest->connectionSerial;
+    ASSERT_TRUE(server->acceptConnection(1u, firstSerial));
+    ASSERT_TRUE(serviceUntil(
+        *server, clients, [&]() {
+            return clients[0]->connected()
+                && server->connectionSerial(1u) == firstSerial;
+        }));
+
+    clients.push_back(NativeTcpClientTransport::create(
+        clientConfig(server->listeningPort(), 1u)));
+    ASSERT_NE(clients[1], nullptr);
+    std::optional<MultiplayerTransportFrame> replacementRequest;
+    ASSERT_TRUE(serviceUntil(
+        *server, clients, [&]() {
+            replacementRequest = server->poll();
+            return replacementRequest.has_value();
+        }));
+    ASSERT_EQ(replacementRequest->type,
+              MultiplayerTransportFrameType::ConnectionRequested);
+    ASSERT_NE(replacementRequest->connectionSerial, firstSerial);
+    EXPECT_EQ(server->connectionSerial(1u), firstSerial);
+    EXPECT_TRUE(clients[0]->connected());
+    EXPECT_FALSE(clients[1]->connected());
+
+    server->rejectConnection(
+        1u, replacementRequest->connectionSerial);
+    ASSERT_TRUE(serviceUntil(
+        *server, clients, [&]() {
+            return clients[1]->state() == NativeTcpClientState::Failed;
+        }));
+    EXPECT_EQ(server->connectionSerial(1u), firstSerial);
+    EXPECT_TRUE(server->connected(1u));
+    EXPECT_TRUE(clients[0]->connected());
+
+    const auto stillLive = payload(0xa5u, 17u);
+    ASSERT_TRUE(clients[0]->send(
+        0u, firstSerial, DeliveryClass::Realtime, stillLive));
+    std::optional<MultiplayerTransportFrame> received;
+    ASSERT_TRUE(serviceUntil(
+        *server, clients, [&]() {
+            received = pollData(*server);
+            return received.has_value();
+        }));
+    EXPECT_EQ(received->connectionSerial, firstSerial);
+    EXPECT_EQ(received->bytes, stillLive);
 }
 
 TEST(NativeTcpTransportTest, ReconnectsSamePeerAndReleasesSocketsOnClose) {

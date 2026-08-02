@@ -19,6 +19,7 @@ cc_library(
         "//src/game:game",
         "//src/gpu:gpu",
         "//src/gameplay:gameplay",
+        "//src/moto:moto",
         "//src/network:network",
         "//src/perf:perf",
         "//src/physics:physics",

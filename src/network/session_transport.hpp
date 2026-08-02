@@ -18,6 +18,10 @@ enum class MultiplayerTransportFrameType : uint32_t {
     Data = 0,
     Connected = 1,
     Disconnected = 2,
+    // Authentication succeeded, but the transport has not replaced an
+    // existing same-peer connection. The session must accept or reject this
+    // exact serial before the candidate can exchange data.
+    ConnectionRequested = 3,
 };
 
 struct MultiplayerTransportFrame {
@@ -59,6 +63,22 @@ public:
         if (connectionSerial != 0u) return false;
         return send(peerId, delivery, bytes);
     }
+
+    // Realtime state supersedes older, wholly-unsent realtime state for the
+    // same connection. Transports without an internal queue safely fall back
+    // to send(); queued transports override this to prevent stale backlog.
+    [[nodiscard]] virtual bool sendLatestRealtime(
+        uint32_t peerId, uint64_t connectionSerial,
+        std::span<const std::byte> bytes) {
+        return send(peerId, connectionSerial, DeliveryClass::Realtime, bytes);
+    }
+
+    // Two-phase admission for transports that can authenticate a replacement
+    // while retaining the currently active same-peer socket. Connected
+    // transports need not implement these; ConnectionRequested transports do.
+    [[nodiscard]] virtual bool acceptConnection(
+        uint32_t, uint64_t) { return false; }
+    virtual void rejectConnection(uint32_t, uint64_t) {}
 
     [[nodiscard]] virtual std::optional<MultiplayerTransportFrame> poll() = 0;
     virtual void close() = 0;

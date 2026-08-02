@@ -312,6 +312,7 @@ TEST(WreckwaterApplicationClient,
     bodies.outputs.push_back({
         .requestId = request.physicsQuery.requestId + 1u,
         .type = physics::PhysicsQueryType::SphereCast,
+        .hits = {},
     });
     const auto mismatched =
         mergeWreckwaterCameraObstructionProbeResult(

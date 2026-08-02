@@ -13,6 +13,7 @@ set(CORE_SOURCES "")
 set(GPU_SOURCES "")
 set(GAME_SOURCES "")
 set(GAMEPLAY_SOURCES "")
+set(MOTO_SOURCES "")
 set(TERRAIN_SOURCES "")
 set(RENDER_SOURCES "")
 set(CAMERA_SOURCES "")
@@ -45,6 +46,17 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/gameplay/vertical_slices.cpp")
     )
 endif()
 
+# RIDGEBREAK moto game layer (Phase R: mesh pipeline + motorcycle).
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/moto/vmesh_io.cpp")
+    list(APPEND MOTO_SOURCES
+        moto/bike.cpp
+        moto/race.cpp
+        moto/session.cpp
+        moto/vmesh_io.cpp
+        moto/world.cpp
+    )
+endif()
+
 # Core utilities (Phase 1.4)
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/core/log.cpp")
     list(APPEND CORE_SOURCES
@@ -55,6 +67,8 @@ endif()
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/server/world_coordinator.cpp")
     list(APPEND SERVER_SOURCES
         server/native_gpu_backend.cpp
+        server/ridgebreak_authority.cpp
+        server/ridgebreak_server_runtime.cpp
         server/wreckwater_authority_runtime.cpp
         server/world_coordinator.cpp
     )
@@ -69,6 +83,8 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/network/protocol.cpp")
         network/native_tcp_transport.cpp
         network/protocol.cpp
         network/replication.cpp
+        network/ridgebreak_client_replication.cpp
+        network/ridgebreak_protocol.cpp
         network/session_transport.hpp
         network/transport.cpp
         network/wreckwater_client_replication.cpp
@@ -220,6 +236,11 @@ endif()
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/render/debug_visualizer.cpp")
     list(APPEND RENDER_SOURCES
         render/debug_visualizer.cpp
+    )
+endif()
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/render/mesh_path.cpp")
+    list(APPEND RENDER_SOURCES
+        render/mesh_path.cpp
     )
 endif()
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/render/blit_path.cpp")
@@ -426,6 +447,7 @@ set(ALL_SOURCES
     ${GPU_SOURCES}
     ${GAME_SOURCES}
     ${GAMEPLAY_SOURCES}
+    ${MOTO_SOURCES}
     ${TERRAIN_SOURCES}
     ${VOXEL_SOURCES}
     ${RENDER_SOURCES}

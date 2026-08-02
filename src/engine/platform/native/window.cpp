@@ -51,15 +51,25 @@ bool Window::initGLFW() {
     
     glfwSetErrorCallback(glfwErrorCallback);
     bool requestedWayland = false;
+    bool requestedX11 = false;
     #if defined(__linux__)
-        // Prefer the session-native backend.  On fractionally scaled desktops,
-        // forcing XWayland may expose a compositor supersampling buffer instead
-        // of the monitor's physical pixel dimensions.
+        // Allow capture farms and packaged builds to select a surface backend
+        // supported by their wgpu-native build. Without an override, prefer
+        // the session-native backend for correct fractional scaling.
+        const char* backendOverride = std::getenv("VOXY_WINDOW_BACKEND");
         const char* waylandDisplay = std::getenv("WAYLAND_DISPLAY");
-        requestedWayland = waylandDisplay != nullptr
-                        && std::string_view{waylandDisplay}.size() != 0u;
+        const std::string_view requested = backendOverride != nullptr
+            ? std::string_view{backendOverride} : std::string_view{};
+        requestedX11 = requested == "x11" || requested == "X11";
+        requestedWayland = requested == "wayland"
+            || requested == "Wayland"
+            || (!requestedX11 && requested.empty()
+                && waylandDisplay != nullptr
+                && std::string_view{waylandDisplay}.size() != 0u);
         if (requestedWayland) {
             glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_WAYLAND);
+        } else if (requestedX11) {
+            glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_X11);
         }
     #endif
     
@@ -70,6 +80,13 @@ bool Window::initGLFW() {
             glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_X11);
             if (!glfwInit()) {
                 LOG_ERROR("Failed to initialize GLFW on Wayland or X11");
+                return false;
+            }
+        } else if (requestedX11) {
+            LOG_WARN("Native X11 initialization failed; falling back to Wayland");
+            glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_WAYLAND);
+            if (!glfwInit()) {
+                LOG_ERROR("Failed to initialize GLFW on X11 or Wayland");
                 return false;
             }
         } else

@@ -223,6 +223,11 @@ public:
     /// Get the sampler used for terrain/lightmap textures
     [[nodiscard]] WGPUSampler getSampler() const noexcept { return sampler_; }
 
+    /// Borrow the baked full-sphere sky LUT used by scene-object IBL.
+    [[nodiscard]] WGPUTextureView getEnvironmentTextureView() const noexcept {
+        return skyLutView_;
+    }
+
 private:
     // ─────────────────────────────────────────────────────────────────────────
     // Internal Methods

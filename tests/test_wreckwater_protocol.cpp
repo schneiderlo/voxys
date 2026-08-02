@@ -65,6 +65,14 @@ constexpr size_t kEntityNetGenerationOffset = 8u;
 constexpr size_t kEntityLocalPositionOffset = 32u;
 constexpr size_t kEntityQuaternionOffset = 44u;
 
+void writeU16(std::vector<std::byte> &bytes, size_t offset, uint16_t value) {
+  ASSERT_LE(offset + sizeof(uint16_t), bytes.size());
+  for (uint32_t byte = 0u; byte < 2u; ++byte) {
+    bytes[offset + byte] =
+        std::byte{static_cast<uint8_t>(value >> (byte * 8u))};
+  }
+}
+
 void writeU32(std::vector<std::byte> &bytes, size_t offset, uint32_t value) {
   ASSERT_LE(offset + sizeof(uint32_t), bytes.size());
   for (uint32_t byte = 0u; byte < 4u; ++byte) {
@@ -312,8 +320,7 @@ TEST(WreckwaterActionRequestCodecTest,
   EXPECT_EQ(WreckwaterActionRequestCodec::encode(request).error,
             WreckwaterCodecError::InvalidControl);
   std::vector<std::byte> malformed = encoded.bytes;
-  malformed[56] = std::byte{0x00u};
-  malformed[57] = std::byte{0x80u};
+  writeU16(malformed, 56u, 0x8000u);
   EXPECT_EQ(WreckwaterActionRequestCodec::decode(malformed).error,
             WreckwaterCodecError::InvalidControl);
   request.helmThrottleQ15 = 0;
@@ -439,8 +446,7 @@ TEST(WreckwaterCharacterInputRequestCodecTest,
   EXPECT_EQ(WreckwaterCharacterInputRequestCodec::decode(malformed).error,
             WreckwaterCodecError::UnsupportedVersion);
   malformed = encoded.bytes;
-  malformed[48] = std::byte{0x00u};
-  malformed[49] = std::byte{0x80u};
+  writeU16(malformed, 48u, 0x8000u);
   EXPECT_EQ(WreckwaterCharacterInputRequestCodec::decode(malformed).error,
             WreckwaterCodecError::InvalidControl);
   malformed = encoded.bytes;

@@ -27,6 +27,10 @@
 #include "core/timer.hpp"
 #include "gpu/context.hpp"
 #include "gpu/resources.hpp"
+#include "moto/race.hpp"
+#include "moto/session.hpp"
+#include "moto/world.hpp"
+#include "physics/terrain_topology.hpp"
 #include "terrain/authored_cove.hpp"
 #include "terrain/textures.hpp"
 #include "terrain/shadow_bake.hpp"
@@ -36,6 +40,7 @@
 #include "render/water_simulation.hpp"
 #include "render/primitive_path.hpp"
 #include "render/primitive_culling.hpp"
+#include "render/mesh_path.hpp"
 #include "physics/physics_world.hpp"
 
 #if !defined(VOXY_WASM)
@@ -122,6 +127,7 @@ constexpr float kCubeTriangleCubeSize = 1.1f;
 constexpr float kCubeTriangleHorizontalPitch =
     kCubeTriangleCubeSize + 0.16f;
 constexpr uint32_t kCubeTriangleImpactWakeRadiusColumns = 2u;
+constexpr uint16_t kLocalMotoRacePlayer = 0u;
 
 bool flattenCubeTriangleArena(
     terrain::Heightmap& heightmap, float cellScale) {
@@ -878,18 +884,10 @@ bool Application::init(const ApplicationConfig& config) {
         { { 202.53f, 120.92f, -27.16f }, -0.2070f, -0.3556f },
         { { 179.01f, 121.64f, -28.72f }, -1.3958f, -0.1900f },
         { { 179.01f, 121.64f, -28.72f }, -2.0606f, -0.0380f },
-        // Wreckwater authored-cove review triplet: landward wide, landward
-        // close, and underwater. The first two look across the wreck to sea
-        // instead of flattening it against the featureless inland bank.
-        { { -635.30f, -160.00f, 3558.30f }, -2.9750f, -0.2500f },
-        { { -644.15f, -174.00f, 3516.30f }, -3.0100f, -0.2600f },
-        { { -610.00f, -220.00f, 3386.00f }, -1.0500f, -0.0800f },
-        { { 5000.0f, -215.0f, 0.0f }, 1.7960f, -0.3000f },
-        { { 5000.0f, -180.0f, 0.0f }, 1.7960f, -0.0578f },
     };
 
     LOG_INFO("═══════════════════════════════════════════════════════════════");
-    LOG_INFO("  voxy v0.1.0 - WebGPU Terrain Renderer");
+    LOG_INFO("  RIDGEBREAK - Motocross Freeride");
 #if defined(VOXY_NATIVE)
     LOG_INFO("  Build target: native");
 #elif defined(VOXY_WASM)
@@ -942,6 +940,11 @@ bool Application::init(const ApplicationConfig& config) {
             return failInitialization();
         }
 
+        if (!initMoto()) {
+            LOG_ERROR("Failed to initialize RIDGEBREAK freeride session");
+            return failInitialization();
+        }
+
         if (!initWreckwaterClient()) {
             return failInitialization();
         }
@@ -959,7 +962,18 @@ bool Application::init(const ApplicationConfig& config) {
     LOG_INFO("  Render path: {}", renderPathToString(config_.renderPath));
     LOG_INFO("");
     LOG_INFO("Controls:");
-    if (wreckwaterClientState_) {
+    if (motoSession_ && motoSession_->isInitialized()) {
+        LOG_INFO("  W/Up      - Throttle");
+        LOG_INFO("  S/Down    - Brake");
+        LOG_INFO("  A/D       - Steer");
+        LOG_INFO("  Q/E       - Rider lean");
+        LOG_INFO("  Shift     - Stand");
+        LOG_INFO("  Ctrl      - Duck");
+        LOG_INFO("  Z/X       - Shift down/up");
+        LOG_INFO("  R         - Remount after a crash");
+        LOG_INFO("  C         - Start/restart circuit from the grid");
+        LOG_INFO("  Backspace - Reset bike / restart active circuit");
+    } else if (wreckwaterClientState_) {
         LOG_INFO("  WASD      - Camera-relative movement");
         LOG_INFO("  Space     - Jump / swim stroke");
         LOG_INFO("  E         - Board");
@@ -979,11 +993,13 @@ bool Application::init(const ApplicationConfig& config) {
     LOG_INFO("  F4        - Toggle depth visualization");
     LOG_INFO("  F5        - Toggle normal visualization");
     LOG_INFO("  F6        - Toggle mip level heat map");
-    LOG_INFO("  F7        - Toggle benchmark mode");
-    LOG_INFO("  F8        - Toggle controller (free-fly/character)");
+    if (!motoSession_) {
+        LOG_INFO("  F7        - Toggle benchmark mode");
+        LOG_INFO("  F8        - Toggle controller (free-fly/character)");
+    }
     LOG_INFO("  F9        - Toggle uncapped/VSync presentation");
     LOG_INFO("  Escape    - Release mouse / Exit");
-    if (!wreckwaterClientState_) {
+    if (!wreckwaterClientState_ && !motoSession_) {
         LOG_INFO("  Wheel     - Select throwable object");
         LOG_INFO(
             "  Left click- Capture mouse / throw selected object");
@@ -992,9 +1008,13 @@ bool Application::init(const ApplicationConfig& config) {
     LOG_INFO("");
 
 #if defined(VOXY_WASM)
-    getDebugOverlay().setVisible(true);
-    // On web, default to character controller for better mobile experience
-    setControllerMode(ControllerMode::Character);
+    // RIDGEBREAK opens as a game, not as an engine diagnostics screen.
+    // The F1 overlay remains available to developers and benchmarks.
+    getDebugOverlay().setVisible(!motoSession_);
+    if (!motoSession_) {
+        // Retain the legacy terrain-sandbox default outside the moto product.
+        setControllerMode(ControllerMode::Character);
+    }
 #endif
 
     // Handle initial teleportation
@@ -1058,6 +1078,7 @@ void Application::shutdown() {
         || window_ || gpuContext_ || input_ || camera_ || freeFlyController_
         || physicsWorld_ || characterController_ || heightmap_
         || terrainTextures_ || waterSimulation_ || primitivePath_
+        || meshPath_ || motoSession_
         || trianglePath_ || raycastPath_ || blitPath_
         || renderGpuQuerySet_ || renderGpuResolveBuffer_
         || depthTexture_ || depthView_
@@ -1125,6 +1146,18 @@ void Application::shutdown() {
     }
 
     // Shutdown renderers
+    motoRaceSession_.reset();
+    motoRaceTrickSequence_ = 0u;
+    motoRaceLandingIdentity_ = 0u;
+    motoRaceObservedTricksLanded_ = 0u;
+    if (motoSession_) {
+        motoSession_->shutdown();
+        motoSession_.reset();
+    }
+    if (meshPath_) {
+        meshPath_->shutdown();
+        meshPath_.reset();
+    }
     if (primitivePath_) {
         primitivePath_->shutdown();
         primitivePath_.reset();
@@ -1490,6 +1523,176 @@ void Application::submitWreckwaterCameraProbe() {
     wreckwaterClientState_->cameraProbeSubmitted = true;
 }
 
+void Application::updateMoto(float deltaTime) {
+    if (!motoSession_ || !motoSession_->isInitialized() || !input_) return;
+
+    const bool circuitRequested = input_->wasKeyPressed(Key::C);
+    const bool resetRequested = input_->wasKeyPressed(Key::Backspace);
+    const moto::RaceMode raceMode = motoRaceSession_
+        ? motoRaceSession_->config().mode : moto::RaceMode::Freeride;
+    const moto::RacePhase racePhase = motoRaceSession_
+        ? motoRaceSession_->phase() : moto::RacePhase::Lobby;
+    const uint32_t countdown = motoRaceSession_
+        ? motoRaceSession_->countdownTicksRemaining() : 0u;
+    const moto::MotoRaceApplicationPolicy applicationPolicy =
+        moto::evaluateMotoRaceApplicationPolicy(
+            circuitRequested, resetRequested, raceMode, racePhase, countdown);
+    if (applicationPolicy.action
+            == moto::MotoRaceControlAction::StartCircuit
+        && !startMotoCircuit()) {
+        LOG_ERROR("Could not start or restart RIDGEBREAK circuit");
+    } else if (applicationPolicy.action
+               == moto::MotoRaceControlAction::ResetPractice) {
+        motoSession_->reset();
+        motoRaceObservedTricksLanded_ = 0u;
+    }
+
+    moto::BikeInput bikeInput;
+    bikeInput.throttle =
+        (input_->isKeyDown(Key::W) || input_->isKeyDown(Key::Up)) ? 1.0f : 0.0f;
+    bikeInput.brake =
+        (input_->isKeyDown(Key::S) || input_->isKeyDown(Key::Down)) ? 1.0f : 0.0f;
+    bikeInput.steer =
+        (input_->isKeyDown(Key::D) || input_->isKeyDown(Key::Right) ? 1.0f : 0.0f)
+        - (input_->isKeyDown(Key::A) || input_->isKeyDown(Key::Left) ? 1.0f : 0.0f);
+    bikeInput.lean = (input_->isKeyDown(Key::E) ? 1.0f : 0.0f)
+        - (input_->isKeyDown(Key::Q) ? 1.0f : 0.0f);
+    bikeInput.seated = !(input_->isKeyDown(Key::LeftShift)
+                         || input_->isKeyDown(Key::RightShift));
+    bikeInput.duck = input_->isKeyDown(Key::LeftControl)
+        || input_->isKeyDown(Key::RightControl);
+    bikeInput.shiftDown = input_->wasKeyPressed(Key::Z);
+    bikeInput.shiftUp = input_->wasKeyPressed(Key::X);
+    bikeInput.remount = input_->wasKeyPressed(Key::R);
+
+    if (!resetRequested || circuitRequested) {
+        motoSession_->update(
+            bikeInput,
+            [this](float x, float z) { return sampleTerrainHeight(x, z); },
+            deltaTime,
+            [this]() {
+                if (!motoRaceSession_) {
+                    return moto::MotoFixedStepMode::Simulate;
+                }
+                const moto::MotoRaceApplicationPolicy policy =
+                    moto::evaluateMotoRaceApplicationPolicy(
+                        false, false, motoRaceSession_->config().mode,
+                        motoRaceSession_->phase(),
+                        motoRaceSession_->countdownTicksRemaining());
+                return policy.gridOwned
+                    ? moto::MotoFixedStepMode::HoldGrid
+                    : moto::MotoFixedStepMode::Simulate;
+            },
+            [this](const moto::BikeState& state) {
+                advanceMotoRaceFixedStep(state);
+            });
+    }
+
+    if (camera_) {
+        const moto::MotoCameraPose& pose = motoSession_->cameraPose();
+        camera_->setWorldPosition({0, 0, 0}, pose.position);
+        camera_->lookAt(pose.target);
+    }
+}
+
+void Application::advanceMotoRaceFixedStep(const moto::BikeState& state) {
+    if (!motoRaceSession_) return;
+
+    std::array<moto::RaceTrickEvent, 4> trickEvents{};
+    size_t trickEventCount = 0u;
+    if (state.tricksLanded < motoRaceObservedTricksLanded_) {
+        motoRaceObservedTricksLanded_ = state.tricksLanded;
+    }
+    const bool newlyCanonicalLanding =
+        state.tricksLanded > motoRaceObservedTricksLanded_
+        && state.lastLandedTricks != 0u
+        && state.lastLanding != moto::LandingQuality::Crashed
+        && motoRaceSession_->phase() == moto::RacePhase::Running;
+    if (newlyCanonicalLanding) {
+        const moto::RaceRiderState* rider =
+            motoRaceSession_->rider(kLocalMotoRacePlayer);
+        if (rider != nullptr
+            && rider->lastTrickSequence
+                   != std::numeric_limits<uint64_t>::max()
+            && rider->lastLandingIdentity
+                   != std::numeric_limits<uint64_t>::max()) {
+            uint64_t sequence = rider->lastTrickSequence;
+            const uint64_t landingIdentity =
+                rider->lastLandingIdentity + 1u;
+            const uint64_t authorityTick = motoRaceSession_->tick() + 1u;
+            const auto append = [&](moto::TrickFlags flag,
+                                    moto::RaceTrick trick) {
+                if ((state.lastLandedTricks
+                     & static_cast<uint32_t>(flag)) == 0u) return;
+                trickEvents[trickEventCount++] = {
+                    .sequence = ++sequence,
+                    .landingIdentity = landingIdentity,
+                    .authorityTick = authorityTick,
+                    .trick = trick,
+                };
+            };
+            append(moto::TrickFlags::Whip, moto::RaceTrick::Whip);
+            append(moto::TrickFlags::Backflip, moto::RaceTrick::Backflip);
+            append(moto::TrickFlags::Frontflip, moto::RaceTrick::Frontflip);
+            append(moto::TrickFlags::BarrelRoll,
+                   moto::RaceTrick::BarrelRoll);
+        }
+    }
+    motoRaceObservedTricksLanded_ = state.tricksLanded;
+
+    const moto::RaceRiderFrame frame{
+        .player = kLocalMotoRacePlayer,
+        .position = state.chassisPosition,
+        .trickEvents = std::span(trickEvents.data(), trickEventCount),
+    };
+    motoRaceSession_->step(std::span(&frame, 1u));
+    if (const moto::RaceRiderState* rider =
+            motoRaceSession_->rider(kLocalMotoRacePlayer)) {
+        motoRaceTrickSequence_ = rider->lastTrickSequence;
+        motoRaceLandingIdentity_ = rider->lastLandingIdentity;
+    }
+}
+
+MotoHudState Application::getMotoHudState() const noexcept {
+    MotoHudState hud;
+    if (!motoSession_ || !motoSession_->isInitialized()) return hud;
+
+    const moto::BikeState& bike = motoSession_->bikeState();
+    hud.active = true;
+    hud.speedKilometersPerHour = std::abs(bike.speed) * 3.6f;
+    hud.engineRpm = bike.engineRPM;
+    hud.gear = bike.gear;
+    hud.crashState = static_cast<uint32_t>(bike.crash);
+    hud.combo = bike.comboCount;
+    hud.score = bike.trickScore;
+    if (motoRaceSession_) {
+        const moto::MotoRaceApplicationPolicy policy =
+            moto::evaluateMotoRaceApplicationPolicy(
+                false, false, motoRaceSession_->config().mode,
+                motoRaceSession_->phase(),
+                motoRaceSession_->countdownTicksRemaining());
+        hud.raceMode = static_cast<uint32_t>(
+            motoRaceSession_->config().mode);
+        hud.raceActive = policy.hudRaceActive;
+        if (const moto::RaceRiderState* rider =
+                motoRaceSession_->rider(kLocalMotoRacePlayer)) {
+            hud.score = rider->score;
+            if (hud.raceActive) {
+                hud.racePhase = static_cast<uint32_t>(policy.hudPhase);
+                hud.checkpointCount = static_cast<uint32_t>(
+                    motoRaceSession_->checkpoints().size());
+                hud.lapCount = motoRaceSession_->config().lapCount;
+                hud.countdownTicksRemaining = policy.hudCountdownTicks;
+                hud.nextCheckpoint = rider->nextCheckpoint;
+                hud.completedLaps = rider->completedLaps;
+                hud.finishPlace = rider->finishPlace;
+                hud.didNotFinish = rider->didNotFinish;
+            }
+        }
+    }
+    return hud;
+}
+
 void Application::update(float simulationDeltaTime, float frameDeltaTime) {
     if (!std::isfinite(simulationDeltaTime)
         || simulationDeltaTime < 0.0f) {
@@ -1514,6 +1717,10 @@ void Application::update(float simulationDeltaTime, float frameDeltaTime) {
     if (wreckwaterClientState_) {
         handleKeyboardShortcuts();
         updateWreckwaterClient(simulationDeltaTime);
+    } else if (motoSession_ && motoSession_->isInitialized()
+               && !scriptedBenchmark && !browserJourneyWasRunning) {
+        updateMoto(simulationDeltaTime);
+        handleKeyboardShortcuts();
     } else if (!scriptedBenchmark && !browserJourneyWasRunning) {
         processInput(simulationDeltaTime);
         handleKeyboardShortcuts();
@@ -1635,6 +1842,12 @@ void Application::render() {
             break;
     }
 
+    if (config_.renderPath == RenderPath::Raycast
+        && ((primitivePath_ && primitivePath_->isInitialized())
+            || (meshPath_ && meshPath_->isInitialized()))) {
+        clearRayObjectDepth(encoder);
+    }
+
     if (primitivePath_ && primitivePath_->isInitialized() && physicsWorld_) {
         perf::Timer primitiveStageTimer;
         const auto capabilities = physicsWorld_->capabilities();
@@ -1674,6 +1887,7 @@ void Application::render() {
         // performance measurements represent the game frame.
         const bool showPrimitiveHud =
             !wreckwaterClientState_
+            && !motoSession_
             && !config_.benchmarkOnStartup
             && !config_.screenshotPath.has_value()
             && !tourActive_;
@@ -1772,6 +1986,8 @@ void Application::render() {
             stats_.primitiveRenderMs = primitiveStageTimer.elapsedMs();
         }
     }
+
+    renderMoto(encoder, targetView);
 
     if (renderGpuProfilingFrame_) {
         wgpuCommandEncoderResolveQuerySet(
@@ -2103,6 +2319,9 @@ void Application::onResize(uint32_t width, uint32_t height) {
         }
         if (primitivePath_) {
             primitivePath_->setRayDepthTexture(raycastPath_->getDepthOutputView());
+        }
+        if (meshPath_) {
+            meshPath_->setRayDepthTexture(raycastPath_->getDepthOutputView());
         }
     }
 
@@ -3420,6 +3639,13 @@ bool Application::initCamera() {
 bool Application::initTerrain() {
     LOG_DEBUG("Initializing terrain...");
 
+    motoWorldSpawnValid_ = false;
+    motoWorldSpawn_ = {};
+    motoWorldSpawnYaw_ = 0.0f;
+    motoRaceRoute_.clear();
+    motoTrackPoses_.clear();
+    motoSurfaceMapSize_ = 0u;
+    motoSurfaceMap_.clear();
     heightmap_ = std::make_unique<terrain::Heightmap>();
 
     if (!config_.heightmapPath.empty()) {
@@ -3461,25 +3687,89 @@ bool Application::initTerrain() {
             }
         }
     } else {
-        // Create procedural wavy heightmap
-        uint32_t w = config_.heightmapWidth;
-        uint32_t h = config_.heightmapHeight;
-        std::vector<uint16_t> data(
-            static_cast<size_t>(w) * static_cast<size_t>(h));
-        
-        for (uint32_t y = 0; y < h; ++y) {
-            for (uint32_t x = 0; x < w; ++x) {
-                // Create some sine waves
-                float u = static_cast<float>(x) / static_cast<float>(w) * 10.0f;
-                float v = static_cast<float>(y) / static_cast<float>(h) * 10.0f;
-                float height = 0.5f + 0.2f * std::sin(u) + 0.2f * std::cos(v);
-                data[static_cast<size_t>(y) * w + x] =
-                    static_cast<uint16_t>(height * 65535.0f);
-            }
+        // Empty terrain paths select the canonical RIDGEBREAK world. Keep
+        // generation deterministic so native, browser, authority, replay and
+        // capture runs all refer to the same terrain without shipping a large
+        // baked heightmap.
+        moto::WorldGenConfig worldConfig;
+        worldConfig.size = config_.heightmapWidth;
+        worldConfig.heightScale = config_.heightScale;
+        worldConfig.cellScale = config_.cellScale;
+
+        moto::WorldGenResult world;
+        std::string error;
+        if (!moto::generateWorld(worldConfig, &world, &error)) {
+            LOG_ERROR("Failed to generate RIDGEBREAK world: {}", error);
+            return false;
         }
-        *heightmap_ = terrain::Heightmap::createFromData(std::move(data), w, h);
-        LOG_INFO("Created procedural heightmap: {}x{}", 
-                 config_.heightmapWidth, config_.heightmapHeight);
+        motoWorldSpawn_ = world.spawnPosition;
+        motoWorldSpawnYaw_ = world.spawnHeading;
+        motoWorldSpawnValid_ = true;
+        motoRaceRoute_ = std::move(world.raceRoute);
+        motoSurfaceMapSize_ = world.surfaceMapSize;
+        motoSurfaceMap_ = std::move(world.surfaceMap);
+        const size_t featureCount = world.features.size();
+        *heightmap_ = terrain::Heightmap::createFromData(
+            std::move(world.samples), worldConfig.size, worldConfig.size);
+        if (!heightmap_->isLoaded()) {
+            LOG_ERROR("RIDGEBREAK world produced an invalid heightmap");
+            return false;
+        }
+        motoTrackPoses_.reserve(world.trackProps.size());
+        for (const moto::WorldTrackProp& prop : world.trackProps) {
+            const glm::vec3 flatForward(
+                std::sin(prop.heading), 0.0f, std::cos(prop.heading));
+            const glm::vec3 flatRight(
+                flatForward.z, 0.0f, -flatForward.x);
+            constexpr float probe = 0.8f;
+            const float frontY = sampleTerrainHeight(
+                prop.position.x + flatForward.x * probe,
+                prop.position.y + flatForward.z * probe);
+            const float backY = sampleTerrainHeight(
+                prop.position.x - flatForward.x * probe,
+                prop.position.y - flatForward.z * probe);
+            const float rightY = sampleTerrainHeight(
+                prop.position.x + flatRight.x * probe,
+                prop.position.y + flatRight.z * probe);
+            const float leftY = sampleTerrainHeight(
+                prop.position.x - flatRight.x * probe,
+                prop.position.y - flatRight.z * probe);
+            glm::vec3 forward = glm::normalize(glm::vec3(
+                flatForward.x, (frontY - backY) / (2.0f * probe),
+                flatForward.z));
+            glm::vec3 right = glm::normalize(glm::vec3(
+                flatRight.x, (rightY - leftY) / (2.0f * probe),
+                flatRight.z));
+            const glm::vec3 up = glm::normalize(glm::cross(forward, right));
+            // Re-orthogonalize both tangents. The previous longitudinal-only
+            // fit visibly clipped narrow rut decals on cross-slopes.
+            right = glm::normalize(glm::cross(up, forward));
+            forward = glm::normalize(glm::cross(right, up));
+            glm::mat4 basis(1.0f);
+            basis[0] = glm::vec4(right, 0.0f);
+            basis[1] = glm::vec4(up, 0.0f);
+            basis[2] = glm::vec4(forward, 0.0f);
+            const bool isDecal = prop.kind == moto::TrackPropKind::RutStrip ||
+                                 prop.kind == moto::TrackPropKind::LandingPatch;
+            basis[3] = glm::vec4(
+                prop.position.x,
+                sampleTerrainHeight(prop.position.x, prop.position.y) +
+                    (isDecal ? 0.025f : 0.0f),
+                prop.position.y, 1.0f);
+            basis = basis * glm::scale(
+                glm::mat4(1.0f), glm::vec3(std::max(prop.scale, 0.1f)));
+            motoTrackPoses_.push_back({
+                .meshIndex = static_cast<uint32_t>(prop.kind),
+                .modelMatrix = basis,
+                .tintColor = glm::vec4(1.0f),
+            });
+        }
+        LOG_INFO(
+            "Generated RIDGEBREAK world: {}x{}, {} route points, {} features, "
+            "{} static track props, {}x{} surface splat",
+            worldConfig.size, worldConfig.size, motoRaceRoute_.size(),
+            featureCount, motoTrackPoses_.size(), motoSurfaceMapSize_,
+            motoSurfaceMapSize_);
     }
 
     // The authored cove is content for the canonical Wreckwater terrain, not
@@ -3714,6 +4004,15 @@ bool Application::initRenderers() {
         LOG_ERROR("Failed to initialize terrain textures and fallbacks");
         return false;
     }
+    if (motoSurfaceMapSize_ != 0u
+        && !terrainTextures_->createWorldSurfaceMap(
+            motoSurfaceMap_, motoSurfaceMapSize_, motoSurfaceMapSize_)) {
+        LOG_ERROR("Failed to upload RIDGEBREAK world surface splat");
+        return false;
+    }
+    // CPU staging is no longer needed after the complete mip chain is resident.
+    motoSurfaceMap_.clear();
+    motoSurfaceMap_.shrink_to_fit();
 
     // Pass textures to triangle path
     trianglePath_->setAlbedo(terrainTextures_->getAlbedoView());
@@ -3775,6 +4074,185 @@ bool Application::initRenderers() {
     return true;
 }
 
+float Application::sampleTerrainHeight(float worldX, float worldZ) const {
+    if (!heightmap_ || !heightmap_->isLoaded()
+        || !std::isfinite(worldX) || !std::isfinite(worldZ)
+        || !std::isfinite(config_.cellScale) || config_.cellScale <= 0.0f) {
+        return 0.0f;
+    }
+
+    const glm::vec2 origin = physics::terrain_topology::centeredOrigin(
+        heightmap_->getWidth(), heightmap_->getHeight(), config_.cellScale);
+    const float sampleX = (worldX + origin.x) / config_.cellScale;
+    const float sampleZ = (worldZ + origin.y) / config_.cellScale;
+    return physics::terrain_topology::worldHeight(
+        heightmap_->sampleBilinear(sampleX, sampleZ), config_.heightScale);
+}
+
+glm::vec3 Application::findMotoSpawn() const {
+    if (!heightmap_ || !heightmap_->isLoaded()) {
+        return {0.0f, 1.0f, 0.0f};
+    }
+
+    const glm::vec2 origin = physics::terrain_topology::centeredOrigin(
+        heightmap_->getWidth(), heightmap_->getHeight(), config_.cellScale);
+    const float searchRadius = std::max(
+        0.0f, std::min({600.0f, origin.x * 0.9f, origin.y * 0.9f}));
+    constexpr float spacing = 20.0f;
+    constexpr float slopeProbe = 1.5f;
+    float bestScore = std::numeric_limits<float>::infinity();
+    glm::vec3 best(0.0f, sampleTerrainHeight(0.0f, 0.0f), 0.0f);
+
+    for (float z = -searchRadius; z <= searchRadius; z += spacing) {
+        for (float x = -searchRadius; x <= searchRadius; x += spacing) {
+            const float center = sampleTerrainHeight(x, z);
+            const float slope =
+                std::abs(sampleTerrainHeight(x + slopeProbe, z)
+                         - sampleTerrainHeight(x - slopeProbe, z))
+                + std::abs(sampleTerrainHeight(x, z + slopeProbe)
+                           - sampleTerrainHeight(x, z - slopeProbe));
+            const float waterPenalty = std::max(
+                rendererSettings_.waterHeight + 2.0f - center, 0.0f)
+                * 1'000.0f;
+            const float distancePenalty =
+                0.0005f * (x * x + z * z);
+            const float score = slope + waterPenalty + distancePenalty;
+            if (score < bestScore) {
+                bestScore = score;
+                best = {x, center, z};
+            }
+        }
+    }
+
+    best.y += 1.0f;
+    return best;
+}
+
+bool Application::initMoto() {
+    if (config_.wreckwaterClient || config_.benchmarkOnStartup
+        || config_.exitAfterBenchmark || config_.cubePyramidBodyCount != 0u) {
+        return true;
+    }
+
+    render::MeshPathConfig meshConfig;
+    meshConfig.shaderPath = config_.shaderDir / "mesh_path.wgsl";
+    meshConfig.colorFormat = config_.colorFormat;
+    meshPath_ = std::make_unique<render::MeshPath>();
+    if (!meshPath_->init(gpuContext_->getDevice(), gpuContext_->getQueue(),
+                         meshConfig)) {
+        LOG_ERROR("Failed to initialize RIDGEBREAK mesh renderer");
+        return false;
+    }
+    meshPath_->setEnvironmentTexture(blitPath_->getEnvironmentTextureView());
+    meshPath_->setRayDepthTexture(raycastPath_->getDepthOutputView());
+    if (!meshPath_->loadMesh("data/moto/bike.vmesh")
+        || !meshPath_->loadMesh("data/moto/rider.vmesh")
+        || !meshPath_->loadMesh("data/moto/track.vmesh")) {
+        LOG_ERROR("Failed to load RIDGEBREAK bike, rider and track meshes");
+        return false;
+    }
+
+    moto::MotoSessionConfig sessionConfig;
+    sessionConfig.spawnPosition = motoWorldSpawnValid_
+        ? motoWorldSpawn_ : findMotoSpawn();
+    sessionConfig.spawnYaw = motoWorldSpawnValid_ ? motoWorldSpawnYaw_ : 0.0f;
+    sessionConfig.waterHeight = rendererSettings_.waterHeight;
+    motoSession_ = std::make_unique<moto::MotoSession>();
+    std::string error;
+    if (!motoSession_->initialize(sessionConfig, &error)) {
+        LOG_ERROR("Failed to initialize RIDGEBREAK session: {}", error);
+        return false;
+    }
+
+    std::vector<moto::RaceCheckpoint> raceCheckpoints;
+    if (!motoRaceRoute_.empty()
+        && !moto::buildDirectedRaceCheckpoints(
+            motoRaceRoute_, 18.0f, 12.0f, &raceCheckpoints, &error)) {
+        LOG_ERROR("Failed to build RIDGEBREAK race gates: {}", error);
+        return false;
+    }
+    for (moto::RaceCheckpoint& checkpoint : raceCheckpoints) {
+        checkpoint.center.y = sampleTerrainHeight(
+            checkpoint.center.x, checkpoint.center.z) + 2.0f;
+    }
+
+    moto::RaceConfig raceConfig = moto::makeUntimedPracticeRaceConfig();
+    // Launch into honest, untimed practice. The authored circuit is validated
+    // above but does not start until C explicitly moves the rider to its grid
+    // and resets race authority.
+    motoRaceSession_ = std::make_unique<moto::RaceSession>();
+    if (!motoRaceSession_->configure(raceConfig, raceCheckpoints, &error)
+        || !motoRaceSession_->join(kLocalMotoRacePlayer)
+        || !motoRaceSession_->start()) {
+        LOG_ERROR("Failed to initialize RIDGEBREAK race rules: {}", error);
+        return false;
+    }
+    motoRaceTrickSequence_ = 0u;
+    motoRaceLandingIdentity_ = 0u;
+    motoRaceObservedTricksLanded_ = motoSession_->bikeState().tricksLanded;
+
+    const moto::MotoCameraPose& pose = motoSession_->cameraPose();
+    camera_->setWorldPosition({0, 0, 0}, pose.position);
+    camera_->lookAt(pose.target);
+    camera_->setFovYDegrees(55.0f);
+    LOG_INFO("RIDGEBREAK untimed practice spawn: ({:.1f}, {:.1f}, {:.1f}), "
+             "{} validated circuit gates",
+             sessionConfig.spawnPosition.x, sessionConfig.spawnPosition.y,
+             sessionConfig.spawnPosition.z, raceCheckpoints.size());
+    return true;
+}
+
+bool Application::startMotoCircuit() {
+    if (!motoSession_ || !motoSession_->isInitialized()
+        || motoRaceRoute_.empty()) {
+        return false;
+    }
+
+    std::string error;
+    std::vector<moto::RaceCheckpoint> checkpoints;
+    if (!moto::buildDirectedRaceCheckpoints(
+            motoRaceRoute_, 18.0f, 12.0f, &checkpoints, &error)) {
+        LOG_ERROR("Failed to build circuit gates: {}", error);
+        return false;
+    }
+    for (moto::RaceCheckpoint& checkpoint : checkpoints) {
+        checkpoint.center.y = sampleTerrainHeight(
+            checkpoint.center.x, checkpoint.center.z) + 2.0f;
+    }
+
+    moto::CircuitGridPose grid;
+    if (!moto::buildCircuitGridPose(
+            checkpoints, 10.0f, &grid, &error)) {
+        LOG_ERROR("Failed to build circuit grid: {}", error);
+        return false;
+    }
+    grid.position.y = sampleTerrainHeight(
+        grid.position.x, grid.position.z) + 1.0f;
+
+    auto stagedRace = std::make_unique<moto::RaceSession>();
+    const moto::RaceConfig circuitConfig;
+    if (!stagedRace->configure(circuitConfig, checkpoints, &error)
+        || !stagedRace->join(kLocalMotoRacePlayer)
+        || !stagedRace->start()) {
+        LOG_ERROR("Failed to stage circuit authority: {}", error);
+        return false;
+    }
+
+    motoSession_->resetAt(grid.position, grid.yaw);
+    motoRaceSession_ = std::move(stagedRace);
+    motoRaceTrickSequence_ = 0u;
+    motoRaceLandingIdentity_ = 0u;
+    motoRaceObservedTricksLanded_ = 0u;
+    LOG_INFO("RIDGEBREAK circuit staged: {} gates, {:.1f}s countdown, "
+             "{:.1f}s race budget",
+             checkpoints.size(),
+             static_cast<float>(circuitConfig.countdownTicks)
+                 / static_cast<float>(circuitConfig.tickRate),
+             static_cast<float>(circuitConfig.durationTicks)
+                 / static_cast<float>(circuitConfig.tickRate));
+    return true;
+}
+
 void Application::setupCallbacks() {
 #if defined(VOXY_NATIVE)
     if (!window_) return;
@@ -3832,6 +4310,77 @@ void Application::pollRenderGpuTimings() {
     ++renderGpuTimingSampleCount_;
 }
 
+void Application::clearRayObjectDepth(WGPUCommandEncoder encoder) {
+    WGPUTextureView depthView = getOrCreateDepthView();
+    if (!encoder || !depthView) return;
+
+    WGPURenderPassDepthStencilAttachment depthAttachment{};
+    depthAttachment.view = depthView;
+    depthAttachment.depthLoadOp = WGPULoadOp_Clear;
+    depthAttachment.depthStoreOp = WGPUStoreOp_Store;
+    depthAttachment.depthClearValue = 1.0f;
+    depthAttachment.stencilLoadOp = WGPULoadOp_Undefined;
+    depthAttachment.stencilStoreOp = WGPUStoreOp_Undefined;
+    depthAttachment.depthReadOnly = false;
+    depthAttachment.stencilReadOnly = true;
+
+    WGPURenderPassDescriptor descriptor{};
+    WGPU_SET_LABEL(descriptor, "ray_object_depth_clear");
+    descriptor.depthStencilAttachment = &depthAttachment;
+    WGPURenderPassEncoder pass =
+        wgpuCommandEncoderBeginRenderPass(encoder, &descriptor);
+    if (!pass) return;
+    wgpuRenderPassEncoderEnd(pass);
+    wgpuRenderPassEncoderRelease(pass);
+}
+
+void Application::renderMoto(WGPUCommandEncoder encoder,
+                             WGPUTextureView colorView) {
+    if (!meshPath_ || !meshPath_->isInitialized()
+        || !motoSession_ || !motoSession_->isInitialized() || !camera_
+        || isBenchmarkRunning()
+        || (browserJourneyBenchmark_ && browserJourneyBenchmark_->isRunning())) {
+        return;
+    }
+
+    meshPath_->clearInstances();
+    for (const moto::MotoPartPose& pose : motoSession_->partPoses()) {
+        meshPath_->addInstance({
+            .assetIndex = pose.assetIndex,
+            .meshIndex = pose.meshIndex,
+            .modelMatrix = pose.modelMatrix,
+            .tintColor = pose.tintColor,
+            .emissiveBoost = pose.emissiveBoost,
+        });
+    }
+    for (const MotoTrackRenderPose& pose : motoTrackPoses_) {
+        meshPath_->addInstance({
+            .assetIndex = 2u,
+            .meshIndex = pose.meshIndex,
+            .modelMatrix = pose.modelMatrix,
+            .tintColor = pose.tintColor,
+        });
+    }
+
+    WGPUTextureView depthView = getOrCreateDepthView();
+    if (!depthView) return;
+    const render::PrimitiveLighting lighting{
+        .direction = rendererSettings_.sunDirection,
+        .sunColor = rendererSettings_.sunColor,
+        .sunIntensity = rendererSettings_.sunIntensity,
+        .ambientColor = rendererSettings_.ambientColor,
+        .ambientIntensity = rendererSettings_.ambientIntensity,
+        .fogColor = rendererSettings_.fogColor,
+        .fogDensity = rendererSettings_.fogDensity,
+        .exposure = rendererSettings_.exposure,
+    };
+    meshPath_->render(
+        encoder, colorView, depthView, camera_->viewMatrix(),
+        camera_->projectionMatrix(), camera_->position(), lighting,
+        gpuContext_->getSwapchainWidth(), gpuContext_->getSwapchainHeight(),
+        config_.renderPath == RenderPath::Raycast);
+}
+
 void Application::renderTrianglePath(WGPUCommandEncoder encoder, WGPUTextureView colorView) {
     if (!trianglePath_ || !trianglePath_->isInitialized()) {
         return;
@@ -3873,8 +4422,10 @@ void Application::renderRaycastPath(WGPUCommandEncoder encoder, WGPUTextureView 
         raycastPath_->isUsingStaticCache(),
         raycastPath_->didRefreshStaticCache());
     blitPath_->setLinearDepthRequired(
-        primitivePath_ && primitivePath_->isInitialized() &&
-        stats_.physicsResidentBodies != 0u);
+        (primitivePath_ && primitivePath_->isInitialized()
+         && stats_.physicsResidentBodies != 0u)
+        || (meshPath_ && meshPath_->isInitialized()
+            && motoSession_ && motoSession_->isInitialized()));
     // Render blit pass
     constexpr uint32_t blitStage =
         static_cast<uint32_t>(RenderGpuStage::LightingBlit);
@@ -4460,13 +5011,13 @@ void Application::handleKeyboardShortcuts() {
     }
 
     // F7 - toggle benchmark mode
-    if (!wreckwaterClientState_
+    if (!wreckwaterClientState_ && !motoSession_
         && input_->wasKeyPressed(Key::F7)) {
         toggleBenchmark();
     }
     
     // F8 - toggle controller mode (free-fly / character)
-    if (!wreckwaterClientState_
+    if (!wreckwaterClientState_ && !motoSession_
         && input_->wasKeyPressed(Key::F8)) {
         toggleControllerMode();
     }
@@ -4483,7 +5034,8 @@ void Application::handleKeyboardShortcuts() {
 
     // Free-fly recording and teleport shortcuts must not move an
     // authority-following multiplayer camera.
-    if (wreckwaterClientState_) return;
+    if (wreckwaterClientState_
+        || (motoSession_ && motoSession_->isInitialized())) return;
 
     // R - Record camera position
     if (input_->wasKeyPressed(Key::R)) {

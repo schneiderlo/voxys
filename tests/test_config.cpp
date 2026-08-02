@@ -557,9 +557,12 @@ authority_epoch = 5
 
     ASSERT_TRUE(save(config, testConfigPath));
     std::ifstream saved(testConfigPath);
-    const std::string contents{
-        std::istreambuf_iterator<char>{saved},
-        std::istreambuf_iterator<char>{}};
+    ASSERT_TRUE(saved.is_open());
+    std::string contents;
+    for (std::string line; std::getline(saved, line);) {
+        contents.append(line);
+        contents.push_back('\n');
+    }
     EXPECT_EQ(
         contents.find("[wreckwater_client]"),
         std::string::npos);

@@ -718,6 +718,20 @@ bool TerrainTextures::createPlaceholderAlbedo(uint32_t width, uint32_t height) {
     return uploadAlbedoTexture(data, width, height);
 }
 
+bool TerrainTextures::createWorldSurfaceMap(
+    std::span<const uint8_t> rgba, uint32_t width, uint32_t height) {
+    size_t byteCount = 0u;
+    uint32_t bytesPerRow = 0u;
+    if (!validImageLayout(width, height, 4u, byteCount, bytesPerRow)
+        || rgba.size() != byteCount) {
+        LOG_ERROR("Invalid world surface map: {} bytes for {}x{}",
+                  rgba.size(), width, height);
+        return false;
+    }
+    return uploadAlbedoTexture(
+        std::vector<uint8_t>(rgba.begin(), rgba.end()), width, height);
+}
+
 bool TerrainTextures::createWhiteLightmap(uint32_t width, uint32_t height) {
     LOG_SCOPE("TerrainTextures::createWhiteLightmap");
     

@@ -963,8 +963,8 @@ int main(int argc, char* argv[]) {
     // Window settings
     appConfig.windowWidth = config.window.width;
     appConfig.windowHeight = config.window.height;
-    appConfig.windowTitle = config.window.title.empty() 
-                          ? "voxy - WebGPU Terrain Renderer" 
+    appConfig.windowTitle = config.window.title.empty()
+                          ? "RIDGEBREAK"
                           : config.window.title;
     appConfig.fullscreen = config.window.fullscreen;
     // The web build historically starts with the immediate Emscripten loop.
@@ -1142,8 +1142,8 @@ int main(int argc, char* argv[]) {
     if (appConfig.heightmapPath.empty() || 
         appConfig.heightmapPath == "assets/heightmaps/terrain.ldh") {
         appConfig.heightmapPath.clear();
-        appConfig.heightmapWidth = 256;
-        appConfig.heightmapHeight = 256;
+        appConfig.heightmapWidth = 2048;
+        appConfig.heightmapHeight = 2048;
     }
 
     // Camera settings
@@ -1673,6 +1673,38 @@ const char* voxy_get_telemetry_json() {
     static std::string snapshot;
     snapshot = makeTelemetryJson();
     return snapshot.empty() ? nullptr : snapshot.c_str();
+}
+
+EMSCRIPTEN_KEEPALIVE
+const char* voxy_get_moto_hud_json() {
+    static std::string snapshot;
+    if (!g_app) return nullptr;
+    const voxy::MotoHudState hud = g_app->getMotoHudState();
+    if (!hud.active) return nullptr;
+    std::ostringstream out;
+    out << "{\"active\":true"
+        << ",\"speed_kph\":" << hud.speedKilometersPerHour
+        << ",\"rpm\":" << hud.engineRpm
+        << ",\"gear\":" << hud.gear
+        << ",\"crash\":" << hud.crashState
+        << ",\"combo\":" << hud.combo
+        << ",\"score\":" << hud.score
+        << ",\"mode\":" << (hud.raceActive ? "\"circuit\""
+                                                  : "\"practice\"")
+        << ",\"race_active\":" << (hud.raceActive ? "true" : "false");
+    if (hud.raceActive) {
+        out << ",\"race_phase\":" << hud.racePhase
+            << ",\"next_checkpoint\":" << hud.nextCheckpoint
+            << ",\"checkpoint_count\":" << hud.checkpointCount
+            << ",\"completed_laps\":" << hud.completedLaps
+            << ",\"lap_count\":" << hud.lapCount
+            << ",\"countdown_ticks\":" << hud.countdownTicksRemaining
+            << ",\"finish_place\":" << hud.finishPlace
+            << ",\"dnf\":" << (hud.didNotFinish ? "true" : "false");
+    }
+    out << '}';
+    snapshot = out.str();
+    return snapshot.c_str();
 }
 
 EMSCRIPTEN_KEEPALIVE

@@ -333,6 +333,15 @@ if(VOXY_BUILD_NATIVE)
         endif()
     endif()
 
+    if(EXISTS "${CMAKE_SOURCE_DIR}/src/server/ridgebreak_server_main.cpp")
+        add_executable(ridgebreak_server
+            src/server/ridgebreak_server_main.cpp
+        )
+        target_link_libraries(ridgebreak_server PRIVATE voxy_core)
+        target_compile_definitions(ridgebreak_server PRIVATE VOXY_NATIVE=1)
+        set_project_warnings(ridgebreak_server)
+    endif()
+
     if(EXISTS "${CMAKE_SOURCE_DIR}/src/client/wreckwater_client_probe_main.cpp")
         add_executable(wreckwater_client_probe
             src/client/wreckwater_client_probe.cpp
@@ -405,7 +414,7 @@ if(VOXY_BUILD_WASM)
             "-s MODULARIZE=1"
             "-s EXPORT_NAME='VoxyModule'"
             "-s EXPORTED_RUNTIME_METHODS=['ccall','cwrap','UTF8ToString','HEAPU8']"
-            "-s EXPORTED_FUNCTIONS=['_main','_voxy_resize','_voxy_renderer_set_number','_voxy_renderer_get_number','_voxy_renderer_get_revision','_voxy_renderer_get_applied_revision','_voxy_mouse_move','_voxy_set_camera_pose','_voxy_key_event','_voxy_get_fps','_voxy_get_frame_count','_voxy_get_last_frame_cpu_ms','_voxy_get_last_frame_wall_ms','_voxy_get_gpu_frames_in_flight','_voxy_get_gpu_pacing_skips','_voxy_get_uncapped_fps','_voxy_set_uncapped_fps','_voxy_start_cube_pyramid_experiment','_voxy_start_browser_journey_benchmark','_voxy_get_browser_journey_benchmark_status','_voxy_get_browser_journey_benchmark_json','_voxy_start_render_throughput_benchmark','_voxy_get_render_throughput_status','_voxy_get_render_throughput_fps','_voxy_get_render_throughput_elapsed_ms','_voxy_get_render_throughput_completed_frames','_voxy_get_physics_substeps','_voxy_get_physics_resident_bodies','_voxy_set_throwable_body_limit','_voxy_get_physics_encoded_tick','_voxy_get_physics_stage_ms','_voxy_get_physics_stage_tick','_voxy_poll_physics_stage_timing','_voxy_get_polled_physics_stage_ms','_voxy_poll_render_stage_timing','_voxy_get_polled_render_stage_ms','_voxy_get_telemetry_json','_voxy_is_initialized','_voxy_get_physics_backend','_voxy_start_physics_self_test','_voxy_get_physics_self_test_status','_voxy_get_physics_self_test_tick']"
+            "-s EXPORTED_FUNCTIONS=['_main','_voxy_resize','_voxy_renderer_set_number','_voxy_renderer_get_number','_voxy_renderer_get_revision','_voxy_renderer_get_applied_revision','_voxy_mouse_move','_voxy_set_camera_pose','_voxy_key_event','_voxy_get_fps','_voxy_get_frame_count','_voxy_get_last_frame_cpu_ms','_voxy_get_last_frame_wall_ms','_voxy_get_gpu_frames_in_flight','_voxy_get_gpu_pacing_skips','_voxy_get_uncapped_fps','_voxy_set_uncapped_fps','_voxy_start_cube_pyramid_experiment','_voxy_start_browser_journey_benchmark','_voxy_get_browser_journey_benchmark_status','_voxy_get_browser_journey_benchmark_json','_voxy_start_render_throughput_benchmark','_voxy_get_render_throughput_status','_voxy_get_render_throughput_fps','_voxy_get_render_throughput_elapsed_ms','_voxy_get_render_throughput_completed_frames','_voxy_get_physics_substeps','_voxy_get_physics_resident_bodies','_voxy_set_throwable_body_limit','_voxy_get_physics_encoded_tick','_voxy_get_physics_stage_ms','_voxy_get_physics_stage_tick','_voxy_poll_physics_stage_timing','_voxy_get_polled_physics_stage_ms','_voxy_poll_render_stage_timing','_voxy_get_polled_render_stage_ms','_voxy_get_telemetry_json','_voxy_get_moto_hud_json','_voxy_is_initialized','_voxy_get_physics_backend','_voxy_start_physics_self_test','_voxy_get_physics_self_test_status','_voxy_get_physics_self_test_tick']"
             "-s ASYNCIFY"
         )
         
@@ -455,15 +464,22 @@ if(VOXY_BUILD_WASM)
         
         # Preload the data files referenced by voxy.cfg
         foreach(VOXY_WASM_DATA_FILE
-            data/generated/td_seed_1234_8192.ldh
-            data/generated/td_seed_1234_8192_albedo.jpg
             data/generated/ocean_environment.png
+            data/moto/bike.vmesh
+            data/moto/rider.vmesh
+            data/moto/track.vmesh
         )
             if(NOT EXISTS "${CMAKE_SOURCE_DIR}/${VOXY_WASM_DATA_FILE}")
                 message(FATAL_ERROR "Required WASM data file not found: ${VOXY_WASM_DATA_FILE}")
             endif()
             list(APPEND WASM_LINK_FLAGS
                 "--preload-file ${CMAKE_SOURCE_DIR}/${VOXY_WASM_DATA_FILE}@/${VOXY_WASM_DATA_FILE}"
+            )
+            # Preloaded files are link inputs even though Emscripten receives
+            # them through flags. Track them so an authored VMESH revision
+            # cannot leave a stale voxy_wasm.data package behind.
+            set_property(TARGET voxy_wasm APPEND PROPERTY LINK_DEPENDS
+                "${CMAKE_SOURCE_DIR}/${VOXY_WASM_DATA_FILE}"
             )
         endforeach()
         if(NOT EXISTS "${CMAKE_SOURCE_DIR}/data/materials")

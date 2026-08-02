@@ -217,9 +217,12 @@ TEST_F(LogConfigTest, FailedLogFileReplacementPreservesWorkingFile) {
     setLogFile("");
 
     std::ifstream file(path);
-    const std::string contents(
-        std::istreambuf_iterator<char>{file},
-        std::istreambuf_iterator<char>{});
+    ASSERT_TRUE(file.is_open());
+    std::string contents;
+    for (std::string line; std::getline(file, line);) {
+        contents.append(line);
+        contents.push_back('\n');
+    }
     EXPECT_NE(contents.find("before failed replacement"), std::string::npos);
     EXPECT_NE(contents.find("after failed replacement"), std::string::npos);
     std::remove(path);
