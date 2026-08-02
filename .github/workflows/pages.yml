@@ -124,8 +124,8 @@ jobs:
             echo "ERROR: generated 8K terrain missing from WASM preload manifest!"
             exit 1
           fi
-          if ! grep -a -q "/data/generated/td_seed_1234_8192_albedo.jpg" docs/voxy_wasm.js; then
-            echo "ERROR: generated 8K color map missing from WASM preload manifest!"
+          if ! grep -a -q "/data/generated/td_seed_1234_2048_albedo.jpg" docs/voxy_wasm.js; then
+            echo "ERROR: generated macro color map missing from WASM preload manifest!"
             exit 1
           fi
           if ! grep -a -q "/data/generated/ocean_environment.png" docs/voxy_wasm.js; then
