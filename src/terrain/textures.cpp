@@ -516,11 +516,14 @@ bool TerrainTextures::loadAlbedo(const std::filesystem::path& path) {
     
     LOG_DEBUG("Loaded albedo texture: {}x{} from {}", width, height, path.string());
     
-    // Copy data to vector
-    std::vector<uint8_t> pixels(data, data + pixelBytes);
+    // WebGPU's queue write copies the source immediately. Upload directly from
+    // stb's allocation so large terrain images never exist twice in the WASM
+    // heap during startup.
+    const bool uploaded = uploadAlbedoTexture(
+        std::span<const uint8_t>(data, pixelBytes),
+        static_cast<uint32_t>(width), static_cast<uint32_t>(height));
     stbi_image_free(data);
-    
-    return uploadAlbedoTexture(pixels, static_cast<uint32_t>(width), static_cast<uint32_t>(height));
+    return uploaded;
 }
 
 bool TerrainTextures::loadLightmap(const std::filesystem::path& path) {
@@ -729,8 +732,8 @@ bool TerrainTextures::createWhiteLightmap(uint32_t width, uint32_t height) {
 // Texture Upload
 // ─────────────────────────────────────────────────────────────────────────────
 
-bool TerrainTextures::uploadAlbedoTexture(const std::vector<uint8_t>& data,
-                                           uint32_t width, uint32_t height) {
+bool TerrainTextures::uploadAlbedoTexture(std::span<const uint8_t> data,
+                                          uint32_t width, uint32_t height) {
     size_t expectedBytes = 0u;
     [[maybe_unused]] uint32_t bytesPerRow = 0u;
     if (!validImageLayout(

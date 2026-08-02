@@ -214,7 +214,7 @@ cc_binary(
         "--preload-file", "shaders@/shaders",
         # Only embed the data files referenced by voxy.cfg.
         "--preload-file", "data/generated/td_seed_1234_8192.ldh@/data/generated/td_seed_1234_8192.ldh",
-        "--preload-file", "data/generated/td_seed_1234_8192_albedo.jpg@/data/generated/td_seed_1234_8192_albedo.jpg",
+        "--preload-file", "data/generated/td_seed_1234_2048_albedo.jpg@/data/generated/td_seed_1234_2048_albedo.jpg",
         "--preload-file", "data/generated/ocean_environment.png@/data/generated/ocean_environment.png",
         "--preload-file", "data/materials@/data/materials",
         "--preload-file", "voxy.cfg@/voxy.cfg",

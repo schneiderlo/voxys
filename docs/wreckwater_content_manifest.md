@@ -152,7 +152,7 @@ The current cove path uses:
 - `voxy.cfg` values that affect terrain, water, lighting, and material output;
 - an authored-cove algorithm revision and its final config values;
 - `data/generated/td_seed_1234_8192.ldh`;
-- `data/generated/td_seed_1234_8192_albedo.jpg`;
+- `data/generated/td_seed_1234_2048_albedo.jpg`;
 - `data/generated/ocean_environment.png`;
 - Color, NormalGL, and Roughness maps for Ground054, Ground037, Grass001, and
   Rock050;

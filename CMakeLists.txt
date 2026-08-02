@@ -456,7 +456,7 @@ if(VOXY_BUILD_WASM)
         # Preload the data files referenced by voxy.cfg
         foreach(VOXY_WASM_DATA_FILE
             data/generated/td_seed_1234_8192.ldh
-            data/generated/td_seed_1234_8192_albedo.jpg
+            data/generated/td_seed_1234_2048_albedo.jpg
             data/generated/ocean_environment.png
         )
             if(NOT EXISTS "${CMAKE_SOURCE_DIR}/${VOXY_WASM_DATA_FILE}")

@@ -184,7 +184,8 @@ private:
     // ─────────────────────────────────────────────────────────────────────────
 
     bool createSampler();
-    bool uploadAlbedoTexture(const std::vector<uint8_t>& data, uint32_t width, uint32_t height);
+    bool uploadAlbedoTexture(std::span<const uint8_t> data,
+                             uint32_t width, uint32_t height);
     bool uploadLightmapTexture(const std::vector<uint8_t>& data, uint32_t width, uint32_t height);
     bool uploadTerrainMaterialArrays(
         const std::array<std::vector<uint8_t>, kMaterialLayerCount>& albedo,
