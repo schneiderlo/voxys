@@ -109,6 +109,18 @@ async function gpuTest({reference,before,after,math,surfaceFixture,waterFixture}
     }
     const shaders=await Promise.all([before[0]+surfaceFixture,after[0]+surfaceFixture,
         before[1]+waterFixture,after[1]+waterFixture,...math].map((s,i)=>module(s,`fixture ${i}`)));
+    // Isolate the sharing tradeoff without changing any production file.
+    const sharedBlock=`    let footprint = terrainMaterialUvFootprint(
+        projectedWorld, projectedX, projectedY, layer);
+    let uv = footprint[0];
+    let uvX = footprint[1];
+    let uvY = footprint[2];`;
+    const independentBlock=`    let uv = terrainMaterialUv(projectedWorld, layer);
+    let uvX = terrainMaterialUv(projectedX, layer);
+    let uvY = terrainMaterialUv(projectedY, layer);`;
+    if(!after[0].includes(sharedBlock))throw new Error('sharing variant mismatch');
+    const independent=await module(after[0].replace(sharedBlock,independentBlock)+surfaceFixture,
+        'independent-footprint diagnostic variant');
     // Actual production entry points, not merely front-end compilation.
     for(let i=0;i<4;++i){
         const m=shaders[i],water=i>=2;
@@ -272,6 +284,18 @@ async function gpuTest({reference,before,after,math,surfaceFixture,waterFixture}
         if(query){timeRead.destroy();resolved.destroy();query.destroy();}
     }
     await fragmentPair(shaders.slice(0,2),'surfaceFixture',['rgba32float','rgba32float'],samples,'terrain surface: dry/shore/subtidal/rock');
+    await fragmentPair([shaders[0],independent],'surfaceFixture',['rgba32float','rgba32float'],samples,
+        'diagnostic independent footprint: mixed terrain');
+    for(const [kind,ox,oz,height,nx,ny,nz] of [
+        ['shore',-650,3450,.1,.05,1,.02],['upland',0,-256,100,.1,1,.1],['rock',0,-256,250,.7,.3,.6]]){
+        const coherent=new Float32Array(4096*16);
+        for(let i=0;i<4096;++i){const x=ox+(i%64)*.08,z=oz+Math.floor(i/64)*.08;
+            coherent.set([x,height,z,0,nx,ny,nz,0,x+.08,height,z,0,x,height,z+.08,0],i*16);}
+        await fragmentPair(shaders.slice(0,2),'surfaceFixture',['rgba32float','rgba32float'],coherent,
+            'coherent '+kind+': shared footprint');
+        await fragmentPair([shaders[0],independent],'surfaceFixture',['rgba32float','rgba32float'],coherent,
+            'diagnostic coherent '+kind+': independent footprint');
+    }
     for(const underwater of [false,true]){
         u[57]=underwater?-12:12;u[110]=underwater?1:0;device.queue.writeBuffer(uniform,0,u);
         await fragmentPair(shaders.slice(0,2),'legacyWaterFixture',['rgba32float'],wetSamples,
@@ -292,6 +316,7 @@ const server = http.createServer((request, response) => {
 await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
 const chrome = spawn(process.env.VOXY_TEST_CHROME || 'google-chrome', [
     '--headless=new', '--no-sandbox', '--enable-unsafe-webgpu',
+    '--no-first-run', '--no-default-browser-check', '--disable-background-networking',
     '--enable-unsafe-swiftshader', '--use-angle=swiftshader',
     '--remote-debugging-port=0', `--user-data-dir=${directory}`, 'about:blank',
 ], {stdio: ['ignore', 'ignore', 'pipe']});
@@ -302,7 +327,7 @@ let socket;
 const watchdog = setTimeout(() => {chrome.kill('SIGKILL');}, 300000);
 try {
     let port;
-    for (let i = 0; i < 200 && !port; ++i) {
+    for (let i = 0; i < 1200 && !port; ++i) {
         if (chromeError) throw chromeError;
         if (chrome.exitCode !== null) throw new Error(`Chrome exited: ${chromeLog}`);
         try {port = Number((await readFile(path.join(directory, 'DevToolsActivePort'), 'utf8')).split('\n')[0]);}
