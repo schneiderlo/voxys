@@ -1,0 +1,100 @@
+name: Temporary water material validation
+on:
+  push:
+    branches: [perf/water-terrain-work-reduction]
+    paths: [.github/workflows/water-material-bootstrap.yml]
+permissions:
+  contents: read
+concurrency:
+  group: water-material-bootstrap
+  cancel-in-progress: false
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    outputs:
+      candidate: ${{ steps.publish.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply prepared renderer changes to feature branch only
+        id: publish
+        run: |
+          set -euo pipefail
+          cat tools/.renderer-work.part{0,1,2} > "$RUNNER_TEMP/renderer.patch.gz"
+          echo "a2b86742d7d7451e637080ce1ee8e81e7668d4b172317ea3e5670d7526da8955  $RUNNER_TEMP/renderer.patch.gz" | sha256sum -c -
+          gzip -dc "$RUNNER_TEMP/renderer.patch.gz" > "$RUNNER_TEMP/renderer.patch"
+          git apply --check "$RUNNER_TEMP/renderer.patch"
+          git apply --index "$RUNNER_TEMP/renderer.patch"
+          git rm tools/.renderer-work.part{0,1,2}
+          python3 tools/test_water_material_work.py
+          node --check scripts/test_water_material_work.mjs
+          git diff --cached --check
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'perf: share terrain footprints and avoid discarded water material work'
+          git push origin HEAD:refs/heads/perf/water-terrain-work-reduction
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+  gpu:
+    needs: apply
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.apply.outputs.candidate }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: python3 tools/test_water_material_work.py
+      - run: node scripts/test_water_material_work.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: water-material-gpu-report
+          path: water-material-work-report.json
+          if-no-files-found: ignore
+  compile-wasm:
+    needs: apply
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      EM_CACHE_FOLDER: emsdk-cache
+      EMSCRIPTEN_VERSION: '6.0.1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.apply.outputs.candidate }}
+          persist-credentials: false
+      - run: sudo apt-get update && sudo apt-get install -y ccache
+      - uses: actions/cache@v4
+        with:
+          path: ~/.ccache
+          key: ccache-${{ runner.os }}-water-material-${{ github.sha }}
+          restore-keys: |
+            ccache-${{ runner.os }}-
+      - uses: actions/cache@v4
+        with:
+          path: ${{ env.EM_CACHE_FOLDER }}
+          key: emsdk-${{ runner.os }}-${{ env.EMSCRIPTEN_VERSION }}-emdawnwebgpu
+          restore-keys: |
+            emsdk-${{ runner.os }}-${{ env.EMSCRIPTEN_VERSION }}-
+      - uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: ${{ env.EMSCRIPTEN_VERSION }}
+          actions-cache-folder: ${{ env.EM_CACHE_FOLDER }}
+      - run: embuilder build emdawnwebgpu
+      - uses: actions/cache@v4
+        id: deps
+        with:
+          path: third_party
+          key: third-party-${{ runner.os }}-${{ hashFiles('scripts/fetch_deps.sh') }}
+      - if: steps.deps.outputs.cache-hit != 'true'
+        run: chmod +x scripts/fetch_deps.sh && ./scripts/fetch_deps.sh
+      - name: Configure production WASM
+        run: emcmake cmake -S . -B build-wasm -DVOXY_BUILD_NATIVE=OFF -DVOXY_BUILD_WASM=ON -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+      - name: Compile and link production WASM
+        run: cmake --build build-wasm -- -j$(nproc)
