@@ -50,6 +50,7 @@ BlitPath::~BlitPath() {
 BlitPath::BlitPath(BlitPath&& other) noexcept
     : device_(other.device_)
     , queue_(other.queue_)
+    , periodicGradientLut_(std::move(other.periodicGradientLut_))
     , shaderModule_(other.shaderModule_)
     , pipelineLayout_(other.pipelineLayout_)
     , pipeline_(other.pipeline_)
@@ -214,6 +215,7 @@ BlitPath& BlitPath::operator=(BlitPath&& other) noexcept {
         
         device_ = other.device_;
         queue_ = other.queue_;
+        periodicGradientLut_ = std::move(other.periodicGradientLut_);
         shaderModule_ = other.shaderModule_;
         pipelineLayout_ = other.pipelineLayout_;
         pipeline_ = other.pipeline_;
@@ -374,6 +376,7 @@ BlitPath& BlitPath::operator=(BlitPath&& other) noexcept {
 }
 
 void BlitPath::shutdown() {
+    periodicGradientLut_.reset();
     if (waterClipmapIndexBuffer_) {
         wgpuBufferRelease(waterClipmapIndexBuffer_);
         waterClipmapIndexBuffer_ = nullptr;
@@ -644,6 +647,13 @@ bool BlitPath::init(WGPUDevice device, WGPUQueue queue, const BlitPathConfig& co
     staticUniforms_ = new CameraUniforms(*uniforms_);
     updateStaticUniforms();
     
+    // Bake the original periodic hash once on this rendering device.
+    if (!periodicGradientLut_.initialize(device_, queue_)) {
+        LOG_ERROR("Failed to create periodic gradient lookup table");
+        shutdown();
+        return false;
+    }
+
     // Create resources in order
     if (!createUniformBuffer()) {
         LOG_ERROR("Failed to create uniform buffer");
@@ -1742,7 +1752,7 @@ bool BlitPath::createBindGroupLayout() {
     // @group(0) @binding(18) var terrainMaterialNormalRoughness :
     //     texture_2d_array<f32>;
 
-    std::array<gpu::BindGroupLayoutEntry, 13> entries = {
+    std::array<gpu::BindGroupLayoutEntry, 14> entries = {
         gpu::BindGroupLayoutEntry(0)
             .vertexVisible()
             .fragmentVisible()
@@ -1784,7 +1794,11 @@ bool BlitPath::createBindGroupLayout() {
         gpu::BindGroupLayoutEntry(18)
             .fragmentVisible()
             .texture(WGPUTextureSampleType_Float,
-                     WGPUTextureViewDimension_2DArray, false)
+                     WGPUTextureViewDimension_2DArray, false),
+        gpu::BindGroupLayoutEntry(19)
+            .fragmentVisible()
+            .texture(WGPUTextureSampleType_UnfilterableFloat,
+                     WGPUTextureViewDimension_2D, false)
     };
     
     bindGroupLayout_ = gpu::createBindGroupLayout(device_, entries, "blit_bind_group_layout");
@@ -1797,7 +1811,7 @@ bool BlitPath::createBindGroupLayout() {
     // The settled-camera pipeline shades animated water directly over the exact
     // cached HDR terrain/sky. Bindings 13-16 are the same geometry inputs used
     // by the old intermediate water-composite compute pass.
-    std::array<gpu::BindGroupLayoutEntry, 19> cachedEntries = {
+    std::array<gpu::BindGroupLayoutEntry, 20> cachedEntries = {
         gpu::BindGroupLayoutEntry(0)
             .vertexVisible()
             .fragmentVisible()
@@ -1871,7 +1885,11 @@ bool BlitPath::createBindGroupLayout() {
         gpu::BindGroupLayoutEntry(18)
             .fragmentVisible()
             .texture(WGPUTextureSampleType_Float,
-                     WGPUTextureViewDimension_2DArray, false)
+                     WGPUTextureViewDimension_2DArray, false),
+        gpu::BindGroupLayoutEntry(19)
+            .fragmentVisible()
+            .texture(WGPUTextureSampleType_UnfilterableFloat,
+                     WGPUTextureViewDimension_2D, false)
     };
     cachedBindGroupLayout_ = gpu::createBindGroupLayout(
         device_, cachedEntries, "blit_cached_bind_group_layout");
@@ -2191,7 +2209,7 @@ bool BlitPath::createBindGroup() {
         if (nextBindGroup) wgpuBindGroupRelease(nextBindGroup);
     };
 
-    std::array<gpu::BindGroupEntry, 13> entries = {
+    std::array<gpu::BindGroupEntry, 14> entries = {
         gpu::BindGroupEntry(0).buffer(uniformBuffer_, 0, sizeof(CameraUniforms)),
         gpu::BindGroupEntry(1).textureView(depthView_),
         gpu::BindGroupEntry(2).textureView(shadowView_),
@@ -2205,7 +2223,8 @@ bool BlitPath::createBindGroup() {
         gpu::BindGroupEntry(10).sampler(surfaceFoamSampler_),
         gpu::BindGroupEntry(17).textureView(terrainMaterialAlbedoView_),
         gpu::BindGroupEntry(18).textureView(
-            terrainMaterialNormalRoughnessView_)
+            terrainMaterialNormalRoughnessView_),
+        gpu::BindGroupEntry(19).textureView(periodicGradientLut_.view())
     };
     
     nextBindGroup = gpu::createBindGroup(
@@ -2236,7 +2255,7 @@ bool BlitPath::createBindGroup() {
     }
 
     if (createStaticGroups) {
-        std::array<gpu::BindGroupEntry, 13> staticEntries = {
+        std::array<gpu::BindGroupEntry, 14> staticEntries = {
             gpu::BindGroupEntry(0).buffer(
                 staticUniformBuffer_, 0, sizeof(CameraUniforms)),
             gpu::BindGroupEntry(1).textureView(staticDepthView_),
@@ -2253,7 +2272,8 @@ bool BlitPath::createBindGroup() {
             gpu::BindGroupEntry(17).textureView(
                 terrainMaterialAlbedoView_),
             gpu::BindGroupEntry(18).textureView(
-                terrainMaterialNormalRoughnessView_)
+                terrainMaterialNormalRoughnessView_),
+            gpu::BindGroupEntry(19).textureView(periodicGradientLut_.view())
         };
         nextStaticBindGroup = gpu::createBindGroup(
             device_, bindGroupLayout_, staticEntries,
@@ -2264,7 +2284,7 @@ bool BlitPath::createBindGroup() {
             return false;
         }
 
-        std::array<gpu::BindGroupEntry, 19> cachedEntries = {
+        std::array<gpu::BindGroupEntry, 20> cachedEntries = {
             gpu::BindGroupEntry(0).buffer(
                 uniformBuffer_, 0, sizeof(CameraUniforms)),
             // The dynamic depth texture is a render attachment in this pass;
@@ -2290,7 +2310,8 @@ bool BlitPath::createBindGroup() {
             gpu::BindGroupEntry(17).textureView(
                 terrainMaterialAlbedoView_),
             gpu::BindGroupEntry(18).textureView(
-                terrainMaterialNormalRoughnessView_)
+                terrainMaterialNormalRoughnessView_),
+            gpu::BindGroupEntry(19).textureView(periodicGradientLut_.view())
         };
         nextCachedBindGroup = gpu::createBindGroup(
             device_, cachedBindGroupLayout_, cachedEntries,
@@ -2600,7 +2621,8 @@ void BlitPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
                                     WGPUBindGroup selectedBindGroup,
                                     const char* label,
                                     bool writeTimestamps,
-                                    bool writeLinearDepth) -> bool {
+                                    bool writeLinearDepth,
+                                    bool beginTimestampOnly = false) -> bool {
         std::array<WGPURenderPassColorAttachment, 2> colorAttachments{};
         colorAttachments[0].view = target;
         colorAttachments[0].depthSlice = WGPU_DEPTH_SLICE_UNDEFINED;
@@ -2623,7 +2645,8 @@ void BlitPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
         if (writeTimestamps && timestampQuerySet) {
             timestampWrites.querySet = timestampQuerySet;
             timestampWrites.beginningOfPassWriteIndex = timestampBegin;
-            timestampWrites.endOfPassWriteIndex = timestampEnd;
+            timestampWrites.endOfPassWriteIndex = beginTimestampOnly
+                ? WGPU_QUERY_SET_INDEX_UNDEFINED : timestampEnd;
             renderPassDesc.timestampWrites = &timestampWrites;
         }
 
@@ -2650,6 +2673,7 @@ void BlitPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
         waterClipmapColorPipeline_ &&
         waterClipmapVertexBuffer_ && waterClipmapIndexBuffer_ &&
         waterClipmapIndexCount_ != 0u;
+    bool lightingTimestampStarted = false;
     if (useCachedPath && (!backgroundValid_ || backgroundDirty_)) {
         if (staticUniformsDirty_) {
             if (!gpu::writeBuffer(
@@ -2660,9 +2684,12 @@ void BlitPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
         }
         if (!drawFullscreen(backgroundView_, backgroundPipeline_,
                             staticBindGroup_,
-                            "blit_static_background_pass", false, false)) {
+                            "blit_static_background_pass", true, false, true)) {
             return;
         }
+        // The later composition pass closes this same interval. Previously
+        // an expensive background refresh was absent from Render GPU entirely.
+        lightingTimestampStarted = timestampQuerySet != nullptr;
         backgroundValid_ = true;
         backgroundDirty_ = false;
     }
@@ -2703,7 +2730,8 @@ void BlitPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
         gpu::CompatRenderPassTimestampWrites timestampWrites{};
         if (timestampQuerySet) {
             timestampWrites.querySet = timestampQuerySet;
-            timestampWrites.beginningOfPassWriteIndex = timestampBegin;
+            timestampWrites.beginningOfPassWriteIndex = lightingTimestampStarted
+                ? WGPU_QUERY_SET_INDEX_UNDEFINED : timestampBegin;
             timestampWrites.endOfPassWriteIndex = timestampEnd;
             renderPassDesc.timestampWrites = &timestampWrites;
         }

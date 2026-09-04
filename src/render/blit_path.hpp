@@ -15,6 +15,8 @@
 
 #pragma once
 
+#include "render/periodic_gradient_lut.hpp"
+
 #include <cstddef>
 #include <cstdint>
 #include <filesystem>
@@ -252,6 +254,7 @@ private:
 
     WGPUDevice device_ = nullptr;
     WGPUQueue queue_ = nullptr;
+    PeriodicGradientLut periodicGradientLut_;
 
     // Pipeline resources
     WGPUShaderModule shaderModule_ = nullptr;
