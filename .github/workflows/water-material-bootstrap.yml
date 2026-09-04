@@ -6,42 +6,85 @@ on:
 permissions:
   contents: read
 jobs:
-  terrain-variant:
+  refine:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    outputs:
+      candidate: ${{ steps.publish.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Add coherent terrain and sharing-isolation comparisons
+        id: publish
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('scripts/test_water_material_work.mjs')
+          s=p.read_text()
+          a='    // Actual production entry points, not merely front-end compilation.'
+          b='''    // Isolate the sharing tradeoff without changing any production file.
+              const sharedBlock=`    let footprint = terrainMaterialUvFootprint(
+                  projectedWorld, projectedX, projectedY, layer);
+              let uv = footprint[0];
+              let uvX = footprint[1];
+              let uvY = footprint[2];`;
+              const independentBlock=`    let uv = terrainMaterialUv(projectedWorld, layer);
+              let uvX = terrainMaterialUv(projectedX, layer);
+              let uvY = terrainMaterialUv(projectedY, layer);`;
+              if(!after[0].includes(sharedBlock))throw new Error('sharing variant mismatch');
+              const independent=await module(after[0].replace(sharedBlock,independentBlock)+surfaceFixture,
+                  'independent-footprint diagnostic variant');
+              // Actual production entry points, not merely front-end compilation.'''
+          assert s.count(a)==1
+          s=s.replace(a,b)
+          a='    for(const underwater of [false,true]){'
+          b='''    await fragmentPair([shaders[0],independent],'surfaceFixture',['rgba32float','rgba32float'],samples,
+                  'diagnostic independent footprint: mixed terrain');
+              for(const [kind,ox,oz,height,nx,ny,nz] of [
+                  ['shore',-650,3450,.1,.05,1,.02],['upland',0,-256,100,.1,1,.1],['rock',0,-256,250,.7,.3,.6]]){
+                  const coherent=new Float32Array(4096*16);
+                  for(let i=0;i<4096;++i){const x=ox+(i%64)*.08,z=oz+Math.floor(i/64)*.08;
+                      coherent.set([x,height,z,0,nx,ny,nz,0,x+.08,height,z,0,x,height,z+.08,0],i*16);}
+                  await fragmentPair(shaders.slice(0,2),'surfaceFixture',['rgba32float','rgba32float'],coherent,
+                      'coherent '+kind+': shared footprint');
+                  await fragmentPair([shaders[0],independent],'surfaceFixture',['rgba32float','rgba32float'],coherent,
+                      'diagnostic coherent '+kind+': independent footprint');
+              }
+              for(const underwater of [false,true]){'''
+          assert s.count(a)==1
+          s=s.replace(a,b)
+          s=s.replace("    '--headless=new', '--no-sandbox', '--enable-unsafe-webgpu',", "    '--headless=new', '--no-sandbox', '--enable-unsafe-webgpu',\n    '--no-first-run', '--no-default-browser-check', '--disable-background-networking',")
+          s=s.replace('i < 200 && !port','i < 1200 && !port')
+          p.write_text(s)
+          PY
+          node --check scripts/test_water_material_work.mjs
+          git add scripts/test_water_material_work.mjs
+          git diff --cached --check
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'test: cover coherent terrain and separate footprint sharing costs'
+          git push origin HEAD:refs/heads/perf/water-terrain-work-reduction
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+  gpu:
+    needs: refine
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: cf4559fb093300068c56f1bc8a422430ac2979d6
+          ref: ${{ needs.refine.outputs.candidate }}
           fetch-depth: 0
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Isolate work masks without footprint sharing
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          p=Path('shaders/ray_blit.wgsl')
-          s=p.read_text()
-          a='''    let footprint = terrainMaterialUvFootprint(
-                  projectedWorld, projectedX, projectedY, layer);
-              let uv = footprint[0];
-              let uvX = footprint[1];
-              let uvY = footprint[2];'''
-          b='''    let uv = terrainMaterialUv(projectedWorld, layer);
-              let uvX = terrainMaterialUv(projectedX, layer);
-              let uvY = terrainMaterialUv(projectedY, layer);'''
-          assert s.count(a)==1
-          p.write_text(s.replace(a,b))
-          PY
-          git diff > independent-footprint-variant.patch
+      - run: python3 tools/test_water_material_work.py
       - run: node scripts/test_water_material_work.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: independent-footprint-variant
-          path: |
-            water-material-work-report.json
-            independent-footprint-variant.patch
-          if-no-files-found: error
+          name: water-material-gpu-report
+          path: water-material-work-report.json
+          if-no-files-found: ignore
