@@ -50,11 +50,13 @@ coordinates, interpolation, large fp32 lattice coordinates, resource bindings,
 move/reset wiring, and timestamp coverage. It is not a GPU execution test.
 
 The Node test requires Node 22+ and Chrome (`VOXY_TEST_CHROME` overrides its
-executable). It compiles both full production modules and the embedded bake.
-It evaluates 65,539 points through both original and LUT-specialized compute
-and fragment pipelines. Maximum absolute output error must be <= 1e-6. Missing
-WebGPU, shader errors, validation errors, and nonfinite values fail the test.
-The result is saved to `periodic-gradient-lut-report.json`.
+executable). It compiles both full production modules and the embedded bake,
+and creates six production render pipelines (background, cached composition,
+and water, each with both specializations). It evaluates 65,539 points through
+both original and LUT-specialized compute and fragment pipelines. Maximum
+absolute output error must be <= 1e-6. Missing WebGPU, shader errors, validation
+errors, and nonfinite values fail the test. The result is saved to
+`periodic-gradient-lut-report.json`.
 
 The optional AB/BA GPU timing test is a 12-noise-call kernel, not the composed
 renderer. Software adapters are acceptable for correctness testing only.
@@ -67,3 +69,27 @@ background shading, image comparison, and queue pacing. A computation-stage
 bake and fragment-stage consumer can expose driver-specific floating-point
 behavior; the fragment differential test is intentionally required as well as
 the compute test.
+
+## Recorded execution: 2026-09-04
+
+- Production CMake WASM compile/link with Emscripten 6.0.1 passed on implementation
+  commit `2add98515608b1bb377ecff2397b475fea2b3e6f` in workflow run
+  `33922283136`, job `101183119189`. Later commits change tests/docs/workflow
+  only, not the compiled C++ or production WGSL.
+- Five CPU regression tests passed locally and in CI.
+- The final Chrome/SwiftShader differential run passed on test commit
+  `6118372e5cb6f1e528fd596d6e243b0c770fc6bf`: workflow `33922643706`, job
+  `101184229772`, artifact `9955632745`. Four modules and six production render
+  pipelines compiled. Each compute/fragment comparison checked 262,156 float
+  words over 65,539 input points; both had zero differing words and zero maximum
+  absolute error.
+- An earlier GPU run passed its comparisons but failed during Chrome profile
+  cleanup. The test now waits for process closure and retries directory removal;
+  the final job above exits successfully rather than hiding cleanup failures.
+
+Performance is NOT accepted by these tests. The final software-only noise
+microbenchmark was slower for the LUT in five of six pairs. It does not establish
+an Intel hardware win; the raw report retains every pair. No whole-engine FPS
+improvement, full-scene image equivalence, native build, or Intel/Windows GPU
+validation is claimed. Keep this candidate in draft until target-hardware
+performance and visual acceptance are available.
