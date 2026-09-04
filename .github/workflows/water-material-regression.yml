@@ -1,0 +1,48 @@
+name: Water and material regression
+
+on:
+  pull_request:
+    paths:
+      - shaders/ray_blit.wgsl
+      - shaders/water_clipmap.wgsl
+      - src/render/blit_path.cpp
+      - src/engine/platform/wasm/entry.cpp
+      - src/app/debug_overlay.cpp
+      - web/index.html
+      - scripts/test_water_material_work.mjs
+      - tools/test_water_material_work.py
+      - .github/workflows/water-material-regression.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: water-material-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  shader-regressions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: CPU and resource-contract regressions
+        run: python3 tools/test_water_material_work.py
+      - name: WebGPU differential and timestamp-path regressions
+        run: node scripts/test_water_material_work.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: water-material-work-report
+          path: water-material-work-report.json
+          if-no-files-found: ignore
+
+# Hosted SwiftShader executes the shader correctness tests. Its synthetic
+# timings are diagnostics, never hardware FPS acceptance or deployment gates.
