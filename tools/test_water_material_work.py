@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 """Dependency-free CPU/structure regressions; these do not execute WGSL."""
 from pathlib import Path
-import math
 import random
-import struct
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -11,57 +9,33 @@ RAY = (ROOT / 'shaders/ray_blit.wgsl').read_text()
 WATER = (ROOT / 'shaders/water_clipmap.wgsl').read_text()
 BLIT = (ROOT / 'src/render/blit_path.cpp').read_text()
 
-def f32(x):
-    return struct.unpack('<f', struct.pack('<f', x))[0]
-
-def gradient(cell):
-    x, y = (v - math.floor(v / 16) * 16 for v in cell)
-    def channel(a, b):
-        value = f32(f32(math.sin(f32(f32(x * a) + f32(y * b)))) * f32(43758.5453123))
-        return f32(f32((value - math.floor(value)) * 2) - 1)
-    return channel(f32(127.1), f32(311.7)), channel(f32(269.5), f32(183.3))
-
-def corners(point):
-    x, y = map(math.floor, point)
-    return [gradient((x, y)), gradient((x + 1, y)),
-            gradient((x, y + 1)), gradient((x + 1, y + 1))]
-
-def evaluate(point, values):
-    x, y = (p - math.floor(p) for p in point)
-    sx = x*x*x*(x*(x*6-15)+10)
-    sy = y*y*y*(y*(y*6-15)+10)
-    dots = [a * (x-dx) + b * (y-dy)
-            for (a, b), (dx, dy) in zip(values, [(0,0),(1,0),(0,1),(1,1)])]
-    a = dots[0]*(1-sx) + dots[1]*sx
-    b = dots[2]*(1-sx) + dots[3]*sx
-    return a*(1-sy)+b*sy
-
-def shared(points):
-    cells = [tuple(map(math.floor, p)) for p in points]
-    if len(set(cells)) != 1:
-        return [evaluate(p, corners(p)) for p in points]
-    cached = corners(points[0])
-    return [evaluate(p, cached) for p in points]
-
 def smooth(a, b, x):
     t = max(0, min(1, (x-a)/(b-a)))
     return t*t*(3-2*t)
 
 class WorkReductionTests(unittest.TestCase):
-    def test_footprints_same_cells_and_discontinuities(self):
-        rng = random.Random(77543)
-        for i in range(10000):
-            p = (f32(rng.uniform(-10000, 10000)), f32(rng.uniform(-10000,10000)))
-            size = [0, 0.0001, 0.01, 0.5, 1, 17, 512][i % 7]
-            points = [p, (f32(p[0]+size), p[1]), (p[0], f32(p[1]-size))]
-            self.assertEqual(shared(points), [evaluate(q, corners(q)) for q in points])
+    def test_cove_and_caustic_masks_are_exactly_zero(self):
+        for r in [80,81,100,1000]:
+            self.assertEqual(1-smooth(56,80,r),0)
+            self.assertEqual(1-smooth(50,78,r),0)
+        for distance in [145,150,1000]:
+            self.assertEqual(1-smooth(55,145,distance),0)
+        for depth in [52,100,1000]:
+            self.assertEqual(1-smooth(28,52,depth),0)
+        self.assertIn('if (coveZone > 0.0)',RAY)
+        self.assertIn('if (coveMask > 0.0)',RAY)
+        self.assertIn('if (depthFade == 0.0 || distanceFade == 0.0 || receiver == 0.0)',RAY)
 
-    def test_negative_wrap_and_large_float_boundaries(self):
-        for x in [-2**24, -1024, -16, -1, 0, 1, 16, 1024, 2**24]:
-            for e in [-0.001, 0, 0.001]:
-                p = (f32(x+e), f32(-x+e))
-                points = [p, (f32(p[0]+0.25),p[1]), (p[0],f32(p[1]+0.25))]
-                self.assertEqual(shared(points), [evaluate(q, corners(q)) for q in points])
+    def test_fully_rockcovered_pixels_have_no_other_layers(self):
+        rng=random.Random(77)
+        for _ in range(1000):
+            rock=1.0
+            sand=rng.random()*rng.random()*(1-rock)
+            upland=max(1-rock-sand,0)
+            grass=upland*rng.random()
+            soil=max(upland-grass,0)
+            self.assertEqual((sand,soil,grass,rock),(0,0,0,1))
+        self.assertIn('if (rock == 1.0)',RAY)
 
     def test_wet_band_conservative_bound(self):
         rng = random.Random(103)
@@ -83,11 +57,13 @@ class WorkReductionTests(unittest.TestCase):
         self.assertIn('waterDepth >= 0.92', WATER)
         self.assertIn('waterDepth >= 2.35', RAY)
 
-    def test_shared_footprint_keeps_discontinuity_fallback(self):
-        self.assertIn('!all(floor(pointX) == cell) || !all(floor(pointY) == cell)',RAY)
-        self.assertIn('let footprint = terrainMaterialUvFootprint(',RAY)
-        self.assertIn('let gradientX = uvX - uv;',RAY)
-        self.assertIn('let gradientY = uvY - uv;',RAY)
+    def test_original_material_coordinates_and_filtering(self):
+        for expression in ['let uv = terrainMaterialUv(projectedWorld, layer);',
+                           'let uvX = terrainMaterialUv(projectedX, layer);',
+                           'let uvY = terrainMaterialUv(projectedY, layer);',
+                           'let gradientX = uvX - uv;', 'let gradientY = uvY - uv;']:
+            self.assertIn(expression,RAY)
+        self.assertNotIn('periodicNoiseFootprint',RAY)
         self.assertNotIn('@binding(19)',RAY)
         self.assertNotIn('dpdx',RAY)
 
@@ -95,6 +71,8 @@ class WorkReductionTests(unittest.TestCase):
         self.assertIn('"blit_static_background_pass", true, false, true',BLIT)
         self.assertIn('lightingTimestampStarted\n                ? WGPU_QUERY_SET_INDEX_UNDEFINED : timestampBegin',BLIT)
         self.assertIn('particleTimestamps.endOfPassWriteIndex = timestampEnd',BLIT)
+        self.assertIn('if (timestampQuerySet && (!lightingTimestampStarted || !drawParticles))',BLIT)
+        self.assertEqual(BLIT.count('        updateUnderwaterParticles();'),1)
         self.assertIn('timestampWrites.endOfPassWriteIndex = drawParticles',BLIT)
         for cached in [False,True]:
             for refresh in [False,True]:

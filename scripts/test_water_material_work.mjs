@@ -64,11 +64,10 @@ const waterFixture=`${caseDeclaration}
     let c=cases[id.x];
     result[id.x]=vec4<f32>(coastalFoamStrength(c.p.xyz,normalize(c.n.xyz),c.x.w,c.y.w,30.0,0.05),0.0,0.0,1.0);
 }`;
-function mathProbe(source, candidate) {
+function mathProbe(source) {
     const common=['periodicGradientHash','periodicGradientNoise','terrainMaterialScale',
         'rotateTerrainMaterialUv','terrainMaterialUv','terrainMaterialWeights'];
-    const extra=['periodicNoiseFromCorners','periodicNoiseFootprint','terrainMaterialUvWithNoise','terrainMaterialUvFootprint'];
-    const helpers=[...common,...(candidate?extra:[])].map(n=>fn(source,n)).join('\n');
+    const helpers=common.map(n=>fn(source,n)).join('\n');
     const camera=source.slice(source.indexOf('struct CameraUniforms'),source.indexOf('// Debug visualization'));
     return `${camera}\n@group(0) @binding(0) var<uniform> camera : CameraUniforms;
 const TERRAIN_LAYER_SAND : i32=0; const TERRAIN_LAYER_SOIL : i32=1;
@@ -77,15 +76,14 @@ ${helpers}\n${caseDeclaration}
 @compute @workgroup_size(64) fn mathFixture(@builtin(global_invocation_id) id : vec3<u32>) {
     if(id.x>=arrayLength(&cases)){return;}
     let c=cases[id.x]; let layer=i32(id.x & 3u);
-    let uv=${candidate?'terrainMaterialUvFootprint(c.p.xz,c.x.xz,c.y.xz,layer)':
-        'mat3x2<f32>(terrainMaterialUv(c.p.xz,layer),terrainMaterialUv(c.x.xz,layer),terrainMaterialUv(c.y.xz,layer))'};
+    let uv=mat3x2<f32>(terrainMaterialUv(c.p.xz,layer),terrainMaterialUv(c.x.xz,layer),terrainMaterialUv(c.y.xz,layer));
     result[id.x*3u]=vec4<f32>(uv[0],uv[1]);
     result[id.x*3u+1u]=vec4<f32>(uv[2],0.0,1.0);
     result[id.x*3u+2u]=terrainMaterialWeights(c.p.xyz,normalize(c.n.xyz));
 }`;
 }
 const payload={reference, before, after,
-    math:[mathProbe(before[0],false),mathProbe(after[0],true)],surfaceFixture,waterFixture};
+    math:[mathProbe(before[0]),mathProbe(after[0])],surfaceFixture,waterFixture};
 
 async function gpuTest({reference,before,after,math,surfaceFixture,waterFixture}) {
     if(!navigator.gpu) throw new Error('WebGPU unavailable (not a pass)');
@@ -109,18 +107,6 @@ async function gpuTest({reference,before,after,math,surfaceFixture,waterFixture}
     }
     const shaders=await Promise.all([before[0]+surfaceFixture,after[0]+surfaceFixture,
         before[1]+waterFixture,after[1]+waterFixture,...math].map((s,i)=>module(s,`fixture ${i}`)));
-    // Isolate the sharing tradeoff without changing any production file.
-    const sharedBlock=`    let footprint = terrainMaterialUvFootprint(
-        projectedWorld, projectedX, projectedY, layer);
-    let uv = footprint[0];
-    let uvX = footprint[1];
-    let uvY = footprint[2];`;
-    const independentBlock=`    let uv = terrainMaterialUv(projectedWorld, layer);
-    let uvX = terrainMaterialUv(projectedX, layer);
-    let uvY = terrainMaterialUv(projectedY, layer);`;
-    if(!after[0].includes(sharedBlock))throw new Error('sharing variant mismatch');
-    const independent=await module(after[0].replace(sharedBlock,independentBlock)+surfaceFixture,
-        'independent-footprint diagnostic variant');
     // Actual production entry points, not merely front-end compilation.
     for(let i=0;i<4;++i){
         const m=shaders[i],water=i>=2;
@@ -217,10 +203,10 @@ async function gpuTest({reference,before,after,math,surfaceFixture,waterFixture}
         staging.unmap();staging.destroy();input.destroy();outputs.forEach(b=>b.destroy());
     }
     const mathCases=cases(65539);
-    // Exact lattice/wrap and large fp32 inputs also exercise reference fallback.
+    // Exact lattice/wrap and large fp32 inputs retain the original coordinate path.
     for(let i=0;i<96;++i){const x=[-16777216,-1024,-16,-1,0,1,16,1024,16777216][i%9];
         mathCases[i*16]=x;mathCases[i*16+2]=x;mathCases[i*16+8]=x+.25;mathCases[i*16+14]=x-.25;}
-    await computePair(shaders.slice(4,6),'mathFixture',mathCases,12,'UV footprints and material weights');
+    await computePair(shaders.slice(4,6),'mathFixture',mathCases,12,'material coordinates and weights');
     const samples=cases(4096),wetSamples=cases(4096,true);
     await computePair(shaders.slice(0,2),'foamFixture',samples,4,'legacy foam incl. wreck contact');
     await computePair(shaders.slice(2,4),'foamFixture',wetSamples,4,'clipmap foam');
@@ -284,17 +270,13 @@ async function gpuTest({reference,before,after,math,surfaceFixture,waterFixture}
         if(query){timeRead.destroy();resolved.destroy();query.destroy();}
     }
     await fragmentPair(shaders.slice(0,2),'surfaceFixture',['rgba32float','rgba32float'],samples,'terrain surface: dry/shore/subtidal/rock');
-    await fragmentPair([shaders[0],independent],'surfaceFixture',['rgba32float','rgba32float'],samples,
-        'diagnostic independent footprint: mixed terrain');
     for(const [kind,ox,oz,height,nx,ny,nz] of [
         ['shore',-650,3450,.1,.05,1,.02],['upland',0,-256,100,.1,1,.1],['rock',0,-256,250,.7,.3,.6]]){
         const coherent=new Float32Array(4096*16);
         for(let i=0;i<4096;++i){const x=ox+(i%64)*.08,z=oz+Math.floor(i/64)*.08;
             coherent.set([x,height,z,0,nx,ny,nz,0,x+.08,height,z,0,x,height,z+.08,0],i*16);}
         await fragmentPair(shaders.slice(0,2),'surfaceFixture',['rgba32float','rgba32float'],coherent,
-            'coherent '+kind+': shared footprint');
-        await fragmentPair([shaders[0],independent],'surfaceFixture',['rgba32float','rgba32float'],coherent,
-            'diagnostic coherent '+kind+': independent footprint');
+            'coherent '+kind+': material');
     }
     for(const underwater of [false,true]){
         u[57]=underwater?-12:12;u[110]=underwater?1:0;device.queue.writeBuffer(uniform,0,u);
@@ -305,6 +287,35 @@ async function gpuTest({reference,before,after,math,surfaceFixture,waterFixture}
     }
     await device.queue.onSubmittedWorkDone();const validation=await device.popErrorScope();
     if(validation)throw new Error(validation.message);if(errors.length)throw new Error(errors.join('\n'));
+    // Exercise the exact beginning/middle/end timestamp topology of blit.
+    if(timestamps){
+        device.pushErrorScope('validation');
+        const target=device.createTexture({size:[1,1],format:'rgba8unorm',usage:T.RENDER_ATTACHMENT});
+        const q=device.createQuerySet({type:'timestamp',count:2});
+        const resolved=makeBuffer(16,B.QUERY_RESOLVE|B.COPY_SRC);
+        const readback=makeBuffer(16,B.COPY_DST|B.MAP_READ);
+        let paths=0;
+        for(const cached of [false,true])for(const refresh of [false,true])for(const particles of [false,true]){
+            const encoder=device.createCommandEncoder();const descriptors=[];
+            if(cached&&refresh)descriptors.push({querySet:q,beginningOfPassWriteIndex:0});
+            const middle={};
+            if(!(cached&&refresh))middle.beginningOfPassWriteIndex=0;
+            if(!particles)middle.endOfPassWriteIndex=1;
+            descriptors.push(Object.keys(middle).length?{querySet:q,...middle}:null);
+            if(particles)descriptors.push({querySet:q,endOfPassWriteIndex:1});
+            for(const timestampWrites of descriptors){
+                const pass=encoder.beginRenderPass({colorAttachments:[{view:target.createView(),
+                    loadOp:'clear',storeOp:'store',clearValue:[0,0,0,1]}],
+                    ...(timestampWrites?{timestampWrites}:{})});pass.end();
+            }
+            encoder.resolveQuerySet(q,0,2,resolved,0);encoder.copyBufferToBuffer(resolved,0,readback,0,16);
+            device.queue.submit([encoder.finish()]);await readback.mapAsync(GPUMapMode.READ);
+            const t=new BigUint64Array(readback.getMappedRange().slice(0));
+            if(t[1]<t[0])throw new Error('invalid blit timestamp ordering');readback.unmap();++paths;
+        }
+        const error=await device.popErrorScope();if(error)throw new Error(error.message);
+        report.timestamp_paths=paths;target.destroy();q.destroy();resolved.destroy();readback.destroy();
+    }
     report.status='passed';device.destroy();return report;
 }
 

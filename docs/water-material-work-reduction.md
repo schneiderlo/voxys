@@ -8,13 +8,9 @@ resolution, reduced texture filtering, reduced physics, or new quality tier.
 
 ## Production changes
 
-* Share noise lattice gradients across a material's center and X/Y samples
-  **only when they lie in the same unwrapped lattice cell**. Keep the original
-  three independent evaluations for large footprints and discontinuities.
-  Explicit finite-difference mip gradients and texture samples are unchanged.
-  In the common shared-cell case, an active material projection has 52 instead
-  of 84 source-level scalar sine evaluations. This is not an instruction or
-  FPS measurement. Both noise octaves must share their cells for that count.
+* Retain the original texture-coordinate, noise and finite-difference mip
+  gradients. The shared-gradient experiment was removed after warmed
+  software comparisons regressed, including coherent terrain fixtures.
 * Do not evaluate cove-local effects where their existing masks are exactly
   zero; fully rock-covered pixels do not classify absent grass/sand/soil.
   Do not evaluate run-up noise outside its bounded wet transition. These are
@@ -49,7 +45,7 @@ VOXY_REFERENCE_REF=d9a6a399a9cafdb986be992413de8322ac879b8c \
 
 The Python suite is a CPU/structural check, not shader execution. The Node
 suite uses Chrome WebGPU, compiles actual production entry points, compares
-UV footprints/weights, and executes material and water fragment fixtures with
+material coordinates/weights, and executes material and water fragment fixtures with
 mipmapped textures. It checks shoreline boundaries, negative/large coordinates,
 refraction precedence, foam and TIR. Missing WebGPU fails rather than passing.
 `VOXY_TEST_CHROME` selects the browser executable. Node 22 or later is required.

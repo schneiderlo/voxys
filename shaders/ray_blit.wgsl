@@ -914,43 +914,7 @@ fn rotateTerrainMaterialUv(value : vec2<f32>, layer : i32) -> vec2<f32> {
     }
 }
 
-// Reuse the four gradient corners across a material's center/X/Y samples.
-// This is not an analytic derivative or a coarser mip approximation: every
-// interpolated value and the finite-difference texture gradients stay intact.
-fn periodicNoiseFromCorners(point : vec2<f32>, corners : mat4x2<f32>) -> f32 {
-    let local = fract(point);
-    let fade = local * local * local *
-               (local * (local * 6.0 - vec2<f32>(15.0)) +
-                vec2<f32>(10.0));
-    let a = dot(corners[0], local);
-    let b = dot(corners[1], local - vec2<f32>(1.0, 0.0));
-    let c = dot(corners[2], local - vec2<f32>(0.0, 1.0));
-    let d = dot(corners[3], local - vec2<f32>(1.0));
-    return mix(mix(a, b, fade.x), mix(c, d, fade.x), fade.y);
-}
-
-fn periodicNoiseFootprint(
-    point : vec2<f32>, pointX : vec2<f32>, pointY : vec2<f32>) -> vec3<f32> {
-    let cell = floor(point);
-    if (!all(floor(pointX) == cell) || !all(floor(pointY) == cell)) {
-        // Large footprints, negative/wrapped boundaries, and discontinuities
-        // keep the reference evaluation. Do not clamp neighbors into a cell.
-        return vec3<f32>(periodicGradientNoise(point),
-                         periodicGradientNoise(pointX),
-                         periodicGradientNoise(pointY));
-    }
-    let corners = mat4x2<f32>(
-        periodicGradientHash(cell),
-        periodicGradientHash(cell + vec2<f32>(1.0, 0.0)),
-        periodicGradientHash(cell + vec2<f32>(0.0, 1.0)),
-        periodicGradientHash(cell + vec2<f32>(1.0)));
-    return vec3<f32>(periodicNoiseFromCorners(point, corners),
-                     periodicNoiseFromCorners(pointX, corners),
-                     periodicNoiseFromCorners(pointY, corners));
-}
-
-fn terrainMaterialUvWithNoise(
-    projectedWorld : vec2<f32>, layer : i32, stochasticWarp : vec2<f32>) -> vec2<f32> {
+fn terrainMaterialUv(projectedWorld : vec2<f32>, layer : i32) -> vec2<f32> {
     let phase = f32(layer) * 1.713;
     let scale = terrainMaterialScale(layer);
     let rotated = rotateTerrainMaterialUv(projectedWorld / scale, layer);
@@ -964,46 +928,23 @@ fn terrainMaterialUvWithNoise(
             sin(projectedWorld.x * 0.0107 - phase) * 1.17));
     let broad = sin(projectedWorld.x * 0.0037 + phase) *
                 sin(projectedWorld.y * 0.0049 - phase * 0.63);
+    let noisePoint =
+        projectedWorld * 0.031 +
+        vec2<f32>(phase * 3.17, phase * -2.31);
+    let stochasticWarp = vec2<f32>(
+        periodicGradientNoise(noisePoint),
+        periodicGradientNoise(
+            noisePoint.yx * 1.37 + vec2<f32>(7.1, 11.3)));
     return rotated + warp * 0.105 + stochasticWarp * 0.38 +
            vec2<f32>(broad, -broad) * 0.026;
-}
-
-fn terrainMaterialUv(projectedWorld : vec2<f32>, layer : i32) -> vec2<f32> {
-    let phase = f32(layer) * 1.713;
-    let noisePoint = projectedWorld * 0.031 +
-        vec2<f32>(phase * 3.17, phase * -2.31);
-    let noise = vec2<f32>(periodicGradientNoise(noisePoint),
-        periodicGradientNoise(noisePoint.yx * 1.37 + vec2<f32>(7.1, 11.3)));
-    return terrainMaterialUvWithNoise(projectedWorld, layer, noise);
-}
-
-fn terrainMaterialUvFootprint(
-    projected : vec2<f32>, projectedX : vec2<f32>, projectedY : vec2<f32>,
-    layer : i32) -> mat3x2<f32> {
-    let phase = f32(layer) * 1.713;
-    let offset = vec2<f32>(phase * 3.17, phase * -2.31);
-    let p = projected * 0.031 + offset;
-    let x = projectedX * 0.031 + offset;
-    let y = projectedY * 0.031 + offset;
-    let first = periodicNoiseFootprint(p, x, y);
-    let second = periodicNoiseFootprint(
-        p.yx * 1.37 + vec2<f32>(7.1, 11.3),
-        x.yx * 1.37 + vec2<f32>(7.1, 11.3),
-        y.yx * 1.37 + vec2<f32>(7.1, 11.3));
-    return mat3x2<f32>(
-        terrainMaterialUvWithNoise(projected, layer, vec2<f32>(first.x, second.x)),
-        terrainMaterialUvWithNoise(projectedX, layer, vec2<f32>(first.y, second.y)),
-        terrainMaterialUvWithNoise(projectedY, layer, vec2<f32>(first.z, second.z)));
 }
 
 fn sampleTerrainLayer(
     layer : i32, projectedWorld : vec2<f32>,
     projectedX : vec2<f32>, projectedY : vec2<f32>) -> TerrainLayerSample {
-    let footprint = terrainMaterialUvFootprint(
-        projectedWorld, projectedX, projectedY, layer);
-    let uv = footprint[0];
-    let uvX = footprint[1];
-    let uvY = footprint[2];
+    let uv = terrainMaterialUv(projectedWorld, layer);
+    let uvX = terrainMaterialUv(projectedX, layer);
+    let uvY = terrainMaterialUv(projectedY, layer);
     let gradientX = uvX - uv;
     let gradientY = uvY - uv;
     // A second incommensurate, quarter-turned lookup removes the repeated
