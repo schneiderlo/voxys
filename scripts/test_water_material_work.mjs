@@ -218,7 +218,7 @@ async function gpuTest({reference,before,after,math,surfaceFixture,waterFixture}
         const group1=device.createBindGroup({layout:layout1,entries:[{binding:0,resource:{buffer:input}},{binding:1,resource:{buffer:unused}}]});
         const rowBytes=formats.map(f=>f==='r32float'?256:1024),sizes=rowBytes.map(r=>r*64),total=sizes.reduce((a,b)=>a+b,0);
         const staging=makeBuffer(total*2,B.COPY_DST|B.MAP_READ);const encoder=device.createCommandEncoder();
-        const textures=[];
+        const textures=[],pipelines=[],targetSets=[];
         const query=timestamps?device.createQuerySet({type:'timestamp',count:4}):null;
         const resolved=timestamps?makeBuffer(32,B.QUERY_RESOLVE|B.COPY_SRC):null;
         const timeRead=timestamps?makeBuffer(32,B.MAP_READ|B.COPY_DST):null;
@@ -226,6 +226,7 @@ async function gpuTest({reference,before,after,math,surfaceFixture,waterFixture}
             const targets=formats.map(format=>{const t=device.createTexture({size:[64,64],format,usage:T.RENDER_ATTACHMENT|T.COPY_SRC});textures.push(t);return t;});
             const pipeline=await device.createRenderPipelineAsync({layout,vertex:{module:modules[i],entryPoint:'fixtureVertex'},
                 fragment:{module:modules[i],entryPoint,targets:formats.map(format=>({format}))}});
+            pipelines.push(pipeline);targetSets.push(targets);
             const pass=encoder.beginRenderPass({colorAttachments:targets.map(t=>({view:t.createView(),loadOp:'clear',storeOp:'store',
                 clearValue:{r:.125,g:.125,b:.125,a:.125}})),...(query?{timestampWrites:{querySet:query,beginningOfPassWriteIndex:i*2,endOfPassWriteIndex:i*2+1}}:{})});
             pass.setPipeline(pipeline);pass.setBindGroup(0,group0);pass.setBindGroup(1,group1);pass.draw(3);pass.end();
@@ -235,10 +236,40 @@ async function gpuTest({reference,before,after,math,surfaceFixture,waterFixture}
         if(query){encoder.resolveQuerySet(query,0,4,resolved,0);encoder.copyBufferToBuffer(resolved,0,timeRead,0,32);}
         device.queue.submit([encoder.finish()]);await staging.mapAsync(GPUMapMode.READ);
         const values=new Float32Array(staging.getMappedRange().slice(0));compare(values.subarray(0,total/4),values.subarray(total/4),label);
-        staging.unmap();staging.destroy();input.destroy();unused.destroy();textures.forEach(t=>t.destroy());
-        if(query){await timeRead.mapAsync(GPUMapMode.READ);const times=new BigUint64Array(timeRead.getMappedRange().slice(0));
-            report.checks.at(-1).single_pass_gpu_ms={reference:Number(times[1]-times[0])/1e6,candidate:Number(times[3]-times[2])/1e6};
-            timeRead.unmap();timeRead.destroy();resolved.destroy();query.destroy();}
+        staging.unmap();staging.destroy();
+        const check=report.checks.at(-1);
+        if(query){await timeRead.mapAsync(GPUMapMode.READ);
+            const t=new BigUint64Array(timeRead.getMappedRange().slice(0));
+            check.first_pass_gpu_ms={reference:Number(t[1]-t[0])/1e6,
+                candidate:Number(t[3]-t[2])/1e6};timeRead.unmap();}
+        // Cold draws may include software-driver JIT. Keep them separate from
+        // warmed, alternating-order samples; neither is a game-FPS benchmark.
+        const warmed=[];
+        for(let repeat=0;repeat<9;++repeat){
+            const batch=device.createCommandEncoder();
+            const order=repeat%2?[1,0]:[0,1];
+            for(const i of order){
+                const pass=batch.beginRenderPass({colorAttachments:targetSets[i].map(t=>({
+                    view:t.createView(),loadOp:'clear',storeOp:'store',
+                    clearValue:{r:.125,g:.125,b:.125,a:.125}})),
+                    ...(query?{timestampWrites:{querySet:query,
+                        beginningOfPassWriteIndex:i*2,endOfPassWriteIndex:i*2+1}}:{})});
+                pass.setPipeline(pipelines[i]);pass.setBindGroup(0,group0);
+                pass.setBindGroup(1,group1);pass.draw(3);pass.end();
+            }
+            if(query){batch.resolveQuerySet(query,0,4,resolved,0);
+                batch.copyBufferToBuffer(resolved,0,timeRead,0,32);}
+            device.queue.submit([batch.finish()]);
+            if(query){await timeRead.mapAsync(GPUMapMode.READ);
+                const t=new BigUint64Array(timeRead.getMappedRange().slice(0));
+                if(repeat>=3)warmed.push({reference:Number(t[1]-t[0])/1e6,
+                    candidate:Number(t[3]-t[2])/1e6});
+                timeRead.unmap();
+            }else{await device.queue.onSubmittedWorkDone();}
+        }
+        check.warmed_paired_gpu_ms=warmed;
+        input.destroy();unused.destroy();textures.forEach(t=>t.destroy());
+        if(query){timeRead.destroy();resolved.destroy();query.destroy();}
     }
     await fragmentPair(shaders.slice(0,2),'surfaceFixture',['rgba32float','rgba32float'],samples,'terrain surface: dry/shore/subtidal/rock');
     for(const underwater of [false,true]){
