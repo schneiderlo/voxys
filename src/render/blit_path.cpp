@@ -2600,7 +2600,9 @@ void BlitPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
                                     WGPUBindGroup selectedBindGroup,
                                     const char* label,
                                     bool writeTimestamps,
-                                    bool writeLinearDepth) -> bool {
+                                    bool writeLinearDepth,
+                                    bool beginTimestampOnly = false,
+                                    bool deferTimestampEnd = false) -> bool {
         std::array<WGPURenderPassColorAttachment, 2> colorAttachments{};
         colorAttachments[0].view = target;
         colorAttachments[0].depthSlice = WGPU_DEPTH_SLICE_UNDEFINED;
@@ -2623,7 +2625,9 @@ void BlitPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
         if (writeTimestamps && timestampQuerySet) {
             timestampWrites.querySet = timestampQuerySet;
             timestampWrites.beginningOfPassWriteIndex = timestampBegin;
-            timestampWrites.endOfPassWriteIndex = timestampEnd;
+            timestampWrites.endOfPassWriteIndex =
+                (beginTimestampOnly || deferTimestampEnd)
+                    ? WGPU_QUERY_SET_INDEX_UNDEFINED : timestampEnd;
             renderPassDesc.timestampWrites = &timestampWrites;
         }
 
@@ -2650,6 +2654,13 @@ void BlitPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
         waterClipmapColorPipeline_ &&
         waterClipmapVertexBuffer_ && waterClipmapIndexBuffer_ &&
         waterClipmapIndexCount_ != 0u;
+    const bool cameraUnderwater = uniforms_->waterParams.y > 0.5f &&
+                                  uniforms_->waterMotion.z > 0.5f;
+    const bool drawParticles =
+        cameraUnderwater && particlePipeline_ && particleBindGroup_;
+    // Cover every recurring blit pass with one interval. The beginning and
+    // end query indices must each be written once, even on a cache hit.
+    bool lightingTimestampStarted = false;
     if (useCachedPath && (!backgroundValid_ || backgroundDirty_)) {
         if (staticUniformsDirty_) {
             if (!gpu::writeBuffer(
@@ -2660,15 +2671,14 @@ void BlitPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
         }
         if (!drawFullscreen(backgroundView_, backgroundPipeline_,
                             staticBindGroup_,
-                            "blit_static_background_pass", false, false)) {
+                            "blit_static_background_pass", true, false, true)) {
             return;
         }
+        lightingTimestampStarted = timestampQuerySet != nullptr;
         backgroundValid_ = true;
         backgroundDirty_ = false;
     }
 
-    const bool cameraUnderwater = uniforms_->waterParams.y > 0.5f &&
-                                  uniforms_->waterMotion.z > 0.5f;
     const bool preserveLinearDepth =
         linearDepthRequired_ || cameraUnderwater;
     if (useCachedPath && backgroundValid_) {
@@ -2703,8 +2713,10 @@ void BlitPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
         gpu::CompatRenderPassTimestampWrites timestampWrites{};
         if (timestampQuerySet) {
             timestampWrites.querySet = timestampQuerySet;
-            timestampWrites.beginningOfPassWriteIndex = timestampBegin;
-            timestampWrites.endOfPassWriteIndex = timestampEnd;
+            timestampWrites.beginningOfPassWriteIndex = lightingTimestampStarted
+                ? WGPU_QUERY_SET_INDEX_UNDEFINED : timestampBegin;
+            timestampWrites.endOfPassWriteIndex = drawParticles
+                ? WGPU_QUERY_SET_INDEX_UNDEFINED : timestampEnd;
             renderPassDesc.timestampWrites = &timestampWrites;
         }
 
@@ -2747,12 +2759,13 @@ void BlitPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
         wgpuRenderPassEncoderRelease(renderPass);
     } else {
         if (!drawFullscreen(colorView, pipeline_, bindGroup_,
-                            "blit_render_pass", true, false)) {
+                            "blit_render_pass", true, false, false,
+                            drawParticles)) {
             return;
         }
     }
 
-    if (cameraUnderwater && particlePipeline_ && particleBindGroup_) {
+    if (drawParticles) {
         if (!updateUnderwaterParticles()) return;
 
         WGPURenderPassColorAttachment colorAttachment{};
@@ -2765,6 +2778,14 @@ void BlitPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
         WGPU_SET_LABEL(passDescriptor, "underwater_particle_pass");
         passDescriptor.colorAttachmentCount = 1;
         passDescriptor.colorAttachments = &colorAttachment;
+        gpu::CompatRenderPassTimestampWrites particleTimestamps{};
+        if (timestampQuerySet) {
+            particleTimestamps.querySet = timestampQuerySet;
+            particleTimestamps.beginningOfPassWriteIndex =
+                WGPU_QUERY_SET_INDEX_UNDEFINED;
+            particleTimestamps.endOfPassWriteIndex = timestampEnd;
+            passDescriptor.timestampWrites = &particleTimestamps;
+        }
         WGPURenderPassEncoder pass =
             wgpuCommandEncoderBeginRenderPass(encoder, &passDescriptor);
         if (!pass) {

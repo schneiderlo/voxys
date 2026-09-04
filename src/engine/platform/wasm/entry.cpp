@@ -304,6 +304,7 @@ namespace {
         out << ",\"cpu_ms\":";
         appendJsonNumber(out, g_lastFrameCpuMilliseconds);
         out << ",\"gpu_queue\":" << g_gpuFramesInFlight
+            << ",\"gpu_queue_limit\":" << kMaximumGpuFramesInFlight
             << ",\"pacing_skips\":" << g_gpuPacingSkips << '}';
 
         out << ",\"render\":{\"path\":\""
@@ -319,6 +320,31 @@ namespace {
             << app.geometryWaterFrames
             << ",\"submitted_primitives\":"
             << app.primitiveSubmittedCount << '}';
+
+        // Timestamp packets are asynchronous. Expose their source frame so
+        // consumers do not subtract stale samples from a current CPU frame.
+        out << ",\"render_gpu\":{\"available\":"
+            << (app.renderGpuTiming ? "true" : "false");
+        if (app.renderGpuTiming) {
+            const auto& timing = *app.renderGpuTiming;
+            out << ",\"frame\":" << timing.frame
+                << ",\"age_frames\":"
+                << (app.frameCount >= timing.frame
+                        ? app.frameCount - timing.frame : 0u);
+            constexpr const char* names[] = {
+                "water_simulation_ms", "terrain_raycast_ms",
+                "lighting_composite_ms", "primitives_ms"};
+            static_assert(std::size(names) == voxy::kRenderGpuStageCount);
+            double total = 0.0;
+            for (size_t stage = 0; stage < voxy::kRenderGpuStageCount; ++stage) {
+                out << ",\"" << names[stage] << "\":";
+                appendJsonNumber(out, timing.milliseconds[stage]);
+                total += timing.milliseconds[stage];
+            }
+            out << ",\"total_ms\":";
+            appendJsonNumber(out, total);
+        }
+        out << '}';
 
         out << ",\"render_throughput\":{\"status\":"
             << static_cast<int>(g_renderThroughput.status)
@@ -1447,6 +1473,11 @@ double voxy_get_last_frame_wall_ms() {
 EMSCRIPTEN_KEEPALIVE
 int voxy_get_gpu_frames_in_flight() {
     return static_cast<int>(g_gpuFramesInFlight);
+}
+
+EMSCRIPTEN_KEEPALIVE
+int voxy_get_gpu_frame_limit() {
+    return static_cast<int>(kMaximumGpuFramesInFlight);
 }
 
 EMSCRIPTEN_KEEPALIVE
