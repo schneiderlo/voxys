@@ -283,20 +283,20 @@ fn radix_scatter_impl(lid : vec3<u32>, group : vec3<u32>, groupSize : u32) {
         }
     }
     workgroupBarrier();
+    // Each digit has one invocation owner for all worker rows. Keep its
+    // exclusive prefix private instead of round-tripping through shared
+    // atomics and synchronizing the whole workgroup after every row.
     for (var digit = lid.x; digit < 256u; digit += groupSize) {
-        atomicStore(&radixHistogramScratch[digit], 0u);
-    }
-    workgroupBarrier();
-    for (var worker = 0u; worker < workerCount; worker += 1u) {
-        for (var digit = lid.x; digit < 256u; digit += groupSize) {
+        var prefix = 0u;
+        for (var worker = 0u; worker < workerCount; worker += 1u) {
             let slot = worker * 256u + digit;
             let count = radixLocalCounts[slot];
-            let prefix = atomicLoad(&radixHistogramScratch[digit]);
             radixLocalCounts[slot] = prefix;
-            atomicStore(&radixHistogramScratch[digit], prefix + count);
+            prefix += count;
         }
-        workgroupBarrier();
     }
+    // Scatter workers consume prefixes produced by other digit owners.
+    workgroupBarrier();
     if (lid.x < workerCount) {
         let first = min(blockStart + lid.x * chunkSize, blockEnd);
         let last = min(first + chunkSize, blockEnd);
