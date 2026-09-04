@@ -5,10 +5,10 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: terrain-gradient-validation
+  group: terrain-gradient-followup-validation
   cancel-in-progress: true
 jobs:
-  implement:
+  refine-tests:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -18,42 +18,80 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          persist-credentials: false
-      - name: Verify and unpack prepared implementation
-        run: |
-          cat tools/terrain-gradient-candidate.part0{0,1,2,3,4} > "$RUNNER_TEMP/candidate.patch.gz"
-          test "$(git hash-object "$RUNNER_TEMP/candidate.patch.gz")" = eaab5fd262f8d99a51bc6daa1c9ee3013dcd19f2
-          gzip -dc "$RUNNER_TEMP/candidate.patch.gz" > "$RUNNER_TEMP/candidate.patch"
-      - uses: actions/checkout@v4
-        with:
           ref: perf/terrain-gradient-lut
-          persist-credentials: true
-      - name: Apply checked implementation to isolated feature branch
+      - name: Refine test lifecycle and production pipeline coverage
         id: publish
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD)" = 85b9a6472e6778427e1cbf13faddc1dc91cba641
-          git apply --check "$RUNNER_TEMP/candidate.patch"
-          git apply --index "$RUNNER_TEMP/candidate.patch"
-          # The permanent PR workflow is added separately through the connector.
-          # This token publishes implementation files only, never workflows/main.
-          git rm -f .github/workflows/periodic-gradient-lut.yml
+          test "$(git rev-parse HEAD)" = 2add98515608b1bb377ecff2397b475fea2b3e6f
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('scripts/test_periodic_gradient_lut.mjs')
+          s = p.read_text()
+          old = '''    clearTimeout(watchdog); socket?.close(); chrome.kill('SIGKILL');
+              await new Promise(resolve => server.close(resolve));
+              await rm(directory, {recursive: true, force: true});'''
+          new = '''    clearTimeout(watchdog);
+              socket?.close();
+              // The profile is still being written until Chrome and its stdio close.
+              // Waiting first avoids ENOTEMPTY after otherwise successful GPU tests.
+              if (chrome.exitCode === null && chrome.signalCode === null && !chromeError) {
+                  const closed = new Promise(resolve => chrome.once('close', resolve));
+                  chrome.kill('SIGKILL');
+                  await closed;
+              }
+              await new Promise(resolve => server.close(resolve));
+              await rm(directory, {recursive: true, force: true, maxRetries: 8, retryDelay: 100});'''
+          assert s.count(old) == 1
+          s = s.replace(old, new)
+          old = '    const texture = device.createTexture({'
+          new = '''    // Compile the actual entry points too, not just the WGSL front end.
+              // Both specializations must satisfy portable resource limits.
+              for (const enabled of [0, 1]) {
+                  const constants = {USE_PERIODIC_GRADIENT_LUT: enabled};
+                  await device.createRenderPipelineAsync({
+                      layout: 'auto', vertex: {module: modules[0], entryPoint: 'vs'},
+                      fragment: {module: modules[0], entryPoint: 'fsBackground',
+                          constants, targets: [{format: 'rgba16float'}]},
+                  });
+                  await device.createRenderPipelineAsync({
+                      layout: 'auto', vertex: {module: modules[0], entryPoint: 'vs'},
+                      fragment: {module: modules[0], entryPoint: 'fsCachedOpaqueColor',
+                          constants, targets: [{format: 'bgra8unorm'}]},
+                  });
+                  await device.createRenderPipelineAsync({
+                      layout: 'auto', vertex: {module: modules[1], entryPoint: 'vs',
+                          buffers: [{arrayStride: 12, attributes: [
+                              {shaderLocation: 0, offset: 0, format: 'float32x3'}]}]},
+                      fragment: {module: modules[1], entryPoint: 'fsColor',
+                          constants, targets: [{format: 'bgra8unorm'}]},
+                  });
+              }
+              const texture = device.createTexture({'''
+          assert s.count(old) == 1
+          s = s.replace(old, new)
+          old = 'compiled_modules: 4,'
+          assert s.count(old) == 1
+          s = s.replace(old, 'compiled_modules: 4, compiled_render_pipelines: 6,')
+          p.write_text(s)
+          PY
           python3 tools/test_periodic_gradient_lut.py
           node --check scripts/test_periodic_gradient_lut.mjs
+          git add scripts/test_periodic_gradient_lut.mjs
           git diff --cached --check
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit -m 'perf: bake packed periodic gradients once for terrain and ocean shading'
+          git commit -m 'test: validate production gradient pipelines and await browser cleanup'
           git push origin HEAD:refs/heads/perf/terrain-gradient-lut
           echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
   gpu:
-    needs: implement
+    needs: refine-tests
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ needs.implement.outputs.candidate }}
+          ref: ${{ needs.refine-tests.outputs.candidate }}
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
@@ -66,49 +104,3 @@ jobs:
           name: periodic-gradient-gpu-report
           path: periodic-gradient-lut-report.json
           if-no-files-found: ignore
-  compile-wasm:
-    needs: implement
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    env:
-      EM_CACHE_FOLDER: emsdk-cache
-      EMSCRIPTEN_VERSION: '6.0.1'
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ needs.implement.outputs.candidate }}
-          persist-credentials: false
-      - name: Install ccache
-        run: sudo apt-get update && sudo apt-get install -y ccache
-      - uses: actions/cache@v4
-        with:
-          path: ~/.ccache
-          key: terrain-lut-ccache-${{ runner.os }}-${{ github.sha }}
-          restore-keys: |
-            ccache-${{ runner.os }}-
-      - uses: actions/cache@v4
-        with:
-          path: ${{ env.EM_CACHE_FOLDER }}
-          key: emsdk-${{ runner.os }}-${{ env.EMSCRIPTEN_VERSION }}-emdawnwebgpu
-          restore-keys: |
-            emsdk-${{ runner.os }}-${{ env.EMSCRIPTEN_VERSION }}-
-      - uses: mymindstorm/setup-emsdk@v14
-        with:
-          version: ${{ env.EMSCRIPTEN_VERSION }}
-          actions-cache-folder: ${{ env.EM_CACHE_FOLDER }}
-      - run: embuilder build emdawnwebgpu
-      - uses: actions/cache@v4
-        id: dependencies
-        with:
-          path: third_party
-          key: third-party-${{ runner.os }}-${{ hashFiles('scripts/fetch_deps.sh') }}
-      - if: steps.dependencies.outputs.cache-hit != 'true'
-        run: chmod +x scripts/fetch_deps.sh && ./scripts/fetch_deps.sh
-      - name: Configure production WASM target
-        run: |
-          emcmake cmake -S . -B build-wasm \
-            -DVOXY_BUILD_NATIVE=OFF -DVOXY_BUILD_WASM=ON \
-            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
-            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
-      - name: Compile and link production WASM target
-        run: cmake --build build-wasm -- -j$(nproc)
