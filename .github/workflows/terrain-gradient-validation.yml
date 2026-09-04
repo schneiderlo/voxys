@@ -37,7 +37,7 @@ jobs:
           git apply --index "$RUNNER_TEMP/candidate.patch"
           # The permanent PR workflow is added separately through the connector.
           # This token publishes implementation files only, never workflows/main.
-          git rm .github/workflows/periodic-gradient-lut.yml
+          git rm -f .github/workflows/periodic-gradient-lut.yml
           python3 tools/test_periodic_gradient_lut.py
           node --check scripts/test_periodic_gradient_lut.mjs
           git diff --cached --check
