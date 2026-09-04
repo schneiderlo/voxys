@@ -90,6 +90,28 @@ async function gpuTest({bake, probe, ray, water}) {
         shader('production terrain', ray), shader('production water', water),
         shader('GPU gradient bake', bake), shader('differential probe', probe),
     ]);
+    // Compile the actual entry points too, not just the WGSL front end.
+    // Both specializations must satisfy portable resource limits.
+    for (const enabled of [0, 1]) {
+        const constants = {USE_PERIODIC_GRADIENT_LUT: enabled};
+        await device.createRenderPipelineAsync({
+            layout: 'auto', vertex: {module: modules[0], entryPoint: 'vs'},
+            fragment: {module: modules[0], entryPoint: 'fsBackground',
+                constants, targets: [{format: 'rgba16float'}]},
+        });
+        await device.createRenderPipelineAsync({
+            layout: 'auto', vertex: {module: modules[0], entryPoint: 'vs'},
+            fragment: {module: modules[0], entryPoint: 'fsCachedOpaqueColor',
+                constants, targets: [{format: 'bgra8unorm'}]},
+        });
+        await device.createRenderPipelineAsync({
+            layout: 'auto', vertex: {module: modules[1], entryPoint: 'vs',
+                buffers: [{arrayStride: 12, attributes: [
+                    {shaderLocation: 0, offset: 0, format: 'float32x3'}]}]},
+            fragment: {module: modules[1], entryPoint: 'fsColor',
+                constants, targets: [{format: 'bgra8unorm'}]},
+        });
+    }
     const texture = device.createTexture({
         size: [32, 16], format: 'rgba32float',
         usage: GPUTextureUsage.STORAGE_BINDING | GPUTextureUsage.TEXTURE_BINDING
@@ -259,7 +281,7 @@ async function gpuTest({bake, probe, ray, water}) {
     const report = {status: 'passed', adapter: {
         vendor: info.vendor, architecture: info.architecture,
         description: info.description, fallback: info.isFallbackAdapter,
-    }, compiled_modules: 4, tested_points: count, compared_float_words: words,
+    }, compiled_modules: 4, compiled_render_pipelines: 6, tested_points: count, compared_float_words: words,
        maximum_absolute_error: maximumError, different_float_words: differentWords,
        fragment_maximum_absolute_error: fragmentMaximumError,
        fragment_different_float_words: fragmentDifferentWords,
@@ -328,7 +350,15 @@ try {
     await writeFile(path.resolve(process.env.VOXY_LUT_REPORT || 'periodic-gradient-lut-report.json'), JSON.stringify(report, null, 2) + '\n');
     console.log(JSON.stringify(report, null, 2));
 } finally {
-    clearTimeout(watchdog); socket?.close(); chrome.kill('SIGKILL');
+    clearTimeout(watchdog);
+    socket?.close();
+    // The profile is still being written until Chrome and its stdio close.
+    // Waiting first avoids ENOTEMPTY after otherwise successful GPU tests.
+    if (chrome.exitCode === null && chrome.signalCode === null && !chromeError) {
+        const closed = new Promise(resolve => chrome.once('close', resolve));
+        chrome.kill('SIGKILL');
+        await closed;
+    }
     await new Promise(resolve => server.close(resolve));
-    await rm(directory, {recursive: true, force: true});
+    await rm(directory, {recursive: true, force: true, maxRetries: 8, retryDelay: 100});
 }
