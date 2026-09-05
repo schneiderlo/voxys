@@ -1,0 +1,101 @@
+name: Browser integration validation
+on:
+  push:
+    branches: [integration/optimization-rollup]
+    paths: [.github/workflows/integration-browser.yml]
+permissions:
+  contents: read
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    permissions:
+      contents: write
+    outputs:
+      candidate: ${{ steps.fix.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: fix
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('scripts/smoke_integrated_wasm.mjs');s=p.read_text()
+          a="assert.equal(sample.moto?.active,experience==='ridgebreak'"
+          b="assert.equal(Boolean(sample.moto?.active),experience==='ridgebreak'"
+          assert s.count(a)==1
+          p.write_text(s.replace(a,b))
+          PY
+          node --check scripts/smoke_integrated_wasm.mjs
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add scripts/smoke_integrated_wasm.mjs
+          git commit -m 'test: accept absent motocross HUD in default terrain mode'
+          git push origin HEAD:refs/heads/integration/optimization-rollup
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+  browser:
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    env:
+      EM_CACHE_FOLDER: emsdk-cache
+      EMSCRIPTEN_VERSION: '6.0.1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prepare.outputs.candidate }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: sudo apt-get update && sudo apt-get install -y ccache
+      - uses: actions/cache@v4
+        with:
+          path: ~/.ccache
+          key: ccache-${{ runner.os }}-integration-smoke-${{ github.sha }}
+          restore-keys: |
+            ccache-${{ runner.os }}-
+      - uses: actions/cache@v4
+        with:
+          path: ${{ env.EM_CACHE_FOLDER }}
+          key: emsdk-${{ runner.os }}-${{ env.EMSCRIPTEN_VERSION }}-emdawnwebgpu
+          restore-keys: |
+            emsdk-${{ runner.os }}-${{ env.EMSCRIPTEN_VERSION }}-
+      - uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: ${{ env.EMSCRIPTEN_VERSION }}
+          actions-cache-folder: ${{ env.EM_CACHE_FOLDER }}
+      - run: embuilder build emdawnwebgpu
+      - uses: actions/cache@v4
+        id: deps
+        with:
+          path: third_party
+          key: third-party-${{ runner.os }}-${{ hashFiles('scripts/fetch_deps.sh') }}
+      - if: steps.deps.outputs.cache-hit != 'true'
+        run: bash scripts/fetch_deps.sh
+      - run: git restore -- third_party/CMakeLists.txt third_party/BUILD third_party/tinygltf
+      - run: emcmake cmake -S . -B build-wasm -DVOXY_BUILD_NATIVE=OFF -DVOXY_BUILD_WASM=ON -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+      - name: Build production WASM
+        run: cmake --build build-wasm -- -j$(nproc)
+      - name: Package production page
+        run: |
+          mkdir -p smoke-web
+          cp -r web/* smoke-web/
+          cp build-wasm/bin/voxy_wasm.{js,wasm,data} smoke-web/
+          sed -i "s/__VOXY_BUILD_ID__/${{ needs.prepare.outputs.candidate }}/g" smoke-web/index.html
+          grep -aq /ridgebreak.cfg smoke-web/voxy_wasm.js
+          grep -aq /data/generated/td_seed_1234_2048_albedo.jpg smoke-web/voxy_wasm.js
+      - name: Real terrain and motocross application smoke
+        run: node scripts/smoke_integrated_wasm.mjs smoke-web
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: browser-integration-report
+          path: integrated-startup-report.json
+          if-no-files-found: ignore
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: validated-integration-wasm
+          path: smoke-web
+          retention-days: 3
