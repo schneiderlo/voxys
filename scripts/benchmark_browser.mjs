@@ -71,6 +71,7 @@ const options = {
     expectedBackend: "webgpu_soft",
     expectedBuild: "",
     keepProfile: false,
+    checkPacing: false,
     chromeArguments: [],
 };
 let shapeExplicit = false;
@@ -106,6 +107,7 @@ Workload:
   --candidate-capacity N        Candidate pair capacity (default: 262144)
   --solver-workgroup N          128 or 256 (default: 256)
   --quick                       One short correctness run
+  --check-pacing                Delay one completion; verify others make progress
 
 Browser:
   --resolution WIDTHxHEIGHT     CSS viewport size (default: 1920x1080)
@@ -166,6 +168,9 @@ for (let index = 2; index < process.argv.length; ++index) {
             break;
         case "--build-local":
             options.buildLocal = true;
+            break;
+        case "--check-pacing":
+            options.checkPacing = true;
             break;
         case "--bodies":
             options.bodies = value().split(",").map((bodyCount) =>
@@ -304,6 +309,9 @@ if (options.modes.length === 0
 }
 if (new Set(options.modes).size !== options.modes.length) {
     throw new Error("--modes cannot contain duplicates");
+}
+if (options.checkPacing && options.modes.includes("score")) {
+    throw new Error("--check-pacing requires an uncapped mode");
 }
 if (options.bodiesPerVolley > 128) {
     throw new Error("--bodies-per-volley cannot exceed the real 128-body volley");
@@ -1003,6 +1011,43 @@ const readReadyStateExpression = `(() => {
     };
 })()`;
 
+// Hold one already-completed GPU notification while subsequent notifications
+// retire normally. A single outstanding callback stalls at the queue limit;
+// independent completion records must keep the application moving.
+const checkSubmissionProgress = async (cdp) => {
+    const sample = await cdp.evaluate(`new Promise((resolve, reject) => {
+        const original = GPUQueue.prototype.onSubmittedWorkDone;
+        const watchdog = setTimeout(() => {
+            GPUQueue.prototype.onSubmittedWorkDone = original;
+            reject(new Error("No GPU completion reached the pacing check"));
+        }, 10000);
+        GPUQueue.prototype.onSubmittedWorkDone = function(...args) {
+            const completion = original.apply(this, args);
+            GPUQueue.prototype.onSubmittedWorkDone = original;
+            return completion.then(() => new Promise(release => {
+                const frame = voxyModule._voxy_get_frame_count();
+                const started = performance.now();
+                setTimeout(() => {
+                    const result = {
+                        advancedFrames: voxyModule._voxy_get_frame_count() - frame,
+                        elapsedMs: performance.now() - started,
+                        queueLimit: voxyModule._voxy_get_gpu_frame_limit(),
+                        outstanding: voxyModule._voxy_get_gpu_frames_in_flight(),
+                    };
+                    clearTimeout(watchdog);
+                    release();
+                    resolve(result);
+                }, 250);
+            }));
+        };
+    })`);
+    if (sample.advancedFrames <= sample.queueLimit
+        || sample.outstanding < 0 || sample.outstanding > sample.queueLimit) {
+        throw new Error(`GPU completion pacing stalled: ${JSON.stringify(sample)}`);
+    }
+    return sample;
+};
+
 const waitForReady = async (cdp, deadline, expectedResidentBodies = 0) => {
     let state = null;
     let stableCanvasPolls = 0;
@@ -1222,6 +1267,9 @@ const runWorkload = async (
             await delay(25);
         }
         if (!loopModeReady) throw new Error("browser loop mode did not change");
+
+        const pacingCheck = options.checkPacing
+            ? await checkSubmissionProgress(cdp) : null;
 
         const start = await cdp.evaluate(`({
             frame: voxyModule._voxy_get_frame_count(),
@@ -1472,6 +1520,7 @@ const runWorkload = async (
             sequence,
             capturedAt: new Date().toISOString(),
             passed: invariants.overallPassed,
+            pacingCheck,
             browser: {
                 target: url.href,
                 buildId: ready.buildId,
@@ -2026,6 +2075,7 @@ try {
             bodies: options.bodies,
             modes: options.modes,
             runs: options.runs,
+            checkPacing: options.checkPacing,
             width: options.width,
             height: options.height,
             devicePixelRatio: options.devicePixelRatio,

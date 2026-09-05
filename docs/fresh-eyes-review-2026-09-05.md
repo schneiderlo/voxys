@@ -3,6 +3,9 @@
 The review followed the root `AGENTS.md`, using the existing Nix environment.
 Starting commit: `da4d98e`.
 
+Later follow-up: [browser frame-gap fix](browser-frame-pacing-2026-09-05.md).
+The measurements below describe the original review batch.
+
 ## Falling objects and brief freezes
 
 The application runs GPU physics at fixed ticks, normally 60 Hz. Before this

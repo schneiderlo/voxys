@@ -12,6 +12,7 @@
 #include "physics/physics_world.hpp"
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <iomanip>
 #include <limits>
@@ -71,17 +72,17 @@ namespace {
     uint64_t g_gpuSubmittedFrames = 0;
     uint64_t g_gpuCompletedFrames = 0;
     uint64_t g_gpuCompletionTarget = 0;
-    bool g_gpuCompletionPending = false;
     uint64_t g_gpuPacingSkips = 0;
     bool g_gpuPacingPaused = false;
-    bool g_preserveSimulationWallTime = false;
     bool g_renderThroughputMode = false;
     bool g_renderThroughputFullQuality = false;
 
-    // One outstanding callback covers a complete submission batch. This
-    // avoids registering a callback per frame, which Chrome can deliver in
-    // large latency spikes, while keeping the actual unconfirmed batch small.
-    constexpr uint32_t kMaximumGpuFramesInFlight = 8;
+    // Bound both GPU submissions and notification storage. Independent
+    // notifications let completed work retire while an older callback is late.
+    // Pair cheap frames to avoid registering a callback for every submission.
+    constexpr uint32_t kMaximumGpuFramesInFlight = 12;
+    constexpr uint32_t kGpuCompletionIntervalFrames = 2;
+    std::array<uint64_t, kMaximumGpuFramesInFlight> g_gpuCompletionTargets{};
     constexpr int kMaximumRenderThroughputFrames = 1'000'000;
     constexpr int kMaximumRenderThroughputBatchFrames = 256;
 
@@ -563,16 +564,19 @@ namespace {
     void requestGpuFrameCompletion();
 
     void gpuFrameCompleted(WGPUQueueWorkDoneStatus /*status*/,
-                           WGPUStringView /*message*/, void* /*userdata1*/,
+                           WGPUStringView /*message*/, void* userdata1,
                            void* /*userdata2*/) {
-        g_gpuCompletedFrames = std::max(
-            g_gpuCompletedFrames, g_gpuCompletionTarget);
-        g_gpuCompletionPending = false;
+        auto& target = *static_cast<uint64_t*>(userdata1);
+        g_gpuCompletedFrames = std::max(g_gpuCompletedFrames, target);
+        target = 0u;
         const uint64_t outstanding =
             g_gpuSubmittedFrames - g_gpuCompletedFrames;
         g_gpuFramesInFlight = static_cast<uint32_t>(std::min<uint64_t>(
             outstanding, std::numeric_limits<uint32_t>::max()));
-        if (g_gpuPacingPaused && !renderThroughputRunning()) {
+        if (!g_app || !g_app->isInitialized()) return;
+        if (g_gpuPacingPaused
+            && g_gpuFramesInFlight < kMaximumGpuFramesInFlight
+            && !renderThroughputRunning()) {
             g_gpuPacingPaused = false;
             emscripten_resume_main_loop();
         }
@@ -580,16 +584,28 @@ namespace {
     }
 
     void requestGpuFrameCompletion() {
-        if (!g_app || g_gpuCompletionPending
+        if (!g_app || !g_app->isInitialized()
+            || g_gpuCompletionTarget == g_gpuSubmittedFrames
             || g_gpuCompletedFrames == g_gpuSubmittedFrames) {
             return;
         }
-        g_gpuCompletionPending = true;
+        // Always cover a full queue, including an unpaired final frame.
+        if (g_gpuSubmittedFrames - g_gpuCompletionTarget
+                < kGpuCompletionIntervalFrames
+            && g_gpuSubmittedFrames - g_gpuCompletedFrames
+                < kMaximumGpuFramesInFlight) {
+            return;
+        }
+        const auto slot = std::find(g_gpuCompletionTargets.begin(),
+            g_gpuCompletionTargets.end(), 0u);
+        if (slot == g_gpuCompletionTargets.end()) return;
         g_gpuCompletionTarget = g_gpuSubmittedFrames;
+        *slot = g_gpuSubmittedFrames;
         WGPUQueueWorkDoneCallbackInfo callbackInfo =
             WGPU_QUEUE_WORK_DONE_CALLBACK_INFO_INIT;
         callbackInfo.mode = WGPUCallbackMode_AllowSpontaneous;
         callbackInfo.callback = gpuFrameCompleted;
+        callbackInfo.userdata1 = &*slot;
         static_cast<void>(wgpuQueueOnSubmittedWorkDone(
             g_app->getGPUContext()->getQueue(), callbackInfo));
     }
@@ -1101,7 +1117,6 @@ int main(int argc, char* argv[]) {
     if (appConfig.cubePyramidBodyCount != 0u) {
         LOG_INFO("Browser requested a {}-cube triangle",
                  appConfig.cubePyramidBodyCount);
-        g_preserveSimulationWallTime = true;
     }
     if (appConfig.cubePyramidBodyCount != 0u) {
         const bool broadPhaseCellSizeExplicit = EM_ASM_INT({
@@ -1258,7 +1273,6 @@ int main(int argc, char* argv[]) {
     LOG_INFO("Starting Emscripten main loop...");
 
     static double lastSubmittedTime = emscripten_get_now() / 1000.0;
-    static double lastSimulationTime = lastSubmittedTime;
     static bool currentUncapped = false;
 
     auto mainLoop = []() {
@@ -1273,18 +1287,9 @@ int main(int argc, char* argv[]) {
             return;
         }
 
-        // Browser WebGPU submissions are otherwise allowed to grow without
-        // bound. Once the GPU falls a little behind, surface acquisition can
-        // block for hundreds of milliseconds and the fixed-step scheduler
-        // responds by encoding six catch-up ticks, creating a feedback loop.
+        // Bound GPU queue latency. Keep elapsed time across pacing waits;
+        // the physics backend separately bounds catch-up ticks and clock debt.
         if (g_gpuFramesInFlight >= kMaximumGpuFramesInFlight) {
-            // Do not turn time spent waiting for the GPU into another burst of
-            // GPU work. Normal play drops this wall-time debt. The staged
-            // triangle uses a cheaper 30 Hz clock and a strict three-tick cap,
-            // so preserve its small debt to keep gravity at real speed.
-            if (!g_preserveSimulationWallTime) {
-                lastSimulationTime = emscripten_get_now() / 1000.0;
-            }
             ++g_gpuPacingSkips;
             if (g_app->isUncappedFPS()) {
                 g_gpuPacingPaused = true;
@@ -1297,9 +1302,8 @@ int main(int argc, char* argv[]) {
         if (g_app->isUncappedFPS() != currentUncapped) {
             currentUncapped = g_app->isUncappedFPS();
             if (currentUncapped) {
-                // Submit immediately while queue headroom exists. Once the
-                // bounded queue fills, its one completion callback wakes this
-                // loop directly; no timer polls or per-frame callbacks.
+                // Submit while queue headroom exists. Completion notifications
+                // wake the paused loop directly when room becomes available.
                 emscripten_set_main_loop_timing(EM_TIMING_SETIMMEDIATE, 0);
                 LOG_INFO("Switched to Uncapped Loop (SETIMMEDIATE)");
             } else {
@@ -1312,14 +1316,11 @@ int main(int argc, char* argv[]) {
         const double now = emscripten_get_now() / 1000.0;
         const float frameDeltaTime =
             static_cast<float>(now - lastSubmittedTime);
-        float simulationDeltaTime =
-            static_cast<float>(now - lastSimulationTime);
         lastSubmittedTime = now;
-        lastSimulationTime = now;
 
-        // Keep simulation stable after a suspended tab. The frame interval is
-        // intentionally not clamped: the FPS counter must include pacing skips.
-        simulationDeltaTime = std::min(simulationDeltaTime, 0.1f);
+        // Pacing waits belong to simulation time too. Clamp only long tab
+        // suspensions; the FPS counter retains the full frame interval.
+        const float simulationDeltaTime = std::min(frameDeltaTime, 0.1f);
 
         const double frameStartMilliseconds = emscripten_get_now();
         g_app->processFrame(simulationDeltaTime, frameDeltaTime);
