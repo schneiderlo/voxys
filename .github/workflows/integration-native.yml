@@ -1,0 +1,97 @@
+name: Native integration validation
+on:
+  push:
+    branches: [integration/optimization-rollup]
+    paths: [.github/workflows/integration-native.yml]
+permissions:
+  contents: read
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    outputs:
+      candidate: ${{ steps.patch.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Repair standalone test dependency and document optional experience
+        id: patch
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import subprocess
+          p=Path('tests/CMakeLists.txt');s=p.read_text()
+          a='''add_executable(wreckwater_client_probe_tests
+              test_wreckwater_client_probe.cpp
+              ${CMAKE_SOURCE_DIR}/src/client/wreckwater_client_probe.cpp
+          )'''
+          b=a.replace('\n)', '\n    ${CMAKE_SOURCE_DIR}/src/network/protocol.cpp\n    ${CMAKE_SOURCE_DIR}/src/network/wreckwater_protocol.cpp\n)')
+          assert s.count(a)==1
+          p.write_text(s.replace(a,b))
+          readme=Path('README.md')
+          Path('docs/ridgebreak-prototype.md').write_text(readme.read_text())
+          original=subprocess.check_output(['git','show','3f06f364ce65a01da2abedc6a880c908903eee3a:README.md'],text=True)
+          readme.write_text(original+'''
+          ## Optional RIDGEBREAK prototype
+
+          The motocross branch is integrated without replacing the existing terrain
+          demo. Open the browser with `?experience=ridgebreak`, or launch native with
+          `--config ridgebreak.cfg`. Without that option, `voxy.cfg`, the authored
+          terrain, and the 2048-pixel macro texture remain the defaults.
+          Prototype documentation is retained in `docs/ridgebreak-prototype.md`;
+          its original default-launch instructions are superseded by this opt-in.
+          ''')
+          PY
+          git add tests/CMakeLists.txt README.md docs/ridgebreak-prototype.md
+          git diff --cached --check
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'build: link probe protocol validation and document opt-in motocross'
+          git push origin HEAD:refs/heads/integration/optimization-rollup
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+  native:
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prepare.outputs.candidate }}
+          persist-credentials: false
+      - run: sudo apt-get update && sudo apt-get install -y g++-14 ccache libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libgl1-mesa-dev libwayland-dev libxkbcommon-dev mesa-vulkan-drivers xvfb
+      - uses: actions/cache@v4
+        with:
+          path: ~/.ccache
+          key: ccache-native-integration-${{ github.sha }}
+          restore-keys: ccache-native-integration-
+      - uses: actions/cache@v4
+        id: deps
+        with:
+          path: third_party
+          key: third-party-${{ runner.os }}-${{ hashFiles('scripts/fetch_deps.sh') }}
+      - if: steps.deps.outputs.cache-hit != 'true'
+        run: bash scripts/fetch_deps.sh
+      - run: git checkout -- third_party/CMakeLists.txt third_party/BUILD third_party/tinygltf
+      - run: cmake -S . -B build-native -DVOXY_BUILD_NATIVE=ON -DVOXY_BUILD_WASM=OFF -DVOXY_BUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=gcc-14 -DCMAKE_CXX_COMPILER=g++-14 -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+      - name: Build all native targets
+        run: cmake --build build-native -j4 -- -k > native-build.log 2>&1 || { tail -200 native-build.log; exit 1; }
+      - name: Native regression suite
+        run: xvfb-run -a ctest --test-dir build-native --output-on-failure -j2 --timeout 120 > native-tests.log 2>&1 || { tail -200 native-tests.log; exit 1; }
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: integration-native-results
+          path: |
+            native-build.log
+            native-tests.log
+            build-native/Testing/Temporary/LastTest.log
+          if-no-files-found: ignore
+      - uses: actions/cache/save@v4
+        if: always()
+        with:
+          path: ~/.ccache
+          key: ccache-native-integration-${{ github.sha }}
