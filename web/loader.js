@@ -65,6 +65,41 @@ async function getWebGPUInfo() {
  * below this limit still receive a normal device so the explicit CPU fallback
  * can initialize.
  */
+// The pinned emdawnwebgpu bridge forwards the C UINT32_MAX sentinel as
+// a numeric JS query index. WebGPU needs the optional property omitted.
+// Scope this adapter to renderer-owned devices; never patch global GPU
+// prototypes or suppress other invalid indices/validation failures.
+const timestampCompatibleDevices = new WeakSet();
+function normalizeTimestampDescriptor(descriptor) {
+    const writes = descriptor?.timestampWrites;
+    const undefinedIndex = 0xffffffff;
+    if (!writes || (writes.beginningOfPassWriteIndex !== undefinedIndex
+        && writes.endOfPassWriteIndex !== undefinedIndex)) return descriptor;
+    const normalized = {...writes};
+    for (const key of ['beginningOfPassWriteIndex', 'endOfPassWriteIndex']) {
+        if (normalized[key] === undefinedIndex) delete normalized[key];
+    }
+    // Preserve invalid no-endpoint requests so WebGPU still rejects them.
+    return {...descriptor, timestampWrites: normalized};
+}
+function installTimestampCompatibility(device) {
+    if (typeof device?.createCommandEncoder !== 'function'
+        || timestampCompatibleDevices.has(device)) return;
+    const create = device.createCommandEncoder;
+    device.createCommandEncoder = function(...args) {
+        const encoder = Reflect.apply(create, this, args);
+        for (const name of ['beginRenderPass', 'beginComputePass']) {
+            const begin = encoder[name];
+            encoder[name] = function(descriptor) {
+                return Reflect.apply(begin, this,
+                    [normalizeTimestampDescriptor(descriptor)]);
+            };
+        }
+        return encoder;
+    };
+    timestampCompatibleDevices.add(device);
+}
+
 async function requestVoxyDevice(adapter, { enableTimestamps = false } = {}) {
     const requiredStorageBuffers = 8;
     const supportedStorageBuffers =
@@ -82,6 +117,7 @@ async function requestVoxyDevice(adapter, { enableTimestamps = false } = {}) {
         requiredFeatures,
         requiredLimits,
     });
+    installTimestampCompatibility(device);
     let adapterInfo = adapter.info;
     if (!adapterInfo && typeof adapter.requestAdapterInfo === 'function') {
         try {

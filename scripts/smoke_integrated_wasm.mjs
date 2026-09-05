@@ -41,8 +41,8 @@ await new Promise(r=>server.listen(0,'127.0.0.1',r));
 const chrome=spawn(process.env.VOXY_TEST_CHROME||'google-chrome',[
     '--headless=new','--no-sandbox','--no-first-run','--no-default-browser-check',
     '--disable-background-networking','--enable-unsafe-webgpu','--enable-unsafe-swiftshader',
-    '--use-angle=vulkan','--enable-features=Vulkan','--use-vulkan=swiftshader',
-    '--use-webgpu-adapter=swiftshader','--disable-vulkan-surface','--remote-debugging-port=0',`--user-data-dir=${directory}`,'about:blank'
+    '--use-angle=vulkan','--enable-features=Vulkan','--use-vulkan=native',
+    '--disable-vulkan-surface','--remote-debugging-port=0',`--user-data-dir=${directory}`,'about:blank'
 ],{stdio:['ignore','ignore','pipe']});
 let logs='',spawnError,socket;
 chrome.stderr.on('data',d=>logs=(logs+d).slice(-12000));chrome.on('error',e=>spawnError=e);
