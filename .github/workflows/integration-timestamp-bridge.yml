@@ -38,8 +38,7 @@ jobs:
               for (const key of ['beginningOfPassWriteIndex', 'endOfPassWriteIndex']) {
                   if (normalized[key] === undefinedIndex) delete normalized[key];
               }
-              // Keep timestampWrites even when both indices are absent: that is
-              // invalid input and WebGPU must still reject it, not hide the error.
+              // Preserve invalid no-endpoint requests so WebGPU still rejects them.
               return {...descriptor, timestampWrites: normalized};
           }
           function installTimestampCompatibility(device) {
@@ -61,7 +60,8 @@ jobs:
           }
 
           '''
-          assert s.count(a)==1;s=s.replace(a,helper+a)
+          assert s.count(a)==1 and 'function normalizeTimestampDescriptor' not in s
+          s=s.replace(a,helper+a)
           a='    let adapterInfo = adapter.info;'
           assert s.count(a)==1;s=s.replace(a,'    installTimestampCompatibility(device);\n'+a)
           p.write_text(s)
@@ -72,20 +72,12 @@ jobs:
           s=s.replace("'--use-vulkan=swiftshader'","'--use-vulkan=native'")
           s=s.replace("'--use-webgpu-adapter=swiftshader',",'')
           p.write_text(s)
-          p=Path('.github/workflows/water-material-regression.yml');s=p.read_text()
-          s=s.replace('      - web/index.html','      - web/index.html\n      - web/loader.js\n      - scripts/test_webgpu_timestamp_compat.mjs')
-          a='      - name: GPU gradient differential tests'
-          assert s.count(a)==1
-          s=s.replace(a,'      - name: WASM timestamp bridge regressions\n        run: node --test scripts/test_webgpu_timestamp_compat.mjs\n'+a)
-          p.write_text(s)
           PY
           node --test scripts/test_webgpu_timestamp_compat.mjs
           node --check web/loader.js
           node --check scripts/smoke_integrated_wasm.mjs
           git diff --check
           git add web/loader.js web/index.html scripts/smoke_integrated_wasm.mjs
-          # Workflow changes are committed separately through the connector.
-          git restore .github/workflows/water-material-regression.yml
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git commit -m 'fix: translate emdawn timestamp sentinel before browser pass creation'
