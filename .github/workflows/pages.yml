@@ -2,8 +2,7 @@ name: Build and Deploy to GitHub Pages
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -12,63 +11,49 @@ permissions:
   id-token: write
 
 concurrency:
-  group: "pages"
+  group: pages
   cancel-in-progress: false
 
 jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      EM_CACHE_FOLDER: 'emsdk-cache'
+      EM_CACHE_FOLDER: emsdk-cache
       EMSCRIPTEN_VERSION: '6.0.1'
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
+      - uses: actions/checkout@v4
       - name: Install ccache
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y ccache
-
-      - name: Cache ccache
-        uses: actions/cache@v4
+        run: sudo apt-get update && sudo apt-get install -y ccache
+      - uses: actions/cache@v4
         with:
           path: ~/.ccache
           key: ccache-${{ runner.os }}-${{ github.sha }}
           restore-keys: |
             ccache-${{ runner.os }}-
-
-      - name: Cache Emscripten ports
-        uses: actions/cache@v4
+      - uses: actions/cache@v4
         with:
           path: ${{ env.EM_CACHE_FOLDER }}
           key: emsdk-${{ runner.os }}-${{ env.EMSCRIPTEN_VERSION }}-emdawnwebgpu
           restore-keys: |
             emsdk-${{ runner.os }}-${{ env.EMSCRIPTEN_VERSION }}-
-
-      - name: Setup Emscripten
-        uses: mymindstorm/setup-emsdk@v14
+      - uses: mymindstorm/setup-emsdk@v14
         with:
           version: ${{ env.EMSCRIPTEN_VERSION }}
           actions-cache-folder: ${{ env.EM_CACHE_FOLDER }}
-
-      - name: Install emdawnwebgpu port
-        run: |
-          embuilder build emdawnwebgpu
-
+      - run: embuilder build emdawnwebgpu
       - name: Cache Third Party
         id: cache-third-party
         uses: actions/cache@v4
         with:
           path: third_party
           key: third-party-${{ runner.os }}-${{ hashFiles('scripts/fetch_deps.sh') }}
-
       - name: Fetch dependencies
         if: steps.cache-third-party.outputs.cache-hit != 'true'
-        run: |
-          chmod +x scripts/fetch_deps.sh
-          ./scripts/fetch_deps.sh
-
+        run: bash scripts/fetch_deps.sh
+      - name: Restore tracked dependency definitions
+        # The dependency cache contains older tracked build files as well as
+        # downloads. Never let it replace the definitions from this commit.
+        run: git restore -- third_party/CMakeLists.txt third_party/BUILD third_party/tinygltf
       - name: Configure CMake
         run: |
           emcmake cmake -S . -B build-wasm \
@@ -76,72 +61,39 @@ jobs:
             -DVOXY_BUILD_WASM=ON \
             -DCMAKE_C_COMPILER_LAUNCHER=ccache \
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
-
       - name: Build WASM
-        run: |
-          cmake --build build-wasm -- -j$(nproc)
-
+        run: cmake --build build-wasm -- -j$(nproc)
       - name: Prepare deployment directory
         run: |
+          set -euo pipefail
           mkdir -p docs
-          
-          # Copy web assets
           cp -r web/* docs/
-
-          # Give every generated artifact URL a deployment-specific cache key.
-          # GitHub Pages caches otherwise-unversioned JS/WASM/data files.
           sed -i "s/__VOXY_BUILD_ID__/${GITHUB_SHA}/g" docs/index.html
-          
-          # Copy WASM files from build-wasm/bin
           cp build-wasm/bin/voxy_wasm.js docs/
-          cp build-wasm/bin/voxy_wasm.wasm docs/ 2>/dev/null || echo "WASM file not found (may be embedded)"
-          cp build-wasm/bin/voxy_wasm.data docs/ 2>/dev/null || echo "DATA file not found"
-          
-          # Update index.html to use the correct JS file name (voxy_wasm.js)
-          # The HTML already references voxy_wasm.js, so this should work as-is
-          
-          # Create .nojekyll to prevent Jekyll processing
+          cp build-wasm/bin/voxy_wasm.wasm docs/
+          cp build-wasm/bin/voxy_wasm.data docs/
           touch docs/.nojekyll
-          
-          # Verify and list files
-          echo "Files in docs directory:"
+          test -s docs/index.html
+          test -s docs/voxy_wasm.js
+          test -s docs/voxy_wasm.wasm
+          test -s docs/voxy_wasm.data
+          if grep -q __VOXY_BUILD_ID__ docs/index.html; then
+            echo 'ERROR: deployment build ID was not substituted'; exit 1
+          fi
+          for asset in \
+            /data/generated/td_seed_1234_8192.ldh \
+            /data/generated/td_seed_1234_2048_albedo.jpg \
+            /data/generated/ocean_environment.png \
+            /ridgebreak.cfg; do
+            grep -a -q "$asset" docs/voxy_wasm.js || {
+              echo "ERROR: preload manifest missing $asset"; exit 1;
+            }
+          done
           ls -lah docs/
-          
-          # Verify critical files exist
-          if [ ! -f "docs/index.html" ]; then
-            echo "ERROR: index.html missing!"
-            exit 1
-          fi
-          if [ ! -f "docs/voxy_wasm.js" ]; then
-            echo "ERROR: voxy_wasm.js missing!"
-            exit 1
-          fi
-          if grep -q "__VOXY_BUILD_ID__" docs/index.html; then
-            echo "ERROR: deployment build ID was not substituted!"
-            exit 1
-          fi
-          if ! grep -a -q "/data/generated/td_seed_1234_8192.ldh" docs/voxy_wasm.js; then
-            echo "ERROR: generated 8K terrain missing from WASM preload manifest!"
-            exit 1
-          fi
-          if ! grep -a -q "/data/generated/td_seed_1234_2048_albedo.jpg" docs/voxy_wasm.js; then
-            echo "ERROR: generated macro color map missing from WASM preload manifest!"
-            exit 1
-          fi
-          if ! grep -a -q "/data/generated/ocean_environment.png" docs/voxy_wasm.js; then
-            echo "ERROR: generated ocean environment missing from WASM preload manifest!"
-            exit 1
-          fi
-          echo "✓ All critical files present"
-
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+      - uses: actions/configure-pages@v4
+      - uses: actions/upload-pages-artifact@v3
         with:
           path: ./docs
-
   deploy:
     environment:
       name: github-pages
