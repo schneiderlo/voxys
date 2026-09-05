@@ -30,7 +30,7 @@
             p99_ms:percentile(.99), max_ms:times.length?times[times.length-1]:null,
             over_budget:times.filter(t=>t>targetMs).length, first_sample_frame:values[0]?.frame??null,
             last_sample_frame:values.at(-1)?.frame??null,
-            scope:'GPU frame command stream, including GPU physics; excluding CPU, presentation and query readback',
+            scope:'GPU frame command stream, including GPU physics; excluding CPU, queue uploads, presentation and query readback',
             sampling:'asynchronous profiling samples, not every displayed frame', samples:values};
     }
     async function measure(options = {}) {
@@ -61,7 +61,12 @@
         const report = summarize([...samples.values()],targetMs,count);
         const adapter = root.voxyDeviceProfile?.adapter ?? null;
         report.adapter=adapter; report.build=root.voxyBuildId??null;
-        report.software_adapter=adapter?.fallback===true;
+        // Some browser profiles omit/misreport isFallbackAdapter even when
+        // the returned architecture explicitly identifies a software renderer.
+        const adapterName = [adapter?.architecture, adapter?.description].filter(Boolean).join(' ');
+        report.software_adapter = adapter?.fallback === true ||
+            /swiftshader|llvmpipe|lavapipe/i.test(adapterName) ? true :
+            adapter?.fallback === false ? false : null;
         report.hardware_acceptance_established=false; // A scene sample is not full workload acceptance.
         report.elapsed_ms=performance.now()-start; report.aborted=aborted;
         report.initial_cpu_ms=initial.frame.cpu_ms;

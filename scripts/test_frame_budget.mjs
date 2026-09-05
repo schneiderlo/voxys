@@ -58,3 +58,13 @@ test('measurement reads newly completed envelopes, excluding old samples',async(
  assert.equal(report.first_sample_frame,120);assert.equal(report.last_sample_frame,150);
  assert.equal(report.hardware_acceptance_established,false);
 });
+
+test('software architecture is recognized even when fallback is false',async()=>{
+ const saved=globalThis.voxyDeviceProfile;
+ globalThis.voxyDeviceProfile={adapter:{architecture:'swiftshader',fallback:false}};
+ let reads=0;const module={_voxy_get_telemetry_json(){return ++reads;},
+  UTF8ToString(ptr){return JSON.stringify({frame:{count:0,cpu_ms:1},render_gpu:packet(ptr,.3)});}};
+ try {const r=await globalThis.voxyMeasureGpuBudget({module,samples:2,maximumDurationMs:1000});
+  assert.equal(r.software_adapter,true);assert.equal(r.hardware_acceptance_established,false);
+ }finally{globalThis.voxyDeviceProfile=saved;}
+});

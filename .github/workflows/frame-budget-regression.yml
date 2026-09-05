@@ -1,0 +1,63 @@
+name: Ocean FFT and GPU frame budget
+on:
+  push:
+    branches: [main]
+    paths:
+      - shaders/water_fft.wgsl
+      - shaders/water_finalize.wgsl
+      - src/render/water_simulation.cpp
+      - src/render/water_simulation.hpp
+      - src/app/application.cpp
+      - src/app/application.hpp
+      - src/engine/platform/wasm/entry.cpp
+      - web/frame_budget.js
+      - web/index.html
+      - tools/test_water_fft_fusion.py
+      - scripts/test_water_fft_fusion.mjs
+      - scripts/test_frame_budget.mjs
+      - .github/workflows/frame-budget-regression.yml
+  pull_request:
+    paths:
+      - shaders/water_fft.wgsl
+      - shaders/water_finalize.wgsl
+      - src/render/water_simulation.cpp
+      - src/render/water_simulation.hpp
+      - src/app/application.cpp
+      - src/app/application.hpp
+      - src/engine/platform/wasm/entry.cpp
+      - web/frame_budget.js
+      - web/index.html
+      - tools/test_water_fft_fusion.py
+      - scripts/test_water_fft_fusion.mjs
+      - scripts/test_frame_budget.mjs
+      - .github/workflows/frame-budget-regression.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: frame-budget-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  ocean-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: python3 tools/test_water_fft_fusion.py
+      - run: node --test scripts/test_frame_budget.mjs scripts/test_webgpu_timestamp_compat.mjs
+      - name: Complete two-cascade ocean differential and paired timing test
+        run: node scripts/test_water_fft_fusion.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: water-fft-fusion-report
+          path: water-fft-fusion-report.json
+          if-no-files-found: ignore
+# This enforces shader correctness, not a software-only FPS threshold.
+# A 1 ms target requires complete frame samples on the actual rendering device.
