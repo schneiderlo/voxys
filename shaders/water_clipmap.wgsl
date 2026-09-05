@@ -368,6 +368,8 @@ fn proceduralSeabed(worldXZ : vec2<f32>, pathLength : f32,
     let material = textureSampleLevel(
         foamTexture, foamSampler, rotated / 200.0, materialLod);
     let albedo = material.gba;
+    // Beyond the existing fade endpoint this sample contributes exactly zero.
+    if (pathLength >= 360.0) { return albedo * 0.86; }
     let causticScale = 46.0;
     let causticLod = clamp(log2(max(
         worldPerPixel * 1024.0 / causticScale, 1.0)), 0.0, 10.0);
@@ -539,122 +541,115 @@ fn shadeWaterFragment(input : VertexOutput) -> FragmentOutput {
         normal = vec3<f32>(0.0, 1.0, 0.0);
     }
 
+    let cameraUnderwater = camera.waterMotion.z > 0.5;
+    var transmissionDirection = vec3<f32>(0.0);
+    var totalInternalReflection = false;
+    if (cameraUnderwater) {
+        transmissionDirection = refract(-view, -normal, oceanIor());
+        totalInternalReflection = dot(transmissionDirection, transmissionDirection) < 0.001;
+    }
     let light = normalize(camera.lightDirWS.xyz);
     let fresnel = dielectricFresnel(dot(normal, view), oceanIor());
     let reflected = reflect(-view, normal);
     let reflectionRoughness = max(oceanMinimumRoughness(), 0.18) +
         clamp(distanceToCamera / oceanReflectionDistance(),
               0.0, 1.0) * OCEAN_REFLECTION_ROUGHNESS_STRENGTH;
-    let environment = sampleEnvironment(reflected, reflectionRoughness) *
+    var environment = vec3<f32>(0.0);
+    if (!totalInternalReflection) {
+        environment = sampleEnvironment(reflected, reflectionRoughness) *
                       camera.waterColorA.w;
+    }
 
-    let scatterLobe =
-        pow(clamp((dot(view, -light) + 0.5) / 1.5, 0.0, 1.0) *
-            clamp(dot(normal, -light) + 0.3, 0.0, 1.0), 0.85) *
-        oceanSunIntensity() * 0.35 *
-        (1.0 - smoothstep(100.0, 6400.0, distanceToCamera));
-    let body = mix(oceanScatterColor(), oceanSurfaceColor(),
-                   clamp(scatterLobe, 0.0, 1.0));
-    let forwardScatter = pow(max(dot(view, -light), 0.0), 3.0) *
-                         max(1.0 - normal.y, 0.0);
     let halfway = normalize(light + view);
     let sunSpecular = pow(max(dot(normal, halfway), 0.0), 420.0) *
                       oceanSunIntensity() * 1.8;
 
-    let cameraUnderwater = camera.waterMotion.z > 0.5;
-    let opticalCoverage = smoothstep(0.12, 12.0, waterDepth);
-    let distortionCoverage = smoothstep(0.04, 0.80, waterDepth);
-    var distortedUv = screenUv;
-    var selectedRefractionDepth = opaqueDepth;
-    let sceneThickness = select(
-        500.0, max(opaqueDepth - distanceToCamera, 0.0), opaqueDepth > 0.0);
-    if (cameraUnderwater || opaqueDepth > 0.0) {
-        let distortionDistance = min(sceneThickness, 80.0) *
-                                 oceanDistortion() * distortionCoverage;
-        let distortedWorld = input.worldPosition +
-                             normal * distortionDistance;
-        let distortedClip = camera.viewProj *
-                            vec4<f32>(distortedWorld, 1.0);
-        if (distortedClip.w > 1.0e-5) {
-            let ndc = distortedClip.xy / distortedClip.w;
-            let candidateUv = clamp(
-                vec2<f32>(ndc.x * 0.5 + 0.5,
-                          0.5 - ndc.y * 0.5),
-                vec2<f32>(0.001), vec2<f32>(0.999));
-            let candidatePixel = clamp(
-                vec2<i32>(floor(candidateUv * dimensionsF)),
-                vec2<i32>(0), maxPixel);
-            let candidateDepth = textureLoad(
-                sceneDepthTexture, candidatePixel, 0).x;
-            let candidateWaterDepth = distance(
-                camera.cameraPos.xyz, distortedWorld);
-            if (candidateDepth < 0.0 ||
-                candidateDepth + 1.0e-3 >= candidateWaterDepth) {
-                distortedUv = candidateUv;
-                selectedRefractionDepth = candidateDepth;
-            }
-        }
-    }
-
-    var refractionUv = distortedUv;
-    if (cameraUnderwater) {
-        refractionUv = clamp(
-            distortedUv + underwaterDistortionUv(screenUv) - screenUv,
-            vec2<f32>(0.001), vec2<f32>(0.999));
-        let refractionPixel = clamp(
-            vec2<i32>(floor(refractionUv * dimensionsF)),
-            vec2<i32>(0), maxPixel);
-        selectedRefractionDepth = textureLoad(
-            sceneDepthTexture, refractionPixel, 0).x;
-    }
     let worldPerPixel = distanceToCamera * 2.0 *
         max(camera.invProjParams.x / f32(max(dimensions.x, 1u)),
             camera.invProjParams.y / f32(max(dimensions.y, 1u)));
 
-    let incomingRay = -view;
-    var refractedRay = refract(incomingRay, normal, 1.0 / oceanIor());
-    if (dot(refractedRay, refractedRay) < 1.0e-6) {
-        refractedRay = incomingRay;
-    } else {
-        refractedRay = normalize(refractedRay);
-    }
-    let hasOpaqueRefraction = selectedRefractionDepth > 0.0;
-    // Use the continuous heightfield depth wherever the surface lies inside
-    // the terrain domain. Whether a distorted screen ray lands on an opaque
-    // texel must not change the optical thickness; that created hard turquoise
-    // islands at refraction silhouettes.
-    let bedDepth = select(OCEAN_PROCEDURAL_SEABED_DEPTH, waterDepth,
-                          insideTerrain);
-    let bedTravel = bedDepth / max(-refractedRay.y, 0.12);
-    let thickness = clamp(bedTravel, 0.0, 500.0);
-    var refracted : vec3<f32>;
-    if (hasOpaqueRefraction) {
-        // The cached opaque target already contains the exact authored
-        // terrain material at this refracted screen position. Prefer it over
-        // the procedural infinite-floor fallback; the fallback's cellular
-        // plate seams read as cracks when projected through shallow water.
-        refracted = textureSampleLevel(
-            sceneColorTexture, sceneSampler, refractionUv, 0.0).rgb;
-    } else {
-        // The fallback was previously evaluated and then overwritten.
-        refracted = proceduralSeabed(
-            (input.worldPosition + refractedRay * bedTravel).xz,
-            bedTravel, worldPerPixel) *
-            (0.34 + 0.66 * max(light.y, 0.0)) * shadow;
-    }
+    var hasOpaqueRefraction = false;
+    var thickness = 0.0;
+    var refracted = vec3<f32>(0.0);
+    // A totally reflected underwater ray cannot use scene refraction. Avoid
+    // its depth reads, UV distortion and fallback material evaluation entirely.
+    if (!totalInternalReflection) {
+        let distortionCoverage = smoothstep(0.04, 0.80, waterDepth);
+        var distortedUv = screenUv;
+        var selectedRefractionDepth = opaqueDepth;
+        let sceneThickness = select(
+            500.0, max(opaqueDepth - distanceToCamera, 0.0), opaqueDepth > 0.0);
+        if (cameraUnderwater || opaqueDepth > 0.0) {
+            let distortionDistance = min(sceneThickness, 80.0) *
+                                     oceanDistortion() * distortionCoverage;
+            let distortedWorld = input.worldPosition +
+                                 normal * distortionDistance;
+            let distortedClip = camera.viewProj *
+                                vec4<f32>(distortedWorld, 1.0);
+            if (distortedClip.w > 1.0e-5) {
+                let ndc = distortedClip.xy / distortedClip.w;
+                let candidateUv = clamp(
+                    vec2<f32>(ndc.x * 0.5 + 0.5,
+                              0.5 - ndc.y * 0.5),
+                    vec2<f32>(0.001), vec2<f32>(0.999));
+                let candidatePixel = clamp(
+                    vec2<i32>(floor(candidateUv * dimensionsF)),
+                    vec2<i32>(0), maxPixel);
+                let candidateDepth = textureLoad(
+                    sceneDepthTexture, candidatePixel, 0).x;
+                let candidateWaterDepth = distance(
+                    camera.cameraPos.xyz, distortedWorld);
+                if (candidateDepth < 0.0 ||
+                    candidateDepth + 1.0e-3 >= candidateWaterDepth) {
+                    distortedUv = candidateUv;
+                    selectedRefractionDepth = candidateDepth;
+                }
+            }
+        }
 
-    let transmittance = exp(-oceanAbsorption() * thickness);
-    let clearRefracted = refracted * transmittance +
-                         body * (vec3<f32>(1.0) - transmittance);
-    let coastalTurbidity =
-        smoothstep(0.62, 1.70, waterDepth) *
-        (1.0 - smoothstep(6.5, 11.0, waterDepth)) * 0.08;
-    let refractedWater =
-        mix(clearRefracted, body, coastalTurbidity);
-    let reflectedWater = environment +
-        camera.lightingColor.rgb * sunSpecular +
-        oceanScatterColor() * camera.lightingColor.rgb *
-        forwardScatter * oceanSunIntensity();
+        var refractionUv = distortedUv;
+        if (cameraUnderwater) {
+            refractionUv = clamp(
+                distortedUv + underwaterDistortionUv(screenUv) - screenUv,
+                vec2<f32>(0.001), vec2<f32>(0.999));
+            let refractionPixel = clamp(
+                vec2<i32>(floor(refractionUv * dimensionsF)),
+                vec2<i32>(0), maxPixel);
+            selectedRefractionDepth = textureLoad(
+                sceneDepthTexture, refractionPixel, 0).x;
+        }
+        let incomingRay = -view;
+        var refractedRay = refract(incomingRay, normal, 1.0 / oceanIor());
+        if (dot(refractedRay, refractedRay) < 1.0e-6) {
+            refractedRay = incomingRay;
+        } else {
+            refractedRay = normalize(refractedRay);
+        }
+        hasOpaqueRefraction = selectedRefractionDepth > 0.0;
+        // Use the continuous heightfield depth wherever the surface lies inside
+        // the terrain domain. Whether a distorted screen ray lands on an opaque
+        // texel must not change the optical thickness; that created hard turquoise
+        // islands at refraction silhouettes.
+        let bedDepth = select(OCEAN_PROCEDURAL_SEABED_DEPTH, waterDepth,
+                              insideTerrain);
+        let bedTravel = bedDepth / max(-refractedRay.y, 0.12);
+        thickness = clamp(bedTravel, 0.0, 500.0);
+        if (hasOpaqueRefraction) {
+            // The cached opaque target already contains the exact authored
+            // terrain material at this refracted screen position. Prefer it over
+            // the procedural infinite-floor fallback; the fallback's cellular
+            // plate seams read as cracks when projected through shallow water.
+            refracted = textureSampleLevel(
+                sceneColorTexture, sceneSampler, refractionUv, 0.0).rgb;
+        } else {
+            // The fallback was previously evaluated and then overwritten.
+            refracted = proceduralSeabed(
+                (input.worldPosition + refractedRay * bedTravel).xz,
+                bedTravel, worldPerPixel) *
+                (0.34 + 0.66 * max(light.y, 0.0)) * shadow;
+        }
+
+    }
 
     let crestCompression = max(
         input.crestCompression,
@@ -666,11 +661,6 @@ fn shadeWaterFragment(input : VertexOutput) -> FragmentOutput {
 
     var color : vec3<f32>;
     if (cameraUnderwater) {
-        let undersideNormal = -normal;
-        var transmissionDirection =
-            refract(-view, undersideNormal, oceanIor());
-        let totalInternalReflection =
-            dot(transmissionDirection, transmissionDirection) < 0.001;
         var underside : vec3<f32>;
         if (totalInternalReflection) {
             underside =
@@ -701,6 +691,29 @@ fn shadeWaterFragment(input : VertexOutput) -> FragmentOutput {
                     exp(-oceanAbsorption() *
                         distanceToCamera * 1.35));
     } else {
+        let scatterLobe =
+            pow(clamp((dot(view, -light) + 0.5) / 1.5, 0.0, 1.0) *
+                clamp(dot(normal, -light) + 0.3, 0.0, 1.0), 0.85) *
+            oceanSunIntensity() * 0.35 *
+            (1.0 - smoothstep(100.0, 6400.0, distanceToCamera));
+        let body = mix(oceanScatterColor(), oceanSurfaceColor(),
+                       clamp(scatterLobe, 0.0, 1.0));
+        let forwardScatter = pow(max(dot(view, -light), 0.0), 3.0) *
+                             max(1.0 - normal.y, 0.0);
+        let transmittance = exp(-oceanAbsorption() * thickness);
+        let clearRefracted = refracted * transmittance +
+                             body * (vec3<f32>(1.0) - transmittance);
+        let coastalTurbidity =
+            smoothstep(0.62, 1.70, waterDepth) *
+            (1.0 - smoothstep(6.5, 11.0, waterDepth)) * 0.08;
+        let refractedWater =
+            mix(clearRefracted, body, coastalTurbidity);
+        let reflectedWater = environment +
+            camera.lightingColor.rgb * sunSpecular +
+            oceanScatterColor() * camera.lightingColor.rgb *
+            forwardScatter * oceanSunIntensity();
+
+        let opticalCoverage = smoothstep(0.12, 12.0, waterDepth);
         color = mix(refractedWater, reflectedWater,
                     fresnel * opticalCoverage *
                     clamp(1.0 - foamStrength * 2.0, 0.0, 1.0));

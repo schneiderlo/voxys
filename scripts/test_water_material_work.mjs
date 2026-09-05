@@ -32,6 +32,15 @@ struct Case { p : vec4<f32>, n : vec4<f32>, x : vec4<f32>, y : vec4<f32> };
     return vec4<f32>(f32((i << 1u) & 2u)*2.0-1.0, f32(i & 2u)*2.0-1.0,0.0,1.0);
 }`;
 const surfaceFixture=`${caseDeclaration}
+@fragment fn specularFixture(@builtin(position) pixel : vec4<f32>) -> @location(0) vec4<f32> {
+    let c=cases[u32(pixel.y)*64u+u32(pixel.x)];
+    return vec4<f32>(terrainSpecular(normalize(c.n.xyz),normalize(vec3<f32>(0.2,0.8,0.5)),
+        normalize(c.p.xyz),c.x.w,c.y.w),1.0);
+}
+@fragment fn seabedFixture(@builtin(position) pixel : vec4<f32>) -> @location(0) vec4<f32> {
+    let c=cases[u32(pixel.y)*64u+u32(pixel.x)];
+    return vec4<f32>(proceduralSeabed(c.p.xz,c.x.w),1.0);
+}
 struct SurfaceOutput { @location(0) albedoRoughness : vec4<f32>, @location(1) normalWetness : vec4<f32> };
 @fragment fn surfaceFixture(@builtin(position) pixel : vec4<f32>) -> SurfaceOutput {
     let c=cases[u32(pixel.y)*64u+u32(pixel.x)];
@@ -52,6 +61,10 @@ struct SurfaceOutput { @location(0) albedoRoughness : vec4<f32>, @location(1) no
     result[id.x]=vec4<f32>(coastalFoamStrength(c.p.xyz,normalize(c.n.xyz),c.x.w,c.y.w,c.n.w,30.0,vec2<u32>(64u)),0.0,0.0,1.0);
 }`;
 const waterFixture=`${caseDeclaration}
+@fragment fn seabedFixture(@builtin(position) pixel : vec4<f32>) -> @location(0) vec4<f32> {
+    let c=cases[u32(pixel.y)*64u+u32(pixel.x)];
+    return vec4<f32>(proceduralSeabed(c.p.xz,c.x.w,0.05),1.0);
+}
 @fragment fn waterFixture(@builtin(position) pixel : vec4<f32>) -> FragmentOutput {
     let c=cases[u32(pixel.y)*64u+u32(pixel.x)];
     var v : VertexOutput;
@@ -308,6 +321,27 @@ async function gpuTest({reference,before,after,bake,math,surfaceFixture,waterFix
     }
     await device.queue.onSubmittedWorkDone();const validation=await device.popErrorScope();
     if(validation)throw new Error(validation.message);if(errors.length)throw new Error(errors.join('\n'));
+    // Cover zero-contribution boundaries and both sides of the critical angle.
+    u[57]=12;u[110]=0;device.queue.writeBuffer(uniform,0,u);
+    const boundary=new Float32Array(samples);
+    for(let i=0;i<4096;++i)boundary[i*16+11]=[0.01,95,359.999,360,360.001,1000][i%6];
+    await fragmentPair(shaders.slice(0,2),'seabedFixture',['rgba32float'],boundary,'legacy seabed: caustic fade boundary');
+    await fragmentPair(shaders.slice(2,4),'seabedFixture',['rgba32float'],boundary,'clipmap seabed: caustic fade boundary');
+    const specular=new Float32Array(4096*16);
+    for(let i=0;i<4096;++i)specular.set([.5,[-1,-.001,0,.001,1][i%5],.5,0,
+        0,1,0,0,0,0,0,[.08,.2,.6,1][i%4],0,0,0,(i%7)/6],i*16);
+    await fragmentPair(shaders.slice(0,2),'specularFixture',['rgba32float'],specular,'terrain specular: backlit and grazing');
+    const critical=new Float32Array(4096*16);
+    const angle=Math.asin(1/1.33);
+    for(let i=0;i<4096;++i){const a=angle+[-.2,-.0001,0,.0001,.2][i%5];
+        critical.set([12*Math.tan(a),0,0,0,0,1,0,0,0,0,0,20,0,0,0,.04],i*16);}
+    u[57]=-12;u[110]=1;device.queue.writeBuffer(uniform,0,u);
+    await fragmentPair(shaders.slice(2,4),'waterFixture',['rgba32float','r32float'],critical,'water: critical reflection angles');
+    if(before[0].includes('fn authoredCourseEnabled(')){
+        u[63]=1;u[57]=12;u[110]=0;device.queue.writeBuffer(uniform,0,u);
+        await fragmentPair(shaders.slice(0,2),'surfaceFixture',['rgba32float','rgba32float'],samples,'opt-in course: materials');
+        u[63]=0;device.queue.writeBuffer(uniform,0,u);
+    }
     // Exercise the exact beginning/middle/end timestamp topology of blit.
     if(timestamps){
         device.pushErrorScope('validation');

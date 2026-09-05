@@ -1550,6 +1550,7 @@ fn terrainSpecular(
     let halfway = select(normal, halfVector / halfLength, halfLength > 1.0e-5);
     let nDotV = max(dot(normal, view), 1.0e-4);
     let nDotL = max(dot(normal, light), 0.0);
+    if (nDotL == 0.0) { return vec3<f32>(0.0); }
     let nDotH = max(dot(normal, halfway), 0.0);
     let vDotH = max(dot(view, halfway), 0.0);
     let alpha = max(
@@ -1810,6 +1811,8 @@ fn proceduralSeabed(worldXZ : vec2<f32>, pathLength : f32) -> vec3<f32> {
         terrainMaterialAlbedo, oceanFoamSampler,
         sandUv, TERRAIN_LAYER_SAND, materialLod).rgb *
         vec3<f32>(0.72, 0.79, 0.74);
+    // Beyond the existing fade endpoint this sample contributes exactly zero.
+    if (pathLength >= 360.0) { return albedo * 0.88; }
     let motion = camera.waterMotion.x;
     let causticUv = rotated / 46.0 +
         vec2<f32>(motion * 0.017, -motion * 0.011);

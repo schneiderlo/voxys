@@ -298,6 +298,7 @@ const server = http.createServer((request, response) => {
 await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
 const chrome = spawn(process.env.VOXY_TEST_CHROME || 'google-chrome', [
     '--headless=new', '--no-sandbox', '--enable-unsafe-webgpu',
+    '--no-first-run', '--no-default-browser-check', '--disable-background-networking',
     '--enable-unsafe-swiftshader', '--use-angle=swiftshader',
     '--remote-debugging-port=0', `--user-data-dir=${directory}`, 'about:blank',
 ], {stdio: ['ignore', 'ignore', 'pipe']});
@@ -308,7 +309,7 @@ let socket;
 const watchdog = setTimeout(() => {chrome.kill('SIGKILL');}, 180000);
 try {
     let port;
-    for (let i = 0; i < 200 && !port; ++i) {
+    for (let i = 0; i < 1200 && !port; ++i) {
         if (chromeError) throw chromeError;
         if (chrome.exitCode !== null) throw new Error(`Chrome exited: ${chromeLog}`);
         try {port = Number((await readFile(path.join(directory, 'DevToolsActivePort'), 'utf8')).split('\n')[0]);}

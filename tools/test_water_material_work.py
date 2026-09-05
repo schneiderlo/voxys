@@ -85,11 +85,32 @@ class WorkReductionTests(unittest.TestCase):
                     self.assertEqual(writes,['begin','end'])
 
     def test_refraction_and_total_internal_reflection_are_branches(self):
-        self.assertIn('var refracted : vec3<f32>;\n    if (hasOpaqueRefraction)',WATER)
+        self.assertIn('if (!totalInternalReflection)',WATER)
+        self.assertIn('if (hasOpaqueRefraction)',WATER)
         self.assertIn('} else if (hasSceneRefraction && sceneHasOpaque)',RAY)
         for source in [RAY,WATER]:
             self.assertIn('var underside : vec3<f32>;\n        if (totalInternalReflection)',source)
             self.assertNotIn('var underside = select(',source)
+
+    def test_new_shortcuts_only_remove_zero_or_unused_contributions(self):
+        for distance in [360.0,360.001,1000.0]:
+            self.assertEqual(1-smooth(95,360,distance),0)
+        for source,gain in [(RAY,'0.88'),(WATER,'0.86')]:
+            self.assertIn('if (pathLength >= 360.0) { return albedo * '+gain,source)
+        water_body=WATER[WATER.index('fn shadeWaterFragment('):]
+        guard=water_body.index('if (!totalInternalReflection) {',water_body.index('var hasOpaqueRefraction'))
+        self.assertLess(guard,water_body.index('var distortedUv'))
+        self.assertIn('if (nDotL == 0.0) { return vec3<f32>(0.0); }',RAY)
+
+    def test_course_remains_opt_in(self):
+        app=(ROOT/'src/app/application.hpp').read_text()
+        self.assertIn('bool motoEnabled = false',app)
+        self.assertIn('if (!config_.motoEnabled', (ROOT/'src/app/application.cpp').read_text())
+        cfg=(ROOT/'voxy.cfg').read_text()
+        self.assertIn('td_seed_1234_2048_albedo.jpg',cfg)
+        self.assertIn('td_seed_1234_8192.ldh',cfg)
+        self.assertTrue((ROOT/'ridgebreak.cfg').exists())
+        self.assertIn("params.get('experience') === 'ridgebreak'", (ROOT/'web/index.html').read_text())
 
     def test_telemetry_reports_sample_age_and_real_queue_limit(self):
         source=(ROOT/'src/engine/platform/wasm/entry.cpp').read_text()
