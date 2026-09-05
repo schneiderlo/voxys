@@ -10,11 +10,13 @@ on:
       - src/engine/platform/**
       - scripts/test_*gradient*.mjs
       - scripts/test_water_material_work.mjs
+      - scripts/test_webgpu_timestamp_compat.mjs
       - tools/test_periodic_gradient_lut.py
       - tools/test_water_material_work.py
       - voxy.cfg
       - ridgebreak.cfg
       - web/index.html
+      - web/loader.js
       - .github/workflows/water-material-regression.yml
   pull_request:
     paths:
@@ -24,11 +26,13 @@ on:
       - src/engine/platform/**
       - scripts/test_*gradient*.mjs
       - scripts/test_water_material_work.mjs
+      - scripts/test_webgpu_timestamp_compat.mjs
       - tools/test_periodic_gradient_lut.py
       - tools/test_water_material_work.py
       - voxy.cfg
       - ridgebreak.cfg
       - web/index.html
+      - web/loader.js
       - .github/workflows/water-material-regression.yml
   workflow_dispatch:
 
@@ -51,6 +55,8 @@ jobs:
           node-version: '22'
       - name: CPU and resource-contract regressions
         run: python3 tools/test_periodic_gradient_lut.py && python3 tools/test_water_material_work.py
+      - name: WASM timestamp bridge regressions
+        run: node --test scripts/test_webgpu_timestamp_compat.mjs
       - name: GPU gradient differential tests
         run: node scripts/test_periodic_gradient_lut.mjs
       - name: Combined water and terrain against original shaders
