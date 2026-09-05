@@ -72,7 +72,7 @@ try {
         }
         assert(sample?.telemetry?.frame?.count>=4,`${experience} did not render four frames: ${logs}`);
         assert.equal(sample.telemetry.physics.backend,'webgpu_soft');
-        assert.equal(sample.moto?.active,experience==='ridgebreak','experience activation mismatch');
+        assert.equal(Boolean(sample.moto?.active),experience==='ridgebreak','experience activation mismatch');
         report.scenarios.push({experience,...sample});
         socket.close();socket=null;
         await fetch(`http://127.0.0.1:${port}/json/close/${target.id}`);
