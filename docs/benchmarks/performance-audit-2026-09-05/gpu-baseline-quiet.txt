@@ -1,0 +1,26 @@
+gpu_ballistic bodies=100000 measured_frames=300 pairs=0 contacts=0 manifolds=0 retired_p50_ms=14.181 retired_p95_ms=15.734 retired_p99_ms=16.423 throughput_fps=69.780 persistent_mib=24.125 scratch_mib=185.676 timestamp_period_ns=10.019
+cpu_stage name=update p50_ms=0.004 p95_ms=0.008 p99_ms=0.009
+cpu_stage name=physics_encode p50_ms=0.836 p95_ms=1.220 p99_ms=1.357
+cpu_stage name=render_encode p50_ms=0.075 p95_ms=0.123 p99_ms=0.140
+cpu_stage name=command_finish p50_ms=0.001 p95_ms=0.001 p99_ms=0.002
+cpu_stage name=queue_submit p50_ms=0.320 p95_ms=0.489 p99_ms=0.562
+cpu_stage name=gpu_wait p50_ms=12.887 p95_ms=14.227 p99_ms=14.844
+gpu_stage name=culling_render p50_ms=4.365 p95_ms=4.512 p99_ms=5.057
+gpu_stage name=commands_active_compaction p50_ms=0.065 p95_ms=0.094 p99_ms=0.158
+gpu_stage name=ccd p50_ms=0.009 p95_ms=0.020 p99_ms=0.028
+gpu_stage name=forces_water p50_ms=0.303 p95_ms=0.349 p99_ms=0.374
+gpu_stage name=broad_index_build p50_ms=0.425 p95_ms=0.784 p99_ms=0.805
+gpu_stage name=broad_index_sort_ranges p50_ms=3.105 p95_ms=3.474 p99_ms=3.743
+gpu_stage name=broad_pair_count p50_ms=0.855 p95_ms=0.942 p99_ms=0.995
+gpu_stage name=broad_pair_scatter p50_ms=0.028 p95_ms=0.081 p99_ms=0.113
+gpu_stage name=broad_pair_sort_unique p50_ms=0.039 p95_ms=0.093 p99_ms=0.119
+gpu_stage name=broad_lifecycle p50_ms=0.080 p95_ms=0.181 p99_ms=0.219
+gpu_stage name=narrow_phase_bucketing p50_ms=0.015 p95_ms=0.079 p99_ms=0.080
+gpu_stage name=narrow_phase_collision p50_ms=0.050 p95_ms=0.124 p99_ms=0.165
+gpu_stage name=dynamic_solver_coloring p50_ms=0.077 p95_ms=0.129 p99_ms=0.150
+gpu_stage name=dynamic_solver_graph p50_ms=0.060 p95_ms=0.082 p99_ms=0.111
+gpu_stage name=dynamic_solver_solve p50_ms=1.683 p95_ms=1.816 p99_ms=1.928
+gpu_stage name=static_contacts p50_ms=0.006 p95_ms=0.039 p99_ms=0.039
+gpu_stage name=islands_sleeping p50_ms=1.193 p95_ms=1.298 p99_ms=1.405
+gpu_stage name=tick_finalize p50_ms=0.012 p95_ms=0.037 p99_ms=0.055
+	Maximum resident set size (kbytes): 141088

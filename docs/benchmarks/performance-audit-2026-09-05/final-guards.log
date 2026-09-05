@@ -1,0 +1,7 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+islands=256 bodies_per_island=128 layout=sparse pair_capacity=65536 iterations=500 pairs=509 hash=143a92d6ee86eb58 p50_ms=0.203879 p95_ms=0.243392 p99_ms=0.453904 queries_per_second=4649.21 max_rss_kib=8356 max_query_allocations=2
+islands=4096 bodies_per_island=1 layout=dense pair_capacity=1 iterations=1000 pairs=1 hash=7717980363c8e066 p50_ms=4e-05 p95_ms=4.1e-05 p99_ms=4.1e-05 queries_per_second=2.61063e+07 max_rss_kib=7012 max_query_allocations=1

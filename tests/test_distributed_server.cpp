@@ -330,6 +330,99 @@ TEST(WorldCoordinator, DoesNotSplitComponentAroundActiveMigration) {
     EXPECT_EQ(coordinator.migrations().front().islandId, 2u);
 }
 
+// Keep the pre-optimization enumeration as an independent differential oracle.
+std::vector<IslandPair> referenceBoundaryPairs(
+    const WorldCoordinator& coordinator,
+    std::span<const SweptBoundaryProxy> proxies,
+    uint64_t tick, size_t capacity) {
+    const auto eligible = [&](const SweptBoundaryProxy& value) {
+        const auto descriptor = coordinator.island(value.islandId);
+        const auto owner = coordinator.worker(value.workerId);
+        const uint64_t end = value.startTick
+                > std::numeric_limits<uint64_t>::max() - value.horizonTicks
+            ? std::numeric_limits<uint64_t>::max()
+            : value.startTick + value.horizonTicks;
+        return descriptor && owner && owner->online
+            && descriptor->workerId == value.workerId
+            && descriptor->authorityEpoch == value.authorityEpoch
+            && value.startTick >= descriptor->authorityStartTick
+            && tick >= value.startTick && tick <= end;
+    };
+    std::vector<IslandPair> result;
+    for (size_t first = 0; first < proxies.size(); ++first) {
+        const auto& lhs = proxies[first];
+        if (!eligible(lhs)) continue;
+        for (size_t second = first + 1; second < proxies.size(); ++second) {
+            const auto& rhs = proxies[second];
+            if (!eligible(rhs) || lhs.workerId == rhs.workerId) continue;
+            bool overlap = true;
+            for (size_t axis = 0; axis < 3; ++axis) {
+                overlap &= lhs.maximumQ12[axis] >= rhs.minimumQ12[axis]
+                    && rhs.maximumQ12[axis] >= lhs.minimumQ12[axis];
+            }
+            if (!overlap) continue;
+            if (result.size() == capacity) return result;
+            result.push_back({lhs.islandId, rhs.islandId});
+        }
+    }
+    return result;
+}
+
+TEST(WorldCoordinator, BoundaryPairsMatchOriginalEnumerationAndTruncation) {
+    for (const uint32_t capacity : {1u, 7u, 65536u}) {
+        WorldCoordinator coordinator({.maximumCrossWorkerPairs = capacity});
+        for (uint32_t id = 1; id <= 4; ++id)
+            ASSERT_TRUE(coordinator.registerWorker({id, 1000u, 0u, true}));
+        std::vector<SweptBoundaryProxy> proxies;
+        uint32_t random = 0x12345678u;
+        // Publish backwards to exercise canonical insertion order.
+        for (uint64_t id = 64; id > 0; --id) {
+            const uint32_t workerId = static_cast<uint32_t>(id % 4) + 1;
+            ASSERT_TRUE(coordinator.registerIsland({
+                .islandId = id, .workerId = workerId, .loadUnits = 1u,
+                .checkpoint = checkpoint(id, 1u, 0u),
+            }));
+            random ^= random << 13u;
+            random ^= random >> 17u;
+            random ^= random << 5u;
+            const int64_t x = static_cast<int64_t>(random % 16u) * 10;
+            const uint64_t start = id % 5 == 0
+                ? std::numeric_limits<uint64_t>::max() - 2 : 10u;
+            auto value = proxy(id, workerId, 1u, start, x, x + 10, 5u);
+            value.minimumQ12[1] = static_cast<int64_t>(id % 3) * 100;
+            value.maximumQ12[1] = value.minimumQ12[1] + 100;
+            ASSERT_TRUE(coordinator.publishBoundaryProxy(value));
+            proxies.push_back(value);
+        }
+        std::reverse(proxies.begin(), proxies.end());
+        for (const bool online : {true, false}) {
+            ASSERT_TRUE(coordinator.registerWorker({2u, 1000u, 0u, online}));
+            for (const uint64_t tick : std::array<uint64_t, 7>{
+                     9u, 10u, 12u, 15u, 16u,
+                     std::numeric_limits<uint64_t>::max() - 1,
+                     std::numeric_limits<uint64_t>::max()}) {
+                const auto expected = referenceBoundaryPairs(
+                    coordinator, proxies, tick, capacity);
+                EXPECT_EQ(coordinator.crossWorkerPairs(tick), expected);
+                EXPECT_EQ(coordinator.crossWorkerPairs(tick), expected);
+            }
+        }
+        // Planning/committing changes authority epochs and removes migrated
+        // proxies. Stale entries in the reference list are rejected by the
+        // same metadata fence, exercising invalidation between queries.
+        ASSERT_TRUE(coordinator.registerWorker({2u, 1000u, 0u, true}));
+        const auto migrations = coordinator.planMigrations(10u);
+        for (const auto& migration : migrations) {
+            ASSERT_TRUE(coordinator.beginShadow(migration.islandId));
+            ASSERT_TRUE(coordinator.submitShadowHashes(
+                migration.islandId, migration.sourceHash, migration.sourceHash));
+        }
+        static_cast<void>(coordinator.commitMigrations(12u));
+        EXPECT_EQ(coordinator.crossWorkerPairs(12u),
+                  referenceBoundaryPairs(coordinator, proxies, 12u, capacity));
+    }
+}
+
 TEST(NativeServerGpu, BatchesWorldsInOneSubmissionWithSharedHashes) {
     constexpr uint32_t worldCount = 3;
     constexpr uint32_t bodyCapacity = 8;

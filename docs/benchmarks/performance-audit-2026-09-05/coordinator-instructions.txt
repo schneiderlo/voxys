@@ -1,0 +1,49 @@
+--------------------------------------------------------------------------------
+Profile data file '/tmp/voxys-perf-audit/coordinator.callgrind' (creator: callgrind-3.26.0)
+--------------------------------------------------------------------------------
+I1 cache: 
+D1 cache: 
+LL cache: 
+Timerange: Basic block 0 - 109886688
+Trigger: Program termination
+Profiled target:  /tmp/voxys-perf-audit/coordinator-baseline 256 128 5 (PID 46890, part 1)
+Events recorded:  Ir
+Events shown:     Ir
+Event sort order: Ir
+Thresholds:       99
+Include dirs:     
+User annotated:   
+Auto-annotation:  off
+
+--------------------------------------------------------------------------------
+Ir                   
+--------------------------------------------------------------------------------
+746,545,588 (100.0%)  PROGRAM TOTALS
+
+--------------------------------------------------------------------------------
+Ir                    file:function
+--------------------------------------------------------------------------------
+419,319,392 (56.17%)  ???:__memcpy_avx_unaligned_erms [/nix/store/34dkjp1wxxh6djsvxk8nhvzp0izasds0-glibc-2.42-67/lib/libc.so.6]
+ 60,030,000 ( 8.04%)  ???:_int_malloc [/nix/store/34dkjp1wxxh6djsvxk8nhvzp0izasds0-glibc-2.42-67/lib/libc.so.6]
+ 32,388,576 ( 4.34%)  /nix/store/3wkpp7mjlh4qxij92iz99r43aifzgajd-gcc-15.2.0/include/c++/15.2.0/bits/stl_algobase.h:voxy::server::WorldCoordinator::island(unsigned long) const
+ 26,843,952 ( 3.60%)  ???:_int_free_merge_chunk [/nix/store/34dkjp1wxxh6djsvxk8nhvzp0izasds0-glibc-2.42-67/lib/libc.so.6]
+ 20,817,568 ( 2.79%)  src/server/world_coordinator.cpp:voxy::server::WorldCoordinator::crossWorkerPairs(unsigned long) const [/tmp/voxys-perf-audit/coordinator-baseline]
+ 20,490,144 ( 2.74%)  /nix/store/3wkpp7mjlh4qxij92iz99r43aifzgajd-gcc-15.2.0/include/c++/15.2.0/bits/stl_iterator.h:voxy::server::WorldCoordinator::island(unsigned long) const
+ 19,475,024 ( 2.61%)  ???:_int_free_chunk [/nix/store/34dkjp1wxxh6djsvxk8nhvzp0izasds0-glibc-2.42-67/lib/libc.so.6]
+ 17,965,232 ( 2.41%)  ???:_int_free_create_chunk [/nix/store/34dkjp1wxxh6djsvxk8nhvzp0izasds0-glibc-2.42-67/lib/libc.so.6]
+ 15,263,744 ( 2.04%)  /nix/store/3wkpp7mjlh4qxij92iz99r43aifzgajd-gcc-15.2.0/include/c++/15.2.0/bits/stl_vector.h:voxy::server::WorldCoordinator::island(unsigned long) const
+ 14,211,936 ( 1.90%)  ???:__libc_malloc2 [/nix/store/34dkjp1wxxh6djsvxk8nhvzp0izasds0-glibc-2.42-67/lib/libc.so.6]
+ 13,158,400 ( 1.76%)  src/server/world_coordinator.cpp:voxy::server::WorldCoordinator::island(unsigned long) const [/tmp/voxys-perf-audit/coordinator-baseline]
+ 11,186,176 ( 1.50%)  /nix/store/3wkpp7mjlh4qxij92iz99r43aifzgajd-gcc-15.2.0/include/c++/15.2.0/bits/stl_algobase.h:voxy::server::WorldCoordinator::worker(unsigned int) const
+ 10,527,040 ( 1.41%)  ???:free [/nix/store/34dkjp1wxxh6djsvxk8nhvzp0izasds0-glibc-2.42-67/lib/libc.so.6]
+  9,555,808 ( 1.28%)  /nix/store/3wkpp7mjlh4qxij92iz99r43aifzgajd-gcc-15.2.0/include/c++/15.2.0/bits/stl_vector.h:voxy::server::WorldCoordinator::crossWorkerPairs(unsigned long) const
+  7,891,968 ( 1.06%)  /nix/store/3wkpp7mjlh4qxij92iz99r43aifzgajd-gcc-15.2.0/include/c++/15.2.0/bits/stl_iterator.h:voxy::server::WorldCoordinator::worker(unsigned int) const [/tmp/voxys-perf-audit/coordinator-baseline]
+  7,368,704 ( 0.99%)  src/server/world_coordinator.cpp:voxy::server::WorldCoordinator::worker(unsigned int) const
+  6,842,368 ( 0.92%)  /nix/store/3wkpp7mjlh4qxij92iz99r43aifzgajd-gcc-15.2.0/include/c++/15.2.0/bits/stl_uninitialized.h:voxy::server::WorldCoordinator::island(unsigned long) const
+  6,316,416 ( 0.85%)  ???:malloc [/nix/store/34dkjp1wxxh6djsvxk8nhvzp0izasds0-glibc-2.42-67/lib/libc.so.6]
+  6,316,416 ( 0.85%)  ???:operator new(unsigned long) [/nix/store/n35z8vvlr7c5k1406n5bwd0f8h2hgj1j-gcc-15.2.0-lib/lib/libstdc++.so.6.0.34]
+  5,263,360 ( 0.71%)  src/network/replication.hpp:voxy::server::WorldCoordinator::island(unsigned long) const
+  3,684,352 ( 0.49%)  src/server/world_coordinator.hpp:voxy::server::WorldCoordinator::island(unsigned long) const
+  2,631,680 ( 0.35%)  /nix/store/3wkpp7mjlh4qxij92iz99r43aifzgajd-gcc-15.2.0/include/c++/15.2.0/bits/new_allocator.h:voxy::server::WorldCoordinator::island(unsigned long) const
+  1,579,008 ( 0.21%)  /nix/store/3wkpp7mjlh4qxij92iz99r43aifzgajd-gcc-15.2.0/include/c++/15.2.0/optional:voxy::server::WorldCoordinator::worker(unsigned int) const
+

@@ -190,11 +190,22 @@ std::vector<IslandPair> WorldCoordinator::crossWorkerPairs(
     std::vector<IslandPair> pairs;
     pairs.reserve(std::min<size_t>(config_.maximumCrossWorkerPairs,
                                    proxies_.size()));
+    // Pair discovery reads only authority metadata. Borrow the descriptor;
+    // island() returns an owning checkpoint copy for its public callers.
+    const auto findDescriptor = [&](uint64_t islandId) -> const IslandDescriptor* {
+        const auto iterator = std::lower_bound(
+            islands_.begin(), islands_.end(), islandId,
+            [](const IslandDescriptor& value, uint64_t id) {
+                return value.islandId < id;
+            });
+        return iterator != islands_.end() && iterator->islandId == islandId
+            ? &*iterator : nullptr;
+    };
     for (size_t first = 0; first < proxies_.size(); ++first) {
         const auto& lhs = proxies_[first];
-        const auto lhsIsland = island(lhs.islandId);
+        const auto lhsIsland = findDescriptor(lhs.islandId);
         const auto lhsWorker = worker(lhs.workerId);
-        if (!lhsIsland.has_value() || !lhsWorker.has_value()
+        if (lhsIsland == nullptr || !lhsWorker.has_value()
             || !lhsWorker->online
             || lhsIsland->workerId != lhs.workerId
             || lhsIsland->authorityEpoch != lhs.authorityEpoch
@@ -202,9 +213,9 @@ std::vector<IslandPair> WorldCoordinator::crossWorkerPairs(
             || tick < lhs.startTick || tick > endTick(lhs)) continue;
         for (size_t second = first + 1u; second < proxies_.size(); ++second) {
             const auto& rhs = proxies_[second];
-            const auto rhsIsland = island(rhs.islandId);
+            const auto rhsIsland = findDescriptor(rhs.islandId);
             const auto rhsWorker = worker(rhs.workerId);
-            if (!rhsIsland.has_value() || !rhsWorker.has_value()
+            if (rhsIsland == nullptr || !rhsWorker.has_value()
                 || !rhsWorker->online
                 || rhsIsland->workerId != rhs.workerId
                 || rhsIsland->authorityEpoch != rhs.authorityEpoch

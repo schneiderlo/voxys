@@ -1,0 +1,19 @@
+Decision before production edits (baseline db72d9c4e4a6e734cdf2da78b6eb5d80f5d5f080):
+Impact 1..5 is scoped to the named workload; Confidence 0..1; Effort 1..5.
+1. Coordinator: precompute eligible proxy references; remove repeated checkpoint copies.
+   Impact 5, Confidence .99, Effort 2; score 2.475.
+   Evidence: CPU copy 75.85%; island() inclusive 90.42%; 32,896 checkpoint allocations/query.
+   Applicable to distributed coordinator only, not the current single-world 2v2 server.
+2. GPU radix scatter barrier consolidation: pending current GPU profile, not approved for implementation.
+3. SnapshotHistory applyDelta sorted merge: source-only scaling hypothesis; not approved for implementation.
+4. InterestGrid query range bounds: source-only scaling hypothesis; not approved for implementation.
+5. Native snapshot packet buffer reuse: source-only hypothesis; small bounded payload and four peers; not approved for implementation.
+Oracle for selected change: exact ordered IslandPair vector, first-K truncation, inclusive overlap, worker/epoch/start/horizon eligibility (including saturating endTick), no state or telemetry mutation.
+Proof: eligibility predicates depend only on the immutable query inputs. Stable filtering retains the same index order. Nested enumeration of that subsequence visits precisely the same eligible (i,j) pairs in the same order; unchanged overlap/same-worker checks and capacity check retain the identical prefix. Borrowed pointers stay valid during the const query. Integer predicates are unchanged; checkpoints need not be copied to read metadata.
+Scope excludes allocator failure and unsupported concurrent mutation, as did the original API.
+Refinement after adversarial measurement:
+Precomputing all eligibility regresses the 4096-proxy, dense, pair-capacity=1 query (p50 0.000060 -> 0.091831 ms).
+Reject that design. Select ONLY borrowed metadata lookup in the original loops.
+Final score: impact 5, confidence .99, effort 1 = 4.95, scoped to coordinator workload.
+Final proof: lower_bound, equality check, and all metadata predicates are identical to island(); dereferencing its original const descriptor reads the same fields as dereferencing its copy. No mutation occurs during the const call. Original loop order, predicate evaluation, and early return are retained. Public owning island() API remains unchanged. Checkpoint contents are never consulted here.
+The removed copies can throw bad_alloc; equivalence concerns successfully executing inputs, not deliberate allocator failures.
