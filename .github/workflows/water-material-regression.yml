@@ -1,30 +1,46 @@
-name: Water and material regression
+name: Integrated water and material regression
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - shaders/**
+      - src/render/**
+      - src/app/**
+      - src/engine/platform/**
+      - scripts/test_*gradient*.mjs
+      - scripts/test_water_material_work.mjs
+      - tools/test_periodic_gradient_lut.py
+      - tools/test_water_material_work.py
+      - voxy.cfg
+      - ridgebreak.cfg
+      - web/index.html
+      - .github/workflows/water-material-regression.yml
   pull_request:
     paths:
-      - shaders/ray_blit.wgsl
-      - shaders/water_clipmap.wgsl
-      - src/render/blit_path.cpp
-      - src/engine/platform/wasm/entry.cpp
-      - src/app/debug_overlay.cpp
-      - web/index.html
+      - shaders/**
+      - src/render/**
+      - src/app/**
+      - src/engine/platform/**
+      - scripts/test_*gradient*.mjs
       - scripts/test_water_material_work.mjs
+      - tools/test_periodic_gradient_lut.py
       - tools/test_water_material_work.py
+      - voxy.cfg
+      - ridgebreak.cfg
+      - web/index.html
       - .github/workflows/water-material-regression.yml
   workflow_dispatch:
 
 permissions:
   contents: read
-
 concurrency:
-  group: water-material-${{ github.event.pull_request.number || github.ref }}
+  group: integrated-shading-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
-
 jobs:
   shader-regressions:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
         with:
@@ -34,15 +50,18 @@ jobs:
         with:
           node-version: '22'
       - name: CPU and resource-contract regressions
-        run: python3 tools/test_water_material_work.py
-      - name: WebGPU differential and timestamp-path regressions
-        run: node scripts/test_water_material_work.mjs
+        run: python3 tools/test_periodic_gradient_lut.py && python3 tools/test_water_material_work.py
+      - name: GPU gradient differential tests
+        run: node scripts/test_periodic_gradient_lut.mjs
+      - name: Combined water and terrain against original shaders
+        run: VOXY_WORK_REPORT=combined-original-report.json node scripts/test_water_material_work.mjs
+      - name: Next shading round including optional course
+        run: VOXY_REFERENCE_REF=b0cf3a4179fafb2a235b8dbd26b06846ebb9ef45 VOXY_WORK_REPORT=shading-round-report.json node scripts/test_water_material_work.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: water-material-work-report
-          path: water-material-work-report.json
+          name: integrated-shading-reports
+          path: '*-report.json'
           if-no-files-found: ignore
-
-# Hosted SwiftShader executes the shader correctness tests. Its synthetic
-# timings are diagnostics, never hardware FPS acceptance or deployment gates.
+# Software GPU timings are retained for diagnosis, never represented as
+# Intel hardware or whole-application FPS acceptance.
