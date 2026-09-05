@@ -702,7 +702,22 @@ InterestQueryResult InterestGrid::query(
     InterestQueryResult result;
     const uint32_t radius = std::min(radiusCells, 64u);
     result.overflow = overflowed_ || radius != radiusCells;
-    for (const auto& entry : entries_) {
+    // Entries are lexicographically sorted by cell, so x is monotone.
+    // Keep the original traversal order and capacity policy inside the slab.
+    const int64_t minimumX = int64_t{center.coordinate[0]} - radius;
+    const int64_t maximumX = int64_t{center.coordinate[0]} + radius;
+    const auto first = std::lower_bound(
+        entries_.begin(), entries_.end(), minimumX,
+        [](const Entry& entry, int64_t x) {
+            return entry.cell.coordinate[0] < x;
+        });
+    const auto last = std::upper_bound(
+        first, entries_.end(), maximumX,
+        [](int64_t x, const Entry& entry) {
+            return x < entry.cell.coordinate[0];
+        });
+    for (auto iterator = first; iterator != last; ++iterator) {
+        const auto& entry = *iterator;
         bool inside = true;
         for (uint32_t axis = 0; axis < 3u; ++axis) {
             const int64_t delta = int64_t{entry.cell.coordinate[axis]}

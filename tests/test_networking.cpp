@@ -12,8 +12,10 @@
 #include <deque>
 #include <limits>
 #include <memory>
+#include <random>
 #include <span>
 #include <string>
+#include <tuple>
 #include <utility>
 #include <vector>
 
@@ -34,6 +36,89 @@ LockstepBody body(uint32_t id, int32_t xQ12, int32_t yQ12) {
     result.positionInvMass = {
         xQ12, yQ12, 0, physics::deterministic::kLockstepVelocityOne};
     return result;
+}
+
+TEST(InterestGridTest, IndexedQueriesMatchFullScanAtLimitsAndAfterRebuild) {
+    std::mt19937 random(0x51a7'1234u);
+    std::vector<LockstepBody> bodies(1024u);
+    for (uint32_t index = 0u; index < bodies.size(); ++index) {
+        bodies[index] = body(index % 511u,
+            (static_cast<int32_t>(random() % 257u) - 128) * 4096,
+            (static_cast<int32_t>(random() % 17u) - 8) * 4096);
+        bodies[index].positionInvMass[2] =
+            (static_cast<int32_t>(random() % 17u) - 8) * 4096;
+        if (index % 11u == 0u) bodies[index].identity[2] = 0u;
+    }
+    bodies[1].sectorRadius[0] = std::numeric_limits<int32_t>::min();
+    bodies[2].sectorRadius[0] = std::numeric_limits<int32_t>::max();
+    const std::array<uint32_t, 6> radii{
+        0u, 1u, 2u, 64u, 65u, std::numeric_limits<uint32_t>::max()};
+    for (int32_t cellSize : {1, 4096, 32 * 4096}) {
+        for (uint32_t entryLimit : {1u, 17u, 1024u}) {
+            for (uint32_t queryLimit : {1u, 17u, 128u}) {
+                SCOPED_TRACE(::testing::Message()
+                    << "cell=" << cellSize << " entries=" << entryLimit
+                    << " query=" << queryLimit);
+                InterestGrid grid({cellSize, entryLimit, queryLimit});
+                struct Entry { InterestCell cell; uint32_t id; };
+                // Rebuild through a populated, empty, and populated state.
+                for (bool populated : {true, false, true}) {
+                    const std::span<const LockstepBody> source = populated
+                        ? std::span<const LockstepBody>(bodies)
+                        : std::span<const LockstepBody>();
+                    std::vector<Entry> entries;
+                    size_t alive = 0u;
+                    for (const auto& value : source) {
+                        if ((value.identity[2] & LockstepBodyAlive) == 0u)
+                            continue;
+                        ++alive;
+                        if (entries.size() < entryLimit)
+                            entries.push_back({grid.cellFor(value), value.identity[0]});
+                    }
+                    std::stable_sort(entries.begin(), entries.end(),
+                        [](const Entry& lhs, const Entry& rhs) {
+                            return std::tie(lhs.cell.coordinate, lhs.id)
+                                 < std::tie(rhs.cell.coordinate, rhs.id);
+                        });
+                    EXPECT_EQ(grid.rebuild(source), alive <= entryLimit);
+                    std::vector<InterestCell> centers{
+                        {{0, 0, 0}}, {{-1, -1, -1}}, {{999, 999, 999}},
+                        {{std::numeric_limits<int32_t>::min(), 0, 0}},
+                        {{std::numeric_limits<int32_t>::max(), 0, 0}},
+                    };
+                    for (size_t index = 1u; index < 64u; ++index)
+                        centers.push_back(grid.cellFor(bodies[index]));
+                    for (const auto center : centers) {
+                        for (const uint32_t requestedRadius : radii) {
+                            const uint32_t radius = std::min(requestedRadius, 64u);
+                            InterestQueryResult expected;
+                            expected.overflow = alive > entryLimit
+                                || radius != requestedRadius;
+                            // Independent reference: inspect every retained
+                            // entry, including those outside the x interval.
+                            for (const auto& entry : entries) {
+                                bool inside = true;
+                                for (uint32_t axis = 0u; axis < 3u; ++axis) {
+                                    const int64_t delta = int64_t{entry.cell.coordinate[axis]}
+                                        - center.coordinate[axis];
+                                    inside &= delta >= -int64_t{radius}
+                                        && delta <= int64_t{radius};
+                                }
+                                if (!inside) continue;
+                                if (expected.bodyIds.size() == queryLimit)
+                                    expected.overflow = true;
+                                else expected.bodyIds.push_back(entry.id);
+                            }
+                            std::sort(expected.bodyIds.begin(), expected.bodyIds.end());
+                            const auto actual = grid.query(center, requestedRadius);
+                            EXPECT_EQ(actual.bodyIds, expected.bodyIds);
+                            EXPECT_EQ(actual.overflow, expected.overflow);
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 CanonicalReplayCommand impulse(
