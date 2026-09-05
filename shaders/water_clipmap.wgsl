@@ -388,6 +388,13 @@ fn coastalFoamStrength(
     crestCompression : f32,
     distanceToCamera : f32,
     worldPerPixel : f32) -> f32 {
+    let crestEnergy = max(
+        smoothstep(0.045, 0.20, crestCompression),
+        smoothstep(0.018, 0.16, 1.0 - normal.y));
+    // Above this depth all shoreline terms are exactly zero (including the
+    // wreck-contact term in the legacy path). Preserve compressed open foam.
+    if (waterDepth >= 0.92 && crestEnergy == 0.0) { return 0.0; }
+
     let foamLod = log2(max(
         worldPerPixel * 1024.0 / oceanFoamSize(), 1.0));
     let drift = vec2<f32>(
@@ -396,13 +403,17 @@ fn coastalFoamStrength(
     let foamUv = position.xz / oceanFoamSize() + drift;
     let pattern = textureSampleLevel(
         foamTexture, foamSampler, foamUv, foamLod).r;
+    if (waterDepth >= 0.92) {
+        let threshold = 1.0 - oceanFoamCoverage();
+        let openCoverage = pattern *
+            smoothstep(threshold, threshold + 0.15, pattern);
+        return clamp(openCoverage * oceanFoamOpacity() * crestEnergy * 0.55,
+                     0.0, 1.0);
+    }
     let detail = textureSampleLevel(
         foamTexture, foamSampler,
         foamUv * 2.37 + vec2<f32>(0.31, 0.67) - drift * 0.7,
         foamLod + 0.8).r;
-    let crestEnergy = max(
-        smoothstep(0.045, 0.20, crestCompression),
-        smoothstep(0.018, 0.16, 1.0 - normal.y));
     let depthWindow =
         smoothstep(0.07, 0.24, waterDepth) *
         (1.0 - smoothstep(0.48, 0.92, waterDepth));
@@ -616,10 +627,7 @@ fn shadeWaterFragment(input : VertexOutput) -> FragmentOutput {
                           insideTerrain);
     let bedTravel = bedDepth / max(-refractedRay.y, 0.12);
     let thickness = clamp(bedTravel, 0.0, 500.0);
-    var refracted = proceduralSeabed(
-        (input.worldPosition + refractedRay * bedTravel).xz,
-        bedTravel, worldPerPixel) *
-        (0.34 + 0.66 * max(light.y, 0.0)) * shadow;
+    var refracted : vec3<f32>;
     if (hasOpaqueRefraction) {
         // The cached opaque target already contains the exact authored
         // terrain material at this refracted screen position. Prefer it over
@@ -627,6 +635,12 @@ fn shadeWaterFragment(input : VertexOutput) -> FragmentOutput {
         // plate seams read as cracks when projected through shallow water.
         refracted = textureSampleLevel(
             sceneColorTexture, sceneSampler, refractionUv, 0.0).rgb;
+    } else {
+        // The fallback was previously evaluated and then overwritten.
+        refracted = proceduralSeabed(
+            (input.worldPosition + refractedRay * bedTravel).xz,
+            bedTravel, worldPerPixel) *
+            (0.34 + 0.66 * max(light.y, 0.0)) * shadow;
     }
 
     let transmittance = exp(-oceanAbsorption() * thickness);
@@ -657,33 +671,29 @@ fn shadeWaterFragment(input : VertexOutput) -> FragmentOutput {
             refract(-view, undersideNormal, oceanIor());
         let totalInternalReflection =
             dot(transmissionDirection, transmissionDirection) < 0.001;
+        var underside : vec3<f32>;
         if (totalInternalReflection) {
-            transmissionDirection = vec3<f32>(0.0, 1.0, 0.0);
+            underside =
+                oceanScatterColor() * 0.82 +
+                proceduralSeabed(
+                    input.worldPosition.xz + reflected.xz * 18.0,
+                    max(distanceToCamera, 1.0), worldPerPixel) * 0.18;
         } else {
-            transmissionDirection = normalize(transmissionDirection);
+            let transmittedEnvironment = sampleEnvironment(
+                normalize(transmissionDirection), reflectionRoughness);
+            var transmitted = select(
+                transmittedEnvironment,
+                mix(transmittedEnvironment, refracted, 0.75),
+                hasOpaqueRefraction);
+            let interfacePath = distanceToCamera * 1.55 + 8.0;
+            let interfaceTransmittance =
+                exp(-oceanAbsorption() * interfacePath);
+            transmitted =
+                transmitted * interfaceTransmittance +
+                oceanScatterColor() *
+                (vec3<f32>(1.0) - interfaceTransmittance);
+            underside = mix(transmitted, environment * 0.72, fresnel);
         }
-        let transmittedEnvironment = sampleEnvironment(
-            transmissionDirection, reflectionRoughness);
-        var transmitted = select(
-            transmittedEnvironment,
-            mix(transmittedEnvironment, refracted, 0.75),
-            hasOpaqueRefraction);
-        let interfacePath = distanceToCamera * 1.55 + 8.0;
-        let interfaceTransmittance =
-            exp(-oceanAbsorption() * interfacePath);
-        transmitted =
-            transmitted * interfaceTransmittance +
-            oceanScatterColor() *
-            (vec3<f32>(1.0) - interfaceTransmittance);
-        let internalReflection =
-            oceanScatterColor() * 0.82 +
-            proceduralSeabed(
-                input.worldPosition.xz + reflected.xz * 18.0,
-                max(distanceToCamera, 1.0), worldPerPixel) * 0.18;
-        var underside = select(
-            mix(transmitted, environment * 0.72, fresnel),
-            internalReflection,
-            totalInternalReflection);
         underside += camera.lightingColor.rgb * sunSpecular;
         underside = mix(underside, vec3<f32>(0.94, 0.98, 1.0),
                         foamStrength * 0.22);

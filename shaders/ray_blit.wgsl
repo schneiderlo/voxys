@@ -1088,11 +1088,13 @@ fn terrainMaterialWeights(
     let coveZone = 1.0 - smoothstep(
         56.0, 80.0,
         length(vec2<f32>(coveInland, coveAlongshore)));
-    elevation += coveZone * (
-        0.55 * sin(coveAlongshore * 0.143 +
-                   sin(coveInland * 0.071) * 1.3) +
-        0.24 * sin(coveAlongshore * 0.337 -
-                   sin(coveInland * 0.113)));
+    if (coveZone > 0.0) {
+        elevation += coveZone * (
+            0.55 * sin(coveAlongshore * 0.143 +
+                       sin(coveInland * 0.071) * 1.3) +
+            0.24 * sin(coveAlongshore * 0.337 -
+                       sin(coveInland * 0.113)));
+    }
     var authoredRock = 0.0;
     if (length(vec2<f32>(coveInland, coveAlongshore)) < 78.0) {
         // The four explicit subtidal boulders have shallow tops, so slope alone
@@ -1170,36 +1172,41 @@ fn terrainMaterialWeights(
     let rock = clamp(
         max(max(slopeRock, highRock), authoredRock), 0.0, 1.0);
 
+    // A fully rock-covered pixel has no sand/soil/grass contribution.
+    if (rock == 1.0) { return vec4<f32>(0.0, 0.0, 0.0, 1.0); }
+
     let beachElevation = 1.0 - smoothstep(2.8, 5.2, elevation);
     let beachFlatness = smoothstep(0.48, 0.82, up);
     var sand = beachElevation * beachFlatness * (1.0 - rock);
-    let beachMottle =
-        0.5 + 0.5 * periodicGradientNoise(
-            vec2<f32>(coveInland, coveAlongshore) * 0.091 +
-            vec2<f32>(4.3, 12.7));
-    let mixedUpperBeach =
-        coveZone *
-        smoothstep(0.65, 2.2, elevation) *
-        (1.0 - smoothstep(4.2, 5.6, elevation));
-    sand *= mix(
-        1.0,
-        mix(0.54, 1.0, smoothstep(0.24, 0.76, beachMottle)),
-        mixedUpperBeach);
-    let transitionSignal =
-        0.5 + 0.5 *
-        sin(coveAlongshore * 0.19 +
-            sin(coveInland * 0.071) * 1.7) *
-        sin(coveInland * 0.23 -
-            sin(coveAlongshore * 0.053) * 1.4);
-    let sparseBackshore =
-        coveZone *
-        smoothstep(4.5, 7.5, elevation) *
-        (1.0 - smoothstep(18.0, 27.0, elevation)) *
-        smoothstep(0.20, 0.86, transitionSignal);
-    sand = clamp(
-        sand + sparseBackshore * (1.0 - rock) * 0.32,
-        0.0, 1.0 - rock);
-
+    var transitionSignal = 0.0;
+    if (coveZone > 0.0) {
+        let beachMottle =
+            0.5 + 0.5 * periodicGradientNoise(
+                vec2<f32>(coveInland, coveAlongshore) * 0.091 +
+                vec2<f32>(4.3, 12.7));
+        let mixedUpperBeach =
+            coveZone *
+            smoothstep(0.65, 2.2, elevation) *
+            (1.0 - smoothstep(4.2, 5.6, elevation));
+        sand *= mix(
+            1.0,
+            mix(0.54, 1.0, smoothstep(0.24, 0.76, beachMottle)),
+            mixedUpperBeach);
+        transitionSignal =
+            0.5 + 0.5 *
+            sin(coveAlongshore * 0.19 +
+                sin(coveInland * 0.071) * 1.7) *
+            sin(coveInland * 0.23 -
+                sin(coveAlongshore * 0.053) * 1.4);
+        let sparseBackshore =
+            coveZone *
+            smoothstep(4.5, 7.5, elevation) *
+            (1.0 - smoothstep(18.0, 27.0, elevation)) *
+            smoothstep(0.20, 0.86, transitionSignal);
+        sand = clamp(
+            sand + sparseBackshore * (1.0 - rock) * 0.32,
+            0.0, 1.0 - rock);
+    }
     let upland = max(1.0 - rock - sand, 0.0);
     let grassVariation = 0.5 + 0.5 *
         sin(worldPosition.x * 0.017 +
@@ -1210,25 +1217,28 @@ fn terrainMaterialWeights(
         smoothstep(0.78, 0.91, up) *
         smoothstep(8.0, 14.0, elevation) *
         (1.0 - smoothstep(250.0, 390.0, elevation));
-    let washCenter =
-        7.0 +
-        4.1 * sin((coveInland - 12.0) * 0.086) +
-        1.2 * sin((coveInland + 9.0) * 0.217);
-    let washLength =
-        smoothstep(9.0, 18.0, coveInland) *
-        (1.0 - smoothstep(57.0, 68.0, coveInland));
-    let washCore =
-        exp(-pow(
-            (coveAlongshore - washCenter) /
-            (4.8 + 0.75 * sin(coveInland * 0.19)),
-            2.0)) *
-        washLength * coveZone;
-    let erosionPatch = max(
-        coveZone *
-        smoothstep(7.0, 11.0, elevation) *
-        (1.0 - smoothstep(34.0, 48.0, elevation)) *
-        smoothstep(0.34, 0.88, 1.0 - transitionSignal),
-        washCore * 0.55);
+    var erosionPatch = 0.0;
+    if (coveZone > 0.0) {
+        let washCenter =
+            7.0 +
+            4.1 * sin((coveInland - 12.0) * 0.086) +
+            1.2 * sin((coveInland + 9.0) * 0.217);
+        let washLength =
+            smoothstep(9.0, 18.0, coveInland) *
+            (1.0 - smoothstep(57.0, 68.0, coveInland));
+        let washCore =
+            exp(-pow(
+                (coveAlongshore - washCenter) /
+                (4.8 + 0.75 * sin(coveInland * 0.19)),
+                2.0)) *
+            washLength * coveZone;
+        erosionPatch = max(
+            coveZone *
+            smoothstep(7.0, 11.0, elevation) *
+            (1.0 - smoothstep(34.0, 48.0, elevation)) *
+            smoothstep(0.34, 0.88, 1.0 - transitionSignal),
+            washCore * 0.55);
+    }
     let grass = upland * grassSuitability *
                 mix(0.20, 1.0, grassVariation) *
                 mix(1.0, 0.30, erosionPatch);
@@ -1357,19 +1367,28 @@ fn sampleTerrainSurface(
 
     let relativeElevation = worldPosition.y - camera.waterParams.x;
     let waterEnabled = select(0.0, 1.0, camera.waterParams.y > 0.5);
+    // Noise dot products are bounded by 2; the run-up limit is below 0.30.
+    // Away from this narrow wet transition, the original smoothstep is exact
+    // zero/one, so neither procedural field needs to be evaluated.
     // Static run-up history: the top of the wet band sits above the current
     // water plane and fades over a narrow irregular band. This remains stable,
     // unlike wetness derived from one instantaneous crest.
-    let runupBreakup = periodicGradientNoise(
-        worldPosition.xz * 0.054 + vec2<f32>(3.7, 9.1));
-    let runupDetail = periodicGradientNoise(
-        worldPosition.zx * 0.13 + vec2<f32>(12.4, 2.8));
-    let runupLimit =
-        0.10 + runupBreakup * 0.065 + runupDetail * 0.020;
-    let wetness =
-        (1.0 - smoothstep(0.015, max(runupLimit, 0.04),
-                          relativeElevation)) *
-        waterEnabled;
+    var wetness = 0.0;
+    if (waterEnabled > 0.0 && relativeElevation < 0.30) {
+        wetness = 1.0;
+        if (relativeElevation > 0.015) {
+            let runupBreakup = periodicGradientNoise(
+                worldPosition.xz * 0.054 + vec2<f32>(3.7, 9.1));
+            let runupDetail = periodicGradientNoise(
+                worldPosition.zx * 0.13 + vec2<f32>(12.4, 2.8));
+            let runupLimit =
+                0.10 + runupBreakup * 0.065 + runupDetail * 0.020;
+            wetness =
+                (1.0 - smoothstep(0.015, max(runupLimit, 0.04),
+                                  relativeElevation)) *
+                waterEnabled;
+        }
+    }
     let submerged =
         (1.0 - smoothstep(-0.8, -0.02, relativeElevation)) *
         waterEnabled;
@@ -1399,59 +1418,61 @@ fn sampleTerrainSurface(
         1.0 - smoothstep(
             50.0, 78.0,
             length(vec2<f32>(coveInland, coveAlongshore)));
-    let organicPatch =
-        0.5 + 0.5 *
-        sin(coveInland * 0.097 +
-            sin(coveAlongshore * 0.041) * 1.8) *
-        sin(coveAlongshore * 0.123 -
-            sin(coveInland * 0.063) * 1.4);
-    let backshorePatch =
-        coveMask *
-        smoothstep(5.5, 9.0, relativeElevation) *
-        (1.0 - smoothstep(31.0, 44.0, relativeElevation));
-    albedo *= mix(
-        vec3<f32>(1.0),
-        mix(
-            vec3<f32>(0.72, 0.88, 0.68),
-            vec3<f32>(1.10, 0.84, 0.66),
-            organicPatch),
-        backshorePatch * 0.12);
-    let washCenter =
-        7.0 +
-        4.1 * sin((coveInland - 12.0) * 0.086) +
-        1.2 * sin((coveInland + 9.0) * 0.217);
-    let washMask =
-        exp(-pow(
-            (coveAlongshore - washCenter) /
-            (4.8 + 0.75 * sin(coveInland * 0.19)),
-            2.0)) *
-        smoothstep(9.0, 18.0, coveInland) *
-        (1.0 - smoothstep(57.0, 68.0, coveInland)) *
-        coveMask;
-    albedo *= mix(
-        vec3<f32>(1.0),
-        vec3<f32>(0.70, 0.65, 0.55),
-        washMask * 0.20);
-    let wrackElevation =
-        1.45 +
-        0.22 * sin(
-            coveAlongshore * 0.23 +
-            sin(coveInland * 0.08));
-    let wrackBreakup =
-        smoothstep(
-            0.35, 0.82,
+    if (coveMask > 0.0) {
+        let organicPatch =
             0.5 + 0.5 *
-            sin(coveAlongshore * 0.71) *
-            sin(coveAlongshore * 0.19 + 1.3));
-    let wrack =
-        coveMask * weights.x * wrackBreakup *
-        (1.0 - smoothstep(
-            0.10, 0.34,
-            abs(relativeElevation - wrackElevation)));
-    albedo *= mix(
-        vec3<f32>(1.0),
-        vec3<f32>(0.39, 0.31, 0.22),
-        wrack * 0.16);
+            sin(coveInland * 0.097 +
+                sin(coveAlongshore * 0.041) * 1.8) *
+            sin(coveAlongshore * 0.123 -
+                sin(coveInland * 0.063) * 1.4);
+        let backshorePatch =
+            coveMask *
+            smoothstep(5.5, 9.0, relativeElevation) *
+            (1.0 - smoothstep(31.0, 44.0, relativeElevation));
+        albedo *= mix(
+            vec3<f32>(1.0),
+            mix(
+                vec3<f32>(0.72, 0.88, 0.68),
+                vec3<f32>(1.10, 0.84, 0.66),
+                organicPatch),
+            backshorePatch * 0.12);
+        let washCenter =
+            7.0 +
+            4.1 * sin((coveInland - 12.0) * 0.086) +
+            1.2 * sin((coveInland + 9.0) * 0.217);
+        let washMask =
+            exp(-pow(
+                (coveAlongshore - washCenter) /
+                (4.8 + 0.75 * sin(coveInland * 0.19)),
+                2.0)) *
+            smoothstep(9.0, 18.0, coveInland) *
+            (1.0 - smoothstep(57.0, 68.0, coveInland)) *
+            coveMask;
+        albedo *= mix(
+            vec3<f32>(1.0),
+            vec3<f32>(0.70, 0.65, 0.55),
+            washMask * 0.20);
+        let wrackElevation =
+            1.45 +
+            0.22 * sin(
+                coveAlongshore * 0.23 +
+                sin(coveInland * 0.08));
+        let wrackBreakup =
+            smoothstep(
+                0.35, 0.82,
+                0.5 + 0.5 *
+                sin(coveAlongshore * 0.71) *
+                sin(coveAlongshore * 0.19 + 1.3));
+        let wrack =
+            coveMask * weights.x * wrackBreakup *
+            (1.0 - smoothstep(
+                0.10, 0.34,
+                abs(relativeElevation - wrackElevation)));
+        albedo *= mix(
+            vec3<f32>(1.0),
+            vec3<f32>(0.39, 0.31, 0.22),
+            wrack * 0.16);
+    }
     albedo *= macroBreakup *
               coveDriftwoodContact(worldPosition.xz);
     roughness = mix(roughness, 0.18, wetResponse);
@@ -1464,13 +1485,16 @@ fn sampleTerrainSurface(
     let rippleMask =
         coveMask * weights.x *
         (1.0 - smoothstep(1.1, 3.1, relativeElevation));
-    let ripplePhase =
-        coveInland * 2.15 +
-        sin(coveAlongshore * 0.17) * 0.78;
-    let rippleSlope =
-        (cos(ripplePhase) * 0.065 +
-         cos(ripplePhase * 2.17 + 1.4) * 0.024) *
-        rippleMask;
+    var rippleSlope = 0.0;
+    if (rippleMask > 0.0) {
+        let ripplePhase =
+            coveInland * 2.15 +
+            sin(coveAlongshore * 0.17) * 0.78;
+        rippleSlope =
+            (cos(ripplePhase) * 0.065 +
+             cos(ripplePhase * 2.17 + 1.4) * 0.024) *
+            rippleMask;
+    }
     worldNormal = normalize(
         worldNormal -
         vec3<f32>(-0.2730, 0.0, 0.9620) * rippleSlope);
@@ -1480,15 +1504,17 @@ fn sampleTerrainSurface(
         coveMask * weights.x *
         smoothstep(-42.0, -31.0, relativeElevation) *
         (1.0 - smoothstep(-4.0, -2.5, relativeElevation));
-    let sedimentPattern =
-        sin(coveInland * 0.73 +
-            sin(coveAlongshore * 0.41) * 1.3) *
-        sin(coveAlongshore * 0.57 -
-            sin(coveInland * 0.29) * 1.1);
-    albedo *= mix(
-        vec3<f32>(1.0),
-        vec3<f32>(0.94 + sedimentPattern * 0.075),
-        subtidalZone * 0.48);
+    if (subtidalZone > 0.0) {
+        let sedimentPattern =
+            sin(coveInland * 0.73 +
+                sin(coveAlongshore * 0.41) * 1.3) *
+            sin(coveAlongshore * 0.57 -
+                sin(coveInland * 0.29) * 1.1);
+        albedo *= mix(
+            vec3<f32>(1.0),
+            vec3<f32>(0.94 + sedimentPattern * 0.075),
+            subtidalZone * 0.48);
+    }
     return TerrainSurface(
         max(albedo, vec3<f32>(0.0)),
         worldNormal,
@@ -1726,6 +1752,9 @@ fn underwaterTerrainCaustic(
     let distanceFade =
         1.0 - smoothstep(55.0, 145.0, pathLength);
     let receiver = smoothstep(0.22, 0.82, geometryNormal.y);
+    if (depthFade == 0.0 || distanceFade == 0.0 || receiver == 0.0) {
+        return 0.0;
+    }
     let motion = vec2<f32>(
         camera.waterMotion.x * 0.021,
         -camera.waterMotion.x * 0.016);
@@ -1781,6 +1810,13 @@ fn coastalFoamStrength(
     shoreInfluence : f32,
     distanceToCamera : f32,
     dims : vec2<u32>) -> f32 {
+    let crestEnergy = max(
+        smoothstep(0.045, 0.20, crestCompression),
+        smoothstep(0.018, 0.16, 1.0 - normal.y));
+    // Above this depth all shoreline terms are exactly zero (including the
+    // wreck-contact term in the legacy path). Preserve compressed open foam.
+    if (waterDepth >= 2.35 && crestEnergy == 0.0) { return 0.0; }
+
     let worldPerPixel = distanceToCamera * 2.0 *
         max(camera.invProjParams.x / f32(max(dims.x, 1u)),
             camera.invProjParams.y / f32(max(dims.y, 1u)));
@@ -1792,14 +1828,18 @@ fn coastalFoamStrength(
     let foamUv = position.xz / oceanFoamSize() + drift;
     let pattern = textureSampleLevel(
         oceanFoamTex, oceanFoamSampler, foamUv, foamLod).r;
+    if (waterDepth >= 2.35) {
+        let threshold = 1.0 - oceanFoamCoverage();
+        let openCoverage = pattern *
+            smoothstep(threshold, threshold + 0.15, pattern);
+        return clamp(openCoverage * oceanFoamOpacity() * crestEnergy * 0.55,
+                     0.0, 1.0);
+    }
     let detail = textureSampleLevel(
         oceanFoamTex, oceanFoamSampler,
         foamUv * 2.37 + vec2<f32>(0.31, 0.67) - drift * 0.7,
         foamLod + 0.8).r;
 
-    let crestEnergy = max(
-        smoothstep(0.045, 0.20, crestCompression),
-        smoothstep(0.018, 0.16, 1.0 - normal.y));
     let depthWindow =
         smoothstep(0.07, 0.24, waterDepth) *
         (1.0 - smoothstep(0.48, 0.92, waterDepth));
@@ -1909,50 +1949,47 @@ fn shadeOcean(posWorld : vec3<f32>, posView : vec3<f32>,
     let opticalCoverage = smoothstep(0.12, 12.0, waterDepth);
     let distortionCoverage = smoothstep(0.04, 0.80, waterDepth);
     var thickness = clamp(refractedTravel, 0.0, 500.0);
-    var bedWorld = posWorld + refractedRay * refractedTravel;
-
-    // Project a normal-offset point, then intersect that camera ray with the
-    // packed bed plane. This retains magnification without an opaque
-    // scene-color target.
-    let distortionDistance = min(thickness, 80.0) *
-                             oceanDistortion() * distortionCoverage;
-    let distortedClip = camera.viewProj *
-                        vec4<f32>(posWorld + normal * distortionDistance, 1.0);
-    if (distortedClip.w > 1.0e-5) {
-        let distortedNdc = distortedClip.xy / distortedClip.w;
-        let distortedViewRay = rayDirFromPixel(camera.invProjParams.xy,
-                                               distortedNdc);
-        let distortedWorldRay = normalize(
-            (camera.invView * vec4<f32>(distortedViewRay, 0.0)).xyz);
-        let bedY = posWorld.y - waterDepth;
-        let bedTravel = (bedY - camera.cameraPos.y) /
-                        min(distortedWorldRay.y, -1.0e-4);
-        if (bedTravel > 0.0 && bedTravel < 50000.0) {
-            bedWorld = camera.cameraPos.xyz + distortedWorldRay * bedTravel;
-        }
-    }
-
-    let bedUv = terrainUV(bedWorld);
-    let bedLight = textureSampleLevel(lightmapTex, terrainSampler,
-                                      bedUv, 0.0).x;
-    var refracted = proceduralSeabed(bedWorld.xz, refractedTravel) *
-                    (0.25 + 0.75 * bedLight * shadowVisibility);
-    if (hasSceneRefraction && sceneHasOpaque) {
-        // The cached opaque target contains the exact shaded terrain material
-        // at the distorted bed pixel. Reuse it instead of replacing authored
-        // sand/rock transitions with an unrelated procedural floor.
-        refracted = sceneRefraction;
-        thickness = clamp(sceneThickness, 0.0, 500.0);
-    }
-    let proceduralFloor = waterDepth >= 499.0 &&
-                          camera.waterMotion.z < 0.5;
+    var refracted : vec3<f32>;
+    let proceduralFloor = waterDepth >= 499.0 && camera.waterMotion.z < 0.5;
     if (proceduralFloor) {
         let floorTravel = OCEAN_PROCEDURAL_SEABED_DEPTH /
                           max(-refractedRay.y, 0.12);
-        bedWorld = posWorld + refractedRay * floorTravel;
+        let bedWorld = posWorld + refractedRay * floorTravel;
         refracted = proceduralSeabed(bedWorld.xz, floorTravel) *
                     (0.34 + 0.66 * max(light.y, 0.0));
         thickness = clamp(floorTravel, 0.0, 500.0);
+    } else if (hasSceneRefraction && sceneHasOpaque) {
+        refracted = sceneRefraction;
+        thickness = clamp(sceneThickness, 0.0, 500.0);
+    } else {
+        var bedWorld = posWorld + refractedRay * refractedTravel;
+
+        // Project a normal-offset point, then intersect that camera ray with the
+        // packed bed plane. This retains magnification without an opaque
+        // scene-color target.
+        let distortionDistance = min(thickness, 80.0) *
+                                 oceanDistortion() * distortionCoverage;
+        let distortedClip = camera.viewProj *
+                            vec4<f32>(posWorld + normal * distortionDistance, 1.0);
+        if (distortedClip.w > 1.0e-5) {
+            let distortedNdc = distortedClip.xy / distortedClip.w;
+            let distortedViewRay = rayDirFromPixel(camera.invProjParams.xy,
+                                                   distortedNdc);
+            let distortedWorldRay = normalize(
+                (camera.invView * vec4<f32>(distortedViewRay, 0.0)).xyz);
+            let bedY = posWorld.y - waterDepth;
+            let bedTravel = (bedY - camera.cameraPos.y) /
+                            min(distortedWorldRay.y, -1.0e-4);
+            if (bedTravel > 0.0 && bedTravel < 50000.0) {
+                bedWorld = camera.cameraPos.xyz + distortedWorldRay * bedTravel;
+            }
+        }
+
+        let bedUv = terrainUV(bedWorld);
+        let bedLight = textureSampleLevel(lightmapTex, terrainSampler,
+                                          bedUv, 0.0).x;
+        refracted = proceduralSeabed(bedWorld.xz, refractedTravel) *
+                        (0.25 + 0.75 * bedLight * shadowVisibility);
     }
     let transmittance = exp(-oceanAbsorption() * thickness);
     let clearRefracted = refracted * transmittance +
@@ -1980,33 +2017,29 @@ fn shadeOcean(posWorld : vec3<f32>, posView : vec3<f32>,
             refract(-view, undersideNormal, oceanIor());
         let totalInternalReflection =
             dot(transmissionDirection, transmissionDirection) < 0.001;
+        var underside : vec3<f32>;
         if (totalInternalReflection) {
-            transmissionDirection = vec3<f32>(0.0, 1.0, 0.0);
+            underside =
+                oceanScatterColor() * 0.82 +
+                proceduralSeabed(
+                    posWorld.xz + reflected.xz * 18.0,
+                    max(distanceToCamera, 1.0)) * 0.18;
         } else {
-            transmissionDirection = normalize(transmissionDirection);
+            let transmittedEnvironment = sampleWaterEnvironment(
+                normalize(transmissionDirection), reflectionRoughness);
+            var transmitted = transmittedEnvironment;
+            if (sceneHasOpaque) {
+                transmitted = mix(transmittedEnvironment, refracted, 0.75);
+            }
+            let interfacePath = distanceToCamera * 1.55 + 8.0;
+            let interfaceTransmittance =
+                exp(-oceanAbsorption() * interfacePath);
+            transmitted =
+                transmitted * interfaceTransmittance +
+                oceanScatterColor() *
+                (vec3<f32>(1.0) - interfaceTransmittance);
+            underside = mix(transmitted, environment * 0.72, fresnel);
         }
-        let transmittedEnvironment = sampleWaterEnvironment(
-            transmissionDirection, reflectionRoughness);
-        var transmitted = transmittedEnvironment;
-        if (sceneHasOpaque) {
-            transmitted = mix(transmittedEnvironment, refracted, 0.75);
-        }
-        let interfacePath = distanceToCamera * 1.55 + 8.0;
-        let interfaceTransmittance =
-            exp(-oceanAbsorption() * interfacePath);
-        transmitted =
-            transmitted * interfaceTransmittance +
-            oceanScatterColor() *
-            (vec3<f32>(1.0) - interfaceTransmittance);
-        let internalReflection =
-            oceanScatterColor() * 0.82 +
-            proceduralSeabed(
-                posWorld.xz + reflected.xz * 18.0,
-                max(distanceToCamera, 1.0)) * 0.18;
-        var underside = select(
-            mix(transmitted, environment * 0.72, fresnel),
-            internalReflection,
-            totalInternalReflection);
         underside += camera.lightingColor.rgb * sunSpecular;
         underside = mix(underside, vec3<f32>(0.94, 0.98, 1.0),
                         foamStrength * 0.22);

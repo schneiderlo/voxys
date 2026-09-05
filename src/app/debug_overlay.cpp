@@ -322,7 +322,7 @@ std::string DebugOverlay::formatPhysicsTimings() const {
 std::string DebugOverlay::formatRenderTimings() const {
     if (!stats_.renderGpuMilliseconds) return "Render GPU: unavailable";
     constexpr std::array names{
-        "water", "terrain", "lighting", "primitives"};
+        "water_fft", "terrain", "materials_water_particles", "primitives"};
     const auto& milliseconds = *stats_.renderGpuMilliseconds;
     const double total = std::accumulate(
         milliseconds.begin(), milliseconds.end(), 0.0);
