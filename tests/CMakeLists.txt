@@ -193,6 +193,8 @@ set_project_warnings(wreckwater_client_runtime_tests)
 add_executable(wreckwater_client_probe_tests
     test_wreckwater_client_probe.cpp
     ${CMAKE_SOURCE_DIR}/src/client/wreckwater_client_probe.cpp
+    ${CMAKE_SOURCE_DIR}/src/network/protocol.cpp
+    ${CMAKE_SOURCE_DIR}/src/network/wreckwater_protocol.cpp
 )
 
 target_link_libraries(wreckwater_client_probe_tests PRIVATE
