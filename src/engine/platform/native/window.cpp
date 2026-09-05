@@ -363,12 +363,20 @@ void* Window::getWin32Instance() const {
 }
 #elif defined(__linux__)
 void* Window::getWaylandDisplay() const {
+#if defined(VOXY_GLFW_X11_ONLY)
+    return nullptr;
+#else
     return window_ && nativePlatform_ == NativeWindowPlatform::Wayland
         ? glfwGetWaylandDisplay() : nullptr;
+#endif
 }
 void* Window::getWaylandSurface() const {
+#if defined(VOXY_GLFW_X11_ONLY)
+    return nullptr;
+#else
     return window_ && nativePlatform_ == NativeWindowPlatform::Wayland
         ? glfwGetWaylandWindow(window_) : nullptr;
+#endif
 }
 void* Window::getX11Display() const {
     return window_ && nativePlatform_ == NativeWindowPlatform::X11

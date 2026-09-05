@@ -117,6 +117,11 @@ if(NOT EMSCRIPTEN)
         endif()
         
         add_subdirectory(glfw)
+        if(UNIX AND NOT APPLE)
+            # The vendored fallback has no Wayland native-access symbols.
+            # Do not change system GLFW packages with both backends.
+            target_compile_definitions(glfw INTERFACE VOXY_GLFW_X11_ONLY=1)
+        endif()
         
         message(STATUS "  GLFW: Found vendored fallback")
     else()
