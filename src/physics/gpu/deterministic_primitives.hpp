@@ -244,6 +244,7 @@ private:
     WGPUComputePipeline compactScatterPipeline_ = nullptr;
     WGPUComputePipeline compactFinalizePipeline_ = nullptr;
     WGPUComputePipeline radixHistogramPipeline_ = nullptr;
+    WGPUComputePipeline radixBlockPrefixPipeline_ = nullptr;
     WGPUComputePipeline radixPrefixPipeline_ = nullptr;
     WGPUComputePipeline radixScatterPipeline_ = nullptr;
     WGPUComputePipeline uniqueMarkPipeline_ = nullptr;

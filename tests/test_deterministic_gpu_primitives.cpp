@@ -595,6 +595,149 @@ TEST_P(DeterministicGpuPrimitivesTest, DynamicCountAndDispatchMatchCpuReferences
     wgpuCommandEncoderRelease(encoder);
 }
 
+// Exercise both sides of the parallel-prefix cutoff with the same allocated
+// storage. Tail sentinels catch writes beyond the GPU-selected active prefix.
+TEST_P(DeterministicGpuPrimitivesTest,
+       RadixPrefixPreservesStableBytesAcrossDynamicCountTransitions) {
+    constexpr uint32_t capacity = 131'073u;
+    constexpr uint32_t countWord = 2u;
+    gpu::Context context;
+    gpu::ContextConfig contextConfig;
+    contextConfig.enableValidation = true;
+    if (!context.initHeadless(contextConfig)) {
+        GTEST_SKIP() << "Headless WebGPU is unavailable";
+    }
+    DeterministicGpuPrimitives primitives;
+    DeterministicGpuPrimitives::Config config;
+    config.capacity = capacity;
+    config.workgroupSize = GetParam();
+    ASSERT_TRUE(primitives.initialize(
+        context.getDevice(), context.getQueue(), config));
+
+    std::mt19937 random(0x51a7'1234u);
+    std::vector<GpuKeyValue> records(capacity);
+    for (uint32_t index = 0u; index < capacity; ++index) {
+        // Repeated keys, empty histogram bins and stable all-ones sentinels.
+        records[index] = {
+            static_cast<uint32_t>(random()) & 127u,
+            static_cast<uint32_t>(random()) & 63u,
+            index ^ 0x5a5a'a5a5u, index};
+        if (index % 19u == 0u) {
+            records[index].keyLow = UINT32_MAX;
+            records[index].keyHigh = UINT32_MAX;
+        }
+    }
+    const GpuKeyValue untouched{0xabcd'1234u, 0x9876'5432u,
+                                0xfedc'ba98u, 0x1234'5678u};
+    const std::vector<GpuKeyValue> initialOutput(capacity, untouched);
+    auto input = inputBuffer<GpuKeyValue>(context, records, "prefix_input");
+    auto output = outputBuffer<GpuKeyValue>(context, capacity, "prefix_output");
+    const std::array<uint32_t, 4> initialCounts{};
+    auto counts = inputBuffer<uint32_t>(context, initialCounts, "prefix_counts");
+    const std::array<uint32_t, 6> initialDispatch{};
+    BufferOwner dispatch(gpu::createBufferWithData(
+        context.getDevice(), context.getQueue(), gpu::BufferDesc{
+            .label = "prefix_dispatch", .size = sizeof(initialDispatch),
+            .usage = WGPUBufferUsage_Storage | WGPUBufferUsage_CopyDst
+                   | WGPUBufferUsage_Indirect,
+        }, std::span<const uint32_t>(initialDispatch)));
+    const size_t bytes = size_t{capacity} * sizeof(GpuKeyValue);
+    BufferOwner readback(gpu::createBuffer(context.getDevice(), gpu::BufferDesc{
+        .label = "prefix_readback", .size = bytes,
+        .usage = WGPUBufferUsage_CopyDst | WGPUBufferUsage_MapRead,
+    }));
+    ASSERT_NE(static_cast<WGPUBuffer>(input), nullptr);
+    ASSERT_NE(static_cast<WGPUBuffer>(output), nullptr);
+    ASSERT_NE(static_cast<WGPUBuffer>(counts), nullptr);
+    ASSERT_NE(static_cast<WGPUBuffer>(dispatch), nullptr);
+    ASSERT_NE(static_cast<WGPUBuffer>(readback), nullptr);
+
+    const uint32_t boundary = GetParam() * 32u;
+    const std::array<uint32_t, 8> requestedCounts{
+        capacity, 0u, 1u, boundary - 1u, boundary,
+        boundary + 1u, capacity - 1u, 0u};
+    for (uint32_t mode = 0u; mode < 6u; ++mode) {
+        for (const uint32_t requested : requestedCounts) {
+            SCOPED_TRACE(::testing::Message()
+                << "mode=" << mode << " requested=" << requested);
+            const uint32_t scale = mode == 5u ? 2u : 1u;
+            const uint32_t actual =
+                std::min(requested, capacity / scale) * scale;
+            const std::array<uint32_t, 4> countData{0u, 0u, requested, 0u};
+            const std::array<uint32_t, 6> dispatchData{
+                (actual + GetParam() - 1u) / GetParam(), 1u, 1u,
+                actual == 0u ? 0u : 1u, 1u, 1u};
+            ASSERT_TRUE(gpu::writeBuffer(context.getQueue(), counts, 0u,
+                std::as_bytes(std::span<const uint32_t>(countData))));
+            ASSERT_TRUE(gpu::writeBuffer(context.getQueue(), dispatch, 0u,
+                std::as_bytes(std::span<const uint32_t>(dispatchData))));
+            ASSERT_TRUE(gpu::writeBuffer(context.getQueue(), output, 0u,
+                std::as_bytes(std::span<const GpuKeyValue>(initialOutput))));
+            std::vector<GpuKeyValue> expected(records.begin(),
+                                               records.begin() + actual);
+            std::stable_sort(expected.begin(), expected.end(),
+                [mode](const GpuKeyValue& lhs, const GpuKeyValue& rhs) {
+                    if (mode == 0u || mode == 3u)
+                        return lhs.keyLow < rhs.keyLow;
+                    if (mode == 4u) return lhs.keyHigh < rhs.keyHigh;
+                    return lhs.keyHigh < rhs.keyHigh
+                        || (lhs.keyHigh == rhs.keyHigh
+                            && lhs.keyLow < rhs.keyLow);
+                });
+            expected.resize(capacity, untouched);
+            WGPUCommandEncoderDescriptor encoderDesc{};
+            WGPUCommandEncoder encoder = wgpuDeviceCreateCommandEncoder(
+                context.getDevice(), &encoderDesc);
+            ASSERT_NE(encoder, nullptr);
+            bool encoded = false;
+            if (mode < 2u || mode == 5u) {
+                encoded = primitives.encodeRadixSort(
+                    encoder, input, output, capacity,
+                    mode == 0u ? 1u : 2u, 8u, dispatch, 0u,
+                    3u * sizeof(uint32_t), counts, countWord, scale);
+            } else if (mode == 2u) {
+                encoded = primitives.encodeRadixSortBoundedU32x2(
+                    encoder, input, output, capacity, 0xffffu, 8u,
+                    dispatch, 0u, 3u * sizeof(uint32_t), counts, countWord);
+            } else {
+                encoded = primitives.encodeRadixSortBoundedU16Word(
+                    encoder, input, output, capacity, mode - 3u,
+                    mode == 3u ? 0xffu : 0xffffu, 8u,
+                    dispatch, 0u, 3u * sizeof(uint32_t), counts, countWord);
+            }
+            ASSERT_TRUE(encoded);
+            wgpuCommandEncoderCopyBufferToBuffer(
+                encoder, output, 0u, readback, 0u, bytes);
+            WGPUCommandBufferDescriptor commandDesc{};
+            WGPUCommandBuffer command =
+                wgpuCommandEncoderFinish(encoder, &commandDesc);
+            ASSERT_NE(command, nullptr);
+            const WGPUWrappedSubmissionIndex submission{
+                context.getQueue(), wgpuQueueSubmitForIndex(
+                    context.getQueue(), 1u, &command)};
+            struct MapState { bool done = false; bool success = false; } state;
+            wgpuBufferMapAsync(readback, WGPUMapMode_Read, 0u, bytes,
+                [](WGPUBufferMapAsyncStatus status, void* data) {
+                    auto& mapped = *static_cast<MapState*>(data);
+                    mapped.success = status == WGPUBufferMapAsyncStatus_Success;
+                    mapped.done = true;
+                }, &state);
+            while (!state.done) {
+                static_cast<void>(wgpuDevicePoll(
+                    context.getDevice(), true, &submission));
+            }
+            ASSERT_TRUE(state.success);
+            const void* mapped =
+                wgpuBufferGetConstMappedRange(readback, 0u, bytes);
+            ASSERT_NE(mapped, nullptr);
+            EXPECT_EQ(std::memcmp(mapped, expected.data(), bytes), 0);
+            wgpuBufferUnmap(readback);
+            wgpuCommandBufferRelease(command);
+            wgpuCommandEncoderRelease(encoder);
+        }
+    }
+}
+
 INSTANTIATE_TEST_SUITE_P(
     WorkgroupFallbacks, DeterministicGpuPrimitivesTest,
     ::testing::Values(64u, 128u, 256u));

@@ -240,14 +240,52 @@ fn radix_histogram_256(@builtin(global_invocation_id) gid : vec3<u32>,
     radix_histogram_impl(gid, lid, group, 256u);
 }
 
+// Each workgroup owns four digits. For each digit, 64 lanes own disjoint
+// contiguous ranges of histogram blocks. All sums are exact u32 counts.
+@compute @workgroup_size(256)
+fn radix_block_prefix(@builtin(local_invocation_id) lid : vec3<u32>,
+                      @builtin(workgroup_id) group : vec3<u32>) {
+    let blocks = radix_block_count();
+    if (blocks <= 32u) { return; }
+    let digit = group.x * 4u + (lid.x & 3u);
+    let rank = lid.x >> 2u;
+    let chunk = (blocks + 63u) / 64u;
+    let first = min(rank * chunk, blocks);
+    let last = min(first + chunk, blocks);
+    var total = 0u;
+    for (var block = first; block < last; block += 1u) {
+        total += atomicLoad(&radixHistogram[block * 256u + digit]);
+    }
+    radixDigitScan[lid.x] = total;
+    workgroupBarrier();
+    for (var offset = 4u; offset < 256u; offset <<= 1u) {
+        var addend = 0u;
+        if (lid.x >= offset) { addend = radixDigitScan[lid.x - offset]; }
+        workgroupBarrier();
+        radixDigitScan[lid.x] += addend;
+        workgroupBarrier();
+    }
+    var running = radixDigitScan[lid.x] - total;
+    for (var block = first; block < last; block += 1u) {
+        let index = block * 256u + digit;
+        radixOffsets[index] = running;
+        running += atomicLoad(&radixHistogram[index]);
+    }
+    if (rank == 63u) { radixDigitBases[digit] = running; }
+}
+
 @compute @workgroup_size(256)
 fn radix_prefix(@builtin(local_invocation_id) lid : vec3<u32>) {
     let digit = lid.x;
     var running = 0u;
-    for (var block = 0u; block < radix_block_count(); block += 1u) {
-        let index = block * 256u + digit;
-        radixOffsets[index] = running;
-        running += atomicLoad(&radixHistogram[index]);
+    if (radix_block_count() > 32u) {
+        running = radixDigitBases[digit];
+    } else {
+        for (var block = 0u; block < radix_block_count(); block += 1u) {
+            let index = block * 256u + digit;
+            radixOffsets[index] = running;
+            running += atomicLoad(&radixHistogram[index]);
+        }
     }
     radixDigitScan[digit] = running;
     workgroupBarrier();

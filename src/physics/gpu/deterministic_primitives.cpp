@@ -263,6 +263,9 @@ bool DeterministicGpuPrimitives::createLayoutsAndPipelines() {
     radixHistogramPipeline_ = makePipeline(
         device_, radixPipelineLayout_, shaderModule_,
         "radix_histogram_" + suffix, "deterministic_radix_histogram");
+    radixBlockPrefixPipeline_ = makePipeline(
+        device_, radixPipelineLayout_, shaderModule_, "radix_block_prefix",
+        "deterministic_radix_block_prefix");
     radixPrefixPipeline_ = makePipeline(
         device_, radixPipelineLayout_, shaderModule_, "radix_prefix",
         "deterministic_radix_prefix");
@@ -289,7 +292,8 @@ bool DeterministicGpuPrimitives::createLayoutsAndPipelines() {
         "deterministic_assign_finalize");
     return scanBlocksPipeline_ && scanPrefixPipeline_ && scanAddPipeline_
         && compactScatterPipeline_ && compactFinalizePipeline_
-        && radixHistogramPipeline_ && radixPrefixPipeline_
+        && radixHistogramPipeline_ && radixBlockPrefixPipeline_
+        && radixPrefixPipeline_
         && radixScatterPipeline_ && uniqueMarkPipeline_
         && uniqueScatterPipeline_ && uniqueFinalizePipeline_
         && mergePipeline_ && assignScatterPipeline_
@@ -623,6 +627,14 @@ bool DeterministicGpuPrimitives::encodeRadixSortImpl(
                 wgpuComputePassEncoderDispatchWorkgroups(compute, blocks, 1, 1);
             }
         }
+        // Keep short histograms on the single-workgroup path. Larger ones
+        // partition each digit's block prefix among 64 lanes, then the next
+        // dispatch converts the resulting digit totals to digit bases.
+        // Match the dynamic-count cutoff in radix_block_prefix/radix_prefix.
+        if (blocks > 32u) {
+            wgpuComputePassEncoderSetPipeline(compute, radixBlockPrefixPipeline_);
+            wgpuComputePassEncoderDispatchWorkgroups(compute, 64u, 1u, 1u);
+        }
         wgpuComputePassEncoderSetPipeline(compute, radixPrefixPipeline_);
         if (indirectDispatchBuffer) {
             wgpuComputePassEncoderDispatchWorkgroupsIndirect(
@@ -782,6 +794,7 @@ void DeterministicGpuPrimitives::shutdown() {
     releaseHandle(compactScatterPipeline_, wgpuComputePipelineRelease);
     releaseHandle(compactFinalizePipeline_, wgpuComputePipelineRelease);
     releaseHandle(radixHistogramPipeline_, wgpuComputePipelineRelease);
+    releaseHandle(radixBlockPrefixPipeline_, wgpuComputePipelineRelease);
     releaseHandle(radixPrefixPipeline_, wgpuComputePipelineRelease);
     releaseHandle(radixScatterPipeline_, wgpuComputePipelineRelease);
     releaseHandle(uniqueMarkPipeline_, wgpuComputePipelineRelease);
