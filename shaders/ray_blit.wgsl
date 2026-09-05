@@ -87,6 +87,11 @@ struct DebugUniforms {
 @group(0) @binding(18) var terrainMaterialNormalRoughness :
     texture_2d_array<f32>;
 
+// Baked on this device with the original hash; no filtering or quantization.
+@group(0) @binding(19) var periodicGradientLut : texture_2d<f32>;
+// Test pipelines may specialize this to false for an unchanged reference.
+override USE_PERIODIC_GRADIENT_LUT : bool = true;
+
 const MATERIAL_SKY : u32 = 0u;
 const MATERIAL_TERRAIN : u32 = 1u;
 const MATERIAL_WATER : u32 = 2u;
@@ -1645,6 +1650,10 @@ fn sampleWaterEnvironment(directionIn : vec3<f32>, roughness : f32) -> vec3<f32>
 
 fn periodicGradientHash(cellIn : vec2<f32>) -> vec2<f32> {
     let cell = cellIn - floor(cellIn / 16.0) * 16.0;
+    if (USE_PERIODIC_GRADIENT_LUT) {
+        let coordinate = vec2<i32>(i32(cell.x) * 2, i32(cell.y));
+        return textureLoad(periodicGradientLut, coordinate, 0).xy;
+    }
     let phase = vec2<f32>(dot(cell, vec2<f32>(127.1, 311.7)),
                           dot(cell, vec2<f32>(269.5, 183.3)));
     return fract(sin(phase) * 43758.5453123) * 2.0 - vec2<f32>(1.0);
@@ -1656,6 +1665,17 @@ fn periodicGradientNoise(point : vec2<f32>) -> f32 {
     let fade = local * local * local *
                (local * (local * 6.0 - vec2<f32>(15.0)) +
                 vec2<f32>(10.0));
+    if (USE_PERIODIC_GRADIENT_LUT) {
+        let wrapped = cell - floor(cell / 16.0) * 16.0;
+        let coordinate = vec2<i32>(i32(wrapped.x) * 2, i32(wrapped.y));
+        let ab = textureLoad(periodicGradientLut, coordinate, 0);
+        let cd = textureLoad(periodicGradientLut, coordinate + vec2<i32>(1, 0), 0);
+        let a = dot(ab.xy, local);
+        let b = dot(ab.zw, local - vec2<f32>(1.0, 0.0));
+        let c = dot(cd.xy, local - vec2<f32>(0.0, 1.0));
+        let d = dot(cd.zw, local - vec2<f32>(1.0));
+        return mix(mix(a, b, fade.x), mix(c, d, fade.x), fade.y);
+    }
     let a = dot(periodicGradientHash(cell), local);
     let b = dot(periodicGradientHash(cell + vec2<f32>(1.0, 0.0)),
                 local - vec2<f32>(1.0, 0.0));

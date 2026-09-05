@@ -80,6 +80,7 @@ cc_library(
     ],
     hdrs = [
         "blit_path.hpp",
+        "periodic_gradient_lut.hpp",
         "debug_visualizer.hpp",
         "primitive_gpu_culling.hpp",
         "primitive_material.hpp",
