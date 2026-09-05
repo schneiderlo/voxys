@@ -5,21 +5,28 @@ on:
     paths: [.github/workflows/optimization-integration.yml]
 permissions:
   contents: read
+concurrency:
+  group: optimization-integration
+  cancel-in-progress: false
 jobs:
-  inspect:
+  prepare:
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: write
+    outputs:
+      candidate: ${{ steps.merge.outputs.sha }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          persist-credentials: false
-      - name: Prepare merge and conflict evidence
+      - name: Merge pinned branches and resolve reviewed conflicts
+        id: merge
         run: |
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git checkout --detach 3f06f364ce65a01da2abedc6a880c908903eee3a
+          git merge-base --is-ancestor 3f06f364ce65a01da2abedc6a880c908903eee3a HEAD
           git merge --no-ff --no-commit 84fba7856cc19257f985e3f1ef40f8b4ce545751 || test "$(git diff --name-only --diff-filter=U)" = src/render/blit_path.cpp
           python3 - <<'PY'
           from pathlib import Path
@@ -31,20 +38,110 @@ jobs:
           p.write_text(s)
           PY
           git add src/render/blit_path.cpp
-          git commit -m 'Merge water material work with gradient lookup'
+          git commit -m 'merge: reconcile water optimizations with GPU gradient lookup'
           git merge --no-ff --no-commit 19134562d032945072ddd463b021f2d93d886737 || true
-          mkdir -p /tmp/integration-source/conflicts
-          git diff --cc > /tmp/integration-source/conflicts/diff.txt
-          git diff --name-only --diff-filter=U > /tmp/integration-source/conflicts/files.txt
-          while IFS= read -r p; do
-            mkdir -p "/tmp/integration-source/conflicts/$(dirname "$p")"
-            git show ":1:$p" > "/tmp/integration-source/conflicts/$p.base" || true
-            git show ":2:$p" > "/tmp/integration-source/conflicts/$p.ours" || true
-            git show ":3:$p" > "/tmp/integration-source/conflicts/$p.theirs" || true
-          done < /tmp/integration-source/conflicts/files.txt
-          tar -czf /tmp/integration-source/source.tar.gz AGENTS.md src shaders tests scripts tools web docs CMakeLists.txt BUILD third_party/CMakeLists.txt third_party/BUILD third_party/tinygltf data/BUILD voxy.cfg
-          cat /tmp/integration-source/conflicts/files.txt
+          test "$(git diff --name-only --diff-filter=U | wc -l)" -eq 4
+          python3 tools/prepare_optimization_integration.py
+          git add BUILD CMakeLists.txt shaders/ray_blit.wgsl voxy.cfg ridgebreak.cfg src web scripts tools/test_water_material_work.py tools/test_periodic_gradient_lut.py
+          test -z "$(git diff --name-only --diff-filter=U)"
+          git diff --cached --check
+          python3 tools/test_periodic_gradient_lut.py
+          python3 tools/test_water_material_work.py
+          node --check scripts/test_water_material_work.mjs
+          git commit -m 'merge: integrate prototype as opt-in while preserving terrain defaults'
+          git push origin HEAD:refs/heads/integration/optimization-rollup
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+  gpu:
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prepare.outputs.candidate }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: python3 tools/test_periodic_gradient_lut.py && python3 tools/test_water_material_work.py
+      - name: Execute lookup and combined water-material regressions
+        run: node scripts/test_periodic_gradient_lut.mjs && node scripts/test_water_material_work.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: integrated-gpu-reports
+          path: '*-report.json'
+          if-no-files-found: ignore
+  wasm:
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      EM_CACHE_FOLDER: emsdk-cache
+      EMSCRIPTEN_VERSION: '6.0.1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prepare.outputs.candidate }}
+          persist-credentials: false
+      - run: sudo apt-get update && sudo apt-get install -y ccache
+      - uses: actions/cache@v4
+        with:
+          path: ~/.ccache
+          key: ccache-${{ runner.os }}-integration-${{ github.sha }}
+          restore-keys: |
+            ccache-${{ runner.os }}-
+      - uses: actions/cache@v4
+        with:
+          path: ${{ env.EM_CACHE_FOLDER }}
+          key: emsdk-${{ runner.os }}-${{ env.EMSCRIPTEN_VERSION }}-emdawnwebgpu
+          restore-keys: |
+            emsdk-${{ runner.os }}-${{ env.EMSCRIPTEN_VERSION }}-
+      - uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: ${{ env.EMSCRIPTEN_VERSION }}
+          actions-cache-folder: ${{ env.EM_CACHE_FOLDER }}
+      - run: embuilder build emdawnwebgpu
+      - uses: actions/cache@v4
+        id: deps
+        with:
+          path: third_party
+          key: third-party-${{ runner.os }}-${{ hashFiles('scripts/fetch_deps.sh') }}
+      - if: steps.deps.outputs.cache-hit != 'true'
+        run: bash scripts/fetch_deps.sh
+      - run: git checkout -- third_party/CMakeLists.txt third_party/BUILD third_party/tinygltf
+      - run: emcmake cmake -S . -B build-wasm -DVOXY_BUILD_NATIVE=OFF -DVOXY_BUILD_WASM=ON -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+      - run: cmake --build build-wasm -- -j$(nproc)
       - uses: actions/upload-artifact@v4
         with:
-          name: integration-source
-          path: /tmp/integration-source
+          name: integrated-wasm
+          path: build-wasm/bin/voxy_wasm.*
+  native:
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prepare.outputs.candidate }}
+          persist-credentials: false
+      - run: sudo apt-get update && sudo apt-get install -y g++-14 ccache libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libgl1-mesa-dev libwayland-dev libxkbcommon-dev mesa-vulkan-drivers xvfb
+      - uses: actions/cache@v4
+        id: deps
+        with:
+          path: third_party
+          key: third-party-${{ runner.os }}-${{ hashFiles('scripts/fetch_deps.sh') }}
+      - if: steps.deps.outputs.cache-hit != 'true'
+        run: bash scripts/fetch_deps.sh
+      - run: git checkout -- third_party/CMakeLists.txt third_party/BUILD third_party/tinygltf
+      - run: cmake -S . -B build-native -DVOXY_BUILD_NATIVE=ON -DVOXY_BUILD_WASM=OFF -DVOXY_BUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=gcc-14 -DCMAKE_CXX_COMPILER=g++-14
+      - run: cmake --build build-native -j2
+      - name: Native regression suite
+        run: xvfb-run -a ctest --test-dir build-native --output-on-failure -j2 --timeout 120
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: integrated-native-tests
+          path: build-native/Testing/Temporary/LastTest.log
+          if-no-files-found: ignore
