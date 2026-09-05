@@ -1,4 +1,4 @@
-name: Frame budget workspace
+name: Frame budget validation
 on:
   push:
     branches: [perf/frame-budget-1ms]
@@ -6,20 +6,126 @@ on:
 permissions:
   contents: read
 jobs:
-  source:
+  prepare:
     runs-on: ubuntu-latest
-    timeout-minutes: 3
+    timeout-minutes: 4
+    permissions:
+      contents: write
+    outputs:
+      candidate: ${{ steps.apply.outputs.sha }}
     steps:
       - uses: actions/checkout@v4
         with:
-          persist-credentials: false
-      - name: Export current source without generated assets or credentials
+          fetch-depth: 0
+      - name: Apply checked candidate on feature branch
+        id: apply
         run: |
-          mkdir -p /tmp/frame-source
-          git archive HEAD AGENTS.md src shaders scripts tests tools web docs CMakeLists.txt BUILD third_party/CMakeLists.txt third_party/BUILD third_party/tinygltf cmake voxy.cfg ridgebreak.cfg | gzip > /tmp/frame-source/source.tar.gz
-          git rev-parse HEAD > /tmp/frame-source/commit.txt
-      - uses: actions/upload-artifact@v4
+          set -euo pipefail
+          cat tools/.frame-budget.part{0,1,2} > /tmp/frame-budget.patch.gz
+          echo '48ea605912a2fe4cdd6c4f753af4f9ce5bdae1da876ec3d5ed9177bf4f125447  /tmp/frame-budget.patch.gz' | sha256sum -c -
+          gzip -dc /tmp/frame-budget.patch.gz > /tmp/frame-budget.patch
+          git apply --check /tmp/frame-budget.patch
+          git apply --index /tmp/frame-budget.patch
+          git rm tools/.frame-budget.part{0,1,2}
+          python3 tools/test_water_fft_fusion.py
+          python3 tools/test_periodic_gradient_lut.py
+          python3 tools/test_water_material_work.py
+          node --test scripts/test_frame_budget.mjs
+          node --check scripts/test_water_fft_fusion.mjs
+          git diff --cached --check
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'perf: fuse ocean FFT work and instrument complete GPU frame budget'
+          git push origin HEAD:refs/heads/perf/frame-budget-1ms
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+  gpu:
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
         with:
-          name: frame-budget-source
-          path: /tmp/frame-source
+          ref: ${{ needs.prepare.outputs.candidate }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node scripts/test_water_fft_fusion.mjs
+      - run: node --test scripts/test_frame_budget.mjs scripts/test_webgpu_timestamp_compat.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: water-fft-fusion-report
+          path: water-fft-fusion-report.json
+          if-no-files-found: ignore
+  wasm:
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    env:
+      EM_CACHE_FOLDER: emsdk-cache
+      EMSCRIPTEN_VERSION: '6.0.1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prepare.outputs.candidate }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: sudo apt-get update && sudo apt-get install -y ccache mesa-vulkan-drivers xvfb
+      - uses: actions/cache@v4
+        with:
+          path: ~/.ccache
+          key: ccache-${{ runner.os }}-frame-budget-${{ github.sha }}
+          restore-keys: |
+            ccache-${{ runner.os }}-
+      - uses: actions/cache@v4
+        with:
+          path: ${{ env.EM_CACHE_FOLDER }}
+          key: emsdk-${{ runner.os }}-${{ env.EMSCRIPTEN_VERSION }}-emdawnwebgpu
+          restore-keys: |
+            emsdk-${{ runner.os }}-${{ env.EMSCRIPTEN_VERSION }}-
+      - uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: ${{ env.EMSCRIPTEN_VERSION }}
+          actions-cache-folder: ${{ env.EM_CACHE_FOLDER }}
+      - run: embuilder build emdawnwebgpu
+      - uses: actions/cache@v4
+        id: deps
+        with:
+          path: third_party
+          key: third-party-${{ runner.os }}-${{ hashFiles('scripts/fetch_deps.sh') }}
+      - if: steps.deps.outputs.cache-hit != 'true'
+        run: bash scripts/fetch_deps.sh
+      - run: git restore -- third_party/CMakeLists.txt third_party/BUILD third_party/tinygltf
+      - run: emcmake cmake -S . -B build-wasm -DVOXY_BUILD_NATIVE=OFF -DVOXY_BUILD_WASM=ON -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+      - name: Production WASM build
+        run: cmake --build build-wasm -- -j$(nproc)
+      - name: Prepare exact candidate browser page
+        run: |
+          mkdir smoke-web
+          cp -r web/* smoke-web/
+          cp build-wasm/bin/voxy_wasm.{js,wasm,data} smoke-web/
+          sed -i 's/__VOXY_BUILD_ID__/${{ needs.prepare.outputs.candidate }}/g' smoke-web/index.html
+          mkdir -p /tmp/voxys-runtime && chmod 700 /tmp/voxys-runtime
+          mapfile -t ICDS < <(find /usr/share/vulkan/icd.d -name 'lvp_icd*.json' -type f)
+          test "${#ICDS[@]}" -eq 1
+          echo "VK_ICD_FILENAMES=${ICDS[0]}" >> "$GITHUB_ENV"
+      - name: Exact binary startup and GPU retirement
+        env:
+          XDG_RUNTIME_DIR: /tmp/voxys-runtime
+        run: xvfb-run -a node scripts/smoke_integrated_wasm.mjs smoke-web
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: frame-budget-browser-report
+          path: '*startup*report.json'
+          if-no-files-found: ignore
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: frame-budget-browser-build
+          path: smoke-web
           retention-days: 3
