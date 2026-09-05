@@ -1,0 +1,68 @@
+name: Native renderer regression
+on:
+  push:
+    branches: [main]
+    paths:
+      - src/render/**
+      - src/gpu/**
+      - src/engine/platform/native/**
+      - third_party/CMakeLists.txt
+      - tests/test_blit_path.cpp
+      - tests/test_raycast_path.cpp
+      - tests/CMakeLists.txt
+      - .github/workflows/native-renderer-regression.yml
+  pull_request:
+    paths:
+      - src/render/**
+      - src/gpu/**
+      - src/engine/platform/native/**
+      - third_party/CMakeLists.txt
+      - tests/test_blit_path.cpp
+      - tests/test_raycast_path.cpp
+      - tests/CMakeLists.txt
+      - .github/workflows/native-renderer-regression.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: native-renderer-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  native-renderer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - run: sudo apt-get update && sudo apt-get install -y g++-14 ccache libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libgl1-mesa-dev libwayland-dev libxkbcommon-dev mesa-vulkan-drivers xvfb
+      - uses: actions/cache@v4
+        with:
+          path: ~/.ccache
+          key: ccache-native-integration-${{ github.sha }}
+          restore-keys: ccache-native-integration-
+      - uses: actions/cache@v4
+        id: deps
+        with:
+          path: third_party
+          key: third-party-${{ runner.os }}-${{ hashFiles('scripts/fetch_deps.sh') }}
+      - if: steps.deps.outputs.cache-hit != 'true'
+        run: bash scripts/fetch_deps.sh
+      - run: git restore -- third_party/CMakeLists.txt third_party/BUILD third_party/tinygltf
+      - name: Configure native renderer tests
+        run: cmake -S . -B build-native -DVOXY_BUILD_NATIVE=ON -DVOXY_BUILD_WASM=OFF -DVOXY_BUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=gcc-14 -DCMAKE_CXX_COMPILER=g++-14 -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+      - run: cmake --build build-native --target voxy_tests -j4
+      - name: Native renderer lifetime and resource regression tests
+        env:
+          XDG_RUNTIME_DIR: /tmp/voxys-runtime
+        run: |
+          mkdir -p "$XDG_RUNTIME_DIR" && chmod 700 "$XDG_RUNTIME_DIR"
+          xvfb-run -a ctest --test-dir build-native -R '^(BlitPathTest|RaycastPathGPUTest)\.' --output-on-failure -j2 --timeout 120
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: native-renderer-test-log
+          path: build-native/Testing/Temporary/LastTest.log
+          if-no-files-found: ignore
+# This focused lifetime/resource gate does not replace the complete CTest suite
+# or target-hardware visual/performance acceptance. See validation status docs.
