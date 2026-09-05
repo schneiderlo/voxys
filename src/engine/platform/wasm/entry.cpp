@@ -343,6 +343,14 @@ namespace {
             }
             out << ",\"total_ms\":";
             appendJsonNumber(out, total);
+            out << ",\"frame_interval_available\":"
+                << (timing.frameIntervalAvailable ? "true" : "false")
+                << ",\"gpu_frame_ms\":";
+            if (timing.frameIntervalAvailable) appendJsonNumber(out, timing.frameMilliseconds);
+            else out << "null";
+            out << ",\"render_width\":" << timing.renderWidth
+                << ",\"render_height\":" << timing.renderHeight
+                << ",\"includes_gpu_physics\":true";
         }
         out << '}';
 

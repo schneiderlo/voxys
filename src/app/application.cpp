@@ -554,9 +554,28 @@ void onScreenshotBufferMapped(WGPUBufferMapAsyncStatus status,
 
 constexpr size_t kPrimitiveOverlayHeadroom = 1u + 5u * 7u;
 constexpr uint32_t kRenderGpuQueriesPerStage = 2u;
-constexpr uint32_t kRenderGpuTimestampCount =
-    static_cast<uint32_t>(kRenderGpuStageCount)
-        * kRenderGpuQueriesPerStage;
+constexpr uint32_t kRenderGpuFrameBeginQuery =
+    static_cast<uint32_t>(kRenderGpuStageCount) * kRenderGpuQueriesPerStage;
+constexpr uint32_t kRenderGpuFrameEndQuery = kRenderGpuFrameBeginQuery + 1u;
+constexpr uint32_t kRenderGpuTimestampCount = kRenderGpuFrameEndQuery + 1u;
+
+// Portable timestamp boundaries. Keep the ended pass handle out of submission.
+// The WASM loader translates the missing optional endpoint sentinel.
+static bool writeFrameBoundary(WGPUCommandEncoder encoder, WGPUQuerySet querySet,
+                               uint32_t index, bool beginning) {
+    WGPUComputePassDescriptor descriptor{};
+    WGPU_SET_LABEL(descriptor, beginning ? "frame_gpu_begin" : "frame_gpu_end");
+    gpu::CompatPassTimestampWrites writes{};
+    writes.querySet = querySet;
+    writes.beginningOfPassWriteIndex = beginning ? index : WGPU_QUERY_SET_INDEX_UNDEFINED;
+    writes.endOfPassWriteIndex = beginning ? WGPU_QUERY_SET_INDEX_UNDEFINED : index;
+    descriptor.timestampWrites = &writes;
+    WGPUComputePassEncoder pass = wgpuCommandEncoderBeginComputePass(encoder, &descriptor);
+    if (!pass) return false;
+    wgpuComputePassEncoderEnd(pass);
+    wgpuComputePassEncoderRelease(pass);
+    return true;
+}
 constexpr uint32_t kRenderGpuProfilingIntervalFrames = 30u;
 
 void appendObjectCount(
@@ -1811,6 +1830,11 @@ void Application::render() {
         && blitPath_ && blitPath_->isInitialized()
         && stats_.frameCount % kRenderGpuProfilingIntervalFrames == 0u;
 
+    if (renderGpuProfilingFrame_ && !writeFrameBoundary(
+            encoder, renderGpuQuerySet_, kRenderGpuFrameBeginQuery, true)) {
+        renderGpuProfilingFrame_ = false;
+    }
+
     // Evolve the authoritative surface before physics samples it. Keeping
     // this outside the raycast path also gives the triangle renderer and GPU
     // physics the same animated ocean instead of a never-updated texture.
@@ -1989,14 +2013,18 @@ void Application::render() {
 
     renderMoto(encoder, targetView);
 
-    if (renderGpuProfilingFrame_) {
+    if (renderGpuProfilingFrame_ && writeFrameBoundary(
+            encoder, renderGpuQuerySet_, kRenderGpuFrameEndQuery, false)) {
         wgpuCommandEncoderResolveQuerySet(
             encoder, renderGpuQuerySet_, 0u, kRenderGpuTimestampCount,
             renderGpuResolveBuffer_, 0u);
         static_cast<void>(renderGpuReadback_.encodeCopy(
             encoder, renderGpuResolveBuffer_, 0u,
             kRenderGpuTimestampCount * sizeof(uint64_t), stats_.frameCount,
-            0u, 0u));
+            // Reuse this generic ring's metadata words to retain the sampled
+            // internal resolution, rather than reporting the current viewport
+            // after an asynchronous resize.
+            raycastPath_->getOutputWidth(), raycastPath_->getOutputHeight()));
     }
 
     // Submit commands
@@ -4316,6 +4344,15 @@ void Application::pollRenderGpuTimings() {
                 end - start) * tickToMilliseconds;
         }
     }
+    const uint64_t frameBegin = timestamps[kRenderGpuFrameBeginQuery];
+    const uint64_t frameEnd = timestamps[kRenderGpuFrameEndQuery];
+    timing.frameIntervalAvailable = frameBegin != 0u && frameEnd >= frameBegin;
+    if (timing.frameIntervalAvailable) {
+        timing.frameMilliseconds = static_cast<double>(frameEnd - frameBegin)
+            * tickToMilliseconds;
+    }
+    timing.renderWidth = raw->firstBody;
+    timing.renderHeight = raw->bodyCount;
     stats_.renderGpuTiming = timing;
     if (renderGpuTimingSampleCount_ == kRenderGpuTimingSampleCapacity) {
         renderGpuTimingSampleHead_ =

@@ -128,6 +128,14 @@ inline constexpr size_t kRenderGpuStageCount =
 struct RenderGpuStageTiming {
     uint64_t frame = 0;
     std::array<double, kRenderGpuStageCount> milliseconds{};
+    // Encloses all GPU work in this frame, including physics, optional moto,
+    // and gaps between passes. Excludes CPU encoding, presentation, and the
+    // profiling resolve/copy after the end marker. Never sum stage timings
+    // to substitute for this interval when judging a full-frame budget.
+    double frameMilliseconds = 0.0;
+    bool frameIntervalAvailable = false;
+    uint32_t renderWidth = 0;
+    uint32_t renderHeight = 0;
 };
 
 /// Controller mode selection

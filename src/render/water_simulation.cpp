@@ -906,9 +906,9 @@ bool WaterSimulation::createPipelines(const std::filesystem::path& shaderDirecto
     if (!fftPipelineLayout_) return false;
 
     evolvePipeline_ = createComputePipeline(device_, fftPipelineLayout_, fftShader_,
-                                            "evolve", "water_spectrum_evolve");
+                                            "evolveRows", "water_evolve_rows");
     fftPipeline_ = createComputePipeline(device_, fftPipelineLayout_, fftShader_,
-                                         "fftAxis", "water_inverse_fft");
+                                         "fftColumns", "water_inverse_fft_columns");
     if (!evolvePipeline_ || !fftPipeline_) return false;
 
     finalizeShader_ = gpu::loadShaderModule(device_, shaderDirectory / "water_finalize.wgsl",
@@ -1071,17 +1071,15 @@ void WaterSimulation::update(WGPUCommandEncoder encoder, float timeSeconds,
         return;
     }
 
-    constexpr uint32_t evolveGroups = (kElementCount + 255u) / 256u;
+    // The first FFT axis consumes the live evolved spectrum directly, avoiding
+    // an intermediate 4 MiB write and reread. No cadence or resolution change.
     wgpuComputePassEncoderSetPipeline(pass, evolvePipeline_);
     wgpuComputePassEncoderSetBindGroup(pass, 0, evolveBindGroup_, 0, nullptr);
-    wgpuComputePassEncoderDispatchWorkgroups(pass, evolveGroups, 1, 1);
+    wgpuComputePassEncoderDispatchWorkgroups(pass, RESOLUTION * CASCADE_COUNT, 1, 1);
 
     wgpuComputePassEncoderSetPipeline(pass, fftPipeline_);
-    for (WGPUBindGroup bindGroup : fftAxisBindGroups_) {
-        wgpuComputePassEncoderSetBindGroup(pass, 0, bindGroup, 0, nullptr);
-        wgpuComputePassEncoderDispatchWorkgroups(
-            pass, RESOLUTION * CASCADE_COUNT, 1, 1);
-    }
+    wgpuComputePassEncoderSetBindGroup(pass, 0, fftAxisBindGroups_[1], 0, nullptr);
+    wgpuComputePassEncoderDispatchWorkgroups(pass, RESOLUTION * CASCADE_COUNT, 1, 1);
 
     wgpuComputePassEncoderSetPipeline(pass, finalizePipeline_);
     wgpuComputePassEncoderSetBindGroup(pass, 0, finalizeBindGroup_, 0, nullptr);

@@ -69,17 +69,7 @@ fn mulWave(value : WaveData, twiddle : vec2<f32>) -> WaveData {
     return result;
 }
 
-@compute @workgroup_size(256, 1, 1)
-fn evolve(@builtin(global_invocation_id) gid : vec3<u32>) {
-    let n = params.size;
-    let layerStride = n * n;
-    let total = layerStride * CASCADE_COUNT;
-    let index = gid.x;
-    if (index >= total) { return; }
-
-    let cascade = index / layerStride;
-    let local = index - cascade * layerStride;
-    let initial = inputData[index];
+fn evolvedWave(initial : WaveData) -> WaveData {
     let omega = initial.padding.x;
     let phaseCosine = cos(omega * params.time);
     let phaseSine = sin(omega * params.time) * params.directionalSineScale;
@@ -96,7 +86,20 @@ fn evolve(@builtin(global_invocation_id) gid : vec3<u32>) {
     result.displacementZ = vec2<f32>(c * normalizedK.y,
                                      -b * normalizedK.y);
     result.padding = vec2<f32>(0.0);
-    outputData[index] = result;
+    return result;
+}
+
+@compute @workgroup_size(256, 1, 1)
+fn evolve(@builtin(global_invocation_id) gid : vec3<u32>) {
+    let n = params.size;
+    let layerStride = n * n;
+    let total = layerStride * CASCADE_COUNT;
+    let index = gid.x;
+    if (index >= total) { return; }
+
+    let cascade = index / layerStride;
+    let local = index - cascade * layerStride;
+    outputData[index] = evolvedWave(inputData[index]);
 }
 
 @compute @workgroup_size(256, 1, 1)
@@ -140,4 +143,74 @@ fn fftAxis(@builtin(local_invocation_id) lid : vec3<u32>,
         writeCoord = writeCoord.yx;
     }
     outputData[base + writeCoord.y * n + writeCoord.x] = lineData[sample];
+}
+
+
+// Fuse two radix-2 stages at a time. Each invocation owns four independent
+// outputs, retaining the reference butterfly operation order and twiddles.
+// 64 useful lanes replace 256 lanes (half idle during each old butterfly).
+// Shared-memory traffic and stage barriers are halved; storage layout is intact.
+fn fftPairedStages(sample : u32) {
+    workgroupBarrier();
+    for (var stage = 0u; stage < 8u; stage += 2u) {
+        let halfSpan = 1u << stage;
+        let j = sample & (halfSpan - 1u);
+        let i0 = (sample / halfSpan) * (halfSpan * 4u) + j;
+        let i1 = i0 + halfSpan;
+        let i2 = i1 + halfSpan;
+        let i3 = i2 + halfSpan;
+        let twiddle0 = twiddleData[halfSpan - 1u + j];
+        let a = lineData[i0];
+        let b = mulWave(lineData[i1], twiddle0);
+        let c = lineData[i2];
+        let d = mulWave(lineData[i3], twiddle0);
+        let even0 = addWave(a, b);
+        let odd0 = subWave(a, b);
+        let even1 = mulWave(addWave(c, d),
+            twiddleData[halfSpan * 2u - 1u + j]);
+        let odd1 = mulWave(subWave(c, d),
+            twiddleData[halfSpan * 3u - 1u + j]);
+        lineData[i0] = addWave(even0, even1);
+        lineData[i1] = addWave(odd0, odd1);
+        lineData[i2] = subWave(even0, even1);
+        lineData[i3] = subWave(odd0, odd1);
+        workgroupBarrier();
+    }
+}
+
+// The first axis reads the immutable spectrum directly. It never writes the
+// evolved field to storage just to read it back immediately in the row FFT.
+// Dispatch 256 rows * 2 cascades, with the LIVE simulation uniform buffer.
+@compute @workgroup_size(64, 1, 1)
+fn evolveRows(@builtin(local_invocation_id) lid : vec3<u32>,
+              @builtin(workgroup_id) wid : vec3<u32>) {
+    if (wid.x >= 512u || params.size != 256u) { return; }
+    let base = wid.x * 256u;
+    for (var block = 0u; block < 4u; block += 1u) {
+        let sample = lid.x + block * 64u;
+        lineData[sample] = evolvedWave(inputData[base + bitReverse8(sample)]);
+    }
+    fftPairedStages(lid.x);
+    for (var block = 0u; block < 4u; block += 1u) {
+        let sample = lid.x + block * 64u;
+        outputData[base + sample] = lineData[sample];
+    }
+}
+
+@compute @workgroup_size(64, 1, 1)
+fn fftColumns(@builtin(local_invocation_id) lid : vec3<u32>,
+               @builtin(workgroup_id) wid : vec3<u32>) {
+    if (wid.x >= 512u || params.size != 256u) { return; }
+    let cascade = wid.x / 256u;
+    let column = wid.x % 256u;
+    let base = cascade * 256u * 256u + column;
+    for (var block = 0u; block < 4u; block += 1u) {
+        let sample = lid.x + block * 64u;
+        lineData[sample] = outputData[base + bitReverse8(sample) * 256u];
+    }
+    fftPairedStages(lid.x);
+    for (var block = 0u; block < 4u; block += 1u) {
+        let sample = lid.x + block * 64u;
+        outputData[base + sample * 256u] = lineData[sample];
+    }
 }
