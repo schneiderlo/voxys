@@ -155,6 +155,10 @@ public:
         wgpuComputePassEncoderSetBindGroup(pass.get(), 0u, group.get(), 0u, nullptr);
         wgpuComputePassEncoderDispatchWorkgroups(pass.get(), 2u, 2u, 1u);
         wgpuComputePassEncoderEnd(pass.get());
+        // wgpu-native retains the command buffer through a live pass handle.
+        // End recording AND release that handle before finish/submit.
+        // This is host object lifetime management, not a GPU wait.
+        wgpuComputePassEncoderRelease(pass.release());
         WGPUCommandBufferDescriptor commandsDescriptor{};
         GradientBakeHandle<WGPUCommandBuffer, wgpuCommandBufferRelease> commands(
             wgpuCommandEncoderFinish(encoder.get(), &commandsDescriptor));

@@ -99,6 +99,16 @@ class PeriodicGradientLutTest(unittest.TestCase):
             self.assertIn('let cd = textureLoad(periodicGradientLut, coordinate + vec2<i32>(1, 0), 0)', source)
             self.assertIn('return fract(sin(phase) * 43758.5453123)', source)
 
+    def test_bake_pass_released_before_submission(self):
+        source=(ROOT / 'src/render/periodic_gradient_lut.hpp').read_text()
+        end=source.index('wgpuComputePassEncoderEnd(pass.get())')
+        release=source.index('wgpuComputePassEncoderRelease(pass.release())')
+        finish=source.index('wgpuCommandEncoderFinish(encoder.get()')
+        submit=source.index('wgpuQueueSubmit(queue')
+        self.assertLess(end,release)
+        self.assertLess(release,finish)
+        self.assertLess(finish,submit)
+
     def test_background_timing_is_not_silently_excluded(self):
         source = (ROOT/'src/render/blit_path.cpp').read_text()
         self.assertIn('"blit_static_background_pass", true, false, true)', source)
