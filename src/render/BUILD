@@ -73,6 +73,7 @@ cc_library(
     srcs = [
         "blit_path.cpp",
         "debug_visualizer.cpp",
+        "mesh_path.cpp",
         "primitive_gpu_culling.cpp",
         "raycast_path.cpp",
         "primitive_path.cpp",
@@ -82,6 +83,7 @@ cc_library(
         "blit_path.hpp",
         "periodic_gradient_lut.hpp",
         "debug_visualizer.hpp",
+        "mesh_path.hpp",
         "primitive_gpu_culling.hpp",
         "primitive_material.hpp",
         "raycast_path.hpp",
@@ -100,6 +102,7 @@ cc_library(
         "//src/camera:camera",
         "//src/core:core",
         "//src/gpu:gpu",
+        "//src/moto:moto",
         "//src/physics:physics",
         "//src/terrain:terrain",
     ],

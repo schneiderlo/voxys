@@ -227,6 +227,136 @@ body {
     box-shadow: 0 2px 0 var(--color-accent-dim);
 }
 
+/* RIDGEBREAK ride HUD. It deliberately avoids a full opaque panel so the
+   terrain and bike remain the visual priority. */
+#ridgebreak-hud {
+    position: fixed;
+    right: 30px;
+    bottom: 28px;
+    z-index: 90;
+    width: 250px;
+    padding: 15px 18px 13px;
+    color: #fff;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(8px);
+    background:
+        linear-gradient(115deg, rgba(8, 12, 12, 0.9), rgba(8, 12, 12, 0.48)),
+        linear-gradient(90deg, #e8ff38, transparent 45%);
+    border-left: 3px solid #e8ff38;
+    clip-path: polygon(0 0, 100% 0, 94% 100%, 0 100%);
+    filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.36));
+    transition: opacity 180ms ease, transform 180ms ease;
+}
+
+#ridgebreak-hud.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+body.ridgebreak-active .physics-backend-switcher,
+body.ridgebreak-active #fullscreen-btn,
+body.ridgebreak-active #renderer-inspector .ri-launcher {
+    opacity: 0;
+    pointer-events: none;
+}
+
+body.ridgebreak-playing .controls-hint {
+    opacity: 0;
+    transform: translateX(-12px);
+    pointer-events: none;
+}
+
+.controls-hint,
+.physics-backend-switcher,
+#fullscreen-btn,
+#renderer-inspector .ri-launcher {
+    transition: opacity 240ms ease, transform 240ms ease;
+}
+
+.rb-hud-brand {
+    display: flex;
+    justify-content: space-between;
+    margin-right: 14px;
+    color: #e8ff38;
+    font: 800 10px/1 var(--font-sans);
+    letter-spacing: 0.22em;
+}
+
+#rb-mode {
+    color: rgba(255, 255, 255, 0.72);
+    letter-spacing: 0.12em;
+}
+
+.rb-hud-speed-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-top: 1px;
+}
+
+#rb-speed {
+    font: 900 52px/0.96 var(--font-sans);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.055em;
+}
+
+.rb-hud-unit,
+.rb-hud-details,
+.rb-hud-score-row {
+    font: 700 10px/1.2 var(--font-mono);
+    letter-spacing: 0.09em;
+}
+
+.rb-hud-details,
+.rb-hud-score-row {
+    display: flex;
+    justify-content: space-between;
+    margin-right: 14px;
+    color: rgba(255, 255, 255, 0.72);
+}
+
+.rb-hud-details strong,
+.rb-hud-score-row strong,
+#rb-combo {
+    color: #fff;
+}
+
+.rb-hud-race-row {
+    display: flex;
+    justify-content: space-between;
+    margin: 9px 14px 0 0;
+    padding-top: 8px;
+    color: #e8ff38;
+    border-top: 1px solid rgba(232, 255, 56, 0.34);
+    font: 800 11px/1.2 var(--font-mono);
+    letter-spacing: 0.08em;
+}
+
+.rb-hud-race-row[hidden] {
+    display: none;
+}
+
+.rb-hud-race-row span {
+    color: rgba(255, 255, 255, 0.82);
+}
+
+.rb-hud-rpm {
+    height: 3px;
+    margin: 7px 14px 7px 0;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.14);
+}
+
+.rb-hud-rpm i {
+    display: block;
+    width: 2%;
+    height: 100%;
+    background: #e8ff38;
+    box-shadow: 0 0 8px rgba(232, 255, 56, 0.7);
+    transition: width 50ms linear;
+}
+
 /* ─────────────────────────────────────────────────────────────────────────────
    Debug Overlay
    ───────────────────────────────────────────────────────────────────────────── */

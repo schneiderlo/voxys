@@ -64,7 +64,7 @@ class WorkReductionTests(unittest.TestCase):
                            'let gradientX = uvX - uv;', 'let gradientY = uvY - uv;']:
             self.assertIn(expression,RAY)
         self.assertNotIn('periodicNoiseFootprint',RAY)
-        self.assertNotIn('@binding(19)',RAY)
+        self.assertIn('@binding(19) var periodicGradientLut',RAY)
         self.assertNotIn('dpdx',RAY)
 
     def test_render_timestamps_cover_background_and_particles(self):

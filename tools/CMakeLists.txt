@@ -25,3 +25,22 @@ if(TARGET voxy_core)
     )
     set_project_warnings(platform_parity_probe)
 endif()
+
+# ─────────────────────────────────────────────────────────────────────────────
+# gltf_vmesh_tool - Offline glTF 2.0 -> .vmesh converter
+# ─────────────────────────────────────────────────────────────────────────────
+if(TARGET voxy_core AND TARGET tinygltf AND TARGET stb)
+    add_executable(gltf_vmesh_tool
+        gltf_vmesh_tool.cpp
+    )
+    target_link_libraries(gltf_vmesh_tool PRIVATE
+        voxy_core
+        tinygltf
+        stb
+    )
+    target_include_directories(gltf_vmesh_tool PRIVATE
+        ${CMAKE_SOURCE_DIR}/src
+        ${CMAKE_CURRENT_SOURCE_DIR}
+    )
+    set_project_warnings(gltf_vmesh_tool)
+endif()

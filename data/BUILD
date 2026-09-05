@@ -3,6 +3,12 @@ package(default_visibility = ["//visibility:public"])
 filegroup(
     name = "data",
     srcs = [
+        "moto/bike.glb",
+        "moto/bike.vmesh",
+        "moto/rider.glb",
+        "moto/rider.vmesh",
+        "moto/track.glb",
+        "moto/track.vmesh",
         "generated/ocean_environment.png",
         "generated/td_seed_1234_2048_albedo.jpg",
         "generated/td_seed_1234_8192.ldh",

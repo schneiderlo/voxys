@@ -16,12 +16,16 @@ enable_testing()
 # Test Sources
 # ─────────────────────────────────────────────────────────────────────────────
 set(TEST_SOURCES
+    test_bike.cpp
     test_log.cpp
     test_lockstep.cpp
     test_multiplayer_session.cpp
     test_native_tcp_transport.cpp
     test_networking.cpp
     test_replay.cpp
+    test_race.cpp
+    test_ridgebreak_authority.cpp
+    test_ridgebreak_server_runtime.cpp
     test_timer.cpp
     test_wreckwater_client_replication.cpp
     test_wreckwater_client_runtime.cpp
@@ -40,8 +44,10 @@ set(TEST_SOURCES
     test_window.cpp
     test_input.cpp
     test_heightmap.cpp
+    test_world.cpp
     test_compression.cpp
     test_mip_generator.cpp
+    test_moto_session.cpp
     test_camera.cpp
     test_controller.cpp
     test_character_controller.cpp
@@ -78,7 +84,8 @@ if(TARGET wgpu::webgpu OR TARGET dawn::webgpu)
         test_blit_path.cpp
         test_water_simulation.cpp
         test_debug_visualizer.cpp
-        test_mip_pipeline.cpp
+    test_mip_pipeline.cpp
+        test_mesh_path.cpp
         test_primitive_path.cpp
         test_primitive_gpu_culling.cpp
         test_primitive_culling.cpp
@@ -454,6 +461,41 @@ gtest_discover_tests(wreckwater_client_visual_clock_tests
 gtest_discover_tests(voxy_tests
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     DISCOVERY_MODE PRE_TEST
+)
+# Offline glTF -> .vmesh converter test. Compiles the tool with main() disabled
+# and links it against the core/stb/tinygltf closure.
+add_executable(gltf_vmesh_tool_tests
+    test_gltf_vmesh_tool.cpp
+    ${CMAKE_SOURCE_DIR}/tools/gltf_vmesh_tool.cpp
+)
+
+target_link_libraries(gltf_vmesh_tool_tests PRIVATE
+    voxy_core
+    tinygltf
+    stb
+    gtest
+    gtest_main
+)
+
+target_include_directories(gltf_vmesh_tool_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/tools
+)
+
+target_compile_definitions(gltf_vmesh_tool_tests PRIVATE
+    GLTF_VMESH_TOOL_NO_MAIN
+)
+
+if(NOT EMSCRIPTEN)
+    target_compile_definitions(gltf_vmesh_tool_tests PRIVATE VOXY_NATIVE=1)
+endif()
+
+set_project_warnings(gltf_vmesh_tool_tests)
+
+gtest_discover_tests(gltf_vmesh_tool_tests
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    DISCOVERY_MODE PRE_TEST
+    TEST_PREFIX "gltf_vmesh_tool."
 )
 
 # ─────────────────────────────────────────────────────────────────────────────

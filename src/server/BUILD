@@ -2,7 +2,34 @@ package(default_visibility = ["//visibility:public"])
 
 load("//settings:configure_copts.bzl", "PROJECT_DEFAULT_COPTS")
 
-exports_files(["wreckwater_server_main.cpp"])
+exports_files([
+    "ridgebreak_server_main.cpp",
+    "wreckwater_server_main.cpp",
+])
+
+cc_library(
+    name = "ridgebreak_authority",
+    srcs = ["ridgebreak_authority.cpp"],
+    hdrs = ["ridgebreak_authority.hpp"],
+    copts = PROJECT_DEFAULT_COPTS,
+    includes = [".."],
+    deps = [
+        "//src/network:protocol",
+        "//src/network:ridgebreak_protocol",
+    ],
+)
+
+cc_library(
+    name = "ridgebreak_server_runtime",
+    srcs = ["ridgebreak_server_runtime.cpp"],
+    hdrs = ["ridgebreak_server_runtime.hpp"],
+    copts = PROJECT_DEFAULT_COPTS,
+    includes = [".."],
+    deps = [
+        ":ridgebreak_authority",
+        "//src/network:protocol",
+    ],
+)
 
 cc_library(
     name = "wreckwater_authority_runtime",
@@ -63,6 +90,8 @@ cc_library(
     copts = PROJECT_DEFAULT_COPTS,
     includes = [".."],
     deps = [
+        ":ridgebreak_authority",
+        ":ridgebreak_server_runtime",
         ":wreckwater_authority_runtime",
         "//src/network:network",
         "//src/physics:physics",

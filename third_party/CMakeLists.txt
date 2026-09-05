@@ -162,6 +162,19 @@ if(NOT EMSCRIPTEN)
 endif()
 
 # ─────────────────────────────────────────────────────────────────────────────
+# tinygltf - glTF 2.0 loader (native tooling only)
+# https://github.com/syoyo/tinygltf
+# ─────────────────────────────────────────────────────────────────────────────
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tinygltf/tiny_gltf.h")
+    add_library(tinygltf STATIC "${CMAKE_CURRENT_SOURCE_DIR}/tinygltf/tiny_gltf.cc")
+    target_include_directories(tinygltf SYSTEM PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/tinygltf")
+    target_compile_definitions(tinygltf PUBLIC TINYGLTF_NO_STB_IMAGE TINYGLTF_NO_STB_IMAGE_WRITE)
+    message(STATUS "  tinygltf: Found")
+else()
+    message(STATUS "  tinygltf: Not found")
+endif()
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Google Test - Testing Framework
 # https://github.com/google/googletest
 # ─────────────────────────────────────────────────────────────────────────────

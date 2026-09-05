@@ -21,6 +21,7 @@ cc_library(
         "//src/client:wreckwater_application_client",
         "//src/core:core",
         "//src/gpu:gpu",
+        "//src/moto:moto",
         "//src/network:native_tcp_transport",
         "//src/perf:perf",
         "//src/physics:physics",

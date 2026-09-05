@@ -78,6 +78,7 @@ bool validConfig(
 
 struct ScheduledFrame {
     bool occupied = false;
+    bool latestRealtime = false;
     uint32_t peerId = 0u;
     uint64_t connectionSerial = 0u;
     DeliveryClass delivery = DeliveryClass::Realtime;
@@ -92,6 +93,7 @@ struct PeerLane {
     bool assigned = false;
     uint32_t peerId = 0u;
     uint64_t connectionSerial = 0u;
+    uint64_t proposedConnectionSerial = 0u;
     uint64_t incomingOrderedTail = 0u;
     uint64_t outgoingOrderedTail = 0u;
     uint64_t connectedDueQuantum = 0u;
@@ -118,6 +120,7 @@ uint64_t occupiedCount(
 
 void clearFrame(ScheduledFrame& frame) noexcept {
     frame.occupied = false;
+    frame.latestRealtime = false;
     frame.peerId = 0u;
     frame.connectionSerial = 0u;
     frame.delivery = DeliveryClass::Realtime;
@@ -357,9 +360,11 @@ struct DeterministicAdversityTransport::State {
         ScheduledFrame& scheduled, uint32_t peerId,
         uint64_t connectionSerial, DeliveryClass delivery,
         std::span<const std::byte> bytes,
-        uint64_t due, uint64_t ticket) noexcept {
+        uint64_t due, uint64_t ticket,
+        bool latestRealtime = false) noexcept {
         if (bytes.size() > config.maximumFrameBytes) return false;
         scheduled.occupied = true;
+        scheduled.latestRealtime = latestRealtime;
         scheduled.peerId = peerId;
         scheduled.connectionSerial = connectionSerial;
         scheduled.delivery = delivery;
@@ -497,6 +502,30 @@ struct DeterministicAdversityTransport::State {
                         LifecycleCapacityExceeded
                     : DeterministicAdversityTransportError::
                         ScheduleSequenceExhausted);
+        }
+    }
+
+    void ingestConnectionRequest(
+        PeerLane& lane,
+        const MultiplayerTransportFrame& frame) noexcept {
+        if (frame.connectionSerial == 0u || !frame.bytes.empty()
+            || (lane.proposedConnectionSerial != 0u
+                && lane.proposedConnectionSerial
+                    != frame.connectionSerial)) {
+            fault(DeterministicAdversityTransportError::InvalidLifecycleFrame);
+            return;
+        }
+        lane.proposedConnectionSerial = frame.connectionSerial;
+        uint64_t due = 0u;
+        bool reordered = false;
+        if (!computeDue(
+                config.incoming, lane.incomingOrderedTail,
+                false, due, reordered)) return;
+        lane.incomingOrderedTail = std::max(lane.incomingOrderedTail, due);
+        if (!scheduleIncomingCopy(lane, frame, due, false)) {
+            fault(scheduleSequenceAvailable
+                ? DeterministicAdversityTransportError::LifecycleCapacityExceeded
+                : DeterministicAdversityTransportError::ScheduleSequenceExhausted);
         }
     }
 
@@ -672,6 +701,9 @@ struct DeterministicAdversityTransport::State {
             return;
         }
         switch (frame.type) {
+            case MultiplayerTransportFrameType::ConnectionRequested:
+                ingestConnectionRequest(*peerLane, frame);
+                return;
             case MultiplayerTransportFrameType::Connected:
                 ingestConnected(*peerLane, frame);
                 return;
@@ -690,7 +722,8 @@ struct DeterministicAdversityTransport::State {
     [[nodiscard]] bool send(
         uint32_t peerId, uint64_t connectionSerial,
         DeliveryClass delivery,
-        std::span<const std::byte> bytes) noexcept {
+        std::span<const std::byte> bytes,
+        bool latestRealtime = false) noexcept {
         if (isClosed || isFaulted
             || bytes.size() > config.maximumFrameBytes) {
             incrementSaturated(telemetry.outboundBackpressure);
@@ -706,6 +739,16 @@ struct DeterministicAdversityTransport::State {
             && connectionSerial != peerLane->connectionSerial) {
             incrementSaturated(telemetry.outboundBackpressure);
             return false;
+        }
+        if (latestRealtime) {
+            for (ScheduledFrame& queued : peerLane->outgoing) {
+                if (!queued.occupied || !queued.latestRealtime) continue;
+                --peerLane->outboundDataCount;
+                --outboundQueued;
+                incrementSaturated(
+                    telemetry.outboundRealtimeSupersessions);
+                clearFrame(queued);
+            }
         }
         if (peerLane->outboundDataCount
             >= config.maximumQueuedDataFramesPerPeer
@@ -739,7 +782,7 @@ struct DeterministicAdversityTransport::State {
         }
         if (!fillScheduled(
                 *slot, peerId, connectionSerial,
-                delivery, bytes, due, ticket)) {
+                delivery, bytes, due, ticket, latestRealtime)) {
             incrementSaturated(telemetry.outboundBackpressure);
             return false;
         }
@@ -783,7 +826,7 @@ struct DeterministicAdversityTransport::State {
         if (!fillScheduled(
                 *duplicateSlot, peerId, connectionSerial,
                 delivery, bytes, duplicateDue,
-                duplicateTicket)) {
+                duplicateTicket, latestRealtime)) {
             incrementSaturated(
                 telemetry.outboundDuplicateSuppressions);
             return true;
@@ -841,7 +884,10 @@ struct DeterministicAdversityTransport::State {
             ScheduledFrame* frame = nextDueOutgoing(owner);
             if (frame == nullptr || owner == nullptr) return;
             const bool accepted =
-                frame->connectionSerial == 0u
+                frame->latestRealtime
+                ? underlying->sendLatestRealtime(
+                    frame->peerId, frame->connectionSerial, frame->bytes)
+                : frame->connectionSerial == 0u
                 ? underlying->send(
                     frame->peerId, frame->delivery, frame->bytes)
                 : underlying->send(
@@ -948,7 +994,8 @@ struct DeterministicAdversityTransport::State {
             if (scheduled->type
                     == MultiplayerTransportFrameType::Connected) {
                 owner->connectedDelivered = true;
-            } else {
+            } else if (scheduled->type
+                       == MultiplayerTransportFrameType::Disconnected) {
                 owner->connectedDelivered = false;
             }
         }
@@ -1005,6 +1052,7 @@ void mergeDeterministicAdversityTransportTelemetry(
     VOXY_MERGE_ADVERSITY_COUNTER(outboundFramesDelivered);
     VOXY_MERGE_ADVERSITY_COUNTER(inboundRealtimeDrops);
     VOXY_MERGE_ADVERSITY_COUNTER(outboundRealtimeDrops);
+    VOXY_MERGE_ADVERSITY_COUNTER(outboundRealtimeSupersessions);
     VOXY_MERGE_ADVERSITY_COUNTER(
         inboundRealtimeDisconnectRecoveries);
     VOXY_MERGE_ADVERSITY_COUNTER(inboundDuplicatesQueued);
@@ -1103,7 +1151,7 @@ bool DeterministicAdversityTransport::send(
     uint32_t peerId, DeliveryClass delivery,
     std::span<const std::byte> bytes) {
     return state_
-        && state_->send(peerId, 0u, delivery, bytes);
+        && state_->send(peerId, 0u, delivery, bytes, false);
 }
 
 bool DeterministicAdversityTransport::send(
@@ -1111,7 +1159,43 @@ bool DeterministicAdversityTransport::send(
     DeliveryClass delivery, std::span<const std::byte> bytes) {
     return state_
         && state_->send(
-            peerId, connectionSerial, delivery, bytes);
+            peerId, connectionSerial, delivery, bytes, false);
+}
+
+bool DeterministicAdversityTransport::sendLatestRealtime(
+    uint32_t peerId, uint64_t connectionSerial,
+    std::span<const std::byte> bytes) {
+    return state_
+        && state_->send(
+            peerId, connectionSerial, DeliveryClass::Realtime,
+            bytes, true);
+}
+
+bool DeterministicAdversityTransport::acceptConnection(
+    uint32_t peerId, uint64_t connectionSerial) {
+    if (!state_ || state_->isClosed || state_->isFaulted) return false;
+    PeerLane* lane = state_->lane(peerId, false);
+    if (lane == nullptr
+        || lane->proposedConnectionSerial != connectionSerial
+        || !state_->underlying->acceptConnection(peerId, connectionSerial)) {
+        return false;
+    }
+    state_->purgeLane(*lane);
+    lane->connectionSerial = connectionSerial;
+    lane->connectedSeen = true;
+    lane->connectedDelivered = true;
+    lane->proposedConnectionSerial = 0u;
+    return true;
+}
+
+void DeterministicAdversityTransport::rejectConnection(
+    uint32_t peerId, uint64_t connectionSerial) {
+    if (!state_ || state_->isClosed) return;
+    PeerLane* lane = state_->lane(peerId, false);
+    if (lane == nullptr
+        || lane->proposedConnectionSerial != connectionSerial) return;
+    state_->underlying->rejectConnection(peerId, connectionSerial);
+    lane->proposedConnectionSerial = 0u;
 }
 
 std::optional<MultiplayerTransportFrame>

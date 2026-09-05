@@ -65,6 +65,7 @@ enum class ParseDisposition {
 enum class ConnectionPhase {
     AwaitingHello,
     AwaitingAccepted,
+    AwaitingAdmission,
     Authenticated,
 };
 
@@ -78,6 +79,7 @@ struct QueuedWrite {
     std::vector<std::byte> bytes;
     size_t offset = 0u;
     bool dataFrame = false;
+    bool latestRealtime = false;
 };
 
 struct SocketConnection {
@@ -417,7 +419,8 @@ bool wouldBlock(int error) noexcept {
 bool queueWrite(
     SocketConnection& connection, std::vector<std::byte> bytes,
     bool dataFrame, const NativeTcpTransportLimits& limits,
-    NativeTcpTransportTelemetry& telemetry) {
+    NativeTcpTransportTelemetry& telemetry,
+    bool latestRealtime = false) {
     if (bytes.empty()
         || connection.writes.size()
             >= limits.maximumQueuedFramesPerPeer
@@ -431,8 +434,27 @@ bool queueWrite(
     ++telemetry.queuedOutboundFrames;
     telemetry.queuedOutboundBytes += bytes.size();
     connection.writes.push_back(
-        {std::move(bytes), 0u, dataFrame});
+        {std::move(bytes), 0u, dataFrame, latestRealtime});
     return true;
+}
+
+void discardSupersededRealtimeWrites(
+    SocketConnection& connection,
+    NativeTcpTransportTelemetry& telemetry) noexcept {
+    for (auto iterator = connection.writes.begin();
+         iterator != connection.writes.end();) {
+        if (!iterator->latestRealtime || iterator->offset != 0u) {
+            ++iterator;
+            continue;
+        }
+        const size_t bytes = iterator->bytes.size();
+        connection.queuedWriteBytes -= bytes;
+        --telemetry.queuedOutboundFrames;
+        telemetry.queuedOutboundBytes -= bytes;
+        ++telemetry.supersededOutboundFrames;
+        telemetry.supersededOutboundBytes += bytes;
+        iterator = connection.writes.erase(iterator);
+    }
 }
 
 void discardWrites(
@@ -1005,6 +1027,36 @@ struct NativeTcpServerTransport::State {
         ++reservedLifecycleEvents;
     }
 
+    void publishConnectionRequest(SocketConnection& connection) {
+        queueLifecycle(
+            MultiplayerTransportFrameType::ConnectionRequested,
+            connection.peerId, connection.serial);
+        connection.disconnectEventReserved = true;
+        ++reservedLifecycleEvents;
+    }
+
+    void releaseDisconnectReservation(SocketConnection& connection) noexcept {
+        if (!connection.disconnectEventReserved) return;
+        connection.disconnectEventReserved = false;
+        if (reservedLifecycleEvents != 0u) --reservedLifecycleEvents;
+    }
+
+    void cancelConnectionRequest(SocketConnection& connection) noexcept {
+        for (auto iterator = inbound.begin(); iterator != inbound.end();) {
+            if (iterator->frame.type
+                    != MultiplayerTransportFrameType::ConnectionRequested
+                || iterator->frame.peerId != connection.peerId
+                || iterator->frame.connectionSerial != connection.serial) {
+                ++iterator;
+                continue;
+            }
+            if (telemetry.queuedLifecycleEvents != 0u)
+                --telemetry.queuedLifecycleEvents;
+            iterator = inbound.erase(iterator);
+        }
+        releaseDisconnectReservation(connection);
+    }
+
     void publishDisconnected(SocketConnection& connection) {
         if (!connection.disconnectEventReserved
             || reservedLifecycleEvents == 0u) {
@@ -1126,15 +1178,24 @@ struct NativeTcpServerTransport::State {
                 return ParseDisposition::Fatal;
             }
             connection.peerId = peerId;
-            connection.phase = ConnectionPhase::Authenticated;
-            if (!queueWrite(
-                    connection,
-                    makeAccepted(
-                        peerId, connection.serial,
-                        config.expectedContentDigest),
-                    false,
-                    config.limits, telemetry)) {
-                return ParseDisposition::Fatal;
+            if (config.requireExplicitAdmission) {
+                if (!canReserveConnectionLifecycle()) {
+                    ++telemetry.lifecycleBackpressure;
+                    return ParseDisposition::Fatal;
+                }
+                connection.phase = ConnectionPhase::AwaitingAdmission;
+                publishConnectionRequest(connection);
+            } else {
+                connection.phase = ConnectionPhase::Authenticated;
+                if (!queueWrite(
+                        connection,
+                        makeAccepted(
+                            peerId, connection.serial,
+                            config.expectedContentDigest),
+                        false,
+                        config.limits, telemetry)) {
+                    return ParseDisposition::Fatal;
+                }
             }
             // Promote before parsing a coalesced Data frame so Connected is
             // always observable first.
@@ -1217,6 +1278,73 @@ struct NativeTcpServerTransport::State {
         telemetry.peakConnectedPeers = std::max<uint64_t>(
             telemetry.peakConnectedPeers,
             active.size());
+    }
+
+    [[nodiscard]] bool acceptPending(
+        uint32_t peerId, uint64_t serial) {
+        const auto candidate = std::find_if(
+            pending.begin(), pending.end(),
+            [peerId, serial](const SocketConnection& connection) {
+                return connection.phase == ConnectionPhase::AwaitingAdmission
+                    && connection.peerId == peerId
+                    && connection.serial == serial;
+            });
+        if (candidate == pending.end()) return false;
+        if (!queueWrite(
+                *candidate,
+                makeAccepted(peerId, serial, config.expectedContentDigest),
+                false, config.limits, telemetry)) {
+            return false;
+        }
+
+        SocketConnection accepted = std::move(*candidate);
+        pending.erase(candidate);
+        accepted.phase = ConnectionPhase::Authenticated;
+        removeInboundDataForPeer(peerId);
+
+        auto activePosition = std::lower_bound(
+            active.begin(), active.end(), peerId,
+            [](const SocketConnection& connection, uint32_t id) {
+                return connection.peerId < id;
+            });
+        const bool replacing = activePosition != active.end()
+            && activePosition->peerId == peerId;
+        if (replacing) {
+            // Authority has atomically accepted the new lifetime. Retire the
+            // old socket without publishing a contradictory intermediate
+            // disconnect to the already-committed authority session.
+            releaseDisconnectReservation(*activePosition);
+            discardConnection(*activePosition, telemetry);
+            *activePosition = std::move(accepted);
+            ++telemetry.disconnectedPeers;
+            ++telemetry.reconnects;
+        } else {
+            active.insert(activePosition, std::move(accepted));
+        }
+        const auto prior = std::lower_bound(
+            authenticatedBefore.begin(), authenticatedBefore.end(), peerId);
+        if (prior == authenticatedBefore.end() || *prior != peerId)
+            authenticatedBefore.insert(prior, peerId);
+        ++telemetry.authenticatedConnections;
+        telemetry.connectedPeers = static_cast<uint32_t>(active.size());
+        telemetry.peakConnectedPeers = std::max<uint64_t>(
+            telemetry.peakConnectedPeers, active.size());
+        return true;
+    }
+
+    void rejectPending(uint32_t peerId, uint64_t serial) noexcept {
+        const auto candidate = std::find_if(
+            pending.begin(), pending.end(),
+            [peerId, serial](const SocketConnection& connection) {
+                return connection.phase == ConnectionPhase::AwaitingAdmission
+                    && connection.peerId == peerId
+                    && connection.serial == serial;
+            });
+        if (candidate == pending.end()) return;
+        releaseDisconnectReservation(*candidate);
+        discardConnection(*candidate, telemetry);
+        pending.erase(candidate);
+        ++telemetry.rejectedSockets;
     }
 
     void acceptSockets() {
@@ -1309,6 +1437,8 @@ struct NativeTcpServerTransport::State {
                             connection, header, payload);
                     });
             if (!alive) {
+                if (connection.phase == ConnectionPhase::AwaitingAdmission)
+                    cancelConnectionRequest(connection);
                 discardConnection(connection, telemetry);
                 pending.erase(
                     pending.begin()
@@ -1455,6 +1585,38 @@ bool NativeTcpServerTransport::send(
         makeWireFrame(
             WireKind::Data, wireDelivery(delivery), bytes),
         true, state_->config.limits, state_->telemetry);
+}
+
+bool NativeTcpServerTransport::sendLatestRealtime(
+    uint32_t peerId, uint64_t connectionSerial,
+    std::span<const std::byte> bytes) {
+    if (!state_ || state_->closed || connectionSerial == 0u
+        || !validPayloadSize(
+            DeliveryClass::Realtime, bytes.size(), state_->config.limits)) {
+        if (state_) ++state_->telemetry.outboundBackpressure;
+        return false;
+    }
+    SocketConnection* connection = state_->connection(peerId);
+    if (connection == nullptr
+        || connection->serial != connectionSerial) return false;
+    discardSupersededRealtimeWrites(*connection, state_->telemetry);
+    return queueWrite(
+        *connection,
+        makeWireFrame(
+            WireKind::Data, wireDelivery(DeliveryClass::Realtime), bytes),
+        true, state_->config.limits, state_->telemetry, true);
+}
+
+bool NativeTcpServerTransport::acceptConnection(
+    uint32_t peerId, uint64_t connectionSerial) {
+    return state_ && !state_->closed
+        && state_->acceptPending(peerId, connectionSerial);
+}
+
+void NativeTcpServerTransport::rejectConnection(
+    uint32_t peerId, uint64_t connectionSerial) {
+    if (state_ && !state_->closed)
+        state_->rejectPending(peerId, connectionSerial);
 }
 
 bool NativeTcpServerTransport::send(
@@ -1959,6 +2121,14 @@ bool NativeTcpServerTransport::send(
     std::span<const std::byte>) {
     return false;
 }
+bool NativeTcpServerTransport::sendLatestRealtime(
+    uint32_t, uint64_t, std::span<const std::byte>) {
+    return false;
+}
+bool NativeTcpServerTransport::acceptConnection(uint32_t, uint64_t) {
+    return false;
+}
+void NativeTcpServerTransport::rejectConnection(uint32_t, uint64_t) {}
 std::optional<MultiplayerTransportFrame>
 NativeTcpServerTransport::poll() {
     return std::nullopt;

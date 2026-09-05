@@ -466,12 +466,12 @@ TEST(NetworkPrediction, RejectedUpdatesPreserveTheWorkingTick) {
     EXPECT_EQ(prediction.snapshot().stateHash, initialHash);
 
     auto malformed = initial;
-    malformed[1].sectorRadius[3] = 0;
+    malformed.at(1u).sectorRadius[3] = 0;
     EXPECT_FALSE(prediction.initialize(config, 2u, 1u, 1u, malformed));
     EXPECT_EQ(prediction.currentTick(), 0u);
     EXPECT_EQ(prediction.snapshot().stateHash, initialHash);
     auto overCapacity = initial;
-    overCapacity[2] = body(2u, 4'096, 8'192);
+    overCapacity.at(2u) = body(2u, 4'096, 8'192);
     auto limited = config;
     limited.maximumPredictedBodies = 1u;
     EXPECT_FALSE(prediction.initialize(

@@ -60,6 +60,7 @@ struct DeterministicAdversityTransportTelemetry {
     uint64_t outboundFramesDelivered = 0u;
     uint64_t inboundRealtimeDrops = 0u;
     uint64_t outboundRealtimeDrops = 0u;
+    uint64_t outboundRealtimeSupersessions = 0u;
     uint64_t inboundRealtimeDisconnectRecoveries = 0u;
     uint64_t inboundDuplicatesQueued = 0u;
     uint64_t outboundDuplicatesQueued = 0u;
@@ -120,6 +121,13 @@ public:
         uint32_t peerId, uint64_t connectionSerial,
         DeliveryClass delivery,
         std::span<const std::byte> bytes) override;
+    [[nodiscard]] bool sendLatestRealtime(
+        uint32_t peerId, uint64_t connectionSerial,
+        std::span<const std::byte> bytes) override;
+    [[nodiscard]] bool acceptConnection(
+        uint32_t peerId, uint64_t connectionSerial) override;
+    void rejectConnection(
+        uint32_t peerId, uint64_t connectionSerial) override;
     [[nodiscard]] std::optional<MultiplayerTransportFrame> poll() override;
     void close() override;
 

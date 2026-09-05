@@ -1,5 +1,40 @@
 package(default_visibility = ["//visibility:public"])
 
+load("//settings:configure_copts.bzl", "PROJECT_DEFAULT_COPTS")
+
+# Offline glTF 2.0 -> .vmesh converter. The library form exposes
+# convertGltfBytesToVmesh() without a main() so tests can drive it in-memory.
+cc_library(
+    name = "gltf_vmesh_tool_lib",
+    srcs = ["gltf_vmesh_tool.cpp"],
+    hdrs = ["gltf_vmesh_tool.hpp"],
+    copts = PROJECT_DEFAULT_COPTS,
+    defines = ["GLTF_VMESH_TOOL_NO_MAIN"],
+    includes = ["."],
+    deps = [
+        "//src/core:core",
+        "//src/moto:moto",
+        "//third_party:stb",
+        "//third_party:tinygltf",
+    ],
+)
+
+cc_binary(
+    name = "gltf_vmesh_tool",
+    srcs = [
+        "gltf_vmesh_tool.cpp",
+        "gltf_vmesh_tool.hpp",
+    ],
+    copts = PROJECT_DEFAULT_COPTS,
+    includes = ["."],
+    deps = [
+        "//src/core:core",
+        "//src/moto:moto",
+        "//third_party:stb",
+        "//third_party:tinygltf",
+    ],
+)
+
 py_binary(
     name = "generate_wreckwater_build_content",
     srcs = ["generate_wreckwater_build_content.py"],

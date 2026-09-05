@@ -103,7 +103,8 @@ class PeriodicGradientLutTest(unittest.TestCase):
         source = (ROOT/'src/render/blit_path.cpp').read_text()
         self.assertIn('"blit_static_background_pass", true, false, true)', source)
         self.assertIn('timestampWrites.beginningOfPassWriteIndex = lightingTimestampStarted', source)
-        self.assertIn('timestampWrites.endOfPassWriteIndex = beginTimestampOnly', source)
+        self.assertIn('(beginTimestampOnly || deferTimestampEnd)', source)
+        self.assertIn('particleTimestamps.endOfPassWriteIndex = timestampEnd', source)
 
 
 if __name__ == '__main__':

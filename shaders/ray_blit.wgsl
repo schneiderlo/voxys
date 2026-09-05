@@ -95,6 +95,9 @@ override USE_PERIODIC_GRADIENT_LUT : bool = true;
 const MATERIAL_SKY : u32 = 0u;
 const MATERIAL_TERRAIN : u32 = 1u;
 const MATERIAL_WATER : u32 = 2u;
+// invProjParams.w selects the opt-in course; zero preserves the terrain demo.
+fn authoredCourseEnabled() -> bool { return camera.invProjParams.w > 0.5; }
+
 
 // Ocean colors are linear sRGB. Absorption is a Beer-Lambert coefficient,
 // not a display tint.
@@ -607,6 +610,7 @@ fn coveHullPoint(
 fn authoredCovePropHit(
     rayOrigin : vec3<f32>, rayDirection : vec3<f32>,
     maximumDistance : f32) -> CovePropHit {
+    if (authoredCourseEnabled()) { return missedCoveProp(); }
     // The wreck is evaluated only inside this conservative local sphere.
     // Its tallest broken spar still fits, while ordinary cove pixels pay one
     // quadratic and return.
@@ -874,6 +878,7 @@ fn distanceToCoveSegment(
 }
 
 fn coveDriftwoodContact(worldPosition : vec2<f32>) -> f32 {
+    if (authoredCourseEnabled()) { return 1.0; }
     let offset = worldPosition - vec2<f32>(-650.0, 3471.0);
     let hullInland = dot(offset, vec2<f32>(-0.2730, 0.9620));
     let hullAlongshore = dot(offset, vec2<f32>(-0.9620, -0.2730));
@@ -1085,9 +1090,10 @@ fn terrainMaterialWeights(
         dot(coveOffset, vec2<f32>(-0.2730, 0.9620));
     let coveAlongshore =
         dot(coveOffset, vec2<f32>(-0.9620, -0.2730));
-    let coveZone = 1.0 - smoothstep(
+    let coveZone = select(1.0 - smoothstep(
         56.0, 80.0,
-        length(vec2<f32>(coveInland, coveAlongshore)));
+        length(vec2<f32>(coveInland, coveAlongshore))),
+        0.0, authoredCourseEnabled());
     if (coveZone > 0.0) {
         elevation += coveZone * (
             0.55 * sin(coveAlongshore * 0.143 +
@@ -1096,7 +1102,7 @@ fn terrainMaterialWeights(
                        sin(coveInland * 0.113)));
     }
     var authoredRock = 0.0;
-    if (length(vec2<f32>(coveInland, coveAlongshore)) < 78.0) {
+    if (!authoredCourseEnabled() && length(vec2<f32>(coveInland, coveAlongshore)) < 78.0) {
         // The four explicit subtidal boulders have shallow tops, so slope alone
         // cannot identify their material. Keep their footprint compact.
         let boulder0 = exp(-dot(
@@ -1239,10 +1245,18 @@ fn terrainMaterialWeights(
             smoothstep(0.34, 0.88, 1.0 - transitionSignal),
             washCore * 0.55);
     }
-    let grass = upland * grassSuitability *
+    var grass = upland * grassSuitability *
                 mix(0.20, 1.0, grassVariation) *
                 mix(1.0, 0.30, erosionPatch);
-    let soil = max(upland - grass, 0.0);
+    var soil = max(upland - grass, 0.0);
+    if (authoredCourseEnabled()) {
+        let authoredSoil = smoothstep(0.035, 0.72,
+            textureSampleLevel(terrainTex, terrainSampler,
+                terrainUV(worldPosition), 0.0).a) * (1.0 - rock);
+        sand *= 1.0 - authoredSoil;
+        grass *= 1.0 - authoredSoil;
+        soil = max(soil, authoredSoil);
+    }
 
     let weights = vec4<f32>(sand, soil, grass, rock);
     return weights / max(dot(weights, vec4<f32>(1.0)), 1.0e-5);
@@ -1365,6 +1379,12 @@ fn sampleTerrainSurface(
         roughness += layer.roughness * weights.w;
     }
 
+    if (authoredCourseEnabled()) {
+        let courseSoil = textureSampleLevel(
+            terrainTex, terrainSampler, terrainUV(worldPosition), 0.0).a;
+        albedo *= mix(vec3<f32>(1.0), vec3<f32>(0.30, 0.20, 0.12),
+            smoothstep(0.08, 0.78, courseSoil) * 0.85);
+    }
     let relativeElevation = worldPosition.y - camera.waterParams.x;
     let waterEnabled = select(0.0, 1.0, camera.waterParams.y > 0.5);
     // Noise dot products are bounded by 2; the run-up limit is below 0.30.
@@ -1414,10 +1434,10 @@ fn sampleTerrainSurface(
         dot(coveOffset, vec2<f32>(-0.2730, 0.9620));
     let coveAlongshore =
         dot(coveOffset, vec2<f32>(-0.9620, -0.2730));
-    let coveMask =
-        1.0 - smoothstep(
-            50.0, 78.0,
-            length(vec2<f32>(coveInland, coveAlongshore)));
+    let coveMask = select(
+        1.0 - smoothstep(50.0, 78.0,
+            length(vec2<f32>(coveInland, coveAlongshore))),
+        0.0, authoredCourseEnabled());
     if (coveMask > 0.0) {
         let organicPatch =
             0.5 + 0.5 *

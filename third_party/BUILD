@@ -103,6 +103,25 @@ cc_library(
     }),
 )
 
+# tinygltf 2.9.5 — glTF 2.0 loader. Built without its bundled STB copies; the
+# tools supply their own image decoder through the project stb target. Native
+# tooling only; the runtime loads the derived .vmesh format instead.
+cc_library(
+    name = "tinygltf",
+    srcs = ["tinygltf/tiny_gltf.cc"],
+    hdrs = [
+        "tinygltf/tiny_gltf.h",
+        "tinygltf/json.hpp",
+    ],
+    includes = ["tinygltf"],
+    defines = [
+        "TINYGLTF_NO_STB_IMAGE",
+        "TINYGLTF_NO_STB_IMAGE_WRITE",
+    ],
+    copts = ["-w"],
+    deps = [":stb"],
+)
+
 # ZSTD
 cc_library(
     name = "zstd",

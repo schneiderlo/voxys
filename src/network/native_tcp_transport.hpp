@@ -69,6 +69,9 @@ struct NativeTcpServerConfig {
     // deterministic boundary tests. Serials are monotonic for this transport
     // lifetime and fail-stop rather than wrapping through zero.
     uint64_t firstConnectionSerial = 1u;
+    // Safe default: authenticated replacement sockets remain pending until
+    // the authority accepts their exact server-issued serial.
+    bool requireExplicitAdmission = true;
 };
 
 struct NativeTcpClientConfig {
@@ -131,6 +134,8 @@ struct NativeTcpTransportTelemetry {
     uint64_t malformedFrames = 0;
     uint64_t oversizedFrames = 0;
     uint64_t outboundBackpressure = 0;
+    uint64_t supersededOutboundFrames = 0;
+    uint64_t supersededOutboundBytes = 0;
     uint64_t inboundBackpressure = 0;
     uint64_t sendWouldBlock = 0;
     uint64_t receiveWouldBlock = 0;
@@ -174,6 +179,13 @@ public:
         uint32_t peerId, uint64_t connectionSerial,
         DeliveryClass delivery,
         std::span<const std::byte> bytes) override;
+    [[nodiscard]] bool sendLatestRealtime(
+        uint32_t peerId, uint64_t connectionSerial,
+        std::span<const std::byte> bytes) override;
+    [[nodiscard]] bool acceptConnection(
+        uint32_t peerId, uint64_t connectionSerial) override;
+    void rejectConnection(
+        uint32_t peerId, uint64_t connectionSerial) override;
     [[nodiscard]] std::optional<MultiplayerTransportFrame> poll() override;
     void close() override;
 

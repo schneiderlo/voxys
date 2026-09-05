@@ -15,6 +15,26 @@ cc_library(
 )
 
 cc_library(
+    name = "ridgebreak_protocol",
+    srcs = ["ridgebreak_protocol.cpp"],
+    hdrs = ["ridgebreak_protocol.hpp"],
+    copts = PROJECT_DEFAULT_COPTS,
+    includes = [".."],
+)
+
+cc_library(
+    name = "ridgebreak_client_replication",
+    srcs = ["ridgebreak_client_replication.cpp"],
+    hdrs = ["ridgebreak_client_replication.hpp"],
+    copts = PROJECT_DEFAULT_COPTS,
+    includes = [".."],
+    deps = [
+        ":protocol",
+        ":ridgebreak_protocol",
+    ],
+)
+
+cc_library(
     name = "wreckwater_protocol",
     srcs = ["wreckwater_protocol.cpp"],
     hdrs = ["wreckwater_protocol.hpp"],
@@ -85,6 +105,8 @@ cc_library(
     copts = PROJECT_DEFAULT_COPTS,
     includes = [".."],
     deps = [
+        ":ridgebreak_client_replication",
+        ":ridgebreak_protocol",
         ":wreckwater_client_replication",
         ":wreckwater_protocol",
         ":deterministic_adversity_transport",

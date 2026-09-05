@@ -38,6 +38,7 @@ int main(int argc, char* argv[]) {
 
     // Configure the application from loaded config file
     voxy::ApplicationConfig appConfig;
+    appConfig.motoEnabled = config.window.title == "RIDGEBREAK";
 
     // Window settings
     appConfig.windowWidth = config.window.width;
@@ -113,8 +114,8 @@ int main(int argc, char* argv[]) {
     if (appConfig.heightmapPath.empty() ||
         appConfig.heightmapPath == "assets/heightmaps/terrain.ldh") {
         appConfig.heightmapPath.clear();
-        appConfig.heightmapWidth = 256;
-        appConfig.heightmapHeight = 256;
+        appConfig.heightmapWidth = appConfig.motoEnabled ? 2048u : 256u;
+        appConfig.heightmapHeight = appConfig.heightmapWidth;
     }
 
     // Camera settings

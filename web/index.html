@@ -106,6 +106,29 @@
         <button id="fullscreen-btn" class="ui-button" title="Toggle Fullscreen (F11)">⛶</button>
     </div>
 
+    <section id="ridgebreak-hud" data-voxy-ui="true" aria-label="Rider status">
+        <div class="rb-hud-brand">
+            <span>RIDGEBREAK</span><span id="rb-mode">PRACTICE</span>
+        </div>
+        <div class="rb-hud-speed-row">
+            <span id="rb-speed">0</span><span class="rb-hud-unit">KM/H</span>
+        </div>
+        <div class="rb-hud-details">
+            <span>GEAR <strong id="rb-gear">1</strong></span>
+            <span id="rb-status">RIDE</span>
+        </div>
+        <div class="rb-hud-rpm"><i id="rb-rpm-fill"></i></div>
+        <div class="rb-hud-score-row">
+            <span>SCORE <strong id="rb-score">0</strong></span>
+            <span id="rb-combo"></span>
+        </div>
+        <div id="rb-race-row" class="rb-hud-race-row" aria-live="polite"
+            hidden>
+            <strong id="rb-race-primary"></strong>
+            <span id="rb-race-secondary"></span>
+        </div>
+    </section>
+
     <!-- Touch controls for mobile -->
     <div id="touch-controls" style="display: none;">
         <div id="touch-joystick-left" class="touch-joystick">
@@ -439,75 +462,16 @@
             canvas.addEventListener('touchcancel', handleTouchEnd);
         }
 
-        // Funny loading messages
+        // Short, in-world loading messages keep the first impression focused.
         const loadingPhrases = [
-            // Minecraft / Voxel
-            "Punching trees to get wood...",
-            "Mining for diamonds...",
-            "Spawning creepers...",
-            "Generating infinite terrain...",
-            "Punching the ground...",
-            "Building dirt hut...",
-            "Herobrine removed.",
-            "Watching out for lava...",
-            "Crafting workbench...",
-            "Digging straight down...",
-
-            // Gaming Generic
-            "Constructing additional pylons...",
-            "The cake is a lie...",
-            "It's dangerous to go alone...",
-            "Snake? Snake?! SNAKEEEEE!",
-            "All your base are belong to us...",
-            "Pressing F to pay respects...",
-            "Buying GF 10gp...",
-            "Do a barrel roll!",
-            "War... war never changes.",
-            "Wake up, Samurai...",
-            "Checking for fall damage...",
-            "Updating localization files...",
-            "Nerfing fusion rifles...",
-            "Searching for high ground...",
-
-            // Programming / Dev / Tech
-            "Deleting System32...",
-            "Downloading more RAM...",
-            "Compiling shaders (99% done forever)...",
-            "Git push --force in progress...",
-            "Resolving merge conflicts...",
-            "Debugging on production...",
-            "StackOverflow copy-paste in progress...",
-            "Asking ChatGippity for help...",
-            "Ignoring all warnings...",
-            "Running garbage collector...",
-            "Trying to exit Vim...",
-            "Sudo make me a sandwich...",
-            "Fixing bugs by adding more bugs...",
-            "Checking if P = NP...",
-            "Dividing by zero...",
-            "Searching for the any key...",
-
-            // Hardware / Graphics
-            "Bribing the graphics driver...",
-            "Oiling the cooling fans...",
-            "Counting polygons...",
-            "Tracing rays manually...",
-            "Warming up the GPU...",
-            "Allocating gigabytes of nothing...",
-            "Testing pixel shader 352...",
-            "Verifying RGB lighting...",
-
-            // Meta / Funny
-            "Reticulating splines...",
-            "Loading... please wait...",
-            "Doing important math...",
-            "Spinning the loading wheel...",
-            "Making pixel art...",
-            "Preparing voxel soup...",
-            "Calibrating flux capacitor...",
-            "Refueling the spaceship...",
-            "Inventing the wheel...",
-            "Proving the earth is round..."
+            "Cutting the first racing line...",
+            "Packing the berms...",
+            "Reading the ruts...",
+            "Setting suspension sag...",
+            "Warming the engine...",
+            "Loading the mountain circuit...",
+            "Marking the split lines...",
+            "Rolling to the start gate..."
         ];
 
         // ─────────────────────────────────────────────────────────────────────────────
@@ -902,11 +866,15 @@
                 const device = deviceRequest.device;
                 window.voxyDeviceProfile = deviceRequest.profile;
                 globalThis.voxyUncapturedGpuErrors = [];
+                globalThis.voxyUncapturedGpuErrorCount = 0;
                 globalThis.voxyDeviceLost = null;
                 device.addEventListener('uncapturederror', (event) => {
                     const message = event.error?.message
                         ?? String(event.error ?? 'unknown WebGPU error');
-                    globalThis.voxyUncapturedGpuErrors.push(message);
+                    ++globalThis.voxyUncapturedGpuErrorCount;
+                    if (globalThis.voxyUncapturedGpuErrors.length < 64) {
+                        globalThis.voxyUncapturedGpuErrors.push(message);
+                    }
                     console.error('WebGPU uncaptured error:', message);
                 });
                 device.lost.then((info) => {
@@ -931,13 +899,14 @@
                     locateFile: (path, prefix) =>
                         `${prefix}${path}?v=${encodeURIComponent(window.voxyBuildId)}`,
                     arguments: (() => {
-                        const value = new URLSearchParams(location.search)
-                            .get('physicsMaxBodies');
-                        if (!value) return [];
-                        const parsed = Number.parseInt(value, 10);
-                        if (!Number.isInteger(parsed) || parsed < 2
-                            || parsed > 1000000) return [];
-                        return ['--physics-max-bodies', String(parsed)];
+                        const params = new URLSearchParams(location.search);
+                        const args = params.get('experience') === 'ridgebreak'
+                            ? ['--config', 'ridgebreak.cfg'] : [];
+                        const value = Number(params.get('physicsMaxBodies'));
+                        if (Number.isSafeInteger(value) && value >= 2 && value <= 1000000) {
+                            args.push('--physics-max-bodies', String(value));
+                        }
+                        return args;
                     })(),
 
                     // Track WASM/data download progress
@@ -1144,6 +1113,76 @@
                     overlay.style.display = 'block';
                 }, 500);
 
+                const riderHud = document.getElementById('ridgebreak-hud');
+                let riderIntroTimer = 0;
+                const crashLabels = [
+                    'RIDE', 'HIGH SIDE', 'WIPED OUT', 'DOWN', 'REMOUNTING'
+                ];
+                const updateRiderHud = () => {
+                    const pointer =
+                        voxyModule._voxy_get_moto_hud_json?.() ?? 0;
+                    if (!pointer) {
+                        riderHud.classList.remove('is-visible');
+                        return;
+                    }
+                    const state = JSON.parse(voxyModule.UTF8ToString(pointer));
+                    document.getElementById('rb-speed').textContent =
+                        Math.round(Math.max(0, state.speed_kph));
+                    document.getElementById('rb-gear').textContent = state.gear;
+                    document.getElementById('rb-status').textContent =
+                        crashLabels[state.crash] ?? 'RIDE';
+                    document.getElementById('rb-rpm-fill').style.width =
+                        `${Math.min(100, Math.max(2, state.rpm / 120))}%`;
+                    document.getElementById('rb-score').textContent =
+                        Number(state.score).toLocaleString();
+                    document.getElementById('rb-mode').textContent =
+                        state.mode === 'circuit' ? 'CIRCUIT' : 'PRACTICE';
+                    document.getElementById('rb-combo').textContent =
+                        state.combo > 1 ? `×${state.combo} COMBO` : '';
+                    const raceRow = document.getElementById('rb-race-row');
+                    raceRow.hidden = !state.race_active;
+                    if (state.race_active) {
+                        const primary =
+                            document.getElementById('rb-race-primary');
+                        const secondary =
+                            document.getElementById('rb-race-secondary');
+                        if (state.race_phase === 1) {
+                            primary.textContent =
+                                `START ${Math.max(1, Math.ceil(
+                                    state.countdown_ticks / 60))}`;
+                            secondary.textContent = 'GET READY';
+                        } else if (state.race_phase === 2) {
+                            primary.textContent =
+                                `LAP ${Math.min(state.completed_laps + 1,
+                                    state.lap_count)}/${state.lap_count}`;
+                            secondary.textContent =
+                                `CP ${Math.min(state.next_checkpoint + 1,
+                                    state.checkpoint_count)}`
+                                + `/${state.checkpoint_count}`;
+                        } else {
+                            primary.textContent = state.dnf
+                                ? 'DNF'
+                                : (state.finish_place > 0
+                                    ? `PLACE ${state.finish_place}`
+                                    : 'FINISHED');
+                            secondary.textContent =
+                                `LAP ${state.completed_laps}/${state.lap_count}`;
+                        }
+                    }
+                    riderHud.classList.add('is-visible');
+                    if (!document.body.classList.contains('ridgebreak-active')) {
+                        document.body.classList.add('ridgebreak-active');
+                        document.title = 'RIDGEBREAK';
+                        document.querySelector('.controls-hint').textContent =
+                            'W/S throttle/brake · A/D steer · Q/E lean · R remount · C circuit';
+                        riderIntroTimer = setTimeout(() => {
+                            document.body.classList.add('ridgebreak-playing');
+                        }, 2500);
+                    }
+                };
+                updateRiderHud();
+                setInterval(updateRiderHud, 50);
+
                 // Track successful load
                 gtag('event', 'app_initialized', {
                     'pixel_ratio': window.devicePixelRatio || 1
@@ -1209,6 +1248,10 @@
                 // This listener owns browser-only shortcuts only.
                 document.addEventListener('keydown', (e) => {
                     if (e.target.closest?.('[data-voxy-ui]')) return;
+                    if (document.body.classList.contains('ridgebreak-active')) {
+                        clearTimeout(riderIntroTimer);
+                        document.body.classList.add('ridgebreak-playing');
+                    }
                     // Release pointer lock on Escape
                     if (e.key === 'Escape' && document.pointerLockElement) {
                         document.exitPointerLock();
@@ -1251,7 +1294,7 @@
                 // Touch input support for mobile devices
                 setupTouchControls(canvas);
 
-                console.log('voxy WASM module initialized successfully');
+                console.log('RIDGEBREAK initialized successfully');
 
             } catch (err) {
                 console.error('Initialization failed:', err);

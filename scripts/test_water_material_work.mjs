@@ -67,11 +67,18 @@ const waterFixture=`${caseDeclaration}
 function mathProbe(source) {
     const common=['periodicGradientHash','periodicGradientNoise','terrainMaterialScale',
         'rotateTerrainMaterialUv','terrainMaterialUv','terrainMaterialWeights'];
+    if(source.includes('fn authoredCourseEnabled(')) common.push('authoredCourseEnabled','terrainUV');
     const helpers=common.map(n=>fn(source,n)).join('\n');
+    const lut=source.includes('override USE_PERIODIC_GRADIENT_LUT') ? `
+@group(0) @binding(19) var periodicGradientLut : texture_2d<f32>;
+override USE_PERIODIC_GRADIENT_LUT : bool = true;` : '';
     const camera=source.slice(source.indexOf('struct CameraUniforms'),source.indexOf('// Debug visualization'));
     return `${camera}\n@group(0) @binding(0) var<uniform> camera : CameraUniforms;
 const TERRAIN_LAYER_SAND : i32=0; const TERRAIN_LAYER_SOIL : i32=1;
 const TERRAIN_LAYER_GRASS : i32=2; const TERRAIN_LAYER_ROCK : i32=3;
+@group(0) @binding(4) var terrainTex : texture_2d<f32>;
+@group(0) @binding(6) var terrainSampler : sampler;
+${lut}
 ${helpers}\n${caseDeclaration}
 @compute @workgroup_size(64) fn mathFixture(@builtin(global_invocation_id) id : vec3<u32>) {
     if(id.x>=arrayLength(&cases)){return;}
@@ -82,10 +89,12 @@ ${helpers}\n${caseDeclaration}
     result[id.x*3u+2u]=terrainMaterialWeights(c.p.xyz,normalize(c.n.xyz));
 }`;
 }
-const payload={reference, before, after,
+const bakeHeader = await readFile(path.join(root,'src/render/periodic_gradient_lut.hpp'),'utf8');
+const bake = bakeHeader.match(/R"wgsl\(([\s\S]*?)\)wgsl"/)[1];
+const payload={reference, before, after, bake,
     math:[mathProbe(before[0]),mathProbe(after[0])],surfaceFixture,waterFixture};
 
-async function gpuTest({reference,before,after,math,surfaceFixture,waterFixture}) {
+async function gpuTest({reference,before,after,bake,math,surfaceFixture,waterFixture}) {
     if(!navigator.gpu) throw new Error('WebGPU unavailable (not a pass)');
     const adapter=await navigator.gpu.requestAdapter();
     if(!adapter) throw new Error('Adapter unavailable (not a pass)');
@@ -156,6 +165,18 @@ async function gpuTest({reference,before,after,math,surfaceFixture,waterFixture}
         entries.push({binding,visibility,texture:{sampleType:uint?'uint':unfiltered?'unfilterable-float':'float',viewDimension:array?'2d-array':'2d'}});
         resources.push({binding,resource:texture.createView({dimension:array?'2d-array':'2d'})});
     }
+    // Bind the actual GPU-generated table in combined material/water fixtures.
+    const gradients=device.createTexture({size:[32,16],format:'rgba32float',
+        usage:T.TEXTURE_BINDING|T.STORAGE_BINDING});
+    const bakePipeline=await device.createComputePipelineAsync({layout:'auto',
+        compute:{module:await module(bake,'production gradient bake'),entryPoint:'main'}});
+    const bakeGroup=device.createBindGroup({layout:bakePipeline.getBindGroupLayout(0),
+        entries:[{binding:0,resource:gradients.createView()}]});
+    const bakeEncoder=device.createCommandEncoder();const bakePass=bakeEncoder.beginComputePass();
+    bakePass.setPipeline(bakePipeline);bakePass.setBindGroup(0,bakeGroup);
+    bakePass.dispatchWorkgroups(2,2);bakePass.end();device.queue.submit([bakeEncoder.finish()]);
+    entries.push({binding:19,visibility,texture:{sampleType:'unfilterable-float'}});
+    resources.push({binding:19,resource:gradients.createView()});
     const layout0=device.createBindGroupLayout({entries});
     const group0=device.createBindGroup({layout:layout0,entries:resources});
     const layout1=device.createBindGroupLayout({entries:[
