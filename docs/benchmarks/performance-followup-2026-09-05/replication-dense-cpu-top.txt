@@ -1,0 +1,25 @@
+File: replication-probe
+Type: cpu
+Showing nodes accounting for 5529ms, 99.23% of 5572ms total
+Dropped 28 nodes (cum <= 27.86ms)
+      flat  flat%   sum%        cum   cum%
+    3518ms 63.14% 63.14%     3518ms 63.14%  voxy::network::InterestGrid::cellFor
+     771ms 13.84% 76.97%      926ms 16.62%  voxy::network::InterestGrid::query
+     603ms 10.82% 87.80%     3944ms 70.78%  std::__merge_sort_with_buffer
+     160ms  2.87% 90.67%      164ms  2.94%  voxy::network::PacketCodec::encode
+     152ms  2.73% 93.40%      152ms  2.73%  std::__introsort_loop
+     111ms  1.99% 95.39%      170ms  3.05%  voxy::network::snapshotStateHash
+      68ms  1.22% 96.61%      290ms  5.20%  voxy::network::MultiplayerSession::makeClientSnapshot() const::{lambda(unsigned int, unsigned int)#1}::operator()
+      50ms   0.9% 97.51%       50ms   0.9%  __memmove_avx512_unaligned_erms
+      41ms  0.74% 98.24%      128ms  2.30%  voxy::network::SnapshotCodec::encode
+      23ms  0.41% 98.65%       99ms  1.78%  voxy::network::(anonymous namespace)::canonicalizeBodies
+      20ms  0.36% 99.01%      311ms  5.58%  std::__merge_adaptive
+       6ms  0.11% 99.12%       85ms  1.53%  voxy::network::SnapshotHistory::store
+       4ms 0.072% 99.19%     5182ms 93.00%  voxy::network::MultiplayerSession::makeClientSnapshot
+       2ms 0.036% 99.23%       81ms  1.45%  voxy::network::MultiplayerSession::makeFullSnapshot
+         0     0% 99.23%     5572ms   100%  __libc_start_call_main
+         0     0% 99.23%     5572ms   100%  __libc_start_main_alias_2
+         0     0% 99.23%     5572ms   100%  _start
+         0     0% 99.23%     5572ms   100%  main
+         0     0% 99.23%      167ms  3.00%  voxy::network::MultiplayerSession::sendPacket
+         0     0% 99.23%     5554ms 99.68%  voxy::network::MultiplayerSession::sendSnapshots

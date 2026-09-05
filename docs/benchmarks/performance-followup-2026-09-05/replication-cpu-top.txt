@@ -1,0 +1,18 @@
+File: replication-probe
+Type: cpu
+Showing nodes accounting for 6566ms, 98.37% of 6675ms total
+Dropped 40 nodes (cum <= 33.38ms)
+      flat  flat%   sum%        cum   cum%
+    6443ms 96.52% 96.52%     6451ms 96.64%  voxy::network::InterestGrid::query
+      31ms  0.46% 96.99%       43ms  0.64%  voxy::network::PacketCodec::encode
+      28ms  0.42% 97.41%       35ms  0.52%  std::vector::emplace_back
+      24ms  0.36% 97.77%       89ms  1.33%  voxy::network::SnapshotCodec::encode
+      20ms   0.3% 98.07%       47ms   0.7%  voxy::network::snapshotStateHash
+       7ms   0.1% 98.17%       38ms  0.57%  operator new
+       7ms   0.1% 98.28%     6497ms 97.33%  voxy::network::MultiplayerSession::makeClientSnapshot
+       3ms 0.045% 98.32%     6665ms 99.85%  voxy::network::MultiplayerSession::sendSnapshots
+       2ms  0.03% 98.35%       54ms  0.81%  voxy::network::MultiplayerSession::sendPacket
+       1ms 0.015% 98.37%     6675ms   100%  main
+         0     0% 98.37%     6675ms   100%  __libc_start_call_main
+         0     0% 98.37%     6675ms   100%  __libc_start_main_alias_2
+         0     0% 98.37%     6675ms   100%  _start

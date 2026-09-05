@@ -1,0 +1,89 @@
+{
+  "baseline_commit": "6701a8596a0f24412a4411760c2790bbfc34f90a",
+  "goal_started_utc": "2026-09-05 12:43:23 UTC",
+  "planned_end_utc": "2026-09-05 14:43:23 UTC",
+  "host": "Linux modkin-NucBox-EVO-X1 7.0.0-30-generic #30-Ubuntu SMP PREEMPT_DYNAMIC Fri Jul 31 18:22:54 UTC 2026 x86_64 GNU/Linux",
+  "cpu": "Architecture:                            x86_64\nCPU op-mode(s):                          32-bit, 64-bit\nAddress sizes:                           48 bits physical, 48 bits virtual\nByte Order:                              Little Endian\nCPU(s):                                  24\nOn-line CPU(s) list:                     0-23\nVendor ID:                               AuthenticAMD\nModel name:                              AMD Ryzen AI 9 HX 370 w/ Radeon 890M\nCPU family:                              26\nModel:                                   36\nThread(s) per core:                      2\nCore(s) per socket:                      12\nSocket(s):                               1\nStepping:                                0\nFrequency boost:                         enabled\nCPU(s) scaling MHz:                      71%\nCPU max MHz:                             5157.8950\nCPU min MHz:                             605.2640\nBogoMIPS:                                3992.61\nFlags:                                   fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good amd_lbr_v2 nopl xtopology nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpuid_fault cpb cat_l3 cdp_l3 hw_pstate ssbd mba perfmon_v2 ibrs ibpb stibp ibrs_enhanced vmmcall fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a avx512f avx512dq adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local user_shstk avx_vnni avx512_bf16 clzero irperf xsaveerptr rdpru wbnoinvd cppc arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif x2avic v_spec_ctrl vnmi avx512vbmi umip pku ospke avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq rdpid bus_lock_detect movdiri movdir64b overflow_recov succor smca fsrm avx512_vp2intersect flush_l1d amd_lbr_pmc_freeze\nVirtualization:                          AMD-V\nL1d cache:                               576 KiB (12 instances)\nL1i cache:                               384 KiB (12 instances)\nL2 cache:                                12 MiB (12 instances)\nL3 cache:                                24 MiB (2 instances)\nNUMA node(s):                            1\nNUMA node0 CPU(s):                       0-23\nVulnerability Gather data sampling:      Not affected\nVulnerability Ghostwrite:                Not affected\nVulnerability Indirect target selection: Not affected\nVulnerability Itlb multihit:             Not affected\nVulnerability L1tf:                      Not affected\nVulnerability Mds:                       Not affected\nVulnerability Meltdown:                  Not affected\nVulnerability Mmio stale data:           Not affected\nVulnerability Old microcode:             Not affected\nVulnerability Reg file data sampling:    Not affected\nVulnerability Retbleed:                  Not affected\nVulnerability Spec rstack overflow:      Mitigation; IBPB on VMEXIT only\nVulnerability Spec store bypass:         Mitigation; Speculative Store Bypass disabled via prctl\nVulnerability Spectre v1:                Mitigation; usercopy/swapgs barriers and __user pointer sanitization\nVulnerability Spectre v2:                Mitigation; Enhanced / Automatic IBRS; IBPB conditional; STIBP always-on; PBRSB-eIBRS Not affected; BHI Not affected\nVulnerability Srbds:                     Not affected\nVulnerability Tsa:                       Not affected\nVulnerability Tsx async abort:           Not affected\nVulnerability Vmscape:                   Mitigation; IBPB on VMEXIT\n",
+  "file_sha256": {
+    "/tmp/voxys-perf-followup/original/voxy_native": "302d37242defba9cffe7847fe94a0d739e1cb4032591e909d988ffc1db442278",
+    "/tmp/voxys-perf-followup/original/gpu_ballistic_static": "1923582347e634f01cafebe43dd30472eb01891d816796e17a741a5937fb871f",
+    "/tmp/voxys-perf-followup/original/gpu_radix_static": "9dca6da00214b914115f6dcea41e77863e122afbdcae80b025f6497a0138bbbe",
+    "/tmp/voxys-perf-followup/original/shaders/physics_deterministic_primitives.wgsl": "8deb405c70b310a5eb53b0a9dbac72f2fc1e690c463254862d444f8238a2908f",
+    "/tmp/voxys-perf-followup/candidate-128/voxy_native": "052b799ba490a112d73f762bc2b94b78a5d7f47731c3c06d7ee726cce80b35e3",
+    "/tmp/voxys-perf-followup/candidate-128/gpu_ballistic_static": "c2a0e25dfcfdc041caae4277619bc29a46d771e083f304e918aa9a9c861a2ca6",
+    "/tmp/voxys-perf-followup/candidate-128/gpu_radix_static": "332e0010d02087dcc814c0c9267f80c608dc3cda9f4f766a2185c4d77352fc93",
+    "/tmp/voxys-perf-followup/candidate-128/shaders/physics_deterministic_primitives.wgsl": "ca0bc4dd2fe401a5e3e0402aa29a86927cf805ffa807f5af7689a1e55937f94b",
+    "/tmp/voxys-perf-followup/candidate/voxy_native": "81d74ddaaabda268e3de5ab46424cf6b4a52b8f920062f687d4729e38cf751b0",
+    "/tmp/voxys-perf-followup/candidate/gpu_ballistic_static": "8950eb03ea1d27dda8e94edeb4895dad48d3acbbb5f7c8dffd3b29de6e78a166",
+    "/tmp/voxys-perf-followup/candidate/gpu_radix_static": "0670b59d80f56a6d3ed7f63ed247973c57f8f4503ce883cb6265dbd55c9f0312",
+    "/tmp/voxys-perf-followup/candidate/shaders/physics_deterministic_primitives.wgsl": "504abd3594c912b7ef479ff5901f5ccdcb41e70c1667f5094543b1669216ccba",
+    "/tmp/voxys-perf-followup/native-oracle-candidate-0.png": "6db97fdd34b01a9f440feefa655e8b48253cd882ba44b112a457d955c0b74c68",
+    "/tmp/voxys-perf-followup/native-oracle-original-1.png": "6db97fdd34b01a9f440feefa655e8b48253cd882ba44b112a457d955c0b74c68",
+    "/tmp/voxys-perf-followup/native-oracle-original-0.png": "6db97fdd34b01a9f440feefa655e8b48253cd882ba44b112a457d955c0b74c68"
+  },
+  "native_oracle": [
+    {
+      "version": "original",
+      "repeat": 0,
+      "exit_code": 2,
+      "exists": true,
+      "command": [
+        "/tmp/voxys-perf-followup/original/voxy_native",
+        "--benchmark-bodies",
+        "100000",
+        "--benchmark-fixed-hz",
+        "400",
+        "--no-validation",
+        "--screenshot",
+        "/tmp/voxys-perf-followup/native-oracle-original-0.png",
+        "--screenshot-frames",
+        "200"
+      ]
+    },
+    {
+      "version": "original",
+      "repeat": 1,
+      "exit_code": 2,
+      "exists": true,
+      "command": [
+        "/tmp/voxys-perf-followup/original/voxy_native",
+        "--benchmark-bodies",
+        "100000",
+        "--benchmark-fixed-hz",
+        "400",
+        "--no-validation",
+        "--screenshot",
+        "/tmp/voxys-perf-followup/native-oracle-original-1.png",
+        "--screenshot-frames",
+        "200"
+      ]
+    },
+    {
+      "version": "candidate",
+      "repeat": 0,
+      "exit_code": 2,
+      "exists": true,
+      "command": [
+        "/tmp/voxys-perf-followup/candidate/voxy_native",
+        "--benchmark-bodies",
+        "100000",
+        "--benchmark-fixed-hz",
+        "400",
+        "--no-validation",
+        "--screenshot",
+        "/tmp/voxys-perf-followup/native-oracle-candidate-0.png",
+        "--screenshot-frames",
+        "200"
+      ]
+    }
+  ],
+  "source_sha256": {
+    "AGENTS.md": "fe03d4cd0a7c246077216d18d94ceb1980bbad9182a3394204dd89f5ad16f619",
+    "README.md": "3fb83b228a73a94aa403b97b72e6f918745834d9e546090a46504b7bd40b3ec7",
+    "shaders/physics_deterministic_primitives.wgsl": "504abd3594c912b7ef479ff5901f5ccdcb41e70c1667f5094543b1669216ccba",
+    "src/network/replication.cpp": "330258e0efac752e514c049a1c5ab6375ead569aa96633ffa10534b406489e38",
+    "src/network/multiplayer_session.cpp": "555e6d00109170f0a6d93edccfa7e3c295aba408513e50cc28201df75ec07533",
+    "src/physics/gpu/deterministic_primitives.cpp": "d8a7b6fb7d5ac9cf76cd8e8504fd7b5abc36e7dc759f0b5761fa0d8a59518313",
+    "src/physics/gpu/deterministic_primitives.hpp": "808105161e86e12bdc7ff05f9432672aa40d90ecfdf51496ed6e3a334b2311ac"
+  }
+}

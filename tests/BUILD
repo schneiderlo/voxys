@@ -839,3 +839,28 @@ cc_test(
         "@googletest//:gtest_main",
     ],
 )
+
+# Manual retired-GPU sort gate with a full stable-record oracle.
+cc_test(
+    name = "gpu_radix_benchmark",
+    srcs = ["gpu_radix_benchmark.cpp"],
+    copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
+    tags = ["manual"],
+    deps = [
+        "//src/gpu:gpu",
+        "//src/physics:physics",
+        "@googletest//:gtest_main",
+    ],
+    data = ["//shaders:shaders"],
+)
+
+cc_test(
+    name = "replication_benchmark",
+    srcs = ["replication_benchmark.cpp"],
+    copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
+    tags = ["manual"],
+    deps = [
+        "//src/network:network",
+        "@googletest//:gtest_main",
+    ],
+)

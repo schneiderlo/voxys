@@ -1,0 +1,26 @@
+File: replication-candidate
+Type: cpu
+Showing nodes accounting for 4.71s, 86.85% of 5.43s total
+Dropped 91 nodes (cum <= 0.03s)
+Showing top 20 nodes out of 71
+      flat  flat%   sum%        cum   cum%
+     1.32s 24.28% 24.28%      1.51s 27.89%  voxy::network::InterestGrid::query
+     0.98s 18.12% 42.40%      1.14s 20.96%  voxy::network::PacketCodec::encode
+     0.57s 10.55% 52.96%      1.03s 19.03%  std::vector::emplace_back
+     0.47s  8.71% 61.67%      0.47s  8.71%  __GI___libc_malloc
+     0.29s  5.38% 67.05%      1.38s 25.42%  std::vector::push_back (inline)
+     0.21s  3.96% 71.01%      0.21s  3.96%  __free
+     0.13s  2.41% 73.42%      0.13s  2.41%  hashWord (inline)
+     0.08s  1.51% 74.93%      0.54s  9.89%  voxy::network::snapshotStateHash
+     0.08s  1.46% 76.39%      0.08s  1.46%  voxy::network::MultiplayerSession::serverPeer
+     0.08s  1.44% 77.82%      1.74s 31.99%  voxy::network::SnapshotCodec::encode
+     0.07s  1.36% 79.19%      0.57s 10.59%  operator new
+     0.06s  1.05% 80.24%      0.06s  1.05%  operator delete
+     0.05s  0.96% 81.19%      0.05s  0.96%  __memmove_avx512_unaligned_erms
+     0.05s  0.96% 82.15%      1.99s 36.73%  voxy::network::MultiplayerSession::makeClientSnapshot
+     0.05s  0.92% 83.07%      0.05s  0.92%  [libstdc++.so.6.0.34]
+     0.04s  0.83% 83.90%      0.51s  9.47%  std::vector::_M_realloc_append (partial-inline)
+     0.04s  0.76% 84.66%      0.07s  1.31%  __lower_bound (inline)
+     0.04s  0.76% 85.41%      0.31s  5.69%  voxy::network::MultiplayerSession::makeFullSnapshot
+     0.04s  0.76% 86.17%      1.30s 24.04%  voxy::network::MultiplayerSession::sendPacket
+     0.04s  0.68% 86.85%      0.04s  0.72%  std::__insertion_sort

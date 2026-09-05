@@ -1,0 +1,1130 @@
+reading file "/tmp/voxys-perf-followup/gpu-heap.zst" - please wait, this might take some time...
+Debuggee command was: ./bazel-bin/tests/gpu_ballistic_benchmark
+finished reading file, now analyzing data:
+
+MOST CALLS TO ALLOCATION FUNCTIONS
+567150 calls to allocation functions with 6.03M peak consumption from
+alloc::raw_vec::finish_grow
+  in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+3340 calls with 0B peak consumption from:
+    alloc::raw_vec::RawVec<>::grow_one
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    naga::back::spv::block::<>::cache_expression_value
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    naga::back::spv::block::<>::write_block
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    naga::back::spv::writer::<>::write_function
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    naga::back::spv::writer::<>::write_logical_layout
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    naga::back::spv::writer::<>::write
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    naga::back::spv::write_vec
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    wgpu_hal::vulkan::device::<>::compile_stage
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    wgpu_hal::vulkan::device::<>::create_compute_pipeline
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    wgpu_core::device::resource::Device<>::create_compute_pipeline
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    wgpu_core::device::global::<>::device_create_compute_pipeline
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    wgpuDeviceCreateComputePipeline
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    voxy::physics::GpuNarrowPhase::Impl::createPipelines()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::GpuNarrowPhase::Impl::initialize(WGPUDeviceImpl*, WGPUQueueImpl*, voxy::physics::GpuNarrowPhase::Config const&)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::GpuPhysicsBackend::Impl::initialize(voxy::physics::PhysicsInitContext const&)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::PhysicsWorld::initialize(voxy::physics::PhysicsInitContext const&)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::(anonymous namespace)::GpuBallisticBenchmark_UpdatesAndRendersConfiguredBodiesDirectly_Test::TestBody()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/gpu_ballistic_benchmark
+    void testing::internal::HandleExceptionsInMethodIfSupported<>(testing::Test*, void (testing::Test::*)(), char const*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::Test::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::TestInfo::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::TestSuite::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::internal::UnitTestImpl::RunAllTests()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    bool testing::internal::HandleExceptionsInMethodIfSupported<>(testing::internal::UnitTestImpl*, bool (testing::internal::UnitTestImpl::*)(), char const*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::UnitTest::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    main
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest_Umain.so
+2090 calls with 0B peak consumption from:
+    alloc::raw_vec::RawVec<>::grow_one
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    naga::back::spv::instructions::<>::composite_extract
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    naga::back::spv::block::<>::cache_expression_value
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    naga::back::spv::block::<>::write_block
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    naga::back::spv::writer::<>::write_function
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    naga::back::spv::writer::<>::write_logical_layout
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    naga::back::spv::writer::<>::write
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    naga::back::spv::write_vec
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    wgpu_hal::vulkan::device::<>::compile_stage
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    wgpu_hal::vulkan::device::<>::create_compute_pipeline
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    wgpu_core::device::resource::Device<>::create_compute_pipeline
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    wgpu_core::device::global::<>::device_create_compute_pipeline
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    wgpuDeviceCreateComputePipeline
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    voxy::physics::GpuNarrowPhase::Impl::createPipelines()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::GpuNarrowPhase::Impl::initialize(WGPUDeviceImpl*, WGPUQueueImpl*, voxy::physics::GpuNarrowPhase::Config const&)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::GpuPhysicsBackend::Impl::initialize(voxy::physics::PhysicsInitContext const&)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::PhysicsWorld::initialize(voxy::physics::PhysicsInitContext const&)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::(anonymous namespace)::GpuBallisticBenchmark_UpdatesAndRendersConfiguredBodiesDirectly_Test::TestBody()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/gpu_ballistic_benchmark
+    void testing::internal::HandleExceptionsInMethodIfSupported<>(testing::Test*, void (testing::Test::*)(), char const*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::Test::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::TestInfo::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::TestSuite::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::internal::UnitTestImpl::RunAllTests()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    bool testing::internal::HandleExceptionsInMethodIfSupported<>(testing::internal::UnitTestImpl*, bool (testing::internal::UnitTestImpl::*)(), char const*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::UnitTest::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    main
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest_Umain.so
+  and 561720 from 66324 other places
+
+123989 calls to allocation functions with 0B peak consumption from
+wgpu_core::track::buffer::BufferBindGroupState<>::used_tracker_indices
+  in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+22720 calls with 0B peak consumption from:
+    wgpu_core::track::Tracker<>::set_and_remove_from_usage_scope_sparse
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    wgpu_core::command::compute::State<>::flush_states
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    wgpu_core::command::compute::dispatch_indirect
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    wgpu_core::command::compute::<>::compute_pass_end
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    <>::end
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    wgpuComputePassEncoderEnd
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    voxy::physics::GpuDynamicSolver::Impl::encode(WGPUCommandEncoderImpl*, bool, voxy::physics::GpuDynamicSolver::ProfilingBoundary const&)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::GpuPhysicsBackend::Impl::encode(WGPUCommandEncoderImpl*, bool)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::GpuPhysicsBackend::encodeGpuStep(WGPUCommandEncoderImpl*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::(anonymous namespace)::GpuBallisticBenchmark_UpdatesAndRendersConfiguredBodiesDirectly_Test::TestBody()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/gpu_ballistic_benchmark
+    void testing::internal::HandleExceptionsInMethodIfSupported<>(testing::Test*, void (testing::Test::*)(), char const*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::Test::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::TestInfo::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::TestSuite::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::internal::UnitTestImpl::RunAllTests()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    bool testing::internal::HandleExceptionsInMethodIfSupported<>(testing::internal::UnitTestImpl*, bool (testing::internal::UnitTestImpl::*)(), char const*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::UnitTest::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    main
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest_Umain.so
+10880 calls with 0B peak consumption from:
+    wgpu_core::track::Tracker<>::set_and_remove_from_usage_scope_sparse
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    wgpu_core::command::compute::State<>::flush_states
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    wgpu_core::command::compute::dispatch_indirect
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    wgpu_core::command::compute::<>::compute_pass_end
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    <>::end
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    wgpuComputePassEncoderEnd
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    voxy::physics::GpuIslandManager::Impl::encode(WGPUCommandEncoderImpl*, bool)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::GpuPhysicsBackend::Impl::encode(WGPUCommandEncoderImpl*, bool)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::GpuPhysicsBackend::encodeGpuStep(WGPUCommandEncoderImpl*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::(anonymous namespace)::GpuBallisticBenchmark_UpdatesAndRendersConfiguredBodiesDirectly_Test::TestBody()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/gpu_ballistic_benchmark
+    void testing::internal::HandleExceptionsInMethodIfSupported<>(testing::Test*, void (testing::Test::*)(), char const*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::Test::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::TestInfo::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::TestSuite::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::internal::UnitTestImpl::RunAllTests()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    bool testing::internal::HandleExceptionsInMethodIfSupported<>(testing::internal::UnitTestImpl*, bool (testing::internal::UnitTestImpl::*)(), char const*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::UnitTest::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    main
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest_Umain.so
+  and 90389 from 60 other places
+
+23364 calls to allocation functions with 0B peak consumption from
+wgpuCommandEncoderBeginComputePass
+  in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+320 calls with 0B peak consumption from:
+    voxy::physics::DeterministicGpuPrimitives::encodeRadixSortImpl(WGPUCommandEncoderImpl*, WGPUBufferImpl*, WGPUBufferImpl*, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, WGPUBufferImpl*, unsigned long, unsigned long, WGPUBufferImpl*, unsigned int, unsigned int)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::DeterministicGpuPrimitives::encodeRadixSortBoundedU32x2(WGPUCommandEncoderImpl*, WGPUBufferImpl*, WGPUBufferImpl*, unsigned int, unsigned int, unsigned int, WGPUBufferImpl*, unsigned long, unsigned long, WGPUBufferImpl*, unsigned int, unsigned int)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::GpuDynamicSolver::Impl::encode(WGPUCommandEncoderImpl*, bool, voxy::physics::GpuDynamicSolver::ProfilingBoundary const&)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::GpuPhysicsBackend::Impl::encode(WGPUCommandEncoderImpl*, bool)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::GpuPhysicsBackend::encodeGpuStep(WGPUCommandEncoderImpl*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::(anonymous namespace)::GpuBallisticBenchmark_UpdatesAndRendersConfiguredBodiesDirectly_Test::TestBody()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/gpu_ballistic_benchmark
+    void testing::internal::HandleExceptionsInMethodIfSupported<>(testing::Test*, void (testing::Test::*)(), char const*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::Test::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::TestInfo::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::TestSuite::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::internal::UnitTestImpl::RunAllTests()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    bool testing::internal::HandleExceptionsInMethodIfSupported<>(testing::internal::UnitTestImpl*, bool (testing::internal::UnitTestImpl::*)(), char const*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::UnitTest::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    main
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest_Umain.so
+320 calls with 0B peak consumption from:
+    voxy::physics::DeterministicGpuPrimitives::encodeRadixSortImpl(WGPUCommandEncoderImpl*, WGPUBufferImpl*, WGPUBufferImpl*, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, WGPUBufferImpl*, unsigned long, unsigned long, WGPUBufferImpl*, unsigned int, unsigned int)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::DeterministicGpuPrimitives::encodeRadixSortBoundedU32x2(WGPUCommandEncoderImpl*, WGPUBufferImpl*, WGPUBufferImpl*, unsigned int, unsigned int, unsigned int, WGPUBufferImpl*, unsigned long, unsigned long, WGPUBufferImpl*, unsigned int, unsigned int)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::GpuIslandManager::Impl::encode(WGPUCommandEncoderImpl*, bool)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::GpuPhysicsBackend::Impl::encode(WGPUCommandEncoderImpl*, bool)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::GpuPhysicsBackend::encodeGpuStep(WGPUCommandEncoderImpl*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::(anonymous namespace)::GpuBallisticBenchmark_UpdatesAndRendersConfiguredBodiesDirectly_Test::TestBody()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/gpu_ballistic_benchmark
+    void testing::internal::HandleExceptionsInMethodIfSupported<>(testing::Test*, void (testing::Test::*)(), char const*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::Test::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::TestInfo::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::TestSuite::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::internal::UnitTestImpl::RunAllTests()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    bool testing::internal::HandleExceptionsInMethodIfSupported<>(testing::internal::UnitTestImpl*, bool (testing::internal::UnitTestImpl::*)(), char const*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::UnitTest::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    main
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest_Umain.so
+  and 22724 from 73 other places
+
+23364 calls to allocation functions with 0B peak consumption from
+wgpu_core::command::compute::<>::command_encoder_create_compute_pass_dyn
+  in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+320 calls with 0B peak consumption from:
+    wgpuCommandEncoderBeginComputePass
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    voxy::physics::DeterministicGpuPrimitives::encodeRadixSortImpl(WGPUCommandEncoderImpl*, WGPUBufferImpl*, WGPUBufferImpl*, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, WGPUBufferImpl*, unsigned long, unsigned long, WGPUBufferImpl*, unsigned int, unsigned int)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::DeterministicGpuPrimitives::encodeRadixSortBoundedU32x2(WGPUCommandEncoderImpl*, WGPUBufferImpl*, WGPUBufferImpl*, unsigned int, unsigned int, unsigned int, WGPUBufferImpl*, unsigned long, unsigned long, WGPUBufferImpl*, unsigned int, unsigned int)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::GpuDynamicSolver::Impl::encode(WGPUCommandEncoderImpl*, bool, voxy::physics::GpuDynamicSolver::ProfilingBoundary const&)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::GpuPhysicsBackend::Impl::encode(WGPUCommandEncoderImpl*, bool)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::GpuPhysicsBackend::encodeGpuStep(WGPUCommandEncoderImpl*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::(anonymous namespace)::GpuBallisticBenchmark_UpdatesAndRendersConfiguredBodiesDirectly_Test::TestBody()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/gpu_ballistic_benchmark
+    void testing::internal::HandleExceptionsInMethodIfSupported<>(testing::Test*, void (testing::Test::*)(), char const*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::Test::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::TestInfo::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::TestSuite::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::internal::UnitTestImpl::RunAllTests()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    bool testing::internal::HandleExceptionsInMethodIfSupported<>(testing::internal::UnitTestImpl*, bool (testing::internal::UnitTestImpl::*)(), char const*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::UnitTest::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    main
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest_Umain.so
+320 calls with 0B peak consumption from:
+    wgpuCommandEncoderBeginComputePass
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    voxy::physics::DeterministicGpuPrimitives::encodeRadixSortImpl(WGPUCommandEncoderImpl*, WGPUBufferImpl*, WGPUBufferImpl*, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, WGPUBufferImpl*, unsigned long, unsigned long, WGPUBufferImpl*, unsigned int, unsigned int)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::DeterministicGpuPrimitives::encodeRadixSortBoundedU32x2(WGPUCommandEncoderImpl*, WGPUBufferImpl*, WGPUBufferImpl*, unsigned int, unsigned int, unsigned int, WGPUBufferImpl*, unsigned long, unsigned long, WGPUBufferImpl*, unsigned int, unsigned int)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::GpuIslandManager::Impl::encode(WGPUCommandEncoderImpl*, bool)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::GpuPhysicsBackend::Impl::encode(WGPUCommandEncoderImpl*, bool)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::GpuPhysicsBackend::encodeGpuStep(WGPUCommandEncoderImpl*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::(anonymous namespace)::GpuBallisticBenchmark_UpdatesAndRendersConfiguredBodiesDirectly_Test::TestBody()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/gpu_ballistic_benchmark
+    void testing::internal::HandleExceptionsInMethodIfSupported<>(testing::Test*, void (testing::Test::*)(), char const*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::Test::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::TestInfo::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::TestSuite::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::internal::UnitTestImpl::RunAllTests()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    bool testing::internal::HandleExceptionsInMethodIfSupported<>(testing::internal::UnitTestImpl*, bool (testing::internal::UnitTestImpl::*)(), char const*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::UnitTest::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    main
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest_Umain.so
+  and 22724 from 73 other places
+
+18437 calls to allocation functions with 82.43K peak consumption from
+util_idalloc_resize.part.0
+  in /nix/store/v2isk5r5fzlriczi14ckn20hf45079di-mesa-26.1.2/lib/libgallium-26.1.2.so
+1024 calls with 4.10K peak consumption from:
+    util_idalloc_sparse_init
+      in /nix/store/v2isk5r5fzlriczi14ckn20hf45079di-mesa-26.1.2/lib/libgallium-26.1.2.so
+    _mesa_InitHashTable
+      in /nix/store/v2isk5r5fzlriczi14ckn20hf45079di-mesa-26.1.2/lib/libgallium-26.1.2.so
+    _mesa_alloc_shared_state
+      in /nix/store/v2isk5r5fzlriczi14ckn20hf45079di-mesa-26.1.2/lib/libgallium-26.1.2.so
+    _mesa_initialize_context
+      in /nix/store/v2isk5r5fzlriczi14ckn20hf45079di-mesa-26.1.2/lib/libgallium-26.1.2.so
+    st_create_context
+      in /nix/store/v2isk5r5fzlriczi14ckn20hf45079di-mesa-26.1.2/lib/libgallium-26.1.2.so
+    st_api_create_context
+      in /nix/store/v2isk5r5fzlriczi14ckn20hf45079di-mesa-26.1.2/lib/libgallium-26.1.2.so
+    dri_create_context
+      in /nix/store/v2isk5r5fzlriczi14ckn20hf45079di-mesa-26.1.2/lib/libgallium-26.1.2.so
+    driCreateContextAttribs
+      in /nix/store/v2isk5r5fzlriczi14ckn20hf45079di-mesa-26.1.2/lib/libgallium-26.1.2.so
+    dri2_create_context
+      in /nix/store/v2isk5r5fzlriczi14ckn20hf45079di-mesa-26.1.2/lib/libEGL_mesa.so.0
+    eglCreateContext
+      in /nix/store/v2isk5r5fzlriczi14ckn20hf45079di-mesa-26.1.2/lib/libEGL_mesa.so.0
+    wgpu_hal::gles::egl::Inner::create
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    <>::init
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    wgpu_core::instance::Instance::new
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    wgpu_core::global::Global::new
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    wgpuCreateInstance
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    voxy::gpu::Context::createInstance(voxy::gpu::ContextConfig const&)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sgpu_Slibgpu.so
+    voxy::gpu::Context::initHeadless(voxy::gpu::ContextConfig const&)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sgpu_Slibgpu.so
+    voxy::physics::(anonymous namespace)::GpuBallisticBenchmark_UpdatesAndRendersConfiguredBodiesDirectly_Test::TestBody()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/gpu_ballistic_benchmark
+    void testing::internal::HandleExceptionsInMethodIfSupported<>(testing::Test*, void (testing::Test::*)(), char const*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::Test::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::TestInfo::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::TestSuite::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::internal::UnitTestImpl::RunAllTests()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    bool testing::internal::HandleExceptionsInMethodIfSupported<>(testing::internal::UnitTestImpl*, bool (testing::internal::UnitTestImpl::*)(), char const*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::UnitTest::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    main
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest_Umain.so
+1024 calls with 4.10K peak consumption from:
+    util_idalloc_sparse_init
+      in /nix/store/v2isk5r5fzlriczi14ckn20hf45079di-mesa-26.1.2/lib/libgallium-26.1.2.so
+    _mesa_InitHashTable
+      in /nix/store/v2isk5r5fzlriczi14ckn20hf45079di-mesa-26.1.2/lib/libgallium-26.1.2.so
+    _mesa_glthread_init
+      in /nix/store/v2isk5r5fzlriczi14ckn20hf45079di-mesa-26.1.2/lib/libgallium-26.1.2.so
+    dri_create_context
+      in /nix/store/v2isk5r5fzlriczi14ckn20hf45079di-mesa-26.1.2/lib/libgallium-26.1.2.so
+    driCreateContextAttribs
+      in /nix/store/v2isk5r5fzlriczi14ckn20hf45079di-mesa-26.1.2/lib/libgallium-26.1.2.so
+    dri2_create_context
+      in /nix/store/v2isk5r5fzlriczi14ckn20hf45079di-mesa-26.1.2/lib/libEGL_mesa.so.0
+    eglCreateContext
+      in /nix/store/v2isk5r5fzlriczi14ckn20hf45079di-mesa-26.1.2/lib/libEGL_mesa.so.0
+    wgpu_hal::gles::egl::Inner::create
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    <>::init
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    wgpu_core::instance::Instance::new
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    wgpu_core::global::Global::new
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    wgpuCreateInstance
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    voxy::gpu::Context::createInstance(voxy::gpu::ContextConfig const&)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sgpu_Slibgpu.so
+    voxy::gpu::Context::initHeadless(voxy::gpu::ContextConfig const&)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sgpu_Slibgpu.so
+    voxy::physics::(anonymous namespace)::GpuBallisticBenchmark_UpdatesAndRendersConfiguredBodiesDirectly_Test::TestBody()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/gpu_ballistic_benchmark
+    void testing::internal::HandleExceptionsInMethodIfSupported<>(testing::Test*, void (testing::Test::*)(), char const*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::Test::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::TestInfo::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::TestSuite::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::internal::UnitTestImpl::RunAllTests()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    bool testing::internal::HandleExceptionsInMethodIfSupported<>(testing::internal::UnitTestImpl*, bool (testing::internal::UnitTestImpl::*)(), char const*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::UnitTest::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    main
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest_Umain.so
+  and 16389 from 19 other places
+
+
+PEAK MEMORY CONSUMERS
+119.54M peak memory consumed over 3 calls from
+std::vector<>::reserve(unsigned long)
+  in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+39.85M consumed over 1 calls from:
+    voxy::physics::GpuPhysicsBackend::Impl::initialize(voxy::physics::PhysicsInitContext const&)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::PhysicsWorld::initialize(voxy::physics::PhysicsInitContext const&)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::(anonymous namespace)::GpuBallisticBenchmark_UpdatesAndRendersConfiguredBodiesDirectly_Test::TestBody()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/gpu_ballistic_benchmark
+    void testing::internal::HandleExceptionsInMethodIfSupported<>(testing::Test*, void (testing::Test::*)(), char const*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::Test::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::TestInfo::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::TestSuite::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::internal::UnitTestImpl::RunAllTests()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    bool testing::internal::HandleExceptionsInMethodIfSupported<>(testing::internal::UnitTestImpl*, bool (testing::internal::UnitTestImpl::*)(), char const*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::UnitTest::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    main
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest_Umain.so
+39.85M consumed over 1 calls from:
+    voxy::physics::GpuPhysicsBackend::Impl::initialize(voxy::physics::PhysicsInitContext const&)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::PhysicsWorld::initialize(voxy::physics::PhysicsInitContext const&)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::(anonymous namespace)::GpuBallisticBenchmark_UpdatesAndRendersConfiguredBodiesDirectly_Test::TestBody()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/gpu_ballistic_benchmark
+    void testing::internal::HandleExceptionsInMethodIfSupported<>(testing::Test*, void (testing::Test::*)(), char const*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::Test::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::TestInfo::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::TestSuite::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::internal::UnitTestImpl::RunAllTests()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    bool testing::internal::HandleExceptionsInMethodIfSupported<>(testing::internal::UnitTestImpl*, bool (testing::internal::UnitTestImpl::*)(), char const*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::UnitTest::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    main
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest_Umain.so
+  and 39.85M from 1 other places
+
+34.15M peak memory consumed over 6 calls from
+voxy::physics::GpuPhysicsBackend::Impl::initialize(voxy::physics::PhysicsInitContext const&)
+  in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+33.55M consumed over 1 calls from:
+    voxy::physics::PhysicsWorld::initialize(voxy::physics::PhysicsInitContext const&)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::(anonymous namespace)::GpuBallisticBenchmark_UpdatesAndRendersConfiguredBodiesDirectly_Test::TestBody()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/gpu_ballistic_benchmark
+    void testing::internal::HandleExceptionsInMethodIfSupported<>(testing::Test*, void (testing::Test::*)(), char const*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::Test::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::TestInfo::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::TestSuite::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::internal::UnitTestImpl::RunAllTests()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    bool testing::internal::HandleExceptionsInMethodIfSupported<>(testing::internal::UnitTestImpl*, bool (testing::internal::UnitTestImpl::*)(), char const*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::UnitTest::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    main
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest_Umain.so
+327.68K consumed over 1 calls from:
+    voxy::physics::PhysicsWorld::initialize(voxy::physics::PhysicsInitContext const&)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::(anonymous namespace)::GpuBallisticBenchmark_UpdatesAndRendersConfiguredBodiesDirectly_Test::TestBody()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/gpu_ballistic_benchmark
+    void testing::internal::HandleExceptionsInMethodIfSupported<>(testing::Test*, void (testing::Test::*)(), char const*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::Test::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::TestInfo::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::TestSuite::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::internal::UnitTestImpl::RunAllTests()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    bool testing::internal::HandleExceptionsInMethodIfSupported<>(testing::internal::UnitTestImpl*, bool (testing::internal::UnitTestImpl::*)(), char const*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::UnitTest::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    main
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest_Umain.so
+  and 270.34K from 4 other places
+
+6.03M peak memory consumed over 567150 calls from
+alloc::raw_vec::finish_grow
+  in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+84.86K consumed over 60 calls from:
+    alloc::raw_vec::RawVec<>::grow_one
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    naga::front::wgsl::lower::Lowerer::block
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    naga::front::wgsl::lower::Lowerer::lower
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    naga::front::wgsl::Frontend::parse
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    naga::front::wgsl::parse_str
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    wgpu_core::device::resource::Device<>::create_shader_module
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    wgpu_core::device::global::<>::device_create_shader_module
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    wgpuDeviceCreateShaderModule
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    voxy::gpu::createShaderModule(WGPUDeviceImpl*, std::basic_string_view<>, std::basic_string_view<>)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sgpu_Slibgpu.so
+    voxy::gpu::loadShaderModule(WGPUDeviceImpl*, std::filesystem::__cxx11::path const&, std::basic_string_view<>, std::span<>)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sgpu_Slibgpu.so
+    voxy::physics::GpuNarrowPhase::Impl::initialize(WGPUDeviceImpl*, WGPUQueueImpl*, voxy::physics::GpuNarrowPhase::Config const&)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::GpuPhysicsBackend::Impl::initialize(voxy::physics::PhysicsInitContext const&)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::PhysicsWorld::initialize(voxy::physics::PhysicsInitContext const&)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::(anonymous namespace)::GpuBallisticBenchmark_UpdatesAndRendersConfiguredBodiesDirectly_Test::TestBody()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/gpu_ballistic_benchmark
+    void testing::internal::HandleExceptionsInMethodIfSupported<>(testing::Test*, void (testing::Test::*)(), char const*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::Test::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::TestInfo::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::TestSuite::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::internal::UnitTestImpl::RunAllTests()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    bool testing::internal::HandleExceptionsInMethodIfSupported<>(testing::internal::UnitTestImpl*, bool (testing::internal::UnitTestImpl::*)(), char const*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::UnitTest::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    main
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest_Umain.so
+65.54K consumed over 1 calls from:
+    alloc::raw_vec::RawVec<>::reserve::do_reserve_and_handle
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    <>::spec_extend
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    wgpu_core::command::compute::set_bind_group
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    wgpu_core::command::compute::<>::compute_pass_end
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    <>::end
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    wgpuComputePassEncoderEnd
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    voxy::physics::GpuDynamicSolver::Impl::encode(WGPUCommandEncoderImpl*, bool, voxy::physics::GpuDynamicSolver::ProfilingBoundary const&)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::GpuPhysicsBackend::Impl::encode(WGPUCommandEncoderImpl*, bool)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::GpuPhysicsBackend::encodeGpuStep(WGPUCommandEncoderImpl*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::(anonymous namespace)::GpuBallisticBenchmark_UpdatesAndRendersConfiguredBodiesDirectly_Test::TestBody()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/gpu_ballistic_benchmark
+    void testing::internal::HandleExceptionsInMethodIfSupported<>(testing::Test*, void (testing::Test::*)(), char const*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::Test::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::TestInfo::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::TestSuite::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::internal::UnitTestImpl::RunAllTests()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    bool testing::internal::HandleExceptionsInMethodIfSupported<>(testing::internal::UnitTestImpl*, bool (testing::internal::UnitTestImpl::*)(), char const*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::UnitTest::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    main
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest_Umain.so
+  and 5.88M from 66324 other places
+
+4.19M peak memory consumed over 4 calls from
+std::vector<>::_M_fill_assign(unsigned long, unsigned long const&)
+  in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+1.05M consumed over 1 calls from:
+    voxy::physics::GpuPhysicsBackend::Impl::initialize(voxy::physics::PhysicsInitContext const&)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::PhysicsWorld::initialize(voxy::physics::PhysicsInitContext const&)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::(anonymous namespace)::GpuBallisticBenchmark_UpdatesAndRendersConfiguredBodiesDirectly_Test::TestBody()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/gpu_ballistic_benchmark
+    void testing::internal::HandleExceptionsInMethodIfSupported<>(testing::Test*, void (testing::Test::*)(), char const*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::Test::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::TestInfo::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::TestSuite::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::internal::UnitTestImpl::RunAllTests()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    bool testing::internal::HandleExceptionsInMethodIfSupported<>(testing::internal::UnitTestImpl*, bool (testing::internal::UnitTestImpl::*)(), char const*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::UnitTest::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    main
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest_Umain.so
+1.05M consumed over 1 calls from:
+    voxy::physics::GpuPhysicsBackend::Impl::initialize(voxy::physics::PhysicsInitContext const&)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::PhysicsWorld::initialize(voxy::physics::PhysicsInitContext const&)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::(anonymous namespace)::GpuBallisticBenchmark_UpdatesAndRendersConfiguredBodiesDirectly_Test::TestBody()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/gpu_ballistic_benchmark
+    void testing::internal::HandleExceptionsInMethodIfSupported<>(testing::Test*, void (testing::Test::*)(), char const*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::Test::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::TestInfo::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::TestSuite::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::internal::UnitTestImpl::RunAllTests()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    bool testing::internal::HandleExceptionsInMethodIfSupported<>(testing::internal::UnitTestImpl*, bool (testing::internal::UnitTestImpl::*)(), char const*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::UnitTest::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    main
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest_Umain.so
+  and 2.10M from 2 other places
+
+3.57M peak memory consumed over 192 calls from
+radv_create_cmd_buffer
+  in /nix/store/inn3pgffv1qzwdcgaqcfvwkk3sspi9yk-mesa-26.1.5/lib/libvulkan_radeon.so
+324.61K consumed over 16 calls from:
+    vk_common_AllocateCommandBuffers
+      in /nix/store/inn3pgffv1qzwdcgaqcfvwkk3sspi9yk-mesa-26.1.5/lib/libvulkan_radeon.so
+    vkAllocateCommandBuffers
+      in /nix/store/d6vnmfmcz5b299180issiaad4m96wh8k-vulkan-loader-1.4.341.0/lib/libvulkan.so.1
+    wgpu_hal::vulkan::command::<>::begin_encoding
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    wgpu_core::device::resource::Device<>::new
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    wgpu_core::instance::Adapter<>::create_device_and_queue
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    wgpu_core::instance::<>::adapter_request_device
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    wgpuAdapterRequestDevice
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    voxy::gpu::Context::requestDevice(voxy::gpu::ContextConfig const&)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sgpu_Slibgpu.so
+    voxy::gpu::Context::initHeadless(voxy::gpu::ContextConfig const&)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sgpu_Slibgpu.so
+    voxy::physics::(anonymous namespace)::GpuBallisticBenchmark_UpdatesAndRendersConfiguredBodiesDirectly_Test::TestBody()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/gpu_ballistic_benchmark
+    void testing::internal::HandleExceptionsInMethodIfSupported<>(testing::Test*, void (testing::Test::*)(), char const*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::Test::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::TestInfo::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::TestSuite::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::internal::UnitTestImpl::RunAllTests()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    bool testing::internal::HandleExceptionsInMethodIfSupported<>(testing::internal::UnitTestImpl*, bool (testing::internal::UnitTestImpl::*)(), char const*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::UnitTest::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    main
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest_Umain.so
+324.61K consumed over 16 calls from:
+    vk_common_AllocateCommandBuffers
+      in /nix/store/inn3pgffv1qzwdcgaqcfvwkk3sspi9yk-mesa-26.1.5/lib/libvulkan_radeon.so
+    vkAllocateCommandBuffers
+      in /nix/store/d6vnmfmcz5b299180issiaad4m96wh8k-vulkan-loader-1.4.341.0/lib/libvulkan.so.1
+    wgpu_hal::vulkan::command::<>::begin_encoding
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    wgpu_core::command::compute::<>::compute_pass_end
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    <>::end
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    wgpuComputePassEncoderEnd
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    voxy::physics::GpuPhysicsBackend::Impl::encode(WGPUCommandEncoderImpl*, bool)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::GpuPhysicsBackend::encodeGpuStep(WGPUCommandEncoderImpl*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::(anonymous namespace)::GpuBallisticBenchmark_UpdatesAndRendersConfiguredBodiesDirectly_Test::TestBody()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/gpu_ballistic_benchmark
+    void testing::internal::HandleExceptionsInMethodIfSupported<>(testing::Test*, void (testing::Test::*)(), char const*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::Test::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::TestInfo::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::TestSuite::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::internal::UnitTestImpl::RunAllTests()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    bool testing::internal::HandleExceptionsInMethodIfSupported<>(testing::internal::UnitTestImpl*, bool (testing::internal::UnitTestImpl::*)(), char const*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::UnitTest::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    main
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest_Umain.so
+  and 2.92M from 10 other places
+
+
+MOST TEMPORARY ALLOCATIONS
+92301 temporary allocations of 123989 allocations in total (74.44%) from
+wgpu_core::track::buffer::BufferBindGroupState<>::used_tracker_indices
+  in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+22080 temporary allocations of 22720 allocations in total (97.18%) from:
+    wgpu_core::track::Tracker<>::set_and_remove_from_usage_scope_sparse
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    wgpu_core::command::compute::State<>::flush_states
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    wgpu_core::command::compute::dispatch_indirect
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    wgpu_core::command::compute::<>::compute_pass_end
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    <>::end
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    wgpuComputePassEncoderEnd
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    voxy::physics::GpuDynamicSolver::Impl::encode(WGPUCommandEncoderImpl*, bool, voxy::physics::GpuDynamicSolver::ProfilingBoundary const&)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::GpuPhysicsBackend::Impl::encode(WGPUCommandEncoderImpl*, bool)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::GpuPhysicsBackend::encodeGpuStep(WGPUCommandEncoderImpl*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::(anonymous namespace)::GpuBallisticBenchmark_UpdatesAndRendersConfiguredBodiesDirectly_Test::TestBody()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/gpu_ballistic_benchmark
+    void testing::internal::HandleExceptionsInMethodIfSupported<>(testing::Test*, void (testing::Test::*)(), char const*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::Test::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::TestInfo::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::TestSuite::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::internal::UnitTestImpl::RunAllTests()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    bool testing::internal::HandleExceptionsInMethodIfSupported<>(testing::internal::UnitTestImpl*, bool (testing::internal::UnitTestImpl::*)(), char const*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::UnitTest::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    main
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest_Umain.so
+10560 temporary allocations of 10880 allocations in total (97.06%) from:
+    wgpu_core::track::Tracker<>::set_and_remove_from_usage_scope_sparse
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    wgpu_core::command::compute::State<>::flush_states
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    wgpu_core::command::compute::dispatch_indirect
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    wgpu_core::command::compute::<>::compute_pass_end
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    <>::end
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    wgpuComputePassEncoderEnd
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    voxy::physics::GpuIslandManager::Impl::encode(WGPUCommandEncoderImpl*, bool)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::GpuPhysicsBackend::Impl::encode(WGPUCommandEncoderImpl*, bool)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::GpuPhysicsBackend::encodeGpuStep(WGPUCommandEncoderImpl*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::(anonymous namespace)::GpuBallisticBenchmark_UpdatesAndRendersConfiguredBodiesDirectly_Test::TestBody()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/gpu_ballistic_benchmark
+    void testing::internal::HandleExceptionsInMethodIfSupported<>(testing::Test*, void (testing::Test::*)(), char const*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::Test::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::TestInfo::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::TestSuite::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::internal::UnitTestImpl::RunAllTests()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    bool testing::internal::HandleExceptionsInMethodIfSupported<>(testing::internal::UnitTestImpl*, bool (testing::internal::UnitTestImpl::*)(), char const*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::UnitTest::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    main
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest_Umain.so
+  and 59.66K from 60 other places
+
+73793 temporary allocations of 567150 allocations in total (13.01%) from
+alloc::raw_vec::finish_grow
+  in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+1280 temporary allocations of 1600 allocations in total (80.00%) from:
+    alloc::raw_vec::RawVec<>::grow_one
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    wgpu_core::command::compute::<>::compute_pass_dispatch_workgroups_indirect
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    <>::dispatch_workgroups_indirect
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    wgpuComputePassEncoderDispatchWorkgroupsIndirect
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    voxy::physics::GpuIslandManager::Impl::encode(WGPUCommandEncoderImpl*, bool)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::GpuPhysicsBackend::Impl::encode(WGPUCommandEncoderImpl*, bool)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::GpuPhysicsBackend::encodeGpuStep(WGPUCommandEncoderImpl*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::(anonymous namespace)::GpuBallisticBenchmark_UpdatesAndRendersConfiguredBodiesDirectly_Test::TestBody()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/gpu_ballistic_benchmark
+    void testing::internal::HandleExceptionsInMethodIfSupported<>(testing::Test*, void (testing::Test::*)(), char const*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::Test::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::TestInfo::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::TestSuite::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::internal::UnitTestImpl::RunAllTests()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    bool testing::internal::HandleExceptionsInMethodIfSupported<>(testing::internal::UnitTestImpl*, bool (testing::internal::UnitTestImpl::*)(), char const*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::UnitTest::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    main
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest_Umain.so
+640 temporary allocations of 960 allocations in total (66.67%) from:
+    alloc::raw_vec::RawVec<>::grow_one
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    wgpu_core::command::compute::<>::compute_pass_dispatch_workgroups_indirect
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    <>::dispatch_workgroups_indirect
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    wgpuComputePassEncoderDispatchWorkgroupsIndirect
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    voxy::physics::GpuNarrowPhase::Impl::encode(WGPUCommandEncoderImpl*, voxy::physics::GpuNarrowPhase::ProfilingBoundary const&)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::GpuPhysicsBackend::Impl::encode(WGPUCommandEncoderImpl*, bool)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::GpuPhysicsBackend::encodeGpuStep(WGPUCommandEncoderImpl*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::(anonymous namespace)::GpuBallisticBenchmark_UpdatesAndRendersConfiguredBodiesDirectly_Test::TestBody()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/gpu_ballistic_benchmark
+    void testing::internal::HandleExceptionsInMethodIfSupported<>(testing::Test*, void (testing::Test::*)(), char const*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::Test::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::TestInfo::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::TestSuite::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::internal::UnitTestImpl::RunAllTests()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    bool testing::internal::HandleExceptionsInMethodIfSupported<>(testing::internal::UnitTestImpl*, bool (testing::internal::UnitTestImpl::*)(), char const*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::UnitTest::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    main
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest_Umain.so
+  and 71.87K from 66324 other places
+
+2823 temporary allocations of 7497 allocations in total (37.66%) from
+<>::from_iter
+  in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+640 temporary allocations of 640 allocations in total (100.00%) from:
+    wgpu_core::device::queue::<>::queue_submit
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    wgpuQueueSubmitForIndex
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    voxy::physics::(anonymous namespace)::GpuBallisticBenchmark_UpdatesAndRendersConfiguredBodiesDirectly_Test::TestBody()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/gpu_ballistic_benchmark
+    void testing::internal::HandleExceptionsInMethodIfSupported<>(testing::Test*, void (testing::Test::*)(), char const*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::Test::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::TestInfo::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::TestSuite::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::internal::UnitTestImpl::RunAllTests()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    bool testing::internal::HandleExceptionsInMethodIfSupported<>(testing::internal::UnitTestImpl*, bool (testing::internal::UnitTestImpl::*)(), char const*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::UnitTest::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    main
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest_Umain.so
+320 temporary allocations of 320 allocations in total (100.00%) from:
+    wgpu_core::device::queue::<>::queue_submit
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    wgpuQueueSubmitForIndex
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    voxy::physics::(anonymous namespace)::GpuBallisticBenchmark_UpdatesAndRendersConfiguredBodiesDirectly_Test::TestBody()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/gpu_ballistic_benchmark
+    void testing::internal::HandleExceptionsInMethodIfSupported<>(testing::Test*, void (testing::Test::*)(), char const*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::Test::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::TestInfo::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::TestSuite::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::internal::UnitTestImpl::RunAllTests()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    bool testing::internal::HandleExceptionsInMethodIfSupported<>(testing::internal::UnitTestImpl*, bool (testing::internal::UnitTestImpl::*)(), char const*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::UnitTest::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    main
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest_Umain.so
+  and 1.86K from 1962 other places
+
+1600 temporary allocations of 1600 allocations in total (100.00%) from
+vk_common_CmdPipelineBarrier
+  in /nix/store/inn3pgffv1qzwdcgaqcfvwkk3sspi9yk-mesa-26.1.5/lib/libvulkan_radeon.so
+320 temporary allocations of 320 allocations in total (100.00%) from:
+    wgpu_hal::vulkan::command::<>::transition_buffers
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    wgpu_core::command::CommandBuffer<>::drain_barriers
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    wgpu_core::command::compute::<>::compute_pass_end
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    <>::end
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    wgpuComputePassEncoderEnd
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    voxy::physics::GpuBroadPhase::Impl::encode(WGPUCommandEncoderImpl*, voxy::physics::GpuBroadPhase::ProfilingBoundary const&)::{lambda(unsigned int, bool)#2}::operator()(unsigned int, bool) const
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::GpuBroadPhase::Impl::encode(WGPUCommandEncoderImpl*, voxy::physics::GpuBroadPhase::ProfilingBoundary const&)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::GpuPhysicsBackend::Impl::encode(WGPUCommandEncoderImpl*, bool)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::GpuPhysicsBackend::encodeGpuStep(WGPUCommandEncoderImpl*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::(anonymous namespace)::GpuBallisticBenchmark_UpdatesAndRendersConfiguredBodiesDirectly_Test::TestBody()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/gpu_ballistic_benchmark
+    void testing::internal::HandleExceptionsInMethodIfSupported<>(testing::Test*, void (testing::Test::*)(), char const*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::Test::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::TestInfo::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::TestSuite::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::internal::UnitTestImpl::RunAllTests()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    bool testing::internal::HandleExceptionsInMethodIfSupported<>(testing::internal::UnitTestImpl*, bool (testing::internal::UnitTestImpl::*)(), char const*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::UnitTest::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    main
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest_Umain.so
+320 temporary allocations of 320 allocations in total (100.00%) from:
+    wgpu_hal::vulkan::command::<>::transition_buffers
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    wgpu_core::command::CommandBuffer<>::drain_barriers
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    wgpu_core::command::compute::<>::compute_pass_end
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    <>::end
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    wgpuComputePassEncoderEnd
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    voxy::physics::GpuDynamicSolver::Impl::encode(WGPUCommandEncoderImpl*, bool, voxy::physics::GpuDynamicSolver::ProfilingBoundary const&)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::GpuPhysicsBackend::Impl::encode(WGPUCommandEncoderImpl*, bool)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::GpuPhysicsBackend::encodeGpuStep(WGPUCommandEncoderImpl*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::(anonymous namespace)::GpuBallisticBenchmark_UpdatesAndRendersConfiguredBodiesDirectly_Test::TestBody()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/gpu_ballistic_benchmark
+    void testing::internal::HandleExceptionsInMethodIfSupported<>(testing::Test*, void (testing::Test::*)(), char const*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::Test::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::TestInfo::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::TestSuite::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::internal::UnitTestImpl::RunAllTests()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    bool testing::internal::HandleExceptionsInMethodIfSupported<>(testing::internal::UnitTestImpl*, bool (testing::internal::UnitTestImpl::*)(), char const*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::UnitTest::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    main
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest_Umain.so
+  and 960B from 3 other places
+
+999 temporary allocations of 1874 allocations in total (53.31%) from
+naga::back::spv::writer::<>::get_constant_composite
+  in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+230 temporary allocations of 300 allocations in total (76.67%) from:
+    naga::back::spv::block::<>::cache_expression_value
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    naga::back::spv::writer::<>::write_function
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    naga::back::spv::writer::<>::write_logical_layout
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    naga::back::spv::writer::<>::write
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    naga::back::spv::write_vec
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    wgpu_hal::vulkan::device::<>::compile_stage
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    wgpu_hal::vulkan::device::<>::create_compute_pipeline
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    wgpu_core::device::resource::Device<>::create_compute_pipeline
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    wgpu_core::device::global::<>::device_create_compute_pipeline
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    wgpuDeviceCreateComputePipeline
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    voxy::physics::GpuNarrowPhase::Impl::createPipelines()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::GpuNarrowPhase::Impl::initialize(WGPUDeviceImpl*, WGPUQueueImpl*, voxy::physics::GpuNarrowPhase::Config const&)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::GpuPhysicsBackend::Impl::initialize(voxy::physics::PhysicsInitContext const&)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::PhysicsWorld::initialize(voxy::physics::PhysicsInitContext const&)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::(anonymous namespace)::GpuBallisticBenchmark_UpdatesAndRendersConfiguredBodiesDirectly_Test::TestBody()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/gpu_ballistic_benchmark
+    void testing::internal::HandleExceptionsInMethodIfSupported<>(testing::Test*, void (testing::Test::*)(), char const*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::Test::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::TestInfo::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::TestSuite::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::internal::UnitTestImpl::RunAllTests()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    bool testing::internal::HandleExceptionsInMethodIfSupported<>(testing::internal::UnitTestImpl*, bool (testing::internal::UnitTestImpl::*)(), char const*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::UnitTest::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    main
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest_Umain.so
+210 temporary allocations of 290 allocations in total (72.41%) from:
+    naga::back::spv::block::<>::cache_expression_value
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    naga::back::spv::writer::<>::write_function
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    naga::back::spv::writer::<>::write_logical_layout
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    naga::back::spv::writer::<>::write
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    naga::back::spv::write_vec
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    wgpu_hal::vulkan::device::<>::compile_stage
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    wgpu_hal::vulkan::device::<>::create_compute_pipeline
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    wgpu_core::device::resource::Device<>::create_compute_pipeline
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    wgpu_core::device::global::<>::device_create_compute_pipeline
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    wgpuDeviceCreateComputePipeline
+      in /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+    voxy::physics::GpuNarrowPhase::Impl::createPipelines()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::GpuNarrowPhase::Impl::initialize(WGPUDeviceImpl*, WGPUQueueImpl*, voxy::physics::GpuNarrowPhase::Config const&)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::GpuPhysicsBackend::Impl::initialize(voxy::physics::PhysicsInitContext const&)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::PhysicsWorld::initialize(voxy::physics::PhysicsInitContext const&)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libsrc_Sphysics_Slibphysics.so
+    voxy::physics::(anonymous namespace)::GpuBallisticBenchmark_UpdatesAndRendersConfiguredBodiesDirectly_Test::TestBody()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/gpu_ballistic_benchmark
+    void testing::internal::HandleExceptionsInMethodIfSupported<>(testing::Test*, void (testing::Test::*)(), char const*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::Test::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::TestInfo::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::TestSuite::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::internal::UnitTestImpl::RunAllTests()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    bool testing::internal::HandleExceptionsInMethodIfSupported<>(testing::internal::UnitTestImpl*, bool (testing::internal::UnitTestImpl::*)(), char const*)
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    testing::UnitTest::Run()
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest.so
+    main
+      in /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/tests/../_solib_k8/libexternal_Sgoogletest+_Slibgtest_Umain.so
+  and 559B from 206 other places
+
+
+total runtime: 5.23s.
+calls to allocation functions: 874732 (167124/s)
+temporary memory allocations: 180322 (34452/s)
+peak heap memory consumption: 179.80M
+peak RSS (including heaptrack overhead): 174.04M
+total memory leaked: 141.35K
+suppressed leaks: 248.83K

@@ -1,0 +1,28 @@
+Some binary filenames not available. Symbolization may be incomplete.
+Try setting PPROF_BINARY_PATH to the search path for local binaries.
+File: gpu_ballistic_benchmark
+Type: cpu
+Showing nodes accounting for 1.38s, 70.04% of 1.97s total
+Dropped 447 nodes (cum <= 0.01s)
+Showing top 20 nodes out of 173
+      flat  flat%   sum%        cum   cum%
+     0.55s 28.14% 28.14%      1.01s 51.09%  <unknown>
+     0.36s 18.44% 46.57%      0.36s 18.44%  __GI___ioctl
+     0.10s  5.23% 51.80%      0.10s  5.23%  __memset_avx512_unaligned_erms
+     0.04s  2.13% 53.94%      0.04s  2.13%  wgpu_core::track::buffer::BufferUsageScope<A>::merge_bind_group
+     0.03s  1.57% 55.51%      0.03s  1.73%  wgpu_core::storage::Storage<T>::get_owned
+     0.03s  1.52% 57.03%      0.03s  1.52%  core::ops::function::impls::<impl core::ops::function::FnMut<A> for &mut F>::call_mut
+     0.03s  1.27% 58.30%      0.04s  1.98%  _int_malloc
+     0.02s  1.12% 59.42%      0.02s  1.12%  wgpu_core::track::metadata::ResourceMetadata<T>::remove
+     0.02s  1.12% 60.54%      0.02s  1.17%  wgpu_core::track::stateless::StatelessTracker<T>::insert_single
+     0.02s  1.02% 61.55%      0.05s  2.74%  wgpu_core::registry::Registry<T>::get
+     0.02s  1.02% 62.57%      0.11s  5.43%  wgpu_hal::vulkan::command::<impl wgpu_hal::CommandEncoder for wgpu_hal::vulkan::CommandEncoder>::transition_buffers
+     0.02s  0.96% 63.53%      0.02s  0.96%  __memmove_avx512_unaligned_erms
+     0.02s  0.96% 64.50%      0.06s  3.15%  voxy::physics::GpuPhysicsBackend::Impl::sortAndCoalesceKinematicTargets
+     0.02s  0.96% 65.46%      0.10s  5.28%  wgpu_core::command::compute::set_pipeline
+     0.02s  0.86% 66.33%      0.02s  1.02%  wgpu_core::command::bind::Binder<A>::assign_group
+     0.02s  0.81% 67.14%      0.02s  0.81%  wgpu_hal::vulkan::conv::map_buffer_usage_to_barrier
+     0.01s  0.76% 67.90%      0.01s  0.76%  core::ptr::drop_in_place<wgpu_core::track::metadata::ResourceMetadata<alloc::sync::Arc<wgpu_core::resource::Buffer<wgpu_hal::vulkan::Api>>>>
+     0.01s  0.71% 68.61%      0.02s  1.07%  <alloc::vec::Vec<T> as alloc::vec::spec_from_iter::SpecFromIter<T,I>>::from_iter
+     0.01s  0.71% 69.32%      0.01s  0.71%  malloc_consolidate
+     0.01s  0.71% 70.04%      0.20s 10.31%  wgpu_core::command::compute::dispatch_indirect

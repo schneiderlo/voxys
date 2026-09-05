@@ -1,0 +1,13 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+	deviceName        = AMD Radeon 890M Graphics (RADV STRIX1)
+	timestampPeriod                                 = 10.019
+	driverName                                           = radv
+	driverInfo                                           = Mesa 26.1.5
+	deviceName        = llvmpipe (LLVM 21.1.8, 256 bits)
+	timestampPeriod                                 = 1
+	driverName                                           = llvmpipe
+	driverInfo                                           = Mesa 26.1.5 (LLVM 21.1.8)

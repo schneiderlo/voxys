@@ -518,6 +518,7 @@ if(VOXY_BUILD_BENCHMARKS)
         water_lock_benchmark.cpp
         primitive_instance_benchmark.cpp
         primitive_culling_benchmark.cpp
+        replication_benchmark.cpp
     )
     set(VOXY_BENCHMARK_TARGETS "")
     foreach(BENCHMARK_SOURCE IN LISTS CPU_BENCHMARK_SOURCES)
@@ -535,6 +536,17 @@ if(VOXY_BUILD_BENCHMARKS)
     endforeach()
 
     if(TARGET wgpu::webgpu OR TARGET dawn::webgpu)
+        add_executable(gpu_radix_benchmark gpu_radix_benchmark.cpp)
+        target_link_libraries(gpu_radix_benchmark PRIVATE
+            voxy_core gtest gtest_main
+        )
+        target_include_directories(gpu_radix_benchmark PRIVATE
+            ${CMAKE_SOURCE_DIR}/src
+        )
+        target_compile_definitions(gpu_radix_benchmark PRIVATE VOXY_NATIVE=1)
+        set_project_warnings(gpu_radix_benchmark)
+        list(APPEND VOXY_BENCHMARK_TARGETS gpu_radix_benchmark)
+
         add_executable(gpu_ballistic_benchmark
             gpu_ballistic_benchmark.cpp
         )

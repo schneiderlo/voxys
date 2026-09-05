@@ -1,0 +1,50 @@
+Recorded before production performance changes, 2026-09-05 ~13:00 UTC.
+Scores: impact 1..5, confidence 0..1, effort relative units; score=impact*confidence/effort.
+1. Parallel radix histogram prefixes: impact 5, confidence .90, effort 3, score 1.50. Measured prefix 2.448 ms / (0.376+2.448+1.104)=62.3% of isolated radix GPU stages; broad sort/ranges ~3.018ms of whole GPU path. Prototype and measure small/large/dynamic workloads, preserve stable ordered records exactly.
+2. Parallel culling block prefix: impact 1, confidence .98, effort 1, score .98. Measured 0.071ms; whole culling ~0.313ms, combined drawing ~4.317ms. Defer: limited whole-frame leverage.
+3. CPU command empty/sorted fast path: impact 1, confidence .95, effort 1, score .95. Host profile sort/coalesce 3.15% inclusive including startup; memset 5.23% self not uniquely this function. Defer pending focused spike profile.
+4. Interest x-slab binary search: source lead; impact/confidence pending query workload. No diff proposed yet.
+5. Snapshot delta ordered merge: source lead; impact/confidence pending churn workload. No diff proposed yet.
+6. GPU query parallel body traversal: source lead; single invocation/query and full world scan. Need measured active query workload and tie-order/floating-point output proof. No diff proposed yet.
+No planned quality, solver iteration, cadence, broad-phase capacity, material, networking wire-format, or authoritative-state changes.
+
+Radix candidate proof sketch (before implementation): for digit d, histogram h[b,d] is unchanged. Partition [0,B) into 64 contiguous ordered chunks. Each lane computes its chunk total; the workgroup scan computes exactly the sum of all earlier chunks. Rescanning its chunk writes O[b,d]=sum(h[k,d],k<b), which is the original offset. The last rank writes total T[d]. The next dispatch scans T in original digit order to produce D[d]=sum(T[k],k<d). No output locations have multiple writers. Dispatch ordering makes totals visible before digit-base scan. All operations are integer additions (associative modulo 2^32, and real counts fit the existing capacity); no float expression or stable within-block rank changes. Therefore final scatter destinations and all four words of each sorted record are identical. B<=128 retains original prefix; the new preliminary dispatch returns uniformly without side effects. Empty indirect dispatch retains existing outputs. Large capacity with few active items needs performance validation because an extra no-op dispatch still has cost.
+
+First isolated experiment: at 262144 records, profile-enabled 8-pass sort p50 4.76652 -> 2.53393 ms; prefix GPU sum 2.44792 -> .333673 ms, histogram .376033 -> .375392, scatter 1.10437 -> 1.09953. Both full sorted outputs match golden hash 19354054fd844dea. Proceed to production-equivalent multi-instance host and integration A/B; no game speedup claimed yet.
+
+13:32 UTC additional caller profile (before any replication production edit):
+Generic MultiplayerSession::sendSnapshots, 65,536 body slots, 12 peers,
+spatially spread fixed state: InterestGrid::query accounts for 96.52% of
+sampled CPU time (6.675 s profile). Whole fan-out baseline p50 0.322640 ms.
+X-slab binary range: impact 4 x confidence .99 / effort 1 = 3.96, SELECT.
+Scope: generic lockstep replication only; current WRECKWATER certified snapshot
+publisher does not call this path. Dense shared-x scenes require neutral guard.
+Proof: rebuild sorts lexicographically by (x,y,z,bodyId), making x monotone.
+The old predicate rejects every entry with x outside [center.x-r,center.x+r].
+Two binary searches select exactly that contiguous interval. The original
+predicate, traversal order, truncation, final body-ID sort, and overflow flags
+remain unchanged within it. Bounds use int64_t so extreme int32 centers and
+radius clamp cannot overflow. No persistent state, wire format, or allocation
+shape changes. Empty ranges naturally produce the old empty result.
+
+Cutoff refinement after the first complete validation round:
+A 72-run isolated sweep compared active-block cutoffs 16/32/64/128 at
+4,096/8,192/10,000/16,384/32,768/65,536 live records, capacity 262,144.
+At 10,000 records, cutoff32 vs128: p50 .28880 vs .36036 ms; p95 .88475
+vs1.02414 ms. At16,384: .38079 vs .47575 ms. At32,768: .45107 vs
+.74849 ms. Choose32 as a conservative smaller crossover; leave <=32 on
+old path. This refines the same prefix lever, not a new algorithm. Update
+host and both shader conditions together, then repeat all boundary oracles
+and full caller A/B before retaining it. The partition proof is unchanged.
+
+Dense fan-out follow-up profile, before distance-precomputation edit:
+5.572 sampled CPU seconds: InterestGrid::cellFor 63.14% self; query13.84%;
+merge sort10.82%. Precompute each candidate's existing uint64 distance once,
+then stable-sort (distance,bodyId) records and write IDs back to the existing
+bodyIds vector. Impact4 x confidence.99 / effort2 =1.98, SELECT for validation.
+Proof: world/grid are immutable during this const snapshot call. The cached
+integer distance equals every former comparator evaluation for that body.
+The lexicographic comparison and stable tie order are unchanged, as are the
+subsequent truncation, controlled-body insertion, ID sort, hash, and encoding.
+No across-tick cache or invalidation policy is introduced. Additional bounded
+transient storage must be measured; sparse and dense goldens must both pass.

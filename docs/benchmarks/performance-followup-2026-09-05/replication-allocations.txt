@@ -1,0 +1,527 @@
+reading file "/tmp/voxys-perf-followup/replication-heap.zst" - please wait, this might take some time...
+Debuggee command was: /tmp/voxys-perf-followup/replication-probe 65536 12 2000
+finished reading file, now analyzing data:
+
+MOST CALLS TO ALLOCATION FUNCTIONS
+169680 calls to allocation functions with 0B peak consumption from
+voxy::network::PacketCodec::encode(voxy::network::Packet const&, voxy::network::DeliveryClass)
+  in /tmp/voxys-perf-followup/replication-probe
+24240 calls with 0B peak consumption from:
+    voxy::network::MultiplayerSession::sendPacket(unsigned int, voxy::network::DeliveryClass, voxy::network::PacketPayloadType, unsigned long, std::span<>)
+      in /tmp/voxys-perf-followup/replication-probe
+    voxy::network::MultiplayerSession::sendSnapshots()
+      in /tmp/voxys-perf-followup/replication-probe
+    main
+      at /tmp/voxys-perf-followup/replication_probe.cpp:29
+      in /tmp/voxys-perf-followup/replication-probe
+24240 calls with 0B peak consumption from:
+    voxy::network::MultiplayerSession::sendPacket(unsigned int, voxy::network::DeliveryClass, voxy::network::PacketPayloadType, unsigned long, std::span<>)
+      in /tmp/voxys-perf-followup/replication-probe
+    voxy::network::MultiplayerSession::sendSnapshots()
+      in /tmp/voxys-perf-followup/replication-probe
+    main
+      at /tmp/voxys-perf-followup/replication_probe.cpp:29
+      in /tmp/voxys-perf-followup/replication-probe
+24240 calls with 0B peak consumption from:
+    voxy::network::MultiplayerSession::sendPacket(unsigned int, voxy::network::DeliveryClass, voxy::network::PacketPayloadType, unsigned long, std::span<>)
+      in /tmp/voxys-perf-followup/replication-probe
+    voxy::network::MultiplayerSession::sendSnapshots()
+      in /tmp/voxys-perf-followup/replication-probe
+    main
+      at /tmp/voxys-perf-followup/replication_probe.cpp:29
+      in /tmp/voxys-perf-followup/replication-probe
+24240 calls with 0B peak consumption from:
+    voxy::network::MultiplayerSession::sendPacket(unsigned int, voxy::network::DeliveryClass, voxy::network::PacketPayloadType, unsigned long, std::span<>)
+      in /tmp/voxys-perf-followup/replication-probe
+    voxy::network::MultiplayerSession::sendSnapshots()
+      in /tmp/voxys-perf-followup/replication-probe
+    main
+      at /tmp/voxys-perf-followup/replication_probe.cpp:29
+      in /tmp/voxys-perf-followup/replication-probe
+24240 calls with 0B peak consumption from:
+    voxy::network::MultiplayerSession::sendPacket(unsigned int, voxy::network::DeliveryClass, voxy::network::PacketPayloadType, unsigned long, std::span<>)
+      in /tmp/voxys-perf-followup/replication-probe
+    voxy::network::MultiplayerSession::sendSnapshots()
+      in /tmp/voxys-perf-followup/replication-probe
+    main
+      at /tmp/voxys-perf-followup/replication_probe.cpp:29
+      in /tmp/voxys-perf-followup/replication-probe
+  and 48480 from 2 other places
+
+145513 calls to allocation functions with 524.29K peak consumption from
+operator new(unsigned long, std::nothrow_t const&)
+  in /nix/store/n35z8vvlr7c5k1406n5bwd0f8h2hgj1j-gcc-15.2.0-lib/lib/libstdc++.so.6
+24240 calls with 0B peak consumption from:
+    voxy::network::MultiplayerSession::makeFullSnapshot(std::span<>) const
+      in /tmp/voxys-perf-followup/replication-probe
+    voxy::network::MultiplayerSession::makeClientSnapshot(voxy::network::MultiplayerSession::ServerPeer const&, bool*) const
+      in /tmp/voxys-perf-followup/replication-probe
+    voxy::network::MultiplayerSession::sendSnapshots()
+      in /tmp/voxys-perf-followup/replication-probe
+    main
+      at /tmp/voxys-perf-followup/replication_probe.cpp:29
+      in /tmp/voxys-perf-followup/replication-probe
+24240 calls with 0B peak consumption from:
+    voxy::network::(anonymous namespace)::canonicalizeBodies(std::vector<>&)
+      in /tmp/voxys-perf-followup/replication-probe
+    voxy::network::snapshotStateHash(voxy::network::AuthoritativeSnapshot const&)
+      in /tmp/voxys-perf-followup/replication-probe
+    voxy::network::MultiplayerSession::makeFullSnapshot(std::span<>) const
+      in /tmp/voxys-perf-followup/replication-probe
+    voxy::network::MultiplayerSession::makeClientSnapshot(voxy::network::MultiplayerSession::ServerPeer const&, bool*) const
+      in /tmp/voxys-perf-followup/replication-probe
+    voxy::network::MultiplayerSession::sendSnapshots()
+      in /tmp/voxys-perf-followup/replication-probe
+    main
+      at /tmp/voxys-perf-followup/replication_probe.cpp:29
+      in /tmp/voxys-perf-followup/replication-probe
+24240 calls with 0B peak consumption from:
+    voxy::network::(anonymous namespace)::canonicalizeBodies(std::vector<>&)
+      in /tmp/voxys-perf-followup/replication-probe
+    voxy::network::SnapshotHistory::store(voxy::network::AuthoritativeSnapshot)
+      in /tmp/voxys-perf-followup/replication-probe
+    voxy::network::MultiplayerSession::sendSnapshots()
+      in /tmp/voxys-perf-followup/replication-probe
+    main
+      at /tmp/voxys-perf-followup/replication_probe.cpp:29
+      in /tmp/voxys-perf-followup/replication-probe
+24240 calls with 0B peak consumption from:
+    voxy::network::(anonymous namespace)::canonicalizeBodies(std::vector<>&)
+      in /tmp/voxys-perf-followup/replication-probe
+    voxy::network::snapshotStateHash(voxy::network::AuthoritativeSnapshot const&)
+      in /tmp/voxys-perf-followup/replication-probe
+    voxy::network::SnapshotHistory::store(voxy::network::AuthoritativeSnapshot)
+      in /tmp/voxys-perf-followup/replication-probe
+    voxy::network::MultiplayerSession::sendSnapshots()
+      in /tmp/voxys-perf-followup/replication-probe
+    main
+      at /tmp/voxys-perf-followup/replication_probe.cpp:29
+      in /tmp/voxys-perf-followup/replication-probe
+24240 calls with 0B peak consumption from:
+    voxy::network::(anonymous namespace)::canonicalizeBodies(std::vector<>&)
+      in /tmp/voxys-perf-followup/replication-probe
+    voxy::network::SnapshotCodec::encode(voxy::network::AuthoritativeSnapshot const&)
+      in /tmp/voxys-perf-followup/replication-probe
+    voxy::network::MultiplayerSession::sendSnapshots()
+      in /tmp/voxys-perf-followup/replication-probe
+    main
+      at /tmp/voxys-perf-followup/replication_probe.cpp:29
+      in /tmp/voxys-perf-followup/replication-probe
+  and 24313 from 8 other places
+
+97008 calls to allocation functions with 0B peak consumption from
+std::byte& std::vector<>::emplace_back<>(std::byte&&) [clone .isra.0]
+  in /tmp/voxys-perf-followup/replication-probe
+72720 calls with 0B peak consumption from:
+    voxy::network::SnapshotCodec::encode(voxy::network::AuthoritativeSnapshot const&)
+      in /tmp/voxys-perf-followup/replication-probe
+    voxy::network::MultiplayerSession::sendSnapshots()
+      in /tmp/voxys-perf-followup/replication-probe
+    main
+      at /tmp/voxys-perf-followup/replication_probe.cpp:29
+      in /tmp/voxys-perf-followup/replication-probe
+24240 calls with 0B peak consumption from:
+    voxy::network::SnapshotCodec::encode(voxy::network::AuthoritativeSnapshot const&)
+      in /tmp/voxys-perf-followup/replication-probe
+    voxy::network::MultiplayerSession::sendSnapshots()
+      in /tmp/voxys-perf-followup/replication-probe
+    main
+      at /tmp/voxys-perf-followup/replication_probe.cpp:29
+      in /tmp/voxys-perf-followup/replication-probe
+36 calls with 0B peak consumption from:
+    voxy::network::SnapshotCodec::encode(voxy::network::AuthoritativeSnapshot const&)
+      in /tmp/voxys-perf-followup/replication-probe
+    main
+      at /tmp/voxys-perf-followup/replication_probe.cpp:28
+      in /tmp/voxys-perf-followup/replication-probe
+12 calls with 0B peak consumption from:
+    voxy::network::SnapshotCodec::encode(voxy::network::AuthoritativeSnapshot const&)
+      in /tmp/voxys-perf-followup/replication-probe
+    main
+      at /tmp/voxys-perf-followup/replication_probe.cpp:28
+      in /tmp/voxys-perf-followup/replication-probe
+
+72756 calls to allocation functions with 0B peak consumption from
+voxy::network::(anonymous namespace)::Writer::u64(unsigned long)
+  in /tmp/voxys-perf-followup/replication-probe
+24240 calls with 0B peak consumption from:
+    voxy::network::SnapshotCodec::encode(voxy::network::AuthoritativeSnapshot const&)
+      in /tmp/voxys-perf-followup/replication-probe
+    voxy::network::MultiplayerSession::sendSnapshots()
+      in /tmp/voxys-perf-followup/replication-probe
+    main
+      at /tmp/voxys-perf-followup/replication_probe.cpp:29
+      in /tmp/voxys-perf-followup/replication-probe
+24240 calls with 0B peak consumption from:
+    voxy::network::SnapshotCodec::encode(voxy::network::AuthoritativeSnapshot const&)
+      in /tmp/voxys-perf-followup/replication-probe
+    voxy::network::MultiplayerSession::sendSnapshots()
+      in /tmp/voxys-perf-followup/replication-probe
+    main
+      at /tmp/voxys-perf-followup/replication_probe.cpp:29
+      in /tmp/voxys-perf-followup/replication-probe
+24240 calls with 0B peak consumption from:
+    voxy::network::SnapshotCodec::encode(voxy::network::AuthoritativeSnapshot const&)
+      in /tmp/voxys-perf-followup/replication-probe
+    voxy::network::MultiplayerSession::sendSnapshots()
+      in /tmp/voxys-perf-followup/replication-probe
+    main
+      at /tmp/voxys-perf-followup/replication_probe.cpp:29
+      in /tmp/voxys-perf-followup/replication-probe
+12 calls with 0B peak consumption from:
+    voxy::network::SnapshotCodec::encode(voxy::network::AuthoritativeSnapshot const&)
+      in /tmp/voxys-perf-followup/replication-probe
+    main
+      at /tmp/voxys-perf-followup/replication_probe.cpp:28
+      in /tmp/voxys-perf-followup/replication-probe
+12 calls with 0B peak consumption from:
+    voxy::network::SnapshotCodec::encode(voxy::network::AuthoritativeSnapshot const&)
+      in /tmp/voxys-perf-followup/replication-probe
+    main
+      at /tmp/voxys-perf-followup/replication_probe.cpp:28
+      in /tmp/voxys-perf-followup/replication-probe
+  and 12 from 1 other places
+
+72744 calls to allocation functions with 0B peak consumption from
+voxy::network::snapshotStateHash(voxy::network::AuthoritativeSnapshot const&)
+  in /tmp/voxys-perf-followup/replication-probe
+24240 calls with 0B peak consumption from:
+    voxy::network::MultiplayerSession::makeFullSnapshot(std::span<>) const
+      in /tmp/voxys-perf-followup/replication-probe
+    voxy::network::MultiplayerSession::makeClientSnapshot(voxy::network::MultiplayerSession::ServerPeer const&, bool*) const
+      in /tmp/voxys-perf-followup/replication-probe
+    voxy::network::MultiplayerSession::sendSnapshots()
+      in /tmp/voxys-perf-followup/replication-probe
+    main
+      at /tmp/voxys-perf-followup/replication_probe.cpp:29
+      in /tmp/voxys-perf-followup/replication-probe
+24240 calls with 0B peak consumption from:
+    voxy::network::SnapshotHistory::store(voxy::network::AuthoritativeSnapshot)
+      in /tmp/voxys-perf-followup/replication-probe
+    voxy::network::MultiplayerSession::sendSnapshots()
+      in /tmp/voxys-perf-followup/replication-probe
+    main
+      at /tmp/voxys-perf-followup/replication_probe.cpp:29
+      in /tmp/voxys-perf-followup/replication-probe
+24240 calls with 0B peak consumption from:
+    voxy::network::SnapshotCodec::encode(voxy::network::AuthoritativeSnapshot const&)
+      in /tmp/voxys-perf-followup/replication-probe
+    voxy::network::MultiplayerSession::sendSnapshots()
+      in /tmp/voxys-perf-followup/replication-probe
+    main
+      at /tmp/voxys-perf-followup/replication_probe.cpp:29
+      in /tmp/voxys-perf-followup/replication-probe
+12 calls with 0B peak consumption from:
+    voxy::network::MultiplayerSession::makeFullSnapshot(std::span<>) const
+      in /tmp/voxys-perf-followup/replication-probe
+    voxy::network::MultiplayerSession::makeClientSnapshot(voxy::network::MultiplayerSession::ServerPeer const&, bool*) const
+      in /tmp/voxys-perf-followup/replication-probe
+    voxy::network::MultiplayerSession::snapshotForClient(unsigned int) const
+      in /tmp/voxys-perf-followup/replication-probe
+    main
+      at /tmp/voxys-perf-followup/replication_probe.cpp:28
+      in /tmp/voxys-perf-followup/replication-probe
+12 calls with 0B peak consumption from:
+    voxy::network::SnapshotCodec::encode(voxy::network::AuthoritativeSnapshot const&)
+      in /tmp/voxys-perf-followup/replication-probe
+    main
+      at /tmp/voxys-perf-followup/replication_probe.cpp:28
+      in /tmp/voxys-perf-followup/replication-probe
+
+48480 calls to allocation functions with 0B peak consumption from
+voxy::network::MultiplayerSession::sendSnapshots()
+  in /tmp/voxys-perf-followup/replication-probe
+24240 calls with 0B peak consumption from:
+    main
+      at /tmp/voxys-perf-followup/replication_probe.cpp:29
+      in /tmp/voxys-perf-followup/replication-probe
+24240 calls with 0B peak consumption from:
+    main
+      at /tmp/voxys-perf-followup/replication_probe.cpp:29
+      in /tmp/voxys-perf-followup/replication-probe
+
+24252 calls to allocation functions with 0B peak consumption from
+voxy::network::MultiplayerSession::makeClientSnapshot(voxy::network::MultiplayerSession::ServerPeer const&, bool*) const
+  in /tmp/voxys-perf-followup/replication-probe
+24240 calls with 0B peak consumption from:
+    voxy::network::MultiplayerSession::sendSnapshots()
+      in /tmp/voxys-perf-followup/replication-probe
+    main
+      at /tmp/voxys-perf-followup/replication_probe.cpp:29
+      in /tmp/voxys-perf-followup/replication-probe
+12 calls with 0B peak consumption from:
+    voxy::network::MultiplayerSession::snapshotForClient(unsigned int) const
+      in /tmp/voxys-perf-followup/replication-probe
+    main
+      at /tmp/voxys-perf-followup/replication_probe.cpp:28
+      in /tmp/voxys-perf-followup/replication-probe
+
+24252 calls to allocation functions with 0B peak consumption from
+voxy::network::InterestGrid::query(voxy::network::InterestCell, unsigned int) const
+  in /tmp/voxys-perf-followup/replication-probe
+24240 calls with 0B peak consumption from:
+    voxy::network::MultiplayerSession::makeClientSnapshot(voxy::network::MultiplayerSession::ServerPeer const&, bool*) const
+      in /tmp/voxys-perf-followup/replication-probe
+    voxy::network::MultiplayerSession::sendSnapshots()
+      in /tmp/voxys-perf-followup/replication-probe
+    main
+      at /tmp/voxys-perf-followup/replication_probe.cpp:29
+      in /tmp/voxys-perf-followup/replication-probe
+12 calls with 0B peak consumption from:
+    voxy::network::MultiplayerSession::makeClientSnapshot(voxy::network::MultiplayerSession::ServerPeer const&, bool*) const
+      in /tmp/voxys-perf-followup/replication-probe
+    voxy::network::MultiplayerSession::snapshotForClient(unsigned int) const
+      in /tmp/voxys-perf-followup/replication-probe
+    main
+      at /tmp/voxys-perf-followup/replication_probe.cpp:28
+      in /tmp/voxys-perf-followup/replication-probe
+
+24252 calls to allocation functions with 0B peak consumption from
+voxy::network::MultiplayerSession::makeFullSnapshot(std::span<>) const
+  in /tmp/voxys-perf-followup/replication-probe
+24240 calls with 0B peak consumption from:
+    voxy::network::MultiplayerSession::makeClientSnapshot(voxy::network::MultiplayerSession::ServerPeer const&, bool*) const
+      in /tmp/voxys-perf-followup/replication-probe
+    voxy::network::MultiplayerSession::sendSnapshots()
+      in /tmp/voxys-perf-followup/replication-probe
+    main
+      at /tmp/voxys-perf-followup/replication_probe.cpp:29
+      in /tmp/voxys-perf-followup/replication-probe
+12 calls with 0B peak consumption from:
+    voxy::network::MultiplayerSession::makeClientSnapshot(voxy::network::MultiplayerSession::ServerPeer const&, bool*) const
+      in /tmp/voxys-perf-followup/replication-probe
+    voxy::network::MultiplayerSession::snapshotForClient(unsigned int) const
+      in /tmp/voxys-perf-followup/replication-probe
+    main
+      at /tmp/voxys-perf-followup/replication_probe.cpp:28
+      in /tmp/voxys-perf-followup/replication-probe
+
+24252 calls to allocation functions with 0B peak consumption from
+voxy::network::SnapshotCodec::encode(voxy::network::AuthoritativeSnapshot const&)
+  in /tmp/voxys-perf-followup/replication-probe
+24240 calls with 0B peak consumption from:
+    voxy::network::MultiplayerSession::sendSnapshots()
+      in /tmp/voxys-perf-followup/replication-probe
+    main
+      at /tmp/voxys-perf-followup/replication_probe.cpp:29
+      in /tmp/voxys-perf-followup/replication-probe
+12 calls with 0B peak consumption from:
+    main
+      at /tmp/voxys-perf-followup/replication_probe.cpp:28
+      in /tmp/voxys-perf-followup/replication-probe
+
+
+PEAK MEMORY CONSUMERS
+7.34M peak memory consumed over 5 calls from
+voxy::physics::deterministic::LockstepWorld::initialize(voxy::physics::deterministic::LockstepWorld::Config const&)
+  in /tmp/voxys-perf-followup/replication-probe
+4.19M consumed over 1 calls from:
+    voxy::network::MultiplayerSession::initializeServer(voxy::network::MultiplayerSession::ServerConfig, std::span<>, std::unique_ptr<>)
+      in /tmp/voxys-perf-followup/replication-probe
+    main
+      at /tmp/voxys-perf-followup/replication_probe.cpp:25
+      in /tmp/voxys-perf-followup/replication-probe
+2.62M consumed over 1 calls from:
+    voxy::network::MultiplayerSession::initializeServer(voxy::network::MultiplayerSession::ServerConfig, std::span<>, std::unique_ptr<>)
+      in /tmp/voxys-perf-followup/replication-probe
+    main
+      at /tmp/voxys-perf-followup/replication_probe.cpp:25
+      in /tmp/voxys-perf-followup/replication-probe
+262.14K consumed over 1 calls from:
+    voxy::network::MultiplayerSession::initializeServer(voxy::network::MultiplayerSession::ServerConfig, std::span<>, std::unique_ptr<>)
+      in /tmp/voxys-perf-followup/replication-probe
+    main
+      at /tmp/voxys-perf-followup/replication_probe.cpp:25
+      in /tmp/voxys-perf-followup/replication-probe
+262.14K consumed over 1 calls from:
+    voxy::network::MultiplayerSession::initializeServer(voxy::network::MultiplayerSession::ServerConfig, std::span<>, std::unique_ptr<>)
+      in /tmp/voxys-perf-followup/replication-probe
+    main
+      at /tmp/voxys-perf-followup/replication_probe.cpp:25
+      in /tmp/voxys-perf-followup/replication-probe
+2.05K consumed over 1 calls from:
+    voxy::network::MultiplayerSession::initializeServer(voxy::network::MultiplayerSession::ServerConfig, std::span<>, std::unique_ptr<>)
+      in /tmp/voxys-perf-followup/replication-probe
+    main
+      at /tmp/voxys-perf-followup/replication_probe.cpp:25
+      in /tmp/voxys-perf-followup/replication-probe
+
+4.19M peak memory consumed over 1 calls from
+std::__new_allocator<>::allocate(unsigned long, void const*)
+  at /nix/store/3wkpp7mjlh4qxij92iz99r43aifzgajd-gcc-15.2.0/include/c++/15.2.0/bits/new_allocator.h:151
+  in /tmp/voxys-perf-followup/replication-probe
+std::allocator<>::allocate(unsigned long)
+  at /nix/store/3wkpp7mjlh4qxij92iz99r43aifzgajd-gcc-15.2.0/include/c++/15.2.0/bits/allocator.h:203
+std::allocator_traits<>::allocate(std::allocator<>&, unsigned long)
+  at /nix/store/3wkpp7mjlh4qxij92iz99r43aifzgajd-gcc-15.2.0/include/c++/15.2.0/bits/alloc_traits.h:614
+std::_Vector_base<>::_M_allocate(unsigned long)
+  at /nix/store/3wkpp7mjlh4qxij92iz99r43aifzgajd-gcc-15.2.0/include/c++/15.2.0/bits/stl_vector.h:387
+std::_Vector_base<>::_M_create_storage(unsigned long)
+  at /nix/store/3wkpp7mjlh4qxij92iz99r43aifzgajd-gcc-15.2.0/include/c++/15.2.0/bits/stl_vector.h:405
+std::_Vector_base<>::_Vector_base(unsigned long, std::allocator<> const&)
+  at /nix/store/3wkpp7mjlh4qxij92iz99r43aifzgajd-gcc-15.2.0/include/c++/15.2.0/bits/stl_vector.h:341
+std::vector<>::vector(unsigned long, std::allocator<> const&)
+  at /nix/store/3wkpp7mjlh4qxij92iz99r43aifzgajd-gcc-15.2.0/include/c++/15.2.0/bits/stl_vector.h:587
+main
+  at /tmp/voxys-perf-followup/replication_probe.cpp:21
+4.19M consumed over 1 calls from:
+    __libc_start_call_main
+      in /nix/store/34dkjp1wxxh6djsvxk8nhvzp0izasds0-glibc-2.42-67/lib/libc.so.6
+    __libc_start_main_alias_2
+      in /nix/store/34dkjp1wxxh6djsvxk8nhvzp0izasds0-glibc-2.42-67/lib/libc.so.6
+    _start
+      in /tmp/voxys-perf-followup/replication-probe
+
+1.05M peak memory consumed over 1 calls from
+voxy::network::InterestGrid::rebuild(std::span<>)
+  in /tmp/voxys-perf-followup/replication-probe
+1.05M consumed over 1 calls from:
+    voxy::network::MultiplayerSession::initializeServer(voxy::network::MultiplayerSession::ServerConfig, std::span<>, std::unique_ptr<>)
+      in /tmp/voxys-perf-followup/replication-probe
+    main
+      at /tmp/voxys-perf-followup/replication_probe.cpp:25
+      in /tmp/voxys-perf-followup/replication-probe
+
+524.29K peak memory consumed over 145513 calls from
+operator new(unsigned long, std::nothrow_t const&)
+  in /nix/store/n35z8vvlr7c5k1406n5bwd0f8h2hgj1j-gcc-15.2.0-lib/lib/libstdc++.so.6
+524.29K consumed over 1 calls from:
+    voxy::network::InterestGrid::rebuild(std::span<>)
+      in /tmp/voxys-perf-followup/replication-probe
+    voxy::network::MultiplayerSession::initializeServer(voxy::network::MultiplayerSession::ServerConfig, std::span<>, std::unique_ptr<>)
+      in /tmp/voxys-perf-followup/replication-probe
+    main
+      at /tmp/voxys-perf-followup/replication_probe.cpp:25
+      in /tmp/voxys-perf-followup/replication-probe
+  and 0B from 8 other places
+
+73.73K peak memory consumed over 1 calls from
+_GLOBAL__sub_I_eh_alloc.cc
+  in /nix/store/n35z8vvlr7c5k1406n5bwd0f8h2hgj1j-gcc-15.2.0-lib/lib/libstdc++.so.6
+73.73K consumed over 1 calls from:
+    call_init
+      in /nix/store/34dkjp1wxxh6djsvxk8nhvzp0izasds0-glibc-2.42-67/lib/ld-linux-x86-64.so.2
+    _dl_init
+      in /nix/store/34dkjp1wxxh6djsvxk8nhvzp0izasds0-glibc-2.42-67/lib/ld-linux-x86-64.so.2
+    _dl_start_user
+      in /nix/store/34dkjp1wxxh6djsvxk8nhvzp0izasds0-glibc-2.42-67/lib/ld-linux-x86-64.so.2
+
+120B peak memory consumed over 3 calls from
+XInitThreads
+  in /nix/store/7gwd2kvkx1s369cwiv5z4x2xjxbppav6-libx11-1.8.13/lib/libX11.so.6
+40B consumed over 1 calls from:
+    call_init
+      in /nix/store/34dkjp1wxxh6djsvxk8nhvzp0izasds0-glibc-2.42-67/lib/ld-linux-x86-64.so.2
+    _dl_init
+      in /nix/store/34dkjp1wxxh6djsvxk8nhvzp0izasds0-glibc-2.42-67/lib/ld-linux-x86-64.so.2
+    _dl_start_user
+      in /nix/store/34dkjp1wxxh6djsvxk8nhvzp0izasds0-glibc-2.42-67/lib/ld-linux-x86-64.so.2
+40B consumed over 1 calls from:
+    call_init
+      in /nix/store/34dkjp1wxxh6djsvxk8nhvzp0izasds0-glibc-2.42-67/lib/ld-linux-x86-64.so.2
+    _dl_init
+      in /nix/store/34dkjp1wxxh6djsvxk8nhvzp0izasds0-glibc-2.42-67/lib/ld-linux-x86-64.so.2
+    _dl_start_user
+      in /nix/store/34dkjp1wxxh6djsvxk8nhvzp0izasds0-glibc-2.42-67/lib/ld-linux-x86-64.so.2
+40B consumed over 1 calls from:
+    call_init
+      in /nix/store/34dkjp1wxxh6djsvxk8nhvzp0izasds0-glibc-2.42-67/lib/ld-linux-x86-64.so.2
+    _dl_init
+      in /nix/store/34dkjp1wxxh6djsvxk8nhvzp0izasds0-glibc-2.42-67/lib/ld-linux-x86-64.so.2
+    _dl_start_user
+      in /nix/store/34dkjp1wxxh6djsvxk8nhvzp0izasds0-glibc-2.42-67/lib/ld-linux-x86-64.so.2
+
+40B peak memory consumed over 1 calls from
+voxy::network::AuthorityTable::assign(voxy::network::IslandAuthority const&)
+  in /tmp/voxys-perf-followup/replication-probe
+40B consumed over 1 calls from:
+    voxy::network::MultiplayerSession::initializeServer(voxy::network::MultiplayerSession::ServerConfig, std::span<>, std::unique_ptr<>)
+      in /tmp/voxys-perf-followup/replication-probe
+    main
+      at /tmp/voxys-perf-followup/replication_probe.cpp:25
+      in /tmp/voxys-perf-followup/replication-probe
+
+24B peak memory consumed over 1 calls from
+std::__detail::_MakeUniq<>::__single_object std::make_unique<>()
+  at /nix/store/3wkpp7mjlh4qxij92iz99r43aifzgajd-gcc-15.2.0/include/c++/15.2.0/bits/unique_ptr.h:1085
+  in /tmp/voxys-perf-followup/replication-probe
+main
+  at /tmp/voxys-perf-followup/replication_probe.cpp:24
+24B consumed over 1 calls from:
+    __libc_start_call_main
+      in /nix/store/34dkjp1wxxh6djsvxk8nhvzp0izasds0-glibc-2.42-67/lib/libc.so.6
+    __libc_start_main_alias_2
+      in /nix/store/34dkjp1wxxh6djsvxk8nhvzp0izasds0-glibc-2.42-67/lib/libc.so.6
+    _start
+      in /tmp/voxys-perf-followup/replication-probe
+
+
+MOST TEMPORARY ALLOCATIONS
+145513 temporary allocations of 145513 allocations in total (100.00%) from
+operator new(unsigned long, std::nothrow_t const&)
+  in /nix/store/n35z8vvlr7c5k1406n5bwd0f8h2hgj1j-gcc-15.2.0-lib/lib/libstdc++.so.6
+24240 temporary allocations of 24240 allocations in total (100.00%) from:
+    voxy::network::MultiplayerSession::makeFullSnapshot(std::span<>) const
+      in /tmp/voxys-perf-followup/replication-probe
+    voxy::network::MultiplayerSession::makeClientSnapshot(voxy::network::MultiplayerSession::ServerPeer const&, bool*) const
+      in /tmp/voxys-perf-followup/replication-probe
+    voxy::network::MultiplayerSession::sendSnapshots()
+      in /tmp/voxys-perf-followup/replication-probe
+    main
+      at /tmp/voxys-perf-followup/replication_probe.cpp:29
+      in /tmp/voxys-perf-followup/replication-probe
+24240 temporary allocations of 24240 allocations in total (100.00%) from:
+    voxy::network::(anonymous namespace)::canonicalizeBodies(std::vector<>&)
+      in /tmp/voxys-perf-followup/replication-probe
+    voxy::network::snapshotStateHash(voxy::network::AuthoritativeSnapshot const&)
+      in /tmp/voxys-perf-followup/replication-probe
+    voxy::network::MultiplayerSession::makeFullSnapshot(std::span<>) const
+      in /tmp/voxys-perf-followup/replication-probe
+    voxy::network::MultiplayerSession::makeClientSnapshot(voxy::network::MultiplayerSession::ServerPeer const&, bool*) const
+      in /tmp/voxys-perf-followup/replication-probe
+    voxy::network::MultiplayerSession::sendSnapshots()
+      in /tmp/voxys-perf-followup/replication-probe
+    main
+      at /tmp/voxys-perf-followup/replication_probe.cpp:29
+      in /tmp/voxys-perf-followup/replication-probe
+24240 temporary allocations of 24240 allocations in total (100.00%) from:
+    voxy::network::(anonymous namespace)::canonicalizeBodies(std::vector<>&)
+      in /tmp/voxys-perf-followup/replication-probe
+    voxy::network::SnapshotHistory::store(voxy::network::AuthoritativeSnapshot)
+      in /tmp/voxys-perf-followup/replication-probe
+    voxy::network::MultiplayerSession::sendSnapshots()
+      in /tmp/voxys-perf-followup/replication-probe
+    main
+      at /tmp/voxys-perf-followup/replication_probe.cpp:29
+      in /tmp/voxys-perf-followup/replication-probe
+24240 temporary allocations of 24240 allocations in total (100.00%) from:
+    voxy::network::(anonymous namespace)::canonicalizeBodies(std::vector<>&)
+      in /tmp/voxys-perf-followup/replication-probe
+    voxy::network::snapshotStateHash(voxy::network::AuthoritativeSnapshot const&)
+      in /tmp/voxys-perf-followup/replication-probe
+    voxy::network::SnapshotHistory::store(voxy::network::AuthoritativeSnapshot)
+      in /tmp/voxys-perf-followup/replication-probe
+    voxy::network::MultiplayerSession::sendSnapshots()
+      in /tmp/voxys-perf-followup/replication-probe
+    main
+      at /tmp/voxys-perf-followup/replication_probe.cpp:29
+      in /tmp/voxys-perf-followup/replication-probe
+24240 temporary allocations of 24240 allocations in total (100.00%) from:
+    voxy::network::(anonymous namespace)::canonicalizeBodies(std::vector<>&)
+      in /tmp/voxys-perf-followup/replication-probe
+    voxy::network::SnapshotCodec::encode(voxy::network::AuthoritativeSnapshot const&)
+      in /tmp/voxys-perf-followup/replication-probe
+    voxy::network::MultiplayerSession::sendSnapshots()
+      in /tmp/voxys-perf-followup/replication-probe
+    main
+      at /tmp/voxys-perf-followup/replication_probe.cpp:29
+      in /tmp/voxys-perf-followup/replication-probe
+  and 24.31K from 8 other places
+
+
+total runtime: 0.81s.
+calls to allocation functions: 751713 (932646/s)
+temporary memory allocations: 145513 (180537/s)
+peak heap memory consumption: 13.18M
+peak RSS (including heaptrack overhead): 17.51M
+total memory leaked: 4.22K
