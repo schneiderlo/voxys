@@ -29,10 +29,10 @@ jobs:
           from pathlib import Path
           p=Path('tools/prepare_optimization_round.py')
           s=p.read_text()
-          # Preserve a literal backslash in the source-test matcher.
-          s=s.replace('var refracted : vec3<f32>;'+chr(92)+'n',
-                      'var refracted : vec3<f32>;'+chr(92)*2+'n')
-          exec(compile(s,str(p),'exec'))
+          a='var refracted : vec3<f32>;'+chr(92)+'n    if (hasOpaqueRefraction)'
+          b='var refracted : vec3<f32>;'+chr(92)*2+'n    if (hasOpaqueRefraction)'
+          assert s.count(a)==1
+          exec(compile(s.replace(a,b),str(p),'exec'))
           PY
           python3 tools/test_periodic_gradient_lut.py
           python3 tools/test_water_material_work.py
