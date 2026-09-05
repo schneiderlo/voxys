@@ -43,6 +43,19 @@ public:
         bool succeeded = false;
     };
 
+    bool acceptConnection(uint32_t peerId, uint64_t serial) override {
+        admissions.emplace_back(peerId, serial);
+        return !failAdmission;
+    }
+
+    void rejectConnection(uint32_t peerId, uint64_t serial) override {
+        rejections.emplace_back(peerId, serial);
+    }
+
+    bool failAdmission = false;
+    std::vector<std::pair<uint32_t, uint64_t>> admissions;
+    std::vector<std::pair<uint32_t, uint64_t>> rejections;
+
     void service() override { ++serviceCalls; }
 
     bool send(
@@ -573,6 +586,54 @@ const game::MatchEvent* lastEventOfType(
         if (iterator->type == type) return &*iterator;
     }
     return nullptr;
+}
+
+TEST(WreckwaterAuthorityRuntime, ExplicitAdmissionStartsAndReconnectsTheMatch) {
+    Harness harness;
+    for (uint32_t peer = 1u; peer <= 4u; ++peer) {
+        harness.transport->push(lifecycle(peer, 100u + peer,
+            MultiplayerTransportFrameType::ConnectionRequested));
+    }
+    const auto started = harness.runtime->tick();
+    ASSERT_TRUE(started.authorityStarted);
+    ASSERT_TRUE(started.simulationAdvanced);
+    ASSERT_EQ(harness.transport->admissions.size(), 4u);
+    for (uint32_t peer = 1u; peer <= 4u; ++peer) {
+        EXPECT_EQ(harness.transport->admissions[peer - 1u],
+            std::make_pair(peer, uint64_t{100u + peer}));
+    }
+    const auto generation = harness.runtime->peer(1u)->connectionGeneration;
+    harness.transport->push(lifecycle(1u, 201u,
+        MultiplayerTransportFrameType::ConnectionRequested));
+    harness.transport->push(lifecycle(1u, 101u,
+        MultiplayerTransportFrameType::Disconnected));
+    EXPECT_TRUE(harness.runtime->tick().simulationAdvanced);
+    EXPECT_EQ(harness.runtime->peer(1u)->connectionSerial, 201u);
+    EXPECT_EQ(harness.runtime->peer(1u)->connectionGeneration, generation + 1u);
+    EXPECT_TRUE(harness.runtime->peer(1u)->active);
+    harness.transport->push(lifecycle(1u, 201u,
+        MultiplayerTransportFrameType::ConnectionRequested));
+    harness.transport->push(lifecycle(9u, 209u,
+        MultiplayerTransportFrameType::ConnectionRequested));
+    EXPECT_TRUE(harness.runtime->tick().simulationAdvanced);
+    EXPECT_EQ(harness.transport->admissions.size(), 5u);
+    EXPECT_EQ(harness.transport->rejections.size(), 2u);
+    EXPECT_EQ(harness.runtime->peer(1u)->connectionGeneration, generation + 1u);
+}
+
+TEST(WreckwaterAuthorityRuntime, FailedAdmissionStopsBeforeSimulationAdvances) {
+    Harness harness;
+    harness.transport->failAdmission = true;
+    harness.transport->push(lifecycle(1u, 101u,
+        MultiplayerTransportFrameType::ConnectionRequested));
+    const auto result = harness.runtime->tick();
+    EXPECT_FALSE(result.authorityStarted);
+    EXPECT_FALSE(result.simulationAdvanced);
+    EXPECT_EQ(harness.runtime->failStopReason(),
+        WreckwaterAuthorityFailStopReason::TransportAdmissionFailed);
+    EXPECT_EQ(harness.runtime->match().currentTick(), 0u);
+    EXPECT_EQ(harness.transport->admissions.size(), 1u);
+    EXPECT_EQ(harness.transport->rejections.size(), 1u);
 }
 
 TEST(WreckwaterAuthorityRuntime, FreezesUntilAllFourPeersConnect) {

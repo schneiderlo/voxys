@@ -8,6 +8,7 @@
 #include "terrain/authored_cove.hpp"
 #include "terrain/heightmap.hpp"
 #include "terrain/mip_generator.hpp"
+#include "gpu/context.hpp"
 
 #include <cmath>
 #include <cstring>
@@ -192,16 +193,19 @@ TEST(AuthoredCoveTest, ProfileHasReadableCoastalHierarchy) {
                config.alongshoreTangent * alongshore;
     };
 
+    // Follow the current shoreline away from the wreck's local burial berm.
+    // The center transect crosses that mound before reaching the waterline.
+    constexpr float alongshore = 17.0f;
     const auto offshore =
-        sampleAuthoredCove(worldAt(-36.0f, 0.0f), config);
+        sampleAuthoredCove(worldAt(-36.0f, alongshore), config);
     const auto swash =
-        sampleAuthoredCove(worldAt(20.0f, 0.0f), config);
+        sampleAuthoredCove(worldAt(24.0f, alongshore), config);
     const auto berm =
-        sampleAuthoredCove(worldAt(31.0f, 0.0f), config);
+        sampleAuthoredCove(worldAt(39.0f, alongshore), config);
     const auto backshore =
-        sampleAuthoredCove(worldAt(46.0f, 0.0f), config);
+        sampleAuthoredCove(worldAt(55.0f, alongshore), config);
     const auto bluff =
-        sampleAuthoredCove(worldAt(65.0f, 0.0f), config);
+        sampleAuthoredCove(worldAt(70.0f, alongshore), config);
 
     EXPECT_LT(offshore.height, config.waterHeight - 5.0f);
     EXPECT_NEAR(swash.height, config.waterHeight, 1.5f);
@@ -241,7 +245,8 @@ TEST(AuthoredCoveTest, BayIsConcaveAndErodedAsymmetrically) {
 
 TEST(AuthoredCoveTest, MaterialZonesAreNormalizedAndDistinct) {
     const auto wet = classifyCoveMaterial(0.8f, 0.98f);
-    const auto dry = classifyCoveMaterial(4.8f, 0.98f);
+    // Dry beach sits below the 2.8–5.2 m transition into soil.
+    const auto dry = classifyCoveMaterial(2.8f, 0.98f);
     const auto soil = classifyCoveMaterial(10.0f, 0.88f);
     const auto grass = classifyCoveMaterial(18.0f, 0.98f);
     const auto rock = classifyCoveMaterial(8.0f, 0.45f);
@@ -287,6 +292,65 @@ TEST(AuthoredCoveTest, SculptIsBoundedAndRejectsInvalidLayouts) {
         std::span<uint16_t>(invalid).first(invalid.size() - 1u),
         width, height, 100.0f, 1.0f, config));
     EXPECT_EQ(invalid, original);
+}
+
+TEST(AuthoredCoveTest, SculptOutsideTerrainLeavesSamplesAndStatsUntouched) {
+    constexpr uint32_t size = 32u;
+    const std::vector<uint16_t> original(size * size, 32768u);
+    auto samples = original;
+    AuthoredCoveConfig config;
+    for (const glm::vec2 center : {
+             glm::vec2{10000.0f, 10000.0f},
+             glm::vec2{-10000.0f, -10000.0f},
+             glm::vec2{10000.0f, 0.0f},
+             glm::vec2{0.0f, -10000.0f},
+             glm::vec2{std::numeric_limits<float>::max(), 0.0f}}) {
+        config.center = center;
+        AuthoredCoveStats stats;
+        stats.touchedSamples = 42;
+        EXPECT_FALSE(applyAuthoredCove(
+            samples, size, size, 100.0f, 1.0f, config, &stats));
+        EXPECT_EQ(samples, original);
+        EXPECT_EQ(stats.touchedSamples, 0u);
+        EXPECT_EQ(stats.fullyAuthoredSamples, 0u);
+    }
+}
+
+TEST(AuthoredCoveTest, SculptRejectsNonFiniteCoordinatesBeforeEditing) {
+    constexpr uint32_t size = 32u;
+    const std::vector<uint16_t> original(size * size, 32768u);
+    auto samples = original;
+    for (const float invalid : {std::numeric_limits<float>::infinity(),
+                               std::numeric_limits<float>::quiet_NaN()}) {
+        for (uint32_t component = 0u; component < 6u; ++component) {
+            AuthoredCoveConfig config;
+            config.center = {0.0f, 0.0f};
+            switch (component) {
+                case 0: config.center.x = invalid; break;
+                case 1: config.center.y = invalid; break;
+                case 2: config.inlandNormal.x = invalid; break;
+                case 3: config.inlandNormal.y = invalid; break;
+                case 4: config.alongshoreTangent.x = invalid; break;
+                default: config.alongshoreTangent.y = invalid; break;
+            }
+            EXPECT_FALSE(applyAuthoredCove(
+                samples, size, size, 100.0f, 1.0f, config));
+            EXPECT_EQ(samples, original);
+        }
+    }
+}
+
+TEST(AuthoredCoveTest, SculptClipsLargePatchToSmallTerrain) {
+    constexpr uint32_t size = 8u;
+    std::vector<uint16_t> samples(size * size, 32768u);
+    AuthoredCoveConfig config;
+    config.center = {0.0f, 0.0f};
+    config.waterHeight = 0.0f;
+    AuthoredCoveStats stats;
+    ASSERT_TRUE(applyAuthoredCove(
+        samples, size, size, 100.0f, 1.0e-10f, config, &stats));
+    EXPECT_EQ(stats.touchedSamples, samples.size());
+    EXPECT_EQ(stats.fullyAuthoredSamples, samples.size());
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -434,28 +498,36 @@ TEST(HeightmapTest, MoveConstructor) {
     auto hm1 = Heightmap::createFlat(32, 16, 5000);
     EXPECT_TRUE(hm1.isLoaded());
     EXPECT_EQ(hm1.getWidth(), 32u);
+    EXPECT_EQ(hm1.getMinMax().first, 5000u);
     
     Heightmap hm2(std::move(hm1));
     
     EXPECT_FALSE(hm1.isLoaded());
     EXPECT_EQ(hm1.getWidth(), 0u);
+    EXPECT_EQ(hm1.getMinMax().first, 0u);
+    EXPECT_EQ(hm1.getMinMax().second, 0u);
     
     EXPECT_TRUE(hm2.isLoaded());
     EXPECT_EQ(hm2.getWidth(), 32u);
     EXPECT_EQ(hm2.getHeight(), 16u);
     EXPECT_EQ(hm2.sample(0, 0), 5000u);
+    EXPECT_EQ(hm2.getMinMax().first, 5000u);
 }
 
 TEST(HeightmapTest, MoveAssignment) {
     auto hm1 = Heightmap::createFlat(32, 16, 5000);
     Heightmap hm2;
+    EXPECT_EQ(hm1.getMinMax().first, 5000u);
     
     hm2 = std::move(hm1);
     
     EXPECT_FALSE(hm1.isLoaded());
+    EXPECT_EQ(hm1.getMinMax().first, 0u);
+    EXPECT_EQ(hm1.getMinMax().second, 0u);
     EXPECT_TRUE(hm2.isLoaded());
     EXPECT_EQ(hm2.getWidth(), 32u);
     EXPECT_EQ(hm2.sample(0, 0), 5000u);
+    EXPECT_EQ(hm2.getMinMax().first, 5000u);
 }
 
 TEST(HeightmapTest, Release) {
@@ -611,6 +683,37 @@ TEST(HeightmapTest, UploadToGPUNullDevice) {
 TEST(HeightmapTest, GetTextureViewWithoutTexture) {
     Heightmap hm;
     EXPECT_EQ(hm.getTextureView(), nullptr);
+}
+
+TEST(HeightmapTest, ResizeInvalidatesUploadedTextureOnlyWhenDimensionsChange) {
+    gpu::Context context;
+    if (!context.initHeadless()) GTEST_SKIP() << "No WebGPU adapter";
+    auto hm = Heightmap::createFlat(8, 8, 1000);
+    ASSERT_TRUE(hm.uploadToGPUWithMips(
+        context.getDevice(), context.getQueue(), false));
+    const auto texture = hm.getTexture();
+    ASSERT_NE(texture, nullptr);
+    ASSERT_TRUE(hm.hasMipChain());
+
+    ASSERT_TRUE(hm.resize(8, 8));
+    EXPECT_EQ(hm.getTexture(), texture);
+    ASSERT_FALSE(hm.resize(
+        std::numeric_limits<uint32_t>::max(),
+        std::numeric_limits<uint32_t>::max()));
+    EXPECT_EQ(hm.getTexture(), texture);
+
+    ASSERT_TRUE(hm.resize(4, 4));
+    EXPECT_FALSE(hm.hasGPUTexture());
+    EXPECT_EQ(hm.getTextureView(), nullptr);
+    EXPECT_EQ(hm.getMipLevelCount(), 0u);
+    EXPECT_EQ(hm.getWidth(), 4u);
+    EXPECT_EQ(hm.sample(3, 3), 1000u);
+
+    ASSERT_TRUE(hm.uploadToGPUWithMips(
+        context.getDevice(), context.getQueue(), false));
+    EXPECT_EQ(wgpuTextureGetWidth(hm.getTexture()), 4u);
+    EXPECT_EQ(wgpuTextureGetHeight(hm.getTexture()), 4u);
+    EXPECT_EQ(hm.getMipLevelCount(), 3u);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════

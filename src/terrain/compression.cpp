@@ -797,6 +797,13 @@ namespace {
         LOG_ERROR("Failed to write LDH file: {}", path.string());
         return false;
     }
+
+    // Closing flushes buffered writes and can fail even when write succeeded.
+    file.close();
+    if (!file) {
+        LOG_ERROR("Failed to finish LDH file: {}", path.string());
+        return false;
+    }
     
     return true;
 }

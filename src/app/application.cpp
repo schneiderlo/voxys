@@ -3576,6 +3576,7 @@ bool Application::initCamera() {
     physicsContext.device = gpuContext_->getDevice();
     physicsContext.queue = gpuContext_->getQueue();
     if (config_.physicsBackend == physics::BackendType::WebGpuSoft) {
+        physicsContext.gpu.enableRenderInterpolation = true;
         physicsContext.maxBodies = config_.gpuPhysicsMaxBodies;
         physicsContext.maxActiveBodies = config_.gpuPhysicsMaxBodies;
         physicsContext.maxPairs = config_.gpuPhysicsMaxPairs;

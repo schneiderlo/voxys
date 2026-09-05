@@ -41,17 +41,34 @@ public:
                     const Config& config) {
         shutdown();
         if (!device || !queue || config.bodyCapacity == 0
-            || config.requestCapacity == 0 || config.readbackSlots == 0) {
+            || config.requestCapacity == 0 || config.readbackSlots == 0
+            || config.readbackSlots > DebugReadbackRing::kMaximumSlots) {
+            return false;
+        }
+        WGPULimits limits{};
+        if (!gpu::getDeviceLimits(device, limits)) return false;
+        const uint64_t requestBytes =
+            uint64_t{config.requestCapacity} * sizeof(GpuQueryRequest);
+        const uint64_t requestStride = gpu::alignUniformBufferSize(requestBytes);
+        const uint64_t outputBytes =
+            uint64_t{config.requestCapacity} * sizeof(GpuQueryOutput);
+        if (config.requestCapacity > limits.maxComputeWorkgroupsPerDimension
+            || requestBytes > limits.maxStorageBufferBindingSize
+            || outputBytes > limits.maxStorageBufferBindingSize
+            || outputBytes > limits.maxBufferSize
+            || requestStride > limits.maxBufferSize / config.readbackSlots
+            || gpu::alignUniformBufferSize(sizeof(Params))
+                > limits.maxBufferSize / config.readbackSlots) {
             return false;
         }
         device_ = device;
         queue_ = queue;
         config_ = config;
+        requestStride_ = requestStride;
 
         requestBuffer_ = gpu::createBuffer(device_, gpu::BufferDesc{
             .label = "physics_query_requests",
-            .size = uint64_t{config_.requestCapacity}
-                  * sizeof(GpuQueryRequest),
+            .size = requestStride_ * config_.readbackSlots,
             .usage = WGPUBufferUsage_Storage | WGPUBufferUsage_CopyDst,
         });
         outputBuffer_ = gpu::createBuffer(device_, gpu::BufferDesc{
@@ -62,7 +79,8 @@ public:
         });
         parameterBuffer_ = gpu::createBuffer(device_, gpu::BufferDesc{
             .label = "physics_query_params",
-            .size = gpu::alignUniformBufferSize(sizeof(Params)),
+            .size = gpu::alignUniformBufferSize(sizeof(Params))
+                * config_.readbackSlots,
             .usage = WGPUBufferUsage_Uniform | WGPUBufferUsage_CopyDst,
         });
         if (!requestBuffer_ || !outputBuffer_ || !parameterBuffer_
@@ -113,10 +131,11 @@ public:
             shutdown();
             return false;
         }
-        allocatedBytes_ = size_t{config_.requestCapacity}
-                * (sizeof(GpuQueryRequest) + sizeof(GpuQueryOutput))
-            + gpu::alignUniformBufferSize(sizeof(Params))
-            + readback_.allocatedBytes();
+        allocatedBytes_ = gpu::saturatingSize(
+            uint64_t{config_.requestCapacity} * sizeof(GpuQueryOutput)
+            + (requestStride_ + gpu::alignUniformBufferSize(sizeof(Params)))
+                * config_.readbackSlots
+            + readback_.allocatedBytes());
         return true;
     }
 
@@ -135,6 +154,8 @@ public:
         bodyView_ = {};
         pendingCount_ = 0;
         pendingTick_ = 0;
+        pendingSlot_ = 0;
+        requestStride_ = 0;
         allocatedBytes_ = 0;
     }
 
@@ -148,7 +169,11 @@ public:
             || requests.size() > config_.requestCapacity) {
             return false;
         }
-        if (!gpu::writeBuffer(queue_, requestBuffer_, 0,
+        const auto slot = readback_.nextAvailableSlot();
+        if (!slot) return false;
+        // Keep uploads separate until their readback completes. Several
+        // submit/encode pairs may precede a single queue submission.
+        if (!gpu::writeBuffer(queue_, requestBuffer_, *slot * requestStride_,
                 std::span<const std::byte>(
                     reinterpret_cast<const std::byte*>(requests.data()),
                     requests.size_bytes()))) {
@@ -156,6 +181,7 @@ public:
         }
         pendingCount_ = static_cast<uint32_t>(requests.size());
         pendingTick_ = tick;
+        pendingSlot_ = *slot;
         return true;
     }
 
@@ -165,15 +191,20 @@ public:
             .counts = {bodyView_.bodyCapacity, pendingCount_,
                        kGpuQueryMaximumHits, 0u},
         };
-        if (!gpu::writeBuffer(queue_, parameterBuffer_, 0, params))
+        const uint64_t parameterOffset =
+            pendingSlot_ * gpu::alignUniformBufferSize(sizeof(Params));
+        if (!gpu::writeBuffer(queue_, parameterBuffer_, parameterOffset, params))
             return false;
         const std::array<gpu::BindGroupEntry, 6> entries = {
             gpu::BindGroupEntry(0).buffer(bodyView_.poseBuffer),
             gpu::BindGroupEntry(1).buffer(bodyView_.shapeBuffer),
             gpu::BindGroupEntry(2).buffer(bodyView_.metadataBuffer),
-            gpu::BindGroupEntry(3).buffer(requestBuffer_),
+            gpu::BindGroupEntry(3).buffer(
+                requestBuffer_, pendingSlot_ * requestStride_,
+                uint64_t{config_.requestCapacity} * sizeof(GpuQueryRequest)),
             gpu::BindGroupEntry(4).buffer(outputBuffer_),
-            gpu::BindGroupEntry(5).buffer(parameterBuffer_),
+            gpu::BindGroupEntry(5).buffer(
+                parameterBuffer_, parameterOffset, sizeof(Params)),
         };
         WGPUBindGroup group = gpu::createBindGroup(
             device_, bindGroupLayout_, entries, "physics_query_bind_group");
@@ -197,7 +228,8 @@ public:
         const uint64_t tick = pendingTick_;
         if (!readback_.encodeCopy(
                 encoder, outputBuffer_, 0,
-                uint64_t{count} * sizeof(GpuQueryOutput), tick, 0, count)) {
+                uint64_t{count} * sizeof(GpuQueryOutput), tick, 0, count,
+                pendingSlot_)) {
             return false;
         }
         pendingCount_ = 0;
@@ -224,6 +256,8 @@ public:
     GpuQueryBodyView bodyView_{};
     uint32_t pendingCount_ = 0;
     uint64_t pendingTick_ = 0;
+    size_t pendingSlot_ = 0;
+    uint64_t requestStride_ = 0;
     size_t allocatedBytes_ = 0;
     WGPUBuffer requestBuffer_ = nullptr;
     WGPUBuffer outputBuffer_ = nullptr;

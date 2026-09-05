@@ -136,6 +136,8 @@ struct PhysicsInitContext {
     struct GpuConfig {
         glm::vec3 gravity{0.0f, -9.81f, 0.0f};
         float fixedTickSeconds = 1.0f / 60.0f;
+        // Presentation-only history; authoritative/headless worlds need none.
+        bool enableRenderInterpolation = false;
         float linearDamping = 0.05f;
         float angularDamping = 0.05f;
         float maximumLinearSpeed = 500.0f;
@@ -586,6 +588,12 @@ struct PhysicsRenderView {
     // CPU compatibility uploads already contain render-frame poses and leave
     // this null.
     WGPUBuffer metadataBuffer = nullptr;
+    // Optional fixed-tick history. Alpha blends previous to current poses;
+    // large discontinuities snap to current instead of showing a sweep.
+    WGPUBuffer previousPoseBuffer = nullptr;
+    WGPUBuffer previousMetadataBuffer = nullptr;
+    float interpolationAlpha = 1.0f;
+    float maximumInterpolationDistance = 0.0f;
     WGPUBuffer activeBodyIds = nullptr;
     WGPUBuffer visibleBodyIds = nullptr;
     WGPUBuffer perShapeRanges = nullptr;

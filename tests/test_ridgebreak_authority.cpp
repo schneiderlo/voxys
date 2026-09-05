@@ -155,6 +155,21 @@ TEST(RidgebreakProtocol, FixedSizeRoundTripsAndRejectsNonCanonicalInput) {
     EXPECT_EQ(*decodedSnapshot.snapshot, snapshot);
 }
 
+TEST(RidgebreakProtocol, EncoderRejectsNonCanonicalUnusedInputSamples) {
+    RidgebreakInputBundle bundle;
+    bundle.sampleCount = 1u;
+    bundle.connectionSerial = 123u;
+    bundle.connectionGeneration = 1u;
+    bundle.samples[0] = sample(40u, 90u);
+    ASSERT_FALSE(network::encodeRidgebreakInputBundle(bundle).empty());
+    for (uint32_t i = bundle.sampleCount;
+         i < network::kRidgebreakMaximumRedundantInputs; ++i) {
+        bundle.samples[i] = sample(41u, 91u);
+        EXPECT_TRUE(network::encodeRidgebreakInputBundle(bundle).empty());
+        bundle.samples[i] = {};
+    }
+}
+
 TEST(RidgebreakProtocol, ProducesExplicitPredictionReconciliationMetadata) {
     network::RidgebreakPlayerState predicted;
     predicted.playerId = 3u;

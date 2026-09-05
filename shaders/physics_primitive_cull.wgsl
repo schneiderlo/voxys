@@ -27,6 +27,7 @@ struct CullUniforms {
     planes : array<vec4<f32>, 6>,
     counts : vec4<u32>,
     cameraSector : vec4<i32>,
+    interpolation : vec4<f32>,
 };
 
 @group(0) @binding(0) var<storage, read> poses : array<BodyPose>;
@@ -40,6 +41,8 @@ struct CullUniforms {
 @group(0) @binding(8) var<uniform> cull : CullUniforms;
 @group(0) @binding(9) var<storage, read> metadata : array<vec4<i32>>;
 @group(0) @binding(10) var<storage, read_write> cameraRelativePoses : array<BodyPose>;
+@group(0) @binding(11) var<storage, read> previousPoses : array<BodyPose>;
+@group(0) @binding(12) var<storage, read> previousMetadata : array<vec4<i32>>;
 
 fn bounded_sector_delta(reference : i32, other : i32,
                         maximum : u32) -> i32 {
@@ -68,8 +71,37 @@ fn rebase_poses(@builtin(global_invocation_id) gid : vec3<u32>) {
         && (u32(bodyMetadata.w) & BODY_ALIVE) != 0u;
     var outputPose = source;
     if (valid) {
+        var localPosition = source.position_invMass.xyz;
+        if (cull.interpolation.x < 1.0) {
+            let priorMetadata = previousMetadata[body];
+            // New/recycled bodies and teleports must not blend with an old
+            // lifetime. Sector differences are bounded before subtraction.
+            let sameLifetime = (u32(priorMetadata.w) & 0x001fffffu)
+                == (u32(bodyMetadata.w) & 0x001fffffu);
+            let priorDelta = vec3<i32>(
+                bounded_sector_delta(bodyMetadata.x, priorMetadata.x, 1u),
+                bounded_sector_delta(bodyMetadata.y, priorMetadata.y, 1u),
+                bounded_sector_delta(bodyMetadata.z, priorMetadata.z, 1u));
+            if (sameLifetime && all(priorDelta != vec3<i32>(INVALID_SECTOR_DELTA))) {
+                let prior = previousPoses[body];
+                let priorPosition = prior.position_invMass.xyz
+                    + vec3<f32>(priorDelta) * WORLD_SECTOR_SIZE;
+                let movement = localPosition - priorPosition;
+                if (dot(movement, movement)
+                    <= cull.interpolation.y * cull.interpolation.y) {
+                    localPosition = mix(priorPosition, localPosition, cull.interpolation.x);
+                    let shortest = select(-prior.orientation, prior.orientation,
+                        dot(prior.orientation, source.orientation) >= 0.0);
+                    let orientation = mix(shortest, source.orientation, cull.interpolation.x);
+                    let lengthSquared = dot(orientation, orientation);
+                    if (lengthSquared > 1e-12) {
+                        outputPose.orientation = orientation * inverseSqrt(lengthSquared);
+                    }
+                }
+            }
+        }
         outputPose.position_invMass = vec4<f32>(
-            source.position_invMass.xyz
+            localPosition
                 + vec3<f32>(delta) * WORLD_SECTOR_SIZE,
             source.position_invMass.w);
     } else {

@@ -154,7 +154,10 @@ cc_library(
 cc_binary(
     name = "voxy_native",
     srcs = ["//src/engine/platform:native/entry.cpp"],
-    deps = ["//src:voxy_core"],
+    deps = [
+        ":wreckwater_build_content",
+        "//src:voxy_core",
+    ],
     data = [
         "//shaders:shaders",
         "//data:data",

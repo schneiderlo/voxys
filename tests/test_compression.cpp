@@ -857,6 +857,17 @@ TEST_F(FileIOTest, CompressWithChecksum) {
     EXPECT_EQ(decompressResult.value().data, data);
 }
 
+#if defined(__linux__)
+TEST_F(FileIOTest, ReportsBufferedWriteFailure) {
+    // A small LDH stays in the stream buffer until close. /dev/full accepts
+    // open but rejects writes, just like a filesystem with no space left.
+    const std::vector<uint16_t> data(64, 5000);
+    const auto result = compressToFile(data, 8, 8, "/dev/full");
+    ASSERT_FALSE(result.has_value());
+    EXPECT_EQ(result.error(), CompressionError::InvalidInput);
+}
+#endif
+
 TEST_F(FileIOTest, DecompressWithExpectedDimensions) {
     std::vector<uint16_t> data(64, 9999);
     const auto filePath = getTempPath("test_dims.ldh");

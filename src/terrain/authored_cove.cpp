@@ -518,6 +518,10 @@ bool applyAuthoredCove(
     AuthoredCoveStats* stats) noexcept {
     if (stats) *stats = {};
     if (width < 2u || height < 2u ||
+        width > static_cast<uint32_t>(std::numeric_limits<int32_t>::max()) ||
+        height > static_cast<uint32_t>(std::numeric_limits<int32_t>::max()) ||
+        static_cast<size_t>(width) >
+            std::numeric_limits<size_t>::max() / height ||
         heights.size() !=
             static_cast<size_t>(width) * height ||
         !std::isfinite(heightScale) || heightScale <= 0.0f ||
@@ -525,6 +529,12 @@ bool applyAuthoredCove(
         !std::isfinite(config.waterHeight) ||
         !std::isfinite(config.authoredHalfExtent) ||
         !std::isfinite(config.feather) ||
+        !std::isfinite(config.center.x) ||
+        !std::isfinite(config.center.y) ||
+        !std::isfinite(config.inlandNormal.x) ||
+        !std::isfinite(config.inlandNormal.y) ||
+        !std::isfinite(config.alongshoreTangent.x) ||
+        !std::isfinite(config.alongshoreTangent.y) ||
         config.authoredHalfExtent <= 0.0f ||
         config.feather < 0.0f) {
         return false;
@@ -540,29 +550,38 @@ bool applyAuthoredCove(
         0.5f * static_cast<float>(width - 1u) * cellScale,
         0.5f * static_cast<float>(height - 1u) * cellScale,
     };
-    const float radius =
-        config.authoredHalfExtent + config.feather + 2.0f;
-    const auto sampleCoordinate = [cellScale](
-        float world, float origin) noexcept {
-        return static_cast<int32_t>(
-            std::floor((world + origin) / cellScale));
-    };
-    const int32_t centerX =
-        sampleCoordinate(config.center.x, terrainOrigin.x);
-    const int32_t centerY =
-        sampleCoordinate(config.center.y, terrainOrigin.y);
-    const int32_t sampleRadius =
-        static_cast<int32_t>(std::ceil(radius / cellScale));
-    const int32_t minimumX =
-        std::max(centerX - sampleRadius, 0);
-    const int32_t maximumX = std::min(
-        centerX + sampleRadius,
-        static_cast<int32_t>(width) - 1);
-    const int32_t minimumY =
-        std::max(centerY - sampleRadius, 0);
-    const int32_t maximumY = std::min(
-        centerY + sampleRadius,
-        static_cast<int32_t>(height) - 1);
+    if (!std::isfinite(terrainOrigin.x) ||
+        !std::isfinite(terrainOrigin.y)) {
+        return false;
+    }
+    // Clip in double precision before converting to sample indices. An
+    // off-terrain center or tiny cell scale can exceed the integer range;
+    // an empty intersection must never become an unsigned allocation size.
+    const double radius =
+        static_cast<double>(config.authoredHalfExtent) +
+        static_cast<double>(config.feather) + 2.0;
+    const double sampleScale = static_cast<double>(cellScale);
+    const double sampleRadius = std::ceil(radius / sampleScale);
+    const double centerX = std::floor(
+        (static_cast<double>(config.center.x) +
+         static_cast<double>(terrainOrigin.x)) / sampleScale);
+    const double centerY = std::floor(
+        (static_cast<double>(config.center.y) +
+         static_cast<double>(terrainOrigin.y)) / sampleScale);
+    const double clippedMinimumX = std::max(centerX - sampleRadius, 0.0);
+    const double clippedMaximumX = std::min(
+        centerX + sampleRadius, static_cast<double>(width - 1u));
+    const double clippedMinimumY = std::max(centerY - sampleRadius, 0.0);
+    const double clippedMaximumY = std::min(
+        centerY + sampleRadius, static_cast<double>(height - 1u));
+    if (clippedMinimumX > clippedMaximumX ||
+        clippedMinimumY > clippedMaximumY) {
+        return false;
+    }
+    const int32_t minimumX = static_cast<int32_t>(clippedMinimumX);
+    const int32_t maximumX = static_cast<int32_t>(clippedMaximumX);
+    const int32_t minimumY = static_cast<int32_t>(clippedMinimumY);
+    const int32_t maximumY = static_cast<int32_t>(clippedMaximumY);
 
     const uint32_t regionWidth =
         static_cast<uint32_t>(maximumX - minimumX + 1);

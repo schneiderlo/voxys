@@ -195,12 +195,16 @@ BroadPhaseSnapshot runAndRead(gpu::Context& context, GpuBroadPhase& broadPhase) 
         offset = telemetryBytes;
         snapshot.pairs.resize(std::min(
             snapshot.telemetry.uniquePairs, broadPhase.pairCapacity()));
-        std::memcpy(snapshot.pairs.data(), bytes + offset,
-                    snapshot.pairs.size() * sizeof(GpuKeyValue));
+        if (!snapshot.pairs.empty()) {
+            std::memcpy(snapshot.pairs.data(), bytes + offset,
+                        snapshot.pairs.size() * sizeof(GpuKeyValue));
+        }
         offset += pairBytes;
         snapshot.contacts.resize(snapshot.telemetry.persistentContacts);
-        std::memcpy(snapshot.contacts.data(), bytes + offset,
-                    snapshot.contacts.size() * sizeof(GpuPersistentContact));
+        if (!snapshot.contacts.empty()) {
+            std::memcpy(snapshot.contacts.data(), bytes + offset,
+                        snapshot.contacts.size() * sizeof(GpuPersistentContact));
+        }
         offset += contactBytes;
         const auto* events = reinterpret_cast<const GpuContactEvent*>(bytes + offset);
         snapshot.begins.assign(events,

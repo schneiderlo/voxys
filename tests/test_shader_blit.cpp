@@ -612,13 +612,13 @@ TEST_F(BlitShaderTest, ShorelineBlendAndWetResponseAreContinuous) {
     EXPECT_NE(shaderSource_.find("fn terrainMaterialWeights("),
               std::string::npos);
     EXPECT_NE(shaderSource_.find(
-                  "let beachElevation = 1.0 - smoothstep(4.0, 7.2"),
+                  "let beachElevation = 1.0 - smoothstep(2.8, 5.2"),
               std::string::npos);
     EXPECT_NE(shaderSource_.find(
-                  "smoothstep(0.03, runupLimit, relativeElevation)"),
+                  "smoothstep(0.015, max(runupLimit, 0.04),"),
               std::string::npos);
     EXPECT_NE(shaderSource_.find(
-                  "roughness = mix(roughness, 0.38, wetResponse)"),
+                  "roughness = mix(roughness, 0.18, wetResponse)"),
               std::string::npos)
         << "Wet sand needs a distinct water-film response";
     EXPECT_NE(shaderSource_.find(
@@ -643,7 +643,7 @@ TEST_F(BlitShaderTest, CoastalFoamUsesDepthCrestAndSpatialDecay) {
                   "smoothstep(0.045, 0.20, crestCompression)"),
               std::string::npos);
     EXPECT_NE(shaderSource_.find(
-                  "1.0 - smoothstep(0.8, 1.7, waterDepth)"),
+                  "1.0 - smoothstep(0.72, 1.75, waterDepth)"),
               std::string::npos);
     EXPECT_NE(shaderSource_.find(
                   "waterData.z, waterData.w"),

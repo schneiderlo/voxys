@@ -513,6 +513,16 @@ public:
             uint64_t{bodyCapacity_} * sizeof(GpuShape), storage);
         metadataBuffer_ = arena_.create("physics_body_metadata",
             uint64_t{bodyCapacity_} * sizeof(glm::uvec4), storage);
+        if (config_.enableRenderInterpolation) {
+            previousPoseBuffer_ = arena_.create("physics_previous_pose",
+                uint64_t{bodyCapacity_} * sizeof(GpuPose), storage);
+            previousMetadataBuffer_ = arena_.create("physics_previous_metadata",
+                uint64_t{bodyCapacity_} * sizeof(glm::uvec4), storage);
+            if (!previousPoseBuffer_ || !previousMetadataBuffer_) {
+                shutdown();
+                return false;
+            }
+        }
         forceBuffer_ = arena_.create("physics_body_forces",
             uint64_t{bodyCapacity_} * sizeof(glm::vec4), storage);
         terrainContactCacheBuffer_ = arena_.create(
@@ -809,6 +819,10 @@ public:
     }
 
     void shutdown() {
+        // Native WebGPU queues texture uploads until the next submission.
+        // Flush them before destroying their destinations, including when a
+        // world is shut down before its first physics tick.
+        if (queue_) wgpuQueueSubmit(queue_, 0u, nullptr);
         initialized_ = false;
         stageReadback_.shutdown();
         telemetryReadback_.shutdown();
@@ -858,6 +872,8 @@ public:
         releaseTerrainTexture(fallbackWaterTexture_, fallbackWaterView_);
         arena_.shutdown();
         poseBuffer_ = nullptr;
+        previousPoseBuffer_ = nullptr;
+        previousMetadataBuffer_ = nullptr;
         motionBuffer_ = nullptr;
         shapeBuffer_ = nullptr;
         metadataBuffer_ = nullptr;
@@ -3323,6 +3339,16 @@ public:
             PhysicsEncodeStatus::PipelineFailed;
         for (uint32_t tick = 0; tick < pendingTicks_; ++tick) {
             writeStageTimestamp();
+            if (previousPoseBuffer_) {
+                // Keep the last two fixed ticks on the GPU. Copy only the
+                // reachable body prefix, before this tick applies mutations.
+                wgpuCommandEncoderCopyBufferToBuffer(
+                    encoder, poseBuffer_, 0u, previousPoseBuffer_, 0u,
+                    uint64_t{executionBodies} * sizeof(GpuPose));
+                wgpuCommandEncoderCopyBufferToBuffer(
+                    encoder, metadataBuffer_, 0u, previousMetadataBuffer_, 0u,
+                    uint64_t{executionBodies} * sizeof(glm::uvec4));
+            }
             WGPUComputePassEncoder pass =
                 wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
             if (!pass) {
@@ -3811,6 +3837,16 @@ public:
             .poseBuffer = poseBuffer_,
             .shapeBuffer = shapeBuffer_,
             .metadataBuffer = metadataBuffer_,
+            .previousPoseBuffer = previousPoseBuffer_,
+            .previousMetadataBuffer = previousMetadataBuffer_,
+            .interpolationAlpha = previousPoseBuffer_
+                    && schedulingMode_ == SchedulingMode::Accumulator
+                    && !idleWorldConfirmed_
+                ? static_cast<float>(std::clamp(
+                    accumulator_ / static_cast<double>(config_.fixedTickSeconds),
+                    0.0, 1.0)) : 1.0f,
+            .maximumInterpolationDistance =
+                2.0f * config_.maximumLinearSpeed * config_.fixedTickSeconds,
             .activeBodyIds = activeIdsBuffer_,
             .residentBodyCapacity = nextUnusedIndex_,
             .shapeCount = static_cast<uint32_t>(ThrowableShape::Count),
@@ -4174,6 +4210,8 @@ public:
     WGPUBuffer stageResolveBuffer_ = nullptr;
     WGPUBuffer telemetrySnapshotBuffer_ = nullptr;
     WGPUBuffer poseBuffer_ = nullptr;
+    WGPUBuffer previousPoseBuffer_ = nullptr;
+    WGPUBuffer previousMetadataBuffer_ = nullptr;
     WGPUBuffer motionBuffer_ = nullptr;
     WGPUBuffer shapeBuffer_ = nullptr;
     WGPUBuffer metadataBuffer_ = nullptr;

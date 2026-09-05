@@ -114,6 +114,27 @@ TEST(RaceSessionTest, CountdownIgnoresGateCrossingsAndStartsWithoutDnf) {
     EXPECT_FALSE(session.rider(7u)->didNotFinish);
 }
 
+TEST(RaceSessionTest, TimeInLobbyDoesNotConsumeCountdown) {
+    RaceSession session;
+    RaceConfig config;
+    config.countdownTicks = 3u;
+    ASSERT_TRUE(session.configure(config, shortCourse()));
+    ASSERT_TRUE(session.join(7u));
+    for (uint32_t tick = 0u; tick < 10u; ++tick) session.step({});
+    ASSERT_TRUE(session.start());
+    EXPECT_EQ(session.countdownTicksRemaining(), 3u);
+
+    session.step({});
+    EXPECT_EQ(session.phase(), RacePhase::Countdown);
+    EXPECT_EQ(session.countdownTicksRemaining(), 2u);
+    session.step({});
+    EXPECT_EQ(session.phase(), RacePhase::Countdown);
+    EXPECT_EQ(session.countdownTicksRemaining(), 1u);
+    session.step({});
+    EXPECT_EQ(session.phase(), RacePhase::Running);
+    EXPECT_EQ(session.runningTick(), 0u);
+}
+
 TEST(RaceSessionTest, ApplicationPolicyOwnsControlsGridAndHudTransitions) {
     const MotoRaceApplicationPolicy practiceReset =
         evaluateMotoRaceApplicationPolicy(
@@ -205,6 +226,34 @@ TEST(RaceSessionTest, EnforcesCapacityAndUniquePlayers) {
     EXPECT_TRUE(session.join(13u));
     EXPECT_FALSE(session.join(14u));
     EXPECT_FALSE(session.join(kInvalidRacePlayer));
+}
+
+TEST(RaceSessionTest, GateCrossingCanLandExactlyOnPlane) {
+    RaceSession session;
+    RaceConfig config;
+    config.countdownTicks = 0u;
+    ASSERT_TRUE(session.configure(config, shortCourse()));
+    ASSERT_TRUE(session.join(7u));
+    ASSERT_TRUE(session.start());
+
+    stepPosition(session, 7u, {9.0f, 0.0f, 0.0f}, true);
+    stepPosition(session, 7u, {10.0f, 0.0f, 0.0f});
+    EXPECT_EQ(session.rider(7u)->nextCheckpoint, 1u);
+    stepPosition(session, 7u, {11.0f, 0.0f, 0.0f});
+    EXPECT_EQ(session.rider(7u)->nextCheckpoint, 1u);
+}
+
+TEST(RaceSessionTest, SlowMovementThroughGateHasNoDeadZone) {
+    RaceSession session;
+    RaceConfig config;
+    config.countdownTicks = 0u;
+    ASSERT_TRUE(session.configure(config, shortCourse()));
+    ASSERT_TRUE(session.join(7u));
+    ASSERT_TRUE(session.start());
+
+    stepPosition(session, 7u, {10.0f - 0.00001f, 0.0f, 0.0f}, true);
+    stepPosition(session, 7u, {10.0f + 0.00001f, 0.0f, 0.0f});
+    EXPECT_EQ(session.rider(7u)->nextCheckpoint, 1u);
 }
 
 TEST(RaceSessionTest, DirectedGateCrossingsFinishInCanonicalOrder) {

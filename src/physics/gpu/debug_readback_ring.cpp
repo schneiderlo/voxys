@@ -13,8 +13,7 @@ DebugReadbackRing::~DebugReadbackRing() { shutdown(); }
 
 bool DebugReadbackRing::initialize(WGPUDevice device, uint32_t slotCount,
                                    size_t slotBytes) {
-    constexpr uint32_t maximumReadbackSlots = 64u;
-    if (!device || slotCount == 0 || slotCount > maximumReadbackSlots
+    if (!device || slotCount == 0 || slotCount > kMaximumSlots
         || slotBytes == 0
         || slotBytes > std::numeric_limits<size_t>::max() / slotCount) {
         return false;
@@ -68,10 +67,19 @@ void DebugReadbackRing::shutdown() {
     nextSequence_ = 1;
 }
 
+std::optional<size_t> DebugReadbackRing::nextAvailableSlot() const noexcept {
+    for (size_t attempt = 0; attempt < slots_.size(); ++attempt) {
+        const size_t index = (nextSlot_ + attempt) % slots_.size();
+        if (slots_[index].state == State::Idle) return index;
+    }
+    return std::nullopt;
+}
+
 bool DebugReadbackRing::encodeCopy(WGPUCommandEncoder encoder,
                                    WGPUBuffer source, uint64_t sourceOffset,
                                    uint64_t byteCount, uint64_t tick,
-                                   uint32_t firstBody, uint32_t bodyCount) {
+                                   uint32_t firstBody, uint32_t bodyCount,
+                                   std::optional<size_t> slotIndex) {
     if (!encoder || !source || byteCount == 0 || byteCount > slotBytes_)
         return false;
     const uint64_t sourceBytes = wgpuBufferGetSize(source);
@@ -83,10 +91,11 @@ bool DebugReadbackRing::encodeCopy(WGPUCommandEncoder encoder,
         || byteCount > sourceBytes - sourceOffset) {
         return false;
     }
-    for (size_t attempt = 0; attempt < slots_.size(); ++attempt) {
-        const size_t index = (nextSlot_ + attempt) % slots_.size();
+    const auto available = slotIndex ? slotIndex : nextAvailableSlot();
+    if (available && *available < slots_.size()
+        && slots_[*available].state == State::Idle) {
+        const size_t index = *available;
         auto& slot = slots_[index];
-        if (slot.state != State::Idle) continue;
         wgpuCommandEncoderCopyBufferToBuffer(
             encoder, source, sourceOffset, slot.buffer, 0, byteCount);
         slot.tick = tick;

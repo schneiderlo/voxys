@@ -1,0 +1,535 @@
+{
+  "schema": "voxys.browser_benchmark.v1",
+  "capturedAt": "2026-09-05T16:28:54.227Z",
+  "options": {
+    "bodies": [
+      1000,
+      10000
+    ],
+    "modes": [
+      "diagnose"
+    ],
+    "runs": 1,
+    "width": 960,
+    "height": 540,
+    "devicePixelRatio": 1,
+    "expectedCanvasWidth": 960,
+    "expectedCanvasHeight": 540,
+    "warmupTicks": 30,
+    "impactTicks": 60,
+    "settleTicks": 30,
+    "bodiesPerVolley": 128,
+    "ticksPerVolley": 4,
+    "triangleProjectiles": 1,
+    "layout": "pile",
+    "shape": "mixed",
+    "broadPhaseCellSize": 4,
+    "pairCapacity": 65536,
+    "candidatePairCapacity": 262144,
+    "solverWorkgroupSize": 256,
+    "expectedBackend": "webgpu_soft",
+    "expectedBuild": null,
+    "maximumProfilingSlowdownPercent": 50
+  },
+  "summary": [
+    {
+      "mode": "diagnose",
+      "bodies": 1000,
+      "runs": 1,
+      "passedRuns": 1,
+      "measuredRuns": 1,
+      "passed": true,
+      "medianFps": 959.4594681,
+      "medianRealtimeFactor": 0.9491635076033333,
+      "medianLowOnePercentFps": 121.8026809,
+      "medianP95Ms": 5.299999714,
+      "medianP99Ms": 7.300000191,
+      "medianMaximumMs": 10.09999943,
+      "medianMissed60Hz": 0,
+      "medianCpuP95Ms": 0.6000000238,
+      "medianPacingSkips": 602,
+      "medianCandidatePairsPeak": 4387,
+      "medianTerrainContactBodiesPeak": 229,
+      "medianSubmittedPrimitivesPeak": 1000,
+      "medianPhysicsGpuP50Ms": 2.893149,
+      "medianRenderGpuP50Ms": 0.25335599999999997
+    },
+    {
+      "mode": "diagnose",
+      "bodies": 10000,
+      "runs": 1,
+      "passedRuns": 1,
+      "measuredRuns": 1,
+      "passed": true,
+      "medianFps": 216.551485,
+      "medianRealtimeFactor": 0.8978421094489757,
+      "medianLowOnePercentFps": 11.47563115,
+      "medianP95Ms": 31.30000114,
+      "medianP99Ms": 74.29999542,
+      "medianMaximumMs": 142.3999939,
+      "medianMissed60Hz": 180,
+      "medianCpuP95Ms": 1.299999952,
+      "medianPacingSkips": 571,
+      "medianCandidatePairsPeak": 35608,
+      "medianTerrainContactBodiesPeak": 2887,
+      "medianSubmittedPrimitivesPeak": 10000,
+      "medianPhysicsGpuP50Ms": 9.167161,
+      "medianRenderGpuP50Ms": 0.358151
+    }
+  ],
+  "adapterAndBuild": {
+    "target": "http://127.0.0.1:36607/index.html?physicsBackend=webgpu&telemetry=0&browserBenchmarkRun=1788625715185-diagnose-1000-0&broadPhaseCellSize=4&physicsPairCapacity=65536&physicsCandidatePairCapacity=262144&physicsSolverWorkgroup=256&physicsProfile=1&renderProfile=1",
+    "buildId": "da4d98ef82cc0b8b1f17a99d301573a107a55c70-dirty",
+    "device": {
+      "name": "webgpu-physics",
+      "adapter": {
+        "vendor": "amd",
+        "architecture": "rdna-3",
+        "device": "Unknown",
+        "description": "Unknown",
+        "fallback": false
+      },
+      "requiredStorageBuffers": 8,
+      "maxStorageBuffersPerShaderStage": 8,
+      "maxStorageBufferBindingSize": 134217728,
+      "maxBufferSize": 268435456,
+      "maxComputeWorkgroupsPerDimension": 65535,
+      "timestampQuery": true
+    },
+    "version": {
+      "protocolVersion": "1.3",
+      "product": "Chrome/152.0.7977.82",
+      "revision": "@d04cdb24d67b081f6cf80200ffc5233f44b61109",
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/152.0.0.0 Safari/537.36",
+      "jsVersion": "15.2.124.21"
+    },
+    "executable": "/usr/bin/google-chrome",
+    "arguments": [
+      "--remote-debugging-port=0",
+      "--user-data-dir=/tmp/nix-shell.XjbaHE/nix-shell.2rsnBP/voxys-browser-benchmark-LbQUG9",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-background-networking",
+      "--window-size=960,540",
+      "--force-device-scale-factor=1",
+      "--headless=new",
+      "--enable-unsafe-webgpu",
+      "--enable-features=Vulkan",
+      "--use-angle=vulkan",
+      "about:blank"
+    ],
+    "headless": true,
+    "initialUncapped": true,
+    "authoritativeExperienceScore": false,
+    "screenshot": null,
+    "canvas": {
+      "width": 960,
+      "height": 540,
+      "cssWidth": 960,
+      "cssHeight": 540
+    },
+    "viewport": {
+      "width": 960,
+      "height": 540,
+      "devicePixelRatio": 1
+    }
+  },
+  "runs": [
+    {
+      "bodies": 1000,
+      "passed": true,
+      "physics": {
+        "total": {
+          "count": 12,
+          "p50": 2.893149,
+          "p95": 4.00211,
+          "p99": 4.00211,
+          "maximum": 4.00211
+        },
+        "stages": {
+          "commands_active_compaction": {
+            "count": 12,
+            "p50": 0.086603,
+            "p95": 0.624612,
+            "p99": 0.624612,
+            "maximum": 0.624612
+          },
+          "ccd": {
+            "count": 12,
+            "p50": 0.03202,
+            "p95": 0.045725999999999996,
+            "p99": 0.045725999999999996,
+            "maximum": 0.045725999999999996
+          },
+          "forces_water": {
+            "count": 12,
+            "p50": 0.009939,
+            "p95": 0.070572,
+            "p99": 0.070572,
+            "maximum": 0.070572
+          },
+          "broad_index_build": {
+            "count": 12,
+            "p50": 0.0038469999999999997,
+            "p95": 0.0070929999999999995,
+            "p99": 0.0070929999999999995,
+            "maximum": 0.0070929999999999995
+          },
+          "broad_index_sort_ranges": {
+            "count": 12,
+            "p50": 0.003126,
+            "p95": 0.003486,
+            "p99": 0.003486,
+            "maximum": 0.003486
+          },
+          "broad_pair_count": {
+            "count": 12,
+            "p50": 0.22923,
+            "p95": 0.882255,
+            "p99": 0.882255,
+            "maximum": 0.882255
+          },
+          "broad_pair_scatter": {
+            "count": 12,
+            "p50": 0.017352,
+            "p95": 0.704762,
+            "p99": 0.704762,
+            "maximum": 0.704762
+          },
+          "broad_pair_sort_unique": {
+            "count": 12,
+            "p50": 0.003326,
+            "p95": 0.0037679999999999996,
+            "p99": 0.0037679999999999996,
+            "maximum": 0.0037679999999999996
+          },
+          "broad_lifecycle": {
+            "count": 12,
+            "p50": 0.288101,
+            "p95": 1.1994099999999999,
+            "p99": 1.1994099999999999,
+            "maximum": 1.1994099999999999
+          },
+          "narrow_phase_bucketing": {
+            "count": 12,
+            "p50": 0.013184999999999999,
+            "p95": 0.290626,
+            "p99": 0.290626,
+            "maximum": 0.290626
+          },
+          "narrow_phase_collision": {
+            "count": 12,
+            "p50": 0.40997,
+            "p95": 0.66084,
+            "p99": 0.66084,
+            "maximum": 0.66084
+          },
+          "dynamic_solver_coloring": {
+            "count": 12,
+            "p50": 0.199093,
+            "p95": 0.44435399999999997,
+            "p99": 0.44435399999999997,
+            "maximum": 0.44435399999999997
+          },
+          "dynamic_solver_graph": {
+            "count": 12,
+            "p50": 0.063639,
+            "p95": 0.141706,
+            "p99": 0.141706,
+            "maximum": 0.141706
+          },
+          "dynamic_solver_solve": {
+            "count": 12,
+            "p50": 0.808557,
+            "p95": 1.962683,
+            "p99": 1.962683,
+            "maximum": 1.962683
+          },
+          "static_contacts": {
+            "count": 12,
+            "p50": 0.026248999999999998,
+            "p95": 0.048451,
+            "p99": 0.048451,
+            "maximum": 0.048451
+          },
+          "islands_sleeping": {
+            "count": 12,
+            "p50": 0.252153,
+            "p95": 0.337553,
+            "p99": 0.337553,
+            "maximum": 0.337553
+          },
+          "tick_finalize": {
+            "count": 12,
+            "p50": 0.006653,
+            "p95": 0.007454,
+            "p99": 0.007454,
+            "maximum": 0.007454
+          }
+        }
+      },
+      "render": {
+        "total": {
+          "count": 106,
+          "p50": 0.25335599999999997,
+          "p95": 1.405598,
+          "p99": 1.6846409999999998,
+          "maximum": 1.9549879999999997
+        },
+        "stages": {
+          "water_simulation": {
+            "count": 106,
+            "p50": 0.001764,
+            "p95": 0.307096,
+            "p99": 0.32933799999999996,
+            "maximum": 0.358593
+          },
+          "terrain_raycast": {
+            "count": 106,
+            "p50": 0.001763,
+            "p95": 0.60225,
+            "p99": 0.674465,
+            "maximum": 0.6889719999999999
+          },
+          "lighting_blit": {
+            "count": 106,
+            "p50": 0.167675,
+            "p95": 0.776898,
+            "p99": 0.900049,
+            "maximum": 0.901812
+          },
+          "primitives": {
+            "count": 106,
+            "p50": 0.076263,
+            "p95": 0.142588,
+            "p99": 0.1599,
+            "maximum": 0.17713199999999998
+          }
+        }
+      },
+      "frame": {
+        "count": 1988,
+        "total_ms": 2071.999981,
+        "mean_ms": 1.042253512,
+        "min_ms": 0,
+        "p50_ms": 0.3000000119,
+        "p95_ms": 5.299999714,
+        "p99_ms": 7.300000191,
+        "max_ms": 10.09999943,
+        "fps": 959.4594681,
+        "low_1_percent_fps": 121.8026809,
+        "missed_deadlines_60hz": 0,
+        "missed_deadlines_90hz": 0,
+        "missed_deadlines_120hz": 0,
+        "frames_over_33_333_ms": 0
+      },
+      "simulation": {
+        "fixedTickSeconds": 0.01666666754,
+        "fixedTickHz": 59.999996856000166,
+        "maximumCatchUpTicks": 1,
+        "sampledPhysicsTicks": 118,
+        "sampledSimulationSeconds": 1.96666676972,
+        "sampledWallSeconds": 2.071999981,
+        "realtimeFactor": 0.9491635076033333
+      }
+    },
+    {
+      "bodies": 10000,
+      "passed": true,
+      "physics": {
+        "total": {
+          "count": 83,
+          "p50": 9.167161,
+          "p95": 15.99906,
+          "p99": 20.119431,
+          "maximum": 20.119431
+        },
+        "stages": {
+          "commands_active_compaction": {
+            "count": 83,
+            "p50": 0.09858499999999999,
+            "p95": 0.20987399999999998,
+            "p99": 0.572314,
+            "maximum": 0.572314
+          },
+          "ccd": {
+            "count": 83,
+            "p50": 0.04288,
+            "p95": 0.05334,
+            "p99": 0.055784,
+            "maximum": 0.055784
+          },
+          "forces_water": {
+            "count": 83,
+            "p50": 0.016551,
+            "p95": 0.034585,
+            "p99": 0.070973,
+            "maximum": 0.070973
+          },
+          "broad_index_build": {
+            "count": 83,
+            "p50": 0.009097,
+            "p95": 0.017072,
+            "p99": 0.028012,
+            "maximum": 0.028012
+          },
+          "broad_index_sort_ranges": {
+            "count": 83,
+            "p50": 0.0028049999999999998,
+            "p95": 0.003286,
+            "p99": 0.322646,
+            "maximum": 0.322646
+          },
+          "broad_pair_count": {
+            "count": 83,
+            "p50": 1.541893,
+            "p95": 4.506456,
+            "p99": 8.26627,
+            "maximum": 8.26627
+          },
+          "broad_pair_scatter": {
+            "count": 83,
+            "p50": 0.099467,
+            "p95": 0.274595,
+            "p99": 0.599084,
+            "maximum": 0.599084
+          },
+          "broad_pair_sort_unique": {
+            "count": 83,
+            "p50": 0.0036469999999999996,
+            "p95": 0.00517,
+            "p99": 7.953723999999999,
+            "maximum": 7.953723999999999
+          },
+          "broad_lifecycle": {
+            "count": 83,
+            "p50": 0.299562,
+            "p95": 0.370375,
+            "p99": 1.142183,
+            "maximum": 1.142183
+          },
+          "narrow_phase_bucketing": {
+            "count": 83,
+            "p50": 0.027852,
+            "p95": 0.043522,
+            "p99": 0.275117,
+            "maximum": 0.275117
+          },
+          "narrow_phase_collision": {
+            "count": 83,
+            "p50": 1.558003,
+            "p95": 2.790276,
+            "p99": 3.371847,
+            "maximum": 3.371847
+          },
+          "dynamic_solver_coloring": {
+            "count": 83,
+            "p50": 0.6360739999999999,
+            "p95": 2.092086,
+            "p99": 2.443905,
+            "maximum": 2.443905
+          },
+          "dynamic_solver_graph": {
+            "count": 83,
+            "p50": 0.065162,
+            "p95": 0.07574199999999999,
+            "p99": 0.12772,
+            "maximum": 0.12772
+          },
+          "dynamic_solver_solve": {
+            "count": 83,
+            "p50": 3.668523,
+            "p95": 5.674007,
+            "p99": 5.833666,
+            "maximum": 5.833666
+          },
+          "static_contacts": {
+            "count": 83,
+            "p50": 0.188634,
+            "p95": 0.355908,
+            "p99": 0.384882,
+            "maximum": 0.384882
+          },
+          "islands_sleeping": {
+            "count": 83,
+            "p50": 0.39578199999999997,
+            "p95": 0.6656489999999999,
+            "p99": 0.7320139999999999,
+            "maximum": 0.7320139999999999
+          },
+          "tick_finalize": {
+            "count": 83,
+            "p50": 0.0036869999999999997,
+            "p95": 0.005691,
+            "p99": 0.007534,
+            "maximum": 0.007534
+          }
+        }
+      },
+      "render": {
+        "total": {
+          "count": 96,
+          "p50": 0.358151,
+          "p95": 1.4241529999999998,
+          "p99": 1.746718,
+          "maximum": 1.746718
+        },
+        "stages": {
+          "water_simulation": {
+            "count": 96,
+            "p50": 0.001803,
+            "p95": 0.31984,
+            "p99": 0.471445,
+            "maximum": 0.471445
+          },
+          "terrain_raycast": {
+            "count": 96,
+            "p50": 0.0017239999999999998,
+            "p95": 0.611348,
+            "p99": 0.626135,
+            "maximum": 0.626135
+          },
+          "lighting_blit": {
+            "count": 96,
+            "p50": 0.16711299999999998,
+            "p95": 0.782669,
+            "p99": 0.807635,
+            "maximum": 0.807635
+          },
+          "primitives": {
+            "count": 96,
+            "p50": 0.081192,
+            "p95": 0.5206569999999999,
+            "p99": 1.0660399999999999,
+            "maximum": 1.0660399999999999
+          }
+        }
+      },
+      "frame": {
+        "count": 1620,
+        "total_ms": 7480.89998,
+        "mean_ms": 4.617839494,
+        "min_ms": 0,
+        "p50_ms": 0.5,
+        "p95_ms": 31.30000114,
+        "p99_ms": 74.29999542,
+        "max_ms": 142.3999939,
+        "fps": 216.551485,
+        "low_1_percent_fps": 11.47563115,
+        "missed_deadlines_60hz": 180,
+        "missed_deadlines_90hz": 344,
+        "missed_deadlines_120hz": 519,
+        "frames_over_33_333_ms": 75
+      },
+      "simulation": {
+        "fixedTickSeconds": 0.01666666754,
+        "fixedTickHz": 59.999996856000166,
+        "maximumCatchUpTicks": 1,
+        "sampledPhysicsTicks": 403,
+        "sampledSimulationSeconds": 6.71666701862,
+        "sampledWallSeconds": 7.48089998,
+        "realtimeFactor": 0.8978421094489757
+      }
+    }
+  ]
+}

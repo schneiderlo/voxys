@@ -5,6 +5,14 @@
     const RELIABLE_EVENT = 1;
     const RELIABLE_CONTROL = 2;
     const REALTIME_MTU = 1200;
+    const MAXIMUM_RELIABLE_FRAME_BYTES = 16 * 1024 * 1024;
+
+    function validFrame(channel, payload) {
+        if (payload.byteLength === 0) return false;
+        if (channel === REALTIME) return payload.byteLength <= REALTIME_MTU;
+        return (channel === RELIABLE_EVENT || channel === RELIABLE_CONTROL)
+            && payload.byteLength <= MAXIMUM_RELIABLE_FRAME_BYTES;
+    }
 
     function bytes(value) {
         if (value instanceof Uint8Array) return value;
@@ -36,7 +44,7 @@
                     const length = new DataView(
                         buffered.buffer, buffered.byteOffset, 4
                     ).getUint32(0, true);
-                    if (length > 16 * 1024 * 1024) {
+                    if (length > MAXIMUM_RELIABLE_FRAME_BYTES) {
                         throw new Error("Voxys reliable frame exceeds 16 MiB");
                     }
                     if (buffered.byteLength < length + 4) break;
@@ -65,51 +73,61 @@
 
         async connect(url) {
             if (!this.available()) throw new Error("WebTransport unavailable");
+            if (this.transport) this.close();
             this.state = "connecting";
             this.onState(this.state, "webtransport");
-            this.transport = new global.WebTransport(url);
-            await this.transport.ready;
+            const transport = new global.WebTransport(url);
+            this.transport = transport;
+            const fail = () => {
+                if (this.transport === transport) this.setFailed();
+            };
+            void transport.closed.then(
+                () => { if (this.transport === transport) this.setClosed(); },
+                fail
+            );
+            await transport.ready;
+            if (this.transport !== transport) throw new Error("Connection cancelled");
 
-            const datagrams = this.transport.datagrams;
+            const datagrams = transport.datagrams;
             const writable = typeof datagrams.createWritable === "function"
                 ? datagrams.createWritable({sendOrder: 0})
                 : datagrams.writable;
             this.datagramWriter = writable.getWriter();
-            const reliable = await this.transport.createBidirectionalStream();
+            const reliable = await transport.createBidirectionalStream();
+            if (this.transport !== transport) throw new Error("Connection cancelled");
             this.reliableWriter = reliable.writable.getWriter();
-            void readFramed(reliable.readable, this.onFrame, RELIABLE_CONTROL);
-            void this.readDatagrams(datagrams.readable);
-            void this.readIncomingStreams();
-            void this.transport.closed.then(
-                () => this.setClosed(),
-                () => this.setFailed()
-            );
+            const onFrame = (channel, payload) => {
+                if (this.transport === transport) this.onFrame(channel, payload);
+            };
+            void readFramed(reliable.readable, onFrame, RELIABLE_CONTROL).catch(fail);
+            void this.readDatagrams(datagrams.readable, onFrame).catch(fail);
+            void this.readIncomingStreams(transport, onFrame, fail).catch(fail);
             this.state = "connected";
             this.onState(this.state, "webtransport");
             return true;
         }
 
-        async readDatagrams(readable) {
+        async readDatagrams(readable, onFrame) {
             const reader = readable.getReader();
             try {
                 for (;;) {
                     const {value, done} = await reader.read();
                     if (done) return;
-                    this.onFrame(REALTIME, bytes(value));
+                    onFrame(REALTIME, bytes(value));
                 }
             } finally {
                 reader.releaseLock();
             }
         }
 
-        async readIncomingStreams() {
-            if (!this.transport.incomingUnidirectionalStreams) return;
-            const reader = this.transport.incomingUnidirectionalStreams.getReader();
+        async readIncomingStreams(transport, onFrame, fail) {
+            if (!transport.incomingUnidirectionalStreams) return;
+            const reader = transport.incomingUnidirectionalStreams.getReader();
             try {
                 for (;;) {
                     const {value, done} = await reader.read();
                     if (done) return;
-                    void readFramed(value, this.onFrame, RELIABLE_EVENT);
+                    void readFramed(value, onFrame, RELIABLE_EVENT).catch(fail);
                 }
             } finally {
                 reader.releaseLock();
@@ -119,21 +137,27 @@
         async send(channel, value) {
             if (this.state !== "connected") return false;
             const payload = bytes(value);
+            if (!validFrame(channel, payload)) return false;
             if (channel === REALTIME) {
-                if (payload.byteLength > REALTIME_MTU) return false;
-                await this.datagramWriter.ready;
-                await this.datagramWriter.write(payload);
+                const writer = this.datagramWriter;
+                await writer.ready;
+                await writer.write(payload);
                 return true;
             }
-            await this.reliableWriter.ready;
-            await this.reliableWriter.write(framed(payload));
+            const writer = this.reliableWriter;
+            await writer.ready;
+            await writer.write(framed(payload));
             return true;
         }
 
         close() {
+            const transport = this.transport;
+            this.transport = null;
             if (this.datagramWriter) this.datagramWriter.releaseLock();
             if (this.reliableWriter) this.reliableWriter.releaseLock();
-            if (this.transport) this.transport.close({closeCode: 0});
+            this.datagramWriter = null;
+            this.reliableWriter = null;
+            if (transport) transport.close({closeCode: 0});
             this.setClosed();
         }
 
@@ -167,32 +191,41 @@
 
         async connect(url) {
             if (!this.available()) throw new Error("WebRTC signaling unavailable");
+            if (this.peer) this.close();
             this.state = "connecting";
             this.onState(this.state, "webrtc");
-            this.peer = new global.RTCPeerConnection(this.rtcConfig);
-            this.channels = [
-                this.peer.createDataChannel("voxy-realtime", {
+            const peer = new global.RTCPeerConnection(this.rtcConfig);
+            this.peer = peer;
+            const channels = [
+                peer.createDataChannel("voxy-realtime", {
                     ordered: false,
                     maxRetransmits: 0
                 }),
-                this.peer.createDataChannel("voxy-events", {ordered: false}),
-                this.peer.createDataChannel("voxy-control", {ordered: true})
+                peer.createDataChannel("voxy-events", {ordered: false}),
+                peer.createDataChannel("voxy-control", {ordered: true})
             ];
-            for (let channel = 0; channel < this.channels.length; ++channel) {
-                const dataChannel = this.channels[channel];
+            this.channels = channels;
+            for (let channel = 0; channel < channels.length; ++channel) {
+                const dataChannel = channels[channel];
                 dataChannel.binaryType = "arraybuffer";
-                dataChannel.onmessage = event => this.onFrame(
-                    channel, bytes(event.data)
-                );
+                dataChannel.onmessage = event => {
+                    if (this.peer === peer) this.onFrame(channel, bytes(event.data));
+                };
             }
-            await this.signaling.connect(this.peer, url);
-            await Promise.all(this.channels.map(dataChannel => new Promise(
+            await this.signaling.connect(peer, url);
+            if (this.peer !== peer) throw new Error("Connection cancelled");
+            await Promise.all(channels.map(dataChannel => new Promise(
                 (resolve, reject) => {
                     if (dataChannel.readyState === "open") return resolve();
+                    if (dataChannel.readyState !== "connecting") {
+                        return reject(new Error("Data channel closed"));
+                    }
                     dataChannel.onopen = resolve;
                     dataChannel.onerror = reject;
+                    dataChannel.onclose = () => reject(new Error("Data channel closed"));
                 }
             )));
+            if (this.peer !== peer) throw new Error("Connection cancelled");
             this.state = "connected";
             this.onState(this.state, "webrtc");
             return true;
@@ -203,16 +236,18 @@
             const payload = bytes(value);
             if (this.state !== "connected" || !dataChannel
                 || dataChannel.readyState !== "open") return false;
-            if (channel === REALTIME && payload.byteLength > REALTIME_MTU) {
-                return false;
-            }
+            if (!validFrame(channel, payload)) return false;
             dataChannel.send(payload);
             return true;
         }
 
         close() {
-            for (const channel of this.channels) channel.close();
-            if (this.peer) this.peer.close();
+            const peer = this.peer;
+            const channels = this.channels;
+            this.peer = null;
+            this.channels = [];
+            for (const channel of channels) channel.close();
+            if (peer) peer.close();
             this.state = "disconnected";
             this.onState(this.state, "webrtc");
         }
@@ -224,44 +259,76 @@
             this.webRtc = new WebRtcDataChannelEndpoint(options);
             this.active = null;
             this.url = "";
+            this.pendingFailover = null;
+            this.generation = 0;
         }
 
         async connect(url) {
+            this.close();
+            const generation = this.generation;
             this.url = url;
             if (this.webTransport.available()) {
                 try {
                     await this.webTransport.connect(url);
+                    if (generation !== this.generation) throw new Error("Connection cancelled");
                     this.active = this.webTransport;
                     return "webtransport";
                 } catch (_) {
+                    if (generation !== this.generation) throw new Error("Connection cancelled");
                     this.webTransport.close();
                 }
             }
             await this.webRtc.connect(url);
+            if (generation !== this.generation) throw new Error("Connection cancelled");
             this.active = this.webRtc;
             return "webrtc";
         }
 
         async failover() {
             if (this.active !== this.webTransport) return false;
-            this.webTransport.close();
-            await this.webRtc.connect(this.url);
-            this.active = this.webRtc;
-            return true;
+            if (!this.pendingFailover) {
+                const generation = this.generation;
+                this.pendingFailover = (async () => {
+                    this.webTransport.close();
+                    try {
+                        await this.webRtc.connect(this.url);
+                    } catch (error) {
+                        if (generation !== this.generation) return false;
+                        throw error;
+                    }
+                    if (generation !== this.generation) return false;
+                    this.active = this.webRtc;
+                    return true;
+                })().finally(() => {
+                    if (generation === this.generation) this.pendingFailover = null;
+                });
+            }
+            return this.pendingFailover;
         }
 
         async send(channel, value) {
             if (!this.active) return false;
+            const generation = this.generation;
+            const payload = bytes(value);
+            // An invalid caller frame is not a failed transport. Preserve the
+            // connection and reserve failover for an actual send failure.
+            if (!validFrame(channel, payload)) return false;
             try {
-                if (await this.active.send(channel, value)) return true;
+                if (await this.active.send(channel, payload)) return true;
             } catch (_) {
                 // A failed primary send gets one fallback attempt.
             }
-            if (await this.failover()) return this.active.send(channel, value);
+            if (generation !== this.generation) return false;
+            if (await this.failover()) {
+                if (generation !== this.generation || !this.active) return false;
+                return this.active.send(channel, payload);
+            }
             return false;
         }
 
         close() {
+            ++this.generation;
+            this.pendingFailover = null;
             this.webTransport.close();
             this.webRtc.close();
             this.active = null;

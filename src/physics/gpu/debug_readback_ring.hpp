@@ -20,6 +20,7 @@ struct RawDebugReadback {
 
 class DebugReadbackRing {
 public:
+    static constexpr uint32_t kMaximumSlots = 64u;
     DebugReadbackRing() = default;
     ~DebugReadbackRing();
 
@@ -30,10 +31,15 @@ public:
                                   size_t slotBytes);
     void shutdown();
 
+    // The slot encodeCopy will use, unless the ring changes first. Allows
+    // callers to keep per-copy GPU parameters alive for the same lifetime.
+    [[nodiscard]] std::optional<size_t> nextAvailableSlot() const noexcept;
+    // An explicit slot must still be idle; no other slot is substituted.
     [[nodiscard]] bool encodeCopy(WGPUCommandEncoder encoder,
                                   WGPUBuffer source, uint64_t sourceOffset,
                                   uint64_t byteCount, uint64_t tick,
-                                  uint32_t firstBody, uint32_t bodyCount);
+                                  uint32_t firstBody, uint32_t bodyCount,
+                                  std::optional<size_t> slotIndex = std::nullopt);
     [[nodiscard]] std::optional<RawDebugReadback> poll();
     [[nodiscard]] size_t allocatedBytes() const noexcept {
         return slots_.size() * slotBytes_;

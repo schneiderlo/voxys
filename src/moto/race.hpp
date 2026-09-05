@@ -191,6 +191,7 @@ private:
     std::array<RaceRiderState, kMaximumRacePlayers> riders_{};
     RacePhase phase_ = RacePhase::Lobby;
     uint64_t tick_ = 0u;
+    uint64_t countdownStartTick_ = 0u;
     uint64_t runningStartTick_ = 0u;
     uint32_t finishers_ = 0u;
     bool configured_ = false;

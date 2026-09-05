@@ -3,6 +3,7 @@
 #include "gpu/context.hpp"
 #include "gpu/resources.hpp"
 #include "physics/gpu/gpu_body_metadata.hpp"
+#include "physics/gpu/debug_readback_ring.hpp"
 #include "physics/physics_world.hpp"
 #include "render/primitive_gpu_culling.hpp"
 
@@ -61,6 +62,95 @@ static_assert(sizeof(TestPose) == 32);
 static_assert(sizeof(TestShape) == 48);
 static_assert(sizeof(TestMetadata) == 16);
 static_assert(sizeof(IndirectDrawArgs) == 20);
+
+TEST(PrimitiveGpuCullingTest, InterpolatesPosesWithoutBlendingLifetimesOrTeleports) {
+    gpu::Context context;
+    gpu::ContextConfig config;
+    config.enableValidation = false;
+    if (!context.initHeadless(config)) GTEST_SKIP() << "Headless WebGPU is unavailable";
+    constexpr uint32_t count = 5u;
+    std::array<TestPose, count> poses{}, previous{};
+    std::array<TestShape, count> shapes{};
+    std::array<TestMetadata, count> metadata{}, priorMetadata{};
+    const int32_t alive = static_cast<int32_t>(physics::packGpuBodyMetadata(
+        1u, physics::kGpuBodyAliveFlag));
+    for (uint32_t body = 1u; body < count; ++body) {
+        poses[body].positionInvMass = {0.6f, 0.0f, 0.5f, 1.0f};
+        previous[body].positionInvMass = {0.2f, 0.0f, 0.5f, 1.0f};
+        shapes[body].dimensionsType = {0.1f, 0.1f, 0.1f, 0.0f};
+        metadata[body].sectorGenerationFlags = {0, 0, 0, alive};
+        priorMetadata[body] = metadata[body];
+    }
+    // Antipodal quaternions represent the same orientation.
+    previous[1].orientation.w = -1.0f;
+    priorMetadata[2].sectorGenerationFlags.w = static_cast<int32_t>(
+        physics::packGpuBodyMetadata(2u, physics::kGpuBodyAliveFlag));
+    previous[3].positionInvMass.x = 100.0f;
+    previous[4].positionInvMass.x = 127.75f;
+    poses[4].positionInvMass.x = -127.75f;
+    metadata[4].sectorGenerationFlags.x = 1;
+    const auto storage = [&](const auto& values) {
+        return gpu::createBufferWithData(context.getDevice(), context.getQueue(),
+            gpu::BufferDesc::storage(sizeof(values), true, "interpolation_test"),
+            std::as_bytes(std::span(values)));
+    };
+    WGPUBuffer poseBuffer = storage(poses);
+    WGPUBuffer priorBuffer = storage(previous);
+    WGPUBuffer shapeBuffer = storage(shapes);
+    WGPUBuffer metadataBuffer = storage(metadata);
+    WGPUBuffer priorMetadataBuffer = storage(priorMetadata);
+    std::array<PrimitiveDrawGeometry, PrimitiveGpuCulling::kShapeCount> geometry{};
+    for (auto& shape : geometry) shape = {3u, 0u};
+    PrimitiveGpuCulling culling;
+    ASSERT_TRUE(culling.initialize(context.getDevice(), context.getQueue(),
+        "shaders/physics_primitive_cull.wgsl", geometry));
+    physics::DebugReadbackRing readback;
+    ASSERT_TRUE(readback.initialize(context.getDevice(), 1u, sizeof(poses)));
+    for (const float alpha : {0.25f, 0.5f, 0.75f, 1.0f}) {
+        ASSERT_TRUE(culling.setBodyView({
+            .poseBuffer = poseBuffer,
+            .shapeBuffer = shapeBuffer,
+            .metadataBuffer = metadataBuffer,
+            .previousPoseBuffer = priorBuffer,
+            .previousMetadataBuffer = priorMetadataBuffer,
+            .interpolationAlpha = alpha,
+            .maximumInterpolationDistance = 2.0f,
+            .residentBodyCapacity = count,
+            .shapeCount = PrimitiveGpuCulling::kShapeCount,
+        }));
+        WGPUCommandEncoderDescriptor encoderDesc{};
+        WGPUCommandEncoder encoder = wgpuDeviceCreateCommandEncoder(
+            context.getDevice(), &encoderDesc);
+        ASSERT_TRUE(culling.encode(encoder, glm::mat4(1.0f)));
+        ASSERT_TRUE(readback.encodeCopy(encoder, culling.renderPoseBuffer(),
+            0u, sizeof(poses), 1u, 0u, count));
+        WGPUCommandBufferDescriptor commandDesc{};
+        WGPUCommandBuffer command = wgpuCommandEncoderFinish(encoder, &commandDesc);
+        wgpuQueueSubmit(context.getQueue(), 1u, &command);
+        wgpuCommandBufferRelease(command);
+        wgpuCommandEncoderRelease(encoder);
+        auto result = readback.poll();
+        for (uint32_t attempt = 0u; !result && attempt < 64u; ++attempt) {
+            static_cast<void>(wgpuDevicePoll(context.getDevice(), true, nullptr));
+            result = readback.poll();
+        }
+        ASSERT_TRUE(result.has_value());
+        std::array<TestPose, count> rendered{};
+        std::memcpy(rendered.data(), result->bytes.data(), sizeof(rendered));
+        EXPECT_NEAR(rendered[1].positionInvMass.x, 0.2f + 0.4f * alpha, 1e-6f);
+        EXPECT_NEAR(std::abs(rendered[1].orientation.w), 1.0f, 1e-6f);
+        EXPECT_FLOAT_EQ(rendered[2].positionInvMass.x, 0.6f);
+        EXPECT_FLOAT_EQ(rendered[3].positionInvMass.x, 0.6f);
+        EXPECT_NEAR(rendered[4].positionInvMass.x, 127.75f + 0.5f * alpha, 1e-5f);
+    }
+    readback.shutdown();
+    culling.shutdown();
+    for (const auto buffer : {poseBuffer, priorBuffer, shapeBuffer,
+                             metadataBuffer, priorMetadataBuffer}) {
+        wgpuBufferDestroy(buffer);
+        wgpuBufferRelease(buffer);
+    }
+}
 
 TEST(PrimitiveGpuCullingTest, StablyBucketsVisibleBodiesByShape) {
     gpu::Context context;

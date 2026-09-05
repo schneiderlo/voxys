@@ -3,11 +3,13 @@
 #include "gpu/context.hpp"
 #include "gpu/resources.hpp"
 #include "physics/gpu/gpu_buffer_arena.hpp"
+#include "physics/gpu/debug_readback_ring.hpp"
 #include "physics/physics_world.hpp"
 
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <cstring>
 #include <fstream>
 #include <iostream>
 #include <limits>
@@ -271,6 +273,75 @@ TEST_F(GpuPhysicsTest, RenderViewTracksSparseBodyRange) {
     ASSERT_TRUE(recycled.valid());
     EXPECT_EQ(recycled.index, 1u);
     EXPECT_EQ(world.renderView().residentBodyCapacity, 2u);
+}
+
+TEST_F(GpuPhysicsTest, ShutdownFlushesPendingInitialUploads) {
+    world.shutdown();
+    // A later queue submission must not touch destroyed upload destinations.
+    wgpuQueueSubmit(gpuContext.getQueue(), 0u, nullptr);
+}
+
+TEST_F(GpuPhysicsTest, RenderHistoryKeepsThePreviousFixedTick) {
+    PhysicsInitContext context;
+    context.requestedBackend = BackendType::WebGpuSoft;
+    context.device = gpuContext.getDevice();
+    context.queue = gpuContext.getQueue();
+    context.maxBodies = 16u;
+    context.maxActiveBodies = 16u;
+    context.maxPairs = 128u;
+    context.maxContacts = 128u;
+    context.maxManifolds = 128u;
+    context.gpu.commandCapacity = 128u;
+    context.gpu.debugReadbackBodyCapacity = 16u;
+    context.gpu.enableRenderInterpolation = true;
+    world.shutdown();
+    ASSERT_TRUE(world.initialize(context));
+    BodySpawnDesc desc;
+    desc.position = {0.0f, 10.0f, 0.0f};
+    desc.linearVelocity = {3.0f, 0.0f, 0.0f};
+    const BodyHandle body = world.spawnBody(desc);
+    ASSERT_TRUE(body.valid());
+    stepTicks(1u);
+    const auto first = snapshotRange(body.index, 1u);
+    ASSERT_TRUE(first.has_value());
+    ASSERT_EQ(first->bodies.size(), 1u);
+    stepTicks(1u);
+    const PhysicsRenderView view = world.renderView();
+    ASSERT_NE(view.previousPoseBuffer, nullptr);
+    ASSERT_NE(view.previousMetadataBuffer, nullptr);
+    EXPECT_NEAR(view.interpolationAlpha, 0.0f, 1e-5f);
+    struct Pose { glm::vec4 positionInvMass; glm::vec4 orientation; };
+    static_assert(sizeof(Pose) == 32u);
+    DebugReadbackRing readback;
+    ASSERT_TRUE(readback.initialize(gpuContext.getDevice(), 1u, sizeof(Pose)));
+    WGPUCommandEncoderDescriptor encoderDesc{};
+    WGPUCommandEncoder encoder = wgpuDeviceCreateCommandEncoder(
+        gpuContext.getDevice(), &encoderDesc);
+    ASSERT_TRUE(readback.encodeCopy(encoder, view.previousPoseBuffer,
+        uint64_t{body.index} * sizeof(Pose), sizeof(Pose), 1u, body.index, 1u));
+    WGPUCommandBufferDescriptor commandDesc{};
+    WGPUCommandBuffer command = wgpuCommandEncoderFinish(encoder, &commandDesc);
+    wgpuQueueSubmit(gpuContext.getQueue(), 1u, &command);
+    wgpuCommandBufferRelease(command);
+    wgpuCommandEncoderRelease(encoder);
+    auto previous = readback.poll();
+    for (uint32_t attempt = 0u; !previous && attempt < 16u; ++attempt) {
+        static_cast<void>(wgpuDevicePoll(gpuContext.getDevice(), true, nullptr));
+        previous = readback.poll();
+    }
+    ASSERT_TRUE(previous.has_value());
+    ASSERT_EQ(previous->bytes.size(), sizeof(Pose));
+    Pose pose{};
+    std::memcpy(&pose, previous->bytes.data(), sizeof(pose));
+    EXPECT_FLOAT_EQ(pose.positionInvMass.x, first->bodies[0].position.x);
+    EXPECT_FLOAT_EQ(pose.positionInvMass.y, first->bodies[0].position.y);
+    world.update(context.gpu.fixedTickSeconds * 0.5f);
+    EXPECT_NEAR(world.renderView().interpolationAlpha, 0.5f, 1e-5f);
+    // Rendering an intermediate frame must not advance the authoritative pose.
+    const auto second = snapshotRange(body.index, 1u);
+    ASSERT_TRUE(second.has_value());
+    EXPECT_EQ(second->tick, 2u);
+    EXPECT_GT(second->bodies[0].position.x, first->bodies[0].position.x);
 }
 
 TEST_F(GpuPhysicsTest, IntegratesPersistentBodyAndReadsItAsynchronously) {

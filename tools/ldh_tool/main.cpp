@@ -208,8 +208,12 @@ bool writeRawFile(const fs::path& path, const std::vector<uint16_t>& data) {
     
     file.write(reinterpret_cast<const char*>(data.data()), 
                static_cast<std::streamsize>(data.size() * sizeof(uint16_t)));
-    
-    return file.good();
+    file.close();
+    if (!file) {
+        std::cerr << "Error: Failed to write output file: " << path << "\n";
+        return false;
+    }
+    return true;
 }
 
 std::vector<uint8_t> readFile(const fs::path& path) {
@@ -769,6 +773,4 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 }
-
-
 

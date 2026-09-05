@@ -2,6 +2,7 @@
 
 #include "gpu/resources.hpp"
 #include "physics/gpu/debug_readback_ring.hpp"
+#include "physics/gpu/gpu_narrow_phase.hpp"
 
 #include <algorithm>
 #include <array>
@@ -13,6 +14,9 @@ namespace voxy::physics {
 namespace {
 
 constexpr size_t kPacketHeaderBytes = 16;
+// A runtime storage array must bind at least one element even when its
+// source flag is disabled. ContactManifold is the largest optional element.
+constexpr size_t kFallbackBytes = sizeof(GpuContactManifold);
 
 template <typename T>
 void releaseHandle(T& handle, void (*release)(T)) {
@@ -47,7 +51,8 @@ public:
                     const Config& config) {
         shutdown();
         if (!device || !queue || config.eventCapacity == 0
-            || config.readbackSlots == 0) return false;
+            || config.readbackSlots == 0
+            || config.readbackSlots > DebugReadbackRing::kMaximumSlots) return false;
         device_ = device;
         queue_ = queue;
         config_ = config;
@@ -60,12 +65,13 @@ public:
         });
         parameterBuffer_ = gpu::createBuffer(device_, gpu::BufferDesc{
             .label = "physics_event_params",
-            .size = gpu::alignUniformBufferSize(sizeof(Params)),
+            .size = gpu::alignUniformBufferSize(sizeof(Params))
+                * config_.readbackSlots,
             .usage = WGPUBufferUsage_Uniform | WGPUBufferUsage_CopyDst,
         });
         fallbackBuffer_ = gpu::createBuffer(device_, gpu::BufferDesc{
             .label = "physics_event_empty_source",
-            .size = 128,
+            .size = kFallbackBytes,
             .usage = WGPUBufferUsage_Storage | WGPUBufferUsage_CopyDst,
         });
         sourceTelemetry_ = gpu::createBuffer(device_, gpu::BufferDesc{
@@ -80,7 +86,7 @@ public:
             shutdown();
             return false;
         }
-        const std::array<uint32_t, 32> zeros{};
+        const std::array<uint32_t, kFallbackBytes / sizeof(uint32_t)> zeros{};
         if (!gpu::writeBuffer(queue_, fallbackBuffer_, 0, zeros)) {
             shutdown();
             return false;
@@ -124,7 +130,8 @@ public:
             return false;
         }
         allocatedBytes_ = packetBytes_ + gpu::alignUniformBufferSize(
-            sizeof(Params)) + 160 + readback_.allocatedBytes();
+            sizeof(Params)) * config_.readbackSlots
+            + kFallbackBytes + 32u + readback_.allocatedBytes();
         return true;
     }
 
@@ -152,6 +159,12 @@ public:
 
     bool encodeReadback(WGPUCommandEncoder encoder, uint64_t tick) {
         if (!encoder || !sources_.valid()) return false;
+        const auto slot = readback_.nextAvailableSlot();
+        if (!slot) return false;
+        // Queue writes happen before the submitted command buffer. Each
+        // outstanding copy needs its own parameters, including within a batch.
+        const uint64_t parameterOffset =
+            *slot * gpu::alignUniformBufferSize(sizeof(Params));
         uint32_t sourceFlags = 0;
         if (sources_.hasContacts()) sourceFlags |= 1u;
         if (sources_.hasIslands()) sourceFlags |= 2u;
@@ -171,7 +184,7 @@ public:
                     ? sources_.attachmentCapacity : 0u,
                 0u, 0u, 0u},
         };
-        if (!gpu::writeBuffer(queue_, parameterBuffer_, 0, params))
+        if (!gpu::writeBuffer(queue_, parameterBuffer_, parameterOffset, params))
             return false;
         // Compact only the words consumed by the packet shader. This replaces
         // three telemetry bindings with one and leaves room for attachment
@@ -211,7 +224,8 @@ public:
             gpu::BindGroupEntry(4).buffer(packedEvents_),
             gpu::BindGroupEntry(5).buffer(sources_.hasHits()
                 ? sources_.manifolds : fallbackBuffer_),
-            gpu::BindGroupEntry(7).buffer(parameterBuffer_),
+            gpu::BindGroupEntry(7).buffer(
+                parameterBuffer_, parameterOffset, sizeof(Params)),
             gpu::BindGroupEntry(8).buffer(sources_.metadata
                 ? sources_.metadata : fallbackBuffer_),
             gpu::BindGroupEntry(9).buffer(sources_.hasAttachments()
@@ -236,7 +250,7 @@ public:
         wgpuBindGroupRelease(group);
         return readback_.encodeCopy(
             encoder, packedEvents_, 0, packetBytes_, tick, 0,
-            config_.eventCapacity);
+            config_.eventCapacity, slot);
     }
 
     std::optional<GpuEventBatch> poll() {

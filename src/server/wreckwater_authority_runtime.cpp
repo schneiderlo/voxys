@@ -346,6 +346,8 @@ const char* wreckwaterAuthorityFailStopReasonName(
             return "replay finalize failed";
         case WreckwaterAuthorityFailStopReason::GpuDeviceError:
             return "GPU device error";
+        case WreckwaterAuthorityFailStopReason::TransportAdmissionFailed:
+            return "transport admission failed";
     }
     return "unknown";
 }
@@ -1054,22 +1056,48 @@ WreckwaterAuthorityRuntime::processLifecycle(
     const network::MultiplayerTransportFrame& frame,
     PeerState& peer) {
     FrameResult result;
+    const bool admissionRequested = frame.type
+        == network::MultiplayerTransportFrameType::ConnectionRequested;
+    const auto rejectAdmission = [&] {
+        if (admissionRequested) {
+            transport_->rejectConnection(frame.peerId, frame.connectionSerial);
+        }
+    };
     if (!frame.bytes.empty() || frame.connectionSerial == 0u) {
+        rejectAdmission();
         result.error =
             WreckwaterAuthorityIngressError::InvalidLifecycleFrame;
         return result;
     }
     if (frame.type
-        == network::MultiplayerTransportFrameType::Connected) {
+        == network::MultiplayerTransportFrameType::Connected
+        || admissionRequested) {
         if (peer.active
             && peer.connectionSerial == frame.connectionSerial) {
+            rejectAdmission();
             result.error =
                 WreckwaterAuthorityIngressError::
                     InvalidLifecycleFrame;
             return result;
         }
-        if (!connectPeer(peer, frame.connectionSerial)
-            || !startIfReady()) {
+        if (!connectPeer(peer, frame.connectionSerial)) {
+            rejectAdmission();
+            result.error =
+                WreckwaterAuthorityIngressError::InvalidLifecycleFrame;
+            return result;
+        }
+        // Commit the authority generation before the transport replaces the
+        // old socket. A failed transport commit cannot resume the match.
+        if (admissionRequested && !transport_->acceptConnection(
+                frame.peerId, frame.connectionSerial)) {
+            rejectAdmission();
+            failStop(WreckwaterAuthorityFailStopReason::
+                TransportAdmissionFailed);
+            result.error =
+                WreckwaterAuthorityIngressError::InvalidLifecycleFrame;
+            return result;
+        }
+        if (!startIfReady()) {
             result.error =
                 WreckwaterAuthorityIngressError::
                     InvalidLifecycleFrame;
@@ -1491,6 +1519,10 @@ WreckwaterAuthorityRuntime::processFrame(
     const network::MultiplayerTransportFrame& frame) {
     PeerState* peer = peerState(frame.peerId);
     if (peer == nullptr) {
+        if (frame.type
+            == network::MultiplayerTransportFrameType::ConnectionRequested) {
+            transport_->rejectConnection(frame.peerId, frame.connectionSerial);
+        }
         return {
             .error = WreckwaterAuthorityIngressError::UnknownPeer,
         };

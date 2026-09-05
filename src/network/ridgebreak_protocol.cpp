@@ -216,6 +216,12 @@ std::vector<std::byte> encodeRidgebreakInputBundle(
             return {};
         }
     }
+    // The fixed-size wire format requires unused redundant samples to be
+    // zero, just as the decoder does. Do not emit a packet it will reject.
+    for (uint32_t i = bundle.sampleCount;
+         i < kRidgebreakMaximumRedundantInputs; ++i) {
+        if (bundle.samples[i] != RidgebreakInputSample{}) return {};
+    }
     Writer writer(kRidgebreakInputBundleBytes);
     writer.u32(bundle.schemaVersion);
     writer.u32(bundle.sampleCount);

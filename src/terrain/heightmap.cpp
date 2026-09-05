@@ -72,6 +72,7 @@ Heightmap::Heightmap(Heightmap&& other) noexcept
     other.texture_ = nullptr;
     other.textureView_ = nullptr;
     other.mipLevelCount_ = 0;
+    other.cachedMinMax_.reset();
 }
 
 Heightmap& Heightmap::operator=(Heightmap&& other) noexcept {
@@ -93,6 +94,7 @@ Heightmap& Heightmap::operator=(Heightmap&& other) noexcept {
         other.texture_ = nullptr;
         other.textureView_ = nullptr;
         other.mipLevelCount_ = 0;
+        other.cachedMinMax_.reset();
     }
     return *this;
 }
@@ -322,7 +324,9 @@ VoidResult Heightmap::resize(uint32_t targetWidth, uint32_t targetHeight) {
         }
     }
 
-    // Replace data
+    // The old texture and mip chain describe the previous dimensions/data.
+    // Invalidate them only after the replacement is ready to commit.
+    releaseGPU();
     data_ = std::move(newData);
     width_ = targetWidth;
     height_ = targetHeight;

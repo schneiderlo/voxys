@@ -258,5 +258,67 @@ TEST(GpuEventReadback, PacksPriorityAndStableKeysThroughAsyncRing) {
     releaseBuffer(contactBuffer);
 }
 
+TEST(GpuEventReadback, BatchedCopiesKeepTheirOwnTickParameters) {
+    gpu::Context context;
+    gpu::ContextConfig contextConfig;
+    contextConfig.enableValidation = false;
+    if (!context.initHeadless(contextConfig)) {
+        GTEST_SKIP() << "Headless WebGPU is unavailable";
+    }
+    std::array<GpuContactEvent, 2> contacts{};
+    contacts[0] = {2u, 5u,
+        static_cast<uint32_t>(ContactEventType::Begin), 7u};
+    std::array<uint32_t, 32> telemetry{};
+    telemetry[7] = 1u;
+    WGPUBuffer contactBuffer = makeStorage<GpuContactEvent>(
+        context, contacts, "batched_event_contacts");
+    WGPUBuffer telemetryBuffer = makeStorage<uint32_t>(
+        context, telemetry, "batched_event_telemetry");
+    GpuEventReadbackRing ring;
+    GpuEventReadbackRing::Config config;
+    config.eventCapacity = 1u;
+    config.readbackSlots = 3u;
+    ASSERT_TRUE(ring.initialize(context.getDevice(), context.getQueue(), config));
+    ring.setSources({
+        .contactEvents = contactBuffer,
+        .contactTelemetry = telemetryBuffer,
+        .contactCapacity = 1u,
+    });
+
+    WGPUCommandEncoderDescriptor encoderDesc{};
+    WGPUCommandEncoder encoder = wgpuDeviceCreateCommandEncoder(
+        context.getDevice(), &encoderDesc);
+    for (uint64_t tick = 41u; tick < 44u; ++tick) {
+        ASSERT_TRUE(ring.encodeReadback(encoder, tick));
+    }
+    // A full-ring attempt must not overwrite any already encoded parameters.
+    EXPECT_FALSE(ring.encodeReadback(encoder, 99u));
+    WGPUCommandBufferDescriptor commandDesc{};
+    WGPUCommandBuffer command = wgpuCommandEncoderFinish(encoder, &commandDesc);
+    const WGPUSubmissionIndex submissionIndex = wgpuQueueSubmitForIndex(
+        context.getQueue(), 1, &command);
+    const WGPUWrappedSubmissionIndex submission{context.getQueue(), submissionIndex};
+    wgpuCommandBufferRelease(command);
+    wgpuCommandEncoderRelease(encoder);
+    for (uint64_t tick = 41u; tick < 44u; ++tick) {
+        auto batch = ring.poll();
+        for (uint32_t attempt = 0u; !batch && attempt < 64u; ++attempt) {
+            static_cast<void>(wgpuDevicePoll(context.getDevice(), true, &submission));
+            batch = ring.poll();
+        }
+        ASSERT_TRUE(batch.has_value());
+        EXPECT_EQ(batch->tick, tick);
+        ASSERT_EQ(batch->events.size(), 1u);
+        EXPECT_EQ(batch->events[0].header[0], tick);
+    }
+    const auto reused = encodeAndPoll(context, ring, 44u);
+    ASSERT_TRUE(reused.has_value());
+    ASSERT_EQ(reused->events.size(), 1u);
+    EXPECT_EQ(reused->events[0].header[0], 44u);
+    ring.shutdown();
+    releaseBuffer(telemetryBuffer);
+    releaseBuffer(contactBuffer);
+}
+
 } // namespace
 } // namespace voxy::physics

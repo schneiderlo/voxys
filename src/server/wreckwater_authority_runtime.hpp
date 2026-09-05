@@ -156,6 +156,7 @@ enum class WreckwaterAuthorityFailStopReason : uint32_t {
     ReplaySnapshotRecordingFailed,
     ReplayFinalizeFailed,
     GpuDeviceError,
+    TransportAdmissionFailed,
 };
 
 [[nodiscard]] const char* wreckwaterAuthorityFailStopReasonName(

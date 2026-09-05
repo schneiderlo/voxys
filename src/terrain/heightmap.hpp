@@ -234,6 +234,7 @@ public:
     
     /// Resize the heightmap using bilinear interpolation.
     /// If targetWidth/Height are 0, resizes to the next power of 2.
+    /// A successful dimension change releases the GPU texture; upload again.
     /// @param targetWidth  Target width (0 = auto to next power of 2)
     /// @param targetHeight Target height (0 = auto to next power of 2)
     /// @return Success or error

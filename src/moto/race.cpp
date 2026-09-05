@@ -24,15 +24,15 @@ namespace {
 
 [[nodiscard]] bool segmentCrossesCheckpoint(
     glm::vec3 from, glm::vec3 to, const RaceCheckpoint& checkpoint) noexcept {
-    constexpr float kPlaneEpsilon = 1.0e-4f;
     const float fromPlane = glm::dot(from - checkpoint.center,
                                      checkpoint.forward);
     const float toPlane = glm::dot(to - checkpoint.center,
                                    checkpoint.forward);
-    if (fromPlane >= -kPlaneEpsilon || toPlane < kPlaneEpsilon) return false;
+    // Count the segment that reaches the plane. Requiring a gap on both
+    // sides loses crossings split across ticks at (or very near) the plane.
+    if (fromPlane >= 0.0f || toPlane < 0.0f) return false;
 
     const float denominator = fromPlane - toPlane;
-    if (std::abs(denominator) <= kPlaneEpsilon) return false;
     const float t = fromPlane / denominator;
     if (t < 0.0f || t > 1.0f) return false;
 
@@ -269,6 +269,7 @@ void RaceSession::reset() noexcept {
     for (RaceRiderState& rider : riders_) rider = {};
     phase_ = RacePhase::Lobby;
     tick_ = 0u;
+    countdownStartTick_ = 0u;
     runningStartTick_ = 0u;
     finishers_ = 0u;
 }
@@ -325,6 +326,7 @@ bool RaceSession::start() noexcept {
     if (!anyPlayer) return false;
     phase_ = config_.countdownTicks == 0u
         ? RacePhase::Running : RacePhase::Countdown;
+    countdownStartTick_ = tick_;
     if (phase_ == RacePhase::Running) runningStartTick_ = tick_;
     return true;
 }
@@ -336,7 +338,7 @@ uint64_t RaceSession::runningTick() const noexcept {
 
 uint32_t RaceSession::countdownTicksRemaining() const noexcept {
     if (phase_ != RacePhase::Countdown) return 0u;
-    const uint64_t elapsed = tick_;
+    const uint64_t elapsed = tick_ - countdownStartTick_;
     return elapsed >= config_.countdownTicks
         ? 0u : static_cast<uint32_t>(config_.countdownTicks - elapsed);
 }
@@ -443,7 +445,7 @@ void RaceSession::step(std::span<const RaceRiderFrame> frames) noexcept {
     ++tick_;
 
     if (phase_ == RacePhase::Countdown
-        && tick_ >= config_.countdownTicks) {
+        && tick_ - countdownStartTick_ >= config_.countdownTicks) {
         phase_ = RacePhase::Running;
         runningStartTick_ = tick_;
     }

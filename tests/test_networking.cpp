@@ -244,6 +244,14 @@ TEST(NetworkProtocol, CanonicalCommandsPacketsAndAcknowledgements) {
     EXPECT_FALSE(acknowledgements.acknowledges(10));
 }
 
+TEST(NetworkTransport, FailoverWithoutPrimaryIsSafe) {
+    RealtimeGateway gateway(nullptr, nullptr);
+    EXPECT_FALSE(gateway.failover());
+    EXPECT_EQ(gateway.state(), TransportState::Disconnected);
+    EXPECT_EQ(gateway.activeKind(), TransportKind::None);
+    EXPECT_EQ(gateway.telemetry().failovers, 0u);
+}
+
 TEST(NetworkTransport, WebTransportFailsOverToThreeDataChannels) {
     bool primaryConnected = false;
     bool primaryClosed = false;

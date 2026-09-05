@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <array>
 #include <bit>
+#include <cmath>
 #include <limits>
 #include <utility>
 #include <vector>
@@ -25,9 +26,10 @@ struct alignas(16) CullUniforms {
     std::array<glm::vec4, 6> planes{};
     glm::uvec4 counts{};
     glm::ivec4 cameraSector{};
+    glm::vec4 interpolation{1.0f, 0.0f, 0.0f, 0.0f};
 };
 
-static_assert(sizeof(CullUniforms) == 128);
+static_assert(sizeof(CullUniforms) == 144);
 
 struct IndirectDrawArgs {
     uint32_t indexCount = 0;
@@ -74,6 +76,7 @@ bool validStorageBuffer(
 
 bool emptyBodyView(const physics::PhysicsRenderView& view) noexcept {
     return !view.poseBuffer && !view.shapeBuffer && !view.metadataBuffer
+        && !view.previousPoseBuffer && !view.previousMetadataBuffer
         && !view.activeBodyIds && !view.visibleBodyIds
         && !view.perShapeRanges && !view.indirectDrawArgs
         && view.residentBodyCapacity == 0u && view.shapeCount == 0u;
@@ -148,12 +151,14 @@ bool PrimitiveGpuCulling::initializeFresh(
         shutdown();
         return false;
     }
-    const std::array<gpu::BindGroupLayoutEntry, 4> rebaseEntries = {
+    const std::array<gpu::BindGroupLayoutEntry, 6> rebaseEntries = {
         gpu::BindGroupLayoutEntry(0).computeVisible().storageBuffer(true),
         gpu::BindGroupLayoutEntry(8).computeVisible().uniformBuffer(
             false, sizeof(CullUniforms)),
         gpu::BindGroupLayoutEntry(9).computeVisible().storageBuffer(true),
         gpu::BindGroupLayoutEntry(10).computeVisible().storageBuffer(false),
+        gpu::BindGroupLayoutEntry(11).computeVisible().storageBuffer(true),
+        gpu::BindGroupLayoutEntry(12).computeVisible().storageBuffer(true),
     };
     rebaseBindGroupLayout_ = gpu::createBindGroupLayout(
         device_, rebaseEntries, "physics_primitive_rebase_layout");
@@ -249,7 +254,16 @@ bool PrimitiveGpuCulling::setBodyView(
     const physics::PhysicsRenderView& view) {
     if (!emptyBodyView(view)) {
         const uint64_t capacity = view.residentBodyCapacity;
+        const bool hasHistory = view.previousPoseBuffer
+            || view.previousMetadataBuffer;
         if (!view.valid() || view.shapeCount != kShapeCount
+            || !std::isfinite(view.interpolationAlpha)
+            || view.interpolationAlpha < 0.0f || view.interpolationAlpha > 1.0f
+            || !std::isfinite(view.maximumInterpolationDistance)
+            || view.maximumInterpolationDistance < 0.0f
+            || (hasHistory && (!view.metadataBuffer
+                || !validStorageBuffer(view.previousPoseBuffer, capacity * kPoseStride)
+                || !validStorageBuffer(view.previousMetadataBuffer, capacity * kMetadataStride)))
             || !validStorageBuffer(
                 view.poseBuffer, capacity * kPoseStride)
             || !validStorageBuffer(
@@ -263,7 +277,9 @@ bool PrimitiveGpuCulling::setBodyView(
     }
     if (bodyView_.poseBuffer != view.poseBuffer
         || bodyView_.shapeBuffer != view.shapeBuffer
-        || bodyView_.metadataBuffer != view.metadataBuffer) {
+        || bodyView_.metadataBuffer != view.metadataBuffer
+        || bodyView_.previousPoseBuffer != view.previousPoseBuffer
+        || bodyView_.previousMetadataBuffer != view.previousMetadataBuffer) {
         bindGroupDirty_ = true;
         rebaseBindGroupDirty_ = true;
     }
@@ -411,12 +427,16 @@ bool PrimitiveGpuCulling::updateBindGroup() {
     }
     if (!rebaseBindGroupDirty_) return rebaseBindGroup_ != nullptr;
     releaseHandle(rebaseBindGroup_, wgpuBindGroupRelease);
-    const std::array<gpu::BindGroupEntry, 4> rebaseEntries = {
+    const std::array<gpu::BindGroupEntry, 6> rebaseEntries = {
         gpu::BindGroupEntry(0).buffer(bodyView_.poseBuffer),
         gpu::BindGroupEntry(8).buffer(
             uniformBuffer_, 0, sizeof(CullUniforms)),
         gpu::BindGroupEntry(9).buffer(bodyView_.metadataBuffer),
         gpu::BindGroupEntry(10).buffer(cameraRelativePoses_),
+        gpu::BindGroupEntry(11).buffer(bodyView_.previousPoseBuffer
+            ? bodyView_.previousPoseBuffer : bodyView_.poseBuffer),
+        gpu::BindGroupEntry(12).buffer(bodyView_.previousMetadataBuffer
+            ? bodyView_.previousMetadataBuffer : bodyView_.metadataBuffer),
     };
     rebaseBindGroup_ = gpu::createBindGroup(
         device_, rebaseBindGroupLayout_, rebaseEntries,
@@ -448,6 +468,9 @@ bool PrimitiveGpuCulling::encode(WGPUCommandEncoder encoder,
         kShapeCount);
     uniforms.cameraSector = glm::ivec4(
         cameraSector, kMaximumRenderSectorDelta);
+    uniforms.interpolation = glm::vec4(
+        bodyView_.previousPoseBuffer ? bodyView_.interpolationAlpha : 1.0f,
+        bodyView_.maximumInterpolationDistance, 0.0f, 0.0f);
     if (!gpu::writeBuffer(queue_, uniformBuffer_, 0, uniforms)) {
         return false;
     }

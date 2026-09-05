@@ -190,7 +190,7 @@ std::optional<TransportFrame> RealtimeGateway::poll() {
 }
 
 bool RealtimeGateway::failover() {
-    if (active_ != primary_.get()) return false;
+    if (active_ == nullptr || active_ != primary_.get()) return false;
     primary_->close();
     active_ = nullptr;
     telemetry_.active = TransportKind::None;

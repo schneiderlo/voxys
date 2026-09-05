@@ -378,6 +378,53 @@ TEST(GltfVmeshTool, AnimationsConvertAndRoundTrip) {
     EXPECT_EQ(reloaded.channelData.size(), mesh.channelData.size());
 }
 
+TEST(GltfVmeshTool, RejectsOverflowingStringBlobSize) {
+    voxy::moto::VmeshData mesh;
+    std::string error;
+    ASSERT_TRUE(convert(buildGltf(Options{}), &mesh, &error)) << error;
+    std::vector<uint8_t> bytes;
+    ASSERT_TRUE(voxy::moto::writeVmesh(mesh, &bytes, &error)) << error;
+    voxy::moto::VmeshHeader header;
+    std::memcpy(&header, bytes.data(), sizeof(header));
+    header.stringBlobSize = std::numeric_limits<uint64_t>::max();
+    std::memcpy(bytes.data(), &header, sizeof(header));
+
+    voxy::moto::VmeshData reloaded;
+    EXPECT_FALSE(voxy::moto::readVmesh(bytes.data(), bytes.size(), &reloaded, &error));
+    EXPECT_EQ(error, "string blob overflow");
+}
+
+TEST(GltfVmeshTool, RejectsOverflowingAnimationRanges) {
+    Options opt;
+    opt.withHierarchy = true;
+    opt.withAnimation = true;
+    voxy::moto::VmeshData mesh;
+    std::string error;
+    ASSERT_TRUE(convert(buildGltf(opt), &mesh, &error)) << error;
+    std::vector<uint8_t> original;
+    ASSERT_TRUE(voxy::moto::writeVmesh(mesh, &original, &error)) << error;
+    voxy::moto::VmeshHeader header;
+    std::memcpy(&header, original.data(), sizeof(header));
+
+    // Adding a channel's key bytes to this offset wraps back into the buffer.
+    auto bytes = original;
+    auto channel = mesh.animChannels[0];
+    channel.keysOffset = std::numeric_limits<uint64_t>::max() - 15u;
+    std::memcpy(bytes.data() + header.animChannelsOffset, &channel, sizeof(channel));
+    voxy::moto::VmeshData reloaded;
+    EXPECT_FALSE(voxy::moto::readVmesh(bytes.data(), bytes.size(), &reloaded, &error));
+    EXPECT_EQ(error, "anim keys out of range");
+
+    // Keep the channel offset aligned while making its end wrap around.
+    bytes = original;
+    auto anim = mesh.anims[0];
+    const uint64_t limit = std::numeric_limits<uint64_t>::max();
+    anim.channelsOffset = limit - limit % sizeof(voxy::moto::VmeshAnimChannel);
+    std::memcpy(bytes.data() + header.animsOffset, &anim, sizeof(anim));
+    EXPECT_FALSE(voxy::moto::readVmesh(bytes.data(), bytes.size(), &reloaded, &error));
+    EXPECT_EQ(error, "anim channel range out of bounds");
+}
+
 TEST(GltfVmeshTool, SkinsPreserveJoints) {
     Options opt;
     opt.withSkin = true;

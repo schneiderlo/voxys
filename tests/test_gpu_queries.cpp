@@ -12,6 +12,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <optional>
+#include <limits>
 #include <span>
 #include <vector>
 
@@ -108,6 +109,88 @@ GpuQueryRequest makeRequest(uint32_t id, GpuQueryType type,
     request.directionDistance = {1.0f, 0.0f, 0.0f, 50.0f};
     request.dimensions = {0.0f, 1.0f, 0.0f, 0.5f};
     return request;
+}
+
+TEST(GpuAsyncQueries, RejectsRequestsBeyondDeviceCapacity) {
+    gpu::Context context;
+    gpu::ContextConfig contextConfig;
+    contextConfig.enableValidation = false;
+    if (!context.initHeadless(contextConfig)) {
+        GTEST_SKIP() << "Headless WebGPU is unavailable";
+    }
+    GpuAsyncQuerySystem queries;
+    GpuAsyncQuerySystem::Config config;
+    config.bodyCapacity = 2u;
+    config.requestCapacity = std::numeric_limits<uint32_t>::max();
+    config.readbackSlots = DebugReadbackRing::kMaximumSlots;
+    EXPECT_FALSE(queries.initialize(context.getDevice(), context.getQueue(), config));
+    EXPECT_EQ(queries.allocatedBytes(), 0u);
+}
+
+TEST(GpuAsyncQueries, EncodedBatchesKeepTheirOwnRequests) {
+    gpu::Context context;
+    gpu::ContextConfig contextConfig;
+    contextConfig.enableValidation = false;
+    if (!context.initHeadless(contextConfig)) {
+        GTEST_SKIP() << "Headless WebGPU is unavailable";
+    }
+    std::array<TestPose, 2> poses{};
+    std::array<TestShape, 2> shapes{};
+    std::array<TestMetadata, 2> metadata{};
+    poses[1].positionInvMass = {5.0f, 0.0f, 0.0f, 1.0f};
+    shapes[1].dimensionsType = {1.0f, 1.0f, 1.0f, 0.0f};
+    metadata[1][3] = packGpuBodyMetadata(1u, kGpuBodyAliveFlag);
+    WGPUBuffer poseBuffer = makeStorage<TestPose>(context, poses, "batch_query_poses");
+    WGPUBuffer shapeBuffer = makeStorage<TestShape>(context, shapes, "batch_query_shapes");
+    WGPUBuffer metadataBuffer = makeStorage<TestMetadata>(context, metadata, "batch_query_metadata");
+    GpuAsyncQuerySystem queries;
+    GpuAsyncQuerySystem::Config config;
+    config.bodyCapacity = 2u;
+    config.requestCapacity = 3u;
+    config.readbackSlots = 3u;
+    ASSERT_TRUE(queries.initialize(context.getDevice(), context.getQueue(), config));
+    queries.setBodyView({poseBuffer, shapeBuffer, metadataBuffer, 2u});
+    WGPUCommandEncoderDescriptor encoderDesc{};
+    WGPUCommandEncoder encoder = wgpuDeviceCreateCommandEncoder(
+        context.getDevice(), &encoderDesc);
+    for (uint32_t batch = 1u; batch <= 3u; ++batch) {
+        std::array<GpuQueryRequest, 3> requests{};
+        for (uint32_t index = 0u; index < batch; ++index) {
+            requests[index] = makeRequest(batch * 100u + index, GpuQueryType::RayCast, 1u);
+        }
+        ASSERT_TRUE(queries.submit(std::span(requests.data(), batch), batch));
+        ASSERT_TRUE(queries.encode(encoder));
+    }
+    WGPUCommandBufferDescriptor commandDesc{};
+    WGPUCommandBuffer command = wgpuCommandEncoderFinish(encoder, &commandDesc);
+    const WGPUSubmissionIndex submissionIndex = wgpuQueueSubmitForIndex(
+        context.getQueue(), 1u, &command);
+    const WGPUWrappedSubmissionIndex submission{context.getQueue(), submissionIndex};
+    wgpuCommandBufferRelease(command);
+    wgpuCommandEncoderRelease(encoder);
+    for (uint32_t batch = 1u; batch <= 3u; ++batch) {
+        auto result = queries.poll();
+        for (uint32_t attempt = 0u; !result && attempt < 64u; ++attempt) {
+            static_cast<void>(wgpuDevicePoll(context.getDevice(), true, &submission));
+            result = queries.poll();
+        }
+        ASSERT_TRUE(result.has_value());
+        EXPECT_EQ(result->tick, batch);
+        ASSERT_EQ(result->outputs.size(), batch);
+        for (uint32_t index = 0u; index < batch; ++index) {
+            EXPECT_EQ(result->outputs[index].header[0], batch * 100u + index);
+            EXPECT_EQ(result->outputs[index].header[1], 1u);
+        }
+    }
+    const std::array reuse{makeRequest(400u, GpuQueryType::RayCast, 1u)};
+    const auto result = executeBatch(context, queries, reuse, 4u);
+    ASSERT_TRUE(result.has_value());
+    ASSERT_EQ(result->outputs.size(), 1u);
+    EXPECT_EQ(result->outputs[0].header[0], 400u);
+    queries.shutdown();
+    releaseBuffer(metadataBuffer);
+    releaseBuffer(shapeBuffer);
+    releaseBuffer(poseBuffer);
 }
 
 TEST(GpuAsyncQueries, SortsBatchesAndReportsOverflowWithoutBlockingPhysics) {

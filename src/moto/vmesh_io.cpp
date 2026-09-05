@@ -276,7 +276,7 @@ bool readVmesh(const uint8_t* bytes, size_t byteCount, VmeshData* out,
     if (header.animsOffset + animBytes > header.animChannelsOffset) return fail(error, "anims overflow");
     if (header.animChannelsOffset + animChannelBytes > header.channelDataOffset) return fail(error, "anim channels overflow");
     if (header.channelDataOffset > header.stringBlobOffset) return fail(error, "channel data overflow");
-    if (header.stringBlobOffset + header.stringBlobSize > fileSize) return fail(error, "string blob overflow");
+    if (header.stringBlobSize > fileSize - header.stringBlobOffset) return fail(error, "string blob overflow");
 
     VmeshData result;
     result.header = header;
@@ -296,13 +296,19 @@ bool readVmesh(const uint8_t* bytes, size_t byteCount, VmeshData* out,
     result.anims.resize(header.animCount);
     result.animChannels.resize(header.animChannelCount);
 
-    std::memcpy(result.submeshes.data(), bytes + header.submeshesOffset, toSize(submeshBytes));
-    std::memcpy(result.materials.data(), bytes + header.materialsOffset, toSize(materialBytes));
-    std::memcpy(result.nodes.data(), bytes + header.nodesOffset, toSize(nodeBytes));
-    std::memcpy(result.skins.data(), bytes + header.skinsOffset, toSize(skinBytes));
-    std::memcpy(result.joints.data(), bytes + header.skinsOffset + skinBytes, toSize(jointBytes));
-    std::memcpy(result.anims.data(), bytes + header.animsOffset, toSize(animBytes));
-    std::memcpy(result.animChannels.data(), bytes + header.animChannelsOffset, toSize(animChannelBytes));
+    // Optional sections can be empty. Their vectors may have null data(),
+    // which is not a valid memcpy destination even for a zero-byte copy.
+    const auto copySection = [bytes](void* destination, uint64_t offset,
+                                    uint64_t size) {
+        if (size != 0u) std::memcpy(destination, bytes + offset, toSize(size));
+    };
+    copySection(result.submeshes.data(), header.submeshesOffset, submeshBytes);
+    copySection(result.materials.data(), header.materialsOffset, materialBytes);
+    copySection(result.nodes.data(), header.nodesOffset, nodeBytes);
+    copySection(result.skins.data(), header.skinsOffset, skinBytes);
+    copySection(result.joints.data(), header.skinsOffset + skinBytes, jointBytes);
+    copySection(result.anims.data(), header.animsOffset, animBytes);
+    copySection(result.animChannels.data(), header.animChannelsOffset, animChannelBytes);
 
     result.images.assign(bytes + header.imagesOffset,
                          bytes + header.nodesOffset);
@@ -335,9 +341,10 @@ bool readVmesh(const uint8_t* bytes, size_t byteCount, VmeshData* out,
         if ((anim.channelsOffset % sizeof(VmeshAnimChannel)) != 0u) {
             return fail(error, "unaligned anim channel offset");
         }
-        const uint64_t end = anim.channelsOffset +
-                             static_cast<uint64_t>(anim.channelCount) * sizeof(VmeshAnimChannel);
-        if (end > animChannelBytes) {
+        const uint64_t bytesNeeded =
+            static_cast<uint64_t>(anim.channelCount) * sizeof(VmeshAnimChannel);
+        if (anim.channelsOffset > animChannelBytes ||
+            bytesNeeded > animChannelBytes - anim.channelsOffset) {
             return fail(error, "anim channel range out of bounds");
         }
     }
@@ -348,19 +355,16 @@ bool readVmesh(const uint8_t* bytes, size_t byteCount, VmeshData* out,
             if (joint.nodeIndex >= result.nodes.size()) return fail(error, "joint node out of range");
         }
     }
-    for (const VmeshAnim& anim : result.anims) {
-        const size_t channelStart = toSize(
-            anim.channelsOffset / sizeof(VmeshAnimChannel));
-        for (uint32_t c = 0; c < anim.channelCount; ++c) {
-            const VmeshAnimChannel& channel = result.animChannels[channelStart + c];
-            if (channel.nodeIndex >= result.nodes.size()) return fail(error, "anim node out of range");
-            if (channel.path > VmeshAnimPathScale) return fail(error, "invalid anim path");
-            if (channel.interpolation > VmeshAnimInterpolationStep) return fail(error, "invalid interpolation");
-            const uint64_t valueCount = channel.keyCount * (channel.path == VmeshAnimPathRotation ? 4u : 3u);
-            const uint64_t end = channel.keysOffset +
-                                 static_cast<uint64_t>(channel.keyCount) * sizeof(float) +
-                                 valueCount * sizeof(float);
-            if (end > result.channelData.size()) return fail(error, "anim keys out of range");
+    for (const VmeshAnimChannel& channel : result.animChannels) {
+        if (channel.nodeIndex >= result.nodes.size()) return fail(error, "anim node out of range");
+        if (channel.path > VmeshAnimPathScale) return fail(error, "invalid anim path");
+        if (channel.interpolation > VmeshAnimInterpolationStep) return fail(error, "invalid interpolation");
+        const uint64_t valueComponents = channel.path == VmeshAnimPathRotation ? 4u : 3u;
+        const uint64_t keyBytes = static_cast<uint64_t>(channel.keyCount) *
+                                  (1u + valueComponents) * sizeof(float);
+        if (channel.keysOffset > result.channelData.size() ||
+            keyBytes > result.channelData.size() - channel.keysOffset) {
+            return fail(error, "anim keys out of range");
         }
     }
 
