@@ -363,10 +363,15 @@ body.ridgebreak-playing .controls-hint {
 
 #debug-overlay {
     position: fixed;
-    top: 16px;
+    top: 52px;
     left: 16px;
     z-index: 200;
     pointer-events: none;
+}
+
+html:not(.debug-enabled) #overlay,
+html:not(.debug-enabled) #debug-overlay {
+    display: none !important;
 }
 
 #debug-overlay .debug-section {
@@ -397,6 +402,14 @@ body.ridgebreak-playing .controls-hint {
 }
 
 #debug-fps {
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    z-index: 200;
+    pointer-events: none;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    text-shadow: 0 1px 3px #000;
     color: #4ade80;
     font-weight: 500;
 }

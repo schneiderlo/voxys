@@ -125,6 +125,16 @@ void DebugOverlay::update(const DebugOverlayStats& stats) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 void DebugOverlay::render() {
+#if defined(VOXY_WASM)
+    // FPS is independent of the optional diagnostics and the F1 toggle.
+    EM_ASM({
+        var fpsEl = document.getElementById('debug-fps');
+        if (fpsEl) fpsEl.textContent = UTF8ToString($0);
+    }, formatFPS().c_str());
+    if (!EM_ASM_INT({ return globalThis['voxyDebugEnabled'] ? 1 : 0; })) {
+        return;
+    }
+#endif
     if (!visible_) {
         return;
     }
@@ -375,31 +385,26 @@ void DebugOverlay::displayWasm() {
 #if defined(VOXY_WASM)
     // Update HTML elements via JavaScript
     EM_ASM({
-        var fpsText = UTF8ToString($0);
-        var camText = UTF8ToString($1);
-        var pathText = UTF8ToString($2);
-        var terrainText = UTF8ToString($3);
-        var memText = UTF8ToString($4);
-        var frameCount = UTF8ToString($5);
-        var physicsIdentity = UTF8ToString($6);
-        var physicsBodies = UTF8ToString($7);
-        var physicsBroad = UTF8ToString($8);
-        var physicsContacts = UTF8ToString($9);
-        var physicsSolver = UTF8ToString($10);
-        var physicsIslands = UTF8ToString($11);
-        var physicsCcdWaterEvents = UTF8ToString($12);
-        var physicsIo = UTF8ToString($13);
-        var physicsTimings = UTF8ToString($14);
-        var renderTimings = UTF8ToString($15);
+        var camText = UTF8ToString($0);
+        var pathText = UTF8ToString($1);
+        var terrainText = UTF8ToString($2);
+        var memText = UTF8ToString($3);
+        var frameCount = UTF8ToString($4);
+        var physicsIdentity = UTF8ToString($5);
+        var physicsBodies = UTF8ToString($6);
+        var physicsBroad = UTF8ToString($7);
+        var physicsContacts = UTF8ToString($8);
+        var physicsSolver = UTF8ToString($9);
+        var physicsIslands = UTF8ToString($10);
+        var physicsCcdWaterEvents = UTF8ToString($11);
+        var physicsIo = UTF8ToString($12);
+        var physicsTimings = UTF8ToString($13);
+        var renderTimings = UTF8ToString($14);
 
         function setText(id, value) {
             var element = document.getElementById(id);
             if (element) element.textContent = value;
         }
-        
-        // Update FPS display
-        var fpsEl = document.getElementById('debug-fps');
-        if (fpsEl) fpsEl.textContent = fpsText;
         
         // Update camera position
         var camEl = document.getElementById('debug-camera');
@@ -450,8 +455,7 @@ void DebugOverlay::displayWasm() {
                 + ' B | max buffer ' + profile['maxBufferSize'] + ' B');
         }
         
-    }, formatFPS().c_str(), 
-       formatCameraPosition().c_str(),
+    }, formatCameraPosition().c_str(),
        formatRenderPath().c_str(),
        formatTerrain().c_str(),
        formatMemory().c_str(),
