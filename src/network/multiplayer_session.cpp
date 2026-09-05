@@ -1219,30 +1219,23 @@ MultiplayerSession::makeClientSnapshot(
     std::erase(bodyIds, peer.controlledBody);
     const InterestCell center = interestGrid_.cellFor(
         serverWorld_.bodies()[peer.controlledBody]);
-    std::stable_sort(
-        bodyIds.begin(), bodyIds.end(),
-        [this, &center](uint32_t lhs, uint32_t rhs) {
-            const InterestCell lhsCell =
-                interestGrid_.cellFor(serverWorld_.bodies()[lhs]);
-            const InterestCell rhsCell =
-                interestGrid_.cellFor(serverWorld_.bodies()[rhs]);
-            uint64_t lhsDistance = 0u;
-            uint64_t rhsDistance = 0u;
-            for (uint32_t axis = 0u; axis < 3u; ++axis) {
-                const int64_t lhsDelta =
-                    int64_t{lhsCell.coordinate[axis]}
-                    - center.coordinate[axis];
-                const int64_t rhsDelta =
-                    int64_t{rhsCell.coordinate[axis]}
-                    - center.coordinate[axis];
-                lhsDistance += static_cast<uint64_t>(
-                    lhsDelta * lhsDelta);
-                rhsDistance += static_cast<uint64_t>(
-                    rhsDelta * rhsDelta);
-            }
-            return std::tie(lhsDistance, lhs)
-                < std::tie(rhsDistance, rhs);
-        });
+    // The world is immutable during selection. Compute each cell distance
+    // once instead of repeating three integer divisions per comparison side.
+    std::vector<std::pair<uint64_t, uint32_t>> rankedBodies;
+    rankedBodies.reserve(bodyIds.size());
+    for (const uint32_t id : bodyIds) {
+        const InterestCell cell = interestGrid_.cellFor(serverWorld_.bodies()[id]);
+        uint64_t distance = 0u;
+        for (uint32_t axis = 0u; axis < 3u; ++axis) {
+            const int64_t delta = int64_t{cell.coordinate[axis]}
+                - center.coordinate[axis];
+            distance += static_cast<uint64_t>(delta * delta);
+        }
+        rankedBodies.emplace_back(distance, id);
+    }
+    std::stable_sort(rankedBodies.begin(), rankedBodies.end());
+    for (size_t index = 0u; index < bodyIds.size(); ++index)
+        bodyIds[index] = rankedBodies[index].second;
     const size_t otherCapacity =
         peer.maximumSnapshotBodies > 0u
         ? peer.maximumSnapshotBodies - 1u : 0u;

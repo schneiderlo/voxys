@@ -283,6 +283,51 @@ MultiplayerSession::ClientConfig clientConfig(
     return config;
 }
 
+TEST(MultiplayerSessionIntegration,
+     SnapshotPriorityPreservesDistancesTiesAndControlledBodyBytes) {
+    constexpr int32_t cell = 32 * physics::deterministic::kLockstepPositionOne;
+    std::vector<LockstepBody> bodies(16u);
+    for (uint32_t id = 1u; id <= 10u; ++id) {
+        bodies[id] = dynamicBody(id, 0);
+        bodies[id].positionInvMass[1] = 0;
+    }
+    bodies[2].positionInvMass[0] = -2 * cell;
+    bodies[2].positionInvMass[1] = -cell;
+    bodies[3].positionInvMass[0] = cell;
+    bodies[4].positionInvMass[1] = cell;
+    bodies[5].positionInvMass[2] = cell;
+    bodies[6].positionInvMass[0] = cell;
+    bodies[6].positionInvMass[1] = cell;
+    bodies[7].positionInvMass[0] = -cell;
+    // Body 8 shares the controlled body's cell. Body 9 is outside radius 2.
+    bodies[9].positionInvMass[0] = 3 * cell;
+    bodies[10].positionInvMass[0] = -1;
+    auto config = serverConfig();
+    config.allowSharedControlledBodies = true;
+    MultiplayerSession server;
+    ASSERT_TRUE(server.initializeServer(config, bodies,
+        std::make_unique<ProbedEndpoint>(std::make_shared<TransportProbe>())));
+    const std::array<std::vector<uint32_t>, 4> selected{{
+        {1u}, {1u, 8u}, {1u, 3u, 4u, 8u}, {1u, 3u, 4u, 5u, 7u, 8u},
+    }};
+    for (uint32_t index = 0u; index < selected.size(); ++index) {
+        const uint32_t clientId = index + 1u;
+        ASSERT_TRUE(server.addClient({clientId, 1u, 2u,
+            static_cast<uint32_t>(selected[index].size())}));
+        const auto actual = server.snapshotForClient(clientId);
+        ASSERT_TRUE(actual.has_value());
+        AuthoritativeSnapshot expected;
+        expected.tick = server.currentTick();
+        expected.islandId = config.islandId;
+        expected.authorityEpoch = config.authorityEpoch;
+        expected.full = true;
+        for (uint32_t id : selected[index])
+            expected.bodies.push_back(server.bodies()[id]);
+        expected.stateHash = snapshotStateHash(expected);
+        EXPECT_EQ(SnapshotCodec::encode(*actual), SnapshotCodec::encode(expected));
+    }
+}
+
 InputFrame input(uint64_t tick, int32_t moveXQ16) {
     return InputFrame{
         .tick = tick,
