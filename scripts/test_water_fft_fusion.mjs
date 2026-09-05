@@ -63,13 +63,13 @@ async function gpuTest({before,after,finalBefore,finalAfter,reference}){
  const finishGroups=outputs.map((o,i)=>device.createBindGroup({layout:fl,entries:[{binding:0,resource:{buffer:o}},
   {binding:1,resource:textures[i].createView({dimension:'2d-array'})},{binding:2,resource:{buffer:live}}]}));
  const dispatch=(pass,pipeline,bind,x,y=1,z=1)=>{pass.setPipeline(pipeline);pass.setBindGroup(0,bind);pass.dispatchWorkgroups(x,y,z);};
- function encode(encoder,index,fused,tiled,stopRows=false,query=null){
+ function encode(encoder,index,fused,candidateFinalize,stopRows=false,query=null){
   const pass=encoder.beginComputePass({label:fused?'fused ocean':'baseline ocean',...(query?{
    timestampWrites:{querySet:query,beginningOfPassWriteIndex:index*2,endOfPassWriteIndex:index*2+1}}:{})});
   if(fused)dispatch(pass,rows,groups[index][0],n*2);
   else{dispatch(pass,evolve,groups[index][0],count/256);dispatch(pass,axis,groups[index][1],n*2);}
   if(!stopRows){dispatch(pass,fused?columns:axis,groups[index][2],n*2);
-   dispatch(pass,tiled?finish1:finish0,finishGroups[index],n/8,n/8,2);}
+   dispatch(pass,candidateFinalize?finish1:finish0,finishGroups[index],n/8,n/8,2);}
   pass.end();
  }
  const stateReads=[0,1].map(()=>buffer(bytes,B.COPY_DST|B.MAP_READ));
@@ -113,11 +113,11 @@ async function gpuTest({before,after,finalBefore,finalAfter,reference}){
  const median=a=>{const b=[...a].sort((x,y)=>x-y);return (b[(b.length-1)>>1]+b[b.length>>1])/2;};
  if(timestamps){
   const query=device.createQuerySet({type:'timestamp',count:4}),resolved=buffer(32,B.QUERY_RESOLVE|B.COPY_SRC),read=buffer(32,B.COPY_DST|B.MAP_READ);
-  for(const [name,fused,tiled] of [['fused FFT',true,false],['tiled finalize',false,true],['both',true,true]]){
+  for(const [name,fused,candidateFinalize] of [['production fused FFT',true,true]]){
    const samples=[];
    for(let trial=0;trial<16;++trial){device.queue.writeBuffer(live,0,params(1+trial/120,.35));
     const enc=device.createCommandEncoder();
-    for(const i of (trial%2?[1,0]:[0,1]))encode(enc,i,i?fused:false,i?tiled:false,false,query);
+    for(const i of (trial%2?[1,0]:[0,1]))encode(enc,i,i?fused:false,i?candidateFinalize:false,false,query);
     enc.resolveQuerySet(query,0,4,resolved,0);enc.copyBufferToBuffer(resolved,0,read,0,32);device.queue.submit([enc.finish()]);
     await read.mapAsync(GPUMapMode.READ);const t=new BigUint64Array(read.getMappedRange().slice(0));read.unmap();
     if(trial>=4)samples.push({baseline_ms:Number(t[1]-t[0])/1e6,candidate_ms:Number(t[3]-t[2])/1e6});

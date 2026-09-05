@@ -101,6 +101,18 @@ try{
     }
     assert(sample?.telemetry?.frame?.count>=12&&sample.telemetry.render_gpu?.available,'GPU did not retire startup frames');
     assert.equal(sample.telemetry.physics.backend,'webgpu_soft');
+    assert.equal(sample.telemetry.render_gpu.frame_interval_available,true);
+    assert(sample.telemetry.render_gpu.gpu_frame_ms>0,'missing complete-frame timestamp');
+    assert(sample.telemetry.render_gpu.render_width>0&&sample.telemetry.render_gpu.render_height>0);
+    const budget=await call('Runtime.evaluate',{returnByValue:true,
+        expression:`(() => {const p=voxyModule._voxy_get_telemetry_json();
+            const t=JSON.parse(voxyModule.UTF8ToString(p));
+            return {api:typeof voxyMeasureGpuBudget,summary:VoxyFrameBudget.summarize([t.render_gpu])};})()`});
+    if(budget.exceptionDetails)throw new Error(JSON.stringify(budget.exceptionDetails));
+    assert.equal(budget.result.value.api,'function');
+    assert.equal(budget.result.value.summary.status,'insufficient_samples');
+    assert.equal(budget.result.value.summary.sample_count,1);
+    report.budget_single_sample=budget.result.value.summary;
     assert.equal(Boolean(sample.moto?.active),selected==='ridgebreak','experience activation mismatch');
     report.status='passed';
 }catch(error){report.status='failed';report.error=String(error);report.chrome_log=logs;throw error;}

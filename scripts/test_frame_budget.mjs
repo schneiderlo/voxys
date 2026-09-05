@@ -35,3 +35,26 @@ test('rejects invalid targets and sample thresholds',()=>{
 test('report is a copy and input packets remain unchanged',()=>{
  const a=packet(0,1);const r=summarize([a]);r.samples[0].gpu_frame_ms=2;assert.equal(a.gpu_frame_ms,1);
 });
+
+test('measurement rejects missing runtime and malformed options',async()=>{
+ for(const opts of [{samples:1},{targetMs:0},{maximumDurationMs:0}])
+  await assert.rejects(globalThis.voxyMeasureGpuBudget(opts),RangeError);
+ await assert.rejects(globalThis.voxyMeasureGpuBudget({module:{}}),/not initialized/);
+});
+test('abort does not change settings or turn missing frames into success',async()=>{
+ const c=new AbortController();c.abort();let reads=0;
+ const module={_voxy_get_telemetry_json(){++reads;return 1;},
+  UTF8ToString(){return JSON.stringify({frame:{count:10,cpu_ms:3}});}};
+ const result=await globalThis.voxyMeasureGpuBudget({module,signal:c.signal,samples:2});
+ assert.equal(result.status,'aborted');assert.equal(result.sample_count,0);
+ assert.equal(result.hardware_acceptance_established,false);assert.equal(reads,1);
+});
+test('measurement reads newly completed envelopes, excluding old samples',async()=>{
+ let reads=0;const module={_voxy_get_telemetry_json(){return ++reads;},
+  UTF8ToString(ptr){return JSON.stringify({frame:{count:100,cpu_ms:4},
+   render_gpu:packet(ptr<3?90:ptr*30+30,.9)});}};
+ const report=await globalThis.voxyMeasureGpuBudget({module,samples:2,maximumDurationMs:1000});
+ assert.equal(report.status,'sampled_budget_met');assert.equal(report.sample_count,2);
+ assert.equal(report.first_sample_frame,120);assert.equal(report.last_sample_frame,150);
+ assert.equal(report.hardware_acceptance_established,false);
+});
