@@ -1,0 +1,25 @@
+name: Frame budget workspace
+on:
+  push:
+    branches: [perf/frame-budget-1ms]
+    paths: [.github/workflows/frame-budget-work.yml]
+permissions:
+  contents: read
+jobs:
+  source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Export current source without generated assets or credentials
+        run: |
+          mkdir -p /tmp/frame-source
+          git archive HEAD AGENTS.md src shaders scripts tests tools web docs CMakeLists.txt BUILD third_party/CMakeLists.txt third_party/BUILD third_party/tinygltf cmake voxy.cfg ridgebreak.cfg | gzip > /tmp/frame-source/source.tar.gz
+          git rev-parse HEAD > /tmp/frame-source/commit.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: frame-budget-source
+          path: /tmp/frame-source
+          retention-days: 3
