@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Brick island · Voxys</title>
+    <link rel="icon" href="data:," />
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: #bad7df;
+        color: #17333c;
+        font:
+          14px system-ui,
+          sans-serif;
+      }
+      canvas {
+        width: 100vw;
+        height: 100dvh;
+        display: block;
+        touch-action: none;
+      }
+      header {
+        position: absolute;
+        top: 32px;
+        left: 36px;
+        pointer-events: none;
+      }
+      header small {
+        font-size: 10px;
+        letter-spacing: 3px;
+        font-weight: 700;
+        color: #486c74;
+      }
+      h1 {
+        margin: 7px 0;
+        font-size: 32px;
+        font-weight: 500;
+        letter-spacing: -1.5px;
+      }
+      header p {
+        color: #4f747d;
+        font-size: 12px;
+        margin: 0;
+      }
+      .fps {
+        position: absolute;
+        right: 30px;
+        top: 32px;
+        font-size: 12px;
+        font-variant-numeric: tabular-nums;
+      }
+      footer {
+        position: absolute;
+        bottom: 28px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 6px;
+        align-items: center;
+        padding: 8px;
+        border-radius: 16px;
+        background: #f3f8f2e8;
+        box-shadow: 0 6px 24px #355a6218;
+        white-space: nowrap;
+      }
+      button,
+      a {
+        border: 0;
+        border-radius: 10px;
+        padding: 11px 15px;
+        color: #25464f;
+        background: transparent;
+        font: inherit;
+        cursor: pointer;
+        text-decoration: none;
+      }
+      button:hover,
+      a:hover {
+        background: #dce9e6;
+      }
+      button.active {
+        background: #244f57;
+        color: #fff;
+      }
+      .hint {
+        position: absolute;
+        bottom: 95px;
+        width: 100%;
+        text-align: center;
+        color: #426872;
+        font-size: 11px;
+        pointer-events: none;
+      }
+      #error {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-content: center;
+        padding: 32px;
+        background: #eef4ef;
+      }
+      #error[hidden] {
+        display: none;
+      }
+      @media (max-width: 600px) {
+        header {
+          top: 22px;
+          left: 20px;
+        }
+        h1 {
+          font-size: 25px;
+        }
+        .fps {
+          right: 20px;
+          top: 24px;
+        }
+        footer {
+          bottom: 18px;
+          gap: 0;
+        }
+        button,
+        a {
+          padding: 10px;
+          font-size: 12px;
+        }
+        .hint {
+          bottom: 82px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <canvas aria-label="Interactive grouped-brick terrain island"></canvas>
+    <header>
+      <small>VOXYS / TERRAIN STUDY 01</small>
+      <h1>A little world, assembled.</h1>
+      <p id="stats">Building the island…</p>
+    </header>
+    <span class="fps" id="fps">— FPS</span>
+    <p class="hint">
+      Drag to orbit · Scroll or pinch to zoom · Tap the island to drop a ball
+    </p>
+    <footer>
+      <button id="grouped" class="active" aria-pressed="true">
+        Grouped bricks</button
+      ><button id="single" aria-pressed="false">1 × 1 cells</button
+      ><button id="drop">Drop a ball</button><button id="reset">Reset</button
+      ><a href="index.html" aria-label="Return to Voxys">↗ Voxys</a>
+    </footer>
+    <div id="error" hidden></div>
+    <script type="module" src="lego_patch.mjs"></script>
+  </body>
+</html>
