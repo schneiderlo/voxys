@@ -11,6 +11,8 @@ on:
       - tests/test_raycast_path.cpp
       - tests/test_lego_surface.cpp
       - src/terrain/lego_surface.hpp
+      - src/terrain/compression.*
+      - tests/test_compression.cpp
       - shaders/**
       - scripts/*lego*
       - tests/CMakeLists.txt
@@ -25,6 +27,8 @@ on:
       - tests/test_raycast_path.cpp
       - tests/test_lego_surface.cpp
       - src/terrain/lego_surface.hpp
+      - src/terrain/compression.*
+      - tests/test_compression.cpp
       - shaders/**
       - scripts/*lego*
       - tests/CMakeLists.txt
@@ -60,6 +64,8 @@ jobs:
       - name: Configure native renderer tests
         run: cmake -S . -B build-native -DVOXY_BUILD_NATIVE=ON -DVOXY_BUILD_WASM=OFF -DVOXY_BUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=gcc-14 -DCMAKE_CXX_COMPILER=g++-14 -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
       - run: cmake --build build-native --target voxy_tests -j4
+      - name: Terrain checksum and compatibility regression tests
+        run: ctest --test-dir build-native -R '^(CRC32Test|CompressionTest|HeaderTest|FileIOTest)\.' --output-on-failure --timeout 120
       - name: Native renderer lifetime and resource regression tests
         env:
           XDG_RUNTIME_DIR: /tmp/voxys-runtime

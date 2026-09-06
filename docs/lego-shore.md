@@ -79,6 +79,16 @@ all 65,536 input heights, deterministic chunk ownership, unchanged samples,
 stud/step contacts, capsule support, walking over chunk boundaries, cliffs and
 jumping at negative world heights. Existing capsule tests remain in the gate.
 
+Before publishing, Pages runs `python3 scripts/check_wasm_lego_assets.py build-wasm`.
+It extracts the shoreline and original 8K terrain from the generated preload
+package, checks that the bytes match the source assets, and loads both using
+the built engine's WebAssembly objects under Node. Every shoreline sample must
+match the original crop. This startup check does not require a graphics adapter.
+
+LDH writes use standard IEEE CRC32. Reads also recognize the historical checksum
+from older native writers, whose table contained one incorrect entry. Both
+variants remain checked; corrupt payloads and checksum footers are rejected.
+
 ```sh
 python3 scripts/sync_lego_surface.py --check
 python3 scripts/test_lego_surface_gpu.py

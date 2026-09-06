@@ -65,6 +65,8 @@ jobs:
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
       - name: Build WASM
         run: cmake --build build-wasm -- -j$(nproc)
+      - name: Load packaged terrain with the WASM engine
+        run: python3 scripts/check_wasm_lego_assets.py build-wasm
       - name: Prepare deployment directory
         run: |
           set -euo pipefail

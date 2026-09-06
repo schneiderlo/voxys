@@ -9,6 +9,7 @@
 #include "terrain/compression.hpp"
 
 #include <algorithm>
+#include <array>
 #include <cstring>
 #include <filesystem>
 #include <numeric>
@@ -275,6 +276,48 @@ TEST(CRC32Test, KnownValue) {
     EXPECT_EQ(crc, 0xCBF43926u);
 }
 
+namespace {
+uint32_t bitwiseCRC32(std::span<const uint8_t> data) {
+    uint32_t crc = 0xFFFFFFFFu;
+    for (uint8_t byte : data) {
+        crc ^= byte;
+        for (int bit = 0; bit < 8; ++bit)
+            crc = (crc >> 1) ^ ((crc & 1u) ? 0xEDB88320u : 0u);
+    }
+    return ~crc;
+}
+
+uint32_t historicalCRC32(std::span<const uint8_t> data) {
+    uint32_t crc = 0xFFFFFFFFu;
+    for (uint8_t byte : data) {
+        const uint32_t index = (crc ^ byte) & 255u;
+        uint32_t entry = index;
+        for (int bit = 0; bit < 8; ++bit)
+            entry = (entry >> 1) ^ ((entry & 1u) ? 0xEDB88320u : 0u);
+        if (index == 245u) entry ^= 0x20u;
+        crc = entry ^ (crc >> 8);
+    }
+    return ~crc;
+}
+} // namespace
+
+TEST(CRC32Test, EveryByteAndBinaryPayloadMatchIEEE) {
+    // "123456789" never exercised the incorrect entry. One byte 0x0A does.
+    const std::array<uint8_t, 1> newline{0x0A};
+    EXPECT_EQ(calculateCRC32(newline), 0x32D70693u);
+    std::vector<uint8_t> allBytes;
+    for (uint32_t value = 0; value < 256; ++value) {
+        const std::array<uint8_t, 1> byte{static_cast<uint8_t>(value)};
+        EXPECT_EQ(calculateCRC32(byte), bitwiseCRC32(byte)) << value;
+        allBytes.push_back(byte[0]);
+    }
+    EXPECT_EQ(calculateCRC32(allBytes), 0x29058C73u); // Python zlib golden
+    std::mt19937 random(0x5BE93640u);
+    std::vector<uint8_t> payload(65536);
+    for (auto& byte : payload) byte = static_cast<uint8_t>(random());
+    EXPECT_EQ(calculateCRC32(payload), bitwiseCRC32(payload));
+}
+
 TEST(CRC32Test, Consistency) {
     std::vector<uint8_t> data = {0x01, 0x02, 0x03, 0x04};
     uint32_t crc1 = calculateCRC32(data);
@@ -435,6 +478,36 @@ TEST(CompressionTest, WithChecksum) {
     auto decompressResult = decompress(compressResult.value().data);
     ASSERT_TRUE(decompressResult.has_value());
     EXPECT_EQ(decompressResult.value().data, data);
+}
+
+TEST(CompressionTest, StandardWritesAndLegacyReadsStillRejectCorruption) {
+    std::vector<uint16_t> samples(32 * 32);
+    std::mt19937 random(1234);
+    for (auto& sample : samples) sample = static_cast<uint16_t>(random());
+    CompressionOptions options;
+    options.addChecksum = true;
+    auto encoded = compress(samples, 32, 32, options);
+    ASSERT_TRUE(encoded);
+    auto& bytes = encoded.value().data;
+    const auto payload = std::span<const uint8_t>(bytes).first(bytes.size() - 4);
+    uint32_t stored;
+    std::memcpy(&stored, bytes.data() + payload.size(), sizeof(stored));
+    EXPECT_EQ(stored, bitwiseCRC32(payload));
+    const uint32_t legacy = historicalCRC32(payload);
+    ASSERT_NE(stored, legacy); // This fixture must exercise the legacy entry.
+    std::memcpy(bytes.data() + payload.size(), &legacy, sizeof(legacy));
+    auto decoded = decompress(bytes);
+    ASSERT_TRUE(decoded);
+    EXPECT_EQ(decoded.value().data, samples);
+    bytes.back() ^= 0x80;
+    auto badFooter = decompress(bytes);
+    ASSERT_FALSE(badFooter);
+    EXPECT_EQ(badFooter.error(), CompressionError::ChecksumFailed);
+    std::memcpy(bytes.data() + payload.size(), &legacy, sizeof(legacy));
+    bytes[LDH_HEADER_SIZE + 12] ^= 0x40;
+    auto badPayload = decompress(bytes);
+    ASSERT_FALSE(badPayload);
+    EXPECT_EQ(badPayload.error(), CompressionError::ChecksumFailed);
 }
 
 TEST(CompressionTest, CorruptedChecksum) {
