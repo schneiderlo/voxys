@@ -376,6 +376,35 @@ struct TerrainSurface {
     wetness : f32,
 };
 
+// One filtered color sample per brick, with no extra textures or render passes.
+// Fade fine seams and broaden the plastic highlight before they become subpixel.
+fn sampleLegoSurface(worldPos : vec3<f32>, worldX : vec3<f32>,
+                     worldY : vec3<f32>, normal : vec3<f32>) -> TerrainSurface {
+    let cellScale = max(camera.metrics.y, 0.0001);
+    let cellCounts = max(camera.terrainSize - vec2<f32>(1.0), vec2<f32>(1.0));
+    let terrainOrigin = 0.5 * cellCounts * cellScale;
+    // Move just inside the hit face so shared edges select the owning brick.
+    let cellCoord = (worldPos.xz - normal.xz * (cellScale * 0.001)
+        + terrainOrigin) / cellScale;
+    let cell = floor(cellCoord);
+    let local = fract(cellCoord);
+    let footprint = max(length(worldX - worldPos), length(worldY - worldPos)) / cellScale;
+    let detail = 1.0 - smoothstep(0.25, 1.0, footprint);
+    let centerUv = clamp((cell + vec2<f32>(0.5)) / cellCounts,
+        vec2<f32>(0.0), vec2<f32>(1.0));
+    let uvDx = (worldX.xz - worldPos.xz) / (cellCounts * cellScale);
+    let uvDy = (worldY.xz - worldPos.xz) / (cellCounts * cellScale);
+    let colorUv = mix(terrainUV(worldPos), centerUv, detail);
+    let albedo = srgbToLinear(textureSampleGrad(
+        terrainTex, terrainSampler, colorUv, uvDx, uvDy).rgb);
+    let edge = min(min(local.x, 1.0 - local.x), min(local.y, 1.0 - local.y));
+    let seam = (1.0 - smoothstep(0.0, 0.035, edge)) * detail;
+    // Subtle mould seams only on horizontal tops, not stripes up stud walls.
+    let contact = 1.0 - 0.14 * seam * max(normal.y, 0.0);
+    let roughness = mix(0.30, 0.55, smoothstep(0.15, 1.0, footprint));
+    return TerrainSurface(albedo * contact, normal, roughness, 0.0);
+}
+
 struct CovePropHit {
     distance : f32,
     normal : vec3<f32>,
@@ -2197,12 +2226,8 @@ fn backgroundTerrain(pixel : vec2<i32>, dims : vec2<u32>,
     var surface = TerrainSurface(
         vec3<f32>(0.0), geometryNormal, 0.6, 0.0);
     if (camera.invProjParams.z > 0.5) {
-        // Lego mode intentionally keeps the existing world-baked colors and
-        // smooth plastic response instead of introducing natural detail.
-        surface.albedo = srgbToLinear(textureSampleGrad(
-            terrainTex, terrainSampler, terrainUv,
-            terrainUvDx, terrainUvDy).rgb);
-        surface.roughness = 0.2;
+        surface = sampleLegoSurface(
+            posCenterWorld, materialWorldX, materialWorldY, geometryNormal);
     } else {
         surface = sampleTerrainSurface(
             posCenterWorld, materialWorldX, materialWorldY,
@@ -2419,10 +2444,8 @@ fn fs(i : VSOut) -> @location(0) vec4<f32> {
     var surface = TerrainSurface(
         vec3<f32>(0.0), geometryNormal, 0.6, 0.0);
     if (camera.invProjParams.z > 0.5) {
-        surface.albedo = srgbToLinear(textureSampleGrad(
-            terrainTex, terrainSampler, uvTerrain,
-            uvTerrainDx, uvTerrainDy).rgb);
-        surface.roughness = 0.2;
+        surface = sampleLegoSurface(
+            posCWorld, materialWorldX, materialWorldY, geometryNormal);
     } else {
         surface = sampleTerrainSurface(
             posCWorld, materialWorldX, materialWorldY, geometryNormal);
@@ -3119,3 +3142,4 @@ fn fsFused(i : VSOut) -> FusedFragmentOutput {
     output.color = vec4<f32>(presented, 1.0);
     return output;
 }
+

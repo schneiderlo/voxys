@@ -519,11 +519,13 @@ fn rayDirFromPixel(pixel : vec2<u32>, dims : vec2<u32>) -> vec3<f32> {
 // Lego Logic
 // ─────────────────────────────────────────────────────────────────────────────
 
+// Returns (ray distance, cap flag); keep face identity exact at the rim.
 fn intersectStud(origin: vec3<f32>, dir: vec3<f32>,
-                 studBase: vec3<f32>, studH: f32, studR: f32) -> f32 {
+                 studBase: vec3<f32>, studH: f32, studR: f32) -> vec2<f32> {
     // 1. Intersect with cylinder cap (top) at y = studBase.y + studH
     // Avoid divide by zero for horizontal rays
     var tHit = 1e30;
+    var hitCap = 1.0;
     if (abs(dir.y) > 1e-6) {
         let tCap = (studBase.y + studH - origin.y) / dir.y;
         if (tCap > 1e-3) {
@@ -563,14 +565,15 @@ fn intersectStud(origin: vec3<f32>, dir: vec3<f32>,
                 if (pCyl.y >= studBase.y && pCyl.y <= studBase.y + studH) {
                     if (tCyl < tHit) {
                         tHit = tCyl;
+                        hitCap = 0.0;
                     }
                 }
             }
         }
     }
 
-    if (tHit < 1e29) { return tHit; }
-    return -1.0;
+    if (tHit < 1e29) { return vec2<f32>(tHit, hitCap); }
+    return vec2<f32>(-1.0, 0.0);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -620,7 +623,9 @@ fn sampleLegoShadow(worldPos : vec3<f32>, lightDir : vec3<f32>,
     let baseCell = vec2<i32>(floor(
         (worldPos.xz + terrainOrigin) / cellScale));
     let terrainSize = vec2<i32>(camera.terrainSize);
-    let shadowOrigin = worldPos + lightDir * studHeight;
+    // A full stud-height offset skips the contact shadow at its base.
+    let shadowOrigin = worldPos + lightDir * (cellScale * 0.001);
+    let detailWeight = 1.0 - smoothstep(cellScale * 48.0, cellScale * 64.0, hitDistance);
 
     for (var x = 0; x <= steps.x; x += 1) {
         for (var z = 0; z <= steps.y; z += 1) {
@@ -635,8 +640,8 @@ fn sampleLegoShadow(worldPos : vec3<f32>, lightDir : vec3<f32>,
                 * cellScale - terrainOrigin;
             let studBase = vec3<f32>(centerXZ.x, brickY, centerXZ.y);
             if (intersectStud(shadowOrigin, lightDir, studBase,
-                              studHeight, studRadius) > 0.0) {
-                return 0.0;
+                              studHeight, studRadius).x > 0.0) {
+                return terrainShadow * (1.0 - detailWeight);
             }
         }
     }
@@ -675,7 +680,7 @@ fn intersectShadow(origin : vec3<f32>, dir : vec3<f32>) -> f32 {
     );
     let boundsMax = vec3<f32>(
         terrainSize.x * cellScale - terrainOrigin.x - borderMargin,
-        camera.metrics.x,
+        camera.metrics.x + select(0.0, cellScale * 0.25, legoMode),
         terrainSize.y * cellScale - terrainOrigin.y - borderMargin
     );
 
@@ -756,7 +761,7 @@ fn intersectShadow(origin : vec3<f32>, dir : vec3<f32>) -> f32 {
         // Lego Mode: Studs protrude above h. We need to check against h + studHeight
         // to avoid skipping cells where the ray hits the stud but is above the brick surface.
         // Stud is ~0.2 units high.
-        let hCheck = select(h, h + toHeightmapScale(cellScale * 0.25), legoMode && mipLevel == 0u);
+        let hCheck = select(h, h + toHeightmapScale(cellScale * 0.25), legoMode);
 
         if (min(yEnter, yExit) <= hCheck) {
              // Potential hit - check if we need to descend or confirm hit
@@ -774,7 +779,7 @@ fn intersectShadow(origin : vec3<f32>, dir : vec3<f32>) -> f32 {
                      let cellCenterXZ = (vec2<f32>(f32(cellX)+0.5, f32(cellZ)+0.5)) * cellScale - terrainOrigin;
                      let studBasePos = vec3<f32>(cellCenterXZ.x, brickY, cellCenterXZ.y);
 
-                     let tStud = intersectStud(origin, dir, studBasePos, studHeightWorld, studRadiusWorld);
+                     let tStud = intersectStud(origin, dir, studBasePos, studHeightWorld, studRadiusWorld).x;
                      if (tStud > 0.0 && tStud < tNext) {
                          return 0.0; // Hit stud
                      }
@@ -834,7 +839,7 @@ fn intersectShadow(origin : vec3<f32>, dir : vec3<f32>) -> f32 {
         // Use stricter threshold for shadows to avoid missing thin occluders?
         // Use standard threshold from main loop
         let levelUpHeight = f32(128u << mipLevel);
-        if (mipLevel < maxMipLevel && yExit - levelUpHeight > h) {
+        if (mipLevel < maxMipLevel && yExit - levelUpHeight > hCheck) {
             mipLevel++;
             if ((cellPacked & 1) != offsetX) { tMaxX += tDeltaX; }
             if ((cellPacked & 65536) != offsetZ) { tMaxZ += tDeltaZ; }
@@ -866,6 +871,7 @@ fn main(@builtin(global_invocation_id) gid : vec3<u32>) {
     
     let origin = camera.cameraPos.xyz;
     let dir = rayDirFromPixel(gid.xy, dims);
+    let legoMode = camera.invProjParams.z > 0.5;
     
     // ─────────────────────────────────────────────────────────────────────────
     // Terrain Bounds
@@ -881,7 +887,7 @@ fn main(@builtin(global_invocation_id) gid : vec3<u32>) {
     );
     let boundsMax = vec3<f32>(
         terrainSize.x * cellScale - terrainOrigin.x - borderMargin,
-        camera.metrics.x,
+        camera.metrics.x + select(0.0, cellScale * 0.25, legoMode),
         terrainSize.y * cellScale - terrainOrigin.y - borderMargin
     );
     
@@ -960,7 +966,7 @@ fn main(@builtin(global_invocation_id) gid : vec3<u32>) {
     // ─────────────────────────────────────────────────────────────────────────
     // DDA Loop - Hierarchical Traversal
     // ─────────────────────────────────────────────────────────────────────────
-    let legoMode = camera.invProjParams.z > 0.5;
+    var legoNormal = vec3<f32>(0.0, 1.0, 0.0);
 
     var loopCount = 0u;
     loop {
@@ -971,6 +977,7 @@ fn main(@builtin(global_invocation_id) gid : vec3<u32>) {
         }
 
         var tNext = min(tMaxX, tMaxZ);
+        if (legoMode) { tNext = min(tNext, range.y); }
         
         // Compute ray Y in heightmap space at entry and exit of current segment
         var yEnter = slopeY * t;
@@ -1008,8 +1015,8 @@ fn main(@builtin(global_invocation_id) gid : vec3<u32>) {
         // Potential Intersection Check
         // ─────────────────────────────────────────────────────────────────────
         // If ray Y (at either entry or exit) is below the max height, potential hit
-        // Lego Mode: Expand height check to include studs
-        let hCheck = select(h, h + toHeightmapScale(cellScale * 0.25), legoMode && mipLevel == 0u);
+        // Every mip must include stud height, or coarse traversal skips silhouettes.
+        let hCheck = select(h, h + toHeightmapScale(cellScale * 0.25), legoMode);
 
         if (min(yEnter, yExit) <= hCheck) {
             // Side-hit adjustment: if descending ray enters above terrain,
@@ -1019,49 +1026,58 @@ fn main(@builtin(global_invocation_id) gid : vec3<u32>) {
 
             if (legoMode) {
                 if (mipLevel == 0u) {
-                    // Logic for Lego intersection
-                    // If we hit the stud or the brick, we count it as a hit.
-                    // If we miss both, we do NOT set hitFound, and we do NOT descend (already at 0).
-                    // We let the loop continue to next cell.
-
-                    // But wait, the standard logic assumes if we are at mip 0, we hit.
-                    // So we must manually check geometry here.
-
+                    let entryT = t;
+                    let entryPos = origin + dir * entryT;
+                    let brickY = heightmapToWorldHeight(h + originY);
+                    let cellMin = vec2<f32>(f32(cellX), f32(cellZ))
+                        * cellScale - terrainOrigin;
+                    let cellCenterXZ = cellMin + vec2<f32>(cellScale * 0.5);
                     var hitLego = false;
 
-                    // 1. Brick Body (y <= h)
+                    // Keep the exact face normal; a smooth heightfield normal
+                    // is unrelated to these flat tops and vertical sides.
                     if (min(yEnter, yExit) <= h) {
-                        // Standard hit logic for the blocky part
                         if (slopeY < 0.0 && yEnter > h) {
-                            // Hit top of brick
                             t = h / slopeY;
+                            legoNormal = vec3<f32>(0.0, 1.0, 0.0);
+                        } else {
+                            let enteredX = select(-1e30, tMaxX - tDeltaX, abs(dir.x) > ddaEpsilon);
+                            let enteredZ = select(-1e30, tMaxZ - tDeltaZ, abs(dir.z) > ddaEpsilon);
+                            legoNormal = select(
+                                vec3<f32>(0.0, 0.0, -sign(dir.z)),
+                                vec3<f32>(-sign(dir.x), 0.0, 0.0),
+                                enteredX > enteredZ);
+                            if (dot(legoNormal, legoNormal) < 0.5) {
+                                legoNormal = vec3<f32>(0.0, 1.0, 0.0);
+                            }
                         }
-                        // Else hit side (t is already correct)
                         hitLego = true;
                     }
 
-                    // 2. Stud Intersection
-                    let studHeightWorld = cellScale * 0.2;
-                    let studRadiusWorld = cellScale * 0.35;
-                    // Reconstruct world Y of brick surface
-                    let h_map = (h + originY) / 65535.0;
-                    let brickY = (h_map * 2.0 - 1.0) * camera.metrics.x;
-                    let cellCenterXZ = (vec2<f32>(f32(cellX)+0.5, f32(cellZ)+0.5)) * cellScale - terrainOrigin;
-                    let studBasePos = vec3<f32>(cellCenterXZ.x, brickY, cellCenterXZ.y);
-
-                    let tStud = intersectStud(origin, dir, studBasePos, studHeightWorld, studRadiusWorld);
-
-                    if (tStud > 1e-3 && tStud < tNext) {
-                        // If we hit stud closer than brick (or if we didn't hit brick)
-                        if (!hitLego || tStud < t) {
+                    // A brick side at the segment entry is already the nearest hit.
+                    if (!hitLego || t > entryT) {
+                        let studHeightWorld = cellScale * 0.2;
+                        let studRadiusWorld = cellScale * 0.35;
+                        let studBasePos = vec3<f32>(cellCenterXZ.x, brickY, cellCenterXZ.y);
+                        // Solve near the cell, not the camera: distant cylinder
+                        // quadratics otherwise lose their small discriminant in f32.
+                        let studHit = intersectStud(entryPos, dir,
+                            studBasePos, studHeightWorld, studRadiusWorld);
+                        let localStudT = studHit.x;
+                        let tStud = entryT + localStudT;
+                        if (localStudT > 0.0 && tStud <= tNext
+                            && (!hitLego || tStud < t)) {
                             t = tStud;
                             hitLego = true;
+                            let studPos = entryPos + dir * localStudT - studBasePos;
+                            if (studHit.y > 0.5) {
+                                legoNormal = vec3<f32>(0.0, 1.0, 0.0);
+                            } else {
+                                legoNormal = normalize(vec3<f32>(studPos.x, 0.0, studPos.z));
+                            }
                         }
                     }
-
-                    if (hitLego) {
-                        hitFound = true;
-                    }
+                    hitFound = hitLego;
                 } else {
                     // Force descent if Lego mode enabled (handled by standard descend logic below)
                     // Just ensure we don't set hitFound = true prematurely for LODs
@@ -1117,7 +1133,7 @@ fn main(@builtin(global_invocation_id) gid : vec3<u32>) {
         t = tNext;
         
         // Check if we've exited the terrain bounds
-        if (t > range.y) { t = -1.0; break; }
+        if (t > range.y || (legoMode && t >= range.y)) { t = -1.0; break; }
         
         // Advance along the shorter axis (standard 2D DDA)
         if (tMaxX < tMaxZ) {
@@ -1133,7 +1149,7 @@ fn main(@builtin(global_invocation_id) gid : vec3<u32>) {
         // ─────────────────────────────────────────────────────────────────────
         // When ray is far above terrain surface, ascend to coarser mip for faster traversal
         let levelUpHeight = f32(128u << mipLevel);
-        if (mipLevel < maxMipLevel && yExit - levelUpHeight > h) {
+        if (mipLevel < maxMipLevel && yExit - levelUpHeight > hCheck) {
             mipLevel++;
             // Adjust tMax if we're not at a coarser-level cell boundary
             if ((cellPacked & 1) != offsetX) { tMaxX += tDeltaX; }
@@ -1203,8 +1219,12 @@ fn main(@builtin(global_invocation_id) gid : vec3<u32>) {
 
         if (legoMode) {
             let lightDir = camera.lightDirWS.xyz;
-            shadowFactor = sampleLegoShadow(
-                hitPos, lightDir, terrainOrigin, cellScale, t);
+            // Back-facing plastic has no direct sun term, so tracing its
+            // stud shadow cannot affect lighting.
+            if (material != MATERIAL_TERRAIN || dot(legoNormal, lightDir) > 0.0) {
+                shadowFactor = sampleLegoShadow(
+                    hitPos, lightDir, terrainOrigin, cellScale, t);
+            }
         } else {
             // Static sun + static terrain: one baked-texture lookup replaces
             // the whole shadow DDA.
@@ -1233,9 +1253,13 @@ fn main(@builtin(global_invocation_id) gid : vec3<u32>) {
         // Preserve the smoothly interpolated heightfield derivative.
         // Reconstructing terrain normals from neighboring screen depths
         // exaggerates one-metre cell boundaries at grazing angles.
-        let terrainNormal = terrainSurfaceNormal(
-            origin + dir * t, terrainOrigin, cellScale);
+        var terrainNormal = legoNormal;
+        if (!legoMode) {
+            terrainNormal = terrainSurfaceNormal(
+                origin + dir * t, terrainOrigin, cellScale);
+        }
         textureStore(outMaterial, vec2<i32>(gid.xy),
                      vec4<f32>(terrainNormal, 1.0));
     }
 }
+
