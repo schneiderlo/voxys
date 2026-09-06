@@ -2,6 +2,8 @@
 import assert from "node:assert/strict";
 import {
   SIZE,
+  BRICK_PALETTE,
+  brickPaletteIndex,
   PLATE,
   STUD_HEIGHT,
   makeHeightmap,
@@ -83,3 +85,33 @@ stepBalls(empty, pair, 1 / 120);
 assert(pair[1].p[0] - pair[0].p[0] >= 0.52, "Spheres must not overlap");
 assert(pair[0].v[0] < 0 && pair[1].v[0] > 0, "Head-on spheres must separate");
 console.log("PASS: bounded sphere-pair collision");
+
+// Palette decisions are immutable material data, independent of render state.
+const families = new Set();
+for (const brick of model.bricks) {
+  assert(Number.isInteger(brick.paletteIndex));
+  assert.equal(brick.paletteIndex, brickPaletteIndex(heights, brick));
+  const color = BRICK_PALETTE[brick.paletteIndex];
+  assert(color && Object.isFrozen(color) && Object.isFrozen(color.linear));
+  assert(color.linear.every((v) => Number.isFinite(v) && v > 0 && v <= 1));
+  families.add(color.family);
+}
+assert.deepEqual([...families].sort(), ["forest", "meadow", "sand", "stone"]);
+for (const color of BRICK_PALETTE) {
+  const encoded = color.linear.map((v) =>
+    v <= 0.0031308 ? v * 12.92 : 1.055 * v ** (1 / 2.4) - 0.055,
+  );
+  const hex =
+    "#" +
+    encoded
+      .map((v) =>
+        Math.round(v * 255)
+          .toString(16)
+          .padStart(2, "0"),
+      )
+      .join("");
+  assert.equal(hex.toUpperCase(), color.hex);
+}
+console.log(
+  "PASS: stable per-brick palette, terrain families, immutable linear-light colors",
+);

@@ -8,6 +8,69 @@ export const hash = (x, z) => {
   h = Math.imul(h ^ (h >>> 13), 1274126177);
   return (h ^ (h >>> 16)) >>> 0;
 };
+// Palette colors are authored in sRGB and converted once for linear lighting.
+// Each brick stores one small index; every face and stud uses that same entry.
+const srgbToLinear = (v) =>
+  v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+export const BRICK_PALETTE = Object.freeze(
+  [
+    ["sand", "#E5CA91"],
+    ["sand", "#DFC185"],
+    ["sand", "#EAD19E"],
+    ["meadow", "#7FA65E"],
+    ["meadow", "#86AD65"],
+    ["meadow", "#8DB36C"],
+    ["forest", "#4F7D65"],
+    ["forest", "#58856D"],
+    ["forest", "#608D74"],
+    ["stone", "#9C9E92"],
+    ["stone", "#A4A497"],
+    ["stone", "#ADAC9F"],
+  ].map(([family, hex]) =>
+    Object.freeze({
+      family,
+      hex,
+      linear: Object.freeze(
+        [1, 3, 5].map((offset) =>
+          srgbToLinear(parseInt(hex.slice(offset, offset + 2), 16) / 255),
+        ),
+      ),
+    }),
+  ),
+);
+
+function terrainColorFamily(heights, x, z) {
+  const level = heights[z * SIZE + x];
+  if (level <= 2) return 0;
+  const sample = (dx, dz) =>
+    heights[
+      Math.max(0, Math.min(SIZE - 1, z + dz)) * SIZE +
+        Math.max(0, Math.min(SIZE - 1, x + dx))
+    ];
+  const relief =
+    Math.max(sample(-2, 0), sample(2, 0), sample(0, -2), sample(0, 2)) -
+    Math.min(sample(-2, 0), sample(2, 0), sample(0, -2), sample(0, 2));
+  // One coherent rocky flank, rather than scattered grey noise. Higher flat
+  // terraces stay green: elevation by itself does not imply snow or stone.
+  if (level >= 5 && relief >= 3 && x < SIZE * 0.44) return 3;
+  return level >= 7 ? 2 : 1;
+}
+
+export function brickPaletteIndex(heights, brick) {
+  const votes = [0, 0, 0, 0];
+  for (let dz = 0; dz < brick.d; dz++)
+    for (let dx = 0; dx < brick.w; dx++)
+      votes[terrainColorFamily(heights, brick.x + dx, brick.z + dz)]++;
+  let family = 0;
+  for (let i = 1; i < votes.length; i++)
+    if (votes[i] > votes[family]) family = i;
+  // Most bricks use the middle shade. Neighbours get restrained, stable
+  // alternatives, independent of draw order, time, camera, or lighting.
+  const variation = hash(brick.x, brick.z) % 10;
+  const shade = variation < 2 ? 0 : variation >= 8 ? 2 : 1;
+  return family * 3 + shade;
+}
+
 export function makeHeightmap() {
   const heights = new Uint8Array(SIZE * SIZE);
   for (let z = 0; z < SIZE; z++)
@@ -61,7 +124,9 @@ export function groupHeightmap(heights, grouped = true) {
           }
         if (!valid) continue;
         const id = bricks.length;
-        bricks.push({ x, z, w, d, level, id });
+        const brick = { x, z, w, d, level, id };
+        brick.paletteIndex = brickPaletteIndex(heights, brick);
+        bricks.push(brick);
         for (let dz = 0; dz < d; dz++)
           for (let dx = 0; dx < w; dx++) owners[(z + dz) * SIZE + x + dx] = id;
         break;

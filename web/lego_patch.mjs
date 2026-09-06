@@ -3,7 +3,7 @@ import {
   PLATE,
   STUD_RADIUS,
   STUD_HEIGHT,
-  hash,
+  BRICK_PALETTE,
   makeHeightmap,
   groupHeightmap,
   heightAt,
@@ -221,14 +221,7 @@ function islandMesh() {
       y = b.level * PLATE,
       bounds = [x, z, b.w, b.d],
       shape = [y, 0];
-    const variation = 0.93 + (hash(b.x, b.z) % 100) / 900;
-    const palette =
-      b.level <= 2
-        ? [0.72, 0.55, 0.29]
-        : b.level >= 7
-          ? [0.18, 0.34, 0.24]
-          : [0.29, 0.45, 0.23];
-    const color = palette.map((v) => v * variation);
+    const color = BRICK_PALETTE[b.paletteIndex].linear;
     quad(
       [x, y, z],
       [x, y, z + b.d],

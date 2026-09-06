@@ -23,6 +23,20 @@ backend. GitHub Pages already copies every file from `web/` into the deployment.
   The cylinders are analytic for collision and 16-sided for rendering; bevels
   affect shading only. This is a small toy contact solver, not engine physics.
 
+## Material palette
+
+Twelve authored sRGB colors form four coordinated families: warm sand, meadow
+and forest greens, and warm stone. A brick receives the majority terrain family
+across its whole footprint, considering plate height and nearby relief. A small
+rocky flank is kept coherent rather than scattering grey noise through grass.
+Three nearby shades per family are selected by stable position hashing, with
+the middle shade used most often. Top faces, sides and studs all share the
+resulting palette index and base color. Lighting supplies their differences.
+
+Colors are converted to linear light once and written into the existing vertex
+color field when the static mesh is built. There are no additional texture
+samples, rendering passes, vertex attributes, or per-frame palette calculations.
+
 ## Performance choices
 
 The CPU constructs the static vertex buffer only on initial load or a grouping
