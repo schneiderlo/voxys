@@ -67,6 +67,9 @@ jobs:
         run: cmake --build build-wasm -- -j$(nproc)
       - name: Load packaged terrain with the WASM engine
         run: python3 scripts/check_wasm_lego_assets.py build-wasm
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
       - name: Prepare deployment directory
         run: |
           set -euo pipefail
@@ -96,6 +99,18 @@ jobs:
             }
           done
           ls -lah docs/
+      - name: Start the main page through the full browser application
+        env:
+          VOXY_SMOKE_GPU: swiftshader
+        run: node scripts/smoke_integrated_wasm.mjs docs default
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: main-page-startup
+          path: |
+            integrated-startup-report.json
+            startup-default.png
+          if-no-files-found: ignore
       - uses: actions/configure-pages@v4
       - uses: actions/upload-pages-artifact@v3
         with:

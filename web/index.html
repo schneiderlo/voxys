@@ -202,7 +202,9 @@
     <script>
         // Global module reference
         let voxyModule = null;
-        const legoShore = new URLSearchParams(location.search).get('experience') === 'lego';
+        // LEGO is the main-page experience. Explicit scene URLs remain usable.
+        const experience = new URLSearchParams(location.search).get('experience') || 'lego';
+        const legoShore = experience === 'lego';
 
         if (legoShore) {
             document.title = 'LEGO Shore — Voxys';
@@ -958,7 +960,7 @@
                         `${prefix}${path}?v=${encodeURIComponent(window.voxyBuildId)}`,
                     arguments: (() => {
                         const params = new URLSearchParams(location.search);
-                        const args = params.get('experience') === 'ridgebreak'
+                        const args = experience === 'ridgebreak'
                             ? ['--config', 'ridgebreak.cfg']
                             : legoShore ? ['--config', 'lego_shore.cfg'] : [];
                         const value = Number(params.get('physicsMaxBodies'));

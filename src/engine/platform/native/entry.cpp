@@ -108,9 +108,9 @@ int main(int argc, char* argv[]) {
     appConfig.box3dWorkerThreads = static_cast<uint32_t>(
         std::max(config.physics.box3dWorkerThreads, 1));
 
-    // Enforce 8K resolution
-    appConfig.heightmapWidth = 8192;
-    appConfig.heightmapHeight = 8192;
+    // The playable LEGO crop must not inherit the full landscape's 8K target.
+    appConfig.heightmapWidth = appConfig.legoTerrainEnabled ? 256u : 8192u;
+    appConfig.heightmapHeight = appConfig.heightmapWidth;
 
     if (appConfig.heightmapPath.empty() ||
         appConfig.heightmapPath == "assets/heightmaps/terrain.ldh") {

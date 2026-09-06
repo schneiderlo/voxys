@@ -13,7 +13,7 @@ const root=path.resolve(process.argv[2]||'smoke-web');
 const selected=process.argv[3];
 if(!selected){
     const reports=[];
-    for(const experience of ['terrain','ridgebreak']){
+    for(const experience of ['default','lego','terrain','ridgebreak']){
         const output=path.resolve(`startup-${experience}-report.json`);
         const child=spawn(process.execPath,[fileURLToPath(import.meta.url),root,experience],
             {stdio:'inherit',env:{...process.env,VOXY_SMOKE_REPORT:output}});
@@ -24,13 +24,18 @@ if(!selected){
     await writeFile('integrated-startup-report.json',JSON.stringify({status:'passed',reports},null,2));
     process.exit(0);
 }
-assert(['terrain','ridgebreak'].includes(selected),'unknown scene');
+assert(['default','lego','terrain','ridgebreak'].includes(selected),'unknown scene');
+const isLego=selected==='default'||selected==='lego';
 const directory=await mkdtemp(path.join(tmpdir(),'voxys-startup-'));
 const delay=ms=>new Promise(r=>setTimeout(r,ms));
 const mime={'.html':'text/html','.js':'text/javascript','.css':'text/css','.wasm':'application/wasm','.data':'application/octet-stream'};
 const server=http.createServer(async(req,res)=>{
     try{
         const requested=decodeURIComponent(new URL(req.url,'http://localhost').pathname);
+        // The unmodified main page enables local telemetry automatically.
+        if(requested==='/api/telemetry'&&req.method==='POST'){
+            req.resume();res.writeHead(204);res.end();return;
+        }
         const filename=path.resolve(root,'.'+(requested==='/'?'/index.html':requested));
         if(!filename.startsWith(root+path.sep)){res.writeHead(403);res.end();return;}
         const data=await readFile(filename);
@@ -38,13 +43,17 @@ const server=http.createServer(async(req,res)=>{
     }catch{res.writeHead(404);res.end();}
 });
 await new Promise(r=>server.listen(0,'127.0.0.1',r));
+const gpuFlags=process.env.VOXY_SMOKE_GPU==='swiftshader'
+    ? ['--use-webgpu-adapter=swiftshader','--use-gpu-in-tests','--enable-accelerated-2d-canvas']
+    : ['--use-angle=vulkan','--enable-features=Vulkan','--use-vulkan=native','--disable-vulkan-surface'];
 const chrome=spawn(process.env.VOXY_TEST_CHROME||'google-chrome',[
     '--headless=new','--no-sandbox','--no-first-run','--no-default-browser-check',
     '--disable-background-networking','--enable-unsafe-webgpu','--enable-unsafe-swiftshader',
-    '--use-angle=vulkan','--enable-features=Vulkan','--use-vulkan=native',
-    '--disable-vulkan-surface','--remote-debugging-port=0',`--user-data-dir=${directory}`,'about:blank'
+    '--disable-gpu-watchdog',...gpuFlags,
+    '--remote-debugging-port=0',`--user-data-dir=${directory}`,'about:blank'
 ],{stdio:['ignore','ignore','pipe']});
 let logs='',spawnError,socket;
+const browserErrors=[];
 chrome.stderr.on('data',d=>logs=(logs+d).slice(-12000));chrome.on('error',e=>spawnError=e);
 const report={kind:'application startup, no FPS acceptance',experience:selected};
 const timer=setTimeout(()=>chrome.kill('SIGKILL'),240000);
@@ -61,13 +70,15 @@ try{
     socket=new WebSocket(target.webSocketDebuggerUrl);
     const pending=new Map();let id=0;
     socket.addEventListener('message',e=>{const m=JSON.parse(e.data),p=pending.get(m.id);
+        if(m.method==='Runtime.exceptionThrown')browserErrors.push(m.params.exceptionDetails.exception?.description||m.params.exceptionDetails.text);
+        if(m.method==='Runtime.consoleAPICalled'&&m.params.type==='error')browserErrors.push(m.params.args.map(a=>a.value??a.description??'').join(' '));
         if(p){pending.delete(m.id);m.error?p.reject(new Error(JSON.stringify(m.error))):p.resolve(m.result);}});
     socket.addEventListener('close',()=>{for(const p of pending.values())p.reject(new Error('Chrome closed'));pending.clear();});
     await new Promise((r,j)=>{socket.addEventListener('open',r,{once:true});socket.addEventListener('error',j,{once:true});});
     const call=(method,params={})=>new Promise((resolve,reject)=>{const n=++id;pending.set(n,{resolve,reject});socket.send(JSON.stringify({id:n,method,params}));});
     await call('Runtime.enable');await call('Network.enable');
     await call('Network.setBlockedURLs',{urls:['*googletagmanager.com*','*google-analytics.com*']});
-    await call('Emulation.setDeviceMetricsOverride',{width:320,height:240,deviceScaleFactor:1,mobile:false});
+    await call('Emulation.setDeviceMetricsOverride',{width:isLego?960:320,height:isLego?540:240,deviceScaleFactor:1,mobile:false});
     // Allows a previously compiled integration artifact to exercise newer WGSL
     // without a C++ rebuild. It must be explicitly requested and is reported.
     if(process.env.VOXY_SMOKE_SHADER_DIR){
@@ -79,17 +90,28 @@ try{
         })();`});
         report.shader_source_override=path.resolve(process.env.VOXY_SMOKE_SHADER_DIR);
     }
-    const url=`http://127.0.0.1:${server.address().port}/index.html?browserBenchmarkRun=1&physicsProfile=1&renderProfile=1&telemetry=0&physicsMaxBodies=1024${selected==='ridgebreak'?'&experience=ridgebreak':''}`;
+    // Exercise the user's normal URL and capacity, without benchmark/self-test
+    // shortcuts that skip Application::init or replace the chosen scene.
+    const base=`http://127.0.0.1:${server.address().port}`;
+    const url=selected==='default'?`${base}/`:
+        selected==='lego'?`${base}/index.html?experience=lego`:
+        `${base}/index.html?browserBenchmarkRun=1&physicsProfile=1&renderProfile=1&telemetry=0&physicsMaxBodies=1024&experience=${selected}`;
+    report.url=url;
     await call('Page.navigate',{url});
     let sample;const started=Date.now();
     while(Date.now()-started<180000){
+        assert.equal(browserErrors.length,0,browserErrors.join('\n'));
         const r=await call('Runtime.evaluate',{returnByValue:true,expression:`(() => {
+            const error=document.getElementById('error');
+            if(error&&getComputedStyle(error).display!=='none')throw new Error(error.textContent);
             if(typeof voxyModule==='undefined'||!voxyModule?._voxy_is_initialized?.())return null;
             const pointer=voxyModule._voxy_get_telemetry_json();const moto=voxyModule._voxy_get_moto_hud_json?.();
             return {telemetry:JSON.parse(voxyModule.UTF8ToString(pointer)),
                 moto:moto?JSON.parse(voxyModule.UTF8ToString(moto)):null,
                 errors:globalThis.voxyUncapturedGpuErrors||[],lost:globalThis.voxyDeviceLost,
-                adapter:window.voxyDeviceProfile?.adapter,title:document.title};
+                adapter:window.voxyDeviceProfile?.adapter,title:document.title,
+                heapBytes:voxyModule.HEAPU8?.byteLength,
+                legoControlsVisible:document.getElementById('lego-shore-controls')?.hidden===false};
         })()`});
         if(r.exceptionDetails)throw new Error(JSON.stringify(r.exceptionDetails));
         sample=r.result?.value;report.sample=sample;
@@ -114,6 +136,17 @@ try{
     assert.equal(budget.result.value.summary.sample_count,1);
     report.budget_single_sample=budget.result.value.summary;
     assert.equal(Boolean(sample.moto?.active),selected==='ridgebreak','experience activation mismatch');
+    if(isLego){
+        assert.equal(sample.title,'LEGO Shore — Voxys');
+        assert.equal(sample.legoControlsVisible,true);
+        assert.equal(sample.telemetry.render.terrain_width,256,'LEGO source was upscaled');
+        assert.equal(sample.telemetry.render.terrain_height,256,'LEGO source was upscaled');
+        assert.equal(sample.telemetry.render.terrain_mips,9);
+        assert.equal(sample.heapBytes,512*1024*1024,'fixed WASM memory budget changed');
+    }
+    assert.equal(browserErrors.length,0,browserErrors.join('\n'));
+    const screenshot=await call('Page.captureScreenshot',{format:'png'});
+    await writeFile(`startup-${selected}.png`,Buffer.from(screenshot.data,'base64'));
     report.status='passed';
 }catch(error){report.status='failed';report.error=String(error);report.chrome_log=logs;throw error;}
 finally{

@@ -1,6 +1,8 @@
 # LEGO Shore in the Voxys engine
 
-Open [LEGO Shore](https://schneiderlo.github.io/voxys/index.html?experience=lego).
+Open [Voxys](https://schneiderlo.github.io/voxys/): LEGO Shore is the main-page default.
+The earlier `?experience=lego` link still works. Use `?experience=terrain` for the
+original landscape or `?experience=ridgebreak` for the riding scene.
 The island prototype also links to it. Native builds accept `--config lego_shore.cfg`.
 
 Walk with WASD, look with the captured mouse, and jump with Space. Click or press
@@ -52,6 +54,12 @@ do not receive artificial joints. Distant shade variation and bevels fade with
 pixel footprint, and roughness increases. Geometry and collision remain fixed
 throughout both grouping modes.
 
+Both launchers select a 256×256 target for LEGO. The application also preserves
+the loaded LEGO source dimensions rather than interpolating to a generic 8K
+target. Fallback color maps are capped at 256×256 (256 KiB), and this scene
+explicitly clears inherited landscape image paths. The browser heap remains
+fixed at 512 MiB.
+
 ## Performance limits
 
 - The renderer retains hierarchical traversal and cached terrain depth, normals,
@@ -84,6 +92,12 @@ It extracts the shoreline and original 8K terrain from the generated preload
 package, checks that the bytes match the source assets, and loads both using
 the built engine's WebAssembly objects under Node. Every shoreline sample must
 match the original crop. This startup check does not require a graphics adapter.
+
+Pages then opens `/` in Chrome with software WebGPU and runs the full application
+at 960×540. The gate requires 12 frames with completed GPU work, no browser/GPU
+errors, visible LEGO controls, 256×256 terrain with nine mip levels, and the
+unchanged 512 MiB heap. It saves a report and screenshot before publication.
+This is a startup regression check, not a hardware FPS measurement.
 
 LDH writes use standard IEEE CRC32. Reads also recognize the historical checksum
 from older native writers, whose table contained one incorrect entry. Both

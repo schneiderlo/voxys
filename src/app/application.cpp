@@ -3700,6 +3700,14 @@ bool Application::initTerrain() {
             return false;
         }
         LOG_INFO("Loaded heightmap: {}", config_.heightmapPath.string());
+
+        // LEGO layout and collision use the original samples. Never inflate
+        // this source to a launcher's generic landscape resolution: doing so
+        // changes the terrain and can exhaust the fixed browser heap.
+        if (config_.legoTerrainEnabled) {
+            config_.heightmapWidth = heightmap_->getWidth();
+            config_.heightmapHeight = heightmap_->getHeight();
+        }
         
         // Check if upscaling is needed (e.g. loaded 4k, requested 8k)
         if (heightmap_->getWidth() < config_.heightmapWidth || 
@@ -4064,8 +4072,11 @@ bool Application::initRenderers() {
     terrain::TerrainTextureConfig textureConfig;
     textureConfig.albedoPath = config_.albedoPath;
     textureConfig.lightmapPath = config_.lightmapPath;
-    textureConfig.placeholderWidth = config_.heightmapWidth;
-    textureConfig.placeholderHeight = config_.heightmapHeight;
+    // This fallback is a smooth UV color pattern, not per-sample terrain data.
+    // Bound it independently of terrain resolution (256 KiB instead of a
+    // possible 256 MiB allocation for an 8K map with missing albedo).
+    textureConfig.placeholderWidth = std::min(heightmap_->getWidth(), 256u);
+    textureConfig.placeholderHeight = std::min(heightmap_->getHeight(), 256u);
 
     if (!terrainTextures_->init(device, queue, textureConfig)) {
         LOG_ERROR("Failed to initialize terrain textures and fallbacks");
