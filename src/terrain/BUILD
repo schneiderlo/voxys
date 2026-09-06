@@ -3,6 +3,13 @@ package(default_visibility = ["//visibility:public"])
 load("//settings:configure_copts.bzl", "PROJECT_DEFAULT_COPTS")
 
 cc_library(
+    name = "lego_surface",
+    hdrs = ["lego_surface.hpp"],
+    includes = [".."],
+    deps = ["//third_party:glm"],
+)
+
+cc_library(
     name = "wreckwater_authority_mip_generator",
     srcs = ["mip_generator.cpp"],
     hdrs = ["mip_generator.hpp"],
@@ -45,6 +52,7 @@ cc_library(
     includes = [".."],
     deps = [
         ":shadow_bake",
+        ":lego_surface",
         "//src/core:core",
         "//src/gpu:gpu",
         "//src/render:mip_pipeline",

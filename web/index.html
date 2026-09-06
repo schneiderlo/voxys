@@ -173,6 +173,24 @@
         </div>
     </div>
 
+    <nav id="lego-shore-controls" hidden data-voxy-ui aria-label="LEGO shoreline controls">
+        <strong>LEGO Shore</strong><span class="lego-help">WASD to walk · click to throw a ball</span>
+        <button id="lego-drop" type="button">Throw a ball · B</button>
+        <button id="lego-compare" type="button" aria-pressed="true">Grouped bricks · K</button>
+        <button id="lego-flight" type="button" aria-pressed="false">Fly · F8</button>
+        <button id="lego-reset" type="button">Reset</button>
+        <a href="lego_patch.html">Island study</a>
+    </nav>
+    <style>
+      #lego-shore-controls:not([hidden]) { position:fixed; z-index:20; bottom:22px; left:50%; transform:translateX(-50%); display:flex; align-items:center; gap:14px; max-width:calc(100vw - 32px); padding:12px 16px; border:1px solid #ffffff66; border-radius:16px; background:#f5f3e9ed; color:#243e3c; box-shadow:0 8px 32px #17393622; font:13px system-ui,sans-serif; }
+      #lego-shore-controls strong { white-space:nowrap; font-size:14px; }
+      #lego-shore-controls button,#lego-shore-controls a { color:inherit; font:inherit; white-space:nowrap; }
+      #lego-shore-controls button { border:1px solid #243e3c22; background:#fff9; border-radius:9px; padding:8px 10px; cursor:pointer; }
+      #lego-shore-controls button:hover { background:white; }
+      #lego-shore-controls button:focus-visible,#lego-shore-controls a:focus-visible { outline:2px solid #497e69; outline-offset:3px; }
+      @media(max-width:800px) { #lego-shore-controls .lego-help { display:none; } }
+      @media(max-width:540px) { #lego-shore-controls:not([hidden]) { bottom:12px; gap:6px; padding:8px; flex-wrap:wrap; justify-content:center; width:max-content; } #lego-shore-controls strong { width:100%; text-align:center; } #lego-shore-controls a { display:none; } }
+    </style>
     <script src="network_transport.js"></script>
     <script src="loader.js?v=__VOXY_BUILD_ID__"></script>
     <script src="frame_budget.js?v=__VOXY_BUILD_ID__"></script>
@@ -184,6 +202,38 @@
     <script>
         // Global module reference
         let voxyModule = null;
+        const legoShore = new URLSearchParams(location.search).get('experience') === 'lego';
+
+        if (legoShore) {
+            document.title = 'LEGO Shore — Voxys';
+            const bar = document.getElementById('lego-shore-controls');
+            const compare = document.getElementById('lego-compare');
+            const flight = document.getElementById('lego-flight');
+            const drop = document.getElementById('lego-drop');
+            let grouped = true, flying = false;
+            const reflect = key => {
+                if (key === 75) { grouped = !grouped; compare.textContent = grouped ? 'Grouped bricks · K' : 'Single bricks · K'; compare.setAttribute('aria-pressed',String(grouped)); }
+                if (key === 119) { flying = !flying; flight.textContent = flying ? 'Walk · F8' : 'Fly · F8'; flight.setAttribute('aria-pressed',String(flying)); }
+            };
+            const press = key => {
+                if (voxyModule?._voxy_is_initialized?.() !== 1) return;
+                voxyModule._voxy_key_event(key,1);
+                setTimeout(() => voxyModule._voxy_key_event(key,0),80);
+                reflect(key);
+            };
+            compare.addEventListener('click',() => press(75));
+            drop.addEventListener('click',() => press(66));
+            flight.addEventListener('click',() => press(119));
+            document.getElementById('lego-reset').addEventListener('click',() => location.reload());
+            window.addEventListener('keydown',e => { if (!e.repeat && !e.target.closest?.('[data-voxy-ui]') && voxyModule?._voxy_is_initialized?.()===1) reflect(e.code==='KeyK' ? 75 : e.code==='F8' ? 119 : 0); });
+            const show = setInterval(() => { if (voxyModule?._voxy_is_initialized?.()===1) { bar.hidden=false; clearInterval(show); } },250);
+            setInterval(() => {
+                if (voxyModule?._voxy_is_initialized?.() !== 1) return;
+                const full = voxyModule._voxy_get_physics_resident_bodies() >= 32;
+                drop.disabled = full;
+                drop.textContent = full ? '32 balls · reset to clear' : 'Throw a ball · B';
+            },500);
+        }
 
         // Detect if device has touch capability
         const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
@@ -909,7 +959,8 @@
                     arguments: (() => {
                         const params = new URLSearchParams(location.search);
                         const args = params.get('experience') === 'ridgebreak'
-                            ? ['--config', 'ridgebreak.cfg'] : [];
+                            ? ['--config', 'ridgebreak.cfg']
+                            : legoShore ? ['--config', 'lego_shore.cfg'] : [];
                         const value = Number(params.get('physicsMaxBodies'));
                         if (Number.isSafeInteger(value) && value >= 2 && value <= 1000000) {
                             args.push('--physics-max-bodies', String(value));

@@ -24,6 +24,9 @@ public:
                                           uint32_t width, uint32_t height,
                                           float heightScale,
                                           float cellScale) = 0;
+    // Explicit opt-in: an unsupported backend must not silently use ramps.
+    [[nodiscard]] virtual bool setLegoTerrain(std::span<const uint16_t>,
+        uint32_t, uint32_t, float, float) { return false; }
     virtual void setTerrainGpuResources(const TerrainGpuResources&) {}
     virtual void clearTerrain() = 0;
     [[nodiscard]] virtual bool hasTerrain() const noexcept = 0;

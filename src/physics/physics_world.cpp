@@ -93,6 +93,11 @@ bool PhysicsWorld::setTerrain(std::span<const uint16_t> samples,
         samples, width, height, heightScale, cellScale);
 }
 
+bool PhysicsWorld::setLegoTerrain(std::span<const uint16_t> samples,
+    uint32_t width, uint32_t height, float heightScale, float cellScale) {
+    return backend_ && backend_->setLegoTerrain(samples, width, height, heightScale, cellScale);
+}
+
 void PhysicsWorld::setTerrainGpuResources(
     const TerrainGpuResources& resources) {
     if (backend_) backend_->setTerrainGpuResources(resources);

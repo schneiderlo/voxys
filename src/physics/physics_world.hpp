@@ -55,6 +55,8 @@ public:
     [[nodiscard]] bool setTerrain(std::span<const uint16_t> samples,
                                   uint32_t width, uint32_t height,
                                   float heightScale, float cellScale);
+    [[nodiscard]] bool setLegoTerrain(std::span<const uint16_t> samples,
+        uint32_t width, uint32_t height, float heightScale, float cellScale);
     void setTerrainGpuResources(const TerrainGpuResources& resources);
     void clearTerrain();
     [[nodiscard]] bool hasTerrain() const noexcept;

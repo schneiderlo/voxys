@@ -190,6 +190,9 @@ async function gpuTest({reference,before,after,bake,math,surfaceFixture,waterFix
     bakePass.dispatchWorkgroups(2,2);bakePass.end();device.queue.submit([bakeEncoder.finish()]);
     entries.push({binding:19,visibility,texture:{sampleType:'unfilterable-float'}});
     resources.push({binding:19,resource:gradients.createView()});
+    const legoPlaceholder=device.createTexture({size:[1,1],format:'r32uint',usage:T.TEXTURE_BINDING});
+    entries.push({binding:20,visibility,texture:{sampleType:'uint'}});
+    resources.push({binding:20,resource:legoPlaceholder.createView()});
     const layout0=device.createBindGroupLayout({entries});
     const group0=device.createBindGroup({layout:layout0,entries:resources});
     const layout1=device.createBindGroupLayout({entries:[

@@ -1174,7 +1174,10 @@ void RaycastPath::dispatch(WGPUCommandEncoder encoder,
     // moves and while it is still.  Refreshing the terrain-only buffers on a
     // view change lets the lightweight water pass and HDR refraction remain
     // authoritative for every non-Lego frame.
-    const bool useDirectPath = legoMode;
+    // Physical LEGO scenes retain exact normals in materialOutputView_ while
+    // the cached terrain-only depth feeds the existing animated water pass.
+    const bool legoStudy = legoMode && uniforms_->invProjParams.z >= 1.5f;
+    const bool useDirectPath = legoMode && (!legoStudy || !deferWaterComposite);
     usingStaticCache_ = !useDirectPath;
     staticCacheRefreshed_ = false;
 

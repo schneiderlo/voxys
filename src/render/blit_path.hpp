@@ -154,6 +154,7 @@ public:
     /// Set the terrain albedo texture
     /// @param terrainView Texture view of terrain color/albedo
     void setTerrainTexture(WGPUTextureView terrainView);
+    void setLegoLayoutTexture(WGPUTextureView view);
 
     /// Bind the four-layer terrain detail arrays. The albedo array and packed
     /// NormalGL/roughness array must both be 2D-array views with matching mips.
@@ -344,6 +345,9 @@ private:
     WGPUTextureView waterDisplacementView_ = nullptr;
     WGPUSampler waterDisplacementSampler_ = nullptr;
     WGPUTextureView terrainView_ = nullptr;
+    WGPUTextureView legoLayoutView_ = nullptr;
+    WGPUTexture emptyLegoTexture_ = nullptr;
+    WGPUTextureView emptyLegoView_ = nullptr;
     WGPUTextureView lightmapView_ = nullptr;
     WGPUTextureView terrainMaterialAlbedoView_ = nullptr;
     WGPUTextureView terrainMaterialNormalRoughnessView_ = nullptr;

@@ -24,6 +24,7 @@ struct GpuCcdInput {
     uint32_t terrainHeight = 0;
     float terrainHeightScale = 0.0f;
     float terrainCellScale = 0.0f;
+    bool legoTerrain = false;
     std::array<int32_t, 3> terrainSector{};
 
     [[nodiscard]] bool valid() const noexcept {

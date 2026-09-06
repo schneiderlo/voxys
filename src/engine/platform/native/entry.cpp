@@ -39,6 +39,7 @@ int main(int argc, char* argv[]) {
     // Configure the application from loaded config file
     voxy::ApplicationConfig appConfig;
     appConfig.motoEnabled = config.window.title == "RIDGEBREAK";
+    appConfig.legoTerrainEnabled = config.window.title == "LEGO SHORE";
 
     // Window settings
     appConfig.windowWidth = config.window.width;

@@ -1,3 +1,65 @@
+// BEGIN GENERATED LEGO SURFACE
+// Canonical LEGO geometry. Generated into standalone shader modules by
+// scripts/sync_lego_surface.py; no runtime shader preprocessor is required.
+fn legoPlateCount(heightScale: f32, cellScale: f32) -> u32 {
+    return u32(clamp(floor(2.0 * heightScale / (0.32 * cellScale) + 0.5), 1.0, 65535.0));
+}
+fn legoPlateLevel(raw: u32, count: u32) -> u32 {
+    return (raw * count + 32767u) / 65535u;
+}
+fn legoPlateTop(raw: u32, heightScale: f32, cellScale: f32) -> f32 {
+    let count = legoPlateCount(heightScale, cellScale);
+    return -heightScale + f32(legoPlateLevel(raw, count)) * (2.0 * heightScale / f32(count));
+}
+struct LegoContact {
+    normal: vec3<f32>, distance: f32,
+    point: vec3<f32>, feature: u32,
+};
+fn legoConsiderContact(best: LegoContact, center: vec3<f32>, point: vec3<f32>,
+                       interior: f32, radius: f32, feature: u32) -> LegoContact {
+    let delta = center - point;
+    let len = length(delta);
+    let distance = select(len, interior, interior < 0.0) - radius;
+    if (distance >= best.distance) { return best; }
+    let normal = select(delta / max(len, 1e-7), vec3<f32>(0.0,1.0,0.0),
+                         interior < 0.0 || len < 1e-7);
+    return LegoContact(normal, distance, point, feature);
+}
+// Exterior distance to the union, with a one-cell halo around the footprint.
+// The columns are solid downwards. Decorative brick seams have no collision.
+fn legoSphereContact(field: texture_2d<u32>, params: vec4<f32>, size: vec2<u32>,
+                      center: vec3<f32>, radius: f32) -> LegoContact {
+    var best = LegoContact(vec3<f32>(0.0,1.0,0.0), 1e30, center, 0u);
+    let cellScale = params.z;
+    let p = (center.xz + params.xy) / cellScale;
+    let reach = (radius + cellScale) / cellScale;
+    let minimum = max(vec2<i32>(0), vec2<i32>(floor(p - vec2<f32>(reach))));
+    let maximum = min(vec2<i32>(size) - vec2<i32>(2), vec2<i32>(floor(p + vec2<f32>(reach))));
+    for (var z = minimum.y; z <= maximum.y; z += 1) {
+        for (var x = minimum.x; x <= maximum.x; x += 1) {
+            let low = vec2<f32>(f32(x), f32(z)) * cellScale - params.xy;
+            let high = low + vec2<f32>(cellScale);
+            let top = legoPlateTop(textureLoad(field, vec2<i32>(x,z), 0).x, params.w, cellScale);
+            let closest = clamp(center.xz, low, high);
+            let inside = all(center.xz >= low) && all(center.xz <= high) && center.y < top;
+            let point = vec3<f32>(closest.x, select(min(center.y,top),top,inside), closest.y);
+            let feature = (u32(z) * size.x + u32(x)) * 8u;
+            best = legoConsiderContact(best, center, point, select(0.0,center.y-top,inside), radius, feature+1u);
+            let studCenter = low + vec2<f32>(0.5 * cellScale);
+            let d = center.xz - studCenter;
+            let len = length(d);
+            let r = 0.30 * cellScale;
+            let cap = top + 0.18 * cellScale;
+            let radial = studCenter + d * min(1.0, r / max(len,1e-7));
+            let insideStud = len < r && center.y >= top && center.y < cap;
+            let studPoint = vec3<f32>(radial.x, select(clamp(center.y,top,cap),cap,insideStud), radial.y);
+            best = legoConsiderContact(best, center, studPoint, select(0.0,center.y-cap,insideStud), radius, feature+2u);
+        }
+    }
+    return best;
+}
+// END GENERATED LEGO SURFACE
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // terrain_raycast.wgsl - Compute Ray-Caster Shader
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -518,6 +580,15 @@ fn rayDirFromPixel(pixel : vec2<u32>, dims : vec2<u32>) -> vec3<f32> {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Lego Logic
+fn legoStudy() -> bool { return camera.invProjParams.z >= 1.5; }
+fn legoRaw(raw: u32) -> f32 {
+    if (!legoStudy()) { return f32(raw); }
+    let count = legoPlateCount(camera.metrics.x, camera.metrics.y);
+    return f32(legoPlateLevel(raw,count)) * (65535.0 / f32(count));
+}
+fn legoStudHeight() -> f32 { return select(0.2,0.18,legoStudy()); }
+fn legoStudRadius() -> f32 { return select(0.35,0.30,legoStudy()); }
+
 // ─────────────────────────────────────────────────────────────────────────────
 
 // Returns (ray distance, cap flag); keep face identity exact at the rim.
@@ -613,8 +684,8 @@ fn sampleLegoShadow(worldPos : vec3<f32>, lightDir : vec3<f32>,
         return terrainShadow;
     }
 
-    let studHeight = cellScale * 0.2;
-    let studRadius = cellScale * 0.35;
+    let studHeight = cellScale * legoStudHeight();
+    let studRadius = cellScale * legoStudRadius();
     let footprint = vec2<f32>(studRadius)
         + abs(lightDir.xz) * (studHeight / lightDir.y);
     let steps = clamp(vec2<i32>(ceil(footprint / cellScale)),
@@ -635,7 +706,7 @@ fn sampleLegoShadow(worldPos : vec3<f32>, lightDir : vec3<f32>,
             if (any(cell < vec2<i32>(0)) || any(cell >= terrainSize)) {
                 continue;
             }
-            let height = f32(textureLoad(heightTex, cell, 0).x);
+            let height = legoRaw(textureLoad(heightTex, cell, 0).x);
             let brickY = heightmapToWorldHeight(height);
             let centerXZ = (vec2<f32>(cell) + vec2<f32>(0.5))
                 * cellScale - terrainOrigin;
@@ -673,16 +744,16 @@ fn intersectShadow(origin : vec3<f32>, dir : vec3<f32>) -> f32 {
     let terrainSize = vec2<f32>(camera.terrainSize);
     let cellScale = camera.metrics.y;
     let terrainOrigin = 0.5 * (terrainSize - vec2<f32>(1.0, 1.0)) * cellScale;
-    let borderMargin = cellScale * 1.0;
+    let borderMargin = select(cellScale, 0.0, legoStudy());
     let boundsMin = vec3<f32>(
         -terrainOrigin.x + borderMargin,
         -camera.metrics.x,
         -terrainOrigin.y + borderMargin
     );
     let boundsMax = vec3<f32>(
-        terrainSize.x * cellScale - terrainOrigin.x - borderMargin,
+        terrainSize.x * cellScale - terrainOrigin.x - cellScale,
         camera.metrics.x + select(0.0, cellScale * 0.25, legoMode),
-        terrainSize.y * cellScale - terrainOrigin.y - borderMargin
+        terrainSize.y * cellScale - terrainOrigin.y - cellScale
     );
 
     // Intersect AABB
@@ -750,7 +821,7 @@ fn intersectShadow(origin : vec3<f32>, dir : vec3<f32>) -> f32 {
         let cellZ = cellPacked >> 16;
 
         if (cellX >= 0 && cellX < levelW && cellZ >= 0 && cellZ < levelH) {
-             h = f32(textureLoad(heightTex, vec2<i32>(cellX, cellZ), i32(mipLevel)).x) - originY;
+             h = legoRaw(textureLoad(heightTex, vec2<i32>(cellX, cellZ), i32(mipLevel)).x) - originY;
         }
 
         // Intersection Check (Any Hit)
@@ -775,8 +846,8 @@ fn intersectShadow(origin : vec3<f32>, dir : vec3<f32>) -> f32 {
                      let brickY = (h_map * 2.0 - 1.0) * camera.metrics.x;
 
                      // 2. Check Stud Intersection
-                     let studHeightWorld = cellScale * 0.2;
-                     let studRadiusWorld = cellScale * 0.35;
+                     let studHeightWorld = cellScale * legoStudHeight();
+                     let studRadiusWorld = cellScale * legoStudRadius();
                      let cellCenterXZ = (vec2<f32>(f32(cellX)+0.5, f32(cellZ)+0.5)) * cellScale - terrainOrigin;
                      let studBasePos = vec3<f32>(cellCenterXZ.x, brickY, cellCenterXZ.y);
 
@@ -880,16 +951,16 @@ fn main(@builtin(global_invocation_id) gid : vec3<u32>) {
     let terrainSize = vec2<f32>(camera.terrainSize);
     let cellScale = camera.metrics.y;
     let terrainOrigin = 0.5 * (terrainSize - vec2<f32>(1.0, 1.0)) * cellScale;
-    let borderMargin = cellScale * 1.0;
+    let borderMargin = select(cellScale, 0.0, legoStudy());
     let boundsMin = vec3<f32>(
         -terrainOrigin.x + borderMargin,
         -camera.metrics.x,
         -terrainOrigin.y + borderMargin
     );
     let boundsMax = vec3<f32>(
-        terrainSize.x * cellScale - terrainOrigin.x - borderMargin,
+        terrainSize.x * cellScale - terrainOrigin.x - cellScale,
         camera.metrics.x + select(0.0, cellScale * 0.25, legoMode),
-        terrainSize.y * cellScale - terrainOrigin.y - borderMargin
+        terrainSize.y * cellScale - terrainOrigin.y - cellScale
     );
     
     // ─────────────────────────────────────────────────────────────────────────
@@ -995,7 +1066,7 @@ fn main(@builtin(global_invocation_id) gid : vec3<u32>) {
         let cellZ = cellPacked >> 16;
 
         if (cellX >= 0 && cellX < levelW && cellZ >= 0 && cellZ < levelH) {
-            h = f32(textureLoad(heightTex, vec2<i32>(cellX, cellZ), i32(mipLevel)).x) - originY;
+            h = legoRaw(textureLoad(heightTex, vec2<i32>(cellX, cellZ), i32(mipLevel)).x) - originY;
             // Level zero is the raw vertex field, so a cell's conservative
             // height uses all four corners. Coarser levels were generated with
             // overlapping shared boundaries and need only this one lookup.
@@ -1059,8 +1130,8 @@ fn main(@builtin(global_invocation_id) gid : vec3<u32>) {
 
                     // A brick side at the segment entry is already the nearest hit.
                     if (!hitLego || t > entryT) {
-                        let studHeightWorld = cellScale * 0.2;
-                        let studRadiusWorld = cellScale * 0.35;
+                        let studHeightWorld = cellScale * legoStudHeight();
+                        let studRadiusWorld = cellScale * legoStudRadius();
                         let studBasePos = vec3<f32>(cellCenterXZ.x, brickY, cellCenterXZ.y);
                         // Solve near the cell, not the camera: distant cylinder
                         // quadratics otherwise lose their small discriminant in f32.

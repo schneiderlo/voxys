@@ -82,6 +82,7 @@ struct CharacterConfig {
     
     // Terrain scale (must match terrain settings)
     float heightScale = 1.0f;         ///< Terrain height scale factor
+    bool legoTerrain = false;
     float cellScale = 1.0f;           ///< World-space size per heightmap cell
     float terrainWidth = 255.0f;      ///< Distance between first/last X sample centers
     float terrainHeight = 255.0f;     ///< Distance between first/last Z sample centers

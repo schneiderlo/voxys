@@ -1,6 +1,7 @@
 #include "physics/character/cpu_capsule_mover.hpp"
 
 #include "physics/terrain_topology.hpp"
+#include "terrain/lego_surface.hpp"
 
 #include <algorithm>
 #include <array>
@@ -104,7 +105,7 @@ void CpuCapsuleMoverWorld::shutdown() {
 
 bool CpuCapsuleMoverWorld::setTerrain(
     std::span<const uint16_t> samples, uint32_t width, uint32_t height,
-    float heightScale, float cellScale) {
+    float heightScale, float cellScale, bool lego) {
     if (!initialized_ || width < 2u || height < 2u
         || width > kMaximumTerrainExtent
         || height > kMaximumTerrainExtent
@@ -123,6 +124,7 @@ bool CpuCapsuleMoverWorld::setTerrain(
     terrainHeight_ = height;
     terrainHeightScale_ = heightScale;
     terrainCellScale_ = cellScale;
+    legoTerrain_ = lego;
     return true;
 }
 
@@ -173,6 +175,15 @@ CharacterTerrainSample CpuCapsuleMoverWorld::sampleTerrain(
     const float topRight = heightAt(cellX + 1u, cellZ);
     const float bottomLeft = heightAt(cellX, cellZ + 1u);
     const float bottomRight = heightAt(cellX + 1u, cellZ + 1u);
+    if (legoTerrain_) {
+        const terrain::lego::Surface surface{terrainSamples_, terrainWidth_, terrainHeight_,
+            terrainHeightScale_, terrainCellScale_};
+        result.height = surface.heightAt(worldX, worldZ);
+        result.normal = {0, 1, 0};
+        result.featureId = (cellZ * terrainWidth_ + cellX) * 8u + 1u;
+        result.valid = true;
+        return result;
+    }
     glm::vec2 gradient(0.0f);
     uint32_t triangle = 0;
     if (fraction.y >= fraction.x) {
@@ -243,6 +254,22 @@ CpuCapsuleMoverWorld::capsuleClearance(
     float radius) const noexcept {
     CapsuleClearance result;
     radius = std::max(radius, 1e-4f);
+    if (legoTerrain_) {
+        const terrain::lego::Surface surface{terrainSamples_, terrainWidth_, terrainHeight_,
+            terrainHeightScale_, terrainCellScale_};
+        // Reject distant sectors before converting to the terrain's float frame.
+        if (std::abs(int64_t{referenceSector.x}) > 64 || std::abs(int64_t{referenceSector.z}) > 64
+            || std::abs(int64_t{referenceSector.y}) > 64) return result;
+        const glm::vec3 world = feetPosition + glm::vec3(referenceSector) * kWorldSectorSize;
+        const auto contact = terrain::lego::sphereContact(surface, world + glm::vec3(0, radius, 0), radius);
+        result.distance = contact.distance;
+        result.normal = contact.normal;
+        result.featureId = contact.feature;
+        result.valid = contact.valid;
+        result.requiredFeetHeight = terrain::lego::supportHeight(surface, {world.x, world.z}, radius)
+            - float(referenceSector.y) * kWorldSectorSize;
+        return result;
+    }
     constexpr std::array<glm::vec2, 9> normalizedOffsets{{
         {0.0f, 0.0f},
         {0.5f, 0.0f}, {-0.5f, 0.0f},
@@ -475,13 +502,22 @@ CharacterMotion CpuCapsuleMoverWorld::moveCharacter(
     const CapsuleClearance targetGround = capsuleClearance(
         horizontalTarget, slot->sector, slot->settings.radius);
     if (slot->grounded && !jump && targetGround.valid
-        && targetGround.normal.y >= minimumGroundNormal) {
+        && (legoTerrain_ || targetGround.normal.y >= minimumGroundNormal)) {
         const float rise = targetGround.requiredFeetHeight - slot->position.y;
+        // A short vertical face is a step, even though its contact normal is
+        // horizontal. Check the raised forward path before placing the feet on
+        // exact hemisphere support; tall cliffs still obstruct that path.
+        const bool stepPathClear = !legoTerrain_ || !castCapsule(
+            slot->position + glm::vec3(0, slot->settings.stepUp + 2 * config_.skin, 0),
+            glm::vec3(translation.x, 0, translation.z), slot->sector,
+            slot->settings.radius).hit;
         if (rise <= slot->settings.stepUp + config_.skin
-            && rise >= -slot->settings.stepDown - config_.skin) {
+            && rise >= -slot->settings.stepDown - config_.skin && stepPathClear) {
             slot->position = horizontalTarget;
             slot->position.y = targetGround.requiredFeetHeight;
-            slot->groundNormal = targetGround.normal;
+            slot->groundNormal = legoTerrain_
+                ? capsuleClearance(slot->position, slot->sector, slot->settings.radius).normal
+                : targetGround.normal;
             slot->grounded = true;
             slot->steep = false;
             const WorldPosition canonical = canonicalWorldPosition(
@@ -549,7 +585,7 @@ CharacterMotion CpuCapsuleMoverWorld::moveCharacter(
         if (finalGround.distance < -config_.skin) {
             const float correction = -finalGround.distance + config_.skin;
             slot->position += finalGround.normal
-                * (correction / std::max(finalGround.normal.y, 0.1f));
+                * (legoTerrain_ ? correction : correction / std::max(finalGround.normal.y, 0.1f));
         }
         const float distance = slot->position.y
                              - finalGround.requiredFeetHeight;

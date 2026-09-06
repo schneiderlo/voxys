@@ -159,6 +159,7 @@ if(VOXY_BUILD_NATIVE)
         src/physics/physics_world.cpp
         src/physics/physics_world.hpp
         src/physics/terrain_topology.hpp
+        src/terrain/lego_surface.hpp
         src/physics/wreckwater_authority_backend_factory.cpp
         src/server/wreckwater_authority_runtime.cpp
         src/server/wreckwater_authority_runtime.hpp
@@ -465,6 +466,8 @@ if(VOXY_BUILD_WASM)
         # Preload the data files referenced by voxy.cfg
         foreach(VOXY_WASM_DATA_FILE
             ridgebreak.cfg
+            lego_shore.cfg
+            data/lego_shore.ldh
             data/generated/td_seed_1234_8192.ldh
             data/generated/td_seed_1234_2048_albedo.jpg
             data/generated/ocean_environment.png

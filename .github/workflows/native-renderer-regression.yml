@@ -9,6 +9,10 @@ on:
       - third_party/CMakeLists.txt
       - tests/test_blit_path.cpp
       - tests/test_raycast_path.cpp
+      - tests/test_lego_surface.cpp
+      - src/terrain/lego_surface.hpp
+      - shaders/**
+      - scripts/*lego*
       - tests/CMakeLists.txt
       - .github/workflows/native-renderer-regression.yml
   pull_request:
@@ -19,6 +23,10 @@ on:
       - third_party/CMakeLists.txt
       - tests/test_blit_path.cpp
       - tests/test_raycast_path.cpp
+      - tests/test_lego_surface.cpp
+      - src/terrain/lego_surface.hpp
+      - shaders/**
+      - scripts/*lego*
       - tests/CMakeLists.txt
       - .github/workflows/native-renderer-regression.yml
   workflow_dispatch:
@@ -57,7 +65,16 @@ jobs:
           XDG_RUNTIME_DIR: /tmp/voxys-runtime
         run: |
           mkdir -p "$XDG_RUNTIME_DIR" && chmod 700 "$XDG_RUNTIME_DIR"
-          xvfb-run -a ctest --test-dir build-native -R '^(BlitPathTest|RaycastPathGPUTest)\.' --output-on-failure -j2 --timeout 120
+          xvfb-run -a ctest --test-dir build-native -R '^(BlitPathTest|RaycastPathGPUTest|LegoSurface|CpuCapsuleMover)\.' --output-on-failure -j2 --timeout 120
+      - name: Shared LEGO geometry and GPU regression
+        env:
+          XDG_RUNTIME_DIR: /tmp/voxys-runtime
+        run: |
+          python3 -m pip install numpy wgpu==0.32.0
+          python3 scripts/sync_lego_surface.py --check
+          python3 scripts/test_lego_surface_gpu.py
+          python3 scripts/test_lego_rendering.py
+          VOXY_LEGO_STUDY=1 python3 scripts/test_lego_rendering.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:

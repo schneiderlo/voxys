@@ -31,6 +31,7 @@
 #include "moto/session.hpp"
 #include "moto/world.hpp"
 #include "physics/terrain_topology.hpp"
+#include "terrain/lego_surface.hpp"
 #include "terrain/authored_cove.hpp"
 #include "terrain/textures.hpp"
 #include "terrain/shadow_bake.hpp"
@@ -845,7 +846,7 @@ bool Application::init(const ApplicationConfig& config) {
     shouldExit_ = false;
     debugVisMode_ = DebugVisMode::Off;
     wireframeEnabled_ = false;
-    legoMode_ = false;
+    legoMode_ = config_.legoTerrainEnabled;
     controllerMode_ = ControllerMode::FreeFly;
     selectedThrowable_ = 0u;
     throwableBodyLimit_ = 0u;
@@ -971,6 +972,12 @@ bool Application::init(const ApplicationConfig& config) {
         setupCallbacks();
     }
 
+    if (config_.legoTerrainEnabled) {
+        const float x = -12.0f, z = -58.0f;
+        const float y = sampleTerrainHeight(x,z) + config_.cameraEyeHeight;
+        setCameraWorldPose(*camera_, {x,y,z}, {x+8.0f,y-6.0f,z-35.0f});
+        throwableBodyLimit_ = 32u;
+    }
     initialized_ = true;
     shouldExit_ = false;
 
@@ -1035,6 +1042,8 @@ bool Application::init(const ApplicationConfig& config) {
         setControllerMode(ControllerMode::Character);
     }
 #endif
+
+    if (config_.legoTerrainEnabled) setControllerMode(ControllerMode::Character);
 
     // Handle initial teleportation
     if (config_.initialTeleportIndex.has_value() && camera_) {
@@ -1215,6 +1224,8 @@ void Application::shutdown() {
     }
 
     // Jolt streams directly from the heightmap, so release it after physics.
+    if (legoLayoutView_) { wgpuTextureViewRelease(legoLayoutView_); legoLayoutView_ = nullptr; }
+    if (legoLayoutTexture_) { wgpuTextureRelease(legoLayoutTexture_); legoLayoutTexture_ = nullptr; }
     if (heightmap_) {
         heightmap_->release();
         heightmap_.reset();
@@ -2773,7 +2784,9 @@ void Application::toggleWireframe() {
 
 void Application::toggleLegoMode() {
     legoMode_ = !legoMode_;
-    LOG_INFO("Lego mode: {}", legoMode_ ? "enabled" : "disabled");
+    if (config_.legoTerrainEnabled)
+        LOG_INFO("LEGO appearance: {}", legoMode_ ? "grouped bricks" : "single bricks");
+    else LOG_INFO("Lego mode: {}", legoMode_ ? "enabled" : "disabled");
     // Updates will be propagated in updateCameraUniforms()
 }
 
@@ -3572,7 +3585,7 @@ bool Application::initCamera() {
     physicsWorld_ = std::make_unique<physics::PhysicsWorld>();
     physics::PhysicsInitContext physicsContext;
     physicsContext.requestedBackend = config_.physicsBackend;
-    physicsContext.allowCpuFallback = config_.physicsCpuFallback;
+    physicsContext.allowCpuFallback = config_.physicsCpuFallback && !config_.legoTerrainEnabled;
     physicsContext.device = gpuContext_->getDevice();
     physicsContext.queue = gpuContext_->getQueue();
     if (config_.physicsBackend == physics::BackendType::WebGpuSoft) {
@@ -3649,6 +3662,7 @@ bool Application::initCamera() {
     charConfig.mouseSensitivity = config_.cameraMouseSensitivity;
     charConfig.heightScale = config_.heightScale;
     charConfig.cellScale = config_.cellScale;
+    charConfig.legoTerrain = config_.legoTerrainEnabled;
     charConfig.groundOffset = config_.cameraEyeHeight;
     charConfig.collisionHeight = std::max(config_.cameraEyeHeight, 0.82f);
     charConfig.terrainWidth = terrainSampleExtent(config_.heightmapWidth, config_.cellScale);
@@ -3887,6 +3901,7 @@ bool Application::initTerrain() {
         charConfig.terrainHeight = terrainSampleExtent(stats_.terrainHeight, config_.cellScale);
         charConfig.heightScale = config_.heightScale;
         charConfig.cellScale = config_.cellScale;
+        charConfig.legoTerrain = config_.legoTerrainEnabled;
         charConfig.groundOffset = config_.cameraEyeHeight;
         characterController_->setConfig(charConfig);
     }
@@ -3895,10 +3910,13 @@ bool Application::initTerrain() {
         physicsWorld_->setTerrainGpuResources({
             heightmap_->getTextureView(), heightmap_->getMipLevelCount()});
     }
-    if (!physicsWorld_ || !physicsWorld_->setTerrain(
-            heightmap_->getData(), heightmap_->getWidth(), heightmap_->getHeight(),
-            config_.heightScale, config_.cellScale)) {
-        LOG_ERROR("Failed to attach terrain to Jolt Physics");
+    const bool terrainReady = physicsWorld_ && (config_.legoTerrainEnabled
+        ? physicsWorld_->setLegoTerrain(heightmap_->getData(),heightmap_->getWidth(),heightmap_->getHeight(),
+            config_.heightScale,config_.cellScale)
+        : physicsWorld_->setTerrain(heightmap_->getData(),heightmap_->getWidth(),heightmap_->getHeight(),
+            config_.heightScale,config_.cellScale));
+    if (!terrainReady) {
+        LOG_ERROR("Failed to attach the requested terrain surface to the physics backend");
         return false;
     }
 
@@ -4105,6 +4123,22 @@ bool Application::initRenderers() {
             terrainTextures_->getMaterialNormalRoughnessView());
         blitPath_->setLightmapTexture(terrainTextures_->getLightmapView()); 
         blitPath_->setTerrainSize(heightmap_->getWidth(), heightmap_->getHeight());
+        if (config_.legoTerrainEnabled) {
+            const terrain::lego::Surface surface{heightmap_->getData(),heightmap_->getWidth(),heightmap_->getHeight(),
+                config_.heightScale,config_.cellScale};
+            const auto layout = terrain::lego::buildLayout(surface,rendererSettings_.waterHeight,2816u,7424u);
+            if (layout.cells.empty()) { LOG_ERROR("LEGO study exceeds its bounded layout budget"); return false; }
+            const auto desc = gpu::TextureDesc::tex2D(surface.width,surface.height,WGPUTextureFormat_R16Uint,
+                WGPUTextureUsage_TextureBinding | WGPUTextureUsage_CopyDst,"lego_brick_layout");
+            legoLayoutTexture_ = gpu::createTextureWithData(device,queue,desc,
+                std::as_bytes(std::span<const uint16_t>(layout.cells)),surface.width*sizeof(uint16_t));
+            if (!legoLayoutTexture_) return false;
+            legoLayoutView_ = gpu::createTextureView(legoLayoutTexture_);
+            if (!legoLayoutView_) return false;
+            blitPath_->setLegoLayoutTexture(legoLayoutView_);
+            LOG_INFO("LEGO shore: {} chunks, {} bricks ({} large), {} layout bytes",
+                layout.chunks,layout.bricks,layout.largeBricks,layout.cells.size()*sizeof(uint16_t));
+        }
     }
 
     {
@@ -4132,6 +4166,10 @@ float Application::sampleTerrainHeight(float worldX, float worldZ) const {
 
     const glm::vec2 origin = physics::terrain_topology::centeredOrigin(
         heightmap_->getWidth(), heightmap_->getHeight(), config_.cellScale);
+    if (config_.legoTerrainEnabled) {
+        return terrain::lego::Surface{heightmap_->getData(),heightmap_->getWidth(),heightmap_->getHeight(),
+            config_.heightScale,config_.cellScale}.heightAt(worldX,worldZ);
+    }
     const float sampleX = (worldX + origin.x) / config_.cellScale;
     const float sampleZ = (worldZ + origin.y) / config_.cellScale;
     return physics::terrain_topology::worldHeight(
@@ -4562,6 +4600,9 @@ void Application::updateCameraUniforms() {
         return;
     }
     uniforms.setLegoMode(legoMode_);
+    // K compares grouping only in this physical LEGO scene. It never changes
+    // the ground under a resting object or invalidates contact feature IDs.
+    if (config_.legoTerrainEnabled) uniforms.invProjParams.z = legoMode_ ? 2.0f : 3.0f;
     uniforms.invProjParams.w = config_.motoEnabled ? 1.0f : 0.0f;
     // Wrap before fp32 loses the sub-frame precision used by short waves.
     const float waterTime = static_cast<float>(
@@ -4793,6 +4834,7 @@ bool Application::spawnThrowable(
         return false;
     }
 
+    if (config_.legoTerrainEnabled && physicsWorld_->stats().residentBodies >= 32u) return false;
     const glm::vec3 normalizedDirection = glm::normalize(direction);
     glm::vec3 launchOrigin = origin;
     glm::ivec3 launchSector = sector;
@@ -4847,6 +4889,7 @@ bool Application::spawnThrowable(
 
     physics::BodySpawnDesc desc;
     desc.shape = shape;
+    desc.bullet = config_.legoTerrainEnabled;
     desc.position = launchOrigin;
     desc.sector = launchSector;
     desc.linearVelocity = normalizedDirection * throwSpeed;
@@ -4862,7 +4905,7 @@ uint32_t Application::throwThrowableBatch(
     constexpr uint32_t maximumColumns = 16u;
     constexpr uint32_t maximumRows = 8u;
     constexpr uint32_t fullBatchSize = maximumColumns * maximumRows;
-    const uint32_t batchSize = std::min(maximumBodies, fullBatchSize);
+    const uint32_t batchSize = std::min(maximumBodies, config_.legoTerrainEnabled ? 8u : fullBatchSize);
     const uint32_t columns = std::min(batchSize, maximumColumns);
     const uint32_t rows = (batchSize + columns - 1u) / columns;
     const glm::vec3 direction = glm::normalize(camera_->forward());
@@ -4945,7 +4988,7 @@ void Application::processThrowableInput(float deltaTime) {
         return;
     }
 
-    const float wheel = input_->scrollDelta();
+    const float wheel = config_.legoTerrainEnabled ? 0.0f : input_->scrollDelta();
     if (wheel != 0.0f) {
         if (throwableWheelAccumulator_ * wheel < 0.0f) {
             throwableWheelAccumulator_ = 0.0f;
@@ -4974,7 +5017,8 @@ void Application::processThrowableInput(float deltaTime) {
                              && input_->wasMouseButtonPressed(MouseButton::Right);
     const bool firing = mouseCaptured
                      && input_->isMouseButtonDown(MouseButton::Left);
-    if (!batchRequested && !firing) {
+    const bool singleRequested = config_.legoTerrainEnabled && input_->wasKeyPressed(Key::B);
+    if (!batchRequested && !firing && !singleRequested) {
         throwableCooldown_ = 0.0f;
         return;
     }
@@ -4983,6 +5027,11 @@ void Application::processThrowableInput(float deltaTime) {
         selectedThrowable_);
     const glm::vec3 direction = glm::normalize(camera_->forward());
     const glm::vec3 origin = camera_->position() + direction * 2.2f;
+
+    if (singleRequested) {
+        spawnThrowable(shape, origin, direction, camera_->worldSector());
+        return;
+    }
 
     if (batchRequested) {
         constexpr uint32_t batchSize = 16u * 8u;
@@ -4998,7 +5047,7 @@ void Application::processThrowableInput(float deltaTime) {
 
     const float frameTime = std::clamp(deltaTime, 0.0f, 0.1f);
     throwableCooldown_ -= frameTime;
-    constexpr float throwInterval = 1.0f / 100.0f;
+    const float throwInterval = config_.legoTerrainEnabled ? 0.3f : 1.0f / 100.0f;
     while (throwableCooldown_ <= 0.0f) {
         if (throwableBodyLimit_ != 0u
             && physicsWorld_->stats().residentBodies
@@ -5038,7 +5087,7 @@ void Application::handleKeyboardShortcuts() {
     }
 
     // F3 - toggle render path
-    if (input_->wasKeyPressed(Key::F3)) {
+    if (input_->wasKeyPressed(Key::F3) && !config_.legoTerrainEnabled) {
         toggleRenderPath();
     }
 

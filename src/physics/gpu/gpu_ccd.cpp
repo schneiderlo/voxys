@@ -219,7 +219,7 @@ public:
             .counts = {input_.bodyCapacity, config_.bulletCapacity,
                        config_.coarseSteps, config_.workgroupSize},
             .terrain = {input_.terrainWidth, input_.terrainHeight,
-                        config_.bisectionIterations, 1u},
+                        config_.bisectionIterations, input_.legoTerrain ? 2u : 1u},
             .terrainOriginCellHeight = {
                 origin.x, origin.y, input_.terrainCellScale,
                 input_.terrainHeightScale},

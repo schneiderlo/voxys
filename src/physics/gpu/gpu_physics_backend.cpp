@@ -1288,7 +1288,7 @@ public:
 
     bool setTerrain(std::span<const uint16_t> samples,
                     uint32_t width, uint32_t height,
-                    float heightScale, float cellScale) {
+                    float heightScale, float cellScale, bool lego = false) {
         const bool hadTerrain = terrainAttached_;
         if (!initialized_ || width < 2 || height < 2
             || !std::isfinite(heightScale) || heightScale <= 0.0f
@@ -1319,6 +1319,7 @@ public:
         terrainHeight_ = height;
         terrainHeightScale_ = heightScale;
         terrainCellScale_ = cellScale;
+        legoTerrain_ = lego;
         bool terrainBindingReady = false;
         if (externalTerrainView_) {
             terrainMipLevelCount_ = std::max(externalTerrainMipLevelCount_, 1u);
@@ -1343,7 +1344,7 @@ public:
         terrainAttached_ = true;
         if (!characterMover_.setTerrain(
                 samples.first(expected), width, height,
-                heightScale, cellScale)) {
+                heightScale, cellScale, lego)) {
             terrainStateNeedsClear_ = terrainStateNeedsClear_ || hadTerrain;
             terrainAttached_ = false;
         }
@@ -1447,6 +1448,7 @@ public:
             .terrainHeight = terrainHeight_,
             .terrainHeightScale = terrainHeightScale_,
             .terrainCellScale = terrainCellScale_,
+            .legoTerrain = legoTerrain_,
             .terrainSector = {0, 0, 0},
         });
     }
@@ -3253,7 +3255,7 @@ public:
             terrainOrigin, terrainCellScale_, terrainHeightScale_);
         uniforms.terrainSizeMipFlags = glm::uvec4(
             terrainWidth_, terrainHeight_, terrainMipLevelCount_,
-            terrainAttached_ ? 1u : 0u);
+            terrainAttached_ ? (legoTerrain_ ? 2u : 1u) : 0u);
         uniforms.water = glm::vec4(
             waterHeight_, waterEnabled_ ? 1.0f : 0.0f,
             config_.waterBuoyancy, config_.waterLinearDrag);
@@ -4108,6 +4110,7 @@ public:
 
     bool initialized_ = false;
     bool terrainAttached_ = false;
+    bool legoTerrain_ = false;
     bool terrainStateNeedsClear_ = false;
     bool waterEnabled_ = false;
     float waterHeight_ = 0.0f;
@@ -4294,6 +4297,11 @@ bool GpuPhysicsBackend::setTerrain(std::span<const uint16_t> samples,
                                    float heightScale, float cellScale) {
     return impl_->setTerrain(samples, width, height, heightScale, cellScale);
 }
+bool GpuPhysicsBackend::setLegoTerrain(std::span<const uint16_t> samples,
+    uint32_t width, uint32_t height, float heightScale, float cellScale) {
+    return impl_->setTerrain(samples, width, height, heightScale, cellScale, true);
+}
+
 void GpuPhysicsBackend::setTerrainGpuResources(
     const TerrainGpuResources& resources) {
     impl_->setTerrainGpuResources(resources);

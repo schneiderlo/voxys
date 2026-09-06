@@ -12,6 +12,7 @@ filegroup(
         "generated/ocean_environment.png",
         "generated/td_seed_1234_2048_albedo.jpg",
         "generated/td_seed_1234_8192.ldh",
+        "lego_shore.ldh",
         "materials/Grass001_1K-JPG_Color.jpg",
         "materials/Grass001_1K-JPG_NormalGL.jpg",
         "materials/Grass001_1K-JPG_Roughness.jpg",

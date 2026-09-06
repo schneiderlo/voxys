@@ -249,6 +249,7 @@ struct ApplicationConfig {
     int windowWidth = 1280;
     int windowHeight = 720;
     std::string windowTitle = "voxy";
+    bool legoTerrainEnabled = false;
     bool motoEnabled = false; // Opt-in prototype, never replaces the terrain demo.
     bool fullscreen = false;
     bool vsync = true;
@@ -836,6 +837,8 @@ private:
     std::unique_ptr<physics::PhysicsWorld> physicsWorld_;
     std::unique_ptr<CharacterController> characterController_;
     std::unique_ptr<terrain::Heightmap> heightmap_;
+    WGPUTexture legoLayoutTexture_ = nullptr;
+    WGPUTextureView legoLayoutView_ = nullptr;
     std::unique_ptr<terrain::TerrainTextures> terrainTextures_;
 
     // Renderers

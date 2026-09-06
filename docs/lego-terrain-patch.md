@@ -1,5 +1,9 @@
 # Grouped LEGO terrain study
 
+The next stage is now available as [LEGO Shore](lego-shore.md): a playable
+real-terrain crop in the Voxys engine. The standalone island below remains a
+small visual reference.
+
 Open `lego_patch.html` beside the deployed Voxys `index.html`. Drag to orbit,
 scroll or pinch to zoom, and tap the island or use **Drop a ball**. Compare
 **Grouped bricks** with **1 × 1 cells**. Reset clears the balls and camera.

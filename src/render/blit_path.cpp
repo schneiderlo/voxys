@@ -116,6 +116,9 @@ BlitPath::BlitPath(BlitPath&& other) noexcept
     , waterDisplacementView_(other.waterDisplacementView_)
     , waterDisplacementSampler_(other.waterDisplacementSampler_)
     , terrainView_(other.terrainView_)
+    , legoLayoutView_(other.legoLayoutView_)
+    , emptyLegoTexture_(other.emptyLegoTexture_)
+    , emptyLegoView_(other.emptyLegoView_)
     , lightmapView_(other.lightmapView_)
     , terrainMaterialAlbedoView_(other.terrainMaterialAlbedoView_)
     , terrainMaterialNormalRoughnessView_(
@@ -202,6 +205,9 @@ BlitPath::BlitPath(BlitPath&& other) noexcept
     other.waterDisplacementView_ = nullptr;
     other.waterDisplacementSampler_ = nullptr;
     other.terrainView_ = nullptr;
+    other.legoLayoutView_ = nullptr;
+    other.emptyLegoTexture_ = nullptr;
+    other.emptyLegoView_ = nullptr;
     other.lightmapView_ = nullptr;
     other.terrainMaterialAlbedoView_ = nullptr;
     other.terrainMaterialNormalRoughnessView_ = nullptr;
@@ -281,6 +287,9 @@ BlitPath& BlitPath::operator=(BlitPath&& other) noexcept {
         waterDisplacementView_ = other.waterDisplacementView_;
         waterDisplacementSampler_ = other.waterDisplacementSampler_;
         terrainView_ = other.terrainView_;
+        legoLayoutView_ = other.legoLayoutView_;
+        emptyLegoTexture_ = other.emptyLegoTexture_;
+        emptyLegoView_ = other.emptyLegoView_;
         lightmapView_ = other.lightmapView_;
         terrainMaterialAlbedoView_ = other.terrainMaterialAlbedoView_;
         terrainMaterialNormalRoughnessView_ =
@@ -366,6 +375,9 @@ BlitPath& BlitPath::operator=(BlitPath&& other) noexcept {
         other.waterDisplacementView_ = nullptr;
         other.waterDisplacementSampler_ = nullptr;
         other.terrainView_ = nullptr;
+        other.legoLayoutView_ = nullptr;
+        other.emptyLegoTexture_ = nullptr;
+        other.emptyLegoView_ = nullptr;
         other.lightmapView_ = nullptr;
         other.terrainMaterialAlbedoView_ = nullptr;
         other.terrainMaterialNormalRoughnessView_ = nullptr;
@@ -595,6 +607,11 @@ void BlitPath::shutdown() {
     waterDisplacementView_ = nullptr;
     waterDisplacementSampler_ = nullptr;
     terrainView_ = nullptr;
+    legoLayoutView_ = nullptr;
+    if (emptyLegoView_) wgpuTextureViewRelease(emptyLegoView_);
+    if (emptyLegoTexture_) wgpuTextureRelease(emptyLegoTexture_);
+    emptyLegoView_ = nullptr;
+    emptyLegoTexture_ = nullptr;
     lightmapView_ = nullptr;
     terrainMaterialAlbedoView_ = nullptr;
     terrainMaterialNormalRoughnessView_ = nullptr;
@@ -653,6 +670,20 @@ bool BlitPath::init(WGPUDevice device, WGPUQueue queue, const BlitPathConfig& co
         shutdown();
         return false;
     }
+
+    // Non-LEGO callers also need a valid unsigned texture binding. This
+    // one-pixel placeholder keeps standalone blit rendering independent of
+    // the terrain geometry views used by the optional cached water path.
+    gpu::TextureDesc emptyDesc{};
+    emptyDesc.width = 1;
+    emptyDesc.height = 1;
+    emptyDesc.format = WGPUTextureFormat_R16Uint;
+    emptyDesc.usage = WGPUTextureUsage_TextureBinding | WGPUTextureUsage_CopyDst;
+    const uint16_t emptyCell = 0;
+    emptyLegoTexture_ = gpu::createTextureWithData(device_, queue_, emptyDesc,
+        std::as_bytes(std::span<const uint16_t>(&emptyCell, 1)), sizeof(emptyCell));
+    if (emptyLegoTexture_) emptyLegoView_ = gpu::createTextureView(emptyLegoTexture_);
+    if (!emptyLegoView_) { shutdown(); return false; }
 
     // Create resources in order
     if (!createUniformBuffer()) {
@@ -1752,7 +1783,7 @@ bool BlitPath::createBindGroupLayout() {
     // @group(0) @binding(18) var terrainMaterialNormalRoughness :
     //     texture_2d_array<f32>;
 
-    std::array<gpu::BindGroupLayoutEntry, 14> entries = {
+    std::array<gpu::BindGroupLayoutEntry, 15> entries = {
         gpu::BindGroupLayoutEntry(0)
             .vertexVisible()
             .fragmentVisible()
@@ -1798,7 +1829,9 @@ bool BlitPath::createBindGroupLayout() {
         gpu::BindGroupLayoutEntry(19)
             .fragmentVisible()
             .texture(WGPUTextureSampleType_UnfilterableFloat,
-                     WGPUTextureViewDimension_2D, false)
+                     WGPUTextureViewDimension_2D, false),
+        gpu::BindGroupLayoutEntry(20).fragmentVisible()
+            .texture(WGPUTextureSampleType_Uint, WGPUTextureViewDimension_2D, false)
     };
     
     bindGroupLayout_ = gpu::createBindGroupLayout(device_, entries, "blit_bind_group_layout");
@@ -1811,7 +1844,7 @@ bool BlitPath::createBindGroupLayout() {
     // The settled-camera pipeline shades animated water directly over the exact
     // cached HDR terrain/sky. Bindings 13-16 are the same geometry inputs used
     // by the old intermediate water-composite compute pass.
-    std::array<gpu::BindGroupLayoutEntry, 20> cachedEntries = {
+    std::array<gpu::BindGroupLayoutEntry, 21> cachedEntries = {
         gpu::BindGroupLayoutEntry(0)
             .vertexVisible()
             .fragmentVisible()
@@ -1889,7 +1922,9 @@ bool BlitPath::createBindGroupLayout() {
         gpu::BindGroupLayoutEntry(19)
             .fragmentVisible()
             .texture(WGPUTextureSampleType_UnfilterableFloat,
-                     WGPUTextureViewDimension_2D, false)
+                     WGPUTextureViewDimension_2D, false),
+        gpu::BindGroupLayoutEntry(20).fragmentVisible()
+            .texture(WGPUTextureSampleType_Uint, WGPUTextureViewDimension_2D, false)
     };
     cachedBindGroupLayout_ = gpu::createBindGroupLayout(
         device_, cachedEntries, "blit_cached_bind_group_layout");
@@ -2209,7 +2244,7 @@ bool BlitPath::createBindGroup() {
         if (nextBindGroup) wgpuBindGroupRelease(nextBindGroup);
     };
 
-    std::array<gpu::BindGroupEntry, 14> entries = {
+    std::array<gpu::BindGroupEntry, 15> entries = {
         gpu::BindGroupEntry(0).buffer(uniformBuffer_, 0, sizeof(CameraUniforms)),
         gpu::BindGroupEntry(1).textureView(depthView_),
         gpu::BindGroupEntry(2).textureView(shadowView_),
@@ -2224,7 +2259,8 @@ bool BlitPath::createBindGroup() {
         gpu::BindGroupEntry(17).textureView(terrainMaterialAlbedoView_),
         gpu::BindGroupEntry(18).textureView(
             terrainMaterialNormalRoughnessView_),
-        gpu::BindGroupEntry(19).textureView(periodicGradientLut_.view())
+        gpu::BindGroupEntry(19).textureView(periodicGradientLut_.view()),
+        gpu::BindGroupEntry(20).textureView(legoLayoutView_ ? legoLayoutView_ : emptyLegoView_)
     };
     
     nextBindGroup = gpu::createBindGroup(
@@ -2255,7 +2291,7 @@ bool BlitPath::createBindGroup() {
     }
 
     if (createStaticGroups) {
-        std::array<gpu::BindGroupEntry, 14> staticEntries = {
+        std::array<gpu::BindGroupEntry, 15> staticEntries = {
             gpu::BindGroupEntry(0).buffer(
                 staticUniformBuffer_, 0, sizeof(CameraUniforms)),
             gpu::BindGroupEntry(1).textureView(staticDepthView_),
@@ -2273,7 +2309,8 @@ bool BlitPath::createBindGroup() {
                 terrainMaterialAlbedoView_),
             gpu::BindGroupEntry(18).textureView(
                 terrainMaterialNormalRoughnessView_),
-            gpu::BindGroupEntry(19).textureView(periodicGradientLut_.view())
+            gpu::BindGroupEntry(19).textureView(periodicGradientLut_.view()),
+            gpu::BindGroupEntry(20).textureView(legoLayoutView_ ? legoLayoutView_ : emptyLegoView_)
         };
         nextStaticBindGroup = gpu::createBindGroup(
             device_, bindGroupLayout_, staticEntries,
@@ -2284,7 +2321,7 @@ bool BlitPath::createBindGroup() {
             return false;
         }
 
-        std::array<gpu::BindGroupEntry, 20> cachedEntries = {
+        std::array<gpu::BindGroupEntry, 21> cachedEntries = {
             gpu::BindGroupEntry(0).buffer(
                 uniformBuffer_, 0, sizeof(CameraUniforms)),
             // The dynamic depth texture is a render attachment in this pass;
@@ -2311,7 +2348,8 @@ bool BlitPath::createBindGroup() {
                 terrainMaterialAlbedoView_),
             gpu::BindGroupEntry(18).textureView(
                 terrainMaterialNormalRoughnessView_),
-            gpu::BindGroupEntry(19).textureView(periodicGradientLut_.view())
+            gpu::BindGroupEntry(19).textureView(periodicGradientLut_.view()),
+            gpu::BindGroupEntry(20).textureView(legoLayoutView_ ? legoLayoutView_ : emptyLegoView_)
         };
         nextCachedBindGroup = gpu::createBindGroup(
             device_, cachedBindGroupLayout_, cachedEntries,
@@ -2389,6 +2427,12 @@ void BlitPath::setStaticCacheState(bool active,
     if (terrainCacheRefreshed) {
         backgroundDirty_ = true;
     }
+}
+
+void BlitPath::setLegoLayoutTexture(WGPUTextureView view) {
+    legoLayoutView_ = view;
+    bindGroupDirty_ = true;
+    backgroundDirty_ = true;
 }
 
 void BlitPath::setTerrainTexture(WGPUTextureView terrainView) {

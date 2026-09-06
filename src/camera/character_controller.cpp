@@ -4,6 +4,7 @@
 
 #include "camera/character_controller.hpp"
 #include "physics/terrain_topology.hpp"
+#include "terrain/lego_surface.hpp"
 #include "terrain/heightmap.hpp"
 #include "physics/physics_world.hpp"
 #include "core/log.hpp"
@@ -488,6 +489,10 @@ float CharacterController::sampleTerrainHeight(float worldX, float worldZ) const
     float hmX = uv.x * static_cast<float>(heightmap_->getWidth() - 1);
     float hmZ = uv.y * static_cast<float>(heightmap_->getHeight() - 1);
     
+    if (config_.legoTerrain) {
+        return terrain::lego::Surface{heightmap_->getData(),heightmap_->getWidth(),heightmap_->getHeight(),
+            config_.heightScale,config_.cellScale}.heightAt(worldX,worldZ);
+    }
     // Sample with bilinear interpolation
     const float height = physics::terrain_topology::worldHeight(
         heightmap_->sampleBilinear(hmX, hmZ), config_.heightScale);

@@ -14,6 +14,9 @@ import wgpu
 ROOT = Path(__file__).resolve().parents[1]
 WIDTH, HEIGHT, SIZE = 128, 80, 16
 SCALE = 10.0
+STUDY = os.environ.get("VOXY_LEGO_STUDY") == "1"
+STUD_HEIGHT = 0.18 if STUDY else 0.2
+STUD_RADIUS = 0.30 if STUDY else 0.35
 
 
 def unit(v):
@@ -31,8 +34,8 @@ def reference(origin, rays, heights):
         best[mask] = t[mask]
         normals[mask] = np.broadcast_to(n, rays.shape)[mask]
 
-    for z in range(1, SIZE - 1):
-        for x in range(1, SIZE - 1):
+    for z in range(0 if STUDY else 1, SIZE - 1):
+        for x in range(0 if STUDY else 1, SIZE - 1):
             lo = np.array([x - 7.5, -SCALE, z - 7.5])
             hi = lo + [1, heights[z, x] + SCALE, 1]
             with np.errstate(divide='ignore', invalid='ignore'):
@@ -46,12 +49,12 @@ def reference(origin, rays, heights):
             accept(t, n, t <= np.min(leave, axis=1))
             center = np.array([x - 7, heights[z, x], z - 7])
             oc = origin - center
-            t = (0.2 - oc[1]) / rays[:, 1]
+            t = (STUD_HEIGHT - oc[1]) / rays[:, 1]
             p = oc + rays * t[:, None]
-            accept(t, [0, 1, 0], np.sum(p[:, [0, 2]] ** 2, axis=1) <= 0.35 ** 2)
+            accept(t, [0, 1, 0], np.sum(p[:, [0, 2]] ** 2, axis=1) <= STUD_RADIUS ** 2)
             a = np.sum(rays[:, [0, 2]] ** 2, axis=1)
             b = 2 * (rays[:, 0] * oc[0] + rays[:, 2] * oc[2])
-            c = oc[0] ** 2 + oc[2] ** 2 - 0.35 ** 2
+            c = oc[0] ** 2 + oc[2] ** 2 - STUD_RADIUS ** 2
             disc = b * b - 4 * a * c
             for sign in [-1, 1]:
                 t = (-b + sign * np.sqrt(np.maximum(disc, 0))) / (2 * a)
@@ -59,7 +62,7 @@ def reference(origin, rays, heights):
                 radial = p.copy()
                 radial[:, 1] = 0
                 n = radial / np.maximum(np.linalg.norm(radial, axis=1, keepdims=True), 1e-20)
-                accept(t, n, (disc >= 0) & (p[:, 1] >= 0) & (p[:, 1] <= 0.2))
+                accept(t, n, (disc >= 0) & (p[:, 1] >= 0) & (p[:, 1] <= STUD_HEIGHT))
     return best, normals
 
 
@@ -123,7 +126,7 @@ fn test(@builtin(global_invocation_id) id: vec3<u32>) {
 def main():
     adapter = wgpu.gpu.request_adapter_sync(power_preference='low-power')
     device = adapter.request_device_sync()
-    print('Adapter:', adapter.info['device'])
+    print('Adapter:', adapter.info['device'], 'shared terrain' if STUDY else 'legacy K')
     check_bevel_shading(device)
     source = Path(os.environ.get('VOXY_LEGO_SHADER', ROOT / 'shaders/terrain_raycast.wgsl')).read_text()
     shader = device.create_shader_module(code=source)
@@ -157,6 +160,10 @@ def main():
         if label == 'ceiling':
             raw.fill(65535)
         heights = (raw.astype(np.float64) / 65535 * 2 - 1) * SCALE
+        if STUDY:
+            count = int(np.floor(2*SCALE/.32+.5))
+            levels = (raw.astype(np.uint64)*count+32767)//65535
+            heights = -SCALE + levels.astype(np.float64)*(2*SCALE/count)
         for mip in range(5):
             size, step = SIZE >> mip, 1 << mip
             values = np.empty((size, size), dtype=np.uint32)
@@ -179,7 +186,7 @@ def main():
         u[48:52] = [SIZE, SIZE, 1/SIZE, 1/SIZE]
         u[52:56] = [SCALE, 1, 1, 0]
         u[56:60] = list(origin) + [1]
-        u[60:64] = [sx, sy, 1, 0]
+        u[60:64] = [sx, sy, 2 if STUDY else 1, 0]
         u[92:96] = list(unit([1, 2, -1])) + [0]
         device.queue.write_buffer(uniform, 0, u)
         xx, yy = np.meshgrid((np.arange(WIDTH)+0.5)/WIDTH*2-1, 1-(np.arange(HEIGHT)+0.5)/HEIGHT*2)

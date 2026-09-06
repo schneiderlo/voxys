@@ -19,6 +19,7 @@ TEST_SRCS = [
     "test_cpu_capsule_mover.cpp",
     "test_physics_world.cpp",
     "test_terrain_topology.cpp",
+    "test_lego_surface.cpp",
     "test_vertical_slices.cpp",
     "test_gpu_context.cpp",
     "test_gpu_ccd.cpp",

@@ -61,6 +61,7 @@ cc_library(
         "//src/gpu:wreckwater_authority_gpu",
         "//src/terrain:wreckwater_authority_mip_generator",
         "//third_party:glm",
+        "//src/terrain:lego_surface",
     ],
 )
 
@@ -125,6 +126,7 @@ cc_library(
         "//src/gpu:gpu",
         "//src/terrain:terrain",
         "//third_party:glm",
+        "//src/terrain:lego_surface",
         "//third_party:box3d",
         "//third_party:jolt",
     ],

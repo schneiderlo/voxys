@@ -26,6 +26,8 @@ public:
                                   uint32_t width, uint32_t height,
                                   float heightScale,
                                   float cellScale) override;
+    [[nodiscard]] bool setLegoTerrain(std::span<const uint16_t> samples,
+        uint32_t width, uint32_t height, float heightScale, float cellScale) override;
     void setTerrainGpuResources(
         const TerrainGpuResources& resources) override;
     void clearTerrain() override;

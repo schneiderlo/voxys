@@ -49,7 +49,7 @@ public:
 
     [[nodiscard]] bool setTerrain(std::span<const uint16_t> samples,
                                   uint32_t width, uint32_t height,
-                                  float heightScale, float cellScale);
+                                  float heightScale, float cellScale, bool lego = false);
     void clearTerrain();
     [[nodiscard]] bool hasTerrain() const noexcept;
 
@@ -97,6 +97,7 @@ private:
     uint32_t terrainHeight_ = 0;
     float terrainHeightScale_ = 0.0f;
     float terrainCellScale_ = 0.0f;
+    bool legoTerrain_ = false;
     std::vector<CharacterSlot> characters_;
     std::vector<uint32_t> freeCharacterSlots_;
     bool initialized_ = false;

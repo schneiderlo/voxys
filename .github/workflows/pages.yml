@@ -54,6 +54,8 @@ jobs:
         # The dependency cache contains older tracked build files as well as
         # downloads. Never let it replace the definitions from this commit.
         run: git restore -- third_party/CMakeLists.txt third_party/BUILD third_party/tinygltf
+      - name: Check shared LEGO shader geometry
+        run: python3 scripts/sync_lego_surface.py --check
       - name: Configure CMake
         run: |
           emcmake cmake -S . -B build-wasm \
@@ -84,7 +86,9 @@ jobs:
             /data/generated/td_seed_1234_8192.ldh \
             /data/generated/td_seed_1234_2048_albedo.jpg \
             /data/generated/ocean_environment.png \
-            /ridgebreak.cfg; do
+            /ridgebreak.cfg \
+            /lego_shore.cfg \
+            /data/lego_shore.ldh; do
             grep -a -q "$asset" docs/voxy_wasm.js || {
               echo "ERROR: preload manifest missing $asset"; exit 1;
             }
