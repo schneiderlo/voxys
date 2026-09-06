@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       EM_CACHE_FOLDER: emsdk-cache
-      EMSCRIPTEN_VERSION: 6.0.1
+      EMSCRIPTEN_VERSION: '6.0.1'
     steps:
       - uses: actions/checkout@v4
       - name: Install ccache
@@ -32,25 +32,27 @@ jobs:
             ccache-${{ runner.os }}-
       - uses: actions/cache@v4
         with:
-          path: emsdk-cache
+          path: ${{ env.EM_CACHE_FOLDER }}
           key: emsdk-${{ runner.os }}-${{ env.EMSCRIPTEN_VERSION }}-emdawnwebgpu
           restore-keys: |
             emsdk-${{ runner.os }}-${{ env.EMSCRIPTEN_VERSION }}-
       - uses: mymindstorm/setup-emsdk@v14
         with:
           version: ${{ env.EMSCRIPTEN_VERSION }}
-          actions-cache-folder: emsdk-cache
+          actions-cache-folder: ${{ env.EM_CACHE_FOLDER }}
       - run: embuilder build emdawnwebgpu
       - name: Cache Third Party
         id: cache-third-party
         uses: actions/cache@v4
         with:
           path: third_party
-          key: third-party-${{ runner.os }}-${{ hashFiles('third_party/CMakeLists.txt', 'third_party/BUILD') }}
+          key: third-party-${{ runner.os }}-${{ hashFiles('scripts/fetch_deps.sh') }}
       - name: Fetch dependencies
         if: steps.cache-third-party.outputs.cache-hit != 'true'
-        run: ./scripts/fetch_deps.sh
+        run: bash scripts/fetch_deps.sh
       - name: Restore tracked dependency definitions
+        # The dependency cache contains older tracked build files as well as
+        # downloads. Never let it replace the definitions from this commit.
         run: git restore -- third_party/CMakeLists.txt third_party/BUILD third_party/tinygltf
       - name: Check shared LEGO shader geometry
         run: python3 scripts/sync_lego_surface.py --check
