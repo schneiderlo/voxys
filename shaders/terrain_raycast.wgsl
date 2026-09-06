@@ -48,7 +48,8 @@ struct CameraUniforms {
 @group(0) @binding(1) var heightTex : texture_2d<u32>;
 @group(0) @binding(2) var outDepth : texture_storage_2d<r32float, write>;
 @group(0) @binding(3) var outShadow : texture_storage_2d<r32float, write>;
-// Water-only auxiliary output: accepted normal XZ, compression, and shore.
+// Water: accepted normal XZ, compression, and shore.
+// Terrain: exact normal XYZ; LEGO W is distance below the top in brick widths.
 @group(0) @binding(4) var outMaterial : texture_storage_2d<rgba16float, write>;
 // Baked shadow boundary (see src/terrain/shadow_bake.hpp): per cell, the
 // heightmap-space height below which a point is in the terrain's sun shadow.
@@ -967,6 +968,7 @@ fn main(@builtin(global_invocation_id) gid : vec3<u32>) {
     // DDA Loop - Hierarchical Traversal
     // ─────────────────────────────────────────────────────────────────────────
     var legoNormal = vec3<f32>(0.0, 1.0, 0.0);
+    var legoTopDistance = 0.0;
 
     var loopCount = 0u;
     loop {
@@ -1051,6 +1053,7 @@ fn main(@builtin(global_invocation_id) gid : vec3<u32>) {
                                 legoNormal = vec3<f32>(0.0, 1.0, 0.0);
                             }
                         }
+                        legoTopDistance = max(0.0, (brickY - (origin.y + dir.y * t)) / cellScale);
                         hitLego = true;
                     }
 
@@ -1070,6 +1073,7 @@ fn main(@builtin(global_invocation_id) gid : vec3<u32>) {
                             t = tStud;
                             hitLego = true;
                             let studPos = entryPos + dir * localStudT - studBasePos;
+                            legoTopDistance = max(0.0, (studHeightWorld - studPos.y) / cellScale);
                             if (studHit.y > 0.5) {
                                 legoNormal = vec3<f32>(0.0, 1.0, 0.0);
                             } else {
@@ -1219,9 +1223,17 @@ fn main(@builtin(global_invocation_id) gid : vec3<u32>) {
 
         if (legoMode) {
             let lightDir = camera.lightDirWS.xyz;
-            // Back-facing plastic has no direct sun term, so tracing its
-            // stud shadow cannot affect lighting.
-            if (material != MATERIAL_TERRAIN || dot(legoNormal, lightDir) > 0.0) {
+            // Trace extra back-face shadows only inside a bevel band;
+            // the rest of the wall still has no direct lighting term.
+            let nDotL = dot(legoNormal, lightDir);
+            var bevelFacesSun = false;
+            if (nDotL <= 0.0 && nDotL > -0.7072) {
+                let local = fract((hitPos.xz + terrainOrigin) / cellScale);
+                let edges = min(local, vec2<f32>(1.0) - local);
+                let corner = select(edges.x, edges.y, abs(legoNormal.x) > 0.5);
+                bevelFacesSun = legoTopDistance < 0.04 || corner < 0.04;
+            }
+            if (material != MATERIAL_TERRAIN || nDotL > 0.0 || bevelFacesSun) {
                 shadowFactor = sampleLegoShadow(
                     hitPos, lightDir, terrainOrigin, cellScale, t);
             }
@@ -1259,7 +1271,7 @@ fn main(@builtin(global_invocation_id) gid : vec3<u32>) {
                 origin + dir * t, terrainOrigin, cellScale);
         }
         textureStore(outMaterial, vec2<i32>(gid.xy),
-                     vec4<f32>(terrainNormal, 1.0));
+                     vec4<f32>(terrainNormal, select(1.0, legoTopDistance, legoMode)));
     }
 }
 

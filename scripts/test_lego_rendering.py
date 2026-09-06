@@ -63,10 +63,68 @@ def reference(origin, rays, heights):
     return best, normals
 
 
+def check_bevel_shading(device):
+    """Execute the production bevel function on edge/rim/filtering cases."""
+    source = (ROOT / 'shaders/ray_blit.wgsl').read_text()
+    start = source.index('fn legoBevelNormal(')
+    end = source.index('// One filtered color sample', start)
+    helper = source[start:end]
+    cases = [
+        # local XZ, distance below top, footprint, geometric normal XYZ, pad
+        [0.5, 0.5, 0, 0, 0, 1, 0, 0],  # cap center
+        [1, 0.8, 0, 0, 0, 1, 0, 0],    # brick top edge
+        [0.85, 0.5, 0, 0, 0, 1, 0, 0], # stud cap rim
+        [0.85, 0.5, 0, 0, 1, 0, 0, 0], # stud wall rim
+        [1, 0.5, 1, 0, 1, 0, 0, 0],    # deep flat wall
+        [1, 1, 0, 0, 0, 1, 0, 0],      # three-way corner
+        [1, 0.8, 0, 0.06, 0, 1, 0, 0], # subpixel: exact flat normal
+        [0, 0.8, 0, 0, 0, 1, 0, 0],    # opposite edge symmetry
+    ]
+    cases += [[1, 0.8, 0, f, 0, 1, 0, 0] for f in np.linspace(0, 0.1, 64)]
+    values = np.array(cases, dtype=np.float32)
+    shader = device.create_shader_module(code=helper + """
+struct Sample { position: vec4<f32>, normal: vec4<f32> };
+@group(0) @binding(0) var<storage, read> samples: array<Sample>;
+@group(0) @binding(1) var<storage, read_write> result: array<vec4<f32>>;
+@compute @workgroup_size(1)
+fn test(@builtin(global_invocation_id) id: vec3<u32>) {
+    let s = samples[id.x];
+    result[id.x] = vec4<f32>(legoBevelNormal(s.position.xy,
+        s.normal.xyz, s.position.z, s.position.w), 0.0);
+}
+""")
+    pipeline = device.create_compute_pipeline(layout='auto', compute={'module': shader, 'entry_point': 'test'})
+    inputs = device.create_buffer_with_data(data=values, usage=wgpu.BufferUsage.STORAGE)
+    outputs = device.create_buffer(size=len(cases)*16, usage=wgpu.BufferUsage.STORAGE | wgpu.BufferUsage.COPY_SRC)
+    group = device.create_bind_group(layout=pipeline.get_bind_group_layout(0), entries=[
+        {'binding': 0, 'resource': {'buffer': inputs}},
+        {'binding': 1, 'resource': {'buffer': outputs}}])
+    encoder = device.create_command_encoder()
+    compute = encoder.begin_compute_pass()
+    compute.set_pipeline(pipeline)
+    compute.set_bind_group(0, group)
+    compute.dispatch_workgroups(len(cases))
+    compute.end()
+    device.queue.submit([encoder.finish()])
+    normals = np.frombuffer(device.queue.read_buffer(outputs), dtype=np.float32).reshape(-1, 4)[:, :3]
+    assert np.all(np.isfinite(normals))
+    np.testing.assert_allclose(np.linalg.norm(normals, axis=1), 1, atol=1e-5)
+    for i in [0, 4, 6]:
+        np.testing.assert_allclose(normals[i], values[i, 4:7], atol=1e-5)
+    for i in [1, 2, 3]:
+        np.testing.assert_allclose(normals[i], unit([1, 1, 0]), atol=1e-5)
+    np.testing.assert_allclose(normals[5], [0.5, 2**-0.5, 0.5], atol=1e-5)
+    np.testing.assert_allclose(normals[7], normals[1]*[-1, 1, 1], atol=1e-5)
+    assert np.all(np.diff(normals[8:, 0]) <= 1e-6), 'Bevel must fade monotonically'
+    assert np.all(np.sum(normals*values[:, 4:7], axis=1) >= 2**-0.5-1e-5)
+    print('PASS: bevel edges, stud rims, corners, symmetry, finite unit normals, and subpixel fade')
+
+
 def main():
     adapter = wgpu.gpu.request_adapter_sync(power_preference='low-power')
     device = adapter.request_device_sync()
     print('Adapter:', adapter.info['device'])
+    check_bevel_shading(device)
     source = Path(os.environ.get('VOXY_LEGO_SHADER', ROOT / 'shaders/terrain_raycast.wgsl')).read_text()
     shader = device.create_shader_module(code=source)
     device.create_shader_module(code=(ROOT / 'shaders/ray_blit.wgsl').read_text())
@@ -142,10 +200,14 @@ def main():
                 timings.append((time.perf_counter()-start)*1000)
         actual = np.frombuffer(result, dtype=np.float32)
         material_data = device.queue.read_texture({'texture': material}, {'bytes_per_row': WIDTH*8}, (WIDTH, HEIGHT, 1))
-        normals = np.frombuffer(material_data, dtype=np.float16).reshape(-1, 4)[:, :3].astype(np.float64)
+        material_values = np.frombuffer(material_data, dtype=np.float16).reshape(-1, 4).astype(np.float64)
+        normals = material_values[:, :3]
         shadow_data = device.queue.read_texture({'texture': shades}, {'bytes_per_row': WIDTH*4}, (WIDTH, HEIGHT, 1))
         shadows = np.frombuffer(shadow_data, dtype=np.float32)
         hit = np.isfinite(expected_depth)
+        top_distance = material_values[hit, 3]
+        assert np.all(np.isfinite(top_distance)) and np.all(top_distance >= 0)
+        assert np.all(top_distance[expected_normal[hit, 1] > 0.5] < 0.002)
         assert np.all(np.isfinite(shadows[hit]))
         assert np.all((shadows[hit] >= 0) & (shadows[hit] <= 1))
         mismatch = hit != (actual > 0)

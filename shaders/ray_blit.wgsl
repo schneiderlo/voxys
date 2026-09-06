@@ -376,10 +376,47 @@ struct TerrainSurface {
     wetness : f32,
 };
 
+// Shading-only moulded edges: no geometry, extra samples, or ray steps.
+// Distances are in brick widths. Suppress bevels before their narrow band
+// becomes subpixel instead of widening them into unstable bright outlines.
+fn legoBevelNormal(local : vec2<f32>, normal : vec3<f32>,
+                   topDistance : f32, footprint : f32) -> vec3<f32> {
+    let visibility = 1.0 - smoothstep(0.015, 0.06, footprint);
+    if (visibility <= 0.0) { return normal; }
+    let width = 0.04;
+    let centered = local - vec2<f32>(0.5);
+    let edgeDistance = min(local, vec2<f32>(1.0) - local);
+    let edgeWeight = vec2<f32>(1.0) - smoothstep(vec2<f32>(0.0),
+        vec2<f32>(width), edgeDistance);
+    var tilt = vec3<f32>(0.0);
+    if (normal.y > 0.5) {
+        let radius = length(centered);
+        if (radius <= 0.3501) {
+            // Only the cap is visible inside a stud's footprint.
+            let rim = 1.0 - smoothstep(0.0, width, 0.35 - radius);
+            tilt = vec3<f32>(centered.x, 0.0, centered.y)
+                * (rim / max(radius, 0.0001));
+        } else {
+            tilt = vec3<f32>(sign(centered.x) * edgeWeight.x,
+                0.0, sign(centered.y) * edgeWeight.y);
+        }
+    } else {
+        tilt.y = 1.0 - smoothstep(0.0, width, topDistance);
+        // Round vertical brick corners too; cylindrical stud walls already
+        // have an analytic radial normal and are far from these cell edges.
+        tilt.x = sign(centered.x) * edgeWeight.x * (1.0 - abs(normal.x));
+        tilt.z = sign(centered.y) * edgeWeight.y * (1.0 - abs(normal.z));
+    }
+    // Cap the tilt at 45 degrees, including three-way brick corners.
+    tilt /= max(1.0, length(tilt));
+    return normalize(normal + tilt * visibility);
+}
+
 // One filtered color sample per brick, with no extra textures or render passes.
 // Fade fine seams and broaden the plastic highlight before they become subpixel.
 fn sampleLegoSurface(worldPos : vec3<f32>, worldX : vec3<f32>,
-                     worldY : vec3<f32>, normal : vec3<f32>) -> TerrainSurface {
+                     worldY : vec3<f32>, normal : vec3<f32>,
+                     topDistance : f32) -> TerrainSurface {
     let cellScale = max(camera.metrics.y, 0.0001);
     let cellCounts = max(camera.terrainSize - vec2<f32>(1.0), vec2<f32>(1.0));
     let terrainOrigin = 0.5 * cellCounts * cellScale;
@@ -401,8 +438,9 @@ fn sampleLegoSurface(worldPos : vec3<f32>, worldX : vec3<f32>,
     let seam = (1.0 - smoothstep(0.0, 0.035, edge)) * detail;
     // Subtle mould seams only on horizontal tops, not stripes up stud walls.
     let contact = 1.0 - 0.14 * seam * max(normal.y, 0.0);
-    let roughness = mix(0.30, 0.55, smoothstep(0.15, 1.0, footprint));
-    return TerrainSurface(albedo * contact, normal, roughness, 0.0);
+    let shadingNormal = legoBevelNormal(local, normal, topDistance, footprint);
+    let roughness = mix(0.32, 0.55, smoothstep(0.15, 1.0, footprint));
+    return TerrainSurface(albedo * contact, shadingNormal, roughness, 0.0);
 }
 
 struct CovePropHit {
@@ -2202,7 +2240,8 @@ fn backgroundTerrain(pixel : vec2<i32>, dims : vec2<u32>,
     }
     var geometryNormal = normalize(
         (camera.invView * vec4<f32>(normal, 0.0)).xyz);
-    let exactTerrainNormal = textureLoad(materialTex, pixel, 0).xyz;
+    let terrainMaterial = textureLoad(materialTex, pixel, 0);
+    let exactTerrainNormal = terrainMaterial.xyz;
     if (dot(exactTerrainNormal, exactTerrainNormal) > 0.5) {
         geometryNormal = normalize(exactTerrainNormal);
     }
@@ -2227,7 +2266,7 @@ fn backgroundTerrain(pixel : vec2<i32>, dims : vec2<u32>,
         vec3<f32>(0.0), geometryNormal, 0.6, 0.0);
     if (camera.invProjParams.z > 0.5) {
         surface = sampleLegoSurface(
-            posCenterWorld, materialWorldX, materialWorldY, geometryNormal);
+            posCenterWorld, materialWorldX, materialWorldY, geometryNormal, terrainMaterial.w);
     } else {
         surface = sampleTerrainSurface(
             posCenterWorld, materialWorldX, materialWorldY,
@@ -2420,7 +2459,8 @@ fn fs(i : VSOut) -> @location(0) vec4<f32> {
     var normal = select(vec3<f32>(0.0, 1.0, 0.0), n / nLen, nLen > 1e-6);
     var geometryNormal = normalize(
         (camera.invView * vec4<f32>(normal, 0.0)).xyz);
-    let exactTerrainNormal = textureLoad(materialTex, pixelI, 0).xyz;
+    let terrainMaterial = textureLoad(materialTex, pixelI, 0);
+    let exactTerrainNormal = terrainMaterial.xyz;
     if (dot(exactTerrainNormal, exactTerrainNormal) > 0.5) {
         geometryNormal = normalize(exactTerrainNormal);
     }
@@ -2445,7 +2485,7 @@ fn fs(i : VSOut) -> @location(0) vec4<f32> {
         vec3<f32>(0.0), geometryNormal, 0.6, 0.0);
     if (camera.invProjParams.z > 0.5) {
         surface = sampleLegoSurface(
-            posCWorld, materialWorldX, materialWorldY, geometryNormal);
+            posCWorld, materialWorldX, materialWorldY, geometryNormal, terrainMaterial.w);
     } else {
         surface = sampleTerrainSurface(
             posCWorld, materialWorldX, materialWorldY, geometryNormal);
