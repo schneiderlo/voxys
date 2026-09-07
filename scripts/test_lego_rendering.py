@@ -14,7 +14,8 @@ import wgpu
 ROOT = Path(__file__).resolve().parents[1]
 WIDTH, HEIGHT, SIZE = 128, 80, 16
 SCALE = 10.0
-STUDY = os.environ.get("VOXY_LEGO_STUDY") == "1"
+MODE = int(os.environ.get("VOXY_LEGO_MODE", "2" if os.environ.get("VOXY_LEGO_STUDY") == "1" else "1"))
+STUDY = MODE >= 2
 STUD_HEIGHT = 0.18 if STUDY else 0.2
 STUD_RADIUS = 0.30 if STUDY else 0.35
 
@@ -186,7 +187,7 @@ def main():
         u[48:52] = [SIZE, SIZE, 1/SIZE, 1/SIZE]
         u[52:56] = [SCALE, 1, 1, 0]
         u[56:60] = list(origin) + [1]
-        u[60:64] = [sx, sy, 2 if STUDY else 1, 0]
+        u[60:64] = [sx, sy, MODE, 0]
         u[92:96] = list(unit([1, 2, -1])) + [0]
         device.queue.write_buffer(uniform, 0, u)
         xx, yy = np.meshgrid((np.arange(WIDTH)+0.5)/WIDTH*2-1, 1-(np.arange(HEIGHT)+0.5)/HEIGHT*2)

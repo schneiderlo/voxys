@@ -303,7 +303,7 @@ struct TextureDesc {
 bool writeTexture(WGPUQueue queue, WGPUTexture texture,
                   std::span<const std::byte> data,
                   uint32_t width, uint32_t height, uint32_t bytesPerRow,
-                  uint32_t mipLevel = 0);
+                  uint32_t mipLevel = 0, WGPUOrigin3D origin = {0, 0, 0});
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Texture View Creation

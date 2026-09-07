@@ -118,8 +118,9 @@ bool CpuCapsuleMoverWorld::setTerrain(
     const size_t count = size_t{width} * height;
     if (samples.size() < count) return false;
     const auto selected = samples.first(count);
-    std::vector<uint16_t> replacement(selected.begin(), selected.end());
-    terrainSamples_ = std::move(replacement);
+    // Reuse storage when switching the same full-size terrain to LEGO. A
+    // second temporary 8K sample array would add 128 MiB to peak WASM memory.
+    terrainSamples_.assign(selected.begin(), selected.end());
     terrainWidth_ = width;
     terrainHeight_ = height;
     terrainHeightScale_ = heightScale;

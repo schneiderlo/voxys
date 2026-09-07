@@ -490,6 +490,42 @@ const LEGO_PALETTE = array<vec3<f32>,12>(
     vec3<f32>(0.33245154,0.34191442,0.28744084),
     vec3<f32>(0.37123768,0.37123768,0.30946892),
     vec3<f32>(0.41788507,0.41254261,0.34670406));
+// Missing/far cache cells keep the shared material and exact physical surface.
+// Only shade after a ray hit; no layout traversal in the ray marcher.
+fn legoFallbackTop(cell: vec2<i32>) -> f32 {
+    let c = clamp(cell,vec2<i32>(0),vec2<i32>(camera.terrainSize)-vec2<i32>(2));
+    return legoPlateTop(textureLoad(fusedHeightTex,c,0).x,camera.metrics.x,camera.metrics.y);
+}
+fn legoFallbackLayout(cell: vec2<i32>) -> u32 {
+    let y = legoFallbackTop(cell)-camera.waterParams.x;
+    let scale = camera.metrics.y;
+    var family = 0u;
+    if (y >= 2.4*scale) {
+        let relief = max(abs(legoFallbackTop(cell-vec2<i32>(2,0))-legoFallbackTop(cell+vec2<i32>(2,0))),
+                         abs(legoFallbackTop(cell-vec2<i32>(0,2))-legoFallbackTop(cell+vec2<i32>(0,2))));
+        family = select(1u,2u,y > 12.0*scale);
+        if (y > 6.0*scale && relief > 1.8*scale) { family = 3u; }
+    }
+    // Match the CPU's world-anchored shade hash, including u32 wraparound.
+    var h = (u32(cell.x)+173u)*374761393u ^ (u32(cell.y)+419u)*668265263u;
+    h = (h^(h>>13u))*1274126177u;
+    let shadeHash = (h^(h>>16u))%10u;
+    let shade = select(select(1u,2u,shadeHash>=8u),0u,shadeHash<2u);
+    return 0x1000u | ((family*3u+shade)<<8u);
+}
+fn legoMaterialLayout(cell: vec2<i32>) -> u32 {
+    let c = clamp(cell,vec2<i32>(0),vec2<i32>(camera.terrainSize)-vec2<i32>(2));
+    let dims = vec2<i32>(textureDimensions(legoLayoutTex));
+    if (camera.invProjParams.z < 3.5) {
+        return textureLoad(legoLayoutTex,clamp(c,vec2<i32>(0),dims-vec2<i32>(1)),0).x;
+    }
+    let chunk = vec2<u32>(c)/32u;
+    let chunksPerRow = (u32(camera.terrainSize.x)-2u)/32u+1u;
+    let key = chunk.y*chunksPerRow+chunk.x;
+    let packed = textureLoad(legoLayoutTex,c%dims,0).x;
+    if ((packed&0x1000u)!=0u && (packed>>16u)==key) { return packed; }
+    return legoFallbackLayout(c);
+}
 fn sampleLegoStudy(worldPos: vec3<f32>, worldX: vec3<f32>, worldY: vec3<f32>,
                     normal: vec3<f32>, topDistance: f32) -> TerrainSurface {
     let scale = camera.metrics.y;
@@ -497,9 +533,9 @@ fn sampleLegoStudy(worldPos: vec3<f32>, worldX: vec3<f32>, worldY: vec3<f32>,
     let coordinate = (worldPos.xz-normal.xz*(scale*0.001)+origin)/scale;
     let cell = floor(coordinate);
     let local = fract(coordinate);
-    let packed = textureLoad(legoLayoutTex,clamp(vec2<i32>(cell),vec2<i32>(0),
-        vec2<i32>(textureDimensions(legoLayoutTex))-vec2<i32>(1)),0).x;
-    let grouped = camera.invProjParams.z < 2.5;
+    let packed = legoMaterialLayout(vec2<i32>(cell));
+    let mode = camera.invProjParams.z;
+    let grouped = mode < 2.5 || (mode >= 3.5 && mode < 4.5);
     let offset = select(vec2<f32>(0.0),vec2<f32>(f32(packed&3u),f32((packed>>2u)&3u)),grouped);
     let size = select(vec2<f32>(1.0),vec2<f32>(f32((packed>>4u)&3u)+1.0,f32((packed>>6u)&3u)+1.0),grouped);
     let brickLocal = local + offset;

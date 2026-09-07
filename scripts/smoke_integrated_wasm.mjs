@@ -13,7 +13,7 @@ const root=path.resolve(process.argv[2]||'smoke-web');
 const selected=process.argv[3];
 if(!selected){
     const reports=[];
-    for(const experience of ['default','lego','terrain','ridgebreak']){
+    for(const experience of ['default','lego-world','lego','terrain','ridgebreak']){
         const output=path.resolve(`startup-${experience}-report.json`);
         const child=spawn(process.execPath,[fileURLToPath(import.meta.url),root,experience],
             {stdio:'inherit',env:{...process.env,VOXY_SMOKE_REPORT:output}});
@@ -24,8 +24,9 @@ if(!selected){
     await writeFile('integrated-startup-report.json',JSON.stringify({status:'passed',reports},null,2));
     process.exit(0);
 }
-assert(['default','lego','terrain','ridgebreak'].includes(selected),'unknown scene');
-const isLego=selected==='default'||selected==='lego';
+assert(['default','lego-world','lego','terrain','ridgebreak'].includes(selected),'unknown scene');
+const isWorld=selected==='default'||selected==='lego-world';
+const isLego=isWorld||selected==='lego';
 const directory=await mkdtemp(path.join(tmpdir(),'voxys-startup-'));
 const delay=ms=>new Promise(r=>setTimeout(r,ms));
 const mime={'.html':'text/html','.js':'text/javascript','.css':'text/css','.wasm':'application/wasm','.data':'application/octet-stream'};
@@ -49,7 +50,7 @@ const gpuFlags=process.env.VOXY_SMOKE_GPU==='swiftshader'
 const chrome=spawn(process.env.VOXY_TEST_CHROME||'google-chrome',[
     '--headless=new','--no-sandbox','--no-first-run','--no-default-browser-check',
     '--disable-background-networking','--enable-unsafe-webgpu','--enable-unsafe-swiftshader',
-    '--disable-gpu-watchdog',...gpuFlags,
+    '--disable-gpu-watchdog','--disable-background-timer-throttling','--disable-renderer-backgrounding',...gpuFlags,
     '--remote-debugging-port=0',`--user-data-dir=${directory}`,'about:blank'
 ],{stdio:['ignore','ignore','pipe']});
 let logs='',spawnError,socket;
@@ -94,10 +95,11 @@ try{
     // shortcuts that skip Application::init or replace the chosen scene.
     const base=`http://127.0.0.1:${server.address().port}`;
     const url=selected==='default'?`${base}/`:
-        selected==='lego'?`${base}/index.html?experience=lego`:
+        isLego?`${base}/index.html?experience=${selected}`:
         `${base}/index.html?browserBenchmarkRun=1&physicsProfile=1&renderProfile=1&telemetry=0&physicsMaxBodies=1024&experience=${selected}`;
     report.url=url;
     await call('Page.navigate',{url});
+    await call('Page.bringToFront');
     let sample;const started=Date.now();
     while(Date.now()-started<180000){
         assert.equal(browserErrors.length,0,browserErrors.join('\n'));
@@ -137,11 +139,11 @@ try{
     report.budget_single_sample=budget.result.value.summary;
     assert.equal(Boolean(sample.moto?.active),selected==='ridgebreak','experience activation mismatch');
     if(isLego){
-        assert.equal(sample.title,'LEGO Shore — Voxys');
+        assert.equal(sample.title,isWorld?'LEGO Landscape — Voxys':'LEGO Shore — Voxys');
         assert.equal(sample.legoControlsVisible,true);
-        assert.equal(sample.telemetry.render.terrain_width,256,'LEGO source was upscaled');
-        assert.equal(sample.telemetry.render.terrain_height,256,'LEGO source was upscaled');
-        assert.equal(sample.telemetry.render.terrain_mips,9);
+        assert.equal(sample.telemetry.render.terrain_width,isWorld?8192:256,'LEGO source was upscaled');
+        assert.equal(sample.telemetry.render.terrain_height,isWorld?8192:256,'LEGO source was upscaled');
+        assert.equal(sample.telemetry.render.terrain_mips,isWorld?14:9);
         assert.equal(sample.heapBytes,512*1024*1024,'fixed WASM memory budget changed');
     }
     assert.equal(browserErrors.length,0,browserErrors.join('\n'));

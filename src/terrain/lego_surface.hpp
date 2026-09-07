@@ -154,57 +154,80 @@ struct Layout {
     uint32_t bricks = 0, largeBricks = 0, chunks = 0;
 };
 
+// One chunk is shared by the small study and the large-world cache. It reads
+// only the source heightmap and a two-cell color-classification halo.
+inline uint32_t colorFamily(const Surface& s, uint32_t x, uint32_t z,
+                            float waterHeight) noexcept {
+    const float y = s.cellTop(int(x), int(z)) - waterHeight;
+    if (y < 2.4f * s.cellScale) return 0u;
+    const uint32_t l = x > 2 ? x - 2 : 0, r = std::min(x + 2, s.width - 2);
+    const uint32_t t = z > 2 ? z - 2 : 0, b = std::min(z + 2, s.height - 2);
+    const float relief = std::max(std::abs(s.cellTop(int(l), int(z)) - s.cellTop(int(r), int(z))),
+                                  std::abs(s.cellTop(int(x), int(t)) - s.cellTop(int(x), int(b))));
+    if (y > 6 * s.cellScale && relief > 1.8f * s.cellScale) return 3u;
+    return y > 12 * s.cellScale ? 2u : 1u;
+}
+
+struct ChunkLayout {
+    std::array<uint16_t, kChunkCells * kChunkCells> cells{};
+    uint32_t bricks = 0, largeBricks = 0;
+};
+
+inline ChunkLayout buildChunk(const Surface& s, uint32_t chunkX, uint32_t chunkZ,
+                               float waterHeight, uint32_t sourceX = 0,
+                               uint32_t sourceZ = 0) {
+    ChunkLayout out;
+    if (!s.valid() || chunkX >= (s.width - 2) / kChunkCells + 1
+        || chunkZ >= (s.height - 2) / kChunkCells + 1) return out;
+    const uint32_t cx = chunkX * kChunkCells, cz = chunkZ * kChunkCells;
+    const uint32_t endX = std::min(cx + kChunkCells, s.width - 1);
+    const uint32_t endZ = std::min(cz + kChunkCells, s.height - 1);
+    const uint32_t count = plateCount(s.heightScale, s.cellScale);
+    const auto at = [&](uint32_t x, uint32_t z) { return level(s.samples[size_t{z} * s.width + x], count); };
+    const auto index = [&](uint32_t x, uint32_t z) { return size_t{z - cz} * kChunkCells + x - cx; };
+    constexpr std::array<std::array<uint32_t, 2>, 7> shapes{{{2,4},{4,2},{2,2},{1,2},{2,1},{1,1},{1,1}}};
+    for (uint32_t pass = 0; pass < 4; ++pass)
+        for (uint32_t z = cz; z < endZ; ++z) for (uint32_t x = cx; x < endX; ++x) {
+            if (out.cells[index(x,z)]) continue;
+            for (uint32_t rotation = 0; rotation < (pass == 0 || pass == 2 ? 2u : 1u); ++rotation) {
+                const uint32_t turn = rotation ^ (hash((x + sourceX) >> 2, (z + sourceZ) >> 1) & 1u);
+                const uint32_t shape = pass == 0 ? turn : pass == 1 ? 2u : pass == 2 ? 3u + turn : 5u;
+                const auto [w,d] = shapes[shape];
+                if (x + w > endX || z + d > endZ) continue;
+                bool fits = true;
+                for (uint32_t dz=0; dz<d; ++dz) for (uint32_t dx=0; dx<w; ++dx)
+                    fits = fits && !out.cells[index(x+dx,z+dz)] && at(x+dx,z+dz)==at(x,z);
+                if (!fits) continue;
+                std::array<uint32_t,4> votes{};
+                for (uint32_t dz=0; dz<d; ++dz) for (uint32_t dx=0; dx<w; ++dx)
+                    ++votes[colorFamily(s,x+dx,z+dz,waterHeight)];
+                const uint32_t family = uint32_t(std::max_element(votes.begin(),votes.end())-votes.begin());
+                const uint32_t shadeHash = hash(x+sourceX,z+sourceZ) % 10u;
+                const uint32_t palette = family*3u + (shadeHash<2u ? 0u : shadeHash>=8u ? 2u : 1u);
+                for (uint32_t dz=0; dz<d; ++dz) for (uint32_t dx=0; dx<w; ++dx)
+                    out.cells[index(x+dx,z+dz)] = uint16_t(0x1000u | dx | dz<<2u | (w-1u)<<4u | (d-1u)<<6u | palette<<8u);
+                ++out.bricks;
+                if (w*d==8u) ++out.largeBricks;
+                break;
+            }
+        }
+    return out;
+}
+
 inline Layout buildLayout(const Surface& s, float waterHeight,
                           uint32_t sourceX = 0, uint32_t sourceZ = 0) {
     Layout out;
     if (!s.valid() || s.width > kMaximumStudySamples || s.height > kMaximumStudySamples) return out;
     out.cells.resize(size_t{s.width} * s.height);
-    const uint32_t count = plateCount(s.heightScale, s.cellScale);
-    const auto at = [&](uint32_t x, uint32_t z) { return level(s.samples[size_t{z} * s.width + x], count); };
-    const auto familyAt = [&](uint32_t x, uint32_t z) {
-        const float y = s.cellTop(int(x), int(z)) - waterHeight;
-        if (y < 2.4f * s.cellScale) return 0u;
-        const uint32_t l = x > 2 ? x - 2 : 0, r = std::min(x + 2, s.width - 2);
-        const uint32_t t = z > 2 ? z - 2 : 0, b = std::min(z + 2, s.height - 2);
-        const float relief = std::max(std::abs(s.cellTop(int(l), int(z)) - s.cellTop(int(r), int(z))),
-                                      std::abs(s.cellTop(int(x), int(t)) - s.cellTop(int(x), int(b))));
-        if (y > 6 * s.cellScale && relief > 1.8f * s.cellScale) return 3u;
-        return y > 12 * s.cellScale ? 2u : 1u;
-    };
-    constexpr std::array<std::array<uint32_t, 2>, 7> shapes{{{2,4},{4,2},{2,2},{1,2},{2,1},{1,1},{1,1}}};
-    // World-anchored chunks and largest-first passes prevent a narrow terrace
-    // fringe from consuming every potential large brick. Loading order cannot
-    // affect ownership. No bricks straddle a chunk edge.
     for (uint32_t cz = 0; cz < s.height - 1; cz += kChunkCells)
         for (uint32_t cx = 0; cx < s.width - 1; cx += kChunkCells) {
+            const auto chunk = buildChunk(s,cx/kChunkCells,cz/kChunkCells,waterHeight,sourceX,sourceZ);
             ++out.chunks;
-            const uint32_t endX = std::min(cx + kChunkCells, s.width - 1);
-            const uint32_t endZ = std::min(cz + kChunkCells, s.height - 1);
-            for (uint32_t pass = 0; pass < 4; ++pass)
-                for (uint32_t z = cz; z < endZ; ++z) for (uint32_t x = cx; x < endX; ++x) {
-                    const size_t index = size_t{z} * s.width + x;
-                    if (out.cells[index]) continue;
-                    for (uint32_t rotation = 0; rotation < (pass == 0 || pass == 2 ? 2u : 1u); ++rotation) {
-                        const uint32_t turn = rotation ^ (hash((x + sourceX) >> 2, (z + sourceZ) >> 1) & 1u);
-                        const uint32_t shape = pass == 0 ? turn : pass == 1 ? 2u : pass == 2 ? 3u + turn : 5u;
-                        const auto [w,d] = shapes[shape];
-                        if (x + w > endX || z + d > endZ) continue;
-                        bool fits = true;
-                        for (uint32_t dz=0; dz<d; ++dz) for (uint32_t dx=0; dx<w; ++dx)
-                            fits = fits && !out.cells[size_t{z+dz}*s.width+x+dx] && at(x+dx,z+dz)==at(x,z);
-                        if (!fits) continue;
-                        std::array<uint32_t,4> votes{};
-                        for (uint32_t dz=0; dz<d; ++dz) for (uint32_t dx=0; dx<w; ++dx) ++votes[familyAt(x+dx,z+dz)];
-                        const uint32_t family = uint32_t(std::max_element(votes.begin(),votes.end())-votes.begin());
-                        const uint32_t shadeHash = hash(x+sourceX,z+sourceZ) % 10u;
-                        const uint32_t palette = family*3u + (shadeHash<2u ? 0u : shadeHash>=8u ? 2u : 1u);
-                        for (uint32_t dz=0; dz<d; ++dz) for (uint32_t dx=0; dx<w; ++dx)
-                            out.cells[size_t{z+dz}*s.width+x+dx] = uint16_t(0x1000u | dx | dz<<2u | (w-1u)<<4u | (d-1u)<<6u | palette<<8u);
-                        ++out.bricks;
-                        if (w*d==8u) ++out.largeBricks;
-                        break;
-                    }
-                }
+            out.bricks += chunk.bricks;
+            out.largeBricks += chunk.largeBricks;
+            for (uint32_t z=cz; z<std::min(cz+kChunkCells,s.height-1); ++z)
+                for (uint32_t x=cx; x<std::min(cx+kChunkCells,s.width-1); ++x)
+                    out.cells[size_t{z}*s.width+x] = chunk.cells[size_t{z-cz}*kChunkCells+x-cx];
         }
     return out;
 }

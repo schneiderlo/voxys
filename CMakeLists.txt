@@ -467,6 +467,7 @@ if(VOXY_BUILD_WASM)
         foreach(VOXY_WASM_DATA_FILE
             ridgebreak.cfg
             lego_shore.cfg
+            lego_world.cfg
             data/lego_shore.ldh
             data/generated/td_seed_1234_8192.ldh
             data/generated/td_seed_1234_2048_albedo.jpg

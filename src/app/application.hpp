@@ -61,6 +61,7 @@ namespace gpu {
 namespace terrain {
     class Heightmap;
     class TerrainTextures;
+    namespace lego { class LayoutCache; }
 }
 
 namespace render {
@@ -736,6 +737,8 @@ private:
     void renderMoto(WGPUCommandEncoder encoder, WGPUTextureView colorView);
     void pollRenderGpuTimings();
     void updateCameraUniforms();
+    [[nodiscard]] bool initLegoLayout();
+    void updateLegoLayout();
     void applyRendererSettings();
     void updateWaterPhysicsBindings();
     [[nodiscard]] bool rebuildWaterCoastField();
@@ -837,6 +840,7 @@ private:
     std::unique_ptr<physics::PhysicsWorld> physicsWorld_;
     std::unique_ptr<CharacterController> characterController_;
     std::unique_ptr<terrain::Heightmap> heightmap_;
+    std::unique_ptr<terrain::lego::LayoutCache> legoLayoutCache_;
     WGPUTexture legoLayoutTexture_ = nullptr;
     WGPUTextureView legoLayoutView_ = nullptr;
     std::unique_ptr<terrain::TerrainTextures> terrainTextures_;

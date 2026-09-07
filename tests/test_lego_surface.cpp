@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include "terrain/lego_surface.hpp"
+#include "terrain/lego_layout_cache.hpp"
 #include "physics/character/cpu_capsule_mover.hpp"
 #include <cmath>
 #include <vector>
@@ -126,5 +127,86 @@ TEST(LegoSurface, PlayerLandsAndJumpsInNegativeHeightSector) {
     for(int i=0;i<240;++i) motion=mover.moveCharacter(character,{0,0,0},false,6,20,50,1.0f/120);
     EXPECT_TRUE(motion.grounded);
     EXPECT_NEAR(motion.position.y+256.0f*motion.sector.y,support,.002f);
+}
+TEST(LegoSurface, ChunkBuilderMatchesStudyAndFullMapEdges) {
+    constexpr uint32_t n=65;
+    std::vector<uint16_t> small(n*n);
+    for (uint32_t z=0;z<n;++z) for(uint32_t x=0;x<n;++x)
+        small[z*n+x]=raw(float((x+z)/8)*.32f);
+    const Surface study{small,n,n,8,1};
+    const auto layout=buildLayout(study,0,2816,7424);
+    for(uint32_t cz=0;cz<2;++cz) for(uint32_t cx=0;cx<2;++cx) {
+        const auto chunk=buildChunk(study,cx,cz,0,2816,7424);
+        for(uint32_t z=0;z<32;++z) for(uint32_t x=0;x<32;++x)
+            ASSERT_EQ(chunk.cells[z*32+x],layout.cells[(cz*32+z)*n+cx*32+x]);
+    }
+    // Allocate only the authoritative samples: no full-world layout array.
+    std::vector<uint16_t> full(8192u*8192u,raw(-195,600));
+    const Surface world{full,8192,8192,600,1};
+    EXPECT_TRUE(buildLayout(world,-200).cells.empty());
+    const auto chunk=buildChunk(world,255,255,-200);
+    EXPECT_GT(chunk.largeBricks,0u);
+    for(uint32_t z=0;z<32;++z) for(uint32_t x=0;x<32;++x) {
+        const uint16_t cell=chunk.cells[z*32+x];
+        if(x==31||z==31) { EXPECT_EQ(cell,0); continue; }
+        EXPECT_TRUE(cell&0x1000);
+        EXPECT_LT((cell>>8)&15u,12u);
+        const auto packed=LayoutCache::pack(cell,65535);
+        EXPECT_TRUE(LayoutCache::matches(packed,65535));
+        EXPECT_FALSE(LayoutCache::matches(packed,0));
+    }
+    EXPECT_EQ(buildChunk(world,256,0,-200).bricks,0u);
+}
+
+TEST(LegoSurface, LayoutCacheIsBoundedReusesRowsAndRejectsStaleSlots) {
+    LayoutCache cache;
+    cache.request(8192,8192,{2048,2048});
+    EXPECT_EQ(cache.pendingCount(),1024u);
+    const auto first=cache.next(); ASSERT_TRUE(first);
+    EXPECT_EQ(first->x,64u); EXPECT_EQ(first->z,64u);
+    cache.uploaded(*first);
+    uint32_t processed=1;
+    while(const auto q=cache.next()) {cache.uploaded(*q);++processed;}
+    EXPECT_EQ(processed,1024u);
+    cache.request(8192,8192,{2049,2050});
+    EXPECT_EQ(cache.pendingCount(),0u);
+    cache.request(8192,8192,{2080,2048});
+    EXPECT_EQ(cache.pendingCount(),32u); // Only the newly visible row.
+    while(const auto q=cache.next()) cache.uploaded(*q);
+    cache.request(8192,8192,{4096,4096});
+    EXPECT_EQ(cache.pendingCount(),1024u);
+    const auto next=cache.next(); ASSERT_TRUE(next);
+    EXPECT_EQ(first->slot(),next->slot());
+    EXPECT_FALSE(cache.contains(*next));
+    EXPECT_FALSE(LayoutCache::matches(LayoutCache::pack(0x1000,first->key),next->key));
+    cache.uploaded(*next);
+    EXPECT_TRUE(cache.contains(*next));
+    EXPECT_FALSE(cache.contains(*first));
+    EXPECT_FALSE(LayoutCache::matches(0u,0u));
+    cache.invalidate();
+    cache.request(8192,8192,{8191,8191});
+    const auto edge=cache.next(); ASSERT_TRUE(edge);
+    EXPECT_EQ(edge->key,65535u);
+    EXPECT_LE(sizeof(cache),20u*1024u);
+    EXPECT_EQ(kCacheGpuBytes,4u*1024u*1024u);
+    EXPECT_EQ(kChunksPerFrame,4u);
+}
+
+TEST(LegoSurface, TerrainModeSwitchPreservesLiveCharacter) {
+    std::vector<uint16_t> data(65*65,raw(0));
+    voxy::physics::CpuCapsuleMoverWorld mover;
+    ASSERT_TRUE(mover.initialize());
+    ASSERT_TRUE(mover.setTerrain(data,65,65,8,1,false));
+    voxy::physics::CharacterSettings settings;
+    const auto character=mover.createCharacter({-.5f,2,-.5f},settings);
+    ASSERT_NE(character,voxy::physics::InvalidCharacter);
+    voxy::physics::CharacterMotion motion;
+    for(const bool lego : {true,false,true}) {
+        ASSERT_TRUE(mover.setTerrain(data,65,65,8,1,lego));
+        for(int i=0;i<240;++i) motion=mover.moveCharacter(character,{0,0,0},false,6,20,50,1.0f/120);
+        ASSERT_TRUE(motion.grounded);
+        const float y=motion.position.y+256.0f*motion.sector.y;
+        EXPECT_NEAR(y,lego ? kStudHeight : (float(data[0])/65535.0f*16.0f-8.0f),.003f);
+    }
 }
 } // namespace

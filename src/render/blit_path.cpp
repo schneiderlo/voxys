@@ -1783,7 +1783,7 @@ bool BlitPath::createBindGroupLayout() {
     // @group(0) @binding(18) var terrainMaterialNormalRoughness :
     //     texture_2d_array<f32>;
 
-    std::array<gpu::BindGroupLayoutEntry, 15> entries = {
+    std::array<gpu::BindGroupLayoutEntry, 16> entries = {
         gpu::BindGroupLayoutEntry(0)
             .vertexVisible()
             .fragmentVisible()
@@ -1818,6 +1818,8 @@ bool BlitPath::createBindGroupLayout() {
         gpu::BindGroupLayoutEntry(10)
             .fragmentVisible()
             .sampler(WGPUSamplerBindingType_Filtering),
+        gpu::BindGroupLayoutEntry(13).fragmentVisible()
+            .texture(WGPUTextureSampleType_Uint,WGPUTextureViewDimension_2D,false),
         gpu::BindGroupLayoutEntry(17)
             .fragmentVisible()
             .texture(WGPUTextureSampleType_Float,
@@ -2244,7 +2246,7 @@ bool BlitPath::createBindGroup() {
         if (nextBindGroup) wgpuBindGroupRelease(nextBindGroup);
     };
 
-    std::array<gpu::BindGroupEntry, 15> entries = {
+    std::array<gpu::BindGroupEntry, 16> entries = {
         gpu::BindGroupEntry(0).buffer(uniformBuffer_, 0, sizeof(CameraUniforms)),
         gpu::BindGroupEntry(1).textureView(depthView_),
         gpu::BindGroupEntry(2).textureView(shadowView_),
@@ -2256,6 +2258,7 @@ bool BlitPath::createBindGroup() {
         gpu::BindGroupEntry(8).textureView(skyLutView_),
         gpu::BindGroupEntry(9).textureView(surfaceFoamView_),
         gpu::BindGroupEntry(10).sampler(surfaceFoamSampler_),
+        gpu::BindGroupEntry(13).textureView(heightmapView_ ? heightmapView_ : emptyLegoView_),
         gpu::BindGroupEntry(17).textureView(terrainMaterialAlbedoView_),
         gpu::BindGroupEntry(18).textureView(
             terrainMaterialNormalRoughnessView_),
@@ -2291,7 +2294,7 @@ bool BlitPath::createBindGroup() {
     }
 
     if (createStaticGroups) {
-        std::array<gpu::BindGroupEntry, 15> staticEntries = {
+        std::array<gpu::BindGroupEntry, 16> staticEntries = {
             gpu::BindGroupEntry(0).buffer(
                 staticUniformBuffer_, 0, sizeof(CameraUniforms)),
             gpu::BindGroupEntry(1).textureView(staticDepthView_),
@@ -2305,6 +2308,7 @@ bool BlitPath::createBindGroup() {
             gpu::BindGroupEntry(8).textureView(skyLutView_),
             gpu::BindGroupEntry(9).textureView(surfaceFoamView_),
             gpu::BindGroupEntry(10).sampler(surfaceFoamSampler_),
+            gpu::BindGroupEntry(13).textureView(heightmapView_ ? heightmapView_ : emptyLegoView_),
             gpu::BindGroupEntry(17).textureView(
                 terrainMaterialAlbedoView_),
             gpu::BindGroupEntry(18).textureView(

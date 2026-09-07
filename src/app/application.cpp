@@ -32,6 +32,7 @@
 #include "moto/world.hpp"
 #include "physics/terrain_topology.hpp"
 #include "terrain/lego_surface.hpp"
+#include "terrain/lego_layout_cache.hpp"
 #include "terrain/authored_cove.hpp"
 #include "terrain/textures.hpp"
 #include "terrain/shadow_bake.hpp"
@@ -973,7 +974,10 @@ bool Application::init(const ApplicationConfig& config) {
     }
 
     if (config_.legoTerrainEnabled) {
-        const float x = -12.0f, z = -58.0f;
+        // The same shoreline viewpoint, in the original landscape coordinates.
+        const bool fullWorld = heightmap_->getWidth() > terrain::lego::kMaximumStudySamples;
+        const float x = fullWorld ? -1164.0f : -12.0f;
+        const float z = fullWorld ? 3398.0f : -58.0f;
         const float y = sampleTerrainHeight(x,z) + config_.cameraEyeHeight;
         setCameraWorldPose(*camera_, {x,y,z}, {x+8.0f,y-6.0f,z-35.0f});
         throwableBodyLimit_ = 32u;
@@ -1224,6 +1228,7 @@ void Application::shutdown() {
     }
 
     // Jolt streams directly from the heightmap, so release it after physics.
+    legoLayoutCache_.reset();
     if (legoLayoutView_) { wgpuTextureViewRelease(legoLayoutView_); legoLayoutView_ = nullptr; }
     if (legoLayoutTexture_) { wgpuTextureRelease(legoLayoutTexture_); legoLayoutTexture_ = nullptr; }
     if (heightmap_) {
@@ -1833,6 +1838,7 @@ void Application::render() {
     }
 
     // Update camera uniforms for all renderers
+    updateLegoLayout();
     updateCameraUniforms();
 
     renderGpuProfilingFrame_ = renderGpuQuerySet_
@@ -2783,11 +2789,34 @@ void Application::toggleWireframe() {
 }
 
 void Application::toggleLegoMode() {
-    legoMode_ = !legoMode_;
-    if (config_.legoTerrainEnabled)
-        LOG_INFO("LEGO appearance: {}", legoMode_ ? "grouped bricks" : "single bricks");
-    else LOG_INFO("Lego mode: {}", legoMode_ ? "enabled" : "disabled");
-    // Updates will be propagated in updateCameraUniforms()
+    const bool next = !legoMode_;
+    if (!config_.legoTerrainEnabled) {
+        if (!heightmap_ || !physicsWorld_
+            || physicsWorld_->backendType() != physics::BackendType::WebGpuSoft) {
+            LOG_WARN("LEGO terrain requires the WebGPU physics backend");
+            return;
+        }
+        if (next && !initLegoLayout()) return;
+        const auto attach = [&](bool lego) {
+            return lego ? physicsWorld_->setLegoTerrain(heightmap_->getData(),
+                heightmap_->getWidth(),heightmap_->getHeight(),config_.heightScale,config_.cellScale)
+                : physicsWorld_->setTerrain(heightmap_->getData(),heightmap_->getWidth(),
+                    heightmap_->getHeight(),config_.heightScale,config_.cellScale);
+        };
+        if (!attach(next)) {
+            static_cast<void>(attach(legoMode_));
+            LOG_ERROR("Could not switch terrain collision surface");
+            return;
+        }
+        if (characterController_) {
+            auto character = characterController_->config();
+            character.legoTerrain = next;
+            characterController_->setConfig(character);
+        }
+    }
+    legoMode_ = next;
+    LOG_INFO("LEGO appearance: {}", legoMode_ ? "grouped bricks"
+        : config_.legoTerrainEnabled ? "single bricks" : "landscape");
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -4134,22 +4163,7 @@ bool Application::initRenderers() {
             terrainTextures_->getMaterialNormalRoughnessView());
         blitPath_->setLightmapTexture(terrainTextures_->getLightmapView()); 
         blitPath_->setTerrainSize(heightmap_->getWidth(), heightmap_->getHeight());
-        if (config_.legoTerrainEnabled) {
-            const terrain::lego::Surface surface{heightmap_->getData(),heightmap_->getWidth(),heightmap_->getHeight(),
-                config_.heightScale,config_.cellScale};
-            const auto layout = terrain::lego::buildLayout(surface,rendererSettings_.waterHeight,2816u,7424u);
-            if (layout.cells.empty()) { LOG_ERROR("LEGO study exceeds its bounded layout budget"); return false; }
-            const auto desc = gpu::TextureDesc::tex2D(surface.width,surface.height,WGPUTextureFormat_R16Uint,
-                WGPUTextureUsage_TextureBinding | WGPUTextureUsage_CopyDst,"lego_brick_layout");
-            legoLayoutTexture_ = gpu::createTextureWithData(device,queue,desc,
-                std::as_bytes(std::span<const uint16_t>(layout.cells)),surface.width*sizeof(uint16_t));
-            if (!legoLayoutTexture_) return false;
-            legoLayoutView_ = gpu::createTextureView(legoLayoutTexture_);
-            if (!legoLayoutView_) return false;
-            blitPath_->setLegoLayoutTexture(legoLayoutView_);
-            LOG_INFO("LEGO shore: {} chunks, {} bricks ({} large), {} layout bytes",
-                layout.chunks,layout.bricks,layout.largeBricks,layout.cells.size()*sizeof(uint16_t));
-        }
+        if (config_.legoTerrainEnabled && !initLegoLayout()) return false;
     }
 
     {
@@ -4168,6 +4182,73 @@ bool Application::initRenderers() {
     return true;
 }
 
+bool Application::initLegoLayout() {
+    if (legoLayoutView_) return true;
+    if (!heightmap_ || !blitPath_) return false;
+    const auto device = gpuContext_->getDevice();
+    const auto queue = gpuContext_->getQueue();
+    const terrain::lego::Surface surface{heightmap_->getData(),heightmap_->getWidth(),
+        heightmap_->getHeight(),config_.heightScale,config_.cellScale};
+    if (!surface.valid() || surface.width > 8192 || surface.height > 8192) return false;
+    const bool cached = surface.width > terrain::lego::kMaximumStudySamples
+        || surface.height > terrain::lego::kMaximumStudySamples;
+    if (cached) {
+        const auto desc = gpu::TextureDesc::tex2D(terrain::lego::kCacheCells,
+            terrain::lego::kCacheCells,WGPUTextureFormat_R32Uint,
+            WGPUTextureUsage_TextureBinding | WGPUTextureUsage_CopyDst,"lego_world_layout");
+        legoLayoutTexture_ = gpu::createTexture(device,desc);
+        legoLayoutCache_ = std::make_unique<terrain::lego::LayoutCache>();
+    } else {
+        const bool shore = config_.legoTerrainEnabled;
+        const auto layout = terrain::lego::buildLayout(surface,rendererSettings_.waterHeight,
+            shore ? 2816u : 0u,shore ? 7424u : 0u);
+        const auto desc = gpu::TextureDesc::tex2D(surface.width,surface.height,WGPUTextureFormat_R16Uint,
+            WGPUTextureUsage_TextureBinding | WGPUTextureUsage_CopyDst,"lego_brick_layout");
+        legoLayoutTexture_ = gpu::createTextureWithData(device,queue,desc,
+            std::as_bytes(std::span<const uint16_t>(layout.cells)),surface.width*sizeof(uint16_t));
+    }
+    if (legoLayoutTexture_) legoLayoutView_ = gpu::createTextureView(legoLayoutTexture_);
+    if (!legoLayoutView_) {
+        if (legoLayoutTexture_) wgpuTextureRelease(legoLayoutTexture_);
+        legoLayoutTexture_ = nullptr;
+        legoLayoutCache_.reset();
+        LOG_ERROR("Could not allocate LEGO layout texture");
+        return false;
+    }
+    blitPath_->setLegoLayoutTexture(legoLayoutView_);
+    LOG_INFO("LEGO layout: {} ({} bytes)",cached ? "streamed world" : "shore study",
+        cached ? terrain::lego::kCacheGpuBytes : surface.width*surface.height*2u);
+    return true;
+}
+
+void Application::updateLegoLayout() {
+    if (!legoLayoutCache_ || !legoMode_ || !camera_ || !heightmap_) return;
+    const terrain::lego::Surface surface{heightmap_->getData(),heightmap_->getWidth(),
+        heightmap_->getHeight(),config_.heightScale,config_.cellScale};
+    const auto position = physics::worldPositionToAbsolute(physics::canonicalWorldPosition(
+        camera_->worldSector(),glm::dvec3(camera_->position())));
+    legoLayoutCache_->request(surface.width,surface.height,
+        (glm::vec2(float(position.x),float(position.z))+surface.origin())/surface.cellScale);
+    std::array<uint32_t,terrain::lego::kChunkCells*terrain::lego::kChunkCells> packed;
+    for (uint32_t i=0; i<terrain::lego::kChunksPerFrame; ++i) {
+        const auto request = legoLayoutCache_->next();
+        if (!request) break;
+        const auto chunk = terrain::lego::buildChunk(surface,request->x,request->z,rendererSettings_.waterHeight);
+        for (size_t j=0; j<packed.size(); ++j)
+            packed[j] = terrain::lego::LayoutCache::pack(chunk.cells[j],request->key);
+        const WGPUOrigin3D origin{(request->x % terrain::lego::kCacheChunks)*terrain::lego::kChunkCells,
+            (request->z % terrain::lego::kCacheChunks)*terrain::lego::kChunkCells,0};
+        if (!gpu::writeTexture(gpuContext_->getQueue(),legoLayoutTexture_,
+                std::as_bytes(std::span<const uint32_t>(packed)),terrain::lego::kChunkCells,
+                terrain::lego::kChunkCells,terrain::lego::kChunkCells*sizeof(uint32_t),0,origin)) {
+            legoLayoutCache_->invalidate();
+            break;
+        }
+        legoLayoutCache_->uploaded(*request);
+        blitPath_->invalidateLegoLayout();
+    }
+}
+
 float Application::sampleTerrainHeight(float worldX, float worldZ) const {
     if (!heightmap_ || !heightmap_->isLoaded()
         || !std::isfinite(worldX) || !std::isfinite(worldZ)
@@ -4177,7 +4258,7 @@ float Application::sampleTerrainHeight(float worldX, float worldZ) const {
 
     const glm::vec2 origin = physics::terrain_topology::centeredOrigin(
         heightmap_->getWidth(), heightmap_->getHeight(), config_.cellScale);
-    if (config_.legoTerrainEnabled) {
+    if (config_.legoTerrainEnabled || legoMode_) {
         return terrain::lego::Surface{heightmap_->getData(),heightmap_->getWidth(),heightmap_->getHeight(),
             config_.heightScale,config_.cellScale}.heightAt(worldX,worldZ);
     }
@@ -4613,7 +4694,9 @@ void Application::updateCameraUniforms() {
     uniforms.setLegoMode(legoMode_);
     // K compares grouping only in this physical LEGO scene. It never changes
     // the ground under a resting object or invalidates contact feature IDs.
-    if (config_.legoTerrainEnabled) uniforms.invProjParams.z = legoMode_ ? 2.0f : 3.0f;
+    if (config_.legoTerrainEnabled || legoMode_)
+        uniforms.invProjParams.z = legoLayoutCache_ ? (legoMode_ ? 4.0f : 5.0f)
+                                                  : (legoMode_ ? 2.0f : 3.0f);
     uniforms.invProjParams.w = config_.motoEnabled ? 1.0f : 0.0f;
     // Wrap before fp32 loses the sub-frame precision used by short waves.
     const float waterTime = static_cast<float>(

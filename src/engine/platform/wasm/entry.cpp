@@ -1010,7 +1010,8 @@ int main(int argc, char* argv[]) {
     // Configure the application from loaded config file
     voxy::ApplicationConfig appConfig;
     appConfig.motoEnabled = config.window.title == "RIDGEBREAK";
-    appConfig.legoTerrainEnabled = config.window.title == "LEGO SHORE";
+    appConfig.legoTerrainEnabled = config.window.title == "LEGO SHORE"
+        || config.window.title == "LEGO WORLD";
     
     // Window settings
     appConfig.windowWidth = config.window.width;
@@ -1187,7 +1188,7 @@ int main(int argc, char* argv[]) {
     appConfig.box3dWorkerThreads = 1;
     
     // The playable LEGO crop must not inherit the full landscape's 8K target.
-    appConfig.heightmapWidth = appConfig.legoTerrainEnabled ? 256u : 8192u;
+    appConfig.heightmapWidth = config.window.title == "LEGO SHORE" ? 256u : 8192u;
     appConfig.heightmapHeight = appConfig.heightmapWidth;
 
     if (appConfig.heightmapPath.empty() || 

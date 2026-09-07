@@ -250,7 +250,7 @@ WGPUTexture createTextureWithData(WGPUDevice device, WGPUQueue queue,
 bool writeTexture(WGPUQueue queue, WGPUTexture texture,
                   std::span<const std::byte> data,
                   uint32_t width, uint32_t height, uint32_t bytesPerRow,
-                  uint32_t mipLevel) {
+                  uint32_t mipLevel, WGPUOrigin3D origin) {
     if (!queue || !texture) {
         LOG_ERROR("Cannot write texture: queue or texture is null");
         return false;
@@ -266,7 +266,8 @@ bool writeTexture(WGPUQueue queue, WGPUTexture texture,
     }
     const uint32_t mipWidth = std::max(textureWidth >> mipLevel, 1u);
     const uint32_t mipHeight = std::max(textureHeight >> mipLevel, 1u);
-    if (width > mipWidth || height > mipHeight) {
+    if (origin.z != 0 || origin.x > mipWidth || origin.y > mipHeight
+        || width > mipWidth - origin.x || height > mipHeight - origin.y) {
         LOG_ERROR("Texture upload extent {}x{} exceeds mip {} extent {}x{}",
                   width, height, mipLevel, mipWidth, mipHeight);
         return false;
@@ -281,7 +282,7 @@ bool writeTexture(WGPUQueue queue, WGPUTexture texture,
         return false;
     }
 
-    CompatImageCopyTexture destination = makeTextureCopyDest(texture, mipLevel, {0, 0, 0});
+    CompatImageCopyTexture destination = makeTextureCopyDest(texture, mipLevel, origin);
     
     WGPUExtent3D writeSize{};
     writeSize.width = width;
