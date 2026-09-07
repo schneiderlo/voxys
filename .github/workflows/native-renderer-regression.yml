@@ -51,14 +51,16 @@ jobs:
   native-renderer:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    env:
+      CCACHE_DIR: ${{ github.workspace }}/.compiler-cache
     steps:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
       - run: sudo apt-get update && sudo apt-get install -y g++-14 gdb ccache libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libgl1-mesa-dev libwayland-dev libxkbcommon-dev mesa-vulkan-drivers xvfb
-      - uses: actions/cache@v4
+      - uses: actions/cache/restore@v4
         with:
-          path: ~/.ccache
+          path: ${{ env.CCACHE_DIR }}
           key: ccache-native-integration-${{ github.sha }}
           restore-keys: ccache-native-integration-
       - uses: actions/cache@v4
@@ -75,7 +77,7 @@ jobs:
       # Retain successful compilation even if a later runtime regression fails.
       - uses: actions/cache/save@v4
         with:
-          path: ~/.ccache
+          path: ${{ env.CCACHE_DIR }}
           key: ccache-native-integration-${{ github.sha }}
       - name: Terrain checksum and compatibility regression tests
         run: ctest --test-dir build-native -R '^(CRC32Test|CompressionTest|HeaderTest|FileIOTest)\.' --output-on-failure --timeout 120

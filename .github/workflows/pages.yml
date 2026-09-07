@@ -20,13 +20,14 @@ jobs:
     env:
       EM_CACHE_FOLDER: emsdk-cache
       EMSCRIPTEN_VERSION: '6.0.1'
+      CCACHE_DIR: ${{ github.workspace }}/.compiler-cache
     steps:
       - uses: actions/checkout@v4
       - name: Install ccache
         run: sudo apt-get update && sudo apt-get install -y ccache xvfb python3-pil
       - uses: actions/cache@v4
         with:
-          path: ~/.ccache
+          path: ${{ env.CCACHE_DIR }}
           key: ccache-${{ runner.os }}-${{ github.sha }}
           restore-keys: |
             ccache-${{ runner.os }}-
