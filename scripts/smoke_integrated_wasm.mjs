@@ -24,7 +24,7 @@ if(!selected){
     await writeFile('integrated-startup-report.json',JSON.stringify({status:'passed',reports},null,2));
     process.exit(0);
 }
-assert(['default','lego-world','lego','terrain','ridgebreak'].includes(selected),'unknown scene');
+assert(['default','lego-world','lego','terrain','ridgebreak','presentation'].includes(selected),'unknown scene');
 const isWorld=selected==='default'||selected==='lego-world';
 const isLego=isWorld||selected==='lego';
 const directory=await mkdtemp(path.join(tmpdir(),'voxys-startup-'));
@@ -33,6 +33,25 @@ const mime={'.html':'text/html','.js':'text/javascript','.css':'text/css','.wasm
 const server=http.createServer(async(req,res)=>{
     try{
         const requested=decodeURIComponent(new URL(req.url,'http://localhost').pathname);
+        if(requested==='/__presentation.html'){
+            res.writeHead(200,{'Content-Type':'text/html'});
+            res.end(`<!doctype html><canvas width="960" height="540"></canvas><script>
+                (async()=>{
+                    const a=await navigator.gpu.requestAdapter();
+                    const d=await a.requestDevice();
+                    d.lost.then(i=>{console.error(i.reason,i.message);globalThis.probe={lost:i.message};});
+                    const c=document.querySelector('canvas').getContext('webgpu');
+                    c.configure({device:d,format:'bgra8unorm',usage:GPUTextureUsage.RENDER_ATTACHMENT|GPUTextureUsage.COPY_SRC});
+                    for(let i=0;i<16;i++){
+                        const e=d.createCommandEncoder();
+                        const p=e.beginRenderPass({colorAttachments:[{view:c.getCurrentTexture().createView(),loadOp:'clear',storeOp:'store',clearValue:{r:.1,g:.6,b:.3,a:1}}]});
+                        p.end();d.queue.submit([e.finish()]);await d.queue.onSubmittedWorkDone();
+                        await new Promise(r=>setTimeout(r,50));
+                    }
+                    globalThis.probe={passed:true,adapter:{vendor:a.info.vendor,architecture:a.info.architecture}};
+                })().catch(e=>{console.error(e);globalThis.probe={error:String(e)};});
+            </script>`);return;
+        }
         // The unmodified main page enables local telemetry automatically.
         if(requested==='/api/telemetry'&&req.method==='POST'){
             req.resume();res.writeHead(204);res.end();return;
@@ -44,19 +63,26 @@ const server=http.createServer(async(req,res)=>{
     }catch{res.writeHead(404);res.end();}
 });
 await new Promise(r=>server.listen(0,'127.0.0.1',r));
-const gpuFlags=process.env.VOXY_SMOKE_GPU==='swiftshader'
+const gpuFlags=process.env.VOXY_SMOKE_GPU==='gaming'
+    ? ['--ozone-platform=wayland','--enable-features=Vulkan']
+    : process.env.VOXY_SMOKE_GPU==='swiftshader-window'
+    ? ['--ozone-platform=x11','--use-webgpu-adapter=swiftshader','--use-angle=swiftshader','--enable-features=Vulkan','--use-vulkan=swiftshader']
+    : process.env.VOXY_SMOKE_GPU==='swiftshader-legacy'
     ? ['--use-webgpu-adapter=swiftshader','--use-gpu-in-tests','--enable-accelerated-2d-canvas']
+    : process.env.VOXY_SMOKE_GPU==='swiftshader'
+    ? ['--use-webgpu-adapter=swiftshader','--use-angle=swiftshader','--enable-features=Vulkan','--use-vulkan=swiftshader','--disable-vulkan-surface']
     : ['--use-angle=vulkan','--enable-features=Vulkan','--use-vulkan=native','--disable-vulkan-surface'];
 const chrome=spawn(process.env.VOXY_TEST_CHROME||'google-chrome',[
-    '--headless=new','--no-sandbox','--no-first-run','--no-default-browser-check',
+    ...(['gaming','swiftshader-window'].includes(process.env.VOXY_SMOKE_GPU)?[]:['--headless=new']),'--no-sandbox','--no-first-run','--no-default-browser-check',
     '--disable-background-networking','--enable-unsafe-webgpu','--enable-unsafe-swiftshader',
     '--disable-gpu-watchdog','--disable-background-timer-throttling','--disable-renderer-backgrounding',...gpuFlags,
     '--remote-debugging-port=0',`--user-data-dir=${directory}`,'about:blank'
 ],{stdio:['ignore','ignore','pipe']});
 let logs='',spawnError,socket;
-const browserErrors=[];
-chrome.stderr.on('data',d=>logs=(logs+d).slice(-12000));chrome.on('error',e=>spawnError=e);
-const report={kind:'application startup, no FPS acceptance',experience:selected};
+const browserErrors=[],consoleMessages=[];
+const diagnostics={allocations:{buffers:0,textures:0,bufferBytes:0},destroyCalls:[]};
+chrome.stderr.on('data',d=>logs+=d);chrome.on('error',e=>spawnError=e);
+const report={kind:'application startup, no FPS acceptance',experience:selected,gpuMode:process.env.VOXY_SMOKE_GPU||'hardware',flags:gpuFlags};
 const timer=setTimeout(()=>chrome.kill('SIGKILL'),240000);
 try{
     let port;
@@ -71,15 +97,30 @@ try{
     socket=new WebSocket(target.webSocketDebuggerUrl);
     const pending=new Map();let id=0;
     socket.addEventListener('message',e=>{const m=JSON.parse(e.data),p=pending.get(m.id);
+        if(m.method==='Runtime.consoleAPICalled')consoleMessages.push(m.params);
         if(m.method==='Runtime.exceptionThrown')browserErrors.push(m.params.exceptionDetails.exception?.description||m.params.exceptionDetails.text);
         if(m.method==='Runtime.consoleAPICalled'&&m.params.type==='error')browserErrors.push(m.params.args.map(a=>a.value??a.description??'').join(' '));
         if(p){pending.delete(m.id);m.error?p.reject(new Error(JSON.stringify(m.error))):p.resolve(m.result);}});
     socket.addEventListener('close',()=>{for(const p of pending.values())p.reject(new Error('Chrome closed'));pending.clear();});
     await new Promise((r,j)=>{socket.addEventListener('open',r,{once:true});socket.addEventListener('error',j,{once:true});});
     const call=(method,params={})=>new Promise((resolve,reject)=>{const n=++id;pending.set(n,{resolve,reject});socket.send(JSON.stringify({id:n,method,params}));});
-    await call('Runtime.enable');await call('Network.enable');
+    await call('Page.enable');await call('Runtime.enable');await call('Network.enable');
+    report.browser=await call('Browser.getVersion');
+    await call('Page.addScriptToEvaluateOnNewDocument',{source:`(() => {
+        globalThis.voxyStartupDiagnostics=${JSON.stringify(diagnostics)};
+        const d=globalThis.voxyStartupDiagnostics;
+        for(const name of ['createBuffer','createTexture','destroy']){
+            const original=GPUDevice.prototype[name];
+            GPUDevice.prototype[name]=function(descriptor){
+                if(name==='destroy')d.destroyCalls.push(new Error('GPUDevice.destroy').stack);
+                else if(name==='createBuffer'){d.allocations.buffers++;d.allocations.bufferBytes+=descriptor.size;}
+                else d.allocations.textures++;
+                return original.apply(this,arguments);
+            };
+        }
+    })();`});
     await call('Network.setBlockedURLs',{urls:['*googletagmanager.com*','*google-analytics.com*']});
-    await call('Emulation.setDeviceMetricsOverride',{width:isLego?960:320,height:isLego?540:240,deviceScaleFactor:1,mobile:false});
+    await call('Emulation.setDeviceMetricsOverride',{width:Number(process.env.VOXY_SMOKE_WIDTH)||(isLego?960:320),height:Number(process.env.VOXY_SMOKE_HEIGHT)||(isLego?540:240),deviceScaleFactor:1,mobile:false});
     // Allows a previously compiled integration artifact to exercise newer WGSL
     // without a C++ rebuild. It must be explicitly requested and is reported.
     if(process.env.VOXY_SMOKE_SHADER_DIR){
@@ -94,12 +135,27 @@ try{
     // Exercise the user's normal URL and capacity, without benchmark/self-test
     // shortcuts that skip Application::init or replace the chosen scene.
     const base=`http://127.0.0.1:${server.address().port}`;
-    const url=selected==='default'?`${base}/`:
+    const localUrl=selected==='presentation'?`${base}/__presentation.html`:selected==='default'?`${base}/`:
         isLego?`${base}/index.html?experience=${selected}`:
         `${base}/index.html?browserBenchmarkRun=1&physicsProfile=1&renderProfile=1&telemetry=0&physicsMaxBodies=1024&experience=${selected}`;
+    const url=process.env.VOXY_SMOKE_URL||localUrl;
     report.url=url;
+    const navigationStarted=Date.now();
     await call('Page.navigate',{url});
     await call('Page.bringToFront');
+    await call('Emulation.setFocusEmulationEnabled',{enabled:true});
+    if(selected==='presentation'){
+        const start=Date.now();
+        while(Date.now()-start<30000){
+            const r=await call('Runtime.evaluate',{expression:'globalThis.probe',returnByValue:true});
+            report.probe=r.result?.value;
+            if(report.probe)break;
+            await delay(100);
+        }
+        assert.equal(report.probe?.passed,true,JSON.stringify(report.probe));
+        assert.equal(browserErrors.length,0,browserErrors.join('\n'));
+        report.status='passed';
+    }else{
     let sample;const started=Date.now();
     while(Date.now()-started<180000){
         assert.equal(browserErrors.length,0,browserErrors.join('\n'));
@@ -113,6 +169,8 @@ try{
                 errors:globalThis.voxyUncapturedGpuErrors||[],lost:globalThis.voxyDeviceLost,
                 adapter:window.voxyDeviceProfile?.adapter,title:document.title,
                 heapBytes:voxyModule.HEAPU8?.byteLength,
+                heapUsedBytes:voxyModule._voxy_get_heap_used_bytes?.(),
+                loadingVisible:getComputedStyle(document.getElementById('loading')).display!=='none',
                 legoControlsVisible:document.getElementById('lego-shore-controls')?.hidden===false};
         })()`});
         if(r.exceptionDetails)throw new Error(JSON.stringify(r.exceptionDetails));
@@ -120,10 +178,11 @@ try{
         if(sample?.errors?.length||sample?.lost)throw new Error('GPU device error: '+JSON.stringify(sample.lost||sample.errors));
         // Passing the eight-frame queue limit requires a completion callback.
         // A timestamp sample additionally proves that GPU work/readback retired.
-        if(sample?.telemetry?.frame?.count>=12&&sample.telemetry.render_gpu?.available)break;
+        if(sample?.telemetry?.frame?.count>=12&&sample.telemetry.render_gpu?.available&&!sample.loadingVisible)break;
         await delay(500);
     }
     assert(sample?.telemetry?.frame?.count>=12&&sample.telemetry.render_gpu?.available,'GPU did not retire startup frames');
+    assert.equal(sample.loadingVisible,false,'loading overlay still covers the application');
     assert.equal(sample.telemetry.physics.backend,'webgpu_soft');
     assert.equal(sample.telemetry.render_gpu.frame_interval_available,true);
     assert(sample.telemetry.render_gpu.gpu_frame_ms>0,'missing complete-frame timestamp');
@@ -148,10 +207,29 @@ try{
     }
     assert.equal(browserErrors.length,0,browserErrors.join('\n'));
     const screenshot=await call('Page.captureScreenshot',{format:'png'});
-    await writeFile(`startup-${selected}.png`,Buffer.from(screenshot.data,'base64'));
+    const screenshotPath=process.env.VOXY_SMOKE_SCREENSHOT||`startup-${selected}.png`;
+    await writeFile(screenshotPath,Buffer.from(screenshot.data,'base64'));
+    const check=spawn(process.env.PYTHON||'python3',[path.join(path.dirname(fileURLToPath(import.meta.url)),'check_startup_image.py'),screenshotPath],{stdio:'inherit'});
+    const imageCode=await new Promise((resolve,reject)=>{check.on('error',reject);check.on('close',resolve);});
+    assert.equal(imageCode,0,'main page has no visible landscape');
+    report.screenshot=screenshotPath;
+    report.startupElapsedMs=Date.now()-navigationStarted;
     report.status='passed';
+    }
 }catch(error){report.status='failed';report.error=String(error);report.chrome_log=logs;throw error;}
 finally{
+    report.console=consoleMessages;
+    report.browserErrors=browserErrors;
+    report.chrome_log=logs;
+    if(socket?.readyState===WebSocket.OPEN){
+        // Preserve diagnostics even when initialization never produced telemetry.
+        const n=900000;
+        report.startup=await Promise.race([new Promise(resolve=>{
+            const listener=e=>{const m=JSON.parse(e.data);if(m.id===n){socket.removeEventListener('message',listener);resolve(m.result);}};
+            socket.addEventListener('message',listener);
+            socket.send(JSON.stringify({id:n,method:'Runtime.evaluate',params:{returnByValue:true,expression:`({diagnostics:globalThis.voxyStartupDiagnostics,profile:window.voxyDeviceProfile,lost:globalThis.voxyDeviceLost,memory:performance.memory?{used:performance.memory.usedJSHeapSize,total:performance.memory.totalJSHeapSize}:null})`}}));
+        }),delay(3000).then(()=>({timeout:true}))]);
+    }
     await writeFile(process.env.VOXY_SMOKE_REPORT||'integrated-startup-report.json',JSON.stringify(report,null,2)+'\n');
     clearTimeout(timer);socket?.close();
     if(chrome.exitCode===null&&chrome.signalCode===null&&!spawnError){const closed=new Promise(r=>chrome.once('close',r));chrome.kill('SIGKILL');await closed;}

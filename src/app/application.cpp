@@ -847,7 +847,7 @@ bool Application::init(const ApplicationConfig& config) {
     shouldExit_ = false;
     debugVisMode_ = DebugVisMode::Off;
     wireframeEnabled_ = false;
-    legoMode_ = config_.legoTerrainEnabled;
+    legoMode_ = config.legoTerrainEnabled;
     controllerMode_ = ControllerMode::FreeFly;
     selectedThrowable_ = 0u;
     throwableBodyLimit_ = 0u;

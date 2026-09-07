@@ -22,6 +22,7 @@
 #include <sstream>
 #include <string>
 #include <emscripten.h>
+#include <malloc.h>
 #include <emscripten/html5.h>
 
 extern "C" WGPUDevice emscripten_webgpu_get_device(void);
@@ -1014,17 +1015,21 @@ int main(int argc, char* argv[]) {
         || config.window.title == "LEGO WORLD";
     
     // Window settings
-    appConfig.windowWidth = config.window.width;
-    appConfig.windowHeight = config.window.height;
+    // The browser sizes the canvas before loading WASM. Preserve its pixel
+    // dimensions instead of silently replacing them with the native config.
+    appConfig.windowWidth = EM_ASM_INT({ return Module.canvas.width; });
+    appConfig.windowHeight = EM_ASM_INT({ return Module.canvas.height; });
     appConfig.windowTitle = config.window.title.empty()
                           ? "RIDGEBREAK"
                           : config.window.title;
     appConfig.fullscreen = config.window.fullscreen;
-    // The web build historically starts with the immediate Emscripten loop.
-    // Using the native VSync default here silently caps a normal browser tab
-    // to the monitor refresh rate (about 85 FPS on the development display).
-    // F9 remains available for users who prefer RAF pacing.
-    appConfig.vsync = false;
+    // Normal play follows the scene's presentation pacing. Explicit throughput
+    // runs retain the immediate loop; F9 can still toggle it interactively.
+    appConfig.vsync = config.render.vsync;
+    if (EM_ASM_INT({ const p = new URLSearchParams(location.search);
+        return p.has('browserBenchmarkRun') || p.get('renderThroughput') === '1'; })) {
+        appConfig.vsync = false;
+    }
 
     // Render path selection
     if (config.render.path == "triangle") {
@@ -1363,6 +1368,11 @@ int main(int argc, char* argv[]) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 extern "C" {
+
+EMSCRIPTEN_KEEPALIVE
+uint32_t voxy_get_heap_used_bytes() {
+    return static_cast<uint32_t>(mallinfo().uordblks);
+}
 
 EMSCRIPTEN_KEEPALIVE
 void voxy_resize(int width, int height) {

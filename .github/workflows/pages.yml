@@ -23,7 +23,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install ccache
-        run: sudo apt-get update && sudo apt-get install -y ccache
+        run: sudo apt-get update && sudo apt-get install -y ccache xvfb python3-pil
       - uses: actions/cache@v4
         with:
           path: ~/.ccache
@@ -102,14 +102,9 @@ jobs:
           ls -lah docs/
       - name: Start the main page through the full browser application
         id: main_page_smoke
-        continue-on-error: true
         env:
-          VOXY_SMOKE_GPU: swiftshader
-        run: node scripts/smoke_integrated_wasm.mjs docs default
-      - name: Report software WebGPU smoke failure
-        if: steps.main_page_smoke.outcome == 'failure'
-        run: |
-          echo "::warning::SwiftShader startup smoke failed; continuing Pages deployment."
+          VOXY_SMOKE_GPU: swiftshader-window
+        run: xvfb-run -a node scripts/smoke_integrated_wasm.mjs docs default
       - uses: actions/upload-artifact@v4
         if: always()
         with:
