@@ -1,0 +1,73 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+[INFO ] [00:00:00.000] Loading config: lego_world.cfg
+[INFO ] [00:00:00.000] ═══════════════════════════════════════════════════════════════
+[INFO ] [00:00:00.000]   Voxy - Terrain Renderer
+[INFO ] [00:00:00.000]   Build target: native
+[INFO ] [00:00:00.000]   Render path: raycast
+[INFO ] [00:00:00.000] ═══════════════════════════════════════════════════════════════
+libdecor-gtk-WARNING: Failed to initialize GTK
+Failed to load plugin 'libdecor-gtk.so': failed to init
+[INFO ] [00:00:00.124] [Application::init] Window created via Wayland: 1920x1080 logical, 2400x1350 framebuffer (1.25x1.25 scale)
+[INFO ] [00:00:00.196] [Application::init::GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [00:00:00.196] [Application::init::GPU]   Vendor: radv
+[INFO ] [00:00:00.196] [Application::init::GPU]   Backend: Vulkan
+[INFO ] [00:00:00.196] [Application::init::GPU]   Type: Integrated GPU
+[INFO ] [00:00:00.200] [Application::init::GPU] Surface configured: 2400x1350, format=BGRA8Unorm, presentation=Fifo (VSync)
+[INFO ] [00:00:00.200] [Application::init::GPU] GPU context initialized successfully
+[INFO ] [00:00:02.697] [Application::init] WebGPU physics initialized: 256 usable body slots, 0 MiB resident, 32 MiB scratch
+[INFO ] [00:00:02.697] [Application::init] Physics backend: webgpu_soft (scheduler internal, concurrency 1)
+[INFO ] [00:00:03.214] [Application::init] Decompressed 8192x8192 heightmap: 31803420 -> 134217728 bytes (506.79 ms)
+[INFO ] [00:00:03.216] [Application::init] Loaded LDH heightmap: 8192x8192 (128.00 MB, 506.79 ms)
+[INFO ] [00:00:03.216] [Application::init] Loaded heightmap: data/generated/td_seed_1234_8192.ldh
+[INFO ] [00:00:03.247] [Application::init] Authored Wreckwater cove: 8008 core samples, 11108 feather samples, height -237.3..-158.7 m
+[INFO ] [00:00:03.430] [Application::init] Uploaded heightmap to GPU with mips: 8192x8192 (14 levels, 170.67 MB total)
+[INFO ] [00:00:03.536] [Application::init] Coastal refraction field initialized: 1024x1024
+[INFO ] [00:00:03.551] [Application::init] FFT water simulation initialized: 2 cascades at 256x256
+[INFO ] [00:00:03.555] [Application::init::TrianglePath::init] TrianglePath initialized successfully
+[INFO ] [00:00:03.646] [Application::init::RaycastPath::init] RaycastPath initialized successfully (2400x1350 output)
+[INFO ] [00:00:03.887] [Application::init] Baked shadow height field: 4096x4096 (241.2 ms)
+[INFO ] [00:00:04.244] [Application::init::TerrainTextures::init::TerrainTextures::loadTerrainMaterials] Loaded CC0 terrain material arrays from 'data/materials' (1024x1024x4)
+[INFO ] [00:00:04.244] [Application::init::TerrainTextures::init] TerrainTextures initialized: macro 256x256, lightmap 1x1, materials 1024x1024x4
+[INFO ] [00:00:04.770] [Application::init::BlitPath::init] Created water clipmap: 18817 vertices, 33792 triangles
+[INFO ] [00:00:04.862] [Application::init::BlitPath::init] Loaded original generated ocean environment: data/generated/ocean_environment.png
+[INFO ] [00:00:05.898] [Application::init::BlitPath::init] BlitPath initialized successfully
+[INFO ] [00:00:05.898] [Application::init] LEGO layout: streamed world (4194304 bytes)
+[INFO ] [00:00:05.921] Application initialized successfully
+[INFO ] [00:00:05.921]   Window: 1920x1080
+[INFO ] [00:00:05.921]   Terrain: 8192x8192 (mips: 14)
+[INFO ] [00:00:05.921]   Render path: raycast
+[INFO ] [00:00:05.921] 
+[INFO ] [00:00:05.921] Controls:
+[INFO ] [00:00:05.921]   WASD      - Move camera
+[INFO ] [00:00:05.921]   Mouse     - Look around (click to capture)
+[INFO ] [00:00:05.921]   Shift     - Speed boost / Run
+[INFO ] [00:00:05.921]   E/Space   - Move up / Jump
+[INFO ] [00:00:05.921]   Q/Ctrl    - Move down
+[INFO ] [00:00:05.921]   F1        - Toggle debug overlay
+[INFO ] [00:00:05.921]   F2        - Toggle wireframe mode
+[INFO ] [00:00:05.921]   F3        - Toggle render path
+[INFO ] [00:00:05.921]   F4        - Toggle depth visualization
+[INFO ] [00:00:05.921]   F5        - Toggle normal visualization
+[INFO ] [00:00:05.921]   F6        - Toggle mip level heat map
+[INFO ] [00:00:05.921]   F7        - Toggle benchmark mode
+[INFO ] [00:00:05.921]   F8        - Toggle controller (free-fly/character)
+[INFO ] [00:00:05.921]   F9        - Toggle uncapped/VSync presentation
+[INFO ] [00:00:05.921]   Escape    - Release mouse / Exit
+[INFO ] [00:00:05.921]   Wheel     - Select throwable object
+[INFO ] [00:00:05.921]   Left click- Capture mouse / throw selected object
+[INFO ] [00:00:05.921]   Right click- Throw 128 selected objects
+[INFO ] [00:00:05.921] 
+[INFO ] [00:00:05.921] Controller mode changed to: character (camera at 116.0, 63.4, 70.0)
+[INFO ] [00:00:05.921] Character config: terrainWidth=8191.0, terrainHeight=8191.0, heightScale=600.0
+[INFO ] [00:00:05.921] Terrain height at camera XZ (116.0, 70.0) = -8.5
+[INFO ] [00:00:05.921] Starting main loop (native)...
+[INFO ] [00:00:06.274] Capturing screenshot to: /tmp/voxys-salvage-native-startup.png
+[INFO ] [00:00:06.755] Saved screenshot to: /tmp/voxys-salvage-native-startup.png
+[INFO ] [00:00:06.755] Exit requested
+[INFO ] [00:00:06.755] Main loop ended
+[INFO ] [00:00:06.755] Shutting down application...
+[INFO ] [00:00:06.800] Application shutdown complete

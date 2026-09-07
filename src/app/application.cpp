@@ -7,6 +7,7 @@
 #include "terrain/heightmap.hpp"
 
 #include "app/application.hpp"
+#include "app/salvage_preview_readback.hpp"
 #include "engine/platform/window.hpp"
 #include "engine/platform/input.hpp"
 
@@ -427,7 +428,14 @@ wreckwaterApplicationConnectionState(
     const uint64_t startupBodyCount =
         uint64_t{config.benchmarkBodyCount}
         + config.cubePyramidBodyCount;
-    return validRenderPath && validPhysicsBackend && validScheduler
+    const bool validSalvage = !config.salvagePreviewEnabled
+        || (config.legoTerrainEnabled && !config.motoEnabled && !config.wreckwaterClient
+            && config.physicsBackend == physics::BackendType::WebGpuSoft
+            && !config.physicsCpuFallback && config.renderPath == RenderPath::Raycast
+            && !config.initialTeleportIndex && !config.benchmarkOnStartup
+            && !config.exitAfterBenchmark && config.benchmarkBodyCount == 0u
+            && config.cubePyramidBodyCount == 0u && config.screenshotTourIndices.empty());
+    return validSalvage && validRenderPath && validPhysicsBackend && validScheduler
         && validWreckwaterApplicationClientConfig(config)
         && config.windowWidth > 0 && config.windowHeight > 0
         && config.heightmapWidth > 0u && config.heightmapHeight > 0u
@@ -899,6 +907,9 @@ bool Application::init(const ApplicationConfig& config) {
     primitiveCullController_.reset();
     legoPlayground_.reset();
     legoPlaygroundActive_ = false;
+    salvagePreviewFailed_ = false;
+    salvageRetirementSeconds_ = 0;
+    preSalvageCamera_.reset();
 
     // Initialize teleport targets
     // Paste recorded positions here!
@@ -972,10 +983,12 @@ bool Application::init(const ApplicationConfig& config) {
             return failInitialization();
         }
 
+        if (!initSalvagePreview()) return failInitialization();
+
         setupCallbacks();
     }
 
-    if (config_.legoTerrainEnabled) {
+    if (config_.legoTerrainEnabled && !config_.salvagePreviewEnabled) {
         // The same shoreline viewpoint, in the original landscape coordinates.
         const bool fullWorld = heightmap_->getWidth() > terrain::lego::kMaximumStudySamples;
         const float x = fullWorld ? -1164.0f : -12.0f;
@@ -1025,13 +1038,14 @@ bool Application::init(const ApplicationConfig& config) {
     LOG_INFO("  F4        - Toggle depth visualization");
     LOG_INFO("  F5        - Toggle normal visualization");
     LOG_INFO("  F6        - Toggle mip level heat map");
-    if (!motoSession_) {
+    if (!motoSession_ && !config_.salvagePreviewEnabled) {
         LOG_INFO("  F7        - Toggle benchmark mode");
         LOG_INFO("  F8        - Toggle controller (free-fly/character)");
     }
     LOG_INFO("  F9        - Toggle uncapped/VSync presentation");
     LOG_INFO("  Escape    - Release mouse / Exit");
-    if (!wreckwaterClientState_ && !motoSession_) {
+    if (config_.salvagePreviewEnabled) LOG_INFO("  R         - Reset cove preview");
+    if (!wreckwaterClientState_ && !motoSession_ && !config_.salvagePreviewEnabled) {
         LOG_INFO("  Wheel     - Select throwable object");
         LOG_INFO(
             "  Left click- Capture mouse / throw selected object");
@@ -1042,7 +1056,7 @@ bool Application::init(const ApplicationConfig& config) {
 #if defined(VOXY_WASM)
     // RIDGEBREAK opens as a game, not as an engine diagnostics screen.
     // The F1 overlay remains available to developers and benchmarks.
-    getDebugOverlay().setVisible(!motoSession_);
+    getDebugOverlay().setVisible(!motoSession_ && !config_.salvagePreviewEnabled);
     if (!motoSession_) {
         // Retain the legacy terrain-sandbox default outside the moto product.
         setControllerMode(ControllerMode::Character);
@@ -1108,7 +1122,7 @@ void Application::requestExit() {
 
 void Application::shutdown() {
     const bool hasResources = initialized_
-        || wreckwaterClientState_
+        || wreckwaterClientState_ || salvagePreview_
         || window_ || gpuContext_ || input_ || camera_ || freeFlyController_
         || physicsWorld_ || characterController_ || heightmap_
         || terrainTextures_ || waterSimulation_ || primitivePath_
@@ -1136,6 +1150,9 @@ void Application::shutdown() {
 
     retireBenchmarkSubmissions(true);
 
+    salvageRetirementReadback_.shutdown();
+    salvageMetadataSource_.clear();
+    salvageRetirementBytes_ = 0;
     renderGpuReadback_.shutdown();
     if (renderGpuResolveBuffer_) {
         wgpuBufferDestroy(renderGpuResolveBuffer_);
@@ -1194,6 +1211,11 @@ void Application::shutdown() {
     }
     legoPlayground_.reset();
     legoPlaygroundActive_ = false;
+    if (salvagePreview_ && !salvagePreview_->shutdown()) {
+        LOG_ERROR("Cove cleanup could not queue every removal; releasing its physics world.");
+    }
+    salvagePreview_.reset();
+    preSalvageCamera_.reset();
     if (primitivePath_) {
         primitivePath_->shutdown();
         primitivePath_.reset();
@@ -1740,6 +1762,8 @@ void Application::update(float simulationDeltaTime, float frameDeltaTime) {
     if (!std::isfinite(frameDeltaTime) || frameDeltaTime < 0.0f) {
         frameDeltaTime = 0.0f;
     }
+    updateSalvagePreview(frameDeltaTime);
+    if (salvagePreviewFailed_) return;
     applyRendererSettings();
 
     const bool browserJourneyWasRunning = browserJourneyBenchmark_
@@ -1760,7 +1784,9 @@ void Application::update(float simulationDeltaTime, float frameDeltaTime) {
                && !scriptedBenchmark && !browserJourneyWasRunning) {
         updateMoto(simulationDeltaTime);
         handleKeyboardShortcuts();
-    } else if (!scriptedBenchmark && !browserJourneyWasRunning) {
+    } else if (!scriptedBenchmark && !browserJourneyWasRunning
+               && (!config_.salvagePreviewEnabled || (salvagePreview_
+                   && salvagePreview_->phase() == game::expedition::SalvagePreview::Phase::Ready))) {
         processInput(simulationDeltaTime);
         handleKeyboardShortcuts();
 
@@ -1781,6 +1807,8 @@ void Application::update(float simulationDeltaTime, float frameDeltaTime) {
         }
     }
 
+    if (config_.salvagePreviewEnabled && salvagePreview_ && salvagePreview_->busy())
+        handleKeyboardShortcuts();
     if (legoPlayground_) legoPlayground_->step(simulationDeltaTime);
     if (physicsWorld_) {
         physicsWorld_->update(simulationDeltaTime);
@@ -1876,6 +1904,7 @@ void Application::render() {
     // CPU backends intentionally no-op here.
     if (physicsWorld_) {
         physicsWorld_->encodeGpuStep(encoder);
+        encodeSalvageRetirement(encoder);
     }
 
     // Render based on active path
@@ -1979,6 +2008,11 @@ void Application::render() {
         overlays.insert(
             overlays.end(),
             avatarProxies.begin(), avatarProxies.end());
+        if (salvagePreview_) {
+            primitivePath_->setLegoBodyIds(salvagePreview_->legoBodyIds());
+        } else if (!legoPlayground_) {
+            primitivePath_->setLegoBodyIds({});
+        }
         if (legoPlayground_) {
             primitivePath_->setLegoBodyIds(legoPlayground_->bodyIds());
             for (auto body : legoPlayground_->instances()) {
@@ -2803,6 +2837,7 @@ void Application::toggleWireframe() {
 }
 
 void Application::toggleLegoMode() {
+    if (config_.salvagePreviewEnabled) return;
     const bool next = !legoMode_;
     if (!config_.legoTerrainEnabled) {
         if (!heightmap_ || !physicsWorld_
@@ -3123,6 +3158,7 @@ void Application::wakeCubeTriangleImpactColumns(double impactWorldX) {
 }
 
 bool Application::startCubePyramidExperiment() {
+    if (config_.salvagePreviewEnabled) return false;
     if (!initialized_) {
         LOG_ERROR("Cannot create the cube triangle before application initialization");
         return false;
@@ -3139,6 +3175,7 @@ bool Application::startCubePyramidExperiment() {
 }
 
 void Application::startBenchmark() {
+    if (config_.salvagePreviewEnabled) return;
     if (!benchmarkRunner_) {
         benchmarkRunner_ = std::make_unique<perf::BenchmarkRunner>();
         
@@ -3194,7 +3231,7 @@ bool Application::startBrowserJourneyBenchmark(
     uint32_t settleTicks, uint32_t bodiesPerVolley,
     uint32_t ticksPerVolley, perf::BrowserJourneyLayout layout,
     perf::BrowserJourneyShape shape) {
-    if (!initialized_ || !physicsWorld_ || !camera_ || !characterController_
+    if (config_.salvagePreviewEnabled || !initialized_ || !physicsWorld_ || !camera_ || !characterController_
         || isBenchmarkRunning()
         || (browserJourneyBenchmark_
             && browserJourneyBenchmark_->isRunning())) {
@@ -4925,7 +4962,159 @@ WGPUTextureView Application::getOrCreateDepthView() {
 // Input Processing
 // ─────────────────────────────────────────────────────────────────────────────
 
+bool Application::initSalvagePreview() {
+    if (!config_.salvagePreviewEnabled) return true;
+    if (!physicsWorld_ || !camera_ || !characterController_ || !heightmap_) return false;
+    preSalvageCamera_ = CameraState{camera_->position(), camera_->yaw(),
+                                   camera_->pitch(), camera_->worldSector()};
+    preSalvageController_ = controllerMode_;
+    // This authored footprint stays inside the compact shoreline crop. Raise
+    // the pier above its highest terrain sample so its deck stays walkable.
+    glm::vec3 origin{-12.0f, config_.waterHeight + .7f, -32.0f};
+    for (int z = -11; z <= 10; ++z) {
+        for (int x = -12; x <= 4; ++x) {
+            origin.y = std::max(origin.y, sampleTerrainHeight(origin.x + float(x),
+                                                            origin.z + float(z)) + .3f);
+        }
+    }
+    salvagePreview_ = std::make_unique<game::expedition::SalvagePreview>();
+    if (!salvagePreview_->initialize(*physicsWorld_, origin)) {
+        LOG_ERROR("Failed to create cove preview: {}", salvagePreview_->error());
+        return false;
+    }
+    if (!salvageMetadataSource_.capture(physicsWorld_->renderView().metadataBuffer)) {
+        LOG_ERROR("Cove preview has no readable GPU lifetime metadata.");
+        return false;
+    }
+    resetSalvagePreviewView();
+    return true;
+}
+
+void Application::resetSalvagePreviewView() {
+    if (!salvagePreview_ || !camera_) return;
+    if (input_) input_->resetState();
+    const auto origin = salvagePreview_->origin();
+    setCameraWorldPose(*camera_, origin + glm::vec3(0, .14f + config_.cameraEyeHeight, 8),
+                      origin + glm::vec3(-7, 1.5f, -5));
+    setControllerMode(ControllerMode::Character);
+    // setControllerMode does not synchronize an already active character.
+    if (characterController_) characterController_->syncPhysicsPosition();
+}
+
+bool Application::salvagePreviewAction(int action) {
+    if (!initialized_ || !config_.salvagePreviewEnabled || !salvagePreview_
+        || salvagePreviewFailed_) return false;
+    return salvagePreview_->request(static_cast<game::expedition::SalvagePreview::Action>(action));
+}
+
+std::string Application::salvagePreviewJson() const {
+    using Preview = game::expedition::SalvagePreview;
+    const auto phase = salvagePreview_ ? salvagePreview_->phase() : Preview::Phase::Empty;
+    const bool failed = salvagePreviewFailed_ || phase == Preview::Phase::Failed;
+    std::ostringstream json;
+    json << "{\"active\":" << (config_.salvagePreviewEnabled && initialized_ && phase != Preview::Phase::Empty ? "true" : "false")
+         << ",\"ready\":" << (phase == Preview::Phase::Ready && !failed ? "true" : "false")
+         << ",\"busy\":" << (salvagePreview_ && salvagePreview_->busy() ? "true" : "false")
+         << ",\"failed\":" << (failed ? "true" : "false")
+         << ",\"bodies\":" << (salvagePreview_ ? salvagePreview_->bodyCount() : 0u)
+         << ",\"resets\":" << (salvagePreview_ ? salvagePreview_->resetCount() : 0u)
+         << ",\"controller\":\"" << controllerModeToString(controllerMode_) << "\""
+         << ",\"mouseCaptured\":" << (input_ && input_->isMouseCaptured() ? "true" : "false")
+         << ",\"origin\":";
+    if (salvagePreview_) {
+        const auto origin = salvagePreview_->origin();
+        json << '[' << origin.x << ',' << origin.y << ',' << origin.z << ']';
+    } else json << "null";
+    json << ",\"camera\":";
+    if (camera_) {
+        const auto local = camera_->position();
+        const auto sector = camera_->worldSector();
+        json << "{\"local\":[" << local.x << ',' << local.y << ',' << local.z
+             << "],\"sector\":[" << sector.x << ',' << sector.y << ',' << sector.z
+             << "],\"yaw\":" << camera_->yaw() << ",\"pitch\":" << camera_->pitch() << '}';
+    } else json << "null";
+    json << '}';
+    return json.str();
+}
+
+void Application::updateSalvagePreview(float frameDeltaTime) {
+    if (!salvagePreview_ || salvagePreviewFailed_) return;
+    using Preview = game::expedition::SalvagePreview;
+    const auto previousPhase = salvagePreview_->phase();
+    const auto previousResets = salvagePreview_->resetCount();
+    while (auto completed = salvageRetirementReadback_.poll()) {
+        salvagePreview_->observeRetirement(completed->tick, completed->bytes);
+    }
+    salvagePreview_->update();
+    if (salvagePreview_->busy()) {
+        if (previousPhase == Preview::Phase::Ready && input_) input_->resetState();
+        salvageRetirementSeconds_ += frameDeltaTime;
+        if (salvageRetirementSeconds_ > 10.0f) {
+            // A full command queue or failed mapping must not strand Reset.
+            LOG_ERROR("Cove removal timed out; closing its physics world safely.");
+            salvagePreviewFailed_ = true;
+            requestExit();
+        }
+    } else {
+        salvageRetirementSeconds_ = 0;
+    }
+    if (salvagePreview_->phase() == Preview::Phase::Failed) {
+        LOG_ERROR("Cove preview failed: {}", salvagePreview_->error());
+        salvagePreviewFailed_ = true;
+        requestExit();
+    }
+    if (salvagePreview_->resetCount() != previousResets) resetSalvagePreviewView();
+    if (previousPhase != Preview::Phase::Empty && salvagePreview_->phase() == Preview::Phase::Empty) {
+        salvageRetirementReadback_.shutdown();
+        salvageMetadataSource_.clear();
+        salvageRetirementBytes_ = 0;
+        if (input_) input_->resetState();
+        if (preSalvageCamera_ && camera_) {
+            const auto saved = *preSalvageCamera_;
+            camera_->setWorldPosition(saved.sector, saved.position);
+            camera_->setYaw(saved.yaw);
+            camera_->setPitch(saved.pitch);
+            setControllerMode(preSalvageController_);
+            if (characterController_) characterController_->syncPhysicsPosition();
+        }
+        preSalvageCamera_.reset();
+    }
+}
+
+void Application::encodeSalvageRetirement(WGPUCommandEncoder encoder) {
+    if (!salvagePreview_ || !physicsWorld_ || !gpuContext_ || salvagePreviewFailed_) return;
+    const auto request = salvagePreview_->retirementSnapshot();
+    if (!request) return;
+    const auto metadataBuffer = salvageMetadataSource_.readableBuffer(request->bodyCount);
+    if (!metadataBuffer) {
+        LOG_ERROR("Cove removal has no valid GPU lifetime metadata; closing preview.");
+        salvagePreviewFailed_ = true;
+        requestExit();
+        return;
+    }
+    const size_t bytes = size_t{request->bodyCount} * sizeof(glm::uvec4);
+    if (salvageRetirementBytes_ < bytes) {
+        salvageRetirementReadback_.shutdown();
+        if (!salvageRetirementReadback_.initialize(gpuContext_->getDevice(), 1u, bytes)) {
+            LOG_ERROR("Could not allocate cove removal readback; closing preview.");
+            salvagePreviewFailed_ = true;
+            requestExit();
+            return;
+        }
+        salvageRetirementBytes_ = bytes;
+    }
+    if (salvageRetirementReadback_.nextAvailableSlot()) {
+        if (!salvageRetirementReadback_.encodeCopy(encoder, metadataBuffer, 0u,
+                bytes, request->revision, 0u, request->bodyCount)) {
+            LOG_ERROR("Could not encode cove removal readback; closing preview.");
+            salvagePreviewFailed_ = true;
+            requestExit();
+        }
+    }
+}
+
 void Application::processInput(float deltaTime) {
+    if (config_.salvagePreviewEnabled) return;
     if (config_.legoTerrainEnabled && input_ && input_->wasKeyPressed(Key::P)) {
         legoAction(legoPlaygroundActive_ ? 8 : 0);
     }
@@ -4943,7 +5132,7 @@ void Application::processInput(float deltaTime) {
 }
 
 bool Application::legoAction(int action) {
-    if (!config_.legoTerrainEnabled || !camera_ || !heightmap_) return false;
+    if (config_.salvagePreviewEnabled || !config_.legoTerrainEnabled || !camera_ || !heightmap_) return false;
     if (action == 0) {
         if (!legoPlayground_) {
             const bool world = heightmap_->getWidth() > terrain::lego::kMaximumStudySamples;
@@ -5001,7 +5190,7 @@ std::string Application::legoHudJson() const {
 bool Application::spawnThrowable(
     physics::ThrowableShape shape, const glm::vec3& origin,
     const glm::vec3& direction, const glm::ivec3& sector) {
-    if (!physicsWorld_
+    if (config_.salvagePreviewEnabled || !physicsWorld_
         || static_cast<uint32_t>(shape)
             >= static_cast<uint32_t>(physics::ThrowableShape::Count)
         || !std::isfinite(origin.x) || !std::isfinite(origin.y)
@@ -5162,6 +5351,7 @@ uint32_t Application::throwThrowableBatch(
 }
 
 void Application::processThrowableInput(float deltaTime) {
+    if (config_.salvagePreviewEnabled) return;
     if (!input_ || !camera_ || !physicsWorld_) {
         return;
     }
@@ -5207,7 +5397,9 @@ void Application::processThrowableInput(float deltaTime) {
     const glm::vec3 origin = camera_->position() + direction * 2.2f;
 
     if (singleRequested) {
-        spawnThrowable(shape, origin, direction, camera_->worldSector());
+        if (!spawnThrowable(shape, origin, direction, camera_->worldSector())) {
+            LOG_DEBUG("Single throwable request rejected");
+        }
         return;
     }
 
@@ -5294,6 +5486,11 @@ void Application::handleKeyboardShortcuts() {
         } else {
             setDebugVisMode(DebugVisMode::MipLevels);
         }
+    }
+
+    if (config_.salvagePreviewEnabled) {
+        if (input_->wasKeyPressed(Key::R)) salvagePreviewAction(1);
+        return;
     }
 
     // F7 - toggle benchmark mode

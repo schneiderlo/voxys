@@ -26,6 +26,7 @@ fi
 # The workspace name is "voxys"
 WEB_INDEX=$(rlocation voxys/web/index.html)
 TELEMETRY_SERVER=$(rlocation voxys/tools/serve_wasm.py)
+SHADER_SOURCE=$(rlocation voxys/shaders/terrain_raycast.wgsl)
 
 # Locate WASM artifacts
 # The target //:voxy_wasm produces files in voxy_wasm/ directory
@@ -60,6 +61,14 @@ echo "Preparing server in $SERVE_DIR..."
 
 # Copy web assets
 cp -r "$WEB_DIR"/* "$SERVE_DIR/"
+
+# The standalone parity page fetches shader text outside the WASM preload FS.
+if [[ -z "$SHADER_SOURCE" || ! -f "$SHADER_SOURCE" ]]; then
+  echo "ERROR: Could not locate shader sources in runfiles."
+  exit 1
+fi
+mkdir -p "$SERVE_DIR/shaders"
+cp "$(dirname "$SHADER_SOURCE")"/*.wgsl "$SERVE_DIR/shaders/"
 
 # Copy WASM artifacts explicitly
 echo "Copying WASM artifacts..."

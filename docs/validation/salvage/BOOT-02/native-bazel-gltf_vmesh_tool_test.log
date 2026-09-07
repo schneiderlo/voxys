@@ -1,0 +1,50 @@
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //tests:gltf_vmesh_tool_test
+-----------------------------------------------------------------------------
+Running main() from gmock_main.cc
+[==========] Running 19 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 19 tests from GltfVmeshTool
+[ RUN      ] GltfVmeshTool.ConvertsTriangle
+[       OK ] GltfVmeshTool.ConvertsTriangle (0 ms)
+[ RUN      ] GltfVmeshTool.NonIndexedSynthesizesIndices
+[       OK ] GltfVmeshTool.NonIndexedSynthesizesIndices (0 ms)
+[ RUN      ] GltfVmeshTool.MissingNormalDefaultsUp
+[       OK ] GltfVmeshTool.MissingNormalDefaultsUp (0 ms)
+[ RUN      ] GltfVmeshTool.DecodesTextureAsSrgbRgba8
+[       OK ] GltfVmeshTool.DecodesTextureAsSrgbRgba8 (0 ms)
+[ RUN      ] GltfVmeshTool.NodeHierarchyPreservesParents
+[       OK ] GltfVmeshTool.NodeHierarchyPreservesParents (0 ms)
+[ RUN      ] GltfVmeshTool.AnimationsConvertAndRoundTrip
+[       OK ] GltfVmeshTool.AnimationsConvertAndRoundTrip (0 ms)
+[ RUN      ] GltfVmeshTool.RejectsOverflowingStringBlobSize
+[       OK ] GltfVmeshTool.RejectsOverflowingStringBlobSize (0 ms)
+[ RUN      ] GltfVmeshTool.RejectsOverflowingAnimationRanges
+[       OK ] GltfVmeshTool.RejectsOverflowingAnimationRanges (0 ms)
+[ RUN      ] GltfVmeshTool.SkinsPreserveJoints
+[       OK ] GltfVmeshTool.SkinsPreserveJoints (0 ms)
+[ RUN      ] GltfVmeshTool.DefaultMaterialSynthesized
+[       OK ] GltfVmeshTool.DefaultMaterialSynthesized (0 ms)
+[ RUN      ] GltfVmeshTool.MaterialFlagsUnlitAndDoubleSided
+[       OK ] GltfVmeshTool.MaterialFlagsUnlitAndDoubleSided (0 ms)
+[ RUN      ] GltfVmeshTool.EmptyInputFails
+[       OK ] GltfVmeshTool.EmptyInputFails (0 ms)
+[ RUN      ] GltfVmeshTool.GarbageInputFails
+[       OK ] GltfVmeshTool.GarbageInputFails (0 ms)
+[ RUN      ] GltfVmeshTool.TruncatedGlbFails
+[       OK ] GltfVmeshTool.TruncatedGlbFails (0 ms)
+[ RUN      ] GltfVmeshTool.NonFinitePositionFails
+[       OK ] GltfVmeshTool.NonFinitePositionFails (0 ms)
+[ RUN      ] GltfVmeshTool.NonTriangleModeFails
+[       OK ] GltfVmeshTool.NonTriangleModeFails (0 ms)
+[ RUN      ] GltfVmeshTool.OutOfRangeIndexFails
+[       OK ] GltfVmeshTool.OutOfRangeIndexFails (0 ms)
+[ RUN      ] GltfVmeshTool.MissingAccessorFails
+[       OK ] GltfVmeshTool.MissingAccessorFails (0 ms)
+[ RUN      ] GltfVmeshTool.SparseAccessorFails
+[       OK ] GltfVmeshTool.SparseAccessorFails (0 ms)
+[----------] 19 tests from GltfVmeshTool (1 ms total)
+
+[----------] Global test environment tear-down
+[==========] 19 tests from 1 test suite ran. (1 ms total)
+[  PASSED  ] 19 tests.

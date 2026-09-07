@@ -1,0 +1,35 @@
+Running main() from /home/modkin/workspace/schneiderlo/voxys/third_party/googletest/googletest/src/gtest_main.cc
+[==========] Running 13 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 13 tests from ConstructionTypes
+[ RUN      ] ConstructionTypes.RotationsFormExactProperGroup
+[       OK ] ConstructionTypes.RotationsFormExactProperGroup (0 ms)
+[ RUN      ] ConstructionTypes.SidewaysAndUpsideDownSocketFramesComposeExactly
+[       OK ] ConstructionTypes.SidewaysAndUpsideDownSocketFramesComposeExactly (1 ms)
+[ RUN      ] ConstructionTypes.LegalBoundariesRemainRotatableAndOverflowRejects
+[       OK ] ConstructionTypes.LegalBoundariesRemainRotatableAndOverflowRejects (0 ms)
+[ RUN      ] ConstructionTypes.MetresConversionSeparatesValidationFromSnapping
+[       OK ] ConstructionTypes.MetresConversionSeparatesValidationFromSnapping (0 ms)
+[ RUN      ] ConstructionTypes.SourceFrameConversionRequiresExporterMetadata
+[       OK ] ConstructionTypes.SourceFrameConversionRequiresExporterMetadata (0 ms)
+[ RUN      ] ConstructionTypes.QuaternionNormalizationSignAndWireOrderAreCanonical
+[       OK ] ConstructionTypes.QuaternionNormalizationSignAndWireOrderAreCanonical (0 ms)
+[ RUN      ] ConstructionTypes.QuaternionDecoderRejectsInsteadOfRepairing
+[       OK ] ConstructionTypes.QuaternionDecoderRejectsInsteadOfRepairing (0 ms)
+[ RUN      ] ConstructionTypes.DurableIdsAllocateOnceAndRejectExhaustion
+[       OK ] ConstructionTypes.DurableIdsAllocateOnceAndRejectExhaustion (0 ms)
+[ RUN      ] ConstructionTypes.DecimalExchangeIsLosslessAndStrict
+[       OK ] ConstructionTypes.DecimalExchangeIsLosslessAndStrict (0 ms)
+[ RUN      ] ConstructionTypes.CanonicalEncodingMatchesFrozenCrossLanguageBytes
+[       OK ] ConstructionTypes.CanonicalEncodingMatchesFrozenCrossLanguageBytes (0 ms)
+[ RUN      ] ConstructionTypes.MalformedEncodingNeverPartiallyUpdatesOutput
+[       OK ] ConstructionTypes.MalformedEncodingNeverPartiallyUpdatesOutput (0 ms)
+[ RUN      ] ConstructionTypes.EncoderBoundsValuesDuplicatesAndRecordCapacity
+[       OK ] ConstructionTypes.EncoderBoundsValuesDuplicatesAndRecordCapacity (0 ms)
+[ RUN      ] ConstructionTypes.MaximumRecordCountRoundTripsWithinTheDeclaredBound
+[       OK ] ConstructionTypes.MaximumRecordCountRoundTripsWithinTheDeclaredBound (16 ms)
+[----------] 13 tests from ConstructionTypes (19 ms total)
+
+[----------] Global test environment tear-down
+[==========] 13 tests from 1 test suite ran. (19 ms total)
+[  PASSED  ] 13 tests.

@@ -1,0 +1,360 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+-- The CXX compiler identification is GNU 15.2.0
+-- The C compiler identification is GNU 15.2.0
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /nix/store/788mx070y81zjlg5ipcl0cra3afviw9k-gcc-wrapper-15.2.0/bin/g++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /nix/store/788mx070y81zjlg5ipcl0cra3afviw9k-gcc-wrapper-15.2.0/bin/gcc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Building for native platform: Linux
+-- Configuring third-party dependencies...
+--   GLM: Found
+CMake Deprecation Warning at third_party/zstd/build/cmake/CMakeLists.txt:10 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+
+
+-- The ASM compiler identification is GNU
+-- Found assembler: /nix/store/788mx070y81zjlg5ipcl0cra3afviw9k-gcc-wrapper-15.2.0/bin/gcc
+-- ZSTD VERSION: 1.5.5
+-- Performing Test C_FLAG_WALL
+-- Performing Test C_FLAG_WALL - Success
+-- Performing Test CXX_FLAG_WALL
+-- Performing Test CXX_FLAG_WALL - Success
+-- Performing Test C_FLAG_WEXTRA
+-- Performing Test C_FLAG_WEXTRA - Success
+-- Performing Test CXX_FLAG_WEXTRA
+-- Performing Test CXX_FLAG_WEXTRA - Success
+-- Performing Test C_FLAG_WUNDEF
+-- Performing Test C_FLAG_WUNDEF - Success
+-- Performing Test CXX_FLAG_WUNDEF
+-- Performing Test CXX_FLAG_WUNDEF - Success
+-- Performing Test C_FLAG_WSHADOW
+-- Performing Test C_FLAG_WSHADOW - Success
+-- Performing Test CXX_FLAG_WSHADOW
+-- Performing Test CXX_FLAG_WSHADOW - Success
+-- Performing Test C_FLAG_WCAST_ALIGN
+-- Performing Test C_FLAG_WCAST_ALIGN - Success
+-- Performing Test CXX_FLAG_WCAST_ALIGN
+-- Performing Test CXX_FLAG_WCAST_ALIGN - Success
+-- Performing Test C_FLAG_WCAST_QUAL
+-- Performing Test C_FLAG_WCAST_QUAL - Success
+-- Performing Test CXX_FLAG_WCAST_QUAL
+-- Performing Test CXX_FLAG_WCAST_QUAL - Success
+-- Performing Test C_FLAG_WSTRICT_PROTOTYPES
+-- Performing Test C_FLAG_WSTRICT_PROTOTYPES - Success
+-- Performing Test LD_FLAG_Z_NOEXECSTACK
+-- Performing Test LD_FLAG_Z_NOEXECSTACK - Success
+-- Performing Test C_FLAG_QUNUSED_ARGUMENTS
+-- Performing Test C_FLAG_QUNUSED_ARGUMENTS - Failed
+-- Performing Test CXX_FLAG_QUNUSED_ARGUMENTS
+-- Performing Test CXX_FLAG_QUNUSED_ARGUMENTS - Failed
+-- Performing Test C_FLAG_WA_NOEXECSTACK
+-- Performing Test C_FLAG_WA_NOEXECSTACK - Success
+-- Performing Test CXX_FLAG_WA_NOEXECSTACK
+-- Performing Test CXX_FLAG_WA_NOEXECSTACK - Success
+-- CMAKE_INSTALL_PREFIX: /usr/local
+-- CMAKE_INSTALL_LIBDIR: lib64
+-- ZSTD_LEGACY_SUPPORT not defined!
+-- ZSTD_MULTITHREAD_SUPPORT is disabled
+--   zstd: Found
+--   stb: Found
+--   tinyexr: Found (with miniz)
+--   GLFW: Found system package (Wayland + X11)
+-- Found WGPU: /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/include/webgpu
+-- Found Threads: TRUE
+-- Found wgpu-native: /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+--   wgpu-native: Found and configured
+--   tinygltf: Found
+-- Found Python3: /usr/bin/python3.14 (found version "3.14.4") found components: Interpreter
+--   GoogleTest: Found
+--   Jolt Physics: Found (v5.5.0)
+-- CMake C compiler: GNU
+-- CMake C++ compiler: GNU
+-- CMake system name: Linux
+-- CMake host system processor: x86_64
+-- Box3D using Unix
+--   Box3D: Found (pinned d421e45c828f)
+-- Third-party configuration complete
+-- Found Python3: /nix/store/0k05rim4nalb3sshxdrbkqski6w9l907-python3-3.13.13-env/bin/python3.13 (found version "3.13.13") found components: Interpreter
+-- Building voxy_core with sources: core/log.cpp;core/config.cpp;core/stb_impl.cpp;gpu/context.cpp;gpu/context_surface.cpp;gpu/resources.cpp;game/wreckwater_character_authority_bridge.cpp;game/wreckwater_character_movement.cpp;game/wreckwater_character_step.cpp;game/wreckwater_content_manifest.cpp;game/wreckwater_live_world.cpp;game/wreckwater_match.cpp;game/wreckwater_replay.cpp;game/wreckwater_replay_playback.cpp;game/wreckwater_vessel_damage.cpp;gameplay/structural_assembly.cpp;gameplay/platform_parity.cpp;gameplay/vertical_slices.cpp;gameplay/water_dynamics.cpp;moto/bike.cpp;moto/race.cpp;moto/session.cpp;moto/vmesh_io.cpp;moto/world.cpp;terrain/heightmap.cpp;terrain/authored_cove.cpp;terrain/compression.cpp;terrain/mip_generator.cpp;terrain/textures.cpp;terrain/shadow_bake.cpp;voxel/svo_buffers.cpp;render/triangle_path.cpp;render/mip_pipeline.cpp;render/raycast_path.cpp;render/debug_visualizer.cpp;render/mesh_path.cpp;render/blit_path.cpp;render/water_clipmap_mesh.cpp;render/water_simulation.cpp;render/primitive_culling.cpp;render/primitive_gpu_culling.cpp;render/primitive_instance_packing.cpp;render/primitive_path.cpp;camera/camera.cpp;camera/controller.cpp;camera/character_controller.cpp;physics/box3d/box3d_backend.cpp;physics/character/cpu_capsule_mover.cpp;physics/deterministic/lockstep_world.cpp;physics/deterministic/replay.cpp;physics/gpu/debug_readback_ring.cpp;physics/gpu/deterministic_primitives.cpp;physics/gpu/gpu_buffer_arena.cpp;physics/gpu/gpu_broad_phase.cpp;physics/gpu/gpu_ccd.cpp;physics/gpu/gpu_attachments.cpp;physics/gpu/gpu_dynamic_solver.cpp;physics/gpu/gpu_event_readback.cpp;physics/gpu/gpu_islands.cpp;physics/gpu/gpu_lockstep.cpp;physics/gpu/gpu_narrow_phase.cpp;physics/gpu/gpu_queries.cpp;physics/gpu/gpu_physics_backend.cpp;physics/jolt/jolt_backend.cpp;physics/physics_backend_factory.cpp;physics/physics_types.cpp;physics/physics_world.cpp;network/authoritative_sandbox.cpp;network/deterministic_adversity_transport.cpp;network/multiplayer_session.cpp;network/native_tcp_transport.cpp;network/protocol.cpp;network/replication.cpp;network/ridgebreak_client_replication.cpp;network/ridgebreak_protocol.cpp;network/session_transport.hpp;network/transport.cpp;network/wreckwater_client_replication.cpp;network/wreckwater_client_runtime.cpp;network/wreckwater_protocol.cpp;client/wreckwater_character_platform_timeline.cpp;client/wreckwater_character_controller.cpp;client/wreckwater_character_presentation.cpp;client/wreckwater_third_person_camera.cpp;client/wreckwater_application_client.cpp;client/wreckwater_client_visual_clock.cpp;client/wreckwater_graphical_client_loop.cpp;server/native_gpu_backend.cpp;server/ridgebreak_authority.cpp;server/ridgebreak_server_runtime.cpp;server/wreckwater_authority_runtime.cpp;server/world_coordinator.cpp;engine/platform/native/window.cpp;engine/platform/native/input.cpp;app/application.cpp;game/lego_playground.cpp;app/debug_overlay.cpp;perf/gpu_timer.cpp;perf/benchmark.cpp
+-- Configuring native target: voxy_native
+-- Configuring ldh_tool - heightmap compression utility
+--   Including GPU tests (WebGPU available)
+-- 
+-- ═══════════════════════════════════════════════════════════════
+--   voxy 0.1.0 Configuration Summary
+-- ═══════════════════════════════════════════════════════════════
+--   Build type:        Release
+--   C++ Standard:      20
+--   Native build:      ON
+--   WASM build:        OFF
+--   Build tools:       ON
+--   Build tests:       ON
+--   Build benchmarks:  OFF
+--   Validation:        ON
+--   Jolt Physics:      ON
+-- ═══════════════════════════════════════════════════════════════
+-- 
+-- Configuring done (5.1s)
+-- Generating done (0.1s)
+-- Build files have been written to: /home/modkin/workspace/schneiderlo/voxys/build-salvage-native
+[1/395] Building C object third_party/zstd/build/cmake/lib/CMakeFiles/libzstd_static.dir/__/__/__/lib/common/debug.c.o
+[2/395] Building C object third_party/zstd/build/cmake/lib/CMakeFiles/libzstd_static.dir/__/__/__/lib/common/error_private.c.o
+[3/395] Building C object third_party/zstd/build/cmake/lib/CMakeFiles/libzstd_static.dir/__/__/__/lib/common/entropy_common.c.o
+[4/395] Building C object third_party/zstd/build/cmake/lib/CMakeFiles/libzstd_static.dir/__/__/__/lib/common/pool.c.o
+[5/395] Building C object third_party/zstd/build/cmake/lib/CMakeFiles/libzstd_static.dir/__/__/__/lib/common/threading.c.o
+[6/395] Building C object third_party/zstd/build/cmake/lib/CMakeFiles/libzstd_static.dir/__/__/__/lib/common/fse_decompress.c.o
+[7/395] Building C object third_party/zstd/build/cmake/lib/CMakeFiles/libzstd_static.dir/__/__/__/lib/common/zstd_common.c.o
+[8/395] Building C object third_party/zstd/build/cmake/lib/CMakeFiles/libzstd_static.dir/__/__/__/lib/common/xxhash.c.o
+[9/395] Building C object third_party/zstd/build/cmake/lib/CMakeFiles/libzstd_static.dir/__/__/__/lib/compress/hist.c.o
+[10/395] Building C object third_party/zstd/build/cmake/lib/CMakeFiles/libzstd_static.dir/__/__/__/lib/compress/fse_compress.c.o
+[11/395] Building C object third_party/zstd/build/cmake/lib/CMakeFiles/libzstd_static.dir/__/__/__/lib/compress/huf_compress.c.o
+[12/395] Building C object third_party/zstd/build/cmake/lib/CMakeFiles/libzstd_static.dir/__/__/__/lib/compress/zstd_compress_literals.c.o
+[13/395] Building C object third_party/zstd/build/cmake/lib/CMakeFiles/libzstd_static.dir/__/__/__/lib/compress/zstd_compress_sequences.c.o
+[14/395] Building C object third_party/CMakeFiles/miniz.dir/tinyexr/miniz_full.c.o
+/home/modkin/workspace/schneiderlo/voxys/third_party/tinyexr/miniz_full.c:3204:9: note: ‘#pragma message: Using fopen, ftello, fseeko, stat() etc. path for file I/O - this path may not support large files.’
+ 3204 | #pragma message("Using fopen, ftello, fseeko, stat() etc. path for file I/O - this path may not support large files.")
+      |         ^~~~~~~
+[15/395] Building C object third_party/zstd/build/cmake/lib/CMakeFiles/libzstd_static.dir/__/__/__/lib/compress/zstd_compress_superblock.c.o
+[16/395] Building C object third_party/zstd/build/cmake/lib/CMakeFiles/libzstd_static.dir/__/__/__/lib/compress/zstd_compress.c.o
+[17/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/cmake_pch.hxx.gch
+[18/395] Building C object third_party/zstd/build/cmake/lib/CMakeFiles/libzstd_static.dir/__/__/__/lib/compress/zstd_fast.c.o
+[19/395] Building C object third_party/zstd/build/cmake/lib/CMakeFiles/libzstd_static.dir/__/__/__/lib/compress/zstd_ldm.c.o
+[20/395] Building C object third_party/zstd/build/cmake/lib/CMakeFiles/libzstd_static.dir/__/__/__/lib/compress/zstdmt_compress.c.o
+[21/395] Building C object third_party/zstd/build/cmake/lib/CMakeFiles/libzstd_static.dir/__/__/__/lib/compress/zstd_double_fast.c.o
+[22/395] Building C object third_party/zstd/build/cmake/lib/CMakeFiles/libzstd_static.dir/__/__/__/lib/decompress/huf_decompress_amd64.S.o
+[23/395] Building C object third_party/zstd/build/cmake/lib/CMakeFiles/libzstd_static.dir/__/__/__/lib/decompress/zstd_ddict.c.o
+[24/395] Building C object third_party/zstd/build/cmake/lib/CMakeFiles/libzstd_static.dir/__/__/__/lib/compress/zstd_opt.c.o
+[25/395] Building C object third_party/zstd/build/cmake/lib/CMakeFiles/libzstd_static.dir/__/__/__/lib/decompress/zstd_decompress.c.o
+[26/395] Building C object third_party/zstd/build/cmake/lib/CMakeFiles/libzstd_static.dir/__/__/__/lib/decompress/huf_decompress.c.o
+[27/395] Building C object third_party/zstd/build/cmake/lib/CMakeFiles/libzstd_static.dir/__/__/__/lib/dictBuilder/cover.c.o
+[28/395] Building C object third_party/zstd/build/cmake/lib/CMakeFiles/libzstd_static.dir/__/__/__/lib/dictBuilder/fastcover.c.o
+[29/395] Building C object third_party/zstd/build/cmake/lib/CMakeFiles/libzstd_static.dir/__/__/__/lib/dictBuilder/zdict.c.o
+[30/395] Building C object third_party/zstd/build/cmake/lib/CMakeFiles/libzstd_static.dir/__/__/__/lib/dictBuilder/divsufsort.c.o
+[31/395] Building C object third_party/zstd/build/cmake/lib/CMakeFiles/libzstd_static.dir/__/__/__/lib/decompress/zstd_decompress_block.c.o
+[32/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Core/Color.cpp.o
+[33/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/AABBTree/AABBTreeBuilder.cpp.o
+[34/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Core/IssueReporting.cpp.o
+[35/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Core/Factory.cpp.o
+[36/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Core/JobSystemSingleThreaded.cpp.o
+[37/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Core/JobSystemThreadPool.cpp.o
+[38/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Core/JobSystemWithBarrier.cpp.o
+[39/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Core/Memory.cpp.o
+[40/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Core/LinearCurve.cpp.o
+[41/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Core/Profiler.cpp.o
+[42/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Core/Semaphore.cpp.o
+[43/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Core/RTTI.cpp.o
+[44/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Core/TickCounter.cpp.o
+[45/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Core/StringTools.cpp.o
+[46/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Geometry/ConvexHullBuilder2D.cpp.o
+[47/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Geometry/Indexify.cpp.o
+[48/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Geometry/OrientedBox.cpp.o
+[49/395] Building C object third_party/zstd/build/cmake/lib/CMakeFiles/libzstd_static.dir/__/__/__/lib/compress/zstd_lazy.c.o
+[50/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/ObjectStream/SerializableObject.cpp.o
+[51/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Math/Vec3.cpp.o
+[52/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Geometry/ConvexHullBuilder.cpp.o
+[53/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Body/BodyCreationSettings.cpp.o
+[54/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Body/Body.cpp.o
+[55/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Body/MassProperties.cpp.o
+[56/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Body/MotionProperties.cpp.o
+[57/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Body/BodyInterface.cpp.o
+[58/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Character/CharacterBase.cpp.o
+[59/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Body/BodyManager.cpp.o
+[60/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Collision/BroadPhase/BroadPhase.cpp.o
+[61/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Character/Character.cpp.o
+[62/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Collision/BroadPhase/BroadPhaseBruteForce.cpp.o
+[63/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Collision/BroadPhase/BroadPhaseQuadTree.cpp.o
+[64/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Collision/BroadPhase/QuadTree.cpp.o
+[65/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Collision/CastConvexVsTriangles.cpp.o
+[66/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Collision/CastSphereVsTriangles.cpp.o
+[67/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Collision/CollideSphereVsTriangles.cpp.o
+[68/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Character/CharacterVirtual.cpp.o
+[69/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Collision/CollisionDispatch.cpp.o
+[70/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Collision/CollisionGroup.cpp.o
+[71/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Collision/CollideConvexVsTriangles.cpp.o
+[72/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Collision/GroupFilter.cpp.o
+[73/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Collision/GroupFilterTable.cpp.o
+[74/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Collision/EstimateCollisionResponse.cpp.o
+[75/395] Building CXX object third_party/googletest/googletest/CMakeFiles/gtest.dir/src/gtest-all.cc.o
+[76/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Collision/NarrowPhaseStats.cpp.o
+[77/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Collision/ManifoldBetweenTwoFaces.cpp.o
+[78/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Collision/PhysicsMaterial.cpp.o
+[79/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Collision/PhysicsMaterialSimple.cpp.o
+[80/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Collision/NarrowPhaseQuery.cpp.o
+[81/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Collision/Shape/BoxShape.cpp.o
+[82/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Collision/Shape/CapsuleShape.cpp.o
+[83/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Collision/Shape/CompoundShape.cpp.o
+[84/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Collision/Shape/ConvexHullShape.cpp.o
+[85/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Collision/Shape/DecoratedShape.cpp.o
+[86/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Collision/Shape/CylinderShape.cpp.o
+[87/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Collision/Shape/EmptyShape.cpp.o
+[88/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Collision/Shape/ConvexShape.cpp.o
+[89/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Collision/Shape/OffsetCenterOfMassShape.cpp.o
+[90/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Collision/Shape/MutableCompoundShape.cpp.o
+[91/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Collision/Shape/PlaneShape.cpp.o
+[92/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Collision/Shape/ScaledShape.cpp.o
+[93/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Collision/Shape/RotatedTranslatedShape.cpp.o
+[94/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Collision/Shape/SphereShape.cpp.o
+[95/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Collision/Shape/MeshShape.cpp.o
+[96/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Collision/Shape/HeightFieldShape.cpp.o
+[97/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Collision/Shape/Shape.cpp.o
+[98/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Collision/Shape/TaperedCapsuleShape.cpp.o
+[99/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Collision/Shape/TaperedCylinderShape.cpp.o
+[100/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Collision/Shape/TriangleShape.cpp.o
+[101/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Collision/TransformedShape.cpp.o
+[102/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Collision/Shape/StaticCompoundShape.cpp.o
+[103/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Constraints/Constraint.cpp.o
+[104/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Constraints/ConstraintManager.cpp.o
+[105/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Constraints/ConeConstraint.cpp.o
+[106/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Constraints/DistanceConstraint.cpp.o
+[107/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Constraints/GearConstraint.cpp.o
+[108/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Constraints/MotorSettings.cpp.o
+[109/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Constraints/FixedConstraint.cpp.o
+[110/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Constraints/PathConstraintPath.cpp.o
+[111/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Constraints/PathConstraintPathHermite.cpp.o
+[112/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Constraints/HingeConstraint.cpp.o
+[113/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Constraints/PointConstraint.cpp.o
+[114/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Constraints/PulleyConstraint.cpp.o
+[115/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Constraints/PathConstraint.cpp.o
+[116/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Constraints/RackAndPinionConstraint.cpp.o
+[117/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Constraints/SpringSettings.cpp.o
+[118/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Constraints/SliderConstraint.cpp.o
+[119/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Constraints/TwoBodyConstraint.cpp.o
+[120/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/DeterminismLog.cpp.o
+[121/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Constraints/SwingTwistConstraint.cpp.o
+[122/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Constraints/SixDOFConstraint.cpp.o
+[123/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Constraints/ContactConstraintManager.cpp.o
+[124/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/IslandBuilder.cpp.o
+[125/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/LargeIslandSplitter.cpp.o
+[126/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/PhysicsUpdateContext.cpp.o
+[127/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/SoftBody/SoftBodyCreationSettings.cpp.o
+[128/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Ragdoll/Ragdoll.cpp.o
+[129/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/PhysicsScene.cpp.o
+[130/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/SoftBody/SoftBodyShape.cpp.o
+[131/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/SoftBody/SoftBodyMotionProperties.cpp.o
+[132/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/StateRecorderImpl.cpp.o
+[133/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Vehicle/MotorcycleController.cpp.o
+[134/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/PhysicsSystem.cpp.o
+[135/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Vehicle/VehicleAntiRollBar.cpp.o
+[136/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Vehicle/TrackedVehicleController.cpp.o
+[137/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Vehicle/VehicleController.cpp.o
+[138/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Vehicle/VehicleDifferential.cpp.o
+[139/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Vehicle/VehicleCollisionTester.cpp.o
+[140/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Vehicle/VehicleEngine.cpp.o
+[141/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Vehicle/VehicleTrack.cpp.o
+[142/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Vehicle/VehicleTransmission.cpp.o
+[143/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Vehicle/Wheel.cpp.o
+[144/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/RegisterTypes.cpp.o
+[145/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Renderer/DebugRenderer.cpp.o
+[146/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Renderer/DebugRendererPlayback.cpp.o
+[147/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Renderer/DebugRendererRecorder.cpp.o
+[148/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Renderer/DebugRendererSimple.cpp.o
+[149/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Vehicle/WheeledVehicleController.cpp.o
+[150/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/Vehicle/VehicleConstraint.cpp.o
+[151/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Skeleton/Skeleton.cpp.o
+[152/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Skeleton/SkeletalAnimation.cpp.o
+[153/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/TriangleSplitter/TriangleSplitter.cpp.o
+[154/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Physics/SoftBody/SoftBodySharedSettings.cpp.o
+[155/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Skeleton/SkeletonPose.cpp.o
+[156/395] Building C object third_party/box3d/src/CMakeFiles/box3d.dir/aabb.c.o
+[157/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/Skeleton/SkeletonMapper.cpp.o
+[158/395] Building C object third_party/box3d/src/CMakeFiles/box3d.dir/arena_allocator.c.o
+[159/395] Building C object third_party/box3d/src/CMakeFiles/box3d.dir/bitset.c.o
+[160/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/TriangleSplitter/TriangleSplitterBinning.cpp.o
+[161/395] Building C object third_party/box3d/src/CMakeFiles/box3d.dir/block_allocator.c.o
+[162/395] Building CXX object third_party/JoltPhysics/Build/CMakeFiles/Jolt.dir/__/Jolt/TriangleSplitter/TriangleSplitterMean.cpp.o
+[163/395] Building C object third_party/box3d/src/CMakeFiles/box3d.dir/capsule.c.o
+[164/395] Building C object third_party/box3d/src/CMakeFiles/box3d.dir/broad_phase.c.o
+[165/395] Building C object third_party/box3d/src/CMakeFiles/box3d.dir/constraint_graph.c.o
+[166/395] Building C object third_party/box3d/src/CMakeFiles/box3d.dir/contact.c.o
+[167/395] Building C object third_party/box3d/src/CMakeFiles/box3d.dir/compound.c.o
+[168/395] Building C object third_party/box3d/src/CMakeFiles/box3d.dir/body.c.o
+[169/395] Building C object third_party/box3d/src/CMakeFiles/box3d.dir/core.c.o
+[170/395] Building C object third_party/box3d/src/CMakeFiles/box3d.dir/convex_manifold.c.o
+[171/395] Building C object third_party/box3d/src/CMakeFiles/box3d.dir/contact_solver.c.o
+[172/395] Building C object third_party/box3d/src/CMakeFiles/box3d.dir/distance_joint.c.o
+[173/395] Building C object third_party/box3d/src/CMakeFiles/box3d.dir/distance.c.o
+[174/395] Building C object third_party/box3d/src/CMakeFiles/box3d.dir/id_pool.c.o
+[175/395] Building C object third_party/box3d/src/CMakeFiles/box3d.dir/dynamic_tree.c.o
+[176/395] Building C object third_party/box3d/src/CMakeFiles/box3d.dir/island.c.o
+[177/395] Building C object third_party/box3d/src/CMakeFiles/box3d.dir/height_field.c.o
+[178/395] Building C object third_party/box3d/src/CMakeFiles/box3d.dir/manifold.c.o
+[179/395] Building C object third_party/box3d/src/CMakeFiles/box3d.dir/math_functions.c.o
+[180/395] Building C object third_party/box3d/src/CMakeFiles/box3d.dir/hull.c.o
+[181/395] Building C object third_party/box3d/src/CMakeFiles/box3d.dir/joint.c.o
+[182/395] Building C object third_party/box3d/src/CMakeFiles/box3d.dir/mover.c.o
+[183/395] Building C object third_party/box3d/src/CMakeFiles/box3d.dir/motor_joint.c.o
+[184/395] Building C object third_party/box3d/src/CMakeFiles/box3d.dir/parallel_for.c.o
+[185/395] Building C object third_party/box3d/src/CMakeFiles/box3d.dir/mesh_contact.c.o
+[186/395] Building C object third_party/box3d/src/CMakeFiles/box3d.dir/name_cache.c.o
+[187/395] Building C object third_party/box3d/src/CMakeFiles/box3d.dir/parallel_joint.c.o
+[188/395] Building C object third_party/box3d/src/CMakeFiles/box3d.dir/prismatic_joint.c.o
+[189/395] Building C object third_party/box3d/src/CMakeFiles/box3d.dir/mesh.c.o
+[190/395] Building C object third_party/box3d/src/CMakeFiles/box3d.dir/physics_world.c.o
+[191/395] Building C object third_party/box3d/src/CMakeFiles/box3d.dir/world_snapshot.c.o
+In function ‘b3DesTree’,
+    inlined from ‘b3DeserializeIntoShell’ at /home/modkin/workspace/schneiderlo/voxys/third_party/box3d/src/world_snapshot.c:1308:4:
+/home/modkin/workspace/schneiderlo/voxys/third_party/box3d/src/world_snapshot.c:329:23: warning: ‘version’ may be used uninitialized [-Wmaybe-uninitialized]
+  329 |         tree->version = version;
+      |         ~~~~~~~~~~~~~~^~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/third_party/box3d/src/world_snapshot.c: In function ‘b3DeserializeIntoShell’:
+/home/modkin/workspace/schneiderlo/voxys/third_party/box3d/src/world_snapshot.c:297:18: note: ‘version’ was declared here
+  297 |         uint64_t version;
+      |                  ^~~~~~~
+[192/395] Building C object third_party/box3d/src/CMakeFiles/box3d.dir/scheduler.c.o
+[193/395] Building C object third_party/box3d/src/CMakeFiles/box3d.dir/sensor.c.o
+[194/395] Building C object third_party/box3d/src/CMakeFiles/box3d.dir/revolute_joint.c.o
+[195/395] Building C object third_party/box3d/src/CMakeFiles/box3d.dir/simd.c.o
+[196/395] Building C object third_party/box3d/src/CMakeFiles/box3d.dir/solver.c.o
+[197/395] Building C object third_party/box3d/src/CMakeFiles/box3d.dir/recording.c.o
+[198/395] Building C object third_party/box3d/src/CMakeFiles/box3d.dir/recording_replay.c.o
+In file included from /home/modkin/workspace/schneiderlo/voxys/third_party/box3d/src/recording.h:9,
+                 from /home/modkin/workspace/schneiderlo/voxys/third_party/box3d/src/recording_replay.h:6,
+                 from /home/modkin/workspace/schneiderlo/voxys/third_party/box3d/src/recording_replay.c:8:
+In function ‘b3MakeAABB’,
+    inlined from ‘b3RecComputeQueryBounds’ at /home/modkin/workspace/schneiderlo/voxys/third_party/box3d/src/recording_replay.c:1843:12:
+/home/modkin/workspace/schneiderlo/voxys/third_party/box3d/src/../include/box3d/math_functions.h:956:16: warning: ‘world’ may be used uninitialized [-Wmaybe-uninitialized]
+  956 |         b3AABB a = { points[0], points[0] };
+      |                ^
+/home/modkin/workspace/schneiderlo/voxys/third_party/box3d/src/recording_replay.c: In function ‘b3RecComputeQueryBounds’:
+/home/modkin/workspace/schneiderlo/voxys/third_party/box3d/src/recording_replay.c:1836:16: note: ‘world’ declared here
+ 1836 |         b3Vec3 world[2 * B3_MAX_SHAPE_CAST_POINTS];
+      |                ^~~~~
+In function ‘b3MakeAABB’,
+    inlined from ‘b3RecComputeQueryBounds’ at /home/modkin/workspace/schneiderlo/voxys/third_party/box3d/src/recording_replay.c:1843:12:
+/home/modkin/workspace/schneiderlo/voxys/third_party/box3d/src/../include/box3d/math_functions.h:956:16: warning: ‘world’ may be used uninitialized [-Wmaybe-uninitialized]
+  956 |         b3AABB a = { points[0], points[0] };
+      |                ^
+/home/modkin/workspace/schneiderlo/voxys/third_party/box3d/src/recording_replay.c: In function ‘b3RecComputeQueryBounds’:
+/home/modkin/workspace/schneiderlo/voxys/third_party/box3d/src/recording_replay.c:1836:16: note: ‘world’ declared here
+ 1836 |         b3Vec3 world[2 * B3_MAX_SHAPE_CAST_POINTS];
+      |                ^~~~~
+[199/395] Building C object third_party/box3d/src/CMakeFiles/box3d.dir/solver_set.c.o
+[200/395] Building C object third_party/box3d/src/CMakeFiles/box3d.dir/sphere.c.o
+[201/395] Building C object third_party/box3d/src/CMakeFiles/box3d.dir/timer.c.o
+[202/395] Building C object third_party/box3d/src/CMakeFiles/box3d.dir/table.c.o
+[203/395] Building C object third_party/box3d/src/CMakeFiles/box3d.dir/types.c.o
+[204/395] Building C object third_party/box3d/src/CMakeFiles/box3d.dir/shape.c.o
+[205/395] Building C object third_party/box3d/src/CMakeFiles/box3d.dir/spherical_joint.c.o
+[206/395] Generating checked WRECKWATER build-content identity
+FAILED: [code=1] generated/wreckwater_build_content.hpp /home/modkin/workspace/schneiderlo/voxys/build-salvage-native/generated/wreckwater_build_content.hpp 
+cd /home/modkin/workspace/schneiderlo/voxys/build-salvage-native && /nix/store/0k05rim4nalb3sshxdrbkqski6w9l907-python3-3.13.13-env/bin/python3.13 /home/modkin/workspace/schneiderlo/voxys/tools/generate_wreckwater_build_content.py --root /home/modkin/workspace/schneiderlo/voxys --allowlist /home/modkin/workspace/schneiderlo/voxys/wreckwater_authority_content.allowlist --output /home/modkin/workspace/schneiderlo/voxys/build-salvage-native/generated/wreckwater_build_content.hpp --inputs /home/modkin/workspace/schneiderlo/voxys/shaders/physics_attachments.wgsl /home/modkin/workspace/schneiderlo/voxys/shaders/physics_ballistic.wgsl /home/modkin/workspace/schneiderlo/voxys/shaders/physics_broad_phase.wgsl /home/modkin/workspace/schneiderlo/voxys/shaders/physics_ccd.wgsl /home/modkin/workspace/schneiderlo/voxys/shaders/physics_deterministic_primitives.wgsl /home/modkin/workspace/schneiderlo/voxys/shaders/physics_dynamic_solver.wgsl /home/modkin/workspace/schneiderlo/voxys/shaders/physics_event_readback.wgsl /home/modkin/workspace/schneiderlo/voxys/shaders/physics_islands.wgsl /home/modkin/workspace/schneiderlo/voxys/shaders/physics_narrow_phase.wgsl /home/modkin/workspace/schneiderlo/voxys/shaders/physics_queries.wgsl /home/modkin/workspace/schneiderlo/voxys/src/core/log.cpp /home/modkin/workspace/schneiderlo/voxys/src/core/log.hpp /home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_character_authority_bridge.cpp /home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_character_authority_bridge.hpp /home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_character_movement.cpp /home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_character_movement.hpp /home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_character_step.cpp /home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_character_step.hpp /home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_live_world.cpp /home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_live_world.hpp /home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_match.cpp /home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_match.hpp /home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_replay.cpp /home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_replay.hpp /home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_vessel_damage.cpp /home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_vessel_damage.hpp /home/modkin/workspace/schneiderlo/voxys/src/gpu/context.cpp /home/modkin/workspace/schneiderlo/voxys/src/gpu/context.hpp /home/modkin/workspace/schneiderlo/voxys/src/gpu/resources.cpp /home/modkin/workspace/schneiderlo/voxys/src/gpu/resources.hpp /home/modkin/workspace/schneiderlo/voxys/src/gpu/shader_source.hpp /home/modkin/workspace/schneiderlo/voxys/src/gpu/webgpu_compat.hpp /home/modkin/workspace/schneiderlo/voxys/src/network/native_tcp_transport.cpp /home/modkin/workspace/schneiderlo/voxys/src/network/native_tcp_transport.hpp /home/modkin/workspace/schneiderlo/voxys/src/network/protocol.cpp /home/modkin/workspace/schneiderlo/voxys/src/network/protocol.hpp /home/modkin/workspace/schneiderlo/voxys/src/network/session_transport.hpp /home/modkin/workspace/schneiderlo/voxys/src/network/wreckwater_protocol.cpp /home/modkin/workspace/schneiderlo/voxys/src/network/wreckwater_protocol.hpp /home/modkin/workspace/schneiderlo/voxys/src/physics/character/cpu_capsule_mover.cpp /home/modkin/workspace/schneiderlo/voxys/src/physics/character/cpu_capsule_mover.hpp /home/modkin/workspace/schneiderlo/voxys/src/physics/deterministic/lockstep_types.hpp /home/modkin/workspace/schneiderlo/voxys/src/physics/deterministic/lockstep_world.hpp /home/modkin/workspace/schneiderlo/voxys/src/physics/deterministic/replay.hpp /home/modkin/workspace/schneiderlo/voxys/src/physics/gpu/debug_readback_ring.cpp /home/modkin/workspace/schneiderlo/voxys/src/physics/gpu/debug_readback_ring.hpp /home/modkin/workspace/schneiderlo/voxys/src/physics/gpu/deterministic_primitives.cpp /home/modkin/workspace/schneiderlo/voxys/src/physics/gpu/deterministic_primitives.hpp /home/modkin/workspace/schneiderlo/voxys/src/physics/gpu/gpu_attachments.cpp /home/modkin/workspace/schneiderlo/voxys/src/physics/gpu/gpu_attachments.hpp /home/modkin/workspace/schneiderlo/voxys/src/physics/gpu/gpu_body_metadata.hpp /home/modkin/workspace/schneiderlo/voxys/src/physics/gpu/gpu_broad_phase.cpp /home/modkin/workspace/schneiderlo/voxys/src/physics/gpu/gpu_broad_phase.hpp /home/modkin/workspace/schneiderlo/voxys/src/physics/gpu/gpu_buffer_arena.cpp /home/modkin/workspace/schneiderlo/voxys/src/physics/gpu/gpu_buffer_arena.hpp /home/modkin/workspace/schneiderlo/voxys/src/physics/gpu/gpu_ccd.cpp /home/modkin/workspace/schneiderlo/voxys/src/physics/gpu/gpu_ccd.hpp /home/modkin/workspace/schneiderlo/voxys/src/physics/gpu/gpu_dynamic_solver.cpp /home/modkin/workspace/schneiderlo/voxys/src/physics/gpu/gpu_dynamic_solver.hpp /home/modkin/workspace/schneiderlo/voxys/src/physics/gpu/gpu_event_readback.cpp /home/modkin/workspace/schneiderlo/voxys/src/physics/gpu/gpu_event_readback.hpp /home/modkin/workspace/schneiderlo/voxys/src/physics/gpu/gpu_islands.cpp /home/modkin/workspace/schneiderlo/voxys/src/physics/gpu/gpu_islands.hpp /home/modkin/workspace/schneiderlo/voxys/src/physics/gpu/gpu_narrow_phase.cpp /home/modkin/workspace/schneiderlo/voxys/src/physics/gpu/gpu_narrow_phase.hpp /home/modkin/workspace/schneiderlo/voxys/src/physics/gpu/gpu_physics_backend.cpp /home/modkin/workspace/schneiderlo/voxys/src/physics/gpu/gpu_physics_backend.hpp /home/modkin/workspace/schneiderlo/voxys/src/physics/gpu/gpu_queries.cpp /home/modkin/workspace/schneiderlo/voxys/src/physics/gpu/gpu_queries.hpp /home/modkin/workspace/schneiderlo/voxys/src/physics/physics_backend.hpp /home/modkin/workspace/schneiderlo/voxys/src/physics/physics_backend_factory.hpp /home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.cpp /home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp /home/modkin/workspace/schneiderlo/voxys/src/physics/physics_world.cpp /home/modkin/workspace/schneiderlo/voxys/src/physics/physics_world.hpp /home/modkin/workspace/schneiderlo/voxys/src/physics/terrain_topology.hpp /home/modkin/workspace/schneiderlo/voxys/src/terrain/lego_surface.hpp /home/modkin/workspace/schneiderlo/voxys/src/physics/wreckwater_authority_backend_factory.cpp /home/modkin/workspace/schneiderlo/voxys/src/server/wreckwater_authority_runtime.cpp /home/modkin/workspace/schneiderlo/voxys/src/server/wreckwater_authority_runtime.hpp /home/modkin/workspace/schneiderlo/voxys/src/server/wreckwater_server_main.cpp /home/modkin/workspace/schneiderlo/voxys/src/terrain/mip_generator.cpp /home/modkin/workspace/schneiderlo/voxys/src/terrain/mip_generator.hpp
+wreckwater build-content generation failed: authority content allowlist must be sorted by canonical path
+[207/395] Building C object third_party/box3d/src/CMakeFiles/box3d.dir/weld_joint.c.o
+[208/395] Building C object third_party/box3d/src/CMakeFiles/box3d.dir/triangle_manifold.c.o
+[209/395] Building C object third_party/box3d/src/CMakeFiles/box3d.dir/wheel_joint.c.o
+ninja: build stopped: subcommand failed.

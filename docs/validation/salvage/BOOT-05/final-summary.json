@@ -1,0 +1,84 @@
+{
+  "scope": "BOOT-05 authored technical placeholder and lifecycle only; no gameplay/visual/performance quality claim",
+  "native_sha256": "c4dc00f1023fa50869dffcb2c76466a5c9a8c69964e7ccec34a6288b8b386d1d",
+  "wasm_sha256": "d4b6575d97a84ba2c81a01c3c1710f9c9f551ed6f39cddda194bb808eed4644f",
+  "focused_tests": {
+    "cpu": 46,
+    "gpu_actual": 1,
+    "catalog": 16,
+    "ui": 4,
+    "negative_packaging": 6
+  },
+  "native_salvage": "passed, normal exit 0, 1600x900 screenshot",
+  "browser_journey": "passed",
+  "pointer_lock_granted_and_released": true,
+  "browser_legacy_matrix": {
+    "status": "passed",
+    "routes": [
+      {
+        "scene": "default",
+        "exit_code": 0,
+        "report": "docs/validation/salvage/BOOT-05/browser-legacy/default.json",
+        "command": [
+          "node",
+          "scripts/smoke_integrated_wasm.mjs",
+          "/tmp/voxys-boot05-web",
+          "default"
+        ]
+      },
+      {
+        "scene": "lego-world",
+        "exit_code": 0,
+        "report": "docs/validation/salvage/BOOT-05/browser-legacy/lego-world.json",
+        "command": [
+          "node",
+          "scripts/smoke_integrated_wasm.mjs",
+          "/tmp/voxys-boot05-web",
+          "lego-world"
+        ]
+      },
+      {
+        "scene": "lego",
+        "exit_code": 0,
+        "report": "docs/validation/salvage/BOOT-05/browser-legacy/lego.json",
+        "command": [
+          "node",
+          "scripts/smoke_integrated_wasm.mjs",
+          "/tmp/voxys-boot05-web",
+          "lego"
+        ]
+      },
+      {
+        "scene": "terrain",
+        "exit_code": 0,
+        "report": "docs/validation/salvage/BOOT-05/browser-legacy/terrain.json",
+        "command": [
+          "node",
+          "scripts/smoke_integrated_wasm.mjs",
+          "/tmp/voxys-boot05-web",
+          "terrain"
+        ]
+      },
+      {
+        "scene": "ridgebreak",
+        "exit_code": 0,
+        "report": "docs/validation/salvage/BOOT-05/browser-legacy/ridgebreak.json",
+        "command": [
+          "node",
+          "scripts/smoke_integrated_wasm.mjs",
+          "/tmp/voxys-boot05-web",
+          "ridgebreak"
+        ]
+      }
+    ]
+  },
+  "standalone_study": {
+    "url": "http://127.0.0.1:36785/lego_patch.html?test",
+    "groupedBricks": 265,
+    "singleBricks": 620,
+    "dropAndReset": "passed",
+    "note": "Actual separately loaded terrain study, no expedition gameplay claim."
+  },
+  "full_mandatory_suite": "owned and reported separately by root",
+  "previous_failures_preserved": true
+}

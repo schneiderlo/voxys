@@ -1,0 +1,42 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+[1/37] Building CXX object src/CMakeFiles/wreckwater_headless_authority.dir/game/wreckwater_character_authority_bridge.cpp.o
+[2/37] Building CXX object src/CMakeFiles/wreckwater_headless_authority.dir/game/wreckwater_character_step.cpp.o
+[3/37] Building CXX object src/CMakeFiles/wreckwater_headless_authority.dir/game/wreckwater_character_movement.cpp.o
+[4/37] Building CXX object src/CMakeFiles/wreckwater_headless_authority.dir/game/wreckwater_live_world.cpp.o
+[5/37] Building CXX object src/CMakeFiles/wreckwater_headless_authority.dir/game/wreckwater_match.cpp.o
+[6/37] Building CXX object src/CMakeFiles/wreckwater_headless_authority.dir/game/wreckwater_replay.cpp.o
+[7/37] Building CXX object src/CMakeFiles/wreckwater_headless_authority.dir/core/log.cpp.o
+[8/37] Building CXX object src/CMakeFiles/wreckwater_headless_authority.dir/game/wreckwater_vessel_damage.cpp.o
+[9/37] Building CXX object src/CMakeFiles/wreckwater_headless_authority.dir/network/protocol.cpp.o
+[10/37] Building CXX object src/CMakeFiles/wreckwater_headless_authority.dir/gpu/context.cpp.o
+[11/37] Building CXX object src/CMakeFiles/wreckwater_headless_authority.dir/network/native_tcp_transport.cpp.o
+[12/37] Building CXX object src/CMakeFiles/wreckwater_headless_authority.dir/physics/character/cpu_capsule_mover.cpp.o
+[13/37] Building CXX object src/CMakeFiles/wreckwater_headless_authority.dir/gpu/resources.cpp.o
+[14/37] Building CXX object src/CMakeFiles/wreckwater_headless_authority.dir/physics/gpu/debug_readback_ring.cpp.o
+[15/37] Building CXX object src/CMakeFiles/wreckwater_headless_authority.dir/physics/gpu/gpu_attachments.cpp.o
+[16/37] Building CXX object src/CMakeFiles/wreckwater_headless_authority.dir/network/wreckwater_protocol.cpp.o
+[17/37] Building CXX object src/CMakeFiles/wreckwater_headless_authority.dir/physics/gpu/deterministic_primitives.cpp.o
+[18/37] Building CXX object src/CMakeFiles/wreckwater_headless_authority.dir/physics/gpu/gpu_ccd.cpp.o
+[19/37] Building CXX object src/CMakeFiles/wreckwater_headless_authority.dir/physics/gpu/gpu_broad_phase.cpp.o
+[20/37] Building CXX object src/CMakeFiles/wreckwater_headless_authority.dir/physics/gpu/gpu_event_readback.cpp.o
+[21/37] Building CXX object src/CMakeFiles/wreckwater_headless_authority.dir/physics/gpu/gpu_dynamic_solver.cpp.o
+[22/37] Building CXX object src/CMakeFiles/wreckwater_headless_authority.dir/physics/gpu/gpu_buffer_arena.cpp.o
+[23/37] Building CXX object src/CMakeFiles/wreckwater_headless_authority.dir/physics/gpu/gpu_islands.cpp.o
+[24/37] Building CXX object src/CMakeFiles/wreckwater_headless_authority.dir/physics/gpu/gpu_narrow_phase.cpp.o
+[25/37] Building CXX object src/CMakeFiles/wreckwater_headless_authority.dir/physics/physics_types.cpp.o
+[26/37] Building CXX object src/CMakeFiles/wreckwater_headless_authority.dir/physics/gpu/gpu_queries.cpp.o
+[27/37] Building CXX object src/CMakeFiles/wreckwater_headless_authority.dir/physics/wreckwater_authority_backend_factory.cpp.o
+[28/37] Building CXX object src/CMakeFiles/wreckwater_headless_authority.dir/server/wreckwater_authority_runtime.cpp.o
+[29/37] Building CXX object src/CMakeFiles/wreckwater_headless_authority.dir/physics/physics_world.cpp.o
+[30/37] Building CXX object src/CMakeFiles/wreckwater_headless_authority.dir/terrain/mip_generator.cpp.o
+[31/37] Building CXX object CMakeFiles/wreckwater_client_probe.dir/src/client/wreckwater_client_probe.cpp.o
+[32/37] Building CXX object CMakeFiles/wreckwater_server.dir/src/server/wreckwater_server_main.cpp.o
+[33/37] Building CXX object CMakeFiles/wreckwater_client_probe.dir/src/client/wreckwater_client_probe_main.cpp.o
+[34/37] Linking CXX executable bin/wreckwater_client_probe
+[35/37] Building CXX object src/CMakeFiles/wreckwater_headless_authority.dir/physics/gpu/gpu_physics_backend.cpp.o
+[36/37] Linking CXX static library lib/libwreckwater_headless_authority.a
+[37/37] Linking CXX executable bin/wreckwater_server

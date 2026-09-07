@@ -40,8 +40,10 @@
 #include "engine/platform/input.hpp"
 #include "physics/gpu/debug_readback_ring.hpp"
 #include "physics/physics_types.hpp"
+#include "app/salvage_preview_readback.hpp"
 #include "render/primitive_culling.hpp"
 #include "game/lego_playground.hpp"
+#include "game/expedition/salvage_preview.hpp"
 
 namespace voxy {
 
@@ -252,6 +254,7 @@ struct ApplicationConfig {
     int windowHeight = 720;
     std::string windowTitle = "voxy";
     bool legoTerrainEnabled = false;
+    bool salvagePreviewEnabled = false;
     bool motoEnabled = false; // Opt-in prototype, never replaces the terrain demo.
     bool fullscreen = false;
     bool vsync = true;
@@ -684,6 +687,8 @@ public:
     /// Get the camera.
     bool legoAction(int action);
     [[nodiscard]] std::string legoHudJson() const;
+    bool salvagePreviewAction(int action);
+    [[nodiscard]] std::string salvagePreviewJson() const;
     [[nodiscard]] Camera* getCamera() noexcept { return camera_.get(); }
     [[nodiscard]] const Camera* getCamera() const noexcept { return camera_.get(); }
 
@@ -716,6 +721,10 @@ private:
     bool initTerrain();
     bool initRenderers();
     bool initMoto();
+    bool initSalvagePreview();
+    void resetSalvagePreviewView();
+    void updateSalvagePreview(float frameDeltaTime);
+    void encodeSalvageRetirement(WGPUCommandEncoder encoder);
     bool startMotoCircuit();
     bool initRenderGpuProfiling();
     bool initWreckwaterClient();
@@ -853,6 +862,12 @@ private:
     std::unique_ptr<render::PrimitivePath> primitivePath_;
     std::unique_ptr<game::LegoPlayground> legoPlayground_;
     bool legoPlaygroundActive_ = false;
+    std::unique_ptr<game::expedition::SalvagePreview> salvagePreview_;
+    physics::DebugReadbackRing salvageRetirementReadback_;
+    app_detail::SalvageMetadataReadbackSource salvageMetadataSource_;
+    size_t salvageRetirementBytes_ = 0;
+    float salvageRetirementSeconds_ = 0;
+    bool salvagePreviewFailed_ = false;
     std::unique_ptr<render::MeshPath> meshPath_;
     std::unique_ptr<moto::MotoSession> motoSession_;
     std::unique_ptr<moto::RaceSession> motoRaceSession_;
@@ -908,6 +923,8 @@ private:
         glm::ivec3 sector{0};
     };
     std::vector<CameraState> recordedPositions_;
+    std::optional<CameraState> preSalvageCamera_;
+    ControllerMode preSalvageController_ = ControllerMode::FreeFly;
 
     // Automated screenshot tour state
     bool tourActive_ = false;

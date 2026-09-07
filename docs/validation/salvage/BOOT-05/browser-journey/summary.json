@@ -1,0 +1,365 @@
+{
+  "note": "Real browser controls and completed application state; no performance claim.",
+  "stages": [
+    {
+      "name": "initial",
+      "state": {
+        "active": true,
+        "ready": true,
+        "busy": false,
+        "failed": false,
+        "bodies": 32,
+        "resets": 0,
+        "controller": "character",
+        "mouseCaptured": false,
+        "origin": [
+          -12,
+          -187.68,
+          -32
+        ],
+        "camera": {
+          "local": [
+            -12,
+            69.18,
+            -24
+          ],
+          "sector": [
+            0,
+            -1,
+            0
+          ],
+          "yaw": -2.64765,
+          "pitch": -0.0297919
+        },
+        "resident": 32,
+        "grouped": true,
+        "playground": false,
+        "pointerLocked": false,
+        "lost": null,
+        "errors": []
+      }
+    },
+    {
+      "name": "walked",
+      "state": {
+        "active": true,
+        "ready": true,
+        "busy": false,
+        "failed": false,
+        "bodies": 32,
+        "resets": 0,
+        "controller": "character",
+        "mouseCaptured": false,
+        "origin": [
+          -12,
+          -187.68,
+          -32
+        ],
+        "camera": {
+          "local": [
+            -12.1993,
+            69.1614,
+            -24.3701
+          ],
+          "sector": [
+            0,
+            -1,
+            0
+          ],
+          "yaw": -2.64765,
+          "pitch": -0.0297919
+        },
+        "resident": 32,
+        "grouped": true,
+        "playground": false,
+        "pointerLocked": false,
+        "lost": null,
+        "errors": []
+      }
+    },
+    {
+      "name": "reset-button",
+      "state": {
+        "active": true,
+        "ready": true,
+        "busy": false,
+        "failed": false,
+        "bodies": 32,
+        "resets": 1,
+        "controller": "character",
+        "mouseCaptured": false,
+        "origin": [
+          -12,
+          -187.68,
+          -32
+        ],
+        "camera": {
+          "local": [
+            -12,
+            69.18,
+            -24
+          ],
+          "sector": [
+            0,
+            -1,
+            0
+          ],
+          "yaw": -2.64765,
+          "pitch": -0.0297919
+        },
+        "resident": 32,
+        "grouped": true,
+        "playground": false,
+        "pointerLocked": false,
+        "lost": null,
+        "errors": []
+      }
+    },
+    {
+      "name": "reset-keyboard",
+      "state": {
+        "active": true,
+        "ready": true,
+        "busy": false,
+        "failed": false,
+        "bodies": 32,
+        "resets": 2,
+        "controller": "character",
+        "mouseCaptured": false,
+        "origin": [
+          -12,
+          -187.68,
+          -32
+        ],
+        "camera": {
+          "local": [
+            -12,
+            69.18,
+            -24
+          ],
+          "sector": [
+            0,
+            -1,
+            0
+          ],
+          "yaw": -2.64765,
+          "pitch": -0.0297919
+        },
+        "resident": 32,
+        "grouped": true,
+        "playground": false,
+        "pointerLocked": false,
+        "lost": null,
+        "errors": []
+      }
+    },
+    {
+      "name": "legacy-controls-isolated",
+      "state": {
+        "active": true,
+        "ready": true,
+        "busy": false,
+        "failed": false,
+        "bodies": 32,
+        "resets": 2,
+        "controller": "character",
+        "mouseCaptured": false,
+        "origin": [
+          -12,
+          -187.68,
+          -32
+        ],
+        "camera": {
+          "local": [
+            -12,
+            69.18,
+            -24
+          ],
+          "sector": [
+            0,
+            -1,
+            0
+          ],
+          "yaw": -2.64765,
+          "pitch": -0.0297919
+        },
+        "resident": 32,
+        "grouped": true,
+        "playground": false,
+        "pointerLocked": false,
+        "lost": null,
+        "errors": []
+      }
+    },
+    {
+      "name": "legacy-world-after-leave",
+      "state": {
+        "active": false,
+        "ready": false,
+        "busy": false,
+        "failed": false,
+        "bodies": 0,
+        "resets": 0,
+        "controller": "character",
+        "mouseCaptured": false,
+        "origin": null,
+        "camera": {
+          "local": [
+            116,
+            63.42,
+            70
+          ],
+          "sector": [
+            -5,
+            -1,
+            13
+          ],
+          "yaw": 2.91688,
+          "pitch": -0.165588
+        },
+        "resident": 0,
+        "grouped": true,
+        "playground": false,
+        "pointerLocked": false,
+        "lost": null,
+        "errors": []
+      }
+    },
+    {
+      "name": "reentered",
+      "state": {
+        "active": true,
+        "ready": true,
+        "busy": false,
+        "failed": false,
+        "bodies": 32,
+        "resets": 0,
+        "controller": "character",
+        "mouseCaptured": false,
+        "origin": [
+          -12,
+          -187.68,
+          -32
+        ],
+        "camera": {
+          "local": [
+            -12,
+            69.18,
+            -24
+          ],
+          "sector": [
+            0,
+            -1,
+            0
+          ],
+          "yaw": -2.64765,
+          "pitch": -0.0297919
+        },
+        "resident": 32,
+        "grouped": true,
+        "playground": false,
+        "pointerLocked": false,
+        "lost": null,
+        "errors": []
+      }
+    },
+    {
+      "name": "single-reset-after-reentry",
+      "state": {
+        "active": true,
+        "ready": true,
+        "busy": false,
+        "failed": false,
+        "bodies": 32,
+        "resets": 1,
+        "controller": "character",
+        "mouseCaptured": false,
+        "origin": [
+          -12,
+          -187.68,
+          -32
+        ],
+        "camera": {
+          "local": [
+            -12,
+            69.18,
+            -24
+          ],
+          "sector": [
+            0,
+            -1,
+            0
+          ],
+          "yaw": -2.64765,
+          "pitch": -0.0297919
+        },
+        "resident": 32,
+        "grouped": true,
+        "playground": false,
+        "pointerLocked": false,
+        "lost": null,
+        "errors": []
+      }
+    }
+  ],
+  "device": {
+    "name": "webgpu-physics",
+    "adapter": {
+      "vendor": "amd",
+      "architecture": "rdna-3",
+      "device": "Unknown",
+      "description": "Unknown",
+      "fallback": false
+    },
+    "requiredStorageBuffers": 8,
+    "maxStorageBuffersPerShaderStage": 8,
+    "maxStorageBufferBindingSize": 134217728,
+    "maxBufferSize": 268435456,
+    "maxComputeWorkgroupsPerDimension": 65535,
+    "timestampQuery": true
+  },
+  "url": "http://127.0.0.1:36785/index.html?experience=salvage",
+  "pointerLockGranted": true,
+  "exit": {
+    "state": {
+      "active": false,
+      "ready": false,
+      "busy": false,
+      "failed": false,
+      "bodies": 0,
+      "resets": 2,
+      "controller": "free-fly",
+      "mouseCaptured": false,
+      "origin": [
+        -12,
+        -187.68,
+        -32
+      ],
+      "camera": {
+        "local": [
+          0,
+          750,
+          -256
+        ],
+        "sector": [
+          0,
+          0,
+          0
+        ],
+        "yaw": 0,
+        "pitch": -1.24186
+      }
+    },
+    "resident": 0,
+    "panelHidden": true,
+    "pointerLocked": false
+  },
+  "standaloneStudy": {
+    "url": "http://127.0.0.1:36785/lego_patch.html?test",
+    "groupedBricks": 265,
+    "singleBricks": 620,
+    "dropAndReset": "passed",
+    "note": "Actual separately loaded terrain study, no expedition gameplay claim."
+  },
+  "status": "passed"
+}

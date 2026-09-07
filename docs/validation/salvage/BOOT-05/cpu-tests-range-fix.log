@@ -1,0 +1,159 @@
+Running main() from /home/modkin/workspace/schneiderlo/voxys/third_party/googletest/googletest/src/gtest_main.cc
+Note: Google Test filter = Config*:SalvagePreview.*:ApplicationSalvagePreviewTest.*
+[==========] Running 46 tests from 6 test suites.
+[----------] Global test environment set-up.
+[----------] 8 tests from SalvagePreview
+[ RUN      ] SalvagePreview.AuthoredFixtureIsBoundedAndStatic
+[       OK ] SalvagePreview.AuthoredFixtureIsBoundedAndStatic (0 ms)
+[ RUN      ] SalvagePreview.PartialSpawnFailureRollsBackOnlyOwnedBodies
+[       OK ] SalvagePreview.PartialSpawnFailureRollsBackOnlyOwnedBodies (0 ms)
+[ RUN      ] SalvagePreview.ResetRequiresCompletedMatchingGenerationSnapshot
+[       OK ] SalvagePreview.ResetRequiresCompletedMatchingGenerationSnapshot (0 ms)
+[ RUN      ] SalvagePreview.AcceptedDestroysAreNotRequeuedAndLeaveWinsReset
+[       OK ] SalvagePreview.AcceptedDestroysAreNotRequeuedAndLeaveWinsReset (0 ms)
+[ RUN      ] SalvagePreview.ReusedIndicesDoNotRetainOrDeleteAnotherGeneration
+[       OK ] SalvagePreview.ReusedIndicesDoNotRetainOrDeleteAnotherGeneration (0 ms)
+[ RUN      ] SalvagePreview.FailedRespawnRollsBackNewGeneration
+[       OK ] SalvagePreview.FailedRespawnRollsBackNewGeneration (0 ms)
+[ RUN      ] SalvagePreview.InvalidPortsAndActionsHaveNoSideEffects
+[       OK ] SalvagePreview.InvalidPortsAndActionsHaveNoSideEffects (0 ms)
+[ RUN      ] SalvagePreview.ShutdownReportsBlockedRemovalAndCanRetry
+[       OK ] SalvagePreview.ShutdownReportsBlockedRemovalAndCanRetry (0 ms)
+[----------] 8 tests from SalvagePreview (0 ms total)
+
+[----------] 6 tests from ConfigUtilsTest
+[ RUN      ] ConfigUtilsTest.Trim
+[       OK ] ConfigUtilsTest.Trim (0 ms)
+[ RUN      ] ConfigUtilsTest.ParseBool
+[       OK ] ConfigUtilsTest.ParseBool (0 ms)
+[ RUN      ] ConfigUtilsTest.ParseFloat
+[       OK ] ConfigUtilsTest.ParseFloat (0 ms)
+[ RUN      ] ConfigUtilsTest.ParseInt
+[       OK ] ConfigUtilsTest.ParseInt (0 ms)
+[ RUN      ] ConfigUtilsTest.GenericParseSupportsItsAdvertisedTypes
+[       OK ] ConfigUtilsTest.GenericParseSupportsItsAdvertisedTypes (0 ms)
+[ RUN      ] ConfigUtilsTest.WreckwaterKeyParserIsExactAndTransactional
+[       OK ] ConfigUtilsTest.WreckwaterKeyParserIsExactAndTransactional (0 ms)
+[----------] 6 tests from ConfigUtilsTest (0 ms total)
+
+[----------] 8 tests from ConfigDefaultsTest
+[ RUN      ] ConfigDefaultsTest.RenderConfig
+[       OK ] ConfigDefaultsTest.RenderConfig (0 ms)
+[ RUN      ] ConfigDefaultsTest.TerrainConfig
+[       OK ] ConfigDefaultsTest.TerrainConfig (0 ms)
+[ RUN      ] ConfigDefaultsTest.WaterConfig
+[       OK ] ConfigDefaultsTest.WaterConfig (0 ms)
+[ RUN      ] ConfigDefaultsTest.PhysicsConfig
+[       OK ] ConfigDefaultsTest.PhysicsConfig (0 ms)
+[ RUN      ] ConfigDefaultsTest.CameraConfig
+[       OK ] ConfigDefaultsTest.CameraConfig (0 ms)
+[ RUN      ] ConfigDefaultsTest.LightingConfig
+[       OK ] ConfigDefaultsTest.LightingConfig (0 ms)
+[ RUN      ] ConfigDefaultsTest.DebugConfig
+[       OK ] ConfigDefaultsTest.DebugConfig (0 ms)
+[ RUN      ] ConfigDefaultsTest.WindowConfig
+[       OK ] ConfigDefaultsTest.WindowConfig (0 ms)
+[----------] 8 tests from ConfigDefaultsTest (0 ms total)
+
+[----------] 2 tests from ConfigGameModeTest
+[ RUN      ] ConfigGameModeTest.AbsentModePreservesLegacyTitleRoutes
+[       OK ] ConfigGameModeTest.AbsentModePreservesLegacyTitleRoutes (0 ms)
+[ RUN      ] ConfigGameModeTest.ExplicitModeOverridesTitleAndRejectsUnknownOrConflict
+[       OK ] ConfigGameModeTest.ExplicitModeOverridesTitleAndRejectsUnknownOrConflict (0 ms)
+[----------] 2 tests from ConfigGameModeTest (0 ms total)
+
+[----------] 20 tests from ConfigFileTest
+[ RUN      ] ConfigFileTest.ExplicitModeRoundTripsAndMalformedModeNeverFallsBack
+[32m[INFO ] [08:29:34.065] Saved config: /tmp/voxy_ConfigFileTest_ExplicitModeRoundTripsAndMalformedModeNeverFallsBack.cfg[0m
+[32m[INFO ] [08:29:34.065] Loading config: /tmp/voxy_ConfigFileTest_ExplicitModeRoundTripsAndMalformedModeNeverFallsBack.cfg[0m
+[32m[INFO ] [08:29:34.065] Loading config: /tmp/voxy_ConfigFileTest_ExplicitModeRoundTripsAndMalformedModeNeverFallsBack.cfg[0m
+[33m[WARN ] [08:29:34.065] Config line 4: unterminated quoted value[0m
+[32m[INFO ] [08:29:34.065] Loading config: /tmp/voxy_ConfigFileTest_ExplicitModeRoundTripsAndMalformedModeNeverFallsBack.cfg[0m
+[33m[WARN ] [08:29:34.065] Config line 4: invalid text after quoted value[0m
+[32m[INFO ] [08:29:34.065] Loading config: /tmp/voxy_ConfigFileTest_ExplicitModeRoundTripsAndMalformedModeNeverFallsBack.cfg[0m
+[32m[INFO ] [08:29:34.065] Loading config: /tmp/voxy_ConfigFileTest_ExplicitModeRoundTripsAndMalformedModeNeverFallsBack.cfg[0m
+[32m[INFO ] [08:29:34.065] Saved config: /tmp/voxy_ConfigFileTest_ExplicitModeRoundTripsAndMalformedModeNeverFallsBack.cfg[0m
+[32m[INFO ] [08:29:34.065] Loading config: /tmp/voxy_ConfigFileTest_ExplicitModeRoundTripsAndMalformedModeNeverFallsBack.cfg[0m
+[       OK ] ConfigFileTest.ExplicitModeRoundTripsAndMalformedModeNeverFallsBack (0 ms)
+[ RUN      ] ConfigFileTest.LoadNonexistentFile
+[       OK ] ConfigFileTest.LoadNonexistentFile (0 ms)
+[ RUN      ] ConfigFileTest.LoadBasicConfig
+[32m[INFO ] [08:29:34.065] Loading config: /tmp/voxy_ConfigFileTest_LoadBasicConfig.cfg[0m
+[       OK ] ConfigFileTest.LoadBasicConfig (0 ms)
+[ RUN      ] ConfigFileTest.LoadsCompleteWreckwaterBootstrapWithoutPrintableKeyState
+[32m[INFO ] [08:29:34.065] Loading config: /tmp/voxy_ConfigFileTest_LoadsCompleteWreckwaterBootstrapWithoutPrintableKeyState.cfg[0m
+[32m[INFO ] [08:29:34.065] Saved config: /tmp/voxy_ConfigFileTest_LoadsCompleteWreckwaterBootstrapWithoutPrintableKeyState.cfg[0m
+[       OK ] ConfigFileTest.LoadsCompleteWreckwaterBootstrapWithoutPrintableKeyState (0 ms)
+[ RUN      ] ConfigFileTest.CommandLineCanCompleteWreckwaterFileAtomically
+[32m[INFO ] [08:29:34.065] Loading config: /tmp/voxy_ConfigFileTest_CommandLineCanCompleteWreckwaterFileAtomically.cfg[0m
+[       OK ] ConfigFileTest.CommandLineCanCompleteWreckwaterFileAtomically (0 ms)
+[ RUN      ] ConfigFileTest.ZeroWreckwaterKeyAndIdentityFailValidation
+[       OK ] ConfigFileTest.ZeroWreckwaterKeyAndIdentityFailValidation (0 ms)
+[ RUN      ] ConfigFileTest.LoadAllSections
+[32m[INFO ] [08:29:34.065] Loading config: /tmp/voxy_ConfigFileTest_LoadAllSections.cfg[0m
+[       OK ] ConfigFileTest.LoadAllSections (0 ms)
+[ RUN      ] ConfigFileTest.IgnoresComments
+[32m[INFO ] [08:29:34.065] Loading config: /tmp/voxy_ConfigFileTest_IgnoresComments.cfg[0m
+[       OK ] ConfigFileTest.IgnoresComments (0 ms)
+[ RUN      ] ConfigFileTest.CommandLineOverrides
+[32m[INFO ] [08:29:34.065] Loading config: /tmp/voxy_ConfigFileTest_CommandLineOverrides.cfg[0m
+[       OK ] ConfigFileTest.CommandLineOverrides (0 ms)
+[ RUN      ] ConfigFileTest.CommandLineBenchmarkEnablesAutomation
+[       OK ] ConfigFileTest.CommandLineBenchmarkEnablesAutomation (0 ms)
+[ RUN      ] ConfigFileTest.SaveAndReload
+[32m[INFO ] [08:29:34.065] Saved config: /tmp/voxy_ConfigFileTest_SaveAndReload.cfg[0m
+[32m[INFO ] [08:29:34.065] Loading config: /tmp/voxy_ConfigFileTest_SaveAndReload.cfg[0m
+[       OK ] ConfigFileTest.SaveAndReload (0 ms)
+[ RUN      ] ConfigFileTest.InvalidWaterNumbersKeepCurrentDefaults
+[32m[INFO ] [08:29:34.065] Loading config: /tmp/voxy_ConfigFileTest_InvalidWaterNumbersKeepCurrentDefaults.cfg[0m
+[       OK ] ConfigFileTest.InvalidWaterNumbersKeepCurrentDefaults (0 ms)
+[ RUN      ] ConfigFileTest.InvalidBroadPhaseCellSizesKeepCurrentValue
+[32m[INFO ] [08:29:34.065] Loading config: /tmp/voxy_ConfigFileTest_InvalidBroadPhaseCellSizesKeepCurrentValue.cfg[0m
+[33m[WARN ] [08:29:34.065] Config line 4: [physics] broad_phase_cell_size must be positive and evenly divide 256; keeping 8[0m
+[       OK ] ConfigFileTest.InvalidBroadPhaseCellSizesKeepCurrentValue (0 ms)
+[ RUN      ] ConfigFileTest.InvalidDuplicateValuesKeepEarlierValidValues
+[32m[INFO ] [08:29:34.065] Loading config: /tmp/voxy_ConfigFileTest_InvalidDuplicateValuesKeepEarlierValidValues.cfg[0m
+[       OK ] ConfigFileTest.InvalidDuplicateValuesKeepEarlierValidValues (0 ms)
+[ RUN      ] ConfigFileTest.MalformedVectorsAndQuotesPreserveEarlierValues
+[32m[INFO ] [08:29:34.065] Loading config: /tmp/voxy_ConfigFileTest_MalformedVectorsAndQuotesPreserveEarlierValues.cfg[0m
+[33m[WARN ] [08:29:34.065] Config line 10: unterminated quoted value[0m
+[33m[WARN ] [08:29:34.065] Config line 11: invalid text after quoted value[0m
+[       OK ] ConfigFileTest.MalformedVectorsAndQuotesPreserveEarlierValues (0 ms)
+[ RUN      ] ConfigFileTest.SaveAndReloadEscapedStrings
+[32m[INFO ] [08:29:34.065] Saved config: /tmp/voxy_ConfigFileTest_SaveAndReloadEscapedStrings.cfg[0m
+[32m[INFO ] [08:29:34.065] Loading config: /tmp/voxy_ConfigFileTest_SaveAndReloadEscapedStrings.cfg[0m
+[       OK ] ConfigFileTest.SaveAndReloadEscapedStrings (0 ms)
+[ RUN      ] ConfigFileTest.ReflectionStrengthIsClampedToDocumentedRange
+[32m[INFO ] [08:29:34.065] Loading config: /tmp/voxy_ConfigFileTest_ReflectionStrengthIsClampedToDocumentedRange.cfg[0m
+[33m[WARN ] [08:29:34.065] Config line 3: [water] reflection_strength 1.5 is outside [0, 1] and will be clamped[0m
+[32m[INFO ] [08:29:34.065] Loading config: /tmp/voxy_ConfigFileTest_ReflectionStrengthIsClampedToDocumentedRange.cfg[0m
+[33m[WARN ] [08:29:34.065] Config line 3: [water] reflection_strength -0.25 is outside [0, 1] and will be clamped[0m
+[       OK ] ConfigFileTest.ReflectionStrengthIsClampedToDocumentedRange (0 ms)
+[ RUN      ] ConfigFileTest.SaveReportsDeviceWriteFailure
+[31m[ERROR] [08:29:34.066] Failed while writing config: /dev/full[0m
+[       OK ] ConfigFileTest.SaveReportsDeviceWriteFailure (0 ms)
+[ RUN      ] ConfigFileTest.AllSettingsPreserved
+[32m[INFO ] [08:29:34.066] Loading config: /tmp/voxy_ConfigFileTest_AllSettingsPreserved.cfg[0m
+[       OK ] ConfigFileTest.AllSettingsPreserved (0 ms)
+[ RUN      ] ConfigFileTest.CommandLineOverridesAllSettings
+[32m[INFO ] [08:29:34.066] Loading config: /tmp/voxy_ConfigFileTest_CommandLineOverridesAllSettings.cfg[0m
+[       OK ] ConfigFileTest.CommandLineOverridesAllSettings (0 ms)
+[----------] 20 tests from ConfigFileTest (0 ms total)
+
+[----------] 2 tests from ApplicationSalvagePreviewTest
+[ RUN      ] ApplicationSalvagePreviewTest.UninitializedActionsAreRejected
+[       OK ] ApplicationSalvagePreviewTest.UninitializedActionsAreRejected (0 ms)
+[ RUN      ] ApplicationSalvagePreviewTest.IncompatibleConfigurationsFailBeforeGpuInitialization
+[31m[ERROR] [08:29:34.066] Application configuration is invalid (window 1280x720, heightmap 256x256, scale 1)[0m
+[31m[ERROR] [08:29:34.066] Application configuration is invalid (window 1280x720, heightmap 256x256, scale 1)[0m
+[31m[ERROR] [08:29:34.066] Application configuration is invalid (window 1280x720, heightmap 256x256, scale 1)[0m
+[31m[ERROR] [08:29:34.066] Application configuration is invalid (window 1280x720, heightmap 256x256, scale 1)[0m
+[31m[ERROR] [08:29:34.066] Application configuration is invalid (window 1280x720, heightmap 256x256, scale 1)[0m
+[31m[ERROR] [08:29:34.066] Application configuration is invalid (window 1280x720, heightmap 256x256, scale 1)[0m
+[31m[ERROR] [08:29:34.066] Application configuration is invalid (window 1280x720, heightmap 256x256, scale 1)[0m
+[       OK ] ApplicationSalvagePreviewTest.IncompatibleConfigurationsFailBeforeGpuInitialization (0 ms)
+[----------] 2 tests from ApplicationSalvagePreviewTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 46 tests from 6 test suites ran. (1 ms total)
+[  PASSED  ] 46 tests.

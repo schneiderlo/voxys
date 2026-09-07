@@ -165,6 +165,8 @@ cc_binary(
         "voxy.cfg",
         "ridgebreak.cfg",
         "lego_shore.cfg",
+        "lego_world.cfg",
+        "salvage.cfg",
     ],
     defines = ["VOXY_NATIVE"],
 )
@@ -225,7 +227,7 @@ cc_binary(
         "--js-library", "$(location @emdawnwebgpu//:src/library_webgpu_enum_tables.js)",
         "--js-library", "$(location @emdawnwebgpu//:src/library_webgpu.js)",
         "--preload-file", "shaders@/shaders",
-        # Only embed the data files referenced by voxy.cfg.
+        # Embed the data files used by the existing scene routes.
         "--preload-file", "data/generated/td_seed_1234_8192.ldh@/data/generated/td_seed_1234_8192.ldh",
         "--preload-file", "data/generated/td_seed_1234_2048_albedo.jpg@/data/generated/td_seed_1234_2048_albedo.jpg",
         "--preload-file", "data/generated/ocean_environment.png@/data/generated/ocean_environment.png",
@@ -236,6 +238,8 @@ cc_binary(
         "--preload-file", "voxy.cfg@/voxy.cfg",
         "--preload-file", "ridgebreak.cfg@/ridgebreak.cfg",
         "--preload-file", "lego_shore.cfg@/lego_shore.cfg",
+        "--preload-file", "lego_world.cfg@/lego_world.cfg",
+        "--preload-file", "salvage.cfg@/salvage.cfg",
         "--preload-file", "data/lego_shore.ldh@/data/lego_shore.ldh",
     ],
     additional_linker_inputs = [
@@ -245,6 +249,8 @@ cc_binary(
         "voxy.cfg",
         "ridgebreak.cfg",
         "lego_shore.cfg",
+        "lego_world.cfg",
+        "salvage.cfg",
     ],
     data = [
         "//shaders:shaders",
@@ -252,6 +258,8 @@ cc_binary(
         "voxy.cfg",
         "ridgebreak.cfg",
         "lego_shore.cfg",
+        "lego_world.cfg",
+        "salvage.cfg",
         "@emdawnwebgpu//:src/library_webgpu.js",
         "@emdawnwebgpu//:src/library_webgpu_enum_tables.js",
         "@emdawnwebgpu//:src/library_webgpu_generated_struct_info.js",

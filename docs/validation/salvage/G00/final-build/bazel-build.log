@@ -1,0 +1,43 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: target //:voxy_native (0 packages loaded, 0 targets configured)
+Analyzing: target //:voxy_native (0 packages loaded, 0 targets configured)
+
+Analyzing: target //:voxy_native (0 packages loaded, 0 targets configured)
+
+INFO: Analyzed target //:voxy_native (1 packages loaded, 107 targets configured).
+[324 / 330] Compiling src/core/config.cpp; 1s linux-sandbox ... (4 actions running)
+[325 / 330] Compiling src/core/config.cpp; 2s linux-sandbox ... (4 actions running)
+[327 / 330] Compiling src/app/application.cpp; 4s linux-sandbox ... (2 actions running)
+[328 / 330] Compiling src/app/application.cpp; 6s linux-sandbox
+[329 / 330] [Prepa] Linking voxy_native
+INFO: Found 1 target...
+Target //:voxy_native up-to-date:
+  bazel-bin/voxy_native
+INFO: Elapsed time: 10.005s, Critical Path: 8.15s
+INFO: 7 processes: 324 action cache hit, 1 internal, 6 linux-sandbox.
+INFO: Build completed successfully, 7 total actions
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+WARNING: Build options --copt and --platforms have changed, discarding analysis cache (this can be expensive, see https://bazel.build/advanced/performance/iteration-speed).
+Analyzing: 2 targets (0 packages loaded, 0 targets configured)
+Analyzing: 2 targets (0 packages loaded, 0 targets configured)
+
+INFO: Analyzed 2 targets (0 packages loaded, 14688 targets configured).
+[360 / 379] Compiling src/app/application.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[382 / 388] Compiling src/app/application.cpp; 2s linux-sandbox ... (2 actions running)
+[384 / 388] Compiling src/app/application.cpp; 3s linux-sandbox
+[386 / 388] Linking voxy_wasm_cc; 1s local
+[386 / 388] Linking voxy_wasm_cc; 11s local
+[387 / 388] [Prepa] Action voxy_wasm/voxy_wasm_cc.js
+INFO: Found 2 targets...
+INFO: Elapsed time: 19.016s, Critical Path: 18.77s
+INFO: 9 processes: 380 action cache hit, 1 internal, 5 linux-sandbox, 3 local.
+INFO: Build completed successfully, 9 total actions

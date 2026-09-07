@@ -11,7 +11,11 @@
 
 set(CORE_SOURCES "")
 set(GPU_SOURCES "")
-set(GAME_SOURCES "")
+set(GAME_SOURCES
+    game/construction/construction_types.cpp
+    game/construction/part_catalog.cpp
+    game/expedition/salvage_preview.cpp
+)
 set(GAMEPLAY_SOURCES "")
 set(MOTO_SOURCES "")
 set(TERRAIN_SOURCES "")

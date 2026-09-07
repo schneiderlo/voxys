@@ -11,6 +11,7 @@ cc_library(
     hdrs = [
         "application.hpp",
         "debug_overlay.hpp",
+        "salvage_preview_readback.hpp",
     ],
     copts = PROJECT_DEFAULT_COPTS,
     includes = [".."],
@@ -22,6 +23,7 @@ cc_library(
         "//src/core:core",
         "//src/gpu:gpu",
         "//src/game:lego_playground",
+        "//src/game:salvage_preview",
         "//src/moto:moto",
         "//src/network:native_tcp_transport",
         "//src/perf:perf",

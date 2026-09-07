@@ -1,0 +1,38 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+WARNING: Build options --compilation_mode and --test_env have changed, discarding analysis cache (this can be expensive, see https://bazel.build/advanced/performance/iteration-speed).
+Analyzing: target //:voxy_native (0 packages loaded, 0 targets configured)
+Analyzing: target //:voxy_native (0 packages loaded, 0 targets configured)
+
+Analyzing: target //:voxy_native (0 packages loaded, 4301 targets configured)
+
+INFO: Analyzed target //:voxy_native (1 packages loaded, 5771 targets configured).
+[295 / 330] Compiling src/core/config.cpp; 0s linux-sandbox ... (4 actions, 3 running)
+[295 / 330] Compiling src/core/config.cpp; 2s linux-sandbox ... (4 actions running)
+ERROR: /home/modkin/workspace/schneiderlo/voxys/src/game/BUILD:26:11: Compiling src/game/construction/part_catalog.cpp failed: (Exit 1): gcc failed: error executing CppCompile command (from target //src/game:part_catalog) /nix/store/788mx070y81zjlg5ipcl0cra3afviw9k-gcc-wrapper-15.2.0/bin/gcc -U_FORTIFY_SOURCE -fstack-protector -Wall -Wunused-but-set-parameter -Wno-free-nonheap-object -fno-omit-frame-pointer -g0 -O2 ... (remaining 51 arguments skipped)
+
+Use --sandbox_debug to see verbose messages from the sandbox and retain the sandbox build root for debugging
+In lambda function,
+    inlined from 'constexpr _Res std::__invoke_impl(__invoke_other, _Fn&&, _Args&& ...) [with _Res = voxy::game::construction::CatalogError; _Fn = voxy::game::construction::{anonymous}::validateModule(const voxy::game::construction::PartDefinition&)::<lambda(const auto:39&)>; _Args = {const voxy::game::construction::WinchModule&}]' at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/invoke.h:63:36,
+    inlined from 'constexpr typename std::__invoke_result<_Functor, _ArgTypes>::type std::__invoke(_Callable&&, _Args&& ...) [with _Callable = voxy::game::construction::{anonymous}::validateModule(const voxy::game::construction::PartDefinition&)::<lambda(const auto:39&)>; _Args = {const voxy::game::construction::WinchModule&}]' at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/invoke.h:98:40,
+    inlined from 'static constexpr decltype(auto) std::__detail::__variant::__gen_vtable_impl<std::__detail::__variant::_Multi_array<_Result_type (*)(_Visitor, _Variants ...)>, std::integer_sequence<long unsigned int, __indices ...> >::__visit_invoke(_Visitor&&, _Variants ...) [with _Result_type = std::__detail::__variant::__deduce_visit_result<voxy::game::construction::CatalogError>; _Visitor = voxy::game::construction::{anonymous}::validateModule(const voxy::game::construction::PartDefinition&)::<lambda(const auto:39&)>&&; _Variants = {const std::variant<voxy::game::construction::StructureModule, voxy::game::construction::FlotationModule, voxy::game::construction::EngineModule, voxy::game::construction::PropellerModule, voxy::game::construction::HelmModule, voxy::game::construction::WinchModule, voxy::game::construction::TowEyeModule, voxy::game::construction::CargoCradleModule, voxy::game::construction::BraceModule, voxy::game::construction::BallastModule, voxy::game::construction::RepairModule>&}; long unsigned int ...__indices = {5}]' at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/variant:1055:24,
+    inlined from 'constexpr decltype(auto) std::__do_visit(_Visitor&&, _Variants&& ...) [with _Result_type = __detail::__variant::__deduce_visit_result<voxy::game::construction::CatalogError>; _Visitor = voxy::game::construction::{anonymous}::validateModule(const voxy::game::construction::PartDefinition&)::<lambda(const auto:39&)>; _Variants = {const variant<voxy::game::construction::StructureModule, voxy::game::construction::FlotationModule, voxy::game::construction::EngineModule, voxy::game::construction::PropellerModule, voxy::game::construction::HelmModule, voxy::game::construction::WinchModule, voxy::game::construction::TowEyeModule, voxy::game::construction::CargoCradleModule, voxy::game::construction::BraceModule, voxy::game::construction::BallastModule, voxy::game::construction::RepairModule>&}]' at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/variant:1896:5,
+    inlined from 'constexpr std::__detail::__variant::__visit_result_t<_Visitor, _Variants ...> std::visit(_Visitor&&, _Variants&& ...) [with _Visitor = voxy::game::construction::{anonymous}::validateModule(const voxy::game::construction::PartDefinition&)::<lambda(const auto:39&)>; _Variants = {const variant<voxy::game::construction::StructureModule, voxy::game::construction::FlotationModule, voxy::game::construction::EngineModule, voxy::game::construction::PropellerModule, voxy::game::construction::HelmModule, voxy::game::construction::WinchModule, voxy::game::construction::TowEyeModule, voxy::game::construction::CargoCradleModule, voxy::game::construction::BraceModule, voxy::game::construction::BallastModule, voxy::game::construction::RepairModule>&}]' at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/variant:1954:34,
+    inlined from 'voxy::game::construction::CatalogError voxy::game::construction::{anonymous}::validateModule(const voxy::game::construction::PartDefinition&)' at src/game/construction/part_catalog.cpp:172:22,
+    inlined from 'voxy::game::construction::CatalogIssue voxy::game::construction::{anonymous}::validateDefinition(const voxy::game::construction::PartDefinition&, size_t, const voxy::game::construction::CookedAssetResolver&, voxy::game::construction::CatalogPolicy)' at src/game/construction/part_catalog.cpp:317:44,
+    inlined from 'static std::optional<voxy::game::construction::PartCatalog> voxy::game::construction::PartCatalog::create(const voxy::game::construction::PartCatalogDraft&, voxy::game::construction::CatalogIssue&, const voxy::game::construction::CookedAssetResolver&, voxy::game::construction::CatalogPolicy)' at src/game/construction/part_catalog.cpp:477:35:
+src/game/construction/part_catalog.cpp:199:104: error: potential null pointer dereference [-Werror=null-dereference]
+  199 |                 valid = valid && module.maximumForceNewtons <= findSocket(part, module.line)->strength.tensionNewtons;
+      |                                                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~
+cc1plus: all warnings being treated as errors
+Target //:voxy_native failed to build
+Use --verbose_failures to see the command lines of failed build steps.
+INFO: Elapsed time: 5.670s, Critical Path: 3.72s
+INFO: 9 processes: 291 action cache hit, 8 internal, 1 linux-sandbox.
+ERROR: Build did NOT complete successfully

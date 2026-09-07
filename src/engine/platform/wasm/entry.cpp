@@ -867,6 +867,11 @@ int main(int argc, char* argv[]) {
     // Parse command-line arguments and load config
     voxy::config::init(argc, argv);
     const auto& config = voxy::config::get();
+    const auto gameMode = voxy::config::resolveGameMode(config);
+    if (!gameMode.ready()) {
+        LOG_ERROR("Game mode is {}", voxy::config::gameModeStatusName(gameMode.status));
+        return 1;
+    }
     g_physicsSelfTestRequested = EM_ASM_INT({
         return new URLSearchParams(globalThis.location.search)
             .get("physicsSelfTest") === "1" ? 1 : 0;
@@ -1010,9 +1015,9 @@ int main(int argc, char* argv[]) {
 
     // Configure the application from loaded config file
     voxy::ApplicationConfig appConfig;
-    appConfig.motoEnabled = config.window.title == "RIDGEBREAK";
-    appConfig.legoTerrainEnabled = config.window.title == "LEGO SHORE"
-        || config.window.title == "LEGO WORLD";
+    appConfig.motoEnabled = gameMode.mode == voxy::config::GameMode::Ridgebreak;
+    appConfig.legoTerrainEnabled = gameMode.legoTerrain();
+    appConfig.salvagePreviewEnabled = gameMode.mode == voxy::config::GameMode::Salvage;
     
     // Window settings
     // The browser sizes the canvas before loading WASM. Preserve its pixel
@@ -1193,7 +1198,7 @@ int main(int argc, char* argv[]) {
     appConfig.box3dWorkerThreads = 1;
     
     // The playable LEGO crop must not inherit the full landscape's 8K target.
-    appConfig.heightmapWidth = config.window.title == "LEGO SHORE" ? 256u : 8192u;
+    appConfig.heightmapWidth = gameMode.terrainSizeHint();
     appConfig.heightmapHeight = appConfig.heightmapWidth;
 
     if (appConfig.heightmapPath.empty() || 
@@ -1376,6 +1381,18 @@ EMSCRIPTEN_KEEPALIVE
 const char* voxy_get_lego_hud_json() {
     static std::string json;
     json = g_app ? g_app->legoHudJson() : "{}";
+    return json.c_str();
+}
+
+EMSCRIPTEN_KEEPALIVE
+int voxy_salvage_preview_action(int action) {
+    return g_app && g_app->salvagePreviewAction(action) ? 1 : 0;
+}
+
+EMSCRIPTEN_KEEPALIVE
+const char* voxy_get_salvage_preview_json() {
+    static std::string json;
+    json = g_app ? g_app->salvagePreviewJson() : "{}";
     return json.c_str();
 }
 

@@ -13,7 +13,7 @@ const root=path.resolve(process.argv[2]||'smoke-web');
 const selected=process.argv[3];
 if(!selected){
     const reports=[];
-    for(const experience of ['default','lego-world','lego','terrain','ridgebreak']){
+    for(const experience of ['default','lego-world','lego','terrain','ridgebreak','salvage']){
         const output=path.resolve(`startup-${experience}-report.json`);
         const child=spawn(process.execPath,[fileURLToPath(import.meta.url),root,experience],
             {stdio:'inherit',env:{...process.env,VOXY_SMOKE_REPORT:output}});
@@ -24,12 +24,20 @@ if(!selected){
     await writeFile('integrated-startup-report.json',JSON.stringify({status:'passed',reports},null,2));
     process.exit(0);
 }
-assert(['default','lego-world','lego','terrain','ridgebreak','presentation'].includes(selected),'unknown scene');
+assert(['default','lego-world','lego','terrain','ridgebreak','salvage','presentation'].includes(selected),'unknown scene');
 const isWorld=selected==='default'||selected==='lego-world';
 const isLego=isWorld||selected==='lego';
+const isSalvage=selected==='salvage';
+const memoryEnabled=process.env.VOXY_SMOKE_MEMORY==='1';
+const memoryIntervalMs=Number(process.env.VOXY_SMOKE_MEMORY_INTERVAL_MS||200);
+const memoryCapacity=Number(process.env.VOXY_SMOKE_MEMORY_SAMPLES||2048);
+if(memoryEnabled){
+    assert(Number.isFinite(memoryIntervalMs)&&memoryIntervalMs>=100&&memoryIntervalMs<=250,'memory interval must be 100..250 ms');
+    assert(Number.isInteger(memoryCapacity)&&memoryCapacity>=1&&memoryCapacity<=10000,'memory samples must be 1..10000');
+}
 const directory=await mkdtemp(path.join(tmpdir(),'voxys-startup-'));
 const delay=ms=>new Promise(r=>setTimeout(r,ms));
-const mime={'.html':'text/html','.js':'text/javascript','.css':'text/css','.wasm':'application/wasm','.data':'application/octet-stream'};
+const mime={'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript','.css':'text/css','.wasm':'application/wasm','.data':'application/octet-stream'};
 const server=http.createServer(async(req,res)=>{
     try{
         const requested=decodeURIComponent(new URL(req.url,'http://localhost').pathname);
@@ -80,11 +88,100 @@ const chrome=spawn(process.env.VOXY_TEST_CHROME||'google-chrome',[
 ],{stdio:['ignore','ignore','pipe']});
 let logs='',spawnError,socket;
 const browserErrors=[],consoleMessages=[];
-const diagnostics={allocations:{buffers:0,textures:0,bufferBytes:0},destroyCalls:[]};
+const diagnostics={allocationSemantics:'cumulative creation calls/requested buffer bytes; not live memory',allocations:{buffers:0,textures:0,bufferBytes:0},destroyCalls:[]};
 chrome.stderr.on('data',d=>logs+=d);chrome.on('error',e=>spawnError=e);
 const report={kind:'application startup, no FPS acceptance',experience:selected,gpuMode:process.env.VOXY_SMOKE_GPU||'hardware',flags:gpuFlags};
+let memoryObserver,memoryObserverClosed,memoryObserverError,memoryObserverStderr='';
+let memoryTimer,memoryActive=false,memoryBusy=false,memoryPhase='browser-startup';
+const memoryOutput=path.join(directory,'process-memory.json');
+const memoryPhaseFile=path.join(directory,'memory-phase.txt');
+const memorySamples=[],memoryPeaks={},memoryErrors=[];
+let memorySampleCount=0,memoryErrorCount=0;
+const setMemoryPhase=async phase=>{
+    memoryPhase=phase;
+    await writeFile(memoryPhaseFile,phase);
+};
+const recordMemoryError=error=>{
+    memoryErrorCount++;
+    if(memoryErrors.length<32)memoryErrors.push(String(error));
+};
+const startBrowserMemory=call=>{
+    memoryActive=true;
+    const sample=async()=>{
+        if(!memoryActive||memoryBusy)return;
+        memoryBusy=true;
+        const started=Date.now(),phase=memoryPhase;
+        try{
+            const [heapOutcome,wasmOutcome]=await Promise.allSettled([
+                call('Runtime.getHeapUsage'),
+                call('Runtime.evaluate',{returnByValue:true,expression:`(() => {
+                    if(typeof voxyModule==='undefined'||!voxyModule)return null;
+                    return {linear_capacity_bytes:voxyModule.HEAPU8?.byteLength??null,
+                        allocator_used_bytes:voxyModule._voxy_get_heap_used_bytes?.()??null};
+                })()`}),
+            ]);
+            if(!memoryActive)return;
+            const heap=heapOutcome.status==='fulfilled'?heapOutcome.value:{};
+            let result=wasmOutcome.status==='fulfilled'?wasmOutcome.value:{};
+            if(heapOutcome.status==='rejected')recordMemoryError('JS heap: '+String(heapOutcome.reason));
+            if(wasmOutcome.status==='rejected')recordMemoryError('WASM heap: '+String(wasmOutcome.reason));
+            if(result.exceptionDetails){
+                recordMemoryError('WASM heap: '+(result.exceptionDetails.text||'sampling failed'));
+                result={};
+            }
+            const values={js_used_bytes:heap.usedSize??null,js_allocated_bytes:heap.totalSize??null,
+                js_embedder_heap_used_bytes:heap.embedderHeapUsedSize??null,
+                js_backing_storage_bytes:heap.backingStorageSize??null,
+                wasm_linear_capacity_bytes:result.result?.value?.linear_capacity_bytes??null,
+                wasm_allocator_used_bytes:result.result?.value?.allocator_used_bytes??null};
+            const observation={started_unix_ms:started,completed_unix_ms:Date.now(),phase,...values};
+            memorySampleCount++;
+            if(memorySamples.length===memoryCapacity)memorySamples.shift();
+            memorySamples.push(observation);
+            for(const [key,value] of Object.entries(values)){
+                if(value!==null&&Number.isFinite(value)&&(!memoryPeaks[key]||value>memoryPeaks[key].bytes)){
+                    memoryPeaks[key]={bytes:value,completed_unix_ms:observation.completed_unix_ms,phase};
+                }
+            }
+        }catch(error){if(memoryActive)recordMemoryError(error);}
+        finally{memoryBusy=false;}
+    };
+    memoryTimer=setInterval(()=>{void sample();},memoryIntervalMs);
+    void sample();
+};
 const timer=setTimeout(()=>chrome.kill('SIGKILL'),240000);
 try{
+    if(memoryEnabled){
+        report.memory_instrumented=true;
+        report.kind='instrumented memory observation; timing is not an uninstrumented performance baseline';
+        assert(chrome.pid,'Chrome did not start for memory observation');
+        await setMemoryPhase('browser-startup');
+        memoryObserver=spawn(process.env.PYTHON||'python3',[
+            path.join(path.dirname(fileURLToPath(import.meta.url)),'salvage_memory_probe.py'),
+            '--root-pid',String(chrome.pid),'--output',memoryOutput,
+            '--interval',String(memoryIntervalMs/1000),'--max-samples',String(memoryCapacity),
+            '--phase-file',memoryPhaseFile,
+        ],{stdio:['ignore','pipe','pipe']});
+        memoryObserverClosed=new Promise(resolve=>{
+            memoryObserver.once('close',(code,signal)=>resolve({code,signal}));
+            memoryObserver.once('error',error=>{memoryObserverError=String(error);resolve({error:String(error)});});
+        });
+        memoryObserver.stderr.on('data',data=>{memoryObserverStderr=(memoryObserverStderr+data).slice(-8192);});
+        const ready=new Promise((resolve,reject)=>{
+            let line='';
+            memoryObserver.stdout.on('data',data=>{
+                line=(line+data).slice(-8192);
+                if(line.includes('\n')){
+                    try{assert.equal(JSON.parse(line.split('\n')[0]).ready,true);resolve();}
+                    catch(error){reject(error);}
+                }
+            });
+        });
+        await Promise.race([ready,
+            memoryObserverClosed.then(outcome=>{throw Error('Memory observer exited before ready: '+JSON.stringify(outcome)+' '+memoryObserverStderr);}),
+            delay(5000).then(()=>{throw Error('Memory observer startup timed out');}),
+        ]);
+    }
     let port;
     for(let i=0;i<1200&&!port;++i){
         if(spawnError)throw spawnError;
@@ -105,6 +202,7 @@ try{
     await new Promise((r,j)=>{socket.addEventListener('open',r,{once:true});socket.addEventListener('error',j,{once:true});});
     const call=(method,params={})=>new Promise((resolve,reject)=>{const n=++id;pending.set(n,{resolve,reject});socket.send(JSON.stringify({id:n,method,params}));});
     await call('Page.enable');await call('Runtime.enable');await call('Network.enable');
+    if(memoryEnabled)startBrowserMemory(call);
     report.browser=await call('Browser.getVersion');
     await call('Page.addScriptToEvaluateOnNewDocument',{source:`(() => {
         globalThis.voxyStartupDiagnostics=${JSON.stringify(diagnostics)};
@@ -120,7 +218,7 @@ try{
         }
     })();`});
     await call('Network.setBlockedURLs',{urls:['*googletagmanager.com*','*google-analytics.com*']});
-    await call('Emulation.setDeviceMetricsOverride',{width:Number(process.env.VOXY_SMOKE_WIDTH)||(isLego?960:320),height:Number(process.env.VOXY_SMOKE_HEIGHT)||(isLego?540:240),deviceScaleFactor:1,mobile:false});
+    await call('Emulation.setDeviceMetricsOverride',{width:Number(process.env.VOXY_SMOKE_WIDTH)||((isLego||isSalvage)?960:320),height:Number(process.env.VOXY_SMOKE_HEIGHT)||((isLego||isSalvage)?540:240),deviceScaleFactor:1,mobile:false});
     // Allows a previously compiled integration artifact to exercise newer WGSL
     // without a C++ rebuild. It must be explicitly requested and is reported.
     if(process.env.VOXY_SMOKE_SHADER_DIR){
@@ -140,6 +238,7 @@ try{
     const url=process.env.VOXY_SMOKE_URL||localUrl;
     report.url=url;
     const navigationStarted=Date.now();
+    if(memoryEnabled)await setMemoryPhase('cold-startup');
     await call('Page.navigate',{url});
     await call('Page.bringToFront');
     await call('Emulation.setFocusEmulationEnabled',{enabled:true});
@@ -170,7 +269,10 @@ try{
                 heapBytes:voxyModule.HEAPU8?.byteLength,
                 heapUsedBytes:voxyModule._voxy_get_heap_used_bytes?.(),
                 loadingVisible:getComputedStyle(document.getElementById('loading')).display!=='none',
-                legoControlsVisible:document.getElementById('lego-shore-controls')?.hidden===false};
+                legoControlsVisible:document.getElementById('lego-shore-controls')?.hidden===false,
+                salvageControlsVisible:document.getElementById('salvage-preview')?.hidden===false,
+                salvage:voxyModule._voxy_get_salvage_preview_json
+                    ? JSON.parse(voxyModule.UTF8ToString(voxyModule._voxy_get_salvage_preview_json())) : null};
         })()`});
         if(r.exceptionDetails)throw new Error(JSON.stringify(r.exceptionDetails));
         sample=r.result?.value;report.sample=sample;
@@ -197,6 +299,19 @@ try{
     report.budget_single_sample=budget.result.value.summary;
     if(process.env.VOXY_SMOKE_BUILD_ID)assert.equal(sample.buildId,process.env.VOXY_SMOKE_BUILD_ID,'deployed revision mismatch');
     assert.equal(Boolean(sample.moto?.active),selected==='ridgebreak','experience activation mismatch');
+    assert.equal(Boolean(sample.salvage?.active),isSalvage,'salvage activation mismatch');
+    assert.equal(sample.salvageControlsVisible,isSalvage,'salvage UI route mismatch');
+    if(isSalvage){
+        assert.equal(sample.title,'Cove Preview — Voxys');
+        assert.equal(sample.salvage.ready,true);
+        assert.equal(sample.salvage.failed,false);
+        assert(sample.salvage.bodies>0&&sample.salvage.bodies<=64,'preview body ownership is unbounded or empty');
+        assert.equal(sample.legoControlsVisible,false);
+        assert.equal(sample.telemetry.render.terrain_width,256);
+        assert.equal(sample.telemetry.render.terrain_height,256);
+        assert.equal(sample.telemetry.render.terrain_mips,9);
+        assert.equal(sample.heapBytes,512*1024*1024,'fixed WASM memory budget changed');
+    }
     if(isLego){
         assert.equal(sample.title,isWorld?'LEGO Landscape — Voxys':'LEGO Shore — Voxys');
         assert.equal(sample.legoControlsVisible,true);
@@ -214,18 +329,67 @@ try{
     assert.equal(imageCode,0,'main page has no visible landscape');
     report.screenshot=screenshotPath;
     report.startupElapsedMs=Date.now()-navigationStarted;
+    if(memoryEnabled){
+        await setMemoryPhase('steady-startup');
+        await delay(2000);
+    }
     if(process.env.VOXY_SMOKE_JOURNEY){
+        if(memoryEnabled)await setMemoryPhase('world-journey');
         const {validateWorld}=await import('./validate_lego_world.mjs');
         report.journey=await validateWorld(call,process.env.VOXY_SMOKE_JOURNEY);
     }
     if(process.env.VOXY_SMOKE_PLAYGROUND){
+        if(memoryEnabled)await setMemoryPhase('playground-journey');
         const {validatePlayground}=await import('./validate_lego_playground.mjs');
         report.playground=await validatePlayground(call,process.env.VOXY_SMOKE_PLAYGROUND);
+    }
+    if(process.env.VOXY_SMOKE_SALVAGE){
+        assert(isSalvage,'salvage journey requires the salvage route');
+        if(memoryEnabled)await setMemoryPhase('salvage-journey');
+        const {validateSalvagePreview}=await import('./validate_salvage_preview.mjs');
+        report.salvage_journey=await validateSalvagePreview(call,process.env.VOXY_SMOKE_SALVAGE);
     }
     report.status='passed';
     }
 }catch(error){report.status='failed';report.error=String(error);report.chrome_log=logs;throw error;}
 finally{
+    if(memoryEnabled){
+        memoryActive=false;
+        clearInterval(memoryTimer);
+        let processMemory=null,observerOutcome=null;
+        if(memoryObserver){
+            if(memoryObserver.exitCode===null&&memoryObserver.signalCode===null&&!memoryObserverError)memoryObserver.kill('SIGTERM');
+            observerOutcome=await Promise.race([memoryObserverClosed,delay(3000).then(()=>({timeout:true}))]);
+            if(observerOutcome?.timeout){memoryObserver.kill('SIGKILL');recordMemoryError('Process memory observer did not stop within 3 seconds');}
+            try{processMemory=JSON.parse(await readFile(memoryOutput,'utf8'));}
+            catch(error){recordMemoryError('Process memory report unavailable: '+String(error));}
+        }
+        const requiredBrowserMetrics=['js_used_bytes','wasm_linear_capacity_bytes','wasm_allocator_used_bytes'];
+        const missingBrowserMetrics=requiredBrowserMetrics.filter(key=>!memoryPeaks[key]);
+        const observerSucceeded=observerOutcome?.code===0&&!observerOutcome?.error&&!observerOutcome?.timeout;
+        const memoryStatus=Object.keys(memoryPeaks).length===0&&!Object.keys(processMemory?.sampled_peaks||{}).length
+            ? 'unavailable'
+            : !missingBrowserMetrics.length&&!memoryErrorCount&&observerSucceeded&&processMemory?.status==='complete'
+            ? 'complete':'partial';
+        report.memory={status:memoryStatus,
+            status_scope:'Observed JS/WASM allocator/capacity, RSS and DRM requested/resident metrics; startup status is independent',
+            missing_required_browser_metrics:missingBrowserMetrics,
+            kind:'sampled observations; domains must not be added together',
+            interval_ms:memoryIntervalMs,sample_count:memorySampleCount,
+            retained_sample_count:memorySamples.length,dropped_history_samples:memorySampleCount-memorySamples.length,
+            sampled_peaks:memoryPeaks,samples:memorySamples,error_count:memoryErrorCount,errors:memoryErrors,
+            process_tree:processMemory,observer_outcome:observerOutcome,observer_stderr:memoryObserverStderr,
+            staging_bytes:null,pending_retirement_bytes:null,
+            limitations:[
+                'Memory instrumentation changes timing; run visible performance separately without VOXY_SMOKE_MEMORY.',
+                'CDP heap usage is isolate-wide; ArrayBuffer backing storage may overlap the separately reported WASM capacity.',
+                'WASM allocator usage is mallinfo().uordblks; fixed linear-memory capacity is not allocator live usage.',
+                'Peaks are sampled. Synchronous WASM startup can delay CDP observations and hide allocator transients.',
+                'GPU values are DRM client observations, not WebGPU resource-category accounting or unique physical totals.',
+                'Staging and pending retirement are unavailable, not zero. Hidden driver allocations may not be attributed.',
+            ],sources:['https://chromedevtools.github.io/devtools-protocol/tot/Runtime/#method-getHeapUsage',
+                'https://dri.freedesktop.org/docs/drm/gpu/drm-usage-stats.html']};
+    }
     report.console=consoleMessages;
     report.browserErrors=browserErrors;
     report.chrome_log=logs;

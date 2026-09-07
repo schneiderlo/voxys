@@ -1,0 +1,109 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Setting up EMSDK environment (suppress these messages with EMSDK_QUIET=1)
+Adding directories to PATH:
+PATH += /tmp/voxys-emsdk
+PATH += /tmp/voxys-emsdk/upstream/emscripten
+
+Setting environment variables:
+PATH = /tmp/voxys-emsdk:/tmp/voxys-emsdk/upstream/emscripten:/nix/store/cgjr3kj3hs7ngznyws5qfg16c8scpys0-bash-interactive-5.3p9/bin:/nix/store/z2zzyvwp181kn2r1zl6paf2gncmxpdsj-bazel/bin:/nix/store/mbyy19mdwnfvfwmdi0gqgggx0njvpl1w-binutils-wrapper-2.46/bin:/nix/store/s2946bl9ciwzhafd66jhansrmxq9xhqm-binutils-2.46/bin:/nix/store/bsh7n2nx8ndmm1mmww6v2h4851nalj13-glibc-2.42-61-bin/bin:/nix/store/9ypz3flqsrl5xl495mm8h645gadjsxi1-coreutils-9.11/bin:/nix/store/r9941n32g4wyvggz2703dlplbdq8a6rd-cmake-4.1.2/bin:/nix/store/ni3mcvikdjzaq2h0jx3k0xds57z0y2r5-curl-8.20.0-dev/bin:/nix/store/hivfv7qwmfhd60qyn6ysva4ydwq3d008-brotli-1.2.0/bin:/nix/store/qidq70m0r1a5nlgcn6chy0dgv26wcv7n-krb5-1.22.1-dev/bin:/nix/store/0jmxsxyi7p5bkgsw4bmz75aq5pbyvpfq-krb5-1.22.1/bin:/nix/store/rnpbgcxmw93mlcai4bidv0dxjmxza41z-nghttp2-1.69.0/bin:/nix/store/a24v7pir7l3m3qi16cpi1cy44vp7bkjy-libidn2-2.3.8-bin/bin:/nix/store/zyrxhd7nwmkcs11m144jagxcmddw2i41-openssl-3.6.2-bin/bin:/nix/store/f0gsxi5sc6hvrwmjk4r7dpb71d4vjgn0-libpsl-0.21.5/bin:/nix/store/cwj48a5jfy5srxgq45p4dg37zqdlhzba-zstd-1.5.7-bin/bin:/nix/store/gd74vdpqzq0qmmikvmrf3r3kghhhnf50-zstd-1.5.7/bin:/nix/store/0aha64svrrch155x78xhzn6kmgrrsl9a-curl-8.20.0-bin/bin:/nix/store/788mx070y81zjlg5ipcl0cra3afviw9k-gcc-wrapper-15.2.0/bin:/nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/bin:/nix/store/bcnisk3ydfgv26v2gw3zlky24g00yww2-git-2.54.0/bin:/nix/store/d3bwqm6bymhy3pdgbvf7vxjqfp31m3j1-gnumake-4.4.1/bin:/nix/store/7a235m7crqbb4h49sak20fqxpw3n7hr0-ninja-1.13.2/bin:/nix/store/1m05k7xgfnw6jc21xxk5681ni3ar97wf-pkg-config-wrapper-0.29.2/bin:/nix/store/0k05rim4nalb3sshxdrbkqski6w9l907-python3-3.13.13-env/bin:/nix/store/mhw4sjc1rz4zmb3vkdinvfm7ym96fazx-unzip-6.0/bin:/nix/store/2xqsvim09lc968bc67w0jvxpp2j4lfm5-uv-0.11.19/bin:/nix/store/pq7kd4gdh4ll73d83mlwhhzbjdl6fvl9-vulkan-tools-1.4.341.0/bin:/nix/store/j9izhj1pb3k07wdw2q2c1z7pw2xkrz69-wget-1.25.0/bin:/nix/store/91d9n98grpqj93576zl27bd5x0khcsvv-which-2.23/bin:/nix/store/ilblcn1dkvzghcr2yk3av6jxn5rk1iqw-patchelf-0.15.2/bin:/nix/store/x0gx9xj0xdg5n9vixwn4p5awi2h613r6-libxkbcommon-1.13.1/bin:/nix/store/j4wzv8zmw157aim4qazyklhwn1zbcbph-libdrm-2.4.133-bin/bin:/nix/store/v2isk5r5fzlriczi14ckn20hf45079di-mesa-26.1.2/bin:/nix/store/z480b23kymbmrijrl49246mrzyphli15-cargo-1.95.0/bin:/nix/store/wnhmqix7bippbbzasj29qiyb422g9asg-rustc-wrapper-1.95.0/bin:/nix/store/c1cjgg6p8m8fssivzrc2p13mwwml3p3v-findutils-4.10.0/bin:/nix/store/ww555mznia5v7sz2w85lblg4amvhkhv1-diffutils-3.12/bin:/nix/store/kgxafhycw2kybbqih759ykc2043qyi5j-gnused-4.9/bin:/nix/store/gn94gpcp5q08x4v6g8mvw8v4r65rcjzk-gnugrep-3.12/bin:/nix/store/wp1cshqv98i8abs8rcx91s54igqgll0f-gawk-5.4.0/bin:/nix/store/k5akwnrn9x2afaj2va7g4a2zpdim8l43-gnutar-1.35/bin:/nix/store/ndpbjk6jhw0da5h272dqqnyxa35a9gmx-gzip-1.14/bin:/nix/store/3y3kzc5njlj7nwj1s78am0yzjnpicv9x-bzip2-1.0.8-bin/bin:/nix/store/vlq7nnw39j7rwk0pp68w1fcwzpxahm9h-gnumake-4.4.1/bin:/nix/store/gik3rh1vz2jlgnifb9dh6vc6sxwwz9jj-bash-5.3p9/bin:/nix/store/wgvplwp0faqhqr92w0ma8bxaxk202ama-patch-2.8/bin:/nix/store/csra6zhdjw7rjzv98fycz7qjalyv55k2-xz-5.8.3-bin/bin:/nix/store/kyz3mm5snbb8998kbkm28jps1phk9509-file-5.47/bin:/home/modkin/.local/bin:/home/modkin/.codex/tmp/arg0/codex-arg0T6bhaD:/home/modkin/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin/override:/home/modkin/.grok/bin:/home/modkin/.bun/bin:/home/modkin/.opencode/bin:/home/modkin/.cargo/bin:/home/modkin/.nix-profile/bin:/nix/var/nix/profiles/default/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/home/modkin/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin/fallback:/usr/lib/chatgpt/resources
+EMSDK = /tmp/voxys-emsdk
+EMSDK_NODE = /tmp/voxys-emsdk/node/24.19.0_64bit/bin/node
+emcc (Emscripten gcc/clang-like replacement + linker emulating GNU ld) 6.0.1 (25e4e8d6550d392ba9e0c2936bce7cf41ee47cc0)
+Copyright (C) 2026 the Emscripten authors (see AUTHORS.txt)
+This is free and open source software under the MIT license.
+There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+cmake version 4.1.2
+
+CMake suite maintained and supported by Kitware (kitware.com/cmake).
+emcmake: cmake -S . -B build-lego-wasm -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_BUILD_TYPE=Release -DVOXY_BUILD_NATIVE=OFF -DVOXY_BUILD_WASM=ON -DVOXY_BUILD_TOOLS=OFF -DVOXY_BUILD_TESTS=OFF -DCMAKE_TOOLCHAIN_FILE=/tmp/voxys-emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake -DCMAKE_CROSSCOMPILING_EMULATOR=/tmp/voxys-emsdk/node/24.19.0_64bit/bin/node in directory /home/modkin/workspace/schneiderlo/voxys
+-- Building for WebAssembly with Emscripten
+-- Configuring third-party dependencies...
+--   GLM: Found
+CMake Deprecation Warning at third_party/zstd/build/cmake/CMakeLists.txt:10 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+
+
+-- The ASM compiler identification is unknown
+-- Found assembler: /tmp/voxys-emsdk/upstream/emscripten/emcc
+-- ZSTD VERSION: 1.5.5
+-- CMAKE_INSTALL_PREFIX: /tmp/voxys-emsdk/upstream/emscripten/cache/sysroot
+-- CMAKE_INSTALL_LIBDIR: lib
+-- ZSTD_LEGACY_SUPPORT not defined!
+-- ZSTD_MULTITHREAD_SUPPORT is disabled
+--   zstd: Found
+--   stb: Found
+--   tinyexr: Found (with miniz)
+--   tinygltf: Found
+--   GoogleTest: Found
+--   Jolt Physics: Found (v5.5.0)
+-- CMake C compiler: Clang
+-- CMake C++ compiler: Clang
+-- CMake system name: Emscripten
+-- CMake host system processor: x86_64
+-- Box3D on Emscripten
+--   Box3D: Found (pinned d421e45c828f)
+-- Third-party configuration complete
+-- WebGPU available via Emscripten
+-- Building voxy_core with sources: core/log.cpp;core/config.cpp;core/stb_impl.cpp;gpu/context.cpp;gpu/context_surface.cpp;gpu/resources.cpp;game/construction/construction_types.cpp;game/wreckwater_character_authority_bridge.cpp;game/wreckwater_character_movement.cpp;game/wreckwater_character_step.cpp;game/wreckwater_content_manifest.cpp;game/wreckwater_live_world.cpp;game/wreckwater_match.cpp;game/wreckwater_replay.cpp;game/wreckwater_replay_playback.cpp;game/wreckwater_vessel_damage.cpp;gameplay/structural_assembly.cpp;gameplay/platform_parity.cpp;gameplay/vertical_slices.cpp;gameplay/water_dynamics.cpp;moto/bike.cpp;moto/race.cpp;moto/session.cpp;moto/vmesh_io.cpp;moto/world.cpp;terrain/heightmap.cpp;terrain/authored_cove.cpp;terrain/compression.cpp;terrain/mip_generator.cpp;terrain/textures.cpp;terrain/shadow_bake.cpp;voxel/svo_buffers.cpp;render/triangle_path.cpp;render/mip_pipeline.cpp;render/raycast_path.cpp;render/debug_visualizer.cpp;render/mesh_path.cpp;render/blit_path.cpp;render/water_clipmap_mesh.cpp;render/water_simulation.cpp;render/primitive_culling.cpp;render/primitive_gpu_culling.cpp;render/primitive_instance_packing.cpp;render/primitive_path.cpp;camera/camera.cpp;camera/controller.cpp;camera/character_controller.cpp;physics/box3d/box3d_backend.cpp;physics/character/cpu_capsule_mover.cpp;physics/deterministic/lockstep_world.cpp;physics/deterministic/replay.cpp;physics/gpu/debug_readback_ring.cpp;physics/gpu/deterministic_primitives.cpp;physics/gpu/gpu_buffer_arena.cpp;physics/gpu/gpu_broad_phase.cpp;physics/gpu/gpu_ccd.cpp;physics/gpu/gpu_attachments.cpp;physics/gpu/gpu_dynamic_solver.cpp;physics/gpu/gpu_event_readback.cpp;physics/gpu/gpu_islands.cpp;physics/gpu/gpu_lockstep.cpp;physics/gpu/gpu_narrow_phase.cpp;physics/gpu/gpu_queries.cpp;physics/gpu/gpu_physics_backend.cpp;physics/jolt/jolt_backend.cpp;physics/physics_backend_factory.cpp;physics/physics_types.cpp;physics/physics_world.cpp;network/authoritative_sandbox.cpp;network/deterministic_adversity_transport.cpp;network/multiplayer_session.cpp;network/native_tcp_transport.cpp;network/protocol.cpp;network/replication.cpp;network/ridgebreak_client_replication.cpp;network/ridgebreak_protocol.cpp;network/session_transport.hpp;network/transport.cpp;network/wreckwater_client_replication.cpp;network/wreckwater_client_runtime.cpp;network/wreckwater_protocol.cpp;client/wreckwater_character_platform_timeline.cpp;client/wreckwater_character_controller.cpp;client/wreckwater_character_presentation.cpp;client/wreckwater_third_person_camera.cpp;client/wreckwater_application_client.cpp;client/wreckwater_client_visual_clock.cpp;client/wreckwater_graphical_client_loop.cpp;server/native_gpu_backend.cpp;server/ridgebreak_authority.cpp;server/ridgebreak_server_runtime.cpp;server/wreckwater_authority_runtime.cpp;server/world_coordinator.cpp;engine/platform/wasm/window.cpp;engine/platform/wasm/input.cpp;app/application.cpp;game/lego_playground.cpp;app/debug_overlay.cpp;perf/gpu_timer.cpp;perf/benchmark.cpp
+-- Configuring WASM target: voxy_wasm
+-- 
+-- ═══════════════════════════════════════════════════════════════
+--   voxy 0.1.0 Configuration Summary
+-- ═══════════════════════════════════════════════════════════════
+--   Build type:        Release
+--   C++ Standard:      20
+--   Native build:      OFF
+--   WASM build:        ON
+--   Build tools:       OFF
+--   Build tests:       OFF
+--   Build benchmarks:  OFF
+--   Validation:        ON
+--   Jolt Physics:      ON
+-- ═══════════════════════════════════════════════════════════════
+-- 
+-- Configuring done (3.2s)
+-- Generating done (0.1s)
+-- Build files have been written to: /home/modkin/workspace/schneiderlo/voxys/build-lego-wasm
+[  0%] Linking C static library ../lib/libminiz.a
+[  1%] Linking C static library ../../../../../lib/libzstd.a
+[  2%] Linking C static library ../../../lib/libbox3d.a
+[ 11%] Built target libzstd_static
+[ 11%] Built target miniz
+/tmp/voxys-emsdk/upstream/emscripten/emar qc ../../../lib/libbox3d.a CMakeFiles/box3d.dir/aabb.c.o CMakeFiles/box3d.dir/arena_allocator.c.o CMakeFiles/box3d.dir/bitset.c.o CMakeFiles/box3d.dir/block_allocator.c.o CMakeFiles/box3d.dir/body.c.o CMakeFiles/box3d.dir/broad_phase.c.o CMakeFiles/box3d.dir/capsule.c.o CMakeFiles/box3d.dir/compound.c.o CMakeFiles/box3d.dir/constraint_graph.c.o CMakeFiles/box3d.dir/contact.c.o CMakeFiles/box3d.dir/contact_solver.c.o CMakeFiles/box3d.dir/convex_manifold.c.o CMakeFiles/box3d.dir/core.c.o CMakeFiles/box3d.dir/distance.c.o CMakeFiles/box3d.dir/distance_joint.c.o CMakeFiles/box3d.dir/dynamic_tree.c.o CMakeFiles/box3d.dir/height_field.c.o CMakeFiles/box3d.dir/hull.c.o CMakeFiles/box3d.dir/id_pool.c.o CMakeFiles/box3d.dir/island.c.o CMakeFiles/box3d.dir/joint.c.o CMakeFiles/box3d.dir/manifold.c.o CMakeFiles/box3d.dir/math_functions.c.o CMakeFiles/box3d.dir/mesh.c.o CMakeFiles/box3d.dir/mesh_contact.c.o CMakeFiles/box3d.dir/motor_joint.c.o CMakeFiles/box3d.dir/mover.c.o CMakeFiles/box3d.dir/name_cache.c.o CMakeFiles/box3d.dir/parallel_for.c.o CMakeFiles/box3d.dir/parallel_joint.c.o CMakeFiles/box3d.dir/physics_world.c.o CMakeFiles/box3d.dir/prismatic_joint.c.o CMakeFiles/box3d.dir/recording.c.o CMakeFiles/box3d.dir/recording_replay.c.o CMakeFiles/box3d.dir/world_snapshot.c.o CMakeFiles/box3d.dir/revolute_joint.c.o CMakeFiles/box3d.dir/scheduler.c.o CMakeFiles/box3d.dir/sensor.c.o CMakeFiles/box3d.dir/shape.c.o CMakeFiles/box3d.dir/simd.c.o CMakeFiles/box3d.dir/solver.c.o CMakeFiles/box3d.dir/solver_set.c.o CMakeFiles/box3d.dir/sphere.c.o CMakeFiles/box3d.dir/spherical_joint.c.o CMakeFiles/box3d.dir/table.c.o CMakeFiles/box3d.dir/timer.c.o CMakeFiles/box3d.dir/triangle_manifold.c.o CMakeFiles/box3d.dir/types.c.o CMakeFiles/box3d.dir/weld_joint.c.o CMakeFiles/box3d.dir/wheel_joint.c.o
+/tmp/voxys-emsdk/upstream/emscripten/emranlib ../../../lib/libbox3d.a
+[ 26%] Built target box3d
+[ 26%] Linking CXX static library ../../../lib/libJolt.a
+[ 67%] Built target Jolt
+[ 67%] Building CXX object src/CMakeFiles/voxy_core.dir/game/construction/construction_types.cpp.o
+[ 67%] Building CXX object src/CMakeFiles/voxy_core.dir/app/application.cpp.o
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:9:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/app/application.hpp:42:
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:34:34: warning: explicitly defaulted three-way comparison operator is implicitly deleted [-Wdefaulted-function-deleted]
+   34 |     [[nodiscard]] constexpr auto operator<=>(
+      |                                  ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:31:16: note: defaulted 'operator<=>' is implicitly deleted because there is no viable three-way comparison function for member 'sector'
+   31 |     glm::ivec3 sector{0};
+      |                ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:35:48: note: replace 'default' with 'delete'
+   35 |         const WorldPosition&) const noexcept = default;
+      |                                                ^~~~~~~
+      |                                                delete
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:35:
+/home/modkin/workspace/schneiderlo/voxys/src/terrain/lego_layout_cache.hpp:57:53: warning: implicit conversion changes signedness: 'uint32_t' (aka 'unsigned int') to 'difference_type' (aka 'long') [-Wsign-conversion]
+   57 |         std::sort(pending_.begin(),pending_.begin()+pendingCount_,[&](const auto& a,const auto& b) {
+      |                                                    ~^~~~~~~~~~~~~
+2 warnings generated.
+[ 67%] Linking CXX static library ../lib/libvoxy_core.a
+[ 98%] Built target voxy_core
+[100%] Linking CXX executable bin/voxy_wasm.js
+[100%] Built target voxy_wasm

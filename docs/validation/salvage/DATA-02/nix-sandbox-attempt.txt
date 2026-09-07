@@ -1,0 +1,18 @@
+error:
+       … while evaluating a branch condition
+         at /nix/store/558vpnjmp3sszblrhrrrvl7zn0hfljrc-nixpkgs/nixpkgs/pkgs/stdenv/booter.nix:107:9:
+          106|       thisStage =
+          107|         if args.__raw or false then
+             |         ^
+          108|           args'
+
+       … in the right operand of the update (//) operator
+         at /nix/store/558vpnjmp3sszblrhrrrvl7zn0hfljrc-nixpkgs/nixpkgs/pkgs/stdenv/booter.nix:90:48:
+           89|     # for the final stage.
+           90|     { allowCustomOverrides = index == 1; } // (stageFun prevStage)
+             |                                                ^
+           91|   ) (lib.lists.reverseList stageFuns);
+
+       (stack trace truncated; use '--show-trace' to show the full, detailed trace)
+
+       error: cannot connect to socket at '/nix/var/nix/daemon-socket/socket': Operation not permitted

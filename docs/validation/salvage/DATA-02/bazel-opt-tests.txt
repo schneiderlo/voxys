@@ -1,0 +1,26 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: target //tests:part_catalog (0 packages loaded, 0 targets configured)
+Analyzing: target //tests:part_catalog (0 packages loaded, 0 targets configured)
+
+Analyzing: target //tests:part_catalog (0 packages loaded, 0 targets configured)
+
+INFO: Analyzed target //tests:part_catalog (1 packages loaded, 29 targets configured).
+[29 / 31] Compiling tests/test_part_catalog.cpp; 1s linux-sandbox
+[30 / 31] [Prepa] Linking tests/part_catalog
+INFO: Found 1 test target...
+Target //tests:part_catalog up-to-date:
+  bazel-bin/tests/part_catalog
+INFO: Elapsed time: 7.042s, Critical Path: 5.50s
+INFO: 4 processes: 28 action cache hit, 1 internal, 3 linux-sandbox.
+INFO: Build completed successfully, 4 total actions
+//tests:part_catalog                                                     PASSED in 0.0s
+
+Executed 1 out of 1 test: 1 test passes.
+There were tests whose specified size is too big. Use the --test_verbose_timeout_warnings command line option to see which ones these are.

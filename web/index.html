@@ -25,6 +25,7 @@
 
       gtag('config', 'G-TVBHPYQCGP');
     </script>
+    <link rel="stylesheet" href="salvage_preview.css">
 </head>
 
 <body>
@@ -214,6 +215,15 @@
         </div>
     </section>
     <div id="lego-crosshair" aria-hidden="true"></div>
+    <section id="salvage-preview" hidden data-voxy-ui aria-label="Cove preview controls">
+        <h2>Cove preview</h2>
+        <p id="salvage-status" role="status" aria-live="polite">Explore the dock and wreck.</p>
+        <p>WASD to walk · click to look · Space to jump</p>
+        <p class="salvage-note">An early scene preview. Building and salvage missions come later.</p>
+        <button id="salvage-reset" type="button">Reset · R</button>
+        <button id="salvage-leave" type="button">Leave preview</button>
+    </section>
+    <script src="salvage_preview.js"></script>
     <script src="lego_playground.js"></script>
     <script src="network_transport.js"></script>
     <script src="loader.js?v=__VOXY_BUILD_ID__"></script>
@@ -230,6 +240,8 @@
         const experience = new URLSearchParams(location.search).get('experience') || 'lego-world';
         const legoShore = experience === 'lego';
         const legoWorld = experience === 'lego-world';
+        const salvage = experience === 'salvage';
+        if (salvage) document.title = 'Cove Preview — Voxys';
 
         if (legoShore || legoWorld) {
             const sceneName = legoWorld ? 'LEGO Landscape' : 'LEGO Shore';
@@ -997,6 +1009,7 @@
                         const params = new URLSearchParams(location.search);
                         const args = params.get('experience') === 'ridgebreak'
                             ? ['--config', 'ridgebreak.cfg']
+                            : salvage ? ['--config', 'salvage.cfg']
                             : legoWorld ? ['--config', 'lego_world.cfg']
                             : legoShore ? ['--config', 'lego_shore.cfg'] : [];
                         const value = Number(params.get('physicsMaxBodies'));
@@ -1281,6 +1294,7 @@
                 setInterval(updateRiderHud, 50);
 
                 if (legoWorld || legoShore) window.installLegoPlayground(voxyModule);
+                if (salvage) window.VoxySalvagePreview.install(voxyModule);
 
                 // Track successful load
                 gtag('event', 'app_initialized', {

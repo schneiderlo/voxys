@@ -1,0 +1,69 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: target //tests:part_catalog (0 packages loaded, 0 targets configured)
+Analyzing: target //tests:part_catalog (0 packages loaded, 0 targets configured)
+
+Analyzing: target //tests:part_catalog (0 packages loaded, 0 targets configured)
+
+INFO: Analyzed target //tests:part_catalog (1 packages loaded, 29 targets configured).
+[26 / 31] Compiling tests/test_part_catalog.cpp; 1s linux-sandbox ... (2 actions running)
+[29 / 31] Compiling tests/test_part_catalog.cpp; 2s linux-sandbox
+ERROR: /home/modkin/workspace/schneiderlo/voxys/tests/BUILD:59:8: Compiling tests/test_part_catalog.cpp failed: (Exit 1): gcc failed: error executing CppCompile command (from target //tests:part_catalog) /nix/store/788mx070y81zjlg5ipcl0cra3afviw9k-gcc-wrapper-15.2.0/bin/gcc -U_FORTIFY_SOURCE -fstack-protector -Wall -Wunused-but-set-parameter -Wno-free-nonheap-object -fno-omit-frame-pointer -g0 -O2 ... (remaining 75 arguments skipped)
+
+Use --sandbox_debug to see verbose messages from the sandbox and retain the sandbox build root for debugging
+In file included from /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/locale_facets.h:46,
+                 from /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/locale:44,
+                 from /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/iomanip:53,
+                 from external/googletest+/googletest/include/gtest/gtest.h:54,
+                 from tests/test_part_catalog.cpp:3:
+In member function 'std::basic_streambuf<_CharT, _Traits>::char_type* std::basic_streambuf<_CharT, _Traits>::egptr() const [with _CharT = char; _Traits = std::char_traits<char>]',
+    inlined from 'std::basic_streambuf<_CharT, _Traits>::int_type std::basic_streambuf<_CharT, _Traits>::sbumpc() [with _CharT = char; _Traits = std::char_traits<char>]' at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/streambuf:328:49,
+    inlined from 'std::istreambuf_iterator<_CharT, _Traits>& std::istreambuf_iterator<_CharT, _Traits>::operator++() [with _CharT = char; _Traits = std::char_traits<char>]' at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/streambuf_iterator.h:175:17,
+    inlined from 'constexpr void std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::_M_construct(_InIterator, _InIterator, std::input_iterator_tag) [with _InIterator = std::istreambuf_iterator<char, std::char_traits<char> >; _CharT = char; _Traits = std::char_traits<char>; _Alloc = std::allocator<char>]' at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/basic_string.tcc:187:6,
+    inlined from 'constexpr std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::basic_string(_InputIterator, _InputIterator, const _Alloc&) [with _InputIterator = std::istreambuf_iterator<char, std::char_traits<char> >; <template-parameter-2-2> = void; _CharT = char; _Traits = std::char_traits<char>; _Alloc = std::allocator<char>]' at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/basic_string.h:857:16,
+    inlined from 'bool voxy::game::construction::{anonymous}::TemporaryAsset::matches() const' at tests/test_part_catalog.cpp:392:105:
+/nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/streambuf:497:30: error: potential null pointer dereference [-Werror=null-dereference]
+  497 |       egptr() const { return _M_in_end; }
+      |                              ^~~~~~~~~
+In member function 'std::basic_streambuf<_CharT, _Traits>::char_type* std::basic_streambuf<_CharT, _Traits>::gptr() const [with _CharT = char; _Traits = std::char_traits<char>]',
+    inlined from 'std::basic_streambuf<_CharT, _Traits>::int_type std::basic_streambuf<_CharT, _Traits>::sbumpc() [with _CharT = char; _Traits = std::char_traits<char>]' at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/streambuf:328:33,
+    inlined from 'std::istreambuf_iterator<_CharT, _Traits>& std::istreambuf_iterator<_CharT, _Traits>::operator++() [with _CharT = char; _Traits = std::char_traits<char>]' at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/streambuf_iterator.h:175:17,
+    inlined from 'constexpr void std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::_M_construct(_InIterator, _InIterator, std::input_iterator_tag) [with _InIterator = std::istreambuf_iterator<char, std::char_traits<char> >; _CharT = char; _Traits = std::char_traits<char>; _Alloc = std::allocator<char>]' at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/basic_string.tcc:187:6,
+    inlined from 'constexpr std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::basic_string(_InputIterator, _InputIterator, const _Alloc&) [with _InputIterator = std::istreambuf_iterator<char, std::char_traits<char> >; <template-parameter-2-2> = void; _CharT = char; _Traits = std::char_traits<char>; _Alloc = std::allocator<char>]' at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/basic_string.h:857:16,
+    inlined from 'bool voxy::game::construction::{anonymous}::TemporaryAsset::matches() const' at tests/test_part_catalog.cpp:392:105:
+/nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/streambuf:494:30: error: potential null pointer dereference [-Werror=null-dereference]
+  494 |       gptr()  const { return _M_in_cur;  }
+      |                              ^~~~~~~~~
+In member function 'std::basic_streambuf<_CharT, _Traits>::char_type* std::basic_streambuf<_CharT, _Traits>::egptr() const [with _CharT = char; _Traits = std::char_traits<char>]',
+    inlined from 'std::basic_streambuf<_CharT, _Traits>::int_type std::basic_streambuf<_CharT, _Traits>::sbumpc() [with _CharT = char; _Traits = std::char_traits<char>]' at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/streambuf:328:49,
+    inlined from 'std::istreambuf_iterator<_CharT, _Traits>& std::istreambuf_iterator<_CharT, _Traits>::operator++() [with _CharT = char; _Traits = std::char_traits<char>]' at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/streambuf_iterator.h:175:17,
+    inlined from 'constexpr void std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::_M_construct(_InIterator, _InIterator, std::input_iterator_tag) [with _InIterator = std::istreambuf_iterator<char, std::char_traits<char> >; _CharT = char; _Traits = std::char_traits<char>; _Alloc = std::allocator<char>]' at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/basic_string.tcc:215:6,
+    inlined from 'constexpr std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::basic_string(_InputIterator, _InputIterator, const _Alloc&) [with _InputIterator = std::istreambuf_iterator<char, std::char_traits<char> >; <template-parameter-2-2> = void; _CharT = char; _Traits = std::char_traits<char>; _Alloc = std::allocator<char>]' at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/basic_string.h:857:16,
+    inlined from 'bool voxy::game::construction::{anonymous}::TemporaryAsset::matches() const' at tests/test_part_catalog.cpp:392:105:
+/nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/streambuf:497:30: error: potential null pointer dereference [-Werror=null-dereference]
+  497 |       egptr() const { return _M_in_end; }
+      |                              ^~~~~~~~~
+In member function 'std::basic_streambuf<_CharT, _Traits>::char_type* std::basic_streambuf<_CharT, _Traits>::gptr() const [with _CharT = char; _Traits = std::char_traits<char>]',
+    inlined from 'std::basic_streambuf<_CharT, _Traits>::int_type std::basic_streambuf<_CharT, _Traits>::sbumpc() [with _CharT = char; _Traits = std::char_traits<char>]' at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/streambuf:328:33,
+    inlined from 'std::istreambuf_iterator<_CharT, _Traits>& std::istreambuf_iterator<_CharT, _Traits>::operator++() [with _CharT = char; _Traits = std::char_traits<char>]' at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/streambuf_iterator.h:175:17,
+    inlined from 'constexpr void std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::_M_construct(_InIterator, _InIterator, std::input_iterator_tag) [with _InIterator = std::istreambuf_iterator<char, std::char_traits<char> >; _CharT = char; _Traits = std::char_traits<char>; _Alloc = std::allocator<char>]' at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/basic_string.tcc:215:6,
+    inlined from 'constexpr std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::basic_string(_InputIterator, _InputIterator, const _Alloc&) [with _InputIterator = std::istreambuf_iterator<char, std::char_traits<char> >; <template-parameter-2-2> = void; _CharT = char; _Traits = std::char_traits<char>; _Alloc = std::allocator<char>]' at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/basic_string.h:857:16,
+    inlined from 'bool voxy::game::construction::{anonymous}::TemporaryAsset::matches() const' at tests/test_part_catalog.cpp:392:105:
+/nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/streambuf:494:30: error: potential null pointer dereference [-Werror=null-dereference]
+  494 |       gptr()  const { return _M_in_cur;  }
+      |                              ^~~~~~~~~
+cc1plus: all warnings being treated as errors
+Target //tests:part_catalog failed to build
+Use --verbose_failures to see the command lines of failed build steps.
+INFO: Elapsed time: 4.494s, Critical Path: 3.03s
+INFO: 5 processes: 25 action cache hit, 3 internal, 2 linux-sandbox.
+ERROR: Build did NOT complete successfully
+//tests:part_catalog                                            FAILED TO BUILD
+
+Executed 0 out of 1 test: 1 fails to build.

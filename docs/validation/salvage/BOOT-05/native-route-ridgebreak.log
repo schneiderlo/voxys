@@ -1,0 +1,62 @@
+[32m[INFO ] [00:00:00.000] Loading config: /home/modkin/workspace/schneiderlo/voxys/ridgebreak.cfg[0m
+[32m[INFO ] [00:00:00.000] ═══════════════════════════════════════════════════════════════[0m
+[32m[INFO ] [00:00:00.000]   RIDGEBREAK - Motocross Freeride[0m
+[32m[INFO ] [00:00:00.000]   Build target: native[0m
+[32m[INFO ] [00:00:00.000]   Render path: raycast[0m
+[32m[INFO ] [00:00:00.000] ═══════════════════════════════════════════════════════════════[0m
+libdecor-gtk-WARNING: Failed to initialize GTK
+Failed to load plugin 'libdecor-gtk.so': failed to init
+[32m[INFO ] [00:00:00.108] [Application::init] Window created via Wayland: 1280x720 logical, 1600x900 framebuffer (1.25x1.25 scale)[0m
+[32m[INFO ] [00:00:00.174] [Application::init::GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [00:00:00.175] [Application::init::GPU]   Vendor: radv[0m
+[32m[INFO ] [00:00:00.175] [Application::init::GPU]   Backend: Vulkan[0m
+[32m[INFO ] [00:00:00.175] [Application::init::GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [00:00:00.177] [Application::init::GPU] Surface configured: 1600x900, format=BGRA8Unorm, presentation=Fifo (VSync)[0m
+[32m[INFO ] [00:00:00.177] [Application::init::GPU] GPU context initialized successfully[0m
+[32m[INFO ] [00:00:00.246] [Application::init] WebGPU physics initialized: 131072 usable body slots, 30 MiB resident, 33 MiB scratch[0m
+[32m[INFO ] [00:00:00.246] [Application::init] Physics backend: webgpu_soft (scheduler internal, concurrency 1)[0m
+[32m[INFO ] [00:00:00.379] [Application::init] Generated RIDGEBREAK world: 2048x2048, 21 route points, 56 features, 64 static track props, 2048x2048 surface splat[0m
+[32m[INFO ] [00:00:00.388] [Application::init] Uploaded heightmap to GPU with mips: 2048x2048 (12 levels, 10.67 MB total)[0m
+[32m[INFO ] [00:00:00.439] [Application::init] Coastal refraction field initialized: 1024x1024[0m
+[32m[INFO ] [00:00:00.441] [Application::init] FFT water simulation initialized: 2 cascades at 256x256[0m
+[32m[INFO ] [00:00:00.443] [Application::init::TrianglePath::init] TrianglePath initialized successfully[0m
+[32m[INFO ] [00:00:00.452] [Application::init::RaycastPath::init] RaycastPath initialized successfully (1600x900 output)[0m
+[32m[INFO ] [00:00:00.463] [Application::init] Baked shadow height field: 1024x1024 (10.9 ms)[0m
+[32m[INFO ] [00:00:00.744] [Application::init::TerrainTextures::init::TerrainTextures::loadTerrainMaterials] Loaded CC0 terrain material arrays from 'data/materials' (1024x1024x4)[0m
+[32m[INFO ] [00:00:00.746] [Application::init::TerrainTextures::init] TerrainTextures initialized: macro 256x256, lightmap 1x1, materials 1024x1024x4[0m
+[32m[INFO ] [00:00:00.826] [Application::init::BlitPath::init] Created water clipmap: 18817 vertices, 33792 triangles[0m
+[32m[INFO ] [00:00:00.927] [Application::init::BlitPath::init] Loaded original generated ocean environment: data/generated/ocean_environment.png[0m
+[32m[INFO ] [00:00:01.988] [Application::init::BlitPath::init] BlitPath initialized successfully[0m
+[32m[INFO ] [00:00:02.003] [Application::init] RIDGEBREAK untimed practice spawn: (-1823.2, 18.8, 875.4), 20 validated circuit gates[0m
+[32m[INFO ] [00:00:02.003] Application initialized successfully[0m
+[32m[INFO ] [00:00:02.003]   Window: 1280x720[0m
+[32m[INFO ] [00:00:02.003]   Terrain: 2048x2048 (mips: 12)[0m
+[32m[INFO ] [00:00:02.003]   Render path: raycast[0m
+[32m[INFO ] [00:00:02.003] [0m
+[32m[INFO ] [00:00:02.003] Controls:[0m
+[32m[INFO ] [00:00:02.003]   W/Up      - Throttle[0m
+[32m[INFO ] [00:00:02.003]   S/Down    - Brake[0m
+[32m[INFO ] [00:00:02.003]   A/D       - Steer[0m
+[32m[INFO ] [00:00:02.003]   Q/E       - Rider lean[0m
+[32m[INFO ] [00:00:02.003]   Shift     - Stand[0m
+[32m[INFO ] [00:00:02.003]   Ctrl      - Duck[0m
+[32m[INFO ] [00:00:02.003]   Z/X       - Shift down/up[0m
+[32m[INFO ] [00:00:02.003]   R         - Remount after a crash[0m
+[32m[INFO ] [00:00:02.003]   C         - Start/restart circuit from the grid[0m
+[32m[INFO ] [00:00:02.003]   Backspace - Reset bike / restart active circuit[0m
+[32m[INFO ] [00:00:02.003]   F1        - Toggle debug overlay[0m
+[32m[INFO ] [00:00:02.003]   F2        - Toggle wireframe mode[0m
+[32m[INFO ] [00:00:02.003]   F3        - Toggle render path[0m
+[32m[INFO ] [00:00:02.003]   F4        - Toggle depth visualization[0m
+[32m[INFO ] [00:00:02.003]   F5        - Toggle normal visualization[0m
+[32m[INFO ] [00:00:02.003]   F6        - Toggle mip level heat map[0m
+[32m[INFO ] [00:00:02.003]   F9        - Toggle uncapped/VSync presentation[0m
+[32m[INFO ] [00:00:02.003]   Escape    - Release mouse / Exit[0m
+[32m[INFO ] [00:00:02.003] [0m
+[32m[INFO ] [00:00:02.003] Starting main loop (native)...[0m
+[32m[INFO ] [00:00:03.582] Capturing screenshot to: /home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/BOOT-05/native-route-ridgebreak.png[0m
+[32m[INFO ] [00:00:03.840] Saved screenshot to: /home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/BOOT-05/native-route-ridgebreak.png[0m
+[32m[INFO ] [00:00:03.840] Exit requested[0m
+[32m[INFO ] [00:00:03.840] Main loop ended[0m
+[32m[INFO ] [00:00:03.840] Shutting down application...[0m
+[32m[INFO ] [00:00:03.862] Application shutdown complete[0m

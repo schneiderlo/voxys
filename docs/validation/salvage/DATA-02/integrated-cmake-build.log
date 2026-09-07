@@ -1,0 +1,127 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+[0/1] Re-running CMake...
+-- Building for native platform: Linux
+-- Configuring third-party dependencies...
+--   GLM: Found
+CMake Deprecation Warning at third_party/zstd/build/cmake/CMakeLists.txt:10 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+
+
+-- ZSTD VERSION: 1.5.5
+-- CMAKE_INSTALL_PREFIX: /usr/local
+-- CMAKE_INSTALL_LIBDIR: lib64
+-- ZSTD_LEGACY_SUPPORT not defined!
+-- ZSTD_MULTITHREAD_SUPPORT is disabled
+--   zstd: Found
+--   stb: Found
+--   tinyexr: Found (with miniz)
+--   GLFW: Found system package (Wayland + X11)
+-- Found wgpu-native: /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+--   wgpu-native: Found and configured
+--   tinygltf: Found
+-- Found Python3: /usr/bin/python3.14 (found version "3.14.4") found components: Interpreter
+--   GoogleTest: Found
+--   Jolt Physics: Found (v5.5.0)
+-- CMake C compiler: GNU
+-- CMake C++ compiler: GNU
+-- CMake system name: Linux
+-- CMake host system processor: x86_64
+-- Box3D using Unix
+--   Box3D: Found (pinned d421e45c828f)
+-- Third-party configuration complete
+-- Found Python3: /nix/store/0k05rim4nalb3sshxdrbkqski6w9l907-python3-3.13.13-env/bin/python3.13 (found version "3.13.13") found components: Interpreter
+-- Building voxy_core with sources: core/log.cpp;core/config.cpp;core/stb_impl.cpp;gpu/context.cpp;gpu/context_surface.cpp;gpu/resources.cpp;game/construction/construction_types.cpp;game/construction/part_catalog.cpp;game/expedition/salvage_preview.cpp;game/wreckwater_character_authority_bridge.cpp;game/wreckwater_character_movement.cpp;game/wreckwater_character_step.cpp;game/wreckwater_content_manifest.cpp;game/wreckwater_live_world.cpp;game/wreckwater_match.cpp;game/wreckwater_replay.cpp;game/wreckwater_replay_playback.cpp;game/wreckwater_vessel_damage.cpp;gameplay/structural_assembly.cpp;gameplay/platform_parity.cpp;gameplay/vertical_slices.cpp;gameplay/water_dynamics.cpp;moto/bike.cpp;moto/race.cpp;moto/session.cpp;moto/vmesh_io.cpp;moto/world.cpp;terrain/heightmap.cpp;terrain/authored_cove.cpp;terrain/compression.cpp;terrain/mip_generator.cpp;terrain/textures.cpp;terrain/shadow_bake.cpp;voxel/svo_buffers.cpp;render/triangle_path.cpp;render/mip_pipeline.cpp;render/raycast_path.cpp;render/debug_visualizer.cpp;render/mesh_path.cpp;render/blit_path.cpp;render/water_clipmap_mesh.cpp;render/water_simulation.cpp;render/primitive_culling.cpp;render/primitive_gpu_culling.cpp;render/primitive_instance_packing.cpp;render/primitive_path.cpp;camera/camera.cpp;camera/controller.cpp;camera/character_controller.cpp;physics/box3d/box3d_backend.cpp;physics/character/cpu_capsule_mover.cpp;physics/deterministic/lockstep_world.cpp;physics/deterministic/replay.cpp;physics/gpu/debug_readback_ring.cpp;physics/gpu/deterministic_primitives.cpp;physics/gpu/gpu_buffer_arena.cpp;physics/gpu/gpu_broad_phase.cpp;physics/gpu/gpu_ccd.cpp;physics/gpu/gpu_attachments.cpp;physics/gpu/gpu_dynamic_solver.cpp;physics/gpu/gpu_event_readback.cpp;physics/gpu/gpu_islands.cpp;physics/gpu/gpu_lockstep.cpp;physics/gpu/gpu_narrow_phase.cpp;physics/gpu/gpu_queries.cpp;physics/gpu/gpu_physics_backend.cpp;physics/jolt/jolt_backend.cpp;physics/physics_backend_factory.cpp;physics/physics_types.cpp;physics/physics_world.cpp;network/authoritative_sandbox.cpp;network/deterministic_adversity_transport.cpp;network/multiplayer_session.cpp;network/native_tcp_transport.cpp;network/protocol.cpp;network/replication.cpp;network/ridgebreak_client_replication.cpp;network/ridgebreak_protocol.cpp;network/session_transport.hpp;network/transport.cpp;network/wreckwater_client_replication.cpp;network/wreckwater_client_runtime.cpp;network/wreckwater_protocol.cpp;client/wreckwater_character_platform_timeline.cpp;client/wreckwater_character_controller.cpp;client/wreckwater_character_presentation.cpp;client/wreckwater_third_person_camera.cpp;client/wreckwater_application_client.cpp;client/wreckwater_client_visual_clock.cpp;client/wreckwater_graphical_client_loop.cpp;server/native_gpu_backend.cpp;server/ridgebreak_authority.cpp;server/ridgebreak_server_runtime.cpp;server/wreckwater_authority_runtime.cpp;server/world_coordinator.cpp;engine/platform/native/window.cpp;engine/platform/native/input.cpp;app/application.cpp;game/lego_playground.cpp;app/debug_overlay.cpp;perf/gpu_timer.cpp;perf/benchmark.cpp
+-- Configuring native target: voxy_native
+-- Configuring ldh_tool - heightmap compression utility
+--   Including GPU tests (WebGPU available)
+-- 
+-- ═══════════════════════════════════════════════════════════════
+--   voxy 0.1.0 Configuration Summary
+-- ═══════════════════════════════════════════════════════════════
+--   Build type:        Release
+--   C++ Standard:      20
+--   Native build:      ON
+--   WASM build:        OFF
+--   Build tools:       ON
+--   Build tests:       ON
+--   Build benchmarks:  OFF
+--   Validation:        ON
+--   Jolt Physics:      ON
+-- ═══════════════════════════════════════════════════════════════
+-- 
+-- Configuring done (0.4s)
+-- Generating done (0.0s)
+-- Build files have been written to: /home/modkin/workspace/schneiderlo/voxys/build-salvage-native
+[1/19] Refreshing native shaders and launch configs
+[2/19] Building CXX object src/CMakeFiles/voxy_core.dir/game/expedition/salvage_preview.cpp.o
+[3/19] Building CXX object src/CMakeFiles/voxy_core.dir/game/construction/part_catalog.cpp.o
+[4/19] Building CXX object src/CMakeFiles/voxy_core.dir/core/config.cpp.o
+[5/19] Building CXX object src/CMakeFiles/voxy_core.dir/app/debug_overlay.cpp.o
+[6/19] Building CXX object CMakeFiles/voxy_native.dir/src/engine/platform/native/entry.cpp.o
+[7/19] Building CXX object tests/CMakeFiles/part_catalog_tests.dir/__/src/game/construction/part_catalog.cpp.o
+[8/19] Building CXX object tests/CMakeFiles/part_catalog_tests.dir/__/src/game/construction/construction_types.cpp.o
+[9/19] Building CXX object tests/CMakeFiles/part_catalog_tests.dir/test_part_catalog.cpp.o
+In file included from /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/locale_facets.h:46,
+                 from /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/locale:44,
+                 from /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/iomanip:53,
+                 from /home/modkin/workspace/schneiderlo/voxys/third_party/googletest/googletest/include/gtest/gtest.h:54,
+                 from /home/modkin/workspace/schneiderlo/voxys/tests/test_part_catalog.cpp:3:
+In member function ‘std::basic_streambuf<_CharT, _Traits>::char_type* std::basic_streambuf<_CharT, _Traits>::egptr() const [with _CharT = char; _Traits = std::char_traits<char>]’,
+    inlined from ‘std::basic_streambuf<_CharT, _Traits>::int_type std::basic_streambuf<_CharT, _Traits>::sbumpc() [with _CharT = char; _Traits = std::char_traits<char>]’ at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/streambuf:328:49,
+    inlined from ‘std::istreambuf_iterator<_CharT, _Traits>& std::istreambuf_iterator<_CharT, _Traits>::operator++() [with _CharT = char; _Traits = std::char_traits<char>]’ at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/streambuf_iterator.h:175:17,
+    inlined from ‘constexpr void std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::_M_construct(_InIterator, _InIterator, std::input_iterator_tag) [with _InIterator = std::istreambuf_iterator<char, std::char_traits<char> >; _CharT = char; _Traits = std::char_traits<char>; _Alloc = std::allocator<char>]’ at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/basic_string.tcc:187:6,
+    inlined from ‘constexpr std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::basic_string(_InputIterator, _InputIterator, const _Alloc&) [with _InputIterator = std::istreambuf_iterator<char, std::char_traits<char> >; <template-parameter-2-2> = void; _CharT = char; _Traits = std::char_traits<char>; _Alloc = std::allocator<char>]’ at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/basic_string.h:857:16,
+    inlined from ‘bool voxy::game::construction::{anonymous}::TemporaryAsset::matches() const’ at /home/modkin/workspace/schneiderlo/voxys/tests/test_part_catalog.cpp:392:105:
+/nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/streambuf:497:30: warning: potential null pointer dereference [-Wnull-dereference]
+  497 |       egptr() const { return _M_in_end; }
+      |                              ^~~~~~~~~
+In member function ‘std::basic_streambuf<_CharT, _Traits>::char_type* std::basic_streambuf<_CharT, _Traits>::gptr() const [with _CharT = char; _Traits = std::char_traits<char>]’,
+    inlined from ‘std::basic_streambuf<_CharT, _Traits>::int_type std::basic_streambuf<_CharT, _Traits>::sbumpc() [with _CharT = char; _Traits = std::char_traits<char>]’ at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/streambuf:328:33,
+    inlined from ‘std::istreambuf_iterator<_CharT, _Traits>& std::istreambuf_iterator<_CharT, _Traits>::operator++() [with _CharT = char; _Traits = std::char_traits<char>]’ at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/streambuf_iterator.h:175:17,
+    inlined from ‘constexpr void std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::_M_construct(_InIterator, _InIterator, std::input_iterator_tag) [with _InIterator = std::istreambuf_iterator<char, std::char_traits<char> >; _CharT = char; _Traits = std::char_traits<char>; _Alloc = std::allocator<char>]’ at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/basic_string.tcc:187:6,
+    inlined from ‘constexpr std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::basic_string(_InputIterator, _InputIterator, const _Alloc&) [with _InputIterator = std::istreambuf_iterator<char, std::char_traits<char> >; <template-parameter-2-2> = void; _CharT = char; _Traits = std::char_traits<char>; _Alloc = std::allocator<char>]’ at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/basic_string.h:857:16,
+    inlined from ‘bool voxy::game::construction::{anonymous}::TemporaryAsset::matches() const’ at /home/modkin/workspace/schneiderlo/voxys/tests/test_part_catalog.cpp:392:105:
+/nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/streambuf:494:30: warning: potential null pointer dereference [-Wnull-dereference]
+  494 |       gptr()  const { return _M_in_cur;  }
+      |                              ^~~~~~~~~
+In member function ‘std::basic_streambuf<_CharT, _Traits>::char_type* std::basic_streambuf<_CharT, _Traits>::egptr() const [with _CharT = char; _Traits = std::char_traits<char>]’,
+    inlined from ‘std::basic_streambuf<_CharT, _Traits>::int_type std::basic_streambuf<_CharT, _Traits>::sbumpc() [with _CharT = char; _Traits = std::char_traits<char>]’ at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/streambuf:328:49,
+    inlined from ‘std::istreambuf_iterator<_CharT, _Traits>& std::istreambuf_iterator<_CharT, _Traits>::operator++() [with _CharT = char; _Traits = std::char_traits<char>]’ at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/streambuf_iterator.h:175:17,
+    inlined from ‘constexpr void std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::_M_construct(_InIterator, _InIterator, std::input_iterator_tag) [with _InIterator = std::istreambuf_iterator<char, std::char_traits<char> >; _CharT = char; _Traits = std::char_traits<char>; _Alloc = std::allocator<char>]’ at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/basic_string.tcc:215:6,
+    inlined from ‘constexpr std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::basic_string(_InputIterator, _InputIterator, const _Alloc&) [with _InputIterator = std::istreambuf_iterator<char, std::char_traits<char> >; <template-parameter-2-2> = void; _CharT = char; _Traits = std::char_traits<char>; _Alloc = std::allocator<char>]’ at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/basic_string.h:857:16,
+    inlined from ‘bool voxy::game::construction::{anonymous}::TemporaryAsset::matches() const’ at /home/modkin/workspace/schneiderlo/voxys/tests/test_part_catalog.cpp:392:105:
+/nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/streambuf:497:30: warning: potential null pointer dereference [-Wnull-dereference]
+  497 |       egptr() const { return _M_in_end; }
+      |                              ^~~~~~~~~
+In member function ‘std::basic_streambuf<_CharT, _Traits>::char_type* std::basic_streambuf<_CharT, _Traits>::gptr() const [with _CharT = char; _Traits = std::char_traits<char>]’,
+    inlined from ‘std::basic_streambuf<_CharT, _Traits>::int_type std::basic_streambuf<_CharT, _Traits>::sbumpc() [with _CharT = char; _Traits = std::char_traits<char>]’ at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/streambuf:328:33,
+    inlined from ‘std::istreambuf_iterator<_CharT, _Traits>& std::istreambuf_iterator<_CharT, _Traits>::operator++() [with _CharT = char; _Traits = std::char_traits<char>]’ at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/streambuf_iterator.h:175:17,
+    inlined from ‘constexpr void std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::_M_construct(_InIterator, _InIterator, std::input_iterator_tag) [with _InIterator = std::istreambuf_iterator<char, std::char_traits<char> >; _CharT = char; _Traits = std::char_traits<char>; _Alloc = std::allocator<char>]’ at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/basic_string.tcc:215:6,
+    inlined from ‘constexpr std::__cxx11::basic_string<_CharT, _Traits, _Alloc>::basic_string(_InputIterator, _InputIterator, const _Alloc&) [with _InputIterator = std::istreambuf_iterator<char, std::char_traits<char> >; <template-parameter-2-2> = void; _CharT = char; _Traits = std::char_traits<char>; _Alloc = std::allocator<char>]’ at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/basic_string.h:857:16,
+    inlined from ‘bool voxy::game::construction::{anonymous}::TemporaryAsset::matches() const’ at /home/modkin/workspace/schneiderlo/voxys/tests/test_part_catalog.cpp:392:105:
+/nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/streambuf:494:30: warning: potential null pointer dereference [-Wnull-dereference]
+  494 |       gptr()  const { return _M_in_cur;  }
+      |                              ^~~~~~~~~
+[10/19] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_salvage_preview.cpp.o
+[11/19] Building CXX object src/CMakeFiles/voxy_core.dir/app/application.cpp.o
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:45:
+/home/modkin/workspace/schneiderlo/voxys/src/render/mesh_path.hpp:111:23: warning: redundant class-key ‘struct’ in reference to ‘struct voxy::render::PrimitiveLighting’ [-Wredundant-tags]
+  111 |                 const struct PrimitiveLighting& lighting, uint32_t width,
+      |                       ^~~~~~
+      |                       ------
+[12/19] Linking CXX static library lib/libvoxy_core.a
+[13/19] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_part_catalog.cpp.o
+[14/19] Linking CXX executable bin/part_catalog_tests
+[15/19] Linking CXX executable bin/voxy_native; Copying data to build output directory
+[16/19] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_config.cpp.o
+[17/19] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_application.cpp.o
+[18/19] Linking CXX executable bin/voxy_tests

@@ -1,0 +1,222 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+[1/6] Refreshing native shaders and launch configs
+[2/6] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_lego_surface.cpp.o
+[3/6] Building CXX object src/CMakeFiles/voxy_core.dir/app/application.cpp.o
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:45:
+/home/modkin/workspace/schneiderlo/voxys/src/render/mesh_path.hpp:111:23: warning: redundant class-key ‘struct’ in reference to ‘struct voxy::render::PrimitiveLighting’ [-Wredundant-tags]
+  111 |                 const struct PrimitiveLighting& lighting, uint32_t width,
+      |                       ^~~~~~
+      |                       ------
+[4/6] Linking CXX static library lib/libvoxy_core.a
+[5/6] Linking CXX executable bin/voxy_tests
+[6/6] Linking CXX executable bin/voxy_native; Copying data to build output directory
+Running main() from /home/modkin/workspace/schneiderlo/voxys/third_party/googletest/googletest/src/gtest_main.cc
+Note: Google Test filter = ConfigDefaultsTest.*:ConfigFileTest.*:ConfigUtilsTest.*:CommandLineArgsTest.*:LegoSurface.*:ConstructionTypes.*
+[==========] Running 77 tests from 6 test suites.
+[----------] Global test environment set-up.
+[----------] 13 tests from ConstructionTypes
+[ RUN      ] ConstructionTypes.RotationsFormExactProperGroup
+[       OK ] ConstructionTypes.RotationsFormExactProperGroup (0 ms)
+[ RUN      ] ConstructionTypes.SidewaysAndUpsideDownSocketFramesComposeExactly
+[       OK ] ConstructionTypes.SidewaysAndUpsideDownSocketFramesComposeExactly (0 ms)
+[ RUN      ] ConstructionTypes.LegalBoundariesRemainRotatableAndOverflowRejects
+[       OK ] ConstructionTypes.LegalBoundariesRemainRotatableAndOverflowRejects (0 ms)
+[ RUN      ] ConstructionTypes.MetresConversionSeparatesValidationFromSnapping
+[       OK ] ConstructionTypes.MetresConversionSeparatesValidationFromSnapping (0 ms)
+[ RUN      ] ConstructionTypes.SourceFrameConversionRequiresExporterMetadata
+[       OK ] ConstructionTypes.SourceFrameConversionRequiresExporterMetadata (0 ms)
+[ RUN      ] ConstructionTypes.QuaternionNormalizationSignAndWireOrderAreCanonical
+[       OK ] ConstructionTypes.QuaternionNormalizationSignAndWireOrderAreCanonical (0 ms)
+[ RUN      ] ConstructionTypes.QuaternionDecoderRejectsInsteadOfRepairing
+[       OK ] ConstructionTypes.QuaternionDecoderRejectsInsteadOfRepairing (0 ms)
+[ RUN      ] ConstructionTypes.DurableIdsAllocateOnceAndRejectExhaustion
+[       OK ] ConstructionTypes.DurableIdsAllocateOnceAndRejectExhaustion (0 ms)
+[ RUN      ] ConstructionTypes.DecimalExchangeIsLosslessAndStrict
+[       OK ] ConstructionTypes.DecimalExchangeIsLosslessAndStrict (0 ms)
+[ RUN      ] ConstructionTypes.CanonicalEncodingMatchesFrozenCrossLanguageBytes
+[       OK ] ConstructionTypes.CanonicalEncodingMatchesFrozenCrossLanguageBytes (0 ms)
+[ RUN      ] ConstructionTypes.MalformedEncodingNeverPartiallyUpdatesOutput
+[       OK ] ConstructionTypes.MalformedEncodingNeverPartiallyUpdatesOutput (0 ms)
+[ RUN      ] ConstructionTypes.EncoderBoundsValuesDuplicatesAndRecordCapacity
+[       OK ] ConstructionTypes.EncoderBoundsValuesDuplicatesAndRecordCapacity (0 ms)
+[ RUN      ] ConstructionTypes.MaximumRecordCountRoundTripsWithinTheDeclaredBound
+[       OK ] ConstructionTypes.MaximumRecordCountRoundTripsWithinTheDeclaredBound (9 ms)
+[----------] 13 tests from ConstructionTypes (11 ms total)
+
+[----------] 6 tests from ConfigUtilsTest
+[ RUN      ] ConfigUtilsTest.Trim
+[       OK ] ConfigUtilsTest.Trim (0 ms)
+[ RUN      ] ConfigUtilsTest.ParseBool
+[       OK ] ConfigUtilsTest.ParseBool (0 ms)
+[ RUN      ] ConfigUtilsTest.ParseFloat
+[       OK ] ConfigUtilsTest.ParseFloat (0 ms)
+[ RUN      ] ConfigUtilsTest.ParseInt
+[       OK ] ConfigUtilsTest.ParseInt (0 ms)
+[ RUN      ] ConfigUtilsTest.GenericParseSupportsItsAdvertisedTypes
+[       OK ] ConfigUtilsTest.GenericParseSupportsItsAdvertisedTypes (0 ms)
+[ RUN      ] ConfigUtilsTest.WreckwaterKeyParserIsExactAndTransactional
+[       OK ] ConfigUtilsTest.WreckwaterKeyParserIsExactAndTransactional (0 ms)
+[----------] 6 tests from ConfigUtilsTest (0 ms total)
+
+[----------] 8 tests from ConfigDefaultsTest
+[ RUN      ] ConfigDefaultsTest.RenderConfig
+[       OK ] ConfigDefaultsTest.RenderConfig (0 ms)
+[ RUN      ] ConfigDefaultsTest.TerrainConfig
+[       OK ] ConfigDefaultsTest.TerrainConfig (0 ms)
+[ RUN      ] ConfigDefaultsTest.WaterConfig
+[       OK ] ConfigDefaultsTest.WaterConfig (0 ms)
+[ RUN      ] ConfigDefaultsTest.PhysicsConfig
+[       OK ] ConfigDefaultsTest.PhysicsConfig (0 ms)
+[ RUN      ] ConfigDefaultsTest.CameraConfig
+[       OK ] ConfigDefaultsTest.CameraConfig (0 ms)
+[ RUN      ] ConfigDefaultsTest.LightingConfig
+[       OK ] ConfigDefaultsTest.LightingConfig (0 ms)
+[ RUN      ] ConfigDefaultsTest.DebugConfig
+[       OK ] ConfigDefaultsTest.DebugConfig (0 ms)
+[ RUN      ] ConfigDefaultsTest.WindowConfig
+[       OK ] ConfigDefaultsTest.WindowConfig (0 ms)
+[----------] 8 tests from ConfigDefaultsTest (0 ms total)
+
+[----------] 21 tests from CommandLineArgsTest
+[ RUN      ] CommandLineArgsTest.DefaultValues
+[       OK ] CommandLineArgsTest.DefaultValues (0 ms)
+[ RUN      ] CommandLineArgsTest.CompleteWreckwaterBootstrapParsesBinaryKey
+[       OK ] CommandLineArgsTest.CompleteWreckwaterBootstrapParsesBinaryKey (0 ms)
+[ RUN      ] CommandLineArgsTest.WreckwaterBootstrapIsAllOrNoneAndMalformedKeysFail
+[       OK ] CommandLineArgsTest.WreckwaterBootstrapIsAllOrNoneAndMalformedKeysFail (0 ms)
+[ RUN      ] CommandLineArgsTest.HelpFlag
+[       OK ] CommandLineArgsTest.HelpFlag (0 ms)
+[ RUN      ] CommandLineArgsTest.ConfigPath
+[       OK ] CommandLineArgsTest.ConfigPath (0 ms)
+[ RUN      ] CommandLineArgsTest.RenderPath
+[       OK ] CommandLineArgsTest.RenderPath (0 ms)
+[ RUN      ] CommandLineArgsTest.PhysicsBackendAndCpuSchedulers
+[       OK ] CommandLineArgsTest.PhysicsBackendAndCpuSchedulers (0 ms)
+[ RUN      ] CommandLineArgsTest.WindowSize
+[       OK ] CommandLineArgsTest.WindowSize (0 ms)
+[ RUN      ] CommandLineArgsTest.Fullscreen
+[       OK ] CommandLineArgsTest.Fullscreen (0 ms)
+[ RUN      ] CommandLineArgsTest.LogLevel
+[       OK ] CommandLineArgsTest.LogLevel (0 ms)
+[ RUN      ] CommandLineArgsTest.NoValidation
+[       OK ] CommandLineArgsTest.NoValidation (0 ms)
+[ RUN      ] CommandLineArgsTest.Benchmark
+[       OK ] CommandLineArgsTest.Benchmark (0 ms)
+[ RUN      ] CommandLineArgsTest.BenchmarkBodiesEnableBenchmark
+[       OK ] CommandLineArgsTest.BenchmarkBodiesEnableBenchmark (0 ms)
+[ RUN      ] CommandLineArgsTest.BenchmarkMinimumFpsEnablesBenchmark
+[       OK ] CommandLineArgsTest.BenchmarkMinimumFpsEnablesBenchmark (0 ms)
+[ RUN      ] CommandLineArgsTest.BenchmarkFixedHzEnablesBenchmark
+[       OK ] CommandLineArgsTest.BenchmarkFixedHzEnablesBenchmark (0 ms)
+[ RUN      ] CommandLineArgsTest.ScreenshotTourCountIsBoundedBeforeAllocation
+[       OK ] CommandLineArgsTest.ScreenshotTourCountIsBoundedBeforeAllocation (0 ms)
+[ RUN      ] CommandLineArgsTest.MultipleArgs
+[       OK ] CommandLineArgsTest.MultipleArgs (0 ms)
+[ RUN      ] CommandLineArgsTest.PresentationOverrides
+[       OK ] CommandLineArgsTest.PresentationOverrides (0 ms)
+[ RUN      ] CommandLineArgsTest.InvalidArgcAndNullEntriesAreSafe
+[33m[WARN ] [07:48:52.316] Unknown argument: --width[0m
+[33m[WARN ] [07:48:52.316] Ignoring null command-line argument 2[0m
+[       OK ] CommandLineArgsTest.InvalidArgcAndNullEntriesAreSafe (0 ms)
+[ RUN      ] CommandLineArgsTest.HeightmapPath
+[       OK ] CommandLineArgsTest.HeightmapPath (0 ms)
+[ RUN      ] CommandLineArgsTest.AllOverridesTogether
+[       OK ] CommandLineArgsTest.AllOverridesTogether (0 ms)
+[----------] 21 tests from CommandLineArgsTest (0 ms total)
+
+[----------] 19 tests from ConfigFileTest
+[ RUN      ] ConfigFileTest.LoadNonexistentFile
+[       OK ] ConfigFileTest.LoadNonexistentFile (0 ms)
+[ RUN      ] ConfigFileTest.LoadBasicConfig
+[32m[INFO ] [07:48:52.316] Loading config: /tmp/nix-shell-321694-957654580/voxy_ConfigFileTest_LoadBasicConfig.cfg[0m
+[       OK ] ConfigFileTest.LoadBasicConfig (0 ms)
+[ RUN      ] ConfigFileTest.LoadsCompleteWreckwaterBootstrapWithoutPrintableKeyState
+[32m[INFO ] [07:48:52.316] Loading config: /tmp/nix-shell-321694-957654580/voxy_ConfigFileTest_LoadsCompleteWreckwaterBootstrapWithoutPrintableKeyState.cfg[0m
+[32m[INFO ] [07:48:52.316] Saved config: /tmp/nix-shell-321694-957654580/voxy_ConfigFileTest_LoadsCompleteWreckwaterBootstrapWithoutPrintableKeyState.cfg[0m
+[       OK ] ConfigFileTest.LoadsCompleteWreckwaterBootstrapWithoutPrintableKeyState (0 ms)
+[ RUN      ] ConfigFileTest.CommandLineCanCompleteWreckwaterFileAtomically
+[32m[INFO ] [07:48:52.316] Loading config: /tmp/nix-shell-321694-957654580/voxy_ConfigFileTest_CommandLineCanCompleteWreckwaterFileAtomically.cfg[0m
+[       OK ] ConfigFileTest.CommandLineCanCompleteWreckwaterFileAtomically (0 ms)
+[ RUN      ] ConfigFileTest.ZeroWreckwaterKeyAndIdentityFailValidation
+[       OK ] ConfigFileTest.ZeroWreckwaterKeyAndIdentityFailValidation (0 ms)
+[ RUN      ] ConfigFileTest.LoadAllSections
+[32m[INFO ] [07:48:52.316] Loading config: /tmp/nix-shell-321694-957654580/voxy_ConfigFileTest_LoadAllSections.cfg[0m
+[       OK ] ConfigFileTest.LoadAllSections (0 ms)
+[ RUN      ] ConfigFileTest.IgnoresComments
+[32m[INFO ] [07:48:52.316] Loading config: /tmp/nix-shell-321694-957654580/voxy_ConfigFileTest_IgnoresComments.cfg[0m
+[       OK ] ConfigFileTest.IgnoresComments (0 ms)
+[ RUN      ] ConfigFileTest.CommandLineOverrides
+[32m[INFO ] [07:48:52.316] Loading config: /tmp/nix-shell-321694-957654580/voxy_ConfigFileTest_CommandLineOverrides.cfg[0m
+[       OK ] ConfigFileTest.CommandLineOverrides (0 ms)
+[ RUN      ] ConfigFileTest.CommandLineBenchmarkEnablesAutomation
+[       OK ] ConfigFileTest.CommandLineBenchmarkEnablesAutomation (0 ms)
+[ RUN      ] ConfigFileTest.SaveAndReload
+[32m[INFO ] [07:48:52.316] Saved config: /tmp/nix-shell-321694-957654580/voxy_ConfigFileTest_SaveAndReload.cfg[0m
+[32m[INFO ] [07:48:52.316] Loading config: /tmp/nix-shell-321694-957654580/voxy_ConfigFileTest_SaveAndReload.cfg[0m
+[       OK ] ConfigFileTest.SaveAndReload (0 ms)
+[ RUN      ] ConfigFileTest.InvalidWaterNumbersKeepCurrentDefaults
+[32m[INFO ] [07:48:52.316] Loading config: /tmp/nix-shell-321694-957654580/voxy_ConfigFileTest_InvalidWaterNumbersKeepCurrentDefaults.cfg[0m
+[       OK ] ConfigFileTest.InvalidWaterNumbersKeepCurrentDefaults (0 ms)
+[ RUN      ] ConfigFileTest.InvalidBroadPhaseCellSizesKeepCurrentValue
+[32m[INFO ] [07:48:52.316] Loading config: /tmp/nix-shell-321694-957654580/voxy_ConfigFileTest_InvalidBroadPhaseCellSizesKeepCurrentValue.cfg[0m
+[33m[WARN ] [07:48:52.316] Config line 4: [physics] broad_phase_cell_size must be positive and evenly divide 256; keeping 8[0m
+[       OK ] ConfigFileTest.InvalidBroadPhaseCellSizesKeepCurrentValue (0 ms)
+[ RUN      ] ConfigFileTest.InvalidDuplicateValuesKeepEarlierValidValues
+[32m[INFO ] [07:48:52.316] Loading config: /tmp/nix-shell-321694-957654580/voxy_ConfigFileTest_InvalidDuplicateValuesKeepEarlierValidValues.cfg[0m
+[       OK ] ConfigFileTest.InvalidDuplicateValuesKeepEarlierValidValues (0 ms)
+[ RUN      ] ConfigFileTest.MalformedVectorsAndQuotesPreserveEarlierValues
+[32m[INFO ] [07:48:52.316] Loading config: /tmp/nix-shell-321694-957654580/voxy_ConfigFileTest_MalformedVectorsAndQuotesPreserveEarlierValues.cfg[0m
+[33m[WARN ] [07:48:52.316] Config line 10: unterminated quoted value[0m
+[33m[WARN ] [07:48:52.316] Config line 11: invalid text after quoted value[0m
+[       OK ] ConfigFileTest.MalformedVectorsAndQuotesPreserveEarlierValues (0 ms)
+[ RUN      ] ConfigFileTest.SaveAndReloadEscapedStrings
+[32m[INFO ] [07:48:52.316] Saved config: /tmp/nix-shell-321694-957654580/voxy_ConfigFileTest_SaveAndReloadEscapedStrings.cfg[0m
+[32m[INFO ] [07:48:52.316] Loading config: /tmp/nix-shell-321694-957654580/voxy_ConfigFileTest_SaveAndReloadEscapedStrings.cfg[0m
+[       OK ] ConfigFileTest.SaveAndReloadEscapedStrings (0 ms)
+[ RUN      ] ConfigFileTest.ReflectionStrengthIsClampedToDocumentedRange
+[32m[INFO ] [07:48:52.316] Loading config: /tmp/nix-shell-321694-957654580/voxy_ConfigFileTest_ReflectionStrengthIsClampedToDocumentedRange.cfg[0m
+[33m[WARN ] [07:48:52.316] Config line 3: [water] reflection_strength 1.5 is outside [0, 1] and will be clamped[0m
+[32m[INFO ] [07:48:52.316] Loading config: /tmp/nix-shell-321694-957654580/voxy_ConfigFileTest_ReflectionStrengthIsClampedToDocumentedRange.cfg[0m
+[33m[WARN ] [07:48:52.316] Config line 3: [water] reflection_strength -0.25 is outside [0, 1] and will be clamped[0m
+[       OK ] ConfigFileTest.ReflectionStrengthIsClampedToDocumentedRange (0 ms)
+[ RUN      ] ConfigFileTest.SaveReportsDeviceWriteFailure
+[31m[ERROR] [07:48:52.316] Failed while writing config: /dev/full[0m
+[       OK ] ConfigFileTest.SaveReportsDeviceWriteFailure (0 ms)
+[ RUN      ] ConfigFileTest.AllSettingsPreserved
+[32m[INFO ] [07:48:52.316] Loading config: /tmp/nix-shell-321694-957654580/voxy_ConfigFileTest_AllSettingsPreserved.cfg[0m
+[       OK ] ConfigFileTest.AllSettingsPreserved (0 ms)
+[ RUN      ] ConfigFileTest.CommandLineOverridesAllSettings
+[32m[INFO ] [07:48:52.316] Loading config: /tmp/nix-shell-321694-957654580/voxy_ConfigFileTest_CommandLineOverridesAllSettings.cfg[0m
+[       OK ] ConfigFileTest.CommandLineOverridesAllSettings (0 ms)
+[----------] 19 tests from ConfigFileTest (0 ms total)
+
+[----------] 10 tests from LegoSurface
+[ RUN      ] LegoSurface.QuantizesAllRawSamplesWithinHalfAPlate
+[       OK ] LegoSurface.QuantizesAllRawSamplesWithinHalfAPlate (0 ms)
+[ RUN      ] LegoSurface.ChunkOwnershipCoversOnlyEqualLevelsWithoutChangingGround
+[       OK ] LegoSurface.ChunkOwnershipCoversOnlyEqualLevelsWithoutChangingGround (0 ms)
+[ RUN      ] LegoSurface.SphereContactsStudCapSideRimAndVerticalStep
+[       OK ] LegoSurface.SphereContactsStudCapSideRimAndVerticalStep (0 ms)
+[ RUN      ] LegoSurface.CapsuleSupportIncludesStudsBetweenHeightProbes
+[       OK ] LegoSurface.CapsuleSupportIncludesStudsBetweenHeightProbes (0 ms)
+[ RUN      ] LegoSurface.PlayerCrossesChunksAndPlateStepsButStopsAtCliff
+[       OK ] LegoSurface.PlayerCrossesChunksAndPlateStepsButStopsAtCliff (3 ms)
+[ RUN      ] LegoSurface.PlayerLandsAndJumpsInNegativeHeightSector
+[       OK ] LegoSurface.PlayerLandsAndJumpsInNegativeHeightSector (0 ms)
+[ RUN      ] LegoSurface.ChunkBuilderMatchesStudyAndFullMapEdges
+[       OK ] LegoSurface.ChunkBuilderMatchesStudyAndFullMapEdges (34 ms)
+[ RUN      ] LegoSurface.LayoutCacheIsBoundedReusesRowsAndRejectsStaleSlots
+[       OK ] LegoSurface.LayoutCacheIsBoundedReusesRowsAndRejectsStaleSlots (0 ms)
+[ RUN      ] LegoSurface.TerrainModeSwitchPreservesLiveCharacter
+[       OK ] LegoSurface.TerrainModeSwitchPreservesLiveCharacter (0 ms)
+[ RUN      ] LegoSurface.LongJointsStaggerAcrossAdjacentCourses
+[       OK ] LegoSurface.LongJointsStaggerAcrossAdjacentCourses (0 ms)
+[----------] 10 tests from LegoSurface (39 ms total)
+
+[----------] Global test environment tear-down
+[==========] 77 tests from 6 test suites ran. (50 ms total)
+[  PASSED  ] 77 tests.

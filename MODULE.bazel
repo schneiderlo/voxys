@@ -3,7 +3,13 @@ module(
     version = "0.1.0",
 )
 
-bazel_dep(name = "rules_cc", version = "0.1.1")
-bazel_dep(name = "emsdk", version = "4.0.17")
-bazel_dep(name = "platforms", version = "0.0.11")
+bazel_dep(name = "rules_cc", version = "0.2.16")
+# Match the Emscripten version used by the Pages/CMake build.
+bazel_dep(name = "emsdk", version = "6.0.1")
+bazel_dep(name = "platforms", version = "1.0.0")
 bazel_dep(name = "googletest", version = "1.14.0.bcr.1")
+
+# WORKSPACE dependencies also load rules_cc. Expose its compatibility repository
+# to that legacy repository mapping while the project still uses both systems.
+cc_compatibility = use_extension("@rules_cc//cc:extensions.bzl", "compatibility_proxy")
+use_repo(cc_compatibility, "cc_compatibility_proxy")

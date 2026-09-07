@@ -111,6 +111,7 @@ sh_binary(
     data = [
         "//:voxy_wasm",
         "//:voxy.cfg",
+        "//shaders:shaders",
         "//web:assets",
         "serve_wasm.py",
         "@bazel_tools//tools/bash/runfiles",

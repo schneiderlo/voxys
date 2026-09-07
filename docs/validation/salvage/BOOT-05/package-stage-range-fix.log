@@ -1,0 +1,7 @@
+mkdir -p "/tmp/voxys-boot05-web/shaders"
+cp -R web/. "/tmp/voxys-boot05-web/"
+# The standalone shader parity page fetches these over HTTP.
+cp shaders/*.wgsl "/tmp/voxys-boot05-web/shaders/"
+cp "build-lego-wasm/bin/voxy_wasm.js" \
+	"build-lego-wasm/bin/voxy_wasm.wasm" \
+	"build-lego-wasm/bin/voxy_wasm.data" "/tmp/voxys-boot05-web/"

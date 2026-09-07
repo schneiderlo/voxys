@@ -470,8 +470,17 @@ TEST_F(BlitShaderTest, UsesRaycastTerrainPatchNormal) {
         std::string::npos);
     EXPECT_NE(
         shaderSource_.find(
-            "exactTerrainNormal = textureLoad(materialTex"),
+            "terrainMaterial = textureLoad(materialTex, pixel, 0)"),
         std::string::npos)
+        << "Cached terrain lighting must read the raycast material payload";
+    EXPECT_NE(shaderSource_.find("terrainMaterial = textureLoad(materialTex, pixelI, 0)"),
+              std::string::npos)
+        << "The full blit path must read the same raycast material payload";
+    EXPECT_NE(shaderSource_.find("exactTerrainNormal = terrainMaterial.xyz"),
+              std::string::npos)
+        << "The terrain normal is RGB; the fourth material channel is independent";
+    EXPECT_NE(shaderSource_.find("geometryNormal = normalize(exactTerrainNormal)"),
+              std::string::npos)
         << "Terrain lighting must consume the stable raycast patch normal";
 }
 

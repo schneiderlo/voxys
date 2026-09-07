@@ -1,0 +1,13 @@
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //tools:terrain_diffusion_import_test
+-----------------------------------------------------------------------------
+.......s...
+----------------------------------------------------------------------
+Ran 11 tests in 0.111s
+
+OK (skipped=1)
+Requesting Terrain Diffusion tile: 2x2
+  http://127.0.0.1:8000/terrain?i1=0&j1=0&i2=2&j2=2&scale=1
+Wrote raw heightmap: /tmp/nix-shell-443907-3885444405/tmpa61xph8u/tile.r16
+Wrote metadata: /tmp/nix-shell-443907-3885444405/tmpa61xph8u/tile.json
+No LDH file was created; compress the raw heightmap before using it in voxy.cfg.

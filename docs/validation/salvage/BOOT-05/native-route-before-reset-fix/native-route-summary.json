@@ -1,0 +1,165 @@
+{
+  "binary": "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native",
+  "binary_sha256_before": "4387e7b045bfc7ada2517c33b2895724af415d277299acb1d0ab738309e15fc5",
+  "binary_sha256_after": "4387e7b045bfc7ada2517c33b2895724af415d277299acb1d0ab738309e15fc5",
+  "environment": {
+    "WGPU_BACKEND": "vulkan",
+    "VOXY_WINDOW_BACKEND": null,
+    "DISPLAY": ":0",
+    "WAYLAND_DISPLAY": "wayland-0"
+  },
+  "claim": "visible launch and natural screenshot exit only; no performance claim",
+  "routes": [
+    {
+      "config": "lego_world.cfg",
+      "config_sha256": "01e1f9ccee2e3ed3f5a595e5b4e814f7650dc28db532e60134dd17ea05cf6f69",
+      "command": [
+        "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/lego_world.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/BOOT-05/native-route-lego_world.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "started_unix_seconds": 1788819213.113871,
+      "wall_seconds": 4.124,
+      "exit_code": 0,
+      "timed_out": false,
+      "png_dimensions": [
+        1600,
+        900
+      ],
+      "png_sha256": "1a6aa17e2e21d9566bdad66982ee06db66a5ec441bcfc9597c0935fa9cc1275a",
+      "main_loop_ended": true,
+      "saved_screenshot": true,
+      "errors": [],
+      "window_and_adapter": [
+        "\u001b[32m[INFO ] [00:00:00.081] [Application::init] Window created via Wayland: 1280x720 logical, 1600x900 framebuffer (1.25x1.25 scale)\u001b[0m",
+        "\u001b[32m[INFO ] [00:00:00.136] [Application::init::GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)\u001b[0m"
+      ],
+      "passed": true
+    },
+    {
+      "config": "lego_shore.cfg",
+      "config_sha256": "3e11e0e713da1548ac5ee61e938343b5505e2a13cd0a7013e056076a38ee33c9",
+      "command": [
+        "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/lego_shore.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/BOOT-05/native-route-lego_shore.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "started_unix_seconds": 1788819217.2391803,
+      "wall_seconds": 3.321,
+      "exit_code": 0,
+      "timed_out": false,
+      "png_dimensions": [
+        1600,
+        900
+      ],
+      "png_sha256": "23162b161d9636b0153e6e9e268cbfd8f58ef372b3fda1c453720e6ca8b99d5f",
+      "main_loop_ended": true,
+      "saved_screenshot": true,
+      "errors": [],
+      "window_and_adapter": [
+        "\u001b[32m[INFO ] [00:00:00.115] [Application::init] Window created via Wayland: 1280x720 logical, 1600x900 framebuffer (1.25x1.25 scale)\u001b[0m",
+        "\u001b[32m[INFO ] [00:00:00.181] [Application::init::GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)\u001b[0m"
+      ],
+      "passed": true
+    },
+    {
+      "config": "voxy.cfg",
+      "config_sha256": "ddd5cef3bbefa9827185345458fdbc789052a6b7644b8baa12cf3653d087a259",
+      "command": [
+        "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/voxy.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/BOOT-05/native-route-voxy.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "started_unix_seconds": 1788819220.561582,
+      "wall_seconds": 4.274,
+      "exit_code": 0,
+      "timed_out": false,
+      "png_dimensions": [
+        1600,
+        900
+      ],
+      "png_sha256": "064218af38acb1dc07d12660812c4b6ec515365c6dc46ca1282b5d8bd287a693",
+      "main_loop_ended": true,
+      "saved_screenshot": true,
+      "errors": [],
+      "window_and_adapter": [
+        "\u001b[32m[INFO ] [00:00:00.096] [Application::init] Window created via Wayland: 1280x720 logical, 1600x900 framebuffer (1.25x1.25 scale)\u001b[0m",
+        "\u001b[32m[INFO ] [00:00:00.166] [Application::init::GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)\u001b[0m"
+      ],
+      "passed": true
+    },
+    {
+      "config": "ridgebreak.cfg",
+      "config_sha256": "4796e4af35a7b207e67899df25027f9d6779f31f288ee5cb3bc0e8ac0b1d328d",
+      "command": [
+        "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/ridgebreak.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/BOOT-05/native-route-ridgebreak.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "started_unix_seconds": 1788819224.837145,
+      "wall_seconds": 3.723,
+      "exit_code": 0,
+      "timed_out": false,
+      "png_dimensions": [
+        1600,
+        900
+      ],
+      "png_sha256": "9f23e44bf66533377f960f91c1c5a55d21402e3a817427ef339debef32440e52",
+      "main_loop_ended": true,
+      "saved_screenshot": true,
+      "errors": [],
+      "window_and_adapter": [
+        "\u001b[32m[INFO ] [00:00:00.093] [Application::init] Window created via Wayland: 1280x720 logical, 1600x900 framebuffer (1.25x1.25 scale)\u001b[0m",
+        "\u001b[32m[INFO ] [00:00:00.168] [Application::init::GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)\u001b[0m"
+      ],
+      "passed": true
+    },
+    {
+      "config": "salvage.cfg",
+      "config_sha256": "eefe920e11069b399fbc51625ef84ed1a86e5f646f1212409f6ac7409265a258",
+      "command": [
+        "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/salvage.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/BOOT-05/native-route-salvage.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "started_unix_seconds": 1788819228.562033,
+      "wall_seconds": 3.572,
+      "exit_code": 0,
+      "timed_out": false,
+      "png_dimensions": [
+        1600,
+        900
+      ],
+      "png_sha256": "1ba5d24a0f4101c348eebbde34ca4b12dcc205dd6d085b10c88f714a028088e0",
+      "main_loop_ended": true,
+      "saved_screenshot": true,
+      "errors": [],
+      "window_and_adapter": [
+        "\u001b[32m[INFO ] [00:00:00.121] [Application::init] Window created via Wayland: 1280x720 logical, 1600x900 framebuffer (1.25x1.25 scale)\u001b[0m",
+        "\u001b[32m[INFO ] [00:00:00.177] [Application::init::GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)\u001b[0m"
+      ],
+      "passed": true
+    }
+  ],
+  "passed": true
+}

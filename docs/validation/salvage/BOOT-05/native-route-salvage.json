@@ -1,0 +1,30 @@
+{
+  "config": "salvage.cfg",
+  "config_sha256": "eefe920e11069b399fbc51625ef84ed1a86e5f646f1212409f6ac7409265a258",
+  "command": [
+    "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native",
+    "--config",
+    "/home/modkin/workspace/schneiderlo/voxys/salvage.cfg",
+    "--screenshot",
+    "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/BOOT-05/native-route-salvage.png",
+    "--screenshot-frames",
+    "120"
+  ],
+  "started_unix_seconds": 1788820219.8336248,
+  "wall_seconds": 3.622,
+  "exit_code": 0,
+  "timed_out": false,
+  "png_dimensions": [
+    1600,
+    900
+  ],
+  "png_sha256": "bc6903da980f356a852c9cd05f80e9444562ee57a12e76b673eee9be664ba67a",
+  "main_loop_ended": true,
+  "saved_screenshot": true,
+  "errors": [],
+  "window_and_adapter": [
+    "\u001b[32m[INFO ] [00:00:00.094] [Application::init] Window created via Wayland: 1280x720 logical, 1600x900 framebuffer (1.25x1.25 scale)\u001b[0m",
+    "\u001b[32m[INFO ] [00:00:00.159] [Application::init::GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)\u001b[0m"
+  ],
+  "passed": true
+}

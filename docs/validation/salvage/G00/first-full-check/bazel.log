@@ -1,0 +1,60 @@
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+WARNING: Build options --compilation_mode, --copt, --platforms, and 1 more have changed, discarding analysis cache (this can be expensive, see https://bazel.build/advanced/performance/iteration-speed).
+Analyzing: 2 targets (0 packages loaded, 0 targets configured)
+Analyzing: 2 targets (0 packages loaded, 0 targets configured)
+
+Analyzing: 2 targets (0 packages loaded, 1859 targets configured)
+[6 / 6] 1 / 1 tests; no actions running
+INFO: Analyzed 2 targets (2 packages loaded, 3586 targets configured).
+[446 / 531] 1 / 2 tests; Compiling src/app/application.cpp; 1s linux-sandbox ... (4 actions running)
+[449 / 531] 1 / 2 tests; Compiling src/app/application.cpp; 2s linux-sandbox ... (4 actions running)
+[450 / 531] 1 / 2 tests; Compiling src/app/application.cpp; 3s linux-sandbox ... (4 actions, 3 running)
+[452 / 531] 1 / 2 tests; Compiling src/app/application.cpp; 5s linux-sandbox ... (4 actions running)
+[458 / 531] 1 / 2 tests; Compiling tests/test_wreckwater_match.cpp; 0s linux-sandbox ... (4 actions running)
+[462 / 531] 1 / 2 tests; Compiling tests/test_wreckwater_character_step.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[466 / 531] 1 / 2 tests; Compiling tests/test_replay.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[469 / 531] 1 / 2 tests; Compiling tests/test_wreckwater_character_platform_timeline.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[471 / 531] 1 / 2 tests; Compiling tests/test_wreckwater_character_controller.cpp; 1s linux-sandbox ... (4 actions running)
+[474 / 531] 1 / 2 tests; Compiling tests/test_config.cpp; 1s linux-sandbox ... (4 actions running)
+[478 / 531] 1 / 2 tests; Compiling tests/test_wreckwater_authority_runtime.cpp; 2s linux-sandbox ... (4 actions, 3 running)
+[482 / 531] 1 / 2 tests; Compiling tests/test_native_tcp_transport.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[482 / 531] 1 / 2 tests; Compiling tests/test_native_tcp_transport.cpp; 2s linux-sandbox ... (4 actions running)
+[487 / 531] 1 / 2 tests; Compiling tests/test_part_catalog.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[490 / 531] 1 / 2 tests; Compiling tests/test_application.cpp; 1s linux-sandbox ... (4 actions running)
+[493 / 531] 1 / 2 tests; Compiling tests/test_compression.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[497 / 531] 1 / 2 tests; Compiling tests/test_multiplayer_session.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[499 / 531] 1 / 2 tests; Compiling tests/test_multiplayer_session.cpp; 2s linux-sandbox ... (4 actions running)
+[502 / 531] 1 / 2 tests; Compiling tests/test_benchmark.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[504 / 531] 1 / 2 tests; Compiling tests/test_raycast_path.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[508 / 531] 1 / 2 tests; Compiling tests/test_character_controller.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[511 / 531] 1 / 2 tests; Compiling tests/test_distributed_server.cpp; 1s linux-sandbox ... (4 actions running)
+[515 / 531] 1 / 2 tests; Compiling tests/test_physics_world.cpp; 0s linux-sandbox ... (4 actions, 3 running)
+[516 / 531] 1 / 2 tests; Compiling tests/test_gpu_narrow_phase.cpp; 2s linux-sandbox ... (4 actions, 3 running)
+[519 / 531] 1 / 2 tests; Compiling tests/test_gpu_broad_phase.cpp; 3s linux-sandbox ... (4 actions running)
+[521 / 531] 1 / 2 tests; Compiling tests/test_gpu_physics.cpp; 1s linux-sandbox ... (4 actions running)
+[524 / 531] 1 / 2 tests; Compiling tests/test_gpu_physics.cpp; 3s linux-sandbox ... (4 actions, 3 running)
+[527 / 531] 1 / 2 tests; Compiling tests/test_gpu_dynamic_solver.cpp; 1s linux-sandbox ... (3 actions running)
+[531 / 532] 1 / 2 tests; Testing //tests:voxy_tests; 1s linux-sandbox
+[531 / 532] 1 / 2 tests; Testing //tests:voxy_tests; 11s linux-sandbox
+[531 / 532] 1 / 2 tests; Testing //tests:voxy_tests; 41s linux-sandbox
+[531 / 532] 1 / 2 tests; Testing //tests:voxy_tests; 101s linux-sandbox
+[531 / 532] 1 / 2 tests; Testing //tests:voxy_tests; 161s linux-sandbox
+[531 / 532] 1 / 2 tests; Testing //tests:voxy_tests; 221s linux-sandbox
+[531 / 532] 1 / 2 tests; Testing //tests:voxy_tests; 281s linux-sandbox
+[531 / 532] 1 / 2 tests; Testing //tests:voxy_tests; 300s linux-sandbox
+[531 / 532] 1 / 2 tests; Testing //tests:voxy_tests; 301s linux-sandbox
+
+TIMEOUT: //tests:voxy_tests (Summary)
+      /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-fastbuild/testlogs/tests/voxy_tests/test.log
+INFO: Found 2 test targets...
+INFO: Elapsed time: 340.889s, Critical Path: 307.89s
+INFO: 88 processes: 445 action cache hit, 88 linux-sandbox.
+INFO: Build completed, 1 test FAILED, 88 total actions
+//tools:terrain_diffusion_import_test                                    PASSED in 0.3s
+//tests:voxy_tests                                                      TIMEOUT in 300.1s
+  /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-fastbuild/testlogs/tests/voxy_tests/test.log
+
+Executed 2 out of 2 tests: 1 test passes and 1 fails locally.
+There were tests whose specified size is too big. Use the --test_verbose_timeout_warnings command line option to see which ones these are.

@@ -1,0 +1,20 @@
+python3: can't open file '/tmp/check_startup_image.py': [Errno 2] No such file or directory
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: main page has no visible landscape
+
+2 !== 0
+
+    at file:///tmp/voxys-boot03-visible-baseline.mjs:214:12
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 2,
+  expected: 0,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.23.1

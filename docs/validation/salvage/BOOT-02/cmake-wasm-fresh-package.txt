@@ -1,0 +1,20 @@
+{
+  "package": "/tmp/voxys-boot02-cmake-fresh-web",
+  "referenced_static_assets": 15,
+  "served_shaders": 27,
+  "preload_files": 57,
+  "preload_bytes": 57673305,
+  "route_configs": [
+    "lego_shore.cfg",
+    "lego_world.cfg",
+    "ridgebreak.cfg",
+    "voxy.cfg"
+  ],
+  "keepalive_exports": {
+    "voxy_lego_action": "db",
+    "voxy_get_lego_hud_json": "eb",
+    "voxy_get_heap_used_bytes": "fb"
+  },
+  "http_files_verified": 0
+}
+PASS: served assets, source-matching preloads, route configs, and KEEPALIVE exports

@@ -1,0 +1,69 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: 5 targets (0 packages loaded, 0 targets configured)
+Analyzing: 5 targets (0 packages loaded, 0 targets configured)
+
+Analyzing: 5 targets (0 packages loaded, 0 targets configured)
+
+INFO: Analyzed 5 targets (1 packages loaded, 96 targets configured).
+[82 / 153] 2 / 5 tests; Compiling src/render/mip_pipeline.cpp; 0s linux-sandbox ... (4 actions, 3 running)
+[98 / 164] 2 / 5 tests; Compiling src/render/mip_pipeline.cpp; 2s linux-sandbox ... (4 actions, 3 running)
+[105 / 172] 2 / 5 tests; Compiling tests/test_config.cpp; 3s linux-sandbox ... (4 actions, 3 running)
+[110 / 182] 2 / 5 tests; Compiling src/terrain/textures.cpp; 1s linux-sandbox ... (4 actions running)
+[116 / 186] 2 / 5 tests; Compiling src/terrain/textures.cpp; 2s linux-sandbox ... (4 actions running)
+[126 / 200] 2 / 5 tests; Compiling src/terrain/textures.cpp; 3s linux-sandbox ... (4 actions, 3 running)
+[130 / 200] 2 / 5 tests; Compiling src/terrain/mip_generator.cpp; 1s linux-sandbox ... (4 actions running)
+[131 / 200] 2 / 5 tests; Compiling src/network/replication.cpp; 2s linux-sandbox ... (4 actions, 3 running)
+[135 / 200] 2 / 5 tests; Compiling src/render/primitive_path.cpp; 3s linux-sandbox ... (4 actions, 3 running)
+[138 / 202] 2 / 5 tests; Compiling src/terrain/heightmap.cpp; 2s linux-sandbox ... (4 actions, 3 running)
+[138 / 202] 2 / 5 tests; Compiling src/terrain/heightmap.cpp; 3s linux-sandbox ... (4 actions running)
+[141 / 204] 2 / 5 tests; Compiling src/terrain/heightmap.cpp; 4s linux-sandbox ... (4 actions running)
+[143 / 204] 2 / 5 tests; Compiling src/render/raycast_path.cpp; 3s linux-sandbox ... (4 actions, 3 running)
+[146 / 206] 2 / 5 tests; Compiling src/render/raycast_path.cpp; 5s linux-sandbox ... (4 actions running)
+[147 / 206] 2 / 5 tests; Compiling src/network/multiplayer_session.cpp; 3s linux-sandbox ... (4 actions running)
+[150 / 208] 2 / 5 tests; Compiling src/network/multiplayer_session.cpp; 4s linux-sandbox ... (4 actions running)
+[151 / 208] 2 / 5 tests; Compiling src/network/multiplayer_session.cpp; 6s linux-sandbox ... (4 actions, 3 running)
+[156 / 210] 2 / 5 tests; Compiling src/render/primitive_gpu_culling.cpp; 4s linux-sandbox ... (4 actions, 3 running)
+[173 / 346] 2 / 5 tests; Compiling third_party/JoltPhysics/Jolt/TriangleSplitter/TriangleSplitterMean.cpp; 0s linux-sandbox ... (4 actions, 3 running)
+[174 / 346] 2 / 5 tests; Compiling tests/test_lego_surface.cpp; 1s linux-sandbox ... (4 actions running)
+[175 / 346] 2 / 5 tests; Compiling tests/test_lego_surface.cpp; 2s linux-sandbox ... (4 actions running)
+[176 / 346] 2 / 5 tests; Compiling tests/test_lego_surface.cpp; 4s linux-sandbox ... (4 actions, 3 running)
+ERROR: /home/modkin/workspace/schneiderlo/voxys/tests/BUILD:69:9: Compiling tests/test_lego_surface.cpp failed: (Exit 1): gcc failed: error executing CppCompile command (from target //tests:lego_surface) /nix/store/788mx070y81zjlg5ipcl0cra3afviw9k-gcc-wrapper-15.2.0/bin/gcc -U_FORTIFY_SOURCE -fstack-protector -Wall -Wunused-but-set-parameter -Wno-free-nonheap-object -fno-omit-frame-pointer -g0 -O2 ... (remaining 125 arguments skipped)
+
+Use --sandbox_debug to see verbose messages from the sandbox and retain the sandbox build root for debugging
+tests/test_lego_surface.cpp: In function 'uint16_t {anonymous}::raw(float, float)':
+tests/test_lego_surface.cpp:11:43: error: implicit conversion from 'float' to 'double' to match other operand of binary expression [-Werror=double-promotion]
+   11 |     return uint16_t(std::lround((double(y)/scale+1.0)*32767.5));
+      |                                  ~~~~~~~~~^~~~~~
+In file included from external/googletest+/googletest/include/gtest/gtest.h:72,
+                 from tests/test_lego_surface.cpp:1:
+tests/test_lego_surface.cpp: In member function 'virtual void {anonymous}::LegoSurface_PlayerLandsAndJumpsInNegativeHeightSector_Test::TestBody()':
+tests/test_lego_surface.cpp:123:56: error: conversion from 'int' to 'float' may change value [-Werror=conversion]
+  123 |     EXPECT_NEAR(motion.position.y+256.0f*motion.sector.y,support,.002f);
+      |                                          ~~~~~~~~~~~~~~^
+tests/test_lego_surface.cpp:129:56: error: conversion from 'int' to 'float' may change value [-Werror=conversion]
+  129 |     EXPECT_NEAR(motion.position.y+256.0f*motion.sector.y,support,.002f);
+      |                                          ~~~~~~~~~~~~~~^
+tests/test_lego_surface.cpp: In member function 'virtual void {anonymous}::LegoSurface_TerrainModeSwitchPreservesLiveCharacter_Test::TestBody()':
+tests/test_lego_surface.cpp:208:62: error: conversion from 'int' to 'float' may change value [-Werror=conversion]
+  208 |         const float y=motion.position.y+256.0f*motion.sector.y;
+      |                                                ~~~~~~~~~~~~~~^
+cc1plus: all warnings being treated as errors
+Use --verbose_failures to see the command lines of failed build steps.
+INFO: Elapsed time: 30.053s, Critical Path: 6.50s
+INFO: 91 processes: 91 action cache hit, 22 internal, 69 linux-sandbox.
+ERROR: Build did NOT complete successfully
+//tests:config                                                        NO STATUS
+//tests:lego_playground                                               NO STATUS
+//tests:lego_surface                                            FAILED TO BUILD
+//tests:construction_types                                               PASSED in 0.0s
+//tests:gltf_vmesh_tool_test                                             PASSED in 0.0s
+
+Executed 2 out of 5 tests: 2 tests pass, 1 fails to build, and 2 were skipped.
+There were tests whose specified size is too big. Use the --test_verbose_timeout_warnings command line option to see which ones these are.

@@ -1,0 +1,72 @@
+{
+  "command": "nix-shell --run 'bazel test --jobs=4 //tests:voxy_tests //tools:terrain_diffusion_import_test'",
+  "exit_code": 0,
+  "combined_cases_announced": [
+    "1498 tests from 223 test suites."
+  ],
+  "combined_passed_cases": 1495,
+  "skipped_cases": [
+    "GpuBroadPhaseOverflowBenchmark.DenseGridCandidateClamp",
+    "RaycastPathGPUTest.LegoHorizonBenchmark",
+    "WindowGLFWTest.WindowCreation"
+  ],
+  "failed_cases": [],
+  "disabled_summary": [
+    "  YOU HAVE 4 DISABLED TESTS"
+  ],
+  "combined_xml_attributes": {
+    "tests": "1502",
+    "failures": "0",
+    "disabled": "4",
+    "errors": "0",
+    "time": "326.604",
+    "timestamp": "2026-09-07T22:44:08.593",
+    "name": "AllTests"
+  },
+  "tool_xml_attributes": {},
+  "catalog_test_timeline": [
+    {
+      "path": "/home/modkin/workspace/schneiderlo/voxys/tests/test_part_catalog.cpp",
+      "mtime_utc": "2026-09-07T22:42:34.692831+00:00",
+      "sha256": "b0cd3d3dd28f579d9e47c85705244ecb704d56cde205b5547b438c7d3f64b5bb"
+    },
+    {
+      "path": "/home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-fastbuild/bin/tests/_objs/voxy_tests/test_part_catalog.pic.o",
+      "mtime_utc": "2026-09-07T22:44:04.744424+00:00",
+      "sha256": "57eed921344382684a0d9a632b522ce6c65a10ac02631fbe940b6df8f744bc7e"
+    },
+    {
+      "path": "/home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-fastbuild/bin/tests/voxy_tests",
+      "mtime_utc": "2026-09-07T22:44:08.451366+00:00",
+      "sha256": "574bb8e969885d155d9b89764d391bec35a7739eee7f5b44726d9aa3422e5479"
+    }
+  ],
+  "disabled_cases": [
+    "ApplicationGPUTest.DISABLED_InitAndShutdown",
+    "ApplicationGPUTest.DISABLED_RenderPathToggle",
+    "ApplicationGPUTest.DISABLED_ProcessSingleFrame",
+    "ApplicationGPUTest.DISABLED_UpdateCallback"
+  ],
+  "skipped_reasons": [
+    {
+      "name": "WindowGLFWTest.WindowCreation",
+      "message": "tests/test_window.cpp:175\nGLFW not available - skipping window creation test\n"
+    },
+    {
+      "name": "GpuBroadPhaseOverflowBenchmark.DenseGridCandidateClamp",
+      "message": "tests/test_gpu_broad_phase.cpp:1053\nSet VOXY_BROAD_PHASE_BENCHMARK_SHADER_DIR to run\n"
+    },
+    {
+      "name": "RaycastPathGPUTest.LegoHorizonBenchmark",
+      "message": "tests/test_raycast_path.cpp:514\nSet VOXY_RAYCAST_BENCHMARK_SHADER to run\n"
+    }
+  ],
+  "tool_xml_suites": [
+    {
+      "name": "tools/terrain_diffusion_import_test",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0"
+    }
+  ]
+}

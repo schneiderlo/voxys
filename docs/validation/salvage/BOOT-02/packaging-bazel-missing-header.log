@@ -1,0 +1,222 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Computing main repo mapping: 
+WARNING: WORKSPACE support will be removed in Bazel 9 (late 2025), please migrate to Bzlmod, see https://bazel.build/external/migration.
+Loading: 
+Loading: 0 packages loaded
+Analyzing: target //:voxy_wasm (4 packages loaded, 5 targets configured)
+Analyzing: target //:voxy_wasm (4 packages loaded, 5 targets configured)
+
+Analyzing: target //:voxy_wasm (145 packages loaded, 1049 targets configured)
+
+Analyzing: target //:voxy_wasm (145 packages loaded, 1049 targets configured)
+
+Analyzing: target //:voxy_wasm (146 packages loaded, 1049 targets configured)
+
+Analyzing: target //:voxy_wasm (146 packages loaded, 5384 targets configured)
+
+Analyzing: target //:voxy_wasm (146 packages loaded, 5384 targets configured)
+
+Analyzing: target //:voxy_wasm (146 packages loaded, 5384 targets configured)
+
+Analyzing: target //:voxy_wasm (146 packages loaded, 5384 targets configured)
+
+Analyzing: target //:voxy_wasm (146 packages loaded, 5384 targets configured)
+
+Analyzing: target //:voxy_wasm (146 packages loaded, 5384 targets configured)
+
+Analyzing: target //:voxy_wasm (146 packages loaded, 5384 targets configured)
+
+Analyzing: target //:voxy_wasm (146 packages loaded, 5384 targets configured)
+
+Analyzing: target //:voxy_wasm (146 packages loaded, 5384 targets configured)
+
+Analyzing: target //:voxy_wasm (146 packages loaded, 5384 targets configured)
+
+Analyzing: target //:voxy_wasm (146 packages loaded, 5384 targets configured)
+
+Analyzing: target //:voxy_wasm (146 packages loaded, 5384 targets configured)
+
+Analyzing: target //:voxy_wasm (146 packages loaded, 5384 targets configured)
+
+Analyzing: target //:voxy_wasm (146 packages loaded, 5384 targets configured)
+
+Analyzing: target //:voxy_wasm (146 packages loaded, 5384 targets configured)
+
+Analyzing: target //:voxy_wasm (146 packages loaded, 5384 targets configured)
+
+Analyzing: target //:voxy_wasm (146 packages loaded, 5384 targets configured)
+
+Analyzing: target //:voxy_wasm (146 packages loaded, 5384 targets configured)
+
+Analyzing: target //:voxy_wasm (146 packages loaded, 5384 targets configured)
+
+Analyzing: target //:voxy_wasm (146 packages loaded, 5384 targets configured)
+
+Analyzing: target //:voxy_wasm (146 packages loaded, 5384 targets configured)
+
+Analyzing: target //:voxy_wasm (146 packages loaded, 5384 targets configured)
+
+Analyzing: target //:voxy_wasm (146 packages loaded, 5384 targets configured)
+
+Analyzing: target //:voxy_wasm (146 packages loaded, 5384 targets configured)
+
+Analyzing: target //:voxy_wasm (146 packages loaded, 5384 targets configured)
+
+Analyzing: target //:voxy_wasm (146 packages loaded, 5384 targets configured)
+
+Analyzing: target //:voxy_wasm (146 packages loaded, 5384 targets configured)
+
+Analyzing: target //:voxy_wasm (146 packages loaded, 5384 targets configured)
+
+Analyzing: target //:voxy_wasm (146 packages loaded, 5384 targets configured)
+
+Analyzing: target //:voxy_wasm (146 packages loaded, 5384 targets configured)
+
+Analyzing: target //:voxy_wasm (149 packages loaded, 8607 targets configured)
+
+Analyzing: target //:voxy_wasm (149 packages loaded, 8607 targets configured)
+
+Analyzing: target //:voxy_wasm (149 packages loaded, 8607 targets configured)
+
+Analyzing: target //:voxy_wasm (149 packages loaded, 8607 targets configured)
+
+Analyzing: target //:voxy_wasm (149 packages loaded, 8607 targets configured)
+
+Analyzing: target //:voxy_wasm (149 packages loaded, 8607 targets configured)
+
+Analyzing: target //:voxy_wasm (149 packages loaded, 8607 targets configured)
+
+Analyzing: target //:voxy_wasm (149 packages loaded, 8607 targets configured)
+
+Analyzing: target //:voxy_wasm (149 packages loaded, 8607 targets configured)
+
+Analyzing: target //:voxy_wasm (149 packages loaded, 8607 targets configured)
+
+Analyzing: target //:voxy_wasm (149 packages loaded, 8607 targets configured)
+
+Analyzing: target //:voxy_wasm (149 packages loaded, 8607 targets configured)
+
+Analyzing: target //:voxy_wasm (149 packages loaded, 8607 targets configured)
+
+Analyzing: target //:voxy_wasm (149 packages loaded, 8607 targets configured)
+
+Analyzing: target //:voxy_wasm (149 packages loaded, 8607 targets configured)
+
+Analyzing: target //:voxy_wasm (149 packages loaded, 8607 targets configured)
+
+Analyzing: target //:voxy_wasm (149 packages loaded, 8607 targets configured)
+
+Analyzing: target //:voxy_wasm (149 packages loaded, 8607 targets configured)
+
+Analyzing: target //:voxy_wasm (149 packages loaded, 8607 targets configured)
+
+Analyzing: target //:voxy_wasm (149 packages loaded, 8607 targets configured)
+
+Analyzing: target //:voxy_wasm (149 packages loaded, 8607 targets configured)
+
+Analyzing: target //:voxy_wasm (149 packages loaded, 8607 targets configured)
+
+Analyzing: target //:voxy_wasm (149 packages loaded, 8607 targets configured)
+
+Analyzing: target //:voxy_wasm (149 packages loaded, 8607 targets configured)
+
+Analyzing: target //:voxy_wasm (149 packages loaded, 8607 targets configured)
+
+Analyzing: target //:voxy_wasm (149 packages loaded, 8607 targets configured)
+
+Analyzing: target //:voxy_wasm (149 packages loaded, 8607 targets configured)
+
+Analyzing: target //:voxy_wasm (155 packages loaded, 13735 targets configured)
+
+INFO: Analyzed target //:voxy_wasm (157 packages loaded, 13759 targets configured).
+[8 / 340] [Prepa] Expanding template external/emsdk+/emscripten_toolchain/wasm_binary [for tool]
+[12 / 378] Compiling src/core/log.cpp; 0s linux-sandbox ... (4 actions, 3 running)
+[15 / 378] Compiling src/core/log.cpp; 2s linux-sandbox ... (4 actions, 3 running)
+INFO: From Compiling src/core/config.cpp:
+src/core/config.cpp:27:6: warning: variable 'initialized' set but not used [-Wunused-but-set-global]
+   27 | bool initialized = false;
+      |      ^
+1 warning generated.
+[21 / 378] Compiling src/voxel/svo_buffers.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[25 / 378] Compiling src/terrain/heightmap.cpp; 1s linux-sandbox ... (4 actions running)
+[27 / 378] Compiling src/game/wreckwater_replay_playback.cpp; 1s linux-sandbox ... (4 actions running)
+[31 / 378] Compiling src/terrain/compression.cpp; 2s linux-sandbox ... (4 actions, 3 running)
+[36 / 378] Compiling third_party/JoltPhysics/Jolt/Skeleton/SkeletonMapper.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[39 / 378] Compiling src/render/water_simulation.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[43 / 378] Compiling third_party/JoltPhysics/Jolt/RegisterTypes.cpp; 0s linux-sandbox ... (4 actions, 3 running)
+[46 / 378] Compiling src/game/wreckwater_match.cpp; 1s linux-sandbox ... (4 actions running)
+[50 / 378] Compiling third_party/JoltPhysics/Jolt/Physics/IslandBuilder.cpp; 1s linux-sandbox ... (4 actions running)
+[55 / 378] Compiling third_party/JoltPhysics/Jolt/Core/Color.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[58 / 378] Compiling third_party/JoltPhysics/Jolt/Physics/Constraints/SixDOFConstraint.cpp; 1s linux-sandbox ... (4 actions running)
+[62 / 378] Compiling third_party/JoltPhysics/Jolt/Physics/Constraints/PathConstraintPath.cpp; 0s linux-sandbox ... (4 actions running)
+[65 / 378] Compiling third_party/JoltPhysics/Jolt/Physics/Constraints/MotorSettings.cpp; 1s linux-sandbox ... (4 actions running)
+[68 / 378] Compiling third_party/JoltPhysics/Jolt/Physics/Collision/Shape/MeshShape.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[71 / 378] Compiling third_party/JoltPhysics/Jolt/Physics/Collision/Shape/EmptyShape.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[73 / 378] Compiling third_party/JoltPhysics/Jolt/Core/JobSystemWithBarrier.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[77 / 378] Compiling third_party/JoltPhysics/Jolt/Core/LinearCurve.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[80 / 378] Compiling third_party/JoltPhysics/Jolt/Physics/Collision/BroadPhase/BroadPhaseQuadTree.cpp; 1s linux-sandbox ... (4 actions running)
+[84 / 378] Compiling third_party/JoltPhysics/Jolt/Physics/Body/Body.cpp; 0s linux-sandbox ... (4 actions, 3 running)
+[87 / 378] Compiling third_party/JoltPhysics/Jolt/ObjectStream/ObjectStreamIn.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[90 / 378] Compiling third_party/JoltPhysics/Jolt/ObjectStream/ObjectStreamBinaryIn.cpp; 1s linux-sandbox ... (3 actions, 2 running)
+[93 / 378] Compiling third_party/JoltPhysics/Jolt/Core/Semaphore.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[99 / 378] Compiling third_party/JoltPhysics/Jolt/Geometry/ConvexHullBuilder.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[106 / 378] Compiling src/physics/character/cpu_capsule_mover.cpp; 0s linux-sandbox ... (4 actions, 3 running)
+[110 / 378] Compiling third_party/JoltPhysics/Jolt/Geometry/ConvexHullBuilder2D.cpp; 1s linux-sandbox ... (4 actions running)
+[115 / 378] Compiling src/physics/box3d/box3d_backend.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[120 / 378] Compiling src/network/deterministic_adversity_transport.cpp; 0s linux-sandbox ... (4 actions, 3 running)
+[125 / 378] Compiling third_party/JoltPhysics/Jolt/ObjectStream/ObjectStreamTextOut.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[129 / 378] Compiling src/physics/gpu/deterministic_primitives.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[135 / 378] Compiling src/physics/gpu/gpu_buffer_arena.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[142 / 378] Compiling src/network/ridgebreak_protocol.cpp; 0s linux-sandbox ... (4 actions, 3 running)
+[148 / 378] Compiling src/network/protocol.cpp; 0s linux-sandbox ... (4 actions, 3 running)
+[154 / 378] Compiling src/physics/gpu/gpu_ccd.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[160 / 378] Compiling src/physics/gpu/gpu_attachments.cpp; 0s linux-sandbox ... (4 actions running)
+[164 / 378] Compiling third_party/JoltPhysics/Jolt/Physics/Character/Character.cpp; 1s linux-sandbox ... (4 actions running)
+[168 / 378] Compiling src/network/multiplayer_session.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[172 / 378] Compiling third_party/JoltPhysics/Jolt/Physics/Character/CharacterVirtual.cpp; 0s linux-sandbox ... (4 actions, 3 running)
+[177 / 378] Compiling src/physics/gpu/gpu_islands.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[181 / 378] Compiling src/physics/gpu/gpu_lockstep.cpp; 0s linux-sandbox ... (4 actions, 3 running)
+[185 / 378] Compiling third_party/JoltPhysics/Jolt/Physics/Collision/BroadPhase/QuadTree.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[189 / 378] Compiling src/network/replication.cpp; 2s linux-sandbox ... (4 actions, 3 running)
+[193 / 378] Compiling src/physics/gpu/gpu_physics_backend.cpp; 1s linux-sandbox ... (4 actions running)
+[197 / 378] Compiling src/physics/gpu/gpu_physics_backend.cpp; 2s linux-sandbox ... (4 actions running)
+[202 / 378] Compiling src/physics/gpu/gpu_physics_backend.cpp; 3s linux-sandbox ... (4 actions, 3 running)
+INFO: From Compiling src/game/wreckwater_vessel_damage.cpp:
+src/game/wreckwater_vessel_damage.cpp:317:44: warning: implicit conversion increases floating-point precision: 'float' to 'long double' [-Wdouble-promotion]
+  317 |             saturatingMilliImpulse(config_.edgeBreakImpulse);
+      |             ~~~~~~~~~~~~~~~~~~~~~~ ~~~~~~~~^~~~~~~~~~~~~~~~
+1 warning generated.
+[207 / 378] Compiling third_party/JoltPhysics/Jolt/Physics/Collision/CollisionDispatch.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[211 / 378] Compiling src/game/wreckwater_live_world.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[215 / 378] Compiling src/physics/jolt/jolt_backend.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[219 / 378] Compiling third_party/JoltPhysics/Jolt/Physics/Collision/ManifoldBetweenTwoFaces.cpp; 0s linux-sandbox ... (4 actions, 3 running)
+INFO: From Compiling src/client/wreckwater_application_client.cpp:
+src/client/wreckwater_application_client.cpp:179:23: warning: implicit conversion increases floating-point precision: 'float' to 'double' [-Wdouble-promotion]
+  179 |         intervalCount(maximumPathDistance);
+      |         ~~~~~~~~~~~~~ ^~~~~~~~~~~~~~~~~~~
+1 warning generated.
+[224 / 378] Compiling third_party/JoltPhysics/Jolt/Physics/Collision/NarrowPhaseQuery.cpp; 0s linux-sandbox ... (4 actions, 3 running)
+[228 / 378] Compiling third_party/JoltPhysics/Jolt/Physics/Collision/NarrowPhaseQuery.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[231 / 378] Compiling src/physics/physics_world.cpp; 1s linux-sandbox ... (4 actions running)
+[238 / 378] Compiling third_party/JoltPhysics/Jolt/Physics/Collision/PhysicsMaterialSimple.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[242 / 378] Compiling src/moto/session.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[245 / 378] Compiling src/client/wreckwater_character_platform_timeline.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[250 / 378] Compiling src/server/native_gpu_backend.cpp; 0s linux-sandbox ... (4 actions, 3 running)
+[255 / 378] Compiling src/render/primitive_instance_packing.cpp; 0s linux-sandbox ... (4 actions running)
+[260 / 378] Compiling third_party/JoltPhysics/Jolt/Physics/Collision/Shape/ConvexShape.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+ERROR: /home/modkin/workspace/schneiderlo/voxys/src/app/BUILD:5:11: Compiling src/app/application.cpp failed: (Exit 1): emcc.sh failed: error executing CppCompile command (from target //src/app:app) external/emsdk+/emscripten_toolchain/emcc.sh @bazel-out/wasm-opt-ST-87cf4af9f873/bin/src/app/_objs/app/application.o.params
+
+Use --sandbox_debug to see verbose messages from the sandbox and retain the sandbox build root for debugging
+src/app/application.cpp:35:10: fatal error: 'terrain/lego_layout_cache.hpp' file not found
+   35 | #include "terrain/lego_layout_cache.hpp"
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1 error generated.
+Target //:voxy_wasm failed to build
+Use --verbose_failures to see the command lines of failed build steps.
+INFO: Elapsed time: 153.867s, Critical Path: 4.37s
+INFO: 265 processes: 1 action cache hit, 14 internal, 251 linux-sandbox.
+ERROR: Build did NOT complete successfully

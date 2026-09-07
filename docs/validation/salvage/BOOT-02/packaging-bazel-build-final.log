@@ -1,0 +1,18 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: 2 targets (1 packages loaded, 0 targets configured)
+Analyzing: 2 targets (1 packages loaded, 0 targets configured)
+
+Analyzing: 2 targets (4 packages loaded, 6193 targets configured)
+
+INFO: Analyzed 2 targets (5 packages loaded, 6215 targets configured).
+INFO: Found 2 targets...
+INFO: Elapsed time: 2.420s, Critical Path: 0.01s
+INFO: 5 processes: 379 action cache hit, 5 internal.
+INFO: Build completed successfully, 5 total actions

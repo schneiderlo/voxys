@@ -1,0 +1,299 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+[1/187] Linking C static library lib/libminiz.a
+[2/187] Linking C static library lib/libzstd.a
+[3/187] Linking CXX static library lib/libgtest.a
+[4/187] Linking CXX static library lib/libJolt.a
+[5/187] Linking C static library lib/libbox3d.a
+[6/187] Generating checked WRECKWATER build-content identity
+[7/187] Building CXX object third_party/googletest/googletest/CMakeFiles/gtest_main.dir/src/gtest_main.cc.o
+[8/187] Building CXX object src/CMakeFiles/voxy_core.dir/core/log.cpp.o
+[9/187] Building CXX object src/CMakeFiles/voxy_core.dir/core/config.cpp.o
+[10/187] Building CXX object src/CMakeFiles/voxy_core.dir/core/stb_impl.cpp.o
+[11/187] Building CXX object src/CMakeFiles/voxy_core.dir/gpu/context.cpp.o
+[12/187] Building CXX object src/CMakeFiles/voxy_core.dir/gpu/context_surface.cpp.o
+[13/187] Building CXX object src/CMakeFiles/voxy_core.dir/game/wreckwater_character_authority_bridge.cpp.o
+[14/187] Building CXX object src/CMakeFiles/voxy_core.dir/game/wreckwater_character_step.cpp.o
+[15/187] Building CXX object src/CMakeFiles/voxy_core.dir/game/wreckwater_character_movement.cpp.o
+[16/187] Building CXX object src/CMakeFiles/voxy_core.dir/game/wreckwater_content_manifest.cpp.o
+In static member function ‘static uint32_t voxy::game::{anonymous}::Sha256::loadBigEndian(std::span<const std::byte>, size_t)’,
+    inlined from ‘void voxy::game::{anonymous}::Sha256::transform(std::span<const std::byte>)’ at /home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_content_manifest.cpp:142:41,
+    inlined from ‘void voxy::game::{anonymous}::Sha256::update(std::span<const std::byte>)’ at /home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_content_manifest.cpp:63:22,
+    inlined from ‘void voxy::game::{anonymous}::Sha256::string(std::string_view)’ at /home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_content_manifest.cpp:75:15,
+    inlined from ‘voxy::game::WreckwaterContentManifestResult voxy::game::WreckwaterContentManifestBuilder::finalize()’ at /home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_content_manifest.cpp:606:20:
+/home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_content_manifest.cpp:133:44: warning: array subscript [225, 9223372036854775807] is outside array bounds of ‘const char [33]’ [-Warray-bounds=]
+  133 |                 | std::to_integer<uint32_t>(
+      |                   ~~~~~~~~~~~~~~~~~~~~~~~~~^
+  134 |                     bytes[offset + index]);
+      |                     ~~~~~~~~~~~~~~~~~~~~~~  
+/home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_content_manifest.cpp:133:44: warning: array subscript [226, -9223372036854775808] is outside array bounds of ‘const char [33]’ [-Warray-bounds=]
+/home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_content_manifest.cpp:133:44: warning: array subscript [227, -9223372036854775807] is outside array bounds of ‘const char [33]’ [-Warray-bounds=]
+/home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_content_manifest.cpp:133:44: warning: array subscript [228, -9223372036854775806] is outside array bounds of ‘const char [33]’ [-Warray-bounds=]
+/home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_content_manifest.cpp:133:44: warning: array subscript [229, -9223372036854775805] is outside array bounds of ‘const char [33]’ [-Warray-bounds=]
+/home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_content_manifest.cpp:133:44: warning: array subscript [230, -9223372036854775804] is outside array bounds of ‘const char [33]’ [-Warray-bounds=]
+/home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_content_manifest.cpp:133:44: warning: array subscript [231, -9223372036854775803] is outside array bounds of ‘const char [33]’ [-Warray-bounds=]
+/home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_content_manifest.cpp:133:44: warning: array subscript [232, -9223372036854775802] is outside array bounds of ‘const char [33]’ [-Warray-bounds=]
+/home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_content_manifest.cpp:133:44: warning: array subscript [233, -9223372036854775801] is outside array bounds of ‘const char [33]’ [-Warray-bounds=]
+/home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_content_manifest.cpp:133:44: warning: array subscript [234, -9223372036854775800] is outside array bounds of ‘const char [33]’ [-Warray-bounds=]
+/home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_content_manifest.cpp:133:44: warning: array subscript [235, -9223372036854775799] is outside array bounds of ‘const char [33]’ [-Warray-bounds=]
+/home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_content_manifest.cpp:133:44: warning: array subscript [236, -9223372036854775798] is outside array bounds of ‘const char [33]’ [-Warray-bounds=]
+/home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_content_manifest.cpp:133:44: warning: array subscript [237, -9223372036854775797] is outside array bounds of ‘const char [33]’ [-Warray-bounds=]
+/home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_content_manifest.cpp:133:44: warning: array subscript [238, -9223372036854775796] is outside array bounds of ‘const char [33]’ [-Warray-bounds=]
+/home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_content_manifest.cpp:133:44: warning: array subscript [239, -9223372036854775795] is outside array bounds of ‘const char [33]’ [-Warray-bounds=]
+/home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_content_manifest.cpp:133:44: warning: array subscript [240, -9223372036854775794] is outside array bounds of ‘const char [33]’ [-Warray-bounds=]
+/home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_content_manifest.cpp:133:44: warning: array subscript [241, -9223372036854775793] is outside array bounds of ‘const char [33]’ [-Warray-bounds=]
+/home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_content_manifest.cpp:133:44: warning: array subscript [242, -9223372036854775792] is outside array bounds of ‘const char [33]’ [-Warray-bounds=]
+/home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_content_manifest.cpp:133:44: warning: array subscript [243, -9223372036854775791] is outside array bounds of ‘const char [33]’ [-Warray-bounds=]
+/home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_content_manifest.cpp:133:44: warning: array subscript [244, -9223372036854775790] is outside array bounds of ‘const char [33]’ [-Warray-bounds=]
+/home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_content_manifest.cpp:133:44: warning: array subscript [245, -9223372036854775789] is outside array bounds of ‘const char [33]’ [-Warray-bounds=]
+/home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_content_manifest.cpp:133:44: warning: array subscript [246, -9223372036854775788] is outside array bounds of ‘const char [33]’ [-Warray-bounds=]
+/home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_content_manifest.cpp:133:44: warning: array subscript [247, -9223372036854775787] is outside array bounds of ‘const char [33]’ [-Warray-bounds=]
+/home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_content_manifest.cpp:133:44: warning: array subscript [248, -9223372036854775786] is outside array bounds of ‘const char [33]’ [-Warray-bounds=]
+/home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_content_manifest.cpp:133:44: warning: array subscript [249, -9223372036854775785] is outside array bounds of ‘const char [33]’ [-Warray-bounds=]
+/home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_content_manifest.cpp:133:44: warning: array subscript [250, -9223372036854775784] is outside array bounds of ‘const char [33]’ [-Warray-bounds=]
+/home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_content_manifest.cpp:133:44: warning: array subscript [251, -9223372036854775783] is outside array bounds of ‘const char [33]’ [-Warray-bounds=]
+/home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_content_manifest.cpp:133:44: warning: array subscript [252, -9223372036854775782] is outside array bounds of ‘const char [33]’ [-Warray-bounds=]
+/home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_content_manifest.cpp:133:44: warning: array subscript [253, -9223372036854775781] is outside array bounds of ‘const char [33]’ [-Warray-bounds=]
+/home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_content_manifest.cpp:133:44: warning: array subscript [254, -9223372036854775780] is outside array bounds of ‘const char [33]’ [-Warray-bounds=]
+/home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_content_manifest.cpp:133:44: warning: array subscript [255, -9223372036854775779] is outside array bounds of ‘const char [33]’ [-Warray-bounds=]
+/home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_content_manifest.cpp:133:44: warning: array subscript [256, -9223372036854775778] is outside array bounds of ‘const char [33]’ [-Warray-bounds=]
+/home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_content_manifest.cpp:133:44: warning: array subscript [257, -9223372036854775777] is outside array bounds of ‘const char [33]’ [-Warray-bounds=]
+/home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_content_manifest.cpp:133:44: warning: array subscript [258, -9223372036854775776] is outside array bounds of ‘const char [33]’ [-Warray-bounds=]
+/home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_content_manifest.cpp:133:44: warning: array subscript [259, -9223372036854775775] is outside array bounds of ‘const char [33]’ [-Warray-bounds=]
+/home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_content_manifest.cpp:133:44: warning: array subscript [260, -9223372036854775774] is outside array bounds of ‘const char [33]’ [-Warray-bounds=]
+/home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_content_manifest.cpp:133:44: warning: array subscript [261, -9223372036854775773] is outside array bounds of ‘const char [33]’ [-Warray-bounds=]
+/home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_content_manifest.cpp:133:44: warning: array subscript [262, -9223372036854775772] is outside array bounds of ‘const char [33]’ [-Warray-bounds=]
+/home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_content_manifest.cpp:133:44: warning: array subscript [263, -9223372036854775771] is outside array bounds of ‘const char [33]’ [-Warray-bounds=]
+/home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_content_manifest.cpp:133:44: warning: array subscript [264, -9223372036854775770] is outside array bounds of ‘const char [33]’ [-Warray-bounds=]
+/home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_content_manifest.cpp:133:44: warning: array subscript [265, -9223372036854775769] is outside array bounds of ‘const char [33]’ [-Warray-bounds=]
+/home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_content_manifest.cpp:133:44: warning: array subscript [266, -9223372036854775768] is outside array bounds of ‘const char [33]’ [-Warray-bounds=]
+/home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_content_manifest.cpp:133:44: warning: array subscript [267, -9223372036854775767] is outside array bounds of ‘const char [33]’ [-Warray-bounds=]
+/home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_content_manifest.cpp:133:44: warning: array subscript [268, -9223372036854775766] is outside array bounds of ‘const char [33]’ [-Warray-bounds=]
+/home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_content_manifest.cpp:133:44: warning: array subscript [269, -9223372036854775765] is outside array bounds of ‘const char [33]’ [-Warray-bounds=]
+/home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_content_manifest.cpp:133:44: warning: array subscript [270, -9223372036854775764] is outside array bounds of ‘const char [33]’ [-Warray-bounds=]
+/home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_content_manifest.cpp:133:44: warning: array subscript [271, -9223372036854775763] is outside array bounds of ‘const char [33]’ [-Warray-bounds=]
+/home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_content_manifest.cpp:133:44: warning: array subscript [272, -9223372036854775762] is outside array bounds of ‘const char [33]’ [-Warray-bounds=]
+/home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_content_manifest.cpp:133:44: warning: array subscript [273, -9223372036854775761] is outside array bounds of ‘const char [33]’ [-Warray-bounds=]
+/home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_content_manifest.cpp:133:44: warning: array subscript [274, -9223372036854775760] is outside array bounds of ‘const char [33]’ [-Warray-bounds=]
+/home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_content_manifest.cpp:133:44: warning: array subscript [275, -9223372036854775759] is outside array bounds of ‘const char [33]’ [-Warray-bounds=]
+/home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_content_manifest.cpp:133:44: warning: array subscript [276, -9223372036854775758] is outside array bounds of ‘const char [33]’ [-Warray-bounds=]
+/home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_content_manifest.cpp:133:44: warning: array subscript [277, -9223372036854775757] is outside array bounds of ‘const char [33]’ [-Warray-bounds=]
+/home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_content_manifest.cpp:133:44: warning: array subscript [278, -9223372036854775756] is outside array bounds of ‘const char [33]’ [-Warray-bounds=]
+/home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_content_manifest.cpp:133:44: warning: array subscript [279, -9223372036854775755] is outside array bounds of ‘const char [33]’ [-Warray-bounds=]
+/home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_content_manifest.cpp:133:44: warning: array subscript [280, -9223372036854775754] is outside array bounds of ‘const char [33]’ [-Warray-bounds=]
+/home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_content_manifest.cpp:133:44: warning: array subscript [281, -9223372036854775753] is outside array bounds of ‘const char [33]’ [-Warray-bounds=]
+/home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_content_manifest.cpp:133:44: warning: array subscript [282, -9223372036854775752] is outside array bounds of ‘const char [33]’ [-Warray-bounds=]
+/home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_content_manifest.cpp:133:44: warning: array subscript [283, -9223372036854775751] is outside array bounds of ‘const char [33]’ [-Warray-bounds=]
+/home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_content_manifest.cpp:133:44: warning: array subscript [284, -9223372036854775750] is outside array bounds of ‘const char [33]’ [-Warray-bounds=]
+/home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_content_manifest.cpp:133:44: warning: array subscript [285, -9223372036854775749] is outside array bounds of ‘const char [33]’ [-Warray-bounds=]
+/home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_content_manifest.cpp:133:44: warning: array subscript [286, -9223372036854775748] is outside array bounds of ‘const char [33]’ [-Warray-bounds=]
+/home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_content_manifest.cpp:133:44: warning: array subscript [287, -9223372036854775747] is outside array bounds of ‘const char [33]’ [-Warray-bounds=]
+/home/modkin/workspace/schneiderlo/voxys/src/game/wreckwater_content_manifest.cpp:133:44: warning: array subscript [288, -9223372036854775746] is outside array bounds of ‘const char [33]’ [-Warray-bounds=]
+[17/187] Building CXX object src/CMakeFiles/voxy_core.dir/gpu/resources.cpp.o
+[18/187] Building CXX object src/CMakeFiles/voxy_core.dir/game/wreckwater_live_world.cpp.o
+[19/187] Building CXX object src/CMakeFiles/voxy_core.dir/game/wreckwater_match.cpp.o
+[20/187] Building CXX object src/CMakeFiles/voxy_core.dir/game/wreckwater_replay.cpp.o
+[21/187] Building CXX object src/CMakeFiles/voxy_core.dir/game/wreckwater_vessel_damage.cpp.o
+[22/187] Building CXX object src/CMakeFiles/voxy_core.dir/gameplay/platform_parity.cpp.o
+[23/187] Building CXX object src/CMakeFiles/voxy_core.dir/game/wreckwater_replay_playback.cpp.o
+[24/187] Building CXX object src/CMakeFiles/voxy_core.dir/gameplay/structural_assembly.cpp.o
+[25/187] Building CXX object src/CMakeFiles/voxy_core.dir/gameplay/water_dynamics.cpp.o
+[26/187] Building CXX object third_party/CMakeFiles/tinygltf.dir/tinygltf/tiny_gltf.cc.o
+[27/187] Building CXX object src/CMakeFiles/voxy_core.dir/gameplay/vertical_slices.cpp.o
+[28/187] Building CXX object src/CMakeFiles/voxy_core.dir/moto/bike.cpp.o
+[29/187] Building CXX object src/CMakeFiles/voxy_core.dir/moto/race.cpp.o
+[30/187] Building CXX object src/CMakeFiles/voxy_core.dir/moto/vmesh_io.cpp.o
+[31/187] Building CXX object src/CMakeFiles/voxy_core.dir/moto/session.cpp.o
+[32/187] Building CXX object src/CMakeFiles/voxy_core.dir/terrain/authored_cove.cpp.o
+[33/187] Building CXX object src/CMakeFiles/voxy_core.dir/moto/world.cpp.o
+[34/187] Building CXX object src/CMakeFiles/voxy_core.dir/terrain/heightmap.cpp.o
+[35/187] Building CXX object src/CMakeFiles/voxy_core.dir/terrain/shadow_bake.cpp.o
+[36/187] Building CXX object src/CMakeFiles/voxy_core.dir/terrain/mip_generator.cpp.o
+[37/187] Building CXX object src/CMakeFiles/voxy_core.dir/terrain/compression.cpp.o
+[38/187] Building CXX object src/CMakeFiles/voxy_core.dir/terrain/textures.cpp.o
+[39/187] Building CXX object src/CMakeFiles/voxy_core.dir/voxel/svo_buffers.cpp.o
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/voxel/svo_buffers.hpp:21,
+                 from /home/modkin/workspace/schneiderlo/voxys/src/voxel/svo_buffers.cpp:5:
+/home/modkin/workspace/schneiderlo/voxys/src/voxel/svo_types.hpp: In member function ‘constexpr void voxy::voxel::SVOInteriorNode::setChildExists(uint8_t, bool)’:
+/home/modkin/workspace/schneiderlo/voxys/src/voxel/svo_types.hpp:129:23: warning: conversion from ‘unsigned int’ to ‘uint8_t’ {aka ‘unsigned char’} may change value [-Wconversion]
+  129 |             childMask &= ~(1u << childIdx);
+      |             ~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/src/voxel/svo_types.hpp:130:22: warning: conversion from ‘unsigned int’ to ‘uint8_t’ {aka ‘unsigned char’} may change value [-Wconversion]
+  130 |             leafMask &= ~(1u << childIdx);
+      |             ~~~~~~~~~^~~~~~~~~~~~~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/src/voxel/svo_types.hpp: In member function ‘constexpr void voxy::voxel::SVOInteriorNode::setChildIsLeaf(uint8_t, bool)’:
+/home/modkin/workspace/schneiderlo/voxys/src/voxel/svo_types.hpp:140:22: warning: conversion from ‘unsigned int’ to ‘uint8_t’ {aka ‘unsigned char’} may change value [-Wconversion]
+  140 |             leafMask &= ~(1u << childIdx);
+      |             ~~~~~~~~~^~~~~~~~~~~~~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/src/voxel/svo_types.hpp: In member function ‘constexpr uint32_t voxy::voxel::SVOInteriorNode::childrenBefore(uint8_t) const’:
+/home/modkin/workspace/schneiderlo/voxys/src/voxel/svo_types.hpp:152:34: warning: conversion from ‘unsigned int’ to ‘uint8_t’ {aka ‘unsigned char’} may change value [-Wconversion]
+  152 |         uint8_t mask = childMask & ((1u << childIdx) - 1);
+      |                        ~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~
+[40/187] Building CXX object src/CMakeFiles/voxy_core.dir/render/mip_pipeline.cpp.o
+[41/187] Building CXX object src/CMakeFiles/voxy_core.dir/render/triangle_path.cpp.o
+[42/187] Building CXX object src/CMakeFiles/voxy_core.dir/render/raycast_path.cpp.o
+[43/187] Building CXX object src/CMakeFiles/voxy_core.dir/render/debug_visualizer.cpp.o
+[44/187] Building CXX object src/CMakeFiles/voxy_core.dir/render/water_clipmap_mesh.cpp.o
+[45/187] Building CXX object src/CMakeFiles/voxy_core.dir/render/primitive_culling.cpp.o
+[46/187] Building CXX object src/CMakeFiles/voxy_core.dir/render/mesh_path.cpp.o
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/render/mesh_path.cpp:5:
+/home/modkin/workspace/schneiderlo/voxys/src/render/mesh_path.hpp:111:23: warning: redundant class-key ‘struct’ in reference to ‘struct voxy::render::PrimitiveLighting’ [-Wredundant-tags]
+  111 |                 const struct PrimitiveLighting& lighting, uint32_t width,
+      |                       ^~~~~~
+      |                       ------
+[47/187] Building CXX object src/CMakeFiles/voxy_core.dir/render/blit_path.cpp.o
+[48/187] Building CXX object src/CMakeFiles/voxy_core.dir/render/primitive_instance_packing.cpp.o
+[49/187] Building CXX object src/CMakeFiles/voxy_core.dir/camera/camera.cpp.o
+[50/187] Building CXX object src/CMakeFiles/voxy_core.dir/render/water_simulation.cpp.o
+[51/187] Building CXX object src/CMakeFiles/voxy_core.dir/render/primitive_gpu_culling.cpp.o
+[52/187] Building CXX object src/CMakeFiles/voxy_core.dir/camera/controller.cpp.o
+[53/187] Building CXX object src/CMakeFiles/voxy_core.dir/physics/character/cpu_capsule_mover.cpp.o
+[54/187] Building CXX object src/CMakeFiles/voxy_core.dir/physics/deterministic/lockstep_world.cpp.o
+[55/187] Building CXX object src/CMakeFiles/voxy_core.dir/render/primitive_path.cpp.o
+[56/187] Building CXX object src/CMakeFiles/voxy_core.dir/camera/character_controller.cpp.o
+[57/187] Building CXX object src/CMakeFiles/voxy_core.dir/physics/gpu/debug_readback_ring.cpp.o
+[58/187] Building CXX object src/CMakeFiles/voxy_core.dir/physics/box3d/box3d_backend.cpp.o
+[59/187] Building CXX object src/CMakeFiles/voxy_core.dir/physics/gpu/deterministic_primitives.cpp.o
+[60/187] Building CXX object src/CMakeFiles/voxy_core.dir/physics/deterministic/replay.cpp.o
+[61/187] Building CXX object src/CMakeFiles/voxy_core.dir/physics/gpu/gpu_ccd.cpp.o
+[62/187] Building CXX object src/CMakeFiles/voxy_core.dir/physics/gpu/gpu_broad_phase.cpp.o
+[63/187] Building CXX object src/CMakeFiles/voxy_core.dir/physics/gpu/gpu_attachments.cpp.o
+[64/187] Building CXX object src/CMakeFiles/voxy_core.dir/physics/gpu/gpu_buffer_arena.cpp.o
+[65/187] Building CXX object src/CMakeFiles/voxy_core.dir/physics/gpu/gpu_event_readback.cpp.o
+[66/187] Building CXX object src/CMakeFiles/voxy_core.dir/physics/gpu/gpu_lockstep.cpp.o
+[67/187] Building CXX object src/CMakeFiles/voxy_core.dir/physics/gpu/gpu_dynamic_solver.cpp.o
+[68/187] Building CXX object src/CMakeFiles/voxy_core.dir/physics/gpu/gpu_islands.cpp.o
+[69/187] Building CXX object src/CMakeFiles/voxy_core.dir/physics/gpu/gpu_narrow_phase.cpp.o
+[70/187] Building CXX object src/CMakeFiles/voxy_core.dir/physics/gpu/gpu_queries.cpp.o
+[71/187] Building CXX object src/CMakeFiles/voxy_core.dir/physics/physics_backend_factory.cpp.o
+[72/187] Building CXX object src/CMakeFiles/voxy_core.dir/physics/physics_types.cpp.o
+[73/187] Building CXX object src/CMakeFiles/voxy_core.dir/network/authoritative_sandbox.cpp.o
+[74/187] Building CXX object src/CMakeFiles/voxy_core.dir/network/deterministic_adversity_transport.cpp.o
+[75/187] Building CXX object src/CMakeFiles/voxy_core.dir/physics/physics_world.cpp.o
+[76/187] Building CXX object src/CMakeFiles/voxy_core.dir/physics/jolt/jolt_backend.cpp.o
+[77/187] Building CXX object src/CMakeFiles/voxy_core.dir/network/native_tcp_transport.cpp.o
+[78/187] Building CXX object src/CMakeFiles/voxy_core.dir/physics/gpu/gpu_physics_backend.cpp.o
+[79/187] Building CXX object src/CMakeFiles/voxy_core.dir/network/protocol.cpp.o
+[80/187] Building CXX object src/CMakeFiles/voxy_core.dir/network/ridgebreak_client_replication.cpp.o
+[81/187] Building CXX object src/CMakeFiles/voxy_core.dir/network/multiplayer_session.cpp.o
+[82/187] Building CXX object src/CMakeFiles/voxy_core.dir/network/transport.cpp.o
+[83/187] Building CXX object src/CMakeFiles/voxy_core.dir/network/ridgebreak_protocol.cpp.o
+[84/187] Building CXX object src/CMakeFiles/voxy_core.dir/network/wreckwater_client_replication.cpp.o
+[85/187] Building CXX object src/CMakeFiles/voxy_core.dir/network/wreckwater_client_runtime.cpp.o
+[86/187] Building CXX object src/CMakeFiles/voxy_core.dir/client/wreckwater_character_platform_timeline.cpp.o
+[87/187] Building CXX object src/CMakeFiles/voxy_core.dir/client/wreckwater_character_controller.cpp.o
+[88/187] Building CXX object src/CMakeFiles/voxy_core.dir/client/wreckwater_character_presentation.cpp.o
+[89/187] Building CXX object src/CMakeFiles/voxy_core.dir/client/wreckwater_third_person_camera.cpp.o
+[90/187] Building CXX object src/CMakeFiles/voxy_core.dir/client/wreckwater_client_visual_clock.cpp.o
+[91/187] Building CXX object src/CMakeFiles/voxy_core.dir/network/replication.cpp.o
+[92/187] Building CXX object src/CMakeFiles/voxy_core.dir/client/wreckwater_application_client.cpp.o
+[93/187] Building CXX object src/CMakeFiles/voxy_core.dir/network/wreckwater_protocol.cpp.o
+[94/187] Building CXX object src/CMakeFiles/voxy_core.dir/server/ridgebreak_server_runtime.cpp.o
+[95/187] Building CXX object src/CMakeFiles/voxy_core.dir/client/wreckwater_graphical_client_loop.cpp.o
+[96/187] Building CXX object src/CMakeFiles/voxy_core.dir/server/ridgebreak_authority.cpp.o
+[97/187] Building CXX object src/CMakeFiles/voxy_core.dir/server/native_gpu_backend.cpp.o
+[98/187] Building CXX object src/CMakeFiles/voxy_core.dir/server/wreckwater_authority_runtime.cpp.o
+[99/187] Building CXX object src/CMakeFiles/voxy_core.dir/server/world_coordinator.cpp.o
+[100/187] Building CXX object src/CMakeFiles/voxy_core.dir/engine/platform/native/window.cpp.o
+[101/187] Building CXX object src/CMakeFiles/voxy_core.dir/game/lego_playground.cpp.o
+[102/187] Building CXX object src/CMakeFiles/voxy_core.dir/engine/platform/native/input.cpp.o
+[103/187] Building CXX object src/CMakeFiles/voxy_core.dir/perf/gpu_timer.cpp.o
+[104/187] Building CXX object src/CMakeFiles/voxy_core.dir/app/debug_overlay.cpp.o
+[105/187] Linking CXX static library lib/libtinygltf.a
+[106/187] Linking CXX static library lib/libgtest_main.a
+[107/187] Building CXX object src/CMakeFiles/voxy_core.dir/perf/benchmark.cpp.o
+[108/187] Building CXX object tools/CMakeFiles/gltf_vmesh_tool.dir/gltf_vmesh_tool.cpp.o
+[109/187] Building CXX object CMakeFiles/voxy_native.dir/src/engine/platform/native/entry.cpp.o
+[110/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_bike.cpp.o
+[111/187] Building CXX object src/CMakeFiles/voxy_core.dir/app/application.cpp.o
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:45:
+/home/modkin/workspace/schneiderlo/voxys/src/render/mesh_path.hpp:111:23: warning: redundant class-key ‘struct’ in reference to ‘struct voxy::render::PrimitiveLighting’ [-Wredundant-tags]
+  111 |                 const struct PrimitiveLighting& lighting, uint32_t width,
+      |                       ^~~~~~
+      |                       ------
+/home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp: In member function ‘void voxy::Application::processThrowableInput(float)’:
+/home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:5210:23: warning: ignoring return value of ‘bool voxy::Application::spawnThrowable(voxy::physics::ThrowableShape, const glm::vec3&, const glm::vec3&, const glm::ivec3&)’, declared with attribute ‘nodiscard’ [-Wunused-result]
+ 5210 |         spawnThrowable(shape, origin, direction, camera_->worldSector());
+      |         ~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:5001:6: note: declared here
+ 5001 | bool Application::spawnThrowable(
+      |      ^~~~~~~~~~~
+[112/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_lockstep.cpp.o
+[113/187] Linking CXX static library lib/libvoxy_core.a
+[114/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_log.cpp.o
+[115/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_multiplayer_session.cpp.o
+[116/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_replay.cpp.o
+[117/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_networking.cpp.o
+[118/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_native_tcp_transport.cpp.o
+[119/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_race.cpp.o
+[120/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_ridgebreak_server_runtime.cpp.o
+[121/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_ridgebreak_authority.cpp.o
+[122/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_timer.cpp.o
+[123/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_wreckwater_character_authority_bridge.cpp.o
+[124/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_wreckwater_client_replication.cpp.o
+[125/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_wreckwater_character_step.cpp.o
+[126/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_wreckwater_client_runtime.cpp.o
+[127/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_wreckwater_character_movement.cpp.o
+[128/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_wreckwater_content_manifest.cpp.o
+[129/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_wreckwater_authority_runtime.cpp.o
+[130/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_wreckwater_live_world.cpp.o
+[131/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_wreckwater_replay.cpp.o
+[132/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_wreckwater_protocol.cpp.o
+[133/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_wreckwater_match.cpp.o
+[134/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_wreckwater_replay_playback.cpp.o
+[135/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_wreckwater_vessel_damage.cpp.o
+[136/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_window.cpp.o
+[137/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_input.cpp.o
+[138/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_config.cpp.o
+[139/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_world.cpp.o
+[140/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_heightmap.cpp.o
+[141/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_mip_generator.cpp.o
+[142/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_compression.cpp.o
+[143/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_moto_session.cpp.o
+[144/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_camera.cpp.o
+[145/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_controller.cpp.o
+[146/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_cpu_capsule_mover.cpp.o
+[147/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_character_controller.cpp.o
+[148/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_terrain_topology.cpp.o
+[149/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_benchmark.cpp.o
+[150/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_lego_surface.cpp.o
+[151/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_lego_playground.cpp.o
+[152/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_vertical_slices.cpp.o
+[153/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_water_clipmap_mesh.cpp.o
+[154/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_physics_world.cpp.o
+[155/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_gpu_context.cpp.o
+[156/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_gpu_ccd.cpp.o
+[157/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_wreckwater_authority_gpu.cpp.o
+[158/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_svo_core.cpp.o
+[159/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_gpu_event_readback.cpp.o
+[160/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_gpu_dynamic_solver.cpp.o
+[161/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_gpu_islands.cpp.o
+[162/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_gpu_resources.cpp.o
+[163/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_gpu_narrow_phase.cpp.o
+[164/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_gpu_queries.cpp.o
+[165/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_gpu_broad_phase.cpp.o
+[166/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_distributed_server.cpp.o
+[167/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_shader_terrain.cpp.o
+[168/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_deterministic_gpu_primitives.cpp.o
+[169/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_shader_raycast.cpp.o
+[170/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_gpu_physics.cpp.o
+[171/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_triangle_path.cpp.o
+[172/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_shader_blit.cpp.o
+[173/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_blit_path.cpp.o
+[174/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_raycast_path.cpp.o
+[175/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_mip_pipeline.cpp.o
+[176/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_debug_visualizer.cpp.o
+[177/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_water_simulation.cpp.o
+[178/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_mesh_path.cpp.o
+[179/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_primitive_culling.cpp.o
+[180/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_primitive_gpu_culling.cpp.o
+[181/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_primitive_path.cpp.o
+[182/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_shadow_bake.cpp.o
+[183/187] Linking CXX executable bin/gltf_vmesh_tool
+[184/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_terrain_textures.cpp.o
+[185/187] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_application.cpp.o
+[186/187] Linking CXX executable bin/voxy_tests
+[187/187] Linking CXX executable bin/voxy_native; Copying shaders to build output directory; Copying data to build output directory

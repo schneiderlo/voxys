@@ -1,0 +1,69 @@
+{
+  "schema": 1,
+  "asset_id": "salvage.authoring_probe",
+  "asset_version": 1,
+  "purpose": "Authoring fixture only; not a gameplay metadata sidecar or approved game asset",
+  "parameters_m": {
+    "width": 2.0,
+    "length": 4.0,
+    "height": 0.64
+  },
+  "seed": 0,
+  "blender_version": "5.2.1 LTS",
+  "blender_build_hash": "9e2066aef7ef",
+  "generator": "tools/salvage_assets/authoring_probe.py",
+  "generator_sha256": "bc5f4978a9d1e82a17e077bc03db8b730a53fc07635f9ff80ff197eb05341f4c",
+  "export_settings": {
+    "export_format": "GLB",
+    "use_selection": true,
+    "export_yup": true,
+    "export_apply": true,
+    "export_materials": "EXPORT",
+    "export_normals": true,
+    "export_texcoords": true,
+    "export_tangents": true,
+    "export_animations": false,
+    "export_cameras": false,
+    "export_lights": false,
+    "export_extras": false
+  },
+  "authoring_frame": "+Z up, -Y forward; metre scale applied",
+  "blender_to_gltf": "(x,y,z) -> (x,z,-y); exporter applies this once",
+  "gltf_to_canonical_remaining": [
+    [
+      -1,
+      0,
+      0
+    ],
+    [
+      0,
+      1,
+      0
+    ],
+    [
+      0,
+      0,
+      -1
+    ]
+  ],
+  "canonical_note": "Remaining proper 180-degree Y rotation is metadata only here; ASSET-02/04 implement and verify the engine bridge. Do not apply the raw Blender conversion to this GLB.",
+  "materials": "Inline PBR factors, one UV set, no external textures, no painted lighting",
+  "mesh_count": 4,
+  "triangle_count": 752,
+  "provenance": "Original procedural geometry authored for this project; no external reference or generated raster inputs",
+  "review_status": "authoring smoke only; game import/material/socket checks are later tasks",
+  "outputs": {
+    "probe.blend": {
+      "sha256": "94075fb2f0823a91f780f4c472c29b21dc0351cd2e0f6981b7b162e3d5d7e5f8",
+      "bytes": 113237
+    },
+    "probe.glb": {
+      "sha256": "66159920469d4e02f8b64e6541e9319c738d3ddff331c4585074d92d82557ee7",
+      "bytes": 102836
+    },
+    "preview.png": {
+      "sha256": "cba1f437d245c262cdbdf92d4f305ebcdae69f4f85f0739327690b6ce5d949ed",
+      "bytes": 219302
+    }
+  }
+}

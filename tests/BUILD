@@ -29,6 +29,7 @@ TEST_SRCS = [
     "test_gpu_resources.cpp",
     "test_gpu_physics.cpp",
     "test_lego_playground.cpp",
+    "test_salvage_preview.cpp",
     "test_gpu_broad_phase.cpp",
     "test_gpu_narrow_phase.cpp",
     "test_gpu_queries.cpp",
@@ -54,6 +55,27 @@ TEST_SRCS = [
 ]
 
 load("//settings:configure_copts.bzl", "PROJECT_TEST_COPTS")
+
+cc_test(
+    name = "part_catalog",
+    srcs = ["test_part_catalog.cpp"],
+    copts = PROJECT_TEST_COPTS,
+    deps = [
+        "//src/game:part_catalog",
+        "//src/game:construction_types",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "construction_types",
+    srcs = ["test_construction_types.cpp"],
+    copts = PROJECT_TEST_COPTS,
+    deps = [
+        "//src/game:construction_types",
+        "@googletest//:gtest_main",
+    ],
+)
 
 # Generate a separate test target for each test file
 [cc_test(
@@ -640,7 +662,12 @@ cc_test(
 # Combined test target that runs all tests
 cc_test(
     name = "voxy_tests",
+    # The combined CPU/GPU suite exceeds 300 seconds in default fastbuild on
+    # the reference host. Keep every case enabled with the large-test timeout.
+    size = "large",
     srcs = TEST_SRCS + [
+        "test_construction_types.cpp",
+        "test_part_catalog.cpp",
         "test_deterministic_adversity_transport.cpp",
         "test_moto_session.cpp",
         "test_native_tcp_transport.cpp",

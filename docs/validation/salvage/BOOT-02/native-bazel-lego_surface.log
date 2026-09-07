@@ -1,0 +1,32 @@
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //tests:lego_surface
+-----------------------------------------------------------------------------
+Running main() from gmock_main.cc
+[==========] Running 10 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 10 tests from LegoSurface
+[ RUN      ] LegoSurface.QuantizesAllRawSamplesWithinHalfAPlate
+[       OK ] LegoSurface.QuantizesAllRawSamplesWithinHalfAPlate (0 ms)
+[ RUN      ] LegoSurface.ChunkOwnershipCoversOnlyEqualLevelsWithoutChangingGround
+[       OK ] LegoSurface.ChunkOwnershipCoversOnlyEqualLevelsWithoutChangingGround (0 ms)
+[ RUN      ] LegoSurface.SphereContactsStudCapSideRimAndVerticalStep
+[       OK ] LegoSurface.SphereContactsStudCapSideRimAndVerticalStep (0 ms)
+[ RUN      ] LegoSurface.CapsuleSupportIncludesStudsBetweenHeightProbes
+[       OK ] LegoSurface.CapsuleSupportIncludesStudsBetweenHeightProbes (0 ms)
+[ RUN      ] LegoSurface.PlayerCrossesChunksAndPlateStepsButStopsAtCliff
+[       OK ] LegoSurface.PlayerCrossesChunksAndPlateStepsButStopsAtCliff (8 ms)
+[ RUN      ] LegoSurface.PlayerLandsAndJumpsInNegativeHeightSector
+[       OK ] LegoSurface.PlayerLandsAndJumpsInNegativeHeightSector (0 ms)
+[ RUN      ] LegoSurface.ChunkBuilderMatchesStudyAndFullMapEdges
+[       OK ] LegoSurface.ChunkBuilderMatchesStudyAndFullMapEdges (58 ms)
+[ RUN      ] LegoSurface.LayoutCacheIsBoundedReusesRowsAndRejectsStaleSlots
+[       OK ] LegoSurface.LayoutCacheIsBoundedReusesRowsAndRejectsStaleSlots (0 ms)
+[ RUN      ] LegoSurface.TerrainModeSwitchPreservesLiveCharacter
+[       OK ] LegoSurface.TerrainModeSwitchPreservesLiveCharacter (0 ms)
+[ RUN      ] LegoSurface.LongJointsStaggerAcrossAdjacentCourses
+[       OK ] LegoSurface.LongJointsStaggerAcrossAdjacentCourses (0 ms)
+[----------] 10 tests from LegoSurface (70 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 1 test suite ran. (70 ms total)
+[  PASSED  ] 10 tests.

@@ -1,0 +1,17 @@
+** Message: 18:30:43.547: Unable to use GNOME Shell's builtin screenshot interface, resorting to fallback X11.
+
+(gnome-screenshot:469660): Gdk-CRITICAL **: 18:30:43.548: gdk_pixbuf_get_from_surface: assertion 'width > 0 && height > 0' failed
+
+(gnome-screenshot:469660): GdkPixbuf-CRITICAL **: 18:30:43.548: gdk_pixbuf_get_has_alpha: assertion 'GDK_IS_PIXBUF (pixbuf)' failed
+
+(gnome-screenshot:469660): GdkPixbuf-CRITICAL **: 18:30:43.548: gdk_pixbuf_get_height: assertion 'GDK_IS_PIXBUF (pixbuf)' failed
+
+(gnome-screenshot:469660): GdkPixbuf-CRITICAL **: 18:30:43.548: gdk_pixbuf_get_width: assertion 'GDK_IS_PIXBUF (pixbuf)' failed
+
+(gnome-screenshot:469660): GdkPixbuf-CRITICAL **: 18:30:43.548: gdk_pixbuf_calculate_rowstride: assertion 'width > 0' failed
+
+(gnome-screenshot:469660): GdkPixbuf-CRITICAL **: 18:30:43.548: gdk_pixbuf_fill: assertion 'GDK_IS_PIXBUF (pixbuf)' failed
+
+(gnome-screenshot:469660): Gtk-CRITICAL **: 18:30:43.608: gtk_window_resize: assertion 'width > 0' failed
+
+** (gnome-screenshot:469660): CRITICAL **: 18:30:43.609: Unable to capture a screenshot of any window

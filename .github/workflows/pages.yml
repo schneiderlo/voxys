@@ -95,6 +95,7 @@ jobs:
             /ridgebreak.cfg \
             /lego_shore.cfg \
             /lego_world.cfg \
+            /salvage.cfg \
             /data/lego_shore.ldh; do
             grep -a -q "$asset" docs/voxy_wasm.js || {
               echo "ERROR: preload manifest missing $asset"; exit 1;

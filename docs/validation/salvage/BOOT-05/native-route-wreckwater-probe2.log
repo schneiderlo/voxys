@@ -1,0 +1,32 @@
+WARNING: wreckwater_client_probe uses authenticated PLAINTEXT TCP for a loopback/private-network proof. It is not a public-Internet security boundary.
+WRECKWATER_BUILD_CONTENT content_digest=b4d5983670909fdc210128840d400f872d414df89b23d31f845277a2c1398470 replay_prefix=13030488456450580444
+wreckwater_client_probe server=127.0.0.1:33687 peer=2 role=deck tick_hz=60 max_ticks=2400 reconnect_at=0 chaos_seed=0 character_target_lead=24 character_redundancy=fixed_window_3
+WRECKWATER_CLIENT_CONNECTED peer=2 serial=1
+WRECKWATER_CLIENT_SNAPSHOT peer=2 sequence=1 application=2 evidence=1 phase=warmup score1=0 score2=0 cargo_revision=1 cargo_state=free cargo_owner=none state_hash=200682531 event_hash=3052872447 serialized_hash=16082589154180647266
+WRECKWATER_CLIENT_CHARACTER peer=2 handle=65538 generation=1 input_sequence=1 request_sequence=1 request_tick=25 evidence=1 snapshot=1
+WRECKWATER_CLIENT_SNAPSHOT peer=2 sequence=21 application=62 evidence=61 phase=warmup score1=0 score2=0 cargo_revision=1 cargo_state=free cargo_owner=none state_hash=3534211583 event_hash=1227771254 serialized_hash=660972023034902075
+WRECKWATER_CLIENT_SNAPSHOT peer=2 sequence=41 application=122 evidence=121 phase=warmup score1=0 score2=0 cargo_revision=1 cargo_state=free cargo_owner=none state_hash=3415618299 event_hash=1498736725 serialized_hash=961736913135917115
+WRECKWATER_CLIENT_CHARACTER peer=2 handle=65538 generation=1 input_sequence=60 request_sequence=60 request_tick=202 evidence=178 snapshot=60
+WRECKWATER_CLIENT_SNAPSHOT peer=2 sequence=61 application=182 evidence=181 phase=live score1=0 score2=0 cargo_revision=1 cargo_state=free cargo_owner=none state_hash=1658497318 event_hash=561850435 serialized_hash=17164831701725176784
+WRECKWATER_CLIENT_ACTION peer=2 action=tow request_tick=183 request_sequence=61 snapshot=61
+WRECKWATER_CLIENT_SNAPSHOT peer=2 sequence=62 application=185 evidence=184 phase=live score1=0 score2=0 cargo_revision=2 cargo_state=towed cargo_owner=crew1 state_hash=3289195111 event_hash=2393170354 serialized_hash=1466524775622555402
+WRECKWATER_CLIENT_SNAPSHOT peer=2 sequence=63 application=188 evidence=187 phase=live score1=0 score2=0 cargo_revision=3 cargo_state=towed cargo_owner=crew2 state_hash=1312586222 event_hash=317751529 serialized_hash=6442042828132044276
+WRECKWATER_CLIENT_ACTION peer=2 action=cut request_tick=189 request_sequence=64 snapshot=63
+WRECKWATER_CLIENT_SNAPSHOT peer=2 sequence=64 application=191 evidence=190 phase=live score1=0 score2=0 cargo_revision=4 cargo_state=free cargo_owner=none state_hash=3192437228 event_hash=3111885890 serialized_hash=16404131903960378101
+WRECKWATER_CLIENT_ACTION peer=2 action=tow request_tick=192 request_sequence=66 snapshot=64
+WRECKWATER_CLIENT_SNAPSHOT peer=2 sequence=65 application=194 evidence=193 phase=live score1=0 score2=0 cargo_revision=5 cargo_state=towed cargo_owner=crew1 state_hash=2576840268 event_hash=97479232 serialized_hash=7074650265421152782
+WRECKWATER_CLIENT_ACTION peer=2 action=bank request_tick=195 request_sequence=68 snapshot=65
+WRECKWATER_CLIENT_SNAPSHOT peer=2 sequence=66 application=197 evidence=196 phase=live score1=1000 score2=0 cargo_revision=6 cargo_state=banked cargo_owner=crew1 state_hash=1904491330 event_hash=1187878118 serialized_hash=7456482817819877849
+WRECKWATER_CLIENT_SNAPSHOT peer=2 sequence=86 application=257 evidence=256 phase=live score1=1000 score2=0 cargo_revision=6 cargo_state=banked cargo_owner=crew1 state_hash=3997201125 event_hash=1991806115 serialized_hash=6828135778991781236
+WRECKWATER_CLIENT_SNAPSHOT peer=2 sequence=106 application=317 evidence=316 phase=live score1=1000 score2=0 cargo_revision=6 cargo_state=banked cargo_owner=crew1 state_hash=4007017409 event_hash=2224927342 serialized_hash=2755213818443364353
+WRECKWATER_CLIENT_CHARACTER peer=2 handle=65538 generation=1 input_sequence=120 request_sequence=124 request_tick=382 evidence=358 snapshot=120
+WRECKWATER_CLIENT_SNAPSHOT peer=2 sequence=126 application=377 evidence=376 phase=live score1=1000 score2=0 cargo_revision=6 cargo_state=banked cargo_owner=crew1 state_hash=2241277309 event_hash=293748144 serialized_hash=14573810204593741804
+WRECKWATER_CLIENT_SNAPSHOT peer=2 sequence=146 application=437 evidence=436 phase=live score1=1000 score2=0 cargo_revision=6 cargo_state=banked cargo_owner=crew1 state_hash=2402378617 event_hash=1832762462 serialized_hash=12943998793150430339
+WRECKWATER_CLIENT_SNAPSHOT peer=2 sequence=166 application=497 evidence=496 phase=live score1=1000 score2=0 cargo_revision=6 cargo_state=banked cargo_owner=crew1 state_hash=557759861 event_hash=2681232417 serialized_hash=4926388005593456437
+WRECKWATER_CLIENT_CHARACTER peer=2 handle=65538 generation=1 input_sequence=180 request_sequence=184 request_tick=562 evidence=538 snapshot=180
+WRECKWATER_CLIENT_SNAPSHOT peer=2 sequence=186 application=557 evidence=556 phase=live score1=1000 score2=0 cargo_revision=6 cargo_state=banked cargo_owner=crew1 state_hash=3087330308 event_hash=1606785750 serialized_hash=393603966100053223
+WRECKWATER_CLIENT_SNAPSHOT peer=2 sequence=206 application=617 evidence=616 phase=live score1=1000 score2=0 cargo_revision=6 cargo_state=banked cargo_owner=crew1 state_hash=4011037440 event_hash=4155261793 serialized_hash=9556992559245808909
+WRECKWATER_CLIENT_SNAPSHOT peer=2 sequence=226 application=677 evidence=676 phase=live score1=1000 score2=0 cargo_revision=6 cargo_state=banked cargo_owner=crew1 state_hash=1035256892 event_hash=433204601 serialized_hash=7196019261791408203
+WRECKWATER_CLIENT_CHARACTER peer=2 handle=65538 generation=1 input_sequence=240 request_sequence=244 request_tick=742 evidence=718 snapshot=240
+WRECKWATER_CLIENT_SNAPSHOT peer=2 sequence=246 application=737 evidence=736 phase=live score1=1000 score2=0 cargo_revision=6 cargo_state=banked cargo_owner=crew1 state_hash=1958964024 event_hash=3574565216 serialized_hash=377905707972654335
+Client probe interrupted peer=2

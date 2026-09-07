@@ -3,6 +3,36 @@ package(default_visibility = ["//visibility:public"])
 load("//settings:configure_copts.bzl", "PROJECT_DEFAULT_COPTS")
 
 cc_library(
+    name = "salvage_preview",
+    srcs = ["expedition/salvage_preview.cpp"],
+    hdrs = ["expedition/salvage_preview.hpp"],
+    copts = PROJECT_DEFAULT_COPTS,
+    includes = [".."],
+    deps = [
+        "//src/physics:physics",
+        "//src/render:primitive_material",
+        "//third_party:glm",
+    ],
+)
+
+cc_library(
+    name = "construction_types",
+    srcs = ["construction/construction_types.cpp"],
+    hdrs = ["construction/construction_types.hpp"],
+    copts = PROJECT_DEFAULT_COPTS,
+    includes = [".."],
+)
+
+cc_library(
+    name = "part_catalog",
+    srcs = ["construction/part_catalog.cpp"],
+    hdrs = ["construction/part_catalog.hpp"],
+    copts = PROJECT_DEFAULT_COPTS,
+    includes = [".."],
+    deps = [":construction_types"],
+)
+
+cc_library(
     name = "wreckwater_content_manifest",
     srcs = ["wreckwater_content_manifest.cpp"],
     hdrs = ["wreckwater_content_manifest.hpp"],
@@ -153,6 +183,9 @@ cc_library(
 cc_library(
     name = "game",
     deps = [
+        ":construction_types",
+        ":part_catalog",
+        ":salvage_preview",
         ":wreckwater_character_authority_bridge",
         ":wreckwater_character_movement",
         ":wreckwater_content_manifest",

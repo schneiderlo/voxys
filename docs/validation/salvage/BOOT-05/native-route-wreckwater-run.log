@@ -1,0 +1,25 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Four peers connected; graphical client initialized.
+{
+  "started_unix_seconds": 1788820237.7123432,
+  "scope": "graphical bootstrap only; no performance or orderly-exit claim",
+  "os_screenshot_exit": "timeout",
+  "graphical_alive_after_capture": true,
+  "graphical_initialized": true,
+  "graphical_connected": true,
+  "frame_loop_evidence": [
+    "\u001b[36m[DEBUG] [00:00:04.345] FPS: 76.4 (13.09 ms) | Path: raycast\u001b[0m",
+    "\u001b[36m[DEBUG] [00:00:06.353] FPS: 71.2 (14.04 ms) | Path: raycast\u001b[0m",
+    "\u001b[36m[DEBUG] [00:00:08.358] FPS: 84.8 (11.79 ms) | Path: raycast\u001b[0m",
+    "\u001b[36m[DEBUG] [00:00:10.360] FPS: 84.9 (11.78 ms) | Path: raycast\u001b[0m",
+    "\u001b[36m[DEBUG] [00:00:12.362] FPS: 84.9 (11.78 ms) | Path: raycast\u001b[0m",
+    "\u001b[36m[DEBUG] [00:00:14.363] FPS: 84.0 (11.91 ms) | Path: raycast\u001b[0m"
+  ],
+  "graphical_errors_before_teardown": [],
+  "passed_bootstrap": true,
+  "binary_sha256_after": "75f801bb9a668a0c82b0f20b5652d0fbb36a1dd822ebbc273faba7ff5f0a8bf9"
+}

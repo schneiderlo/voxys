@@ -1,0 +1,32 @@
+{
+  "server": [
+    "bazel-bin/tools/serve_wasm"
+  ],
+  "environment": {
+    "VOXY_HOST": "127.0.0.1",
+    "VOXY_PORT": "18743",
+    "VOXY_TELEMETRY_FILE": "/tmp/voxys-g00-package-telemetry.json",
+    "VOXY_TELEMETRY_HISTORY_FILE": "/tmp/voxys-g00-package-telemetry.ndjson"
+  },
+  "package": "/tmp/nix-shell-490456-3656075146/tmp.VOtwRTzfAS",
+  "checks": [
+    {
+      "command": [
+        "python3",
+        "docs/validation/salvage/BOOT-05/check_package.py",
+        "/tmp/nix-shell-490456-3656075146/tmp.VOtwRTzfAS",
+        "--url",
+        "http://127.0.0.1:18743"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "python3",
+        "docs/validation/salvage/BOOT-02/test_package.py",
+        "/tmp/nix-shell-490456-3656075146/tmp.VOtwRTzfAS"
+      ],
+      "exit_code": 0
+    }
+  ]
+}

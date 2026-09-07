@@ -1,0 +1,46 @@
+TAP version 13
+# Subtest: u64 JSON strings preserve values beyond Number precision and reject ambiguous syntax
+ok 1 - u64 JSON strings preserve values beyond Number precision and reject ambiguous syntax
+  ---
+  duration_ms: 0.879825
+  type: 'test'
+  ...
+# Subtest: C++ frozen bytes decode and encode exactly, preserving insertion independence
+ok 2 - C++ frozen bytes decode and encode exactly, preserving insertion independence
+  ---
+  duration_ms: 2.165284
+  type: 'test'
+  ...
+# Subtest: ID order uses namespace then numeric counter rather than wire bytes
+ok 3 - ID order uses namespace then numeric counter rather than wire bytes
+  ---
+  duration_ms: 0.180365
+  type: 'test'
+  ...
+# Subtest: strict decoder rejects truncations, trailing data, schema changes and corrupt records
+ok 4 - strict decoder rejects truncations, trailing data, schema changes and corrupt records
+  ---
+  duration_ms: 0.810215
+  type: 'test'
+  ...
+# Subtest: encoder rejects invalid IDs, coordinates, typed counters and capacity overflow
+ok 5 - encoder rejects invalid IDs, coordinates, typed counters and capacity overflow
+  ---
+  duration_ms: 0.531838
+  type: 'test'
+  ...
+# Subtest: quaternion normalization uses canonical sign, xyzw wire order and stable decoded bits
+ok 6 - quaternion normalization uses canonical sign, xyzw wire order and stable decoded bits
+  ---
+  duration_ms: 1.673911
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 13.124692

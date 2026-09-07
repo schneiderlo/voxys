@@ -1,0 +1,17 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+[1/7] Refreshing native shaders and launch configs
+[2/7] Building CXX object src/CMakeFiles/voxy_core.dir/game/construction/part_catalog.cpp.o
+[3/7] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_application.cpp.o
+[4/7] Building CXX object src/CMakeFiles/voxy_core.dir/app/application.cpp.o
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:45:
+/home/modkin/workspace/schneiderlo/voxys/src/render/mesh_path.hpp:111:23: warning: redundant class-key ‘struct’ in reference to ‘struct voxy::render::PrimitiveLighting’ [-Wredundant-tags]
+  111 |                 const struct PrimitiveLighting& lighting, uint32_t width,
+      |                       ^~~~~~
+      |                       ------
+[5/7] Linking CXX static library lib/libvoxy_core.a
+[6/7] Linking CXX executable bin/voxy_tests
+[7/7] Linking CXX executable bin/voxy_native; Copying data to build output directory

@@ -1,0 +1,12 @@
+WARNING: wreckwater_server uses authenticated PLAINTEXT TCP. Bind only to loopback or a trusted private network. Internet deployment requires TLS/mTLS or QUIC.
+[32m[INFO ] [08:36:42.737] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [08:36:42.737] [GPU]   Vendor: radv[0m
+[32m[INFO ] [08:36:42.737] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [08:36:42.737] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [08:36:42.738] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [08:36:42.792] WebGPU physics initialized: 11 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+WRECKWATER_BUILD_CONTENT content_digest=b4d5983670909fdc210128840d400f872d414df89b23d31f845277a2c1398470 replay_prefix=13030488456450580444
+wreckwater_server listening=127.0.0.1:33687 peers=1..4 tick_hz=60 max_ticks=1800
+server_tick_ms p50=0.649491 p95=1.02644 max=2.40647 samples=933
+WRECKWATER_SERVER_RUNTIME tick=786 fail_reason=none service_calls=933 frames_polled=1588 lifecycle_frames=4 rejected_frames=783 character_packets=781 character_samples=781 character_replayed=2335 character_superseded=2 character_expired=0 character_rejected=783 match_fault=0 transaction_aborts=0 tow_count=0 live_apply_failure=none intent_index=4294967295 intent_count=1 application_tick=197 evidence_tick=195 prepare_status=0 prepare_target=197 prepare_created=0 requested_destroy=1 requested_create=0 commit_status=1 commit_target=197 commit_body=0 commit_destroy=1 commit_create=0 replay_records=278 replay_payload_bytes=275936 replay_finalized=0 replay_hash=0 replay_error=none peer1_active=1 peer1_serial=4 peer1_generation=1 peer1_sequence=781 peer2_active=1 peer2_serial=1 peer2_generation=1 peer2_sequence=265 peer3_active=1 peer3_serial=2 peer3_generation=1 peer3_sequence=276 peer4_active=1 peer4_serial=3 peer4_generation=1 peer4_sequence=262
+WRECKWATER_SERVER_FINAL tick=786 sequence=262 application=785 evidence=784 phase=1 outcome=0 winner=0 score1=1000 score2=0 state_hash=1851767159 event_hash=2240371459 serialized_hash=6092130833659212461

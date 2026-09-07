@@ -1,0 +1,53 @@
+[
+  {
+    "command": [
+      "node",
+      "scripts/test_salvage_preview.mjs"
+    ],
+    "exit_code": 0,
+    "log": "01.log"
+  },
+  {
+    "command": [
+      "node",
+      "scripts/test_salvage_data.mjs"
+    ],
+    "exit_code": 0,
+    "log": "02.log"
+  },
+  {
+    "command": [
+      "python3",
+      "scripts/test_salvage_memory_probe.py"
+    ],
+    "exit_code": 0,
+    "log": "03.log"
+  },
+  {
+    "command": [
+      "node",
+      "--check",
+      "scripts/smoke_integrated_wasm.mjs"
+    ],
+    "exit_code": 0,
+    "log": "04.log"
+  },
+  {
+    "command": [
+      "node",
+      "--check",
+      "scripts/validate_salvage_preview.mjs"
+    ],
+    "exit_code": 0,
+    "log": "05.log"
+  },
+  {
+    "command": [
+      "python3",
+      "scripts/sync_lego_surface.py",
+      "--check"
+    ],
+    "exit_code": 0,
+    "log": "06.log"
+  }
+]

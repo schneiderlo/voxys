@@ -1,0 +1,21 @@
+/home/modkin/workspace/schneiderlo/voxys/tools/salvage_assets/authoring_probe.py:40: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  result.use_nodes = True
+INFO Draco is available, use library at /snap/blender/7740/lib/libbf_intern_draco_bridge.so
+INFO MeshOptimizer is available, use library at /snap/blender/7740/lib/libbf_intern_meshopt_bridge.so
+18:02:07 | INFO: Starting glTF 2.0 export
+18:02:07 | INFO: Extracting primitive: probe_body_mesh
+18:02:07 | INFO: Primitives created: 1
+18:02:07 | INFO: Extracting primitive: probe_forward_minus_y_mesh
+18:02:07 | INFO: Primitives created: 1
+18:02:07 | INFO: Extracting primitive: probe_right_plus_x_mesh
+18:02:07 | INFO: Primitives created: 1
+18:02:07 | INFO: Extracting primitive: probe_up_plus_z_mesh
+18:02:07 | INFO: Primitives created: 1
+18:02:07 | INFO: Finished glTF 2.0 export in 0.043671369552612305 s
+00:02.411  render           | Saved: '/home/modkin/workspace/schneiderlo/voxys/data/salvage/authoring_probe/preview.png'
+
+Info: Saved as "probe.blend"
+SALVAGE_AUTHORING_PROBE_OK {"asset_id": "salvage.authoring_probe", "asset_version": 1, "authoring_frame": "+Z up, -Y forward; metre scale applied", "blender_build_hash": "9e2066aef7ef", "blender_to_gltf": "(x,y,z) -> (x,z,-y); exporter applies this once", "blender_version": "5.2.1 LTS", "canonical_note": "Remaining proper 180-degree Y rotation is metadata only here; ASSET-02/04 implement and verify the engine bridge. Do not apply the raw Blender conversion to this GLB.", "export_settings": {"export_animations": false, "export_apply": true, "export_cameras": false, "export_extras": false, "export_format": "GLB", "export_lights": false, "export_materials": "EXPORT", "export_normals": true, "export_tangents": true, "export_texcoords": true, "export_yup": true, "use_selection": true}, "generator": "tools/salvage_assets/authoring_probe.py", "generator_sha256": "81edf36885bedff0f51380c89213094dad908d9287bbfd74987e363d392edbc0", "gltf_to_canonical_remaining": [[-1, 0, 0], [0, 1, 0], [0, 0, -1]], "materials": "Inline PBR factors, one UV set, no external textures, no painted lighting", "mesh_count": 4, "outputs": {"preview.png": {"bytes": 253732, "sha256": "063cd52c2b2f0d07556f512f41b98e24642e6549ccc5e082ba24c0e43f69aa75"}, "probe.blend": {"bytes": 112299, "sha256": "2a84caa9645d5c9a7c9266cb48f0c61d59ee1ee1037482492290ac6cab3887f0"}, "probe.glb": {"bytes": 102836, "sha256": "e2e4f6a7b0d95ac7eff48e2cf6c391c3605f288629b70e7d3d0009fc1735b103"}}, "parameters_m": {"height": 0.64, "length": 4.0, "width": 2.0}, "probe_uv_quantization": "1/65536 before tangent generation", "provenance": "Original procedural geometry authored for this project; no external reference or generated raster inputs", "purpose": "Authoring fixture only; not a gameplay metadata sidecar or approved game asset", "review_status": "authoring smoke only; game import/material/socket checks are later tasks", "schema": 1, "seed": 0, "triangle_count": 752}
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 02:12:34)
+
+Blender quit

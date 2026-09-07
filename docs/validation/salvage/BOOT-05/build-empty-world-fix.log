@@ -1,0 +1,135 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+[1/11] Refreshing native shaders and launch configs
+[2/11] Building CXX object CMakeFiles/voxy_native.dir/src/engine/platform/native/entry.cpp.o
+[3/11] Building CXX object src/CMakeFiles/voxy_core.dir/app/debug_overlay.cpp.o
+[4/11] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_salvage_preview.cpp.o
+[5/11] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_shader_raycast.cpp.o
+[6/11] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_shader_blit.cpp.o
+[7/11] Building CXX object tests/CMakeFiles/voxy_tests.dir/test_application.cpp.o
+[8/11] Building CXX object src/CMakeFiles/voxy_core.dir/app/application.cpp.o
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:46:
+/home/modkin/workspace/schneiderlo/voxys/src/render/mesh_path.hpp:111:23: warning: redundant class-key ‘struct’ in reference to ‘struct voxy::render::PrimitiveLighting’ [-Wredundant-tags]
+  111 |                 const struct PrimitiveLighting& lighting, uint32_t width,
+      |                       ^~~~~~
+      |                       ------
+[9/11] Linking CXX static library lib/libvoxy_core.a
+[10/11] Linking CXX executable bin/voxy_tests
+[11/11] Linking CXX executable bin/voxy_native; Copying data to build output directory
+Setting up EMSDK environment (suppress these messages with EMSDK_QUIET=1)
+Adding directories to PATH:
+PATH += /tmp/voxys-emsdk
+PATH += /tmp/voxys-emsdk/upstream/emscripten
+
+Setting environment variables:
+PATH = /tmp/voxys-emsdk:/tmp/voxys-emsdk/upstream/emscripten:/nix/store/cgjr3kj3hs7ngznyws5qfg16c8scpys0-bash-interactive-5.3p9/bin:/nix/store/z2zzyvwp181kn2r1zl6paf2gncmxpdsj-bazel/bin:/nix/store/mbyy19mdwnfvfwmdi0gqgggx0njvpl1w-binutils-wrapper-2.46/bin:/nix/store/s2946bl9ciwzhafd66jhansrmxq9xhqm-binutils-2.46/bin:/nix/store/bsh7n2nx8ndmm1mmww6v2h4851nalj13-glibc-2.42-61-bin/bin:/nix/store/9ypz3flqsrl5xl495mm8h645gadjsxi1-coreutils-9.11/bin:/nix/store/r9941n32g4wyvggz2703dlplbdq8a6rd-cmake-4.1.2/bin:/nix/store/ni3mcvikdjzaq2h0jx3k0xds57z0y2r5-curl-8.20.0-dev/bin:/nix/store/hivfv7qwmfhd60qyn6ysva4ydwq3d008-brotli-1.2.0/bin:/nix/store/qidq70m0r1a5nlgcn6chy0dgv26wcv7n-krb5-1.22.1-dev/bin:/nix/store/0jmxsxyi7p5bkgsw4bmz75aq5pbyvpfq-krb5-1.22.1/bin:/nix/store/rnpbgcxmw93mlcai4bidv0dxjmxza41z-nghttp2-1.69.0/bin:/nix/store/a24v7pir7l3m3qi16cpi1cy44vp7bkjy-libidn2-2.3.8-bin/bin:/nix/store/zyrxhd7nwmkcs11m144jagxcmddw2i41-openssl-3.6.2-bin/bin:/nix/store/f0gsxi5sc6hvrwmjk4r7dpb71d4vjgn0-libpsl-0.21.5/bin:/nix/store/cwj48a5jfy5srxgq45p4dg37zqdlhzba-zstd-1.5.7-bin/bin:/nix/store/gd74vdpqzq0qmmikvmrf3r3kghhhnf50-zstd-1.5.7/bin:/nix/store/0aha64svrrch155x78xhzn6kmgrrsl9a-curl-8.20.0-bin/bin:/nix/store/788mx070y81zjlg5ipcl0cra3afviw9k-gcc-wrapper-15.2.0/bin:/nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/bin:/nix/store/bcnisk3ydfgv26v2gw3zlky24g00yww2-git-2.54.0/bin:/nix/store/d3bwqm6bymhy3pdgbvf7vxjqfp31m3j1-gnumake-4.4.1/bin:/nix/store/7a235m7crqbb4h49sak20fqxpw3n7hr0-ninja-1.13.2/bin:/nix/store/1m05k7xgfnw6jc21xxk5681ni3ar97wf-pkg-config-wrapper-0.29.2/bin:/nix/store/0k05rim4nalb3sshxdrbkqski6w9l907-python3-3.13.13-env/bin:/nix/store/mhw4sjc1rz4zmb3vkdinvfm7ym96fazx-unzip-6.0/bin:/nix/store/2xqsvim09lc968bc67w0jvxpp2j4lfm5-uv-0.11.19/bin:/nix/store/pq7kd4gdh4ll73d83mlwhhzbjdl6fvl9-vulkan-tools-1.4.341.0/bin:/nix/store/j9izhj1pb3k07wdw2q2c1z7pw2xkrz69-wget-1.25.0/bin:/nix/store/91d9n98grpqj93576zl27bd5x0khcsvv-which-2.23/bin:/nix/store/ilblcn1dkvzghcr2yk3av6jxn5rk1iqw-patchelf-0.15.2/bin:/nix/store/x0gx9xj0xdg5n9vixwn4p5awi2h613r6-libxkbcommon-1.13.1/bin:/nix/store/j4wzv8zmw157aim4qazyklhwn1zbcbph-libdrm-2.4.133-bin/bin:/nix/store/v2isk5r5fzlriczi14ckn20hf45079di-mesa-26.1.2/bin:/nix/store/z480b23kymbmrijrl49246mrzyphli15-cargo-1.95.0/bin:/nix/store/wnhmqix7bippbbzasj29qiyb422g9asg-rustc-wrapper-1.95.0/bin:/nix/store/c1cjgg6p8m8fssivzrc2p13mwwml3p3v-findutils-4.10.0/bin:/nix/store/ww555mznia5v7sz2w85lblg4amvhkhv1-diffutils-3.12/bin:/nix/store/kgxafhycw2kybbqih759ykc2043qyi5j-gnused-4.9/bin:/nix/store/gn94gpcp5q08x4v6g8mvw8v4r65rcjzk-gnugrep-3.12/bin:/nix/store/wp1cshqv98i8abs8rcx91s54igqgll0f-gawk-5.4.0/bin:/nix/store/k5akwnrn9x2afaj2va7g4a2zpdim8l43-gnutar-1.35/bin:/nix/store/ndpbjk6jhw0da5h272dqqnyxa35a9gmx-gzip-1.14/bin:/nix/store/3y3kzc5njlj7nwj1s78am0yzjnpicv9x-bzip2-1.0.8-bin/bin:/nix/store/vlq7nnw39j7rwk0pp68w1fcwzpxahm9h-gnumake-4.4.1/bin:/nix/store/gik3rh1vz2jlgnifb9dh6vc6sxwwz9jj-bash-5.3p9/bin:/nix/store/wgvplwp0faqhqr92w0ma8bxaxk202ama-patch-2.8/bin:/nix/store/csra6zhdjw7rjzv98fycz7qjalyv55k2-xz-5.8.3-bin/bin:/nix/store/kyz3mm5snbb8998kbkm28jps1phk9509-file-5.47/bin:/home/modkin/.local/bin:/home/modkin/.codex/tmp/arg0/codex-arg0T6bhaD:/home/modkin/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin/override:/home/modkin/.grok/bin:/home/modkin/.bun/bin:/home/modkin/.opencode/bin:/home/modkin/.cargo/bin:/home/modkin/.nix-profile/bin:/nix/var/nix/profiles/default/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/home/modkin/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin/fallback:/usr/lib/chatgpt/resources
+EMSDK = /tmp/voxys-emsdk
+EMSDK_NODE = /tmp/voxys-emsdk/node/24.19.0_64bit/bin/node
+[  1%] Built target miniz
+[ 10%] Built target libzstd_static
+[ 26%] Built target box3d
+[ 66%] Built target Jolt
+[ 66%] Building CXX object src/CMakeFiles/voxy_core.dir/app/application.cpp.o
+[ 66%] Building CXX object src/CMakeFiles/voxy_core.dir/app/debug_overlay.cpp.o
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/app/debug_overlay.cpp:5:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/app/debug_overlay.hpp:13:
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:34:34: warning: explicitly defaulted three-way comparison operator is implicitly deleted [-Wdefaulted-function-deleted]
+   34 |     [[nodiscard]] constexpr auto operator<=>(
+      |                                  ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:31:16: note: defaulted 'operator<=>' is implicitly deleted because there is no viable three-way comparison function for member 'sector'
+   31 |     glm::ivec3 sector{0};
+      |                ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:35:48: note: replace 'default' with 'delete'
+   35 |         const WorldPosition&) const noexcept = default;
+      |                                                ^~~~~~~
+      |                                                delete
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:9:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/app/application.hpp:42:
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:34:34: warning: explicitly defaulted three-way comparison operator is implicitly deleted [-Wdefaulted-function-deleted]
+   34 |     [[nodiscard]] constexpr auto operator<=>(
+      |                                  ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:31:16: note: defaulted 'operator<=>' is implicitly deleted because there is no viable three-way comparison function for member 'sector'
+   31 |     glm::ivec3 sector{0};
+      |                ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:35:48: note: replace 'default' with 'delete'
+   35 |         const WorldPosition&) const noexcept = default;
+      |                                                ^~~~~~~
+      |                                                delete
+/home/modkin/workspace/schneiderlo/voxys/src/app/debug_overlay.cpp:93:41: warning: '$' in identifier [-Wdollar-in-identifier-extension]
+   93 |                 overlay.style.display = $0 ? 'block' : 'none';
+      |                                         ^
+/home/modkin/workspace/schneiderlo/voxys/src/app/debug_overlay.cpp:132:53: warning: '$' in identifier [-Wdollar-in-identifier-extension]
+  132 |         if (fpsEl) fpsEl.textContent = UTF8ToString($0);
+      |                                                     ^
+/home/modkin/workspace/schneiderlo/voxys/src/app/debug_overlay.cpp:388:36: warning: '$' in identifier [-Wdollar-in-identifier-extension]
+  388 |         var camText = UTF8ToString($0);
+      |                                    ^
+/home/modkin/workspace/schneiderlo/voxys/src/app/debug_overlay.cpp:389:37: warning: '$' in identifier [-Wdollar-in-identifier-extension]
+  389 |         var pathText = UTF8ToString($1);
+      |                                     ^
+/home/modkin/workspace/schneiderlo/voxys/src/app/debug_overlay.cpp:390:40: warning: '$' in identifier [-Wdollar-in-identifier-extension]
+  390 |         var terrainText = UTF8ToString($2);
+      |                                        ^
+/home/modkin/workspace/schneiderlo/voxys/src/app/debug_overlay.cpp:391:36: warning: '$' in identifier [-Wdollar-in-identifier-extension]
+  391 |         var memText = UTF8ToString($3);
+      |                                    ^
+/home/modkin/workspace/schneiderlo/voxys/src/app/debug_overlay.cpp:392:39: warning: '$' in identifier [-Wdollar-in-identifier-extension]
+  392 |         var frameCount = UTF8ToString($4);
+      |                                       ^
+/home/modkin/workspace/schneiderlo/voxys/src/app/debug_overlay.cpp:393:44: warning: '$' in identifier [-Wdollar-in-identifier-extension]
+  393 |         var physicsIdentity = UTF8ToString($5);
+      |                                            ^
+/home/modkin/workspace/schneiderlo/voxys/src/app/debug_overlay.cpp:394:42: warning: '$' in identifier [-Wdollar-in-identifier-extension]
+  394 |         var physicsBodies = UTF8ToString($6);
+      |                                          ^
+/home/modkin/workspace/schneiderlo/voxys/src/app/debug_overlay.cpp:395:41: warning: '$' in identifier [-Wdollar-in-identifier-extension]
+  395 |         var physicsBroad = UTF8ToString($7);
+      |                                         ^
+/home/modkin/workspace/schneiderlo/voxys/src/app/debug_overlay.cpp:396:44: warning: '$' in identifier [-Wdollar-in-identifier-extension]
+  396 |         var physicsContacts = UTF8ToString($8);
+      |                                            ^
+/home/modkin/workspace/schneiderlo/voxys/src/app/debug_overlay.cpp:397:42: warning: '$' in identifier [-Wdollar-in-identifier-extension]
+  397 |         var physicsSolver = UTF8ToString($9);
+      |                                          ^
+/home/modkin/workspace/schneiderlo/voxys/src/app/debug_overlay.cpp:398:43: warning: '$' in identifier [-Wdollar-in-identifier-extension]
+  398 |         var physicsIslands = UTF8ToString($10);
+      |                                           ^
+/home/modkin/workspace/schneiderlo/voxys/src/app/debug_overlay.cpp:399:50: warning: '$' in identifier [-Wdollar-in-identifier-extension]
+  399 |         var physicsCcdWaterEvents = UTF8ToString($11);
+      |                                                  ^
+/home/modkin/workspace/schneiderlo/voxys/src/app/debug_overlay.cpp:400:38: warning: '$' in identifier [-Wdollar-in-identifier-extension]
+  400 |         var physicsIo = UTF8ToString($12);
+      |                                      ^
+/home/modkin/workspace/schneiderlo/voxys/src/app/debug_overlay.cpp:401:43: warning: '$' in identifier [-Wdollar-in-identifier-extension]
+  401 |         var physicsTimings = UTF8ToString($13);
+      |                                           ^
+/home/modkin/workspace/schneiderlo/voxys/src/app/debug_overlay.cpp:402:42: warning: '$' in identifier [-Wdollar-in-identifier-extension]
+  402 |         var renderTimings = UTF8ToString($14);
+      |                                          ^
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:36:
+/home/modkin/workspace/schneiderlo/voxys/src/terrain/lego_layout_cache.hpp:57:53: warning: implicit conversion changes signedness: 'uint32_t' (aka 'unsigned int') to 'difference_type' (aka 'long') [-Wsign-conversion]
+   57 |         std::sort(pending_.begin(),pending_.begin()+pendingCount_,[&](const auto& a,const auto& b) {
+      |                                                    ~^~~~~~~~~~~~~
+18 warnings generated.
+2 warnings generated.
+[ 66%] Linking CXX static library ../lib/libvoxy_core.a
+[ 98%] Built target voxy_core
+[ 98%] Building CXX object CMakeFiles/voxy_wasm.dir/src/engine/platform/wasm/entry.cpp.o
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/engine/platform/wasm/entry.cpp:5:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/app/application.hpp:42:
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:34:34: warning: explicitly defaulted three-way comparison operator is implicitly deleted [-Wdefaulted-function-deleted]
+   34 |     [[nodiscard]] constexpr auto operator<=>(
+      |                                  ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:31:16: note: defaulted 'operator<=>' is implicitly deleted because there is no viable three-way comparison function for member 'sector'
+   31 |     glm::ivec3 sector{0};
+      |                ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:35:48: note: replace 'default' with 'delete'
+   35 |         const WorldPosition&) const noexcept = default;
+      |                                                ^~~~~~~
+      |                                                delete
+1 warning generated.
+[100%] Linking CXX executable bin/voxy_wasm.js
+[100%] Built target voxy_wasm

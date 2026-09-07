@@ -111,6 +111,43 @@ TEST(ApplicationConfigTest, DefaultsHaveReasonableValues) {
     EXPECT_FALSE(config.assetDir.empty());
 }
 
+TEST(ApplicationSalvagePreviewTest, UninitializedActionsAreRejected) {
+    Application app;
+    EXPECT_FALSE(app.salvagePreviewAction(1));
+    EXPECT_FALSE(app.salvagePreviewAction(2));
+    const auto state = app.salvagePreviewJson();
+    for (const auto* expected : {"\"active\":false", "\"ready\":false", "\"failed\":false",
+                                 "\"bodies\":0", "\"camera\":null", "\"origin\":null"}) {
+        EXPECT_NE(state.find(expected), std::string::npos);
+    }
+    app.shutdown();
+}
+
+TEST(ApplicationSalvagePreviewTest, IncompatibleConfigurationsFailBeforeGpuInitialization) {
+    const auto baseline = [] {
+        ApplicationConfig c;
+        c.salvagePreviewEnabled = true; c.legoTerrainEnabled = true;
+        c.physicsCpuFallback = false;
+        return c;
+    };
+    for (int variant = 0; variant < 7; ++variant) {
+        auto config = baseline();
+        switch (variant) {
+        case 0: config.motoEnabled = true; break;
+        case 1: config.wreckwaterClient.emplace(); break;
+        case 2: config.physicsBackend = physics::BackendType::JoltLegacy; break;
+        case 3: config.physicsCpuFallback = true; break;
+        case 4: config.legoTerrainEnabled = false; break;
+        case 5: config.renderPath = RenderPath::Triangle; break;
+        case 6: config.initialTeleportIndex = 0; break;
+        }
+        Application app;
+        EXPECT_FALSE(app.init(config));
+        EXPECT_EQ(app.getGPUContext(), nullptr);
+        app.shutdown();
+    }
+}
+
 TEST(ApplicationConfigTest, CustomConfiguration) {
     ApplicationConfig config;
     

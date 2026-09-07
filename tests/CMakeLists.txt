@@ -16,6 +16,9 @@ enable_testing()
 # Test Sources
 # ─────────────────────────────────────────────────────────────────────────────
 set(TEST_SOURCES
+    test_construction_types.cpp
+    test_part_catalog.cpp
+    test_salvage_preview.cpp
     test_bike.cpp
     test_log.cpp
     test_lockstep.cpp
@@ -103,6 +106,23 @@ endif()
 # ─────────────────────────────────────────────────────────────────────────────
 # Test Executable
 # ─────────────────────────────────────────────────────────────────────────────
+add_executable(part_catalog_tests
+    test_part_catalog.cpp
+    ${CMAKE_SOURCE_DIR}/src/game/construction/part_catalog.cpp
+    ${CMAKE_SOURCE_DIR}/src/game/construction/construction_types.cpp
+)
+target_link_libraries(part_catalog_tests PRIVATE gtest gtest_main)
+target_include_directories(part_catalog_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
+set_project_warnings(part_catalog_tests)
+
+add_executable(construction_types_tests
+    test_construction_types.cpp
+    ${CMAKE_SOURCE_DIR}/src/game/construction/construction_types.cpp
+)
+target_link_libraries(construction_types_tests PRIVATE gtest gtest_main)
+target_include_directories(construction_types_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
+set_project_warnings(construction_types_tests)
+
 add_executable(deterministic_adversity_transport_tests
     test_deterministic_adversity_transport.cpp
     ${CMAKE_SOURCE_DIR}/src/network/deterministic_adversity_transport.cpp
@@ -401,6 +421,16 @@ endif()
 # Register Tests with CTest
 # ─────────────────────────────────────────────────────────────────────────────
 include(GoogleTest)
+gtest_discover_tests(part_catalog_tests
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    DISCOVERY_MODE PRE_TEST
+    TEST_PREFIX "part_catalog."
+)
+gtest_discover_tests(construction_types_tests
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    DISCOVERY_MODE PRE_TEST
+    TEST_PREFIX "construction_types."
+)
 gtest_discover_tests(deterministic_adversity_transport_tests
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     DISCOVERY_MODE PRE_TEST

@@ -1,0 +1,41 @@
+Running main() from /home/modkin/workspace/schneiderlo/voxys/third_party/googletest/googletest/src/gtest_main.cc
+[==========] Running 16 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 16 tests from PartCatalog
+[ RUN      ] PartCatalog.TwelveStarterDefinitionsLoadWithoutRendererOrAssetCallback
+[       OK ] PartCatalog.TwelveStarterDefinitionsLoadWithoutRendererOrAssetCallback (0 ms)
+[ RUN      ] PartCatalog.CatalogOwnsItsDataAndSortsStableIdentifiers
+[       OK ] PartCatalog.CatalogOwnsItsDataAndSortsStableIdentifiers (0 ms)
+[ RUN      ] PartCatalog.SchemaIdentityDuplicatesAndVersionedLookupAreExplicit
+[       OK ] PartCatalog.SchemaIdentityDuplicatesAndVersionedLookupAreExplicit (0 ms)
+[ RUN      ] PartCatalog.MassAndCenterOfMassRejectNonfiniteAndUnsupportedValues
+[       OK ] PartCatalog.MassAndCenterOfMassRejectNonfiniteAndUnsupportedValues (0 ms)
+[ RUN      ] PartCatalog.FullTensorValidationEnforcesPhysicalPrincipalMoments
+[       OK ] PartCatalog.FullTensorValidationEnforcesPhysicalPrincipalMoments (0 ms)
+[ RUN      ] PartCatalog.AnalyticalBoxesMatchIndependentCornerBoundsForAllRotations
+[       OK ] PartCatalog.AnalyticalBoxesMatchIndependentCornerBoundsForAllRotations (0 ms)
+[ RUN      ] PartCatalog.CollisionOccupancyAndRotationFailuresIdentifyTheirProperty
+[       OK ] PartCatalog.CollisionOccupancyAndRotationFailuresIdentifyTheirProperty (0 ms)
+[ RUN      ] PartCatalog.BuoyancyRejectsDoubleVolumeButAllowsTouchingCompartments
+[       OK ] PartCatalog.BuoyancyRejectsDoubleVolumeButAllowsTouchingCompartments (0 ms)
+[ RUN      ] PartCatalog.TypedSocketCompatibilitySeparatesWeldRopeAndCargoLatch
+[       OK ] PartCatalog.TypedSocketCompatibilitySeparatesWeldRopeAndCargoLatch (0 ms)
+[ RUN      ] PartCatalog.EngagedSocketPitchAndNormalsSurviveSidewaysAndUpsideDownPlacements
+[       OK ] PartCatalog.EngagedSocketPitchAndNormalsSurviveSidewaysAndUpsideDownPlacements (0 ms)
+[ RUN      ] PartCatalog.SocketAuthoringErrorsArePrecise
+[       OK ] PartCatalog.SocketAuthoringErrorsArePrecise (0 ms)
+[ RUN      ] PartCatalog.ModuleParametersAndRequiredSocketRolesCannotBeIgnored
+[       OK ] PartCatalog.ModuleParametersAndRequiredSocketRolesCannotBeIgnored (0 ms)
+[ RUN      ] PartCatalog.ResourcesMaterialsAndBoundsRejectMalformedAuthoring
+[       OK ] PartCatalog.ResourcesMaterialsAndBoundsRejectMalformedAuthoring (0 ms)
+[ RUN      ] PartCatalog.PrototypeRegistryRequiresExactIdentityDimensionsAndOneLod
+[       OK ] PartCatalog.PrototypeRegistryRequiresExactIdentityDimensionsAndOneLod (0 ms)
+[ RUN      ] PartCatalog.CookedAssetsRequireExactResolverAndActualBackingEntry
+[       OK ] PartCatalog.CookedAssetsRequireExactResolverAndActualBackingEntry (0 ms)
+[ RUN      ] PartCatalog.InvalidAssetPathsAndLodsFailBeforeAssetLookup
+[       OK ] PartCatalog.InvalidAssetPathsAndLodsFailBeforeAssetLookup (0 ms)
+[----------] 16 tests from PartCatalog (1 ms total)
+
+[----------] Global test environment tear-down
+[==========] 16 tests from 1 test suite ran. (1 ms total)
+[  PASSED  ] 16 tests.

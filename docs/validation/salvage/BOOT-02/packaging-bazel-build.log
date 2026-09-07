@@ -1,0 +1,95 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: 2 targets (1 packages loaded, 0 targets configured)
+Analyzing: 2 targets (1 packages loaded, 0 targets configured)
+
+Analyzing: 2 targets (36 packages loaded, 1292 targets configured)
+
+INFO: Analyzed 2 targets (37 packages loaded, 1314 targets configured).
+[12 / 151] Compiling src/game/wreckwater_live_world.cpp; 0s linux-sandbox ... (4 actions running)
+[13 / 151] Compiling src/game/wreckwater_live_world.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[22 / 154] Compiling src/game/wreckwater_character_movement.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+INFO: From Compiling src/game/wreckwater_vessel_damage.cpp:
+src/game/wreckwater_vessel_damage.cpp:317:44: warning: implicit conversion increases floating-point precision: 'float' to 'long double' [-Wdouble-promotion]
+  317 |             saturatingMilliImpulse(config_.edgeBreakImpulse);
+      |             ~~~~~~~~~~~~~~~~~~~~~~ ~~~~~~~~^~~~~~~~~~~~~~~~
+1 warning generated.
+[39 / 167] Compiling src/network/wreckwater_client_runtime.cpp; 0s linux-sandbox ... (4 actions, 3 running)
+[45 / 188] Compiling third_party/zstd/lib/compress/zstdmt_compress.c; 0s linux-sandbox ... (4 actions, 3 running)
+[49 / 188] Compiling src/physics/physics_world.cpp; 1s linux-sandbox ... (4 actions running)
+[50 / 188] Compiling src/physics/physics_world.cpp; 2s linux-sandbox ... (4 actions running)
+[53 / 188] Compiling src/network/replication.cpp; 2s linux-sandbox ... (4 actions running)
+[62 / 188] Compiling src/network/replication.cpp; 3s linux-sandbox ... (4 actions, 3 running)
+[67 / 188] Compiling src/network/protocol.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[72 / 188] Compiling src/physics/gpu/gpu_narrow_phase.cpp; 1s linux-sandbox ... (4 actions running)
+[83 / 189] Compiling src/physics/gpu/gpu_lockstep.cpp; 0s linux-sandbox ... (4 actions running)
+[84 / 189] Compiling src/render/blit_path.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[85 / 189] Compiling src/render/blit_path.cpp; 2s linux-sandbox ... (4 actions, 3 running)
+[89 / 190] Compiling src/terrain/shadow_bake.cpp; 1s linux-sandbox ... (3 actions running)
+[91 / 195] Compiling src/network/authoritative_sandbox.cpp; 1s linux-sandbox ... (4 actions running)
+[156 / 378] Compiling src/render/debug_visualizer.cpp; 2s linux-sandbox ... (4 actions, 3 running)
+[165 / 378] Compiling src/terrain/mip_generator.cpp; 0s linux-sandbox ... (4 actions, 3 running)
+[167 / 378] Compiling src/terrain/mip_generator.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[171 / 378] Compiling src/physics/gpu/gpu_ccd.cpp; 1s linux-sandbox ... (4 actions running)
+[173 / 378] Compiling src/render/primitive_gpu_culling.cpp; 2s linux-sandbox ... (4 actions running)
+[180 / 378] Compiling third_party/JoltPhysics/Jolt/Physics/Vehicle/VehicleCollisionTester.cpp; 0s linux-sandbox ... (4 actions running)
+[182 / 378] Compiling third_party/JoltPhysics/Jolt/Physics/Vehicle/VehicleCollisionTester.cpp; 2s linux-sandbox ... (4 actions, 3 running)
+[184 / 378] Compiling src/terrain/compression.cpp; 3s linux-sandbox ... (4 actions running)
+[188 / 378] Compiling src/render/raycast_path.cpp; 2s linux-sandbox ... (4 actions, 3 running)
+[194 / 378] Compiling src/physics/character/cpu_capsule_mover.cpp; 1s linux-sandbox ... (4 actions running)
+[196 / 378] Compiling src/render/primitive_path.cpp; 1s linux-sandbox ... (4 actions running)
+[198 / 378] Compiling src/render/primitive_path.cpp; 3s linux-sandbox ... (4 actions, 3 running)
+INFO: From Compiling src/render/primitive_path.cpp:
+src/render/primitive_path.cpp:622:68: warning: implicit conversion changes signedness: 'const uint32_t' (aka 'const unsigned int') to 'difference_type' (aka 'long') [-Wsign-conversion]
+  622 |     if (count == legoCount_ && std::equal(ids.begin(), ids.begin()+count, legoIds_.begin())) return;
+      |                                                                   ~^~~~~
+1 warning generated.
+[268 / 378] Compiling third_party/JoltPhysics/Jolt/Physics/SoftBody/SoftBodyMotionProperties.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+INFO: From Compiling src/client/wreckwater_application_client.cpp:
+src/client/wreckwater_application_client.cpp:179:23: warning: implicit conversion increases floating-point precision: 'float' to 'double' [-Wdouble-promotion]
+  179 |         intervalCount(maximumPathDistance);
+      |         ~~~~~~~~~~~~~ ^~~~~~~~~~~~~~~~~~~
+1 warning generated.
+[273 / 378] Compiling third_party/JoltPhysics/Jolt/Physics/Collision/Shape/OffsetCenterOfMassShape.cpp; 1s linux-sandbox ... (4 actions running)
+[277 / 378] Compiling src/render/triangle_path.cpp; 2s linux-sandbox ... (4 actions, 3 running)
+[281 / 378] Compiling src/physics/jolt/jolt_backend.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[282 / 378] Compiling src/physics/jolt/jolt_backend.cpp; 2s linux-sandbox ... (4 actions running)
+[284 / 378] Compiling src/physics/jolt/jolt_backend.cpp; 3s linux-sandbox ... (4 actions running)
+[286 / 378] Compiling third_party/JoltPhysics/Jolt/Physics/PhysicsScene.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[289 / 378] Compiling src/physics/gpu/gpu_physics_backend.cpp; 2s linux-sandbox ... (4 actions, 3 running)
+[301 / 378] Compiling src/physics/gpu/gpu_physics_backend.cpp; 3s linux-sandbox ... (4 actions running)
+[304 / 378] Compiling src/gameplay/structural_assembly.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[310 / 378] Compiling third_party/JoltPhysics/Jolt/Skeleton/SkeletalAnimation.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[313 / 378] Compiling third_party/JoltPhysics/Jolt/Physics/Collision/Shape/TaperedCylinderShape.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[317 / 378] Compiling third_party/JoltPhysics/Jolt/Physics/Constraints/GearConstraint.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[324 / 378] Compiling src/app/debug_overlay.cpp; 1s linux-sandbox ... (4 actions running)
+[329 / 378] Compiling src/client/wreckwater_character_controller.cpp; 0s linux-sandbox ... (4 actions running)
+[332 / 378] Compiling src/app/application.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[336 / 378] Compiling src/app/application.cpp; 2s linux-sandbox ... (3 actions, 2 running)
+[341 / 378] Compiling src/app/application.cpp; 3s linux-sandbox ... (4 actions, 3 running)
+[346 / 378] Compiling src/app/application.cpp; 5s linux-sandbox ... (4 actions running)
+[354 / 378] Compiling src/app/application.cpp; 6s linux-sandbox ... (3 actions running)
+INFO: From Compiling src/app/application.cpp:
+src/app/application.cpp:5210:9: warning: ignoring return value of function declared with 'nodiscard' attribute [-Wunused-result]
+ 5210 |         spawnThrowable(shape, origin, direction, camera_->worldSector());
+      |         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1 warning generated.
+[358 / 378] Compiling src/client/wreckwater_graphical_client_loop.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[364 / 382] Compiling src/engine/platform/wasm/entry.cpp; 2s local ... (4 actions, 3 running)
+[369 / 382] Compiling src/render/mesh_path.cpp; 0s linux-sandbox ... (4 actions, 3 running)
+[373 / 382] Compiling src/render/mesh_path.cpp; 2s linux-sandbox ... (4 actions, 3 running)
+[373 / 382] Compiling src/render/mesh_path.cpp; 3s linux-sandbox ... (4 actions running)
+[380 / 382] [Prepa] Linking voxy_wasm_cc
+[380 / 382] Linking voxy_wasm_cc; 1s local
+[380 / 382] Linking voxy_wasm_cc; 10s local
+[381 / 382] [Prepa] Action voxy_wasm/voxy_wasm_cc.js
+INFO: Found 2 targets...
+INFO: Elapsed time: 83.875s, Critical Path: 21.08s
+INFO: 171 processes: 27 action cache hit, 5 internal, 163 linux-sandbox, 3 local.
+INFO: Build completed successfully, 171 total actions

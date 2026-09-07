@@ -1,0 +1,74 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+[32m[INFO ] [00:00:00.000] Loading config: lego_world.cfg[0m
+[32m[INFO ] [00:00:00.000] ═══════════════════════════════════════════════════════════════[0m
+[32m[INFO ] [00:00:00.000]   Voxy - Terrain Renderer[0m
+[32m[INFO ] [00:00:00.000]   Build target: native[0m
+[32m[INFO ] [00:00:00.000]   Render path: raycast[0m
+[32m[INFO ] [00:00:00.000] ═══════════════════════════════════════════════════════════════[0m
+libdecor-gtk-WARNING: Failed to initialize GTK
+Failed to load plugin 'libdecor-gtk.so': failed to init
+[32m[INFO ] [00:00:00.127] [Application::init] Window created via Wayland: 1536x864 logical, 1920x1080 framebuffer (1.25x1.25 scale)[0m
+[32m[INFO ] [00:00:00.195] [Application::init::GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [00:00:00.195] [Application::init::GPU]   Vendor: radv[0m
+[32m[INFO ] [00:00:00.195] [Application::init::GPU]   Backend: Vulkan[0m
+[32m[INFO ] [00:00:00.195] [Application::init::GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [00:00:00.199] [Application::init::GPU] Surface configured: 1920x1080, format=BGRA8Unorm, presentation=Fifo (VSync)[0m
+[32m[INFO ] [00:00:00.199] [Application::init::GPU] GPU context initialized successfully[0m
+[32m[INFO ] [00:00:00.330] [Application::init] WebGPU physics initialized: 256 usable body slots, 0 MiB resident, 32 MiB scratch[0m
+[32m[INFO ] [00:00:00.330] [Application::init] Physics backend: webgpu_soft (scheduler internal, concurrency 1)[0m
+[32m[INFO ] [00:00:00.766] [Application::init] Decompressed 8192x8192 heightmap: 31803420 -> 134217728 bytes (427.79 ms)[0m
+[32m[INFO ] [00:00:00.766] [Application::init] Loaded LDH heightmap: 8192x8192 (128.00 MB, 427.79 ms)[0m
+[32m[INFO ] [00:00:00.766] [Application::init] Loaded heightmap: data/generated/td_seed_1234_8192.ldh[0m
+[32m[INFO ] [00:00:00.790] [Application::init] Authored Wreckwater cove: 8008 core samples, 11108 feather samples, height -237.3..-158.7 m[0m
+[32m[INFO ] [00:00:00.950] [Application::init] Uploaded heightmap to GPU with mips: 8192x8192 (14 levels, 170.67 MB total)[0m
+[32m[INFO ] [00:00:01.045] [Application::init] Coastal refraction field initialized: 1024x1024[0m
+[32m[INFO ] [00:00:01.051] [Application::init] FFT water simulation initialized: 2 cascades at 256x256[0m
+[32m[INFO ] [00:00:01.058] [Application::init::TrianglePath::init] TrianglePath initialized successfully[0m
+[32m[INFO ] [00:00:01.115] [Application::init::RaycastPath::init] RaycastPath initialized successfully (1920x1080 output)[0m
+[32m[INFO ] [00:00:01.379] [Application::init] Baked shadow height field: 4096x4096 (264.4 ms)[0m
+[32m[INFO ] [00:00:01.717] [Application::init::TerrainTextures::init::TerrainTextures::loadTerrainMaterials] Loaded CC0 terrain material arrays from 'data/materials' (1024x1024x4)[0m
+[32m[INFO ] [00:00:01.717] [Application::init::TerrainTextures::init] TerrainTextures initialized: macro 256x256, lightmap 1x1, materials 1024x1024x4[0m
+[32m[INFO ] [00:00:01.769] [Application::init::BlitPath::init] Created water clipmap: 18817 vertices, 33792 triangles[0m
+[32m[INFO ] [00:00:01.897] [Application::init::BlitPath::init] Loaded original generated ocean environment: data/generated/ocean_environment.png[0m
+[32m[INFO ] [00:00:03.008] [Application::init::BlitPath::init] BlitPath initialized successfully[0m
+[32m[INFO ] [00:00:03.008] [Application::init] LEGO layout: streamed world (4194304 bytes)[0m
+[32m[INFO ] [00:00:03.017] Application initialized successfully[0m
+[32m[INFO ] [00:00:03.017]   Window: 1536x864[0m
+[32m[INFO ] [00:00:03.017]   Terrain: 8192x8192 (mips: 14)[0m
+[32m[INFO ] [00:00:03.017]   Render path: raycast[0m
+[32m[INFO ] [00:00:03.017] [0m
+[32m[INFO ] [00:00:03.017] Controls:[0m
+[32m[INFO ] [00:00:03.017]   WASD      - Move camera[0m
+[32m[INFO ] [00:00:03.017]   Mouse     - Look around (click to capture)[0m
+[32m[INFO ] [00:00:03.017]   Shift     - Speed boost / Run[0m
+[32m[INFO ] [00:00:03.017]   E/Space   - Move up / Jump[0m
+[32m[INFO ] [00:00:03.017]   Q/Ctrl    - Move down[0m
+[32m[INFO ] [00:00:03.017]   F1        - Toggle debug overlay[0m
+[32m[INFO ] [00:00:03.017]   F2        - Toggle wireframe mode[0m
+[32m[INFO ] [00:00:03.017]   F3        - Toggle render path[0m
+[32m[INFO ] [00:00:03.017]   F4        - Toggle depth visualization[0m
+[32m[INFO ] [00:00:03.017]   F5        - Toggle normal visualization[0m
+[32m[INFO ] [00:00:03.017]   F6        - Toggle mip level heat map[0m
+[32m[INFO ] [00:00:03.017]   F7        - Toggle benchmark mode[0m
+[32m[INFO ] [00:00:03.017]   F8        - Toggle controller (free-fly/character)[0m
+[32m[INFO ] [00:00:03.017]   F9        - Toggle uncapped/VSync presentation[0m
+[32m[INFO ] [00:00:03.017]   Escape    - Release mouse / Exit[0m
+[32m[INFO ] [00:00:03.017]   Wheel     - Select throwable object[0m
+[32m[INFO ] [00:00:03.017]   Left click- Capture mouse / throw selected object[0m
+[32m[INFO ] [00:00:03.017]   Right click- Throw 128 selected objects[0m
+[32m[INFO ] [00:00:03.017] [0m
+[32m[INFO ] [00:00:03.017] Controller mode changed to: character (camera at 116.0, 63.4, 70.0)[0m
+[32m[INFO ] [00:00:03.017] Character config: terrainWidth=8191.0, terrainHeight=8191.0, heightScale=600.0[0m
+[32m[INFO ] [00:00:03.017] Terrain height at camera XZ (116.0, 70.0) = -8.5[0m
+[32m[INFO ] [00:00:03.017] Starting main loop (native)...[0m
+[32m[INFO ] [00:00:12.966] Capturing screenshot to: /home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/BOOT-03/native-world-memory.png[0m
+[32m[INFO ] [00:00:13.267] Saved screenshot to: /home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/BOOT-03/native-world-memory.png[0m
+[32m[INFO ] [00:00:13.267] Exit requested[0m
+[32m[INFO ] [00:00:13.267] Main loop ended[0m
+[32m[INFO ] [00:00:13.267] Shutting down application...[0m
+[32m[INFO ] [00:00:13.293] Application shutdown complete[0m
+Memory report: docs/validation/salvage/BOOT-03/native-world-memory.json

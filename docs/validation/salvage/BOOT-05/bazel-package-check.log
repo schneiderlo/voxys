@@ -1,0 +1,23 @@
+{
+  "package": "/tmp/voxys-boot05-bazel-web",
+  "referenced_static_assets": 17,
+  "served_shaders": 27,
+  "preload_files": 58,
+  "preload_bytes": 57674353,
+  "route_configs": [
+    "lego_shore.cfg",
+    "lego_world.cfg",
+    "ridgebreak.cfg",
+    "salvage.cfg",
+    "voxy.cfg"
+  ],
+  "keepalive_exports": {
+    "voxy_lego_action": "voxy_lego_action",
+    "voxy_get_lego_hud_json": "voxy_get_lego_hud_json",
+    "voxy_get_heap_used_bytes": "voxy_get_heap_used_bytes",
+    "voxy_salvage_preview_action": "voxy_salvage_preview_action",
+    "voxy_get_salvage_preview_json": "voxy_get_salvage_preview_json"
+  },
+  "http_files_verified": 0
+}
+PASS: served assets, source-matching preloads, route configs, and KEEPALIVE exports

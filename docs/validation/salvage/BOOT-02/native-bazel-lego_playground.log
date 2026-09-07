@@ -1,0 +1,69 @@
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //tests:lego_playground
+-----------------------------------------------------------------------------
+Running main() from gmock_main.cc
+[==========] Running 6 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 6 tests from LegoPlaygroundGpu
+[ RUN      ] LegoPlaygroundGpu.CompoundStudsSupportRealStackAndSleep
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [07:48:05.214] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [07:48:05.214] [GPU]   Vendor: radv[0m
+[32m[INFO ] [07:48:05.214] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [07:48:05.214] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [07:48:05.215] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [07:48:09.103] WebGPU physics initialized: 128 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[       OK ] LegoPlaygroundGpu.CompoundStudsSupportRealStackAndSleep (4384 ms)
+[ RUN      ] LegoPlaygroundGpu.BoxFootprintSupportsEdgeAndRejectsInvalidPlacement
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [07:48:09.571] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [07:48:09.571] [GPU]   Vendor: radv[0m
+[32m[INFO ] [07:48:09.571] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [07:48:09.572] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [07:48:09.573] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [07:48:13.160] WebGPU physics initialized: 128 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[       OK ] LegoPlaygroundGpu.BoxFootprintSupportsEdgeAndRejectsInvalidPlacement (4051 ms)
+[ RUN      ] LegoPlaygroundGpu.BallImpactWakesStackAndCompletesChallengeThenResetReplays
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [07:48:13.623] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [07:48:13.623] [GPU]   Vendor: radv[0m
+[32m[INFO ] [07:48:13.623] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [07:48:13.623] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [07:48:13.625] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [07:48:16.507] WebGPU physics initialized: 128 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[       OK ] LegoPlaygroundGpu.BallImpactWakesStackAndCompletesChallengeThenResetReplays (5043 ms)
+[ RUN      ] LegoPlaygroundGpu.PoolsStayBoundedAcrossImpactsAndReset
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [07:48:18.665] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [07:48:18.665] [GPU]   Vendor: radv[0m
+[32m[INFO ] [07:48:18.665] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [07:48:18.665] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [07:48:18.666] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [07:48:21.502] WebGPU physics initialized: 128 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[       OK ] LegoPlaygroundGpu.PoolsStayBoundedAcrossImpactsAndReset (3650 ms)
+[ RUN      ] LegoPlaygroundGpu.RaysDistinguishStudCapsFromGapsOnRotatedBrick
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [07:48:22.331] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [07:48:22.331] [GPU]   Vendor: radv[0m
+[32m[INFO ] [07:48:22.331] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [07:48:22.331] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [07:48:22.332] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [07:48:25.830] WebGPU physics initialized: 128 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[       OK ] LegoPlaygroundGpu.RaysDistinguishStudCapsFromGapsOnRotatedBrick (3557 ms)
+[ RUN      ] LegoPlaygroundGpu.RejectsUnboundedCompoundDescriptions
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [07:48:25.877] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [07:48:25.877] [GPU]   Vendor: radv[0m
+[32m[INFO ] [07:48:25.877] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [07:48:25.877] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [07:48:25.878] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [07:48:28.863] WebGPU physics initialized: 128 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[33m[WARN ] [07:48:28.869] Discarding unsupported LEGO compound dimensions[0m
+[33m[WARN ] [07:48:28.869] Discarding unsupported LEGO compound dimensions[0m
+[33m[WARN ] [07:48:28.869] Discarding unsupported LEGO compound dimensions[0m
+[       OK ] LegoPlaygroundGpu.RejectsUnboundedCompoundDescriptions (3017 ms)
+[----------] 6 tests from LegoPlaygroundGpu (23705 ms total)
+
+[----------] Global test environment tear-down
+[==========] 6 tests from 1 test suite ran. (23705 ms total)
+[  PASSED  ] 6 tests.

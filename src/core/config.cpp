@@ -17,6 +17,40 @@
 
 namespace voxy::config {
 
+GameModeResolution resolveGameMode(const Config& config) noexcept {
+    GameModeResolution result;
+    if (config.game.mode) {
+        const auto& mode = *config.game.mode;
+        if (mode == "terrain") result.mode = GameMode::Terrain;
+        else if (mode == "ridgebreak") result.mode = GameMode::Ridgebreak;
+        else if (mode == "lego-shore") result.mode = GameMode::LegoShore;
+        else if (mode == "lego-world") result.mode = GameMode::LegoWorld;
+        else if (mode == "salvage") result.mode = GameMode::Salvage;
+        else result.status = GameModeStatus::UnknownMode;
+    } else if (config.window.title == "RIDGEBREAK") {
+        result.mode = GameMode::Ridgebreak;
+    } else if (config.window.title == "LEGO SHORE") {
+        result.mode = GameMode::LegoShore;
+    } else if (config.window.title == "LEGO WORLD") {
+        result.mode = GameMode::LegoWorld;
+    }
+    if (result.ready() && result.mode == GameMode::Salvage
+        && validateWreckwaterClientConfig(config.wreckwaterClient)
+            != WreckwaterClientConfigStatus::Disabled) {
+        result.status = GameModeStatus::ConflictingBootstrap;
+    }
+    return result;
+}
+
+const char* gameModeStatusName(GameModeStatus status) noexcept {
+    switch (status) {
+    case GameModeStatus::Ready: return "ready";
+    case GameModeStatus::UnknownMode: return "unknown game mode";
+    case GameModeStatus::ConflictingBootstrap: return "salvage conflicts with WRECKWATER bootstrap";
+    }
+    return "invalid game mode status";
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Global State
 // ─────────────────────────────────────────────────────────────────────────────
@@ -631,6 +665,8 @@ Config load(std::string_view path) {
         
         std::string key = trim(trimmedLine.substr(0, eqPos));
         std::string value = trim(trimmedLine.substr(eqPos + 1));
+        // A malformed explicit route must not silently fall back to a legacy title.
+        if (currentSection == "game" && key == "mode") config.game.mode = "";
         
         // Strip inline comments (but be careful with # inside quotes)
         if (!value.empty() && (value[0] == '"' || value[0] == '\'')) {
@@ -657,7 +693,10 @@ Config load(std::string_view path) {
         bool sensitiveValue = false;
         
         // Apply value based on section and key
-        if (currentSection == "render") {
+        if (currentSection == "game") {
+            if (key == "mode") config.game.mode = value;
+        }
+        else if (currentSection == "render") {
             if (key == "path") config.render.path = value;
             else if (key == "resolution_scale") config.render.resolutionScale = parseFloat(value, config.render.resolutionScale);
             else if (key == "vsync") config.render.vsync = parseBool(value, config.render.vsync);
@@ -1014,6 +1053,10 @@ bool save(const Config& config, std::string_view path) {
     file << std::format("log_level = {}\n", quote(config.debug.logLevel));
     file << std::format("enable_validation = {}\n\n", config.debug.enableValidation ? "true" : "false");
     
+    if (config.game.mode) {
+        file << "[game]\n";
+        file << std::format("mode = {}\n\n", quote(*config.game.mode));
+    }
     file << "[window]\n";
     file << std::format("width = {}\n", config.window.width);
     file << std::format("height = {}\n", config.window.height);

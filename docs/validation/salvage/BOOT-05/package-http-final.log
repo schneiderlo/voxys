@@ -1,0 +1,23 @@
+{
+  "package": "/tmp/voxys-boot05-web",
+  "referenced_static_assets": 17,
+  "served_shaders": 27,
+  "preload_files": 58,
+  "preload_bytes": 57674353,
+  "route_configs": [
+    "lego_shore.cfg",
+    "lego_world.cfg",
+    "ridgebreak.cfg",
+    "salvage.cfg",
+    "voxy.cfg"
+  ],
+  "keepalive_exports": {
+    "voxy_lego_action": "db",
+    "voxy_get_lego_hud_json": "eb",
+    "voxy_get_heap_used_bytes": "hb",
+    "voxy_salvage_preview_action": "fb",
+    "voxy_get_salvage_preview_json": "gb"
+  },
+  "http_files_verified": 48
+}
+PASS: served assets, source-matching preloads, route configs, and KEEPALIVE exports

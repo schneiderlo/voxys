@@ -1,0 +1,70 @@
+{
+  "schema": 1,
+  "asset_id": "salvage.authoring_probe",
+  "asset_version": 1,
+  "purpose": "Authoring fixture only; not a gameplay metadata sidecar or approved game asset",
+  "parameters_m": {
+    "width": 0.1,
+    "length": 0.1,
+    "height": 20.0
+  },
+  "seed": 0,
+  "blender_version": "5.2.1 LTS",
+  "blender_build_hash": "9e2066aef7ef",
+  "generator": "tools/salvage_assets/authoring_probe.py",
+  "generator_sha256": "81edf36885bedff0f51380c89213094dad908d9287bbfd74987e363d392edbc0",
+  "export_settings": {
+    "export_format": "GLB",
+    "use_selection": true,
+    "export_yup": true,
+    "export_apply": true,
+    "export_materials": "EXPORT",
+    "export_normals": true,
+    "export_texcoords": true,
+    "export_tangents": true,
+    "export_animations": false,
+    "export_cameras": false,
+    "export_lights": false,
+    "export_extras": false
+  },
+  "probe_uv_quantization": "1/65536 before tangent generation",
+  "authoring_frame": "+Z up, -Y forward; metre scale applied",
+  "blender_to_gltf": "(x,y,z) -> (x,z,-y); exporter applies this once",
+  "gltf_to_canonical_remaining": [
+    [
+      -1,
+      0,
+      0
+    ],
+    [
+      0,
+      1,
+      0
+    ],
+    [
+      0,
+      0,
+      -1
+    ]
+  ],
+  "canonical_note": "Remaining proper 180-degree Y rotation is metadata only here; ASSET-02/04 implement and verify the engine bridge. Do not apply the raw Blender conversion to this GLB.",
+  "materials": "Inline PBR factors, one UV set, no external textures, no painted lighting",
+  "mesh_count": 4,
+  "triangle_count": 752,
+  "provenance": "Original procedural geometry authored for this project; no external reference or generated raster inputs",
+  "review_status": "authoring smoke only; game import/material/socket checks are later tasks",
+  "outputs": {
+    "probe.blend": {
+      "sha256": "736ff4d760f025209204c3dc9cca5052860f251d65ac08c24dd7e1cecaf6d1bc",
+      "bytes": 111752
+    },
+    "probe.glb": {
+      "sha256": "1029e4361fdecafab8653435ef191123dedc6169cba029cfa667364df4e33745",
+      "bytes": 107564
+    },
+    "preview.png": {
+      "sha256": "50d9fd7fa790941d4821c76c49f4882acd1ab51d3d3379b31902b80287106d91",
+      "bytes": 158699
+    }
+  }
+}

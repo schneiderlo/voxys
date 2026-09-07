@@ -1,0 +1,36 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+WARNING: Build options --compilation_mode, --copt, --platforms, and 1 more have changed, discarding analysis cache (this can be expensive, see https://bazel.build/advanced/performance/iteration-speed).
+Analyzing: 2 targets (0 packages loaded, 0 targets configured)
+Analyzing: 2 targets (0 packages loaded, 0 targets configured)
+
+Analyzing: 2 targets (0 packages loaded, 1859 targets configured)
+[6 / 6] 1 / 1 tests; no actions running
+INFO: Analyzed 2 targets (1 packages loaded, 3586 targets configured).
+[321 / 531] 1 / 2 tests; Compiling src/app/debug_overlay.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[488 / 531] 1 / 2 tests; Compiling src/app/application.cpp; 2s linux-sandbox ... (4 actions running)
+[525 / 531] 1 / 2 tests; Compiling src/app/application.cpp; 3s linux-sandbox ... (3 actions running)
+[528 / 531] 1 / 2 tests; [Prepa] Linking src/app/libapp.so
+[531 / 532] 1 / 2 tests; Testing //tests:voxy_tests; 0s linux-sandbox
+[531 / 532] 1 / 2 tests; Testing //tests:voxy_tests; 10s linux-sandbox
+[531 / 532] 1 / 2 tests; Testing //tests:voxy_tests; 40s linux-sandbox
+[531 / 532] 1 / 2 tests; Testing //tests:voxy_tests; 100s linux-sandbox
+[531 / 532] 1 / 2 tests; Testing //tests:voxy_tests; 160s linux-sandbox
+[531 / 532] 1 / 2 tests; Testing //tests:voxy_tests; 220s linux-sandbox
+[531 / 532] 1 / 2 tests; Testing //tests:voxy_tests; 280s linux-sandbox
+[531 / 532] 2 / 2 tests; Testing //tests:voxy_tests; 326s linux-sandbox
+INFO: Found 2 test targets...
+INFO: Elapsed time: 334.214s, Critical Path: 332.41s
+INFO: 15 processes: 518 action cache hit, 3 internal, 12 linux-sandbox.
+INFO: Build completed successfully, 15 total actions
+//tools:terrain_diffusion_import_test                           (cached) PASSED in 0.3s
+//tests:voxy_tests                                                       PASSED in 326.9s
+
+Executed 1 out of 2 tests: 2 tests pass.
+There were tests whose specified size is too big. Use the --test_verbose_timeout_warnings command line option to see which ones these are.

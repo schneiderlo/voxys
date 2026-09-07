@@ -20,6 +20,11 @@ int main(int argc, char* argv[]) {
     // Parse command-line arguments and load config
     voxy::config::init(argc, argv);
     const auto& config = voxy::config::get();
+    const auto gameMode = voxy::config::resolveGameMode(config);
+    if (!gameMode.ready()) {
+        LOG_ERROR("Game mode is {}", voxy::config::gameModeStatusName(gameMode.status));
+        return 1;
+    }
     const auto wreckwaterStatus =
         voxy::config::validateWreckwaterClientConfig(
             config.wreckwaterClient);
@@ -38,9 +43,9 @@ int main(int argc, char* argv[]) {
 
     // Configure the application from loaded config file
     voxy::ApplicationConfig appConfig;
-    appConfig.motoEnabled = config.window.title == "RIDGEBREAK";
-    appConfig.legoTerrainEnabled = config.window.title == "LEGO SHORE"
-        || config.window.title == "LEGO WORLD";
+    appConfig.motoEnabled = gameMode.mode == voxy::config::GameMode::Ridgebreak;
+    appConfig.legoTerrainEnabled = gameMode.legoTerrain();
+    appConfig.salvagePreviewEnabled = gameMode.mode == voxy::config::GameMode::Salvage;
 
     // Window settings
     appConfig.windowWidth = config.window.width;
@@ -110,7 +115,7 @@ int main(int argc, char* argv[]) {
         std::max(config.physics.box3dWorkerThreads, 1));
 
     // The playable LEGO crop must not inherit the full landscape's 8K target.
-    appConfig.heightmapWidth = config.window.title == "LEGO SHORE" ? 256u : 8192u;
+    appConfig.heightmapWidth = gameMode.terrainSizeHint();
     appConfig.heightmapHeight = appConfig.heightmapWidth;
 
     if (appConfig.heightmapPath.empty() ||

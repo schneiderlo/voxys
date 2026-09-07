@@ -1,0 +1,286 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+[1/3] Building CXX object tests/CMakeFiles/gltf_vmesh_tool_tests.dir/__/tools/gltf_vmesh_tool.cpp.o
+[2/3] Building CXX object tests/CMakeFiles/gltf_vmesh_tool_tests.dir/test_gltf_vmesh_tool.cpp.o
+[3/3] Linking CXX executable bin/gltf_vmesh_tool_tests
+Running main() from /home/modkin/workspace/schneiderlo/voxys/third_party/googletest/googletest/src/gtest_main.cc
+Note: Google Test filter = ConfigDefaultsTest.*:ConfigFileTest.*:ConfigUtilsTest.*:CommandLineArgsTest.*:LegoSurface.*:LegoPlaygroundGpu.*
+[==========] Running 70 tests from 6 test suites.
+[----------] Global test environment set-up.
+[----------] 6 tests from ConfigUtilsTest
+[ RUN      ] ConfigUtilsTest.Trim
+[       OK ] ConfigUtilsTest.Trim (0 ms)
+[ RUN      ] ConfigUtilsTest.ParseBool
+[       OK ] ConfigUtilsTest.ParseBool (0 ms)
+[ RUN      ] ConfigUtilsTest.ParseFloat
+[       OK ] ConfigUtilsTest.ParseFloat (0 ms)
+[ RUN      ] ConfigUtilsTest.ParseInt
+[       OK ] ConfigUtilsTest.ParseInt (0 ms)
+[ RUN      ] ConfigUtilsTest.GenericParseSupportsItsAdvertisedTypes
+[       OK ] ConfigUtilsTest.GenericParseSupportsItsAdvertisedTypes (0 ms)
+[ RUN      ] ConfigUtilsTest.WreckwaterKeyParserIsExactAndTransactional
+[       OK ] ConfigUtilsTest.WreckwaterKeyParserIsExactAndTransactional (0 ms)
+[----------] 6 tests from ConfigUtilsTest (0 ms total)
+
+[----------] 8 tests from ConfigDefaultsTest
+[ RUN      ] ConfigDefaultsTest.RenderConfig
+[       OK ] ConfigDefaultsTest.RenderConfig (0 ms)
+[ RUN      ] ConfigDefaultsTest.TerrainConfig
+[       OK ] ConfigDefaultsTest.TerrainConfig (0 ms)
+[ RUN      ] ConfigDefaultsTest.WaterConfig
+[       OK ] ConfigDefaultsTest.WaterConfig (0 ms)
+[ RUN      ] ConfigDefaultsTest.PhysicsConfig
+[       OK ] ConfigDefaultsTest.PhysicsConfig (0 ms)
+[ RUN      ] ConfigDefaultsTest.CameraConfig
+[       OK ] ConfigDefaultsTest.CameraConfig (0 ms)
+[ RUN      ] ConfigDefaultsTest.LightingConfig
+[       OK ] ConfigDefaultsTest.LightingConfig (0 ms)
+[ RUN      ] ConfigDefaultsTest.DebugConfig
+[       OK ] ConfigDefaultsTest.DebugConfig (0 ms)
+[ RUN      ] ConfigDefaultsTest.WindowConfig
+[       OK ] ConfigDefaultsTest.WindowConfig (0 ms)
+[----------] 8 tests from ConfigDefaultsTest (0 ms total)
+
+[----------] 21 tests from CommandLineArgsTest
+[ RUN      ] CommandLineArgsTest.DefaultValues
+[       OK ] CommandLineArgsTest.DefaultValues (0 ms)
+[ RUN      ] CommandLineArgsTest.CompleteWreckwaterBootstrapParsesBinaryKey
+[       OK ] CommandLineArgsTest.CompleteWreckwaterBootstrapParsesBinaryKey (0 ms)
+[ RUN      ] CommandLineArgsTest.WreckwaterBootstrapIsAllOrNoneAndMalformedKeysFail
+[       OK ] CommandLineArgsTest.WreckwaterBootstrapIsAllOrNoneAndMalformedKeysFail (0 ms)
+[ RUN      ] CommandLineArgsTest.HelpFlag
+[       OK ] CommandLineArgsTest.HelpFlag (0 ms)
+[ RUN      ] CommandLineArgsTest.ConfigPath
+[       OK ] CommandLineArgsTest.ConfigPath (0 ms)
+[ RUN      ] CommandLineArgsTest.RenderPath
+[       OK ] CommandLineArgsTest.RenderPath (0 ms)
+[ RUN      ] CommandLineArgsTest.PhysicsBackendAndCpuSchedulers
+[       OK ] CommandLineArgsTest.PhysicsBackendAndCpuSchedulers (0 ms)
+[ RUN      ] CommandLineArgsTest.WindowSize
+[       OK ] CommandLineArgsTest.WindowSize (0 ms)
+[ RUN      ] CommandLineArgsTest.Fullscreen
+[       OK ] CommandLineArgsTest.Fullscreen (0 ms)
+[ RUN      ] CommandLineArgsTest.LogLevel
+[       OK ] CommandLineArgsTest.LogLevel (0 ms)
+[ RUN      ] CommandLineArgsTest.NoValidation
+[       OK ] CommandLineArgsTest.NoValidation (0 ms)
+[ RUN      ] CommandLineArgsTest.Benchmark
+[       OK ] CommandLineArgsTest.Benchmark (0 ms)
+[ RUN      ] CommandLineArgsTest.BenchmarkBodiesEnableBenchmark
+[       OK ] CommandLineArgsTest.BenchmarkBodiesEnableBenchmark (0 ms)
+[ RUN      ] CommandLineArgsTest.BenchmarkMinimumFpsEnablesBenchmark
+[       OK ] CommandLineArgsTest.BenchmarkMinimumFpsEnablesBenchmark (0 ms)
+[ RUN      ] CommandLineArgsTest.BenchmarkFixedHzEnablesBenchmark
+[       OK ] CommandLineArgsTest.BenchmarkFixedHzEnablesBenchmark (0 ms)
+[ RUN      ] CommandLineArgsTest.ScreenshotTourCountIsBoundedBeforeAllocation
+[       OK ] CommandLineArgsTest.ScreenshotTourCountIsBoundedBeforeAllocation (0 ms)
+[ RUN      ] CommandLineArgsTest.MultipleArgs
+[       OK ] CommandLineArgsTest.MultipleArgs (0 ms)
+[ RUN      ] CommandLineArgsTest.PresentationOverrides
+[       OK ] CommandLineArgsTest.PresentationOverrides (0 ms)
+[ RUN      ] CommandLineArgsTest.InvalidArgcAndNullEntriesAreSafe
+[WARN ] [07:35:56.970] Unknown argument: --width
+[WARN ] [07:35:56.970] Ignoring null command-line argument 2
+[       OK ] CommandLineArgsTest.InvalidArgcAndNullEntriesAreSafe (0 ms)
+[ RUN      ] CommandLineArgsTest.HeightmapPath
+[       OK ] CommandLineArgsTest.HeightmapPath (0 ms)
+[ RUN      ] CommandLineArgsTest.AllOverridesTogether
+[       OK ] CommandLineArgsTest.AllOverridesTogether (0 ms)
+[----------] 21 tests from CommandLineArgsTest (0 ms total)
+
+[----------] 19 tests from ConfigFileTest
+[ RUN      ] ConfigFileTest.LoadNonexistentFile
+[       OK ] ConfigFileTest.LoadNonexistentFile (0 ms)
+[ RUN      ] ConfigFileTest.LoadBasicConfig
+[INFO ] [07:35:56.970] Loading config: /tmp/nix-shell-268014-1751356123/voxy_ConfigFileTest_LoadBasicConfig.cfg
+[       OK ] ConfigFileTest.LoadBasicConfig (0 ms)
+[ RUN      ] ConfigFileTest.LoadsCompleteWreckwaterBootstrapWithoutPrintableKeyState
+[INFO ] [07:35:56.970] Loading config: /tmp/nix-shell-268014-1751356123/voxy_ConfigFileTest_LoadsCompleteWreckwaterBootstrapWithoutPrintableKeyState.cfg
+[INFO ] [07:35:56.970] Saved config: /tmp/nix-shell-268014-1751356123/voxy_ConfigFileTest_LoadsCompleteWreckwaterBootstrapWithoutPrintableKeyState.cfg
+[       OK ] ConfigFileTest.LoadsCompleteWreckwaterBootstrapWithoutPrintableKeyState (0 ms)
+[ RUN      ] ConfigFileTest.CommandLineCanCompleteWreckwaterFileAtomically
+[INFO ] [07:35:56.970] Loading config: /tmp/nix-shell-268014-1751356123/voxy_ConfigFileTest_CommandLineCanCompleteWreckwaterFileAtomically.cfg
+[       OK ] ConfigFileTest.CommandLineCanCompleteWreckwaterFileAtomically (0 ms)
+[ RUN      ] ConfigFileTest.ZeroWreckwaterKeyAndIdentityFailValidation
+[       OK ] ConfigFileTest.ZeroWreckwaterKeyAndIdentityFailValidation (0 ms)
+[ RUN      ] ConfigFileTest.LoadAllSections
+[INFO ] [07:35:56.970] Loading config: /tmp/nix-shell-268014-1751356123/voxy_ConfigFileTest_LoadAllSections.cfg
+[       OK ] ConfigFileTest.LoadAllSections (0 ms)
+[ RUN      ] ConfigFileTest.IgnoresComments
+[INFO ] [07:35:56.970] Loading config: /tmp/nix-shell-268014-1751356123/voxy_ConfigFileTest_IgnoresComments.cfg
+[       OK ] ConfigFileTest.IgnoresComments (0 ms)
+[ RUN      ] ConfigFileTest.CommandLineOverrides
+[INFO ] [07:35:56.970] Loading config: /tmp/nix-shell-268014-1751356123/voxy_ConfigFileTest_CommandLineOverrides.cfg
+[       OK ] ConfigFileTest.CommandLineOverrides (0 ms)
+[ RUN      ] ConfigFileTest.CommandLineBenchmarkEnablesAutomation
+[       OK ] ConfigFileTest.CommandLineBenchmarkEnablesAutomation (0 ms)
+[ RUN      ] ConfigFileTest.SaveAndReload
+[INFO ] [07:35:56.970] Saved config: /tmp/nix-shell-268014-1751356123/voxy_ConfigFileTest_SaveAndReload.cfg
+[INFO ] [07:35:56.970] Loading config: /tmp/nix-shell-268014-1751356123/voxy_ConfigFileTest_SaveAndReload.cfg
+[       OK ] ConfigFileTest.SaveAndReload (0 ms)
+[ RUN      ] ConfigFileTest.InvalidWaterNumbersKeepCurrentDefaults
+[INFO ] [07:35:56.970] Loading config: /tmp/nix-shell-268014-1751356123/voxy_ConfigFileTest_InvalidWaterNumbersKeepCurrentDefaults.cfg
+[       OK ] ConfigFileTest.InvalidWaterNumbersKeepCurrentDefaults (0 ms)
+[ RUN      ] ConfigFileTest.InvalidBroadPhaseCellSizesKeepCurrentValue
+[INFO ] [07:35:56.970] Loading config: /tmp/nix-shell-268014-1751356123/voxy_ConfigFileTest_InvalidBroadPhaseCellSizesKeepCurrentValue.cfg
+[WARN ] [07:35:56.970] Config line 4: [physics] broad_phase_cell_size must be positive and evenly divide 256; keeping 8
+[       OK ] ConfigFileTest.InvalidBroadPhaseCellSizesKeepCurrentValue (0 ms)
+[ RUN      ] ConfigFileTest.InvalidDuplicateValuesKeepEarlierValidValues
+[INFO ] [07:35:56.970] Loading config: /tmp/nix-shell-268014-1751356123/voxy_ConfigFileTest_InvalidDuplicateValuesKeepEarlierValidValues.cfg
+[       OK ] ConfigFileTest.InvalidDuplicateValuesKeepEarlierValidValues (0 ms)
+[ RUN      ] ConfigFileTest.MalformedVectorsAndQuotesPreserveEarlierValues
+[INFO ] [07:35:56.970] Loading config: /tmp/nix-shell-268014-1751356123/voxy_ConfigFileTest_MalformedVectorsAndQuotesPreserveEarlierValues.cfg
+[WARN ] [07:35:56.970] Config line 10: unterminated quoted value
+[WARN ] [07:35:56.970] Config line 11: invalid text after quoted value
+[       OK ] ConfigFileTest.MalformedVectorsAndQuotesPreserveEarlierValues (0 ms)
+[ RUN      ] ConfigFileTest.SaveAndReloadEscapedStrings
+[INFO ] [07:35:56.970] Saved config: /tmp/nix-shell-268014-1751356123/voxy_ConfigFileTest_SaveAndReloadEscapedStrings.cfg
+[INFO ] [07:35:56.970] Loading config: /tmp/nix-shell-268014-1751356123/voxy_ConfigFileTest_SaveAndReloadEscapedStrings.cfg
+[       OK ] ConfigFileTest.SaveAndReloadEscapedStrings (0 ms)
+[ RUN      ] ConfigFileTest.ReflectionStrengthIsClampedToDocumentedRange
+[INFO ] [07:35:56.970] Loading config: /tmp/nix-shell-268014-1751356123/voxy_ConfigFileTest_ReflectionStrengthIsClampedToDocumentedRange.cfg
+[WARN ] [07:35:56.970] Config line 3: [water] reflection_strength 1.5 is outside [0, 1] and will be clamped
+[INFO ] [07:35:56.970] Loading config: /tmp/nix-shell-268014-1751356123/voxy_ConfigFileTest_ReflectionStrengthIsClampedToDocumentedRange.cfg
+[WARN ] [07:35:56.970] Config line 3: [water] reflection_strength -0.25 is outside [0, 1] and will be clamped
+[       OK ] ConfigFileTest.ReflectionStrengthIsClampedToDocumentedRange (0 ms)
+[ RUN      ] ConfigFileTest.SaveReportsDeviceWriteFailure
+[ERROR] [07:35:56.970] Failed while writing config: /dev/full
+[       OK ] ConfigFileTest.SaveReportsDeviceWriteFailure (0 ms)
+[ RUN      ] ConfigFileTest.AllSettingsPreserved
+[INFO ] [07:35:56.970] Loading config: /tmp/nix-shell-268014-1751356123/voxy_ConfigFileTest_AllSettingsPreserved.cfg
+[       OK ] ConfigFileTest.AllSettingsPreserved (0 ms)
+[ RUN      ] ConfigFileTest.CommandLineOverridesAllSettings
+[INFO ] [07:35:56.970] Loading config: /tmp/nix-shell-268014-1751356123/voxy_ConfigFileTest_CommandLineOverridesAllSettings.cfg
+[       OK ] ConfigFileTest.CommandLineOverridesAllSettings (0 ms)
+[----------] 19 tests from ConfigFileTest (0 ms total)
+
+[----------] 10 tests from LegoSurface
+[ RUN      ] LegoSurface.QuantizesAllRawSamplesWithinHalfAPlate
+[       OK ] LegoSurface.QuantizesAllRawSamplesWithinHalfAPlate (0 ms)
+[ RUN      ] LegoSurface.ChunkOwnershipCoversOnlyEqualLevelsWithoutChangingGround
+[       OK ] LegoSurface.ChunkOwnershipCoversOnlyEqualLevelsWithoutChangingGround (0 ms)
+[ RUN      ] LegoSurface.SphereContactsStudCapSideRimAndVerticalStep
+[       OK ] LegoSurface.SphereContactsStudCapSideRimAndVerticalStep (0 ms)
+[ RUN      ] LegoSurface.CapsuleSupportIncludesStudsBetweenHeightProbes
+[       OK ] LegoSurface.CapsuleSupportIncludesStudsBetweenHeightProbes (0 ms)
+[ RUN      ] LegoSurface.PlayerCrossesChunksAndPlateStepsButStopsAtCliff
+[       OK ] LegoSurface.PlayerCrossesChunksAndPlateStepsButStopsAtCliff (4 ms)
+[ RUN      ] LegoSurface.PlayerLandsAndJumpsInNegativeHeightSector
+[       OK ] LegoSurface.PlayerLandsAndJumpsInNegativeHeightSector (0 ms)
+[ RUN      ] LegoSurface.ChunkBuilderMatchesStudyAndFullMapEdges
+[       OK ] LegoSurface.ChunkBuilderMatchesStudyAndFullMapEdges (32 ms)
+[ RUN      ] LegoSurface.LayoutCacheIsBoundedReusesRowsAndRejectsStaleSlots
+[       OK ] LegoSurface.LayoutCacheIsBoundedReusesRowsAndRejectsStaleSlots (0 ms)
+[ RUN      ] LegoSurface.TerrainModeSwitchPreservesLiveCharacter
+[       OK ] LegoSurface.TerrainModeSwitchPreservesLiveCharacter (0 ms)
+[ RUN      ] LegoSurface.LongJointsStaggerAcrossAdjacentCourses
+[       OK ] LegoSurface.LongJointsStaggerAcrossAdjacentCourses (0 ms)
+[----------] 10 tests from LegoSurface (38 ms total)
+
+[----------] 6 tests from LegoPlaygroundGpu
+[ RUN      ] LegoPlaygroundGpu.CompoundStudsSupportRealStackAndSleep
+[INFO ] [07:35:57.072] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [07:35:57.072] [GPU]   Vendor: radv
+[INFO ] [07:35:57.072] [GPU]   Backend: Vulkan
+[INFO ] [07:35:57.072] [GPU]   Type: Integrated GPU
+[INFO ] [07:35:57.074] [GPU] Headless GPU context initialized successfully
+[INFO ] [07:36:00.913] WebGPU physics initialized: 128 usable body slots, 0 MiB resident, 0 MiB scratch
+[       OK ] LegoPlaygroundGpu.CompoundStudsSupportRealStackAndSleep (4387 ms)
+[ RUN      ] LegoPlaygroundGpu.BoxFootprintSupportsEdgeAndRejectsInvalidPlacement
+[INFO ] [07:36:01.429] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [07:36:01.429] [GPU]   Vendor: radv
+[INFO ] [07:36:01.429] [GPU]   Backend: Vulkan
+[INFO ] [07:36:01.429] [GPU]   Type: Integrated GPU
+[INFO ] [07:36:01.431] [GPU] Headless GPU context initialized successfully
+[INFO ] [07:36:01.528] WebGPU physics initialized: 128 usable body slots, 0 MiB resident, 0 MiB scratch
+[       OK ] LegoPlaygroundGpu.BoxFootprintSupportsEdgeAndRejectsInvalidPlacement (592 ms)
+[ RUN      ] LegoPlaygroundGpu.BallImpactWakesStackAndCompletesChallengeThenResetReplays
+[INFO ] [07:36:02.021] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [07:36:02.021] [GPU]   Vendor: radv
+[INFO ] [07:36:02.021] [GPU]   Backend: Vulkan
+[INFO ] [07:36:02.021] [GPU]   Type: Integrated GPU
+[INFO ] [07:36:02.022] [GPU] Headless GPU context initialized successfully
+[INFO ] [07:36:02.113] WebGPU physics initialized: 128 usable body slots, 0 MiB resident, 0 MiB scratch
+[       OK ] LegoPlaygroundGpu.BallImpactWakesStackAndCompletesChallengeThenResetReplays (2427 ms)
+[ RUN      ] LegoPlaygroundGpu.PoolsStayBoundedAcrossImpactsAndReset
+[INFO ] [07:36:04.442] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [07:36:04.442] [GPU]   Vendor: radv
+[INFO ] [07:36:04.442] [GPU]   Backend: Vulkan
+[INFO ] [07:36:04.442] [GPU]   Type: Integrated GPU
+[INFO ] [07:36:04.443] [GPU] Headless GPU context initialized successfully
+[INFO ] [07:36:04.538] WebGPU physics initialized: 128 usable body slots, 0 MiB resident, 0 MiB scratch
+[       OK ] LegoPlaygroundGpu.PoolsStayBoundedAcrossImpactsAndReset (948 ms)
+[ RUN      ] LegoPlaygroundGpu.RaysDistinguishStudCapsFromGapsOnRotatedBrick
+[INFO ] [07:36:05.390] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [07:36:05.390] [GPU]   Vendor: radv
+[INFO ] [07:36:05.390] [GPU]   Backend: Vulkan
+[INFO ] [07:36:05.390] [GPU]   Type: Integrated GPU
+[INFO ] [07:36:05.391] [GPU] Headless GPU context initialized successfully
+[INFO ] [07:36:05.482] WebGPU physics initialized: 128 usable body slots, 0 MiB resident, 0 MiB scratch
+[       OK ] LegoPlaygroundGpu.RaysDistinguishStudCapsFromGapsOnRotatedBrick (141 ms)
+[ RUN      ] LegoPlaygroundGpu.RejectsUnboundedCompoundDescriptions
+[INFO ] [07:36:05.537] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [07:36:05.538] [GPU]   Vendor: radv
+[INFO ] [07:36:05.538] [GPU]   Backend: Vulkan
+[INFO ] [07:36:05.538] [GPU]   Type: Integrated GPU
+[INFO ] [07:36:05.539] [GPU] Headless GPU context initialized successfully
+[INFO ] [07:36:05.595] WebGPU physics initialized: 128 usable body slots, 0 MiB resident, 0 MiB scratch
+[WARN ] [07:36:05.596] Discarding unsupported LEGO compound dimensions
+[WARN ] [07:36:05.596] Discarding unsupported LEGO compound dimensions
+[WARN ] [07:36:05.596] Discarding unsupported LEGO compound dimensions
+[       OK ] LegoPlaygroundGpu.RejectsUnboundedCompoundDescriptions (94 ms)
+[----------] 6 tests from LegoPlaygroundGpu (8592 ms total)
+
+[----------] Global test environment tear-down
+[==========] 70 tests from 6 test suites ran. (8632 ms total)
+[  PASSED  ] 70 tests.
+Running main() from /home/modkin/workspace/schneiderlo/voxys/third_party/googletest/googletest/src/gtest_main.cc
+[==========] Running 19 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 19 tests from GltfVmeshTool
+[ RUN      ] GltfVmeshTool.ConvertsTriangle
+[       OK ] GltfVmeshTool.ConvertsTriangle (0 ms)
+[ RUN      ] GltfVmeshTool.NonIndexedSynthesizesIndices
+[       OK ] GltfVmeshTool.NonIndexedSynthesizesIndices (0 ms)
+[ RUN      ] GltfVmeshTool.MissingNormalDefaultsUp
+[       OK ] GltfVmeshTool.MissingNormalDefaultsUp (0 ms)
+[ RUN      ] GltfVmeshTool.DecodesTextureAsSrgbRgba8
+[       OK ] GltfVmeshTool.DecodesTextureAsSrgbRgba8 (0 ms)
+[ RUN      ] GltfVmeshTool.NodeHierarchyPreservesParents
+[       OK ] GltfVmeshTool.NodeHierarchyPreservesParents (0 ms)
+[ RUN      ] GltfVmeshTool.AnimationsConvertAndRoundTrip
+[       OK ] GltfVmeshTool.AnimationsConvertAndRoundTrip (0 ms)
+[ RUN      ] GltfVmeshTool.RejectsOverflowingStringBlobSize
+[       OK ] GltfVmeshTool.RejectsOverflowingStringBlobSize (0 ms)
+[ RUN      ] GltfVmeshTool.RejectsOverflowingAnimationRanges
+[       OK ] GltfVmeshTool.RejectsOverflowingAnimationRanges (0 ms)
+[ RUN      ] GltfVmeshTool.SkinsPreserveJoints
+[       OK ] GltfVmeshTool.SkinsPreserveJoints (0 ms)
+[ RUN      ] GltfVmeshTool.DefaultMaterialSynthesized
+[       OK ] GltfVmeshTool.DefaultMaterialSynthesized (0 ms)
+[ RUN      ] GltfVmeshTool.MaterialFlagsUnlitAndDoubleSided
+[       OK ] GltfVmeshTool.MaterialFlagsUnlitAndDoubleSided (0 ms)
+[ RUN      ] GltfVmeshTool.EmptyInputFails
+[       OK ] GltfVmeshTool.EmptyInputFails (0 ms)
+[ RUN      ] GltfVmeshTool.GarbageInputFails
+[       OK ] GltfVmeshTool.GarbageInputFails (0 ms)
+[ RUN      ] GltfVmeshTool.TruncatedGlbFails
+[       OK ] GltfVmeshTool.TruncatedGlbFails (0 ms)
+[ RUN      ] GltfVmeshTool.NonFinitePositionFails
+[       OK ] GltfVmeshTool.NonFinitePositionFails (0 ms)
+[ RUN      ] GltfVmeshTool.NonTriangleModeFails
+[       OK ] GltfVmeshTool.NonTriangleModeFails (0 ms)
+[ RUN      ] GltfVmeshTool.OutOfRangeIndexFails
+[       OK ] GltfVmeshTool.OutOfRangeIndexFails (0 ms)
+[ RUN      ] GltfVmeshTool.MissingAccessorFails
+[       OK ] GltfVmeshTool.MissingAccessorFails (0 ms)
+[ RUN      ] GltfVmeshTool.SparseAccessorFails
+[       OK ] GltfVmeshTool.SparseAccessorFails (0 ms)
+[----------] 19 tests from GltfVmeshTool (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 19 tests from 1 test suite ran. (0 ms total)
+[  PASSED  ] 19 tests.

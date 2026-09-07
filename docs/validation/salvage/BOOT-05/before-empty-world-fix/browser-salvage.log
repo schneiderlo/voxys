@@ -1,0 +1,11 @@
+PASS: visible landscape (3277 sampled colors, variance 4905.8)
+file:///home/modkin/workspace/schneiderlo/voxys/scripts/validate_salvage_preview.mjs:22
+        throw Error(`${label} timed out; last=${JSON.stringify(last)} error=${lastError || 'none'}`);
+              ^
+
+Error: Reset button acknowledgement timed out; last=false error=none
+    at waitFor (file:///home/modkin/workspace/schneiderlo/voxys/scripts/validate_salvage_preview.mjs:22:15)
+    at async validateSalvagePreview (file:///home/modkin/workspace/schneiderlo/voxys/scripts/validate_salvage_preview.mjs:104:9)
+    at async file:///home/modkin/workspace/schneiderlo/voxys/scripts/smoke_integrated_wasm.mjs:350:32
+
+Node.js v22.23.1

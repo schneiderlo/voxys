@@ -1,0 +1,60 @@
+{
+  "status": "passed",
+  "routes": [
+    {
+      "scene": "default",
+      "exit_code": 0,
+      "report": "docs/validation/salvage/BOOT-05/browser-legacy/default.json",
+      "command": [
+        "node",
+        "scripts/smoke_integrated_wasm.mjs",
+        "/tmp/voxys-boot05-web",
+        "default"
+      ]
+    },
+    {
+      "scene": "lego-world",
+      "exit_code": 0,
+      "report": "docs/validation/salvage/BOOT-05/browser-legacy/lego-world.json",
+      "command": [
+        "node",
+        "scripts/smoke_integrated_wasm.mjs",
+        "/tmp/voxys-boot05-web",
+        "lego-world"
+      ]
+    },
+    {
+      "scene": "lego",
+      "exit_code": 0,
+      "report": "docs/validation/salvage/BOOT-05/browser-legacy/lego.json",
+      "command": [
+        "node",
+        "scripts/smoke_integrated_wasm.mjs",
+        "/tmp/voxys-boot05-web",
+        "lego"
+      ]
+    },
+    {
+      "scene": "terrain",
+      "exit_code": 0,
+      "report": "docs/validation/salvage/BOOT-05/browser-legacy/terrain.json",
+      "command": [
+        "node",
+        "scripts/smoke_integrated_wasm.mjs",
+        "/tmp/voxys-boot05-web",
+        "terrain"
+      ]
+    },
+    {
+      "scene": "ridgebreak",
+      "exit_code": 0,
+      "report": "docs/validation/salvage/BOOT-05/browser-legacy/ridgebreak.json",
+      "command": [
+        "node",
+        "scripts/smoke_integrated_wasm.mjs",
+        "/tmp/voxys-boot05-web",
+        "ridgebreak"
+      ]
+    }
+  ]
+}

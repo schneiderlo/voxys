@@ -201,7 +201,32 @@ validateWreckwaterClientConfig(
     std::string_view value,
     std::array<std::byte, 32>& output) noexcept;
 
+enum class GameMode : uint8_t {
+    Terrain, Ridgebreak, LegoShore, LegoWorld, Salvage,
+};
+
+struct GameConfig {
+    // Absence preserves legacy title-based routes. An explicit empty value is invalid.
+    std::optional<std::string> mode;
+};
+
+enum class GameModeStatus : uint8_t { Ready, UnknownMode, ConflictingBootstrap };
+
+struct GameModeResolution {
+    GameMode mode = GameMode::Terrain;
+    GameModeStatus status = GameModeStatus::Ready;
+    [[nodiscard]] bool ready() const noexcept { return status == GameModeStatus::Ready; }
+    [[nodiscard]] bool legoTerrain() const noexcept {
+        return mode == GameMode::LegoShore || mode == GameMode::LegoWorld
+            || mode == GameMode::Salvage;
+    }
+    [[nodiscard]] uint32_t terrainSizeHint() const noexcept {
+        return mode == GameMode::LegoShore || mode == GameMode::Salvage ? 256u : 8192u;
+    }
+};
+
 struct Config {
+    GameConfig game;
     RenderConfig render;
     TerrainConfig terrain;
     WaterConfig water;
@@ -215,6 +240,9 @@ struct Config {
     
     [[nodiscard]] constexpr auto operator<=>(const Config&) const = delete;
 };
+
+[[nodiscard]] GameModeResolution resolveGameMode(const Config& config) noexcept;
+[[nodiscard]] const char* gameModeStatusName(GameModeStatus status) noexcept;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Command-Line Arguments

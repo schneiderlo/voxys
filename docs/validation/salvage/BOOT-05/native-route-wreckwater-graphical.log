@@ -1,0 +1,146 @@
+[32m[INFO ] [00:00:00.000] Loading config: voxy.cfg[0m
+[32m[INFO ] [00:00:00.000] ═══════════════════════════════════════════════════════════════[0m
+[32m[INFO ] [00:00:00.000]   Voxy - Terrain Renderer[0m
+[32m[INFO ] [00:00:00.000]   Build target: native[0m
+[32m[INFO ] [00:00:00.000]   Render path: raycast[0m
+[32m[INFO ] [00:00:00.000] ═══════════════════════════════════════════════════════════════[0m
+[36m[DEBUG] [00:00:00.000] [Application::init] Initializing window...[0m
+libdecor-gtk-WARNING: Failed to initialize GTK
+Failed to load plugin 'libdecor-gtk.so': failed to init
+[36m[DEBUG] [00:00:00.021] [Application::init] GLFW initialized successfully[0m
+[36m[DEBUG] [00:00:00.021] [Application::init] GLFW version: 3.4.0[0m
+[32m[INFO ] [00:00:00.094] [Application::init] Window created via Wayland: 1280x720 logical, 1600x900 framebuffer (1.25x1.25 scale)[0m
+[36m[DEBUG] [00:00:00.094] [Application::init] Window created: 1280x720[0m
+[36m[DEBUG] [00:00:00.094] [Application::init] Initializing GPU context...[0m
+[36m[DEBUG] [00:00:00.128] [Application::init::GPU] WebGPU instance created[0m
+[36m[DEBUG] [00:00:00.134] [Application::init::GPU] WebGPU surface created for Wayland[0m
+[36m[DEBUG] [00:00:00.139] [Application::init::GPU] GPU adapter acquired[0m
+[32m[INFO ] [00:00:00.139] [Application::init::GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [00:00:00.139] [Application::init::GPU]   Vendor: radv[0m
+[32m[INFO ] [00:00:00.139] [Application::init::GPU]   Backend: Vulkan[0m
+[32m[INFO ] [00:00:00.139] [Application::init::GPU]   Type: Integrated GPU[0m
+[36m[DEBUG] [00:00:00.140] [Application::init::GPU] GPU device created[0m
+[32m[INFO ] [00:00:00.141] [Application::init::GPU] Surface configured: 1600x900, format=BGRA8Unorm, presentation=Fifo (VSync)[0m
+[32m[INFO ] [00:00:00.141] [Application::init::GPU] GPU context initialized successfully[0m
+[36m[DEBUG] [00:00:00.141] [Application::init] GPU context initialized[0m
+[36m[DEBUG] [00:00:00.141] [Application::init] Initializing input system...[0m
+[36m[DEBUG] [00:00:00.141] [Application::init] Input attached to window[0m
+[36m[DEBUG] [00:00:00.141] [Application::init] Input system initialized[0m
+[36m[DEBUG] [00:00:00.141] [Application::init] Initializing camera...[0m
+[36m[DEBUG] [00:00:00.147] [Application::init] Created shader module 'physics_ballistic.wgsl' (84321 bytes)[0m
+[36m[DEBUG] [00:00:00.151] [Application::init] Created shader module 'physics_deterministic_primitives.wgsl' (19014 bytes)[0m
+[36m[DEBUG] [00:00:00.153] [Application::init] Created shader module 'physics_ccd.wgsl' (20863 bytes)[0m
+[36m[DEBUG] [00:00:00.154] [Application::init] Created shader module 'physics_deterministic_primitives.wgsl' (19014 bytes)[0m
+[36m[DEBUG] [00:00:00.159] [Application::init] Created shader module 'physics_broad_phase.wgsl' (81478 bytes)[0m
+[36m[DEBUG] [00:00:00.163] [Application::init] Created shader module 'physics_deterministic_primitives.wgsl' (19014 bytes)[0m
+[36m[DEBUG] [00:00:00.168] [Application::init] Created shader module 'physics_narrow_phase.wgsl' (91691 bytes)[0m
+[36m[DEBUG] [00:00:00.179] [Application::init] Created shader module 'physics_deterministic_primitives.wgsl' (19014 bytes)[0m
+[36m[DEBUG] [00:00:00.183] [Application::init] Created shader module 'physics_dynamic_solver.wgsl' (79489 bytes)[0m
+[36m[DEBUG] [00:00:00.189] [Application::init] Created shader module 'physics_attachments.wgsl' (11299 bytes)[0m
+[36m[DEBUG] [00:00:00.191] [Application::init] Created shader module 'physics_deterministic_primitives.wgsl' (19014 bytes)[0m
+[36m[DEBUG] [00:00:00.193] [Application::init] Created shader module 'physics_islands.wgsl' (47463 bytes)[0m
+[36m[DEBUG] [00:00:00.197] [Application::init] Created shader module 'physics_queries.wgsl' (36482 bytes)[0m
+[32m[INFO ] [00:00:00.197] [Application::init] WebGPU physics initialized: 131072 usable body slots, 30 MiB resident, 33 MiB scratch[0m
+[32m[INFO ] [00:00:00.197] [Application::init] Physics backend: webgpu_soft (scheduler internal, concurrency 1)[0m
+[36m[DEBUG] [00:00:00.197] [Application::init] Camera initialized at (0, 80, 0)[0m
+[36m[DEBUG] [00:00:00.197] [Application::init] Initializing terrain...[0m
+[32m[INFO ] [00:00:00.532] [Application::init] Decompressed 8192x8192 heightmap: 31803420 -> 134217728 bytes (324.57 ms)[0m
+[32m[INFO ] [00:00:00.533] [Application::init] Loaded LDH heightmap: 8192x8192 (128.00 MB, 324.57 ms)[0m
+[32m[INFO ] [00:00:00.533] [Application::init] Loaded heightmap: data/generated/td_seed_1234_8192.ldh[0m
+[32m[INFO ] [00:00:00.556] [Application::init] Authored Wreckwater cove: 8008 core samples, 11108 feather samples, height -237.3..-158.7 m[0m
+[36m[DEBUG] [00:00:00.681] [Application::init] Generated 13 mip levels on CPU for 8192x8192 heightmap[0m
+[32m[INFO ] [00:00:00.681] [Application::init] Uploaded heightmap to GPU with mips: 8192x8192 (14 levels, 170.67 MB total)[0m
+[36m[DEBUG] [00:00:00.709] [Application::init] Terrain initialized: 8192x8192 with 14 mip levels[0m
+[36m[DEBUG] [00:00:00.709] [Application::init] Initializing renderers...[0m
+[32m[INFO ] [00:00:00.759] [Application::init] Coastal refraction field initialized: 1024x1024[0m
+[36m[DEBUG] [00:00:00.760] [Application::init] Created shader module 'water_fft.wgsl' (7677 bytes)[0m
+[36m[DEBUG] [00:00:00.760] [Application::init] Created shader module 'water_finalize.wgsl' (3195 bytes)[0m
+[32m[INFO ] [00:00:00.760] [Application::init] FFT water simulation initialized: 2 cascades at 256x256[0m
+[36m[DEBUG] [00:00:00.760] [Application::init::TrianglePath::init] Created terrain index buffer: 6912 indices (13824 bytes)[0m
+[36m[DEBUG] [00:00:00.760] [Application::init::TrianglePath::init] Created uniform buffer: 768 bytes (aligned from 544)[0m
+[36m[DEBUG] [00:00:00.760] [Application::init::TrianglePath::init] Created terrain bind group layout[0m
+[36m[DEBUG] [00:00:00.761] [Application::init::TrianglePath::init] Created shader module 'terrain.wgsl' (19166 bytes)[0m
+[36m[DEBUG] [00:00:00.762] [Application::init::TrianglePath::init] Created terrain wireframe pipeline[0m
+[36m[DEBUG] [00:00:00.762] [Application::init::TrianglePath::init] Created terrain render pipeline[0m
+[36m[DEBUG] [00:00:00.762] [Application::init::TrianglePath::init] Created shader module 'cull_terrain.wgsl' (10160 bytes)[0m
+[32m[INFO ] [00:00:00.762] [Application::init::TrianglePath::init] TrianglePath initialized successfully[0m
+[36m[DEBUG] [00:00:00.807] [Application::init] Set heightmap: 8192x8192, tiles: 256x256[0m
+[36m[DEBUG] [00:00:00.807] [Application::init::RaycastPath::init] Created raycast output textures: 1600x900 depth/shadow R32Float, water data RGBA16Float[0m
+[36m[DEBUG] [00:00:00.807] [Application::init::RaycastPath::init] Created raycast uniform buffer: 768 bytes (aligned from 544)[0m
+[36m[DEBUG] [00:00:00.807] [Application::init::RaycastPath::init] Created raycast bind group layout[0m
+[36m[DEBUG] [00:00:00.809] [Application::init::RaycastPath::init] Created shader module 'terrain_raycast.wgsl' (68969 bytes)[0m
+[36m[DEBUG] [00:00:00.811] [Application::init::RaycastPath::init] Created shader module 'water_composite.wgsl' (18109 bytes)[0m
+[36m[DEBUG] [00:00:00.811] [Application::init::RaycastPath::init] Created raycast compute pipeline[0m
+[32m[INFO ] [00:00:00.811] [Application::init::RaycastPath::init] RaycastPath initialized successfully (1600x900 output)[0m
+[36m[DEBUG] [00:00:00.811] [Application::init] Set heightmap: 8192x8192[0m
+[36m[DEBUG] [00:00:00.811] [Application::init] Set FFT water displacement cascades[0m
+[36m[DEBUG] [00:00:01.002] [Application::init] Set baked shadow map[0m
+[32m[INFO ] [00:00:01.002] [Application::init] Baked shadow height field: 4096x4096 (190.9 ms)[0m
+[36m[DEBUG] [00:00:01.003] [Application::init::TerrainTextures::init] Created terrain sampler[0m
+[36m[DEBUG] [00:00:01.036] [Application::init::TerrainTextures::init::TerrainTextures::loadAlbedo] Loaded albedo texture: 2048x2048 from data/generated/td_seed_1234_2048_albedo.jpg[0m
+[36m[DEBUG] [00:00:01.069] [Application::init::TerrainTextures::init::TerrainTextures::loadAlbedo] Created albedo texture: 2048x2048[0m
+[36m[DEBUG] [00:00:01.069] [Application::init::TerrainTextures::init::TerrainTextures::createWhiteLightmap] Created lightmap texture: 1x1[0m
+[32m[INFO ] [00:00:01.319] [Application::init::TerrainTextures::init::TerrainTextures::loadTerrainMaterials] Loaded CC0 terrain material arrays from 'data/materials' (1024x1024x4)[0m
+[32m[INFO ] [00:00:01.319] [Application::init::TerrainTextures::init] TerrainTextures initialized: macro 2048x2048, lightmap 1x1, materials 1024x1024x4[0m
+[36m[DEBUG] [00:00:01.320] [Application::init::BlitPath::init] Created shader module 'periodic_gradient_bake' (1103 bytes)[0m
+[36m[DEBUG] [00:00:01.321] [Application::init::BlitPath::init] Created blit uniform buffers: camera 768 bytes, debug 256 bytes[0m
+[36m[DEBUG] [00:00:01.321] [Application::init::BlitPath::init] Created blit sampler[0m
+[36m[DEBUG] [00:00:01.321] [Application::init::BlitPath::init] Created blit bind group layout[0m
+[36m[DEBUG] [00:00:01.327] [Application::init::BlitPath::init] Created shader module 'ray_blit.wgsl' (152154 bytes)[0m
+[36m[DEBUG] [00:00:01.341] [Application::init::BlitPath::init] Created blit render pipeline[0m
+[36m[DEBUG] [00:00:01.342] [Application::init::BlitPath::init] Created shader module 'water_clipmap.wgsl' (31833 bytes)[0m
+[32m[INFO ] [00:00:01.345] [Application::init::BlitPath::init] Created water clipmap: 18817 vertices, 33792 triangles[0m
+[32m[INFO ] [00:00:01.421] [Application::init::BlitPath::init] Loaded original generated ocean environment: data/generated/ocean_environment.png[0m
+[36m[DEBUG] [00:00:02.338] [Application::init::BlitPath::init] Generated procedural ocean material (1024x1024, 11 mips)[0m
+[36m[DEBUG] [00:00:02.339] [Application::init::BlitPath::init] Created shader module 'underwater_particles.wgsl' (3712 bytes)[0m
+[32m[INFO ] [00:00:02.339] [Application::init::BlitPath::init] BlitPath initialized successfully[0m
+[36m[DEBUG] [00:00:02.339] [Application::init] Created static background cache: 1600x900[0m
+[36m[DEBUG] [00:00:02.339] [Application::init] Set depth texture view[0m
+[36m[DEBUG] [00:00:02.339] [Application::init] Set shadow texture view[0m
+[36m[DEBUG] [00:00:02.339] [Application::init] Set material texture view[0m
+[36m[DEBUG] [00:00:02.339] [Application::init] Set camera-static terrain depth and shadow textures[0m
+[36m[DEBUG] [00:00:02.339] [Application::init] Set fused water geometry resources[0m
+[36m[DEBUG] [00:00:02.339] [Application::init] Set terrain texture view[0m
+[36m[DEBUG] [00:00:02.339] [Application::init] Set terrain material array views[0m
+[36m[DEBUG] [00:00:02.339] [Application::init] Set lightmap texture view[0m
+[36m[DEBUG] [00:00:02.339] [Application::init] Set terrain size: 8192x8192[0m
+[36m[DEBUG] [00:00:02.340] [Application::init] Created shader module 'physics_primitives.wgsl' (4237 bytes)[0m
+[36m[DEBUG] [00:00:02.341] [Application::init] Created shader module 'physics_primitives_compact.wgsl' (14407 bytes)[0m
+[36m[DEBUG] [00:00:02.342] [Application::init] Created shader module 'physics_primitive_cull.wgsl' (8942 bytes)[0m
+[36m[DEBUG] [00:00:02.342] [Application::init] Renderers initialized[0m
+[33m[WARN ] [00:00:02.342] [Application::init] WRECKWATER native TCP sends its bootstrap credential in plaintext; use only loopback or a trusted private development network[0m
+[32m[INFO ] [00:00:02.342] [Application::init] WRECKWATER client starting: 127.0.0.1:33687 peer 1[0m
+[32m[INFO ] [00:00:02.342] Application initialized successfully[0m
+[32m[INFO ] [00:00:02.342]   Window: 1280x720[0m
+[32m[INFO ] [00:00:02.342]   Terrain: 8192x8192 (mips: 14)[0m
+[32m[INFO ] [00:00:02.342]   Render path: raycast[0m
+[32m[INFO ] [00:00:02.342] [0m
+[32m[INFO ] [00:00:02.342] Controls:[0m
+[32m[INFO ] [00:00:02.342]   WASD      - Camera-relative movement[0m
+[32m[INFO ] [00:00:02.342]   Space     - Jump / swim stroke[0m
+[32m[INFO ] [00:00:02.342]   E         - Board[0m
+[32m[INFO ] [00:00:02.342]   Mouse     - Orbit (click to capture)[0m
+[32m[INFO ] [00:00:02.342]   Wheel     - Camera distance[0m
+[32m[INFO ] [00:00:02.342]   Q         - Swap camera shoulder[0m
+[32m[INFO ] [00:00:02.342]   F1        - Toggle debug overlay[0m
+[32m[INFO ] [00:00:02.342]   F2        - Toggle wireframe mode[0m
+[32m[INFO ] [00:00:02.342]   F3        - Toggle render path[0m
+[32m[INFO ] [00:00:02.342]   F4        - Toggle depth visualization[0m
+[32m[INFO ] [00:00:02.342]   F5        - Toggle normal visualization[0m
+[32m[INFO ] [00:00:02.342]   F6        - Toggle mip level heat map[0m
+[32m[INFO ] [00:00:02.342]   F7        - Toggle benchmark mode[0m
+[32m[INFO ] [00:00:02.342]   F8        - Toggle controller (free-fly/character)[0m
+[32m[INFO ] [00:00:02.342]   F9        - Toggle uncapped/VSync presentation[0m
+[32m[INFO ] [00:00:02.342]   Escape    - Release mouse / Exit[0m
+[32m[INFO ] [00:00:02.342] [0m
+[32m[INFO ] [00:00:02.342] Starting main loop (native)...[0m
+[32m[INFO ] [00:00:02.342] WRECKWATER connection state: authenticating[0m
+[36m[DEBUG] [00:00:02.343] Created raycast bind group[0m
+[36m[DEBUG] [00:00:02.343] Created blit bind group[0m
+[32m[INFO ] [00:00:02.376] WRECKWATER connection state: connected[0m
+[36m[DEBUG] [00:00:04.345] FPS: 76.4 (13.09 ms) | Path: raycast[0m
+[36m[DEBUG] [00:00:06.353] FPS: 71.2 (14.04 ms) | Path: raycast[0m
+[36m[DEBUG] [00:00:08.358] FPS: 84.8 (11.79 ms) | Path: raycast[0m
+[36m[DEBUG] [00:00:10.360] FPS: 84.9 (11.78 ms) | Path: raycast[0m
+[36m[DEBUG] [00:00:12.362] FPS: 84.9 (11.78 ms) | Path: raycast[0m
+[36m[DEBUG] [00:00:14.363] FPS: 84.0 (11.91 ms) | Path: raycast[0m

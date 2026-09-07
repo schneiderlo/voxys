@@ -1,0 +1,156 @@
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //tests:config
+-----------------------------------------------------------------------------
+Running main() from gmock_main.cc
+[==========] Running 54 tests from 4 test suites.
+[----------] Global test environment set-up.
+[----------] 6 tests from ConfigUtilsTest
+[ RUN      ] ConfigUtilsTest.Trim
+[       OK ] ConfigUtilsTest.Trim (0 ms)
+[ RUN      ] ConfigUtilsTest.ParseBool
+[       OK ] ConfigUtilsTest.ParseBool (0 ms)
+[ RUN      ] ConfigUtilsTest.ParseFloat
+[       OK ] ConfigUtilsTest.ParseFloat (0 ms)
+[ RUN      ] ConfigUtilsTest.ParseInt
+[       OK ] ConfigUtilsTest.ParseInt (0 ms)
+[ RUN      ] ConfigUtilsTest.GenericParseSupportsItsAdvertisedTypes
+[       OK ] ConfigUtilsTest.GenericParseSupportsItsAdvertisedTypes (0 ms)
+[ RUN      ] ConfigUtilsTest.WreckwaterKeyParserIsExactAndTransactional
+[       OK ] ConfigUtilsTest.WreckwaterKeyParserIsExactAndTransactional (0 ms)
+[----------] 6 tests from ConfigUtilsTest (0 ms total)
+
+[----------] 8 tests from ConfigDefaultsTest
+[ RUN      ] ConfigDefaultsTest.RenderConfig
+[       OK ] ConfigDefaultsTest.RenderConfig (0 ms)
+[ RUN      ] ConfigDefaultsTest.TerrainConfig
+[       OK ] ConfigDefaultsTest.TerrainConfig (0 ms)
+[ RUN      ] ConfigDefaultsTest.WaterConfig
+[       OK ] ConfigDefaultsTest.WaterConfig (0 ms)
+[ RUN      ] ConfigDefaultsTest.PhysicsConfig
+[       OK ] ConfigDefaultsTest.PhysicsConfig (0 ms)
+[ RUN      ] ConfigDefaultsTest.CameraConfig
+[       OK ] ConfigDefaultsTest.CameraConfig (0 ms)
+[ RUN      ] ConfigDefaultsTest.LightingConfig
+[       OK ] ConfigDefaultsTest.LightingConfig (0 ms)
+[ RUN      ] ConfigDefaultsTest.DebugConfig
+[       OK ] ConfigDefaultsTest.DebugConfig (0 ms)
+[ RUN      ] ConfigDefaultsTest.WindowConfig
+[       OK ] ConfigDefaultsTest.WindowConfig (0 ms)
+[----------] 8 tests from ConfigDefaultsTest (0 ms total)
+
+[----------] 21 tests from CommandLineArgsTest
+[ RUN      ] CommandLineArgsTest.DefaultValues
+[       OK ] CommandLineArgsTest.DefaultValues (0 ms)
+[ RUN      ] CommandLineArgsTest.CompleteWreckwaterBootstrapParsesBinaryKey
+[       OK ] CommandLineArgsTest.CompleteWreckwaterBootstrapParsesBinaryKey (0 ms)
+[ RUN      ] CommandLineArgsTest.WreckwaterBootstrapIsAllOrNoneAndMalformedKeysFail
+[       OK ] CommandLineArgsTest.WreckwaterBootstrapIsAllOrNoneAndMalformedKeysFail (0 ms)
+[ RUN      ] CommandLineArgsTest.HelpFlag
+[       OK ] CommandLineArgsTest.HelpFlag (0 ms)
+[ RUN      ] CommandLineArgsTest.ConfigPath
+[       OK ] CommandLineArgsTest.ConfigPath (0 ms)
+[ RUN      ] CommandLineArgsTest.RenderPath
+[       OK ] CommandLineArgsTest.RenderPath (0 ms)
+[ RUN      ] CommandLineArgsTest.PhysicsBackendAndCpuSchedulers
+[       OK ] CommandLineArgsTest.PhysicsBackendAndCpuSchedulers (0 ms)
+[ RUN      ] CommandLineArgsTest.WindowSize
+[       OK ] CommandLineArgsTest.WindowSize (0 ms)
+[ RUN      ] CommandLineArgsTest.Fullscreen
+[       OK ] CommandLineArgsTest.Fullscreen (0 ms)
+[ RUN      ] CommandLineArgsTest.LogLevel
+[       OK ] CommandLineArgsTest.LogLevel (0 ms)
+[ RUN      ] CommandLineArgsTest.NoValidation
+[       OK ] CommandLineArgsTest.NoValidation (0 ms)
+[ RUN      ] CommandLineArgsTest.Benchmark
+[       OK ] CommandLineArgsTest.Benchmark (0 ms)
+[ RUN      ] CommandLineArgsTest.BenchmarkBodiesEnableBenchmark
+[       OK ] CommandLineArgsTest.BenchmarkBodiesEnableBenchmark (0 ms)
+[ RUN      ] CommandLineArgsTest.BenchmarkMinimumFpsEnablesBenchmark
+[       OK ] CommandLineArgsTest.BenchmarkMinimumFpsEnablesBenchmark (0 ms)
+[ RUN      ] CommandLineArgsTest.BenchmarkFixedHzEnablesBenchmark
+[       OK ] CommandLineArgsTest.BenchmarkFixedHzEnablesBenchmark (0 ms)
+[ RUN      ] CommandLineArgsTest.ScreenshotTourCountIsBoundedBeforeAllocation
+[       OK ] CommandLineArgsTest.ScreenshotTourCountIsBoundedBeforeAllocation (0 ms)
+[ RUN      ] CommandLineArgsTest.MultipleArgs
+[       OK ] CommandLineArgsTest.MultipleArgs (0 ms)
+[ RUN      ] CommandLineArgsTest.PresentationOverrides
+[       OK ] CommandLineArgsTest.PresentationOverrides (0 ms)
+[ RUN      ] CommandLineArgsTest.InvalidArgcAndNullEntriesAreSafe
+[33m[WARN ] [07:48:05.171] Unknown argument: --width[0m
+[33m[WARN ] [07:48:05.171] Ignoring null command-line argument 2[0m
+[       OK ] CommandLineArgsTest.InvalidArgcAndNullEntriesAreSafe (0 ms)
+[ RUN      ] CommandLineArgsTest.HeightmapPath
+[       OK ] CommandLineArgsTest.HeightmapPath (0 ms)
+[ RUN      ] CommandLineArgsTest.AllOverridesTogether
+[       OK ] CommandLineArgsTest.AllOverridesTogether (0 ms)
+[----------] 21 tests from CommandLineArgsTest (0 ms total)
+
+[----------] 19 tests from ConfigFileTest
+[ RUN      ] ConfigFileTest.LoadNonexistentFile
+[       OK ] ConfigFileTest.LoadNonexistentFile (0 ms)
+[ RUN      ] ConfigFileTest.LoadBasicConfig
+[32m[INFO ] [07:48:05.171] Loading config: /tmp/nix-shell-311490-2522290657/voxy_ConfigFileTest_LoadBasicConfig.cfg[0m
+[       OK ] ConfigFileTest.LoadBasicConfig (0 ms)
+[ RUN      ] ConfigFileTest.LoadsCompleteWreckwaterBootstrapWithoutPrintableKeyState
+[32m[INFO ] [07:48:05.171] Loading config: /tmp/nix-shell-311490-2522290657/voxy_ConfigFileTest_LoadsCompleteWreckwaterBootstrapWithoutPrintableKeyState.cfg[0m
+[32m[INFO ] [07:48:05.171] Saved config: /tmp/nix-shell-311490-2522290657/voxy_ConfigFileTest_LoadsCompleteWreckwaterBootstrapWithoutPrintableKeyState.cfg[0m
+[       OK ] ConfigFileTest.LoadsCompleteWreckwaterBootstrapWithoutPrintableKeyState (0 ms)
+[ RUN      ] ConfigFileTest.CommandLineCanCompleteWreckwaterFileAtomically
+[32m[INFO ] [07:48:05.172] Loading config: /tmp/nix-shell-311490-2522290657/voxy_ConfigFileTest_CommandLineCanCompleteWreckwaterFileAtomically.cfg[0m
+[       OK ] ConfigFileTest.CommandLineCanCompleteWreckwaterFileAtomically (0 ms)
+[ RUN      ] ConfigFileTest.ZeroWreckwaterKeyAndIdentityFailValidation
+[       OK ] ConfigFileTest.ZeroWreckwaterKeyAndIdentityFailValidation (0 ms)
+[ RUN      ] ConfigFileTest.LoadAllSections
+[32m[INFO ] [07:48:05.172] Loading config: /tmp/nix-shell-311490-2522290657/voxy_ConfigFileTest_LoadAllSections.cfg[0m
+[       OK ] ConfigFileTest.LoadAllSections (0 ms)
+[ RUN      ] ConfigFileTest.IgnoresComments
+[32m[INFO ] [07:48:05.172] Loading config: /tmp/nix-shell-311490-2522290657/voxy_ConfigFileTest_IgnoresComments.cfg[0m
+[       OK ] ConfigFileTest.IgnoresComments (0 ms)
+[ RUN      ] ConfigFileTest.CommandLineOverrides
+[32m[INFO ] [07:48:05.172] Loading config: /tmp/nix-shell-311490-2522290657/voxy_ConfigFileTest_CommandLineOverrides.cfg[0m
+[       OK ] ConfigFileTest.CommandLineOverrides (0 ms)
+[ RUN      ] ConfigFileTest.CommandLineBenchmarkEnablesAutomation
+[       OK ] ConfigFileTest.CommandLineBenchmarkEnablesAutomation (0 ms)
+[ RUN      ] ConfigFileTest.SaveAndReload
+[32m[INFO ] [07:48:05.172] Saved config: /tmp/nix-shell-311490-2522290657/voxy_ConfigFileTest_SaveAndReload.cfg[0m
+[32m[INFO ] [07:48:05.172] Loading config: /tmp/nix-shell-311490-2522290657/voxy_ConfigFileTest_SaveAndReload.cfg[0m
+[       OK ] ConfigFileTest.SaveAndReload (0 ms)
+[ RUN      ] ConfigFileTest.InvalidWaterNumbersKeepCurrentDefaults
+[32m[INFO ] [07:48:05.172] Loading config: /tmp/nix-shell-311490-2522290657/voxy_ConfigFileTest_InvalidWaterNumbersKeepCurrentDefaults.cfg[0m
+[       OK ] ConfigFileTest.InvalidWaterNumbersKeepCurrentDefaults (0 ms)
+[ RUN      ] ConfigFileTest.InvalidBroadPhaseCellSizesKeepCurrentValue
+[32m[INFO ] [07:48:05.172] Loading config: /tmp/nix-shell-311490-2522290657/voxy_ConfigFileTest_InvalidBroadPhaseCellSizesKeepCurrentValue.cfg[0m
+[33m[WARN ] [07:48:05.172] Config line 4: [physics] broad_phase_cell_size must be positive and evenly divide 256; keeping 8[0m
+[       OK ] ConfigFileTest.InvalidBroadPhaseCellSizesKeepCurrentValue (0 ms)
+[ RUN      ] ConfigFileTest.InvalidDuplicateValuesKeepEarlierValidValues
+[32m[INFO ] [07:48:05.172] Loading config: /tmp/nix-shell-311490-2522290657/voxy_ConfigFileTest_InvalidDuplicateValuesKeepEarlierValidValues.cfg[0m
+[       OK ] ConfigFileTest.InvalidDuplicateValuesKeepEarlierValidValues (0 ms)
+[ RUN      ] ConfigFileTest.MalformedVectorsAndQuotesPreserveEarlierValues
+[32m[INFO ] [07:48:05.172] Loading config: /tmp/nix-shell-311490-2522290657/voxy_ConfigFileTest_MalformedVectorsAndQuotesPreserveEarlierValues.cfg[0m
+[33m[WARN ] [07:48:05.172] Config line 10: unterminated quoted value[0m
+[33m[WARN ] [07:48:05.172] Config line 11: invalid text after quoted value[0m
+[       OK ] ConfigFileTest.MalformedVectorsAndQuotesPreserveEarlierValues (0 ms)
+[ RUN      ] ConfigFileTest.SaveAndReloadEscapedStrings
+[32m[INFO ] [07:48:05.172] Saved config: /tmp/nix-shell-311490-2522290657/voxy_ConfigFileTest_SaveAndReloadEscapedStrings.cfg[0m
+[32m[INFO ] [07:48:05.172] Loading config: /tmp/nix-shell-311490-2522290657/voxy_ConfigFileTest_SaveAndReloadEscapedStrings.cfg[0m
+[       OK ] ConfigFileTest.SaveAndReloadEscapedStrings (0 ms)
+[ RUN      ] ConfigFileTest.ReflectionStrengthIsClampedToDocumentedRange
+[32m[INFO ] [07:48:05.172] Loading config: /tmp/nix-shell-311490-2522290657/voxy_ConfigFileTest_ReflectionStrengthIsClampedToDocumentedRange.cfg[0m
+[33m[WARN ] [07:48:05.172] Config line 3: [water] reflection_strength 1.5 is outside [0, 1] and will be clamped[0m
+[32m[INFO ] [07:48:05.172] Loading config: /tmp/nix-shell-311490-2522290657/voxy_ConfigFileTest_ReflectionStrengthIsClampedToDocumentedRange.cfg[0m
+[33m[WARN ] [07:48:05.172] Config line 3: [water] reflection_strength -0.25 is outside [0, 1] and will be clamped[0m
+[       OK ] ConfigFileTest.ReflectionStrengthIsClampedToDocumentedRange (0 ms)
+[ RUN      ] ConfigFileTest.SaveReportsDeviceWriteFailure
+[31m[ERROR] [07:48:05.173] Failed while writing config: /dev/full[0m
+[       OK ] ConfigFileTest.SaveReportsDeviceWriteFailure (0 ms)
+[ RUN      ] ConfigFileTest.AllSettingsPreserved
+[32m[INFO ] [07:48:05.173] Loading config: /tmp/nix-shell-311490-2522290657/voxy_ConfigFileTest_AllSettingsPreserved.cfg[0m
+[       OK ] ConfigFileTest.AllSettingsPreserved (0 ms)
+[ RUN      ] ConfigFileTest.CommandLineOverridesAllSettings
+[32m[INFO ] [07:48:05.173] Loading config: /tmp/nix-shell-311490-2522290657/voxy_ConfigFileTest_CommandLineOverridesAllSettings.cfg[0m
+[       OK ] ConfigFileTest.CommandLineOverridesAllSettings (0 ms)
+[----------] 19 tests from ConfigFileTest (2 ms total)
+
+[----------] Global test environment tear-down
+[==========] 54 tests from 4 test suites ran. (2 ms total)
+[  PASSED  ] 54 tests.

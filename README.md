@@ -265,3 +265,26 @@ demo. Open the browser with `?experience=ridgebreak`, or launch native with
 terrain, and the 2048-pixel macro texture remain the defaults.
 Prototype documentation is retained in `docs/ridgebreak-prototype.md`;
 its original default-launch instructions are superseded by this opt-in.
+
+## Build, explore, salvage implementation
+
+The separate expedition game is tracked in
+[GAME_IMPLEMENTATION_TODO.md](GAME_IMPLEMENTATION_TODO.md). This self-contained
+plan defines the game, architecture, asset workflow, task dependencies and
+completion gates. Implementing agents must read it before claiming work.
+Completed tasks link to evidence; a checked task is not a completed game.
+
+The first scene is an optional **cove preview**:
+
+```bash
+bazel run -c opt //:voxy_native -- --config salvage.cfg
+```
+
+In the browser, open `?experience=salvage`. Use **R** or the browser's **Reset**
+button to reset the scene. Browser **Leave** waits for owned scene objects to
+retire before returning to the default LEGO World route. Construction,
+recovery jobs and progression are still implementation tasks.
+
+See the [baseline handoff](docs/validation/salvage/G00/report.md) for build,
+launch and validation recipes and known limitations. Existing WRECKWATER,
+terrain, LEGO and RIDGEBREAK routes retain their separate roles.

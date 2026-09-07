@@ -248,15 +248,27 @@ if(VOXY_BUILD_NATIVE)
             target_compile_definitions(voxy_native PRIVATE VOXY_ENABLE_VALIDATION=1)
         endif()
         
-        # Senior Dev Fix: Ensure shaders/assets are always fresh in the build directory
-        # WGSL files are loaded at runtime, so changes won't be picked up unless copied
-        add_custom_command(TARGET voxy_native POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/shaders
-            COMMAND ${CMAKE_COMMAND} -E copy_directory
-                ${CMAKE_SOURCE_DIR}/shaders
-                ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/shaders
-            COMMENT "Copying shaders to build output directory"
+        # Runtime files must refresh even when the executable does not relink.
+        # A custom target runs on every native build; copy_if_different avoids
+        # rewriting unchanged configs. Target-relative paths support multi-config
+        # generators as well as the normal bin/ output directory.
+        add_custom_target(voxy_native_runtime_files
+            COMMAND "${CMAKE_COMMAND}" -E make_directory
+                "$<TARGET_FILE_DIR:voxy_native>/shaders"
+            COMMAND "${CMAKE_COMMAND}" -E copy_directory
+                "${CMAKE_SOURCE_DIR}/shaders"
+                "$<TARGET_FILE_DIR:voxy_native>/shaders"
+            COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+                "${CMAKE_SOURCE_DIR}/voxy.cfg"
+                "${CMAKE_SOURCE_DIR}/ridgebreak.cfg"
+                "${CMAKE_SOURCE_DIR}/lego_shore.cfg"
+                "${CMAKE_SOURCE_DIR}/lego_world.cfg"
+                "${CMAKE_SOURCE_DIR}/salvage.cfg"
+                "$<TARGET_FILE_DIR:voxy_native>"
+            COMMENT "Refreshing native shaders and launch configs"
+            VERBATIM
         )
+        add_dependencies(voxy_native voxy_native_runtime_files)
         
         # Copy assets if they exist
         if(EXISTS "${CMAKE_SOURCE_DIR}/assets")
@@ -468,6 +480,7 @@ if(VOXY_BUILD_WASM)
             ridgebreak.cfg
             lego_shore.cfg
             lego_world.cfg
+            salvage.cfg
             data/lego_shore.ldh
             data/generated/td_seed_1234_8192.ldh
             data/generated/td_seed_1234_2048_albedo.jpg

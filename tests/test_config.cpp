@@ -502,6 +502,52 @@ protected:
     }
 };
 
+TEST(ConfigGameModeTest, AbsentModePreservesLegacyTitleRoutes) {
+    const std::array<std::pair<const char*, GameMode>, 4> cases{{
+        {"Voxy", GameMode::Terrain}, {"RIDGEBREAK", GameMode::Ridgebreak},
+        {"LEGO SHORE", GameMode::LegoShore}, {"LEGO WORLD", GameMode::LegoWorld}}};
+    for (const auto& [title, mode] : cases) {
+        Config config; config.window.title = title;
+        const auto result = resolveGameMode(config);
+        EXPECT_TRUE(result.ready()); EXPECT_EQ(result.mode, mode);
+    }
+}
+
+TEST(ConfigGameModeTest, ExplicitModeOverridesTitleAndRejectsUnknownOrConflict) {
+    Config config; config.window.title = "RIDGEBREAK";
+    config.game.mode = "salvage";
+    auto result = resolveGameMode(config);
+    EXPECT_TRUE(result.ready()); EXPECT_TRUE(result.legoTerrain());
+    EXPECT_EQ(result.mode, GameMode::Salvage); EXPECT_EQ(result.terrainSizeHint(), 256u);
+    for (const auto* name : {"terrain", "ridgebreak", "lego-shore", "lego-world"}) {
+        config.game.mode = name; EXPECT_TRUE(resolveGameMode(config).ready());
+    }
+    for (const auto* name : {"", "SALVAGE", "salvag", "sandbox"}) {
+        config.game.mode = name;
+        EXPECT_EQ(resolveGameMode(config).status, GameModeStatus::UnknownMode);
+    }
+    config.game.mode = "salvage"; config.wreckwaterClient.server = "127.0.0.1";
+    config.wreckwaterClient.presentFields = kWreckwaterClientServerField;
+    EXPECT_EQ(resolveGameMode(config).status, GameModeStatus::ConflictingBootstrap);
+    config.game.mode.reset();
+    EXPECT_TRUE(resolveGameMode(config).ready()); // Existing WRECK validation remains separate.
+}
+
+TEST_F(ConfigFileTest, ExplicitModeRoundTripsAndMalformedModeNeverFallsBack) {
+    Config original; original.game.mode = "salvage";
+    ASSERT_TRUE(save(original, testConfigPath));
+    const auto loaded = load(testConfigPath);
+    EXPECT_EQ(loaded.game.mode, original.game.mode);
+    EXPECT_EQ(resolveGameMode(loaded).mode, GameMode::Salvage);
+    for (const auto* value : {"\"salvage", "\"salvage\" junk", "\"\"", "salvag"}) {
+        writeTestConfig(std::string("[window]\ntitle=\"LEGO WORLD\"\n[game]\nmode=") + value + "\n");
+        EXPECT_EQ(resolveGameMode(load(testConfigPath)).status, GameModeStatus::UnknownMode);
+    }
+    original.game.mode.reset();
+    ASSERT_TRUE(save(original, testConfigPath));
+    EXPECT_FALSE(load(testConfigPath).game.mode.has_value());
+}
+
 TEST_F(ConfigFileTest, LoadNonexistentFile) {
     auto config = load("nonexistent_file.cfg");
     

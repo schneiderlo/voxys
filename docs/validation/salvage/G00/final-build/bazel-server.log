@@ -1,0 +1,84 @@
+Using config file: /home/modkin/workspace/schneiderlo/voxys/voxy.cfg
+Preparing server in /tmp/nix-shell-490456-3656075146/tmp.VOtwRTzfAS...
+Copying WASM artifacts...
+Starting server at http://127.0.0.1:18743
+Files being served:
+total 60M
+-rw-r--r-- 1 modkin modkin  113 Sep  7 18:41 BUILD
+-rw-r--r-- 1 modkin modkin 4.9K Sep  7 18:41 frame_budget.js
+-rw-r--r-- 1 modkin modkin  67K Sep  7 18:41 index.html
+-rw-r--r-- 1 modkin modkin 3.7K Sep  7 18:41 lego_patch.html
+-rw-r--r-- 1 modkin modkin  22K Sep  7 18:41 lego_patch.mjs
+-rw-r--r-- 1 modkin modkin 8.5K Sep  7 18:41 lego_patch_model.mjs
+-rw-r--r-- 1 modkin modkin 1.9K Sep  7 18:41 lego_playground.css
+-rw-r--r-- 1 modkin modkin 3.5K Sep  7 18:41 lego_playground.js
+-rw-r--r-- 1 modkin modkin 8.1K Sep  7 18:41 loader.js
+-rw-r--r-- 1 modkin modkin  14K Sep  7 18:41 network_transport.js
+-rw-r--r-- 1 modkin modkin  15K Sep  7 18:41 renderer_inspector.css
+-rw-r--r-- 1 modkin modkin  51K Sep  7 18:41 renderer_inspector.js
+-rw-r--r-- 1 modkin modkin 7.8K Sep  7 18:41 salvage_data.mjs
+-rw-r--r-- 1 modkin modkin 1.1K Sep  7 18:41 salvage_preview.css
+-rw-r--r-- 1 modkin modkin 3.4K Sep  7 18:41 salvage_preview.js
+-rw-r--r-- 1 modkin modkin  306 Sep  7 18:41 shader_parity.html
+-rw-r--r-- 1 modkin modkin 1.9K Sep  7 18:41 shader_parity.js
+-rw-r--r-- 1 modkin modkin  989 Sep  7 18:41 shader_parity_manifest.js
+drwxr-xr-x 2 modkin modkin  640 Sep  7 18:41 shaders
+-rw-r--r-- 1 modkin modkin  22K Sep  7 18:41 style.css
+-r-xr-xr-x 1 modkin modkin  56M Sep  7 18:41 voxy_wasm_cc.data
+-r-xr-xr-x 1 modkin modkin 158K Sep  7 18:41 voxy_wasm_cc.js
+-r-xr-xr-x 1 modkin modkin 4.0M Sep  7 18:41 voxy_wasm_cc.wasm
+Note: voxy.cfg is bundled inside voxy_wasm_cc.data
+Telemetry is written to /tmp/voxys-g00-package-telemetry.json
+Press Ctrl+C to stop.
+Serving WASM at http://127.0.0.1:18743
+Latest telemetry: /tmp/voxys-g00-package-telemetry.json
+Telemetry history: /tmp/voxys-g00-package-telemetry.ndjson
+127.0.0.1 - - [07/Sep/2026 18:41:25] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [07/Sep/2026 18:41:25] "GET /frame_budget.js HTTP/1.1" 200 -
+127.0.0.1 - - [07/Sep/2026 18:41:25] "GET /index.html HTTP/1.1" 200 -
+127.0.0.1 - - [07/Sep/2026 18:41:25] "GET /lego_patch.html HTTP/1.1" 200 -
+127.0.0.1 - - [07/Sep/2026 18:41:25] "GET /lego_patch.mjs HTTP/1.1" 200 -
+127.0.0.1 - - [07/Sep/2026 18:41:25] "GET /lego_patch_model.mjs HTTP/1.1" 200 -
+127.0.0.1 - - [07/Sep/2026 18:41:25] "GET /lego_playground.css HTTP/1.1" 200 -
+127.0.0.1 - - [07/Sep/2026 18:41:25] "GET /lego_playground.js HTTP/1.1" 200 -
+127.0.0.1 - - [07/Sep/2026 18:41:25] "GET /loader.js HTTP/1.1" 200 -
+127.0.0.1 - - [07/Sep/2026 18:41:25] "GET /network_transport.js HTTP/1.1" 200 -
+127.0.0.1 - - [07/Sep/2026 18:41:25] "GET /renderer_inspector.css HTTP/1.1" 200 -
+127.0.0.1 - - [07/Sep/2026 18:41:25] "GET /renderer_inspector.js HTTP/1.1" 200 -
+127.0.0.1 - - [07/Sep/2026 18:41:25] "GET /salvage_data.mjs HTTP/1.1" 200 -
+127.0.0.1 - - [07/Sep/2026 18:41:25] "GET /salvage_preview.css HTTP/1.1" 200 -
+127.0.0.1 - - [07/Sep/2026 18:41:25] "GET /salvage_preview.js HTTP/1.1" 200 -
+127.0.0.1 - - [07/Sep/2026 18:41:25] "GET /shader_parity.html HTTP/1.1" 200 -
+127.0.0.1 - - [07/Sep/2026 18:41:25] "GET /shader_parity.js HTTP/1.1" 200 -
+127.0.0.1 - - [07/Sep/2026 18:41:25] "GET /shader_parity_manifest.js HTTP/1.1" 200 -
+127.0.0.1 - - [07/Sep/2026 18:41:25] "GET /shaders/cull_terrain.wgsl HTTP/1.1" 200 -
+127.0.0.1 - - [07/Sep/2026 18:41:25] "GET /shaders/debug_depth.wgsl HTTP/1.1" 200 -
+127.0.0.1 - - [07/Sep/2026 18:41:25] "GET /shaders/mip_generate.wgsl HTTP/1.1" 200 -
+127.0.0.1 - - [07/Sep/2026 18:41:25] "GET /shaders/physics_ballistic.wgsl HTTP/1.1" 200 -
+127.0.0.1 - - [07/Sep/2026 18:41:25] "GET /shaders/physics_broad_phase.wgsl HTTP/1.1" 200 -
+127.0.0.1 - - [07/Sep/2026 18:41:25] "GET /shaders/physics_ccd.wgsl HTTP/1.1" 200 -
+127.0.0.1 - - [07/Sep/2026 18:41:25] "GET /shaders/physics_deterministic_primitives.wgsl HTTP/1.1" 200 -
+127.0.0.1 - - [07/Sep/2026 18:41:25] "GET /shaders/physics_dynamic_solver.wgsl HTTP/1.1" 200 -
+127.0.0.1 - - [07/Sep/2026 18:41:25] "GET /shaders/physics_event_readback.wgsl HTTP/1.1" 200 -
+127.0.0.1 - - [07/Sep/2026 18:41:25] "GET /shaders/physics_islands.wgsl HTTP/1.1" 200 -
+127.0.0.1 - - [07/Sep/2026 18:41:25] "GET /shaders/physics_lockstep.wgsl HTTP/1.1" 200 -
+127.0.0.1 - - [07/Sep/2026 18:41:25] "GET /shaders/physics_narrow_phase.wgsl HTTP/1.1" 200 -
+127.0.0.1 - - [07/Sep/2026 18:41:25] "GET /shaders/physics_primitive_cull.wgsl HTTP/1.1" 200 -
+127.0.0.1 - - [07/Sep/2026 18:41:25] "GET /shaders/physics_primitives.wgsl HTTP/1.1" 200 -
+127.0.0.1 - - [07/Sep/2026 18:41:25] "GET /shaders/physics_primitives_compact.wgsl HTTP/1.1" 200 -
+127.0.0.1 - - [07/Sep/2026 18:41:25] "GET /shaders/physics_queries.wgsl HTTP/1.1" 200 -
+127.0.0.1 - - [07/Sep/2026 18:41:25] "GET /shaders/ray_blit.wgsl HTTP/1.1" 200 -
+127.0.0.1 - - [07/Sep/2026 18:41:25] "GET /shaders/sky_lut.wgsl HTTP/1.1" 200 -
+127.0.0.1 - - [07/Sep/2026 18:41:25] "GET /shaders/sky_lut_mip.wgsl HTTP/1.1" 200 -
+127.0.0.1 - - [07/Sep/2026 18:41:25] "GET /shaders/terrain.wgsl HTTP/1.1" 200 -
+127.0.0.1 - - [07/Sep/2026 18:41:25] "GET /shaders/terrain_raycast.wgsl HTTP/1.1" 200 -
+127.0.0.1 - - [07/Sep/2026 18:41:25] "GET /shaders/underwater_particles.wgsl HTTP/1.1" 200 -
+127.0.0.1 - - [07/Sep/2026 18:41:25] "GET /shaders/water_clipmap.wgsl HTTP/1.1" 200 -
+127.0.0.1 - - [07/Sep/2026 18:41:25] "GET /shaders/water_composite.wgsl HTTP/1.1" 200 -
+127.0.0.1 - - [07/Sep/2026 18:41:25] "GET /shaders/water_fft.wgsl HTTP/1.1" 200 -
+127.0.0.1 - - [07/Sep/2026 18:41:25] "GET /shaders/water_finalize.wgsl HTTP/1.1" 200 -
+127.0.0.1 - - [07/Sep/2026 18:41:25] "GET /shaders/water_foam.wgsl HTTP/1.1" 200 -
+127.0.0.1 - - [07/Sep/2026 18:41:25] "GET /style.css HTTP/1.1" 200 -
+127.0.0.1 - - [07/Sep/2026 18:41:25] "GET /voxy_wasm_cc.data HTTP/1.1" 200 -
+127.0.0.1 - - [07/Sep/2026 18:41:25] "GET /voxy_wasm_cc.js HTTP/1.1" 200 -
+127.0.0.1 - - [07/Sep/2026 18:41:25] "GET /voxy_wasm_cc.wasm HTTP/1.1" 200 -

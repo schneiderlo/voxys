@@ -1,0 +1,64 @@
+[32m[INFO ] [00:00:00.000] Loading config: /home/modkin/workspace/schneiderlo/voxys/voxy.cfg[0m
+[32m[INFO ] [00:00:00.000] ═══════════════════════════════════════════════════════════════[0m
+[32m[INFO ] [00:00:00.000]   Voxy - Terrain Renderer[0m
+[32m[INFO ] [00:00:00.000]   Build target: native[0m
+[32m[INFO ] [00:00:00.000]   Render path: raycast[0m
+[32m[INFO ] [00:00:00.000] ═══════════════════════════════════════════════════════════════[0m
+libdecor-gtk-WARNING: Failed to initialize GTK
+Failed to load plugin 'libdecor-gtk.so': failed to init
+[32m[INFO ] [00:00:00.127] [Application::init] Window created via Wayland: 1280x720 logical, 1600x900 framebuffer (1.25x1.25 scale)[0m
+[32m[INFO ] [00:00:00.192] [Application::init::GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [00:00:00.192] [Application::init::GPU]   Vendor: radv[0m
+[32m[INFO ] [00:00:00.192] [Application::init::GPU]   Backend: Vulkan[0m
+[32m[INFO ] [00:00:00.192] [Application::init::GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [00:00:00.194] [Application::init::GPU] Surface configured: 1600x900, format=BGRA8Unorm, presentation=Fifo (VSync)[0m
+[32m[INFO ] [00:00:00.194] [Application::init::GPU] GPU context initialized successfully[0m
+[32m[INFO ] [00:00:00.259] [Application::init] WebGPU physics initialized: 131072 usable body slots, 30 MiB resident, 33 MiB scratch[0m
+[32m[INFO ] [00:00:00.259] [Application::init] Physics backend: webgpu_soft (scheduler internal, concurrency 1)[0m
+[32m[INFO ] [00:00:00.660] [Application::init] Decompressed 8192x8192 heightmap: 31803420 -> 134217728 bytes (390.64 ms)[0m
+[32m[INFO ] [00:00:00.662] [Application::init] Loaded LDH heightmap: 8192x8192 (128.00 MB, 390.64 ms)[0m
+[32m[INFO ] [00:00:00.662] [Application::init] Loaded heightmap: data/generated/td_seed_1234_8192.ldh[0m
+[32m[INFO ] [00:00:00.686] [Application::init] Authored Wreckwater cove: 8008 core samples, 11108 feather samples, height -237.3..-158.7 m[0m
+[32m[INFO ] [00:00:00.839] [Application::init] Uploaded heightmap to GPU with mips: 8192x8192 (14 levels, 170.67 MB total)[0m
+[32m[INFO ] [00:00:00.936] [Application::init] Coastal refraction field initialized: 1024x1024[0m
+[32m[INFO ] [00:00:00.938] [Application::init] FFT water simulation initialized: 2 cascades at 256x256[0m
+[32m[INFO ] [00:00:00.940] [Application::init::TrianglePath::init] TrianglePath initialized successfully[0m
+[32m[INFO ] [00:00:00.994] [Application::init::RaycastPath::init] RaycastPath initialized successfully (1600x900 output)[0m
+[32m[INFO ] [00:00:01.238] [Application::init] Baked shadow height field: 4096x4096 (244.0 ms)[0m
+[32m[INFO ] [00:00:01.606] [Application::init::TerrainTextures::init::TerrainTextures::loadTerrainMaterials] Loaded CC0 terrain material arrays from 'data/materials' (1024x1024x4)[0m
+[32m[INFO ] [00:00:01.606] [Application::init::TerrainTextures::init] TerrainTextures initialized: macro 2048x2048, lightmap 1x1, materials 1024x1024x4[0m
+[32m[INFO ] [00:00:01.634] [Application::init::BlitPath::init] Created water clipmap: 18817 vertices, 33792 triangles[0m
+[32m[INFO ] [00:00:01.724] [Application::init::BlitPath::init] Loaded original generated ocean environment: data/generated/ocean_environment.png[0m
+[32m[INFO ] [00:00:02.758] [Application::init::BlitPath::init] BlitPath initialized successfully[0m
+[32m[INFO ] [00:00:02.762] Application initialized successfully[0m
+[32m[INFO ] [00:00:02.762]   Window: 1280x720[0m
+[32m[INFO ] [00:00:02.762]   Terrain: 8192x8192 (mips: 14)[0m
+[32m[INFO ] [00:00:02.762]   Render path: raycast[0m
+[32m[INFO ] [00:00:02.762] [0m
+[32m[INFO ] [00:00:02.762] Controls:[0m
+[32m[INFO ] [00:00:02.762]   WASD      - Move camera[0m
+[32m[INFO ] [00:00:02.762]   Mouse     - Look around (click to capture)[0m
+[32m[INFO ] [00:00:02.762]   Shift     - Speed boost / Run[0m
+[32m[INFO ] [00:00:02.762]   E/Space   - Move up / Jump[0m
+[32m[INFO ] [00:00:02.762]   Q/Ctrl    - Move down[0m
+[32m[INFO ] [00:00:02.762]   F1        - Toggle debug overlay[0m
+[32m[INFO ] [00:00:02.762]   F2        - Toggle wireframe mode[0m
+[32m[INFO ] [00:00:02.762]   F3        - Toggle render path[0m
+[32m[INFO ] [00:00:02.762]   F4        - Toggle depth visualization[0m
+[32m[INFO ] [00:00:02.762]   F5        - Toggle normal visualization[0m
+[32m[INFO ] [00:00:02.762]   F6        - Toggle mip level heat map[0m
+[32m[INFO ] [00:00:02.762]   F7        - Toggle benchmark mode[0m
+[32m[INFO ] [00:00:02.762]   F8        - Toggle controller (free-fly/character)[0m
+[32m[INFO ] [00:00:02.762]   F9        - Toggle uncapped/VSync presentation[0m
+[32m[INFO ] [00:00:02.762]   Escape    - Release mouse / Exit[0m
+[32m[INFO ] [00:00:02.762]   Wheel     - Select throwable object[0m
+[32m[INFO ] [00:00:02.762]   Left click- Capture mouse / throw selected object[0m
+[32m[INFO ] [00:00:02.762]   Right click- Throw 128 selected objects[0m
+[32m[INFO ] [00:00:02.762] [0m
+[32m[INFO ] [00:00:02.762] Starting main loop (native)...[0m
+[32m[INFO ] [00:00:04.363] Capturing screenshot to: /home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/BOOT-05/native-route-voxy.png[0m
+[32m[INFO ] [00:00:04.605] Saved screenshot to: /home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/BOOT-05/native-route-voxy.png[0m
+[32m[INFO ] [00:00:04.605] Exit requested[0m
+[32m[INFO ] [00:00:04.605] Main loop ended[0m
+[32m[INFO ] [00:00:04.605] Shutting down application...[0m
+[32m[INFO ] [00:00:04.636] Application shutdown complete[0m

@@ -1,0 +1,15 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Launching visible route lego_world.cfg
+lego_world.cfg: exit=0, PNG=(1600, 900), errors=0, passed=True
+Launching visible route lego_shore.cfg
+lego_shore.cfg: exit=0, PNG=(1600, 900), errors=0, passed=True
+Launching visible route voxy.cfg
+voxy.cfg: exit=0, PNG=(1600, 900), errors=0, passed=True
+Launching visible route ridgebreak.cfg
+ridgebreak.cfg: exit=0, PNG=(1600, 900), errors=0, passed=True
+Launching visible route salvage.cfg
+salvage.cfg: exit=0, PNG=(1600, 900), errors=0, passed=True

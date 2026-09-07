@@ -1,0 +1,103 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: 5 targets (0 packages loaded, 0 targets configured)
+Analyzing: 5 targets (0 packages loaded, 0 targets configured)
+
+Analyzing: 5 targets (0 packages loaded, 0 targets configured)
+
+INFO: Analyzed 5 targets (1 packages loaded, 96 targets configured).
+[72 / 256] 2 / 5 tests; Compiling src/engine/platform/native/input.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[72 / 256] 2 / 5 tests; Compiling src/engine/platform/native/input.cpp; 2s linux-sandbox ... (4 actions running)
+[180 / 342] 2 / 5 tests; Compiling third_party/JoltPhysics/Jolt/Skeleton/Skeleton.cpp; 0s linux-sandbox ... (4 actions running)
+[181 / 342] 2 / 5 tests; Compiling src/app/debug_overlay.cpp; 2s linux-sandbox ... (4 actions running)
+[182 / 342] 2 / 5 tests; Compiling src/app/debug_overlay.cpp; 3s linux-sandbox ... (4 actions running)
+[189 / 350] 2 / 5 tests; Compiling src/app/application.cpp; 4s linux-sandbox ... (4 actions running)
+[190 / 350] 2 / 5 tests; Compiling src/app/application.cpp; 6s linux-sandbox ... (4 actions running)
+[192 / 350] 2 / 5 tests; Compiling src/app/application.cpp; 7s linux-sandbox ... (4 actions, 3 running)
+[198 / 354] 2 / 5 tests; Compiling src/app/application.cpp; 9s linux-sandbox ... (4 actions running)
+[206 / 358] 2 / 5 tests; Compiling src/app/application.cpp; 10s linux-sandbox ... (4 actions running)
+[207 / 358] 2 / 5 tests; Compiling third_party/JoltPhysics/Jolt/Physics/Vehicle/WheeledVehicleController.cpp; 2s linux-sandbox ... (4 actions, 3 running)
+[210 / 358] 2 / 5 tests; Compiling src/render/debug_visualizer.cpp; 3s linux-sandbox ... (4 actions running)
+[217 / 365] 2 / 5 tests; Compiling src/render/water_simulation.cpp; 4s linux-sandbox ... (4 actions running)
+[228 / 371] 2 / 5 tests; Compiling src/render/blit_path.cpp; 3s linux-sandbox ... (4 actions, 3 running)
+[233 / 374] 2 / 5 tests; Compiling src/render/blit_path.cpp; 4s linux-sandbox ... (4 actions, 3 running)
+[270 / 469] 2 / 5 tests; Compiling third_party/JoltPhysics/Jolt/Physics/Vehicle/VehicleDifferential.cpp; 1s linux-sandbox ... (4 actions running)
+[277 / 469] 2 / 5 tests; Compiling src/physics/physics_world.cpp; 1s linux-sandbox ... (4 actions running)
+[284 / 469] 2 / 5 tests; Compiling src/physics/physics_world.cpp; 2s linux-sandbox ... (4 actions, 3 running)
+[291 / 469] 2 / 5 tests; Compiling third_party/JoltPhysics/Jolt/Physics/Vehicle/VehicleConstraint.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[296 / 469] 2 / 5 tests; Compiling src/physics/jolt/jolt_backend.cpp; 0s linux-sandbox ... (4 actions, 3 running)
+[300 / 469] 2 / 5 tests; Compiling src/physics/jolt/jolt_backend.cpp; 2s linux-sandbox ... (4 actions, 3 running)
+[303 / 469] 2 / 5 tests; Compiling src/physics/jolt/jolt_backend.cpp; 3s linux-sandbox ... (4 actions, 3 running)
+[306 / 469] 2 / 5 tests; Compiling src/physics/jolt/jolt_backend.cpp; 4s linux-sandbox ... (4 actions, 3 running)
+[312 / 469] 2 / 5 tests; Compiling src/physics/jolt/jolt_backend.cpp; 5s linux-sandbox ... (4 actions running)
+[317 / 469] 2 / 5 tests; Compiling third_party/JoltPhysics/Jolt/Physics/Vehicle/MotorcycleController.cpp; 0s linux-sandbox ... (4 actions, 3 running)
+[325 / 469] 2 / 5 tests; Compiling src/physics/gpu/gpu_physics_backend.cpp; 0s linux-sandbox ... (4 actions, 3 running)
+[328 / 469] 2 / 5 tests; Compiling src/physics/gpu/gpu_physics_backend.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[332 / 469] 2 / 5 tests; Compiling src/physics/gpu/gpu_physics_backend.cpp; 3s linux-sandbox ... (4 actions, 3 running)
+[334 / 469] 2 / 5 tests; Compiling src/physics/gpu/gpu_physics_backend.cpp; 4s linux-sandbox ... (4 actions running)
+[337 / 469] 2 / 5 tests; Compiling src/physics/gpu/gpu_physics_backend.cpp; 5s linux-sandbox ... (4 actions, 3 running)
+[342 / 469] 2 / 5 tests; Compiling src/physics/gpu/gpu_physics_backend.cpp; 6s linux-sandbox ... (4 actions, 3 running)
+[347 / 469] 2 / 5 tests; Compiling third_party/box3d/src/body.c; 0s linux-sandbox ... (4 actions, 3 running)
+[356 / 469] 2 / 5 tests; Compiling third_party/JoltPhysics/Jolt/Physics/SoftBody/SoftBodyMotionProperties.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[359 / 469] 2 / 5 tests; Compiling third_party/JoltPhysics/Jolt/Physics/SoftBody/SoftBodyMotionProperties.cpp; 2s linux-sandbox ... (4 actions running)
+[362 / 469] 2 / 5 tests; Compiling src/physics/gpu/gpu_islands.cpp; 1s linux-sandbox ... (4 actions running)
+[367 / 469] 2 / 5 tests; Compiling src/physics/gpu/gpu_event_readback.cpp; 0s linux-sandbox ... (4 actions, 3 running)
+[370 / 469] 2 / 5 tests; Compiling third_party/JoltPhysics/Jolt/Physics/Ragdoll/Ragdoll.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[373 / 469] 2 / 5 tests; Compiling third_party/JoltPhysics/Jolt/Physics/Ragdoll/Ragdoll.cpp; 2s linux-sandbox ... (4 actions, 3 running)
+[377 / 469] 2 / 5 tests; Compiling src/physics/gpu/gpu_ccd.cpp; 0s linux-sandbox ... (4 actions, 3 running)
+[380 / 469] 2 / 5 tests; Compiling third_party/JoltPhysics/Jolt/Physics/Body/Body.cpp; 1s linux-sandbox ... (4 actions running)
+[383 / 469] 2 / 5 tests; Compiling third_party/JoltPhysics/Jolt/Physics/PhysicsSystem.cpp; 2s linux-sandbox ... (4 actions, 3 running)
+[384 / 469] 2 / 5 tests; Compiling third_party/JoltPhysics/Jolt/Physics/PhysicsSystem.cpp; 3s linux-sandbox ... (4 actions, 3 running)
+[386 / 469] 2 / 5 tests; Compiling src/physics/gpu/gpu_buffer_arena.cpp; 2s linux-sandbox ... (4 actions running)
+[389 / 469] 2 / 5 tests; Compiling third_party/JoltPhysics/Jolt/Physics/PhysicsScene.cpp; 1s linux-sandbox ... (4 actions running)
+[390 / 469] 2 / 5 tests; Compiling third_party/JoltPhysics/Jolt/Physics/PhysicsScene.cpp; 2s linux-sandbox ... (4 actions, 3 running)
+[392 / 469] 2 / 5 tests; Compiling third_party/JoltPhysics/Jolt/Physics/PhysicsScene.cpp; 3s linux-sandbox ... (4 actions, 3 running)
+[394 / 469] 2 / 5 tests; Compiling third_party/JoltPhysics/Jolt/Physics/Character/CharacterVirtual.cpp; 2s linux-sandbox ... (4 actions, 3 running)
+[396 / 469] 2 / 5 tests; Compiling third_party/JoltPhysics/Jolt/Physics/Character/CharacterVirtual.cpp; 3s linux-sandbox ... (4 actions, 3 running)
+[397 / 469] 2 / 5 tests; Compiling third_party/JoltPhysics/Jolt/Physics/Character/CharacterVirtual.cpp; 4s linux-sandbox ... (4 actions running)
+[400 / 469] 2 / 5 tests; Compiling third_party/JoltPhysics/Jolt/Physics/Collision/BroadPhase/BroadPhaseQuadTree.cpp; 1s linux-sandbox ... (4 actions running)
+[403 / 469] 2 / 5 tests; Compiling third_party/JoltPhysics/Jolt/Physics/Collision/BroadPhase/QuadTree.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[405 / 469] 2 / 5 tests; Compiling third_party/JoltPhysics/Jolt/Physics/Collision/CastConvexVsTriangles.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[407 / 469] 2 / 5 tests; Compiling src/physics/box3d/box3d_backend.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[408 / 469] 2 / 5 tests; Compiling src/physics/box3d/box3d_backend.cpp; 3s linux-sandbox ... (4 actions running)
+[413 / 469] 2 / 5 tests; Compiling third_party/JoltPhysics/Jolt/Physics/Collision/CollideSphereVsTriangles.cpp; 1s linux-sandbox ... (4 actions running)
+[416 / 469] 2 / 5 tests; Compiling third_party/JoltPhysics/Jolt/Physics/Collision/CollisionDispatch.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[419 / 469] 2 / 5 tests; Compiling third_party/JoltPhysics/Jolt/Physics/Collision/GroupFilter.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[423 / 469] 2 / 5 tests; Compiling third_party/JoltPhysics/Jolt/Physics/Constraints/SixDOFConstraint.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[426 / 469] 2 / 5 tests; Compiling third_party/JoltPhysics/Jolt/Physics/Collision/PhysicsMaterialSimple.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[429 / 469] 2 / 5 tests; Compiling third_party/JoltPhysics/Jolt/Physics/Constraints/RackAndPinionConstraint.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[431 / 469] 2 / 5 tests; Compiling third_party/JoltPhysics/Jolt/Physics/Collision/Shape/ConvexHullShape.cpp; 1s linux-sandbox ... (4 actions running)
+[432 / 469] 2 / 5 tests; Compiling third_party/JoltPhysics/Jolt/Physics/Collision/Shape/ConvexHullShape.cpp; 2s linux-sandbox ... (4 actions running)
+[435 / 469] 2 / 5 tests; Compiling third_party/JoltPhysics/Jolt/Physics/Collision/Shape/ConvexShape.cpp; 3s linux-sandbox ... (4 actions, 3 running)
+[439 / 469] 2 / 5 tests; Compiling third_party/JoltPhysics/Jolt/Physics/Collision/Shape/HeightFieldShape.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[440 / 469] 2 / 5 tests; Compiling third_party/JoltPhysics/Jolt/Physics/Collision/Shape/HeightFieldShape.cpp; 2s linux-sandbox ... (4 actions, 3 running)
+[441 / 469] 2 / 5 tests; Compiling third_party/JoltPhysics/Jolt/Physics/Collision/Shape/HeightFieldShape.cpp; 3s linux-sandbox ... (4 actions running)
+[444 / 469] 2 / 5 tests; Compiling third_party/JoltPhysics/Jolt/Physics/Collision/Shape/OffsetCenterOfMassShape.cpp; 1s linux-sandbox ... (4 actions running)
+[447 / 469] 2 / 5 tests; Compiling third_party/JoltPhysics/Jolt/Physics/Collision/Shape/RotatedTranslatedShape.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[450 / 469] 2 / 5 tests; Compiling third_party/JoltPhysics/Jolt/Physics/Collision/Shape/Shape.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[453 / 469] 2 / 5 tests; Compiling third_party/JoltPhysics/Jolt/Physics/Collision/Shape/StaticCompoundShape.cpp; 2s linux-sandbox ... (4 actions, 3 running)
+[456 / 469] 2 / 5 tests; Compiling third_party/JoltPhysics/Jolt/Physics/Constraints/FixedConstraint.cpp; 1s linux-sandbox ... (4 actions, 3 running)
+[459 / 469] 2 / 5 tests; Compiling third_party/JoltPhysics/Jolt/Physics/Constraints/ConeConstraint.cpp; 1s linux-sandbox ... (4 actions running)
+[463 / 469] 2 / 5 tests; Compiling third_party/JoltPhysics/Jolt/Physics/Constraints/ContactConstraintManager.cpp; 1s linux-sandbox
+[464 / 469] 2 / 5 tests; [Prepa] Linking third_party/libjolt.so
+[471 / 472] 4 / 5 tests; Testing //tests:lego_playground; 0s linux-sandbox
+[471 / 472] 4 / 5 tests; Testing //tests:lego_playground; 10s linux-sandbox
+[471 / 472] 5 / 5 tests; Testing //tests:lego_playground; 23s linux-sandbox
+INFO: Found 5 test targets...
+INFO: Elapsed time: 117.065s, Critical Path: 35.92s
+INFO: 263 processes: 211 action cache hit, 18 internal, 245 linux-sandbox.
+INFO: Build completed successfully, 263 total actions
+//tests:construction_types                                      (cached) PASSED in 0.0s
+//tests:gltf_vmesh_tool_test                                    (cached) PASSED in 0.0s
+//tests:config                                                           PASSED in 0.0s
+//tests:lego_playground                                                  PASSED in 23.8s
+//tests:lego_surface                                                     PASSED in 0.1s
+
+Executed 3 out of 5 tests: 5 tests pass.
+There were tests whose specified size is too big. Use the --test_verbose_timeout_warnings command line option to see which ones these are.
