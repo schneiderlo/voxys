@@ -72,6 +72,11 @@ jobs:
       - name: Configure native renderer tests
         run: cmake -S . -B build-native -DVOXY_BUILD_NATIVE=ON -DVOXY_BUILD_WASM=OFF -DVOXY_BUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=gcc-14 -DCMAKE_CXX_COMPILER=g++-14 -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
       - run: cmake --build build-native --target voxy_tests -j4
+      # Retain successful compilation even if a later runtime regression fails.
+      - uses: actions/cache/save@v4
+        with:
+          path: ~/.ccache
+          key: ccache-native-integration-${{ github.sha }}
       - name: Terrain checksum and compatibility regression tests
         run: ctest --test-dir build-native -R '^(CRC32Test|CompressionTest|HeaderTest|FileIOTest)\.' --output-on-failure --timeout 120
       - name: Native renderer lifetime and resource regression tests
@@ -87,11 +92,21 @@ jobs:
           MESA_SHADER_CACHE_DISABLE: 'true'
         run: |
           for test in CompoundStudsSupportRealStackAndSleep BoxFootprintSupportsEdgeAndRejectsInvalidPlacement; do
-            timeout 120 gdb --batch --return-child-result -ex run -ex 'thread apply all bt 12' \
+            timeout 120 gdb --batch --return-child-result -ex run \
+              -ex 'info registers' -ex 'x/12i $pc-20' \
+              -ex 'thread apply all bt 40' -ex 'info proc mappings' \
               --args ./build-native/bin/voxy_tests --gtest_filter="LegoPlaygroundGpu.$test" \
               > "native-crash-$test.log" 2>&1 &
           done
           wait
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: native-crash-binaries
+          path: |
+            build-native/bin/voxy_tests
+            third_party/wgpu-native/dist/lib/libwgpu_native.so
+          retention-days: 7
       - name: Shared LEGO geometry and GPU regression
         env:
           XDG_RUNTIME_DIR: /tmp/voxys-runtime
