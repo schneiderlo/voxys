@@ -2,7 +2,9 @@
 #include "gpu/context.hpp"
 #include "physics/physics_world.hpp"
 #include <gtest/gtest.h>
+#include <chrono>
 #include <limits>
+#include <thread>
 #ifndef WGPUWrappedSubmissionIndex
 struct WGPUWrappedSubmissionIndex;
 #endif
@@ -16,6 +18,20 @@ protected:
   gpu::Context gpu;
   physics::PhysicsWorld world;
   LegoPlayground p;
+  bool waitForGpu() {
+    // wgpu-native 22's blocking poll ignores a 60-second fence timeout and
+    // retires command buffers that can still be executing. Cold LLVMpipe
+    // compilation can cross that limit. Poll the actual completion fence;
+    // retain the surrounding CTest timeout as the hang guard.
+    const auto deadline = std::chrono::steady_clock::now() +
+                          std::chrono::seconds(110);
+    while (!wgpuDevicePoll(gpu.getDevice(), false, nullptr)) {
+      if (std::chrono::steady_clock::now() >= deadline)
+        return false;
+      std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+    return true;
+  }
   void SetUp() override {
     gpu::ContextConfig config;
     config.enableValidation = true;
@@ -51,7 +67,7 @@ protected:
       wgpuQueueSubmit(gpu.getQueue(), 1, &cmd);
       wgpuCommandBufferRelease(cmd);
       wgpuCommandEncoderRelease(enc);
-      static_cast<void>(wgpuDevicePoll(gpu.getDevice(), true, nullptr));
+      ASSERT_TRUE(waitForGpu()) << "GPU submission did not complete";
     }
     p.step(1e-6f);
   }
@@ -161,7 +177,7 @@ TEST_F(LegoPlaygroundGpu, RaysDistinguishStudCapsFromGapsOnRotatedBrick) {
   settle(.05f);
   auto hits = world.pollQueryResults();
   for (int i = 0; !hits && i < 8; ++i) {
-    static_cast<void>(wgpuDevicePoll(gpu.getDevice(), true, nullptr));
+    ASSERT_TRUE(waitForGpu()) << "GPU query did not complete";
     hits = world.pollQueryResults();
   }
   ASSERT_TRUE(hits);

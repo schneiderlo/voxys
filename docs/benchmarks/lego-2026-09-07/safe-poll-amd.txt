@@ -1,0 +1,137 @@
+warning: Git tree '/home/modkin/workspace/schneiderlo/voxys' is dirty
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Running main() from /home/modkin/workspace/schneiderlo/voxys/third_party/googletest/googletest/src/gtest_main.cc
+Note: Google Test filter = LegoPlaygroundGpu.*:PrimitivePathGPUTest.*:PrimitiveMaterialTest.*:LegoSurface.*
+[==========] Running 22 tests from 4 test suites.
+[----------] Global test environment set-up.
+[----------] 10 tests from LegoSurface
+[ RUN      ] LegoSurface.QuantizesAllRawSamplesWithinHalfAPlate
+[       OK ] LegoSurface.QuantizesAllRawSamplesWithinHalfAPlate (0 ms)
+[ RUN      ] LegoSurface.ChunkOwnershipCoversOnlyEqualLevelsWithoutChangingGround
+[       OK ] LegoSurface.ChunkOwnershipCoversOnlyEqualLevelsWithoutChangingGround (0 ms)
+[ RUN      ] LegoSurface.SphereContactsStudCapSideRimAndVerticalStep
+[       OK ] LegoSurface.SphereContactsStudCapSideRimAndVerticalStep (0 ms)
+[ RUN      ] LegoSurface.CapsuleSupportIncludesStudsBetweenHeightProbes
+[       OK ] LegoSurface.CapsuleSupportIncludesStudsBetweenHeightProbes (0 ms)
+[ RUN      ] LegoSurface.PlayerCrossesChunksAndPlateStepsButStopsAtCliff
+[       OK ] LegoSurface.PlayerCrossesChunksAndPlateStepsButStopsAtCliff (4 ms)
+[ RUN      ] LegoSurface.PlayerLandsAndJumpsInNegativeHeightSector
+[       OK ] LegoSurface.PlayerLandsAndJumpsInNegativeHeightSector (0 ms)
+[ RUN      ] LegoSurface.ChunkBuilderMatchesStudyAndFullMapEdges
+[       OK ] LegoSurface.ChunkBuilderMatchesStudyAndFullMapEdges (24 ms)
+[ RUN      ] LegoSurface.LayoutCacheIsBoundedReusesRowsAndRejectsStaleSlots
+[       OK ] LegoSurface.LayoutCacheIsBoundedReusesRowsAndRejectsStaleSlots (0 ms)
+[ RUN      ] LegoSurface.TerrainModeSwitchPreservesLiveCharacter
+[       OK ] LegoSurface.TerrainModeSwitchPreservesLiveCharacter (0 ms)
+[ RUN      ] LegoSurface.LongJointsStaggerAcrossAdjacentCourses
+[       OK ] LegoSurface.LongJointsStaggerAcrossAdjacentCourses (0 ms)
+[----------] 10 tests from LegoSurface (30 ms total)
+
+[----------] 6 tests from LegoPlaygroundGpu
+[ RUN      ] LegoPlaygroundGpu.CompoundStudsSupportRealStackAndSleep
+[32m[INFO ] [04:13:24.770] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [04:13:24.770] [GPU]   Vendor: radv[0m
+[32m[INFO ] [04:13:24.770] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [04:13:24.770] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [04:13:24.771] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [04:13:24.844] WebGPU physics initialized: 128 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[       OK ] LegoPlaygroundGpu.CompoundStudsSupportRealStackAndSleep (542 ms)
+[ RUN      ] LegoPlaygroundGpu.BoxFootprintSupportsEdgeAndRejectsInvalidPlacement
+[32m[INFO ] [04:13:25.293] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [04:13:25.293] [GPU]   Vendor: radv[0m
+[32m[INFO ] [04:13:25.293] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [04:13:25.293] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [04:13:25.294] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [04:13:25.367] WebGPU physics initialized: 128 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[       OK ] LegoPlaygroundGpu.BoxFootprintSupportsEdgeAndRejectsInvalidPlacement (529 ms)
+[ RUN      ] LegoPlaygroundGpu.BallImpactWakesStackAndCompletesChallengeThenResetReplays
+[32m[INFO ] [04:13:25.823] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [04:13:25.823] [GPU]   Vendor: radv[0m
+[32m[INFO ] [04:13:25.823] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [04:13:25.823] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [04:13:25.825] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [04:13:25.900] WebGPU physics initialized: 128 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[       OK ] LegoPlaygroundGpu.BallImpactWakesStackAndCompletesChallengeThenResetReplays (2096 ms)
+[ RUN      ] LegoPlaygroundGpu.PoolsStayBoundedAcrossImpactsAndReset
+[32m[INFO ] [04:13:27.918] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [04:13:27.918] [GPU]   Vendor: radv[0m
+[32m[INFO ] [04:13:27.918] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [04:13:27.918] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [04:13:27.919] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [04:13:27.990] WebGPU physics initialized: 128 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[       OK ] LegoPlaygroundGpu.PoolsStayBoundedAcrossImpactsAndReset (783 ms)
+[ RUN      ] LegoPlaygroundGpu.RaysDistinguishStudCapsFromGapsOnRotatedBrick
+[32m[INFO ] [04:13:28.702] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [04:13:28.702] [GPU]   Vendor: radv[0m
+[32m[INFO ] [04:13:28.702] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [04:13:28.702] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [04:13:28.703] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [04:13:28.775] WebGPU physics initialized: 128 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[       OK ] LegoPlaygroundGpu.RaysDistinguishStudCapsFromGapsOnRotatedBrick (125 ms)
+[ RUN      ] LegoPlaygroundGpu.RejectsUnboundedCompoundDescriptions
+[32m[INFO ] [04:13:28.828] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [04:13:28.828] [GPU]   Vendor: radv[0m
+[32m[INFO ] [04:13:28.828] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [04:13:28.828] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [04:13:28.829] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [04:13:28.900] WebGPU physics initialized: 128 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[33m[WARN ] [04:13:28.901] Discarding unsupported LEGO compound dimensions[0m
+[33m[WARN ] [04:13:28.901] Discarding unsupported LEGO compound dimensions[0m
+[33m[WARN ] [04:13:28.901] Discarding unsupported LEGO compound dimensions[0m
+[       OK ] LegoPlaygroundGpu.RejectsUnboundedCompoundDescriptions (104 ms)
+[----------] 6 tests from LegoPlaygroundGpu (4181 ms total)
+
+[----------] 2 tests from PrimitiveMaterialTest
+[ RUN      ] PrimitiveMaterialTest.PacksStableGpuResidentPbrParameters
+[       OK ] PrimitiveMaterialTest.PacksStableGpuResidentPbrParameters (0 ms)
+[ RUN      ] PrimitiveMaterialTest.SanitizesNonFiniteAuthoringValues
+[       OK ] PrimitiveMaterialTest.SanitizesNonFiniteAuthoringValues (0 ms)
+[----------] 2 tests from PrimitiveMaterialTest (0 ms total)
+
+[----------] 4 tests from PrimitivePathGPUTest
+[ RUN      ] PrimitivePathGPUTest.CompilesPrimitivePipeline
+[32m[INFO ] [04:13:28.932] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [04:13:28.932] [GPU]   Vendor: radv[0m
+[32m[INFO ] [04:13:28.932] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [04:13:28.932] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [04:13:28.933] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] PrimitivePathGPUTest.CompilesPrimitivePipeline (34 ms)
+[ RUN      ] PrimitivePathGPUTest.DrawsGpuResidentPhysicsBody
+[32m[INFO ] [04:13:28.968] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [04:13:28.968] [GPU]   Vendor: radv[0m
+[32m[INFO ] [04:13:28.968] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [04:13:28.968] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [04:13:28.969] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [04:13:29.043] WebGPU physics initialized: 256 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[       OK ] PrimitivePathGPUTest.DrawsGpuResidentPhysicsBody (112 ms)
+[ RUN      ] PrimitivePathGPUTest.CylinderCapsFaceOutwardAboveAndBelow
+[32m[INFO ] [04:13:29.082] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [04:13:29.082] [GPU]   Vendor: radv[0m
+[32m[INFO ] [04:13:29.082] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [04:13:29.082] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [04:13:29.083] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [04:13:29.156] WebGPU physics initialized: 256 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[32m[INFO ] [04:13:29.196] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [04:13:29.196] [GPU]   Vendor: radv[0m
+[32m[INFO ] [04:13:29.196] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [04:13:29.196] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [04:13:29.197] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [04:13:29.256] WebGPU physics initialized: 256 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[       OK ] PrimitivePathGPUTest.CylinderCapsFaceOutwardAboveAndBelow (212 ms)
+[ RUN      ] PrimitivePathGPUTest.DrawsResidentLegoStudCap
+[32m[INFO ] [04:13:29.302] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [04:13:29.302] [GPU]   Vendor: radv[0m
+[32m[INFO ] [04:13:29.302] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [04:13:29.302] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [04:13:29.303] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [04:13:29.358] WebGPU physics initialized: 256 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[       OK ] PrimitivePathGPUTest.DrawsResidentLegoStudCap (102 ms)
+[----------] 4 tests from PrimitivePathGPUTest (462 ms total)
+
+[----------] Global test environment tear-down
+[==========] 22 tests from 4 test suites ran. (4674 ms total)
+[  PASSED  ] 22 tests.

@@ -39,7 +39,7 @@ captures on this Chrome version; the strengthened image gate rejects those.
 The window-backed configuration uses Xvfb, SwiftShader ANGLE and SwiftShader
 Vulkan. `startup-window-swiftshader.json` records the initial full-app pass.
 Pages now uses this configuration and **the startup test is blocking**. It checks
-completed GPU frames, error-free console, hidden loading overlay, correct terrain
+submitted frames plus completed GPU timestamp readback, error-free console, hidden loading overlay, correct terrain
 and heap dimensions, and a nonblank landscape screenshot.
 
 A second failure appeared during compound-brick development:
@@ -174,3 +174,39 @@ attempts selected OpenGL and were rejected as reproduction evidence. The cause
 is not yet established. Native CI retains every assertion and now captures
 cold-driver debugger backtraces on failure; these diagnostic retries do not
 change the failed gate's result.
+
+
+## Native cold-start timeout isolated
+
+The second CI attempt reproduced both faults. Matching Ubuntu Mesa debug
+symbols locate the driver crash in `lvp_execute_cmd_buffer`, at the read of
+`pipeline->type` during pipeline binding. This is command execution, not an
+LLVM shader-compiler stack. `ci-second-native-backtrace.txt` retains the trace.
+
+The pinned wgpu-native 22 backend has a concrete timeout defect:
+[`CLEANUP_WAIT_MS` is 60000](https://github.com/gfx-rs/wgpu/blob/v22.1.0/wgpu-core/src/device/mod.rs#L40),
+but [`Device::maintain`](https://github.com/gfx-rs/wgpu/blob/v22.1.0/wgpu-core/src/device/resource.rs#L436)
+ignores the `false` result from the fence wait and unconditionally retires
+submissions at the requested index. Cold software shader compilation can take
+longer than that wait. Recycled command storage is then still in use by Vulkan.
+
+Constraining the unchanged test to two CPU cores, AVX, two LLVMpipe workers
+and 20% process duty reproduced a SIGSEGV locally. The new tests now use
+nonblocking device polling to inspect the actual completion fence, with a
+bounded 110-second wait and the existing 120-second CTest deadline unchanged.
+With identical 20% duty for the first 85 seconds, the old binary crashed
+(SIGSEGV) after 88.2 seconds and the fixed test passed in 107.6 seconds.
+`unsafe-poll-slow-native.txt` retains the negative control. The focused
+22-test AMD suite also passed. See `safe-poll-slow-native.txt` and
+`safe-poll-amd.txt`. This changes test synchronization, not the physics, and
+does not disable any test or shader path. Legacy blocking polls elsewhere in
+native tests and the native benchmark/screenshot paths still require care on
+very slow devices; the browser application does not use this native API.
+
+The opt-in `scripts/reproduce_lego_native_timeout.py` records the exact adapter,
+process result and timing without changing system settings. Set
+`VK_DRIVER_FILES` to Mesa 25.2.8's LLVMpipe ICD JSON and provide its matching
+LLVM 20.1.2 library path, then pass the native test executable and output log.
+It limits only its own process tree to two cores / two software workers and
+restores full duty after 85 seconds. It terminates after 120 seconds. Ordinary
+hardware tests and the CI suite do not apply this artificial slowdown.

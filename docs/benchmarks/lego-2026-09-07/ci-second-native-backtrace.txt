@@ -1,0 +1,147 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+Running main() from /home/runner/work/voxys/voxys/third_party/googletest/googletest/src/gtest_main.cc
+Note: Google Test filter = LegoPlaygroundGpu.CompoundStudsSupportRealStackAndSleep
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from LegoPlaygroundGpu
+[ RUN      ] LegoPlaygroundGpu.CompoundStudsSupportRealStackAndSleep
+[New Thread 0x7fffe33ff6c0 (LWP 8343)]
+[New Thread 0x7fffe23fe6c0 (LWP 8344)]
+[New Thread 0x7fffe13fd6c0 (LWP 8348)]
+[New Thread 0x7fffdbfff6c0 (LWP 8349)]
+[32m[INFO ] [00:16:07.036] [GPU] GPU Adapter: llvmpipe (LLVM 20.1.2, 256 bits)[0m
+[32m[INFO ] [00:16:07.036] [GPU]   Vendor: llvmpipe[0m
+[32m[INFO ] [00:16:07.036] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [00:16:07.036] [GPU]   Type: CPU[0m
+[New Thread 0x7fffdaffe6c0 (LWP 8352)]
+[New Thread 0x7fffd9ffd6c0 (LWP 8355)]
+[New Thread 0x7fffc7fff6c0 (LWP 8357)]
+[New Thread 0x7fffc6ffe6c0 (LWP 8359)]
+[New Thread 0x7fffc5ffd6c0 (LWP 8360)]
+[32m[INFO ] [00:16:07.075] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [00:16:11.216] WebGPU physics initialized: 128 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+
+Thread 6 "voxy_tests" received signal SIGSEGV, Segmentation fault.
+[Switching to Thread 0x7fffdaffe6c0 (LWP 8352)]
+0x00007ffff60f68e0 in ?? () from /lib/x86_64-linux-gnu/libvulkan_lvp.so
+
+Thread 10 (Thread 0x7fffc5ffd6c0 (LWP 8360) "voxy_tests"):
+#0  0x00007ffff6e98e51 in __futex_abstimed_wait_common64 (private=0, cancel=true, abstime=0x0, op=393, expected=0, futex_word=0x5555583dd834) at ./nptl/futex-internal.c:57
+#1  __futex_abstimed_wait_common (cancel=true, private=0, abstime=0x0, clockid=0, expected=0, futex_word=0x5555583dd834) at ./nptl/futex-internal.c:87
+#2  __GI___futex_abstimed_wait_cancelable64 (futex_word=futex_word@entry=0x5555583dd834, expected=expected@entry=0, clockid=clockid@entry=0, abstime=abstime@entry=0x0, private=private@entry=0) at ./nptl/futex-internal.c:139
+#3  0x00007ffff6e9b8cd in __pthread_cond_wait_common (abstime=0x0, clockid=0, mutex=0x5555583dd7e0, cond=0x5555583dd808) at ./nptl/pthread_cond_wait.c:503
+#4  ___pthread_cond_wait (cond=0x5555583dd808, mutex=0x5555583dd7e0) at ./nptl/pthread_cond_wait.c:627
+#5  0x00007ffff617ebdd in ?? () from /lib/x86_64-linux-gnu/libvulkan_lvp.so
+#6  0x00007ffff639043b in ?? () from /lib/x86_64-linux-gnu/libvulkan_lvp.so
+#7  0x00007ffff617eb0c in ?? () from /lib/x86_64-linux-gnu/libvulkan_lvp.so
+#8  0x00007ffff6e9cb84 in start_thread (arg=<optimized out>) at ./nptl/pthread_create.c:447
+#9  0x00007ffff6f29d6c in clone3 () at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:78
+
+Thread 9 (Thread 0x7fffc6ffe6c0 (LWP 8359) "voxy_tests"):
+#0  0x00007ffff6e98e51 in __futex_abstimed_wait_common64 (private=0, cancel=true, abstime=0x0, op=393, expected=0, futex_word=0x5555583dd834) at ./nptl/futex-internal.c:57
+#1  __futex_abstimed_wait_common (cancel=true, private=0, abstime=0x0, clockid=0, expected=0, futex_word=0x5555583dd834) at ./nptl/futex-internal.c:87
+#2  __GI___futex_abstimed_wait_cancelable64 (futex_word=futex_word@entry=0x5555583dd834, expected=expected@entry=0, clockid=clockid@entry=0, abstime=abstime@entry=0x0, private=private@entry=0) at ./nptl/futex-internal.c:139
+#3  0x00007ffff6e9b8cd in __pthread_cond_wait_common (abstime=0x0, clockid=0, mutex=0x5555583dd7e0, cond=0x5555583dd808) at ./nptl/pthread_cond_wait.c:503
+#4  ___pthread_cond_wait (cond=0x5555583dd808, mutex=0x5555583dd7e0) at ./nptl/pthread_cond_wait.c:627
+#5  0x00007ffff617ebdd in ?? () from /lib/x86_64-linux-gnu/libvulkan_lvp.so
+#6  0x00007ffff639043b in ?? () from /lib/x86_64-linux-gnu/libvulkan_lvp.so
+#7  0x00007ffff617eb0c in ?? () from /lib/x86_64-linux-gnu/libvulkan_lvp.so
+#8  0x00007ffff6e9cb84 in start_thread (arg=<optimized out>) at ./nptl/pthread_create.c:447
+#9  0x00007ffff6f29d6c in clone3 () at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:78
+
+Thread 8 (Thread 0x7fffc7fff6c0 (LWP 8357) "llvmpipe-1"):
+#0  0x00007ffff6e98e51 in __futex_abstimed_wait_common64 (private=-2147483648, cancel=true, abstime=0x0, op=393, expected=0, futex_word=0x5555583e1788) at ./nptl/futex-internal.c:57
+#1  __futex_abstimed_wait_common (cancel=true, private=-2147483648, abstime=0x0, clockid=0, expected=0, futex_word=0x5555583e1788) at ./nptl/futex-internal.c:87
+#2  __GI___futex_abstimed_wait_cancelable64 (futex_word=futex_word@entry=0x5555583e1788, expected=expected@entry=0, clockid=clockid@entry=0, abstime=abstime@entry=0x0, private=private@entry=0) at ./nptl/futex-internal.c:139
+#3  0x00007ffff6e9b8cd in __pthread_cond_wait_common (abstime=0x0, clockid=0, mutex=0x5555583e1738, cond=0x5555583e1760) at ./nptl/pthread_cond_wait.c:503
+#4  ___pthread_cond_wait (cond=0x5555583e1760, mutex=0x5555583e1738) at ./nptl/pthread_cond_wait.c:627
+#5  0x00007ffff617ebdd in ?? () from /lib/x86_64-linux-gnu/libvulkan_lvp.so
+#6  0x00007ffff6393a53 in ?? () from /lib/x86_64-linux-gnu/libvulkan_lvp.so
+#7  0x00007ffff617eb0c in ?? () from /lib/x86_64-linux-gnu/libvulkan_lvp.so
+#8  0x00007ffff6e9cb84 in start_thread (arg=<optimized out>) at ./nptl/pthread_create.c:447
+#9  0x00007ffff6f29d6c in clone3 () at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:78
+
+Thread 7 (Thread 0x7fffd9ffd6c0 (LWP 8355) "llvmpipe-0"):
+#0  0x00007ffff6e98e51 in __futex_abstimed_wait_common64 (private=32767, cancel=true, abstime=0x0, op=393, expected=0, futex_word=0x5555583e1628) at ./nptl/futex-internal.c:57
+#1  __futex_abstimed_wait_common (cancel=true, private=32767, abstime=0x0, clockid=0, expected=0, futex_word=0x5555583e1628) at ./nptl/futex-internal.c:87
+#2  __GI___futex_abstimed_wait_cancelable64 (futex_word=futex_word@entry=0x5555583e1628, expected=expected@entry=0, clockid=clockid@entry=0, abstime=abstime@entry=0x0, private=private@entry=0) at ./nptl/futex-internal.c:139
+#3  0x00007ffff6e9b8cd in __pthread_cond_wait_common (abstime=0x0, clockid=0, mutex=0x5555583e15d8, cond=0x5555583e1600) at ./nptl/pthread_cond_wait.c:503
+#4  ___pthread_cond_wait (cond=0x5555583e1600, mutex=0x5555583e15d8) at ./nptl/pthread_cond_wait.c:627
+#5  0x00007ffff617ebdd in ?? () from /lib/x86_64-linux-gnu/libvulkan_lvp.so
+#6  0x00007ffff6393a53 in ?? () from /lib/x86_64-linux-gnu/libvulkan_lvp.so
+#7  0x00007ffff617eb0c in ?? () from /lib/x86_64-linux-gnu/libvulkan_lvp.so
+#8  0x00007ffff6e9cb84 in start_thread (arg=<optimized out>) at ./nptl/pthread_create.c:447
+#9  0x00007ffff6f29d6c in clone3 () at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:78
+
+Thread 6 (Thread 0x7fffdaffe6c0 (LWP 8352) "voxy_tests"):
+#0  0x00007ffff60f68e0 in ?? () from /lib/x86_64-linux-gnu/libvulkan_lvp.so
+#1  0x00007ffff60f808a in ?? () from /lib/x86_64-linux-gnu/libvulkan_lvp.so
+#2  0x00007ffff60e4c4c in ?? () from /lib/x86_64-linux-gnu/libvulkan_lvp.so
+#3  0x00007ffff6086da6 in ?? () from /lib/x86_64-linux-gnu/libvulkan_lvp.so
+#4  0x00007ffff608705e in ?? () from /lib/x86_64-linux-gnu/libvulkan_lvp.so
+#5  0x00007ffff617eb0c in ?? () from /lib/x86_64-linux-gnu/libvulkan_lvp.so
+#6  0x00007ffff6e9cb84 in start_thread (arg=<optimized out>) at ./nptl/pthread_create.c:447
+#7  0x00007ffff6f29d6c in clone3 () at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:78
+
+Thread 5 (Thread 0x7fffdbfff6c0 (LWP 8349) "voxy_tests"):
+#0  0x00007ffff6e98e51 in __futex_abstimed_wait_common64 (private=32767, cancel=true, abstime=0x0, op=393, expected=0, futex_word=0x555556796a10) at ./nptl/futex-internal.c:57
+#1  __futex_abstimed_wait_common (cancel=true, private=32767, abstime=0x0, clockid=0, expected=0, futex_word=0x555556796a10) at ./nptl/futex-internal.c:87
+#2  __GI___futex_abstimed_wait_cancelable64 (futex_word=futex_word@entry=0x555556796a10, expected=expected@entry=0, clockid=clockid@entry=0, abstime=abstime@entry=0x0, private=private@entry=0) at ./nptl/futex-internal.c:139
+#3  0x00007ffff6e9b8cd in __pthread_cond_wait_common (abstime=0x0, clockid=0, mutex=0x5555567969c0, cond=0x5555567969e8) at ./nptl/pthread_cond_wait.c:503
+#4  ___pthread_cond_wait (cond=0x5555567969e8, mutex=0x5555567969c0) at ./nptl/pthread_cond_wait.c:627
+#5  0x00007fffe3999edd in ?? () from /lib/x86_64-linux-gnu/libgallium-25.2.8-0ubuntu0.24.04.2.so
+#6  0x00007fffe3c6253b in ?? () from /lib/x86_64-linux-gnu/libgallium-25.2.8-0ubuntu0.24.04.2.so
+#7  0x00007fffe3999e0c in ?? () from /lib/x86_64-linux-gnu/libgallium-25.2.8-0ubuntu0.24.04.2.so
+#8  0x00007ffff6e9cb84 in start_thread (arg=<optimized out>) at ./nptl/pthread_create.c:447
+#9  0x00007ffff6f29d6c in clone3 () at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:78
+
+Thread 4 (Thread 0x7fffe13fd6c0 (LWP 8348) "voxy_tests"):
+#0  0x00007ffff6e98e51 in __futex_abstimed_wait_common64 (private=32767, cancel=true, abstime=0x0, op=393, expected=0, futex_word=0x555556796a10) at ./nptl/futex-internal.c:57
+#1  __futex_abstimed_wait_common (cancel=true, private=32767, abstime=0x0, clockid=0, expected=0, futex_word=0x555556796a10) at ./nptl/futex-internal.c:87
+#2  __GI___futex_abstimed_wait_cancelable64 (futex_word=futex_word@entry=0x555556796a10, expected=expected@entry=0, clockid=clockid@entry=0, abstime=abstime@entry=0x0, private=private@entry=0) at ./nptl/futex-internal.c:139
+#3  0x00007ffff6e9b8cd in __pthread_cond_wait_common (abstime=0x0, clockid=0, mutex=0x5555567969c0, cond=0x5555567969e8) at ./nptl/pthread_cond_wait.c:503
+#4  ___pthread_cond_wait (cond=0x5555567969e8, mutex=0x5555567969c0) at ./nptl/pthread_cond_wait.c:627
+#5  0x00007fffe3999edd in ?? () from /lib/x86_64-linux-gnu/libgallium-25.2.8-0ubuntu0.24.04.2.so
+#6  0x00007fffe3c6253b in ?? () from /lib/x86_64-linux-gnu/libgallium-25.2.8-0ubuntu0.24.04.2.so
+#7  0x00007fffe3999e0c in ?? () from /lib/x86_64-linux-gnu/libgallium-25.2.8-0ubuntu0.24.04.2.so
+#8  0x00007ffff6e9cb84 in start_thread (arg=<optimized out>) at ./nptl/pthread_create.c:447
+#9  0x00007ffff6f29d6c in clone3 () at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:78
+
+Thread 3 (Thread 0x7fffe23fe6c0 (LWP 8344) "llvmpipe-1"):
+#0  0x00007ffff6e98e51 in __futex_abstimed_wait_common64 (private=32767, cancel=true, abstime=0x0, op=393, expected=0, futex_word=0x55555678f048) at ./nptl/futex-internal.c:57
+#1  __futex_abstimed_wait_common (cancel=true, private=32767, abstime=0x0, clockid=0, expected=0, futex_word=0x55555678f048) at ./nptl/futex-internal.c:87
+#2  __GI___futex_abstimed_wait_cancelable64 (futex_word=futex_word@entry=0x55555678f048, expected=expected@entry=0, clockid=clockid@entry=0, abstime=abstime@entry=0x0, private=private@entry=0) at ./nptl/futex-internal.c:139
+#3  0x00007ffff6e9b8cd in __pthread_cond_wait_common (abstime=0x0, clockid=0, mutex=0x55555678eff8, cond=0x55555678f020) at ./nptl/pthread_cond_wait.c:503
+#4  ___pthread_cond_wait (cond=0x55555678f020, mutex=0x55555678eff8) at ./nptl/pthread_cond_wait.c:627
+#5  0x00007fffe3999edd in ?? () from /lib/x86_64-linux-gnu/libgallium-25.2.8-0ubuntu0.24.04.2.so
+#6  0x00007fffe3c666d3 in ?? () from /lib/x86_64-linux-gnu/libgallium-25.2.8-0ubuntu0.24.04.2.so
+#7  0x00007fffe3999e0c in ?? () from /lib/x86_64-linux-gnu/libgallium-25.2.8-0ubuntu0.24.04.2.so
+#8  0x00007ffff6e9cb84 in start_thread (arg=<optimized out>) at ./nptl/pthread_create.c:447
+#9  0x00007ffff6f29d6c in clone3 () at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:78
+
+Thread 2 (Thread 0x7fffe33ff6c0 (LWP 8343) "llvmpipe-0"):
+#0  0x00007ffff6e98e51 in __futex_abstimed_wait_common64 (private=-2147483648, cancel=true, abstime=0x0, op=393, expected=0, futex_word=0x55555678eee8) at ./nptl/futex-internal.c:57
+#1  __futex_abstimed_wait_common (cancel=true, private=-2147483648, abstime=0x0, clockid=0, expected=0, futex_word=0x55555678eee8) at ./nptl/futex-internal.c:87
+#2  __GI___futex_abstimed_wait_cancelable64 (futex_word=futex_word@entry=0x55555678eee8, expected=expected@entry=0, clockid=clockid@entry=0, abstime=abstime@entry=0x0, private=private@entry=0) at ./nptl/futex-internal.c:139
+#3  0x00007ffff6e9b8cd in __pthread_cond_wait_common (abstime=0x0, clockid=0, mutex=0x55555678ee98, cond=0x55555678eec0) at ./nptl/pthread_cond_wait.c:503
+#4  ___pthread_cond_wait (cond=0x55555678eec0, mutex=0x55555678ee98) at ./nptl/pthread_cond_wait.c:627
+#5  0x00007fffe3999edd in ?? () from /lib/x86_64-linux-gnu/libgallium-25.2.8-0ubuntu0.24.04.2.so
+#6  0x00007fffe3c666d3 in ?? () from /lib/x86_64-linux-gnu/libgallium-25.2.8-0ubuntu0.24.04.2.so
+#7  0x00007fffe3999e0c in ?? () from /lib/x86_64-linux-gnu/libgallium-25.2.8-0ubuntu0.24.04.2.so
+#8  0x00007ffff6e9cb84 in start_thread (arg=<optimized out>) at ./nptl/pthread_create.c:447
+#9  0x00007ffff6f29d6c in clone3 () at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:78
+
+Thread 1 (Thread 0x7ffff7e8c400 (LWP 8338) "voxy_tests"):
+#0  0x00007ffff6e98e51 in __futex_abstimed_wait_common64 (private=0, cancel=true, abstime=0x0, op=393, expected=0, futex_word=0x5555583e56a0) at ./nptl/futex-internal.c:57
+#1  __futex_abstimed_wait_common (cancel=true, private=0, abstime=0x0, clockid=0, expected=0, futex_word=0x5555583e56a0) at ./nptl/futex-internal.c:87
+#2  __GI___futex_abstimed_wait_cancelable64 (futex_word=futex_word@entry=0x5555583e56a0, expected=expected@entry=0, clockid=clockid@entry=0, abstime=abstime@entry=0x0, private=private@entry=0) at ./nptl/futex-internal.c:139
+#3  0x00007ffff6e9b8cd in __pthread_cond_wait_common (abstime=0x0, clockid=0, mutex=0x5555583e5650, cond=0x5555583e5678) at ./nptl/pthread_cond_wait.c:503
+#4  ___pthread_cond_wait (cond=0x5555583e5678, mutex=0x5555583e5650) at ./nptl/pthread_cond_wait.c:627
+#5  0x00007ffff617ebdd in ?? () from /lib/x86_64-linux-gnu/libvulkan_lvp.so
+#6  0x00007ffff60fc790 in ?? () from /lib/x86_64-linux-gnu/libvulkan_lvp.so
+#7  0x00007ffff6085fa5 in ?? () from /lib/x86_64-linux-gnu/libvulkan_lvp.so
+#8  0x00007ffff60873a1 in ?? () from /lib/x86_64-linux-gnu/libvulkan_lvp.so
+#9  0x00007ffff60905c2 in ?? () from /lib/x86_64-linux-gnu/libvulkan_lvp.so
+#10 0x00007ffff790084d in <wgpu_hal::vulkan::Queue as wgpu_hal::Queue>::submit () from /home/runner/work/voxys/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+#11 0x00007ffff7687cbb in wgpu_core::device::queue::<impl wgpu_core::global::Global>::queue_submit () from /home/runner/work/voxys/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
