@@ -1,0 +1,4730 @@
+{
+  "kind": "application startup, no FPS acceptance",
+  "experience": "default",
+  "gpuMode": "swiftshader-window",
+  "flags": [
+    "--ozone-platform=x11",
+    "--use-webgpu-adapter=swiftshader",
+    "--use-angle=swiftshader",
+    "--enable-features=Vulkan",
+    "--use-vulkan=swiftshader"
+  ],
+  "browser": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/152.0.7977.64",
+    "revision": "@506c834ecceaa943c5f41e6cfe7f68acb5c45346",
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36",
+    "jsVersion": "15.2.124.18"
+  },
+  "url": "http://127.0.0.1:43889/",
+  "sample": {
+    "telemetry": {
+      "schema_version": 1,
+      "frame": {
+        "count": 27,
+        "fps": 0.1965177001,
+        "current_ms": 5088.600159,
+        "average_ms": 5088.600159,
+        "cpu_ms": 1,
+        "gpu_queue": 11,
+        "gpu_queue_limit": 12,
+        "pacing_skips": 9
+      },
+      "render": {
+        "path": "raycast",
+        "terrain_width": 8192,
+        "terrain_height": 8192,
+        "terrain_mips": 14,
+        "terrain_cache_refreshes": 1,
+        "static_cache_frames": 27,
+        "geometry_water_frames": 27,
+        "submitted_primitives": 0
+      },
+      "render_gpu": {
+        "available": true,
+        "frame": 0,
+        "age_frames": 27,
+        "water_simulation_ms": 460.332389,
+        "terrain_raycast_ms": 6465.751925,
+        "lighting_composite_ms": 6012.001894,
+        "primitives_ms": 0,
+        "total_ms": 12938.08621,
+        "frame_interval_available": true,
+        "gpu_frame_ms": 12938.22385,
+        "render_width": 960,
+        "render_height": 540,
+        "includes_gpu_physics": true
+      },
+      "render_throughput": {
+        "status": 0,
+        "full_quality": false,
+        "width": 960,
+        "height": 540,
+        "batch_frames": 0,
+        "submitted_frames": 0,
+        "completed_frames": 0,
+        "encoding_ms": 0,
+        "terrain_cache_refreshes": 1,
+        "static_cache_frames": 27,
+        "geometry_water_frames": 27,
+        "elapsed_ms": 0,
+        "fps": 0
+      },
+      "physics": {
+        "backend": "webgpu_soft",
+        "arithmetic": "fast_float",
+        "tick": 25,
+        "substeps": 4,
+        "fixed_tick_seconds": 0.01666666754,
+        "maximum_catch_up_ticks": 1,
+        "broad_phase_cell_size": 4,
+        "solver_workgroup_size": 256,
+        "solver_color_count": 32,
+        "solver_parallel_color_count": 4,
+        "scheduled_substeps": 4,
+        "bodies": {
+          "current": 0,
+          "capacity": 256,
+          "high_water": 0,
+          "overflow": false
+        },
+        "active_bodies": {
+          "current": 0,
+          "capacity": 256,
+          "high_water": 0,
+          "overflow": false
+        },
+        "sleeping_bodies": 0,
+        "kinematic_bodies": 0,
+        "commands": {
+          "current": 0,
+          "capacity": 262144,
+          "high_water": 0,
+          "overflow": false
+        },
+        "grid_entries": {
+          "current": 0,
+          "capacity": 257,
+          "high_water": 0,
+          "overflow": false
+        },
+        "occupied_cells": 0,
+        "maximum_cell_bodies": 0,
+        "pair_driving_bodies": 0,
+        "candidate_pairs": {
+          "current": 0,
+          "capacity": 262144,
+          "high_water": 0,
+          "overflow": false
+        },
+        "pairs": {
+          "current": 0,
+          "capacity": 65536,
+          "high_water": 0,
+          "overflow": false
+        },
+        "sleeping_pairs": 0,
+        "oversized_bodies": 0,
+        "contacts": {
+          "current": 0,
+          "capacity": 65536,
+          "high_water": 0,
+          "overflow": false
+        },
+        "narrow_pair_classes": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "narrow_collision_pair_classes": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "manifolds": {
+          "current": 0,
+          "capacity": 65536,
+          "high_water": 0,
+          "overflow": false
+        },
+        "manifold_points": 0,
+        "speculative_manifolds": 0,
+        "invalid_manifolds": 0,
+        "terrain_contacts": {
+          "current": 0,
+          "capacity": 1024,
+          "high_water": 0,
+          "overflow": false
+        },
+        "terrain_contact_bodies": 0,
+        "maximum_terrain_contacts_per_body": 0,
+        "solver_mode": "global",
+        "compact_contacts": 0,
+        "compact_bodies": 0,
+        "graph_colors": 0,
+        "solver_overflow": {
+          "current": 0,
+          "capacity": 65536,
+          "high_water": 0,
+          "overflow": false
+        },
+        "maximum_body_degree": 0,
+        "color_conflicts": 0,
+        "islands": {
+          "total": 0,
+          "awake": 0,
+          "sleeping": 0,
+          "maximum_bodies": 0,
+          "root_errors": 0
+        },
+        "sleeping_grid": {
+          "current": 0,
+          "capacity": 256,
+          "high_water": 0,
+          "overflow": false
+        },
+        "sleeping_grid_cells": 0,
+        "sleep_transitions": 0,
+        "wake_transitions": 0,
+        "bullets": {
+          "current": 0,
+          "capacity": 256,
+          "high_water": 0,
+          "overflow": false
+        },
+        "ccd_hits": 0,
+        "ccd_stalls": 0,
+        "ccd_failures": 0,
+        "ccd_maximum_iterations": 0,
+        "submerged_bodies": 0,
+        "water_samples": {
+          "current": 0,
+          "capacity": 8192,
+          "high_water": 0,
+          "overflow": false
+        },
+        "events": {
+          "current": 0,
+          "capacity": 197888,
+          "high_water": 0,
+          "overflow": false
+        },
+        "contact_begin_events": 0,
+        "contact_end_events": 0,
+        "island_events": 0,
+        "memory": {
+          "persistent_bytes": 192880,
+          "scratch_bytes": 144674304
+        },
+        "io": {
+          "upload_bytes": 0,
+          "readback_bytes": 0
+        },
+        "device_limits": {
+          "storage_bindings": 8,
+          "compute_invocations": 256,
+          "storage_buffer_bytes": 134217728,
+          "maximum_buffer_bytes": 268435456
+        },
+        "stages": {
+          "available": true,
+          "tick": 1,
+          "total_ms": 5.573162,
+          "commands_active_compaction": 5.533433,
+          "ccd": 0.001853,
+          "forces_water": 0.001823,
+          "broad_index_build": 0.001642,
+          "broad_index_sort_ranges": 0.001442,
+          "broad_pair_count": 0.001693,
+          "broad_pair_scatter": 0.001482,
+          "broad_pair_sort_unique": 0.001132,
+          "broad_lifecycle": 0.001121,
+          "narrow_phase_bucketing": 0.001823,
+          "narrow_phase_collision": 0.001012,
+          "dynamic_solver_coloring": 0.001512,
+          "dynamic_solver_graph": 0.001101,
+          "dynamic_solver_solve": 0.001072,
+          "static_contacts": 0.000982,
+          "islands_sleeping": 0.001432,
+          "tick_finalize": 0.018607
+        }
+      },
+      "camera": {
+        "position": [
+          116,
+          63.41999435,
+          70
+        ],
+        "sector": [
+          -5,
+          -1,
+          13
+        ],
+        "forward": [
+          0.2197768241,
+          -0.1648326665,
+          -0.9615240097
+        ],
+        "yaw": 2.916881561,
+        "pitch": -0.1655883491,
+        "fov_y": 1.04719758,
+        "aspect_ratio": 1.777777791
+      }
+    },
+    "moto": null,
+    "errors": [],
+    "lost": null,
+    "adapter": {
+      "vendor": "google",
+      "architecture": "swiftshader",
+      "device": "Unknown",
+      "description": "Unknown",
+      "fallback": false
+    },
+    "title": "LEGO Landscape — Voxys",
+    "buildId": "46100187bfbf0f4d41d770992849ce8c486faf4a",
+    "heapBytes": 536870912,
+    "heapUsedBytes": 423820752,
+    "loadingVisible": true,
+    "legoControlsVisible": true
+  },
+  "status": "failed",
+  "error": "AssertionError [ERR_ASSERTION]: loading overlay still covers the application\n\ntrue !== false\n",
+  "chrome_log": "[7564:7588:0907/170437.151604:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[7564:7588:0907/170441.408048:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[7564:7588:0907/170441.633169:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[7564:7588:0907/170442.007093:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n\nDevTools listening on ws://127.0.0.1:37135/devtools/browser/bf91e2ae-58a5-48ce-8c11-10d7ed9d0340\n[7564:7588:0907/170442.982785:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[7564:7588:0907/170442.982807:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[7564:7564:0907/170443.817519:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[7564:7588:0907/170443.820798:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[7564:7564:0907/170443.840359:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[7564:7588:0907/170443.840688:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[7564:7564:0907/170443.860529:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[7564:7564:0907/170443.888369:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[7564:7564:0907/170444.328702:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[7564:7564:0907/170444.330528:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[7564:7588:0907/170444.330727:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[7564:7564:0907/170444.451247:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[7564:7588:0907/170444.451403:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[7564:7564:0907/170444.455351:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.Properties.GetAll: object_path= /org/freedesktop/UPower/devices/DisplayDevice: org.freedesktop.DBus.Error.ServiceUnknown: The name org.freedesktop.UPower was not provided by any .service files\n[7564:7564:0907/170444.528448:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[7564:7588:0907/170444.529888:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[7564:7564:0907/170444.594719:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[7564:7590:0907/170447.515477:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT\n[7564:7588:0907/170454.177708:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[7564:7588:0907/170454.177735:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[7564:7564:0907/170454.179240:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[7564:7564:0907/170454.179281:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[7564:7588:0907/170454.179289:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[7564:7588:0907/170454.179300:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[7564:7564:0907/170454.179310:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[7564:7564:0907/170454.179317:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[7564:7588:0907/170454.261217:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[7564:7564:0907/170454.263470:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[7564:7588:0907/170454.263614:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[7564:7564:0907/170454.267362:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[7564:7588:0907/170454.268693:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[7564:7564:0907/170454.268708:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[7564:7588:0907/170454.268736:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[7564:7564:0907/170454.268742:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[7564:7588:0907/170454.339342:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[7564:7564:0907/170454.340066:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[7564:7588:0907/170454.340375:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[7564:7564:0907/170454.340465:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[7564:7588:0907/170454.342313:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[7564:7564:0907/170454.342372:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[7564:7588:0907/170454.346136:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[7564:7564:0907/170454.346669:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[7564:7588:0907/170454.507721:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[7564:7564:0907/170454.507853:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[7564:7588:0907/170454.507986:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[7564:7564:0907/170454.508007:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[7564:7588:0907/170454.518787:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[7564:7564:0907/170454.518962:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[7564:7588:0907/170454.519016:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[7564:7564:0907/170454.519503:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[7564:7588:0907/170454.574908:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[7564:7564:0907/170454.577354:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[7564:7588:0907/170454.577431:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[7564:7564:0907/170454.577456:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \nCreated TensorFlow Lite XNNPACK delegate for CPU.\n[7564:7590:0907/170514.656502:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT\n[7564:7590:0907/170606.984364:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT\n[7564:7564:0907/170742.277915:ERROR:services/on_device_model/public/cpp/service_client.cc:37] Unexpected on_device_model service disconnect; reason: 1, description: Error loading backend.\n[7564:7590:0907/170744.647281:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: QUOTA_EXCEEDED\n",
+  "console": [
+    {
+      "type": "log",
+      "args": [
+        {
+          "type": "string",
+          "value": "[INFO ] [00:00:00.008] Loading config: lego_world.cfg"
+        }
+      ],
+      "executionContextId": 2,
+      "timestamp": 1788800688272.303,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "Sa",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 109,
+            "columnNumber": 252
+          },
+          {
+            "functionName": "$func141",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 54595
+          },
+          {
+            "functionName": "$func216",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 95644
+          },
+          {
+            "functionName": "$cb",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2297416
+          },
+          {
+            "functionName": "b",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 89,
+            "columnNumber": 125
+          },
+          {
+            "functionName": "qe",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 131,
+            "columnNumber": 126
+          },
+          {
+            "functionName": "",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 138,
+            "columnNumber": 384
+          }
+        ]
+      }
+    },
+    {
+      "type": "log",
+      "args": [
+        {
+          "type": "string",
+          "value": "[INFO ] [00:00:00.027] ═══════════════════════════════════════════════════════════════"
+        }
+      ],
+      "executionContextId": 2,
+      "timestamp": 1788800688282.767,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "Sa",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 109,
+            "columnNumber": 252
+          },
+          {
+            "functionName": "$func141",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 54595
+          },
+          {
+            "functionName": "$func112",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 14073
+          },
+          {
+            "functionName": "$cb",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2333803
+          },
+          {
+            "functionName": "b",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 89,
+            "columnNumber": 125
+          },
+          {
+            "functionName": "qe",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 131,
+            "columnNumber": 126
+          },
+          {
+            "functionName": "",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 138,
+            "columnNumber": 384
+          }
+        ]
+      }
+    },
+    {
+      "type": "log",
+      "args": [
+        {
+          "type": "string",
+          "value": "[INFO ] [00:00:00.028]   Voxy - Terrain Renderer"
+        }
+      ],
+      "executionContextId": 2,
+      "timestamp": 1788800688283.382,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "Sa",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 109,
+            "columnNumber": 252
+          },
+          {
+            "functionName": "$func141",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 54595
+          },
+          {
+            "functionName": "$func159",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 66204
+          },
+          {
+            "functionName": "$cb",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2333907
+          },
+          {
+            "functionName": "b",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 89,
+            "columnNumber": 125
+          },
+          {
+            "functionName": "qe",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 131,
+            "columnNumber": 126
+          },
+          {
+            "functionName": "",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 138,
+            "columnNumber": 384
+          }
+        ]
+      }
+    },
+    {
+      "type": "log",
+      "args": [
+        {
+          "type": "string",
+          "value": "[INFO ] [00:00:00.028]   Build target: wasm"
+        }
+      ],
+      "executionContextId": 2,
+      "timestamp": 1788800688284.024,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "Sa",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 109,
+            "columnNumber": 252
+          },
+          {
+            "functionName": "$func141",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 54595
+          },
+          {
+            "functionName": "$func112",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 14073
+          },
+          {
+            "functionName": "$cb",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2333982
+          },
+          {
+            "functionName": "b",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 89,
+            "columnNumber": 125
+          },
+          {
+            "functionName": "qe",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 131,
+            "columnNumber": 126
+          },
+          {
+            "functionName": "",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 138,
+            "columnNumber": 384
+          }
+        ]
+      }
+    },
+    {
+      "type": "log",
+      "args": [
+        {
+          "type": "string",
+          "value": "[INFO ] [00:00:00.029]   Render path: raycast"
+        }
+      ],
+      "executionContextId": 2,
+      "timestamp": 1788800688285.687,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "Sa",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 109,
+            "columnNumber": 252
+          },
+          {
+            "functionName": "$func141",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 54595
+          },
+          {
+            "functionName": "$func159",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 66204
+          },
+          {
+            "functionName": "$cb",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2334091
+          },
+          {
+            "functionName": "b",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 89,
+            "columnNumber": 125
+          },
+          {
+            "functionName": "qe",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 131,
+            "columnNumber": 126
+          },
+          {
+            "functionName": "",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 138,
+            "columnNumber": 384
+          }
+        ]
+      }
+    },
+    {
+      "type": "log",
+      "args": [
+        {
+          "type": "string",
+          "value": "[INFO ] [00:00:00.031] ═══════════════════════════════════════════════════════════════"
+        }
+      ],
+      "executionContextId": 2,
+      "timestamp": 1788800688286.239,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "Sa",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 109,
+            "columnNumber": 252
+          },
+          {
+            "functionName": "$func141",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 54595
+          },
+          {
+            "functionName": "$func112",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 14073
+          },
+          {
+            "functionName": "$cb",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2334166
+          },
+          {
+            "functionName": "b",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 89,
+            "columnNumber": 125
+          },
+          {
+            "functionName": "qe",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 131,
+            "columnNumber": 126
+          },
+          {
+            "functionName": "",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 138,
+            "columnNumber": 384
+          }
+        ]
+      }
+    },
+    {
+      "type": "log",
+      "args": [
+        {
+          "type": "string",
+          "value": "[INFO ] [00:00:00.036] [Application::init::GPU] WASM GPU context initialized from canvas: #voxy-canvas"
+        }
+      ],
+      "executionContextId": 2,
+      "timestamp": 1788800688292.087,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "Sa",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 109,
+            "columnNumber": 252
+          },
+          {
+            "functionName": "$func141",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 54595
+          },
+          {
+            "functionName": "$func159",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 66204
+          },
+          {
+            "functionName": "$cb",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2337605
+          },
+          {
+            "functionName": "b",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 89,
+            "columnNumber": 125
+          },
+          {
+            "functionName": "qe",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 131,
+            "columnNumber": 126
+          },
+          {
+            "functionName": "",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 138,
+            "columnNumber": 384
+          }
+        ]
+      }
+    },
+    {
+      "type": "log",
+      "args": [
+        {
+          "type": "string",
+          "value": "[INFO ] [00:00:00.184] [Application::init] WebGPU physics initialized: 256 usable body slots, 0 MiB resident, 32 MiB scratch"
+        }
+      ],
+      "executionContextId": 2,
+      "timestamp": 1788800688439.549,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "Sa",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 109,
+            "columnNumber": 252
+          },
+          {
+            "functionName": "$func141",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 54595
+          },
+          {
+            "functionName": "$func282",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 151879
+          },
+          {
+            "functionName": "$func1847",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2674423
+          },
+          {
+            "functionName": "$func798",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 776748
+          },
+          {
+            "functionName": "$cb",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2342813
+          },
+          {
+            "functionName": "b",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 89,
+            "columnNumber": 125
+          },
+          {
+            "functionName": "qe",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 131,
+            "columnNumber": 126
+          },
+          {
+            "functionName": "",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 138,
+            "columnNumber": 384
+          }
+        ]
+      }
+    },
+    {
+      "type": "log",
+      "args": [
+        {
+          "type": "string",
+          "value": "[INFO ] [00:00:00.184] [Application::init] Physics backend: webgpu_soft (scheduler internal, concurrency 1)"
+        }
+      ],
+      "executionContextId": 2,
+      "timestamp": 1788800688439.919,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "Sa",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 109,
+            "columnNumber": 252
+          },
+          {
+            "functionName": "$func141",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 54595
+          },
+          {
+            "functionName": "$cb",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2343905
+          },
+          {
+            "functionName": "b",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 89,
+            "columnNumber": 125
+          },
+          {
+            "functionName": "qe",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 131,
+            "columnNumber": 126
+          },
+          {
+            "functionName": "",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 138,
+            "columnNumber": 384
+          }
+        ]
+      }
+    },
+    {
+      "type": "log",
+      "args": [
+        {
+          "type": "string",
+          "value": "[INFO ] [00:00:02.423] [Application::init] Decompressed 8192x8192 heightmap: 31803420 -> 134217728 bytes (2181.10 ms)"
+        }
+      ],
+      "executionContextId": 2,
+      "timestamp": 1788800690678.468,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "Sa",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 109,
+            "columnNumber": 252
+          },
+          {
+            "functionName": "$func141",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 54595
+          },
+          {
+            "functionName": "$cb",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2352817
+          },
+          {
+            "functionName": "b",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 89,
+            "columnNumber": 125
+          },
+          {
+            "functionName": "qe",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 131,
+            "columnNumber": 126
+          },
+          {
+            "functionName": "",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 138,
+            "columnNumber": 384
+          }
+        ]
+      }
+    },
+    {
+      "type": "log",
+      "args": [
+        {
+          "type": "string",
+          "value": "[INFO ] [00:00:02.423] [Application::init] Loaded LDH heightmap: 8192x8192 (128.00 MB, 2181.10 ms)"
+        }
+      ],
+      "executionContextId": 2,
+      "timestamp": 1788800690679.617,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "Sa",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 109,
+            "columnNumber": 252
+          },
+          {
+            "functionName": "$func141",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 54595
+          },
+          {
+            "functionName": "$func1130",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 1371848
+          },
+          {
+            "functionName": "$cb",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2354033
+          },
+          {
+            "functionName": "b",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 89,
+            "columnNumber": 125
+          },
+          {
+            "functionName": "qe",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 131,
+            "columnNumber": 126
+          },
+          {
+            "functionName": "",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 138,
+            "columnNumber": 384
+          }
+        ]
+      }
+    },
+    {
+      "type": "log",
+      "args": [
+        {
+          "type": "string",
+          "value": "[INFO ] [00:00:02.425] [Application::init] Loaded heightmap: data/generated/td_seed_1234_8192.ldh"
+        }
+      ],
+      "executionContextId": 2,
+      "timestamp": 1788800690680.477,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "Sa",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 109,
+            "columnNumber": 252
+          },
+          {
+            "functionName": "$func141",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 54595
+          },
+          {
+            "functionName": "$func156",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 64701
+          },
+          {
+            "functionName": "$cb",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2354609
+          },
+          {
+            "functionName": "b",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 89,
+            "columnNumber": 125
+          },
+          {
+            "functionName": "qe",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 131,
+            "columnNumber": 126
+          },
+          {
+            "functionName": "",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 138,
+            "columnNumber": 384
+          }
+        ]
+      }
+    },
+    {
+      "type": "log",
+      "args": [
+        {
+          "type": "string",
+          "value": "[INFO ] [00:00:02.514] [Application::init] Authored Wreckwater cove: 8008 core samples, 11108 feather samples, height -237.3..-158.7 m"
+        }
+      ],
+      "executionContextId": 2,
+      "timestamp": 1788800690770.249,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "Sa",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 109,
+            "columnNumber": 252
+          },
+          {
+            "functionName": "$func141",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 54595
+          },
+          {
+            "functionName": "$cb",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2394434
+          },
+          {
+            "functionName": "b",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 89,
+            "columnNumber": 125
+          },
+          {
+            "functionName": "qe",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 131,
+            "columnNumber": 126
+          },
+          {
+            "functionName": "",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 138,
+            "columnNumber": 384
+          }
+        ]
+      }
+    },
+    {
+      "type": "log",
+      "args": [
+        {
+          "type": "string",
+          "value": "[INFO ] [00:00:03.594] [Application::init] Uploaded heightmap to GPU with mips: 8192x8192 (14 levels, 170.67 MB total)"
+        }
+      ],
+      "executionContextId": 2,
+      "timestamp": 1788800691850.145,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "Sa",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 109,
+            "columnNumber": 252
+          },
+          {
+            "functionName": "$func141",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 54595
+          },
+          {
+            "functionName": "$cb",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2401230
+          },
+          {
+            "functionName": "b",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 89,
+            "columnNumber": 125
+          },
+          {
+            "functionName": "qe",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 131,
+            "columnNumber": 126
+          },
+          {
+            "functionName": "",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 138,
+            "columnNumber": 384
+          }
+        ]
+      }
+    },
+    {
+      "type": "log",
+      "args": [
+        {
+          "type": "string",
+          "value": "[INFO ] [00:00:03.869] [Application::init] Coastal refraction field initialized: 1024x1024"
+        }
+      ],
+      "executionContextId": 2,
+      "timestamp": 1788800692124.907,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "Sa",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 109,
+            "columnNumber": 252
+          },
+          {
+            "functionName": "$func141",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 54595
+          },
+          {
+            "functionName": "$func172",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 69201
+          },
+          {
+            "functionName": "$func1151",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 1410010
+          },
+          {
+            "functionName": "$cb",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2406838
+          },
+          {
+            "functionName": "b",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 89,
+            "columnNumber": 125
+          },
+          {
+            "functionName": "qe",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 131,
+            "columnNumber": 126
+          },
+          {
+            "functionName": "",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 138,
+            "columnNumber": 384
+          }
+        ]
+      }
+    },
+    {
+      "type": "log",
+      "args": [
+        {
+          "type": "string",
+          "value": "[INFO ] [00:00:03.870] [Application::init] FFT water simulation initialized: 2 cascades at 256x256"
+        }
+      ],
+      "executionContextId": 2,
+      "timestamp": 1788800692125.998,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "Sa",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 109,
+            "columnNumber": 252
+          },
+          {
+            "functionName": "$func141",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 54595
+          },
+          {
+            "functionName": "$func282",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 151879
+          },
+          {
+            "functionName": "$cb",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2409327
+          },
+          {
+            "functionName": "b",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 89,
+            "columnNumber": 125
+          },
+          {
+            "functionName": "qe",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 131,
+            "columnNumber": 126
+          },
+          {
+            "functionName": "",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 138,
+            "columnNumber": 384
+          }
+        ]
+      }
+    },
+    {
+      "type": "log",
+      "args": [
+        {
+          "type": "string",
+          "value": "[INFO ] [00:00:03.877] [Application::init::TrianglePath::init] TrianglePath initialized successfully"
+        }
+      ],
+      "executionContextId": 2,
+      "timestamp": 1788800692132.443,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "Sa",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 109,
+            "columnNumber": 252
+          },
+          {
+            "functionName": "$func141",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 54595
+          },
+          {
+            "functionName": "$func112",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 14073
+          },
+          {
+            "functionName": "$cb",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2418546
+          },
+          {
+            "functionName": "b",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 89,
+            "columnNumber": 125
+          },
+          {
+            "functionName": "qe",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 131,
+            "columnNumber": 126
+          },
+          {
+            "functionName": "",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 138,
+            "columnNumber": 384
+          }
+        ]
+      }
+    },
+    {
+      "type": "log",
+      "args": [
+        {
+          "type": "string",
+          "value": "[INFO ] [00:00:03.957] [Application::init::RaycastPath::init] RaycastPath initialized successfully (960x540 output)"
+        }
+      ],
+      "executionContextId": 2,
+      "timestamp": 1788800692212.506,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "Sa",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 109,
+            "columnNumber": 252
+          },
+          {
+            "functionName": "$func141",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 54595
+          },
+          {
+            "functionName": "$func172",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 69201
+          },
+          {
+            "functionName": "$cb",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2434985
+          },
+          {
+            "functionName": "b",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 89,
+            "columnNumber": 125
+          },
+          {
+            "functionName": "qe",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 131,
+            "columnNumber": 126
+          },
+          {
+            "functionName": "",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 138,
+            "columnNumber": 384
+          }
+        ]
+      }
+    },
+    {
+      "type": "log",
+      "args": [
+        {
+          "type": "string",
+          "value": "[INFO ] [00:00:05.454] [Application::init] Baked shadow height field: 4096x4096 (1496.4 ms)"
+        }
+      ],
+      "executionContextId": 2,
+      "timestamp": 1788800693709.418,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "Sa",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 109,
+            "columnNumber": 252
+          },
+          {
+            "functionName": "$func141",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 54595
+          },
+          {
+            "functionName": "$func1068",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 1275987
+          },
+          {
+            "functionName": "$cb",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2436710
+          },
+          {
+            "functionName": "b",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 89,
+            "columnNumber": 125
+          },
+          {
+            "functionName": "qe",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 131,
+            "columnNumber": 126
+          },
+          {
+            "functionName": "",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 138,
+            "columnNumber": 384
+          }
+        ]
+      }
+    },
+    {
+      "type": "log",
+      "args": [
+        {
+          "type": "string",
+          "value": "[INFO ] [00:00:07.231] [Application::init::TerrainTextures::init::TerrainTextures::loadTerrainMaterials] Loaded CC0 terrain material arrays from 'data/materials' (1024x1024x4)"
+        }
+      ],
+      "executionContextId": 2,
+      "timestamp": 1788800695486.438,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "Sa",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 109,
+            "columnNumber": 252
+          },
+          {
+            "functionName": "$func141",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 54595
+          },
+          {
+            "functionName": "$cb",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2448796
+          },
+          {
+            "functionName": "b",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 89,
+            "columnNumber": 125
+          },
+          {
+            "functionName": "qe",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 131,
+            "columnNumber": 126
+          },
+          {
+            "functionName": "",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 138,
+            "columnNumber": 384
+          }
+        ]
+      }
+    },
+    {
+      "type": "log",
+      "args": [
+        {
+          "type": "string",
+          "value": "[INFO ] [00:00:07.231] [Application::init::TerrainTextures::init] TerrainTextures initialized: macro 256x256, lightmap 1x1, materials 1024x1024x4"
+        }
+      ],
+      "executionContextId": 2,
+      "timestamp": 1788800695486.9,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "Sa",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 109,
+            "columnNumber": 252
+          },
+          {
+            "functionName": "$func141",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 54595
+          },
+          {
+            "functionName": "$func1142",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 1382276
+          },
+          {
+            "functionName": "$cb",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2451498
+          },
+          {
+            "functionName": "b",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 89,
+            "columnNumber": 125
+          },
+          {
+            "functionName": "qe",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 131,
+            "columnNumber": 126
+          },
+          {
+            "functionName": "",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 138,
+            "columnNumber": 384
+          }
+        ]
+      }
+    },
+    {
+      "type": "log",
+      "args": [
+        {
+          "type": "string",
+          "value": "[INFO ] [00:00:07.248] [Application::init::BlitPath::init] Created water clipmap: 18817 vertices, 33792 triangles"
+        }
+      ],
+      "executionContextId": 2,
+      "timestamp": 1788800695503.628,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "Sa",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 109,
+            "columnNumber": 252
+          },
+          {
+            "functionName": "$func141",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 54595
+          },
+          {
+            "functionName": "$func172",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 69201
+          },
+          {
+            "functionName": "$cb",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2469539
+          },
+          {
+            "functionName": "b",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 89,
+            "columnNumber": 125
+          },
+          {
+            "functionName": "qe",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 131,
+            "columnNumber": 126
+          },
+          {
+            "functionName": "",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 138,
+            "columnNumber": 384
+          }
+        ]
+      }
+    },
+    {
+      "type": "log",
+      "args": [
+        {
+          "type": "string",
+          "value": "[INFO ] [00:00:07.723] [Application::init::BlitPath::init] Loaded original generated ocean environment: data/generated/ocean_environment.png"
+        }
+      ],
+      "executionContextId": 2,
+      "timestamp": 1788800695978.749,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "Sa",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 109,
+            "columnNumber": 252
+          },
+          {
+            "functionName": "$func141",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 54595
+          },
+          {
+            "functionName": "$func156",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 64701
+          },
+          {
+            "functionName": "$cb",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2474273
+          },
+          {
+            "functionName": "b",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 89,
+            "columnNumber": 125
+          },
+          {
+            "functionName": "qe",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 131,
+            "columnNumber": 126
+          },
+          {
+            "functionName": "",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 138,
+            "columnNumber": 384
+          }
+        ]
+      }
+    },
+    {
+      "type": "log",
+      "args": [
+        {
+          "type": "string",
+          "value": "[INFO ] [00:00:10.426] [Application::init::BlitPath::init] BlitPath initialized successfully"
+        }
+      ],
+      "executionContextId": 2,
+      "timestamp": 1788800698681.869,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "Sa",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 109,
+            "columnNumber": 252
+          },
+          {
+            "functionName": "$func141",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 54595
+          },
+          {
+            "functionName": "$func112",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 14073
+          },
+          {
+            "functionName": "$cb",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2486562
+          },
+          {
+            "functionName": "b",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 89,
+            "columnNumber": 125
+          },
+          {
+            "functionName": "qe",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 131,
+            "columnNumber": 126
+          },
+          {
+            "functionName": "",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 138,
+            "columnNumber": 384
+          }
+        ]
+      }
+    },
+    {
+      "type": "log",
+      "args": [
+        {
+          "type": "string",
+          "value": "[INFO ] [00:00:10.427] [Application::init] LEGO layout: streamed world (4194304 bytes)"
+        }
+      ],
+      "executionContextId": 2,
+      "timestamp": 1788800698682.703,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "Sa",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 109,
+            "columnNumber": 252
+          },
+          {
+            "functionName": "$func141",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 54595
+          },
+          {
+            "functionName": "$func1067",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 1275038
+          },
+          {
+            "functionName": "$cb",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2488364
+          },
+          {
+            "functionName": "b",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 89,
+            "columnNumber": 125
+          },
+          {
+            "functionName": "qe",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 131,
+            "columnNumber": 126
+          },
+          {
+            "functionName": "",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 138,
+            "columnNumber": 384
+          }
+        ]
+      }
+    },
+    {
+      "type": "log",
+      "args": [
+        {
+          "type": "string",
+          "value": "[INFO ] [00:00:10.429] Application initialized successfully"
+        }
+      ],
+      "executionContextId": 2,
+      "timestamp": 1788800698684.529,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "Sa",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 109,
+            "columnNumber": 252
+          },
+          {
+            "functionName": "$func141",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 54595
+          },
+          {
+            "functionName": "$func112",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 14073
+          },
+          {
+            "functionName": "$cb",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2522659
+          },
+          {
+            "functionName": "b",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 89,
+            "columnNumber": 125
+          },
+          {
+            "functionName": "qe",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 131,
+            "columnNumber": 126
+          },
+          {
+            "functionName": "",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 138,
+            "columnNumber": 384
+          }
+        ]
+      }
+    },
+    {
+      "type": "log",
+      "args": [
+        {
+          "type": "string",
+          "value": "[INFO ] [00:00:10.429]   Window: 960x540"
+        }
+      ],
+      "executionContextId": 2,
+      "timestamp": 1788800698684.907,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "Sa",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 109,
+            "columnNumber": 252
+          },
+          {
+            "functionName": "$func141",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 54595
+          },
+          {
+            "functionName": "$func413",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 272909
+          },
+          {
+            "functionName": "$cb",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2522743
+          },
+          {
+            "functionName": "b",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 89,
+            "columnNumber": 125
+          },
+          {
+            "functionName": "qe",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 131,
+            "columnNumber": 126
+          },
+          {
+            "functionName": "",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 138,
+            "columnNumber": 384
+          }
+        ]
+      }
+    },
+    {
+      "type": "log",
+      "args": [
+        {
+          "type": "string",
+          "value": "[INFO ] [00:00:10.429]   Terrain: 8192x8192 (mips: 14)"
+        }
+      ],
+      "executionContextId": 2,
+      "timestamp": 1788800698685.237,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "Sa",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 109,
+            "columnNumber": 252
+          },
+          {
+            "functionName": "$func141",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 54595
+          },
+          {
+            "functionName": "$func282",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 151879
+          },
+          {
+            "functionName": "$cb",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2522824
+          },
+          {
+            "functionName": "b",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 89,
+            "columnNumber": 125
+          },
+          {
+            "functionName": "qe",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 131,
+            "columnNumber": 126
+          },
+          {
+            "functionName": "",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 138,
+            "columnNumber": 384
+          }
+        ]
+      }
+    },
+    {
+      "type": "log",
+      "args": [
+        {
+          "type": "string",
+          "value": "[INFO ] [00:00:10.430]   Render path: raycast"
+        }
+      ],
+      "executionContextId": 2,
+      "timestamp": 1788800698685.526,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "Sa",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 109,
+            "columnNumber": 252
+          },
+          {
+            "functionName": "$func141",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 54595
+          },
+          {
+            "functionName": "$func159",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 66204
+          },
+          {
+            "functionName": "$cb",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2522941
+          },
+          {
+            "functionName": "b",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 89,
+            "columnNumber": 125
+          },
+          {
+            "functionName": "qe",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 131,
+            "columnNumber": 126
+          },
+          {
+            "functionName": "",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 138,
+            "columnNumber": 384
+          }
+        ]
+      }
+    },
+    {
+      "type": "log",
+      "args": [
+        {
+          "type": "string",
+          "value": "[INFO ] [00:00:10.430] "
+        }
+      ],
+      "executionContextId": 2,
+      "timestamp": 1788800698685.796,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "Sa",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 109,
+            "columnNumber": 252
+          },
+          {
+            "functionName": "$func141",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 54595
+          },
+          {
+            "functionName": "$func112",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 14073
+          },
+          {
+            "functionName": "$cb",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2523016
+          },
+          {
+            "functionName": "b",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 89,
+            "columnNumber": 125
+          },
+          {
+            "functionName": "qe",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 131,
+            "columnNumber": 126
+          },
+          {
+            "functionName": "",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 138,
+            "columnNumber": 384
+          }
+        ]
+      }
+    },
+    {
+      "type": "log",
+      "args": [
+        {
+          "type": "string",
+          "value": "[INFO ] [00:00:10.430] Controls:"
+        }
+      ],
+      "executionContextId": 2,
+      "timestamp": 1788800698686.079,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "Sa",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 109,
+            "columnNumber": 252
+          },
+          {
+            "functionName": "$func141",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 54595
+          },
+          {
+            "functionName": "$func112",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 14073
+          },
+          {
+            "functionName": "$cb",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2523090
+          },
+          {
+            "functionName": "b",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 89,
+            "columnNumber": 125
+          },
+          {
+            "functionName": "qe",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 131,
+            "columnNumber": 126
+          },
+          {
+            "functionName": "",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 138,
+            "columnNumber": 384
+          }
+        ]
+      }
+    },
+    {
+      "type": "log",
+      "args": [
+        {
+          "type": "string",
+          "value": "[INFO ] [00:00:10.431]   WASD      - Move camera"
+        }
+      ],
+      "executionContextId": 2,
+      "timestamp": 1788800698686.399,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "Sa",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 109,
+            "columnNumber": 252
+          },
+          {
+            "functionName": "$func141",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 54595
+          },
+          {
+            "functionName": "$func112",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 14073
+          },
+          {
+            "functionName": "$cb",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2524423
+          },
+          {
+            "functionName": "b",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 89,
+            "columnNumber": 125
+          },
+          {
+            "functionName": "qe",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 131,
+            "columnNumber": 126
+          },
+          {
+            "functionName": "",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 138,
+            "columnNumber": 384
+          }
+        ]
+      }
+    },
+    {
+      "type": "log",
+      "args": [
+        {
+          "type": "string",
+          "value": "[INFO ] [00:00:10.431]   Mouse     - Look around (click to capture)"
+        }
+      ],
+      "executionContextId": 2,
+      "timestamp": 1788800698686.71,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "Sa",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 109,
+            "columnNumber": 252
+          },
+          {
+            "functionName": "$func141",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 54595
+          },
+          {
+            "functionName": "$func112",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 14073
+          },
+          {
+            "functionName": "$cb",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2524497
+          },
+          {
+            "functionName": "b",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 89,
+            "columnNumber": 125
+          },
+          {
+            "functionName": "qe",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 131,
+            "columnNumber": 126
+          },
+          {
+            "functionName": "",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 138,
+            "columnNumber": 384
+          }
+        ]
+      }
+    },
+    {
+      "type": "log",
+      "args": [
+        {
+          "type": "string",
+          "value": "[INFO ] [00:00:10.431]   Shift     - Speed boost / Run"
+        }
+      ],
+      "executionContextId": 2,
+      "timestamp": 1788800698687.006,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "Sa",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 109,
+            "columnNumber": 252
+          },
+          {
+            "functionName": "$func141",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 54595
+          },
+          {
+            "functionName": "$func112",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 14073
+          },
+          {
+            "functionName": "$cb",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2524571
+          },
+          {
+            "functionName": "b",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 89,
+            "columnNumber": 125
+          },
+          {
+            "functionName": "qe",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 131,
+            "columnNumber": 126
+          },
+          {
+            "functionName": "",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 138,
+            "columnNumber": 384
+          }
+        ]
+      }
+    },
+    {
+      "type": "log",
+      "args": [
+        {
+          "type": "string",
+          "value": "[INFO ] [00:00:10.431]   E/Space   - Move up / Jump"
+        }
+      ],
+      "executionContextId": 2,
+      "timestamp": 1788800698687.309,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "Sa",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 109,
+            "columnNumber": 252
+          },
+          {
+            "functionName": "$func141",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 54595
+          },
+          {
+            "functionName": "$func112",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 14073
+          },
+          {
+            "functionName": "$cb",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2524645
+          },
+          {
+            "functionName": "b",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 89,
+            "columnNumber": 125
+          },
+          {
+            "functionName": "qe",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 131,
+            "columnNumber": 126
+          },
+          {
+            "functionName": "",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 138,
+            "columnNumber": 384
+          }
+        ]
+      }
+    },
+    {
+      "type": "log",
+      "args": [
+        {
+          "type": "string",
+          "value": "[INFO ] [00:00:10.432]   Q/Ctrl    - Move down"
+        }
+      ],
+      "executionContextId": 2,
+      "timestamp": 1788800698687.627,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "Sa",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 109,
+            "columnNumber": 252
+          },
+          {
+            "functionName": "$func141",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 54595
+          },
+          {
+            "functionName": "$func112",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 14073
+          },
+          {
+            "functionName": "$cb",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2524719
+          },
+          {
+            "functionName": "b",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 89,
+            "columnNumber": 125
+          },
+          {
+            "functionName": "qe",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 131,
+            "columnNumber": 126
+          },
+          {
+            "functionName": "",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 138,
+            "columnNumber": 384
+          }
+        ]
+      }
+    },
+    {
+      "type": "log",
+      "args": [
+        {
+          "type": "string",
+          "value": "[INFO ] [00:00:10.432]   F1        - Toggle debug overlay"
+        }
+      ],
+      "executionContextId": 2,
+      "timestamp": 1788800698687.927,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "Sa",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 109,
+            "columnNumber": 252
+          },
+          {
+            "functionName": "$func141",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 54595
+          },
+          {
+            "functionName": "$func112",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 14073
+          },
+          {
+            "functionName": "$cb",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2524794
+          },
+          {
+            "functionName": "b",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 89,
+            "columnNumber": 125
+          },
+          {
+            "functionName": "qe",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 131,
+            "columnNumber": 126
+          },
+          {
+            "functionName": "",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 138,
+            "columnNumber": 384
+          }
+        ]
+      }
+    },
+    {
+      "type": "log",
+      "args": [
+        {
+          "type": "string",
+          "value": "[INFO ] [00:00:10.432]   F2        - Toggle wireframe mode"
+        }
+      ],
+      "executionContextId": 2,
+      "timestamp": 1788800698688.238,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "Sa",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 109,
+            "columnNumber": 252
+          },
+          {
+            "functionName": "$func141",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 54595
+          },
+          {
+            "functionName": "$func112",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 14073
+          },
+          {
+            "functionName": "$cb",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2524868
+          },
+          {
+            "functionName": "b",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 89,
+            "columnNumber": 125
+          },
+          {
+            "functionName": "qe",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 131,
+            "columnNumber": 126
+          },
+          {
+            "functionName": "",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 138,
+            "columnNumber": 384
+          }
+        ]
+      }
+    },
+    {
+      "type": "log",
+      "args": [
+        {
+          "type": "string",
+          "value": "[INFO ] [00:00:10.433]   F3        - Toggle render path"
+        }
+      ],
+      "executionContextId": 2,
+      "timestamp": 1788800698688.557,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "Sa",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 109,
+            "columnNumber": 252
+          },
+          {
+            "functionName": "$func141",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 54595
+          },
+          {
+            "functionName": "$func112",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 14073
+          },
+          {
+            "functionName": "$cb",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2524942
+          },
+          {
+            "functionName": "b",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 89,
+            "columnNumber": 125
+          },
+          {
+            "functionName": "qe",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 131,
+            "columnNumber": 126
+          },
+          {
+            "functionName": "",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 138,
+            "columnNumber": 384
+          }
+        ]
+      }
+    },
+    {
+      "type": "log",
+      "args": [
+        {
+          "type": "string",
+          "value": "[INFO ] [00:00:10.433]   F4        - Toggle depth visualization"
+        }
+      ],
+      "executionContextId": 2,
+      "timestamp": 1788800698688.848,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "Sa",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 109,
+            "columnNumber": 252
+          },
+          {
+            "functionName": "$func141",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 54595
+          },
+          {
+            "functionName": "$func112",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 14073
+          },
+          {
+            "functionName": "$cb",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2525015
+          },
+          {
+            "functionName": "b",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 89,
+            "columnNumber": 125
+          },
+          {
+            "functionName": "qe",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 131,
+            "columnNumber": 126
+          },
+          {
+            "functionName": "",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 138,
+            "columnNumber": 384
+          }
+        ]
+      }
+    },
+    {
+      "type": "log",
+      "args": [
+        {
+          "type": "string",
+          "value": "[INFO ] [00:00:10.433]   F5        - Toggle normal visualization"
+        }
+      ],
+      "executionContextId": 2,
+      "timestamp": 1788800698689.15,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "Sa",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 109,
+            "columnNumber": 252
+          },
+          {
+            "functionName": "$func141",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 54595
+          },
+          {
+            "functionName": "$func112",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 14073
+          },
+          {
+            "functionName": "$cb",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2525088
+          },
+          {
+            "functionName": "b",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 89,
+            "columnNumber": 125
+          },
+          {
+            "functionName": "qe",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 131,
+            "columnNumber": 126
+          },
+          {
+            "functionName": "",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 138,
+            "columnNumber": 384
+          }
+        ]
+      }
+    },
+    {
+      "type": "log",
+      "args": [
+        {
+          "type": "string",
+          "value": "[INFO ] [00:00:10.434]   F6        - Toggle mip level heat map"
+        }
+      ],
+      "executionContextId": 2,
+      "timestamp": 1788800698689.479,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "Sa",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 109,
+            "columnNumber": 252
+          },
+          {
+            "functionName": "$func141",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 54595
+          },
+          {
+            "functionName": "$func112",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 14073
+          },
+          {
+            "functionName": "$cb",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2525161
+          },
+          {
+            "functionName": "b",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 89,
+            "columnNumber": 125
+          },
+          {
+            "functionName": "qe",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 131,
+            "columnNumber": 126
+          },
+          {
+            "functionName": "",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 138,
+            "columnNumber": 384
+          }
+        ]
+      }
+    },
+    {
+      "type": "log",
+      "args": [
+        {
+          "type": "string",
+          "value": "[INFO ] [00:00:10.434]   F7        - Toggle benchmark mode"
+        }
+      ],
+      "executionContextId": 2,
+      "timestamp": 1788800698689.755,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "Sa",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 109,
+            "columnNumber": 252
+          },
+          {
+            "functionName": "$func141",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 54595
+          },
+          {
+            "functionName": "$func112",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 14073
+          },
+          {
+            "functionName": "$cb",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2525260
+          },
+          {
+            "functionName": "b",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 89,
+            "columnNumber": 125
+          },
+          {
+            "functionName": "qe",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 131,
+            "columnNumber": 126
+          },
+          {
+            "functionName": "",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 138,
+            "columnNumber": 384
+          }
+        ]
+      }
+    },
+    {
+      "type": "log",
+      "args": [
+        {
+          "type": "string",
+          "value": "[INFO ] [00:00:10.434]   F8        - Toggle controller (free-fly/character)"
+        }
+      ],
+      "executionContextId": 2,
+      "timestamp": 1788800698690.017,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "Sa",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 109,
+            "columnNumber": 252
+          },
+          {
+            "functionName": "$func141",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 54595
+          },
+          {
+            "functionName": "$func112",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 14073
+          },
+          {
+            "functionName": "$cb",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2525333
+          },
+          {
+            "functionName": "b",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 89,
+            "columnNumber": 125
+          },
+          {
+            "functionName": "qe",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 131,
+            "columnNumber": 126
+          },
+          {
+            "functionName": "",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 138,
+            "columnNumber": 384
+          }
+        ]
+      }
+    },
+    {
+      "type": "log",
+      "args": [
+        {
+          "type": "string",
+          "value": "[INFO ] [00:00:10.434]   F9        - Toggle uncapped/VSync presentation"
+        }
+      ],
+      "executionContextId": 2,
+      "timestamp": 1788800698690.323,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "Sa",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 109,
+            "columnNumber": 252
+          },
+          {
+            "functionName": "$func141",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 54595
+          },
+          {
+            "functionName": "$func112",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 14073
+          },
+          {
+            "functionName": "$cb",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2525407
+          },
+          {
+            "functionName": "b",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 89,
+            "columnNumber": 125
+          },
+          {
+            "functionName": "qe",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 131,
+            "columnNumber": 126
+          },
+          {
+            "functionName": "",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 138,
+            "columnNumber": 384
+          }
+        ]
+      }
+    },
+    {
+      "type": "log",
+      "args": [
+        {
+          "type": "string",
+          "value": "[INFO ] [00:00:10.435]   Escape    - Release mouse / Exit"
+        }
+      ],
+      "executionContextId": 2,
+      "timestamp": 1788800698690.634,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "Sa",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 109,
+            "columnNumber": 252
+          },
+          {
+            "functionName": "$func141",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 54595
+          },
+          {
+            "functionName": "$func112",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 14073
+          },
+          {
+            "functionName": "$cb",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2525480
+          },
+          {
+            "functionName": "b",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 89,
+            "columnNumber": 125
+          },
+          {
+            "functionName": "qe",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 131,
+            "columnNumber": 126
+          },
+          {
+            "functionName": "",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 138,
+            "columnNumber": 384
+          }
+        ]
+      }
+    },
+    {
+      "type": "log",
+      "args": [
+        {
+          "type": "string",
+          "value": "[INFO ] [00:00:10.435]   Wheel     - Select throwable object"
+        }
+      ],
+      "executionContextId": 2,
+      "timestamp": 1788800698690.909,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "Sa",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 109,
+            "columnNumber": 252
+          },
+          {
+            "functionName": "$func141",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 54595
+          },
+          {
+            "functionName": "$func112",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 14073
+          },
+          {
+            "functionName": "$cb",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2525587
+          },
+          {
+            "functionName": "b",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 89,
+            "columnNumber": 125
+          },
+          {
+            "functionName": "qe",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 131,
+            "columnNumber": 126
+          },
+          {
+            "functionName": "",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 138,
+            "columnNumber": 384
+          }
+        ]
+      }
+    },
+    {
+      "type": "log",
+      "args": [
+        {
+          "type": "string",
+          "value": "[INFO ] [00:00:10.435]   Left click- Capture mouse / throw selected object"
+        }
+      ],
+      "executionContextId": 2,
+      "timestamp": 1788800698691.172,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "Sa",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 109,
+            "columnNumber": 252
+          },
+          {
+            "functionName": "$func141",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 54595
+          },
+          {
+            "functionName": "$func112",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 14073
+          },
+          {
+            "functionName": "$cb",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2525659
+          },
+          {
+            "functionName": "b",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 89,
+            "columnNumber": 125
+          },
+          {
+            "functionName": "qe",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 131,
+            "columnNumber": 126
+          },
+          {
+            "functionName": "",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 138,
+            "columnNumber": 384
+          }
+        ]
+      }
+    },
+    {
+      "type": "log",
+      "args": [
+        {
+          "type": "string",
+          "value": "[INFO ] [00:00:10.436]   Right click- Throw 128 selected objects"
+        }
+      ],
+      "executionContextId": 2,
+      "timestamp": 1788800698691.442,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "Sa",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 109,
+            "columnNumber": 252
+          },
+          {
+            "functionName": "$func141",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 54595
+          },
+          {
+            "functionName": "$func112",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 14073
+          },
+          {
+            "functionName": "$cb",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2525731
+          },
+          {
+            "functionName": "b",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 89,
+            "columnNumber": 125
+          },
+          {
+            "functionName": "qe",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 131,
+            "columnNumber": 126
+          },
+          {
+            "functionName": "",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 138,
+            "columnNumber": 384
+          }
+        ]
+      }
+    },
+    {
+      "type": "log",
+      "args": [
+        {
+          "type": "string",
+          "value": "[INFO ] [00:00:10.436] "
+        }
+      ],
+      "executionContextId": 2,
+      "timestamp": 1788800698691.759,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "Sa",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 109,
+            "columnNumber": 252
+          },
+          {
+            "functionName": "$func141",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 54595
+          },
+          {
+            "functionName": "$func112",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 14073
+          },
+          {
+            "functionName": "$cb",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2525804
+          },
+          {
+            "functionName": "b",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 89,
+            "columnNumber": 125
+          },
+          {
+            "functionName": "qe",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 131,
+            "columnNumber": 126
+          },
+          {
+            "functionName": "",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 138,
+            "columnNumber": 384
+          }
+        ]
+      }
+    },
+    {
+      "type": "log",
+      "args": [
+        {
+          "type": "string",
+          "value": "[INFO ] [00:00:10.436] Debug overlay: enabled"
+        }
+      ],
+      "executionContextId": 2,
+      "timestamp": 1788800698692.011,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "Sa",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 109,
+            "columnNumber": 252
+          },
+          {
+            "functionName": "$func141",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 54595
+          },
+          {
+            "functionName": "$func159",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 66204
+          },
+          {
+            "functionName": "$cb",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2525953
+          },
+          {
+            "functionName": "b",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 89,
+            "columnNumber": 125
+          },
+          {
+            "functionName": "qe",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 131,
+            "columnNumber": 126
+          },
+          {
+            "functionName": "",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 138,
+            "columnNumber": 384
+          }
+        ]
+      }
+    },
+    {
+      "type": "log",
+      "args": [
+        {
+          "type": "string",
+          "value": "[INFO ] [00:00:10.437] Controller mode changed to: character (camera at 116.0, 63.4, 70.0)"
+        }
+      ],
+      "executionContextId": 2,
+      "timestamp": 1788800698692.556,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "Sa",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 109,
+            "columnNumber": 252
+          },
+          {
+            "functionName": "$func141",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 54595
+          },
+          {
+            "functionName": "$func742",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 724361
+          },
+          {
+            "functionName": "$func743",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 724819
+          },
+          {
+            "functionName": "$cb",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2526079
+          },
+          {
+            "functionName": "b",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 89,
+            "columnNumber": 125
+          },
+          {
+            "functionName": "qe",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 131,
+            "columnNumber": 126
+          },
+          {
+            "functionName": "",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 138,
+            "columnNumber": 384
+          }
+        ]
+      }
+    },
+    {
+      "type": "log",
+      "args": [
+        {
+          "type": "string",
+          "value": "[INFO ] [00:00:10.437] Character config: terrainWidth=8191.0, terrainHeight=8191.0, heightScale=600.0"
+        }
+      ],
+      "executionContextId": 2,
+      "timestamp": 1788800698693.311,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "Sa",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 109,
+            "columnNumber": 252
+          },
+          {
+            "functionName": "$func141",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 54595
+          },
+          {
+            "functionName": "$func592",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 509615
+          },
+          {
+            "functionName": "$func743",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 725366
+          },
+          {
+            "functionName": "$cb",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2526079
+          },
+          {
+            "functionName": "b",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 89,
+            "columnNumber": 125
+          },
+          {
+            "functionName": "qe",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 131,
+            "columnNumber": 126
+          },
+          {
+            "functionName": "",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 138,
+            "columnNumber": 384
+          }
+        ]
+      }
+    },
+    {
+      "type": "log",
+      "args": [
+        {
+          "type": "string",
+          "value": "[INFO ] [00:00:10.438] Terrain height at camera XZ (116.0, 70.0) = -8.5"
+        }
+      ],
+      "executionContextId": 2,
+      "timestamp": 1788800698693.713,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "Sa",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 109,
+            "columnNumber": 252
+          },
+          {
+            "functionName": "$func141",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 54595
+          },
+          {
+            "functionName": "$func592",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 509615
+          },
+          {
+            "functionName": "$func743",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 725522
+          },
+          {
+            "functionName": "$cb",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2526079
+          },
+          {
+            "functionName": "b",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 89,
+            "columnNumber": 125
+          },
+          {
+            "functionName": "qe",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 131,
+            "columnNumber": 126
+          },
+          {
+            "functionName": "",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 138,
+            "columnNumber": 384
+          }
+        ]
+      }
+    },
+    {
+      "type": "log",
+      "args": [
+        {
+          "type": "string",
+          "value": "[INFO ] [00:00:10.438] Starting Emscripten main loop..."
+        }
+      ],
+      "executionContextId": 2,
+      "timestamp": 1788800698694.045,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "Sa",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 109,
+            "columnNumber": 252
+          },
+          {
+            "functionName": "$func141",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 54595
+          },
+          {
+            "functionName": "$func112",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 14073
+          },
+          {
+            "functionName": "$cb",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2529995
+          },
+          {
+            "functionName": "b",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 89,
+            "columnNumber": 125
+          },
+          {
+            "functionName": "qe",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 131,
+            "columnNumber": 126
+          },
+          {
+            "functionName": "",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 138,
+            "columnNumber": 384
+          }
+        ]
+      }
+    },
+    {
+      "type": "log",
+      "args": [
+        {
+          "type": "string",
+          "value": "[INFO ] [00:00:10.439] Started Capped Loop (RAF)"
+        }
+      ],
+      "executionContextId": 2,
+      "timestamp": 1788800698694.619,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "Sa",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 109,
+            "columnNumber": 252
+          },
+          {
+            "functionName": "$func141",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 54595
+          },
+          {
+            "functionName": "$func112",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 14073
+          },
+          {
+            "functionName": "$cb",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2530271
+          },
+          {
+            "functionName": "b",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 89,
+            "columnNumber": 125
+          },
+          {
+            "functionName": "qe",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 131,
+            "columnNumber": 126
+          },
+          {
+            "functionName": "",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 138,
+            "columnNumber": 384
+          }
+        ]
+      }
+    },
+    {
+      "type": "warning",
+      "args": [
+        {
+          "type": "string",
+          "value": "[WARN ] [00:01:17.990] GPU physics telemetry readback ring is full"
+        }
+      ],
+      "executionContextId": 2,
+      "timestamp": 1788800766246.281,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "Ra",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 109,
+            "columnNumber": 285
+          },
+          {
+            "functionName": "$func141",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 54602
+          },
+          {
+            "functionName": "$func112",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 14073
+          },
+          {
+            "functionName": "$func1208",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 1590751
+          },
+          {
+            "functionName": "$func1809",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2270132
+          },
+          {
+            "functionName": "$func1057",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 1190004
+          },
+          {
+            "functionName": "$func2786",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 3586907
+          },
+          {
+            "functionName": "$Ec",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2689050
+          },
+          {
+            "functionName": "b",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 89,
+            "columnNumber": 125
+          },
+          {
+            "functionName": "",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 110,
+            "columnNumber": 228
+          },
+          {
+            "functionName": "za",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 19,
+            "columnNumber": 264
+          },
+          {
+            "functionName": "ic",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 64,
+            "columnNumber": 283
+          }
+        ]
+      }
+    },
+    {
+      "type": "warning",
+      "args": [
+        {
+          "type": "string",
+          "value": "[WARN ] [00:01:18.054] GPU physics telemetry readback ring is full"
+        }
+      ],
+      "executionContextId": 2,
+      "timestamp": 1788800766310.13,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "Ra",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 109,
+            "columnNumber": 285
+          },
+          {
+            "functionName": "$func141",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 54602
+          },
+          {
+            "functionName": "$func112",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 14073
+          },
+          {
+            "functionName": "$func1208",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 1590751
+          },
+          {
+            "functionName": "$func1809",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2270132
+          },
+          {
+            "functionName": "$func1057",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 1190004
+          },
+          {
+            "functionName": "$func2786",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 3586907
+          },
+          {
+            "functionName": "$Ec",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2689050
+          },
+          {
+            "functionName": "b",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 89,
+            "columnNumber": 125
+          },
+          {
+            "functionName": "",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 110,
+            "columnNumber": 228
+          },
+          {
+            "functionName": "za",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 19,
+            "columnNumber": 264
+          },
+          {
+            "functionName": "ic",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 64,
+            "columnNumber": 283
+          }
+        ]
+      }
+    },
+    {
+      "type": "warning",
+      "args": [
+        {
+          "type": "string",
+          "value": "[WARN ] [00:01:20.246] GPU physics telemetry readback ring is full"
+        }
+      ],
+      "executionContextId": 2,
+      "timestamp": 1788800768501.998,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "Ra",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 109,
+            "columnNumber": 285
+          },
+          {
+            "functionName": "$func141",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 54602
+          },
+          {
+            "functionName": "$func112",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 14073
+          },
+          {
+            "functionName": "$func1208",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 1590751
+          },
+          {
+            "functionName": "$func1809",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2270132
+          },
+          {
+            "functionName": "$func1057",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 1190004
+          },
+          {
+            "functionName": "$func2786",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 3586907
+          },
+          {
+            "functionName": "$Ec",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2689050
+          },
+          {
+            "functionName": "b",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 89,
+            "columnNumber": 125
+          },
+          {
+            "functionName": "",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 110,
+            "columnNumber": 228
+          },
+          {
+            "functionName": "za",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 19,
+            "columnNumber": 264
+          },
+          {
+            "functionName": "ic",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 64,
+            "columnNumber": 283
+          }
+        ]
+      }
+    },
+    {
+      "type": "warning",
+      "args": [
+        {
+          "type": "string",
+          "value": "[WARN ] [00:01:20.320] GPU physics telemetry readback ring is full"
+        }
+      ],
+      "executionContextId": 2,
+      "timestamp": 1788800768576.249,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "Ra",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 109,
+            "columnNumber": 285
+          },
+          {
+            "functionName": "$func141",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 54602
+          },
+          {
+            "functionName": "$func112",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 14073
+          },
+          {
+            "functionName": "$func1208",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 1590751
+          },
+          {
+            "functionName": "$func1809",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2270132
+          },
+          {
+            "functionName": "$func1057",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 1190004
+          },
+          {
+            "functionName": "$func2786",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 3586907
+          },
+          {
+            "functionName": "$Ec",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2689050
+          },
+          {
+            "functionName": "b",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 89,
+            "columnNumber": 125
+          },
+          {
+            "functionName": "",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 110,
+            "columnNumber": 228
+          },
+          {
+            "functionName": "za",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 19,
+            "columnNumber": 264
+          },
+          {
+            "functionName": "ic",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 64,
+            "columnNumber": 283
+          }
+        ]
+      }
+    },
+    {
+      "type": "warning",
+      "args": [
+        {
+          "type": "string",
+          "value": "[WARN ] [00:01:20.461] GPU physics telemetry readback ring is full"
+        }
+      ],
+      "executionContextId": 2,
+      "timestamp": 1788800768716.677,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "Ra",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 109,
+            "columnNumber": 285
+          },
+          {
+            "functionName": "$func141",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 54602
+          },
+          {
+            "functionName": "$func112",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 14073
+          },
+          {
+            "functionName": "$func1208",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 1590751
+          },
+          {
+            "functionName": "$func1809",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2270132
+          },
+          {
+            "functionName": "$func1057",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 1190004
+          },
+          {
+            "functionName": "$func2786",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 3586907
+          },
+          {
+            "functionName": "$Ec",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2689050
+          },
+          {
+            "functionName": "b",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 89,
+            "columnNumber": 125
+          },
+          {
+            "functionName": "",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 110,
+            "columnNumber": 228
+          },
+          {
+            "functionName": "za",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 19,
+            "columnNumber": 264
+          },
+          {
+            "functionName": "ic",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 64,
+            "columnNumber": 283
+          }
+        ]
+      }
+    },
+    {
+      "type": "warning",
+      "args": [
+        {
+          "type": "string",
+          "value": "[WARN ] [00:01:20.535] GPU physics telemetry readback ring is full"
+        }
+      ],
+      "executionContextId": 2,
+      "timestamp": 1788800768790.738,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "Ra",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 109,
+            "columnNumber": 285
+          },
+          {
+            "functionName": "$func141",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 54602
+          },
+          {
+            "functionName": "$func112",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 14073
+          },
+          {
+            "functionName": "$func1208",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 1590751
+          },
+          {
+            "functionName": "$func1809",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2270132
+          },
+          {
+            "functionName": "$func1057",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 1190004
+          },
+          {
+            "functionName": "$func2786",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 3586907
+          },
+          {
+            "functionName": "$Ec",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2689050
+          },
+          {
+            "functionName": "b",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 89,
+            "columnNumber": 125
+          },
+          {
+            "functionName": "",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 110,
+            "columnNumber": 228
+          },
+          {
+            "functionName": "za",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 19,
+            "columnNumber": 264
+          },
+          {
+            "functionName": "ic",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 64,
+            "columnNumber": 283
+          }
+        ]
+      }
+    },
+    {
+      "type": "warning",
+      "args": [
+        {
+          "type": "string",
+          "value": "[WARN ] [00:01:25.454] GPU physics telemetry readback ring is full"
+        }
+      ],
+      "executionContextId": 2,
+      "timestamp": 1788800773710.1,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "Ra",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 109,
+            "columnNumber": 285
+          },
+          {
+            "functionName": "$func141",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 54602
+          },
+          {
+            "functionName": "$func112",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 14073
+          },
+          {
+            "functionName": "$func1208",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 1590751
+          },
+          {
+            "functionName": "$func1809",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2270132
+          },
+          {
+            "functionName": "$func1057",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 1190004
+          },
+          {
+            "functionName": "$func2786",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 3586907
+          },
+          {
+            "functionName": "$Ec",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2689050
+          },
+          {
+            "functionName": "b",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 89,
+            "columnNumber": 125
+          },
+          {
+            "functionName": "",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 110,
+            "columnNumber": 228
+          },
+          {
+            "functionName": "za",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 19,
+            "columnNumber": 264
+          },
+          {
+            "functionName": "ic",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 64,
+            "columnNumber": 283
+          }
+        ]
+      }
+    },
+    {
+      "type": "warning",
+      "args": [
+        {
+          "type": "string",
+          "value": "[WARN ] [00:01:38.525] GPU physics telemetry readback ring is full"
+        }
+      ],
+      "executionContextId": 2,
+      "timestamp": 1788800786781.966,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "Ra",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 109,
+            "columnNumber": 285
+          },
+          {
+            "functionName": "$func141",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 54602
+          },
+          {
+            "functionName": "$func112",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 14073
+          },
+          {
+            "functionName": "$func1208",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 1590751
+          },
+          {
+            "functionName": "$func1809",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2270132
+          },
+          {
+            "functionName": "$func1057",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 1190004
+          },
+          {
+            "functionName": "$func2786",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 3586907
+          },
+          {
+            "functionName": "$Ec",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:43889/voxy_wasm.wasm?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 0,
+            "columnNumber": 2689050
+          },
+          {
+            "functionName": "b",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 89,
+            "columnNumber": 125
+          },
+          {
+            "functionName": "",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 110,
+            "columnNumber": 228
+          },
+          {
+            "functionName": "za",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 19,
+            "columnNumber": 264
+          },
+          {
+            "functionName": "ic",
+            "scriptId": "9",
+            "url": "http://127.0.0.1:43889/voxy_wasm.js?v=46100187bfbf0f4d41d770992849ce8c486faf4a",
+            "lineNumber": 64,
+            "columnNumber": 283
+          }
+        ]
+      }
+    }
+  ],
+  "browserErrors": [],
+  "startup": {
+    "result": {
+      "type": "object",
+      "value": {
+        "diagnostics": {
+          "allocations": {
+            "buffers": 195,
+            "textures": 24,
+            "bufferBytes": 162544928
+          },
+          "destroyCalls": []
+        },
+        "profile": {
+          "name": "webgpu-physics",
+          "adapter": {
+            "vendor": "google",
+            "architecture": "swiftshader",
+            "device": "Unknown",
+            "description": "Unknown",
+            "fallback": false
+          },
+          "requiredStorageBuffers": 8,
+          "maxStorageBuffersPerShaderStage": 8,
+          "maxStorageBufferBindingSize": 134217728,
+          "maxBufferSize": 268435456,
+          "maxComputeWorkgroupsPerDimension": 65535,
+          "timestampQuery": true
+        },
+        "lost": null,
+        "memory": {
+          "used": 61105561,
+          "total": 61703065
+        }
+      }
+    }
+  }
+}

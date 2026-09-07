@@ -1,0 +1,170 @@
+native-renderer	Native renderer lifetime and resource regression tests	﻿2026-09-07T17:06:35.3512651Z ##[group]Run mkdir -p "$XDG_RUNTIME_DIR" && chmod 700 "$XDG_RUNTIME_DIR"
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:06:35.3513177Z ^[[36;1mmkdir -p "$XDG_RUNTIME_DIR" && chmod 700 "$XDG_RUNTIME_DIR"^[[0m
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:06:35.3514173Z ^[[36;1mxvfb-run -a ctest --test-dir build-native -R '^(BlitPathTest|RaycastPathGPUTest|LegoSurface|LegoPlaygroundGpu|PrimitivePathGPUTest|PrimitiveMaterialTest|CpuCapsuleMover)\.' --output-on-failure -j2 --timeout 120^[[0m
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:06:35.3550480Z shell: /usr/bin/bash -e {0}
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:06:35.3550744Z env:
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:06:35.3550959Z   XDG_RUNTIME_DIR: /tmp/voxys-runtime
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:06:35.3551243Z ##[endgroup]
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:06:38.3550730Z Internal ctest changing into directory: /home/runner/work/voxys/voxys/build-native
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:06:38.3553569Z Test project /home/runner/work/voxys/voxys/build-native
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:06:38.3830098Z       Start  743: CpuCapsuleMover.UsesCanonicalDiagonalAndTerrainOnlyPolicy
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:06:38.3906924Z       Start  744: CpuCapsuleMover.LandsStepsJumpsAndReplaysExactly
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:06:38.3908528Z  1/59 Test  #743: CpuCapsuleMover.UsesCanonicalDiagonalAndTerrainOnlyPolicy .....................   Passed    0.01 sec
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:06:38.3911842Z       Start  745: CpuCapsuleMover.RejectsSteepUpslopeAsAContactPlane
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:06:38.3995618Z  2/59 Test  #744: CpuCapsuleMover.LandsStepsJumpsAndReplaysExactly ..............................   Passed    0.01 sec
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:06:38.3997497Z       Start  746: CpuCapsuleMover.CanonicalizesMovementAtLargeSectorBoundary
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:06:38.3999484Z  3/59 Test  #745: CpuCapsuleMover.RejectsSteepUpslopeAsAContactPlane ............................   Passed    0.01 sec
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:06:38.4001519Z       Start  747: CpuCapsuleMover.SamplesTerrainAcrossSectorBoundaryInLocalFrame
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:06:38.4003456Z  4/59 Test  #746: CpuCapsuleMover.CanonicalizesMovementAtLargeSectorBoundary ....................   Passed    0.01 sec
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:06:38.4005501Z       Start  748: CpuCapsuleMover.ContainsMalformedCharacterInputs
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:06:38.4129291Z  5/59 Test  #748: CpuCapsuleMover.ContainsMalformedCharacterInputs ..............................   Passed    0.01 sec
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:06:38.4132850Z       Start  749: CpuCapsuleMover.InvalidReinitializePreservesLiveWorld
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:06:38.4134101Z  6/59 Test  #747: CpuCapsuleMover.SamplesTerrainAcrossSectorBoundaryInLocalFrame ................   Passed    0.01 sec
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:06:38.4135678Z       Start  750: CpuCapsuleMover.StaleHandleCannotControlReusedSlot
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:06:38.4136869Z  7/59 Test  #749: CpuCapsuleMover.InvalidReinitializePreservesLiveWorld .........................   Passed    0.01 sec
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:06:38.4138154Z       Start  751: CpuCapsuleMover.ExhaustedCharacterSlotNeverWrapsToStaleHandle
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:06:38.4313031Z  8/59 Test  #750: CpuCapsuleMover.StaleHandleCannotControlReusedSlot ............................   Passed    0.01 sec
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:06:38.4314586Z       Start  783: LegoSurface.QuantizesAllRawSamplesWithinHalfAPlate
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:06:38.4348389Z  9/59 Test  #783: LegoSurface.QuantizesAllRawSamplesWithinHalfAPlate ............................   Passed    0.01 sec
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:06:38.4350107Z       Start  784: LegoSurface.ChunkOwnershipCoversOnlyEqualLevelsWithoutChangingGround
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:06:38.4352190Z 10/59 Test  #784: LegoSurface.ChunkOwnershipCoversOnlyEqualLevelsWithoutChangingGround ..........   Passed    0.01 sec
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:06:38.4353799Z       Start  785: LegoSurface.SphereContactsStudCapSideRimAndVerticalStep
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:06:38.4357813Z 11/59 Test  #751: CpuCapsuleMover.ExhaustedCharacterSlotNeverWrapsToStaleHandle .................   Passed    0.02 sec
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:06:38.4359463Z       Start  786: LegoSurface.CapsuleSupportIncludesStudsBetweenHeightProbes
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:06:38.4399486Z 12/59 Test  #785: LegoSurface.SphereContactsStudCapSideRimAndVerticalStep .......................   Passed    0.01 sec
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:06:38.4401185Z       Start  787: LegoSurface.PlayerCrossesChunksAndPlateStepsButStopsAtCliff
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:06:38.4413225Z 13/59 Test  #786: LegoSurface.CapsuleSupportIncludesStudsBetweenHeightProbes ....................   Passed    0.01 sec
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:06:38.4489537Z       Start  788: LegoSurface.PlayerLandsAndJumpsInNegativeHeightSector
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:06:38.4491724Z 14/59 Test  #788: LegoSurface.PlayerLandsAndJumpsInNegativeHeightSector .........................   Passed    0.01 sec
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:06:38.4497407Z       Start  789: LegoSurface.ChunkBuilderMatchesStudyAndFullMapEdges
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:06:38.4580127Z 15/59 Test  #787: LegoSurface.PlayerCrossesChunksAndPlateStepsButStopsAtCliff ...................   Passed    0.02 sec
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:06:38.4616930Z       Start  790: LegoSurface.LayoutCacheIsBoundedReusesRowsAndRejectsStaleSlots
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:06:38.4749832Z 16/59 Test  #790: LegoSurface.LayoutCacheIsBoundedReusesRowsAndRejectsStaleSlots ................   Passed    0.01 sec
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:06:38.4751653Z       Start  791: LegoSurface.TerrainModeSwitchPreservesLiveCharacter
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:06:38.4753527Z 17/59 Test  #789: LegoSurface.ChunkBuilderMatchesStudyAndFullMapEdges ...........................   Passed    0.02 sec
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:06:38.4754978Z       Start  792: LegoSurface.LongJointsStaggerAcrossAdjacentCourses
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:06:38.4757307Z 18/59 Test  #791: LegoSurface.TerrainModeSwitchPreservesLiveCharacter ...........................   Passed    0.01 sec
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:06:38.4758935Z       Start  793: LegoPlaygroundGpu.CompoundStudsSupportRealStackAndSleep
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:06:38.4783961Z 19/59 Test  #792: LegoSurface.LongJointsStaggerAcrossAdjacentCourses ............................   Passed    0.01 sec
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:06:38.4786248Z       Start  794: LegoPlaygroundGpu.BoxFootprintSupportsEdgeAndRejectsInvalidPlacement
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:07:57.1916814Z 20/59 Test  #794: LegoPlaygroundGpu.BoxFootprintSupportsEdgeAndRejectsInvalidPlacement ..........***Exception: SegFault 78.71 sec
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:07:57.1918525Z Running main() from /home/runner/work/voxys/voxys/third_party/googletest/googletest/src/gtest_main.cc
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:07:57.1947052Z Note: Google Test filter = LegoPlaygroundGpu.BoxFootprintSupportsEdgeAndRejectsInvalidPlacement
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:07:57.1995879Z [==========] Running 1 test from 1 test suite.
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:07:57.2006419Z [----------] Global test environment set-up.
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:07:57.2016206Z [----------] 1 test from LegoPlaygroundGpu
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:07:57.2075975Z [ RUN      ] LegoPlaygroundGpu.BoxFootprintSupportsEdgeAndRejectsInvalidPlacement
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:07:57.2085827Z libEGL warning: DRI3 error: Could not get DRI3 device
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:07:57.2115917Z libEGL warning: Ensure your X server supports DRI3 to get accelerated rendering
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:07:57.2126872Z ^[[32m[INFO ] [00:10:55.745] [GPU] GPU Adapter: llvmpipe (LLVM 20.1.2, 256 bits)^[[0m
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:07:57.2136440Z ^[[32m[INFO ] [00:10:55.745] [GPU]   Vendor: llvmpipe^[[0m
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:07:57.2146340Z ^[[32m[INFO ] [00:10:55.745] [GPU]   Backend: Vulkan^[[0m
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:07:57.2166258Z ^[[32m[INFO ] [00:10:55.745] [GPU]   Type: CPU^[[0m
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:07:57.2176533Z ^[[32m[INFO ] [00:10:55.778] [GPU] Headless GPU context initialized successfully^[[0m
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:07:57.2187322Z ^[[32m[INFO ] [00:11:00.119] WebGPU physics initialized: 128 usable body slots, 0 MiB resident, 0 MiB scratch^[[0m
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:07:57.2205875Z 
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:07:57.2226452Z       Start  795: LegoPlaygroundGpu.BallImpactWakesStackAndCompletesChallengeThenResetReplays
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:01.4244071Z 21/59 Test  #793: LegoPlaygroundGpu.CompoundStudsSupportRealStackAndSleep .......................***Exception: SegFault 82.95 sec
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:01.4266205Z Running main() from /home/runner/work/voxys/voxys/third_party/googletest/googletest/src/gtest_main.cc
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:01.4286098Z Note: Google Test filter = LegoPlaygroundGpu.CompoundStudsSupportRealStackAndSleep
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:01.4306205Z [==========] Running 1 test from 1 test suite.
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:01.4326085Z [----------] Global test environment set-up.
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:01.4326899Z [----------] 1 test from LegoPlaygroundGpu
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:01.4346717Z [ RUN      ] LegoPlaygroundGpu.CompoundStudsSupportRealStackAndSleep
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:01.4365900Z libEGL warning: DRI3 error: Could not get DRI3 device
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:01.4376234Z libEGL warning: Ensure your X server supports DRI3 to get accelerated rendering
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:01.4386319Z ^[[32m[INFO ] [00:10:55.745] [GPU] GPU Adapter: llvmpipe (LLVM 20.1.2, 256 bits)^[[0m
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:01.4405936Z ^[[32m[INFO ] [00:10:55.745] [GPU]   Vendor: llvmpipe^[[0m
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:01.4425823Z ^[[32m[INFO ] [00:10:55.745] [GPU]   Backend: Vulkan^[[0m
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:01.4427265Z ^[[32m[INFO ] [00:10:55.745] [GPU]   Type: CPU^[[0m
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:01.4428087Z ^[[32m[INFO ] [00:10:55.778] [GPU] Headless GPU context initialized successfully^[[0m
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:01.4429257Z ^[[32m[INFO ] [00:11:00.123] WebGPU physics initialized: 128 usable body slots, 0 MiB resident, 0 MiB scratch^[[0m
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:01.4429940Z 
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:01.4430350Z       Start  796: LegoPlaygroundGpu.PoolsStayBoundedAcrossImpactsAndReset
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:34.1336747Z 22/59 Test  #796: LegoPlaygroundGpu.PoolsStayBoundedAcrossImpactsAndReset .......................   Passed   32.71 sec
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:34.1338730Z       Start  797: LegoPlaygroundGpu.RaysDistinguishStudCapsFromGapsOnRotatedBrick
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:35.0353149Z 23/59 Test  #795: LegoPlaygroundGpu.BallImpactWakesStackAndCompletesChallengeThenResetReplays ...   Passed   37.85 sec
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:35.0354790Z       Start  798: LegoPlaygroundGpu.RejectsUnboundedCompoundDescriptions
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:39.4950257Z 24/59 Test  #798: LegoPlaygroundGpu.RejectsUnboundedCompoundDescriptions ........................   Passed    4.46 sec
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:39.4965953Z       Start 1181: RaycastPathGPUTest.InitAndShutdown
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:39.6626544Z 25/59 Test #1181: RaycastPathGPUTest.InitAndShutdown ............................................   Passed    0.17 sec
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:39.6665881Z       Start 1182: RaycastPathGPUTest.WorkgroupCounts
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:39.8180184Z 26/59 Test #1182: RaycastPathGPUTest.WorkgroupCounts ............................................   Passed    0.15 sec
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:39.8181530Z       Start 1183: RaycastPathGPUTest.Resize
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:39.9722519Z 27/59 Test #1183: RaycastPathGPUTest.Resize .....................................................   Passed    0.16 sec
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:39.9745920Z       Start 1184: RaycastPathGPUTest.ResizeToSameSize
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:40.1318847Z 28/59 Test #1184: RaycastPathGPUTest.ResizeToSameSize ...........................................   Passed    0.16 sec
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:40.1326005Z       Start 1185: RaycastPathGPUTest.ResizeToZeroFails
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:40.2856645Z 29/59 Test #1185: RaycastPathGPUTest.ResizeToZeroFails ..........................................   Passed    0.15 sec
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:40.2875871Z       Start 1186: RaycastPathGPUTest.SetHeightmap
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:40.3764008Z 30/59 Test  #797: LegoPlaygroundGpu.RaysDistinguishStudCapsFromGapsOnRotatedBrick ...............   Passed    6.24 sec
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:40.3766047Z       Start 1187: RaycastPathGPUTest.UpdateCamera
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:40.4348984Z 31/59 Test #1186: RaycastPathGPUTest.SetHeightmap ...............................................   Passed    0.15 sec
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:40.4364586Z       Start 1188: RaycastPathGPUTest.DispatchWithHeightmap
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:40.5324103Z 32/59 Test #1187: RaycastPathGPUTest.UpdateCamera ...............................................   Passed    0.16 sec
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:40.5349399Z       Start 1189: RaycastPathGPUTest.LegoHorizonBenchmark
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:40.5932240Z 33/59 Test #1188: RaycastPathGPUTest.DispatchWithHeightmap ......................................   Passed    0.16 sec
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:40.5939916Z       Start 1190: BlitPathTest.DefaultConfigValues
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:40.6433391Z 34/59 Test #1189: RaycastPathGPUTest.LegoHorizonBenchmark .......................................***Skipped   0.11 sec
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:40.6456031Z       Start 1191: BlitPathTest.InitWithNullDeviceFails
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:40.7081919Z 35/59 Test #1190: BlitPathTest.DefaultConfigValues ..............................................   Passed    0.11 sec
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:40.7106681Z       Start 1192: BlitPathTest.RejectsInvalidConfigBeforeGpuCalls
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:40.7589758Z 36/59 Test #1191: BlitPathTest.InitWithNullDeviceFails ..........................................   Passed    0.12 sec
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:40.7606287Z       Start 1193: BlitPathTest.RejectsInvalidDebugControls
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:40.8227952Z 37/59 Test #1192: BlitPathTest.RejectsInvalidConfigBeforeGpuCalls ...............................   Passed    0.11 sec
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:40.8245922Z       Start 1194: BlitPathTest.NotInitializedByDefault
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:40.8705493Z 38/59 Test #1193: BlitPathTest.RejectsInvalidDebugControls ......................................   Passed    0.11 sec
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:40.8706746Z       Start 1195: BlitPathTest.InitializationSucceeds
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:40.9436824Z 39/59 Test #1194: BlitPathTest.NotInitializedByDefault ..........................................   Passed    0.12 sec
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:40.9438201Z       Start 1196: BlitPathTest.ProductionShaderHasNoGpuValidationErrors
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:44.3507071Z 40/59 Test #1195: BlitPathTest.InitializationSucceeds ...........................................   Passed    3.48 sec
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:44.3549173Z       Start 1197: BlitPathTest.ShutdownReleasesResources
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:44.3787291Z 41/59 Test #1196: BlitPathTest.ProductionShaderHasNoGpuValidationErrors .........................   Passed    3.44 sec
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:44.3789030Z       Start 1198: BlitPathTest.DoubleInitFails
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:47.7745689Z 42/59 Test #1197: BlitPathTest.ShutdownReleasesResources ........................................   Passed    3.42 sec
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:47.7768901Z       Start 1199: BlitPathTest.UniformBufferCreated
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:47.8049911Z 43/59 Test #1198: BlitPathTest.DoubleInitFails ..................................................   Passed    3.42 sec
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:47.8066017Z       Start 1200: BlitPathTest.SamplerCreated
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:51.2116628Z 44/59 Test #1199: BlitPathTest.UniformBufferCreated .............................................   Passed    3.44 sec
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:51.2126157Z       Start 1201: BlitPathTest.CameraUpdateStoresValues
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:51.2180135Z 45/59 Test #1200: BlitPathTest.SamplerCreated ...................................................   Passed    3.41 sec
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:51.2216045Z       Start 1202: BlitPathTest.TerrainSizeUpdatesUniforms
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:54.6436776Z 46/59 Test #1202: BlitPathTest.TerrainSizeUpdatesUniforms .......................................   Passed    3.42 sec
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:54.6456237Z       Start 1203: BlitPathTest.CanSetInputTextures
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:54.6554331Z 47/59 Test #1201: BlitPathTest.CameraUpdateStoresValues .........................................   Passed    3.44 sec
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:54.6569768Z       Start 1204: BlitPathTest.RenderWithoutTexturesFails
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:58.0800597Z 48/59 Test #1204: BlitPathTest.RenderWithoutTexturesFails .......................................   Passed    3.43 sec
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:58.0815959Z       Start 1205: BlitPathTest.RenderWithAllTexturesSucceeds
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:58.0916847Z 49/59 Test #1203: BlitPathTest.CanSetInputTextures ..............................................   Passed    3.45 sec
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:08:58.0936179Z       Start 1206: BlitPathTest.MoveConstructor
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:09:01.5240061Z 50/59 Test #1206: BlitPathTest.MoveConstructor ..................................................   Passed    3.43 sec
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:09:01.5255870Z       Start 1207: BlitPathTest.MoveAssignment
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:09:04.6285996Z 51/59 Test #1207: BlitPathTest.MoveAssignment ...................................................   Passed    3.11 sec
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:09:04.6293036Z       Start 1208: BlitPathTest.CustomConfig
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:09:07.7534103Z 52/59 Test #1208: BlitPathTest.CustomConfig .....................................................   Passed    3.12 sec
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:09:07.7566213Z       Start 1258: PrimitiveMaterialTest.PacksStableGpuResidentPbrParameters
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:09:07.7626291Z 53/59 Test #1258: PrimitiveMaterialTest.PacksStableGpuResidentPbrParameters .....................   Passed    0.01 sec
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:09:07.7636048Z       Start 1259: PrimitiveMaterialTest.SanitizesNonFiniteAuthoringValues
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:09:07.7719445Z 54/59 Test #1259: PrimitiveMaterialTest.SanitizesNonFiniteAuthoringValues .......................   Passed    0.01 sec
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:09:07.7726037Z       Start 1268: PrimitivePathGPUTest.CompilesPrimitivePipeline
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:09:08.6377119Z 55/59 Test #1268: PrimitivePathGPUTest.CompilesPrimitivePipeline ................................   Passed    0.87 sec
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:09:08.6384230Z       Start 1269: PrimitivePathGPUTest.DrawsGpuResidentPhysicsBody
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:09:11.7455827Z 56/59 Test #1205: BlitPathTest.RenderWithAllTexturesSucceeds ....................................   Passed   13.66 sec
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:09:11.7476002Z       Start 1270: PrimitivePathGPUTest.CylinderCapsFaceOutwardAboveAndBelow
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:09:13.3259164Z 57/59 Test #1269: PrimitivePathGPUTest.DrawsGpuResidentPhysicsBody ..............................   Passed    4.69 sec
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:09:13.3279342Z       Start 1271: PrimitivePathGPUTest.DrawsResidentLegoStudCap
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:09:17.9996780Z 58/59 Test #1271: PrimitivePathGPUTest.DrawsResidentLegoStudCap .................................   Passed    4.67 sec
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:09:19.7747097Z 59/59 Test #1270: PrimitivePathGPUTest.CylinderCapsFaceOutwardAboveAndBelow .....................   Passed    8.03 sec
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:09:19.7751563Z 
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:09:19.7751823Z 97% tests passed, 2 tests failed out of 59
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:09:19.7752231Z 
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:09:19.7765835Z Total Test time (real) = 161.42 sec
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:09:19.7766291Z 
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:09:19.7770926Z The following tests did not run:
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:09:19.7771742Z 	1189 - RaycastPathGPUTest.LegoHorizonBenchmark (Skipped)
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:09:19.7772501Z 
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:09:19.7772973Z The following tests FAILED:
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:09:19.7773930Z 	793 - LegoPlaygroundGpu.CompoundStudsSupportRealStackAndSleep (SEGFAULT)
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:09:19.7776694Z 	794 - LegoPlaygroundGpu.BoxFootprintSupportsEdgeAndRejectsInvalidPlacement (SEGFAULT)
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:09:19.7777844Z Errors while running CTest
+native-renderer	Native renderer lifetime and resource regression tests	2026-09-07T17:09:19.7830936Z ##[error]Process completed with exit code 8.

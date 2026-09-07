@@ -719,6 +719,11 @@
                 if (this.state === 'STOPPING' || this.state === 'LOCKED') return;
 
                 this.state = 'STOPPING';
+                this.landingStarted = performance.now();
+                this.landingAngle = this.angle;
+                // A decorative animation must not hold a ready application
+                // behind its cover when GPU work stalls animation frames.
+                this.landingTimer = setTimeout(() => this.completeLanding(), 2000);
 
                 // 1. Calculate where we are now
                 const currentRotation = this.angle;
@@ -749,6 +754,7 @@
             }
 
             loop() {
+                if (this.state === 'LOCKED') return;
                 const now = performance.now();
                 const dt = Math.min(now - this.lastTime, 50); // Cap dt
                 this.lastTime = now;
@@ -780,31 +786,21 @@
 
                 // 3. Stopping Phase (Decel to target)
                 else if (this.state === 'STOPPING') {
-                    const remainingDist = this.targetAngle - this.angle;
-
-                    // Visual Blur removal
-                    if (this.speed < this.maxSpeed * 0.5) {
-                        this.container.classList.remove('roller-fast');
-                    }
-
-                    // Physics: Spring/Ease to target
-                    // Simple P-controller: speed proportional to distance
-                    const desiredSpeed = remainingDist * 0.005; // Tunable "spring" strength
-
-                    // Smoothly blend current speed to desired speed
-                    this.speed = this.speed * 0.92 + desiredSpeed * 0.08;
-
-                    // Snap threshold
-                    if (remainingDist < 0.5 && Math.abs(this.speed) < 0.01) {
-                        this.angle = this.targetAngle;
-                        this.speed = 0;
-                        this.state = 'LOCKED';
-                        this.finish();
+                    const progress = Math.min(1, (now - this.landingStarted) / 2000);
+                    const remaining = 1 - progress;
+                    this.angle = this.landingAngle + (this.targetAngle - this.landingAngle)
+                        * (1 - remaining * remaining * remaining);
+                    this.speed = (this.targetAngle - this.landingAngle)
+                        * 3 * remaining * remaining / 2000;
+                    if (progress > .5) this.container.classList.remove('roller-fast');
+                    if (progress === 1) {
+                        this.completeLanding();
+                        return;
                     }
                 }
 
                 // Apply Rotation
-                this.angle += this.speed * dt;
+                if (this.state !== 'STOPPING') this.angle += this.speed * dt;
                 this.drum.style.transform = `rotateX(-${this.angle}deg)`;
 
                 // ─────────────────────────────────
@@ -844,6 +840,18 @@
                         face.style.color = ""; // reset color
                     }
                 });
+            }
+
+            completeLanding() {
+                if (this.state !== 'STOPPING') return;
+                clearTimeout(this.landingTimer);
+                cancelAnimationFrame(this.rAF);
+                this.angle = this.targetAngle;
+                this.speed = 0;
+                this.state = 'LOCKED';
+                this.drum.style.transform = `rotateX(-${this.angle}deg)`;
+                this.container.classList.remove('roller-fast');
+                this.finish();
             }
 
             finish() {
@@ -1148,8 +1156,7 @@
                 // requestAnimationFrame sequence. It can be compositor-
                 // throttled even while the uncapped WASM loop remains active.
                 if (browserBenchmarkRun) {
-                    cancelAnimationFrame(roller.rAF);
-                    roller.state = 'LOCKED';
+                    roller.completeLanding();
                 } else {
                     // We poll the roller state.
                     await new Promise(resolve => {

@@ -100,6 +100,8 @@ jobs:
             }
           done
           ls -lah docs/
+      - name: Loading animation timing regression
+        run: node --test scripts/test_loading_roller.mjs
       - name: Start the main page through the full browser application
         id: main_page_smoke
         env:

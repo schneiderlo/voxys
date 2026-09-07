@@ -153,3 +153,24 @@ Chrome, Node 22+, Python/Pillow and Xvfb are required. `final-native.txt`,
 retain native, real GPU shader and packaged-asset verification output. The
 native selected suite passed 110 tests, with one opt-in benchmark skipped;
 15 focused renderer/physics tests passed after compound specialization.
+
+## First CI release attempt
+
+The blocking smoke correctly stopped deployment: the engine had completed GPU
+work without device loss, but its decorative loading roller still covered the
+canvas after three minutes. The roller capped every animation delta at 50 ms;
+on CI's very slow software GPU, 27 frames were insufficient to finish its spring.
+The roller now interpolates by elapsed time and completes after two seconds even
+if animation frames stop. Engine initialization must still finish before landing
+begins. Three production-class regressions cover waiting, delayed frames and no
+frames. The startup gate's timeout, resolution and assertions are unchanged.
+`loader-fixed-swiftshader.json` and a further AMD gameplay run passed locally.
+
+The same CI attempt reported two native LLVMpipe segmentation faults during
+simultaneous cold-cache tests. Other playground cases, including ball impacts
+and replay, passed. Exact Mesa 25.2.8 / LLVM 20.1.2 Vulkan tests passed locally
+both singly and concurrently; a restricted AVX run also passed. Early local
+attempts selected OpenGL and were rejected as reproduction evidence. The cause
+is not yet established. Native CI retains every assertion and now captures
+cold-driver debugger backtraces on failure; these diagnostic retries do not
+change the failed gate's result.
