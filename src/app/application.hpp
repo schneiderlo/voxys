@@ -41,6 +41,7 @@
 #include "physics/gpu/debug_readback_ring.hpp"
 #include "physics/physics_types.hpp"
 #include "render/primitive_culling.hpp"
+#include "game/lego_playground.hpp"
 
 namespace voxy {
 
@@ -681,6 +682,8 @@ public:
     [[nodiscard]] const Input* getInput() const noexcept { return input_.get(); }
 
     /// Get the camera.
+    bool legoAction(int action);
+    [[nodiscard]] std::string legoHudJson() const;
     [[nodiscard]] Camera* getCamera() noexcept { return camera_.get(); }
     [[nodiscard]] const Camera* getCamera() const noexcept { return camera_.get(); }
 
@@ -848,6 +851,8 @@ private:
     // Renderers
     std::unique_ptr<render::WaterSimulation> waterSimulation_;
     std::unique_ptr<render::PrimitivePath> primitivePath_;
+    std::unique_ptr<game::LegoPlayground> legoPlayground_;
+    bool legoPlaygroundActive_ = false;
     std::unique_ptr<render::MeshPath> meshPath_;
     std::unique_ptr<moto::MotoSession> motoSession_;
     std::unique_ptr<moto::RaceSession> motoRaceSession_;

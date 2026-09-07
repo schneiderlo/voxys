@@ -58,6 +58,24 @@ fn legoSphereContact(field: texture_2d<u32>, params: vec4<f32>, size: vec2<u32>,
     }
     return best;
 }
+
+// Dynamic bricks use material tag B; tag A remains the existing plastic PBR
+// material. Dimensions bound the complete body, including the stud caps.
+fn legoIsBrick(material: u32) -> bool { return (material & 0xf0000000u) == 0xb0000000u; }
+fn legoBrickParts(dimensions: vec3<f32>, material: u32) -> u32 {
+    if (!legoIsBrick(material)) { return 1u; }
+    return 1u + min(u32(round(dimensions.x))*u32(round(dimensions.z)),8u);
+}
+fn legoBrickPartSize(dimensions: vec3<f32>, part: u32) -> vec3<f32> {
+    if (part == 0u) { return vec3<f32>(dimensions.x,dimensions.y-0.18,dimensions.z); }
+    return vec3<f32>(0.6,0.18,0.6);
+}
+fn legoBrickPartOffset(dimensions: vec3<f32>, part: u32) -> vec3<f32> {
+    if (part == 0u) { return vec3<f32>(0.0,-0.09,0.0); }
+    let width=max(u32(round(dimensions.x)),1u);
+    return vec3<f32>(f32((part-1u)%width)+0.5-f32(width)*0.5,
+        dimensions.y*0.5-0.09,f32((part-1u)/width)+0.5-f32(u32(round(dimensions.z)))*0.5);
+}
 // END GENERATED LEGO SURFACE
 
 const GENERATION_MASK : u32 = 0x000fffffu;
@@ -861,7 +879,7 @@ fn append_sphere_terrain_candidate(
     append_terrain_candidate(candidateSet, point, localFeature);
 }
 
-fn generate_terrain_candidates(pose : BodyPose,
+fn generate_primitive_terrain_candidates(pose : BodyPose,
                                shape : BodyShape) -> TerrainCandidateSet {
     var result : TerrainCandidateSet;
     result.count = 0u;
@@ -927,6 +945,26 @@ fn generate_terrain_candidates(pose : BodyPose,
             let point = pose.position_invMass.xyz
                 + rotate_by_quaternion(pose.orientation, facePoints[face]);
             append_terrain_candidate(&result, point, 8u + face);
+        }
+    }
+    return result;
+}
+
+// Merge a bounded set of child contacts. Keep the deepest candidates when
+// the 16-slot scratch fills; final manifold reduction retains four spread points.
+fn generate_terrain_candidates(pose:BodyPose,shape:BodyShape)->TerrainCandidateSet {
+    if(!legoIsBrick(bitcast<u32>(shape.invInertia_material.w))){return generate_primitive_terrain_candidates(pose,shape);}
+    var result:TerrainCandidateSet;
+    for(var part=0u;part<legoBrickParts(shape.dimensions_type.xyz,bitcast<u32>(shape.invInertia_material.w));part++) {
+        var child=shape;var childPose=pose;
+        child.dimensions_type=vec4<f32>(legoBrickPartSize(shape.dimensions_type.xyz,part),select(2.0,4.0,part>0u));
+        childPose.position_invMass=vec4<f32>(pose.position_invMass.xyz+rotate_by_quaternion(pose.orientation,legoBrickPartOffset(shape.dimensions_type.xyz,part)),pose.position_invMass.w);
+        var contacts=generate_primitive_terrain_candidates(childPose,child);
+        for(var k=0u;k<contacts.count;k++) {
+            var c=contacts.items[k];c.featureId^=part<<24u;
+            if(result.count<16u){result.items[result.count]=c;result.count++;}
+            else {var worst=0u;for(var j=1u;j<16u;j++){if(result.items[j].separation>result.items[worst].separation){worst=j;}}
+                if(c.separation<result.items[worst].separation){result.items[worst]=c;}}
         }
     }
     return result;

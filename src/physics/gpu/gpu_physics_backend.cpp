@@ -1686,6 +1686,20 @@ public:
             LOG_WARN("Discarding non-finite GPU body spawn");
             return {};
         }
+        if (requested.material
+            && (requested.material->flags & 0xf0000000u) == kLegoBrickMaterial) {
+            const auto footprint = [](float size) {
+                return std::abs(size-.96f)<.001f || std::abs(size-1.96f)<.001f
+                    || std::abs(size-3.96f)<.001f;
+            };
+            if (requested.shape != ThrowableShape::Box
+                || !footprint(requested.dimensions.x) || !footprint(requested.dimensions.z)
+                || std::abs(requested.dimensions.y-1.14f)>.001f
+                || std::round(requested.dimensions.x)*std::round(requested.dimensions.z)>8.f) {
+                LOG_WARN("Discarding unsupported LEGO compound dimensions");
+                return {};
+            }
+        }
         if (commands_.size() >= config_.commandCapacity) {
             commandCapacityOverflow_ = true;
             return {};

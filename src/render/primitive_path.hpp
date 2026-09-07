@@ -89,6 +89,7 @@ public:
         std::span<const physics::PhysicsWorld::DynamicBodySnapshot> bodies);
     void setPhysicsRenderView(const physics::PhysicsRenderView& view);
     void clearPhysicsRenderView();
+    void setLegoBodyIds(std::span<const uint32_t> ids);
     [[nodiscard]] const PrimitiveUploadStats& lastUploadStats() const noexcept {
         return lastUploadStats_;
     }
@@ -155,6 +156,12 @@ private:
     WGPUBindGroupLayout compactBindGroupLayout_ = nullptr;
     WGPUPipelineLayout compactPipelineLayout_ = nullptr;
     WGPURenderPipeline compactPipeline_ = nullptr;
+    WGPURenderPipeline legoPipeline_ = nullptr;
+    WGPUBindGroup legoBindGroup_ = nullptr;
+    WGPUBuffer legoIdsBuffer_ = nullptr;
+    DrawRange legoRange_{};
+    std::array<uint32_t, 48> legoIds_{};
+    uint32_t legoCount_ = 0;
     WGPUBindGroup compactBindGroup_ = nullptr;
     WGPURenderBundle compactRenderBundle_ = nullptr;
     WGPUBuffer cpuPoseBuffer_ = nullptr;

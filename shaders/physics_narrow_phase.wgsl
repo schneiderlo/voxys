@@ -1,3 +1,83 @@
+// BEGIN GENERATED LEGO SURFACE
+// Canonical LEGO geometry. Generated into standalone shader modules by
+// scripts/sync_lego_surface.py; no runtime shader preprocessor is required.
+fn legoPlateCount(heightScale: f32, cellScale: f32) -> u32 {
+    return u32(clamp(floor(2.0 * heightScale / (0.32 * cellScale) + 0.5), 1.0, 65535.0));
+}
+fn legoPlateLevel(raw: u32, count: u32) -> u32 {
+    return (raw * count + 32767u) / 65535u;
+}
+fn legoPlateTop(raw: u32, heightScale: f32, cellScale: f32) -> f32 {
+    let count = legoPlateCount(heightScale, cellScale);
+    return -heightScale + f32(legoPlateLevel(raw, count)) * (2.0 * heightScale / f32(count));
+}
+struct LegoContact {
+    normal: vec3<f32>, distance: f32,
+    point: vec3<f32>, feature: u32,
+};
+fn legoConsiderContact(best: LegoContact, center: vec3<f32>, point: vec3<f32>,
+                       interior: f32, radius: f32, feature: u32) -> LegoContact {
+    let delta = center - point;
+    let len = length(delta);
+    let distance = select(len, interior, interior < 0.0) - radius;
+    if (distance >= best.distance) { return best; }
+    let normal = select(delta / max(len, 1e-7), vec3<f32>(0.0,1.0,0.0),
+                         interior < 0.0 || len < 1e-7);
+    return LegoContact(normal, distance, point, feature);
+}
+// Exterior distance to the union, with a one-cell halo around the footprint.
+// The columns are solid downwards. Decorative brick seams have no collision.
+fn legoSphereContact(field: texture_2d<u32>, params: vec4<f32>, size: vec2<u32>,
+                      center: vec3<f32>, radius: f32) -> LegoContact {
+    var best = LegoContact(vec3<f32>(0.0,1.0,0.0), 1e30, center, 0u);
+    let cellScale = params.z;
+    let p = (center.xz + params.xy) / cellScale;
+    let reach = (radius + cellScale) / cellScale;
+    let minimum = max(vec2<i32>(0), vec2<i32>(floor(p - vec2<f32>(reach))));
+    let maximum = min(vec2<i32>(size) - vec2<i32>(2), vec2<i32>(floor(p + vec2<f32>(reach))));
+    for (var z = minimum.y; z <= maximum.y; z += 1) {
+        for (var x = minimum.x; x <= maximum.x; x += 1) {
+            let low = vec2<f32>(f32(x), f32(z)) * cellScale - params.xy;
+            let high = low + vec2<f32>(cellScale);
+            let top = legoPlateTop(textureLoad(field, vec2<i32>(x,z), 0).x, params.w, cellScale);
+            let closest = clamp(center.xz, low, high);
+            let inside = all(center.xz >= low) && all(center.xz <= high) && center.y < top;
+            let point = vec3<f32>(closest.x, select(min(center.y,top),top,inside), closest.y);
+            let feature = (u32(z) * size.x + u32(x)) * 8u;
+            best = legoConsiderContact(best, center, point, select(0.0,center.y-top,inside), radius, feature+1u);
+            let studCenter = low + vec2<f32>(0.5 * cellScale);
+            let d = center.xz - studCenter;
+            let len = length(d);
+            let r = 0.30 * cellScale;
+            let cap = top + 0.18 * cellScale;
+            let radial = studCenter + d * min(1.0, r / max(len,1e-7));
+            let insideStud = len < r && center.y >= top && center.y < cap;
+            let studPoint = vec3<f32>(radial.x, select(clamp(center.y,top,cap),cap,insideStud), radial.y);
+            best = legoConsiderContact(best, center, studPoint, select(0.0,center.y-cap,insideStud), radius, feature+2u);
+        }
+    }
+    return best;
+}
+
+// Dynamic bricks use material tag B; tag A remains the existing plastic PBR
+// material. Dimensions bound the complete body, including the stud caps.
+fn legoIsBrick(material: u32) -> bool { return (material & 0xf0000000u) == 0xb0000000u; }
+fn legoBrickParts(dimensions: vec3<f32>, material: u32) -> u32 {
+    if (!legoIsBrick(material)) { return 1u; }
+    return 1u + min(u32(round(dimensions.x))*u32(round(dimensions.z)),8u);
+}
+fn legoBrickPartSize(dimensions: vec3<f32>, part: u32) -> vec3<f32> {
+    if (part == 0u) { return vec3<f32>(dimensions.x,dimensions.y-0.18,dimensions.z); }
+    return vec3<f32>(0.6,0.18,0.6);
+}
+fn legoBrickPartOffset(dimensions: vec3<f32>, part: u32) -> vec3<f32> {
+    if (part == 0u) { return vec3<f32>(0.0,-0.09,0.0); }
+    let width=max(u32(round(dimensions.x)),1u);
+    return vec3<f32>(f32((part-1u)%width)+0.5-f32(width)*0.5,
+        dimensions.y*0.5-0.09,f32((part-1u)/width)+0.5-f32(u32(round(dimensions.z)))*0.5);
+}
+// END GENERATED LEGO SURFACE
+
 const SHAPE_SPHERE : u32 = 0u;
 const SHAPE_CUBE : u32 = 1u;
 const SHAPE_BOX : u32 = 2u;
@@ -141,6 +221,24 @@ struct ClipPolygon {
 @group(0) @binding(14) var<storage, read> activeOffsets : array<u32>;
 
 var<private> currentSpeculativeDistance : f32 = 0.0;
+
+// Per-invocation subshape views. Parent poses are restored before anchors
+// are built, so solver impulses always act on the complete rigid brick.
+var<private> compoundEnabled: bool = false;
+var<private> compoundA: u32;
+var<private> compoundB: u32;
+var<private> compoundPoseA: BodyPose;
+var<private> compoundPoseB: BodyPose;
+var<private> compoundShapeA: BodyShape;
+var<private> compoundShapeB: BodyShape;
+fn compound_pose(body:u32)->BodyPose {
+    if(compoundEnabled){if(body==compoundA){return compoundPoseA;}if(body==compoundB){return compoundPoseB;}}
+    return poses[body];
+}
+fn compound_shape(body:u32)->BodyShape {
+    if(compoundEnabled){if(body==compoundA){return compoundShapeA;}if(body==compoundB){return compoundShapeB;}}
+    return shapes[body];
+}
 
 fn canonical_shape(shapeValue : f32) -> u32 {
     let shapeType = u32(clamp(shapeValue, 0.0, 4.0));
@@ -288,8 +386,8 @@ fn commit_active_manifolds_256(@builtin(global_invocation_id) gid : vec3<u32>) {
 }
 
 fn pair_class_for_record(pair : KeyValue) -> u32 {
-    let shapeA = canonical_shape(shapes[pair.keyHigh].dimensions_type.w);
-    let shapeB = canonical_shape(shapes[pair.keyLow].dimensions_type.w);
+    let shapeA = canonical_shape(compound_shape(pair.keyHigh).dimensions_type.w);
+    let shapeB = canonical_shape(compound_shape(pair.keyLow).dimensions_type.w);
     return pair_class(shapeA, shapeB);
 }
 
@@ -420,7 +518,7 @@ fn adjacent_sector_delta(reference : i32, other : i32) -> i32 {
 }
 
 fn body_position_in_frame(body : u32, frameBody : u32) -> vec3<f32> {
-    let position = poses[body].position_invMass.xyz;
+    let position = compound_pose(body).position_invMass.xyz;
     let frameSector = metadata[frameBody].xyz;
     let bodySector = metadata[body].xyz;
     var sectorDelta = vec3<i32>(0);
@@ -437,7 +535,7 @@ fn body_position_in_frame(body : u32, frameBody : u32) -> vec3<f32> {
 }
 
 fn make_box_at_center(body : u32, center : vec3<f32>) -> BoxFrame {
-    let pose = poses[body];
+    let pose = compound_pose(body);
     var result : BoxFrame;
     result.center = center;
     result.axisX = quaternion_rotate(
@@ -446,7 +544,7 @@ fn make_box_at_center(body : u32, center : vec3<f32>) -> BoxFrame {
         pose.orientation, vec3<f32>(0.0, 1.0, 0.0));
     result.axisZ = quaternion_rotate(
         pose.orientation, vec3<f32>(0.0, 0.0, 1.0));
-    result.half = 0.5 * max(abs(shapes[body].dimensions_type.xyz),
+    result.half = 0.5 * max(abs(compound_shape(body).dimensions_type.xyz),
                             vec3<f32>(1e-5));
     return result;
 }
@@ -457,7 +555,7 @@ fn make_box(body : u32, frameBody : u32) -> BoxFrame {
 }
 
 fn has_identity_rotation(body : u32) -> bool {
-    let orientation = poses[body].orientation;
+    let orientation = compound_pose(body).orientation;
     return all(orientation.xyz == vec3<f32>(0.0))
         && abs(orientation.w) == 1.0;
 }
@@ -468,7 +566,7 @@ fn make_axis_aligned_box(body : u32, frameBody : u32) -> BoxFrame {
     result.axisX = vec3<f32>(1.0, 0.0, 0.0);
     result.axisY = vec3<f32>(0.0, 1.0, 0.0);
     result.axisZ = vec3<f32>(0.0, 0.0, 1.0);
-    result.half = 0.5 * max(abs(shapes[body].dimensions_type.xyz),
+    result.half = 0.5 * max(abs(compound_shape(body).dimensions_type.xyz),
                             vec3<f32>(1e-5));
     return result;
 }
@@ -476,8 +574,8 @@ fn make_axis_aligned_box(body : u32, frameBody : u32) -> BoxFrame {
 fn make_poly_frame(body : u32, center : vec3<f32>) -> PolyFrame {
     var result : PolyFrame;
     result.center = center;
-    result.orientation = poses[body].orientation;
-    result.dimensions = shapes[body].dimensions_type.xyz;
+    result.orientation = compound_pose(body).orientation;
+    result.dimensions = compound_shape(body).dimensions_type.xyz;
     return result;
 }
 
@@ -495,39 +593,39 @@ fn make_box_from_poly(frame : PolyFrame) -> BoxFrame {
 }
 
 fn sphere_radius(body : u32) -> f32 {
-    return 0.5 * max(abs(shapes[body].dimensions_type.x), 1e-5);
+    return 0.5 * max(abs(compound_shape(body).dimensions_type.x), 1e-5);
 }
 
 fn capsule_radius(body : u32) -> f32 {
-    let dimensions = max(abs(shapes[body].dimensions_type.xyz),
+    let dimensions = max(abs(compound_shape(body).dimensions_type.xyz),
                          vec3<f32>(1e-5));
     return 0.25 * (dimensions.x + dimensions.z);
 }
 
 fn capsule_segment(body : u32, frameBody : u32) -> Segment {
     let radius = capsule_radius(body);
-    let halfSegment = max(0.5 * abs(shapes[body].dimensions_type.y)
+    let halfSegment = max(0.5 * abs(compound_shape(body).dimensions_type.y)
                               - radius, 0.0);
     let offset = quaternion_rotate(
-        poses[body].orientation, vec3<f32>(0.0, halfSegment, 0.0));
+        compound_pose(body).orientation, vec3<f32>(0.0, halfSegment, 0.0));
     let center = body_position_in_frame(body, frameBody);
     return Segment(center - offset, center + offset);
 }
 
 fn cylinder_radius(body : u32) -> f32 {
-    let dimensions = max(abs(shapes[body].dimensions_type.xyz),
+    let dimensions = max(abs(compound_shape(body).dimensions_type.xyz),
                          vec3<f32>(1e-5));
     return 0.25 * (dimensions.x + dimensions.z);
 }
 
 fn cylinder_half_height(body : u32) -> f32 {
-    return 0.5 * max(abs(shapes[body].dimensions_type.y), 1e-5);
+    return 0.5 * max(abs(compound_shape(body).dimensions_type.y), 1e-5);
 }
 
 fn shape_bounding_radius(body : u32) -> f32 {
-    let dimensions = max(abs(shapes[body].dimensions_type.xyz),
+    let dimensions = max(abs(compound_shape(body).dimensions_type.xyz),
                          vec3<f32>(1e-5));
-    let shapeClass = canonical_shape(shapes[body].dimensions_type.w);
+    let shapeClass = canonical_shape(compound_shape(body).dimensions_type.w);
     if (shapeClass == 0u) { return 0.5 * dimensions.x; }
     if (shapeClass == 1u) {
         let radius = 0.25 * (dimensions.x + dimensions.z);
@@ -542,7 +640,7 @@ fn shape_bounding_radius(body : u32) -> f32 {
 
 fn shape_sweep_distance(body : u32) -> f32 {
     if ((u32(metadata[body].w) & BODY_AWAKE) == 0u) { return 0.0; }
-    return fract(max(shapes[body].dimensions_type.w, 0.0))
+    return fract(max(compound_shape(body).dimensions_type.w, 0.0))
         * SHAPE_SWEEP_RANGE;
 }
 
@@ -763,7 +861,7 @@ fn box_surface(frame : BoxFrame, point : vec3<f32>) -> ClosestSurface {
 
 fn cylinder_surface(body : u32, point : vec3<f32>,
                     frameBody : u32) -> ClosestSurface {
-    let pose = poses[body];
+    let pose = compound_pose(body);
     let center = body_position_in_frame(body, frameBody);
     let local = quaternion_inverse_rotate(
         pose.orientation, point - center);
@@ -1633,10 +1731,10 @@ fn build_manifold(pairRecord : KeyValue,
     for (var pointIndex = 0u; pointIndex < candidates.count;
          pointIndex += 1u) {
         let candidate = candidates.items[pointIndex];
-        let localA = quaternion_inverse_rotate(poses[bodyA].orientation,
+        let localA = quaternion_inverse_rotate(compound_pose(bodyA).orientation,
             candidate.pointA_separation.xyz
                 - body_position_in_frame(bodyA, bodyA));
-        let localB = quaternion_inverse_rotate(poses[bodyB].orientation,
+        let localB = quaternion_inverse_rotate(compound_pose(bodyB).orientation,
             candidate.pointB.xyz - body_position_in_frame(bodyB, bodyA));
         result.points[pointIndex].localAnchorA_separation = vec4<f32>(
             localA, candidate.pointA_separation.w);
@@ -1710,10 +1808,10 @@ fn build_manifold(pairRecord : KeyValue,
     result.tangent1 = vec4<f32>(tangent1, 0.0);
     result.tangent2 = vec4<f32>(tangent2, 0.0);
     result.frictionAnchorA = vec4<f32>(quaternion_inverse_rotate(
-        poses[bodyA].orientation,
+        compound_pose(bodyA).orientation,
         center - body_position_in_frame(bodyA, bodyA)), 0.0);
     result.frictionAnchorB = vec4<f32>(quaternion_inverse_rotate(
-        poses[bodyB].orientation,
+        compound_pose(bodyB).orientation,
         center - body_position_in_frame(bodyB, bodyA)), 0.0);
     if (previousIndex != SENTINEL && normalCoherent) {
         let oldFriction = previous.tangent1.xyz * previous.tangent1.w
@@ -1752,10 +1850,178 @@ fn class_pair_record(gid : vec3<u32>, pairClass : u32) -> KeyValue {
     return pairRecord;
 }
 
+// A small stud must not inherit the distant corners of the box it touches.
+// Keep only points on both child shapes, then one patch centre per stud.
+// The parent reduction spreads four contacts across all supporting studs.
+fn collide_lego_polyhedron_parts(a:u32,ca:u32,b:u32,cb:u32)->CandidateSet {
+    var hit=collide_polyhedra(a,ca,b,cb,a);
+    var result=empty_candidates();result.normal=hit.normal;
+    var pointA=vec3<f32>(0);var pointB=vec3<f32>(0);var separation=0.0;var count=0u;var features=vec2<u32>(0);
+    let boxA=make_box(a,a);let boxB=make_box(b,a);
+    for(var k=0u;k<hit.count;k++) {
+        let c=hit.items[k];
+        var da=box_surface(boxA,c.pointA_separation.xyz).signedDistance;
+        var db=box_surface(boxB,c.pointB.xyz).signedDistance;
+        if(ca==3u){da=cylinder_surface(a,c.pointA_separation.xyz,a).signedDistance;}
+        if(cb==3u){db=cylinder_surface(b,c.pointB.xyz,a).signedDistance;}
+        if(da>narrow.tolerances.x*2.0||db>narrow.tolerances.x*2.0){continue;}
+        pointA+=c.pointA_separation.xyz;pointB+=c.pointB.xyz;separation+=c.pointA_separation.w;
+        if(count==0u){features=c.features.xy;}count++;
+    }
+    if(count>0u){let n=f32(count);append_candidate(&result,pointA/n,pointB/n,separation/n,features.x,features.y);}
+    return result;
+}
+
+// Keep compound work in the four pair classes that can contain a box.
+// Referencing the generic compound dispatcher from all ten entry points
+// crashed SwiftShader on first submission. Specializing the reachable routines
+// avoids that failure without changing the supported child contacts.
+fn prepare_lego_parts(a : u32, b : u32, i : u32, j : u32) -> bool {
+    compoundA = a;
+    compoundB = b;
+    compoundPoseA = poses[a];
+    compoundPoseB = poses[b];
+    compoundShapeA = shapes[a];
+    compoundShapeB = shapes[b];
+    if (legoIsBrick(bitcast<u32>(compoundShapeA.invInertia_material.w))) {
+        let dim = compoundShapeA.dimensions_type.xyz;
+        compoundShapeA.dimensions_type = vec4<f32>(
+            legoBrickPartSize(dim, i), select(2.0, 4.0, i > 0u));
+        compoundPoseA.position_invMass = vec4<f32>(
+            compoundPoseA.position_invMass.xyz + quaternion_rotate(
+                compoundPoseA.orientation, legoBrickPartOffset(dim, i)),
+            compoundPoseA.position_invMass.w);
+    }
+    if (legoIsBrick(bitcast<u32>(compoundShapeB.invInertia_material.w))) {
+        let dim = compoundShapeB.dimensions_type.xyz;
+        compoundShapeB.dimensions_type = vec4<f32>(
+            legoBrickPartSize(dim, j), select(2.0, 4.0, j > 0u));
+        compoundPoseB.position_invMass = vec4<f32>(
+            compoundPoseB.position_invMass.xyz + quaternion_rotate(
+                compoundPoseB.orientation, legoBrickPartOffset(dim, j)),
+            compoundPoseB.position_invMass.w);
+    }
+    compoundEnabled = true;
+    let delta = body_position_in_frame(b, a) - body_position_in_frame(a, a);
+    let radius = .5 * (length(compoundShapeA.dimensions_type.xyz)
+                     + length(compoundShapeB.dimensions_type.xyz))
+               + currentSpeculativeDistance;
+    return dot(delta, delta) <= radius * radius;
+}
+
+fn append_lego_contacts(result : ptr<function, CandidateSet>,
+                        deepest : ptr<function, f32>,
+                        candidates : CandidateSet, i : u32, j : u32) {
+    var hit = candidates;
+    if (hit.count == 0u) { return; }
+    var separation = 1e30;
+    for (var k = 0u; k < hit.count; k++) {
+        separation = min(separation, hit.items[k].pointA_separation.w);
+    }
+    if ((*result).count > 0u && dot((*result).normal, hit.normal) < .9) {
+        if (separation >= *deepest) { return; }
+        *result = empty_candidates();
+    }
+    (*result).normal = hit.normal;
+    *deepest = min(*deepest, separation);
+    for (var k = 0u; k < hit.count; k++) {
+        let c = hit.items[k];
+        append_candidate(result, c.pointA_separation.xyz, c.pointB.xyz,
+            c.pointA_separation.w, c.features.x | (i << 12u),
+            c.features.y | (j << 12u));
+    }
+}
+
+fn collide_lego_sphere(a : u32, b : u32) -> CandidateSet {
+    let sa = shapes[a];
+    let sb = shapes[b];
+    let na = legoBrickParts(sa.dimensions_type.xyz, bitcast<u32>(sa.invInertia_material.w));
+    let nb = legoBrickParts(sb.dimensions_type.xyz, bitcast<u32>(sb.invInertia_material.w));
+    var result = empty_candidates();
+    var deepest = 1e30;
+    // At most 9 x 9 child pairs, with a bounding-sphere rejection before SAT.
+    for (var i = 0u; i < na; i++) {
+        for (var j = 0u; j < nb; j++) {
+            if (!prepare_lego_parts(a, b, i, j)) { continue; }
+            let ca = canonical_shape(compoundShapeA.dimensions_type.w);
+            let cb = canonical_shape(compoundShapeB.dimensions_type.w);
+            var hit = empty_candidates();
+            if (ca == 0u) {
+                if (cb == 2u) { hit = collide_sphere_box(a, b, a); }
+                else { hit = collide_sphere_cylinder(a, b, a); }
+            } else {
+                if (ca == 2u) { hit = swap_candidates(collide_sphere_box(b, a, a)); }
+                else { hit = swap_candidates(collide_sphere_cylinder(b, a, a)); }
+            }
+            append_lego_contacts(&result, &deepest, hit, i, j);
+        }
+    }
+    compoundEnabled = false;
+    return result;
+}
+
+fn collide_lego_capsule(a : u32, b : u32) -> CandidateSet {
+    let sa = shapes[a];
+    let sb = shapes[b];
+    let na = legoBrickParts(sa.dimensions_type.xyz, bitcast<u32>(sa.invInertia_material.w));
+    let nb = legoBrickParts(sb.dimensions_type.xyz, bitcast<u32>(sb.invInertia_material.w));
+    var result = empty_candidates();
+    var deepest = 1e30;
+    // At most 9 x 9 child pairs, with a bounding-sphere rejection before SAT.
+    for (var i = 0u; i < na; i++) {
+        for (var j = 0u; j < nb; j++) {
+            if (!prepare_lego_parts(a, b, i, j)) { continue; }
+            let ca = canonical_shape(compoundShapeA.dimensions_type.w);
+            let cb = canonical_shape(compoundShapeB.dimensions_type.w);
+            var hit = empty_candidates();
+            if (ca == 1u) {
+                if (cb == 2u) { hit = collide_capsule_box(a, b, a); }
+                else { hit = collide_capsule_cylinder(a, b, a); }
+            } else {
+                if (ca == 2u) { hit = swap_candidates(collide_capsule_box(b, a, a)); }
+                else { hit = swap_candidates(collide_capsule_cylinder(b, a, a)); }
+            }
+            append_lego_contacts(&result, &deepest, hit, i, j);
+        }
+    }
+    compoundEnabled = false;
+    return result;
+}
+
+fn collide_lego_polyhedra(a : u32, b : u32) -> CandidateSet {
+    let sa = shapes[a];
+    let sb = shapes[b];
+    let na = legoBrickParts(sa.dimensions_type.xyz, bitcast<u32>(sa.invInertia_material.w));
+    let nb = legoBrickParts(sb.dimensions_type.xyz, bitcast<u32>(sb.invInertia_material.w));
+    var result = empty_candidates();
+    var deepest = 1e30;
+    // At most 9 x 9 child pairs, with a bounding-sphere rejection before SAT.
+    for (var i = 0u; i < na; i++) {
+        for (var j = 0u; j < nb; j++) {
+            if (!prepare_lego_parts(a, b, i, j)) { continue; }
+            let ca = canonical_shape(compoundShapeA.dimensions_type.w);
+            let cb = canonical_shape(compoundShapeB.dimensions_type.w);
+            var hit = empty_candidates();
+            if (ca == 2u && cb == 2u) {
+                hit = collide_box_box(a, b, a);
+            } else {
+                hit = collide_lego_polyhedron_parts(a, ca, b, cb);
+            }
+            append_lego_contacts(&result, &deepest, hit, i, j);
+        }
+    }
+    compoundEnabled = false;
+    return result;
+}
+
+fn pair_has_lego(pair : KeyValue) -> bool {
+    return legoIsBrick(bitcast<u32>(shapes[pair.keyHigh].invInertia_material.w))
+        || legoIsBrick(bitcast<u32>(shapes[pair.keyLow].invInertia_material.w));
+}
+
 fn write_class_manifold(pairRecord : KeyValue, candidates : CandidateSet) {
     if (pairRecord.ordinal >= narrow.capacities.z) { return; }
-    currentManifolds[pairRecord.ordinal] = build_manifold(
-        pairRecord, candidates);
+    currentManifolds[pairRecord.ordinal] = build_manifold(pairRecord, candidates);
 }
 
 fn narrow_sphere_sphere_impl(gid : vec3<u32>) {
@@ -1770,7 +2036,7 @@ fn narrow_sphere_capsule_impl(gid : vec3<u32>) {
     if (pairRecord.ordinal >= narrow.capacities.z) { return; }
     let bodyA = pairRecord.keyHigh;
     let bodyB = pairRecord.keyLow;
-    if (canonical_shape(shapes[bodyA].dimensions_type.w) == 0u) {
+    if (canonical_shape(compound_shape(bodyA).dimensions_type.w) == 0u) {
         write_class_manifold(pairRecord, collide_sphere_capsule(
             bodyA, bodyB, bodyA));
         return;
@@ -1789,9 +2055,14 @@ fn narrow_capsule_capsule_impl(gid : vec3<u32>) {
 fn narrow_sphere_box_impl(gid : vec3<u32>) {
     let pairRecord = class_pair_record(gid, 3u);
     if (pairRecord.ordinal >= narrow.capacities.z) { return; }
+    if (pair_has_lego(pairRecord)) {
+        write_class_manifold(pairRecord,
+            collide_lego_sphere(pairRecord.keyHigh, pairRecord.keyLow));
+        return;
+    }
     let bodyA = pairRecord.keyHigh;
     let bodyB = pairRecord.keyLow;
-    if (canonical_shape(shapes[bodyA].dimensions_type.w) == 0u) {
+    if (canonical_shape(compound_shape(bodyA).dimensions_type.w) == 0u) {
         write_class_manifold(pairRecord, collide_sphere_box(
             bodyA, bodyB, bodyA));
         return;
@@ -1803,9 +2074,14 @@ fn narrow_sphere_box_impl(gid : vec3<u32>) {
 fn narrow_capsule_box_impl(gid : vec3<u32>) {
     let pairRecord = class_pair_record(gid, 4u);
     if (pairRecord.ordinal >= narrow.capacities.z) { return; }
+    if (pair_has_lego(pairRecord)) {
+        write_class_manifold(pairRecord,
+            collide_lego_capsule(pairRecord.keyHigh, pairRecord.keyLow));
+        return;
+    }
     let bodyA = pairRecord.keyHigh;
     let bodyB = pairRecord.keyLow;
-    if (canonical_shape(shapes[bodyA].dimensions_type.w) == 1u) {
+    if (canonical_shape(compound_shape(bodyA).dimensions_type.w) == 1u) {
         write_class_manifold(pairRecord, collide_capsule_box(
             bodyA, bodyB, bodyA));
         return;
@@ -1817,6 +2093,11 @@ fn narrow_capsule_box_impl(gid : vec3<u32>) {
 fn narrow_box_box_impl(gid : vec3<u32>) {
     let pairRecord = class_pair_record(gid, 5u);
     if (pairRecord.ordinal >= narrow.capacities.z) { return; }
+    if (pair_has_lego(pairRecord)) {
+        write_class_manifold(pairRecord,
+            collide_lego_polyhedra(pairRecord.keyHigh, pairRecord.keyLow));
+        return;
+    }
     write_class_manifold(pairRecord, collide_box_box(
         pairRecord.keyHigh, pairRecord.keyLow, pairRecord.keyHigh));
 }
@@ -1826,7 +2107,7 @@ fn narrow_sphere_cylinder_impl(gid : vec3<u32>) {
     if (pairRecord.ordinal >= narrow.capacities.z) { return; }
     let bodyA = pairRecord.keyHigh;
     let bodyB = pairRecord.keyLow;
-    if (canonical_shape(shapes[bodyA].dimensions_type.w) == 0u) {
+    if (canonical_shape(compound_shape(bodyA).dimensions_type.w) == 0u) {
         write_class_manifold(pairRecord, collide_sphere_cylinder(
             bodyA, bodyB, bodyA));
         return;
@@ -1840,7 +2121,7 @@ fn narrow_capsule_cylinder_impl(gid : vec3<u32>) {
     if (pairRecord.ordinal >= narrow.capacities.z) { return; }
     let bodyA = pairRecord.keyHigh;
     let bodyB = pairRecord.keyLow;
-    if (canonical_shape(shapes[bodyA].dimensions_type.w) == 1u) {
+    if (canonical_shape(compound_shape(bodyA).dimensions_type.w) == 1u) {
         write_class_manifold(pairRecord, collide_capsule_cylinder(
             bodyA, bodyB, bodyA));
         return;
@@ -1852,13 +2133,18 @@ fn narrow_capsule_cylinder_impl(gid : vec3<u32>) {
 fn narrow_box_cylinder_impl(gid : vec3<u32>) {
     let pairRecord = class_pair_record(gid, 8u);
     if (pairRecord.ordinal >= narrow.capacities.z) { return; }
+    if (pair_has_lego(pairRecord)) {
+        write_class_manifold(pairRecord,
+            collide_lego_polyhedra(pairRecord.keyHigh, pairRecord.keyLow));
+        return;
+    }
     let bodyA = pairRecord.keyHigh;
     let bodyB = pairRecord.keyLow;
     write_class_manifold(pairRecord, collide_polyhedra(
         bodyA,
-        canonical_shape(shapes[bodyA].dimensions_type.w),
+        canonical_shape(compound_shape(bodyA).dimensions_type.w),
         bodyB,
-        canonical_shape(shapes[bodyB].dimensions_type.w),
+        canonical_shape(compound_shape(bodyB).dimensions_type.w),
         bodyA));
 }
 
@@ -1869,9 +2155,9 @@ fn narrow_cylinder_cylinder_impl(gid : vec3<u32>) {
     let bodyB = pairRecord.keyLow;
     write_class_manifold(pairRecord, collide_polyhedra(
         bodyA,
-        canonical_shape(shapes[bodyA].dimensions_type.w),
+        canonical_shape(compound_shape(bodyA).dimensions_type.w),
         bodyB,
-        canonical_shape(shapes[bodyB].dimensions_type.w),
+        canonical_shape(compound_shape(bodyB).dimensions_type.w),
         bodyA));
 }
 

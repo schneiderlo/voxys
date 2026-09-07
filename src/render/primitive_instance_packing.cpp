@@ -41,7 +41,8 @@ bool sameBodyInput(const physics::PhysicsWorld::DynamicBodySnapshot& lhs,
         && sameFloatBits(lhs.rotation.w, rhs.rotation.w)
         && sameFloatBits(lhs.dimensions.x, rhs.dimensions.x)
         && sameFloatBits(lhs.dimensions.y, rhs.dimensions.y)
-        && sameFloatBits(lhs.dimensions.z, rhs.dimensions.z);
+        && sameFloatBits(lhs.dimensions.z, rhs.dimensions.z)
+        && lhs.color == rhs.color;
 }
 
 bool finiteVec(const glm::vec3& value) noexcept {
@@ -77,7 +78,7 @@ bool buildGpuInstance(
                    * glm::mat4_cast(rotation)
                    * glm::scale(glm::mat4(1.0f), body.dimensions);
     if (!finiteMat(instance.model)) return false;
-    instance.color = shapeColor(body.shape);
+    instance.color = body.color.a > 0.0f ? body.color : shapeColor(body.shape);
     return true;
 }
 

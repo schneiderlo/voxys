@@ -163,3 +163,12 @@ cc_library(
         ":wreckwater_vessel_damage",
     ],
 )
+
+cc_library(
+    name = "lego_playground",
+    srcs = ["lego_playground.cpp"],
+    hdrs = ["lego_playground.hpp"],
+    copts = PROJECT_DEFAULT_COPTS,
+    includes = [".."],
+    deps = ["//src/physics:physics", "//src/render:primitive_material", "//third_party:glm"],
+)

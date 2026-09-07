@@ -1370,6 +1370,16 @@ int main(int argc, char* argv[]) {
 extern "C" {
 
 EMSCRIPTEN_KEEPALIVE
+int voxy_lego_action(int action) { return g_app && g_app->legoAction(action) ? 1 : 0; }
+
+EMSCRIPTEN_KEEPALIVE
+const char* voxy_get_lego_hud_json() {
+    static std::string json;
+    json = g_app ? g_app->legoHudJson() : "{}";
+    return json.c_str();
+}
+
+EMSCRIPTEN_KEEPALIVE
 uint32_t voxy_get_heap_used_bytes() {
     return static_cast<uint32_t>(mallinfo().uordblks);
 }

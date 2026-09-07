@@ -6,7 +6,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 START = '// BEGIN GENERATED LEGO SURFACE\n'
 END = '// END GENERATED LEGO SURFACE\n'
-TARGETS = ('terrain_raycast.wgsl', 'ray_blit.wgsl', 'physics_ballistic.wgsl', 'physics_ccd.wgsl')
+TARGETS = ('terrain_raycast.wgsl', 'ray_blit.wgsl', 'physics_ballistic.wgsl', 'physics_ccd.wgsl', 'physics_narrow_phase.wgsl', 'physics_primitives_compact.wgsl', 'physics_queries.wgsl')
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)

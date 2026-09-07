@@ -10,6 +10,10 @@ on:
       - tests/test_blit_path.cpp
       - tests/test_raycast_path.cpp
       - tests/test_lego_surface.cpp
+      - tests/test_lego_playground.cpp
+      - tests/test_primitive_path.cpp
+      - src/game/lego*
+      - src/physics/**
       - src/terrain/lego*.hpp
       - src/terrain/compression.*
       - tests/test_compression.cpp
@@ -26,6 +30,10 @@ on:
       - tests/test_blit_path.cpp
       - tests/test_raycast_path.cpp
       - tests/test_lego_surface.cpp
+      - tests/test_lego_playground.cpp
+      - tests/test_primitive_path.cpp
+      - src/game/lego*
+      - src/physics/**
       - src/terrain/lego*.hpp
       - src/terrain/compression.*
       - tests/test_compression.cpp
@@ -71,7 +79,7 @@ jobs:
           XDG_RUNTIME_DIR: /tmp/voxys-runtime
         run: |
           mkdir -p "$XDG_RUNTIME_DIR" && chmod 700 "$XDG_RUNTIME_DIR"
-          xvfb-run -a ctest --test-dir build-native -R '^(BlitPathTest|RaycastPathGPUTest|LegoSurface|CpuCapsuleMover)\.' --output-on-failure -j2 --timeout 120
+          xvfb-run -a ctest --test-dir build-native -R '^(BlitPathTest|RaycastPathGPUTest|LegoSurface|LegoPlaygroundGpu|PrimitivePathGPUTest|PrimitiveMaterialTest|CpuCapsuleMover)\.' --output-on-failure -j2 --timeout 120
       - name: Shared LEGO geometry and GPU regression
         env:
           XDG_RUNTIME_DIR: /tmp/voxys-runtime

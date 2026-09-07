@@ -427,6 +427,10 @@ struct DistanceAttachmentDesc {
     float breakForce = 0.0f;
 };
 
+// Reserved material tag for a bounded box + up to eight studs, WebGpuSoft only.
+// The low 28 bits retain the primitive plastic material encoding.
+inline constexpr uint32_t kLegoBrickMaterial = 0xb0000000u;
+
 struct PhysicsMaterial {
     float friction = 0.65f;
     float restitution = 0.25f;
@@ -434,8 +438,8 @@ struct PhysicsMaterial {
     // Resident gameplay metadata. BodySpawnDesc::inverseMass remains the
     // authoritative mass input; changing density does not silently resize it.
     float density = 1.0f;
-    // Opaque resident application bits; the built-in solver does not interpret
-    // them.
+    // Application bits, except the reserved kLegoBrickMaterial high nibble
+    // used by the GPU compound collision and rendering paths.
     uint32_t flags = 0u;
 };
 
@@ -819,6 +823,8 @@ struct DynamicBodySnapshot {
     // Rendering hint only. Transform fields remain authoritative state.
     bool active = false;
     glm::ivec3 sector{0};
+    // Optional presentation tint. Zero alpha retains the existing shape palette.
+    glm::vec4 color{0.0f};
 };
 
 struct DynamicBodyReadStats {

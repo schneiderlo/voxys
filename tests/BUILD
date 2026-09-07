@@ -28,6 +28,7 @@ TEST_SRCS = [
     "test_gpu_islands.cpp",
     "test_gpu_resources.cpp",
     "test_gpu_physics.cpp",
+    "test_lego_playground.cpp",
     "test_gpu_broad_phase.cpp",
     "test_gpu_narrow_phase.cpp",
     "test_gpu_queries.cpp",

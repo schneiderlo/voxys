@@ -418,6 +418,7 @@ endif()
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/app/application.cpp")
     list(APPEND APP_SOURCES
         app/application.cpp
+        game/lego_playground.cpp
     )
 endif()
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/app/debug_overlay.cpp")

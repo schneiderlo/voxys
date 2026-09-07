@@ -897,6 +897,8 @@ bool Application::init(const ApplicationConfig& config) {
     rendererSettingsDirty_ = 0u;
     uncappedFPS_ = !config_.vsync;
     primitiveCullController_.reset();
+    legoPlayground_.reset();
+    legoPlaygroundActive_ = false;
 
     // Initialize teleport targets
     // Paste recorded positions here!
@@ -1190,6 +1192,8 @@ void Application::shutdown() {
         meshPath_->shutdown();
         meshPath_.reset();
     }
+    legoPlayground_.reset();
+    legoPlaygroundActive_ = false;
     if (primitivePath_) {
         primitivePath_->shutdown();
         primitivePath_.reset();
@@ -1777,6 +1781,7 @@ void Application::update(float simulationDeltaTime, float frameDeltaTime) {
         }
     }
 
+    if (legoPlayground_) legoPlayground_->step(simulationDeltaTime);
     if (physicsWorld_) {
         physicsWorld_->update(simulationDeltaTime);
         const physics::PhysicsStepStats stepStats =
@@ -1921,13 +1926,14 @@ void Application::render() {
         }
         std::vector<physics::PhysicsWorld::DynamicBodySnapshot> overlays;
         overlays.reserve(
-            kPrimitiveOverlayHeadroom + avatarProxies.size());
+            kPrimitiveOverlayHeadroom + avatarProxies.size() + (legoPlayground_ ? game::LegoPlayground::MaxDust + 8u : 0u));
         // The camera-locked throwable preview and body counter are developer
         // controls, not scene content. Keep them out of deterministic review
         // captures and benchmark workloads so visual evidence is clean and
         // performance measurements represent the game frame.
         const bool showPrimitiveHud =
             !wreckwaterClientState_
+            && !config_.legoTerrainEnabled
             && !motoSession_
             && !config_.benchmarkOnStartup
             && !config_.screenshotPath.has_value()
@@ -1973,6 +1979,14 @@ void Application::render() {
         overlays.insert(
             overlays.end(),
             avatarProxies.begin(), avatarProxies.end());
+        if (legoPlayground_) {
+            primitivePath_->setLegoBodyIds(legoPlayground_->bodyIds());
+            for (auto body : legoPlayground_->instances()) {
+                // Overlay shader uses camera-sector local coordinates.
+                body.position -= glm::vec3(camera_->worldSector()) * physics::kWorldSectorSize;
+                overlays.push_back(body);
+            }
+        }
         const size_t submittedObjectCount =
             objectCount + avatarProxies.size();
         stats_.primitiveCullMs = 0.0;
@@ -4611,7 +4625,7 @@ void Application::renderRaycastPath(WGPUCommandEncoder encoder, WGPUTextureView 
         raycastPath_->didRefreshStaticCache());
     blitPath_->setLinearDepthRequired(
         (primitivePath_ && primitivePath_->isInitialized()
-         && stats_.physicsResidentBodies != 0u)
+         && (stats_.physicsResidentBodies != 0u || legoPlayground_))
         || (meshPath_ && meshPath_->isInitialized()
             && motoSession_ && motoSession_->isInitialized()));
     // Render blit pass
@@ -4912,7 +4926,76 @@ WGPUTextureView Application::getOrCreateDepthView() {
 // ─────────────────────────────────────────────────────────────────────────────
 
 void Application::processInput(float deltaTime) {
+    if (config_.legoTerrainEnabled && input_ && input_->wasKeyPressed(Key::P)) {
+        legoAction(legoPlaygroundActive_ ? 8 : 0);
+    }
+    if (legoPlaygroundActive_ && legoPlayground_ && camera_ && input_) {
+        const glm::vec3 eye = camera_->position() + glm::vec3(camera_->worldSector()) * physics::kWorldSectorSize;
+        legoPlayground_->preview(eye, camera_->forward());
+        if (input_->wasKeyPressed(Key::R)) legoAction(7);
+        if (input_->wasKeyPressed(Key::Backspace)) legoAction(3);
+        if (input_->wasKeyPressed(Key::B)) legoAction(2);
+        if (input_->wasKeyPressed(Key::Enter)
+            || (input_->isMouseCaptured() && input_->wasMouseButtonPressed(MouseButton::Left))) legoAction(1);
+        return;
+    }
     processThrowableInput(deltaTime);
+}
+
+bool Application::legoAction(int action) {
+    if (!config_.legoTerrainEnabled || !camera_ || !heightmap_) return false;
+    if (action == 0) {
+        if (!legoPlayground_) {
+            const bool world = heightmap_->getWidth() > terrain::lego::kMaximumStudySamples;
+            glm::vec3 origin{world ? -1164.0f : -12.0f, -10000.0f, world ? 3424.0f : -32.0f};
+            for (int z=-10; z<=10; ++z) for (int x=-10; x<=10; ++x)
+                origin.y = std::max(origin.y, sampleTerrainHeight(origin.x+float(x),origin.z+float(z)));
+            origin.y += .64f;
+            auto playground = std::make_unique<game::LegoPlayground>();
+            if (!physicsWorld_ || !playground->initialize(*physicsWorld_, origin)) return false;
+            legoPlayground_ = std::move(playground);
+        }
+        legoPlaygroundActive_ = true;
+        setControllerMode(ControllerMode::FreeFly);
+        const auto origin=legoPlayground_->origin();
+        setCameraWorldPose(*camera_, origin+glm::vec3(0,8,15), origin+glm::vec3(0,1,0));
+        return true;
+    }
+    if (!legoPlayground_) return false;
+    const glm::vec3 eye=camera_->position()+glm::vec3(camera_->worldSector())*physics::kWorldSectorSize;
+    switch(action) {
+    case 1: legoPlayground_->preview(eye,camera_->forward()); return legoPlayground_->place();
+    case 2: return legoPlayground_->launch(eye,camera_->forward());
+    case 3: legoPlayground_->reset(); return true;
+    case 4: case 5: case 6: legoPlayground_->select(uint32_t(action-4)); return true;
+    case 7: legoPlayground_->rotate(); return true;
+    case 8: legoPlaygroundActive_=false; legoPlayground_->preview(glm::vec3(0),glm::vec3(0)); return true;
+    case 9: {
+        const auto state=legoPlayground_->state();
+        if(state.phase!=1) return false;
+        const auto aim=state.target-glm::vec3(0,1.1f,0);
+        setCameraWorldPose(*camera_,aim+glm::vec3(0,0,8),aim+glm::vec3(0,.56f,0));
+        return true;
+    }
+    default: return false;
+    }
+}
+
+std::string Application::legoHudJson() const {
+    const auto s=legoPlayground_ ? legoPlayground_->state() : game::LegoPlayground::State{};
+    const auto o=legoPlayground_ ? legoPlayground_->origin() : glm::vec3(0);
+    std::ostringstream json;
+    json << "{\"active\":" << (legoPlaygroundActive_ ? "true" : "false")
+         << ",\"grouped\":" << (legoMode_ ? "true" : "false")
+         << ",\"bricks\":" << s.bricks << ",\"balls\":" << s.balls
+         << ",\"awake\":" << s.awake << ",\"sleeping\":" << s.sleeping
+         << ",\"sleepTransitions\":" << s.sleepTransitions << ",\"wakeTransitions\":" << s.wakeTransitions
+         << ",\"levels\":" << s.levels << ",\"phase\":" << s.phase << ",\"clicks\":" << s.clicks
+         << ",\"dust\":" << s.dust << ",\"impacts\":" << s.impacts
+         << ",\"valid\":" << (s.previewValid ? "true" : "false")
+         << ",\"origin\":[" << o.x << ',' << o.y << ',' << o.z << ']'
+         << ",\"target\":[" << s.target.x << ',' << s.target.y << ',' << s.target.z << "]}";
+    return json.str();
 }
 
 bool Application::spawnThrowable(
@@ -4928,7 +5011,8 @@ bool Application::spawnThrowable(
         return false;
     }
 
-    if (config_.legoTerrainEnabled && physicsWorld_->stats().residentBodies >= 32u) return false;
+    const uint32_t playgroundBodies=legoPlayground_ ? legoPlayground_->residentCount() : 0u;
+    if (config_.legoTerrainEnabled && physicsWorld_->stats().residentBodies >= 32u+playgroundBodies) return false;
     const glm::vec3 normalizedDirection = glm::normalize(direction);
     glm::vec3 launchOrigin = origin;
     glm::ivec3 launchSector = sector;
@@ -5220,7 +5304,7 @@ void Application::handleKeyboardShortcuts() {
     
     // F8 - toggle controller mode (free-fly / character)
     if (!wreckwaterClientState_ && !motoSession_
-        && input_->wasKeyPressed(Key::F8)) {
+        && !legoPlaygroundActive_ && input_->wasKeyPressed(Key::F8)) {
         toggleControllerMode();
     }
 
@@ -5240,7 +5324,7 @@ void Application::handleKeyboardShortcuts() {
         || (motoSession_ && motoSession_->isInitialized())) return;
 
     // R - Record camera position
-    if (input_->wasKeyPressed(Key::R)) {
+    if (!legoPlaygroundActive_ && input_->wasKeyPressed(Key::R)) {
         if (camera_) {
             CameraState state;
             state.position = camera_->position();

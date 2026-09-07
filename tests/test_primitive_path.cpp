@@ -438,7 +438,7 @@ TEST(PrimitivePathGPUTest, CompilesPrimitivePipeline) {
     context.shutdown();
 }
 
-TEST(PrimitivePathGPUTest, DrawsGpuResidentPhysicsBody) {
+static void drawResidentBody(int capDirection=0, bool lego=false) {
     gpu::Context context;
     gpu::ContextConfig contextConfig;
     contextConfig.enableValidation = false;
@@ -466,10 +466,16 @@ TEST(PrimitivePathGPUTest, DrawsGpuResidentPhysicsBody) {
     ASSERT_TRUE(world.initialize(physicsConfig));
 
     physics::BodySpawnDesc bodyDesc;
-    bodyDesc.shape = physics::ThrowableShape::Sphere;
-    bodyDesc.position = {0.0f, 0.0f, 2.2f};
+    bodyDesc.shape = capDirection ? physics::ThrowableShape::Cylinder : physics::ThrowableShape::Sphere;
+    bodyDesc.position = capDirection ? glm::vec3(0) : glm::vec3(0,0,2.2f);
     bodyDesc.dimensions = physics::throwableShapeDimensions(bodyDesc.shape);
-    ASSERT_TRUE(world.spawnBody(bodyDesc).valid());
+    bodyDesc.inverseMass=0;
+    if(lego){bodyDesc.shape=physics::ThrowableShape::Box;bodyDesc.dimensions={.96f,1.14f,.96f};
+        physics::PhysicsMaterial m;m.flags=packPrimitiveMaterial({{.15f,.35f,.65f},.4f,0,false});
+        m.flags=(m.flags&0x0fffffffu)|physics::kLegoBrickMaterial;bodyDesc.material=m;
+    }
+    const auto handle=world.spawnBody(bodyDesc);ASSERT_TRUE(handle.valid());
+    if(lego){const std::array<uint32_t,1> ids{handle.index};path.setLegoBodyIds(ids);}
     world.update(1.0f / 60.0f);
     path.setPhysicsRenderView(world.renderView());
 
@@ -541,15 +547,17 @@ TEST(PrimitivePathGPUTest, DrawsGpuResidentPhysicsBody) {
     wgpuRenderPassEncoderRelease(clearPass);
 
     world.encodeGpuStep(encoder);
-    const glm::vec3 cameraPosition(0.0f);
-    const glm::mat4 view = glm::lookAt(
-        cameraPosition, glm::vec3(0.0f, 0.0f, 1.0f),
-        glm::vec3(0.0f, 1.0f, 0.0f));
+    const glm::vec3 cameraPosition=capDirection ? glm::vec3(0,float(capDirection)*3,0) : glm::vec3(0);
+    const glm::mat4 view = glm::lookAt(cameraPosition,
+        capDirection ? glm::vec3(0) : glm::vec3(0,0,1),
+        capDirection ? glm::vec3(0,0,1) : glm::vec3(0,1,0));
     const glm::mat4 projection = glm::perspective(
         glm::radians(60.0f), 1.0f, 0.1f, 100.0f);
-    path.render(
-        encoder, colorView, depthView, view, projection, cameraPosition,
-        glm::normalize(glm::vec3(0.3f, 0.8f, 0.4f)), extent, extent, false);
+    PrimitiveLighting lighting;
+    lighting.direction=capDirection ? glm::vec3(0,float(capDirection),0) : glm::normalize(glm::vec3(.3f,.8f,.4f));
+    lighting.ambientIntensity=.05f;lighting.sunIntensity=.5f;
+    path.render(encoder, colorView, depthView, view, projection, cameraPosition,
+                lighting, extent, extent, false);
 
     WGPUImageCopyTexture copySource{};
     copySource.texture = colorTexture;
@@ -595,6 +603,11 @@ TEST(PrimitivePathGPUTest, DrawsGpuResidentPhysicsBody) {
         }
     }
     EXPECT_GT(coloredPixels, 16u);
+    if(capDirection){
+        // A reversed cap exposes the opposite, unlit inside face. Merely
+        // counting silhouette pixels would miss that winding regression.
+        EXPECT_GT(pixels[(extent/2)*bytesPerRow+(extent/2)*4+2],60u);
+    }
 
     wgpuBufferUnmap(readback);
     wgpuBufferDestroy(readback);
@@ -611,5 +624,9 @@ TEST(PrimitivePathGPUTest, DrawsGpuResidentPhysicsBody) {
     wgpuTextureDestroy(colorTexture);
     wgpuTextureRelease(colorTexture);
 }
+
+TEST(PrimitivePathGPUTest, DrawsGpuResidentPhysicsBody) { drawResidentBody(); }
+TEST(PrimitivePathGPUTest, CylinderCapsFaceOutwardAboveAndBelow) { drawResidentBody(1);drawResidentBody(-1); }
+TEST(PrimitivePathGPUTest, DrawsResidentLegoStudCap) { drawResidentBody(1,true); }
 
 } // namespace voxy::render

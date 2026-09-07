@@ -16,7 +16,7 @@ namespace voxy::render {
 //  16..21  perceptual roughness
 //  22..26  metallic
 //      27  dielectric clear coat
-//  28..31  0xA marker (all other flag values retain the shape fallback)
+//  28..31  0xA material, 0xB LEGO compound with the same material bits
 inline constexpr uint32_t kPrimitiveMaterialMarker = 0xa000'0000u;
 inline constexpr uint32_t kPrimitiveMaterialMarkerMask = 0xf000'0000u;
 
@@ -28,7 +28,8 @@ struct PrimitiveMaterial {
 };
 
 [[nodiscard]] inline bool hasPrimitiveMaterial(uint32_t flags) noexcept {
-    return (flags & kPrimitiveMaterialMarkerMask) == kPrimitiveMaterialMarker;
+    const auto marker = flags & kPrimitiveMaterialMarkerMask;
+    return marker == kPrimitiveMaterialMarker || marker == 0xb0000000u;
 }
 
 [[nodiscard]] inline uint32_t packPrimitiveMaterial(

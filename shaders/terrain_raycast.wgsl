@@ -58,6 +58,24 @@ fn legoSphereContact(field: texture_2d<u32>, params: vec4<f32>, size: vec2<u32>,
     }
     return best;
 }
+
+// Dynamic bricks use material tag B; tag A remains the existing plastic PBR
+// material. Dimensions bound the complete body, including the stud caps.
+fn legoIsBrick(material: u32) -> bool { return (material & 0xf0000000u) == 0xb0000000u; }
+fn legoBrickParts(dimensions: vec3<f32>, material: u32) -> u32 {
+    if (!legoIsBrick(material)) { return 1u; }
+    return 1u + min(u32(round(dimensions.x))*u32(round(dimensions.z)),8u);
+}
+fn legoBrickPartSize(dimensions: vec3<f32>, part: u32) -> vec3<f32> {
+    if (part == 0u) { return vec3<f32>(dimensions.x,dimensions.y-0.18,dimensions.z); }
+    return vec3<f32>(0.6,0.18,0.6);
+}
+fn legoBrickPartOffset(dimensions: vec3<f32>, part: u32) -> vec3<f32> {
+    if (part == 0u) { return vec3<f32>(0.0,-0.09,0.0); }
+    let width=max(u32(round(dimensions.x)),1u);
+    return vec3<f32>(f32((part-1u)%width)+0.5-f32(width)*0.5,
+        dimensions.y*0.5-0.09,f32((part-1u)/width)+0.5-f32(u32(round(dimensions.z)))*0.5);
+}
 // END GENERATED LEGO SURFACE
 
 // ═══════════════════════════════════════════════════════════════════════════════

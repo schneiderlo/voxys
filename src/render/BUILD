@@ -85,7 +85,6 @@ cc_library(
         "debug_visualizer.hpp",
         "mesh_path.hpp",
         "primitive_gpu_culling.hpp",
-        "primitive_material.hpp",
         "raycast_path.hpp",
         "primitive_path.hpp",
         "triangle_path.hpp",
@@ -97,6 +96,7 @@ cc_library(
         ":frustum",
         ":primitive_culling",
         ":primitive_instance_packing",
+        ":primitive_material",
         ":water_clipmap_mesh",
         ":water_simulation",
         "//src/camera:camera",
@@ -106,4 +106,11 @@ cc_library(
         "//src/physics:physics",
         "//src/terrain:terrain",
     ],
+)
+
+cc_library(
+    name = "primitive_material",
+    hdrs = ["primitive_material.hpp"],
+    includes = [".."],
+    deps = ["//third_party:glm"],
 )

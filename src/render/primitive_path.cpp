@@ -29,6 +29,7 @@ constexpr uint32_t kSphereRings = 12;
 struct Vertex {
     glm::vec3 position;
     glm::vec3 normal;
+    float part = 0;
 };
 
 struct alignas(16) PrimitiveUniforms {
@@ -41,7 +42,7 @@ struct alignas(16) PrimitiveUniforms {
     glm::vec4 fogColorExposure{0.36f, 0.58f, 0.64f, 1.0f};
 };
 
-static_assert(sizeof(Vertex) == 24);
+static_assert(sizeof(Vertex) == 28);
 static_assert(sizeof(PrimitiveUniforms) == 160);
 
 struct alignas(16) CompactPose {
@@ -166,7 +167,7 @@ void appendCylinder(std::vector<Vertex>& vertices, std::vector<uint16_t>& indice
                                  0.5f * std::sin(angle)}, normal});
         }
         for (uint16_t segment = 0; segment < kSegments; ++segment) {
-            if (cap == 0) {
+            if (cap == 1) {
                 indices.insert(indices.end(), {center,
                     static_cast<uint16_t>(ring + segment + 1),
                     static_cast<uint16_t>(ring + segment)});
@@ -257,6 +258,10 @@ void PrimitivePath::shutdown() {
     gpuCulling_.shutdown();
     if (compactRenderBundle_) { wgpuRenderBundleRelease(compactRenderBundle_); compactRenderBundle_ = nullptr; }
     if (compactBindGroup_) { wgpuBindGroupRelease(compactBindGroup_); compactBindGroup_ = nullptr; }
+    if (legoPipeline_) { wgpuRenderPipelineRelease(legoPipeline_); legoPipeline_ = nullptr; }
+    if (legoBindGroup_) { wgpuBindGroupRelease(legoBindGroup_); legoBindGroup_ = nullptr; }
+    if (legoIdsBuffer_) { wgpuBufferRelease(legoIdsBuffer_); legoIdsBuffer_ = nullptr; }
+    legoCount_ = 0;
     if (compactPipeline_) { wgpuRenderPipelineRelease(compactPipeline_); compactPipeline_ = nullptr; }
     if (compactPipelineLayout_) { wgpuPipelineLayoutRelease(compactPipelineLayout_); compactPipelineLayout_ = nullptr; }
     if (compactBindGroupLayout_) { wgpuBindGroupLayoutRelease(compactBindGroupLayout_); compactBindGroupLayout_ = nullptr; }
@@ -319,6 +324,15 @@ bool PrimitivePath::createGeometry() {
     append(Shape::Capsule, appendCapsule);
     append(Shape::Cylinder, appendCylinder);
 
+    legoRange_.firstIndex = static_cast<uint32_t>(indices.size());
+    appendBox(vertices, indices);
+    for (uint32_t part=1; part<=8; ++part) {
+        const size_t first = vertices.size();
+        appendCylinder(vertices, indices);
+        for (size_t v=first; v<vertices.size(); ++v) vertices[v].part=float(part);
+    }
+    legoRange_.indexCount = static_cast<uint32_t>(indices.size())-legoRange_.firstIndex;
+
     vertexBuffer_ = gpu::createBufferWithData(
         device_, queue_, gpu::BufferDesc::vertex(vertices.size() * sizeof(Vertex),
                                                   "physics_primitive_vertices"),
@@ -339,7 +353,9 @@ bool PrimitivePath::createBuffers() {
         device_, gpu::BufferDesc::storage(instanceCapacity_ * sizeof(GpuInstance),
                                            true, "physics_primitive_instances"));
     instanceBufferContentsValid_ = false;
-    return uniformBuffer_ && instanceBuffer_;
+    legoIdsBuffer_ = gpu::createBuffer(device_, gpu::BufferDesc::storage(
+        sizeof(legoIds_), true, "lego_body_ids"));
+    return uniformBuffer_ && instanceBuffer_ && legoIdsBuffer_;
 }
 
 bool PrimitivePath::createLayoutAndPipeline(const PrimitivePathConfig& config) {
@@ -363,13 +379,16 @@ bool PrimitivePath::createLayoutAndPipeline(const PrimitivePathConfig& config) {
         device_, config.shaderPath, "physics_primitives.wgsl");
     if (!pipelineLayout_ || !shaderModule_) return false;
 
-    std::array<WGPUVertexAttribute, 2> attributes{};
+    std::array<WGPUVertexAttribute, 3> attributes{};
     attributes[0].format = WGPUVertexFormat_Float32x3;
     attributes[0].offset = 0;
     attributes[0].shaderLocation = 0;
     attributes[1].format = WGPUVertexFormat_Float32x3;
     attributes[1].offset = sizeof(glm::vec3);
     attributes[1].shaderLocation = 1;
+    attributes[2].format = WGPUVertexFormat_Float32;
+    attributes[2].offset = 2 * sizeof(glm::vec3);
+    attributes[2].shaderLocation = 2;
     WGPUVertexBufferLayout vertexBufferLayout{};
     vertexBufferLayout.arrayStride = sizeof(Vertex);
     vertexBufferLayout.stepMode = WGPUVertexStepMode_Vertex;
@@ -393,7 +412,9 @@ bool PrimitivePath::createLayoutAndPipeline(const PrimitivePathConfig& config) {
 
     WGPUPrimitiveState primitiveState{};
     primitiveState.topology = WGPUPrimitiveTopology_TriangleList;
-    primitiveState.frontFace = WGPUFrontFace_CCW;
+    // Mesh indices follow their outward normals. The application's left-handed
+    // view/projection reflects that winding in clip space.
+    primitiveState.frontFace = WGPUFrontFace_CW;
     primitiveState.cullMode = WGPUCullMode_Back;
 
     WGPUDepthStencilState depthState{};
@@ -454,13 +475,16 @@ bool PrimitivePath::createCompactLayoutAndPipeline(
         device_, shaderPath, "physics_primitives_compact.wgsl");
     if (!compactPipelineLayout_ || !compactShaderModule_) return false;
 
-    std::array<WGPUVertexAttribute, 2> attributes{};
+    std::array<WGPUVertexAttribute, 3> attributes{};
     attributes[0].format = WGPUVertexFormat_Float32x3;
     attributes[0].offset = 0;
     attributes[0].shaderLocation = 0;
     attributes[1].format = WGPUVertexFormat_Float32x3;
     attributes[1].offset = sizeof(glm::vec3);
     attributes[1].shaderLocation = 1;
+    attributes[2].format = WGPUVertexFormat_Float32;
+    attributes[2].offset = 2 * sizeof(glm::vec3);
+    attributes[2].shaderLocation = 2;
     WGPUVertexBufferLayout vertexBufferLayout{};
     vertexBufferLayout.arrayStride = sizeof(Vertex);
     vertexBufferLayout.stepMode = WGPUVertexStepMode_Vertex;
@@ -484,7 +508,9 @@ bool PrimitivePath::createCompactLayoutAndPipeline(
 
     WGPUPrimitiveState primitiveState{};
     primitiveState.topology = WGPUPrimitiveTopology_TriangleList;
-    primitiveState.frontFace = WGPUFrontFace_CCW;
+    // Mesh indices follow their outward normals. The application's left-handed
+    // view/projection reflects that winding in clip space.
+    primitiveState.frontFace = WGPUFrontFace_CW;
     primitiveState.cullMode = WGPUCullMode_Back;
     WGPUDepthStencilState depthState{};
     depthState.format = config.depthFormat;
@@ -510,7 +536,10 @@ bool PrimitivePath::createCompactLayoutAndPipeline(
     desc.depthStencil = &depthState;
     desc.multisample = multisample;
     compactPipeline_ = wgpuDeviceCreateRenderPipeline(device_, &desc);
-    return compactPipeline_ != nullptr;
+    WGPU_SET_ENTRY_POINT(desc.vertex, "vs_lego");
+    WGPU_SET_LABEL(desc, "lego_compound_pipeline");
+    legoPipeline_ = wgpuDeviceCreateRenderPipeline(device_, &desc);
+    return compactPipeline_ && legoPipeline_;
 }
 
 void PrimitivePath::setRayDepthTexture(WGPUTextureView view) {
@@ -588,6 +617,14 @@ bool PrimitivePath::ensureCompactInstanceCapacity(size_t requiredCapacity) {
     return true;
 }
 
+void PrimitivePath::setLegoBodyIds(std::span<const uint32_t> ids) {
+    const uint32_t count = static_cast<uint32_t>(std::min(ids.size(), legoIds_.size()));
+    if (count == legoCount_ && std::equal(ids.begin(), ids.begin()+count, legoIds_.begin())) return;
+    legoCount_ = count;
+    std::copy_n(ids.begin(), count, legoIds_.begin());
+    if (count && legoIdsBuffer_) wgpuQueueWriteBuffer(queue_, legoIdsBuffer_, 0, legoIds_.data(), count*sizeof(uint32_t));
+}
+
 void PrimitivePath::updateBindGroup() {
     if (!rayDepthView_ || boundRayDepthView_ == rayDepthView_) return;
     if (bindGroup_) {
@@ -637,6 +674,11 @@ void PrimitivePath::updateCompactBindGroup() {
             visibleBuffer, 0, visibleSegmentBytes),
         gpu::BindGroupEntry(4).textureView(rayDepthView_),
     };
+    if (legoBindGroup_) wgpuBindGroupRelease(legoBindGroup_);
+    auto legoEntries = entries;
+    legoEntries[3] = gpu::BindGroupEntry(3).buffer(legoIdsBuffer_, 0, sizeof(legoIds_));
+    legoBindGroup_ = gpu::createBindGroup(device_, compactBindGroupLayout_, legoEntries,
+                                       "lego_compound_bind_group");
     compactBindGroup_ = gpu::createBindGroup(
         device_, compactBindGroupLayout_, entries,
         "physics_primitive_compact_bind_group");
@@ -1027,6 +1069,14 @@ void PrimitivePath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView
                     uint64_t{shape} * 5u * sizeof(uint32_t));
             }
         }
+    }
+    if (compactReady && legoCount_ && legoBindGroup_) {
+        wgpuRenderPassEncoderSetVertexBuffer(pass, 0, vertexBuffer_, 0, WGPU_WHOLE_SIZE);
+        wgpuRenderPassEncoderSetIndexBuffer(pass, indexBuffer_, WGPUIndexFormat_Uint16, 0, WGPU_WHOLE_SIZE);
+        wgpuRenderPassEncoderSetPipeline(pass, legoPipeline_);
+        const uint32_t offset = 0;
+        wgpuRenderPassEncoderSetBindGroup(pass, 0, legoBindGroup_, 1, &offset);
+        wgpuRenderPassEncoderDrawIndexed(pass, legoRange_.indexCount, legoCount_, legoRange_.firstIndex, 0, 0);
     }
     if (overlayReady) {
         wgpuRenderPassEncoderSetPipeline(pass, pipeline_);
