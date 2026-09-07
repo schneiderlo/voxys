@@ -507,7 +507,7 @@ fn legoFallbackLayout(cell: vec2<i32>) -> u32 {
         if (y > 6.0*scale && relief > 1.8*scale) { family = 3u; }
     }
     // Match the CPU's world-anchored shade hash, including u32 wraparound.
-    var h = (u32(cell.x)+173u)*374761393u ^ (u32(cell.y)+419u)*668265263u;
+    var h = ((u32(cell.x)+173u)*374761393u) ^ ((u32(cell.y)+419u)*668265263u);
     h = (h^(h>>13u))*1274126177u;
     let shadeHash = (h^(h>>16u))%10u;
     let shade = select(select(1u,2u,shadeHash>=8u),0u,shadeHash<2u);
