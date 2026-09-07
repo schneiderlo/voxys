@@ -574,10 +574,22 @@ fn sampleLegoStudy(worldPos: vec3<f32>, worldX: vec3<f32>, worldY: vec3<f32>,
         }
     }
     tilt /= max(1.0,length(tilt));
-    let n = normalize(normal+tilt*bevelVisibility);
+    var n = normalize(normal+tilt*bevelVisibility);
+    if (detail < 1.0) {
+        // Subpixel stud sidewalls must not alternate hard normals each frame.
+        // A world-anchored four-cell gradient preserves the broad relief while
+        // only the material fades; ray geometry and collision remain exact.
+        let c=vec2<i32>(cell);
+        let dx=legoFallbackTop(c+vec2<i32>(4,0))-legoFallbackTop(c-vec2<i32>(4,0));
+        let dz=legoFallbackTop(c+vec2<i32>(0,4))-legoFallbackTop(c-vec2<i32>(0,4));
+        let broadNormal=normalize(vec3<f32>(-dx,8.0*scale,-dz));
+        n=normalize(mix(broadNormal,n,detail));
+    }
     let palette = min((packed>>8u)&15u,11u);
     // Restrained shade variation disappears before it becomes distant noise.
-    let color = mix(LEGO_PALETTE[(palette/3u)*3u+1u],LEGO_PALETTE[palette],detail);
+    // Older native Naga needs an addressable array for runtime indexing.
+    var paletteColors = LEGO_PALETTE;
+    let color = mix(paletteColors[(palette/3u)*3u+1u],paletteColors[palette],detail);
     return TerrainSurface(color*(1.0-seam*detail),n,mix(0.32,0.58,1.0-detail),0.0);
 }
 

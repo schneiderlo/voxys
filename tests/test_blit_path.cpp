@@ -351,6 +351,17 @@ TEST_F(BlitPathTest, InitializationSucceeds) {
     EXPECT_TRUE(blitPath_.isInitialized());
 }
 
+TEST_F(BlitPathTest, ProductionShaderHasNoGpuValidationErrors) {
+    ASSERT_TRUE(gpuContextInitialized_) << "This shader gate requires WebGPU";
+    gpuContext_.setErrorCallback([](WGPUErrorType, const char* message) {
+        ADD_FAILURE() << "GPU validation: " << message;
+    });
+    EXPECT_TRUE(blitPath_.init(gpuContext_.getDevice(), gpuContext_.getQueue(), getConfig()));
+    gpuContext_.tick();
+    blitPath_.shutdown();
+    gpuContext_.setErrorCallback({});
+}
+
 TEST_F(BlitPathTest, ShutdownReleasesResources) {
     if (!gpuContextInitialized_) {
         GTEST_SKIP() << "GPU context not available";

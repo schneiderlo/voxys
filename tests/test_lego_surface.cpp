@@ -210,3 +210,20 @@ TEST(LegoSurface, TerrainModeSwitchPreservesLiveCharacter) {
     }
 }
 } // namespace
+
+TEST(LegoSurface, LongJointsStaggerAcrossAdjacentCourses) {
+    constexpr uint32_t n=65;
+    std::vector<uint16_t> samples(n*n,32768);
+    const Surface surface{samples,n,n,8,1};
+    const auto layout=buildLayout(surface,0);
+    uint32_t staggered=0,aligned=0;
+    for(uint32_t z=4;z<60;++z)for(uint32_t x=4;x<60;++x){
+        const uint16_t p=layout.cells[z*n+x];
+        const uint32_t w=((p>>4)&3u)+1u,d=((p>>6)&3u)+1u;
+        if((p&15u)!=0u || w*d!=8u)continue;
+        const auto next=w==4 ? layout.cells[(z+2)*n+x] : layout.cells[z*n+x+2];
+        const auto offset=w==4 ? next&3u : (next>>2)&3u;
+        if(offset==2u)++staggered;else if(offset==0u)++aligned;
+    }
+    EXPECT_GT(staggered,100u);EXPECT_GT(staggered,aligned);
+}

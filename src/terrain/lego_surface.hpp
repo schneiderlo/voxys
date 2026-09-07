@@ -194,6 +194,19 @@ inline ChunkLayout buildChunk(const Surface& s, uint32_t chunkX, uint32_t chunkZ
                 const uint32_t shape = pass == 0 ? turn : pass == 1 ? 2u : pass == 2 ? 3u + turn : 5u;
                 const auto [w,d] = shapes[shape];
                 if (x + w > endX || z + d > endZ) continue;
+                if (pass == 0) {
+                    // Running bonds: adjacent two-cell courses offset their
+                    // four-cell joints by two cells. Rotate broad patches,
+                    // rather than choosing each brick's direction independently.
+                    const uint32_t gx=x+sourceX, gz=z+sourceZ;
+                    const bool vertical=(hash(gx>>4u,gz>>4u)&1u)!=0u;
+                    if ((d==4u)!=vertical) continue;
+                    const uint32_t course=vertical ? gx/2u : gz/2u;
+                    const uint32_t along=vertical ? gz : gx;
+                    const uint32_t across=vertical ? gx : gz;
+                    const uint32_t phase=2u*((course+at(x,z)/3u)&1u);
+                    if ((across&1u)!=0u || (along&3u)!=phase) continue;
+                }
                 bool fits = true;
                 for (uint32_t dz=0; dz<d; ++dz) for (uint32_t dx=0; dx<w; ++dx)
                     fits = fits && !out.cells[index(x+dx,z+dz)] && at(x+dx,z+dz)==at(x,z);
