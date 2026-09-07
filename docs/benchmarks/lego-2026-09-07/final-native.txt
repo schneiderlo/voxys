@@ -1,0 +1,757 @@
+warning: Git tree '/home/modkin/workspace/schneiderlo/voxys' is dirty
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Running main() from /home/modkin/workspace/schneiderlo/voxys/third_party/googletest/googletest/src/gtest_main.cc
+Note: Google Test filter = CRC32Test.*:CompressionTest.*:HeaderTest.*:FileIOTest.*:BlitPathTest.*:RaycastPathGPUTest.*:LegoSurface.*:CpuCapsuleMover.*:PrimitivePath*.*:PrimitiveMaterialTest.*:LegoPlaygroundGpu.*:*GpuNarrowPhase*.*:GpuDynamicSolverDifferentialTest.*:GpuPhysicsTest.ComposesBodyContactsEventsAndAsyncQueries:GpuPhysicsTest.*Sleep*:GpuPhysicsTest.*Sleeping*:GpuPhysicsTest.*Wake*
+[==========] Running 111 tests from 17 test suites.
+[----------] Global test environment set-up.
+[----------] 4 tests from CRC32Test
+[ RUN      ] CRC32Test.EmptyData
+[       OK ] CRC32Test.EmptyData (0 ms)
+[ RUN      ] CRC32Test.KnownValue
+[       OK ] CRC32Test.KnownValue (0 ms)
+[ RUN      ] CRC32Test.EveryByteAndBinaryPayloadMatchIEEE
+[       OK ] CRC32Test.EveryByteAndBinaryPayloadMatchIEEE (1 ms)
+[ RUN      ] CRC32Test.Consistency
+[       OK ] CRC32Test.Consistency (0 ms)
+[----------] 4 tests from CRC32Test (1 ms total)
+
+[----------] 12 tests from CompressionTest
+[ RUN      ] CompressionTest.EmptyInput
+[ERROR] [03:00:31.872] Compression failed: empty input
+[       OK ] CompressionTest.EmptyInput (0 ms)
+[ RUN      ] CompressionTest.InvalidDimensions
+[ERROR] [03:00:31.872] Compression failed: invalid dimensions 0x4
+[ERROR] [03:00:31.872] Compression failed: invalid dimensions 4x0
+[ERROR] [03:00:31.872] Compression failed: size mismatch (expected 64, got 16)
+[       OK ] CompressionTest.InvalidDimensions (0 ms)
+[ RUN      ] CompressionTest.RejectsInvalidCompressionLevel
+[ERROR] [03:00:31.872] Compression failed: invalid zstd level 2147483647
+[       OK ] CompressionTest.RejectsInvalidCompressionLevel (0 ms)
+[ RUN      ] CompressionTest.SmallFlat
+[INFO ] [03:00:31.872] Compressed 4x4 heightmap: 32 -> 98 bytes (0.33x, 0.03 ms)
+[INFO ] [03:00:31.872] Decompressed 4x4 heightmap: 98 -> 32 bytes (0.07 ms)
+[       OK ] CompressionTest.SmallFlat (0 ms)
+[ RUN      ] CompressionTest.SmallGradient
+[INFO ] [03:00:31.872] Compressed 8x8 heightmap: 128 -> 126 bytes (1.02x, 0.09 ms)
+[INFO ] [03:00:31.872] Decompressed 8x8 heightmap: 126 -> 128 bytes (0.00 ms)
+[       OK ] CompressionTest.SmallGradient (0 ms)
+[ RUN      ] CompressionTest.RandomData
+[INFO ] [03:00:31.873] Compressed 32x32 heightmap: 2048 -> 2132 bytes (0.96x, 0.12 ms)
+[INFO ] [03:00:31.873] Decompressed 32x32 heightmap: 2132 -> 2048 bytes (0.02 ms)
+[       OK ] CompressionTest.RandomData (0 ms)
+[ RUN      ] CompressionTest.LargerHeightmap
+[INFO ] [03:00:31.886] Compressed 128x128 heightmap: 32768 -> 19624 bytes (1.67x, 12.88 ms)
+[INFO ] [03:00:31.886] Decompressed 128x128 heightmap: 19624 -> 32768 bytes (0.07 ms)
+[       OK ] CompressionTest.LargerHeightmap (13 ms)
+[ RUN      ] CompressionTest.WithChecksum
+[INFO ] [03:00:31.886] Compressed 8x8 heightmap: 128 -> 102 bytes (1.25x, 0.05 ms)
+[INFO ] [03:00:31.886] Decompressed 8x8 heightmap: 102 -> 128 bytes (0.00 ms)
+[       OK ] CompressionTest.WithChecksum (0 ms)
+[ RUN      ] CompressionTest.StandardWritesAndLegacyReadsStillRejectCorruption
+[INFO ] [03:00:31.886] Compressed 32x32 heightmap: 2048 -> 2136 bytes (0.96x, 0.12 ms)
+[INFO ] [03:00:31.886] Decompressed 32x32 heightmap: 2136 -> 2048 bytes (0.02 ms)
+[ERROR] [03:00:31.886] Checksum verification failed: expected 0xF8888002, got 0x1C2D153D
+[ERROR] [03:00:31.886] Checksum verification failed: expected 0x78888002, got 0xAAD096CF
+[       OK ] CompressionTest.StandardWritesAndLegacyReadsStillRejectCorruption (0 ms)
+[ RUN      ] CompressionTest.CorruptedChecksum
+[INFO ] [03:00:31.886] Compressed 8x8 heightmap: 128 -> 102 bytes (1.25x, 0.04 ms)
+[ERROR] [03:00:31.886] Checksum verification failed: expected 0x09D1E555, got 0xF6D1E555
+[       OK ] CompressionTest.CorruptedChecksum (0 ms)
+[ RUN      ] CompressionTest.ExpectedDimensions
+[INFO ] [03:00:31.886] Compressed 8x8 heightmap: 128 -> 98 bytes (1.31x, 0.04 ms)
+[INFO ] [03:00:31.886] Decompressed 8x8 heightmap: 98 -> 128 bytes (0.00 ms)
+[INFO ] [03:00:31.886] Decompressed 8x8 heightmap: 98 -> 128 bytes (0.00 ms)
+[ERROR] [03:00:31.886] Dimension mismatch: expected 4x16, got 8x8
+[       OK ] CompressionTest.ExpectedDimensions (0 ms)
+[ RUN      ] CompressionTest.CompressionLevels
+[INFO ] [03:00:31.886] Compressed 16x16 heightmap: 512 -> 102 bytes (5.02x, 0.01 ms)
+[INFO ] [03:00:31.887] Compressed 16x16 heightmap: 512 -> 102 bytes (5.02x, 0.61 ms)
+[INFO ] [03:00:31.887] Compressed 16x16 heightmap: 512 -> 106 bytes (4.83x, 0.26 ms)
+[INFO ] [03:00:31.887] Decompressed 16x16 heightmap: 102 -> 512 bytes (0.01 ms)
+[INFO ] [03:00:31.887] Decompressed 16x16 heightmap: 102 -> 512 bytes (0.00 ms)
+[INFO ] [03:00:31.887] Decompressed 16x16 heightmap: 106 -> 512 bytes (0.00 ms)
+[       OK ] CompressionTest.CompressionLevels (0 ms)
+[----------] 12 tests from CompressionTest (14 ms total)
+
+[----------] 6 tests from HeaderTest
+[ RUN      ] HeaderTest.ReadValidHeader
+[INFO ] [03:00:31.887] Compressed 4x4 heightmap: 32 -> 98 bytes (0.33x, 0.00 ms)
+[       OK ] HeaderTest.ReadValidHeader (0 ms)
+[ RUN      ] HeaderTest.TooSmall
+[ERROR] [03:00:31.887] Input too small for LDH header: 32 bytes
+[       OK ] HeaderTest.TooSmall (0 ms)
+[ RUN      ] HeaderTest.InvalidMagic
+[ERROR] [03:00:31.887] Invalid LDH magic: expected 0x4C444831, got 0x78563412
+[       OK ] HeaderTest.InvalidMagic (0 ms)
+[ RUN      ] HeaderTest.RejectsOversizedOrUnsupportedPayloadsBeforeAllocation
+[ERROR] [03:00:31.887] Invalid LDH header
+[ERROR] [03:00:31.887] Unsupported or malformed LDH v1 payload descriptor
+[ERROR] [03:00:31.887] Unsupported or malformed LDH v1 payload descriptor
+[ERROR] [03:00:31.887] Unsupported or malformed LDH v1 payload descriptor
+[ERROR] [03:00:31.887] Unsupported or malformed LDH v1 payload descriptor
+[       OK ] HeaderTest.RejectsOversizedOrUnsupportedPayloadsBeforeAllocation (0 ms)
+[ RUN      ] HeaderTest.RejectsTrailingBytes
+[INFO ] [03:00:31.887] Compressed 4x4 heightmap: 32 -> 98 bytes (0.33x, 0.00 ms)
+[ERROR] [03:00:31.887] LDH size mismatch: expected 98 bytes, got 99
+[       OK ] HeaderTest.RejectsTrailingBytes (0 ms)
+[ RUN      ] HeaderTest.GetInfoString
+[       OK ] HeaderTest.GetInfoString (0 ms)
+[----------] 6 tests from HeaderTest (0 ms total)
+
+[----------] 10 tests from FileIOTest
+[ RUN      ] FileIOTest.CompressAndDecompressFile
+[INFO ] [03:00:31.887] Compressed 8x8 heightmap: 128 -> 98 bytes (1.31x, 0.02 ms)
+[INFO ] [03:00:31.887] Wrote LDH file: /tmp/nix-shell.kXIcfo/voxy_compression_test/test.ldh (98 bytes)
+[INFO ] [03:00:31.887] Decompressed 8x8 heightmap: 98 -> 128 bytes (0.00 ms)
+[       OK ] FileIOTest.CompressAndDecompressFile (0 ms)
+[ RUN      ] FileIOTest.CompressWithChecksum
+[INFO ] [03:00:31.887] Compressed 8x8 heightmap: 128 -> 102 bytes (1.25x, 0.02 ms)
+[INFO ] [03:00:31.887] Wrote LDH file: /tmp/nix-shell.kXIcfo/voxy_compression_test/test_checksum.ldh (102 bytes)
+[INFO ] [03:00:31.887] Decompressed 8x8 heightmap: 102 -> 128 bytes (0.00 ms)
+[       OK ] FileIOTest.CompressWithChecksum (0 ms)
+[ RUN      ] FileIOTest.ReportsBufferedWriteFailure
+[INFO ] [03:00:31.887] Compressed 8x8 heightmap: 128 -> 98 bytes (1.31x, 0.02 ms)
+[ERROR] [03:00:31.887] Failed to finish LDH file: /dev/full
+[       OK ] FileIOTest.ReportsBufferedWriteFailure (0 ms)
+[ RUN      ] FileIOTest.DecompressWithExpectedDimensions
+[INFO ] [03:00:31.887] Compressed 8x8 heightmap: 128 -> 98 bytes (1.31x, 0.02 ms)
+[INFO ] [03:00:31.887] Wrote LDH file: /tmp/nix-shell.kXIcfo/voxy_compression_test/test_dims.ldh (98 bytes)
+[INFO ] [03:00:31.887] Decompressed 8x8 heightmap: 98 -> 128 bytes (0.00 ms)
+[INFO ] [03:00:31.887] Decompressed 8x8 heightmap: 98 -> 128 bytes (0.00 ms)
+[ERROR] [03:00:31.887] Dimension mismatch: expected 4x16, got 8x8
+[       OK ] FileIOTest.DecompressWithExpectedDimensions (0 ms)
+[ RUN      ] FileIOTest.DecompressNonExistentFile
+[ERROR] [03:00:31.887] LDH file not found: /tmp/nix-shell.kXIcfo/voxy_compression_test/nonexistent.ldh
+[       OK ] FileIOTest.DecompressNonExistentFile (0 ms)
+[ RUN      ] FileIOTest.ReadHeaderFromFile
+[INFO ] [03:00:31.888] Compressed 16x16 heightmap: 512 -> 102 bytes (5.02x, 0.37 ms)
+[INFO ] [03:00:31.888] Wrote LDH file: /tmp/nix-shell.kXIcfo/voxy_compression_test/test_header.ldh (102 bytes)
+[       OK ] FileIOTest.ReadHeaderFromFile (0 ms)
+[ RUN      ] FileIOTest.ReadHeaderFromNonExistentFile
+[ERROR] [03:00:31.888] LDH file not found: /tmp/nix-shell.kXIcfo/voxy_compression_test/nonexistent_header.ldh
+[       OK ] FileIOTest.ReadHeaderFromNonExistentFile (0 ms)
+[ RUN      ] FileIOTest.CreateNestedDirectory
+[INFO ] [03:00:31.888] Compressed 4x4 heightmap: 32 -> 98 bytes (0.33x, 0.02 ms)
+[INFO ] [03:00:31.888] Wrote LDH file: /tmp/nix-shell.kXIcfo/voxy_compression_test/nested/dir/test.ldh (98 bytes)
+[       OK ] FileIOTest.CreateNestedDirectory (0 ms)
+[ RUN      ] FileIOTest.LargerFileRoundTrip
+[INFO ] [03:00:31.895] Compressed 128x128 heightmap: 32768 -> 19000 bytes (1.72x, 6.45 ms)
+[INFO ] [03:00:31.895] Wrote LDH file: /tmp/nix-shell.kXIcfo/voxy_compression_test/large_terrain.ldh (19000 bytes)
+[INFO ] [03:00:31.895] Decompressed 128x128 heightmap: 19000 -> 32768 bytes (0.03 ms)
+[       OK ] FileIOTest.LargerFileRoundTrip (6 ms)
+[ RUN      ] FileIOTest.CompressionStatsFromFile
+[INFO ] [03:00:31.895] Compressed 16x16 heightmap: 512 -> 102 bytes (5.02x, 0.26 ms)
+[INFO ] [03:00:31.895] Wrote LDH file: /tmp/nix-shell.kXIcfo/voxy_compression_test/stats_test.ldh (102 bytes)
+[       OK ] FileIOTest.CompressionStatsFromFile (0 ms)
+[----------] 10 tests from FileIOTest (7 ms total)
+
+[----------] 9 tests from CpuCapsuleMover
+[ RUN      ] CpuCapsuleMover.UsesCanonicalDiagonalAndTerrainOnlyPolicy
+[       OK ] CpuCapsuleMover.UsesCanonicalDiagonalAndTerrainOnlyPolicy (0 ms)
+[ RUN      ] CpuCapsuleMover.LandsStepsJumpsAndReplaysExactly
+[       OK ] CpuCapsuleMover.LandsStepsJumpsAndReplaysExactly (0 ms)
+[ RUN      ] CpuCapsuleMover.RejectsSteepUpslopeAsAContactPlane
+[       OK ] CpuCapsuleMover.RejectsSteepUpslopeAsAContactPlane (0 ms)
+[ RUN      ] CpuCapsuleMover.CanonicalizesMovementAtLargeSectorBoundary
+[       OK ] CpuCapsuleMover.CanonicalizesMovementAtLargeSectorBoundary (0 ms)
+[ RUN      ] CpuCapsuleMover.SamplesTerrainAcrossSectorBoundaryInLocalFrame
+[       OK ] CpuCapsuleMover.SamplesTerrainAcrossSectorBoundaryInLocalFrame (0 ms)
+[ RUN      ] CpuCapsuleMover.ContainsMalformedCharacterInputs
+[       OK ] CpuCapsuleMover.ContainsMalformedCharacterInputs (0 ms)
+[ RUN      ] CpuCapsuleMover.InvalidReinitializePreservesLiveWorld
+[       OK ] CpuCapsuleMover.InvalidReinitializePreservesLiveWorld (0 ms)
+[ RUN      ] CpuCapsuleMover.StaleHandleCannotControlReusedSlot
+[       OK ] CpuCapsuleMover.StaleHandleCannotControlReusedSlot (0 ms)
+[ RUN      ] CpuCapsuleMover.ExhaustedCharacterSlotNeverWrapsToStaleHandle
+[       OK ] CpuCapsuleMover.ExhaustedCharacterSlotNeverWrapsToStaleHandle (3 ms)
+[----------] 9 tests from CpuCapsuleMover (3 ms total)
+
+[----------] 10 tests from LegoSurface
+[ RUN      ] LegoSurface.QuantizesAllRawSamplesWithinHalfAPlate
+[       OK ] LegoSurface.QuantizesAllRawSamplesWithinHalfAPlate (0 ms)
+[ RUN      ] LegoSurface.ChunkOwnershipCoversOnlyEqualLevelsWithoutChangingGround
+[       OK ] LegoSurface.ChunkOwnershipCoversOnlyEqualLevelsWithoutChangingGround (0 ms)
+[ RUN      ] LegoSurface.SphereContactsStudCapSideRimAndVerticalStep
+[       OK ] LegoSurface.SphereContactsStudCapSideRimAndVerticalStep (0 ms)
+[ RUN      ] LegoSurface.CapsuleSupportIncludesStudsBetweenHeightProbes
+[       OK ] LegoSurface.CapsuleSupportIncludesStudsBetweenHeightProbes (0 ms)
+[ RUN      ] LegoSurface.PlayerCrossesChunksAndPlateStepsButStopsAtCliff
+[       OK ] LegoSurface.PlayerCrossesChunksAndPlateStepsButStopsAtCliff (2 ms)
+[ RUN      ] LegoSurface.PlayerLandsAndJumpsInNegativeHeightSector
+[       OK ] LegoSurface.PlayerLandsAndJumpsInNegativeHeightSector (0 ms)
+[ RUN      ] LegoSurface.ChunkBuilderMatchesStudyAndFullMapEdges
+[       OK ] LegoSurface.ChunkBuilderMatchesStudyAndFullMapEdges (25 ms)
+[ RUN      ] LegoSurface.LayoutCacheIsBoundedReusesRowsAndRejectsStaleSlots
+[       OK ] LegoSurface.LayoutCacheIsBoundedReusesRowsAndRejectsStaleSlots (0 ms)
+[ RUN      ] LegoSurface.TerrainModeSwitchPreservesLiveCharacter
+[       OK ] LegoSurface.TerrainModeSwitchPreservesLiveCharacter (0 ms)
+[ RUN      ] LegoSurface.LongJointsStaggerAcrossAdjacentCourses
+[       OK ] LegoSurface.LongJointsStaggerAcrossAdjacentCourses (0 ms)
+[----------] 10 tests from LegoSurface (29 ms total)
+
+[----------] 6 tests from LegoPlaygroundGpu
+[ RUN      ] LegoPlaygroundGpu.CompoundStudsSupportRealStackAndSleep
+[INFO ] [03:00:31.971] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [03:00:31.971] [GPU]   Vendor: radv
+[INFO ] [03:00:31.971] [GPU]   Backend: Vulkan
+[INFO ] [03:00:31.971] [GPU]   Type: Integrated GPU
+[INFO ] [03:00:31.972] [GPU] Headless GPU context initialized successfully
+[INFO ] [03:00:32.022] WebGPU physics initialized: 128 usable body slots, 0 MiB resident, 0 MiB scratch
+[       OK ] LegoPlaygroundGpu.CompoundStudsSupportRealStackAndSleep (210 ms)
+[ RUN      ] LegoPlaygroundGpu.BoxFootprintSupportsEdgeAndRejectsInvalidPlacement
+[INFO ] [03:00:32.159] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [03:00:32.160] [GPU]   Vendor: radv
+[INFO ] [03:00:32.160] [GPU]   Backend: Vulkan
+[INFO ] [03:00:32.160] [GPU]   Type: Integrated GPU
+[INFO ] [03:00:32.160] [GPU] Headless GPU context initialized successfully
+[INFO ] [03:00:32.211] WebGPU physics initialized: 128 usable body slots, 0 MiB resident, 0 MiB scratch
+[       OK ] LegoPlaygroundGpu.BoxFootprintSupportsEdgeAndRejectsInvalidPlacement (176 ms)
+[ RUN      ] LegoPlaygroundGpu.BallImpactWakesStackAndCompletesChallengeThenResetReplays
+[INFO ] [03:00:32.342] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [03:00:32.342] [GPU]   Vendor: radv
+[INFO ] [03:00:32.342] [GPU]   Backend: Vulkan
+[INFO ] [03:00:32.342] [GPU]   Type: Integrated GPU
+[INFO ] [03:00:32.343] [GPU] Headless GPU context initialized successfully
+[INFO ] [03:00:32.400] WebGPU physics initialized: 128 usable body slots, 0 MiB resident, 0 MiB scratch
+[       OK ] LegoPlaygroundGpu.BallImpactWakesStackAndCompletesChallengeThenResetReplays (770 ms)
+[ RUN      ] LegoPlaygroundGpu.PoolsStayBoundedAcrossImpactsAndReset
+[INFO ] [03:00:33.105] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [03:00:33.105] [GPU]   Vendor: radv
+[INFO ] [03:00:33.105] [GPU]   Backend: Vulkan
+[INFO ] [03:00:33.105] [GPU]   Type: Integrated GPU
+[INFO ] [03:00:33.106] [GPU] Headless GPU context initialized successfully
+[INFO ] [03:00:33.155] WebGPU physics initialized: 128 usable body slots, 0 MiB resident, 0 MiB scratch
+[       OK ] LegoPlaygroundGpu.PoolsStayBoundedAcrossImpactsAndReset (504 ms)
+[ RUN      ] LegoPlaygroundGpu.RaysDistinguishStudCapsFromGapsOnRotatedBrick
+[INFO ] [03:00:33.613] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [03:00:33.613] [GPU]   Vendor: radv
+[INFO ] [03:00:33.613] [GPU]   Backend: Vulkan
+[INFO ] [03:00:33.613] [GPU]   Type: Integrated GPU
+[INFO ] [03:00:33.613] [GPU] Headless GPU context initialized successfully
+[INFO ] [03:00:33.664] WebGPU physics initialized: 128 usable body slots, 0 MiB resident, 0 MiB scratch
+[       OK ] LegoPlaygroundGpu.RaysDistinguishStudCapsFromGapsOnRotatedBrick (90 ms)
+[ RUN      ] LegoPlaygroundGpu.RejectsUnboundedCompoundDescriptions
+[INFO ] [03:00:33.700] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [03:00:33.700] [GPU]   Vendor: radv
+[INFO ] [03:00:33.700] [GPU]   Backend: Vulkan
+[INFO ] [03:00:33.700] [GPU]   Type: Integrated GPU
+[INFO ] [03:00:33.701] [GPU] Headless GPU context initialized successfully
+[INFO ] [03:00:33.750] WebGPU physics initialized: 128 usable body slots, 0 MiB resident, 0 MiB scratch
+[WARN ] [03:00:33.751] Discarding unsupported LEGO compound dimensions
+[WARN ] [03:00:33.751] Discarding unsupported LEGO compound dimensions
+[WARN ] [03:00:33.751] Discarding unsupported LEGO compound dimensions
+[       OK ] LegoPlaygroundGpu.RejectsUnboundedCompoundDescriptions (75 ms)
+[----------] 6 tests from LegoPlaygroundGpu (1827 ms total)
+
+[----------] 1 test from GpuDynamicSolverDifferentialTest
+[ RUN      ] GpuDynamicSolverDifferentialTest.StableDenseContactsMatchSparseOrdinalWindowBitwise
+[INFO ] [03:00:33.780] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [03:00:33.780] [GPU]   Vendor: radv
+[INFO ] [03:00:33.780] [GPU]   Backend: Vulkan
+[INFO ] [03:00:33.780] [GPU]   Type: Integrated GPU
+[INFO ] [03:00:33.780] [GPU] Headless GPU context initialized successfully
+[       OK ] GpuDynamicSolverDifferentialTest.StableDenseContactsMatchSparseOrdinalWindowBitwise (55 ms)
+[----------] 1 test from GpuDynamicSolverDifferentialTest (55 ms total)
+
+[----------] 6 tests from GpuPhysicsTest
+[ RUN      ] GpuPhysicsTest.ComposesBodyContactsEventsAndAsyncQueries
+[INFO ] [03:00:33.831] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [03:00:33.831] [GPU]   Vendor: radv
+[INFO ] [03:00:33.831] [GPU]   Backend: Vulkan
+[INFO ] [03:00:33.831] [GPU]   Type: Integrated GPU
+[INFO ] [03:00:33.831] [GPU] Headless GPU context initialized successfully
+[INFO ] [03:00:33.881] WebGPU physics initialized: 1024 usable body slots, 0 MiB resident, 0 MiB scratch
+[       OK ] GpuPhysicsTest.ComposesBodyContactsEventsAndAsyncQueries (82 ms)
+[ RUN      ] GpuPhysicsTest.AppliesOrderedCommandsClampsSpeedsAndCompactsSleep
+[INFO ] [03:00:33.915] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [03:00:33.915] [GPU]   Vendor: radv
+[INFO ] [03:00:33.915] [GPU]   Backend: Vulkan
+[INFO ] [03:00:33.915] [GPU]   Type: Integrated GPU
+[INFO ] [03:00:33.916] [GPU] Headless GPU context initialized successfully
+[INFO ] [03:00:33.966] WebGPU physics initialized: 1024 usable body slots, 0 MiB resident, 0 MiB scratch
+[       OK ] GpuPhysicsTest.AppliesOrderedCommandsClampsSpeedsAndCompactsSleep (83 ms)
+[ RUN      ] GpuPhysicsTest.VelocityCommandsWakeSleepingBodies
+[INFO ] [03:00:33.998] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [03:00:33.998] [GPU]   Vendor: radv
+[INFO ] [03:00:33.998] [GPU]   Backend: Vulkan
+[INFO ] [03:00:33.998] [GPU]   Type: Integrated GPU
+[INFO ] [03:00:33.999] [GPU] Headless GPU context initialized successfully
+[INFO ] [03:00:34.050] WebGPU physics initialized: 1024 usable body slots, 0 MiB resident, 0 MiB scratch
+[       OK ] GpuPhysicsTest.VelocityCommandsWakeSleepingBodies (84 ms)
+[ RUN      ] GpuPhysicsTest.SleepClearsSameTickForceInsteadOfDeferringIt
+[INFO ] [03:00:34.083] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [03:00:34.083] [GPU]   Vendor: radv
+[INFO ] [03:00:34.083] [GPU]   Backend: Vulkan
+[INFO ] [03:00:34.083] [GPU]   Type: Integrated GPU
+[INFO ] [03:00:34.084] [GPU] Headless GPU context initialized successfully
+[INFO ] [03:00:34.134] WebGPU physics initialized: 1024 usable body slots, 0 MiB resident, 0 MiB scratch
+[       OK ] GpuPhysicsTest.SleepClearsSameTickForceInsteadOfDeferringIt (83 ms)
+[ RUN      ] GpuPhysicsTest.ThrownTerrainBodyEventuallySleeps
+[INFO ] [03:00:34.166] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [03:00:34.166] [GPU]   Vendor: radv
+[INFO ] [03:00:34.166] [GPU]   Backend: Vulkan
+[INFO ] [03:00:34.166] [GPU]   Type: Integrated GPU
+[INFO ] [03:00:34.167] [GPU] Headless GPU context initialized successfully
+[INFO ] [03:00:34.217] WebGPU physics initialized: 1024 usable body slots, 0 MiB resident, 0 MiB scratch
+[WARN ] [03:00:34.260] GPU physics telemetry readback ring is full
+[WARN ] [03:00:34.267] GPU physics telemetry readback ring is full
+[WARN ] [03:00:34.277] GPU physics telemetry readback ring is full
+[WARN ] [03:00:34.285] GPU physics telemetry readback ring is full
+[WARN ] [03:00:34.291] GPU physics telemetry readback ring is full
+[WARN ] [03:00:34.293] GPU physics telemetry readback ring is full
+[WARN ] [03:00:34.297] GPU physics telemetry readback ring is full
+[WARN ] [03:00:34.300] GPU physics telemetry readback ring is full
+[WARN ] [03:00:34.303] GPU physics telemetry readback ring is full
+[WARN ] [03:00:34.306] GPU physics telemetry readback ring is full
+[WARN ] [03:00:34.310] GPU physics telemetry readback ring is full
+[WARN ] [03:00:34.316] GPU physics telemetry readback ring is full
+[WARN ] [03:00:34.317] GPU physics telemetry readback ring is full
+[WARN ] [03:00:34.322] GPU physics telemetry readback ring is full
+[WARN ] [03:00:34.324] GPU physics telemetry readback ring is full
+[       OK ] GpuPhysicsTest.ThrownTerrainBodyEventuallySleeps (217 ms)
+[ RUN      ] GpuPhysicsTest.RestingTerrainPileEventuallySleeps
+[INFO ] [03:00:34.387] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [03:00:34.387] [GPU]   Vendor: radv
+[INFO ] [03:00:34.387] [GPU]   Backend: Vulkan
+[INFO ] [03:00:34.387] [GPU]   Type: Integrated GPU
+[INFO ] [03:00:34.388] [GPU] Headless GPU context initialized successfully
+[INFO ] [03:00:34.437] WebGPU physics initialized: 1024 usable body slots, 0 MiB resident, 0 MiB scratch
+[WARN ] [03:00:34.466] GPU physics telemetry readback ring is full
+[WARN ] [03:00:34.474] GPU physics telemetry readback ring is full
+[WARN ] [03:00:34.482] GPU physics telemetry readback ring is full
+[WARN ] [03:00:34.485] GPU physics telemetry readback ring is full
+[WARN ] [03:00:34.492] GPU physics telemetry readback ring is full
+[WARN ] [03:00:34.500] GPU physics telemetry readback ring is full
+[WARN ] [03:00:34.502] GPU physics telemetry readback ring is full
+[WARN ] [03:00:34.510] GPU physics telemetry readback ring is full
+[WARN ] [03:00:34.511] GPU physics telemetry readback ring is full
+[WARN ] [03:00:34.520] GPU physics telemetry readback ring is full
+[WARN ] [03:00:34.521] GPU physics telemetry readback ring is full
+[WARN ] [03:00:34.523] GPU physics telemetry readback ring is full
+[WARN ] [03:00:34.529] GPU physics telemetry readback ring is full
+[WARN ] [03:00:34.538] GPU physics telemetry readback ring is full
+[WARN ] [03:00:34.539] GPU physics telemetry readback ring is full
+[WARN ] [03:00:34.540] GPU physics telemetry readback ring is full
+[WARN ] [03:00:34.548] GPU physics telemetry readback ring is full
+[WARN ] [03:00:34.550] GPU physics telemetry readback ring is full
+[WARN ] [03:00:34.551] GPU physics telemetry readback ring is full
+[WARN ] [03:00:34.558] GPU physics telemetry readback ring is full
+[WARN ] [03:00:34.561] GPU physics telemetry readback ring is full
+[WARN ] [03:00:34.568] GPU physics telemetry readback ring is full
+[WARN ] [03:00:34.570] GPU physics telemetry readback ring is full
+[WARN ] [03:00:34.571] GPU physics telemetry readback ring is full
+[WARN ] [03:00:34.578] GPU physics telemetry readback ring is full
+[WARN ] [03:00:34.581] GPU physics telemetry readback ring is full
+[WARN ] [03:00:34.583] GPU physics telemetry readback ring is full
+[WARN ] [03:00:34.608] GPU physics telemetry readback ring is full
+[WARN ] [03:00:34.614] GPU physics telemetry readback ring is full
+[WARN ] [03:00:34.616] GPU physics telemetry readback ring is full
+[WARN ] [03:00:34.617] GPU physics telemetry readback ring is full
+[WARN ] [03:00:34.618] GPU physics telemetry readback ring is full
+[WARN ] [03:00:34.620] GPU physics telemetry readback ring is full
+[WARN ] [03:00:34.621] GPU physics telemetry readback ring is full
+[WARN ] [03:00:34.623] GPU physics telemetry readback ring is full
+[WARN ] [03:00:34.624] GPU physics telemetry readback ring is full
+[WARN ] [03:00:34.625] GPU physics telemetry readback ring is full
+[WARN ] [03:00:34.627] GPU physics telemetry readback ring is full
+[WARN ] [03:00:34.651] GPU physics telemetry readback ring is full
+[WARN ] [03:00:34.659] GPU physics telemetry readback ring is full
+[WARN ] [03:00:34.661] GPU physics telemetry readback ring is full
+[WARN ] [03:00:34.662] GPU physics telemetry readback ring is full
+[WARN ] [03:00:34.663] GPU physics telemetry readback ring is full
+[WARN ] [03:00:34.665] GPU physics telemetry readback ring is full
+[WARN ] [03:00:34.666] GPU physics telemetry readback ring is full
+[WARN ] [03:00:34.668] GPU physics telemetry readback ring is full
+[WARN ] [03:00:34.669] GPU physics telemetry readback ring is full
+[WARN ] [03:00:34.670] GPU physics telemetry readback ring is full
+[WARN ] [03:00:34.672] GPU physics telemetry readback ring is full
+[WARN ] [03:00:34.694] GPU physics telemetry readback ring is full
+[WARN ] [03:00:34.703] GPU physics telemetry readback ring is full
+[WARN ] [03:00:34.704] GPU physics telemetry readback ring is full
+[WARN ] [03:00:34.706] GPU physics telemetry readback ring is full
+[       OK ] GpuPhysicsTest.RestingTerrainPileEventuallySleeps (476 ms)
+[----------] 6 tests from GpuPhysicsTest (1027 ms total)
+
+[----------] 1 test from GpuNarrowPhaseDifferentialTest
+[ RUN      ] GpuNarrowPhaseDifferentialTest.MatchesBox3dOnRandomBoundedPairs
+[INFO ] [03:00:34.861] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [03:00:34.861] [GPU]   Vendor: radv
+[INFO ] [03:00:34.861] [GPU]   Backend: Vulkan
+[INFO ] [03:00:34.861] [GPU]   Type: Integrated GPU
+[INFO ] [03:00:34.862] [GPU] Headless GPU context initialized successfully
+[       OK ] GpuNarrowPhaseDifferentialTest.MatchesBox3dOnRandomBoundedPairs (46 ms)
+[----------] 1 test from GpuNarrowPhaseDifferentialTest (46 ms total)
+
+[----------] 9 tests from RaycastPathGPUTest
+[ RUN      ] RaycastPathGPUTest.InitAndShutdown
+[INFO ] [03:00:34.908] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [03:00:34.908] [GPU]   Vendor: radv
+[INFO ] [03:00:34.908] [GPU]   Backend: Vulkan
+[INFO ] [03:00:34.908] [GPU]   Type: Integrated GPU
+[INFO ] [03:00:34.909] [GPU] Headless GPU context initialized successfully
+[INFO ] [03:00:34.913] [RaycastPath::init] RaycastPath initialized successfully (1920x1080 output)
+[       OK ] RaycastPathGPUTest.InitAndShutdown (29 ms)
+[ RUN      ] RaycastPathGPUTest.WorkgroupCounts
+[INFO ] [03:00:34.939] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [03:00:34.939] [GPU]   Vendor: radv
+[INFO ] [03:00:34.939] [GPU]   Backend: Vulkan
+[INFO ] [03:00:34.939] [GPU]   Type: Integrated GPU
+[INFO ] [03:00:34.940] [GPU] Headless GPU context initialized successfully
+[INFO ] [03:00:34.945] [RaycastPath::init] RaycastPath initialized successfully (1920x1080 output)
+[       OK ] RaycastPathGPUTest.WorkgroupCounts (30 ms)
+[ RUN      ] RaycastPathGPUTest.Resize
+[INFO ] [03:00:34.971] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [03:00:34.971] [GPU]   Vendor: radv
+[INFO ] [03:00:34.971] [GPU]   Backend: Vulkan
+[INFO ] [03:00:34.971] [GPU]   Type: Integrated GPU
+[INFO ] [03:00:34.971] [GPU] Headless GPU context initialized successfully
+[INFO ] [03:00:34.975] [RaycastPath::init] RaycastPath initialized successfully (1920x1080 output)
+[       OK ] RaycastPathGPUTest.Resize (31 ms)
+[ RUN      ] RaycastPathGPUTest.ResizeToSameSize
+[INFO ] [03:00:34.999] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [03:00:34.999] [GPU]   Vendor: radv
+[INFO ] [03:00:34.999] [GPU]   Backend: Vulkan
+[INFO ] [03:00:34.999] [GPU]   Type: Integrated GPU
+[INFO ] [03:00:35.000] [GPU] Headless GPU context initialized successfully
+[INFO ] [03:00:35.005] [RaycastPath::init] RaycastPath initialized successfully (1920x1080 output)
+[       OK ] RaycastPathGPUTest.ResizeToSameSize (28 ms)
+[ RUN      ] RaycastPathGPUTest.ResizeToZeroFails
+[INFO ] [03:00:35.028] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [03:00:35.028] [GPU]   Vendor: radv
+[INFO ] [03:00:35.028] [GPU]   Backend: Vulkan
+[INFO ] [03:00:35.028] [GPU]   Type: Integrated GPU
+[INFO ] [03:00:35.029] [GPU] Headless GPU context initialized successfully
+[INFO ] [03:00:35.033] [RaycastPath::init] RaycastPath initialized successfully (1920x1080 output)
+[ERROR] [03:00:35.033] RaycastPath::resize: invalid dimensions
+[       OK ] RaycastPathGPUTest.ResizeToZeroFails (28 ms)
+[ RUN      ] RaycastPathGPUTest.SetHeightmap
+[INFO ] [03:00:35.055] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [03:00:35.055] [GPU]   Vendor: radv
+[INFO ] [03:00:35.055] [GPU]   Backend: Vulkan
+[INFO ] [03:00:35.055] [GPU]   Type: Integrated GPU
+[INFO ] [03:00:35.056] [GPU] Headless GPU context initialized successfully
+[INFO ] [03:00:35.060] [RaycastPath::init] RaycastPath initialized successfully (1920x1080 output)
+[ERROR] [03:00:35.060] RaycastPath::setHeightmap: invalid terrain binding
+[ERROR] [03:00:35.060] RaycastPath::setHeightmap: invalid terrain binding
+[ERROR] [03:00:35.060] RaycastPath::setHeightmap: invalid terrain binding
+[       OK ] RaycastPathGPUTest.SetHeightmap (26 ms)
+[ RUN      ] RaycastPathGPUTest.UpdateCamera
+[INFO ] [03:00:35.083] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [03:00:35.083] [GPU]   Vendor: radv
+[INFO ] [03:00:35.083] [GPU]   Backend: Vulkan
+[INFO ] [03:00:35.083] [GPU]   Type: Integrated GPU
+[INFO ] [03:00:35.084] [GPU] Headless GPU context initialized successfully
+[INFO ] [03:00:35.088] [RaycastPath::init] RaycastPath initialized successfully (1920x1080 output)
+[       OK ] RaycastPathGPUTest.UpdateCamera (27 ms)
+[ RUN      ] RaycastPathGPUTest.DispatchWithHeightmap
+[INFO ] [03:00:35.111] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [03:00:35.111] [GPU]   Vendor: radv
+[INFO ] [03:00:35.111] [GPU]   Backend: Vulkan
+[INFO ] [03:00:35.111] [GPU]   Type: Integrated GPU
+[INFO ] [03:00:35.112] [GPU] Headless GPU context initialized successfully
+[INFO ] [03:00:35.116] [RaycastPath::init] RaycastPath initialized successfully (64x64 output)
+[ERROR] [03:00:35.116] Cannot create bind group: no FFT water simulation
+[ERROR] [03:00:35.116] Failed to create bind group during dispatch
+[       OK ] RaycastPathGPUTest.DispatchWithHeightmap (29 ms)
+[ RUN      ] RaycastPathGPUTest.LegoHorizonBenchmark
+[INFO ] [03:00:35.136] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [03:00:35.136] [GPU]   Vendor: radv
+[INFO ] [03:00:35.136] [GPU]   Backend: Vulkan
+[INFO ] [03:00:35.136] [GPU]   Type: Integrated GPU
+[INFO ] [03:00:35.137] [GPU] Headless GPU context initialized successfully
+/home/modkin/workspace/schneiderlo/voxys/tests/test_raycast_path.cpp:514: Skipped
+Set VOXY_RAYCAST_BENCHMARK_SHADER to run
+
+[  SKIPPED ] RaycastPathGPUTest.LegoHorizonBenchmark (18 ms)
+[----------] 9 tests from RaycastPathGPUTest (251 ms total)
+
+[----------] 19 tests from BlitPathTest
+[ RUN      ] BlitPathTest.DefaultConfigValues
+[INFO ] [03:00:35.154] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [03:00:35.154] [GPU]   Vendor: radv
+[INFO ] [03:00:35.154] [GPU]   Backend: Vulkan
+[INFO ] [03:00:35.154] [GPU]   Type: Integrated GPU
+[INFO ] [03:00:35.155] [GPU] Headless GPU context initialized successfully
+[       OK ] BlitPathTest.DefaultConfigValues (17 ms)
+[ RUN      ] BlitPathTest.InitWithNullDeviceFails
+[INFO ] [03:00:35.172] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [03:00:35.172] [GPU]   Vendor: radv
+[INFO ] [03:00:35.172] [GPU]   Backend: Vulkan
+[INFO ] [03:00:35.172] [GPU]   Type: Integrated GPU
+[INFO ] [03:00:35.173] [GPU] Headless GPU context initialized successfully
+[ERROR] [03:00:35.173] [BlitPath::init] BlitPath::init: device or queue is null
+[       OK ] BlitPathTest.InitWithNullDeviceFails (17 ms)
+[ RUN      ] BlitPathTest.RejectsInvalidConfigBeforeGpuCalls
+[INFO ] [03:00:35.190] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [03:00:35.190] [GPU]   Vendor: radv
+[INFO ] [03:00:35.190] [GPU]   Backend: Vulkan
+[INFO ] [03:00:35.190] [GPU]   Type: Integrated GPU
+[INFO ] [03:00:35.190] [GPU] Headless GPU context initialized successfully
+[ERROR] [03:00:35.190] [BlitPath::init] BlitPath::init: invalid renderer configuration
+[       OK ] BlitPathTest.RejectsInvalidConfigBeforeGpuCalls (17 ms)
+[ RUN      ] BlitPathTest.RejectsInvalidDebugControls
+[INFO ] [03:00:35.209] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [03:00:35.209] [GPU]   Vendor: radv
+[INFO ] [03:00:35.209] [GPU]   Backend: Vulkan
+[INFO ] [03:00:35.209] [GPU]   Type: Integrated GPU
+[INFO ] [03:00:35.209] [GPU] Headless GPU context initialized successfully
+[ERROR] [03:00:35.209] BlitPath::setDebugMode: invalid mode 99
+[ERROR] [03:00:35.209] BlitPath::setDebugMaxDepth: invalid depth
+[ERROR] [03:00:35.209] BlitPath::setDebugMaxDepth: invalid depth
+[       OK ] BlitPathTest.RejectsInvalidDebugControls (18 ms)
+[ RUN      ] BlitPathTest.NotInitializedByDefault
+[INFO ] [03:00:35.226] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [03:00:35.226] [GPU]   Vendor: radv
+[INFO ] [03:00:35.226] [GPU]   Backend: Vulkan
+[INFO ] [03:00:35.226] [GPU]   Type: Integrated GPU
+[INFO ] [03:00:35.227] [GPU] Headless GPU context initialized successfully
+[       OK ] BlitPathTest.NotInitializedByDefault (17 ms)
+[ RUN      ] BlitPathTest.InitializationSucceeds
+[INFO ] [03:00:35.243] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [03:00:35.243] [GPU]   Vendor: radv
+[INFO ] [03:00:35.243] [GPU]   Backend: Vulkan
+[INFO ] [03:00:35.243] [GPU]   Type: Integrated GPU
+[INFO ] [03:00:35.243] [GPU] Headless GPU context initialized successfully
+[INFO ] [03:00:35.267] [BlitPath::init] Created water clipmap: 18817 vertices, 33792 triangles
+[INFO ] [03:00:35.339] [BlitPath::init] Loaded original generated ocean environment: data/generated/ocean_environment.png
+[INFO ] [03:00:36.225] [BlitPath::init] BlitPath initialized successfully
+[       OK ] BlitPathTest.InitializationSucceeds (1000 ms)
+[ RUN      ] BlitPathTest.ProductionShaderHasNoGpuValidationErrors
+[INFO ] [03:00:36.252] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [03:00:36.252] [GPU]   Vendor: radv
+[INFO ] [03:00:36.252] [GPU]   Backend: Vulkan
+[INFO ] [03:00:36.252] [GPU]   Type: Integrated GPU
+[INFO ] [03:00:36.252] [GPU] Headless GPU context initialized successfully
+[INFO ] [03:00:36.275] [BlitPath::init] Created water clipmap: 18817 vertices, 33792 triangles
+[INFO ] [03:00:36.347] [BlitPath::init] Loaded original generated ocean environment: data/generated/ocean_environment.png
+[INFO ] [03:00:37.233] [BlitPath::init] BlitPath initialized successfully
+[       OK ] BlitPathTest.ProductionShaderHasNoGpuValidationErrors (1007 ms)
+[ RUN      ] BlitPathTest.ShutdownReleasesResources
+[INFO ] [03:00:37.259] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [03:00:37.259] [GPU]   Vendor: radv
+[INFO ] [03:00:37.259] [GPU]   Backend: Vulkan
+[INFO ] [03:00:37.259] [GPU]   Type: Integrated GPU
+[INFO ] [03:00:37.260] [GPU] Headless GPU context initialized successfully
+[INFO ] [03:00:37.283] [BlitPath::init] Created water clipmap: 18817 vertices, 33792 triangles
+[INFO ] [03:00:37.357] [BlitPath::init] Loaded original generated ocean environment: data/generated/ocean_environment.png
+[INFO ] [03:00:38.295] [BlitPath::init] BlitPath initialized successfully
+[       OK ] BlitPathTest.ShutdownReleasesResources (1062 ms)
+[ RUN      ] BlitPathTest.DoubleInitFails
+[INFO ] [03:00:38.329] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [03:00:38.329] [GPU]   Vendor: radv
+[INFO ] [03:00:38.329] [GPU]   Backend: Vulkan
+[INFO ] [03:00:38.329] [GPU]   Type: Integrated GPU
+[INFO ] [03:00:38.330] [GPU] Headless GPU context initialized successfully
+[INFO ] [03:00:38.355] [BlitPath::init] Created water clipmap: 18817 vertices, 33792 triangles
+[INFO ] [03:00:38.428] [BlitPath::init] Loaded original generated ocean environment: data/generated/ocean_environment.png
+[INFO ] [03:00:39.305] [BlitPath::init] BlitPath initialized successfully
+[ERROR] [03:00:39.305] [BlitPath::init] BlitPath::init: already initialized
+[       OK ] BlitPathTest.DoubleInitFails (1009 ms)
+[ RUN      ] BlitPathTest.UniformBufferCreated
+[INFO ] [03:00:39.331] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [03:00:39.331] [GPU]   Vendor: radv
+[INFO ] [03:00:39.331] [GPU]   Backend: Vulkan
+[INFO ] [03:00:39.331] [GPU]   Type: Integrated GPU
+[INFO ] [03:00:39.331] [GPU] Headless GPU context initialized successfully
+[INFO ] [03:00:39.354] [BlitPath::init] Created water clipmap: 18817 vertices, 33792 triangles
+[INFO ] [03:00:39.426] [BlitPath::init] Loaded original generated ocean environment: data/generated/ocean_environment.png
+[INFO ] [03:00:40.315] [BlitPath::init] BlitPath initialized successfully
+[       OK ] BlitPathTest.UniformBufferCreated (1008 ms)
+[ RUN      ] BlitPathTest.SamplerCreated
+[INFO ] [03:00:40.347] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [03:00:40.347] [GPU]   Vendor: radv
+[INFO ] [03:00:40.347] [GPU]   Backend: Vulkan
+[INFO ] [03:00:40.347] [GPU]   Type: Integrated GPU
+[INFO ] [03:00:40.348] [GPU] Headless GPU context initialized successfully
+[INFO ] [03:00:40.373] [BlitPath::init] Created water clipmap: 18817 vertices, 33792 triangles
+[INFO ] [03:00:40.446] [BlitPath::init] Loaded original generated ocean environment: data/generated/ocean_environment.png
+[INFO ] [03:00:41.361] [BlitPath::init] BlitPath initialized successfully
+[       OK ] BlitPathTest.SamplerCreated (1045 ms)
+[ RUN      ] BlitPathTest.CameraUpdateStoresValues
+[INFO ] [03:00:41.389] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [03:00:41.389] [GPU]   Vendor: radv
+[INFO ] [03:00:41.389] [GPU]   Backend: Vulkan
+[INFO ] [03:00:41.389] [GPU]   Type: Integrated GPU
+[INFO ] [03:00:41.390] [GPU] Headless GPU context initialized successfully
+[INFO ] [03:00:41.421] [BlitPath::init] Created water clipmap: 18817 vertices, 33792 triangles
+[INFO ] [03:00:41.494] [BlitPath::init] Loaded original generated ocean environment: data/generated/ocean_environment.png
+[INFO ] [03:00:42.378] [BlitPath::init] BlitPath initialized successfully
+[       OK ] BlitPathTest.CameraUpdateStoresValues (1018 ms)
+[ RUN      ] BlitPathTest.TerrainSizeUpdatesUniforms
+[INFO ] [03:00:42.408] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [03:00:42.408] [GPU]   Vendor: radv
+[INFO ] [03:00:42.408] [GPU]   Backend: Vulkan
+[INFO ] [03:00:42.408] [GPU]   Type: Integrated GPU
+[INFO ] [03:00:42.409] [GPU] Headless GPU context initialized successfully
+[INFO ] [03:00:42.432] [BlitPath::init] Created water clipmap: 18817 vertices, 33792 triangles
+[INFO ] [03:00:42.506] [BlitPath::init] Loaded original generated ocean environment: data/generated/ocean_environment.png
+[INFO ] [03:00:43.393] [BlitPath::init] BlitPath initialized successfully
+[ERROR] [03:00:43.393] BlitPath::setTerrainSize: invalid terrain size
+[       OK ] BlitPathTest.TerrainSizeUpdatesUniforms (1015 ms)
+[ RUN      ] BlitPathTest.CanSetInputTextures
+[INFO ] [03:00:43.420] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [03:00:43.420] [GPU]   Vendor: radv
+[INFO ] [03:00:43.420] [GPU]   Backend: Vulkan
+[INFO ] [03:00:43.420] [GPU]   Type: Integrated GPU
+[INFO ] [03:00:43.421] [GPU] Headless GPU context initialized successfully
+[INFO ] [03:00:43.444] [BlitPath::init] Created water clipmap: 18817 vertices, 33792 triangles
+[INFO ] [03:00:43.518] [BlitPath::init] Loaded original generated ocean environment: data/generated/ocean_environment.png
+[INFO ] [03:00:44.400] [BlitPath::init] BlitPath initialized successfully
+[       OK ] BlitPathTest.CanSetInputTextures (1006 ms)
+[ RUN      ] BlitPathTest.RenderWithoutTexturesFails
+[INFO ] [03:00:44.429] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [03:00:44.429] [GPU]   Vendor: radv
+[INFO ] [03:00:44.429] [GPU]   Backend: Vulkan
+[INFO ] [03:00:44.429] [GPU]   Type: Integrated GPU
+[INFO ] [03:00:44.430] [GPU] Headless GPU context initialized successfully
+[INFO ] [03:00:44.453] [BlitPath::init] Created water clipmap: 18817 vertices, 33792 triangles
+[INFO ] [03:00:44.525] [BlitPath::init] Loaded original generated ocean environment: data/generated/ocean_environment.png
+[INFO ] [03:00:45.409] [BlitPath::init] BlitPath initialized successfully
+[WARN ] [03:00:45.410] BlitPath::render: missing required texture bindings
+[       OK ] BlitPathTest.RenderWithoutTexturesFails (1008 ms)
+[ RUN      ] BlitPathTest.RenderWithAllTexturesSucceeds
+[INFO ] [03:00:45.440] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [03:00:45.440] [GPU]   Vendor: radv
+[INFO ] [03:00:45.440] [GPU]   Backend: Vulkan
+[INFO ] [03:00:45.440] [GPU]   Type: Integrated GPU
+[INFO ] [03:00:45.441] [GPU] Headless GPU context initialized successfully
+[INFO ] [03:00:45.488] [BlitPath::init] Created water clipmap: 18817 vertices, 33792 triangles
+[INFO ] [03:00:45.561] [BlitPath::init] Loaded original generated ocean environment: data/generated/ocean_environment.png
+[INFO ] [03:00:46.452] [BlitPath::init] BlitPath initialized successfully
+[       OK ] BlitPathTest.RenderWithAllTexturesSucceeds (1048 ms)
+[ RUN      ] BlitPathTest.MoveConstructor
+[INFO ] [03:00:46.486] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [03:00:46.486] [GPU]   Vendor: radv
+[INFO ] [03:00:46.486] [GPU]   Backend: Vulkan
+[INFO ] [03:00:46.486] [GPU]   Type: Integrated GPU
+[INFO ] [03:00:46.487] [GPU] Headless GPU context initialized successfully
+[INFO ] [03:00:46.519] [BlitPath::init] Created water clipmap: 18817 vertices, 33792 triangles
+[INFO ] [03:00:46.592] [BlitPath::init] Loaded original generated ocean environment: data/generated/ocean_environment.png
+[INFO ] [03:00:47.473] [BlitPath::init] BlitPath initialized successfully
+[       OK ] BlitPathTest.MoveConstructor (1016 ms)
+[ RUN      ] BlitPathTest.MoveAssignment
+[INFO ] [03:00:47.506] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [03:00:47.506] [GPU]   Vendor: radv
+[INFO ] [03:00:47.506] [GPU]   Backend: Vulkan
+[INFO ] [03:00:47.506] [GPU]   Type: Integrated GPU
+[INFO ] [03:00:47.508] [GPU] Headless GPU context initialized successfully
+[INFO ] [03:00:47.541] [BlitPath::init] Created water clipmap: 18817 vertices, 33792 triangles
+[INFO ] [03:00:47.615] [BlitPath::init] Loaded original generated ocean environment: data/generated/ocean_environment.png
+[INFO ] [03:00:48.537] [BlitPath::init] BlitPath initialized successfully
+[       OK ] BlitPathTest.MoveAssignment (1063 ms)
+[ RUN      ] BlitPathTest.CustomConfig
+[INFO ] [03:00:48.569] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [03:00:48.569] [GPU]   Vendor: radv
+[INFO ] [03:00:48.569] [GPU]   Backend: Vulkan
+[INFO ] [03:00:48.569] [GPU]   Type: Integrated GPU
+[INFO ] [03:00:48.570] [GPU] Headless GPU context initialized successfully
+[INFO ] [03:00:48.593] [BlitPath::init] Created water clipmap: 18817 vertices, 33792 triangles
+[INFO ] [03:00:48.667] [BlitPath::init] Loaded original generated ocean environment: data/generated/ocean_environment.png
+[INFO ] [03:00:49.550] [BlitPath::init] BlitPath initialized successfully
+[       OK ] BlitPathTest.CustomConfig (1012 ms)
+[----------] 19 tests from BlitPathTest (14414 ms total)
+
+[----------] 1 test from PrimitivePathLayoutTest
+[ RUN      ] PrimitivePathLayoutTest.CpuShapeMirrorMatchesGpuStride
+[       OK ] PrimitivePathLayoutTest.CpuShapeMirrorMatchesGpuStride (0 ms)
+[----------] 1 test from PrimitivePathLayoutTest (0 ms total)
+
+[----------] 2 tests from PrimitiveMaterialTest
+[ RUN      ] PrimitiveMaterialTest.PacksStableGpuResidentPbrParameters
+[       OK ] PrimitiveMaterialTest.PacksStableGpuResidentPbrParameters (0 ms)
+[ RUN      ] PrimitiveMaterialTest.SanitizesNonFiniteAuthoringValues
+[       OK ] PrimitiveMaterialTest.SanitizesNonFiniteAuthoringValues (0 ms)
+[----------] 2 tests from PrimitiveMaterialTest (0 ms total)
+
+[----------] 8 tests from PrimitivePathTest
+[ RUN      ] PrimitivePathTest.RejectsNullGpuHandles
+[       OK ] PrimitivePathTest.RejectsNullGpuHandles (0 ms)
+[ RUN      ] PrimitivePathTest.SkipsMalformedSnapshotsAndNormalizesRotations
+[       OK ] PrimitivePathTest.SkipsMalformedSnapshotsAndNormalizesRotations (0 ms)
+[ RUN      ] PrimitivePathTest.SleepingInstanceCacheIsBitExact
+[       OK ] PrimitivePathTest.SleepingInstanceCacheIsBitExact (0 ms)
+[ RUN      ] PrimitivePathTest.ActiveBodiesBypassInstanceCache
+[       OK ] PrimitivePathTest.ActiveBodiesBypassInstanceCache (0 ms)
+[ RUN      ] PrimitivePathTest.PlansOnlyProvenDifferentInstanceRanges
+[       OK ] PrimitivePathTest.PlansOnlyProvenDifferentInstanceRanges (0 ms)
+[ RUN      ] PrimitivePathTest.FallsBackForDenseOrFragmentedChanges
+[       OK ] PrimitivePathTest.FallsBackForDenseOrFragmentedChanges (0 ms)
+[ RUN      ] PrimitivePathTest.SleepingTokenCannotSkipAnActiveOverwrite
+[       OK ] PrimitivePathTest.SleepingTokenCannotSkipAnActiveOverwrite (0 ms)
+[ RUN      ] PrimitivePathTest.TokenWrapForcesFullUploadBeforeReuse
+[       OK ] PrimitivePathTest.TokenWrapForcesFullUploadBeforeReuse (0 ms)
+[----------] 8 tests from PrimitivePathTest (0 ms total)
+
+[----------] 4 tests from PrimitivePathGPUTest
+[ RUN      ] PrimitivePathGPUTest.CompilesPrimitivePipeline
+[INFO ] [03:00:49.582] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [03:00:49.582] [GPU]   Vendor: radv
+[INFO ] [03:00:49.582] [GPU]   Backend: Vulkan
+[INFO ] [03:00:49.582] [GPU]   Type: Integrated GPU
+[INFO ] [03:00:49.584] [GPU] Headless GPU context initialized successfully
+[       OK ] PrimitivePathGPUTest.CompilesPrimitivePipeline (41 ms)
+[ RUN      ] PrimitivePathGPUTest.DrawsGpuResidentPhysicsBody
+[INFO ] [03:00:49.623] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [03:00:49.624] [GPU]   Vendor: radv
+[INFO ] [03:00:49.624] [GPU]   Backend: Vulkan
+[INFO ] [03:00:49.624] [GPU]   Type: Integrated GPU
+[INFO ] [03:00:49.625] [GPU] Headless GPU context initialized successfully
+[INFO ] [03:00:49.700] WebGPU physics initialized: 256 usable body slots, 0 MiB resident, 0 MiB scratch
+[       OK ] PrimitivePathGPUTest.DrawsGpuResidentPhysicsBody (115 ms)
+[ RUN      ] PrimitivePathGPUTest.CylinderCapsFaceOutwardAboveAndBelow
+[INFO ] [03:00:49.735] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [03:00:49.735] [GPU]   Vendor: radv
+[INFO ] [03:00:49.735] [GPU]   Backend: Vulkan
+[INFO ] [03:00:49.735] [GPU]   Type: Integrated GPU
+[INFO ] [03:00:49.736] [GPU] Headless GPU context initialized successfully
+[INFO ] [03:00:49.818] WebGPU physics initialized: 256 usable body slots, 0 MiB resident, 0 MiB scratch
+[INFO ] [03:00:49.852] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [03:00:49.852] [GPU]   Vendor: radv
+[INFO ] [03:00:49.852] [GPU]   Backend: Vulkan
+[INFO ] [03:00:49.852] [GPU]   Type: Integrated GPU
+[INFO ] [03:00:49.853] [GPU] Headless GPU context initialized successfully
+[INFO ] [03:00:49.910] WebGPU physics initialized: 256 usable body slots, 0 MiB resident, 0 MiB scratch
+[       OK ] PrimitivePathGPUTest.CylinderCapsFaceOutwardAboveAndBelow (210 ms)
+[ RUN      ] PrimitivePathGPUTest.DrawsResidentLegoStudCap
+[INFO ] [03:00:49.945] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [03:00:49.945] [GPU]   Vendor: radv
+[INFO ] [03:00:49.945] [GPU]   Backend: Vulkan
+[INFO ] [03:00:49.945] [GPU]   Type: Integrated GPU
+[INFO ] [03:00:49.947] [GPU] Headless GPU context initialized successfully
+[INFO ] [03:00:50.036] WebGPU physics initialized: 256 usable body slots, 0 MiB resident, 0 MiB scratch
+[       OK ] PrimitivePathGPUTest.DrawsResidentLegoStudCap (126 ms)
+[----------] 4 tests from PrimitivePathGPUTest (493 ms total)
+
+[----------] 3 tests from WorkgroupProfiles/GpuNarrowPhaseTest
+[ RUN      ] WorkgroupProfiles/GpuNarrowPhaseTest.GeneratesAllPairClassesAndPersistsPoints/0
+[INFO ] [03:00:50.073] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [03:00:50.073] [GPU]   Vendor: radv
+[INFO ] [03:00:50.073] [GPU]   Backend: Vulkan
+[INFO ] [03:00:50.073] [GPU]   Type: Integrated GPU
+[INFO ] [03:00:50.075] [GPU] Headless GPU context initialized successfully
+[       OK ] WorkgroupProfiles/GpuNarrowPhaseTest.GeneratesAllPairClassesAndPersistsPoints/0 (62 ms)
+[ RUN      ] WorkgroupProfiles/GpuNarrowPhaseTest.GeneratesAllPairClassesAndPersistsPoints/1
+[INFO ] [03:00:50.128] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [03:00:50.128] [GPU]   Vendor: radv
+[INFO ] [03:00:50.128] [GPU]   Backend: Vulkan
+[INFO ] [03:00:50.128] [GPU]   Type: Integrated GPU
+[INFO ] [03:00:50.129] [GPU] Headless GPU context initialized successfully
+[       OK ] WorkgroupProfiles/GpuNarrowPhaseTest.GeneratesAllPairClassesAndPersistsPoints/1 (43 ms)
+[ RUN      ] WorkgroupProfiles/GpuNarrowPhaseTest.GeneratesAllPairClassesAndPersistsPoints/2
+[INFO ] [03:00:50.171] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [03:00:50.171] [GPU]   Vendor: radv
+[INFO ] [03:00:50.171] [GPU]   Backend: Vulkan
+[INFO ] [03:00:50.171] [GPU]   Type: Integrated GPU
+[INFO ] [03:00:50.171] [GPU] Headless GPU context initialized successfully
+[       OK ] WorkgroupProfiles/GpuNarrowPhaseTest.GeneratesAllPairClassesAndPersistsPoints/2 (42 ms)
+[----------] 3 tests from WorkgroupProfiles/GpuNarrowPhaseTest (148 ms total)
+
+[----------] Global test environment tear-down
+[==========] 111 tests from 17 test suites ran. (18323 ms total)
+[  PASSED  ] 110 tests.
+[  SKIPPED ] 1 test, listed below:
+[  SKIPPED ] RaycastPathGPUTest.LegoHorizonBenchmark

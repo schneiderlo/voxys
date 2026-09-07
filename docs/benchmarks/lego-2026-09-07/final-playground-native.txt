@@ -1,0 +1,151 @@
+warning: Git tree '/home/modkin/workspace/schneiderlo/voxys' is dirty
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Running main() from /home/modkin/workspace/schneiderlo/voxys/third_party/googletest/googletest/src/gtest_main.cc
+Note: Google Test filter = LegoPlaygroundGpu.*:PrimitivePathGPUTest.*:*GpuNarrowPhase*.*:GpuDynamicSolverDifferentialTest.*
+[==========] Running 15 tests from 5 test suites.
+[----------] Global test environment set-up.
+[----------] 6 tests from LegoPlaygroundGpu
+[ RUN      ] LegoPlaygroundGpu.CompoundStudsSupportRealStackAndSleep
+[32m[INFO ] [02:50:26.653] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [02:50:26.653] [GPU]   Vendor: radv[0m
+[32m[INFO ] [02:50:26.653] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [02:50:26.653] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [02:50:26.653] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [02:50:28.450] WebGPU physics initialized: 128 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[       OK ] LegoPlaygroundGpu.CompoundStudsSupportRealStackAndSleep (1965 ms)
+[ RUN      ] LegoPlaygroundGpu.BoxFootprintSupportsEdgeAndRejectsInvalidPlacement
+[32m[INFO ] [02:50:28.596] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [02:50:28.596] [GPU]   Vendor: radv[0m
+[32m[INFO ] [02:50:28.596] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [02:50:28.596] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [02:50:28.597] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [02:50:28.649] WebGPU physics initialized: 128 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[       OK ] LegoPlaygroundGpu.BoxFootprintSupportsEdgeAndRejectsInvalidPlacement (180 ms)
+[ RUN      ] LegoPlaygroundGpu.BallImpactWakesStackAndCompletesChallengeThenResetReplays
+[32m[INFO ] [02:50:28.776] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [02:50:28.776] [GPU]   Vendor: radv[0m
+[32m[INFO ] [02:50:28.776] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [02:50:28.776] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [02:50:28.776] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [02:50:28.827] WebGPU physics initialized: 128 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[       OK ] LegoPlaygroundGpu.BallImpactWakesStackAndCompletesChallengeThenResetReplays (748 ms)
+[ RUN      ] LegoPlaygroundGpu.PoolsStayBoundedAcrossImpactsAndReset
+[32m[INFO ] [02:50:29.526] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [02:50:29.526] [GPU]   Vendor: radv[0m
+[32m[INFO ] [02:50:29.526] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [02:50:29.526] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [02:50:29.526] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [02:50:29.576] WebGPU physics initialized: 128 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[       OK ] LegoPlaygroundGpu.PoolsStayBoundedAcrossImpactsAndReset (526 ms)
+[ RUN      ] LegoPlaygroundGpu.RaysDistinguishStudCapsFromGapsOnRotatedBrick
+[32m[INFO ] [02:50:30.053] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [02:50:30.053] [GPU]   Vendor: radv[0m
+[32m[INFO ] [02:50:30.053] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [02:50:30.053] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [02:50:30.054] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [02:50:30.103] WebGPU physics initialized: 128 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[       OK ] LegoPlaygroundGpu.RaysDistinguishStudCapsFromGapsOnRotatedBrick (88 ms)
+[ RUN      ] LegoPlaygroundGpu.RejectsUnboundedCompoundDescriptions
+[32m[INFO ] [02:50:30.141] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [02:50:30.141] [GPU]   Vendor: radv[0m
+[32m[INFO ] [02:50:30.141] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [02:50:30.141] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [02:50:30.141] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [02:50:30.191] WebGPU physics initialized: 128 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[33m[WARN ] [02:50:30.192] Discarding unsupported LEGO compound dimensions[0m
+[33m[WARN ] [02:50:30.192] Discarding unsupported LEGO compound dimensions[0m
+[33m[WARN ] [02:50:30.192] Discarding unsupported LEGO compound dimensions[0m
+[       OK ] LegoPlaygroundGpu.RejectsUnboundedCompoundDescriptions (75 ms)
+[----------] 6 tests from LegoPlaygroundGpu (3586 ms total)
+
+[----------] 1 test from GpuDynamicSolverDifferentialTest
+[ RUN      ] GpuDynamicSolverDifferentialTest.StableDenseContactsMatchSparseOrdinalWindowBitwise
+[32m[INFO ] [02:50:30.218] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [02:50:30.218] [GPU]   Vendor: radv[0m
+[32m[INFO ] [02:50:30.218] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [02:50:30.218] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [02:50:30.218] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] GpuDynamicSolverDifferentialTest.StableDenseContactsMatchSparseOrdinalWindowBitwise (50 ms)
+[----------] 1 test from GpuDynamicSolverDifferentialTest (50 ms total)
+
+[----------] 1 test from GpuNarrowPhaseDifferentialTest
+[ RUN      ] GpuNarrowPhaseDifferentialTest.MatchesBox3dOnRandomBoundedPairs
+[32m[INFO ] [02:50:30.266] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [02:50:30.266] [GPU]   Vendor: radv[0m
+[32m[INFO ] [02:50:30.266] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [02:50:30.266] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [02:50:30.267] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] GpuNarrowPhaseDifferentialTest.MatchesBox3dOnRandomBoundedPairs (42 ms)
+[----------] 1 test from GpuNarrowPhaseDifferentialTest (42 ms total)
+
+[----------] 4 tests from PrimitivePathGPUTest
+[ RUN      ] PrimitivePathGPUTest.CompilesPrimitivePipeline
+[32m[INFO ] [02:50:30.310] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [02:50:30.310] [GPU]   Vendor: radv[0m
+[32m[INFO ] [02:50:30.310] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [02:50:30.310] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [02:50:30.310] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] PrimitivePathGPUTest.CompilesPrimitivePipeline (27 ms)
+[ RUN      ] PrimitivePathGPUTest.DrawsGpuResidentPhysicsBody
+[32m[INFO ] [02:50:30.337] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [02:50:30.337] [GPU]   Vendor: radv[0m
+[32m[INFO ] [02:50:30.337] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [02:50:30.337] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [02:50:30.337] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [02:50:30.390] WebGPU physics initialized: 256 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[       OK ] PrimitivePathGPUTest.DrawsGpuResidentPhysicsBody (84 ms)
+[ RUN      ] PrimitivePathGPUTest.CylinderCapsFaceOutwardAboveAndBelow
+[32m[INFO ] [02:50:30.422] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [02:50:30.422] [GPU]   Vendor: radv[0m
+[32m[INFO ] [02:50:30.422] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [02:50:30.422] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [02:50:30.422] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [02:50:30.475] WebGPU physics initialized: 256 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[32m[INFO ] [02:50:30.507] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [02:50:30.507] [GPU]   Vendor: radv[0m
+[32m[INFO ] [02:50:30.507] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [02:50:30.507] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [02:50:30.507] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [02:50:30.560] WebGPU physics initialized: 256 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[       OK ] PrimitivePathGPUTest.CylinderCapsFaceOutwardAboveAndBelow (169 ms)
+[ RUN      ] PrimitivePathGPUTest.DrawsResidentLegoStudCap
+[32m[INFO ] [02:50:30.593] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [02:50:30.593] [GPU]   Vendor: radv[0m
+[32m[INFO ] [02:50:30.593] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [02:50:30.593] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [02:50:30.593] [GPU] Headless GPU context initialized successfully[0m
+[32m[INFO ] [02:50:30.646] WebGPU physics initialized: 256 usable body slots, 0 MiB resident, 0 MiB scratch[0m
+[       OK ] PrimitivePathGPUTest.DrawsResidentLegoStudCap (86 ms)
+[----------] 4 tests from PrimitivePathGPUTest (368 ms total)
+
+[----------] 3 tests from WorkgroupProfiles/GpuNarrowPhaseTest
+[ RUN      ] WorkgroupProfiles/GpuNarrowPhaseTest.GeneratesAllPairClassesAndPersistsPoints/0
+[32m[INFO ] [02:50:30.678] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [02:50:30.678] [GPU]   Vendor: radv[0m
+[32m[INFO ] [02:50:30.678] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [02:50:30.678] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [02:50:30.679] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] WorkgroupProfiles/GpuNarrowPhaseTest.GeneratesAllPairClassesAndPersistsPoints/0 (1814 ms)
+[ RUN      ] WorkgroupProfiles/GpuNarrowPhaseTest.GeneratesAllPairClassesAndPersistsPoints/1
+[32m[INFO ] [02:50:32.493] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [02:50:32.493] [GPU]   Vendor: radv[0m
+[32m[INFO ] [02:50:32.493] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [02:50:32.493] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [02:50:32.493] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] WorkgroupProfiles/GpuNarrowPhaseTest.GeneratesAllPairClassesAndPersistsPoints/1 (44 ms)
+[ RUN      ] WorkgroupProfiles/GpuNarrowPhaseTest.GeneratesAllPairClassesAndPersistsPoints/2
+[32m[INFO ] [02:50:32.537] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [02:50:32.537] [GPU]   Vendor: radv[0m
+[32m[INFO ] [02:50:32.537] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [02:50:32.537] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [02:50:32.537] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] WorkgroupProfiles/GpuNarrowPhaseTest.GeneratesAllPairClassesAndPersistsPoints/2 (1761 ms)
+[----------] 3 tests from WorkgroupProfiles/GpuNarrowPhaseTest (3621 ms total)
+
+[----------] Global test environment tear-down
+[==========] 15 tests from 5 test suites ran. (7669 ms total)
+[  PASSED  ] 15 tests.

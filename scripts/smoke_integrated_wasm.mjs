@@ -136,8 +136,7 @@ try{
     // shortcuts that skip Application::init or replace the chosen scene.
     const base=`http://127.0.0.1:${server.address().port}`;
     const localUrl=selected==='presentation'?`${base}/__presentation.html`:selected==='default'?`${base}/`:
-        isLego?`${base}/index.html?experience=${selected}`:
-        `${base}/index.html?browserBenchmarkRun=1&physicsProfile=1&renderProfile=1&telemetry=0&physicsMaxBodies=1024&experience=${selected}`;
+        `${base}/index.html?experience=${selected}`;
     const url=process.env.VOXY_SMOKE_URL||localUrl;
     report.url=url;
     const navigationStarted=Date.now();
@@ -167,7 +166,7 @@ try{
             return {telemetry:JSON.parse(voxyModule.UTF8ToString(pointer)),
                 moto:moto?JSON.parse(voxyModule.UTF8ToString(moto)):null,
                 errors:globalThis.voxyUncapturedGpuErrors||[],lost:globalThis.voxyDeviceLost,
-                adapter:window.voxyDeviceProfile?.adapter,title:document.title,
+                adapter:window.voxyDeviceProfile?.adapter,title:document.title,buildId:window.voxyBuildId,
                 heapBytes:voxyModule.HEAPU8?.byteLength,
                 heapUsedBytes:voxyModule._voxy_get_heap_used_bytes?.(),
                 loadingVisible:getComputedStyle(document.getElementById('loading')).display!=='none',
@@ -196,6 +195,7 @@ try{
     assert.equal(budget.result.value.summary.status,'insufficient_samples');
     assert.equal(budget.result.value.summary.sample_count,1);
     report.budget_single_sample=budget.result.value.summary;
+    if(process.env.VOXY_SMOKE_BUILD_ID)assert.equal(sample.buildId,process.env.VOXY_SMOKE_BUILD_ID,'deployed revision mismatch');
     assert.equal(Boolean(sample.moto?.active),selected==='ridgebreak','experience activation mismatch');
     if(isLego){
         assert.equal(sample.title,isWorld?'LEGO Landscape — Voxys':'LEGO Shore — Voxys');
@@ -214,6 +214,14 @@ try{
     assert.equal(imageCode,0,'main page has no visible landscape');
     report.screenshot=screenshotPath;
     report.startupElapsedMs=Date.now()-navigationStarted;
+    if(process.env.VOXY_SMOKE_JOURNEY){
+        const {validateWorld}=await import('./validate_lego_world.mjs');
+        report.journey=await validateWorld(call,process.env.VOXY_SMOKE_JOURNEY);
+    }
+    if(process.env.VOXY_SMOKE_PLAYGROUND){
+        const {validatePlayground}=await import('./validate_lego_playground.mjs');
+        report.playground=await validatePlayground(call,process.env.VOXY_SMOKE_PLAYGROUND);
+    }
     report.status='passed';
     }
 }catch(error){report.status='failed';report.error=String(error);report.chrome_log=logs;throw error;}

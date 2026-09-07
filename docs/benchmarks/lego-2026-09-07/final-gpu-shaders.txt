@@ -1,0 +1,28 @@
+LEGO shader surface: consistent
+PASS: all 65,536 GPU plate heights agree with independent integer reference
+PASS: exact stud cap, side, rim; fast downward and wall impacts; clear sweep; bounded exhaustion
+Adapter: AMD Radeon 890M Graphics (RADV STRIX1) legacy K
+PASS: bevel edges, stud rims, corners, symmetry, finite unit normals, and subpixel fade
+flat: hits=5208 depth_errors=0 normal_errors=0 median_ms=0.176
+terraces: hits=5110 depth_errors=0 normal_errors=0 median_ms=0.119
+grazing: hits=5230 depth_errors=0 normal_errors=0 median_ms=0.183
+distant: hits=2948 depth_errors=0 normal_errors=0 median_ms=0.214
+ceiling: hits=5328 depth_errors=0 normal_errors=0 median_ms=0.131
+PASS: LEGO depth, face/stud normals, grazing rays, distance, and maximum-height bounds
+Adapter: AMD Radeon 890M Graphics (RADV STRIX1) shared terrain
+PASS: bevel edges, stud rims, corners, symmetry, finite unit normals, and subpixel fade
+flat: hits=5560 depth_errors=0 normal_errors=0 median_ms=0.195
+terraces: hits=5643 depth_errors=0 normal_errors=0 median_ms=0.179
+grazing: hits=5426 depth_errors=0 normal_errors=0 median_ms=0.181
+distant: hits=3212 depth_errors=0 normal_errors=0 median_ms=0.172
+ceiling: hits=5372 depth_errors=0 normal_errors=0 median_ms=0.166
+PASS: LEGO depth, face/stud normals, grazing rays, distance, and maximum-height bounds
+Adapter: AMD Radeon 890M Graphics (RADV STRIX1) shared terrain
+PASS: bevel edges, stud rims, corners, symmetry, finite unit normals, and subpixel fade
+flat: hits=5560 depth_errors=0 normal_errors=0 median_ms=0.170
+terraces: hits=5643 depth_errors=0 normal_errors=0 median_ms=0.180
+grazing: hits=5426 depth_errors=0 normal_errors=0 median_ms=0.177
+distant: hits=3212 depth_errors=0 normal_errors=0 median_ms=0.221
+ceiling: hits=5372 depth_errors=0 normal_errors=0 median_ms=0.183
+PASS: LEGO depth, face/stud normals, grazing rays, distance, and maximum-height bounds
+PASS: production world lookup, stale-tag rejection, map edges, four palette families and grouped/single seams

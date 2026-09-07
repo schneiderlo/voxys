@@ -1,0 +1,17 @@
+#lego-build-panel { position:fixed; left:24px; top:60px; z-index:30; width:min(320px,calc(100vw - 48px)); box-sizing:border-box; padding:20px; border-radius:18px; color:#243e3c; background:#f7f1e3f5; box-shadow:0 8px 36px #183c3226; font:15px/1.5 system-ui,sans-serif; border:1px solid #fff9; }
+#lego-build-panel[hidden] { display:none; }
+#lego-build-panel h2 { font-size:21px; line-height:1.25; margin:0 0 8px; font-weight:650; }
+#lego-build-panel p { margin:0 0 16px; }
+#lego-build-panel .lego-counts { display:flex; justify-content:space-between; gap:12px; font-size:13px; color:#526d59; }
+#lego-build-panel .lego-buttons { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+#lego-build-panel button { font:inherit; color:inherit; background:#fff9; border:1px solid #526d5944; border-radius:9px; padding:8px 12px; cursor:pointer; }
+#lego-build-panel button:hover { background:white; }
+#lego-build-panel button[aria-pressed=true],#lego-build-panel #lego-place { background:#35684d; color:white; border-color:#35684d; }
+#lego-build-panel button:disabled { opacity:.4; cursor:default; }
+#lego-build-panel button:focus-visible { outline:3px solid #bd8836; outline-offset:3px; }
+#lego-build-panel .lego-secondary { font-size:13px; }
+#lego-build-panel[data-success=true] { border-color:#6d9b52; background:#f0f5e8f5; }
+#lego-crosshair { display:none; position:fixed; left:50%; top:50%; z-index:19; width:8px; height:8px; margin:-5px; border:1.5px solid #fff; border-radius:50%; box-shadow:0 0 3px #243e3c; pointer-events:none; }
+.lego-building #lego-crosshair { display:block; }
+.lego-building #lego-shore-controls { display:none!important; }
+@media(max-width:600px) { #lego-build-panel { top:54px; left:12px; padding:12px; width:260px; font-size:13px; } #lego-build-panel h2 { font-size:18px; } #lego-build-panel p { margin-bottom:8px; } }
