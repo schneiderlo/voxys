@@ -31,10 +31,18 @@ export async function validateCoveBricks(call,directory) {
     };
     const mouse=async p=>{
         await call('Input.dispatchMouseEvent',{type:'mouseMoved',...p});
-        await call('Input.dispatchMouseEvent',{type:'mousePressed',button:'left',clickCount:1,...p});
-        await call('Input.dispatchMouseEvent',{type:'mouseReleased',button:'left',clickCount:1,...p});
+        await call('Input.dispatchMouseEvent',{type:'mousePressed',button:'left',buttons:1,clickCount:1,...p});
+        await delay(80);
+        await call('Input.dispatchMouseEvent',{type:'mouseReleased',button:'left',buttons:0,clickCount:1,...p});
     };
     const click=async id=>{
+        for(let depth=0;depth<8;++depth){
+            const disclosure=await evaluate(`(()=>{let p=document.getElementById(${JSON.stringify(id)})?.parentElement,closed;
+                while(p){if(p.tagName==='DETAILS'&&!p.open)closed=p;p=p.parentElement;}
+                if(!closed)return null;const e=closed.querySelector('summary');e.scrollIntoView({block:'nearest'});
+                const r=e.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2};})()`);
+            if(!disclosure)break;await mouse(disclosure);await delay(120);
+        }
         const end=Date.now()+15000;
         while(Date.now()<end) {
             await evaluate(`document.getElementById(${JSON.stringify(id)})?.scrollIntoView({block:'nearest'})`);
@@ -80,7 +88,13 @@ export async function validateCoveBricks(call,directory) {
         assert(await evaluate(`document.elementFromPoint(${x},${y})===voxyModule.canvas`),'build point must be visible on the actual canvas');
         return {x,y};
     };
-    const aim=async point=>{const p=await project(point);await call('Input.dispatchMouseEvent',{type:'mouseMoved',...p});await delay(200);return p;};
+    // A slow GPU can take longer than a fixed delay to apply a camera request
+    // or mouse move. Wait for actual application frames before reading a ghost.
+    const frames=async before=>wait(s=>BigInt(s.assetFixture.submittedSerial)>=BigInt(before)+2n&&!s.workshop.camera.framePending,'workshop frames',60);
+    const aim=async point=>{
+        const p=await project(point),before=(await read()).assetFixture.submittedSerial;
+        await call('Input.dispatchMouseEvent',{type:'mouseMoved',...p});await frames(before);return p;
+    };
     const blueprint=()=>evaluate("voxyModule.ccall('voxy_salvage_blueprint_action','string',['number','string'],[1,''])");
     const sail=async saved=>{
         await walkTo(4.5,-49);await walkTo(4.5,-53);
@@ -111,17 +125,35 @@ export async function validateCoveBricks(call,directory) {
         }
         await wait(s=>s.ready&&s.workshop?.canOpen,'cove ready');await click('salvage-workshop-toggle');
         await wait(s=>s.workshop.open,'workshop open');
-        assert.equal((await read()).workshop.name,'Winch');
-        await click('workshop-next');await wait(s=>s.workshop.name==='Cargo cradle','select cargo cradle');
+        // Another real-control journey can leave a different part selected.
+        // Select the named cradle through the UI, without assuming an index.
+        assert.equal((await read()).workshop.parts,11,'start with the intact starter');
+        for(let attempts=0;attempts<11&&(await read()).workshop.name!=='Cargo cradle';++attempts)
+            await click('workshop-next');
+        await wait(s=>s.workshop.name==='Cargo cradle','select cargo cradle');
         await click('workshop-remove');await click('workshop-keep');await wait(s=>s.workshop.parts===10&&!s.workshop.changed,'clear the cargo deck');
         let previous,cost=0;const sizes=['2x4','2x2','1x2','2x4','2x2','1x2','2x2','1x2'];
         for(let i=0;i<sizes.length;++i) {
             await click('workshop-brick-'+sizes[i]);await wait(s=>s.workshop.changed&&s.workshop.pointerPlacement,'palette creates ghost');
             cost+=Number((await read()).workshop.partCost);
             if(i===2){await click('workshop-rotate');}
-            const point=previous?previous.placement.map((n,k)=>n*.02+(k===1?.66:0)):[2,.96,-55];
-            const p=await aim(point);
-            await wait(s=>s.workshop.valid,'brick '+i+' fits at pointer');
+            if(previous){const before=(await read()).assetFixture.submittedSerial;await click('workshop-frame');await frames(before);}
+            // Aim through the solid top of the supporting brick. A point at
+            // stud-cap height can sit over the gap between studs and miss.
+            const point=previous?previous.placement.map((n,k)=>n*.02+(k===1?.42:0)):[2,.96,-55];
+            // Aim at actual top studs, not only the gap at the part's centre.
+            // Different viewport/panel framing changes which rim the ray hits.
+            // A bounded set of real pointer moves must still produce a valid
+            // connection at the expected stack height before any click.
+            let p;const targets=[];
+            for(const [dx,dz] of [[0,0],[.5,0],[-.5,0],[0,.5],[0,-.5],[.5,.5],[-.5,.5],[.5,-.5],[-.5,-.5]]){
+                const candidate=[point[0]+dx,point[1],point[2]+dz];
+                const pointer=await aim(candidate),w=(await read()).workshop;
+                targets.push({point:candidate,valid:w.valid,pointerTarget:w.pointerTarget,placement:w.placement});
+                if(w.pointerTarget&&w.valid&&(!previous||w.placement[1]===previous.placement[1]+48)){p=pointer;break;}
+            }
+            (report.pointerTargets??=[]).push(targets);
+            assert(p,'brick '+i+' must fit a visible top stud: '+JSON.stringify(targets));
             const ghost=(await read()).workshop;
             if(previous)assert.equal(ghost.placement[1],previous.placement[1]+48,'engaged stack height');
             if(i===2)assert.notEqual(ghost.rotation,previous.rotation,'upper brick rotated relative to support');

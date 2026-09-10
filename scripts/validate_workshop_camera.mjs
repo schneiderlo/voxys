@@ -14,6 +14,16 @@ export async function validateWorkshopCamera(call,directory) {
     const key=async(code,down)=>call('Input.dispatchKeyEvent',{type:down?'keyDown':'keyUp',code:code==='Shift'?'ShiftLeft':'Key'+code,
         key:code==='Shift'?'Shift':code.toLowerCase(),windowsVirtualKeyCode:code==='Shift'?16:code.charCodeAt(0)});
     const click=async id=>{
+        // Open containing disclosures using real summary clicks, as a player
+        // would. Never set .open or bypass the DOM action handlers.
+        for(let depth=0;depth<8;++depth){
+            const disclosure=await evaluate(`(()=>{let p=document.getElementById(${JSON.stringify(id)})?.parentElement,closed;
+                while(p){if(p.tagName==='DETAILS'&&!p.open)closed=p;p=p.parentElement;}
+                if(!closed)return null;const e=closed.querySelector('summary');e.scrollIntoView({block:'nearest'});
+                const r=e.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2};})()`);
+            if(!disclosure)break;await move(disclosure);await mouse('mousePressed',disclosure,'left',1);
+            await mouse('mouseReleased',disclosure);await delay(120);
+        }
         await evaluate(`document.getElementById(${JSON.stringify(id)}).scrollIntoView({block:'nearest',behavior:'instant'})`);
         const locate=()=>evaluate(`(()=>{const e=document.getElementById(${JSON.stringify(id)}),r=e.getBoundingClientRect();
             if(e.hidden||e.disabled)return null;const x=r.x+r.width/2,y=r.y+r.height/2;
@@ -35,6 +45,11 @@ export async function validateWorkshopCamera(call,directory) {
         },{capture:true});})()`);
         let s=await wait(s=>s.ready,'ready');
         if(s.pause.phase==='paused'){await click('salvage-pause');await wait(s=>s.pause.phase==='running','resume');}
+        report.playingLayout=await evaluate(`(()=>{const e=document.getElementById('salvage-preview'),r=e.getBoundingClientRect();
+            return {width:r.width,height:r.height,coverage:r.width*r.height/(innerWidth*innerHeight),
+                horizontalOverflow:e.scrollWidth>e.clientWidth+1,toolsExpanded:document.getElementById('salvage-field-tools')?.open};})()`);
+        assert(report.playingLayout.coverage<.25,'default gameplay controls must leave at least three quarters of the game visible');
+        assert(!report.playingLayout.horizontalOverflow&&!report.playingLayout.toolsExpanded);
         await click('salvage-workshop-toggle');await wait(s=>s.workshop.open&&s.workshop.camera.rectangle[2]<.8,'whole boat beside panel');
         await delay(300);const initial=await read(),design=await blueprint();await record('whole-boat-framed');
         await click('workshop-focus');await wait(s=>Math.abs(s.workshop.camera.distance-initial.workshop.camera.distance)>.1,'selected part focus');

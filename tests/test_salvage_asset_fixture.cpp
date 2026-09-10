@@ -359,12 +359,13 @@ struct FixtureGPU : testing::Test {
     }
 };
 
-TEST_F(FixtureGPU, FilteredEnvironmentIsChargedRetriedAndRetiredWithItsGeneration) {
+TEST_F(FixtureGPU, FilteredEnvironmentAndSunShadowsAreChargedRetriedAndRetiredWithTheirGeneration) {
     fixture.shutdown();
     SalvageFixtureConfig config; config.colorFormat=WGPUTextureFormat_RGBA8Unorm;
     config.filteredEnvironment=true;
+    config.sunShadows=true;
     const uint64_t charge=SalvageAssetFixture::fixedGpuReservationBytes
-        +MeshPath::filteredEnvironmentReservationBytes+bundle->requestedGpuBytes();
+        +MeshPath::filteredEnvironmentReservationBytes+MeshPath::sunShadowReservationBytes+bundle->requestedGpuBytes();
     config.maximumOwnerGpuBytes=charge-1;
     ASSERT_TRUE(fixture.init(context.getDevice(),context.getQueue(),config,error));
     const std::array bundles{bundle};

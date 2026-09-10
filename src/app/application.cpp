@@ -283,6 +283,7 @@ struct SalvageLocalSessionState {
         int workshopFrameRequest=0;
         bool workshopFrameWhole=true;
         bool workshopPointerPlacement=false;
+        bool workshopPointerTarget=false;
         struct WorkshopView { glm::vec3 position; float yaw,pitch; glm::ivec3 sector; };
         std::optional<WorkshopView> workshopReturnView;
         std::unique_ptr<game::expedition::CoveSceneryCollision> scenery;
@@ -5074,8 +5075,10 @@ bool Application::renderSalvageAsset(WGPUCommandEncoder encoder, WGPUTextureView
             .cameraRelativeRoot = root, .placement = source.placement, .prototype = source.prototype};
         if(designPart) {
             rendered.cameraRelativeRoot=glm::translate(root,glm::dvec3(0,4,0));
-            if(i==asset.workshop->selected())rendered.tint=asset.workshop->valid()
-                ? glm::vec4(.45f,1.f,.55f,1.f):glm::vec4(1.f,.22f,.18f,1.f);
+            if(i==asset.workshop->selected())rendered.tint=!asset.workshop->valid()
+                ? glm::vec4(1.f,.22f,.18f,1.f)
+                : asset.workshopPointerPlacement&&!asset.workshopPointerTarget
+                    ? glm::vec4(1.f,.75f,.25f,1.f):glm::vec4(.45f,1.f,.55f,1.f);
         }
         if (asset.content->assembly && !asset.liveScene && i<asset.content->connectedSockets.size()) rendered.selectedSockets = asset.content->connectedSockets[i];
         for(const auto& [assembly,body]:{std::pair{asset.boat.get(),asset.boat?asset.boatRoot().body:physics::BodyHandle{}},std::pair{asset.cargo.get(),asset.cargoBody}}) {
@@ -5107,7 +5110,7 @@ bool Application::renderSalvageAsset(WGPUCommandEncoder encoder, WGPUTextureView
             model=glm::rotate(model,.48,glm::dvec3(1,0,0));
             model=glm::rotate(model,-.35,glm::dvec3(0,1,0));
             model=glm::scale(model,glm::dvec3(.1));
-            placements[placementCount++]={.bundleIndex=*bundle,.lodId=1,.cameraRelativeRoot=model};
+            placements[placementCount++]={.bundleIndex=*bundle,.lodId=1,.cameraRelativeRoot=model,.castsSunShadow=false};
         }
     }
 #endif
@@ -5730,6 +5733,7 @@ bool Application::initSalvagePreview() {
         fixtureConfig.linearHdrOutput = config_.salvageAssetFixtureWaterAnchor;
         fixtureConfig.colorFormat = fixtureConfig.linearHdrOutput ? WGPUTextureFormat_RGBA16Float : config_.colorFormat;
         fixtureConfig.filteredEnvironment = config_.salvageAssetFixtureFilteredLighting;
+        fixtureConfig.sunShadows = config_.salvageAssetFixtureWaterAnchor;
         if (!asset->fixture.init(gpuContext_->getDevice(), gpuContext_->getQueue(), fixtureConfig, error)
             || !asset->fixture.beginCandidate(asset->content->bundles, error, asset->content->prototypes)) {
             LOG_ERROR("Asset fixture initialization failed: {}", error);
@@ -6751,7 +6755,8 @@ std::string Application::salvagePreviewJson() const {
         const auto visible=workshopCamera.rectangle();
         json<<",\"camera\":{\"target\":["<<viewTarget.x<<','<<viewTarget.y<<','<<viewTarget.z
             <<"],\"distance\":"<<workshopCamera.distance()<<",\"yaw\":"<<workshopCamera.yaw()
-            <<",\"elevation\":"<<workshopCamera.elevation()<<",\"rectangle\":["<<visible.x<<','<<visible.y<<','<<visible.z<<','<<visible.w<<"]}";
+            <<",\"elevation\":"<<workshopCamera.elevation()<<",\"framePending\":"<<(asset->workshopFrameRequest?"true":"false")
+            <<",\"rectangle\":["<<visible.x<<','<<visible.y<<','<<visible.z<<','<<visible.w<<"]}";
         if(asset->workshop) {
             const auto& w=*asset->workshop;const auto p=w.preview().registry.placements[w.selected()].placement;
             const auto settings=w.selectedSettings();
@@ -6788,7 +6793,8 @@ std::string Application::salvagePreviewJson() const {
                 json<<"{\"index\":"<<i<<",\"name\":\""<<asset->workshop->catalogNameAt(i)
                     <<"\",\"cost\":\""<<price.salvageMaterial<<"\"}";
             }
-            json<<"],\"pointerPlacement\":"<<(asset->workshopPointerPlacement?"true":"false");
+            json<<"],\"pointerPlacement\":"<<(asset->workshopPointerPlacement?"true":"false")
+                <<",\"pointerTarget\":"<<(asset->workshopPointerTarget?"true":"false");
         }
         json<<",\"storedParts\":"<<owned.storedParts.size()<<",\"savePending\":"<<(asset->workshopSavePending?"true":"false")
             <<",\"canRebuild\":"<<(!pending&&kept&&same&&salvageLocalSession_->storageHostReady&&!asset->towRope.valid()?"true":"false");
@@ -7322,6 +7328,7 @@ void Application::updateCovePlayer(float deltaTime) {
         const auto displayOrigin=asset.origin+glm::dvec3(0,4,0);
         setCameraWorldPose(*camera_,displayOrigin+view.eye(),displayOrigin+view.viewTarget());
         const glm::dvec2 pointer(input_->mousePosition());
+        asset.workshopPointerTarget=false;
         bool paletteClick=false;
 #if defined(VOXY_NATIVE)
         if(!gesture&&input_->wasMouseButtonPressed(MouseButton::Left)&&pointerWidth>0&&pointerHeight>0
@@ -7341,6 +7348,7 @@ void Application::updateCovePlayer(float deltaTime) {
             const auto direction=glm::normalize(glm::dvec3(far)/far.w-cameraLocal);
             const auto from=cameraLocal+glm::dvec3(camera_->worldSector())*double(physics::kWorldSectorSize)-asset.origin-glm::dvec3(0,4,0);
             const auto hit=asset.workshop->pick(from,direction,asset.workshopPointerPlacement);
+            asset.workshopPointerTarget=hit.has_value();
             if(asset.workshopPointerPlacement&&hit && (input_->mouseDelta()!=glm::vec2(0)||input_->wasKeyPressed(Key::R)||input_->wasMouseButtonPressed(MouseButton::Left)))(void)asset.workshop->aimAt(*hit);
             if(input_->wasMouseButtonPressed(MouseButton::Left)) {
                 if(asset.workshopPointerPlacement) {

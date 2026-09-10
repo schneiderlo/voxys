@@ -12,6 +12,8 @@
         const reset = document.getElementById('salvage-reset');
         const pause = document.getElementById('salvage-pause');
         const leave = document.getElementById('salvage-leave');
+        if (cove) leave.textContent = 'Leave Cove';
+        else document.getElementById('salvage-field-tools')?.setAttribute('open','');
         const interact = document.getElementById('salvage-interact');
         const cutter = document.getElementById('salvage-cut');
         const workshopPanel=document.getElementById('salvage-workshop');
@@ -140,10 +142,10 @@
             if (state.failed) { fail(); return; }
             if (state.assetFixture && lodPanel) {
                 lodPanel.hidden = cove;
-                document.getElementById('salvage-title').textContent = state.workshop?.open ? 'Workshop' : cove ? 'Cove preview' : state.assetFixture.assembly
+                document.getElementById('salvage-title').textContent = state.workshop?.open ? 'Build your boat' : cove ? 'Salvage Cove' : state.assetFixture.assembly
                     ? (state.assetFixture.prototypeUploads ? 'Pontoon assembly check' : 'Assembly inspection') : 'Model inspection';
                 document.getElementById('salvage-help').textContent = state.workshop?.open
-                    ? 'Arrows: move · T: snap · R: rotate · E: keep · Enter: launch · U: undo edit · B: close' : state.player
+                    ? '1 / 2 / 3: choose a brick · click to place · R: rotate · U: undo · Enter: launch · B: close' : state.player
                     ? 'WASD to walk · click to look · Space to jump · E to interact · R to return'
                     : 'WASD to fly · click to look · E / Q up and down';
                 for (const button of lodButtons) {
@@ -245,7 +247,9 @@
                 if(open) {
                     document.getElementById('salvage-workshop-part').textContent=`${w.name} · Part ${w.selected+1} · ${w.parts} parts in design`;
                     const note=document.getElementById('salvage-workshop-status');
-                    note.textContent=(w.launchMessage||w.message)+(w.valid?` Mass: ${w.massKg.toFixed(0)} kg.`:'');
+                    const noTarget=w.valid&&w.pointerPlacement&&w.pointerTarget===false;
+                    note.textContent=(w.launchMessage||(noTarget?'Point at a part to place, or Keep this position.':w.message))
+                        +(w.valid?` Mass: ${w.massKg.toFixed(0)} kg.`:'');
                     note.dataset.valid=String(w.valid);
                     const drawer=document.getElementById('workshop-catalog-name');
                     if(drawer)drawer.textContent=`${w.catalogName||'Parts'} · ${w.partCost||'0'} material${w.partMachinery!=='0'&&w.partMachinery?` + ${w.partMachinery} machinery`:''}`;
@@ -316,7 +320,7 @@
             leave.disabled = !state.active || Boolean(state.job?.savePending)||Boolean(state.harbor?.pending)||Boolean(state.rescue?.pending);
             status.textContent = state.rescue?.pending ? 'Recovering your boat. Resume unlocks after saving.' : state.harbor?.pending ? 'Installing the harbor lift. Resume unlocks after saving.' : state.job?.savePending ? 'Your haul is being saved. Resume unlocks after confirmation.'
                 : paused ? (pausePhase==='paused'?'Expedition paused. Press P or Resume to continue.':'Finishing the current movement…')
-                : state.workshop?.open ? (state.workshop.pending ? 'Preparing your boat…' : 'Keep valid changes, then Launch to sail them. Edits last until you leave.') : state.player && !state.busy
+                : state.workshop?.open ? (state.workshop.pending ? 'Preparing your boat…' : 'Choose a brick. Point, rotate, then click to place.') : state.player && !state.busy
                 ? (state.player.mode === 'helm' ? 'W/S: throttle · A/D: steer · E: leave helm · R: rescue and save'
                     : state.player.mode === 'swimming' ? 'Swimming. Press R for rescue and save.'
                     : state.player.onBoat ? 'F hooks nearby salvage. Walk to the helm to sail.'

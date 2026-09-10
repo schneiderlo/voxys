@@ -95,7 +95,7 @@ const gpuFlags=process.env.VOXY_SMOKE_GPU==='gaming'
     : ['--use-angle=vulkan','--enable-features=Vulkan','--use-vulkan=native','--disable-vulkan-surface'];
 const chrome=spawn(process.env.VOXY_TEST_CHROME||'google-chrome',[
     ...(['gaming','gaming-x11','swiftshader-window'].includes(process.env.VOXY_SMOKE_GPU)?[]:['--headless=new']),'--no-sandbox','--no-first-run','--no-default-browser-check',
-    '--disable-background-networking','--enable-unsafe-webgpu','--enable-unsafe-swiftshader',
+    '--disable-background-networking','--disable-dev-shm-usage','--enable-unsafe-webgpu','--enable-unsafe-swiftshader',
     '--disable-gpu-watchdog','--disable-background-timer-throttling','--disable-renderer-backgrounding',...gpuFlags,
     '--remote-debugging-port=0',`--user-data-dir=${directory}`,'about:blank'
 ],{stdio:['ignore','ignore','pipe']});
@@ -165,7 +165,7 @@ const startBrowserMemory=call=>{
 const timeoutMs=Number(process.env.VOXY_SMOKE_TIMEOUT_MS||240000);
 assert(Number.isInteger(timeoutMs)&&timeoutMs>=60000&&timeoutMs<=1800000,'smoke timeout must be 60..1800 seconds');
 report.timeout_ms=timeoutMs;
-const timer=setTimeout(()=>chrome.kill('SIGKILL'),timeoutMs);
+const timer=setTimeout(()=>{report.timeout_expired=true;chrome.kill('SIGKILL');},timeoutMs);
 try{
     if(memoryEnabled){
         report.memory_instrumented=true;
@@ -201,7 +201,8 @@ try{
     let port;
     for(let i=0;i<1200&&!port;++i){
         if(spawnError)throw spawnError;
-        if(chrome.exitCode!==null)throw new Error(logs);
+        if(chrome.exitCode!==null||chrome.signalCode!==null)
+            throw new Error(`Chrome exited before debugging was ready (${chrome.exitCode??chrome.signalCode}): ${logs}`);
         // A retained profile keeps the previous process's DevToolsActivePort.
         // Only use the endpoint announced by this newly spawned child.
         const announced=logs.match(/DevTools listening on ws:\/\/127\.0\.0\.1:(\d+)\//);
@@ -441,14 +442,14 @@ try{
         const {validateCoveSettings}=await import('./validate_cove_settings.mjs');
         report.cove_settings=await validateCoveSettings(call,process.env.VOXY_SMOKE_COVE_SETTINGS);
     }
+    if(process.env.VOXY_SMOKE_WORKSHOP_CAMERA){
+        const {validateWorkshopCamera}=await import('./validate_workshop_camera.mjs');
+        report.workshop_camera=await validateWorkshopCamera(call,process.env.VOXY_SMOKE_WORKSHOP_CAMERA);
+    }
     if(process.env.VOXY_SMOKE_COVE_BRICKS){
         assert.equal(selected,'salvage-cove');
         const {validateCoveBricks}=await import('./validate_cove_bricks.mjs');
         report.cove_bricks=await validateCoveBricks(call,process.env.VOXY_SMOKE_COVE_BRICKS);
-    }
-    if(process.env.VOXY_SMOKE_WORKSHOP_CAMERA){
-        const {validateWorkshopCamera}=await import('./validate_workshop_camera.mjs');
-        report.workshop_camera=await validateWorkshopCamera(call,process.env.VOXY_SMOKE_WORKSHOP_CAMERA);
     }
     if(process.env.VOXY_SMOKE_COVE_PARTS){
         assert.equal(selected,'salvage-cove');

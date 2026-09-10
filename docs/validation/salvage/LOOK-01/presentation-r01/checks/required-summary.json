@@ -1,0 +1,21 @@
+{
+  "status": "passed",
+  "command": "bazel test //tests:voxy_tests //tools:terrain_diffusion_import_test",
+  "native": {
+    "declared": 2061,
+    "passed": 2054,
+    "skipped": [
+      "WindowGLFWTest.WindowCreation",
+      "GpuBroadPhaseOverflowBenchmark.DenseGridCandidateClamp",
+      "RaycastPathGPUTest.LegoHorizonBenchmark"
+    ],
+    "disabled": 4,
+    "failures": 0,
+    "seconds": 1062.385
+  },
+  "terrainImport": {
+    "status": "passed",
+    "cached": true
+  },
+  "note": "The mandatory aggregate has 2,054 passing cases. MeshPath pixel tests are a separate target; the new live-shadow test is covered by the separately recorded 32-case CMake renderer/fixture run. No aggregate or disabled-test configuration was changed."
+}

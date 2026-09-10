@@ -278,7 +278,8 @@ bool SalvageAssetFixture::init(WGPUDevice device, WGPUQueue queue,
     const SalvageFixtureConfig& config, std::string& error) {
     if (impl_) { error = "fixture already initialized; drain/shutdown before re-entry"; return false; }
     const uint64_t fixed = fixedGpuReservationBytes
-        + (config.filteredEnvironment ? MeshPath::filteredEnvironmentReservationBytes : 0u);
+        + (config.filteredEnvironment ? MeshPath::filteredEnvironmentReservationBytes : 0u)
+        + (config.sunShadows ? MeshPath::sunShadowReservationBytes : 0u);
     if (!device || !queue || config.maximumOwnerGpuBytes <= fixed
         || config.maximumOwnerGpuBytes > 16ull * 1024ull * 1024ull
         || config.maximumResidentGpuBytes < config.maximumOwnerGpuBytes
@@ -310,6 +311,7 @@ bool SalvageAssetFixture::beginCandidate(
         return state.fail(error, "fixture generation counter exhausted");
     auto owner = std::make_unique<Owner>();
     if (state.config.filteredEnvironment) owner->reservedBytes += MeshPath::filteredEnvironmentReservationBytes;
+    if (state.config.sunShadows) owner->reservedBytes += MeshPath::sunShadowReservationBytes;
     if (prototypes.size() > maximumPrototypes) return state.fail(error,"prototype definition ceiling exceeded");
     owner->prototypes.reserve(prototypes.size());
     for (const auto& definition : prototypes) {
@@ -372,6 +374,7 @@ bool SalvageAssetFixture::beginCandidate(
     config.maxDrawsPerFrame = maximumExpandedDraws;
     config.linearHdrOutput = state.config.linearHdrOutput;
     config.filteredEnvironment = state.config.filteredEnvironment;
+    config.sunShadows = state.config.sunShadows;
     bool valid = owner->path.init(state.device, state.queue, config);
     if (valid) valid = owner->path.setSceneTextures(state.environment, state.rayDepth);
     if (valid) for (const auto* lod : owner->uploads) {
@@ -384,6 +387,7 @@ bool SalvageAssetFixture::beginCandidate(
     if(valid) valid=owner->path.loadMeshData(guideMesh);
     config.depthOverlay = true;
     config.filteredEnvironment = false;
+    config.sunShadows = false;
     if (valid) valid = owner->guidePath.init(state.device,state.queue,config);
     if (valid) valid = owner->guidePath.loadMeshData(guideMesh);
     scopes.close();
@@ -538,7 +542,8 @@ bool SalvageAssetFixture::encode(WGPUCommandEncoder encoder, WGPUTextureView col
         expandedDraws += prefab.counts.expandedDraws;
         authoredInstances += prefab.counts.meshInstances;
         for (const auto& draw : placed) instances.push_back({.assetIndex = upload,
-            .meshIndex = draw.meshIndex, .modelMatrix = draw.modelMatrix, .tintColor = placement.tint, .physicsBody = placement.physicsBody});
+            .meshIndex = draw.meshIndex, .modelMatrix = draw.modelMatrix, .tintColor = placement.tint,
+            .physicsBody = placement.physicsBody, .castsSunShadow = placement.castsSunShadow});
         // One ruler stand avoids duplicating labels/scales. Socket inspection
         // covers every placement; reject the whole frame if its budget cannot
         // represent every socket instead of silently dropping late guides.

@@ -480,13 +480,10 @@ if(VOXY_BUILD_WASM)
             )
         endif()
         
-        # Asset preloading with compression
-        # See specs/platform-build.md Section 9.2 for details
-        # --use-preload-plugins enables automatic processing of preloaded files
-        # LZ4 compression is applied to the .data file for smaller downloads
-        list(APPEND WASM_LINK_FLAGS
-            "--use-preload-plugins"
-        )
+        # Populate the virtual filesystem with original asset bytes. Textures
+        # are decoded by the shared C++ loaders (stb_image / VMESH), not by
+        # Emscripten's browser-image preload plugin. That unused second decode
+        # can fail before startup and retains duplicate full-size image data.
         
         # Core assets that must always be present
         list(APPEND WASM_LINK_FLAGS

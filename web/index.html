@@ -216,16 +216,19 @@
     </section>
     <div id="lego-crosshair" aria-hidden="true"></div>
     <section id="salvage-preview" hidden data-voxy-ui aria-label="Cove preview controls">
-        <h2 id="salvage-title">Cove preview</h2>
+        <h2 id="salvage-title">Salvage Cove</h2>
         <p id="salvage-status" role="status" aria-live="polite">Explore the dock and wreck.</p>
+        <details class="salvage-help-drawer"><summary>Controls &amp; help</summary>
         <p id="salvage-help">WASD to walk · click to look · Space to jump</p>
+        <p class="salvage-note">Build a boat, explore the coast and bring salvage home.</p>
+        </details>
         <div id="salvage-lods" hidden aria-label="Model detail level">
             <button type="button" data-salvage-lod="0">Auto · 0</button>
             <button type="button" data-salvage-lod="1">Near · 1</button>
             <button type="button" data-salvage-lod="2">Middle · 2</button>
             <button type="button" data-salvage-lod="3">Far · 3</button>
         </div>
-        <p class="salvage-note" id="salvage-scope">Early sailing and workshop preview. Campaign progress is unfinished.</p>
+        <p class="salvage-note" id="salvage-scope">Work in progress</p>
         <div id="salvage-guides" hidden aria-label="Inspection guides">
             <button type="button" data-salvage-guide="0">Clean view</button>
             <button type="button" data-salvage-guide="1">Rulers</button>
@@ -234,6 +237,28 @@
         </div>
         <button id="salvage-workshop-toggle" type="button" hidden disabled>Workshop · B</button>
         <div id="salvage-workshop" hidden aria-label="Starter craft workshop">
+            <p id="salvage-workshop-stock"></p>
+            <div class="workshop-bricks" aria-label="Build with bricks">
+                <button id="workshop-brick-1x2" data-workshop-action="-1" data-workshop-brick="Brick 1 x 2" disabled><span class="brick-icon brick-1x2" aria-hidden="true"></span><span class="brick-label">1 × 2 · 1</span></button>
+                <button id="workshop-brick-2x2" data-workshop-action="-1" data-workshop-brick="Brick 2 x 2" disabled><span class="brick-icon brick-2x2" aria-hidden="true"></span><span class="brick-label">2 × 2 · 2</span></button>
+                <button id="workshop-brick-2x4" data-workshop-action="-1" data-workshop-brick="Brick 2 x 4" disabled><span class="brick-icon brick-2x4" aria-hidden="true"></span><span class="brick-label">2 × 4 · 3</span></button>
+            </div>
+            <p id="salvage-workshop-part"></p>
+            <p id="salvage-workshop-status" role="status" aria-live="polite"></p>
+            <p class="salvage-note">Need space? Select Cargo cradle, then Remove and Keep.</p>
+            <div class="workshop-grid workshop-primary">
+                <button id="workshop-prev" data-workshop-action="61">Previous part</button>
+                <button id="workshop-next" data-workshop-action="62">Next part · Tab</button>
+                <button id="workshop-rotate" data-workshop-action="69">Rotate · R</button>
+                <button id="workshop-remove" data-workshop-action="74">Remove part</button>
+                <button id="workshop-keep" data-workshop-action="71">Keep change · E</button>
+                <button id="workshop-undo" data-workshop-action="72">Undo · U</button>
+            </div>
+                <button id="workshop-launch" data-workshop-action="79">Launch boat · Enter</button>
+            <details class="workshop-section"><summary>How to build</summary>
+            <p class="salvage-note">First, select Cargo cradle → Remove → Keep to clear deck space. Then choose a brick, point and click. R rotates. Green fits; red is blocked.</p>
+            </details>
+            <details class="workshop-section"><summary>Camera</summary>
             <div class="workshop-camera" aria-label="Workshop camera">
                 <button id="workshop-focus" data-workshop-action="97">Focus part · G</button>
                 <button id="workshop-frame" data-workshop-action="98">Whole boat · M</button>
@@ -243,47 +268,36 @@
                 <button id="workshop-farther" data-workshop-action="78">Farther</button>
             </div>
             <p class="salvage-note">Right-drag: orbit · Shift + right-drag: pan · Wheel: zoom</p>
-            <p id="salvage-workshop-stock"></p>
-            <div class="workshop-bricks" aria-label="Build with bricks">
-                <button id="workshop-brick-1x2" data-workshop-action="-1" data-workshop-brick="Brick 1 x 2" disabled><span class="brick-icon brick-1x2" aria-hidden="true"></span><span class="brick-label">1 × 2 · 1</span></button>
-                <button id="workshop-brick-2x2" data-workshop-action="-1" data-workshop-brick="Brick 2 x 2" disabled><span class="brick-icon brick-2x2" aria-hidden="true"></span><span class="brick-label">2 × 2 · 2</span></button>
-                <button id="workshop-brick-2x4" data-workshop-action="-1" data-workshop-brick="Brick 2 x 4" disabled><span class="brick-icon brick-2x4" aria-hidden="true"></span><span class="brick-label">2 × 4 · 3</span></button>
-            </div>
-            <p class="salvage-note">First, select Cargo cradle → Remove → Keep to clear deck space. Then choose a brick, point and click. R rotates. Green fits; red is blocked.</p>
+            </details>
+            <details class="workshop-section"><summary>Boat parts &amp; machinery</summary>
             <div class="workshop-camera" aria-label="Parts drawer">
                 <button id="workshop-catalog-prev" data-workshop-action="82">Previous type</button>
                 <span id="workshop-catalog-name"></span>
                 <button id="workshop-catalog-next" data-workshop-action="83">Next type · C</button>
                 <button id="workshop-add" data-workshop-action="84">Add part · V</button>
             </div>
-            <p id="salvage-workshop-part"></p>
-            <p id="salvage-workshop-status" role="status" aria-live="polite"></p>
             <div class="workshop-camera" aria-label="Part settings">
                 <span id="workshop-settings-note"></span>
                 <button id="workshop-setting-enabled" data-workshop-action="85">Turn off · X</button>
                 <button id="workshop-setting-limit" data-workshop-action="86">Output limit · L</button>
                 <button id="workshop-setting-reverse" data-workshop-action="87">Reverse drive · N</button>
             </div>
+            </details>
+            <details class="workshop-section"><summary>Move, snap &amp; restore</summary>
             <div class="workshop-grid">
-                <button id="workshop-prev" data-workshop-action="61">Previous part</button>
-                <button id="workshop-next" data-workshop-action="62">Next part · Tab</button>
                 <button id="workshop-snap" data-workshop-action="70">Snap to socket · T</button>
                 <button id="workshop-left" data-workshop-action="63">Move left</button>
                 <button id="workshop-right" data-workshop-action="64">Move right</button>
-                <button id="workshop-rotate" data-workshop-action="69">Rotate · R</button>
                 <button id="workshop-forward" data-workshop-action="65">Move forward</button>
                 <button id="workshop-back" data-workshop-action="66">Move back</button>
-                <button id="workshop-remove" data-workshop-action="74">Remove part</button>
                 <button id="workshop-raise" data-workshop-action="67">Raise one plate</button>
                 <button id="workshop-lower" data-workshop-action="68">Lower one plate</button>
                 <button id="workshop-revert" data-workshop-action="73">Cancel move</button>
-                <button id="workshop-keep" data-workshop-action="71">Keep change · E</button>
-                <button id="workshop-undo" data-workshop-action="72">Undo · U</button>
-                <button id="workshop-launch" data-workshop-action="79">Launch boat · Enter</button>
                 <button id="workshop-undo-launch" data-workshop-action="80">Undo launch · I</button>
                 <button id="workshop-redo-launch" data-workshop-action="81">Redo launch · O</button>
                 <button id="workshop-rebuild" data-workshop-action="88" title="Save this boat as a recovery design, restore the starter boat and store purchased parts. Previous launch undo is cleared. Keep or discard your current edits first.">Rebuild starter · H</button>
             </div>
+            </details>
             <details class="workshop-recovery">
                 <summary>Recover a boat design</summary>
                 <span id="workshop-recovery-status">No recovered designs yet.</span>
@@ -318,13 +332,14 @@
             </details>
             <p class="salvage-note">Keep your changes, then Launch to sail the rebuilt boat. Changes last until you leave this scene.</p>
         </div>
-        <button id="salvage-cut" type="button" hidden disabled>Cut nearby weld · C</button>
         <button id="salvage-interact" type="button" hidden disabled>Interact · E</button>
-        <div id="salvage-job" hidden aria-label="Recovery job">
+        <details id="salvage-job" hidden aria-label="Recovery job"><summary>Recovery job</summary>
             <p id="salvage-job-status" role="status" aria-live="polite"></p>
             <button id="salvage-job-accept" type="button" disabled>Recover the generator · J</button>
             <button id="salvage-job-deliver" type="button" disabled>Deliver generator · H</button>
-        </div>
+        </details>
+        <details id="salvage-field-tools"><summary>Winch, lift &amp; cutting</summary>
+        <button id="salvage-cut" type="button" hidden disabled>Cut nearby weld · C</button>
         <div id="salvage-harbor" hidden aria-label="Harbor lift">
             <p id="salvage-harbor-status" role="status" aria-live="polite"></p>
             <button id="salvage-harbor-install" type="button" disabled>Power harbor lift · K</button>
@@ -341,9 +356,12 @@
             <button id="salvage-payout" type="button" disabled>Pay out · Z</button>
             <button id="salvage-hold" type="button" disabled>Stop winch</button>
         </div>
+        </details>
+        <div class="salvage-session-actions">
         <button id="salvage-reset" type="button">Reset · R</button>
         <button id="salvage-pause" type="button" hidden disabled>Pause · P</button>
         <button id="salvage-save" type="button" hidden disabled>Save expedition</button>
+        </div>
         <p id="salvage-save-status" role="status" aria-live="polite" hidden></p>
         <p id="salvage-save-help" class="salvage-note" hidden>Saving is manual. After saving, bookmark this address to return to your expedition.</p>
         <button id="salvage-leave" type="button">Leave preview</button>

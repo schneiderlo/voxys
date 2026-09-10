@@ -258,6 +258,13 @@ function fixture(asset = false, workshop = false) {
     f.state({workshop:w});f.tick();const bricks=f.workshopButtons.filter(b=>b.dataset.workshopBrick);
     assert.deepEqual(bricks.map(b=>b.dataset.workshopAction),['104','102','106'],'palette follows admitted indices');
     assert.equal(bricks[0].attributes.get('aria-pressed'),'true');
+    f.state({workshop:{...w,changed:true,pointerTarget:false}});f.tick();
+    assert.match(f.elements['salvage-workshop-status'].textContent,/Point at a part/);
+    assert(!f.workshopButtons.find(b=>b.dataset.workshopAction==='71').disabled,'Keep preserves a valid position without a pointer target');
+    f.state({workshop:{...w,changed:true,pointerTarget:false,valid:false,message:'Parts overlap.'}});f.tick();
+    assert.match(f.elements['salvage-workshop-status'].textContent,/Parts overlap/);
+    assert(f.workshopButtons.find(b=>b.dataset.workshopAction==='71').disabled);
+    f.state({workshop:w});f.tick();
     for(const b of bricks)b.click();assert.deepEqual(f.actions,[104,102,106]);
     f.state({workshop:{...w,canAdd:false}});f.tick();for(const b of bricks){assert(b.disabled);b.click();}
     assert.deepEqual(f.actions,[104,102,106],'unfinished placement cannot add another ghost');

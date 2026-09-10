@@ -20,6 +20,7 @@ struct SalvageFixtureConfig {
     uint64_t maximumResidentGpuBytes = 48ull * 1024ull * 1024ull;
     bool linearHdrOutput = false;
     bool filteredEnvironment = false;
+    bool sunShadows = false;
 };
 
 struct SalvageFixturePlacement {
@@ -31,6 +32,7 @@ struct SalvageFixturePlacement {
     std::optional<std::span<const game::construction::SocketId>> selectedSockets{};
     physics::BodyHandle physicsBody{};
     glm::vec4 tint{1.0f}; // Workshop selection; material remains authored.
+    bool castsSunShadow = true; // Screen-space palette thumbnails opt out.
 };
 
 struct SalvageFixtureSolid {glm::mat4 model{1};glm::vec4 color{1};};

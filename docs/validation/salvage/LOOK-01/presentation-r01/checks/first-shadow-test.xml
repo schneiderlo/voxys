@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="11" failures="1" disabled="0" errors="0" time="0.523" timestamp="2026-09-10T12:59:02.925" name="AllTests">
+  <testsuite name="MeshPathTest" tests="1" failures="0" disabled="0" skipped="0" errors="0" time="0." timestamp="2026-09-10T12:59:02.925">
+    <testcase name="RejectsNullGpuHandlesAndInvalidData" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_mesh_path.cpp" line="38" status="run" result="completed" time="0." timestamp="2026-09-10T12:59:02.925" classname="MeshPathTest" />
+  </testsuite>
+  <testsuite name="MeshPathGPUTest" tests="7" failures="1" disabled="0" skipped="0" errors="0" time="0.388" timestamp="2026-09-10T12:59:02.925">
+    <testcase name="AuthoredPoseRendersRootFrameAndRejectsStaleBodyGeneration" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_mesh_path.cpp" line="247" status="run" result="completed" time="0.151" timestamp="2026-09-10T12:59:02.925" classname="MeshPathGPUTest" />
+    <testcase name="LiveSunShadowUpdatesOffscreenCastersAndRejectsStalePoses" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_mesh_path.cpp" line="302" status="run" result="completed" time="0.054" timestamp="2026-09-10T12:59:03.077" classname="MeshPathGPUTest">
+      <failure message="/home/modkin/workspace/schneiderlo/voxys/tests/test_mesh_path.cpp:351&#x0A;Expected: (shadowed) &lt; (clear-40), actual: 190 vs 150&#x0A;" type=""><![CDATA[/home/modkin/workspace/schneiderlo/voxys/tests/test_mesh_path.cpp:351
+Expected: (shadowed) < (clear-40), actual: 190 vs 150
+]]></failure>
+    </testcase>
+    <testcase name="ExceptionalReleasePreservesEncodedTextureDependencies" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_mesh_path.cpp" line="368" status="run" result="completed" time="0.027" timestamp="2026-09-10T12:59:03.132" classname="MeshPathGPUTest" />
+    <testcase name="SamplesActualTextureQuadrantsAndRejectsSingleSidedBackFaces" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_mesh_path.cpp" line="396" status="run" result="completed" time="0.035" timestamp="2026-09-10T12:59:03.159" classname="MeshPathGPUTest" />
+    <testcase name="DirectionalNormalMapUsesFullInverseTransposeAndTangentFrame" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_mesh_path.cpp" line="440" status="run" result="completed" time="0.04" timestamp="2026-09-10T12:59:03.195" classname="MeshPathGPUTest" />
+    <testcase name="PreservesColorSpaceAndPackedMaterialChannels" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_mesh_path.cpp" line="513" status="run" result="completed" time="0.043" timestamp="2026-09-10T12:59:03.236" classname="MeshPathGPUTest" />
+    <testcase name="LoadsAndRendersAuthoredBikeAndRider" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_mesh_path.cpp" line="570" status="run" result="completed" time="0.033" timestamp="2026-09-10T12:59:03.279" classname="MeshPathGPUTest" />
+  </testsuite>
+  <testsuite name="MeshEnvironmentGPUTest" tests="2" failures="0" disabled="0" skipped="0" errors="0" time="0.075" timestamp="2026-09-10T12:59:03.313">
+    <testcase name="WhiteFurnaceUsesIntegratedReflectionAndDiffuseEnergy" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_mesh_path.cpp" line="770" status="run" result="completed" time="0.035" timestamp="2026-09-10T12:59:03.313" classname="MeshEnvironmentGPUTest" />
+    <testcase name="DiscardRetriesAndSceneReplacementInvalidatesOnlyItsBake" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_mesh_path.cpp" line="795" status="run" result="completed" time="0.04" timestamp="2026-09-10T12:59:03.349" classname="MeshEnvironmentGPUTest" />
+  </testsuite>
+  <testsuite name="MeshOpaqueGPUTest" tests="1" failures="0" disabled="0" skipped="0" errors="0" time="0.06" timestamp="2026-09-10T12:59:03.389">
+    <testcase name="PreservesLinearHdrNearestDepthTerrainCacheAndRemovesPreviousObjects" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_mesh_path.cpp" line="895" status="run" result="completed" time="0.06" timestamp="2026-09-10T12:59:03.389" classname="MeshOpaqueGPUTest" />
+  </testsuite>
+</testsuites>

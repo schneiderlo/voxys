@@ -308,13 +308,19 @@ The browser panel also shows the cable's actual length as it reels or pays out.
 **P / Resume** continues with neutral controls. Leave also works from pause.
 [Pause behavior and checks](docs/validation/salvage/SAVE-04/pause-r01/README.md).
 [Playable towing and checks](docs/validation/salvage/SIM-08/towing-r01/README.md).
-Water-relative drag, latching, full mission progression, the robot, shadows and final visual quality remain unfinished. This is initial sailing, not complete
+The authored boat, dock and cargo now cast sun shadows onto authored parts,
+including the bricks you build with. The browser panel puts the main actions
+first; expand the job, tools, camera and machinery sections when needed.
+[Presentation work and verification scope](docs/validation/salvage/LOOK-01/presentation-r01/README.md).
+Water-relative drag, latching, full mission progression, the robot, terrain/water shadow reception and final visual quality remain unfinished. This is initial sailing, not complete
 machine simulation. [Sailing implementation and checks](docs/validation/salvage/SIM-03/sailing-r01/README.md),
 [dock collision](docs/validation/salvage/SIM-03/dock-collision-r01/README.md).
 
 At the starting dock, **B** or **Workshop** opens the starter design editor.
 Select a part, move or rotate it, snap to a free socket, remove it, keep a valid
 change, or undo. Green means the design connects; red means it does not.
+Amber means the pointer has no supporting part: point at a part to place,
+or use **Keep** to retain the current valid position.
 **G / Focus part** frames the selected part; **M / Whole boat** frames the build.
 Right-drag orbits, Shift + right-drag or middle-drag pans, and the wheel zooms.
 The view buttons and A/D, W/S also orbit and zoom. Framing leaves space for the

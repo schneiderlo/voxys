@@ -299,6 +299,81 @@ TEST(MeshPathGPUTest, AuthoredPoseRendersRootFrameAndRejectsStaleBodyGeneration)
     path.shutdown();
 }
 
+TEST(MeshPathGPUTest, LiveSunShadowUpdatesOffscreenCastersAndRejectsStalePoses) {
+    DiagnosticContext context; ASSERT_TRUE(context.initHeadless());
+    MeshPathConfig config; config.colorFormat = WGPUTextureFormat_RGBA8Unorm;
+    config.frontFace = WGPUFrontFace_CW; config.sunShadows = true;
+    MeshPath path; ASSERT_TRUE(path.init(context.getDevice(),context.getQueue(),config));
+    auto surface = diagnosticQuad(); surface.materials[0].roughnessFactor = 1;
+    ASSERT_TRUE(path.loadMeshData(surface));
+    auto cutout = surface; cutout.materials[0].alphaMode = moto::VmeshAlphaMask;
+    cutout.materials[0].baseColorFactor[3] = 0;
+    ASSERT_TRUE(path.loadMeshData(cutout));
+
+    std::array<glm::vec4,4> poses{};
+    // Caster is entirely outside the camera frustum, along the sun ray from
+    // the receiver's centre. Its shadow must still fall on that visible point.
+    poses[2] = {2,0,-2,1}; poses[3] = {0,0,0,1};
+    std::array<glm::uvec4,2> metadata{}; metadata[1] = {0,0,0,0x00100003u};
+    std::array<glm::uvec4,8> shapes{}; shapes[7] = {1,7,1,0};
+    std::array<glm::uvec4,39> atlas{};
+    atlas[0] = {1,1,16,19}; atlas[1] = {37,39,1,6};
+    atlas[9] = {7,1,0,1}; atlas[10] = {0,6,0,1};
+    const auto bits=[](glm::vec4 v) { return glm::uvec4(std::bit_cast<uint32_t>(v.x),
+        std::bit_cast<uint32_t>(v.y),std::bit_cast<uint32_t>(v.z),std::bit_cast<uint32_t>(v.w)); };
+    atlas[11] = bits({0,0,0,1}); atlas[12] = bits({0,0,0,1}); atlas[13] = bits({1,1,1,2});
+    atlas[14] = glm::uvec4(glm::ivec4(-50,-50,-50,0)); atlas[15] = {50,50,50,0};
+    struct Buffers { std::vector<WGPUBuffer> values; ~Buffers(){for(auto b:values) wgpuBufferRelease(b);} } buffers;
+    const auto upload=[&](const auto& values) {
+        auto buffer = gpu::createBuffer(context.getDevice(),gpu::BufferDesc::storage(sizeof(values),true));
+        if (buffer) {
+            buffers.values.push_back(buffer);
+            const auto bytes = std::as_bytes(std::span(values));
+            if (!gpu::writeBuffer(context.getQueue(),buffer,0,
+                std::span<const std::byte>(bytes.data(),bytes.size()))) return WGPUBuffer{};
+        }
+        return buffer;
+    };
+    physics::PhysicsRenderView live;
+    live.poseBuffer = upload(poses); live.metadataBuffer = upload(metadata);
+    live.shapeBuffer = upload(shapes); live.authoredShapeBuffer = upload(atlas);
+    ASSERT_TRUE(path.setAuthoredBodyView(live,{}));
+    PrimitiveLighting light; light.direction = {1,0,-1}; light.sunIntensity = 2;
+    light.ambientIntensity = 0.08f; light.fogDensity = 0;
+    std::vector<uint8_t> pixels;
+    const auto sample=[&](uint32_t generation, uint32_t asset) {
+        path.clearInstances(); path.addInstance({});
+        if (generation >= 42) path.addInstance({.assetIndex=asset,
+            .modelMatrix=glm::translate(glm::mat4(1),glm::vec3(2,0,-2))*glm::scale(glm::mat4(1),glm::vec3(.3f)),
+            .castsSunShadow=generation==42});
+        else if (generation) path.addInstance({.assetIndex=asset,
+            .modelMatrix=glm::scale(glm::mat4(1),glm::vec3(.3f)),.physicsBody={1,generation}});
+        if (!drawDiagnosticPixels(path,context,{0,0,-3},light,pixels)) return -1;
+        return pixelAt(pixels,32,32).r;
+    };
+    const int clear = sample(0,0);
+    const int staticShadow = sample(42,0);
+    const int shadowed = sample(3,0);
+    std::printf("Sun receiver clear=%d static=%d live=%d\n",clear,staticShadow,shadowed);
+    EXPECT_NEAR(staticShadow,shadowed,2);
+    EXPECT_NEAR(sample(43,0),clear,2); // Palette thumbnails cannot shadow the game.
+    ASSERT_GT(clear,100); ASSERT_GT(shadowed,0); EXPECT_LT(shadowed,clear-40);
+    // GPU buffer update only: same camera, matrices, instances and static cache.
+    poses[2].x += 2;
+    ASSERT_TRUE(gpu::writeBuffer(context.getQueue(),live.poseBuffer,0,std::span<const glm::vec4>(poses)));
+    EXPECT_NEAR(sample(3,0),clear,2);
+    poses[2].x -= 2;
+    ASSERT_TRUE(gpu::writeBuffer(context.getQueue(),live.poseBuffer,0,std::span<const glm::vec4>(poses)));
+    EXPECT_NEAR(sample(3,0),shadowed,2);
+    EXPECT_NEAR(sample(4,0),clear,2); // Recycled/stale body cannot leave a shadow.
+    EXPECT_NEAR(sample(3,1),clear,2); // Masked holes cannot cast solid silhouettes.
+    // Sun occlusion never darkens skylight or emits a stale shadow next frame.
+    light.sunIntensity = 0;
+    const int ambient = sample(0,0);
+    EXPECT_NEAR(sample(3,0),ambient,2);
+    std::printf("Live sun: clear %d, shadow %d, ambient %d\n",clear,shadowed,ambient);
+}
+
 TEST(MeshPathGPUTest, ExceptionalReleasePreservesEncodedTextureDependencies) {
     DiagnosticContext context;
     if (!context.initHeadless()) GTEST_SKIP() << "GPU context not available";

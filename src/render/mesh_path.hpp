@@ -46,6 +46,7 @@ struct MeshPathConfig {
     bool depthOverlay = false;
     bool linearHdrOutput = false; // Opaque/masked RGBA16F + R32F radial depth for water.
     bool filteredEnvironment = false; // Explicit opt-in; legacy routes keep their lighting.
+    bool sunShadows = false; // Live authored meshes cast/receive; no terrain-cache writes.
 };
 
 /// One draw instance: a mesh rendered with a model matrix and a color tint.
@@ -59,6 +60,7 @@ struct MeshDrawInstance {
     float emissiveBoost = 0.0f;  // added to emissive contribution
     uint32_t pad[3] = {};
     physics::BodyHandle physicsBody{}; // If valid, modelMatrix is root-local.
+    bool castsSunShadow = true;
 };
 
 /// A loaded mesh part (one glTF mesh). The importer flattens multi-primitive
@@ -107,6 +109,8 @@ public:
     // buffers; dynamic draws resolve COM/principal pose directly on the GPU.
     [[nodiscard]] bool setAuthoredBodyView(const physics::PhysicsRenderView&, physics::WorldPosition camera);
     [[nodiscard]] size_t assetCount() const noexcept { return assets_.size(); }
+    // Color-pass draw count. Sun-shadow mode additionally replays the opaque
+    // caster subset (bounded by the same maxDrawsPerFrame, not included here).
     [[nodiscard]] uint32_t lastSubmittedDrawCount() const noexcept {
         return lastSubmittedDrawCount_;
     }
@@ -136,6 +140,9 @@ public:
         return filteredEnvironment_.requestedBytes();
     }
     static constexpr uint64_t filteredEnvironmentReservationBytes = 1228944u;
+    static constexpr uint32_t sunShadowResolution = 1024u;
+    static constexpr uint64_t sunShadowReservationBytes =
+        uint64_t(sunShadowResolution) * sunShadowResolution * 4u + 80u;
     [[nodiscard]] uint32_t environmentBakeCount() const noexcept { return environmentBakeCount_; }
     [[nodiscard]] bool environmentLightingReady() const noexcept { return filteredEnvironmentReady_; }
 
@@ -153,6 +160,15 @@ public:
                 uint32_t height, bool useRayDepth, WGPUTextureView linearDepthOutput = nullptr);
 
 private:
+    WGPUTexture sunShadowTexture_ = nullptr;
+    WGPUTextureView sunShadowView_ = nullptr;
+    WGPUBuffer sunShadowUniform_ = nullptr;
+    WGPUSampler sunShadowSampler_ = nullptr;
+    WGPUBindGroupLayout sunShadowLayout_ = nullptr, sunCasterLayout_ = nullptr;
+    WGPUBindGroup sunShadowBinding_ = nullptr, sunCasterBinding_ = nullptr;
+    WGPUPipelineLayout sunCasterPipelineLayout_ = nullptr;
+    WGPURenderPipeline sunCasterPipeline_ = nullptr;
+    bool sunShadows_ = false;
     WGPUBindGroupLayout bodyLayout_ = nullptr;
     WGPUBindGroup bodyBinding_ = nullptr;
     WGPUBuffer bodyFallback_ = nullptr, bodyCamera_ = nullptr;

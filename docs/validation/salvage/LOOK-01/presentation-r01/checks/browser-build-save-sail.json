@@ -1,0 +1,701 @@
+{
+  "status": "passed-across-saved-continuation",
+  "screenshots": false,
+  "scope": "Eight pointer-built bricks, rotation, overlap refusal, remove/undo, launch, exact owned save/reload, boarding and sailing.",
+  "interruption": "r16 completed construction and exact reload; the runner killed Chrome at its 240-second deadline during the final sailing step. r17 reopened the retained isolated profile at the same origin and continued from the durable save with a 600-second ceiling. No building steps or gameplay assertions were bypassed.",
+  "runs": [
+    {
+      "source": "build-cove-presentation-4yo4yym3/bricks-r16/summary.json",
+      "status": "failed",
+      "error": "Error: Chrome connection is closed: Input.dispatchKeyEvent",
+      "timeoutMs": 240000,
+      "adapter": {
+        "vendor": "amd",
+        "architecture": "rdna-3",
+        "device": "Unknown",
+        "description": "Unknown",
+        "fallback": false
+      },
+      "browserErrors": [],
+      "stages": [
+        {
+          "name": "placed-brick-1",
+          "failed": false,
+          "terrainSurface": "lego",
+          "workshop": {
+            "open": true,
+            "selected": 25,
+            "name": "Brick 2 x 4",
+            "valid": true,
+            "pointerTarget": true,
+            "changed": false,
+            "revision": "2",
+            "parts": 11,
+            "placement": [
+              100,
+              72,
+              -2775
+            ],
+            "rotation": 0
+          },
+          "boat": {
+            "parts": 11,
+            "massKg": 1035,
+            "position": [
+              -0.463451,
+              0.0906792,
+              -53.9513
+            ],
+            "paidPartIds": []
+          },
+          "inventory": {
+            "salvageMaterial": "48",
+            "specialMachinery": "0"
+          },
+          "fixture": {
+            "generation": "1",
+            "uploads": 36,
+            "draws": 37,
+            "environmentGpuBytes": "1228944",
+            "gpuReservationBytes": "16115144",
+            "submittedSerial": "41",
+            "completedSerial": "39"
+          }
+        },
+        {
+          "name": "placed-brick-2",
+          "failed": false,
+          "terrainSurface": "lego",
+          "workshop": {
+            "open": true,
+            "selected": 26,
+            "name": "Brick 2 x 2",
+            "valid": true,
+            "pointerTarget": true,
+            "changed": false,
+            "revision": "3",
+            "parts": 12,
+            "placement": [
+              100,
+              120,
+              -2775
+            ],
+            "rotation": 0
+          },
+          "boat": {
+            "parts": 11,
+            "massKg": 1035,
+            "position": [
+              -0.47974,
+              -0.042984,
+              -53.966
+            ],
+            "paidPartIds": []
+          },
+          "inventory": {
+            "salvageMaterial": "48",
+            "specialMachinery": "0"
+          },
+          "fixture": {
+            "generation": "1",
+            "uploads": 36,
+            "draws": 38,
+            "environmentGpuBytes": "1228944",
+            "gpuReservationBytes": "16115144",
+            "submittedSerial": "49",
+            "completedSerial": "47"
+          }
+        },
+        {
+          "name": "placed-brick-3",
+          "failed": false,
+          "terrainSurface": "lego",
+          "workshop": {
+            "open": true,
+            "selected": 27,
+            "name": "Brick 1 x 2",
+            "valid": true,
+            "pointerTarget": true,
+            "changed": false,
+            "revision": "4",
+            "parts": 13,
+            "placement": [
+              125,
+              168,
+              -2775
+            ],
+            "rotation": 21
+          },
+          "boat": {
+            "parts": 11,
+            "massKg": 1035,
+            "position": [
+              -0.477793,
+              -0.13451,
+              -53.9905
+            ],
+            "paidPartIds": []
+          },
+          "inventory": {
+            "salvageMaterial": "48",
+            "specialMachinery": "0"
+          },
+          "fixture": {
+            "generation": "1",
+            "uploads": 36,
+            "draws": 39,
+            "environmentGpuBytes": "1228944",
+            "gpuReservationBytes": "16115144",
+            "submittedSerial": "57",
+            "completedSerial": "55"
+          }
+        },
+        {
+          "name": "placed-brick-4",
+          "failed": false,
+          "terrainSurface": "lego",
+          "workshop": {
+            "open": true,
+            "selected": 28,
+            "name": "Brick 2 x 4",
+            "valid": true,
+            "pointerTarget": true,
+            "changed": false,
+            "revision": "5",
+            "parts": 14,
+            "placement": [
+              150,
+              216,
+              -2725
+            ],
+            "rotation": 21
+          },
+          "boat": {
+            "parts": 11,
+            "massKg": 1035,
+            "position": [
+              -0.479273,
+              -0.272705,
+              -54.0056
+            ],
+            "paidPartIds": []
+          },
+          "inventory": {
+            "salvageMaterial": "48",
+            "specialMachinery": "0"
+          },
+          "fixture": {
+            "generation": "1",
+            "uploads": 36,
+            "draws": 40,
+            "environmentGpuBytes": "1228944",
+            "gpuReservationBytes": "16115144",
+            "submittedSerial": "64",
+            "completedSerial": "62"
+          }
+        },
+        {
+          "name": "placed-brick-5",
+          "failed": false,
+          "terrainSurface": "lego",
+          "workshop": {
+            "open": true,
+            "selected": 29,
+            "name": "Brick 2 x 2",
+            "valid": true,
+            "pointerTarget": true,
+            "changed": false,
+            "revision": "6",
+            "parts": 15,
+            "placement": [
+              150,
+              264,
+              -2725
+            ],
+            "rotation": 21
+          },
+          "boat": {
+            "parts": 11,
+            "massKg": 1035,
+            "position": [
+              -0.48847,
+              -0.43066,
+              -54.0057
+            ],
+            "paidPartIds": []
+          },
+          "inventory": {
+            "salvageMaterial": "48",
+            "specialMachinery": "0"
+          },
+          "fixture": {
+            "generation": "1",
+            "uploads": 36,
+            "draws": 41,
+            "environmentGpuBytes": "1228944",
+            "gpuReservationBytes": "16115144",
+            "submittedSerial": "71",
+            "completedSerial": "69"
+          }
+        },
+        {
+          "name": "placed-brick-6",
+          "failed": false,
+          "terrainSurface": "lego",
+          "workshop": {
+            "open": true,
+            "selected": 30,
+            "name": "Brick 1 x 2",
+            "valid": true,
+            "pointerTarget": true,
+            "changed": false,
+            "revision": "7",
+            "parts": 16,
+            "placement": [
+              175,
+              312,
+              -2725
+            ],
+            "rotation": 21
+          },
+          "boat": {
+            "parts": 11,
+            "massKg": 1035,
+            "position": [
+              -0.501701,
+              -0.672939,
+              -53.9976
+            ],
+            "paidPartIds": []
+          },
+          "inventory": {
+            "salvageMaterial": "48",
+            "specialMachinery": "0"
+          },
+          "fixture": {
+            "generation": "1",
+            "uploads": 36,
+            "draws": 42,
+            "environmentGpuBytes": "1228944",
+            "gpuReservationBytes": "16115144",
+            "submittedSerial": "78",
+            "completedSerial": "76"
+          }
+        },
+        {
+          "name": "placed-brick-7",
+          "failed": false,
+          "terrainSurface": "lego",
+          "workshop": {
+            "open": true,
+            "selected": 31,
+            "name": "Brick 2 x 2",
+            "valid": true,
+            "pointerTarget": true,
+            "changed": false,
+            "revision": "8",
+            "parts": 17,
+            "placement": [
+              200,
+              360,
+              -2675
+            ],
+            "rotation": 21
+          },
+          "boat": {
+            "parts": 11,
+            "massKg": 1035,
+            "position": [
+              -0.50259,
+              -0.823349,
+              -53.995
+            ],
+            "paidPartIds": []
+          },
+          "inventory": {
+            "salvageMaterial": "48",
+            "specialMachinery": "0"
+          },
+          "fixture": {
+            "generation": "1",
+            "uploads": 36,
+            "draws": 43,
+            "environmentGpuBytes": "1228944",
+            "gpuReservationBytes": "16115144",
+            "submittedSerial": "85",
+            "completedSerial": "83"
+          }
+        },
+        {
+          "name": "placed-brick-8",
+          "failed": false,
+          "terrainSurface": "lego",
+          "workshop": {
+            "open": true,
+            "selected": 32,
+            "name": "Brick 1 x 2",
+            "valid": true,
+            "pointerTarget": true,
+            "changed": false,
+            "revision": "9",
+            "parts": 18,
+            "placement": [
+              225,
+              408,
+              -2675
+            ],
+            "rotation": 21
+          },
+          "boat": {
+            "parts": 11,
+            "massKg": 1035,
+            "position": [
+              -0.492023,
+              -0.935902,
+              -54
+            ],
+            "paidPartIds": []
+          },
+          "inventory": {
+            "salvageMaterial": "48",
+            "specialMachinery": "0"
+          },
+          "fixture": {
+            "generation": "1",
+            "uploads": 36,
+            "draws": 44,
+            "environmentGpuBytes": "1228944",
+            "gpuReservationBytes": "16115144",
+            "submittedSerial": "92",
+            "completedSerial": "90"
+          }
+        },
+        {
+          "name": "overlap-refused-and-remove-undone",
+          "failed": false,
+          "terrainSurface": "lego",
+          "workshop": {
+            "open": true,
+            "selected": 0,
+            "name": "Pontoon",
+            "valid": true,
+            "pointerTarget": true,
+            "changed": false,
+            "revision": "11",
+            "parts": 18,
+            "placement": [
+              -25,
+              -8,
+              -2700
+            ],
+            "rotation": 0
+          },
+          "boat": {
+            "parts": 11,
+            "massKg": 1035,
+            "position": [
+              -0.483219,
+              -0.976631,
+              -54.0043
+            ],
+            "paidPartIds": []
+          },
+          "inventory": {
+            "salvageMaterial": "48",
+            "specialMachinery": "0"
+          },
+          "fixture": {
+            "generation": "1",
+            "uploads": 36,
+            "draws": 43,
+            "environmentGpuBytes": "1228944",
+            "gpuReservationBytes": "16115144",
+            "submittedSerial": "98",
+            "completedSerial": "96"
+          }
+        },
+        {
+          "name": "launched-eight-bricks",
+          "failed": false,
+          "terrainSurface": "lego",
+          "workshop": {
+            "open": false,
+            "selected": 9,
+            "name": "Winch",
+            "valid": true,
+            "pointerTarget": true,
+            "changed": false,
+            "revision": "0",
+            "parts": 18,
+            "placement": [
+              -25,
+              96,
+              -2750
+            ],
+            "rotation": 0
+          },
+          "boat": {
+            "parts": 18,
+            "massKg": 1149,
+            "position": [
+              -0.500053,
+              -1.02797,
+              -53.9999
+            ],
+            "paidPartIds": [
+              "35",
+              "36",
+              "37",
+              "38",
+              "39",
+              "40",
+              "41",
+              "42"
+            ]
+          },
+          "inventory": {
+            "salvageMaterial": "23",
+            "specialMachinery": "0"
+          },
+          "fixture": {
+            "generation": "1",
+            "uploads": 36,
+            "draws": 44,
+            "environmentGpuBytes": "1228944",
+            "gpuReservationBytes": "16115144",
+            "submittedSerial": "104",
+            "completedSerial": "102"
+          }
+        },
+        {
+          "name": "saved-eight-bricks",
+          "failed": false,
+          "terrainSurface": "lego",
+          "workshop": {
+            "open": false,
+            "selected": 9,
+            "name": "Winch",
+            "valid": true,
+            "pointerTarget": true,
+            "changed": false,
+            "revision": "0",
+            "parts": 18,
+            "placement": [
+              -25,
+              96,
+              -2750
+            ],
+            "rotation": 0
+          },
+          "boat": {
+            "parts": 18,
+            "massKg": 1149,
+            "position": [
+              -0.500494,
+              -1.03498,
+              -53.9989
+            ],
+            "paidPartIds": [
+              "35",
+              "36",
+              "37",
+              "38",
+              "39",
+              "40",
+              "41",
+              "42"
+            ]
+          },
+          "inventory": {
+            "salvageMaterial": "23",
+            "specialMachinery": "0"
+          },
+          "fixture": {
+            "generation": "1",
+            "uploads": 36,
+            "draws": 44,
+            "environmentGpuBytes": "1228944",
+            "gpuReservationBytes": "16115144",
+            "submittedSerial": "111",
+            "completedSerial": "109"
+          }
+        },
+        {
+          "name": "restored-exact-design-and-cost",
+          "failed": false,
+          "terrainSurface": "lego",
+          "workshop": {
+            "open": false,
+            "selected": 9,
+            "name": "Winch",
+            "valid": true,
+            "pointerTarget": false,
+            "changed": false,
+            "revision": "0",
+            "parts": 18,
+            "placement": [
+              -25,
+              96,
+              -2750
+            ],
+            "rotation": 0
+          },
+          "boat": {
+            "parts": 18,
+            "massKg": 1149,
+            "position": [
+              -0.500647,
+              -1.03892,
+              -53.9985
+            ],
+            "paidPartIds": [
+              "35",
+              "36",
+              "37",
+              "38",
+              "39",
+              "40",
+              "41",
+              "42"
+            ]
+          },
+          "inventory": {
+            "salvageMaterial": "23",
+            "specialMachinery": "0"
+          },
+          "fixture": {
+            "generation": "1",
+            "uploads": 36,
+            "draws": 44,
+            "environmentGpuBytes": "1228944",
+            "gpuReservationBytes": "16115144",
+            "submittedSerial": "8",
+            "completedSerial": "6"
+          }
+        }
+      ]
+    },
+    {
+      "source": "build-cove-presentation-4yo4yym3/bricks-r17/summary.json",
+      "status": "passed",
+      "error": null,
+      "timeoutMs": 600000,
+      "adapter": {
+        "vendor": "amd",
+        "architecture": "rdna-3",
+        "device": "Unknown",
+        "description": "Unknown",
+        "fallback": false
+      },
+      "browserErrors": [],
+      "stages": [
+        {
+          "name": "resumed-exact-brick-layout",
+          "failed": false,
+          "terrainSurface": "lego",
+          "workshop": {
+            "open": true,
+            "selected": 9,
+            "name": "Winch",
+            "valid": true,
+            "pointerTarget": false,
+            "changed": false,
+            "revision": "0",
+            "parts": 18,
+            "placement": [
+              -25,
+              96,
+              -2750
+            ],
+            "rotation": 0
+          },
+          "boat": {
+            "parts": 18,
+            "massKg": 1149,
+            "position": [
+              -0.502645,
+              -1.32938,
+              -53.9811
+            ],
+            "paidPartIds": [
+              "35",
+              "36",
+              "37",
+              "38",
+              "39",
+              "40",
+              "41",
+              "42"
+            ]
+          },
+          "inventory": {
+            "salvageMaterial": "23",
+            "specialMachinery": "0"
+          },
+          "fixture": {
+            "generation": "1",
+            "uploads": 36,
+            "draws": 44,
+            "environmentGpuBytes": "1228944",
+            "gpuReservationBytes": "16115144",
+            "submittedSerial": "52",
+            "completedSerial": "50"
+          }
+        },
+        {
+          "name": "sailed-brick-built-boat",
+          "failed": false,
+          "terrainSurface": "lego",
+          "workshop": {
+            "open": false,
+            "selected": 9,
+            "name": "Winch",
+            "valid": true,
+            "pointerTarget": false,
+            "changed": false,
+            "revision": "0",
+            "parts": 18,
+            "placement": [
+              -25,
+              96,
+              -2750
+            ],
+            "rotation": 0
+          },
+          "boat": {
+            "parts": 18,
+            "massKg": 1149,
+            "position": [
+              -0.626146,
+              -1.30935,
+              -55.787
+            ],
+            "paidPartIds": [
+              "35",
+              "36",
+              "37",
+              "38",
+              "39",
+              "40",
+              "41",
+              "42"
+            ]
+          },
+          "inventory": {
+            "salvageMaterial": "23",
+            "specialMachinery": "0"
+          },
+          "fixture": {
+            "generation": "1",
+            "uploads": 36,
+            "draws": 44,
+            "environmentGpuBytes": "1228944",
+            "gpuReservationBytes": "16115144",
+            "submittedSerial": "181",
+            "completedSerial": "179"
+          }
+        }
+      ]
+    }
+  ]
+}

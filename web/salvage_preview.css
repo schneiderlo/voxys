@@ -12,7 +12,7 @@
     margin: 12px 8px 0 0; padding: 10px 16px; border: 1px solid #375c5955;
     border-radius: 9px; background: #fff; color: inherit; font: inherit; cursor: pointer;
 }
-#salvage-preview button:disabled { opacity: .6; cursor: wait; }
+#salvage-preview button:disabled { opacity: .55; cursor: default; }
 #salvage-preview button:focus-visible { outline: 3px solid #2b766a; outline-offset: 3px; }
 @media (max-width: 600px) {
     #salvage-preview:not([hidden]) { left: 12px; bottom: 12px; max-width: calc(100vw - 24px); padding: 12px 16px; }
@@ -51,3 +51,47 @@
 #salvage-workshop .brick-2x2 { height: 48px; background-color: #3777ac; box-shadow: 0 6px 0 #235178, 0 8px 4px #0003; }
 #salvage-workshop .brick-2x4 { width: 72px; height: 36px; background-size: 18px 18px; background-color: #e2b53b; box-shadow: 0 6px 0 #a98120, 0 8px 4px #0003; }
 #salvage-workshop .brick-label { font-size: 12px; line-height: 1.4; }
+
+/* The playable Cove gives the water and build most of the screen. Detailed
+   controls remain keyboard-accessible in ordinary native disclosure elements. */
+#salvage-preview:not([data-scene="cove"]) #salvage-field-tools { display: contents; }
+#salvage-preview:not([data-scene="cove"]) #salvage-field-tools > summary { display: none; }
+#salvage-preview[data-scene="cove"] {
+    width: 352px; padding: 16px; border-radius: 14px;
+    background: #f4f1e8f5; border-color: #ffffffb3;
+    box-shadow: 0 12px 36px #102e3233; line-height: 1.45;
+}
+#salvage-preview[data-scene="cove"] h2 { color: #173e3b; font-size: 20px; letter-spacing: -.3px; }
+#salvage-preview[data-scene="cove"] #salvage-status { margin: 7px 0 12px; }
+#salvage-preview[data-scene="cove"] #salvage-scope { margin: 0; color: #69716a; font-size: 11px; }
+#salvage-preview[data-scene="cove"] button { margin: 6px 4px 0 0; padding: 8px 10px; font-size: 13px; }
+#salvage-preview[data-scene="cove"] details { border-top: 1px solid #315b5324; margin-top: 9px; }
+#salvage-preview[data-scene="cove"] summary { padding: 10px 0; cursor: pointer; font-size: 13px; font-weight: 650; }
+#salvage-preview[data-scene="cove"] summary:focus-visible { outline: 3px solid #2b766a; outline-offset: 2px; }
+#salvage-preview[data-scene="cove"] .salvage-help-drawer { margin-top: 0; border-top: 0; }
+#salvage-preview[data-scene="cove"] .salvage-help-drawer summary { padding: 0 0 7px; font-weight: 500; }
+#salvage-preview[data-scene="cove"] #salvage-workshop-toggle,
+#salvage-preview[data-scene="cove"] #salvage-interact:not(:disabled),
+#salvage-preview[data-scene="cove"] #workshop-launch {
+    background: #235d50; color: #fff; border-color: #194a40; font-weight: 650;
+}
+#salvage-preview[data-scene="cove"] .salvage-session-actions { display: flex; gap: 6px; margin-top: 12px; }
+#salvage-preview[data-scene="cove"] .salvage-session-actions button { flex: 1; margin: 0; }
+#salvage-preview[data-scene="cove"] #salvage-leave { background: transparent; border: 0; color: #5c6a63; padding-left: 0; }
+#salvage-preview[data-scene="cove"][data-workshop="true"] { width: 320px; padding: 14px; }
+#salvage-preview[data-workshop="true"] #salvage-field-tools,
+#salvage-preview[data-workshop="true"] .salvage-help-drawer,
+#salvage-preview[data-workshop="true"] #salvage-scope { display: none; }
+#salvage-preview[data-workshop="true"] #salvage-workshop-stock { font-weight: 600; margin: 10px 0 0; }
+#salvage-preview[data-workshop="true"] #salvage-workshop-part { font-weight: 650; }
+#salvage-preview[data-workshop="true"] #salvage-workshop-status { padding: 0; margin: 5px 0 10px; }
+#salvage-preview[data-workshop="true"] #salvage-workshop button { margin: 0; }
+#salvage-preview[data-workshop="true"] #workshop-launch { width: 100%; margin-top: 9px; padding: 11px; }
+#salvage-preview[data-workshop="true"] .workshop-bricks { gap: 6px; }
+#salvage-preview[data-workshop="true"] .workshop-bricks button { min-height: 86px; }
+#salvage-preview[data-scene="cove"] #workshop-designs input[type="text"],
+#salvage-preview[data-scene="cove"] #workshop-designs select { color: #233d3c; background: #fffdf7; border-color: #819a8d; }
+@media (max-width: 700px) {
+    #salvage-preview[data-scene="cove"] { width: min(352px, calc(100vw - 24px)); }
+    #salvage-preview[data-scene="cove"][data-workshop="true"] { width: auto; max-height: 45vh; }
+}
