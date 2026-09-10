@@ -2,6 +2,7 @@
 
 #include "core/log.hpp"
 #include "gpu/resources.hpp"
+#include "physics/gpu/gpu_body_shape.hpp"
 #include "render/frustum.hpp"
 
 #include <algorithm>
@@ -19,7 +20,7 @@ constexpr uint32_t kWorkgroupSize = 256;
 constexpr uint32_t kStorageOffsetAlignmentWords = 64;
 constexpr int32_t kMaximumRenderSectorDelta = 4096;
 constexpr uint64_t kPoseStride = 32u;
-constexpr uint64_t kShapeStride = 48u;
+constexpr uint64_t kShapeStride = sizeof(physics::GpuBodyShape);
 constexpr uint64_t kMetadataStride = 16u;
 
 struct alignas(16) CullUniforms {

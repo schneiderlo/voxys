@@ -1,0 +1,233 @@
+{
+  "schema": 1,
+  "status": "captured; visual review required",
+  "recipe": {
+    "schema": 1,
+    "purpose": "Static authored pontoon close views; no socket-overlay or final art acceptance",
+    "registry": "data/salvage/fixture-pontoon-v2.json",
+    "physical_viewport": [
+      1920,
+      1080
+    ],
+    "fov_degrees": 60,
+    "views": [
+      {
+        "name": "guide-stand",
+        "eye": [
+          -3,
+          1,
+          -7
+        ],
+        "target": [
+          -2,
+          0.15,
+          0
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "front",
+        "eye": [
+          -1.5,
+          0.1,
+          -4.8
+        ],
+        "target": [
+          -1.5,
+          0.1,
+          0
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "rear",
+        "eye": [
+          -1.5,
+          0.1,
+          4.8
+        ],
+        "target": [
+          -1.5,
+          0.1,
+          0
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "left",
+        "eye": [
+          -5,
+          0.1,
+          0
+        ],
+        "target": [
+          -1.5,
+          0.1,
+          0
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "right",
+        "eye": [
+          1,
+          0.1,
+          0
+        ],
+        "target": [
+          -1.5,
+          0.1,
+          0
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "underside",
+        "eye": [
+          -1.5,
+          -1.6,
+          -0.8
+        ],
+        "target": [
+          -1.5,
+          -0.3,
+          0
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "engaged",
+        "eye": [
+          6.4,
+          0.6,
+          -1.8
+        ],
+        "target": [
+          4.5,
+          0.48,
+          -1
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "material-front-light",
+        "eye": [
+          -4,
+          2.2,
+          -4
+        ],
+        "target": [
+          -1.5,
+          0,
+          0
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "material-opposite-light",
+        "eye": [
+          -4,
+          2.2,
+          -4
+        ],
+        "target": [
+          -1.5,
+          0,
+          0
+        ],
+        "sun": [
+          -0.4,
+          0.8,
+          0.4
+        ]
+      },
+      {
+        "name": "material-low-light",
+        "eye": [
+          -4,
+          2.2,
+          -4
+        ],
+        "target": [
+          -1.5,
+          0,
+          0
+        ],
+        "sun": [
+          0.69636424,
+          0.17364818,
+          -0.69636424
+        ]
+      }
+    ]
+  },
+  "recipe_sha256": "e4647b61dfadf457fdf7478f9f20dba17b9668cc4c864be8ed7340c53bf956c3",
+  "runner_sha256": "415acac8d52e4c933b2b603f9e00340281139a7556994817be835c8ce8038baa",
+  "binary": "/home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/voxy_native",
+  "binary_sha256": "21b8095f98e9b6322b9b101df97c22d9981f058e453ec88e46e8281deb75e197",
+  "original_registry_sha256": "f4d3599cf126f8aa583f4f065d66f891eca520926b876586250482d544c6afbd",
+  "original_config_sha256": "86edec7ff9cee300c222baad8f2d05eb3711af34b3f841f3036da0259088c7b9",
+  "guides": "dimensions",
+  "selected_views": [
+    "guide-stand"
+  ],
+  "scope": "Native scene captures; guides are technical overlays, not final art or moving-craft acceptance",
+  "views": [
+    {
+      "name": "guide-stand",
+      "argv": [
+        "/home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/guides-native-stand-attempt01/guide-stand.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/guides-native-stand-attempt01/guide-stand.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "config_sha256": "4bfdb52c0d4717ca371ec098fdeb5815f3b841ce0a0cac95cca084d43a6167ed",
+      "registry_sha256": "5029362730036f09dfaa331c2ede6ec9aa47846d377c2a6c3eda8bb8ee54c342",
+      "timeout": false,
+      "exit_code": 0,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "png_sha256": "511b53537591222e4da03819404e32bbb78e0424d85b5effc51868ca006746a7",
+      "gpu_or_application_errors": [],
+      "passed": true
+    }
+  ],
+  "temporary_registry_removed": true
+}

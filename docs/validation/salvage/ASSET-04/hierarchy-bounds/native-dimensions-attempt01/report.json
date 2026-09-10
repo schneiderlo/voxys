@@ -1,0 +1,200 @@
+{
+  "schema": 1,
+  "status": "captured; visual review required",
+  "recipe": {
+    "schema": 1,
+    "registry": "data/salvage/fixture-hierarchy-v1.json",
+    "physical_viewport": [
+      1920,
+      1080
+    ],
+    "fov_degrees": 60,
+    "inspection_expectations": {
+      "maximum_model_draws": 10,
+      "guide_boxes": [
+        0,
+        24,
+        375
+      ]
+    },
+    "views": [
+      {
+        "name": "overview",
+        "eye": [
+          8,
+          6,
+          -11
+        ],
+        "target": [
+          0,
+          0.3,
+          0
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "stand-front",
+        "eye": [
+          -2.4,
+          2.8,
+          -6
+        ],
+        "target": [
+          -4.6,
+          1,
+          -2.4
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "stand-back",
+        "eye": [
+          -7,
+          2.8,
+          1
+        ],
+        "target": [
+          -4.6,
+          1,
+          -2.4
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "stand-top",
+        "eye": [
+          -4.6,
+          7,
+          -3.6
+        ],
+        "target": [
+          -4.6,
+          1,
+          -2.4
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      }
+    ]
+  },
+  "recipe_sha256": "ab74fd4eae89d8f00f6c1b23e3cb63e98cb3bf4652fbba4e81f60dee1e226cf5",
+  "runner_sha256": "4cb504c3fa164d5455bfb89708a3c33ca8ec018e1efdc5a98752e04e0e508304",
+  "binary": "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native",
+  "binary_sha256": "0581c547f215a064dae94102d8d65b936e6fa4c94a4230507a950d15aed9bb7e",
+  "original_registry_sha256": "8e316e27cb18ab0ce186fc7365c7142989e8544a056df60248f956892990e47d",
+  "original_config": "/home/modkin/workspace/schneiderlo/voxys/salvage_hierarchy_fixture.cfg",
+  "original_config_sha256": "3b5179aaef1d10d668dbda2275284a9068c998980631f03388d90316f3d40e06",
+  "guides": "dimensions",
+  "selected_views": null,
+  "scope": "Native scene captures; guides are technical overlays, not final art or moving-craft acceptance",
+  "views": [
+    {
+      "name": "overview",
+      "argv": [
+        "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/hierarchy-bounds/native-dimensions-attempt01/overview.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/hierarchy-bounds/native-dimensions-attempt01/overview.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "config_sha256": "c262e932fb0a2912dd3808f62900421a3411de5d967145d0b0301788bb44674a",
+      "registry_sha256": "8e316e27cb18ab0ce186fc7365c7142989e8544a056df60248f956892990e47d",
+      "timeout": false,
+      "exit_code": 0,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "png_sha256": "a2ef7235f468c9c240d8e89bd1d9e46b550a17cfc5e7b3a540e317f8cb6f958d",
+      "gpu_or_application_errors": [],
+      "passed": true
+    },
+    {
+      "name": "stand-front",
+      "argv": [
+        "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/hierarchy-bounds/native-dimensions-attempt01/stand-front.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/hierarchy-bounds/native-dimensions-attempt01/stand-front.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "config_sha256": "c262e932fb0a2912dd3808f62900421a3411de5d967145d0b0301788bb44674a",
+      "registry_sha256": "c9aef6e8bf92bf68f686a57d34b4db618e91ceed6eb198e12b7b48420f137e55",
+      "timeout": false,
+      "exit_code": 0,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "png_sha256": "b0aca77c8c82764676272aa77bf8f946a45662183231592857ce5c869f3f6552",
+      "gpu_or_application_errors": [],
+      "passed": true
+    },
+    {
+      "name": "stand-back",
+      "argv": [
+        "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/hierarchy-bounds/native-dimensions-attempt01/stand-back.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/hierarchy-bounds/native-dimensions-attempt01/stand-back.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "config_sha256": "c262e932fb0a2912dd3808f62900421a3411de5d967145d0b0301788bb44674a",
+      "registry_sha256": "a6b6ef6dd2c10378d6c646842bbfb1cd58a0dd0d84b32c7f70e863d98906cc34",
+      "timeout": false,
+      "exit_code": 0,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "png_sha256": "9fda55be7bcfd260f69428e279feafed4cf86540193ee21687e2f6ab88b17683",
+      "gpu_or_application_errors": [],
+      "passed": true
+    },
+    {
+      "name": "stand-top",
+      "argv": [
+        "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/hierarchy-bounds/native-dimensions-attempt01/stand-top.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/hierarchy-bounds/native-dimensions-attempt01/stand-top.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "config_sha256": "c262e932fb0a2912dd3808f62900421a3411de5d967145d0b0301788bb44674a",
+      "registry_sha256": "8eb5daf83cb13581af115cc3f715a47c11a8dc6c2c3914af632abd8fe5db6002",
+      "timeout": false,
+      "exit_code": 0,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "png_sha256": "2cc1d75c76ea5cd39d65d3bfa9520eafbeadd32279b8a5b7388d167d172ba72a",
+      "gpu_or_application_errors": [],
+      "passed": true
+    }
+  ],
+  "temporary_registry_removed": true
+}

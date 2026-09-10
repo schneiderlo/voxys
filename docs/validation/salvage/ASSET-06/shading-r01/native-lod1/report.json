@@ -1,0 +1,582 @@
+{
+  "schema": 1,
+  "status": "captured; visual review required",
+  "recipe": {
+    "schema": 1,
+    "purpose": "Manufactured normal comparison; identical r02 geometry and dry material maps; no final art acceptance",
+    "registry": "data/salvage/fixture-material-shading-r01.json",
+    "physical_viewport": [
+      1920,
+      1080
+    ],
+    "fov_degrees": 60,
+    "inspection_expectations": {
+      "maximum_model_draws": 13,
+      "guide_boxes": [
+        0,
+        26,
+        135
+      ]
+    },
+    "views": [
+      {
+        "name": "winch-metal-key",
+        "eye": [
+          5,
+          1.2,
+          -2.5
+        ],
+        "target": [
+          3,
+          0.12,
+          0
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "winch-metal-opposed",
+        "eye": [
+          5,
+          1.2,
+          -2.5
+        ],
+        "target": [
+          3,
+          0.12,
+          0
+        ],
+        "sun": [
+          -0.4,
+          0.8,
+          0.4
+        ]
+      },
+      {
+        "name": "helm-grip-key",
+        "eye": [
+          6.6,
+          0.85,
+          1.2
+        ],
+        "target": [
+          6,
+          0.15,
+          0.05
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "helm-grip-opposed",
+        "eye": [
+          6.6,
+          0.85,
+          1.2
+        ],
+        "target": [
+          6,
+          0.15,
+          0.05
+        ],
+        "sun": [
+          -0.4,
+          0.8,
+          0.4
+        ]
+      }
+    ]
+  },
+  "recipe_sha256": "a51c77d062bad852ff8bb3b7e32cb7192718079b5402a0d331eb91ced912bc89",
+  "runner_sha256": "2befd115829de8b32c77c322a4b745c3ba398821f1dcdaa25889c496a2c3b9f2",
+  "binary": "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native",
+  "binary_sha256": "f1268bcfeee8d44b8de5b076a51d8098a48b8ff138af001163cd7795ca07919d",
+  "original_registry_sha256": "15f54eb7ebbbfbe527d4db46266c530d9fda45cb0a460ce687bd3ff53ecf806d",
+  "original_config": "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-06/shading-r01/fixture.cfg",
+  "original_config_sha256": "e1a7def7ecb4337097c2432596db1798c06c2978704c3b3de478a65d2c49fde4",
+  "guides": "off",
+  "forced_lod": 1,
+  "selected_views": null,
+  "scope": "Native scene captures; guides are technical overlays, not final art or moving-craft acceptance",
+  "views": [
+    {
+      "name": "winch-metal-key",
+      "argv": [
+        "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-06/shading-r01/native-lod1/winch-metal-key.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-06/shading-r01/native-lod1/winch-metal-key.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "config_sha256": "f7621a3d7196f4c16a59bb33ac1f09542fbf41f39d23fa32b58c942d75cd0a41",
+      "registry_sha256": "c1afd7f4d8e8d0e3b97890ffb1ecd3431270b265a597cdd2eb0dda5a8ddb19de",
+      "timeout": false,
+      "exit_code": 0,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "png_sha256": "35e1da3594e0e56e4b30700822293d219bdf8fb0bfe681f70cb589a3e719abd3",
+      "gpu_or_application_errors": [],
+      "state": {
+        "active": true,
+        "ready": true,
+        "busy": false,
+        "failed": false,
+        "bodies": 0,
+        "resets": 0,
+        "controller": "free-fly",
+        "mouseCaptured": false,
+        "origin": [
+          -12,
+          -187.68,
+          -32
+        ],
+        "camera": {
+          "local": [
+            -14,
+            72.52,
+            -39.5
+          ],
+          "sector": [
+            0,
+            -1,
+            0
+          ],
+          "yaw": -0.674741,
+          "pitch": -0.325349
+        },
+        "session": {
+          "revision": "0",
+          "tick": "0",
+          "admissionOpen": true,
+          "builds": 0,
+          "cargo": 0,
+          "jobs": 0,
+          "inventory": {
+            "salvageMaterial": "0",
+            "specialMachinery": "0"
+          }
+        },
+        "observation": {
+          "world": "1f05719a745de8413ab1ba48952e0d66",
+          "incarnation": "970b7d5e56a9acba0cb0ad75e8210290",
+          "epoch": "1",
+          "publicationLost": false,
+          "lanes": [
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            },
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            },
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            }
+          ]
+        },
+        "assetFixture": {
+          "status": 2,
+          "generation": "1",
+          "uploads": 9,
+          "prototypeUploads": 0,
+          "gpuReservationBytes": "5485472",
+          "submittedSerial": "119",
+          "completedSerial": "117",
+          "draws": 13,
+          "guides": 0,
+          "guideBoxes": 0,
+          "guideMeshGpuBytes": 1936,
+          "forcedLod": "1",
+          "lods": [
+            "1",
+            "1",
+            "1"
+          ],
+          "availableLods": [
+            "0",
+            "1",
+            "2",
+            "3"
+          ]
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "winch-metal-opposed",
+      "argv": [
+        "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-06/shading-r01/native-lod1/winch-metal-opposed.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-06/shading-r01/native-lod1/winch-metal-opposed.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "config_sha256": "f7f4a99ce21878cd9120562674cd6f6758a3129ccbfbef8397cdab1d0e99cdbf",
+      "registry_sha256": "c1afd7f4d8e8d0e3b97890ffb1ecd3431270b265a597cdd2eb0dda5a8ddb19de",
+      "timeout": false,
+      "exit_code": 0,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "png_sha256": "49272cdf57cd48a10ab7ba49b6c36615659727d8de9f4a83c51d13959c615537",
+      "gpu_or_application_errors": [],
+      "state": {
+        "active": true,
+        "ready": true,
+        "busy": false,
+        "failed": false,
+        "bodies": 0,
+        "resets": 0,
+        "controller": "free-fly",
+        "mouseCaptured": false,
+        "origin": [
+          -12,
+          -187.68,
+          -32
+        ],
+        "camera": {
+          "local": [
+            -14,
+            72.52,
+            -39.5
+          ],
+          "sector": [
+            0,
+            -1,
+            0
+          ],
+          "yaw": -0.674741,
+          "pitch": -0.325349
+        },
+        "session": {
+          "revision": "0",
+          "tick": "0",
+          "admissionOpen": true,
+          "builds": 0,
+          "cargo": 0,
+          "jobs": 0,
+          "inventory": {
+            "salvageMaterial": "0",
+            "specialMachinery": "0"
+          }
+        },
+        "observation": {
+          "world": "4ddf4ed3ccd8a1cc232445ef57183d82",
+          "incarnation": "d33a4bbec5e09f66dac1b158aafda29b",
+          "epoch": "1",
+          "publicationLost": false,
+          "lanes": [
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            },
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            },
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            }
+          ]
+        },
+        "assetFixture": {
+          "status": 2,
+          "generation": "1",
+          "uploads": 9,
+          "prototypeUploads": 0,
+          "gpuReservationBytes": "5485472",
+          "submittedSerial": "119",
+          "completedSerial": "117",
+          "draws": 13,
+          "guides": 0,
+          "guideBoxes": 0,
+          "guideMeshGpuBytes": 1936,
+          "forcedLod": "1",
+          "lods": [
+            "1",
+            "1",
+            "1"
+          ],
+          "availableLods": [
+            "0",
+            "1",
+            "2",
+            "3"
+          ]
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "helm-grip-key",
+      "argv": [
+        "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-06/shading-r01/native-lod1/helm-grip-key.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-06/shading-r01/native-lod1/helm-grip-key.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "config_sha256": "f7621a3d7196f4c16a59bb33ac1f09542fbf41f39d23fa32b58c942d75cd0a41",
+      "registry_sha256": "06d3b6369f44e8cd7f8836018ea4cfe2f4896eed367fafffa52022a8680c5279",
+      "timeout": false,
+      "exit_code": 0,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "png_sha256": "de943812a89d60fa2a55e3260a36b3f5812f0c7b03815d68a29ff80cc1e9f59d",
+      "gpu_or_application_errors": [],
+      "state": {
+        "active": true,
+        "ready": true,
+        "busy": false,
+        "failed": false,
+        "bodies": 0,
+        "resets": 0,
+        "controller": "free-fly",
+        "mouseCaptured": false,
+        "origin": [
+          -12,
+          -187.68,
+          -32
+        ],
+        "camera": {
+          "local": [
+            -12.4,
+            72.17,
+            -35.8
+          ],
+          "sector": [
+            0,
+            -1,
+            0
+          ],
+          "yaw": -2.66071,
+          "pitch": -0.494877
+        },
+        "session": {
+          "revision": "0",
+          "tick": "0",
+          "admissionOpen": true,
+          "builds": 0,
+          "cargo": 0,
+          "jobs": 0,
+          "inventory": {
+            "salvageMaterial": "0",
+            "specialMachinery": "0"
+          }
+        },
+        "observation": {
+          "world": "7c8431963098c00e8248badb634102fa",
+          "incarnation": "cb92e57b3ef350f333bf5fc00ce8ea4d",
+          "epoch": "1",
+          "publicationLost": false,
+          "lanes": [
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            },
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            },
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            }
+          ]
+        },
+        "assetFixture": {
+          "status": 2,
+          "generation": "1",
+          "uploads": 9,
+          "prototypeUploads": 0,
+          "gpuReservationBytes": "5485472",
+          "submittedSerial": "120",
+          "completedSerial": "118",
+          "draws": 13,
+          "guides": 0,
+          "guideBoxes": 0,
+          "guideMeshGpuBytes": 1936,
+          "forcedLod": "1",
+          "lods": [
+            "1",
+            "1",
+            "1"
+          ],
+          "availableLods": [
+            "0",
+            "1",
+            "2",
+            "3"
+          ]
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "helm-grip-opposed",
+      "argv": [
+        "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-06/shading-r01/native-lod1/helm-grip-opposed.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-06/shading-r01/native-lod1/helm-grip-opposed.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "config_sha256": "f7f4a99ce21878cd9120562674cd6f6758a3129ccbfbef8397cdab1d0e99cdbf",
+      "registry_sha256": "06d3b6369f44e8cd7f8836018ea4cfe2f4896eed367fafffa52022a8680c5279",
+      "timeout": false,
+      "exit_code": 0,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "png_sha256": "2be153d416e4072a0ca1832582a52336d83305a48da0963f3fd1f3a81a4ecbf8",
+      "gpu_or_application_errors": [],
+      "state": {
+        "active": true,
+        "ready": true,
+        "busy": false,
+        "failed": false,
+        "bodies": 0,
+        "resets": 0,
+        "controller": "free-fly",
+        "mouseCaptured": false,
+        "origin": [
+          -12,
+          -187.68,
+          -32
+        ],
+        "camera": {
+          "local": [
+            -12.4,
+            72.17,
+            -35.8
+          ],
+          "sector": [
+            0,
+            -1,
+            0
+          ],
+          "yaw": -2.66071,
+          "pitch": -0.494877
+        },
+        "session": {
+          "revision": "0",
+          "tick": "0",
+          "admissionOpen": true,
+          "builds": 0,
+          "cargo": 0,
+          "jobs": 0,
+          "inventory": {
+            "salvageMaterial": "0",
+            "specialMachinery": "0"
+          }
+        },
+        "observation": {
+          "world": "1627e26d20ceb7ea9d8d0d93db1f2b24",
+          "incarnation": "0b6a45069ecb70e63ae7d18773a3b27b",
+          "epoch": "1",
+          "publicationLost": false,
+          "lanes": [
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            },
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            },
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            }
+          ]
+        },
+        "assetFixture": {
+          "status": 2,
+          "generation": "1",
+          "uploads": 9,
+          "prototypeUploads": 0,
+          "gpuReservationBytes": "5485472",
+          "submittedSerial": "120",
+          "completedSerial": "118",
+          "draws": 13,
+          "guides": 0,
+          "guideBoxes": 0,
+          "guideMeshGpuBytes": 1936,
+          "forcedLod": "1",
+          "lods": [
+            "1",
+            "1",
+            "1"
+          ],
+          "availableLods": [
+            "0",
+            "1",
+            "2",
+            "3"
+          ]
+        }
+      },
+      "passed": true
+    }
+  ],
+  "temporary_registry_removed": true
+}

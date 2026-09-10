@@ -1,0 +1,241 @@
+{
+  "status": "failed",
+  "recipe": {
+    "schema": 1,
+    "registry": "data/salvage/fixture-hierarchy-v1.json",
+    "physical_viewport": [
+      1920,
+      1080
+    ],
+    "fov_degrees": 60,
+    "inspection_expectations": {
+      "maximum_model_draws": 10,
+      "guide_boxes": [
+        0,
+        26,
+        375
+      ]
+    },
+    "views": [
+      {
+        "name": "overview",
+        "eye": [
+          8,
+          6,
+          -11
+        ],
+        "target": [
+          0,
+          0.3,
+          0
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "front",
+        "eye": [
+          0,
+          2,
+          -11
+        ],
+        "target": [
+          0,
+          0.3,
+          0
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "back",
+        "eye": [
+          0,
+          2,
+          11
+        ],
+        "target": [
+          0,
+          0.3,
+          0
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "left",
+        "eye": [
+          -12,
+          3,
+          0
+        ],
+        "target": [
+          0,
+          0.3,
+          0
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "right",
+        "eye": [
+          12,
+          3,
+          0
+        ],
+        "target": [
+          0,
+          0.3,
+          0
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "top",
+        "eye": [
+          0,
+          12,
+          -0.1
+        ],
+        "target": [
+          0,
+          0.3,
+          0
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "under",
+        "eye": [
+          0,
+          -10,
+          -0.1
+        ],
+        "target": [
+          0,
+          0.3,
+          0
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      }
+    ]
+  },
+  "guides": 0,
+  "selected_views": null,
+  "recipe_sha256": "42d43968f0ab13d42ae02f2a32c2f848544f2973855b5aa0fca78aa28feea6b6",
+  "views": [],
+  "origin": [
+    -19,
+    -184.68,
+    -37
+  ],
+  "initial": {
+    "active": true,
+    "ready": true,
+    "busy": false,
+    "failed": false,
+    "bodies": 0,
+    "resets": 0,
+    "controller": "free-fly",
+    "mouseCaptured": false,
+    "origin": [
+      -12,
+      -187.68,
+      -32
+    ],
+    "camera": {
+      "local": [
+        -11,
+        77.32,
+        -48
+      ],
+      "sector": [
+        0,
+        -1,
+        0
+      ],
+      "yaw": -0.628796,
+      "pitch": -0.396839
+    },
+    "session": {
+      "revision": "0",
+      "tick": "0",
+      "admissionOpen": true,
+      "builds": 0,
+      "cargo": 0,
+      "jobs": 0,
+      "inventory": {
+        "salvageMaterial": "0",
+        "specialMachinery": "0"
+      }
+    },
+    "assetFixture": {
+      "status": 2,
+      "generation": "1",
+      "uploads": 4,
+      "prototypeUploads": 0,
+      "gpuReservationBytes": "6452636",
+      "submittedSerial": "183",
+      "completedSerial": "181",
+      "draws": 10,
+      "guides": 0,
+      "guideBoxes": 0,
+      "guideMeshGpuBytes": 1936,
+      "forcedLod": "0",
+      "lods": [
+        "2",
+        "2",
+        "2",
+        "2",
+        "1"
+      ],
+      "availableLods": [
+        "0",
+        "1"
+      ]
+    },
+    "lost": null,
+    "errors": [],
+    "render": {
+      "available": true,
+      "frame": 180,
+      "age_frames": 9,
+      "water_simulation_ms": 0.345729,
+      "terrain_raycast_ms": 0.001643,
+      "lighting_composite_ms": 0.179778,
+      "primitives_ms": 0,
+      "total_ms": 0.52715,
+      "frame_interval_available": true,
+      "gpu_frame_ms": 0.571833,
+      "render_width": 960,
+      "render_height": 540,
+      "includes_gpu_physics": true
+    }
+  },
+  "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n960 !== 1920\n"
+}

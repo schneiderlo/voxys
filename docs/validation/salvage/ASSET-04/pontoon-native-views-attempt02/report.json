@@ -1,0 +1,395 @@
+{
+  "schema": 1,
+  "status": "captured; visual review required",
+  "recipe": {
+    "schema": 1,
+    "purpose": "Static authored pontoon close views; no socket-overlay or final art acceptance",
+    "registry": "data/salvage/fixture-pontoon-v2.json",
+    "physical_viewport": [
+      1920,
+      1080
+    ],
+    "fov_degrees": 60,
+    "views": [
+      {
+        "name": "front",
+        "eye": [
+          -1.5,
+          0.1,
+          -4.8
+        ],
+        "target": [
+          -1.5,
+          0.1,
+          0
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "rear",
+        "eye": [
+          -1.5,
+          0.1,
+          4.8
+        ],
+        "target": [
+          -1.5,
+          0.1,
+          0
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "left",
+        "eye": [
+          -5,
+          0.1,
+          0
+        ],
+        "target": [
+          -1.5,
+          0.1,
+          0
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "right",
+        "eye": [
+          1,
+          0.1,
+          0
+        ],
+        "target": [
+          -1.5,
+          0.1,
+          0
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "underside",
+        "eye": [
+          -1.5,
+          -1.6,
+          -0.8
+        ],
+        "target": [
+          -1.5,
+          -0.3,
+          0
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "engaged",
+        "eye": [
+          6.4,
+          0.6,
+          -1.8
+        ],
+        "target": [
+          4.5,
+          0.48,
+          -1
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "material-front-light",
+        "eye": [
+          -4,
+          2.2,
+          -4
+        ],
+        "target": [
+          -1.5,
+          0,
+          0
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "material-opposite-light",
+        "eye": [
+          -4,
+          2.2,
+          -4
+        ],
+        "target": [
+          -1.5,
+          0,
+          0
+        ],
+        "sun": [
+          -0.4,
+          0.8,
+          0.4
+        ]
+      },
+      {
+        "name": "material-low-light",
+        "eye": [
+          -4,
+          2.2,
+          -4
+        ],
+        "target": [
+          -1.5,
+          0,
+          0
+        ],
+        "sun": [
+          0.69636424,
+          0.17364818,
+          -0.69636424
+        ]
+      }
+    ]
+  },
+  "recipe_sha256": "5b533346c15379c348ca2ba9ecf4db7afd230f6ec6186e400ff30f614cb9c629",
+  "runner_sha256": "ae228f9b04c2c68ed6ff28cf342150a0c30f71db0c906e7f8976632c6e0f5278",
+  "binary": "/home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/voxy_native",
+  "binary_sha256": "7fd8729e9c5a64749e502034dc5aa8a9962b754e25f17b18e8fe352cd28f0d70",
+  "original_registry_sha256": "f4d3599cf126f8aa583f4f065d66f891eca520926b876586250482d544c6afbd",
+  "original_config_sha256": "a9d4e08737f1260c69e10b2610a1ef97f8ca798659c707c9dac9be77b85242af",
+  "scope": "Native scene captures; no FPS, final art, socket-overlay or moving-craft acceptance",
+  "views": [
+    {
+      "name": "front",
+      "argv": [
+        "/home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/pontoon-native-views-attempt02/front.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/pontoon-native-views-attempt02/front.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "config_sha256": "6d70b8b28c7d8aabd220aa6c707d455b3070ba717a236f71771b267c6d7b7ef4",
+      "registry_sha256": "e10633487fd8d8d6d24720506e67aec5b1c93c28ce7fcfa6e1ac2d587886fa5e",
+      "timeout": false,
+      "exit_code": 0,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "png_sha256": "311fab4f17365cacfc98ae7dd034df2eafc5b4b76573525475309856bab6ec5c",
+      "gpu_or_application_errors": [],
+      "passed": true
+    },
+    {
+      "name": "rear",
+      "argv": [
+        "/home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/pontoon-native-views-attempt02/rear.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/pontoon-native-views-attempt02/rear.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "config_sha256": "6d70b8b28c7d8aabd220aa6c707d455b3070ba717a236f71771b267c6d7b7ef4",
+      "registry_sha256": "9a34139973803d37e94e0bcb030262d14dbf8c61c31c582d9e06b4fe0e186cd1",
+      "timeout": false,
+      "exit_code": 0,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "png_sha256": "4f113f7e6d46456993918cc425b63d594a161ba45ac14b72655e737bf8946a5d",
+      "gpu_or_application_errors": [],
+      "passed": true
+    },
+    {
+      "name": "left",
+      "argv": [
+        "/home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/pontoon-native-views-attempt02/left.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/pontoon-native-views-attempt02/left.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "config_sha256": "6d70b8b28c7d8aabd220aa6c707d455b3070ba717a236f71771b267c6d7b7ef4",
+      "registry_sha256": "7a80cfeaf7290a777131cbd30fb58beb25546779a59eae6a976927847336303a",
+      "timeout": false,
+      "exit_code": 0,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "png_sha256": "354ff1798ad5ec26eb2f773ec51e081c3e08ca7b2eedc25392be4a580dd7196e",
+      "gpu_or_application_errors": [],
+      "passed": true
+    },
+    {
+      "name": "right",
+      "argv": [
+        "/home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/pontoon-native-views-attempt02/right.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/pontoon-native-views-attempt02/right.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "config_sha256": "6d70b8b28c7d8aabd220aa6c707d455b3070ba717a236f71771b267c6d7b7ef4",
+      "registry_sha256": "a2f08fbd2d6c9d82f04c2e2e454b45ad8b849e39b5f69bbd2f44f36178b20057",
+      "timeout": false,
+      "exit_code": 0,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "png_sha256": "bf59ecce83244a3bf4a0d64e151a0a164e7765235c099acb3fe0b91fce52e744",
+      "gpu_or_application_errors": [],
+      "passed": true
+    },
+    {
+      "name": "underside",
+      "argv": [
+        "/home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/pontoon-native-views-attempt02/underside.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/pontoon-native-views-attempt02/underside.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "config_sha256": "6d70b8b28c7d8aabd220aa6c707d455b3070ba717a236f71771b267c6d7b7ef4",
+      "registry_sha256": "501dd5e12610b5f137467d1ba12350668bbff33387db4d76ff6a0584bd6ee0d5",
+      "timeout": false,
+      "exit_code": 0,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "png_sha256": "93e81d09f1911eb2e3687c037eaf362ce2945bea005ad97e71288af53553a40e",
+      "gpu_or_application_errors": [],
+      "passed": true
+    },
+    {
+      "name": "engaged",
+      "argv": [
+        "/home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/pontoon-native-views-attempt02/engaged.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/pontoon-native-views-attempt02/engaged.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "config_sha256": "6d70b8b28c7d8aabd220aa6c707d455b3070ba717a236f71771b267c6d7b7ef4",
+      "registry_sha256": "80764b6e2cd107a0f1aa342222ab3f2adf729942204a6a90f288fabbfee8c11f",
+      "timeout": false,
+      "exit_code": 0,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "png_sha256": "a72b2cdc886011007e888672461cf17c1c8635045eba6c8fe62141a798d84eec",
+      "gpu_or_application_errors": [],
+      "passed": true
+    },
+    {
+      "name": "material-front-light",
+      "argv": [
+        "/home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/pontoon-native-views-attempt02/material-front-light.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/pontoon-native-views-attempt02/material-front-light.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "config_sha256": "6d70b8b28c7d8aabd220aa6c707d455b3070ba717a236f71771b267c6d7b7ef4",
+      "registry_sha256": "c3300f5bdd18e74774daefa10d26489c9fc6d2278b04568583e6c8f18cc01049",
+      "timeout": false,
+      "exit_code": 0,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "png_sha256": "b50d4965ffbcfb78d54b7540167b4ebbe8c57f428ea9d73329c6812e9c59db64",
+      "gpu_or_application_errors": [],
+      "passed": true
+    },
+    {
+      "name": "material-opposite-light",
+      "argv": [
+        "/home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/pontoon-native-views-attempt02/material-opposite-light.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/pontoon-native-views-attempt02/material-opposite-light.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "config_sha256": "6fa9cc836b460979f063a283a3ca3eeec3787ec06540403f9bb35be8855ead47",
+      "registry_sha256": "c3300f5bdd18e74774daefa10d26489c9fc6d2278b04568583e6c8f18cc01049",
+      "timeout": false,
+      "exit_code": 0,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "png_sha256": "22931af892c1c4540f06b02566973d8958cbfde9ecabb30ad88f076d7e0421ca",
+      "gpu_or_application_errors": [],
+      "passed": true
+    },
+    {
+      "name": "material-low-light",
+      "argv": [
+        "/home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/pontoon-native-views-attempt02/material-low-light.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/pontoon-native-views-attempt02/material-low-light.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "config_sha256": "4354e33c046af5c4444d266be16a35f29e6809da704b605a23a67119819648e2",
+      "registry_sha256": "c3300f5bdd18e74774daefa10d26489c9fc6d2278b04568583e6c8f18cc01049",
+      "timeout": false,
+      "exit_code": 0,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "png_sha256": "d267a1fc9ed3e3b23bb14f2a560fd229e59a1116ec8299ee88cbdd60e57e30f3",
+      "gpu_or_application_errors": [],
+      "passed": true
+    }
+  ],
+  "temporary_registry_removed": true
+}

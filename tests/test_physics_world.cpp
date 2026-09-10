@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "physics/physics_world.hpp"
+#include "physics/authored_shape_resources.hpp"
 
 #include <array>
 #include <bit>
@@ -153,6 +154,15 @@ TEST_P(PhysicsWorldTest, DistanceAttachmentsRemainExplicitlyUnsupported) {
     EXPECT_FALSE(world.setAttachmentMotorSpeed({1u, 1u}, 1.0f));
 }
 
+TEST_P(PhysicsWorldTest, AuthoredShapeResourcesRemainExplicitlyUnsupported) {
+    const auto before=world.stats().residentBodies;
+    EXPECT_EQ(world.authoredShapeResources(),nullptr);
+    EXPECT_EQ(world.enableAuthoredShapeResources(),ShapeResourceError::Unsupported);
+    EXPECT_EQ(world.authoredShapeResources(),nullptr);
+    EXPECT_TRUE(world.hasTerrain());
+    EXPECT_EQ(world.stats().residentBodies,before);
+}
+
 TEST_P(PhysicsWorldTest, InvalidTerrainReplacementPreservesLiveTerrain) {
     const float nan = std::numeric_limits<float>::quiet_NaN();
     EXPECT_FALSE(world.setTerrain(
@@ -174,6 +184,8 @@ TEST(PhysicsWorldBackendConfigurationTest, RejectsUnavailableBackendExplicitly) 
     context.requestedBackend = BackendType::WebGpuSoft;
     EXPECT_FALSE(world.initialize(context));
     EXPECT_FALSE(world.isInitialized());
+    EXPECT_EQ(world.enableAuthoredShapeResources(),ShapeResourceError::NotInitialized);
+    EXPECT_EQ(world.authoredShapeResources(),nullptr);
 }
 
 TEST(PhysicsWorldBackendConfigurationTest,
@@ -188,6 +200,8 @@ TEST(PhysicsWorldBackendConfigurationTest,
     EXPECT_TRUE(world.capabilities().synchronousCharacter);
     EXPECT_TRUE(world.capabilities().bodyBodyContacts);
     EXPECT_TRUE(world.capabilities().deterministicFloat);
+    EXPECT_EQ(world.enableAuthoredShapeResources(),ShapeResourceError::Unsupported);
+    EXPECT_EQ(world.authoredShapeResources(),nullptr);
 
     // Repeating the same requested configuration is idempotent even though
     // the selected backend is the configured fallback.

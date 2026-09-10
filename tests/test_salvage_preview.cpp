@@ -104,6 +104,43 @@ TEST(SalvagePreview, AuthoredFixtureIsBoundedAndStatic) {
     EXPECT_EQ(bodies.resident(), 0u); // All were pending, no GPU submission needed.
 }
 
+TEST(SalvagePreview, AssetInspectionControlsOwnNoSceneryOrBodyLifetimes) {
+    BodyPort bodies;
+    const auto sentinel = bodies.spawn();
+    bodies.completeGpuStep();
+    const auto initialSpawns = bodies.spawnCalls;
+    SalvagePreview preview;
+    ASSERT_TRUE(preview.initialize(bodies.access(), {10,20,30}, SalvagePreview::Scenery::Inspection));
+    EXPECT_EQ(preview.phase(), SalvagePreview::Phase::Ready);
+    EXPECT_EQ(preview.bodyCount(), 0u);
+    EXPECT_TRUE(preview.legoBodyIds().empty());
+    for (uint32_t reset = 1; reset <= 8; ++reset) {
+        const auto revision = preview.revision();
+        ASSERT_TRUE(preview.request(SalvagePreview::Action::Reset));
+        preview.update();
+        EXPECT_EQ(preview.resetCount(), reset);
+        EXPECT_EQ(preview.phase(), SalvagePreview::Phase::Ready);
+        EXPECT_GT(preview.revision(), revision);
+        EXPECT_FALSE(preview.busy());
+        EXPECT_FALSE(preview.retirementSnapshot()); // No zero-byte GPU readback.
+        EXPECT_EQ(preview.bodyCount(), 0u);
+    }
+    ASSERT_TRUE(preview.request(SalvagePreview::Action::Reset));
+    ASSERT_TRUE(preview.request(SalvagePreview::Action::Leave));
+    preview.update();
+    EXPECT_EQ(preview.phase(), SalvagePreview::Phase::Empty);
+    EXPECT_EQ(preview.resetCount(), 8u); // Leave wins the unconsumed Reset.
+    EXPECT_FALSE(preview.request(SalvagePreview::Action::Reset));
+    EXPECT_TRUE(preview.shutdown());
+    EXPECT_EQ(bodies.spawnCalls, initialSpawns);
+    EXPECT_EQ(bodies.slots[sentinel.index].destroyCalls, 0u);
+    EXPECT_TRUE(bodies.owns(sentinel));
+    ASSERT_TRUE(preview.initialize(bodies.access(), {}, SalvagePreview::Scenery::Cove));
+    EXPECT_EQ(preview.bodyCount(), 32u); // Normal cove remains the real body path.
+    EXPECT_TRUE(preview.shutdown());
+    EXPECT_EQ(bodies.resident(), 1u);
+}
+
 TEST(SalvagePreview, PartialSpawnFailureRollsBackOnlyOwnedBodies) {
     BodyPort bodies;
     const auto sentinel = bodies.spawn();
@@ -219,6 +256,7 @@ TEST(SalvagePreview, InvalidPortsAndActionsHaveNoSideEffects) {
     SalvagePreview preview;
     EXPECT_FALSE(preview.initialize({}, {}));
     EXPECT_FALSE(preview.initialize(bodies.access(), {std::numeric_limits<float>::quiet_NaN(), 0, 0}));
+    EXPECT_FALSE(preview.initialize(bodies.access(), {}, static_cast<SalvagePreview::Scenery>(99)));
     EXPECT_EQ(bodies.spawnCalls, 0u);
     EXPECT_TRUE(preview.initialize(bodies.access(), {}));
     EXPECT_FALSE(preview.request(static_cast<SalvagePreview::Action>(99)));

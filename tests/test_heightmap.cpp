@@ -1029,3 +1029,19 @@ TEST(MipChainCorrectnessTest, VerifyNonSquareDimensions) {
 }
 
 } // namespace voxy::terrain
+
+TEST(AuthoredCoveTest, StarterBerthProvidesDraftWithoutMovingDryShoreOrDistantSea) {
+    constexpr uint32_t width=256;
+    const auto encode=[](float y){return static_cast<uint16_t>(std::lround((y/600+1)*.5f*65535));};
+    std::vector<uint16_t> samples(width*width,encode(-201));
+    const auto index=[](int x,int z){return size_t(z+128)*width+size_t(x+128);};
+    samples[index(-20,-89)]=encode(-199);
+    const auto before=samples;
+    ASSERT_TRUE(voxy::terrain::applySalvageBerth(samples,width,width,600,1,-200));
+    EXPECT_NEAR(600*(2*float(samples[index(-19,-90)])/65535-1),-204,.02);
+    EXPECT_EQ(samples[index(-20,-89)],before[index(-20,-89)]);
+    EXPECT_EQ(samples[index(20,20)],before[index(20,20)]);
+    const auto accepted=samples;
+    EXPECT_FALSE(voxy::terrain::applySalvageBerth(samples,width,width,0,1,-200));
+    EXPECT_EQ(samples,accepted);
+}

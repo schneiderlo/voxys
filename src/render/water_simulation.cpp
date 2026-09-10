@@ -132,6 +132,42 @@ glm::vec2 complexMultiply(glm::vec2 a, glm::vec2 b) {
             a.x * b.y + a.y * b.x};
 }
 
+void addLongWaves(WaterSimulation::SurfaceSample& sample, glm::vec2 worldPosition, float timeSeconds) {
+    struct LongWave {
+        glm::vec2 direction;
+        float amplitude;
+        float wavelength;
+        float phase;
+        float omega;
+    };
+    constexpr std::array<LongWave, 4> longWaves{{
+        {{ 0.923059017f, 0.384658357f}, 5.1541f,  440.298507f,
+         0.0f,       0.374291312f},
+        {{ 0.700400636f, 0.713749921f}, 5.1541f,  701.258144f,
+         5.553108549f, 0.296825282f},
+        {{ 0.367164395f, 0.930156066f}, 5.1541f, 1116.885424f,
+         4.823031791f, 0.234699061f},
+        {{-0.024039031f, 0.999711021f}, 5.1541f, 1778.85f,
+         4.092955033f, 0.186378666f},
+    }};
+    for (const LongWave& wave : longWaves) {
+        const float waveNumber = kTau / (wave.wavelength + 1.0e-4f);
+        const float phase = waveNumber * glm::dot(wave.direction, worldPosition) -
+                            wave.omega * timeSeconds + wave.phase;
+        const float sine = std::sin(phase);
+        const float cosine = std::cos(phase);
+        sample.heightOffset += wave.amplitude * cosine;
+        sample.slope -= wave.direction *
+                        (waveNumber * wave.amplitude * sine);
+        sample.velocity.y += wave.amplitude * wave.omega * sine;
+        const glm::vec2 horizontalVelocity = wave.direction *
+            (wave.amplitude * wave.omega * cosine);
+        sample.velocity.x += horizontalVelocity.x;
+        sample.velocity.z += horizontalVelocity.y;
+    }
+
+}
+
 WGPUComputePipeline createComputePipeline(WGPUDevice device,
                                           WGPUPipelineLayout layout,
                                           WGPUShaderModule module,
@@ -231,8 +267,8 @@ bool WaterSimulation::init(WGPUDevice device, WGPUQueue queue,
         shutdown();
         return false;
     }
-    cpuEvolvedHeight_.resize(cpuWaveModes_.size());
-    cpuEvolvedVelocity_.resize(cpuWaveModes_.size());
+    cpuEvolvedHeight_.resize(std::min(kCpuWaveModeCount,cpuWaveModes_.size()));
+    cpuEvolvedVelocity_.resize(cpuEvolvedHeight_.size());
     cpuCacheTime_ = -1.0f;
 
     LOG_INFO("FFT water simulation initialized: {} cascades at {}x{}",
@@ -274,8 +310,8 @@ bool WaterSimulation::reconfigure(const WaterSpectrumConfig& spectrum) {
     fftAxisBindGroups_ = nextFftAxisBindGroups;
     finalizeBindGroup_ = nextFinalizeBindGroup;
     cpuWaveModes_ = std::move(nextCpuWaveModes);
-    cpuEvolvedHeight_.resize(cpuWaveModes_.size());
-    cpuEvolvedVelocity_.resize(cpuWaveModes_.size());
+    cpuEvolvedHeight_.resize(std::min(kCpuWaveModeCount,cpuWaveModes_.size()));
+    cpuEvolvedVelocity_.resize(cpuEvolvedHeight_.size());
     spectrumConfig_ = next;
     cpuCacheTime_ = -1.0f;
     spectralFrame_ = 0u;
@@ -631,7 +667,7 @@ bool WaterSimulation::createSpectrum(
                 const uint32_t mirrorY = (RESOLUTION - y) % RESOLUTION;
                 const uint32_t index = base + y * RESOLUTION + x;
                 const uint32_t mirror = base + mirrorY * RESOLUTION + mirrorX;
-                if (index >= mirror) continue;
+                if (index > mirror) continue;
 
                 const glm::vec2 waveVector =
                     (glm::vec2(static_cast<float>(x), static_cast<float>(y)) -
@@ -644,14 +680,15 @@ bool WaterSimulation::createSpectrum(
                     energy,
                     CpuWaveMode{
                         waveVector,
-                        glm::vec2(-0.5f * patchLength /
-                                  static_cast<float>(RESOLUTION)),
+                        // GPU UV is world/patch + .5 + .5/N. Removing the
+                        // sampler's half-texel offset leaves world + patch/2.
+                        glm::vec2(0.5f * patchLength),
                         glm::vec2(h0[index].real(), h0[index].imag()),
                         glm::vec2(std::conj(h0[mirror]).real(),
                                   std::conj(h0[mirror]).imag()),
                         std::round(std::sqrt(kGravity * (waveNumber + 1.0e-4f)) /
                                    kFrequencyTick) * kFrequencyTick,
-                        cascadeValue(spectrum.cascadeAmplitudes, cascade),
+                        index==mirror?1.0f:2.0f,
                         cascade}});
             }
         }
@@ -660,7 +697,7 @@ bool WaterSimulation::createSpectrum(
               [](const CpuModeCandidate& a, const CpuModeCandidate& b) {
                   return a.energy > b.energy;
               });
-    const size_t modeCount = std::min(kCpuWaveModeCount, candidates.size());
+    const size_t modeCount = candidates.size();
     cpuWaveModes.reserve(modeCount);
     for (size_t index = 0; index < modeCount; ++index) {
         cpuWaveModes.push_back(candidates[index].mode);
@@ -710,7 +747,7 @@ void WaterSimulation::updateCpuWaveCache(float timeSeconds) const {
     if (cpuCacheTime_ == timeSeconds) return;
     cpuCacheTime_ = timeSeconds;
     const float sineScale = spectrumConfig_.directionalSineScale;
-    for (size_t index = 0; index < cpuWaveModes_.size(); ++index) {
+    for (size_t index = 0; index < cpuEvolvedHeight_.size(); ++index) {
         const CpuWaveMode& mode = cpuWaveModes_[index];
         const float angle = mode.angularFrequency * timeSeconds;
         const float cosine = std::cos(angle);
@@ -749,7 +786,7 @@ WaterSimulation::SurfaceSample WaterSimulation::sampleSurface(
     }
     updateCpuWaveCache(timeSeconds * spectrumConfig_.animationSpeed);
 
-    for (size_t index = 0; index < cpuWaveModes_.size(); ++index) {
+    for (size_t index = 0; index < cpuEvolvedHeight_.size(); ++index) {
         const CpuWaveMode& mode = cpuWaveModes_[index];
         const float spatialAngle = glm::dot(
             mode.waveVector, worldPosition + mode.sampleOffset);
@@ -762,14 +799,14 @@ WaterSimulation::SurfaceSample WaterSimulation::sampleSurface(
         const float modeAmplitude = cascadeValue(
             spectrumConfig_.cascadeAmplitudes, mode.cascade);
 
-        sample.heightOffset -= 2.0f * spatialHeight.x * modeAmplitude;
-        sample.slope += 2.0f * spatialHeight.y * mode.waveVector *
+        sample.heightOffset -= mode.pairWeight * spatialHeight.x * modeAmplitude;
+        sample.slope += mode.pairWeight * spatialHeight.y * mode.waveVector *
                         modeAmplitude;
-        sample.velocity.y -= 2.0f * spatialVelocity.x * modeAmplitude *
+        sample.velocity.y -= mode.pairWeight * spatialVelocity.x * modeAmplitude *
                              spectrumConfig_.animationSpeed;
         if (waveNumber > 1e-5f) {
             const glm::vec2 horizontal = mode.waveVector / waveNumber
-                                       * (2.0f * mode.angularFrequency
+                                       * (mode.pairWeight * mode.angularFrequency
                                           * spatialHeight.x * modeAmplitude *
                                           spectrumConfig_.choppiness *
                                           spectrumConfig_.animationSpeed);
@@ -778,44 +815,63 @@ WaterSimulation::SurfaceSample WaterSimulation::sampleSurface(
         }
     }
 
-    struct LongWave {
-        glm::vec2 direction;
-        float amplitude;
-        float wavelength;
-        float phase;
-        float omega;
-    };
-    constexpr std::array<LongWave, 4> longWaves{{
-        {{ 0.923059017f, 0.384658357f}, 5.1541f,  440.298507f,
-         0.0f,       0.374291312f},
-        {{ 0.700400636f, 0.713749921f}, 5.1541f,  701.258144f,
-         5.553108549f, 0.296825282f},
-        {{ 0.367164395f, 0.930156066f}, 5.1541f, 1116.885424f,
-         4.823031791f, 0.234699061f},
-        {{-0.024039031f, 0.999711021f}, 5.1541f, 1778.85f,
-         4.092955033f, 0.186378666f},
-    }};
-    for (const LongWave& wave : longWaves) {
-        const float waveNumber = kTau / (wave.wavelength + 1.0e-4f);
-        const float phase = waveNumber * glm::dot(wave.direction, worldPosition) -
-                            wave.omega * timeSeconds + wave.phase;
-        const float sine = std::sin(phase);
-        const float cosine = std::cos(phase);
-        sample.heightOffset += wave.amplitude * cosine;
-        sample.slope -= wave.direction *
-                        (waveNumber * wave.amplitude * sine);
-        sample.velocity.y += wave.amplitude * wave.omega * sine;
-        const glm::vec2 horizontalVelocity = wave.direction *
-            (wave.amplitude * wave.omega * cosine);
-        sample.velocity.x += horizontalVelocity.x;
-        sample.velocity.z += horizontalVelocity.y;
-    }
+    addLongWaves(sample, worldPosition, timeSeconds);
 
     const float amplitude = std::clamp(strength, 0.0f, 2.0f);
     sample.heightOffset *= amplitude;
     sample.slope *= amplitude;
     sample.velocity *= amplitude;
     return sample;
+}
+
+std::optional<float> WaterSimulation::samplePlacementHeight(
+    glm::vec2 worldPosition,float timeSeconds,float strength) const {
+    if(!isInitialized()||!std::isfinite(worldPosition.x)||!std::isfinite(worldPosition.y)
+        ||!std::isfinite(timeSeconds)||!std::isfinite(strength))return {};
+    // Reconstruct only the eight texels needed by the two bilinear samples.
+    // Keeping all spectral modes costs about 3 MiB; the ordinary approximate
+    // sampler and its temporal cache still evaluate only 24 modes per tick.
+    std::array<std::array<glm::vec2,4>,CASCADE_COUNT> corners{};
+    std::array<glm::vec2,CASCADE_COUNT> fraction{};
+    std::array<std::array<double,4>,CASCADE_COUNT> heights{};
+    for(uint32_t cascade=0;cascade<CASCADE_COUNT;++cascade){
+        const float patch=cascadeValue(spectrumConfig_.patchLengths,cascade);
+        const auto uv=worldPosition/patch+glm::vec2(.5f+.5f/float(RESOLUTION));
+        const auto texel=glm::fract(uv)*float(RESOLUTION)-glm::vec2(.5f);
+        const auto lower=glm::floor(texel);fraction[cascade]=texel-lower;
+        for(uint32_t corner=0;corner<4;++corner){
+            const auto pixel=lower+glm::vec2(float(corner&1u),float(corner>>1u));
+            corners[cascade][corner]=glm::mod(pixel,glm::vec2(float(RESOLUTION)))*(patch/float(RESOLUTION));
+        }
+    }
+    const float time=timeSeconds*spectrumConfig_.animationSpeed;
+    const float sineScale=spectrumConfig_.directionalSineScale;
+    for(const auto& mode:cpuWaveModes_){
+        const float angle=mode.angularFrequency*time;
+        const float cosine=std::cos(angle),sine=std::sin(angle)*sineScale;
+        const auto evolved=complexMultiply(mode.initialPositive,{cosine,-sine})
+            +complexMultiply(mode.conjugateNegative,{cosine,sine});
+        const float scale=mode.pairWeight*cascadeValue(spectrumConfig_.cascadeAmplitudes,mode.cascade);
+        for(size_t corner=0;corner<4;++corner){
+            const float phase=glm::dot(mode.waveVector,corners[mode.cascade][corner]);
+            heights[mode.cascade][corner]-=double(scale)*double(evolved.x*std::cos(phase)-evolved.y*std::sin(phase));
+        }
+    }
+    float spectralHeight=0;
+    for(uint32_t cascade=0;cascade<CASCADE_COUNT;++cascade){
+        std::array<float,4> values{};
+        for(size_t corner=0;corner<4;++corner){
+            // The shipping displacement texture is rgba16float. Quantize each
+            // texel before filtering, exactly where the GPU stores it.
+            values[corner]=glm::unpackHalf1x16(glm::packHalf1x16(static_cast<float>(heights[cascade][corner])));
+            if(!std::isfinite(values[corner]))return {};
+        }
+        const auto f=fraction[cascade];
+        spectralHeight+=glm::mix(glm::mix(values[0],values[1],f.x),glm::mix(values[2],values[3],f.x),f.y);
+    }
+    SurfaceSample swells;addLongWaves(swells,worldPosition,timeSeconds);
+    const float height=(spectralHeight+swells.heightOffset)*std::clamp(strength,0.0f,2.0f);
+    return std::isfinite(height)?std::optional<float>{height}:std::nullopt;
 }
 
 bool WaterSimulation::createBuffers() {

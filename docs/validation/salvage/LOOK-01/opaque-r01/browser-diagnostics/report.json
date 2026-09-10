@@ -1,0 +1,376 @@
+{
+  "passed": true,
+  "kind": "Shared C++ mesh-opaque correctness tests on hardware browser WebGPU",
+  "runner_sha256": "92278f1b8f86119c77d0acf0eacf898c4c83436471c8cb23784ab68ad4455b78",
+  "package": "/tmp/voxys-opaque-diagnostics-r02",
+  "artifacts": {
+    "index.html": {
+      "sha256": "3e36397d1bddd6554060e07aaaa955d62dabc24a10c17c1405e56d05233f1ed0",
+      "bytes": 2777
+    },
+    "mesh_diagnostics.js": {
+      "sha256": "062d51720a3323227a5eef1fffa0002d9310c6e79a230f5bc0055e21f5b10856",
+      "bytes": 177858
+    },
+    "mesh_diagnostics.wasm": {
+      "sha256": "f87e499cf8b1f954fdb02d8deb3d0c4a1c14bf0ba69eda0e79acc43a2bd4956e",
+      "bytes": 1557234
+    }
+  },
+  "chrome_argv": [
+    "google-chrome",
+    "--no-sandbox",
+    "--no-first-run",
+    "--no-default-browser-check",
+    "--disable-background-networking",
+    "--enable-unsafe-webgpu",
+    "--disable-gpu-watchdog",
+    "--disable-background-timer-throttling",
+    "--disable-renderer-backgrounding",
+    "--ozone-platform=wayland",
+    "--enable-features=Vulkan",
+    "--remote-debugging-port=0",
+    "--user-data-dir=/tmp/voxys-mesh-browser-ABvbQZ",
+    "about:blank"
+  ],
+  "browser": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/152.0.7977.82",
+    "revision": "@d04cdb24d67b081f6cf80200ffc5233f44b61109",
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36",
+    "jsVersion": "15.2.124.21"
+  },
+  "result": {
+    "done": true,
+    "passed": true,
+    "output": [
+      "Running main() from /home/modkin/workspace/schneiderlo/voxys/third_party/googletest/googletest/src/gtest_main.cc",
+      "Note: Google Test filter = MeshOpaqueGPUTest.*",
+      "[==========] Running 1 test from 1 test suite.",
+      "[----------] Global test environment set-up.",
+      "[----------] 1 test from MeshOpaqueGPUTest",
+      "[ RUN      ] MeshOpaqueGPUTest.PreservesLinearHdrNearestDepthTerrainCacheAndRemovesPreviousObjects",
+      "Opaque frame 0: linear RGB 4.000 0.000 0.000; radial metres 3.000244",
+      "Opaque frame 1: linear RGB 0.250 0.500 1.000; radial metres 5.000000",
+      "Opaque frame 2: linear RGB 0.250 0.500 1.000; radial metres 5.000000",
+      "[       OK ] MeshOpaqueGPUTest.PreservesLinearHdrNearestDepthTerrainCacheAndRemovesPreviousObjects (86 ms)",
+      "[----------] 1 test from MeshOpaqueGPUTest (87 ms total)",
+      "",
+      "[----------] Global test environment tear-down",
+      "[==========] 1 test from 1 test suite ran. (89 ms total)",
+      "[  PASSED  ] 1 test."
+    ],
+    "gpuErrors": [],
+    "captures": [],
+    "adapter": {
+      "vendor": "amd",
+      "architecture": "rdna-3",
+      "device": "",
+      "description": "",
+      "isFallbackAdapter": false
+    },
+    "exitCode": 0
+  },
+  "expected_rejection_logs": [
+    "[ERROR] [00:00:00.106] MeshPath: blended materials require a later transparency pass"
+  ],
+  "unexpected_console_errors": [],
+  "exceptions": [],
+  "console": [
+    {
+      "type": "error",
+      "args": [
+        {
+          "type": "string",
+          "value": "[ERROR] [00:00:00.106] MeshPath: blended materials require a later transparency pass"
+        }
+      ],
+      "executionContextId": 2,
+      "timestamp": 1788914261978.578,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "_emscripten_console_error",
+            "scriptId": "4",
+            "url": "http://127.0.0.1:44735/mesh_diagnostics.js",
+            "lineNumber": 0,
+            "columnNumber": 73738
+          },
+          {
+            "functionName": "imports.<computed>",
+            "scriptId": "4",
+            "url": "http://127.0.0.1:44735/mesh_diagnostics.js",
+            "lineNumber": 0,
+            "columnNumber": 119758
+          },
+          {
+            "functionName": "$dynCall_vi",
+            "scriptId": "6",
+            "url": "http://127.0.0.1:44735/mesh_diagnostics.wasm",
+            "lineNumber": 0,
+            "columnNumber": 1344913
+          },
+          {
+            "functionName": "__asyncify_wrapper_1679",
+            "scriptId": "4",
+            "url": "http://127.0.0.1:44735/mesh_diagnostics.js",
+            "lineNumber": 0,
+            "columnNumber": 120222
+          },
+          {
+            "functionName": "",
+            "scriptId": "4",
+            "url": "http://127.0.0.1:44735/mesh_diagnostics.js",
+            "lineNumber": 0,
+            "columnNumber": 9442
+          },
+          {
+            "functionName": "invoke_vi",
+            "scriptId": "4",
+            "url": "http://127.0.0.1:44735/mesh_diagnostics.js",
+            "lineNumber": 0,
+            "columnNumber": 169180
+          },
+          {
+            "functionName": "imports.<computed>",
+            "scriptId": "4",
+            "url": "http://127.0.0.1:44735/mesh_diagnostics.js",
+            "lineNumber": 0,
+            "columnNumber": 119758
+          },
+          {
+            "functionName": "$func356",
+            "scriptId": "6",
+            "url": "http://127.0.0.1:44735/mesh_diagnostics.wasm",
+            "lineNumber": 0,
+            "columnNumber": 458805
+          },
+          {
+            "functionName": "$dynCall_vii",
+            "scriptId": "6",
+            "url": "http://127.0.0.1:44735/mesh_diagnostics.wasm",
+            "lineNumber": 0,
+            "columnNumber": 1344481
+          },
+          {
+            "functionName": "__asyncify_wrapper_1677",
+            "scriptId": "4",
+            "url": "http://127.0.0.1:44735/mesh_diagnostics.js",
+            "lineNumber": 0,
+            "columnNumber": 120222
+          },
+          {
+            "functionName": "",
+            "scriptId": "4",
+            "url": "http://127.0.0.1:44735/mesh_diagnostics.js",
+            "lineNumber": 0,
+            "columnNumber": 9442
+          },
+          {
+            "functionName": "invoke_vii",
+            "scriptId": "4",
+            "url": "http://127.0.0.1:44735/mesh_diagnostics.js",
+            "lineNumber": 0,
+            "columnNumber": 168657
+          },
+          {
+            "functionName": "imports.<computed>",
+            "scriptId": "4",
+            "url": "http://127.0.0.1:44735/mesh_diagnostics.js",
+            "lineNumber": 0,
+            "columnNumber": 119758
+          },
+          {
+            "functionName": "$func227",
+            "scriptId": "6",
+            "url": "http://127.0.0.1:44735/mesh_diagnostics.wasm",
+            "lineNumber": 0,
+            "columnNumber": 275696
+          },
+          {
+            "functionName": "$func226",
+            "scriptId": "6",
+            "url": "http://127.0.0.1:44735/mesh_diagnostics.wasm",
+            "lineNumber": 0,
+            "columnNumber": 265902
+          },
+          {
+            "functionName": "$dynCall_iii",
+            "scriptId": "6",
+            "url": "http://127.0.0.1:44735/mesh_diagnostics.wasm",
+            "lineNumber": 0,
+            "columnNumber": 1344284
+          },
+          {
+            "functionName": "__asyncify_wrapper_1676",
+            "scriptId": "4",
+            "url": "http://127.0.0.1:44735/mesh_diagnostics.js",
+            "lineNumber": 0,
+            "columnNumber": 120222
+          },
+          {
+            "functionName": "",
+            "scriptId": "4",
+            "url": "http://127.0.0.1:44735/mesh_diagnostics.js",
+            "lineNumber": 0,
+            "columnNumber": 9442
+          },
+          {
+            "functionName": "invoke_iii",
+            "scriptId": "4",
+            "url": "http://127.0.0.1:44735/mesh_diagnostics.js",
+            "lineNumber": 0,
+            "columnNumber": 167765
+          },
+          {
+            "functionName": "imports.<computed>",
+            "scriptId": "4",
+            "url": "http://127.0.0.1:44735/mesh_diagnostics.js",
+            "lineNumber": 0,
+            "columnNumber": 119758
+          },
+          {
+            "functionName": "$func176",
+            "scriptId": "6",
+            "url": "http://127.0.0.1:44735/mesh_diagnostics.wasm",
+            "lineNumber": 0,
+            "columnNumber": 203483
+          },
+          {
+            "functionName": "$dynCall_vi",
+            "scriptId": "6",
+            "url": "http://127.0.0.1:44735/mesh_diagnostics.wasm",
+            "lineNumber": 0,
+            "columnNumber": 1344913
+          },
+          {
+            "functionName": "__asyncify_wrapper_1679",
+            "scriptId": "4",
+            "url": "http://127.0.0.1:44735/mesh_diagnostics.js",
+            "lineNumber": 0,
+            "columnNumber": 120222
+          },
+          {
+            "functionName": "",
+            "scriptId": "4",
+            "url": "http://127.0.0.1:44735/mesh_diagnostics.js",
+            "lineNumber": 0,
+            "columnNumber": 9442
+          },
+          {
+            "functionName": "invoke_vi",
+            "scriptId": "4",
+            "url": "http://127.0.0.1:44735/mesh_diagnostics.js",
+            "lineNumber": 0,
+            "columnNumber": 169180
+          },
+          {
+            "functionName": "imports.<computed>",
+            "scriptId": "4",
+            "url": "http://127.0.0.1:44735/mesh_diagnostics.js",
+            "lineNumber": 0,
+            "columnNumber": 119758
+          },
+          {
+            "functionName": "$func453",
+            "scriptId": "6",
+            "url": "http://127.0.0.1:44735/mesh_diagnostics.wasm",
+            "lineNumber": 0,
+            "columnNumber": 579699
+          },
+          {
+            "functionName": "$func538",
+            "scriptId": "6",
+            "url": "http://127.0.0.1:44735/mesh_diagnostics.wasm",
+            "lineNumber": 0,
+            "columnNumber": 750539
+          },
+          {
+            "functionName": "$dynCall_ii",
+            "scriptId": "6",
+            "url": "http://127.0.0.1:44735/mesh_diagnostics.wasm",
+            "lineNumber": 0,
+            "columnNumber": 1345450
+          },
+          {
+            "functionName": "__asyncify_wrapper_1682",
+            "scriptId": "4",
+            "url": "http://127.0.0.1:44735/mesh_diagnostics.js",
+            "lineNumber": 0,
+            "columnNumber": 120222
+          },
+          {
+            "functionName": "",
+            "scriptId": "4",
+            "url": "http://127.0.0.1:44735/mesh_diagnostics.js",
+            "lineNumber": 0,
+            "columnNumber": 9442
+          },
+          {
+            "functionName": "invoke_ii",
+            "scriptId": "4",
+            "url": "http://127.0.0.1:44735/mesh_diagnostics.js",
+            "lineNumber": 0,
+            "columnNumber": 168117
+          },
+          {
+            "functionName": "imports.<computed>",
+            "scriptId": "4",
+            "url": "http://127.0.0.1:44735/mesh_diagnostics.js",
+            "lineNumber": 0,
+            "columnNumber": 119758
+          },
+          {
+            "functionName": "$func457",
+            "scriptId": "6",
+            "url": "http://127.0.0.1:44735/mesh_diagnostics.wasm",
+            "lineNumber": 0,
+            "columnNumber": 584642
+          },
+          {
+            "functionName": "$__main_argc_argv",
+            "scriptId": "6",
+            "url": "http://127.0.0.1:44735/mesh_diagnostics.wasm",
+            "lineNumber": 0,
+            "columnNumber": 790086
+          },
+          {
+            "functionName": "__asyncify_wrapper_579",
+            "scriptId": "4",
+            "url": "http://127.0.0.1:44735/mesh_diagnostics.js",
+            "lineNumber": 0,
+            "columnNumber": 120222
+          },
+          {
+            "functionName": "",
+            "scriptId": "4",
+            "url": "http://127.0.0.1:44735/mesh_diagnostics.js",
+            "lineNumber": 0,
+            "columnNumber": 9442
+          },
+          {
+            "functionName": "callMain",
+            "scriptId": "4",
+            "url": "http://127.0.0.1:44735/mesh_diagnostics.js",
+            "lineNumber": 0,
+            "columnNumber": 176557
+          },
+          {
+            "functionName": "run",
+            "scriptId": "4",
+            "url": "http://127.0.0.1:44735/mesh_diagnostics.js",
+            "lineNumber": 0,
+            "columnNumber": 177224
+          },
+          {
+            "functionName": "",
+            "scriptId": "4",
+            "url": "http://127.0.0.1:44735/mesh_diagnostics.js",
+            "lineNumber": 0,
+            "columnNumber": 177321
+          }
+        ]
+      }
+    }
+  ]
+}

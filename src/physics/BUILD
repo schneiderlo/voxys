@@ -3,6 +3,22 @@ package(default_visibility = ["//visibility:public"])
 load("//settings:configure_copts.bzl", "PROJECT_DEFAULT_COPTS")
 
 cc_library(
+    name = "body_shape_layout",
+    hdrs = ["gpu/gpu_body_shape.hpp"],
+    copts = PROJECT_DEFAULT_COPTS,
+    includes = [".."],
+    deps = ["//third_party:glm"],
+)
+
+cc_library(
+    name = "rigid_mass_frame",
+    srcs = ["rigid_mass_frame.cpp"],
+    hdrs = ["rigid_mass_frame.hpp"],
+    copts = PROJECT_DEFAULT_COPTS,
+    includes = [".."],
+)
+
+cc_library(
     name = "wreckwater_protocol_types",
     hdrs = [
         "deterministic/lockstep_types.hpp",
@@ -16,10 +32,14 @@ cc_library(
 cc_library(
     name = "wreckwater_authority_physics",
     srcs = [
+        "authored_shape.cpp",
+        "authored_shape_pool.cpp",
+        "rigid_mass_frame.cpp",
         "character/cpu_capsule_mover.cpp",
         "gpu/debug_readback_ring.cpp",
         "gpu/deterministic_primitives.cpp",
         "gpu/gpu_attachments.cpp",
+        "gpu/gpu_authored_shapes.cpp",
         "gpu/gpu_broad_phase.cpp",
         "gpu/gpu_buffer_arena.cpp",
         "gpu/gpu_ccd.cpp",
@@ -34,11 +54,17 @@ cc_library(
         "wreckwater_authority_backend_factory.cpp",
     ],
     hdrs = [
+        "authored_shape.hpp",
+        "authored_shape_pool.hpp",
+        "authored_shape_resources.hpp",
+        "rigid_mass_frame.hpp",
         "character/cpu_capsule_mover.hpp",
         "gpu/debug_readback_ring.hpp",
         "gpu/deterministic_primitives.hpp",
         "gpu/gpu_attachments.hpp",
+        "gpu/gpu_authored_shapes.hpp",
         "gpu/gpu_body_metadata.hpp",
+        "gpu/gpu_body_shape.hpp",
         "gpu/gpu_broad_phase.hpp",
         "gpu/gpu_buffer_arena.hpp",
         "gpu/gpu_ccd.hpp",
@@ -51,6 +77,7 @@ cc_library(
         "physics_backend.hpp",
         "physics_backend_factory.hpp",
         "physics_types.hpp",
+        "shape_handle.hpp",
         "physics_world.hpp",
         "terrain_topology.hpp",
     ],
@@ -58,6 +85,7 @@ cc_library(
     includes = [".."],
     deps = [
         "//src/core:wreckwater_authority_log",
+        "//src/geometry:box_union",
         "//src/gpu:wreckwater_authority_gpu",
         "//src/terrain:wreckwater_authority_mip_generator",
         "//third_party:glm",
@@ -68,6 +96,7 @@ cc_library(
 cc_library(
     name = "physics",
     srcs = [
+        "authored_body_frame.cpp",
         "box3d/box3d_backend.cpp",
         "character/cpu_capsule_mover.cpp",
         "deterministic/lockstep_world.cpp",
@@ -91,6 +120,7 @@ cc_library(
         "physics_world.cpp",
     ],
     hdrs = [
+        "authored_body_frame.hpp",
         "box3d/box3d_backend.hpp",
         "box3d/box3d_conversions.hpp",
         "character/cpu_capsule_mover.hpp",
@@ -103,6 +133,7 @@ cc_library(
         "gpu/gpu_buffer_arena.hpp",
         "gpu/gpu_broad_phase.hpp",
         "gpu/gpu_body_metadata.hpp",
+        "gpu/gpu_body_shape.hpp",
         "gpu/gpu_ccd.hpp",
         "gpu/gpu_attachments.hpp",
         "gpu/gpu_dynamic_solver.hpp",
@@ -116,12 +147,16 @@ cc_library(
         "physics_backend.hpp",
         "physics_backend_factory.hpp",
         "physics_types.hpp",
+        "shape_handle.hpp",
         "physics_world.hpp",
         "terrain_topology.hpp",
     ],
     copts = PROJECT_DEFAULT_COPTS,
     includes = [".."],
     deps = [
+        ":rigid_mass_frame",
+        ":authored_shape",
+        ":gpu_authored_shapes",
         "//src/core:core",
         "//src/gpu:gpu",
         "//src/terrain:terrain",
@@ -130,4 +165,22 @@ cc_library(
         "//third_party:box3d",
         "//third_party:jolt",
     ],
+)
+
+cc_library(
+    name = "authored_shape",
+    srcs = ["authored_shape.cpp", "authored_shape_pool.cpp"],
+    hdrs = ["authored_shape.hpp", "authored_shape_pool.hpp", "shape_handle.hpp"],
+    copts = PROJECT_DEFAULT_COPTS,
+    includes = [".."],
+    deps = [":rigid_mass_frame", "//src/geometry:box_union"],
+)
+
+cc_library(
+    name = "gpu_authored_shapes",
+    srcs = ["gpu/gpu_authored_shapes.cpp"],
+    hdrs = ["gpu/gpu_authored_shapes.hpp", "authored_shape_resources.hpp"],
+    copts = PROJECT_DEFAULT_COPTS,
+    includes = [".."],
+    deps = [":authored_shape", "//src/gpu:gpu"],
 )

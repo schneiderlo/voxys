@@ -28,11 +28,7 @@ using ProxyId = Counter<ProxyDefinitionTag, false>;
 // Socket IDs are scoped by the PartDefinition key. A runtime endpoint is
 // (part instance ID, socket ID), never a socket's vector index. Proxy IDs are
 // scoped by definition AND collection (collision, solidOccupancy, buoyancy).
-struct GridBox {
-    GridPosition minimum{};
-    GridPosition maximum{};
-    [[nodiscard]] bool operator==(const GridBox&) const = default;
-};
+using GridBox = geometry::GridBox;
 
 // Half-open analytical box. Touching faces do not overlap solid occupancy.
 struct PartBox {

@@ -1,0 +1,201 @@
+{
+  "schema": 1,
+  "units": {
+    "length": "metres",
+    "mass": "kilograms",
+    "time": "seconds",
+    "angle": "radians"
+  },
+  "metadata_frame": "canonical_y_up_minus_z_forward",
+  "placement_lattice_metres": 0.02,
+  "part": {
+    "key": {
+      "namespace": "53a17c2cb6624a398540103cc18b64aa",
+      "counter": "9007199254740993",
+      "version": 1
+    },
+    "name_key": "probe.asymmetric_block",
+    "permitted_rotation_mask": 16777215,
+    "footprint": {
+      "minimum_ticks": [
+        -60,
+        0,
+        -110
+      ],
+      "maximum_ticks": [
+        60,
+        60,
+        110
+      ]
+    },
+    "solid_occupancy": [
+      {
+        "id": "41",
+        "frame": {
+          "translation_ticks": [
+            0,
+            16,
+            0
+          ],
+          "rotation": 0
+        },
+        "half_extents_ticks": [
+          50,
+          16,
+          100
+        ]
+      }
+    ],
+    "collision": [
+      {
+        "id": "73",
+        "frame": {
+          "translation_ticks": [
+            0,
+            16,
+            0
+          ],
+          "rotation": 0
+        },
+        "half_extents_ticks": [
+          50,
+          16,
+          100
+        ]
+      }
+    ],
+    "mass": {
+      "dry_mass_kg": 10,
+      "center_of_mass_metres": [
+        0,
+        0.32,
+        0
+      ],
+      "inertia_kg_metres_squared": [
+        13.674666666666667,
+        0,
+        0,
+        0,
+        16.666666666666668,
+        0,
+        0,
+        0,
+        3.674666666666667
+      ]
+    },
+    "buoyancy": [
+      {
+        "box": {
+          "id": "103",
+          "frame": {
+            "translation_ticks": [
+              0,
+              16,
+              0
+            ],
+            "rotation": 0
+          },
+          "half_extents_ticks": [
+            50,
+            16,
+            100
+          ]
+        },
+        "kind": "solid_material"
+      }
+    ],
+    "sockets": [
+      {
+        "id": "9007199254740995",
+        "family": "structural",
+        "role": "neutral",
+        "profile": 1,
+        "frame": {
+          "translation_ticks": [
+            0,
+            32,
+            0
+          ],
+          "rotation": 0
+        },
+        "connection_capacity": 1,
+        "clearance": {
+          "minimum_ticks": [
+            -5,
+            -5,
+            -5
+          ],
+          "maximum_ticks": [
+            5,
+            5,
+            5
+          ]
+        },
+        "strength": {
+          "tension_newtons": 20000,
+          "shear_newtons": 20000,
+          "bending_newton_metres": 20000,
+          "torsion_newton_metres": 20000
+        }
+      }
+    ],
+    "strength": {
+      "tension_newtons": 20000,
+      "shear_newtons": 20000,
+      "bending_newton_metres": 20000,
+      "torsion_newton_metres": 20000
+    },
+    "module": {
+      "type": "structure"
+    },
+    "cost": {
+      "salvage_material": "20",
+      "special_machinery": "0"
+    },
+    "salvage_yield": {
+      "salvage_material": "10",
+      "special_machinery": "0"
+    },
+    "material": {
+      "linear_base_color": [
+        0.3,
+        0.1,
+        0.05
+      ],
+      "roughness": 0.35,
+      "metallic": 0
+    }
+  },
+  "lods": [
+    {
+      "id": "9007199254740997",
+      "asset": {
+        "namespace": "53a17c2cb6624a398540103cc18b64aa",
+        "counter": "9007199254740999",
+        "version": 1
+      },
+      "source": {
+        "file": "probe.glb",
+        "sha256": "e2e4f6a7b0d95ac7eff48e2cf6c391c3605f288629b70e7d3d0009fc1735b103",
+        "bytes": 102836,
+        "frame": "exported_gltf",
+        "to_canonical_rotation": 12
+      },
+      "minimum_screen_height_pixels": 0
+    }
+  ],
+  "tool_anchors": [
+    {
+      "id": "9007199254741001",
+      "name_key": "probe.forward",
+      "frame": {
+        "translation_ticks": [
+          0,
+          32,
+          -90
+        ],
+        "rotation": 0
+      }
+    }
+  ]
+}

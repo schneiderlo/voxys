@@ -1,0 +1,187 @@
+{
+  "schema": 1,
+  "status": "captured; visual review required",
+  "recipe": {
+    "schema": 1,
+    "registry": "data/salvage/fixture-hierarchy-v1.json",
+    "physical_viewport": [
+      1920,
+      1080
+    ],
+    "fov_degrees": 60,
+    "inspection_expectations": {
+      "maximum_model_draws": 10,
+      "guide_boxes": [
+        0,
+        26,
+        375
+      ]
+    },
+    "views": [
+      {
+        "name": "overview",
+        "eye": [
+          8,
+          6,
+          -11
+        ],
+        "target": [
+          0,
+          0.3,
+          0
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "front",
+        "eye": [
+          0,
+          2,
+          -11
+        ],
+        "target": [
+          0,
+          0.3,
+          0
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "back",
+        "eye": [
+          0,
+          2,
+          11
+        ],
+        "target": [
+          0,
+          0.3,
+          0
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "left",
+        "eye": [
+          -12,
+          3,
+          0
+        ],
+        "target": [
+          0,
+          0.3,
+          0
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "right",
+        "eye": [
+          12,
+          3,
+          0
+        ],
+        "target": [
+          0,
+          0.3,
+          0
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "top",
+        "eye": [
+          0,
+          12,
+          -0.1
+        ],
+        "target": [
+          0,
+          0.3,
+          0
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "under",
+        "eye": [
+          0,
+          -1.5,
+          -7
+        ],
+        "target": [
+          0,
+          0.3,
+          0
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      }
+    ]
+  },
+  "recipe_sha256": "255be51e764cda266585d9821600861703e45d225e77553a84e8f8adddf01452",
+  "runner_sha256": "4cb504c3fa164d5455bfb89708a3c33ca8ec018e1efdc5a98752e04e0e508304",
+  "binary": "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native",
+  "binary_sha256": "3d6651329364e04c6349b75fe3e03918dfbcac157a01af1fbdd995e823fb2be4",
+  "original_registry_sha256": "35ed5372c6404cb3dd7dc2a02b28a600ea44b1c71ef674d86a2a0be796fb5d09",
+  "original_config": "/home/modkin/workspace/schneiderlo/voxys/salvage_hierarchy_fixture.cfg",
+  "original_config_sha256": "3b5179aaef1d10d668dbda2275284a9068c998980631f03388d90316f3d40e06",
+  "guides": "off",
+  "selected_views": [
+    "under"
+  ],
+  "scope": "Native scene captures; guides are technical overlays, not final art or moving-craft acceptance",
+  "views": [
+    {
+      "name": "under",
+      "argv": [
+        "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/hierarchy/native-under-attempt01/under.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/hierarchy/native-under-attempt01/under.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "config_sha256": "bd85aae98b208466e118f7f1b13e32ec53d7dad388e550e269199268e94ea3bd",
+      "registry_sha256": "e13cc2409aca3de8c25ce21fb8846f846a7d028485733a3f057b290437263164",
+      "timeout": false,
+      "exit_code": 0,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "png_sha256": "a1330de004a009561f53e2024c1c6f5dc9156ab2bc401d2ad8bab0233de4bb72",
+      "gpu_or_application_errors": [],
+      "passed": true
+    }
+  ],
+  "temporary_registry_removed": true
+}

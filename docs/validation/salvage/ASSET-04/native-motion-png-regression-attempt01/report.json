@@ -1,0 +1,126 @@
+{
+  "schema": 1,
+  "status": "captured; visual review required",
+  "recipe": {
+    "schema": 1,
+    "purpose": "Static BuildModel-validated assembly: v2 pontoons, v1 prototype box beams, and five exact welds; no dynamic physics or final art acceptance",
+    "registry": "data/salvage/fixture-pontoon-assembly.json",
+    "physical_viewport": [
+      1920,
+      1080
+    ],
+    "fov_degrees": 60,
+    "views": [
+      {
+        "name": "overview",
+        "eye": [
+          7,
+          4,
+          -8
+        ],
+        "target": [
+          1.25,
+          0.25,
+          0
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "crossbeams-top",
+        "eye": [
+          -1,
+          4,
+          -4
+        ],
+        "target": [
+          0,
+          0.75,
+          0
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "crossbeams-under",
+        "eye": [
+          0,
+          -1.5,
+          -4
+        ],
+        "target": [
+          0,
+          0.45,
+          -1
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "stack-engaged",
+        "eye": [
+          6.4,
+          0.6,
+          -1.8
+        ],
+        "target": [
+          4.5,
+          0.48,
+          -1
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      }
+    ]
+  },
+  "recipe_sha256": "01567dca54b52bb87070c3ef509e900fa9a656ea92a3e793df49ea80e992c599",
+  "runner_sha256": "4cb504c3fa164d5455bfb89708a3c33ca8ec018e1efdc5a98752e04e0e508304",
+  "binary": "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native",
+  "binary_sha256": "b1436d222f3697512cf01583a51667cbc6790bc23601274aa2b1e4c6f5cbcacb",
+  "original_registry_sha256": "bb11c948e2d1dac86ce322143d86c3113a5d8492ba46f9b1a9bb8a4305fa6658",
+  "original_config": "/home/modkin/workspace/schneiderlo/voxys/salvage_assembly_fixture.cfg",
+  "original_config_sha256": "02346fa362e072ccdf2bc7002e904988d57dfce06a725c1a643f9b53828b73a0",
+  "guides": "sockets",
+  "selected_views": [
+    "overview"
+  ],
+  "scope": "Native scene captures; guides are technical overlays, not final art or moving-craft acceptance",
+  "views": [
+    {
+      "name": "overview",
+      "argv": [
+        "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/native-motion-png-regression-attempt01/overview.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/native-motion-png-regression-attempt01/overview.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "config_sha256": "64b9454ea2bed71d7cf8246cecfa641806a07342aea90017589e42dbe635e05a",
+      "registry_sha256": "bb11c948e2d1dac86ce322143d86c3113a5d8492ba46f9b1a9bb8a4305fa6658",
+      "timeout": false,
+      "exit_code": 0,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "png_sha256": "cda07258def17c7636d5ac0e5a24b07abda440e5137182eee0dccaf19f2bf8f2",
+      "gpu_or_application_errors": [],
+      "passed": true
+    }
+  ],
+  "temporary_registry_removed": true
+}

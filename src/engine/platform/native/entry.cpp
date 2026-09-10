@@ -3,10 +3,15 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 
 #include "app/application.hpp"
+#if defined(None)
+#undef None
+#endif
 #include "engine/platform/window.hpp"
 #include "core/log.hpp"
 #include "core/config.hpp"
 #include "generated/wreckwater_build_content.hpp"
+#include "engine/platform/native/cove_saves.hpp"
+#include "engine/platform/native/inspection_motion.hpp"
 
 #include <memory>
 #include <chrono>
@@ -17,8 +22,20 @@ int main(int argc, char* argv[]) {
     // Initialize logging
     voxy::log::init();
 
+    std::string saveError;
+    const auto saveOptions=voxy::NativeCoveSaves::parse(argc,argv,saveError);
+    if(!saveOptions){LOG_ERROR("{}",saveError);return 1;}
+
     // Parse command-line arguments and load config
-    voxy::config::init(argc, argv);
+    // These options belong to the native storage host, not the shared config.
+    std::vector<char*> configArguments;
+    if(argc>0)configArguments.push_back(argv[0]);
+    for(int i=1;i<argc;++i){
+        const std::string_view arg=argv[i]?argv[i]:"";
+        if(arg=="--expedition-root" || arg=="--expedition-world" || arg=="--expedition-observe"){++i;continue;}
+        configArguments.push_back(argv[i]);
+    }
+    voxy::config::init(static_cast<int>(configArguments.size()),configArguments.data());
     const auto& config = voxy::config::get();
     const auto gameMode = voxy::config::resolveGameMode(config);
     if (!gameMode.ready()) {
@@ -46,6 +63,12 @@ int main(int argc, char* argv[]) {
     appConfig.motoEnabled = gameMode.mode == voxy::config::GameMode::Ridgebreak;
     appConfig.legoTerrainEnabled = gameMode.legoTerrain();
     appConfig.salvagePreviewEnabled = gameMode.mode == voxy::config::GameMode::Salvage;
+    appConfig.salvageAssetFixtureRegistry = config.game.assetFixtureRegistry;
+    appConfig.salvageAssetFixtureGuides = config.game.assetFixtureGuides;
+    appConfig.salvageAssetFixtureFilteredLighting = config.game.assetFixtureLighting == "filtered";
+    appConfig.salvageAssetFixtureWaterAnchor = config.game.assetFixtureAnchor == "water";
+    appConfig.salvageAssetFixtureLod = config.game.assetFixtureLod == "near" ? 1
+        : config.game.assetFixtureLod == "middle" ? 2 : config.game.assetFixtureLod == "far" ? 3 : 0;
 
     // Window settings
     appConfig.windowWidth = config.window.width;
@@ -186,15 +209,38 @@ int main(int argc, char* argv[]) {
     }
 
     // Create and initialize application
+    std::string motionError;
+    auto motion=voxy::InspectionMotion::create(config,motionError);
+    if (!motionError.empty()) {
+        LOG_ERROR("Invalid inspection capture: {}",motionError);
+        voxy::log::shutdown();return 1;
+    }
     voxy::Application app;
+    std::unique_ptr<voxy::NativeCoveSaves> saves;
+    if(appConfig.salvagePreviewEnabled && appConfig.salvageAssetFixtureWaterAnchor){
+        saves=voxy::NativeCoveSaves::create(*saveOptions,saveError);
+        if(!saves || !saves->prepare(app,saveError)){
+            LOG_ERROR("Expedition startup: {}",saveError);return 1;
+        }
+    }else if(saveOptions->world || saveOptions->root || saveOptions->observation){
+        LOG_ERROR("Expedition options require --config salvage_cove.cfg");return 1;
+    }
 
     if (!app.init(appConfig)) {
         LOG_ERROR("Failed to initialize application");
+        if (motion) static_cast<void>(motion->finish());
         voxy::log::shutdown();
         return 1;
     }
+    if(saves && !saves->initialized(app,saveError)){
+        LOG_ERROR("Expedition startup: {}",saveError);saves->close(app);app.shutdown();return 1;
+    }
 
     // Run the main loop (blocking)
+    if (motion) {
+        app.setUpdateCallback([&](float){motion->update(app);});
+        app.setCaptureCallback([&]{motion->capture(app);});
+    }
     LOG_INFO("Starting main loop (native)...");
 
     using Clock = std::chrono::steady_clock;
@@ -215,6 +261,7 @@ int main(int argc, char* argv[]) {
         } else {
             app.processFrame(deltaTime);
         }
+        if(saves)saves->update(app);
     }
 
     LOG_INFO("Main loop ended");
@@ -223,8 +270,11 @@ int main(int argc, char* argv[]) {
                               || app.benchmarkPassed();
 
     // Cleanup
+    app.setUpdateCallback({});app.setCaptureCallback({});
+    const bool motionPassed=!motion || motion->finish();
+    if(saves)saves->close(app);
     app.shutdown();
     voxy::log::shutdown();
 
-    return benchmarkPassed ? 0 : 2;
+    return benchmarkPassed && motionPassed ? 0 : 2;
 }

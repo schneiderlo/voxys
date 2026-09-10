@@ -1,0 +1,73 @@
+{
+  "scope": "CPU component admission only; ASSET-04 and LOOK-01 remain unchecked",
+  "source_hashes": {
+    "src/game/construction/construction_types.cpp": "4aa7ffdd6e608765b5245c94c53c2b54920705533283d270e5b6b4eee84ac4c8",
+    "src/game/construction/part_catalog.cpp": "24869c7c346d49421b2fe20123181e4e5738d6e6ddc366339292d3f12044bcf3",
+    "src/game/assets/gameplay_sidecar.cpp": "2a6d83121cb613d68f6250d1e8840c3131ef8d58f92c835c8677f242571aa677",
+    "src/game/assets/rigid_prefab.cpp": "44b5b49f41feb67b3d083255a254ba2feceac352dd08354f77586fd09ff7b736",
+    "src/game/assets/cooked_part_bundle.cpp": "7e8674d4b61800575d9e7c7ed83dd6059d224cbf97482ef8cef1cd599df637d3",
+    "src/game/assets/cooked_part_directory.cpp": "d65aa2df4762c6fa040812595ce4f18265d5f288073b64ad69c7567b9b56e25f",
+    "src/moto/vmesh_io.cpp": "e36832d55d1db9c4dcca30be53cf721618d352090849d827d670567ddbf926c9",
+    "src/game/wreckwater_content_manifest.cpp": "ae322518f5432c3bf53eae8996e41924bc604ce7a12af0b80e90cb282a742895",
+    "tests/test_sha256.cpp": "08d61deb4ab9a6ea11af31d7ed7b094c967ee678e15202790ec0a08705b89c18",
+    "tests/test_wreckwater_content_manifest.cpp": "b503dbd879243096d6fd5076a0e1703fd25f369d5c919efd51b3383ee1798d9d",
+    "tests/test_rigid_prefab.cpp": "215b45cdd4d8ede046d146198ba74573069a70222be807a9f18226cffde1f924",
+    "tests/test_cooked_part_bundle.cpp": "148db0fa486ae65d5e8fd27d09df83ca10c0e2dbf336c664c05da5226cb64b47",
+    "tests/test_cooked_part_directory.cpp": "791d287cf3f9f895cdc844400f0556fb899c11df9c853c39fbadb54705e47b5e",
+    "tools/salvage_assets/test_gameplay_sidecar.cpp": "48a7546571c83f0df54bbbbc77caf0032b492cddb43c67b5e287527461e80ff8",
+    "src/game/construction/construction_types.hpp": "fb1aca2e406802452d0595fac47162822d26d4af3ec343859cbf13f8957912e8",
+    "src/game/construction/part_catalog.hpp": "8c107f72da01b065f811db557b38de9a3a014e5717b3348951cfe21a07bc8c13",
+    "src/game/assets/gameplay_sidecar.hpp": "57fd584f56732de774dc3a6c9d50515e802b4ea563b4a9aa26d57b05128d35ab",
+    "src/game/assets/rigid_prefab.hpp": "7bb7a0e9395792cd0a026ac323e649c6a17975b016838193865af6edf9d6885f",
+    "src/game/assets/cooked_part_bundle.hpp": "68c98360ca28f80fa3715ae2a71628d2f3f26204eee106ed1a0b379ee7b0a63f",
+    "src/game/assets/cooked_part_directory.hpp": "d23b2fbc974f1b4f83cb2246ca13c57ade3450180c13ac7df7cf4cf7a2394327",
+    "src/core/sha256.hpp": "85402045f08774996eb7506b7802cae519f16f6df35b80d65f25b322008aba99",
+    "src/moto/vmesh.hpp": "0b73c608ad72f2c101032ca2bf1c3eddd83e1d1a9212c29b36f650918c08f707",
+    "src/game/wreckwater_content_manifest.hpp": "86b1a3c8953580301f181a387ab4b1b985d1f1ce60d8eeb5187a3e71949921a1",
+    "tools/salvage_assets/fixtures/probe.gameplay.json": "d4e8728c0a4e3925dffd20d7f1953ca3d4805e85486c1bc7159276234d48fb8f",
+    "data/salvage/runtime_probe_v1/README.md": "e55db01fb1c07cafc01eb7e89843ff7663bf7eb0cd3faf5e28314d5a1d05f670",
+    "data/salvage/runtime_probe_v1/cook-manifest.json": "f595f6b490fbbcc6f947eb1ac31f7328cc4dedf9d84896268a8aed45dea80898",
+    "data/salvage/runtime_probe_v1/gameplay.json": "d023d402e4747f9ed69e78d9b5b1e1e2e330f972b2c87374ae7af6b4565c5f5e",
+    "data/salvage/runtime_probe_v1/lod-9007199254740997.vmesh": "4444fd14cfc967b46f3dcbe1079c04f1d0329ed890754ce98f367e71c1c36689"
+  },
+  "source_verification": {
+    "unchanged": true,
+    "changed": []
+  },
+  "native_bazel": {
+    "sha256": 5,
+    "wreckwater_content_manifest": 5,
+    "rigid_prefab": 13,
+    "cooked_part_bundle": 16,
+    "gameplay_sidecar": 9,
+    "cooked_part_directory": 8,
+    "actual_offline_cooker": 23
+  },
+  "actual_wasm": {
+    "tests_passed": 56,
+    "tests_skipped": 0,
+    "manifest": "wasm-directory-attempt01/manifest.json",
+    "source_freeze_verified": true,
+    "passed": true,
+    "fixed_heap_bytes": 67108864,
+    "fixed_stack_bytes": 1048576,
+    "exceptions": "js",
+    "asyncify": true,
+    "artifacts": {
+      "asset_admission_tests.js": {
+        "sha256": "ca227c6fc8ded5abc4f03a70baf2aff6da856f122cd93b98c4ffc4a18b7e18a4",
+        "bytes": 167922
+      },
+      "asset_admission_tests.wasm": {
+        "sha256": "969ce3ff349d82f2eec182c5f1f78955d50c1f8b7a57c1f60c4311686d512fd6",
+        "bytes": 20701701
+      }
+    }
+  },
+  "limitations": [
+    "No native/browser authored fixture acceptance",
+    "POSIX and Emscripten MEMFS directory adapters only; no Windows provider",
+    "Requested resource counts do not measure process or driver working set",
+    "Blender/tool/source hashes bind provenance; runtime does not import source GLB"
+  ]
+}

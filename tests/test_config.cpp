@@ -423,6 +423,20 @@ TEST(CommandLineArgsTest, ScreenshotTourCountIsBoundedBeforeAllocation) {
     EXPECT_EQ(parseArgs(3, negativeArgv).screenshotTourCount, 0);
 }
 
+TEST(CommandLineArgsTest, InspectionMotionRetainsPairedPathsAndMissingValueForStartupRejection) {
+    char* argv[] = {const_cast<char*>("voxy"),const_cast<char*>("--inspection-motion"),
+        const_cast<char*>("review/track.json"),const_cast<char*>("--inspection-motion-output"),const_cast<char*>("review/new-capture")};
+    const auto args=parseArgs(5,argv);
+    EXPECT_EQ(args.inspectionMotionRecipe,"review/track.json");
+    EXPECT_EQ(args.inspectionMotionOutput,"review/new-capture");
+    EXPECT_FALSE(args.benchmark);EXPECT_FALSE(args.screenshotPath);
+    char* missing[]={const_cast<char*>("voxy"),const_cast<char*>("--inspection-motion")};
+    const auto invalid=parseArgs(2,missing);
+    ASSERT_TRUE(invalid.inspectionMotionRecipe);
+    EXPECT_TRUE(invalid.inspectionMotionRecipe->empty());
+    EXPECT_FALSE(invalid.inspectionMotionOutput);
+}
+
 TEST(CommandLineArgsTest, MultipleArgs) {
     char* argv[] = {
         const_cast<char*>("voxy"),
@@ -546,6 +560,90 @@ TEST_F(ConfigFileTest, ExplicitModeRoundTripsAndMalformedModeNeverFallsBack) {
     original.game.mode.reset();
     ASSERT_TRUE(save(original, testConfigPath));
     EXPECT_FALSE(load(testConfigPath).game.mode.has_value());
+}
+
+TEST_F(ConfigFileTest, AssetFixtureRegistryRequiresExplicitSalvageAndRoundTrips) {
+    Config original;
+    original.game.mode = "salvage";
+    original.game.assetFixtureRegistry = "data/salvage/fixture-pontoon-v2.json";
+    original.game.assetFixtureGuides = "sockets";
+    original.game.assetFixtureLod = "far";
+    original.game.assetFixtureLighting = "filtered";
+    original.game.assetFixtureAnchor = "water";
+    ASSERT_TRUE(save(original, testConfigPath));
+    auto loaded = load(testConfigPath);
+    EXPECT_EQ(loaded.game.assetFixtureRegistry, original.game.assetFixtureRegistry);
+    EXPECT_EQ(loaded.game.assetFixtureGuides, "sockets");
+    EXPECT_EQ(loaded.game.assetFixtureLod, "far");
+    EXPECT_EQ(loaded.game.assetFixtureLighting, "filtered");
+    EXPECT_EQ(loaded.game.assetFixtureAnchor, "water");
+    EXPECT_TRUE(resolveGameMode(loaded).ready());
+    loaded.game.mode = "lego-world";
+    EXPECT_EQ(resolveGameMode(loaded).status, GameModeStatus::InvalidAssetFixture);
+    for (const auto* value : {"\"broken", "\"path\" junk", "\"\""}) {
+        writeTestConfig(std::string("[game]\nmode=\"salvage\"\nasset_fixture_registry=") + value + "\n");
+        EXPECT_EQ(resolveGameMode(load(testConfigPath)).status, GameModeStatus::InvalidAssetFixture);
+    }
+    for (const auto* value : {"\"broken", "\"sockets\" junk", "\"\"", "other"}) {
+        writeTestConfig(std::string("[game]\nmode=\"salvage\"\nasset_fixture_registry=\"x.json\"\nasset_fixture_guides=") + value + "\n");
+        EXPECT_EQ(resolveGameMode(load(testConfigPath)).status, GameModeStatus::InvalidAssetFixture);
+    }
+    loaded.game.mode = "salvage";
+    loaded.game.assetFixtureRegistry.reset();
+    EXPECT_EQ(resolveGameMode(loaded).status, GameModeStatus::InvalidAssetFixture);
+}
+
+TEST_F(ConfigFileTest, AssetFixtureInitialDetailRejectsMalformedOrUnscopedSelection) {
+    for (const auto* value : {"auto", "near", "middle", "far"}) {
+        writeTestConfig(std::string("[game]\nmode=\"salvage\"\nasset_fixture_registry=\"x.json\"\nasset_fixture_lod=\"") + value + "\"\n");
+        const auto loaded = load(testConfigPath);
+        EXPECT_EQ(loaded.game.assetFixtureLod, value);
+        EXPECT_TRUE(resolveGameMode(loaded).ready());
+    }
+    for (const auto* value : {"\"near", "\"far\" junk", "\"\"", "other", "1", "1.5"}) {
+        writeTestConfig(std::string("[game]\nmode=\"salvage\"\nasset_fixture_registry=\"x.json\"\nasset_fixture_lod=") + value + "\n");
+        EXPECT_EQ(resolveGameMode(load(testConfigPath)).status, GameModeStatus::InvalidAssetFixture);
+    }
+    Config config;
+    config.game.mode = "salvage";
+    config.game.assetFixtureLod = "near";
+    EXPECT_EQ(resolveGameMode(config).status, GameModeStatus::InvalidAssetFixture);
+    config.game.assetFixtureLod = "auto";
+    EXPECT_TRUE(resolveGameMode(config).ready());
+}
+
+TEST_F(ConfigFileTest, AssetFixtureLightingRejectsMalformedOrUnscopedSelection) {
+    for (const auto* value : {"legacy", "filtered"}) {
+        writeTestConfig(std::string("[game]\nmode=\"salvage\"\nasset_fixture_registry=\"x.json\"\nasset_fixture_lighting=\"") + value + "\"\n");
+        const auto loaded=load(testConfigPath);
+        EXPECT_EQ(loaded.game.assetFixtureLighting,value);
+        EXPECT_TRUE(resolveGameMode(loaded).ready());
+    }
+    for (const auto* value : {"\"filtered", "\"filtered\" junk", "\"\"", "other", "1", "true"}) {
+        writeTestConfig(std::string("[game]\nmode=\"salvage\"\nasset_fixture_registry=\"x.json\"\nasset_fixture_lighting=") + value + "\n");
+        EXPECT_EQ(resolveGameMode(load(testConfigPath)).status,GameModeStatus::InvalidAssetFixture);
+    }
+    Config config; config.game.mode="salvage"; config.game.assetFixtureLighting="filtered";
+    EXPECT_EQ(resolveGameMode(config).status,GameModeStatus::InvalidAssetFixture);
+    config.game.assetFixtureLighting="legacy";
+    EXPECT_TRUE(resolveGameMode(config).ready());
+}
+
+TEST_F(ConfigFileTest, AssetFixtureAnchorRejectsMalformedOrUnscopedSelection) {
+    for (const auto* value : {"inspection", "water"}) {
+        writeTestConfig(std::string("[game]\nmode=\"salvage\"\nasset_fixture_registry=\"x.json\"\nasset_fixture_anchor=\"") + value + "\"\n");
+        const auto loaded=load(testConfigPath);
+        EXPECT_EQ(loaded.game.assetFixtureAnchor,value);
+        EXPECT_TRUE(resolveGameMode(loaded).ready());
+    }
+    for (const auto* value : {"\"water", "\"water\" junk", "\"\"", "other", "1", "true"}) {
+        writeTestConfig(std::string("[game]\nmode=\"salvage\"\nasset_fixture_registry=\"x.json\"\nasset_fixture_anchor=") + value + "\n");
+        EXPECT_EQ(resolveGameMode(load(testConfigPath)).status,GameModeStatus::InvalidAssetFixture);
+    }
+    Config config; config.game.mode="salvage"; config.game.assetFixtureAnchor="water";
+    EXPECT_EQ(resolveGameMode(config).status,GameModeStatus::InvalidAssetFixture);
+    config.game.assetFixtureAnchor="inspection";
+    EXPECT_TRUE(resolveGameMode(config).ready());
 }
 
 TEST_F(ConfigFileTest, LoadNonexistentFile) {

@@ -51,7 +51,9 @@ struct alignas(16) GpuQueryHit {
 };
 
 struct alignas(16) GpuQueryOutput {
-    // request ID, hit count, overflow, query type.
+    // request ID, hit count, status bits, query type.
+    // bit 0: hit capacity; bit 1: invalid/missing authored shape;
+    // bit 2: authored cast did not converge. Nonzero is an incomplete result.
     std::array<uint32_t, 4> header{};
     std::array<GpuQueryHit, kGpuQueryMaximumHits> hits{};
 };
@@ -61,6 +63,9 @@ struct GpuQueryBodyView {
     WGPUBuffer shapeBuffer = nullptr;
     WGPUBuffer metadataBuffer = nullptr;
     uint32_t bodyCapacity = 0;
+    // Borrow only within the shape owner's declared submission. An absent
+    // atlas supports primitives only; tagged bodies report incomplete output.
+    WGPUBuffer authoredShapeBuffer = nullptr;
 
     [[nodiscard]] bool valid() const noexcept {
         return poseBuffer && shapeBuffer && metadataBuffer && bodyCapacity != 0;

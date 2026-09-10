@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="14" failures="0" disabled="0" errors="0" time="17.609" timestamp="2026-09-08T16:23:58.218" name="AllTests">
+  <testsuite name="GpuAuthoredShapes" tests="14" failures="0" disabled="0" skipped="0" errors="0" time="17.609" timestamp="2026-09-08T16:23:58.218">
+    <testcase name="RealHeapDecodesGeometryAndAnalyticalMassFrames" file="tests/test_gpu_authored_shapes.cpp" line="233" status="run" result="completed" time="0.095" timestamp="2026-09-08T16:23:58.218" classname="GpuAuthoredShapes" />
+    <testcase name="RetiringAnEncodedShapePreservesActualGpuReadAndLateReader" file="tests/test_gpu_authored_shapes.cpp" line="245" status="run" result="completed" time="0.082" timestamp="2026-09-08T16:23:58.314" classname="GpuAuthoredShapes" />
+    <testcase name="DiscardUsesRealFenceAndInvalidatesOldGpuGeneration" file="tests/test_gpu_authored_shapes.cpp" line="265" status="run" result="completed" time="0.06" timestamp="2026-09-08T16:23:58.396" classname="GpuAuthoredShapes" />
+    <testcase name="BoundedPendingOperationsRefuseWithoutConsumingPreparedStorage" file="tests/test_gpu_authored_shapes.cpp" line="275" status="run" result="completed" time="0.047" timestamp="2026-09-08T16:23:58.456" classname="GpuAuthoredShapes" />
+    <testcase name="ContiguousRangesRefuseFragmentationAndCoalesceAfterRetirement" file="tests/test_gpu_authored_shapes.cpp" line="286" status="run" result="completed" time="0.086" timestamp="2026-09-08T16:23:58.503" classname="GpuAuthoredShapes" />
+    <testcase name="InvalidHandlesTicketsAndGpuBudgetsDoNotSubmitWork" file="tests/test_gpu_authored_shapes.cpp" line="299" status="run" result="completed" time="0.039" timestamp="2026-09-08T16:23:58.589" classname="GpuAuthoredShapes" />
+    <testcase name="CloseWaitsForAnUnresolvedSubmissionAndRetainedReader" file="tests/test_gpu_authored_shapes.cpp" line="311" status="run" result="completed" time="0.043" timestamp="2026-09-08T16:23:58.629" classname="GpuAuthoredShapes" />
+    <testcase name="ValidationFailureCannotCertifyItsSubmissionOrReuseResources" file="tests/test_gpu_authored_shapes.cpp" line="321" status="run" result="completed" time="0.042" timestamp="2026-09-08T16:23:58.672" classname="GpuAuthoredShapes" />
+    <testcase name="BodyKernelForceUsesPreparedPrincipalInertia" file="tests/test_gpu_authored_shapes.cpp" line="469" status="run" result="completed" time="0.094" timestamp="2026-09-08T16:23:58.715" classname="GpuAuthoredShapes" />
+    <testcase name="BodyKernelBallisticPoseAdvancesAboutItsStoredCenter" file="tests/test_gpu_authored_shapes.cpp" line="480" status="run" result="completed" time="1.131" timestamp="2026-09-08T16:23:58.809" classname="GpuAuthoredShapes" />
+    <testcase name="BodyKernelSpawnAndDestroyClearTheIndependentShapeReference" file="tests/test_gpu_authored_shapes.cpp" line="498" status="run" result="completed" time="0.087" timestamp="2026-09-08T16:23:59.941" classname="GpuAuthoredShapes" />
+    <testcase name="BodyKernelMaterialChangesPreserveMassAndShapeIdentity" file="tests/test_gpu_authored_shapes.cpp" line="507" status="run" result="completed" time="0.073" timestamp="2026-09-08T16:24:00.028" classname="GpuAuthoredShapes" />
+    <testcase name="BackendOwnsHeapAndSubmitsItsReadWithLegacyPhysics" file="tests/test_gpu_authored_shapes.cpp" line="529" status="run" result="completed" time="7.181" timestamp="2026-09-08T16:24:00.102" classname="GpuAuthoredShapes" />
+    <testcase name="BackendRestartRejectsOldWorldShapeIdentity" file="tests/test_gpu_authored_shapes.cpp" line="578" status="run" result="completed" time="8.543" timestamp="2026-09-08T16:24:07.283" classname="GpuAuthoredShapes" />
+  </testsuite>
+</testsuites>

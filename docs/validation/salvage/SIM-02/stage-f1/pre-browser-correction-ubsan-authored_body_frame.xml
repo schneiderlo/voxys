@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="10" failures="0" disabled="0" errors="0" time="0." timestamp="2026-09-08T16:57:54.831" name="AllTests">
+  <testsuite name="AuthoredBodyFrame" tests="10" failures="0" disabled="0" skipped="0" errors="0" time="0." timestamp="2026-09-08T16:57:54.831">
+    <testcase name="RotatedOriginMapsToAnalyticalCenterAndVelocity" file="tests/test_authored_body_frame.cpp" line="42" status="run" result="completed" time="0." timestamp="2026-09-08T16:57:54.831" classname="AuthoredBodyFrame" />
+    <testcase name="SectorTransitionsRetainIdenticalNearAndFarPrecision" file="tests/test_authored_body_frame.cpp" line="57" status="run" result="completed" time="0." timestamp="2026-09-08T16:57:54.831" classname="AuthoredBodyFrame" />
+    <testcase name="RoundingAtPositiveLocalLimitCarriesOrRejectsWorldOverflow" file="tests/test_authored_body_frame.cpp" line="69" status="run" result="completed" time="0." timestamp="2026-09-08T16:57:54.831" classname="AuthoredBodyFrame" />
+    <testcase name="BothWorldEndsRejectWithoutSaturatingOrMutatingState" file="tests/test_authored_body_frame.cpp" line="85" status="run" result="completed" time="0." timestamp="2026-09-08T16:57:54.831" classname="AuthoredBodyFrame" />
+    <testcase name="InvalidPositionsAndOrientationsAreNeverRepaired" file="tests/test_authored_body_frame.cpp" line="98" status="run" result="completed" time="0." timestamp="2026-09-08T16:57:54.831" classname="AuthoredBodyFrame" />
+    <testcase name="NonfiniteVelocityAndPointsReturnTypedRefusals" file="tests/test_authored_body_frame.cpp" line="115" status="run" result="completed" time="0." timestamp="2026-09-08T16:57:54.831" classname="AuthoredBodyFrame" />
+    <testcase name="FiniteButUnrepresentableVelocityAndPointsDoNotClamp" file="tests/test_authored_body_frame.cpp" line="135" status="run" result="completed" time="0." timestamp="2026-09-08T16:57:54.831" classname="AuthoredBodyFrame" />
+    <testcase name="PointMappingAppliesPackedCenterAndPrincipalRotationOnce" file="tests/test_authored_body_frame.cpp" line="151" status="run" result="completed" time="0." timestamp="2026-09-08T16:57:54.831" classname="AuthoredBodyFrame" />
+    <testcase name="EquivalentQuaternionSignsAndSmallNormDriftCanonicalize" file="tests/test_authored_body_frame.cpp" line="164" status="run" result="completed" time="0." timestamp="2026-09-08T16:57:54.831" classname="AuthoredBodyFrame" />
+    <testcase name="DenseWorldOrientationsPreserveLocalPrecisionAndVelocityField" file="tests/test_authored_body_frame.cpp" line="181" status="run" result="completed" time="0." timestamp="2026-09-08T16:57:54.831" classname="AuthoredBodyFrame" />
+  </testsuite>
+</testsuites>

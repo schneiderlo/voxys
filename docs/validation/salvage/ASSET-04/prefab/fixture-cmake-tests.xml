@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="10" failures="0" disabled="0" errors="0" time="0.442" timestamp="2026-09-07T22:27:41.602" name="AllTests">
+  <testsuite name="SalvageAssetFixture" tests="1" failures="0" disabled="0" skipped="0" errors="0" time="0." timestamp="2026-09-07T22:27:41.602">
+    <testcase name="RejectsUninitializedUseWithoutMutatingTicket" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_salvage_asset_fixture.cpp" line="109" status="run" result="completed" time="0." timestamp="2026-09-07T22:27:41.602" classname="SalvageAssetFixture" />
+  </testsuite>
+  <testsuite name="FixtureGPU" tests="9" failures="0" disabled="0" skipped="0" errors="0" time="0.442" timestamp="2026-09-07T22:27:41.602">
+    <testcase name="DeduplicatesAdmittedAssetsAndPreservesActiveOnCpuRejection" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_salvage_asset_fixture.cpp" line="222" status="run" result="completed" time="0.082" timestamp="2026-09-07T22:27:41.602" classname="FixtureGPU" />
+    <testcase name="AppliesOwnerCombinedAndUniqueAssetCeilingsBeforeUpload" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_salvage_asset_fixture.cpp" line="245" status="run" result="completed" time="0.071" timestamp="2026-09-07T22:27:41.684" classname="FixtureGPU" />
+    <testcase name="TracksRealSubmitDiscardResetAndReplacementTickets" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_salvage_asset_fixture.cpp" line="277" status="run" result="completed" time="0.044" timestamp="2026-09-07T22:27:41.756" classname="FixtureGPU" />
+    <testcase name="RejectsInvalidStableLodsFramesAndInstanceExpansionAtomically" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_salvage_asset_fixture.cpp" line="325" status="run" result="completed" time="0.053" timestamp="2026-09-07T22:27:41.801" classname="FixtureGPU" />
+    <testcase name="CapturesRealPipelineValidationFailureAndKeepsPreviousGeneration" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_salvage_asset_fixture.cpp" line="356" status="run" result="completed" time="0.047" timestamp="2026-09-07T22:27:41.854" classname="FixtureGPU" />
+    <testcase name="DrainsNeverDrawnCandidatesAndReentersWithoutInventedFrames" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_salvage_asset_fixture.cpp" line="383" status="run" result="completed" time="0.05" timestamp="2026-09-07T22:27:41.901" classname="FixtureGPU" />
+    <testcase name="ReentryRejectsOldTicketsAndExceptionalShutdownPreservesCommands" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_salvage_asset_fixture.cpp" line="406" status="run" result="completed" time="0.035" timestamp="2026-09-07T22:27:41.951" classname="FixtureGPU" />
+    <testcase name="ValidatesReboundViewsAndSurfacesInvalidViewAsTerminal" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_salvage_asset_fixture.cpp" line="442" status="run" result="completed" time="0.028" timestamp="2026-09-07T22:27:41.987" classname="FixtureGPU" />
+    <testcase name="ForwardedDeviceLossDoesNotBecomeAnEndlessLeave" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_salvage_asset_fixture.cpp" line="462" status="run" result="completed" time="0.028" timestamp="2026-09-07T22:27:42.015" classname="FixtureGPU" />
+  </testsuite>
+</testsuites>

@@ -27,7 +27,7 @@ extern "C" WGPUBool wgpuDevicePoll(
 namespace voxy::render {
 
 TEST(PrimitivePathLayoutTest, CpuShapeMirrorMatchesGpuStride) {
-    EXPECT_EQ(sizeof(detail::CompactPrimitiveShapeGpu), 48u);
+    EXPECT_EQ(sizeof(detail::CompactPrimitiveShapeGpu), 64u);
     EXPECT_EQ(alignof(detail::CompactPrimitiveShapeGpu), 16u);
     EXPECT_EQ(offsetof(detail::CompactPrimitiveShapeGpu, dimensionsType), 0u);
     EXPECT_EQ(
@@ -36,6 +36,8 @@ TEST(PrimitivePathLayoutTest, CpuShapeMirrorMatchesGpuStride) {
     EXPECT_EQ(
         offsetof(detail::CompactPrimitiveShapeGpu, materialCoefficients),
         32u);
+    EXPECT_EQ(offsetof(detail::CompactPrimitiveShapeGpu, authoredShape),48u);
+    EXPECT_EQ(detail::CompactPrimitiveShapeGpu{}.authoredShape,glm::uvec4(0u));
 }
 
 TEST(PrimitiveMaterialTest, PacksStableGpuResidentPbrParameters) {
@@ -395,7 +397,7 @@ TEST(PrimitivePathGPUTest, CompilesPrimitivePipeline) {
     path.setCompactPhysicsInstances(bodies);
     EXPECT_EQ(path.lastCompactUploadStats().writeCalls, 2u);
     EXPECT_EQ(path.lastCompactUploadStats().bytesUploaded,
-              bodies.size() * 80u);
+              bodies.size() * 96u);
     path.setCompactPhysicsInstances(bodies);
     EXPECT_FALSE(path.lastCompactUploadStats().fullUpload);
     EXPECT_EQ(path.lastCompactUploadStats().writeCalls, 1u);
@@ -407,7 +409,7 @@ TEST(PrimitivePathGPUTest, CompilesPrimitivePipeline) {
     path.setCompactPhysicsInstances(changedBodies);
     EXPECT_EQ(path.lastCompactUploadStats().writeCalls, 2u);
     EXPECT_EQ(path.lastCompactUploadStats().bytesUploaded,
-              bodies.size() * 32u + 48u);
+              bodies.size() * 32u + 64u);
 
     WGPUCommandEncoderDescriptor encoderDesc{};
     auto encoder = wgpuDeviceCreateCommandEncoder(context.getDevice(), &encoderDesc);

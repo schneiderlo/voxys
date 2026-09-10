@@ -1,0 +1,88 @@
+{
+  "scope": "ASSET-03 offline strict profile and wrapper only; no runtime material/visual acceptance",
+  "recorded_utc": "2026-09-07T23:44:00.325947+00:00",
+  "source_files": {
+    "tools/gltf_vmesh_tool.cpp": {
+      "bytes": 87301,
+      "sha256": "c678329d2115f499871a377932a15ba5526ad7d490e45c9df5f9579378b620b3"
+    },
+    "tools/gltf_vmesh_tool.hpp": {
+      "bytes": 1286,
+      "sha256": "5b811defbf6b84bf0a49356ae320bff5f9ba84dba41b49b3867d5610fedf0df9"
+    },
+    "tests/test_gltf_vmesh_tool.cpp": {
+      "bytes": 43099,
+      "sha256": "ace4e29359aa8e7cd3d586b2730fe28afb4f04d3b4ec8bc5b830a87a72d6c1a8"
+    },
+    "tools/salvage_assets/cook_gameplay_asset.py": {
+      "bytes": 13128,
+      "sha256": "88a32ac9824e2a9864f4d97e4311eeb27a312d917e3ce23d41fd5953c0e7023a"
+    },
+    "tools/salvage_assets/test_cook_gameplay_asset.py": {
+      "bytes": 16090,
+      "sha256": "d424bc3ea34918cb62ccac3cd0559f7e073d19c6dea89d37dab5fa1d21a97056"
+    },
+    "tools/salvage_assets/gameplay_sidecar.cpp": {
+      "bytes": 18706,
+      "sha256": "67d0803adebd05b73e25f949d46c9d63dd99bae809208bd457dc6f65a533284a"
+    },
+    "tools/salvage_assets/gameplay_sidecar.hpp": {
+      "bytes": 2107,
+      "sha256": "0b6c2fa9be6c68ce20b5c920be7649cb065e9e4593b069dfb29961212958b7c3"
+    },
+    "tools/salvage_assets/gameplay_sidecar_main.cpp": {
+      "bytes": 4483,
+      "sha256": "309e221e71438a6ad3e63568f42acbd98c0e594055c320c80e76177f10c49b61"
+    },
+    "src/moto/vmesh.hpp": {
+      "bytes": 9220,
+      "sha256": "0b73c608ad72f2c101032ca2bf1c3eddd83e1d1a9212c29b36f650918c08f707"
+    },
+    "tools/BUILD": {
+      "bytes": 4866,
+      "sha256": "38bf0d7ce1412f8bdb01e85549a0181192112583f0d61963c7f912e0898ce0b3"
+    },
+    "tools/CMakeLists.txt": {
+      "bytes": 3510,
+      "sha256": "95e9afd9a1692b1ad5075b989919adfb97617afa7eb29b259d36e306f7d840bb"
+    },
+    "tests/BUILD": {
+      "bytes": 25395,
+      "sha256": "7f5f6d68df8a2c3ee0e692fad6241d0a4e4129839b87f677c47c63d9a3ea79a9"
+    },
+    "tests/CMakeLists.txt": {
+      "bytes": 24239,
+      "sha256": "fd10e996fc3b682a0070c23a172919b8ced7d4d1549b0d0f4e672844b5288af7"
+    },
+    "data/BUILD": {
+      "bytes": 1282,
+      "sha256": "ddb1b7726416e0a0846d89eac1bf5884a73cefa2a7f9661de5763b4a6ee8ce60"
+    }
+  },
+  "artifacts": {
+    "build-salvage-native/bin/gltf_vmesh_tool": {
+      "bytes": 1075816,
+      "sha256": "9de1ede050e226e444ab3c2dbe44e358c6f0ca04d299de9582b9d6ea1e1a93fa"
+    },
+    "build-salvage-native/bin/gltf_vmesh_tool_tests": {
+      "bytes": 2116224,
+      "sha256": "3325b518d5522fef88b7a14edb6ef3a821c2fbd2c37ac4444f417191690e0b24"
+    },
+    "build-salvage-native/bin/gameplay_sidecar_tool": {
+      "bytes": 426312,
+      "sha256": "837b01c0ddcfdec1bbc48442aff6f1fb9a7d330203958c1591d9b955c7f68858"
+    },
+    "bazel-bin/tools/gltf_vmesh_tool": {
+      "bytes": 709536,
+      "sha256": "0aa4e7b0c14d37705d7d0f8c4fd8f168923400ae07959a89113d74efe42eee12"
+    },
+    "bazel-bin/tools/gameplay_sidecar_tool": {
+      "bytes": 318440,
+      "sha256": "b67ac5b0c2295ca0aff5ee79002f81d14d68422873cba6c4d38d7fb0c176928f"
+    },
+    "bazel-bin/tests/gltf_vmesh_tool_test": {
+      "bytes": 532712,
+      "sha256": "83c5b6a2bf164ab720bf1618f00193d3e025c95ca2f2843c157e494041473bb9"
+    }
+  }
+}

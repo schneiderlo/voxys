@@ -1,0 +1,549 @@
+{
+  "schema": 1,
+  "status": "candidate; offline authoring only, not engine acceptance",
+  "part": {
+    "namespace": "766f7879732d73616c766167652d7631",
+    "counter": "3",
+    "version": 3
+  },
+  "parameters": {
+    "schema": 1,
+    "part_version": 3,
+    "width_ticks": 50,
+    "body_height_ticks": 48,
+    "length_ticks": 200,
+    "dry_mass_kg": 120.0,
+    "seed": 1979,
+    "palette_srgb": {
+      "cream": "D9C9A2",
+      "teal": "2A6767",
+      "coral": "CF6548",
+      "slate": "354852",
+      "steel": "869498"
+    }
+  },
+  "seed": 1979,
+  "blender_version": "5.2.1 LTS",
+  "blender_build_hash": "9e2066aef7ef",
+  "generator_sha256": "65142b372f2ec48eec8d994c751dca8b3263f492da39e27393e4d615242ce4b5",
+  "parameter_module_sha256": "348dd03c4f49009f14d8b430728b87925458a27f8a4db1923cffce93b8e4260a",
+  "material_profile": "tactile-metric-v1",
+  "material_module_sha256": "db73169a82645f11adebe993b263898ea7d68827e34aeb2289b0fce99ad78360",
+  "metric_module_sha256": "e4d31cdf8ee8bf46dab081589f6f5aa876eb984801416dc8e4e0feb5f6af32f5",
+  "input_spec_sha256": "aed7020b704cbe28fdb7ee4fa8574f8c47825b5f4bc23d971d30cec33e213f42",
+  "lods": [
+    {
+      "file": "pontoon-lod-0.glb",
+      "sha256": "81b9cb5a4897ae178787804f9c178a79c368672aaade7ac25e8057c3c2385cfd",
+      "bytes": 479412,
+      "triangles": 3508,
+      "vertices": 9309,
+      "materials": 3,
+      "meshes": 1,
+      "export_settings": {
+        "export_format": "GLB",
+        "use_selection": true,
+        "export_yup": true,
+        "export_apply": true,
+        "export_materials": "EXPORT",
+        "export_normals": true,
+        "export_texcoords": true,
+        "export_tangents": true,
+        "export_animations": false,
+        "export_skins": false,
+        "export_morph": false,
+        "export_cameras": false,
+        "export_lights": false,
+        "export_extras": false,
+        "export_vertex_color": "NONE",
+        "export_all_vertex_colors": false
+      },
+      "metric_materials": [
+        {
+          "region": "cream",
+          "roughness_factor": 0.3505154550075531,
+          "metallic_factor": 0
+        },
+        {
+          "region": "teal",
+          "roughness_factor": 0.41237112879753113,
+          "metallic_factor": 0
+        },
+        {
+          "region": "coral",
+          "roughness_factor": 0.3711340129375458,
+          "metallic_factor": 0
+        }
+      ],
+      "pretriangulation_enclosure": {
+        "enclosure_volume_cubic_metres": 3.4714925920270416,
+        "proxy_volume_cubic_metres": 3.5386879999999996,
+        "relative_volume_error": 0.019356344912642376,
+        "non_manifold_edges": 0,
+        "degenerate_faces": 0,
+        "proxy_inertia_diagonal_kg_m2": [
+          148.77843709759097,
+          149.53926643999134,
+          18.19033784272589
+        ],
+        "closed_shell_includes": "Actual pegs and bottom wells after boolean/bevel modifiers",
+        "collision_profile": "Nine gameplay boxes; visible wells/pegs do not become separate contacts"
+      },
+      "enclosure": {
+        "enclosure_volume_cubic_metres": 3.471492734182069,
+        "proxy_volume_cubic_metres": 3.5386879999999996,
+        "relative_volume_error": 0.019356303170763534,
+        "non_manifold_edges": 0,
+        "degenerate_faces": 0,
+        "proxy_inertia_diagonal_kg_m2": [
+          148.77843709759097,
+          149.53926643999134,
+          18.19033784272589
+        ],
+        "closed_shell_includes": "Actual pegs and bottom wells after boolean/bevel modifiers",
+        "collision_profile": "Nine gameplay boxes; visible wells/pegs do not become separate contacts"
+      },
+      "main_shell_contact_error": {
+        "protocol": "Both exterior surfaces sampled at <=10 mm edge steps; samples are not an exact Hausdorff proof",
+        "grid_step_metres": 0.01,
+        "proxy_to_skin": {
+          "samples": 162578,
+          "excluded_contact_detail_samples": 17990,
+          "maximum_sampled_distance_metres": 0.0691714882850647,
+          "at_canonical_metres": [
+            -0.47999998927116394,
+            -0.46000000834465027,
+            -1.600000023841858
+          ]
+        },
+        "skin_to_proxy": {
+          "samples": 1667337,
+          "excluded_contact_detail_samples": 300939,
+          "maximum_sampled_distance_metres": 0.04290005564689636,
+          "at_canonical_metres": [
+            -0.4370999336242676,
+            -0.4167385697364807,
+            -1.5538716316223145
+          ]
+        },
+        "exclusion": "Within 0.31 m of three mount axes, top y>body_half_height-0.011 and bottom y<-body_half_height+0.211; pegs/wells remain in enclosure volume"
+      },
+      "metric_uv": {
+        "period_metres": 0.5,
+        "tile_pixels": 128,
+        "surface_area_m2": 16.900639531450754,
+        "near_equivalent_texels_per_metre": {
+          "minimum": 255.97319309524818,
+          "maximum": 256.0189341046583,
+          "rms": 255.99999341484076
+        },
+        "maximum_principal_stretch": 1.000209670806673,
+        "excluded_tiny_triangles": 0,
+        "qualification": "Near is 256 texels/metre; Middle 128; Far uses material factors without detail textures. Hard-edge charts may differ in phase."
+      }
+    },
+    {
+      "file": "pontoon-lod-1.glb",
+      "sha256": "50e086cb32069686d8bcc4e49b760338bb7d6d2762bc162122c3a866dc914fab",
+      "bytes": 52140,
+      "triangles": 500,
+      "vertices": 886,
+      "materials": 3,
+      "meshes": 1,
+      "export_settings": {
+        "export_format": "GLB",
+        "use_selection": true,
+        "export_yup": true,
+        "export_apply": true,
+        "export_materials": "EXPORT",
+        "export_normals": true,
+        "export_texcoords": true,
+        "export_tangents": true,
+        "export_animations": false,
+        "export_skins": false,
+        "export_morph": false,
+        "export_cameras": false,
+        "export_lights": false,
+        "export_extras": false,
+        "export_vertex_color": "NONE",
+        "export_all_vertex_colors": false
+      },
+      "metric_materials": [
+        {
+          "region": "cream",
+          "roughness_factor": 0.3505154550075531,
+          "metallic_factor": 0
+        },
+        {
+          "region": "teal",
+          "roughness_factor": 0.41237112879753113,
+          "metallic_factor": 0
+        },
+        {
+          "region": "coral",
+          "roughness_factor": 0.3711340129375458,
+          "metallic_factor": 0
+        }
+      ],
+      "pretriangulation_enclosure": {
+        "enclosure_volume_cubic_metres": 3.4537437889324214,
+        "proxy_volume_cubic_metres": 3.5386879999999996,
+        "relative_volume_error": 0.02459482123132095,
+        "non_manifold_edges": 0,
+        "degenerate_faces": 0,
+        "proxy_inertia_diagonal_kg_m2": [
+          148.77843709759097,
+          149.53926643999134,
+          18.19033784272589
+        ],
+        "closed_shell_includes": "Actual pegs and bottom wells after boolean/bevel modifiers",
+        "collision_profile": "Nine gameplay boxes; visible wells/pegs do not become separate contacts"
+      },
+      "enclosure": {
+        "enclosure_volume_cubic_metres": 3.4537437881918276,
+        "proxy_volume_cubic_metres": 3.5386879999999996,
+        "relative_volume_error": 0.024594821451027205,
+        "non_manifold_edges": 0,
+        "degenerate_faces": 0,
+        "proxy_inertia_diagonal_kg_m2": [
+          148.77843709759097,
+          149.53926643999134,
+          18.19033784272589
+        ],
+        "closed_shell_includes": "Actual pegs and bottom wells after boolean/bevel modifiers",
+        "collision_profile": "Nine gameplay boxes; visible wells/pegs do not become separate contacts"
+      },
+      "main_shell_contact_error": {
+        "protocol": "Both exterior surfaces sampled at <=10 mm edge steps; samples are not an exact Hausdorff proof",
+        "grid_step_metres": 0.01,
+        "proxy_to_skin": {
+          "samples": 162578,
+          "excluded_contact_detail_samples": 17990,
+          "maximum_sampled_distance_metres": 0.0691714882850647,
+          "at_canonical_metres": [
+            -0.47999998927116394,
+            0.46000000834465027,
+            -1.600000023841858
+          ]
+        },
+        "skin_to_proxy": {
+          "samples": 666455,
+          "excluded_contact_detail_samples": 147313,
+          "maximum_sampled_distance_metres": 0.046000003814697266,
+          "at_canonical_metres": [
+            0.45399999618530273,
+            -0.4339999854564667,
+            -0.7124999761581421
+          ]
+        },
+        "exclusion": "Within 0.31 m of three mount axes, top y>body_half_height-0.011 and bottom y<-body_half_height+0.211; pegs/wells remain in enclosure volume"
+      },
+      "metric_uv": {
+        "period_metres": 0.5,
+        "tile_pixels": 64,
+        "surface_area_m2": 17.05742535286325,
+        "near_equivalent_texels_per_metre": {
+          "minimum": 255.9991230890108,
+          "maximum": 256.0021171299802,
+          "rms": 256.0000049605274
+        },
+        "maximum_principal_stretch": 1.0000168855814138,
+        "excluded_tiny_triangles": 0,
+        "qualification": "Near is 256 texels/metre; Middle 128; Far uses material factors without detail textures. Hard-edge charts may differ in phase."
+      }
+    },
+    {
+      "file": "pontoon-lod-2.glb",
+      "sha256": "708a816ac145ed0adea735a60dd60c9c4cdde14a9d6b726920f2333da2b15ded",
+      "bytes": 25332,
+      "triangles": 256,
+      "vertices": 423,
+      "materials": 3,
+      "meshes": 1,
+      "export_settings": {
+        "export_format": "GLB",
+        "use_selection": true,
+        "export_yup": true,
+        "export_apply": true,
+        "export_materials": "EXPORT",
+        "export_normals": true,
+        "export_texcoords": true,
+        "export_tangents": true,
+        "export_animations": false,
+        "export_skins": false,
+        "export_morph": false,
+        "export_cameras": false,
+        "export_lights": false,
+        "export_extras": false,
+        "export_vertex_color": "NONE",
+        "export_all_vertex_colors": false
+      },
+      "metric_materials": [
+        {
+          "region": "cream",
+          "roughness_factor": 0.3400000035762787,
+          "metallic_factor": 0
+        },
+        {
+          "region": "teal",
+          "roughness_factor": 0.4000000059604645,
+          "metallic_factor": 0
+        },
+        {
+          "region": "coral",
+          "roughness_factor": 0.36000001430511475,
+          "metallic_factor": 0
+        }
+      ],
+      "pretriangulation_enclosure": {
+        "enclosure_volume_cubic_metres": 3.438099647829978,
+        "proxy_volume_cubic_metres": 3.5386879999999996,
+        "relative_volume_error": 0.029256962413381382,
+        "non_manifold_edges": 0,
+        "degenerate_faces": 0,
+        "proxy_inertia_diagonal_kg_m2": [
+          148.77843709759097,
+          149.53926643999134,
+          18.19033784272589
+        ],
+        "closed_shell_includes": "Actual pegs and bottom wells after boolean/bevel modifiers",
+        "collision_profile": "Nine gameplay boxes; visible wells/pegs do not become separate contacts"
+      },
+      "enclosure": {
+        "enclosure_volume_cubic_metres": 3.438099647026786,
+        "proxy_volume_cubic_metres": 3.5386879999999996,
+        "relative_volume_error": 0.029256962653831264,
+        "non_manifold_edges": 0,
+        "degenerate_faces": 0,
+        "proxy_inertia_diagonal_kg_m2": [
+          148.77843709759097,
+          149.53926643999134,
+          18.19033784272589
+        ],
+        "closed_shell_includes": "Actual pegs and bottom wells after boolean/bevel modifiers",
+        "collision_profile": "Nine gameplay boxes; visible wells/pegs do not become separate contacts"
+      },
+      "main_shell_contact_error": {
+        "protocol": "Both exterior surfaces sampled at <=10 mm edge steps; samples are not an exact Hausdorff proof",
+        "grid_step_metres": 0.01,
+        "proxy_to_skin": {
+          "samples": 162578,
+          "excluded_contact_detail_samples": 17990,
+          "maximum_sampled_distance_metres": 0.0691714882850647,
+          "at_canonical_metres": [
+            -0.47999998927116394,
+            0.46000000834465027,
+            -1.600000023841858
+          ]
+        },
+        "skin_to_proxy": {
+          "samples": 953078,
+          "excluded_contact_detail_samples": 127611,
+          "maximum_sampled_distance_metres": 0.04285714030265808,
+          "at_canonical_metres": [
+            0.43714284896850586,
+            0.4171428382396698,
+            -1.5523808002471924
+          ]
+        },
+        "exclusion": "Within 0.31 m of three mount axes, top y>body_half_height-0.011 and bottom y<-body_half_height+0.211; pegs/wells remain in enclosure volume"
+      },
+      "metric_uv": {
+        "period_metres": 0.5,
+        "tile_pixels": 0,
+        "surface_area_m2": 17.074978939983303,
+        "near_equivalent_texels_per_metre": {
+          "minimum": 255.9991230890108,
+          "maximum": 256.0021171299802,
+          "rms": 256.0000079985323
+        },
+        "maximum_principal_stretch": 1.0000168855814138,
+        "excluded_tiny_triangles": 0,
+        "qualification": "Near is 256 texels/metre; Middle 128; Far uses material factors without detail textures. Hard-edge charts may differ in phase."
+      }
+    }
+  ],
+  "lod_budgets": [
+    {
+      "triangles": 6000,
+      "exported_vertices": 12000,
+      "texture_side_pixels": 512,
+      "minimum_screen_height_pixels": 200
+    },
+    {
+      "triangles": 1200,
+      "exported_vertices": 2400,
+      "texture_side_pixels": 256,
+      "minimum_screen_height_pixels": 60
+    },
+    {
+      "triangles": 400,
+      "exported_vertices": 800,
+      "texture_side_pixels": 64,
+      "minimum_screen_height_pixels": 0
+    }
+  ],
+  "cross_lod_mount_clearance": [
+    {
+      "peg_lod": 0,
+      "well_lod": 0,
+      "minimum_profile_clearance_metres": 0.009561230581693118,
+      "axial_spare_depth_metres": 0.020000000000000018
+    },
+    {
+      "peg_lod": 0,
+      "well_lod": 1,
+      "minimum_profile_clearance_metres": 0.020993871963508524,
+      "axial_spare_depth_metres": 0.020000000000000018
+    },
+    {
+      "peg_lod": 0,
+      "well_lod": 2,
+      "minimum_profile_clearance_metres": 0.014542375293720851,
+      "axial_spare_depth_metres": 0.020000000000000018
+    },
+    {
+      "peg_lod": 1,
+      "well_lod": 0,
+      "minimum_profile_clearance_metres": 0.009561230581693118,
+      "axial_spare_depth_metres": 0.020000000000000018
+    },
+    {
+      "peg_lod": 1,
+      "well_lod": 1,
+      "minimum_profile_clearance_metres": 0.027022111065445806,
+      "axial_spare_depth_metres": 0.020000000000000018
+    },
+    {
+      "peg_lod": 1,
+      "well_lod": 2,
+      "minimum_profile_clearance_metres": 0.014542375293720851,
+      "axial_spare_depth_metres": 0.020000000000000018
+    },
+    {
+      "peg_lod": 2,
+      "well_lod": 0,
+      "minimum_profile_clearance_metres": 0.009561230581693118,
+      "axial_spare_depth_metres": 0.020000000000000018
+    },
+    {
+      "peg_lod": 2,
+      "well_lod": 1,
+      "minimum_profile_clearance_metres": 0.027022111065445806,
+      "axial_spare_depth_metres": 0.020000000000000018
+    },
+    {
+      "peg_lod": 2,
+      "well_lod": 2,
+      "minimum_profile_clearance_metres": 0.037024256604011964,
+      "axial_spare_depth_metres": 0.020000000000000018
+    }
+  ],
+  "authoring_frame": "+Z up, -Y forward; canonical right is Blender -X",
+  "export_to_canonical_rotation": 12,
+  "uv_quantization": "none; metric repeating charts",
+  "maps": "Linear palette factors, metric repeating normal/MR detail at Near/Middle; Far keeps material identity without detail images",
+  "provenance": "Original project geometry/script/maps; concept used as art-direction reference only",
+  "render": {
+    "engine": "Cycles",
+    "device": "CPU",
+    "samples": 96,
+    "threads": 4,
+    "preset": "quick",
+    "view_transform": "AgX"
+  },
+  "outputs": {
+    "preview/bottom.png": {
+      "sha256": "3694403bb63f0a4d283102d8f9997f925bffe252fe44ebbf1269e68448d561dc",
+      "bytes": 387101
+    },
+    "preview/engaged.png": {
+      "sha256": "f0d098ba7326bea1db827bbfa81cefd3f54c208afb944707e6ec33453efffb6a",
+      "bytes": 414441
+    },
+    "preview/exploded.png": {
+      "sha256": "4604b2ac356a7bb8c66638661e04946a48a5415fb480a2e5b42eedd54aea009f",
+      "bytes": 429083
+    },
+    "preview/front.png": {
+      "sha256": "c99cf3ba383fcadb08a6995c94c03322605fa8a9e6874e383b99bb2690caf74f",
+      "bytes": 486998
+    },
+    "preview/left.png": {
+      "sha256": "e063233c2ddb5f369f37e684ba17e349c59fac69624f0a36141bd88e9fba79d9",
+      "bytes": 496645
+    },
+    "preview/lod-1.png": {
+      "sha256": "2393194d64b83287af66e681a81b90e2991e125ec9ac5bdc65f1445621f158c5",
+      "bytes": 525331
+    },
+    "preview/lod-2.png": {
+      "sha256": "b64a4f62140aa3f8ae932b3f8fa83878fb7d14578b5550d9ef836f793275a854",
+      "bytes": 519028
+    },
+    "preview/rear.png": {
+      "sha256": "2f0797fc42c54d9ec5ec2c92680f9674e6b4f9ac0cc55ecca2a1c86b2c81acea",
+      "bytes": 486064
+    },
+    "preview/right.png": {
+      "sha256": "cfc479a0b9f6442e03424b11ef4910f08bed9ef02c801325c4170b3cb992f8e8",
+      "bytes": 489441
+    },
+    "preview/socket-pegs.png": {
+      "sha256": "b84e9ccb5c07f10d11ad1f65ffc248c5740c1a4e584417524df5a41ebadd5696",
+      "bytes": 456991
+    },
+    "preview/socket-wells.png": {
+      "sha256": "117b0e0f80b79c4f04b272879ad69b1578e2d1801f773c605ca12cfb456c51c8",
+      "bytes": 449198
+    },
+    "preview/thumbnail.png": {
+      "sha256": "f47262b085db7acc0cec56cf22dddc786d2bcb662ae20fe5113a808785e5e66e",
+      "bytes": 525718
+    },
+    "preview/top.png": {
+      "sha256": "1597f37592722b96fabe0bafc60f1fdbf8fe29ead1d784ceba32fb006e8cf16f",
+      "bytes": 383389
+    },
+    "source/maps/metric-lod-0-metallic_roughness.png": {
+      "sha256": "ec1124fce481138952b5e090bf66277fab984bbe5395bd512f7212da704950c0",
+      "bytes": 2676
+    },
+    "source/maps/metric-lod-0-normal.png": {
+      "sha256": "b42db2b12e24ca7d3972b75d1bc61ce5a36577e5b1b66c3fc76fb865394d0796",
+      "bytes": 4640
+    },
+    "source/maps/metric-lod-1-metallic_roughness.png": {
+      "sha256": "70cb3037c572b44b63efc8a1c6a775a38f5f81929214a47b7052724d7c01e1fb",
+      "bytes": 789
+    },
+    "source/maps/metric-lod-1-normal.png": {
+      "sha256": "fe07ce9d85b8dbc98a28c970dd8718afcbc8068094c8e84d35def1adba7f22e1",
+      "bytes": 1679
+    },
+    "source/parameters.json": {
+      "sha256": "aed7020b704cbe28fdb7ee4fa8574f8c47825b5f4bc23d971d30cec33e213f42",
+      "bytes": 288
+    },
+    "source/pontoon-lod-0.glb": {
+      "sha256": "81b9cb5a4897ae178787804f9c178a79c368672aaade7ac25e8057c3c2385cfd",
+      "bytes": 479412
+    },
+    "source/pontoon-lod-1.glb": {
+      "sha256": "50e086cb32069686d8bcc4e49b760338bb7d6d2762bc162122c3a866dc914fab",
+      "bytes": 52140
+    },
+    "source/pontoon-lod-2.glb": {
+      "sha256": "708a816ac145ed0adea735a60dd60c9c4cdde14a9d6b726920f2333da2b15ded",
+      "bytes": 25332
+    },
+    "source/pontoon.blend": {
+      "sha256": "7532d16591fe912265255aea9573984c97fc6f7d4cde617bcad3231049be2826",
+      "bytes": 279146
+    },
+    "source/pontoon.gameplay.json": {
+      "sha256": "b5c048767167eecb20a3d074781ad1622554b5270cb0797b8769a02245a47a3a",
+      "bytes": 15738
+    }
+  }
+}

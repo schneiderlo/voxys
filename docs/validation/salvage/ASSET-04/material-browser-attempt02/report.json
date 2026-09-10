@@ -1,0 +1,762 @@
+{
+  "passed": true,
+  "kind": "Shared C++ MeshPath correctness tests on hardware browser WebGPU",
+  "runner_sha256": "5d93eb00cd1b056dff20356997454dc11b7d0848cefb99cce00a9a693385698e",
+  "package": "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/material-wasm-attempt03",
+  "artifacts": {
+    "index.html": {
+      "sha256": "d1e856b18996773c93d1e96793a7e66602b278d255f138803dec5d700b65b3d3",
+      "bytes": 4410
+    },
+    "mesh_diagnostics.js": {
+      "sha256": "499839a9000fc4b757f37c4b657aef03557ae8a30440a68c79b2e35dff724abf",
+      "bytes": 175643
+    },
+    "mesh_diagnostics.wasm": {
+      "sha256": "07e1bf2d91798a376bf0e259ad499001ccfe27fba6668d9d4e61d4931065527d",
+      "bytes": 1410605
+    }
+  },
+  "chrome_argv": [
+    "google-chrome",
+    "--no-sandbox",
+    "--no-first-run",
+    "--no-default-browser-check",
+    "--disable-background-networking",
+    "--enable-unsafe-webgpu",
+    "--disable-gpu-watchdog",
+    "--disable-background-timer-throttling",
+    "--disable-renderer-backgrounding",
+    "--ozone-platform=wayland",
+    "--enable-features=Vulkan",
+    "--remote-debugging-port=0",
+    "--user-data-dir=/tmp/voxys-mesh-browser-Qca8CF",
+    "about:blank"
+  ],
+  "browser": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/152.0.7977.82",
+    "revision": "@d04cdb24d67b081f6cf80200ffc5233f44b61109",
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36",
+    "jsVersion": "15.2.124.21"
+  },
+  "result": {
+    "done": true,
+    "passed": true,
+    "output": [
+      "Running main() from /home/modkin/workspace/schneiderlo/voxys/third_party/googletest/googletest/src/gtest_main.cc",
+      "[==========] Running 5 tests from 2 test suites.",
+      "[----------] Global test environment set-up.",
+      "[----------] 1 test from MeshPathTest",
+      "[ RUN      ] MeshPathTest.RejectsNullGpuHandlesAndInvalidData",
+      "[       OK ] MeshPathTest.RejectsNullGpuHandlesAndInvalidData (0 ms)",
+      "[----------] 1 test from MeshPathTest (1 ms total)",
+      "",
+      "[----------] 4 tests from MeshPathGPUTest",
+      "[ RUN      ] MeshPathGPUTest.ExceptionalReleasePreservesEncodedTextureDependencies",
+      "[       OK ] MeshPathGPUTest.ExceptionalReleasePreservesEncodedTextureDependencies (31 ms)",
+      "[ RUN      ] MeshPathGPUTest.SamplesActualTextureQuadrantsAndRejectsSingleSidedBackFaces",
+      "[       OK ] MeshPathGPUTest.SamplesActualTextureQuadrantsAndRejectsSingleSidedBackFaces (26 ms)",
+      "[ RUN      ] MeshPathGPUTest.DirectionalNormalMapUsesFullInverseTransposeAndTangentFrame",
+      "[       OK ] MeshPathGPUTest.DirectionalNormalMapUsesFullInverseTransposeAndTangentFrame (29 ms)",
+      "[ RUN      ] MeshPathGPUTest.PreservesColorSpaceAndPackedMaterialChannels",
+      "[       OK ] MeshPathGPUTest.PreservesColorSpaceAndPackedMaterialChannels (33 ms)",
+      "[----------] 4 tests from MeshPathGPUTest (121 ms total)",
+      "",
+      "[----------] Global test environment tear-down",
+      "[==========] 5 tests from 2 test suites ran. (124 ms total)",
+      "[  PASSED  ] 5 tests."
+    ],
+    "gpuErrors": [],
+    "captures": [
+      {
+        "name": "0-ExceptionalReleasePreservesEncodedTextureDependencies.rgba",
+        "metadata": {
+          "width": 64,
+          "height": 64,
+          "format": "rgba8unorm",
+          "camera": [
+            0,
+            0,
+            -3
+          ],
+          "light": [
+            0.3,
+            0.8,
+            0.4
+          ],
+          "perspective": true
+        },
+        "sha256": "e346dfa5c13a903cfa28020155e3ac1dd9c31c614af33a939bde94d3c9eff773",
+        "png_sha256": "cdc60a5991f2b254193a64f047c3436a88d178adba8ea7b28e0db59788606694"
+      },
+      {
+        "name": "1-SamplesActualTextureQuadrantsAndRejectsSingleSidedBackFaces.rgba",
+        "metadata": {
+          "width": 64,
+          "height": 64,
+          "format": "rgba8unorm",
+          "camera": [
+            0,
+            0,
+            -3
+          ],
+          "light": [
+            0.3,
+            0.8,
+            0.4
+          ],
+          "perspective": false
+        },
+        "sha256": "d20c094f5916df1c2b35b17acece2e63ae07afa99cc9a9f9500958053f6923f0",
+        "png_sha256": "f4612b552f346be2bf378620189100b678ab190f4df1dfc1fd2947219497eb62"
+      },
+      {
+        "name": "2-SamplesActualTextureQuadrantsAndRejectsSingleSidedBackFaces.rgba",
+        "metadata": {
+          "width": 64,
+          "height": 64,
+          "format": "rgba8unorm",
+          "camera": [
+            0,
+            0,
+            -3
+          ],
+          "light": [
+            0.3,
+            0.8,
+            0.4
+          ],
+          "perspective": true
+        },
+        "sha256": "e346dfa5c13a903cfa28020155e3ac1dd9c31c614af33a939bde94d3c9eff773",
+        "png_sha256": "cdc60a5991f2b254193a64f047c3436a88d178adba8ea7b28e0db59788606694"
+      },
+      {
+        "name": "3-SamplesActualTextureQuadrantsAndRejectsSingleSidedBackFaces.rgba",
+        "metadata": {
+          "width": 64,
+          "height": 64,
+          "format": "rgba8unorm",
+          "camera": [
+            0,
+            0,
+            3
+          ],
+          "light": [
+            0.3,
+            0.8,
+            0.4
+          ],
+          "perspective": true
+        },
+        "sha256": "62fb561c59d0cea247fc588f3311ee665375f35d8675b186e2792cb7dfcff88c",
+        "png_sha256": "ebee394e41386893e365bab36916668522c516e325de348f1a7a593998e75687"
+      },
+      {
+        "name": "4-SamplesActualTextureQuadrantsAndRejectsSingleSidedBackFaces.rgba",
+        "metadata": {
+          "width": 64,
+          "height": 64,
+          "format": "rgba8unorm",
+          "camera": [
+            0,
+            0,
+            -3
+          ],
+          "light": [
+            0.3,
+            0.8,
+            0.4
+          ],
+          "perspective": true
+        },
+        "sha256": "62fb561c59d0cea247fc588f3311ee665375f35d8675b186e2792cb7dfcff88c",
+        "png_sha256": "ebee394e41386893e365bab36916668522c516e325de348f1a7a593998e75687"
+      },
+      {
+        "name": "5-DirectionalNormalMapUsesFullInverseTransposeAndTangentFrame.rgba",
+        "metadata": {
+          "width": 64,
+          "height": 64,
+          "format": "rgba8unorm",
+          "camera": [
+            0.727607,
+            0,
+            -2.91043
+          ],
+          "light": [
+            0.857493,
+            0,
+            -0.514496
+          ],
+          "perspective": true
+        },
+        "sha256": "b62ace611eb9cde0bf8315234cc3b19f35e1d1e4094cebb78ff9fb7d40fb0202",
+        "png_sha256": "484c1c6bf9296bdb79009c5b796d79f6e8896219f4b7564104508a85600c8acd"
+      },
+      {
+        "name": "6-DirectionalNormalMapUsesFullInverseTransposeAndTangentFrame.rgba",
+        "metadata": {
+          "width": 64,
+          "height": 64,
+          "format": "rgba8unorm",
+          "camera": [
+            0.727607,
+            0,
+            -2.91043
+          ],
+          "light": [
+            -0.514496,
+            0,
+            -0.857493
+          ],
+          "perspective": true
+        },
+        "sha256": "62fb561c59d0cea247fc588f3311ee665375f35d8675b186e2792cb7dfcff88c",
+        "png_sha256": "ebee394e41386893e365bab36916668522c516e325de348f1a7a593998e75687"
+      },
+      {
+        "name": "7-DirectionalNormalMapUsesFullInverseTransposeAndTangentFrame.rgba",
+        "metadata": {
+          "width": 64,
+          "height": 64,
+          "format": "rgba8unorm",
+          "camera": [
+            0.727607,
+            0,
+            -2.91043
+          ],
+          "light": [
+            0.970143,
+            0,
+            0.242536
+          ],
+          "perspective": true
+        },
+        "sha256": "62fb561c59d0cea247fc588f3311ee665375f35d8675b186e2792cb7dfcff88c",
+        "png_sha256": "ebee394e41386893e365bab36916668522c516e325de348f1a7a593998e75687"
+      },
+      {
+        "name": "8-DirectionalNormalMapUsesFullInverseTransposeAndTangentFrame.rgba",
+        "metadata": {
+          "width": 64,
+          "height": 64,
+          "format": "rgba8unorm",
+          "camera": [
+            0.727607,
+            0,
+            -2.91043
+          ],
+          "light": [
+            0.242536,
+            0,
+            -0.970143
+          ],
+          "perspective": true
+        },
+        "sha256": "a26d93e196461e54f439b6ca25a7949b90b315c04130c7138516a438477128f6",
+        "png_sha256": "7d1f6e7ef09fbb15f41a53b5b0f1446e9df37aa594f08537d7915f3871a22893"
+      },
+      {
+        "name": "9-DirectionalNormalMapUsesFullInverseTransposeAndTangentFrame.rgba",
+        "metadata": {
+          "width": 64,
+          "height": 64,
+          "format": "rgba8unorm",
+          "camera": [
+            0.727607,
+            0,
+            -2.91043
+          ],
+          "light": [
+            0.171499,
+            -0.707107,
+            -0.685994
+          ],
+          "perspective": true
+        },
+        "sha256": "acbfb99ca497f8162e9fb6c2700734a3debc35c0a0b76398745e2c01883e6cbf",
+        "png_sha256": "cd014ef3101c981a06556e461992b395a93534b580f45929d52c29fcd4b3cc2b"
+      },
+      {
+        "name": "10-DirectionalNormalMapUsesFullInverseTransposeAndTangentFrame.rgba",
+        "metadata": {
+          "width": 64,
+          "height": 64,
+          "format": "rgba8unorm",
+          "camera": [
+            0.727607,
+            0,
+            -2.91043
+          ],
+          "light": [
+            0.171499,
+            -0.707107,
+            -0.685994
+          ],
+          "perspective": true
+        },
+        "sha256": "62fb561c59d0cea247fc588f3311ee665375f35d8675b186e2792cb7dfcff88c",
+        "png_sha256": "ebee394e41386893e365bab36916668522c516e325de348f1a7a593998e75687"
+      },
+      {
+        "name": "11-PreservesColorSpaceAndPackedMaterialChannels.rgba",
+        "metadata": {
+          "width": 64,
+          "height": 64,
+          "format": "rgba8unorm",
+          "camera": [
+            0,
+            0,
+            -3
+          ],
+          "light": [
+            0,
+            0,
+            -1
+          ],
+          "perspective": true
+        },
+        "sha256": "386ad9b5f2a7349f7057c3d804b8196f611cb6a721302d546e34e76ae074e327",
+        "png_sha256": "c2b6ba161a89aa6f0e29dc861608a46e4d1a4265e95225c2736b48bf2efd4a76"
+      },
+      {
+        "name": "12-PreservesColorSpaceAndPackedMaterialChannels.rgba",
+        "metadata": {
+          "width": 64,
+          "height": 64,
+          "format": "rgba8unorm",
+          "camera": [
+            0,
+            0,
+            -3
+          ],
+          "light": [
+            0,
+            0,
+            -1
+          ],
+          "perspective": true
+        },
+        "sha256": "386ad9b5f2a7349f7057c3d804b8196f611cb6a721302d546e34e76ae074e327",
+        "png_sha256": "c2b6ba161a89aa6f0e29dc861608a46e4d1a4265e95225c2736b48bf2efd4a76"
+      },
+      {
+        "name": "13-PreservesColorSpaceAndPackedMaterialChannels.rgba",
+        "metadata": {
+          "width": 64,
+          "height": 64,
+          "format": "rgba8unorm",
+          "camera": [
+            0,
+            0,
+            -3
+          ],
+          "light": [
+            0,
+            0,
+            -1
+          ],
+          "perspective": true
+        },
+        "sha256": "28f95de42c3b77cbbf1827f4642a62f8c2de97b42d7c1891230ea3c796d49443",
+        "png_sha256": "7f9b0222d6274d16bbe913522550938e0b2e46b2c72331658efbe23e55c27936"
+      },
+      {
+        "name": "14-PreservesColorSpaceAndPackedMaterialChannels.rgba",
+        "metadata": {
+          "width": 64,
+          "height": 64,
+          "format": "rgba8unorm",
+          "camera": [
+            0,
+            0,
+            -3
+          ],
+          "light": [
+            0,
+            0,
+            -1
+          ],
+          "perspective": true
+        },
+        "sha256": "28f95de42c3b77cbbf1827f4642a62f8c2de97b42d7c1891230ea3c796d49443",
+        "png_sha256": "7f9b0222d6274d16bbe913522550938e0b2e46b2c72331658efbe23e55c27936"
+      },
+      {
+        "name": "15-PreservesColorSpaceAndPackedMaterialChannels.rgba",
+        "metadata": {
+          "width": 64,
+          "height": 64,
+          "format": "rgba8unorm",
+          "camera": [
+            0,
+            0,
+            -3
+          ],
+          "light": [
+            0,
+            0,
+            -1
+          ],
+          "perspective": true
+        },
+        "sha256": "28f95de42c3b77cbbf1827f4642a62f8c2de97b42d7c1891230ea3c796d49443",
+        "png_sha256": "7f9b0222d6274d16bbe913522550938e0b2e46b2c72331658efbe23e55c27936"
+      },
+      {
+        "name": "16-PreservesColorSpaceAndPackedMaterialChannels.rgba",
+        "metadata": {
+          "width": 64,
+          "height": 64,
+          "format": "rgba8unorm",
+          "camera": [
+            0,
+            0,
+            -3
+          ],
+          "light": [
+            0,
+            0,
+            -1
+          ],
+          "perspective": true
+        },
+        "sha256": "62fb561c59d0cea247fc588f3311ee665375f35d8675b186e2792cb7dfcff88c",
+        "png_sha256": "ebee394e41386893e365bab36916668522c516e325de348f1a7a593998e75687"
+      },
+      {
+        "name": "17-PreservesColorSpaceAndPackedMaterialChannels.rgba",
+        "metadata": {
+          "width": 64,
+          "height": 64,
+          "format": "rgba8unorm",
+          "camera": [
+            0,
+            0,
+            -3
+          ],
+          "light": [
+            0,
+            0,
+            -1
+          ],
+          "perspective": true
+        },
+        "sha256": "2b34dff5bc1b177d6e7369659088168cbde95c9ab625e134319102a300b62293",
+        "png_sha256": "0a17dc7792d278fe840eea1227e219939a144d41de762fc1b2dd56762838e9e8"
+      }
+    ],
+    "adapter": {
+      "vendor": "amd",
+      "architecture": "rdna-3",
+      "device": "",
+      "description": "",
+      "isFallbackAdapter": false
+    },
+    "exitCode": 0
+  },
+  "expected_rejection_logs": [
+    "[ERROR] [00:00:00.103] MeshPath: failed to upload VMESH data"
+  ],
+  "unexpected_console_errors": [],
+  "exceptions": [],
+  "console": [
+    {
+      "type": "error",
+      "args": [
+        {
+          "type": "string",
+          "value": "[ERROR] [00:00:00.103] MeshPath: failed to upload VMESH data"
+        }
+      ],
+      "executionContextId": 2,
+      "timestamp": 1788839339072.156,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "_emscripten_console_error",
+            "scriptId": "4",
+            "url": "http://127.0.0.1:46811/mesh_diagnostics.js",
+            "lineNumber": 0,
+            "columnNumber": 73738
+          },
+          {
+            "functionName": "imports.<computed>",
+            "scriptId": "4",
+            "url": "http://127.0.0.1:46811/mesh_diagnostics.js",
+            "lineNumber": 0,
+            "columnNumber": 117939
+          },
+          {
+            "functionName": "$dynCall_vi",
+            "scriptId": "6",
+            "url": "http://127.0.0.1:46811/mesh_diagnostics.wasm",
+            "lineNumber": 0,
+            "columnNumber": 1210169
+          },
+          {
+            "functionName": "__asyncify_wrapper_1616",
+            "scriptId": "4",
+            "url": "http://127.0.0.1:46811/mesh_diagnostics.js",
+            "lineNumber": 0,
+            "columnNumber": 118403
+          },
+          {
+            "functionName": "",
+            "scriptId": "4",
+            "url": "http://127.0.0.1:46811/mesh_diagnostics.js",
+            "lineNumber": 0,
+            "columnNumber": 9442
+          },
+          {
+            "functionName": "invoke_vi",
+            "scriptId": "4",
+            "url": "http://127.0.0.1:46811/mesh_diagnostics.js",
+            "lineNumber": 0,
+            "columnNumber": 166929
+          },
+          {
+            "functionName": "imports.<computed>",
+            "scriptId": "4",
+            "url": "http://127.0.0.1:46811/mesh_diagnostics.js",
+            "lineNumber": 0,
+            "columnNumber": 117939
+          },
+          {
+            "functionName": "$func302",
+            "scriptId": "6",
+            "url": "http://127.0.0.1:46811/mesh_diagnostics.wasm",
+            "lineNumber": 0,
+            "columnNumber": 349075
+          },
+          {
+            "functionName": "$dynCall_vii",
+            "scriptId": "6",
+            "url": "http://127.0.0.1:46811/mesh_diagnostics.wasm",
+            "lineNumber": 0,
+            "columnNumber": 1209737
+          },
+          {
+            "functionName": "__asyncify_wrapper_1614",
+            "scriptId": "4",
+            "url": "http://127.0.0.1:46811/mesh_diagnostics.js",
+            "lineNumber": 0,
+            "columnNumber": 118403
+          },
+          {
+            "functionName": "",
+            "scriptId": "4",
+            "url": "http://127.0.0.1:46811/mesh_diagnostics.js",
+            "lineNumber": 0,
+            "columnNumber": 9442
+          },
+          {
+            "functionName": "invoke_vii",
+            "scriptId": "4",
+            "url": "http://127.0.0.1:46811/mesh_diagnostics.js",
+            "lineNumber": 0,
+            "columnNumber": 166406
+          },
+          {
+            "functionName": "imports.<computed>",
+            "scriptId": "4",
+            "url": "http://127.0.0.1:46811/mesh_diagnostics.js",
+            "lineNumber": 0,
+            "columnNumber": 117939
+          },
+          {
+            "functionName": "$func196",
+            "scriptId": "6",
+            "url": "http://127.0.0.1:46811/mesh_diagnostics.wasm",
+            "lineNumber": 0,
+            "columnNumber": 196318
+          },
+          {
+            "functionName": "$func195",
+            "scriptId": "6",
+            "url": "http://127.0.0.1:46811/mesh_diagnostics.wasm",
+            "lineNumber": 0,
+            "columnNumber": 194853
+          },
+          {
+            "functionName": "$dynCall_iii",
+            "scriptId": "6",
+            "url": "http://127.0.0.1:46811/mesh_diagnostics.wasm",
+            "lineNumber": 0,
+            "columnNumber": 1209540
+          },
+          {
+            "functionName": "__asyncify_wrapper_1613",
+            "scriptId": "4",
+            "url": "http://127.0.0.1:46811/mesh_diagnostics.js",
+            "lineNumber": 0,
+            "columnNumber": 118403
+          },
+          {
+            "functionName": "",
+            "scriptId": "4",
+            "url": "http://127.0.0.1:46811/mesh_diagnostics.js",
+            "lineNumber": 0,
+            "columnNumber": 9442
+          },
+          {
+            "functionName": "invoke_iii",
+            "scriptId": "4",
+            "url": "http://127.0.0.1:46811/mesh_diagnostics.js",
+            "lineNumber": 0,
+            "columnNumber": 165514
+          },
+          {
+            "functionName": "imports.<computed>",
+            "scriptId": "4",
+            "url": "http://127.0.0.1:46811/mesh_diagnostics.js",
+            "lineNumber": 0,
+            "columnNumber": 117939
+          },
+          {
+            "functionName": "$func146",
+            "scriptId": "6",
+            "url": "http://127.0.0.1:46811/mesh_diagnostics.wasm",
+            "lineNumber": 0,
+            "columnNumber": 64931
+          },
+          {
+            "functionName": "$dynCall_vi",
+            "scriptId": "6",
+            "url": "http://127.0.0.1:46811/mesh_diagnostics.wasm",
+            "lineNumber": 0,
+            "columnNumber": 1210169
+          },
+          {
+            "functionName": "__asyncify_wrapper_1616",
+            "scriptId": "4",
+            "url": "http://127.0.0.1:46811/mesh_diagnostics.js",
+            "lineNumber": 0,
+            "columnNumber": 118403
+          },
+          {
+            "functionName": "",
+            "scriptId": "4",
+            "url": "http://127.0.0.1:46811/mesh_diagnostics.js",
+            "lineNumber": 0,
+            "columnNumber": 9442
+          },
+          {
+            "functionName": "invoke_vi",
+            "scriptId": "4",
+            "url": "http://127.0.0.1:46811/mesh_diagnostics.js",
+            "lineNumber": 0,
+            "columnNumber": 166929
+          },
+          {
+            "functionName": "imports.<computed>",
+            "scriptId": "4",
+            "url": "http://127.0.0.1:46811/mesh_diagnostics.js",
+            "lineNumber": 0,
+            "columnNumber": 117939
+          },
+          {
+            "functionName": "$func397",
+            "scriptId": "6",
+            "url": "http://127.0.0.1:46811/mesh_diagnostics.wasm",
+            "lineNumber": 0,
+            "columnNumber": 450637
+          },
+          {
+            "functionName": "$func482",
+            "scriptId": "6",
+            "url": "http://127.0.0.1:46811/mesh_diagnostics.wasm",
+            "lineNumber": 0,
+            "columnNumber": 621391
+          },
+          {
+            "functionName": "$dynCall_ii",
+            "scriptId": "6",
+            "url": "http://127.0.0.1:46811/mesh_diagnostics.wasm",
+            "lineNumber": 0,
+            "columnNumber": 1210706
+          },
+          {
+            "functionName": "__asyncify_wrapper_1619",
+            "scriptId": "4",
+            "url": "http://127.0.0.1:46811/mesh_diagnostics.js",
+            "lineNumber": 0,
+            "columnNumber": 118403
+          },
+          {
+            "functionName": "",
+            "scriptId": "4",
+            "url": "http://127.0.0.1:46811/mesh_diagnostics.js",
+            "lineNumber": 0,
+            "columnNumber": 9442
+          },
+          {
+            "functionName": "invoke_ii",
+            "scriptId": "4",
+            "url": "http://127.0.0.1:46811/mesh_diagnostics.js",
+            "lineNumber": 0,
+            "columnNumber": 165866
+          },
+          {
+            "functionName": "imports.<computed>",
+            "scriptId": "4",
+            "url": "http://127.0.0.1:46811/mesh_diagnostics.js",
+            "lineNumber": 0,
+            "columnNumber": 117939
+          },
+          {
+            "functionName": "$func401",
+            "scriptId": "6",
+            "url": "http://127.0.0.1:46811/mesh_diagnostics.wasm",
+            "lineNumber": 0,
+            "columnNumber": 455580
+          },
+          {
+            "functionName": "$__main_argc_argv",
+            "scriptId": "6",
+            "url": "http://127.0.0.1:46811/mesh_diagnostics.wasm",
+            "lineNumber": 0,
+            "columnNumber": 660932
+          },
+          {
+            "functionName": "__asyncify_wrapper_523",
+            "scriptId": "4",
+            "url": "http://127.0.0.1:46811/mesh_diagnostics.js",
+            "lineNumber": 0,
+            "columnNumber": 118403
+          },
+          {
+            "functionName": "callUserCallback",
+            "scriptId": "4",
+            "url": "http://127.0.0.1:46811/mesh_diagnostics.js",
+            "lineNumber": 0,
+            "columnNumber": 97315
+          },
+          {
+            "functionName": "doRewind",
+            "scriptId": "4",
+            "url": "http://127.0.0.1:46811/mesh_diagnostics.js",
+            "lineNumber": 0,
+            "columnNumber": 120719
+          },
+          {
+            "functionName": "",
+            "scriptId": "4",
+            "url": "http://127.0.0.1:46811/mesh_diagnostics.js",
+            "lineNumber": 0,
+            "columnNumber": 121691
+          },
+          {
+            "functionName": "",
+            "scriptId": "4",
+            "url": "http://127.0.0.1:46811/mesh_diagnostics.js",
+            "lineNumber": 0,
+            "columnNumber": 122715
+          }
+        ]
+      }
+    }
+  ]
+}

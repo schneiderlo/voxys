@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="29" failures="0" disabled="0" errors="0" time="0." timestamp="2026-09-07T23:41:38.767" name="AllTests">
+  <testsuite name="SalvagePreview" tests="8" failures="0" disabled="0" skipped="0" errors="0" time="0." timestamp="2026-09-07T23:41:38.767">
+    <testcase name="AuthoredFixtureIsBoundedAndStatic" file="tests/test_salvage_preview.cpp" line="90" status="run" result="completed" time="0." timestamp="2026-09-07T23:41:38.767" classname="SalvagePreview" />
+    <testcase name="PartialSpawnFailureRollsBackOnlyOwnedBodies" file="tests/test_salvage_preview.cpp" line="107" status="run" result="completed" time="0." timestamp="2026-09-07T23:41:38.767" classname="SalvagePreview" />
+    <testcase name="ResetRequiresCompletedMatchingGenerationSnapshot" file="tests/test_salvage_preview.cpp" line="123" status="run" result="completed" time="0." timestamp="2026-09-07T23:41:38.767" classname="SalvagePreview" />
+    <testcase name="AcceptedDestroysAreNotRequeuedAndLeaveWinsReset" file="tests/test_salvage_preview.cpp" line="153" status="run" result="completed" time="0." timestamp="2026-09-07T23:41:38.767" classname="SalvagePreview" />
+    <testcase name="ReusedIndicesDoNotRetainOrDeleteAnotherGeneration" file="tests/test_salvage_preview.cpp" line="181" status="run" result="completed" time="0." timestamp="2026-09-07T23:41:38.767" classname="SalvagePreview" />
+    <testcase name="FailedRespawnRollsBackNewGeneration" file="tests/test_salvage_preview.cpp" line="200" status="run" result="completed" time="0." timestamp="2026-09-07T23:41:38.767" classname="SalvagePreview" />
+    <testcase name="InvalidPortsAndActionsHaveNoSideEffects" file="tests/test_salvage_preview.cpp" line="217" status="run" result="completed" time="0." timestamp="2026-09-07T23:41:38.767" classname="SalvagePreview" />
+    <testcase name="ShutdownReportsBlockedRemovalAndCanRetry" file="tests/test_salvage_preview.cpp" line="228" status="run" result="completed" time="0." timestamp="2026-09-07T23:41:38.767" classname="SalvagePreview" />
+  </testsuite>
+  <testsuite name="GameSession" tests="21" failures="0" disabled="0" skipped="0" errors="0" time="0." timestamp="2026-09-07T23:41:38.767">
+    <testcase name="BuysMovesAndDismantlesUsingCatalogEconomyAndStableIdentity" file="tests/test_game_session.cpp" line="131" status="run" result="completed" time="0." timestamp="2026-09-07T23:41:38.767" classname="GameSession" />
+    <testcase name="EmptyBuildCreationIsOwnedAndCostsNoParts" file="tests/test_game_session.cpp" line="162" status="run" result="completed" time="0." timestamp="2026-09-07T23:41:38.767" classname="GameSession" />
+    <testcase name="DuplicatePendingCommittedAndConflictingRequestsDoNotSpendAgain" file="tests/test_game_session.cpp" line="173" status="run" result="completed" time="0." timestamp="2026-09-07T23:41:38.767" classname="GameSession" />
+    <testcase name="CancelBurnsIdsAndStaleCompletionCannotPublishNextPreparation" file="tests/test_game_session.cpp" line="189" status="run" result="completed" time="0." timestamp="2026-09-07T23:41:38.767" classname="GameSession" />
+    <testcase name="ReceiptEvictionKeepsContiguousHighWaterAndNeverReexecutes" file="tests/test_game_session.cpp" line="208" status="run" result="completed" time="0." timestamp="2026-09-07T23:41:38.767" classname="GameSession" />
+    <testcase name="CallerTokenEpochAndSequenceAreValidatedBeforeAdmission" file="tests/test_game_session.cpp" line="221" status="run" result="completed" time="0." timestamp="2026-09-07T23:41:38.767" classname="GameSession" />
+    <testcase name="InsufficientFundsInvalidGeometryAndCapacityPreserveWorld" file="tests/test_game_session.cpp" line="236" status="run" result="completed" time="0." timestamp="2026-09-07T23:41:38.767" classname="GameSession" />
+    <testcase name="DelayedAndFinalReadinessFailuresDiscardExactlyOnce" file="tests/test_game_session.cpp" line="256" status="run" result="completed" time="0." timestamp="2026-09-07T23:41:38.767" classname="GameSession" />
+    <testcase name="LeaseOwnershipEpochAndExclusiveExpiryAreRecheckedAtBoundary" file="tests/test_game_session.cpp" line="271" status="run" result="completed" time="0." timestamp="2026-09-07T23:41:38.767" classname="GameSession" />
+    <testcase name="StaleBuildOrSessionRevisionsRejectBeforeIssuingIds" file="tests/test_game_session.cpp" line="289" status="run" result="completed" time="0." timestamp="2026-09-07T23:41:38.767" classname="GameSession" />
+    <testcase name="LoanDismantlingPaysZeroAndConnectedRemovalIsExplicitlyRejected" file="tests/test_game_session.cpp" line="301" status="run" result="completed" time="0." timestamp="2026-09-07T23:41:38.767" classname="GameSession" />
+    <testcase name="TrustedJobAcceptanceDoesNotRewardOrChangeCargo" file="tests/test_game_session.cpp" line="320" status="run" result="completed" time="0." timestamp="2026-09-07T23:41:38.767" classname="GameSession" />
+    <testcase name="PreviewBootstrapDoesNotGrantWorkshopInventoryOrJobs" file="tests/test_game_session.cpp" line="334" status="run" result="completed" time="0." timestamp="2026-09-07T23:41:38.767" classname="GameSession" />
+    <testcase name="IdRevisionTickAndCreditOverflowNeverWrap" file="tests/test_game_session.cpp" line="344" status="run" result="completed" time="0." timestamp="2026-09-07T23:41:38.767" classname="GameSession" />
+    <testcase name="BootstrapRejectsDuplicateCrossWorldInvalidContentAndUnbackedLoan" file="tests/test_game_session.cpp" line="366" status="run" result="completed" time="0." timestamp="2026-09-07T23:41:38.767" classname="GameSession" />
+    <testcase name="TotalPartAndBuildLimitsAreCheckedBeforeIssuingIds" file="tests/test_game_session.cpp" line="387" status="run" result="completed" time="0." timestamp="2026-09-07T23:41:38.767" classname="GameSession" />
+    <testcase name="PollingCannotAdvanceClockOrCommitAndDestructorCancelsPending" file="tests/test_game_session.cpp" line="398" status="run" result="completed" time="0." timestamp="2026-09-07T23:41:38.767" classname="GameSession" />
+    <testcase name="RetiringReservationsRemainBoundedAndBlockNewPreparations" file="tests/test_game_session.cpp" line="410" status="run" result="completed" time="0." timestamp="2026-09-07T23:41:38.767" classname="GameSession" />
+    <testcase name="CloseAdmissionCancelsOnceAndCannotBeBypassedByRetryOrBusyQueue" file="tests/test_game_session.cpp" line="425" status="run" result="completed" time="0." timestamp="2026-09-07T23:41:38.767" classname="GameSession" />
+    <testcase name="UnexpectedAdapterExceptionReleasesReservationAndNeverPublishes" file="tests/test_game_session.cpp" line="446" status="run" result="completed" time="0." timestamp="2026-09-07T23:41:38.767" classname="GameSession" />
+    <testcase name="BootstrapParticipantReferencesRejectRoleAliasesAndUnknownIds" file="tests/test_game_session.cpp" line="457" status="run" result="completed" time="0." timestamp="2026-09-07T23:41:38.767" classname="GameSession" />
+  </testsuite>
+</testsuites>

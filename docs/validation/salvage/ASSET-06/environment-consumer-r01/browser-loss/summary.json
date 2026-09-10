@@ -1,0 +1,180 @@
+{
+  "kind": "Actual browser GPUDevice.destroy with in-flight application resources",
+  "before": {
+    "initialized": 1,
+    "state": {
+      "active": true,
+      "ready": true,
+      "busy": false,
+      "failed": false,
+      "bodies": 0,
+      "resets": 0,
+      "controller": "free-fly",
+      "mouseCaptured": false,
+      "origin": [
+        -12,
+        -187.68,
+        -32
+      ],
+      "camera": {
+        "local": [
+          -11,
+          74.32,
+          -44
+        ],
+        "sector": [
+          0,
+          -1,
+          0
+        ],
+        "yaw": -0.620249,
+        "pitch": -0.335554
+      },
+      "session": {
+        "revision": "0",
+        "tick": "0",
+        "admissionOpen": true,
+        "builds": 0,
+        "cargo": 0,
+        "jobs": 0,
+        "inventory": {
+          "salvageMaterial": "0",
+          "specialMachinery": "0"
+        }
+      },
+      "observation": {
+        "world": "e71d95908ebcb7735b2a2d22c48879e0",
+        "incarnation": "eda439086edbc8c204ca8e7359265f3d",
+        "epoch": "1",
+        "publicationLost": false,
+        "lanes": [
+          {
+            "through": "0",
+            "retained": 0,
+            "overwritten": "0",
+            "invalid": "0",
+            "exhausted": false
+          },
+          {
+            "through": "0",
+            "retained": 0,
+            "overwritten": "0",
+            "invalid": "0",
+            "exhausted": false
+          },
+          {
+            "through": "0",
+            "retained": 0,
+            "overwritten": "0",
+            "invalid": "0",
+            "exhausted": false
+          }
+        ]
+      },
+      "assetFixture": {
+        "status": 2,
+        "generation": "1",
+        "uploads": 9,
+        "prototypeUploads": 0,
+        "environmentGpuBytes": "1228944",
+        "environmentBakeCount": 1,
+        "environmentReady": true,
+        "gpuReservationBytes": "6714416",
+        "submittedSerial": "288",
+        "completedSerial": "286",
+        "draws": 148,
+        "guides": 2,
+        "guideBoxes": 135,
+        "guideMeshGpuBytes": 1936,
+        "forcedLod": "0",
+        "lods": [
+          "2",
+          "1",
+          "2"
+        ],
+        "availableLods": [
+          "0",
+          "1",
+          "2",
+          "3"
+        ]
+      }
+    },
+    "lost": null,
+    "errors": [],
+    "diagnostics": {
+      "allocationSemantics": "cumulative creation calls/requested buffer bytes; not live memory",
+      "allocations": {
+        "buffers": 239,
+        "textures": 87,
+        "bufferBytes": 157041404
+      },
+      "destroyCalls": []
+    }
+  },
+  "after": {
+    "initialized": 0,
+    "state": {
+      "active": false,
+      "ready": false,
+      "busy": false,
+      "failed": true,
+      "bodies": 0,
+      "resets": 0,
+      "controller": "free-fly",
+      "mouseCaptured": false,
+      "origin": null,
+      "camera": null,
+      "session": null
+    },
+    "lost": {
+      "reason": "destroyed",
+      "message": "Device was destroyed."
+    },
+    "errors": [],
+    "diagnostics": {
+      "allocationSemantics": "cumulative creation calls/requested buffer bytes; not live memory",
+      "allocations": {
+        "buffers": 239,
+        "textures": 87,
+        "bufferBytes": 157041404
+      },
+      "destroyCalls": [
+        "Error: GPUDevice.destroy\n    at GPUDevice.<computed> [as destroy] (<anonymous>:7:57)\n    at <anonymous>:1:39"
+      ]
+    }
+  },
+  "settled": {
+    "initialized": 0,
+    "state": {
+      "active": false,
+      "ready": false,
+      "busy": false,
+      "failed": true,
+      "bodies": 0,
+      "resets": 0,
+      "controller": "free-fly",
+      "mouseCaptured": false,
+      "origin": null,
+      "camera": null,
+      "session": null
+    },
+    "lost": {
+      "reason": "destroyed",
+      "message": "Device was destroyed."
+    },
+    "errors": [],
+    "diagnostics": {
+      "allocationSemantics": "cumulative creation calls/requested buffer bytes; not live memory",
+      "allocations": {
+        "buffers": 239,
+        "textures": 87,
+        "bufferBytes": 157041404
+      },
+      "destroyCalls": [
+        "Error: GPUDevice.destroy\n    at GPUDevice.<computed> [as destroy] (<anonymous>:7:57)\n    at <anonymous>:1:39"
+      ]
+    }
+  },
+  "status": "passed"
+}

@@ -1,0 +1,70 @@
+{
+  "schema": 1,
+  "status": "captured; visual review required",
+  "recipe": {
+    "schema": 1,
+    "purpose": "Static functional kit inspection; no live simulation or cove approval",
+    "registry": "data/salvage/fixture-kit-narrow.json",
+    "physical_viewport": [
+      1920,
+      1080
+    ],
+    "fov_degrees": 60,
+    "views": [
+      {
+        "name": "overview",
+        "eye": [
+          7,
+          5,
+          -8
+        ],
+        "target": [
+          0,
+          0.7,
+          0.2
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      }
+    ]
+  },
+  "recipe_sha256": "c0b84e2a75e195df6f7097156bad9d0c4dadfb55d2b92f58dde970541f85f8c5",
+  "runner_sha256": "4cb504c3fa164d5455bfb89708a3c33ca8ec018e1efdc5a98752e04e0e508304",
+  "binary": "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native",
+  "binary_sha256": "c2c7bf0b3e2c5052ccd1ed1dc2c25ce910fee461272e9a0dd117eb2afa3f8104",
+  "original_registry_sha256": "86c0e07ef7c9bb5389143219fbd11baea0742e0253df86a244de3f9e58a0ac61",
+  "original_config": "/home/modkin/workspace/schneiderlo/voxys/salvage_kit_narrow.cfg",
+  "original_config_sha256": "947901dd81b110444589877267deeb7751b0249deb8727eb83e763c3aba66e0a",
+  "guides": "off",
+  "selected_views": null,
+  "scope": "Native scene captures; guides are technical overlays, not final art or moving-craft acceptance",
+  "views": [
+    {
+      "name": "overview",
+      "argv": [
+        "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-05/native-narrow-r07/overview.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-05/native-narrow-r07/overview.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "config_sha256": "fba9982824c9297bb2ab4cb7208b8eb346bb066a5d76f183ceccfdc798c20115",
+      "registry_sha256": "86c0e07ef7c9bb5389143219fbd11baea0742e0253df86a244de3f9e58a0ac61",
+      "timeout": false,
+      "exit_code": 0,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "png_sha256": "f09e9f08a2f3e04be020f8ce1a46cc7a3c5f28fbadc35bf6cfdf8e99edd43b8d",
+      "gpu_or_application_errors": [],
+      "passed": true
+    }
+  ],
+  "temporary_registry_removed": true
+}

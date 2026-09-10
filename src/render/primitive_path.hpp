@@ -21,20 +21,17 @@
     #include <webgpu.h>
 #endif
 
+#include "physics/gpu/gpu_body_shape.hpp"
+
 namespace voxy::render {
 
 namespace detail {
 
-// Exact CPU mirror of BodyShape in physics_primitives_compact.wgsl and the
-// persistent WebGpuSoft shape buffer. Keeping the upload typed prevents a
-// packed array of two vec4s from silently walking a three-vec4 GPU stride.
-struct alignas(16) CompactPrimitiveShapeGpu {
-    glm::vec4 dimensionsType{0.0f};
-    glm::vec4 inverseInertiaMaterial{0.0f};
-    glm::vec4 materialCoefficients{-1.0f, -1.0f, -1.0f, 1.0f};
-};
+// Share the persistent WebGpuSoft ABI so CPU uploads and direct GPU rendering
+// cannot silently disagree about the per-body stride.
+using CompactPrimitiveShapeGpu = physics::GpuBodyShape;
 
-static_assert(sizeof(CompactPrimitiveShapeGpu) == 48u);
+static_assert(sizeof(CompactPrimitiveShapeGpu) == 64u);
 static_assert(alignof(CompactPrimitiveShapeGpu) == 16u);
 
 } // namespace detail

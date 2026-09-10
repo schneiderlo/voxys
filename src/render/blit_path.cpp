@@ -100,6 +100,7 @@ BlitPath::BlitPath(BlitPath&& other) noexcept
     , underwaterParticles_(std::move(other.underwaterParticles_))
     , particleRandomState_(other.particleRandomState_)
     , particlesInitialized_(other.particlesInitialized_)
+    , opaqueScene_(std::move(other.opaqueScene_))
     , backgroundTexture_(other.backgroundTexture_)
     , backgroundView_(other.backgroundView_)
     , coverageMaskTexture_(other.coverageMaskTexture_)
@@ -271,6 +272,7 @@ BlitPath& BlitPath::operator=(BlitPath&& other) noexcept {
         underwaterParticles_ = std::move(other.underwaterParticles_);
         particleRandomState_ = other.particleRandomState_;
         particlesInitialized_ = other.particlesInitialized_;
+        opaqueScene_ = std::move(other.opaqueScene_);
         backgroundTexture_ = other.backgroundTexture_;
         backgroundView_ = other.backgroundView_;
         coverageMaskTexture_ = other.coverageMaskTexture_;
@@ -388,6 +390,7 @@ BlitPath& BlitPath::operator=(BlitPath&& other) noexcept {
 }
 
 void BlitPath::shutdown() {
+    opaqueScene_.reset();
     periodicGradientLut_.reset();
     if (waterClipmapIndexBuffer_) {
         wgpuBufferRelease(waterClipmapIndexBuffer_);
@@ -734,6 +737,14 @@ bool BlitPath::init(WGPUDevice device, WGPUQueue queue, const BlitPathConfig& co
         return false;
     }
 
+    if (config.enableOpaqueScene) {
+        opaqueScene_ = std::make_unique<OpaqueScene>();
+        if (!opaqueScene_->init(device_, config.shaderPath.parent_path() / "opaque_scene.wgsl")) {
+            shutdown();
+            return false;
+        }
+    }
+
     LOG_INFO("BlitPath initialized successfully");
     return true;
 }
@@ -748,6 +759,7 @@ bool BlitPath::resize(uint32_t width, uint32_t height) {
         return true;
     }
 
+    if (opaqueScene_ && !opaqueScene_->resize(width, height)) return false;
     if (!createBackgroundTexture(width, height)) return false;
     // Existing groups retain the previous views. createBindGroup() swaps them
     // only after all dynamic/static/cached replacements have been created.
@@ -2111,6 +2123,11 @@ bool BlitPath::createWaterClipmapResources(const BlitPathConfig& config) {
     WGPU_SET_ENTRY_POINT(fragmentState, "fs");
     fragmentState.targetCount = colorTargets.size();
     fragmentState.targets = colorTargets.data();
+    WGPUConstantEntry opaqueWater{};
+    opaqueWater.key = gpu::toStringView("OPAQUE_SCENE_WATER");
+    opaqueWater.value = config.enableOpaqueScene ? 1.0 : 0.0;
+    fragmentState.constantCount = 1;
+    fragmentState.constants = &opaqueWater;
 
     WGPUPrimitiveState primitiveState{};
     primitiveState.topology = WGPUPrimitiveTopology_TriangleList;
@@ -2342,8 +2359,8 @@ bool BlitPath::createBindGroup() {
             gpu::BindGroupEntry(8).textureView(skyLutView_),
             gpu::BindGroupEntry(9).textureView(surfaceFoamView_),
             gpu::BindGroupEntry(10).sampler(surfaceFoamSampler_),
-            gpu::BindGroupEntry(11).textureView(backgroundView_),
-            gpu::BindGroupEntry(12).textureView(staticDepthView_),
+            gpu::BindGroupEntry(11).textureView(opaqueScene_ ? opaqueScene_->colorView() : backgroundView_),
+            gpu::BindGroupEntry(12).textureView(opaqueScene_ ? opaqueScene_->depthView() : staticDepthView_),
             gpu::BindGroupEntry(13).textureView(heightmapView_),
             gpu::BindGroupEntry(14).textureView(shadowHeightView_),
             gpu::BindGroupEntry(15).textureView(waterDisplacementView_),
@@ -2569,28 +2586,28 @@ void BlitPath::updateStaticUniforms() {
 // Rendering
 // ─────────────────────────────────────────────────────────────────────────────
 
-void BlitPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
+bool BlitPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
                       WGPUQuerySet timestampQuerySet,
                       uint32_t timestampBegin,
-                      uint32_t timestampEnd) {
+                      uint32_t timestampEnd, OpaqueSceneDraw opaque) {
     usedGeometryWaterPathLastRender_ = false;
     if (!pipeline_) {
         LOG_WARN("BlitPath::render: not initialized");
-        return;
+        return false;
     }
     if (!encoder || !colorView) {
         LOG_ERROR("BlitPath::render: invalid encoder or color view");
-        return;
+        return false;
     }
     
     if (!depthView_ || !shadowView_ || !materialView_ || !terrainView_ || !lightmapView_) {
         LOG_WARN("BlitPath::render: missing required texture bindings");
-        return;
+        return false;
     }
     
     // Update uniform buffer if dirty
     if (uniformsDirty_ && !updateUniformBuffer()) {
-        return;
+        return false;
     }
     
     // Update debug uniform buffer if dirty
@@ -2600,7 +2617,7 @@ void BlitPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
         debugUniforms.maxDepth = debugMaxDepth_;
         if (!gpu::writeBuffer(
                 queue_, debugUniformBuffer_, 0, debugUniforms)) {
-            return;
+            return false;
         }
         debugUniformsDirty_ = false;
     }
@@ -2609,7 +2626,7 @@ void BlitPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
     if (bindGroupDirty_ || !bindGroup_) {
         if (!createBindGroup()) {
             LOG_ERROR("Failed to create bind group during render");
-            return;
+            return false;
         }
     }
 
@@ -2622,7 +2639,7 @@ void BlitPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
             wgpuCommandEncoderBeginComputePass(encoder, &computePassDesc);
         if (!computePass) {
             LOG_ERROR("BlitPath::render: failed to begin sky LUT pass");
-            return;
+            return false;
         }
         wgpuComputePassEncoderSetPipeline(computePass, skyLutPipeline_);
         wgpuComputePassEncoderSetBindGroup(computePass, 0, skyLutBindGroup_, 0, nullptr);
@@ -2643,7 +2660,7 @@ void BlitPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
                     wgpuCommandEncoderBeginComputePass(encoder, &mipPassDesc);
                 if (!mipPass) {
                     LOG_ERROR("BlitPath::render: failed to begin sky LUT mip pass");
-                    return;
+                    return false;
                 }
                 wgpuComputePassEncoderSetPipeline(mipPass,
                                                   skyLutMipPipeline_);
@@ -2723,6 +2740,10 @@ void BlitPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
         waterClipmapColorPipeline_ &&
         waterClipmapVertexBuffer_ && waterClipmapIndexBuffer_ &&
         waterClipmapIndexCount_ != 0u;
+    if (opaqueScene_ && (!useCachedPath || !opaque.encode)) {
+        LOG_ERROR("Opaque water composition requires the terrain cache and an object encoder");
+        return false;
+    }
     const bool cameraUnderwater = uniforms_->waterParams.y > 0.5f &&
                                   uniforms_->waterMotion.z > 0.5f;
     const bool drawParticles =
@@ -2735,18 +2756,25 @@ void BlitPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
         if (staticUniformsDirty_) {
             if (!gpu::writeBuffer(
                     queue_, staticUniformBuffer_, 0, *staticUniforms_)) {
-                return;
+                return false;
             }
             staticUniformsDirty_ = false;
         }
         if (!drawFullscreen(backgroundView_, backgroundPipeline_,
                             staticBindGroup_,
                             "blit_static_background_pass", true, false, true)) {
-            return;
+            return false;
         }
         lightingTimestampStarted = timestampQuerySet != nullptr;
         backgroundValid_ = true;
         backgroundDirty_ = false;
+    }
+
+    if (opaqueScene_) {
+        if (!opaqueScene_->seed(encoder, backgroundView_, staticDepthView_,
+                lightingTimestampStarted ? nullptr : timestampQuerySet, timestampBegin)
+            || !opaque.encode(opaque.context, encoder, opaqueScene_->colorView(), opaqueScene_->depthView())) return false;
+        lightingTimestampStarted = timestampQuerySet != nullptr;
     }
 
     const bool preserveLinearDepth =
@@ -2796,7 +2824,7 @@ void BlitPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
             wgpuCommandEncoderBeginRenderPass(encoder, &renderPassDesc);
         if (!renderPass) {
             LOG_ERROR("BlitPath::render: failed to begin water clipmap pass");
-            return;
+            return false;
         }
         usedGeometryWaterPathLastRender_ = true;
         if (uniforms_->waterParams.y > 0.5f) {
@@ -2833,7 +2861,7 @@ void BlitPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
         if (!drawFullscreen(colorView, pipeline_, bindGroup_,
                             "blit_render_pass", true, false, false,
                             drawParticles)) {
-            return;
+            return false;
         }
     }
 
@@ -2861,7 +2889,7 @@ void BlitPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
             wgpuCommandEncoderBeginRenderPass(encoder, &passDescriptor);
         if (!pass) {
             LOG_ERROR("BlitPath::render: failed to begin underwater particle pass");
-            return;
+            return false;
         }
         wgpuRenderPassEncoderSetPipeline(pass, particlePipeline_);
         wgpuRenderPassEncoderSetBindGroup(
@@ -2871,6 +2899,7 @@ void BlitPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
         wgpuRenderPassEncoderEnd(pass);
         wgpuRenderPassEncoderRelease(pass);
     }
+    return true;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

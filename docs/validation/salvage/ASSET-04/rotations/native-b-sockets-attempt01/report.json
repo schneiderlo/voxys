@@ -1,0 +1,367 @@
+{
+  "schema": 1,
+  "status": "captured; visual review required",
+  "recipe": {
+    "schema": 1,
+    "registry": "data/salvage/fixture-pontoon-rotations-b.json",
+    "physical_viewport": [
+      1920,
+      1080
+    ],
+    "fov_degrees": 60,
+    "inspection_expectations": {
+      "maximum_model_draws": 24,
+      "guide_boxes": [
+        0,
+        26,
+        360
+      ]
+    },
+    "views": [
+      {
+        "name": "overview",
+        "eye": [
+          20,
+          18,
+          -25
+        ],
+        "target": [
+          0,
+          3.3,
+          0
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "pair-m",
+        "eye": [
+          -5.8,
+          5.88,
+          -10.8
+        ],
+        "target": [
+          -9.0,
+          3.48,
+          -6.0
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "pair-n",
+        "eye": [
+          0.20000000000000018,
+          5.4,
+          -10.32
+        ],
+        "target": [
+          -3.0,
+          3.0,
+          -5.52
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "pair-o",
+        "eye": [
+          6.2,
+          4.92,
+          -10.8
+        ],
+        "target": [
+          3.0,
+          2.52,
+          -6.0
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "pair-p",
+        "eye": [
+          12.2,
+          5.4,
+          -11.280000000000001
+        ],
+        "target": [
+          9.0,
+          3.0,
+          -6.48
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "pair-q",
+        "eye": [
+          -5.319999999999999,
+          5.4,
+          -4.8
+        ],
+        "target": [
+          -8.52,
+          3.0,
+          0.0
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "pair-r",
+        "eye": [
+          0.20000000000000018,
+          5.4,
+          -4.32
+        ],
+        "target": [
+          -3.0,
+          3.0,
+          0.48
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "pair-s",
+        "eye": [
+          5.720000000000001,
+          5.4,
+          -4.8
+        ],
+        "target": [
+          2.52,
+          3.0,
+          0.0
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "pair-t",
+        "eye": [
+          12.2,
+          5.4,
+          -5.279999999999999
+        ],
+        "target": [
+          9.0,
+          3.0,
+          -0.48
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "pair-u",
+        "eye": [
+          -5.319999999999999,
+          5.4,
+          1.2000000000000002
+        ],
+        "target": [
+          -8.52,
+          3.0,
+          6.0
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "pair-v",
+        "eye": [
+          0.20000000000000018,
+          5.88,
+          1.2000000000000002
+        ],
+        "target": [
+          -3.0,
+          3.48,
+          6.0
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "pair-w",
+        "eye": [
+          5.720000000000001,
+          5.4,
+          1.2000000000000002
+        ],
+        "target": [
+          2.52,
+          3.0,
+          6.0
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "pair-x",
+        "eye": [
+          12.2,
+          4.92,
+          1.2000000000000002
+        ],
+        "target": [
+          9.0,
+          2.52,
+          6.0
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      }
+    ]
+  },
+  "recipe_sha256": "019eb115f84e35623580605bfc824248ae905a1e7928adb2f7445226226b84ce",
+  "runner_sha256": "4cb504c3fa164d5455bfb89708a3c33ca8ec018e1efdc5a98752e04e0e508304",
+  "binary": "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native",
+  "binary_sha256": "3d6651329364e04c6349b75fe3e03918dfbcac157a01af1fbdd995e823fb2be4",
+  "original_registry_sha256": "292a0fb12721d34f40db37891fa8141067d5fd18d6350adb2dea0317032b4356",
+  "original_config": "/home/modkin/workspace/schneiderlo/voxys/salvage_rotations_b.cfg",
+  "original_config_sha256": "981eb075528c4ae7eee5c1aa5777583473f043c4ba73fc7c4d571df771d9068b",
+  "guides": "sockets",
+  "selected_views": [
+    "overview",
+    "pair-n",
+    "pair-s",
+    "pair-x"
+  ],
+  "scope": "Native scene captures; guides are technical overlays, not final art or moving-craft acceptance",
+  "views": [
+    {
+      "name": "overview",
+      "argv": [
+        "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/rotations/native-b-sockets-attempt01/overview.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/rotations/native-b-sockets-attempt01/overview.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "config_sha256": "8b39d216d5633c8baaafaa25757b9c5364d5ff534e8d308d4567e3e5fa0a7229",
+      "registry_sha256": "292a0fb12721d34f40db37891fa8141067d5fd18d6350adb2dea0317032b4356",
+      "timeout": false,
+      "exit_code": 0,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "png_sha256": "effbed260a65ac8edcfe47cbcae6a9599f7dc06f2d766b18acb05a4e924a9d3d",
+      "gpu_or_application_errors": [],
+      "passed": true
+    },
+    {
+      "name": "pair-n",
+      "argv": [
+        "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/rotations/native-b-sockets-attempt01/pair-n.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/rotations/native-b-sockets-attempt01/pair-n.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "config_sha256": "8b39d216d5633c8baaafaa25757b9c5364d5ff534e8d308d4567e3e5fa0a7229",
+      "registry_sha256": "5eaa6efd1830428c95afe9f90acc02a0d9a239d1dd13ae3a0bf546f58ca35ee8",
+      "timeout": false,
+      "exit_code": 0,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "png_sha256": "563f9ccb61a8d541d138b0e934ddc9154e17e5075b4592168cb6fb0480250169",
+      "gpu_or_application_errors": [],
+      "passed": true
+    },
+    {
+      "name": "pair-s",
+      "argv": [
+        "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/rotations/native-b-sockets-attempt01/pair-s.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/rotations/native-b-sockets-attempt01/pair-s.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "config_sha256": "8b39d216d5633c8baaafaa25757b9c5364d5ff534e8d308d4567e3e5fa0a7229",
+      "registry_sha256": "db3125c69a037183ebecfc73b8266802a0f1f70cbe598c0897af15616436b0f8",
+      "timeout": false,
+      "exit_code": 0,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "png_sha256": "a2d94ea909f8d54d4bd007fa77d47317e27edf8aad914da286831211907d0eaa",
+      "gpu_or_application_errors": [],
+      "passed": true
+    },
+    {
+      "name": "pair-x",
+      "argv": [
+        "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/rotations/native-b-sockets-attempt01/pair-x.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/rotations/native-b-sockets-attempt01/pair-x.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "config_sha256": "8b39d216d5633c8baaafaa25757b9c5364d5ff534e8d308d4567e3e5fa0a7229",
+      "registry_sha256": "a0011d7eee9402a24ed80a9cdc419f1275737f5e20521efd9a68d02641710abb",
+      "timeout": false,
+      "exit_code": 0,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "png_sha256": "91132add6155cb8cb122b30a089caca27bff38e6e6e80a0ac8053c77facbdf7d",
+      "gpu_or_application_errors": [],
+      "passed": true
+    }
+  ],
+  "temporary_registry_removed": true
+}

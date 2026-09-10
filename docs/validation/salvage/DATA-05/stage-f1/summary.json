@@ -1,0 +1,115 @@
+{
+  "date": "2026-09-08",
+  "scope": "Fresh local GameSession restoration with finalized parent and linked initial checkpoint; no shipping storage/scene physics recovery",
+  "passed": true,
+  "DATA05Complete": false,
+  "G01Passed": false,
+  "independentReview": false,
+  "durability": "Volatile",
+  "validation": {
+    "bazel": {
+      "tests": 89,
+      "failures": 0,
+      "errors": 0,
+      "disabled": 0,
+      "skipped": 0,
+      "logs": [
+        "bazel-final-game_session.xml",
+        "bazel-final-session_transactions.xml"
+      ]
+    },
+    "cmake": {
+      "tests": 89,
+      "failures": 0,
+      "errors": 0,
+      "disabled": 0,
+      "skipped": 0,
+      "logs": [
+        "cmake-game-session-attempt02.xml",
+        "cmake-journal-attempt02.xml"
+      ]
+    },
+    "ubsan": {
+      "tests": 89,
+      "failures": 0,
+      "errors": 0,
+      "disabled": 0,
+      "skipped": 0,
+      "logs": [
+        "ubsan-attempt02.xml"
+      ]
+    },
+    "wasm": {
+      "tests": {
+        "passed": 89,
+        "skipped": 0,
+        "disabled": 0
+      },
+      "manifest": "wasm-attempt02/manifest.json"
+    },
+    "allocation": {
+      "nativeFailures": 297,
+      "wasmFailures": 297,
+      "preflightAllocationAttempts": 0,
+      "nativeLog": "allocation-attempt02.log",
+      "wasmSummary": "wasm-allocation-attempt02/summary.json"
+    }
+  },
+  "sourceHashes": {
+    "src/game/construction/construction_types.cpp": "4aa7ffdd6e608765b5245c94c53c2b54920705533283d270e5b6b4eee84ac4c8",
+    "src/game/construction/part_catalog.cpp": "24869c7c346d49421b2fe20123181e4e5738d6e6ddc366339292d3f12044bcf3",
+    "src/game/construction/build_model.cpp": "5307ee045a24f3974ec109f914eb5f8d5a4c65755a32f7286ff6308be9cd508f",
+    "src/game/expedition/session_transactions.cpp": "b27cef979de62b370e79dd9da84c80fdecf714e89ec75a92f86ff06bdd343abc",
+    "src/game/expedition/game_session.cpp": "b6b5f1b1f13c837ca688ce324853d183130a451b81009b538c417e9edcc361a3",
+    "src/game/expedition/session_recovery.cpp": "5cf363e311079c7c5e929d0dd970f5ae9761b85589b54e227e76757c5ab6a201",
+    "tests/test_game_session.cpp": "7e3deadef54661c574d5a5f67b1dc95916cd09078eef15262c4bf62e3ca56616",
+    "tests/test_session_transactions.cpp": "bffad21bc07f726bf9d6e591f3c891f664ce21a6a4c1d04c198b9cf7671bba60",
+    "src/game/construction/construction_types.hpp": "fb1aca2e406802452d0595fac47162822d26d4af3ec343859cbf13f8957912e8",
+    "src/game/construction/part_catalog.hpp": "8c107f72da01b065f811db557b38de9a3a014e5717b3348951cfe21a07bc8c13",
+    "src/game/construction/build_model.hpp": "e99cf8d8b6a409276195a49d1887d6ee4518683b0cc4fa5550af08a7d3746f19",
+    "src/game/expedition/game_session.hpp": "ce73b7309bfc02163af26c0e91c7fcde01f6e703d630ead8bf0c8fe919223d2a",
+    "src/game/expedition/session_transactions.hpp": "508cfce39dbe4a30852f0cd88c09c819c84bddaa59c2dc05f958aa7d1c584d8e",
+    "src/game/expedition/session_recovery.hpp": "4ea476321fc95c37241fc05424a49bb5a4a870c6a472d5a9a783606754021954"
+  },
+  "buildRegistrationHashes": {
+    "src/game/BUILD": "954bc668d4363b664e0bfed53180dc07bed6d959e411175ada442d615563613e",
+    "src/CMakeLists.txt": "78ba74c5ab6c0076964f23cd343810c6e3fed5acabbedfed8d3feb5b0f6f13e8",
+    "tests/CMakeLists.txt": "e581752c2eb5715bad4187fc01758901fb6a4b1fcdb5e222fbb00348c33cc948"
+  },
+  "artifacts": {
+    "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/game_session_tests": {
+      "sha256": "aaa57cd03bd5dda2a39c150b6d74cc6557b54a24027d0b153f99ec79ddafabcb",
+      "bytes": 2052904
+    },
+    "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/session_transactions_tests": {
+      "sha256": "546758dcda5d1b0963abba03a9016bd5b8ba9b94ec96057f423d080aea09e7e9",
+      "bytes": 978784
+    },
+    "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native": {
+      "sha256": "41624122e92c7cc45b903a4a2b1689cd858493cac88c75de9c42e4e627d1d810",
+      "bytes": 45219688
+    },
+    "/home/modkin/workspace/schneiderlo/voxys/build-lego-wasm/bin/voxy_wasm.js": {
+      "sha256": "5d621e6e910250c1eda99eb265d49fa9de665ad901b95c36a8fe7eb879cbe8c6",
+      "bytes": 79801
+    },
+    "/home/modkin/workspace/schneiderlo/voxys/build-lego-wasm/bin/voxy_wasm.wasm": {
+      "sha256": "a860c9c80804a4743b55a0489f44160e1aa0314218277d00b36966960bb1de2e",
+      "bytes": 5700545
+    },
+    "/tmp/salvage-restoration-tests": {
+      "sha256": "cce190cb67aebe7880118ddfcf505b0569955c60bc0847f2153d063b1999c408",
+      "bytes": 17310240
+    },
+    "/tmp/salvage-restoration-allocation": {
+      "sha256": "6c72108cc5562a3c4fccd9036100085f84a3040a55855c2e5dadb8ff18fcc141",
+      "bytes": 9881288
+    }
+  },
+  "remaining": [
+    "Trusted starter-entitlement retirement and loan/history lifecycle",
+    "Independent transaction review",
+    "Other G01 dependencies",
+    "SAVE byte integrity/lineage publication and SIM/BOOT scene restoration"
+  ]
+}

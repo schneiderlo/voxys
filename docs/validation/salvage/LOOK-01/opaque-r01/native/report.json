@@ -1,0 +1,191 @@
+{
+  "schema": 1,
+  "status": "captured; visual review required",
+  "recipe": {
+    "schema": 1,
+    "purpose": "Complete static cove with opaque HDR and radial depth before water; improved boat-side arrival camera",
+    "registry": "data/salvage/fixture-cove-r01.json",
+    "physical_viewport": [
+      1920,
+      1080
+    ],
+    "fov_degrees": 60,
+    "views": [
+      {
+        "name": "cove-arrival",
+        "eye": [
+          -6,
+          5,
+          -50
+        ],
+        "target": [
+          2.1,
+          0.65,
+          -53.6
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      }
+    ]
+  },
+  "recipe_sha256": "cf3a56e2e96a9fe0cd4b7e1fd670fa4488bb688bf0c4be81d3b2710fca0bdcbe",
+  "runner_sha256": "2befd115829de8b32c77c322a4b745c3ba398821f1dcdaa25889c496a2c3b9f2",
+  "binary": "/home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/voxy_native",
+  "binary_sha256": "00bc8855110a26785eb4ddf178922d9b864ce6a4634338e1b909fa7ec69373b6",
+  "original_registry_sha256": "631404560ba2f464e50d9b0f60380926316afe8221100de67d47a258c9b52048",
+  "original_config": "/home/modkin/workspace/schneiderlo/voxys/salvage_cove.cfg",
+  "original_config_sha256": "68cdece48fd9c36ea22205fe3a933e91aa68f68a36faf5ebf836da6d5b000c26",
+  "guides": "off",
+  "forced_lod": 0,
+  "selected_views": null,
+  "scope": "Native scene captures; guides are technical overlays, not final art or moving-craft acceptance",
+  "views": [
+    {
+      "name": "cove-arrival",
+      "argv": [
+        "/home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/LOOK-01/opaque-r01/native/cove-arrival.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/LOOK-01/opaque-r01/native/cove-arrival.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "config_sha256": "4ce6fb3283486e075f02a2b96b9b1111d1bde6ea7f01f4e5b9f4f1f464c32e6b",
+      "registry_sha256": "631404560ba2f464e50d9b0f60380926316afe8221100de67d47a258c9b52048",
+      "timeout": false,
+      "exit_code": 0,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "png_sha256": "9f5aa16415ecd658f56eea9794d5e5c4c0d50fd21e8594e763914fcfd2259726",
+      "gpu_or_application_errors": [],
+      "state": {
+        "active": true,
+        "ready": true,
+        "busy": false,
+        "failed": false,
+        "bodies": 0,
+        "resets": 0,
+        "controller": "free-fly",
+        "mouseCaptured": false,
+        "origin": [
+          -12,
+          -187.68,
+          -32
+        ],
+        "camera": {
+          "local": [
+            -25,
+            61,
+            -87
+          ],
+          "sector": [
+            0,
+            -1,
+            0
+          ],
+          "yaw": 1.98902,
+          "pitch": -0.456221
+        },
+        "session": {
+          "revision": "0",
+          "tick": "0",
+          "admissionOpen": true,
+          "builds": 0,
+          "cargo": 0,
+          "jobs": 0,
+          "inventory": {
+            "salvageMaterial": "0",
+            "specialMachinery": "0"
+          }
+        },
+        "observation": {
+          "world": "3b0abab9d3f4e3621cc69a635e1b5081",
+          "incarnation": "06cec4b8d16ec8e579163ddd5026fbba",
+          "epoch": "1",
+          "publicationLost": false,
+          "lanes": [
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            },
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            },
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            }
+          ]
+        },
+        "assetFixture": {
+          "status": 2,
+          "generation": "1",
+          "uploads": 27,
+          "prototypeUploads": 0,
+          "environmentGpuBytes": "1228944",
+          "environmentBakeCount": 1,
+          "environmentReady": true,
+          "gpuReservationBytes": "11412008",
+          "submittedSerial": "120",
+          "completedSerial": "118",
+          "draws": 36,
+          "guides": 0,
+          "opaqueSceneGpuBytes": "24883200",
+          "guideBoxes": 0,
+          "guideMeshGpuBytes": 1936,
+          "forcedLod": "0",
+          "lods": [
+            "1",
+            "2",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "2",
+            "2",
+            "1",
+            "2",
+            "2",
+            "2",
+            "2",
+            "2",
+            "2",
+            "2",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "2"
+          ],
+          "availableLods": [
+            "0",
+            "1",
+            "2",
+            "3"
+          ]
+        }
+      },
+      "passed": true
+    }
+  ],
+  "temporary_registry_removed": true
+}

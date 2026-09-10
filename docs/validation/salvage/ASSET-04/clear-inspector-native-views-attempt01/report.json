@@ -1,0 +1,395 @@
+{
+  "schema": 1,
+  "status": "captured; visual review required",
+  "recipe": {
+    "schema": 1,
+    "purpose": "Static authored pontoon close views; no socket-overlay or final art acceptance",
+    "registry": "data/salvage/fixture-pontoon-v2.json",
+    "physical_viewport": [
+      1920,
+      1080
+    ],
+    "fov_degrees": 60,
+    "views": [
+      {
+        "name": "front",
+        "eye": [
+          -1.5,
+          0.1,
+          -4.8
+        ],
+        "target": [
+          -1.5,
+          0.1,
+          0
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "rear",
+        "eye": [
+          -1.5,
+          0.1,
+          4.8
+        ],
+        "target": [
+          -1.5,
+          0.1,
+          0
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "left",
+        "eye": [
+          -5,
+          0.1,
+          0
+        ],
+        "target": [
+          -1.5,
+          0.1,
+          0
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "right",
+        "eye": [
+          1,
+          0.1,
+          0
+        ],
+        "target": [
+          -1.5,
+          0.1,
+          0
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "underside",
+        "eye": [
+          -1.5,
+          -1.6,
+          -0.8
+        ],
+        "target": [
+          -1.5,
+          -0.3,
+          0
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "engaged",
+        "eye": [
+          6.4,
+          0.6,
+          -1.8
+        ],
+        "target": [
+          4.5,
+          0.48,
+          -1
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "material-front-light",
+        "eye": [
+          -4,
+          2.2,
+          -4
+        ],
+        "target": [
+          -1.5,
+          0,
+          0
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "material-opposite-light",
+        "eye": [
+          -4,
+          2.2,
+          -4
+        ],
+        "target": [
+          -1.5,
+          0,
+          0
+        ],
+        "sun": [
+          -0.4,
+          0.8,
+          0.4
+        ]
+      },
+      {
+        "name": "material-low-light",
+        "eye": [
+          -4,
+          2.2,
+          -4
+        ],
+        "target": [
+          -1.5,
+          0,
+          0
+        ],
+        "sun": [
+          0.69636424,
+          0.17364818,
+          -0.69636424
+        ]
+      }
+    ]
+  },
+  "recipe_sha256": "5b533346c15379c348ca2ba9ecf4db7afd230f6ec6186e400ff30f614cb9c629",
+  "runner_sha256": "ae228f9b04c2c68ed6ff28cf342150a0c30f71db0c906e7f8976632c6e0f5278",
+  "binary": "/home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/voxy_native",
+  "binary_sha256": "2f4c15051aaf3920ab06c76fe7b02f026478a71978985d5fd9ef0b5779c80ad9",
+  "original_registry_sha256": "f4d3599cf126f8aa583f4f065d66f891eca520926b876586250482d544c6afbd",
+  "original_config_sha256": "86edec7ff9cee300c222baad8f2d05eb3711af34b3f841f3036da0259088c7b9",
+  "scope": "Native scene captures; no FPS, final art, socket-overlay or moving-craft acceptance",
+  "views": [
+    {
+      "name": "front",
+      "argv": [
+        "/home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/clear-inspector-native-views-attempt01/front.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/clear-inspector-native-views-attempt01/front.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "config_sha256": "9455176bc78d10735733890f8b1aebd003976e5914e82092d44e2edefdcb83bf",
+      "registry_sha256": "e10633487fd8d8d6d24720506e67aec5b1c93c28ce7fcfa6e1ac2d587886fa5e",
+      "timeout": false,
+      "exit_code": 0,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "png_sha256": "8e7161933a4651ff7ca012a3ec38671e245509744e1a7f59e697964763a3440a",
+      "gpu_or_application_errors": [],
+      "passed": true
+    },
+    {
+      "name": "rear",
+      "argv": [
+        "/home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/clear-inspector-native-views-attempt01/rear.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/clear-inspector-native-views-attempt01/rear.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "config_sha256": "9455176bc78d10735733890f8b1aebd003976e5914e82092d44e2edefdcb83bf",
+      "registry_sha256": "9a34139973803d37e94e0bcb030262d14dbf8c61c31c582d9e06b4fe0e186cd1",
+      "timeout": false,
+      "exit_code": 0,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "png_sha256": "7bc9134c74be4f42dc2b22059b1dca951986d6f341dbd4080b3221939b882583",
+      "gpu_or_application_errors": [],
+      "passed": true
+    },
+    {
+      "name": "left",
+      "argv": [
+        "/home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/clear-inspector-native-views-attempt01/left.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/clear-inspector-native-views-attempt01/left.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "config_sha256": "9455176bc78d10735733890f8b1aebd003976e5914e82092d44e2edefdcb83bf",
+      "registry_sha256": "7a80cfeaf7290a777131cbd30fb58beb25546779a59eae6a976927847336303a",
+      "timeout": false,
+      "exit_code": 0,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "png_sha256": "5891ef45f84a699ab15c4305701ec099b1f829960beb203558556891a14a4b00",
+      "gpu_or_application_errors": [],
+      "passed": true
+    },
+    {
+      "name": "right",
+      "argv": [
+        "/home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/clear-inspector-native-views-attempt01/right.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/clear-inspector-native-views-attempt01/right.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "config_sha256": "9455176bc78d10735733890f8b1aebd003976e5914e82092d44e2edefdcb83bf",
+      "registry_sha256": "a2f08fbd2d6c9d82f04c2e2e454b45ad8b849e39b5f69bbd2f44f36178b20057",
+      "timeout": false,
+      "exit_code": 0,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "png_sha256": "3b377d4c8a07061c49198d35d95a7d1bd2b605366896442539cb1fb0536f5a89",
+      "gpu_or_application_errors": [],
+      "passed": true
+    },
+    {
+      "name": "underside",
+      "argv": [
+        "/home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/clear-inspector-native-views-attempt01/underside.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/clear-inspector-native-views-attempt01/underside.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "config_sha256": "9455176bc78d10735733890f8b1aebd003976e5914e82092d44e2edefdcb83bf",
+      "registry_sha256": "501dd5e12610b5f137467d1ba12350668bbff33387db4d76ff6a0584bd6ee0d5",
+      "timeout": false,
+      "exit_code": 0,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "png_sha256": "83711b79f75b41ef32e09ec27c5ff30e9996916830147fb3f290bd7dde20d2c7",
+      "gpu_or_application_errors": [],
+      "passed": true
+    },
+    {
+      "name": "engaged",
+      "argv": [
+        "/home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/clear-inspector-native-views-attempt01/engaged.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/clear-inspector-native-views-attempt01/engaged.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "config_sha256": "9455176bc78d10735733890f8b1aebd003976e5914e82092d44e2edefdcb83bf",
+      "registry_sha256": "80764b6e2cd107a0f1aa342222ab3f2adf729942204a6a90f288fabbfee8c11f",
+      "timeout": false,
+      "exit_code": 0,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "png_sha256": "aa79991ce0d970de25751231b1140c2b562fa3be3eaed63a6e9a2cd437a4b9ea",
+      "gpu_or_application_errors": [],
+      "passed": true
+    },
+    {
+      "name": "material-front-light",
+      "argv": [
+        "/home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/clear-inspector-native-views-attempt01/material-front-light.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/clear-inspector-native-views-attempt01/material-front-light.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "config_sha256": "9455176bc78d10735733890f8b1aebd003976e5914e82092d44e2edefdcb83bf",
+      "registry_sha256": "c3300f5bdd18e74774daefa10d26489c9fc6d2278b04568583e6c8f18cc01049",
+      "timeout": false,
+      "exit_code": 0,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "png_sha256": "3dc4fd06c1fca3d725160eb074e0283396278e0898c0c6707eb828293cbf5659",
+      "gpu_or_application_errors": [],
+      "passed": true
+    },
+    {
+      "name": "material-opposite-light",
+      "argv": [
+        "/home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/clear-inspector-native-views-attempt01/material-opposite-light.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/clear-inspector-native-views-attempt01/material-opposite-light.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "config_sha256": "9591efa4406506c84348d91d5bd63b05ade167b0dcebb0206da4b749ead4acd0",
+      "registry_sha256": "c3300f5bdd18e74774daefa10d26489c9fc6d2278b04568583e6c8f18cc01049",
+      "timeout": false,
+      "exit_code": 0,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "png_sha256": "f822d6820bd1c10f9d20afa54dadb3d50909fb5287e7273324c71750171e7730",
+      "gpu_or_application_errors": [],
+      "passed": true
+    },
+    {
+      "name": "material-low-light",
+      "argv": [
+        "/home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/clear-inspector-native-views-attempt01/material-low-light.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/clear-inspector-native-views-attempt01/material-low-light.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "config_sha256": "0437c48238b89688425579f3547304ecd6373df43c317f8f714ba6a720630cc2",
+      "registry_sha256": "c3300f5bdd18e74774daefa10d26489c9fc6d2278b04568583e6c8f18cc01049",
+      "timeout": false,
+      "exit_code": 0,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "png_sha256": "d3ab00925b7b42ab168341a85d828167bc1c7f812d9b8c4312d830cac85bb928",
+      "gpu_or_application_errors": [],
+      "passed": true
+    }
+  ],
+  "temporary_registry_removed": true
+}

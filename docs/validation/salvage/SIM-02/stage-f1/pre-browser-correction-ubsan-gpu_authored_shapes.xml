@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="16" failures="0" disabled="0" errors="0" time="9.113" timestamp="2026-09-08T16:57:54.852" name="AllTests">
+  <testsuite name="GpuAuthoredShapes" tests="16" failures="0" disabled="0" skipped="0" errors="0" time="9.113" timestamp="2026-09-08T16:57:54.852">
+    <testcase name="RealHeapDecodesGeometryAndAnalyticalMassFrames" file="tests/test_gpu_authored_shapes.cpp" line="234" status="run" result="completed" time="0.069" timestamp="2026-09-08T16:57:54.852" classname="GpuAuthoredShapes" />
+    <testcase name="RetiringAnEncodedShapePreservesActualGpuReadAndLateReader" file="tests/test_gpu_authored_shapes.cpp" line="246" status="run" result="completed" time="0.05" timestamp="2026-09-08T16:57:54.921" classname="GpuAuthoredShapes" />
+    <testcase name="DiscardUsesRealFenceAndInvalidatesOldGpuGeneration" file="tests/test_gpu_authored_shapes.cpp" line="266" status="run" result="completed" time="0.04" timestamp="2026-09-08T16:57:54.972" classname="GpuAuthoredShapes" />
+    <testcase name="BoundedPendingOperationsRefuseWithoutConsumingPreparedStorage" file="tests/test_gpu_authored_shapes.cpp" line="276" status="run" result="completed" time="0.029" timestamp="2026-09-08T16:57:55.013" classname="GpuAuthoredShapes" />
+    <testcase name="ContiguousRangesRefuseFragmentationAndCoalesceAfterRetirement" file="tests/test_gpu_authored_shapes.cpp" line="287" status="run" result="completed" time="0.055" timestamp="2026-09-08T16:57:55.042" classname="GpuAuthoredShapes" />
+    <testcase name="InvalidHandlesTicketsAndGpuBudgetsDoNotSubmitWork" file="tests/test_gpu_authored_shapes.cpp" line="300" status="run" result="completed" time="0.027" timestamp="2026-09-08T16:57:55.098" classname="GpuAuthoredShapes" />
+    <testcase name="CloseWaitsForAnUnresolvedSubmissionAndRetainedReader" file="tests/test_gpu_authored_shapes.cpp" line="312" status="run" result="completed" time="0.025" timestamp="2026-09-08T16:57:55.126" classname="GpuAuthoredShapes" />
+    <testcase name="ValidationFailureCannotCertifyItsSubmissionOrReuseResources" file="tests/test_gpu_authored_shapes.cpp" line="322" status="run" result="completed" time="0.028" timestamp="2026-09-08T16:57:55.151" classname="GpuAuthoredShapes" />
+    <testcase name="BodyKernelForceUsesPreparedPrincipalInertia" file="tests/test_gpu_authored_shapes.cpp" line="474" status="run" result="completed" time="0.059" timestamp="2026-09-08T16:57:55.179" classname="GpuAuthoredShapes" />
+    <testcase name="BodyKernelBallisticPoseAdvancesAboutItsStoredCenter" file="tests/test_gpu_authored_shapes.cpp" line="485" status="run" result="completed" time="0.258" timestamp="2026-09-08T16:57:55.239" classname="GpuAuthoredShapes" />
+    <testcase name="BodyKernelSpawnAndDestroyClearTheIndependentShapeReference" file="tests/test_gpu_authored_shapes.cpp" line="503" status="run" result="completed" time="0.06" timestamp="2026-09-08T16:57:55.497" classname="GpuAuthoredShapes" />
+    <testcase name="BodyKernelMaterialChangesPreserveMassAndShapeIdentity" file="tests/test_gpu_authored_shapes.cpp" line="512" status="run" result="completed" time="0.05" timestamp="2026-09-08T16:57:55.558" classname="GpuAuthoredShapes" />
+    <testcase name="BodyKernelConvertedRootForceMatchesWorldTensor" file="tests/test_gpu_authored_shapes.cpp" line="530" status="run" result="completed" time="0.058" timestamp="2026-09-08T16:57:55.608" classname="GpuAuthoredShapes" />
+    <testcase name="BodyKernelConvertedRootMotionCrossesSectorsAndRestoresOrigin" file="tests/test_gpu_authored_shapes.cpp" line="548" status="run" result="completed" time="0.248" timestamp="2026-09-08T16:57:55.666" classname="GpuAuthoredShapes" />
+    <testcase name="BackendOwnsHeapAndSubmitsItsReadWithLegacyPhysics" file="tests/test_gpu_authored_shapes.cpp" line="599" status="run" result="completed" time="2.724" timestamp="2026-09-08T16:57:55.915" classname="GpuAuthoredShapes" />
+    <testcase name="BackendRestartRejectsOldWorldShapeIdentity" file="tests/test_gpu_authored_shapes.cpp" line="648" status="run" result="completed" time="5.325" timestamp="2026-09-08T16:57:58.639" classname="GpuAuthoredShapes" />
+  </testsuite>
+</testsuites>

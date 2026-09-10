@@ -1,0 +1,139 @@
+{
+  "kind": "Actual browser GPUDevice.destroy with in-flight application resources",
+  "before": {
+    "initialized": 1,
+    "state": {
+      "active": true,
+      "ready": true,
+      "busy": false,
+      "failed": false,
+      "bodies": 0,
+      "resets": 0,
+      "controller": "free-fly",
+      "mouseCaptured": false,
+      "origin": [
+        -12,
+        -187.68,
+        -32
+      ],
+      "camera": {
+        "local": [
+          -12,
+          75.32,
+          -45
+        ],
+        "sector": [
+          0,
+          -1,
+          0
+        ],
+        "yaw": -0.623199,
+        "pitch": -0.363699
+      },
+      "session": {
+        "revision": "0",
+        "tick": "0",
+        "admissionOpen": true,
+        "builds": 0,
+        "cargo": 0,
+        "jobs": 0,
+        "inventory": {
+          "salvageMaterial": "0",
+          "specialMachinery": "0"
+        }
+      },
+      "assetFixture": {
+        "status": 2,
+        "generation": "1",
+        "uploads": 3,
+        "gpuReservationBytes": "6197084",
+        "submittedSerial": "190",
+        "completedSerial": "188",
+        "draws": 4,
+        "forcedLod": "0",
+        "lods": [
+          "2",
+          "1",
+          "1",
+          "1"
+        ]
+      }
+    },
+    "lost": null,
+    "errors": [],
+    "diagnostics": {
+      "allocationSemantics": "cumulative creation calls/requested buffer bytes; not live memory",
+      "allocations": {
+        "buffers": 206,
+        "textures": 35,
+        "bufferBytes": 155325836
+      },
+      "destroyCalls": []
+    }
+  },
+  "after": {
+    "initialized": 0,
+    "state": {
+      "active": false,
+      "ready": false,
+      "busy": false,
+      "failed": true,
+      "bodies": 0,
+      "resets": 0,
+      "controller": "free-fly",
+      "mouseCaptured": false,
+      "origin": null,
+      "camera": null,
+      "session": null
+    },
+    "lost": {
+      "reason": "destroyed",
+      "message": "Device was destroyed."
+    },
+    "errors": [],
+    "diagnostics": {
+      "allocationSemantics": "cumulative creation calls/requested buffer bytes; not live memory",
+      "allocations": {
+        "buffers": 206,
+        "textures": 35,
+        "bufferBytes": 155325836
+      },
+      "destroyCalls": [
+        "Error: GPUDevice.destroy\n    at GPUDevice.<computed> [as destroy] (<anonymous>:7:57)\n    at <anonymous>:1:39"
+      ]
+    }
+  },
+  "settled": {
+    "initialized": 0,
+    "state": {
+      "active": false,
+      "ready": false,
+      "busy": false,
+      "failed": true,
+      "bodies": 0,
+      "resets": 0,
+      "controller": "free-fly",
+      "mouseCaptured": false,
+      "origin": null,
+      "camera": null,
+      "session": null
+    },
+    "lost": {
+      "reason": "destroyed",
+      "message": "Device was destroyed."
+    },
+    "errors": [],
+    "diagnostics": {
+      "allocationSemantics": "cumulative creation calls/requested buffer bytes; not live memory",
+      "allocations": {
+        "buffers": 206,
+        "textures": 35,
+        "bufferBytes": 155325836
+      },
+      "destroyCalls": [
+        "Error: GPUDevice.destroy\n    at GPUDevice.<computed> [as destroy] (<anonymous>:7:57)\n    at <anonymous>:1:39"
+      ]
+    }
+  },
+  "status": "passed"
+}

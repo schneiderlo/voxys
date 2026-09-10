@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="8" failures="0" disabled="0" errors="0" time="0.325" timestamp="2026-09-08T15:09:39.298" name="AllTests">
+  <testsuite name="GpuAuthoredShapes" tests="8" failures="0" disabled="0" skipped="0" errors="0" time="0.325" timestamp="2026-09-08T15:09:39.298">
+    <testcase name="RealHeapDecodesGeometryAndAnalyticalMassFrames" file="tests/test_gpu_authored_shapes.cpp" line="230" status="run" result="completed" time="0.068" timestamp="2026-09-08T15:09:39.298" classname="GpuAuthoredShapes" />
+    <testcase name="RetiringAnEncodedShapePreservesActualGpuReadAndLateReader" file="tests/test_gpu_authored_shapes.cpp" line="242" status="run" result="completed" time="0.06" timestamp="2026-09-08T15:09:39.366" classname="GpuAuthoredShapes" />
+    <testcase name="DiscardUsesRealFenceAndInvalidatesOldGpuGeneration" file="tests/test_gpu_authored_shapes.cpp" line="262" status="run" result="completed" time="0.036" timestamp="2026-09-08T15:09:39.427" classname="GpuAuthoredShapes" />
+    <testcase name="BoundedPendingOperationsRefuseWithoutConsumingPreparedStorage" file="tests/test_gpu_authored_shapes.cpp" line="272" status="run" result="completed" time="0.027" timestamp="2026-09-08T15:09:39.463" classname="GpuAuthoredShapes" />
+    <testcase name="ContiguousRangesRefuseFragmentationAndCoalesceAfterRetirement" file="tests/test_gpu_authored_shapes.cpp" line="283" status="run" result="completed" time="0.056" timestamp="2026-09-08T15:09:39.491" classname="GpuAuthoredShapes" />
+    <testcase name="InvalidHandlesTicketsAndGpuBudgetsDoNotSubmitWork" file="tests/test_gpu_authored_shapes.cpp" line="296" status="run" result="completed" time="0.025" timestamp="2026-09-08T15:09:39.547" classname="GpuAuthoredShapes" />
+    <testcase name="CloseWaitsForAnUnresolvedSubmissionAndRetainedReader" file="tests/test_gpu_authored_shapes.cpp" line="308" status="run" result="completed" time="0.024" timestamp="2026-09-08T15:09:39.572" classname="GpuAuthoredShapes" />
+    <testcase name="ValidationFailureCannotCertifyItsSubmissionOrReuseResources" file="tests/test_gpu_authored_shapes.cpp" line="318" status="run" result="completed" time="0.025" timestamp="2026-09-08T15:09:39.597" classname="GpuAuthoredShapes" />
+  </testsuite>
+</testsuites>

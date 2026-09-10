@@ -1,0 +1,286 @@
+{
+  "schema": 1,
+  "status": "scoped live camera-sector checkpoint passed",
+  "gate_passed": false,
+  "independent_review_complete": false,
+  "visual_approval": false,
+  "frozen_inputs_sha256": "a1533a32daf11a60ddac349409281b63a622a3a4a2ae1c171d36311360457113",
+  "sources_and_packages_unchanged": true,
+  "motion": {
+    "native": {
+      "samples": 1801,
+      "seconds": 30.007268247,
+      "images": 190,
+      "transitions": [
+        {
+          "seconds": 4.6446e-05,
+          "sector": [
+            0,
+            -1,
+            0
+          ],
+          "local": [
+            -15.6498,
+            73.2502,
+            -42.3634
+          ]
+        },
+        {
+          "seconds": 9.125811025,
+          "sector": [
+            0,
+            -1,
+            -1
+          ],
+          "local": [
+            18.5471,
+            100.608,
+            126.307
+          ]
+        },
+        {
+          "seconds": 10.889785631,
+          "sector": [
+            0,
+            0,
+            -1
+          ],
+          "local": [
+            53.3916,
+            -127.517,
+            37.3247
+          ]
+        },
+        {
+          "seconds": 13.337118947,
+          "sector": [
+            0,
+            0,
+            -2
+          ],
+          "local": [
+            118.177,
+            -75.6883,
+            127.881
+          ]
+        },
+        {
+          "seconds": 13.832737461,
+          "sector": [
+            1,
+            0,
+            -2
+          ],
+          "local": [
+            -127.521,
+            -67.4472,
+            101.574
+          ]
+        },
+        {
+          "seconds": 16.242438594,
+          "sector": [
+            0,
+            0,
+            -2
+          ],
+          "local": [
+            127.083,
+            -68.5637,
+            105.138
+          ]
+        },
+        {
+          "seconds": 16.731551642,
+          "sector": [
+            0,
+            0,
+            -1
+          ],
+          "local": [
+            116.569,
+            -76.9746,
+            -124.013
+          ]
+        },
+        {
+          "seconds": 19.172168771,
+          "sector": [
+            0,
+            -1,
+            -1
+          ],
+          "local": [
+            51.8865,
+            127.279,
+            41.1684
+          ]
+        },
+        {
+          "seconds": 20.975233809,
+          "sector": [
+            0,
+            -1,
+            0
+          ],
+          "local": [
+            17.0647,
+            99.4217,
+            -125.907
+          ]
+        }
+      ],
+      "maximum_requested_position_error_metres": 0.0006686855758683506,
+      "gpu_reservation_bytes": "6264556"
+    },
+    "browser": {
+      "samples": 1742,
+      "seconds": 30.00580000000447,
+      "images": 131,
+      "transitions": [
+        {
+          "seconds": 0.014700000004469985,
+          "sector": [
+            0,
+            -1,
+            0
+          ],
+          "local": [
+            -15.6497,
+            73.2502,
+            -42.3635
+          ]
+        },
+        {
+          "seconds": 9.09120000000447,
+          "sector": [
+            0,
+            -1,
+            -1
+          ],
+          "local": [
+            18.0334,
+            100.197,
+            127.62
+          ]
+        },
+        {
+          "seconds": 10.87010000000447,
+          "sector": [
+            0,
+            0,
+            -1
+          ],
+          "local": [
+            52.9114,
+            -127.901,
+            38.5511
+          ]
+        },
+        {
+          "seconds": 13.33610000000447,
+          "sector": [
+            0,
+            0,
+            -2
+          ],
+          "local": [
+            118.154,
+            -75.7071,
+            127.941
+          ]
+        },
+        {
+          "seconds": 13.821700000004471,
+          "sector": [
+            1,
+            0,
+            -2
+          ],
+          "local": [
+            -127.722,
+            -67.6078,
+            102.087
+          ]
+        },
+        {
+          "seconds": 16.19390000000447,
+          "sector": [
+            0,
+            0,
+            -2
+          ],
+          "local": [
+            127.992,
+            -67.8367,
+            102.818
+          ]
+        },
+        {
+          "seconds": 16.68250000000447,
+          "sector": [
+            0,
+            0,
+            -1
+          ],
+          "local": [
+            117.722,
+            -76.0527,
+            -126.956
+          ]
+        },
+        {
+          "seconds": 19.13930000000447,
+          "sector": [
+            0,
+            -1,
+            -1
+          ],
+          "local": [
+            52.6827,
+            127.916,
+            39.135
+          ]
+        },
+        {
+          "seconds": 20.924400000004468,
+          "sector": [
+            0,
+            -1,
+            0
+          ],
+          "local": [
+            17.8038,
+            100.013,
+            -127.794
+          ]
+        }
+      ],
+      "maximum_requested_position_error_metres": 0.0006619919411138539,
+      "gpu_reservation_bytes": "6264556"
+    }
+  },
+  "tests": {
+    "native-tests.xml": {
+      "passed": 54,
+      "skipped": 0
+    },
+    "bazel-camera-tests.xml": {
+      "passed": 54,
+      "skipped": 0
+    }
+  },
+  "evidence_hashes": {
+    "docs/validation/salvage/ASSET-04/sectors/native-motion-attempt01/captures/report.json": "926633e7ddd0a3e60360713f3351aad29fd3331ebb02e218e0c30c7f5011acba",
+    "docs/validation/salvage/ASSET-04/sectors/native-motion-attempt01/captures/trace.json": "b5ccf7a04fc532f8c86c68cc92dcf598d3dac5abf77ad40f13f4562817d1ae0a",
+    "docs/validation/salvage/ASSET-04/sectors/browser-motion-attempt01/report.json": "93fb5ac2824f353268828b55d16ce53f9a0a80870fb5487b55e98b034d56d389",
+    "docs/validation/salvage/ASSET-04/sectors/browser-motion-attempt01/trace.json": "f2914df11e435d7cf6cd9b6837a90ef7055aaf5a38553e3f04a4fce277510145",
+    "docs/validation/salvage/ASSET-04/sectors/integration/native-tests.xml": "0c51d7f83485bb3bd3a65d0b86cc2f2011752f8a50f4b1fb87e4cf50e0fdafa6",
+    "docs/validation/salvage/ASSET-04/sectors/integration/bazel-camera-tests.xml": "794d36329e3d7cb83706e41683d036df6932b758f17eae3afd6cefe20ea4c68e",
+    "docs/validation/salvage/ASSET-04/sectors/browser-flight-attempt01/summary.json": "4242192e7a89966a89447cefbf4b555781db567c27566159ebe9837eef33d4c2",
+    "docs/validation/salvage/ASSET-04/sectors/browser-cove-regression-attempt01/summary.json": "f8e2e0a723e84f852ef1bd9315842fd68cbd383e487adbbe560444e62f0bbf08",
+    "docs/validation/salvage/ASSET-04/sectors/native-sockets-attempt02/report.json": "acd660a3027bfc2948e1234201cc7dae506fc608b2616f52341485ca4bf4b9e3",
+    "docs/validation/salvage/ASSET-04/sectors/comparison.json": "f49310555d5d481824f437bb6ddf05ba0244fbf6181c5dff4075757f937b8cb6"
+  },
+  "review": "Root inspected all three comparison pages and full-size socket-crossing/native outbound boundary images. The six-part assembly stays centered through actual sector changes and returns to the same close view. Socket guide views agree between native and browser. Far captures are foggy and small: they establish coordinate continuity, not close socket fit, scene art or performance. The native socket views are separate fixed-pose launches; the native continuous capture is clean. Independent moving-image/technical review remains open."
+}

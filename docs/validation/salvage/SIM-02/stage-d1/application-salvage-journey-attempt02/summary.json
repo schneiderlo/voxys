@@ -1,0 +1,261 @@
+{
+  "note": "Real browser controls and completed application state; no performance claim.",
+  "stages": [
+    {
+      "name": "initial",
+      "state": {
+        "active": true,
+        "ready": true,
+        "busy": false,
+        "failed": false,
+        "bodies": 32,
+        "resets": 0,
+        "controller": "character",
+        "mouseCaptured": false,
+        "origin": [
+          -12,
+          -187.68,
+          -32
+        ],
+        "camera": {
+          "local": [
+            -12,
+            69.18,
+            -24
+          ],
+          "sector": [
+            0,
+            -1,
+            0
+          ],
+          "yaw": -2.64765,
+          "pitch": -0.0297919
+        },
+        "session": {
+          "revision": "0",
+          "tick": "0",
+          "admissionOpen": true,
+          "builds": 0,
+          "cargo": 0,
+          "jobs": 0,
+          "inventory": {
+            "salvageMaterial": "0",
+            "specialMachinery": "0"
+          }
+        },
+        "observation": {
+          "world": "df4ad7d077db13b0974929f8eceb72df",
+          "incarnation": "94ac3dae74e496850cf97674d17081f1",
+          "epoch": "1",
+          "publicationLost": false,
+          "lanes": [
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            },
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            },
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            }
+          ]
+        },
+        "resident": 32,
+        "grouped": true,
+        "playground": false,
+        "pointerLocked": false,
+        "lost": null,
+        "errors": []
+      }
+    },
+    {
+      "name": "walked",
+      "state": {
+        "active": true,
+        "ready": true,
+        "busy": false,
+        "failed": false,
+        "bodies": 32,
+        "resets": 0,
+        "controller": "character",
+        "mouseCaptured": false,
+        "origin": [
+          -12,
+          -187.68,
+          -32
+        ],
+        "camera": {
+          "local": [
+            -12.2016,
+            69.1599,
+            -24.3744
+          ],
+          "sector": [
+            0,
+            -1,
+            0
+          ],
+          "yaw": -2.64765,
+          "pitch": -0.0297919
+        },
+        "session": {
+          "revision": "0",
+          "tick": "0",
+          "admissionOpen": true,
+          "builds": 0,
+          "cargo": 0,
+          "jobs": 0,
+          "inventory": {
+            "salvageMaterial": "0",
+            "specialMachinery": "0"
+          }
+        },
+        "observation": {
+          "world": "df4ad7d077db13b0974929f8eceb72df",
+          "incarnation": "94ac3dae74e496850cf97674d17081f1",
+          "epoch": "1",
+          "publicationLost": false,
+          "lanes": [
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            },
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            },
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            }
+          ]
+        },
+        "resident": 32,
+        "grouped": true,
+        "playground": false,
+        "pointerLocked": false,
+        "lost": null,
+        "errors": []
+      }
+    },
+    {
+      "name": "reset-button",
+      "state": {
+        "active": true,
+        "ready": true,
+        "busy": false,
+        "failed": false,
+        "bodies": 32,
+        "resets": 1,
+        "controller": "character",
+        "mouseCaptured": false,
+        "origin": [
+          -12,
+          -187.68,
+          -32
+        ],
+        "camera": {
+          "local": [
+            -12,
+            69.18,
+            -24
+          ],
+          "sector": [
+            0,
+            -1,
+            0
+          ],
+          "yaw": -2.64765,
+          "pitch": -0.0297919
+        },
+        "session": {
+          "revision": "0",
+          "tick": "0",
+          "admissionOpen": true,
+          "builds": 0,
+          "cargo": 0,
+          "jobs": 0,
+          "inventory": {
+            "salvageMaterial": "0",
+            "specialMachinery": "0"
+          }
+        },
+        "observation": {
+          "world": "df4ad7d077db13b0974929f8eceb72df",
+          "incarnation": "94ac3dae74e496850cf97674d17081f1",
+          "epoch": "1",
+          "publicationLost": false,
+          "lanes": [
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            },
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            },
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            }
+          ]
+        },
+        "resident": 32,
+        "grouped": true,
+        "playground": false,
+        "pointerLocked": false,
+        "lost": null,
+        "errors": []
+      }
+    }
+  ],
+  "device": {
+    "name": "webgpu-physics",
+    "adapter": {
+      "vendor": "amd",
+      "architecture": "rdna-3",
+      "device": "Unknown",
+      "description": "Unknown",
+      "fallback": false
+    },
+    "requiredStorageBuffers": 8,
+    "maxStorageBuffersPerShaderStage": 8,
+    "maxStorageBufferBindingSize": 134217728,
+    "maxBufferSize": 268435456,
+    "maxComputeWorkgroupsPerDimension": 65535,
+    "timestampQuery": true
+  },
+  "url": "http://127.0.0.1:45297/index.html?experience=salvage",
+  "status": "failed",
+  "error": "Error: Chrome closed"
+}

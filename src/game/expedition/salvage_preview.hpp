@@ -19,6 +19,7 @@ public:
     static constexpr uint32_t PreviewBodyBudget = 1024u;
     enum class Phase { Empty, Ready, Removing, AwaitingRetirement, Failed };
     enum class Action { Reset = 1, Leave = 2 };
+    enum class Scenery { Cove, Inspection };
     struct BodyAccess {
         std::function<physics::BodyHandle(const physics::BodySpawnDesc&)> spawn;
         std::function<bool(physics::BodyHandle)> destroy;
@@ -30,9 +31,11 @@ public:
     SalvagePreview(const SalvagePreview&) = delete;
     SalvagePreview& operator=(const SalvagePreview&) = delete;
 
-    [[nodiscard]] bool initialize(physics::PhysicsWorld& world, glm::vec3 origin);
+    [[nodiscard]] bool initialize(physics::PhysicsWorld& world, glm::vec3 origin,
+                                  Scenery scenery = Scenery::Cove);
     // Narrow body port enables failure/ownership tests without a GPU.
-    [[nodiscard]] bool initialize(BodyAccess access, glm::vec3 origin);
+    [[nodiscard]] bool initialize(BodyAccess access, glm::vec3 origin,
+                                  Scenery scenery = Scenery::Cove);
     [[nodiscard]] bool request(Action action);
     void update();
     // Copy real metadata AFTER physics in the frame command buffer. Only a
@@ -58,7 +61,9 @@ public:
 
 private:
     [[nodiscard]] bool spawnScene();
+    void completeRemoval();
     BodyAccess access_;
+    Scenery scenery_ = Scenery::Cove;
     glm::vec3 origin_{0};
     std::array<physics::BodyHandle, MaximumBodies> handles_{};
     std::array<bool, MaximumBodies> destroyAccepted_{};

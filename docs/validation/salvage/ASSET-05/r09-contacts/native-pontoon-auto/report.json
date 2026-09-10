@@ -1,0 +1,331 @@
+{
+  "schema": 1,
+  "status": "captured; visual review required",
+  "recipe": {
+    "schema": 1,
+    "purpose": "Static authored pontoon close views; no socket-overlay or final art acceptance",
+    "registry": "data/salvage/fixture-pontoon-v2.json",
+    "physical_viewport": [
+      1920,
+      1080
+    ],
+    "fov_degrees": 60,
+    "views": [
+      {
+        "name": "guide-stand",
+        "eye": [
+          -3,
+          1,
+          -7
+        ],
+        "target": [
+          -2,
+          0.15,
+          0
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "front",
+        "eye": [
+          -1.5,
+          0.1,
+          -4.8
+        ],
+        "target": [
+          -1.5,
+          0.1,
+          0
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "rear",
+        "eye": [
+          -1.5,
+          0.1,
+          4.8
+        ],
+        "target": [
+          -1.5,
+          0.1,
+          0
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "left",
+        "eye": [
+          -5,
+          0.1,
+          0
+        ],
+        "target": [
+          -1.5,
+          0.1,
+          0
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "right",
+        "eye": [
+          1,
+          0.1,
+          0
+        ],
+        "target": [
+          -1.5,
+          0.1,
+          0
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "underside",
+        "eye": [
+          -1.5,
+          -1.6,
+          -0.8
+        ],
+        "target": [
+          -1.5,
+          -0.3,
+          0
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "engaged",
+        "eye": [
+          6.4,
+          0.6,
+          -1.8
+        ],
+        "target": [
+          4.5,
+          0.48,
+          -1
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "material-front-light",
+        "eye": [
+          -4,
+          2.2,
+          -4
+        ],
+        "target": [
+          -1.5,
+          0,
+          0
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "material-opposite-light",
+        "eye": [
+          -4,
+          2.2,
+          -4
+        ],
+        "target": [
+          -1.5,
+          0,
+          0
+        ],
+        "sun": [
+          -0.4,
+          0.8,
+          0.4
+        ]
+      },
+      {
+        "name": "material-low-light",
+        "eye": [
+          -4,
+          2.2,
+          -4
+        ],
+        "target": [
+          -1.5,
+          0,
+          0
+        ],
+        "sun": [
+          0.69636424,
+          0.17364818,
+          -0.69636424
+        ]
+      }
+    ]
+  },
+  "recipe_sha256": "e4647b61dfadf457fdf7478f9f20dba17b9668cc4c864be8ed7340c53bf956c3",
+  "runner_sha256": "2befd115829de8b32c77c322a4b745c3ba398821f1dcdaa25889c496a2c3b9f2",
+  "binary": "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native",
+  "binary_sha256": "f1268bcfeee8d44b8de5b076a51d8098a48b8ff138af001163cd7795ca07919d",
+  "original_registry_sha256": "445616bb9082e3509e62f94d15ee8945305439a7d5d6a9173834a0d6805aeef4",
+  "original_config": "/home/modkin/workspace/schneiderlo/voxys/salvage_asset_fixture.cfg",
+  "original_config_sha256": "86edec7ff9cee300c222baad8f2d05eb3711af34b3f841f3036da0259088c7b9",
+  "guides": "off",
+  "forced_lod": 0,
+  "selected_views": [
+    "front"
+  ],
+  "scope": "Native scene captures; guides are technical overlays, not final art or moving-craft acceptance",
+  "views": [
+    {
+      "name": "front",
+      "argv": [
+        "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-05/r09-contacts/native-pontoon-auto/front.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-05/r09-contacts/native-pontoon-auto/front.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "config_sha256": "730db260a838ec67ba2164539743c1841bd540922cbb753fcee1bfa965a07ccd",
+      "registry_sha256": "1349ae65a86c61bc3b70d339425727e4cf303e46f696751b696f6abedef0e3ab",
+      "timeout": false,
+      "exit_code": 0,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "png_sha256": "21e4b3ce892a680eb757bd7d8d669ea5de758aae400b16c51b05d55fbda9f426",
+      "gpu_or_application_errors": [],
+      "state": {
+        "active": true,
+        "ready": true,
+        "busy": false,
+        "failed": false,
+        "bodies": 0,
+        "resets": 0,
+        "controller": "free-fly",
+        "mouseCaptured": false,
+        "origin": [
+          -12,
+          -187.68,
+          -32
+        ],
+        "camera": {
+          "local": [
+            -20.5,
+            71.42,
+            -41.8
+          ],
+          "sector": [
+            0,
+            -1,
+            0
+          ],
+          "yaw": 0,
+          "pitch": 0
+        },
+        "session": {
+          "revision": "0",
+          "tick": "0",
+          "admissionOpen": true,
+          "builds": 0,
+          "cargo": 0,
+          "jobs": 0,
+          "inventory": {
+            "salvageMaterial": "0",
+            "specialMachinery": "0"
+          }
+        },
+        "observation": {
+          "world": "7f1a1a6e4a7985912002b13908ce521b",
+          "incarnation": "66b38f3112512d5d9d1eb27c6e9b89f2",
+          "epoch": "1",
+          "publicationLost": false,
+          "lanes": [
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            },
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            },
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            }
+          ]
+        },
+        "assetFixture": {
+          "status": 2,
+          "generation": "1",
+          "uploads": 3,
+          "prototypeUploads": 0,
+          "gpuReservationBytes": "6262620",
+          "submittedSerial": "120",
+          "completedSerial": "118",
+          "draws": 4,
+          "guides": 0,
+          "guideBoxes": 0,
+          "guideMeshGpuBytes": 1936,
+          "forcedLod": "0",
+          "lods": [
+            "1",
+            "1",
+            "1",
+            "1"
+          ],
+          "availableLods": [
+            "0",
+            "1",
+            "2",
+            "3"
+          ]
+        }
+      },
+      "passed": true
+    }
+  ],
+  "temporary_registry_removed": true
+}

@@ -1,0 +1,82 @@
+{
+  "schema": 1,
+  "status": "failed",
+  "recipe": {
+    "schema": 1,
+    "registry": "data/salvage/fixture-pontoon-assembly.json",
+    "physical_viewport": [
+      1920,
+      1080
+    ],
+    "fov_degrees": 60,
+    "views": [
+      {
+        "name": "guides-2-start",
+        "eye": [
+          147.25,
+          20.0,
+          -10
+        ],
+        "target": [
+          -1.0549013869885755,
+          -0.06175349646603223,
+          0.15786745545664616
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "guides-2-crossed",
+        "eye": [
+          146.61,
+          19.913400000000024,
+          -9.9561
+        ],
+        "target": [
+          -1.6949013869885619,
+          -0.14835349646600804,
+          0.20176745545664687
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "guides-2-returned",
+        "eye": [
+          147.251,
+          20.000200000000007,
+          -10.000100000000003
+        ],
+        "target": [
+          -1.0539013869885707,
+          -0.06155349646602559,
+          0.15776745545664284
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      }
+    ]
+  },
+  "recipe_sha256": "42c70d0755f60e222a48700c1e8329cc380d0178011be4841facec1d6e65ea5d",
+  "runner_sha256": "4cb504c3fa164d5455bfb89708a3c33ca8ec018e1efdc5a98752e04e0e508304",
+  "binary": "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native",
+  "binary_sha256": "0581c547f215a064dae94102d8d65b936e6fa4c94a4230507a950d15aed9bb7e",
+  "original_registry_sha256": "bb11c948e2d1dac86ce322143d86c3113a5d8492ba46f9b1a9bb8a4305fa6658",
+  "original_config": "/home/modkin/workspace/schneiderlo/voxys/salvage_assembly_fixture.cfg",
+  "original_config_sha256": "02346fa362e072ccdf2bc7002e904988d57dfce06a725c1a643f9b53828b73a0",
+  "guides": "sockets",
+  "selected_views": null,
+  "scope": "Native scene captures; guides are technical overlays, not final art or moving-craft acceptance",
+  "views": [],
+  "error": "",
+  "temporary_registry_removed": true
+}

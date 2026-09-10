@@ -1,0 +1,157 @@
+{
+  "checkpoint": "DATA-05 coherent capture and model prefix transport, stage-d1",
+  "passed": true,
+  "checkpointImportImplemented": false,
+  "journalReplayImplemented": false,
+  "durability": "Volatile",
+  "independentReview": false,
+  "data05Complete": false,
+  "gatePassed": false,
+  "xmlResults": {
+    "bazel-session.xml": {
+      "passed": 50,
+      "skipped": 0,
+      "disabled": 0,
+      "sha256": "9714cbb59cc616ae94cd5659e3a6a9476d76202e2747d4eeff6e991b8ce8ace9"
+    },
+    "bazel-journal.xml": {
+      "passed": 12,
+      "skipped": 0,
+      "disabled": 0,
+      "sha256": "8f2c55c0863305890ce4f23d0e54a29d250b71c76adacfa36ee2a39a89b7823d"
+    },
+    "cmake-session-attempt02.xml": {
+      "passed": 50,
+      "skipped": 0,
+      "disabled": 0,
+      "sha256": "16aa96c09d60e3a9a34eb51384a58f7fee4467593a4f94f894c630a1e925555d"
+    },
+    "cmake-journal-attempt02.xml": {
+      "passed": 12,
+      "skipped": 0,
+      "disabled": 0,
+      "sha256": "5921d628827d6174770e324336a9578abc932ec8c2190e2fc5611031984e9513"
+    },
+    "ubsan.xml": {
+      "passed": 62,
+      "skipped": 0,
+      "disabled": 0,
+      "sha256": "4b7820133b06514330eccb79ad3b3c9ec9ce1de2940ca0c602d9844ef04af1e2"
+    }
+  },
+  "wasm": {
+    "passed": 62,
+    "skipped": 0,
+    "disabled": 0
+  },
+  "allocationFaults": {
+    "native": 7,
+    "wasm": 7,
+    "eventualSuccess": true,
+    "preflightAllocationAttempts": 0,
+    "authorityPreserved": true
+  },
+  "inputsUnchanged": true,
+  "artifacts": {
+    "src/game/expedition/game_session.hpp": {
+      "sha256": "b9195a65432e433406dd3cccbbbb5802c8f4433b53f83e9817d637137db78052",
+      "bytes": 8114
+    },
+    "src/game/expedition/game_session.cpp": {
+      "sha256": "a54f17011c36a69f84e3a3520cc4df3b3300a976bcdb13b4973b42225d960a01",
+      "bytes": 55665
+    },
+    "src/game/expedition/session_recovery.hpp": {
+      "sha256": "2ddf7eaed29281bb0dfb1303ba298c978d14bca3c016282a521807dbe0402821",
+      "bytes": 4374
+    },
+    "src/game/expedition/session_transactions.hpp": {
+      "sha256": "7b76c64c0bc00125929db26ddd2ecf67aa82bce916a54279865fe4ca2ab82e77",
+      "bytes": 15061
+    },
+    "src/game/expedition/session_transactions.cpp": {
+      "sha256": "a35281ba254f84662d2677445bb6080a4ababe7ea7c49b1d0400d486a3afd3ff",
+      "bytes": 13724
+    },
+    "tests/test_game_session.cpp": {
+      "sha256": "942efc8136d72dca153590fd3f4d091bedf506f896098c49a58dddafc4889dd5",
+      "bytes": 71295
+    },
+    "tests/test_session_transactions.cpp": {
+      "sha256": "bffad21bc07f726bf9d6e591f3c891f664ce21a6a4c1d04c198b9cf7671bba60",
+      "bytes": 14831
+    },
+    "scripts/validate_session_transactions_wasm.py": {
+      "sha256": "df5feccc7ea08212f3ae534d5dfb650208d6b2ca25898eedd5d5f4d6c8185f1e",
+      "bytes": 7742
+    },
+    "src/game/BUILD": {
+      "sha256": "329c6b2b08ad0b83f758c91bcbd8e3ed0846ca5c2b84d1830e5f45e56ab8658d",
+      "bytes": 7713
+    },
+    "docs/validation/salvage/DATA-05/stage-d1/allocation-faults.cpp": {
+      "sha256": "1b55a18ef7822cbe0c9480d10c392680c57769d98e5177d7dbe559b1588173e9",
+      "bytes": 6837
+    },
+    "docs/validation/salvage/DATA-05/stage-d1/build-allocation-faults.sh": {
+      "sha256": "2108fef7190d89c0e306523128182fdc371ceb6b30ce157aa2123408b67061e1",
+      "bytes": 867
+    },
+    "docs/validation/salvage/DATA-05/stage-d1/run-wasm-allocation.py": {
+      "sha256": "1004cb7156a86b94e35d9a192a9e4267e7b9f45b3c1133c4969f117cccd1b894",
+      "bytes": 4422
+    },
+    "build-salvage-native/bin/game_session_tests": {
+      "sha256": "17049255907e511c179308e89c5eb89ddf484309e1100e93c2b506e2afbbc247",
+      "bytes": 1597808
+    },
+    "build-salvage-native/bin/session_transactions_tests": {
+      "sha256": "f20f6000fac90e0f70b04c0c74be6391dabb622620a24868679865be32ab7e07",
+      "bytes": 979384
+    },
+    "build-salvage-native/bin/voxy_native": {
+      "sha256": "f48c032bde7785bddc78f843c8a7b32d4cb8a97b93b14a0b21a69ec1b5997671",
+      "bytes": 45219064
+    },
+    "build-lego-wasm/bin/voxy_wasm.js": {
+      "sha256": "5d621e6e910250c1eda99eb265d49fa9de665ad901b95c36a8fe7eb879cbe8c6",
+      "bytes": 79801
+    },
+    "build-lego-wasm/bin/voxy_wasm.wasm": {
+      "sha256": "639f48ef0e608672160a858c4221f1dc8a1c880f28b35cbd22fdbe65d2425b2d",
+      "bytes": 5698900
+    },
+    "/tmp/salvage-checkpoint-allocation": {
+      "sha256": "42bbb15d41847d20175d8646019db0ca79196f6799902d2f8f2f35183f9de376",
+      "bytes": 7133984
+    },
+    "/tmp/salvage-checkpoint-ubsan": {
+      "sha256": "5930d576474c83b8573e56061faf532c2b06c39c88b381ec361906978365b0d2",
+      "bytes": 12539936
+    }
+  },
+  "reports": {
+    "allocation-build.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "allocation-result.log": "3820d39073ce9fcee78a916a0f3df477b6412043cd53f123782b398db9019df2",
+    "bazel-attempt01.log": "9a49e08a3214bad2e8322127f0750ae3d5015c4f24da8fd1e2c29e433b91eace",
+    "bazel-attempt02.log": "2efd69163c901269d5343f8eeb106cd2d41895fcd45a652330211c421615a746",
+    "bazel-attempt03.log": "5b418a43540ac019f5af2405440b3ae477d995e16413bd8c833374990e7fe9fb",
+    "cmake-build-attempt02.log": "16f8e489bac7ef10a47fee61499eaa5cc5f76640601c436de951601948aed639",
+    "cmake-build.log": "d5be569f9df84332c9788d064d7f2deca1c669522f8c4b7b2a03e0b9987cafbf",
+    "cmake-journal-attempt02.log": "836f35c292a7cb69b35c95dca7b98d14546dfe8cb94b95741910e82f34fcf514",
+    "cmake-journal.log": "836f35c292a7cb69b35c95dca7b98d14546dfe8cb94b95741910e82f34fcf514",
+    "cmake-session-attempt02.log": "a2b637acca6222312f348a50521a30442c618d43d7def5346d257ba9c4fa6e69",
+    "cmake-session.log": "a2b637acca6222312f348a50521a30442c618d43d7def5346d257ba9c4fa6e69",
+    "native-application-build.log": "a96494d6148e088842e28bd978b54621251431400676b38e08ba5e85899391a3",
+    "ubsan-build.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "ubsan.log": "eb8898d57b3771b4b7220989a65334cffae71638d75793cfdf1772ee8107522f",
+    "wasm-allocation-attempt01.log": "7d8f80320fe9dee97e574a54180609b613b0e6f0c89ba8c514db709bcd6364a7",
+    "wasm-allocation-attempt02.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm-application-build.log": "082fefbc89b2c79d72be13eea6d783e72ec10df02835798d983357eefc469d87",
+    "wasm-attempt01.log": "593b97b528cfde9626190dc5ab6e1ea85584337fde0295958cda644ccc4e728b",
+    "wasm-attempt02.log": "0590f110db40fa4fd4c4b54aa73a67be5e8cbdfaa08ee7430f2c22340de5f547",
+    "wasm-attempt02/manifest.json": "043a6a0cd389357e6d4e8f383f72c87b29f9dbeebcff01803d9ed9d5ed7b4b10",
+    "wasm-allocation-attempt02/summary.json": "f2781f30983ebad6397a763654af574421ef69d0df5b652cbeab8f63c2884332"
+  },
+  "remaining": "Imported-image validation, exact contiguous journal replay, recovery admission/token/epoch/ID-horizon transitions, trusted entitlement retirement and independent review. Real SAVE storage and GPU recovery remain separate gates."
+}

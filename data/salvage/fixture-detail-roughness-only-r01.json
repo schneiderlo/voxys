@@ -1,0 +1,133 @@
+{
+  "schema": 1,
+  "bundles": [
+    {
+      "directory": "material-calibration/r02/pontoon-r02/cooked",
+      "part": {
+        "namespace": "766f7879732d73616c766167652d7631",
+        "counter": "3",
+        "version": 3
+      },
+      "manifest_sha256": "aa072982551ac89076f2451892549428bb5f06ddd5de10a5485f405644729ae1",
+      "lod_limits": [
+        {
+          "id": "1",
+          "vertices": 12000,
+          "triangles": 6000,
+          "texture_dimension": 512
+        },
+        {
+          "id": "2",
+          "vertices": 2400,
+          "triangles": 1200,
+          "texture_dimension": 256
+        },
+        {
+          "id": "3",
+          "vertices": 800,
+          "triangles": 400,
+          "texture_dimension": 64
+        }
+      ]
+    },
+    {
+      "directory": "material-calibration/r04/kit/winch/cooked",
+      "part": {
+        "namespace": "766f7879732d73616c766167652d7631",
+        "counter": "7",
+        "version": 2
+      },
+      "manifest_sha256": "3d497e01fe01881858a29327d8187d4a95b150cba8fed6dcc9b5a7b020e40923",
+      "lod_limits": [
+        {
+          "id": "1",
+          "vertices": 24000,
+          "triangles": 12000,
+          "texture_dimension": 128
+        },
+        {
+          "id": "2",
+          "vertices": 12000,
+          "triangles": 6000,
+          "texture_dimension": 64
+        },
+        {
+          "id": "3",
+          "vertices": 6000,
+          "triangles": 3000,
+          "texture_dimension": 64
+        }
+      ]
+    },
+    {
+      "directory": "material-calibration/diagnosis-r01/roughness-only/cooked",
+      "part": {
+        "namespace": "766f7879732d73616c766167652d7631",
+        "counter": "6",
+        "version": 2
+      },
+      "manifest_sha256": "e387a9e7cb9030828c5108bacaa6f897a45c43b215867fbd61f15330fb248234",
+      "lod_limits": [
+        {
+          "id": "1",
+          "vertices": 24000,
+          "triangles": 12000,
+          "texture_dimension": 128
+        },
+        {
+          "id": "2",
+          "vertices": 12000,
+          "triangles": 6000,
+          "texture_dimension": 64
+        },
+        {
+          "id": "3",
+          "vertices": 6000,
+          "triangles": 3000,
+          "texture_dimension": 64
+        }
+      ]
+    }
+  ],
+  "placements": [
+    {
+      "bundle": 0,
+      "translation_ticks": [
+        0,
+        0,
+        0
+      ],
+      "rotation": 0
+    },
+    {
+      "bundle": 1,
+      "translation_ticks": [
+        150,
+        0,
+        0
+      ],
+      "rotation": 0
+    },
+    {
+      "bundle": 2,
+      "translation_ticks": [
+        300,
+        0,
+        0
+      ],
+      "rotation": 0
+    }
+  ],
+  "camera": {
+    "eye": [
+      8,
+      3,
+      -7
+    ],
+    "target": [
+      3,
+      0.0,
+      0
+    ]
+  }
+}

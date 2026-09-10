@@ -1,0 +1,178 @@
+{
+  "schema": 1,
+  "status": "guide checkpoint verified; ASSET-04 and G02 remain open; no gate commit",
+  "sources": {
+    "src/render/inspection_guides.hpp": "12df539c81d172916395b73e7d891198f6ff3f4ad218ecf77cc30066fe1f6ad2",
+    "src/render/inspection_guides.cpp": "31e638dc6776533374e11c548e199146dc80816ceeed952d6c98fa68cb1e2550",
+    "src/render/salvage_asset_fixture.hpp": "ed7b6a11e7ac6931af8815f79e5160d37d7c3f6d541a4c69cb9dc7a81c9ee465",
+    "src/render/salvage_asset_fixture.cpp": "fc64e50d495c9364039a1ac3b12192f1535dc56cdb7e79a02fb3ff153a038dd3",
+    "src/render/BUILD": "97d61838ecceb22701fdea32e5dd614c5a8d6967b1c2faabb1429e3ccedce303",
+    "src/CMakeLists.txt": "313eea08368d02a4d860f0c48cdc0b669c6f5f71e3bacab52ec3778c0aa6c4e4",
+    "src/core/config.hpp": "e81c3aee813702c77958ecf65dfe9af593e11c64b9d5d1886c538d1c26f468d0",
+    "src/core/config.cpp": "9383e36e04492bfb19e63e7d0d401279ab3ea4ddcfaed9109985030b687fda9d",
+    "src/app/application.hpp": "786268d6d052af6c5ca71e49def853571788a0c72b2c5f2e066be3b7dfd95faf",
+    "src/app/application.cpp": "2268eaaeca8f4a30bfbada2af4c41474c8c7d59cb39ab76e6a1fe66761df2a17",
+    "src/engine/platform/native/entry.cpp": "f21b2ee79dc37136e9bb15a015db3e3cedb84c14eb6d29647ccab32baeae4d11",
+    "src/engine/platform/wasm/entry.cpp": "13a390850d73d169516e48a18b67c61d5444b244de456d6adbe4246725384ce1",
+    "tests/test_salvage_asset_fixture.cpp": "be69f38ab28c093ed44680ba1c1c55717d963ba7c37af692c6599ff891fa5888",
+    "tests/test_config.cpp": "d0710b8bf64c03ed4fb5b3de37f11e03a0c117707ac6e5afb430701fa2e0eea0",
+    "web/index.html": "44a2f5489cf4b26e898988f66a5761f4ae6e5a29ff6f63c04d6d2c5bcf472df8",
+    "web/salvage_preview.js": "038596e572a39d3e14fb4e1468842f1b444b69312fc514211d1be356df078619",
+    "scripts/test_salvage_preview.mjs": "656df1c4c3596f9a97f8132502d44eb163411337013a393622457638cad921bf",
+    "scripts/smoke_integrated_wasm.mjs": "97582a527d2d2d6c0181341b7e57d254071d5cf1ade9d7e5f50d7affce3da2bf",
+    "scripts/validate_salvage_asset_fixture.mjs": "53d1d224f4d4f9d18349ba4d900dfbc3280a153f81dc7754224b443c35699dfb",
+    "scripts/validate_salvage_asset_views.mjs": "68eae0b1e48ff249bc15f461f1008625eb3c0a812bdfd811e5c4c1d74f550620",
+    "scripts/validate_salvage_asset_loss.mjs": "29163bd370298235113f49048424b559da5d9a4916a5363705667c56fd12c4e5",
+    "scripts/capture_salvage_asset_views.py": "415acac8d52e4c933b2b603f9e00340281139a7556994817be835c8ce8038baa",
+    "docs/validation/salvage/ASSET-04/inspection-views.json": "e4647b61dfadf457fdf7478f9f20dba17b9668cc4c864be8ed7340c53bf956c3",
+    "data/salvage/fixture-pontoon-v2.json": "f4d3599cf126f8aa583f4f065d66f891eca520926b876586250482d544c6afbd",
+    "salvage_asset_fixture.cfg": "86edec7ff9cee300c222baad8f2d05eb3711af34b3f841f3036da0259088c7b9",
+    "shaders/mesh_path.wgsl": "199608700b6baeb13e3f3989a050a30e24170a64d34aeef6d5db2fc63a7b1c98"
+  },
+  "artifacts": {
+    "/home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/voxy_native": {
+      "sha256": "21b8095f98e9b6322b9b101df97c22d9981f058e453ec88e46e8281deb75e197",
+      "bytes": 4906504
+    },
+    "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native": {
+      "sha256": "08bfb7d202bf6e477d302119f2d4f06d5ef8594911d28978ba26cbc31d3f1edb",
+      "bytes": 44976648
+    },
+    "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_tests": {
+      "sha256": "cc87e61ff1dc0bb6cb6560a6e8be0b1337c3c0ff5c67a867c11c4277e7a833c7",
+      "bytes": 61539632
+    },
+    "/tmp/voxys-asset-browser-05/voxy_wasm.js": {
+      "sha256": "96442224785e52a3460c8561b6e7f6a5a93d884393f1c3d3862e6346c0bf3572",
+      "bytes": 78496
+    },
+    "/tmp/voxys-asset-browser-05/voxy_wasm.wasm": {
+      "sha256": "f3cc54113ef82158cd7e0800e47b85b0d552cf8fae36fab30e0bf87720f6a6e2",
+      "bytes": 5653195
+    },
+    "/tmp/voxys-asset-browser-05/voxy_wasm.data": {
+      "sha256": "3c8840b8ac036adc1b2b6800f2fef1b741afe3fbce7b190dbffe47fe40cac1d6",
+      "bytes": 62485708
+    },
+    "/tmp/voxys-asset-browser-05/index.html": {
+      "sha256": "44a2f5489cf4b26e898988f66a5761f4ae6e5a29ff6f63c04d6d2c5bcf472df8",
+      "bytes": 69418
+    },
+    "/tmp/voxys-asset-browser-05/salvage_preview.js": {
+      "sha256": "038596e572a39d3e14fb4e1468842f1b444b69312fc514211d1be356df078619",
+      "bytes": 6342
+    }
+  },
+  "tests": {
+    "guides-bazel-salvage_asset_fixture.xml": {
+      "sha256": "1762aba75e7e8a6fce3c807fdfacc79790234b370afec7f691a0fd06eccf1240",
+      "tests": 15,
+      "failures": 0,
+      "skips": 0
+    },
+    "guides-bazel-config.xml": {
+      "sha256": "611d22d4dd2980c569aa52f0d32bbd7063ede909ff0e69c920f39b663555e1f8",
+      "tests": 58,
+      "failures": 0,
+      "skips": 0
+    },
+    "guides-cmake-tests.xml": {
+      "sha256": "437fad603e8be9b8c989857e69396ae8b77d47c42c9a07383e23b1791d1aa584",
+      "tests": 16,
+      "failures": 0,
+      "skips": 0
+    }
+  },
+  "reports": {
+    "docs/validation/salvage/ASSET-04/guides-native-rulers-attempt01/report.json": {
+      "sha256": "a9d265c447ab2e8a3335d0a97714797fb1d1b62ed81adf0b21272bb1504674fb",
+      "status": "captured; visual review required"
+    },
+    "docs/validation/salvage/ASSET-04/guides-native-sockets-attempt01/report.json": {
+      "sha256": "96a6b7dd6d45ae714d1a831e10f502f36eeb508283ef18c3fc5a45acd51ca335",
+      "status": "captured; visual review required"
+    },
+    "docs/validation/salvage/ASSET-04/guides-native-stand-attempt01/report.json": {
+      "sha256": "5364964f90c43fd6b4e9ede0c855636f08e88ab6e86e7ffb57feeeaecb52ecdc",
+      "status": "captured; visual review required"
+    },
+    "docs/validation/salvage/ASSET-04/guides-browser-rulers-attempt01/report.json": {
+      "sha256": "e0d3b41b6033fb2644cab90fed71130df29c37c7533101018a1154920a1df6e6",
+      "status": "captured; visual review required"
+    },
+    "docs/validation/salvage/ASSET-04/guides-browser-sockets-attempt01/report.json": {
+      "sha256": "209ca71ce8d5d178f0e8f52df0fccbe2864cb5fa8f5966926b68af445c9d3472",
+      "status": "captured; visual review required"
+    },
+    "docs/validation/salvage/ASSET-04/guides-browser-stand-attempt01/report.json": {
+      "sha256": "ec9a7c47993107b1100f298a365d1bfaf4a7ac47ccc63542e46463d52cd8eb62",
+      "status": "captured; visual review required"
+    },
+    "docs/validation/salvage/ASSET-04/guides-browser-journey-attempt01/summary.json": {
+      "sha256": "46564119de53d5da05240435223e721adc79897087d887085d197bf5b013e36c",
+      "status": "passed"
+    },
+    "docs/validation/salvage/ASSET-04/guides-browser-loss-attempt01/summary.json": {
+      "sha256": "5c30c069d97a958d84c97d6726bc160848bf652ef9c3d7fed6cb76b29f9616b4",
+      "status": "passed"
+    },
+    "docs/validation/salvage/ASSET-04/guides-browser-journey-attempt01-startup.json": {
+      "sha256": "1407d313d299c4410fd598185fb0680ecb5ccadb5b1c481f089b9552f5102c71",
+      "status": "passed"
+    },
+    "docs/validation/salvage/ASSET-04/guides-browser-loss-attempt01-startup.json": {
+      "sha256": "b1cb8b2812a2be5309ceaf29167666b89e6ec83b0eca05c31c9d0cf5a013268a",
+      "status": "passed"
+    },
+    "docs/validation/salvage/ASSET-04/guides-browser-rulers-attempt01-startup.json": {
+      "sha256": "a5652e88d71cebed84645a17ddd43dcb9777ed535549b6a7da5e45de982f45d7",
+      "status": "passed"
+    },
+    "docs/validation/salvage/ASSET-04/guides-browser-sockets-attempt01-startup.json": {
+      "sha256": "c20eaca5490eafff25e29fc03a8067b603f6f923b59034a24842dc98157d29cd",
+      "status": "passed"
+    },
+    "docs/validation/salvage/ASSET-04/guides-browser-stand-attempt01-startup.json": {
+      "sha256": "1aba2db90077f6e6291437da9eccc83dda384423d1f5b4188515bf3e0e79e0b9",
+      "status": "passed"
+    }
+  },
+  "images": {
+    "docs/validation/salvage/ASSET-04/guides-native-rulers-attempt01/material-front-light.png": "b09131ad8eb2b070a82713fee90ccea7f9cbebe5220265a61560833f67f807e3",
+    "docs/validation/salvage/ASSET-04/guides-native-rulers-attempt01/front.png": "001074ad947f8b16751eddf3b71551a84a8ed401e4d5cf9e91f3930b9796b06c",
+    "docs/validation/salvage/ASSET-04/guides-native-sockets-attempt01/engaged.png": "f47174ac13ea90386ff0eb76a129676f94edbae9e4641cc0ddc5ece95048b58b",
+    "docs/validation/salvage/ASSET-04/guides-native-sockets-attempt01/underside.png": "66939712ac635db00de4a0d7fc91b8a41492a3fbe8f8f4ea7e714b1cd50143f7",
+    "docs/validation/salvage/ASSET-04/guides-native-stand-attempt01/guide-stand.png": "511b53537591222e4da03819404e32bbb78e0424d85b5effc51868ca006746a7",
+    "docs/validation/salvage/ASSET-04/guides-browser-rulers-attempt01/material-front-light.png": "19e0d6747ddbe1146e08a0a9797b04fb7619bdfc56be61f9c0a8db035fcf2fa9",
+    "docs/validation/salvage/ASSET-04/guides-browser-rulers-attempt01/front.png": "ca968cedf19d6d66f4fb3f2f30937c93a4043c8d148b62de9dc8896ac71ed61a",
+    "docs/validation/salvage/ASSET-04/guides-browser-sockets-attempt01/engaged.png": "7ed4fcdad80bca4bb339f60d6f56ca07ae3fb5361858965f8de2c80e0f07543d",
+    "docs/validation/salvage/ASSET-04/guides-browser-sockets-attempt01/underside.png": "5b95f486991a25db61c6d5890985f5d9dde94f24a71e54408bc938c3da583cba",
+    "docs/validation/salvage/ASSET-04/guides-browser-stand-attempt01/guide-stand.png": "56b374bd18da6d82fc05d1f2cc760fb030b25d934683043b37b027927bdadb85",
+    "docs/validation/salvage/ASSET-04/guides-browser-journey-attempt01/02-guides-1.png": "0702c8229df9548f2db416cc1a109b8fd11a6d48824a22a0fea5e5260b524287",
+    "docs/validation/salvage/ASSET-04/guides-browser-journey-attempt01/06-original-world.png": "5b795652c2c5d914f84328045c4247deefe26eee7c772f3305bb167709813479",
+    "docs/validation/salvage/ASSET-04/guides-browser-journey-attempt01/07-reentered.png": "f565845c07c0b217e58b599fc44e6057942f7892bfae89657fb6fc8cdfe83518",
+    "docs/validation/salvage/ASSET-04/guides-browser-journey-attempt01/04-flown.png": "89301337124ac0c769e8734c6e02ac518c82b59828c7376c88596d556a09fb46",
+    "docs/validation/salvage/ASSET-04/guides-browser-journey-attempt01/02-lod-3.png": "0ad7ef7aafc327890a517ffd10e783640d9afab9284707ddc754e96badf26847",
+    "docs/validation/salvage/ASSET-04/guides-browser-journey-attempt01/02-lod-0.png": "f0cecd99541a054b73bddaab8c5fb3dbb0b62cde8c44424e97163cfafd25df3b",
+    "docs/validation/salvage/ASSET-04/guides-browser-journey-attempt01/02-lod-2.png": "d73216dc80523c2ca38c9d74f0bfd584492863419f1b9044a086b8486df430a5",
+    "docs/validation/salvage/ASSET-04/guides-browser-journey-attempt01/02-guides-0.png": "493e035259038884a591e379c389514cf5611d589d7f4b7d9d25cf7ba0e6ad01",
+    "docs/validation/salvage/ASSET-04/guides-browser-journey-attempt01/02-lod-1.png": "48af12137d12e3e539b1115cabd0587b7803e88d74503b75f7e8bc4ac20601d8",
+    "docs/validation/salvage/ASSET-04/guides-browser-journey-attempt01/01-auto.png": "fba079e449ab3883c26e0ec661892f4b91cf40f20621e3c0c415b09d5e51a77c",
+    "docs/validation/salvage/ASSET-04/guides-browser-journey-attempt01/02-guides-2.png": "d5b858f3e7992ee2711dcaded2ec0a71ed3928d8fdc65b0e25d908e52ff7a1cf",
+    "docs/validation/salvage/ASSET-04/guides-browser-journey-attempt01/03-resized-1920.png": "ba6ed4ed36a8d80e0cde620134df55d3dd83e67075c078217397f9337b3814a7",
+    "docs/validation/salvage/ASSET-04/guides-browser-journey-attempt01/03-resized-1280.png": "980a03197baaa5ed9da2d1e6b1db3bdc2a6e00d0014bae9c4fc330eb42ac0440",
+    "docs/validation/salvage/ASSET-04/guides-browser-journey-attempt01/05-reset.png": "e6a2002385632521517f775a371568e3de2e4bff1a29bdb1a2347b61cac65b7e",
+    "docs/validation/salvage/ASSET-04/guides-browser-loss-attempt01/stopped.png": "272964f601535d2db30ab31db9a2c2d60662531e2b106e3c564e66ba39de729b"
+  },
+  "resource_accounting": {
+    "guide_gpu_bytes": 1936,
+    "fixed_requested_bytes": 51240,
+    "conservative_fixed_reservation_bytes": 65536,
+    "actual_fixture_reservation_bytes": 6197084,
+    "authored_uploads": 3,
+    "authored_node_ceiling": 256,
+    "total_draw_ceiling": 512,
+    "dimension_boxes": 26,
+    "socket_boxes": 360
+  }
+}

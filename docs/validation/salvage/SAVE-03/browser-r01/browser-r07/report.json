@@ -1,0 +1,124 @@
+{
+  "status": "passed",
+  "kind": "Isolated browser world storage, no GameSession mutation",
+  "sourceHashes": {
+    "web/expedition_store.js": "d5fcf5a97259332cace13a0da51a7e0d8b1a902555119c897c99526133dee736",
+    "scripts/expedition_storage_cases.js": "539de23a77671d5d0011ceb7ac810ba4b9d6c2be999c3f09f9d5d3c477a1f074",
+    "scripts/validate_expedition_storage.mjs": "49d891ff261e5e09c99f11124f285a97bfec97941446b5ee6f8f20caf8d76351",
+    "tests/fixtures/save_generation_v1.json": "12e8039e98858ff76721efceddf32fc26b523d039bb72a3630f3873d87dbc203"
+  },
+  "checks": [
+    "second actual tab refuses a live world owner",
+    "actual page reload releases ownership and preserves the acknowledged generation",
+    "actual tab close releases world ownership",
+    "browser process kill at first-put recovers complete generation 1",
+    "browser process kill at committed recovers complete generation 2"
+  ],
+  "screenshots": 0,
+  "profileFilesystem": "ext4 /",
+  "browserRuns": [
+    {
+      "run": 1,
+      "version": {
+        "Browser": "Chrome/152.0.7977.82",
+        "Protocol-Version": "1.3",
+        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/152.0.0.0 Safari/537.36",
+        "V8-Version": "15.2.124.21",
+        "WebKit-Version": "537.36 (@d04cdb24d67b081f6cf80200ffc5233f44b61109)",
+        "webSocketDebuggerUrl": "ws://127.0.0.1:37917/devtools/browser/9175f3f5-359c-4366-8c1e-f7b804b10314"
+      },
+      "termination": {
+        "code": null,
+        "signal": "SIGKILL"
+      }
+    },
+    {
+      "run": 2,
+      "version": {
+        "Browser": "Chrome/152.0.7977.82",
+        "Protocol-Version": "1.3",
+        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/152.0.0.0 Safari/537.36",
+        "V8-Version": "15.2.124.21",
+        "WebKit-Version": "537.36 (@d04cdb24d67b081f6cf80200ffc5233f44b61109)",
+        "webSocketDebuggerUrl": "ws://127.0.0.1:43221/devtools/browser/86d93940-4766-4a17-ad5a-ed1d793c1ef8"
+      },
+      "termination": {
+        "code": null,
+        "signal": "SIGKILL"
+      }
+    },
+    {
+      "run": 3,
+      "version": {
+        "Browser": "Chrome/152.0.7977.82",
+        "Protocol-Version": "1.3",
+        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/152.0.0.0 Safari/537.36",
+        "V8-Version": "15.2.124.21",
+        "WebKit-Version": "537.36 (@d04cdb24d67b081f6cf80200ffc5233f44b61109)",
+        "webSocketDebuggerUrl": "ws://127.0.0.1:34345/devtools/browser/54545bbc-6ffe-4129-819a-b86bd689c51b"
+      },
+      "termination": {
+        "code": 0,
+        "signal": null
+      }
+    }
+  ],
+  "nativeEnvelopeInterop": {
+    "status": "passed",
+    "bytes": 75,
+    "sha256": "0e0aa18596f322d5b6988fcc25fe1cf97d29794f6ff83ab77c351219b68877b9",
+    "generation": "18446744073709551615"
+  },
+  "isolated": {
+    "status": "passed",
+    "checks": [
+      "strict atomic publication acknowledged after complete",
+      "same-world exclusive Web Lock",
+      "one pending operation and owned payload",
+      "stale requests and invalid archives preserve save",
+      "quota after first put rolls back both copies",
+      "actual IndexedDB abort preserves prior generation",
+      "payload corruption and redundant-copy repair",
+      "missing copy recovery",
+      "matching generation with differing payload refuses",
+      "unknown format never silently falls back",
+      "two damaged copies cannot become a new world",
+      "malformed record metadata refuses before repair",
+      "present undefined records are damaged, never empty worlds",
+      "transaction rechecks bytes after async validation",
+      "close aborts and drains before releasing ownership",
+      "eight-world bound counts both stores",
+      "full-width generation and exhaustion",
+      "revoked Web Lock closes and fences old owner",
+      "database upgrade closes owner and rejects older version"
+    ],
+    "strictWrites": 31,
+    "kind": "Isolated real IndexedDB/Web Locks; synthetic archive validator and deliberate storage faults; no game mutation"
+  },
+  "crashCuts": [
+    {
+      "point": "first-put",
+      "function": "IDBObjectStore.put",
+      "location": {
+        "scriptId": "4",
+        "lineNumber": 113,
+        "columnNumber": 68
+      },
+      "pausedLine": "                if(this.transaction.db.name===database&&++seen===1){debugger;}return request;};",
+      "acknowledgmentObserved": false
+    },
+    {
+      "point": "committed",
+      "function": "tx.addEventListener.once",
+      "location": {
+        "scriptId": "4",
+        "lineNumber": 117,
+        "columnNumber": 99
+      },
+      "pausedLine": "                if(this.name===database&&args[1]==='readwrite')tx.addEventListener('complete',()=>{debugger;},{once:true});return tx;};",
+      "acknowledgmentObserved": false
+    }
+  ],
+  "sourcesUnchanged": true,
+  "profileRemoved": true
+}

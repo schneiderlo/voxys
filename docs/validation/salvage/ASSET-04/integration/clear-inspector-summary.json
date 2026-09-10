@@ -1,0 +1,73 @@
+{
+  "schema": 1,
+  "status": "layout/lighting/lifecycle verified; ASSET-04 and visual gate remain open",
+  "sources": {
+    "src/game/expedition/salvage_preview.hpp": "1f7ddfdcd330f9b0db55740aafe8feba294eee061a52314a11933ea53df09dcb",
+    "src/game/expedition/salvage_preview.cpp": "2d52868bad3cf7aa98977e825a7f440073c65418f6b3fd7c8e93a2b21428d021",
+    "src/app/application.cpp": "e30266c701ff5e74431af87128b5c0efd5787d2cfd0b87f4a82f921534e8a365",
+    "tests/test_salvage_preview.cpp": "67b56fc117e77d8d888fe71cc53e5ecf3e622f2a08cf5606e7020a4821d8ed17",
+    "salvage_asset_fixture.cfg": "86edec7ff9cee300c222baad8f2d05eb3711af34b3f841f3036da0259088c7b9",
+    "scripts/validate_salvage_asset_fixture.mjs": "a3194c65249a3fbb863bd7f43cf775cb10378b0274e288badc71ed4ef77374cb",
+    "scripts/smoke_integrated_wasm.mjs": "8a6001f767b9fea1cfe8347268ccf8c5b0c38433a48ec6c13ca7096b5e255cdf",
+    "scripts/validate_salvage_asset_views.mjs": "602f006b54fa49529ada184ac2d88f1f250ba18f4821e8d3c23998d15fe62bbd",
+    "scripts/capture_salvage_asset_views.py": "ae228f9b04c2c68ed6ff28cf342150a0c30f71db0c906e7f8976632c6e0f5278",
+    "data/salvage/fixture-pontoon-v2.json": "f4d3599cf126f8aa583f4f065d66f891eca520926b876586250482d544c6afbd"
+  },
+  "artifacts": {
+    "/home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/voxy_native": {
+      "sha256": "2f4c15051aaf3920ab06c76fe7b02f026478a71978985d5fd9ef0b5779c80ad9",
+      "bytes": 4891912
+    },
+    "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native": {
+      "sha256": "ee2de740efb86875def63c32bf2894ded1a1cfb2faee424c880d6aac24f8590c",
+      "bytes": 44958160
+    },
+    "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_tests": {
+      "sha256": "0c5819c45e6eef94dc881126733066d3b7dbb2cbd1eca97a0dab5a040eab414f",
+      "bytes": 61453776
+    },
+    "/tmp/voxys-asset-browser-04/voxy_wasm.data": {
+      "sha256": "3c8840b8ac036adc1b2b6800f2fef1b741afe3fbce7b190dbffe47fe40cac1d6",
+      "bytes": 62485708
+    },
+    "/tmp/voxys-asset-browser-04/voxy_wasm.js": {
+      "sha256": "937a740414787c233fa4b6f535aa7f7fb29437f3009a530d24d863677f3e4004",
+      "bytes": 78366
+    },
+    "/tmp/voxys-asset-browser-04/voxy_wasm.wasm": {
+      "sha256": "59cab23c6905e71c02e5e3e6b32896e8e4918e227cdfd2b5e0d8ceee824f40c1",
+      "bytes": 5632331
+    }
+  },
+  "evidence": {
+    "integration/clear-inspector-native-tests-attempt02.log": "64c94aa3d4faacfe6ec0c7744213678ea4780a371526a66f503dec59f9a470d1",
+    "integration/clear-inspector-cmake-tests.xml": "f712f0fbb8d0b215dea61fa5b0f37939e04512d5142fbd40022a191101c375e5",
+    "clear-inspector-native-views-attempt01/report.json": "71ade09bfec1efe81a67bcf8e24a5e14918f2594c0a6b348182bc9c45a470f9a",
+    "clear-inspector-browser-views-attempt01/report.json": "6560d0f34cf329435af79ee6929185a5c327d86c16f1a7628d41d2f6ea7c2b49",
+    "clear-inspector-browser-attempt01/journey/summary.json": "4157dc926cd8f6e91834232195750ebe026e0e983626f53688c9a4a9aff88591",
+    "clear-inspector-browser-loss-attempt01/loss/summary.json": "c9a522986e06364b0c75bba77b0ee1bda59de055cfa8eb85f2bdc07936f31a01",
+    "clear-inspector-cove-regression/journey/summary.json": "10a04f319bbd0a1ae83ae8f8e0737f97506f6e821b1dd0f29cdfa5ecfdb54437"
+  },
+  "view_hashes": {
+    "clear-inspector-native-views-attempt01/front.png": "8e7161933a4651ff7ca012a3ec38671e245509744e1a7f59e697964763a3440a",
+    "clear-inspector-native-views-attempt01/rear.png": "7bc9134c74be4f42dc2b22059b1dca951986d6f341dbd4080b3221939b882583",
+    "clear-inspector-native-views-attempt01/left.png": "5891ef45f84a699ab15c4305701ec099b1f829960beb203558556891a14a4b00",
+    "clear-inspector-native-views-attempt01/right.png": "3b377d4c8a07061c49198d35d95a7d1bd2b605366896442539cb1fb0536f5a89",
+    "clear-inspector-native-views-attempt01/underside.png": "83711b79f75b41ef32e09ec27c5ff30e9996916830147fb3f290bd7dde20d2c7",
+    "clear-inspector-native-views-attempt01/engaged.png": "aa79991ce0d970de25751231b1140c2b562fa3be3eaed63a6e9a2cd437a4b9ea",
+    "clear-inspector-native-views-attempt01/material-front-light.png": "3dc4fd06c1fca3d725160eb074e0283396278e0898c0c6707eb828293cbf5659",
+    "clear-inspector-native-views-attempt01/material-opposite-light.png": "f822d6820bd1c10f9d20afa54dadb3d50909fb5287e7273324c71750171e7730",
+    "clear-inspector-native-views-attempt01/material-low-light.png": "d3ab00925b7b42ab168341a85d828167bc1c7f812d9b8c4312d830cac85bb928",
+    "clear-inspector-browser-views-attempt01/front.png": "cbc84de109f54963410c2e24abf8e985bce17d68b3676718005b454624403dea",
+    "clear-inspector-browser-views-attempt01/rear.png": "79bcc70405459ab717d98a786f6364a1488488f793a41f9b9430e8bc7e2f9096",
+    "clear-inspector-browser-views-attempt01/left.png": "a4716bcfd50f4a54ecaf80cab6feedb8ec6df414137372f49ea0dcc064523876",
+    "clear-inspector-browser-views-attempt01/right.png": "a3ceb5fb8c97e110bca94a3f9aafe3a3bfa5d770c0ec76aec3eeca46a2a1eea1",
+    "clear-inspector-browser-views-attempt01/underside.png": "c7570d3f94fead52ae3f010f9163dbdcb98e121adc5f77701f78d766cb470c65",
+    "clear-inspector-browser-views-attempt01/engaged.png": "369fe3b52dbf56edb62547d51415cf0697efeed7785d0e3bd5dfb6f9d516e8b2",
+    "clear-inspector-browser-views-attempt01/material-front-light.png": "19fec91cee94edc0c53b16405e46b83a7e3f6d4403a6e86f0ea7f5c98af7f480",
+    "clear-inspector-browser-views-attempt01/material-opposite-light.png": "6ad80347f06bfcc48a85348164ff14b2f2340b938fdd684bccc4749457712561",
+    "clear-inspector-browser-views-attempt01/material-low-light.png": "acaa40c1f2dc015a2464150922922f796c6b4955acbe2f10c600b338c97e9aac"
+  },
+  "scope": "Correctness and inspection appearance only; no performance or final art approval",
+  "recipe_sha256": "5b533346c15379c348ca2ba9ecf4db7afd230f6ec6186e400ff30f614cb9c629"
+}

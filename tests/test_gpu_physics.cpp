@@ -5,6 +5,7 @@
 #include "physics/gpu/gpu_buffer_arena.hpp"
 #include "physics/gpu/debug_readback_ring.hpp"
 #include "physics/physics_world.hpp"
+#include "physics/authored_shape_resources.hpp"
 
 #include <algorithm>
 #include <array>
@@ -342,6 +343,49 @@ TEST_F(GpuPhysicsTest, RenderHistoryKeepsThePreviousFixedTick) {
     ASSERT_TRUE(second.has_value());
     EXPECT_EQ(second->tick, 2u);
     EXPECT_GT(second->bodies[0].position.x, first->bodies[0].position.x);
+}
+
+TEST_F(GpuPhysicsTest, CombinedReadbackPreflightsEveryCopyBeforeTakingSlot) {
+    const auto source=gpu::createBuffer(gpuContext.getDevice(),{
+        .label="combined_readback_fixture",.size=16,
+        .usage=WGPUBufferUsage_CopySrc|WGPUBufferUsage_CopyDst});
+    ASSERT_NE(source,nullptr);
+    const std::array<uint32_t,4> words{11,22,33,44};
+    ASSERT_TRUE(gpu::writeBuffer(gpuContext.getQueue(),source,0,words));
+    DebugReadbackRing ring;ASSERT_TRUE(ring.initialize(gpuContext.getDevice(),1,8));
+    WGPUCommandEncoderDescriptor ed{};
+    const auto encoder=wgpuDeviceCreateCommandEncoder(gpuContext.getDevice(),&ed);ASSERT_NE(encoder,nullptr);
+    std::array copies{DebugReadbackCopy{source,0,4},DebugReadbackCopy{source,16,4}};
+    EXPECT_FALSE(ring.encodeCopies(encoder,copies,123,{7,1,9,1}));EXPECT_EQ(ring.availableSlots(),1u);
+    copies[1]={source,8,8};
+    EXPECT_FALSE(ring.encodeCopies(encoder,copies,123,{7,1,9,1}));EXPECT_EQ(ring.availableSlots(),1u);
+    copies[1]={source,12,4};
+    ASSERT_TRUE(ring.encodeCopies(encoder,copies,123,{7,1,9,1},std::nullopt,77));
+    EXPECT_FALSE(ring.encodeCopies(encoder,copies,124,{7,1,9,1}));EXPECT_EQ(ring.availableSlots(),0u);
+    WGPUCommandBufferDescriptor cd{};const auto command=wgpuCommandEncoderFinish(encoder,&cd);ASSERT_NE(command,nullptr);
+    wgpuCommandEncoderRelease(encoder);wgpuQueueSubmit(gpuContext.getQueue(),1,&command);wgpuCommandBufferRelease(command);
+    auto packet=ring.poll();
+    for(int attempt=0;!packet && attempt<16;++attempt) {
+        (void)wgpuDevicePoll(gpuContext.getDevice(),true,nullptr);packet=ring.poll();
+    }
+    ASSERT_TRUE(packet);ASSERT_EQ(packet->bytes.size(),8u);
+    std::array<uint32_t,2> actual{};std::memcpy(actual.data(),packet->bytes.data(),packet->bytes.size());
+    EXPECT_EQ(actual,(std::array<uint32_t,2>{11,44}));EXPECT_EQ(packet->tick,123u);
+    EXPECT_EQ(packet->firstBody,7u);EXPECT_EQ(packet->bodyCount,1u);
+    EXPECT_EQ(packet->firstAttachment,9u);EXPECT_EQ(packet->attachmentCount,1u);EXPECT_EQ(packet->submissionSerial,77u);
+    EXPECT_EQ(ring.failedReadbacks(),0u);EXPECT_EQ(ring.availableSlots(),1u);
+    // Reusing this slot for an ordinary packet must clear its attachment range.
+    const auto next=wgpuDeviceCreateCommandEncoder(gpuContext.getDevice(),&ed);ASSERT_NE(next,nullptr);
+    ASSERT_TRUE(ring.encodeCopy(next,source,4,4,124,8,1));
+    const auto nextCommand=wgpuCommandEncoderFinish(next,&cd);ASSERT_NE(nextCommand,nullptr);
+    wgpuCommandEncoderRelease(next);wgpuQueueSubmit(gpuContext.getQueue(),1,&nextCommand);wgpuCommandBufferRelease(nextCommand);
+    packet=ring.poll();
+    for(int attempt=0;!packet && attempt<16;++attempt) {
+        (void)wgpuDevicePoll(gpuContext.getDevice(),true,nullptr);packet=ring.poll();
+    }
+    ASSERT_TRUE(packet);EXPECT_EQ(packet->attachmentCount,0u);EXPECT_EQ(packet->firstAttachment,0u);
+    EXPECT_EQ(packet->submissionSerial,0u);
+    ring.shutdown();wgpuBufferDestroy(source);wgpuBufferRelease(source);
 }
 
 TEST_F(GpuPhysicsTest, IntegratesPersistentBodyAndReadsItAsynchronously) {
@@ -883,6 +927,29 @@ TEST_F(GpuPhysicsTest, UsesGlobalSolverAboveSerialWorldLimit) {
     EXPECT_EQ(telemetry.telemetryTick, 1u);
     EXPECT_GE(telemetry.highContacts, 1u);
     EXPECT_FALSE(telemetry.serialWorldSolver);
+}
+
+TEST_F(GpuPhysicsTest, AuthoredResourceBorrowFollowsMovedWorldAndDrainsBeforeShutdown) {
+    ShapeResourceLimits limits;
+    limits.cpu.slots=2; limits.cpu.cells=8; limits.cpu.faces=64; limits.cpu.nodes=16;
+    limits.gpuBytes=8192;
+    ASSERT_EQ(world.enableAuthoredShapeResources(limits),ShapeResourceError::None);
+    auto* borrowed=world.authoredShapeResources(); ASSERT_NE(borrowed,nullptr);
+    PhysicsWorld moved=std::move(world);
+    EXPECT_EQ(world.authoredShapeResources(),nullptr);
+    EXPECT_EQ(world.enableAuthoredShapeResources(limits),ShapeResourceError::NotInitialized);
+    EXPECT_EQ(moved.authoredShapeResources(),borrowed);
+    for(uint32_t i=0;i<16 && borrowed->stats().phase==ShapeResourcePhase::Initializing;++i) {
+        static_cast<void>(wgpuDevicePoll(gpuContext.getDevice(),true,nullptr)); moved.update(0);
+    }
+    ASSERT_EQ(borrowed->stats().phase,ShapeResourcePhase::Ready);
+    borrowed->close();
+    for(uint32_t i=0;i<16 && borrowed->stats().phase!=ShapeResourcePhase::Closed;++i) {
+        static_cast<void>(wgpuDevicePoll(gpuContext.getDevice(),true,nullptr)); moved.update(0);
+    }
+    EXPECT_EQ(borrowed->stats().phase,ShapeResourcePhase::Closed);
+    moved.shutdown(); EXPECT_EQ(moved.authoredShapeResources(),nullptr);
+    EXPECT_EQ(moved.enableAuthoredShapeResources(limits),ShapeResourceError::NotInitialized);
 }
 
 TEST_F(GpuPhysicsTest,
@@ -2250,6 +2317,55 @@ TEST_F(GpuPhysicsTest, DistanceAttachmentRemainsSlackBelowTargetLength) {
     EXPECT_EQ(stats.tautAttachments, 0u);
 }
 
+TEST_F(GpuPhysicsTest, CompliantDistanceAttachmentAbsorbsImpactWithoutAddingEnergy) {
+    // Same 300 kg moving load and unchanged force/strength limits. The hard
+    // cable snaps; an elastic sling stretches and absorbs the incident energy.
+    // Keep the velocity ceiling well beyond this pendulum's available energy;
+    // clipping must not mask numerical energy injection in the comparison.
+    world.shutdown();PhysicsInitContext config;config.requestedBackend=BackendType::WebGpuSoft;
+    config.device=gpuContext.getDevice();config.queue=gpuContext.getQueue();
+    config.maxBodies=32;config.maxActiveBodies=32;config.maxPairs=64;config.maxContacts=128;config.maxManifolds=128;
+    config.gpu.commandCapacity=128;config.gpu.debugReadbackBodyCapacity=8;
+    config.gpu.maximumLinearSpeed=30;config.gpu.maximumAngularSpeed=30;
+    ASSERT_TRUE(world.initialize(config));
+    std::array<BodyHandle,2> loads{};std::array<AttachmentHandle,2> lines{};
+    for(size_t i=0;i<2;++i){
+        BodySpawnDesc desc;desc.position={0,20,float(i)*20};desc.inverseMass=0;
+        const auto fixed=world.spawnBody(desc);ASSERT_TRUE(fixed.valid());
+        desc.position.x=5;desc.inverseMass=1.f/300;desc.linearVelocity={3,0,0};
+        loads[i]=world.spawnBody(desc);ASSERT_TRUE(loads[i].valid());
+        DistanceAttachmentDesc rope;rope.bodyA=fixed;rope.bodyB=loads[i];
+        rope.targetLength=4.99f;rope.maximumForce=30000;rope.breakForce=45000;
+        if(i)rope.springCompliance=5e-6f;
+        auto invalid=rope;invalid.springCompliance=-1;EXPECT_FALSE(world.createDistanceAttachment(invalid).valid());
+        invalid.springCompliance=std::numeric_limits<float>::quiet_NaN();EXPECT_FALSE(world.createDistanceAttachment(invalid).valid());
+        lines[i]=world.createDistanceAttachment(rope);ASSERT_TRUE(lines[i].valid());
+    }
+    const auto observe=[&](){
+        world.requestDebugSnapshot({loads[0].index,loads[1].index-loads[0].index+1,lines[0].index,2});
+        encodeAndSubmit();return retireDebugReadback();
+    };
+    stepTicks(1);auto impact=observe();ASSERT_TRUE(impact);ASSERT_EQ(impact->attachments.size(),2u);
+    EXPECT_TRUE(impact->attachments[0].broken);EXPECT_GT(impact->attachments[0].requiredForce,45000);
+    EXPECT_TRUE(impact->attachments[1].alive);EXPECT_FALSE(impact->attachments[1].broken);
+    EXPECT_GT(impact->attachments[1].requiredForce,0);EXPECT_LE(impact->attachments[1].requiredForce,30000);
+    EXPECT_FLOAT_EQ(impact->attachments[1].distance.springCompliance,5e-6f);
+    const auto& moving=impact->bodies.back();EXPECT_GT(moving.position.x,4.99f);
+    EXPECT_GT(moving.linearVelocity.x,0);EXPECT_LT(moving.linearVelocity.x,3);
+    const double initialEnergy=300.*(9.81*20.+.5*3.*3.)+.5/5e-6*.01*.01;
+    const auto energy=[&](const DebugBodyState& body){
+        const double stretch=std::max(0.,glm::length(glm::dvec3(body.position)-glm::dvec3(0,20,20))-4.99);
+        return 300.*(.5*glm::dot(glm::dvec3(body.linearVelocity),glm::dvec3(body.linearVelocity))+9.81*double(body.position.y))
+            +.5/5e-6*stretch*stretch;
+    };
+    EXPECT_LT(energy(moving),initialEnergy-100.);
+    for(int sample=0;sample<10;++sample){
+        stepTicks(12);const auto settled=observe();ASSERT_TRUE(settled);
+        EXPECT_FALSE(settled->attachments[1].broken);EXPECT_TRUE(settled->attachments[1].alive);
+        EXPECT_LE(energy(settled->bodies.back()),initialEnergy+25.);
+    }
+}
+
 TEST_F(GpuPhysicsTest, PositiveAttachmentMotorSpeedReelsIn) {
     BodySpawnDesc anchorDesc;
     anchorDesc.position = {0.0f, 20.0f, 0.0f};
@@ -2275,6 +2391,56 @@ TEST_F(GpuPhysicsTest, PositiveAttachmentMotorSpeedReelsIn) {
     ASSERT_TRUE(snapshot.has_value());
     EXPECT_LT(snapshot->bodies[1].position.x, 4.9f);
     ASSERT_TRUE(world.setAttachmentMotorSpeed(handle, 0.0f));
+}
+
+TEST_F(GpuPhysicsTest, BodyAndWinchSnapshotKeepsActualTargetAcrossPauseAndRelease) {
+    BodySpawnDesc desc;desc.position={0,20,0};desc.inverseMass=0;
+    const auto anchor=world.spawnBody(desc);desc.position.x=5;desc.inverseMass=1;
+    const auto load=world.spawnBody(desc);
+    DistanceAttachmentDesc rope;rope.bodyA=anchor;rope.bodyB=load;
+    rope.localAnchorA={.1f,.2f,.3f};rope.localAnchorB={-.1f,.4f,.2f};
+    rope.targetLength=10;rope.minimumLength=1;rope.maximumLength=12;rope.motorSpeed=3;
+    const auto handle=world.createDistanceAttachment(rope);ASSERT_TRUE(handle.valid());
+    stepTicks(10);
+    world.requestDebugSnapshot({anchor.index,2,handle.index,1});encodeAndSubmit();
+    auto snapshot=retireDebugReadback();ASSERT_TRUE(snapshot);
+    ASSERT_EQ(snapshot->bodies.size(),2u);ASSERT_EQ(snapshot->attachments.size(),1u);
+    EXPECT_EQ(snapshot->tick,10u);EXPECT_EQ(snapshot->confirmedIncarnation,0u);
+    const auto observed=snapshot->attachments.front();
+    EXPECT_EQ(observed.handle,handle);EXPECT_TRUE(observed.alive);EXPECT_FALSE(observed.broken);
+    EXPECT_EQ(observed.distance.bodyA,anchor);EXPECT_EQ(observed.distance.bodyB,load);
+    EXPECT_EQ(observed.distance.localAnchorA,rope.localAnchorA);EXPECT_EQ(observed.distance.localAnchorB,rope.localAnchorB);
+    EXPECT_NEAR(observed.distance.targetLength,9.5f,1e-5f);EXPECT_FLOAT_EQ(observed.distance.motorSpeed,3);
+    // A readback-only frame must neither reel the cable nor invent a tick.
+    world.requestDebugSnapshot({anchor.index,2,handle.index,1});encodeAndSubmit();
+    snapshot=retireDebugReadback();ASSERT_TRUE(snapshot);ASSERT_EQ(snapshot->attachments.size(),1u);
+    EXPECT_EQ(snapshot->tick,10u);EXPECT_FLOAT_EQ(snapshot->attachments.front().distance.targetLength,observed.distance.targetLength);
+    ASSERT_TRUE(world.setAttachmentMotorSpeed(handle,-6));stepTicks(2);
+    world.requestDebugSnapshot({anchor.index,2,handle.index,1});encodeAndSubmit();
+    snapshot=retireDebugReadback();ASSERT_TRUE(snapshot);ASSERT_EQ(snapshot->attachments.size(),1u);
+    EXPECT_EQ(snapshot->tick,12u);EXPECT_NEAR(snapshot->attachments.front().distance.targetLength,9.7f,1e-5f);
+    ASSERT_TRUE(world.destroyAttachment(handle));stepTicks(1);
+    world.requestDebugSnapshot({anchor.index,2,handle.index,1});encodeAndSubmit();
+    snapshot=retireDebugReadback();ASSERT_TRUE(snapshot);ASSERT_EQ(snapshot->attachments.size(),1u);
+    EXPECT_FALSE(snapshot->attachments.front().alive);EXPECT_FALSE(snapshot->attachments.front().broken);
+    const auto replacement=world.createDistanceAttachment(rope);ASSERT_TRUE(replacement.valid());
+    EXPECT_EQ(replacement.index,handle.index);EXPECT_NE(replacement.generation,handle.generation);stepTicks(1);
+    world.requestDebugSnapshot({anchor.index,2,replacement.index,1});encodeAndSubmit();
+    snapshot=retireDebugReadback();ASSERT_TRUE(snapshot);ASSERT_EQ(snapshot->attachments.size(),1u);
+    EXPECT_EQ(snapshot->attachments.front().handle,replacement);
+    EXPECT_NEAR(snapshot->attachments.front().distance.targetLength,9.95f,1e-5f);
+}
+
+TEST_F(GpuPhysicsTest, AttachmentReadbackRefusesInvalidAndOversizedRanges) {
+    const auto body=world.spawnBody({});ASSERT_TRUE(body.valid());stepTicks(1);
+    for(const auto range:std::array{DebugSnapshotRequest{body.index,1,0,1},
+        DebugSnapshotRequest{body.index,1,UINT32_MAX,1},
+        DebugSnapshotRequest{body.index,1,1,UINT32_MAX},
+        DebugSnapshotRequest{body.index,1,1,17}}) {
+        world.requestDebugSnapshot(range);encodeAndSubmit();EXPECT_FALSE(retireDebugReadback());
+    }
+    const auto snapshot=snapshotRange(body.index,1);ASSERT_TRUE(snapshot);
+    EXPECT_TRUE(snapshot->attachments.empty());EXPECT_EQ(snapshot->tick,1u);
 }
 
 TEST_F(GpuPhysicsTest, BrokenAttachmentEmitsForceAndImpulseEvidence) {
@@ -2314,9 +2480,15 @@ TEST_F(GpuPhysicsTest, BrokenAttachmentEmitsForceAndImpulseEvidence) {
     EXPECT_GT(event->impulse, 0.0f);
     EXPECT_GT(event->force, rope.breakForce);
 
-    const auto snapshot = snapshotRange(anchor.index, 2u);
+    world.requestDebugSnapshot({anchor.index,2u,handle.index,1u});encodeAndSubmit();
+    const auto snapshot = retireDebugReadback();
     ASSERT_TRUE(snapshot.has_value());
     EXPECT_NEAR(snapshot->bodies[1].position.x, 8.0f, 1.0e-4f);
+    ASSERT_EQ(snapshot->attachments.size(),1u);
+    const auto& broken=snapshot->attachments.front();
+    EXPECT_EQ(broken.handle,handle);EXPECT_FALSE(broken.alive);EXPECT_TRUE(broken.broken);
+    EXPECT_EQ(broken.breakTick,batch->tick);EXPECT_EQ(broken.breakReason,1u);
+    EXPECT_FLOAT_EQ(broken.requiredForce,event->force);EXPECT_FLOAT_EQ(broken.requiredImpulse,event->impulse);
     const PhysicsStats stats = retireTelemetry();
     EXPECT_EQ(stats.attachmentBreakEvents, 1u);
 }
@@ -2637,6 +2809,90 @@ TEST_F(
     EXPECT_EQ(world.encodedTick(), prepared.targetTick);
 }
 
+TEST_F(GpuPhysicsTest, PreparedParentRetirementRefusesWholeSetAndDiscardPreservesLifetimes) {
+    BodySpawnDesc desc;desc.position={-10,20,0};
+    const auto first=world.spawnBody(desc);desc.position.x=10;
+    const auto second=world.spawnBody(desc);ASSERT_TRUE(first.valid());ASSERT_TRUE(second.valid());
+    const std::array parents{first,second};
+    EXPECT_EQ(world.prepareMutationBatch({.bodyDestroys=parents}).status,PhysicsMutationStatus::InvalidInput);
+    ASSERT_TRUE(world.scheduleFixedTicks(1));encodeAndSubmit();
+    static_cast<void>(wgpuDevicePoll(gpuContext.getDevice(),true,nullptr));
+
+    const std::array invalid{first,BodyHandle{second.index,second.generation+1}};
+    EXPECT_EQ(world.prepareMutationBatch({.bodyDestroys=invalid}).status,PhysicsMutationStatus::InvalidInput);
+    const std::array duplicate{first,first};
+    EXPECT_EQ(world.prepareMutationBatch({.bodyDestroys=duplicate}).status,PhysicsMutationStatus::InvalidInput);
+    PhysicsCommand velocity;velocity.type=PhysicsCommandType::SetVelocity;velocity.body=first;velocity.a={1,0,0,0};
+    const std::array commands{velocity};
+    EXPECT_EQ(world.prepareMutationBatch({.bodyCommands=commands,.bodyDestroys=parents}).status,PhysicsMutationStatus::InvalidInput);
+    DistanceAttachmentDesc rope;rope.bodyA=first;rope.bodyB=second;
+    const std::array creates{rope};
+    EXPECT_EQ(world.prepareMutationBatch({.attachmentCreates=creates,.bodyDestroys=parents}).status,PhysicsMutationStatus::InvalidInput);
+
+    const auto prepared=world.prepareMutationBatch({.bodyDestroys=parents});ASSERT_TRUE(prepared);
+    EXPECT_FALSE(world.destroyBody(first));EXPECT_FALSE(world.scheduleFixedTicks(1));
+    ASSERT_TRUE(world.discardPrepared(prepared));
+    EXPECT_EQ(world.commitPrepared(prepared).status,PhysicsMutationStatus::InvalidToken);
+    world.requestDebugSnapshot({first.index,2});ASSERT_TRUE(world.scheduleFixedTicks(1));encodeAndSubmit();
+    const auto snapshot=retireDebugReadback();ASSERT_TRUE(snapshot);ASSERT_EQ(snapshot->bodies.size(),2u);
+    EXPECT_TRUE(snapshot->bodies[0].alive);EXPECT_EQ(snapshot->bodies[0].handle,first);
+    EXPECT_TRUE(snapshot->bodies[1].alive);EXPECT_EQ(snapshot->bodies[1].handle,second);
+}
+
+TEST_F(GpuPhysicsTest, PreparedParentRetirementCommitsWithRopeTransferAndReusesOnlyNewGenerations) {
+    BodySpawnDesc desc;desc.position={-10,20,0};desc.inverseMass=0;
+    const auto first=world.spawnBody(desc);desc.position.x=-5;
+    const auto second=world.spawnBody(desc);desc.position.x=5;
+    const auto child=world.spawnBody(desc);desc.position.x=10;
+    const auto anchor=world.spawnBody(desc);ASSERT_TRUE(anchor.valid());
+    DistanceAttachmentDesc rope;rope.bodyA=first;rope.bodyB=second;rope.targetLength=5;
+    const auto oldRope=world.createDistanceAttachment(rope);ASSERT_TRUE(oldRope.valid());
+    ASSERT_TRUE(world.scheduleFixedTicks(1));encodeAndSubmit();
+    static_cast<void>(wgpuDevicePoll(gpuContext.getDevice(),true,nullptr));
+    const std::array parents{first,second};const std::array ropes{oldRope};
+    rope.bodyA=child;rope.bodyB=anchor;const std::array creates{rope};
+    const auto prepared=world.prepareMutationBatch({.attachmentDestroys=ropes,.attachmentCreates=creates,.bodyDestroys=parents});
+    ASSERT_TRUE(prepared);ASSERT_EQ(prepared.createdAttachments.size(),1u);
+    const auto replacement=prepared.createdAttachments.front();
+    const auto committed=world.commitPrepared(prepared);ASSERT_TRUE(committed);
+    EXPECT_EQ(committed.destroyedBodyCount,2u);EXPECT_EQ(committed.targetTick,2u);
+    EXPECT_EQ(committed.destroyedAttachmentCount,1u);EXPECT_EQ(committed.createdAttachmentCount,1u);
+    EXPECT_NE(replacement.generation,oldRope.generation);
+    EXPECT_EQ(world.prepareMutationBatch({.bodyDestroys=parents}).status,PhysicsMutationStatus::InvalidInput);
+    // Committed retirement has not encoded yet: a new spawn cannot reuse a parent slot.
+    desc.position.x=15;const auto extra=world.spawnBody(desc);ASSERT_TRUE(extra.valid());
+    EXPECT_NE(extra.index,first.index);EXPECT_NE(extra.index,second.index);
+    world.requestDebugSnapshot({first.index,4,replacement.index,1});
+    ASSERT_TRUE(world.scheduleFixedTicks(1));encodeAndSubmit();
+    const auto snapshot=retireDebugReadback();ASSERT_TRUE(snapshot);ASSERT_EQ(snapshot->tick,2u);
+    ASSERT_EQ(snapshot->bodies.size(),4u);EXPECT_FALSE(snapshot->bodies[0].alive);EXPECT_FALSE(snapshot->bodies[1].alive);
+    EXPECT_TRUE(snapshot->bodies[2].alive);EXPECT_EQ(snapshot->bodies[2].handle,child);
+    EXPECT_TRUE(snapshot->bodies[3].alive);EXPECT_EQ(snapshot->bodies[3].handle,anchor);
+    ASSERT_EQ(snapshot->attachments.size(),1u);EXPECT_TRUE(snapshot->attachments[0].alive);
+    EXPECT_EQ(snapshot->attachments[0].handle,replacement);EXPECT_EQ(snapshot->attachments[0].distance.bodyA,child);
+    EXPECT_EQ(snapshot->attachments[0].distance.bodyB,anchor);
+    const auto reused=world.spawnBody(desc);ASSERT_EQ(reused.index,first.index);EXPECT_NE(reused.generation,first.generation);
+    EXPECT_EQ(world.prepareMutationBatch({.bodyDestroys=parents}).status,PhysicsMutationStatus::InvalidInput);
+}
+
+TEST_F(GpuPhysicsTest, PreparedParentRetirementAtCommandCapacityKeepsEveryParent) {
+    BodySpawnDesc desc;desc.position={-10,20,0};desc.inverseMass=0;
+    const auto first=world.spawnBody(desc);desc.position.x=10;const auto second=world.spawnBody(desc);
+    ASSERT_TRUE(first.valid());ASSERT_TRUE(second.valid());
+    ASSERT_TRUE(world.scheduleFixedTicks(1));encodeAndSubmit();
+    static_cast<void>(wgpuDevicePoll(gpuContext.getDevice(),true,nullptr));
+    PhysicsCommand command;command.type=PhysicsCommandType::Wake;command.body=first;
+    std::vector<PhysicsCommand> queued(2047,command);world.enqueue(queued);
+    const std::array parents{first,second};
+    EXPECT_EQ(world.prepareMutationBatch({.bodyDestroys=parents}).status,PhysicsMutationStatus::CapacityExceeded);
+    world.requestDebugSnapshot({first.index,2});ASSERT_TRUE(world.scheduleFixedTicks(1));encodeAndSubmit();
+    const auto snapshot=retireDebugReadback();ASSERT_TRUE(snapshot);ASSERT_EQ(snapshot->bodies.size(),2u);
+    EXPECT_TRUE(snapshot->bodies[0].alive);EXPECT_EQ(snapshot->bodies[0].handle,first);
+    EXPECT_TRUE(snapshot->bodies[1].alive);EXPECT_EQ(snapshot->bodies[1].handle,second);
+    const auto retry=world.prepareMutationBatch({.bodyDestroys=parents});ASSERT_TRUE(retry);
+    ASSERT_TRUE(world.discardPrepared(retry));
+}
+
 TEST_F(
     GpuPhysicsTest,
     AccumulatorAndExplicitFixedTickSchedulingCannotBeMixed) {
@@ -2664,6 +2920,8 @@ TEST_F(
         rejected.status,
         PhysicsMutationStatus::IncompatibleSchedulingMode);
     EXPECT_FALSE(world.scheduleFixedTicks(1u));
+    EXPECT_EQ(world.prepareMutationBatch({.attachmentCreates=creates,
+        .joinedBoundary=PhysicsMutationJoin{1,0}}).status,PhysicsMutationStatus::JoinedBoundaryUnavailable);
     EXPECT_TRUE(world.createDistanceAttachment(rope).valid());
 }
 

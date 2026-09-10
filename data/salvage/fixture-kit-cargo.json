@@ -1,0 +1,171 @@
+{
+  "schema": 1,
+  "bundles": [
+    {
+      "directory": "functional-kit/r09/cradle/cooked",
+      "part": {
+        "counter": "9",
+        "namespace": "766f7879732d73616c766167652d7631",
+        "version": 2
+      },
+      "manifest_sha256": "59e2f474767d23449d8dc9d20d214dba0fab110c1b16f89e8c07c855d4169a5b",
+      "lod_limits": [
+        {
+          "id": "1",
+          "vertices": 24000,
+          "triangles": 12000,
+          "texture_dimension": 128
+        },
+        {
+          "id": "2",
+          "vertices": 12000,
+          "triangles": 6000,
+          "texture_dimension": 64
+        },
+        {
+          "id": "3",
+          "vertices": 6000,
+          "triangles": 3000,
+          "texture_dimension": 64
+        }
+      ]
+    },
+    {
+      "directory": "functional-kit/r09/generator/cooked",
+      "part": {
+        "counter": "1",
+        "namespace": "766f7879732d636172676f2d76310000",
+        "version": 1
+      },
+      "manifest_sha256": "0ffa43f2450a25f0c41ad83dc70b78fc0c158d2e41ed688088696ef61d7b5f2c",
+      "lod_limits": [
+        {
+          "id": "1",
+          "vertices": 24000,
+          "triangles": 12000,
+          "texture_dimension": 128
+        },
+        {
+          "id": "2",
+          "vertices": 12000,
+          "triangles": 6000,
+          "texture_dimension": 64
+        },
+        {
+          "id": "3",
+          "vertices": 6000,
+          "triangles": 3000,
+          "texture_dimension": 64
+        }
+      ]
+    },
+    {
+      "directory": "functional-kit/r09/crate/cooked",
+      "part": {
+        "counter": "2",
+        "namespace": "766f7879732d636172676f2d76310000",
+        "version": 1
+      },
+      "manifest_sha256": "fb0fd8dbf3546ce6cc5c27d51e5d095080a3c47da0c20395090eb8291eb9da22",
+      "lod_limits": [
+        {
+          "id": "1",
+          "vertices": 24000,
+          "triangles": 12000,
+          "texture_dimension": 128
+        },
+        {
+          "id": "2",
+          "vertices": 12000,
+          "triangles": 6000,
+          "texture_dimension": 64
+        },
+        {
+          "id": "3",
+          "vertices": 6000,
+          "triangles": 3000,
+          "texture_dimension": 64
+        }
+      ]
+    },
+    {
+      "directory": "functional-kit/r09/winch/cooked",
+      "part": {
+        "counter": "7",
+        "namespace": "766f7879732d73616c766167652d7631",
+        "version": 2
+      },
+      "manifest_sha256": "3a781f77d9c7952b4607a2be5aa81c56ed47c83397303a5be0b1607318806f4e",
+      "lod_limits": [
+        {
+          "id": "1",
+          "vertices": 24000,
+          "triangles": 12000,
+          "texture_dimension": 128
+        },
+        {
+          "id": "2",
+          "vertices": 12000,
+          "triangles": 6000,
+          "texture_dimension": 64
+        },
+        {
+          "id": "3",
+          "vertices": 6000,
+          "triangles": 3000,
+          "texture_dimension": 64
+        }
+      ]
+    }
+  ],
+  "placements": [
+    {
+      "bundle": 0,
+      "translation_ticks": [
+        0,
+        0,
+        0
+      ],
+      "rotation": 0
+    },
+    {
+      "bundle": 1,
+      "translation_ticks": [
+        0,
+        48,
+        0
+      ],
+      "rotation": 0
+    },
+    {
+      "bundle": 2,
+      "translation_ticks": [
+        160,
+        32,
+        0
+      ],
+      "rotation": 0
+    },
+    {
+      "bundle": 3,
+      "translation_ticks": [
+        -125,
+        40,
+        0
+      ],
+      "rotation": 0
+    }
+  ],
+  "camera": {
+    "eye": [
+      7,
+      4,
+      -8
+    ],
+    "target": [
+      0.4,
+      0.5,
+      0
+    ]
+  }
+}

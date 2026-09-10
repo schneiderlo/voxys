@@ -1,0 +1,58 @@
+{
+  "schema": 1,
+  "date": "2026-09-08",
+  "scope": "Authored exterior queries and bounded shallow contacts through shipping GPU consumers; live cove body admission remains disabled.",
+  "native": {
+    "tests": 24,
+    "new_consumer_tests": 12,
+    "legacy_queries": 8,
+    "legacy_narrow": 4,
+    "application_build": true
+  },
+  "browser": {
+    "tests": 12,
+    "hardware": true,
+    "gpu_errors": 0,
+    "screenshots": 0,
+    "application_build": true
+  },
+  "gate_passed": false,
+  "sources": {
+    "src/physics/gpu/gpu_queries.hpp": "6405c52834d5873ac3bdcbf43b23661ffa1adc77e524b38922ea98b9225ffd0a",
+    "src/physics/gpu/gpu_queries.cpp": "9ac237d6a537259d8130b7661a932bd44be7571176fceacc614aaaaee5718259",
+    "src/physics/gpu/gpu_narrow_phase.hpp": "4bd9fb8d17ba75374743c0841fb57cdaf4e8960cfbd3359bad012725d8a83848",
+    "src/physics/gpu/gpu_narrow_phase.cpp": "411819b932b11bfb3743b8da54c8ded7d71d9104f59fd5dda71da2667391a052",
+    "shaders/physics_queries.wgsl": "4b6d88ab0d84b097f9f677660b857e1e25cee9b1e08ac88953d47d3aa868f8bf",
+    "shaders/physics_narrow_phase.wgsl": "0de1bec0223ff4b33bf2b2914dfaf7658eec9604d724f028b6edd79b97e42af2",
+    "shaders/physics_authored_shapes.wgsl": "21c643c235b616466de2ab0ed0b40dfe6b4fe5a64a87244dc648ba9056468530",
+    "shaders/physics_authored_queries.wgsl": "68d6c54a43a40513adf365d57fef8bb63668c57bc7d94c62006cfe291b584130",
+    "scripts/sync_authored_shapes.py": "ecfbea57417d2c6db31ceae11f9da652f298a7f057665b9ab1892fcdad1aeefb",
+    "scripts/shape_diagnostics.html": "dd0b2361f3b244d271c180a99e89a32c707d43a01e8a662bd3e1f7c0120b8894",
+    "scripts/run_shape_diagnostics.mjs": "cbc4baefa75b6ab57e3d9833f847f3a8ea41d19e30e466fb299346dcde0470fd",
+    "tests/test_gpu_authored_shapes.cpp": "9ca0db12210e435111a452e45f1e0c42c83852c6d07e9ee8b6b42e75df837262",
+    ".github/workflows/pages.yml": "2bbdf88e15b2a6fdffacaf08bc544095e6e57c9fb41a04a935c8cb74329b691a",
+    ".github/workflows/native-renderer-regression.yml": "3e95401df685d45284c1a7d6d2a8b9fbb1881fd1dbcff30d77a54d528fdd51c6"
+  },
+  "evidence": {
+    "wasm-app-build.log": "60341afc7da5e8611737ea1ca117eb6b9e74ebb9df194b37d08e8a0b4f741bc1",
+    "browser-tests.log": "17a71aa605250e8a1e3236e0d4b6618388f17a232d39e32b41f04b25948a643c",
+    "browser-chrome.log": "b0bf01b4799a2620d4cc560f33b64c62215bf662cb18e9a0765dab78335a684e",
+    "native.log": "9a6e7ba41bbeebd00422fec98e8b151d81c1718bc4db9f6f200d508d8fcfb877",
+    "web-build.json": "55c652994d7e2fbc827192c5682a8f21dfda781fb6267be70a7be036049c1f9f",
+    "browser.json": "6b642beca0ee330418c5da99f586a80bdfa009806bb412f2e6d8652d4926998d",
+    "attempts/tests-r01.log": "ce5f2bef2ebffaefad2273c5a9698c66890f7ba9647de1ca76264d472f196488",
+    "attempts/build-r03.log": "3a7d59b714b6c849a3deb427caa7e912955619b78bbd5685c1c5e7516ba09be3",
+    "attempts/tests-r02.log": "bc78e9578f16485d2434cd5caef670ca03adcefa48823cfa0c09182ebd710330",
+    "attempts/browser-r01-chrome.log": "e6f0e359c429a10e569c8aba3f843d7af461d52dcfd016c632a23e12e368fc96",
+    "attempts/browser-r02-chrome.log": "15c26d534d344a945ebee609d254144af1f4bd1aae32f7aac77395709ecce1db",
+    "attempts/build-r02.log": "e0bdd82d479124c7a4d5e30b9adcb98b96223081461b28604b1fd65e8f9cda4a",
+    "attempts/tests-r05.log": "5ee7895708ea7e7ceaa2b4fea4b5d54da397cd1f890fcb286c0c70dea2fd87a0",
+    "attempts/tests-r07.log": "ea2a850465ab260f4f3c2115a8a4d44f75dbbfc7afd4db131cbac2e298215f09",
+    "attempts/browser-r01-report.json": "0ff13abb114532ab07271a4ece1edd1ffa0bbb851b59a9148f6beedd496f2600",
+    "attempts/tests-r04.log": "f74965b690ce96f377519add369104d45fcc2e508f866bdaa060c2b0fab975f7",
+    "attempts/tests-r03.log": "b9967658de20605d1f0ed20a2f69ccca3f65bcb50a8f528a003d70bf98a23b1b",
+    "attempts/browser-r02-report.json": "cd03f69ac1a0557646b5ab1f6476de40af231271d6888cc8fe133f0d9ebf126c",
+    "attempts/tests-r06.log": "ce1bc25c795e5e253c8202ea704f40123dcce60ad048b8d7d369989aad868709",
+    "attempts/build-r01.log": "478574464063e95da1dd8f8baa3b028b7d2bd24274d1a6730415e3e629bb3d94"
+  }
+}

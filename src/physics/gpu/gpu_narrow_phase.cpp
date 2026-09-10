@@ -93,6 +93,19 @@ public:
             "narrow_phase_pair_buckets");
         classTable_ = makeStorage(kClassTableWords * sizeof(uint32_t),
                                   "narrow_phase_class_table");
+        // Collision dispatch only reads the class counts/offsets. A GPU copy
+        // to a uniform frees a storage binding for the compound atlas while
+        // staying within WebGPU's guaranteed eight-storage-buffer limit.
+        collisionClasses_ = gpu::createBuffer(device_, gpu::BufferDesc{
+            .label = "narrow_phase_collision_classes",
+            .size = kClassTableWords * sizeof(uint32_t),
+            .usage = WGPUBufferUsage_Uniform | WGPUBufferUsage_CopyDst,
+        });
+        const std::array<uint32_t, 8> emptyShapeHeap{};
+        emptyShapeHeap_ = gpu::createBufferWithData(device_, queue_,
+            gpu::BufferDesc::storage(sizeof(emptyShapeHeap), false,
+                                    "narrow_phase_empty_shape_heap"),
+            std::span<const uint32_t>(emptyShapeHeap));
         classDispatchArgs_ = gpu::createBuffer(device_, gpu::BufferDesc{
             .label = "narrow_phase_class_dispatch_args",
             .size = uint64_t{kGpuNarrowPhasePairClassCount + 1u} * 4u
@@ -117,7 +130,8 @@ public:
         if (!parameterBuffer_ || !bucketedPairs_ || !classTable_
             || !classDispatchArgs_
             || !manifoldsA_ || !manifoldsB_ || !telemetry_
-            || !activePredicates_ || !activeOffsets_) {
+            || !activePredicates_ || !activeOffsets_ || !collisionClasses_
+            || !emptyShapeHeap_) {
             shutdown();
             return false;
         }
@@ -146,7 +160,8 @@ public:
                 * sizeof(GpuContactManifold)
             + uint64_t{config_.dispatchContactCapacity} * 2u
                 * sizeof(uint32_t)
-            + kTelemetryWords * sizeof(uint32_t));
+            + kTelemetryWords * sizeof(uint32_t)
+            + kClassTableWords * sizeof(uint32_t) + sizeof(emptyShapeHeap));
 
         shaderModule_ = gpu::loadShaderModule(
             device_, config.shaderPath, "physics_narrow_phase.wgsl",
@@ -211,11 +226,13 @@ public:
         storage(narrowEntries, 0, true);
         storage(narrowEntries, 1, true);
         storage(narrowEntries, 4, false);
-        storage(narrowEntries, 5, false);
         storage(narrowEntries, 6, true);
         storage(narrowEntries, 7, false);
         storage(narrowEntries, 8, true);
         storage(narrowEntries, 9, false);
+        storage(narrowEntries, 15, true);
+        narrowEntries.emplace_back(16).computeVisible().uniformBuffer(
+            false, kClassTableWords * sizeof(uint32_t));
         uniform(narrowEntries);
         narrowLayout_ = gpu::createBindGroupLayout(
             device_, narrowEntries, "narrow_phase_collision_layout");
@@ -349,7 +366,8 @@ public:
             && lhs.uniquePairBuffer == rhs.uniquePairBuffer
             && lhs.broadPhaseTelemetryBuffer
                 == rhs.broadPhaseTelemetryBuffer
-            && lhs.metadataBuffer == rhs.metadataBuffer;
+            && lhs.metadataBuffer == rhs.metadataBuffer
+            && lhs.authoredShapeBuffer == rhs.authoredShapeBuffer;
     }
 
     void releaseCachedInputGroups() {
@@ -404,16 +422,18 @@ public:
 
         WGPUBindGroup& narrowGroup = cachedInputGroups_[2u + parity];
         if (!narrowGroup) {
-            const std::array<gpu::BindGroupEntry, 9> entries = {
+            const std::array<gpu::BindGroupEntry, 10> entries = {
                 gpu::BindGroupEntry(0).buffer(input_.poseBuffer),
                 gpu::BindGroupEntry(1).buffer(input_.shapeBuffer),
                 gpu::BindGroupEntry(4).buffer(bucketedPairs_),
-                gpu::BindGroupEntry(5).buffer(classTable_),
                 gpu::BindGroupEntry(6).buffer(previous),
                 gpu::BindGroupEntry(7).buffer(next),
                 gpu::BindGroupEntry(8).buffer(input_.metadataBuffer),
                 gpu::BindGroupEntry(9).buffer(telemetry_),
                 gpu::BindGroupEntry(10).buffer(parameterBuffer_),
+                gpu::BindGroupEntry(15).buffer(input_.authoredShapeBuffer
+                    ? input_.authoredShapeBuffer : emptyShapeHeap_),
+                gpu::BindGroupEntry(16).buffer(collisionClasses_),
             };
             narrowGroup = gpu::createBindGroup(
                 device_, narrowLayout_, entries,
@@ -515,6 +535,8 @@ public:
         wgpuComputePassEncoderRelease(pass);
         writeProfilingBoundary();
 
+        wgpuCommandEncoderCopyBufferToBuffer(encoder, classTable_, 0,
+            collisionClasses_, 0, kClassTableWords * sizeof(uint32_t));
         pass = wgpuCommandEncoderBeginComputePass(encoder, &passDesc);
         if (!pass) return false;
         wgpuComputePassEncoderSetBindGroup(pass, 0, narrowGroup, 0, nullptr);
@@ -617,6 +639,8 @@ public:
         releaseBuffer(parameterBuffer_);
         releaseBuffer(bucketedPairs_);
         releaseBuffer(classTable_);
+        releaseBuffer(collisionClasses_);
+        releaseBuffer(emptyShapeHeap_);
         releaseBuffer(classDispatchArgs_);
         releaseBuffer(manifoldsA_);
         releaseBuffer(manifoldsB_);
@@ -645,6 +669,8 @@ public:
     WGPUBuffer parameterBuffer_ = nullptr;
     WGPUBuffer bucketedPairs_ = nullptr;
     WGPUBuffer classTable_ = nullptr;
+    WGPUBuffer collisionClasses_ = nullptr;
+    WGPUBuffer emptyShapeHeap_ = nullptr;
     WGPUBuffer classDispatchArgs_ = nullptr;
     WGPUBuffer manifoldsA_ = nullptr;
     WGPUBuffer manifoldsB_ = nullptr;

@@ -1,0 +1,236 @@
+{
+  "status": "verified preparation; live harbor installation/controls/restore not implemented",
+  "base_commit": "7f28fabfabf3d63726f6cfa1001c3ce1ed557911",
+  "branch": "codex/salvage-implementation",
+  "dirty_worktree": true,
+  "source_hashes": {
+    "src/game/expedition/cove_harbor_lift.cpp": {
+      "sha256": "7f394f1560fd7f493e05546276623fdb9563c53b4f7371571fae9585d2692f0a",
+      "bytes": 10406
+    },
+    "src/game/expedition/cove_harbor_lift.hpp": {
+      "sha256": "ee00254bb7f021170069a663f15fc93d425566f7595bc877ff0f6afadb395c4c",
+      "bytes": 2154
+    },
+    "src/game/expedition/cove_harbor_state.hpp": {
+      "sha256": "4737e9a5cbe963ef8d0041f3132cba0b823008a5816adf45d457a557bf54973c",
+      "bytes": 1910
+    },
+    "src/game/expedition/cove_save.cpp": {
+      "sha256": "be5ef641058428eafd3aea95584d71efb0ea1c433e5717a05f62772e2cbf1e03",
+      "bytes": 14374
+    },
+    "src/game/expedition/cove_save.hpp": {
+      "sha256": "f425796aa68487bf03b90c7c22ce6a056e7e2d209a4af71260bbe681566ef00e",
+      "bytes": 4275
+    },
+    "src/game/expedition/cove_restore.cpp": {
+      "sha256": "e15c35cb1b66a22fbaa516577cf5ff2189db35f3ce3995f7f84e05ea9d839ea6",
+      "bytes": 7853
+    },
+    "tests/test_cove_player.cpp": {
+      "sha256": "e71fd404fc7cd2f742f8e515e7a00752a4aacfadbc7ffc9b067c42302ac6b90f",
+      "bytes": 83546
+    },
+    "tests/test_cove_save.cpp": {
+      "sha256": "39af5756205e915285274a401f0f0953fae1c9353a9d1caea3d4191318480f7c",
+      "bytes": 16616
+    },
+    "scripts/validate_session_transactions_wasm.py": {
+      "sha256": "ab7119c25ec3d7a4e4c6c3e6070a132a90c39a4ed03634fdc1e6aad5ec037420",
+      "bytes": 8459
+    },
+    "src/game/BUILD": {
+      "sha256": "c31d2c87fcfcee930b1b0e77e4c14ffecdf8c9ebd375354b57cff6ec3705b22d",
+      "bytes": 12627
+    },
+    "src/CMakeLists.txt": {
+      "sha256": "58ce7dab99729525dd7f5c1fc15280a9bf433077f8227dfb2ae717e2ea0ecec4",
+      "bytes": 21576
+    },
+    "tests/BUILD": {
+      "sha256": "86f2fad4cbf9d7b74df9a0dc9a8fcc6c96471b9991b41499a9d7b4b7d5e96b23",
+      "bytes": 33930
+    },
+    "src/app/application.cpp": {
+      "sha256": "a65f6f8e955330c92bd15e74f737e6e6bb455c9f8b2dfa1071aaae666c161f58",
+      "bytes": 391209
+    },
+    "src/physics/physics_types.hpp": {
+      "sha256": "a6b0bd11be890bc99d90154a038969ca591d8cf77635115baf501abedd1ea0fa",
+      "bytes": 33187
+    },
+    "src/physics/authored_body_frame.cpp": {
+      "sha256": "663a30653feec07ddf6eca8c31a11cd867164217352d8ac7d30ab01f949d1336",
+      "bytes": 7283
+    },
+    "src/physics/gpu/gpu_physics_backend.cpp": {
+      "sha256": "d08deb2527e9ace7a6bbd43d51501e056c050cf1b85f8931095a1fa5eb290d2e",
+      "bytes": 241480
+    },
+    "shaders/physics_attachments.wgsl": {
+      "sha256": "41e520bc0b1c065a7b00d438d6b84c125e971520f74c445c637565f145c5ef51",
+      "bytes": 12242
+    },
+    "data/salvage/fixture-cove-r01.json": {
+      "sha256": "30a63af1b77a32725a1eedab1e412a430401172bdc2799a2f7748caac6adbf96",
+      "bytes": 13211
+    },
+    "salvage_cove.cfg": {
+      "sha256": "b1fcdb604f61b88bdc5bb64098db778fcb1b889f9c1920724198842c0d703230",
+      "bytes": 1418
+    }
+  },
+  "artifacts": {
+    "bazel-bin/voxy_native": {
+      "sha256": "13eae775d3828fefce939b7906c31d89aa96b0bf67a60b152eb62a6722d53687",
+      "bytes": 6264064
+    },
+    "bazel-bin/tests/cove_player": {
+      "sha256": "827005424770b76773608bb33dd910d4f4d86be9e13038a81e6dfe310af75a56",
+      "bytes": 883168
+    },
+    "bazel-bin/tests/cove_save": {
+      "sha256": "8d4a9ac2a08fe208e62341a2949898ecbfb4724b9f8dde008d919f733950b583",
+      "bytes": 187240
+    },
+    "build-native-save-host/bin/voxy_native": {
+      "sha256": "945d1a1e0862657e63f02ca93ce6a3a1f5c37725d07dd7c99499828f0fb834f2",
+      "bytes": 46659512
+    },
+    "build-native-save-host/bin/cove_player_tests": {
+      "sha256": "411bb3dd14aa7c49edfcaed9c9b27d3287c885a12d416c96e01f41c7309db1c8",
+      "bytes": 4190696
+    },
+    "build-lego-wasm/bin/voxy_wasm.js": {
+      "sha256": "96555f58923f95c4c8cd9b2dfe65d2164382db65d50891c42c472871bcd6e54d",
+      "bytes": 93288
+    },
+    "build-lego-wasm/bin/voxy_wasm.wasm": {
+      "sha256": "b5a4f4bd0b854a90562643af148ee0d6b0aa1ef14a779cbc4c46e6e9b3a90b34",
+      "bytes": 6783090
+    },
+    "build-harbor-lift-643i_bo4/wasm-save/game_session_tests.js": {
+      "sha256": "af09e2d834b8264e5c31c0f504ab62002234314416a905596ecd9635403dd1eb",
+      "bytes": 158676
+    },
+    "build-harbor-lift-643i_bo4/wasm-save/game_session_tests.wasm": {
+      "sha256": "5f3a3ebc62810b7101104add86c28d82cb1d5a86e376fafd4606863ae871c3ea",
+      "bytes": 34405587
+    }
+  },
+  "evidence": {
+    "README.md": {
+      "sha256": "57e3e9af5c4323af7c4f54661d4c5611c32f94405c10a2424f5d8bb6b4e7a92a",
+      "bytes": 11619
+    },
+    "cmake-build.log": {
+      "sha256": "8cb88e1e81eeec2e00964d5663d87cd495b7bc302cb70e34405aded35c94b0d1",
+      "bytes": 8380
+    },
+    "core-r02.log": {
+      "sha256": "e40eb9e25f8c1fcb5a08aea7ed6ced091d4ae51ca51ab05f7080597b41fb0396",
+      "bytes": 3534
+    },
+    "core-r03.log": {
+      "sha256": "e8aa9a9b17b236773925d827d943f015291bc3ff205c2c2847104655c11b9166",
+      "bytes": 3123
+    },
+    "core-r04.log": {
+      "sha256": "7150bcd48fe7fac2e2c73139303bf44417517abe8a648a318962333801a91bae",
+      "bytes": 2956
+    },
+    "core-r05.log": {
+      "sha256": "105ec2fa46230a9aef5ac06e7996667cc4e28c87b2f65f8c8f26b37979a668b1",
+      "bytes": 4403
+    },
+    "core-r06.log": {
+      "sha256": "7d364c215b86b128c33889b54e8556004eba7a02e2710be0edd517f76acc1731",
+      "bytes": 3628
+    },
+    "core-r07.log": {
+      "sha256": "66339ef319f6bbcd90f0bb0121cbdccac18056883a736cfc8e6ec632a9b0eec8",
+      "bytes": 3893
+    },
+    "core-r08.log": {
+      "sha256": "20c7cf6aaf1f701260621cb2a97af6f5975d4df8e1f6a2d99f52b4ef8d90d5d4",
+      "bytes": 5297
+    },
+    "core-r09.log": {
+      "sha256": "c57a7a477c545801b9f915e3b0c95ab144e43d675e17a7e384b4a8f4063248ce",
+      "bytes": 6540
+    },
+    "current-bazel-native-build.log": {
+      "sha256": "909b71c30dde16c65eab013cc635844e24511486223acf8ed59bf0389b91802c",
+      "bytes": 1282
+    },
+    "current-cmake-build.log": {
+      "sha256": "94ef1a0e9ca3050d632bdb00c4f099509b5718fd00f045254e75d0605dbed397",
+      "bytes": 1354
+    },
+    "current-cmake-tests.log": {
+      "sha256": "b9e4b85f5d713f54bc21403b5eb3b358cfbe9bd9f28b2c6a9c7b53b82fa36985",
+      "bytes": 3230
+    },
+    "current-final-save-tests.log": {
+      "sha256": "e180c97c49f688a05e99c8646de15461a7efed3fa5e8faed5a2769f899022b74",
+      "bytes": 4676
+    },
+    "current-wasm-build.log": {
+      "sha256": "f1dc262a705c83b9cafe6a2cafc60afbd6169fae96a9928fddafcfb40ca1f77e",
+      "bytes": 16090
+    },
+    "current-wasm-save-driver.log": {
+      "sha256": "6d20a88c2f0b8039d0272481e83db2dab2d0fc50baf537a2ddbbdbb752a06d53",
+      "bytes": 529
+    },
+    "final-bazel-tests.log": {
+      "sha256": "b16f2a585d3ce8a688a8da92975f05194c3e65773ddf7b8f13da63060fa53d6d",
+      "bytes": 13870
+    },
+    "quota-failure-partial-manifest.txt": {
+      "sha256": "f608b068dcc755e29ce92290de964ee08722ae5bc1621e1e25574abe56a0874c",
+      "bytes": 24576
+    },
+    "wasm-compiler-version.log": {
+      "sha256": "3d73869c16dbaa5a0076241bd532ed2c917a7187aad7c743a867ec96f2147e10",
+      "bytes": 330
+    },
+    "wasm-link.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "wasm-manifest.json": {
+      "sha256": "7bf15907079dd2c9e7611d7c313a5f8ea9953c9ee1b11e5e21f2e6d86e944fc0",
+      "bytes": 33145
+    },
+    "wasm-node-version.log": {
+      "sha256": "b8139b18707113247bd3eba5bff8ee50ed8f6bfd5076113805af4e414abfdf23",
+      "bytes": 9
+    },
+    "wasm-save-driver.log": {
+      "sha256": "a90d1cf8ec196f289d5d81a3c054f28ccbaabfcd2d862a1aab69ae7b5a608cd9",
+      "bytes": 3291
+    },
+    "wasm-tests.log": {
+      "sha256": "5c9f37b0de017df73acc1eac6dd754b67992b2ee65a49a4d66e5d0531dba930f",
+      "bytes": 30777
+    }
+  },
+  "screenshots": 0,
+  "gate_commit": null,
+  "documentation": {
+    "GAME_IMPLEMENTATION_TODO.md": {
+      "sha256": "038fdb0d3f65d24e02359433dbefc306201956e5ce05698dbb943d1811d21a49",
+      "bytes": 220214
+    },
+    "README.md": {
+      "sha256": "a15d055025727f4c534233400af22350b79748f0e7c734159bc2e523338de3b4",
+      "bytes": 25770
+    },
+    "docs/salvage-cove-save-format.md": {
+      "sha256": "62ca8576c18dc5804e42825e0855ba4ee0431d4a718e05c8495b8382aad87444",
+      "bytes": 15171
+    }
+  }
+}

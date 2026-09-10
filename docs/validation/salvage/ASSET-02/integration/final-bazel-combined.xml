@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="9" failures="0" disabled="0" errors="0" time="0.006" timestamp="2026-09-07T23:13:23.290" name="AllTests">
+  <testsuite name="GameplaySidecar" tests="9" failures="0" disabled="0" skipped="0" errors="0" time="0.006" timestamp="2026-09-07T23:13:23.290">
+    <testcase name="SharedCatalogAcceptsTypedAsymmetricPartAndLosslessIds" file="tools/salvage_assets/test_gameplay_sidecar.cpp" line="22" status="run" result="completed" time="0." timestamp="2026-09-07T23:13:23.290" classname="GameplaySidecar" />
+    <testcase name="NormalizedMetadataIsIdempotentAndRetainsEveryField" file="tools/salvage_assets/test_gameplay_sidecar.cpp" line="39" status="run" result="completed" time="0." timestamp="2026-09-07T23:13:23.291" classname="GameplaySidecar" />
+    <testcase name="IdSortingIsNumericAndDoesNotChangeLodMeaning" file="tools/salvage_assets/test_gameplay_sidecar.cpp" line="51" status="run" result="completed" time="0." timestamp="2026-09-07T23:13:23.291" classname="GameplaySidecar" />
+    <testcase name="ExportedGltfBasisAppliesExactlyOnceAndLeavesMetadataCanonical" file="tools/salvage_assets/test_gameplay_sidecar.cpp" line="73" status="run" result="completed" time="0." timestamp="2026-09-07T23:13:23.291" classname="GameplaySidecar" />
+    <testcase name="SharedPhysicalRulesRejectMassInertiaVolumesAndModuleErrors" file="tools/salvage_assets/test_gameplay_sidecar.cpp" line="85" status="run" result="completed" time="0." timestamp="2026-09-07T23:13:23.291" classname="GameplaySidecar" />
+    <testcase name="UnknownFieldsAndMalformedUnitsCannotDisappearDuringCook" file="tools/salvage_assets/test_gameplay_sidecar.cpp" line="97" status="run" result="completed" time="0." timestamp="2026-09-07T23:13:23.292" classname="GameplaySidecar" />
+    <testcase name="NoncanonicalIdsFramesAndUnsafeSourceReferencesReject" file="tools/salvage_assets/test_gameplay_sidecar.cpp" line="108" status="run" result="completed" time="0.001" timestamp="2026-09-07T23:13:23.293" classname="GameplaySidecar" />
+    <testcase name="DuplicatedDurableIdsAnchorsAndLodThresholdsReject" file="tools/salvage_assets/test_gameplay_sidecar.cpp" line="121" status="run" result="completed" time="0." timestamp="2026-09-07T23:13:23.294" classname="GameplaySidecar" />
+    <testcase name="CountsBytesDepthDuplicateKeysAndUnavailableAssetsAreBounded" file="tools/salvage_assets/test_gameplay_sidecar.cpp" line="129" status="run" result="completed" time="0.002" timestamp="2026-09-07T23:13:23.294" classname="GameplaySidecar" />
+  </testsuite>
+</testsuites>

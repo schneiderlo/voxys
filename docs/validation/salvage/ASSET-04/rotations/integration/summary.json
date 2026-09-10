@@ -1,0 +1,60 @@
+{
+  "schema": 1,
+  "status": "scoped rendered rotation checkpoint passed",
+  "gate_passed": false,
+  "independent_review_complete": false,
+  "visual_approval": false,
+  "actual_sector_transition_complete": false,
+  "frozen_inputs_sha256": "079f25b0d43190a0544bf871d05972f8283f93c83017851479033efe7ab88bd6",
+  "sources_and_binaries_unchanged": true,
+  "tests": {
+    "bazel-admission-tests.xml": [
+      "FixtureRegistry.ParsesBoundedAssemblyPrototypeAndExactSocketOrdinals",
+      "FixtureRegistry.RejectsAmbiguousAssemblyReferencesAndExcessBeforeLoading",
+      "FixtureRegistry.ParsesDataDrivenKeysLimitsPlacementsAndCamera",
+      "FixtureRegistry.RejectsAmbiguousUnboundedAndMalformedSelections",
+      "FixtureRegistry.RejectsTraversalAndNonpackageDirectoryForms",
+      "FixtureRegistry.AdmitsEveryInstalledRotationPairAndRejectsOffsetOrWrongKey",
+      "FixtureRegistry.AdmitsActualCrossbeamGraphAndRejectsMisfitWithoutChangingPreviousAssembly",
+      "FixtureRegistry.AdmitsActualPontoonCandidateAndSelectsLodsFromProjectedUnion"
+    ],
+    "cmake-admission-tests.xml": [
+      "FixtureRegistry.ParsesBoundedAssemblyPrototypeAndExactSocketOrdinals",
+      "FixtureRegistry.RejectsAmbiguousAssemblyReferencesAndExcessBeforeLoading",
+      "FixtureRegistry.ParsesDataDrivenKeysLimitsPlacementsAndCamera",
+      "FixtureRegistry.RejectsAmbiguousUnboundedAndMalformedSelections",
+      "FixtureRegistry.RejectsTraversalAndNonpackageDirectoryForms",
+      "FixtureRegistry.AdmitsEveryInstalledRotationPairAndRejectsOffsetOrWrongKey",
+      "FixtureRegistry.AdmitsActualCrossbeamGraphAndRejectsMisfitWithoutChangingPreviousAssembly",
+      "FixtureRegistry.AdmitsActualPontoonCandidateAndSelectsLodsFromProjectedUnion"
+    ]
+  },
+  "wasm_cases": 70,
+  "ui_cases": 7,
+  "matched_pairs": 34,
+  "original_images": 68,
+  "evidence_hashes": {
+    "docs/validation/salvage/ASSET-04/rotations/native-a-clean-attempt01/report.json": "daa9cb4aa2626021b52fd44510274dcb5d3a3dd8ebb462a1e852661c7cc91a62",
+    "docs/validation/salvage/ASSET-04/rotations/native-a-sockets-attempt01/report.json": "c0fbf8061eb3fd5aa3523c6199a8ae2b9a994f4a5b919a7da817596c408bc9ad",
+    "docs/validation/salvage/ASSET-04/rotations/native-b-clean-attempt01/report.json": "2518ed0c8c758dff2b292a68a399335ee3302cbe977111b18fb52bd90b48cb10",
+    "docs/validation/salvage/ASSET-04/rotations/native-b-sockets-attempt01/report.json": "b8ffb345e8404b376b3c54934ce0b1f424a6962b50603eb6ae88e7a4139d9004",
+    "docs/validation/salvage/ASSET-04/rotations/browser-a-clean-attempt01/report.json": "e1100c11268b7512560325be9e17c9b0a385f579681e920e3ed47c575adf3fac",
+    "docs/validation/salvage/ASSET-04/rotations/browser-a-sockets-attempt01/report.json": "dc8a7d2e6feae4e0e6e16c70b30666c7bd5b3fbb043229f627857e05db3d7755",
+    "docs/validation/salvage/ASSET-04/rotations/browser-b-clean-attempt01/report.json": "9680fe76290c1f92098fa771600b1b255c1ee2cc9a38d557e2dca6e029129a33",
+    "docs/validation/salvage/ASSET-04/rotations/browser-b-sockets-attempt01/report.json": "11ac1759c29d439d823b83f185ef85e7c7cca38007e2159faf98188c72096fd4",
+    "docs/validation/salvage/ASSET-04/rotations/browser-a-journey-attempt01/summary.json": "537e156cb9946f47971fb4876b2db835cfba6b70e64f8b5c7577ed3605e6ea0f",
+    "docs/validation/salvage/ASSET-04/rotations/browser-b-loss-attempt01/summary.json": "4b32debb3084763eb3a6e4a053816edc7ef57fb3f27e6d94749494045e71f9ec",
+    "docs/validation/salvage/ASSET-04/rotations/reproducibility.json": "7bb6cf8d7a6f377111840d933e258dc512e5ee2a73aa694e8c07611422edfb4e",
+    "docs/validation/salvage/ASSET-04/rotations/comparison.json": "32d164d2a6d257e352aa9692ef6aaa40ee6f16c107f000eb48ceb434df561d4e",
+    "docs/validation/salvage/ASSET-04/rotations/wasm-attempt01/manifest.json": "4cc1e228dee729eb0927de1a3998a698ebe6dbca0645f3faeae5eb72851b2a47",
+    "docs/validation/salvage/ASSET-04/rotations/integration/ui-tests.log": "a6a2f4f41dd681343fecb4b824b62cd7d180c05db2eb2ef9314c45b26778da3a"
+  },
+  "review": "Root inspected all seven uncropped comparison sheets (all 24 rotations, two overviews, eight socket views) plus full-size native overview and upside-down pair. Part orientation, outward surfaces, joins and socket overlays agree across native/browser. This is a scoped technical inspection, not independent review or cove art approval.",
+  "remaining": [
+    "Actual live camera-sector transition",
+    "Hierarchy composed-bound presentation",
+    "Independent technical/moving-image review",
+    "Final candidate publication",
+    "LOOK-01 cove visual proof"
+  ]
+}

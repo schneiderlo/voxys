@@ -1,0 +1,252 @@
+{
+  "stage": "SIM-01/stage-b1",
+  "date": "2026-09-08",
+  "component_checks_passed": true,
+  "task_accepted": false,
+  "gate_committed": false,
+  "review": "Implementer source checks and independent unit-cell method; separate final compiler review remains pending",
+  "base_commit": "7f28fabfabf3d63726f6cfa1001c3ce1ed557911",
+  "branch": "codex/salvage-implementation",
+  "generated_count_profile": {
+    "input_boxes": 2048,
+    "cells": 4096,
+    "exterior_faces": 24576,
+    "clip_tests": 8388608,
+    "scratch_pieces_per_vector": 4096,
+    "root_radius_ticks_per_axis": 12800
+  },
+  "allocation_bound_note": "Generated element caps are global across roots; bounded geometric vector growth may retain fewer than twice the live cell/face elements. Counts are not exact allocator/RSS bytes.",
+  "bazel": {
+    "targets_passed": 3,
+    "executed": 1,
+    "cached": 2,
+    "log": "bazel-attempt02.log"
+  },
+  "native_cases": {
+    "cmake-collision-attempt01": {
+      "tests": "12",
+      "failures": "0",
+      "disabled": "0",
+      "errors": "0",
+      "time": "0.017"
+    },
+    "cmake-mass-attempt01": {
+      "tests": "11",
+      "failures": "0",
+      "disabled": "0",
+      "errors": "0",
+      "time": "0.003"
+    },
+    "cmake-build-model-attempt01": {
+      "tests": "23",
+      "failures": "0",
+      "disabled": "0",
+      "errors": "0",
+      "time": "0.005"
+    },
+    "ubsan-attempt01": {
+      "tests": "46",
+      "failures": "0",
+      "disabled": "0",
+      "errors": "0",
+      "time": "0.039"
+    }
+  },
+  "wasm_cases": {
+    "passed": 46,
+    "skipped": 0,
+    "disabled": 0
+  },
+  "wasm_policy": {
+    "exception_mode": "js",
+    "asyncify": true,
+    "fixed_heap_bytes": 67108864,
+    "fixed_stack_bytes": 1048576
+  },
+  "allocation_failures_each_runtime": 62,
+  "queries_each_runtime": 2000,
+  "query_allocation_attempts": 0,
+  "allocation_fixture": {
+    "first_root_cells": 6,
+    "first_root_faces": 38,
+    "first_root_bvh_nodes": 11,
+    "whole_plan_clip_tests": 238
+  },
+  "full_stack_fixture": {
+    "parts": 256,
+    "cells": 256,
+    "faces": 1026,
+    "bvh_nodes": 511,
+    "volume_ticks3": 122880000,
+    "surface_area_ticks2": 6164000
+  },
+  "independent_oracle": "C++ test expands bounded integer cells and neighbor faces; 32 six-box mixed fixtures, all rotations, overlaps/containment/duplicate bounds/cavity/partial mating. Same implementer, separate method.",
+  "bvh_linear_query_fixtures": 1200,
+  "core_library_builds": {
+    "native": "cmake-attempt01.log",
+    "wasm": "wasm-attempt02.log"
+  },
+  "preserved_failures": [
+    "bazel-attempt01.log: missing non-null source assertion in test; added without suppressing warning",
+    "wasm-attempt01: all 46 actual cases passed, but runner expected 47; fixed only count, no disabled/removed tests"
+  ],
+  "wasm_attempts_have_identical_core_and_test_sources": true,
+  "source_revalidation": [
+    {
+      "name": "wasm_sources",
+      "checked": 50,
+      "mismatches": []
+    },
+    {
+      "name": "wasm_tools",
+      "checked": 7,
+      "mismatches": []
+    },
+    {
+      "name": "allocation_probe_inputs",
+      "checked": 60,
+      "mismatches": []
+    }
+  ],
+  "source_hashes": {
+    "docs/validation/salvage/SIM-01/stage-b1/allocation-faults.cpp": "d385e869d3948ee6354e72fc053fee044feec99913b3e23520cdf014ba484347",
+    "docs/validation/salvage/SIM-01/stage-b1/build-allocation-faults.sh": "a0bb68d2f6c1ba973342055d01f7df05cf04ef2f239b4bd6f13ef79276e66cac",
+    "docs/validation/salvage/SIM-01/stage-b1/build-standalone.sh": "649c1a20cb3136f83cacd707d42abf998655884724b4f0f5753f2fd3bf5a682c",
+    "docs/validation/salvage/SIM-01/stage-b1/run-wasm-faults.py": "c408550e7621fd1a5ad464ac2b916883cef9c68cad855404d6d1666b80c1f89d",
+    "scripts/validate_assembly_compiler_wasm.py": "ce1cb72990fd1def06d742b7830cfe688b97edd70ab52754bdd42aaaeadace74",
+    "src/CMakeLists.txt": "969826e64036911c59eda5b479d9ed73026ca902689f0bfd4045e313d5212313",
+    "src/game/BUILD": "c1c486e32f35c58c91742b2494dffcf86e4d4a1b743b4c5644bf3c5f8a11ec57",
+    "src/game/construction/assembly_collision.cpp": "21be53d25fdda6128310ca732a752b067180a8021807fcd74529f7b21e3b83e3",
+    "src/game/construction/assembly_collision.hpp": "74776d1aeb0ee2bb0873c4ae9fa5523dbaf00ac209b7fdbd7d981756233228e4",
+    "src/game/construction/assembly_compiler.cpp": "f918b8095d7a2d2726185b4a3e381d23518d6eefd9eda8f13823b263db4e5f0e",
+    "src/game/construction/assembly_compiler.hpp": "26fc5ad2643a0008870e399fd0e7d351b23f08fada1c18c0d2df8cd25722c43f",
+    "src/game/construction/build_model.cpp": "5307ee045a24f3974ec109f914eb5f8d5a4c65755a32f7286ff6308be9cd508f",
+    "src/game/construction/build_model.hpp": "e99cf8d8b6a409276195a49d1887d6ee4518683b0cc4fa5550af08a7d3746f19",
+    "src/game/construction/construction_types.cpp": "4aa7ffdd6e608765b5245c94c53c2b54920705533283d270e5b6b4eee84ac4c8",
+    "src/game/construction/construction_types.hpp": "fb1aca2e406802452d0595fac47162822d26d4af3ec343859cbf13f8957912e8",
+    "src/game/construction/orthogonal_union.cpp": "19722c1c2c3015929644a5cf50ff875c2fdeafbd23bcd4f8dd76db4618eb8041",
+    "src/game/construction/orthogonal_union.hpp": "704fd61c6f896480362ebf45c8c5c54bb29b160cd33943befc2bccb005f7b601",
+    "src/game/construction/part_catalog.cpp": "24869c7c346d49421b2fe20123181e4e5738d6e6ddc366339292d3f12044bcf3",
+    "src/game/construction/part_catalog.hpp": "8c107f72da01b065f811db557b38de9a3a014e5717b3348951cfe21a07bc8c13",
+    "tests/BUILD": "24ddeae570d5e27abe2f8ac339b82129fa155f957c59ef2abc51a2c65d24225f",
+    "tests/CMakeLists.txt": "ad4b5ee01cd01abe3655cd893f9b1fd8aa31dab45f8e8a27d1dab032126a0c24",
+    "tests/test_assembly_collision.cpp": "c00977c6f68879bd6791ef4919fd375ab43cda5e6e431782de3be49d191f1c0d",
+    "tests/test_assembly_compiler.cpp": "d051fb37afdca2c4f29c1cbe18db1438658b1907d291796e79abcd45f397feb4",
+    "tests/test_build_model.cpp": "36f69f12d5ee451013cc7d9a45795d9f87ad10568d016c68b32003ed00da29bf",
+    "third_party/googletest/googletest/include/gtest/gtest-assertion-result.h": "d6562e22c316e831bfbc2cde3b158f06380a22e7e1c6c1e180689abee5c5b972",
+    "third_party/googletest/googletest/include/gtest/gtest-death-test.h": "8decbb86ebbfa142fd78a83cfbeb4c5e73e98179058ce70fcc279935c497429a",
+    "third_party/googletest/googletest/include/gtest/gtest-matchers.h": "d637dd188944433c62d96a062f9b1adab851574c537d7021270c7a52a2759a90",
+    "third_party/googletest/googletest/include/gtest/gtest-message.h": "f1c7bd4e0c02240e884deed25a2e0bfd04e5e0c3fd778a3b126cbb64531f65a7",
+    "third_party/googletest/googletest/include/gtest/gtest-param-test.h": "1adb46e17e47fc2f40dc5b8e9acec4f01efa389a19bbea25d32aea28b94e32e6",
+    "third_party/googletest/googletest/include/gtest/gtest-printers.h": "f3396ea55d577ee04f15a2b14b14b76edb8a84d385c831defd88cff8535bc273",
+    "third_party/googletest/googletest/include/gtest/gtest-spi.h": "fc0bbebaeb211b81a2ec3df388e5e5f25a7c22e90186839854d2e5b26ce226e6",
+    "third_party/googletest/googletest/include/gtest/gtest-test-part.h": "2279b9bfd08aff7c0f764a2716bde0d3a61dc12573687a2cff91256b17681bf0",
+    "third_party/googletest/googletest/include/gtest/gtest-typed-test.h": "d56313830bf30d6271d7c1f8ca57dc52d95a10b97e4ace6efa0f085ae519303a",
+    "third_party/googletest/googletest/include/gtest/gtest.h": "93da03ddf6d5b9bdf40ae4ded9939067c9ed0b6de93f787f7e8d187609b6b02d",
+    "third_party/googletest/googletest/include/gtest/gtest_pred_impl.h": "85e850e735a42ebb5f9a01a018708c1c0b9b7d83c94b14b7d5d29512c00b6ffd",
+    "third_party/googletest/googletest/include/gtest/gtest_prod.h": "3c6301ef533db8686e474dd5a0de4d98a31cbb630e2273f712472d1be25aa261",
+    "third_party/googletest/googletest/include/gtest/internal/custom/gtest-port.h": "5e06747c9e8b86e9d841fabd61c2f045b2bb1133716f127be4a963ced1c44e01",
+    "third_party/googletest/googletest/include/gtest/internal/custom/gtest-printers.h": "b95afda2426e8c4f09c11d3296d522fb336b248c0da7e078388db4bb072c2166",
+    "third_party/googletest/googletest/include/gtest/internal/custom/gtest.h": "21d20a1c64ea38c20c4b12337c261a1a18989d2a30710a83dfb5cd9a3bb3c55e",
+    "third_party/googletest/googletest/include/gtest/internal/gtest-death-test-internal.h": "a70d1174ef668639c7af21764442f8e487b0fc70c237a70f90e3161a8e8262d6",
+    "third_party/googletest/googletest/include/gtest/internal/gtest-filepath.h": "544ce95d2e1e4b7ae17ee170f482aaa09e17d0056999c4ce7e7a6097c3a755cf",
+    "third_party/googletest/googletest/include/gtest/internal/gtest-internal.h": "a33806c8e6ca5eb6f839b8e015bdf8eae848641035f9499834f9d402b823d5fe",
+    "third_party/googletest/googletest/include/gtest/internal/gtest-param-util.h": "effa1b3e6a3554aae8fc82fbe88c1c3215f723bb3e2e444bf424f688c476a030",
+    "third_party/googletest/googletest/include/gtest/internal/gtest-port-arch.h": "37f6d5c70322ee5f4f84fafcb4e8e2f4bbf08a5afc64a6636cf6a9f45d442198",
+    "third_party/googletest/googletest/include/gtest/internal/gtest-port.h": "c22ef5c860dabc3e74225f3a54c2d7224375ad2dd2af619d3f8cbe7e917fc754",
+    "third_party/googletest/googletest/include/gtest/internal/gtest-string.h": "0cc08c746bceb2b101c61ffbc905c598eb62fee3c262c4585c21b10d8a3e6508",
+    "third_party/googletest/googletest/include/gtest/internal/gtest-type-util.h": "c1cf53463579025a7b25466e9680a778d74beff52d8a64b6e83fcb6dd99e4bb7",
+    "third_party/googletest/googletest/src/gtest-all.cc": "972d3016860f9aa6452e078cf77406290fb7003b66fd6c0744a030bd1c323606",
+    "third_party/googletest/googletest/src/gtest-assertion-result.cc": "dbd2235676dcc0ef6409108a4041e05442fc6895735a5561d71151e6a14296bb",
+    "third_party/googletest/googletest/src/gtest-death-test.cc": "4a0a2dad0efbb61c4f7686ccd326e19d6e5633c98202f6878fa2d18c52f3329a",
+    "third_party/googletest/googletest/src/gtest-filepath.cc": "8eec3fa2a0e6617106a8d9bfedf3209b0a8cad02e2a17e76196807290e940f8c",
+    "third_party/googletest/googletest/src/gtest-internal-inl.h": "fce60f191b52108b5851f6aec51a6f14001e1a79fd302d48c8fdbb842f8fef1a",
+    "third_party/googletest/googletest/src/gtest-matchers.cc": "e4ce9edf33493625353cc147a14caac14fdba7390d76166d101fa2fe9d16bbda",
+    "third_party/googletest/googletest/src/gtest-port.cc": "6e6c0346e833a254e52544728b40fd0cced0b36431e9eed8f5e477e6f5fe1a23",
+    "third_party/googletest/googletest/src/gtest-printers.cc": "bd14e45b5cb8df8be5944a0aaeb3739c533737a183ae4ed6627f5613eea1f6c9",
+    "third_party/googletest/googletest/src/gtest-test-part.cc": "b268314cbc718b485ff3e45fdeb5a1496bb8d87dadd5e824c558bf3b03e2dbf9",
+    "third_party/googletest/googletest/src/gtest-typed-test.cc": "b92e70b2d7ee3b86328162cbda269a28de4ce67f0e8d9beec5ec2c73a93ba006",
+    "third_party/googletest/googletest/src/gtest.cc": "53470c00499b943b4f5c3e7b581ffda9c76f828f485f33e17471aa08e8b296ac",
+    "third_party/googletest/googletest/src/gtest_main.cc": "3836c1ce7c4829c44a30f368d888ae3bed218437d61d102c50c0db4afca33b3f"
+  },
+  "evidence_hashes": {
+    "allocation-faults-attempt01.log": "8bfba5c76e527a7320700ab9e90de44cbc2358cb02d34960977fc51e3ef3da44",
+    "bazel-attempt01.log": "d87c0c271ad2f6983e0979ef142b31bad04a5a7951a7ebd854f57f110a15c09b",
+    "bazel-attempt02.log": "bc730ee836caff42e12608851ca11920c21e7bfb0e19f07c62b45fcf01ef5cc5",
+    "cmake-attempt01.log": "dedb01c574699e0135324c2030d353ad419b56b300d60656c20e223edbef9b54",
+    "cmake-build-model-attempt01.xml": "1c0c590f058b12f2e38e389e786351badc532344fdd3e6c9c1e7cd02b68b07e2",
+    "cmake-collision-attempt01.xml": "f73da924bcc72c72aa59fab78ae8f9d5f9f05bc991721489edf3b9790137c1ff",
+    "cmake-mass-attempt01.xml": "5c2e37e6427848351c1e17fc8478928848cf56722c7c5cb088390fd2fdf255a7",
+    "ubsan-attempt01.log": "eda89380104885fa5f3f8f0dd215d04e8afcc60f4d791b19e4eab85329c1b0c8",
+    "ubsan-attempt01.xml": "2043ba06c814f3bfd8b9966158ea41f8ac20aaed1f6c91db15627b42778cbd1e",
+    "wasm-attempt01/compile-0-construction_types.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm-attempt01/compile-1-part_catalog.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm-attempt01/compile-2-build_model.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm-attempt01/compile-3-assembly_compiler.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm-attempt01/compile-4-orthogonal_union.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm-attempt01/compile-5-assembly_collision.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm-attempt01/compile-6-test_build_model.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm-attempt01/compile-7-test_assembly_compiler.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm-attempt01/compile-8-test_assembly_collision.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm-attempt01/compile-gtest-all.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm-attempt01/compile-gtest_main.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm-attempt01/compiler-version.log": "8f8e0074356e5387898e907ee0af417cb07d09d8db98cdb0a6702398cbaa69c8",
+    "wasm-attempt01/exception-feature-probe.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm-attempt01/link.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm-attempt01/manifest.json": "a1c151dc10c15c2b6b3bfc24a5aa1e4f563b00bfade06bcfdede7292dbd2d527",
+    "wasm-attempt01/node-version.log": "b8139b18707113247bd3eba5bff8ee50ed8f6bfd5076113805af4e414abfdf23",
+    "wasm-attempt01/tests.log": "c624c82dbc4601ddac8d47adb5328bd44af843e89593bc4b10d586cda8828b09",
+    "wasm-attempt01.log": "70342bd02d470dc4c23a947d4a4d89e3ca2254a4d02c12947afbe1ef63ee17b6",
+    "wasm-attempt02/compile-0-construction_types.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm-attempt02/compile-1-part_catalog.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm-attempt02/compile-2-build_model.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm-attempt02/compile-3-assembly_compiler.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm-attempt02/compile-4-orthogonal_union.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm-attempt02/compile-5-assembly_collision.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm-attempt02/compile-6-test_build_model.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm-attempt02/compile-7-test_assembly_compiler.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm-attempt02/compile-8-test_assembly_collision.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm-attempt02/compile-gtest-all.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm-attempt02/compile-gtest_main.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm-attempt02/compiler-version.log": "8f8e0074356e5387898e907ee0af417cb07d09d8db98cdb0a6702398cbaa69c8",
+    "wasm-attempt02/exception-feature-probe.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm-attempt02/link.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm-attempt02/manifest.json": "bd1e09b27cd6eaa64e43550d9fc4e2776ef505c5ef8998dd4868301f20ba5b6c",
+    "wasm-attempt02/node-version.log": "b8139b18707113247bd3eba5bff8ee50ed8f6bfd5076113805af4e414abfdf23",
+    "wasm-attempt02/tests.log": "cd40b4ca50e673522370e7b2087c00894dc94428db46eef767b76aa80c2773d7",
+    "wasm-attempt02.log": "2f7ba9a6fa0208ba9a5dd5e4a370f1f84790cbf5a9a4e19bb6e001de350117fb",
+    "wasm-faults-attempt01/compile-allocation-faults.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm-faults-attempt01/compile-assembly_collision.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm-faults-attempt01/compile-assembly_compiler.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm-faults-attempt01/compile-build_model.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm-faults-attempt01/compile-construction_types.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm-faults-attempt01/compile-orthogonal_union.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm-faults-attempt01/compile-part_catalog.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm-faults-attempt01/link-allocation-faults.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm-faults-attempt01/run-allocation-faults.log": "485f88766d624564f28da22f30e1fd409202e05c332b6dcdd0e86c8812a4dba8",
+    "wasm-faults-attempt01.log": "b5830a0be06dd75622e1794b9472c079cf78a5eaa4cfe60380a40963213fb22b"
+  },
+  "wasm_fault_summary_sha256": "791f112ec43b6bce98ca23c8630e6f46472166ff209b08a1b6fbdfc1313c6adf",
+  "native_artifacts": {
+    "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/assembly_collision_tests": {
+      "sha256": "bd7aef4b713c024c41ac146ae9da23fcc39024004d90a30afed111a9ec7c48a0",
+      "bytes": 1055496
+    },
+    "/tmp/salvage-collision-tests": {
+      "sha256": "d769ce94b31332fea2d0dba7257fe648886b487c1bab13ddc5afe8bc4ba60e9a",
+      "bytes": 11044568
+    },
+    "/tmp/salvage-collision-faults": {
+      "sha256": "348e2b650d377f7bdc8b2b975e35ed9847174e77538b62c1f671abc9c8b1cfc8",
+      "bytes": 5194632
+    }
+  },
+  "remaining": [
+    "Overlap-aware buoyancy preserving solid/sealed contributors",
+    "Module and joint frames",
+    "Complete immutable assembly and cache identity",
+    "Full compiler validation and review",
+    "SIM-02 exterior-patch-aware solver support",
+    "Later live scene preparation, contacts and activation"
+  ]
+}

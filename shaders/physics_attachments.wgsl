@@ -24,6 +24,7 @@ struct BodyShape {
     dimensions_type : vec4<f32>,
     invInertia_material : vec4<f32>,
     material_coefficients : vec4<f32>,
+    authored_shape : vec4<u32>,
 };
 
 struct AttachmentCommand {
@@ -32,6 +33,7 @@ struct AttachmentCommand {
     anchorATarget : vec4<f32>,
     anchorBMotor : vec4<f32>,
     limits : vec4<f32>,
+    material : vec4<f32>,
 };
 
 struct DistanceAttachment {
@@ -132,7 +134,7 @@ fn apply_commands(tick : u32) {
             attachment.limits = command.limits;
             attachment.evidence = vec4<f32>(0.0);
             attachment.breakContext = vec4<u32>(0u);
-            attachment.reserved = vec4<u32>(0u);
+            attachment.reserved = vec4<u32>(0u,bitcast<u32>(command.material.x),0u,0u);
             attachments[slot] = attachment;
             continue;
         }
@@ -171,7 +173,7 @@ fn wake_body(body : u32) {
     motions[body] = motion;
 }
 
-fn solve_attachment(slot : u32, tick : u32) {
+fn solve_attachment(slot : u32, tick : u32, iteration : u32) {
     var attachment = attachments[slot];
     if ((attachment.identity.y & ATTACHMENT_ALIVE) == 0u) { return; }
     let bodyA = attachment.identity.z;
@@ -184,10 +186,14 @@ fn solve_attachment(slot : u32, tick : u32) {
         return;
     }
 
-    attachment.anchorATarget.w = clamp(
-        attachment.anchorATarget.w
-            - attachment.anchorBMotor.w * params.tuning.x,
-        attachment.limits.x, attachment.limits.y);
+    let previousTarget=attachment.anchorATarget.w;
+    if(iteration==0u) {
+        attachment.reserved.x=0u; // Accumulated tension impulse for this tick.
+        attachment.anchorATarget.w = clamp(
+            attachment.anchorATarget.w
+                - attachment.anchorBMotor.w * params.tuning.x,
+            attachment.limits.x, attachment.limits.y);
+    }
 
     var sectorDelta = vec3<i32>(0);
     for (var axis = 0u; axis < 3u; axis += 1u) {
@@ -213,15 +219,15 @@ fn solve_attachment(slot : u32, tick : u32) {
     let distance = sqrt(max(distanceSquared, 0.0));
     attachment.evidence = vec4<f32>(
         0.0, 0.0, distance, attachment.anchorATarget.w);
-    atomicAdd(&telemetry[0], 1u);
+    if(iteration==0u) { atomicAdd(&telemetry[0], 1u); }
 
-    let extension = distance - attachment.anchorATarget.w;
+    var extension = distance - attachment.anchorATarget.w;
     if (distance <= 1e-7 || extension <= params.tuning.y) {
-        atomicAdd(&telemetry[2], 1u);
+        if(iteration==0u) { atomicAdd(&telemetry[2], 1u); }
         attachments[slot] = attachment;
         return;
     }
-    atomicAdd(&telemetry[1], 1u);
+    if(iteration==0u) { atomicAdd(&telemetry[1], 1u); }
 
     let direction = delta / distance;
     let motionA = motions[bodyA];
@@ -238,29 +244,63 @@ fn solve_attachment(slot : u32, tick : u32) {
         + dot(cross(angularA, leverA) + cross(angularB, leverB),
               direction);
     if (inverseEffectiveMass <= 1e-9) {
+        if(attachment.anchorBMotor.w>0.0) { attachment.anchorATarget.w=previousTarget; }
         attachments[slot] = attachment;
         return;
     }
 
-    let correctionSpeed = extension * params.tuning.z / params.tuning.x;
-    let requiredImpulse = max(
-        (relativeSpeed + correctionSpeed) / inverseEffectiveMass, 0.0);
+    // Optional axial elasticity. Backward-Euler spring/damper coefficients
+    // use the actual endpoint effective mass. Critical damping absorbs snatch
+    // energy; static extension remains force * compliance. A zero material
+    // value takes the original hard-rope path exactly.
+    var correctionFactor=params.tuning.z;
+    var softness=0.0;
+    let compliance=bitcast<f32>(attachment.reserved.y);
+    if(compliance>0.0) {
+        let stiffness=1.0/compliance;
+        let damping=2.0*sqrt(stiffness/inverseEffectiveMass);
+        let denominator=damping+params.tuning.x*stiffness;
+        correctionFactor=params.tuning.x*stiffness/denominator;
+        softness=1.0/(params.tuning.x*denominator);
+    }
+
+    // A force-limited winch cannot wind in an immovable length of cable. Limit
+    // this tick's take-up to the extension supportable by its motor impulse.
+    // Never pay out the previously held length here: external separating
+    // motion/impacts still create real overload and can break the rope.
+    if(iteration==0u && attachment.anchorBMotor.w>0.0 && correctionFactor>0.0) {
+        let supportedExtension=max((attachment.limits.z*params.tuning.x*(inverseEffectiveMass+softness)-relativeSpeed)
+            *params.tuning.x/correctionFactor,0.0);
+        attachment.anchorATarget.w=max(attachment.anchorATarget.w,min(previousTarget,distance-supportedExtension));
+        extension=max(distance-attachment.anchorATarget.w,0.0);
+        attachment.evidence.w=attachment.anchorATarget.w;
+    }
+    let correctionSpeed = extension * correctionFactor / params.tuning.x;
+    // Revisit shared bodies with accumulated sequential impulses. A later
+    // line can undo an earlier line's correction; applying only positive
+    // increments would pump energy into a suspended multirope load.
+    let previousImpulse=bitcast<f32>(attachment.reserved.x);
+    let requiredImpulse = max(previousImpulse+
+        (relativeSpeed + correctionSpeed-softness*previousImpulse) / (inverseEffectiveMass+softness), 0.0);
     let requiredForce = requiredImpulse / params.tuning.x;
     attachment.evidence.x = requiredImpulse;
     attachment.evidence.y = requiredForce;
     let breakForce = attachment.limits.w;
-    if (breakForce > 0.0 && requiredForce > breakForce) {
+    let broke=iteration==7u && breakForce > 0.0 && requiredForce > breakForce;
+    if (broke) {
         attachment.identity.y = ATTACHMENT_BROKEN;
         attachment.breakContext = vec4<u32>(tick, 1u, 0u, 0u);
-        attachments[slot] = attachment;
         atomicAdd(&telemetry[3], 1u);
-        return;
     }
 
-    let appliedImpulse = min(
-        requiredImpulse, attachment.limits.z * params.tuning.x);
-    if (appliedImpulse > 0.0) {
-        let impulse = direction * appliedImpulse;
+    // A broken line contributes no impulse to this tick's integration. Undo
+    // its earlier solver iterations while retaining overload evidence.
+    let appliedImpulse = select(min(
+        requiredImpulse, attachment.limits.z * params.tuning.x),0.0,broke);
+    attachment.reserved.x=bitcast<u32>(appliedImpulse);
+    let deltaImpulse=appliedImpulse-previousImpulse;
+    if (abs(deltaImpulse) > 0.0) {
+        let impulse = direction * deltaImpulse;
         var updatedA = motionA;
         var updatedB = motionB;
         updatedA.linearVelocity_sleep = vec4<f32>(
@@ -293,8 +333,13 @@ fn solve_attachments(@builtin(global_invocation_id) gid : vec3<u32>) {
     let tick = atomicLoad(&coreCounters[1]) + 1u;
     clear_current_telemetry(tick);
     apply_commands(tick);
-    for (var slot = 1u; slot < params.counts.x; slot += 1u) {
-        solve_attachment(slot, tick);
+    // One bounded serial island sweep preserves race-free writes for shared
+    // endpoints. Motors advance once; force caps apply to the total impulse,
+    // never eight independent impulses. General parallel island work is later.
+    for(var iteration=0u;iteration<8u;iteration+=1u) {
+        for (var slot = 1u; slot < params.counts.x; slot += 1u) {
+            solve_attachment(slot, tick, iteration);
+        }
     }
     atomicMax(&telemetry[8], atomicLoad(&telemetry[0]));
     atomicMax(&telemetry[9], atomicLoad(&telemetry[1]));

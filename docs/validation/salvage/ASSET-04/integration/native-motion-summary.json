@@ -1,0 +1,529 @@
+{
+  "schema": 1,
+  "status": "matched continuous-motion capture checkpoint verified; ASSET-04, LOOK-01 and G02 open; no gate commit",
+  "sources": {
+    "BUILD": "1647b26be08b55fc3d57fea59daf651980eae9dffa21108b6116b4bd66aa765b",
+    "CMakeLists.txt": "662540abfafdac5b4ef6b6fdc11617534c5d4a5f2cbe4dce401a1ba057a532c3",
+    "data/BUILD": "4cfa0084d81937a37199efb174d68978cd4eb7c55385482aa8c6fc0cc106369b",
+    "data/salvage/fixture-pontoon-assembly.json": "bb11c948e2d1dac86ce322143d86c3113a5d8492ba46f9b1a9bb8a4305fa6658",
+    "data/salvage/fixture-pontoon-v2.json": "f4d3599cf126f8aa583f4f065d66f891eca520926b876586250482d544c6afbd",
+    "docs/validation/salvage/ASSET-04/assembly-views.json": "01567dca54b52bb87070c3ef509e900fa9a656ea92a3e793df49ea80e992c599",
+    "docs/validation/salvage/ASSET-04/inspection-views.json": "e4647b61dfadf457fdf7478f9f20dba17b9668cc4c864be8ed7340c53bf956c3",
+    "docs/validation/salvage/ASSET-04/lod-motion.json": "6145cd98808221893c7aba606917c6f8ee27bd6ff86421108cb50c378bdb7717",
+    "salvage_assembly_fixture.cfg": "02346fa362e072ccdf2bc7002e904988d57dfce06a725c1a643f9b53828b73a0",
+    "salvage_asset_fixture.cfg": "86edec7ff9cee300c222baad8f2d05eb3711af34b3f841f3036da0259088c7b9",
+    "scripts/capture_salvage_asset_motion.py": "9fa00647b7e44eb4dbc00d62ac45a41d4853d08655338782496baefc9e441b69",
+    "scripts/capture_salvage_asset_views.py": "4cb504c3fa164d5455bfb89708a3c33ca8ec018e1efdc5a98752e04e0e508304",
+    "scripts/encode_inspection_motion.py": "788218b1a529627df057ea3fc4a7c3a5371e6f36cbfb5c388f3e7c435a63eb26",
+    "scripts/smoke_integrated_wasm.mjs": "940b5084277b5e7911f3ef153f2ec4227da1e9a4bd2722e7c2d335f75fb7a32b",
+    "scripts/test_salvage_preview.mjs": "656df1c4c3596f9a97f8132502d44eb163411337013a393622457638cad921bf",
+    "scripts/validate_asset_admission_wasm.py": "cc7f5efdaddb800abfb806cd7c2e66e87fa3ddf4de3d6a5e0a29b85ae8c360a8",
+    "scripts/validate_native_motion_cli.py": "6abe3428b6592b54fcf1fcbb24660a4463271669c3b04e2ee52424fc68ed442f",
+    "scripts/validate_salvage_asset_fixture.mjs": "d26895f5c51354f4dc008f46571b99ab10e51dfde4822693037cf30fcbf79a36",
+    "scripts/validate_salvage_asset_loss.mjs": "5e4086bbda3063c0f145efadd8ca24fcd26db04ea29b531f0c8f1a74dc6f8fb0",
+    "scripts/validate_salvage_asset_motion.mjs": "0193d22eb74f6a9f8c5d575bf9b8b9fa7844f13ec0a62e4a277a15475aa74b3d",
+    "scripts/validate_salvage_asset_views.mjs": "b19a1f9cfa8d13c658a38af85b0bed93d30180b602a197add923963f6aeb2509",
+    "shaders/mesh_path.wgsl": "199608700b6baeb13e3f3989a050a30e24170a64d34aeef6d5db2fc63a7b1c98",
+    "src/CMakeLists.txt": "313eea08368d02a4d860f0c48cdc0b669c6f5f71e3bacab52ec3778c0aa6c4e4",
+    "src/app/application.cpp": "5e7d2ab104cba94c564dd75f1ffffe019b5a8d13ab639766aa0d8409a7461007",
+    "src/app/application.hpp": "ec98cae267bc278750ca1f07805e12e44ea92935fa30a747d1718e31ae46d578",
+    "src/core/config.cpp": "fcd429eb82f386275f14481888f563d868a83bd857d92c101f526cc6be5c337a",
+    "src/core/config.hpp": "76b4defc626067c2ab49ed9bf598e8a229eec3ab70e6326b13b1f2bda9f7f845",
+    "src/engine/platform/BUILD": "3350ae296b46363a240785d1358baa3ec1500cb2091609df66eccbf1dcebdee2",
+    "src/engine/platform/native/entry.cpp": "441a7a3da5069b8ca1c5e2f32ba0264d845453ad70165c9922b9a4a4d125ad88",
+    "src/engine/platform/native/inspection_motion.hpp": "7715f347c298834baff16107dc5d58136c3bebd6d898b6a3362ae5901a629bc0",
+    "src/engine/platform/wasm/entry.cpp": "8e988739d8740843fc814431a1af909d4d22d5ced63174722c492bbc3a7ed044",
+    "src/game/BUILD": "8f6a2ef57fb8151e8fdb91a31f055949968b572f64781574e7afc53996e5dbe0",
+    "src/game/assets/fixture_registry.cpp": "10be5db8f01d31b0eb403fe0b3cd435cce4c0d4aa15deb6997cd059deb0c5b42",
+    "src/game/assets/fixture_registry.hpp": "7ad01b8c919a868f7415e23bd0081aaea35901ae91f3271c21982c671c812a00",
+    "src/game/construction/build_model.cpp": "5307ee045a24f3974ec109f914eb5f8d5a4c65755a32f7286ff6308be9cd508f",
+    "src/game/construction/build_model.hpp": "e99cf8d8b6a409276195a49d1887d6ee4518683b0cc4fa5550af08a7d3746f19",
+    "src/game/construction/construction_types.cpp": "4aa7ffdd6e608765b5245c94c53c2b54920705533283d270e5b6b4eee84ac4c8",
+    "src/game/construction/construction_types.hpp": "fb1aca2e406802452d0595fac47162822d26d4af3ec343859cbf13f8957912e8",
+    "src/game/construction/part_catalog.cpp": "24869c7c346d49421b2fe20123181e4e5738d6e6ddc366339292d3f12044bcf3",
+    "src/game/construction/part_catalog.hpp": "8c107f72da01b065f811db557b38de9a3a014e5717b3348951cfe21a07bc8c13",
+    "src/render/BUILD": "97d61838ecceb22701fdea32e5dd614c5a8d6967b1c2faabb1429e3ccedce303",
+    "src/render/inspection_guides.cpp": "49c7a1295e65787101de9a2b01e66f6d7be482f477701f3cc6bf985b2f2b65f1",
+    "src/render/inspection_guides.hpp": "f968e8b9edf29bda84098c772a71f96ff6567586dddfc80a3fb6e01c9335bfbd",
+    "src/render/mesh_path.cpp": "7b6b98b44328fbda0085fbacec0d8f3304b838082db0d9e81e53c9324f85373c",
+    "src/render/mesh_path.hpp": "1c9694aefaa929afe41178f12f9c9edfd1dde78ed7ad5a93d5fe5025379dc2e8",
+    "src/render/salvage_asset_fixture.cpp": "25a1fb8c263b749a78576185b74cf8002f620ec30c4c6a2906e23421d83ab81b",
+    "src/render/salvage_asset_fixture.hpp": "f97b61ae48c3d2e31c1ea7bb7a21e5058ad42b8707490ebe2e08e5e279c80ab1",
+    "tests/BUILD": "14815669f8b183f5522c4f5d9cc7d685d370a459e429ab20858039e8cab02608",
+    "tests/CMakeLists.txt": "8fa7b4ad4693487a23b3852069edbf5195adc37f32bb9580b417b25ff63b7f7d",
+    "tests/test_config.cpp": "8abf783de0909f441a67d5524ebc8eecea4998ad67d5a6fa8c296fc3a849bd54",
+    "tests/test_fixture_registry.cpp": "58ed0df297ed9d32785eb55d96375c7cde68635a1c5ccab5ec7573aac701aa7c",
+    "tests/test_mesh_path.cpp": "be5a3b0504467dff5122f6af2fd54a19afa137e4b4b406cd645704581a01b4aa",
+    "tests/test_pontoon_pipeline.cpp": "cd1ccc43fa9a6456704cad9869ced9f2bd7189641c2194ccfc555985ab7ff550",
+    "tests/test_salvage_asset_fixture.cpp": "ebf8662eb948490e9596cab7ec8992c00cc57299693e86511279984cc149b2af",
+    "web/index.html": "ba9888fc19f1e161359cedadd427cde38dd3bdf467dbb824eb1ae17074222240",
+    "web/salvage_preview.js": "2103c537f9f159f2490f4d2cb627fb20a9ca95df741d8eda2dd9b51c14a20658"
+  },
+  "artifacts": {
+    "/home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/voxy_native": {
+      "sha256": "6179a7da7bc81a43803c66cedba9bac544d36d42028f1f052143207bdc022a98",
+      "bytes": 5096784
+    },
+    "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native": {
+      "sha256": "b1436d222f3697512cf01583a51667cbc6790bc23601274aa2b1e4c6f5cbcacb",
+      "bytes": 45180808
+    },
+    "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_tests": {
+      "sha256": "8a8fe7acf1eb11fe2e1057c5a18e434f209d60903a6dc90368dcaac2062322c1",
+      "bytes": 61694808
+    },
+    "/tmp/voxys-asset-browser-08/voxy_wasm.js": {
+      "sha256": "438adc92c7d717ade573bd31d547aa6da6a31eacd46877092423e1de7594a3ec",
+      "bytes": 78652
+    },
+    "/tmp/voxys-asset-browser-08/voxy_wasm.wasm": {
+      "sha256": "3716491e6a0f38c8f9ef0821058833e01db894500747360d341e109321e7c580",
+      "bytes": 5695325
+    },
+    "/tmp/voxys-asset-browser-08/voxy_wasm.data": {
+      "sha256": "163343b51d4e84dbec1a42cb39ff66b7a80198dc358992e5abd315baa1ac4747",
+      "bytes": 62489632
+    },
+    "/tmp/voxys-asset-browser-08/index.html": {
+      "sha256": "ba9888fc19f1e161359cedadd427cde38dd3bdf467dbb824eb1ae17074222240",
+      "bytes": 69669
+    },
+    "/tmp/voxys-asset-browser-08/salvage_preview.js": {
+      "sha256": "2103c537f9f159f2490f4d2cb627fb20a9ca95df741d8eda2dd9b51c14a20658",
+      "bytes": 6656
+    }
+  },
+  "tests": {
+    "native-motion-bazel-config.xml": {
+      "sha256": "80bcffbf240700c9be0a9aea59943c39bb16026783a2cafef74a628566c9a83e",
+      "tests": 59,
+      "failures": 0,
+      "skips": 0
+    },
+    "native-motion-bazel-salvage_asset_fixture.xml": {
+      "sha256": "2d26507cd9f831653fedd22cbe02317cdf60b98cb707e3b759715fdd36ae403c",
+      "tests": 18,
+      "failures": 0,
+      "skips": 0
+    },
+    "native-motion-bazel-mesh_path_test.xml": {
+      "sha256": "d28bcc3094d1331a03665181984c58ce97868e201bd218f8dfaca8f3ce7426b2",
+      "tests": 6,
+      "failures": 0,
+      "skips": 0
+    },
+    "native-motion-cmake-tests.xml": {
+      "sha256": "c39121cbfe56ba6e811aa6234b2b4b7b89f0583ab6235197abf337886edc290b",
+      "tests": 118,
+      "failures": 0,
+      "skips": 0
+    },
+    "native_cli": {
+      "sha256": "5ad7394333136180245c6feaea47e3d53b24a4b7757a844f9fa69d02f039276a",
+      "cases": 6,
+      "passed": true
+    }
+  },
+  "reports": {
+    "docs/validation/salvage/ASSET-04/lod-native-motion-attempt01/captures/report.json": {
+      "sha256": "601dcd9b9d9584aa326b0503779662ac15f0aac4ef5d9fc01432a775e1ed2783",
+      "bytes": 343215
+    },
+    "docs/validation/salvage/ASSET-04/lod-native-motion-attempt01/captures/trace.json": {
+      "sha256": "26369e2cacca89ff2c8a21ac77b71490e2594d7b1056942fdd29a64fe676a213",
+      "bytes": 1523906
+    },
+    "docs/validation/salvage/ASSET-04/lod-native-motion-attempt01/captures/video.json": {
+      "sha256": "b9bcb797423adb6c2ed3c2a32af93eb1effbe8fb67baa3757f3b53d6c3298d77",
+      "bytes": 7213
+    },
+    "docs/validation/salvage/ASSET-04/lod-browser-motion-attempt02/report.json": {
+      "sha256": "dada68c577bc6cdab7feefa634c5bec7abe98ee161c92831ce11f26f29f16c2d",
+      "bytes": 225900
+    },
+    "docs/validation/salvage/ASSET-04/lod-browser-motion-attempt02/trace.json": {
+      "sha256": "91aaca693fb4e8a41ba525aa90f2a0c7ae13cd7454301356cfd04eec68702997",
+      "bytes": 1464622
+    },
+    "docs/validation/salvage/ASSET-04/lod-browser-motion-attempt02/video.json": {
+      "sha256": "e550084e4bff4266f53b64273a5d150f863eda05b1f609e8677d581c2ab3b79f",
+      "bytes": 6331
+    },
+    "docs/validation/salvage/ASSET-04/lod-native-motion-attempt01/manifest.json": {
+      "sha256": "f221d8089c3148f15e2028fec9d2545a7c570797c8ed6c3f45332c07e94c4129",
+      "bytes": 2997
+    },
+    "docs/validation/salvage/ASSET-04/lod-native-motion-attempt01/captures/native-report.json": {
+      "sha256": "3c0ca1ad7e399b571971703f07080626d9c63a9316b40f83485e97837d64c06e",
+      "bytes": 316189
+    },
+    "docs/validation/salvage/ASSET-04/lod-browser-motion-attempt02-startup.json": {
+      "sha256": "1872382d4a3edd6997b08a40c89c502a108776b91710ca5ebf39f7a35fedf6ff",
+      "bytes": 272562
+    },
+    "docs/validation/salvage/ASSET-04/native-motion-browser-journey-attempt01/summary.json": {
+      "sha256": "8250c7f660d21bc80571b5c6e7b2f0c1405d8ae94dff2216bb0e26f4322de963",
+      "bytes": 30966
+    },
+    "docs/validation/salvage/ASSET-04/native-motion-browser-journey-attempt01-startup.json": {
+      "sha256": "31729499169dd6164591baf33f6fc057d76ef47790f5345c3cbfe16a12398b91",
+      "bytes": 853797
+    },
+    "docs/validation/salvage/ASSET-04/native-motion-browser-loss-attempt01/summary.json": {
+      "sha256": "a22027da0e8eda33caf044c48ebadef5aba957e268e003091865768a8f9a95f2",
+      "bytes": 3427
+    },
+    "docs/validation/salvage/ASSET-04/native-motion-browser-loss-attempt01-startup.json": {
+      "sha256": "1ace4ebfa43de256b5439905ca0c48687ac7222446fe4a48557bc181ac7525fd",
+      "bytes": 288241
+    },
+    "docs/validation/salvage/ASSET-04/native-motion-png-regression-attempt01/report.json": {
+      "sha256": "683b90be6464f51a299a52ab3f7a825296f0c249fe32741d1d492b1dcc57b714",
+      "bytes": 3305
+    }
+  },
+  "videos": {
+    "native": {
+      "path": "docs/validation/salvage/ASSET-04/lod-native-motion-attempt01/captures/motion.webm",
+      "sha256": "3b14cbb86e265e86ba173001e7c58235ee032145aabb3b164f2bf2bdfb6b796b",
+      "bytes": 30241753,
+      "original_frames": 189,
+      "trace_samples": 1801,
+      "seconds": 30,
+      "decoded_frames": 360,
+      "unique_capture_rate_claim": false
+    },
+    "browser": {
+      "path": "docs/validation/salvage/ASSET-04/lod-browser-motion-attempt02/motion.webm",
+      "sha256": "7b7984c4f23681e0a8170856f03a68b316deb19dff41848e13c3e0258d49396a",
+      "bytes": 21620023,
+      "original_frames": 126,
+      "trace_samples": 1719,
+      "seconds": 30,
+      "decoded_frames": 360,
+      "unique_capture_rate_claim": false
+    }
+  },
+  "transition_observations": {
+    "native": [
+      {
+        "placement": 0,
+        "sequence": [
+          "1",
+          "2",
+          "3",
+          "2",
+          "1"
+        ],
+        "transitions": [
+          {
+            "from": "1",
+            "to": "2",
+            "elapsed": 3.901066239,
+            "distance": 9.618160514670597
+          },
+          {
+            "from": "2",
+            "to": "3",
+            "elapsed": 8.6611281,
+            "distance": 33.869940705915134
+          },
+          {
+            "from": "3",
+            "to": "2",
+            "elapsed": 21.353137113,
+            "distance": 33.737485318149126
+          },
+          {
+            "from": "2",
+            "to": "1",
+            "elapsed": 26.146726669,
+            "distance": 9.519519456194374
+          }
+        ]
+      },
+      {
+        "placement": 1,
+        "sequence": [
+          "1",
+          "2",
+          "3",
+          "2",
+          "1"
+        ],
+        "transitions": [
+          {
+            "from": "1",
+            "to": "2",
+            "elapsed": 4.540948032,
+            "distance": 11.124594010365351
+          },
+          {
+            "from": "2",
+            "to": "3",
+            "elapsed": 8.861401132,
+            "distance": 35.77595864626543
+          },
+          {
+            "from": "3",
+            "to": "2",
+            "elapsed": 21.195889181,
+            "distance": 35.22186494580123
+          },
+          {
+            "from": "2",
+            "to": "1",
+            "elapsed": 25.50212702,
+            "distance": 11.011647549804916
+          }
+        ]
+      },
+      {
+        "placement": 2,
+        "sequence": [
+          "1",
+          "2",
+          "3",
+          "2",
+          "1"
+        ],
+        "transitions": [
+          {
+            "from": "1",
+            "to": "2",
+            "elapsed": 5.041692923,
+            "distance": 12.5737394510666
+          },
+          {
+            "from": "2",
+            "to": "3",
+            "elapsed": 8.980214144,
+            "distance": 36.94767707022684
+          },
+          {
+            "from": "3",
+            "to": "2",
+            "elapsed": 21.045810439,
+            "distance": 36.68842116609679
+          },
+          {
+            "from": "2",
+            "to": "1",
+            "elapsed": 25.016315945,
+            "distance": 12.392423484124162
+          }
+        ]
+      },
+      {
+        "placement": 3,
+        "sequence": [
+          "1",
+          "2",
+          "3",
+          "2",
+          "1"
+        ],
+        "transitions": [
+          {
+            "from": "1",
+            "to": "2",
+            "elapsed": 4.692999179,
+            "distance": 11.537630725413642
+          },
+          {
+            "from": "2",
+            "to": "3",
+            "elapsed": 8.861401132,
+            "distance": 35.77595864626543
+          },
+          {
+            "from": "3",
+            "to": "2",
+            "elapsed": 21.182812524,
+            "distance": 35.34771323160578
+          },
+          {
+            "from": "2",
+            "to": "1",
+            "elapsed": 25.355788446,
+            "distance": 11.402632516803449
+          }
+        ]
+      }
+    ],
+    "browser": [
+      {
+        "placement": 0,
+        "sequence": [
+          "1",
+          "2",
+          "3",
+          "2",
+          "1"
+        ],
+        "transitions": [
+          {
+            "from": "1",
+            "to": "2",
+            "elapsed": 3.9115000000044713,
+            "distance": 9.639936378195175
+          },
+          {
+            "from": "2",
+            "to": "3",
+            "elapsed": 8.68720000000447,
+            "distance": 34.113159717399874
+          },
+          {
+            "from": "3",
+            "to": "2",
+            "elapsed": 21.372300000004472,
+            "distance": 33.56024581857572
+          },
+          {
+            "from": "2",
+            "to": "1",
+            "elapsed": 26.14850000000447,
+            "distance": 9.515894151616958
+          }
+        ]
+      },
+      {
+        "placement": 1,
+        "sequence": [
+          "1",
+          "2",
+          "3",
+          "2",
+          "1"
+        ],
+        "transitions": [
+          {
+            "from": "1",
+            "to": "2",
+            "elapsed": 4.555000000004471,
+            "distance": 11.161822542419701
+          },
+          {
+            "from": "2",
+            "to": "3",
+            "elapsed": 8.84630000000447,
+            "distance": 35.62921667517276
+          },
+          {
+            "from": "3",
+            "to": "2",
+            "elapsed": 21.208700000004473,
+            "distance": 35.09893362190935
+          },
+          {
+            "from": "2",
+            "to": "1",
+            "elapsed": 25.51050000000447,
+            "distance": 10.989897173589615
+          }
+        ]
+      },
+      {
+        "placement": 2,
+        "sequence": [
+          "1",
+          "2",
+          "3",
+          "2",
+          "1"
+        ],
+        "transitions": [
+          {
+            "from": "1",
+            "to": "2",
+            "elapsed": 5.06070000000447,
+            "distance": 12.633952839450568
+          },
+          {
+            "from": "2",
+            "to": "3",
+            "elapsed": 9.00490000000447,
+            "distance": 37.19494488144615
+          },
+          {
+            "from": "3",
+            "to": "2",
+            "elapsed": 21.05060000000447,
+            "distance": 36.64086680490436
+          },
+          {
+            "from": "2",
+            "to": "1",
+            "elapsed": 24.98790000000447,
+            "distance": 12.480782420628714
+          }
+        ]
+      },
+      {
+        "placement": 3,
+        "sequence": [
+          "1",
+          "2",
+          "3",
+          "2",
+          "1"
+        ],
+        "transitions": [
+          {
+            "from": "1",
+            "to": "2",
+            "elapsed": 4.68220000000447,
+            "distance": 11.507544942423474
+          },
+          {
+            "from": "2",
+            "to": "3",
+            "elapsed": 8.881500000004472,
+            "distance": 35.97202944627239
+          },
+          {
+            "from": "3",
+            "to": "2",
+            "elapsed": 21.17090000000447,
+            "distance": 35.46267985667245
+          },
+          {
+            "from": "2",
+            "to": "1",
+            "elapsed": 25.37190000000447,
+            "distance": 11.358567761270308
+          }
+        ]
+      }
+    ]
+  },
+  "review": {
+    "reviewer": "root; not independent",
+    "native_frames": [
+      "frame-0000.jpg",
+      "frame-0023.jpg",
+      "frame-0025.jpg",
+      "frame-0053.jpg",
+      "frame-0055.jpg"
+    ],
+    "browser_frames": [
+      "frame-0015.jpg",
+      "frame-0017.jpg",
+      "frame-0035.jpg",
+      "frame-0037.jpg"
+    ],
+    "finding": "Sampled assembly/stack silhouettes remain coherent around the first two transitions; no missing model or separated join. This does not exclude one-frame defects or replace independent moving-image review."
+  },
+  "resource_accounting": {
+    "asset_conservative_reservation_bytes": 6264556,
+    "cooked_uploads": 3,
+    "prototype_uploads": 1,
+    "model_draws": 6,
+    "trace_capacity": 8192,
+    "native_trace_payload_limit_bytes": 16777216,
+    "image_capacity": 256,
+    "excluded": "driver/staging memory, temporary screenshot readback/image encoding, process memory and unrelated application resources",
+    "performance_gate_passed": false
+  }
+}

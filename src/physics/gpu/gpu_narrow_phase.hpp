@@ -36,6 +36,9 @@ struct GpuNarrowPhaseInput {
     uint32_t pairCapacity = 0;
     // Appended to preserve the positional layout of the original input API.
     WGPUBuffer metadataBuffer = nullptr;
+    // Borrowed atlas; the owner must declare all referenced shapes before
+    // encoding and retain them through the actual queue submission.
+    WGPUBuffer authoredShapeBuffer = nullptr;
 
     [[nodiscard]] bool valid() const noexcept {
         return poseBuffer && shapeBuffer && metadataBuffer && uniquePairBuffer

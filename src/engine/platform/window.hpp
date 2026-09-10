@@ -141,6 +141,7 @@ public:
 #if defined(VOXY_NATIVE)
     // Get GLFW window handle
     [[nodiscard]] GLFWwindow* getGLFWHandle() const { return window_; }
+    void setTitle(const char* title);
     
     #if defined(__APPLE__)
     // Get Cocoa window handle (NSWindow*)

@@ -1,0 +1,53 @@
+{
+  "status": "passed",
+  "date": "2026-09-09",
+  "scope": "PLAY-02 live edited-starter launch checkpoint, not full task or gate",
+  "checks": {
+    "native_application_build": "passed",
+    "native_tests": {
+      "passed": 154,
+      "skipped": 0,
+      "filter": "GameSession*:SessionJournal*:SessionEvent*:CoveMovement*:CoveNavigation*"
+    },
+    "wasm_application_build": "passed (existing unrelated warnings)",
+    "ui_lifecycle_tests": {
+      "passed": 12
+    },
+    "browser_real_control_journey": {
+      "status": "passed",
+      "stages": 14,
+      "screenshots": 0,
+      "launches": 4,
+      "changes": [
+        "remove cradle: 1035 to 945 kg",
+        "undo removal: 1035 kg",
+        "redo removal: 945 kg",
+        "move winch two metres onto freed deck socket"
+      ],
+      "rejections": [
+        "obstructed helm standing space",
+        "missing propulsion"
+      ],
+      "controls": [
+        "board",
+        "use helm",
+        "steer into hook range",
+        "hook and reel relocated winch",
+        "release",
+        "throttle and turn edited boat",
+        "observed Reset to berth",
+        "drained Leave"
+      ]
+    },
+    "whitespace": "passed"
+  },
+  "package": "/tmp/voxys-launch-web-r03",
+  "preview": "http://127.0.0.1:38195/?experience=salvage-cove",
+  "limits": [
+    "local RAM edits; Leave loses progress",
+    "no added-part/settings/save UI",
+    "no controller or native playthrough acceptance",
+    "no new live GPU fault/cancellation timing stress evidence",
+    "no full PLAY-02 or game gate complete"
+  ]
+}

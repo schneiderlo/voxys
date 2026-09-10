@@ -1,0 +1,449 @@
+{
+  "schema": 1,
+  "status": "captured; visual review required",
+  "recipe": {
+    "schema": 1,
+    "purpose": "Close contacts and underside of installed r09 kit, repeated with each authored detail level; no live physics or final-art acceptance",
+    "physical_viewport": [
+      1920,
+      1080
+    ],
+    "fov_degrees": 60,
+    "registry": "data/salvage/fixture-kit-cargo.json",
+    "views": [
+      {
+        "name": "cargo-seat",
+        "eye": [
+          2.1,
+          0.4,
+          -2.4
+        ],
+        "target": [
+          0,
+          0.32,
+          0
+        ],
+        "sun": [
+          0.6,
+          0.5,
+          -0.4
+        ]
+      },
+      {
+        "name": "cargo-below",
+        "eye": [
+          1.5,
+          -1.5,
+          -2
+        ],
+        "target": [
+          0,
+          -0.2,
+          0
+        ],
+        "sun": [
+          0.5,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "crate-pin",
+        "eye": [
+          4.2,
+          -0.5,
+          -1.8
+        ],
+        "target": [
+          3.2,
+          -0.16,
+          0
+        ],
+        "sun": [
+          0.5,
+          0.6,
+          -0.4
+        ]
+      }
+    ],
+    "inspection_expectations": {
+      "maximum_model_draws": 4,
+      "guide_boxes": [
+        0,
+        23,
+        120
+      ]
+    }
+  },
+  "recipe_sha256": "3c7efc876e019d8ca1e2993a773a1fbf22f783aee080170db9fe15be0ee481df",
+  "runner_sha256": "2befd115829de8b32c77c322a4b745c3ba398821f1dcdaa25889c496a2c3b9f2",
+  "binary": "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native",
+  "binary_sha256": "f1268bcfeee8d44b8de5b076a51d8098a48b8ff138af001163cd7795ca07919d",
+  "original_registry_sha256": "f5cc8c04c3c387ba3bc2c97a36173280ccbce3d360048328301b48ebdb0993c2",
+  "original_config": "/home/modkin/workspace/schneiderlo/voxys/salvage_kit_cargo.cfg",
+  "original_config_sha256": "2d85c576edc6e65068ecaf41f07ae5ac123587bcb9f4ae2cd956807cf4c8bfed",
+  "guides": "off",
+  "forced_lod": 2,
+  "selected_views": null,
+  "scope": "Native scene captures; guides are technical overlays, not final art or moving-craft acceptance",
+  "views": [
+    {
+      "name": "cargo-seat",
+      "argv": [
+        "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-05/r09-contacts/native-cargo-lod2/cargo-seat.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-05/r09-contacts/native-cargo-lod2/cargo-seat.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "config_sha256": "62f3d47b0f04214eca528c5df9c3a1205d8273af812368dfe1e52b9a045217be",
+      "registry_sha256": "06001d4587042b6779094763102744a5d7c787508d876aba9c0f7188069c2b3a",
+      "timeout": false,
+      "exit_code": 0,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "png_sha256": "4c7bf4a29dc18d0f848fd67ee9969217044ca1b396c87360ccd33cdbc7b37f97",
+      "gpu_or_application_errors": [],
+      "state": {
+        "active": true,
+        "ready": true,
+        "busy": false,
+        "failed": false,
+        "bodies": 0,
+        "resets": 0,
+        "controller": "free-fly",
+        "mouseCaptured": false,
+        "origin": [
+          -12,
+          -187.68,
+          -32
+        ],
+        "camera": {
+          "local": [
+            -16.9,
+            71.72,
+            -39.4
+          ],
+          "sector": [
+            0,
+            -1,
+            0
+          ],
+          "yaw": -0.71883,
+          "pitch": -0.0250764
+        },
+        "session": {
+          "revision": "0",
+          "tick": "0",
+          "admissionOpen": true,
+          "builds": 0,
+          "cargo": 0,
+          "jobs": 0,
+          "inventory": {
+            "salvageMaterial": "0",
+            "specialMachinery": "0"
+          }
+        },
+        "observation": {
+          "world": "4e50a937ecf5299c682f488919b888e5",
+          "incarnation": "0d0dcebd53188c6af8921cb90ab5fce5",
+          "epoch": "1",
+          "publicationLost": false,
+          "lanes": [
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            },
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            },
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            }
+          ]
+        },
+        "assetFixture": {
+          "status": 2,
+          "generation": "1",
+          "uploads": 12,
+          "prototypeUploads": 0,
+          "gpuReservationBytes": "4776288",
+          "submittedSerial": "120",
+          "completedSerial": "118",
+          "draws": 4,
+          "guides": 0,
+          "guideBoxes": 0,
+          "guideMeshGpuBytes": 1936,
+          "forcedLod": "2",
+          "lods": [
+            "2",
+            "2",
+            "2",
+            "2"
+          ],
+          "availableLods": [
+            "0",
+            "1",
+            "2",
+            "3"
+          ]
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "cargo-below",
+      "argv": [
+        "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-05/r09-contacts/native-cargo-lod2/cargo-below.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-05/r09-contacts/native-cargo-lod2/cargo-below.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "config_sha256": "aa36c087cf99bd162739baf9adc29d9f5c462a7cee4a09ff1d18d9f1b5ebc4b6",
+      "registry_sha256": "9ff073d527aca5ebccda9e7f76f9d6de8f90f291923d33586cf83ce8afd58f1f",
+      "timeout": false,
+      "exit_code": 0,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "png_sha256": "e9c1ad61e59d3640f83255c216a5112685151eab899055bd02a2f934e20563c0",
+      "gpu_or_application_errors": [],
+      "state": {
+        "active": true,
+        "ready": true,
+        "busy": false,
+        "failed": false,
+        "bodies": 0,
+        "resets": 0,
+        "controller": "free-fly",
+        "mouseCaptured": false,
+        "origin": [
+          -12,
+          -187.68,
+          -32
+        ],
+        "camera": {
+          "local": [
+            -17.5,
+            69.82,
+            -39
+          ],
+          "sector": [
+            0,
+            -1,
+            0
+          ],
+          "yaw": -0.643501,
+          "pitch": 0.47952
+        },
+        "session": {
+          "revision": "0",
+          "tick": "0",
+          "admissionOpen": true,
+          "builds": 0,
+          "cargo": 0,
+          "jobs": 0,
+          "inventory": {
+            "salvageMaterial": "0",
+            "specialMachinery": "0"
+          }
+        },
+        "observation": {
+          "world": "4bb4730cf8ae78cc29fce8b13b1a9e59",
+          "incarnation": "00bafaaf0dfa37b1f740a6193b7d23c6",
+          "epoch": "1",
+          "publicationLost": false,
+          "lanes": [
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            },
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            },
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            }
+          ]
+        },
+        "assetFixture": {
+          "status": 2,
+          "generation": "1",
+          "uploads": 12,
+          "prototypeUploads": 0,
+          "gpuReservationBytes": "4776288",
+          "submittedSerial": "120",
+          "completedSerial": "118",
+          "draws": 4,
+          "guides": 0,
+          "guideBoxes": 0,
+          "guideMeshGpuBytes": 1936,
+          "forcedLod": "2",
+          "lods": [
+            "2",
+            "2",
+            "2",
+            "2"
+          ],
+          "availableLods": [
+            "0",
+            "1",
+            "2",
+            "3"
+          ]
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "crate-pin",
+      "argv": [
+        "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-05/r09-contacts/native-cargo-lod2/crate-pin.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-05/r09-contacts/native-cargo-lod2/crate-pin.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "config_sha256": "26eb1fb17c70ffb367bdf9902708a1f445fbca5c9885c339a654ae64fe902c58",
+      "registry_sha256": "3e2353404e14c1b1972294ac699090167d5ff1f8437da9231d2d6d94841d73c4",
+      "timeout": false,
+      "exit_code": 0,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "png_sha256": "3597f7076c41aff65f9f51ab3c052584c691bfc4c0f7ec9de3a946a53bc7783c",
+      "gpu_or_application_errors": [],
+      "state": {
+        "active": true,
+        "ready": true,
+        "busy": false,
+        "failed": false,
+        "bodies": 0,
+        "resets": 0,
+        "controller": "free-fly",
+        "mouseCaptured": false,
+        "origin": [
+          -12,
+          -187.68,
+          -32
+        ],
+        "camera": {
+          "local": [
+            -14.8,
+            70.82,
+            -38.8
+          ],
+          "sector": [
+            0,
+            -1,
+            0
+          ],
+          "yaw": -0.507099,
+          "pitch": 0.16364
+        },
+        "session": {
+          "revision": "0",
+          "tick": "0",
+          "admissionOpen": true,
+          "builds": 0,
+          "cargo": 0,
+          "jobs": 0,
+          "inventory": {
+            "salvageMaterial": "0",
+            "specialMachinery": "0"
+          }
+        },
+        "observation": {
+          "world": "5f8be70cf5a9a0188d2947abd77d603a",
+          "incarnation": "3a87ee4e05fc3ebc57345f6a7d9bccd3",
+          "epoch": "1",
+          "publicationLost": false,
+          "lanes": [
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            },
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            },
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            }
+          ]
+        },
+        "assetFixture": {
+          "status": 2,
+          "generation": "1",
+          "uploads": 12,
+          "prototypeUploads": 0,
+          "gpuReservationBytes": "4776288",
+          "submittedSerial": "120",
+          "completedSerial": "118",
+          "draws": 4,
+          "guides": 0,
+          "guideBoxes": 0,
+          "guideMeshGpuBytes": 1936,
+          "forcedLod": "2",
+          "lods": [
+            "2",
+            "2",
+            "2",
+            "2"
+          ],
+          "availableLods": [
+            "0",
+            "1",
+            "2",
+            "3"
+          ]
+        }
+      },
+      "passed": true
+    }
+  ],
+  "temporary_registry_removed": true
+}

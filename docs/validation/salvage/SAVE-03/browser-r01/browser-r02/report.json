@@ -1,0 +1,77 @@
+{
+  "status": "passed",
+  "kind": "Isolated browser world storage, no GameSession mutation",
+  "sourceHashes": {
+    "web/expedition_store.js": "c58c90e78327eac8e8ea37acf74f5d0c6b1c1b0e7b1d21bc250fb1ae3cd9052e",
+    "scripts/expedition_storage_cases.js": "3b99e5858e9ebe0d87e9b71cb2ae56dc89ecc8430d263f01a503a2d46a52718a",
+    "scripts/validate_expedition_storage.mjs": "ed4e6c239a5ad0676c37c46bbdeda5c2c0735ffb8603124617f2bfa3521d7db2",
+    "tests/fixtures/save_generation_v1.json": "12e8039e98858ff76721efceddf32fc26b523d039bb72a3630f3873d87dbc203"
+  },
+  "checks": [
+    "second actual tab refuses a live world owner",
+    "actual page reload releases ownership and preserves the acknowledged generation",
+    "actual tab close releases world ownership",
+    "browser process kill at first-put recovers complete generation 1",
+    "browser process kill at committed recovers complete generation 2"
+  ],
+  "screenshots": 0,
+  "profileFilesystem": "workspace mount",
+  "browserRuns": [
+    {
+      "run": 1,
+      "version": {
+        "Browser": "Chrome/152.0.7977.82",
+        "Protocol-Version": "1.3",
+        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/152.0.0.0 Safari/537.36",
+        "V8-Version": "15.2.124.21",
+        "WebKit-Version": "537.36 (@d04cdb24d67b081f6cf80200ffc5233f44b61109)",
+        "webSocketDebuggerUrl": "ws://127.0.0.1:46005/devtools/browser/4b1ab7a2-7a1c-45ef-af5e-29c8d3d47170"
+      }
+    },
+    {
+      "run": 2,
+      "version": {
+        "Browser": "Chrome/152.0.7977.82",
+        "Protocol-Version": "1.3",
+        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/152.0.0.0 Safari/537.36",
+        "V8-Version": "15.2.124.21",
+        "WebKit-Version": "537.36 (@d04cdb24d67b081f6cf80200ffc5233f44b61109)",
+        "webSocketDebuggerUrl": "ws://127.0.0.1:34895/devtools/browser/ee28e81e-1853-4bce-be63-151b581977f2"
+      }
+    },
+    {
+      "run": 3,
+      "version": {
+        "Browser": "Chrome/152.0.7977.82",
+        "Protocol-Version": "1.3",
+        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/152.0.0.0 Safari/537.36",
+        "V8-Version": "15.2.124.21",
+        "WebKit-Version": "537.36 (@d04cdb24d67b081f6cf80200ffc5233f44b61109)",
+        "webSocketDebuggerUrl": "ws://127.0.0.1:42273/devtools/browser/93596826-130e-49ca-9ccd-195a30fa119c"
+      }
+    }
+  ],
+  "isolated": {
+    "status": "passed",
+    "checks": [
+      "strict atomic publication acknowledged after complete",
+      "same-world exclusive Web Lock",
+      "one pending operation and owned payload",
+      "stale requests and invalid archives preserve save",
+      "quota after first put rolls back both copies",
+      "actual IndexedDB abort preserves prior generation",
+      "payload corruption and redundant-copy repair",
+      "missing copy recovery",
+      "matching generation with differing payload refuses",
+      "unknown format never silently falls back",
+      "two damaged copies cannot become a new world",
+      "transaction rechecks bytes after async validation",
+      "close aborts and drains before releasing ownership",
+      "eight-world bound counts both stores",
+      "full-width generation and exhaustion"
+    ],
+    "strictWrites": 27,
+    "kind": "Isolated real IndexedDB/Web Locks; synthetic archive validator and deliberate storage faults; no game mutation"
+  },
+  "sourcesUnchanged": true
+}

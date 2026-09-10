@@ -1,5 +1,7 @@
 #pragma once
 
+#include "geometry/grid_types.hpp"
+
 #include <array>
 #include <compare>
 #include <cstddef>
@@ -23,12 +25,7 @@ inline constexpr int32_t kMaximumGridCoordinate =
 inline constexpr double kLatticeToleranceMetres = 1.0e-8;
 
 // INT32_MIN is excluded so negation and all proper rotations preserve the range.
-struct GridPosition {
-    int32_t x = 0;
-    int32_t y = 0;
-    int32_t z = 0;
-    [[nodiscard]] bool operator==(const GridPosition&) const = default;
-};
+using GridPosition = geometry::GridPosition;
 
 struct MetresPosition {
     double x = 0.0;

@@ -65,6 +65,12 @@ void DebugReadbackRing::shutdown() {
     slotBytes_ = 0;
     nextSlot_ = 0;
     nextSequence_ = 1;
+    failedReadbacks_ = 0;
+}
+
+uint32_t DebugReadbackRing::availableSlots() const noexcept {
+    return static_cast<uint32_t>(std::count_if(slots_.begin(),slots_.end(),
+        [](const Slot& slot){return slot.state==State::Idle;}));
 }
 
 std::optional<size_t> DebugReadbackRing::nextAvailableSlot() const noexcept {
@@ -79,29 +85,43 @@ bool DebugReadbackRing::encodeCopy(WGPUCommandEncoder encoder,
                                    WGPUBuffer source, uint64_t sourceOffset,
                                    uint64_t byteCount, uint64_t tick,
                                    uint32_t firstBody, uint32_t bodyCount,
-                                   std::optional<size_t> slotIndex) {
-    if (!encoder || !source || byteCount == 0 || byteCount > slotBytes_)
-        return false;
-    const uint64_t sourceBytes = wgpuBufferGetSize(source);
-    const gpu::WGPUBufferUsageFlags sourceUsage =
-        wgpuBufferGetUsage(source);
-    if ((sourceUsage & WGPUBufferUsage_CopySrc) == 0u
-        || sourceOffset % 4u != 0u || byteCount % 4u != 0u
-        || sourceOffset > sourceBytes
-        || byteCount > sourceBytes - sourceOffset) {
-        return false;
+                                   std::optional<size_t> slotIndex,
+                                   uint64_t submissionSerial) {
+    const DebugReadbackCopy copy{source,sourceOffset,byteCount};
+    return encodeCopies(encoder,std::span(&copy,1),tick,{firstBody,bodyCount},slotIndex,submissionSerial);
+}
+
+bool DebugReadbackRing::encodeCopies(WGPUCommandEncoder encoder,
+    std::span<const DebugReadbackCopy> copies, uint64_t tick, DebugReadbackRange range,
+    std::optional<size_t> slotIndex, uint64_t submissionSerial) {
+    if (!encoder || copies.empty()) return false;
+    uint64_t byteCount=0;
+    for (const auto& copy:copies) {
+        if (!copy.source || !copy.bytes || copy.bytes>slotBytes_-byteCount) return false;
+        const uint64_t sourceBytes=wgpuBufferGetSize(copy.source);
+        if (!(wgpuBufferGetUsage(copy.source)&WGPUBufferUsage_CopySrc)
+            || copy.offset%4 || copy.bytes%4 || copy.offset>sourceBytes
+            || copy.bytes>sourceBytes-copy.offset) return false;
+        byteCount+=copy.bytes;
     }
     const auto available = slotIndex ? slotIndex : nextAvailableSlot();
     if (available && *available < slots_.size()
         && slots_[*available].state == State::Idle) {
         const size_t index = *available;
         auto& slot = slots_[index];
-        wgpuCommandEncoderCopyBufferToBuffer(
-            encoder, source, sourceOffset, slot.buffer, 0, byteCount);
+        uint64_t destinationOffset=0;
+        for (const auto& copy:copies) {
+            wgpuCommandEncoderCopyBufferToBuffer(
+                encoder,copy.source,copy.offset,slot.buffer,destinationOffset,copy.bytes);
+            destinationOffset+=copy.bytes;
+        }
         slot.tick = tick;
+        slot.submissionSerial=submissionSerial;
         slot.sequence = nextSequence_++;
-        slot.firstBody = firstBody;
-        slot.bodyCount = bodyCount;
+        slot.firstBody = range.firstBody;
+        slot.bodyCount = range.bodyCount;
+        slot.firstAttachment = range.firstAttachment;
+        slot.attachmentCount = range.attachmentCount;
         slot.byteCount = static_cast<size_t>(byteCount);
         slot.state = State::CopyEncoded;
         nextSlot_ = (index + 1) % slots_.size();
@@ -172,6 +192,7 @@ std::optional<RawDebugReadback> DebugReadbackRing::poll() {
         }
         if (!oldest) return std::nullopt;
         if (oldest->state == State::Failed) {
+            if(failedReadbacks_!=UINT64_MAX) ++failedReadbacks_;
             oldest->state = State::Idle;
             continue;
         }
@@ -179,12 +200,16 @@ std::optional<RawDebugReadback> DebugReadbackRing::poll() {
 
         RawDebugReadback result;
         result.tick = oldest->tick;
+        result.submissionSerial=oldest->submissionSerial;
         result.firstBody = oldest->firstBody;
         result.bodyCount = oldest->bodyCount;
+        result.firstAttachment = oldest->firstAttachment;
+        result.attachmentCount = oldest->attachmentCount;
         result.bytes.resize(oldest->byteCount);
         const void* mapped = wgpuBufferGetConstMappedRange(
             oldest->buffer, 0, oldest->byteCount);
         if (!mapped) {
+            if(failedReadbacks_!=UINT64_MAX) ++failedReadbacks_;
             wgpuBufferUnmap(oldest->buffer);
             oldest->state = State::Idle;
             return std::nullopt;

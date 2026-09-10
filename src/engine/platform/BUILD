@@ -4,6 +4,7 @@ load("//settings:configure_copts.bzl", "PROJECT_DEFAULT_COPTS")
 
 exports_files([
     "native/entry.cpp",
+    "native/inspection_motion.hpp",
     "wasm/entry.cpp",
 ])
 
@@ -47,4 +48,31 @@ cc_library(
         "//src/core:core",
         "//third_party:glm",
     ],
+)
+
+cc_library(
+    name = "native_save_store",
+    srcs = ["native/save_store.cpp"],
+    hdrs = ["native/save_store.hpp"],
+    copts = PROJECT_DEFAULT_COPTS,
+    includes = ["../.."],
+    deps = ["//src/game:save_generation"],
+)
+
+cc_library(
+    name = "native_save_worker",
+    srcs = ["native/save_worker.cpp"],
+    hdrs = ["native/save_worker.hpp"],
+    copts = PROJECT_DEFAULT_COPTS,
+    includes = ["../.."],
+    deps = [":native_save_store"],
+)
+
+cc_library(
+    name = "native_cove_saves",
+    srcs = ["native/cove_saves.cpp"],
+    hdrs = ["native/cove_saves.hpp"],
+    copts = PROJECT_DEFAULT_COPTS,
+    includes = ["../.."],
+    deps = [":native_save_worker", "//src/app:app", "//src/core:sha256", "//src/game:cove_save", "//third_party:tinygltf"],
 )

@@ -1,0 +1,123 @@
+{
+  "passed": true,
+  "kind": "Shared C++ authored-shape compute and lifetime tests on hardware browser WebGPU",
+  "runner_sha256": "3485af0d9d7717073f71bdca3ecdd9c123ed3ecf53aa83e47a5eeaa2ee91105f",
+  "package": "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/SIM-02/stage-c1/wasm-build-attempt04",
+  "artifacts": {
+    "index.html": {
+      "sha256": "f58020ea0d985c0e9fb40df502538dd7a7c51b4666ee0fc24cfb01bb778a556a",
+      "bytes": 2779
+    },
+    "shape_diagnostics.js": {
+      "sha256": "30076e9ddf1352de98337d24ffff28802d0de343539cd48534adf6652aedef10",
+      "bytes": 165402
+    },
+    "shape_diagnostics.wasm": {
+      "sha256": "a093117693649d70c5ba402cabddea3db2e5dda8d16dd816f16dcfd3a190bb66",
+      "bytes": 1441483
+    }
+  },
+  "chrome_argv": [
+    "google-chrome",
+    "--no-sandbox",
+    "--no-first-run",
+    "--no-default-browser-check",
+    "--disable-background-networking",
+    "--enable-unsafe-webgpu",
+    "--disable-gpu-watchdog",
+    "--disable-background-timer-throttling",
+    "--disable-renderer-backgrounding",
+    "--ozone-platform=wayland",
+    "--enable-features=Vulkan",
+    "--remote-debugging-port=0",
+    "--user-data-dir=/tmp/voxys-shape-browser-SajWfG",
+    "about:blank"
+  ],
+  "browser": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/152.0.7977.82",
+    "revision": "@d04cdb24d67b081f6cf80200ffc5233f44b61109",
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36",
+    "jsVersion": "15.2.124.21"
+  },
+  "result": {
+    "done": true,
+    "passed": true,
+    "output": [
+      "Running main() from /home/modkin/workspace/schneiderlo/voxys/third_party/googletest/googletest/src/gtest_main.cc",
+      "[==========] Running 8 tests from 1 test suite.",
+      "[----------] Global test environment set-up.",
+      "[----------] 8 tests from GpuAuthoredShapes",
+      "[ RUN      ] GpuAuthoredShapes.RealHeapDecodesGeometryAndAnalyticalMassFrames",
+      "[       OK ] GpuAuthoredShapes.RealHeapDecodesGeometryAndAnalyticalMassFrames (42 ms)",
+      "[ RUN      ] GpuAuthoredShapes.RetiringAnEncodedShapePreservesActualGpuReadAndLateReader",
+      "[       OK ] GpuAuthoredShapes.RetiringAnEncodedShapePreservesActualGpuReadAndLateReader (61 ms)",
+      "[ RUN      ] GpuAuthoredShapes.DiscardUsesRealFenceAndInvalidatesOldGpuGeneration",
+      "[       OK ] GpuAuthoredShapes.DiscardUsesRealFenceAndInvalidatesOldGpuGeneration (35 ms)",
+      "[ RUN      ] GpuAuthoredShapes.BoundedPendingOperationsRefuseWithoutConsumingPreparedStorage",
+      "[       OK ] GpuAuthoredShapes.BoundedPendingOperationsRefuseWithoutConsumingPreparedStorage (17 ms)",
+      "[ RUN      ] GpuAuthoredShapes.ContiguousRangesRefuseFragmentationAndCoalesceAfterRetirement",
+      "[       OK ] GpuAuthoredShapes.ContiguousRangesRefuseFragmentationAndCoalesceAfterRetirement (59 ms)",
+      "[ RUN      ] GpuAuthoredShapes.InvalidHandlesTicketsAndGpuBudgetsDoNotSubmitWork",
+      "[       OK ] GpuAuthoredShapes.InvalidHandlesTicketsAndGpuBudgetsDoNotSubmitWork (13 ms)",
+      "[ RUN      ] GpuAuthoredShapes.CloseWaitsForAnUnresolvedSubmissionAndRetainedReader",
+      "[       OK ] GpuAuthoredShapes.CloseWaitsForAnUnresolvedSubmissionAndRetainedReader (16 ms)",
+      "[ RUN      ] GpuAuthoredShapes.ValidationFailureCannotCertifyItsSubmissionOrReuseResources",
+      "[       OK ] GpuAuthoredShapes.ValidationFailureCannotCertifyItsSubmissionOrReuseResources (12 ms)",
+      "[----------] 8 tests from GpuAuthoredShapes (260 ms total)",
+      "",
+      "[----------] Global test environment tear-down",
+      "[==========] 8 tests from 1 test suite ran. (261 ms total)",
+      "[  PASSED  ] 8 tests."
+    ],
+    "gpuErrors": [],
+    "captures": [
+      {
+        "name": "0-RealHeapDecodesGeometryAndAnalyticalMassFrames.u32",
+        "sha256": "b0da9bf5f36724a7e37f43656c415a2f141f6696821d8beeeaa694b29d7378e0",
+        "bytes": 256
+      },
+      {
+        "name": "1-RetiringAnEncodedShapePreservesActualGpuReadAndLateReader.u32",
+        "sha256": "b0da9bf5f36724a7e37f43656c415a2f141f6696821d8beeeaa694b29d7378e0",
+        "bytes": 256
+      },
+      {
+        "name": "2-RetiringAnEncodedShapePreservesActualGpuReadAndLateReader.u32",
+        "sha256": "5341e6b2646979a70e57653007a1f310169421ec9bdd9f1a5648f75ade005af1",
+        "bytes": 256
+      },
+      {
+        "name": "3-RetiringAnEncodedShapePreservesActualGpuReadAndLateReader.u32",
+        "sha256": "05f4dc2d87e991a02d467d3c204e8d6661c4afa01e46e62001239e99e34b023d",
+        "bytes": 256
+      },
+      {
+        "name": "4-DiscardUsesRealFenceAndInvalidatesOldGpuGeneration.u32",
+        "sha256": "5341e6b2646979a70e57653007a1f310169421ec9bdd9f1a5648f75ade005af1",
+        "bytes": 256
+      },
+      {
+        "name": "5-ContiguousRangesRefuseFragmentationAndCoalesceAfterRetirement.u32",
+        "sha256": "b863ec94d2f5e980df15b0d4e1f6da93e8137034ee8282c84764ddf50eb40468",
+        "bytes": 256
+      },
+      {
+        "name": "6-ContiguousRangesRefuseFragmentationAndCoalesceAfterRetirement.u32",
+        "sha256": "2fc7371352baba55095d711bdda9805f0ac8430108e48e006e2232d694623228",
+        "bytes": 256
+      }
+    ],
+    "adapter": {
+      "vendor": "amd",
+      "architecture": "rdna-3",
+      "device": "",
+      "description": "",
+      "isFallbackAdapter": false
+    },
+    "exitCode": 0
+  },
+  "unexpected_console_errors": [],
+  "exceptions": [],
+  "console": []
+}

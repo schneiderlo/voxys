@@ -392,6 +392,10 @@ unsigned long Window::getX11Window() const {
 // Input State
 // ─────────────────────────────────────────────────────────────────────────────
 
+void Window::setTitle(const char* title) {
+    if (window_ && title) glfwSetWindowTitle(window_, title);
+}
+
 void Window::setCursorVisible(bool visible) {
     if (window_) {
         glfwSetInputMode(window_, GLFW_CURSOR, 

@@ -1,0 +1,323 @@
+{
+  "schema": 1,
+  "status": "captured; visual review required",
+  "recipe": {
+    "schema": 1,
+    "registry": "data/salvage/fixture-hierarchy-v1.json",
+    "physical_viewport": [
+      1920,
+      1080
+    ],
+    "fov_degrees": 60,
+    "inspection_expectations": {
+      "maximum_model_draws": 10,
+      "guide_boxes": [
+        0,
+        26,
+        375
+      ]
+    },
+    "views": [
+      {
+        "name": "overview",
+        "eye": [
+          8,
+          6,
+          -11
+        ],
+        "target": [
+          0,
+          0.3,
+          0
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "front",
+        "eye": [
+          0,
+          2,
+          -11
+        ],
+        "target": [
+          0,
+          0.3,
+          0
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "back",
+        "eye": [
+          0,
+          2,
+          11
+        ],
+        "target": [
+          0,
+          0.3,
+          0
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "left",
+        "eye": [
+          -12,
+          3,
+          0
+        ],
+        "target": [
+          0,
+          0.3,
+          0
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "right",
+        "eye": [
+          12,
+          3,
+          0
+        ],
+        "target": [
+          0,
+          0.3,
+          0
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "top",
+        "eye": [
+          0,
+          12,
+          -0.1
+        ],
+        "target": [
+          0,
+          0.3,
+          0
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "under",
+        "eye": [
+          0,
+          -10,
+          -0.1
+        ],
+        "target": [
+          0,
+          0.3,
+          0
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      }
+    ]
+  },
+  "recipe_sha256": "42d43968f0ab13d42ae02f2a32c2f848544f2973855b5aa0fca78aa28feea6b6",
+  "runner_sha256": "4cb504c3fa164d5455bfb89708a3c33ca8ec018e1efdc5a98752e04e0e508304",
+  "binary": "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native",
+  "binary_sha256": "b1436d222f3697512cf01583a51667cbc6790bc23601274aa2b1e4c6f5cbcacb",
+  "original_registry_sha256": "35ed5372c6404cb3dd7dc2a02b28a600ea44b1c71ef674d86a2a0be796fb5d09",
+  "original_config": "/home/modkin/workspace/schneiderlo/voxys/salvage_hierarchy_fixture.cfg",
+  "original_config_sha256": "3b5179aaef1d10d668dbda2275284a9068c998980631f03388d90316f3d40e06",
+  "guides": "off",
+  "selected_views": null,
+  "scope": "Native scene captures; guides are technical overlays, not final art or moving-craft acceptance",
+  "views": [
+    {
+      "name": "overview",
+      "argv": [
+        "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/hierarchy/native-clean-attempt01/overview.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/hierarchy/native-clean-attempt01/overview.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "config_sha256": "fd2e7f2d079a74e8d30e1a2984f4d29cc9fc0ee2993ec9d934477b17b055689b",
+      "registry_sha256": "35ed5372c6404cb3dd7dc2a02b28a600ea44b1c71ef674d86a2a0be796fb5d09",
+      "timeout": false,
+      "exit_code": 0,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "png_sha256": "846b463ec1fe8fb8ee7b6caf6fdccd34ae7dc5f87259c2c71bb639b5b211221b",
+      "gpu_or_application_errors": [],
+      "passed": true
+    },
+    {
+      "name": "front",
+      "argv": [
+        "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/hierarchy/native-clean-attempt01/front.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/hierarchy/native-clean-attempt01/front.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "config_sha256": "fd2e7f2d079a74e8d30e1a2984f4d29cc9fc0ee2993ec9d934477b17b055689b",
+      "registry_sha256": "57fe58d50b683bf34e2a6793fbe3d012e23c5f5a503b3c78d294d031dfb29559",
+      "timeout": false,
+      "exit_code": 0,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "png_sha256": "162fc2d135c87f3b7ef302e28171bf9151b7bb0585e2185f54ad010931cd6e0b",
+      "gpu_or_application_errors": [],
+      "passed": true
+    },
+    {
+      "name": "back",
+      "argv": [
+        "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/hierarchy/native-clean-attempt01/back.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/hierarchy/native-clean-attempt01/back.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "config_sha256": "fd2e7f2d079a74e8d30e1a2984f4d29cc9fc0ee2993ec9d934477b17b055689b",
+      "registry_sha256": "28506bb10a18567c9f0d7d768f4308eabdd0f33f15a8f6282d9f14118a50ebc0",
+      "timeout": false,
+      "exit_code": 0,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "png_sha256": "5cb52f2e384bf2623f61d8abb157a0715532f571c9be8a742378e44ae6f724ab",
+      "gpu_or_application_errors": [],
+      "passed": true
+    },
+    {
+      "name": "left",
+      "argv": [
+        "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/hierarchy/native-clean-attempt01/left.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/hierarchy/native-clean-attempt01/left.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "config_sha256": "fd2e7f2d079a74e8d30e1a2984f4d29cc9fc0ee2993ec9d934477b17b055689b",
+      "registry_sha256": "fbb5b9f7e9f26b730f7f1bfbce0a306e29b30429b5331fe0378b9685dfbf2d7a",
+      "timeout": false,
+      "exit_code": 0,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "png_sha256": "2e1ca829c9e5b761d39592bce291caf6f6f0d0287ad5873a1b6c64ebeb462473",
+      "gpu_or_application_errors": [],
+      "passed": true
+    },
+    {
+      "name": "right",
+      "argv": [
+        "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/hierarchy/native-clean-attempt01/right.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/hierarchy/native-clean-attempt01/right.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "config_sha256": "fd2e7f2d079a74e8d30e1a2984f4d29cc9fc0ee2993ec9d934477b17b055689b",
+      "registry_sha256": "24fc0ddf9805a1cd5df7efcf7440c7aaac1291d1f84d3bae852f745462375066",
+      "timeout": false,
+      "exit_code": 0,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "png_sha256": "7297a03885af35fa2c4e1b3829858af450cdd0ecc9442a01329942ba53c30b22",
+      "gpu_or_application_errors": [],
+      "passed": true
+    },
+    {
+      "name": "top",
+      "argv": [
+        "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/hierarchy/native-clean-attempt01/top.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/hierarchy/native-clean-attempt01/top.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "config_sha256": "fd2e7f2d079a74e8d30e1a2984f4d29cc9fc0ee2993ec9d934477b17b055689b",
+      "registry_sha256": "d6d743703a07dd78472eb41116e3a862ee53f6d6d58a93723c801b26c0b7e83b",
+      "timeout": false,
+      "exit_code": 0,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "png_sha256": "2a153631ea214d2fbe5db51eb2bda6d057135e29501febe78dee97982503c186",
+      "gpu_or_application_errors": [],
+      "passed": true
+    },
+    {
+      "name": "under",
+      "argv": [
+        "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/hierarchy/native-clean-attempt01/under.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/hierarchy/native-clean-attempt01/under.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "config_sha256": "fd2e7f2d079a74e8d30e1a2984f4d29cc9fc0ee2993ec9d934477b17b055689b",
+      "registry_sha256": "ddd9a177e87a95ab6263e0bb7d2522c6a475c465737d020a52a35c791d4c97e6",
+      "timeout": false,
+      "exit_code": 0,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "png_sha256": "cee7bd089702494ffe0c47f0b35b602c6e7a33acabba4cfc9ba7fd44e299df3e",
+      "gpu_or_application_errors": [],
+      "passed": true
+    }
+  ],
+  "temporary_registry_removed": true
+}

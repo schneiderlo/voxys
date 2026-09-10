@@ -47,7 +47,7 @@ struct VmeshVertex {
     float position[3];    //  0   local space, metres
     float normal[3];      // 12
     float tangent[4];     // 24   xyz + handedness sign in w
-    float texCoord[2];    // 40   u, v (v up, glTF convention)
+    float texCoord[2];    // 40   source UVs; import profile defines image row orientation
     uint16_t joint[4];    // 48   joint indices (into owning skin)
     float weight[4];      // 56   skin weights, sum ~1
 };                        // 72 bytes total

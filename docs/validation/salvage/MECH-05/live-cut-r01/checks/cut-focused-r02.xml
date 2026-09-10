@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="4" failures="1" disabled="0" errors="0" time="0.301" timestamp="2026-09-10T07:28:47.192" name="AllTests">
+  <testsuite name="CoveMovement" tests="4" failures="1" disabled="0" skipped="0" errors="0" time="0.301" timestamp="2026-09-10T07:28:47.192">
+    <testcase name="CutProtectsIntactDesignAndReopensBrokenWorkshopWithoutRepairingOwnership" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_cove_player.cpp" line="660" status="run" result="completed" time="0.04" timestamp="2026-09-10T07:28:47.192" classname="CoveMovement" />
+    <testcase name="CutterReachUsesObservedSocketPoseAndRejectsStaleDisabledOrRemoteWelds" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_cove_player.cpp" line="697" status="run" result="completed" time="0.039" timestamp="2026-09-10T07:28:47.233" classname="CoveMovement" />
+    <testcase name="CutTransfersStandingPlayerToDetachedSupportWithoutMovingTheirWorldFeet" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_cove_player.cpp" line="726" status="run" result="completed" time="0.033" timestamp="2026-09-10T07:28:47.272" classname="CoveMovement">
+      <failure message="/home/modkin/workspace/schneiderlo/voxys/tests/test_cove_player.cpp:752&#x0A;Expected: (glm::length(destination.feet()-oldFeet)) &lt; (1e-9), actual: 9.1552734382549517e-07 vs 1e-09&#x0A;" type=""><![CDATA[/home/modkin/workspace/schneiderlo/voxys/tests/test_cove_player.cpp:752
+Expected: (glm::length(destination.feet()-oldFeet)) < (1e-9), actual: 9.1552734382549517e-07 vs 1e-09
+]]></failure>
+    </testcase>
+    <testcase name="CutWaterCapacityRefusalCancelsEveryUnexecutedChildAndReusesAllReservations" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_cove_player.cpp" line="1456" status="run" result="completed" time="0.188" timestamp="2026-09-10T07:28:47.305" classname="CoveMovement" />
+  </testsuite>
+</testsuites>

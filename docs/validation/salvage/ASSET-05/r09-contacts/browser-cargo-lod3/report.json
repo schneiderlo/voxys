@@ -1,0 +1,606 @@
+{
+  "status": "captured; visual review required",
+  "recipe": {
+    "schema": 1,
+    "purpose": "Close contacts and underside of installed r09 kit, repeated with each authored detail level; no live physics or final-art acceptance",
+    "physical_viewport": [
+      1920,
+      1080
+    ],
+    "fov_degrees": 60,
+    "registry": "data/salvage/fixture-kit-cargo.json",
+    "views": [
+      {
+        "name": "cargo-seat",
+        "eye": [
+          2.1,
+          0.4,
+          -2.4
+        ],
+        "target": [
+          0,
+          0.32,
+          0
+        ],
+        "sun": [
+          0.6,
+          0.5,
+          -0.4
+        ]
+      },
+      {
+        "name": "cargo-below",
+        "eye": [
+          1.5,
+          -1.5,
+          -2
+        ],
+        "target": [
+          0,
+          -0.2,
+          0
+        ],
+        "sun": [
+          0.5,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "crate-pin",
+        "eye": [
+          4.2,
+          -0.5,
+          -1.8
+        ],
+        "target": [
+          3.2,
+          -0.16,
+          0
+        ],
+        "sun": [
+          0.5,
+          0.6,
+          -0.4
+        ]
+      }
+    ],
+    "inspection_expectations": {
+      "maximum_model_draws": 4,
+      "guide_boxes": [
+        0,
+        23,
+        120
+      ]
+    }
+  },
+  "guides": 0,
+  "forced_lod": 3,
+  "selected_views": null,
+  "recipe_sha256": "3c7efc876e019d8ca1e2993a773a1fbf22f783aee080170db9fe15be0ee481df",
+  "views": [
+    {
+      "name": "cargo-seat",
+      "state": {
+        "active": true,
+        "ready": true,
+        "busy": false,
+        "failed": false,
+        "bodies": 0,
+        "resets": 0,
+        "controller": "free-fly",
+        "mouseCaptured": false,
+        "origin": [
+          -12,
+          -187.68,
+          -32
+        ],
+        "camera": {
+          "local": [
+            -16.9,
+            71.72,
+            -39.4
+          ],
+          "sector": [
+            0,
+            -1,
+            0
+          ],
+          "yaw": -0.71883,
+          "pitch": -0.0250806
+        },
+        "session": {
+          "revision": "0",
+          "tick": "0",
+          "admissionOpen": true,
+          "builds": 0,
+          "cargo": 0,
+          "jobs": 0,
+          "inventory": {
+            "salvageMaterial": "0",
+            "specialMachinery": "0"
+          }
+        },
+        "observation": {
+          "world": "e4b3faf58c3e9c8602bafcaace567a4b",
+          "incarnation": "310d10da67419d545fb1e196685dd447",
+          "epoch": "1",
+          "publicationLost": false,
+          "lanes": [
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            },
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            },
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            }
+          ]
+        },
+        "assetFixture": {
+          "status": 2,
+          "generation": "1",
+          "uploads": 12,
+          "prototypeUploads": 0,
+          "gpuReservationBytes": "4776288",
+          "submittedSerial": "199",
+          "completedSerial": "197",
+          "draws": 4,
+          "guides": 0,
+          "guideBoxes": 0,
+          "guideMeshGpuBytes": 1936,
+          "forcedLod": "3",
+          "lods": [
+            "3",
+            "3",
+            "3",
+            "3"
+          ],
+          "availableLods": [
+            "0",
+            "1",
+            "2",
+            "3"
+          ]
+        },
+        "lost": null,
+        "errors": [],
+        "render": {
+          "available": true,
+          "frame": 180,
+          "age_frames": 22,
+          "water_simulation_ms": 0.558528,
+          "terrain_raycast_ms": 0.001603,
+          "lighting_composite_ms": 0.619603,
+          "primitives_ms": 0,
+          "total_ms": 1.179734,
+          "frame_interval_available": true,
+          "gpu_frame_ms": 1.276235,
+          "render_width": 1920,
+          "render_height": 1080,
+          "includes_gpu_physics": true
+        }
+      },
+      "settings": {
+        "lighting.sunAzimuth": -33.6900634765625,
+        "lighting.sunElevation": 34.736480712890625,
+        "lighting.sunIntensity": 1,
+        "lighting.ambientIntensity": 0.550000011920929,
+        "lighting.exposure": 1
+      },
+      "requested": {
+        "eye": [
+          -16.9,
+          -184.28,
+          -39.4
+        ],
+        "yaw": -0.7188299996216245,
+        "pitch": -0.025080629610466147,
+        "azimuth": -33.69006752597979,
+        "elevation": 34.73648128125795
+      },
+      "png_sha256": "87226391a0f3971d92505147a9cbb5b32f78932245218ef74a28589367cf2912"
+    },
+    {
+      "name": "cargo-below",
+      "state": {
+        "active": true,
+        "ready": true,
+        "busy": false,
+        "failed": false,
+        "bodies": 0,
+        "resets": 0,
+        "controller": "free-fly",
+        "mouseCaptured": false,
+        "origin": [
+          -12,
+          -187.68,
+          -32
+        ],
+        "camera": {
+          "local": [
+            -17.5,
+            69.82,
+            -39
+          ],
+          "sector": [
+            0,
+            -1,
+            0
+          ],
+          "yaw": -0.643501,
+          "pitch": 0.479519
+        },
+        "session": {
+          "revision": "0",
+          "tick": "0",
+          "admissionOpen": true,
+          "builds": 0,
+          "cargo": 0,
+          "jobs": 0,
+          "inventory": {
+            "salvageMaterial": "0",
+            "specialMachinery": "0"
+          }
+        },
+        "observation": {
+          "world": "e4b3faf58c3e9c8602bafcaace567a4b",
+          "incarnation": "310d10da67419d545fb1e196685dd447",
+          "epoch": "1",
+          "publicationLost": false,
+          "lanes": [
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            },
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            },
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            }
+          ]
+        },
+        "assetFixture": {
+          "status": 2,
+          "generation": "1",
+          "uploads": 12,
+          "prototypeUploads": 0,
+          "gpuReservationBytes": "4776288",
+          "submittedSerial": "215",
+          "completedSerial": "213",
+          "draws": 4,
+          "guides": 0,
+          "guideBoxes": 0,
+          "guideMeshGpuBytes": 1936,
+          "forcedLod": "3",
+          "lods": [
+            "3",
+            "3",
+            "3",
+            "3"
+          ],
+          "availableLods": [
+            "0",
+            "1",
+            "2",
+            "3"
+          ]
+        },
+        "lost": null,
+        "errors": [],
+        "render": {
+          "available": true,
+          "frame": 210,
+          "age_frames": 8,
+          "water_simulation_ms": 0.611738,
+          "terrain_raycast_ms": 0.008296,
+          "lighting_composite_ms": 0.679956,
+          "primitives_ms": 0,
+          "total_ms": 1.29999,
+          "frame_interval_available": true,
+          "gpu_frame_ms": 1.523369,
+          "render_width": 1920,
+          "render_height": 1080,
+          "includes_gpu_physics": true
+        }
+      },
+      "settings": {
+        "lighting.sunAzimuth": -38.65980911254883,
+        "lighting.sunElevation": 51.32654571533203,
+        "lighting.sunIntensity": 1,
+        "lighting.ambientIntensity": 0.550000011920929,
+        "lighting.exposure": 1
+      },
+      "requested": {
+        "eye": [
+          -17.5,
+          -186.18,
+          -39
+        ],
+        "yaw": -0.6435011087932844,
+        "pitch": 0.4795192919925962,
+        "azimuth": -38.659808254090095,
+        "elevation": 51.32655062386467
+      },
+      "png_sha256": "cab0546602e5d73c11625c03a68d998898a9960c149497b40b608fec7c353c58"
+    },
+    {
+      "name": "crate-pin",
+      "state": {
+        "active": true,
+        "ready": true,
+        "busy": false,
+        "failed": false,
+        "bodies": 0,
+        "resets": 0,
+        "controller": "free-fly",
+        "mouseCaptured": false,
+        "origin": [
+          -12,
+          -187.68,
+          -32
+        ],
+        "camera": {
+          "local": [
+            -14.8,
+            70.82,
+            -38.8
+          ],
+          "sector": [
+            0,
+            -1,
+            0
+          ],
+          "yaw": -0.507098,
+          "pitch": 0.163642
+        },
+        "session": {
+          "revision": "0",
+          "tick": "0",
+          "admissionOpen": true,
+          "builds": 0,
+          "cargo": 0,
+          "jobs": 0,
+          "inventory": {
+            "salvageMaterial": "0",
+            "specialMachinery": "0"
+          }
+        },
+        "observation": {
+          "world": "e4b3faf58c3e9c8602bafcaace567a4b",
+          "incarnation": "310d10da67419d545fb1e196685dd447",
+          "epoch": "1",
+          "publicationLost": false,
+          "lanes": [
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            },
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            },
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            }
+          ]
+        },
+        "assetFixture": {
+          "status": 2,
+          "generation": "1",
+          "uploads": 12,
+          "prototypeUploads": 0,
+          "gpuReservationBytes": "4776288",
+          "submittedSerial": "231",
+          "completedSerial": "229",
+          "draws": 4,
+          "guides": 0,
+          "guideBoxes": 0,
+          "guideMeshGpuBytes": 1936,
+          "forcedLod": "3",
+          "lods": [
+            "3",
+            "3",
+            "3",
+            "3"
+          ],
+          "availableLods": [
+            "0",
+            "1",
+            "2",
+            "3"
+          ]
+        },
+        "lost": null,
+        "errors": [],
+        "render": {
+          "available": true,
+          "frame": 210,
+          "age_frames": 24,
+          "water_simulation_ms": 0.611738,
+          "terrain_raycast_ms": 0.008296,
+          "lighting_composite_ms": 0.679956,
+          "primitives_ms": 0,
+          "total_ms": 1.29999,
+          "frame_interval_available": true,
+          "gpu_frame_ms": 1.523369,
+          "render_width": 1920,
+          "render_height": 1080,
+          "includes_gpu_physics": true
+        }
+      },
+      "settings": {
+        "lighting.sunAzimuth": -38.659812927246094,
+        "lighting.sunElevation": 43.1384391784668,
+        "lighting.sunIntensity": 1,
+        "lighting.ambientIntensity": 0.550000011920929,
+        "lighting.exposure": 1
+      },
+      "requested": {
+        "eye": [
+          -14.8,
+          -185.18,
+          -38.8
+        ],
+        "yaw": -0.507098504392337,
+        "pitch": 0.16364207000355643,
+        "azimuth": -38.659808254090095,
+        "elevation": 43.13843761967105
+      },
+      "png_sha256": "4fa46cd1bdceb895b2fb7ebbbefe740ee08c43075495b265d0ac5417749ed24e"
+    }
+  ],
+  "origin": [
+    -19,
+    -184.68,
+    -37
+  ],
+  "initial": {
+    "active": true,
+    "ready": true,
+    "busy": false,
+    "failed": false,
+    "bodies": 0,
+    "resets": 0,
+    "controller": "free-fly",
+    "mouseCaptured": false,
+    "origin": [
+      -12,
+      -187.68,
+      -32
+    ],
+    "camera": {
+      "local": [
+        -12,
+        75.32,
+        -45
+      ],
+      "sector": [
+        0,
+        -1,
+        0
+      ],
+      "yaw": -0.6898,
+      "pitch": -0.325474
+    },
+    "session": {
+      "revision": "0",
+      "tick": "0",
+      "admissionOpen": true,
+      "builds": 0,
+      "cargo": 0,
+      "jobs": 0,
+      "inventory": {
+        "salvageMaterial": "0",
+        "specialMachinery": "0"
+      }
+    },
+    "observation": {
+      "world": "e4b3faf58c3e9c8602bafcaace567a4b",
+      "incarnation": "310d10da67419d545fb1e196685dd447",
+      "epoch": "1",
+      "publicationLost": false,
+      "lanes": [
+        {
+          "through": "0",
+          "retained": 0,
+          "overwritten": "0",
+          "invalid": "0",
+          "exhausted": false
+        },
+        {
+          "through": "0",
+          "retained": 0,
+          "overwritten": "0",
+          "invalid": "0",
+          "exhausted": false
+        },
+        {
+          "through": "0",
+          "retained": 0,
+          "overwritten": "0",
+          "invalid": "0",
+          "exhausted": false
+        }
+      ]
+    },
+    "assetFixture": {
+      "status": 2,
+      "generation": "1",
+      "uploads": 12,
+      "prototypeUploads": 0,
+      "gpuReservationBytes": "4776288",
+      "submittedSerial": "193",
+      "completedSerial": "191",
+      "draws": 4,
+      "guides": 0,
+      "guideBoxes": 0,
+      "guideMeshGpuBytes": 1936,
+      "forcedLod": "0",
+      "lods": [
+        "2",
+        "2",
+        "1",
+        "2"
+      ],
+      "availableLods": [
+        "0",
+        "1",
+        "2",
+        "3"
+      ]
+    },
+    "lost": null,
+    "errors": [],
+    "render": {
+      "available": true,
+      "frame": 180,
+      "age_frames": 16,
+      "water_simulation_ms": 0.558528,
+      "terrain_raycast_ms": 0.001603,
+      "lighting_composite_ms": 0.619603,
+      "primitives_ms": 0,
+      "total_ms": 1.179734,
+      "frame_interval_available": true,
+      "gpu_frame_ms": 1.276235,
+      "render_width": 1920,
+      "render_height": 1080,
+      "includes_gpu_physics": true
+    }
+  }
+}

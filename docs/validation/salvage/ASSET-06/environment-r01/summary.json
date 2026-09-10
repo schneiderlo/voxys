@@ -1,0 +1,1063 @@
+{
+  "schema": 1,
+  "date": "2026-09-08",
+  "status": "producer validated; application integration and visual comparison pending",
+  "source_head": "7f28fabfabf3d63726f6cfa1001c3ce1ed557911",
+  "source_branch": "codex/salvage-implementation",
+  "gate_passed": false,
+  "commit_created": false,
+  "independent_review": false,
+  "owner_visual_approval": false,
+  "shared_test_cases": 5,
+  "matched_rgba_values_per_runtime": 14274,
+  "maximum_cross_runtime_absolute_error": 0,
+  "default_requested_bytes": 1228944,
+  "evidence": {
+    "docs/validation/salvage/ASSET-06/environment-r01/README.md": {
+      "bytes": 7097,
+      "sha256": "b80eb26900b136dc781d36d05482937bae336f3e67e7ea42db61c4a2f6d7fbcd"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/artifacts.json": {
+      "bytes": 1289,
+      "sha256": "ce8a7890bcdc1747def60f01eca8ee8f237d516a9ac6e3b4fc385837e72a9385"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/bazel-build.log": {
+      "bytes": 983,
+      "sha256": "5ce54a5f20f700155cfa55eeeae507cab2d6da9c81ff4f93edfce002178fe6af"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/bazel-combined-build.log": {
+      "bytes": 3665,
+      "sha256": "63cf91829a7df855fff77b850b34b87f10199b5627a0ec8febee167fc3e3ece2"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/bazel-combined-tests.log": {
+      "bytes": 2845,
+      "sha256": "85d3d2af3bd549bb7afd2e4dbffb82588a3322fdef4f9a9032895ee2dcc8615c"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/browser/0-ConstantRadianceAllMipsAndReleaseBeforeSubmit.f32": {
+      "bytes": 38368,
+      "sha256": "0d8fa2c356f9b7e62fcc3f5a2cf6c5ce7d071affa27a99513e7627eedd557fc3"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/browser/0-ConstantRadianceAllMipsAndReleaseBeforeSubmit.png": {
+      "bytes": 701,
+      "sha256": "b14e6d57ed1e5e35b0fb3056c7966accf1003a3a641bd5811f2778cd2d6d811d"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/browser/0-ConstantRadianceAllMipsAndReleaseBeforeSubmit.requests.f32": {
+      "bytes": 38368,
+      "sha256": "855827783c57af3852d7584e4deb04c5a003b55e0881bedf092dfa605747189f"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/browser/0-ConstantRadianceAllMipsAndReleaseBeforeSubmit.rgba": {
+      "bytes": 9728,
+      "sha256": "e74bb09aeddab91e8f94cf0e88ca6e4c938cec423883445ac96baaebe3cacb63"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/browser/1-DirectionalIrradianceRoughnessAndCubeSeams.f32": {
+      "bytes": 173536,
+      "sha256": "5a2ffeed124617f940904feee919487c6a309217515badd6a04a786e8a574d07"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/browser/1-DirectionalIrradianceRoughnessAndCubeSeams.png": {
+      "bytes": 16979,
+      "sha256": "2ab2a30e9c6148612dd72a12d17ad821bf88acc231a3fb1e3ca862a4aa780156"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/browser/1-DirectionalIrradianceRoughnessAndCubeSeams.requests.f32": {
+      "bytes": 173536,
+      "sha256": "f6285e825708047290ff5f67d889eeba0a21090a327243499f6f4a35173ea426"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/browser/1-DirectionalIrradianceRoughnessAndCubeSeams.rgba": {
+      "bytes": 43520,
+      "sha256": "937f18481268af85bbbdabf8266c7c0e22ff87d6273ec073410aa179939fc2dc"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/browser/2-BrdfMatchesIndependentHemisphereQuadrature.f32": {
+      "bytes": 16384,
+      "sha256": "523f50ead32589491f616a06688a2ac1267509ecc24488ba43a795ab135cd7da"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/browser/2-BrdfMatchesIndependentHemisphereQuadrature.png": {
+      "bytes": 1109,
+      "sha256": "8f06305671a3d1fa6ae7d79b6190b5e500d10fd3b41d44384c9e21bf5f7c6e2d"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/browser/2-BrdfMatchesIndependentHemisphereQuadrature.requests.f32": {
+      "bytes": 16384,
+      "sha256": "ff62d0c03d178b3aa200818475557865727be98d6ce148952853c74ef9949425"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/browser/2-BrdfMatchesIndependentHemisphereQuadrature.rgba": {
+      "bytes": 4096,
+      "sha256": "e6c4f7439788c85afacf24a87c9c0e5515ae6c42493a8569f7cddf3fd5c70ce3"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/browser/3-AbandonedEncodingAndRebakeRetainOutputViews.f32": {
+      "bytes": 48,
+      "sha256": "26a5c5323c2f14fa6c54e61a0b4ee8acbd806f8fa36ba5b8273948c7321b7636"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/browser/3-AbandonedEncodingAndRebakeRetainOutputViews.png": {
+      "bytes": 105,
+      "sha256": "3c4c4fa83608191f6894864cfceb332e683ffeec3ad4b2abee9730d319d9b0cb"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/browser/3-AbandonedEncodingAndRebakeRetainOutputViews.requests.f32": {
+      "bytes": 48,
+      "sha256": "807936c05a5982f034d1e294ade2b0c9bb7aae65d2a4c66e38a4855ebe1fb00a"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/browser/3-AbandonedEncodingAndRebakeRetainOutputViews.rgba": {
+      "bytes": 256,
+      "sha256": "7be5891120b78ce150e998124fcfb9d2fc29adec7c79c5ca5b04a1a5cb512ed2"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/browser/4-AbandonedEncodingAndRebakeRetainOutputViews.f32": {
+      "bytes": 48,
+      "sha256": "aca3aab8c3ebf1d2b855ca59526acb91c4e1bcc57fdee08323103e071fe9fcbe"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/browser/4-AbandonedEncodingAndRebakeRetainOutputViews.png": {
+      "bytes": 106,
+      "sha256": "e5ae984fea45b49911102e603c4be403c3ce9d22da4da4b83eec84629b4d5be0"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/browser/4-AbandonedEncodingAndRebakeRetainOutputViews.requests.f32": {
+      "bytes": 48,
+      "sha256": "807936c05a5982f034d1e294ade2b0c9bb7aae65d2a4c66e38a4855ebe1fb00a"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/browser/4-AbandonedEncodingAndRebakeRetainOutputViews.rgba": {
+      "bytes": 256,
+      "sha256": "7b50cd64c0c37b83025f1359281e2e734aab70d03823d29adff98a5503a97724"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/browser/chrome.log": {
+      "bytes": 929,
+      "sha256": "e4f307674394dbe32f0159b80d8314cf0c7ee02c725fda0c194904bbb4902532"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/browser/material-sheet.png": {
+      "bytes": 189732,
+      "sha256": "64827bd950524fe7cb7eadf44fabb5e0b5b550d0d8427a438f544253edc6d161"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/browser/report.json": {
+      "bytes": 6887,
+      "sha256": "adf2de8ac2f108876e2c4867d418d20d853c40610eb28426827f68acccdb7584"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/browser/tests.log": {
+      "bytes": 1495,
+      "sha256": "3c65960fb3c170c706433ea192a661056b8f5c2889941ee6ea86c1f0cf266406"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/browser-build/build.json": {
+      "bytes": 68182,
+      "sha256": "7512fe621a74959dadb6762e81f5d3ee81160d0ce2991de37c883963f924f7ab"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/browser-build/compile-environment_lighting.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/browser-build/compile-gtest-all.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/browser-build/compile-gtest_main.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/browser-build/compile-log.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/browser-build/compile-resources.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/browser-build/compile-test_environment_lighting.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/browser-build/compiler-version.log": {
+      "bytes": 330,
+      "sha256": "3d73869c16dbaa5a0076241bd532ed2c917a7187aad7c743a867ec96f2147e10"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/browser-build/link.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/browser-build-attempt-01/build.json": {
+      "bytes": 61100,
+      "sha256": "d115d3a25d1f95c93e5ceb6554d1f0d28c6b5997b31f4e663965a9cd23473a93"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/browser-build-attempt-01/compile-test_environment_lighting.log": {
+      "bytes": 2041,
+      "sha256": "cbd6c3607fe1bb3ff035be1987a99f73339978c82f07dfcab95741250cb0a6cb"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/browser-build-attempt-01/compiler-version.log": {
+      "bytes": 330,
+      "sha256": "3d73869c16dbaa5a0076241bd532ed2c917a7187aad7c743a867ec96f2147e10"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/cmake-native/0-ConstantRadianceAllMipsAndReleaseBeforeSubmit.f32": {
+      "bytes": 38368,
+      "sha256": "0d8fa2c356f9b7e62fcc3f5a2cf6c5ce7d071affa27a99513e7627eedd557fc3"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/cmake-native/0-ConstantRadianceAllMipsAndReleaseBeforeSubmit.json": {
+      "bytes": 126,
+      "sha256": "47c4e11487960cc74f5a8cca024eee02059204f32e64208d2001421231349a16"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/cmake-native/0-ConstantRadianceAllMipsAndReleaseBeforeSubmit.requests.f32": {
+      "bytes": 38368,
+      "sha256": "855827783c57af3852d7584e4deb04c5a003b55e0881bedf092dfa605747189f"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/cmake-native/0-ConstantRadianceAllMipsAndReleaseBeforeSubmit.rgba": {
+      "bytes": 9728,
+      "sha256": "e74bb09aeddab91e8f94cf0e88ca6e4c938cec423883445ac96baaebe3cacb63"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/cmake-native/1-DirectionalIrradianceRoughnessAndCubeSeams.f32": {
+      "bytes": 173536,
+      "sha256": "5a2ffeed124617f940904feee919487c6a309217515badd6a04a786e8a574d07"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/cmake-native/1-DirectionalIrradianceRoughnessAndCubeSeams.json": {
+      "bytes": 128,
+      "sha256": "315c59c70f0f51ff2d8b2574db3461da8d2fe38bf4c1afc2d89d92edbd7ab42a"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/cmake-native/1-DirectionalIrradianceRoughnessAndCubeSeams.requests.f32": {
+      "bytes": 173536,
+      "sha256": "f6285e825708047290ff5f67d889eeba0a21090a327243499f6f4a35173ea426"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/cmake-native/1-DirectionalIrradianceRoughnessAndCubeSeams.rgba": {
+      "bytes": 43520,
+      "sha256": "937f18481268af85bbbdabf8266c7c0e22ff87d6273ec073410aa179939fc2dc"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/cmake-native/2-BrdfMatchesIndependentHemisphereQuadrature.f32": {
+      "bytes": 16384,
+      "sha256": "523f50ead32589491f616a06688a2ac1267509ecc24488ba43a795ab135cd7da"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/cmake-native/2-BrdfMatchesIndependentHemisphereQuadrature.json": {
+      "bytes": 126,
+      "sha256": "525357af540eab151390986acb33637e818e682999740da366efe1b397afd51b"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/cmake-native/2-BrdfMatchesIndependentHemisphereQuadrature.requests.f32": {
+      "bytes": 16384,
+      "sha256": "ff62d0c03d178b3aa200818475557865727be98d6ce148952853c74ef9949425"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/cmake-native/2-BrdfMatchesIndependentHemisphereQuadrature.rgba": {
+      "bytes": 4096,
+      "sha256": "e6c4f7439788c85afacf24a87c9c0e5515ae6c42493a8569f7cddf3fd5c70ce3"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/cmake-native/3-AbandonedEncodingAndRebakeRetainOutputViews.f32": {
+      "bytes": 48,
+      "sha256": "26a5c5323c2f14fa6c54e61a0b4ee8acbd806f8fa36ba5b8273948c7321b7636"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/cmake-native/3-AbandonedEncodingAndRebakeRetainOutputViews.json": {
+      "bytes": 122,
+      "sha256": "017d49241a4a9111fe101e9826a2105e3668b7d2295dbe8adba3c3b7f04031f0"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/cmake-native/3-AbandonedEncodingAndRebakeRetainOutputViews.requests.f32": {
+      "bytes": 48,
+      "sha256": "807936c05a5982f034d1e294ade2b0c9bb7aae65d2a4c66e38a4855ebe1fb00a"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/cmake-native/3-AbandonedEncodingAndRebakeRetainOutputViews.rgba": {
+      "bytes": 256,
+      "sha256": "7be5891120b78ce150e998124fcfb9d2fc29adec7c79c5ca5b04a1a5cb512ed2"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/cmake-native/4-AbandonedEncodingAndRebakeRetainOutputViews.f32": {
+      "bytes": 48,
+      "sha256": "aca3aab8c3ebf1d2b855ca59526acb91c4e1bcc57fdee08323103e071fe9fcbe"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/cmake-native/4-AbandonedEncodingAndRebakeRetainOutputViews.json": {
+      "bytes": 122,
+      "sha256": "017d49241a4a9111fe101e9826a2105e3668b7d2295dbe8adba3c3b7f04031f0"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/cmake-native/4-AbandonedEncodingAndRebakeRetainOutputViews.requests.f32": {
+      "bytes": 48,
+      "sha256": "807936c05a5982f034d1e294ade2b0c9bb7aae65d2a4c66e38a4855ebe1fb00a"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/cmake-native/4-AbandonedEncodingAndRebakeRetainOutputViews.rgba": {
+      "bytes": 256,
+      "sha256": "7b50cd64c0c37b83025f1359281e2e734aab70d03823d29adff98a5503a97724"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/cmake-native/tests.log": {
+      "bytes": 2924,
+      "sha256": "1fd2cc9d507e1a0598186046826dc99c1971d504feb9e67526251448155fe9ec"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/cmake-native-build.log": {
+      "bytes": 6894,
+      "sha256": "c213a4ef3cfd06ff2e5b7b90c557e51ce0191ce3e530625fcf476aaea709d179"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/cmake-wasm-build.log": {
+      "bytes": 6645,
+      "sha256": "11c61e381137d272ea6c0b81c790ee0c8a47706d07aab48f16b97d05658f713a"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/design.md": {
+      "bytes": 7075,
+      "sha256": "65d8c453763f4121e278782f02a76a5112fbb59e0c99062ce5a070891e659a78"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/historical-integrity.json": {
+      "bytes": 449,
+      "sha256": "c4655496720a91ccc8ec505c612cc05e48484217ed81dc7f739691ce07499b40"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/mesh-tooling-build/build.json": {
+      "bytes": 69338,
+      "sha256": "5391498996e47f84a540a02ed20edad462755db0a33c9280117394423434fec3"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/mesh-tooling-build/compile-gtest-all.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/mesh-tooling-build/compile-gtest_main.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/mesh-tooling-build/compile-log.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/mesh-tooling-build/compile-mesh_path.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/mesh-tooling-build/compile-resources.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/mesh-tooling-build/compile-test_mesh_path.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/mesh-tooling-build/compile-vmesh_io.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/mesh-tooling-build/compiler-version.log": {
+      "bytes": 330,
+      "sha256": "3d73869c16dbaa5a0076241bd532ed2c917a7187aad7c743a867ec96f2147e10"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/mesh-tooling-build/link.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/mesh-tooling-regression/0-ExceptionalReleasePreservesEncodedTextureDependencies.png": {
+      "bytes": 3430,
+      "sha256": "cdc60a5991f2b254193a64f047c3436a88d178adba8ea7b28e0db59788606694"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/mesh-tooling-regression/0-ExceptionalReleasePreservesEncodedTextureDependencies.rgba": {
+      "bytes": 16384,
+      "sha256": "e346dfa5c13a903cfa28020155e3ac1dd9c31c614af33a939bde94d3c9eff773"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/mesh-tooling-regression/1-SamplesActualTextureQuadrantsAndRejectsSingleSidedBackFaces.png": {
+      "bytes": 3081,
+      "sha256": "f4612b552f346be2bf378620189100b678ab190f4df1dfc1fd2947219497eb62"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/mesh-tooling-regression/1-SamplesActualTextureQuadrantsAndRejectsSingleSidedBackFaces.rgba": {
+      "bytes": 16384,
+      "sha256": "d20c094f5916df1c2b35b17acece2e63ae07afa99cc9a9f9500958053f6923f0"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/mesh-tooling-regression/10-DirectionalNormalMapUsesFullInverseTransposeAndTangentFrame.png": {
+      "bytes": 287,
+      "sha256": "ebee394e41386893e365bab36916668522c516e325de348f1a7a593998e75687"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/mesh-tooling-regression/10-DirectionalNormalMapUsesFullInverseTransposeAndTangentFrame.rgba": {
+      "bytes": 16384,
+      "sha256": "62fb561c59d0cea247fc588f3311ee665375f35d8675b186e2792cb7dfcff88c"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/mesh-tooling-regression/11-PreservesColorSpaceAndPackedMaterialChannels.png": {
+      "bytes": 321,
+      "sha256": "c2b6ba161a89aa6f0e29dc861608a46e4d1a4265e95225c2736b48bf2efd4a76"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/mesh-tooling-regression/11-PreservesColorSpaceAndPackedMaterialChannels.rgba": {
+      "bytes": 16384,
+      "sha256": "386ad9b5f2a7349f7057c3d804b8196f611cb6a721302d546e34e76ae074e327"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/mesh-tooling-regression/12-PreservesColorSpaceAndPackedMaterialChannels.png": {
+      "bytes": 321,
+      "sha256": "c2b6ba161a89aa6f0e29dc861608a46e4d1a4265e95225c2736b48bf2efd4a76"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/mesh-tooling-regression/12-PreservesColorSpaceAndPackedMaterialChannels.rgba": {
+      "bytes": 16384,
+      "sha256": "386ad9b5f2a7349f7057c3d804b8196f611cb6a721302d546e34e76ae074e327"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/mesh-tooling-regression/13-PreservesColorSpaceAndPackedMaterialChannels.png": {
+      "bytes": 2619,
+      "sha256": "7f9b0222d6274d16bbe913522550938e0b2e46b2c72331658efbe23e55c27936"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/mesh-tooling-regression/13-PreservesColorSpaceAndPackedMaterialChannels.rgba": {
+      "bytes": 16384,
+      "sha256": "28f95de42c3b77cbbf1827f4642a62f8c2de97b42d7c1891230ea3c796d49443"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/mesh-tooling-regression/14-PreservesColorSpaceAndPackedMaterialChannels.png": {
+      "bytes": 2619,
+      "sha256": "7f9b0222d6274d16bbe913522550938e0b2e46b2c72331658efbe23e55c27936"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/mesh-tooling-regression/14-PreservesColorSpaceAndPackedMaterialChannels.rgba": {
+      "bytes": 16384,
+      "sha256": "28f95de42c3b77cbbf1827f4642a62f8c2de97b42d7c1891230ea3c796d49443"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/mesh-tooling-regression/15-PreservesColorSpaceAndPackedMaterialChannels.png": {
+      "bytes": 2619,
+      "sha256": "7f9b0222d6274d16bbe913522550938e0b2e46b2c72331658efbe23e55c27936"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/mesh-tooling-regression/15-PreservesColorSpaceAndPackedMaterialChannels.rgba": {
+      "bytes": 16384,
+      "sha256": "28f95de42c3b77cbbf1827f4642a62f8c2de97b42d7c1891230ea3c796d49443"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/mesh-tooling-regression/16-PreservesColorSpaceAndPackedMaterialChannels.png": {
+      "bytes": 287,
+      "sha256": "ebee394e41386893e365bab36916668522c516e325de348f1a7a593998e75687"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/mesh-tooling-regression/16-PreservesColorSpaceAndPackedMaterialChannels.rgba": {
+      "bytes": 16384,
+      "sha256": "62fb561c59d0cea247fc588f3311ee665375f35d8675b186e2792cb7dfcff88c"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/mesh-tooling-regression/17-PreservesColorSpaceAndPackedMaterialChannels.png": {
+      "bytes": 1811,
+      "sha256": "0a17dc7792d278fe840eea1227e219939a144d41de762fc1b2dd56762838e9e8"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/mesh-tooling-regression/17-PreservesColorSpaceAndPackedMaterialChannels.rgba": {
+      "bytes": 16384,
+      "sha256": "2b34dff5bc1b177d6e7369659088168cbde95c9ab625e134319102a300b62293"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/mesh-tooling-regression/2-SamplesActualTextureQuadrantsAndRejectsSingleSidedBackFaces.png": {
+      "bytes": 3430,
+      "sha256": "cdc60a5991f2b254193a64f047c3436a88d178adba8ea7b28e0db59788606694"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/mesh-tooling-regression/2-SamplesActualTextureQuadrantsAndRejectsSingleSidedBackFaces.rgba": {
+      "bytes": 16384,
+      "sha256": "e346dfa5c13a903cfa28020155e3ac1dd9c31c614af33a939bde94d3c9eff773"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/mesh-tooling-regression/3-SamplesActualTextureQuadrantsAndRejectsSingleSidedBackFaces.png": {
+      "bytes": 287,
+      "sha256": "ebee394e41386893e365bab36916668522c516e325de348f1a7a593998e75687"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/mesh-tooling-regression/3-SamplesActualTextureQuadrantsAndRejectsSingleSidedBackFaces.rgba": {
+      "bytes": 16384,
+      "sha256": "62fb561c59d0cea247fc588f3311ee665375f35d8675b186e2792cb7dfcff88c"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/mesh-tooling-regression/4-SamplesActualTextureQuadrantsAndRejectsSingleSidedBackFaces.png": {
+      "bytes": 287,
+      "sha256": "ebee394e41386893e365bab36916668522c516e325de348f1a7a593998e75687"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/mesh-tooling-regression/4-SamplesActualTextureQuadrantsAndRejectsSingleSidedBackFaces.rgba": {
+      "bytes": 16384,
+      "sha256": "62fb561c59d0cea247fc588f3311ee665375f35d8675b186e2792cb7dfcff88c"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/mesh-tooling-regression/5-DirectionalNormalMapUsesFullInverseTransposeAndTangentFrame.png": {
+      "bytes": 408,
+      "sha256": "484c1c6bf9296bdb79009c5b796d79f6e8896219f4b7564104508a85600c8acd"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/mesh-tooling-regression/5-DirectionalNormalMapUsesFullInverseTransposeAndTangentFrame.rgba": {
+      "bytes": 16384,
+      "sha256": "b62ace611eb9cde0bf8315234cc3b19f35e1d1e4094cebb78ff9fb7d40fb0202"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/mesh-tooling-regression/6-DirectionalNormalMapUsesFullInverseTransposeAndTangentFrame.png": {
+      "bytes": 287,
+      "sha256": "ebee394e41386893e365bab36916668522c516e325de348f1a7a593998e75687"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/mesh-tooling-regression/6-DirectionalNormalMapUsesFullInverseTransposeAndTangentFrame.rgba": {
+      "bytes": 16384,
+      "sha256": "62fb561c59d0cea247fc588f3311ee665375f35d8675b186e2792cb7dfcff88c"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/mesh-tooling-regression/7-DirectionalNormalMapUsesFullInverseTransposeAndTangentFrame.png": {
+      "bytes": 287,
+      "sha256": "ebee394e41386893e365bab36916668522c516e325de348f1a7a593998e75687"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/mesh-tooling-regression/7-DirectionalNormalMapUsesFullInverseTransposeAndTangentFrame.rgba": {
+      "bytes": 16384,
+      "sha256": "62fb561c59d0cea247fc588f3311ee665375f35d8675b186e2792cb7dfcff88c"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/mesh-tooling-regression/8-DirectionalNormalMapUsesFullInverseTransposeAndTangentFrame.png": {
+      "bytes": 312,
+      "sha256": "7d1f6e7ef09fbb15f41a53b5b0f1446e9df37aa594f08537d7915f3871a22893"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/mesh-tooling-regression/8-DirectionalNormalMapUsesFullInverseTransposeAndTangentFrame.rgba": {
+      "bytes": 16384,
+      "sha256": "a26d93e196461e54f439b6ca25a7949b90b315c04130c7138516a438477128f6"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/mesh-tooling-regression/9-DirectionalNormalMapUsesFullInverseTransposeAndTangentFrame.png": {
+      "bytes": 456,
+      "sha256": "cd014ef3101c981a06556e461992b395a93534b580f45929d52c29fcd4b3cc2b"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/mesh-tooling-regression/9-DirectionalNormalMapUsesFullInverseTransposeAndTangentFrame.rgba": {
+      "bytes": 16384,
+      "sha256": "acbfb99ca497f8162e9fb6c2700734a3debc35c0a0b76398745e2c01883e6cbf"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/mesh-tooling-regression/chrome.log": {
+      "bytes": 778,
+      "sha256": "9bf65f8e6ce348b5055a907b08514314ad4dd239eb4231dc4cb0ff94cde42d76"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/mesh-tooling-regression/material-sheet.png": {
+      "bytes": 154433,
+      "sha256": "1277127870853a5934003ccfca30e47bc10bdce9ff40d40cfeab731b7872cd71"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/mesh-tooling-regression/report.json": {
+      "bytes": 23460,
+      "sha256": "d25fc47fb2f766d7641cbc4c04b3bb066ebd08d76248851fa9a617ef2beedc0e"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/mesh-tooling-regression/tests.log": {
+      "bytes": 1359,
+      "sha256": "e1bb9507650878af5d520725efd9269cc6ee3709e6a1cc919433e524d0f18eb2"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/native/0-ConstantRadianceAllMipsAndReleaseBeforeSubmit.f32": {
+      "bytes": 38368,
+      "sha256": "0d8fa2c356f9b7e62fcc3f5a2cf6c5ce7d071affa27a99513e7627eedd557fc3"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/native/0-ConstantRadianceAllMipsAndReleaseBeforeSubmit.json": {
+      "bytes": 126,
+      "sha256": "47c4e11487960cc74f5a8cca024eee02059204f32e64208d2001421231349a16"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/native/0-ConstantRadianceAllMipsAndReleaseBeforeSubmit.requests.f32": {
+      "bytes": 38368,
+      "sha256": "855827783c57af3852d7584e4deb04c5a003b55e0881bedf092dfa605747189f"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/native/0-ConstantRadianceAllMipsAndReleaseBeforeSubmit.rgba": {
+      "bytes": 9728,
+      "sha256": "e74bb09aeddab91e8f94cf0e88ca6e4c938cec423883445ac96baaebe3cacb63"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/native/1-DirectionalIrradianceRoughnessAndCubeSeams.f32": {
+      "bytes": 173536,
+      "sha256": "5a2ffeed124617f940904feee919487c6a309217515badd6a04a786e8a574d07"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/native/1-DirectionalIrradianceRoughnessAndCubeSeams.json": {
+      "bytes": 128,
+      "sha256": "315c59c70f0f51ff2d8b2574db3461da8d2fe38bf4c1afc2d89d92edbd7ab42a"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/native/1-DirectionalIrradianceRoughnessAndCubeSeams.requests.f32": {
+      "bytes": 173536,
+      "sha256": "f6285e825708047290ff5f67d889eeba0a21090a327243499f6f4a35173ea426"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/native/1-DirectionalIrradianceRoughnessAndCubeSeams.rgba": {
+      "bytes": 43520,
+      "sha256": "937f18481268af85bbbdabf8266c7c0e22ff87d6273ec073410aa179939fc2dc"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/native/2-BrdfMatchesIndependentHemisphereQuadrature.f32": {
+      "bytes": 16384,
+      "sha256": "523f50ead32589491f616a06688a2ac1267509ecc24488ba43a795ab135cd7da"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/native/2-BrdfMatchesIndependentHemisphereQuadrature.json": {
+      "bytes": 126,
+      "sha256": "525357af540eab151390986acb33637e818e682999740da366efe1b397afd51b"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/native/2-BrdfMatchesIndependentHemisphereQuadrature.requests.f32": {
+      "bytes": 16384,
+      "sha256": "ff62d0c03d178b3aa200818475557865727be98d6ce148952853c74ef9949425"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/native/2-BrdfMatchesIndependentHemisphereQuadrature.rgba": {
+      "bytes": 4096,
+      "sha256": "e6c4f7439788c85afacf24a87c9c0e5515ae6c42493a8569f7cddf3fd5c70ce3"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/native/3-AbandonedEncodingAndRebakeRetainOutputViews.f32": {
+      "bytes": 48,
+      "sha256": "26a5c5323c2f14fa6c54e61a0b4ee8acbd806f8fa36ba5b8273948c7321b7636"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/native/3-AbandonedEncodingAndRebakeRetainOutputViews.json": {
+      "bytes": 122,
+      "sha256": "017d49241a4a9111fe101e9826a2105e3668b7d2295dbe8adba3c3b7f04031f0"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/native/3-AbandonedEncodingAndRebakeRetainOutputViews.requests.f32": {
+      "bytes": 48,
+      "sha256": "807936c05a5982f034d1e294ade2b0c9bb7aae65d2a4c66e38a4855ebe1fb00a"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/native/3-AbandonedEncodingAndRebakeRetainOutputViews.rgba": {
+      "bytes": 256,
+      "sha256": "7be5891120b78ce150e998124fcfb9d2fc29adec7c79c5ca5b04a1a5cb512ed2"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/native/4-AbandonedEncodingAndRebakeRetainOutputViews.f32": {
+      "bytes": 48,
+      "sha256": "aca3aab8c3ebf1d2b855ca59526acb91c4e1bcc57fdee08323103e071fe9fcbe"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/native/4-AbandonedEncodingAndRebakeRetainOutputViews.json": {
+      "bytes": 122,
+      "sha256": "017d49241a4a9111fe101e9826a2105e3668b7d2295dbe8adba3c3b7f04031f0"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/native/4-AbandonedEncodingAndRebakeRetainOutputViews.requests.f32": {
+      "bytes": 48,
+      "sha256": "807936c05a5982f034d1e294ade2b0c9bb7aae65d2a4c66e38a4855ebe1fb00a"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/native/4-AbandonedEncodingAndRebakeRetainOutputViews.rgba": {
+      "bytes": 256,
+      "sha256": "7b50cd64c0c37b83025f1359281e2e734aab70d03823d29adff98a5503a97724"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/native/tests.log": {
+      "bytes": 2792,
+      "sha256": "cf196f0948e94cdcc5376ef317698d28537a0e7d2fd7e3e8e72b031902efec3a"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/native-attempt-01/0-ConstantRadianceAllMipsAndReleaseBeforeSubmit.f32": {
+      "bytes": 38368,
+      "sha256": "0d8fa2c356f9b7e62fcc3f5a2cf6c5ce7d071affa27a99513e7627eedd557fc3"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/native-attempt-01/0-ConstantRadianceAllMipsAndReleaseBeforeSubmit.json": {
+      "bytes": 126,
+      "sha256": "47c4e11487960cc74f5a8cca024eee02059204f32e64208d2001421231349a16"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/native-attempt-01/0-ConstantRadianceAllMipsAndReleaseBeforeSubmit.requests.f32": {
+      "bytes": 38368,
+      "sha256": "855827783c57af3852d7584e4deb04c5a003b55e0881bedf092dfa605747189f"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/native-attempt-01/0-ConstantRadianceAllMipsAndReleaseBeforeSubmit.rgba": {
+      "bytes": 9728,
+      "sha256": "e74bb09aeddab91e8f94cf0e88ca6e4c938cec423883445ac96baaebe3cacb63"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/native-attempt-01/1-DirectionalIrradianceRoughnessAndCubeSeams.f32": {
+      "bytes": 173536,
+      "sha256": "c6303f936b3787b42a16ba2999d3f5131d5ecc2d3c566f994af8f518f03f0329"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/native-attempt-01/1-DirectionalIrradianceRoughnessAndCubeSeams.json": {
+      "bytes": 128,
+      "sha256": "315c59c70f0f51ff2d8b2574db3461da8d2fe38bf4c1afc2d89d92edbd7ab42a"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/native-attempt-01/1-DirectionalIrradianceRoughnessAndCubeSeams.requests.f32": {
+      "bytes": 173536,
+      "sha256": "f6285e825708047290ff5f67d889eeba0a21090a327243499f6f4a35173ea426"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/native-attempt-01/1-DirectionalIrradianceRoughnessAndCubeSeams.rgba": {
+      "bytes": 43520,
+      "sha256": "b9d059f71b7f1645c2b71c544b886d135948348e4aecdb59618f078cd41d043c"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/native-attempt-01/2-BrdfMatchesIndependentHemisphereQuadrature.f32": {
+      "bytes": 16384,
+      "sha256": "523f50ead32589491f616a06688a2ac1267509ecc24488ba43a795ab135cd7da"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/native-attempt-01/2-BrdfMatchesIndependentHemisphereQuadrature.json": {
+      "bytes": 126,
+      "sha256": "525357af540eab151390986acb33637e818e682999740da366efe1b397afd51b"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/native-attempt-01/2-BrdfMatchesIndependentHemisphereQuadrature.requests.f32": {
+      "bytes": 16384,
+      "sha256": "ff62d0c03d178b3aa200818475557865727be98d6ce148952853c74ef9949425"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/native-attempt-01/2-BrdfMatchesIndependentHemisphereQuadrature.rgba": {
+      "bytes": 4096,
+      "sha256": "e6c4f7439788c85afacf24a87c9c0e5515ae6c42493a8569f7cddf3fd5c70ce3"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/native-attempt-01/3-AbandonedEncodingAndRebakeRetainOutputViews.f32": {
+      "bytes": 48,
+      "sha256": "26a5c5323c2f14fa6c54e61a0b4ee8acbd806f8fa36ba5b8273948c7321b7636"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/native-attempt-01/3-AbandonedEncodingAndRebakeRetainOutputViews.json": {
+      "bytes": 122,
+      "sha256": "017d49241a4a9111fe101e9826a2105e3668b7d2295dbe8adba3c3b7f04031f0"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/native-attempt-01/3-AbandonedEncodingAndRebakeRetainOutputViews.requests.f32": {
+      "bytes": 48,
+      "sha256": "807936c05a5982f034d1e294ade2b0c9bb7aae65d2a4c66e38a4855ebe1fb00a"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/native-attempt-01/3-AbandonedEncodingAndRebakeRetainOutputViews.rgba": {
+      "bytes": 256,
+      "sha256": "7be5891120b78ce150e998124fcfb9d2fc29adec7c79c5ca5b04a1a5cb512ed2"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/native-attempt-01/4-AbandonedEncodingAndRebakeRetainOutputViews.f32": {
+      "bytes": 48,
+      "sha256": "aca3aab8c3ebf1d2b855ca59526acb91c4e1bcc57fdee08323103e071fe9fcbe"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/native-attempt-01/4-AbandonedEncodingAndRebakeRetainOutputViews.json": {
+      "bytes": 122,
+      "sha256": "017d49241a4a9111fe101e9826a2105e3668b7d2295dbe8adba3c3b7f04031f0"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/native-attempt-01/4-AbandonedEncodingAndRebakeRetainOutputViews.requests.f32": {
+      "bytes": 48,
+      "sha256": "807936c05a5982f034d1e294ade2b0c9bb7aae65d2a4c66e38a4855ebe1fb00a"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/native-attempt-01/4-AbandonedEncodingAndRebakeRetainOutputViews.rgba": {
+      "bytes": 256,
+      "sha256": "7b50cd64c0c37b83025f1359281e2e734aab70d03823d29adff98a5503a97724"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/native-attempt-01/environment_lighting.wgsl": {
+      "bytes": 5376,
+      "sha256": "cfa2b530437e02098315fc4baae708efd01db62d9c1bde4b84b0e7e2683d8a6b"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/native-attempt-01/test_environment_lighting.cpp": {
+      "bytes": 24803,
+      "sha256": "0aea2f59af3610f3e3a7a1cddf49d08109f5b68179e0412e66f737bbaf2df692"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/native-attempt-01/tests.log": {
+      "bytes": 3151,
+      "sha256": "affc471b418c63dc43631a51338a5337e5975a2ce3d5f1b30e29bba64375c696"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/native-browser.json": {
+      "bytes": 2555,
+      "sha256": "e923938c45abefbc3ff93216d4917de4d42dd254002e51751f10d6f898f05a1e"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/native-build-systems.json": {
+      "bytes": 2560,
+      "sha256": "cf80574cdc3781808230854cab62875218aaff85bda72229ec5463ec9f4f4c18"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/native-final/0-ConstantRadianceAllMipsAndReleaseBeforeSubmit.f32": {
+      "bytes": 38368,
+      "sha256": "0d8fa2c356f9b7e62fcc3f5a2cf6c5ce7d071affa27a99513e7627eedd557fc3"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/native-final/0-ConstantRadianceAllMipsAndReleaseBeforeSubmit.json": {
+      "bytes": 126,
+      "sha256": "47c4e11487960cc74f5a8cca024eee02059204f32e64208d2001421231349a16"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/native-final/0-ConstantRadianceAllMipsAndReleaseBeforeSubmit.requests.f32": {
+      "bytes": 38368,
+      "sha256": "855827783c57af3852d7584e4deb04c5a003b55e0881bedf092dfa605747189f"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/native-final/0-ConstantRadianceAllMipsAndReleaseBeforeSubmit.rgba": {
+      "bytes": 9728,
+      "sha256": "e74bb09aeddab91e8f94cf0e88ca6e4c938cec423883445ac96baaebe3cacb63"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/native-final/1-DirectionalIrradianceRoughnessAndCubeSeams.f32": {
+      "bytes": 173536,
+      "sha256": "5a2ffeed124617f940904feee919487c6a309217515badd6a04a786e8a574d07"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/native-final/1-DirectionalIrradianceRoughnessAndCubeSeams.json": {
+      "bytes": 128,
+      "sha256": "315c59c70f0f51ff2d8b2574db3461da8d2fe38bf4c1afc2d89d92edbd7ab42a"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/native-final/1-DirectionalIrradianceRoughnessAndCubeSeams.requests.f32": {
+      "bytes": 173536,
+      "sha256": "f6285e825708047290ff5f67d889eeba0a21090a327243499f6f4a35173ea426"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/native-final/1-DirectionalIrradianceRoughnessAndCubeSeams.rgba": {
+      "bytes": 43520,
+      "sha256": "937f18481268af85bbbdabf8266c7c0e22ff87d6273ec073410aa179939fc2dc"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/native-final/2-BrdfMatchesIndependentHemisphereQuadrature.f32": {
+      "bytes": 16384,
+      "sha256": "523f50ead32589491f616a06688a2ac1267509ecc24488ba43a795ab135cd7da"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/native-final/2-BrdfMatchesIndependentHemisphereQuadrature.json": {
+      "bytes": 126,
+      "sha256": "525357af540eab151390986acb33637e818e682999740da366efe1b397afd51b"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/native-final/2-BrdfMatchesIndependentHemisphereQuadrature.requests.f32": {
+      "bytes": 16384,
+      "sha256": "ff62d0c03d178b3aa200818475557865727be98d6ce148952853c74ef9949425"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/native-final/2-BrdfMatchesIndependentHemisphereQuadrature.rgba": {
+      "bytes": 4096,
+      "sha256": "e6c4f7439788c85afacf24a87c9c0e5515ae6c42493a8569f7cddf3fd5c70ce3"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/native-final/3-AbandonedEncodingAndRebakeRetainOutputViews.f32": {
+      "bytes": 48,
+      "sha256": "26a5c5323c2f14fa6c54e61a0b4ee8acbd806f8fa36ba5b8273948c7321b7636"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/native-final/3-AbandonedEncodingAndRebakeRetainOutputViews.json": {
+      "bytes": 122,
+      "sha256": "017d49241a4a9111fe101e9826a2105e3668b7d2295dbe8adba3c3b7f04031f0"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/native-final/3-AbandonedEncodingAndRebakeRetainOutputViews.requests.f32": {
+      "bytes": 48,
+      "sha256": "807936c05a5982f034d1e294ade2b0c9bb7aae65d2a4c66e38a4855ebe1fb00a"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/native-final/3-AbandonedEncodingAndRebakeRetainOutputViews.rgba": {
+      "bytes": 256,
+      "sha256": "7be5891120b78ce150e998124fcfb9d2fc29adec7c79c5ca5b04a1a5cb512ed2"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/native-final/4-AbandonedEncodingAndRebakeRetainOutputViews.f32": {
+      "bytes": 48,
+      "sha256": "aca3aab8c3ebf1d2b855ca59526acb91c4e1bcc57fdee08323103e071fe9fcbe"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/native-final/4-AbandonedEncodingAndRebakeRetainOutputViews.json": {
+      "bytes": 122,
+      "sha256": "017d49241a4a9111fe101e9826a2105e3668b7d2295dbe8adba3c3b7f04031f0"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/native-final/4-AbandonedEncodingAndRebakeRetainOutputViews.requests.f32": {
+      "bytes": 48,
+      "sha256": "807936c05a5982f034d1e294ade2b0c9bb7aae65d2a4c66e38a4855ebe1fb00a"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/native-final/4-AbandonedEncodingAndRebakeRetainOutputViews.rgba": {
+      "bytes": 256,
+      "sha256": "7b50cd64c0c37b83025f1359281e2e734aab70d03823d29adff98a5503a97724"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/native-final/tests.log": {
+      "bytes": 2792,
+      "sha256": "af23775041777691bedbe24d9e788fd073de0e346f9ab861d3244754280f689e"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/sources/AGENTS.md": {
+      "bytes": 432,
+      "sha256": "fe03d4cd0a7c246077216d18d94ceb1980bbad9182a3394204dd89f5ad16f619"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/sources/CMakeLists.txt": {
+      "bytes": 40144,
+      "sha256": "ec49bec279775cc3cca80338dd96b0ab0b247f36d5755f5ef277da665fd0198f"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/sources/GAME_IMPLEMENTATION_TODO.md": {
+      "bytes": 160321,
+      "sha256": "d50ca73b80466a480c8777d87ff97a6be08b0c1a5203088bef059f3c3e6527ce"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/sources/README.md": {
+      "bytes": 16763,
+      "sha256": "a3b89a385408baca9ab6250330a4adf16432317de625ff7b6672557140429206"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/sources/scripts/build_mesh_diagnostics.py": {
+      "bytes": 6229,
+      "sha256": "33f747ee3b82dd11d5b5889b5dc4872758dac639f68cab28f48fb0315f499000"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/sources/scripts/compare_environment_diagnostics.py": {
+      "bytes": 2685,
+      "sha256": "875132acdf9a72f8f35557082fe608593fa90562c44d5560d32b7ec8bcf229d7"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/sources/scripts/environment_diagnostics.html": {
+      "bytes": 3884,
+      "sha256": "c36df2ac86196032ae461917ee086fbbcb11fef89826f7bb8d22af77aae90f08"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/sources/scripts/mesh_diagnostics.html": {
+      "bytes": 4410,
+      "sha256": "d1e856b18996773c93d1e96793a7e66602b278d255f138803dec5d700b65b3d3"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/sources/scripts/run_mesh_diagnostics.mjs": {
+      "bytes": 7621,
+      "sha256": "c70d997392eb6c6eced606a45927e6273216da9a02f5790705a94698623e084d"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/sources/shaders/BUILD": {
+      "bytes": 119,
+      "sha256": "1d84ddd80b1d31dad8e0cd8dc4c9a06434b7d77950b89e121ce7b9ad5e03ae75"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/sources/shaders/environment_lighting.wgsl": {
+      "bytes": 5377,
+      "sha256": "9319b49a286afdb7dfdce951626b6b94aa97f403e58de16f8677eca619a2625a"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/sources/shaders/mesh_path.wgsl": {
+      "bytes": 12829,
+      "sha256": "199608700b6baeb13e3f3989a050a30e24170a64d34aeef6d5db2fc63a7b1c98"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/sources/src/CMakeLists.txt": {
+      "bytes": 21000,
+      "sha256": "db5c7d52a6abf1624f7732e5d4e8788b6c15c9f1ea4b45f1f72e6f9c0ee2524a"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/sources/src/gpu/resources.cpp": {
+      "bytes": 39077,
+      "sha256": "d9521b68cc96fae2c7eaaa5667fcc960db2401459614598ba59f74b284f17d8a"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/sources/src/gpu/resources.hpp": {
+      "bytes": 27940,
+      "sha256": "6c5f3581aa48ce0f062aedd04fd69264f0ce1a627c2d02f39b7ab2eb7c4a7c13"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/sources/src/gpu/webgpu_compat.hpp": {
+      "bytes": 8173,
+      "sha256": "dd7308d961de438d498c947faf29debb4320b6eb5f69ecab4eff5bed2a7e981c"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/sources/src/render/BUILD": {
+      "bytes": 3071,
+      "sha256": "a11db74b3992ad69e4fb7942cac8a7f69ba4056bd7f4ad3508ba4586e1ed77c8"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/sources/src/render/blit_path.cpp": {
+      "bytes": 125156,
+      "sha256": "1203c7e28172725963af60607728605ba13afc396864a6eaff2444f741555d4a"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/sources/src/render/environment_lighting.cpp": {
+      "bytes": 8246,
+      "sha256": "3619fa02fcaae8571c562f97b344f0c4026f816d0560ca578db4885f964afc70"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/sources/src/render/environment_lighting.hpp": {
+      "bytes": 2315,
+      "sha256": "a39598235e99f3506b900d6ef1a6aa4a2253d57cd7a124ab570c5390091a5ade"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/sources/tests/BUILD": {
+      "bytes": 31957,
+      "sha256": "4aa2979331f6403302c2808427d6dbe66880b9fa7216847e12c05c749c92ddd8"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/sources/tests/CMakeLists.txt": {
+      "bytes": 38882,
+      "sha256": "f6b206054b4d10032da940697a0f6d6435791e6ac3c28fa64609e863c0f64edf"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/sources/tests/test_environment_lighting.cpp": {
+      "bytes": 24885,
+      "sha256": "da63c66251d6d6a7016b97ada7cbb92b6e22cb975a73bed1aa99886dc5283338"
+    },
+    "docs/validation/salvage/ASSET-06/environment-r01/sources/tools/salvage_assets/diagnose_detail.py": {
+      "bytes": 2877,
+      "sha256": "d4541d632fba6e5d01c6e0a9beab778ca73d81c5551d9d4c8bd498f02fe7b1f3"
+    }
+  },
+  "diagnosis": {
+    "data/salvage/fixture-detail-factors-only-r01.json": {
+      "bytes": 2744,
+      "sha256": "eebce68d1e8e7469744ac9a09a388471363a1a0a17f82f21d6854f2021839a51"
+    },
+    "data/salvage/fixture-detail-normal-only-r01.json": {
+      "bytes": 2743,
+      "sha256": "2d3ce485a8d1f3f8d52ec91a7d08489a61cc15ac6ed3e35821e9a04e33df8ac6"
+    },
+    "data/salvage/fixture-detail-roughness-only-r01.json": {
+      "bytes": 2746,
+      "sha256": "c4b54105c041e25bcc76a5378954e882ad68aabcd9974cf126b4824015dc8f18"
+    },
+    "data/salvage/material-calibration/diagnosis-r01/factors-only/cooked/cook-manifest.json": {
+      "bytes": 1723,
+      "sha256": "7165020c092173c0f875e5ff2c9c531608da49f487a58b4d0170be74066600e9"
+    },
+    "data/salvage/material-calibration/diagnosis-r01/factors-only/cooked/gameplay.json": {
+      "bytes": 6737,
+      "sha256": "bde9b9c35c638d787400fd37a00a090143dee763ba30dccc5f0abc4269cfeb9f"
+    },
+    "data/salvage/material-calibration/diagnosis-r01/factors-only/cooked/lod-1.vmesh": {
+      "bytes": 290240,
+      "sha256": "5eb1cf2593121196e9634be74656b0665d6c0253f152dd915124fbb89e7e0f71"
+    },
+    "data/salvage/material-calibration/diagnosis-r01/factors-only/cooked/lod-2.vmesh": {
+      "bytes": 125600,
+      "sha256": "ad90c9d9d00acc830a3f01b275694c803278581938359cb6f3f0f552941e0983"
+    },
+    "data/salvage/material-calibration/diagnosis-r01/factors-only/cooked/lod-3.vmesh": {
+      "bytes": 42488,
+      "sha256": "4e2fb0a5cf4e761cf4c4d3dda7c689ee605e9bfb29060347b48709c9f3a65253"
+    },
+    "data/salvage/material-calibration/diagnosis-r01/factors-only/source/helm-lod-0.glb": {
+      "bytes": 211196,
+      "sha256": "543558edf24fe574c925d38d1b8acf59fe0cbf923d0718c48c9c9d742a28a246"
+    },
+    "data/salvage/material-calibration/diagnosis-r01/factors-only/source/helm-lod-1.glb": {
+      "bytes": 94336,
+      "sha256": "51a8264edbb8984e278ed72f53089d0f57b88a8917b7fde4c532ff67bfc8c172"
+    },
+    "data/salvage/material-calibration/diagnosis-r01/factors-only/source/helm-lod-2.glb": {
+      "bytes": 34588,
+      "sha256": "7a3f04ffaf2fecabcdf83452f07cb6682167a2eed0b79c00fc3720633d08753f"
+    },
+    "data/salvage/material-calibration/diagnosis-r01/factors-only/source/helm.gameplay.json": {
+      "bytes": 6703,
+      "sha256": "bfbd1b645dd63ba222b7bf9d7a3c2d88d3cd8c7dc37a2bd4f3f3da7f037e6572"
+    },
+    "data/salvage/material-calibration/diagnosis-r01/normal-only/cooked/cook-manifest.json": {
+      "bytes": 1723,
+      "sha256": "b6f1ed11a67d080fe3d429b823cd8dab41a29da7347f1da2e49bebc3020b7688"
+    },
+    "data/salvage/material-calibration/diagnosis-r01/normal-only/cooked/gameplay.json": {
+      "bytes": 6737,
+      "sha256": "62437eb2c16c5a7e73a8878b895fdcae7326438f6d3cf3bcf2cb1a3825b1289b"
+    },
+    "data/salvage/material-calibration/diagnosis-r01/normal-only/cooked/lod-1.vmesh": {
+      "bytes": 683456,
+      "sha256": "da3074186ee3567305764dbe4383ab6deb48f2eef6131d912561bb8b8387283e"
+    },
+    "data/salvage/material-calibration/diagnosis-r01/normal-only/cooked/lod-2.vmesh": {
+      "bytes": 223904,
+      "sha256": "979e071796ece178b7477c89311401a2b3d54f3011888ffef40ee26fcb9b4473"
+    },
+    "data/salvage/material-calibration/diagnosis-r01/normal-only/cooked/lod-3.vmesh": {
+      "bytes": 42488,
+      "sha256": "4e2fb0a5cf4e761cf4c4d3dda7c689ee605e9bfb29060347b48709c9f3a65253"
+    },
+    "data/salvage/material-calibration/diagnosis-r01/normal-only/source/helm-lod-0.glb": {
+      "bytes": 211368,
+      "sha256": "f64384707cbf7257c2f7ae2b0dd7b2af69252012ce05084139d561ab3dee4a30"
+    },
+    "data/salvage/material-calibration/diagnosis-r01/normal-only/source/helm-lod-1.glb": {
+      "bytes": 94504,
+      "sha256": "ad152cc4f8a072a5a9e6652ac90172cc2741fc04a3055f602aeeeac06f733f99"
+    },
+    "data/salvage/material-calibration/diagnosis-r01/normal-only/source/helm-lod-2.glb": {
+      "bytes": 34588,
+      "sha256": "7a3f04ffaf2fecabcdf83452f07cb6682167a2eed0b79c00fc3720633d08753f"
+    },
+    "data/salvage/material-calibration/diagnosis-r01/normal-only/source/helm.gameplay.json": {
+      "bytes": 6703,
+      "sha256": "21bade5a6bc8fe751ee1ba8b9fa5f07459e08871fc81900f42dde582d8a8686d"
+    },
+    "data/salvage/material-calibration/diagnosis-r01/provenance.json": {
+      "bytes": 3413,
+      "sha256": "00a2610f1473f4984898dfedeac35c19101a01e4e51987a175244c0391eb580f"
+    },
+    "data/salvage/material-calibration/diagnosis-r01/roughness-only/cooked/cook-manifest.json": {
+      "bytes": 1723,
+      "sha256": "e387a9e7cb9030828c5108bacaa6f897a45c43b215867fbd61f15330fb248234"
+    },
+    "data/salvage/material-calibration/diagnosis-r01/roughness-only/cooked/gameplay.json": {
+      "bytes": 6737,
+      "sha256": "45cfd4c328f0fc36e6c7867cb421210b832da66d67df1dda9529dacdbf2f2141"
+    },
+    "data/salvage/material-calibration/diagnosis-r01/roughness-only/cooked/lod-1.vmesh": {
+      "bytes": 683456,
+      "sha256": "35865696f4a8d380eb7f86fa0ca44289e7c93a5592ad1b8e5aa88460d07fe6c9"
+    },
+    "data/salvage/material-calibration/diagnosis-r01/roughness-only/cooked/lod-2.vmesh": {
+      "bytes": 223904,
+      "sha256": "a57522fd95fc83c54d9858eb5e3fd97d89f2f5671fe240c8a1ac0f7c5d38f2a5"
+    },
+    "data/salvage/material-calibration/diagnosis-r01/roughness-only/cooked/lod-3.vmesh": {
+      "bytes": 42488,
+      "sha256": "4e2fb0a5cf4e761cf4c4d3dda7c689ee605e9bfb29060347b48709c9f3a65253"
+    },
+    "data/salvage/material-calibration/diagnosis-r01/roughness-only/source/helm-lod-0.glb": {
+      "bytes": 211520,
+      "sha256": "eff8609185ab5840c0df2e66a6d1fa760b078e6d2863fa27ecb5d54dbc3de167"
+    },
+    "data/salvage/material-calibration/diagnosis-r01/roughness-only/source/helm-lod-1.glb": {
+      "bytes": 94660,
+      "sha256": "0d2696710667581603ea0c5051069e8db5bc479b828a53e1cdb27b8969db9bd6"
+    },
+    "data/salvage/material-calibration/diagnosis-r01/roughness-only/source/helm-lod-2.glb": {
+      "bytes": 34676,
+      "sha256": "e6580e33c6efa41205324cd0e7b436b60d26d556d4ebf9a37ba71b82404ce0fa"
+    },
+    "data/salvage/material-calibration/diagnosis-r01/roughness-only/source/helm.gameplay.json": {
+      "bytes": 6703,
+      "sha256": "3e64dc3ee227e955b1db43130dbafdfbc68f46db4e097b1a99022ee72d0ff2a8"
+    },
+    "docs/validation/salvage/ASSET-06/detail-diagnosis-r01/README.md": {
+      "bytes": 3770,
+      "sha256": "19dd2b5262b83fc4080b460204eb30381ff51633c7fa156678742c60ea647113"
+    },
+    "docs/validation/salvage/ASSET-06/detail-diagnosis-r01/cook.log": {
+      "bytes": 614,
+      "sha256": "26a0b190c74328c6495013d489e7f49f003607e43aa1f8a151d8a1c970107b42"
+    },
+    "docs/validation/salvage/ASSET-06/detail-diagnosis-r01/factors-only/fixture.cfg": {
+      "bytes": 1294,
+      "sha256": "985bd066a6f4191c139ac40404e7ff225dc45f2da9202f9f5afe26d292a4d81f"
+    },
+    "docs/validation/salvage/ASSET-06/detail-diagnosis-r01/factors-only/native/helm-grip-key.cfg": {
+      "bytes": 1409,
+      "sha256": "49175391900aadf4417908c8bd3dfc1df82968c633a608851b82951a474714b9"
+    },
+    "docs/validation/salvage/ASSET-06/detail-diagnosis-r01/factors-only/native/helm-grip-key.log": {
+      "bytes": 6849,
+      "sha256": "5d27f3de77c3d15d24a7381db9e9b3f43989bd3a3cc1535bcddef8df1a82662a"
+    },
+    "docs/validation/salvage/ASSET-06/detail-diagnosis-r01/factors-only/native/helm-grip-key.png": {
+      "bytes": 2501022,
+      "sha256": "6e7d0c3f8a64bb96a40d0ddb36248d8206f556f5db7fe11366b8592ba275b185"
+    },
+    "docs/validation/salvage/ASSET-06/detail-diagnosis-r01/factors-only/native/helm-grip-key.registry.json": {
+      "bytes": 2754,
+      "sha256": "3a32f625a63a4d61d78dd4fa70306720dc6736dce616088382adee2e123c9481"
+    },
+    "docs/validation/salvage/ASSET-06/detail-diagnosis-r01/factors-only/native/report.json": {
+      "bytes": 4935,
+      "sha256": "5ce01c735967a8a0f06cae17022c76e5dbafff42c252e2288bd4c8583a662c4d"
+    },
+    "docs/validation/salvage/ASSET-06/detail-diagnosis-r01/factors-only/views.json": {
+      "bytes": 647,
+      "sha256": "0e56a7392c6136af79a109d8738b5b5ad34726251531cbc87698c97850da2195"
+    },
+    "docs/validation/salvage/ASSET-06/detail-diagnosis-r01/normal-only/fixture.cfg": {
+      "bytes": 1293,
+      "sha256": "ab9f5bd070f53a3569390d2fc6e1a98e95ae496810b888a83928db01e72e7e73"
+    },
+    "docs/validation/salvage/ASSET-06/detail-diagnosis-r01/normal-only/native/helm-grip-key.cfg": {
+      "bytes": 1409,
+      "sha256": "2cbaedaccd90bee9bc71dd7554bbf1ffa16d3174b53fdee6245a435dbee29231"
+    },
+    "docs/validation/salvage/ASSET-06/detail-diagnosis-r01/normal-only/native/helm-grip-key.log": {
+      "bytes": 6846,
+      "sha256": "c994ad66a832a3c4e5130628696b96f41a2c291bd6117163d29674c5761b2dbc"
+    },
+    "docs/validation/salvage/ASSET-06/detail-diagnosis-r01/normal-only/native/helm-grip-key.png": {
+      "bytes": 2546107,
+      "sha256": "1d4a5acdc0e3818433f7e8095f6019bb8caef66d5ab12234f770da0e317029a6"
+    },
+    "docs/validation/salvage/ASSET-06/detail-diagnosis-r01/normal-only/native/helm-grip-key.registry.json": {
+      "bytes": 2753,
+      "sha256": "d5e5cd7a09357354303d6041c4666cf60a02e099194f985f4f3df3f9971babde"
+    },
+    "docs/validation/salvage/ASSET-06/detail-diagnosis-r01/normal-only/native/report.json": {
+      "bytes": 4931,
+      "sha256": "c07fce6ba778ea5641462540e6c82d3febb5dd85d88cb695e619ff9f8c44e2da"
+    },
+    "docs/validation/salvage/ASSET-06/detail-diagnosis-r01/normal-only/views.json": {
+      "bytes": 646,
+      "sha256": "6b4655df7b9b3ede6e72a031d1562207599035375944385a4280fe181ecfc4d2"
+    },
+    "docs/validation/salvage/ASSET-06/detail-diagnosis-r01/roughness-only/fixture.cfg": {
+      "bytes": 1296,
+      "sha256": "bf5ebad4769ab18d827a69f6db31c2887c63d50d4c8ad76e8c9c49ee4714f96c"
+    },
+    "docs/validation/salvage/ASSET-06/detail-diagnosis-r01/roughness-only/native/helm-grip-key.cfg": {
+      "bytes": 1409,
+      "sha256": "2582c4b6d9cf07213ef74b3e012b30d4fa02ac61cd4ff63454465c6bb0d24df3"
+    },
+    "docs/validation/salvage/ASSET-06/detail-diagnosis-r01/roughness-only/native/helm-grip-key.log": {
+      "bytes": 6855,
+      "sha256": "bcc423b6e4de10e768248e5b025bc7ebe97b668f3279d272eb5dd536fb85cb17"
+    },
+    "docs/validation/salvage/ASSET-06/detail-diagnosis-r01/roughness-only/native/helm-grip-key.png": {
+      "bytes": 2508656,
+      "sha256": "1f1c463c28cd79661523745b31b7cf3206ffddd8360f83bb0b2fe591e663889b"
+    },
+    "docs/validation/salvage/ASSET-06/detail-diagnosis-r01/roughness-only/native/helm-grip-key.registry.json": {
+      "bytes": 2756,
+      "sha256": "ef5150f9b8de51084bec1ceb21b8db8ab61072509280496a7324b080258c56c8"
+    },
+    "docs/validation/salvage/ASSET-06/detail-diagnosis-r01/roughness-only/native/report.json": {
+      "bytes": 4943,
+      "sha256": "a6df3011cd64a620061912a2a2eeb7986aa3dd16377daeb1de96aa3ab11231db"
+    },
+    "docs/validation/salvage/ASSET-06/detail-diagnosis-r01/roughness-only/views.json": {
+      "bytes": 649,
+      "sha256": "31a2cd629d737197f2fb25814b32753246c33115515b4faa486b61084d160d9b"
+    }
+  }
+}

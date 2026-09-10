@@ -76,6 +76,8 @@ struct GpuEventBatch {
     uint64_t tick = 0;
     bool overflow = false;
     std::vector<GpuPhysicsEvent> events;
+    bool valid = true;
+    uint64_t submissionSerial = 0;
 };
 
 class GpuEventReadbackRing {
@@ -100,8 +102,10 @@ public:
     void shutdown();
     void setSources(const GpuEventSources& sources);
     [[nodiscard]] bool encodeReadback(WGPUCommandEncoder encoder,
-                                      uint64_t tick);
+                                      uint64_t tick, uint64_t submissionSerial = 0);
     [[nodiscard]] std::optional<GpuEventBatch> poll();
+    [[nodiscard]] uint32_t availableSlots() const noexcept;
+    [[nodiscard]] uint64_t failedReadbacks() const noexcept;
 
     [[nodiscard]] WGPUBuffer packedEventBuffer() const noexcept;
     [[nodiscard]] size_t allocatedBytes() const noexcept;

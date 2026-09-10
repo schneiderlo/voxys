@@ -9,6 +9,10 @@
 #include "gpu/context.hpp"
 #include "perf/gpu_timer.hpp"
 
+#include <array>
+#include <atomic>
+#include <chrono>
+#include <thread>
 #include <cstddef>
 #include <cstdint>
 
@@ -158,6 +162,42 @@ TEST(ContextTest, TickWithoutInit) {
     // Should not crash
     context.tick();
     SUCCEED();
+}
+
+TEST(ContextTest, TickRetiresReadbackAndQueueCallbacksWithoutFurtherSubmissions) {
+    struct Signals {
+        std::atomic<bool> mapped=false,completed=false;
+        WGPUBufferMapAsyncStatus mapStatus{};
+        WGPUQueueWorkDoneStatus queueStatus{};
+    } signals; // Must outlive device shutdown, including assertion failure.
+    Context context;
+    ASSERT_TRUE(context.initHeadless({}));
+    WGPUBufferDescriptor desc{};desc.size=16;
+    desc.usage=WGPUBufferUsage_CopyDst|WGPUBufferUsage_MapRead;
+    auto buffer=wgpuDeviceCreateBuffer(context.getDevice(),&desc);ASSERT_NE(buffer,nullptr);
+    const std::array<uint32_t,4> expected{1,17,9001,0xffffffffu};
+    wgpuQueueWriteBuffer(context.getQueue(),buffer,0,expected.data(),sizeof(expected));
+    wgpuQueueSubmit(context.getQueue(),0,nullptr);
+    wgpuBufferMapAsync(buffer,WGPUMapMode_Read,0,sizeof(expected),[](auto status,void* data){
+        auto& result=*static_cast<Signals*>(data);result.mapStatus=status;result.mapped=true;
+    },&signals);
+    wgpuQueueOnSubmittedWorkDone(context.getQueue(),[](auto status,void* data){
+        auto& result=*static_cast<Signals*>(data);result.queueStatus=status;result.completed=true;
+    },&signals);
+    const auto deadline=std::chrono::steady_clock::now()+std::chrono::seconds(3);
+    while((!signals.mapped || !signals.completed) && std::chrono::steady_clock::now()<deadline){
+        context.tick();std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+    EXPECT_TRUE(signals.completed);EXPECT_TRUE(signals.mapped);
+    if(signals.mapped && signals.mapStatus==WGPUBufferMapAsyncStatus_Success){
+        const auto* values=static_cast<const uint32_t*>(wgpuBufferGetConstMappedRange(buffer,0,sizeof(expected)));
+        ASSERT_NE(values,nullptr);
+        for(size_t i=0;i<expected.size();++i)EXPECT_EQ(values[i],expected[i]);
+        wgpuBufferUnmap(buffer);
+    }
+    EXPECT_EQ(signals.mapStatus,WGPUBufferMapAsyncStatus_Success);
+    EXPECT_EQ(signals.queueStatus,WGPUQueueWorkDoneStatus_Success);
+    wgpuBufferRelease(buffer);
 }
 
 TEST(ContextTest, ResizeSwapchainWithoutInit) {

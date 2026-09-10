@@ -29,7 +29,7 @@
 </head>
 
 <body>
-    <canvas id="voxy-canvas"></canvas>
+    <canvas id="voxy-canvas" tabindex="0" aria-label="Game view"></canvas>
 
     <div id="loading">
         <div class="spinner"></div>
@@ -216,13 +216,127 @@
     </section>
     <div id="lego-crosshair" aria-hidden="true"></div>
     <section id="salvage-preview" hidden data-voxy-ui aria-label="Cove preview controls">
-        <h2>Cove preview</h2>
+        <h2 id="salvage-title">Cove preview</h2>
         <p id="salvage-status" role="status" aria-live="polite">Explore the dock and wreck.</p>
-        <p>WASD to walk · click to look · Space to jump</p>
-        <p class="salvage-note">An early scene preview. Building and salvage missions come later.</p>
+        <p id="salvage-help">WASD to walk · click to look · Space to jump</p>
+        <div id="salvage-lods" hidden aria-label="Model detail level">
+            <button type="button" data-salvage-lod="0">Auto · 0</button>
+            <button type="button" data-salvage-lod="1">Near · 1</button>
+            <button type="button" data-salvage-lod="2">Middle · 2</button>
+            <button type="button" data-salvage-lod="3">Far · 3</button>
+        </div>
+        <p class="salvage-note" id="salvage-scope">Early sailing and workshop preview. Campaign progress is unfinished.</p>
+        <div id="salvage-guides" hidden aria-label="Inspection guides">
+            <button type="button" data-salvage-guide="0">Clean view</button>
+            <button type="button" data-salvage-guide="1">Rulers</button>
+            <button type="button" data-salvage-guide="2">Socket X-ray</button>
+            <p id="salvage-guide-note" class="salvage-note"></p>
+        </div>
+        <button id="salvage-workshop-toggle" type="button" hidden disabled>Workshop · B</button>
+        <div id="salvage-workshop" hidden aria-label="Starter craft workshop">
+            <p id="salvage-workshop-stock"></p>
+            <div class="workshop-camera" aria-label="Parts drawer">
+                <button id="workshop-catalog-prev" data-workshop-action="82">Previous type</button>
+                <span id="workshop-catalog-name"></span>
+                <button id="workshop-catalog-next" data-workshop-action="83">Next type · C</button>
+                <button id="workshop-add" data-workshop-action="84">Add part · V</button>
+            </div>
+            <p id="salvage-workshop-part"></p>
+            <p id="salvage-workshop-status" role="status" aria-live="polite"></p>
+            <div class="workshop-camera" aria-label="Part settings">
+                <span id="workshop-settings-note"></span>
+                <button id="workshop-setting-enabled" data-workshop-action="85">Turn off · X</button>
+                <button id="workshop-setting-limit" data-workshop-action="86">Output limit · L</button>
+                <button id="workshop-setting-reverse" data-workshop-action="87">Reverse drive · N</button>
+            </div>
+            <div class="workshop-grid">
+                <button id="workshop-prev" data-workshop-action="61">Previous part</button>
+                <button id="workshop-next" data-workshop-action="62">Next part · Tab</button>
+                <button id="workshop-snap" data-workshop-action="70">Snap to socket · T</button>
+                <button id="workshop-left" data-workshop-action="63">Move left</button>
+                <button id="workshop-right" data-workshop-action="64">Move right</button>
+                <button id="workshop-rotate" data-workshop-action="69">Rotate · R</button>
+                <button id="workshop-forward" data-workshop-action="65">Move forward</button>
+                <button id="workshop-back" data-workshop-action="66">Move back</button>
+                <button id="workshop-remove" data-workshop-action="74">Remove part</button>
+                <button id="workshop-raise" data-workshop-action="67">Raise one plate</button>
+                <button id="workshop-lower" data-workshop-action="68">Lower one plate</button>
+                <button id="workshop-revert" data-workshop-action="73">Cancel move</button>
+                <button id="workshop-keep" data-workshop-action="71">Keep change · E</button>
+                <button id="workshop-undo" data-workshop-action="72">Undo · U</button>
+                <button id="workshop-launch" data-workshop-action="79">Launch boat · Enter</button>
+                <button id="workshop-undo-launch" data-workshop-action="80">Undo launch · I</button>
+                <button id="workshop-redo-launch" data-workshop-action="81">Redo launch · O</button>
+                <button id="workshop-rebuild" data-workshop-action="88" title="Save this boat as a recovery design, restore the starter boat and store purchased parts. Previous launch undo is cleared. Keep or discard your current edits first.">Rebuild starter · H</button>
+            </div>
+            <div class="workshop-camera" aria-label="Workshop camera">
+                <span id="workshop-recovery-status">No recovered designs yet.</span>
+                <button id="workshop-recovery-prev" data-workshop-action="92">Previous recovery</button>
+                <button id="workshop-recovery-next" data-workshop-action="93">Next recovery · J</button>
+                <button id="workshop-recovery-load" data-workshop-action="89">Load recovered design · K</button>
+                <button id="workshop-recovery-remove" data-workshop-action="94" title="Remove only this saved recovery design. Boat parts and exported blueprints stay owned.">Remove recovery design · F</button>
+                <button id="workshop-orbit-left" data-workshop-action="75">View left</button>
+                <button id="workshop-orbit-right" data-workshop-action="76">View right</button>
+                <button id="workshop-closer" data-workshop-action="77">Closer</button>
+                <button id="workshop-farther" data-workshop-action="78">Farther</button>
+            </div>
+            <details id="workshop-designs">
+                <summary>Saved designs</summary>
+                <label for="design-name">Design name</label>
+                <input id="design-name" type="text" maxlength="96" value="My boat" autocomplete="off">
+                <label for="design-list">On this device</label>
+                <select id="design-list" size="3" aria-label="Saved designs"></select>
+                <div class="workshop-grid">
+                    <button id="design-save-new" data-design-action="save-new">Save as new</button>
+                    <button id="design-update" data-design-action="update">Update selected</button>
+                    <button id="design-load" data-design-action="load">Load design</button>
+                    <button id="design-rename" data-design-action="rename">Rename selected</button>
+                    <button id="design-duplicate" data-design-action="duplicate">Duplicate selected</button>
+                    <button id="design-restore" data-design-action="restore">Restore backup</button>
+                    <button id="design-export" data-design-action="export">Export design</button>
+                    <button id="design-import" data-design-action="import">Import design</button>
+                    <button id="design-refresh" data-design-action="refresh">Refresh list</button>
+                    <button id="design-remove" data-design-action="remove">Remove saved design</button>
+                </div>
+                <input id="design-file" type="file" accept=".json,.voxy-design.json" hidden>
+                <p id="design-status" role="status" aria-live="polite"></p>
+                <p class="salvage-note">Saves the design. Needed parts are bought at Launch. To keep expedition progress, pause and use Save expedition.</p>
+            </details>
+            <p class="salvage-note">Keep your changes, then Launch to sail the rebuilt boat. Changes last until you leave this scene.</p>
+        </div>
+        <button id="salvage-cut" type="button" hidden disabled>Cut nearby weld · C</button>
+        <button id="salvage-interact" type="button" hidden disabled>Interact · E</button>
+        <div id="salvage-job" hidden aria-label="Recovery job">
+            <p id="salvage-job-status" role="status" aria-live="polite"></p>
+            <button id="salvage-job-accept" type="button" disabled>Recover the generator · J</button>
+            <button id="salvage-job-deliver" type="button" disabled>Deliver generator · H</button>
+        </div>
+        <div id="salvage-harbor" hidden aria-label="Harbor lift">
+            <p id="salvage-harbor-status" role="status" aria-live="polite"></p>
+            <button id="salvage-harbor-install" type="button" disabled>Power harbor lift · K</button>
+            <button id="salvage-harbor-attach" type="button" disabled>Attach lift · F</button>
+            <button id="salvage-harbor-raise" type="button" disabled>Hold to raise · Q</button>
+            <button id="salvage-harbor-lower" type="button" disabled>Hold to lower · Z</button>
+            <button id="salvage-harbor-stop" type="button" disabled>Stop lift</button>
+            <button id="salvage-harbor-release" type="button" disabled>Release lift · F</button>
+        </div>
+        <div id="salvage-towing" hidden aria-label="Salvage winch">
+            <p id="salvage-tow-status" role="status" aria-live="polite"></p>
+            <button id="salvage-hook" type="button" disabled>Hook salvage · F</button>
+            <button id="salvage-reel" type="button" disabled>Reel in · Q</button>
+            <button id="salvage-payout" type="button" disabled>Pay out · Z</button>
+            <button id="salvage-hold" type="button" disabled>Stop winch</button>
+        </div>
         <button id="salvage-reset" type="button">Reset · R</button>
+        <button id="salvage-pause" type="button" hidden disabled>Pause · P</button>
+        <button id="salvage-save" type="button" hidden disabled>Save expedition</button>
+        <p id="salvage-save-status" role="status" aria-live="polite" hidden></p>
+        <p id="salvage-save-help" class="salvage-note" hidden>Saving is manual. After saving, bookmark this address to return to your expedition.</p>
         <button id="salvage-leave" type="button">Leave preview</button>
     </section>
+    <script src="expedition_store.js"></script>
+    <script src="cove_saves.js"></script>
+    <script src="design_library.js"></script>
     <script src="salvage_preview.js"></script>
     <script src="lego_playground.js"></script>
     <script src="network_transport.js"></script>
@@ -240,8 +354,23 @@
         const experience = new URLSearchParams(location.search).get('experience') || 'lego-world';
         const legoShore = experience === 'lego';
         const legoWorld = experience === 'lego-world';
-        const salvage = experience === 'salvage';
-        if (salvage) document.title = 'Cove Preview — Voxys';
+        const salvageAssembly = experience === 'salvage-assembly';
+        const salvageHierarchy = experience === 'salvage-hierarchy';
+        const salvageMetric = experience === 'salvage-material-detail';
+        const salvageCove = experience === 'salvage-cove';
+        const salvageMaterials = experience === 'salvage-materials' || salvageMetric;
+        const salvageRotations = experience === 'salvage-rotations-a' || experience === 'salvage-rotations-b';
+        const salvageKitConfigs = Object.freeze({
+            'salvage-kit-narrow': 'salvage_kit_narrow.cfg',
+            'salvage-kit-broad': 'salvage_kit_broad.cfg',
+            'salvage-kit-cargo': 'salvage_kit_cargo.cfg',
+        });
+        const salvageKit = Object.hasOwn(salvageKitConfigs, experience);
+        const salvageAsset = experience === 'salvage-asset' || salvageAssembly || salvageHierarchy || salvageMaterials || salvageRotations || salvageKit || salvageCove;
+        const salvage = experience === 'salvage' || salvageAsset;
+        if (salvageCove) document.getElementById('salvage-preview').dataset.scene = 'cove';
+        if (salvage) document.title = salvageCove ? 'Cove Preview — Voxys' : salvageMaterials ? 'Material Inspection — Voxys' : salvageKit ? 'Salvage Kit Inspection — Voxys' : salvageRotations ? 'Assembly Rotations — Voxys' : salvageHierarchy ? 'Hierarchy Inspection — Voxys' : salvageAssembly ? 'Pontoon Assembly Check — Voxys'
+            : salvageAsset ? 'Pontoon Inspection — Voxys' : 'Cove Preview — Voxys';
 
         if (legoShore || legoWorld) {
             const sceneName = legoWorld ? 'LEGO Landscape' : 'LEGO Shore';
@@ -1000,15 +1129,18 @@
                 let dataProgress = 0;
                 let wasmProgress = 0;
 
-                voxyModule = await VoxyModule({
-                    canvas: canvas,
-                    preinitializedWebGPUDevice: device,
-                    locateFile: (path, prefix) =>
-                        `${prefix}${path}?v=${encodeURIComponent(window.voxyBuildId)}`,
-                    arguments: (() => {
+                const coveArguments = (() => {
                         const params = new URLSearchParams(location.search);
                         const args = params.get('experience') === 'ridgebreak'
                             ? ['--config', 'ridgebreak.cfg']
+                            : salvageCove ? ['--config', 'salvage_cove.cfg']
+                            : salvageKit ? ['--config', salvageKitConfigs[experience]]
+                            : salvageRotations ? ['--config', experience === 'salvage-rotations-a' ? 'salvage_rotations_a.cfg' : 'salvage_rotations_b.cfg']
+                            : salvageHierarchy ? ['--config', 'salvage_hierarchy_fixture.cfg']
+                            : salvageMetric ? ['--config', 'salvage_metric_fixture.cfg']
+                            : salvageMaterials ? ['--config', 'salvage_material_fixture.cfg']
+                            : salvageAssembly ? ['--config', 'salvage_assembly_fixture.cfg']
+                            : salvageAsset ? ['--config', 'salvage_asset_fixture.cfg']
                             : salvage ? ['--config', 'salvage.cfg']
                             : legoWorld ? ['--config', 'lego_world.cfg']
                             : legoShore ? ['--config', 'lego_shore.cfg'] : [];
@@ -1017,7 +1149,15 @@
                             args.push('--physics-max-bodies', String(value));
                         }
                         return args;
-                    })(),
+                })();
+                const coveWorld=salvageCove?new URLSearchParams(location.search).get("world"):null;
+                voxyModule = await VoxyModule({
+                    noInitialRun: coveWorld!==null,
+                    canvas: canvas,
+                    preinitializedWebGPUDevice: device,
+                    locateFile: (path, prefix) =>
+                        `${prefix}${path}?v=${encodeURIComponent(window.voxyBuildId)}`,
+                    arguments: coveArguments,
 
                     // Track WASM/data download progress
                     setStatus: function (text) {
@@ -1056,6 +1196,8 @@
                         }
                     }
                 });
+
+                if(coveWorld!==null)await VoxyCoveSaves.resume(voxyModule,coveWorld,coveArguments);
 
                 setupPhysicsBackendSwitcher();
 
@@ -1336,6 +1478,11 @@
 
                 // Handle pointer lock for mouse controls
                 canvas.addEventListener('click', () => {
+                    // The workshop uses buttons and orbit controls without pointer lock.
+                    if (document.getElementById('salvage-preview')?.dataset.workshop === 'true') {
+                        canvas.focus({preventScroll: true});
+                        return;
+                    }
                     // Only request pointer lock on non-touch devices
                     // isTouchDevice is defined in the parent scope
                     if (!isTouchDevice) {

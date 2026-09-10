@@ -16,6 +16,7 @@
 #pragma once
 
 #include "render/periodic_gradient_lut.hpp"
+#include "render/opaque_scene.hpp"
 
 #include <cstddef>
 #include <cstdint>
@@ -49,6 +50,7 @@ struct BlitPathConfig {
     WGPUTextureFormat colorFormat;       ///< Output color format (default: BGRA8Unorm)
     float heightScale;                   ///< World-space height range
     float cellScale;                     ///< World-space size per heightmap cell
+    bool enableOpaqueScene = false;       ///< Authored opaque objects before water
     float fogDensity;                    ///< Exponential fog density
 
     /// Default configuration
@@ -76,6 +78,11 @@ struct BlitPathConfig {
 /// - Terrain texture and lightmap sampling
 /// - Lighting (diffuse, ambient, specular)
 /// - Fog
+struct OpaqueSceneDraw {
+    void* context = nullptr;
+    bool (*encode)(void*, WGPUCommandEncoder, WGPUTextureView, WGPUTextureView) = nullptr;
+};
+
 class BlitPath {
 public:
     BlitPath() = default;
@@ -108,6 +115,13 @@ public:
     /// displaced geometry-water path rather than the legacy fullscreen path.
     [[nodiscard]] bool didUseGeometryWaterPath() const noexcept {
         return usedGeometryWaterPathLastRender_;
+    }
+    // Only call when the encoder was released without submitting.
+    void discardEncoding() noexcept {
+        backgroundValid_ = false; backgroundDirty_ = true; skyLutBaked_ = false;
+    }
+    [[nodiscard]] uint64_t opaqueSceneBytes() const noexcept {
+        return opaqueScene_ ? opaqueScene_->requestedBytes() : 0;
     }
     /// Release all GPU resources
     void shutdown();
@@ -208,11 +222,12 @@ public:
     /// Render the fullscreen blit pass
     /// @param encoder Command encoder
     /// @param colorView Output color attachment texture view (swapchain)
-    void render(
+    [[nodiscard]] bool render(
         WGPUCommandEncoder encoder, WGPUTextureView colorView,
         WGPUQuerySet timestampQuerySet = nullptr,
         uint32_t timestampBegin = WGPU_QUERY_SET_INDEX_UNDEFINED,
-        uint32_t timestampEnd = WGPU_QUERY_SET_INDEX_UNDEFINED);
+        uint32_t timestampEnd = WGPU_QUERY_SET_INDEX_UNDEFINED,
+                OpaqueSceneDraw opaque = {});
 
     // ─────────────────────────────────────────────────────────────────────────
     // Accessors
@@ -325,6 +340,8 @@ private:
     std::vector<glm::vec4> underwaterParticles_;
     uint32_t particleRandomState_ = 0x52522024u;
     bool particlesInitialized_ = false;
+
+    std::unique_ptr<OpaqueScene> opaqueScene_;
 
     // Full-resolution camera-static terrain/sky color.
     WGPUTexture backgroundTexture_ = nullptr;

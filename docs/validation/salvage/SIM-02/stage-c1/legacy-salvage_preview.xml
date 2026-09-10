@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="10" failures="0" disabled="0" errors="0" time="4.078" timestamp="2026-09-08T15:12:09.178" name="AllTests">
+  <testsuite name="SalvagePreview" tests="9" failures="0" disabled="0" skipped="0" errors="0" time="0." timestamp="2026-09-08T15:12:09.178">
+    <testcase name="AuthoredFixtureIsBoundedAndStatic" file="tests/test_salvage_preview.cpp" line="90" status="run" result="completed" time="0." timestamp="2026-09-08T15:12:09.178" classname="SalvagePreview" />
+    <testcase name="AssetInspectionControlsOwnNoSceneryOrBodyLifetimes" file="tests/test_salvage_preview.cpp" line="107" status="run" result="completed" time="0." timestamp="2026-09-08T15:12:09.178" classname="SalvagePreview" />
+    <testcase name="PartialSpawnFailureRollsBackOnlyOwnedBodies" file="tests/test_salvage_preview.cpp" line="144" status="run" result="completed" time="0." timestamp="2026-09-08T15:12:09.178" classname="SalvagePreview" />
+    <testcase name="ResetRequiresCompletedMatchingGenerationSnapshot" file="tests/test_salvage_preview.cpp" line="160" status="run" result="completed" time="0." timestamp="2026-09-08T15:12:09.178" classname="SalvagePreview" />
+    <testcase name="AcceptedDestroysAreNotRequeuedAndLeaveWinsReset" file="tests/test_salvage_preview.cpp" line="190" status="run" result="completed" time="0." timestamp="2026-09-08T15:12:09.178" classname="SalvagePreview" />
+    <testcase name="ReusedIndicesDoNotRetainOrDeleteAnotherGeneration" file="tests/test_salvage_preview.cpp" line="218" status="run" result="completed" time="0." timestamp="2026-09-08T15:12:09.178" classname="SalvagePreview" />
+    <testcase name="FailedRespawnRollsBackNewGeneration" file="tests/test_salvage_preview.cpp" line="237" status="run" result="completed" time="0." timestamp="2026-09-08T15:12:09.178" classname="SalvagePreview" />
+    <testcase name="InvalidPortsAndActionsHaveNoSideEffects" file="tests/test_salvage_preview.cpp" line="254" status="run" result="completed" time="0." timestamp="2026-09-08T15:12:09.178" classname="SalvagePreview" />
+    <testcase name="ShutdownReportsBlockedRemovalAndCanRetry" file="tests/test_salvage_preview.cpp" line="266" status="run" result="completed" time="0." timestamp="2026-09-08T15:12:09.178" classname="SalvagePreview" />
+  </testsuite>
+  <testsuite name="SalvagePreviewGpu" tests="1" failures="0" disabled="0" skipped="0" errors="0" time="4.078" timestamp="2026-09-08T15:12:09.178">
+    <testcase name="CompletedMetadataAllowsBoundedResetAndPreservesUnownedBody" file="tests/test_salvage_preview.cpp" line="284" status="run" result="completed" time="4.078" timestamp="2026-09-08T15:12:09.178" classname="SalvagePreviewGpu" />
+  </testsuite>
+</testsuites>

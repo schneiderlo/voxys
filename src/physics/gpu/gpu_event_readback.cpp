@@ -157,7 +157,7 @@ public:
         sources_ = sources.valid() ? sources : GpuEventSources{};
     }
 
-    bool encodeReadback(WGPUCommandEncoder encoder, uint64_t tick) {
+    bool encodeReadback(WGPUCommandEncoder encoder, uint64_t tick, uint64_t submissionSerial) {
         if (!encoder || !sources_.valid()) return false;
         const auto slot = readback_.nextAvailableSlot();
         if (!slot) return false;
@@ -250,7 +250,7 @@ public:
         wgpuBindGroupRelease(group);
         return readback_.encodeCopy(
             encoder, packedEvents_, 0, packetBytes_, tick, 0,
-            config_.eventCapacity, slot);
+            config_.eventCapacity, slot, submissionSerial);
     }
 
     std::optional<GpuEventBatch> poll() {
@@ -261,12 +261,19 @@ public:
         const uint32_t count = std::min(header[0], config_.eventCapacity);
         GpuEventBatch result;
         result.tick = raw->tick;
+        result.submissionSerial=raw->submissionSerial;
         result.overflow = header[1] != 0u;
+        result.valid=header[0]<=config_.eventCapacity
+            && (uint64_t{header[2]} | (uint64_t{header[3]}<<32u))==raw->tick;
         result.events.resize(count);
         if (count != 0) {
             std::memcpy(result.events.data(),
                         raw->bytes.data() + kPacketHeaderBytes,
                         size_t{count} * sizeof(GpuPhysicsEvent));
+            for(const auto& event:result.events) {
+                if(event.header[0]!=static_cast<uint32_t>(raw->tick)
+                    || event.header[1]<1 || event.header[1]>6) result.valid=false;
+            }
         }
         return result;
     }
@@ -310,11 +317,18 @@ void GpuEventReadbackRing::setSources(const GpuEventSources& sources) {
     if (impl_) impl_->setSources(sources);
 }
 bool GpuEventReadbackRing::encodeReadback(
-    WGPUCommandEncoder encoder, uint64_t tick) {
-    return impl_ && impl_->encodeReadback(encoder, tick);
+    WGPUCommandEncoder encoder, uint64_t tick, uint64_t submissionSerial) {
+    return impl_ && impl_->encodeReadback(encoder, tick, submissionSerial);
 }
 std::optional<GpuEventBatch> GpuEventReadbackRing::poll() {
     return impl_ ? impl_->poll() : std::nullopt;
+}
+
+uint32_t GpuEventReadbackRing::availableSlots() const noexcept {
+    return impl_ ? impl_->readback_.availableSlots() : 0;
+}
+uint64_t GpuEventReadbackRing::failedReadbacks() const noexcept {
+    return impl_ ? impl_->readback_.failedReadbacks() : 0;
 }
 WGPUBuffer GpuEventReadbackRing::packedEventBuffer() const noexcept {
     return impl_ ? impl_->packedEvents_ : nullptr;

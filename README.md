@@ -285,6 +285,279 @@ button to reset the scene. Browser **Leave** waits for owned scene objects to
 retire before returning to the default LEGO World route. Construction,
 recovery jobs and progression are still implementation tasks.
 
+The **authored cove candidate** now places the complete skiff, modular dock and
+generator together: `--config salvage_cove.cfg`, or browser
+`?experience=salvage-cove`. Walk with **WASD**, jump with **Space**, and use
+**E** near the boat to board, use the helm or return to the dock while alongside.
+At the helm, **W/S** controls throttle and **A/D** steers the physical skiff.
+**E** leaves the helm; **R** returns the player and boat to the starting berth.
+Browser buttons offer the same interactions; native window-title prompts show
+the nearby action. The eleven-part hull now floats, moves and turns using its
+compiled mass, displacement and propeller frame. The player follows its deck.
+The cove again uses **stepped LEGO terrain and round studs**. Walking, boat
+and cargo collision now match that surface, including open gaps between studs
+and pontoons. The actual skiff and generator pass grounding checks; the player
+walks up a brick terrace and lands on studs after jumping.
+[Brick terrain restoration and playable checks](docs/validation/salvage/LEGO-01/terrain-r01/README.md).
+The boat also collides with the authored dock and generator. A separate 420 kg
+salvage generator rests on the seabed nearby: **F** hooks/releases its tow eye,
+hold **Q** to reel in and **Z** to pay out. Browser buttons provide the same
+winch controls. Sail to tow the load; **R** recovers both boat and cargo.
+The browser panel also shows the cable's actual length as it reels or pays out.
+**P / Pause** now freezes the expedition after queued movement finishes;
+**P / Resume** continues with neutral controls. Leave also works from pause.
+[Pause behavior and checks](docs/validation/salvage/SAVE-04/pause-r01/README.md).
+[Playable towing and checks](docs/validation/salvage/SIM-08/towing-r01/README.md).
+Water-relative drag, latching, full mission progression, the robot, shadows and final visual quality remain unfinished. This is initial sailing, not complete
+machine simulation. [Sailing implementation and checks](docs/validation/salvage/SIM-03/sailing-r01/README.md),
+[dock collision](docs/validation/salvage/SIM-03/dock-collision-r01/README.md).
+
+At the starting dock, **B** or **Workshop** opens the starter design editor.
+Select a part, move or rotate it, snap to a free socket, remove it, keep a valid
+change, or undo. Green means the design connects; red means it does not.
+Use the view buttons or A/D and W/S to orbit and zoom. **B** returns to the dock.
+**Launch / Enter** now rebuilds the physical boat from kept changes and returns
+you to the dock. The edited boat uses its new mass, collision, buoyancy, steering
+and tow point. **Undo launch / I** and **Redo launch / O** restore accepted builds;
+**U** undoes unlaunched design changes. Reset preserves the edited craft.
+For a first edit, select **Cargo cradle**, Remove, Keep, then Launch: the boat
+changes from eleven parts / 1,035 kg to ten parts / 945 kg. The winch can then be
+moved onto the freed deck socket. Sail into range before hooking the generator.
+Launch refuses blocked standing space or missing propulsion without changing
+the sailing boat. Use the browser expedition save control to keep accepted edits across reloads.
+Unsaved changes disappear on Leave; controller support remains unfinished.
+The **parts drawer** now adds paid parts: choose a type, **Add / V**, Keep,
+then Launch. **C** cycles types with the canvas focused. Fresh cove worlds start
+with **48 material**; Reset preserves the remaining stock. Pontoons cost 24,
+so two purchases expand the starter from 1,035 to 1,275 kg. Prices appear before
+Launch. Undo/redo preserves exact paid identities and costs; dismantling returns
+the lower catalog salvage value. Up to seven active additions fit this initial
+cove profile. [Paid construction and sailing checks](docs/validation/salvage/PLAY-02/parts-r01/README.md).
+The workshop also has **part settings**. Select a propeller, helm or winch;
+**X** toggles it, **L** cycles thrust/steering limits, and **N** reverses
+propeller drive. Keep, then Launch applies the change at no material cost.
+Undo/redo and Reset preserve settings. Engine drive networks and advanced rope
+settings remain unfinished. [Working settings and gameplay checks](docs/validation/salvage/PLAY-02/settings-r01/README.md).
+In the browser, expand **Saved designs** to name, save, copy, load or update a
+blueprint. Backups and export/import are included. Designs survive browser
+reloads; loading one shows its part cost before Launch. The library saves the
+design. Use the separate expedition save control below to keep boat and mission
+progress. Native storage and named-design controls remain unfinished.
+[Persistent designs and the reload-to-sailing check](docs/validation/salvage/PLAY-02/designs-r01/README.md).
+[Live launch, moved-winch towing and verification](docs/validation/salvage/PLAY-02/launch-r01/README.md).
+[Connected edit/session implementation](docs/validation/salvage/PLAY-02/refit-r01/README.md).
+[Starter ownership and sailing checks](docs/validation/salvage/PLAY-02/ownership-r01/README.md).
+[Workshop implementation, checks and remaining work](docs/validation/salvage/PLAY-02/workshop-r01/README.md).
+
+The logical expedition save format is implemented and tested on native and WASM.
+[Save format and storage contract](docs/salvage-session-save-format.md).
+Linux file storage now preserves two complete save copies and passes process-crash
+recovery checks. [Native storage contract and remaining integration](docs/salvage-native-save-store.md).
+Browser world storage also passes reload, competing-tab and browser-crash checks.
+[Browser storage contract](docs/salvage-browser-save-store.md).
+The browser cove now supports **manual expedition saves**: Pause, then select
+**Save expedition**. Bookmark the resulting address. Reload that address in the
+same browser profile and on the same origin to return to the last checkpoint;
+the loaded game starts paused. Resume continues play. Leaving does not autosave.
+Bought parts, remaining materials, accepted jobs, player position, boat/cargo
+motion, cable length and water time survive reload. Missing selected saves fail
+visibly instead of silently starting a new world. Three real reloads pass,
+including further purchases, reeling attached cargo and sailing afterward.
+[Save/load implementation and checks](docs/validation/salvage/SAVE-04/resume-r01/README.md).
+The Linux cove also supports manual expedition saves: close the workshop,
+press **P** to pause, then **F10** to save. Wait for **Expedition saved** in the
+window title. The startup log prints the save folder and the exact command to
+reopen that world. Supply `--expedition-world <world-id>` with
+`--config salvage_cove.cfg`; an optional `--expedition-root <absolute-folder>`
+selects a separate save location. The loaded game starts paused. Two actual
+process restarts preserve bought parts and materials, including a further
+purchase after loading. Another process cannot open the same active save.
+[Native save/restart implementation and checks](docs/validation/salvage/SAVE-04/native-host-r01/README.md).
+The generator job now has **durable delivery** in the browser: accept the job,
+build a rig with lifting clearance, hook and raise the generator, then steer
+the loaded craft into the harbor. **Deliver / H** becomes available when the
+cargo is inside the zone and moving slowly enough. The game secures the load
+and pauses while saving. **Delivered and saved: +60 material** appears only
+after storage confirms the save; Resume then continues play. If saving fails,
+retry with **Save expedition**. A real reload preserves the paid build, secured
+generator and reward; pressing Deliver again pays nothing.
+[Delivery implementation, a working rig and actual reload checks](docs/validation/salvage/PLAY-04/delivery-r01/README.md).
+Linux delivery also saves automatically and survives an actual process restart.
+A real unwritable-folder check stays paused until permission is restored and
+**F10** retries successfully; the reward is paid only once.
+[Desktop delivery, retry and restart checks](docs/validation/salvage/PLAY-04/native-delivery-r01/README.md).
+The harbor lift is now integrated. After the generator is delivered and saved,
+walk to the dock and press **K** to power it. Installation places the banked
+generator on the pier and saves the upgrade. **F** requests four-line attachment;
+hold **Q** to raise or **Z** to lower; release the key to stop. **F** releases the
+rig or cancels a waiting attachment. Reposition an off-center boat with the
+**R** Rescue action, then Resume after its automatic save. Save while suspended with **P**, then **F10** on
+Linux or **Save expedition** in the browser.
+Desktop and browser lift/save/restart/lower/release/sailing now pass. Compliant
+slings absorb the reproduced wave impact while retaining their force and break
+limits. A fresh browser journey also verifies construction, delivery and the
+upgrade together. The second job, final machinery art, world selection/
+export/import, periodic autosave, Windows storage and wider recovery cases
+remain unfinished.
+[Live harbor implementation, verified journeys and retained failures](docs/validation/salvage/PLAY-04/harbor-live-r01/README.md).
+**Rescue / R** now returns your existing boat and every fitted part to the dock.
+It releases towing and harbor cables first. Undelivered cargo returns to its
+recovery site; delivered cargo and the powered harbor stay intact. Rescue saves
+automatically and stays paused until the save succeeds. Retry a failed save with
+**F10** on Linux or **Save expedition** in the browser, then Resume.
+Paid additions and remaining materials survive repeated rescues and reloads.
+At the dock workshop, **Rebuild starter / H** restores the original starter boat,
+including removed loaned parts. Purchased parts go into owned storage with their
+condition and settings intact. **Add part** uses matching stored parts before
+charging for new ones. Rebuild and stock reuse save automatically before Resume.
+Keep or discard unfinished edits first; the service clears previous launch undo.
+Rebuild also protects up to four custom boat designs. **Load recovered design / K**
+restores the selected layout in the workshop; Launch uses owned parts and normal
+costs. **Next recovery / J** selects a backup; **Remove recovery design / F** removes
+only that backup and saves before Resume. A full list never silently overwrites
+a design. Existing saved blueprints stay in the design library.
+[Protected designs and verified recovery journeys](docs/validation/salvage/PLAY-05/recovery-design-r01/README.md).
+Cove waves now follow the submitted physics ticks and preserve their phase
+through pause, saving and reload. Native delivery passes; the final browser
+package passes construction, towing, delivery, reload and sailing in 29 stages.
+The current cove uses one physics tick per submission; broader water simulation
+and displayed-frame performance remain unfinished.
+[Wave-clock correction and exact verification scope](docs/validation/salvage/SIM-05/cove-clock-r01/README.md).
+**Cut weld / C** now cuts the named nearby weld outside the workshop. Release
+all cables and stand on the dock or a machine section first. Each cut preserves
+owned parts and protects the intact design before changing the boat. A full
+recovery-design list refuses a new design; it never overwrites one. Broken builds
+keep that protection until rebuilt.
+
+Separate sections have their own collision, flotation, motion and saved root
+identity. The player stays with the supporting deck, including when the helm
+breaks away. Cutting saves automatically and waits for Resume. **Rescue / R**
+returns every section without repairing its welds. The dock workshop can rebuild
+the starter, store paid parts, and restore the protected design from that stock.
+Native and browser journeys now pass actual cuts at sea, section reloads,
+Rescue and repeated rebuilding without paid-part duplication.
+[Live cutter implementation and exact verification scope](docs/validation/salvage/MECH-05/live-cut-r01/README.md).
+
+The wider paid boat's boarding regression is also fixed: Spawn, Launch and Rescue
+use the complete wave field for placement. Desktop and browser Rescue, boarding
+and sailing checks pass. General impact-driven fracture, arbitrary joint
+retargeting, the full loss/exploit matrix and broader water/performance work
+remain unfinished.
+[Atomic recovery checks](docs/validation/salvage/MECH-05/root-recovery-r01/README.md).
+[Water-height correction and boarding evidence](docs/validation/salvage/MECH-05/boarding-r01/README.md).
+[Section save implementation](docs/validation/salvage/MECH-05/root-resume-r01/README.md).
+[Cove archive and startup contract](docs/salvage-cove-save-format.md).
+
+The separate **pontoon inspection** scene loads the authored candidate through
+the real asset pipeline:
+
+```bash
+bazel run -c opt //:voxy_native -- --config salvage_asset_fixture.cfg
+```
+
+Browser route: `?experience=salvage-asset`. Use **0–3** for automatic/near/middle/far
+detail, **WASD** to fly, **E/Q** to move up/down, and **R** to reset. Its registry
+is `data/salvage/fixture-pontoon-v2.json`; that file selects and verifies the
+cooked content without changing C++ or shaders. All five inspection registries
+currently select staged `v2-rc01`; its [exact runtime admission check](docs/validation/salvage/ASSET-04/release-runtime.md)
+passes, with independent review and publication still pending. The models are static inspection
+objects. This route does not represent accepted cove art or working boat physics.
+It uses an unobstructed layout with no cove scenery bodies and brighter ambient
+lighting so side surfaces and socket wells can be inspected. Reset retains the
+model uploads; Leave waits for their actual GPU completion.
+
+Press **G** to cycle clean view, rulers and socket X-ray guides. Browser buttons offer
+the same modes. White ruler marks are 1 m along the length and 0.32 m vertically;
+amber outlines show the selected model's render bounds. The separate axis stand
+uses red for right, green for up and blue for forward. Socket mode instead shows
+each socket's local +X key in red, outward +Y in green, +Z in blue, and its
+required clearance in amber. Guides use canonical metadata and stay outside
+physics and inventory. They show through surfaces; clean view shows actual
+geometry. Reset restores clean view. Native capture configurations
+can set `[game] asset_fixture_guides = "dimensions"` or `"sockets"`.
+See the [guide validation record](docs/validation/salvage/ASSET-04/guides.md).
+
+Inspection configurations can set `[game] asset_fixture_lod` to `"auto"`,
+`"near"`, `"middle"` or `"far"` for the initial detail level. The selected level
+must exist in every authored bundle. Reset returns to Auto and clean view.
+
+The separate **assembly check** uses `salvage_assembly_fixture.cfg`, or browser
+route `?experience=salvage-assembly`. It shows two prototype crossbeams on a
+pontoon pair and a separate stacked pair. The game validates all six placements
+and five socket connections before rendering. Beam boxes use the existing v1
+catalog dimensions; they do not yet have modeled socket wells. Socket mode
+shows the connected endpoints. [Assembly evidence and remaining work](docs/validation/salvage/ASSET-04/assembly.md).
+
+The [matched motion record](docs/validation/salvage/ASSET-04/native-motion.md)
+contains desktop/browser videos through all detail levels and the commands
+for replaying that inspection. Capture overhead is not game performance.
+
+The separate **hierarchy inspection** scene adds an asymmetric Blender stand
+with nested rotations/scales and shared geometry beside the pontoons. Launch
+`--config salvage_hierarchy_fixture.cfg` or `?experience=salvage-hierarchy`.
+Only Auto and Near are available because the stand has one detail level.
+Rulers now target the authored stand and display its full composed render bounds;
+see the [bounds check](docs/validation/salvage/ASSET-04/hierarchy-bounds.md).
+The [hierarchy record](docs/validation/salvage/ASSET-04/hierarchy.md) includes
+pre-export geometry checks, matched native/browser views, reproduction and
+known limits. This remains technical inspection; game art is not approved.
+
+The **rotation galleries** show welded pontoon pairs in all 24 orientations.
+Use `salvage_rotations_a.cfg` / `salvage_rotations_b.cfg` on desktop, or
+`?experience=salvage-rotations-a` / `?experience=salvage-rotations-b` in the browser.
+Each scene contains twelve pairs and supports the same inspection controls.
+[Rotation evidence and remaining checks](docs/validation/salvage/ASSET-04/rotations.md).
+
+The [material validation record](docs/validation/salvage/ASSET-04/materials.md)
+includes native/browser pixel tests, reproducible close-view captures and the
+remaining lighting and inspection-scene defects. Passing these renderer tests
+does not complete the visual gate in the implementation plan.
+
+The first **authored kit** has separate narrow/broad starter and cargo
+inspection scenes. Launch `--config salvage_kit_broad.cfg`,
+`salvage_kit_narrow.cfg` or `salvage_kit_cargo.cfg`; browser routes are
+`?experience=salvage-kit-broad`, `salvage-kit-narrow` and `salvage-kit-cargo`.
+Both starter boats contain eleven authored parts with seventeen validated
+connections. The scenes show the winch, helm, outboard, cradle, generator and
+crate using the existing inspection controls. They are static assemblies;
+the separate cove route now supports walking, sailing and initial towing.
+See [kit evidence and remaining work](docs/validation/salvage/ASSET-05/README.md).
+
+The isolated **material inspection** compares corrected pontoon and winch
+surfaces at every detail level. Launch `--config salvage_material_fixture.cfg`
+or browser `?experience=salvage-materials`. It uses the same flight, detail and
+guide controls. [Material evidence](docs/validation/salvage/ASSET-06/browser-r01/README.md)
+records the native/browser checks. This is an unfinished material calibration;
+it does not replace the kit or the cove.
+
+The **surface detail inspection** adds physical texture scale and a rubber helm
+grip: `--config salvage_metric_fixture.cfg`, or browser
+`?experience=salvage-material-detail`. It contains three isolated parts.
+[The latest surface checks](docs/validation/salvage/ASSET-06/shading-r02/README.md)
+include smoother wheel/drum shading and matching native/browser views. The
+[texture-scale checkpoint](docs/validation/salvage/ASSET-06/metric-r01/README.md)
+remains available. Texture seams, lighting and final scene quality are unfinished.
+The [lighting investigation](docs/validation/salvage/ASSET-06/environment-r01/README.md)
+now feeds the [actual surface-detail scene](docs/validation/salvage/ASSET-06/environment-consumer-r01/README.md)
+through an explicitly enabled filtered lighting path. Matched native/browser
+views and lifetime checks pass. Other routes retain legacy lighting; the authored
+cove now uses this lighting and opaque/water composition. Full dynamic water,
+shadows and final material quality remain unfinished.
+
 See the [baseline handoff](docs/validation/salvage/G00/report.md) for build,
 launch and validation recipes and known limitations. Existing WRECKWATER,
 terrain, LEGO and RIDGEBREAK routes retain their separate roles.
+
+The authored terrain browser regression runs the shipping physics shader on
+hardware WebGPU without taking images:
+
+```bash
+node scripts/validate_authored_terrain_browser.mjs /tmp/voxy-terrain-report.json
+```
+
+It checks cargo support on LEGO studs, penetration correction, open space,
+129 bodies across workgroups, and smooth terrain. Set `VOXY_TEST_CHROME` to
+the Chrome executable and `VOXY_SMOKE_GPU=gaming-x11` for a normal X11 window.
+Node 22+ is required. An optional second path tests another shader revision;
+the report records its hash. A completed GPU readback alone is not a pass:
+the solver must publish contacts and apply the expected support force.

@@ -29,6 +29,10 @@ source src/game/wreckwater_replay.cpp
 source src/game/wreckwater_replay.hpp
 source src/game/wreckwater_vessel_damage.cpp
 source src/game/wreckwater_vessel_damage.hpp
+source src/geometry/box_union.cpp
+source src/geometry/box_union.hpp
+source src/geometry/grid_types.hpp
+source src/geometry/orthogonal_geometry.hpp
 source src/gpu/context.cpp
 source src/gpu/context.hpp
 source src/gpu/resources.cpp
@@ -42,6 +46,13 @@ source src/network/protocol.hpp
 source src/network/session_transport.hpp
 source src/network/wreckwater_protocol.cpp
 source src/network/wreckwater_protocol.hpp
+source src/physics/authored_body_frame.cpp
+source src/physics/authored_body_frame.hpp
+source src/physics/authored_shape.cpp
+source src/physics/authored_shape.hpp
+source src/physics/authored_shape_pool.cpp
+source src/physics/authored_shape_pool.hpp
+source src/physics/authored_shape_resources.hpp
 source src/physics/character/cpu_capsule_mover.cpp
 source src/physics/character/cpu_capsule_mover.hpp
 source src/physics/deterministic/lockstep_types.hpp
@@ -53,7 +64,10 @@ source src/physics/gpu/deterministic_primitives.cpp
 source src/physics/gpu/deterministic_primitives.hpp
 source src/physics/gpu/gpu_attachments.cpp
 source src/physics/gpu/gpu_attachments.hpp
+source src/physics/gpu/gpu_authored_shapes.cpp
+source src/physics/gpu/gpu_authored_shapes.hpp
 source src/physics/gpu/gpu_body_metadata.hpp
+source src/physics/gpu/gpu_body_shape.hpp
 source src/physics/gpu/gpu_broad_phase.cpp
 source src/physics/gpu/gpu_broad_phase.hpp
 source src/physics/gpu/gpu_buffer_arena.cpp
@@ -78,6 +92,9 @@ source src/physics/physics_types.cpp
 source src/physics/physics_types.hpp
 source src/physics/physics_world.cpp
 source src/physics/physics_world.hpp
+source src/physics/rigid_mass_frame.cpp
+source src/physics/rigid_mass_frame.hpp
+source src/physics/shape_handle.hpp
 source src/physics/terrain_topology.hpp
 source src/physics/wreckwater_authority_backend_factory.cpp
 source src/server/wreckwater_authority_runtime.cpp

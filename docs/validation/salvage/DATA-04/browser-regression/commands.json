@@ -1,0 +1,32 @@
+[
+  {
+    "route": "lego",
+    "command": [
+      "node",
+      "scripts/smoke_integrated_wasm.mjs",
+      "/tmp/voxys-data04-web",
+      "lego"
+    ],
+    "exit_code": 0
+  },
+  {
+    "route": "terrain",
+    "command": [
+      "node",
+      "scripts/smoke_integrated_wasm.mjs",
+      "/tmp/voxys-data04-web",
+      "terrain"
+    ],
+    "exit_code": 0
+  },
+  {
+    "route": "ridgebreak",
+    "command": [
+      "node",
+      "scripts/smoke_integrated_wasm.mjs",
+      "/tmp/voxys-data04-web",
+      "ridgebreak"
+    ],
+    "exit_code": 0
+  }
+]

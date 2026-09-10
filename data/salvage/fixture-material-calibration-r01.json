@@ -1,0 +1,95 @@
+{
+  "schema": 1,
+  "bundles": [
+    {
+      "directory": "material-calibration/r01/pontoon/cooked",
+      "part": {
+        "counter": "3",
+        "namespace": "766f7879732d73616c766167652d7631",
+        "version": 3
+      },
+      "manifest_sha256": "c05f995fd0fc5d394f1bc4dde5496116e6241fa54c848bc026d9e576e35c8bb5",
+      "lod_limits": [
+        {
+          "id": "1",
+          "vertices": 12000,
+          "triangles": 6000,
+          "texture_dimension": 512
+        },
+        {
+          "id": "2",
+          "vertices": 2400,
+          "triangles": 1200,
+          "texture_dimension": 256
+        },
+        {
+          "id": "3",
+          "vertices": 800,
+          "triangles": 400,
+          "texture_dimension": 64
+        }
+      ]
+    },
+    {
+      "directory": "material-calibration/r01/kit/winch/cooked",
+      "part": {
+        "counter": "7",
+        "namespace": "766f7879732d73616c766167652d7631",
+        "version": 2
+      },
+      "manifest_sha256": "7fed2c50df53c5587cacbcc5c7e62e3281f6ecccdb815fb8852871a49811c542",
+      "lod_limits": [
+        {
+          "id": "1",
+          "vertices": 24000,
+          "triangles": 12000,
+          "texture_dimension": 128
+        },
+        {
+          "id": "2",
+          "vertices": 12000,
+          "triangles": 6000,
+          "texture_dimension": 64
+        },
+        {
+          "id": "3",
+          "vertices": 6000,
+          "triangles": 3000,
+          "texture_dimension": 64
+        }
+      ]
+    }
+  ],
+  "placements": [
+    {
+      "bundle": 0,
+      "translation_ticks": [
+        0,
+        0,
+        0
+      ],
+      "rotation": 0
+    },
+    {
+      "bundle": 1,
+      "translation_ticks": [
+        150,
+        0,
+        0
+      ],
+      "rotation": 0
+    }
+  ],
+  "camera": {
+    "eye": [
+      6,
+      3,
+      -6
+    ],
+    "target": [
+      1.5,
+      0,
+      0
+    ]
+  }
+}

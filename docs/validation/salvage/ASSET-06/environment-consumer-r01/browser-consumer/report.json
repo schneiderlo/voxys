@@ -1,0 +1,183 @@
+{
+  "passed": true,
+  "kind": "Shared C++ mesh-environment correctness tests on hardware browser WebGPU",
+  "runner_sha256": "a1ee1c6d9bb42e27ee766cc7bd84a022ca7c6169a184a0145da9ac978a1048f3",
+  "package": "/tmp/voxys-mesh-environment-consumer-r01",
+  "artifacts": {
+    "index.html": {
+      "sha256": "efb73b21862d19fc658615326281a6e19695bee6f5c487e2f37c160a0e39be00",
+      "bytes": 3986
+    },
+    "mesh_diagnostics.js": {
+      "sha256": "39bccd2584400d1b401dbad232c2f7cd5cc52867e2d50cf473a360d04c2605b5",
+      "bytes": 178057
+    },
+    "mesh_diagnostics.wasm": {
+      "sha256": "5f4ca210686b4e0ef0095f97badf69c82eae0e99a13fd6f3905496745ec08986",
+      "bytes": 1491139
+    }
+  },
+  "chrome_argv": [
+    "google-chrome",
+    "--no-sandbox",
+    "--no-first-run",
+    "--no-default-browser-check",
+    "--disable-background-networking",
+    "--enable-unsafe-webgpu",
+    "--disable-gpu-watchdog",
+    "--disable-background-timer-throttling",
+    "--disable-renderer-backgrounding",
+    "--ozone-platform=wayland",
+    "--enable-features=Vulkan",
+    "--remote-debugging-port=0",
+    "--user-data-dir=/tmp/voxys-mesh-browser-U6Wh5b",
+    "about:blank"
+  ],
+  "browser": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/152.0.7977.82",
+    "revision": "@d04cdb24d67b081f6cf80200ffc5233f44b61109",
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36",
+    "jsVersion": "15.2.124.21"
+  },
+  "result": {
+    "done": true,
+    "passed": true,
+    "output": [
+      "Running main() from /home/modkin/workspace/schneiderlo/voxys/third_party/googletest/googletest/src/gtest_main.cc",
+      "Note: Google Test filter = MeshEnvironmentGPUTest.*",
+      "[==========] Running 2 tests from 1 test suite.",
+      "[----------] Global test environment set-up.",
+      "[----------] 2 tests from MeshEnvironmentGPUTest",
+      "[ RUN      ] MeshEnvironmentGPUTest.WhiteFurnaceUsesIntegratedReflectionAndDiffuseEnergy",
+      "[       OK ] MeshEnvironmentGPUTest.WhiteFurnaceUsesIntegratedReflectionAndDiffuseEnergy (85 ms)",
+      "[ RUN      ] MeshEnvironmentGPUTest.DiscardRetriesAndSceneReplacementInvalidatesOnlyItsBake",
+      "[       OK ] MeshEnvironmentGPUTest.DiscardRetriesAndSceneReplacementInvalidatesOnlyItsBake (21 ms)",
+      "[----------] 2 tests from MeshEnvironmentGPUTest (107 ms total)",
+      "",
+      "[----------] Global test environment tear-down",
+      "[==========] 2 tests from 1 test suite ran. (108 ms total)",
+      "[  PASSED  ] 2 tests."
+    ],
+    "gpuErrors": [],
+    "captures": [
+      {
+        "name": "0-WhiteFurnaceUsesIntegratedReflectionAndDiffuseEnergy.rgba",
+        "metadata": {
+          "width": 64,
+          "height": 64,
+          "format": "rgba8unorm",
+          "camera": [
+            0,
+            0,
+            -3
+          ],
+          "light": [
+            0.3,
+            0.8,
+            0.4
+          ],
+          "perspective": false
+        },
+        "sha256": "11610cf94ca94f7e4f04c6be9ccff8a885f8715512c6e97b36c112e90cf8b93f",
+        "png_sha256": "5962a056fef4d71d843b0cb410e482d8ad1e3e52b3c4f4d6a2380537fbb8c10c"
+      },
+      {
+        "name": "1-WhiteFurnaceUsesIntegratedReflectionAndDiffuseEnergy.rgba",
+        "metadata": {
+          "width": 64,
+          "height": 64,
+          "format": "rgba8unorm",
+          "camera": [
+            0,
+            0,
+            -3
+          ],
+          "light": [
+            0.3,
+            0.8,
+            0.4
+          ],
+          "perspective": false
+        },
+        "sha256": "7ae4e1d84e78dea9c38441ac442eb44ffeafa75aafb36ab5f5021b9732b06c2d",
+        "png_sha256": "6af53a9484c275b287d280c628159b4aa54f2e23a8bad3f102d70e1055b5c321"
+      },
+      {
+        "name": "2-DiscardRetriesAndSceneReplacementInvalidatesOnlyItsBake.rgba",
+        "metadata": {
+          "width": 64,
+          "height": 64,
+          "format": "rgba8unorm",
+          "camera": [
+            0,
+            0,
+            -3
+          ],
+          "light": [
+            0.3,
+            0.8,
+            0.4
+          ],
+          "perspective": false
+        },
+        "sha256": "11610cf94ca94f7e4f04c6be9ccff8a885f8715512c6e97b36c112e90cf8b93f",
+        "png_sha256": "5962a056fef4d71d843b0cb410e482d8ad1e3e52b3c4f4d6a2380537fbb8c10c"
+      },
+      {
+        "name": "3-DiscardRetriesAndSceneReplacementInvalidatesOnlyItsBake.rgba",
+        "metadata": {
+          "width": 64,
+          "height": 64,
+          "format": "rgba8unorm",
+          "camera": [
+            0,
+            0,
+            -3
+          ],
+          "light": [
+            0.3,
+            0.8,
+            0.4
+          ],
+          "perspective": false
+        },
+        "sha256": "11610cf94ca94f7e4f04c6be9ccff8a885f8715512c6e97b36c112e90cf8b93f",
+        "png_sha256": "5962a056fef4d71d843b0cb410e482d8ad1e3e52b3c4f4d6a2380537fbb8c10c"
+      },
+      {
+        "name": "4-DiscardRetriesAndSceneReplacementInvalidatesOnlyItsBake.rgba",
+        "metadata": {
+          "width": 64,
+          "height": 64,
+          "format": "rgba8unorm",
+          "camera": [
+            0,
+            0,
+            -3
+          ],
+          "light": [
+            0.3,
+            0.8,
+            0.4
+          ],
+          "perspective": false
+        },
+        "sha256": "ef84abd35dafabbc2507d1d638ed09242a48bf732d644d6f1d867db028f4052b",
+        "png_sha256": "d88c6dc277a8e328183de63b0ce977ed22e2e1fa64422cbde06f724e97642556"
+      }
+    ],
+    "adapter": {
+      "vendor": "amd",
+      "architecture": "rdna-3",
+      "device": "",
+      "description": "",
+      "isFallbackAdapter": false
+    },
+    "exitCode": 0
+  },
+  "expected_rejection_logs": [],
+  "unexpected_console_errors": [],
+  "exceptions": [],
+  "console": []
+}

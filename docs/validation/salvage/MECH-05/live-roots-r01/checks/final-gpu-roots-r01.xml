@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="11" failures="0" disabled="0" errors="0" time="67.985" timestamp="2026-09-10T09:10:03.426" name="AllTests">
+  <testsuite name="GpuPhysicsTest" tests="8" failures="0" disabled="0" skipped="0" errors="0" time="59.41" timestamp="2026-09-10T09:10:03.426">
+    <testcase name="PreparedAttachmentMutationIsInvisibleAndDiscardConsumesNothing" file="tests/test_gpu_physics.cpp" line="2523" status="run" result="completed" time="7.47" timestamp="2026-09-10T09:10:03.426" classname="GpuPhysicsTest" />
+    <testcase name="InvalidPreparedTransferLeavesOriginalAttachmentAndGenerationLive" file="tests/test_gpu_physics.cpp" line="2600" status="run" result="completed" time="7.508" timestamp="2026-09-10T09:10:10.896" classname="GpuPhysicsTest" />
+    <testcase name="FullCapacityTransferCommitsAndCheckedEncodingAdvancesExactlyOnce" file="tests/test_gpu_physics.cpp" line="2654" status="run" result="completed" time="7.315" timestamp="2026-09-10T09:10:18.405" classname="GpuPhysicsTest" />
+    <testcase name="PreparedBodyCommandCommitsAtItsExactExplicitTick" file="tests/test_gpu_physics.cpp" line="2763" status="run" result="completed" time="7.161" timestamp="2026-09-10T09:10:25.720" classname="GpuPhysicsTest" />
+    <testcase name="PreparedParentRetirementRefusesWholeSetAndDiscardPreservesLifetimes" file="tests/test_gpu_physics.cpp" line="2812" status="run" result="completed" time="7.53" timestamp="2026-09-10T09:10:32.881" classname="GpuPhysicsTest" />
+    <testcase name="PreparedParentRetirementCommitsWithRopeTransferAndReusesOnlyNewGenerations" file="tests/test_gpu_physics.cpp" line="2842" status="run" result="completed" time="7.243" timestamp="2026-09-10T09:10:40.412" classname="GpuPhysicsTest" />
+    <testcase name="PreparedParentRetirementAtCommandCapacityKeepsEveryParent" file="tests/test_gpu_physics.cpp" line="2878" status="run" result="completed" time="7.576" timestamp="2026-09-10T09:10:47.656" classname="GpuPhysicsTest" />
+    <testcase name="AccumulatorAndExplicitFixedTickSchedulingCannotBeMixed" file="tests/test_gpu_physics.cpp" line="2896" status="run" result="completed" time="7.604" timestamp="2026-09-10T09:10:55.232" classname="GpuPhysicsTest" />
+  </testsuite>
+  <testsuite name="CoveMovement" tests="3" failures="0" disabled="0" skipped="0" errors="0" time="8.574" timestamp="2026-09-10T09:11:02.836">
+    <testcase name="LiveRootOwnerBoundsEverySectionAndRefusesMixedObservations" file="tests/test_cove_player.cpp" line="660" status="run" result="completed" time="0.055" timestamp="2026-09-10T09:11:02.836" classname="CoveMovement" />
+    <testcase name="CutMotionStagesAllIndependentParentsOrLeavesEveryChildUnchanged" file="tests/test_cove_player.cpp" line="699" status="run" result="completed" time="0.033" timestamp="2026-09-10T09:11:02.892" classname="CoveMovement" />
+    <testcase name="ActualCutReplacesOneMovingSkiffWithTwoCompleteFloatingGpuBodies" file="tests/test_cove_player.cpp" line="1036" status="run" result="completed" time="8.485" timestamp="2026-09-10T09:11:02.926" classname="CoveMovement" />
+  </testsuite>
+</testsuites>

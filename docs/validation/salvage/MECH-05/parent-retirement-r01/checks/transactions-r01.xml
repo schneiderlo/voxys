@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="9" failures="1" disabled="0" errors="0" time="60.034" timestamp="2026-09-10T08:22:07.521" name="AllTests">
+  <testsuite name="GpuPhysicsTest" tests="8" failures="0" disabled="0" skipped="0" errors="0" time="60.034" timestamp="2026-09-10T08:22:07.521">
+    <testcase name="PreparedAttachmentMutationIsInvisibleAndDiscardConsumesNothing" file="tests/test_gpu_physics.cpp" line="2523" status="run" result="completed" time="7.852" timestamp="2026-09-10T08:22:07.521" classname="GpuPhysicsTest" />
+    <testcase name="InvalidPreparedTransferLeavesOriginalAttachmentAndGenerationLive" file="tests/test_gpu_physics.cpp" line="2600" status="run" result="completed" time="7.459" timestamp="2026-09-10T08:22:15.373" classname="GpuPhysicsTest" />
+    <testcase name="FullCapacityTransferCommitsAndCheckedEncodingAdvancesExactlyOnce" file="tests/test_gpu_physics.cpp" line="2654" status="run" result="completed" time="7.678" timestamp="2026-09-10T08:22:22.832" classname="GpuPhysicsTest" />
+    <testcase name="PreparedBodyCommandCommitsAtItsExactExplicitTick" file="tests/test_gpu_physics.cpp" line="2763" status="run" result="completed" time="7.416" timestamp="2026-09-10T08:22:30.511" classname="GpuPhysicsTest" />
+    <testcase name="PreparedParentRetirementRefusesWholeSetAndDiscardPreservesLifetimes" file="tests/test_gpu_physics.cpp" line="2812" status="run" result="completed" time="7.425" timestamp="2026-09-10T08:22:37.928" classname="GpuPhysicsTest" />
+    <testcase name="PreparedParentRetirementCommitsWithRopeTransferAndReusesOnlyNewGenerations" file="tests/test_gpu_physics.cpp" line="2842" status="run" result="completed" time="7.455" timestamp="2026-09-10T08:22:45.358" classname="GpuPhysicsTest" />
+    <testcase name="PreparedParentRetirementAtCommandCapacityKeepsEveryParent" file="tests/test_gpu_physics.cpp" line="2878" status="run" result="completed" time="7.534" timestamp="2026-09-10T08:22:52.814" classname="GpuPhysicsTest" />
+    <testcase name="AccumulatorAndExplicitFixedTickSchedulingCannotBeMixed" file="tests/test_gpu_physics.cpp" line="2896" status="run" result="completed" time="7.207" timestamp="2026-09-10T08:23:00.348" classname="GpuPhysicsTest" />
+  </testsuite>
+  <testsuite name="CoveMovement" tests="1" failures="1" disabled="0" skipped="0" errors="0" time="0." timestamp="2026-09-10T08:23:07.555">
+    <testcase name="ActualCutReplacesOneMovingSkiffWithTwoCompleteFloatingGpuBodies" file="tests/test_cove_player.cpp" line="940" status="run" result="completed" time="0." timestamp="2026-09-10T08:23:07.555" classname="CoveMovement">
+      <failure message="tests/test_cove_player.cpp:36&#x0A;Value of: file&#x0A;  Actual: false&#x0A;Expected: true&#x0A;" type=""><![CDATA[tests/test_cove_player.cpp:36
+Value of: file
+  Actual: false
+Expected: true
+]]></failure>
+    </testcase>
+  </testsuite>
+</testsuites>

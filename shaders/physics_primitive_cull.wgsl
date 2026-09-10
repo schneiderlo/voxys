@@ -13,6 +13,7 @@ struct BodyShape {
     dimensions_type : vec4<f32>,
     invInertia_material : vec4<f32>,
     material_coefficients : vec4<f32>,
+    authored_shape : vec4<u32>,
 };
 
 struct IndirectDrawArgs {
@@ -115,6 +116,7 @@ fn visible_shape(body : u32) -> u32 {
     let pose = poses[body];
     if (pose.position_invMass.w < 0.0) { return 0u; }
     let shape = shapes[body];
+    if (any(shape.authored_shape != vec4<u32>(0u))) { return 0u; }
     let dimensions = abs(shape.dimensions_type.xyz);
     if (max(dimensions.x, max(dimensions.y, dimensions.z)) <= 0.0) {
         return 0u;

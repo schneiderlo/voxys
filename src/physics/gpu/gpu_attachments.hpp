@@ -30,6 +30,8 @@ struct alignas(16) GpuAttachmentCommand {
     std::array<float, 4> anchorBMotor{};
     // Minimum length, maximum length, maximum force, break force.
     std::array<float, 4> limits{};
+    // Axial compliance (m/N), reserved, reserved, reserved.
+    std::array<float, 4> material{};
 };
 
 // This record is both the live constraint and its GPU-resident break record.
@@ -47,6 +49,7 @@ struct alignas(16) GpuDistanceAttachment {
     std::array<float, 4> evidence{};
     // Break tick, reason, reserved, reserved.
     std::array<uint32_t, 4> breakContext{};
+    // Per-tick accumulated impulse, immutable compliance bits, reserved, reserved.
     std::array<uint32_t, 4> reserved{};
 };
 
@@ -125,7 +128,7 @@ private:
     std::unique_ptr<Impl> impl_;
 };
 
-static_assert(sizeof(GpuAttachmentCommand) == 80);
+static_assert(sizeof(GpuAttachmentCommand) == 96);
 static_assert(sizeof(GpuDistanceAttachment) == 128);
 
 } // namespace voxy::physics

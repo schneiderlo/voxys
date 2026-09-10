@@ -1,6 +1,65 @@
 package(default_visibility = ["//visibility:public"])
 
-load("//settings:configure_copts.bzl", "PROJECT_DEFAULT_COPTS")
+load("//settings:configure_copts.bzl", "PROJECT_DEFAULT_COPTS", "PROJECT_TEST_COPTS")
+
+cc_library(
+    name = "gameplay_sidecar_lib",
+    hdrs = ["salvage_assets/gameplay_sidecar.hpp"],
+    copts = PROJECT_DEFAULT_COPTS,
+    includes = ["."],
+    deps = [
+        "//src/game:gameplay_sidecar",
+    ],
+)
+
+cc_binary(
+    name = "gameplay_sidecar_tool",
+    srcs = ["salvage_assets/gameplay_sidecar_main.cpp"],
+    copts = PROJECT_DEFAULT_COPTS,
+    deps = [":gameplay_sidecar_lib", "//src/moto:moto"],
+)
+
+filegroup(
+    name = "gameplay_sidecar_fixture",
+    srcs = ["salvage_assets/fixtures/probe.gameplay.json"],
+)
+
+cc_test(
+    name = "gameplay_sidecar_test",
+    srcs = ["salvage_assets/test_gameplay_sidecar.cpp"],
+    copts = PROJECT_TEST_COPTS,
+    data = [":gameplay_sidecar_fixture"],
+    deps = [":gameplay_sidecar_lib", "@googletest//:gtest_main"],
+)
+
+py_binary(
+    name = "cook_gameplay_asset",
+    srcs = ["salvage_assets/cook_gameplay_asset.py"],
+    main = "salvage_assets/cook_gameplay_asset.py",
+)
+
+py_test(
+    name = "cook_gameplay_asset_test",
+    size = "small",
+    # The no-replace publication and FIFO/shell rejection fixtures are verified
+    # on Linux. Windows authoring execution needs its own portable validation.
+    target_compatible_with = ["@platforms//os:linux"],
+    srcs = [
+        "salvage_assets/cook_gameplay_asset.py",
+        "salvage_assets/test_cook_gameplay_asset.py",
+    ],
+    main = "salvage_assets/test_cook_gameplay_asset.py",
+    data = [
+        ":gameplay_sidecar_fixture",
+        ":gameplay_sidecar_tool",
+        ":gltf_vmesh_tool",
+        "//data:salvage_authoring_probe",
+    ],
+    env = {
+        "SALVAGE_CONVERTER": "$(rootpath :gltf_vmesh_tool)",
+        "SALVAGE_VALIDATOR": "$(rootpath :gameplay_sidecar_tool)",
+    },
+)
 
 # Offline glTF 2.0 -> .vmesh converter. The library form exposes
 # convertGltfBytesToVmesh() without a main() so tests can drive it in-memory.
@@ -103,6 +162,13 @@ sh_test(
         "read_physics_telemetry.py",
         "serve_wasm.py",
     ],
+)
+
+cc_binary(
+    name = "check_brick_stack",
+    srcs = ["salvage_assets/check_brick_stack.cpp"],
+    copts = PROJECT_DEFAULT_COPTS,
+    deps = ["//src/game:fixture_registry", "//src/game:compiled_assembly"],
 )
 
 sh_binary(

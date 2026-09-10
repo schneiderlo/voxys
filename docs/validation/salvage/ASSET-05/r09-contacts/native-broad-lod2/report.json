@@ -1,0 +1,778 @@
+{
+  "schema": 1,
+  "status": "captured; visual review required",
+  "recipe": {
+    "schema": 1,
+    "purpose": "Close contacts and underside of installed r09 kit, repeated with each authored detail level; no live physics or final-art acceptance",
+    "physical_viewport": [
+      1920,
+      1080
+    ],
+    "fov_degrees": 60,
+    "registry": "data/salvage/fixture-kit-broad.json",
+    "views": [
+      {
+        "name": "deck-mating",
+        "eye": [
+          -2.8,
+          0.3,
+          -2.4
+        ],
+        "target": [
+          -1.5,
+          0.62,
+          -1
+        ],
+        "sun": [
+          -0.6,
+          0.3,
+          -0.5
+        ]
+      },
+      {
+        "name": "engine-seat",
+        "eye": [
+          2.5,
+          2.5,
+          3.7
+        ],
+        "target": [
+          0.5,
+          1.3,
+          1.8
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          0.4
+        ]
+      },
+      {
+        "name": "underside",
+        "eye": [
+          2,
+          -1.8,
+          -3.6
+        ],
+        "target": [
+          0,
+          0.65,
+          -0.4
+        ],
+        "sun": [
+          0.2,
+          0.8,
+          -0.3
+        ]
+      },
+      {
+        "name": "helm-seat",
+        "eye": [
+          -2.9,
+          1.36,
+          2.1
+        ],
+        "target": [
+          -1.5,
+          1.22,
+          1
+        ],
+        "sun": [
+          -0.4,
+          0.8,
+          0.5
+        ]
+      },
+      {
+        "name": "winch-rear",
+        "eye": [
+          -2.8,
+          2.7,
+          0.9
+        ],
+        "target": [
+          -1.5,
+          2.18,
+          -1
+        ],
+        "sun": [
+          -0.5,
+          0.75,
+          0.4
+        ]
+      }
+    ],
+    "inspection_expectations": {
+      "maximum_model_draws": 11,
+      "guide_boxes": [
+        0,
+        26,
+        510
+      ]
+    }
+  },
+  "recipe_sha256": "cebdb0694ef537c9008d63a4fa616c4cb12cb9fdce81aadcc8df5fc2f7cc33a6",
+  "runner_sha256": "2befd115829de8b32c77c322a4b745c3ba398821f1dcdaa25889c496a2c3b9f2",
+  "binary": "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native",
+  "binary_sha256": "f1268bcfeee8d44b8de5b076a51d8098a48b8ff138af001163cd7795ca07919d",
+  "original_registry_sha256": "dcbffbd37d588c575de5fb36891f55b56f3b4b25d969d7a3b2e2c95497c58467",
+  "original_config": "/home/modkin/workspace/schneiderlo/voxys/salvage_kit_broad.cfg",
+  "original_config_sha256": "2771f0a3896409fc02556cb1c653423624ccd6987cab839f30d48f26d1503d93",
+  "guides": "off",
+  "forced_lod": 2,
+  "selected_views": null,
+  "scope": "Native scene captures; guides are technical overlays, not final art or moving-craft acceptance",
+  "views": [
+    {
+      "name": "deck-mating",
+      "argv": [
+        "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-05/r09-contacts/native-broad-lod2/deck-mating.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-05/r09-contacts/native-broad-lod2/deck-mating.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "config_sha256": "bfc6cd9cf54e1ea94213138b1e89869a660f80da19f61ab1d2859da735068bc1",
+      "registry_sha256": "4daa6e35cec159963c1651d736e66071fee7b2afa793d8d7c6a823846293f5c5",
+      "timeout": false,
+      "exit_code": 0,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "png_sha256": "4a3b3593ed5736fda2c6559555951050a37f4cad8b730bb5738eb109565a42d4",
+      "gpu_or_application_errors": [],
+      "state": {
+        "active": true,
+        "ready": true,
+        "busy": false,
+        "failed": false,
+        "bodies": 0,
+        "resets": 0,
+        "controller": "free-fly",
+        "mouseCaptured": false,
+        "origin": [
+          -12,
+          -187.68,
+          -32
+        ],
+        "camera": {
+          "local": [
+            -21.8,
+            71.62,
+            -39.4
+          ],
+          "sector": [
+            0,
+            -1,
+            0
+          ],
+          "yaw": 0.748377,
+          "pitch": 0.165951
+        },
+        "session": {
+          "revision": "0",
+          "tick": "0",
+          "admissionOpen": true,
+          "builds": 0,
+          "cargo": 0,
+          "jobs": 0,
+          "inventory": {
+            "salvageMaterial": "0",
+            "specialMachinery": "0"
+          }
+        },
+        "observation": {
+          "world": "a4e5c3417dcde70bc9c8add03d552df7",
+          "incarnation": "29c4bc1ba9321599a6fe8de5f66b49c9",
+          "epoch": "1",
+          "publicationLost": false,
+          "lanes": [
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            },
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            },
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            }
+          ]
+        },
+        "assetFixture": {
+          "status": 2,
+          "generation": "1",
+          "uploads": 24,
+          "prototypeUploads": 0,
+          "gpuReservationBytes": "12989320",
+          "submittedSerial": "120",
+          "completedSerial": "118",
+          "draws": 11,
+          "guides": 0,
+          "guideBoxes": 0,
+          "guideMeshGpuBytes": 1936,
+          "forcedLod": "2",
+          "lods": [
+            "2",
+            "2",
+            "2",
+            "2",
+            "2",
+            "2",
+            "2",
+            "2",
+            "2",
+            "2",
+            "2"
+          ],
+          "availableLods": [
+            "0",
+            "1",
+            "2",
+            "3"
+          ],
+          "assembly": {
+            "parts": 11,
+            "connections": 17
+          }
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "engine-seat",
+      "argv": [
+        "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-05/r09-contacts/native-broad-lod2/engine-seat.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-05/r09-contacts/native-broad-lod2/engine-seat.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "config_sha256": "5a1e5c1282f7e121188fbe968f5b0679871e0044c2b7141d8dc243fb98c8ab41",
+      "registry_sha256": "d354f82aa59707a5fc94351e10bea7a2879175a62a00009900358aabe1a6c5df",
+      "timeout": false,
+      "exit_code": 0,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "png_sha256": "267c947bcffac75c415aad1e03ccf9814170e44cf29ff9fb1da1b9b9ca3eacbd",
+      "gpu_or_application_errors": [],
+      "state": {
+        "active": true,
+        "ready": true,
+        "busy": false,
+        "failed": false,
+        "bodies": 0,
+        "resets": 0,
+        "controller": "free-fly",
+        "mouseCaptured": false,
+        "origin": [
+          -12,
+          -187.68,
+          -32
+        ],
+        "camera": {
+          "local": [
+            -16.5,
+            73.82,
+            -33.3
+          ],
+          "sector": [
+            0,
+            -1,
+            0
+          ],
+          "yaw": -2.33056,
+          "pitch": -0.410309
+        },
+        "session": {
+          "revision": "0",
+          "tick": "0",
+          "admissionOpen": true,
+          "builds": 0,
+          "cargo": 0,
+          "jobs": 0,
+          "inventory": {
+            "salvageMaterial": "0",
+            "specialMachinery": "0"
+          }
+        },
+        "observation": {
+          "world": "ece6312b75a2e6700055853ead618c5e",
+          "incarnation": "fef25b0da2d80c629318179d6c997b7f",
+          "epoch": "1",
+          "publicationLost": false,
+          "lanes": [
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            },
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            },
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            }
+          ]
+        },
+        "assetFixture": {
+          "status": 2,
+          "generation": "1",
+          "uploads": 24,
+          "prototypeUploads": 0,
+          "gpuReservationBytes": "12989320",
+          "submittedSerial": "120",
+          "completedSerial": "118",
+          "draws": 11,
+          "guides": 0,
+          "guideBoxes": 0,
+          "guideMeshGpuBytes": 1936,
+          "forcedLod": "2",
+          "lods": [
+            "2",
+            "2",
+            "2",
+            "2",
+            "2",
+            "2",
+            "2",
+            "2",
+            "2",
+            "2",
+            "2"
+          ],
+          "availableLods": [
+            "0",
+            "1",
+            "2",
+            "3"
+          ],
+          "assembly": {
+            "parts": 11,
+            "connections": 17
+          }
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "underside",
+      "argv": [
+        "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-05/r09-contacts/native-broad-lod2/underside.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-05/r09-contacts/native-broad-lod2/underside.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "config_sha256": "98f5bbc4f7f5590f63c0b6ca8848118284fbbf06ee5e02cf0440bf8f81f14903",
+      "registry_sha256": "a50143ea9f8c9604b20ba0cdc82d4e23f31a34aa305067cab7b0ac728e263a67",
+      "timeout": false,
+      "exit_code": 0,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "png_sha256": "ea0fd5b859c234bf45534982f912f726cc822ee995a0df81c84ea7ba31718dd1",
+      "gpu_or_application_errors": [],
+      "state": {
+        "active": true,
+        "ready": true,
+        "busy": false,
+        "failed": false,
+        "bodies": 0,
+        "resets": 0,
+        "controller": "free-fly",
+        "mouseCaptured": false,
+        "origin": [
+          -12,
+          -187.68,
+          -32
+        ],
+        "camera": {
+          "local": [
+            -17,
+            69.52,
+            -40.6
+          ],
+          "sector": [
+            0,
+            -1,
+            0
+          ],
+          "yaw": -0.5586,
+          "pitch": 0.575847
+        },
+        "session": {
+          "revision": "0",
+          "tick": "0",
+          "admissionOpen": true,
+          "builds": 0,
+          "cargo": 0,
+          "jobs": 0,
+          "inventory": {
+            "salvageMaterial": "0",
+            "specialMachinery": "0"
+          }
+        },
+        "observation": {
+          "world": "591b6d3d0ef53bc29e19e4dbdefc7126",
+          "incarnation": "8c414d7d82a2f0677a89b2eada552f21",
+          "epoch": "1",
+          "publicationLost": false,
+          "lanes": [
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            },
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            },
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            }
+          ]
+        },
+        "assetFixture": {
+          "status": 2,
+          "generation": "1",
+          "uploads": 24,
+          "prototypeUploads": 0,
+          "gpuReservationBytes": "12989320",
+          "submittedSerial": "119",
+          "completedSerial": "117",
+          "draws": 11,
+          "guides": 0,
+          "guideBoxes": 0,
+          "guideMeshGpuBytes": 1936,
+          "forcedLod": "2",
+          "lods": [
+            "2",
+            "2",
+            "2",
+            "2",
+            "2",
+            "2",
+            "2",
+            "2",
+            "2",
+            "2",
+            "2"
+          ],
+          "availableLods": [
+            "0",
+            "1",
+            "2",
+            "3"
+          ],
+          "assembly": {
+            "parts": 11,
+            "connections": 17
+          }
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "helm-seat",
+      "argv": [
+        "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-05/r09-contacts/native-broad-lod2/helm-seat.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-05/r09-contacts/native-broad-lod2/helm-seat.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "config_sha256": "70c2949328961018af3d0358053de3c777a72299ce54df398c87e81f1b77c4bd",
+      "registry_sha256": "33708a88bfcec2fcbdd5df62f167c83f9e43153f234e939297d93d52f3d0b16a",
+      "timeout": false,
+      "exit_code": 0,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "png_sha256": "0614f756c9b66971e77e45c87d233c9787b090c4f31b5772390b46dadb86f112",
+      "gpu_or_application_errors": [],
+      "state": {
+        "active": true,
+        "ready": true,
+        "busy": false,
+        "failed": false,
+        "bodies": 0,
+        "resets": 0,
+        "controller": "free-fly",
+        "mouseCaptured": false,
+        "origin": [
+          -12,
+          -187.68,
+          -32
+        ],
+        "camera": {
+          "local": [
+            -21.9,
+            72.68,
+            -34.9
+          ],
+          "sector": [
+            0,
+            -1,
+            0
+          ],
+          "yaw": 2.23676,
+          "pitch": -0.0784701
+        },
+        "session": {
+          "revision": "0",
+          "tick": "0",
+          "admissionOpen": true,
+          "builds": 0,
+          "cargo": 0,
+          "jobs": 0,
+          "inventory": {
+            "salvageMaterial": "0",
+            "specialMachinery": "0"
+          }
+        },
+        "observation": {
+          "world": "79bd3d2df3136d078e657a6a9c0aeba2",
+          "incarnation": "69f1602b5556679468edcad154c25360",
+          "epoch": "1",
+          "publicationLost": false,
+          "lanes": [
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            },
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            },
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            }
+          ]
+        },
+        "assetFixture": {
+          "status": 2,
+          "generation": "1",
+          "uploads": 24,
+          "prototypeUploads": 0,
+          "gpuReservationBytes": "12989320",
+          "submittedSerial": "119",
+          "completedSerial": "117",
+          "draws": 11,
+          "guides": 0,
+          "guideBoxes": 0,
+          "guideMeshGpuBytes": 1936,
+          "forcedLod": "2",
+          "lods": [
+            "2",
+            "2",
+            "2",
+            "2",
+            "2",
+            "2",
+            "2",
+            "2",
+            "2",
+            "2",
+            "2"
+          ],
+          "availableLods": [
+            "0",
+            "1",
+            "2",
+            "3"
+          ],
+          "assembly": {
+            "parts": 11,
+            "connections": 17
+          }
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "winch-rear",
+      "argv": [
+        "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-05/r09-contacts/native-broad-lod2/winch-rear.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-05/r09-contacts/native-broad-lod2/winch-rear.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "config_sha256": "59d9852713617407ee38a0a6d3143da1e8e26c953b1ae1fa51aa0f6fffaeff93",
+      "registry_sha256": "50635c0abf3cc67418432931200b7fecb0eca36d855574281e6fef9dcc0e70e6",
+      "timeout": false,
+      "exit_code": 0,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "png_sha256": "c56829833472308d345f47fbcc01678e82e855a5667110b7c9c27bfb21d12661",
+      "gpu_or_application_errors": [],
+      "state": {
+        "active": true,
+        "ready": true,
+        "busy": false,
+        "failed": false,
+        "bodies": 0,
+        "resets": 0,
+        "controller": "free-fly",
+        "mouseCaptured": false,
+        "origin": [
+          -12,
+          -187.68,
+          -32
+        ],
+        "camera": {
+          "local": [
+            -21.8,
+            74.02,
+            -36.1
+          ],
+          "sector": [
+            0,
+            -1,
+            0
+          ],
+          "yaw": 2.54154,
+          "pitch": -0.222147
+        },
+        "session": {
+          "revision": "0",
+          "tick": "0",
+          "admissionOpen": true,
+          "builds": 0,
+          "cargo": 0,
+          "jobs": 0,
+          "inventory": {
+            "salvageMaterial": "0",
+            "specialMachinery": "0"
+          }
+        },
+        "observation": {
+          "world": "499c25f4837a4cfb6636df5336a3b8d2",
+          "incarnation": "76063d50f965e33be651a7ec11de6554",
+          "epoch": "1",
+          "publicationLost": false,
+          "lanes": [
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            },
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            },
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            }
+          ]
+        },
+        "assetFixture": {
+          "status": 2,
+          "generation": "1",
+          "uploads": 24,
+          "prototypeUploads": 0,
+          "gpuReservationBytes": "12989320",
+          "submittedSerial": "119",
+          "completedSerial": "117",
+          "draws": 10,
+          "guides": 0,
+          "guideBoxes": 0,
+          "guideMeshGpuBytes": 1936,
+          "forcedLod": "2",
+          "lods": [
+            "2",
+            "2",
+            "2",
+            "2",
+            "2",
+            "2",
+            "2",
+            "2",
+            "2",
+            "2",
+            "2"
+          ],
+          "availableLods": [
+            "0",
+            "1",
+            "2",
+            "3"
+          ],
+          "assembly": {
+            "parts": 11,
+            "connections": 17
+          }
+        }
+      },
+      "passed": true
+    }
+  ],
+  "temporary_registry_removed": true
+}

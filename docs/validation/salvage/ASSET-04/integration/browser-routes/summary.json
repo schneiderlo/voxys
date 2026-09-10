@@ -1,0 +1,62 @@
+[
+  {
+    "route": "default",
+    "exit_code": 0,
+    "command": [
+      "node",
+      "scripts/smoke_integrated_wasm.mjs",
+      "/tmp/voxys-asset-browser-02",
+      "default"
+    ]
+  },
+  {
+    "route": "lego-world",
+    "exit_code": 0,
+    "command": [
+      "node",
+      "scripts/smoke_integrated_wasm.mjs",
+      "/tmp/voxys-asset-browser-02",
+      "lego-world"
+    ]
+  },
+  {
+    "route": "lego",
+    "exit_code": 0,
+    "command": [
+      "node",
+      "scripts/smoke_integrated_wasm.mjs",
+      "/tmp/voxys-asset-browser-02",
+      "lego"
+    ]
+  },
+  {
+    "route": "terrain",
+    "exit_code": 0,
+    "command": [
+      "node",
+      "scripts/smoke_integrated_wasm.mjs",
+      "/tmp/voxys-asset-browser-02",
+      "terrain"
+    ]
+  },
+  {
+    "route": "ridgebreak",
+    "exit_code": 0,
+    "command": [
+      "node",
+      "scripts/smoke_integrated_wasm.mjs",
+      "/tmp/voxys-asset-browser-02",
+      "ridgebreak"
+    ]
+  },
+  {
+    "route": "salvage",
+    "exit_code": 0,
+    "command": [
+      "node",
+      "scripts/smoke_integrated_wasm.mjs",
+      "/tmp/voxys-asset-browser-02",
+      "salvage"
+    ]
+  }
+]

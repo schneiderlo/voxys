@@ -1,0 +1,44 @@
+{
+  "schema": 1,
+  "status": "exact release-candidate runtime admission checkpoint passed",
+  "gate_passed": false,
+  "independent_review_complete": false,
+  "published": false,
+  "visual_approval": false,
+  "manifest_sha256": "5cb23035a14272257af22ae4af47e7fcd863b8b310186346acbf7915fba8818e",
+  "frozen_inputs_sha256": "f624593bae744a3594e3e24272ad837693fd1d6aa1c7b3c2a38bb7cea1d5109b",
+  "sources_and_artifacts_verified": true,
+  "tests": {
+    "bazel-registry.xml": 8,
+    "bazel-pontoon.xml": 3,
+    "bazel-hierarchy.xml": 3,
+    "cmake-registry.xml": 8,
+    "cmake-pontoon.xml": 3
+  },
+  "evidence_hashes": {
+    "docs/validation/salvage/ASSET-04/release-runtime/integration/bazel-registry.xml": "51f074e135aa21055a3f37340b6bdd5938546c9841e5a651904715276b70e740",
+    "docs/validation/salvage/ASSET-04/release-runtime/integration/bazel-pontoon.xml": "b32f09c7b7b1c71e4b4ab3ad751e9be2c3521ffc37af4e4c02c68d0cbcba5170",
+    "docs/validation/salvage/ASSET-04/release-runtime/integration/bazel-hierarchy.xml": "0a2533964d92b9858e386b8aca63b83d001fdf4d08a5ae0d39c936e87a72f371",
+    "docs/validation/salvage/ASSET-04/release-runtime/integration/cmake-registry.xml": "a31f26d08831d50c8ef735506af09291a0315d0fb0408c12f5bffe24b1cb805f",
+    "docs/validation/salvage/ASSET-04/release-runtime/integration/cmake-pontoon.xml": "ee987de5dd5f15c58bbf08b783ddfab62064ad61ffa75c8bae170fd36733a891",
+    "docs/validation/salvage/ASSET-04/release-runtime/wasm-attempt01/manifest.json": "be5871c9aacac12ad8d5d3e83bab70f369d0bd47186f34e360182fe962770e5c",
+    "docs/validation/salvage/ASSET-04/release-runtime/native-clean-attempt01/report.json": "dc98d81b79eb4f00fedfe128556749c3325b7230cfa3e81109d83c46aa541329",
+    "docs/validation/salvage/ASSET-04/release-runtime/browser-clean-attempt01/report.json": "76b9c8fde82189ec1a67489ca7c61ebdcdd102893656d3eddcaaaca65d52ba31",
+    "docs/validation/salvage/ASSET-04/release-runtime/browser-journey-attempt01/summary.json": "2af204786e9cb4b14e1bf25eabbb9491a60e6fa7de850d6626413c9da6c14503",
+    "docs/validation/salvage/ASSET-04/release-runtime/browser-loss-attempt01/summary.json": "a0e79ae0d038fcb6b100775a66034843eaa32b3302fc081fc2d9107ffb9d0d56",
+    "docs/validation/salvage/ASSET-04/release-runtime/browser-routes-attempt01/salvage-hierarchy.json": "9ced65cf28bc0329d92f74902fc906654bec28b0b8a05cdb59685e9c128ed610",
+    "docs/validation/salvage/ASSET-04/release-runtime/browser-routes-attempt01/salvage-rotations-a.json": "7601a1d1e402fa9b126e91ce009a1431af87c02cae7b0b50eaeef11dc9940f86",
+    "docs/validation/salvage/ASSET-04/release-runtime/browser-routes-attempt01/salvage-rotations-b.json": "1d1243db91a5190626dac2dc37eec095b8377a95998165052cb14e462955c8a0",
+    "docs/validation/salvage/ASSET-04/release-runtime/comparison.json": "6707c0e5bf0eb5c18b4ad7fcc6eaa6d49f339404bf4bc9ddde002c93ca37eca9"
+  },
+  "wasm_cases": 70,
+  "paired_views": 7,
+  "browser_experiences": [
+    "salvage-asset",
+    "salvage-assembly",
+    "salvage-hierarchy",
+    "salvage-rotations-a",
+    "salvage-rotations-b"
+  ],
+  "review": "Root reviewed both uncropped comparison pages covering all seven native/browser views. The selected release candidate preserves outward surfaces, material response, socket wells and stacked engagement. Exact manifest admission and current package lifecycle/device loss pass. No independent review, immutable publication, physics or art acceptance is claimed."
+}

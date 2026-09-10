@@ -761,3 +761,26 @@ bool applyAuthoredCove(
 }
 
 } // namespace voxy::terrain
+
+namespace voxy::terrain {
+bool applySalvageBerth(std::span<uint16_t> heights,uint32_t width,uint32_t height,
+                      float heightScale,float cellScale,float waterHeight) noexcept {
+    if (width<2 || height<2 || uint64_t(width)*height!=heights.size()
+        || !std::isfinite(heightScale) || heightScale<=0 || !std::isfinite(cellScale) || cellScale<=0
+        || !std::isfinite(waterHeight) || waterHeight-4 < -heightScale || waterHeight > heightScale) return false;
+    for (uint32_t z=0;z<height;++z) for(uint32_t x=0;x<width;++x) {
+        const float wx=(float(x)-float(width)*.5f)*cellScale;
+        const float wz=(float(z)-float(height)*.5f)*cellScale;
+        const float distance=std::max({-28.f-wx,wx+11.f,-114.f-wz,wz+84.f,0.f});
+        if (distance>=4) continue;
+        auto& sample=heights[size_t(z)*width+x];
+        const float original=heightScale*(2*float(sample)/65535-1);
+        if (original>=waterHeight || original<=waterHeight-4) continue;
+        const float blend=1-smoothstep(0,4,distance);
+        const float target=original+(waterHeight-4-original)*blend;
+        const auto encoded=static_cast<uint16_t>(std::clamp(std::lround((target/heightScale+1)*.5f*65535),0l,65535l));
+        sample=std::min(sample,encoded);
+    }
+    return true;
+}
+} // namespace voxy::terrain

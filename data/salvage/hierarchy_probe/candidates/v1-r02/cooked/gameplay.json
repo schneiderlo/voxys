@@ -1,0 +1,188 @@
+{
+  "lods": [
+    {
+      "asset": {
+        "counter": "2",
+        "namespace": "766f78792d686965722d70726f626531",
+        "version": 1
+      },
+      "id": "1",
+      "minimum_screen_height_pixels": 0.0,
+      "source": {
+        "bytes": 131632,
+        "file": "hierarchy.glb",
+        "frame": "exported_gltf",
+        "sha256": "ca9e743f6d608c6f1f394e7e3711367779bed02aea15fb825883fac9d8e67de3",
+        "to_canonical_rotation": 12
+      }
+    }
+  ],
+  "metadata_frame": "canonical_y_up_minus_z_forward",
+  "part": {
+    "buoyancy": [
+      {
+        "box": {
+          "frame": {
+            "rotation": 0,
+            "translation_ticks": [
+              39,
+              31,
+              -21
+            ]
+          },
+          "half_extents_ticks": [
+            49,
+            37,
+            31
+          ],
+          "id": "3"
+        },
+        "kind": "solid_material"
+      }
+    ],
+    "collision": [
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            39,
+            31,
+            -21
+          ]
+        },
+        "half_extents_ticks": [
+          49,
+          37,
+          31
+        ],
+        "id": "2"
+      }
+    ],
+    "cost": {
+      "salvage_material": "20",
+      "special_machinery": "0"
+    },
+    "footprint": {
+      "maximum_ticks": [
+        88,
+        68,
+        10
+      ],
+      "minimum_ticks": [
+        -10,
+        -6,
+        -52
+      ]
+    },
+    "key": {
+      "counter": "1",
+      "namespace": "766f78792d686965722d70726f626531",
+      "version": 1
+    },
+    "mass": {
+      "center_of_mass_metres": [
+        0.78,
+        0.62,
+        -0.42
+      ],
+      "dry_mass_kg": 10.0,
+      "inertia_kg_metres_squared": [
+        3.106666666666667,
+        0.0,
+        0.0,
+        0.0,
+        4.482666666666667,
+        0.0,
+        0.0,
+        0.0,
+        5.026666666666666
+      ]
+    },
+    "material": {
+      "linear_base_color": [
+        0.3,
+        0.1,
+        0.05
+      ],
+      "metallic": 0.0,
+      "roughness": 0.35
+    },
+    "module": {
+      "type": "structure"
+    },
+    "name_key": "inspection.hierarchy_probe",
+    "permitted_rotation_mask": 16777215,
+    "salvage_yield": {
+      "salvage_material": "10",
+      "special_machinery": "0"
+    },
+    "sockets": [
+      {
+        "clearance": {
+          "maximum_ticks": [
+            5,
+            5,
+            5
+          ],
+          "minimum_ticks": [
+            -5,
+            -5,
+            -5
+          ]
+        },
+        "connection_capacity": 1,
+        "family": "structural",
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            0,
+            0,
+            0
+          ]
+        },
+        "id": "1",
+        "profile": 1,
+        "role": "neutral",
+        "strength": {
+          "bending_newton_metres": 20000.0,
+          "shear_newtons": 20000.0,
+          "tension_newtons": 20000.0,
+          "torsion_newton_metres": 20000.0
+        }
+      }
+    ],
+    "solid_occupancy": [
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            39,
+            31,
+            -21
+          ]
+        },
+        "half_extents_ticks": [
+          49,
+          37,
+          31
+        ],
+        "id": "1"
+      }
+    ],
+    "strength": {
+      "bending_newton_metres": 20000.0,
+      "shear_newtons": 20000.0,
+      "tension_newtons": 20000.0,
+      "torsion_newton_metres": 20000.0
+    }
+  },
+  "placement_lattice_metres": 0.02,
+  "schema": 1,
+  "tool_anchors": [],
+  "units": {
+    "angle": "radians",
+    "length": "metres",
+    "mass": "kilograms",
+    "time": "seconds"
+  }
+}

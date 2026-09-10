@@ -97,6 +97,7 @@ struct BodyShape {
     dimensions_type : vec4<f32>,
     invInertia_material : vec4<f32>,
     material_coefficients : vec4<f32>,
+    authored_shape : vec4<u32>,
 };
 
 @group(0) @binding(0) var<uniform> uniforms : PrimitiveUniforms;
@@ -183,7 +184,7 @@ fn vertex_output(input:VSIn, lego:bool)->VSOut {
     let material=decode_material(shape,u32(clamp(shape.dimensions_type.w,0.0,4.0)));
     var output:VSOut;
     output.position=uniforms.viewProj*vec4<f32>(worldPosition,1);
-    if(hidden){output.position=vec4<f32>(0,0,2,1);}
+    if(hidden || any(shape.authored_shape != vec4<u32>(0u))){output.position=vec4<f32>(0,0,2,1);}
     output.worldPosition=worldPosition;
     output.worldNormal=normalize(rotate_by_quaternion(pose.orientation,input.normal/dimensions));
     output.color=material.baseColor;output.material=vec3<f32>(material.roughness,material.metallic,material.clearcoat);

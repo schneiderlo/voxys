@@ -122,6 +122,8 @@ struct WindowConfig {
 };
 
 struct AutomationConfig {
+    std::optional<std::string> inspectionMotionRecipe;
+    std::optional<std::string> inspectionMotionOutput;
     bool benchmark = false;
     int benchmarkBodies = 0;
     float benchmarkMinimumFps = 0.0f;
@@ -208,9 +210,15 @@ enum class GameMode : uint8_t {
 struct GameConfig {
     // Absence preserves legacy title-based routes. An explicit empty value is invalid.
     std::optional<std::string> mode;
+    // Explicit opt-in inspection route; path names a trusted installed registry.
+    std::optional<std::string> assetFixtureRegistry;
+    std::string assetFixtureGuides = "off"; // off, dimensions, sockets; inspection only.
+    std::string assetFixtureLod = "auto"; // Initial inspection detail: auto, near, middle, far.
+    std::string assetFixtureLighting = "legacy"; // legacy or filtered; inspection only.
+    std::string assetFixtureAnchor = "inspection"; // inspection elevation or water datum.
 };
 
-enum class GameModeStatus : uint8_t { Ready, UnknownMode, ConflictingBootstrap };
+enum class GameModeStatus : uint8_t { Ready, UnknownMode, ConflictingBootstrap, InvalidAssetFixture };
 
 struct GameModeResolution {
     GameMode mode = GameMode::Terrain;
@@ -249,6 +257,8 @@ struct Config {
 // ─────────────────────────────────────────────────────────────────────────────
 
 struct CommandLineArgs {
+    std::optional<std::string> inspectionMotionRecipe;
+    std::optional<std::string> inspectionMotionOutput;
     std::string configPath = "voxy.cfg";
     std::optional<std::string> renderPath;
     std::optional<std::string> heightmap;

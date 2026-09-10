@@ -1,0 +1,161 @@
+{
+  "schema": 2,
+  "bundles": [
+    {
+      "directory": "pontoon/release-candidates/v2-rc01/cooked",
+      "part": {
+        "namespace": "766f7879732d73616c766167652d7631",
+        "counter": "3",
+        "version": 2
+      },
+      "manifest_sha256": "5cb23035a14272257af22ae4af47e7fcd863b8b310186346acbf7915fba8818e",
+      "lod_limits": [
+        {
+          "id": "1",
+          "vertices": 12000,
+          "triangles": 6000,
+          "texture_dimension": 512
+        },
+        {
+          "id": "2",
+          "vertices": 2400,
+          "triangles": 1200,
+          "texture_dimension": 256
+        },
+        {
+          "id": "3",
+          "vertices": 800,
+          "triangles": 400,
+          "texture_dimension": 64
+        }
+      ]
+    }
+  ],
+  "placements": [
+    {
+      "bundle": 0,
+      "translation_ticks": [
+        -75,
+        0,
+        0
+      ],
+      "rotation": 0
+    },
+    {
+      "bundle": 0,
+      "translation_ticks": [
+        75,
+        0,
+        0
+      ],
+      "rotation": 0
+    },
+    {
+      "bundle": 0,
+      "translation_ticks": [
+        225,
+        0,
+        0
+      ],
+      "rotation": 0
+    },
+    {
+      "bundle": 0,
+      "translation_ticks": [
+        225,
+        48,
+        0
+      ],
+      "rotation": 0
+    },
+    {
+      "prototype": 0,
+      "translation_ticks": [
+        0,
+        48,
+        -50
+      ],
+      "rotation": 0
+    },
+    {
+      "prototype": 0,
+      "translation_ticks": [
+        0,
+        48,
+        50
+      ],
+      "rotation": 0
+    }
+  ],
+  "camera": {
+    "eye": [
+      7,
+      4,
+      -8
+    ],
+    "target": [
+      1.25,
+      0.25,
+      0
+    ]
+  },
+  "prototypes": [
+    {
+      "namespace": "766f7879732d73616c766167652d7631",
+      "counter": "1",
+      "version": 1
+    }
+  ],
+  "connections": [
+    {
+      "a": {
+        "placement": 0,
+        "socket": "101"
+      },
+      "b": {
+        "placement": 4,
+        "socket": "101"
+      }
+    },
+    {
+      "a": {
+        "placement": 1,
+        "socket": "101"
+      },
+      "b": {
+        "placement": 4,
+        "socket": "107"
+      }
+    },
+    {
+      "a": {
+        "placement": 0,
+        "socket": "103"
+      },
+      "b": {
+        "placement": 5,
+        "socket": "101"
+      }
+    },
+    {
+      "a": {
+        "placement": 1,
+        "socket": "103"
+      },
+      "b": {
+        "placement": 5,
+        "socket": "107"
+      }
+    },
+    {
+      "a": {
+        "placement": 2,
+        "socket": "1"
+      },
+      "b": {
+        "placement": 3,
+        "socket": "2"
+      }
+    }
+  ]
+}

@@ -1,0 +1,230 @@
+{
+  "schema": 1,
+  "role": "Playable salvage cove composition",
+  "water_relative": true,
+  "groups": {
+    "skiff": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ],
+    "dock": [
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22
+    ],
+    "generator": [
+      23
+    ],
+    "salvage": [
+      24
+    ]
+  },
+  "skiff_translation_ticks": [
+    50,
+    -8,
+    -2700
+  ],
+  "experimental_outboard_winch": false,
+  "skiff_connections": [
+    {
+      "a": {
+        "placement": 0,
+        "socket": "101"
+      },
+      "b": {
+        "placement": 2,
+        "socket": "101"
+      }
+    },
+    {
+      "a": {
+        "placement": 1,
+        "socket": "101"
+      },
+      "b": {
+        "placement": 2,
+        "socket": "107"
+      }
+    },
+    {
+      "a": {
+        "placement": 0,
+        "socket": "103"
+      },
+      "b": {
+        "placement": 3,
+        "socket": "101"
+      }
+    },
+    {
+      "a": {
+        "placement": 1,
+        "socket": "103"
+      },
+      "b": {
+        "placement": 3,
+        "socket": "107"
+      }
+    },
+    {
+      "a": {
+        "placement": 2,
+        "socket": "100"
+      },
+      "b": {
+        "placement": 4,
+        "socket": "101"
+      }
+    },
+    {
+      "a": {
+        "placement": 2,
+        "socket": "102"
+      },
+      "b": {
+        "placement": 4,
+        "socket": "103"
+      }
+    },
+    {
+      "a": {
+        "placement": 2,
+        "socket": "104"
+      },
+      "b": {
+        "placement": 4,
+        "socket": "105"
+      }
+    },
+    {
+      "a": {
+        "placement": 2,
+        "socket": "106"
+      },
+      "b": {
+        "placement": 4,
+        "socket": "107"
+      }
+    },
+    {
+      "a": {
+        "placement": 3,
+        "socket": "100"
+      },
+      "b": {
+        "placement": 5,
+        "socket": "101"
+      }
+    },
+    {
+      "a": {
+        "placement": 3,
+        "socket": "102"
+      },
+      "b": {
+        "placement": 5,
+        "socket": "103"
+      }
+    },
+    {
+      "a": {
+        "placement": 3,
+        "socket": "104"
+      },
+      "b": {
+        "placement": 5,
+        "socket": "105"
+      }
+    },
+    {
+      "a": {
+        "placement": 3,
+        "socket": "106"
+      },
+      "b": {
+        "placement": 5,
+        "socket": "107"
+      }
+    },
+    {
+      "a": {
+        "placement": 5,
+        "socket": "104"
+      },
+      "b": {
+        "placement": 6,
+        "socket": "2"
+      }
+    },
+    {
+      "a": {
+        "placement": 6,
+        "socket": "10"
+      },
+      "b": {
+        "placement": 7,
+        "socket": "10"
+      }
+    },
+    {
+      "a": {
+        "placement": 5,
+        "socket": "100"
+      },
+      "b": {
+        "placement": 8,
+        "socket": "2"
+      }
+    },
+    {
+      "a": {
+        "placement": 4,
+        "socket": "100"
+      },
+      "b": {
+        "placement": 9,
+        "socket": "2"
+      }
+    },
+    {
+      "a": {
+        "placement": 4,
+        "socket": "104"
+      },
+      "b": {
+        "placement": 10,
+        "socket": "2"
+      }
+    }
+  ],
+  "source_sha256": {
+    "fixture-kit-broad.json": "dcbffbd37d588c575de5fb36891f55b56f3b4b25d969d7a3b2e2c95497c58467",
+    "fixture-material-shading-r02.json": "2687028ccdd39212532d6d75d1387ca0327e8f2fb60b6a0151a2d2790bf84de0",
+    "fixture-kit-cargo.json": "f5cc8c04c3c387ba3bc2c97a36173280ccbce3d360048328301b48ebdb0993c2"
+  },
+  "remaining": [
+    "Moving-deck character and robot presentation",
+    "Full dynamic water composition",
+    "Cast/contact shadows",
+    "Campaign persistence and progression",
+    "Visual approval"
+  ]
+}

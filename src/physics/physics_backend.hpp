@@ -1,6 +1,8 @@
 #pragma once
 
 #include "physics/physics_types.hpp"
+#include "physics/authored_shape_resources.hpp"
+#include "physics/authored_body_frame.hpp"
 
 #include <memory>
 #include <span>
@@ -20,6 +22,23 @@ public:
     [[nodiscard]] virtual BackendType type() const noexcept = 0;
     [[nodiscard]] virtual BackendCapabilities capabilities() const noexcept = 0;
 
+    [[nodiscard]] virtual ShapeResourceError enableAuthoredShapeResources(
+        const ShapeResourceLimits&) noexcept { return ShapeResourceError::Unsupported; }
+    [[nodiscard]] virtual IAuthoredShapeResources* authoredShapeResources() noexcept { return nullptr; }
+    [[nodiscard]] virtual AuthoredBodySpawnResult spawnAuthoredBody(const AuthoredBodySpawnDesc&) { return {}; }
+    [[nodiscard]] virtual AuthoredBodyError configureAuthoredWaterBody(const AuthoredWaterBodyDesc&) {
+        return AuthoredBodyError::Unsupported;
+    }
+    [[nodiscard]] virtual bool setAuthoredHelm(BodyHandle, float, float) noexcept { return false; }
+    [[nodiscard]] virtual ShapeResourceSubmission prepareGpuSubmission(ShapeResourceError& error) noexcept {
+        error = ShapeResourceError::Unsupported; return {};
+    }
+    [[nodiscard]] virtual ShapeResourceError submitGpuSubmission(ShapeResourceSubmission,
+        std::span<const WGPUCommandBuffer>) noexcept { return ShapeResourceError::Unsupported; }
+    [[nodiscard]] virtual ShapeResourceError discardGpuSubmission(ShapeResourceSubmission) noexcept {
+        return ShapeResourceError::Unsupported;
+    }
+
     [[nodiscard]] virtual bool setTerrain(std::span<const uint16_t> samples,
                                           uint32_t width, uint32_t height,
                                           float heightScale,
@@ -34,6 +53,7 @@ public:
     virtual void setWaterPlane(float height, bool enabled) = 0;
     virtual void setWaterSurfaceSampler(WaterSurfaceSampler sampler) = 0;
     virtual void setWaterGpuResources(const WaterGpuResources&) {}
+    [[nodiscard]] virtual bool stageWaterGpuFrame(const WaterGpuFrame&) noexcept { return false; }
 
     [[nodiscard]] virtual CharacterHandle createCharacter(
         const glm::vec3& feetPosition,
@@ -97,6 +117,10 @@ public:
     // fixed-tick scheduler; GPU command encoding will be a separate interface.
     virtual void stepCpu(float deltaTime) = 0;
     [[nodiscard]] virtual bool scheduleFixedTicks(uint32_t) { return false; }
+    // Owned worlds only. Retain already scheduled work, clear clock debt and
+    // prevent new time accrual. Optionally reserve a bounded final control tick
+    // atomically when entering pause. The caller must still drain its evidence.
+    [[nodiscard]] virtual bool setSchedulingPaused(bool, uint32_t) noexcept { return false; }
     virtual void encodeGpuStep(WGPUCommandEncoder) {}
     [[nodiscard]] virtual PhysicsEncodeReport encodeGpuStepChecked(
         WGPUCommandEncoder) {
@@ -130,6 +154,7 @@ public:
     [[nodiscard]] virtual PhysicsStats stats() const noexcept = 0;
     [[nodiscard]] virtual PhysicsStepStats lastStepStats() const noexcept = 0;
     [[nodiscard]] virtual uint64_t encodedTick() const noexcept { return 0; }
+    [[nodiscard]] virtual PhysicsTickFrontier tickFrontier() const noexcept { return {}; }
 };
 
 } // namespace voxy::physics

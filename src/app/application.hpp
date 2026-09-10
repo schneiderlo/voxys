@@ -52,6 +52,8 @@ class Camera;
 class FreeFlyController;
 class CharacterController;
 struct WreckwaterApplicationClientState;
+struct SalvageLocalSessionState;
+struct CoveResumeSource;
 
 namespace physics {
     class PhysicsWorld;
@@ -74,6 +76,7 @@ namespace render {
     class WaterSimulation;
     class PrimitivePath;
     class MeshPath;
+    struct SalvageFixtureTicket;
 }
 
 namespace moto {
@@ -255,6 +258,11 @@ struct ApplicationConfig {
     std::string windowTitle = "voxy";
     bool legoTerrainEnabled = false;
     bool salvagePreviewEnabled = false;
+    std::optional<std::string> salvageAssetFixtureRegistry;
+    std::string salvageAssetFixtureGuides = "off";
+    uint64_t salvageAssetFixtureLod = 0;
+    bool salvageAssetFixtureFilteredLighting = false;
+    bool salvageAssetFixtureWaterAnchor = false;
     bool motoEnabled = false; // Opt-in prototype, never replaces the terrain demo.
     bool fullscreen = false;
     bool vsync = true;
@@ -649,6 +657,13 @@ public:
     /// Set custom update callback (called each frame before rendering).
     void setUpdateCallback(UpdateCallback callback) { updateCallback_ = std::move(callback); }
 
+    /// Native inspection capture after real render submission, before present.
+    /// Empty by default. Capture overhead is part of the measured frame time.
+    void setCaptureCallback(std::function<void()> callback) { captureCallback_ = std::move(callback); }
+    enum class CaptureFormat { Png, Jpeg };
+    /// Call only on the application thread with a rendered current texture.
+    bool captureScreenshot(const std::string& filepath, CaptureFormat format = CaptureFormat::Png);
+
     // ─────────────────────────────────────────────────────────────────────────
     // Accessors
     // ─────────────────────────────────────────────────────────────────────────
@@ -688,6 +703,18 @@ public:
     bool legoAction(int action);
     [[nodiscard]] std::string legoHudJson() const;
     bool salvagePreviewAction(int action);
+    std::string salvageBlueprintAction(int action,std::string_view text);
+    // Trusted storage host API: 1 paused capture, 2 preflight, 3 recovered pair,
+    // 4 acknowledge recovery digest, 5 revoke, 6 register host, 7 acknowledge
+    // the exact captured delivery, harbor or rescue digest. Returns hex / "ok", or empty.
+    std::string salvageExpeditionAction(int action,std::string_view text);
+    [[nodiscard]] bool salvageCheckpointNeedsSave() const noexcept;
+    // Storage host only, before init. Caller exclusively owns the selected slot
+    // and has retired its old session/backend. Copies bounded bytes; full content
+    // admission occurs during init. No fallback to a new/free world on failure.
+    bool stageCoveResume(std::array<uint8_t,16> world,std::span<const std::byte> archive);
+    // Composition-root save feedback, independent of the storage worker.
+    void setSalvageSaveStatus(std::string status);
     [[nodiscard]] std::string salvagePreviewJson() const;
     [[nodiscard]] Camera* getCamera() noexcept { return camera_.get(); }
     [[nodiscard]] const Camera* getCamera() const noexcept { return camera_.get(); }
@@ -744,11 +771,15 @@ private:
     // ─────────────────────────────────────────────────────────────────────────
 
     void renderTrianglePath(WGPUCommandEncoder encoder, WGPUTextureView colorView);
-    void renderRaycastPath(WGPUCommandEncoder encoder, WGPUTextureView colorView);
+    bool renderRaycastPath(WGPUCommandEncoder encoder, WGPUTextureView colorView,
+                           render::SalvageFixtureTicket& ticket);
     void clearRayObjectDepth(WGPUCommandEncoder encoder);
     void renderMoto(WGPUCommandEncoder encoder, WGPUTextureView colorView);
+    bool renderSalvageAsset(WGPUCommandEncoder encoder, WGPUTextureView colorView,
+                           render::SalvageFixtureTicket& ticket, WGPUTextureView linearDepthOutput = nullptr);
     void pollRenderGpuTimings();
     void updateCameraUniforms();
+    [[nodiscard]] float waterPhaseSeconds() const noexcept;
     [[nodiscard]] bool initLegoLayout();
     void updateLegoLayout();
     void applyRendererSettings();
@@ -757,7 +788,6 @@ private:
     [[nodiscard]] bool rebuildSunShadowMap();
     void updateStats(float deltaTime);
     WGPUTextureView getOrCreateDepthView();
-    void captureScreenshot(const std::string& filepath);
     void startScreenshotTour();
     void scheduleNextTourStep();
 
@@ -766,6 +796,9 @@ private:
     // ─────────────────────────────────────────────────────────────────────────
 
     void processInput(float deltaTime);
+    void updateCovePlayer(float deltaTime);
+    bool updateCoveBoat();
+    void configureCoveLaunch();
     void updateMoto(float deltaTime);
     void advanceMotoRaceFixedStep(const moto::BikeState& state);
     void processThrowableInput(float deltaTime);
@@ -862,6 +895,9 @@ private:
     std::unique_ptr<render::PrimitivePath> primitivePath_;
     std::unique_ptr<game::LegoPlayground> legoPlayground_;
     bool legoPlaygroundActive_ = false;
+    std::unique_ptr<SalvageLocalSessionState> salvageLocalSession_;
+    std::string salvageSaveStatus_;
+    std::unique_ptr<CoveResumeSource> coveResume_;
     std::unique_ptr<game::expedition::SalvagePreview> salvagePreview_;
     physics::DebugReadbackRing salvageRetirementReadback_;
     app_detail::SalvageMetadataReadbackSource salvageMetadataSource_;
@@ -914,6 +950,7 @@ private:
 
     // Callbacks
     UpdateCallback updateCallback_;
+    std::function<void()> captureCallback_;
 
     // Teleportation recording
     struct CameraState {

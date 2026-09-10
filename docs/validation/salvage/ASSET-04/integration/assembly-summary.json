@@ -1,0 +1,395 @@
+{
+  "schema": 1,
+  "status": "crossbeam assembly checkpoint verified; ASSET-04, LOOK-01 and G02 remain open; no gate commit",
+  "sources": {
+    "BUILD": "da1128cd0145c16978fae232c70873e155ded767338ece52d4052a5d1e8886c6",
+    "CMakeLists.txt": "9dbde589100b38c70ef0798fb1ff6c99ffa07952975cafe24ec59a7c5b4f34cb",
+    "data/BUILD": "4cfa0084d81937a37199efb174d68978cd4eb7c55385482aa8c6fc0cc106369b",
+    "data/salvage/fixture-pontoon-assembly.json": "bb11c948e2d1dac86ce322143d86c3113a5d8492ba46f9b1a9bb8a4305fa6658",
+    "data/salvage/fixture-pontoon-v2.json": "f4d3599cf126f8aa583f4f065d66f891eca520926b876586250482d544c6afbd",
+    "docs/validation/salvage/ASSET-04/assembly-views.json": "01567dca54b52bb87070c3ef509e900fa9a656ea92a3e793df49ea80e992c599",
+    "docs/validation/salvage/ASSET-04/inspection-views.json": "e4647b61dfadf457fdf7478f9f20dba17b9668cc4c864be8ed7340c53bf956c3",
+    "salvage_assembly_fixture.cfg": "02346fa362e072ccdf2bc7002e904988d57dfce06a725c1a643f9b53828b73a0",
+    "salvage_asset_fixture.cfg": "86edec7ff9cee300c222baad8f2d05eb3711af34b3f841f3036da0259088c7b9",
+    "scripts/capture_salvage_asset_views.py": "4cb504c3fa164d5455bfb89708a3c33ca8ec018e1efdc5a98752e04e0e508304",
+    "scripts/smoke_integrated_wasm.mjs": "34da8489d7f215e83dbb50535d26a2794e63a8fe165a019634ccf9ca5ef3d80c",
+    "scripts/test_salvage_preview.mjs": "656df1c4c3596f9a97f8132502d44eb163411337013a393622457638cad921bf",
+    "scripts/validate_asset_admission_wasm.py": "cc7f5efdaddb800abfb806cd7c2e66e87fa3ddf4de3d6a5e0a29b85ae8c360a8",
+    "scripts/validate_salvage_asset_fixture.mjs": "d26895f5c51354f4dc008f46571b99ab10e51dfde4822693037cf30fcbf79a36",
+    "scripts/validate_salvage_asset_loss.mjs": "5e4086bbda3063c0f145efadd8ca24fcd26db04ea29b531f0c8f1a74dc6f8fb0",
+    "scripts/validate_salvage_asset_views.mjs": "b19a1f9cfa8d13c658a38af85b0bed93d30180b602a197add923963f6aeb2509",
+    "shaders/mesh_path.wgsl": "199608700b6baeb13e3f3989a050a30e24170a64d34aeef6d5db2fc63a7b1c98",
+    "src/CMakeLists.txt": "313eea08368d02a4d860f0c48cdc0b669c6f5f71e3bacab52ec3778c0aa6c4e4",
+    "src/app/application.cpp": "443593e2308aca3810ba4e4db7836dc97d83ce0ca0570757e59487fe8ba13f83",
+    "src/app/application.hpp": "786268d6d052af6c5ca71e49def853571788a0c72b2c5f2e066be3b7dfd95faf",
+    "src/core/config.cpp": "9383e36e04492bfb19e63e7d0d401279ab3ea4ddcfaed9109985030b687fda9d",
+    "src/core/config.hpp": "e81c3aee813702c77958ecf65dfe9af593e11c64b9d5d1886c538d1c26f468d0",
+    "src/engine/platform/native/entry.cpp": "f21b2ee79dc37136e9bb15a015db3e3cedb84c14eb6d29647ccab32baeae4d11",
+    "src/engine/platform/wasm/entry.cpp": "13a390850d73d169516e48a18b67c61d5444b244de456d6adbe4246725384ce1",
+    "src/game/BUILD": "8f6a2ef57fb8151e8fdb91a31f055949968b572f64781574e7afc53996e5dbe0",
+    "src/game/assets/fixture_registry.cpp": "10be5db8f01d31b0eb403fe0b3cd435cce4c0d4aa15deb6997cd059deb0c5b42",
+    "src/game/assets/fixture_registry.hpp": "7ad01b8c919a868f7415e23bd0081aaea35901ae91f3271c21982c671c812a00",
+    "src/game/construction/build_model.cpp": "5307ee045a24f3974ec109f914eb5f8d5a4c65755a32f7286ff6308be9cd508f",
+    "src/game/construction/build_model.hpp": "e99cf8d8b6a409276195a49d1887d6ee4518683b0cc4fa5550af08a7d3746f19",
+    "src/game/construction/construction_types.cpp": "4aa7ffdd6e608765b5245c94c53c2b54920705533283d270e5b6b4eee84ac4c8",
+    "src/game/construction/construction_types.hpp": "fb1aca2e406802452d0595fac47162822d26d4af3ec343859cbf13f8957912e8",
+    "src/game/construction/part_catalog.cpp": "24869c7c346d49421b2fe20123181e4e5738d6e6ddc366339292d3f12044bcf3",
+    "src/game/construction/part_catalog.hpp": "8c107f72da01b065f811db557b38de9a3a014e5717b3348951cfe21a07bc8c13",
+    "src/render/BUILD": "97d61838ecceb22701fdea32e5dd614c5a8d6967b1c2faabb1429e3ccedce303",
+    "src/render/inspection_guides.cpp": "49c7a1295e65787101de9a2b01e66f6d7be482f477701f3cc6bf985b2f2b65f1",
+    "src/render/inspection_guides.hpp": "f968e8b9edf29bda84098c772a71f96ff6567586dddfc80a3fb6e01c9335bfbd",
+    "src/render/mesh_path.cpp": "7b6b98b44328fbda0085fbacec0d8f3304b838082db0d9e81e53c9324f85373c",
+    "src/render/mesh_path.hpp": "1c9694aefaa929afe41178f12f9c9edfd1dde78ed7ad5a93d5fe5025379dc2e8",
+    "src/render/salvage_asset_fixture.cpp": "25a1fb8c263b749a78576185b74cf8002f620ec30c4c6a2906e23421d83ab81b",
+    "src/render/salvage_asset_fixture.hpp": "f97b61ae48c3d2e31c1ea7bb7a21e5058ad42b8707490ebe2e08e5e279c80ab1",
+    "tests/BUILD": "14815669f8b183f5522c4f5d9cc7d685d370a459e429ab20858039e8cab02608",
+    "tests/CMakeLists.txt": "8fa7b4ad4693487a23b3852069edbf5195adc37f32bb9580b417b25ff63b7f7d",
+    "tests/test_config.cpp": "d0710b8bf64c03ed4fb5b3de37f11e03a0c117707ac6e5afb430701fa2e0eea0",
+    "tests/test_fixture_registry.cpp": "58ed0df297ed9d32785eb55d96375c7cde68635a1c5ccab5ec7573aac701aa7c",
+    "tests/test_mesh_path.cpp": "be5a3b0504467dff5122f6af2fd54a19afa137e4b4b406cd645704581a01b4aa",
+    "tests/test_pontoon_pipeline.cpp": "cd1ccc43fa9a6456704cad9869ced9f2bd7189641c2194ccfc555985ab7ff550",
+    "tests/test_salvage_asset_fixture.cpp": "ebf8662eb948490e9596cab7ec8992c00cc57299693e86511279984cc149b2af",
+    "web/index.html": "ba9888fc19f1e161359cedadd427cde38dd3bdf467dbb824eb1ae17074222240",
+    "web/salvage_preview.js": "2103c537f9f159f2490f4d2cb627fb20a9ca95df741d8eda2dd9b51c14a20658"
+  },
+  "artifacts": {
+    "/home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/voxy_native": {
+      "sha256": "68e1ede74c0e2d84d41c22ac2f316bb8dab2ddf3a536321abb80d9b682d07565",
+      "bytes": 4947128
+    },
+    "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native": {
+      "sha256": "78ee10cd3e56d2b25f376d0eb88a44b395b053e8c7c9b91f3ac47b2424ed612b",
+      "bytes": 45030440
+    },
+    "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_tests": {
+      "sha256": "695f0f6ea35e318921a5923ba5965ed4a9af12cb40b71ff0a5439930a3362a49",
+      "bytes": 61679592
+    },
+    "/tmp/voxys-asset-browser-07/voxy_wasm.js": {
+      "sha256": "1cb7a9e0f121254c6d285d4c6480a917bdb5d5aa70175cb0950f5612d6bc03a9",
+      "bytes": 78652
+    },
+    "/tmp/voxys-asset-browser-07/voxy_wasm.wasm": {
+      "sha256": "860e54d5a843d5502b4e2673c17e0d9548c8504250e83c8714ee815c301331a3",
+      "bytes": 5693279
+    },
+    "/tmp/voxys-asset-browser-07/voxy_wasm.data": {
+      "sha256": "163343b51d4e84dbec1a42cb39ff66b7a80198dc358992e5abd315baa1ac4747",
+      "bytes": 62489632
+    },
+    "/tmp/voxys-asset-browser-07/index.html": {
+      "sha256": "ba9888fc19f1e161359cedadd427cde38dd3bdf467dbb824eb1ae17074222240",
+      "bytes": 69669
+    },
+    "/tmp/voxys-asset-browser-07/salvage_preview.js": {
+      "sha256": "2103c537f9f159f2490f4d2cb627fb20a9ca95df741d8eda2dd9b51c14a20658",
+      "bytes": 6656
+    }
+  },
+  "tests": {
+    "assembly-bazel-fixture_registry.xml": {
+      "sha256": "85c8aa682d4f5b40f1065e0f4677501f4790327f9a5cad7df5ae0f8af31d0f7d",
+      "tests": 7,
+      "failures": 0,
+      "skips": 0
+    },
+    "assembly-bazel-pontoon_pipeline.xml": {
+      "sha256": "af9a9a32734404c52c43473d70fbd2213385b94a06e3e7b8971891fff2f1b9e3",
+      "tests": 3,
+      "failures": 0,
+      "skips": 0
+    },
+    "assembly-bazel-salvage_asset_fixture.xml": {
+      "sha256": "6296773693b7664ab55d105d4e3feaa6151a0ae9b9c95c96173cd9cbf348f22f",
+      "tests": 18,
+      "failures": 0,
+      "skips": 0
+    },
+    "assembly-bazel-mesh_path_test.xml": {
+      "sha256": "9a1ae066ad5bfc9639bee71bb0d31951c80b798eda229175a31cb964d6462264",
+      "tests": 6,
+      "failures": 0,
+      "skips": 0
+    },
+    "assembly-cmake-registry.xml": {
+      "sha256": "a58fd82d63c5cbf57f70bc9048bb0d872ae4d26b7a2570c4d421e29883707448",
+      "tests": 7,
+      "failures": 0,
+      "skips": 0
+    },
+    "assembly-cmake-pontoon.xml": {
+      "sha256": "e3392b9a9e6d86c7ee73b5a7bfe880ce4c155ed8cebef9396c85dbfe239e3a09",
+      "tests": 3,
+      "failures": 0,
+      "skips": 0
+    },
+    "assembly-xray-cmake-tests.xml": {
+      "sha256": "42ebcec258400f3163d87356b9a47cd14e668f4483febd445371e84a467b0995",
+      "tests": 18,
+      "failures": 0,
+      "skips": 0
+    },
+    "assembly-xray-cmake-material.xml": {
+      "sha256": "6a33b7facc17496b7f41a1647218b40f0de3648c39a1c6e4380f313b61861774",
+      "tests": 6,
+      "failures": 0,
+      "skips": 0
+    },
+    "wasm_admission": {
+      "manifest": "docs/validation/salvage/ASSET-04/runtime-admission/wasm-assembly-attempt01/manifest.json",
+      "sha256": "98c76a9a6bed2411625abc21af2b1acd47bf1dceaffd4fcb879c19ae70bddea6",
+      "tests": 66,
+      "skips": 0,
+      "sources_still_match": true
+    }
+  },
+  "reports": {
+    "docs/validation/salvage/ASSET-04/assembly-native-clean-attempt02/report.json": {
+      "sha256": "43b44b456fe3c8783903ef02fe8f1814d322429ba13df92c7efb833256cac69a",
+      "status": "captured; visual review required"
+    },
+    "docs/validation/salvage/ASSET-04/assembly-native-sockets-attempt02/report.json": {
+      "sha256": "8423f488c78214957649db4209bcdb13cfdc62d93d1e6c28c8d4f861bc64494d",
+      "status": "captured; visual review required"
+    },
+    "docs/validation/salvage/ASSET-04/assembly-browser-clean-attempt02/report.json": {
+      "sha256": "dd151c9f66f3d39bab922b9b4e607387e279f9711fb0c454a5a12cffd7d3da2b",
+      "status": "captured; visual review required"
+    },
+    "docs/validation/salvage/ASSET-04/assembly-browser-clean-attempt02-startup.json": {
+      "sha256": "7ffd7b46a2312fa80dd972b81752840a4c7378d434e162a7d9402e0a68fd2a5f",
+      "status": "passed"
+    },
+    "docs/validation/salvage/ASSET-04/assembly-browser-sockets-attempt02/report.json": {
+      "sha256": "4280f2ea51dff3c87afd48a687d67e8d64a9aa9701948346702c9e632a5916e0",
+      "status": "captured; visual review required"
+    },
+    "docs/validation/salvage/ASSET-04/assembly-browser-sockets-attempt02-startup.json": {
+      "sha256": "6a808c99180652f54e70e5de354ed777d9b0f52a9ae9981c8ce63b9b80df3a85",
+      "status": "passed"
+    },
+    "docs/validation/salvage/ASSET-04/assembly-browser-journey-attempt02/summary.json": {
+      "sha256": "61351c6704a351a527e3d1a0b6f4f8cee5c7fa35de19c639424bc1a0cb87ff8c",
+      "status": "passed"
+    },
+    "docs/validation/salvage/ASSET-04/assembly-browser-journey-attempt02-startup.json": {
+      "sha256": "406a437ce1c4b604e53832e91afd8eb0751f8c6251d6c2a70b8996a9ae13f5b5",
+      "status": "passed"
+    },
+    "docs/validation/salvage/ASSET-04/assembly-browser-loss-attempt02/summary.json": {
+      "sha256": "61beca5b5d6e90483348ed4ce67ed8237ef41d273c409dfa3f548d41258bce03",
+      "status": "passed"
+    },
+    "docs/validation/salvage/ASSET-04/assembly-browser-loss-attempt02-startup.json": {
+      "sha256": "6bf5804adba1c1c35a64804ad9920c2605a9e9dbc42570d91ad455d3e9cd8e4d",
+      "status": "passed"
+    },
+    "docs/validation/salvage/ASSET-04/assembly-raw-regression-attempt01/summary.json": {
+      "sha256": "ab48bc890af10c8160346227cd2a9adc8b8e08bf2a232676d7e1d3ab9cf93301",
+      "status": "passed"
+    },
+    "docs/validation/salvage/ASSET-04/assembly-raw-regression-attempt01-startup.json": {
+      "sha256": "12f0d1778f2addf48702055aac6dacfcecda82b6ec16edf1c336648b23c4f12a",
+      "status": "passed"
+    }
+  },
+  "images": {
+    "docs/validation/salvage/ASSET-04/assembly-native-clean-attempt02/overview.png": {
+      "sha256": "8d25aac31c1460ae26f599afc483365d429f5f22c89205506e33e2e4501244eb",
+      "bytes": 3056359
+    },
+    "docs/validation/salvage/ASSET-04/assembly-native-clean-attempt02/stack-engaged.png": {
+      "sha256": "dcc0f9667250aaf235d9e3969f1b7c2b2c88f08675ac2dec01916796a9b4fbd4",
+      "bytes": 1617180
+    },
+    "docs/validation/salvage/ASSET-04/assembly-native-clean-attempt02/crossbeams-under.png": {
+      "sha256": "666817022ba38916359dc01381cfb27dae0a5557efad2c08bc4f36b3ece5f4de",
+      "bytes": 2246057
+    },
+    "docs/validation/salvage/ASSET-04/assembly-native-clean-attempt02/crossbeams-top.png": {
+      "sha256": "9523beb2bee152f734d55d38466e5fed66568ac3e0a7fb9650b8fc042993cb5c",
+      "bytes": 2209979
+    },
+    "docs/validation/salvage/ASSET-04/assembly-native-sockets-attempt02/overview.png": {
+      "sha256": "8d492e332246c96ebe925c844ba207773bc2c2ec4e1bf637c2d0c303922bf672",
+      "bytes": 3063400
+    },
+    "docs/validation/salvage/ASSET-04/assembly-native-sockets-attempt02/crossbeams-under.png": {
+      "sha256": "e090dd92d82243afd0224f87e7f6c027460a797bd01f626fa9b6688184d4066f",
+      "bytes": 2239763
+    },
+    "docs/validation/salvage/ASSET-04/assembly-browser-clean-attempt02/overview.png": {
+      "sha256": "43b68403b0045ac6d9452b8df96a5b75417b8574ca4ad3ae41833624316712e5",
+      "bytes": 1879776
+    },
+    "docs/validation/salvage/ASSET-04/assembly-browser-clean-attempt02/stack-engaged.png": {
+      "sha256": "198b3291b4d7ec003820df659beaca2d25e1398a0481e8a7a16ae9f2c372a9e8",
+      "bytes": 934543
+    },
+    "docs/validation/salvage/ASSET-04/assembly-browser-clean-attempt02/crossbeams-under.png": {
+      "sha256": "12ab4724cae7405089caa0832172941d64748282ff1565cb349e91227d4252a0",
+      "bytes": 1279368
+    },
+    "docs/validation/salvage/ASSET-04/assembly-browser-clean-attempt02/crossbeams-top.png": {
+      "sha256": "1d3a6b511b30750a9af1a63001e51acf1c4ff58347e2b03f165e9edbfa52cffc",
+      "bytes": 1328985
+    },
+    "docs/validation/salvage/ASSET-04/assembly-browser-sockets-attempt02/overview.png": {
+      "sha256": "84e0c87533389e6b4d1bdd1fa2c68e46f98d58a46afcf314013f5ac486352b32",
+      "bytes": 1884202
+    },
+    "docs/validation/salvage/ASSET-04/assembly-browser-sockets-attempt02/crossbeams-under.png": {
+      "sha256": "4cb00f8fb963c775e9364b1847e26033a9a11b34aedcc3864b9fdeb3ddd722da",
+      "bytes": 1278237
+    },
+    "docs/validation/salvage/ASSET-04/assembly-browser-journey-attempt02/02-guides-1.png": {
+      "sha256": "68a403e3ddab6c26f53efa85a9b0aa81b52d252b20cf5fca42e3c487103a32c9",
+      "bytes": 1884819
+    },
+    "docs/validation/salvage/ASSET-04/assembly-browser-journey-attempt02/06-original-world.png": {
+      "sha256": "312d46a72e7a553d1fa2b4310d012d528cb07613349a2f0550d63ba67b08dd79",
+      "bytes": 35295
+    },
+    "docs/validation/salvage/ASSET-04/assembly-browser-journey-attempt02/07-reentered.png": {
+      "sha256": "47e7e40949035d185c3aa0ec2c131893ed48b5be1b9867b30c24f4b425d5e447",
+      "bytes": 1882618
+    },
+    "docs/validation/salvage/ASSET-04/assembly-browser-journey-attempt02/04-flown.png": {
+      "sha256": "f3481fe5fbffc8d4fd32326893a88185bbbf934ef25001c9fa710ba5fda026ea",
+      "bytes": 1869249
+    },
+    "docs/validation/salvage/ASSET-04/assembly-browser-journey-attempt02/02-lod-3.png": {
+      "sha256": "c44abe255eab8b6b22b65a7fd362a200f481723f1a09175b226482dfc9c4ea3f",
+      "bytes": 1833542
+    },
+    "docs/validation/salvage/ASSET-04/assembly-browser-journey-attempt02/02-lod-0.png": {
+      "sha256": "4bb1affacc957e5cd3dbb9ffa6c8d82f8836115f6e2197151841733ccba6f21d",
+      "bytes": 1880134
+    },
+    "docs/validation/salvage/ASSET-04/assembly-browser-journey-attempt02/02-lod-2.png": {
+      "sha256": "9a89db2fa2a88795adc3e93d162273ce24db6e7db30869faeef597b2ad6c838b",
+      "bytes": 1874032
+    },
+    "docs/validation/salvage/ASSET-04/assembly-browser-journey-attempt02/02-guides-0.png": {
+      "sha256": "a7e5db49ed25bb59413c4cd4a7db42385b202a3f829e05d76838d5afcee95211",
+      "bytes": 1880385
+    },
+    "docs/validation/salvage/ASSET-04/assembly-browser-journey-attempt02/02-lod-1.png": {
+      "sha256": "caee1fe3b1795d12d97cd42dbe60efdc3034695a77af76a4701b43a7efedd88f",
+      "bytes": 1878165
+    },
+    "docs/validation/salvage/ASSET-04/assembly-browser-journey-attempt02/01-auto.png": {
+      "sha256": "f302cde5f140bf0c4832bb3c604911a01f3156b3e2e16d2f8194e8ae7bf74c95",
+      "bytes": 1880779
+    },
+    "docs/validation/salvage/ASSET-04/assembly-browser-journey-attempt02/02-guides-2.png": {
+      "sha256": "d1db1c5bc94f651126766515d4ad88a2e15c598a96a6addcceb809f9aaeec397",
+      "bytes": 1885084
+    },
+    "docs/validation/salvage/ASSET-04/assembly-browser-journey-attempt02/03-resized-1920.png": {
+      "sha256": "e3ed4b9dde605829bd8be1e1bb0fa7657a5413ee037f4827bb402ec2013b1d3b",
+      "bytes": 1881283
+    },
+    "docs/validation/salvage/ASSET-04/assembly-browser-journey-attempt02/03-resized-1280.png": {
+      "sha256": "ba657f63f8de12bf7763b4059a907da7fb7e5036114ab66d3eb117606eb326b0",
+      "bytes": 849023
+    },
+    "docs/validation/salvage/ASSET-04/assembly-browser-journey-attempt02/05-reset.png": {
+      "sha256": "5006467b5e524e28392a440262f4be9357aa5570411d393e78123ebccaac0f5d",
+      "bytes": 1882974
+    },
+    "docs/validation/salvage/ASSET-04/assembly-browser-loss-attempt02/stopped.png": {
+      "sha256": "e60f3b21b79266d69f1b4ad4c502e6059e7a73f089efa36c727537c80242c27a",
+      "bytes": 54065
+    },
+    "docs/validation/salvage/ASSET-04/assembly-raw-regression-attempt01/02-guides-1.png": {
+      "sha256": "37f9d0c4c6f0c00015337aeac283b5a8fdc35518e6bd9da505892fd3bd3207ac",
+      "bytes": 1963274
+    },
+    "docs/validation/salvage/ASSET-04/assembly-raw-regression-attempt01/06-original-world.png": {
+      "sha256": "19fa00e06bd43c7748deeb35044159b1571c1281f3509b3c3cf16c5f214de599",
+      "bytes": 37249
+    },
+    "docs/validation/salvage/ASSET-04/assembly-raw-regression-attempt01/07-reentered.png": {
+      "sha256": "c3b744152be7cb271667dd3d2368d4de7fd8066317d28770d01af8431ece9ff6",
+      "bytes": 1977220
+    },
+    "docs/validation/salvage/ASSET-04/assembly-raw-regression-attempt01/04-flown.png": {
+      "sha256": "ffced58355041fc2a3b4dc1e2920eab1d90f956dcb63bc4d5310fffaca26b815",
+      "bytes": 1967016
+    },
+    "docs/validation/salvage/ASSET-04/assembly-raw-regression-attempt01/02-lod-3.png": {
+      "sha256": "4fd811f86580e2642271bf04c3748c0f58ef64baee6e5a492fdedf60a00b319b",
+      "bytes": 1920096
+    },
+    "docs/validation/salvage/ASSET-04/assembly-raw-regression-attempt01/02-lod-0.png": {
+      "sha256": "9ed5db1f447d9c58f3bc8f142fa95a3009cd27a7f1701c0f4548fe2164641c53",
+      "bytes": 1976288
+    },
+    "docs/validation/salvage/ASSET-04/assembly-raw-regression-attempt01/02-lod-2.png": {
+      "sha256": "df2cee0977daade0f189f5171f3ee3ce9cb9327b06892edfacb186b51ffab597",
+      "bytes": 1967919
+    },
+    "docs/validation/salvage/ASSET-04/assembly-raw-regression-attempt01/02-guides-0.png": {
+      "sha256": "042b47e5bd73926f2b6e1470f058cb69542fb0ea29476da038e09bc78d1c0542",
+      "bytes": 1976426
+    },
+    "docs/validation/salvage/ASSET-04/assembly-raw-regression-attempt01/02-lod-1.png": {
+      "sha256": "af404d04b227635c18402b493a1c40f09c8a42ae695f3cee09d7fb3fa3788131",
+      "bytes": 1972879
+    },
+    "docs/validation/salvage/ASSET-04/assembly-raw-regression-attempt01/01-auto.png": {
+      "sha256": "49aa8af7d9db6922ff75e6bd19653e4fe0cf046ce88cff39c367a088a26d0d67",
+      "bytes": 1976799
+    },
+    "docs/validation/salvage/ASSET-04/assembly-raw-regression-attempt01/02-guides-2.png": {
+      "sha256": "5431ba1d6dfecb5c581c7aeab89f940a087667edbfe09e21b31cc6e65d511883",
+      "bytes": 1972680
+    },
+    "docs/validation/salvage/ASSET-04/assembly-raw-regression-attempt01/03-resized-1920.png": {
+      "sha256": "b3e105daa0f37f3bf2fc30ce54e7eec70b5d24e5e965020c8a209fc63b54bf32",
+      "bytes": 1975871
+    },
+    "docs/validation/salvage/ASSET-04/assembly-raw-regression-attempt01/03-resized-1280.png": {
+      "sha256": "5bf5d4b052043e258b06a3180199fdca3b91181cdafb18045657246933e1fcb0",
+      "bytes": 913498
+    },
+    "docs/validation/salvage/ASSET-04/assembly-raw-regression-attempt01/05-reset.png": {
+      "sha256": "a987047e6d06903122fc3f9eb6d447421f734cff1f8209f400857c0698baa51c",
+      "bytes": 1978098
+    }
+  },
+  "review": {
+    "reviewer": "root; not independent",
+    "findings": [
+      "Current native/browser clean overview shows four authored pontoons and two v1 prototype crossbeams.",
+      "Current native/browser underside X-ray visibly reveals paired axes and clearance boxes. Historical depth-tested attempt01 hid these inside opaque parts.",
+      "Prototype bottom wells remain explicitly unmodeled; this checkpoint is not finished game art."
+    ],
+    "remaining": [
+      "asymmetric authored hierarchy/winding stand",
+      "rendered 24-orientation assembly matrix",
+      "slow projected-size LOD transitions",
+      "independent technical review",
+      "final candidate publication"
+    ]
+  },
+  "resource_accounting": {
+    "combined_reservation_limit_bytes": 50331648,
+    "owner_reservation_limit_bytes": 16777216,
+    "fixed_reservation_bytes": 131072,
+    "fixed_requested_bytes": 100544,
+    "assembly_requested_reservation_bytes": 6264556,
+    "raw_requested_reservation_bytes": 6262620,
+    "prototype_unique_uploads": 1,
+    "cooked_unique_uploads": 3,
+    "prototype_upload_bytes": 1936,
+    "guide_cube_bytes": 1936,
+    "assembly_model_draws": 6,
+    "assembly_socket_guide_boxes": 150,
+    "raw_socket_guide_boxes": 360,
+    "draw_ceiling": 512,
+    "model_node_ceiling": 256,
+    "excluded": "driver/staging overhead, process memory and unrelated application allocations"
+  }
+}

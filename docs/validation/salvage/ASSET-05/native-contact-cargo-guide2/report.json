@@ -1,0 +1,140 @@
+{
+  "schema": 1,
+  "status": "captured; visual review required",
+  "recipe": {
+    "schema": 1,
+    "purpose": "Close contact and underside inspection of actual r08 models; no live physics acceptance",
+    "physical_viewport": [
+      1920,
+      1080
+    ],
+    "fov_degrees": 60,
+    "registry": "data/salvage/fixture-kit-cargo.json",
+    "views": [
+      {
+        "name": "cargo-seat",
+        "eye": [
+          2.1,
+          0.4,
+          -2.4
+        ],
+        "target": [
+          0,
+          0.32,
+          0
+        ],
+        "sun": [
+          0.6,
+          0.5,
+          -0.4
+        ]
+      },
+      {
+        "name": "cargo-below",
+        "eye": [
+          1.5,
+          -1.5,
+          -2
+        ],
+        "target": [
+          0,
+          -0.2,
+          0
+        ],
+        "sun": [
+          0.5,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "crate-pin",
+        "eye": [
+          4.2,
+          -0.5,
+          -1.8
+        ],
+        "target": [
+          3.2,
+          -0.16,
+          0
+        ],
+        "sun": [
+          0.5,
+          0.6,
+          -0.4
+        ]
+      }
+    ],
+    "inspection_expectations": {
+      "maximum_model_draws": 4,
+      "guide_boxes": [
+        0,
+        23,
+        120
+      ]
+    }
+  },
+  "recipe_sha256": "ea85ae49b7fdeab0c6db402b4cc3bc144c753cd26c612be7bdd86347a0b8e9f6",
+  "runner_sha256": "4cb504c3fa164d5455bfb89708a3c33ca8ec018e1efdc5a98752e04e0e508304",
+  "binary": "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native",
+  "binary_sha256": "8df8819dce84af5040c27eb9f0726d78c3f3d5c3c6bee400d3fd50845e179c00",
+  "original_registry_sha256": "b216068d27ac7044ba5d5d38335ef8e4dfa10ce1f301b58257bae3f8803f18cb",
+  "original_config": "/home/modkin/workspace/schneiderlo/voxys/salvage_kit_cargo.cfg",
+  "original_config_sha256": "2d85c576edc6e65068ecaf41f07ae5ac123587bcb9f4ae2cd956807cf4c8bfed",
+  "guides": "off",
+  "selected_views": [
+    "cargo-below",
+    "crate-pin"
+  ],
+  "scope": "Native scene captures; guides are technical overlays, not final art or moving-craft acceptance",
+  "views": [
+    {
+      "name": "cargo-below",
+      "argv": [
+        "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-05/native-contact-cargo-guide2/cargo-below.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-05/native-contact-cargo-guide2/cargo-below.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "config_sha256": "6d7ba002bddde2e99fffddb304ef1e2b38f4dbcb48ba148b5e5ecae88958b237",
+      "registry_sha256": "3839f44e6121b50e2db4700ac1bca56fe7c1311a4c19c58437e45bba4bb38d90",
+      "timeout": false,
+      "exit_code": 0,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "png_sha256": "83764f21f690f4ab5781e795f6ebc80ec8adabd6746feabd1afea2b47f5804c9",
+      "gpu_or_application_errors": [],
+      "passed": true
+    },
+    {
+      "name": "crate-pin",
+      "argv": [
+        "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-05/native-contact-cargo-guide2/crate-pin.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-05/native-contact-cargo-guide2/crate-pin.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "config_sha256": "cb9707cde3c4ad3d922ad1b3a3cfda1f92a417ae2fcf9bd37afc29614807e257",
+      "registry_sha256": "c8305a9c3418f52f5de51db8c0afedffbaf797f439e963ba12543864a43ad34b",
+      "timeout": false,
+      "exit_code": 0,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "png_sha256": "7e0578f4830bc0112bbd92fa59fedbc0613ab055e99699703d066eac2846e534",
+      "gpu_or_application_errors": [],
+      "passed": true
+    }
+  ],
+  "temporary_registry_removed": true
+}

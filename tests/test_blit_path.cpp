@@ -519,7 +519,7 @@ TEST_F(BlitPathTest, RenderWithoutTexturesFails) {
     ASSERT_NE(encoder, nullptr);
     
     // Render without textures should not crash (will warn and return early)
-    blitPath_.render(encoder, colorView_);
+    EXPECT_FALSE(blitPath_.render(encoder, colorView_));
     
     wgpuCommandEncoderRelease(encoder);
 }
@@ -562,7 +562,7 @@ TEST_F(BlitPathTest, RenderWithAllTexturesSucceeds) {
     ASSERT_NE(encoder, nullptr);
     
     // Render should succeed
-    blitPath_.render(encoder, colorView_);
+    EXPECT_TRUE(blitPath_.render(encoder, colorView_));
     
     // Submit commands
     WGPUCommandBufferDescriptor cmdBufDesc{};

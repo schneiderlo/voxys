@@ -1,0 +1,21 @@
+{
+  "base_revision_at_report": "7f28fabfabf3d63726f6cfa1001c3ce1ed557911",
+  "python": "3.14.4 (main, Jun 18 2026, 14:25:02) [GCC 15.2.0]",
+  "platform": "Linux-7.0.0-31-generic-x86_64-with-glibc2.43",
+  "cpp_cases": 9,
+  "python_cases": 20,
+  "cpp_sanitizers": [
+    "undefined",
+    "float-cast-overflow"
+  ],
+  "same_bundle_bytes": true,
+  "cooked_files": {
+    "cook-manifest.json": "2a77ea227a8a20994070c92759cedd98046c99a9b91762711d14edd47f253e5e",
+    "gameplay.json": "d023d402e4747f9ed69e78d9b5b1e1e2e330f972b2c87374ae7af6b4565c5f5e",
+    "lod-9007199254740997.vmesh": "4444fd14cfc967b46f3dcbe1079c04f1d0329ed890754ce98f367e71c1c36689"
+  },
+  "scope": "standalone CPU + actual converter; shared build/runtime/profile enforcement not claimed",
+  "review": "independent implementation review including final URI-prefix follow-up passed",
+  "final_uri_wrapper_cook_matches_retained": true,
+  "later_root_integration": "integration/summary.json: native Linux Bazel/CMake acceptance passed; original standalone identities retained"
+}

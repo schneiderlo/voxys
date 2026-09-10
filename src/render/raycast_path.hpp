@@ -206,6 +206,9 @@ public:
         return staticCacheRefreshed_;
     }
 
+    // The terrain cache was only encoded, then abandoned before submission.
+    void discardEncoding() noexcept { staticCacheDirty_ = true; }
+
     /// Get current camera uniforms (for debugging)
     [[nodiscard]] const CameraUniforms& getUniforms() const noexcept;
 

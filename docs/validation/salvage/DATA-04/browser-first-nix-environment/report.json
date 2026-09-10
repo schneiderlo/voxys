@@ -1,0 +1,93 @@
+{
+  "kind": "application startup, no FPS acceptance",
+  "experience": "salvage",
+  "gpuMode": "gaming",
+  "flags": [
+    "--ozone-platform=wayland",
+    "--enable-features=Vulkan"
+  ],
+  "browser": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/152.0.7977.82",
+    "revision": "@d04cdb24d67b081f6cf80200ffc5233f44b61109",
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36",
+    "jsVersion": "15.2.124.21"
+  },
+  "url": "http://127.0.0.1:39933/index.html?experience=salvage",
+  "sample": null,
+  "status": "failed",
+  "error": "AssertionError [ERR_ASSERTION]: Initialization failed: Error: No suitable GPU adapter found\n    at init (http://127.0.0.1:39933/index.html?experience=salvage:953:27)\n\n1 !== 0\n",
+  "chrome_log": "[567355:567355:0907/193948.421625:ERROR:content/browser/browser_main_loop.cc:279] GLib-GObject: g_object_set_is_valid_property: object class 'GtkSettings' has no property named 'gtk-modules'\n\nDevTools listening on ws://127.0.0.1:38565/devtools/browser/56ea9861-c8df-4722-82c3-e46446b5ca3d\n[567355:567355:0907/193948.684219:ERROR:content/browser/gpu/gpu_process_host.cc:1035] GPU process exited unexpectedly: exit_code=139\n[567355:567355:0907/193948.857175:ERROR:content/browser/gpu/gpu_process_host.cc:1035] GPU process exited unexpectedly: exit_code=139\n[567355:567355:0907/193948.998685:ERROR:content/browser/gpu/gpu_process_host.cc:1035] GPU process exited unexpectedly: exit_code=139\n[567355:567355:0907/193949.138867:ERROR:content/browser/gpu/gpu_process_host.cc:1035] GPU process exited unexpectedly: exit_code=139\n[567355:567355:0907/193949.279255:ERROR:content/browser/gpu/gpu_process_host.cc:1035] GPU process exited unexpectedly: exit_code=139\n[567355:567355:0907/193949.428062:ERROR:content/browser/gpu/gpu_process_host.cc:1035] GPU process exited unexpectedly: exit_code=139\n",
+  "console": [
+    {
+      "type": "error",
+      "args": [
+        {
+          "type": "string",
+          "value": "Initialization failed:"
+        },
+        {
+          "type": "object",
+          "subtype": "error",
+          "className": "Error",
+          "description": "Error: No suitable GPU adapter found\n    at init (http://127.0.0.1:39933/index.html?experience=salvage:953:27)",
+          "objectId": "4004522208249871293.2.1",
+          "preview": {
+            "type": "object",
+            "subtype": "error",
+            "description": "Error: No suitable GPU adapter found\n    at init (http://127.0.0.1:39933/index.html?experience=salvage:953:27)",
+            "overflow": false,
+            "properties": [
+              {
+                "name": "stack",
+                "type": "string",
+                "value": "Error: No suitable GPU adapter found\n    at init (…0.0.1:39933/index.html?experience=salvage:953:27)"
+              },
+              {
+                "name": "message",
+                "type": "string",
+                "value": "No suitable GPU adapter found"
+              }
+            ]
+          }
+        }
+      ],
+      "executionContextId": 2,
+      "timestamp": 1788824389460.628,
+      "stackTrace": {
+        "callFrames": [
+          {
+            "functionName": "init",
+            "scriptId": "15",
+            "url": "http://127.0.0.1:39933/index.html?experience=salvage",
+            "lineNumber": 1412,
+            "columnNumber": 24
+          }
+        ]
+      }
+    }
+  ],
+  "browserErrors": [
+    "Initialization failed: Error: No suitable GPU adapter found\n    at init (http://127.0.0.1:39933/index.html?experience=salvage:953:27)"
+  ],
+  "startup": {
+    "result": {
+      "type": "object",
+      "value": {
+        "diagnostics": {
+          "allocationSemantics": "cumulative creation calls/requested buffer bytes; not live memory",
+          "allocations": {
+            "buffers": 0,
+            "textures": 0,
+            "bufferBytes": 0
+          },
+          "destroyCalls": []
+        },
+        "memory": {
+          "used": 1268094,
+          "total": 2576598
+        }
+      }
+    }
+  }
+}

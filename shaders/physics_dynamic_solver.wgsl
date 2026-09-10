@@ -27,6 +27,7 @@ struct BodyShape {
     dimensions_type : vec4<f32>,
     invInertia_material : vec4<f32>,
     material_coefficients : vec4<f32>,
+    authored_shape : vec4<u32>,
 };
 
 struct KeyValue {

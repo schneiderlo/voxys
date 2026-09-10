@@ -1,0 +1,45 @@
+{
+  "binary": "/home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/voxy_native",
+  "binary_sha256_before": "9e7576020724855fc870d420a511eca7a7916a5b55423d35495d559359797ed0",
+  "binary_sha256_after": "9e7576020724855fc870d420a511eca7a7916a5b55423d35495d559359797ed0",
+  "environment": {
+    "WGPU_BACKEND": "vulkan",
+    "VOXY_WINDOW_BACKEND": null,
+    "DISPLAY": ":0",
+    "WAYLAND_DISPLAY": "wayland-0"
+  },
+  "claim": "visible launch and natural screenshot exit only; no performance claim",
+  "routes": [
+    {
+      "config": "salvage_asset_fixture.cfg",
+      "config_sha256": "a9d4e08737f1260c69e10b2610a1ef97f8ca798659c707c9dac9be77b85242af",
+      "command": [
+        "/home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/salvage_asset_fixture.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/native-fixture-attempt02/native-route-salvage_asset_fixture.png",
+        "--screenshot-frames",
+        "180"
+      ],
+      "started_unix_seconds": 1788835475.3149624,
+      "wall_seconds": 4.978,
+      "exit_code": 0,
+      "timed_out": false,
+      "png_dimensions": [
+        1920,
+        1080
+      ],
+      "png_sha256": "a604f2882d09081c8180f9a5a362802c5a5c246a298c6a4a6b537e86963a2239",
+      "main_loop_ended": true,
+      "saved_screenshot": true,
+      "errors": [],
+      "window_and_adapter": [
+        "\u001b[32m[INFO ] [00:00:00.083] [Application::init] Window created via Wayland: 1536x864 logical, 1920x1080 framebuffer (1.25x1.25 scale)\u001b[0m",
+        "\u001b[32m[INFO ] [00:00:00.160] [Application::init::GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)\u001b[0m"
+      ],
+      "passed": true
+    }
+  ],
+  "passed": true
+}

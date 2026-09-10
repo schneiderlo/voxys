@@ -1,0 +1,34 @@
+{
+  "status": "captured and verified; visual review required",
+  "binary": "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native",
+  "binary_sha256": "34db30ad27f6a7cd72095aeaabd4d27e238af1c3eb512fd8c5d92aa5bfb34f65",
+  "source_hashes": {
+    "/home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp": "5360f51cf5da250de8c0763c11dc5c3edd48af8fefac5be9a41a11310f605ed2",
+    "/home/modkin/workspace/schneiderlo/voxys/src/app/application.hpp": "ec98cae267bc278750ca1f07805e12e44ea92935fa30a747d1718e31ae46d578",
+    "/home/modkin/workspace/schneiderlo/voxys/src/engine/platform/native/entry.cpp": "441a7a3da5069b8ca1c5e2f32ba0264d845453ad70165c9922b9a4a4d125ad88",
+    "/home/modkin/workspace/schneiderlo/voxys/src/engine/platform/native/inspection_motion.hpp": "bd1b38a1e88fff82618b058ba60859e873569204097c3a11b73c507fe68af7b4",
+    "/home/modkin/workspace/schneiderlo/voxys/src/core/config.cpp": "fcd429eb82f386275f14481888f563d868a83bd857d92c101f526cc6be5c337a",
+    "/home/modkin/workspace/schneiderlo/voxys/src/core/config.hpp": "76b4defc626067c2ab49ed9bf598e8a229eec3ab70e6326b13b1f2bda9f7f845",
+    "/home/modkin/workspace/schneiderlo/voxys/src/render/salvage_asset_fixture.cpp": "30eadedf66baaa08dbc21f0888f845348f9be3efc2fabc10015e108c2b242cd9",
+    "/home/modkin/workspace/schneiderlo/voxys/src/render/mesh_path.cpp": "7b6b98b44328fbda0085fbacec0d8f3304b838082db0d9e81e53c9324f85373c",
+    "/home/modkin/workspace/schneiderlo/voxys/shaders/mesh_path.wgsl": "199608700b6baeb13e3f3989a050a30e24170a64d34aeef6d5db2fc63a7b1c98",
+    "/home/modkin/workspace/schneiderlo/voxys/data/salvage/fixture-kit-broad.json": "dcbffbd37d588c575de5fb36891f55b56f3b4b25d969d7a3b2e2c95497c58467",
+    "/home/modkin/workspace/schneiderlo/voxys/scripts/capture_salvage_asset_motion.py": "788080b182cc013ad391d94c276f0f774c152860c0e5be69ab8df8cf3ce2031c",
+    "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-05/motion-r09-broad-lod2.json": "aae316bb72ad8e86d6812f4f3afa593713bef6f907e20614198e65ce7d70021b",
+    "/home/modkin/workspace/schneiderlo/voxys/salvage_kit_broad.cfg": "2771f0a3896409fc02556cb1c653423624ccd6987cab839f30d48f26d1503d93"
+  },
+  "argv": [
+    "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native",
+    "--config",
+    "/home/modkin/workspace/schneiderlo/voxys/salvage_kit_broad.cfg",
+    "--inspection-motion",
+    "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-05/motion-r09-broad-lod2.json",
+    "--inspection-motion-output",
+    "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-05/native-r09-broad-lod2/captures"
+  ],
+  "exit_code": 0,
+  "errors": [],
+  "native_report_sha256": "d48c966c7ce72f7632fdb48f582dc3c7bd4f22516d5e6fb60e1e1352d95bf6fb",
+  "report_sha256": "67618e54aba0b32ecad79624a6268fcc963c058cd453bcd435438f97b8ebd27e",
+  "sources_unchanged": true
+}

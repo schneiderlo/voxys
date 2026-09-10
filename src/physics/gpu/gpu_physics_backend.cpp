@@ -5,6 +5,8 @@
 #include "physics/character/cpu_capsule_mover.hpp"
 #include "physics/gpu/debug_readback_ring.hpp"
 #include "physics/gpu/gpu_body_metadata.hpp"
+#include "physics/gpu/gpu_body_shape.hpp"
+#include "physics/gpu/gpu_authored_shapes.hpp"
 #include "physics/gpu/gpu_broad_phase.hpp"
 #include "physics/gpu/gpu_buffer_arena.hpp"
 #include "physics/gpu/gpu_ccd.hpp"
@@ -22,6 +24,7 @@
 
 #include <algorithm>
 #include <array>
+#include <atomic>
 #include <bit>
 #include <chrono>
 #include <cmath>
@@ -38,6 +41,19 @@
 
 namespace voxy::physics {
 namespace {
+
+// Runtime-only identities are never serialized or reused by backend worlds.
+// Burn an identity even if allocation later fails: old callbacks may survive.
+uint64_t nextShapePoolIdentity() noexcept {
+    static std::atomic<uint64_t> next{1};
+    uint64_t current = next.load(std::memory_order_relaxed);
+    while (current != 0) {
+        const uint64_t following = current == UINT64_MAX ? 0 : current + 1;
+        if (next.compare_exchange_weak(current, following,
+                std::memory_order_relaxed, std::memory_order_relaxed)) return current;
+    }
+    return 0;
+}
 
 constexpr uint32_t kWorkgroupSize = 256;
 constexpr uint32_t kMaximumSubsteps = 16;
@@ -61,7 +77,7 @@ constexpr uint32_t kStageQueryWordsPerBoundary = 1u;
 #endif
 constexpr uint32_t kStagePacketWordCount =
     kStageBoundaryCount * kStageQueryWordsPerBoundary;
-constexpr uint32_t kCoreTelemetryWordCount = 16u;
+constexpr uint32_t kCoreTelemetryWordCount = 32u;
 constexpr uint32_t kCoreTelemetryOffset = 0u;
 constexpr uint32_t kCcdTelemetryOffset =
     kCoreTelemetryOffset + kCoreTelemetryWordCount;
@@ -92,11 +108,7 @@ struct alignas(16) GpuMotion {
     glm::vec4 angularVelocityFlags{0.0f};
 };
 
-struct alignas(16) GpuShape {
-    glm::vec4 dimensionsType{0.0f};
-    glm::vec4 invInertiaMaterial{0.0f};
-    glm::vec4 materialCoefficients{0.0f};
-};
+using GpuShape = GpuBodyShape;
 
 struct alignas(16) GpuCommand {
     glm::uvec4 header{0u};
@@ -131,6 +143,14 @@ struct alignas(16) GpuTerrainContactCache {
     glm::uvec4 state{0u};
 };
 
+struct alignas(16) AuthoredWaterUniforms {
+    glm::uvec4 bodyCells{0}; // Body index/generation, cell count, reserved.
+    glm::vec4 pointThrust{0}, directionSteer{0};
+    glm::vec4 fluid{0}; // Density, linear drag, angular drag, total displacement.
+    glm::vec4 controls{0}; // Throttle and steering, both [-1, 1].
+};
+static_assert(sizeof(AuthoredWaterUniforms) == 80);
+
 struct CoreGpuTelemetry {
     uint32_t activeBodies = 0;
     uint32_t tick = 0;
@@ -148,6 +168,9 @@ struct CoreGpuTelemetry {
     uint32_t highCommands = 0;
     bool activeOverflow = false;
     uint32_t kinematicBodies = 0;
+    uint32_t authoredTerrainFailures = 0;
+    uint32_t authoredTerrainCells = 0;
+    uint32_t authoredAdmissionFailures = 0;
 };
 
 CoreGpuTelemetry decodeCoreTelemetry(
@@ -170,12 +193,15 @@ CoreGpuTelemetry decodeCoreTelemetry(
     result.highCommands = words[13];
     result.activeOverflow = words[14] != 0u;
     result.kinematicBodies = words[15];
+    result.authoredTerrainFailures = words[16];
+    result.authoredTerrainCells = words[17];
+    result.authoredAdmissionFailures = words[20];
     return result;
 }
 
 static_assert(sizeof(GpuPose) == 32);
 static_assert(sizeof(GpuMotion) == 32);
-static_assert(sizeof(GpuShape) == 48);
+static_assert(sizeof(GpuShape) == 64);
 static_assert(sizeof(GpuCommand) == 128);
 static_assert(sizeof(SimulationUniforms) == 208);
 static_assert(sizeof(GpuTerrainContactCache) == 48);
@@ -183,7 +209,8 @@ static_assert(sizeof(GpuTerrainContactCache) == 48);
 uint32_t commandPriority(PhysicsCommandType type) noexcept {
     switch (type) {
         case PhysicsCommandType::DestroyBody: return 0;
-        case PhysicsCommandType::SpawnBody: return 1;
+        case PhysicsCommandType::SpawnBody:
+        case PhysicsCommandType::SpawnAuthoredBody: return 1;
         case PhysicsCommandType::Teleport:
         case PhysicsCommandType::SetKinematicTarget: return 2;
         case PhysicsCommandType::SetMaterial: return 3;
@@ -290,14 +317,17 @@ public:
         std::vector<bool> hostAttachmentAlive;
         std::vector<uint32_t> freeAttachmentIndices;
         std::vector<AttachmentHandle> createdAttachments;
+        std::vector<BodyHandle> destroyedBodies;
+        std::vector<uint8_t> retiringBodyIndices;
     };
 
     ~Impl() { shutdown(); }
 
     bool initialize(const PhysicsInitContext& context) {
-        if (initialized_) return true;
+        if (initialized_) return context.gpu.initialTick==0;
         const auto& gpuConfig = context.gpu;
-        const bool validScalars = finiteVector(gpuConfig.gravity)
+        const bool validScalars = gpuConfig.initialTick<=UINT64_MAX-uint64_t(gpuConfig.maximumCatchUpTicks)*2
+            && finiteVector(gpuConfig.gravity)
             && std::isfinite(gpuConfig.fixedTickSeconds)
             && gpuConfig.fixedTickSeconds > 0.0f
             && std::isfinite(gpuConfig.linearDamping)
@@ -426,6 +456,8 @@ public:
                             sizeof(GpuAttachmentCommand))
             || !fitsStorage(context.gpu.debugReadbackBodyCapacity,
                             kGpuBodyBytes)
+            || !fitsStorage(uint64_t{context.gpu.debugReadbackBodyCapacity}*kGpuBodyBytes
+                + uint64_t{context.gpu.debugReadbackAttachmentCapacity}*sizeof(GpuDistanceAttachment),1)
             || !fitsStorage(context.gpu.asyncQueryCapacity,
                             sizeof(GpuQueryOutput))) {
             LOG_ERROR("WebGPU physics capacities exceed device buffer limits");
@@ -459,6 +491,9 @@ public:
         hostAlive_.assign(bodyCapacity_, false);
         scheduledSpawnTicks_.assign(bodyCapacity_, 0u);
         scheduledDestroyTicks_.assign(bodyCapacity_, 0u);
+        // One pending retirement per allocated lifetime. Preparation and its
+        // no-fail commit must never allocate after the parent set is admitted.
+        pendingFrees_.reserve(bodyLimit_);
         attachmentGenerations_.assign(attachmentCapacity_, 1u);
         attachmentGenerations_[0] = 0u;
         hostAttachmentAlive_.assign(attachmentCapacity_, false);
@@ -493,6 +528,9 @@ public:
             attachmentLimit_);
         preparedMutation_->createdAttachments.reserve(
             attachmentLimit_);
+        preparedMutation_->destroyedBodies.reserve(
+            std::min(bodyLimit_, config_.commandCapacity));
+        preparedMutation_->retiringBodyIndices.assign(bodyCapacity_, 0u);
         arena_.initialize(device_);
         if (!characterMover_.initialize()) {
             shutdown();
@@ -538,6 +576,8 @@ public:
             uint64_t{blockCount_} * sizeof(uint32_t), scratchStorage, true);
         countersBuffer_ = arena_.create("physics_counters",
             kCoreTelemetryWordCount * sizeof(uint32_t), scratchStorage, true);
+        emptyAuthoredShapeBuffer_ = arena_.create("physics_empty_authored_shape_heap",
+            32u, storage);
         commandBuffer_ = arena_.create("physics_commands",
             uint64_t{config_.commandCapacity} * sizeof(GpuCommand),
             WGPUBufferUsage_Storage | WGPUBufferUsage_CopyDst, true);
@@ -556,7 +596,7 @@ public:
             || !metadataBuffer_ || !forceBuffer_
             || !terrainContactCacheBuffer_
             || !activeIdsBuffer_ || !activeOffsetsBuffer_ || !blockSumsBuffer_
-            || !blockPrefixBuffer_ || !countersBuffer_ || !commandBuffer_
+            || !blockPrefixBuffer_ || !countersBuffer_ || !emptyAuthoredShapeBuffer_ || !commandBuffer_
             || !uniformBuffer_ || !debugPackedBuffer_
             || (config_.enableTelemetryReadback
                 && !telemetrySnapshotBuffer_)) {
@@ -564,8 +604,9 @@ public:
             return false;
         }
 
-        const std::array<uint32_t, kCoreTelemetryWordCount> zeroCounters{};
-        if (!gpu::writeBuffer(queue_, countersBuffer_, 0, zeroCounters)) {
+        std::array<uint32_t, kCoreTelemetryWordCount> initialCounters{};
+        encodedTick_=context.gpu.initialTick;initialCounters[1]=static_cast<uint32_t>(encodedTick_);
+        if (!gpu::writeBuffer(queue_, countersBuffer_, 0, initialCounters)) {
             shutdown();
             return false;
         }
@@ -584,7 +625,8 @@ public:
         }
 
         const size_t readbackBytes =
-            size_t{config_.debugReadbackBodyCapacity} * kGpuBodyBytes;
+            size_t{config_.debugReadbackBodyCapacity} * kGpuBodyBytes
+            + size_t{config_.debugReadbackAttachmentCapacity} * sizeof(GpuDistanceAttachment);
         if (!readbackRing_.initialize(device_, config_.debugReadbackSlots,
                                       readbackBytes)) {
             shutdown();
@@ -671,6 +713,7 @@ public:
             .bodyCapacity = 1u,
             .pairCapacity = pairCapacity_,
             .metadataBuffer = metadataBuffer_,
+            .authoredShapeBuffer = authoredShapes_ ? authoredShapes_->buffer() : nullptr,
         });
 
         GpuDynamicSolver::Config solverConfig;
@@ -764,7 +807,9 @@ public:
             shutdown();
             return false;
         }
-        eventCapacity_ = static_cast<uint32_t>(maximumEvents);
+        eventCapacity_ = config_.eventReadbackCapacity
+            ? std::min(config_.eventReadbackCapacity,static_cast<uint32_t>(maximumEvents))
+            : static_cast<uint32_t>(maximumEvents);
 
         if (config_.enableStageProfiling) {
             if (!std::isfinite(
@@ -818,7 +863,278 @@ public:
         return true;
     }
 
+    [[nodiscard]] ShapeResourceError enableAuthoredShapeResources(
+        const ShapeResourceLimits& limits) noexcept {
+        if (!initialized_) return ShapeResourceError::NotInitialized;
+        if (authoredShapes_) return ShapeResourceError::AlreadyConfigured;
+        const uint64_t identity = nextShapePoolIdentity();
+        if (identity == 0) return ShapeResourceError::Capacity;
+        try {
+            std::vector<ShapeHandle> bodyShapes(bodyCapacity_);
+            std::vector<uint8_t> staticBodies(bodyCapacity_);
+            std::vector<ShapeHandle> uses; uses.reserve(limits.cpu.slots);
+            ShapeResourceError error;
+            auto candidate = GpuAuthoredShapeStore::create(device_, identity, error, limits);
+            if (!candidate) return error;
+            authoredShapes_ = std::move(candidate);
+            authoredShapePoolIdentity_ = identity;
+            authoredBodyShapes_ = std::move(bodyShapes);
+            authoredStaticBodies_ = std::move(staticBodies);
+            authoredSubmissionUses_ = std::move(uses);
+        } catch (const std::bad_alloc&) { return ShapeResourceError::Allocation; }
+        return ShapeResourceError::None;
+    }
+
+    AuthoredBodyError configureAuthoredWater(const AuthoredWaterBodyDesc& desc) {
+        if (!initialized_) return AuthoredBodyError::NotInitialized;
+        if (preparedMutationActive() || authoredSubmission_.valid()) return AuthoredBodyError::Busy;
+        if (!desc.body.valid() || desc.body.index >= authoredBodyShapes_.size()
+            || !hostHandleAliveAt(desc.body,nextMutationTick())
+            || !authoredBodyShapes_[desc.body.index].valid()) return AuthoredBodyError::InvalidShape;
+        if (authoredStaticBodies_[desc.body.index]) return AuthoredBodyError::Unsupported;
+        auto slot=std::find_if(waterDrivers_.begin(),waterDrivers_.end(),[&](const auto& driver) {
+            return driver.state.bodyCells.x==desc.body.index && driver.state.bodyCells.y==desc.body.generation;
+        });
+        if(slot==waterDrivers_.end()) slot=std::find_if(waterDrivers_.begin(),waterDrivers_.end(),
+            [](const auto& driver){return driver.state.bodyCells.x==0;});
+        if(slot==waterDrivers_.end()) return AuthoredBodyError::Capacity;
+        auto& driver=*slot;
+        if (desc.cells.empty() || desc.cells.size() > 2048) return AuthoredBodyError::Capacity;
+        if (!finiteVector(glm::vec4(desc.propellerPoint,desc.maximumThrustNewtons))
+            || !finiteVector(glm::vec4(desc.propellerDirection,desc.maximumSteeringRadians))
+            || !finiteVector(glm::vec4(desc.densityKgPerM3,desc.linearDragPerSecond,desc.angularDragPerSecond,0))
+            || desc.maximumThrustNewtons < 0 || desc.maximumThrustNewtons > 1000000
+            || desc.maximumSteeringRadians < 0 || desc.maximumSteeringRadians > 1.57f
+            || std::abs(glm::length(desc.propellerDirection)-1) > .001f
+            || desc.densityKgPerM3 <= 0 || desc.densityKgPerM3 > 2000
+            || desc.linearDragPerSecond < 0 || desc.linearDragPerSecond > 20
+            || desc.angularDragPerSecond < 0 || desc.angularDragPerSecond > 20)
+            return AuthoredBodyError::InvalidWater;
+        std::vector<glm::vec4> cells; cells.reserve(desc.cells.size()*2);
+        double volume = 0;
+        for (size_t i=0;i<desc.cells.size();++i) {
+            const auto& cell=desc.cells[i];
+            if (!finiteVector(glm::vec4(cell.minimum,0)) || !finiteVector(glm::vec4(cell.maximum,0))
+                || glm::any(glm::lessThanEqual(cell.maximum,cell.minimum))
+                || glm::any(glm::greaterThan(glm::abs(cell.minimum),glm::vec3(256)))
+                || glm::any(glm::greaterThan(glm::abs(cell.maximum),glm::vec3(256))))
+                return AuthoredBodyError::InvalidWater;
+            for (size_t j=0;j<i;++j) if (glm::all(glm::lessThan(cell.minimum,desc.cells[j].maximum))
+                && glm::all(glm::greaterThan(cell.maximum,desc.cells[j].minimum))) return AuthoredBodyError::InvalidWater;
+            const glm::dvec3 extent=glm::dvec3(cell.maximum)-glm::dvec3(cell.minimum);
+            volume+=extent.x*extent.y*extent.z;
+            cells.emplace_back(cell.minimum,0); cells.emplace_back(cell.maximum,0);
+        }
+        if (!std::isfinite(volume) || volume <= 0 || volume > 1e6) return AuthoredBodyError::InvalidWater;
+        if (!waterDriverLayout_) {
+            using LE=gpu::BindGroupLayoutEntry;
+            std::vector<LE> entries;
+            for (uint32_t binding : {0u,1u,2u,3u,6u}) entries.emplace_back(binding).computeVisible().storageBuffer(false);
+            for (uint32_t binding : {18u,19u}) entries.emplace_back(binding).computeVisible().storageBuffer(true);
+            entries.emplace_back(8u).computeVisible().uniformBuffer(false,sizeof(SimulationUniforms));
+            entries.emplace_back(20u).computeVisible().uniformBuffer(false,sizeof(AuthoredWaterUniforms));
+            entries.emplace_back(16u).computeVisible().texture(WGPUTextureSampleType_Float,WGPUTextureViewDimension_2DArray);
+            entries.emplace_back(17u).computeVisible().sampler(WGPUSamplerBindingType_Filtering);
+            waterDriverLayout_=gpu::createBindGroupLayout(device_,entries,"authored_water_layout");
+            if (!waterDriverLayout_) return AuthoredBodyError::Capacity;
+            waterDriverPipelineLayout_=gpu::createPipelineLayout(device_,std::array{waterDriverLayout_},"authored_water_pipeline_layout");
+            if (waterDriverPipelineLayout_) waterDriverPipeline_=makeComputePipeline(device_,waterDriverPipelineLayout_,
+                shaderModule_,"apply_authored_water","authored_water");
+
+        }
+        if(!driver.uniform) driver.uniform=gpu::createBuffer(device_,gpu::BufferDesc::uniform(sizeof(AuthoredWaterUniforms),"authored_water_uniform"));
+        if (!waterDriverPipeline_ || !driver.uniform) return AuthoredBodyError::Capacity;
+        auto buffer=gpu::createBuffer(device_,gpu::BufferDesc::storage(cells.size()*sizeof(glm::vec4),true,"authored_displacement_cells"));
+        if (!buffer) return AuthoredBodyError::Capacity;
+        if (!gpu::writeBuffer(queue_,buffer,0,std::span<const glm::vec4>(cells))) {
+            wgpuBufferRelease(buffer); return AuthoredBodyError::Capacity;
+        }
+        // Release without Destroy: already submitted commands may still own
+        // the previous immutable cells. WebGPU retains their dependencies.
+        releaseHandle(driver.cells,wgpuBufferRelease); driver.cells=buffer;
+        waterDriverBytes_-=driver.bytes;
+        driver.bytes=cells.size()*sizeof(glm::vec4)+sizeof(AuthoredWaterUniforms);
+        waterDriverBytes_+=driver.bytes;
+        driver.state={}; driver.state.bodyCells={desc.body.index,desc.body.generation,static_cast<uint32_t>(desc.cells.size()),0};
+        driver.state.pointThrust={desc.propellerPoint,desc.maximumThrustNewtons};
+        driver.state.directionSteer={desc.propellerDirection,desc.maximumSteeringRadians};
+        driver.state.fluid={desc.densityKgPerM3,desc.linearDragPerSecond,desc.angularDragPerSecond,static_cast<float>(volume)};
+        return AuthoredBodyError::None;
+    }
+
+    bool setAuthoredHelm(BodyHandle body,float throttle,float steering) noexcept {
+        if (!initialized_ || authoredSubmission_.valid() || preparedMutationActive()
+            || !hostHandleAliveAt(body,nextMutationTick()) || !std::isfinite(throttle) || !std::isfinite(steering)
+            || std::abs(throttle)>1 || std::abs(steering)>1) return false;
+        for(auto& driver:waterDrivers_) if(driver.state.bodyCells.x==body.index && driver.state.bodyCells.y==body.generation) {
+            driver.state.controls={throttle,steering,0,0}; idleWorldConfirmed_=false; return true;
+        }
+        return false;
+    }
+
+    bool bindAuthoredWater() {
+        using BE=gpu::BindGroupEntry;
+        for(auto& driver:waterDrivers_) {
+            if(driver.state.bodyCells.x==0) continue;
+            const std::array entries{BE(0).buffer(poseBuffer_),BE(1).buffer(motionBuffer_),BE(2).buffer(shapeBuffer_),
+                BE(3).buffer(metadataBuffer_),BE(6).buffer(countersBuffer_),BE(8).buffer(uniformBuffer_),
+                BE(18).buffer(authoredShapes_->buffer()),BE(19).buffer(driver.cells),BE(20).buffer(driver.uniform),
+                BE(16).textureView(waterBindingView()),BE(17).sampler(waterBindingSampler())};
+            auto binding=gpu::createBindGroup(device_,waterDriverLayout_,entries,"authored_water");
+            if (!binding) return false;
+            releaseHandle(driver.binding,wgpuBindGroupRelease); driver.binding=binding;
+            if(!gpu::writeBuffer(queue_,driver.uniform,0,driver.state)) return false;
+        }
+        return true;
+    }
+
+    ShapeResourceSubmission prepareAuthoredSubmission(ShapeResourceError& error) noexcept {
+        pollOwnedProgress();
+        if (!initialized_) { error = ShapeResourceError::NotInitialized; return {}; }
+        if (!authoredShapes_) { error = ShapeResourceError::Unsupported; return {}; }
+        if (authoredSubmission_.valid() || preparedMutationActive()) { error = ShapeResourceError::Busy; return {}; }
+        if(!ownedFrontierActive_) {
+            try {
+                if(!ownedProgressReadback_.initialize(device_,kOwnedProgressBatches,kCoreTelemetryWordCount*sizeof(uint32_t))) {
+                    error=ShapeResourceError::Allocation;return {};
+                }
+            } catch(const std::bad_alloc&) { error=ShapeResourceError::Allocation;return {}; }
+            ownedBaseTick_=ownedSubmittedTick_=ownedCompletedTick_=encodedTick_;
+            ownedLastPoll_=std::chrono::steady_clock::now();ownedFrontierActive_=true;
+        }
+        if (pendingTicks_ && (ownedProgressCount_==kOwnedProgressBatches || !ownedProgressReadback_.nextAvailableSlot())) {
+            error=ShapeResourceError::Busy;return {};
+        }
+        if((eventReadbackEnabled_ && pendingTicks_>eventReadback_.availableSlots())
+            || (debugRequest_ && !readbackRing_.nextAvailableSlot())) {
+            error=ShapeResourceError::Busy;return {};
+        }
+        authoredSubmissionUses_.clear();
+        for (uint32_t body = 1; body < nextUnusedIndex_; ++body) {
+            const auto shape = authoredBodyShapes_[body];
+            if (!shape.valid() || std::find(authoredSubmissionUses_.begin(), authoredSubmissionUses_.end(), shape)
+                    != authoredSubmissionUses_.end()) continue;
+            if (authoredSubmissionUses_.size() == authoredSubmissionUses_.capacity()) {
+                error = ShapeResourceError::Capacity; return {};
+            }
+            authoredSubmissionUses_.push_back(shape);
+        }
+        authoredSubmission_ = authoredShapes_->prepareSubmission(authoredSubmissionUses_, error);
+        authoredSubmissionEncoded_ = false;
+        return authoredSubmission_;
+    }
+
+    ShapeResourceError submitAuthored(ShapeResourceSubmission ticket,
+        std::span<const WGPUCommandBuffer> commands) noexcept {
+        if (!ticket.valid() || ticket != authoredSubmission_ || !authoredShapes_)
+            return ShapeResourceError::InvalidTicket;
+        const auto error = authoredShapes_->submit(ticket, commands);
+        if (error == ShapeResourceError::None) {
+            if (authoredSubmissionEncoded_ && encodedTick_>ownedSubmittedTick_) {
+                const auto index=(ownedProgressHead_+ownedProgressCount_)%kOwnedProgressBatches;
+                ownedProgress_[index]={ticket.serial,encodedTick_,false,false};++ownedProgressCount_;
+                ownedSubmittedTick_=encodedTick_;
+            }
+            authoredSubmission_ = {}; authoredSubmissionEncoded_ = false;
+        }
+        return error;
+    }
+
+    void pollOwnedProgress() noexcept {
+        if(!ownedFrontierActive_ || !authoredShapes_ || !initialized_ || authoredSubmission_.valid()) return;
+        authoredShapes_->poll();
+        if(authoredShapes_->stats().phase==ShapeResourcePhase::Failed) { initialized_=false;return; }
+        const auto now=std::chrono::steady_clock::now();
+        const double elapsed=std::clamp(std::chrono::duration<double>(now-ownedLastPoll_).count(),0.0,.25);
+        ownedLastPoll_=now;
+        bool progress=false;
+        try {
+            while(auto packet=ownedProgressReadback_.poll()) {
+                std::array<uint32_t,kCoreTelemetryWordCount> words{};
+                if(packet->bytes.size()!=sizeof(words)) { initialized_=false;break; }
+                std::memcpy(words.data(),packet->bytes.data(),sizeof(words));
+                if(words[1]!=static_cast<uint32_t>(packet->tick) || words[16] || words[20]) {
+                    LOG_ERROR("GPU tick proof rejected at tick {}",packet->tick);initialized_=false;break;
+                }
+                bool found=false;
+                for(uint32_t i=0;i<ownedProgressCount_;++i) {
+                    auto& batch=ownedProgress_[(ownedProgressHead_+i)%kOwnedProgressBatches];
+                    if(batch.tick==packet->tick && !batch.observed) { batch.observed=true;found=true;break; }
+                }
+                if(!found) { initialized_=false;break; }
+                progress=true;
+            }
+        } catch(const std::bad_alloc&) { initialized_=false; }
+        if(ownedProgressReadback_.failedReadbacks()) initialized_=false;
+        if(!initialized_) return;
+        const auto completedSerial=authoredShapes_->stats().cpu.completed;
+        for(uint32_t i=0;i<ownedProgressCount_;++i) {
+            auto& batch=ownedProgress_[(ownedProgressHead_+i)%kOwnedProgressBatches];
+            if(!batch.fenced && batch.serial<=completedSerial) { batch.fenced=true;progress=true; }
+        }
+        while(ownedProgressCount_) {
+            const auto& batch=ownedProgress_[ownedProgressHead_];
+            if(!batch.observed || !batch.fenced) break;
+            ownedCompletedTick_=batch.tick;
+            ownedProgress_[ownedProgressHead_]={};ownedProgressHead_=(ownedProgressHead_+1)%kOwnedProgressBatches;
+            --ownedProgressCount_;progress=true;
+        }
+        // Count active polling time, not suspended-tab wall time. Resuming a
+        // hidden browser gets time to deliver its queued completion callbacks.
+        ownedStallSeconds_=progress || !ownedProgressCount_ ? 0 : ownedStallSeconds_+elapsed;
+        if(ownedStallSeconds_>=5) { LOG_ERROR("GPU tick completion stalled for five active seconds");initialized_=false; }
+    }
+
+    PhysicsTickFrontier tickFrontier() const noexcept {
+        if(!ownedFrontierActive_ || !authoredShapes_) return {};
+        const uint32_t maximumFlight=config_.maximumCatchUpTicks*2;
+        return {.supported=true,.failed=!initialized_,
+            .backpressured=ownedProgressCount_==kOwnedProgressBatches || encodedTick_+pendingTicks_-ownedCompletedTick_>=maximumFlight,
+            .incarnation=authoredShapePoolIdentity_,.baseTick=ownedBaseTick_,
+            .scheduled=encodedTick_+pendingTicks_,.encoded=encodedTick_,.submitted=ownedSubmittedTick_,.completed=ownedCompletedTick_,
+            .maximumPendingTicks=config_.maximumCatchUpTicks,.maximumInFlightTicks=maximumFlight,.pendingBatches=ownedProgressCount_};
+    }
+
+    ShapeResourceError discardAuthored(ShapeResourceSubmission ticket) noexcept {
+        if (!ticket.valid() || ticket != authoredSubmission_ || !authoredShapes_)
+            return ShapeResourceError::InvalidTicket;
+        const auto error = authoredShapes_->discard(ticket);
+        if (authoredSubmissionEncoded_) initialized_ = false;
+        if (error == ShapeResourceError::None) {
+            authoredSubmission_ = {}; authoredSubmissionEncoded_ = false;
+        }
+        return error;
+    }
+
     void shutdown() {
+        for(auto& driver:waterDrivers_) {
+            releaseHandle(driver.binding,wgpuBindGroupRelease);
+            releaseHandle(driver.cells,wgpuBufferRelease);
+            releaseHandle(driver.uniform,wgpuBufferRelease);
+            driver={};
+        }
+        releaseHandle(waterDriverPipeline_,wgpuComputePipelineRelease);
+        releaseHandle(waterDriverPipelineLayout_,wgpuPipelineLayoutRelease);
+        releaseHandle(waterDriverLayout_,wgpuBindGroupLayoutRelease);
+        waterDriverBytes_=0;
+        if (authoredShapes_) {
+            for (const auto shape : authoredBodyShapes_) {
+                if (shape.valid()) static_cast<void>(authoredShapes_->release(shape));
+            }
+            authoredShapes_->close();
+            if (authoredShapes_->stats().phase != ShapeResourcePhase::Closed) {
+                // Forced teardown is abandonment, not successful GPU drain.
+                // The store leaves independent callback state alive and only
+                // releases its buffer reference. Never reuse this pool identity.
+                LOG_WARN("Abandoning undrained authored shape resources during world shutdown");
+            }
+            authoredShapes_.reset();
+        }
+        authoredBodyShapes_.clear(); authoredStaticBodies_.clear(); authoredSubmissionUses_.clear();
+        ownedProgressReadback_.shutdown();ownedProgress_={};ownedProgressHead_=ownedProgressCount_=0;
+        ownedBaseTick_=ownedSubmittedTick_=ownedCompletedTick_=0;ownedStallSeconds_=0;ownedFrontierActive_=false;
+        authoredBodyCount_ = 0; authoredSubmission_ = {}; authoredSubmissionEncoded_ = false;
+        authoredShapePoolIdentity_ = 0;
         // Native WebGPU queues texture uploads until the next submission.
         // Flush them before destroying their destinations, including when a
         // world is shut down before its first physics tick.
@@ -845,6 +1161,7 @@ public:
         releaseHandle(commandBindGroup_, wgpuBindGroupRelease);
         releaseHandle(compactBindGroup_, wgpuBindGroupRelease);
         releaseHandle(integrateBindGroup_, wgpuBindGroupRelease);
+        releaseHandle(staticContactBindGroup_, wgpuBindGroupRelease);
         releaseHandle(tickBindGroup_, wgpuBindGroupRelease);
         releaseHandle(debugBindGroup_, wgpuBindGroupRelease);
         releaseHandle(applyCommandsPipeline_, wgpuComputePipelineRelease);
@@ -858,11 +1175,13 @@ public:
         releaseHandle(commandPipelineLayout_, wgpuPipelineLayoutRelease);
         releaseHandle(compactPipelineLayout_, wgpuPipelineLayoutRelease);
         releaseHandle(integratePipelineLayout_, wgpuPipelineLayoutRelease);
+        releaseHandle(staticContactPipelineLayout_, wgpuPipelineLayoutRelease);
         releaseHandle(tickPipelineLayout_, wgpuPipelineLayoutRelease);
         releaseHandle(debugPipelineLayout_, wgpuPipelineLayoutRelease);
         releaseHandle(commandLayout_, wgpuBindGroupLayoutRelease);
         releaseHandle(compactLayout_, wgpuBindGroupLayoutRelease);
         releaseHandle(integrateLayout_, wgpuBindGroupLayoutRelease);
+        releaseHandle(staticContactLayout_, wgpuBindGroupLayoutRelease);
         releaseHandle(tickLayout_, wgpuBindGroupLayoutRelease);
         releaseHandle(debugLayout_, wgpuBindGroupLayoutRelease);
         releaseHandle(shaderModule_, wgpuShaderModuleRelease);
@@ -884,6 +1203,8 @@ public:
         blockSumsBuffer_ = nullptr;
         blockPrefixBuffer_ = nullptr;
         countersBuffer_ = nullptr;
+        emptyAuthoredShapeBuffer_ = nullptr;
+        staticContactShapeBuffer_ = nullptr;
         commandBuffer_ = nullptr;
         uniformBuffer_ = nullptr;
         debugPackedBuffer_ = nullptr;
@@ -918,6 +1239,7 @@ public:
         accumulator_ = 0.0;
         pendingTicks_ = 0;
         schedulingMode_ = SchedulingMode::Undecided;
+        schedulingPaused_ = false;
         encodedTick_ = 0;
         nextSequence_ = 1;
         nextPreparedMutationToken_ = 1u;
@@ -954,6 +1276,7 @@ public:
         scheduledSpawnTicks_.clear();
         scheduledDestroyTicks_.clear();
         debugRequest_.reset();
+        pendingConfirmedDebug_.reset();pendingConfirmedEvent_.reset();eventDeliveredTick_=0;
         cachedDebugBodies_.clear();
         terrainAttached_ = false;
         terrainStateNeedsClear_ = false;
@@ -962,6 +1285,7 @@ public:
         externalWaterSampler_ = nullptr;
         waterSurfaceStrength_ = 0.0f;
         waterPatchLengths_ = {1949.0f, 326.0f};
+        waterFrame_.reset();
         warnedCpuWaterSampler_ = false;
         terrainWidth_ = 0;
         terrainHeight_ = 0;
@@ -1116,6 +1440,7 @@ public:
         }
         commandEntries.emplace_back(7u);
         commandEntries.back().computeVisible().storageBuffer(true);
+        commandEntries.emplace_back(18u).computeVisible().storageBuffer(true);
         commandEntries.emplace_back(8u);
         commandEntries.back().computeVisible().uniformBuffer(
             false, sizeof(SimulationUniforms));
@@ -1154,6 +1479,17 @@ public:
         integrateLayout_ = gpu::createBindGroupLayout(
             device_, integrateEntries, "physics_integrate_layout");
 
+        std::vector<LE> staticEntries;
+        for (uint32_t binding : {0u, 1u, 2u, 3u, 6u, 9u, 15u}) {
+            staticEntries.emplace_back(binding).computeVisible().storageBuffer(false);
+        }
+        staticEntries.emplace_back(18u).computeVisible().storageBuffer(true);
+        staticEntries.emplace_back(8u).computeVisible().uniformBuffer(false, sizeof(SimulationUniforms));
+        staticEntries.emplace_back(14u).computeVisible().texture(
+            WGPUTextureSampleType_Uint, WGPUTextureViewDimension_2D, false);
+        staticContactLayout_ = gpu::createBindGroupLayout(
+            device_, staticEntries, "physics_static_contact_layout");
+
         std::vector<LE> tickEntries;
         tickEntries.emplace_back(6u);
         tickEntries.back().computeVisible().storageBuffer(false);
@@ -1170,7 +1506,7 @@ public:
             false, sizeof(SimulationUniforms));
         debugLayout_ = gpu::createBindGroupLayout(
             device_, debugEntries, "physics_debug_layout");
-        if (!commandLayout_ || !compactLayout_ || !integrateLayout_
+        if (!commandLayout_ || !compactLayout_ || !integrateLayout_ || !staticContactLayout_
             || !tickLayout_ || !debugLayout_) return false;
 
         const std::array<WGPUBindGroupLayout, 1> commandLayouts{commandLayout_};
@@ -1184,12 +1520,14 @@ public:
             device_, compactLayouts, "physics_compact_pipeline_layout");
         integratePipelineLayout_ = gpu::createPipelineLayout(
             device_, integrateLayouts, "physics_integrate_pipeline_layout");
+        staticContactPipelineLayout_ = gpu::createPipelineLayout(
+            device_, std::array{staticContactLayout_}, "physics_static_contact_pipeline_layout");
         tickPipelineLayout_ = gpu::createPipelineLayout(
             device_, tickLayouts, "physics_tick_pipeline_layout");
         debugPipelineLayout_ = gpu::createPipelineLayout(
             device_, debugLayouts, "physics_debug_pipeline_layout");
         if (!commandPipelineLayout_ || !compactPipelineLayout_
-            || !integratePipelineLayout_ || !tickPipelineLayout_
+            || !integratePipelineLayout_ || !staticContactPipelineLayout_ || !tickPipelineLayout_
             || !debugPipelineLayout_) return false;
 
         applyCommandsPipeline_ = makeComputePipeline(
@@ -1208,7 +1546,7 @@ public:
             device_, integratePipelineLayout_, shaderModule_,
             "prepare_dynamic_bodies", "physics_prepare_dynamic_bodies");
         staticContactPipeline_ = makeComputePipeline(
-            device_, integratePipelineLayout_, shaderModule_,
+            device_, staticContactPipelineLayout_, shaderModule_,
             "solve_static_contacts", "physics_solve_static_contacts");
         advanceTickPipeline_ = makeComputePipeline(
             device_, tickPipelineLayout_, shaderModule_, "advance_tick",
@@ -1221,14 +1559,6 @@ public:
             || !preparePipeline_ || !staticContactPipeline_
             || !advanceTickPipeline_
             || !packDebugPipeline_) return false;
-
-        const std::array<BE, 8> commandBindings = {
-            BE(0).buffer(poseBuffer_), BE(1).buffer(motionBuffer_),
-            BE(2).buffer(shapeBuffer_), BE(3).buffer(metadataBuffer_),
-            BE(5).buffer(forceBuffer_), BE(6).buffer(countersBuffer_),
-            BE(7).buffer(commandBuffer_), BE(8).buffer(uniformBuffer_)};
-        commandBindGroup_ = gpu::createBindGroup(
-            device_, commandLayout_, commandBindings, "physics_commands");
 
         const std::array<BE, 7> compactBindings = {
             BE(3).buffer(metadataBuffer_), BE(6).buffer(countersBuffer_),
@@ -1249,7 +1579,7 @@ public:
             BE(13).buffer(debugPackedBuffer_), BE(8).buffer(uniformBuffer_)};
         debugBindGroup_ = gpu::createBindGroup(
             device_, debugLayout_, debugBindings, "physics_debug_pack");
-        return commandBindGroup_ && compactBindGroup_ && tickBindGroup_
+        return compactBindGroup_ && tickBindGroup_
             && debugBindGroup_ && rebuildIntegrateBindGroup();
     }
 
@@ -1276,8 +1606,36 @@ public:
         WGPUBindGroup replacement = gpu::createBindGroup(
             device_, integrateLayout_, bindings, "physics_integration");
         if (!replacement) return false;
+        WGPUBuffer atlas = authoredShapes_ ? authoredShapes_->buffer() : nullptr;
+        if (!atlas) atlas = emptyAuthoredShapeBuffer_;
+        const std::array staticBindings{
+            BE(0).buffer(poseBuffer_), BE(1).buffer(motionBuffer_),
+            BE(2).buffer(shapeBuffer_), BE(3).buffer(metadataBuffer_),
+            BE(6).buffer(countersBuffer_), BE(9).buffer(activeIdsBuffer_),
+            BE(15).buffer(terrainContactCacheBuffer_), BE(18).buffer(atlas),
+            BE(8).buffer(uniformBuffer_), BE(14).textureView(terrainView),
+        };
+        auto staticReplacement = gpu::createBindGroup(
+            device_, staticContactLayout_, staticBindings, "physics_static_contacts");
+        if (!staticReplacement) { wgpuBindGroupRelease(replacement); return false; }
+        const std::array commandBindings{
+            BE(0).buffer(poseBuffer_), BE(1).buffer(motionBuffer_),
+            BE(2).buffer(shapeBuffer_), BE(3).buffer(metadataBuffer_),
+            BE(5).buffer(forceBuffer_), BE(6).buffer(countersBuffer_),
+            BE(7).buffer(commandBuffer_), BE(8).buffer(uniformBuffer_), BE(18).buffer(atlas),
+        };
+        auto commandReplacement = gpu::createBindGroup(
+            device_, commandLayout_, commandBindings, "physics_commands");
+        if (!commandReplacement) {
+            wgpuBindGroupRelease(replacement); wgpuBindGroupRelease(staticReplacement); return false;
+        }
         releaseHandle(integrateBindGroup_, wgpuBindGroupRelease);
+        releaseHandle(staticContactBindGroup_, wgpuBindGroupRelease);
+        releaseHandle(commandBindGroup_, wgpuBindGroupRelease);
         integrateBindGroup_ = replacement;
+        staticContactBindGroup_ = staticReplacement;
+        commandBindGroup_ = commandReplacement;
+        staticContactShapeBuffer_ = atlas;
         return true;
     }
 
@@ -1289,6 +1647,7 @@ public:
     bool setTerrain(std::span<const uint16_t> samples,
                     uint32_t width, uint32_t height,
                     float heightScale, float cellScale, bool lego = false) {
+        if (lego && authoredBodyCount_ != 0) return false;
         const bool hadTerrain = terrainAttached_;
         if (!initialized_ || width < 2 || height < 2
             || !std::isfinite(heightScale) || heightScale <= 0.0f
@@ -1535,12 +1894,14 @@ public:
             .bodyCapacity = executionBodies,
             .pairCapacity = pairCapacity_,
             .metadataBuffer = metadataBuffer_,
+            .authoredShapeBuffer = authoredShapes_ ? authoredShapes_->buffer() : nullptr,
         });
         querySystem_.setBodyView({
             .poseBuffer = poseBuffer_,
             .shapeBuffer = shapeBuffer_,
             .metadataBuffer = metadataBuffer_,
             .bodyCapacity = executionBodies,
+            .authoredShapeBuffer = authoredShapes_ ? authoredShapes_->buffer() : nullptr,
         });
         attachmentSolver_.setInput({
             .poseBuffer = poseBuffer_,
@@ -1600,6 +1961,12 @@ public:
     }
 
     void releaseHostBody(uint32_t index) {
+        for(auto& driver:waterDrivers_) if(driver.state.bodyCells.x==index) driver.state.bodyCells={0,0,0,0};
+        if (index < authoredBodyShapes_.size() && authoredBodyShapes_[index].valid()) {
+            static_cast<void>(authoredShapes_->release(authoredBodyShapes_[index]));
+            authoredBodyShapes_[index] = {}; --authoredBodyCount_;
+            authoredStaticBodies_[index] = 0;
+        }
         hostAlive_[index] = false;
         scheduledSpawnTicks_[index] = 0u;
         scheduledDestroyTicks_[index] = 0u;
@@ -1612,7 +1979,8 @@ public:
     bool cancelPendingSpawn(BodyHandle handle, uint64_t destroyTick) {
         const auto pendingSpawn = std::find_if(
             commands_.begin(), commands_.end(), [handle](const auto& command) {
-                return command.type == PhysicsCommandType::SpawnBody
+                return (command.type == PhysicsCommandType::SpawnBody
+                    || command.type == PhysicsCommandType::SpawnAuthoredBody)
                     && command.body == handle;
             });
         if (pendingSpawn == commands_.end()
@@ -1674,7 +2042,7 @@ public:
     }
 
     BodyHandle spawn(const BodySpawnDesc& requested) {
-        if (!initialized_ || preparedMutationActive()) return {};
+        if (!initialized_ || preparedMutationActive() || authoredSubmission_.valid()) return {};
         if (!finiteVector(requested.position)
             || !finiteQuaternion(requested.orientation)
             || !finiteVector(requested.linearVelocity)
@@ -1768,8 +2136,48 @@ public:
         return handle;
     }
 
+    AuthoredBodySpawnResult spawnAuthored(const AuthoredBodySpawnDesc& desc) {
+        const auto fail = [](AuthoredBodyError error) { return AuthoredBodySpawnResult{{}, error}; };
+        if (!initialized_) return fail(AuthoredBodyError::NotInitialized);
+        if (preparedMutationActive() || authoredSubmission_.valid()) return fail(AuthoredBodyError::Busy);
+        if (!authoredShapes_ || authoredShapes_->stats().phase != ShapeResourcePhase::Ready)
+            return fail(AuthoredBodyError::NotReady);
+        if (desc.motionType != AuthoredBodyMotionType::Dynamic && desc.motionType != AuthoredBodyMotionType::Static)
+            return fail(AuthoredBodyError::InvalidMotion);
+        const bool fixed = desc.motionType == AuthoredBodyMotionType::Static;
+        if (fixed && (desc.motion.originVelocity != glm::vec3(0) || desc.motion.angularVelocity != glm::vec3(0)))
+            return fail(AuthoredBodyError::InvalidMotion);
+        const auto* shape = authoredShapes_->get(desc.shape);
+        if (!shape) return fail(AuthoredBodyError::InvalidShape);
+        if (authoredShapes_->state(desc.shape) != ShapeResourceState::Ready) return fail(AuthoredBodyError::NotReady);
+        if (desc.material && (!validMaterial(*desc.material)
+                || (desc.material->flags & 0xf0000000u) == kLegoBrickMaterial)) return fail(AuthoredBodyError::InvalidMaterial);
+        AuthoredFrameError frameError;
+        const auto motion = AuthoredBodyFrame(*shape).bodyMotion(desc.motion, frameError);
+        if (!motion) return fail(AuthoredBodyError::InvalidMotion);
+        const auto& mass = shape->packedMass();
+        BodySpawnDesc body;
+        body.shape = ThrowableShape::Box;
+        body.position = motion->centerPosition.local; body.sector = motion->centerPosition.sector;
+        body.orientation = motion->orientation; body.linearVelocity = motion->centerVelocity;
+        body.angularVelocity = motion->angularVelocity; body.inverseMass = fixed ? 0 : mass.centerInverseMass[3];
+        // Conservative COM sphere enclosed by an orientation-independent box.
+        // Narrow phase/terrain/queries use the actual exterior, never this bound.
+        body.dimensions = glm::vec3(2.0f * mass.inverseInertiaRadius[3]); body.material = desc.material;
+        if (authoredShapes_->retain(desc.shape) != ShapeResourceError::None) return fail(AuthoredBodyError::InvalidShape);
+        const auto handle = spawn(body);
+        if (!handle.valid()) { static_cast<void>(authoredShapes_->release(desc.shape)); return fail(AuthoredBodyError::Capacity); }
+        auto& command = commands_.back();
+        command.type = PhysicsCommandType::SpawnAuthoredBody;
+        command.c.w = std::bit_cast<float>(desc.shape.index);
+        command.d.w = std::bit_cast<float>(desc.shape.generation);
+        authoredBodyShapes_[handle.index] = desc.shape; ++authoredBodyCount_;
+        authoredStaticBodies_[handle.index] = fixed ? 1 : 0;
+        return {handle, AuthoredBodyError::None};
+    }
+
     bool destroy(BodyHandle handle) {
-        if (preparedMutationActive()) return false;
+        if (preparedMutationActive() || authoredSubmission_.valid()) return false;
         return queueDestroy(
             handle, nextMutationTick(), assignCommandSequence());
     }
@@ -1850,6 +2258,7 @@ public:
                 latestKinematicIndex_[body] = index;
             } else if (command.type == PhysicsCommandType::Teleport
                        || command.type == PhysicsCommandType::SpawnBody
+                       || command.type == PhysicsCommandType::SpawnAuthoredBody
                        || command.type == PhysicsCommandType::DestroyBody) {
                 if (latestKinematicTick_[body] == command.targetTick
                     && latestKinematicGeneration_[body]
@@ -1872,7 +2281,7 @@ public:
     }
 
     void enqueueCommands(std::span<const PhysicsCommand> input) {
-        if (preparedMutationActive()) return;
+        if (!initialized_ || preparedMutationActive() || authoredSubmission_.valid()) return;
         bool queuedKinematicTarget = false;
         for (PhysicsCommand command : input) {
             if (static_cast<uint32_t>(command.type)
@@ -1897,6 +2306,15 @@ public:
             }
             command.sequence = assignCommandSequence(command.sequence);
 
+            if (command.body.index < authoredStaticBodies_.size() && authoredStaticBodies_[command.body.index]
+                && (command.type == PhysicsCommandType::SetVelocity
+                    || command.type == PhysicsCommandType::SetAngularVelocity
+                    || command.type == PhysicsCommandType::SetKinematicTarget
+                    || command.type == PhysicsCommandType::Teleport)) {
+                LOG_WARN("Discarding motion command for fixed authored scenery");
+                continue;
+            }
+
             if (command.type == PhysicsCommandType::DestroyBody) {
                 static_cast<void>(queueDestroy(
                     command.body, command.targetTick, command.sequence));
@@ -1915,6 +2333,9 @@ public:
             }
             if (!command.body.valid() || command.body.index >= bodyCapacity_)
                 continue;
+            if (command.type == PhysicsCommandType::SetMaterial
+                && !authoredBodyShapes_.empty() && authoredBodyShapes_[command.body.index].valid()
+                && (command.material->flags & 0xf0000000u) == kLegoBrickMaterial) continue;
             if (command.type == PhysicsCommandType::SpawnBody) {
                 const uint32_t index = command.body.index;
                 const bool nextSlot = index == nextUnusedIndex_
@@ -2144,12 +2565,15 @@ public:
             && desc.minimumLength >= 0.0f
             && desc.maximumLength >= desc.minimumLength
             && desc.maximumForce > 0.0f
-            && desc.breakForce >= 0.0f;
+            && desc.breakForce >= 0.0f
+            && std::isfinite(desc.springCompliance)
+            && (desc.springCompliance==0.0f
+                ||(desc.springCompliance>=1e-9f&&desc.springCompliance<=1.0f));
     }
 
     AttachmentHandle createAttachment(
         const DistanceAttachmentDesc& requested) {
-        if (!initialized_ || preparedMutationActive()) return {};
+        if (!initialized_ || preparedMutationActive() || authoredSubmission_.valid()) return {};
         const uint64_t targetTick = nextMutationTick();
         if (!validAttachmentDesc(requested, targetTick)) {
             LOG_WARN("Discarding invalid GPU distance attachment");
@@ -2194,7 +2618,7 @@ public:
     }
 
     bool destroyAttachment(AttachmentHandle handle) {
-        if (preparedMutationActive()) return false;
+        if (preparedMutationActive() || authoredSubmission_.valid()) return false;
         if (!hostAttachmentAllocated(handle)) return false;
         const bool pendingCreate = std::any_of(
             attachmentCommands_.begin(), attachmentCommands_.end(),
@@ -2237,7 +2661,7 @@ public:
 
     bool setAttachmentTarget(
         AttachmentHandle handle, float targetLength) {
-        if (preparedMutationActive() || !hostAttachmentAllocated(handle)
+        if (preparedMutationActive() || authoredSubmission_.valid() || !hostAttachmentAllocated(handle)
             || !std::isfinite(targetLength) || targetLength < 0.0f) {
             return false;
         }
@@ -2259,7 +2683,7 @@ public:
 
     bool setAttachmentMotor(
         AttachmentHandle handle, float motorSpeed) {
-        if (preparedMutationActive() || !hostAttachmentAllocated(handle)
+        if (preparedMutationActive() || authoredSubmission_.valid() || !hostAttachmentAllocated(handle)
             || !std::isfinite(motorSpeed)) {
             return false;
         }
@@ -2287,7 +2711,7 @@ public:
             return result;
         }
         result.targetTick = nextMutationTick();
-        if (preparedMutationActive()) {
+        if (preparedMutationActive() || authoredSubmission_.valid()) {
             result.status = PhysicsMutationStatus::PendingMutation;
             return result;
         }
@@ -2299,20 +2723,34 @@ public:
             result.status = PhysicsMutationStatus::PendingPhysicsTicks;
             return result;
         }
-        if (schedulingMode_ == SchedulingMode::Accumulator) {
+        if (batch.joinedBoundary) {
+            const auto& expected = *batch.joinedBoundary;
+            if (!ownedFrontierActive_ || expected.incarnation == 0u
+                || expected.incarnation != authoredShapePoolIdentity_
+                || expected.completedTick != ownedCompletedTick_
+                || encodedTick_ != ownedCompletedTick_
+                || ownedSubmittedTick_ != ownedCompletedTick_
+                || ownedProgressCount_ != 0u) {
+                result.status = PhysicsMutationStatus::JoinedBoundaryUnavailable;
+                return result;
+            }
+        } else if (schedulingMode_ == SchedulingMode::Accumulator) {
             result.status =
                 PhysicsMutationStatus::IncompatibleSchedulingMode;
             return result;
         }
         if (batch.bodyCommands.empty()
             && batch.attachmentDestroys.empty()
-            && batch.attachmentCreates.empty()) {
+            && batch.attachmentCreates.empty()
+            && batch.bodyDestroys.empty()) {
             result.status = PhysicsMutationStatus::EmptyBatch;
             return result;
         }
         if (commands_.size() > config_.commandCapacity
             || batch.bodyCommands.size()
                 > config_.commandCapacity - commands_.size()
+            || batch.bodyDestroys.size()
+                > config_.commandCapacity - commands_.size() - batch.bodyCommands.size()
             || batch.attachmentDestroys.size()
                 > config_.attachmentCommandCapacity
             || batch.attachmentCreates.size()
@@ -2331,7 +2769,7 @@ public:
             // allocated by initialize(); fail closed if a later refactor ever
             // violates that capacity invariant instead of allocating here.
             if (staged.commands.capacity()
-                    < commands_.size() + batch.bodyCommands.size()
+                    < commands_.size() + batch.bodyCommands.size() + batch.bodyDestroys.size()
                 || staged.attachmentCommands.capacity()
                     < attachmentCommands_.size()
                 || staged.attachmentGenerations.capacity()
@@ -2341,7 +2779,11 @@ public:
                 || staged.freeAttachmentIndices.capacity()
                     < freeAttachmentIndices_.size()
                 || staged.createdAttachments.capacity()
-                    < batch.attachmentCreates.size()) {
+                    < batch.attachmentCreates.size()
+                || staged.destroyedBodies.capacity() < batch.bodyDestroys.size()
+                || staged.retiringBodyIndices.size() != bodyCapacity_
+                || pendingFrees_.size() > pendingFrees_.capacity()
+                || batch.bodyDestroys.size() > pendingFrees_.capacity() - pendingFrees_.size()) {
                 result.status = PhysicsMutationStatus::CapacityExceeded;
                 return result;
             }
@@ -2362,6 +2804,11 @@ public:
             staged.hostAttachmentAlive = hostAttachmentAlive_;
             staged.freeAttachmentIndices = freeAttachmentIndices_;
             staged.createdAttachments.clear();
+            // Clear only the preceding request's touched slots. Membership
+            // checks stay linear overall, even for a large retirement batch.
+            for (const BodyHandle body : staged.destroyedBodies)
+                staged.retiringBodyIndices[body.index] = 0u;
+            staged.destroyedBodies.clear();
 
             const auto assignStagedSequence =
                 [&staged](uint64_t requested = 0u) {
@@ -2383,6 +2830,27 @@ public:
                     return assigned;
                 };
 
+            for (const BodyHandle body : batch.bodyDestroys) {
+                if (!hostHandleAllocated(body)
+                    || scheduledSpawnTicks_[body.index] > encodedTick_
+                    || scheduledDestroyTicks_[body.index] != 0u
+                    || staged.retiringBodyIndices[body.index] != 0u) {
+                    result.status = PhysicsMutationStatus::InvalidInput;
+                    return result;
+                }
+                staged.destroyedBodies.push_back(body);
+                staged.retiringBodyIndices[body.index] = 1u;
+                PhysicsCommand command;
+                command.type = PhysicsCommandType::DestroyBody;
+                command.body = body;
+                command.targetTick = result.targetTick;
+                command.sequence = assignStagedSequence();
+                staged.commands.push_back(command);
+            }
+            const auto retiresBody = [&staged](BodyHandle body) {
+                return body.index < staged.retiringBodyIndices.size()
+                    && staged.retiringBodyIndices[body.index] != 0u;
+            };
             for (PhysicsCommand command : batch.bodyCommands) {
                 if (static_cast<uint32_t>(command.type)
                         > static_cast<uint32_t>(
@@ -2401,7 +2869,8 @@ public:
                     || (command.targetTick != 0u
                         && command.targetTick != result.targetTick)
                     || !hostHandleAliveAt(
-                        command.body, result.targetTick)) {
+                        command.body, result.targetTick)
+                    || retiresBody(command.body)) {
                     result.status = PhysicsMutationStatus::InvalidInput;
                     return result;
                 }
@@ -2512,7 +2981,8 @@ public:
             for (const DistanceAttachmentDesc& requested
                  : batch.attachmentCreates) {
                 if (!validAttachmentDesc(
-                        requested, result.targetTick)) {
+                        requested, result.targetTick)
+                    || retiresBody(requested.bodyA) || retiresBody(requested.bodyB)) {
                     result.status =
                         PhysicsMutationStatus::InvalidInput;
                     return result;
@@ -2602,6 +3072,7 @@ public:
             staged.destroyedAttachmentCount;
         result.createdAttachmentCount =
             staged.createdAttachmentCount;
+        result.destroyedBodyCount = static_cast<uint32_t>(staged.destroyedBodies.size());
 
         // Every operation below is a noexcept scalar assignment or container
         // swap. All validation and allocation happened during preparation.
@@ -2618,6 +3089,10 @@ public:
         residentAttachments_ = staged.residentAttachments;
         highResidentAttachments_ =
             staged.highResidentAttachments;
+        for (const BodyHandle body : staged.destroyedBodies) {
+            scheduledDestroyTicks_[body.index] = staged.targetTick;
+            pendingFrees_.push_back({staged.targetTick, body.index, body.generation});
+        }
         idleWorldConfirmed_ = false;
         staged.token = 0u;
         return result;
@@ -2672,6 +3147,12 @@ public:
         cachedTelemetry_.tick = raw->tick;
         cachedTelemetry_.core = decodeCoreTelemetry(view.subspan(
             kCoreTelemetryOffset, kCoreTelemetryWordCount));
+        if (cachedTelemetry_.core.authoredTerrainFailures != 0
+            || cachedTelemetry_.core.authoredAdmissionFailures != 0) {
+            initialized_ = false;
+            LOG_ERROR("Authored body admission or terrain collision failed; physics stopped at encoded tick {}",
+                      encodedTick_);
+        }
         cachedTelemetry_.ccd = GpuCcd::decodeTelemetry(view.subspan(
             kCcdTelemetryOffset, GpuCcd::kTelemetryWordCount));
         cachedTelemetry_.broad = GpuBroadPhase::decodeTelemetry(view.subspan(
@@ -2706,10 +3187,14 @@ public:
     }
 
     void schedule(float deltaTime) {
+        pollOwnedProgress();
+        if (authoredShapes_) authoredShapes_->poll();
+        if (authoredShapes_ && authoredShapes_->stats().phase == ShapeResourcePhase::Failed)
+            initialized_ = false;
         const auto start = std::chrono::steady_clock::now();
         pollTelemetry();
-        if (!initialized_ || preparedMutationActive()
-            || schedulingMode_ == SchedulingMode::FixedTicks
+        if (!initialized_ || preparedMutationActive() || authoredSubmission_.valid()
+            || schedulingPaused_ || schedulingMode_ == SchedulingMode::FixedTicks
             || !std::isfinite(deltaTime) || deltaTime <= 0.0f) {
             lastStepStats_ = {};
             return;
@@ -2721,9 +3206,12 @@ public:
         // configured maximumCatchUpTicks.
         const uint32_t accumulatorCatchUpTicks =
             std::max(config_.maximumCatchUpTicks, 4u);
-        const double maximumDelta = double{config_.fixedTickSeconds}
-                                  * accumulatorCatchUpTicks;
-        const double fixedTick = static_cast<double>(config_.fixedTickSeconds);
+        // The expedition clock is exactly 60 Hz. Using the f32 GPU duration as
+        // its f64 scheduling denominator loses the boundary tick at 144 Hz.
+        // The solver still consumes the same nearest-f32 duration on the GPU.
+        const double fixedTick = ownedFrontierActive_ && config_.fixedTickSeconds==1.0f/60.0f
+            ? 1.0/60.0 : static_cast<double>(config_.fixedTickSeconds);
+        const double maximumDelta = fixedTick * accumulatorCatchUpTicks;
         // A minimized or occluded application may keep stepping the CPU side
         // while no command encoder is submitted. Bound pending ticks and their
         // companion accumulator as one debt; otherwise every such frame adds
@@ -2737,7 +3225,8 @@ public:
             availableDebt);
         uint32_t scheduled = 0;
         while (accumulator_ + 1e-12 >= fixedTick
-               && pendingTicks_ < config_.maximumCatchUpTicks) {
+               && pendingTicks_ < config_.maximumCatchUpTicks
+               && (!ownedFrontierActive_ || encodedTick_+pendingTicks_-ownedCompletedTick_<config_.maximumCatchUpTicks*2)) {
             accumulator_ -= fixedTick;
             ++pendingTicks_;
             ++scheduled;
@@ -2752,12 +3241,15 @@ public:
     }
 
     bool scheduleFixedTicks(uint32_t tickCount) noexcept {
-        if (!initialized_ || preparedMutationActive()
+        pollOwnedProgress();
+        if (!initialized_ || preparedMutationActive() || authoredSubmission_.valid()
+            || schedulingPaused_
             || schedulingMode_ == SchedulingMode::Accumulator
             || tickCount == 0u
             || tickCount > config_.maximumCatchUpTicks
             || pendingTicks_
                 > config_.maximumCatchUpTicks - tickCount
+            || (ownedFrontierActive_ && encodedTick_+pendingTicks_-ownedCompletedTick_+tickCount>config_.maximumCatchUpTicks*2)
             || encodedTick_
                 > std::numeric_limits<uint64_t>::max()
                     - pendingTicks_ - tickCount) {
@@ -2771,9 +3263,24 @@ public:
         return true;
     }
 
+    bool setSchedulingPaused(bool paused,uint32_t finalTicks) noexcept {
+        pollOwnedProgress();
+        if (!initialized_ || !ownedFrontierActive_ || preparedMutationActive() || authoredSubmission_.valid()
+            || (finalTicks && (!paused || schedulingPaused_))
+            || finalTicks>config_.maximumCatchUpTicks
+            || pendingTicks_>config_.maximumCatchUpTicks-finalTicks
+            || encodedTick_>UINT64_MAX-pendingTicks_-finalTicks
+            || encodedTick_+pendingTicks_-ownedCompletedTick_+finalTicks>config_.maximumCatchUpTicks*2u) return false;
+        pendingTicks_+=finalTicks;
+        schedulingPaused_=paused;
+        accumulator_=0;
+        lastStepStats_={};
+        return true;
+    }
+
     bool submitQueries(std::span<const PhysicsQueryRequest> requests,
                        uint64_t resultTick) {
-        if (!initialized_ || queryPending_ || requests.empty()) return false;
+        if (!initialized_ || authoredSubmission_.valid() || queryPending_ || requests.empty()) return false;
         std::vector<GpuQueryRequest> packed;
         packed.reserve(requests.size());
         const auto finiteVector = [](const glm::vec3& value) {
@@ -2903,23 +3410,40 @@ public:
     }
 
     bool setEventReadbackEnabled(bool enabled) noexcept {
-        eventReadbackEnabled_ = false;
-        if (!initialized_) return false;
-        if (!enabled) return true;
+        if (!initialized_ || authoredSubmission_.valid() || preparedMutationActive()) return false;
+        if(enabled==eventReadbackEnabled_) return true;
+        if(ownedFrontierActive_ && eventReadbackEnabled_
+            && (eventDeliveredTick_<ownedSubmittedTick_ || pendingConfirmedEvent_)) return false;
+        if (!enabled) { eventReadbackEnabled_=false;return true; }
         eventReadbackEnabled_ = initializeEventReadback();
+        if(eventReadbackEnabled_) eventDeliveredTick_=encodedTick_;
         return eventReadbackEnabled_;
     }
 
     std::optional<PhysicsEventBatch> pollEvents() {
-        auto batch = eventReadback_.poll();
-        if (!batch) return std::nullopt;
+        pollOwnedProgress();
+        if(ownedFrontierActive_ && (!initialized_ || authoredSubmission_.valid())) return std::nullopt;
+        if(!pendingConfirmedEvent_) pendingConfirmedEvent_=eventReadback_.poll();
+        if(ownedFrontierActive_ && eventReadback_.failedReadbacks()) { initialized_=false;return std::nullopt; }
+        if(!pendingConfirmedEvent_) return std::nullopt;
+        if(ownedFrontierActive_) {
+            const auto& pending=*pendingConfirmedEvent_;
+            if(pending.tick>ownedCompletedTick_ || pending.submissionSerial>authoredShapes_->stats().cpu.completed)
+                return std::nullopt;
+            if(!pending.valid || pending.overflow || pending.tick!=eventDeliveredTick_+1 || !pending.submissionSerial) {
+                LOG_ERROR("Incomplete GPU event evidence at tick {}",pending.tick);initialized_=false;return std::nullopt;
+            }
+        }
+        auto batch=std::move(*pendingConfirmedEvent_);pendingConfirmedEvent_.reset();
         PhysicsEventBatch result;
-        result.tick = batch->tick;
-        result.overflow = batch->overflow;
-        result.events.reserve(batch->events.size());
-        for (const GpuPhysicsEvent& source : batch->events) {
+        result.tick = batch.tick;
+        result.overflow = batch.overflow;
+        result.confirmedIncarnation=ownedFrontierActive_?authoredShapePoolIdentity_:0;
+        eventDeliveredTick_=batch.tick;
+        result.events.reserve(batch.events.size());
+        for (const GpuPhysicsEvent& source : batch.events) {
             PhysicsEvent event;
-            event.tick = batch->tick;
+            event.tick = batch.tick;
             event.type = static_cast<PhysicsEventType>(std::clamp(
                 source.header[1],
                 static_cast<uint32_t>(PhysicsEventType::ContactBegin),
@@ -3071,6 +3595,14 @@ public:
             report.status = PhysicsEncodeStatus::InvalidEncoder;
             return report;
         }
+        if ((authoredBodyCount_ != 0 || ownedFrontierActive_) && !authoredSubmission_.valid()) {
+            report.status = PhysicsEncodeStatus::AuthoredSubmissionRequired;
+            return report;
+        }
+        if(authoredSubmission_.valid() && authoredSubmissionEncoded_) {
+            report.status=PhysicsEncodeStatus::PreparedMutationPending;return report;
+        }
+        if (authoredSubmission_.valid()) authoredSubmissionEncoded_ = true;
         lastGpuUploadBytes_ = 0u;
         lastGpuReadbackBytes_ = 0u;
         const uint64_t finalTick = encodedTick_ + pendingTicks_;
@@ -3091,6 +3623,18 @@ public:
                 initialized_ = false;
                 return completeReport(status, true);
             };
+        if (waterFrame_ && (waterFrame_->incarnation != authoredShapePoolIdentity_
+            || waterFrame_->tick != finalTick || pendingTicks_ > 1))
+            return failStop(PhysicsEncodeStatus::WaterFrameUnavailable);
+        WGPUBuffer currentAtlas = authoredShapes_ ? authoredShapes_->buffer() : nullptr;
+        if (!currentAtlas) currentAtlas = emptyAuthoredShapeBuffer_;
+        if (currentAtlas != staticContactShapeBuffer_) {
+            if (!rebuildIntegrateBindGroup()) {
+                LOG_ERROR("Failed to bind authored terrain shape resources");
+                return failStop(PhysicsEncodeStatus::UploadFailed);
+            }
+            refreshExecutionInputs(executionBodyCount());
+        }
         sortAndCoalesceKinematicTargets();
         sortAttachmentCommands();
 
@@ -3180,6 +3724,7 @@ public:
                     mutation.desc.maximumForce,
                     mutation.desc.breakForce,
                 };
+                command.material[0]=mutation.desc.springCompliance;
             } else if (mutation.type
                        == GpuAttachmentCommandType::SetTargetLength) {
                 command.anchorATarget[3] = mutation.value;
@@ -3217,7 +3762,8 @@ public:
         // contacts to discover. Keep the authoritative GPU tick moving while
         // avoiding dozens of empty passes. Any mutation or observer that
         // needs current body data takes the complete pipeline below.
-        const bool idleOnlyBatch = pendingTicks_ != 0u
+        const bool idleOnlyBatch = !ownedFrontierActive_ && pendingTicks_ != 0u
+            && std::none_of(waterDrivers_.begin(),waterDrivers_.end(),[](const auto& driver){return driver.state.bodyCells.x!=0;})
             && idleWorldConfirmed_
             && commands_.empty()
             && attachmentCommands_.empty()
@@ -3291,12 +3837,14 @@ public:
                     static_cast<double>(config_.fixedTickSeconds),
                 4096.0)),
             waterPatchLengths_.x, waterPatchLengths_.y);
+        if (waterFrame_) uniforms.waterSurface.y = waterFrame_->phaseSeconds;
         uniforms.worldSector = glm::ivec4(0);
         if (!gpu::writeBuffer(queue_, uniformBuffer_, 0, uniforms)) {
             LOG_ERROR("Failed to upload GPU physics uniforms");
             return failStop(PhysicsEncodeStatus::UploadFailed);
         }
         lastGpuUploadBytes_ += sizeof(SimulationUniforms);
+        if (!bindAuthoredWater()) return failStop(PhysicsEncodeStatus::UploadFailed);
 
         WGPUComputePassDescriptor passDesc{};
         WGPU_SET_LABEL(passDesc, "physics_dynamic_world_step");
@@ -3377,6 +3925,11 @@ public:
             wgpuComputePassEncoderDispatchWorkgroups(pass, 1, 1, 1);
 
             if (executeBodyPipeline) {
+                for(const auto& driver:waterDrivers_) if (driver.state.bodyCells.x != 0) {
+                    wgpuComputePassEncoderSetPipeline(pass,waterDriverPipeline_);
+                    wgpuComputePassEncoderSetBindGroup(pass,0,driver.binding,0,nullptr);
+                    wgpuComputePassEncoderDispatchWorkgroups(pass,1,1,1);
+                }
                 wgpuComputePassEncoderSetPipeline(pass, compactBlocksPipeline_);
                 wgpuComputePassEncoderSetBindGroup(
                     pass, 0, compactBindGroup_, 0, nullptr);
@@ -3537,7 +4090,7 @@ public:
                 }
                 wgpuComputePassEncoderSetPipeline(pass, staticContactPipeline_);
                 wgpuComputePassEncoderSetBindGroup(
-                    pass, 0, integrateBindGroup_, 0, nullptr);
+                    pass, 0, staticContactBindGroup_, 0, nullptr);
                 wgpuComputePassEncoderDispatchWorkgroups(
                     pass,
                     (executionBodies + kStaticContactWorkgroupSize - 1u)
@@ -3572,7 +4125,7 @@ public:
 
             if (eventReadbackEnabled_) {
                 if (!eventReadback_.encodeReadback(
-                        encoder, encodedTick_ + tick + 1u)) {
+                        encoder, encodedTick_ + tick + 1u,authoredSubmission_.serial)) {
                     LOG_WARN("GPU physics event readback ring is full");
                     if (requireClosedReadbacks) {
                         batchFailure =
@@ -3679,10 +4232,16 @@ public:
         if (debugRequest_ && debugPassEncoded) {
             const size_t bytes =
                 size_t{debugRequest_->bodyCount} * kGpuBodyBytes;
-            if (!readbackRing_.encodeCopy(
-                    encoder, debugPackedBuffer_, 0u, bytes, finalTick,
-                    debugRequest_->firstBody,
-                    debugRequest_->bodyCount)) {
+            const size_t attachmentBytes=size_t{debugRequest_->attachmentCount}*sizeof(GpuDistanceAttachment);
+            const std::array copies{
+                DebugReadbackCopy{debugPackedBuffer_,0,bytes},
+                DebugReadbackCopy{attachmentSolver_.attachmentBuffer(),
+                    uint64_t{debugRequest_->firstAttachment}*sizeof(GpuDistanceAttachment),attachmentBytes}};
+            if (!readbackRing_.encodeCopies(
+                    encoder,std::span(copies).first(attachmentBytes?2u:1u),finalTick,
+                    {debugRequest_->firstBody,debugRequest_->bodyCount,
+                     debugRequest_->firstAttachment,debugRequest_->attachmentCount},
+                    std::nullopt,authoredSubmission_.serial)) {
                 LOG_WARN("GPU physics debug readback ring is full");
                 if (requireClosedReadbacks) {
                     debugRequest_.reset();
@@ -3691,7 +4250,7 @@ public:
                             DebugReadbackUnavailable);
                 }
             } else {
-                lastGpuReadbackBytes_ += bytes;
+                lastGpuReadbackBytes_ += bytes+attachmentBytes;
             }
             debugRequest_.reset();
         } else if (debugRequest_) {
@@ -3720,10 +4279,15 @@ public:
             }
         }
 
+        if(authoredSubmission_.valid() && pendingTicks_ && !ownedProgressReadback_.encodeCopy(
+            encoder,countersBuffer_,0,kCoreTelemetryWordCount*sizeof(uint32_t),finalTick,0,kCoreTelemetryWordCount))
+            return failStop(PhysicsEncodeStatus::DebugReadbackUnavailable);
+        if(authoredSubmission_.valid() && pendingTicks_) lastGpuReadbackBytes_+=kCoreTelemetryWordCount*sizeof(uint32_t);
         encodedTick_ = finalTick;
         pendingTicks_ = 0;
         for (const PhysicsCommand& command : commands_) {
-            if (command.type == PhysicsCommandType::SpawnBody
+            if ((command.type == PhysicsCommandType::SpawnBody
+                    || command.type == PhysicsCommandType::SpawnAuthoredBody)
                 && command.targetTick <= finalTick
                 && command.body.index < scheduledSpawnTicks_.size()
                 && generations_[command.body.index]
@@ -3765,6 +4329,11 @@ public:
 
     void requestDebug(DebugSnapshotRequest request) {
         if (!initialized_ || request.firstBody >= bodyCapacity_) return;
+        if (request.attachmentCount && (!request.firstAttachment
+            || request.firstAttachment>config_.attachmentCapacity
+            || request.attachmentCount>config_.attachmentCapacity-request.firstAttachment+1u
+            || request.attachmentCount>config_.debugReadbackAttachmentCapacity)) return;
+        if (!request.attachmentCount) request.firstAttachment=0;
         if (request.bodyCount == 0) {
             request.bodyCount = std::min(
                 bodyCapacity_ - request.firstBody,
@@ -3778,16 +4347,28 @@ public:
     }
 
     std::optional<DebugSnapshot> pollDebug() {
-        auto raw = readbackRing_.poll();
-        if (!raw) return std::nullopt;
+        pollOwnedProgress();
+        if(ownedFrontierActive_ && (!initialized_ || authoredSubmission_.valid())) return std::nullopt;
+        if(!pendingConfirmedDebug_) pendingConfirmedDebug_=readbackRing_.poll();
+        if(ownedFrontierActive_ && readbackRing_.failedReadbacks()) { initialized_=false;return std::nullopt; }
+        if(!pendingConfirmedDebug_) return std::nullopt;
+        if(ownedFrontierActive_ && (pendingConfirmedDebug_->tick>ownedCompletedTick_
+            || pendingConfirmedDebug_->submissionSerial>authoredShapes_->stats().cpu.completed)) return std::nullopt;
+        if(pendingConfirmedDebug_->bytes.size()!=size_t{pendingConfirmedDebug_->bodyCount}*kGpuBodyBytes
+                +size_t{pendingConfirmedDebug_->attachmentCount}*sizeof(GpuDistanceAttachment)
+            || (ownedFrontierActive_ && !pendingConfirmedDebug_->submissionSerial)) {
+            LOG_ERROR("Incomplete GPU pose evidence");initialized_=false;return std::nullopt;
+        }
+        auto raw=std::move(*pendingConfirmedDebug_);pendingConfirmedDebug_.reset();
         DebugSnapshot result;
-        result.tick = raw->tick;
-        result.bodies.reserve(raw->bodyCount);
-        for (uint32_t local = 0; local < raw->bodyCount; ++local) {
+        result.tick = raw.tick;
+        result.confirmedIncarnation=ownedFrontierActive_?authoredShapePoolIdentity_:0;
+        result.bodies.reserve(raw.bodyCount);
+        for (uint32_t local = 0; local < raw.bodyCount; ++local) {
             std::array<glm::uvec4, kDebugVec4Count> packedBody{};
             std::memcpy(
                 packedBody.data(),
-                raw->bytes.data() + size_t{local} * kGpuBodyBytes,
+                raw.bytes.data() + size_t{local} * kGpuBodyBytes,
                 kGpuBodyBytes);
             const glm::uvec4* body = packedBody.data();
             auto asFloat = [](const glm::uvec4& value) {
@@ -3806,8 +4387,12 @@ public:
             const uint32_t flags =
                 packedMetadata & ~kGpuBodyGenerationMask;
             DebugBodyState state;
+            if (body[7].y != 0 && body[7].w == kAuthoredShapeFormatVersion) {
+                state.authoredShape = {.index=body[7].y, .generation=body[7].z,
+                                      .pool=authoredShapePoolIdentity_};
+            }
             state.handle = {
-                raw->firstBody + local,
+                raw.firstBody + local,
                 packedMetadata & kGpuBodyGenerationMask};
             glm::ivec4 signedMetadata;
             std::memcpy(&signedMetadata, &body[8], sizeof(signedMetadata));
@@ -3841,6 +4426,31 @@ public:
             state.runtimeFlags = flags;
             result.bodies.push_back(state);
         }
+        result.attachments.reserve(raw.attachmentCount);
+        for (uint32_t local=0;local<raw.attachmentCount;++local) {
+            GpuDistanceAttachment packed{};
+            std::memcpy(&packed,raw.bytes.data()+size_t{raw.bodyCount}*kGpuBodyBytes
+                +size_t{local}*sizeof(packed),sizeof(packed));
+            DebugAttachmentState state;
+            state.handle={raw.firstAttachment+local,packed.identity[0]};
+            state.alive=(packed.identity[1]&1u)!=0;
+            state.broken=(packed.identity[1]&2u)!=0;
+            state.distance.bodyA={packed.identity[2],packed.bodyGenerations[0]};
+            state.distance.bodyB={packed.identity[3],packed.bodyGenerations[1]};
+            state.distance.localAnchorA={packed.anchorATarget[0],packed.anchorATarget[1],packed.anchorATarget[2]};
+            state.distance.localAnchorB={packed.anchorBMotor[0],packed.anchorBMotor[1],packed.anchorBMotor[2]};
+            state.distance.targetLength=packed.anchorATarget[3];
+            state.distance.motorSpeed=packed.anchorBMotor[3];
+            state.distance.minimumLength=packed.limits[0];
+            state.distance.maximumLength=packed.limits[1];
+            state.distance.maximumForce=packed.limits[2];
+            state.distance.breakForce=packed.limits[3];
+            state.distance.springCompliance=std::bit_cast<float>(packed.reserved[1]);
+            state.requiredImpulse=packed.evidence[0];state.requiredForce=packed.evidence[1];
+            state.measuredDistance=packed.evidence[2];
+            state.breakTick=packed.breakContext[0];state.breakReason=packed.breakContext[1];
+            result.attachments.push_back(state);
+        }
         cachedDebugBodies_ = result.bodies;
         return result;
     }
@@ -3857,6 +4467,7 @@ public:
             .previousMetadataBuffer = previousMetadataBuffer_,
             .interpolationAlpha = previousPoseBuffer_
                     && schedulingMode_ == SchedulingMode::Accumulator
+                    && !schedulingPaused_
                     && !idleWorldConfirmed_
                 ? static_cast<float>(std::clamp(
                     accumulator_ / static_cast<double>(config_.fixedTickSeconds),
@@ -3866,6 +4477,7 @@ public:
             .activeBodyIds = activeIdsBuffer_,
             .residentBodyCapacity = nextUnusedIndex_,
             .shapeCount = static_cast<uint32_t>(ThrowableShape::Count),
+            .authoredShapeBuffer = authoredSubmission_.valid() && authoredShapes_ ? authoredShapes_->buffer() : nullptr,
         };
     }
 
@@ -3892,9 +4504,14 @@ public:
         result.workerConcurrency = 1;
         result.estimatedPersistentBytes = arena_.persistentBytes()
                                         + attachmentSolver_.persistentBytes()
-                                        + ownedTerrainBytes_;
+                                        + ownedTerrainBytes_ + waterDriverBytes_
+                                        // The resource contract caps the atlas
+                                        // at 32 MiB, including on wasm32.
+                                        + (authoredShapes_ ? static_cast<size_t>(
+                                            authoredShapes_->stats().gpuBytes) : size_t{0});
         result.scratchBytes = arena_.scratchBytes()
                             + readbackRing_.allocatedBytes()
+                            + ownedProgressReadback_.allocatedBytes()
                             + telemetryReadback_.allocatedBytes()
                             + ccd_.allocatedBytes()
                             + broadPhase_.scratchBytes()
@@ -4047,6 +4664,9 @@ public:
         result.terrainContactBodies = core.terrainContactBodies;
         result.maximumTerrainContactsPerBody =
             core.maximumTerrainContactsPerBody;
+        result.authoredTerrainFailures = core.authoredTerrainFailures;
+        result.authoredTerrainCells = core.authoredTerrainCells;
+        result.authoredAdmissionFailures = core.authoredAdmissionFailures;
         result.submergedBodies = core.submergedBodies;
         result.kinematicBodies = core.kinematicBodies;
         result.compactIslandContacts = solver.smallIslandContacts;
@@ -4167,6 +4787,7 @@ public:
     double accumulator_ = 0.0;
     uint32_t pendingTicks_ = 0;
     SchedulingMode schedulingMode_ = SchedulingMode::Undecided;
+    bool schedulingPaused_ = false;
     uint64_t encodedTick_ = 0;
     uint64_t nextSequence_ = 1;
     uint64_t nextPreparedMutationToken_ = 1u;
@@ -4181,11 +4802,30 @@ public:
     bool idleWorldConfirmed_ = false;
     bool gpuTickSynchronized_ = true;
     float waterSurfaceStrength_ = 0.0f;
+    std::optional<WaterGpuFrame> waterFrame_;
     glm::vec2 waterPatchLengths_{1949.0f, 326.0f};
     bool warnedCpuWaterSampler_ = false;
     PhysicsStepStats lastStepStats_{};
     CachedTelemetry cachedTelemetry_{};
     DynamicBodyReadStats lastReadStats_{};
+    std::unique_ptr<GpuAuthoredShapeStore> authoredShapes_;
+    std::vector<ShapeHandle> authoredBodyShapes_, authoredSubmissionUses_;
+    std::vector<uint8_t> authoredStaticBodies_;
+    ShapeResourceSubmission authoredSubmission_{};
+    uint32_t authoredBodyCount_ = 0;
+    uint64_t authoredShapePoolIdentity_ = 0;
+    bool authoredSubmissionEncoded_ = false;
+    struct WaterDriver {
+        AuthoredWaterUniforms state{};
+        size_t bytes=0;
+        WGPUBuffer cells=nullptr,uniform=nullptr;
+        WGPUBindGroup binding=nullptr;
+    };
+    std::array<WaterDriver,16> waterDrivers_{};
+    size_t waterDriverBytes_=0;
+    WGPUBindGroupLayout waterDriverLayout_=nullptr;
+    WGPUPipelineLayout waterDriverPipelineLayout_=nullptr;
+    WGPUComputePipeline waterDriverPipeline_=nullptr;
     std::vector<uint32_t> generations_;
     std::vector<bool> hostAlive_;
     std::vector<uint64_t> scheduledSpawnTicks_;
@@ -4207,6 +4847,9 @@ public:
     std::vector<GpuAttachmentCommand> attachmentUpload_;
     std::optional<PreparedMutationState> preparedMutation_;
     std::optional<DebugSnapshotRequest> debugRequest_;
+    std::optional<RawDebugReadback> pendingConfirmedDebug_;
+    std::optional<GpuEventBatch> pendingConfirmedEvent_;
+    uint64_t eventDeliveredTick_=0;
     std::vector<DebugBodyState> cachedDebugBodies_;
 
     GpuBufferArena arena_;
@@ -4214,6 +4857,15 @@ public:
     DebugReadbackRing readbackRing_;
     DebugReadbackRing stageReadback_;
     DebugReadbackRing telemetryReadback_;
+    static constexpr uint32_t kOwnedProgressBatches=8;
+    struct OwnedProgress { uint64_t serial=0,tick=0;bool observed=false,fenced=false; };
+    DebugReadbackRing ownedProgressReadback_;
+    std::array<OwnedProgress,kOwnedProgressBatches> ownedProgress_{};
+    uint32_t ownedProgressHead_=0,ownedProgressCount_=0;
+    uint64_t ownedBaseTick_=0,ownedSubmittedTick_=0,ownedCompletedTick_=0;
+    bool ownedFrontierActive_=false;
+    std::chrono::steady_clock::time_point ownedLastPoll_{};
+    double ownedStallSeconds_=0;
     GpuCcd ccd_;
     GpuBroadPhase broadPhase_;
     GpuNarrowPhase narrowPhase_;
@@ -4239,6 +4891,8 @@ public:
     WGPUBuffer blockSumsBuffer_ = nullptr;
     WGPUBuffer blockPrefixBuffer_ = nullptr;
     WGPUBuffer countersBuffer_ = nullptr;
+    WGPUBuffer emptyAuthoredShapeBuffer_ = nullptr;
+    WGPUBuffer staticContactShapeBuffer_ = nullptr;
     WGPUBuffer commandBuffer_ = nullptr;
     WGPUBuffer uniformBuffer_ = nullptr;
     WGPUBuffer debugPackedBuffer_ = nullptr;
@@ -4256,11 +4910,13 @@ public:
     WGPUBindGroupLayout commandLayout_ = nullptr;
     WGPUBindGroupLayout compactLayout_ = nullptr;
     WGPUBindGroupLayout integrateLayout_ = nullptr;
+    WGPUBindGroupLayout staticContactLayout_ = nullptr;
     WGPUBindGroupLayout tickLayout_ = nullptr;
     WGPUBindGroupLayout debugLayout_ = nullptr;
     WGPUPipelineLayout commandPipelineLayout_ = nullptr;
     WGPUPipelineLayout compactPipelineLayout_ = nullptr;
     WGPUPipelineLayout integratePipelineLayout_ = nullptr;
+    WGPUPipelineLayout staticContactPipelineLayout_ = nullptr;
     WGPUPipelineLayout tickPipelineLayout_ = nullptr;
     WGPUPipelineLayout debugPipelineLayout_ = nullptr;
     WGPUComputePipeline applyCommandsPipeline_ = nullptr;
@@ -4274,6 +4930,7 @@ public:
     WGPUBindGroup commandBindGroup_ = nullptr;
     WGPUBindGroup compactBindGroup_ = nullptr;
     WGPUBindGroup integrateBindGroup_ = nullptr;
+    WGPUBindGroup staticContactBindGroup_ = nullptr;
     WGPUBindGroup tickBindGroup_ = nullptr;
     WGPUBindGroup debugBindGroup_ = nullptr;
 };
@@ -4341,6 +4998,17 @@ void GpuPhysicsBackend::setWaterGpuResources(
     const WaterGpuResources& resources) {
     impl_->setWaterGpuResources(resources);
 }
+bool GpuPhysicsBackend::stageWaterGpuFrame(const WaterGpuFrame& frame) noexcept {
+    if (!impl_->initialized_ || !impl_->ownedFrontierActive_
+        || impl_->config_.maximumCatchUpTicks != 1 || impl_->pendingTicks_ > 1
+        || impl_->authoredSubmissionEncoded_
+        || frame.incarnation != impl_->authoredShapePoolIdentity_
+        || frame.tick != impl_->encodedTick_ + impl_->pendingTicks_
+        || !std::isfinite(frame.phaseSeconds) || frame.phaseSeconds < 0
+        || frame.phaseSeconds >= 4096.0f) return false;
+    impl_->waterFrame_ = frame;
+    return true;
+}
 CharacterHandle GpuPhysicsBackend::createCharacter(
     const glm::vec3& feetPosition, const CharacterSettings& settings) {
     return impl_->characterMover_.createCharacter(feetPosition, settings);
@@ -4380,6 +5048,32 @@ bool GpuPhysicsBackend::throwBody(ThrowableShape shape, const glm::vec3& positio
 BodyHandle GpuPhysicsBackend::spawnBody(const BodySpawnDesc& desc) {
     return impl_->spawn(desc);
 }
+ShapeResourceError GpuPhysicsBackend::enableAuthoredShapeResources(
+    const ShapeResourceLimits& limits) noexcept {
+    return impl_->enableAuthoredShapeResources(limits);
+}
+IAuthoredShapeResources* GpuPhysicsBackend::authoredShapeResources() noexcept {
+    return impl_->initialized_ ? impl_->authoredShapes_.get() : nullptr;
+}
+AuthoredBodySpawnResult GpuPhysicsBackend::spawnAuthoredBody(const AuthoredBodySpawnDesc& desc) {
+    return impl_->spawnAuthored(desc);
+}
+AuthoredBodyError GpuPhysicsBackend::configureAuthoredWaterBody(const AuthoredWaterBodyDesc& desc) {
+    return impl_->configureAuthoredWater(desc);
+}
+bool GpuPhysicsBackend::setAuthoredHelm(BodyHandle body,float throttle,float steering) noexcept {
+    return impl_->setAuthoredHelm(body,throttle,steering);
+}
+ShapeResourceSubmission GpuPhysicsBackend::prepareGpuSubmission(ShapeResourceError& error) noexcept {
+    return impl_->prepareAuthoredSubmission(error);
+}
+ShapeResourceError GpuPhysicsBackend::submitGpuSubmission(ShapeResourceSubmission ticket,
+    std::span<const WGPUCommandBuffer> commands) noexcept {
+    return impl_->submitAuthored(ticket, commands);
+}
+ShapeResourceError GpuPhysicsBackend::discardGpuSubmission(ShapeResourceSubmission ticket) noexcept {
+    return impl_->discardAuthored(ticket);
+}
 bool GpuPhysicsBackend::destroyBody(BodyHandle handle) {
     return impl_->destroy(handle);
 }
@@ -4417,6 +5111,9 @@ void GpuPhysicsBackend::stepCpu(float deltaTime) { impl_->schedule(deltaTime); }
 bool GpuPhysicsBackend::scheduleFixedTicks(uint32_t tickCount) {
     return impl_->scheduleFixedTicks(tickCount);
 }
+bool GpuPhysicsBackend::setSchedulingPaused(bool paused,uint32_t finalTicks) noexcept {
+    return impl_->setSchedulingPaused(paused,finalTicks);
+}
 void GpuPhysicsBackend::encodeGpuStep(WGPUCommandEncoder encoder) {
     static_cast<void>(impl_->encode(encoder, false));
 }
@@ -4453,7 +5150,7 @@ std::vector<DynamicBodySnapshot> GpuPhysicsBackend::dynamicBodies(
     std::vector<DynamicBodySnapshot> result;
     result.reserve(impl_->cachedDebugBodies_.size() + additionalCapacity);
     for (const auto& body : impl_->cachedDebugBodies_) {
-        if (!body.alive) continue;
+        if (!body.alive || body.authoredShape.valid()) continue;
         result.push_back({body.shape, body.position, body.orientation,
                           body.dimensions, body.awake,
                           body.sector});
@@ -4473,6 +5170,10 @@ PhysicsStepStats GpuPhysicsBackend::lastStepStats() const noexcept {
 }
 uint64_t GpuPhysicsBackend::encodedTick() const noexcept {
     return impl_->encodedTick();
+}
+
+PhysicsTickFrontier GpuPhysicsBackend::tickFrontier() const noexcept {
+    return impl_->tickFrontier();
 }
 
 } // namespace voxy::physics

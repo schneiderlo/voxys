@@ -1,0 +1,83 @@
+{
+  "scope": "ASSET04 CPU prefab and focused native material draw tests; full authored application fixture pending",
+  "recorded_utc": "2026-09-08 00:23 UTC",
+  "sources": {
+    "src/game/assets/rigid_prefab.hpp": {
+      "bytes": 3547,
+      "sha256": "7bb7a0e9395792cd0a026ac323e649c6a17975b016838193865af6edf9d6885f"
+    },
+    "src/game/assets/rigid_prefab.cpp": {
+      "bytes": 20602,
+      "sha256": "44b5b49f41feb67b3d083255a254ba2feceac352dd08354f77586fd09ff7b736"
+    },
+    "tests/test_rigid_prefab.cpp": {
+      "bytes": 15437,
+      "sha256": "215b45cdd4d8ede046d146198ba74573069a70222be807a9f18226cffde1f924"
+    },
+    "src/render/mesh_path.hpp": {
+      "bytes": 7624,
+      "sha256": "391f8f02da9a095019522cf813273afb4c16f36e7df8bcdff23a68ec9b648296"
+    },
+    "src/render/mesh_path.cpp": {
+      "bytes": 57730,
+      "sha256": "aeadc9f2aa7ced2a89080424c84303b10a5c1e584ca365002870baf76e16336a"
+    },
+    "tests/test_mesh_path.cpp": {
+      "bytes": 23304,
+      "sha256": "c76523533273b9737074b4bb2411572e44574bddabf5b79737799fedebce1edf"
+    },
+    "shaders/mesh_path.wgsl": {
+      "bytes": 12829,
+      "sha256": "199608700b6baeb13e3f3989a050a30e24170a64d34aeef6d5db2fc63a7b1c98"
+    },
+    "src/game/assets/cooked_part_bundle.hpp": {
+      "bytes": 2889,
+      "sha256": "68c98360ca28f80fa3715ae2a71628d2f3f26204eee106ed1a0b379ee7b0a63f"
+    },
+    "src/game/assets/cooked_part_bundle.cpp": {
+      "bytes": 12822,
+      "sha256": "7e8674d4b61800575d9e7c7ed83dd6059d224cbf97482ef8cef1cd599df637d3"
+    },
+    "src/core/sha256.hpp": {
+      "bytes": 7597,
+      "sha256": "85402045f08774996eb7506b7802cae519f16f6df35b80d65f25b322008aba99"
+    }
+  },
+  "artifacts": {
+    "/tmp/salvage-prefab-build/rigid_prefab_tests": {
+      "bytes": 4418088,
+      "sha256": "cdcc602215e63f228fa6e9dfbac95ef4ccc3c57f50684da4926caa6e0fc678d1"
+    },
+    "bazel-out/k8-opt/bin/tests/mesh_path_test": {
+      "bytes": 135424,
+      "sha256": "99d20eeab8402ac3f6e08950a05aae1ccd71e60baca04a2d7c15ffd9ae4e0730"
+    }
+  },
+  "final_logs": {
+    "compile-final.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "tests-final.log": {
+      "bytes": 2594,
+      "sha256": "bd7e68e8f070d7d164dd4a4c694b18e99ac82b23d2e5eceda105d586b3232629"
+    },
+    "mesh-gpu-reviewed.log": {
+      "bytes": 3768,
+      "sha256": "d1496e5155c1227b1cebb5047bf323b4c194139b3025cc12a7e5185acf7eff86"
+    }
+  },
+  "results": {
+    "standalone_asan_ubsan": {
+      "passed": 13,
+      "failed": 0
+    },
+    "bazel_mesh_path": {
+      "passed": 4,
+      "failed": 0,
+      "gpu_cases": 3,
+      "adapter": "AMD Radeon 890M Graphics (RADV STRIX1)",
+      "backend": "Vulkan"
+    }
+  }
+}

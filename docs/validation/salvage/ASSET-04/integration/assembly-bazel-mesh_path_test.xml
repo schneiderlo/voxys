@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="6" failures="0" disabled="0" errors="0" time="0.294" timestamp="2026-09-08T05:11:53.046" name="AllTests">
+  <testsuite name="MeshPathTest" tests="1" failures="0" disabled="0" skipped="0" errors="0" time="0." timestamp="2026-09-08T05:11:53.046">
+    <testcase name="RejectsNullGpuHandlesAndInvalidData" file="tests/test_mesh_path.cpp" line="34" status="run" result="completed" time="0." timestamp="2026-09-08T05:11:53.046" classname="MeshPathTest" />
+  </testsuite>
+  <testsuite name="MeshPathGPUTest" tests="5" failures="0" disabled="0" skipped="0" errors="0" time="0.294" timestamp="2026-09-08T05:11:53.046">
+    <testcase name="ExceptionalReleasePreservesEncodedTextureDependencies" file="tests/test_mesh_path.cpp" line="241" status="run" result="completed" time="0.073" timestamp="2026-09-08T05:11:53.046" classname="MeshPathGPUTest" />
+    <testcase name="SamplesActualTextureQuadrantsAndRejectsSingleSidedBackFaces" file="tests/test_mesh_path.cpp" line="269" status="run" result="completed" time="0.052" timestamp="2026-09-08T05:11:53.120" classname="MeshPathGPUTest" />
+    <testcase name="DirectionalNormalMapUsesFullInverseTransposeAndTangentFrame" file="tests/test_mesh_path.cpp" line="313" status="run" result="completed" time="0.06" timestamp="2026-09-08T05:11:53.172" classname="MeshPathGPUTest" />
+    <testcase name="PreservesColorSpaceAndPackedMaterialChannels" file="tests/test_mesh_path.cpp" line="386" status="run" result="completed" time="0.062" timestamp="2026-09-08T05:11:53.233" classname="MeshPathGPUTest" />
+    <testcase name="LoadsAndRendersAuthoredBikeAndRider" file="tests/test_mesh_path.cpp" line="443" status="run" result="completed" time="0.045" timestamp="2026-09-08T05:11:53.295" classname="MeshPathGPUTest" />
+  </testsuite>
+</testsuites>

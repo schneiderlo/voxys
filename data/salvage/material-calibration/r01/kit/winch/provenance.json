@@ -1,0 +1,286 @@
+{
+  "schema": 1,
+  "status": "offline candidate; not runtime or visual acceptance",
+  "part": {
+    "namespace": "766f7879732d73616c766167652d7631",
+    "counter": "7",
+    "version": 2
+  },
+  "blender_version": "5.2.1 LTS",
+  "material_profile": "opaque-calibration-v1",
+  "blender_build_hash": "9e2066aef7ef",
+  "lods": [
+    {
+      "lod": 0,
+      "vertices": 15472,
+      "triangles": 5468,
+      "geometry": {
+        "degenerate_faces": 0,
+        "nonmanifold_edges": 0,
+        "summed_component_volume_m3": 0.6330323448206278,
+        "interface_checks": {
+          "flange_cheek_clearance_metres": [
+            0.010000020265579224,
+            0.010000020265579224
+          ],
+          "flange_x_bounds": [
+            [
+              -0.25999999046325684,
+              -0.20999999344348907
+            ],
+            [
+              0.20999999344348907,
+              0.25999999046325684
+            ]
+          ],
+          "drum_x_bounds": [
+            -0.20999999344348907,
+            0.20999999344348907
+          ]
+        },
+        "volume_note": "Decorative components can intersect; this sum is not displacement."
+      },
+      "source_sha256": "b9a3524d85baa36018807b405f34d7aff0d87a4445cc117c7872274f38fae5f3",
+      "export_settings": {
+        "export_format": "GLB",
+        "use_selection": true,
+        "export_yup": true,
+        "export_apply": true,
+        "export_materials": "EXPORT",
+        "export_normals": true,
+        "export_texcoords": true,
+        "export_tangents": true,
+        "export_animations": false,
+        "export_skins": false,
+        "export_morph": false,
+        "export_cameras": false,
+        "export_lights": false,
+        "export_extras": false,
+        "export_vertex_color": "NONE",
+        "export_all_vertex_colors": false
+      }
+    },
+    {
+      "lod": 1,
+      "vertices": 6836,
+      "triangles": 2524,
+      "geometry": {
+        "degenerate_faces": 0,
+        "nonmanifold_edges": 0,
+        "summed_component_volume_m3": 0.6228256589191826,
+        "interface_checks": {
+          "flange_cheek_clearance_metres": [
+            0.010000020265579224,
+            0.010000020265579224
+          ],
+          "flange_x_bounds": [
+            [
+              -0.25999999046325684,
+              -0.20999999344348907
+            ],
+            [
+              0.20999999344348907,
+              0.25999999046325684
+            ]
+          ],
+          "drum_x_bounds": [
+            -0.20999999344348907,
+            0.20999999344348907
+          ]
+        },
+        "volume_note": "Decorative components can intersect; this sum is not displacement."
+      },
+      "source_sha256": "5a27a304b4405dec34ba53e0344e0b4cbf7d4cc447d54fbb732b6ddbedfcfa7f",
+      "export_settings": {
+        "export_format": "GLB",
+        "use_selection": true,
+        "export_yup": true,
+        "export_apply": true,
+        "export_materials": "EXPORT",
+        "export_normals": true,
+        "export_texcoords": true,
+        "export_tangents": true,
+        "export_animations": false,
+        "export_skins": false,
+        "export_morph": false,
+        "export_cameras": false,
+        "export_lights": false,
+        "export_extras": false,
+        "export_vertex_color": "NONE",
+        "export_all_vertex_colors": false
+      }
+    },
+    {
+      "lod": 2,
+      "vertices": 632,
+      "triangles": 280,
+      "geometry": {
+        "degenerate_faces": 0,
+        "nonmanifold_edges": 0,
+        "summed_component_volume_m3": 0.6119275352211841,
+        "interface_checks": {
+          "flange_cheek_clearance_metres": [
+            0.010000020265579224,
+            0.010000020265579224
+          ],
+          "flange_x_bounds": [
+            [
+              -0.25999999046325684,
+              -0.20999999344348907
+            ],
+            [
+              0.20999999344348907,
+              0.25999999046325684
+            ]
+          ],
+          "drum_x_bounds": [
+            -0.20999999344348907,
+            0.20999999344348907
+          ]
+        },
+        "volume_note": "Decorative components can intersect; this sum is not displacement."
+      },
+      "source_sha256": "adc8daccf4ac8189b1ef5de4df80dfb1546231862dce744ac89f41f6a5c9a89e",
+      "export_settings": {
+        "export_format": "GLB",
+        "use_selection": true,
+        "export_yup": true,
+        "export_apply": true,
+        "export_materials": "EXPORT",
+        "export_normals": true,
+        "export_texcoords": true,
+        "export_tangents": true,
+        "export_animations": false,
+        "export_skins": false,
+        "export_morph": false,
+        "export_cameras": false,
+        "export_lights": false,
+        "export_extras": false,
+        "export_vertex_color": "NONE",
+        "export_all_vertex_colors": false
+      }
+    }
+  ],
+  "cross_lod_clearances": [
+    {
+      "peg_lod": 0,
+      "well_lod": 0,
+      "minimum_profile_clearance_metres": 0.009561230581693118,
+      "axial_spare_depth_metres": 0.020000000000000018
+    },
+    {
+      "peg_lod": 0,
+      "well_lod": 1,
+      "minimum_profile_clearance_metres": 0.020993871963508524,
+      "axial_spare_depth_metres": 0.020000000000000018
+    },
+    {
+      "peg_lod": 0,
+      "well_lod": 2,
+      "minimum_profile_clearance_metres": 0.014542375293720851,
+      "axial_spare_depth_metres": 0.020000000000000018
+    },
+    {
+      "peg_lod": 1,
+      "well_lod": 0,
+      "minimum_profile_clearance_metres": 0.009561230581693118,
+      "axial_spare_depth_metres": 0.020000000000000018
+    },
+    {
+      "peg_lod": 1,
+      "well_lod": 1,
+      "minimum_profile_clearance_metres": 0.027022111065445806,
+      "axial_spare_depth_metres": 0.020000000000000018
+    },
+    {
+      "peg_lod": 1,
+      "well_lod": 2,
+      "minimum_profile_clearance_metres": 0.014542375293720851,
+      "axial_spare_depth_metres": 0.020000000000000018
+    },
+    {
+      "peg_lod": 2,
+      "well_lod": 0,
+      "minimum_profile_clearance_metres": 0.009561230581693118,
+      "axial_spare_depth_metres": 0.020000000000000018
+    },
+    {
+      "peg_lod": 2,
+      "well_lod": 1,
+      "minimum_profile_clearance_metres": 0.027022111065445806,
+      "axial_spare_depth_metres": 0.020000000000000018
+    },
+    {
+      "peg_lod": 2,
+      "well_lod": 2,
+      "minimum_profile_clearance_metres": 0.037024256604011964,
+      "axial_spare_depth_metres": 0.020000000000000018
+    }
+  ],
+  "provenance": "Original procedural geometry/maps; no generated image or third-party model input",
+  "recipes": {
+    "author_functional_kit.py": "d5502cb297da0247904196da65fbb77336a600494ff959088084e15428c734f0",
+    "functional_kit.py": "0fa6d4db841cecdd21689719bc37f73d16ed4ee508c2f59a6831954cbdb67f94",
+    "author_pontoon.py": "47e06a9ba11dea42e30e5ea63403d4e8adc7461867473b7544d6f377b31d7f3e",
+    "pontoon_parameters.py": "348dd03c4f49009f14d8b430728b87925458a27f8a4db1923cffce93b8e4260a",
+    "material_standards.py": "8e2e315f7da73cc084f00f2d23d6dfa3d41b70c82f1d5868700ba809d59703a6",
+    "authoring_probe.py": "81edf36885bedff0f51380c89213094dad908d9287bbfd74987e363d392edbc0"
+  },
+  "render": {
+    "engine": "Cycles",
+    "device": "CPU",
+    "samples": 24,
+    "threads": 4,
+    "seed": 0
+  },
+  "files": {
+    "preview.png": {
+      "sha256": "89fa4acd90b223ef1eb5512344ee0199add6d01367bd3687997012ffb30c3a61",
+      "bytes": 311284
+    },
+    "source/maps/pontoon-lod-0-base_color.png": {
+      "sha256": "7bda1d8798e0a6757726e1874ba1357d196dd6a517e90a2081689cf473d95c8e",
+      "bytes": 387
+    },
+    "source/maps/pontoon-lod-0-metallic_roughness.png": {
+      "sha256": "804152def538cad44136b5f952e6814f17afafb14070fe45de9e5838c682855a",
+      "bytes": 371
+    },
+    "source/maps/pontoon-lod-1-base_color.png": {
+      "sha256": "f14ee1d8bfb6074f5e321ba3b7376189bed04088450a6d520ca98c2e2c4c0e3e",
+      "bytes": 200
+    },
+    "source/maps/pontoon-lod-1-metallic_roughness.png": {
+      "sha256": "d8b9ad0b31b3228006ca3ef660f8bed761d2071ca9f6cca63e3f3cbbb30ae1db",
+      "bytes": 185
+    },
+    "source/maps/pontoon-lod-2-base_color.png": {
+      "sha256": "f14ee1d8bfb6074f5e321ba3b7376189bed04088450a6d520ca98c2e2c4c0e3e",
+      "bytes": 200
+    },
+    "source/maps/pontoon-lod-2-metallic_roughness.png": {
+      "sha256": "d8b9ad0b31b3228006ca3ef660f8bed761d2071ca9f6cca63e3f3cbbb30ae1db",
+      "bytes": 185
+    },
+    "source/winch-lod-0.glb": {
+      "sha256": "b9a3524d85baa36018807b405f34d7aff0d87a4445cc117c7872274f38fae5f3",
+      "bytes": 777908
+    },
+    "source/winch-lod-1.glb": {
+      "sha256": "5a27a304b4405dec34ba53e0344e0b4cbf7d4cc447d54fbb732b6ddbedfcfa7f",
+      "bytes": 345340
+    },
+    "source/winch-lod-2.glb": {
+      "sha256": "adc8daccf4ac8189b1ef5de4df80dfb1546231862dce744ac89f41f6a5c9a89e",
+      "bytes": 34068
+    },
+    "source/winch.blend": {
+      "sha256": "3288ffbd1c028c54825569f00f6b5f7b3b567ceccda5dbee4ed21cfdd320569a",
+      "bytes": 276469
+    },
+    "source/winch.gameplay.json": {
+      "sha256": "b32d6399d3b0049722bc3ce03112aa34dd21ffaff01f1d73771b1a9d6c8eeaee",
+      "bytes": 11125
+    }
+  }
+}

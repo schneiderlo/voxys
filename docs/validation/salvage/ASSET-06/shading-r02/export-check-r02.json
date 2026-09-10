@@ -1,0 +1,348 @@
+{
+  "status": "passed",
+  "scope": "Exported shading and unchanged material/physical data; no visual gate",
+  "checks": [
+    {
+      "part": "winch",
+      "lod": 0,
+      "baseline_sha256": "b2c4d5b0d8b22ee4a15de2747de9f1337e7a906027dec7444c81c4a96333be52",
+      "candidate_sha256": "8f11137232969e9ea8c04f40890fe4c6d77da13b53df759e1da8229a168db779",
+      "geometry_uv_material_physical_identical": true,
+      "before": {
+        "vertices": 11168,
+        "maximum_frame_unit_error": 5.36783781084349e-05,
+        "maximum_normal_tangent_dot": 7.25239576133685e-05,
+        "minimum_green_projected_alignment": 0.9999983699024535,
+        "minimum_geometric_face_alignment": 0.9999999970861102,
+        "surfaces": {
+          "flat_panel": {
+            "corners": 12,
+            "maximum_degrees": 0.0
+          },
+          "flange_barrel": {
+            "corners": 288,
+            "maximum_degrees": 7.501152645733229
+          },
+          "rubber_torus": {
+            "corners": 0,
+            "maximum_degrees": null
+          },
+          "flange_cap": {
+            "corners": 132,
+            "maximum_degrees": 0.0
+          }
+        }
+      },
+      "after": {
+        "vertices": 10770,
+        "maximum_frame_unit_error": 7.065584098819855e-05,
+        "maximum_normal_tangent_dot": 0.00013854414218705813,
+        "minimum_green_projected_alignment": 0.9913059122360774,
+        "minimum_geometric_face_alignment": 0.8400239725687002,
+        "surfaces": {
+          "flat_panel": {
+            "corners": 12,
+            "maximum_degrees": 0.011459155441616046
+          },
+          "flange_barrel": {
+            "corners": 288,
+            "maximum_degrees": 0.009123361276085512
+          },
+          "rubber_torus": {
+            "corners": 0,
+            "maximum_degrees": null
+          },
+          "flange_cap": {
+            "corners": 132,
+            "maximum_degrees": 0.008102846602644737
+          }
+        }
+      }
+    },
+    {
+      "part": "winch",
+      "lod": 1,
+      "baseline_sha256": "5eda79e1bb4f84bee7d485923d0c0ea1632287eaf533b636524f5dcdfabfbd76",
+      "candidate_sha256": "020420a6c23e247e46c620d38ee0385a9847acca4640e5d33e56f36fc9f8877b",
+      "geometry_uv_material_physical_identical": true,
+      "before": {
+        "vertices": 4454,
+        "maximum_frame_unit_error": 5.8320854595450555e-05,
+        "maximum_normal_tangent_dot": 9.857471206586865e-05,
+        "minimum_green_projected_alignment": 0.9999999974993954,
+        "minimum_geometric_face_alignment": 0.999999996646329,
+        "surfaces": {
+          "flat_panel": {
+            "corners": 12,
+            "maximum_degrees": 0.0
+          },
+          "flange_barrel": {
+            "corners": 192,
+            "maximum_degrees": 11.250450562697253
+          },
+          "rubber_torus": {
+            "corners": 0,
+            "maximum_degrees": null
+          },
+          "flange_cap": {
+            "corners": 84,
+            "maximum_degrees": 0.0
+          }
+        }
+      },
+      "after": {
+        "vertices": 4330,
+        "maximum_frame_unit_error": 7.373170313840216e-05,
+        "maximum_normal_tangent_dot": 9.999999747378752e-05,
+        "minimum_green_projected_alignment": 0.8944263204179644,
+        "minimum_geometric_face_alignment": 0.5773498868254765,
+        "surfaces": {
+          "flat_panel": {
+            "corners": 12,
+            "maximum_degrees": 0.0
+          },
+          "flange_barrel": {
+            "corners": 192,
+            "maximum_degrees": 0.012811725257209396
+          },
+          "rubber_torus": {
+            "corners": 0,
+            "maximum_degrees": null
+          },
+          "flange_cap": {
+            "corners": 84,
+            "maximum_degrees": 0.012811725257209396
+          }
+        }
+      }
+    },
+    {
+      "part": "winch",
+      "lod": 2,
+      "baseline_sha256": "f3b633e0c302516b9d18ff867840a76d5c40624283f073b1e78ac037276ebf5f",
+      "candidate_sha256": "2a6893917a86a818912107eab58c29944449388d0b6f6a84324ce898f23686fe",
+      "geometry_uv_material_physical_identical": true,
+      "before": {
+        "vertices": 504,
+        "maximum_frame_unit_error": 4.7863128948444356e-05,
+        "maximum_normal_tangent_dot": 9.645542876679514e-05,
+        "minimum_green_projected_alignment": 0.9999999996095693,
+        "minimum_geometric_face_alignment": 0.9999999984778449,
+        "surfaces": {
+          "flat_panel": {
+            "corners": 12,
+            "maximum_degrees": 0.0
+          },
+          "flange_barrel": {
+            "corners": 120,
+            "maximum_degrees": 18.001696323203443
+          },
+          "rubber_torus": {
+            "corners": 0,
+            "maximum_degrees": null
+          },
+          "flange_cap": {
+            "corners": 48,
+            "maximum_degrees": 0.0
+          }
+        }
+      },
+      "after": {
+        "vertices": 504,
+        "maximum_frame_unit_error": 4.987847934412315e-05,
+        "maximum_normal_tangent_dot": 9.701999776841374e-05,
+        "minimum_green_projected_alignment": 0.9377009421597684,
+        "minimum_geometric_face_alignment": 0.6946451458056098,
+        "surfaces": {
+          "flat_panel": {
+            "corners": 12,
+            "maximum_degrees": 0.0
+          },
+          "flange_barrel": {
+            "corners": 120,
+            "maximum_degrees": 0.001696177085577583
+          },
+          "rubber_torus": {
+            "corners": 0,
+            "maximum_degrees": null
+          },
+          "flange_cap": {
+            "corners": 48,
+            "maximum_degrees": 0.0
+          }
+        }
+      }
+    },
+    {
+      "part": "helm",
+      "lod": 0,
+      "baseline_sha256": "30286b2764409f1fffce1e715d74f414d2ef831ced6349e89564e88fb6b61f03",
+      "candidate_sha256": "80d3dc578f32663f9a3ad2aa9020b489272ddc5d8862fa5e89c2db21bfeb7c4d",
+      "geometry_uv_material_physical_identical": true,
+      "before": {
+        "vertices": 4300,
+        "maximum_frame_unit_error": 6.083832692804769e-05,
+        "maximum_normal_tangent_dot": 9.831120277326022e-05,
+        "minimum_green_projected_alignment": 0.9999983655956286,
+        "minimum_geometric_face_alignment": 0.9999999967938574,
+        "surfaces": {
+          "flat_panel": {
+            "corners": 30,
+            "maximum_degrees": 0.0
+          },
+          "flange_barrel": {
+            "corners": 0,
+            "maximum_degrees": null
+          },
+          "rubber_torus": {
+            "corners": 1536,
+            "maximum_degrees": 23.063816580570588
+          },
+          "flange_cap": {
+            "corners": 0,
+            "maximum_degrees": null
+          }
+        }
+      },
+      "after": {
+        "vertices": 3844,
+        "maximum_frame_unit_error": 7.267777804387254e-05,
+        "maximum_normal_tangent_dot": 0.00013854414218705813,
+        "minimum_green_projected_alignment": 0.9913055319004018,
+        "minimum_geometric_face_alignment": 0.8177274999063104,
+        "surfaces": {
+          "flat_panel": {
+            "corners": 30,
+            "maximum_degrees": 0.011459155441616046
+          },
+          "flange_barrel": {
+            "corners": 0,
+            "maximum_degrees": null
+          },
+          "rubber_torus": {
+            "corners": 1536,
+            "maximum_degrees": 0.007063772462024215
+          },
+          "flange_cap": {
+            "corners": 0,
+            "maximum_degrees": null
+          }
+        }
+      }
+    },
+    {
+      "part": "helm",
+      "lod": 1,
+      "baseline_sha256": "9581d9e4bb00e10b945c1591ded99c9f6ca83c77440d4f1d88a7803aefce2f0e",
+      "candidate_sha256": "f9f47ddfc7bb19efd70d1d62772c77e00d81bd51167d223526d5237b83f26cf6",
+      "geometry_uv_material_physical_identical": true,
+      "before": {
+        "vertices": 1772,
+        "maximum_frame_unit_error": 5.706268277161364e-05,
+        "maximum_normal_tangent_dot": 9.857471206586865e-05,
+        "minimum_green_projected_alignment": 0.9999999975995691,
+        "minimum_geometric_face_alignment": 0.9999999965631792,
+        "surfaces": {
+          "flat_panel": {
+            "corners": 30,
+            "maximum_degrees": 0.0
+          },
+          "flange_barrel": {
+            "corners": 0,
+            "maximum_degrees": null
+          },
+          "rubber_torus": {
+            "corners": 720,
+            "maximum_degrees": 30.91025218348133
+          },
+          "flange_cap": {
+            "corners": 0,
+            "maximum_degrees": null
+          }
+        }
+      },
+      "after": {
+        "vertices": 1650,
+        "maximum_frame_unit_error": 6.819541936986528e-05,
+        "maximum_normal_tangent_dot": 0.00010500274655167192,
+        "minimum_green_projected_alignment": 0.894425377274095,
+        "minimum_geometric_face_alignment": 0.5773483573688796,
+        "surfaces": {
+          "flat_panel": {
+            "corners": 30,
+            "maximum_degrees": 0.0
+          },
+          "flange_barrel": {
+            "corners": 0,
+            "maximum_degrees": null
+          },
+          "rubber_torus": {
+            "corners": 720,
+            "maximum_degrees": 0.007436737508620215
+          },
+          "flange_cap": {
+            "corners": 0,
+            "maximum_degrees": null
+          }
+        }
+      }
+    },
+    {
+      "part": "helm",
+      "lod": 2,
+      "baseline_sha256": "27717c3d9782f239609a4f2ac549c32c2f303d1d6934b593a72cf34130559d5b",
+      "candidate_sha256": "e6580e33c6efa41205324cd0e7b436b60d26d556d4ebf9a37ba71b82404ce0fa",
+      "geometry_uv_material_physical_identical": true,
+      "before": {
+        "vertices": 546,
+        "maximum_frame_unit_error": 4.7863128948444356e-05,
+        "maximum_normal_tangent_dot": 9.645542876679514e-05,
+        "minimum_green_projected_alignment": 0.9999999996062056,
+        "minimum_geometric_face_alignment": 0.999999998489251,
+        "surfaces": {
+          "flat_panel": {
+            "corners": 30,
+            "maximum_degrees": 0.0
+          },
+          "flange_barrel": {
+            "corners": 0,
+            "maximum_degrees": null
+          },
+          "rubber_torus": {
+            "corners": 288,
+            "maximum_degrees": 45.99548312669811
+          },
+          "flange_cap": {
+            "corners": 0,
+            "maximum_degrees": null
+          }
+        }
+      },
+      "after": {
+        "vertices": 546,
+        "maximum_frame_unit_error": 4.988347959322681e-05,
+        "maximum_normal_tangent_dot": 9.701999776841374e-05,
+        "minimum_green_projected_alignment": 0.9377009381169538,
+        "minimum_geometric_face_alignment": 0.6946588900346441,
+        "surfaces": {
+          "flat_panel": {
+            "corners": 30,
+            "maximum_degrees": 0.0
+          },
+          "flange_barrel": {
+            "corners": 0,
+            "maximum_degrees": null
+          },
+          "rubber_torus": {
+            "corners": 288,
+            "maximum_degrees": 0.008092121123821457
+          },
+          "flange_cap": {
+            "corners": 0,
+            "maximum_degrees": null
+          }
+        }
+      }
+    }
+  ]
+}

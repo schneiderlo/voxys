@@ -1,8 +1,9 @@
 # G00 — baseline checkpoint
 
-Status: launch matrix, BOOT tasks, independent source/evidence review and
-mandatory repository checks passed. Checkpoint commit is being prepared;
-its result will be recorded after the enabled hook runs.
+Status: **complete and committed**. Launch matrix, BOOT tasks, independent
+source/evidence review and mandatory repository checks passed. Checkpoint:
+`7f28fabfabf3d63726f6cfa1001c3ce1ed557911`,
+`G00: establish expedition baseline and verified preview lifecycle`.
 Base revision: `7563f61fd536df7de5d209ff35d3cd2099ebcbb6`.
 Branch: `codex/salvage-implementation`.
 
@@ -130,5 +131,10 @@ cases passed, three skipped, four pre-existing cases disabled, zero failures;
 the importer target passed from cache with one reported Python skip. The
 combined target completed in 326.9 seconds. Logs, XML, source hashes and skip
 details are retained. The [independent review](review.md) approves the final
-source and launch evidence. The enabled-hook checkpoint commit remains the
-last step; unfinished DATA-03, ASSET-02 and LOOK-01 prework are excluded.
+source and launch evidence. The enabled pre-commit hook then rebuilt and reran
+both required targets successfully: combined target 309.0 seconds, importer
+0.3 seconds. Git committed 404 reviewed files and returned 0. See
+[checkpoint summary](checkpoint/summary.json) and [actual hook/commit output](checkpoint/commit.log).
+Unfinished DATA-03, ASSET-02 and LOOK-01 prework were excluded. This result and
+the commit identity were recorded afterward; they are an ongoing handoff update,
+not falsely claimed as files inside the commit they describe.

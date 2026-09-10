@@ -1,0 +1,58 @@
+{
+  "passed": false,
+  "kind": "Shared C++ authored-shape compute and lifetime tests on hardware browser WebGPU",
+  "runner_sha256": "d0c88e261fa9c74a2d9e1e716860789efa0617251a3cdceb71c8c7f137d239ad",
+  "package": "/tmp/voxys-compound-consumers-web-r01",
+  "artifacts": {
+    "index.html": {
+      "sha256": "dd0b2361f3b244d271c180a99e89a32c707d43a01e8a662bd3e1f7c0120b8894",
+      "bytes": 3379
+    },
+    "shape_diagnostics.js": {
+      "sha256": "bfda692f1b9ddc6f29a49c6b4bcad3ebea308bced2e622b1d2e0c8364ebe6a74",
+      "bytes": 181211
+    },
+    "shape_diagnostics.wasm": {
+      "sha256": "dd0ac887ec8b76450e8c3329dc1ff87176d360b7c5b99f2ac25946a08e64e967",
+      "bytes": 3371739
+    }
+  },
+  "chrome_argv": [
+    "google-chrome",
+    "--headless=new",
+    "--no-sandbox",
+    "--no-first-run",
+    "--no-default-browser-check",
+    "--disable-background-networking",
+    "--enable-unsafe-webgpu",
+    "--disable-gpu-watchdog",
+    "--disable-background-timer-throttling",
+    "--disable-renderer-backgrounding",
+    "--ozone-platform=x11",
+    "--enable-features=Vulkan",
+    "--remote-debugging-port=0",
+    "--user-data-dir=/tmp/voxys-shape-browser-RLF7QQ",
+    "about:blank"
+  ],
+  "browser": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/152.0.7977.82",
+    "revision": "@d04cdb24d67b081f6cf80200ffc5233f44b61109",
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/152.0.0.0 Safari/537.36",
+    "jsVersion": "15.2.124.21"
+  },
+  "result": {
+    "done": true,
+    "passed": false,
+    "output": [],
+    "gpuErrors": [],
+    "captures": [],
+    "suite": "consumers",
+    "error": "Error: Hardware WebGPU adapter required",
+    "stack": "Error: Hardware WebGPU adapter required\n    at http://127.0.0.1:45467/?suite=consumers:24:57"
+  },
+  "unexpected_console_errors": [],
+  "failure": "AssertionError [ERR_ASSERTION]: C++/GPU diagnostics failed\n\nfalse !== true\n",
+  "exceptions": [],
+  "console": []
+}

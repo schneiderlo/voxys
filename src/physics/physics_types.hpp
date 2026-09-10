@@ -1,5 +1,7 @@
 #pragma once
 
+#include "physics/shape_handle.hpp"
+
 #include "gpu/shader_source.hpp"
 #include "gpu/webgpu_compat.hpp"
 
@@ -134,6 +136,9 @@ struct PhysicsInitContext {
     uint32_t box3dWorkerThreads = 1;
 
     struct GpuConfig {
+        // Fresh-world semantic restore base, before any commands. Not a live
+        // clock setter. The host must validate and own the saved world first.
+        uint64_t initialTick = 0;
         glm::vec3 gravity{0.0f, -9.81f, 0.0f};
         float fixedTickSeconds = 1.0f / 60.0f;
         // Presentation-only history; authoritative/headless worlds need none.
@@ -176,10 +181,15 @@ struct PhysicsInitContext {
         uint32_t attachmentCommandCapacity = 4'096;
         uint32_t debugReadbackSlots = 3;
         uint32_t debugReadbackBodyCapacity = 4'096;
+        uint32_t debugReadbackAttachmentCapacity = 16;
         uint32_t asyncQueryCapacity = 256;
         uint32_t asyncQueryReadbackSlots = 3;
         // Zero uses maximumCatchUpTicks so one encoded catch-up batch fits.
         uint32_t eventReadbackSlots = 0;
+        // Zero derives the worst-case event count from the world capacities.
+        // A smaller explicit stream budget reports overflow, never truncation
+        // accepted as complete evidence.
+        uint32_t eventReadbackCapacity = 0;
         // Requires the optional WebGPU timestamp-query feature. Unsupported
         // devices keep running and simply return no timing batches.
         bool enableStageProfiling = false;
@@ -254,6 +264,17 @@ struct PhysicsCapacityUsage {
     uint32_t capacity = 0;
     uint32_t highWater = 0;
     bool overflow = false;
+};
+
+// Owned GPU-submission interval only. Before baseTick, no evidence is asserted.
+// completed requires both validated queue completion and a matching GPU counter
+// readback; encoding alone never advances it. Pose/event packets retain their
+// own ticks and must also be available before gameplay consumes their evidence.
+struct PhysicsTickFrontier {
+    bool supported = false, failed = false, backpressured = false;
+    uint64_t incarnation = 0, baseTick = 0;
+    uint64_t scheduled = 0, encoded = 0, submitted = 0, completed = 0;
+    uint32_t maximumPendingTicks = 0, maximumInFlightTicks = 0, pendingBatches = 0;
 };
 
 struct PhysicsStats {
@@ -331,6 +352,9 @@ struct PhysicsStats {
     uint32_t invalidManifolds = 0;
     uint32_t terrainContactBodies = 0;
     uint32_t maximumTerrainContactsPerBody = 0;
+    uint32_t authoredTerrainFailures = 0;
+    uint32_t authoredTerrainCells = 0;
+    uint32_t authoredAdmissionFailures = 0;
     uint32_t submergedBodies = 0;
     uint32_t compactIslandContacts = 0;
     uint32_t compactIslandBodies = 0;
@@ -425,6 +449,9 @@ struct DistanceAttachmentDesc {
     float motorSpeed = 0.0f;
     float maximumForce = 1'000'000.0f;
     float breakForce = 0.0f;
+    // Axial spring compliance in metres/newton, with critical damping based
+    // on the current endpoint effective mass. Zero preserves the hard rope.
+    float springCompliance = 0.0f;
 };
 
 // Reserved material tag for a bounded box + up to eight studs, WebGpuSoft only.
@@ -476,6 +503,8 @@ enum class PhysicsCommandType : uint32_t {
     // a.xyz is a world-space force. b.xyz is a body-local application point.
     // The checked GPU path applies both F and r x F for exactly one tick.
     ApplyForceAtLocalPoint,
+    // Internal typed admission only; generic command replay/enqueue rejects it.
+    SpawnAuthoredBody,
 };
 
 // Plain command payloads keep mutation replayable and make GPU upload packing
@@ -497,6 +526,14 @@ struct PhysicsCommand {
     std::optional<PhysicsMaterial> material;
 };
 
+// A caller-supplied expected boundary, checked against actual owned GPU
+// completion. This admits the accumulator-driven cove only between fully
+// joined ticks. It does not certify the caller's gameplay pose/event snapshot.
+struct PhysicsMutationJoin {
+    uint64_t incarnation = 0;
+    uint64_t completedTick = 0;
+};
+
 // The live authority prepares one complete gameplay mutation before it lets
 // match state commit. Attachment destroys are staged before creates, so a
 // transfer can reuse a full-capacity slot with the next generation.
@@ -504,6 +541,11 @@ struct PhysicsMutationBatch {
     std::span<const PhysicsCommand> bodyCommands{};
     std::span<const AttachmentHandle> attachmentDestroys{};
     std::span<const DistanceAttachmentDesc> attachmentCreates{};
+    // Retire already encoded parent lifetimes together. The caller reserves
+    // every replacement first; this never cancels or reuses an unexecuted spawn.
+    // Commands/created attachments cannot target a body retired by this batch.
+    std::span<const BodyHandle> bodyDestroys{};
+    std::optional<PhysicsMutationJoin> joinedBoundary{};
 };
 
 enum class PhysicsMutationStatus : uint32_t {
@@ -519,6 +561,7 @@ enum class PhysicsMutationStatus : uint32_t {
     IncompatibleSchedulingMode,
     InvalidToken,
     TokenExhausted,
+    JoinedBoundaryUnavailable,
 };
 
 // This is an opaque authorization token plus a borrowed view of the stable
@@ -543,6 +586,7 @@ struct PhysicsMutationResult {
     uint32_t bodyCommandCount = 0u;
     uint32_t destroyedAttachmentCount = 0u;
     uint32_t createdAttachmentCount = 0u;
+    uint32_t destroyedBodyCount = 0u;
 
     [[nodiscard]] bool committed() const noexcept {
         return status == PhysicsMutationStatus::Committed;
@@ -563,6 +607,8 @@ enum class PhysicsEncodeStatus : uint32_t {
     PipelineFailed,
     EventReadbackUnavailable,
     DebugReadbackUnavailable,
+    AuthoredSubmissionRequired,
+    WaterFrameUnavailable,
 };
 
 struct PhysicsEncodeReport {
@@ -604,6 +650,9 @@ struct PhysicsRenderView {
     WGPUBuffer indirectDrawArgs = nullptr;
     uint32_t residentBodyCapacity = 0;
     uint32_t shapeCount = 0;
+    // Present only during a declared authored submission; geometry/mass remain
+    // owned by the world's shape pool until the actual queue use completes.
+    WGPUBuffer authoredShapeBuffer = nullptr;
 
     [[nodiscard]] bool valid() const noexcept {
         return poseBuffer != nullptr && shapeBuffer != nullptr
@@ -636,13 +685,27 @@ struct WaterGpuResources {
     }
 };
 
+// Exact phase of the shared texture and analytical swells for a bounded cove
+// frame. A frame contains zero or one physics tick; general catch-up needs a
+// separate field per tick and must not reuse this binding for a whole batch.
+struct WaterGpuFrame {
+    uint64_t incarnation = 0;
+    uint64_t tick = 0;
+    float phaseSeconds = 0;
+};
+
 struct DebugSnapshotRequest {
     uint32_t firstBody = 1;
     uint32_t bodyCount = 0;
+    // Optional exact range. An invalid/oversized range refuses the entire
+    // request; zero count retains the existing bodies-only observation path.
+    uint32_t firstAttachment = 0;
+    uint32_t attachmentCount = 0;
 };
 
 struct DebugBodyState {
     BodyHandle handle{};
+    ShapeHandle authoredShape{};
     glm::vec3 position{0.0f};
     glm::quat orientation{1.0f, 0.0f, 0.0f, 0.0f};
     glm::vec3 linearVelocity{0.0f};
@@ -661,9 +724,22 @@ struct DebugBodyState {
     glm::ivec3 sector{0};
 };
 
+struct DebugAttachmentState {
+    AttachmentHandle handle{};
+    DistanceAttachmentDesc distance{};
+    bool alive = false, broken = false;
+    uint64_t breakTick = 0;
+    uint32_t breakReason = 0;
+    float requiredImpulse = 0, requiredForce = 0, measuredDistance = 0;
+};
+
 struct DebugSnapshot {
     uint64_t tick = 0;
     std::vector<DebugBodyState> bodies;
+    uint64_t confirmedIncarnation = 0; // Zero means no owned completion proof.
+    // Same post-solve tick, submission and readback packet as bodies. These
+    // transient handles must be resolved to durable IDs before serialization.
+    std::vector<DebugAttachmentState> attachments;
 };
 
 enum class PhysicsQueryType : uint32_t {
@@ -782,14 +858,7 @@ struct PhysicsEventBatch {
     uint64_t tick = 0;
     bool overflow = false;
     std::vector<PhysicsEvent> events;
-};
-
-struct ShapeHandle {
-    uint32_t index = 0;
-    uint32_t generation = 0;
-
-    [[nodiscard]] constexpr bool valid() const noexcept { return index != 0; }
-    [[nodiscard]] constexpr auto operator<=>(const ShapeHandle&) const noexcept = default;
+    uint64_t confirmedIncarnation = 0;
 };
 
 using CharacterHandle = uint32_t;

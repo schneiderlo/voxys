@@ -1,0 +1,33 @@
+{
+  "converter": {
+    "interface": "--profile salvage-rigid-v1 input.glb output.vmesh",
+    "profile": "salvage-rigid-v1",
+    "sha256": "9de1ede050e226e444ab3c2dbe44e358c6f0ca04d299de9582b9d6ea1e1a93fa"
+  },
+  "cooker": {
+    "sha256": "88a32ac9824e2a9864f4d97e4311eeb27a312d917e3ce23d41fd5953c0e7023a",
+    "source": "cook_gameplay_asset.py"
+  },
+  "input_sidecar_sha256": "dddc95747a625c0f0257218962e2e7cede7331947d06ee02c0d6dea3329ef35c",
+  "lods": [
+    {
+      "bytes": 185746,
+      "file": "lod-1.vmesh",
+      "id": "1",
+      "sha256": "d5f755027a001dfc0bbf16606f879050020f91e935788e705eed64813b97a4af",
+      "source_bytes": 131632,
+      "source_sha256": "ca9e743f6d608c6f1f394e7e3711367779bed02aea15fb825883fac9d8e67de3"
+    }
+  ],
+  "normalized_sidecar": {
+    "bytes": 3653,
+    "file": "gameplay.json",
+    "sha256": "9ab4e01493c4dceae8773a083101ce14c7a3d0e64e14e0fddb8e8a8b3025032f"
+  },
+  "schema": 1,
+  "scope": "offline gameplay sidecar and unchanged exported-glTF-frame VMESH",
+  "validator": {
+    "interface": "sidecar.json cooked-directory",
+    "sha256": "837b01c0ddcfdec1bbc48442aff6f1fb9a7d330203958c1591d9b955c7f68858"
+  }
+}

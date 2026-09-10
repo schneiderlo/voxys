@@ -1,0 +1,344 @@
+{
+  "lods": [
+    {
+      "asset": {
+        "counter": "13",
+        "namespace": "766f7879732d6b69742d6172742d7632",
+        "version": 2
+      },
+      "id": "1",
+      "minimum_screen_height_pixels": 200.0,
+      "source": {
+        "bytes": 233580,
+        "file": "helm-lod-0.glb",
+        "frame": "exported_gltf",
+        "sha256": "30286b2764409f1fffce1e715d74f414d2ef831ced6349e89564e88fb6b61f03",
+        "to_canonical_rotation": 12
+      }
+    },
+    {
+      "asset": {
+        "counter": "14",
+        "namespace": "766f7879732d6b69742d6172742d7632",
+        "version": 2
+      },
+      "id": "2",
+      "minimum_screen_height_pixels": 60.0,
+      "source": {
+        "bytes": 100684,
+        "file": "helm-lod-1.glb",
+        "frame": "exported_gltf",
+        "sha256": "9581d9e4bb00e10b945c1591ded99c9f6ca83c77440d4f1d88a7803aefce2f0e",
+        "to_canonical_rotation": 12
+      }
+    },
+    {
+      "asset": {
+        "counter": "15",
+        "namespace": "766f7879732d6b69742d6172742d7632",
+        "version": 2
+      },
+      "id": "3",
+      "minimum_screen_height_pixels": 0.0,
+      "source": {
+        "bytes": 34676,
+        "file": "helm-lod-2.glb",
+        "frame": "exported_gltf",
+        "sha256": "27717c3d9782f239609a4f2ac549c32c2f303d1d6934b593a72cf34130559d5b",
+        "to_canonical_rotation": 12
+      }
+    }
+  ],
+  "metadata_frame": "canonical_y_up_minus_z_forward",
+  "part": {
+    "buoyancy": [
+      {
+        "box": {
+          "frame": {
+            "rotation": 0,
+            "translation_ticks": [
+              0,
+              -20,
+              0
+            ]
+          },
+          "half_extents_ticks": [
+            25,
+            2,
+            25
+          ],
+          "id": "1"
+        },
+        "kind": "solid_material"
+      },
+      {
+        "box": {
+          "frame": {
+            "rotation": 0,
+            "translation_ticks": [
+              0,
+              -8,
+              -6
+            ]
+          },
+          "half_extents_ticks": [
+            10,
+            2,
+            12
+          ],
+          "id": "2"
+        },
+        "kind": "solid_material"
+      },
+      {
+        "box": {
+          "frame": {
+            "rotation": 0,
+            "translation_ticks": [
+              0,
+              7,
+              -4
+            ]
+          },
+          "half_extents_ticks": [
+            21,
+            2,
+            15
+          ],
+          "id": "3"
+        },
+        "kind": "solid_material"
+      }
+    ],
+    "collision": [
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            0,
+            -20,
+            0
+          ]
+        },
+        "half_extents_ticks": [
+          25,
+          4,
+          25
+        ],
+        "id": "1"
+      },
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            0,
+            -8,
+            -6
+          ]
+        },
+        "half_extents_ticks": [
+          10,
+          8,
+          12
+        ],
+        "id": "2"
+      },
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            0,
+            7,
+            -4
+          ]
+        },
+        "half_extents_ticks": [
+          21,
+          7,
+          15
+        ],
+        "id": "3"
+      }
+    ],
+    "cost": {
+      "salvage_material": "10",
+      "special_machinery": "0"
+    },
+    "footprint": {
+      "maximum_ticks": [
+        25,
+        24,
+        25
+      ],
+      "minimum_ticks": [
+        -25,
+        -24,
+        -25
+      ]
+    },
+    "key": {
+      "counter": "6",
+      "namespace": "766f7879732d73616c766167652d7631",
+      "version": 2
+    },
+    "mass": {
+      "center_of_mass_metres": [
+        0.0,
+        -0.14914386584289496,
+        -0.051473962930273606
+      ],
+      "dry_mass_kg": 30.0,
+      "inertia_kg_metres_squared": [
+        3.5775209540628614,
+        0.0,
+        0.0,
+        0.0,
+        3.4772931636868427,
+        0.2634828840942004,
+        0.0,
+        0.2634828840942004,
+        3.8155393526002017
+      ]
+    },
+    "material": {
+      "linear_base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "metallic": 1.0,
+      "roughness": 1.0
+    },
+    "module": {
+      "maximum_steering_radians": 0.6,
+      "operator_frame": {
+        "rotation": 0,
+        "translation_ticks": [
+          0,
+          24,
+          0
+        ]
+      },
+      "type": "helm"
+    },
+    "name_key": "salvage.part.helm",
+    "permitted_rotation_mask": 16777215,
+    "salvage_yield": {
+      "salvage_material": "6",
+      "special_machinery": "0"
+    },
+    "sockets": [
+      {
+        "clearance": {
+          "maximum_ticks": [
+            15,
+            0,
+            15
+          ],
+          "minimum_ticks": [
+            -15,
+            -9,
+            -15
+          ]
+        },
+        "connection_capacity": 1,
+        "family": "structural",
+        "frame": {
+          "rotation": 2,
+          "translation_ticks": [
+            0,
+            -24,
+            0
+          ]
+        },
+        "id": "2",
+        "profile": 1,
+        "role": "receptacle",
+        "strength": {
+          "bending_newton_metres": 18000.0,
+          "shear_newtons": 24000.0,
+          "tension_newtons": 30000.0,
+          "torsion_newton_metres": 12000.0
+        }
+      }
+    ],
+    "solid_occupancy": [
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            0,
+            -20,
+            0
+          ]
+        },
+        "half_extents_ticks": [
+          25,
+          4,
+          25
+        ],
+        "id": "1"
+      },
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            0,
+            -8,
+            -6
+          ]
+        },
+        "half_extents_ticks": [
+          10,
+          8,
+          12
+        ],
+        "id": "2"
+      },
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            0,
+            7,
+            -4
+          ]
+        },
+        "half_extents_ticks": [
+          21,
+          7,
+          15
+        ],
+        "id": "3"
+      }
+    ],
+    "strength": {
+      "bending_newton_metres": 18000.0,
+      "shear_newtons": 24000.0,
+      "tension_newtons": 30000.0,
+      "torsion_newton_metres": 12000.0
+    }
+  },
+  "placement_lattice_metres": 0.02,
+  "schema": 1,
+  "tool_anchors": [
+    {
+      "frame": {
+        "rotation": 2,
+        "translation_ticks": [
+          0,
+          -24,
+          0
+        ]
+      },
+      "id": "2",
+      "name_key": "salvage.anchor.helm.socket_2"
+    }
+  ],
+  "units": {
+    "angle": "radians",
+    "length": "metres",
+    "mass": "kilograms",
+    "time": "seconds"
+  }
+}

@@ -1,0 +1,86 @@
+[
+  {
+    "runtime": "native",
+    "stage": "build",
+    "argv": [
+      "g++",
+      "-std=c++20",
+      "-O1",
+      "-g",
+      "-Isrc",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-fsanitize=undefined,float-cast-overflow",
+      "-fno-sanitize-recover=all",
+      "docs/validation/salvage/PLAY-02/refit-r01/no-allocation.cpp",
+      "src/game/construction/construction_types.cpp",
+      "src/game/construction/part_catalog.cpp",
+      "src/game/construction/build_model.cpp",
+      "src/game/construction/build_refit.cpp",
+      "src/game/expedition/session_transactions.cpp",
+      "src/game/expedition/session_events.cpp",
+      "src/game/expedition/game_session.cpp",
+      "src/game/expedition/session_recovery.cpp",
+      "-o",
+      "/tmp/voxys-refit-no-allocation-r02"
+    ],
+    "exit_code": 0,
+    "log": "/tmp/voxys-refit-no-allocation-native-build-r02.log"
+  },
+  {
+    "runtime": "native",
+    "stage": "run",
+    "argv": [
+      "/tmp/voxys-refit-no-allocation-r02"
+    ],
+    "exit_code": 0,
+    "log": "/tmp/voxys-refit-no-allocation-native-run-r02.log"
+  },
+  {
+    "runtime": "wasm",
+    "stage": "build",
+    "argv": [
+      "python3",
+      "/tmp/voxys-emsdk/upstream/emscripten/em++.py",
+      "-std=c++20",
+      "-O1",
+      "-g",
+      "-Isrc",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-fexceptions",
+      "docs/validation/salvage/PLAY-02/refit-r01/no-allocation.cpp",
+      "src/game/construction/construction_types.cpp",
+      "src/game/construction/part_catalog.cpp",
+      "src/game/construction/build_model.cpp",
+      "src/game/construction/build_refit.cpp",
+      "src/game/expedition/session_transactions.cpp",
+      "src/game/expedition/session_events.cpp",
+      "src/game/expedition/game_session.cpp",
+      "src/game/expedition/session_recovery.cpp",
+      "-sASYNCIFY=1",
+      "-sENVIRONMENT=node",
+      "-sEXIT_RUNTIME=1",
+      "-sALLOW_MEMORY_GROWTH=0",
+      "-sINITIAL_MEMORY=67108864",
+      "-sSTACK_SIZE=1048576",
+      "-sABORTING_MALLOC=0",
+      "-o",
+      "/tmp/voxys-refit-no-allocation-r02.js"
+    ],
+    "exit_code": 0,
+    "log": "/tmp/voxys-refit-no-allocation-wasm-build-r02.log"
+  },
+  {
+    "runtime": "wasm",
+    "stage": "run",
+    "argv": [
+      "/home/modkin/.nix-profile/bin/node",
+      "/tmp/voxys-refit-no-allocation-r02.js"
+    ],
+    "exit_code": 0,
+    "log": "/tmp/voxys-refit-no-allocation-wasm-run-r02.log"
+  }
+]

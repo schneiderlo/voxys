@@ -1,0 +1,44 @@
+{
+  "status": "passed",
+  "date": "2026-09-09",
+  "scope": "Browser named blueprint library and canonical blueprint codec; no full PLAY-02/SAVE gate",
+  "checks": {
+    "native_application": "passed; native library UI/disk backend not implemented",
+    "wasm_application": "passed; existing unrelated warnings",
+    "native_tests": {
+      "passed": 192,
+      "skipped": 0,
+      "filter": "BuildModel*:GameSession*:SessionJournal*:SessionEvent*:CoveMovement*:CoveNavigation*:FixtureRegistry*"
+    },
+    "ui_cases": 14,
+    "indexeddb_cases": 8,
+    "indexeddb_durability": "strict, observed on actual write transactions",
+    "quota_test": "injected QuotaExceededError after backup put, before current put; real atomic rollback verified",
+    "real_browser": {
+      "status": "passed",
+      "stages": 9,
+      "screenshots": 0,
+      "reload_preserves_named_designs": true,
+      "backup_restore": true,
+      "actual_file_export_import": true,
+      "corrupt_import_preserves_library": true,
+      "paid_blueprint_launch": true,
+      "sailing": true,
+      "drained_leave": true,
+      "initial_parts": 11,
+      "loaded_parts": 12,
+      "material_before_launch": 48,
+      "material_after_launch": 24,
+      "applied_thrust_newtons": 1875,
+      "loaded_winch_enabled": false
+    }
+  },
+  "package": "/tmp/voxys-designs-web-r03",
+  "preview": "http://127.0.0.1:38198/?experience=salvage-cove",
+  "next": [
+    "canonical full expedition checkpoint/journal bytes with ownership and processed markers",
+    "native durable storage and named design UI",
+    "browser expedition persistence and certified physical recovery",
+    "remaining PLAY-02 input/controller/camera and failure-edge coverage"
+  ]
+}

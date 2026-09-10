@@ -18,6 +18,8 @@ bool PhysicsWorld::initialize() {
 }
 
 bool PhysicsWorld::initialize(const PhysicsInitContext& context) {
+    if(context.gpu.initialTick!=0 && (context.requestedBackend!=BackendType::WebGpuSoft
+        || (backend_ && backend_->isInitialized())))return false;
     if (backend_ && backend_->isInitialized()) {
         if (backend_->type() == context.requestedBackend
             || (context.allowCpuFallback
@@ -38,7 +40,7 @@ bool PhysicsWorld::initialize(const PhysicsInitContext& context) {
         return true;
     }
 
-    if (!context.allowCpuFallback
+    if (!context.allowCpuFallback || context.gpu.initialTick!=0
         || context.requestedBackend != BackendType::WebGpuSoft) return false;
 
     PhysicsInitContext fallbackContext = context;
@@ -86,6 +88,46 @@ uint64_t PhysicsWorld::encodedTick() const noexcept {
     return backend_ ? backend_->encodedTick() : 0u;
 }
 
+PhysicsTickFrontier PhysicsWorld::tickFrontier() const noexcept {
+    return backend_ ? backend_->tickFrontier() : PhysicsTickFrontier{};
+}
+
+ShapeResourceError PhysicsWorld::enableAuthoredShapeResources(
+    const ShapeResourceLimits& limits) noexcept {
+    if (!isInitialized()) return ShapeResourceError::NotInitialized;
+    return backend_->enableAuthoredShapeResources(limits);
+}
+
+ShapeResourceError PhysicsWorld::enableAuthoredShapeResources() noexcept {
+    return enableAuthoredShapeResources(ShapeResourceLimits{});
+}
+
+IAuthoredShapeResources* PhysicsWorld::authoredShapeResources() noexcept {
+    return isInitialized() ? backend_->authoredShapeResources() : nullptr;
+}
+
+AuthoredBodySpawnResult PhysicsWorld::spawnAuthoredBody(const AuthoredBodySpawnDesc& desc) {
+    return isInitialized() ? backend_->spawnAuthoredBody(desc)
+        : AuthoredBodySpawnResult{{}, AuthoredBodyError::NotInitialized};
+}
+AuthoredBodyError PhysicsWorld::configureAuthoredWaterBody(const AuthoredWaterBodyDesc& desc) {
+    return isInitialized() ? backend_->configureAuthoredWaterBody(desc) : AuthoredBodyError::NotInitialized;
+}
+bool PhysicsWorld::setAuthoredHelm(BodyHandle body, float throttle, float steering) noexcept {
+    return isInitialized() && backend_->setAuthoredHelm(body, throttle, steering);
+}
+ShapeResourceSubmission PhysicsWorld::prepareGpuSubmission(ShapeResourceError& error) noexcept {
+    if (!isInitialized()) { error = ShapeResourceError::NotInitialized; return {}; }
+    return backend_->prepareGpuSubmission(error);
+}
+ShapeResourceError PhysicsWorld::submitGpuSubmission(ShapeResourceSubmission ticket,
+    std::span<const WGPUCommandBuffer> commands) noexcept {
+    return backend_ ? backend_->submitGpuSubmission(ticket, commands) : ShapeResourceError::NotInitialized;
+}
+ShapeResourceError PhysicsWorld::discardGpuSubmission(ShapeResourceSubmission ticket) noexcept {
+    return backend_ ? backend_->discardGpuSubmission(ticket) : ShapeResourceError::NotInitialized;
+}
+
 bool PhysicsWorld::setTerrain(std::span<const uint16_t> samples,
                               uint32_t width, uint32_t height,
                               float heightScale, float cellScale) {
@@ -121,6 +163,10 @@ void PhysicsWorld::setWaterSurfaceSampler(WaterSurfaceSampler sampler) {
 
 void PhysicsWorld::setWaterGpuResources(const WaterGpuResources& resources) {
     if (backend_) backend_->setWaterGpuResources(resources);
+}
+
+bool PhysicsWorld::stageWaterGpuFrame(const WaterGpuFrame& frame) noexcept {
+    return backend_ && backend_->stageWaterGpuFrame(frame);
 }
 
 PhysicsWorld::CharacterHandle PhysicsWorld::createCharacter(
@@ -229,6 +275,10 @@ void PhysicsWorld::update(float deltaTime) {
 
 bool PhysicsWorld::scheduleFixedTicks(uint32_t tickCount) {
     return backend_ && backend_->scheduleFixedTicks(tickCount);
+}
+
+bool PhysicsWorld::setSchedulingPaused(bool paused, uint32_t finalTicks) noexcept {
+    return backend_ && backend_->setSchedulingPaused(paused,finalTicks);
 }
 
 void PhysicsWorld::encodeGpuStep(WGPUCommandEncoder encoder) {

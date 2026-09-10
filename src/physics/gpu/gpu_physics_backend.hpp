@@ -21,6 +21,16 @@ public:
     [[nodiscard]] bool isInitialized() const noexcept override;
     [[nodiscard]] BackendType type() const noexcept override;
     [[nodiscard]] BackendCapabilities capabilities() const noexcept override;
+    [[nodiscard]] ShapeResourceError enableAuthoredShapeResources(
+        const ShapeResourceLimits&) noexcept override;
+    [[nodiscard]] IAuthoredShapeResources* authoredShapeResources() noexcept override;
+    [[nodiscard]] AuthoredBodySpawnResult spawnAuthoredBody(const AuthoredBodySpawnDesc&) override;
+    [[nodiscard]] AuthoredBodyError configureAuthoredWaterBody(const AuthoredWaterBodyDesc&) override;
+    [[nodiscard]] bool setAuthoredHelm(BodyHandle, float throttle, float steering) noexcept override;
+    [[nodiscard]] ShapeResourceSubmission prepareGpuSubmission(ShapeResourceError&) noexcept override;
+    [[nodiscard]] ShapeResourceError submitGpuSubmission(ShapeResourceSubmission,
+        std::span<const WGPUCommandBuffer>) noexcept override;
+    [[nodiscard]] ShapeResourceError discardGpuSubmission(ShapeResourceSubmission) noexcept override;
 
     [[nodiscard]] bool setTerrain(std::span<const uint16_t> samples,
                                   uint32_t width, uint32_t height,
@@ -36,6 +46,7 @@ public:
     void setWaterPlane(float height, bool enabled) override;
     void setWaterSurfaceSampler(WaterSurfaceSampler sampler) override;
     void setWaterGpuResources(const WaterGpuResources& resources) override;
+    [[nodiscard]] bool stageWaterGpuFrame(const WaterGpuFrame& frame) noexcept override;
 
     [[nodiscard]] CharacterHandle createCharacter(
         const glm::vec3& feetPosition,
@@ -77,6 +88,7 @@ public:
 
     void stepCpu(float deltaTime) override;
     [[nodiscard]] bool scheduleFixedTicks(uint32_t tickCount) override;
+    [[nodiscard]] bool setSchedulingPaused(bool paused, uint32_t finalTicks = 0) noexcept override;
     void encodeGpuStep(WGPUCommandEncoder encoder) override;
     [[nodiscard]] PhysicsEncodeReport encodeGpuStepChecked(
         WGPUCommandEncoder encoder) override;
@@ -101,6 +113,7 @@ public:
     [[nodiscard]] PhysicsStats stats() const noexcept override;
     [[nodiscard]] PhysicsStepStats lastStepStats() const noexcept override;
     [[nodiscard]] uint64_t encodedTick() const noexcept override;
+    [[nodiscard]] PhysicsTickFrontier tickFrontier() const noexcept override;
 
 private:
     class Impl;

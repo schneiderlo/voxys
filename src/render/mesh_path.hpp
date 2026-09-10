@@ -10,6 +10,8 @@
 #pragma once
 
 #include "moto/vmesh.hpp"
+#include "render/environment_lighting.hpp"
+#include "physics/physics_types.hpp"
 
 #include <array>
 #include <cstdint>
@@ -34,8 +36,16 @@ struct MeshPathConfig {
     std::filesystem::path shaderPath = "shaders/mesh_path.wgsl";
     WGPUTextureFormat colorFormat = WGPUTextureFormat_BGRA8Unorm;
     WGPUTextureFormat depthFormat = WGPUTextureFormat_Depth32Float;
+    // glTF's outward winding projects clockwise with the project's LH camera.
+    // Keep historical CCW as default; admitted salvage rigid fixtures select CW.
+    WGPUFrontFace frontFace = WGPUFrontFace_CCW;
     uint32_t maxInstances = 256;
     uint32_t maxDrawsPerFrame = 512;
+    // Explicit diagnostic path: ignore attachment depth and never write it.
+    // Call render with useRayDepth=false as well for a true X-ray overlay.
+    bool depthOverlay = false;
+    bool linearHdrOutput = false; // Opaque/masked RGBA16F + R32F radial depth for water.
+    bool filteredEnvironment = false; // Explicit opt-in; legacy routes keep their lighting.
 };
 
 /// One draw instance: a mesh rendered with a model matrix and a color tint.
@@ -48,6 +58,7 @@ struct MeshDrawInstance {
     glm::vec4 tintColor{1.0f};   // rgba multiplier over the material factors
     float emissiveBoost = 0.0f;  // added to emissive contribution
     uint32_t pad[3] = {};
+    physics::BodyHandle physicsBody{}; // If valid, modelMatrix is root-local.
 };
 
 /// A loaded mesh part (one glTF mesh). The importer flattens multi-primitive
@@ -73,6 +84,10 @@ public:
     [[nodiscard]] bool init(WGPUDevice device, WGPUQueue queue,
                             const MeshPathConfig& config = {});
     void shutdown();
+    /// Exceptional teardown while commands may still reference resources.
+    /// Release external refs without Destroy; WebGPU retains internal command
+    /// and bind-group dependencies. This does not certify queue completion.
+    void releaseHandles();
     [[nodiscard]] bool isInitialized() const noexcept {
         return opaquePipeline_ != nullptr && blendPipeline_ != nullptr;
     }
@@ -81,9 +96,16 @@ public:
     /// preloaded bytes). Uploads geometry, materials, and textures.
     [[nodiscard]] bool loadMesh(const std::filesystem::path& path);
     [[nodiscard]] bool loadMeshFromBytes(const std::vector<uint8_t>& bytes);
+    /// Upload an already parsed, owned snapshot. Performs the same drawable
+    /// validation as byte loading; a failed upload adds no asset. The caller
+    /// owns profile/content admission and retained CPU node hierarchy.
+    [[nodiscard]] bool loadMeshData(const moto::VmeshData& data);
     /// Reset all runtime instances (keep loaded meshes).
     void clearInstances();
     void addInstance(const MeshDrawInstance& instance);
+    // Borrowed only for an owned physics submission. Static draws bind inert
+    // buffers; dynamic draws resolve COM/principal pose directly on the GPU.
+    [[nodiscard]] bool setAuthoredBodyView(const physics::PhysicsRenderView&, physics::WorldPosition camera);
     [[nodiscard]] size_t assetCount() const noexcept { return assets_.size(); }
     [[nodiscard]] uint32_t lastSubmittedDrawCount() const noexcept {
         return lastSubmittedDrawCount_;
@@ -98,6 +120,25 @@ public:
     /// Bind the ray-caster's linear scene depth for terrain occlusion.
     void setRayDepthTexture(WGPUTextureView view);
 
+    /// Update both borrowed views as one transaction. False keeps old bindings.
+    /// The caller still needs WebGPU error scopes for asynchronous validation.
+    [[nodiscard]] bool setSceneTextures(WGPUTextureView environment,
+                                         WGPUTextureView rayDepth);
+
+    /// Encode the optional filter after the source sky is ready, before render.
+    /// A successful bake remains provisional until actual submission is acknowledged.
+    [[nodiscard]] bool encodeEnvironmentLighting(WGPUCommandEncoder encoder);
+    void acknowledgeEnvironmentSubmission() noexcept;
+    void discardEnvironmentEncoding() noexcept;
+    /// Required if the source contents change without replacing its view.
+    [[nodiscard]] bool invalidateEnvironmentLighting() noexcept;
+    [[nodiscard]] uint64_t environmentLightingBytes() const noexcept {
+        return filteredEnvironment_.requestedBytes();
+    }
+    static constexpr uint64_t filteredEnvironmentReservationBytes = 1228944u;
+    [[nodiscard]] uint32_t environmentBakeCount() const noexcept { return environmentBakeCount_; }
+    [[nodiscard]] bool environmentLightingReady() const noexcept { return filteredEnvironmentReady_; }
+
     void render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
                 WGPUTextureView depthView, const glm::mat4& view,
                 const glm::mat4& projection, const glm::vec3& cameraPosition,
@@ -105,13 +146,17 @@ public:
                 uint32_t height, bool useRayDepth);
 
     /// Same render with full lighting control (mirrors PrimitivePath).
-    void render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
+    bool render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
                 WGPUTextureView depthView, const glm::mat4& view,
                 const glm::mat4& projection, const glm::vec3& cameraPosition,
-                const struct PrimitiveLighting& lighting, uint32_t width,
-                uint32_t height, bool useRayDepth);
+                const PrimitiveLighting& lighting, uint32_t width,
+                uint32_t height, bool useRayDepth, WGPUTextureView linearDepthOutput = nullptr);
 
 private:
+    WGPUBindGroupLayout bodyLayout_ = nullptr;
+    WGPUBindGroup bodyBinding_ = nullptr;
+    WGPUBuffer bodyFallback_ = nullptr, bodyCamera_ = nullptr;
+    void teardown(bool destroyResources);
     struct MeshBounds {
         glm::vec3 minimum{0.0f};
         glm::vec3 maximum{0.0f};
@@ -139,7 +184,7 @@ private:
     [[nodiscard]] bool createPipeline(const MeshPathConfig& config);
     [[nodiscard]] bool uploadMesh(const moto::VmeshData& data);
     [[nodiscard]] bool ensureInstanceCapacity(size_t required);
-    void rebuildBindGroups();
+    [[nodiscard]] bool rebuildBindGroups();
 
     WGPUDevice device_ = nullptr;
     WGPUQueue queue_ = nullptr;
@@ -156,6 +201,13 @@ private:
     WGPUTextureView boundRayDepthView_ = nullptr;
     WGPUSampler sampler_ = nullptr;
     WGPUSampler materialSampler_ = nullptr;
+    WGPUSampler filteredSampler_ = nullptr;
+    EnvironmentLighting filteredEnvironment_;
+    bool filteredEnvironmentReady_ = false;
+    bool filteredEnvironmentEncoded_ = false;
+    uint32_t environmentBakeCount_ = 0;
+    WGPUTexture fallbackCubeTexture_ = nullptr;
+    WGPUTextureView fallbackCubeView_ = nullptr;
     WGPUTexture fallbackEnvironmentTexture_ = nullptr;
     WGPUTextureView fallbackEnvironmentView_ = nullptr;
     WGPUTexture fallbackRayDepthTexture_ = nullptr;
@@ -166,6 +218,7 @@ private:
     uint32_t maxDrawsPerFrame_ = 512;
     WGPUTextureFormat colorFormat_ = WGPUTextureFormat_BGRA8Unorm;
     WGPUTextureFormat depthFormat_ = WGPUTextureFormat_Depth32Float;
+    bool linearHdrOutput_ = false;
     bool instancesValid_ = false;
     uint32_t lastSubmittedDrawCount_ = 0u;
     uint32_t lastCulledInstanceCount_ = 0u;

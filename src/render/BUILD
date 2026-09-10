@@ -3,6 +3,15 @@ package(default_visibility = ["//visibility:public"])
 load("//settings:configure_copts.bzl", "PROJECT_DEFAULT_COPTS")
 
 cc_library(
+    name = "salvage_asset_fixture",
+    srcs = ["salvage_asset_fixture.cpp", "inspection_guides.cpp"],
+    hdrs = ["salvage_asset_fixture.hpp", "inspection_guides.hpp"],
+    copts = PROJECT_DEFAULT_COPTS,
+    includes = [".."],
+    deps = [":render", "//src/game:cooked_part_bundle", "//third_party:glm"],
+)
+
+cc_library(
     name = "frustum",
     hdrs = ["frustum.hpp"],
     copts = PROJECT_DEFAULT_COPTS,
@@ -72,7 +81,9 @@ cc_library(
     name = "render",
     srcs = [
         "blit_path.cpp",
+        "opaque_scene.cpp",
         "debug_visualizer.cpp",
+        "environment_lighting.cpp",
         "mesh_path.cpp",
         "primitive_gpu_culling.cpp",
         "raycast_path.cpp",
@@ -81,8 +92,10 @@ cc_library(
     ],
     hdrs = [
         "blit_path.hpp",
+        "opaque_scene.hpp",
         "periodic_gradient_lut.hpp",
         "debug_visualizer.hpp",
+        "environment_lighting.hpp",
         "mesh_path.hpp",
         "primitive_gpu_culling.hpp",
         "raycast_path.hpp",

@@ -16,6 +16,14 @@
 namespace voxy::physics {
 
 class IPhysicsBackend;
+class IAuthoredShapeResources;
+struct ShapeResourceLimits;
+struct ShapeResourceSubmission;
+struct AuthoredBodySpawnDesc;
+struct AuthoredBodySpawnResult;
+struct AuthoredWaterBodyDesc;
+enum class AuthoredBodyError : uint8_t;
+enum class ShapeResourceError : uint8_t;
 
 class PhysicsWorld {
 public:
@@ -49,6 +57,30 @@ public:
     [[nodiscard]] PhysicsStats stats() const noexcept;
     [[nodiscard]] PhysicsStepStats lastStepStats() const noexcept;
     [[nodiscard]] uint64_t encodedTick() const noexcept;
+    [[nodiscard]] PhysicsTickFrontier tickFrontier() const noexcept;
+
+    // Opt-in bounded resource allocation. CPU backends explicitly refuse;
+    // this does not enable authored-body support or a primitive fallback.
+    // Configure once per initialized world, then poll the borrowed resource
+    // interface until Ready. Close/drain it before normal world shutdown.
+    [[nodiscard]] ShapeResourceError enableAuthoredShapeResources() noexcept;
+    [[nodiscard]] ShapeResourceError enableAuthoredShapeResources(
+        const ShapeResourceLimits& limits) noexcept;
+    [[nodiscard]] IAuthoredShapeResources* authoredShapeResources() noexcept;
+
+    // Discrete rigid body using the prepared exterior and mass. LEGO terrain
+    // and authored bullet requests are unsupported; water modules are separate.
+    [[nodiscard]] AuthoredBodySpawnResult spawnAuthoredBody(const AuthoredBodySpawnDesc&);
+    [[nodiscard]] AuthoredBodyError configureAuthoredWaterBody(const AuthoredWaterBodyDesc&);
+    [[nodiscard]] bool setAuthoredHelm(BodyHandle, float throttle, float steering) noexcept;
+    // Declare all live/pending authored shapes BEFORE creating a frame encoder.
+    // This boundary owns the real queue submission, including physics/rendering.
+    [[nodiscard]] ShapeResourceSubmission prepareGpuSubmission(ShapeResourceError&) noexcept;
+    [[nodiscard]] ShapeResourceError submitGpuSubmission(ShapeResourceSubmission,
+        std::span<const WGPUCommandBuffer>) noexcept;
+    // Release commands/encoders first. Discard after physics encoding fail-stops
+    // the world because host tick/mutation state has already advanced.
+    [[nodiscard]] ShapeResourceError discardGpuSubmission(ShapeResourceSubmission) noexcept;
 
     /// Attach a heightmap as streamed, full-resolution collision tiles.
     /// The sample storage must remain alive until clearTerrain() or shutdown().
@@ -64,6 +96,7 @@ public:
     void setWaterPlane(float height, bool enabled = true);
     void setWaterSurfaceSampler(WaterSurfaceSampler sampler);
     void setWaterGpuResources(const WaterGpuResources& resources);
+    [[nodiscard]] bool stageWaterGpuFrame(const WaterGpuFrame& frame) noexcept;
 
     [[nodiscard]] CharacterHandle createCharacter(
         const glm::vec3& feetPosition,
@@ -105,6 +138,7 @@ public:
 
     void update(float deltaTime);
     [[nodiscard]] bool scheduleFixedTicks(uint32_t tickCount);
+    [[nodiscard]] bool setSchedulingPaused(bool paused, uint32_t finalTicks = 0) noexcept;
     void encodeGpuStep(WGPUCommandEncoder encoder);
     [[nodiscard]] PhysicsEncodeReport encodeGpuStepChecked(
         WGPUCommandEncoder encoder);

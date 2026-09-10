@@ -1,0 +1,26 @@
+{
+  "commit": "7f28fabfabf3d63726f6cfa1001c3ce1ed557911",
+  "subject": "G00: establish expedition baseline and verified preview lifecycle",
+  "commit_exit_code": 0,
+  "hook": "bazel test //tests:voxy_tests //tools:terrain_diffusion_import_test",
+  "hook_path": ".githooks/pre-commit",
+  "hook_sha256": "d4db08eff26f93458c1d5c9e4325c42d8e1bd8b3d002d3380e54ef25e4eea92c",
+  "hook_bypassed": false,
+  "combined_passed": 1495,
+  "combined_xml": {
+    "tests": "1502",
+    "failures": "0",
+    "disabled": "4",
+    "errors": "0",
+    "time": "308.783",
+    "timestamp": "2026-09-07T22:54:00.700",
+    "name": "AllTests"
+  },
+  "combined_binary_sha256": "574bb8e969885d155d9b89764d391bec35a7739eee7f5b44726d9aa3422e5479",
+  "excluded": [
+    "DATA-03 implementation/evidence",
+    "ASSET-02 implementation/evidence",
+    "LOOK-01 prework"
+  ],
+  "note": "Recorded after commit; this metadata update is carried forward with the ongoing plan, not falsely included in the commit it describes."
+}

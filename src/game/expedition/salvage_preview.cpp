@@ -17,19 +17,21 @@ bool finite(glm::vec3 value) {
 
 SalvagePreview::~SalvagePreview() { static_cast<void>(shutdown()); }
 
-bool SalvagePreview::initialize(physics::PhysicsWorld& world, glm::vec3 origin) {
+bool SalvagePreview::initialize(physics::PhysicsWorld& world, glm::vec3 origin, Scenery scenery) {
     if (!world.isInitialized() || world.backendType() != physics::BackendType::WebGpuSoft) return false;
     return initialize({
         [&world](const physics::BodySpawnDesc& desc) { return world.spawnBody(desc); },
         [&world](physics::BodyHandle handle) { return world.destroyBody(handle); },
-    }, origin);
+    }, origin, scenery);
 }
 
-bool SalvagePreview::initialize(BodyAccess access, glm::vec3 origin) {
+bool SalvagePreview::initialize(BodyAccess access, glm::vec3 origin, Scenery scenery) {
     if (count_ != 0u || phase_ != Phase::Empty || !finite(origin)
+        || (scenery != Scenery::Cove && scenery != Scenery::Inspection)
         || !access.spawn || !access.destroy
         || revision_ == std::numeric_limits<uint64_t>::max()) return false;
     access_ = std::move(access);
+    scenery_ = scenery;
     origin_ = origin;
     resets_ = 0;
     ++revision_;
@@ -41,6 +43,13 @@ bool SalvagePreview::initialize(BodyAccess access, glm::vec3 origin) {
 
 bool SalvagePreview::spawnScene() {
     destroyAccepted_.fill(false);
+    if (scenery_ == Scenery::Inspection) {
+        // The asset inspector owns render assets through its separate GPU
+        // owner. No invisible bodies or cove props are needed for its controls.
+        phase_ = Phase::Ready;
+        error_ = {};
+        return true;
+    }
     std::array<physics::BodySpawnDesc, MaximumBodies> pieces{};
     uint32_t pieceCount = 0;
     const glm::vec3 wood{.39f, .25f, .13f}, teal{.16f, .40f, .39f};
@@ -139,7 +148,10 @@ void SalvagePreview::update() {
         if (!destroyAccepted_[i]) destroyAccepted_[i] = access_.destroy(handles_[i]);
         allAccepted = allAccepted && destroyAccepted_[i];
     }
-    if (allAccepted) phase_ = Phase::AwaitingRetirement;
+    if (allAccepted) {
+        if (count_ == 0u) completeRemoval(); // No body lifetimes exist to fence.
+        else phase_ = Phase::AwaitingRetirement;
+    }
 }
 
 std::optional<SalvagePreview::SnapshotRequest> SalvagePreview::retirementSnapshot() const {
@@ -160,6 +172,10 @@ void SalvagePreview::observeRetirement(uint64_t revision, std::span<const std::b
             && (packed & physics::kGpuBodyGenerationMask) == handles_[i].generation) return;
     }
     // A completed GPU copy proves that every old generation has disappeared.
+    completeRemoval();
+}
+
+void SalvagePreview::completeRemoval() {
     handles_ = {};
     count_ = legoCount_ = 0;
     if (leaveAfterRetirement_) {

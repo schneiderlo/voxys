@@ -1,0 +1,774 @@
+{
+  "schema": 1,
+  "status": "candidate; offline authoring only, not engine acceptance",
+  "part": {
+    "namespace": "766f7879732d73616c766167652d7631",
+    "counter": "3",
+    "version": 2
+  },
+  "parameters": {
+    "schema": 1,
+    "part_version": 2,
+    "width_ticks": 50,
+    "body_height_ticks": 48,
+    "length_ticks": 200,
+    "dry_mass_kg": 120.0,
+    "seed": 1979,
+    "palette_srgb": {
+      "cream": "D9C9A2",
+      "teal": "2A6767",
+      "coral": "CF6548",
+      "slate": "354852",
+      "steel": "869498"
+    }
+  },
+  "seed": 1979,
+  "blender_version": "5.2.1 LTS",
+  "blender_build_hash": "9e2066aef7ef",
+  "generator_sha256": "b49a81e67d8d9ac4ed1306e9eba24c96285905f469b26a47ab53c12023533934",
+  "parameter_module_sha256": "348dd03c4f49009f14d8b430728b87925458a27f8a4db1923cffce93b8e4260a",
+  "input_spec_sha256": "915318acb44f5a618d011c3645e6af0ec74935a9d907dc14ade84fde294106c9",
+  "lods": [
+    {
+      "file": "pontoon-lod-0.glb",
+      "sha256": "6d29ff5cbc622121bdfe0f8018fa8f848f24622d3be3e23b39ecae83e5bb8251",
+      "bytes": 578960,
+      "triangles": 3508,
+      "vertices": 9671,
+      "materials": 1,
+      "meshes": 1,
+      "export_settings": {
+        "export_format": "GLB",
+        "use_selection": true,
+        "export_yup": true,
+        "export_apply": true,
+        "export_materials": "EXPORT",
+        "export_normals": true,
+        "export_texcoords": true,
+        "export_tangents": true,
+        "export_animations": false,
+        "export_skins": false,
+        "export_morph": false,
+        "export_cameras": false,
+        "export_lights": false,
+        "export_extras": false,
+        "export_vertex_color": "NONE",
+        "export_all_vertex_colors": false
+      },
+      "pretriangulation_enclosure": {
+        "enclosure_volume_cubic_metres": 3.4714925920270416,
+        "proxy_volume_cubic_metres": 3.5386879999999996,
+        "relative_volume_error": 0.019356344912642376,
+        "non_manifold_edges": 0,
+        "degenerate_faces": 0,
+        "proxy_inertia_diagonal_kg_m2": [
+          148.77843709759097,
+          149.53926643999134,
+          18.19033784272589
+        ],
+        "closed_shell_includes": "Actual pegs and bottom wells after boolean/bevel modifiers",
+        "collision_profile": "Nine gameplay boxes; visible wells/pegs do not become separate contacts"
+      },
+      "enclosure": {
+        "enclosure_volume_cubic_metres": 3.471492734182069,
+        "proxy_volume_cubic_metres": 3.5386879999999996,
+        "relative_volume_error": 0.019356303170763534,
+        "non_manifold_edges": 0,
+        "degenerate_faces": 0,
+        "proxy_inertia_diagonal_kg_m2": [
+          148.77843709759097,
+          149.53926643999134,
+          18.19033784272589
+        ],
+        "closed_shell_includes": "Actual pegs and bottom wells after boolean/bevel modifiers",
+        "collision_profile": "Nine gameplay boxes; visible wells/pegs do not become separate contacts"
+      },
+      "main_shell_contact_error": {
+        "protocol": "Both exterior surfaces sampled at <=10 mm edge steps; samples are not an exact Hausdorff proof",
+        "grid_step_metres": 0.01,
+        "proxy_to_skin": {
+          "samples": 162578,
+          "excluded_contact_detail_samples": 17990,
+          "maximum_sampled_distance_metres": 0.0691714882850647,
+          "at_canonical_metres": [
+            -0.47999998927116394,
+            -0.46000000834465027,
+            -1.600000023841858
+          ]
+        },
+        "skin_to_proxy": {
+          "samples": 1667337,
+          "excluded_contact_detail_samples": 300939,
+          "maximum_sampled_distance_metres": 0.04290005564689636,
+          "at_canonical_metres": [
+            -0.4370999336242676,
+            -0.4167385697364807,
+            -1.5538716316223145
+          ]
+        },
+        "exclusion": "Within 0.31 m of three mount axes, top y>body_half_height-0.011 and bottom y<-body_half_height+0.211; pegs/wells remain in enclosure volume"
+      },
+      "base_color_texel_density": {
+        "mesh_surface_square_metres": 16.900639531450754,
+        "summed_triangle_uv_area": 0.27189934765920043,
+        "area_weighted_rms_texels_per_metre": 64.94152373362067,
+        "qualification": "UV triangle area includes intentional atlas reuse; this is density, not unique texture coverage"
+      }
+    },
+    {
+      "file": "pontoon-lod-1.glb",
+      "sha256": "e6dd2db5d4f51400bad16446939cc8496786be7c94b062842c85d4ab1604f320",
+      "bytes": 82800,
+      "triangles": 500,
+      "vertices": 1080,
+      "materials": 1,
+      "meshes": 1,
+      "export_settings": {
+        "export_format": "GLB",
+        "use_selection": true,
+        "export_yup": true,
+        "export_apply": true,
+        "export_materials": "EXPORT",
+        "export_normals": true,
+        "export_texcoords": true,
+        "export_tangents": true,
+        "export_animations": false,
+        "export_skins": false,
+        "export_morph": false,
+        "export_cameras": false,
+        "export_lights": false,
+        "export_extras": false,
+        "export_vertex_color": "NONE",
+        "export_all_vertex_colors": false
+      },
+      "pretriangulation_enclosure": {
+        "enclosure_volume_cubic_metres": 3.4537437889324214,
+        "proxy_volume_cubic_metres": 3.5386879999999996,
+        "relative_volume_error": 0.02459482123132095,
+        "non_manifold_edges": 0,
+        "degenerate_faces": 0,
+        "proxy_inertia_diagonal_kg_m2": [
+          148.77843709759097,
+          149.53926643999134,
+          18.19033784272589
+        ],
+        "closed_shell_includes": "Actual pegs and bottom wells after boolean/bevel modifiers",
+        "collision_profile": "Nine gameplay boxes; visible wells/pegs do not become separate contacts"
+      },
+      "enclosure": {
+        "enclosure_volume_cubic_metres": 3.4537437881918276,
+        "proxy_volume_cubic_metres": 3.5386879999999996,
+        "relative_volume_error": 0.024594821451027205,
+        "non_manifold_edges": 0,
+        "degenerate_faces": 0,
+        "proxy_inertia_diagonal_kg_m2": [
+          148.77843709759097,
+          149.53926643999134,
+          18.19033784272589
+        ],
+        "closed_shell_includes": "Actual pegs and bottom wells after boolean/bevel modifiers",
+        "collision_profile": "Nine gameplay boxes; visible wells/pegs do not become separate contacts"
+      },
+      "main_shell_contact_error": {
+        "protocol": "Both exterior surfaces sampled at <=10 mm edge steps; samples are not an exact Hausdorff proof",
+        "grid_step_metres": 0.01,
+        "proxy_to_skin": {
+          "samples": 162578,
+          "excluded_contact_detail_samples": 17990,
+          "maximum_sampled_distance_metres": 0.0691714882850647,
+          "at_canonical_metres": [
+            -0.47999998927116394,
+            0.46000000834465027,
+            -1.600000023841858
+          ]
+        },
+        "skin_to_proxy": {
+          "samples": 666455,
+          "excluded_contact_detail_samples": 147313,
+          "maximum_sampled_distance_metres": 0.046000003814697266,
+          "at_canonical_metres": [
+            0.45399999618530273,
+            -0.4339999854564667,
+            -0.7124999761581421
+          ]
+        },
+        "exclusion": "Within 0.31 m of three mount axes, top y>body_half_height-0.011 and bottom y<-body_half_height+0.211; pegs/wells remain in enclosure volume"
+      },
+      "base_color_texel_density": {
+        "mesh_surface_square_metres": 17.05742535286325,
+        "summed_triangle_uv_area": 0.27727739547844976,
+        "area_weighted_rms_texels_per_metre": 32.639271631947096,
+        "qualification": "UV triangle area includes intentional atlas reuse; this is density, not unique texture coverage"
+      }
+    },
+    {
+      "file": "pontoon-lod-2.glb",
+      "sha256": "f14431e42c748227807e0c5aa6ba6faaa5ca1d02adc9f0ea01aff85489b533b3",
+      "bytes": 31796,
+      "triangles": 256,
+      "vertices": 575,
+      "materials": 1,
+      "meshes": 1,
+      "export_settings": {
+        "export_format": "GLB",
+        "use_selection": true,
+        "export_yup": true,
+        "export_apply": true,
+        "export_materials": "EXPORT",
+        "export_normals": true,
+        "export_texcoords": true,
+        "export_tangents": true,
+        "export_animations": false,
+        "export_skins": false,
+        "export_morph": false,
+        "export_cameras": false,
+        "export_lights": false,
+        "export_extras": false,
+        "export_vertex_color": "NONE",
+        "export_all_vertex_colors": false
+      },
+      "pretriangulation_enclosure": {
+        "enclosure_volume_cubic_metres": 3.438099647829978,
+        "proxy_volume_cubic_metres": 3.5386879999999996,
+        "relative_volume_error": 0.029256962413381382,
+        "non_manifold_edges": 0,
+        "degenerate_faces": 0,
+        "proxy_inertia_diagonal_kg_m2": [
+          148.77843709759097,
+          149.53926643999134,
+          18.19033784272589
+        ],
+        "closed_shell_includes": "Actual pegs and bottom wells after boolean/bevel modifiers",
+        "collision_profile": "Nine gameplay boxes; visible wells/pegs do not become separate contacts"
+      },
+      "enclosure": {
+        "enclosure_volume_cubic_metres": 3.438099647026786,
+        "proxy_volume_cubic_metres": 3.5386879999999996,
+        "relative_volume_error": 0.029256962653831264,
+        "non_manifold_edges": 0,
+        "degenerate_faces": 0,
+        "proxy_inertia_diagonal_kg_m2": [
+          148.77843709759097,
+          149.53926643999134,
+          18.19033784272589
+        ],
+        "closed_shell_includes": "Actual pegs and bottom wells after boolean/bevel modifiers",
+        "collision_profile": "Nine gameplay boxes; visible wells/pegs do not become separate contacts"
+      },
+      "main_shell_contact_error": {
+        "protocol": "Both exterior surfaces sampled at <=10 mm edge steps; samples are not an exact Hausdorff proof",
+        "grid_step_metres": 0.01,
+        "proxy_to_skin": {
+          "samples": 162578,
+          "excluded_contact_detail_samples": 17990,
+          "maximum_sampled_distance_metres": 0.0691714882850647,
+          "at_canonical_metres": [
+            -0.47999998927116394,
+            0.46000000834465027,
+            -1.600000023841858
+          ]
+        },
+        "skin_to_proxy": {
+          "samples": 953078,
+          "excluded_contact_detail_samples": 127611,
+          "maximum_sampled_distance_metres": 0.04285714030265808,
+          "at_canonical_metres": [
+            0.43714284896850586,
+            0.4171428382396698,
+            -1.5523808002471924
+          ]
+        },
+        "exclusion": "Within 0.31 m of three mount axes, top y>body_half_height-0.011 and bottom y<-body_half_height+0.211; pegs/wells remain in enclosure volume"
+      },
+      "base_color_texel_density": {
+        "mesh_surface_square_metres": 17.074978939983303,
+        "summed_triangle_uv_area": 0.27380322315730155,
+        "area_weighted_rms_texels_per_metre": 8.104368199410018,
+        "qualification": "UV triangle area includes intentional atlas reuse; this is density, not unique texture coverage"
+      }
+    }
+  ],
+  "lod_budgets": [
+    {
+      "triangles": 6000,
+      "exported_vertices": 12000,
+      "texture_side_pixels": 512,
+      "minimum_screen_height_pixels": 200
+    },
+    {
+      "triangles": 1200,
+      "exported_vertices": 2400,
+      "texture_side_pixels": 256,
+      "minimum_screen_height_pixels": 60
+    },
+    {
+      "triangles": 400,
+      "exported_vertices": 800,
+      "texture_side_pixels": 64,
+      "minimum_screen_height_pixels": 0
+    }
+  ],
+  "cross_lod_mount_clearance": [
+    {
+      "peg_lod": 0,
+      "well_lod": 0,
+      "minimum_profile_clearance_metres": 0.009561230581693118,
+      "axial_spare_depth_metres": 0.020000000000000018
+    },
+    {
+      "peg_lod": 0,
+      "well_lod": 1,
+      "minimum_profile_clearance_metres": 0.020993871963508524,
+      "axial_spare_depth_metres": 0.020000000000000018
+    },
+    {
+      "peg_lod": 0,
+      "well_lod": 2,
+      "minimum_profile_clearance_metres": 0.014542375293720851,
+      "axial_spare_depth_metres": 0.020000000000000018
+    },
+    {
+      "peg_lod": 1,
+      "well_lod": 0,
+      "minimum_profile_clearance_metres": 0.009561230581693118,
+      "axial_spare_depth_metres": 0.020000000000000018
+    },
+    {
+      "peg_lod": 1,
+      "well_lod": 1,
+      "minimum_profile_clearance_metres": 0.027022111065445806,
+      "axial_spare_depth_metres": 0.020000000000000018
+    },
+    {
+      "peg_lod": 1,
+      "well_lod": 2,
+      "minimum_profile_clearance_metres": 0.014542375293720851,
+      "axial_spare_depth_metres": 0.020000000000000018
+    },
+    {
+      "peg_lod": 2,
+      "well_lod": 0,
+      "minimum_profile_clearance_metres": 0.009561230581693118,
+      "axial_spare_depth_metres": 0.020000000000000018
+    },
+    {
+      "peg_lod": 2,
+      "well_lod": 1,
+      "minimum_profile_clearance_metres": 0.027022111065445806,
+      "axial_spare_depth_metres": 0.020000000000000018
+    },
+    {
+      "peg_lod": 2,
+      "well_lod": 2,
+      "minimum_profile_clearance_metres": 0.037024256604011964,
+      "axial_spare_depth_metres": 0.020000000000000018
+    }
+  ],
+  "authoring_frame": "+Z up, -Y forward; canonical right is Blender -X",
+  "export_to_canonical_rotation": 12,
+  "uv_quantization": "1/65536 before export tangent generation",
+  "maps": "Original deterministic procedural sRGB color and separate linear normal/MR; no baked lighting, no external imagery",
+  "provenance": "Original project geometry/script/maps; concept used as art-direction reference only",
+  "render": {
+    "engine": "Cycles",
+    "device": "CPU",
+    "samples": 96,
+    "threads": 4,
+    "preset": "full",
+    "view_transform": "AgX"
+  },
+  "outputs": {
+    "preview/bottom.png": {
+      "sha256": "250d19ec4e31caad54f5d1e0f35e9f59aa0f08b0eea63c65e0315d8310322adf",
+      "bytes": 388232
+    },
+    "preview/engaged.png": {
+      "sha256": "28795dec4583cc6388720c9589e8ce5d01df6f68d14b11af25642c4a0da08169",
+      "bytes": 414323
+    },
+    "preview/exploded.png": {
+      "sha256": "5b3d7372f9a4d897e39bee8d3b00ec886fda91ef7e8ea8c9844634f3eca30212",
+      "bytes": 427883
+    },
+    "preview/front.png": {
+      "sha256": "60d834441e600e6e07ec2e6af5f51eafc513d8bac7ac7ff5b79ed2669a956b17",
+      "bytes": 486976
+    },
+    "preview/left.png": {
+      "sha256": "2663491a9c41ef4d0a4475a70adb1039db41e5ecac369a25b74a850aef697b96",
+      "bytes": 495435
+    },
+    "preview/lod-1.png": {
+      "sha256": "3ccea1837ec5aed8c4a9e406a769d406f2b13aec8ef00557a421f42e0dda1567",
+      "bytes": 523829
+    },
+    "preview/lod-2.png": {
+      "sha256": "0c36715820bed335b42c0b2b49283238cfce2f71e54d33491a17b7864d65d071",
+      "bytes": 516360
+    },
+    "preview/rear.png": {
+      "sha256": "f77381b20669da99a4f4941fa4ba6ae0b094ad1933ab549354410ef80434f395",
+      "bytes": 485728
+    },
+    "preview/right.png": {
+      "sha256": "513d8a439920682c896a295020c7f63b9aa8364d268336cb8ce55f336befd17f",
+      "bytes": 489127
+    },
+    "preview/socket-pegs.png": {
+      "sha256": "92cc26f267e223acb1484329a99e58505f8f900dbe4000ed7a854ed5fd86f647",
+      "bytes": 449986
+    },
+    "preview/socket-wells.png": {
+      "sha256": "9f4df053c1e9a9a2142dbcf659432fe4015ceddd51943ae1ba9e5ca0071d5ea2",
+      "bytes": 455940
+    },
+    "preview/thumbnail.png": {
+      "sha256": "c3797d0339e9a730cf177caa0fa2980729fa0fed66ff739bdde3fae2e0b82175",
+      "bytes": 523666
+    },
+    "preview/top.png": {
+      "sha256": "87fef2fcf686d14307bddc9b478f21ec14aa29d35a12c208c43e02780faf7de4",
+      "bytes": 383291
+    },
+    "preview/turntable-frames/000.png": {
+      "sha256": "78bcdb105bf80b9f5a25a451854ff803a80be6156762fa127f4a6aa868a09b0e",
+      "bytes": 524112
+    },
+    "preview/turntable-frames/001.png": {
+      "sha256": "633a10adb76238e29bd41530b7f3608435d130099154da0080478ff93a8df0f8",
+      "bytes": 527728
+    },
+    "preview/turntable-frames/002.png": {
+      "sha256": "4cec8d714367c92a0c211a355c247691579541a0673d3fbc151c9f279af6e6f1",
+      "bytes": 529071
+    },
+    "preview/turntable-frames/003.png": {
+      "sha256": "965b35e253611ce42f15fc18bc772fc38bcfa6d8864c97c704815e79bc47ba81",
+      "bytes": 529862
+    },
+    "preview/turntable-frames/004.png": {
+      "sha256": "0e64b48586f14d23da78588bf6a2d33213397ad77d39c2ea10c5fbd12699f0ba",
+      "bytes": 531916
+    },
+    "preview/turntable-frames/005.png": {
+      "sha256": "df62c5fd2a22b4485dac9c8e9fd80030051c5eef78e04e7708b186715575871d",
+      "bytes": 533241
+    },
+    "preview/turntable-frames/006.png": {
+      "sha256": "4c12185991b71d175cdaf5c399b3ae9857123f43b5bdff2913fe42348d7c3e63",
+      "bytes": 533254
+    },
+    "preview/turntable-frames/007.png": {
+      "sha256": "5284477698bac4ec29c9d63e063fcbc6d2b6c8086334df3b14b3364a7bab5038",
+      "bytes": 531547
+    },
+    "preview/turntable-frames/008.png": {
+      "sha256": "05756e60371ff956e691cdf024beecf84765f2bc03858326ee5b8f2c3e594129",
+      "bytes": 529703
+    },
+    "preview/turntable-frames/009.png": {
+      "sha256": "527705ded4d085124f8e726736a93c43fc5f1ea2a47b83df99870bbafba11f93",
+      "bytes": 527638
+    },
+    "preview/turntable-frames/010.png": {
+      "sha256": "ed46d8bad4abffd94033863f76ae47c39d5e145915ebe7a702b229a0fbf00fe0",
+      "bytes": 524428
+    },
+    "preview/turntable-frames/011.png": {
+      "sha256": "b1a54b8c379b293ca48d92f7d54a334e988e7d9e211ac626dd3adadab00333d3",
+      "bytes": 521508
+    },
+    "preview/turntable-frames/012.png": {
+      "sha256": "57c88da3e07a7ab291e3047158a165667556ea65afff258c7364d2436dbe1766",
+      "bytes": 523442
+    },
+    "preview/turntable-frames/013.png": {
+      "sha256": "9d969ed21d67dd96859a9326bcf1fa4e70e5b34bac5a6c103763a86769e7ab08",
+      "bytes": 526068
+    },
+    "preview/turntable-frames/014.png": {
+      "sha256": "04bb9d714435f1e35409a6747b93014bdad93e8193e8c6c0678ea44a8731cecb",
+      "bytes": 528620
+    },
+    "preview/turntable-frames/015.png": {
+      "sha256": "405bbafae1a2eb740dd350ad1b666a7f033acabc02e0549006c089c43ddd9525",
+      "bytes": 529726
+    },
+    "preview/turntable-frames/016.png": {
+      "sha256": "ef0a02a2e302c537043e6e12c5a0f2e69cb0043c1f56fda61d0821e653f9d490",
+      "bytes": 531847
+    },
+    "preview/turntable-frames/017.png": {
+      "sha256": "5f598cfc1adbe824f1472102d7fd0ea9a1586f2d18f32017675c0fb13424e07f",
+      "bytes": 533293
+    },
+    "preview/turntable-frames/018.png": {
+      "sha256": "a2e94492e0b395d4b06daf32a2cc6515f253d924a0040e4cdd7cbca433fefa03",
+      "bytes": 534175
+    },
+    "preview/turntable-frames/019.png": {
+      "sha256": "c4d801216ffc32f1495fe6186835af69543979f47a99abcc3d8f44754f6168cf",
+      "bytes": 533993
+    },
+    "preview/turntable-frames/020.png": {
+      "sha256": "ee85bd9fd43bfb87e1e3865a00a964dedc35c5ceb67072d212a66658e5bf1898",
+      "bytes": 534037
+    },
+    "preview/turntable-frames/021.png": {
+      "sha256": "466203c4eb05120cafadae91d61cb3b375b7f781affca76f7021225998147c4a",
+      "bytes": 534398
+    },
+    "preview/turntable-frames/022.png": {
+      "sha256": "393329936a2c930c9a926e18e05a95bdf82d1b6c857afe4b6827d4ece7a45493",
+      "bytes": 533928
+    },
+    "preview/turntable-frames/023.png": {
+      "sha256": "3b9377d372e7093556c9466a567e6bcb4cc271cb45350ca55d1fe9d688467d34",
+      "bytes": 531546
+    },
+    "preview/turntable-frames/024.png": {
+      "sha256": "a87221d460a6f913208c5c5961b60095f8effce8b373fc4efeb70654ac5d2156",
+      "bytes": 529263
+    },
+    "preview/turntable-frames/025.png": {
+      "sha256": "979244a550a00c8046eec6f354636dd9b4f61e66ad6957702919bfe89152bb06",
+      "bytes": 526450
+    },
+    "preview/turntable-frames/026.png": {
+      "sha256": "0dc09b345a7bbe374612e4b508dbe36ee5c790877aae3a819be1e0f5b5fde990",
+      "bytes": 523323
+    },
+    "preview/turntable-frames/027.png": {
+      "sha256": "0a4f620148ce4119752cba621cd296f7e24c04110d1fd57aa949028fd08b35e7",
+      "bytes": 520125
+    },
+    "preview/turntable-frames/028.png": {
+      "sha256": "1975016f0b9179fda37365fc120652034ab04f7ce20a4f79ea1ffac9c432e950",
+      "bytes": 516844
+    },
+    "preview/turntable-frames/029.png": {
+      "sha256": "fab9e2aef2c9beffc16260140ccede40c49dec63d41dddf351529e44b58dd6e9",
+      "bytes": 513989
+    },
+    "preview/turntable-frames/030.png": {
+      "sha256": "7a0646d281d4ec2b0fd58a61d3094a533f45038378f824ae987e622a79287762",
+      "bytes": 512732
+    },
+    "preview/turntable-frames/031.png": {
+      "sha256": "d74626299d2879fd015b766bfcd012877be4aab6501389639eb8fb29e8e56ad3",
+      "bytes": 513758
+    },
+    "preview/turntable-frames/032.png": {
+      "sha256": "745738d210368002b17bd352a7487a1fa0e05d2f6e862bb0c1e3023fa14d27a0",
+      "bytes": 515393
+    },
+    "preview/turntable-frames/033.png": {
+      "sha256": "d83c1bb206bb287d94d7098e98e948abd790c757beac2a1c74d85769d54f45c9",
+      "bytes": 517656
+    },
+    "preview/turntable-frames/034.png": {
+      "sha256": "a4bc03d558c1084ede09a8cac51fa16e51f553bd197411a15e21992f1dd55ec5",
+      "bytes": 519589
+    },
+    "preview/turntable-frames/035.png": {
+      "sha256": "492a39b2aee43f87363d0ad14e53daa33059ba5c6f6e94629e29dda275fb28bd",
+      "bytes": 521554
+    },
+    "preview/turntable-frames/036.png": {
+      "sha256": "7e29fbee43130c47c7ab113ab37b7b221b96f312181d1eb3bb28b80ab01a79c3",
+      "bytes": 522727
+    },
+    "preview/turntable-frames/037.png": {
+      "sha256": "6258ae3614712e642c587e7aa7a1bc8c660476c0e9b09bbbd2844ff0f770874a",
+      "bytes": 527672
+    },
+    "preview/turntable-frames/038.png": {
+      "sha256": "4de661e5dd055d45982785697ac88a77b58151ce041e060f4872309577727113",
+      "bytes": 528818
+    },
+    "preview/turntable-frames/039.png": {
+      "sha256": "d3310fb1b460f8509bfa141625fb55d656b251b917ab03ff5981791e4264f422",
+      "bytes": 529978
+    },
+    "preview/turntable-frames/040.png": {
+      "sha256": "6f8a5e3477ae43bb5b4bb45ef49b3c9ac80f63532e3bb6c0ab2d06c252404b73",
+      "bytes": 532378
+    },
+    "preview/turntable-frames/041.png": {
+      "sha256": "e4c1fa22f79d910e47ba19bb4a666bb944b6c6732475a144b50514380a32c61f",
+      "bytes": 533391
+    },
+    "preview/turntable-frames/042.png": {
+      "sha256": "7345c8efce51f3d50160d9b267e5a58d385115ff754ce8d3dc1b2d3a2581f120",
+      "bytes": 532279
+    },
+    "preview/turntable-frames/043.png": {
+      "sha256": "72beaffe6b4491eaf8953965c4561b3a137a6edd3edde20148d8a3f172d608c4",
+      "bytes": 530809
+    },
+    "preview/turntable-frames/044.png": {
+      "sha256": "7e9267dc958aac8b794d925d512d045a51aa264af5b4be3c3c6896b670355c46",
+      "bytes": 529034
+    },
+    "preview/turntable-frames/045.png": {
+      "sha256": "d35a32b8dc2a3645b2e5b3e7fe8c5b866a90a010f3491ef53bc000bc221ff718",
+      "bytes": 527429
+    },
+    "preview/turntable-frames/046.png": {
+      "sha256": "1171e1a028d85a53704a70377042c3ef6f79830c0ed4e91cbd00f99984d15846",
+      "bytes": 524931
+    },
+    "preview/turntable-frames/047.png": {
+      "sha256": "4bf79c956635b32d04b4dccd1d655dfca299799598ba8fcdf9f782c9fbd58cee",
+      "bytes": 521943
+    },
+    "preview/turntable-frames/048.png": {
+      "sha256": "d9dff6e112a64978a60dbe5fb70df0fe8abe05c1d28930f12cc04f95b9ccec60",
+      "bytes": 524157
+    },
+    "preview/turntable-frames/049.png": {
+      "sha256": "85458097ff36c976fdc092539411a9e339931f4cab6701073637c24eab1256e6",
+      "bytes": 527029
+    },
+    "preview/turntable-frames/050.png": {
+      "sha256": "36ea38f17640104b2bd88f7bf24169a00ee7d389d9b1161516ea871447929461",
+      "bytes": 529845
+    },
+    "preview/turntable-frames/051.png": {
+      "sha256": "d9f20ad4628827bb8b54c66e536c92e432db540032b4c04f2b637b971da9bd94",
+      "bytes": 530680
+    },
+    "preview/turntable-frames/052.png": {
+      "sha256": "b52917d20c9604b24d94135ba2750d4ac534311e546546e8c2ad052158d31ed0",
+      "bytes": 532827
+    },
+    "preview/turntable-frames/053.png": {
+      "sha256": "d694c165fe1d64cf844b0c4023863129b050678f46db619c72388ee1ecd08280",
+      "bytes": 534674
+    },
+    "preview/turntable-frames/054.png": {
+      "sha256": "766f00b318c2fb77a76df7351c701d3911109f5391527f59afab160a3219a78a",
+      "bytes": 535320
+    },
+    "preview/turntable-frames/055.png": {
+      "sha256": "b1c5d6eab7bc1d4648f077e6f62fc90b1e1ce6a23cc3e930e4862c4c56f176f1",
+      "bytes": 535767
+    },
+    "preview/turntable-frames/056.png": {
+      "sha256": "c63301b243aa1f9c94ed0daec850df850e79fc0ce0745b1d10df82d69edb945d",
+      "bytes": 535818
+    },
+    "preview/turntable-frames/057.png": {
+      "sha256": "0e74293f08a5812a5dfd5f32f104d332140f4d5e1f0f5c210d0e28e71fdbcbd3",
+      "bytes": 535930
+    },
+    "preview/turntable-frames/058.png": {
+      "sha256": "590b930ce2ed62a4f81ea63d2b7a53170949ec05a2c0d3f21068ed53fd4345c1",
+      "bytes": 535577
+    },
+    "preview/turntable-frames/059.png": {
+      "sha256": "c75d3531790026e3fe728954beb4a1d73d825aecd1774a6a7be10f01aac3a2bd",
+      "bytes": 533158
+    },
+    "preview/turntable-frames/060.png": {
+      "sha256": "a70b3e11e380288a941e0bfd2a0e28661aa4c21cef9de69c10b220f1fbd35a7a",
+      "bytes": 530478
+    },
+    "preview/turntable-frames/061.png": {
+      "sha256": "eb61b20a5deffa141e50d9401a204fea3442ddee0b26f624100baea48668a6a1",
+      "bytes": 527071
+    },
+    "preview/turntable-frames/062.png": {
+      "sha256": "cd9156ede67109d3430d4c3132bc7e0ea35614beae8f47a821546a32711c2f75",
+      "bytes": 524534
+    },
+    "preview/turntable-frames/063.png": {
+      "sha256": "e0a48eed10466c0c8c6a1111ef0d11733327d7da9a6df422d1ceabf0c047d967",
+      "bytes": 521974
+    },
+    "preview/turntable-frames/064.png": {
+      "sha256": "19d89f65d885bc2fbb55cf8eaed51043fbe2309e7d9e2f718ddedc61ae871db4",
+      "bytes": 518150
+    },
+    "preview/turntable-frames/065.png": {
+      "sha256": "56d2a2bcd5008c84a329cbe62587fc1394bdb5111bf8fc83a264116838ee5574",
+      "bytes": 515040
+    },
+    "preview/turntable-frames/066.png": {
+      "sha256": "d5aee73f4007b3a7816833784870526ab5261e473e561d7a5d256f252d4ebdfd",
+      "bytes": 514819
+    },
+    "preview/turntable-frames/067.png": {
+      "sha256": "ec115d38a6c95497a78ac90d587aa4380ccc5c6faff86ce93339f8211a82f7d0",
+      "bytes": 515040
+    },
+    "preview/turntable-frames/068.png": {
+      "sha256": "109bccb8639894448c3d21c4e30c2d18ec5adf60d5d00ab6be01907d0df3f962",
+      "bytes": 516490
+    },
+    "preview/turntable-frames/069.png": {
+      "sha256": "e3a21476bdeefe801511faf4cd924ef51e0efd262e02aed758d563ed01bc4c7c",
+      "bytes": 518953
+    },
+    "preview/turntable-frames/070.png": {
+      "sha256": "9e87b74b0a94a51b9cc54355d6c334f8eeb672a76f3fd95fb05d44aca0badda4",
+      "bytes": 520677
+    },
+    "preview/turntable-frames/071.png": {
+      "sha256": "1b1650c167cec3cd7206413eb151a6df5629cc10f1f9d08510cc4f892c95cdb5",
+      "bytes": 523844
+    },
+    "source/maps/pontoon-lod-0-base_color.png": {
+      "sha256": "0adef439803e95faf129d068197b259823494029a743c304aa9eaa6de1fdbac3",
+      "bytes": 25515
+    },
+    "source/maps/pontoon-lod-0-metallic_roughness.png": {
+      "sha256": "21467ed4ea07dfb42563b75f00aa9153570f98e09069fde92bfcce8ed6e70aaf",
+      "bytes": 51151
+    },
+    "source/maps/pontoon-lod-0-normal.png": {
+      "sha256": "618952ddbcb861e4bee7917b7c0f5a261e4011a0ea61d3080283c40a58132012",
+      "bytes": 15178
+    },
+    "source/maps/pontoon-lod-1-base_color.png": {
+      "sha256": "0a27bdefd1fb1db5a6e471e45f4e73224e191fed1bf40d5ed2500809fb4f2458",
+      "bytes": 6889
+    },
+    "source/maps/pontoon-lod-1-metallic_roughness.png": {
+      "sha256": "810ea9342867e8cc42810421fdedc00c2a60fb81d3b870ffcf4e8847d094ea7e",
+      "bytes": 15436
+    },
+    "source/maps/pontoon-lod-1-normal.png": {
+      "sha256": "01ffdea91662902a4e9f2464aee94c849f3b34fa960f5d3cc0389499c3fdf24f",
+      "bytes": 3791
+    },
+    "source/maps/pontoon-lod-2-base_color.png": {
+      "sha256": "1c957f26580d9f0ce6a57226cbab12c627e3b42843fc5241686cf339cdd5e386",
+      "bytes": 1143
+    },
+    "source/parameters.json": {
+      "sha256": "915318acb44f5a618d011c3645e6af0ec74935a9d907dc14ade84fde294106c9",
+      "bytes": 288
+    },
+    "source/pontoon-lod-0.glb": {
+      "sha256": "6d29ff5cbc622121bdfe0f8018fa8f848f24622d3be3e23b39ecae83e5bb8251",
+      "bytes": 578960
+    },
+    "source/pontoon-lod-1.glb": {
+      "sha256": "e6dd2db5d4f51400bad16446939cc8496786be7c94b062842c85d4ab1604f320",
+      "bytes": 82800
+    },
+    "source/pontoon-lod-2.glb": {
+      "sha256": "f14431e42c748227807e0c5aa6ba6faaa5ca1d02adc9f0ea01aff85489b533b3",
+      "bytes": 31796
+    },
+    "source/pontoon.blend": {
+      "sha256": "5993a6a6095242732a11c6af17008542e77590d2f0f7f7bc18a2cfebc24d1cd2",
+      "bytes": 332769
+    },
+    "source/pontoon.gameplay.json": {
+      "sha256": "e9f39c0e80b859f87f295530185a698f0697e57034bc32493ac6ba2f73aaeddc",
+      "bytes": 15738
+    }
+  }
+}

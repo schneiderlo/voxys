@@ -7,7 +7,7 @@
 
 #include <vector>
 
-#if defined(VOXY_NATIVE)
+#if !defined(VOXY_WASM) && !defined(VOXY_USE_DAWN)
     #include <wgpu/wgpu.h>
 #endif
 
@@ -425,8 +425,12 @@ void Context::tick() {
     if (instance_) {
         wgpuInstanceProcessEvents(instance_);
     }
+#elif !defined(VOXY_WASM)
+    // Retire queue/map callbacks even when frame or simulation backpressure
+    // prevents another submission. Polling must never wait for GPU completion.
+    if(device_)static_cast<void>(wgpuDevicePoll(device_,false,nullptr));
 #else
-    // wgpu-native and browser event loops process callbacks automatically.
+    // The browser event loop dispatches WebGPU callbacks.
     (void)device_;
 #endif
 }

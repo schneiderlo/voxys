@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="12" failures="0" disabled="0" errors="0" time="0.012" timestamp="2026-09-08T08:42:59.074" name="AllTests">
+  <testsuite name="BoxUnion" tests="7" failures="0" disabled="0" skipped="0" errors="0" time="0.006" timestamp="2026-09-08T08:42:59.074">
+    <testcase name="PartialOverlapContainmentAndDuplicateBoundsHaveOneOwner" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_assembly_collision.cpp" line="67" status="run" result="completed" time="0." timestamp="2026-09-08T08:42:59.074" classname="BoxUnion" />
+    <testcase name="PartialMatingFacesKeepEveryExposedRectangle" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_assembly_collision.cpp" line="74" status="run" result="completed" time="0." timestamp="2026-09-08T08:42:59.075" classname="BoxUnion" />
+    <testcase name="ClosedCavityRetainsItsInnerBoundaryAndExcludesItsVolume" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_assembly_collision.cpp" line="84" status="run" result="completed" time="0." timestamp="2026-09-08T08:42:59.075" classname="BoxUnion" />
+    <testcase name="EveryProperRotationMatchesIndependentOccupancyAndSurfaceOracle" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_assembly_collision.cpp" line="93" status="run" result="completed" time="0.001" timestamp="2026-09-08T08:42:59.075" classname="BoxUnion" />
+    <testcase name="BoundedMixedFixturesAndInputPermutationsRemainExact" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_assembly_collision.cpp" line="105" status="run" result="completed" time="0.004" timestamp="2026-09-08T08:42:59.076" classname="BoxUnion" />
+    <testcase name="BvhQueriesMatchLinearCellsAndNeverPartiallyWriteOnFailure" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_assembly_collision.cpp" line="120" status="run" result="completed" time="0." timestamp="2026-09-08T08:42:59.080" classname="BoxUnion" />
+    <testcase name="InvalidInputsAndEveryIndependentBudgetRefuseWithoutTruncation" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_assembly_collision.cpp" line="145" status="run" result="completed" time="0." timestamp="2026-09-08T08:42:59.081" classname="BoxUnion" />
+  </testsuite>
+  <testsuite name="AssemblyCollision" tests="5" failures="0" disabled="0" skipped="0" errors="0" time="0.006" timestamp="2026-09-08T08:42:59.081">
+    <testcase name="RealWeldedStackHasNoInternalMatingFacesAndStablePartLookup" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_assembly_collision.cpp" line="191" status="run" result="completed" time="0." timestamp="2026-09-08T08:42:59.081" classname="AssemblyCollision" />
+    <testcase name="Full256PartProfileCompilesWithoutDecorativeContacts" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_assembly_collision.cpp" line="206" status="run" result="completed" time="0.005" timestamp="2026-09-08T08:42:59.081" classname="AssemblyCollision" />
+    <testcase name="DisabledWeldRootsStaySeparateAndBudgetsApplyAcrossAllRoots" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_assembly_collision.cpp" line="217" status="run" result="completed" time="0." timestamp="2026-09-08T08:42:59.086" classname="AssemblyCollision" />
+    <testcase name="OverlappingAuthoredProxiesDoNotDoubleVolumeOrMass" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_assembly_collision.cpp" line="230" status="run" result="completed" time="0." timestamp="2026-09-08T08:42:59.087" classname="AssemblyCollision" />
+    <testcase name="AuthoredProxyAndPartRotationComposeExactlyOnce" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_assembly_collision.cpp" line="242" status="run" result="completed" time="0." timestamp="2026-09-08T08:42:59.087" classname="AssemblyCollision" />
+  </testsuite>
+</testsuites>

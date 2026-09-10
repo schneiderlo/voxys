@@ -1,0 +1,387 @@
+{
+  "schema": 1,
+  "status": "offline candidate; not runtime or visual acceptance",
+  "part": {
+    "namespace": "766f7879732d73616c766167652d7631",
+    "counter": "7",
+    "version": 2
+  },
+  "blender_version": "5.2.1 LTS",
+  "material_profile": "tactile-metric-v1",
+  "blender_build_hash": "9e2066aef7ef",
+  "lods": [
+    {
+      "lod": 0,
+      "vertices": 11168,
+      "triangles": 5468,
+      "materials": 4,
+      "geometry": {
+        "degenerate_faces": 0,
+        "nonmanifold_edges": 0,
+        "summed_component_volume_m3": 0.6330323448206278,
+        "interface_checks": {
+          "flange_cheek_clearance_metres": [
+            0.010000020265579224,
+            0.010000020265579224
+          ],
+          "flange_x_bounds": [
+            [
+              -0.25999999046325684,
+              -0.20999999344348907
+            ],
+            [
+              0.20999999344348907,
+              0.25999999046325684
+            ]
+          ],
+          "drum_x_bounds": [
+            -0.20999999344348907,
+            0.20999999344348907
+          ]
+        },
+        "metric_uv": {
+          "period_metres": 0.5,
+          "tile_pixels": 128,
+          "surface_area_m2": 12.377838810908605,
+          "near_equivalent_texels_per_metre": {
+            "minimum": 255.76545404754873,
+            "maximum": 256.00129507926744,
+            "rms": 255.99964781122708
+          },
+          "maximum_principal_stretch": 1.001834644163778,
+          "excluded_tiny_triangles": 0,
+          "qualification": "Near is 256 texels/metre; Middle 128; Far uses material factors without detail textures. Hard-edge charts may differ in phase."
+        },
+        "volume_note": "Decorative components can intersect; this sum is not displacement."
+      },
+      "metric_materials": [
+        {
+          "region": "teal",
+          "roughness_factor": 0.41237112879753113,
+          "metallic_factor": 0
+        },
+        {
+          "region": "coral",
+          "roughness_factor": 0.3711340129375458,
+          "metallic_factor": 0
+        },
+        {
+          "region": "slate",
+          "roughness_factor": 0.7525773048400879,
+          "metallic_factor": 0
+        },
+        {
+          "region": "steel",
+          "roughness_factor": 0.30927833914756775,
+          "metallic_factor": 1
+        }
+      ],
+      "source_sha256": "b2c4d5b0d8b22ee4a15de2747de9f1337e7a906027dec7444c81c4a96333be52",
+      "export_settings": {
+        "export_format": "GLB",
+        "use_selection": true,
+        "export_yup": true,
+        "export_apply": true,
+        "export_materials": "EXPORT",
+        "export_normals": true,
+        "export_texcoords": true,
+        "export_tangents": true,
+        "export_animations": false,
+        "export_skins": false,
+        "export_morph": false,
+        "export_cameras": false,
+        "export_lights": false,
+        "export_extras": false,
+        "export_vertex_color": "NONE",
+        "export_all_vertex_colors": false
+      }
+    },
+    {
+      "lod": 1,
+      "vertices": 4454,
+      "triangles": 2524,
+      "materials": 4,
+      "geometry": {
+        "degenerate_faces": 0,
+        "nonmanifold_edges": 0,
+        "summed_component_volume_m3": 0.6228256589191826,
+        "interface_checks": {
+          "flange_cheek_clearance_metres": [
+            0.010000020265579224,
+            0.010000020265579224
+          ],
+          "flange_x_bounds": [
+            [
+              -0.25999999046325684,
+              -0.20999999344348907
+            ],
+            [
+              0.20999999344348907,
+              0.25999999046325684
+            ]
+          ],
+          "drum_x_bounds": [
+            -0.20999999344348907,
+            0.20999999344348907
+          ]
+        },
+        "metric_uv": {
+          "period_metres": 0.5,
+          "tile_pixels": 64,
+          "surface_area_m2": 12.187215539686356,
+          "near_equivalent_texels_per_metre": {
+            "minimum": 255.999147619769,
+            "maximum": 256.00049209525395,
+            "rms": 255.9999990328933
+          },
+          "maximum_principal_stretch": 1.0000063607582492,
+          "excluded_tiny_triangles": 0,
+          "qualification": "Near is 256 texels/metre; Middle 128; Far uses material factors without detail textures. Hard-edge charts may differ in phase."
+        },
+        "volume_note": "Decorative components can intersect; this sum is not displacement."
+      },
+      "metric_materials": [
+        {
+          "region": "teal",
+          "roughness_factor": 0.41237112879753113,
+          "metallic_factor": 0
+        },
+        {
+          "region": "coral",
+          "roughness_factor": 0.3711340129375458,
+          "metallic_factor": 0
+        },
+        {
+          "region": "slate",
+          "roughness_factor": 0.7525773048400879,
+          "metallic_factor": 0
+        },
+        {
+          "region": "steel",
+          "roughness_factor": 0.30927833914756775,
+          "metallic_factor": 1
+        }
+      ],
+      "source_sha256": "5eda79e1bb4f84bee7d485923d0c0ea1632287eaf533b636524f5dcdfabfbd76",
+      "export_settings": {
+        "export_format": "GLB",
+        "use_selection": true,
+        "export_yup": true,
+        "export_apply": true,
+        "export_materials": "EXPORT",
+        "export_normals": true,
+        "export_texcoords": true,
+        "export_tangents": true,
+        "export_animations": false,
+        "export_skins": false,
+        "export_morph": false,
+        "export_cameras": false,
+        "export_lights": false,
+        "export_extras": false,
+        "export_vertex_color": "NONE",
+        "export_all_vertex_colors": false
+      }
+    },
+    {
+      "lod": 2,
+      "vertices": 504,
+      "triangles": 280,
+      "materials": 4,
+      "geometry": {
+        "degenerate_faces": 0,
+        "nonmanifold_edges": 0,
+        "summed_component_volume_m3": 0.6119275352211841,
+        "interface_checks": {
+          "flange_cheek_clearance_metres": [
+            0.010000020265579224,
+            0.010000020265579224
+          ],
+          "flange_x_bounds": [
+            [
+              -0.25999999046325684,
+              -0.20999999344348907
+            ],
+            [
+              0.20999999344348907,
+              0.25999999046325684
+            ]
+          ],
+          "drum_x_bounds": [
+            -0.20999999344348907,
+            0.20999999344348907
+          ]
+        },
+        "metric_uv": {
+          "period_metres": 0.5,
+          "tile_pixels": 0,
+          "surface_area_m2": 11.192089606294019,
+          "near_equivalent_texels_per_metre": {
+            "minimum": 255.99964427885612,
+            "maximum": 256.0003376002156,
+            "rms": 255.99999473005767
+          },
+          "maximum_principal_stretch": 1.0000025833308797,
+          "excluded_tiny_triangles": 0,
+          "qualification": "Near is 256 texels/metre; Middle 128; Far uses material factors without detail textures. Hard-edge charts may differ in phase."
+        },
+        "volume_note": "Decorative components can intersect; this sum is not displacement."
+      },
+      "metric_materials": [
+        {
+          "region": "teal",
+          "roughness_factor": 0.4000000059604645,
+          "metallic_factor": 0
+        },
+        {
+          "region": "coral",
+          "roughness_factor": 0.36000001430511475,
+          "metallic_factor": 0
+        },
+        {
+          "region": "slate",
+          "roughness_factor": 0.7300000190734863,
+          "metallic_factor": 0
+        },
+        {
+          "region": "steel",
+          "roughness_factor": 0.30000001192092896,
+          "metallic_factor": 1
+        }
+      ],
+      "source_sha256": "f3b633e0c302516b9d18ff867840a76d5c40624283f073b1e78ac037276ebf5f",
+      "export_settings": {
+        "export_format": "GLB",
+        "use_selection": true,
+        "export_yup": true,
+        "export_apply": true,
+        "export_materials": "EXPORT",
+        "export_normals": true,
+        "export_texcoords": true,
+        "export_tangents": true,
+        "export_animations": false,
+        "export_skins": false,
+        "export_morph": false,
+        "export_cameras": false,
+        "export_lights": false,
+        "export_extras": false,
+        "export_vertex_color": "NONE",
+        "export_all_vertex_colors": false
+      }
+    }
+  ],
+  "cross_lod_clearances": [
+    {
+      "peg_lod": 0,
+      "well_lod": 0,
+      "minimum_profile_clearance_metres": 0.009561230581693118,
+      "axial_spare_depth_metres": 0.020000000000000018
+    },
+    {
+      "peg_lod": 0,
+      "well_lod": 1,
+      "minimum_profile_clearance_metres": 0.020993871963508524,
+      "axial_spare_depth_metres": 0.020000000000000018
+    },
+    {
+      "peg_lod": 0,
+      "well_lod": 2,
+      "minimum_profile_clearance_metres": 0.014542375293720851,
+      "axial_spare_depth_metres": 0.020000000000000018
+    },
+    {
+      "peg_lod": 1,
+      "well_lod": 0,
+      "minimum_profile_clearance_metres": 0.009561230581693118,
+      "axial_spare_depth_metres": 0.020000000000000018
+    },
+    {
+      "peg_lod": 1,
+      "well_lod": 1,
+      "minimum_profile_clearance_metres": 0.027022111065445806,
+      "axial_spare_depth_metres": 0.020000000000000018
+    },
+    {
+      "peg_lod": 1,
+      "well_lod": 2,
+      "minimum_profile_clearance_metres": 0.014542375293720851,
+      "axial_spare_depth_metres": 0.020000000000000018
+    },
+    {
+      "peg_lod": 2,
+      "well_lod": 0,
+      "minimum_profile_clearance_metres": 0.009561230581693118,
+      "axial_spare_depth_metres": 0.020000000000000018
+    },
+    {
+      "peg_lod": 2,
+      "well_lod": 1,
+      "minimum_profile_clearance_metres": 0.027022111065445806,
+      "axial_spare_depth_metres": 0.020000000000000018
+    },
+    {
+      "peg_lod": 2,
+      "well_lod": 2,
+      "minimum_profile_clearance_metres": 0.037024256604011964,
+      "axial_spare_depth_metres": 0.020000000000000018
+    }
+  ],
+  "provenance": "Original procedural geometry/maps; no generated image or third-party model input",
+  "recipes": {
+    "author_functional_kit.py": "a842cf388abfcedbf58ca96a9bca3f79ee8a60fc4c4f9a5b6a2383f3ca04999b",
+    "functional_kit.py": "0fa6d4db841cecdd21689719bc37f73d16ed4ee508c2f59a6831954cbdb67f94",
+    "author_pontoon.py": "adde5cb5ca5d3b6c8321d275e979d77bea367e05488b811da038e70a1d8de146",
+    "pontoon_parameters.py": "348dd03c4f49009f14d8b430728b87925458a27f8a4db1923cffce93b8e4260a",
+    "material_standards.py": "db73169a82645f11adebe993b263898ea7d68827e34aeb2289b0fce99ad78360",
+    "metric_materials.py": "e4d31cdf8ee8bf46dab081589f6f5aa876eb984801416dc8e4e0feb5f6af32f5",
+    "authoring_probe.py": "81edf36885bedff0f51380c89213094dad908d9287bbfd74987e363d392edbc0"
+  },
+  "render": {
+    "engine": "Cycles",
+    "device": "CPU",
+    "samples": 24,
+    "threads": 4,
+    "seed": 0
+  },
+  "files": {
+    "preview.png": {
+      "sha256": "683c31e5cb44da148b2f995fb96e0b25e240ff184722a9433d81a1ad3c3cbe97",
+      "bytes": 311527
+    },
+    "source/maps/metric-lod-0-metallic_roughness.png": {
+      "sha256": "ec1124fce481138952b5e090bf66277fab984bbe5395bd512f7212da704950c0",
+      "bytes": 2676
+    },
+    "source/maps/metric-lod-0-normal.png": {
+      "sha256": "b42db2b12e24ca7d3972b75d1bc61ce5a36577e5b1b66c3fc76fb865394d0796",
+      "bytes": 4640
+    },
+    "source/maps/metric-lod-1-metallic_roughness.png": {
+      "sha256": "70cb3037c572b44b63efc8a1c6a775a38f5f81929214a47b7052724d7c01e1fb",
+      "bytes": 789
+    },
+    "source/maps/metric-lod-1-normal.png": {
+      "sha256": "fe07ce9d85b8dbc98a28c970dd8718afcbc8068094c8e84d35def1adba7f22e1",
+      "bytes": 1679
+    },
+    "source/winch-lod-0.glb": {
+      "sha256": "b2c4d5b0d8b22ee4a15de2747de9f1337e7a906027dec7444c81c4a96333be52",
+      "bytes": 581576
+    },
+    "source/winch-lod-1.glb": {
+      "sha256": "5eda79e1bb4f84bee7d485923d0c0ea1632287eaf533b636524f5dcdfabfbd76",
+      "bytes": 236784
+    },
+    "source/winch-lod-2.glb": {
+      "sha256": "f3b633e0c302516b9d18ff867840a76d5c40624283f073b1e78ac037276ebf5f",
+      "bytes": 30400
+    },
+    "source/winch.blend": {
+      "sha256": "74f9ce2bafdce4e38071710d86bd6af1bc1df2517d13213011f11f988a98bc64",
+      "bytes": 336664
+    },
+    "source/winch.gameplay.json": {
+      "sha256": "a1c1550362bd897d78a2c60550acff10012f1ef1eab4ed21763a5fae5ff20257",
+      "bytes": 11125
+    }
+  }
+}

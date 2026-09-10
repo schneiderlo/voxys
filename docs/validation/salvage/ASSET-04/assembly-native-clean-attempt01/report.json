@@ -1,0 +1,193 @@
+{
+  "schema": 1,
+  "status": "captured; visual review required",
+  "recipe": {
+    "schema": 1,
+    "purpose": "Static BuildModel-validated assembly: v2 pontoons, v1 prototype box beams, and five exact welds; no dynamic physics or final art acceptance",
+    "registry": "data/salvage/fixture-pontoon-assembly.json",
+    "physical_viewport": [
+      1920,
+      1080
+    ],
+    "fov_degrees": 60,
+    "views": [
+      {
+        "name": "overview",
+        "eye": [
+          7,
+          4,
+          -8
+        ],
+        "target": [
+          1.25,
+          0.25,
+          0
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "crossbeams-top",
+        "eye": [
+          -1,
+          4,
+          -4
+        ],
+        "target": [
+          0,
+          0.75,
+          0
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "crossbeams-under",
+        "eye": [
+          0,
+          -1.5,
+          -4
+        ],
+        "target": [
+          0,
+          0.45,
+          -1
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "stack-engaged",
+        "eye": [
+          6.4,
+          0.6,
+          -1.8
+        ],
+        "target": [
+          4.5,
+          0.48,
+          -1
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      }
+    ]
+  },
+  "recipe_sha256": "01567dca54b52bb87070c3ef509e900fa9a656ea92a3e793df49ea80e992c599",
+  "runner_sha256": "4cb504c3fa164d5455bfb89708a3c33ca8ec018e1efdc5a98752e04e0e508304",
+  "binary": "/home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/voxy_native",
+  "binary_sha256": "d17a45fcbc79a609525fffffff7494a5043102d5222d3856e4c3f27b44b1b50b",
+  "original_registry_sha256": "bb11c948e2d1dac86ce322143d86c3113a5d8492ba46f9b1a9bb8a4305fa6658",
+  "original_config": "/home/modkin/workspace/schneiderlo/voxys/salvage_assembly_fixture.cfg",
+  "original_config_sha256": "02346fa362e072ccdf2bc7002e904988d57dfce06a725c1a643f9b53828b73a0",
+  "guides": "off",
+  "selected_views": null,
+  "scope": "Native scene captures; guides are technical overlays, not final art or moving-craft acceptance",
+  "views": [
+    {
+      "name": "overview",
+      "argv": [
+        "/home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/assembly-native-clean-attempt01/overview.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/assembly-native-clean-attempt01/overview.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "config_sha256": "7a92f68970aa009d94ec5e7c692f01456ed76125db758e20b51e6c303010154a",
+      "registry_sha256": "bb11c948e2d1dac86ce322143d86c3113a5d8492ba46f9b1a9bb8a4305fa6658",
+      "timeout": false,
+      "exit_code": 0,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "png_sha256": "632b5874a4fa02d937a855603320b0af7303a84b84306e7ba7fba538dd0dcceb",
+      "gpu_or_application_errors": [],
+      "passed": true
+    },
+    {
+      "name": "crossbeams-top",
+      "argv": [
+        "/home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/assembly-native-clean-attempt01/crossbeams-top.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/assembly-native-clean-attempt01/crossbeams-top.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "config_sha256": "7a92f68970aa009d94ec5e7c692f01456ed76125db758e20b51e6c303010154a",
+      "registry_sha256": "bb4e60c8f6a497f5bfcce757a91a8710bab2b9f820f48a3c251ee991b6de017f",
+      "timeout": false,
+      "exit_code": 0,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "png_sha256": "7941d7fc8a7d8f4147783aac391f73eebe534fbdea63aabb4ee43fef42e52d1e",
+      "gpu_or_application_errors": [],
+      "passed": true
+    },
+    {
+      "name": "crossbeams-under",
+      "argv": [
+        "/home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/assembly-native-clean-attempt01/crossbeams-under.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/assembly-native-clean-attempt01/crossbeams-under.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "config_sha256": "7a92f68970aa009d94ec5e7c692f01456ed76125db758e20b51e6c303010154a",
+      "registry_sha256": "f47e36870b71ad06c062a6fb134757434a80bb09ad1a4696d787f534cd91f137",
+      "timeout": false,
+      "exit_code": 0,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "png_sha256": "d0be2ea9b731729f840e5671e0d54f7cfeda5673a0606b9f79ed63bdffd7ba4a",
+      "gpu_or_application_errors": [],
+      "passed": true
+    },
+    {
+      "name": "stack-engaged",
+      "argv": [
+        "/home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/assembly-native-clean-attempt01/stack-engaged.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/assembly-native-clean-attempt01/stack-engaged.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "config_sha256": "7a92f68970aa009d94ec5e7c692f01456ed76125db758e20b51e6c303010154a",
+      "registry_sha256": "438e059a07212f148998458de894e45b13266d40953828c0645d3b0be3c8c892",
+      "timeout": false,
+      "exit_code": 0,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "png_sha256": "d9899892395e7721183e097fa035cc0389d4f051a62754527d799f171e03f678",
+      "gpu_or_application_errors": [],
+      "passed": true
+    }
+  ],
+  "temporary_registry_removed": true
+}

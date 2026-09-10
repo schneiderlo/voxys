@@ -12,10 +12,43 @@
 set(CORE_SOURCES "")
 set(GPU_SOURCES "")
 set(GAME_SOURCES
+    game/assets/cooked_part_directory.cpp
+    game/assets/fixture_registry.cpp
+    game/expedition/session_events.cpp
+    game/expedition/session_transactions.cpp
+    game/assets/cooked_part_bundle.cpp
+    game/assets/rigid_prefab.cpp
+    game/assets/gameplay_sidecar.cpp
+    game/expedition/game_session.cpp
+    game/expedition/session_recovery.cpp
+    game/expedition/session_save.cpp
+    game/expedition/cove_save.cpp
+    game/expedition/cove_restore.cpp
+    game/expedition/save_generation.cpp
+    game/construction/build_refit.cpp
+    game/construction/build_model.cpp
+    game/construction/assembly_compiler.cpp
+    geometry/box_union.cpp
+    game/construction/assembly_collision.cpp
+    game/construction/orthogonal_coverage.cpp
+    game/construction/assembly_buoyancy.cpp
+    game/construction/assembly_functions.cpp
+    game/construction/compiled_assembly.cpp
+    game/construction/assembly_fracture.cpp
     game/construction/construction_types.cpp
     game/construction/part_catalog.cpp
+    game/expedition/cove_player.cpp
+    game/expedition/cove_workshop.cpp
+    game/expedition/cove_build.cpp
+    game/expedition/cove_boat.cpp
+    game/expedition/cove_rigid_roots.cpp
+    game/expedition/cove_harbor_lift.cpp
+    game/expedition/cove_harbor_runtime.cpp
     game/expedition/salvage_preview.cpp
 )
+if(NOT EMSCRIPTEN)
+    list(APPEND GAME_SOURCES engine/platform/native/save_store.cpp engine/platform/native/save_worker.cpp)
+endif()
 set(GAMEPLAY_SOURCES "")
 set(MOTO_SOURCES "")
 set(TERRAIN_SOURCES "")
@@ -245,11 +278,15 @@ endif()
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/render/mesh_path.cpp")
     list(APPEND RENDER_SOURCES
         render/mesh_path.cpp
+        render/environment_lighting.cpp
+        render/salvage_asset_fixture.cpp
+        render/inspection_guides.cpp
     )
 endif()
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/render/blit_path.cpp")
     list(APPEND RENDER_SOURCES
         render/blit_path.cpp
+        render/opaque_scene.cpp
         render/water_clipmap_mesh.cpp
     )
 endif()
@@ -307,6 +344,11 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/physics/physics_world.cpp")
         physics/jolt/jolt_backend.cpp
         physics/physics_backend_factory.cpp
         physics/physics_types.cpp
+        physics/rigid_mass_frame.cpp
+        physics/authored_body_frame.cpp
+        physics/authored_shape.cpp
+        physics/authored_shape_pool.cpp
+        physics/gpu/gpu_authored_shapes.cpp
         physics/physics_world.cpp
     )
 endif()
@@ -332,6 +374,12 @@ if(VOXY_BUILD_NATIVE
         network/native_tcp_transport.cpp
         network/protocol.cpp
         network/wreckwater_protocol.cpp
+        geometry/box_union.cpp
+        physics/authored_body_frame.cpp
+        physics/authored_shape.cpp
+        physics/authored_shape_pool.cpp
+        physics/rigid_mass_frame.cpp
+        physics/gpu/gpu_authored_shapes.cpp
         physics/character/cpu_capsule_mover.cpp
         physics/gpu/debug_readback_ring.cpp
         physics/gpu/deterministic_primitives.cpp
@@ -353,8 +401,8 @@ if(VOXY_BUILD_NATIVE
     )
 
     # The manifest is the source contract for both build systems. Fail during
-    # configuration if CMake's 31 library TUs plus server main differ from the
-    # 32 source TUs represented by the generated authority identity.
+    # configuration if the library TUs plus server main differ from the source
+    # TUs represented by the generated authority identity.
     set(VOXY_WRECKWATER_CMAKE_AUTHORITY_TUS
         ${VOXY_WRECKWATER_HEADLESS_AUTHORITY_SOURCES}
         server/wreckwater_server_main.cpp
@@ -515,6 +563,10 @@ if(ALL_SOURCES)
         target_link_libraries(voxy_core PUBLIC zstd::libzstd_static)
     endif()
     
+    if(TARGET tinygltf)
+        target_link_libraries(voxy_core PUBLIC tinygltf)
+    endif()
+
     if(TARGET stb)
         target_link_libraries(voxy_core PUBLIC stb)
     endif()

@@ -1,0 +1,91 @@
+{
+  "status": "failed",
+  "kind": "Isolated browser world storage, no GameSession mutation",
+  "sourceHashes": {
+    "web/expedition_store.js": "7235ad4b847fd1db64b20bbbadbff2ce6fff8e095685df603c46260ebbed685b",
+    "scripts/expedition_storage_cases.js": "fc164fff7748a4f770ec303d4d2b9cf398b05ee28c4e765ac50b98e5dc8d2b53",
+    "scripts/validate_expedition_storage.mjs": "ff31c1e2fe92070c4759df55f503555e4383e649973093db3b377e0fad6a4d58",
+    "tests/fixtures/save_generation_v1.json": "12e8039e98858ff76721efceddf32fc26b523d039bb72a3630f3873d87dbc203"
+  },
+  "checks": [
+    "second actual tab refuses a live world owner",
+    "actual page reload releases ownership and preserves the acknowledged generation",
+    "actual tab close releases world ownership",
+    "browser process kill at first-put recovers complete generation 1"
+  ],
+  "screenshots": 0,
+  "profileFilesystem": "ext4 /",
+  "browserRuns": [
+    {
+      "run": 1,
+      "version": {
+        "Browser": "Chrome/152.0.7977.82",
+        "Protocol-Version": "1.3",
+        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/152.0.0.0 Safari/537.36",
+        "V8-Version": "15.2.124.21",
+        "WebKit-Version": "537.36 (@d04cdb24d67b081f6cf80200ffc5233f44b61109)",
+        "webSocketDebuggerUrl": "ws://127.0.0.1:39709/devtools/browser/e9d6ad4e-6dff-4356-8300-12512dcf6dda"
+      },
+      "termination": {
+        "code": null,
+        "signal": "SIGKILL"
+      }
+    },
+    {
+      "run": 2,
+      "version": {
+        "Browser": "Chrome/152.0.7977.82",
+        "Protocol-Version": "1.3",
+        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/152.0.0.0 Safari/537.36",
+        "V8-Version": "15.2.124.21",
+        "WebKit-Version": "537.36 (@d04cdb24d67b081f6cf80200ffc5233f44b61109)",
+        "webSocketDebuggerUrl": "ws://127.0.0.1:34157/devtools/browser/555389c2-d15b-4636-a8d7-c4b5520dc0a8"
+      }
+    }
+  ],
+  "nativeEnvelopeInterop": {
+    "status": "passed",
+    "bytes": 75,
+    "sha256": "0e0aa18596f322d5b6988fcc25fe1cf97d29794f6ff83ab77c351219b68877b9",
+    "generation": "18446744073709551615"
+  },
+  "isolated": {
+    "status": "passed",
+    "checks": [
+      "strict atomic publication acknowledged after complete",
+      "same-world exclusive Web Lock",
+      "one pending operation and owned payload",
+      "stale requests and invalid archives preserve save",
+      "quota after first put rolls back both copies",
+      "actual IndexedDB abort preserves prior generation",
+      "payload corruption and redundant-copy repair",
+      "missing copy recovery",
+      "matching generation with differing payload refuses",
+      "unknown format never silently falls back",
+      "two damaged copies cannot become a new world",
+      "malformed record metadata refuses before repair",
+      "transaction rechecks bytes after async validation",
+      "close aborts and drains before releasing ownership",
+      "eight-world bound counts both stores",
+      "full-width generation and exhaustion",
+      "revoked Web Lock closes and fences old owner",
+      "database upgrade closes owner and rejects older version"
+    ],
+    "strictWrites": 29,
+    "kind": "Isolated real IndexedDB/Web Locks; synthetic archive validator and deliberate storage faults; no game mutation"
+  },
+  "crashCuts": [
+    {
+      "point": "first-put",
+      "function": "IDBObjectStore.put",
+      "url": "",
+      "location": {
+        "scriptId": "4",
+        "lineNumber": 110,
+        "columnNumber": 68
+      },
+      "acknowledgmentObserved": false
+    }
+  ],
+  "failure": "AssertionError [ERR_ASSERTION]: expected fixture pause location\n    at file:///home/modkin/workspace/schneiderlo/voxys/scripts/validate_expedition_storage.mjs:111:9"
+}

@@ -1,0 +1,607 @@
+{
+  "schema": 1,
+  "component": "MECH-05 cut authority and logical recovery",
+  "status": "scoped component verified; live fragments, MECH-05, PLAY-05 and gates remain open",
+  "recordedUtc": "2026-09-10T05:13:20.382314+00:00",
+  "head": "7f28fabfabf3d63726f6cfa1001c3ce1ed557911",
+  "branch": "codex/salvage-implementation",
+  "nativeTests": {
+    "game_session": {
+      "tests": 136,
+      "failures": 0,
+      "skipped": 0
+    },
+    "session_transactions": {
+      "tests": 12,
+      "failures": 0,
+      "skipped": 0
+    },
+    "session_events": {
+      "tests": 15,
+      "failures": 0,
+      "skipped": 0
+    },
+    "save_generation": {
+      "tests": 3,
+      "failures": 0,
+      "skipped": 0
+    },
+    "cove_save": {
+      "tests": 13,
+      "failures": 0,
+      "skipped": 0
+    },
+    "build_model": {
+      "tests": 25,
+      "failures": 0,
+      "skipped": 0
+    },
+    "assembly_fracture": {
+      "tests": 8,
+      "failures": 0,
+      "skipped": 0
+    },
+    "cove_player": {
+      "tests": 38,
+      "failures": 0,
+      "skipped": 0
+    }
+  },
+  "wasmValidation": {
+    "wasm-r01": {
+      "passed": true,
+      "commands": 23,
+      "source_hashes_verified": true
+    },
+    "wasm-fracture-r01": {
+      "passed": true,
+      "commands": 25,
+      "source_hashes_verified": true
+    }
+  },
+  "sources": {
+    "AGENTS.md": "fe03d4cd0a7c246077216d18d94ceb1980bbad9182a3394204dd89f5ad16f619",
+    "CMakeLists.txt": "25b90f865dae1c96d0083c5688fafee5b79fba06ce43804bdda6f4eada9bcfa9",
+    "GAME_IMPLEMENTATION_TODO.md": "6cb194949b3fa5f777d20233dd120d26da4926c45511a6913c20f80f24b9c5a8",
+    "README.md": "768ac6cca1ba6a1e08e2ff04bfa52a387a5bb892dca87e31fdb572c0ffff36bb",
+    "data/salvage/fixture-cove-r01.json": "30a63af1b77a32725a1eedab1e412a430401172bdc2799a2f7748caac6adbf96",
+    "docs/salvage-session-save-format.md": "c47bd38be3001037d77de3c6b8b1936aee72b0174244756702b0ad8c7022c151",
+    "scripts/validate_assembly_compiler_wasm.py": "07dc69e895784d41e367ab97509a656e0c0cb938844de0abff95bb98c92ba359",
+    "scripts/validate_session_transactions_wasm.py": "ab7119c25ec3d7a4e4c6c3e6070a132a90c39a4ed03634fdc1e6aad5ec037420",
+    "src/CMakeLists.txt": "69ec952620d200534a375711ff83e67ca6fc1d5dd4013826370b1d318e842e95",
+    "src/app/application.cpp": "512922c0d062c886729405ef6da8009bb2399702e3501df81ae06df5d7b4244c",
+    "src/app/application.hpp": "6d30a788c1b2b4e298db96f5ff9d8b910702f11c76016d7b32e08af1cfabe014",
+    "src/core/sha256.hpp": "85402045f08774996eb7506b7802cae519f16f6df35b80d65f25b322008aba99",
+    "src/game/BUILD": "cc9fed2c10882147c0e5a137d3582ad8c2112adfe6a2026d7ab44bc891e1d65a",
+    "src/game/construction/assembly_buoyancy.cpp": "711557be9458601d85c578ef5a2ee08f6942c0dbfecc638ccad432c5a477d482",
+    "src/game/construction/assembly_buoyancy.hpp": "0cc24400255a3f92ec38605934d84d7a8dac566c380ccc7c82a30d73edad09ec",
+    "src/game/construction/assembly_collision.cpp": "21be53d25fdda6128310ca732a752b067180a8021807fcd74529f7b21e3b83e3",
+    "src/game/construction/assembly_collision.hpp": "74776d1aeb0ee2bb0873c4ae9fa5523dbaf00ac209b7fdbd7d981756233228e4",
+    "src/game/construction/assembly_compiler.cpp": "f918b8095d7a2d2726185b4a3e381d23518d6eefd9eda8f13823b263db4e5f0e",
+    "src/game/construction/assembly_compiler.hpp": "26fc5ad2643a0008870e399fd0e7d351b23f08fada1c18c0d2df8cd25722c43f",
+    "src/game/construction/assembly_fracture.cpp": "1a3211ba8511f13ec40043833614bbbec36cd575db940d688de60f63c627446c",
+    "src/game/construction/assembly_fracture.hpp": "46d78b339c079caac013ba2ac5d3f6869721f9867b5d0bbd639eeb61f479f4c8",
+    "src/game/construction/assembly_functions.cpp": "831477719a8f39e296c6dc378025c16670dda569eec873bc5dc5bfb4ac113072",
+    "src/game/construction/assembly_functions.hpp": "fd2f166428ab9ce360e34180f3f8bcfb4f9943070519c33f7f881ca3f39a4066",
+    "src/game/construction/build_model.cpp": "526469403b94903201abed3ab85937afcd8b46174e40a641fdb797c16c21c19d",
+    "src/game/construction/build_model.hpp": "8230c11ba15f17f1695572076ff716a252265dd21388c206b457bcfad209a392",
+    "src/game/construction/build_refit.cpp": "c84d2009f357cc13a967ff16013ffa9dbe8def44615ad7bc0f0a2998af077ad9",
+    "src/game/construction/build_refit.hpp": "8054bdb6a0e16c8aaa4f7caa3755a06f982057952a088e7d8b9cd2967012c7d1",
+    "src/game/construction/compiled_assembly.cpp": "495822be98727b6d65637646fecf13c80e3016a1af13bc9d81970d0b6fb815c1",
+    "src/game/construction/compiled_assembly.hpp": "8c4174503c076b50c38ca95f3dbbb364cb5628afd70899c7d60ca192fdced5d5",
+    "src/game/construction/construction_types.cpp": "4aa7ffdd6e608765b5245c94c53c2b54920705533283d270e5b6b4eee84ac4c8",
+    "src/game/construction/construction_types.hpp": "fb12f63724c9899f7f6cff2e21ac09f5d86173f4b5fd2af34735138753370ea2",
+    "src/game/construction/orthogonal_coverage.cpp": "6634cd47ed1ee7ce9dc0ca13b1104796c1383b38a6a54f56d81aaede78e337c3",
+    "src/game/construction/orthogonal_coverage.hpp": "aae149f540e61a69fe50d10d8e590f937b24e9185c9982225bfbc480991674a1",
+    "src/game/construction/orthogonal_geometry.hpp": "3ac2960a6fd4810d49641cf5cde7308bce0a9b0c9d840b10ae360071555bf4f6",
+    "src/game/construction/orthogonal_union.hpp": "83bb41269474ee84e8749393ffb5a825d5cd43ccc6ffeaeb9c6bce9e8fddd2b2",
+    "src/game/construction/part_catalog.cpp": "24869c7c346d49421b2fe20123181e4e5738d6e6ddc366339292d3f12044bcf3",
+    "src/game/construction/part_catalog.hpp": "d68150027f69c4abe47f8f1b57e9532487cd804b9cf97b2e0b2d3c6b1cacd840",
+    "src/game/expedition/cove_boat.cpp": "ef73c41119ac0dd50217a3b08808974dcb99013e8ffec9ba91aa59bdc422faf8",
+    "src/game/expedition/cove_boat.hpp": "eb9bee4869f05c9084308b3006fb1d970ab7d29be07d94b3aefd0c6115e71eb2",
+    "src/game/expedition/cove_build.cpp": "1e8e00e72b21c0696f50faceaf9e063c969ffe6bbc536a1a60f1c529304acbd7",
+    "src/game/expedition/cove_build.hpp": "e1c33f83e9df512beab0bbe888a9b2b4ae67adf40d30a1da8c17554513faa274",
+    "src/game/expedition/cove_harbor_state.hpp": "57d72b168ac3ea11f792e5d0bd8f0b3a93be01e8491d6dfb0488d5dd13b33ed8",
+    "src/game/expedition/cove_save.cpp": "24d579c490b733a26fff56f3bdd4da6f595a37fda0a1873196b387cbaff6e77b",
+    "src/game/expedition/cove_save.hpp": "474f8467a5b2ba8964d51a33f5f5d0d0552e4719d66ce756829c09ca8dc01bdc",
+    "src/game/expedition/cove_workshop.cpp": "8f05e8c545e206942120911b552ed8c25694dfb9ed56bf141df1441f622a3c46",
+    "src/game/expedition/cove_workshop.hpp": "2fec50b8d73291351c24ef1260461ef0bfe82c11f81031b23a8ce3c858ac40a1",
+    "src/game/expedition/game_session.cpp": "2d04eabacce263e051da34fc07e89269456e10b6b1d931f38405f081a0731b56",
+    "src/game/expedition/game_session.hpp": "e8b1f561e343b23ecfe0b2db09b7afb39b15bdd59255a98683f30fcf1bc2ac5d",
+    "src/game/expedition/save_generation.cpp": "aa928094c87312b82d2aa333b255bbdd55aaa4054f7abcddc5e7ad389b79a285",
+    "src/game/expedition/save_generation.hpp": "c070539d28d4c025d511abfcb33a1b8728d6555397b4d972f192ae8118017c3e",
+    "src/game/expedition/session_events.cpp": "14143a347f608f3e1fe2083ed21dc6ff46c631664d0318c72e799afec731a09c",
+    "src/game/expedition/session_events.hpp": "5faa1417d6bcbba7bfe78a6898840be1679d7210646a34dd3132a24c73864731",
+    "src/game/expedition/session_recovery.cpp": "3e33788778119b405ed05fe2144167600fd3319de30b4d1a5513c43e94ef75dc",
+    "src/game/expedition/session_recovery.hpp": "377247f2747d19912288e963f0413b7226b6aadfc7ca04ad88d920c6adf999af",
+    "src/game/expedition/session_save.cpp": "5663b7d80bb86bdc8004a5094e8e20f2366f15baf5c72078f07d49761d8b4430",
+    "src/game/expedition/session_save.hpp": "c5f0373fbc72aa3a6343bbf88959cb4547817395a2566a1a5ce97609bab21ca3",
+    "src/game/expedition/session_transactions.cpp": "b05fd6f5d99259e6286bade984c5865bf1680432420ba35f651d5e35d6eb8afb",
+    "src/game/expedition/session_transactions.hpp": "d100c3c7779e4100575ad41658d6e730f4a3e5f0cdf1cca9e5f25d0e25847be1",
+    "src/geometry/box_union.cpp": "26acd32d9c5be04d9d41b3c117de189f3816bc17d0f04a3250d8b7298e4a7c2c",
+    "src/geometry/box_union.hpp": "e15e07157739573fe678410f26c5d8d27a06ada6d37cad581f0db797cab8116c",
+    "src/geometry/grid_types.hpp": "798a70fbf1584f42ba952e4d4b687fd11ca497fb9331e167c7ba72f255766bf0",
+    "src/geometry/orthogonal_geometry.hpp": "a786ff103e741d4ec175bf2150c8661737ecf028f5c071a879132e517176b266",
+    "src/physics/authored_shape.cpp": "949a3cf26f0a5e0ba2086f73bc515bd47383d497126642c4f27195b6b88f9d9e",
+    "src/physics/authored_shape.hpp": "1e5d5a52185403c7ceebbfdd6bda77c453a556c983aad96213484646de01798f",
+    "src/physics/rigid_mass_frame.hpp": "a5cc79ac998f1273c686c8933f7dffcc3ef16b08ff60a61b57ac2b67fc6c1837",
+    "tests/BUILD": "23e1219f8f8de799ec26fdd0ffe4f4ced93928e383e1aab6f01edbeaca9b1c9e",
+    "tests/CMakeLists.txt": "29ec4bc4aecfe96597142281019e0edff52b6ea1434497a3f6230f740324a8dc",
+    "tests/test_assembly_buoyancy.cpp": "ae753af613032cb16438329ba8a829537cce5ed082b896505087f8365757d491",
+    "tests/test_assembly_collision.cpp": "c00977c6f68879bd6791ef4919fd375ab43cda5e6e431782de3be49d191f1c0d",
+    "tests/test_assembly_compiler.cpp": "d051fb37afdca2c4f29c1cbe18db1438658b1907d291796e79abcd45f397feb4",
+    "tests/test_assembly_fracture.cpp": "830fac78c648038cdfdab69e30a8da91648bf1931524c8ee1ef69246bef56d0e",
+    "tests/test_assembly_functions.cpp": "754743a16dc544d1eb517a30eb0e8fdf3c36df3d87ada4d0938085ca5573032c",
+    "tests/test_build_model.cpp": "fbbe921cd1d28f8fe71633d7dac530d7ce54f31d96725927e45b7644423cf9bf",
+    "tests/test_compiled_assembly.cpp": "09b5b7f96de35ed6c2fb86b2f8ab787a7d7e0988367c88fc5aff3d12afe14940",
+    "tests/test_cove_player.cpp": "83fc1b4fb48bd4195ad7c27130c38e119045bb723dd2de16787b7b8fde04584c",
+    "tests/test_cove_save.cpp": "328bbdb44207999efc5ba207da7d5d5c855932788faa0884d5cab89e74c61216",
+    "tests/test_game_session.cpp": "e0ec82e27bf44fac3595610ee1f2642db86b4a3d00f3edc8d24a4fa351fdf912",
+    "tests/test_save_generation.cpp": "93a9696f44cb5d5ceb82f4653dbfc733a6882d710d8b79e02feff60f57dec38a",
+    "tests/test_session_events.cpp": "8e10287b6616d8fed53219993651b512ff6442557847eb36a3825036e7944854",
+    "tests/test_session_transactions.cpp": "bffad21bc07f726bf9d6e591f3c891f664ce21a6a4c1d04c198b9cf7671bba60",
+    "third_party/googletest/googletest/include/gtest/gtest-assertion-result.h": "d6562e22c316e831bfbc2cde3b158f06380a22e7e1c6c1e180689abee5c5b972",
+    "third_party/googletest/googletest/include/gtest/gtest-death-test.h": "8decbb86ebbfa142fd78a83cfbeb4c5e73e98179058ce70fcc279935c497429a",
+    "third_party/googletest/googletest/include/gtest/gtest-matchers.h": "d637dd188944433c62d96a062f9b1adab851574c537d7021270c7a52a2759a90",
+    "third_party/googletest/googletest/include/gtest/gtest-message.h": "f1c7bd4e0c02240e884deed25a2e0bfd04e5e0c3fd778a3b126cbb64531f65a7",
+    "third_party/googletest/googletest/include/gtest/gtest-param-test.h": "1adb46e17e47fc2f40dc5b8e9acec4f01efa389a19bbea25d32aea28b94e32e6",
+    "third_party/googletest/googletest/include/gtest/gtest-printers.h": "f3396ea55d577ee04f15a2b14b14b76edb8a84d385c831defd88cff8535bc273",
+    "third_party/googletest/googletest/include/gtest/gtest-spi.h": "fc0bbebaeb211b81a2ec3df388e5e5f25a7c22e90186839854d2e5b26ce226e6",
+    "third_party/googletest/googletest/include/gtest/gtest-test-part.h": "2279b9bfd08aff7c0f764a2716bde0d3a61dc12573687a2cff91256b17681bf0",
+    "third_party/googletest/googletest/include/gtest/gtest-typed-test.h": "d56313830bf30d6271d7c1f8ca57dc52d95a10b97e4ace6efa0f085ae519303a",
+    "third_party/googletest/googletest/include/gtest/gtest.h": "93da03ddf6d5b9bdf40ae4ded9939067c9ed0b6de93f787f7e8d187609b6b02d",
+    "third_party/googletest/googletest/include/gtest/gtest_pred_impl.h": "85e850e735a42ebb5f9a01a018708c1c0b9b7d83c94b14b7d5d29512c00b6ffd",
+    "third_party/googletest/googletest/include/gtest/gtest_prod.h": "3c6301ef533db8686e474dd5a0de4d98a31cbb630e2273f712472d1be25aa261",
+    "third_party/googletest/googletest/include/gtest/internal/custom/gtest-port.h": "5e06747c9e8b86e9d841fabd61c2f045b2bb1133716f127be4a963ced1c44e01",
+    "third_party/googletest/googletest/include/gtest/internal/custom/gtest-printers.h": "b95afda2426e8c4f09c11d3296d522fb336b248c0da7e078388db4bb072c2166",
+    "third_party/googletest/googletest/include/gtest/internal/custom/gtest.h": "21d20a1c64ea38c20c4b12337c261a1a18989d2a30710a83dfb5cd9a3bb3c55e",
+    "third_party/googletest/googletest/include/gtest/internal/gtest-death-test-internal.h": "a70d1174ef668639c7af21764442f8e487b0fc70c237a70f90e3161a8e8262d6",
+    "third_party/googletest/googletest/include/gtest/internal/gtest-filepath.h": "544ce95d2e1e4b7ae17ee170f482aaa09e17d0056999c4ce7e7a6097c3a755cf",
+    "third_party/googletest/googletest/include/gtest/internal/gtest-internal.h": "a33806c8e6ca5eb6f839b8e015bdf8eae848641035f9499834f9d402b823d5fe",
+    "third_party/googletest/googletest/include/gtest/internal/gtest-param-util.h": "effa1b3e6a3554aae8fc82fbe88c1c3215f723bb3e2e444bf424f688c476a030",
+    "third_party/googletest/googletest/include/gtest/internal/gtest-port-arch.h": "37f6d5c70322ee5f4f84fafcb4e8e2f4bbf08a5afc64a6636cf6a9f45d442198",
+    "third_party/googletest/googletest/include/gtest/internal/gtest-port.h": "c22ef5c860dabc3e74225f3a54c2d7224375ad2dd2af619d3f8cbe7e917fc754",
+    "third_party/googletest/googletest/include/gtest/internal/gtest-string.h": "0cc08c746bceb2b101c61ffbc905c598eb62fee3c262c4585c21b10d8a3e6508",
+    "third_party/googletest/googletest/include/gtest/internal/gtest-type-util.h": "c1cf53463579025a7b25466e9680a778d74beff52d8a64b6e83fcb6dd99e4bb7",
+    "third_party/googletest/googletest/src/gtest-all.cc": "972d3016860f9aa6452e078cf77406290fb7003b66fd6c0744a030bd1c323606",
+    "third_party/googletest/googletest/src/gtest-assertion-result.cc": "dbd2235676dcc0ef6409108a4041e05442fc6895735a5561d71151e6a14296bb",
+    "third_party/googletest/googletest/src/gtest-death-test.cc": "4a0a2dad0efbb61c4f7686ccd326e19d6e5633c98202f6878fa2d18c52f3329a",
+    "third_party/googletest/googletest/src/gtest-filepath.cc": "8eec3fa2a0e6617106a8d9bfedf3209b0a8cad02e2a17e76196807290e940f8c",
+    "third_party/googletest/googletest/src/gtest-internal-inl.h": "fce60f191b52108b5851f6aec51a6f14001e1a79fd302d48c8fdbb842f8fef1a",
+    "third_party/googletest/googletest/src/gtest-matchers.cc": "e4ce9edf33493625353cc147a14caac14fdba7390d76166d101fa2fe9d16bbda",
+    "third_party/googletest/googletest/src/gtest-port.cc": "6e6c0346e833a254e52544728b40fd0cced0b36431e9eed8f5e477e6f5fe1a23",
+    "third_party/googletest/googletest/src/gtest-printers.cc": "bd14e45b5cb8df8be5944a0aaeb3739c533737a183ae4ed6627f5613eea1f6c9",
+    "third_party/googletest/googletest/src/gtest-test-part.cc": "b268314cbc718b485ff3e45fdeb5a1496bb8d87dadd5e824c558bf3b03e2dbf9",
+    "third_party/googletest/googletest/src/gtest-typed-test.cc": "b92e70b2d7ee3b86328162cbda269a28de4ce67f0e8d9beec5ec2c73a93ba006",
+    "third_party/googletest/googletest/src/gtest.cc": "53470c00499b943b4f5c3e7b581ffda9c76f828f485f33e17471aa08e8b296ac",
+    "third_party/googletest/googletest/src/gtest_main.cc": "3836c1ce7c4829c44a30f368d888ae3bed218437d61d102c50c0db4afca33b3f"
+  },
+  "binaries": {
+    "bazel-bin/voxy_native": {
+      "sha256": "25961b3168a7d8024c65818e164eff77cb9ee109df5fd18b11a68b7981a90e2c",
+      "bytes": 6521096
+    },
+    "bazel-bin/tests/assembly_fracture": {
+      "sha256": "413419b5eb4b37a9cbeb28af8ee32828509eb50430e3d7a3b27a29f101dfdd55",
+      "bytes": 162136
+    },
+    "bazel-bin/tests/cove_player": {
+      "sha256": "3aa999bd84f06fd1dc14199eb61e3200ea8e9c365a5770ed78a1d1bee80450f2",
+      "bytes": 1007544
+    },
+    "build-native-save-host/bin/voxy_native": {
+      "sha256": "886ea0b0e0dd341635a60329d4fc79e5bc9fc5bc49fb5325585951c9c8b6f5be",
+      "bytes": 46854096
+    },
+    "build-native-save-host/bin/assembly_fracture_tests": {
+      "sha256": "bc6ca2b6b072fc17bb9157444fb4ddde19ffdb1199e926260b0dbc7b81cf4bdc",
+      "bytes": 1127968
+    },
+    "build-lego-wasm/bin/voxy_wasm.js": {
+      "sha256": "732cba4c804679ac563eee9a91cf46ff1c2b2a9b336f6b8d2cb7579379d4a334",
+      "bytes": 93288
+    },
+    "build-lego-wasm/bin/voxy_wasm.wasm": {
+      "sha256": "b0866309a22335952f20bd1cf6fb547f9704da6f5d32808c5a85a7f7f29f57da",
+      "bytes": 7022069
+    },
+    "build-lego-wasm/bin/voxy_wasm.data": {
+      "sha256": "280ffbca3120b0e062e3cd169061281ab1a04f1fc904fc5723694a94d27dc989",
+      "bytes": 84020719
+    },
+    "bazel-bin/tests/game_session": {
+      "sha256": "ba6f5bb6434b3d40fe414a7f4c243d7bf6b52d9f5252d284a3f10e2cfdf94e20",
+      "bytes": 1854352
+    },
+    "bazel-bin/tests/session_transactions": {
+      "sha256": "6512129a558936fab9d55bde5d046da39e18e636009831529d8053b2a6bb25bf",
+      "bytes": 200896
+    },
+    "bazel-bin/tests/session_events": {
+      "sha256": "6c3db263bba984bc8846fbade56b437fd6835d0f12d44a3cddc35d705595c1ee",
+      "bytes": 215736
+    },
+    "bazel-bin/tests/save_generation": {
+      "sha256": "088f3055a3b051df43fb34b8b82f89564df81ca6d9a2f6140e3917014db0bf9a",
+      "bytes": 70912
+    },
+    "bazel-bin/tests/cove_save": {
+      "sha256": "57988474329a167bddb423369177d2e25d7c65506957f729ec45558ea68cfcb8",
+      "bytes": 233368
+    },
+    "bazel-bin/tests/build_model": {
+      "sha256": "8db75de2ee03259bf9cfe1b87222f314786671f843797e91c2ef76159bc6fc77",
+      "bytes": 354552
+    },
+    "build-native-save-host/bin/game_session_tests": {
+      "sha256": "9738cedafcfa3873efed61d82d583bc7654b670c596098e28ea9d90e9e26d2b7",
+      "bytes": 3571256
+    },
+    "build-native-save-host/bin/session_transactions_tests": {
+      "sha256": "883e00c0c02839140ee3d5bcfd56985706d0f1a5eb9cf75e780e5bfe06c358c4",
+      "bytes": 1182328
+    }
+  },
+  "evidence": {
+    "README.md": {
+      "sha256": "fcc51ba4c01d78cb4b81774054ec9c98be11fd9343e6f3bfcb9daf5e9088d9f4",
+      "bytes": 10987
+    },
+    "bazel-assembly_fracture-test.log": {
+      "sha256": "2a8b50224b26d08e145bdea494689bd1db38cd59b19aefd44d4cf7d91908becc",
+      "bytes": 2021
+    },
+    "bazel-assembly_fracture-test.xml": {
+      "sha256": "4e90a601a0360382d91f6005e6b7b45c6b3e3774a1764ee0d8de4e76607eda60",
+      "bytes": 2277
+    },
+    "bazel-build_model-test.log": {
+      "sha256": "8ffc915e68d700560e1b1b393cefbcb3898a40ffaaa5ef76da4400977d52ccd2",
+      "bytes": 4700
+    },
+    "bazel-build_model-test.xml": {
+      "sha256": "676e0a3c634c21d3bc72cb755b21aad9db31375ce432db21f3109ae44d87486e",
+      "bytes": 5996
+    },
+    "bazel-cove_player-test.log": {
+      "sha256": "54b95efac68c34b93c9d39b84baebf61e61bf73907d3c478a2ceb70feaeb6aa6",
+      "bytes": 11760
+    },
+    "bazel-cove_player-test.xml": {
+      "sha256": "58cedef43aec1da85fc3af2aefd30050c36b52bf2198cb95308b25487b8af366",
+      "bytes": 9319
+    },
+    "bazel-cove_save-test.log": {
+      "sha256": "2007a40c8e88f91e08671669324f25a8b63a2da110459d07d0b787cd49a02e98",
+      "bytes": 2732
+    },
+    "bazel-cove_save-test.xml": {
+      "sha256": "d178bedd2500c4e87044d360c84dab41522fc350f98d2a4350afd8b128239333",
+      "bytes": 3275
+    },
+    "bazel-game_session-test.log": {
+      "sha256": "8aebd5003e885d6baa07670fee8bb463a2a8ff6ada23de61775026b81bbc29cb",
+      "bytes": 28996
+    },
+    "bazel-game_session-test.xml": {
+      "sha256": "df594d254f144c4eb5b39bb8e424ed9c6011c484e12a5646b3c34e1106b16732",
+      "bytes": 35785
+    },
+    "bazel-native-build-r01.log": {
+      "sha256": "e4882317f65c3be38398789a884ed7d6be38a4fd562c93a192446d49a6117511",
+      "bytes": 1920
+    },
+    "bazel-save_generation-test.log": {
+      "sha256": "4ac5a5574f9470478484f549d63b024c00647e45245012ea537b93a146ec8026",
+      "bytes": 1009
+    },
+    "bazel-save_generation-test.xml": {
+      "sha256": "c316e666288c6c9e62e016750d2415666e635912197e637097df61a1792fb0fd",
+      "bytes": 1022
+    },
+    "bazel-session_events-test.log": {
+      "sha256": "063cafc5f03c9be7c9d5fd883292183f7d28b048490de87dcabbb323256c102f",
+      "bytes": 3329
+    },
+    "bazel-session_events-test.xml": {
+      "sha256": "309791bf6456448c8e64e38a7aae7d48d16b4b2664c3f1d24e534b525e17b487",
+      "bytes": 4031
+    },
+    "bazel-session_transactions-test.log": {
+      "sha256": "4b75d199bd41edeb68552acf43c1725c538a160d622f1a74a6ae64b095935973",
+      "bytes": 2454
+    },
+    "bazel-session_transactions-test.xml": {
+      "sha256": "74ad3ba479e74d583cdbf7040ad5c8d51fc14fcafac4e797107b0f90db77a184",
+      "bytes": 3110
+    },
+    "cmake-build-r01.log": {
+      "sha256": "9b4aaf9e8e1a1f48e997eb6a21c7b15a0324d42872611b5fc04e321094e6bd3c",
+      "bytes": 58485
+    },
+    "cmake-build-r02.log": {
+      "sha256": "23cafb0ba7f5dd4ecba67bf18b6fb9789e122394c2b2831a164b8ea55690d2ce",
+      "bytes": 9144
+    },
+    "cmake-last-test.log": {
+      "sha256": "80b09f749b73093e5fe7383f18487f038ee02cfd4e392fa9a3d73e13500b9bc2",
+      "bytes": 284958
+    },
+    "cmake-tests-r01.log": {
+      "sha256": "328d635c51a2787fad8e490194edf4f634a9875a2c7a8d14a4c832bb17bd370d",
+      "bytes": 41562
+    },
+    "compile-check-r01.log": {
+      "sha256": "8fc35dca756318b37915bed26786986961a69a2f6367d58b4fc787336ceaa080",
+      "bytes": 1979
+    },
+    "cut-tests-r01.log": {
+      "sha256": "e5b027ba98dfd37b1496f4628b0f747ca7c218221fa11b343221c075ae71131b",
+      "bytes": 4629
+    },
+    "cut-tests-r02.log": {
+      "sha256": "c4b2db800819545ea392168d5a4563826e41ce2cc2aa53e71c0ba63d1b7296e6",
+      "bytes": 1541
+    },
+    "cut-tests-r03.log": {
+      "sha256": "b6a35f461f44aff16323002b25b3f04d9e0f9e922a1f79da4fa3551ff8d1176f",
+      "bytes": 1881
+    },
+    "cut-tests-r04.log": {
+      "sha256": "5c428493b18ed39d7a9dac8ac15409d542928bfec58452a17b7aee6482c20857",
+      "bytes": 1661
+    },
+    "game-session-r02.log": {
+      "sha256": "d83ab70876d74f400149c9e9c42221455cd3ac078b01dd9b54c505d03ba97bca",
+      "bytes": 32109
+    },
+    "game-session-r03.log": {
+      "sha256": "45fd4b6a01953164a36b446c8d41a4cb9ff89d6774061ae91bb096a8caa9b4bf",
+      "bytes": 29467
+    },
+    "game-session-r04.log": {
+      "sha256": "f6c0298cc21a4e97ac31ec3c78c67236b27bf864d6d3a4a96e649ca3c779b499",
+      "bytes": 29832
+    },
+    "native-tests-r05.log": {
+      "sha256": "1a37ab2acc8003d0bbfb6c28a8b0bc07d663459fb15734a28499583551a4a8fd",
+      "bytes": 2758
+    },
+    "wasm-app-build-r01.log": {
+      "sha256": "be55d173df1b6e9918e32cf4ae653de70e0fddc38d204486a363967fab1cc161",
+      "bytes": 12613
+    },
+    "wasm-authority-run-r01.log": {
+      "sha256": "6d20a88c2f0b8039d0272481e83db2dab2d0fc50baf537a2ddbbdbb752a06d53",
+      "bytes": 529
+    },
+    "wasm-fracture-r01/assembly_compiler_tests.js": {
+      "sha256": "ddda80bda3a3e523adfa27616878ec1a8a651076a5155d03cc6f06229bc2488b",
+      "bytes": 158729
+    },
+    "wasm-fracture-r01/assembly_compiler_tests.wasm": {
+      "sha256": "3df0c8215adaa4786da95c29666685805fd4d80437c61223a7ef3846379e294b",
+      "bytes": 24284400
+    },
+    "wasm-fracture-r01/compile-0-construction_types.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "wasm-fracture-r01/compile-1-part_catalog.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "wasm-fracture-r01/compile-10-assembly_fracture.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "wasm-fracture-r01/compile-11-test_assembly_fracture.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "wasm-fracture-r01/compile-12-test_compiled_assembly.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "wasm-fracture-r01/compile-13-test_assembly_functions.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "wasm-fracture-r01/compile-14-test_build_model.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "wasm-fracture-r01/compile-15-test_assembly_compiler.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "wasm-fracture-r01/compile-16-test_assembly_collision.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "wasm-fracture-r01/compile-17-test_assembly_buoyancy.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "wasm-fracture-r01/compile-2-build_model.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "wasm-fracture-r01/compile-3-assembly_compiler.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "wasm-fracture-r01/compile-4-box_union.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "wasm-fracture-r01/compile-5-assembly_collision.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "wasm-fracture-r01/compile-6-orthogonal_coverage.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "wasm-fracture-r01/compile-7-assembly_buoyancy.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "wasm-fracture-r01/compile-8-assembly_functions.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "wasm-fracture-r01/compile-9-compiled_assembly.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "wasm-fracture-r01/compile-gtest-all.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "wasm-fracture-r01/compile-gtest_main.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "wasm-fracture-r01/compiler-version.log": {
+      "sha256": "3d73869c16dbaa5a0076241bd532ed2c917a7187aad7c743a867ec96f2147e10",
+      "bytes": 330
+    },
+    "wasm-fracture-r01/exception-feature-probe.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "wasm-fracture-r01/executed-runner.py": {
+      "sha256": "07dc69e895784d41e367ab97509a656e0c0cb938844de0abff95bb98c92ba359",
+      "bytes": 8824
+    },
+    "wasm-fracture-r01/link.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "wasm-fracture-r01/manifest.json": {
+      "sha256": "2042c0c5e64b78ffb9ec0f2a00c0319ad845e969acb99c5ee14b097c7cb818db",
+      "bytes": 36526
+    },
+    "wasm-fracture-r01/node-version.log": {
+      "sha256": "b8139b18707113247bd3eba5bff8ee50ed8f6bfd5076113805af4e414abfdf23",
+      "bytes": 9
+    },
+    "wasm-fracture-r01/tests.log": {
+      "sha256": "df9b796db0afc76aecc2d552052886f2c3eebbc55bedeba7c04707c60f1ba6c4",
+      "bytes": 16399
+    },
+    "wasm-fracture-run-r01.log": {
+      "sha256": "28f44c5e08bba17feb8743c34694aa78fba2417f8ae70cacad43e479b41f7e3c",
+      "bytes": 631
+    },
+    "wasm-r01/compile-0-construction_types.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "wasm-r01/compile-1-part_catalog.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "wasm-r01/compile-10-cove_save.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "wasm-r01/compile-11-test_cove_save.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "wasm-r01/compile-12-test_save_generation.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "wasm-r01/compile-13-test_game_session.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "wasm-r01/compile-14-test_session_transactions.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "wasm-r01/compile-15-test_session_events.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "wasm-r01/compile-2-build_model.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "wasm-r01/compile-3-build_refit.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "wasm-r01/compile-4-session_transactions.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "wasm-r01/compile-5-session_events.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "wasm-r01/compile-6-game_session.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "wasm-r01/compile-7-session_recovery.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "wasm-r01/compile-8-session_save.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "wasm-r01/compile-9-save_generation.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "wasm-r01/compile-gtest-all.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "wasm-r01/compile-gtest_main.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "wasm-r01/compiler-version.log": {
+      "sha256": "3d73869c16dbaa5a0076241bd532ed2c917a7187aad7c743a867ec96f2147e10",
+      "bytes": 330
+    },
+    "wasm-r01/exception-feature-probe.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "wasm-r01/executed-runner.py": {
+      "sha256": "ab7119c25ec3d7a4e4c6c3e6070a132a90c39a4ed03634fdc1e6aad5ec037420",
+      "bytes": 8459
+    },
+    "wasm-r01/game_session_tests.js": {
+      "sha256": "849d5ac525d62570b4afaed17a0e76f60666e8c627bb52dac0fc67d7ec955c97",
+      "bytes": 158676
+    },
+    "wasm-r01/game_session_tests.wasm": {
+      "sha256": "315f83fe87a614e0a9034710c2d524c40869f4bbe41a9792282ae6b100227136",
+      "bytes": 39631735
+    },
+    "wasm-r01/link.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "wasm-r01/manifest.json": {
+      "sha256": "c365c167c3d54dec8996cbc051c96b0c13cc29d37bd651d82e64c67970cef1a8",
+      "bytes": 33272
+    },
+    "wasm-r01/node-version.log": {
+      "sha256": "b8139b18707113247bd3eba5bff8ee50ed8f6bfd5076113805af4e414abfdf23",
+      "bytes": 9
+    },
+    "wasm-r01/tests.log": {
+      "sha256": "70e7d5f1441a5df25f160e3c40f5bc5db10caa41f4ba716cfa9782bc4c7479e6",
+      "bytes": 36807
+    }
+  }
+}

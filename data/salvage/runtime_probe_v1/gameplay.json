@@ -1,0 +1,201 @@
+{
+  "lods": [
+    {
+      "asset": {
+        "counter": "9007199254740999",
+        "namespace": "53a17c2cb6624a398540103cc18b64aa",
+        "version": 1
+      },
+      "id": "9007199254740997",
+      "minimum_screen_height_pixels": 0.0,
+      "source": {
+        "bytes": 102836,
+        "file": "probe.glb",
+        "frame": "exported_gltf",
+        "sha256": "e2e4f6a7b0d95ac7eff48e2cf6c391c3605f288629b70e7d3d0009fc1735b103",
+        "to_canonical_rotation": 12
+      }
+    }
+  ],
+  "metadata_frame": "canonical_y_up_minus_z_forward",
+  "part": {
+    "buoyancy": [
+      {
+        "box": {
+          "frame": {
+            "rotation": 0,
+            "translation_ticks": [
+              0,
+              16,
+              0
+            ]
+          },
+          "half_extents_ticks": [
+            50,
+            16,
+            100
+          ],
+          "id": "103"
+        },
+        "kind": "solid_material"
+      }
+    ],
+    "collision": [
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            0,
+            16,
+            0
+          ]
+        },
+        "half_extents_ticks": [
+          50,
+          16,
+          100
+        ],
+        "id": "73"
+      }
+    ],
+    "cost": {
+      "salvage_material": "20",
+      "special_machinery": "0"
+    },
+    "footprint": {
+      "maximum_ticks": [
+        60,
+        60,
+        110
+      ],
+      "minimum_ticks": [
+        -60,
+        0,
+        -110
+      ]
+    },
+    "key": {
+      "counter": "9007199254740993",
+      "namespace": "53a17c2cb6624a398540103cc18b64aa",
+      "version": 1
+    },
+    "mass": {
+      "center_of_mass_metres": [
+        0.0,
+        0.32,
+        0.0
+      ],
+      "dry_mass_kg": 10.0,
+      "inertia_kg_metres_squared": [
+        13.674666666666667,
+        0.0,
+        0.0,
+        0.0,
+        16.666666666666668,
+        0.0,
+        0.0,
+        0.0,
+        3.674666666666667
+      ]
+    },
+    "material": {
+      "linear_base_color": [
+        0.3,
+        0.1,
+        0.05
+      ],
+      "metallic": 0.0,
+      "roughness": 0.35
+    },
+    "module": {
+      "type": "structure"
+    },
+    "name_key": "probe.asymmetric_block",
+    "permitted_rotation_mask": 16777215,
+    "salvage_yield": {
+      "salvage_material": "10",
+      "special_machinery": "0"
+    },
+    "sockets": [
+      {
+        "clearance": {
+          "maximum_ticks": [
+            5,
+            5,
+            5
+          ],
+          "minimum_ticks": [
+            -5,
+            -5,
+            -5
+          ]
+        },
+        "connection_capacity": 1,
+        "family": "structural",
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            0,
+            32,
+            0
+          ]
+        },
+        "id": "9007199254740995",
+        "profile": 1,
+        "role": "neutral",
+        "strength": {
+          "bending_newton_metres": 20000.0,
+          "shear_newtons": 20000.0,
+          "tension_newtons": 20000.0,
+          "torsion_newton_metres": 20000.0
+        }
+      }
+    ],
+    "solid_occupancy": [
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            0,
+            16,
+            0
+          ]
+        },
+        "half_extents_ticks": [
+          50,
+          16,
+          100
+        ],
+        "id": "41"
+      }
+    ],
+    "strength": {
+      "bending_newton_metres": 20000.0,
+      "shear_newtons": 20000.0,
+      "tension_newtons": 20000.0,
+      "torsion_newton_metres": 20000.0
+    }
+  },
+  "placement_lattice_metres": 0.02,
+  "schema": 1,
+  "tool_anchors": [
+    {
+      "frame": {
+        "rotation": 0,
+        "translation_ticks": [
+          0,
+          32,
+          -90
+        ]
+      },
+      "id": "9007199254741001",
+      "name_key": "probe.forward"
+    }
+  ],
+  "units": {
+    "angle": "radians",
+    "length": "metres",
+    "mass": "kilograms",
+    "time": "seconds"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "kind": "application startup, no FPS acceptance",
+  "experience": "salvage-cove",
+  "gpuMode": "hardware",
+  "flags": [
+    "--use-angle=vulkan",
+    "--enable-features=Vulkan",
+    "--use-vulkan=native",
+    "--disable-vulkan-surface"
+  ],
+  "status": "failed",
+  "error": "AssertionError [ERR_ASSERTION]: Chrome debugging unavailable",
+  "chrome_log": "[1798285:1798285:0909/214627.546162:FATAL:chrome/browser/process_singleton_posix.cc:313] Socket path too long: /home/modkin/workspace/schneiderlo/voxys/build-harbor-live-13t9ivnw/com.google.Chrome.krQ2wN/SingletonSocket.\n",
+  "console": [],
+  "browserErrors": []
+}

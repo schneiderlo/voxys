@@ -3,6 +3,7 @@
 #include <array>
 #include <cstdint>
 #include <filesystem>
+#include <optional>
 #include <span>
 #include <vector>
 
@@ -88,6 +89,9 @@ public:
         uint32_t timestampBegin = WGPU_QUERY_SET_INDEX_UNDEFINED,
         uint32_t timestampEnd = WGPU_QUERY_SET_INDEX_UNDEFINED);
 
+    // An encoded but unsubmitted FFT cannot satisfy the next frame's cache.
+    void discardUpdate() noexcept { spectralFrame_ = 0; }
+
     [[nodiscard]] bool isInitialized() const noexcept {
         return device_ != nullptr &&
                queue_ != nullptr &&
@@ -115,6 +119,12 @@ public:
                                               float timeSeconds,
                                               float strength = 1.0f) const;
 
+    /// Occasional spawn/recovery query using the complete spectrum and the
+    /// GPU texture's spatial origin, texel rounding and bilinear filtering.
+    /// Performs bounded CPU work; do not use as a per-body/per-tick sampler.
+    [[nodiscard]] std::optional<float> samplePlacementHeight(
+        glm::vec2 worldPosition, float timeSeconds, float strength = 1.0f) const;
+
 private:
     struct SimParams {
         float time = 0.0f;
@@ -135,7 +145,7 @@ private:
         glm::vec2 initialPositive{0.0f};
         glm::vec2 conjugateNegative{0.0f};
         float angularFrequency = 0.0f;
-        float amplitude = 1.0f;
+        float pairWeight = 2.0f;
         uint32_t cascade = 0u;
     };
 

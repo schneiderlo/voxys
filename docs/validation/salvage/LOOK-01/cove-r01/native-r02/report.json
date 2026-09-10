@@ -1,0 +1,190 @@
+{
+  "schema": 1,
+  "status": "captured; visual review required",
+  "recipe": {
+    "schema": 1,
+    "purpose": "First complete static authored skiff/dock/generator composition; water ordering and walkability pending",
+    "registry": "data/salvage/fixture-cove-r01.json",
+    "physical_viewport": [
+      1920,
+      1080
+    ],
+    "fov_degrees": 60,
+    "views": [
+      {
+        "name": "cove-arrival",
+        "eye": [
+          10,
+          4.2,
+          -50
+        ],
+        "target": [
+          2.1,
+          0.65,
+          -53.6
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      }
+    ]
+  },
+  "recipe_sha256": "9d5a1fe1454824a22bc1897b6040e067b9413dffb6c47a2c07202a6ef9d96190",
+  "runner_sha256": "2befd115829de8b32c77c322a4b745c3ba398821f1dcdaa25889c496a2c3b9f2",
+  "binary": "/home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/voxy_native",
+  "binary_sha256": "21fdbbc7cdc620828222a098f92b4a2f91050c08d13d191ca1dbb5fff5e2e131",
+  "original_registry_sha256": "e9ad17b55f6aaa071c2d6441687be12dfb8a7916f88682b92227801d247f6757",
+  "original_config": "/home/modkin/workspace/schneiderlo/voxys/salvage_cove.cfg",
+  "original_config_sha256": "68cdece48fd9c36ea22205fe3a933e91aa68f68a36faf5ebf836da6d5b000c26",
+  "guides": "off",
+  "forced_lod": 0,
+  "selected_views": null,
+  "scope": "Native scene captures; guides are technical overlays, not final art or moving-craft acceptance",
+  "views": [
+    {
+      "name": "cove-arrival",
+      "argv": [
+        "/home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/LOOK-01/cove-r01/native-r02/cove-arrival.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/LOOK-01/cove-r01/native-r02/cove-arrival.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "config_sha256": "162d7cf655bb66467762d28e6cf7b8437047ad835fabd0ee9dd3fdc75f08465f",
+      "registry_sha256": "e9ad17b55f6aaa071c2d6441687be12dfb8a7916f88682b92227801d247f6757",
+      "timeout": false,
+      "exit_code": 0,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "png_sha256": "623702d705b1724ddd1eae3df4f2798027fcefa04f8271e2df2e7d80bb658768",
+      "gpu_or_application_errors": [],
+      "state": {
+        "active": true,
+        "ready": true,
+        "busy": false,
+        "failed": false,
+        "bodies": 0,
+        "resets": 0,
+        "controller": "free-fly",
+        "mouseCaptured": false,
+        "origin": [
+          -12,
+          -187.68,
+          -32
+        ],
+        "camera": {
+          "local": [
+            -9,
+            60.2,
+            -87
+          ],
+          "sector": [
+            0,
+            -1,
+            0
+          ],
+          "yaw": -1.99838,
+          "pitch": -0.388165
+        },
+        "session": {
+          "revision": "0",
+          "tick": "0",
+          "admissionOpen": true,
+          "builds": 0,
+          "cargo": 0,
+          "jobs": 0,
+          "inventory": {
+            "salvageMaterial": "0",
+            "specialMachinery": "0"
+          }
+        },
+        "observation": {
+          "world": "232c3ea054046a92f63a175b5761ff34",
+          "incarnation": "026ec8ceb7dea4d6be7fe6e596ccad22",
+          "epoch": "1",
+          "publicationLost": false,
+          "lanes": [
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            },
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            },
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            }
+          ]
+        },
+        "assetFixture": {
+          "status": 2,
+          "generation": "1",
+          "uploads": 27,
+          "prototypeUploads": 0,
+          "environmentGpuBytes": "1228944",
+          "environmentBakeCount": 1,
+          "environmentReady": true,
+          "gpuReservationBytes": "11412008",
+          "submittedSerial": "120",
+          "completedSerial": "118",
+          "draws": 32,
+          "guides": 0,
+          "guideBoxes": 0,
+          "guideMeshGpuBytes": 1936,
+          "forcedLod": "0",
+          "lods": [
+            "2",
+            "1",
+            "2",
+            "2",
+            "2",
+            "2",
+            "1",
+            "2",
+            "2",
+            "2",
+            "2",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1"
+          ],
+          "availableLods": [
+            "0",
+            "1",
+            "2",
+            "3"
+          ]
+        }
+      },
+      "passed": true
+    }
+  ],
+  "temporary_registry_removed": true
+}

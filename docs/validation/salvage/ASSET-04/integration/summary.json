@@ -1,0 +1,545 @@
+{
+  "recorded_utc": "2026-09-08T03:06:43.669342+00:00",
+  "head": "7f28fabfabf3d63726f6cfa1001c3ce1ed557911",
+  "status": "component evidence; ASSET-04 and LOOK-01 incomplete",
+  "sources": {
+    "BUILD": {
+      "bytes": 11714,
+      "sha256": "ebb3493f4774e18c306f4637f1aaa50af546afcc6ee8fa06453075d9d1eacc85"
+    },
+    "CMakeLists.txt": {
+      "bytes": 31799,
+      "sha256": "6b9709868d5fffcf7a3588548ddca23ee96b0452aad43a0e4de151042472692b"
+    },
+    "src/CMakeLists.txt": {
+      "bytes": 20175,
+      "sha256": "15d2c1666908c77030939ddbfbd795ab3fed9cf6b3e43bd89b0bfe3628e2fa0d"
+    },
+    "src/app/BUILD": {
+      "bytes": 1089,
+      "sha256": "e6777d08ae6fd3beb4cbad21f172ed2adcc5f57fd32e765e049de8bf4d462a7a"
+    },
+    "src/app/application.cpp": {
+      "bytes": 265912,
+      "sha256": "1d62b63555fdf5d8f8a0fd24535a71b4a74ce236a3e47d10fbf49ba74a744706"
+    },
+    "src/app/application.hpp": {
+      "bytes": 41904,
+      "sha256": "cbd0c027e43746684d576922fbdd5f5af67a05604f42508040e7720389f1101e"
+    },
+    "src/render/BUILD": {
+      "bytes": 2949,
+      "sha256": "26a8a518b6b3d4829632204ff8620e98db52ae7d141212c4a75dc4188de721d7"
+    },
+    "src/render/mesh_path.cpp": {
+      "bytes": 58435,
+      "sha256": "3f7a2fec30831e07ae3e8dad75dc4bee1b8e6cb36428d041f99b2c5bde87ffbc"
+    },
+    "src/render/mesh_path.hpp": {
+      "bytes": 8230,
+      "sha256": "e898150448363111ada7d3f131623aa9f5e0ae035c9e75b1529cccd860e73473"
+    },
+    "src/render/salvage_asset_fixture.cpp": {
+      "bytes": 26397,
+      "sha256": "e48c1a23381842453ab388d23ccab19241c006a0ea447d43955914858e35e9f7"
+    },
+    "src/render/salvage_asset_fixture.hpp": {
+      "bytes": 4897,
+      "sha256": "df8ee6142698551fdca41df858921e0ea6b4f638c448513e0911371895a6f9e0"
+    },
+    "src/game/BUILD": {
+      "bytes": 7662,
+      "sha256": "53f0f08a577c0c9599c2107bb3f92ca3fffe2227f03b5f58798f6eaf8ace617e"
+    },
+    "src/core/config.cpp": {
+      "bytes": 50159,
+      "sha256": "48703076a175db442a29753e09b5e927fb2019019822a93ed9f0bcd115960941"
+    },
+    "src/core/config.hpp": {
+      "bytes": 15648,
+      "sha256": "d57e775c28082a87e9bd03dc7fbfc14231afa2f1c6989cb1e0d7b589924e770e"
+    },
+    "src/engine/platform/native/entry.cpp": {
+      "bytes": 9836,
+      "sha256": "79b029d230665ba00d6a4bf6b38894f69d2e7d7ebbf492970c90c4ebde19c80c"
+    },
+    "src/engine/platform/wasm/entry.cpp": {
+      "bytes": 76000,
+      "sha256": "891b4a090d580162e71a2c6039d27d942f2ec271507637ad3d9ca45109c913bc"
+    },
+    "tests/BUILD": {
+      "bytes": 27658,
+      "sha256": "ecd2c01d8815edddb85b842f84a1e18e2be0e3347fc7f73997fff5e9e2257c9c"
+    },
+    "tests/CMakeLists.txt": {
+      "bytes": 29040,
+      "sha256": "968f295dc13033d6abd6d31d7ec335dcd216db8719223cafed6e5b58136506ae"
+    },
+    "tests/test_mesh_path.cpp": {
+      "bytes": 24813,
+      "sha256": "970a639593e1c3e2d2851d5b0bdaa0ecfbb430533e5b660b605bbb659dad9091"
+    },
+    "tests/test_salvage_asset_fixture.cpp": {
+      "bytes": 25065,
+      "sha256": "3b31a44931b07249495cca040c291b5f99f59e1a9ebe00c6150360a6540e5bb5"
+    },
+    "tests/test_fixture_registry.cpp": {
+      "bytes": 6635,
+      "sha256": "af6a27aae36b7c25571b12901337494bab79a0c5b1b8683060748dc26a7df25d"
+    },
+    "tests/test_config.cpp": {
+      "bytes": 38407,
+      "sha256": "c4c33a19d9ba30c322055bca8dd2cfd74dc769c392e7ea7e2f664656fa2b27e0"
+    },
+    "data/BUILD": {
+      "bytes": 1962,
+      "sha256": "5efbed47e1796775f339e168d98c6031c6a1f2d2262c03f45962ed3ad86f8a79"
+    },
+    "data/salvage/fixture-pontoon-v2.json": {
+      "bytes": 1392,
+      "sha256": "f4d3599cf126f8aa583f4f065d66f891eca520926b876586250482d544c6afbd"
+    },
+    "salvage_asset_fixture.cfg": {
+      "bytes": 1124,
+      "sha256": "a9d4e08737f1260c69e10b2610a1ef97f8ca798659c707c9dac9be77b85242af"
+    },
+    "web/index.html": {
+      "bytes": 69042,
+      "sha256": "ebdcaa6161f8a0e7b04250258064d69dbf1193026fc6b246bf15c67423d50386"
+    },
+    "web/salvage_preview.js": {
+      "bytes": 4932,
+      "sha256": "2470e6250b9b505face0e0735de281e5a18c9a14000bb32227c5678dc5f10141"
+    },
+    "scripts/smoke_integrated_wasm.mjs": {
+      "bytes": 29402,
+      "sha256": "88f08a9980c4d5f654dfe76decb3c329bfe64ae2cc0abd04e739535b67385272"
+    },
+    "scripts/validate_salvage_asset_fixture.mjs": {
+      "bytes": 10571,
+      "sha256": "bd13b3e3139092ea5d847f878732054c3ac2b2bc32c74e78f302dcdbe7b6a886"
+    },
+    "scripts/validate_salvage_asset_loss.mjs": {
+      "bytes": 3684,
+      "sha256": "764a9581290b2ad5cd192febbb2d19472254acb6febb6c0f07fe0cf9032f6dc2"
+    },
+    "scripts/test_salvage_preview.mjs": {
+      "bytes": 4886,
+      "sha256": "3b20161fa499683f564d18bc5346db8917c2d4708b00686409f2947a437840e8"
+    },
+    "src/game/assets/cooked_part_bundle.cpp": {
+      "bytes": 12822,
+      "sha256": "7e8674d4b61800575d9e7c7ed83dd6059d224cbf97482ef8cef1cd599df637d3"
+    },
+    "src/game/assets/cooked_part_bundle.hpp": {
+      "bytes": 2889,
+      "sha256": "68c98360ca28f80fa3715ae2a71628d2f3f26204eee106ed1a0b379ee7b0a63f"
+    },
+    "src/game/assets/cooked_part_directory.cpp": {
+      "bytes": 5210,
+      "sha256": "d65aa2df4762c6fa040812595ce4f18265d5f288073b64ad69c7567b9b56e25f"
+    },
+    "src/game/assets/cooked_part_directory.hpp": {
+      "bytes": 767,
+      "sha256": "d23b2fbc974f1b4f83cb2246ca13c57ade3450180c13ac7df7cf4cf7a2394327"
+    },
+    "src/game/assets/fixture_registry.cpp": {
+      "bytes": 11703,
+      "sha256": "f64735f6ed7827e14234c0d21f7240cce2c01e13d5ba5f3e21c17e0472bcaea8"
+    },
+    "src/game/assets/fixture_registry.hpp": {
+      "bytes": 1770,
+      "sha256": "0bdb194319fc14536339571630fe10b8d4dfa0b59db042d309cf75e1d56b5dd5"
+    },
+    "src/game/assets/gameplay_sidecar.cpp": {
+      "bytes": 18699,
+      "sha256": "2a6d83121cb613d68f6250d1e8840c3131ef8d58f92c835c8677f242571aa677"
+    },
+    "src/game/assets/gameplay_sidecar.hpp": {
+      "bytes": 2100,
+      "sha256": "57fd584f56732de774dc3a6c9d50515e802b4ea563b4a9aa26d57b05128d35ab"
+    },
+    "src/game/assets/rigid_prefab.cpp": {
+      "bytes": 20602,
+      "sha256": "44b5b49f41feb67b3d083255a254ba2feceac352dd08354f77586fd09ff7b736"
+    },
+    "src/game/assets/rigid_prefab.hpp": {
+      "bytes": 3547,
+      "sha256": "7bb7a0e9395792cd0a026ac323e649c6a17975b016838193865af6edf9d6885f"
+    },
+    "data/salvage/pontoon/candidates/v2-r04/cooked/cook-manifest.json": {
+      "bytes": 1725,
+      "sha256": "f4f06e71261f97b5b5b285ea5ddf85a650a8fa5dc413ec442a49a8eb881ae4d1"
+    },
+    "data/salvage/pontoon/candidates/v2-r04/cooked/gameplay.json": {
+      "bytes": 15828,
+      "sha256": "f02c291deac15a4d7be6378991538304f4fa3ef1c30d1bf855d331912f91c1aa"
+    },
+    "data/salvage/pontoon/candidates/v2-r04/cooked/lod-1.vmesh": {
+      "bytes": 3863598,
+      "sha256": "9fbc12c1066e2e584304765ea8ca0d8a212e64f0e1d1a89ae4338ecd22ecec4c"
+    },
+    "data/salvage/pontoon/candidates/v2-r04/cooked/lod-2.vmesh": {
+      "bytes": 867702,
+      "sha256": "91eade3cf71dda138d4b46033059444235f626f689a4184155d597f457fcfc04"
+    },
+    "data/salvage/pontoon/candidates/v2-r04/cooked/lod-3.vmesh": {
+      "bytes": 59830,
+      "sha256": "d1f2f434b42386ef415819bc64d89add1dd118b271076a82b6b8a9094e6aa319"
+    }
+  },
+  "artifacts": {
+    "build-lego-wasm/bin/voxy_wasm.js": {
+      "bytes": 78366,
+      "sha256": "8ca2157b4b6ecf1ae84bd7880765f053a23f6cfad3dfb0f3487de8d40c2619d4"
+    },
+    "build-lego-wasm/bin/voxy_wasm.wasm": {
+      "bytes": 5631948,
+      "sha256": "04d9d492ec5aa4999ae7a6dd917e97ae7e87d5d495ff57b7f81c4304d53bb204"
+    },
+    "build-lego-wasm/bin/voxy_wasm.data": {
+      "bytes": 62485552,
+      "sha256": "26ec464319324a95ac628c49f30269842ba2b1343061513cfd9664e93fab8d0b"
+    },
+    "bazel-bin/voxy_native": {
+      "bytes": 4891752,
+      "sha256": "46ec2c2b81161f1ff15c3f324b7e5ae09a65b76e91f8cf084c48c2a48d8351b2"
+    },
+    "build-salvage-native/bin/voxy_native": {
+      "bytes": 44957944,
+      "sha256": "b739eeb6bc85e348df099fed2121a70ad9a319cf3d099d18f1658162cecf9d05"
+    }
+  },
+  "evidence": {
+    "gpu_owner_native": "../prefab/fixture-tests-reviewed.log",
+    "registry_wasm": "../runtime-admission/wasm-registry-attempt02/manifest.json",
+    "browser_journey": "../browser-fixture-attempt03/startup.json",
+    "browser_device_loss": "../browser-loss-attempt03/startup.json"
+  },
+  "shared_regression": {
+    "status": "passed",
+    "command": "nix-shell --run bazel test -c opt --jobs=4 //tests:voxy_tests //tools:terrain_diffusion_import_test --test_output=errors",
+    "tests_started": 1627,
+    "tests_passed": 1624,
+    "skipped": [
+      "WindowGLFWTest.WindowCreation",
+      "GpuBroadPhaseOverflowBenchmark.DenseGridCandidateClamp",
+      "RaycastPathGPUTest.LegoHorizonBenchmark"
+    ],
+    "disabled": 4,
+    "seconds": 247.0,
+    "hook_equivalent_targets": true,
+    "commit_hook_executed": false,
+    "scope": "Complete optimized targets; not a gate commit or all mandatory product checks."
+  },
+  "authoring_next": {
+    "r05_full": "completed CPU generation; 72 frames, six-second WebM",
+    "r06_repeat": "completed; all source/maps/GLB/sidecar/cooked bytes match except .blend; all 13 decoded stills match",
+    "evidence": "authoring-repeat.json",
+    "remaining": "512 thumbnail and contact sheet; accepted publication, rendered socket/material evidence, independent technical review; LOOK-01 untouched"
+  },
+  "cmake_native_build": "passed",
+  "native_routes": {
+    "evidence": "native-routes/native-route-summary.json",
+    "routes": [
+      {
+        "config": "salvage_asset_fixture.cfg",
+        "exit_code": 0,
+        "png_dimensions": [
+          1920,
+          1080
+        ],
+        "passed": true
+      },
+      {
+        "config": "salvage.cfg",
+        "exit_code": 0,
+        "png_dimensions": [
+          1600,
+          900
+        ],
+        "passed": true
+      },
+      {
+        "config": "lego_world.cfg",
+        "exit_code": 0,
+        "png_dimensions": [
+          1600,
+          900
+        ],
+        "passed": true
+      },
+      {
+        "config": "lego_shore.cfg",
+        "exit_code": 0,
+        "png_dimensions": [
+          1600,
+          900
+        ],
+        "passed": true
+      },
+      {
+        "config": "voxy.cfg",
+        "exit_code": 0,
+        "png_dimensions": [
+          1600,
+          900
+        ],
+        "passed": true
+      },
+      {
+        "config": "ridgebreak.cfg",
+        "exit_code": 0,
+        "png_dimensions": [
+          1600,
+          900
+        ],
+        "passed": true
+      }
+    ]
+  },
+  "browser_legacy_routes": {
+    "evidence": "browser-routes/summary.json",
+    "all_six_passed": true,
+    "physical_viewport": [
+      1920,
+      1080
+    ]
+  },
+  "sources_matched_at_first_shared_check_recording": true,
+  "post_regression_changes": {
+    "reason": "New actual-pontoon tests found LOD selection assumed threshold order for ID-sorted metadata",
+    "files": [
+      "src/game/assets/fixture_registry.cpp",
+      "tests/test_pontoon_pipeline.cpp",
+      "tests/BUILD",
+      "tests/CMakeLists.txt"
+    ],
+    "native_focused_result": "3 pontoon + 4 registry pass; 3 pontoon CMake pass",
+    "wasm_expanded": {
+      "passed": 63,
+      "skipped": 0,
+      "evidence": "../runtime-admission/wasm-pontoon-attempt02/manifest.json"
+    },
+    "shared_builds": "Bazel native + combined target; CMake native/WASM pass",
+    "new_capture": {
+      "native": "native-lod-final/native-route-summary.json",
+      "browser": "../browser-fixture-attempt04/startup.json",
+      "both_passed": true
+    },
+    "combined_focused": "7 pontoon/registry cases pass; full GPU suite above predates the selector-only fix"
+  },
+  "final_recorded_utc": "2026-09-08T03:25:33.329353+00:00",
+  "final_sources": {
+    "BUILD": {
+      "bytes": 11714,
+      "sha256": "ebb3493f4774e18c306f4637f1aaa50af546afcc6ee8fa06453075d9d1eacc85"
+    },
+    "CMakeLists.txt": {
+      "bytes": 31799,
+      "sha256": "6b9709868d5fffcf7a3588548ddca23ee96b0452aad43a0e4de151042472692b"
+    },
+    "data/BUILD": {
+      "bytes": 1962,
+      "sha256": "5efbed47e1796775f339e168d98c6031c6a1f2d2262c03f45962ed3ad86f8a79"
+    },
+    "data/salvage/fixture-pontoon-v2.json": {
+      "bytes": 1392,
+      "sha256": "f4d3599cf126f8aa583f4f065d66f891eca520926b876586250482d544c6afbd"
+    },
+    "data/salvage/pontoon/candidates/v2-r04/cooked/cook-manifest.json": {
+      "bytes": 1725,
+      "sha256": "f4f06e71261f97b5b5b285ea5ddf85a650a8fa5dc413ec442a49a8eb881ae4d1"
+    },
+    "data/salvage/pontoon/candidates/v2-r04/cooked/gameplay.json": {
+      "bytes": 15828,
+      "sha256": "f02c291deac15a4d7be6378991538304f4fa3ef1c30d1bf855d331912f91c1aa"
+    },
+    "data/salvage/pontoon/candidates/v2-r04/cooked/lod-1.vmesh": {
+      "bytes": 3863598,
+      "sha256": "9fbc12c1066e2e584304765ea8ca0d8a212e64f0e1d1a89ae4338ecd22ecec4c"
+    },
+    "data/salvage/pontoon/candidates/v2-r04/cooked/lod-2.vmesh": {
+      "bytes": 867702,
+      "sha256": "91eade3cf71dda138d4b46033059444235f626f689a4184155d597f457fcfc04"
+    },
+    "data/salvage/pontoon/candidates/v2-r04/cooked/lod-3.vmesh": {
+      "bytes": 59830,
+      "sha256": "d1f2f434b42386ef415819bc64d89add1dd118b271076a82b6b8a9094e6aa319"
+    },
+    "salvage_asset_fixture.cfg": {
+      "bytes": 1124,
+      "sha256": "a9d4e08737f1260c69e10b2610a1ef97f8ca798659c707c9dac9be77b85242af"
+    },
+    "scripts/smoke_integrated_wasm.mjs": {
+      "bytes": 29402,
+      "sha256": "88f08a9980c4d5f654dfe76decb3c329bfe64ae2cc0abd04e739535b67385272"
+    },
+    "scripts/test_salvage_preview.mjs": {
+      "bytes": 4886,
+      "sha256": "3b20161fa499683f564d18bc5346db8917c2d4708b00686409f2947a437840e8"
+    },
+    "scripts/validate_salvage_asset_fixture.mjs": {
+      "bytes": 10571,
+      "sha256": "bd13b3e3139092ea5d847f878732054c3ac2b2bc32c74e78f302dcdbe7b6a886"
+    },
+    "scripts/validate_salvage_asset_loss.mjs": {
+      "bytes": 3684,
+      "sha256": "764a9581290b2ad5cd192febbb2d19472254acb6febb6c0f07fe0cf9032f6dc2"
+    },
+    "src/CMakeLists.txt": {
+      "bytes": 20175,
+      "sha256": "15d2c1666908c77030939ddbfbd795ab3fed9cf6b3e43bd89b0bfe3628e2fa0d"
+    },
+    "src/app/BUILD": {
+      "bytes": 1089,
+      "sha256": "e6777d08ae6fd3beb4cbad21f172ed2adcc5f57fd32e765e049de8bf4d462a7a"
+    },
+    "src/app/application.cpp": {
+      "bytes": 265912,
+      "sha256": "1d62b63555fdf5d8f8a0fd24535a71b4a74ce236a3e47d10fbf49ba74a744706"
+    },
+    "src/app/application.hpp": {
+      "bytes": 41904,
+      "sha256": "cbd0c027e43746684d576922fbdd5f5af67a05604f42508040e7720389f1101e"
+    },
+    "src/core/config.cpp": {
+      "bytes": 50159,
+      "sha256": "48703076a175db442a29753e09b5e927fb2019019822a93ed9f0bcd115960941"
+    },
+    "src/core/config.hpp": {
+      "bytes": 15648,
+      "sha256": "d57e775c28082a87e9bd03dc7fbfc14231afa2f1c6989cb1e0d7b589924e770e"
+    },
+    "src/engine/platform/native/entry.cpp": {
+      "bytes": 9836,
+      "sha256": "79b029d230665ba00d6a4bf6b38894f69d2e7d7ebbf492970c90c4ebde19c80c"
+    },
+    "src/engine/platform/wasm/entry.cpp": {
+      "bytes": 76000,
+      "sha256": "891b4a090d580162e71a2c6039d27d942f2ec271507637ad3d9ca45109c913bc"
+    },
+    "src/game/BUILD": {
+      "bytes": 7662,
+      "sha256": "53f0f08a577c0c9599c2107bb3f92ca3fffe2227f03b5f58798f6eaf8ace617e"
+    },
+    "src/game/assets/cooked_part_bundle.cpp": {
+      "bytes": 12822,
+      "sha256": "7e8674d4b61800575d9e7c7ed83dd6059d224cbf97482ef8cef1cd599df637d3"
+    },
+    "src/game/assets/cooked_part_bundle.hpp": {
+      "bytes": 2889,
+      "sha256": "68c98360ca28f80fa3715ae2a71628d2f3f26204eee106ed1a0b379ee7b0a63f"
+    },
+    "src/game/assets/cooked_part_directory.cpp": {
+      "bytes": 5210,
+      "sha256": "d65aa2df4762c6fa040812595ce4f18265d5f288073b64ad69c7567b9b56e25f"
+    },
+    "src/game/assets/cooked_part_directory.hpp": {
+      "bytes": 767,
+      "sha256": "d23b2fbc974f1b4f83cb2246ca13c57ade3450180c13ac7df7cf4cf7a2394327"
+    },
+    "src/game/assets/fixture_registry.cpp": {
+      "bytes": 12341,
+      "sha256": "467ba8e26e81a2c9b6dfb8cad8830cfe93648cfd11e9a6cc3bb8e6e2eb51e356"
+    },
+    "src/game/assets/fixture_registry.hpp": {
+      "bytes": 1770,
+      "sha256": "0bdb194319fc14536339571630fe10b8d4dfa0b59db042d309cf75e1d56b5dd5"
+    },
+    "src/game/assets/gameplay_sidecar.cpp": {
+      "bytes": 18699,
+      "sha256": "2a6d83121cb613d68f6250d1e8840c3131ef8d58f92c835c8677f242571aa677"
+    },
+    "src/game/assets/gameplay_sidecar.hpp": {
+      "bytes": 2100,
+      "sha256": "57fd584f56732de774dc3a6c9d50515e802b4ea563b4a9aa26d57b05128d35ab"
+    },
+    "src/game/assets/rigid_prefab.cpp": {
+      "bytes": 20602,
+      "sha256": "44b5b49f41feb67b3d083255a254ba2feceac352dd08354f77586fd09ff7b736"
+    },
+    "src/game/assets/rigid_prefab.hpp": {
+      "bytes": 3547,
+      "sha256": "7bb7a0e9395792cd0a026ac323e649c6a17975b016838193865af6edf9d6885f"
+    },
+    "src/render/BUILD": {
+      "bytes": 2949,
+      "sha256": "26a8a518b6b3d4829632204ff8620e98db52ae7d141212c4a75dc4188de721d7"
+    },
+    "src/render/mesh_path.cpp": {
+      "bytes": 58435,
+      "sha256": "3f7a2fec30831e07ae3e8dad75dc4bee1b8e6cb36428d041f99b2c5bde87ffbc"
+    },
+    "src/render/mesh_path.hpp": {
+      "bytes": 8230,
+      "sha256": "e898150448363111ada7d3f131623aa9f5e0ae035c9e75b1529cccd860e73473"
+    },
+    "src/render/salvage_asset_fixture.cpp": {
+      "bytes": 26397,
+      "sha256": "e48c1a23381842453ab388d23ccab19241c006a0ea447d43955914858e35e9f7"
+    },
+    "src/render/salvage_asset_fixture.hpp": {
+      "bytes": 4897,
+      "sha256": "df8ee6142698551fdca41df858921e0ea6b4f638c448513e0911371895a6f9e0"
+    },
+    "tests/BUILD": {
+      "bytes": 28002,
+      "sha256": "14815669f8b183f5522c4f5d9cc7d685d370a459e429ab20858039e8cab02608"
+    },
+    "tests/CMakeLists.txt": {
+      "bytes": 29414,
+      "sha256": "1b4406c7f274c694b2983094c0c0f6aa2590df883a901c1bc1b31b38f9ff0b2c"
+    },
+    "tests/test_config.cpp": {
+      "bytes": 38407,
+      "sha256": "c4c33a19d9ba30c322055bca8dd2cfd74dc769c392e7ea7e2f664656fa2b27e0"
+    },
+    "tests/test_fixture_registry.cpp": {
+      "bytes": 6635,
+      "sha256": "af6a27aae36b7c25571b12901337494bab79a0c5b1b8683060748dc26a7df25d"
+    },
+    "tests/test_mesh_path.cpp": {
+      "bytes": 24813,
+      "sha256": "970a639593e1c3e2d2851d5b0bdaa0ecfbb430533e5b660b605bbb659dad9091"
+    },
+    "tests/test_pontoon_pipeline.cpp": {
+      "bytes": 11202,
+      "sha256": "cd1ccc43fa9a6456704cad9869ced9f2bd7189641c2194ccfc555985ab7ff550"
+    },
+    "tests/test_salvage_asset_fixture.cpp": {
+      "bytes": 25065,
+      "sha256": "3b31a44931b07249495cca040c291b5f99f59e1a9ebe00c6150360a6540e5bb5"
+    },
+    "web/index.html": {
+      "bytes": 69042,
+      "sha256": "ebdcaa6161f8a0e7b04250258064d69dbf1193026fc6b246bf15c67423d50386"
+    },
+    "web/salvage_preview.js": {
+      "bytes": 4932,
+      "sha256": "2470e6250b9b505face0e0735de281e5a18c9a14000bb32227c5678dc5f10141"
+    }
+  },
+  "final_artifacts": {
+    "build-lego-wasm/bin/voxy_wasm.js": {
+      "bytes": 78366,
+      "sha256": "8ca2157b4b6ecf1ae84bd7880765f053a23f6cfad3dfb0f3487de8d40c2619d4"
+    },
+    "build-lego-wasm/bin/voxy_wasm.wasm": {
+      "bytes": 5632036,
+      "sha256": "b4f15aad13f939e80a5356dbc98fb3b7979a722da1c45e03604ae4954f59bdcb"
+    },
+    "build-lego-wasm/bin/voxy_wasm.data": {
+      "bytes": 62485552,
+      "sha256": "26ec464319324a95ac628c49f30269842ba2b1343061513cfd9664e93fab8d0b"
+    },
+    "bazel-bin/voxy_native": {
+      "bytes": 4891752,
+      "sha256": "7fd8729e9c5a64749e502034dc5aa8a9962b754e25f17b18e8fe352cd28f0d70"
+    },
+    "build-salvage-native/bin/voxy_native": {
+      "bytes": 44957920,
+      "sha256": "ab1de076093de0961b77c6671e97481ab48c98a4423e3ba88c6fd3785d80f1f5"
+    }
+  }
+}

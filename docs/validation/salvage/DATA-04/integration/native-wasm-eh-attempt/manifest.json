@@ -1,0 +1,42 @@
+{
+  "scope": "Superseded native WASM EH app build. Both builds succeeded; SDK warning rejects mixing native EH with existing Asyncify. Not runtime acceptance. Next configuration uses JS EH.",
+  "utc": "2026-09-07T23:36:32.328365+00:00",
+  "files": {
+    "build-lego-wasm/bin/voxy_wasm.js": {
+      "bytes": 65806,
+      "sha256": "83abdafa895ee5488f378aa5de8ddd9ecbbf142907ae958cb43f3035d699b281"
+    },
+    "build-lego-wasm/bin/voxy_wasm.wasm": {
+      "bytes": 4736658,
+      "sha256": "daff66dc1bf0e578b200fa60900aa15a0adb5dc5ce771f724ef48c169b274356"
+    },
+    "build-lego-wasm/bin/voxy_wasm.data": {
+      "bytes": 57674353,
+      "sha256": "9f20b6769a048c5ac33366a01c06792f7b514fb83c9d4b12bc873ae1ce60792f"
+    }
+  },
+  "observed_sources_after_build_completion": {
+    "src/game/expedition/game_session.cpp": {
+      "bytes": 23296,
+      "sha256": "35e5306eae4c117ebb462807303c4474af76bb8afc65d8dff7e375ecfdeb579c"
+    },
+    "src/game/expedition/game_session.hpp": {
+      "bytes": 9655,
+      "sha256": "e1b7e1d33861db4847ddc5e631c1ec7506017c606955a125dd2e8b6fc550aa16"
+    },
+    "src/app/application.cpp": {
+      "bytes": 252397,
+      "sha256": "f4ed875bee7879f000de493c716038c5c119691ce43857d77500974e6d3e1586"
+    },
+    "src/app/application.hpp": {
+      "bytes": 41662,
+      "sha256": "108063030695770c27dd958c206b06b3c46624fe5c43a4eb77e69db30591a22a"
+    }
+  },
+  "pre_fix_session_sources_used_by_completed_builds": {
+    "src/game/expedition/game_session.cpp": "6caafb139cc651d89956678dfda76398a1bdfc3a371520ea3a50c0ac273b8360",
+    "tests/test_game_session.cpp": "e60804c0fab2baa1e081292e4f4951bc71dcc815fea632f36f90f2a6e2eb9d62",
+    "src/game/expedition/game_session.hpp": "a4c87882f3c6fa2e2d9b4c4c55affce56fb2b6b5af92699c8554e6c42e9844f9"
+  },
+  "source_identity_note": "Builds ran before the participant-reference fix. Post-build current source hashes were recorded after the author started that fix and are explicitly not attributed to the older app artifacts. Pre-fix hashes come from the unchanged isolated attempt-01 run and prior freeze."
+}

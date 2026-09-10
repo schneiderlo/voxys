@@ -1,0 +1,177 @@
+{
+  "kind": "Real browser inspection journey; no art approval or performance claim",
+  "stages": [
+    {
+      "name": "initial",
+      "state": {
+        "active": true,
+        "ready": true,
+        "busy": false,
+        "failed": false,
+        "bodies": 32,
+        "resets": 0,
+        "controller": "free-fly",
+        "mouseCaptured": false,
+        "origin": [
+          -12,
+          -187.68,
+          -32
+        ],
+        "camera": {
+          "local": [
+            -12,
+            75.32,
+            -45
+          ],
+          "sector": [
+            0,
+            -1,
+            0
+          ],
+          "yaw": -0.623199,
+          "pitch": -0.363699
+        },
+        "session": {
+          "revision": "0",
+          "tick": "0",
+          "admissionOpen": true,
+          "builds": 0,
+          "cargo": 0,
+          "jobs": 0,
+          "inventory": {
+            "salvageMaterial": "0",
+            "specialMachinery": "0"
+          }
+        },
+        "assetFixture": {
+          "status": 2,
+          "generation": "1",
+          "uploads": 3,
+          "gpuReservationBytes": "6197084",
+          "submittedSerial": "192",
+          "completedSerial": "190",
+          "draws": 4,
+          "forcedLod": "0",
+          "lods": [
+            "2",
+            "1",
+            "1",
+            "1"
+          ]
+        },
+        "resident": 32,
+        "lost": null,
+        "errors": [],
+        "render": {
+          "available": true,
+          "frame": 180,
+          "age_frames": 15,
+          "water_simulation_ms": 0.63443,
+          "terrain_raycast_ms": 0.008295,
+          "lighting_composite_ms": 0.748845,
+          "primitives_ms": 0.130645,
+          "total_ms": 1.522215,
+          "frame_interval_available": true,
+          "gpu_frame_ms": 1.685002,
+          "render_width": 1920,
+          "render_height": 1080,
+          "includes_gpu_physics": true
+        }
+      }
+    }
+  ],
+  "url": "http://127.0.0.1:36465/index.html?experience=salvage-asset",
+  "device": {
+    "name": "webgpu-physics",
+    "adapter": {
+      "vendor": "amd",
+      "architecture": "rdna-3",
+      "device": "Unknown",
+      "description": "Unknown",
+      "fallback": false
+    },
+    "requiredStorageBuffers": 8,
+    "maxStorageBuffersPerShaderStage": 8,
+    "maxStorageBufferBindingSize": 134217728,
+    "maxBufferSize": 268435456,
+    "maxComputeWorkgroupsPerDimension": 65535,
+    "timestampQuery": true
+  },
+  "status": "failed",
+  "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'free-fly'\n- 'freefly'\n       ^\n",
+  "final": {
+    "active": true,
+    "ready": true,
+    "busy": false,
+    "failed": false,
+    "bodies": 32,
+    "resets": 0,
+    "controller": "free-fly",
+    "mouseCaptured": false,
+    "origin": [
+      -12,
+      -187.68,
+      -32
+    ],
+    "camera": {
+      "local": [
+        -12,
+        75.32,
+        -45
+      ],
+      "sector": [
+        0,
+        -1,
+        0
+      ],
+      "yaw": -0.623199,
+      "pitch": -0.363699
+    },
+    "session": {
+      "revision": "0",
+      "tick": "0",
+      "admissionOpen": true,
+      "builds": 0,
+      "cargo": 0,
+      "jobs": 0,
+      "inventory": {
+        "salvageMaterial": "0",
+        "specialMachinery": "0"
+      }
+    },
+    "assetFixture": {
+      "status": 2,
+      "generation": "1",
+      "uploads": 3,
+      "gpuReservationBytes": "6197084",
+      "submittedSerial": "192",
+      "completedSerial": "190",
+      "draws": 4,
+      "forcedLod": "0",
+      "lods": [
+        "2",
+        "1",
+        "1",
+        "1"
+      ]
+    },
+    "resident": 32,
+    "lost": null,
+    "errors": [],
+    "render": {
+      "available": true,
+      "frame": 180,
+      "age_frames": 15,
+      "water_simulation_ms": 0.63443,
+      "terrain_raycast_ms": 0.008295,
+      "lighting_composite_ms": 0.748845,
+      "primitives_ms": 0.130645,
+      "total_ms": 1.522215,
+      "frame_interval_available": true,
+      "gpu_frame_ms": 1.685002,
+      "render_width": 1920,
+      "render_height": 1080,
+      "includes_gpu_physics": true
+    }
+  }
+}

@@ -1,3 +1,332 @@
+// BEGIN GENERATED AUTHORED GEOMETRY
+// Authored shape heap format 1. The including pipeline declares
+// var<storage, read> authored_shape_heap: array<vec4<u32>> at its chosen binding.
+// One binding holds the header, seven-row descriptors, three-row cells/faces
+// and two-row preorder BVH nodes. All geometric coordinates are root-local
+// integer ticks at .02 m. Every index inside a shape is local to that resource.
+
+struct AuthoredShapeView {
+    valid: bool,
+    cell_base: u32,
+    cell_count: u32,
+    face_base: u32,
+    face_count: u32,
+    node_base: u32,
+    node_count: u32,
+    center_inverse_mass: vec4<f32>,
+    root_from_body: vec4<f32>,
+    inverse_inertia_radius: vec4<f32>,
+    minimum: vec3<f32>,
+    maximum: vec3<f32>,
+};
+
+fn authored_shape(index: u32, generation: u32) -> AuthoredShapeView {
+    var result: AuthoredShapeView;
+    let rows = arrayLength(&authored_shape_heap);
+    if (rows < 2u || index == 0u || generation == 0u) { return result; }
+    let sections = authored_shape_heap[0];
+    let capacity = authored_shape_heap[1];
+    if (sections.x != 1u || sections.y == 0u || sections.y > 512u || index > sections.y) { return result; }
+    if (sections.z != 2u + 7u * (sections.y + 1u) || sections.w < sections.z || capacity.x < sections.w
+        || capacity.y < capacity.x || capacity.y > rows) { return result; }
+    if ((sections.w-sections.z)%3u != 0u || (capacity.x-sections.w)%3u != 0u || (capacity.y-capacity.x)%2u != 0u) { return result; }
+    let cell_capacity = (sections.w-sections.z)/3u;
+    let face_capacity = (capacity.x-sections.w)/3u;
+    let node_capacity = (capacity.y-capacity.x)/2u;
+    if (capacity.z != cell_capacity || capacity.w != face_capacity) { return result; }
+    let descriptor = 2u + 7u*index;
+    // sections.z bounds the descriptor area, and the area is inside the binding.
+    let identity = authored_shape_heap[descriptor];
+    let ranges = authored_shape_heap[descriptor+1u];
+    if (identity.x != generation || identity.y != 1u || identity.w == 0u
+        || ranges.y == 0u || ranges.w == 0u) { return result; }
+    if (identity.z > cell_capacity || identity.w > cell_capacity-identity.z
+        || ranges.x > face_capacity || ranges.y > face_capacity-ranges.x
+        || ranges.z > node_capacity || ranges.w > node_capacity-ranges.z) { return result; }
+    result.cell_base = sections.z + 3u*identity.z;
+    result.cell_count = identity.w;
+    result.face_base = sections.w + 3u*ranges.x;
+    result.face_count = ranges.y;
+    result.node_base = capacity.x + 2u*ranges.z;
+    result.node_count = ranges.w;
+    result.center_inverse_mass = bitcast<vec4<f32>>(authored_shape_heap[descriptor+2u]);
+    result.root_from_body = bitcast<vec4<f32>>(authored_shape_heap[descriptor+3u]);
+    result.inverse_inertia_radius = bitcast<vec4<f32>>(authored_shape_heap[descriptor+4u]);
+    result.minimum = vec3<f32>(bitcast<vec4<i32>>(authored_shape_heap[descriptor+5u]).xyz)*0.02;
+    result.maximum = vec3<f32>(bitcast<vec4<i32>>(authored_shape_heap[descriptor+6u]).xyz)*0.02;
+    result.valid = true;
+    return result;
+}
+
+struct AuthoredShapeCell {
+    valid: bool,
+    minimum: vec3<f32>,
+    maximum: vec3<f32>,
+    source: u32,
+    first_face: u32,
+    face_count: u32,
+};
+
+fn authored_shape_ref(reference: vec4<u32>) -> AuthoredShapeView {
+    if (reference.z != 1u || reference.w != 0u) {
+        var invalid: AuthoredShapeView;
+        return invalid;
+    }
+    return authored_shape(reference.x, reference.y);
+}
+fn authored_cell(shape: AuthoredShapeView, index: u32) -> AuthoredShapeCell {
+    var result: AuthoredShapeCell;
+    if (!shape.valid || index >= shape.cell_count) { return result; }
+    let row = shape.cell_base + 3u*index;
+    let lower = authored_shape_heap[row];
+    let upper = authored_shape_heap[row+1u];
+    let detail = authored_shape_heap[row+2u];
+    if (upper.w > shape.face_count || detail.x > shape.face_count-upper.w || lower.w == 0u) { return result; }
+    result.minimum = vec3<f32>(bitcast<vec3<i32>>(lower.xyz))*0.02;
+    result.maximum = vec3<f32>(bitcast<vec3<i32>>(upper.xyz))*0.02;
+    result.source = lower.w;
+    result.first_face = upper.w;
+    result.face_count = detail.x;
+    // Zero exterior patches is valid for a completely enclosed union cell.
+    result.valid = true;
+    return result;
+}
+
+struct AuthoredShapeFace {
+    valid: bool,
+    minimum: vec3<f32>,
+    maximum: vec3<f32>,
+    source: u32,
+    cell: u32,
+    axis: u32,
+    sign: i32,
+};
+fn authored_face(shape: AuthoredShapeView, index: u32) -> AuthoredShapeFace {
+    var result: AuthoredShapeFace;
+    if (!shape.valid || index >= shape.face_count) { return result; }
+    let row = shape.face_base + 3u*index;
+    let lower = authored_shape_heap[row];
+    let upper = authored_shape_heap[row+1u];
+    let detail = authored_shape_heap[row+2u];
+    let sign = bitcast<i32>(detail.y);
+    if (lower.w == 0u || upper.w >= shape.cell_count || detail.x > 2u || (sign != -1 && sign != 1)) { return result; }
+    result.minimum = vec3<f32>(bitcast<vec3<i32>>(lower.xyz))*0.02;
+    result.maximum = vec3<f32>(bitcast<vec3<i32>>(upper.xyz))*0.02;
+    result.source = lower.w;
+    result.cell = upper.w;
+    result.axis = detail.x;
+    result.sign = sign;
+    result.valid = true;
+    return result;
+}
+
+struct AuthoredShapeNode {
+    valid: bool,
+    minimum: vec3<f32>,
+    maximum: vec3<f32>,
+    cell: u32,
+    escape: u32,
+};
+fn authored_node(shape: AuthoredShapeView, index: u32) -> AuthoredShapeNode {
+    var result: AuthoredShapeNode;
+    if (!shape.valid || index >= shape.node_count) { return result; }
+    let row = shape.node_base + 2u*index;
+    let lower = authored_shape_heap[row];
+    let upper = authored_shape_heap[row+1u];
+    if ((lower.w != 0xffffffffu && lower.w >= shape.cell_count) || upper.w <= index || upper.w > shape.node_count) { return result; }
+    result.minimum = vec3<f32>(bitcast<vec3<i32>>(lower.xyz))*0.02;
+    result.maximum = vec3<f32>(bitcast<vec3<i32>>(upper.xyz))*0.02;
+    result.cell = lower.w;
+    result.escape = upper.w;
+    result.valid = true;
+    return result;
+}
+
+fn authored_quat_conjugate(q: vec4<f32>) -> vec4<f32> { return vec4<f32>(-q.xyz,q.w); }
+fn authored_quat_product(a: vec4<f32>, b: vec4<f32>) -> vec4<f32> {
+    return vec4<f32>(a.w*b.xyz+b.w*a.xyz+cross(a.xyz,b.xyz),a.w*b.w-dot(a.xyz,b.xyz));
+}
+fn authored_quat_rotate(q: vec4<f32>, v: vec3<f32>) -> vec3<f32> {
+    let t=2.0*cross(q.xyz,v);
+    return v+q.w*t+cross(q.xyz,t);
+}
+fn authored_root_vector(shape: AuthoredShapeView, body_vector: vec3<f32>) -> vec3<f32> {
+    return authored_quat_rotate(shape.root_from_body,body_vector);
+}
+fn authored_body_vector(shape: AuthoredShapeView, root_vector: vec3<f32>) -> vec3<f32> {
+    return authored_quat_rotate(authored_quat_conjugate(shape.root_from_body),root_vector);
+}
+fn authored_root_point(shape: AuthoredShapeView, body_point: vec3<f32>) -> vec3<f32> {
+    return shape.center_inverse_mass.xyz+authored_root_vector(shape,body_point);
+}
+fn authored_body_point(shape: AuthoredShapeView, root_point: vec3<f32>) -> vec3<f32> {
+    return authored_body_vector(shape,root_point-shape.center_inverse_mass.xyz);
+}
+fn authored_body_orientation(shape: AuthoredShapeView, world_root_orientation: vec4<f32>) -> vec4<f32> {
+    return authored_quat_product(world_root_orientation,shape.root_from_body);
+}
+fn authored_root_orientation(shape: AuthoredShapeView, world_body_orientation: vec4<f32>) -> vec4<f32> {
+    return authored_quat_product(world_body_orientation,authored_quat_conjugate(shape.root_from_body));
+}
+fn authored_com_position(shape: AuthoredShapeView, root_position: vec3<f32>, root_orientation: vec4<f32>) -> vec3<f32> {
+    return root_position+authored_quat_rotate(root_orientation,shape.center_inverse_mass.xyz);
+}
+fn authored_root_position(shape: AuthoredShapeView, com_position: vec3<f32>, body_orientation: vec4<f32>) -> vec3<f32> {
+    return com_position-authored_quat_rotate(authored_root_orientation(shape,body_orientation),shape.center_inverse_mass.xyz);
+}
+fn authored_com_velocity(shape: AuthoredShapeView, root_velocity: vec3<f32>, world_omega: vec3<f32>, root_orientation: vec4<f32>) -> vec3<f32> {
+    return root_velocity+cross(world_omega,authored_quat_rotate(root_orientation,shape.center_inverse_mass.xyz));
+}
+fn authored_world_inverse_inertia(shape: AuthoredShapeView, body_orientation: vec4<f32>, world_impulse: vec3<f32>) -> vec3<f32> {
+    let body_impulse=authored_quat_rotate(authored_quat_conjugate(body_orientation),world_impulse);
+    return authored_quat_rotate(body_orientation,body_impulse*shape.inverse_inertia_radius.xyz);
+}
+struct AuthoredImpulseDelta { linear: vec3<f32>, angular: vec3<f32>, };
+fn authored_impulse_at_root_point(shape: AuthoredShapeView, body_orientation: vec4<f32>, world_impulse: vec3<f32>, root_point: vec3<f32>) -> AuthoredImpulseDelta {
+    let world_lever=authored_quat_rotate(body_orientation,authored_body_point(shape,root_point));
+    return AuthoredImpulseDelta(world_impulse*shape.center_inverse_mass.w,
+        authored_world_inverse_inertia(shape,body_orientation,cross(world_lever,world_impulse)));
+}
+// Exact exterior queries in authored root space. Included after the immutable
+// heap accessors. Feature ordinals resolve through the same retained shape.
+struct AuthoredQuerySurface {
+    valid: bool, distance: f32, point: vec3<f32>, normal: vec3<f32>,
+    feature: u32, source: u32,
+};
+struct AuthoredSegmentClosest { squared: f32, query: vec3<f32>, surface: vec3<f32>, };
+
+// Squared distance from a segment to an axis-aligned closed box/rectangle.
+// Clamp changes polynomial only at the six slab boundaries. Minimize each
+// quadratic interval exactly; sampling can miss a thin crane/rail between taps.
+fn authored_segment_box(a: vec3<f32>, b: vec3<f32>, lo: vec3<f32>, hi: vec3<f32>) -> AuthoredSegmentClosest {
+    let v = b-a;
+    var cuts: array<f32,8>;
+    cuts[0] = 0.0; cuts[1] = 1.0;
+    var count = 2u;
+    for (var axis=0u; axis<3u; axis++) {
+        if (abs(v[axis]) <= 1e-20) { continue; }
+        let first = (lo[axis]-a[axis])/v[axis];
+        let last = (hi[axis]-a[axis])/v[axis];
+        if (first>0.0 && first<1.0) { cuts[count]=first; count++; }
+        if (last>0.0 && last<1.0) { cuts[count]=last; count++; }
+    }
+    for (var i=1u; i<count; i++) {
+        let value=cuts[i]; var at=i;
+        while (at>0u) { if (cuts[at-1u]<=value) { break; } cuts[at]=cuts[at-1u]; at--; }
+        cuts[at]=value;
+    }
+    let initial=clamp(a,lo,hi);
+    var best=AuthoredSegmentClosest(dot(a-initial,a-initial),a,initial);
+    for (var i=0u; i+1u<count; i++) {
+        let midpoint=a+v*(.5*(cuts[i]+cuts[i+1u]));
+        var numerator=0.0; var denominator=0.0;
+        for (var axis=0u; axis<3u; axis++) {
+            if (midpoint[axis]<lo[axis] || midpoint[axis]>hi[axis] || lo[axis]==hi[axis]) {
+                let bound=select(hi[axis],lo[axis],midpoint[axis]<=lo[axis]);
+                numerator+=v[axis]*(a[axis]-bound); denominator+=v[axis]*v[axis];
+            }
+        }
+        // A flat minimum spans the interval. Its midpoint avoids cancellation
+        // at a slab edge on long segments (and an artificial sideways normal).
+        var t=.5*(cuts[i]+cuts[i+1u]);
+        if (denominator>1e-30) { t=clamp(-numerator/denominator,cuts[i],cuts[i+1u]); }
+        let query=a+v*t; let surface=clamp(query,lo,hi); let delta=query-surface;
+        let squared=dot(delta,delta);
+        if (squared<best.squared) { best=AuthoredSegmentClosest(squared,query,surface); }
+    }
+    return best;
+}
+
+fn authored_ray_interval(lo: vec3<f32>, hi: vec3<f32>, origin: vec3<f32>, direction: vec3<f32>, maximum: f32) -> vec2<f32> {
+    var interval=vec2<f32>(0.0,maximum);
+    for (var axis=0u; axis<3u; axis++) {
+        if (abs(direction[axis])<1e-20) {
+            if (origin[axis]<lo[axis] || origin[axis]>hi[axis]) { return vec2<f32>(1.0,-1.0); }
+        } else {
+            let a=(lo[axis]-origin[axis])/direction[axis];
+            let b=(hi[axis]-origin[axis])/direction[axis];
+            interval.x=max(interval.x,min(a,b)); interval.y=min(interval.y,max(a,b));
+            if (interval.x>interval.y) { return vec2<f32>(1.0,-1.0); }
+        }
+    }
+    return interval;
+}
+
+fn authored_segment_surface(shape: AuthoredShapeView, a: vec3<f32>, b: vec3<f32>) -> AuthoredQuerySurface {
+    var result=AuthoredQuerySurface(false,1e30,a,vec3<f32>(0,1,0),0xffffffffu,0u);
+    if (!shape.valid) { return result; }
+    var squared=1e30; var inside=false; var closest=a;
+    var nodeIndex=0u;
+    while (nodeIndex<shape.node_count) {
+        let node=authored_node(shape,nodeIndex);
+        if (!node.valid) { result.valid=false; return result; }
+        let lower=authored_segment_box(a,b,node.minimum,node.maximum);
+        if (lower.squared>squared) { nodeIndex=node.escape; continue; }
+        nodeIndex++;
+        if (node.cell==0xffffffffu) { continue; }
+        let cell=authored_cell(shape,node.cell);
+        if (!cell.valid) { result.valid=false; return result; }
+        let segmentRange=authored_ray_interval(cell.minimum,cell.maximum,a,b-a,1.0);
+        inside=inside || segmentRange.x<=segmentRange.y;
+        for (var i=0u; i<cell.face_count; i++) {
+            let index=cell.first_face+i; let face=authored_face(shape,index);
+            if (!face.valid) { result.valid=false; return result; }
+            let candidate=authored_segment_box(a,b,face.minimum,face.maximum);
+            if (candidate.squared<squared || (candidate.squared==squared && index<result.feature)) {
+                squared=candidate.squared; closest=candidate.query;
+                result.point=candidate.surface; result.feature=index; result.source=face.source;
+                result.normal=vec3<f32>(0); result.normal[face.axis]=f32(face.sign);
+                result.valid=true;
+            }
+        }
+    }
+    if (result.valid) {
+        let distance=sqrt(squared);
+        result.distance=select(distance,-distance,inside);
+        if (distance>1e-7) { result.normal=(closest-result.point)/result.distance; }
+        result.feature |= 0x80000000u;
+    }
+    return result;
+}
+
+struct AuthoredQueryRay { valid: bool, distance: f32, normal: vec3<f32>, feature: u32, source: u32, };
+fn authored_ray(shape: AuthoredShapeView, origin: vec3<f32>, direction: vec3<f32>, maximum: f32) -> AuthoredQueryRay {
+    var result=AuthoredQueryRay(false,maximum,vec3<f32>(0,1,0),0xffffffffu,0u);
+    if (!shape.valid) { return result; }
+    let start=authored_segment_surface(shape,origin,origin);
+    if (start.valid && start.distance<=0.0) {
+        return AuthoredQueryRay(true,0.0,start.normal,start.feature,start.source);
+    }
+    var nodeIndex=0u;
+    while (nodeIndex<shape.node_count) {
+        let node=authored_node(shape,nodeIndex);
+        if (!node.valid) { result.valid=false; return result; }
+        let range=authored_ray_interval(node.minimum,node.maximum,origin,direction,result.distance);
+        if (range.x>range.y) { nodeIndex=node.escape; continue; }
+        nodeIndex++;
+        if (node.cell==0xffffffffu) { continue; }
+        let cell=authored_cell(shape,node.cell);
+        if (!cell.valid) { result.valid=false; return result; }
+        for (var i=0u; i<cell.face_count; i++) {
+            let index=cell.first_face+i; let face=authored_face(shape,index);
+            if (!face.valid) { result.valid=false; return result; }
+            if (abs(direction[face.axis])<1e-20) { continue; }
+            let distance=(face.minimum[face.axis]-origin[face.axis])/direction[face.axis];
+            if (distance<0.0 || distance>result.distance) { continue; }
+            let point=origin+direction*distance;
+            let u=(face.axis+1u)%3u; let v=(face.axis+2u)%3u;
+            if (point[u]<face.minimum[u]-1e-6 || point[u]>face.maximum[u]+1e-6
+                || point[v]<face.minimum[v]-1e-6 || point[v]>face.maximum[v]+1e-6) { continue; }
+            let feature=index|0x80000000u;
+            if (result.valid && distance==result.distance && feature>=result.feature) { continue; }
+            var normal=vec3<f32>(0); normal[face.axis]=f32(face.sign);
+            result=AuthoredQueryRay(true,distance,normal,feature,face.source);
+        }
+    }
+    return result;
+}
+// END GENERATED AUTHORED GEOMETRY
+
 // BEGIN GENERATED LEGO SURFACE
 // Canonical LEGO geometry. Generated into standalone shader modules by
 // scripts/sync_lego_surface.py; no runtime shader preprocessor is required.
@@ -110,6 +439,7 @@ struct BodyShape {
     dimensions_type : vec4<f32>,
     invInertia_material : vec4<f32>,
     material_coefficients : vec4<f32>,
+    authored_shape : vec4<u32>,
 };
 
 struct QueryRequest {
@@ -179,6 +509,7 @@ struct Intersection {
 @group(0) @binding(3) var<storage, read> requests : array<QueryRequest>;
 @group(0) @binding(4) var<storage, read_write> outputs : array<QueryOutput>;
 @group(0) @binding(5) var<uniform> params : QueryParams;
+@group(0) @binding(6) var<storage, read> authored_shape_heap : array<vec4<u32>>;
 
 fn safe_normalize(value : vec3<f32>, fallback : vec3<f32>) -> vec3<f32> {
     let squared = dot(value, value);
@@ -409,8 +740,20 @@ fn cylinder_surface(pose : BodyPose, shape : BodyShape,
         quaternion_rotate(pose.orientation, localNormal), feature);
 }
 
+fn query_authored_surface(pose: BodyPose, shape: BodyShape, a: vec3<f32>, b: vec3<f32>) -> Surface {
+    let geometry=authored_shape(shape.authored_shape.x,shape.authored_shape.y);
+    let localA=authored_root_point(geometry,quaternion_inverse_rotate(pose.orientation,a-pose.position_invMass.xyz));
+    let localB=authored_root_point(geometry,quaternion_inverse_rotate(pose.orientation,b-pose.position_invMass.xyz));
+    let surface=authored_segment_surface(geometry,localA,localB);
+    if (!surface.valid) { return Surface(1e30,a,vec3<f32>(0,1,0),0xfffffffeu); }
+    return Surface(surface.distance,
+        pose.position_invMass.xyz+quaternion_rotate(pose.orientation,authored_body_point(geometry,surface.point)),
+        quaternion_rotate(pose.orientation,authored_body_vector(geometry,surface.normal)),surface.feature);
+}
+
 fn shape_surface(pose : BodyPose, shape : BodyShape,
                  point : vec3<f32>) -> Surface {
+    if (shape.authored_shape.x!=0u) { return query_authored_surface(pose,shape,point,point); }
     if (legoIsBrick(bitcast<u32>(shape.invInertia_material.w))) {
         var best = Surface(1e30, point, vec3<f32>(0,1,0), 0u);
         for(var part=0u;part<legoBrickParts(shape.dimensions_type.xyz,bitcast<u32>(shape.invInertia_material.w));part++) {
@@ -481,6 +824,10 @@ fn capsule_separation(center : vec3<f32>, axis : vec3<f32>,
     let offset = safe_normalize(axis, vec3<f32>(0.0, 1.0, 0.0))
         * halfHeight;
     let querySegment = Segment(center - offset, center + offset);
+    if (shape.authored_shape.x!=0u) {
+        let surface=query_authored_surface(pose,shape,querySegment.first,querySegment.second);
+        return Separation(surface.signedDistance-radius,surface.point,surface.normal,surface.feature);
+    }
     let kind = shape_type(shape);
     if (kind == SHAPE_SPHERE) {
         let closest = closest_point_segment(
@@ -683,6 +1030,15 @@ fn ray_cylinder(origin : vec3<f32>, direction : vec3<f32>, maximum : f32,
 
 fn ray_shape(origin : vec3<f32>, direction : vec3<f32>, maximum : f32,
              pose : BodyPose, shape : BodyShape) -> Intersection {
+    if (shape.authored_shape.x!=0u) {
+        let geometry=authored_shape(shape.authored_shape.x,shape.authored_shape.y);
+        let localOrigin=authored_root_point(geometry,quaternion_inverse_rotate(pose.orientation,origin-pose.position_invMass.xyz));
+        let localDirection=authored_root_vector(geometry,quaternion_inverse_rotate(pose.orientation,direction));
+        let hit=authored_ray(geometry,localOrigin,localDirection,maximum);
+        if (!hit.valid) { return miss(); }
+        return Intersection(true,hit.distance,origin+direction*hit.distance,
+            quaternion_rotate(pose.orientation,authored_body_vector(geometry,hit.normal)),hit.feature);
+    }
     if (legoIsBrick(bitcast<u32>(shape.invInertia_material.w))) {
         var best=miss();
         for(var part=0u;part<legoBrickParts(shape.dimensions_type.xyz,bitcast<u32>(shape.invInertia_material.w));part++) {
@@ -716,6 +1072,7 @@ fn sphere_cast(origin : vec3<f32>, radius : f32,
     for (var iteration = 0u; iteration < 64u; iteration += 1u) {
         let center = origin + direction * distance;
         let separation = sphere_separation(center, radius, pose, shape);
+        if (separation.feature==0xfffffffeu) { return Intersection(false,0.0,vec3<f32>(0),vec3<f32>(0),0xfffffffeu); }
         if (separation.gap <= 1e-4) {
             return Intersection(true, distance, separation.point,
                 separation.normal, separation.feature);
@@ -723,6 +1080,7 @@ fn sphere_cast(origin : vec3<f32>, radius : f32,
         if (distance >= maximum) { return miss(); }
         distance = min(distance + max(separation.gap, 1e-5), maximum);
     }
+    if (shape.authored_shape.x!=0u) { return Intersection(false,0.0,vec3<f32>(0),vec3<f32>(0),0xfffffffeu); }
     return miss();
 }
 
@@ -735,6 +1093,7 @@ fn capsule_cast(origin : vec3<f32>, radius : f32,
         let center = origin + direction * distance;
         let separation = capsule_separation(
             center, axis, halfHeight, radius, pose, shape);
+        if (separation.feature==0xfffffffeu) { return Intersection(false,0.0,vec3<f32>(0),vec3<f32>(0),0xfffffffeu); }
         if (separation.gap <= 1e-4) {
             return Intersection(true, distance, separation.point,
                 separation.normal, separation.feature);
@@ -744,6 +1103,7 @@ fn capsule_cast(origin : vec3<f32>, radius : f32,
         // conservatively so a narrow edge/cap cannot be skipped.
         distance = min(distance + max(0.8 * separation.gap, 1e-5), maximum);
     }
+    if (shape.authored_shape.x!=0u) { return Intersection(false,0.0,vec3<f32>(0),vec3<f32>(0),0xfffffffeu); }
     return miss();
 }
 
@@ -768,7 +1128,7 @@ fn hit_less(a : QueryHit, b : QueryHit) -> bool {
 fn insert_hit(query : u32, hit : QueryHit, maximumHits : u32,
               count : ptr<function, u32>, overflow : ptr<function, u32>) {
     if (maximumHits == 0u) {
-        *overflow = 1u;
+        *overflow |= 1u;
         return;
     }
     let stored = min(*count, maximumHits);
@@ -789,7 +1149,7 @@ fn insert_hit(query : u32, hit : QueryHit, maximumHits : u32,
         outputs[query].hits[insertion] = hit;
     }
     *count = min(*count + 1u, maximumHits);
-    if (stored == maximumHits) { *overflow = 1u; }
+    if (stored == maximumHits) { *overflow |= 1u; }
 }
 
 @compute @workgroup_size(1)
@@ -831,11 +1191,18 @@ fn execute_queries(@builtin(global_invocation_id) gid : vec3<u32>) {
         pose.position_invMass = vec4<f32>(
             bodyPosition, sourcePose.position_invMass.w);
         let shape = shapes[body];
+        if (any(shape.authored_shape!=vec4<u32>(0u))) {
+            if (shape.authored_shape.z!=1u || shape.authored_shape.w!=0u
+                || !authored_shape(shape.authored_shape.x,shape.authored_shape.y).valid) {
+                overflow|=2u; continue;
+            }
+        }
         var intersection = miss();
         var metric = 0.0;
         if (queryType == QUERY_OVERLAP_SPHERE) {
             let separation = sphere_separation(
                 request.originRadius.xyz, queryRadius, pose, shape);
+            if (separation.feature==0xfffffffeu) { overflow|=2u; continue; }
             if (separation.gap <= 0.0) {
                 intersection = Intersection(true, max(-separation.gap, 0.0),
                     separation.point, separation.normal, separation.feature);
@@ -856,7 +1223,10 @@ fn execute_queries(@builtin(global_invocation_id) gid : vec3<u32>) {
                 queryRadius, capsuleAxis, capsuleHalfHeight,
                 direction, maximumDistance, pose, shape);
         }
-        if (!intersection.hit) { continue; }
+        if (!intersection.hit) {
+            if (intersection.feature==0xfffffffeu) { overflow|=4u; }
+            continue;
+        }
         if (queryType != QUERY_OVERLAP_SPHERE
             && maximumDistance > 1e-12) {
             metric = intersection.distance / maximumDistance;

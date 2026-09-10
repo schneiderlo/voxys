@@ -35,6 +35,8 @@ struct DebugUniforms {
 };
 
 @group(0) @binding(0) var<uniform> camera : CameraUniforms;
+// The immutable terrain depth distinguishes bed refraction from nearer objects.
+@group(0) @binding(1) var terrainDepthTexture : texture_2d<f32>;
 @group(0) @binding(6) var sceneSampler : sampler;
 @group(0) @binding(7) var<uniform> debug : DebugUniforms;
 @group(0) @binding(8) var skyLut : texture_2d<f32>;
@@ -51,6 +53,9 @@ struct DebugUniforms {
 @group(0) @binding(19) var periodicGradientLut : texture_2d<f32>;
 // Test pipelines may specialize this to false for an unchanged reference.
 override USE_PERIODIC_GRADIENT_LUT : bool = true;
+// The authored opaque scene uses the air/water interface Fresnel even over a
+// shallow bed. Legacy routes retain their historical shoreline presentation.
+override OPAQUE_SCENE_WATER : bool = false;
 
 const TAU : f32 = 6.283185307179586;
 const WATER_RESOLUTION : f32 = 256.0;
@@ -635,10 +640,19 @@ fn shadeWaterFragment(input : VertexOutput) -> FragmentOutput {
         let bedTravel = bedDepth / max(-refractedRay.y, 0.12);
         thickness = clamp(bedTravel, 0.0, 500.0);
         if (hasOpaqueRefraction) {
-            // The cached opaque target already contains the exact authored
-            // terrain material at this refracted screen position. Prefer it over
-            // the procedural infinite-floor fallback; the fallback's cellular
-            // plate seams read as cracks when projected through shallow water.
+            // Terrain retains the continuous bed thickness above. An authored
+            // object in front of that bed bounds the water path at its surface.
+            // Reconstruct the selected radial-depth sample with its own ray;
+            // subtracting distances from different camera rays is not a length.
+            let refractionPixel = clamp(vec2<i32>(refractionUv * dimensionsF), vec2<i32>(0), maxPixel);
+            let terrainDepth = textureLoad(terrainDepthTexture, refractionPixel, 0).x;
+            if (!cameraUnderwater && (terrainDepth < 0.0 || selectedRefractionDepth + 0.02 < terrainDepth)) {
+                let selectedUv = (vec2<f32>(refractionPixel) + vec2<f32>(0.5)) / dimensionsF;
+                let ndc = vec2<f32>(selectedUv.x * 2.0 - 1.0, 1.0 - selectedUv.y * 2.0);
+                let viewRay = normalize(vec3<f32>(ndc * camera.invProjParams.xy, 1.0));
+                let objectPosition = (camera.invView * vec4<f32>(viewRay * selectedRefractionDepth, 1.0)).xyz;
+                thickness = min(thickness, distance(input.worldPosition, objectPosition));
+            }
             refracted = textureSampleLevel(
                 sceneColorTexture, sceneSampler, refractionUv, 0.0).rgb;
         } else {
@@ -713,7 +727,8 @@ fn shadeWaterFragment(input : VertexOutput) -> FragmentOutput {
             oceanScatterColor() * camera.lightingColor.rgb *
             forwardScatter * oceanSunIntensity();
 
-        let opticalCoverage = smoothstep(0.12, 12.0, waterDepth);
+        let opticalCoverage = select(smoothstep(0.12, 12.0, waterDepth),
+                                     1.0, OPAQUE_SCENE_WATER);
         color = mix(refractedWater, reflectedWater,
                     fresnel * opticalCoverage *
                     clamp(1.0 - foamStrength * 2.0, 0.0, 1.0));

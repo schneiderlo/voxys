@@ -1,0 +1,156 @@
+{
+  "passed": true,
+  "kind": "Shared C++ environment correctness tests on hardware browser WebGPU",
+  "runner_sha256": "c70d997392eb6c6eced606a45927e6273216da9a02f5790705a94698623e084d",
+  "package": "/tmp/voxys-environment-browser-r02",
+  "artifacts": {
+    "index.html": {
+      "sha256": "c36df2ac86196032ae461917ee086fbbcb11fef89826f7bb8d22af77aae90f08",
+      "bytes": 3884
+    },
+    "mesh_diagnostics.js": {
+      "sha256": "23da0a62785296a474cfab9d632f71622d26aa09f10da517d39dbab53b05e9d8",
+      "bytes": 173480
+    },
+    "mesh_diagnostics.wasm": {
+      "sha256": "ab3fd80a9e75b75e3149ee92bae5cb873d9093593f997c3ef92b6a4f8bd84d22",
+      "bytes": 1363427
+    }
+  },
+  "chrome_argv": [
+    "google-chrome",
+    "--no-sandbox",
+    "--no-first-run",
+    "--no-default-browser-check",
+    "--disable-background-networking",
+    "--enable-unsafe-webgpu",
+    "--disable-gpu-watchdog",
+    "--disable-background-timer-throttling",
+    "--disable-renderer-backgrounding",
+    "--ozone-platform=wayland",
+    "--enable-features=Vulkan",
+    "--remote-debugging-port=0",
+    "--user-data-dir=/tmp/voxys-mesh-browser-Kqw5ti",
+    "about:blank"
+  ],
+  "browser": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/152.0.7977.82",
+    "revision": "@d04cdb24d67b081f6cf80200ffc5233f44b61109",
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36",
+    "jsVersion": "15.2.124.21"
+  },
+  "result": {
+    "done": true,
+    "passed": true,
+    "output": [
+      "Running main() from /home/modkin/workspace/schneiderlo/voxys/third_party/googletest/googletest/src/gtest_main.cc",
+      "[==========] Running 5 tests from 1 test suite.",
+      "[----------] Global test environment set-up.",
+      "[----------] 5 tests from EnvironmentLightingTest",
+      "[ RUN      ] EnvironmentLightingTest.RejectsMissingHandles",
+      "[       OK ] EnvironmentLightingTest.RejectsMissingHandles (0 ms)",
+      "[ RUN      ] EnvironmentLightingTest.ConstantRadianceAllMipsAndReleaseBeforeSubmit",
+      "CONSTANT maximum_absolute_error=0 samples=2398",
+      "[       OK ] EnvironmentLightingTest.ConstantRadianceAllMipsAndReleaseBeforeSubmit (45 ms)",
+      "[ RUN      ] EnvironmentLightingTest.DirectionalIrradianceRoughnessAndCubeSeams",
+      "DIRECTIONAL sharp=0.0013566 diffuse=0.00104105 rough=0.000488281 seams=1.3113e-06 samples=10846",
+      "[       OK ] EnvironmentLightingTest.DirectionalIrradianceRoughnessAndCubeSeams (23 ms)",
+      "[ RUN      ] EnvironmentLightingTest.BrdfMatchesIndependentHemisphereQuadrature",
+      "BRDF maximum_absolute_error=0.00150659 reference_convergence=7.28845e-05 maximum_white_energy=1",
+      "[       OK ] EnvironmentLightingTest.BrdfMatchesIndependentHemisphereQuadrature (289 ms)",
+      "[ RUN      ] EnvironmentLightingTest.AbandonedEncodingAndRebakeRetainOutputViews",
+      "[       OK ] EnvironmentLightingTest.AbandonedEncodingAndRebakeRetainOutputViews (25 ms)",
+      "[----------] 5 tests from EnvironmentLightingTest (385 ms total)",
+      "",
+      "[----------] Global test environment tear-down",
+      "[==========] 5 tests from 1 test suite ran. (386 ms total)",
+      "[  PASSED  ] 5 tests."
+    ],
+    "gpuErrors": [],
+    "captures": [
+      {
+        "name": "0-ConstantRadianceAllMipsAndReleaseBeforeSubmit.rgba",
+        "metadata": {
+          "width": 64,
+          "height": 38,
+          "values": 2398,
+          "format": "float32-le-rgba",
+          "preview": "linear RGB divided by 4; data visualization only"
+        },
+        "sha256": "e74bb09aeddab91e8f94cf0e88ca6e4c938cec423883445ac96baaebe3cacb63",
+        "png_sha256": "b14e6d57ed1e5e35b0fb3056c7966accf1003a3a641bd5811f2778cd2d6d811d",
+        "float32_sha256": "0d8fa2c356f9b7e62fcc3f5a2cf6c5ce7d071affa27a99513e7627eedd557fc3",
+        "requests_sha256": "855827783c57af3852d7584e4deb04c5a003b55e0881bedf092dfa605747189f"
+      },
+      {
+        "name": "1-DirectionalIrradianceRoughnessAndCubeSeams.rgba",
+        "metadata": {
+          "width": 64,
+          "height": 170,
+          "values": 10846,
+          "format": "float32-le-rgba",
+          "preview": "linear RGB divided by 4; data visualization only"
+        },
+        "sha256": "937f18481268af85bbbdabf8266c7c0e22ff87d6273ec073410aa179939fc2dc",
+        "png_sha256": "2ab2a30e9c6148612dd72a12d17ad821bf88acc231a3fb1e3ca862a4aa780156",
+        "float32_sha256": "5a2ffeed124617f940904feee919487c6a309217515badd6a04a786e8a574d07",
+        "requests_sha256": "f6285e825708047290ff5f67d889eeba0a21090a327243499f6f4a35173ea426"
+      },
+      {
+        "name": "2-BrdfMatchesIndependentHemisphereQuadrature.rgba",
+        "metadata": {
+          "width": 64,
+          "height": 16,
+          "values": 1024,
+          "format": "float32-le-rgba",
+          "preview": "linear RGB divided by 4; data visualization only"
+        },
+        "sha256": "e6c4f7439788c85afacf24a87c9c0e5515ae6c42493a8569f7cddf3fd5c70ce3",
+        "png_sha256": "8f06305671a3d1fa6ae7d79b6190b5e500d10fd3b41d44384c9e21bf5f7c6e2d",
+        "float32_sha256": "523f50ead32589491f616a06688a2ac1267509ecc24488ba43a795ab135cd7da",
+        "requests_sha256": "ff62d0c03d178b3aa200818475557865727be98d6ce148952853c74ef9949425"
+      },
+      {
+        "name": "3-AbandonedEncodingAndRebakeRetainOutputViews.rgba",
+        "metadata": {
+          "width": 64,
+          "height": 1,
+          "values": 3,
+          "format": "float32-le-rgba",
+          "preview": "linear RGB divided by 4; data visualization only"
+        },
+        "sha256": "7be5891120b78ce150e998124fcfb9d2fc29adec7c79c5ca5b04a1a5cb512ed2",
+        "png_sha256": "3c4c4fa83608191f6894864cfceb332e683ffeec3ad4b2abee9730d319d9b0cb",
+        "float32_sha256": "26a5c5323c2f14fa6c54e61a0b4ee8acbd806f8fa36ba5b8273948c7321b7636",
+        "requests_sha256": "807936c05a5982f034d1e294ade2b0c9bb7aae65d2a4c66e38a4855ebe1fb00a"
+      },
+      {
+        "name": "4-AbandonedEncodingAndRebakeRetainOutputViews.rgba",
+        "metadata": {
+          "width": 64,
+          "height": 1,
+          "values": 3,
+          "format": "float32-le-rgba",
+          "preview": "linear RGB divided by 4; data visualization only"
+        },
+        "sha256": "7b50cd64c0c37b83025f1359281e2e734aab70d03823d29adff98a5503a97724",
+        "png_sha256": "e5ae984fea45b49911102e603c4be403c3ce9d22da4da4b83eec84629b4d5be0",
+        "float32_sha256": "aca3aab8c3ebf1d2b855ca59526acb91c4e1bcc57fdee08323103e071fe9fcbe",
+        "requests_sha256": "807936c05a5982f034d1e294ade2b0c9bb7aae65d2a4c66e38a4855ebe1fb00a"
+      }
+    ],
+    "adapter": {
+      "vendor": "amd",
+      "architecture": "rdna-3",
+      "device": "",
+      "description": "",
+      "isFallbackAdapter": false
+    },
+    "exitCode": 0
+  },
+  "expected_rejection_logs": [],
+  "unexpected_console_errors": [],
+  "exceptions": [],
+  "console": []
+}

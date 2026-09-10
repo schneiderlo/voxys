@@ -1,0 +1,605 @@
+{
+  "status": "captured; visual review required",
+  "recipe": {
+    "schema": 1,
+    "purpose": "Static BuildModel-validated assembly: v2 pontoons, v1 prototype box beams, and five exact welds; no dynamic physics or final art acceptance",
+    "registry": "data/salvage/fixture-pontoon-assembly.json",
+    "physical_viewport": [
+      1920,
+      1080
+    ],
+    "fov_degrees": 60,
+    "views": [
+      {
+        "name": "overview",
+        "eye": [
+          7,
+          4,
+          -8
+        ],
+        "target": [
+          1.25,
+          0.25,
+          0
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "crossbeams-top",
+        "eye": [
+          -1,
+          4,
+          -4
+        ],
+        "target": [
+          0,
+          0.75,
+          0
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "crossbeams-under",
+        "eye": [
+          0,
+          -1.5,
+          -4
+        ],
+        "target": [
+          0,
+          0.45,
+          -1
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "stack-engaged",
+        "eye": [
+          6.4,
+          0.6,
+          -1.8
+        ],
+        "target": [
+          4.5,
+          0.48,
+          -1
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      }
+    ]
+  },
+  "guides": 0,
+  "selected_views": null,
+  "recipe_sha256": "01567dca54b52bb87070c3ef509e900fa9a656ea92a3e793df49ea80e992c599",
+  "views": [
+    {
+      "name": "overview",
+      "state": {
+        "active": true,
+        "ready": true,
+        "busy": false,
+        "failed": false,
+        "bodies": 0,
+        "resets": 0,
+        "controller": "free-fly",
+        "mouseCaptured": false,
+        "origin": [
+          -12,
+          -187.68,
+          -32
+        ],
+        "camera": {
+          "local": [
+            -12,
+            -180.68,
+            -45
+          ],
+          "sector": [
+            0,
+            0,
+            0
+          ],
+          "yaw": -0.623199,
+          "pitch": -0.363699
+        },
+        "session": {
+          "revision": "0",
+          "tick": "0",
+          "admissionOpen": true,
+          "builds": 0,
+          "cargo": 0,
+          "jobs": 0,
+          "inventory": {
+            "salvageMaterial": "0",
+            "specialMachinery": "0"
+          }
+        },
+        "assetFixture": {
+          "status": 2,
+          "generation": "1",
+          "uploads": 3,
+          "prototypeUploads": 1,
+          "gpuReservationBytes": "6199020",
+          "submittedSerial": "197",
+          "completedSerial": "195",
+          "draws": 6,
+          "guides": 0,
+          "guideBoxes": 0,
+          "guideMeshGpuBytes": 1936,
+          "forcedLod": "0",
+          "lods": [
+            "2",
+            "1",
+            "1",
+            "1",
+            null,
+            null
+          ],
+          "assembly": {
+            "parts": 6,
+            "connections": 5
+          }
+        },
+        "lost": null,
+        "errors": [],
+        "render": {
+          "available": true,
+          "frame": 180,
+          "age_frames": 20,
+          "water_simulation_ms": 0.311384,
+          "terrain_raycast_ms": 0.001644,
+          "lighting_composite_ms": 0.562776,
+          "primitives_ms": 0,
+          "total_ms": 0.875804,
+          "frame_interval_available": true,
+          "gpu_frame_ms": 1.03386,
+          "render_width": 1920,
+          "render_height": 1080,
+          "includes_gpu_physics": true
+        }
+      },
+      "settings": {
+        "lighting.sunAzimuth": -45,
+        "lighting.sunElevation": 54.73560333251953,
+        "lighting.sunIntensity": 1,
+        "lighting.ambientIntensity": 0.550000011920929,
+        "lighting.exposure": 1
+      },
+      "requested": {
+        "eye": [
+          -12,
+          -180.68,
+          -45
+        ],
+        "yaw": -0.6231993299340659,
+        "pitch": -0.3636993278113114,
+        "azimuth": -45,
+        "elevation": 54.73561031724535
+      },
+      "png_sha256": "48858cd3f3741a3ac6889e21df04b79102e410509cf560ed356ef5d212178f69"
+    },
+    {
+      "name": "crossbeams-top",
+      "state": {
+        "active": true,
+        "ready": true,
+        "busy": false,
+        "failed": false,
+        "bodies": 0,
+        "resets": 0,
+        "controller": "free-fly",
+        "mouseCaptured": false,
+        "origin": [
+          -12,
+          -187.68,
+          -32
+        ],
+        "camera": {
+          "local": [
+            -20,
+            -180.68,
+            -41
+          ],
+          "sector": [
+            0,
+            0,
+            0
+          ],
+          "yaw": 0.244979,
+          "pitch": -0.667529
+        },
+        "session": {
+          "revision": "0",
+          "tick": "0",
+          "admissionOpen": true,
+          "builds": 0,
+          "cargo": 0,
+          "jobs": 0,
+          "inventory": {
+            "salvageMaterial": "0",
+            "specialMachinery": "0"
+          }
+        },
+        "assetFixture": {
+          "status": 2,
+          "generation": "1",
+          "uploads": 3,
+          "prototypeUploads": 1,
+          "gpuReservationBytes": "6199020",
+          "submittedSerial": "216",
+          "completedSerial": "214",
+          "draws": 6,
+          "guides": 0,
+          "guideBoxes": 0,
+          "guideMeshGpuBytes": 1936,
+          "forcedLod": "0",
+          "lods": [
+            "1",
+            "1",
+            "1",
+            "1",
+            null,
+            null
+          ],
+          "assembly": {
+            "parts": 6,
+            "connections": 5
+          }
+        },
+        "lost": null,
+        "errors": [],
+        "render": {
+          "available": true,
+          "frame": 210,
+          "age_frames": 9,
+          "water_simulation_ms": 0.622769,
+          "terrain_raycast_ms": 0.001643,
+          "lighting_composite_ms": 0.555242,
+          "primitives_ms": 0,
+          "total_ms": 1.179654,
+          "frame_interval_available": true,
+          "gpu_frame_ms": 1.34829,
+          "render_width": 1920,
+          "render_height": 1080,
+          "includes_gpu_physics": true
+        }
+      },
+      "settings": {
+        "lighting.sunAzimuth": -45,
+        "lighting.sunElevation": 54.73560333251953,
+        "lighting.sunIntensity": 1,
+        "lighting.ambientIntensity": 0.550000011920929,
+        "lighting.exposure": 1
+      },
+      "requested": {
+        "eye": [
+          -20,
+          -180.68,
+          -41
+        ],
+        "yaw": 0.24497866312686414,
+        "pitch": -0.667529444635833,
+        "azimuth": -45,
+        "elevation": 54.73561031724535
+      },
+      "png_sha256": "35f094046458cd25c50eb811c9e82c7305feab92b0dd786077f3b36e8f48cfd1"
+    },
+    {
+      "name": "crossbeams-under",
+      "state": {
+        "active": true,
+        "ready": true,
+        "busy": false,
+        "failed": false,
+        "bodies": 0,
+        "resets": 0,
+        "controller": "free-fly",
+        "mouseCaptured": false,
+        "origin": [
+          -12,
+          -187.68,
+          -32
+        ],
+        "camera": {
+          "local": [
+            -19,
+            -186.18,
+            -41
+          ],
+          "sector": [
+            0,
+            0,
+            0
+          ],
+          "yaw": 0,
+          "pitch": 0.576375
+        },
+        "session": {
+          "revision": "0",
+          "tick": "0",
+          "admissionOpen": true,
+          "builds": 0,
+          "cargo": 0,
+          "jobs": 0,
+          "inventory": {
+            "salvageMaterial": "0",
+            "specialMachinery": "0"
+          }
+        },
+        "assetFixture": {
+          "status": 2,
+          "generation": "1",
+          "uploads": 3,
+          "prototypeUploads": 1,
+          "gpuReservationBytes": "6199020",
+          "submittedSerial": "231",
+          "completedSerial": "229",
+          "draws": 6,
+          "guides": 0,
+          "guideBoxes": 0,
+          "guideMeshGpuBytes": 1936,
+          "forcedLod": "0",
+          "lods": [
+            "1",
+            "1",
+            "1",
+            "1",
+            null,
+            null
+          ],
+          "assembly": {
+            "parts": 6,
+            "connections": 5
+          }
+        },
+        "lost": null,
+        "errors": [],
+        "render": {
+          "available": true,
+          "frame": 210,
+          "age_frames": 24,
+          "water_simulation_ms": 0.622769,
+          "terrain_raycast_ms": 0.001643,
+          "lighting_composite_ms": 0.555242,
+          "primitives_ms": 0,
+          "total_ms": 1.179654,
+          "frame_interval_available": true,
+          "gpu_frame_ms": 1.34829,
+          "render_width": 1920,
+          "render_height": 1080,
+          "includes_gpu_physics": true
+        }
+      },
+      "settings": {
+        "lighting.sunAzimuth": -45,
+        "lighting.sunElevation": 54.73560333251953,
+        "lighting.sunIntensity": 1,
+        "lighting.ambientIntensity": 0.550000011920929,
+        "lighting.exposure": 1
+      },
+      "requested": {
+        "eye": [
+          -19,
+          -186.18,
+          -41
+        ],
+        "yaw": 0,
+        "pitch": 0.5763752205911836,
+        "azimuth": -45,
+        "elevation": 54.73561031724535
+      },
+      "png_sha256": "73418feff148bceb339b82e0a5ca59c8e99dca2a11bc99a0eee67f2593837372"
+    },
+    {
+      "name": "stack-engaged",
+      "state": {
+        "active": true,
+        "ready": true,
+        "busy": false,
+        "failed": false,
+        "bodies": 0,
+        "resets": 0,
+        "controller": "free-fly",
+        "mouseCaptured": false,
+        "origin": [
+          -12,
+          -187.68,
+          -32
+        ],
+        "camera": {
+          "local": [
+            -12.6,
+            -184.08,
+            -38.8
+          ],
+          "sector": [
+            0,
+            0,
+            0
+          ],
+          "yaw": -1.17227,
+          "pitch": -0.0581429
+        },
+        "session": {
+          "revision": "0",
+          "tick": "0",
+          "admissionOpen": true,
+          "builds": 0,
+          "cargo": 0,
+          "jobs": 0,
+          "inventory": {
+            "salvageMaterial": "0",
+            "specialMachinery": "0"
+          }
+        },
+        "assetFixture": {
+          "status": 2,
+          "generation": "1",
+          "uploads": 3,
+          "prototypeUploads": 1,
+          "gpuReservationBytes": "6199020",
+          "submittedSerial": "246",
+          "completedSerial": "244",
+          "draws": 6,
+          "guides": 0,
+          "guideBoxes": 0,
+          "guideMeshGpuBytes": 1936,
+          "forcedLod": "0",
+          "lods": [
+            "2",
+            "1",
+            "1",
+            "1",
+            null,
+            null
+          ],
+          "assembly": {
+            "parts": 6,
+            "connections": 5
+          }
+        },
+        "lost": null,
+        "errors": [],
+        "render": {
+          "available": true,
+          "frame": 240,
+          "age_frames": 9,
+          "water_simulation_ms": 0.688852,
+          "terrain_raycast_ms": 0.008296,
+          "lighting_composite_ms": 0.5009,
+          "primitives_ms": 0,
+          "total_ms": 1.198048,
+          "frame_interval_available": true,
+          "gpu_frame_ms": 1.74283,
+          "render_width": 1920,
+          "render_height": 1080,
+          "includes_gpu_physics": true
+        }
+      },
+      "settings": {
+        "lighting.sunAzimuth": -45,
+        "lighting.sunElevation": 54.73560333251953,
+        "lighting.sunIntensity": 1,
+        "lighting.ambientIntensity": 0.550000011920929,
+        "lighting.exposure": 1
+      },
+      "requested": {
+        "eye": [
+          -12.6,
+          -184.08,
+          -38.8
+        ],
+        "yaw": -1.1722738811284765,
+        "pitch": -0.05814294191337406,
+        "azimuth": -45,
+        "elevation": 54.73561031724535
+      },
+      "png_sha256": "68ec6c0f4cacce98ae02c6a22fc08d2bc86324e734d1f81c0bdbae778ba8edc0"
+    }
+  ],
+  "origin": [
+    -19,
+    -184.68,
+    -37
+  ],
+  "initial": {
+    "active": true,
+    "ready": true,
+    "busy": false,
+    "failed": false,
+    "bodies": 0,
+    "resets": 0,
+    "controller": "free-fly",
+    "mouseCaptured": false,
+    "origin": [
+      -12,
+      -187.68,
+      -32
+    ],
+    "camera": {
+      "local": [
+        -12,
+        75.32,
+        -45
+      ],
+      "sector": [
+        0,
+        -1,
+        0
+      ],
+      "yaw": -0.623199,
+      "pitch": -0.363699
+    },
+    "session": {
+      "revision": "0",
+      "tick": "0",
+      "admissionOpen": true,
+      "builds": 0,
+      "cargo": 0,
+      "jobs": 0,
+      "inventory": {
+        "salvageMaterial": "0",
+        "specialMachinery": "0"
+      }
+    },
+    "assetFixture": {
+      "status": 2,
+      "generation": "1",
+      "uploads": 3,
+      "prototypeUploads": 1,
+      "gpuReservationBytes": "6199020",
+      "submittedSerial": "191",
+      "completedSerial": "189",
+      "draws": 6,
+      "guides": 0,
+      "guideBoxes": 0,
+      "guideMeshGpuBytes": 1936,
+      "forcedLod": "0",
+      "lods": [
+        "2",
+        "1",
+        "1",
+        "1",
+        null,
+        null
+      ],
+      "assembly": {
+        "parts": 6,
+        "connections": 5
+      }
+    },
+    "lost": null,
+    "errors": [],
+    "render": {
+      "available": true,
+      "frame": 180,
+      "age_frames": 14,
+      "water_simulation_ms": 0.311384,
+      "terrain_raycast_ms": 0.001644,
+      "lighting_composite_ms": 0.562776,
+      "primitives_ms": 0,
+      "total_ms": 0.875804,
+      "frame_interval_available": true,
+      "gpu_frame_ms": 1.03386,
+      "render_width": 1920,
+      "render_height": 1080,
+      "includes_gpu_physics": true
+    }
+  }
+}

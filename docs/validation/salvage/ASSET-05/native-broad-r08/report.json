@@ -1,0 +1,111 @@
+{
+  "schema": 1,
+  "status": "captured; visual review required",
+  "recipe": {
+    "schema": 1,
+    "purpose": "Static functional kit inspection; no live simulation or cove approval",
+    "registry": "data/salvage/fixture-kit-broad.json",
+    "physical_viewport": [
+      1920,
+      1080
+    ],
+    "fov_degrees": 60,
+    "views": [
+      {
+        "name": "overview",
+        "eye": [
+          7,
+          5,
+          -8
+        ],
+        "target": [
+          0,
+          0.7,
+          0.2
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "outboard",
+        "eye": [
+          4,
+          2.5,
+          6
+        ],
+        "target": [
+          0.3,
+          0.7,
+          1.6
+        ],
+        "sun": [
+          -0.4,
+          0.8,
+          0.4
+        ]
+      }
+    ]
+  },
+  "recipe_sha256": "fc001482b636ce1c1ae434c73773adc44c8666f2f984524cb91f35e8ea8c79ec",
+  "runner_sha256": "4cb504c3fa164d5455bfb89708a3c33ca8ec018e1efdc5a98752e04e0e508304",
+  "binary": "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native",
+  "binary_sha256": "c2c7bf0b3e2c5052ccd1ed1dc2c25ce910fee461272e9a0dd117eb2afa3f8104",
+  "original_registry_sha256": "967fb38fa2240d26cc1f1a9814d4957d40ef6d404b8f4522a008fbe327e2984d",
+  "original_config": "/home/modkin/workspace/schneiderlo/voxys/salvage_kit_broad.cfg",
+  "original_config_sha256": "2771f0a3896409fc02556cb1c653423624ccd6987cab839f30d48f26d1503d93",
+  "guides": "off",
+  "selected_views": null,
+  "scope": "Native scene captures; guides are technical overlays, not final art or moving-craft acceptance",
+  "views": [
+    {
+      "name": "overview",
+      "argv": [
+        "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-05/native-broad-r08/overview.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-05/native-broad-r08/overview.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "config_sha256": "f2710e308dc620fdef97e49b7f023813b5c713e4acea5886e3c96694d7e64789",
+      "registry_sha256": "967fb38fa2240d26cc1f1a9814d4957d40ef6d404b8f4522a008fbe327e2984d",
+      "timeout": false,
+      "exit_code": 0,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "png_sha256": "0ea79915b2a9087bd8b9aa60342b9a7b6bef95ca874d28b5ec49d2eee3125619",
+      "gpu_or_application_errors": [],
+      "passed": true
+    },
+    {
+      "name": "outboard",
+      "argv": [
+        "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-05/native-broad-r08/outboard.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-05/native-broad-r08/outboard.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "config_sha256": "ff1e62d7075c04ec91c79761f8ac7a300fd877b31bbda92ea3b0ebcea3a4f52c",
+      "registry_sha256": "4bff36592d7da65afb1107774bdec78f0e88340ab42bff6cf85570cfad0ad7e6",
+      "timeout": false,
+      "exit_code": 0,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "png_sha256": "6f3427750d3b8173285495c9b2b4ad62fb9894b2f0e9417dce72898a4efb115e",
+      "gpu_or_application_errors": [],
+      "passed": true
+    }
+  ],
+  "temporary_registry_removed": true
+}

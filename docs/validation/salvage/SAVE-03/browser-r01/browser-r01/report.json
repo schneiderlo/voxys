@@ -1,0 +1,27 @@
+{
+  "status": "failed",
+  "kind": "Isolated browser world storage, no GameSession mutation",
+  "sourceHashes": {
+    "web/expedition_store.js": "83aea2f002fa7169cd4f39f671a107ac672b5b9fd566e040300ca30b71854aa4",
+    "scripts/expedition_storage_cases.js": "3b99e5858e9ebe0d87e9b71cb2ae56dc89ecc8430d263f01a503a2d46a52718a",
+    "scripts/validate_expedition_storage.mjs": "ed4e6c239a5ad0676c37c46bbdeda5c2c0735ffb8603124617f2bfa3521d7db2",
+    "tests/fixtures/save_generation_v1.json": "12e8039e98858ff76721efceddf32fc26b523d039bb72a3630f3873d87dbc203"
+  },
+  "checks": [],
+  "screenshots": 0,
+  "profileFilesystem": "workspace mount",
+  "browserRuns": [
+    {
+      "run": 1,
+      "version": {
+        "Browser": "Chrome/152.0.7977.82",
+        "Protocol-Version": "1.3",
+        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/152.0.0.0 Safari/537.36",
+        "V8-Version": "15.2.124.21",
+        "WebKit-Version": "537.36 (@d04cdb24d67b081f6cf80200ffc5233f44b61109)",
+        "webSocketDebuggerUrl": "ws://127.0.0.1:34793/devtools/browser/6af09a1b-73e1-4d56-8d6f-29cb7c803bb3"
+      }
+    }
+  ],
+  "failure": "Error: {\"exceptionId\":1,\"text\":\"Uncaught (in promise) Error: expected NoSpace, got Interrupted: The save transaction was interrupted.\",\"lineNumber\":4,\"columnNumber\":52,\"scriptId\":\"4\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"assert\",\"scriptId\":\"4\",\"url\":\"http://127.0.0.1:45801/cases.js\",\"lineNumber\":3,\"columnNumber\":51},{\"functionName\":\"rejects\",\"scriptId\":\"4\",\"url\":\"http://127.0.0.1:45801/cases.js\",\"lineNumber\":4,\"columnNumber\":64}]},\"exception\":{\"type\":\"object\",\"subtype\":\"error\",\"className\":\"Error\",\"description\":\"Error: expected NoSpace, got Interrupted: The save transaction was interrupted.\\n    at assert (http://127.0.0.1:45801/cases.js:4:52)\\n    at rejects (http://127.0.0.1:45801/cases.js:5:65)\\n    at async globalThis.runExpeditionStorageCases (http://127.0.0.1:45801/cases.js:46:51)\",\"objectId\":\"1485796772859184702.2.1\"}}\n    at Object.evaluate (file:///home/modkin/workspace/schneiderlo/voxys/scripts/validate_expedition_storage.mjs:67:164)\n    at async file:///home/modkin/workspace/schneiderlo/voxys/scripts/validate_expedition_storage.mjs:80:21"
+}

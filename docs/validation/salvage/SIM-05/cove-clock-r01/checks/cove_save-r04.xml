@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="21" failures="0" disabled="0" errors="0" time="0.012" timestamp="2026-09-10T07:23:40.768" name="AllTests">
+  <testsuite name="CoveSave" tests="21" failures="0" disabled="0" skipped="0" errors="0" time="0.012" timestamp="2026-09-10T07:23:40.768">
+    <testcase name="TowingRoundTripPreservesMotionIdentityAndLargeCounters" file="tests/test_cove_save.cpp" line="95" status="run" result="completed" time="0." timestamp="2026-09-10T07:23:40.768" classname="CoveSave" />
+    <testcase name="RecoveryDesignIgnoresOwnershipConditionAndOrderingButPreservesConfiguration" file="tests/test_cove_save.cpp" line="117" status="run" result="completed" time="0." timestamp="2026-09-10T07:23:40.769" classname="CoveSave" />
+    <testcase name="RecoveryDesignCapacityDeduplicatesAndNeverOverwritesProtectedLayouts" file="tests/test_cove_save.cpp" line="126" status="run" result="completed" time="0." timestamp="2026-09-10T07:23:40.770" classname="CoveSave" />
+    <testcase name="RecoveryEnvelopeRoundTripRetainsDesignsWithAndWithoutInstalledHarbor" file="tests/test_cove_save.cpp" line="139" status="run" result="completed" time="0." timestamp="2026-09-10T07:23:40.770" classname="CoveSave" />
+    <testcase name="InvalidDuplicateAndOverCapacityRecoveryDesignsPreserveEncodeOutput" file="tests/test_cove_save.cpp" line="153" status="run" result="completed" time="0." timestamp="2026-09-10T07:23:40.770" classname="CoveSave" />
+    <testcase name="LooseBrokenAndBankedCargoHaveDistinctMassAndRewardMeaning" file="tests/test_cove_save.cpp" line="167" status="run" result="completed" time="0." timestamp="2026-09-10T07:23:40.771" classname="CoveSave" />
+    <testcase name="HarborExtensionPreservesFourLengthsAndIndividualBreaksOnlyAfterBanking" file="tests/test_cove_save.cpp" line="185" status="run" result="completed" time="0." timestamp="2026-09-10T07:23:40.771" classname="CoveSave" />
+    <testcase name="LegacyArchivesRemainIdenticalAndInstallingTheLiftIsExplicit" file="tests/test_cove_save.cpp" line="222" status="run" result="completed" time="0." timestamp="2026-09-10T07:23:40.772" classname="CoveSave" />
+    <testcase name="RefusesMismatchedRolesTickCargoAndImpossibleMotionWithoutChangingOutput" file="tests/test_cove_save.cpp" line="237" status="run" result="completed" time="0." timestamp="2026-09-10T07:23:40.773" classname="CoveSave" />
+    <testcase name="RefusesCorruptionTruncationTrailingDataAndUnknownVersions" file="tests/test_cove_save.cpp" line="267" status="run" result="completed" time="0.003" timestamp="2026-09-10T07:23:40.773" classname="CoveSave" />
+    <testcase name="RefusesResignedInvalidFieldsAndNestedLengths" file="tests/test_cove_save.cpp" line="284" status="run" result="completed" time="0." timestamp="2026-09-10T07:23:40.776" classname="CoveSave" />
+    <testcase name="FrozenPortableArchive" file="tests/test_cove_save.cpp" line="308" status="run" result="completed" time="0." timestamp="2026-09-10T07:23:40.777" classname="CoveSave" />
+    <testcase name="RecoveredArchiveRequiresExactRetiredParentAndRejectsOldToken" file="tests/test_cove_save.cpp" line="314" status="run" result="completed" time="0." timestamp="2026-09-10T07:23:40.777" classname="CoveSave" />
+    <testcase name="FragmentArchiveKeepsRemoteMotionAndWinchApartFromTheHelmRoot" file="tests/test_cove_save.cpp" line="334" status="run" result="completed" time="0." timestamp="2026-09-10T07:23:40.777" classname="CoveSave">
+      <properties>
+        <property name="fragment_archive_sha256" value="dd3edb534176d1444915ba6b981e1a3404c32f003c6915c60623c31c00293882"/>
+        <property name="fragment_archive_bytes" value="1878"/>
+      </properties>
+    </testcase>
+    <testcase name="FragmentsCannotBeEncodedOrResignedAsAnyLegacySingleMotionVersion" file="tests/test_cove_save.cpp" line="353" status="run" result="completed" time="0." timestamp="2026-09-10T07:23:40.778" classname="CoveSave" />
+    <testcase name="FragmentRootMembershipMotionControlAndRiderMustMatchTheAcceptedBuild" file="tests/test_cove_save.cpp" line="374" status="run" result="completed" time="0." timestamp="2026-09-10T07:23:40.778" classname="CoveSave" />
+    <testcase name="FragmentRiderCanWalkOnAnotherRootButCannotUseADisabledOrRemoteHelm" file="tests/test_cove_save.cpp" line="403" status="run" result="completed" time="0." timestamp="2026-09-10T07:23:40.778" classname="CoveSave" />
+    <testcase name="ThirtyTwoFragmentMotionsAndFourProtectedDesignsFitTheBoundedArchive" file="tests/test_cove_save.cpp" line="417" status="run" result="completed" time="0.001" timestamp="2026-09-10T07:23:40.779" classname="CoveSave">
+      <properties>
+        <property name="maximum_roots_archive_sha256" value="e909ab20940e0e820cec4ff2f3c44f451b49678c9a5277ac83f4e57fb4772bda"/>
+        <property name="maximum_roots_archive_bytes" value="8862"/>
+      </properties>
+    </testcase>
+    <testcase name="ResignedFragmentCountsAndRootRecordsAreValidatedBeforeAdmission" file="tests/test_cove_save.cpp" line="433" status="run" result="completed" time="0." timestamp="2026-09-10T07:23:40.780" classname="CoveSave" />
+    <testcase name="ExplicitSingleRootArchiveUsesItsLeastMemberKeyAndCanReturnToLegacyBytes" file="tests/test_cove_save.cpp" line="447" status="run" result="completed" time="0." timestamp="2026-09-10T07:23:40.780" classname="CoveSave" />
+    <testcase name="FragmentArchiveSurvivesFreshWriterRecoveryWithItsExactRetiredParent" file="tests/test_cove_save.cpp" line="460" status="run" result="completed" time="0." timestamp="2026-09-10T07:23:40.781" classname="CoveSave" />
+  </testsuite>
+</testsuites>

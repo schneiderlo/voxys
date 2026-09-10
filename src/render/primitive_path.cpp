@@ -51,7 +51,7 @@ struct alignas(16) CompactPose {
 };
 
 static_assert(sizeof(CompactPose) == 32);
-static_assert(sizeof(detail::CompactPrimitiveShapeGpu) == 48);
+static_assert(sizeof(detail::CompactPrimitiveShapeGpu) == 64);
 
 using Shape = physics::PhysicsWorld::ThrowableShape;
 using detail::GpuInstance;

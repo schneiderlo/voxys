@@ -1,0 +1,171 @@
+{
+  "checkpoint": "DATA-05 bounded compensation, stage-c1",
+  "passed": true,
+  "data05Complete": false,
+  "gatePassed": false,
+  "independentReview": false,
+  "durability": "Volatile",
+  "recoveryImplemented": false,
+  "gpuPhysicsImplemented": false,
+  "xmlResults": {
+    "bazel-application.xml": {
+      "passed": 27,
+      "failed": 0,
+      "skipped": 0,
+      "disabled": [
+        "DISABLED_InitAndShutdown",
+        "DISABLED_RenderPathToggle",
+        "DISABLED_ProcessSingleFrame",
+        "DISABLED_UpdateCallback"
+      ],
+      "sha256": "200ddbe767e750daa46da76bb0b2108509bc0f21b98b0ffeda537acb8d827caf"
+    },
+    "bazel-journal.xml": {
+      "passed": 12,
+      "failed": 0,
+      "skipped": 0,
+      "disabled": [],
+      "sha256": "8f2c55c0863305890ce4f23d0e54a29d250b71c76adacfa36ee2a39a89b7823d"
+    },
+    "bazel-salvage_preview.xml": {
+      "passed": 10,
+      "failed": 0,
+      "skipped": 0,
+      "disabled": [],
+      "sha256": "43efbf2377b06ac128aec4083508a565d5a6e0565915d44bd8d7c747d2e79bd1"
+    },
+    "bazel-session.xml": {
+      "passed": 42,
+      "failed": 0,
+      "skipped": 0,
+      "disabled": [],
+      "sha256": "01c680ab51ec378d470685fd7d52cf680219be8b28877c413c88b7de666cbdf9"
+    },
+    "cmake-journal.xml": {
+      "passed": 12,
+      "failed": 0,
+      "skipped": 0,
+      "disabled": [],
+      "sha256": "e75ff2ea04fc0956f36386c7c095eefe509cdfdb807b3eb55afce4d938ca3a29"
+    },
+    "cmake-session.xml": {
+      "passed": 42,
+      "failed": 0,
+      "skipped": 0,
+      "disabled": [],
+      "sha256": "8395ab76e412b0e666d6a81f4b5d07e079988ed1785ae0b4612e7aaf5753d77c"
+    },
+    "ubsan.xml": {
+      "passed": 54,
+      "failed": 0,
+      "skipped": 0,
+      "disabled": [],
+      "sha256": "047b56d93d08d93cb0bdd3b0ecce37e32a428bb6f5b9eafdda4cb34e887df32b"
+    }
+  },
+  "wasm": {
+    "passed": 54,
+    "skipped": 0,
+    "disabled": 0
+  },
+  "noAllocation": "boundaries=9 allocation_attempts=0 activations=8 discards=1 passed=true",
+  "sourceInputsUnchangedSinceWasmFreeze": true,
+  "artifacts": {
+    "src/game/expedition/game_session.hpp": {
+      "sha256": "de39d05ce26e167fafa809a922f38657bf85057b4c09d4a481df427f0df79e2d",
+      "bytes": 8080
+    },
+    "src/game/expedition/game_session.cpp": {
+      "sha256": "f31e49151595b1b23945fd26695baa6b43c1bec5e411a8de51b4e2573de235ce",
+      "bytes": 49038
+    },
+    "src/game/expedition/session_transactions.hpp": {
+      "sha256": "7b76c64c0bc00125929db26ddd2ecf67aa82bce916a54279865fe4ca2ab82e77",
+      "bytes": 15061
+    },
+    "src/game/expedition/session_transactions.cpp": {
+      "sha256": "a35281ba254f84662d2677445bb6080a4ababe7ea7c49b1d0400d486a3afd3ff",
+      "bytes": 13724
+    },
+    "tests/test_game_session.cpp": {
+      "sha256": "6946bbc8d595e22e148867267a4352200a19d187de30f5d43f292166d0f0128e",
+      "bytes": 57849
+    },
+    "tests/test_session_transactions.cpp": {
+      "sha256": "bffad21bc07f726bf9d6e591f3c891f664ce21a6a4c1d04c198b9cf7671bba60",
+      "bytes": 14831
+    },
+    "tests/test_application.cpp": {
+      "sha256": "1238d3fc8c7a79742daa1428704ef82e1f00b8bc834d2a48fbc1440322c522af",
+      "bytes": 24874
+    },
+    "tests/test_salvage_preview.cpp": {
+      "sha256": "67b56fc117e77d8d888fe71cc53e5ecf3e622f2a08cf5606e7020a4821d8ed17",
+      "bytes": 19926
+    },
+    "scripts/validate_session_transactions_wasm.py": {
+      "sha256": "a1e3fbcffef8d577eac74dccd3b1bf2654ead0c763da69ac08e179ac4c943fc9",
+      "bytes": 7698
+    },
+    "docs/validation/salvage/DATA-05/stage-c1/no-allocation.cpp": {
+      "sha256": "9289774f58807b3bf783750e48a74551104b68e4aecae7822a89e104da9b47bc",
+      "bytes": 6024
+    },
+    "docs/validation/salvage/DATA-05/stage-c1/build-no-allocation.sh": {
+      "sha256": "037f7876c643de361741f56dca5ad3b9c18f67874fa44a72347857ec2f95ce9f",
+      "bytes": 863
+    },
+    "build-salvage-native/bin/game_session_tests": {
+      "sha256": "ef3cd91774d9e701e5f76c794fe014660868d2de8bb401a09d6360c05ae6547e",
+      "bytes": 1461760
+    },
+    "build-salvage-native/bin/session_transactions_tests": {
+      "sha256": "f20f6000fac90e0f70b04c0c74be6391dabb622620a24868679865be32ab7e07",
+      "bytes": 979384
+    },
+    "build-salvage-native/bin/voxy_native": {
+      "sha256": "3774480b4bcc1a875fa25abe508c5e80beb3cb5270349cd47c7c1aa7b916c6d4",
+      "bytes": 45213432
+    },
+    "build-lego-wasm/bin/voxy_wasm.js": {
+      "sha256": "5d621e6e910250c1eda99eb265d49fa9de665ad901b95c36a8fe7eb879cbe8c6",
+      "bytes": 79801
+    },
+    "build-lego-wasm/bin/voxy_wasm.wasm": {
+      "sha256": "639f48ef0e608672160a858c4221f1dc8a1c880f28b35cbd22fdbe65d2425b2d",
+      "bytes": 5698900
+    },
+    "/tmp/salvage-history-no-allocation": {
+      "sha256": "5a016e462c6a8ef763d69d75236123b45414910ddf3c316cefb25f1c81eed4b7",
+      "bytes": 6777000
+    },
+    "/tmp/salvage-history-ubsan": {
+      "sha256": "ad90688cd1f514883de383013d1103ff5ab0367822c47bfd88a1845318a36964",
+      "bytes": 11571272
+    }
+  },
+  "reports": {
+    "application-regression.log": "1fd8cf4af2520b6c3eab1b41181e639153155fc2ee2eb0c1e1f669b30dbec1c7",
+    "bazel-attempt01.log": "ce529b4000ab1fd26086e67f4667dd581cd245e9e872e26ab5c7363473eef738",
+    "bazel-attempt02.log": "1ed48b71b91578f75b0dc699504553efbf9d2835398e523731bb258b9098a30d",
+    "bazel-attempt03.log": "edf6da64e429451f86ae44ead3a414ad2fadbe950d3e5a7acef767023b6e21e1",
+    "cmake-build.log": "cc1fa9245b45431d9e82d46a5bab3fc96e34463383c68b6e5648007777a93f85",
+    "cmake-journal.log": "836f35c292a7cb69b35c95dca7b98d14546dfe8cb94b95741910e82f34fcf514",
+    "cmake-session.log": "85659baba9d778defd8c54f2311e4dad1a8a89aae955b5b2624e06cbf66261cf",
+    "compiler-version.log": "996ed4e738a78ee651f279b5bbe5f6fc04e60fd4e89e9deef36178e641ebdba4",
+    "no-allocation-build-attempt02.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "no-allocation-build.log": "2c7d9d66a44ab206e824df104f9b4f05e510f6fa6eee1941eb2bc53ae9b9d214",
+    "no-allocation-result.log": "44a859402dafb190eda28d680adeaed899044fa87b9b3d7dd4febf1f8ffefef7",
+    "ubsan-build.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "ubsan.log": "24a422328181a2c75970c5e396924df1fec154f282b8b4e9cba2d84988094d41",
+    "wasm-application-build.log": "a2f7b0cbbdef180fd759c93a9105c7296a696e0896636a085e230321779042ec",
+    "wasm-attempt01.log": "0590f110db40fa4fd4c4b54aa73a67be5e8cbdfaa08ee7430f2c22340de5f547",
+    "wasm-attempt01/manifest.json": "16ba3898aae39ad16cafe95e8e86b141514aa92eb31eddefe3db2a223e1d41f8"
+  },
+  "commands": {
+    "bazel": "nix-shell --run 'bazel test -c opt //tests:game_session //tests:session_transactions --test_output=errors'",
+    "sanitizer": "nix-shell --run 'SALVAGE_CXX=c++ SALVAGE_TEST_BINARY=/tmp/salvage-history-ubsan bash docs/validation/salvage/DATA-05/stage-b1/build-standalone.sh && /tmp/salvage-history-ubsan'",
+    "noAllocation": "nix-shell --run 'bash docs/validation/salvage/DATA-05/stage-c1/build-no-allocation.sh && /tmp/salvage-history-no-allocation'"
+  },
+  "reviewScope": "Root code/accounting review and real automated results only. Independent review, logical recovery/contiguous replay, trusted entitlement retirement and gate validation remain."
+}

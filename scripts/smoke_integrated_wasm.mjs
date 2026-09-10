@@ -24,10 +24,14 @@ if(!selected){
     await writeFile('integrated-startup-report.json',JSON.stringify({status:'passed',reports},null,2));
     process.exit(0);
 }
-assert(['default','lego-world','lego','terrain','ridgebreak','salvage','presentation'].includes(selected),'unknown scene');
+assert(['default','lego-world','lego','terrain','ridgebreak','salvage','salvage-asset','salvage-materials','salvage-material-detail','salvage-cove','salvage-assembly','salvage-hierarchy','salvage-rotations-a','salvage-rotations-b','salvage-kit-narrow','salvage-kit-broad','salvage-kit-cargo','presentation'].includes(selected),'unknown scene');
 const isWorld=selected==='default'||selected==='lego-world';
 const isLego=isWorld||selected==='lego';
-const isSalvage=selected==='salvage';
+const isSalvageRotations=selected==='salvage-rotations-a'||selected==='salvage-rotations-b';
+const isSalvageKit=['salvage-kit-narrow','salvage-kit-broad','salvage-kit-cargo'].includes(selected);
+const isSalvageMaterials=selected==='salvage-materials'||selected==='salvage-material-detail';
+const isSalvageAsset=selected==='salvage-cove'||isSalvageMaterials||isSalvageKit||isSalvageRotations||selected==='salvage-asset'||selected==='salvage-assembly'||selected==='salvage-hierarchy';
+const isSalvage=selected==='salvage'||isSalvageAsset;
 const memoryEnabled=process.env.VOXY_SMOKE_MEMORY==='1';
 const memoryIntervalMs=Number(process.env.VOXY_SMOKE_MEMORY_INTERVAL_MS||200);
 const memoryCapacity=Number(process.env.VOXY_SMOKE_MEMORY_SAMPLES||2048);
@@ -35,7 +39,14 @@ if(memoryEnabled){
     assert(Number.isFinite(memoryIntervalMs)&&memoryIntervalMs>=100&&memoryIntervalMs<=250,'memory interval must be 100..250 ms');
     assert(Number.isInteger(memoryCapacity)&&memoryCapacity>=1&&memoryCapacity<=10000,'memory samples must be 1..10000');
 }
-const directory=await mkdtemp(path.join(tmpdir(),'voxys-startup-'));
+const directory=process.env.VOXY_SMOKE_PROFILE?path.resolve(process.env.VOXY_SMOKE_PROFILE)
+    :await mkdtemp(path.join(tmpdir(),'voxys-startup-'));
+const profileMarker=path.join(directory,'voxys-smoke-profile');
+if(process.env.VOXY_SMOKE_PROFILE)assert.equal(await readFile(profileMarker,'utf8'),'isolated-voxys-smoke-v1');
+else await writeFile(profileMarker,'isolated-voxys-smoke-v1');
+const retainedProfile=process.env.VOXY_SMOKE_KEEP_PROFILE==='1';
+const listenPort=Number(process.env.VOXY_SMOKE_PORT||0);
+assert(Number.isInteger(listenPort)&&(listenPort===0||(listenPort>=1024&&listenPort<=65535)));
 const delay=ms=>new Promise(r=>setTimeout(r,ms));
 const mime={'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript','.css':'text/css','.wasm':'application/wasm','.data':'application/octet-stream'};
 const server=http.createServer(async(req,res)=>{
@@ -70,9 +81,11 @@ const server=http.createServer(async(req,res)=>{
         res.writeHead(200,{'Content-Type':mime[path.extname(filename)]||'application/octet-stream'});res.end(data);
     }catch{res.writeHead(404);res.end();}
 });
-await new Promise(r=>server.listen(0,'127.0.0.1',r));
+await new Promise((resolve,reject)=>{server.once('error',reject);server.listen(listenPort,'127.0.0.1',resolve);});
 const gpuFlags=process.env.VOXY_SMOKE_GPU==='gaming'
     ? ['--ozone-platform=wayland','--enable-features=Vulkan']
+    : process.env.VOXY_SMOKE_GPU==='gaming-x11'
+    ? ['--ozone-platform=x11','--enable-features=Vulkan']
     : process.env.VOXY_SMOKE_GPU==='swiftshader-window'
     ? ['--ozone-platform=x11','--use-webgpu-adapter=swiftshader','--use-angle=swiftshader','--enable-features=Vulkan','--use-vulkan=swiftshader']
     : process.env.VOXY_SMOKE_GPU==='swiftshader-legacy'
@@ -81,7 +94,7 @@ const gpuFlags=process.env.VOXY_SMOKE_GPU==='gaming'
     ? ['--use-webgpu-adapter=swiftshader','--use-angle=swiftshader','--enable-features=Vulkan','--use-vulkan=swiftshader','--disable-vulkan-surface']
     : ['--use-angle=vulkan','--enable-features=Vulkan','--use-vulkan=native','--disable-vulkan-surface'];
 const chrome=spawn(process.env.VOXY_TEST_CHROME||'google-chrome',[
-    ...(['gaming','swiftshader-window'].includes(process.env.VOXY_SMOKE_GPU)?[]:['--headless=new']),'--no-sandbox','--no-first-run','--no-default-browser-check',
+    ...(['gaming','gaming-x11','swiftshader-window'].includes(process.env.VOXY_SMOKE_GPU)?[]:['--headless=new']),'--no-sandbox','--no-first-run','--no-default-browser-check',
     '--disable-background-networking','--enable-unsafe-webgpu','--enable-unsafe-swiftshader',
     '--disable-gpu-watchdog','--disable-background-timer-throttling','--disable-renderer-backgrounding',...gpuFlags,
     '--remote-debugging-port=0',`--user-data-dir=${directory}`,'about:blank'
@@ -149,7 +162,10 @@ const startBrowserMemory=call=>{
     memoryTimer=setInterval(()=>{void sample();},memoryIntervalMs);
     void sample();
 };
-const timer=setTimeout(()=>chrome.kill('SIGKILL'),240000);
+const timeoutMs=Number(process.env.VOXY_SMOKE_TIMEOUT_MS||240000);
+assert(Number.isInteger(timeoutMs)&&timeoutMs>=60000&&timeoutMs<=1800000,'smoke timeout must be 60..1800 seconds');
+report.timeout_ms=timeoutMs;
+const timer=setTimeout(()=>chrome.kill('SIGKILL'),timeoutMs);
 try{
     if(memoryEnabled){
         report.memory_instrumented=true;
@@ -186,8 +202,10 @@ try{
     for(let i=0;i<1200&&!port;++i){
         if(spawnError)throw spawnError;
         if(chrome.exitCode!==null)throw new Error(logs);
-        try{port=Number((await readFile(path.join(directory,'DevToolsActivePort'),'utf8')).split('\n')[0]);}
-        catch{await delay(50);}
+        // A retained profile keeps the previous process's DevToolsActivePort.
+        // Only use the endpoint announced by this newly spawned child.
+        const announced=logs.match(/DevTools listening on ws:\/\/127\.0\.0\.1:(\d+)\//);
+        if(announced)port=Number(announced[1]);else await delay(50);
     }
     assert(port,'Chrome debugging unavailable');
     const target=await(await fetch(`http://127.0.0.1:${port}/json/new?about:blank`,{method:'PUT'})).json();
@@ -200,7 +218,17 @@ try{
         if(p){pending.delete(m.id);m.error?p.reject(new Error(JSON.stringify(m.error))):p.resolve(m.result);}});
     socket.addEventListener('close',()=>{for(const p of pending.values())p.reject(new Error('Chrome closed'));pending.clear();});
     await new Promise((r,j)=>{socket.addEventListener('open',r,{once:true});socket.addEventListener('error',j,{once:true});});
-    const call=(method,params={})=>new Promise((resolve,reject)=>{const n=++id;pending.set(n,{resolve,reject});socket.send(JSON.stringify({id:n,method,params}));});
+    const call=(method,params={})=>new Promise((resolve,reject)=>{
+        if(socket.readyState!==WebSocket.OPEN){reject(new Error(`Chrome connection is closed: ${method}`));return;}
+        const n=++id;
+        const timeout=setTimeout(()=>{pending.delete(n);reject(new Error(`Chrome request timed out: ${method}`));},30000);
+        pending.set(n,{
+            resolve:value=>{clearTimeout(timeout);resolve(value);},
+            reject:error=>{clearTimeout(timeout);reject(error);},
+        });
+        try{socket.send(JSON.stringify({id:n,method,params}));}
+        catch(error){pending.get(n)?.reject(error);pending.delete(n);}
+    });
     await call('Page.enable');await call('Runtime.enable');await call('Network.enable');
     if(memoryEnabled)startBrowserMemory(call);
     report.browser=await call('Browser.getVersion');
@@ -235,8 +263,11 @@ try{
     const base=`http://127.0.0.1:${server.address().port}`;
     const localUrl=selected==='presentation'?`${base}/__presentation.html`:selected==='default'?`${base}/`:
         `${base}/index.html?experience=${selected}`;
-    const url=process.env.VOXY_SMOKE_URL||localUrl;
+    const resumeWorld=process.env.VOXY_SMOKE_RESUME_WORLD;
+    if(resumeWorld)assert(selected==='salvage-cove'&&/^[0-9a-f]{32}$/.test(resumeWorld));
+    const url=process.env.VOXY_SMOKE_URL||(localUrl+(resumeWorld?'&world='+resumeWorld:''));
     report.url=url;
+    if(retainedProfile)report.retained_profile=directory;
     const navigationStarted=Date.now();
     if(memoryEnabled)await setMemoryPhase('cold-startup');
     await call('Page.navigate',{url});
@@ -302,10 +333,11 @@ try{
     assert.equal(Boolean(sample.salvage?.active),isSalvage,'salvage activation mismatch');
     assert.equal(sample.salvageControlsVisible,isSalvage,'salvage UI route mismatch');
     if(isSalvage){
-        assert.equal(sample.title,'Cove Preview — Voxys');
+        assert.equal(sample.title,selected==='salvage-cove'?'Cove Preview — Voxys':isSalvageMaterials?'Material Inspection — Voxys':isSalvageKit?'Salvage Kit Inspection — Voxys':isSalvageRotations?'Assembly Rotations — Voxys':selected==='salvage-hierarchy'?'Hierarchy Inspection — Voxys':selected==='salvage-assembly'?'Pontoon Assembly Check — Voxys':isSalvageAsset?'Pontoon Inspection — Voxys':'Cove Preview — Voxys');
         assert.equal(sample.salvage.ready,true);
         assert.equal(sample.salvage.failed,false);
-        assert(sample.salvage.bodies>0&&sample.salvage.bodies<=64,'preview body ownership is unbounded or empty');
+        if(isSalvageAsset)assert.equal(sample.salvage.bodies,0,'asset inspector must not spawn cove scenery');
+        else assert(sample.salvage.bodies>0&&sample.salvage.bodies<=64,'preview body ownership is unbounded or empty');
         assert.equal(sample.legoControlsVisible,false);
         assert.equal(sample.telemetry.render.terrain_width,256);
         assert.equal(sample.telemetry.render.terrain_height,256);
@@ -321,6 +353,7 @@ try{
         assert.equal(sample.heapBytes,512*1024*1024,'fixed WASM memory budget changed');
     }
     assert.equal(browserErrors.length,0,browserErrors.join('\n'));
+    if(process.env.VOXY_SMOKE_NO_SCREENSHOT!=='1'){
     const screenshot=await call('Page.captureScreenshot',{format:'png'});
     const screenshotPath=process.env.VOXY_SMOKE_SCREENSHOT||`startup-${selected}.png`;
     await writeFile(screenshotPath,Buffer.from(screenshot.data,'base64'));
@@ -328,6 +361,7 @@ try{
     const imageCode=await new Promise((resolve,reject)=>{check.on('error',reject);check.on('close',resolve);});
     assert.equal(imageCode,0,'main page has no visible landscape');
     report.screenshot=screenshotPath;
+    }
     report.startupElapsedMs=Date.now()-navigationStarted;
     if(memoryEnabled){
         await setMemoryPhase('steady-startup');
@@ -344,10 +378,126 @@ try{
         report.playground=await validatePlayground(call,process.env.VOXY_SMOKE_PLAYGROUND);
     }
     if(process.env.VOXY_SMOKE_SALVAGE){
-        assert(isSalvage,'salvage journey requires the salvage route');
+        assert(selected==='salvage','salvage journey requires the salvage route');
         if(memoryEnabled)await setMemoryPhase('salvage-journey');
         const {validateSalvagePreview}=await import('./validate_salvage_preview.mjs');
         report.salvage_journey=await validateSalvagePreview(call,process.env.VOXY_SMOKE_SALVAGE);
+    }
+    if(process.env.VOXY_SMOKE_ASSET_FIXTURE){
+        assert(isSalvageAsset,'asset fixture journey requires the salvage-asset route');
+        const {validateSalvageAssetFixture}=await import('./validate_salvage_asset_fixture.mjs');
+        report.asset_fixture_journey=await validateSalvageAssetFixture(call,process.env.VOXY_SMOKE_ASSET_FIXTURE);
+    }
+    if(process.env.VOXY_SMOKE_COVE_HARBOR){
+        assert.equal(selected,'salvage-cove');
+        const {validateCoveHarbor}=await import('./validate_cove_harbor.mjs');
+        report.cove_harbor=await validateCoveHarbor(call,process.env.VOXY_SMOKE_COVE_HARBOR,Boolean(process.env.VOXY_SMOKE_RESUME_WORLD));
+    }
+    if(process.env.VOXY_SMOKE_COVE_RECOVERY_DESIGN){
+        assert.equal(selected,'salvage-cove');
+        const {validateCoveRecoveryDesign}=await import('./validate_cove_recovery_design.mjs');
+        report.cove_recovery_design=await validateCoveRecoveryDesign(call,process.env.VOXY_SMOKE_COVE_RECOVERY_DESIGN,Boolean(process.env.VOXY_SMOKE_RESUME_WORLD));
+    }
+    if(process.env.VOXY_SMOKE_COVE_STARTER){
+        assert.equal(selected,'salvage-cove');
+        const {validateCoveStarter}=await import('./validate_cove_starter.mjs');
+        report.cove_starter=await validateCoveStarter(call,process.env.VOXY_SMOKE_COVE_STARTER,Boolean(process.env.VOXY_SMOKE_RESUME_WORLD));
+    }
+    if(process.env.VOXY_SMOKE_COVE_CUT){
+        assert.equal(selected,'salvage-cove');
+        const {validateCoveCut}=await import('./validate_cove_cut.mjs');
+        report.cove_cut=await validateCoveCut(call,process.env.VOXY_SMOKE_COVE_CUT,Boolean(process.env.VOXY_SMOKE_RESUME_WORLD));
+    }
+    if(process.env.VOXY_SMOKE_COVE_RESCUE){
+        assert.equal(selected,'salvage-cove');
+        const {validateCoveRescue}=await import('./validate_cove_rescue.mjs');
+        report.cove_rescue=await validateCoveRescue(call,process.env.VOXY_SMOKE_COVE_RESCUE,Boolean(process.env.VOXY_SMOKE_RESUME_WORLD),
+            process.env.VOXY_SMOKE_COVE_RESCUE_CHECKPOINT_ONLY==='1');
+    }
+    if(process.env.VOXY_SMOKE_COVE_DELIVERY){
+        assert.equal(selected,'salvage-cove');
+        const {validateCoveDelivery}=await import('./validate_cove_delivery.mjs');
+        report.cove_delivery=await validateCoveDelivery(call,process.env.VOXY_SMOKE_COVE_DELIVERY);
+    }
+    if(process.env.VOXY_SMOKE_COVE_SAVES){
+        assert.equal(selected,'salvage-cove');
+        const {validateCoveSaves}=await import('./validate_cove_saves.mjs');
+        report.cove_saves=await validateCoveSaves(call,process.env.VOXY_SMOKE_COVE_SAVES,Boolean(process.env.VOXY_SMOKE_RESUME_WORLD));
+    }
+    if(process.env.VOXY_SMOKE_COVE_ARCHIVE_ONLY){
+        assert.equal(selected,'salvage-cove');
+        const {validateCoveArchiveJourney}=await import('./validate_cove_archive.mjs');
+        report.cove_archive=await validateCoveArchiveJourney(call,process.env.VOXY_SMOKE_COVE_ARCHIVE_ONLY);
+    }
+    if(process.env.VOXY_SMOKE_COVE_DESIGNS){
+        assert.equal(selected,'salvage-cove');
+        const {validateDesignStorage}=await import('./validate_design_storage.mjs');
+        report.design_storage=await validateDesignStorage(call);
+        const {validateCoveDesigns}=await import('./validate_cove_designs.mjs');
+        report.cove_designs=await validateCoveDesigns(call,process.env.VOXY_SMOKE_COVE_DESIGNS);
+    }
+    if(process.env.VOXY_SMOKE_COVE_SETTINGS){
+        assert.equal(selected,'salvage-cove');
+        const {validateCoveSettings}=await import('./validate_cove_settings.mjs');
+        report.cove_settings=await validateCoveSettings(call,process.env.VOXY_SMOKE_COVE_SETTINGS);
+    }
+    if(process.env.VOXY_SMOKE_COVE_PARTS){
+        assert.equal(selected,'salvage-cove');
+        const {validateCoveParts}=await import('./validate_cove_parts.mjs');
+        report.cove_parts=await validateCoveParts(call,process.env.VOXY_SMOKE_COVE_PARTS);
+    }
+    if(process.env.VOXY_SMOKE_COVE_LAUNCH){
+        assert.equal(selected,'salvage-cove');
+        const {validateCoveLaunch}=await import('./validate_cove_launch.mjs');
+        report.cove_launch=await validateCoveLaunch(call,process.env.VOXY_SMOKE_COVE_LAUNCH);
+    }
+    if(process.env.VOXY_SMOKE_COVE_WORKSHOP){
+        assert.equal(selected,'salvage-cove');
+        const {validateCoveWorkshop}=await import('./validate_cove_workshop.mjs');
+        report.cove_workshop=await validateCoveWorkshop(call,process.env.VOXY_SMOKE_COVE_WORKSHOP);
+    }
+    if(process.env.VOXY_SMOKE_COVE_PLAYER){
+        assert.equal(selected,'salvage-cove');
+        const {validateCovePlayer}=await import('./validate_cove_player.mjs');
+        report.cove_player=await validateCovePlayer(call,process.env.VOXY_SMOKE_COVE_PLAYER);
+    }
+    if(process.env.VOXY_SMOKE_ASSET_VIEWS){
+        assert(isSalvageAsset,'asset views require the salvage-asset route');
+        assert(!process.env.VOXY_SMOKE_ASSET_FIXTURE&&!process.env.VOXY_SMOKE_ASSET_LOSS,'asset views require a separate fresh run');
+        const {validateSalvageAssetViews}=await import('./validate_salvage_asset_views.mjs');
+        report.asset_views=await validateSalvageAssetViews(call,process.env.VOXY_SMOKE_ASSET_VIEWS,{
+            guides:Number(process.env.VOXY_SMOKE_ASSET_GUIDES||0),
+            views:process.env.VOXY_SMOKE_ASSET_VIEW_NAMES?.split(',')||null,
+            lod:Number(process.env.VOXY_SMOKE_ASSET_LOD||0),
+            recipePath:process.env.VOXY_SMOKE_ASSET_RECIPE||null});
+    }
+    if(process.env.VOXY_SMOKE_ASSET_MOTION){
+        assert(['salvage-assembly','salvage-kit-broad','salvage-kit-narrow','salvage-kit-cargo'].includes(selected),'motion capture requires a supported asset inspection route');
+        assert(!process.env.VOXY_SMOKE_ASSET_FIXTURE&&!process.env.VOXY_SMOKE_ASSET_LOSS&&!process.env.VOXY_SMOKE_ASSET_VIEWS,'motion capture requires a separate fresh run');
+        const {validateSalvageAssetMotion}=await import('./validate_salvage_asset_motion.mjs');
+        report.asset_motion=await validateSalvageAssetMotion(call,process.env.VOXY_SMOKE_ASSET_MOTION,{
+            recipePath:process.env.VOXY_SMOKE_ASSET_RECIPE||null});
+    }
+    if(process.env.VOXY_SMOKE_ASSET_SECTORS){
+        assert(selected==='salvage-assembly','sector flight requires the assembly inspector');
+        assert(!process.env.VOXY_SMOKE_ASSET_FIXTURE&&!process.env.VOXY_SMOKE_ASSET_LOSS&&!process.env.VOXY_SMOKE_ASSET_VIEWS&&!process.env.VOXY_SMOKE_ASSET_MOTION,'sector flight requires a separate fresh run');
+        const {validateSalvageAssetSectors}=await import('./validate_salvage_asset_sectors.mjs');
+        report.asset_sectors=await validateSalvageAssetSectors(call,process.env.VOXY_SMOKE_ASSET_SECTORS);
+    }
+    assert.equal(browserErrors.length,0,browserErrors.join('\n'));
+    if(process.env.VOXY_SMOKE_ASSET_LOSS){
+        assert(isSalvageAsset,'asset loss test requires the salvage-asset route');
+        assert(!process.env.VOXY_SMOKE_ASSET_FIXTURE,'loss test requires its own fresh browser run');
+        const {validateSalvageAssetLoss}=await import('./validate_salvage_asset_loss.mjs');
+        report.asset_loss=await validateSalvageAssetLoss(call,process.env.VOXY_SMOKE_ASSET_LOSS);
+        // Only this dedicated, explicitly requested negative run permits the
+        // actual destroyed-device notification. Preserve every message.
+        const engineLoss=/^\[ERROR\] \[[0-9:.]+\] Asset fixture failed: platform reported device loss or terminal GPU failure$/;
+        const unexpected=browserErrors.filter(message=>!message.startsWith('WebGPU device lost (destroyed):') && !engineLoss.test(message));
+        assert.equal(unexpected.length,0,unexpected.join('\n'));
+        assert.equal(browserErrors.filter(message=>message.startsWith('WebGPU device lost (destroyed):')).length,1);
+        assert.equal(browserErrors.filter(message=>engineLoss.test(message)).length,1);
+        report.expected_loss_messages=browserErrors;
     }
     report.status='passed';
     }
@@ -405,6 +555,7 @@ finally{
     await writeFile(process.env.VOXY_SMOKE_REPORT||'integrated-startup-report.json',JSON.stringify(report,null,2)+'\n');
     clearTimeout(timer);socket?.close();
     if(chrome.exitCode===null&&chrome.signalCode===null&&!spawnError){const closed=new Promise(r=>chrome.once('close',r));chrome.kill('SIGKILL');await closed;}
-    await new Promise(r=>server.close(r));await rm(directory,{recursive:true,force:true,maxRetries:8,retryDelay:100});
+    await new Promise(r=>server.close(r));
+    if(!retainedProfile)await rm(directory,{recursive:true,force:true,maxRetries:8,retryDelay:100});
 }
 console.log(JSON.stringify(report,null,2));

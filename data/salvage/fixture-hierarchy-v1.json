@@ -1,0 +1,110 @@
+{
+  "schema": 1,
+  "bundles": [
+    {
+      "directory": "pontoon/release-candidates/v2-rc01/cooked",
+      "part": {
+        "namespace": "766f7879732d73616c766167652d7631",
+        "counter": "3",
+        "version": 2
+      },
+      "manifest_sha256": "5cb23035a14272257af22ae4af47e7fcd863b8b310186346acbf7915fba8818e",
+      "lod_limits": [
+        {
+          "id": "1",
+          "vertices": 12000,
+          "triangles": 6000,
+          "texture_dimension": 512
+        },
+        {
+          "id": "2",
+          "vertices": 2400,
+          "triangles": 1200,
+          "texture_dimension": 256
+        },
+        {
+          "id": "3",
+          "vertices": 800,
+          "triangles": 400,
+          "texture_dimension": 64
+        }
+      ]
+    },
+    {
+      "directory": "hierarchy_probe/candidates/v1-r02/cooked",
+      "part": {
+        "namespace": "766f78792d686965722d70726f626531",
+        "counter": "1",
+        "version": 1
+      },
+      "manifest_sha256": "9980954b79dac7d4727aa493e02a71f7b244ad12a474616c14e59a9bd9b24377",
+      "lod_limits": [
+        {
+          "id": "1",
+          "vertices": 4000,
+          "triangles": 2000,
+          "texture_dimension": 1
+        }
+      ]
+    }
+  ],
+  "placements": [
+    {
+      "bundle": 1,
+      "translation_ticks": [
+        -250,
+        24,
+        -100
+      ],
+      "rotation": 0
+    },
+    {
+      "bundle": 0,
+      "translation_ticks": [
+        -75,
+        0,
+        0
+      ],
+      "rotation": 0
+    },
+    {
+      "bundle": 0,
+      "translation_ticks": [
+        75,
+        0,
+        0
+      ],
+      "rotation": 0
+    },
+    {
+      "bundle": 0,
+      "translation_ticks": [
+        225,
+        0,
+        0
+      ],
+      "rotation": 0
+    },
+    {
+      "bundle": 0,
+      "translation_ticks": [
+        225,
+        48,
+        0
+      ],
+      "rotation": 0
+    }
+  ],
+  "camera": {
+    "eye": [
+      8,
+      6,
+      -11
+    ],
+    "target": [
+      0,
+      0.3,
+      0
+    ]
+  }
+}

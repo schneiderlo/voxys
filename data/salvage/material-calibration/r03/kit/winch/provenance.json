@@ -1,0 +1,699 @@
+{
+  "schema": 1,
+  "status": "offline candidate; not runtime or visual acceptance",
+  "part": {
+    "namespace": "766f7879732d73616c766167652d7631",
+    "counter": "7",
+    "version": 2
+  },
+  "blender_version": "5.2.1 LTS",
+  "material_profile": "tactile-metric-v1",
+  "surface_shading": "manufactured-v1",
+  "blender_build_hash": "9e2066aef7ef",
+  "lods": [
+    {
+      "lod": 0,
+      "vertices": 10770,
+      "triangles": 5468,
+      "materials": 4,
+      "geometry": {
+        "degenerate_faces": 0,
+        "nonmanifold_edges": 0,
+        "summed_component_volume_m3": 0.6330323448206278,
+        "interface_checks": {
+          "flange_cheek_clearance_metres": [
+            0.010000020265579224,
+            0.010000020265579224
+          ],
+          "flange_x_bounds": [
+            [
+              -0.25999999046325684,
+              -0.20999999344348907
+            ],
+            [
+              0.20999999344348907,
+              0.25999999046325684
+            ]
+          ],
+          "drum_x_bounds": [
+            -0.20999999344348907,
+            0.20999999344348907
+          ]
+        },
+        "metric_uv": {
+          "period_metres": 0.5,
+          "tile_pixels": 128,
+          "surface_area_m2": 12.377838810908605,
+          "near_equivalent_texels_per_metre": {
+            "minimum": 255.76545404754873,
+            "maximum": 256.00129507926744,
+            "rms": 255.99964781122708
+          },
+          "maximum_principal_stretch": 1.001834644163778,
+          "excluded_tiny_triangles": 0,
+          "qualification": "Near is 256 texels/metre; Middle 128; Far uses material factors without detail textures. Hard-edge charts may differ in phase."
+        },
+        "surface_shading": [
+          {
+            "component": "winch_foot",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 42,
+            "minimum_face_alignment": 0.8400259539484978,
+            "maximum_unit_length_error": 1.1045995662595232e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "mast_cheek",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8588636479107663,
+            "maximum_unit_length_error": 1.1600058558158821e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "mast_cheek.001",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8588636479107663,
+            "maximum_unit_length_error": 1.1600058558158821e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cable_drum",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.913223996758461,
+            "maximum_unit_length_error": 1.0652106818831442e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "drum_flange",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.913425587117672,
+            "maximum_unit_length_error": 1.1478551387167357e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "drum_flange.001",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.9134251785221373,
+            "maximum_unit_length_error": 1.1478551387167357e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cable_wrap",
+            "method": "analytic torus normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.9200680553913116,
+            "maximum_unit_length_error": 1.1927979359782626e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cable_wrap.001",
+            "method": "analytic torus normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.9200679510831833,
+            "maximum_unit_length_error": 1.266598621540993e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cable_wrap.002",
+            "method": "analytic torus normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.9200680926442146,
+            "maximum_unit_length_error": 1.1927823417856587e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cable_wrap.003",
+            "method": "analytic torus normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.9200681298971176,
+            "maximum_unit_length_error": 1.378357314951728e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cable_wrap.004",
+            "method": "analytic torus normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.9200680702924728,
+            "maximum_unit_length_error": 1.266598621540993e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cable_wrap.005",
+            "method": "analytic torus normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.9200679734349251,
+            "maximum_unit_length_error": 1.30385152008472e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cable_wrap.006",
+            "method": "analytic torus normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.9200680553913116,
+            "maximum_unit_length_error": 1.3690440914260193e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "fairlead_mount",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8597833544481546,
+            "maximum_unit_length_error": 9.959695079775344e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "fairlead",
+            "method": "analytic torus normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.9200679361820221,
+            "maximum_unit_length_error": 1.1929302101698624e-07,
+            "positions_unchanged": true
+          }
+        ],
+        "volume_note": "Decorative components can intersect; this sum is not displacement."
+      },
+      "metric_materials": [
+        {
+          "region": "teal",
+          "roughness_factor": 0.41237112879753113,
+          "metallic_factor": 0
+        },
+        {
+          "region": "coral",
+          "roughness_factor": 0.3711340129375458,
+          "metallic_factor": 0
+        },
+        {
+          "region": "slate",
+          "roughness_factor": 0.7525773048400879,
+          "metallic_factor": 0
+        },
+        {
+          "region": "steel",
+          "roughness_factor": 0.30927833914756775,
+          "metallic_factor": 1
+        }
+      ],
+      "source_sha256": "4587340e5eb174152f82aad646282b5ddba7b64ac9a5084d7bf6d6576a302abd",
+      "export_settings": {
+        "export_format": "GLB",
+        "use_selection": true,
+        "export_yup": true,
+        "export_apply": true,
+        "export_materials": "EXPORT",
+        "export_normals": true,
+        "export_texcoords": true,
+        "export_tangents": true,
+        "export_animations": false,
+        "export_skins": false,
+        "export_morph": false,
+        "export_cameras": false,
+        "export_lights": false,
+        "export_extras": false,
+        "export_vertex_color": "NONE",
+        "export_all_vertex_colors": false
+      }
+    },
+    {
+      "lod": 1,
+      "vertices": 4330,
+      "triangles": 2524,
+      "materials": 4,
+      "geometry": {
+        "degenerate_faces": 0,
+        "nonmanifold_edges": 0,
+        "summed_component_volume_m3": 0.6228256589191826,
+        "interface_checks": {
+          "flange_cheek_clearance_metres": [
+            0.010000020265579224,
+            0.010000020265579224
+          ],
+          "flange_x_bounds": [
+            [
+              -0.25999999046325684,
+              -0.20999999344348907
+            ],
+            [
+              0.20999999344348907,
+              0.25999999046325684
+            ]
+          ],
+          "drum_x_bounds": [
+            -0.20999999344348907,
+            0.20999999344348907
+          ]
+        },
+        "metric_uv": {
+          "period_metres": 0.5,
+          "tile_pixels": 64,
+          "surface_area_m2": 12.187215539686356,
+          "near_equivalent_texels_per_metre": {
+            "minimum": 255.999147619769,
+            "maximum": 256.00049209525395,
+            "rms": 255.9999990328933
+          },
+          "maximum_principal_stretch": 1.0000063607582492,
+          "excluded_tiny_triangles": 0,
+          "qualification": "Near is 256 texels/metre; Middle 128; Far uses material factors without detail textures. Hard-edge charts may differ in phase."
+        },
+        "surface_shading": [
+          {
+            "component": "winch_foot",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 26,
+            "minimum_face_alignment": 0.6191512905061245,
+            "maximum_unit_length_error": 6.70552231518684e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "mast_cheek",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.6107907071709633,
+            "maximum_unit_length_error": 7.850758576566363e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "mast_cheek.001",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.6107907071709633,
+            "maximum_unit_length_error": 7.850758576566363e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cable_drum",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.7028882903978229,
+            "maximum_unit_length_error": 8.413983376698297e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "drum_flange",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.708949709602166,
+            "maximum_unit_length_error": 1.1734665128493305e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "drum_flange.001",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.7089501541340724,
+            "maximum_unit_length_error": 1.1734665128493305e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cable_wrap",
+            "method": "analytic torus normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8579728603363037,
+            "maximum_unit_length_error": 1.3783575059100883e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cable_wrap.001",
+            "method": "analytic torus normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8579725138879439,
+            "maximum_unit_length_error": 1.5739352754451374e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cable_wrap.002",
+            "method": "analytic torus normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.857972513056211,
+            "maximum_unit_length_error": 1.5273691389428024e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cable_wrap.003",
+            "method": "analytic torus normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8579729460179806,
+            "maximum_unit_length_error": 1.4156104133355996e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cable_wrap.004",
+            "method": "analytic torus normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8579729832708836,
+            "maximum_unit_length_error": 1.1919668796434024e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cable_wrap.005",
+            "method": "analytic torus normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8579725150700597,
+            "maximum_unit_length_error": 1.4528633218713338e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cable_wrap.006",
+            "method": "analytic torus normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8579729851335287,
+            "maximum_unit_length_error": 1.5739352754451374e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "fairlead_mount",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.6379003264009953,
+            "maximum_unit_length_error": 8.408096263678999e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "fairlead",
+            "method": "analytic torus normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8579721862382712,
+            "maximum_unit_length_error": 1.4342368681585782e-07,
+            "positions_unchanged": true
+          }
+        ],
+        "volume_note": "Decorative components can intersect; this sum is not displacement."
+      },
+      "metric_materials": [
+        {
+          "region": "teal",
+          "roughness_factor": 0.41237112879753113,
+          "metallic_factor": 0
+        },
+        {
+          "region": "coral",
+          "roughness_factor": 0.3711340129375458,
+          "metallic_factor": 0
+        },
+        {
+          "region": "slate",
+          "roughness_factor": 0.7525773048400879,
+          "metallic_factor": 0
+        },
+        {
+          "region": "steel",
+          "roughness_factor": 0.30927833914756775,
+          "metallic_factor": 1
+        }
+      ],
+      "source_sha256": "5629c8f3367f44076b02af905398b9593939c352806a09e403495e38e18277d1",
+      "export_settings": {
+        "export_format": "GLB",
+        "use_selection": true,
+        "export_yup": true,
+        "export_apply": true,
+        "export_materials": "EXPORT",
+        "export_normals": true,
+        "export_texcoords": true,
+        "export_tangents": true,
+        "export_animations": false,
+        "export_skins": false,
+        "export_morph": false,
+        "export_cameras": false,
+        "export_lights": false,
+        "export_extras": false,
+        "export_vertex_color": "NONE",
+        "export_all_vertex_colors": false
+      }
+    },
+    {
+      "lod": 2,
+      "vertices": 504,
+      "triangles": 280,
+      "materials": 4,
+      "geometry": {
+        "degenerate_faces": 0,
+        "nonmanifold_edges": 0,
+        "summed_component_volume_m3": 0.6119275352211841,
+        "interface_checks": {
+          "flange_cheek_clearance_metres": [
+            0.010000020265579224,
+            0.010000020265579224
+          ],
+          "flange_x_bounds": [
+            [
+              -0.25999999046325684,
+              -0.20999999344348907
+            ],
+            [
+              0.20999999344348907,
+              0.25999999046325684
+            ]
+          ],
+          "drum_x_bounds": [
+            -0.20999999344348907,
+            0.20999999344348907
+          ]
+        },
+        "metric_uv": {
+          "period_metres": 0.5,
+          "tile_pixels": 0,
+          "surface_area_m2": 11.192089606294019,
+          "near_equivalent_texels_per_metre": {
+            "minimum": 255.99964427885612,
+            "maximum": 256.0003376002156,
+            "rms": 255.99999473005767
+          },
+          "maximum_principal_stretch": 1.0000025833308797,
+          "excluded_tiny_triangles": 0,
+          "qualification": "Near is 256 texels/metre; Middle 128; Far uses material factors without detail textures. Hard-edge charts may differ in phase."
+        },
+        "surface_shading": [
+          {
+            "component": "winch_foot",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 30,
+            "minimum_face_alignment": 0.9999998509883881,
+            "maximum_unit_length_error": 1.0430813379702641e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "mast_cheek",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 12,
+            "minimum_face_alignment": 1.0,
+            "maximum_unit_length_error": 0.0,
+            "positions_unchanged": true
+          },
+          {
+            "component": "mast_cheek.001",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 12,
+            "minimum_face_alignment": 1.0,
+            "maximum_unit_length_error": 0.0,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cable_drum",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 20,
+            "minimum_face_alignment": 0.9510564208030701,
+            "maximum_unit_length_error": 8.940697115988883e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "drum_flange",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 20,
+            "minimum_face_alignment": 0.9510563910007477,
+            "maximum_unit_length_error": 8.940697115988883e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "drum_flange.001",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 20,
+            "minimum_face_alignment": 0.9510563910007477,
+            "maximum_unit_length_error": 8.940697115988883e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "fairlead_mount",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 12,
+            "minimum_face_alignment": 1.0,
+            "maximum_unit_length_error": 0.0,
+            "positions_unchanged": true
+          },
+          {
+            "component": "fairlead",
+            "method": "analytic torus normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.6947210303335396,
+            "maximum_unit_length_error": 1.1982130465604257e-07,
+            "positions_unchanged": true
+          }
+        ],
+        "volume_note": "Decorative components can intersect; this sum is not displacement."
+      },
+      "metric_materials": [
+        {
+          "region": "teal",
+          "roughness_factor": 0.4000000059604645,
+          "metallic_factor": 0
+        },
+        {
+          "region": "coral",
+          "roughness_factor": 0.36000001430511475,
+          "metallic_factor": 0
+        },
+        {
+          "region": "slate",
+          "roughness_factor": 0.7300000190734863,
+          "metallic_factor": 0
+        },
+        {
+          "region": "steel",
+          "roughness_factor": 0.30000001192092896,
+          "metallic_factor": 1
+        }
+      ],
+      "source_sha256": "2a6893917a86a818912107eab58c29944449388d0b6f6a84324ce898f23686fe",
+      "export_settings": {
+        "export_format": "GLB",
+        "use_selection": true,
+        "export_yup": true,
+        "export_apply": true,
+        "export_materials": "EXPORT",
+        "export_normals": true,
+        "export_texcoords": true,
+        "export_tangents": true,
+        "export_animations": false,
+        "export_skins": false,
+        "export_morph": false,
+        "export_cameras": false,
+        "export_lights": false,
+        "export_extras": false,
+        "export_vertex_color": "NONE",
+        "export_all_vertex_colors": false
+      }
+    }
+  ],
+  "cross_lod_clearances": [
+    {
+      "peg_lod": 0,
+      "well_lod": 0,
+      "minimum_profile_clearance_metres": 0.009561230581693118,
+      "axial_spare_depth_metres": 0.020000000000000018
+    },
+    {
+      "peg_lod": 0,
+      "well_lod": 1,
+      "minimum_profile_clearance_metres": 0.020993871963508524,
+      "axial_spare_depth_metres": 0.020000000000000018
+    },
+    {
+      "peg_lod": 0,
+      "well_lod": 2,
+      "minimum_profile_clearance_metres": 0.014542375293720851,
+      "axial_spare_depth_metres": 0.020000000000000018
+    },
+    {
+      "peg_lod": 1,
+      "well_lod": 0,
+      "minimum_profile_clearance_metres": 0.009561230581693118,
+      "axial_spare_depth_metres": 0.020000000000000018
+    },
+    {
+      "peg_lod": 1,
+      "well_lod": 1,
+      "minimum_profile_clearance_metres": 0.027022111065445806,
+      "axial_spare_depth_metres": 0.020000000000000018
+    },
+    {
+      "peg_lod": 1,
+      "well_lod": 2,
+      "minimum_profile_clearance_metres": 0.014542375293720851,
+      "axial_spare_depth_metres": 0.020000000000000018
+    },
+    {
+      "peg_lod": 2,
+      "well_lod": 0,
+      "minimum_profile_clearance_metres": 0.009561230581693118,
+      "axial_spare_depth_metres": 0.020000000000000018
+    },
+    {
+      "peg_lod": 2,
+      "well_lod": 1,
+      "minimum_profile_clearance_metres": 0.027022111065445806,
+      "axial_spare_depth_metres": 0.020000000000000018
+    },
+    {
+      "peg_lod": 2,
+      "well_lod": 2,
+      "minimum_profile_clearance_metres": 0.037024256604011964,
+      "axial_spare_depth_metres": 0.020000000000000018
+    }
+  ],
+  "provenance": "Original procedural geometry/maps; no generated image or third-party model input",
+  "recipes": {
+    "author_functional_kit.py": "0578e77d83ca57142abc4c0d3971f0356a09e8ce2977914e42df8e93430c1c8d",
+    "functional_kit.py": "0fa6d4db841cecdd21689719bc37f73d16ed4ee508c2f59a6831954cbdb67f94",
+    "author_pontoon.py": "65142b372f2ec48eec8d994c751dca8b3263f492da39e27393e4d615242ce4b5",
+    "pontoon_parameters.py": "348dd03c4f49009f14d8b430728b87925458a27f8a4db1923cffce93b8e4260a",
+    "material_standards.py": "db73169a82645f11adebe993b263898ea7d68827e34aeb2289b0fce99ad78360",
+    "metric_materials.py": "e4d31cdf8ee8bf46dab081589f6f5aa876eb984801416dc8e4e0feb5f6af32f5",
+    "surface_shading.py": "6976c63586977d513dffe311b283bb8026a6ac51c4c62eaedcf4703d9bfd047f",
+    "authoring_probe.py": "81edf36885bedff0f51380c89213094dad908d9287bbfd74987e363d392edbc0"
+  },
+  "render": {
+    "engine": "Cycles",
+    "device": "CPU",
+    "samples": 24,
+    "threads": 4,
+    "seed": 0
+  },
+  "files": {
+    "preview.png": {
+      "sha256": "610a8ec3b96c5c28acc0dc3b5c94dc5a33b971144fd8a2414c01d34e08b039b7",
+      "bytes": 312971
+    },
+    "source/maps/metric-lod-0-metallic_roughness.png": {
+      "sha256": "ec1124fce481138952b5e090bf66277fab984bbe5395bd512f7212da704950c0",
+      "bytes": 2676
+    },
+    "source/maps/metric-lod-0-normal.png": {
+      "sha256": "b42db2b12e24ca7d3972b75d1bc61ce5a36577e5b1b66c3fc76fb865394d0796",
+      "bytes": 4640
+    },
+    "source/maps/metric-lod-1-metallic_roughness.png": {
+      "sha256": "70cb3037c572b44b63efc8a1c6a775a38f5f81929214a47b7052724d7c01e1fb",
+      "bytes": 789
+    },
+    "source/maps/metric-lod-1-normal.png": {
+      "sha256": "fe07ce9d85b8dbc98a28c970dd8718afcbc8068094c8e84d35def1adba7f22e1",
+      "bytes": 1679
+    },
+    "source/winch-lod-0.glb": {
+      "sha256": "4587340e5eb174152f82aad646282b5ddba7b64ac9a5084d7bf6d6576a302abd",
+      "bytes": 562472
+    },
+    "source/winch-lod-1.glb": {
+      "sha256": "5629c8f3367f44076b02af905398b9593939c352806a09e403495e38e18277d1",
+      "bytes": 230832
+    },
+    "source/winch-lod-2.glb": {
+      "sha256": "2a6893917a86a818912107eab58c29944449388d0b6f6a84324ce898f23686fe",
+      "bytes": 30400
+    },
+    "source/winch.blend": {
+      "sha256": "7e749c489dc4e8b7cc2be86f2598823a4135347e3a4bf6a5bb6e50543be20fcd",
+      "bytes": 355711
+    },
+    "source/winch.gameplay.json": {
+      "sha256": "fb64b44d42de42677dfbd76fbb482d8f4d4c342bb078f43224f685bc580cb380",
+      "bytes": 11125
+    }
+  }
+}

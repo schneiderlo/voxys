@@ -1,0 +1,238 @@
+{
+  "schema": 1,
+  "status": "staged release candidate; independent pipeline acceptance pending; not published",
+  "part": {
+    "namespace": "766f7879732d73616c766167652d7631",
+    "counter": "3",
+    "version": 2
+  },
+  "input_candidate": "/home/modkin/workspace/schneiderlo/voxys/data/salvage/pontoon/candidates/v2-r05",
+  "input_authoring_sha256": "e5736f4af39fbcb4edfcee75a34cd936a090d0a67bb55306db201a805dfa1bb5",
+  "input_review_sha256": "83b0842c37933c53864e8fffa0440a6cc4c982d11c2a3fb88ae6ede93908458d",
+  "blender_version": "5.2.1 LTS",
+  "blender_build": "9e2066aef7ef",
+  "maps": "Original deterministic procedural sRGB color and separate linear normal/MR; no baked lighting, no external imagery",
+  "origin": "Original project geometry/script/maps; concept used as art-direction reference only",
+  "cook_command": [
+    "/nix/store/0k05rim4nalb3sshxdrbkqski6w9l907-python3-3.13.13-env/bin/python3",
+    "/home/modkin/workspace/schneiderlo/voxys/tools/salvage_assets/cook_gameplay_asset.py",
+    "--sidecar",
+    "/home/modkin/workspace/schneiderlo/voxys/data/salvage/pontoon/release-candidates/v2-rc01/source/pontoon.gameplay.json",
+    "--sources",
+    "/home/modkin/workspace/schneiderlo/voxys/data/salvage/pontoon/release-candidates/v2-rc01/source",
+    "--output",
+    "/home/modkin/workspace/schneiderlo/voxys/data/salvage/pontoon/release-candidates/v2-rc01/cooked",
+    "--converter",
+    "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/gltf_vmesh_tool",
+    "--validator",
+    "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/gameplay_sidecar_tool"
+  ],
+  "converter_sha256": "9de1ede050e226e444ab3c2dbe44e358c6f0ca04d299de9582b9d6ea1e1a93fa",
+  "validator_sha256": "837b01c0ddcfdec1bbc48442aff6f1fb9a7d330203958c1591d9b955c7f68858",
+  "runtime_payloads_unchanged": {
+    "gameplay.json": "f02c291deac15a4d7be6378991538304f4fa3ef1c30d1bf855d331912f91c1aa",
+    "lod-1.vmesh": "9fbc12c1066e2e584304765ea8ca0d8a212e64f0e1d1a89ae4338ecd22ecec4c",
+    "lod-2.vmesh": "91eade3cf71dda138d4b46033059444235f626f689a4184155d597f457fcfc04",
+    "lod-3.vmesh": "d1f2f434b42386ef415819bc64d89add1dd118b271076a82b6b8a9094e6aa319"
+  },
+  "independent_review_complete": false,
+  "published": false,
+  "files": {
+    "README.md": {
+      "sha256": "a97bbabf426d65a7167ca3403493078ae3f9ef76b0e1b1187d67a29ddba19b8a",
+      "bytes": 3587
+    },
+    "cooked/cook-manifest.json": {
+      "sha256": "5cb23035a14272257af22ae4af47e7fcd863b8b310186346acbf7915fba8818e",
+      "bytes": 1725
+    },
+    "cooked/gameplay.json": {
+      "sha256": "f02c291deac15a4d7be6378991538304f4fa3ef1c30d1bf855d331912f91c1aa",
+      "bytes": 15828
+    },
+    "cooked/lod-1.vmesh": {
+      "sha256": "9fbc12c1066e2e584304765ea8ca0d8a212e64f0e1d1a89ae4338ecd22ecec4c",
+      "bytes": 3863598
+    },
+    "cooked/lod-2.vmesh": {
+      "sha256": "91eade3cf71dda138d4b46033059444235f626f689a4184155d597f457fcfc04",
+      "bytes": 867702
+    },
+    "cooked/lod-3.vmesh": {
+      "sha256": "d1f2f434b42386ef415819bc64d89add1dd118b271076a82b6b8a9094e6aa319",
+      "bytes": 59830
+    },
+    "history/authoring.json": {
+      "sha256": "e5736f4af39fbcb4edfcee75a34cd936a090d0a67bb55306db201a805dfa1bb5",
+      "bytes": 28781
+    },
+    "history/contact-sheet.json": {
+      "sha256": "5ab268019d7a66e77d7fa79d4d5b57280f8984ecd52f9449deb4a911034129d1",
+      "bytes": 2784
+    },
+    "history/cook.log": {
+      "sha256": "429adacd9a09852bfeb978dd6ae98394373da229f62bbd86d80c6b596341e277",
+      "bytes": 144
+    },
+    "history/previous-cook-manifest.json": {
+      "sha256": "fe1da44021d57e4a96cbcb38d3066a59ae2489c9152dca4d85d978a2f172b605",
+      "bytes": 1725
+    },
+    "history/review-artifacts.json": {
+      "sha256": "83b0842c37933c53864e8fffa0440a6cc4c982d11c2a3fb88ae6ede93908458d",
+      "bytes": 2685
+    },
+    "history/thumbnail.json": {
+      "sha256": "29ed7502ea814ad6691774986e4a64c13980af8202c48621c5b8ef618024b82d",
+      "bytes": 1203
+    },
+    "preview/authoring-thumbnail-640.png": {
+      "sha256": "c3797d0339e9a730cf177caa0fa2980729fa0fed66ff739bdde3fae2e0b82175",
+      "bytes": 523666
+    },
+    "preview/bottom.png": {
+      "sha256": "250d19ec4e31caad54f5d1e0f35e9f59aa0f08b0eea63c65e0315d8310322adf",
+      "bytes": 388232
+    },
+    "preview/contact-sheet.html": {
+      "sha256": "9aec57fe779e93bc387e0097e94635219c607b5b8553e18c05c9014cde8d731a",
+      "bytes": 5400391
+    },
+    "preview/contact-sheet.png": {
+      "sha256": "c6696dbb1f9d36817705e5e86c376695385a2e0ae798fb6b4f3fd79e47d44ae2",
+      "bytes": 1402861
+    },
+    "preview/engaged.png": {
+      "sha256": "28795dec4583cc6388720c9589e8ce5d01df6f68d14b11af25642c4a0da08169",
+      "bytes": 414323
+    },
+    "preview/exploded.png": {
+      "sha256": "5b3d7372f9a4d897e39bee8d3b00ec886fda91ef7e8ea8c9844634f3eca30212",
+      "bytes": 427883
+    },
+    "preview/front.png": {
+      "sha256": "60d834441e600e6e07ec2e6af5f51eafc513d8bac7ac7ff5b79ed2669a956b17",
+      "bytes": 486976
+    },
+    "preview/left.png": {
+      "sha256": "2663491a9c41ef4d0a4475a70adb1039db41e5ecac369a25b74a850aef697b96",
+      "bytes": 495435
+    },
+    "preview/lod-1.png": {
+      "sha256": "3ccea1837ec5aed8c4a9e406a769d406f2b13aec8ef00557a421f42e0dda1567",
+      "bytes": 523829
+    },
+    "preview/lod-2.png": {
+      "sha256": "0c36715820bed335b42c0b2b49283238cfce2f71e54d33491a17b7864d65d071",
+      "bytes": 516360
+    },
+    "preview/rear.png": {
+      "sha256": "f77381b20669da99a4f4941fa4ba6ae0b094ad1933ab549354410ef80434f395",
+      "bytes": 485728
+    },
+    "preview/right.png": {
+      "sha256": "513d8a439920682c896a295020c7f63b9aa8364d268336cb8ce55f336befd17f",
+      "bytes": 489127
+    },
+    "preview/socket-pegs.png": {
+      "sha256": "92cc26f267e223acb1484329a99e58505f8f900dbe4000ed7a854ed5fd86f647",
+      "bytes": 449986
+    },
+    "preview/socket-wells.png": {
+      "sha256": "9f4df053c1e9a9a2142dbcf659432fe4015ceddd51943ae1ba9e5ca0071d5ea2",
+      "bytes": 455940
+    },
+    "preview/thumbnail.png": {
+      "sha256": "64765e8d135ba179205e908f32e4f7b6d4c7f6accade99e7bdbea9db24ead2ad",
+      "bytes": 340566
+    },
+    "preview/top.png": {
+      "sha256": "87fef2fcf686d14307bddc9b478f21ec14aa29d35a12c208c43e02780faf7de4",
+      "bytes": 383291
+    },
+    "preview/turntable.webm": {
+      "sha256": "beb1e0aaf9e51a8a44b373554c34dc2dc22f73fbe99994ad44fbd5f8d0ea2bbc",
+      "bytes": 154894
+    },
+    "recipes/author_pontoon.py": {
+      "sha256": "b49a81e67d8d9ac4ed1306e9eba24c96285905f469b26a47ab53c12023533934",
+      "bytes": 27954
+    },
+    "recipes/cook_gameplay_asset.py": {
+      "sha256": "88a32ac9824e2a9864f4d97e4311eeb27a312d917e3ce23d41fd5953c0e7023a",
+      "bytes": 13128
+    },
+    "recipes/pontoon.spec.json": {
+      "sha256": "915318acb44f5a618d011c3645e6af0ec74935a9d907dc14ade84fde294106c9",
+      "bytes": 288
+    },
+    "recipes/pontoon_contact_sheet.py": {
+      "sha256": "5e258a0ac521574bfe373f4655ed39ccf07bb0b435595e904a9fa5f35d3d72f2",
+      "bytes": 3066
+    },
+    "recipes/pontoon_parameters.py": {
+      "sha256": "348dd03c4f49009f14d8b430728b87925458a27f8a4db1923cffce93b8e4260a",
+      "bytes": 10449
+    },
+    "recipes/prepare_pontoon_release.py": {
+      "sha256": "f51203991689141bae96e6f5c321479a2bc6926f2475401bdf14e78e1672e87e",
+      "bytes": 9956
+    },
+    "recipes/render_pontoon_review.py": {
+      "sha256": "4e5a596d73a8e27d13f9462e2428d082be0f08e5550dbff5b27d5e9a178388bc",
+      "bytes": 3253
+    },
+    "source/maps/pontoon-lod-0-base_color.png": {
+      "sha256": "0adef439803e95faf129d068197b259823494029a743c304aa9eaa6de1fdbac3",
+      "bytes": 25515
+    },
+    "source/maps/pontoon-lod-0-metallic_roughness.png": {
+      "sha256": "21467ed4ea07dfb42563b75f00aa9153570f98e09069fde92bfcce8ed6e70aaf",
+      "bytes": 51151
+    },
+    "source/maps/pontoon-lod-0-normal.png": {
+      "sha256": "618952ddbcb861e4bee7917b7c0f5a261e4011a0ea61d3080283c40a58132012",
+      "bytes": 15178
+    },
+    "source/maps/pontoon-lod-1-base_color.png": {
+      "sha256": "0a27bdefd1fb1db5a6e471e45f4e73224e191fed1bf40d5ed2500809fb4f2458",
+      "bytes": 6889
+    },
+    "source/maps/pontoon-lod-1-metallic_roughness.png": {
+      "sha256": "810ea9342867e8cc42810421fdedc00c2a60fb81d3b870ffcf4e8847d094ea7e",
+      "bytes": 15436
+    },
+    "source/maps/pontoon-lod-1-normal.png": {
+      "sha256": "01ffdea91662902a4e9f2464aee94c849f3b34fa960f5d3cc0389499c3fdf24f",
+      "bytes": 3791
+    },
+    "source/maps/pontoon-lod-2-base_color.png": {
+      "sha256": "1c957f26580d9f0ce6a57226cbab12c627e3b42843fc5241686cf339cdd5e386",
+      "bytes": 1143
+    },
+    "source/parameters.json": {
+      "sha256": "915318acb44f5a618d011c3645e6af0ec74935a9d907dc14ade84fde294106c9",
+      "bytes": 288
+    },
+    "source/pontoon-lod-0.glb": {
+      "sha256": "6d29ff5cbc622121bdfe0f8018fa8f848f24622d3be3e23b39ecae83e5bb8251",
+      "bytes": 578960
+    },
+    "source/pontoon-lod-1.glb": {
+      "sha256": "e6dd2db5d4f51400bad16446939cc8496786be7c94b062842c85d4ab1604f320",
+      "bytes": 82800
+    },
+    "source/pontoon-lod-2.glb": {
+      "sha256": "f14431e42c748227807e0c5aa6ba6faaa5ca1d02adc9f0ea01aff85489b533b3",
+      "bytes": 31796
+    },
+    "source/pontoon.blend": {
+      "sha256": "5993a6a6095242732a11c6af17008542e77590d2f0f7f7bc18a2cfebc24d1cd2",
+      "bytes": 332769
+    },
+    "source/pontoon.gameplay.json": {
+      "sha256": "e9f39c0e80b859f87f295530185a698f0697e57034bc32493ac6ba2f73aaeddc",
+      "bytes": 15738
+    }
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "status": "passed_linux_storage_component_only",
+  "date": "2026-09-09",
+  "native_regressions": 211,
+  "cmake_storage_tests": 12,
+  "wasm_shared_tests": 143,
+  "skipped": 0,
+  "filesystem": "ext4",
+  "native_storage_cases": 9,
+  "actual_SIGKILL_boundaries_per_native_suite": 16,
+  "injected_io_failures_per_native_suite": 16,
+  "injected_space_permission_classes": [
+    "ENOSPC",
+    "EDQUOT",
+    "EACCES",
+    "EROFS"
+  ],
+  "both_application_builds": "passed",
+  "cmake_authority_manifest_and_build": "passed_after_missing_authored_body_frame_source_added",
+  "screenshots": 0,
+  "power_loss_certified": false,
+  "windows_backend": false,
+  "game_save_UI_connected": false,
+  "physical_restore": false,
+  "full_SAVE_02_complete": false,
+  "gate_passed": false
+}

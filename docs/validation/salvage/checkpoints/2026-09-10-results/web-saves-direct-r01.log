@@ -1,0 +1,112 @@
+TAP version 13
+# Subtest: restoration cannot activate before the paired lineage is committed
+ok 1 - restoration cannot activate before the paired lineage is committed
+  ---
+  duration_ms: 3.824988
+  type: 'test'
+  ...
+# Subtest: failed publication closes admission and never activates the saved world
+ok 2 - failed publication closes admission and never activates the saved world
+  ---
+  duration_ms: 2.019683
+  type: 'test'
+  ...
+# Subtest: missing selected world cannot launch a fresh world or grant materials
+ok 3 - missing selected world cannot launch a fresh world or grant materials
+  ---
+  duration_ms: 0.145961
+  type: 'test'
+  ...
+# Subtest: page closure during publication cannot release a retired owner
+ok 4 - page closure during publication cannot release a retired owner
+  ---
+  duration_ms: 1.858794
+  type: 'test'
+  ...
+# Subtest: invalid selected world refuses without opening storage or starting the game
+ok 5 - invalid selected world refuses without opening storage or starting the game
+  ---
+  duration_ms: 0.509928
+  type: 'test'
+  ...
+# Subtest: manual save is pause-only, hides outside the cove, and acknowledges actual publication
+ok 6 - manual save is pause-only, hides outside the cove, and acknowledges actual publication
+  ---
+  duration_ms: 0.87719
+  type: 'test'
+  ...
+# Subtest: failed manual save remains visibly unsaved and never changes the return address
+ok 7 - failed manual save remains visibly unsaved and never changes the return address
+  ---
+  duration_ms: 1.475822
+  type: 'test'
+  ...
+# Subtest: closing the save UI while publication is pending revokes the owner without reporting success
+ok 8 - closing the save UI while publication is pending revokes the owner without reporting success
+  ---
+  duration_ms: 1.15681
+  type: 'test'
+  ...
+# Subtest: delivery freezes until the exact archive publication completes, then acknowledges once
+ok 9 - delivery freezes until the exact archive publication completes, then acknowledges once
+  ---
+  duration_ms: 3.080225
+  type: 'test'
+  ...
+# Subtest: failed delivery is not acknowledged or retried every frame; explicit retry can commit
+ok 10 - failed delivery is not acknowledged or retried every frame; explicit retry can commit
+  ---
+  duration_ms: 3.436576
+  type: 'test'
+  ...
+# Subtest: closure after delivery publication starts never releases the live reward
+ok 11 - closure after delivery publication starts never releases the live reward
+  ---
+  duration_ms: 11.845223
+  type: 'test'
+  ...
+# Subtest: rejected delivery digest revokes admission instead of showing a reward
+ok 12 - rejected delivery digest revokes admission instead of showing a reward
+  ---
+  duration_ms: 3.046222
+  type: 'test'
+  ...
+# Subtest: harbor installation acknowledges its frozen archive without announcing a second payout
+ok 13 - harbor installation acknowledges its frozen archive without announcing a second payout
+  ---
+  duration_ms: 2.955983
+  type: 'test'
+  ...
+# Subtest: rescue saves unbanked cargo only after physical return joins, then acknowledges exact bytes
+ok 14 - rescue saves unbanked cargo only after physical return joins, then acknowledges exact bytes
+  ---
+  duration_ms: 3.125389
+  type: 'test'
+  ...
+# Subtest: failed rescue stays pending without automatic retry and explicit retry publishes once
+ok 15 - failed rescue stays pending without automatic retry and explicit retry publishes once
+  ---
+  duration_ms: 2.933031
+  type: 'test'
+  ...
+# Subtest: closing during rescue publication cannot release the retired game owner
+ok 16 - closing during rescue publication cannot release the retired game owner
+  ---
+  duration_ms: 11.823833
+  type: 'test'
+  ...
+# Subtest: starter rebuild and stock withdrawal save without granting a delivery reward
+ok 17 - starter rebuild and stock withdrawal save without granting a delivery reward
+  ---
+  duration_ms: 3.088219
+  type: 'test'
+  ...
+1..17
+# tests 17
+# suites 0
+# pass 17
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 64.440707

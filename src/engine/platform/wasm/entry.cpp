@@ -3,6 +3,7 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 
 #include "app/application.hpp"
+#include "game/expedition/cove_save.hpp"
 #include "camera/camera.hpp"
 #include "core/log.hpp"
 #include "core/config.hpp"
@@ -867,6 +868,10 @@ int main(int argc, char* argv[]) {
     // Parse command-line arguments and load config
     voxy::config::init(argc, argv);
     const auto& config = voxy::config::get();
+    if (config.automation.inspectionMotionRecipe || config.automation.inspectionMotionOutput) {
+        LOG_ERROR("Native inspection-motion arguments are not supported in the browser; use the browser capture runner");
+        return 1;
+    }
     const auto gameMode = voxy::config::resolveGameMode(config);
     if (!gameMode.ready()) {
         LOG_ERROR("Game mode is {}", voxy::config::gameModeStatusName(gameMode.status));
@@ -1018,6 +1023,12 @@ int main(int argc, char* argv[]) {
     appConfig.motoEnabled = gameMode.mode == voxy::config::GameMode::Ridgebreak;
     appConfig.legoTerrainEnabled = gameMode.legoTerrain();
     appConfig.salvagePreviewEnabled = gameMode.mode == voxy::config::GameMode::Salvage;
+    appConfig.salvageAssetFixtureRegistry = config.game.assetFixtureRegistry;
+    appConfig.salvageAssetFixtureGuides = config.game.assetFixtureGuides;
+    appConfig.salvageAssetFixtureFilteredLighting = config.game.assetFixtureLighting == "filtered";
+    appConfig.salvageAssetFixtureWaterAnchor = config.game.assetFixtureAnchor == "water";
+    appConfig.salvageAssetFixtureLod = config.game.assetFixtureLod == "near" ? 1
+        : config.game.assetFixtureLod == "middle" ? 2 : config.game.assetFixtureLod == "far" ? 3 : 0;
     
     // Window settings
     // The browser sizes the canvas before loading WASM. Preserve its pixel
@@ -1385,6 +1396,44 @@ const char* voxy_get_lego_hud_json() {
 }
 
 EMSCRIPTEN_KEEPALIVE
+const char* voxy_salvage_blueprint_action(int action,const char* text) {
+    static std::string result;
+    // ccall supplies a bounded UTF-8 string from the design library UI. The
+    // typed app/codec validate lengths, checksums and design semantics again.
+    result=g_app&&text?g_app->salvageBlueprintAction(action,text):"";
+    return result.c_str();
+}
+
+EMSCRIPTEN_KEEPALIVE
+int voxy_stage_cove_resume(const char* worldText,const char* archiveText) {
+    if(g_app || g_wasmAppInstance || !worldText || !archiveText)return 0;
+    const std::string_view world(worldText),hex(archiveText),digits="0123456789abcdef";
+    if(world.size()!=32 || hex.empty() || hex.size()%2 || hex.size()>2*voxy::game::expedition::kMaximumCoveSaveBytes)return 0;
+    try {
+        std::array<uint8_t,16> id{};std::vector<std::byte> bytes;bytes.reserve(hex.size()/2);
+        for(size_t i=0;i<world.size();i+=2){
+            const auto a=digits.find(world[i]),b=digits.find(world[i+1]);
+            if(a==digits.npos || b==digits.npos)return 0;
+            id[i/2]=static_cast<uint8_t>(a*16+b);
+        }
+        for(size_t i=0;i<hex.size();i+=2){
+            const auto a=digits.find(hex[i]),b=digits.find(hex[i+1]);
+            if(a==digits.npos || b==digits.npos)return 0;
+            bytes.push_back(static_cast<std::byte>(a*16+b));
+        }
+        auto app=std::make_unique<voxy::Application>();if(!app->stageCoveResume(id,bytes))return 0;
+        g_wasmAppInstance=std::move(app);return 1;
+    }catch(const std::bad_alloc&){return 0;}
+}
+
+EMSCRIPTEN_KEEPALIVE
+const char* voxy_salvage_expedition_action(int action,const char* text) {
+    static std::string result;
+    result=g_app&&text?g_app->salvageExpeditionAction(action,text):"";
+    return result.c_str();
+}
+
+EMSCRIPTEN_KEEPALIVE
 int voxy_salvage_preview_action(int action) {
     return g_app && g_app->salvagePreviewAction(action) ? 1 : 0;
 }
@@ -1456,7 +1505,13 @@ int voxy_set_camera_pose(float x, float y, float z,
         return 0;
     }
     voxy::Camera* camera = g_app->getCamera();
-    camera->setWorldPosition(glm::ivec3(0), glm::vec3(x, y, z));
+    if (g_app->getConfig().salvageAssetFixtureRegistry) {
+        if (!voxy::physics::isRepresentableAbsolutePosition(glm::vec3(x, y, z))) return 0;
+        const auto position = voxy::physics::worldPositionFromAbsolute(glm::dvec3(x, y, z));
+        camera->setWorldPosition(position.sector, position.local);
+    } else {
+        camera->setWorldPosition(glm::ivec3(0), glm::vec3(x, y, z));
+    }
     camera->setYaw(yaw);
     camera->setPitch(pitch);
     return 1;
@@ -1789,7 +1844,7 @@ const char* voxy_get_moto_hud_json() {
 
 EMSCRIPTEN_KEEPALIVE
 int voxy_is_initialized() {
-    return g_app != nullptr || g_physicsSelfTestRuntimeReady
+    return (g_app && g_app->isInitialized()) || g_physicsSelfTestRuntimeReady
         || g_physicsBenchmarkRuntimeReady ? 1 : 0;
 }
 

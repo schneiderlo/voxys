@@ -1,0 +1,42 @@
+{
+  "status": "passed",
+  "date": "2026-09-09",
+  "scope": "PLAY-02 module settings checkpoint; no full gate",
+  "checks": {
+    "native_application": "passed",
+    "wasm_application": "passed; existing unrelated warnings",
+    "native_tests": {
+      "passed": 166,
+      "skipped": 0,
+      "filter": "GameSession*:SessionJournal*:SessionEvent*:CoveMovement*:CoveNavigation*:FixtureRegistry*"
+    },
+    "ui_cases": 14,
+    "browser_real_controls": {
+      "status": "passed",
+      "recorded_stages": 9,
+      "physical_replacements": 4,
+      "screenshots": 0,
+      "default_thrust_newtons": 2500,
+      "tuned_thrust_newtons": 1875,
+      "default_steering_radians": 0.6,
+      "tuned_steering_radians": 0.3,
+      "zero_output_motion_check": true,
+      "reverse_thrust_motion_check": true,
+      "disabled_winch_refuses_hook": true,
+      "draft_cancel_undo": true,
+      "canonical_undo_redo": true,
+      "physical_reset_preserves_settings": true,
+      "material_balance": 48,
+      "drained_leave": true
+    },
+    "whitespace": "passed"
+  },
+  "package": "/tmp/voxys-settings-web-r01",
+  "preview": "http://127.0.0.1:38197/?experience=salvage-cove",
+  "next": [
+    "durable named and duplicated designs through SAVE",
+    "picking/controller/full workshop camera",
+    "engine drive networks and remaining typed settings",
+    "live cancellation/failure/capacity edge coverage"
+  ]
+}

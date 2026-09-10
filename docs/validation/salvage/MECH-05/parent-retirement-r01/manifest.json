@@ -1,0 +1,91 @@
+{
+  "status": "native primitive verified; full MECH-05 and gates open",
+  "execution": "Eight transaction cases pass in transactions-r01.xml; corrected actual authored split passes in authored-r02.xml; native/WASM application builds pass",
+  "limitation": "No live cove adapter or browser execution of bodyDestroys yet; wave-clock browser journey used the earlier frozen package",
+  "files": {
+    "src/physics/physics_types.hpp": {
+      "sha256": "2412958e6b34bb4f3151bbb05f78605f9128db4cb6353b5d3845fb6d1338f682",
+      "bytes": 34070
+    },
+    "src/physics/gpu/gpu_physics_backend.cpp": {
+      "sha256": "b6a2912fbb8e11088d5d3a41d0d2fce5862d57498f5e347f15b462a3b8d56106",
+      "bytes": 245642
+    },
+    "tests/test_gpu_physics.cpp": {
+      "sha256": "8986262f8d18e7a6b8a4fe5e204f24a3e21abae1902686fd3b809167560d37aa",
+      "bytes": 134398
+    },
+    "tests/test_cove_player.cpp": {
+      "sha256": "9300a0dae89206c0f18b11901c0d8144fdb1e10b58e96ff658de6d8b4b62955b",
+      "bytes": 118738
+    },
+    "tests/BUILD": {
+      "sha256": "1db7fe496a8ee22b1a40ff181ceb3ce3477a91586d49e4170cd6d1e604242000",
+      "bytes": 34606
+    },
+    "bazel-bin/voxy_native": {
+      "sha256": "1bd1c1c9d0d85bd0956890ba59c1ddab1be9cdb56456299b39e62dda021c674c",
+      "bytes": 6543344
+    },
+    "bazel-bin/tests/voxy_tests": {
+      "sha256": "55078e883ca056d6bac2e649cebcad3493db117d3d901bf5db323e1e4b1ad81c",
+      "bytes": 20078088
+    },
+    "build-lego-wasm/bin/voxy_wasm.wasm": {
+      "sha256": "cc4c6ed8648a8a400027b49cc88e57d5ce582da6ab7dd2ed03be5c6fc2b21bb4",
+      "bytes": 7038103
+    },
+    "docs/validation/salvage/MECH-05/parent-retirement-r01/README.md": {
+      "sha256": "1ad8f407e3cb5c8a56965c15042e1fc4df2967d7eb9aa6a5fdc67b110ff1e2f4",
+      "bytes": 3668
+    },
+    "docs/validation/salvage/MECH-05/parent-retirement-r01/checks/parent-retirement-wasm-build-r01.log": {
+      "sha256": "f657b38794d993640dfa3feca5f604a9ab3728fda474ec7e68fe41599fbc1861",
+      "bytes": 63856
+    },
+    "docs/validation/salvage/MECH-05/parent-retirement-r01/checks/transactions-r01.xml": {
+      "sha256": "add3b6cd31cca517cb2e1825c64d84d8ef6e1fb0baefdf605be172deddf40454",
+      "bytes": 2894
+    },
+    "docs/validation/salvage/MECH-05/parent-retirement-r01/checks/parent-retirement-authored-r02.log": {
+      "sha256": "ea3ab9638afb69e085907c4aa43becd82ca3418e5203f192486c8fa6f83411ea",
+      "bytes": 1056
+    },
+    "docs/validation/salvage/MECH-05/parent-retirement-r01/checks/authored-r02.xml": {
+      "sha256": "7b172015737334fe5d0b1fb12a0c8dfa2412a097c94c6f32b294e2e4b90941a7",
+      "bytes": 574
+    },
+    "docs/validation/salvage/MECH-05/parent-retirement-r01/checks/parent-retirement-build-r02.log": {
+      "sha256": "2c0ad661eb959326bcb2b693e73dcd7b51234d91706031f1c2fbf7dba80b7c5b",
+      "bytes": 743
+    },
+    "docs/validation/salvage/MECH-05/parent-retirement-r01/checks/parent-retirement-cmake-build-r01.log": {
+      "sha256": "da862e0c20504d17859bed96a4efe14cb5dcd90e81841765f61f45f1c633c17c",
+      "bytes": 4746
+    },
+    "docs/validation/salvage/MECH-05/parent-retirement-r01/checks/parent-retirement-tests-r01.log": {
+      "sha256": "2578cfe33005e686c8149e17cd91a6db1989759d55fc8686a1c658af8d064d83",
+      "bytes": 8189
+    },
+    "docs/validation/salvage/MECH-05/parent-retirement-r01/checks/authored-r02.log": {
+      "sha256": "1dd15420e8033ab071ec2dd833302bd4d08a2b88a353664cfa69c7cd589d130b",
+      "bytes": 1423
+    },
+    "docs/validation/salvage/MECH-05/parent-retirement-r01/checks/transactions-r01.log": {
+      "sha256": "4bafbe18b350fa7803c349fa35611c9f43fb099b78c760fd4af1b1ad7ac83498",
+      "bytes": 7081
+    },
+    "docs/validation/salvage/MECH-05/parent-retirement-r01/checks/parent-retirement-cmake-build-r02.log": {
+      "sha256": "c996c6de9be91c503eb04220ccc074b4508d010ace893123f0e340aed7f8be0f",
+      "bytes": 1062
+    },
+    "docs/validation/salvage/MECH-05/parent-retirement-r01/checks/parent-retirement-wasm-build-r02.log": {
+      "sha256": "2f30811d3933a1f9357f6ccdf463d67ad7fa1ab40a9682ef38ac62cd141f88b4",
+      "bytes": 1588
+    },
+    "docs/validation/salvage/MECH-05/parent-retirement-r01/checks/parent-retirement-build-r01.log": {
+      "sha256": "1714175fc9816714cdaaaee480b916219e6fec0a867b1d2714d1f203869d07fc",
+      "bytes": 6841
+    }
+  }
+}

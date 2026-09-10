@@ -83,7 +83,11 @@ public:
                 * config_.readbackSlots,
             .usage = WGPUBufferUsage_Uniform | WGPUBufferUsage_CopyDst,
         });
-        if (!requestBuffer_ || !outputBuffer_ || !parameterBuffer_
+        const std::array<uint32_t, 8> emptyHeap{};
+        emptyShapeHeap_ = gpu::createBufferWithData(device_, queue_,
+            gpu::BufferDesc::storage(sizeof(emptyHeap), true, "physics_query_empty_shape_heap"),
+            std::span<const uint32_t>(emptyHeap));
+        if (!requestBuffer_ || !outputBuffer_ || !parameterBuffer_ || !emptyShapeHeap_
             || !readback_.initialize(
                 device_, config_.readbackSlots,
                 size_t{config_.requestCapacity} * sizeof(GpuQueryOutput))) {
@@ -108,6 +112,7 @@ public:
         entries.emplace_back(4).computeVisible().storageBuffer(false);
         entries.emplace_back(5).computeVisible().uniformBuffer(
             false, sizeof(Params));
+        entries.emplace_back(6).computeVisible().storageBuffer(true);
         bindGroupLayout_ = gpu::createBindGroupLayout(
             device_, entries, "physics_query_layout");
         if (!bindGroupLayout_) {
@@ -135,7 +140,7 @@ public:
             uint64_t{config_.requestCapacity} * sizeof(GpuQueryOutput)
             + (requestStride_ + gpu::alignUniformBufferSize(sizeof(Params)))
                 * config_.readbackSlots
-            + readback_.allocatedBytes());
+            + readback_.allocatedBytes() + sizeof(emptyHeap));
         return true;
     }
 
@@ -148,6 +153,7 @@ public:
         releaseBuffer(parameterBuffer_);
         releaseBuffer(outputBuffer_);
         releaseBuffer(requestBuffer_);
+        releaseBuffer(emptyShapeHeap_);
         device_ = nullptr;
         queue_ = nullptr;
         config_ = {};
@@ -195,7 +201,7 @@ public:
             pendingSlot_ * gpu::alignUniformBufferSize(sizeof(Params));
         if (!gpu::writeBuffer(queue_, parameterBuffer_, parameterOffset, params))
             return false;
-        const std::array<gpu::BindGroupEntry, 6> entries = {
+        const std::array<gpu::BindGroupEntry, 7> entries = {
             gpu::BindGroupEntry(0).buffer(bodyView_.poseBuffer),
             gpu::BindGroupEntry(1).buffer(bodyView_.shapeBuffer),
             gpu::BindGroupEntry(2).buffer(bodyView_.metadataBuffer),
@@ -205,6 +211,8 @@ public:
             gpu::BindGroupEntry(4).buffer(outputBuffer_),
             gpu::BindGroupEntry(5).buffer(
                 parameterBuffer_, parameterOffset, sizeof(Params)),
+            gpu::BindGroupEntry(6).buffer(bodyView_.authoredShapeBuffer
+                ? bodyView_.authoredShapeBuffer : emptyShapeHeap_),
         };
         WGPUBindGroup group = gpu::createBindGroup(
             device_, bindGroupLayout_, entries, "physics_query_bind_group");
@@ -264,6 +272,7 @@ public:
     WGPUBuffer parameterBuffer_ = nullptr;
     WGPUShaderModule shaderModule_ = nullptr;
     WGPUBindGroupLayout bindGroupLayout_ = nullptr;
+    WGPUBuffer emptyShapeHeap_ = nullptr;
     WGPUPipelineLayout pipelineLayout_ = nullptr;
     WGPUComputePipeline pipeline_ = nullptr;
     DebugReadbackRing readback_{};

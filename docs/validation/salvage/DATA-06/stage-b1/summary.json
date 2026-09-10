@@ -1,0 +1,297 @@
+{
+  "stage": "DATA-06/stage-b1",
+  "validated_date": "2026-09-08",
+  "component_checks_passed": true,
+  "task_accepted": false,
+  "independent_review": "pending; review requests are not performed reviews",
+  "gate_committed": false,
+  "base_commit": "7f28fabfabf3d63726f6cfa1001c3ce1ed557911",
+  "branch": "codex/salvage-implementation",
+  "native_cases": {
+    "cmake-session": {
+      "tests": "95",
+      "failures": "0",
+      "disabled": "0",
+      "errors": "0",
+      "time": "0.178"
+    },
+    "cmake-journal": {
+      "tests": "12",
+      "failures": "0",
+      "disabled": "0",
+      "errors": "0",
+      "time": "0."
+    },
+    "cmake-events": {
+      "tests": "15",
+      "failures": "0",
+      "disabled": "0",
+      "errors": "0",
+      "time": "0.001"
+    },
+    "ubsan": {
+      "tests": "122",
+      "failures": "0",
+      "disabled": "0",
+      "errors": "0",
+      "time": "0.651"
+    }
+  },
+  "wasm_cases": {
+    "passed": 122,
+    "skipped": 0,
+    "disabled": 0
+  },
+  "wasm_policy": {
+    "exception_mode": "js",
+    "asyncify": true,
+    "fixed_heap_bytes": 67108864,
+    "fixed_stack_bytes": 1048576
+  },
+  "bazel": {
+    "log": "bazel-attempt02.log",
+    "targets_passed": 3,
+    "executed": 1,
+    "cached": 2
+  },
+  "probes_each_runtime": {
+    "transactionBoundaries": 9,
+    "retirementBoundaries": 4,
+    "restoreFailures": 294,
+    "creationFailures": 26,
+    "baselineFailures": 7,
+    "futureEvents": 3,
+    "publicationAllocationAttempts": 0
+  },
+  "sizes_bytes": {
+    "native": {
+      "baseline_fixed": 11448,
+      "baseline_fixture_owned": 12216,
+      "hub": 381400
+    },
+    "wasm": {
+      "baseline_fixed": 11384,
+      "baseline_fixture_owned": 12128,
+      "hub": 393688
+    },
+    "maximum_baseline_owned": 8388608
+  },
+  "source_revalidation": [
+    {
+      "name": "shared_sources",
+      "checked": 52,
+      "mismatches": []
+    },
+    {
+      "name": "shared_tools",
+      "checked": 7,
+      "mismatches": []
+    },
+    {
+      "name": "probe_inputs",
+      "checked": 65,
+      "mismatches": []
+    }
+  ],
+  "browser": {
+    "status": "passed",
+    "browser": {
+      "protocolVersion": "1.3",
+      "product": "Chrome/152.0.7977.82",
+      "revision": "@d04cdb24d67b081f6cf80200ffc5233f44b61109",
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36",
+      "jsVersion": "15.2.124.21"
+    },
+    "adapter": {
+      "vendor": "amd",
+      "architecture": "rdna-3",
+      "device": "Unknown",
+      "description": "Unknown",
+      "fallback": false
+    },
+    "width": 1920,
+    "height": 1080,
+    "journey_stages": 9,
+    "pointer_lock_granted": true,
+    "browser_errors": [],
+    "command": "VOXY_SMOKE_GPU=gaming VOXY_SMOKE_WIDTH=1920 VOXY_SMOKE_HEIGHT=1080 VOXY_SMOKE_SALVAGE=/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/DATA-06/stage-b1/browser-journey VOXY_SMOKE_REPORT=/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/DATA-06/stage-b1/browser-report.json VOXY_SMOKE_SCREENSHOT=/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/DATA-06/stage-b1/browser-startup.png /home/modkin/.nix-profile/bin/node scripts/smoke_integrated_wasm.mjs /tmp/voxys-observation-browser-b1 salvage",
+    "package_files_verified": 54
+  },
+  "preserved_failures": [
+    "bazel-attempt01.log: dangling-else compile warning; explicit braces fixed before all final checks"
+  ],
+  "known_application_warnings": [
+    "WorldPosition defaulted comparison implicitly deleted",
+    "lego_layout_cache.hpp signedness conversion"
+  ],
+  "source_hashes": {
+    "CMakeLists.txt": "0c6d574d0c0ba0f5be44bbfdd83f7472a98dcf38bbec4d8bac37ad703d6f1981",
+    "docs/validation/salvage/DATA-06/stage-b1/baseline-faults.cpp": "8106d9e53342ea98d3a46400a0fdbecf1e1b111b33cbab939c47ce28c87402b7",
+    "docs/validation/salvage/DATA-06/stage-b1/build-probe.sh": "0b2319ef7c6f2f331dc870500aafd5ffcda61126f282163e4d6994e2e7b4c746",
+    "docs/validation/salvage/DATA-06/stage-b1/build-standalone.sh": "517c41b99dfcdd48ccd428ddfd83f59ec4a5059538cf4cb4959f690bdd6c604f",
+    "docs/validation/salvage/DATA-06/stage-b1/factory-faults.cpp": "03f5aebaac2e5e7fde7756a34e2a0550ebebbc2fb1b0ecca0285a1fc20da3bf3",
+    "docs/validation/salvage/DATA-06/stage-b1/retirement-guard.cpp": "830a21a427024321f152b53e6720b471f002c5b3c6b2d8ef3e6533733f092286",
+    "docs/validation/salvage/DATA-06/stage-b1/run-wasm-probes.py": "f41d6481c42eaf644ca3b9f6f84ab1981f4062134358db8dc70917f64a45d40f",
+    "docs/validation/salvage/DATA-06/stage-b1/transaction-guard.cpp": "1fc1b044707b700e36b605c855dc786ba18fb0c0332b60a19d04e1b356549872",
+    "scripts/smoke_integrated_wasm.mjs": "e39fdeb6ef1b3122323a0854d0dc334f0328e2841c7e6f884a81154ec8fdf8ce",
+    "scripts/validate_salvage_preview.mjs": "764cc197051cb55dc9f408c88bb5ef1596d0a97a3343914065bb874d4f37ade9",
+    "scripts/validate_session_transactions_wasm.py": "78a584f8127181db5c027545b6ca36bfad22532988ad66af46c644332e322530",
+    "src/CMakeLists.txt": "a01abcaf1c0f6f0b09425aa8c694d07a3af9c684a8283b16abeac07f4ef4582e",
+    "src/app/application.cpp": "5360f51cf5da250de8c0763c11dc5c3edd48af8fefac5be9a41a11310f605ed2",
+    "src/game/BUILD": "f588ba531922101edf54cc7c41d778cf64d61904d2e1daf7d607f0fffb05b043",
+    "src/game/construction/build_model.cpp": "5307ee045a24f3974ec109f914eb5f8d5a4c65755a32f7286ff6308be9cd508f",
+    "src/game/construction/build_model.hpp": "e99cf8d8b6a409276195a49d1887d6ee4518683b0cc4fa5550af08a7d3746f19",
+    "src/game/construction/construction_types.cpp": "4aa7ffdd6e608765b5245c94c53c2b54920705533283d270e5b6b4eee84ac4c8",
+    "src/game/construction/construction_types.hpp": "fb1aca2e406802452d0595fac47162822d26d4af3ec343859cbf13f8957912e8",
+    "src/game/construction/part_catalog.cpp": "24869c7c346d49421b2fe20123181e4e5738d6e6ddc366339292d3f12044bcf3",
+    "src/game/construction/part_catalog.hpp": "8c107f72da01b065f811db557b38de9a3a014e5717b3348951cfe21a07bc8c13",
+    "src/game/expedition/game_session.cpp": "1b4bd229fc97f1290537f2dabee0c779e72ec896a7f0425bf8ffffd33776d7e8",
+    "src/game/expedition/game_session.hpp": "68680b1d38dbd73a7216371bea545a01b0c283b0b052e9bf9c3fc5f98d664b95",
+    "src/game/expedition/session_events.cpp": "01aadb62dab8fef06719c22a62498f03d0cbf93918b1901bc93d3b5506269236",
+    "src/game/expedition/session_events.hpp": "284999021f95a76276720d969c7bba4f8b05897633425b7708abf5ad1d9e4627",
+    "src/game/expedition/session_recovery.cpp": "e1d3013a9e4b939e070c826d4e436127cdb52b14fb958a799e779a8580afe0e6",
+    "src/game/expedition/session_recovery.hpp": "45e58c2d65b87d23bed48cf4b899e9e26db80c75ba0d024b45fc1d9c4006005e",
+    "src/game/expedition/session_transactions.cpp": "8b858a0c41c5082f5ab6e5eb5e7784dcf6a31b295e52b7abdd62503b586ad8fc",
+    "src/game/expedition/session_transactions.hpp": "1f7d51c2c0f242ca384397ab5b9316884e9d5a6abd41051a60b7e985df10f329",
+    "tests/BUILD": "dd8369655a830192c8486548086a4d0aee175d2e26688e37cea9268188aa01e9",
+    "tests/CMakeLists.txt": "faab62786cac0ccc6698b5a55c07a85fae28733df5d4d56675e185bef673e9f1",
+    "tests/test_game_session.cpp": "f0db1b3b220a5907770f5662242895561bbfc7c253498086dfe4555f0229de57",
+    "tests/test_session_events.cpp": "8e10287b6616d8fed53219993651b512ff6442557847eb36a3825036e7944854",
+    "tests/test_session_transactions.cpp": "bffad21bc07f726bf9d6e591f3c891f664ce21a6a4c1d04c198b9cf7671bba60",
+    "third_party/googletest/googletest/include/gtest/gtest-assertion-result.h": "d6562e22c316e831bfbc2cde3b158f06380a22e7e1c6c1e180689abee5c5b972",
+    "third_party/googletest/googletest/include/gtest/gtest-death-test.h": "8decbb86ebbfa142fd78a83cfbeb4c5e73e98179058ce70fcc279935c497429a",
+    "third_party/googletest/googletest/include/gtest/gtest-matchers.h": "d637dd188944433c62d96a062f9b1adab851574c537d7021270c7a52a2759a90",
+    "third_party/googletest/googletest/include/gtest/gtest-message.h": "f1c7bd4e0c02240e884deed25a2e0bfd04e5e0c3fd778a3b126cbb64531f65a7",
+    "third_party/googletest/googletest/include/gtest/gtest-param-test.h": "1adb46e17e47fc2f40dc5b8e9acec4f01efa389a19bbea25d32aea28b94e32e6",
+    "third_party/googletest/googletest/include/gtest/gtest-printers.h": "f3396ea55d577ee04f15a2b14b14b76edb8a84d385c831defd88cff8535bc273",
+    "third_party/googletest/googletest/include/gtest/gtest-spi.h": "fc0bbebaeb211b81a2ec3df388e5e5f25a7c22e90186839854d2e5b26ce226e6",
+    "third_party/googletest/googletest/include/gtest/gtest-test-part.h": "2279b9bfd08aff7c0f764a2716bde0d3a61dc12573687a2cff91256b17681bf0",
+    "third_party/googletest/googletest/include/gtest/gtest-typed-test.h": "d56313830bf30d6271d7c1f8ca57dc52d95a10b97e4ace6efa0f085ae519303a",
+    "third_party/googletest/googletest/include/gtest/gtest.h": "93da03ddf6d5b9bdf40ae4ded9939067c9ed0b6de93f787f7e8d187609b6b02d",
+    "third_party/googletest/googletest/include/gtest/gtest_pred_impl.h": "85e850e735a42ebb5f9a01a018708c1c0b9b7d83c94b14b7d5d29512c00b6ffd",
+    "third_party/googletest/googletest/include/gtest/gtest_prod.h": "3c6301ef533db8686e474dd5a0de4d98a31cbb630e2273f712472d1be25aa261",
+    "third_party/googletest/googletest/include/gtest/internal/custom/gtest-port.h": "5e06747c9e8b86e9d841fabd61c2f045b2bb1133716f127be4a963ced1c44e01",
+    "third_party/googletest/googletest/include/gtest/internal/custom/gtest-printers.h": "b95afda2426e8c4f09c11d3296d522fb336b248c0da7e078388db4bb072c2166",
+    "third_party/googletest/googletest/include/gtest/internal/custom/gtest.h": "21d20a1c64ea38c20c4b12337c261a1a18989d2a30710a83dfb5cd9a3bb3c55e",
+    "third_party/googletest/googletest/include/gtest/internal/gtest-death-test-internal.h": "a70d1174ef668639c7af21764442f8e487b0fc70c237a70f90e3161a8e8262d6",
+    "third_party/googletest/googletest/include/gtest/internal/gtest-filepath.h": "544ce95d2e1e4b7ae17ee170f482aaa09e17d0056999c4ce7e7a6097c3a755cf",
+    "third_party/googletest/googletest/include/gtest/internal/gtest-internal.h": "a33806c8e6ca5eb6f839b8e015bdf8eae848641035f9499834f9d402b823d5fe",
+    "third_party/googletest/googletest/include/gtest/internal/gtest-param-util.h": "effa1b3e6a3554aae8fc82fbe88c1c3215f723bb3e2e444bf424f688c476a030",
+    "third_party/googletest/googletest/include/gtest/internal/gtest-port-arch.h": "37f6d5c70322ee5f4f84fafcb4e8e2f4bbf08a5afc64a6636cf6a9f45d442198",
+    "third_party/googletest/googletest/include/gtest/internal/gtest-port.h": "c22ef5c860dabc3e74225f3a54c2d7224375ad2dd2af619d3f8cbe7e917fc754",
+    "third_party/googletest/googletest/include/gtest/internal/gtest-string.h": "0cc08c746bceb2b101c61ffbc905c598eb62fee3c262c4585c21b10d8a3e6508",
+    "third_party/googletest/googletest/include/gtest/internal/gtest-type-util.h": "c1cf53463579025a7b25466e9680a778d74beff52d8a64b6e83fcb6dd99e4bb7",
+    "third_party/googletest/googletest/src/gtest-all.cc": "972d3016860f9aa6452e078cf77406290fb7003b66fd6c0744a030bd1c323606",
+    "third_party/googletest/googletest/src/gtest-assertion-result.cc": "dbd2235676dcc0ef6409108a4041e05442fc6895735a5561d71151e6a14296bb",
+    "third_party/googletest/googletest/src/gtest-death-test.cc": "4a0a2dad0efbb61c4f7686ccd326e19d6e5633c98202f6878fa2d18c52f3329a",
+    "third_party/googletest/googletest/src/gtest-filepath.cc": "8eec3fa2a0e6617106a8d9bfedf3209b0a8cad02e2a17e76196807290e940f8c",
+    "third_party/googletest/googletest/src/gtest-internal-inl.h": "fce60f191b52108b5851f6aec51a6f14001e1a79fd302d48c8fdbb842f8fef1a",
+    "third_party/googletest/googletest/src/gtest-matchers.cc": "e4ce9edf33493625353cc147a14caac14fdba7390d76166d101fa2fe9d16bbda",
+    "third_party/googletest/googletest/src/gtest-port.cc": "6e6c0346e833a254e52544728b40fd0cced0b36431e9eed8f5e477e6f5fe1a23",
+    "third_party/googletest/googletest/src/gtest-printers.cc": "bd14e45b5cb8df8be5944a0aaeb3739c533737a183ae4ed6627f5613eea1f6c9",
+    "third_party/googletest/googletest/src/gtest-test-part.cc": "b268314cbc718b485ff3e45fdeb5a1496bb8d87dadd5e824c558bf3b03e2dbf9",
+    "third_party/googletest/googletest/src/gtest-typed-test.cc": "b92e70b2d7ee3b86328162cbda269a28de4ce67f0e8d9beec5ec2c73a93ba006",
+    "third_party/googletest/googletest/src/gtest.cc": "53470c00499b943b4f5c3e7b581ffda9c76f828f485f33e17471aa08e8b296ac",
+    "third_party/googletest/googletest/src/gtest_main.cc": "3836c1ce7c4829c44a30f368d888ae3bed218437d61d102c50c0db4afca33b3f"
+  },
+  "evidence_hashes": {
+    "baseline-faults-attempt01.log": "b1f01acd0b04ac02bb61eddbc7442c21fba6374bab4d7f1e6b0a7364676507d6",
+    "baseline-faults-build-attempt01.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bazel-attempt01.log": "2e9d4d43f6069d1127d58aa2cf1c9d9a37661930ccad4b22742f57f2cbe6657b",
+    "bazel-attempt02.log": "dd241d89507143acb6b0bec41b2fe226e23aeadf8ff974a1650a3fb23c77fc9c",
+    "browser-attempt01.log": "701ae58eaf19d1d6d151f4abaf19853b6bd8207cd82852a3a9a58d1e9f8534ce",
+    "browser-journey/01-cove.png": "aab8481869a92991bfe7f39738eb3a9142d170104e7aedf948ee6b97797d2188",
+    "browser-journey/02-walked.png": "494c2853681b23f37b4dcbec4e8dd904ad08bfd064cedab37cf672c6f8818fa5",
+    "browser-journey/03-reset.png": "5f6c6c8fddc47015027a0e8663c66b7079bf0c3861c575fe5f62648afbfbf3ae",
+    "browser-journey/04-legacy-world.png": "37904e6e680e8641f7a8666bbaede427a10d4e8b3b14386a1713d34ba7dcc009",
+    "browser-journey/05-reentered.png": "8684c83ade84190a15dd00b2c1fa687f49f91c8aa58a41cf2a92983c0cc9b37a",
+    "browser-journey/06-standalone-study.png": "a3340abd5a167ec23ad29e0effdc0cff1b03599b8e0a5ede99353098802fca94",
+    "browser-package.json": "ec31947aff5055bf4401f47b122b67939f2d41a59470fc7d7c66e6edbd7b8ec2",
+    "browser-report.json": "817bd0e4d142d27fba847cf2661286d2a79416949466476d49227a6fb6044bcf",
+    "browser-startup.png": "4a2c0ec84056e47d35a776b0941fc5b61390647afc91ad31b29acb2953f752c0",
+    "cmake-build-attempt01.log": "67f52665232b5aeae8992f37fc2f410894cc2d38350f25e3c012be59b834f244",
+    "cmake-events-attempt01.log": "28c0d6bbf960f14b2e4e27a550f335af213df1098e2bfffedee171a650c13664",
+    "cmake-events-attempt01.xml": "ddac17920bd18d2bef59f2245076023e4c44897076c0deae9b27fe89c71dec7f",
+    "cmake-journal-attempt01.log": "836f35c292a7cb69b35c95dca7b98d14546dfe8cb94b95741910e82f34fcf514",
+    "cmake-journal-attempt01.xml": "965325750b401a957d67649a0ea7730bd3a866c9fb04f261dbb060083174e891",
+    "cmake-session-attempt01.log": "00bd126eadd52505d885174801fd8077f94d8b1346a016932b4ac7f3e41c2f3a",
+    "cmake-session-attempt01.xml": "866bf53b8f9077af10005d62f8816643ef7eed81887765f1598c5c2a9e977361",
+    "factory-faults-attempt01.log": "47a2cff41076cdbc2117497e77b6ac68a5283a856893a235007fc056bcf0b28b",
+    "factory-faults-build-attempt01.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "native-application-attempt02.log": "1a34271bb918844250f595d7546616948444953e37d12f64409cd2cdcaadcaab",
+    "retirement-guard-attempt01.log": "bbb719ab12e313e18ff81da4d06056df249445b641b77d18699a0b47ad3d93b7",
+    "retirement-guard-build-attempt01.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "transaction-guard-attempt01.log": "44a859402dafb190eda28d680adeaed899044fa87b9b3d7dd4febf1f8ffefef7",
+    "transaction-guard-build-attempt01.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "ubsan-attempt01.log": "7e20a7ffd8987c6cb845bdca6d57b8b4cd5ac7bdb83bf5621aca6825cc8b284a",
+    "ubsan-attempt01.xml": "aa715c8525d23b887b1d9e63389547cd7f88aa08d2fa5feeb9d75696272fd1dd",
+    "ubsan-build-attempt01.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm-application-attempt01.log": "df1b849112cc2830e68f3386dce9ef5ad03479bbbe83db15534fb14b50b41e69",
+    "wasm-application-attempt02.log": "56b0a99592ad6c759f97c9d8969140f3d5f2e88663ea2ec78d046e6c5f99069d",
+    "wasm-attempt01/compile-0-construction_types.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm-attempt01/compile-1-part_catalog.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm-attempt01/compile-2-build_model.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm-attempt01/compile-3-session_transactions.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm-attempt01/compile-4-session_events.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm-attempt01/compile-5-game_session.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm-attempt01/compile-6-session_recovery.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm-attempt01/compile-7-test_game_session.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm-attempt01/compile-8-test_session_transactions.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm-attempt01/compile-9-test_session_events.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm-attempt01/compile-gtest-all.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm-attempt01/compile-gtest_main.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm-attempt01/compiler-version.log": "8f8e0074356e5387898e907ee0af417cb07d09d8db98cdb0a6702398cbaa69c8",
+    "wasm-attempt01/exception-feature-probe.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm-attempt01/link.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm-attempt01/manifest.json": "c739b713bbd0cd2c41604549999c6b0744fd8314f7a5c0e1b0f6276a2d651bb5",
+    "wasm-attempt01/node-version.log": "b8139b18707113247bd3eba5bff8ee50ed8f6bfd5076113805af4e414abfdf23",
+    "wasm-attempt01/tests.log": "31865be06cc0a4e0a5fef7da99e4bb0ac1ff32f446fc4d222256cd7fa198b5f9",
+    "wasm-attempt01.log": "1a272f03fb5a8e329900f44eeb9587c32c11e66866822286c795b9a9ea4326ef",
+    "wasm-probes-attempt01/compile-baseline-faults.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm-probes-attempt01/compile-build_model.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm-probes-attempt01/compile-construction_types.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm-probes-attempt01/compile-factory-faults.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm-probes-attempt01/compile-game_session.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm-probes-attempt01/compile-part_catalog.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm-probes-attempt01/compile-retirement-guard.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm-probes-attempt01/compile-session_events.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm-probes-attempt01/compile-session_recovery.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm-probes-attempt01/compile-session_transactions.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm-probes-attempt01/compile-transaction-guard.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm-probes-attempt01/link-baseline-faults.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm-probes-attempt01/link-factory-faults.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm-probes-attempt01/link-retirement-guard.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm-probes-attempt01/link-transaction-guard.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "wasm-probes-attempt01/run-baseline-faults.log": "c11a58a17208699f9cf739ce46a05f9819032c72211a38c750fc436a534a510e",
+    "wasm-probes-attempt01/run-factory-faults.log": "47a2cff41076cdbc2117497e77b6ac68a5283a856893a235007fc056bcf0b28b",
+    "wasm-probes-attempt01/run-retirement-guard.log": "a10c4da45f79e2fb9bdd8b30a037bf3733ce8819fde52b0c774e3cd45a447c08",
+    "wasm-probes-attempt01/run-transaction-guard.log": "44a859402dafb190eda28d680adeaed899044fa87b9b3d7dd4febf1f8ffefef7",
+    "wasm-probes-attempt01.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "probe_summary_sha256": "3521929de02eb0510f968f6be30b42f55a84aac505638f3cc2118e09f96e868f",
+  "application_artifacts": {
+    "build-salvage-native/bin/voxy_native": {
+      "bytes": 45371336,
+      "sha256": "e8d9a90e64694b023031f52fa9d33287ce0327f00922e7ba8dd6758400f53451"
+    },
+    "build-lego-wasm/bin/voxy_wasm.js": {
+      "bytes": 79801,
+      "sha256": "113310e6ba01bd4094647ebf2b6f6d50c70a2108b3d8b9b1a2d1824444bb621e"
+    },
+    "build-lego-wasm/bin/voxy_wasm.wasm": {
+      "bytes": 5718992,
+      "sha256": "07746cf515bc2f95c1255f8bc75a3fffad34bcfe63cafcbdd494806bfb0357b8"
+    },
+    "build-lego-wasm/bin/voxy_wasm.data": {
+      "bytes": 62697888,
+      "sha256": "9f242a224de9611ea239eb3a6ff486d6d2f0faff7ae67b0343bd96b9ff41b5e4"
+    }
+  },
+  "limitations": [
+    "Volatile logical observations; no certified physics checkpoint or storage acknowledgment",
+    "Fake preparation adapter in authority tests",
+    "No force/attachment/damage/reward/audio/diagnostic event producers installed",
+    "No performance acceptance or visual approval",
+    "Independent DATA-05/DATA-06 review and G01 acceptance remain open"
+  ]
+}

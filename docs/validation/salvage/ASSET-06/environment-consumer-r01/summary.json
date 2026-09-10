@@ -1,0 +1,939 @@
+{
+  "schema": 1,
+  "date": "2026-09-08",
+  "status": "Scoped environment consumer and real-scene checkpoint validated",
+  "gate_passed": false,
+  "commit_created": false,
+  "independent_review": false,
+  "owner_visual_approval": false,
+  "root_viewed_scene_pngs": 24,
+  "browser_control_stages": 14,
+  "native_cases_each_build": 89,
+  "consumer_gpu_cases_each_runtime": 2,
+  "exact_native_browser_readbacks": 5,
+  "environment_requested_bytes": 1228944,
+  "fixture_requested_bytes": 6714416,
+  "previous_frozen_records_verified": {
+    "environment-r01": 261,
+    "shading-r02": 191,
+    "metric-r01": 251
+  },
+  "evidence": {
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/README.md": {
+      "bytes": 6292,
+      "sha256": "be478042f02eb3a51bb48a3a1fcefec5196b504887ca6c8c46096c94cc8fb4c7"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/bazel-build-r02.log": {
+      "bytes": 853,
+      "sha256": "5c90b6d6644d5aa63f885d019ff36aad4881c4f2857ffdfa7ba556526830b9b8"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/bazel-build.log": {
+      "bytes": 1313,
+      "sha256": "cef2e272d2713e2b06fc21cbb514b6780e99cb1ff5b30388be2b102ca884282b"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-consumer/0-WhiteFurnaceUsesIntegratedReflectionAndDiffuseEnergy.png": {
+      "bytes": 769,
+      "sha256": "5962a056fef4d71d843b0cb410e482d8ad1e3e52b3c4f4d6a2380537fbb8c10c"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-consumer/0-WhiteFurnaceUsesIntegratedReflectionAndDiffuseEnergy.rgba": {
+      "bytes": 16384,
+      "sha256": "11610cf94ca94f7e4f04c6be9ccff8a885f8715512c6e97b36c112e90cf8b93f"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-consumer/1-WhiteFurnaceUsesIntegratedReflectionAndDiffuseEnergy.png": {
+      "bytes": 322,
+      "sha256": "6af53a9484c275b287d280c628159b4aa54f2e23a8bad3f102d70e1055b5c321"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-consumer/1-WhiteFurnaceUsesIntegratedReflectionAndDiffuseEnergy.rgba": {
+      "bytes": 16384,
+      "sha256": "7ae4e1d84e78dea9c38441ac442eb44ffeafa75aafb36ab5f5021b9732b06c2d"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-consumer/2-DiscardRetriesAndSceneReplacementInvalidatesOnlyItsBake.png": {
+      "bytes": 769,
+      "sha256": "5962a056fef4d71d843b0cb410e482d8ad1e3e52b3c4f4d6a2380537fbb8c10c"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-consumer/2-DiscardRetriesAndSceneReplacementInvalidatesOnlyItsBake.rgba": {
+      "bytes": 16384,
+      "sha256": "11610cf94ca94f7e4f04c6be9ccff8a885f8715512c6e97b36c112e90cf8b93f"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-consumer/3-DiscardRetriesAndSceneReplacementInvalidatesOnlyItsBake.png": {
+      "bytes": 769,
+      "sha256": "5962a056fef4d71d843b0cb410e482d8ad1e3e52b3c4f4d6a2380537fbb8c10c"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-consumer/3-DiscardRetriesAndSceneReplacementInvalidatesOnlyItsBake.rgba": {
+      "bytes": 16384,
+      "sha256": "11610cf94ca94f7e4f04c6be9ccff8a885f8715512c6e97b36c112e90cf8b93f"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-consumer/4-DiscardRetriesAndSceneReplacementInvalidatesOnlyItsBake.png": {
+      "bytes": 643,
+      "sha256": "d88c6dc277a8e328183de63b0ce977ed22e2e1fa64422cbde06f724e97642556"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-consumer/4-DiscardRetriesAndSceneReplacementInvalidatesOnlyItsBake.rgba": {
+      "bytes": 16384,
+      "sha256": "ef84abd35dafabbc2507d1d638ed09242a48bf732d644d6f1d867db028f4052b"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-consumer/chrome.log": {
+      "bytes": 778,
+      "sha256": "da16174a53ab0c0a2de2b1ca62fc113d3b9515053f1afd2d5715131582cedad6"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-consumer/material-sheet.png": {
+      "bytes": 107907,
+      "sha256": "2a90e576e122116734c4b20ec889b3d894014b12139572778ce7726e47811477"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-consumer/report.json": {
+      "bytes": 5784,
+      "sha256": "2b33e15741e0f02ec1c534152780f0023ecb3f0d8a851414418f2cce15bcf079"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-consumer/tests.log": {
+      "bytes": 878,
+      "sha256": "240621f16a7cfd4c1388795e649667567513baf1e27fd20d5692f067c817c6a8"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-controls/01-auto.png": {
+      "bytes": 1920278,
+      "sha256": "6c953be6456e6fba5371a580d035a6444fbe54b1383ee251d3afcc0a9bf2ec80"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-controls/02-guides-0.png": {
+      "bytes": 1920856,
+      "sha256": "27942e04098d05ec5978c8915f936480fcced714466123dc3e35403bba58f399"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-controls/02-guides-1.png": {
+      "bytes": 1907677,
+      "sha256": "775d8fd481837a9a17c9d488f43cb8bde9e6f9180469a9901e0965106ceeaa9a"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-controls/02-guides-2.png": {
+      "bytes": 1912886,
+      "sha256": "1b865d8f173ff50f3f00f975e28a58d6c7481d9631bb9c2b806326537788fbe0"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-controls/02-lod-0.png": {
+      "bytes": 1920202,
+      "sha256": "f18661a196b84857d2f053989a0aa5cee8351c4e6ef6257f80e9c7028b6b1565"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-controls/02-lod-1.png": {
+      "bytes": 1919025,
+      "sha256": "52de612eb3c31f8047b404380f6bf6179cafe9dff4632132ea766f651a7a8376"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-controls/02-lod-2.png": {
+      "bytes": 1918587,
+      "sha256": "355abb3a031e774dcc1b9bb0449019d2aa82749ef96edc01a57397633299bb09"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-controls/02-lod-3.png": {
+      "bytes": 1886862,
+      "sha256": "d726113b03b9fdaee07aff49fbd7de024080fcd66e99b2b8d8a641c547b3fc92"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-controls/03-resized-1280.png": {
+      "bytes": 904664,
+      "sha256": "7484400d1ea511c04fb94812f6451969db5503b788364eb92fa3bf199ee09957"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-controls/03-resized-1920.png": {
+      "bytes": 1919402,
+      "sha256": "bfa4ce2ba9211db37dc5ca2c2682fa9e70dea7cfab1aab1a60dcad7e91fce09d"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-controls/04-flown.png": {
+      "bytes": 1916956,
+      "sha256": "05f3f30ab2a30fb9064e9f8212bf05c1affb7c5a777b9cfc8e0d5bcb1fd2e183"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-controls/05-reset.png": {
+      "bytes": 1920695,
+      "sha256": "fc6143c6560db8e6d759ea2ff4634dce999ed887bfbd8e635e2cd4366749293c"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-controls/06-original-world.png": {
+      "bytes": 29612,
+      "sha256": "f667b77074df7496582382adced1e12335d43e18cf28d11c0ae1d6198df45f4e"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-controls/07-reentered.png": {
+      "bytes": 1918515,
+      "sha256": "32a9b4d2416e73d855b0f1f171412e4602f3af59a936244a7625c00e1dba4290"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-controls/summary.json": {
+      "bytes": 44153,
+      "sha256": "37fc969ac22f848eeebb731fc27abc843b67ce7f7cb59dc9cb106cf72db25645"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-controls-r02-runner.log": {
+      "bytes": 869563,
+      "sha256": "3a8f00faeefcbd7b0324b00ab624cf50e545e56fd08dcfee0a53f37b48f19eae"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-controls-run.json": {
+      "bytes": 869500,
+      "sha256": "cbd9647a961a07eced4c283fbb2f4b982c4fa1bbef9f019ee559025463646242"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-controls-runner.log": {
+      "bytes": 597,
+      "sha256": "400a7517a391645d5a535850eeb1f7d8db9755dcee88e4737578511694e9af44"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-legacy-mesh/0-ExceptionalReleasePreservesEncodedTextureDependencies.png": {
+      "bytes": 3430,
+      "sha256": "cdc60a5991f2b254193a64f047c3436a88d178adba8ea7b28e0db59788606694"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-legacy-mesh/0-ExceptionalReleasePreservesEncodedTextureDependencies.rgba": {
+      "bytes": 16384,
+      "sha256": "e346dfa5c13a903cfa28020155e3ac1dd9c31c614af33a939bde94d3c9eff773"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-legacy-mesh/1-SamplesActualTextureQuadrantsAndRejectsSingleSidedBackFaces.png": {
+      "bytes": 3081,
+      "sha256": "f4612b552f346be2bf378620189100b678ab190f4df1dfc1fd2947219497eb62"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-legacy-mesh/1-SamplesActualTextureQuadrantsAndRejectsSingleSidedBackFaces.rgba": {
+      "bytes": 16384,
+      "sha256": "d20c094f5916df1c2b35b17acece2e63ae07afa99cc9a9f9500958053f6923f0"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-legacy-mesh/10-DirectionalNormalMapUsesFullInverseTransposeAndTangentFrame.png": {
+      "bytes": 287,
+      "sha256": "ebee394e41386893e365bab36916668522c516e325de348f1a7a593998e75687"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-legacy-mesh/10-DirectionalNormalMapUsesFullInverseTransposeAndTangentFrame.rgba": {
+      "bytes": 16384,
+      "sha256": "62fb561c59d0cea247fc588f3311ee665375f35d8675b186e2792cb7dfcff88c"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-legacy-mesh/11-PreservesColorSpaceAndPackedMaterialChannels.png": {
+      "bytes": 321,
+      "sha256": "c2b6ba161a89aa6f0e29dc861608a46e4d1a4265e95225c2736b48bf2efd4a76"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-legacy-mesh/11-PreservesColorSpaceAndPackedMaterialChannels.rgba": {
+      "bytes": 16384,
+      "sha256": "386ad9b5f2a7349f7057c3d804b8196f611cb6a721302d546e34e76ae074e327"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-legacy-mesh/12-PreservesColorSpaceAndPackedMaterialChannels.png": {
+      "bytes": 321,
+      "sha256": "c2b6ba161a89aa6f0e29dc861608a46e4d1a4265e95225c2736b48bf2efd4a76"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-legacy-mesh/12-PreservesColorSpaceAndPackedMaterialChannels.rgba": {
+      "bytes": 16384,
+      "sha256": "386ad9b5f2a7349f7057c3d804b8196f611cb6a721302d546e34e76ae074e327"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-legacy-mesh/13-PreservesColorSpaceAndPackedMaterialChannels.png": {
+      "bytes": 2619,
+      "sha256": "7f9b0222d6274d16bbe913522550938e0b2e46b2c72331658efbe23e55c27936"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-legacy-mesh/13-PreservesColorSpaceAndPackedMaterialChannels.rgba": {
+      "bytes": 16384,
+      "sha256": "28f95de42c3b77cbbf1827f4642a62f8c2de97b42d7c1891230ea3c796d49443"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-legacy-mesh/14-PreservesColorSpaceAndPackedMaterialChannels.png": {
+      "bytes": 2619,
+      "sha256": "7f9b0222d6274d16bbe913522550938e0b2e46b2c72331658efbe23e55c27936"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-legacy-mesh/14-PreservesColorSpaceAndPackedMaterialChannels.rgba": {
+      "bytes": 16384,
+      "sha256": "28f95de42c3b77cbbf1827f4642a62f8c2de97b42d7c1891230ea3c796d49443"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-legacy-mesh/15-PreservesColorSpaceAndPackedMaterialChannels.png": {
+      "bytes": 2619,
+      "sha256": "7f9b0222d6274d16bbe913522550938e0b2e46b2c72331658efbe23e55c27936"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-legacy-mesh/15-PreservesColorSpaceAndPackedMaterialChannels.rgba": {
+      "bytes": 16384,
+      "sha256": "28f95de42c3b77cbbf1827f4642a62f8c2de97b42d7c1891230ea3c796d49443"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-legacy-mesh/16-PreservesColorSpaceAndPackedMaterialChannels.png": {
+      "bytes": 287,
+      "sha256": "ebee394e41386893e365bab36916668522c516e325de348f1a7a593998e75687"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-legacy-mesh/16-PreservesColorSpaceAndPackedMaterialChannels.rgba": {
+      "bytes": 16384,
+      "sha256": "62fb561c59d0cea247fc588f3311ee665375f35d8675b186e2792cb7dfcff88c"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-legacy-mesh/17-PreservesColorSpaceAndPackedMaterialChannels.png": {
+      "bytes": 1811,
+      "sha256": "0a17dc7792d278fe840eea1227e219939a144d41de762fc1b2dd56762838e9e8"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-legacy-mesh/17-PreservesColorSpaceAndPackedMaterialChannels.rgba": {
+      "bytes": 16384,
+      "sha256": "2b34dff5bc1b177d6e7369659088168cbde95c9ab625e134319102a300b62293"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-legacy-mesh/2-SamplesActualTextureQuadrantsAndRejectsSingleSidedBackFaces.png": {
+      "bytes": 3430,
+      "sha256": "cdc60a5991f2b254193a64f047c3436a88d178adba8ea7b28e0db59788606694"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-legacy-mesh/2-SamplesActualTextureQuadrantsAndRejectsSingleSidedBackFaces.rgba": {
+      "bytes": 16384,
+      "sha256": "e346dfa5c13a903cfa28020155e3ac1dd9c31c614af33a939bde94d3c9eff773"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-legacy-mesh/3-SamplesActualTextureQuadrantsAndRejectsSingleSidedBackFaces.png": {
+      "bytes": 287,
+      "sha256": "ebee394e41386893e365bab36916668522c516e325de348f1a7a593998e75687"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-legacy-mesh/3-SamplesActualTextureQuadrantsAndRejectsSingleSidedBackFaces.rgba": {
+      "bytes": 16384,
+      "sha256": "62fb561c59d0cea247fc588f3311ee665375f35d8675b186e2792cb7dfcff88c"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-legacy-mesh/4-SamplesActualTextureQuadrantsAndRejectsSingleSidedBackFaces.png": {
+      "bytes": 287,
+      "sha256": "ebee394e41386893e365bab36916668522c516e325de348f1a7a593998e75687"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-legacy-mesh/4-SamplesActualTextureQuadrantsAndRejectsSingleSidedBackFaces.rgba": {
+      "bytes": 16384,
+      "sha256": "62fb561c59d0cea247fc588f3311ee665375f35d8675b186e2792cb7dfcff88c"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-legacy-mesh/5-DirectionalNormalMapUsesFullInverseTransposeAndTangentFrame.png": {
+      "bytes": 408,
+      "sha256": "484c1c6bf9296bdb79009c5b796d79f6e8896219f4b7564104508a85600c8acd"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-legacy-mesh/5-DirectionalNormalMapUsesFullInverseTransposeAndTangentFrame.rgba": {
+      "bytes": 16384,
+      "sha256": "b62ace611eb9cde0bf8315234cc3b19f35e1d1e4094cebb78ff9fb7d40fb0202"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-legacy-mesh/6-DirectionalNormalMapUsesFullInverseTransposeAndTangentFrame.png": {
+      "bytes": 287,
+      "sha256": "ebee394e41386893e365bab36916668522c516e325de348f1a7a593998e75687"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-legacy-mesh/6-DirectionalNormalMapUsesFullInverseTransposeAndTangentFrame.rgba": {
+      "bytes": 16384,
+      "sha256": "62fb561c59d0cea247fc588f3311ee665375f35d8675b186e2792cb7dfcff88c"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-legacy-mesh/7-DirectionalNormalMapUsesFullInverseTransposeAndTangentFrame.png": {
+      "bytes": 287,
+      "sha256": "ebee394e41386893e365bab36916668522c516e325de348f1a7a593998e75687"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-legacy-mesh/7-DirectionalNormalMapUsesFullInverseTransposeAndTangentFrame.rgba": {
+      "bytes": 16384,
+      "sha256": "62fb561c59d0cea247fc588f3311ee665375f35d8675b186e2792cb7dfcff88c"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-legacy-mesh/8-DirectionalNormalMapUsesFullInverseTransposeAndTangentFrame.png": {
+      "bytes": 312,
+      "sha256": "7d1f6e7ef09fbb15f41a53b5b0f1446e9df37aa594f08537d7915f3871a22893"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-legacy-mesh/8-DirectionalNormalMapUsesFullInverseTransposeAndTangentFrame.rgba": {
+      "bytes": 16384,
+      "sha256": "a26d93e196461e54f439b6ca25a7949b90b315c04130c7138516a438477128f6"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-legacy-mesh/9-DirectionalNormalMapUsesFullInverseTransposeAndTangentFrame.png": {
+      "bytes": 456,
+      "sha256": "cd014ef3101c981a06556e461992b395a93534b580f45929d52c29fcd4b3cc2b"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-legacy-mesh/9-DirectionalNormalMapUsesFullInverseTransposeAndTangentFrame.rgba": {
+      "bytes": 16384,
+      "sha256": "acbfb99ca497f8162e9fb6c2700734a3debc35c0a0b76398745e2c01883e6cbf"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-legacy-mesh/chrome.log": {
+      "bytes": 778,
+      "sha256": "029cd9be74f71a81cab75e7aa1acb64c9aa676a5a7d40d672e24963dcfca2ae5"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-legacy-mesh/material-sheet.png": {
+      "bytes": 152055,
+      "sha256": "b8ac668bc2627a389aa383c8a127f815aab9e35b03a1e1aaa4ba49bbb3b81538"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-legacy-mesh/report.json": {
+      "bytes": 23515,
+      "sha256": "ffda26bcf8a5e83252564a0d90f7f9ed8d9b379b1d0b0ab7ddd6abd29f5415b5"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-legacy-mesh/tests.log": {
+      "bytes": 1412,
+      "sha256": "d93ac724173e912556d7789623afaca123cf4058d4437a36703a7e80280d62d3"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-legacy-mesh-runner.log": {
+      "bytes": 146,
+      "sha256": "397d7d31b2b494ea2af518a1308a5d8258d380efc9947bfb075c4b04a1e400ca"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-lod1/helm-grip-key.png": {
+      "bytes": 1436278,
+      "sha256": "c8ea53350c6d58c8f1a29960a5d494386496b058127e46131dd561e2f0fbf38a"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-lod1/helm-grip-opposed.png": {
+      "bytes": 1449917,
+      "sha256": "03d2342c1e89bb830ed3411af6256cabcbccfd6f2d4404ccbefadc9942a63d1d"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-lod1/report.json": {
+      "bytes": 18301,
+      "sha256": "f2c31318389c0507a1a4f8e9c8cafb95b9a1c01b29bb17eb52e5bda84ef4bc1d"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-lod1/winch-metal-key.png": {
+      "bytes": 1698222,
+      "sha256": "9a9b28208b8b9d970618811e3cbaf29d5abbdfb8455fdf2888a2f5c6f8da35c2"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-lod1/winch-metal-opposed.png": {
+      "bytes": 1547310,
+      "sha256": "5641b85beb8a95ac99ce5feb9325b3d429fb9b542f156b0fd84177121789957f"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-lod1-run.json": {
+      "bytes": 306173,
+      "sha256": "7bb0127ba9d7fb39f3114a899529bad0751b18f92547a02537b44799e539f4b7"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-lod2/helm-grip-key.png": {
+      "bytes": 1425948,
+      "sha256": "9aff99ed039118a3521128a5f32f09fa28b7ac7768c6eab1d605c82d9e710794"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-lod2/helm-grip-opposed.png": {
+      "bytes": 1435618,
+      "sha256": "acb44e7d4ad121df6997d76500108c3f41f420d8c15c275daf20dcbc1c092d47"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-lod2/report.json": {
+      "bytes": 18299,
+      "sha256": "cd85e48b56550e64a8d66d4a9a8444b3c4c0bfa68929ef34e6887885fe76d2d0"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-lod2/winch-metal-key.png": {
+      "bytes": 1679295,
+      "sha256": "6d15098ce220956d416d1e7a54401fb5f13334d74094dd32c6d992f12555496e"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-lod2/winch-metal-opposed.png": {
+      "bytes": 1528297,
+      "sha256": "b903c3786eb001fac9a7259a7e91bc03632fe6439bda53a637941b149a7c2aab"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-lod2-run.json": {
+      "bytes": 306161,
+      "sha256": "16543d125da1f4064b05814b254e981d8485828248bc401e8d0fe62b86220dfa"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-lod2-runner.log": {
+      "bytes": 306224,
+      "sha256": "2d1b81d2117b3c3ab4f88027d4139dfd3379ced67b683c112e2e9ac3376ca77c"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-lod3/helm-grip-key.png": {
+      "bytes": 1282226,
+      "sha256": "6e1f4a9e5a64e15d9c307fcc0579e94950ee5cbb345aff3d53057a240776ca2d"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-lod3/helm-grip-opposed.png": {
+      "bytes": 1277310,
+      "sha256": "bb011b873ecb49936e2d97e54a5da041858dba5a43987e71bb77d08a57f9292c"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-lod3/report.json": {
+      "bytes": 18297,
+      "sha256": "6b7e7988d188793d7758461a1849790d82a420803ac97c71ea172563aecb2dc6"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-lod3/winch-metal-key.png": {
+      "bytes": 1562221,
+      "sha256": "16b1aea530a9f8bc2e8b505a0ba97a9d2fc4396cad6db3548fc7cb03ce2e618c"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-lod3/winch-metal-opposed.png": {
+      "bytes": 1403997,
+      "sha256": "eba6e256eeea269ee97947420fdfffd7d1533e39e404da0aeedfb2fc56c98c30"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-lod3-run.json": {
+      "bytes": 306042,
+      "sha256": "be5fda9cbe322c8eaf42a6e327d07d482e65fb41485f93965ed9fe744ba815b1"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-lod3-runner.log": {
+      "bytes": 306105,
+      "sha256": "c41f8c4f3e998effecea4cd776b990c361ec1ca3edb7dc868555e766aadcdbab"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-loss/stopped.png": {
+      "bytes": 52365,
+      "sha256": "3152849c62081795f0bb37c470a906d49772fbee1a08ad85e409049163bcbc55"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-loss/summary.json": {
+      "bytes": 4247,
+      "sha256": "8b0c91edecf64bac4ee4b6a2cfc03a2fe39eca75eb43f91e4ea6bdf499a31d32"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-loss-run.json": {
+      "bytes": 289576,
+      "sha256": "07e293246a4c1c4d7ac159d771c65bda84a2b139f245ac5eeb1f830356c7177d"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/browser-loss-runner.log": {
+      "bytes": 289639,
+      "sha256": "30f9595b3493a12e2cd2dc7e5284a97e45f5ea29ad9d9b5a3608f988f6bb16e7"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/cmake-native-build.log": {
+      "bytes": 1067,
+      "sha256": "4746438d8d6a42b0c233dec1aa7786217958c40863387de3cd835853c0dceb47"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/cmake-native-tests.log": {
+      "bytes": 30737,
+      "sha256": "7ea0c2de87915561152d093c5634a876e170df5ab9250ab8bde9bc0166410eed"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/cmake-wasm-build.log": {
+      "bytes": 11271,
+      "sha256": "6fb71683f7707935b4b7db7339db341cef3363b9c424be00bb87a07bb5f142a4"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/config-native-tests.log": {
+      "bytes": 18141,
+      "sha256": "bef700fdc9805ba3ccbacb528d94217c1d655142bd19910e3bb82b923196522c"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/consumer-parity.json": {
+      "bytes": 1941,
+      "sha256": "8d3b421c5690bb75a9127cc809f470917ba537e29c89c95042f2108ea92d496c"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/factors-views.json": {
+      "bytes": 1348,
+      "sha256": "d6bcfb79dc8b022ebeee08b1d1074ff68ae8f668bf6ea6ff237541ff83954bd8"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/filtered-factors.cfg": {
+      "bytes": 1330,
+      "sha256": "1a0386b51d019b4da4ee139ff49114c4b01a37df38a7d9115e93002260717b56"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/filtered.cfg": {
+      "bytes": 1327,
+      "sha256": "dfb92446e276086c5fa5be5dda1e482aac96d323eb5949e55eb12986ae008f03"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/fixture-native-tests.log": {
+      "bytes": 8512,
+      "sha256": "1dd394eebdacf1a7b720096615b283afd93ccf14fc9f92471cb9d7b8cc09ff04"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/legacy.cfg": {
+      "bytes": 1325,
+      "sha256": "432ea64d17499dc2f5269a7d8b27af8b5c231d9a2cdc2fc315c178287dadcf19"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/mesh-native-tests.log": {
+      "bytes": 4390,
+      "sha256": "840ed7c0852ac2a2f52c93c1cb38679150627074f1fabc8679abd24fd906c3d3"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-comparison-runner.log": {
+      "bytes": 293,
+      "sha256": "63a30f83b46310c35b51f085201cb38b22e5cbfefac28aac36b83f07b9437763"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-consumer/0-WhiteFurnaceUsesIntegratedReflectionAndDiffuseEnergy.json": {
+      "bytes": 106,
+      "sha256": "a1b4267d2bb6caca5b81c439b5d6c2edee6ca9c975d6600674978a9821f03510"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-consumer/0-WhiteFurnaceUsesIntegratedReflectionAndDiffuseEnergy.rgba": {
+      "bytes": 16384,
+      "sha256": "11610cf94ca94f7e4f04c6be9ccff8a885f8715512c6e97b36c112e90cf8b93f"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-consumer/1-WhiteFurnaceUsesIntegratedReflectionAndDiffuseEnergy.json": {
+      "bytes": 106,
+      "sha256": "a1b4267d2bb6caca5b81c439b5d6c2edee6ca9c975d6600674978a9821f03510"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-consumer/1-WhiteFurnaceUsesIntegratedReflectionAndDiffuseEnergy.rgba": {
+      "bytes": 16384,
+      "sha256": "7ae4e1d84e78dea9c38441ac442eb44ffeafa75aafb36ab5f5021b9732b06c2d"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-consumer/2-DiscardRetriesAndSceneReplacementInvalidatesOnlyItsBake.json": {
+      "bytes": 106,
+      "sha256": "a1b4267d2bb6caca5b81c439b5d6c2edee6ca9c975d6600674978a9821f03510"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-consumer/2-DiscardRetriesAndSceneReplacementInvalidatesOnlyItsBake.rgba": {
+      "bytes": 16384,
+      "sha256": "11610cf94ca94f7e4f04c6be9ccff8a885f8715512c6e97b36c112e90cf8b93f"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-consumer/3-DiscardRetriesAndSceneReplacementInvalidatesOnlyItsBake.json": {
+      "bytes": 106,
+      "sha256": "a1b4267d2bb6caca5b81c439b5d6c2edee6ca9c975d6600674978a9821f03510"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-consumer/3-DiscardRetriesAndSceneReplacementInvalidatesOnlyItsBake.rgba": {
+      "bytes": 16384,
+      "sha256": "11610cf94ca94f7e4f04c6be9ccff8a885f8715512c6e97b36c112e90cf8b93f"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-consumer/4-DiscardRetriesAndSceneReplacementInvalidatesOnlyItsBake.json": {
+      "bytes": 106,
+      "sha256": "a1b4267d2bb6caca5b81c439b5d6c2edee6ca9c975d6600674978a9821f03510"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-consumer/4-DiscardRetriesAndSceneReplacementInvalidatesOnlyItsBake.rgba": {
+      "bytes": 16384,
+      "sha256": "ef84abd35dafabbc2507d1d638ed09242a48bf732d644d6f1d867db028f4052b"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-consumer/tests.log": {
+      "bytes": 1487,
+      "sha256": "628758f5dbd269de78fde3c2fb4a90d2e789a93d06e3c76c8f3bb466659bc3b4"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-consumer-attempt-01/mesh_path.cpp": {
+      "bytes": 63496,
+      "sha256": "7e4345253e1d949e91dd691770bb899464912095c888bf5f48b244b63593e19a"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-consumer-attempt-01/tests.log": {
+      "bytes": 2845,
+      "sha256": "a2a8674df939a16a3437bb86e037358beefa592545927e5fc84065f4c08fc3c9"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-current-legacy/helm-grip-key.cfg": {
+      "bytes": 1443,
+      "sha256": "5cfe64bd10f02acef5b1f6e57df6802b1104cd33c3f86b94a64aecf5a2d2b2c6"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-current-legacy/helm-grip-key.log": {
+      "bytes": 6943,
+      "sha256": "0f799f7a313339412dc113968d054cfc2f20ca63ab8e75e72bdb447646677a5b"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-current-legacy/helm-grip-key.png": {
+      "bytes": 2554725,
+      "sha256": "e2f7df9ce5375e05417e5f7482dbdae571e05647553e0682d01373af06de756e"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-current-legacy/helm-grip-key.registry.json": {
+      "bytes": 2740,
+      "sha256": "eab5c573edd12205f28b376be2eee6739c4fb971511313b975fbcb578aa4e8e7"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-current-legacy/report.json": {
+      "bytes": 5870,
+      "sha256": "048a7b13b35a563d195f2d863ea7256f7013af70bd2e9bb9ece86cd37f07ef26"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-filtered-factors/helm-grip-key.cfg": {
+      "bytes": 1445,
+      "sha256": "cda4ce9a9bdc063e1f4300141d19bfa021fb4d5d6c81b93aaf31ad82b02e9ed9"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-filtered-factors/helm-grip-key.log": {
+      "bytes": 6954,
+      "sha256": "d41af04dbdd74eb0fb9a748d485d368991b2c437cfd012220b61b0adf1d70f9e"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-filtered-factors/helm-grip-key.png": {
+      "bytes": 2360605,
+      "sha256": "71d7588af904644500b27b229f587e0b64cb14130aedcc36646410bd6cea1722"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-filtered-factors/helm-grip-key.registry.json": {
+      "bytes": 2754,
+      "sha256": "3a32f625a63a4d61d78dd4fa70306720dc6736dce616088382adee2e123c9481"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-filtered-factors/report.json": {
+      "bytes": 5898,
+      "sha256": "b5e62974bbc9b956eb80da0c096d2f4c5f96b6bd6f617d4f8a65eb9538f1895c"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-filtered-near/helm-grip-key.cfg": {
+      "bytes": 1445,
+      "sha256": "be6a524db720f80c7a845f4488dcdc6cc3eb2e001193c097dd2b9328c1f920b8"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-filtered-near/helm-grip-key.log": {
+      "bytes": 6945,
+      "sha256": "965024e3923384e08e2372d3b68ab108ea010a64a0dd01cb17261c612a805e2c"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-filtered-near/helm-grip-key.png": {
+      "bytes": 2401220,
+      "sha256": "8222f726e2103711905825974b065d4b2707e501d9e7a8a9c0fb09c7e00bbe04"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-filtered-near/helm-grip-key.registry.json": {
+      "bytes": 2740,
+      "sha256": "eab5c573edd12205f28b376be2eee6739c4fb971511313b975fbcb578aa4e8e7"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-filtered-near/report.json": {
+      "bytes": 5961,
+      "sha256": "8b45ce923a5a9db3d1a1db3c5d8c33ac904637370f9f24f012c44553c60e239e"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-lod1/helm-grip-key.cfg": {
+      "bytes": 1445,
+      "sha256": "c75381996826f8ca817affaf4449f2eaf11f3119d44cafaf1a92accb116a158c"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-lod1/helm-grip-key.log": {
+      "bytes": 6918,
+      "sha256": "b29ed2316950081c03d86dc6bd5cb1d35bbbdb0495b7e8145b6e8603dd49679e"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-lod1/helm-grip-key.png": {
+      "bytes": 2398257,
+      "sha256": "a9e524ec3cce332bb2ecc768890795d80d614818f680e870cb029e6d8b6450c7"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-lod1/helm-grip-key.registry.json": {
+      "bytes": 2740,
+      "sha256": "eab5c573edd12205f28b376be2eee6739c4fb971511313b975fbcb578aa4e8e7"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-lod1/helm-grip-opposed.cfg": {
+      "bytes": 1445,
+      "sha256": "ebb31d447b3db8155135987078d133ea6c7af784da3e65f1d6160a44de236024"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-lod1/helm-grip-opposed.log": {
+      "bytes": 6930,
+      "sha256": "00833caaf4ff52bbb278604b47ad7020bf0bc9b065edee31decf86dbb5fe77b7"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-lod1/helm-grip-opposed.png": {
+      "bytes": 2406594,
+      "sha256": "896bfe3a108a7630eef90df31000a7792dcb8c6a449600507423e8948b309dd7"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-lod1/helm-grip-opposed.registry.json": {
+      "bytes": 2740,
+      "sha256": "eab5c573edd12205f28b376be2eee6739c4fb971511313b975fbcb578aa4e8e7"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-lod1/report.json": {
+      "bytes": 15798,
+      "sha256": "a86d768ae294405564637d151d65e658b2dea8e14030ba28b629a7e1177f10e0"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-lod1/winch-metal-key.cfg": {
+      "bytes": 1445,
+      "sha256": "c75381996826f8ca817affaf4449f2eaf11f3119d44cafaf1a92accb116a158c"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-lod1/winch-metal-key.log": {
+      "bytes": 6923,
+      "sha256": "c4f0240617aa52f27200612d0f88a9bf764f38e6294fd2ddc141e42777b0b94b"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-lod1/winch-metal-key.png": {
+      "bytes": 2785049,
+      "sha256": "c18169974025599789386527899c2a15e9e5847efc850ab0f77a5d639b95a239"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-lod1/winch-metal-key.registry.json": {
+      "bytes": 2735,
+      "sha256": "80e3540df76ef500829564115140936bbebee8fb0c874f42842dc0769fbda0cb"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-lod1/winch-metal-opposed.cfg": {
+      "bytes": 1445,
+      "sha256": "ebb31d447b3db8155135987078d133ea6c7af784da3e65f1d6160a44de236024"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-lod1/winch-metal-opposed.log": {
+      "bytes": 6935,
+      "sha256": "948ac92e558c337d16b56ae96d77be96f099a3432bec665cc9b19505734e4424"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-lod1/winch-metal-opposed.png": {
+      "bytes": 2474755,
+      "sha256": "09d7301406e996e8e758b42b7ce58261749487287fed8b3795ee8d30fe403dcd"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-lod1/winch-metal-opposed.registry.json": {
+      "bytes": 2735,
+      "sha256": "80e3540df76ef500829564115140936bbebee8fb0c874f42842dc0769fbda0cb"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-lod2/helm-grip-key.cfg": {
+      "bytes": 1447,
+      "sha256": "7ff9367212f34196fb2460a1f74ba1cf85997c487ef3994eb66d5d45d1432cc1"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-lod2/helm-grip-key.log": {
+      "bytes": 6918,
+      "sha256": "fae7ee5b782be97977787b3ae08e142b4b485d8dfca44a475eed5d00162f691e"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-lod2/helm-grip-key.png": {
+      "bytes": 2382131,
+      "sha256": "19cd366c20d19da5c5b58440a7b67a871a3e5a01cb008d33ebb4465883c5f269"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-lod2/helm-grip-key.registry.json": {
+      "bytes": 2740,
+      "sha256": "eab5c573edd12205f28b376be2eee6739c4fb971511313b975fbcb578aa4e8e7"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-lod2/helm-grip-opposed.cfg": {
+      "bytes": 1447,
+      "sha256": "2e48afccb519c5b440a48f97fec7d29db5b8342dc43494938ec51ddbcb628868"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-lod2/helm-grip-opposed.log": {
+      "bytes": 6930,
+      "sha256": "e366d6ce02fa62cd4da0264843f98224e43b8763811a4233815a61066a7aa700"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-lod2/helm-grip-opposed.png": {
+      "bytes": 2388816,
+      "sha256": "791f2b2218d7d55d7f32bd092c23f5ca8c515f7c1d472c9eb19a42df3bcd7c9a"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-lod2/helm-grip-opposed.registry.json": {
+      "bytes": 2740,
+      "sha256": "eab5c573edd12205f28b376be2eee6739c4fb971511313b975fbcb578aa4e8e7"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-lod2/report.json": {
+      "bytes": 15798,
+      "sha256": "589954053a8655c8f3a380b6fdf31465956d237d7021504a5c82127331ee60e0"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-lod2/winch-metal-key.cfg": {
+      "bytes": 1447,
+      "sha256": "7ff9367212f34196fb2460a1f74ba1cf85997c487ef3994eb66d5d45d1432cc1"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-lod2/winch-metal-key.log": {
+      "bytes": 6923,
+      "sha256": "e740d3d7a679cc62764b596a47e66ec5889bd363ae5d0f93b0baacccbf2d6cb7"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-lod2/winch-metal-key.png": {
+      "bytes": 2750164,
+      "sha256": "c2db81c66459245f3e5991fa559abf124a4b74f36a4296967e347a2553b97458"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-lod2/winch-metal-key.registry.json": {
+      "bytes": 2735,
+      "sha256": "80e3540df76ef500829564115140936bbebee8fb0c874f42842dc0769fbda0cb"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-lod2/winch-metal-opposed.cfg": {
+      "bytes": 1447,
+      "sha256": "2e48afccb519c5b440a48f97fec7d29db5b8342dc43494938ec51ddbcb628868"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-lod2/winch-metal-opposed.log": {
+      "bytes": 6935,
+      "sha256": "22bfd39941d7e3dd100a254e0618c4c01929f81d881c486a11a4153478571a93"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-lod2/winch-metal-opposed.png": {
+      "bytes": 2439500,
+      "sha256": "554affd5aec9b7441c2158c40d8ab7f783ded6083e25939e185f82b946ae802e"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-lod2/winch-metal-opposed.registry.json": {
+      "bytes": 2735,
+      "sha256": "80e3540df76ef500829564115140936bbebee8fb0c874f42842dc0769fbda0cb"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-lod3/helm-grip-key.cfg": {
+      "bytes": 1444,
+      "sha256": "9b20101fb2443ad1a226ccab23efd49f7e9a1a8acfe287ad6cf1e34b33c837cd"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-lod3/helm-grip-key.log": {
+      "bytes": 6918,
+      "sha256": "0778f2f53d7ffacd7f5360ead8ae572625a979b0f2ec5ed32697cf4a8546a188"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-lod3/helm-grip-key.png": {
+      "bytes": 2156666,
+      "sha256": "4c90c4b723109fbc34d1b98495d26bbc6fc0dee3f8bf7bbea57905916fc6ab0a"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-lod3/helm-grip-key.registry.json": {
+      "bytes": 2740,
+      "sha256": "eab5c573edd12205f28b376be2eee6739c4fb971511313b975fbcb578aa4e8e7"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-lod3/helm-grip-opposed.cfg": {
+      "bytes": 1444,
+      "sha256": "30de5e21d4e24036433579465285a78eaa07b368f93d7fa9722d3819a44a4ed2"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-lod3/helm-grip-opposed.log": {
+      "bytes": 6930,
+      "sha256": "7b23a1511b0fa76c950d4808bd63c60b935d9d1959c85b0aaee510593b513cc7"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-lod3/helm-grip-opposed.png": {
+      "bytes": 2143092,
+      "sha256": "ec31bbee084cb7e6859a8e6289429421fbda13befe29ae56b5af76ac61449f3e"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-lod3/helm-grip-opposed.registry.json": {
+      "bytes": 2740,
+      "sha256": "eab5c573edd12205f28b376be2eee6739c4fb971511313b975fbcb578aa4e8e7"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-lod3/report.json": {
+      "bytes": 15798,
+      "sha256": "efc41d3c08fc8cd4ef776bbf129b614daea4586c9f33a243d6613ab4b805fd62"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-lod3/winch-metal-key.cfg": {
+      "bytes": 1444,
+      "sha256": "9b20101fb2443ad1a226ccab23efd49f7e9a1a8acfe287ad6cf1e34b33c837cd"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-lod3/winch-metal-key.log": {
+      "bytes": 6923,
+      "sha256": "8f742757635ef38b94c5e224082057180f2f7f94b62b1b33b37a98eca11cff6f"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-lod3/winch-metal-key.png": {
+      "bytes": 2563233,
+      "sha256": "8f6378f2f1bada3c77fa9a11652ed007fcf82114f4191e0338d6db4284dd8662"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-lod3/winch-metal-key.registry.json": {
+      "bytes": 2735,
+      "sha256": "80e3540df76ef500829564115140936bbebee8fb0c874f42842dc0769fbda0cb"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-lod3/winch-metal-opposed.cfg": {
+      "bytes": 1444,
+      "sha256": "30de5e21d4e24036433579465285a78eaa07b368f93d7fa9722d3819a44a4ed2"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-lod3/winch-metal-opposed.log": {
+      "bytes": 6935,
+      "sha256": "8723829257141357ba6992a81ac28dde363b55d21859b96f365048a42235526f"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-lod3/winch-metal-opposed.png": {
+      "bytes": 2240958,
+      "sha256": "1b747f891a5eb380d793b711199023d2ed12f1552b2e83acd534661e6b7d524f"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/native-lod3/winch-metal-opposed.registry.json": {
+      "bytes": 2735,
+      "sha256": "80e3540df76ef500829564115140936bbebee8fb0c874f42842dc0769fbda0cb"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/package.json": {
+      "bytes": 2097,
+      "sha256": "8995714ada2b67078fc9e4bf8d9f39149d83edb63bb93eb81e5098ec5b524482"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/sources/BUILD": {
+      "bytes": 18145,
+      "sha256": "fed62f2aee3a728a49de982fa993dcca35fff1a821e3efead158add83ef3418e"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/sources/CMakeLists.txt": {
+      "bytes": 40144,
+      "sha256": "ec49bec279775cc3cca80338dd96b0ab0b247f36d5755f5ef277da665fd0198f"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/sources/GAME_IMPLEMENTATION_TODO.md": {
+      "bytes": 161876,
+      "sha256": "e35a93b4a4b4641c505ee67e237f8028828412b1cf17ca9ad973f86ac8983aaf"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/sources/README.md": {
+      "bytes": 16964,
+      "sha256": "b50a600c7caf3679a20e4fad99e48c10a69b8a4856503c6a044c5660c555fe10"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/sources/data/salvage/fixture-material-shading-r02.json": {
+      "bytes": 2730,
+      "sha256": "2687028ccdd39212532d6d75d1387ca0327e8f2fb60b6a0151a2d2790bf84de0"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/sources/salvage_metric_fixture.cfg": {
+      "bytes": 1327,
+      "sha256": "b93377aa721f87c4d9bb32c9209f2976123c41ad8985e5cacc010714071b05d0"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/sources/scripts/build_mesh_diagnostics.py": {
+      "bytes": 6513,
+      "sha256": "078eefa5c1931edd71124bf7ef23f2e0cc4eb5fd7230ede5bbeb5dbe5a4729c3"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/sources/scripts/capture_salvage_asset_views.py": {
+      "bytes": 7871,
+      "sha256": "2befd115829de8b32c77c322a4b745c3ba398821f1dcdaa25889c496a2c3b9f2"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/sources/scripts/mesh_diagnostics.html": {
+      "bytes": 4474,
+      "sha256": "8dd71bf9df60f7f6e711a896213929d7d6e37882b19a3e478fb2e26f8c902d88"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/sources/scripts/mesh_environment_diagnostics.html": {
+      "bytes": 3986,
+      "sha256": "efb73b21862d19fc658615326281a6e19695bee6f5c487e2f37c160a0e39be00"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/sources/scripts/run_mesh_diagnostics.mjs": {
+      "bytes": 7640,
+      "sha256": "a1ee1c6d9bb42e27ee766cc7bd84a022ca7c6169a184a0145da9ac978a1048f3"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/sources/scripts/smoke_integrated_wasm.mjs": {
+      "bytes": 32955,
+      "sha256": "51a66c6902622c0126b29cd0b4141203b4174b833749ef685e8e1f8f2f5b8362"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/sources/scripts/validate_salvage_asset_fixture.mjs": {
+      "bytes": 14821,
+      "sha256": "a60ec1830332e02f2bdc4a800cb88b5b00ebbb122c60ddfbf713d777cf585275"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/sources/scripts/validate_salvage_asset_loss.mjs": {
+      "bytes": 5453,
+      "sha256": "8ea2fc32e1ea673cbcb253b0333fdeea778dd66ecff8b81759b4914d2e11dd91"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/sources/scripts/validate_salvage_asset_views.mjs": {
+      "bytes": 7084,
+      "sha256": "ca8d27a154210074eea400b77d91fc03d551ee700354756c59cfec1039e339de"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/sources/shaders/environment_lighting.wgsl": {
+      "bytes": 5377,
+      "sha256": "9319b49a286afdb7dfdce951626b6b94aa97f403e58de16f8677eca619a2625a"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/sources/shaders/mesh_path.wgsl": {
+      "bytes": 14210,
+      "sha256": "5c27d3c9b68cf12c7003bfe17abf0638fb03583944937c18780351cdb067ee13"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/sources/src/CMakeLists.txt": {
+      "bytes": 21000,
+      "sha256": "db5c7d52a6abf1624f7732e5d4e8788b6c15c9f1ea4b45f1f72e6f9c0ee2524a"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/sources/src/app/application.cpp": {
+      "bytes": 273194,
+      "sha256": "ae87447abb6aeca1be8bf933456bee1bf0da2785bc8806caf212cd9e132329aa"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/sources/src/app/application.hpp": {
+      "bytes": 42522,
+      "sha256": "79d85d297785d926089f53ce3b8ee3648949c27e9959151edbeb5cc5ad760cd6"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/sources/src/core/config.cpp": {
+      "bytes": 52984,
+      "sha256": "8d373d4c8e285c5c76d72d709b1161c3acc33dc5b351618278de9adcf0e04fac"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/sources/src/core/config.hpp": {
+      "bytes": 16144,
+      "sha256": "6e9e39b68d7b3c615692aa06aaa81625f99d22ac4da3b118f877d3de87ea7b8d"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/sources/src/engine/platform/native/entry.cpp": {
+      "bytes": 10826,
+      "sha256": "d5963042a404cc53c8a4bfc0f72ff6d5a048ed75f1ec88b7434478505d88c5e0"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/sources/src/engine/platform/wasm/entry.cpp": {
+      "bytes": 76931,
+      "sha256": "782d2e331edd44497b510ddd65f23c1df85bd1b76965ea213e809ddc62616d25"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/sources/src/render/BUILD": {
+      "bytes": 3071,
+      "sha256": "a11db74b3992ad69e4fb7942cac8a7f69ba4056bd7f4ad3508ba4586e1ed77c8"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/sources/src/render/environment_lighting.cpp": {
+      "bytes": 8246,
+      "sha256": "3619fa02fcaae8571c562f97b344f0c4026f816d0560ca578db4885f964afc70"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/sources/src/render/environment_lighting.hpp": {
+      "bytes": 2315,
+      "sha256": "a39598235e99f3506b900d6ef1a6aa4a2253d57cd7a124ab570c5390091a5ade"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/sources/src/render/mesh_path.cpp": {
+      "bytes": 63407,
+      "sha256": "b673eb66c8eb8abb42247d8d1a4f995db4faec212d31dfc887509e66fd084b5f"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/sources/src/render/mesh_path.hpp": {
+      "bytes": 9767,
+      "sha256": "bcc3fd7958e1773a55db507f1fcc8d744a576b96638846f90f3e97a8a46407cf"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/sources/src/render/salvage_asset_fixture.cpp": {
+      "bytes": 32499,
+      "sha256": "390270bbc9057169b7629ef08063460f4db31c53e8c01f3f8fa2669682795217"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/sources/src/render/salvage_asset_fixture.hpp": {
+      "bytes": 5982,
+      "sha256": "be5cdd907a3e26f3d3fefac39d3dd18773a8eb1732e95870e9dd1ddf05c62cd3"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/sources/tests/BUILD": {
+      "bytes": 31957,
+      "sha256": "4aa2979331f6403302c2808427d6dbe66880b9fa7216847e12c05c749c92ddd8"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/sources/tests/CMakeLists.txt": {
+      "bytes": 38882,
+      "sha256": "f6b206054b4d10032da940697a0f6d6435791e6ac3c28fa64609e863c0f64edf"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/sources/tests/test_config.cpp": {
+      "bytes": 42204,
+      "sha256": "b8fb745b3e2c6a7ba33b4587b24878d0f6e0c03b8bf59a261a8f2c2110029bb1"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/sources/tests/test_mesh_path.cpp": {
+      "bytes": 36726,
+      "sha256": "360a766174a2081bde1bdaa461f942b037d17c67033a7a36b98cdcbd86202c29"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/sources/tests/test_salvage_asset_fixture.cpp": {
+      "bytes": 40806,
+      "sha256": "3e6a5bcadfd62738a9b5cfcbfa1f4b917a36d57c2c375a08b91408486fab564f"
+    },
+    "docs/validation/salvage/ASSET-06/environment-consumer-r01/views.json": {
+      "bytes": 1339,
+      "sha256": "24a01ac771056a3d6a4f7466bb265a247a35a4331c52b6f6f485ed97d32baf63"
+    }
+  }
+}

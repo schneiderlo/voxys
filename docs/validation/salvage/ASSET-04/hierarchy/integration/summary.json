@@ -1,0 +1,146 @@
+{
+  "schema": 1,
+  "status": "scoped hierarchy checkpoint passed",
+  "gate_passed": false,
+  "independent_review_complete": false,
+  "visual_approval": false,
+  "frozen_inputs_sha256": "3290bf8e598fb6a1b813331065583c99d575a2e4dc3f0bc6d0be88e5502e8607",
+  "sources_and_binaries_unchanged": true,
+  "tests": {
+    "bazel-final-hierarchy_pipeline.xml": [
+      "HierarchyPipeline.PublishedBundleRetainsNestedTransformsAndOneSharedMesh",
+      "HierarchyPipeline.EveryTriangleAndNormalMatchesPreExportBlenderOracle",
+      "HierarchyPipeline.BlenderGeometrySurvivesAllRotationsAndAdjacentSectorRebasing"
+    ],
+    "bazel-final-fixture_registry.xml": [
+      "FixtureRegistry.ParsesBoundedAssemblyPrototypeAndExactSocketOrdinals",
+      "FixtureRegistry.RejectsAmbiguousAssemblyReferencesAndExcessBeforeLoading",
+      "FixtureRegistry.ParsesDataDrivenKeysLimitsPlacementsAndCamera",
+      "FixtureRegistry.RejectsAmbiguousUnboundedAndMalformedSelections",
+      "FixtureRegistry.RejectsTraversalAndNonpackageDirectoryForms",
+      "FixtureRegistry.AdmitsActualCrossbeamGraphAndRejectsMisfitWithoutChangingPreviousAssembly",
+      "FixtureRegistry.AdmitsActualPontoonCandidateAndSelectsLodsFromProjectedUnion"
+    ],
+    "bazel-final-mesh_path_test.xml": [
+      "MeshPathTest.RejectsNullGpuHandlesAndInvalidData",
+      "MeshPathGPUTest.ExceptionalReleasePreservesEncodedTextureDependencies",
+      "MeshPathGPUTest.SamplesActualTextureQuadrantsAndRejectsSingleSidedBackFaces",
+      "MeshPathGPUTest.DirectionalNormalMapUsesFullInverseTransposeAndTangentFrame",
+      "MeshPathGPUTest.PreservesColorSpaceAndPackedMaterialChannels",
+      "MeshPathGPUTest.LoadsAndRendersAuthoredBikeAndRider"
+    ],
+    "cmake-final-tests.xml": [
+      "HierarchyPipeline.PublishedBundleRetainsNestedTransformsAndOneSharedMesh",
+      "HierarchyPipeline.EveryTriangleAndNormalMatchesPreExportBlenderOracle",
+      "HierarchyPipeline.BlenderGeometrySurvivesAllRotationsAndAdjacentSectorRebasing"
+    ]
+  },
+  "wasm_cases": 69,
+  "ui_cases": 7,
+  "accepted_comparison_images": [
+    {
+      "file": "native-clean-attempt02/overview.png",
+      "sha256": "0c306f5aa4e3e7d5faac01fd501910ee91682c96e3dcd1a21eb10f43282553c0"
+    },
+    {
+      "file": "browser-clean-attempt03/overview.png",
+      "sha256": "06694cad8772d6fa8f2fa224574f96883195104a3a9eeda4be67a6b344f9e514"
+    },
+    {
+      "file": "native-clean-attempt02/front.png",
+      "sha256": "4478dda18a76053cb10635a5788a50faec930fc9b3e4ade3d542d9f335ec901e"
+    },
+    {
+      "file": "browser-clean-attempt03/front.png",
+      "sha256": "230e032b5677190c9378543494870799bc16e828b75d09355d30550da7f6d9cc"
+    },
+    {
+      "file": "native-clean-attempt02/back.png",
+      "sha256": "d01d11cd547f43fbf89e0d9675c902e4f90330417d51e1521c7693d2391573a2"
+    },
+    {
+      "file": "browser-clean-attempt03/back.png",
+      "sha256": "e37d281ac0165e74d22cc41e82c38843d5f0f2d67a1dd542cf50323630d5221a"
+    },
+    {
+      "file": "native-clean-attempt02/left.png",
+      "sha256": "af39d07f61025c3ddca6b446d696fe98f870b271cf4321e17b35963161150438"
+    },
+    {
+      "file": "browser-clean-attempt03/left.png",
+      "sha256": "97180a1a26438f8dc1abebe201da68b9ed66f768063c4549cdab1cc8f142950f"
+    },
+    {
+      "file": "native-clean-attempt02/right.png",
+      "sha256": "20cc134e0859eac53959da516a751a79e10bc958dfc515dbb156e12738d5890b"
+    },
+    {
+      "file": "browser-clean-attempt03/right.png",
+      "sha256": "67d40c4af790418dd956f2d3adb2d1edf7fcf6b661290b5f94122afc00b31e37"
+    },
+    {
+      "file": "native-clean-attempt02/top.png",
+      "sha256": "e61eccc899ba0bd78b9add86e4b3e36c3c5c55536264134b2d970e4cdac0ea69"
+    },
+    {
+      "file": "browser-clean-attempt03/top.png",
+      "sha256": "dfd9cbbf6d42da619473e28374c23c24bc29f6c889d7da27ab8bb6e25475f1e2"
+    },
+    {
+      "file": "native-under-attempt01/under.png",
+      "sha256": "a1330de004a009561f53e2024c1c6f5dc9156ab2bc401d2ad8bab0233de4bb72"
+    },
+    {
+      "file": "browser-clean-attempt03/under.png",
+      "sha256": "5a777fc11d0f384301827b0c3a1a959f3a20f2ef7811b78a5e0186dcf67a8eb4"
+    },
+    {
+      "file": "native-stand-attempt01/stand-front.png",
+      "sha256": "afa3376e138e55a0fe98f04892b4b8d41bb0af39db9b6d9cbe60e322cb0287d0"
+    },
+    {
+      "file": "browser-stand-attempt01/stand-front.png",
+      "sha256": "f2341cbf174ef4aa4965e4245bebe727216e7526478d07681ab9dd1022a0c44e"
+    },
+    {
+      "file": "native-stand-attempt01/stand-back.png",
+      "sha256": "360f3cf863dc06753fea5f81b9723c69d57769e5260b83027c8d9d056ceea937"
+    },
+    {
+      "file": "browser-stand-attempt01/stand-back.png",
+      "sha256": "8238cf6dc76a61276a019834cc25cde368a3be1e11e755f0ef863dc2da28d827"
+    },
+    {
+      "file": "native-rulers-attempt01/overview.png",
+      "sha256": "e82a4cf5e8cec3f626edc02f1454cda18bf7849426981e80a80e03c72567f9c9"
+    },
+    {
+      "file": "browser-rulers-attempt01/overview.png",
+      "sha256": "aec4724982e3de41023acfbf32fbbdd85db3f53e066f4c2f4d298ea0477647dc"
+    }
+  ],
+  "evidence_hashes": {
+    "docs/validation/salvage/ASSET-04/hierarchy/native-clean-attempt02/report.json": "67a8a831f0f015ecf26f2ccefb5dfc969164a2b81e7adc422fee69cd55ea7308",
+    "docs/validation/salvage/ASSET-04/hierarchy/native-under-attempt01/report.json": "29d5d08a821fcd05b9d565346789370e8100ffb3dd1bd84075012f7352ba039f",
+    "docs/validation/salvage/ASSET-04/hierarchy/native-stand-attempt01/report.json": "d0f9b598d5f72001bd5275bf0c42ce0e98e1d1e1cbdeb36ec7cb67fa2b1fa7cd",
+    "docs/validation/salvage/ASSET-04/hierarchy/native-rulers-attempt01/report.json": "c62aff28751a5cbd956482ebdcdbfc0b90eb7d28becdb424105528281f8d24b3",
+    "docs/validation/salvage/ASSET-04/hierarchy/browser-clean-attempt03/report.json": "3a2598250b7215d807435427783fe7b27dd497af0f4240c5cc20555fa4260b9f",
+    "docs/validation/salvage/ASSET-04/hierarchy/browser-stand-attempt01/report.json": "dddab559bbd938a32c15d76bcd55f69a2b9ba3d350de1e75be7568071f9a550c",
+    "docs/validation/salvage/ASSET-04/hierarchy/browser-rulers-attempt01/report.json": "9b231f6a0aa01780821c210b9c556db5621a5d34299e70e66498070b51bead48",
+    "docs/validation/salvage/ASSET-04/hierarchy/browser-journey-attempt01/summary.json": "126f8cfd042acb5882347962a8de8112934b046da447b4ee93b5b33760252b65",
+    "docs/validation/salvage/ASSET-04/hierarchy/browser-loss-attempt01/summary.json": "0213b06a9c36c29a9101fb5a8e07d36394cf0284b861b4c88c62f88573e0da4a",
+    "docs/validation/salvage/ASSET-04/hierarchy/browser-raw-regression-attempt01/summary.json": "3c1cc4a94b76dd89d2d54c34841bdbf4cac3268ab8d8622450f73b153b6ed42d",
+    "docs/validation/salvage/ASSET-04/hierarchy/reproducibility-r02.json": "5969ce494071a7fab859e25733b2e9867ce037b6e2fd08cc7686dc19f076f4f4",
+    "docs/validation/salvage/ASSET-04/hierarchy/integration/wasm-confirmation.json": "16af357df8265e6892d792e5537e3b23d3d3d06c5b2045ac1bbb2d676440a314",
+    "docs/validation/salvage/ASSET-04/hierarchy/integration/ui-tests.log": "a6a2f4f41dd681343fecb4b824b62cd7d180c05db2eb2ef9314c45b26778da3a",
+    "docs/validation/salvage/ASSET-04/hierarchy/comparison.json": "86590b5723b12701a2c2a88fc66dbfe7e526d165931206b5186ffcd1775bbb2d",
+    "docs/validation/salvage/ASSET-04/hierarchy/views-r02.json": "255be51e764cda266585d9821600861703e45d225e77553a84e8f8adddf01452",
+    "docs/validation/salvage/ASSET-04/hierarchy/stand-views.json": "a6dae17aa1a13121881b7985d03091c70f42a100cfc1544d6c13bb315f853436"
+  },
+  "known_rejections": [
+    "native-clean-attempt02/under.png is inside terrain; replaced by native-under-attempt01/under.png",
+    "headless browser-clean-attempt02 blank canvas; windowed browser-clean-attempt03 passes; headless root cause unresolved",
+    "WASM prior runner expected 66 instead of actual 69; same frozen binary independently confirmed"
+  ],
+  "review": "Root reviewed both comparison sheets and full-size native overview/underside/stand front/back plus browser top. Across the ten paired views, geometry, axes, parent transforms and outward surfaces agree. Occlusion/clipping and browser controls remain visible. This is not independent review or final art approval."
+}

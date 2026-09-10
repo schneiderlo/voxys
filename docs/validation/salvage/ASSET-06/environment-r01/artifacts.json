@@ -1,0 +1,38 @@
+{
+  "shader_packaging": {
+    "native_paths": [
+      "bazel-bin/voxy_native.runfiles/_main/shaders/environment_lighting.wgsl"
+    ],
+    "wasm_data_contains_exact_wgsl": true
+  },
+  "artifacts": {
+    "bazel-bin/tests/environment_lighting": {
+      "bytes": 143424,
+      "sha256": "6a2dd9aaeecea18b9f24d56bd56b8a05952231fa247d49fedd809f3c71b1f62f"
+    },
+    "bazel-bin/tests/voxy_tests": {
+      "bytes": 17463512,
+      "sha256": "c1c209f49c11242490437ac14317bcf54e4721470880cadd1a56f52db7a5de90"
+    },
+    "bazel-bin/voxy_native": {
+      "bytes": 5164608,
+      "sha256": "7d67fd2d8467e6c34824f2f259e0bc1ddc163374bebcc05e78027a594aafb251"
+    },
+    "build-salvage-native/bin/voxy_tests": {
+      "bytes": 64877672,
+      "sha256": "d8c61926ff46bcc5f6b33522923a7fe772c9fc5399317aeef9d69f39142a1e21"
+    },
+    "build-lego-wasm/bin/voxy_wasm.js": {
+      "bytes": 92350,
+      "sha256": "aeb51278d8ae231576de4344fae879bc4eec69e2bec41a1d6f9da87d17217cc3"
+    },
+    "build-lego-wasm/bin/voxy_wasm.wasm": {
+      "bytes": 5746243,
+      "sha256": "00a9a4400ecbda93565764dfc0d71d7c403167bc145197b6ce2338bc00f60b11"
+    },
+    "build-lego-wasm/bin/voxy_wasm.data": {
+      "bytes": 83868525,
+      "sha256": "79910f7a53c5794fd3f9d65c3cd8be7fe2e8018237fff548e488d31c1ea9dec8"
+    }
+  }
+}

@@ -29,10 +29,41 @@ export async function validateSalvagePreview(call, directory) {
             playground: lego.active, pointerLocked: document.pointerLockElement === document.getElementById('voxy-canvas'),
             lost: globalThis.voxyDeviceLost || null, errors: globalThis.voxyUncapturedGpuErrors || []};
     })()`);
+    const waitForPresentedScene = () => waitFor(`(() => {
+        if(typeof voxyModule === 'undefined' || voxyModule?._voxy_is_initialized?.() !== 1) return false;
+        const loading=document.getElementById('loading');
+        if(loading && getComputedStyle(loading).display !== 'none') return false;
+        const telemetry=JSON.parse(voxyModule.UTF8ToString(voxyModule._voxy_get_telemetry_json()));
+        return telemetry.frame?.count >= 12 && telemetry.render_gpu?.available;
+    })()`, 'scene visible after actual GPU startup completion', 90000);
     const healthy = state => {
         assert.equal(state.failed, false, 'preview failed');
         assert.equal(state.lost, null, 'WebGPU device lost');
         assert.deepEqual(state.errors, [], 'GPU validation errors');
+    };
+    let expectedObserver;
+    const emptyAuthority = (state, admissionOpen) => {
+        assert.deepEqual(state.session, {
+            revision: '0', tick: '0', admissionOpen,
+            builds: 0, cargo: 0, jobs: 0,
+            inventory: { salvageMaterial: '0', specialMachinery: '0' },
+        }, 'scenery control changed canonical authority or exposed lossy counters');
+        const observer = state.observation;
+        assert(observer, 'missing live session observation hub');
+        for (const id of [observer.world, observer.incarnation]) {
+            assert.match(id, /^[0-9a-f]{32}$/); assert.notEqual(id, '0'.repeat(32));
+        }
+        assert.notEqual(observer.world, observer.incarnation);
+        assert.equal(observer.epoch, '1'); assert.equal(observer.publicationLost, false);
+        if (expectedObserver) {
+            assert.equal(observer.world, expectedObserver.world, 'Reset replaced the world');
+            assert.equal(observer.incarnation, expectedObserver.incarnation, 'Reset replaced the observation stream');
+        }
+        assert.deepEqual(observer.lanes, [
+            {through: admissionOpen ? '0' : '1', retained: admissionOpen ? 0 : 1, overwritten: '0', invalid: '0', exhausted: false},
+            {through: '0', retained: 0, overwritten: '0', invalid: '0', exhausted: false},
+            {through: '0', retained: 0, overwritten: '0', invalid: '0', exhausted: false},
+        ], 'scenery fabricated domain/physics/effect events or repeated closure');
     };
     const absolute = camera => camera.local.map((value, axis) => value + camera.sector[axis] * 256);
     const separation = (a, b) => Math.hypot(...a.map((value, axis) => value - b[axis]));
@@ -77,6 +108,8 @@ export async function validateSalvagePreview(call, directory) {
         await waitFor(`typeof voxyModule !== 'undefined' && voxyModule?._voxy_is_initialized?.() === 1 && (${stateExpression}).ready`, 'cove startup');
         await delay(700); // Let the character reach its first supported pose.
         const initial = await record('initial');
+        emptyAuthority(initial, true);
+        expectedObserver = initial.observation;
         report.device = await evaluate('window.voxyDeviceProfile');
         report.url = await evaluate('location.href');
         assert.equal(initial.bodies, 32);
@@ -99,6 +132,7 @@ export async function validateSalvagePreview(call, directory) {
 
         const assertResetView = state => {
             healthy(state); assert.equal(state.bodies, 32);
+            emptyAuthority(state, true);
             assert.equal(state.resident, initial.resident, 'reset leaked world bodies');
             assert.equal(state.controller, 'character');
             assert(separation(absolute(state.camera), absolute(initial.camera)) < .15, 'reset did not restore authored camera');
@@ -106,9 +140,17 @@ export async function validateSalvagePreview(call, directory) {
             assert(Math.abs(state.camera.pitch - initial.camera.pitch) < .005);
             assert.equal(state.mouseCaptured, false); assert.equal(state.pointerLocked, false);
         };
+        const waitForResetView = () => waitFor(`(() => {
+            const p=${stateExpression}.camera;
+            const start=${JSON.stringify(absolute(initial.camera))};
+            return Math.hypot(...p.local.map((v,i)=>v+p.sector[i]*256-start[i])) < .15;
+        })()`, 'reset camera reaches its initial supported pose', 7000);
         await click('#salvage-reset');
         await waitFor(`(${stateExpression}).ready && (${stateExpression}).resets === 1`, 'Reset button acknowledgement');
-        await delay(500);
+        // Readiness acknowledges respawn. Gravity still needs actual frames to
+        // return the character to its supported pose; a fixed sleep races this
+        // on slower display paths. Keep the same position tolerance and bound.
+        await waitForResetView();
         const reset = await record('reset-button'); assertResetView(reset);
         await capture('03-reset');
 
@@ -119,7 +161,7 @@ export async function validateSalvagePreview(call, directory) {
         // R while W remains held also checks reset discards held movement input.
         try { await key(82); } finally { await sendKey(87, false); }
         await waitFor(`(${stateExpression}).ready && (${stateExpression}).resets === 2`, 'R key acknowledgement');
-        await delay(700);
+        await waitForResetView();
         const keyboardReset = await record('reset-keyboard'); assertResetView(keyboardReset);
 
         // Old playground, throwable, presentation and benchmark controls must
@@ -154,6 +196,7 @@ export async function validateSalvagePreview(call, directory) {
         assert(exit, 'missing observed Leave acknowledgement');
         assert.equal(exit.state.active, false); assert.equal(exit.state.bodies, 0);
         assert.equal(exit.state.failed, false); assert.equal(exit.state.mouseCaptured, false);
+        emptyAuthority(exit.state, false);
         assert.equal(exit.resident, initial.resident - 32, 'Leave removed an unowned body or retained fixtures');
         assert.equal(exit.panelHidden, true); assert.equal(exit.pointerLocked, false);
         report.exit = exit;
@@ -161,20 +204,41 @@ export async function validateSalvagePreview(call, directory) {
         const legacy = await record('legacy-world-after-leave');
         assert.equal(legacy.active, false); assert.equal(legacy.playground, false);
         assert.equal(await evaluate('document.getElementById("salvage-preview").hidden'), true);
+        await waitForPresentedScene();
         await capture('04-legacy-world');
 
         await call('Page.navigate', { url: report.url });
         await waitFor(`new URLSearchParams(location.search).get('experience') === 'salvage'
             && typeof voxyModule !== 'undefined' && voxyModule?._voxy_is_initialized?.() === 1
             && (${stateExpression}).ready`, 'fresh cove re-entry', 90000);
-        await delay(700);
+        await waitForResetView();
+        await waitForPresentedScene();
         const reentered = await record('reentered');
+        assert.notEqual(reentered.observation.world, initial.observation.world, 're-entry reused the old world');
+        assert.notEqual(reentered.observation.incarnation, initial.observation.incarnation, 're-entry reused the old event stream');
+        expectedObserver = reentered.observation;
         assert.equal(reentered.resets, 0); assertResetView(reentered);
         await click('#salvage-reset');
         await waitFor(`(${stateExpression}).ready && (${stateExpression}).resets === 1`, 'single action after re-entry');
         await delay(300);
-        assert.equal((await record('single-reset-after-reentry')).resets, 1);
+        const afterReentryReset = await record('single-reset-after-reentry');
+        assert.equal(afterReentryReset.resets, 1);
+        emptyAuthority(afterReentryReset, true);
         await capture('05-reentered');
+
+        // Supplemental control-API ordering test, distinct from the real
+        // button/keyboard journey above. Submit intents within one JS turn so
+        // no render frame can dispatch Reset between these three requests.
+        const queued = await evaluate('[1,2,1].map(action => voxyModule._voxy_salvage_preview_action(action))');
+        assert.deepEqual(queued, [1, 1, 0], 'Leave must supersede Reset and reject later Reset');
+        await waitFor(`!(${stateExpression}).active && (${stateExpression}).bodies === 0`,
+            'queued Leave retires real bodies');
+        const prioritized = await record('control-api-leave-over-reset');
+        emptyAuthority(prioritized, false);
+        assert.equal(prioritized.resets, 1, 'superseded Reset must not respawn the scene');
+        assert.equal(prioritized.resident, initial.resident - 32);
+        report.controlPriority = { accepted: queued,
+            note: 'Direct control intents, real frame-boundary dispatch and GPU retirement; no state/success injection. UI navigation is tested separately above.' };
 
         // This separate page is a terrain study, not the expedition engine.
         const studyUrl = new URL('lego_patch.html?test', report.url).href;

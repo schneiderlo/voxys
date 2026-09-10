@@ -1,0 +1,39 @@
+{
+  "status": "passed",
+  "date": "2026-09-09",
+  "scope": "PLAY-02 paid-part builder checkpoint; no full gate",
+  "checks": {
+    "native_application": "passed",
+    "wasm_application": "passed; existing unrelated warnings",
+    "native_tests": {
+      "passed": 156,
+      "skipped": 0,
+      "filter": "GameSession*:SessionJournal*:SessionEvent*:CoveMovement*:CoveNavigation*"
+    },
+    "ui_cases": 13,
+    "browser_real_controls": {
+      "status": "passed",
+      "stages": 15,
+      "physical_replacements": 6,
+      "screenshots": 0,
+      "starting_material": 48,
+      "pontoon_cost": 24,
+      "pontoon_salvage_value": 16,
+      "original_mass_kg": 1035,
+      "expanded_mass_kg": 1275,
+      "expanded_parts": 13,
+      "reset_balance": 0,
+      "exact_paid_identity_undo_redo": true,
+      "drained_leave": true
+    },
+    "whitespace": "passed"
+  },
+  "package": "/tmp/voxys-parts-web-r02",
+  "preview": "http://127.0.0.1:38196/?experience=salvage-cove",
+  "next": [
+    "typed module configuration with real consumers",
+    "picking/controller/full camera",
+    "durable named/duplicated designs through SAVE",
+    "targeted live cancellation/failure/capacity coverage"
+  ]
+}

@@ -39,6 +39,29 @@ GameModeResolution resolveGameMode(const Config& config) noexcept {
             != WreckwaterClientConfigStatus::Disabled) {
         result.status = GameModeStatus::ConflictingBootstrap;
     }
+    if (result.ready() && config.game.assetFixtureRegistry
+        && (result.mode != GameMode::Salvage || config.game.assetFixtureRegistry->empty()
+            || config.game.assetFixtureRegistry->size() > 4096
+            || config.game.assetFixtureRegistry->find('\0') != std::string::npos)) {
+        result.status = GameModeStatus::InvalidAssetFixture;
+    }
+    if (result.ready() && ((config.game.assetFixtureGuides != "off"
+            && config.game.assetFixtureGuides != "dimensions" && config.game.assetFixtureGuides != "sockets")
+        || (config.game.assetFixtureGuides != "off" && !config.game.assetFixtureRegistry)))
+        result.status = GameModeStatus::InvalidAssetFixture;
+    if (result.ready() && ((config.game.assetFixtureLod != "auto"
+            && config.game.assetFixtureLod != "near" && config.game.assetFixtureLod != "middle"
+            && config.game.assetFixtureLod != "far")
+        || (config.game.assetFixtureLod != "auto" && !config.game.assetFixtureRegistry)))
+        result.status = GameModeStatus::InvalidAssetFixture;
+    if (result.ready() && ((config.game.assetFixtureLighting != "legacy"
+            && config.game.assetFixtureLighting != "filtered")
+        || (config.game.assetFixtureLighting != "legacy" && !config.game.assetFixtureRegistry)))
+        result.status = GameModeStatus::InvalidAssetFixture;
+    if (result.ready() && ((config.game.assetFixtureAnchor != "inspection"
+            && config.game.assetFixtureAnchor != "water")
+        || (config.game.assetFixtureAnchor != "inspection" && !config.game.assetFixtureRegistry)))
+        result.status = GameModeStatus::InvalidAssetFixture;
     return result;
 }
 
@@ -47,6 +70,7 @@ const char* gameModeStatusName(GameModeStatus status) noexcept {
     case GameModeStatus::Ready: return "ready";
     case GameModeStatus::UnknownMode: return "unknown game mode";
     case GameModeStatus::ConflictingBootstrap: return "salvage conflicts with WRECKWATER bootstrap";
+    case GameModeStatus::InvalidAssetFixture: return "asset fixture requires salvage mode and a valid installed registry path";
     }
     return "invalid game mode status";
 }
@@ -446,6 +470,11 @@ CommandLineArgs parseArgs(std::span<char*> args) {
             result.benchmarkFixedHz = std::max(
                 parseFloat(args[++i], 0.0f), 0.0f);
             result.benchmark = true;
+        } else if (arg == "--inspection-motion" || arg == "--inspection-motion-output") {
+            // Retain an empty value on missing input so native startup rejects
+            // an incomplete capture request instead of silently running normally.
+            auto& value = arg == "--inspection-motion" ? result.inspectionMotionRecipe : result.inspectionMotionOutput;
+            value = hasNext() ? std::string(args[++i]) : std::string{};
         } else if (arg == "--teleport-index" && hasNext()) {
             result.teleportIndex = parseInt(args[++i], 0);
         } else if (arg == "--screenshot" && hasNext()) {
@@ -572,6 +601,8 @@ void printHelp(std::string_view programName) {
         "Options:\n"
         "  --help, -h              Show this help message\n"
         "  --config <path>         Config file path (default: voxy.cfg)\n"
+        "  --expedition-world <id> Native: resume this saved cove (32 lowercase hex digits)\n"
+        "  --expedition-root <dir> Native: absolute save root; P then F10 saves\n"
         "  --render-path <path>    Override render path (raycast|triangle)\n"
         "  --heightmap <path>      Override heightmap file\n"
         "  --physics-backend <b>   Physics backend (jolt|box3d|webgpu)\n"
@@ -597,6 +628,8 @@ void printHelp(std::string_view programName) {
         "  --screenshot-frames <n> Frames to render before screenshot (default: 10)\n"
         "  --screenshot-tour <n>   Capture screenshots for teleport indices [0..n-1]\n"
         "  --screenshot-dir <dir>  Output directory for screenshot tour (default: screenshots)\n"
+        "  --inspection-motion <json> Native asset camera-motion recipe (capture overhead; not a benchmark)\n"
+        "  --inspection-motion-output <dir> New, empty output path for the motion recording\n"
         "\n"
         "Native WRECKWATER client (all fields are required):\n"
         "  --wreckwater-server <host>\n"
@@ -667,6 +700,11 @@ Config load(std::string_view path) {
         std::string value = trim(trimmedLine.substr(eqPos + 1));
         // A malformed explicit route must not silently fall back to a legacy title.
         if (currentSection == "game" && key == "mode") config.game.mode = "";
+        if (currentSection == "game" && key == "asset_fixture_registry") config.game.assetFixtureRegistry = "";
+        if (currentSection == "game" && key == "asset_fixture_guides") config.game.assetFixtureGuides = "";
+        if (currentSection == "game" && key == "asset_fixture_lod") config.game.assetFixtureLod = "";
+        if (currentSection == "game" && key == "asset_fixture_lighting") config.game.assetFixtureLighting = "";
+        if (currentSection == "game" && key == "asset_fixture_anchor") config.game.assetFixtureAnchor = "";
         
         // Strip inline comments (but be careful with # inside quotes)
         if (!value.empty() && (value[0] == '"' || value[0] == '\'')) {
@@ -695,6 +733,11 @@ Config load(std::string_view path) {
         // Apply value based on section and key
         if (currentSection == "game") {
             if (key == "mode") config.game.mode = value;
+            else if (key == "asset_fixture_registry") config.game.assetFixtureRegistry = value;
+            else if (key == "asset_fixture_guides") config.game.assetFixtureGuides = value;
+            else if (key == "asset_fixture_lod") config.game.assetFixtureLod = value;
+            else if (key == "asset_fixture_lighting") config.game.assetFixtureLighting = value;
+            else if (key == "asset_fixture_anchor") config.game.assetFixtureAnchor = value;
         }
         else if (currentSection == "render") {
             if (key == "path") config.render.path = value;
@@ -907,6 +950,8 @@ Config load(std::string_view path, const CommandLineArgs& args) {
     if (args.noValidation) config.debug.enableValidation = false;
     
     // Apply automation settings
+    config.automation.inspectionMotionRecipe = args.inspectionMotionRecipe;
+    config.automation.inspectionMotionOutput = args.inspectionMotionOutput;
     config.automation.benchmark = args.benchmark;
     config.automation.benchmarkBodies = args.benchmarkBodies;
     config.automation.benchmarkMinimumFps = args.benchmarkMinimumFps;
@@ -1053,9 +1098,17 @@ bool save(const Config& config, std::string_view path) {
     file << std::format("log_level = {}\n", quote(config.debug.logLevel));
     file << std::format("enable_validation = {}\n\n", config.debug.enableValidation ? "true" : "false");
     
-    if (config.game.mode) {
+    if (config.game.mode || config.game.assetFixtureRegistry || config.game.assetFixtureGuides != "off"
+        || config.game.assetFixtureLod != "auto" || config.game.assetFixtureLighting != "legacy"
+        || config.game.assetFixtureAnchor != "inspection") {
         file << "[game]\n";
-        file << std::format("mode = {}\n\n", quote(*config.game.mode));
+        if (config.game.mode) file << std::format("mode = {}\n", quote(*config.game.mode));
+        if (config.game.assetFixtureRegistry) file << std::format("asset_fixture_registry = {}\n", quote(*config.game.assetFixtureRegistry));
+        file << std::format("asset_fixture_guides = {}\n", quote(config.game.assetFixtureGuides));
+        file << std::format("asset_fixture_lod = {}\n", quote(config.game.assetFixtureLod));
+        file << std::format("asset_fixture_lighting = {}\n", quote(config.game.assetFixtureLighting));
+        file << std::format("asset_fixture_anchor = {}\n", quote(config.game.assetFixtureAnchor));
+        file << '\n';
     }
     file << "[window]\n";
     file << std::format("width = {}\n", config.window.width);

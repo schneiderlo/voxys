@@ -1,0 +1,48 @@
+{
+  "schema": 1,
+  "status": "failed",
+  "recipe": {
+    "schema": 1,
+    "purpose": "First complete static authored skiff/dock/generator composition; water ordering and walkability pending",
+    "registry": "data/salvage/fixture-cove-r01.json",
+    "physical_viewport": [
+      1920,
+      1080
+    ],
+    "fov_degrees": 60,
+    "views": [
+      {
+        "name": "cove-arrival",
+        "eye": [
+          10,
+          4.2,
+          -50
+        ],
+        "target": [
+          2.1,
+          0.65,
+          -53.6
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      }
+    ]
+  },
+  "recipe_sha256": "9d5a1fe1454824a22bc1897b6040e067b9413dffb6c47a2c07202a6ef9d96190",
+  "runner_sha256": "2befd115829de8b32c77c322a4b745c3ba398821f1dcdaa25889c496a2c3b9f2",
+  "binary": "/home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-opt/bin/voxy_native",
+  "binary_sha256": "91fcd7e264f86a0e26ea6f7b251f20060963ac18045bfcc496a534bdf3a4fd92",
+  "original_registry_sha256": "e9ad17b55f6aaa071c2d6441687be12dfb8a7916f88682b92227801d247f6757",
+  "original_config": "/home/modkin/workspace/schneiderlo/voxys/salvage_cove.cfg",
+  "original_config_sha256": "68cdece48fd9c36ea22205fe3a933e91aa68f68a36faf5ebf836da6d5b000c26",
+  "guides": "off",
+  "forced_lod": 0,
+  "selected_views": null,
+  "scope": "Native scene captures; guides are technical overlays, not final art or moving-craft acceptance",
+  "views": [],
+  "error": "Expected the actual state accompanying this submitted-surface capture",
+  "temporary_registry_removed": true
+}

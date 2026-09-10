@@ -15,6 +15,12 @@
 
 namespace voxy::terrain {
 
+// Starter cove crop only: a four-metre-deep berth and seaward exit at world
+// X [-28,-11], Z [-114,-84], with a four-metre feather. Never lowers dry land.
+// Apply before both GPU terrain uploads and collision attachment.
+[[nodiscard]] bool applySalvageBerth(std::span<uint16_t> heights,uint32_t width,uint32_t height,
+    float heightScale,float cellScale,float waterHeight) noexcept;
+
 struct AuthoredCoveConfig {
     // +normal points inland on a shallow mainland coast. Production
     // integration is source-aware, so this local profile preserves the

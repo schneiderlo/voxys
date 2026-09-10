@@ -1,0 +1,100 @@
+{
+  "schema": 1,
+  "status": "browser motion captured and video decode verified; native motion and independent review pending",
+  "files": {
+    "scripts/validate_salvage_asset_motion.mjs": {
+      "sha256": "0193d22eb74f6a9f8c5d575bf9b8b9fa7844f13ec0a62e4a277a15475aa74b3d",
+      "bytes": 9016
+    },
+    "scripts/smoke_integrated_wasm.mjs": {
+      "sha256": "940b5084277b5e7911f3ef153f2ec4227da1e9a4bd2722e7c2d335f75fb7a32b",
+      "bytes": 30823
+    },
+    "scripts/encode_inspection_motion.py": {
+      "sha256": "788218b1a529627df057ea3fc4a7c3a5371e6f36cbfb5c388f3e7c435a63eb26",
+      "bytes": 3956
+    },
+    "docs/validation/salvage/ASSET-04/lod-motion.json": {
+      "sha256": "6145cd98808221893c7aba606917c6f8ee27bd6ff86421108cb50c378bdb7717",
+      "bytes": 610
+    },
+    "docs/validation/salvage/ASSET-04/lod-browser-motion-attempt01-startup.json": {
+      "sha256": "67d94ccf396287edf67096817680185a1a209cf0e4106c3c3676cbeccbeeab3e",
+      "bytes": 272548
+    },
+    "docs/validation/salvage/ASSET-04/integration/assembly-summary.json": {
+      "sha256": "3d75e0f6ebbd776f30d5e0203506dc2dcac6181e628a92b1ab83e74497efd02e",
+      "bytes": 21079
+    },
+    "docs/validation/salvage/ASSET-04/lod-browser-motion-attempt01/report.json": {
+      "sha256": "ba66e98c44b32d88827cae811f9319a638ec3bdc3ba7c0aad8b754da33d40bdf",
+      "bytes": 229395
+    },
+    "docs/validation/salvage/ASSET-04/lod-browser-motion-attempt01/trace.json": {
+      "sha256": "ee5365deb5b5bea279ed8784a284a4624f77a851e9f738f693c710370325fff4",
+      "bytes": 1515175
+    },
+    "docs/validation/salvage/ASSET-04/lod-browser-motion-attempt01/video.json": {
+      "sha256": "bd545bb6a8c7c315715f9e29fc120342cf1564ddf16565b0b86130c90812376c",
+      "bytes": 6482
+    },
+    "docs/validation/salvage/ASSET-04/lod-browser-motion-attempt01/motion.webm": {
+      "sha256": "26c4817c197dc4ab6e03e3ba2418df7c9c499514e3b7d0e961795d4d12d6da74",
+      "bytes": 22445487
+    },
+    "docs/validation/salvage/ASSET-04/lod-browser-motion-attempt01/frames.ffconcat": {
+      "sha256": "f8810d531adc8381481d673366fd477918e0a4a1e94980fac912cc4342018ea7",
+      "bytes": 5547
+    }
+  },
+  "same_application_artifacts_as_assembly_checkpoint": true,
+  "same_application_sources_as_assembly_checkpoint": true,
+  "motion_samples": 1778,
+  "original_captures": 128,
+  "lod_sequences": [
+    [
+      "1",
+      "2",
+      "3",
+      "2",
+      "1"
+    ],
+    [
+      "1",
+      "2",
+      "3",
+      "2",
+      "1"
+    ],
+    [
+      "1",
+      "2",
+      "3",
+      "2",
+      "1"
+    ],
+    [
+      "1",
+      "2",
+      "3",
+      "2",
+      "1"
+    ]
+  ],
+  "video": {
+    "seconds": 30.0,
+    "decoded_frames": 360,
+    "width": 1920,
+    "height": 1080,
+    "codec": "vp9",
+    "unique_capture_rate_claim": false
+  },
+  "reviewed_original_frames": [
+    "frame-0000.jpg",
+    "frame-0015.jpg",
+    "frame-0017.jpg",
+    "frame-0036.jpg",
+    "frame-0038.jpg"
+  ],
+  "reviewer": "root; not independent"
+}

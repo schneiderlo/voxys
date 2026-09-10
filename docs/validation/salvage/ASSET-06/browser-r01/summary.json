@@ -1,0 +1,117 @@
+{
+  "schema": 1,
+  "scope": "r01 opaque calibration browser packaging and controls",
+  "parent_accepted": false,
+  "gate_passed": false,
+  "views": [
+    {
+      "lod": 1,
+      "name": "pontoon-wells",
+      "gpu_bytes": 6548816,
+      "root_viewed": true,
+      "png": "lod1/pontoon-wells.png"
+    },
+    {
+      "lod": 1,
+      "name": "winch-metal",
+      "gpu_bytes": 6548816,
+      "root_viewed": true,
+      "png": "lod1/winch-metal.png"
+    },
+    {
+      "lod": 2,
+      "name": "pontoon-wells",
+      "gpu_bytes": 6548816,
+      "root_viewed": true,
+      "png": "lod2/pontoon-wells.png"
+    },
+    {
+      "lod": 2,
+      "name": "winch-metal",
+      "gpu_bytes": 6548816,
+      "root_viewed": true,
+      "png": "lod2/winch-metal.png"
+    },
+    {
+      "lod": 3,
+      "name": "pontoon-wells",
+      "gpu_bytes": 6548816,
+      "root_viewed": true,
+      "png": "lod3/pontoon-wells.png"
+    },
+    {
+      "lod": 3,
+      "name": "winch-metal",
+      "gpu_bytes": 6548816,
+      "root_viewed": true,
+      "png": "lod3/winch-metal.png"
+    }
+  ],
+  "controls": {
+    "status": "passed",
+    "stages": [
+      "initial",
+      "lod-1",
+      "lod-2",
+      "lod-3",
+      "lod-0",
+      "guides-1",
+      "guides-2",
+      "guides-0",
+      "resized-1280",
+      "resized-1920",
+      "flown",
+      "reset",
+      "reentered",
+      "reset-after-reentry"
+    ]
+  },
+  "files": {
+    "bazel-build.log": "df6780d2e96ae6eba7f8e574bad29869067eb2b0bc56ce42fc5f6543244f1dab",
+    "controls/01-auto.png": "1f9c9ad9f2703dc8bbbc873201bc8862453e5e138390cd1c2ed33ef4135ab5ec",
+    "controls/02-guides-0.png": "86ae7cb6ddf039979236a28ac1f9ec3735d18ec969d213a15ffdb24190cc5fb1",
+    "controls/02-guides-1.png": "225741697ad8fbdcf2ea7a84748778d964c77b3cfb12962a454820022328ad0d",
+    "controls/02-guides-2.png": "183cc0cdbb5c2a6449e31a43ae0ed2fb7444f925efaa3d2b67732dfb2d7d17e0",
+    "controls/02-lod-0.png": "822ef6d5441ae79189094a33f36f18dcf26c951c904d3a5b72044b3bad3818c9",
+    "controls/02-lod-1.png": "037238a92ccff34519808fea2906f5fbecc7fcd8468c63241275b00e09951464",
+    "controls/02-lod-2.png": "069d305bce91bb00e37fea57b6dce3b3941104f0f465b4d4c311d30175de1bae",
+    "controls/02-lod-3.png": "86428ee57de206630babb008bc54c3c4bdca0e94f8d9e4818f2e522c1a79ce37",
+    "controls/03-resized-1280.png": "5074ea22e93dd6eb57b435ebe1e7541db920a7d7fcc049f417db049670615ae2",
+    "controls/03-resized-1920.png": "1af56e1ac557347493102aa2dcaa03128bb4670cddd17c0506fff68bfa80fa72",
+    "controls/04-flown.png": "e18d319920f853b87f2b400e686644af83c10a4f859c671c9398713f2ac6b4b6",
+    "controls/05-reset.png": "ba9d8a9a6a0296b49fa90438faf46bd142399ff767ec6fc1b1e4f706c16e5616",
+    "controls/06-original-world.png": "24134a2fa22d0405ab5c8cd90b41a13afd38a912852316c04339c00d39b3d67c",
+    "controls/07-reentered.png": "9193b37aeb5707d679cab9616423900cd45ef8ebdfaf80a60090a1bc39da7012",
+    "controls/summary.json": "fda994f1e5b8eeeaaef1c16022b80b06d19b9af50b17302454343a014303e7cc",
+    "controls-summary.json": "a2c0fc47592d2b9ba0dadaf490658ddad45054518270898443a76149f89ccf64",
+    "controls.log": "da10beedc24f556e938746146898e70d19815f69c283cb2ba15f3d54575ab99a",
+    "lod1/pontoon-wells.png": "5a8b91ec82861029f9ef273ac96d82f46b8ff6c57030eb4e86f0811ad7dfd0d9",
+    "lod1/report.json": "05cc69ac102d06e5d4c48ac3b214fd8204e23ce8b1e374f3f53d55f6e8b0717f",
+    "lod1/winch-metal.png": "e2551b926cc1905e242d28f1626f5deeb9c50bb406d9d7cf955c1809c837438a",
+    "lod1-summary.json": "5fc2332b9f1b90ba0c1ca92c453b9df1bd15525bb2d614dcf918d8a71ac2736d",
+    "lod1.log": "9cfce2cb3e04deed73cbd07119291f68fd1b86e01ed7b833d08634e0dd75b46e",
+    "lod2/pontoon-wells.png": "cb962bfa2748b43a73dc9e734dfa7a798119efa9a65561de2f5900618edcb3cb",
+    "lod2/report.json": "2aab0131466ad088c7c36ffb66ee15ae9cc6013552b461e939e1f23c570171ca",
+    "lod2/winch-metal.png": "f03b11985103fff10776fd72885f3c14c78c9f4c25739b24044aa14eed6d9b77",
+    "lod2-summary.json": "4d5f6f577327051a47ee6b4c8358c196546b262155a5fc79826c5904556503bc",
+    "lod2.log": "e74c01df4ee2727ce48616435410959b334423dfcb9cc358a583bcf3693e5a4a",
+    "lod3/pontoon-wells.png": "6b17d4f43b046e6a5df1279d775e31a8bc13f1c72f21f571adf4779b8309d134",
+    "lod3/report.json": "6340cea8edb02c684d35064dbbf9bf2c7b446fe40cdf0654c00b5eace899693c",
+    "lod3/winch-metal.png": "b35a7eda6711539a53824d17556c640f4d791a7aef3dce24255696ec44aea1ac",
+    "lod3-summary.json": "1369470bb946520dcbb5ed0690cc5b2dbbce7aeda9d39201e05c47355f9dcb66",
+    "lod3.log": "be72a9a32396e311b79fd52e50253463e8175df3f68f66fafeac98db7b44a185",
+    "package.json": "5478d894c62f579a83effb8c458ae5bb831b33e61b95e2380fe5c4ab1be417e1",
+    "sources/BUILD": "068e0270ea99bd30ebd028586757c0f66cbed15cc7a2b390b3c4d957c8ae4608",
+    "sources/CMakeLists.txt": "28010a90dbfb97f4e455d9b187cc411514b77cacdf1976ce48f6775f1bd4708d",
+    "sources/GAME_IMPLEMENTATION_TODO.md": "f1d31024e623eb7b7ca5f9b3b1ea1980aa7fd06739b6a049e40d20233bf75405",
+    "sources/README.md": "6ba27cd34583942312ebe0661c48c6daadfae7c465664c2eafd05abff3cea35c",
+    "sources/data/BUILD": "28e102e485c72df3c2f2cc114d777f341fc0fd8c0b8c09befcc12a1e9c406821",
+    "sources/salvage_material_fixture.cfg": "365433d22e298d16ad85084df7e2495d9a313551574f94d5c92e5ede507ac83c",
+    "sources/scripts/smoke_integrated_wasm.mjs": "a9abcf0b830cfdf7d9548fe7394d48743504a6a21e575b5f7d28f2677f8f9cb1",
+    "sources/scripts/validate_salvage_asset_fixture.mjs": "ac1f8a0f6c348c5943b065dca5e184d01b7f148dff504c6ccf6607922b370c02",
+    "sources/scripts/validate_salvage_asset_views.mjs": "ca8d27a154210074eea400b77d91fc03d551ee700354756c59cfec1039e339de",
+    "sources/web/index.html": "c8bc56addb18a5132404cd2fb23db0c6887f891f48e89957060f651946accdf6",
+    "views.json": "ebb262c7b7f276bb1ef84fd43ec1f773ea30b712b45ef232b7ed03abab60705e",
+    "wasm-build.log": "f7bf141d69b5754adc6d21085f85c1d1509da53600eefcd76d63a1545d6bf99b"
+  }
+}

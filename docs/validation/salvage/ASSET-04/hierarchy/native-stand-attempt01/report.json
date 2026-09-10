@@ -1,0 +1,118 @@
+{
+  "schema": 1,
+  "status": "captured; visual review required",
+  "recipe": {
+    "schema": 1,
+    "registry": "data/salvage/fixture-hierarchy-v1.json",
+    "physical_viewport": [
+      1920,
+      1080
+    ],
+    "fov_degrees": 60,
+    "inspection_expectations": {
+      "maximum_model_draws": 10,
+      "guide_boxes": [
+        0,
+        26,
+        375
+      ]
+    },
+    "views": [
+      {
+        "name": "stand-front",
+        "eye": [
+          -2.7,
+          2.1,
+          -5.5
+        ],
+        "target": [
+          -4,
+          0.85,
+          -2.4
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "stand-back",
+        "eye": [
+          -5.2,
+          2.1,
+          0.7
+        ],
+        "target": [
+          -4,
+          0.85,
+          -2.4
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      }
+    ]
+  },
+  "recipe_sha256": "a6dae17aa1a13121881b7985d03091c70f42a100cfc1544d6c13bb315f853436",
+  "runner_sha256": "4cb504c3fa164d5455bfb89708a3c33ca8ec018e1efdc5a98752e04e0e508304",
+  "binary": "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native",
+  "binary_sha256": "3d6651329364e04c6349b75fe3e03918dfbcac157a01af1fbdd995e823fb2be4",
+  "original_registry_sha256": "35ed5372c6404cb3dd7dc2a02b28a600ea44b1c71ef674d86a2a0be796fb5d09",
+  "original_config": "/home/modkin/workspace/schneiderlo/voxys/salvage_hierarchy_fixture.cfg",
+  "original_config_sha256": "3b5179aaef1d10d668dbda2275284a9068c998980631f03388d90316f3d40e06",
+  "guides": "off",
+  "selected_views": null,
+  "scope": "Native scene captures; guides are technical overlays, not final art or moving-craft acceptance",
+  "views": [
+    {
+      "name": "stand-front",
+      "argv": [
+        "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/hierarchy/native-stand-attempt01/stand-front.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/hierarchy/native-stand-attempt01/stand-front.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "config_sha256": "01a1bd943a8fd4277808fdad0ad0e650e62098090fb6926d4b9a39dc46c0575d",
+      "registry_sha256": "0216a6266f09d1117fdbbfae1b1c52b083c87380150477df2de5526d34fc909d",
+      "timeout": false,
+      "exit_code": 0,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "png_sha256": "afa3376e138e55a0fe98f04892b4b8d41bb0af39db9b6d9cbe60e322cb0287d0",
+      "gpu_or_application_errors": [],
+      "passed": true
+    },
+    {
+      "name": "stand-back",
+      "argv": [
+        "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/hierarchy/native-stand-attempt01/stand-back.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/hierarchy/native-stand-attempt01/stand-back.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "config_sha256": "01a1bd943a8fd4277808fdad0ad0e650e62098090fb6926d4b9a39dc46c0575d",
+      "registry_sha256": "5c627bf965f9791e2cf3f07907b6274c430ec3de3523fe6027701799b278bbed",
+      "timeout": false,
+      "exit_code": 0,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "png_sha256": "360f3cf863dc06753fea5f81b9723c69d57769e5260b83027c8d9d056ceea937",
+      "gpu_or_application_errors": [],
+      "passed": true
+    }
+  ],
+  "temporary_registry_removed": true
+}

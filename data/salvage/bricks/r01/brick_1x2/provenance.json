@@ -1,0 +1,201 @@
+{
+  "schema": 1,
+  "status": "offline candidate; gameplay admission and controls require separate validation",
+  "part": {
+    "namespace": "766f7879732d627269636b732d763100",
+    "counter": "1",
+    "version": 1
+  },
+  "blender_version": "5.2.1 LTS",
+  "lods": [
+    {
+      "lod": 0,
+      "vertices": 542,
+      "triangles": 692,
+      "bounds_metres": {
+        "minimum": [
+          -0.9800000190734863,
+          -0.47999998927116394,
+          -0.47999998927116394
+        ],
+        "maximum": [
+          0.9800000190734863,
+          0.6600000262260437,
+          0.47999998927116394
+        ]
+      },
+      "geometry": {
+        "degenerate_faces": 0,
+        "nonmanifold_edges": 0,
+        "summed_component_volume_m3": 0.6966353608219993,
+        "interface_checks": {},
+        "metric_uv": null,
+        "surface_shading": [
+          {
+            "component": "hollow_brick_shell",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 12,
+            "minimum_face_alignment": 0.8581923040910624,
+            "maximum_unit_length_error": 9.487211638514736e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "round_stud_0",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.9159858156745031,
+            "maximum_unit_length_error": 1.212923632643026e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "round_stud_1",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.9159858156745031,
+            "maximum_unit_length_error": 1.212923632643026e-07,
+            "positions_unchanged": true
+          }
+        ],
+        "volume_note": "Decorative components can intersect; this sum is not displacement."
+      },
+      "sha256": "33eee03de973197d3af1480584171b743ce96a1d6a87363e35359ba88e7a03e7"
+    },
+    {
+      "lod": 1,
+      "vertices": 304,
+      "triangles": 308,
+      "bounds_metres": {
+        "minimum": [
+          -0.9800000190734863,
+          -0.47999998927116394,
+          -0.47999998927116394
+        ],
+        "maximum": [
+          0.9800000190734863,
+          0.6600000262260437,
+          0.47999998927116394
+        ]
+      },
+      "geometry": {
+        "degenerate_faces": 0,
+        "nonmanifold_edges": 0,
+        "summed_component_volume_m3": 0.6946853789291257,
+        "interface_checks": {},
+        "metric_uv": null,
+        "surface_shading": [
+          {
+            "component": "hollow_brick_shell",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 12,
+            "minimum_face_alignment": 0.5881279604509473,
+            "maximum_unit_length_error": 6.788468687179972e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "round_stud_0",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.693533671041223,
+            "maximum_unit_length_error": 1.2033294405355832e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "round_stud_1",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.693533671041223,
+            "maximum_unit_length_error": 1.2033310170522782e-07,
+            "positions_unchanged": true
+          }
+        ],
+        "volume_note": "Decorative components can intersect; this sum is not displacement."
+      },
+      "sha256": "e8c9af737e7bbbb4baee5fcd6780d2bb6ff89889e089370746dbe99ba04506bd"
+    },
+    {
+      "lod": 2,
+      "vertices": 144,
+      "triangles": 100,
+      "bounds_metres": {
+        "minimum": [
+          -0.9800000190734863,
+          -0.47999998927116394,
+          -0.47999998927116394
+        ],
+        "maximum": [
+          0.9800000190734863,
+          0.6600000262260437,
+          0.47999998927116394
+        ]
+      },
+      "geometry": {
+        "degenerate_faces": 0,
+        "nonmanifold_edges": 0,
+        "summed_component_volume_m3": 0.691957192046634,
+        "interface_checks": {},
+        "metric_uv": null,
+        "surface_shading": [
+          {
+            "component": "hollow_brick_shell",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 24,
+            "minimum_face_alignment": 0.9999998807907104,
+            "maximum_unit_length_error": 5.960464655174746e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "round_stud_0",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 20,
+            "minimum_face_alignment": 0.9510564804077148,
+            "maximum_unit_length_error": 4.842877510125021e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "round_stud_1",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 20,
+            "minimum_face_alignment": 0.9510564804077148,
+            "maximum_unit_length_error": 4.842877510125021e-08,
+            "positions_unchanged": true
+          }
+        ],
+        "volume_note": "Decorative components can intersect; this sum is not displacement."
+      },
+      "sha256": "aefd0f918c4b40c03eec795ddb998f175e77f4f5cf02f9f9d5c174c3bfda97c2"
+    }
+  ],
+  "stud_pitch_metres": 1,
+  "engaged_stack_spacing_metres": 0.96,
+  "stud_height_metres": 0.18,
+  "provenance": "Original procedural geometry and solid PBR material; no external assets",
+  "recipes": {
+    "author_bricks.py": "71f8551c5711059dc15860941bb193f1f63039812d3e76472e3c0c8cf716f38b",
+    "brick_parts.py": "a3c29df697fa64926f987c8fcf4b438026aa37b522dbf441b5ac9a3e98936a5b",
+    "author_functional_kit.py": "665f446f76c0c0431a6bce500be4f8ea3187ce0b8fb16a171c2749486ccadb76",
+    "author_pontoon.py": "65142b372f2ec48eec8d994c751dca8b3263f492da39e27393e4d615242ce4b5",
+    "surface_shading.py": "b53656d0c42cf0f934fd65a7ccb0c528539da794a8482265809e5189bab19720"
+  },
+  "files": {
+    "source/brick_1x2-lod-0.glb": {
+      "bytes": 31596,
+      "sha256": "33eee03de973197d3af1480584171b743ce96a1d6a87363e35359ba88e7a03e7"
+    },
+    "source/brick_1x2-lod-1.glb": {
+      "bytes": 17868,
+      "sha256": "e8c9af737e7bbbb4baee5fcd6780d2bb6ff89889e089370746dbe99ba04506bd"
+    },
+    "source/brick_1x2-lod-2.glb": {
+      "bytes": 8936,
+      "sha256": "aefd0f918c4b40c03eec795ddb998f175e77f4f5cf02f9f9d5c174c3bfda97c2"
+    },
+    "source/brick_1x2.blend": {
+      "bytes": 119127,
+      "sha256": "84f9d5ab485293bdff3cbb9c5735e7c29ab3507f2006e43fce74c6f563810b13"
+    },
+    "source/brick_1x2.gameplay.json": {
+      "bytes": 16318,
+      "sha256": "aecb764614b735d3beb1537ae2765469ab08fa9eb34318ab4b484ca5221fad91"
+    }
+  }
+}

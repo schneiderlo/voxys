@@ -1,3 +1,332 @@
+// BEGIN GENERATED AUTHORED GEOMETRY
+// Authored shape heap format 1. The including pipeline declares
+// var<storage, read> authored_shape_heap: array<vec4<u32>> at its chosen binding.
+// One binding holds the header, seven-row descriptors, three-row cells/faces
+// and two-row preorder BVH nodes. All geometric coordinates are root-local
+// integer ticks at .02 m. Every index inside a shape is local to that resource.
+
+struct AuthoredShapeView {
+    valid: bool,
+    cell_base: u32,
+    cell_count: u32,
+    face_base: u32,
+    face_count: u32,
+    node_base: u32,
+    node_count: u32,
+    center_inverse_mass: vec4<f32>,
+    root_from_body: vec4<f32>,
+    inverse_inertia_radius: vec4<f32>,
+    minimum: vec3<f32>,
+    maximum: vec3<f32>,
+};
+
+fn authored_shape(index: u32, generation: u32) -> AuthoredShapeView {
+    var result: AuthoredShapeView;
+    let rows = arrayLength(&authored_shape_heap);
+    if (rows < 2u || index == 0u || generation == 0u) { return result; }
+    let sections = authored_shape_heap[0];
+    let capacity = authored_shape_heap[1];
+    if (sections.x != 1u || sections.y == 0u || sections.y > 512u || index > sections.y) { return result; }
+    if (sections.z != 2u + 7u * (sections.y + 1u) || sections.w < sections.z || capacity.x < sections.w
+        || capacity.y < capacity.x || capacity.y > rows) { return result; }
+    if ((sections.w-sections.z)%3u != 0u || (capacity.x-sections.w)%3u != 0u || (capacity.y-capacity.x)%2u != 0u) { return result; }
+    let cell_capacity = (sections.w-sections.z)/3u;
+    let face_capacity = (capacity.x-sections.w)/3u;
+    let node_capacity = (capacity.y-capacity.x)/2u;
+    if (capacity.z != cell_capacity || capacity.w != face_capacity) { return result; }
+    let descriptor = 2u + 7u*index;
+    // sections.z bounds the descriptor area, and the area is inside the binding.
+    let identity = authored_shape_heap[descriptor];
+    let ranges = authored_shape_heap[descriptor+1u];
+    if (identity.x != generation || identity.y != 1u || identity.w == 0u
+        || ranges.y == 0u || ranges.w == 0u) { return result; }
+    if (identity.z > cell_capacity || identity.w > cell_capacity-identity.z
+        || ranges.x > face_capacity || ranges.y > face_capacity-ranges.x
+        || ranges.z > node_capacity || ranges.w > node_capacity-ranges.z) { return result; }
+    result.cell_base = sections.z + 3u*identity.z;
+    result.cell_count = identity.w;
+    result.face_base = sections.w + 3u*ranges.x;
+    result.face_count = ranges.y;
+    result.node_base = capacity.x + 2u*ranges.z;
+    result.node_count = ranges.w;
+    result.center_inverse_mass = bitcast<vec4<f32>>(authored_shape_heap[descriptor+2u]);
+    result.root_from_body = bitcast<vec4<f32>>(authored_shape_heap[descriptor+3u]);
+    result.inverse_inertia_radius = bitcast<vec4<f32>>(authored_shape_heap[descriptor+4u]);
+    result.minimum = vec3<f32>(bitcast<vec4<i32>>(authored_shape_heap[descriptor+5u]).xyz)*0.02;
+    result.maximum = vec3<f32>(bitcast<vec4<i32>>(authored_shape_heap[descriptor+6u]).xyz)*0.02;
+    result.valid = true;
+    return result;
+}
+
+struct AuthoredShapeCell {
+    valid: bool,
+    minimum: vec3<f32>,
+    maximum: vec3<f32>,
+    source: u32,
+    first_face: u32,
+    face_count: u32,
+};
+
+fn authored_shape_ref(reference: vec4<u32>) -> AuthoredShapeView {
+    if (reference.z != 1u || reference.w != 0u) {
+        var invalid: AuthoredShapeView;
+        return invalid;
+    }
+    return authored_shape(reference.x, reference.y);
+}
+fn authored_cell(shape: AuthoredShapeView, index: u32) -> AuthoredShapeCell {
+    var result: AuthoredShapeCell;
+    if (!shape.valid || index >= shape.cell_count) { return result; }
+    let row = shape.cell_base + 3u*index;
+    let lower = authored_shape_heap[row];
+    let upper = authored_shape_heap[row+1u];
+    let detail = authored_shape_heap[row+2u];
+    if (upper.w > shape.face_count || detail.x > shape.face_count-upper.w || lower.w == 0u) { return result; }
+    result.minimum = vec3<f32>(bitcast<vec3<i32>>(lower.xyz))*0.02;
+    result.maximum = vec3<f32>(bitcast<vec3<i32>>(upper.xyz))*0.02;
+    result.source = lower.w;
+    result.first_face = upper.w;
+    result.face_count = detail.x;
+    // Zero exterior patches is valid for a completely enclosed union cell.
+    result.valid = true;
+    return result;
+}
+
+struct AuthoredShapeFace {
+    valid: bool,
+    minimum: vec3<f32>,
+    maximum: vec3<f32>,
+    source: u32,
+    cell: u32,
+    axis: u32,
+    sign: i32,
+};
+fn authored_face(shape: AuthoredShapeView, index: u32) -> AuthoredShapeFace {
+    var result: AuthoredShapeFace;
+    if (!shape.valid || index >= shape.face_count) { return result; }
+    let row = shape.face_base + 3u*index;
+    let lower = authored_shape_heap[row];
+    let upper = authored_shape_heap[row+1u];
+    let detail = authored_shape_heap[row+2u];
+    let sign = bitcast<i32>(detail.y);
+    if (lower.w == 0u || upper.w >= shape.cell_count || detail.x > 2u || (sign != -1 && sign != 1)) { return result; }
+    result.minimum = vec3<f32>(bitcast<vec3<i32>>(lower.xyz))*0.02;
+    result.maximum = vec3<f32>(bitcast<vec3<i32>>(upper.xyz))*0.02;
+    result.source = lower.w;
+    result.cell = upper.w;
+    result.axis = detail.x;
+    result.sign = sign;
+    result.valid = true;
+    return result;
+}
+
+struct AuthoredShapeNode {
+    valid: bool,
+    minimum: vec3<f32>,
+    maximum: vec3<f32>,
+    cell: u32,
+    escape: u32,
+};
+fn authored_node(shape: AuthoredShapeView, index: u32) -> AuthoredShapeNode {
+    var result: AuthoredShapeNode;
+    if (!shape.valid || index >= shape.node_count) { return result; }
+    let row = shape.node_base + 2u*index;
+    let lower = authored_shape_heap[row];
+    let upper = authored_shape_heap[row+1u];
+    if ((lower.w != 0xffffffffu && lower.w >= shape.cell_count) || upper.w <= index || upper.w > shape.node_count) { return result; }
+    result.minimum = vec3<f32>(bitcast<vec3<i32>>(lower.xyz))*0.02;
+    result.maximum = vec3<f32>(bitcast<vec3<i32>>(upper.xyz))*0.02;
+    result.cell = lower.w;
+    result.escape = upper.w;
+    result.valid = true;
+    return result;
+}
+
+fn authored_quat_conjugate(q: vec4<f32>) -> vec4<f32> { return vec4<f32>(-q.xyz,q.w); }
+fn authored_quat_product(a: vec4<f32>, b: vec4<f32>) -> vec4<f32> {
+    return vec4<f32>(a.w*b.xyz+b.w*a.xyz+cross(a.xyz,b.xyz),a.w*b.w-dot(a.xyz,b.xyz));
+}
+fn authored_quat_rotate(q: vec4<f32>, v: vec3<f32>) -> vec3<f32> {
+    let t=2.0*cross(q.xyz,v);
+    return v+q.w*t+cross(q.xyz,t);
+}
+fn authored_root_vector(shape: AuthoredShapeView, body_vector: vec3<f32>) -> vec3<f32> {
+    return authored_quat_rotate(shape.root_from_body,body_vector);
+}
+fn authored_body_vector(shape: AuthoredShapeView, root_vector: vec3<f32>) -> vec3<f32> {
+    return authored_quat_rotate(authored_quat_conjugate(shape.root_from_body),root_vector);
+}
+fn authored_root_point(shape: AuthoredShapeView, body_point: vec3<f32>) -> vec3<f32> {
+    return shape.center_inverse_mass.xyz+authored_root_vector(shape,body_point);
+}
+fn authored_body_point(shape: AuthoredShapeView, root_point: vec3<f32>) -> vec3<f32> {
+    return authored_body_vector(shape,root_point-shape.center_inverse_mass.xyz);
+}
+fn authored_body_orientation(shape: AuthoredShapeView, world_root_orientation: vec4<f32>) -> vec4<f32> {
+    return authored_quat_product(world_root_orientation,shape.root_from_body);
+}
+fn authored_root_orientation(shape: AuthoredShapeView, world_body_orientation: vec4<f32>) -> vec4<f32> {
+    return authored_quat_product(world_body_orientation,authored_quat_conjugate(shape.root_from_body));
+}
+fn authored_com_position(shape: AuthoredShapeView, root_position: vec3<f32>, root_orientation: vec4<f32>) -> vec3<f32> {
+    return root_position+authored_quat_rotate(root_orientation,shape.center_inverse_mass.xyz);
+}
+fn authored_root_position(shape: AuthoredShapeView, com_position: vec3<f32>, body_orientation: vec4<f32>) -> vec3<f32> {
+    return com_position-authored_quat_rotate(authored_root_orientation(shape,body_orientation),shape.center_inverse_mass.xyz);
+}
+fn authored_com_velocity(shape: AuthoredShapeView, root_velocity: vec3<f32>, world_omega: vec3<f32>, root_orientation: vec4<f32>) -> vec3<f32> {
+    return root_velocity+cross(world_omega,authored_quat_rotate(root_orientation,shape.center_inverse_mass.xyz));
+}
+fn authored_world_inverse_inertia(shape: AuthoredShapeView, body_orientation: vec4<f32>, world_impulse: vec3<f32>) -> vec3<f32> {
+    let body_impulse=authored_quat_rotate(authored_quat_conjugate(body_orientation),world_impulse);
+    return authored_quat_rotate(body_orientation,body_impulse*shape.inverse_inertia_radius.xyz);
+}
+struct AuthoredImpulseDelta { linear: vec3<f32>, angular: vec3<f32>, };
+fn authored_impulse_at_root_point(shape: AuthoredShapeView, body_orientation: vec4<f32>, world_impulse: vec3<f32>, root_point: vec3<f32>) -> AuthoredImpulseDelta {
+    let world_lever=authored_quat_rotate(body_orientation,authored_body_point(shape,root_point));
+    return AuthoredImpulseDelta(world_impulse*shape.center_inverse_mass.w,
+        authored_world_inverse_inertia(shape,body_orientation,cross(world_lever,world_impulse)));
+}
+// Exact exterior queries in authored root space. Included after the immutable
+// heap accessors. Feature ordinals resolve through the same retained shape.
+struct AuthoredQuerySurface {
+    valid: bool, distance: f32, point: vec3<f32>, normal: vec3<f32>,
+    feature: u32, source: u32,
+};
+struct AuthoredSegmentClosest { squared: f32, query: vec3<f32>, surface: vec3<f32>, };
+
+// Squared distance from a segment to an axis-aligned closed box/rectangle.
+// Clamp changes polynomial only at the six slab boundaries. Minimize each
+// quadratic interval exactly; sampling can miss a thin crane/rail between taps.
+fn authored_segment_box(a: vec3<f32>, b: vec3<f32>, lo: vec3<f32>, hi: vec3<f32>) -> AuthoredSegmentClosest {
+    let v = b-a;
+    var cuts: array<f32,8>;
+    cuts[0] = 0.0; cuts[1] = 1.0;
+    var count = 2u;
+    for (var axis=0u; axis<3u; axis++) {
+        if (abs(v[axis]) <= 1e-20) { continue; }
+        let first = (lo[axis]-a[axis])/v[axis];
+        let last = (hi[axis]-a[axis])/v[axis];
+        if (first>0.0 && first<1.0) { cuts[count]=first; count++; }
+        if (last>0.0 && last<1.0) { cuts[count]=last; count++; }
+    }
+    for (var i=1u; i<count; i++) {
+        let value=cuts[i]; var at=i;
+        while (at>0u) { if (cuts[at-1u]<=value) { break; } cuts[at]=cuts[at-1u]; at--; }
+        cuts[at]=value;
+    }
+    let initial=clamp(a,lo,hi);
+    var best=AuthoredSegmentClosest(dot(a-initial,a-initial),a,initial);
+    for (var i=0u; i+1u<count; i++) {
+        let midpoint=a+v*(.5*(cuts[i]+cuts[i+1u]));
+        var numerator=0.0; var denominator=0.0;
+        for (var axis=0u; axis<3u; axis++) {
+            if (midpoint[axis]<lo[axis] || midpoint[axis]>hi[axis] || lo[axis]==hi[axis]) {
+                let bound=select(hi[axis],lo[axis],midpoint[axis]<=lo[axis]);
+                numerator+=v[axis]*(a[axis]-bound); denominator+=v[axis]*v[axis];
+            }
+        }
+        // A flat minimum spans the interval. Its midpoint avoids cancellation
+        // at a slab edge on long segments (and an artificial sideways normal).
+        var t=.5*(cuts[i]+cuts[i+1u]);
+        if (denominator>1e-30) { t=clamp(-numerator/denominator,cuts[i],cuts[i+1u]); }
+        let query=a+v*t; let surface=clamp(query,lo,hi); let delta=query-surface;
+        let squared=dot(delta,delta);
+        if (squared<best.squared) { best=AuthoredSegmentClosest(squared,query,surface); }
+    }
+    return best;
+}
+
+fn authored_ray_interval(lo: vec3<f32>, hi: vec3<f32>, origin: vec3<f32>, direction: vec3<f32>, maximum: f32) -> vec2<f32> {
+    var interval=vec2<f32>(0.0,maximum);
+    for (var axis=0u; axis<3u; axis++) {
+        if (abs(direction[axis])<1e-20) {
+            if (origin[axis]<lo[axis] || origin[axis]>hi[axis]) { return vec2<f32>(1.0,-1.0); }
+        } else {
+            let a=(lo[axis]-origin[axis])/direction[axis];
+            let b=(hi[axis]-origin[axis])/direction[axis];
+            interval.x=max(interval.x,min(a,b)); interval.y=min(interval.y,max(a,b));
+            if (interval.x>interval.y) { return vec2<f32>(1.0,-1.0); }
+        }
+    }
+    return interval;
+}
+
+fn authored_segment_surface(shape: AuthoredShapeView, a: vec3<f32>, b: vec3<f32>) -> AuthoredQuerySurface {
+    var result=AuthoredQuerySurface(false,1e30,a,vec3<f32>(0,1,0),0xffffffffu,0u);
+    if (!shape.valid) { return result; }
+    var squared=1e30; var inside=false; var closest=a;
+    var nodeIndex=0u;
+    while (nodeIndex<shape.node_count) {
+        let node=authored_node(shape,nodeIndex);
+        if (!node.valid) { result.valid=false; return result; }
+        let lower=authored_segment_box(a,b,node.minimum,node.maximum);
+        if (lower.squared>squared) { nodeIndex=node.escape; continue; }
+        nodeIndex++;
+        if (node.cell==0xffffffffu) { continue; }
+        let cell=authored_cell(shape,node.cell);
+        if (!cell.valid) { result.valid=false; return result; }
+        let segmentRange=authored_ray_interval(cell.minimum,cell.maximum,a,b-a,1.0);
+        inside=inside || segmentRange.x<=segmentRange.y;
+        for (var i=0u; i<cell.face_count; i++) {
+            let index=cell.first_face+i; let face=authored_face(shape,index);
+            if (!face.valid) { result.valid=false; return result; }
+            let candidate=authored_segment_box(a,b,face.minimum,face.maximum);
+            if (candidate.squared<squared || (candidate.squared==squared && index<result.feature)) {
+                squared=candidate.squared; closest=candidate.query;
+                result.point=candidate.surface; result.feature=index; result.source=face.source;
+                result.normal=vec3<f32>(0); result.normal[face.axis]=f32(face.sign);
+                result.valid=true;
+            }
+        }
+    }
+    if (result.valid) {
+        let distance=sqrt(squared);
+        result.distance=select(distance,-distance,inside);
+        if (distance>1e-7) { result.normal=(closest-result.point)/result.distance; }
+        result.feature |= 0x80000000u;
+    }
+    return result;
+}
+
+struct AuthoredQueryRay { valid: bool, distance: f32, normal: vec3<f32>, feature: u32, source: u32, };
+fn authored_ray(shape: AuthoredShapeView, origin: vec3<f32>, direction: vec3<f32>, maximum: f32) -> AuthoredQueryRay {
+    var result=AuthoredQueryRay(false,maximum,vec3<f32>(0,1,0),0xffffffffu,0u);
+    if (!shape.valid) { return result; }
+    let start=authored_segment_surface(shape,origin,origin);
+    if (start.valid && start.distance<=0.0) {
+        return AuthoredQueryRay(true,0.0,start.normal,start.feature,start.source);
+    }
+    var nodeIndex=0u;
+    while (nodeIndex<shape.node_count) {
+        let node=authored_node(shape,nodeIndex);
+        if (!node.valid) { result.valid=false; return result; }
+        let range=authored_ray_interval(node.minimum,node.maximum,origin,direction,result.distance);
+        if (range.x>range.y) { nodeIndex=node.escape; continue; }
+        nodeIndex++;
+        if (node.cell==0xffffffffu) { continue; }
+        let cell=authored_cell(shape,node.cell);
+        if (!cell.valid) { result.valid=false; return result; }
+        for (var i=0u; i<cell.face_count; i++) {
+            let index=cell.first_face+i; let face=authored_face(shape,index);
+            if (!face.valid) { result.valid=false; return result; }
+            if (abs(direction[face.axis])<1e-20) { continue; }
+            let distance=(face.minimum[face.axis]-origin[face.axis])/direction[face.axis];
+            if (distance<0.0 || distance>result.distance) { continue; }
+            let point=origin+direction*distance;
+            let u=(face.axis+1u)%3u; let v=(face.axis+2u)%3u;
+            if (point[u]<face.minimum[u]-1e-6 || point[u]>face.maximum[u]+1e-6
+                || point[v]<face.minimum[v]-1e-6 || point[v]>face.maximum[v]+1e-6) { continue; }
+            let feature=index|0x80000000u;
+            if (result.valid && distance==result.distance && feature>=result.feature) { continue; }
+            var normal=vec3<f32>(0); normal[face.axis]=f32(face.sign);
+            result=AuthoredQueryRay(true,distance,normal,feature,face.source);
+        }
+    }
+    return result;
+}
+// END GENERATED AUTHORED GEOMETRY
+
 // BEGIN GENERATED LEGO SURFACE
 // Canonical LEGO geometry. Generated into standalone shader modules by
 // scripts/sync_lego_surface.py; no runtime shader preprocessor is required.
@@ -100,6 +429,7 @@ struct BodyShape {
     dimensions_type : vec4<f32>,
     invInertia_material : vec4<f32>,
     material_coefficients : vec4<f32>,
+    authored_shape : vec4<u32>,
 };
 
 struct KeyValue {
@@ -219,6 +549,9 @@ struct ClipPolygon {
 @group(0) @binding(12) var<storage, read_write> activeManifolds : array<ContactManifold>;
 @group(0) @binding(13) var<storage, read_write> activePredicates : array<u32>;
 @group(0) @binding(14) var<storage, read> activeOffsets : array<u32>;
+@group(0) @binding(15) var<storage, read> authored_shape_heap : array<vec4<u32>>;
+struct CollisionClasses { words: array<vec4<u32>, 8>, };
+@group(0) @binding(16) var<uniform> collisionClasses: CollisionClasses;
 
 var<private> currentSpeculativeDistance : f32 = 0.0;
 
@@ -386,8 +719,10 @@ fn commit_active_manifolds_256(@builtin(global_invocation_id) gid : vec3<u32>) {
 }
 
 fn pair_class_for_record(pair : KeyValue) -> u32 {
-    let shapeA = canonical_shape(compound_shape(pair.keyHigh).dimensions_type.w);
-    let shapeB = canonical_shape(compound_shape(pair.keyLow).dimensions_type.w);
+    let shapeA = select(canonical_shape(shapes[pair.keyHigh].dimensions_type.w),
+        2u, any(shapes[pair.keyHigh].authored_shape != vec4<u32>(0u)));
+    let shapeB = select(canonical_shape(shapes[pair.keyLow].dimensions_type.w),
+        2u, any(shapes[pair.keyLow].authored_shape != vec4<u32>(0u)));
     return pair_class(shapeA, shapeB);
 }
 
@@ -1209,12 +1544,14 @@ fn append_clipped_box_face(candidateSet : ptr<function, CandidateSet>,
     var polygon : ClipPolygon;
     polygon.count = 4u;
     for (var corner = 0u; corner < 4u; corner += 1u) {
-        let signU = select(-1.0, 1.0, (corner & 1u) != 0u);
-        let signV = select(-1.0, 1.0, (corner & 2u) != 0u);
+        // Walk the perimeter; binary corner order makes a self-crossing quad.
+        let windingCorner = corner ^ (corner >> 1u);
+        let signU = select(-1.0, 1.0, (windingCorner & 1u) != 0u);
+        let signV = select(-1.0, 1.0, (windingCorner & 2u) != 0u);
         polygon.points[corner].position = incidentCenter
             + signU * incidentU + signV * incidentV;
         polygon.points[corner].feature = 0x240u + incidentAxis * 8u
-            + select(0u, 4u, incidentSign > 0.0) + corner;
+            + select(0u, 4u, incidentSign > 0.0) + windingCorner;
     }
     polygon = clip_against_plane(
         polygon, sideAxisU, referenceCenter, sideExtentU, 0u);
@@ -1623,11 +1960,10 @@ fn reduce_candidates(sourceInput : CandidateSet) -> ReducedCandidateSet {
     for (var index = 1u; index < source.count; index += 1u) {
         let item = source.items[index];
         var insertion = index;
-        loop {
-            if (insertion == 0u
-                || !candidate_precedes(item, source.items[insertion - 1u])) {
-                break;
-            }
+        // Keep sentinel/underflow indices outside expressions. Hardware WGSL
+        // lowering can evaluate a guarded value before short-circuit selection.
+        while (insertion > 0u) {
+            if (!candidate_precedes(item, source.items[insertion - 1u])) { break; }
             source.items[insertion] = source.items[insertion - 1u];
             insertion -= 1u;
         }
@@ -1663,11 +1999,11 @@ fn reduce_candidates(sourceInput : CandidateSet) -> ReducedCandidateSet {
                 minimumSpread = min(minimumSpread,
                                     dot(tangentDelta, tangentDelta));
             }
-            if (minimumSpread > bestSpread + 1e-9
-                || (abs(minimumSpread - bestSpread) <= 1e-9
-                    && (best == SENTINEL
-                        || candidate_precedes(source.items[candidate],
-                                              source.items[best])))) {
+            var replace = best == SENTINEL || minimumSpread > bestSpread + 1e-9;
+            if (best != SENTINEL && abs(minimumSpread - bestSpread) <= 1e-9) {
+                replace = candidate_precedes(source.items[candidate], source.items[best]);
+            }
+            if (replace) {
                 best = candidate;
                 bestSpread = minimumSpread;
             }
@@ -1839,11 +2175,11 @@ fn build_manifold(pairRecord : KeyValue,
 
 fn class_pair_record(gid : vec3<u32>, pairClass : u32) -> KeyValue {
     let localIndex = gid.x;
-    if (localIndex >= atomicLoad(&classTable[pairClass])) {
+    if (localIndex >= collisionClasses.words[pairClass / 4u][pairClass % 4u]) {
         return KeyValue(0u, 0u, 0u, SENTINEL);
     }
-    let bucketIndex = atomicLoad(
-        &classTable[PAIR_CLASS_COUNT + pairClass]) + localIndex;
+    let offsetIndex = PAIR_CLASS_COUNT + pairClass;
+    let bucketIndex = collisionClasses.words[offsetIndex / 4u][offsetIndex % 4u] + localIndex;
     let pairRecord = bucketedPairs[bucketIndex];
     currentSpeculativeDistance = pair_speculative_distance(
         pairRecord.keyHigh, pairRecord.keyLow);
@@ -2014,6 +2350,225 @@ fn collide_lego_polyhedra(a : u32, b : u32) -> CandidateSet {
     return result;
 }
 
+fn body_has_authored(body: u32) -> bool {
+    return any(shapes[body].authored_shape != vec4<u32>(0u));
+}
+fn pair_has_authored(pair: KeyValue) -> bool {
+    return body_has_authored(pair.keyHigh) || body_has_authored(pair.keyLow);
+}
+
+// These conversions always use the parent COM pose. Temporary cell poses
+// must never change the frame of either the heap or the final solver anchors.
+fn contact_root_point(body: u32, shape: AuthoredShapeView,
+                      point: vec3<f32>, frameBody: u32) -> vec3<f32> {
+    let center = body_position_in_frame(body, frameBody)
+        + poses[body].position_invMass.xyz - compound_pose(body).position_invMass.xyz;
+    return authored_root_point(shape, quaternion_inverse_rotate(
+        poses[body].orientation, point - center));
+}
+fn contact_world_point(body: u32, shape: AuthoredShapeView,
+                       point: vec3<f32>, frameBody: u32) -> vec3<f32> {
+    let center = body_position_in_frame(body, frameBody)
+        + poses[body].position_invMass.xyz - compound_pose(body).position_invMass.xyz;
+    return center + quaternion_rotate(poses[body].orientation,
+        authored_body_point(shape, point));
+}
+fn contact_world_vector(body: u32, shape: AuthoredShapeView,
+                        vector: vec3<f32>) -> vec3<f32> {
+    return quaternion_rotate(poses[body].orientation, authored_body_vector(shape, vector));
+}
+
+fn collide_authored_round(roundBody: u32, authoredBody: u32,
+                          frameBody: u32, capsule: bool) -> CandidateSet {
+    var result = empty_candidates();
+    let shape = authored_shape_ref(shapes[authoredBody].authored_shape);
+    if (!shape.valid) { atomicAdd(&narrowTelemetry[16], 1u); return result; }
+    let center = body_position_in_frame(roundBody, frameBody);
+    var segment = Segment(center, center);
+    var radius = sphere_radius(roundBody);
+    if (capsule) { segment = capsule_segment(roundBody, frameBody); radius = capsule_radius(roundBody); }
+    let a = contact_root_point(authoredBody, shape, segment.first, frameBody);
+    let b = contact_root_point(authoredBody, shape, segment.second, frameBody);
+    let surface = authored_segment_surface(shape, a, b);
+    if (!surface.valid) { atomicAdd(&narrowTelemetry[16], 1u); return result; }
+    let point = contact_world_point(authoredBody, shape, surface.point, frameBody);
+    let closest = closest_point_segment(point, segment);
+    result.normal = -contact_world_vector(authoredBody, shape, surface.normal);
+    append_candidate(&result, closest.xyz + result.normal * radius, point,
+        surface.distance - radius, select(0u, feature_from_fraction(closest.w, 0x100u), capsule),
+        surface.feature);
+    return result;
+}
+
+fn authored_cell_pose(body: u32, shape: AuthoredShapeView, cell: AuthoredShapeCell) -> BodyPose {
+    var result = poses[body];
+    result.position_invMass = vec4<f32>(contact_world_point(body, shape,
+        .5 * (cell.minimum + cell.maximum), body), result.position_invMass.w);
+    result.orientation = authored_root_orientation(shape, result.orientation);
+    return result;
+}
+
+// Return a durable exterior-face ordinal only for an actual surface point.
+// A child cell's buried mating face is never accepted as a contact feature.
+fn authored_contact_feature(body: u32, shape: AuthoredShapeView, cell: AuthoredShapeCell,
+                            point: vec3<f32>, outward: vec3<f32>, frameBody: u32) -> u32 {
+    let rootPoint = contact_root_point(body, shape, point, frameBody);
+    let rootNormal = authored_root_vector(shape,
+        quaternion_inverse_rotate(poses[body].orientation, outward));
+    let tolerance = max(1e-4, narrow.tolerances.x * .05);
+    for (var f = cell.first_face; f < cell.first_face + cell.face_count; f++) {
+        let face = authored_face(shape, f);
+        if (!face.valid) { return SENTINEL; }
+        if (rootNormal[face.axis] * f32(face.sign) <= 1e-5) { continue; }
+        if (all(rootPoint >= face.minimum - vec3<f32>(tolerance))
+            && all(rootPoint <= face.maximum + vec3<f32>(tolerance))) { return 0x80000000u | f; }
+    }
+    return SENTINEL;
+}
+
+// Restrict a cell's full face to one clipped exterior rectangle. Keep its
+// depth/axes so the existing polygon clipper chooses the same support plane.
+fn authored_face_box(frame: BoxFrame, cell: AuthoredShapeCell, face: AuthoredShapeFace) -> BoxFrame {
+    var result = frame;
+    let delta = .5 * (face.minimum + face.maximum - cell.minimum - cell.maximum);
+    for (var axis = 0u; axis < 3u; axis++) {
+        if (axis == face.axis) { continue; }
+        result.center += axis_value(frame, axis) * delta[axis];
+        result.half[axis] = .5 * (face.maximum[axis] - face.minimum[axis]);
+    }
+    return result;
+}
+
+fn authored_face_clips(reference: BoxFrame, incident: BoxFrame,
+                       refShape: AuthoredShapeView, incShape: AuthoredShapeView,
+                       refCell: AuthoredShapeCell, incCell: AuthoredShapeCell,
+                       normal: vec3<f32>, axis: u32) -> CandidateSet {
+    var result = empty_candidates(); result.normal = normal;
+    var incAxis = 0u;
+    for (var k = 1u; k < 3u; k++) {
+        if (abs(dot(normal, axis_value(incident, k)))
+            > abs(dot(normal, axis_value(incident, incAxis))) + 1e-7) { incAxis = k; }
+    }
+    let refCount = select(1u, refCell.face_count, refShape.valid);
+    let incCount = select(1u, incCell.face_count, incShape.valid);
+    for (var i = 0u; i < refCount; i++) {
+        var refBox = reference;
+        if (refShape.valid) {
+            let face = authored_face(refShape, refCell.first_face + i);
+            if (!face.valid || face.axis != axis
+                || dot(normal, axis_value(reference, axis)) * f32(face.sign) <= 0.0) { continue; }
+            refBox = authored_face_box(reference, refCell, face);
+        }
+        for (var j = 0u; j < incCount; j++) {
+            var incBox = incident;
+            if (incShape.valid) {
+                let face = authored_face(incShape, incCell.first_face + j);
+                if (!face.valid || face.axis != incAxis
+                    || dot(normal, axis_value(incident, incAxis)) * f32(face.sign) >= 0.0) { continue; }
+                incBox = authored_face_box(incident, incCell, face);
+            }
+            append_clipped_box_face(&result, refBox, incBox, normal, axis, true);
+        }
+    }
+    return result;
+}
+
+fn collide_authored_box_cells(a: u32, b: u32, sa: AuthoredShapeView, sb: AuthoredShapeView,
+                              cellA: AuthoredShapeCell, cellB: AuthoredShapeCell) -> CandidateSet {
+    let boxA = make_box(a, a); let boxB = make_box(b, a);
+    let sat = box_box_sat(boxA, boxB);
+    var hit = empty_candidates(); hit.normal = sat.normal;
+    if (sat.valid == 0u) { return hit; }
+    if (sat.axisKind == 0u) {
+        hit = authored_face_clips(boxA, boxB, sa, sb, cellA, cellB, sat.normal, sat.axisA);
+    } else if (sat.axisKind == 1u) {
+        hit = swap_candidates(authored_face_clips(boxB, boxA, sb, sa, cellB, cellA, -sat.normal, sat.axisB));
+    } else {
+        let closest = closest_segments(box_support_edge(boxA, sat.normal, sat.axisA),
+            box_support_edge(boxB, -sat.normal, sat.axisB));
+        append_candidate(&hit, closest.pointA, closest.pointB,
+            dot(closest.pointB - closest.pointA, sat.normal), 0x2c0u + sat.axisA, 0x2c0u + sat.axisB);
+    }
+    return hit;
+}
+
+// B is always an authored shape. Visit its preorder BVH against each A child;
+// clipped patches eliminate internal cell seams before parent reduction.
+fn collide_authored_polyhedra_ordered(a: u32, b: u32) -> CandidateSet {
+    var result = empty_candidates();
+    let sa = authored_shape_ref(shapes[a].authored_shape);
+    let sb = authored_shape_ref(shapes[b].authored_shape);
+    if (!sb.valid || (body_has_authored(a) && !sa.valid)) {
+        atomicAdd(&narrowTelemetry[16], 1u); return result;
+    }
+    let countA = select(legoBrickParts(shapes[a].dimensions_type.xyz,
+        bitcast<u32>(shapes[a].invInertia_material.w)), sa.cell_count, sa.valid);
+    var deepest = 1e30;
+    for (var i = 0u; i < countA; i++) {
+        var cellA: AuthoredShapeCell;
+        compoundEnabled = false;
+        // Prepares a normal primitive or a LEGO child without altering its parent.
+        let unused = prepare_lego_parts(a, b, i, 0u);
+        if (sa.valid) {
+            cellA = authored_cell(sa, i);
+            if (!cellA.valid) { atomicAdd(&narrowTelemetry[16], 1u); break; }
+            compoundPoseA = authored_cell_pose(a, sa, cellA);
+            compoundShapeA.dimensions_type = vec4<f32>(cellA.maximum - cellA.minimum, 2.0);
+        }
+        let aCenter = contact_root_point(b, sb, body_position_in_frame(a, a), a);
+        // A sphere encloses the rotated A child in B root space for BVH pruning.
+        let reach = .5 * length(compoundShapeA.dimensions_type.xyz) + currentSpeculativeDistance;
+        var nodeIndex = 0u;
+        loop {
+            if (nodeIndex >= sb.node_count) { break; }
+            let node = authored_node(sb, nodeIndex);
+            if (!node.valid) { atomicAdd(&narrowTelemetry[16], 1u); break; }
+            let delta = aCenter - clamp(aCenter, node.minimum, node.maximum);
+            if (dot(delta, delta) > reach * reach) { nodeIndex = node.escape; continue; }
+            nodeIndex++;
+            if (node.cell == SENTINEL) { continue; }
+            let cellB = authored_cell(sb, node.cell);
+            if (!cellB.valid) { atomicAdd(&narrowTelemetry[16], 1u); break; }
+            compoundPoseB = authored_cell_pose(b, sb, cellB);
+            compoundShapeB.dimensions_type = vec4<f32>(cellB.maximum - cellB.minimum, 2.0);
+            var hit = empty_candidates();
+            let categoryA = canonical_shape(compoundShapeA.dimensions_type.w);
+            if (categoryA == 2u) {
+                hit = collide_authored_box_cells(a, b, sa, sb, cellA, cellB);
+            } else {
+                hit = collide_lego_polyhedron_parts(a, categoryA, b, 2u);
+            }
+            var exterior = empty_candidates(); exterior.normal = hit.normal;
+            for (var k = 0u; k < hit.count; k++) {
+                let c = hit.items[k];
+                var featureA = c.features.x | (i << 12u);
+                if (sa.valid) { featureA = authored_contact_feature(a, sa, cellA,
+                    c.pointA_separation.xyz, hit.normal, a); }
+                let featureB = authored_contact_feature(b, sb, cellB, c.pointB.xyz, -hit.normal, a);
+                if (featureA == SENTINEL || featureB == SENTINEL) { continue; }
+                append_candidate(&exterior, c.pointA_separation.xyz, c.pointB.xyz,
+                    c.pointA_separation.w, featureA, featureB);
+            }
+            append_lego_contacts(&result, &deepest, exterior, 0u, 0u);
+        }
+    }
+    compoundEnabled = false;
+    return result;
+}
+
+fn collide_authored_polyhedra(a: u32, b: u32) -> CandidateSet {
+    if (body_has_authored(b)) { return collide_authored_polyhedra_ordered(a, b); }
+    // Ordered results use B's sector, so shift their points back to A's sector.
+    var result = swap_candidates(collide_authored_polyhedra_ordered(b, a));
+    let delta = body_position_in_frame(b, a) - poses[b].position_invMass.xyz;
+    for (var k = 0u; k < result.count; k++) {
+        result.items[k].pointA_separation = vec4<f32>(result.items[k].pointA_separation.xyz + delta,
+            result.items[k].pointA_separation.w);
+        result.items[k].pointB = vec4<f32>(result.items[k].pointB.xyz + delta, 0.0);
+    }
+    return result;
+}
+
 fn pair_has_lego(pair : KeyValue) -> bool {
     return legoIsBrick(bitcast<u32>(shapes[pair.keyHigh].invInertia_material.w))
         || legoIsBrick(bitcast<u32>(shapes[pair.keyLow].invInertia_material.w));
@@ -2055,6 +2610,12 @@ fn narrow_capsule_capsule_impl(gid : vec3<u32>) {
 fn narrow_sphere_box_impl(gid : vec3<u32>) {
     let pairRecord = class_pair_record(gid, 3u);
     if (pairRecord.ordinal >= narrow.capacities.z) { return; }
+    if (pair_has_authored(pairRecord)) {
+        let a = pairRecord.keyHigh; let b = pairRecord.keyLow;
+        if (body_has_authored(b)) { write_class_manifold(pairRecord, collide_authored_round(a, b, a, false)); }
+        else { write_class_manifold(pairRecord, swap_candidates(collide_authored_round(b, a, a, false))); }
+        return;
+    }
     if (pair_has_lego(pairRecord)) {
         write_class_manifold(pairRecord,
             collide_lego_sphere(pairRecord.keyHigh, pairRecord.keyLow));
@@ -2074,6 +2635,12 @@ fn narrow_sphere_box_impl(gid : vec3<u32>) {
 fn narrow_capsule_box_impl(gid : vec3<u32>) {
     let pairRecord = class_pair_record(gid, 4u);
     if (pairRecord.ordinal >= narrow.capacities.z) { return; }
+    if (pair_has_authored(pairRecord)) {
+        let a = pairRecord.keyHigh; let b = pairRecord.keyLow;
+        if (body_has_authored(b)) { write_class_manifold(pairRecord, collide_authored_round(a, b, a, true)); }
+        else { write_class_manifold(pairRecord, swap_candidates(collide_authored_round(b, a, a, true))); }
+        return;
+    }
     if (pair_has_lego(pairRecord)) {
         write_class_manifold(pairRecord,
             collide_lego_capsule(pairRecord.keyHigh, pairRecord.keyLow));
@@ -2093,6 +2660,10 @@ fn narrow_capsule_box_impl(gid : vec3<u32>) {
 fn narrow_box_box_impl(gid : vec3<u32>) {
     let pairRecord = class_pair_record(gid, 5u);
     if (pairRecord.ordinal >= narrow.capacities.z) { return; }
+    if (pair_has_authored(pairRecord)) {
+        write_class_manifold(pairRecord, collide_authored_polyhedra(pairRecord.keyHigh, pairRecord.keyLow));
+        return;
+    }
     if (pair_has_lego(pairRecord)) {
         write_class_manifold(pairRecord,
             collide_lego_polyhedra(pairRecord.keyHigh, pairRecord.keyLow));
@@ -2133,6 +2704,10 @@ fn narrow_capsule_cylinder_impl(gid : vec3<u32>) {
 fn narrow_box_cylinder_impl(gid : vec3<u32>) {
     let pairRecord = class_pair_record(gid, 8u);
     if (pairRecord.ordinal >= narrow.capacities.z) { return; }
+    if (pair_has_authored(pairRecord)) {
+        write_class_manifold(pairRecord, collide_authored_polyhedra(pairRecord.keyHigh, pairRecord.keyLow));
+        return;
+    }
     if (pair_has_lego(pairRecord)) {
         write_class_manifold(pairRecord,
             collide_lego_polyhedra(pairRecord.keyHigh, pairRecord.keyLow));

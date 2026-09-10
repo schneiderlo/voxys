@@ -1,0 +1,1029 @@
+{
+  "status": "browser r03 could not start: headless hardware profile returned no suitable WebGPU adapter",
+  "files": {
+    "AGENTS.md": {
+      "sha256": "fe03d4cd0a7c246077216d18d94ceb1980bbad9182a3394204dd89f5ad16f619",
+      "bytes": 432
+    },
+    "CMakeLists.txt": {
+      "sha256": "25b90f865dae1c96d0083c5688fafee5b79fba06ce43804bdda6f4eada9bcfa9",
+      "bytes": 40373
+    },
+    "GAME_IMPLEMENTATION_TODO.md": {
+      "sha256": "8e53d2f72bb7db1b6282e7d9a908302cba68c96d0b35e08e3e19ee15abebf32e",
+      "bytes": 249801
+    },
+    "README.md": {
+      "sha256": "aca18a5da5c1e9de8289280e0acead13e768cc6aea33a11a74551566d1f1c093",
+      "bytes": 29100
+    },
+    "data/salvage/fixture-cove-r01.json": {
+      "sha256": "30a63af1b77a32725a1eedab1e412a430401172bdc2799a2f7748caac6adbf96",
+      "bytes": 13211
+    },
+    "docs/salvage-cove-save-format.md": {
+      "sha256": "20177a4c308b68b1dffc08725848213269d85288c37c18277e15fe6cd2aad2b5",
+      "bytes": 29075
+    },
+    "docs/salvage-session-save-format.md": {
+      "sha256": "c47bd38be3001037d77de3c6b8b1936aee72b0174244756702b0ad8c7022c151",
+      "bytes": 19248
+    },
+    "scripts/smoke_integrated_wasm.mjs": {
+      "sha256": "8a696a5d8edb598316cb4813d5cac9ff1287f9f5554d9ce05ff1830198156d5b",
+      "bytes": 38150
+    },
+    "scripts/validate_assembly_compiler_wasm.py": {
+      "sha256": "07dc69e895784d41e367ab97509a656e0c0cb938844de0abff95bb98c92ba359",
+      "bytes": 8824
+    },
+    "scripts/validate_authored_terrain_browser.mjs": {
+      "sha256": "d7b16c63dbc38be21196176dd3470b180111f16125bc8c1b0f46ce4c16b61bd5",
+      "bytes": 5335
+    },
+    "scripts/validate_cove_delivery.mjs": {
+      "sha256": "731ced99eaa34986a75fa0d0dfcf4c5fcdb93423d06645e9e8c93e805be4e110",
+      "bytes": 13712
+    },
+    "scripts/validate_cove_recovery_design.mjs": {
+      "sha256": "2329f9f1c7f87659cf855f574663531297bc61847f10ed55316e6bfe3835d9f6",
+      "bytes": 4774
+    },
+    "scripts/validate_native_cove_delivery.py": {
+      "sha256": "0b3236c5db5dc75ed528e3499b2303a0caeb199195a613e378bc41bd659f3463",
+      "bytes": 14834
+    },
+    "scripts/validate_session_transactions_wasm.py": {
+      "sha256": "4cfa9ff91a97c2b8c0b33224d7142e3c4ca5ca26ce5b2fb0c264f0005b17bd45",
+      "bytes": 8632
+    },
+    "shaders/cull_terrain.wgsl": {
+      "sha256": "496c174ca2e94e45b01178a662f579272326781f1701b02cf2cc8fe2b99c4692",
+      "bytes": 10160
+    },
+    "shaders/debug_depth.wgsl": {
+      "sha256": "f417cc17b93d8326b5234e876d42bf45be084f4cbdec2f8579d6edf609d7e76c",
+      "bytes": 5600
+    },
+    "shaders/environment_lighting.wgsl": {
+      "sha256": "9319b49a286afdb7dfdce951626b6b94aa97f403e58de16f8677eca619a2625a",
+      "bytes": 5377
+    },
+    "shaders/lego_surface.wgsl": {
+      "sha256": "06c8c497311f5b4098c2ff5759817f4f3153ea3d130c8fb44e581d22f023343e",
+      "bytes": 4265
+    },
+    "shaders/mesh_path.wgsl": {
+      "sha256": "040342c92a7e53bb2a43051bb198b974908fe74f5d2fe1ea7e2311bc56f6b134",
+      "bytes": 25885
+    },
+    "shaders/mip_generate.wgsl": {
+      "sha256": "39fabd80f1af42f86178648ca3f0eb145ae21147a24a72c54ebeba9d49d84205",
+      "bytes": 4068
+    },
+    "shaders/opaque_scene.wgsl": {
+      "sha256": "cdbb66257ffd80c33ceed514f5edd7d95c6cc0039d0dd9f59f69153172c2a5df",
+      "bytes": 763
+    },
+    "shaders/physics_attachments.wgsl": {
+      "sha256": "54cef878d6410babc082d78519f6e2814faeabcb9e331956d474004d6ddfe9f7",
+      "bytes": 14170
+    },
+    "shaders/physics_authored_queries.wgsl": {
+      "sha256": "68d6c54a43a40513adf365d57fef8bb63668c57bc7d94c62006cfe291b584130",
+      "bytes": 7092
+    },
+    "shaders/physics_authored_shapes.wgsl": {
+      "sha256": "21c643c235b616466de2ab0ed0b40dfe6b4fe5a64a87244dc648ba9056468530",
+      "bytes": 9069
+    },
+    "shaders/physics_authored_terrain.wgsl": {
+      "sha256": "3ac1b33c18e37a9affc1e3ee504264e49d0ae9eea054d7040345d655d1acd161",
+      "bytes": 22552
+    },
+    "shaders/physics_ballistic.wgsl": {
+      "sha256": "8b72c030326727f1f3fdad906efbd687104ce58025d695b81f6f7fc758c06cdd",
+      "bytes": 126413
+    },
+    "shaders/physics_broad_phase.wgsl": {
+      "sha256": "7ff1f365c7ac1c4529fa7c9f93151c26ab83218112545ce73733f0c39cdc2654",
+      "bytes": 81510
+    },
+    "shaders/physics_ccd.wgsl": {
+      "sha256": "64808c85367088a177097784b237d384dc76aed2da5f51a875f4cc96aa5cc7b8",
+      "bytes": 20895
+    },
+    "shaders/physics_deterministic_primitives.wgsl": {
+      "sha256": "504abd3594c912b7ef479ff5901f5ccdcb41e70c1667f5094543b1669216ccba",
+      "bytes": 19014
+    },
+    "shaders/physics_dynamic_solver.wgsl": {
+      "sha256": "d387faca9fb50afede9a93489244ea7c1dc30fc38ef68b0931e4659c488fcfac",
+      "bytes": 79521
+    },
+    "shaders/physics_event_readback.wgsl": {
+      "sha256": "473859e15df4837be8efa33abb92f4f167f8fda71f11c6a02fdf1ae62f3cd9d5",
+      "bytes": 13837
+    },
+    "shaders/physics_islands.wgsl": {
+      "sha256": "615f114a2ff311156e5dc6d554ae9aca050440c87a84e3c04d668ebf02fb5332",
+      "bytes": 47463
+    },
+    "shaders/physics_lockstep.wgsl": {
+      "sha256": "c5f460af43fcebfa433fed4974c287e4a99b333d802d468ee9b5e71167b3b5e2",
+      "bytes": 16724
+    },
+    "shaders/physics_narrow_phase.wgsl": {
+      "sha256": "0de1bec0223ff4b33bf2b2914dfaf7658eec9604d724f028b6edd79b97e42af2",
+      "bytes": 121196
+    },
+    "shaders/physics_primitive_cull.wgsl": {
+      "sha256": "1d1fd8a2e7c38261e52fa1b380f812c8ea37a876e89339040201728f6a4ad53a",
+      "bytes": 9041
+    },
+    "shaders/physics_primitives.wgsl": {
+      "sha256": "626ba42f265a1de62df8f25c69003c2ffe40a83f558261384d487166d6bb2d68",
+      "bytes": 4237
+    },
+    "shaders/physics_primitives_compact.wgsl": {
+      "sha256": "1099f04a445f174dfe36cd14f6a9c4a92cd7d9432653a76dadf9d2b728fffee2",
+      "bytes": 14485
+    },
+    "shaders/physics_queries.wgsl": {
+      "sha256": "4b6d88ab0d84b097f9f677660b857e1e25cee9b1e08ac88953d47d3aa868f8bf",
+      "bytes": 55575
+    },
+    "shaders/ray_blit.wgsl": {
+      "sha256": "495df87a36bfe069cbc03ef0433f3fceab28267c299414beaea0e6a4fd2515ca",
+      "bytes": 152154
+    },
+    "shaders/sky_lut.wgsl": {
+      "sha256": "3f772a67dcc191c2ca2b17b4b21fe33b75054766d8ee6619c56b507139185124",
+      "bytes": 11794
+    },
+    "shaders/sky_lut_mip.wgsl": {
+      "sha256": "0f1fd3c5424038555b58e5353574312c13e4428855b7ef63d59963cef69ba601",
+      "bytes": 1219
+    },
+    "shaders/terrain.wgsl": {
+      "sha256": "8bfc0d5279bda9091498140a14542ae434c7d95ae46f36650cca1cae73ba9869",
+      "bytes": 19166
+    },
+    "shaders/terrain_raycast.wgsl": {
+      "sha256": "cca52c7570b01c49316de2c26a79d7031cdc10383fea720aa6fb1981b5b9633e",
+      "bytes": 68969
+    },
+    "shaders/underwater_particles.wgsl": {
+      "sha256": "2f20e1e0ce8c449a87f9bbc0517c015d3cabb0e85ef6060608af4e3637da8ffc",
+      "bytes": 3712
+    },
+    "shaders/water_clipmap.wgsl": {
+      "sha256": "ac054f112e21a1c9cb4fa9b0de85e9c0eb9d18b28c4be8ee766e2a6f7d06a803",
+      "bytes": 33039
+    },
+    "shaders/water_composite.wgsl": {
+      "sha256": "6725022e69aeb6e698690d905549b52d3c5a4a62b3fb0a5863fa7a7a6b70adfe",
+      "bytes": 18109
+    },
+    "shaders/water_fft.wgsl": {
+      "sha256": "0c65992e13c89b368eff585a3566146beec3029b895359b4194d11a90f8cf1a1",
+      "bytes": 7677
+    },
+    "shaders/water_finalize.wgsl": {
+      "sha256": "e8ae2287b3b65365ea4f54cca2ae286d5432bef78f7a77f5911fa6b41284e01f",
+      "bytes": 3195
+    },
+    "shaders/water_foam.wgsl": {
+      "sha256": "077723ac09db0c388a19514367df01eef6fdfff0e7802dccea003119340a0727",
+      "bytes": 2203
+    },
+    "src/CMakeLists.txt": {
+      "sha256": "69ec952620d200534a375711ff83e67ca6fc1d5dd4013826370b1d318e842e95",
+      "bytes": 21664
+    },
+    "src/app/application.cpp": {
+      "sha256": "f1de9c78b516530055a3d2527d59779da38d87fbc0a751b88bd8cae7eee12492",
+      "bytes": 417338
+    },
+    "src/app/application.hpp": {
+      "sha256": "55022ebe6cc9b185188ed7fccb277396abbbff5de24e8cf8a211406504edd69b",
+      "bytes": 43886
+    },
+    "src/core/sha256.hpp": {
+      "sha256": "85402045f08774996eb7506b7802cae519f16f6df35b80d65f25b322008aba99",
+      "bytes": 7597
+    },
+    "src/game/BUILD": {
+      "sha256": "ecb724bc14d523db5d8e12e7da128a0faf322425d3dca190ffe57368e1d7ba36",
+      "bytes": 13397
+    },
+    "src/game/construction/assembly_buoyancy.cpp": {
+      "sha256": "711557be9458601d85c578ef5a2ee08f6942c0dbfecc638ccad432c5a477d482",
+      "bytes": 3681
+    },
+    "src/game/construction/assembly_buoyancy.hpp": {
+      "sha256": "0cc24400255a3f92ec38605934d84d7a8dac566c380ccc7c82a30d73edad09ec",
+      "bytes": 2069
+    },
+    "src/game/construction/assembly_collision.cpp": {
+      "sha256": "21be53d25fdda6128310ca732a752b067180a8021807fcd74529f7b21e3b83e3",
+      "bytes": 3252
+    },
+    "src/game/construction/assembly_collision.hpp": {
+      "sha256": "74776d1aeb0ee2bb0873c4ae9fa5523dbaf00ac209b7fdbd7d981756233228e4",
+      "bytes": 1929
+    },
+    "src/game/construction/assembly_compiler.cpp": {
+      "sha256": "f918b8095d7a2d2726185b4a3e381d23518d6eefd9eda8f13823b263db4e5f0e",
+      "bytes": 8959
+    },
+    "src/game/construction/assembly_compiler.hpp": {
+      "sha256": "26fc5ad2643a0008870e399fd0e7d351b23f08fada1c18c0d2df8cd25722c43f",
+      "bytes": 2576
+    },
+    "src/game/construction/assembly_fracture.cpp": {
+      "sha256": "1a3211ba8511f13ec40043833614bbbec36cd575db940d688de60f63c627446c",
+      "bytes": 7593
+    },
+    "src/game/construction/assembly_fracture.hpp": {
+      "sha256": "46d78b339c079caac013ba2ac5d3f6869721f9867b5d0bbd639eeb61f479f4c8",
+      "bytes": 3632
+    },
+    "src/game/construction/assembly_functions.cpp": {
+      "sha256": "831477719a8f39e296c6dc378025c16670dda569eec873bc5dc5bfb4ac113072",
+      "bytes": 8904
+    },
+    "src/game/construction/assembly_functions.hpp": {
+      "sha256": "fd2f166428ab9ce360e34180f3f8bcfb4f9943070519c33f7f881ca3f39a4066",
+      "bytes": 4278
+    },
+    "src/game/construction/build_model.cpp": {
+      "sha256": "526469403b94903201abed3ab85937afcd8b46174e40a641fdb797c16c21c19d",
+      "bytes": 38395
+    },
+    "src/game/construction/build_model.hpp": {
+      "sha256": "8230c11ba15f17f1695572076ff716a252265dd21388c206b457bcfad209a392",
+      "bytes": 9377
+    },
+    "src/game/construction/build_refit.cpp": {
+      "sha256": "c84d2009f357cc13a967ff16013ffa9dbe8def44615ad7bc0f0a2998af077ad9",
+      "bytes": 18541
+    },
+    "src/game/construction/build_refit.hpp": {
+      "sha256": "8054bdb6a0e16c8aaa4f7caa3755a06f982057952a088e7d8b9cd2967012c7d1",
+      "bytes": 4765
+    },
+    "src/game/construction/compiled_assembly.cpp": {
+      "sha256": "495822be98727b6d65637646fecf13c80e3016a1af13bc9d81970d0b6fb815c1",
+      "bytes": 8843
+    },
+    "src/game/construction/compiled_assembly.hpp": {
+      "sha256": "8c4174503c076b50c38ca95f3dbbb364cb5628afd70899c7d60ca192fdced5d5",
+      "bytes": 2227
+    },
+    "src/game/construction/construction_types.cpp": {
+      "sha256": "4aa7ffdd6e608765b5245c94c53c2b54920705533283d270e5b6b4eee84ac4c8",
+      "bytes": 17925
+    },
+    "src/game/construction/construction_types.hpp": {
+      "sha256": "fb12f63724c9899f7f6cff2e21ac09f5d86173f4b5fd2af34735138753370ea2",
+      "bytes": 8774
+    },
+    "src/game/construction/orthogonal_coverage.cpp": {
+      "sha256": "6634cd47ed1ee7ce9dc0ca13b1104796c1383b38a6a54f56d81aaede78e337c3",
+      "bytes": 6915
+    },
+    "src/game/construction/orthogonal_coverage.hpp": {
+      "sha256": "aae149f540e61a69fe50d10d8e590f937b24e9185c9982225bfbc480991674a1",
+      "bytes": 2407
+    },
+    "src/game/construction/orthogonal_geometry.hpp": {
+      "sha256": "3ac2960a6fd4810d49641cf5cde7308bce0a9b0c9d840b10ae360071555bf4f6",
+      "bytes": 165
+    },
+    "src/game/construction/orthogonal_union.hpp": {
+      "sha256": "83bb41269474ee84e8749393ffb5a825d5cd43ccc6ffeaeb9c6bce9e8fddd2b2",
+      "bytes": 777
+    },
+    "src/game/construction/part_catalog.cpp": {
+      "sha256": "24869c7c346d49421b2fe20123181e4e5738d6e6ddc366339292d3f12044bcf3",
+      "bytes": 31351
+    },
+    "src/game/construction/part_catalog.hpp": {
+      "sha256": "d68150027f69c4abe47f8f1b57e9532487cd804b9cf97b2e0b2d3c6b1cacd840",
+      "bytes": 9291
+    },
+    "src/game/expedition/cove_boat.cpp": {
+      "sha256": "f38902ec435936408e3b4f3fc1a700f5cacecdeea9bddbf24b51df02cf2397c9",
+      "bytes": 15021
+    },
+    "src/game/expedition/cove_boat.hpp": {
+      "sha256": "4be8dbc4bff527c3d8590c56447626e267e551da1525eaf51a5275db8042eb89",
+      "bytes": 6334
+    },
+    "src/game/expedition/cove_build.cpp": {
+      "sha256": "1e8e00e72b21c0696f50faceaf9e063c969ffe6bbc536a1a60f1c529304acbd7",
+      "bytes": 18609
+    },
+    "src/game/expedition/cove_build.hpp": {
+      "sha256": "e1c33f83e9df512beab0bbe888a9b2b4ae67adf40d30a1da8c17554513faa274",
+      "bytes": 4135
+    },
+    "src/game/expedition/cove_harbor_lift.cpp": {
+      "sha256": "c5f331dbb73858f7b06f896ada843f98b3ace9d6fcf5d287ff77a4ce95cb80f2",
+      "bytes": 13436
+    },
+    "src/game/expedition/cove_harbor_lift.hpp": {
+      "sha256": "65f4a4ce7bbc0c5ee6ff401a34d3e8287c490695aa3ea2ef767f8df131279bb6",
+      "bytes": 2940
+    },
+    "src/game/expedition/cove_harbor_runtime.cpp": {
+      "sha256": "7b6becff1b4fecd19e90e3f8a300f9c60a2a1856efab86b547addcd5a8d03c6f",
+      "bytes": 18724
+    },
+    "src/game/expedition/cove_harbor_runtime.hpp": {
+      "sha256": "489544e3669692ce0b1226e840d92b75e52e4c97cda9a93f19d6eaa6b9507e28",
+      "bytes": 5086
+    },
+    "src/game/expedition/cove_harbor_state.hpp": {
+      "sha256": "57d72b168ac3ea11f792e5d0bd8f0b3a93be01e8491d6dfb0488d5dd13b33ed8",
+      "bytes": 2001
+    },
+    "src/game/expedition/cove_player.cpp": {
+      "sha256": "008a7aa181666c924abde8095c29404d61634e514e6130b40463364a0eb01fea",
+      "bytes": 14724
+    },
+    "src/game/expedition/cove_player.hpp": {
+      "sha256": "44d7a393a38568495c3c610f6d8ace7d35b1d983fd1ee99bdc26d71c89e03c2a",
+      "bytes": 4200
+    },
+    "src/game/expedition/cove_restore.cpp": {
+      "sha256": "a60a5206045a80e058d097debf5876f1daf5e6d0f403c634b7b4de9642e9985a",
+      "bytes": 8799
+    },
+    "src/game/expedition/cove_restore.hpp": {
+      "sha256": "dbd0e0950bfd40d5ab754a27ef7dd53954c19e77835b6d3e78ef48901beec264",
+      "bytes": 1486
+    },
+    "src/game/expedition/cove_save.cpp": {
+      "sha256": "9905cab7e218ba3fda075618e53029b6057517a47b2fce419e6b52c0e8b0b3cb",
+      "bytes": 22948
+    },
+    "src/game/expedition/cove_save.hpp": {
+      "sha256": "dcd5e53f8d193c2cffad422f00d79fc9b4e72ddf42850ed0edebd7c2fab77d88",
+      "bytes": 6321
+    },
+    "src/game/expedition/cove_water_clock.hpp": {
+      "sha256": "ee904cd8e1accc052ceb881ebf3d6fcd0c22414be16c5659c437d0c53ee10eb7",
+      "bytes": 2186
+    },
+    "src/game/expedition/cove_workshop.cpp": {
+      "sha256": "8f05e8c545e206942120911b552ed8c25694dfb9ed56bf141df1441f622a3c46",
+      "bytes": 23580
+    },
+    "src/game/expedition/cove_workshop.hpp": {
+      "sha256": "2fec50b8d73291351c24ef1260461ef0bfe82c11f81031b23a8ce3c858ac40a1",
+      "bytes": 3676
+    },
+    "src/game/expedition/game_session.cpp": {
+      "sha256": "2d04eabacce263e051da34fc07e89269456e10b6b1d931f38405f081a0731b56",
+      "bytes": 98345
+    },
+    "src/game/expedition/game_session.hpp": {
+      "sha256": "e8b1f561e343b23ecfe0b2db09b7afb39b15bdd59255a98683f30fcf1bc2ac5d",
+      "bytes": 14737
+    },
+    "src/game/expedition/salvage_preview.cpp": {
+      "sha256": "2d52868bad3cf7aa98977e825a7f440073c65418f6b3fd7c8e93a2b21428d021",
+      "bytes": 8237
+    },
+    "src/game/expedition/salvage_preview.hpp": {
+      "sha256": "1f7ddfdcd330f9b0db55740aafe8feba294eee061a52314a11933ea53df09dcb",
+      "bytes": 3345
+    },
+    "src/game/expedition/save_generation.cpp": {
+      "sha256": "aa928094c87312b82d2aa333b255bbdd55aaa4054f7abcddc5e7ad389b79a285",
+      "bytes": 3124
+    },
+    "src/game/expedition/save_generation.hpp": {
+      "sha256": "c070539d28d4c025d511abfcb33a1b8728d6555397b4d972f192ae8118017c3e",
+      "bytes": 1337
+    },
+    "src/game/expedition/session_events.cpp": {
+      "sha256": "14143a347f608f3e1fe2083ed21dc6ff46c631664d0318c72e799afec731a09c",
+      "bytes": 25965
+    },
+    "src/game/expedition/session_events.hpp": {
+      "sha256": "5faa1417d6bcbba7bfe78a6898840be1679d7210646a34dd3132a24c73864731",
+      "bytes": 17706
+    },
+    "src/game/expedition/session_recovery.cpp": {
+      "sha256": "3e33788778119b405ed05fe2144167600fd3319de30b4d1a5513c43e94ef75dc",
+      "bytes": 97760
+    },
+    "src/game/expedition/session_recovery.hpp": {
+      "sha256": "377247f2747d19912288e963f0413b7226b6aadfc7ca04ad88d920c6adf999af",
+      "bytes": 9570
+    },
+    "src/game/expedition/session_save.cpp": {
+      "sha256": "5663b7d80bb86bdc8004a5094e8e20f2366f15baf5c72078f07d49761d8b4430",
+      "bytes": 27714
+    },
+    "src/game/expedition/session_save.hpp": {
+      "sha256": "c5f0373fbc72aa3a6343bbf88959cb4547817395a2566a1a5ce97609bab21ca3",
+      "bytes": 1901
+    },
+    "src/game/expedition/session_transactions.cpp": {
+      "sha256": "b05fd6f5d99259e6286bade984c5865bf1680432420ba35f651d5e35d6eb8afb",
+      "bytes": 26270
+    },
+    "src/game/expedition/session_transactions.hpp": {
+      "sha256": "d100c3c7779e4100575ad41658d6e730f4a3e5f0cdf1cca9e5f25d0e25847be1",
+      "bytes": 25165
+    },
+    "src/geometry/box_union.cpp": {
+      "sha256": "26acd32d9c5be04d9d41b3c117de189f3816bc17d0f04a3250d8b7298e4a7c2c",
+      "bytes": 9050
+    },
+    "src/geometry/box_union.hpp": {
+      "sha256": "e15e07157739573fe678410f26c5d8d27a06ada6d37cad581f0db797cab8116c",
+      "bytes": 3447
+    },
+    "src/geometry/grid_types.hpp": {
+      "sha256": "798a70fbf1584f42ba952e4d4b687fd11ca497fb9331e167c7ba72f255766bf0",
+      "bytes": 823
+    },
+    "src/geometry/orthogonal_geometry.hpp": {
+      "sha256": "a786ff103e741d4ec175bf2150c8661737ecf028f5c071a879132e517176b266",
+      "bytes": 4335
+    },
+    "src/physics/authored_body_frame.cpp": {
+      "sha256": "663a30653feec07ddf6eca8c31a11cd867164217352d8ac7d30ab01f949d1336",
+      "bytes": 7283
+    },
+    "src/physics/authored_body_frame.hpp": {
+      "sha256": "51095c94963432be76843b64fa96fca434640aff8e7ea89272c5a619d2dc4891",
+      "bytes": 4031
+    },
+    "src/physics/authored_shape.cpp": {
+      "sha256": "949a3cf26f0a5e0ba2086f73bc515bd47383d497126642c4f27195b6b88f9d9e",
+      "bytes": 8968
+    },
+    "src/physics/authored_shape.hpp": {
+      "sha256": "1e5d5a52185403c7ceebbfdd6bda77c453a556c983aad96213484646de01798f",
+      "bytes": 4065
+    },
+    "src/physics/authored_shape_pool.cpp": {
+      "sha256": "e4b0ef840006dd7b5ca38265c41d7121927bf56f628b94400b852194fa532dbe",
+      "bytes": 5816
+    },
+    "src/physics/authored_shape_pool.hpp": {
+      "sha256": "cbc25b742ec103e6251f84b37b351dad4300012043d0ea089d73f1b0e91382aa",
+      "bytes": 3969
+    },
+    "src/physics/authored_shape_resources.hpp": {
+      "sha256": "12b93e6bdbc615d3c343f7638d59da447cb6a1afce59e9e32344448fd5941f89",
+      "bytes": 3877
+    },
+    "src/physics/box3d/box3d_backend.cpp": {
+      "sha256": "f9df4b7902f7de98c0b7763a7945068ae34ace3e56882ff2a93dd30b8688fb79",
+      "bytes": 34402
+    },
+    "src/physics/box3d/box3d_backend.hpp": {
+      "sha256": "c5fafeda41143334b4393e3f39e604ed7387c90a77964b17094023bade146845",
+      "bytes": 2615
+    },
+    "src/physics/box3d/box3d_conversions.hpp": {
+      "sha256": "658275d20182e3a442fb2152b39e65df645f980ea3681ecd6d50b02e002b2ef2",
+      "bytes": 1723
+    },
+    "src/physics/character/cpu_capsule_mover.cpp": {
+      "sha256": "923be97fbec42fbece43d2309aaca36c280d0e7920f8611ad90b74da380adb0f",
+      "bytes": 26191
+    },
+    "src/physics/character/cpu_capsule_mover.hpp": {
+      "sha256": "ea4e4da8e59ff1f6dfae5ed067ac50f91d2786d2e97e71127da673e844cbd18f",
+      "bytes": 3768
+    },
+    "src/physics/deterministic/fixed.hpp": {
+      "sha256": "40cf4eff3e1ae03577e460f2f6909d79906e4153a52b4b597118d39ee4569303",
+      "bytes": 5205
+    },
+    "src/physics/deterministic/lockstep_types.hpp": {
+      "sha256": "473e90f302917bb0659e87fbe6afa9dfe1d04a8837ef22cca06333bea5a6a20f",
+      "bytes": 2083
+    },
+    "src/physics/deterministic/lockstep_world.cpp": {
+      "sha256": "0c8adf83c3b8a0fad6f6c5c56e72ada49a362832854f303a225cc389dc0a9b5c",
+      "bytes": 22192
+    },
+    "src/physics/deterministic/lockstep_world.hpp": {
+      "sha256": "7606aabf368b60754262ba932b3af4b2a33e80a5ad6705d27816d37555acfdd5",
+      "bytes": 2787
+    },
+    "src/physics/deterministic/replay.cpp": {
+      "sha256": "132d2c6f720a79d276ec7eb9bf1f81be92ae321a7bc0ce225649d162c1530169",
+      "bytes": 36243
+    },
+    "src/physics/deterministic/replay.hpp": {
+      "sha256": "780a55b23166a37cbf30bd0bfe995333dc0dacefde4218287e80bac9a0472e5e",
+      "bytes": 4556
+    },
+    "src/physics/gpu/debug_readback_ring.cpp": {
+      "sha256": "0431c310af7a98d73155e443489c060f267f56ca2e19c4e28c72f5abdeefc1b0",
+      "bytes": 8631
+    },
+    "src/physics/gpu/debug_readback_ring.hpp": {
+      "sha256": "70f05b8acf86d92ebdc15a144ab99fe5e974136f8c95dd2ee29fb9d5bb48ca8d",
+      "bytes": 3668
+    },
+    "src/physics/gpu/deterministic_primitives.cpp": {
+      "sha256": "d8a7b6fb7d5ac9cf76cd8e8504fd7b5abc36e7dc759f0b5761fa0d8a59518313",
+      "bytes": 39084
+    },
+    "src/physics/gpu/deterministic_primitives.hpp": {
+      "sha256": "808105161e86e12bdc7ff05f9432672aa40d90ecfdf51496ed6e3a334b2311ac",
+      "bytes": 12364
+    },
+    "src/physics/gpu/gpu_attachments.cpp": {
+      "sha256": "c5ba40fa296c5d43241a234e7602019d95de89cf72a9b46583c14da7b053015f",
+      "bytes": 11384
+    },
+    "src/physics/gpu/gpu_attachments.hpp": {
+      "sha256": "f25523db182fbbd9b2e6ad9c271deeb3419f87509066b644df56e4bf0c1dbc9c",
+      "bytes": 4536
+    },
+    "src/physics/gpu/gpu_authored_shapes.cpp": {
+      "sha256": "ab19a4c853da88920924d4d3f1a5a8ee40f2b8eb3258fe220c5e908ab13603a0",
+      "bytes": 21600
+    },
+    "src/physics/gpu/gpu_authored_shapes.hpp": {
+      "sha256": "6433dece7d23f001b98ad961aa844e0e200be23f4d1fe1f159f962251ccb098a",
+      "bytes": 4546
+    },
+    "src/physics/gpu/gpu_body_metadata.hpp": {
+      "sha256": "f51cb7f082e2d1c03a56ade6745e5130d8ea86268713e1c1629f2e91247d209f",
+      "bytes": 1151
+    },
+    "src/physics/gpu/gpu_body_shape.hpp": {
+      "sha256": "c2a209013390ad7ac5871ecd27e33aa3320ed7cbdbdc767e57969b69803a1fe2",
+      "bytes": 1333
+    },
+    "src/physics/gpu/gpu_broad_phase.cpp": {
+      "sha256": "670de7ed34be45b65fad5c478858259245bd31ae02bbbd7e564b34485b98c348",
+      "bytes": 81662
+    },
+    "src/physics/gpu/gpu_broad_phase.hpp": {
+      "sha256": "b36c42dfade246887ab5a7d27a41a2bdcc75f3bcc0d0ef5157e1f7c2bbf5ccd2",
+      "bytes": 4758
+    },
+    "src/physics/gpu/gpu_buffer_arena.cpp": {
+      "sha256": "3f9f3d079089ce6e6b5069fcc91108d02539b66c9ee54f1acab53f97d8aecb21",
+      "bytes": 2211
+    },
+    "src/physics/gpu/gpu_buffer_arena.hpp": {
+      "sha256": "f9bbe1f6a3cc9e61c51aa863663cfee2cb29dee813ccc1a3d3c0f052dc939e88",
+      "bytes": 1103
+    },
+    "src/physics/gpu/gpu_ccd.cpp": {
+      "sha256": "a9e90ee3c4076ced067ee9d39037b0f2b383f864a592d8328ffb09875d1380cf",
+      "bytes": 17482
+    },
+    "src/physics/gpu/gpu_ccd.hpp": {
+      "sha256": "dd14e5224d652d6e7f58147a279f5c2c28820f0b1c6d508fad00dc59ec0202aa",
+      "bytes": 2996
+    },
+    "src/physics/gpu/gpu_dynamic_solver.cpp": {
+      "sha256": "a5524b751d0e92700824e163ba00a860a8ff1dcf2212ddb7a90020cbd8db8851",
+      "bytes": 62640
+    },
+    "src/physics/gpu/gpu_dynamic_solver.hpp": {
+      "sha256": "03277f48b92eed2d8dc38825aa1a0330a614173d4416150700ef1912dac86f18",
+      "bytes": 6008
+    },
+    "src/physics/gpu/gpu_event_readback.cpp": {
+      "sha256": "c42ee80d0d299dfae8b5584c06a2fe7065068a2d51c65c83666f856be6be5ebe",
+      "bytes": 14262
+    },
+    "src/physics/gpu/gpu_event_readback.hpp": {
+      "sha256": "177069ee5253f1a85cce58a01715c398768c1238a3aa2e992a8e431ac4dbd7e8",
+      "bytes": 3975
+    },
+    "src/physics/gpu/gpu_islands.cpp": {
+      "sha256": "358fd6d06bb2e879a8349451b4dc128c5cd03eca65681be979be7a8c9cd4bf4a",
+      "bytes": 53485
+    },
+    "src/physics/gpu/gpu_islands.hpp": {
+      "sha256": "0f7dd9488f555190035501715c10f40f67f23deada39287df192fc6ee1f1acb7",
+      "bytes": 4332
+    },
+    "src/physics/gpu/gpu_lockstep.cpp": {
+      "sha256": "866658d83c3064207c138e603f5321a07e38b4eea16de90b5bdd226a6c3f5eaf",
+      "bytes": 11387
+    },
+    "src/physics/gpu/gpu_lockstep.hpp": {
+      "sha256": "6bef8439199c241c167480192b8bec862a14e6bca75e0cc36a373a8f932e0d07",
+      "bytes": 1978
+    },
+    "src/physics/gpu/gpu_narrow_phase.cpp": {
+      "sha256": "411819b932b11bfb3743b8da54c8ded7d71d9104f59fd5dda71da2667391a052",
+      "bytes": 35284
+    },
+    "src/physics/gpu/gpu_narrow_phase.hpp": {
+      "sha256": "4bd9fb8d17ba75374743c0841fb57cdaf4e8960cfbd3359bad012725d8a83848",
+      "bytes": 6114
+    },
+    "src/physics/gpu/gpu_physics_backend.cpp": {
+      "sha256": "58bf30a60a9bc0cd8d0d80a3b15122b318d63d1df11a3a261a021f97b0658002",
+      "bytes": 242767
+    },
+    "src/physics/gpu/gpu_physics_backend.hpp": {
+      "sha256": "f61ae9037115d35b394d5f1130acecc3dbf4c7fbdcb653587aaed75f83cd2055",
+      "bytes": 6179
+    },
+    "src/physics/gpu/gpu_queries.cpp": {
+      "sha256": "9ac237d6a537259d8130b7661a932bd44be7571176fceacc614aaaaee5718259",
+      "bytes": 12454
+    },
+    "src/physics/gpu/gpu_queries.hpp": {
+      "sha256": "6405c52834d5873ac3bdcbf43b23661ffa1adc77e524b38922ea98b9225ffd0a",
+      "bytes": 3920
+    },
+    "src/physics/jolt/jolt_backend.cpp": {
+      "sha256": "e595b9a22a4613731d787a092c700970e591c12d4e3f0b79385720aa7ec92ec8",
+      "bytes": 46708
+    },
+    "src/physics/jolt/jolt_backend.hpp": {
+      "sha256": "6fa78644588f9b4c8343de54aa6a980c7ddc07dcfecc703ae6378f9011f8a4ab",
+      "bytes": 2990
+    },
+    "src/physics/physics_backend.hpp": {
+      "sha256": "c8787f5c79abc1bd79af25bb99b3b5981cf9073997a3c66c43081fe4776137fc",
+      "bytes": 7709
+    },
+    "src/physics/physics_backend_factory.cpp": {
+      "sha256": "475f875c09f4acd6ed90fb40ce163b46fe92180bdb68eb2434f1fbf8b89f3ca9",
+      "bytes": 665
+    },
+    "src/physics/physics_backend_factory.hpp": {
+      "sha256": "908c9fd04e331dd87f6c996090d643aadbe933ad91bd009221c39b92ec8e89f8",
+      "bytes": 439
+    },
+    "src/physics/physics_types.cpp": {
+      "sha256": "ed85881a2bc6f3d07099ede8ae424f8fd173c73c7a38a46b23a78d09b059ba72",
+      "bytes": 9878
+    },
+    "src/physics/physics_types.hpp": {
+      "sha256": "406da7452a8bccb4df22bb0afa1c68947f3e4f1d4781476e69dd141bed9bb4ac",
+      "bytes": 33745
+    },
+    "src/physics/physics_world.cpp": {
+      "sha256": "a256be612f2a92f9b0b8b0927f5107a0a147309a2ac00fddc8c3c756a8fdd7b4",
+      "bytes": 12383
+    },
+    "src/physics/physics_world.hpp": {
+      "sha256": "011bf872244d1eba7700f946a8605210a5eb400af41196fe028a6d2eda37e47b",
+      "bytes": 8009
+    },
+    "src/physics/rigid_mass_frame.cpp": {
+      "sha256": "c9ca3d74601d345507964bdeb9dd96e88f7038cd5eb6f6d5a7b97bd06a557336",
+      "bytes": 8854
+    },
+    "src/physics/rigid_mass_frame.hpp": {
+      "sha256": "a5cc79ac998f1273c686c8933f7dffcc3ef16b08ff60a61b57ac2b67fc6c1837",
+      "bytes": 3515
+    },
+    "src/physics/shape_handle.hpp": {
+      "sha256": "9b07cd21f19d803956d62d014ff5807ace2cfb84403ba90ec23c406a12fac7d2",
+      "bytes": 653
+    },
+    "src/physics/terrain_topology.hpp": {
+      "sha256": "7398d1558a271cb44309e691c90708f756af04a72a25e271b7a3d674835c1c0b",
+      "bytes": 1748
+    },
+    "src/physics/wreckwater_authority_backend_factory.cpp": {
+      "sha256": "b025f30a44da38b9e4bfcd905d45f931a90a891dd0da60ac2524571ab9ee664d",
+      "bytes": 368
+    },
+    "src/render/water_simulation.hpp": {
+      "sha256": "355c4872fc6b7e14241349eb9a3b6107cc85bb56a46b2b4452d782a5f85458a0",
+      "bytes": 7954
+    },
+    "tests/BUILD": {
+      "sha256": "03493d26d2fe068eb982a47df4adadfc6e1a3bb813b2319d35ac873c169b3f91",
+      "bytes": 34564
+    },
+    "tests/CMakeLists.txt": {
+      "sha256": "66bd5ae6ad9b02e7e25f652236a63823a768017d0d6f5c0dd97660ca4401270c",
+      "bytes": 41756
+    },
+    "tests/browser/authored_terrain.mjs": {
+      "sha256": "cb27d98f6950472921d816301e8808c3cf60ca79c551f44c3c0d694a5483ce83",
+      "bytes": 12748
+    },
+    "tests/test_assembly_buoyancy.cpp": {
+      "sha256": "ae753af613032cb16438329ba8a829537cce5ed082b896505087f8365757d491",
+      "bytes": 16873
+    },
+    "tests/test_assembly_collision.cpp": {
+      "sha256": "c00977c6f68879bd6791ef4919fd375ab43cda5e6e431782de3be49d191f1c0d",
+      "bytes": 15947
+    },
+    "tests/test_assembly_compiler.cpp": {
+      "sha256": "d051fb37afdca2c4f29c1cbe18db1438658b1907d291796e79abcd45f397feb4",
+      "bytes": 12835
+    },
+    "tests/test_assembly_fracture.cpp": {
+      "sha256": "830fac78c648038cdfdab69e30a8da91648bf1931524c8ee1ef69246bef56d0e",
+      "bytes": 15658
+    },
+    "tests/test_assembly_functions.cpp": {
+      "sha256": "754743a16dc544d1eb517a30eb0e8fdf3c36df3d87ada4d0938085ca5573032c",
+      "bytes": 21625
+    },
+    "tests/test_build_model.cpp": {
+      "sha256": "fbbe921cd1d28f8fe71633d7dac530d7ce54f31d96725927e45b7644423cf9bf",
+      "bytes": 36636
+    },
+    "tests/test_compiled_assembly.cpp": {
+      "sha256": "09b5b7f96de35ed6c2fb86b2f8ab787a7d7e0988367c88fc5aff3d12afe14940",
+      "bytes": 17129
+    },
+    "tests/test_cove_player.cpp": {
+      "sha256": "db5d2160e7ba5c9cd4ae5279e8b60237d6c28204030af56cd9bf479ad27d3c4b",
+      "bytes": 118412
+    },
+    "tests/test_cove_save.cpp": {
+      "sha256": "4b1b8548c9a214e28c308ef3093aa2be25c991edddd9f9631a6a6d9996e7f1ec",
+      "bytes": 32507
+    },
+    "tests/test_cove_water_clock.cpp": {
+      "sha256": "82f661a622d274813f65445a6eedda72cdeefb99547afadfdbdc74dc3722c575",
+      "bytes": 3986
+    },
+    "tests/test_game_session.cpp": {
+      "sha256": "e0ec82e27bf44fac3595610ee1f2642db86b4a3d00f3edc8d24a4fa351fdf912",
+      "bytes": 233250
+    },
+    "tests/test_gpu_authored_shapes.cpp": {
+      "sha256": "eb8d8c7c56552bb8b8b25269facf47224281b81cc3f4ceb1983483064ef62769",
+      "bytes": 116694
+    },
+    "tests/test_save_generation.cpp": {
+      "sha256": "93a9696f44cb5d5ceb82f4653dbfc733a6882d710d8b79e02feff60f57dec38a",
+      "bytes": 3233
+    },
+    "tests/test_session_events.cpp": {
+      "sha256": "8e10287b6616d8fed53219993651b512ff6442557847eb36a3825036e7944854",
+      "bytes": 21058
+    },
+    "tests/test_session_transactions.cpp": {
+      "sha256": "bffad21bc07f726bf9d6e591f3c891f664ce21a6a4c1d04c198b9cf7671bba60",
+      "bytes": 14831
+    },
+    "third_party/googletest/googletest/include/gtest/gtest-assertion-result.h": {
+      "sha256": "d6562e22c316e831bfbc2cde3b158f06380a22e7e1c6c1e180689abee5c5b972",
+      "bytes": 8503
+    },
+    "third_party/googletest/googletest/include/gtest/gtest-death-test.h": {
+      "sha256": "8decbb86ebbfa142fd78a83cfbeb4c5e73e98179058ce70fcc279935c497429a",
+      "bytes": 14910
+    },
+    "third_party/googletest/googletest/include/gtest/gtest-matchers.h": {
+      "sha256": "d637dd188944433c62d96a062f9b1adab851574c537d7021270c7a52a2759a90",
+      "bytes": 33067
+    },
+    "third_party/googletest/googletest/include/gtest/gtest-message.h": {
+      "sha256": "f1c7bd4e0c02240e884deed25a2e0bfd04e5e0c3fd778a3b126cbb64531f65a7",
+      "bytes": 9203
+    },
+    "third_party/googletest/googletest/include/gtest/gtest-param-test.h": {
+      "sha256": "1adb46e17e47fc2f40dc5b8e9acec4f01efa389a19bbea25d32aea28b94e32e6",
+      "bytes": 24008
+    },
+    "third_party/googletest/googletest/include/gtest/gtest-printers.h": {
+      "sha256": "f3396ea55d577ee04f15a2b14b14b76edb8a84d385c831defd88cff8535bc273",
+      "bytes": 40511
+    },
+    "third_party/googletest/googletest/include/gtest/gtest-spi.h": {
+      "sha256": "fc0bbebaeb211b81a2ec3df388e5e5f25a7c22e90186839854d2e5b26ce226e6",
+      "bytes": 12843
+    },
+    "third_party/googletest/googletest/include/gtest/gtest-test-part.h": {
+      "sha256": "2279b9bfd08aff7c0f764a2716bde0d3a61dc12573687a2cff91256b17681bf0",
+      "bytes": 7164
+    },
+    "third_party/googletest/googletest/include/gtest/gtest-typed-test.h": {
+      "sha256": "d56313830bf30d6271d7c1f8ca57dc52d95a10b97e4ace6efa0f085ae519303a",
+      "bytes": 15889
+    },
+    "third_party/googletest/googletest/include/gtest/gtest.h": {
+      "sha256": "93da03ddf6d5b9bdf40ae4ded9939067c9ed0b6de93f787f7e8d187609b6b02d",
+      "bytes": 91459
+    },
+    "third_party/googletest/googletest/include/gtest/gtest_pred_impl.h": {
+      "sha256": "85e850e735a42ebb5f9a01a018708c1c0b9b7d83c94b14b7d5d29512c00b6ffd",
+      "bytes": 12783
+    },
+    "third_party/googletest/googletest/include/gtest/gtest_prod.h": {
+      "sha256": "3c6301ef533db8686e474dd5a0de4d98a31cbb630e2273f712472d1be25aa261",
+      "bytes": 2502
+    },
+    "third_party/googletest/googletest/include/gtest/internal/custom/gtest-port.h": {
+      "sha256": "5e06747c9e8b86e9d841fabd61c2f045b2bb1133716f127be4a963ced1c44e01",
+      "bytes": 1873
+    },
+    "third_party/googletest/googletest/include/gtest/internal/custom/gtest-printers.h": {
+      "sha256": "b95afda2426e8c4f09c11d3296d522fb336b248c0da7e078388db4bb072c2166",
+      "bytes": 2094
+    },
+    "third_party/googletest/googletest/include/gtest/internal/custom/gtest.h": {
+      "sha256": "21d20a1c64ea38c20c4b12337c261a1a18989d2a30710a83dfb5cd9a3bb3c55e",
+      "bytes": 1858
+    },
+    "third_party/googletest/googletest/include/gtest/internal/gtest-death-test-internal.h": {
+      "sha256": "a70d1174ef668639c7af21764442f8e487b0fc70c237a70f90e3161a8e8262d6",
+      "bytes": 13929
+    },
+    "third_party/googletest/googletest/include/gtest/internal/gtest-filepath.h": {
+      "sha256": "544ce95d2e1e4b7ae17ee170f482aaa09e17d0056999c4ce7e7a6097c3a755cf",
+      "bytes": 10339
+    },
+    "third_party/googletest/googletest/include/gtest/internal/gtest-internal.h": {
+      "sha256": "a33806c8e6ca5eb6f839b8e015bdf8eae848641035f9499834f9d402b823d5fe",
+      "bytes": 63416
+    },
+    "third_party/googletest/googletest/include/gtest/internal/gtest-param-util.h": {
+      "sha256": "effa1b3e6a3554aae8fc82fbe88c1c3215f723bb3e2e444bf424f688c476a030",
+      "bytes": 38172
+    },
+    "third_party/googletest/googletest/include/gtest/internal/gtest-port-arch.h": {
+      "sha256": "37f6d5c70322ee5f4f84fafcb4e8e2f4bbf08a5afc64a6636cf6a9f45d442198",
+      "bytes": 4305
+    },
+    "third_party/googletest/googletest/include/gtest/internal/gtest-port.h": {
+      "sha256": "c22ef5c860dabc3e74225f3a54c2d7224375ad2dd2af619d3f8cbe7e917fc754",
+      "bytes": 90033
+    },
+    "third_party/googletest/googletest/include/gtest/internal/gtest-string.h": {
+      "sha256": "0cc08c746bceb2b101c61ffbc905c598eb62fee3c262c4585c21b10d8a3e6508",
+      "bytes": 7323
+    },
+    "third_party/googletest/googletest/include/gtest/internal/gtest-type-util.h": {
+      "sha256": "c1cf53463579025a7b25466e9680a778d74beff52d8a64b6e83fcb6dd99e4bb7",
+      "bytes": 7349
+    },
+    "third_party/googletest/googletest/src/gtest-all.cc": {
+      "sha256": "972d3016860f9aa6452e078cf77406290fb7003b66fd6c0744a030bd1c323606",
+      "bytes": 2201
+    },
+    "third_party/googletest/googletest/src/gtest-assertion-result.cc": {
+      "sha256": "dbd2235676dcc0ef6409108a4041e05442fc6895735a5561d71151e6a14296bb",
+      "bytes": 3009
+    },
+    "third_party/googletest/googletest/src/gtest-death-test.cc": {
+      "sha256": "4a0a2dad0efbb61c4f7686ccd326e19d6e5633c98202f6878fa2d18c52f3329a",
+      "bytes": 62742
+    },
+    "third_party/googletest/googletest/src/gtest-filepath.cc": {
+      "sha256": "8eec3fa2a0e6617106a8d9bfedf3209b0a8cad02e2a17e76196807290e940f8c",
+      "bytes": 15732
+    },
+    "third_party/googletest/googletest/src/gtest-internal-inl.h": {
+      "sha256": "fce60f191b52108b5851f6aec51a6f14001e1a79fd302d48c8fdbb842f8fef1a",
+      "bytes": 47929
+    },
+    "third_party/googletest/googletest/src/gtest-matchers.cc": {
+      "sha256": "e4ce9edf33493625353cc147a14caac14fdba7390d76166d101fa2fe9d16bbda",
+      "bytes": 3724
+    },
+    "third_party/googletest/googletest/src/gtest-port.cc": {
+      "sha256": "6e6c0346e833a254e52544728b40fd0cced0b36431e9eed8f5e477e6f5fe1a23",
+      "bytes": 47960
+    },
+    "third_party/googletest/googletest/src/gtest-printers.cc": {
+      "sha256": "bd14e45b5cb8df8be5944a0aaeb3739c533737a183ae4ed6627f5613eea1f6c9",
+      "bytes": 18551
+    },
+    "third_party/googletest/googletest/src/gtest-test-part.cc": {
+      "sha256": "b268314cbc718b485ff3e45fdeb5a1496bb8d87dadd5e824c558bf3b03e2dbf9",
+      "bytes": 4028
+    },
+    "third_party/googletest/googletest/src/gtest-typed-test.cc": {
+      "sha256": "b92e70b2d7ee3b86328162cbda269a28de4ce67f0e8d9beec5ec2c73a93ba006",
+      "bytes": 3823
+    },
+    "third_party/googletest/googletest/src/gtest.cc": {
+      "sha256": "53470c00499b943b4f5c3e7b581ffda9c76f828f485f33e17471aa08e8b296ac",
+      "bytes": 259551
+    },
+    "third_party/googletest/googletest/src/gtest_main.cc": {
+      "sha256": "3836c1ce7c4829c44a30f368d888ae3bed218437d61d102c50c0db4afca33b3f",
+      "bytes": 2430
+    },
+    "bazel-bin/voxy_native": {
+      "sha256": "ed6cb16853b71e667efd958df2ad74d66284a7070fc210ebda32ae968e858ed4",
+      "bytes": 6539072
+    },
+    "build-cove-water-XHSMQGSh/web-r02/network_transport.js": {
+      "sha256": "744a7327278186f3c8c7a509c4705b235cc7546e207bc1b776040a3b5e99a40b",
+      "bytes": 13484
+    },
+    "build-cove-water-XHSMQGSh/web-r02/voxy_wasm.js": {
+      "sha256": "6fe727642227117954e2b72b0593d45c9c185a5b08521ab0b7f6a32dd9c439d5",
+      "bytes": 93288
+    },
+    "build-cove-water-XHSMQGSh/web-r02/expedition_store.js": {
+      "sha256": "d5fcf5a97259332cace13a0da51a7e0d8b1a902555119c897c99526133dee736",
+      "bytes": 14315
+    },
+    "build-cove-water-XHSMQGSh/web-r02/design_library.js": {
+      "sha256": "bb6673eacfa3cac3cc0d0722431721350829c8994d6a58535c27e3eb91909104",
+      "bytes": 13313
+    },
+    "build-cove-water-XHSMQGSh/web-r02/shader_parity_manifest.js": {
+      "sha256": "e86d723130dfb334964ea6e38905549bfe7a018dea48e1ffafef8d8a660beea1",
+      "bytes": 989
+    },
+    "build-cove-water-XHSMQGSh/web-r02/lego_playground.js": {
+      "sha256": "8623c5dab1928e756bf0f9fd559c5e02e6f7311dff57d5e5aebc04def0a53ee0",
+      "bytes": 3572
+    },
+    "build-cove-water-XHSMQGSh/web-r02/cove_saves.js": {
+      "sha256": "9c647b30f0621785b6d8064f6d6b20a6d9f15c8de53306224f6267a8d2668085",
+      "bytes": 7343
+    },
+    "build-cove-water-XHSMQGSh/web-r02/lego_patch_model.mjs": {
+      "sha256": "79310139c2ff864c507c52387c11c3d8590bfbf97074dc0999d165242c8dfea5",
+      "bytes": 8702
+    },
+    "build-cove-water-XHSMQGSh/web-r02/voxy_wasm.wasm": {
+      "sha256": "40085889755cef66266cae476d6e7dc77b6db57ed606c74fbfdc805fbbea278e",
+      "bytes": 7036539
+    },
+    "build-cove-water-XHSMQGSh/web-r02/salvage_preview.css": {
+      "sha256": "ee77abda3b388cc55fa2cc8ec3c51cc0209eed731d5123ce464c14750ce0cc75",
+      "bytes": 2335
+    },
+    "build-cove-water-XHSMQGSh/web-r02/lego_patch.mjs": {
+      "sha256": "65a6585fce4dfc721b81679ec15d147b0e7613698e77b0a3de2e07644773cb53",
+      "bytes": 21965
+    },
+    "build-cove-water-XHSMQGSh/web-r02/renderer_inspector.js": {
+      "sha256": "329cf0b34cb50a44e0397214404e00ac8744d36a6b57eca9437c831ed3fba21d",
+      "bytes": 51304
+    },
+    "build-cove-water-XHSMQGSh/web-r02/renderer_inspector.css": {
+      "sha256": "bcd493afa295bb1a1cfe06a7e2f50904c1f74bcf42baedd2d0aa2342bee42ba9",
+      "bytes": 14997
+    },
+    "build-cove-water-XHSMQGSh/web-r02/voxy_wasm.data": {
+      "sha256": "a19474814f74a0dd2aeb5de47ef01f1035cfa1edc1f231a524a9e21354680eb8",
+      "bytes": 84021721
+    },
+    "build-cove-water-XHSMQGSh/web-r02/salvage_data.mjs": {
+      "sha256": "700ca3061e3b2d37d4698a2b8eccac1be210634bf6ff3cb825d09928fdd9c47b",
+      "bytes": 7947
+    },
+    "build-cove-water-XHSMQGSh/web-r02/shader_parity.html": {
+      "sha256": "bab9844dc7e6e8c9d683c4af6e7f31aad8534e77bded25fd4478e4eaa3ac08fe",
+      "bytes": 306
+    },
+    "build-cove-water-XHSMQGSh/web-r02/lego_patch.html": {
+      "sha256": "ece80967c7234a53481ea0a6c34701b8b4d4e1a94064669202d4e309f4298de4",
+      "bytes": 3732
+    },
+    "build-cove-water-XHSMQGSh/web-r02/shader_parity.js": {
+      "sha256": "dd92a5fbd5a36b4fd7974fc9d398289b67428b724013010705163ddb675c6076",
+      "bytes": 1901
+    },
+    "build-cove-water-XHSMQGSh/web-r02/index.html": {
+      "sha256": "b757886e350d145ce9df6be517896d63839588c6f0e8ffc5c9230ea2f0a6915d",
+      "bytes": 80537
+    },
+    "build-cove-water-XHSMQGSh/web-r02/frame_budget.js": {
+      "sha256": "bd1bc44ce6673377dd04df935ab32ffe1d876d8898c90bb9d8c40415401b1e26",
+      "bytes": 4973
+    },
+    "build-cove-water-XHSMQGSh/web-r02/lego_playground.css": {
+      "sha256": "a3694b755f8128beb0c4738e4d39ad87e9fc69e7ef8903c60b60a0f45c0250c9",
+      "bytes": 1845
+    },
+    "build-cove-water-XHSMQGSh/web-r02/salvage_preview.js": {
+      "sha256": "cd9575662198ee15e41dff08d300bcd1d850627b693689547d012d5c49796bcb",
+      "bytes": 25643
+    },
+    "build-cove-water-XHSMQGSh/web-r02/style.css": {
+      "sha256": "793ea83087c860dda1a709f06f7c12580aa7f8a0338f52171af06ab26a82a5d0",
+      "bytes": 21726
+    },
+    "build-cove-water-XHSMQGSh/web-r02/loader.js": {
+      "sha256": "dda43b965d732c89d684dc2e22cdb657589de9b762adea71ee67de4312d57738",
+      "bytes": 8233
+    },
+    "build-cove-water-XHSMQGSh/web-r02/BUILD": {
+      "sha256": "d855a115e6c9dd9fd71e315093b7455c35e250f935543c8dd08d587a26af1894",
+      "bytes": 113
+    }
+  }
+}

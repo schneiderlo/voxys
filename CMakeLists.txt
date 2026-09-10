@@ -42,6 +42,11 @@ if(EMSCRIPTEN)
     set(VOXY_BUILD_NATIVE OFF)
     set(VOXY_BUILD_WASM ON)
     set(VOXY_BUILD_TOOLS OFF)
+    # GameSession must unwind reserved work on adapter/allocation exceptions.
+    # Use JS-based EH: native WASM EH is incompatible with the current Asyncify path.
+    # Fixed-heap malloc must return null so C++ new can throw std::bad_alloc.
+    add_compile_options(-fexceptions)
+    add_link_options(-fexceptions -sABORTING_MALLOC=0)
     message(STATUS "Building for WebAssembly with Emscripten")
 else()
     message(STATUS "Building for native platform: ${CMAKE_SYSTEM_NAME}")
@@ -109,6 +114,10 @@ if(VOXY_BUILD_NATIVE)
         src/game/wreckwater_replay.hpp
         src/game/wreckwater_vessel_damage.cpp
         src/game/wreckwater_vessel_damage.hpp
+        src/geometry/box_union.cpp
+        src/geometry/box_union.hpp
+        src/geometry/grid_types.hpp
+        src/geometry/orthogonal_geometry.hpp
         src/gpu/context.cpp
         src/gpu/context.hpp
         src/gpu/resources.cpp
@@ -122,6 +131,13 @@ if(VOXY_BUILD_NATIVE)
         src/network/session_transport.hpp
         src/network/wreckwater_protocol.cpp
         src/network/wreckwater_protocol.hpp
+        src/physics/authored_body_frame.cpp
+        src/physics/authored_body_frame.hpp
+        src/physics/authored_shape.cpp
+        src/physics/authored_shape.hpp
+        src/physics/authored_shape_pool.cpp
+        src/physics/authored_shape_pool.hpp
+        src/physics/authored_shape_resources.hpp
         src/physics/character/cpu_capsule_mover.cpp
         src/physics/character/cpu_capsule_mover.hpp
         src/physics/deterministic/lockstep_types.hpp
@@ -133,7 +149,10 @@ if(VOXY_BUILD_NATIVE)
         src/physics/gpu/deterministic_primitives.hpp
         src/physics/gpu/gpu_attachments.cpp
         src/physics/gpu/gpu_attachments.hpp
+        src/physics/gpu/gpu_authored_shapes.cpp
+        src/physics/gpu/gpu_authored_shapes.hpp
         src/physics/gpu/gpu_body_metadata.hpp
+        src/physics/gpu/gpu_body_shape.hpp
         src/physics/gpu/gpu_broad_phase.cpp
         src/physics/gpu/gpu_broad_phase.hpp
         src/physics/gpu/gpu_buffer_arena.cpp
@@ -158,12 +177,15 @@ if(VOXY_BUILD_NATIVE)
         src/physics/physics_types.hpp
         src/physics/physics_world.cpp
         src/physics/physics_world.hpp
+        src/physics/rigid_mass_frame.cpp
+        src/physics/rigid_mass_frame.hpp
+        src/physics/shape_handle.hpp
         src/physics/terrain_topology.hpp
-        src/terrain/lego_surface.hpp
         src/physics/wreckwater_authority_backend_factory.cpp
         src/server/wreckwater_authority_runtime.cpp
         src/server/wreckwater_authority_runtime.hpp
         src/server/wreckwater_server_main.cpp
+        src/terrain/lego_surface.hpp
         src/terrain/mip_generator.cpp
         src/terrain/mip_generator.hpp
     )
@@ -220,6 +242,8 @@ if(VOXY_BUILD_NATIVE)
     if(EXISTS "${CMAKE_SOURCE_DIR}/src/engine/platform/native/entry.cpp")
         add_executable(voxy_native
             src/engine/platform/native/entry.cpp
+            src/engine/platform/native/cove_saves.cpp
+            src/engine/platform/native/inspection_motion.hpp
         )
         
         # Link core library if available
@@ -264,6 +288,14 @@ if(VOXY_BUILD_NATIVE)
                 "${CMAKE_SOURCE_DIR}/lego_shore.cfg"
                 "${CMAKE_SOURCE_DIR}/lego_world.cfg"
                 "${CMAKE_SOURCE_DIR}/salvage.cfg"
+                "${CMAKE_SOURCE_DIR}/salvage_asset_fixture.cfg"
+                "${CMAKE_SOURCE_DIR}/salvage_assembly_fixture.cfg"
+                "${CMAKE_SOURCE_DIR}/salvage_hierarchy_fixture.cfg"
+                "${CMAKE_SOURCE_DIR}/salvage_rotations_a.cfg"
+                "${CMAKE_SOURCE_DIR}/salvage_rotations_b.cfg"
+                "${CMAKE_SOURCE_DIR}/salvage_kit_narrow.cfg"
+                "${CMAKE_SOURCE_DIR}/salvage_kit_broad.cfg"
+                "${CMAKE_SOURCE_DIR}/salvage_kit_cargo.cfg"
                 "$<TARGET_FILE_DIR:voxy_native>"
             COMMENT "Refreshing native shaders and launch configs"
             VERBATIM
@@ -318,7 +350,7 @@ if(VOXY_BUILD_NATIVE)
         target_compile_definitions(wreckwater_server PRIVATE VOXY_NATIVE=1)
         set_project_warnings(wreckwater_server)
 
-        # Linux release/CI proof: compare compile_commands against the 32
+        # Linux release/CI proof: compare compile_commands against the exact
         # manifested TUs, then reject client, presentation, Jolt, and Box3D
         # symbols or dynamic dependencies in the linked server.
         if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
@@ -426,7 +458,7 @@ if(VOXY_BUILD_WASM)
             "-s STACK_SIZE=1MB"
             "-s MODULARIZE=1"
             "-s EXPORT_NAME='VoxyModule'"
-            "-s EXPORTED_RUNTIME_METHODS=['ccall','cwrap','UTF8ToString','HEAPU8']"
+            "-s EXPORTED_RUNTIME_METHODS=['ccall','cwrap','UTF8ToString','HEAPU8','callMain']"
             "-s EXPORTED_FUNCTIONS=['_main','_voxy_resize','_voxy_renderer_set_number','_voxy_renderer_get_number','_voxy_renderer_get_revision','_voxy_renderer_get_applied_revision','_voxy_mouse_move','_voxy_set_camera_pose','_voxy_key_event','_voxy_get_fps','_voxy_get_frame_count','_voxy_get_last_frame_cpu_ms','_voxy_get_last_frame_wall_ms','_voxy_get_gpu_frames_in_flight','_voxy_get_gpu_pacing_skips','_voxy_get_uncapped_fps','_voxy_set_uncapped_fps','_voxy_start_cube_pyramid_experiment','_voxy_start_browser_journey_benchmark','_voxy_get_browser_journey_benchmark_status','_voxy_get_browser_journey_benchmark_json','_voxy_start_render_throughput_benchmark','_voxy_get_render_throughput_status','_voxy_get_render_throughput_fps','_voxy_get_render_throughput_elapsed_ms','_voxy_get_render_throughput_completed_frames','_voxy_get_physics_substeps','_voxy_get_physics_resident_bodies','_voxy_set_throwable_body_limit','_voxy_get_physics_encoded_tick','_voxy_get_physics_stage_ms','_voxy_get_physics_stage_tick','_voxy_poll_physics_stage_timing','_voxy_get_polled_physics_stage_ms','_voxy_poll_render_stage_timing','_voxy_get_polled_render_stage_ms','_voxy_get_telemetry_json','_voxy_get_moto_hud_json','_voxy_is_initialized','_voxy_get_physics_backend','_voxy_start_physics_self_test','_voxy_get_physics_self_test_status','_voxy_get_physics_self_test_tick']"
             "-s ASYNCIFY"
         )
@@ -481,6 +513,117 @@ if(VOXY_BUILD_WASM)
             lego_shore.cfg
             lego_world.cfg
             salvage.cfg
+            salvage_asset_fixture.cfg
+            salvage_assembly_fixture.cfg
+            salvage_hierarchy_fixture.cfg
+            salvage_rotations_a.cfg
+            salvage_rotations_b.cfg
+            salvage_kit_narrow.cfg
+            data/salvage/fixture-kit-narrow.json
+            salvage_kit_broad.cfg
+            data/salvage/fixture-kit-broad.json
+            salvage_kit_cargo.cfg
+            data/salvage/fixture-kit-cargo.json
+            salvage_material_fixture.cfg
+            salvage_metric_fixture.cfg
+            salvage_cove.cfg
+            data/salvage/fixture-cove-r01.json
+            data/salvage/fixture-material-metric-r01.json
+            data/salvage/fixture-material-shading-r02.json
+            data/salvage/material-calibration/r04/kit/winch/cooked/cook-manifest.json
+            data/salvage/material-calibration/r04/kit/winch/cooked/gameplay.json
+            data/salvage/material-calibration/r04/kit/winch/cooked/lod-1.vmesh
+            data/salvage/material-calibration/r04/kit/winch/cooked/lod-2.vmesh
+            data/salvage/material-calibration/r04/kit/winch/cooked/lod-3.vmesh
+            data/salvage/material-calibration/r04/kit/helm/cooked/cook-manifest.json
+            data/salvage/material-calibration/r04/kit/helm/cooked/gameplay.json
+            data/salvage/material-calibration/r04/kit/helm/cooked/lod-1.vmesh
+            data/salvage/material-calibration/r04/kit/helm/cooked/lod-2.vmesh
+            data/salvage/material-calibration/r04/kit/helm/cooked/lod-3.vmesh
+            data/salvage/material-calibration/r02/pontoon-r02/cooked/cook-manifest.json
+            data/salvage/material-calibration/r02/pontoon-r02/cooked/gameplay.json
+            data/salvage/material-calibration/r02/pontoon-r02/cooked/lod-1.vmesh
+            data/salvage/material-calibration/r02/pontoon-r02/cooked/lod-2.vmesh
+            data/salvage/material-calibration/r02/pontoon-r02/cooked/lod-3.vmesh
+            data/salvage/material-calibration/r02/kit/winch/cooked/cook-manifest.json
+            data/salvage/material-calibration/r02/kit/winch/cooked/gameplay.json
+            data/salvage/material-calibration/r02/kit/winch/cooked/lod-1.vmesh
+            data/salvage/material-calibration/r02/kit/winch/cooked/lod-2.vmesh
+            data/salvage/material-calibration/r02/kit/winch/cooked/lod-3.vmesh
+            data/salvage/material-calibration/r02/kit/helm/cooked/cook-manifest.json
+            data/salvage/material-calibration/r02/kit/helm/cooked/gameplay.json
+            data/salvage/material-calibration/r02/kit/helm/cooked/lod-1.vmesh
+            data/salvage/material-calibration/r02/kit/helm/cooked/lod-2.vmesh
+            data/salvage/material-calibration/r02/kit/helm/cooked/lod-3.vmesh
+            data/salvage/fixture-material-calibration-r01.json
+            data/salvage/material-calibration/r01/pontoon/cooked/cook-manifest.json
+            data/salvage/material-calibration/r01/pontoon/cooked/gameplay.json
+            data/salvage/material-calibration/r01/pontoon/cooked/lod-1.vmesh
+            data/salvage/material-calibration/r01/pontoon/cooked/lod-2.vmesh
+            data/salvage/material-calibration/r01/pontoon/cooked/lod-3.vmesh
+            data/salvage/material-calibration/r01/kit/winch/cooked/cook-manifest.json
+            data/salvage/material-calibration/r01/kit/winch/cooked/gameplay.json
+            data/salvage/material-calibration/r01/kit/winch/cooked/lod-1.vmesh
+            data/salvage/material-calibration/r01/kit/winch/cooked/lod-2.vmesh
+            data/salvage/material-calibration/r01/kit/winch/cooked/lod-3.vmesh
+            data/salvage/functional-kit/r09/beam/cooked/cook-manifest.json
+            data/salvage/functional-kit/r09/beam/cooked/gameplay.json
+            data/salvage/functional-kit/r09/beam/cooked/lod-1.vmesh
+            data/salvage/functional-kit/r09/beam/cooked/lod-2.vmesh
+            data/salvage/functional-kit/r09/beam/cooked/lod-3.vmesh
+            data/salvage/functional-kit/r09/plate/cooked/cook-manifest.json
+            data/salvage/functional-kit/r09/plate/cooked/gameplay.json
+            data/salvage/functional-kit/r09/plate/cooked/lod-1.vmesh
+            data/salvage/functional-kit/r09/plate/cooked/lod-2.vmesh
+            data/salvage/functional-kit/r09/plate/cooked/lod-3.vmesh
+            data/salvage/functional-kit/r09/engine/cooked/cook-manifest.json
+            data/salvage/functional-kit/r09/engine/cooked/gameplay.json
+            data/salvage/functional-kit/r09/engine/cooked/lod-1.vmesh
+            data/salvage/functional-kit/r09/engine/cooked/lod-2.vmesh
+            data/salvage/functional-kit/r09/engine/cooked/lod-3.vmesh
+            data/salvage/functional-kit/r09/propeller/cooked/cook-manifest.json
+            data/salvage/functional-kit/r09/propeller/cooked/gameplay.json
+            data/salvage/functional-kit/r09/propeller/cooked/lod-1.vmesh
+            data/salvage/functional-kit/r09/propeller/cooked/lod-2.vmesh
+            data/salvage/functional-kit/r09/propeller/cooked/lod-3.vmesh
+            data/salvage/functional-kit/r09/helm/cooked/cook-manifest.json
+            data/salvage/functional-kit/r09/helm/cooked/gameplay.json
+            data/salvage/functional-kit/r09/helm/cooked/lod-1.vmesh
+            data/salvage/functional-kit/r09/helm/cooked/lod-2.vmesh
+            data/salvage/functional-kit/r09/helm/cooked/lod-3.vmesh
+            data/salvage/functional-kit/r09/winch/cooked/cook-manifest.json
+            data/salvage/functional-kit/r09/winch/cooked/gameplay.json
+            data/salvage/functional-kit/r09/winch/cooked/lod-1.vmesh
+            data/salvage/functional-kit/r09/winch/cooked/lod-2.vmesh
+            data/salvage/functional-kit/r09/winch/cooked/lod-3.vmesh
+            data/salvage/functional-kit/r09/cradle/cooked/cook-manifest.json
+            data/salvage/functional-kit/r09/cradle/cooked/gameplay.json
+            data/salvage/functional-kit/r09/cradle/cooked/lod-1.vmesh
+            data/salvage/functional-kit/r09/cradle/cooked/lod-2.vmesh
+            data/salvage/functional-kit/r09/cradle/cooked/lod-3.vmesh
+            data/salvage/functional-kit/r09/generator/cooked/cook-manifest.json
+            data/salvage/functional-kit/r09/generator/cooked/gameplay.json
+            data/salvage/functional-kit/r09/generator/cooked/lod-1.vmesh
+            data/salvage/functional-kit/r09/generator/cooked/lod-2.vmesh
+            data/salvage/functional-kit/r09/generator/cooked/lod-3.vmesh
+            data/salvage/functional-kit/r09/crate/cooked/cook-manifest.json
+            data/salvage/functional-kit/r09/crate/cooked/gameplay.json
+            data/salvage/functional-kit/r09/crate/cooked/lod-1.vmesh
+            data/salvage/functional-kit/r09/crate/cooked/lod-2.vmesh
+            data/salvage/functional-kit/r09/crate/cooked/lod-3.vmesh
+            data/salvage/fixture-pontoon-rotations-a.json
+            data/salvage/fixture-pontoon-rotations-b.json
+            data/salvage/fixture-hierarchy-v1.json
+            data/salvage/hierarchy_probe/candidates/v1-r02/cooked/cook-manifest.json
+            data/salvage/hierarchy_probe/candidates/v1-r02/cooked/gameplay.json
+            data/salvage/hierarchy_probe/candidates/v1-r02/cooked/lod-1.vmesh
+            data/salvage/fixture-pontoon-v2.json
+            data/salvage/fixture-pontoon-assembly.json
+            data/salvage/pontoon/release-candidates/v2-rc01/cooked/cook-manifest.json
+            data/salvage/pontoon/release-candidates/v2-rc01/cooked/gameplay.json
+            data/salvage/pontoon/release-candidates/v2-rc01/cooked/lod-1.vmesh
+            data/salvage/pontoon/release-candidates/v2-rc01/cooked/lod-2.vmesh
+            data/salvage/pontoon/release-candidates/v2-rc01/cooked/lod-3.vmesh
             data/lego_shore.ldh
             data/generated/td_seed_1234_8192.ldh
             data/generated/td_seed_1234_2048_albedo.jpg

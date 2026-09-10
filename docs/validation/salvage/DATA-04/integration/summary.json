@@ -1,0 +1,180 @@
+{
+  "scope": "DATA-04 accepted: corrected single-participant authority and preview integration; no actual machine simulation, save, visual or performance acceptance",
+  "recorded_utc": "2026-09-07T23:44:00.165683+00:00",
+  "source_files": {
+    ".bazelrc": {
+      "bytes": 4680,
+      "sha256": "87faaf783e7053c563fa82d2560591147786f3f3da8027d27985f10efa797b56"
+    },
+    "CMakeLists.txt": {
+      "bytes": 31289,
+      "sha256": "ca9f17e74c72b76b3a69cd0799f703cc56bc50247f6fd316cf9fac21e9acca86"
+    },
+    "src/CMakeLists.txt": {
+      "bytes": 19807,
+      "sha256": "a7452fad90cbbdfe8c39dac4354bb40a4c04d91df3f844a56d64dc80cd564400"
+    },
+    "src/game/BUILD": {
+      "bytes": 5861,
+      "sha256": "82c069746e7a3fd184909fd63c4b066995514746dc246adf16bbd54ea95cc63d"
+    },
+    "src/app/BUILD": {
+      "bytes": 1004,
+      "sha256": "78640d1b9fa096bef22936c95056782eab2106e1a0dfd5236ddee8699cacc02a"
+    },
+    "tests/BUILD": {
+      "bytes": 25395,
+      "sha256": "7f5f6d68df8a2c3ee0e692fad6241d0a4e4129839b87f677c47c63d9a3ea79a9"
+    },
+    "tests/CMakeLists.txt": {
+      "bytes": 24239,
+      "sha256": "fd10e996fc3b682a0070c23a172919b8ced7d4d1549b0d0f4e672844b5288af7"
+    },
+    "src/game/construction/construction_types.hpp": {
+      "bytes": 8847,
+      "sha256": "fb1aca2e406802452d0595fac47162822d26d4af3ec343859cbf13f8957912e8"
+    },
+    "src/game/construction/construction_types.cpp": {
+      "bytes": 17925,
+      "sha256": "4aa7ffdd6e608765b5245c94c53c2b54920705533283d270e5b6b4eee84ac4c8"
+    },
+    "src/game/construction/part_catalog.hpp": {
+      "bytes": 9399,
+      "sha256": "8c107f72da01b065f811db557b38de9a3a014e5717b3348951cfe21a07bc8c13"
+    },
+    "src/game/construction/part_catalog.cpp": {
+      "bytes": 31351,
+      "sha256": "24869c7c346d49421b2fe20123181e4e5738d6e6ddc366339292d3f12044bcf3"
+    },
+    "src/game/construction/build_model.hpp": {
+      "bytes": 8488,
+      "sha256": "e99cf8d8b6a409276195a49d1887d6ee4518683b0cc4fa5550af08a7d3746f19"
+    },
+    "src/game/construction/build_model.cpp": {
+      "bytes": 30491,
+      "sha256": "5307ee045a24f3974ec109f914eb5f8d5a4c65755a32f7286ff6308be9cd508f"
+    },
+    "src/game/expedition/game_session.hpp": {
+      "bytes": 9655,
+      "sha256": "e1b7e1d33861db4847ddc5e631c1ec7506017c606955a125dd2e8b6fc550aa16"
+    },
+    "src/game/expedition/game_session.cpp": {
+      "bytes": 23296,
+      "sha256": "35e5306eae4c117ebb462807303c4474af76bb8afc65d8dff7e375ecfdeb579c"
+    },
+    "tests/test_game_session.cpp": {
+      "bytes": 28055,
+      "sha256": "0c5fdf72b148efdd61095b5a47a91fe7bd670a6df98e393dce2448395a0cb7a0"
+    },
+    "src/app/application.cpp": {
+      "bytes": 252397,
+      "sha256": "f4ed875bee7879f000de493c716038c5c119691ce43857d77500974e6d3e1586"
+    },
+    "src/app/application.hpp": {
+      "bytes": 41662,
+      "sha256": "108063030695770c27dd958c206b06b3c46624fe5c43a4eb77e69db30591a22a"
+    },
+    "scripts/validate_salvage_preview.mjs": {
+      "bytes": 14791,
+      "sha256": "9ecba38441fefc19ca08f60bb82b036082e1e45996d6f180719918b40345a2e2"
+    },
+    "scripts/smoke_integrated_wasm.mjs": {
+      "bytes": 27675,
+      "sha256": "e7ed742259f075d5f833d168396f78899716560effb42e2ed50e1f30a94cd616"
+    },
+    "scripts/validate_native_routes.py": {
+      "bytes": 4844,
+      "sha256": "5bc3f3462299df486db2fa8c38e5737c078a7285fad6b85609ca4eb59ac959eb"
+    },
+    "src/moto/vmesh.hpp": {
+      "bytes": 9220,
+      "sha256": "0b73c608ad72f2c101032ca2bf1c3eddd83e1d1a9212c29b36f650918c08f707"
+    }
+  },
+  "artifacts": {
+    "build-salvage-native/bin/voxy_native": {
+      "bytes": 44405368,
+      "sha256": "84d8af6a47e0cf682110e4fc0248dfb4ddb8754e524b73f88cf9576e0a7e7652"
+    },
+    "build-salvage-native/bin/game_session_tests": {
+      "bytes": 1154208,
+      "sha256": "7a75fae3d1a7de28e4aea206e0a10aad87cc9a9fa86b3eb6ebaf2e53ea9a3586"
+    },
+    "build-salvage-native/bin/voxy_tests": {
+      "bytes": 59956968,
+      "sha256": "8f5ea53b91ca7710aa02500dbc1e58e9bab3f2396b777d049f0fafd6ef04c6b6"
+    },
+    "build-lego-wasm/bin/voxy_wasm.js": {
+      "bytes": 75462,
+      "sha256": "f3680cd38ecfac8652e91f25bedf374a86036591286de56f54d6afc8545bf530"
+    },
+    "build-lego-wasm/bin/voxy_wasm.wasm": {
+      "bytes": 5079593,
+      "sha256": "4526aad3807a771bef1d9c3eecb0fea7b4d58f99b476943cf5833daec1ea62c8"
+    },
+    "build-lego-wasm/bin/voxy_wasm.data": {
+      "bytes": 57674353,
+      "sha256": "9f20b6769a048c5ac33366a01c06792f7b514fb83c9d4b12bc873ae1ce60792f"
+    }
+  },
+  "checks": {
+    "final-bazel-session.xml": {
+      "tests": "21",
+      "failures": "0",
+      "errors": "0",
+      "disabled": "0"
+    },
+    "combined-bazel.xml": {
+      "tests": "29",
+      "failures": "0",
+      "errors": "0",
+      "disabled": "0"
+    },
+    "combined-cmake.xml": {
+      "tests": "29",
+      "failures": "0",
+      "errors": "0",
+      "disabled": "0"
+    },
+    "gpu-retirement.xml": {
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "disabled": "0"
+    }
+  },
+  "runtime_evidence": {
+    "native-routes/native-route-summary.json": {
+      "sha256": "3ac4a21d0b306c640995ebccb09a4803f07ec5d34da05e8f05295f81fd9b02be",
+      "bytes": 3023
+    },
+    "browser-salvage.json": {
+      "sha256": "319190288cd6a7170c1307e7a13ea33872fbe82ef495f0750644bf548be352d9",
+      "bytes": 868598
+    },
+    "browser-journey/summary.json": {
+      "sha256": "b8a2aec8e77eb7d4f6d34578dad3aa7e1a54effc15dffa695728cefcd663baff",
+      "bytes": 11160
+    },
+    "browser-regression/commands.json": {
+      "sha256": "2d81a74f2a9769612417bb539e7502e8104dc42047505de90a82f57f3788a045",
+      "bytes": 543
+    },
+    "browser-regression/lego.json": {
+      "sha256": "5fa158389adc56ca91c471d846acd0e2091c10960eeaf8d8b9d2b24fde290ee8",
+      "bytes": 293347
+    },
+    "browser-regression/terrain.json": {
+      "sha256": "4ef022290c76eab65cb3ba1e3373036f084d5c313243a3b7078f771c9a050d4e",
+      "bytes": 292270
+    },
+    "browser-regression/ridgebreak.json": {
+      "sha256": "02e171fda8c314eb89611de3e1266ad02d628ea4af06e205401ea7abefb602bf",
+      "bytes": 261138
+    },
+    "wasm-exceptions/attempt-03-js-fixed/manifest.json": {
+      "sha256": "e655a2351b6b406bd31592d516463088cdc76e36d60e23d82f741ec1a171c3f4",
+      "bytes": 22999
+    }
+  }
+}

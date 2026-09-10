@@ -1,0 +1,151 @@
+{
+  "schema": 1,
+  "status": "captured; visual review required",
+  "recipe": {
+    "schema": 1,
+    "registry": "data/salvage/fixture-pontoon-assembly.json",
+    "physical_viewport": [
+      1920,
+      1080
+    ],
+    "fov_degrees": 60,
+    "views": [
+      {
+        "name": "socket-start",
+        "eye": [
+          147.25,
+          20.0,
+          -10
+        ],
+        "target": [
+          -1.0549013869885755,
+          -0.06175349646603223,
+          0.15786745545664616
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "socket-crossed",
+        "eye": [
+          146.61,
+          19.913400000000024,
+          -9.9561
+        ],
+        "target": [
+          -1.6949013869885619,
+          -0.14835349646600804,
+          0.20176745545664687
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      },
+      {
+        "name": "socket-returned",
+        "eye": [
+          147.251,
+          20.000200000000007,
+          -10.000100000000003
+        ],
+        "target": [
+          -1.0539013869885707,
+          -0.06155349646602559,
+          0.15776745545664284
+        ],
+        "sun": [
+          0.4,
+          0.8,
+          -0.4
+        ]
+      }
+    ]
+  },
+  "recipe_sha256": "7d7ed129bd67d1af4722977f25d1e8b28d99b80505731719d434dcaa9fb551f6",
+  "runner_sha256": "4cb504c3fa164d5455bfb89708a3c33ca8ec018e1efdc5a98752e04e0e508304",
+  "binary": "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native",
+  "binary_sha256": "0581c547f215a064dae94102d8d65b936e6fa4c94a4230507a950d15aed9bb7e",
+  "original_registry_sha256": "bb11c948e2d1dac86ce322143d86c3113a5d8492ba46f9b1a9bb8a4305fa6658",
+  "original_config": "/home/modkin/workspace/schneiderlo/voxys/salvage_assembly_fixture.cfg",
+  "original_config_sha256": "02346fa362e072ccdf2bc7002e904988d57dfce06a725c1a643f9b53828b73a0",
+  "guides": "sockets",
+  "selected_views": null,
+  "scope": "Native scene captures; guides are technical overlays, not final art or moving-craft acceptance",
+  "views": [
+    {
+      "name": "socket-start",
+      "argv": [
+        "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/sectors/native-sockets-attempt02/socket-start.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/sectors/native-sockets-attempt02/socket-start.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "config_sha256": "bbdb0c98c98079344ba4a08fb94e23b15a1b85e5092d7661cb0ade1052facf2c",
+      "registry_sha256": "c9f97bdda5c9aed00c151ac57f210aa9d076a586cc8e69d32b8471cd027cdf6f",
+      "timeout": false,
+      "exit_code": 0,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "png_sha256": "19d8c1ce9f9f41b3e240e959d157d368dcb013a090e9c6594e10df9a28ffc5ef",
+      "gpu_or_application_errors": [],
+      "passed": true
+    },
+    {
+      "name": "socket-crossed",
+      "argv": [
+        "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/sectors/native-sockets-attempt02/socket-crossed.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/sectors/native-sockets-attempt02/socket-crossed.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "config_sha256": "bbdb0c98c98079344ba4a08fb94e23b15a1b85e5092d7661cb0ade1052facf2c",
+      "registry_sha256": "5f4e8f0b0ce0a1f6917d4ee429d75cfc9a5f3c77893b412b8cd88983f64b132c",
+      "timeout": false,
+      "exit_code": 0,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "png_sha256": "1d3d79837ad2de2c5e100b2363fd5d17d4e26b70bf57271428cfa189809e840c",
+      "gpu_or_application_errors": [],
+      "passed": true
+    },
+    {
+      "name": "socket-returned",
+      "argv": [
+        "/home/modkin/workspace/schneiderlo/voxys/build-salvage-native/bin/voxy_native",
+        "--config",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/sectors/native-sockets-attempt02/socket-returned.cfg",
+        "--screenshot",
+        "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-04/sectors/native-sockets-attempt02/socket-returned.png",
+        "--screenshot-frames",
+        "120"
+      ],
+      "config_sha256": "bbdb0c98c98079344ba4a08fb94e23b15a1b85e5092d7661cb0ade1052facf2c",
+      "registry_sha256": "4f2bf3c203ae81f517c507b8d52224e127ea0ad9cafa85f16abf4edb3713e904",
+      "timeout": false,
+      "exit_code": 0,
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "png_sha256": "e2ea6e3188ac2da156270de4f6e857fb7346883033533070e4b0edaa3a704865",
+      "gpu_or_application_errors": [],
+      "passed": true
+    }
+  ],
+  "temporary_registry_removed": true
+}

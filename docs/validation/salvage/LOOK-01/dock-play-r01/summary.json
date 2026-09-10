@@ -1,0 +1,41 @@
+{
+  "status": "scoped gameplay checkpoint passed; parent/gates open",
+  "branch": "codex/salvage-implementation",
+  "base_commit": "7f28fabfabf3d63726f6cfa1001c3ce1ed557911",
+  "native_player_cases": 7,
+  "native_registry_cases": 9,
+  "ui_cases": 8,
+  "browser_journey": "browser-final/summary.json",
+  "screenshots_this_work": 0,
+  "sources": {
+    "src/game/expedition/cove_player.hpp": "2807fa2aeff87c34ce011928cccd9f133fe3e140e289e66fe1b2d76850bec42d",
+    "src/game/expedition/cove_player.cpp": "e238d1ef97337d9093b010a465e6657912fb70da1d6d0ab841b5d5167626da10",
+    "src/game/assets/fixture_registry.hpp": "e8f6ad21fe926d88a58b253ac2ea699b867a7e56097d72539e8e7bd1c5b450d2",
+    "src/game/assets/fixture_registry.cpp": "136dea070a05ca1cdc6e14dc4b0b64103f1c01ef0042d661579b7b4d13a131a7",
+    "src/app/application.cpp": "74b87bc8958d80012e869a99acd5cb89c248246c5465755d567ce6ce5fd13ac2",
+    "src/app/application.hpp": "e1e509a5219ef046132bce7c5c668028b153e45b0783c697cb681969396f5d57",
+    "src/engine/platform/window.hpp": "b9de846d3d48bb2472a60e2dfe31c94805c021e8b539d2c607f9577076ed8cd9",
+    "src/engine/platform/native/window.cpp": "59e31b2404092400e1ddd9cfd134b30e6078f2a73a3d79ad7d70f560e7cc7a03",
+    "web/salvage_preview.js": "38ecdee95f09d9b3ca76685c39e6d0c2c0bb1aec5baa869eaf32063da53cba3e",
+    "web/index.html": "077354c4c6a4f3f3c1c22ae2fd444a8f82ffc1c10b2362bbe3f315afb805e7f8",
+    "data/salvage/fixture-cove-r01.json": "2f925255a26bd1160d3a49bdcaa66fbe6d53564e98ba0b15d34ddd78731c14ac",
+    "tools/salvage_assets/compose_cove.py": "289d63a99079394946f79269506c4bcb9977e069e6bfab4c4978a7a902139323",
+    "tests/test_cove_player.cpp": "3415cbcec48a7f48e80bf658eb850c5a761f83213354575c65ed68747a350a09",
+    "scripts/validate_cove_player.mjs": "d413b020a6e94ca63a6e8f5a0e58c525c1b2ad12e8c87bace17be9ff6aeda6ee",
+    "scripts/smoke_integrated_wasm.mjs": "3f18f9e1d06df54653b3a223394e6a600116fc7498764ce350afc1ec4cb888e7",
+    "scripts/test_salvage_preview.mjs": "4ee39b59b1c6411a3cf3496f64f6dc1b65126363006f0bfed19ce5a905903280",
+    "src/game/BUILD": "49b50d8ecc0dfea3fe599fbf12080f86ac8ab28096a10c981bad101a4b9ea94a",
+    "src/app/BUILD": "f8938a5e8e287708a3590f236fa5fcd3e5d15b5d17eac7d6e72f3db53451e979",
+    "src/CMakeLists.txt": "0c8c783c648f3224608796b9fefee86798e56b9127ca4f0719b8ff02fd3dd83e",
+    "tests/BUILD": "84131cb174a54fae17ae2e9e9ed1f854b1aaeb2a5c6d7a086a8aa85d276f7126",
+    "tests/CMakeLists.txt": "7bde61e85e1f2c609911deacecd9dc005a407ebb41b80ebfc85012d8e3600d50"
+  },
+  "native_binary_sha256": "666ca993f4d6a04d0f4a82c794819444d7fdcdc12e3bf8ce024529482bdf2f46",
+  "browser_package": "package-final.json",
+  "preview_url": "http://127.0.0.1:38189/?experience=salvage-cove",
+  "limitations": [
+    "Stationary kinematic first-person scene",
+    "No boat propulsion, buoyancy, dynamic root or economic changes",
+    "No full gate hook run, gate commit, independent or visual/human acceptance"
+  ]
+}

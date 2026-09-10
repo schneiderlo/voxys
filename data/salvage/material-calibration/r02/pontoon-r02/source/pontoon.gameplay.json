@@ -1,0 +1,835 @@
+{
+  "schema": 1,
+  "units": {
+    "length": "metres",
+    "mass": "kilograms",
+    "time": "seconds",
+    "angle": "radians"
+  },
+  "metadata_frame": "canonical_y_up_minus_z_forward",
+  "placement_lattice_metres": 0.02,
+  "part": {
+    "key": {
+      "namespace": "766f7879732d73616c766167652d7631",
+      "counter": "3",
+      "version": 3
+    },
+    "name_key": "salvage.part.pontoon",
+    "permitted_rotation_mask": 16777215,
+    "footprint": {
+      "minimum_ticks": [
+        -25,
+        -24,
+        -100
+      ],
+      "maximum_ticks": [
+        25,
+        24,
+        100
+      ]
+    },
+    "solid_occupancy": [
+      {
+        "id": "1",
+        "frame": {
+          "translation_ticks": [
+            0,
+            0,
+            0
+          ],
+          "rotation": 0
+        },
+        "half_extents_ticks": [
+          25,
+          24,
+          70
+        ]
+      },
+      {
+        "id": "2",
+        "frame": {
+          "translation_ticks": [
+            0,
+            0,
+            -75
+          ],
+          "rotation": 0
+        },
+        "half_extents_ticks": [
+          24,
+          23,
+          5
+        ]
+      },
+      {
+        "id": "3",
+        "frame": {
+          "translation_ticks": [
+            0,
+            0,
+            -85
+          ],
+          "rotation": 0
+        },
+        "half_extents_ticks": [
+          22,
+          21,
+          5
+        ]
+      },
+      {
+        "id": "4",
+        "frame": {
+          "translation_ticks": [
+            0,
+            0,
+            -92
+          ],
+          "rotation": 0
+        },
+        "half_extents_ticks": [
+          20,
+          19,
+          2
+        ]
+      },
+      {
+        "id": "5",
+        "frame": {
+          "translation_ticks": [
+            0,
+            0,
+            -97
+          ],
+          "rotation": 0
+        },
+        "half_extents_ticks": [
+          17,
+          16,
+          3
+        ]
+      },
+      {
+        "id": "6",
+        "frame": {
+          "translation_ticks": [
+            0,
+            0,
+            75
+          ],
+          "rotation": 0
+        },
+        "half_extents_ticks": [
+          24,
+          23,
+          5
+        ]
+      },
+      {
+        "id": "7",
+        "frame": {
+          "translation_ticks": [
+            0,
+            0,
+            85
+          ],
+          "rotation": 0
+        },
+        "half_extents_ticks": [
+          22,
+          21,
+          5
+        ]
+      },
+      {
+        "id": "8",
+        "frame": {
+          "translation_ticks": [
+            0,
+            0,
+            92
+          ],
+          "rotation": 0
+        },
+        "half_extents_ticks": [
+          20,
+          19,
+          2
+        ]
+      },
+      {
+        "id": "9",
+        "frame": {
+          "translation_ticks": [
+            0,
+            0,
+            97
+          ],
+          "rotation": 0
+        },
+        "half_extents_ticks": [
+          17,
+          16,
+          3
+        ]
+      }
+    ],
+    "collision": [
+      {
+        "id": "1",
+        "frame": {
+          "translation_ticks": [
+            0,
+            0,
+            0
+          ],
+          "rotation": 0
+        },
+        "half_extents_ticks": [
+          25,
+          24,
+          70
+        ]
+      },
+      {
+        "id": "2",
+        "frame": {
+          "translation_ticks": [
+            0,
+            0,
+            -75
+          ],
+          "rotation": 0
+        },
+        "half_extents_ticks": [
+          24,
+          23,
+          5
+        ]
+      },
+      {
+        "id": "3",
+        "frame": {
+          "translation_ticks": [
+            0,
+            0,
+            -85
+          ],
+          "rotation": 0
+        },
+        "half_extents_ticks": [
+          22,
+          21,
+          5
+        ]
+      },
+      {
+        "id": "4",
+        "frame": {
+          "translation_ticks": [
+            0,
+            0,
+            -92
+          ],
+          "rotation": 0
+        },
+        "half_extents_ticks": [
+          20,
+          19,
+          2
+        ]
+      },
+      {
+        "id": "5",
+        "frame": {
+          "translation_ticks": [
+            0,
+            0,
+            -97
+          ],
+          "rotation": 0
+        },
+        "half_extents_ticks": [
+          17,
+          16,
+          3
+        ]
+      },
+      {
+        "id": "6",
+        "frame": {
+          "translation_ticks": [
+            0,
+            0,
+            75
+          ],
+          "rotation": 0
+        },
+        "half_extents_ticks": [
+          24,
+          23,
+          5
+        ]
+      },
+      {
+        "id": "7",
+        "frame": {
+          "translation_ticks": [
+            0,
+            0,
+            85
+          ],
+          "rotation": 0
+        },
+        "half_extents_ticks": [
+          22,
+          21,
+          5
+        ]
+      },
+      {
+        "id": "8",
+        "frame": {
+          "translation_ticks": [
+            0,
+            0,
+            92
+          ],
+          "rotation": 0
+        },
+        "half_extents_ticks": [
+          20,
+          19,
+          2
+        ]
+      },
+      {
+        "id": "9",
+        "frame": {
+          "translation_ticks": [
+            0,
+            0,
+            97
+          ],
+          "rotation": 0
+        },
+        "half_extents_ticks": [
+          17,
+          16,
+          3
+        ]
+      }
+    ],
+    "mass": {
+      "dry_mass_kg": 120.0,
+      "center_of_mass_metres": [
+        0,
+        0,
+        0
+      ],
+      "inertia_kg_metres_squared": [
+        148.77843709759097,
+        0,
+        0,
+        0,
+        149.53926643999134,
+        0,
+        0,
+        0,
+        18.19033784272589
+      ]
+    },
+    "buoyancy": [
+      {
+        "box": {
+          "id": "1",
+          "frame": {
+            "translation_ticks": [
+              0,
+              0,
+              0
+            ],
+            "rotation": 0
+          },
+          "half_extents_ticks": [
+            25,
+            24,
+            70
+          ]
+        },
+        "kind": "sealed_compartment"
+      },
+      {
+        "box": {
+          "id": "2",
+          "frame": {
+            "translation_ticks": [
+              0,
+              0,
+              -75
+            ],
+            "rotation": 0
+          },
+          "half_extents_ticks": [
+            24,
+            23,
+            5
+          ]
+        },
+        "kind": "sealed_compartment"
+      },
+      {
+        "box": {
+          "id": "3",
+          "frame": {
+            "translation_ticks": [
+              0,
+              0,
+              -85
+            ],
+            "rotation": 0
+          },
+          "half_extents_ticks": [
+            22,
+            21,
+            5
+          ]
+        },
+        "kind": "sealed_compartment"
+      },
+      {
+        "box": {
+          "id": "4",
+          "frame": {
+            "translation_ticks": [
+              0,
+              0,
+              -92
+            ],
+            "rotation": 0
+          },
+          "half_extents_ticks": [
+            20,
+            19,
+            2
+          ]
+        },
+        "kind": "sealed_compartment"
+      },
+      {
+        "box": {
+          "id": "5",
+          "frame": {
+            "translation_ticks": [
+              0,
+              0,
+              -97
+            ],
+            "rotation": 0
+          },
+          "half_extents_ticks": [
+            17,
+            16,
+            3
+          ]
+        },
+        "kind": "sealed_compartment"
+      },
+      {
+        "box": {
+          "id": "6",
+          "frame": {
+            "translation_ticks": [
+              0,
+              0,
+              75
+            ],
+            "rotation": 0
+          },
+          "half_extents_ticks": [
+            24,
+            23,
+            5
+          ]
+        },
+        "kind": "sealed_compartment"
+      },
+      {
+        "box": {
+          "id": "7",
+          "frame": {
+            "translation_ticks": [
+              0,
+              0,
+              85
+            ],
+            "rotation": 0
+          },
+          "half_extents_ticks": [
+            22,
+            21,
+            5
+          ]
+        },
+        "kind": "sealed_compartment"
+      },
+      {
+        "box": {
+          "id": "8",
+          "frame": {
+            "translation_ticks": [
+              0,
+              0,
+              92
+            ],
+            "rotation": 0
+          },
+          "half_extents_ticks": [
+            20,
+            19,
+            2
+          ]
+        },
+        "kind": "sealed_compartment"
+      },
+      {
+        "box": {
+          "id": "9",
+          "frame": {
+            "translation_ticks": [
+              0,
+              0,
+              97
+            ],
+            "rotation": 0
+          },
+          "half_extents_ticks": [
+            17,
+            16,
+            3
+          ]
+        },
+        "kind": "sealed_compartment"
+      }
+    ],
+    "sockets": [
+      {
+        "id": "1",
+        "family": "structural",
+        "role": "plug",
+        "profile": 1,
+        "frame": {
+          "translation_ticks": [
+            0,
+            24,
+            0
+          ],
+          "rotation": 0
+        },
+        "connection_capacity": 1,
+        "clearance": {
+          "minimum_ticks": [
+            -15,
+            0,
+            -15
+          ],
+          "maximum_ticks": [
+            15,
+            9,
+            15
+          ]
+        },
+        "strength": {
+          "tension_newtons": 30000,
+          "shear_newtons": 24000,
+          "bending_newton_metres": 18000,
+          "torsion_newton_metres": 12000
+        }
+      },
+      {
+        "id": "2",
+        "family": "structural",
+        "role": "receptacle",
+        "profile": 1,
+        "frame": {
+          "translation_ticks": [
+            0,
+            -24,
+            0
+          ],
+          "rotation": 2
+        },
+        "connection_capacity": 1,
+        "clearance": {
+          "minimum_ticks": [
+            -15,
+            -9,
+            -15
+          ],
+          "maximum_ticks": [
+            15,
+            0,
+            15
+          ]
+        },
+        "strength": {
+          "tension_newtons": 30000,
+          "shear_newtons": 24000,
+          "bending_newton_metres": 18000,
+          "torsion_newton_metres": 12000
+        }
+      },
+      {
+        "id": "101",
+        "family": "structural",
+        "role": "plug",
+        "profile": 1,
+        "frame": {
+          "translation_ticks": [
+            0,
+            24,
+            -50
+          ],
+          "rotation": 0
+        },
+        "connection_capacity": 1,
+        "clearance": {
+          "minimum_ticks": [
+            -15,
+            0,
+            -15
+          ],
+          "maximum_ticks": [
+            15,
+            9,
+            15
+          ]
+        },
+        "strength": {
+          "tension_newtons": 30000,
+          "shear_newtons": 24000,
+          "bending_newton_metres": 18000,
+          "torsion_newton_metres": 12000
+        }
+      },
+      {
+        "id": "102",
+        "family": "structural",
+        "role": "receptacle",
+        "profile": 1,
+        "frame": {
+          "translation_ticks": [
+            0,
+            -24,
+            -50
+          ],
+          "rotation": 2
+        },
+        "connection_capacity": 1,
+        "clearance": {
+          "minimum_ticks": [
+            -15,
+            -9,
+            -15
+          ],
+          "maximum_ticks": [
+            15,
+            0,
+            15
+          ]
+        },
+        "strength": {
+          "tension_newtons": 30000,
+          "shear_newtons": 24000,
+          "bending_newton_metres": 18000,
+          "torsion_newton_metres": 12000
+        }
+      },
+      {
+        "id": "103",
+        "family": "structural",
+        "role": "plug",
+        "profile": 1,
+        "frame": {
+          "translation_ticks": [
+            0,
+            24,
+            50
+          ],
+          "rotation": 0
+        },
+        "connection_capacity": 1,
+        "clearance": {
+          "minimum_ticks": [
+            -15,
+            0,
+            -15
+          ],
+          "maximum_ticks": [
+            15,
+            9,
+            15
+          ]
+        },
+        "strength": {
+          "tension_newtons": 30000,
+          "shear_newtons": 24000,
+          "bending_newton_metres": 18000,
+          "torsion_newton_metres": 12000
+        }
+      },
+      {
+        "id": "104",
+        "family": "structural",
+        "role": "receptacle",
+        "profile": 1,
+        "frame": {
+          "translation_ticks": [
+            0,
+            -24,
+            50
+          ],
+          "rotation": 2
+        },
+        "connection_capacity": 1,
+        "clearance": {
+          "minimum_ticks": [
+            -15,
+            -9,
+            -15
+          ],
+          "maximum_ticks": [
+            15,
+            0,
+            15
+          ]
+        },
+        "strength": {
+          "tension_newtons": 30000,
+          "shear_newtons": 24000,
+          "bending_newton_metres": 18000,
+          "torsion_newton_metres": 12000
+        }
+      }
+    ],
+    "strength": {
+      "tension_newtons": 30000,
+      "shear_newtons": 24000,
+      "bending_newton_metres": 18000,
+      "torsion_newton_metres": 12000
+    },
+    "module": {
+      "type": "flotation",
+      "drag_coefficients": [
+        0.9,
+        1.2,
+        0.4
+      ]
+    },
+    "cost": {
+      "salvage_material": "24",
+      "special_machinery": "0"
+    },
+    "salvage_yield": {
+      "salvage_material": "16",
+      "special_machinery": "0"
+    },
+    "material": {
+      "linear_base_color": [
+        1,
+        1,
+        1
+      ],
+      "roughness": 1,
+      "metallic": 1
+    }
+  },
+  "lods": [
+    {
+      "id": "1",
+      "asset": {
+        "namespace": "766f7879732d706f6e746f6f6e2d7632",
+        "counter": "1",
+        "version": 3
+      },
+      "source": {
+        "file": "pontoon-lod-0.glb",
+        "sha256": "81b9cb5a4897ae178787804f9c178a79c368672aaade7ac25e8057c3c2385cfd",
+        "bytes": 479412,
+        "frame": "exported_gltf",
+        "to_canonical_rotation": 12
+      },
+      "minimum_screen_height_pixels": 200
+    },
+    {
+      "id": "2",
+      "asset": {
+        "namespace": "766f7879732d706f6e746f6f6e2d7632",
+        "counter": "2",
+        "version": 3
+      },
+      "source": {
+        "file": "pontoon-lod-1.glb",
+        "sha256": "50e086cb32069686d8bcc4e49b760338bb7d6d2762bc162122c3a866dc914fab",
+        "bytes": 52140,
+        "frame": "exported_gltf",
+        "to_canonical_rotation": 12
+      },
+      "minimum_screen_height_pixels": 60
+    },
+    {
+      "id": "3",
+      "asset": {
+        "namespace": "766f7879732d706f6e746f6f6e2d7632",
+        "counter": "3",
+        "version": 3
+      },
+      "source": {
+        "file": "pontoon-lod-2.glb",
+        "sha256": "708a816ac145ed0adea735a60dd60c9c4cdde14a9d6b726920f2333da2b15ded",
+        "bytes": 25332,
+        "frame": "exported_gltf",
+        "to_canonical_rotation": 12
+      },
+      "minimum_screen_height_pixels": 0
+    }
+  ],
+  "tool_anchors": [
+    {
+      "id": "1",
+      "name_key": "salvage.anchor.pontoon.center",
+      "frame": {
+        "translation_ticks": [
+          0,
+          0,
+          0
+        ],
+        "rotation": 0
+      }
+    },
+    {
+      "id": "2",
+      "name_key": "salvage.anchor.pontoon.bow",
+      "frame": {
+        "translation_ticks": [
+          0,
+          0,
+          -100
+        ],
+        "rotation": 0
+      }
+    },
+    {
+      "id": "3",
+      "name_key": "salvage.anchor.pontoon.mount",
+      "frame": {
+        "translation_ticks": [
+          0,
+          24,
+          0
+        ],
+        "rotation": 0
+      }
+    }
+  ]
+}

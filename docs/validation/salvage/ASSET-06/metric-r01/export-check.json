@@ -1,0 +1,186 @@
+{
+  "status": "passed",
+  "scope": "Actual GLB geometry, UV scale, PBR factors/channels and normal orientation; no runtime/visual acceptance",
+  "checks": [
+    {
+      "part": "pontoon",
+      "lod": 0,
+      "sha256": "81b9cb5a4897ae178787804f9c178a79c368672aaade7ac25e8057c3c2385cfd",
+      "geometry_identical": true,
+      "material_regions": [
+        "cream",
+        "teal",
+        "coral"
+      ],
+      "triangles": 3508,
+      "density_near_equivalent_min": 255.97320985512616,
+      "density_near_equivalent_max": 256.0288019685703,
+      "maximum_principal_stretch": 1.000228202057059,
+      "minimum_authored_bitangent_alignment": 0.999999946202337,
+      "normal_samples": 798,
+      "maximum_normal_component_error": 0.0039141561321338805,
+      "teal_well_rays": 15
+    },
+    {
+      "part": "pontoon",
+      "lod": 1,
+      "sha256": "50e086cb32069686d8bcc4e49b760338bb7d6d2762bc162122c3a866dc914fab",
+      "geometry_identical": true,
+      "material_regions": [
+        "cream",
+        "teal",
+        "coral"
+      ],
+      "triangles": 500,
+      "density_near_equivalent_min": 255.9984853997864,
+      "density_near_equivalent_max": 256.0021152301385,
+      "maximum_principal_stretch": 1.0000168348689034,
+      "minimum_authored_bitangent_alignment": 0.9999999969474661,
+      "normal_samples": 189,
+      "maximum_normal_component_error": 0.0039059986053476057,
+      "teal_well_rays": 15
+    },
+    {
+      "part": "pontoon",
+      "lod": 2,
+      "sha256": "708a816ac145ed0adea735a60dd60c9c4cdde14a9d6b726920f2333da2b15ded",
+      "geometry_identical": true,
+      "material_regions": [
+        "cream",
+        "teal",
+        "coral"
+      ],
+      "triangles": 256,
+      "density_near_equivalent_min": 255.99865320020652,
+      "density_near_equivalent_max": 256.0021152301385,
+      "maximum_principal_stretch": 1.0000168348689034,
+      "minimum_authored_bitangent_alignment": null,
+      "normal_samples": 0,
+      "maximum_normal_component_error": 0.0,
+      "teal_well_rays": 15
+    },
+    {
+      "part": "winch",
+      "lod": 0,
+      "sha256": "b2c4d5b0d8b22ee4a15de2747de9f1337e7a906027dec7444c81c4a96333be52",
+      "geometry_identical": true,
+      "material_regions": [
+        "teal",
+        "coral",
+        "slate",
+        "steel"
+      ],
+      "triangles": 5468,
+      "density_near_equivalent_min": 255.76414473738433,
+      "density_near_equivalent_max": 256.0020440109994,
+      "maximum_principal_stretch": 1.0018350157329503,
+      "minimum_authored_bitangent_alignment": 0.9999983683045947,
+      "normal_samples": 1064,
+      "maximum_normal_component_error": 0.0039141561321338805,
+      "metal_flange_ray": true
+    },
+    {
+      "part": "winch",
+      "lod": 1,
+      "sha256": "5eda79e1bb4f84bee7d485923d0c0ea1632287eaf533b636524f5dcdfabfbd76",
+      "geometry_identical": true,
+      "material_regions": [
+        "teal",
+        "coral",
+        "slate",
+        "steel"
+      ],
+      "triangles": 2524,
+      "density_near_equivalent_min": 255.9991313836057,
+      "density_near_equivalent_max": 256.0012378171162,
+      "maximum_principal_stretch": 1.0000107519380508,
+      "minimum_authored_bitangent_alignment": 0.9999999949985655,
+      "normal_samples": 252,
+      "maximum_normal_component_error": 0.0039059986053476057,
+      "metal_flange_ray": true
+    },
+    {
+      "part": "winch",
+      "lod": 2,
+      "sha256": "f3b633e0c302516b9d18ff867840a76d5c40624283f073b1e78ac037276ebf5f",
+      "geometry_identical": true,
+      "material_regions": [
+        "teal",
+        "coral",
+        "slate",
+        "steel"
+      ],
+      "triangles": 280,
+      "density_near_equivalent_min": 255.99946236655256,
+      "density_near_equivalent_max": 256.0004224870178,
+      "maximum_principal_stretch": 1.0000037377949074,
+      "minimum_authored_bitangent_alignment": null,
+      "normal_samples": 0,
+      "maximum_normal_component_error": 0.0,
+      "metal_flange_ray": true
+    },
+    {
+      "part": "helm",
+      "lod": 0,
+      "sha256": "30286b2764409f1fffce1e715d74f414d2ef831ced6349e89564e88fb6b61f03",
+      "geometry_identical": true,
+      "material_regions": [
+        "teal",
+        "cream",
+        "slate",
+        "coral",
+        "rubber",
+        "steel"
+      ],
+      "triangles": 2020,
+      "density_near_equivalent_min": 255.76191806480324,
+      "density_near_equivalent_max": 256.0047207343694,
+      "maximum_principal_stretch": 1.0018635374457652,
+      "minimum_authored_bitangent_alignment": 0.9999983638500026,
+      "normal_samples": 1596,
+      "maximum_normal_component_error": 0.0039141561321338805
+    },
+    {
+      "part": "helm",
+      "lod": 1,
+      "sha256": "9581d9e4bb00e10b945c1591ded99c9f6ca83c77440d4f1d88a7803aefce2f0e",
+      "geometry_identical": true,
+      "material_regions": [
+        "teal",
+        "cream",
+        "slate",
+        "coral",
+        "rubber",
+        "steel"
+      ],
+      "triangles": 908,
+      "density_near_equivalent_min": 255.9977620865076,
+      "density_near_equivalent_max": 256.00221078849444,
+      "maximum_principal_stretch": 1.000023040801542,
+      "minimum_authored_bitangent_alignment": 0.9999999973496025,
+      "normal_samples": 378,
+      "maximum_normal_component_error": 0.0039059986053476057
+    },
+    {
+      "part": "helm",
+      "lod": 2,
+      "sha256": "27717c3d9782f239609a4f2ac549c32c2f303d1d6934b593a72cf34130559d5b",
+      "geometry_identical": true,
+      "material_regions": [
+        "teal",
+        "cream",
+        "slate",
+        "coral",
+        "rubber",
+        "steel"
+      ],
+      "triangles": 304,
+      "density_near_equivalent_min": 255.99936421762135,
+      "density_near_equivalent_max": 256.00017182792425,
+      "maximum_principal_stretch": 1.0000051238938155,
+      "minimum_authored_bitangent_alignment": null,
+      "normal_samples": 0,
+      "maximum_normal_component_error": 0.0
+    }
+  ]
+}

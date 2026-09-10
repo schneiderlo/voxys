@@ -1,0 +1,40 @@
+[
+  {
+    "argv": [
+      "python3",
+      "tools/salvage_assets/cook_gameplay_asset.py",
+      "--sidecar",
+      "tools/salvage_assets/fixtures/probe.gameplay.json",
+      "--sources",
+      "data/salvage/authoring_probe",
+      "--output",
+      "/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-03/wrapper-integration/cooked-probe-bazel",
+      "--converter",
+      "/home/modkin/workspace/schneiderlo/voxys/bazel-bin/tools/gltf_vmesh_tool",
+      "--validator",
+      "/home/modkin/workspace/schneiderlo/voxys/bazel-bin/tools/gameplay_sidecar_tool"
+    ],
+    "exit_code": 0,
+    "stdout": "{\"status\": \"published\", \"output\": \"/home/modkin/workspace/schneiderlo/voxys/docs/validation/salvage/ASSET-03/wrapper-integration/cooked-probe-bazel\", \"lods\": 1}\n",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "python3",
+      "tools/salvage_assets/cook_gameplay_asset.py",
+      "--sidecar",
+      "tools/salvage_assets/fixtures/probe.gameplay.json",
+      "--sources",
+      "data/salvage/authoring_probe",
+      "--output",
+      "/tmp/voxys-asset03-probe-bazel-repeat",
+      "--converter",
+      "/home/modkin/workspace/schneiderlo/voxys/bazel-bin/tools/gltf_vmesh_tool",
+      "--validator",
+      "/home/modkin/workspace/schneiderlo/voxys/bazel-bin/tools/gameplay_sidecar_tool"
+    ],
+    "exit_code": 0,
+    "stdout": "{\"status\": \"published\", \"output\": \"/tmp/voxys-asset03-probe-bazel-repeat\", \"lods\": 1}\n",
+    "stderr": ""
+  }
+]

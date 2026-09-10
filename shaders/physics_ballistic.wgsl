@@ -1,3 +1,581 @@
+// BEGIN GENERATED AUTHORED GEOMETRY
+// Authored shape heap format 1. The including pipeline declares
+// var<storage, read> authored_shape_heap: array<vec4<u32>> at its chosen binding.
+// One binding holds the header, seven-row descriptors, three-row cells/faces
+// and two-row preorder BVH nodes. All geometric coordinates are root-local
+// integer ticks at .02 m. Every index inside a shape is local to that resource.
+
+struct AuthoredShapeView {
+    valid: bool,
+    cell_base: u32,
+    cell_count: u32,
+    face_base: u32,
+    face_count: u32,
+    node_base: u32,
+    node_count: u32,
+    center_inverse_mass: vec4<f32>,
+    root_from_body: vec4<f32>,
+    inverse_inertia_radius: vec4<f32>,
+    minimum: vec3<f32>,
+    maximum: vec3<f32>,
+};
+
+fn authored_shape(index: u32, generation: u32) -> AuthoredShapeView {
+    var result: AuthoredShapeView;
+    let rows = arrayLength(&authored_shape_heap);
+    if (rows < 2u || index == 0u || generation == 0u) { return result; }
+    let sections = authored_shape_heap[0];
+    let capacity = authored_shape_heap[1];
+    if (sections.x != 1u || sections.y == 0u || sections.y > 512u || index > sections.y) { return result; }
+    if (sections.z != 2u + 7u * (sections.y + 1u) || sections.w < sections.z || capacity.x < sections.w
+        || capacity.y < capacity.x || capacity.y > rows) { return result; }
+    if ((sections.w-sections.z)%3u != 0u || (capacity.x-sections.w)%3u != 0u || (capacity.y-capacity.x)%2u != 0u) { return result; }
+    let cell_capacity = (sections.w-sections.z)/3u;
+    let face_capacity = (capacity.x-sections.w)/3u;
+    let node_capacity = (capacity.y-capacity.x)/2u;
+    if (capacity.z != cell_capacity || capacity.w != face_capacity) { return result; }
+    let descriptor = 2u + 7u*index;
+    // sections.z bounds the descriptor area, and the area is inside the binding.
+    let identity = authored_shape_heap[descriptor];
+    let ranges = authored_shape_heap[descriptor+1u];
+    if (identity.x != generation || identity.y != 1u || identity.w == 0u
+        || ranges.y == 0u || ranges.w == 0u) { return result; }
+    if (identity.z > cell_capacity || identity.w > cell_capacity-identity.z
+        || ranges.x > face_capacity || ranges.y > face_capacity-ranges.x
+        || ranges.z > node_capacity || ranges.w > node_capacity-ranges.z) { return result; }
+    result.cell_base = sections.z + 3u*identity.z;
+    result.cell_count = identity.w;
+    result.face_base = sections.w + 3u*ranges.x;
+    result.face_count = ranges.y;
+    result.node_base = capacity.x + 2u*ranges.z;
+    result.node_count = ranges.w;
+    result.center_inverse_mass = bitcast<vec4<f32>>(authored_shape_heap[descriptor+2u]);
+    result.root_from_body = bitcast<vec4<f32>>(authored_shape_heap[descriptor+3u]);
+    result.inverse_inertia_radius = bitcast<vec4<f32>>(authored_shape_heap[descriptor+4u]);
+    result.minimum = vec3<f32>(bitcast<vec4<i32>>(authored_shape_heap[descriptor+5u]).xyz)*0.02;
+    result.maximum = vec3<f32>(bitcast<vec4<i32>>(authored_shape_heap[descriptor+6u]).xyz)*0.02;
+    result.valid = true;
+    return result;
+}
+
+struct AuthoredShapeCell {
+    valid: bool,
+    minimum: vec3<f32>,
+    maximum: vec3<f32>,
+    source: u32,
+    first_face: u32,
+    face_count: u32,
+};
+
+fn authored_shape_ref(reference: vec4<u32>) -> AuthoredShapeView {
+    if (reference.z != 1u || reference.w != 0u) {
+        var invalid: AuthoredShapeView;
+        return invalid;
+    }
+    return authored_shape(reference.x, reference.y);
+}
+fn authored_cell(shape: AuthoredShapeView, index: u32) -> AuthoredShapeCell {
+    var result: AuthoredShapeCell;
+    if (!shape.valid || index >= shape.cell_count) { return result; }
+    let row = shape.cell_base + 3u*index;
+    let lower = authored_shape_heap[row];
+    let upper = authored_shape_heap[row+1u];
+    let detail = authored_shape_heap[row+2u];
+    if (upper.w > shape.face_count || detail.x > shape.face_count-upper.w || lower.w == 0u) { return result; }
+    result.minimum = vec3<f32>(bitcast<vec3<i32>>(lower.xyz))*0.02;
+    result.maximum = vec3<f32>(bitcast<vec3<i32>>(upper.xyz))*0.02;
+    result.source = lower.w;
+    result.first_face = upper.w;
+    result.face_count = detail.x;
+    // Zero exterior patches is valid for a completely enclosed union cell.
+    result.valid = true;
+    return result;
+}
+
+struct AuthoredShapeFace {
+    valid: bool,
+    minimum: vec3<f32>,
+    maximum: vec3<f32>,
+    source: u32,
+    cell: u32,
+    axis: u32,
+    sign: i32,
+};
+fn authored_face(shape: AuthoredShapeView, index: u32) -> AuthoredShapeFace {
+    var result: AuthoredShapeFace;
+    if (!shape.valid || index >= shape.face_count) { return result; }
+    let row = shape.face_base + 3u*index;
+    let lower = authored_shape_heap[row];
+    let upper = authored_shape_heap[row+1u];
+    let detail = authored_shape_heap[row+2u];
+    let sign = bitcast<i32>(detail.y);
+    if (lower.w == 0u || upper.w >= shape.cell_count || detail.x > 2u || (sign != -1 && sign != 1)) { return result; }
+    result.minimum = vec3<f32>(bitcast<vec3<i32>>(lower.xyz))*0.02;
+    result.maximum = vec3<f32>(bitcast<vec3<i32>>(upper.xyz))*0.02;
+    result.source = lower.w;
+    result.cell = upper.w;
+    result.axis = detail.x;
+    result.sign = sign;
+    result.valid = true;
+    return result;
+}
+
+struct AuthoredShapeNode {
+    valid: bool,
+    minimum: vec3<f32>,
+    maximum: vec3<f32>,
+    cell: u32,
+    escape: u32,
+};
+fn authored_node(shape: AuthoredShapeView, index: u32) -> AuthoredShapeNode {
+    var result: AuthoredShapeNode;
+    if (!shape.valid || index >= shape.node_count) { return result; }
+    let row = shape.node_base + 2u*index;
+    let lower = authored_shape_heap[row];
+    let upper = authored_shape_heap[row+1u];
+    if ((lower.w != 0xffffffffu && lower.w >= shape.cell_count) || upper.w <= index || upper.w > shape.node_count) { return result; }
+    result.minimum = vec3<f32>(bitcast<vec3<i32>>(lower.xyz))*0.02;
+    result.maximum = vec3<f32>(bitcast<vec3<i32>>(upper.xyz))*0.02;
+    result.cell = lower.w;
+    result.escape = upper.w;
+    result.valid = true;
+    return result;
+}
+
+fn authored_quat_conjugate(q: vec4<f32>) -> vec4<f32> { return vec4<f32>(-q.xyz,q.w); }
+fn authored_quat_product(a: vec4<f32>, b: vec4<f32>) -> vec4<f32> {
+    return vec4<f32>(a.w*b.xyz+b.w*a.xyz+cross(a.xyz,b.xyz),a.w*b.w-dot(a.xyz,b.xyz));
+}
+fn authored_quat_rotate(q: vec4<f32>, v: vec3<f32>) -> vec3<f32> {
+    let t=2.0*cross(q.xyz,v);
+    return v+q.w*t+cross(q.xyz,t);
+}
+fn authored_root_vector(shape: AuthoredShapeView, body_vector: vec3<f32>) -> vec3<f32> {
+    return authored_quat_rotate(shape.root_from_body,body_vector);
+}
+fn authored_body_vector(shape: AuthoredShapeView, root_vector: vec3<f32>) -> vec3<f32> {
+    return authored_quat_rotate(authored_quat_conjugate(shape.root_from_body),root_vector);
+}
+fn authored_root_point(shape: AuthoredShapeView, body_point: vec3<f32>) -> vec3<f32> {
+    return shape.center_inverse_mass.xyz+authored_root_vector(shape,body_point);
+}
+fn authored_body_point(shape: AuthoredShapeView, root_point: vec3<f32>) -> vec3<f32> {
+    return authored_body_vector(shape,root_point-shape.center_inverse_mass.xyz);
+}
+fn authored_body_orientation(shape: AuthoredShapeView, world_root_orientation: vec4<f32>) -> vec4<f32> {
+    return authored_quat_product(world_root_orientation,shape.root_from_body);
+}
+fn authored_root_orientation(shape: AuthoredShapeView, world_body_orientation: vec4<f32>) -> vec4<f32> {
+    return authored_quat_product(world_body_orientation,authored_quat_conjugate(shape.root_from_body));
+}
+fn authored_com_position(shape: AuthoredShapeView, root_position: vec3<f32>, root_orientation: vec4<f32>) -> vec3<f32> {
+    return root_position+authored_quat_rotate(root_orientation,shape.center_inverse_mass.xyz);
+}
+fn authored_root_position(shape: AuthoredShapeView, com_position: vec3<f32>, body_orientation: vec4<f32>) -> vec3<f32> {
+    return com_position-authored_quat_rotate(authored_root_orientation(shape,body_orientation),shape.center_inverse_mass.xyz);
+}
+fn authored_com_velocity(shape: AuthoredShapeView, root_velocity: vec3<f32>, world_omega: vec3<f32>, root_orientation: vec4<f32>) -> vec3<f32> {
+    return root_velocity+cross(world_omega,authored_quat_rotate(root_orientation,shape.center_inverse_mass.xyz));
+}
+fn authored_world_inverse_inertia(shape: AuthoredShapeView, body_orientation: vec4<f32>, world_impulse: vec3<f32>) -> vec3<f32> {
+    let body_impulse=authored_quat_rotate(authored_quat_conjugate(body_orientation),world_impulse);
+    return authored_quat_rotate(body_orientation,body_impulse*shape.inverse_inertia_radius.xyz);
+}
+struct AuthoredImpulseDelta { linear: vec3<f32>, angular: vec3<f32>, };
+fn authored_impulse_at_root_point(shape: AuthoredShapeView, body_orientation: vec4<f32>, world_impulse: vec3<f32>, root_point: vec3<f32>) -> AuthoredImpulseDelta {
+    let world_lever=authored_quat_rotate(body_orientation,authored_body_point(shape,root_point));
+    return AuthoredImpulseDelta(world_impulse*shape.center_inverse_mass.w,
+        authored_world_inverse_inertia(shape,body_orientation,cross(world_lever,world_impulse)));
+}
+// Authored exterior against the same two heightfield triangles per grid cell
+// used by terrain_surface. No vertex-only sampling of a large hull face.
+struct AuthoredTerrainPoint {
+    point: vec3<f32>, separation: f32, normal: vec3<f32>, feature: u32,
+};
+struct AuthoredTerrainResult {
+    items: array<AuthoredTerrainPoint,16>, count: u32,
+    // 1 invalid shape/field, 2 cell-work limit. Nonzero means incomplete.
+    status: u32, cells: u32, reductions: u32,
+};
+struct AuthoredTerrainPolygon { points: array<vec3<f32>,16>, count: u32, };
+
+fn authored_terrain_clip(input: AuthoredTerrainPolygon, axis: vec2<f32>, offset: f32) -> AuthoredTerrainPolygon {
+    var source = input; var result: AuthoredTerrainPolygon;
+    if (source.count == 0u) { return result; }
+    var previous = source.points[source.count-1u];
+    var previousDistance = dot(previous.xz,axis)-offset;
+    for (var i=0u; i<source.count; i++) {
+        let point=source.points[i]; let distance=dot(point.xz,axis)-offset;
+        if ((previousDistance<=0.0) != (distance<=0.0)) {
+            let t=previousDistance/(previousDistance-distance);
+            result.points[result.count]=mix(previous,point,t); result.count++;
+        }
+        if (distance<=0.0) { result.points[result.count]=point; result.count++; }
+        previous=point; previousDistance=distance;
+    }
+    return result;
+}
+
+fn authored_terrain_height(raw: u32, heightScale: f32) -> f32 {
+    return heightScale*(2.0*f32(raw)/65535.0-1.0);
+}
+
+// Max-mip rejection is only an acceleration. A texture without enough mips
+// falls back to triangle coverage instead of scanning an unbounded base level.
+fn authored_terrain_above(field: texture_2d<u32>, params: vec4<f32>, size: vec2<u32>,
+                          lower: vec3<f32>, upper: vec3<f32>, margin: f32) -> bool {
+    let maximum=vec2<f32>(size-vec2<u32>(1u));
+    let lo=(lower.xz-vec2<f32>(margin)+params.xy)/params.z;
+    let hi=(upper.xz+vec2<f32>(margin)+params.xy)/params.z;
+    if (any(hi<vec2<f32>(0)) || any(lo>maximum)) { return true; }
+    let first=vec2<u32>(floor(clamp(lo,vec2<f32>(0),maximum)));
+    let last=vec2<u32>(ceil(clamp(hi,vec2<f32>(0),maximum)));
+    var level=0u;
+    while (level+1u<textureNumLevels(field) && any((last>>vec2<u32>(level))-(first>>vec2<u32>(level))>vec2<u32>(3u))) { level++; }
+    let mipMaximum=textureDimensions(field,i32(level))-vec2<u32>(1u);
+    let a=min(first>>vec2<u32>(level),mipMaximum);
+    let b=min(last>>vec2<u32>(level),mipMaximum);
+    if (any(b-a>vec2<u32>(3u))) { return false; }
+    var highest=0u;
+    for (var z=a.y; z<=b.y; z++) {
+        for (var x=a.x; x<=b.x; x++) {
+            highest=max(highest,textureLoad(field,vec2<i32>(i32(x),i32(z)),i32(level)).x);
+        }
+    }
+    return lower.y>authored_terrain_height(highest,params.w)+margin;
+}
+
+// Bounded manifold preparation: merge coincident points, keep the deepest,
+// and replace the most redundant other point when the 16-point reservoir fills.
+// This avoids keeping sixteen adjacent grid points at one end of a long hull.
+fn authored_terrain_append(result: ptr<function,AuthoredTerrainResult>, value: AuthoredTerrainPoint) {
+    for (var i=0u; i<(*result).count; i++) {
+        let delta=(*result).items[i].point-value.point;
+        if (dot(delta,delta)<1e-8 && dot((*result).items[i].normal,value.normal)>.9999) {
+            if (value.separation<(*result).items[i].separation
+                || (value.separation==(*result).items[i].separation && value.feature<(*result).items[i].feature)) {
+                (*result).items[i]=value;
+            }
+            return;
+        }
+    }
+    if ((*result).count<16u) { (*result).items[(*result).count]=value; (*result).count++; return; }
+    // Read the reservoir in place. A second 17-point function-local array
+    // inflated scratch across the nested face/stud calls and failed in the
+    // browser's full static-contact pipeline even when the helper ran alone.
+    // Keep the same deepest-point and nearest-neighbor removal rule.
+    var deepest=16u;
+    var deepestSeparation=value.separation;
+    for (var i=0u; i<16u; i++) {
+        if ((*result).items[i].separation<deepestSeparation) {
+            deepest=i; deepestSeparation=(*result).items[i].separation;
+        }
+    }
+    var remove=16u; var closest=1e30; var removeSeparation=value.separation;
+    for (var i=0u; i<17u; i++) {
+        if (i==deepest) { continue; }
+        var candidate=value;
+        if (i<16u) { candidate=(*result).items[i]; }
+        var nearest=1e30;
+        for (var j=0u; j<17u; j++) {
+            if (i==j) { continue; }
+            var other=value;
+            if (j<16u) { other=(*result).items[j]; }
+            let delta=candidate.point-other.point;
+            nearest=min(nearest,dot(delta,delta));
+        }
+        if (nearest<closest || (nearest==closest && candidate.separation>removeSeparation)) {
+            remove=i; closest=nearest; removeSeparation=candidate.separation;
+        }
+    }
+    if (remove<16u) { (*result).items[remove]=value; }
+    (*result).reductions++;
+}
+
+fn authored_terrain_contacts(field: texture_2d<u32>, params: vec4<f32>, size: vec2<u32>,
+                             shape: AuthoredShapeView, rootPosition: vec3<f32>, rootOrientation: vec4<f32>,
+                             margin: f32, cellBudget: u32) -> AuthoredTerrainResult {
+    var result: AuthoredTerrainResult;
+    if (!shape.valid || any(size<vec2<u32>(2u)) || params.z<=0.0 || params.w<=0.0) {
+        result.status=1u; return result;
+    }
+    let axisX=authored_quat_rotate(rootOrientation,vec3<f32>(1,0,0));
+    let axisY=authored_quat_rotate(rootOrientation,vec3<f32>(0,1,0));
+    let axisZ=authored_quat_rotate(rootOrientation,vec3<f32>(0,0,1));
+    var nodeIndex=0u;
+    while (nodeIndex<shape.node_count) {
+        let node=authored_node(shape,nodeIndex);
+        if (!node.valid) { result.status=1u; result.count=0u; return result; }
+        let center=rootPosition+authored_quat_rotate(rootOrientation,.5*(node.minimum+node.maximum));
+        let half=.5*(node.maximum-node.minimum);
+        let extent=abs(axisX)*half.x+abs(axisY)*half.y+abs(axisZ)*half.z;
+        if (authored_terrain_above(field,params,size,center-extent,center+extent,margin)) { nodeIndex=node.escape; continue; }
+        nodeIndex++;
+        if (node.cell==0xffffffffu) { continue; }
+        let cell=authored_cell(shape,node.cell);
+        if (!cell.valid) { result.status=1u; result.count=0u; return result; }
+        for (var f=cell.first_face; f<cell.first_face+cell.face_count; f++) {
+            let face=authored_face(shape,f);
+            if (!face.valid) { result.status=1u; result.count=0u; return result; }
+            var localNormal=vec3<f32>(0); localNormal[face.axis]=f32(face.sign);
+            let outward=authored_quat_rotate(rootOrientation,localNormal);
+            // The lower envelope and its vertical boundary meet a heightfield.
+            if (outward.y>1e-5) { continue; }
+            let u=(face.axis+1u)%3u; let v=(face.axis+2u)%3u;
+            var polygon: AuthoredTerrainPolygon; polygon.count=4u;
+            var lower=vec3<f32>(1e30); var upper=vec3<f32>(-1e30);
+            for (var corner=0u; corner<4u; corner++) {
+                let order=corner^(corner>>1u); var point=face.minimum;
+                point[u]=select(face.minimum[u],face.maximum[u],(order&1u)!=0u);
+                point[v]=select(face.minimum[v],face.maximum[v],(order&2u)!=0u);
+                point=rootPosition+authored_quat_rotate(rootOrientation,point);
+                polygon.points[corner]=point; lower=min(lower,point); upper=max(upper,point);
+            }
+            if (authored_terrain_above(field,params,size,lower,upper,margin)) { continue; }
+            let maximum=vec2<f32>(size-vec2<u32>(2u));
+            let first=vec2<u32>(floor(clamp((lower.xz+params.xy)/params.z,vec2<f32>(0),maximum)));
+            let last=vec2<u32>(floor(clamp((upper.xz+params.xy)/params.z,vec2<f32>(0),maximum)));
+            for (var z=first.y; z<=last.y; z++) {
+                for (var x=first.x; x<=last.x; x++) {
+                    if (result.cells>=cellBudget) { result.status=2u; result.count=0u; return result; }
+                    result.cells++;
+                    let origin=vec2<f32>(f32(x),f32(z))*params.z-params.xy;
+                    var clipped=authored_terrain_clip(polygon,vec2<f32>(-1,0),-origin.x);
+                    clipped=authored_terrain_clip(clipped,vec2<f32>(1,0),origin.x+params.z);
+                    clipped=authored_terrain_clip(clipped,vec2<f32>(0,-1),-origin.y);
+                    clipped=authored_terrain_clip(clipped,vec2<f32>(0,1),origin.y+params.z);
+                    if (clipped.count==0u) { continue; }
+                    let xy=vec2<i32>(i32(x),i32(z));
+                    let tl=authored_terrain_height(textureLoad(field,xy,0).x,params.w);
+                    let tr=authored_terrain_height(textureLoad(field,xy+vec2<i32>(1,0),0).x,params.w);
+                    let bl=authored_terrain_height(textureLoad(field,xy+vec2<i32>(0,1),0).x,params.w);
+                    let br=authored_terrain_height(textureLoad(field,xy+vec2<i32>(1,1),0).x,params.w);
+                    for (var triangle=0u; triangle<2u; triangle++) {
+                        let sign=select(1.0,-1.0,triangle==1u);
+                        var trianglePolygon=authored_terrain_clip(clipped,vec2<f32>(sign,-sign),sign*(origin.x-origin.y));
+                        let gradient=select(vec2<f32>(br-bl,bl-tl),vec2<f32>(tr-tl,br-tr),triangle==1u)/params.z;
+                        let normal=normalize(vec3<f32>(-gradient.x,1,-gradient.y));
+                        if (dot(outward,normal)>=-1e-5) { continue; }
+                        for (var i=0u; i<trianglePolygon.count; i++) {
+                            let point=trianglePolygon.points[i];
+                            let height=tl+dot(point.xz-origin,gradient);
+                            let separation=(point.y-height)*normal.y;
+                            if (separation<=margin) {
+                                authored_terrain_append(&result,AuthoredTerrainPoint(point,separation,normal,0x80000000u|f));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return result;
+}
+
+// LEGO uses the same quantized columns and analytic round studs as the shared
+// renderer/player surface. Work visits exposed authored faces, never a filled
+// bounding box of the machine, so pontoon gaps remain open.
+fn authored_lego_clip(input: AuthoredTerrainPolygon, axis: vec3<f32>, offset: f32) -> AuthoredTerrainPolygon {
+    var source=input; var result: AuthoredTerrainPolygon;
+    if(source.count==0u) { return result; }
+    var previous=source.points[source.count-1u];
+    var previousDistance=dot(previous,axis)-offset;
+    for(var i=0u;i<source.count;i++) {
+        let point=source.points[i]; let distance=dot(point,axis)-offset;
+        if((previousDistance<=0.0)!=(distance<=0.0)) {
+            result.points[result.count]=mix(previous,point,previousDistance/(previousDistance-distance)); result.count++;
+        }
+        if(distance<=0.0) { result.points[result.count]=point; result.count++; }
+        previous=point;previousDistance=distance;
+    }
+    return result;
+}
+
+fn authored_lego_inside(face: AuthoredTerrainPolygon, point: vec3<f32>) -> bool {
+    var polygon=face;
+    let delta=point-polygon.points[0];
+    let u=polygon.points[1]-polygon.points[0];let v=polygon.points[3]-polygon.points[0];
+    let uv=vec2<f32>(dot(delta,u)/dot(u,u),dot(delta,v)/dot(v,v));
+    return all(uv>=vec2<f32>(-1e-5)) && all(uv<=vec2<f32>(1.00001));
+}
+
+fn authored_lego_patch(result: ptr<function,AuthoredTerrainResult>, face: AuthoredTerrainPolygon,
+                       outward: vec3<f32>, axis: u32, sign: f32, lower: vec3<f32>, upper: vec3<f32>,
+                       margin: f32, feature: u32, studCenter: vec2<f32>, studRadius: f32) {
+    var normal=vec3<f32>(0);normal[axis]=sign;
+    if(dot(outward,normal)>=-1e-5) { return; }
+    var polygon=face;
+    for(var k=1u;k<=2u;k++) {
+        let tangent=(axis+k)%3u;var plane=vec3<f32>(0);plane[tangent]=1.0;
+        polygon=authored_lego_clip(polygon,-plane,-lower[tangent]);
+        polygon=authored_lego_clip(polygon,plane,upper[tangent]);
+    }
+    for(var i=0u;i<polygon.count;i++) {
+        let point=polygon.points[i];
+        // The part of a column top inside its stud is not exposed terrain.
+        if(axis==1u && distance(point.xz,studCenter)<studRadius-1e-6) { continue; }
+        let separation=(point[axis]-lower[axis])*sign;
+        if(separation<=margin) { authored_terrain_append(result,AuthoredTerrainPoint(point,separation,normal,feature)); }
+    }
+}
+
+fn authored_lego_cap_point(result: ptr<function,AuthoredTerrainResult>, point: vec3<f32>,
+                           cap: f32, margin: f32, feature: u32) {
+    if(point.y-cap<=margin) {
+        authored_terrain_append(result,AuthoredTerrainPoint(point,point.y-cap,vec3<f32>(0,1,0),feature));
+    }
+}
+
+fn authored_lego_stud(result: ptr<function,AuthoredTerrainResult>, face: AuthoredTerrainPolygon,
+                      outward: vec3<f32>, center: vec2<f32>, radius: f32, bottom: f32, cap: f32,
+                      margin: f32, feature: u32, cellLower: vec3<f32>, cellUpper: vec3<f32>) {
+    var polygon=face;
+    let verticalDepth=cap-cellLower.y;
+    let radialDepth=min(min(cellUpper.x-center.x+radius,center.x+radius-cellLower.x),
+                        min(cellUpper.z-center.y+radius,center.y+radius-cellLower.z));
+    // Resolve a shallow landing at the cap instead of ejecting the hull through
+    // a deeper cylindrical side. Conversely, a side impact must not pop up to
+    // the cap when its horizontal overlap is the smaller correction.
+    if(outward.y < -1e-5 && verticalDepth<=radialDepth+1e-5) {
+        // Exact rectangle/disk intersection: inside corners, circular edge
+        // intersections, and disk support points when the disk lies inside.
+        for(var i=0u;i<4u;i++) {
+            let a=polygon.points[i];let b=polygon.points[(i+1u)%4u];
+            let p=a.xz-center;let d=b.xz-a.xz;let dd=dot(d,d);
+            if(dot(p,p)<=radius*radius) { authored_lego_cap_point(result,a,cap,margin,feature); }
+            if(dd>1e-12) {
+                let pd=dot(p,d);let determinant=pd*pd-dd*(dot(p,p)-radius*radius);
+                if(determinant>=0.0) {
+                    for(var side=0u;side<2u;side++) {
+                        let t=(-pd+select(-1.0,1.0,side==1u)*sqrt(determinant))/dd;
+                        if(t>=0.0 && t<=1.0) { authored_lego_cap_point(result,mix(a,b,t),cap,margin,feature); }
+                    }
+                }
+            }
+        }
+        let slope=outward.xz/outward.y;
+        let downhill=select(vec2<f32>(1,0),slope/max(length(slope),1e-6),dot(slope,slope)>1e-12);
+        var directions=array<vec2<f32>,5>(vec2<f32>(1,0),vec2<f32>(-1,0),vec2<f32>(0,1),vec2<f32>(0,-1),downhill);
+        for(var i=0u;i<5u;i++) {
+            let xz=center+radius*directions[i];
+            let point=vec3<f32>(xz.x,polygon.points[0].y-dot(slope,xz-polygon.points[0].xz),xz.y);
+            if(authored_lego_inside(polygon,point)) { authored_lego_cap_point(result,point,cap,margin,feature); }
+        }
+    }
+    if(dot(outward.xz,outward.xz)<1e-10) { return; }
+    // Smooth cylindrical sides. Clip the authored face to the stud's actual
+    // height; use circle support against its plane plus closest face edges.
+    var clipped=authored_lego_clip(polygon,vec3<f32>(0,-1,0),-bottom);
+    clipped=authored_lego_clip(clipped,vec3<f32>(0,1,0),cap);
+    if(clipped.count==0u) { return; }
+    let normal=normalize(vec3<f32>(-outward.x,0,-outward.z));
+    for(var i=0u;i<clipped.count;i++) {
+        let a=clipped.points[i];let b=clipped.points[(i+1u)%clipped.count];
+        let terrain=vec3<f32>(center.x,a.y,center.y)+normal*radius;
+        let separation=dot(outward,polygon.points[0]-terrain)/dot(outward,normal);
+        let point=terrain+normal*separation;
+        if(separation<=margin && -separation<=verticalDepth+1e-5
+            && distance(point.xz,center)<=radius+margin && authored_lego_inside(polygon,point)) {
+            authored_terrain_append(result,AuthoredTerrainPoint(point,separation,normal,feature));
+        }
+        let d=b.xz-a.xz;
+        let t=clamp(dot(center-a.xz,d)/max(dot(d,d),1e-12),0.0,1.0);
+        let edge=mix(a,b,t);let radial=edge.xz-center;let length=length(radial);
+        if(length>1e-7 && length-radius<=margin && radius-length<=verticalDepth+1e-5) {
+            let edgeNormal=vec3<f32>(radial.x,0,radial.y)/length;
+            if(dot(outward,edgeNormal)<-1e-5) {
+                authored_terrain_append(result,AuthoredTerrainPoint(edge,length-radius,edgeNormal,feature));
+            }
+        }
+    }
+}
+
+fn authored_lego_contacts(field: texture_2d<u32>, params: vec4<f32>, size: vec2<u32>,
+                          shape: AuthoredShapeView, rootPosition: vec3<f32>, rootOrientation: vec4<f32>,
+                          margin: f32, cellBudget: u32) -> AuthoredTerrainResult {
+    var result: AuthoredTerrainResult;
+    if(!shape.valid || any(size<vec2<u32>(2u)) || params.z<=0.0 || params.w<=0.0) { result.status=1u;return result; }
+    let axisX=authored_quat_rotate(rootOrientation,vec3<f32>(1,0,0));
+    let axisY=authored_quat_rotate(rootOrientation,vec3<f32>(0,1,0));
+    let axisZ=authored_quat_rotate(rootOrientation,vec3<f32>(0,0,1));
+    let crestPadding=params.w/f32(legoPlateCount(params.w,params.z))+.18*params.z;
+    var nodeIndex=0u;
+    while(nodeIndex<shape.node_count) {
+        let node=authored_node(shape,nodeIndex);
+        if(!node.valid) { result.status=1u;result.count=0u;return result; }
+        let center=rootPosition+authored_quat_rotate(rootOrientation,.5*(node.minimum+node.maximum));
+        let half=.5*(node.maximum-node.minimum);
+        let extent=abs(axisX)*half.x+abs(axisY)*half.y+abs(axisZ)*half.z;
+        // Include plate rounding even when the plate count hits its ceiling.
+        if(authored_terrain_above(field,params,size,center-extent,center+extent,margin+crestPadding)) { nodeIndex=node.escape;continue; }
+        nodeIndex++;
+        if(node.cell==0xffffffffu) { continue; }
+        let cell=authored_cell(shape,node.cell);
+        if(!cell.valid) { result.status=1u;result.count=0u;return result; }
+        for(var f=cell.first_face;f<cell.first_face+cell.face_count;f++) {
+            let face=authored_face(shape,f);
+            if(!face.valid) { result.status=1u;result.count=0u;return result; }
+            var localNormal=vec3<f32>(0);localNormal[face.axis]=f32(face.sign);
+            let outward=authored_quat_rotate(rootOrientation,localNormal);
+            let u=(face.axis+1u)%3u;let v=(face.axis+2u)%3u;
+            var polygon: AuthoredTerrainPolygon;polygon.count=4u;
+            var lower=vec3<f32>(1e30);var upper=vec3<f32>(-1e30);
+            for(var corner=0u;corner<4u;corner++) {
+                let order=corner^(corner>>1u);var p=face.minimum;
+                p[u]=select(face.minimum[u],face.maximum[u],(order&1u)!=0u);
+                p[v]=select(face.minimum[v],face.maximum[v],(order&2u)!=0u);
+                p=rootPosition+authored_quat_rotate(rootOrientation,p);
+                polygon.points[corner]=p;lower=min(lower,p);upper=max(upper,p);
+            }
+            if(authored_terrain_above(field,params,size,lower,upper,margin+crestPadding)) { continue; }
+            let maximum=vec2<f32>(size-vec2<u32>(2u));
+            let first=vec2<u32>(floor(clamp((lower.xz+params.xy-vec2<f32>(margin))/params.z,vec2<f32>(0),maximum)));
+            let last=vec2<u32>(floor(clamp((upper.xz+params.xy+vec2<f32>(margin))/params.z,vec2<f32>(0),maximum)));
+            for(var z=first.y;z<=last.y;z++) { for(var x=first.x;x<=last.x;x++) {
+                if(result.cells>=cellBudget) { result.status=2u;result.count=0u;return result; }
+                result.cells++;
+                let grid=vec2<i32>(i32(x),i32(z));
+                let origin=vec2<f32>(f32(x),f32(z))*params.z-params.xy;
+                let top=legoPlateTop(textureLoad(field,grid,0).x,params.w,params.z);
+                let stud=origin+vec2<f32>(.5*params.z);let radius=.30*params.z;let cap=top+.18*params.z;
+                if(lower.y>cap+margin) { continue; }
+                let feature=0x80000000u|f;
+                // A raised column underneath a broad hull must support its
+                // bottom, not select a much deeper horizontal exit through
+                // the hull. Choose the least overlap along terrain axes.
+                let columnHalf=vec3<f32>(.5*params.z,.5*(top+params.w),.5*params.z);
+                let delta=center-vec3<f32>(stud.x,.5*(top-params.w),stud.y);
+                let overlap=extent+columnHalf-abs(delta);
+                var contactAxis=0u;
+                if(overlap.y<overlap.x) { contactAxis=1u; }
+                if(overlap.z<overlap[contactAxis]) { contactAxis=2u; }
+                let contactSign=select(-1.0,1.0,delta[contactAxis]>=0.0);
+                let columnNear=all(overlap>=vec3<f32>(-margin));
+                if(columnNear && contactAxis==1u && contactSign>0.0) {
+                    authored_lego_patch(&result,polygon,outward,1u,1.0,
+                        vec3<f32>(origin.x,top,origin.y),vec3<f32>(origin.x+params.z,top,origin.y+params.z),margin,feature,stud,radius);
+                }
+                for(var side=0u;side<4u;side++) {
+                    let axis=select(0u,2u,side>=2u);let sign=select(-1.0,1.0,(side&1u)!=0u);
+                    if(!columnNear || axis!=contactAxis || sign!=contactSign) { continue; }
+                    var neighbor=grid;neighbor[axis/2u]+=i32(sign);
+                    var bottom=-params.w;
+                    if(all(neighbor>=vec2<i32>(0)) && all(neighbor<vec2<i32>(size)-vec2<i32>(1))) {
+                        bottom=legoPlateTop(textureLoad(field,neighbor,0).x,params.w,params.z);
+                    }
+                    if(bottom>=top) { continue; }
+                    var lo=vec3<f32>(origin.x,bottom,origin.y);var hi=vec3<f32>(origin.x+params.z,top,origin.y+params.z);
+                    let plane=select(lo[axis],hi[axis],sign>0.0);lo[axis]=plane;hi[axis]=plane;
+                    authored_lego_patch(&result,polygon,outward,axis,sign,lo,hi,margin,feature,stud,0.0);
+                }
+                authored_lego_stud(&result,polygon,outward,stud,radius,top,cap,margin,feature,center-extent,center+extent);
+            } }
+        }
+    }
+    return result;
+}
+// END GENERATED AUTHORED GEOMETRY
+
 // BEGIN GENERATED LEGO SURFACE
 // Canonical LEGO geometry. Generated into standalone shader modules by
 // scripts/sync_lego_surface.py; no runtime shader preprocessor is required.
@@ -109,6 +687,7 @@ const WORLD_SECTOR_SIZE : f32 = 256.0;
 const WORLD_SECTOR_HALF : f32 = 128.0;
 
 const COMMAND_SPAWN : u32 = 0u;
+const COMMAND_SPAWN_AUTHORED : u32 = 12u;
 const COMMAND_DESTROY : u32 = 1u;
 const COMMAND_IMPULSE : u32 = 2u;
 const COMMAND_FORCE : u32 = 3u;
@@ -135,6 +714,7 @@ struct BodyShape {
     dimensions_type : vec4<f32>,
     invInertia_material : vec4<f32>,
     material_coefficients : vec4<f32>,
+    authored_shape : vec4<u32>,
 };
 
 struct GpuCommand {
@@ -181,6 +761,8 @@ struct TerrainContactCache {
 //  4 max terrain points/body, 5 submerged bodies, 6 water samples,
 //  7 applied commands, 8..13 matching high-water marks,
 // 14 active-list overflow, 15 resident kinematic bodies.
+// 16 authored terrain failures, 17 visited authored terrain cells,
+// 18 high visited cells, 19 authored candidate reductions.
 @group(0) @binding(6) var<storage, read_write> counters : array<atomic<u32>>;
 @group(0) @binding(7) var<storage, read> commands : array<GpuCommand>;
 @group(0) @binding(8) var<uniform> sim : SimulationUniforms;
@@ -195,6 +777,7 @@ struct TerrainContactCache {
 @group(0) @binding(16) var waterDisplacementTexture :
     texture_2d_array<f32>;
 @group(0) @binding(17) var waterDisplacementSampler : sampler;
+@group(0) @binding(18) var<storage, read> authored_shape_heap : array<vec4<u32>>;
 fn terrain_friction(body : u32) -> f32 {
     let ratio = max(shapes[body].material_coefficients.x, 0.0)
         / max(sim.bodyMaterials.x, 1e-7);
@@ -318,6 +901,9 @@ fn apply_commands(@builtin(global_invocation_id) gid : vec3<u32>) {
         atomicStore(&counters[counter], 0u);
     }
     atomicStore(&counters[15], 0u);
+    // Authored failures are sticky until world recreation, including catch-up ticks.
+    atomicStore(&counters[17], 0u);
+    atomicStore(&counters[19], 0u);
     let targetTick = atomicLoad(&counters[1]) + 1u;
     var appliedCommands = 0u;
     for (var commandIndex = 0u; commandIndex < sim.counts.y;
@@ -329,11 +915,16 @@ fn apply_commands(@builtin(global_invocation_id) gid : vec3<u32>) {
         let generation = command.header.z;
         if (body == 0u || body >= sim.counts.x) { continue; }
 
-        if (commandType == COMMAND_SPAWN) {
+        if (commandType == COMMAND_SPAWN || commandType == COMMAND_SPAWN_AUTHORED) {
             if ((body_flags(body) & BODY_ALIVE) != 0u) { continue; }
+            var authored: AuthoredShapeView;
+            if (commandType == COMMAND_SPAWN_AUTHORED) {
+                authored = authored_shape(bitcast<u32>(command.p2.w), bitcast<u32>(command.p3.w));
+                if (!authored.valid) { atomicAdd(&counters[20], 1u); continue; }
+            }
             poses[body].position_invMass = command.p0;
             poses[body].orientation = normalize(command.p1);
-            motions[body].linearVelocity_sleep = command.p2;
+            motions[body].linearVelocity_sleep = vec4<f32>(command.p2.xyz, 0.0);
             motions[body].angularVelocity_flags = vec4<f32>(
                 command.p3.xyz, 0.0);
             shapes[body].dimensions_type = command.p4;
@@ -341,9 +932,17 @@ fn apply_commands(@builtin(global_invocation_id) gid : vec3<u32>) {
                 command.p4.xyz, u32(clamp(command.p4.w, 0.0, 4.0)),
                 command.p0.w), bitcast<f32>(bitcast<u32>(command.p5.w)));
             shapes[body].material_coefficients = command.p6;
+            shapes[body].authored_shape = vec4<u32>(0u);
+            if (commandType == COMMAND_SPAWN_AUTHORED) {
+                let isDynamic = command.p0.w > 0.0;
+                poses[body].position_invMass.w = select(0.0, authored.center_inverse_mass.w, isDynamic);
+                shapes[body].invInertia_material = vec4<f32>(select(vec3<f32>(0.0), authored.inverse_inertia_radius.xyz, isDynamic),
+                    shapes[body].invInertia_material.w);
+                shapes[body].authored_shape = vec4<u32>(bitcast<u32>(command.p2.w),bitcast<u32>(command.p3.w),1u,0u);
+            }
             forces[body] = vec4<f32>(0.0);
             let spawnFlags = BODY_ALIVE | BODY_AWAKE
-                | select(0u, BODY_BULLET, command.p3.w > 0.5);
+                | select(0u, BODY_BULLET, commandType == COMMAND_SPAWN && command.p3.w > 0.5);
             metadata[body] = vec4<i32>(command.p5.xyz,
                 pack_generation_flags(generation, spawnFlags));
             appliedCommands += 1u;
@@ -362,6 +961,7 @@ fn apply_commands(@builtin(global_invocation_id) gid : vec3<u32>) {
             shapes[body].dimensions_type = vec4<f32>(0.0);
             shapes[body].invInertia_material = vec4<f32>(0.0);
             shapes[body].material_coefficients = vec4<f32>(0.0);
+            shapes[body].authored_shape = vec4<u32>(0u);
             motions[body] = BodyMotion(vec4<f32>(0.0), vec4<f32>(0.0));
         } else if (commandType == COMMAND_IMPULSE) {
             let motion = motions[body];
@@ -378,11 +978,9 @@ fn apply_commands(@builtin(global_invocation_id) gid : vec3<u32>) {
             let inverseMass = poses[body].position_invMass.w;
             if (inverseMass > 0.0) {
                 let orientation = poses[body].orientation;
-                let shapeType = u32(clamp(
-                    shapes[body].dimensions_type.w, 0.0, 4.0));
-                let inverseInertia = shape_inverse_inertia(
-                    shapes[body].dimensions_type.xyz,
-                    shapeType, inverseMass);
+                // Spawn/admission owns mass properties. Recomputing primitive
+                // inertia here would discard an authored principal-body tensor.
+                let inverseInertia = shapes[body].invInertia_material.xyz;
                 let worldLever = rotate_by_quaternion(
                     orientation, command.p1.xyz);
                 let angularAcceleration = inverse_inertia_world(
@@ -1266,7 +1864,9 @@ fn sample_water_state(pose : BodyPose, shape : BodyShape,
     result.fraction = 0.0;
     result.buoyancyCenter = pose.position_invMass.xyz;
     result.normal = surface.normal;
-    if (sim.water.y < 0.5) { return result; }
+    // Authored displacement regions have their own hydrostatic force pass.
+    // The broad-phase bound must never manufacture flotation volume.
+    if (sim.water.y < 0.5 || any(shape.authored_shape != vec4<u32>(0u))) { return result; }
 
     let sectorDelta = bounded_sector_delta(
         sim.worldSector.y, worldMeta.y, 1u);
@@ -1332,8 +1932,7 @@ fn integrate_bodies(@builtin(global_invocation_id) gid : vec3<u32>) {
     let angularScale = 1.0 / (1.0 + sim.damping_clamps.y * dt);
     let inverseMass = pose.position_invMass.w;
     let shapeType = u32(clamp(shape.dimensions_type.w, 0.0, 4.0));
-    let inverseInertia = shape_inverse_inertia(
-        shape.dimensions_type.xyz, shapeType, inverseMass);
+    let inverseInertia = shape.invInertia_material.xyz;
     let dryAcceleration = sim.gravity_dt.xyz + forces[body].xyz * inverseMass;
     var lastFeatures = vec4<u32>(0u);
     var lastImpulses = vec4<f32>(0.0);
@@ -1581,8 +2180,7 @@ fn prepare_dynamic_bodies(@builtin(global_invocation_id) gid : vec3<u32>) {
     }
 
     var motion = motions[body];
-    let inverseInertia = shape_inverse_inertia(
-        shape.dimensions_type.xyz, shapeType, inverseMass);
+    let inverseInertia = shape.invInertia_material.xyz;
     let substeps = max(sim.counts.w, 1u);
     if (sim.water.y >= 0.5) {
         atomicAdd(&counters[6], water_sample_count(shapeType) * substeps);
@@ -1668,9 +2266,9 @@ fn solve_static_contacts(@builtin(global_invocation_id) gid : vec3<u32>) {
     let inverseMass = pose.position_invMass.w;
     if (inverseMass <= 1e-7) { return; }
     let shapeType = u32(clamp(shape.dimensions_type.w, 0.0, 4.0));
-    let inverseInertia = shape_inverse_inertia(
-        shape.dimensions_type.xyz, shapeType, inverseMass);
+    let inverseInertia = shape.invInertia_material.xyz;
     var cache = terrainContactCaches[body];
+    let isAuthored = any(shape.authored_shape != vec4<u32>(0u));
     if (cache.state.x != metadata_generation(body)) {
         cache.normalImpulses = vec4<f32>(0.0);
         cache.featureIds = vec4<u32>(0u);
@@ -1688,7 +2286,43 @@ fn solve_static_contacts(@builtin(global_invocation_id) gid : vec3<u32>) {
     generated.rejected = select(
         0u, 1u,
         !terrainFrameValid && sim.terrainSize_mips_flags.w != 0u);
-    if (terrainFrameValid) {
+    if (terrainFrameValid && isAuthored && sim.terrainSize_mips_flags.w != 0u) {
+        let authored = authored_shape_ref(shape.authored_shape);
+        var result: AuthoredTerrainResult;
+        if (sim.terrainSize_mips_flags.w == 1u) {
+            result = authored_terrain_contacts(maxHeightTexture,sim.terrainOrigin_cell_height,
+                sim.terrainSize_mips_flags.xy,authored,
+                authored_root_position(authored,terrainPose.position_invMass.xyz,terrainPose.orientation),
+                authored_root_orientation(authored,terrainPose.orientation),sim.solver.x,8192u);
+        } else if (sim.terrainSize_mips_flags.w == 2u) {
+            result = authored_lego_contacts(maxHeightTexture,sim.terrainOrigin_cell_height,
+                sim.terrainSize_mips_flags.xy,authored,
+                authored_root_position(authored,terrainPose.position_invMass.xyz,terrainPose.orientation),
+                authored_root_orientation(authored,terrainPose.orientation),sim.solver.x,8192u);
+        } else { result.status = 4u; }
+        atomicAdd(&counters[17],result.cells);
+        atomicAdd(&counters[19],result.reductions);
+        if (result.status != 0u) {
+            atomicAdd(&counters[16],1u);
+            // No partially evaluated contact set and no primitive fallback.
+            // The world owner must treat this telemetry as an incomplete tick.
+            cache.normalImpulses = vec4<f32>(0); cache.featureIds = vec4<u32>(0u);
+            cache.state = vec4<u32>(metadata_generation(body),0u,result.status,result.cells);
+            terrainContactCaches[body] = cache;
+            motions[body].linearVelocity_sleep = vec4<f32>(0);
+            motions[body].angularVelocity_flags = vec4<f32>(0);
+            return;
+        }
+        generated.count = result.count;
+        for (var i=0u; i<result.count; i++) {
+            let point=result.items[i];
+            generated.items[i]=TerrainCandidate(point.point,point.separation,point.normal,point.feature);
+        }
+        // A face ordinal is provenance, not a terrain-patch/anchor identity.
+        // Do not reuse another point's impulse before authored anchor caching
+        // exists; the same solver still resolves every current contact.
+        cache.normalImpulses = vec4<f32>(0); cache.featureIds = vec4<u32>(0u);
+    } else if (terrainFrameValid && !isAuthored) {
         generated = generate_terrain_candidates(terrainPose, shape);
     }
     var contacts = reduce_terrain_candidates(generated);
@@ -1859,6 +2493,7 @@ fn advance_tick(@builtin(global_invocation_id) gid : vec3<u32>) {
     atomicMax(&counters[10], atomicLoad(&counters[3]));
     atomicMax(&counters[11], atomicLoad(&counters[5]));
     atomicMax(&counters[12], atomicLoad(&counters[6]));
+    atomicMax(&counters[18], atomicLoad(&counters[17]));
     atomicAdd(&counters[1], 1u);
 }
 
@@ -1877,6 +2512,123 @@ fn pack_debug(@builtin(global_invocation_id) gid : vec3<u32>) {
     debugPacked[output + 6u] =
         bitcast<vec4<u32>>(shapes[body].material_coefficients);
     debugPacked[output + 7u] = vec4<u32>(
-        bitcast<u32>(shapes[body].invInertia_material.w), 0u, 0u, 0u);
+        bitcast<u32>(shapes[body].invInertia_material.w), shapes[body].authored_shape.xyz);
     debugPacked[output + 8u] = bitcast<vec4<u32>>(metadata[body]);
+}
+
+// The first cove craft uses disjoint, authored displacement cells. All forces
+// read the current GPU pose in each fixed tick; no CPU pose feedback is used.
+struct AuthoredWaterUniforms {
+    body_cells: vec4<u32>,
+    point_thrust: vec4<f32>,
+    direction_steer: vec4<f32>,
+    fluid: vec4<f32>,
+    controls: vec4<f32>,
+};
+@group(0) @binding(19) var<storage, read> displacement_cells: array<vec4<f32>>;
+@group(0) @binding(20) var<uniform> hydro: AuthoredWaterUniforms;
+
+// xyz is first volume moment about the COM; w is volume. A box is partitioned
+// into six tetrahedra; clipping each against the sampled water tangent plane
+// handles partial immersion and arbitrary heel without overlapping volumes.
+fn water_tetra(a: vec3<f32>, b: vec3<f32>, c: vec3<f32>, d: vec3<f32>) -> vec4<f32> {
+    let volume=abs(dot(b-a,cross(c-a,d-a)))/6.0;
+    return vec4<f32>((a+b+c+d)*(volume*.25),volume);
+}
+fn water_crossing(a: vec4<f32>, b: vec4<f32>) -> vec3<f32> {
+    return mix(a.xyz,b.xyz,clamp(a.w/(a.w-b.w),0.0,1.0));
+}
+fn water_clip_tetra(points: array<vec3<f32>,4>, normal: vec3<f32>, plane: f32) -> vec4<f32> {
+    var vertices=points;
+    var below: array<vec4<f32>,4>;
+    var above: array<vec4<f32>,4>;
+    var count=0u; var dry=0u;
+    for(var i=0u;i<4u;i+=1u) {
+        let p=vec4<f32>(vertices[i],dot(vertices[i],normal)-plane);
+        if(p.w<=0.0) { below[count]=p; count+=1u; } else { above[dry]=p; dry+=1u; }
+    }
+    if(count==0u) { return vec4<f32>(0.0); }
+    let full=water_tetra(points[0],points[1],points[2],points[3]);
+    if(count==4u) { return full; }
+    if(count==1u) {
+        let a=below[0];
+        return water_tetra(a.xyz,water_crossing(a,above[0]),water_crossing(a,above[1]),water_crossing(a,above[2]));
+    }
+    if(count==3u) {
+        let a=above[0];
+        return full-water_tetra(a.xyz,water_crossing(a,below[0]),water_crossing(a,below[1]),water_crossing(a,below[2]));
+    }
+    let a=below[0]; let b=below[1];
+    let c=water_crossing(a,above[0]); let d=water_crossing(a,above[1]);
+    let e=water_crossing(b,above[0]); let f=water_crossing(b,above[1]);
+    return water_tetra(a.xyz,b.xyz,c,d)+water_tetra(b.xyz,c,d,e)+water_tetra(b.xyz,d,e,f);
+}
+
+@compute @workgroup_size(1)
+fn apply_authored_water() {
+    let body=hydro.body_cells.x;
+    if (!is_live(body,hydro.body_cells.y) || sim.water.y<.5) { return; }
+    let shape=authored_shape_ref(shapes[body].authored_shape);
+    if (!shape.valid || hydro.body_cells.z>2048u || hydro.body_cells.z*2u>arrayLength(&displacement_cells)) {
+        atomicAdd(&counters[20],1u); return;
+    }
+    let pose=poses[body];
+    if(pose.position_invMass.w<=0.0) { return; }
+    let orientation=authored_root_orientation(shape,pose.orientation);
+    // Form small COM-relative coordinates for volumes and moments, even when
+    // the boat crosses a sector boundary. Water is an absolute world datum.
+    let com=pose.position_invMass.xyz;
+    let sectorDelta=bounded_sector_delta(sim.worldSector.y,metadata[body].y,4u);
+    var baseHeight=sim.water.x-com.y-f32(sectorDelta)*WORLD_SECTOR_SIZE;
+    if(sectorDelta==2147483647) { baseHeight=select(1e6,-1e6,metadata[body].y>sim.worldSector.y); }
+    var wet=vec4<f32>(0.0);
+    var tets=array<vec4<u32>,6>(vec4<u32>(0,1,3,7),vec4<u32>(0,3,2,7),vec4<u32>(0,2,6,7),
+        vec4<u32>(0,6,4,7),vec4<u32>(0,4,5,7),vec4<u32>(0,5,1,7));
+    for(var cell=0u;cell<hydro.body_cells.z;cell+=1u) {
+        let lower=displacement_cells[cell*2u].xyz;
+        let upper=displacement_cells[cell*2u+1u].xyz;
+        let center=authored_quat_rotate(orientation,(lower+upper)*.5-shape.center_inverse_mass.xyz);
+        var samplePose=pose; samplePose.position_invMass=vec4<f32>(com+center,pose.position_invMass.w);
+        let surface=sample_gpu_water_surface(samplePose,metadata[body]);
+        let normal=surface.normal;
+        let plane=dot(center,normal)+(baseHeight+surface.heightOffset-center.y)*normal.y;
+        var points: array<vec3<f32>,8>;
+        for(var i=0u;i<8u;i+=1u) {
+            let root=select(lower,upper,vec3<bool>((i&1u)!=0u,(i&2u)!=0u,(i&4u)!=0u));
+            points[i]=authored_quat_rotate(orientation,root-shape.center_inverse_mass.xyz);
+        }
+        for(var t=0u;t<6u;t+=1u) {
+            let ids=tets[t];
+            wet+=water_clip_tetra(array<vec3<f32>,4>(points[ids.x],points[ids.y],points[ids.z],points[ids.w]),normal,plane);
+        }
+    }
+    let gravity=length(sim.gravity_dt.xyz);
+    let buoyancyScale=hydro.fluid.x*gravity;
+    var force=vec3<f32>(0.0,wet.w*buoyancyScale,0.0);
+    var torque=cross(wet.xyz,vec3<f32>(0.0,buoyancyScale,0.0));
+    let propeller=authored_quat_rotate(orientation,hydro.point_thrust.xyz-shape.center_inverse_mass.xyz);
+    var propellerPose=pose; propellerPose.position_invMass=vec4<f32>(com+propeller,pose.position_invMass.w);
+    let surface=sample_gpu_water_surface(propellerPose,metadata[body]);
+    let propellerWet=clamp((baseHeight+surface.heightOffset-propeller.y+.15)/.3,0.0,1.0);
+    let steer=hydro.controls.y*hydro.direction_steer.w;
+    let steerRotation=vec4<f32>(0.0,sin(steer*.5),0.0,cos(steer*.5));
+    let direction=authored_quat_rotate(orientation,authored_quat_rotate(steerRotation,hydro.direction_steer.xyz));
+    let thrust=direction*(hydro.point_thrust.w*hydro.controls.x*propellerWet);
+    force+=thrust; torque+=cross(propeller,thrust);
+    let dt=sim.gravity_dt.w;
+    var motion=motions[body];
+    // Stable implicit linear resistance relative to still water. Directional
+    // hull drag and sampled ocean flow remain separate hydrodynamics work.
+    let drag=hydro.fluid.x*max(wet.w,0.0)*hydro.fluid.y*pose.position_invMass.w;
+    motion.linearVelocity_sleep=vec4<f32>((motion.linearVelocity_sleep.xyz+force*pose.position_invMass.w*dt)/(1.0+drag*dt),0.0);
+    // Resistance follows displaced water mass, not the fraction of the empty
+    // sealed capacity. A lightly loaded pontoon still needs damping at its
+    // equilibrium draft; dividing by maximum volume underdamped it tenfold.
+    let fluidLoad=max(wet.w,0.0)*hydro.fluid.x*pose.position_invMass.w;
+    motion.angularVelocity_flags=vec4<f32>((motion.angularVelocity_flags.xyz+
+        authored_world_inverse_inertia(shape,pose.orientation,torque)*dt)/(1.0+hydro.fluid.z*fluidLoad*dt),0.0);
+    motions[body]=motion;
+    set_body_flags(body,body_flags(body)|BODY_AWAKE);
+    atomicAdd(&counters[6],hydro.body_cells.z+1u);
+    if(wet.w>1e-5) { atomicAdd(&counters[5],1u); }
 }

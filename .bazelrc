@@ -19,6 +19,11 @@ test --deleted_packages=third_party/googletest/googletest/test,third_party/googl
 build:wasm --platforms=@emsdk//:platform_wasm
 build:wasm --compilation_mode=opt
 build:wasm --copt=-DVOXY_WASM=1
+# Preserve transaction cleanup with the existing Asyncify WebGPU path.
+# emsdk's exceptions feature supplies compilation; link support is explicit.
+build:wasm --features=exceptions
+build:wasm --linkopt=-fexceptions
+build:wasm --linkopt=-sABORTING_MALLOC=0
 
 # Required for Jules environment (fixes IPv6 DNS issues in container)
 startup --host_jvm_args=-Djava.net.preferIPv4Stack=true
