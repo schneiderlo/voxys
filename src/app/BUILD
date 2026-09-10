@@ -28,6 +28,7 @@ cc_library(
         "//src/game:cove_player",
         "//src/game:cove_water_clock",
         "//src/game:cove_workshop",
+        "//src/game:workshop_camera",
         "//src/game:cove_boat",
         "//src/game:cove_rigid_roots",
         "//src/game:assembly_fracture",

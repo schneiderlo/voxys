@@ -25,6 +25,8 @@ def main():
     parser.add_argument("--exception-mode", choices=["native", "js"], default="js")
     parser.add_argument("--asyncify", action="store_true")
     parser.add_argument("--expected-tests", type=int, default=193)
+    parser.add_argument("--use-frozen-sdk-cache", action="store_true",
+                        help="Read the SDK cache directly; missing libraries fail instead of building or copying it.")
     args = parser.parse_args()
     if args.exception_mode != "js" or not args.asyncify:
         parser.error("session acceptance requires --exception-mode js --asyncify")
@@ -33,9 +35,12 @@ def main():
     output.mkdir(parents=True, exist_ok=False)  # Preserve every earlier attempt.
     shutil.copyfile(__file__, output / "executed-runner.py")
     work = Path(tempfile.mkdtemp(prefix="voxys-session-wasm-"))
-    cache = work / "cache"
-    # SDK cache is read-only input. Do not use or modify Bazel's shared cache.
-    subprocess.run(["cp", "-a", "--reflink=auto", str(sdk / "emscripten/cache"), str(cache)], check=True)
+    cache = sdk / "emscripten/cache" if args.use_frozen_sdk_cache else work / "cache"
+    # FROZEN_CACHE below refuses cache locking/builds. The opt-in avoids a
+    # multi-gigabyte copy when the SDK already contains every required library.
+    # Neither mode may modify the SDK or Bazel's shared cache.
+    if not args.use_frozen_sdk_cache:
+        subprocess.run(["cp", "-a", "--reflink=auto", str(sdk / "emscripten/cache"), str(cache)], check=True)
     config = work / ".emscripten"
     config.write_text("\n".join([
         f"LLVM_ROOT = {str(sdk / 'bin')!r}", f"BINARYEN_ROOT = {str(sdk)!r}",
@@ -48,6 +53,8 @@ def main():
                 "sdk": str(sdk), "node": str(node), "source_hashes": {}, "runtime_hashes": {},
                 "artifacts": {}, "passed": False, "exception_mode": args.exception_mode,
                 "asyncify": args.asyncify, "fixed_heap_bytes": 67108864, "fixed_stack_bytes": 1048576}
+    manifest["cache"] = {"path": str(cache), "frozen": True,
+                         "mode": "read-sdk" if args.use_frozen_sdk_cache else "private-copy"}
 
     def save():
         (output / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")

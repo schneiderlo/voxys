@@ -81,9 +81,9 @@ void CoveRigidRoots::includeBodyRange(uint32_t& first, uint32_t& last) const noe
 
 bool CoveRigidRoots::bindPlayer(CovePlayer& player,const CoveBoatAssembly& boat,glm::dvec3 origin,std::string& error) const {
     const auto fail=[&]{error="The player cannot bind every machine section.";return false;};
-    if(!matches(boat)||boat.parts().size()>32)return fail();
+    if(!matches(boat)||boat.parts().size()>assets::kMaximumFixturePlacements)return fail();
     std::array<CovePlayer::BoatRoot,maximumRoots> poses{};
-    std::array<CovePlayer::BoatPart,32> parts{};
+    std::array<CovePlayer::BoatPart,assets::kMaximumFixturePlacements> parts{};
     for(size_t i=0;i<count_;++i) {
         const auto& motion=roots_[i].observed;const auto anchor=boat.assembly().mass().roots()[i].buildFromRoot.translation;
         physics::AuthoredFrameError frameError;

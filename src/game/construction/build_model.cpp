@@ -191,17 +191,28 @@ static_assert(sizeof(double) == 8 && std::numeric_limits<double>::is_iec559);
     const auto chargeCandidate = [&candidates]() { return ++candidates <= kMaximumBuildCandidatePairs; };
     // A one-axis sweep avoids comparing distant solids. Candidate count is an
     // explicit work bound, independent of the number of canonical parts/links.
+    // Choose the widest occupied axis. A fixed X sweep made a vertical stack
+    // spend its entire pair budget comparing bricks dozens of metres apart.
+    // Signed 64-bit extents keep extreme valid grid coordinates well-defined.
+    const auto component=[](GridPosition p,unsigned axis){return axis==0?p.x:axis==1?p.y:p.z;};
+    unsigned sweepAxis=0;int64_t widest=-1;
+    for(unsigned axis=0;axis<3;++axis) {
+        int64_t low=std::numeric_limits<int64_t>::max(),high=std::numeric_limits<int64_t>::min();
+        for(const auto& solid:solids){low=std::min(low,int64_t(component(solid.bounds.minimum,axis)));high=std::max(high,int64_t(component(solid.bounds.maximum,axis)));}
+        if(!solids.empty()&&high-low>widest){widest=high-low;sweepAxis=axis;}
+    }
+    const auto coordinate=[&](GridPosition p){return component(p,sweepAxis);};
     std::vector<const OccupiedSolid*> sortedSolids;
     sortedSolids.reserve(solids.size());
     for (const auto& solid : solids) sortedSolids.push_back(&solid);
-    std::sort(sortedSolids.begin(), sortedSolids.end(), [](const auto* a, const auto* b) {
-        return a->bounds.minimum.x < b->bounds.minimum.x;
+    std::stable_sort(sortedSolids.begin(), sortedSolids.end(), [&](const auto* a, const auto* b) {
+        return coordinate(a->bounds.minimum) < coordinate(b->bounds.minimum);
     });
     for (size_t i = 0; i < sortedSolids.size(); ++i) {
         for (size_t j = i + 1; j < sortedSolids.size(); ++j) {
             const auto& a = *sortedSolids[i];
             const auto& b = *sortedSolids[j];
-            if (b.bounds.minimum.x >= a.bounds.maximum.x) break;
+            if (coordinate(b.bounds.minimum) >= coordinate(a.bounds.maximum)) break;
             if (a.part == b.part) continue; // Catalog proxy unions may overlap.
             if (!chargeCandidate()) return fail(BuildError::Capacity, copy.id, "candidatePairs");
             if (solidBoxesOverlap(a.bounds, b.bounds)) return fail(BuildError::SolidOverlap, b.part, "solidOccupancy");
@@ -214,8 +225,8 @@ static_assert(sizeof(double) == 8 && std::numeric_limits<double>::is_iec559);
             const auto* own = findOccupied(sockets, endpoints.first);
             const auto* mate = findOccupied(sockets, endpoints.second);
             for (const auto* solid : sortedSolids) {
-                if (solid->bounds.minimum.x >= own->clearance.maximum.x) break;
-                if (solid->part == own->endpoint.part || solid->bounds.maximum.x <= own->clearance.minimum.x) continue;
+                if (coordinate(solid->bounds.minimum) >= coordinate(own->clearance.maximum)) break;
+                if (solid->part == own->endpoint.part || coordinate(solid->bounds.maximum) <= coordinate(own->clearance.minimum)) continue;
                 if (!chargeCandidate()) return fail(BuildError::Capacity, copy.id, "candidatePairs");
                 if (!solidBoxesOverlap(own->clearance, solid->bounds)) continue;
                 if (solid->part != mate->endpoint.part

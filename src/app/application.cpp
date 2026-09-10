@@ -279,7 +279,10 @@ struct SalvageLocalSessionState {
         uint64_t pauseTick=0;
         double waterTime=0,pauseWaitSeconds=0;
         game::expedition::CoveWaterClock waterClock;
-        double workshopYaw=.6,workshopDistance=11;
+        game::expedition::WorkshopCamera workshopCamera;
+        int workshopFrameRequest=0;
+        bool workshopFrameWhole=true;
+        bool workshopPointerPlacement=false;
         struct WorkshopView { glm::vec3 position; float yaw,pitch; glm::ivec3 sector; };
         std::optional<WorkshopView> workshopReturnView;
         std::unique_ptr<game::expedition::CoveSceneryCollision> scenery;
@@ -5091,6 +5094,23 @@ bool Application::renderSalvageAsset(WGPUCommandEncoder encoder, WGPUTextureView
             }
         }
     }
+#if defined(VOXY_NATIVE)
+    if(asset.workshopOpen) {
+        uint32_t thumb=0;
+        for(uint32_t i=0;i<asset.workshop->catalogCount()&&thumb<render::SalvageAssetFixture::maximumPalettePlacements;++i) {
+            if(!asset.workshop->catalogNameAt(i).starts_with("Brick "))continue;
+            const auto bundle=asset.workshop->catalogBundleAt(i);if(!bundle)continue;
+            const double x=.32+.18*thumb++;
+            const auto& projection=camera_->projectionMatrix();
+            auto model=glm::inverse(glm::dmat4(camera_->viewMatrix()));
+            model=glm::translate(model,glm::dvec3((2*x-1)*2/double(projection[0][0]),-.72*2/double(projection[1][1]),-2));
+            model=glm::rotate(model,.48,glm::dvec3(1,0,0));
+            model=glm::rotate(model,-.35,glm::dvec3(0,1,0));
+            model=glm::scale(model,glm::dvec3(.1));
+            placements[placementCount++]={.bundleIndex=*bundle,.lodId=1,.cameraRelativeRoot=model};
+        }
+    }
+#endif
     render::SalvageFixtureFrame frame;
     frame.view = camera_->viewMatrix(); frame.projection = camera_->projectionMatrix();
     frame.cameraPosition = camera_->position();
@@ -5645,6 +5665,16 @@ bool Application::initSalvagePreview() {
         if (!asset->content) {
             LOG_ERROR("Asset fixture package admission failed: {}", error);
             return false;
+        }
+        if(config_.salvageAssetFixtureCatalog) {
+            std::filesystem::path catalog=*config_.salvageAssetFixtureCatalog;
+#if defined(VOXY_NATIVE)
+            if(catalog.is_relative())if(const char* workspace=std::getenv("BUILD_WORKSPACE_DIRECTORY");workspace&&*workspace)
+                catalog=std::filesystem::path(workspace)/catalog;
+#endif
+            auto expanded=game::assets::appendAssetFixtureCatalog(*asset->content,catalog,error);
+            if(!expanded){LOG_ERROR("Construction catalogue admission failed: {}",error);return false;}
+            asset->content=std::move(expanded);
         }
         asset->origin = glm::dvec3(origin) + glm::dvec3(-7,3,-5);
         // Cove placements use the declared water datum. Do not lift submerged
@@ -6395,7 +6425,7 @@ bool Application::salvagePreviewAction(int action) {
         const auto result=session.submit(local.caller,command);local.launchRequest=command.sequence;
         asset->player->discardPendingInput();if(input_)input_->resetState();return result.admitted;
     }
-    if(((action>=60 && action<=89)||(action>=92&&action<=94)) && salvageLocalSession_->asset && salvageLocalSession_->asset->player) {
+    if(((action>=60 && action<=89)||(action>=92&&action<=94)||(action>=97&&action<=98)||(action>=100&&action<100+int(game::assets::kMaximumFixtureBundles))) && salvageLocalSession_->asset && salvageLocalSession_->asset->player) {
         auto& asset=*salvageLocalSession_->asset;
         if(asset.leaving || salvagePreview_->busy() || salvageLocalSession_->pendingControl
             || salvageLocalSession_->session->hasPending() || asset.launch || asset.status!=render::SalvageFixtureStatus::Active)return false;
@@ -6408,7 +6438,8 @@ bool Application::salvagePreviewAction(int action) {
                     if(!asset.workshop){LOG_ERROR("Workshop: {}",error);return false;}
                 }
                 asset.workshopReturnView=SalvageLocalSessionState::AssetPreview::WorkshopView{camera_->position(),camera_->yaw(),camera_->pitch(),camera_->worldSector()};
-                asset.workshopOpen=true;
+                asset.workshopOpen=true;asset.workshopPointerPlacement=false;
+                asset.workshopFrameRequest=2;
             } else {
                 asset.workshopOpen=false;
                 if(asset.workshopReturnView) {
@@ -6420,7 +6451,8 @@ bool Application::salvagePreviewAction(int action) {
             return true;
         }
         if(!asset.workshopOpen)return false;
-        if(action==89||action>=92) {
+        if(action==97||action==98){asset.workshopFrameRequest=action==97?1:2;return true;}
+        if(action==89||(action>=92&&action<=94)) {
             if(asset.recoveryDesigns.empty()||asset.selectedRecoveryDesign>=asset.recoveryDesigns.size()||asset.workshop->changed())return false;
             if(action==92||action==93) {
                 asset.selectedRecoveryDesign=(asset.selectedRecoveryDesign+asset.recoveryDesigns.size()+(action==93?1:asset.recoveryDesigns.size()-1))%asset.recoveryDesigns.size();return true;
@@ -6459,6 +6491,10 @@ bool Application::salvagePreviewAction(int action) {
             asset.launchMessage="Preparing boat…";
             const auto result=session.submit(local.caller,command);local.launchRequest=command.sequence;return result.admitted;
         }
+        if(action>=100) {
+            if(!asset.workshop->canAdd()||!asset.workshop->selectCatalogAt(static_cast<uint32_t>(action-100)))return false;
+            return salvagePreviewAction(84);
+        }
         if(action>=85) {
             const bool changed=asset.workshop->configure(static_cast<game::expedition::CoveWorkshop::SettingAction>(action-85));
             if(changed)asset.launchMessage.clear();
@@ -6468,7 +6504,7 @@ bool Application::salvagePreviewAction(int action) {
             const auto state=salvageLocalSession_->session->snapshot();
             const auto* stored=game::expedition::availableCoveStoredPart(asset.workshop->design(),*asset.boat,state.storedParts,asset.workshop->catalogDefinition());
             const bool changed=action==84?asset.workshop->addPart(stored):asset.workshop->selectCatalog(action==82?-1:1);
-            if(changed)asset.launchMessage.clear();
+            if(changed){asset.launchMessage.clear();if(action==84)asset.workshopPointerPlacement=true;}
             return changed;
         }
         if(action>=79) {
@@ -6501,13 +6537,14 @@ bool Application::salvagePreviewAction(int action) {
             return result.admitted;
         }
         if(action>=75) {
-            if(action==75)asset.workshopYaw-=.25;
-            if(action==76)asset.workshopYaw+=.25;
-            if(action==77)asset.workshopDistance=std::max(4.0,asset.workshopDistance-1);
-            if(action==78)asset.workshopDistance=std::min(25.0,asset.workshopDistance+1);
+            if(action==75)asset.workshopCamera.orbit(-.25,0);
+            if(action==76)asset.workshopCamera.orbit(.25,0);
+            if(action==77)asset.workshopCamera.zoom(1);
+            if(action==78)asset.workshopCamera.zoom(-1);
             return true;
         }
         const bool edited=asset.workshop->command(static_cast<game::expedition::CoveWorkshop::Action>(action-61));
+        if(edited && ((action>=61&&action<=68)||action==70||action==71||action==72||action==73||action==74))asset.workshopPointerPlacement=false;
         if(edited)asset.launchMessage.clear();
         return edited;
     }
@@ -6663,7 +6700,10 @@ std::string Application::salvagePreviewJson() const {
         const auto sector = camera_->worldSector();
         json << "{\"local\":[" << local.x << ',' << local.y << ',' << local.z
              << "],\"sector\":[" << sector.x << ',' << sector.y << ',' << sector.z
-             << "],\"yaw\":" << camera_->yaw() << ",\"pitch\":" << camera_->pitch() << '}';
+             << "],\"yaw\":" << camera_->yaw() << ",\"pitch\":" << camera_->pitch();
+        const auto matrix=camera_->projectionMatrix()*camera_->viewMatrix();json<<",\"viewProjection\":[";
+        for(int column=0;column<4;++column)for(int row=0;row<4;++row){if(column||row)json<<',';json<<matrix[column][row];}
+        json<<"]}";
     } else json << "null";
     if (asset && asset->player) {
         const auto& player = *asset->player;
@@ -6705,7 +6745,13 @@ std::string Application::salvagePreviewJson() const {
             &&(!asset->harbor||asset->harbor->state().mode==game::expedition::CoveHarborLiftMode::Detached)
             && glm::length(asset->player->feet()-asset->content->registry.navigation->spawn)<=3;
         json<<",\"workshop\":{\"open\":"<<(asset->workshopOpen?"true":"false")
-            <<",\"canOpen\":"<<(canOpen?"true":"false");
+            <<",\"canOpen\":"<<(canOpen?"true":"false")
+            <<",\"displayOrigin\":["<<asset->origin.x<<','<<asset->origin.y+4<<','<<asset->origin.z<<']';
+        const auto& workshopCamera=asset->workshopCamera;const auto viewTarget=workshopCamera.target();
+        const auto visible=workshopCamera.rectangle();
+        json<<",\"camera\":{\"target\":["<<viewTarget.x<<','<<viewTarget.y<<','<<viewTarget.z
+            <<"],\"distance\":"<<workshopCamera.distance()<<",\"yaw\":"<<workshopCamera.yaw()
+            <<",\"elevation\":"<<workshopCamera.elevation()<<",\"rectangle\":["<<visible.x<<','<<visible.y<<','<<visible.z<<','<<visible.w<<"]}";
         if(asset->workshop) {
             const auto& w=*asset->workshop;const auto p=w.preview().registry.placements[w.selected()].placement;
             const auto settings=w.selectedSettings();
@@ -6733,6 +6779,16 @@ std::string Application::salvagePreviewJson() const {
             json<<",\"catalogName\":\""<<asset->workshop->catalogName()<<"\",\"catalogIndex\":"<<asset->workshop->catalogIndex()
                 <<",\"catalogCount\":"<<asset->workshop->catalogCount()<<",\"canAdd\":"<<(!pending && asset->workshop->canAdd()?"true":"false")
                 <<",\"partCost\":\""<<price.salvageMaterial<<"\",\"partMachinery\":\""<<price.specialMachinery<<'"';
+        }
+        if(asset->workshop) {
+            json<<",\"catalog\":[";
+            for(uint32_t i=0;i<asset->workshop->catalogCount();++i) {
+                if(i)json<<',';
+                const auto price=asset->workshop->catalogCostAt(i);
+                json<<"{\"index\":"<<i<<",\"name\":\""<<asset->workshop->catalogNameAt(i)
+                    <<"\",\"cost\":\""<<price.salvageMaterial<<"\"}";
+            }
+            json<<"],\"pointerPlacement\":"<<(asset->workshopPointerPlacement?"true":"false");
         }
         json<<",\"storedParts\":"<<owned.storedParts.size()<<",\"savePending\":"<<(asset->workshopSavePending?"true":"false")
             <<",\"canRebuild\":"<<(!pending&&kept&&same&&salvageLocalSession_->storageHostReady&&!asset->towRope.valid()?"true":"false");
@@ -7209,20 +7265,92 @@ void Application::updateCovePlayer(float deltaTime) {
     }
     if(input_->wasKeyPressed(Key::B))(void)salvagePreviewAction(60);
     if(asset.workshopOpen) {
-        const std::array<std::pair<Key,int>,26> actions{{{Key::Tab,62},{Key::Left,63},{Key::Right,64},
+        const std::array<std::pair<Key,int>,28> actions{{{Key::Tab,62},{Key::Left,63},{Key::Right,64},
             {Key::Up,65},{Key::Down,66},{Key::Q,67},{Key::Z,68},{Key::R,69},{Key::T,70},
             {Key::E,71},{Key::U,72},{Key::Backspace,73},{Key::Delete,74},{Key::Escape,60},
-            {Key::Enter,79},{Key::I,80},{Key::O,81},{Key::C,83},{Key::V,84},{Key::X,85},{Key::L,86},{Key::N,87},{Key::H,88},{Key::K,89},{Key::J,93},{Key::F,94}}};
+            {Key::Enter,79},{Key::I,80},{Key::O,81},{Key::C,83},{Key::V,84},{Key::X,85},{Key::L,86},{Key::N,87},{Key::H,88},{Key::K,89},{Key::J,93},{Key::F,94},{Key::G,97},{Key::M,98}}};
         for(const auto& [key,action]:actions)if(input_->wasKeyPressed(key))(void)salvagePreviewAction(action);
         if(!asset.workshopOpen)return;
-        if(input_->isKeyDown(Key::A))asset.workshopYaw-=double(deltaTime);
-        if(input_->isKeyDown(Key::D))asset.workshopYaw+=double(deltaTime);
-        if(input_->isKeyDown(Key::W))asset.workshopDistance=std::max(4.0,asset.workshopDistance-6*double(deltaTime));
-        if(input_->isKeyDown(Key::S))asset.workshopDistance=std::min(25.0,asset.workshopDistance+6*double(deltaTime));
-        const auto selected=asset.workshop->preview().registry.placements[asset.workshop->selected()].placement.translation;
-        const auto target=asset.origin+glm::dvec3(selected.x,selected.y,selected.z)*.02+glm::dvec3(0,4,0);
-        const auto eye=target+asset.workshopDistance*glm::dvec3(std::sin(asset.workshopYaw),.55,std::cos(asset.workshopYaw));
-        setCameraWorldPose(*camera_,glm::vec3(eye),glm::vec3(target));
+        auto& view=asset.workshopCamera;
+        if(input_->isKeyDown(Key::A))view.orbit(-double(deltaTime),0);
+        if(input_->isKeyDown(Key::D))view.orbit(double(deltaTime),0);
+        if(input_->isKeyDown(Key::W))view.zoom(4*double(deltaTime));
+        if(input_->isKeyDown(Key::S))view.zoom(-4*double(deltaTime));
+        for(const auto& [key,name]:std::array<std::pair<Key,std::string_view>,3>{{
+            {Key::Num1,"Brick 1 x 2"},{Key::Num2,"Brick 2 x 2"},{Key::Num3,"Brick 2 x 4"}}})
+            if(input_->wasKeyPressed(key))for(uint32_t i=0;i<asset.workshop->catalogCount();++i)
+                if(asset.workshop->catalogNameAt(i)==name)(void)salvagePreviewAction(100+static_cast<int>(i));
+        double pointerWidth=window_?window_->getWidth():0,pointerHeight=window_?window_->getHeight():0;
+        glm::dvec4 visible{- .92,-.5,.92,.92}; // Leave the native palette unobstructed.
+#if defined(VOXY_WASM)
+        // DOM pointer coordinates are CSS pixels, independent of display DPI.
+        emscripten_get_element_css_size("#voxy-canvas",&pointerWidth,&pointerHeight);
+        visible={-.94,-.9,.94,.9};
+        const double panelLeft=EM_ASM_DOUBLE({
+            const canvas=document.getElementById('voxy-canvas').getBoundingClientRect();
+            const panel=document.getElementById('salvage-preview');
+            if(!panel||panel.hidden)return 1;
+            return (panel.getBoundingClientRect().left-canvas.left)/canvas.width;
+        });
+        if(panelLeft<.2) {
+            const double panelTop=EM_ASM_DOUBLE({
+                const canvas=document.getElementById('voxy-canvas').getBoundingClientRect();
+                return (document.getElementById('salvage-preview').getBoundingClientRect().top-canvas.top)/canvas.height;
+            });
+            visible.y=std::clamp(1-2*panelTop+.04,-.8,.6);
+        } else visible.z=std::clamp(2*panelLeft-1-.04,-.6,.94);
+#endif
+        const auto& projection=camera_->projectionMatrix();const glm::dvec2 scales{projection[0][0],projection[1][1]};
+        const bool resized=view.projection()!=scales||view.rectangle()!=visible;
+        if(view.viewport(scales,visible)&&(asset.workshopFrameRequest||resized)) {
+            if(asset.workshopFrameRequest)asset.workshopFrameWhole=asset.workshopFrameRequest==2;
+            const auto bounds=asset.workshop->viewBounds(asset.workshopFrameWhole);
+            if(bounds&&!view.frame(*bounds))asset.launchMessage="This design is too wide to fit in one view.";
+            asset.workshopFrameRequest=0;
+        }
+        const auto gestureButton=[&](MouseButton button){return input_->isMouseButtonDown(button)
+            ||input_->wasMouseButtonPressed(button)||input_->wasMouseButtonReleased(button);};
+        const bool middle=gestureButton(MouseButton::Middle),orbiting=gestureButton(MouseButton::Right);
+        const bool shift=input_->isKeyDown(Key::LeftShift)||input_->isKeyDown(Key::RightShift)
+            ||input_->wasKeyReleased(Key::LeftShift)||input_->wasKeyReleased(Key::RightShift);
+        const bool panning=middle||(orbiting&&shift);
+        const bool gesture=orbiting||panning;
+        const auto delta=glm::dvec2(input_->mouseDragDelta(middle?MouseButton::Middle:MouseButton::Right));
+        if(panning)view.pan(delta,pointerHeight);
+        else if(orbiting)view.orbit(-delta.x*.006,delta.y*.006);
+        view.zoom(input_->scrollDelta());
+        const auto displayOrigin=asset.origin+glm::dvec3(0,4,0);
+        setCameraWorldPose(*camera_,displayOrigin+view.eye(),displayOrigin+view.viewTarget());
+        const glm::dvec2 pointer(input_->mousePosition());
+        bool paletteClick=false;
+#if defined(VOXY_NATIVE)
+        if(!gesture&&input_->wasMouseButtonPressed(MouseButton::Left)&&pointerWidth>0&&pointerHeight>0
+            &&pointer.y/pointerHeight>.78&&pointer.y/pointerHeight<.94) {
+            uint32_t thumb=0;
+            for(uint32_t i=0;i<asset.workshop->catalogCount()&&thumb<3;++i) {
+                if(!asset.workshop->catalogNameAt(i).starts_with("Brick "))continue;
+                const double x=.32+.18*thumb++;
+                if(std::abs(pointer.x/pointerWidth-x)<.08){paletteClick=true;(void)salvagePreviewAction(100+static_cast<int>(i));break;}
+            }
+        }
+#endif
+        if(!gesture&&!paletteClick&&pointerWidth>0&&pointerHeight>0&&pointer.x>=0&&pointer.y>=0&&pointer.x<pointerWidth&&pointer.y<pointerHeight) {
+            const glm::dvec4 clip{2*pointer.x/pointerWidth-1,1-2*pointer.y/pointerHeight,.5,1};
+            const auto far=glm::inverse(glm::dmat4(camera_->projectionMatrix()*camera_->viewMatrix()))*clip;
+            const auto cameraLocal=glm::dvec3(camera_->position());
+            const auto direction=glm::normalize(glm::dvec3(far)/far.w-cameraLocal);
+            const auto from=cameraLocal+glm::dvec3(camera_->worldSector())*double(physics::kWorldSectorSize)-asset.origin-glm::dvec3(0,4,0);
+            const auto hit=asset.workshop->pick(from,direction,asset.workshopPointerPlacement);
+            if(asset.workshopPointerPlacement&&hit && (input_->mouseDelta()!=glm::vec2(0)||input_->wasKeyPressed(Key::R)||input_->wasMouseButtonPressed(MouseButton::Left)))(void)asset.workshop->aimAt(*hit);
+            if(input_->wasMouseButtonPressed(MouseButton::Left)) {
+                if(asset.workshopPointerPlacement) {
+                    if(hit&&asset.workshop->valid())(void)salvagePreviewAction(71);
+                } else if(hit) {
+                    if(hit->placement==asset.workshop->selected())asset.workshopPointerPlacement=true;
+                    else (void)asset.workshop->selectPart(hit->placement);
+                }
+            }
+        }
 #if defined(VOXY_NATIVE)
         const auto stock=salvageLocalSession_->session->snapshot().inventory;
         const auto cost=asset.workshop->catalogCost();
@@ -7235,7 +7363,7 @@ void Application::updateCovePlayer(float deltaTime) {
             +" | "+configuration+" | Stock: "+std::to_string(stock.salvageMaterial)+" | Drawer: "+std::string(asset.workshop->catalogName())
             +" ("+std::to_string(cost.salvageMaterial)+" material, "+std::to_string(cost.specialMachinery)+" machinery)"
             +" | Recovery design "+std::to_string(asset.recoveryDesigns.empty()?0:asset.selectedRecoveryDesign+1)+"/"+std::to_string(asset.recoveryDesigns.size())+" | K: Load recovery | J: Next recovery | F: Remove recovery"
-            +" | Tab: Part | Arrows/Q/Z: Move | T: Snap | R: Rotate | E: Keep | U: Undo edit | Enter: Launch | I/O: Undo/Redo launch | C: Part type | V: Add | H: Rebuild starter (paid parts stored) | B: Close"
+            +" | 1: Brick 1x2 | 2: Brick 2x2 | 3: Brick 2x4 | G: Focus | M: Whole boat | Right-drag: Orbit | Shift+right-drag: Pan | Wheel: Zoom | Click: Select/place | Tab: Part | Arrows/Q/Z: Move | T: Snap | R: Rotate | E: Keep | U: Undo edit | Enter: Launch | I/O: Undo/Redo launch | C: Part type | V: Add | H: Rebuild starter (paid parts stored) | B: Close"
             +(salvageSaveStatus_.empty()?"":" | "+salvageSaveStatus_);
         if(window_ && asset.playerPrompt!=prompt){asset.playerPrompt=prompt;window_->setTitle(prompt.c_str());}
 #endif

@@ -42,7 +42,9 @@ std::optional<CoveBuildSeed> prepareCoveBuild(const assets::LoadedAssetFixture& 
     return CoveBuildSeed{std::move(*catalog),std::move(build),std::move(placements),*entitlement,ids.lastIssued()};
 }
 std::optional<StarterKit> prepareCoveStarterKit(const BuildSnapshot& build,DurableId entitlement,std::string& error) {
-    if(build.parts.empty()||build.parts.size()>32||build.connections.size()>64||!isValid(entitlement)) {
+    // Starter grants have their own stable save-format bounds. Paid brick
+    // capacity must not widen this trusted entitlement recipe or its ID array.
+    if(build.parts.empty()||build.parts.size()>StarterKit{}.partIds.size()||build.connections.size()>64||!isValid(entitlement)) {
         error="Invalid installed starter recipe";return {};
     }
     StarterKit kit;kit.build=build.id;kit.entitlement=entitlement;kit.partCount=static_cast<uint8_t>(build.parts.size());
@@ -122,9 +124,9 @@ std::optional<CoveLaunchDesign> prepareCoveExpandedLaunchDesign(const assets::Lo
     std::span<const CoveBoatAssembly::Part> originalBindings,std::span<const CoveBoatAssembly::Part> currentBindings,std::string& error,
     CoveSceneTopology topology) {
     const auto reject=[&](const char* why)->std::optional<CoveLaunchDesign>{error=why;return std::nullopt;};
-    if(!original.registry.navigation || !current.registry.navigation || current.registry.placements.size()>32
-        || current.registry.placements.size()<original.registry.placements.size() || originalBindings.size()>32
-        || currentBindings.size()>32 || build.parts.size()>32 || build.connections.size()>64)
+    if(!original.registry.navigation || !current.registry.navigation || current.registry.placements.size()>assets::kMaximumFixturePlacements
+        || current.registry.placements.size()<original.registry.placements.size() || originalBindings.size()>assets::kMaximumFixturePlacements
+        || currentBindings.size()>assets::kMaximumFixturePlacements || build.parts.size()>assets::kMaximumFixturePlacements || build.connections.size()>assets::kMaximumFixtureConnections)
         return reject("Launch design exceeds the starter craft capacity");
     CoveLaunchDesign result{current,{}};auto& registry=result.scene.registry;
     const auto fixedCount=original.registry.placements.size();
@@ -132,7 +134,7 @@ std::optional<CoveLaunchDesign> prepareCoveExpandedLaunchDesign(const assets::Lo
     const auto boatSlot=[&](uint32_t slot){return slot>=fixedCount || std::find(originalSlots.begin(),originalSlots.end(),slot)!=originalSlots.end();};
     registry.navigation=original.registry.navigation;registry.navigation->boatPlacements.clear();
     std::erase_if(registry.connections,[&](const auto& c){return boatSlot(c.aPlacement)||boatSlot(c.bPlacement);});
-    std::array<bool,32> occupied{};
+    std::array<bool,assets::kMaximumFixturePlacements> occupied{};
     std::fill_n(occupied.begin(),fixedCount,true);
     const auto existing=[&](DurableId id)->std::optional<uint32_t> {
         for(const auto& binding:originalBindings)if(binding.id==id)return binding.placement;
@@ -141,7 +143,7 @@ std::optional<CoveLaunchDesign> prepareCoveExpandedLaunchDesign(const assets::Lo
     };
     // Reserve retained slots before assigning any restored/new ID. Older undo
     // IDs can sort before retained paid parts and must not take their slots.
-    std::array<bool,32> mapped{};
+    std::array<bool,assets::kMaximumFixturePlacements> mapped{};
     for(const auto& part:build.parts)if(const auto slot=existing(part.id)) {
         if(*slot>=registry.placements.size() || !boatSlot(*slot) || mapped[*slot])return reject("Invalid retained part slot");
         mapped[*slot]=true;occupied[*slot]=true;
@@ -153,13 +155,19 @@ std::optional<CoveLaunchDesign> prepareCoveExpandedLaunchDesign(const assets::Lo
             const auto free=std::find(occupied.begin()+static_cast<std::ptrdiff_t>(fixedCount),occupied.end(),false);
             if(free==occupied.end())return reject("This scene has no room for another part. Remove a paid part to make room.");
             slot=static_cast<uint32_t>(free-occupied.begin());occupied[*slot]=true;
-            const auto source=std::find_if(original.registry.placements.begin(),original.registry.placements.end(),[&](const auto& p){
-                const auto& definition=p.prototype?original.prototypes.at(p.bundleIndex):original.bundles.at(p.bundleIndex)->sidecar().part;
-                return definition.key==part.definition;
-            });
-            if(source==original.registry.placements.end())return reject("Added part has no admitted asset in this cove");
-            if(*slot==registry.placements.size())registry.placements.push_back(*source);
-            else registry.placements[*slot]=*source;
+            assets::FixturePartPlacement source;
+            bool found=false;
+            for(size_t i=0;i<original.bundles.size();++i)
+                if(original.bundles[i]->sidecar().part.key==part.definition){
+                    source.bundleIndex=static_cast<uint32_t>(i);found=true;break;
+                }
+            if(!found)for(size_t i=0;i<original.prototypes.size();++i)
+                if(original.prototypes[i].key==part.definition){
+                    source.bundleIndex=static_cast<uint32_t>(i);source.prototype=true;found=true;break;
+                }
+            if(!found)return reject("Added part has no admitted asset in this cove");
+            if(*slot==registry.placements.size())registry.placements.push_back(source);
+            else registry.placements[*slot]=source;
         }
         auto& placed=registry.placements[*slot];
         const auto& definition=placed.prototype?original.prototypes.at(placed.bundleIndex):original.bundles.at(placed.bundleIndex)->sidecar().part;
@@ -213,7 +221,7 @@ std::optional<CoveDesignCost> quoteCoveDesign(const assets::LoadedAssetFixture& 
         total.salvageMaterial+=value.salvageMaterial;total.specialMachinery+=value.specialMachinery;return true;
     };
     const auto& members=scene.registry.navigation->boatPlacements;
-    std::array<DurableId,32> used{};size_t usedCount=0;
+    std::array<DurableId,assets::kMaximumFixturePlacements> used{};size_t usedCount=0;
     for(const auto slot:members) {
         if(slot>=scene.registry.placements.size())return std::nullopt;
         const auto& p=scene.registry.placements[slot];

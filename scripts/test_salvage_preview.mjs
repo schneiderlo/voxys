@@ -19,9 +19,11 @@ function fixture(asset = false, workshop = false) {
         elements['salvage-lods'].querySelectorAll = () => lodButtons;
         elements['salvage-guides'].querySelectorAll = () => guideButtons;
     }
-    const workshopButtons=workshop?[61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,92,93,94]
+    const workshopButtons=workshop?[61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,92,93,94,97,98]
         .map(action=>Object.assign(new Element(),{dataset:{workshopAction:String(action)}})):[];
     if(workshop) {
+        for(const name of ['Brick 1 x 2','Brick 2 x 2','Brick 2 x 4'])workshopButtons.push(
+            Object.assign(new Element(),{dataset:{workshopAction:'-1',workshopBrick:name}}));
         for(const id of ['salvage-workshop','salvage-workshop-toggle','salvage-workshop-part','salvage-workshop-status','salvage-scope','salvage-workshop-stock','workshop-catalog-name','workshop-settings-note','workshop-recovery-status'])elements[id]=new Element();
         elements['salvage-workshop'].querySelectorAll=()=>workshopButtons;
     }
@@ -45,6 +47,22 @@ function fixture(asset = false, workshop = false) {
     const cleanup = install(engine, environment);
     return { elements, lodButtons, guideButtons, workshopButtons, actions, navigations, engine, cleanup, tick: () => tick(),
         state: update => Object.assign(state, update), pagehide: () => events.get('pagehide')?.(), event:name=>events.get(name)?.(), events, cleared: () => cleared };
+}
+{
+    const f=fixture(true,true);
+    const w={open:true,canOpen:true,selected:9,name:'Winch',valid:false,changed:true,undo:1,
+        massKg:1035,parts:12,message:'Blocked.',catalogName:'Pontoon',partCost:'24',partMachinery:'0',
+        canAdd:false,materials:'48',machinery:'0',charge:'0',refund:'0',affordable:true};
+    f.state({workshop:w});f.tick();
+    const focus=f.workshopButtons.find(b=>b.dataset.workshopAction==='97');
+    const frame=f.workshopButtons.find(b=>b.dataset.workshopAction==='98');
+    assert(!focus.disabled&&!frame.disabled,'camera remains usable while diagnosing an invalid ghost');
+    focus.click();frame.click();assert.deepEqual(f.actions,[97,98]);
+    let stopped=0;const onKey=f.elements['salvage-preview'].listeners.get('keydown');
+    onKey({code:'ShiftLeft',stopPropagation:()=>++stopped});assert.equal(stopped,0);
+    onKey({code:'KeyG',stopPropagation:()=>++stopped});assert.equal(stopped,1,'text/button actions stay in the UI');
+    f.state({workshop:{...w,pending:true}});f.tick();focus.click();assert.deepEqual(f.actions,[97,98]);
+    f.cleanup();assert.equal(focus.listeners.size,0);
 }
 {
     const f = fixture();
@@ -234,6 +252,19 @@ function fixture(asset = false, workshop = false) {
 }
 {
     const f=fixture(true,true);
+    const w={open:true,canOpen:true,selected:9,name:'Winch',valid:true,changed:false,undo:0,
+        revision:'0',massKg:1035,parts:11,message:'Ready.',canAdd:true,catalogIndex:4,pointerPlacement:true,
+        catalog:[{index:4,name:'Brick 1 x 2',cost:'2'},{index:2,name:'Brick 2 x 2',cost:'3'},{index:6,name:'Brick 2 x 4',cost:'5'}]};
+    f.state({workshop:w});f.tick();const bricks=f.workshopButtons.filter(b=>b.dataset.workshopBrick);
+    assert.deepEqual(bricks.map(b=>b.dataset.workshopAction),['104','102','106'],'palette follows admitted indices');
+    assert.equal(bricks[0].attributes.get('aria-pressed'),'true');
+    for(const b of bricks)b.click();assert.deepEqual(f.actions,[104,102,106]);
+    f.state({workshop:{...w,canAdd:false}});f.tick();for(const b of bricks){assert(b.disabled);b.click();}
+    assert.deepEqual(f.actions,[104,102,106],'unfinished placement cannot add another ghost');
+    f.state({workshop:{...w,catalog:[]}});f.tick();assert(bricks.every(b=>b.hidden&&b.disabled));f.cleanup();
+}
+{
+    const f=fixture(true,true);
     const w={open:true,canOpen:true,selected:7,name:'Propeller',valid:true,changed:false,undo:0,
         revision:'0',massKg:1035,parts:11,message:'Ready.',configurable:true,hasOutputLimit:true,canReverse:true,
         settings:{enabled:true,limitPercent:75,reversed:false}};
@@ -271,7 +302,7 @@ function fixture(asset = false, workshop = false) {
     f.state({active:false,ready:false});f.tick();assert.deepEqual(f.navigations,['?experience=lego-world']);
     f.elements['salvage-pause'].click();assert.deepEqual(f.actions,[2]);assert.equal(f.cleared(),1);
 }
-console.log('salvage preview UI lifecycle tests: 16 passed');
+console.log('salvage preview UI lifecycle tests: 18 passed');
 
 {
     const f=fixture(),button=name=>f.elements['salvage-harbor-'+name];

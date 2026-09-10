@@ -23,6 +23,8 @@ std::unique_ptr<CoveRestoreCandidate> CoveRestoreCandidate::prepare(std::span<co
         auto result=std::make_unique<CoveRestoreCandidate>();CoveSaveIssue issue;
         result->archive=CoveSaveCodec::decode(bytes,context,catalog,issue);
         if(!result->archive)return fail("Expedition archive is damaged or incompatible.");
+        if(!result->archive->physical.additionalCargo.empty())
+            return fail("This runtime cannot restore both mission loads yet.");
         if(!installed.registry.navigation || installed.registry.navigation->cargoPlacements.size()!=1)
             return fail("The saved cove requires one independent salvage load.");
         const auto& physical=result->archive->physical;

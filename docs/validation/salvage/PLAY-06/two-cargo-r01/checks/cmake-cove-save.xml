@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="25" failures="0" disabled="0" errors="0" time="0.012" timestamp="2026-09-10T11:03:51.076" name="AllTests">
+  <testsuite name="CoveSave" tests="25" failures="0" disabled="0" skipped="0" errors="0" time="0.011" timestamp="2026-09-10T11:03:51.077">
+    <testcase name="TwoJobArchiveRetainsBothLoadsAcrossGeneratorBankingCrateTowAndBothReceipts" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_cove_save.cpp" line="114" status="run" result="completed" time="0.001" timestamp="2026-09-10T11:03:51.077" classname="CoveSave" />
+    <testcase name="SecondJobCannotSkipGeneratorRewardOrPoweredHarbor" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_cove_save.cpp" line="143" status="run" result="completed" time="0." timestamp="2026-09-10T11:03:51.079" classname="CoveSave" />
+    <testcase name="TwoCargoCannotDropAliasOrInventAJobAndCannotShareOneWinch" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_cove_save.cpp" line="155" status="run" result="completed" time="0." timestamp="2026-09-10T11:03:51.079" classname="CoveSave" />
+    <testcase name="VersionFiveBoundsPhysicalCargoBeforeAllocationAndDoesNotPermitLegacyDowngrade" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_cove_save.cpp" line="184" status="run" result="completed" time="0." timestamp="2026-09-10T11:03:51.080" classname="CoveSave" />
+    <testcase name="TowingRoundTripPreservesMotionIdentityAndLargeCounters" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_cove_save.cpp" line="202" status="run" result="completed" time="0." timestamp="2026-09-10T11:03:51.080" classname="CoveSave" />
+    <testcase name="RecoveryDesignIgnoresOwnershipConditionAndOrderingButPreservesConfiguration" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_cove_save.cpp" line="224" status="run" result="completed" time="0." timestamp="2026-09-10T11:03:51.081" classname="CoveSave" />
+    <testcase name="RecoveryDesignCapacityDeduplicatesAndNeverOverwritesProtectedLayouts" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_cove_save.cpp" line="233" status="run" result="completed" time="0." timestamp="2026-09-10T11:03:51.081" classname="CoveSave" />
+    <testcase name="RecoveryEnvelopeRoundTripRetainsDesignsWithAndWithoutInstalledHarbor" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_cove_save.cpp" line="246" status="run" result="completed" time="0." timestamp="2026-09-10T11:03:51.081" classname="CoveSave" />
+    <testcase name="InvalidDuplicateAndOverCapacityRecoveryDesignsPreserveEncodeOutput" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_cove_save.cpp" line="260" status="run" result="completed" time="0." timestamp="2026-09-10T11:03:51.082" classname="CoveSave" />
+    <testcase name="LooseBrokenAndBankedCargoHaveDistinctMassAndRewardMeaning" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_cove_save.cpp" line="274" status="run" result="completed" time="0." timestamp="2026-09-10T11:03:51.082" classname="CoveSave" />
+    <testcase name="HarborExtensionPreservesFourLengthsAndIndividualBreaksOnlyAfterBanking" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_cove_save.cpp" line="292" status="run" result="completed" time="0.001" timestamp="2026-09-10T11:03:51.083" classname="CoveSave" />
+    <testcase name="LegacyArchivesRemainIdenticalAndInstallingTheLiftIsExplicit" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_cove_save.cpp" line="329" status="run" result="completed" time="0." timestamp="2026-09-10T11:03:51.084" classname="CoveSave" />
+    <testcase name="RefusesMismatchedRolesTickCargoAndImpossibleMotionWithoutChangingOutput" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_cove_save.cpp" line="344" status="run" result="completed" time="0." timestamp="2026-09-10T11:03:51.084" classname="CoveSave" />
+    <testcase name="RefusesCorruptionTruncationTrailingDataAndUnknownVersions" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_cove_save.cpp" line="374" status="run" result="completed" time="0.001" timestamp="2026-09-10T11:03:51.084" classname="CoveSave" />
+    <testcase name="RefusesResignedInvalidFieldsAndNestedLengths" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_cove_save.cpp" line="391" status="run" result="completed" time="0." timestamp="2026-09-10T11:03:51.086" classname="CoveSave" />
+    <testcase name="FrozenPortableArchive" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_cove_save.cpp" line="415" status="run" result="completed" time="0." timestamp="2026-09-10T11:03:51.086" classname="CoveSave" />
+    <testcase name="RecoveredArchiveRequiresExactRetiredParentAndRejectsOldToken" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_cove_save.cpp" line="421" status="run" result="completed" time="0." timestamp="2026-09-10T11:03:51.087" classname="CoveSave" />
+    <testcase name="FragmentArchiveKeepsRemoteMotionAndWinchApartFromTheHelmRoot" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_cove_save.cpp" line="441" status="run" result="completed" time="0." timestamp="2026-09-10T11:03:51.087" classname="CoveSave">
+      <properties>
+        <property name="fragment_archive_sha256" value="dd3edb534176d1444915ba6b981e1a3404c32f003c6915c60623c31c00293882"/>
+        <property name="fragment_archive_bytes" value="1878"/>
+      </properties>
+    </testcase>
+    <testcase name="FragmentsCannotBeEncodedOrResignedAsAnyLegacySingleMotionVersion" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_cove_save.cpp" line="460" status="run" result="completed" time="0." timestamp="2026-09-10T11:03:51.087" classname="CoveSave" />
+    <testcase name="FragmentRootMembershipMotionControlAndRiderMustMatchTheAcceptedBuild" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_cove_save.cpp" line="481" status="run" result="completed" time="0." timestamp="2026-09-10T11:03:51.087" classname="CoveSave" />
+    <testcase name="FragmentRiderCanWalkOnAnotherRootButCannotUseADisabledOrRemoteHelm" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_cove_save.cpp" line="510" status="run" result="completed" time="0." timestamp="2026-09-10T11:03:51.087" classname="CoveSave" />
+    <testcase name="ThirtyTwoFragmentMotionsAndFourProtectedDesignsFitTheBoundedArchive" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_cove_save.cpp" line="524" status="run" result="completed" time="0." timestamp="2026-09-10T11:03:51.087" classname="CoveSave">
+      <properties>
+        <property name="maximum_roots_archive_sha256" value="e909ab20940e0e820cec4ff2f3c44f451b49678c9a5277ac83f4e57fb4772bda"/>
+        <property name="maximum_roots_archive_bytes" value="8862"/>
+      </properties>
+    </testcase>
+    <testcase name="ResignedFragmentCountsAndRootRecordsAreValidatedBeforeAdmission" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_cove_save.cpp" line="540" status="run" result="completed" time="0." timestamp="2026-09-10T11:03:51.088" classname="CoveSave" />
+    <testcase name="ExplicitSingleRootArchiveUsesItsLeastMemberKeyAndCanReturnToLegacyBytes" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_cove_save.cpp" line="554" status="run" result="completed" time="0." timestamp="2026-09-10T11:03:51.088" classname="CoveSave" />
+    <testcase name="FragmentArchiveSurvivesFreshWriterRecoveryWithItsExactRetiredParent" file="/home/modkin/workspace/schneiderlo/voxys/tests/test_cove_save.cpp" line="567" status="run" result="completed" time="0." timestamp="2026-09-10T11:03:51.088" classname="CoveSave" />
+  </testsuite>
+</testsuites>

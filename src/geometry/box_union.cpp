@@ -61,6 +61,16 @@ std::optional<BoxUnion> BoxUnion::compile(std::span<const UnionBox> input, BoxUn
                 if (!append(result.cells_, UnionBox{piece, source.source}, limits.cells)) return refuse(BoxUnionError::Capacity, source.source);
         }
         std::sort(result.cells_.begin(), result.cells_.end(), [](const auto& a, const auto& b) { return order(a) < order(b); });
+        // Faces can only be hidden by cells with an opposite face on the
+        // exact same plane. Index those planes once, retaining source/cell
+        // order within each plane so the canonical decomposition is unchanged.
+        std::array<std::vector<size_t>,6> planes;
+        for(size_t axis=0;axis<3;++axis)for(size_t side=0;side<2;++side) {
+            auto& indices=planes[2*axis+side];indices.reserve(result.cells_.size());
+            for(size_t i=0;i<result.cells_.size();++i)indices.push_back(i);
+            const auto coordinate=[&](size_t i){return component(side?result.cells_[i].bounds.minimum:result.cells_[i].bounds.maximum,axis);};
+            std::stable_sort(indices.begin(),indices.end(),[&](size_t a,size_t b){return coordinate(a)<coordinate(b);});
+        }
         for (size_t cell = 0; cell < result.cells_.size(); ++cell) {
             const auto& source = result.cells_[cell];
             result.stats_.volumeTicks3 += extent(source.bounds, 0) * extent(source.bounds, 1) * extent(source.bounds, 2);
@@ -68,12 +78,15 @@ std::optional<BoxUnion> BoxUnion::compile(std::span<const UnionBox> input, BoxUn
                 const int32_t plane = component(sign < 0 ? source.bounds.minimum : source.bounds.maximum, axis);
                 auto face = source.bounds; component(face.minimum, axis, plane); component(face.maximum, axis, plane);
                 pieces.clear(); if (!append(pieces, face, limits.scratchPieces)) return refuse(BoxUnionError::Capacity, source.source);
-                for (size_t other = 0; other < result.cells_.size(); ++other) {
+                const auto& indices=planes[2*axis+(sign>0?1u:0u)];
+                const auto opposite=[&](size_t i){return component(sign<0?result.cells_[i].bounds.maximum:result.cells_[i].bounds.minimum,axis);};
+                auto candidate=std::lower_bound(indices.begin(),indices.end(),plane,[&](size_t i,int32_t p){return opposite(i)<p;});
+                for (;candidate!=indices.end()&&opposite(*candidate)==plane;++candidate) {
                     if (pieces.empty()) break;
+                    const size_t other=*candidate;
                     if (cell == other) continue;
                     if (!charge()) return refuse(BoxUnionError::WorkLimit, source.source);
                     const auto& adjacent = result.cells_[other].bounds;
-                    if (component(sign < 0 ? adjacent.maximum : adjacent.minimum, axis) != plane) continue;
                     nextPieces.clear();
                     for (auto piece : pieces) {
                         if (!charge()) return refuse(BoxUnionError::WorkLimit, source.source);

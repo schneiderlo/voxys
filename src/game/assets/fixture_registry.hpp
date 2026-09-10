@@ -1,6 +1,7 @@
 #pragma once
 
 #include "game/assets/cooked_part_directory.hpp"
+#include "game/assets/fixture_limits.hpp"
 #include "game/construction/build_model.hpp"
 
 namespace voxy::game::assets {
@@ -47,7 +48,8 @@ struct AssetFixtureRegistry {
     std::optional<CoveNavigation> navigation{};
 };
 struct LoadedAssetFixture {
-    // Digest of the exact admitted installed registry, before runtime edits.
+    // Digest of the exact installed world layout, before runtime edits or
+    // additive catalogue admission. Existing parts may never be overridden.
     std::array<std::byte,32> installedRegistryDigest{};
     AssetFixtureRegistry registry{};
     std::vector<std::shared_ptr<const CookedPartBundle>> bundles{};
@@ -59,8 +61,8 @@ struct LoadedAssetFixture {
 };
 
 // Trusted installed-content selection, kept as data so changing an authored
-// candidate needs no C++/shader edit. Closed schemas 1–6, 64 KiB, 12 bundles,
-// 8 prototype definitions, 32 total parts, 64 welded socket connections.
+// candidate needs no C++/shader edit. Closed schemas 1–6, 64 KiB; explicit
+// catalogue/placement/connection ceilings are in fixture_limits.hpp.
 [[nodiscard]] std::optional<AssetFixtureRegistry> parseAssetFixtureRegistry(
     std::string_view json, std::string& error);
 // No-follow directory adapter for the registry and every referenced bundle.
@@ -70,6 +72,15 @@ struct LoadedAssetFixture {
 // Failure returns no partially loaded fixture. No GPU or catalog publication.
 [[nodiscard]] std::unique_ptr<const LoadedAssetFixture> loadAssetFixture(
     const std::filesystem::path& registryPath, std::string& error);
+
+// Trusted additive catalogue, schema 1 {schema,bundles}. It admits exact
+// immutable content through the same no-follow loader. It cannot replace an
+// existing content ID, alter world placements or change the base layout
+// identity. Older saves still resolve the same exact part keys; new saves
+// require their new definitions to be installed. Failure leaves base intact.
+[[nodiscard]] std::unique_ptr<const LoadedAssetFixture> appendAssetFixtureCatalog(
+    const LoadedAssetFixture& base, const std::filesystem::path& catalogPath,
+    std::string& error);
 
 // Projects the union of all canonical LOD bounds. Returns a stable ID by
 // threshold order, independent of the admitted bundle's ID-sorted array order.

@@ -1,0 +1,1542 @@
+{
+  "status": "passed",
+  "scope": "LEGO-02 bounded keyboard/mouse brick builder; no game gate or visual/performance approval",
+  "checks": [
+    {
+      "file": "checks/assembly_buoyancy.xml",
+      "tests": "13",
+      "failures": "0",
+      "disabled": "0",
+      "errors": "0",
+      "time": "0.081",
+      "timestamp": "2026-09-10T13:42:28.948",
+      "name": "AllTests"
+    },
+    {
+      "file": "checks/assembly_collision.xml",
+      "tests": "12",
+      "failures": "0",
+      "disabled": "0",
+      "errors": "0",
+      "time": "0.065",
+      "timestamp": "2026-09-10T13:42:29.072",
+      "name": "AllTests"
+    },
+    {
+      "file": "checks/build_model.xml",
+      "tests": "25",
+      "failures": "0",
+      "disabled": "0",
+      "errors": "0",
+      "time": "0.036",
+      "timestamp": "2026-09-10T13:42:28.514",
+      "name": "AllTests"
+    },
+    {
+      "file": "checks/compiled_assembly.xml",
+      "tests": "9",
+      "failures": "0",
+      "disabled": "0",
+      "errors": "0",
+      "time": "0.018",
+      "timestamp": "2026-09-10T13:42:29.610",
+      "name": "AllTests"
+    },
+    {
+      "file": "checks/config.xml",
+      "tests": "63",
+      "failures": "0",
+      "disabled": "0",
+      "errors": "0",
+      "time": "0.005",
+      "timestamp": "2026-09-10T13:42:35.700",
+      "name": "AllTests"
+    },
+    {
+      "file": "checks/cove_player.xml",
+      "tests": "56",
+      "failures": "0",
+      "disabled": "0",
+      "errors": "0",
+      "time": "117.557",
+      "timestamp": "2026-09-10T13:47:27.070",
+      "name": "AllTests"
+    },
+    {
+      "file": "checks/cove_save.xml",
+      "tests": "21",
+      "failures": "0",
+      "disabled": "0",
+      "errors": "0",
+      "time": "0.063",
+      "timestamp": "2026-09-10T13:42:29.062",
+      "name": "AllTests"
+    },
+    {
+      "file": "checks/fixture_registry.xml",
+      "tests": "11",
+      "failures": "0",
+      "disabled": "0",
+      "errors": "0",
+      "time": "14.301",
+      "timestamp": "2026-09-10T13:42:30.422",
+      "name": "AllTests"
+    },
+    {
+      "file": "checks/salvage_asset_fixture.xml",
+      "tests": "21",
+      "failures": "0",
+      "disabled": "0",
+      "errors": "0",
+      "time": "1.55",
+      "timestamp": "2026-09-10T14:10:45.950",
+      "name": "AllTests"
+    },
+    {
+      "file": "checks/workshop-focused.xml",
+      "tests": "15",
+      "failures": "0",
+      "disabled": "0",
+      "errors": "0",
+      "time": "0.72",
+      "timestamp": "2026-09-10T09:43:16.921",
+      "name": "AllTests"
+    }
+  ],
+  "browserUi": {
+    "passed": 21
+  },
+  "browserSaves": {
+    "passed": 17
+  },
+  "capacity": {
+    "bricks": 64,
+    "boatParts": 74,
+    "sceneSlots": 89,
+    "waterCells": 1893,
+    "collisionCells": 1893,
+    "recoveryDesignBytes": 41024,
+    "normalWorkshopRemoveUndo": "passed",
+    "sceneOverflowAtomicRefusal": "passed"
+  },
+  "journeys": [
+    {
+      "source": "build-cove-builder-3bh5dr4t/browser-r01/summary.json",
+      "sha256": "dbbbf69ded6c9f14525c0717e9eac877bc323b96a7b4670daf646672eecbaa9e",
+      "status": "failed",
+      "error": "Error: palette creates ghost: {\"active\":true,\"ready\":true,\"busy\":false,\"failed\":false,\"bodies\":0,\"resets\":0,\"controller\":\"cove-player\",\"terrainSurface\":\"lego\",\"mouseCaptured\":false,\"origin\":[-12,-187.68,-32],\"world\":\"c12eb6da9ca36756c7aef075d03807b6\",\"camera\":{\"local\":[-13.2889,67.97,-82.9213],\"sector\":[0,-1,0],\"yaw\":-2.54159,\"pitch\":-0.502843,\"viewProjection\":[-0.804108,-0.47131,-0.494781,-0.494748,-6.53305e-7,1.51765,-0.481949,-0.481917,0.550118,-0.688912,-0.723222,-0.723174,34.9308,-166.544,-33.8875,-33.7852]},\"player\":{\"mode\":\"walking\",\"interaction\":\"none\",\"feet\":[6,1.285,-49],\"tick\":\"198\",\"interactions\":\"0\",\"collisionBoxes\":54,\"rootKey\":\"0\",\"onBoat\":false},\"cutter\":{\"canCut\":false,\"pending\":false,\"weld\":\"0\",\"label\":\"\",\"sections\":1,\"cutWelds\":0},\"rescue\":{\"phase\":\"idle\",\"pending\":false,\"completed\":\"0\",\"savePending\":false},\"pause\":{\"phase\":\"running\",\"canPause\":false,\"tick\":\"0\",\"waterTick\":\"56\",\"waterTime\":0.933333},\"workshop\":{\"open\":true,\"canOpen\":true,\"configurable\":false,\"hasOutputLimit\":false,\"canReverse\":false,\"settings\":{\"enabled\":true,\"limitPercent\":0,\"reversed\":false},\"selected\":0,\"name\":\"Pontoon\",\"valid\":true,\"changed\":false,\"undo\":1,\"revision\":\"1\",\"massKg\":945,\"parts\":10,\"placement\":[-25,-8,-2700],\"rotation\":0,\"message\":\"Design kept. Launch to sail these changes.\",\"catalogName\":\"Pontoon\",\"catalogIndex\":0,\"catalogCount\":11,\"canAdd\":true,\"partCost\":\"24\",\"partMachinery\":\"0\",\"catalog\":[{\"index\":0,\"name\":\"Pontoon\",\"cost\":\"24\"},{\"index\":1,\"name\":\"Beam\",\"cost\":\"12\"},{\"index\":2,\"name\":\"Deck plate\",\"cost\":\"10\"},{\"index\":3,\"name\":\"Engine\",\"cost\":\"30\"},{\"index\":4,\"name\":\"Propeller\",\"cost\":\"16\"},{\"index\":5,\"name\":\"Helm\",\"cost\":\"10\"},{\"index\":6,\"name\":\"Winch\",\"cost\":\"30\"},{\"index\":7,\"name\":\"Cargo cradle\",\"cost\":\"14\"},{\"index\":8,\"name\":\"Brick 1 x 2\",\"cost\":\"2\"},{\"index\":9,\"name\":\"Brick 2 x 2\",\"cost\":\"3\"},{\"index\":10,\"name\":\"Brick 2 x 4\",\"cost\":\"5\"}],\"pointerPlacement\":false,\"storedParts\":0,\"savePending\":false,\"canRebuild\":false,\"recoveryDesigns\":0,\"recoverySelected\":0,\"canLoadRecovery\":false,\"canRemoveRecovery\":false,\"recoveryDigests\":[],\"storedPartIds\":[],\"materials\":\"48\",\"machinery\":\"0\",\"affordable\":true,\"charge\":\"0\",\"refund\":\"0\",\"machineryCharge\":\"0\",\"machineryRefund\":\"0\",\"pending\":false,\"canLaunch\":true,\"canUndoLaunch\":false,\"canRedoLaunch\":false,\"launches\":0,\"lastLaunchTick\":0,\"launchMessage\":\"\"},\"boat\":{\"prepared\":true,\"active\":true,\"observedTick\":54,\"position\":[-0.477793,-0.13451,-53.9905],\"speed\":0.76117,\"orientation\":[-0.00492884,0.000199814,0.0123352,0.999912],\"helmPosition\":[0.494523,1.01864,-53.1021],\"buildId\":\"6\",\"topologyRevision\":\"0\",\"parts\":11,\"eventsThrough\":\"54\",\"attachmentBreaks\":\"0\",\"physicsTicks\":{\"supported\":true,\"failed\":false,\"incarnation\":\"1\",\"base\":\"0\",\"scheduled\":\"56\",\"encoded\":\"56\",\"submitted\":\"56\",\"completed\":\"54\",\"maximumInFlight\":2},\"sceneryCollision\":true,\"sceneryProxies\":13,\"thrustLimitNewtons\":2500,\"steeringLimitRadians\":0.6,\"thrustDirection\":[0,0,-1],\"massKg\":1035,\"displacementM3\":9.88403,\"paidPartIds\":[],\"rootCount\":1,\"controlPart\":\"15\",\"joinedTick\":\"54\",\"roots\":[{\"key\":\"7\",\"active\":true,\"observedTick\":\"54\",\"position\":[-0.477793,-0.13451,-53.9905],\"orientation\":[-0.00492884,0.000199814,0.0123352,0.999912],\"velocity\":[0.0285369,-0.740705,-0.172976],\"angularVelocity\":[0.172625,-0.0102253,0.0290391]}]},\"tow\":{\"name\":\"Salvage generator\",\"active\":true,\"attached\":false,\"broken\":false,\"hasWinch\":true,\"rootKey\":\"7\",\"operable\":false,\"inRange\":true,\"confirmed\":true,\"motor\":0,\"distance\":7.0118,\"ropeObservedTick\":\"0\",\"ropeLength\":null,\"observedTick\":54,\"position\":[-4.49979,-3.02552,-57.9995],\"speed\":0.0404712,\"massKg\":420},\"job\":{\"phase\":\"available\",\"pending\":false,\"canDeliver\":false,\"harborDistance\":6.40267,\"secured\":false,\"savePending\":false,\"durable\":false,\"message\":\"\"},\"harbor\":{\"installed\":false,\"durable\":false,\"pending\":false,\"atDock\":false,\"compatible\":true,\"attached\":false,\"brokenMask\":0,\"canInstall\":false,\"canAttach\":false,\"attachmentPending\":false,\"canOperate\":false,\"canRelease\":false,\"motor\":0,\"bodyObservedTick\":\"0\",\"stage\":0,\"message\":\"\",\"attachmentIssue\":\"\",\"rigIssue\":\"\",\"lengths\":[0,0,0,0],\"lineLoads\":[null,null,null,null]},\"session\":{\"revision\":\"0\",\"tick\":\"54\",\"admissionOpen\":true,\"builds\":1,\"buildParts\":11,\"buildConnections\":17,\"cargo\":1,\"jobs\":1,\"inventory\":{\"salvageMaterial\":\"48\",\"specialMachinery\":\"0\"}},\"observation\":{\"world\":\"c12eb6da9ca36756c7aef075d03807b6\",\"incarnation\":\"381b5f20769d17b7044f16e019229639\",\"epoch\":\"1\",\"publicationLost\":false,\"lanes\":[{\"through\":\"0\",\"retained\":0,\"overwritten\":\"0\",\"invalid\":\"0\",\"exhausted\":false},{\"through\":\"0\",\"retained\":0,\"overwritten\":\"0\",\"invalid\":\"0\",\"exhausted\":false},{\"through\":\"0\",\"retained\":0,\"overwritten\":\"0\",\"invalid\":\"0\",\"exhausted\":false}]},\"assetFixture\":{\"status\":2,\"generation\":\"1\",\"uploads\":36,\"prototypeUploads\":0,\"environmentGpuBytes\":\"1228944\",\"environmentBakeCount\":1,\"environmentReady\":true,\"gpuReservationBytes\":\"11920760\",\"submittedSerial\":\"56\",\"completedSerial\":\"54\",\"draws\":29,\"guides\":0,\"opaqueSceneGpuBytes\":\"6220800\",\"guideBoxes\":0,\"guideMeshGpuBytes\":1936,\"forcedLod\":\"0\",\"lods\":[\"2\",\"2\",\"2\",\"2\",\"2\",\"2\",\"2\",\"2\",\"2\",\"2\",\"2\",\"2\",\"2\",\"1\",\"1\",\"1\",\"1\",\"1\",\"1\",\"2\",\"1\",\"2\",\"1\",\"2\",\"2\"],\"availableLods\":[\"0\",\"1\",\"2\",\"3\"]}}",
+      "continues": null,
+      "stages": []
+    },
+    {
+      "source": "build-cove-builder-3bh5dr4t/browser-r02/summary.json",
+      "sha256": "ff31bae8a3e4085a45f452630213cf32e41c5420c5988f34737bb646dd765c16",
+      "status": "failed",
+      "error": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert(clip[3]>0)\n",
+      "continues": null,
+      "stages": []
+    },
+    {
+      "source": "build-cove-builder-3bh5dr4t/browser-r03/summary.json",
+      "sha256": "d3389169da8838b4f8a10d8f06f9966edd53432eafba488deee4847c775e36e9",
+      "status": "failed",
+      "error": "AssertionError [ERR_ASSERTION]: salvage-pause must be visible, enabled and unobstructed",
+      "continues": null,
+      "stages": [
+        {
+          "name": "placed-brick-1",
+          "world": "963d52c06b195929566d224ffa3d168b",
+          "terrainSurface": "lego",
+          "workshop": {
+            "name": "Brick 2 x 4",
+            "placement": [
+              100,
+              72,
+              -2775
+            ],
+            "rotation": 0,
+            "parts": 11,
+            "massKg": 993,
+            "valid": true,
+            "changed": false,
+            "charge": "5"
+          },
+          "boat": {
+            "parts": 11,
+            "massKg": 1035,
+            "paidPartIds": [],
+            "position": [
+              -0.463451,
+              0.0906792,
+              -53.9513
+            ],
+            "speed": 1.40485,
+            "observedTick": 38
+          },
+          "inventory": {
+            "salvageMaterial": "48",
+            "specialMachinery": "0"
+          },
+          "player": {
+            "mode": "walking",
+            "interaction": "none",
+            "onBoat": false
+          }
+        },
+        {
+          "name": "placed-brick-2",
+          "world": "963d52c06b195929566d224ffa3d168b",
+          "terrainSurface": "lego",
+          "workshop": {
+            "name": "Brick 2 x 2",
+            "placement": [
+              100,
+              120,
+              -2775
+            ],
+            "rotation": 0,
+            "parts": 12,
+            "massKg": 1017,
+            "valid": true,
+            "changed": false,
+            "charge": "8"
+          },
+          "boat": {
+            "parts": 11,
+            "massKg": 1035,
+            "paidPartIds": [],
+            "position": [
+              -0.474899,
+              0.0135384,
+              -53.9562
+            ],
+            "speed": 1.03956,
+            "observedTick": 42
+          },
+          "inventory": {
+            "salvageMaterial": "48",
+            "specialMachinery": "0"
+          },
+          "player": {
+            "mode": "walking",
+            "interaction": "none",
+            "onBoat": false
+          }
+        },
+        {
+          "name": "placed-brick-3",
+          "world": "963d52c06b195929566d224ffa3d168b",
+          "terrainSurface": "lego",
+          "workshop": {
+            "name": "Brick 1 x 2",
+            "placement": [
+              75,
+              168,
+              -2775
+            ],
+            "rotation": 21,
+            "parts": 13,
+            "massKg": 1029,
+            "valid": true,
+            "changed": false,
+            "charge": "10"
+          },
+          "boat": {
+            "parts": 11,
+            "massKg": 1035,
+            "paidPartIds": [],
+            "position": [
+              -0.47974,
+              -0.042984,
+              -53.966
+            ],
+            "speed": 0.777047,
+            "observedTick": 46
+          },
+          "inventory": {
+            "salvageMaterial": "48",
+            "specialMachinery": "0"
+          },
+          "player": {
+            "mode": "walking",
+            "interaction": "none",
+            "onBoat": false
+          }
+        },
+        {
+          "name": "placed-brick-4",
+          "world": "963d52c06b195929566d224ffa3d168b",
+          "terrainSurface": "lego",
+          "workshop": {
+            "name": "Brick 2 x 4",
+            "placement": [
+              50,
+              216,
+              -2775
+            ],
+            "rotation": 21,
+            "parts": 14,
+            "massKg": 1077,
+            "valid": true,
+            "changed": false,
+            "charge": "15"
+          },
+          "boat": {
+            "parts": 11,
+            "massKg": 1035,
+            "paidPartIds": [],
+            "position": [
+              -0.4797,
+              -0.0882263,
+              -53.9784
+            ],
+            "speed": 0.681728,
+            "observedTick": 50
+          },
+          "inventory": {
+            "salvageMaterial": "48",
+            "specialMachinery": "0"
+          },
+          "player": {
+            "mode": "walking",
+            "interaction": "none",
+            "onBoat": false
+          }
+        },
+        {
+          "name": "placed-brick-5",
+          "world": "963d52c06b195929566d224ffa3d168b",
+          "terrainSurface": "lego",
+          "workshop": {
+            "name": "Brick 2 x 2",
+            "placement": [
+              50,
+              264,
+              -2825
+            ],
+            "rotation": 21,
+            "parts": 15,
+            "massKg": 1101,
+            "valid": true,
+            "changed": false,
+            "charge": "18"
+          },
+          "boat": {
+            "parts": 11,
+            "massKg": 1035,
+            "paidPartIds": [],
+            "position": [
+              -0.477793,
+              -0.13451,
+              -53.9905
+            ],
+            "speed": 0.76117,
+            "observedTick": 54
+          },
+          "inventory": {
+            "salvageMaterial": "48",
+            "specialMachinery": "0"
+          },
+          "player": {
+            "mode": "walking",
+            "interaction": "none",
+            "onBoat": false
+          }
+        },
+        {
+          "name": "placed-brick-6",
+          "world": "963d52c06b195929566d224ffa3d168b",
+          "terrainSurface": "lego",
+          "workshop": {
+            "name": "Brick 1 x 2",
+            "placement": [
+              25,
+              312,
+              -2875
+            ],
+            "rotation": 21,
+            "parts": 16,
+            "massKg": 1113,
+            "valid": true,
+            "changed": false,
+            "charge": "20"
+          },
+          "boat": {
+            "parts": 11,
+            "massKg": 1035,
+            "paidPartIds": [],
+            "position": [
+              -0.477028,
+              -0.193485,
+              -54.0001
+            ],
+            "speed": 0.993883,
+            "observedTick": 58
+          },
+          "inventory": {
+            "salvageMaterial": "48",
+            "specialMachinery": "0"
+          },
+          "player": {
+            "mode": "walking",
+            "interaction": "none",
+            "onBoat": false
+          }
+        },
+        {
+          "name": "placed-brick-7",
+          "world": "963d52c06b195929566d224ffa3d168b",
+          "terrainSurface": "lego",
+          "workshop": {
+            "name": "Brick 2 x 2",
+            "placement": [
+              0,
+              360,
+              -2875
+            ],
+            "rotation": 21,
+            "parts": 17,
+            "massKg": 1137,
+            "valid": true,
+            "changed": false,
+            "charge": "23"
+          },
+          "boat": {
+            "parts": 11,
+            "massKg": 1035,
+            "paidPartIds": [],
+            "position": [
+              -0.479273,
+              -0.272705,
+              -54.0056
+            ],
+            "speed": 1.3154,
+            "observedTick": 62
+          },
+          "inventory": {
+            "salvageMaterial": "48",
+            "specialMachinery": "0"
+          },
+          "player": {
+            "mode": "walking",
+            "interaction": "none",
+            "onBoat": false
+          }
+        },
+        {
+          "name": "placed-brick-8",
+          "world": "963d52c06b195929566d224ffa3d168b",
+          "terrainSurface": "lego",
+          "workshop": {
+            "name": "Brick 1 x 2",
+            "placement": [
+              -25,
+              408,
+              -2875
+            ],
+            "rotation": 21,
+            "parts": 18,
+            "massKg": 1149,
+            "valid": true,
+            "changed": false,
+            "charge": "25"
+          },
+          "boat": {
+            "parts": 11,
+            "massKg": 1035,
+            "paidPartIds": [],
+            "position": [
+              -0.484812,
+              -0.373512,
+              -54.0067
+            ],
+            "speed": 1.62627,
+            "observedTick": 66
+          },
+          "inventory": {
+            "salvageMaterial": "48",
+            "specialMachinery": "0"
+          },
+          "player": {
+            "mode": "walking",
+            "interaction": "none",
+            "onBoat": false
+          }
+        },
+        {
+          "name": "overlap-refused-and-remove-undone",
+          "world": "963d52c06b195929566d224ffa3d168b",
+          "terrainSurface": "lego",
+          "workshop": {
+            "name": "Pontoon",
+            "placement": [
+              -25,
+              -8,
+              -2700
+            ],
+            "rotation": 0,
+            "parts": 18,
+            "massKg": 1149,
+            "valid": true,
+            "changed": false,
+            "charge": "25"
+          },
+          "boat": {
+            "parts": 11,
+            "massKg": 1035,
+            "paidPartIds": [],
+            "position": [
+              -0.496073,
+              -0.552349,
+              -54.0019
+            ],
+            "speed": 1.85598,
+            "observedTick": 72
+          },
+          "inventory": {
+            "salvageMaterial": "48",
+            "specialMachinery": "0"
+          },
+          "player": {
+            "mode": "walking",
+            "interaction": "none",
+            "onBoat": false
+          }
+        },
+        {
+          "name": "launched-eight-bricks",
+          "world": "963d52c06b195929566d224ffa3d168b",
+          "terrainSurface": "lego",
+          "workshop": {
+            "name": "Winch",
+            "placement": [
+              -25,
+              96,
+              -2750
+            ],
+            "rotation": 0,
+            "parts": 18,
+            "massKg": 1149,
+            "valid": true,
+            "changed": false,
+            "charge": "0"
+          },
+          "boat": {
+            "parts": 18,
+            "massKg": 1149,
+            "paidPartIds": [
+              "35",
+              "36",
+              "37",
+              "38",
+              "39",
+              "40",
+              "41",
+              "42"
+            ],
+            "position": [
+              -0.499926,
+              -0.600002,
+              -53.9998
+            ],
+            "speed": 0.0276648,
+            "observedTick": 76
+          },
+          "inventory": {
+            "salvageMaterial": "23",
+            "specialMachinery": "0"
+          },
+          "player": {
+            "mode": "walking",
+            "interaction": "none",
+            "onBoat": false
+          }
+        },
+        {
+          "name": "saved-eight-bricks",
+          "world": "963d52c06b195929566d224ffa3d168b",
+          "terrainSurface": "lego",
+          "workshop": {
+            "name": "Winch",
+            "placement": [
+              -25,
+              96,
+              -2750
+            ],
+            "rotation": 0,
+            "parts": 18,
+            "massKg": 1149,
+            "valid": true,
+            "changed": false,
+            "charge": "0"
+          },
+          "boat": {
+            "parts": 18,
+            "massKg": 1149,
+            "paidPartIds": [
+              "35",
+              "36",
+              "37",
+              "38",
+              "39",
+              "40",
+              "41",
+              "42"
+            ],
+            "position": [
+              -0.499254,
+              -0.611408,
+              -53.9972
+            ],
+            "speed": 0.28588,
+            "observedTick": 80
+          },
+          "inventory": {
+            "salvageMaterial": "23",
+            "specialMachinery": "0"
+          },
+          "player": {
+            "mode": "walking",
+            "interaction": "none",
+            "onBoat": false
+          }
+        }
+      ]
+    },
+    {
+      "source": "build-cove-builder-3bh5dr4t/browser-resume-r01/summary.json",
+      "sha256": "bea0678358f6743c0e16668f6d0f44053d03c358ad55b9a2254c66e171bb6436",
+      "status": "failed",
+      "error": "Error: Walk failed to reach 5.1,-49: {\"mode\":\"walking\",\"interaction\":\"none\",\"feet\":[5.14708,1.285,-49.2239],\"tick\":\"618\",\"interactions\":\"0\",\"collisionBoxes\":192,\"rootKey\":\"0\",\"onBoat\":false}",
+      "continues": "build-cove-builder-3bh5dr4t/browser-r03/summary.json",
+      "stages": [
+        {
+          "name": "resumed-exact-brick-layout",
+          "world": "963d52c06b195929566d224ffa3d168b",
+          "terrainSurface": "lego",
+          "workshop": {
+            "name": "Winch",
+            "placement": [
+              -25,
+              96,
+              -2750
+            ],
+            "rotation": 0,
+            "parts": 18,
+            "massKg": 1149,
+            "valid": true,
+            "changed": false,
+            "charge": "0"
+          },
+          "boat": {
+            "parts": 18,
+            "massKg": 1149,
+            "paidPartIds": [
+              "35",
+              "36",
+              "37",
+              "38",
+              "39",
+              "40",
+              "41",
+              "42"
+            ],
+            "position": [
+              -0.493399,
+              -0.975716,
+              -53.9621
+            ],
+            "speed": 1.93238,
+            "observedTick": 98
+          },
+          "inventory": {
+            "salvageMaterial": "23",
+            "specialMachinery": "0"
+          },
+          "player": {
+            "mode": "walking",
+            "interaction": "none",
+            "onBoat": false
+          }
+        }
+      ]
+    },
+    {
+      "source": "build-cove-builder-3bh5dr4t/browser-resume-r02/summary.json",
+      "sha256": "95d84874f4aa7ae18a31069744073a573fbab345a697c02caa2bb0493a07c339",
+      "status": "failed",
+      "error": "Error: Walk failed to reach 4.5,-49: {\"mode\":\"walking\",\"interaction\":\"none\",\"feet\":[4.67038,1.285,-49.0451],\"tick\":\"618\",\"interactions\":\"0\",\"collisionBoxes\":192,\"rootKey\":\"0\",\"onBoat\":false}",
+      "continues": "build-cove-builder-3bh5dr4t/browser-r03/summary.json",
+      "stages": [
+        {
+          "name": "resumed-exact-brick-layout",
+          "world": "963d52c06b195929566d224ffa3d168b",
+          "terrainSurface": "lego",
+          "workshop": {
+            "name": "Winch",
+            "placement": [
+              -25,
+              96,
+              -2750
+            ],
+            "rotation": 0,
+            "parts": 18,
+            "massKg": 1149,
+            "valid": true,
+            "changed": false,
+            "charge": "0"
+          },
+          "boat": {
+            "parts": 18,
+            "massKg": 1149,
+            "paidPartIds": [
+              "35",
+              "36",
+              "37",
+              "38",
+              "39",
+              "40",
+              "41",
+              "42"
+            ],
+            "position": [
+              -0.493399,
+              -0.975716,
+              -53.9621
+            ],
+            "speed": 1.93238,
+            "observedTick": 98
+          },
+          "inventory": {
+            "salvageMaterial": "23",
+            "specialMachinery": "0"
+          },
+          "player": {
+            "mode": "walking",
+            "interaction": "none",
+            "onBoat": false
+          }
+        }
+      ]
+    },
+    {
+      "source": "build-cove-builder-3bh5dr4t/browser-resume-r03/summary.json",
+      "sha256": "ea20f431a6cc0b36b43d1d3074bc01c3370ca20da9505e3df33dbd9af66086f9",
+      "status": "passed",
+      "error": null,
+      "continues": "build-cove-builder-3bh5dr4t/browser-r03/summary.json",
+      "stages": [
+        {
+          "name": "resumed-exact-brick-layout",
+          "world": "963d52c06b195929566d224ffa3d168b",
+          "terrainSurface": "lego",
+          "workshop": {
+            "name": "Winch",
+            "placement": [
+              -25,
+              96,
+              -2750
+            ],
+            "rotation": 0,
+            "parts": 18,
+            "massKg": 1149,
+            "valid": true,
+            "changed": false,
+            "charge": "0"
+          },
+          "boat": {
+            "parts": 18,
+            "massKg": 1149,
+            "paidPartIds": [
+              "35",
+              "36",
+              "37",
+              "38",
+              "39",
+              "40",
+              "41",
+              "42"
+            ],
+            "position": [
+              -0.493399,
+              -0.975716,
+              -53.9621
+            ],
+            "speed": 1.93238,
+            "observedTick": 98
+          },
+          "inventory": {
+            "salvageMaterial": "23",
+            "specialMachinery": "0"
+          },
+          "player": {
+            "mode": "walking",
+            "interaction": "none",
+            "onBoat": false
+          }
+        },
+        {
+          "name": "sailed-brick-built-boat",
+          "world": "963d52c06b195929566d224ffa3d168b",
+          "terrainSurface": "lego",
+          "workshop": {
+            "name": "Winch",
+            "placement": [
+              -25,
+              96,
+              -2750
+            ],
+            "rotation": 0,
+            "parts": 18,
+            "massKg": 1149,
+            "valid": true,
+            "changed": false,
+            "charge": "0"
+          },
+          "boat": {
+            "parts": 18,
+            "massKg": 1149,
+            "paidPartIds": [
+              "35",
+              "36",
+              "37",
+              "38",
+              "39",
+              "40",
+              "41",
+              "42"
+            ],
+            "position": [
+              -0.520147,
+              -1.48561,
+              -55.4214
+            ],
+            "speed": 1.86092,
+            "observedTick": 226
+          },
+          "inventory": {
+            "salvageMaterial": "23",
+            "specialMachinery": "0"
+          },
+          "player": {
+            "mode": "helm",
+            "interaction": "leave-helm",
+            "onBoat": true
+          }
+        }
+      ]
+    },
+    {
+      "source": "build-cove-builder-3bh5dr4t/native-r01/summary.json",
+      "sha256": "fbce37517ace6827d367afe744b697b36b96e9fc43cece568847dfa7c7be6bdc",
+      "status": "failed",
+      "error": "clear cargo deck: {\"active\": true, \"ready\": true, \"busy\": false, \"failed\": false, \"bodies\": 0, \"resets\": 0, \"controller\": \"cove-player\", \"terrainSurface\": \"lego\", \"mouseCaptured\": false, \"origin\": [-12, -187.68, -32], \"world\": \"fe2fdcd0479af9ae61b06b51e10a4425\", \"camera\": {\"local\": [-13.2889, 67.97, -82.9213], \"sector\": [0, -1, 0], \"yaw\": -2.54159, \"pitch\": -0.502843, \"viewProjection\": [-0.804107, -0.47131, -0.494781, -0.494748, -6.67734e-07, 1.51765, -0.481949, -0.481917, 0.550118, -0.688912, -0.723222, -0.723174, 34.9308, -166.544, -33.8875, -33.7852]}, \"player\": {\"mode\": \"walking\", \"interaction\": \"none\", \"feet\": [6, 1.285, -49], \"tick\": \"7\", \"interactions\": \"0\", \"collisionBoxes\": 54, \"rootKey\": \"0\", \"onBoat\": false}, \"cutter\": {\"canCut\": false, \"pending\": false, \"weld\": \"0\", \"label\": \"\", \"sections\": 1, \"cutWelds\": 0}, \"rescue\": {\"phase\": \"idle\", \"pending\": false, \"completed\": \"0\", \"savePending\": false}, \"pause\": {\"phase\": \"running\", \"canPause\": false, \"tick\": \"0\", \"waterTick\": \"664\", \"waterTime\": 11.0667}, \"workshop\": {\"open\": true, \"canOpen\": true, \"displayOrigin\": [-19, -196, -37], \"configurable\": false, \"hasOutputLimit\": false, \"canReverse\": false, \"settings\": {\"enabled\": true, \"limitPercent\": 0, \"reversed\": false}, \"selected\": 10, \"name\": \"Cargo cradle\", \"valid\": true, \"changed\": true, \"undo\": 0, \"revision\": \"0\", \"massKg\": 945, \"parts\": 10, \"placement\": [75, 64, -2750], \"rotation\": 0, \"message\": \"Fits. Keep this change or try another socket.\", \"catalogName\": \"Pontoon\", \"catalogIndex\": 0, \"catalogCount\": 11, \"canAdd\": false, \"partCost\": \"24\", \"partMachinery\": \"0\", \"catalog\": [{\"index\": 0, \"name\": \"Pontoon\", \"cost\": \"24\"}, {\"index\": 1, \"name\": \"Beam\", \"cost\": \"12\"}, {\"index\": 2, \"name\": \"Deck plate\", \"cost\": \"10\"}, {\"index\": 3, \"name\": \"Engine\", \"cost\": \"30\"}, {\"index\": 4, \"name\": \"Propeller\", \"cost\": \"16\"}, {\"index\": 5, \"name\": \"Helm\", \"cost\": \"10\"}, {\"index\": 6, \"name\": \"Winch\", \"cost\": \"30\"}, {\"index\": 7, \"name\": \"Cargo cradle\", \"cost\": \"14\"}, {\"index\": 8, \"name\": \"Brick 1 x 2\", \"cost\": \"2\"}, {\"index\": 9, \"name\": \"Brick 2 x 2\", \"cost\": \"3\"}, {\"index\": 10, \"name\": \"Brick 2 x 4\", \"cost\": \"5\"}], \"pointerPlacement\": false, \"storedParts\": 0, \"savePending\": false, \"canRebuild\": false, \"recoveryDesigns\": 0, \"recoverySelected\": 0, \"canLoadRecovery\": false, \"canRemoveRecovery\": false, \"recoveryDigests\": [], \"storedPartIds\": [], \"materials\": \"48\", \"machinery\": \"0\", \"affordable\": true, \"charge\": \"0\", \"refund\": \"0\", \"machineryCharge\": \"0\", \"machineryRefund\": \"0\", \"pending\": false, \"canLaunch\": false, \"canUndoLaunch\": false, \"canRedoLaunch\": false, \"launches\": 0, \"lastLaunchTick\": 0, \"launchMessage\": \"\"}, \"boat\": {\"prepared\": true, \"active\": true, \"observedTick\": 664, \"position\": [-0.50157, -0.042511, -54.026], \"speed\": 0.987484, \"orientation\": [0.0134415, -0.000849037, -0.0010819, 0.999909], \"helmPosition\": [0.49927, 1.0507, -53.0946], \"buildId\": \"6\", \"topologyRevision\": \"0\", \"parts\": 11, \"eventsThrough\": \"664\", \"attachmentBreaks\": \"0\", \"physicsTicks\": {\"supported\": true, \"failed\": false, \"incarnation\": \"1\", \"base\": \"0\", \"scheduled\": \"664\", \"encoded\": \"664\", \"submitted\": \"664\", \"completed\": \"664\", \"maximumInFlight\": 2}, \"sceneryCollision\": true, \"sceneryProxies\": 13, \"thrustLimitNewtons\": 2500, \"steeringLimitRadians\": 0.6, \"thrustDirection\": [0, 0, -1], \"massKg\": 1035, \"displacementM3\": 9.88403, \"paidPartIds\": [], \"rootCount\": 1, \"controlPart\": \"15\", \"joinedTick\": \"664\", \"roots\": [{\"key\": \"7\", \"active\": true, \"observedTick\": \"664\", \"position\": [-0.50157, -0.042511, -54.026], \"orientation\": [0.0134415, -0.000849037, -0.0010819, 0.999909], \"velocity\": [-0.0548875, 0.984043, -0.0614025], \"angularVelocity\": [0.0683481, -0.00105997, -0.0628565]}]}, \"tow\": {\"name\": \"Salvage generator\", \"active\": true, \"attached\": false, \"broken\": false, \"hasWinch\": true, \"rootKey\": \"7\", \"operable\": false, \"inRange\": true, \"confirmed\": true, \"motor\": 0, \"distance\": 7.1782, \"ropeObservedTick\": \"0\", \"ropeLength\": null, \"observedTick\": 664, \"position\": [-4.50008, -3.02547, -57.9981], \"speed\": 0.0393288, \"massKg\": 420}, \"job\": {\"phase\": \"available\", \"pending\": false, \"canDeliver\": false, \"harborDistance\": 6.40199, \"secured\": false, \"savePending\": false, \"durable\": false, \"message\": \"\"}, \"harbor\": {\"installed\": false, \"durable\": false, \"pending\": false, \"atDock\": false, \"compatible\": true, \"attached\": false, \"brokenMask\": 0, \"canInstall\": false, \"canAttach\": false, \"attachmentPending\": false, \"canOperate\": false, \"canRelease\": false, \"motor\": 0, \"bodyObservedTick\": \"0\", \"stage\": 0, \"message\": \"\", \"attachmentIssue\": \"\", \"rigIssue\": \"\", \"lengths\": [0, 0, 0, 0], \"lineLoads\": [null, null, null, null]}, \"session\": {\"revision\": \"0\", \"tick\": \"664\", \"admissionOpen\": true, \"builds\": 1, \"buildParts\": 11, \"buildConnections\": 17, \"cargo\": 1, \"jobs\": 1, \"inventory\": {\"salvageMaterial\": \"48\", \"specialMachinery\": \"0\"}}, \"observation\": {\"world\": \"fe2fdcd0479af9ae61b06b51e10a4425\", \"incarnation\": \"ce6e204936d3706392611963929a0720\", \"epoch\": \"1\", \"publicationLost\": false, \"lanes\": [{\"through\": \"0\", \"retained\": 0, \"overwritten\": \"0\", \"invalid\": \"0\", \"exhausted\": false}, {\"through\": \"0\", \"retained\": 0, \"overwritten\": \"0\", \"invalid\": \"0\", \"exhausted\": false}, {\"through\": \"0\", \"retained\": 0, \"overwritten\": \"0\", \"invalid\": \"0\", \"exhausted\": false}]}, \"assetFixture\": {\"status\": 2, \"generation\": \"1\", \"uploads\": 36, \"prototypeUploads\": 0, \"environmentGpuBytes\": \"1228944\", \"environmentBakeCount\": 1, \"environmentReady\": true, \"gpuReservationBytes\": \"11920760\", \"submittedSerial\": \"14143\", \"completedSerial\": \"14138\", \"draws\": 29, \"guides\": 0, \"opaqueSceneGpuBytes\": \"6220800\", \"guideBoxes\": 0, \"guideMeshGpuBytes\": 1936, \"forcedLod\": \"0\", \"lods\": [\"2\", \"2\", \"2\", \"2\", \"2\", \"2\", \"2\", \"2\", \"2\", \"2\", \"2\", \"2\", \"2\", \"1\", \"1\", \"1\", \"1\", \"1\", \"1\", \"2\", \"1\", \"2\", \"1\", \"2\", \"2\"], \"availableLods\": [\"0\", \"1\", \"2\", \"3\"]}}",
+      "continues": null,
+      "stages": [
+        {
+          "name": "pre-brick-save-resumed",
+          "world": "c708a658908c35223b4ed6be5999becf",
+          "terrainSurface": "lego",
+          "workshop": {
+            "name": null,
+            "placement": null,
+            "rotation": null,
+            "parts": null,
+            "massKg": null,
+            "valid": null,
+            "changed": null,
+            "charge": null
+          },
+          "boat": {
+            "parts": 13,
+            "massKg": 1275,
+            "paidPartIds": [
+              "35",
+              "100"
+            ],
+            "position": [
+              -0.485527,
+              0.247822,
+              -54.0334
+            ],
+            "speed": 5.60924,
+            "observedTick": 18
+          },
+          "inventory": {
+            "salvageMaterial": "0",
+            "specialMachinery": "0"
+          },
+          "player": {
+            "mode": "walking",
+            "interaction": "none",
+            "onBoat": false
+          }
+        }
+      ]
+    },
+    {
+      "source": "build-cove-builder-3bh5dr4t/native-r02/summary.json",
+      "sha256": "daea6fa633430e22501ded18b347169787cb0eb67715f5f55a995c05f47bb4d9",
+      "status": "failed",
+      "error": "([('Brick 2 x 2', (100, 120, -2775), 0), ('Brick 2 x 2', (100, 120, -2775), 0), ('Brick 2 x 2', (100, 120, -2775), 0), ('Brick 2 x 2', (100, 120, -2775), 0), ('Brick 2 x 2', (100, 120, -2775), 0), ('Brick 2 x 2', (100, 120, -2775), 0), ('Brick 2 x 2', (100, 120, -2775), 0), ('Brick 1 x 2', (75, 168, -2775), 21), ('Brick 2 x 2', (50, 264, -2775), 21), ('Brick 2 x 2', (50, 264, -2775), 21), ('Brick 2 x 2', (50, 264, -2775), 21)], [('Brick 2 x 4', (100, 72, -2775), 0), ('Brick 2 x 2', (100, 120, -2775), 0), ('Brick 1 x 2', (75, 168, -2775), 21), ('Brick 2 x 4', (50, 216, -2775), 21), ('Brick 2 x 2', (50, 264, -2775), 21), ('Brick 1 x 2', (25, 312, -2775), 21), ('Brick 2 x 2', (0, 360, -2775), 21), ('Brick 1 x 2', (-25, 408, -2775), 21)])",
+      "continues": null,
+      "stages": [
+        {
+          "name": "placed-brick-1",
+          "world": "df314a0502c8ef92ad8d9a2419a7a5f7",
+          "terrainSurface": "lego",
+          "workshop": {
+            "name": "Brick 2 x 4",
+            "placement": [
+              100,
+              72,
+              -2775
+            ],
+            "rotation": 0,
+            "parts": 11,
+            "massKg": 993,
+            "valid": true,
+            "changed": false,
+            "charge": "5"
+          },
+          "boat": {
+            "parts": 11,
+            "massKg": 1035,
+            "paidPartIds": [],
+            "position": [
+              -0.483765,
+              -0.354942,
+              -54.0066
+            ],
+            "speed": 1.62596,
+            "observedTick": 65
+          },
+          "inventory": {
+            "salvageMaterial": "48",
+            "specialMachinery": "0"
+          },
+          "player": {
+            "mode": "walking",
+            "interaction": "none",
+            "onBoat": false
+          }
+        },
+        {
+          "name": "placed-brick-2",
+          "world": "df314a0502c8ef92ad8d9a2419a7a5f7",
+          "terrainSurface": "lego",
+          "workshop": {
+            "name": "Brick 2 x 2",
+            "placement": [
+              100,
+              120,
+              -2775
+            ],
+            "rotation": 0,
+            "parts": 12,
+            "massKg": 1017,
+            "valid": true,
+            "changed": false,
+            "charge": "8"
+          },
+          "boat": {
+            "parts": 11,
+            "massKg": 1035,
+            "paidPartIds": [],
+            "position": [
+              -0.492563,
+              -0.91745,
+              -53.9995
+            ],
+            "speed": 0.572433,
+            "observedTick": 89
+          },
+          "inventory": {
+            "salvageMaterial": "48",
+            "specialMachinery": "0"
+          },
+          "player": {
+            "mode": "walking",
+            "interaction": "none",
+            "onBoat": false
+          }
+        },
+        {
+          "name": "placed-brick-3",
+          "world": "df314a0502c8ef92ad8d9a2419a7a5f7",
+          "terrainSurface": "lego",
+          "workshop": {
+            "name": "Brick 1 x 2",
+            "placement": [
+              75,
+              168,
+              -2775
+            ],
+            "rotation": 21,
+            "parts": 13,
+            "massKg": 1029,
+            "valid": true,
+            "changed": false,
+            "charge": "10"
+          },
+          "boat": {
+            "parts": 11,
+            "massKg": 1035,
+            "paidPartIds": [],
+            "position": [
+              -0.496851,
+              -1.48602,
+              -53.9756
+            ],
+            "speed": 0.943089,
+            "observedTick": 125
+          },
+          "inventory": {
+            "salvageMaterial": "48",
+            "specialMachinery": "0"
+          },
+          "player": {
+            "mode": "walking",
+            "interaction": "none",
+            "onBoat": false
+          }
+        },
+        {
+          "name": "placed-brick-4",
+          "world": "df314a0502c8ef92ad8d9a2419a7a5f7",
+          "terrainSurface": "lego",
+          "workshop": {
+            "name": "Brick 2 x 4",
+            "placement": [
+              50,
+              216,
+              -2775
+            ],
+            "rotation": 21,
+            "parts": 14,
+            "massKg": 1077,
+            "valid": true,
+            "changed": false,
+            "charge": "15"
+          },
+          "boat": {
+            "parts": 11,
+            "massKg": 1035,
+            "paidPartIds": [],
+            "position": [
+              -0.509512,
+              -1.56739,
+              -54.0147
+            ],
+            "speed": 0.538883,
+            "observedTick": 155
+          },
+          "inventory": {
+            "salvageMaterial": "48",
+            "specialMachinery": "0"
+          },
+          "player": {
+            "mode": "walking",
+            "interaction": "none",
+            "onBoat": false
+          }
+        },
+        {
+          "name": "placed-brick-5",
+          "world": "df314a0502c8ef92ad8d9a2419a7a5f7",
+          "terrainSurface": "lego",
+          "workshop": {
+            "name": "Brick 2 x 2",
+            "placement": [
+              50,
+              264,
+              -2775
+            ],
+            "rotation": 21,
+            "parts": 15,
+            "massKg": 1101,
+            "valid": true,
+            "changed": false,
+            "charge": "18"
+          },
+          "boat": {
+            "parts": 11,
+            "massKg": 1035,
+            "paidPartIds": [],
+            "position": [
+              -0.470938,
+              -1.72521,
+              -54.014
+            ],
+            "speed": 0.120707,
+            "observedTick": 173
+          },
+          "inventory": {
+            "salvageMaterial": "48",
+            "specialMachinery": "0"
+          },
+          "player": {
+            "mode": "walking",
+            "interaction": "none",
+            "onBoat": false
+          }
+        },
+        {
+          "name": "placed-brick-6",
+          "world": "df314a0502c8ef92ad8d9a2419a7a5f7",
+          "terrainSurface": "lego",
+          "workshop": {
+            "name": "Brick 1 x 2",
+            "placement": [
+              25,
+              312,
+              -2775
+            ],
+            "rotation": 21,
+            "parts": 16,
+            "massKg": 1113,
+            "valid": true,
+            "changed": false,
+            "charge": "20"
+          },
+          "boat": {
+            "parts": 11,
+            "massKg": 1035,
+            "paidPartIds": [],
+            "position": [
+              -0.487961,
+              -1.57509,
+              -54.0014
+            ],
+            "speed": 0.591535,
+            "observedTick": 191
+          },
+          "inventory": {
+            "salvageMaterial": "48",
+            "specialMachinery": "0"
+          },
+          "player": {
+            "mode": "walking",
+            "interaction": "none",
+            "onBoat": false
+          }
+        },
+        {
+          "name": "placed-brick-7",
+          "world": "df314a0502c8ef92ad8d9a2419a7a5f7",
+          "terrainSurface": "lego",
+          "workshop": {
+            "name": "Brick 2 x 2",
+            "placement": [
+              0,
+              360,
+              -2775
+            ],
+            "rotation": 21,
+            "parts": 17,
+            "massKg": 1137,
+            "valid": true,
+            "changed": false,
+            "charge": "23"
+          },
+          "boat": {
+            "parts": 11,
+            "massKg": 1035,
+            "paidPartIds": [],
+            "position": [
+              -0.499588,
+              -1.58154,
+              -53.9856
+            ],
+            "speed": 0.426935,
+            "observedTick": 209
+          },
+          "inventory": {
+            "salvageMaterial": "48",
+            "specialMachinery": "0"
+          },
+          "player": {
+            "mode": "walking",
+            "interaction": "none",
+            "onBoat": false
+          }
+        },
+        {
+          "name": "placed-brick-8",
+          "world": "df314a0502c8ef92ad8d9a2419a7a5f7",
+          "terrainSurface": "lego",
+          "workshop": {
+            "name": "Brick 1 x 2",
+            "placement": [
+              -25,
+              408,
+              -2775
+            ],
+            "rotation": 21,
+            "parts": 18,
+            "massKg": 1149,
+            "valid": true,
+            "changed": false,
+            "charge": "25"
+          },
+          "boat": {
+            "parts": 11,
+            "massKg": 1035,
+            "paidPartIds": [],
+            "position": [
+              -0.4618,
+              -1.58054,
+              -54.0113
+            ],
+            "speed": 0.532174,
+            "observedTick": 227
+          },
+          "inventory": {
+            "salvageMaterial": "48",
+            "specialMachinery": "0"
+          },
+          "player": {
+            "mode": "walking",
+            "interaction": "none",
+            "onBoat": false
+          }
+        },
+        {
+          "name": "remove-undone",
+          "world": "df314a0502c8ef92ad8d9a2419a7a5f7",
+          "terrainSurface": "lego",
+          "workshop": {
+            "name": "Pontoon",
+            "placement": [
+              -25,
+              -8,
+              -2700
+            ],
+            "rotation": 0,
+            "parts": 18,
+            "massKg": 1149,
+            "valid": true,
+            "changed": false,
+            "charge": "25"
+          },
+          "boat": {
+            "parts": 11,
+            "massKg": 1035,
+            "paidPartIds": [],
+            "position": [
+              -0.487976,
+              -1.29783,
+              -54.0213
+            ],
+            "speed": 0.447035,
+            "observedTick": 269
+          },
+          "inventory": {
+            "salvageMaterial": "48",
+            "specialMachinery": "0"
+          },
+          "player": {
+            "mode": "walking",
+            "interaction": "none",
+            "onBoat": false
+          }
+        },
+        {
+          "name": "launched-eight-bricks",
+          "world": "df314a0502c8ef92ad8d9a2419a7a5f7",
+          "terrainSurface": "lego",
+          "workshop": {
+            "name": "Winch",
+            "placement": [
+              -25,
+              96,
+              -2750
+            ],
+            "rotation": 0,
+            "parts": 18,
+            "massKg": 1149,
+            "valid": true,
+            "changed": false,
+            "charge": "0"
+          },
+          "boat": {
+            "parts": 18,
+            "massKg": 1149,
+            "paidPartIds": [
+              "35",
+              "36",
+              "37",
+              "38",
+              "39",
+              "40",
+              "41",
+              "42"
+            ],
+            "position": [
+              -0.499275,
+              -1.26198,
+              -53.9985
+            ],
+            "speed": 0.0291891,
+            "observedTick": 278
+          },
+          "inventory": {
+            "salvageMaterial": "23",
+            "specialMachinery": "0"
+          },
+          "player": {
+            "mode": "walking",
+            "interaction": "none",
+            "onBoat": false
+          }
+        },
+        {
+          "name": "saved-eight-bricks",
+          "world": "df314a0502c8ef92ad8d9a2419a7a5f7",
+          "terrainSurface": "lego",
+          "workshop": {
+            "name": "Winch",
+            "placement": [
+              -25,
+              96,
+              -2750
+            ],
+            "rotation": 0,
+            "parts": 18,
+            "massKg": 1149,
+            "valid": true,
+            "changed": false,
+            "charge": "0"
+          },
+          "boat": {
+            "parts": 18,
+            "massKg": 1149,
+            "paidPartIds": [
+              "35",
+              "36",
+              "37",
+              "38",
+              "39",
+              "40",
+              "41",
+              "42"
+            ],
+            "position": [
+              -0.49884,
+              -1.26155,
+              -53.9973
+            ],
+            "speed": 0.0421057,
+            "observedTick": 280
+          },
+          "inventory": {
+            "salvageMaterial": "23",
+            "specialMachinery": "0"
+          },
+          "player": {
+            "mode": "walking",
+            "interaction": "none",
+            "onBoat": false
+          }
+        },
+        {
+          "name": "restored-eight-bricks",
+          "world": "df314a0502c8ef92ad8d9a2419a7a5f7",
+          "terrainSurface": "lego",
+          "workshop": {
+            "name": null,
+            "placement": null,
+            "rotation": null,
+            "parts": null,
+            "massKg": null,
+            "valid": null,
+            "changed": null,
+            "charge": null
+          },
+          "boat": {
+            "parts": 18,
+            "massKg": 1149,
+            "paidPartIds": [
+              "35",
+              "36",
+              "37",
+              "38",
+              "39",
+              "40",
+              "41",
+              "42"
+            ],
+            "position": [
+              -0.498598,
+              -1.26113,
+              -53.9967
+            ],
+            "speed": 0.0497773,
+            "observedTick": 281
+          },
+          "inventory": {
+            "salvageMaterial": "23",
+            "specialMachinery": "0"
+          },
+          "player": {
+            "mode": "walking",
+            "interaction": "none",
+            "onBoat": false
+          }
+        }
+      ]
+    },
+    {
+      "source": "build-cove-builder-3bh5dr4t/native-resume-r01/summary.json",
+      "sha256": "a98e3363f4e0a722e61b5a299b6cfdad8f1839ae2833649bac987ad081a7055b",
+      "status": "passed",
+      "error": null,
+      "continues": "build-cove-builder-3bh5dr4t/native-r02/summary.json",
+      "stages": [
+        {
+          "name": "restored-eight-bricks",
+          "world": "df314a0502c8ef92ad8d9a2419a7a5f7",
+          "terrainSurface": "lego",
+          "workshop": {
+            "name": null,
+            "placement": null,
+            "rotation": null,
+            "parts": null,
+            "massKg": null,
+            "valid": null,
+            "changed": null,
+            "charge": null
+          },
+          "boat": {
+            "parts": 18,
+            "massKg": 1149,
+            "paidPartIds": [
+              "35",
+              "36",
+              "37",
+              "38",
+              "39",
+              "40",
+              "41",
+              "42"
+            ],
+            "position": [
+              -0.498598,
+              -1.26113,
+              -53.9967
+            ],
+            "speed": 0.0497773,
+            "observedTick": 281
+          },
+          "inventory": {
+            "salvageMaterial": "23",
+            "specialMachinery": "0"
+          },
+          "player": {
+            "mode": "walking",
+            "interaction": "none",
+            "onBoat": false
+          }
+        },
+        {
+          "name": "restored-exact-brick-layout",
+          "world": "df314a0502c8ef92ad8d9a2419a7a5f7",
+          "terrainSurface": "lego",
+          "workshop": {
+            "name": "Winch",
+            "placement": [
+              -25,
+              96,
+              -2750
+            ],
+            "rotation": 0,
+            "parts": 18,
+            "massKg": 1149,
+            "valid": true,
+            "changed": false,
+            "charge": "0"
+          },
+          "boat": {
+            "parts": 18,
+            "massKg": 1149,
+            "paidPartIds": [
+              "35",
+              "36",
+              "37",
+              "38",
+              "39",
+              "40",
+              "41",
+              "42"
+            ],
+            "position": [
+              -0.501398,
+              -1.26393,
+              -53.9382
+            ],
+            "speed": 0.176715,
+            "observedTick": 462
+          },
+          "inventory": {
+            "salvageMaterial": "23",
+            "specialMachinery": "0"
+          },
+          "player": {
+            "mode": "walking",
+            "interaction": "none",
+            "onBoat": false
+          }
+        },
+        {
+          "name": "sailed-brick-built-boat",
+          "world": "df314a0502c8ef92ad8d9a2419a7a5f7",
+          "terrainSurface": "lego",
+          "workshop": {
+            "name": "Winch",
+            "placement": [
+              -25,
+              96,
+              -2750
+            ],
+            "rotation": 0,
+            "parts": 18,
+            "massKg": 1149,
+            "valid": true,
+            "changed": false,
+            "charge": "0"
+          },
+          "boat": {
+            "parts": 18,
+            "massKg": 1149,
+            "paidPartIds": [
+              "35",
+              "36",
+              "37",
+              "38",
+              "39",
+              "40",
+              "41",
+              "42"
+            ],
+            "position": [
+              -0.608589,
+              1.81327,
+              -56.049
+            ],
+            "speed": 2.00616,
+            "observedTick": 820
+          },
+          "inventory": {
+            "salvageMaterial": "23",
+            "specialMachinery": "0"
+          },
+          "player": {
+            "mode": "helm",
+            "interaction": "leave-helm",
+            "onBoat": true
+          }
+        }
+      ]
+    }
+  ]
+}

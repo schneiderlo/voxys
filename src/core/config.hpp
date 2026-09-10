@@ -212,6 +212,7 @@ struct GameConfig {
     std::optional<std::string> mode;
     // Explicit opt-in inspection route; path names a trusted installed registry.
     std::optional<std::string> assetFixtureRegistry;
+    std::optional<std::string> assetFixtureCatalog; // Additive installed construction parts.
     std::string assetFixtureGuides = "off"; // off, dimensions, sockets; inspection only.
     std::string assetFixtureLod = "auto"; // Initial inspection detail: auto, near, middle, far.
     std::string assetFixtureLighting = "legacy"; // legacy or filtered; inspection only.

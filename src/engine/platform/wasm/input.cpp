@@ -3,13 +3,16 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 
 #include "engine/platform/input.hpp"
+#include <glm/common.hpp>
 #include "engine/platform/window.hpp"
 #include "core/log.hpp"
 
 #include <emscripten/html5.h>
+#include <emscripten.h>
 #include <algorithm>
 #include <cmath>
 #include <cstring>
+#include <string>
 
 namespace voxy {
 
@@ -110,6 +113,7 @@ void Input::processEvents() {
 }
 
 void Input::computeDeltas() {
+    dragDeltas_=accumulatedDrags_;accumulatedDrags_.fill(glm::vec2(0));
     // Events can arrive between beginFrame() and update(). Process them before
     // input is queried so native and web have the same frame semantics.
     processEvents();
@@ -131,6 +135,7 @@ void Input::endFrame() {
 }
 
 void Input::resetState() {
+    rawButtons_.fill(false);accumulatedDrags_.fill(glm::vec2(0));dragDeltas_.fill(glm::vec2(0));
     releaseMouse();
     currentKeys_.fill(false);
     previousKeys_.fill(false);
@@ -297,12 +302,17 @@ void Input::onMouseMove(float x, float y) {
         prevMousePos_ = glm::vec2(x, y);
         firstMouseMove_ = false;
     }
+    for(size_t i=0;i<rawButtons_.size();++i)if(rawButtons_[i]) {
+        accumulatedDrags_[i]=glm::clamp(accumulatedDrags_[i]+glm::vec2(x,y)-mousePos_,
+            glm::vec2(-kMaximumMouseCoordinate),glm::vec2(kMaximumMouseCoordinate));
+    }
     mousePos_ = glm::vec2(x, y);
 }
 
 void Input::onMouseDown(int button) {
     if (isValidButton(button)) {
         if (mouseButtonQueue_.size() >= kMaximumQueuedInputEvents) {
+            rawButtons_.fill(false);accumulatedDrags_.fill(glm::vec2(0));
             mouseButtonQueue_.clear();
             for (size_t index = 0; index < currentButtons_.size(); ++index) {
                 if (currentButtons_[index]) {
@@ -311,6 +321,7 @@ void Input::onMouseDown(int button) {
                 }
             }
         }
+        rawButtons_[static_cast<size_t>(button)]=true;
         mouseButtonQueue_.push_back({button, true});
     }
 }
@@ -318,6 +329,7 @@ void Input::onMouseDown(int button) {
 void Input::onMouseUp(int button) {
     if (isValidButton(button)) {
         if (mouseButtonQueue_.size() >= kMaximumQueuedInputEvents) {
+            rawButtons_.fill(false);accumulatedDrags_.fill(glm::vec2(0));
             mouseButtonQueue_.clear();
             for (size_t index = 0; index < currentButtons_.size(); ++index) {
                 if (currentButtons_[index]) {
@@ -326,6 +338,7 @@ void Input::onMouseUp(int button) {
                 }
             }
         }
+        rawButtons_[static_cast<size_t>(button)]=false;
         mouseButtonQueue_.push_back({button, false});
     }
 }
@@ -350,6 +363,7 @@ void Input::attachToWindow(Window& /*window*/) {
 namespace {
 
 Input* g_inputInstance = nullptr;
+std::string g_inputCanvas;
 
 int browserButtonToVoxyButton(int button) {
     // DOM: left=0, middle=1, right=2. The engine follows GLFW:
@@ -406,11 +420,16 @@ EM_BOOL emMouseUpCallback(int /*eventType*/, const EmscriptenMouseEvent* e, void
     if (g_inputInstance) {
         g_inputInstance->onMouseUp(browserButtonToVoxyButton(e->button));
     }
-    return EM_TRUE;
+    return EM_FALSE; // Document-level release must not swallow UI activation.
 }
 
 EM_BOOL emWheelCallback(int /*eventType*/, const EmscriptenWheelEvent* e, void* /*userData*/) {
     if (g_inputInstance) {
+        // Unlocked workshop scroll over UI belongs to the panel. Pointer-lock
+        // wheel events can still be retargeted to the document by the browser.
+        if(!g_inputInstance->isMouseCaptured()&&!EM_ASM_INT({
+            return document.querySelector(UTF8ToString($0))===document.elementFromPoint($1,$2);
+        },g_inputCanvas.c_str(),e->mouse.clientX,e->mouse.clientY))return EM_FALSE;
         // Normalize scroll delta (different browsers report different values)
         float delta = static_cast<float>(-e->deltaY);
         if (e->deltaMode == DOM_DELTA_LINE) {
@@ -445,6 +464,7 @@ EM_BOOL emPointerLockChangeCallback(
 
 void Input::setupEmscriptenCallbacks(const char* canvasSelector) {
     g_inputInstance = this;
+    g_inputCanvas=canvasSelector;
     
     // Keyboard events on document (to capture when canvas doesn't have focus)
     emscripten_set_keydown_callback(EMSCRIPTEN_EVENT_TARGET_DOCUMENT, nullptr, false, emKeyDownCallback);
@@ -453,7 +473,7 @@ void Input::setupEmscriptenCallbacks(const char* canvasSelector) {
     // Mouse events on canvas
     emscripten_set_mousemove_callback(canvasSelector, nullptr, false, emMouseMoveCallback);
     emscripten_set_mousedown_callback(canvasSelector, nullptr, false, emMouseDownCallback);
-    emscripten_set_mouseup_callback(canvasSelector, nullptr, false, emMouseUpCallback);
+    emscripten_set_mouseup_callback(EMSCRIPTEN_EVENT_TARGET_DOCUMENT, nullptr, false, emMouseUpCallback);
     // Pointer lock can retarget wheel events away from the canvas in some
     // browsers. The game owns the full document, so listen there reliably.
     emscripten_set_wheel_callback(EMSCRIPTEN_EVENT_TARGET_DOCUMENT, nullptr,

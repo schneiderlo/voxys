@@ -6,7 +6,9 @@ filegroup(
         "salvage/fixture-material-metric-r01.json",
         "salvage/fixture-material-shading-r02.json",
         "salvage/fixture-cove-r01.json",
+        "salvage/cove-bricks-r02.json",
     ] + glob([
+        "salvage/bricks/r02/*/cooked/*",
         "salvage/material-calibration/r02/pontoon-r02/cooked/*",
         "salvage/material-calibration/r02/kit/winch/cooked/*",
         "salvage/material-calibration/r02/kit/helm/cooked/*",

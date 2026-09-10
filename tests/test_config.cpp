@@ -593,6 +593,25 @@ TEST_F(ConfigFileTest, AssetFixtureRegistryRequiresExplicitSalvageAndRoundTrips)
     EXPECT_EQ(resolveGameMode(loaded).status, GameModeStatus::InvalidAssetFixture);
 }
 
+TEST_F(ConfigFileTest, AdditiveFixtureCatalogRoundTripsAndRequiresAnInstalledBase) {
+    Config original;original.game.mode="salvage";
+    original.game.assetFixtureRegistry="data/salvage/fixture-cove-r01.json";
+    original.game.assetFixtureCatalog="data/salvage/cove-bricks-r02.json";
+    ASSERT_TRUE(save(original,testConfigPath));auto loaded=load(testConfigPath);
+    EXPECT_EQ(loaded.game.assetFixtureCatalog,original.game.assetFixtureCatalog);
+    EXPECT_TRUE(resolveGameMode(loaded).ready());
+    loaded.game.assetFixtureRegistry.reset();
+    EXPECT_EQ(resolveGameMode(loaded).status,GameModeStatus::InvalidAssetFixture);
+    for(const auto* value:{"\"broken","\"path\" junk","\"\""}) {
+        writeTestConfig(std::string("[game]\nmode=\"salvage\"\nasset_fixture_registry=\"base.json\"\nasset_fixture_catalog=")+value+"\n");
+        EXPECT_EQ(resolveGameMode(load(testConfigPath)).status,GameModeStatus::InvalidAssetFixture);
+    }
+    original.game.assetFixtureCatalog=std::string(4097,'a');
+    EXPECT_EQ(resolveGameMode(original).status,GameModeStatus::InvalidAssetFixture);
+    original.game.assetFixtureCatalog=std::string("a\0b",3);
+    EXPECT_EQ(resolveGameMode(original).status,GameModeStatus::InvalidAssetFixture);
+}
+
 TEST_F(ConfigFileTest, AssetFixtureInitialDetailRejectsMalformedOrUnscopedSelection) {
     for (const auto* value : {"auto", "near", "middle", "far"}) {
         writeTestConfig(std::string("[game]\nmode=\"salvage\"\nasset_fixture_registry=\"x.json\"\nasset_fixture_lod=\"") + value + "\"\n");

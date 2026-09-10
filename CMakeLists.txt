@@ -528,6 +528,22 @@ if(VOXY_BUILD_WASM)
             salvage_metric_fixture.cfg
             salvage_cove.cfg
             data/salvage/fixture-cove-r01.json
+            data/salvage/cove-bricks-r02.json
+            data/salvage/bricks/r02/brick_1x2/cooked/cook-manifest.json
+            data/salvage/bricks/r02/brick_1x2/cooked/gameplay.json
+            data/salvage/bricks/r02/brick_1x2/cooked/lod-1.vmesh
+            data/salvage/bricks/r02/brick_1x2/cooked/lod-2.vmesh
+            data/salvage/bricks/r02/brick_1x2/cooked/lod-3.vmesh
+            data/salvage/bricks/r02/brick_2x2/cooked/cook-manifest.json
+            data/salvage/bricks/r02/brick_2x2/cooked/gameplay.json
+            data/salvage/bricks/r02/brick_2x2/cooked/lod-1.vmesh
+            data/salvage/bricks/r02/brick_2x2/cooked/lod-2.vmesh
+            data/salvage/bricks/r02/brick_2x2/cooked/lod-3.vmesh
+            data/salvage/bricks/r02/brick_2x4/cooked/cook-manifest.json
+            data/salvage/bricks/r02/brick_2x4/cooked/gameplay.json
+            data/salvage/bricks/r02/brick_2x4/cooked/lod-1.vmesh
+            data/salvage/bricks/r02/brick_2x4/cooked/lod-2.vmesh
+            data/salvage/bricks/r02/brick_2x4/cooked/lod-3.vmesh
             data/salvage/fixture-material-metric-r01.json
             data/salvage/fixture-material-shading-r02.json
             data/salvage/material-calibration/r04/kit/winch/cooked/cook-manifest.json

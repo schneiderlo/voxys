@@ -259,6 +259,7 @@ struct ApplicationConfig {
     bool legoTerrainEnabled = false;
     bool salvagePreviewEnabled = false;
     std::optional<std::string> salvageAssetFixtureRegistry;
+    std::optional<std::string> salvageAssetFixtureCatalog;
     std::string salvageAssetFixtureGuides = "off";
     uint64_t salvageAssetFixtureLod = 0;
     bool salvageAssetFixtureFilteredLighting = false;

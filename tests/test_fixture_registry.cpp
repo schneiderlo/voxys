@@ -55,7 +55,7 @@ TEST(FixtureRegistry, RejectsAmbiguousAssemblyReferencesAndExcessBeforeLoading) 
     value=assemblyRegistry(); value["connections"][0]["b"]["placement"]=0; rejects(value);
     value=assemblyRegistry(); value["connections"][0]["a"]["socket"]="0101"; rejects(value);
     value=assemblyRegistry(); value["connections"]=Json::array();
-    for (size_t i=0;i<65;++i)value["connections"].push_back(assemblyRegistry()["connections"][0]);
+    for (size_t i=0;i<=kMaximumFixtureConnections;++i)value["connections"].push_back(assemblyRegistry()["connections"][0]);
     rejects(value);
 }
 
@@ -71,10 +71,69 @@ TEST(FixtureRegistry, LoadsCompleteCoveAndRejectsExcessBundleAdmission) {
     EXPECT_FALSE(loaded->assembly.has_value()); // CoveBoatAssembly selects the boat separately from scenery.
     std::ifstream file("data/salvage/fixture-cove-r01.json");
     Json value; file >> value;
-    while (value["bundles"].size() <= 12) value["bundles"].push_back(value["bundles"][0]);
+    while (value["bundles"].size() <= kMaximumFixtureBundles) value["bundles"].push_back(value["bundles"][0]);
     EXPECT_FALSE(parseAssetFixtureRegistry(value.dump(), error));
     EXPECT_NE(error.find("ceiling"), std::string::npos);
 }
+
+TEST(FixtureRegistry, AdditiveBricksPreserveInstalledCoveIdentityAndEveryExistingDefinition) {
+    std::string error;
+    const auto base=loadAssetFixture(std::filesystem::canonical("data/salvage/fixture-cove-r01.json"),error);
+    ASSERT_TRUE(base)<<error;
+    const auto catalog=std::filesystem::canonical("data/salvage/cove-bricks-r02.json");
+    const auto expanded=appendAssetFixtureCatalog(*base,catalog,error);ASSERT_TRUE(expanded)<<error;
+    ASSERT_EQ(expanded->bundles.size(),12u);
+    EXPECT_EQ(expanded->installedRegistryDigest,base->installedRegistryDigest);
+    EXPECT_EQ(expanded->registry.placements.size(),base->registry.placements.size());
+    EXPECT_EQ(expanded->registry.connections.size(),base->registry.connections.size());
+    ASSERT_TRUE(expanded->registry.navigation);
+    EXPECT_EQ(expanded->registry.navigation->boatPlacements,base->registry.navigation->boatPlacements);
+    EXPECT_EQ(expanded->registry.navigation->cargoPlacements,base->registry.navigation->cargoPlacements);
+    EXPECT_EQ(expanded->registry.navigation->spawn,base->registry.navigation->spawn);
+    for(size_t i=0;i<base->bundles.size();++i)EXPECT_EQ(expanded->bundles[i],base->bundles[i]);
+    for(size_t i=0;i<base->registry.placements.size();++i) {
+        EXPECT_EQ(expanded->registry.placements[i].placement,base->registry.placements[i].placement);
+        EXPECT_EQ(expanded->registry.placements[i].bundleIndex,base->registry.placements[i].bundleIndex);
+    }
+    EXPECT_EQ(expanded->bundles[9]->sidecar().part.nameKey,"salvage.part.brick_1x2");
+    EXPECT_EQ(expanded->bundles[10]->sidecar().part.nameKey,"salvage.part.brick_2x2");
+    EXPECT_EQ(expanded->bundles[11]->sidecar().part.nameKey,"salvage.part.brick_2x4");
+    EXPECT_FALSE(appendAssetFixtureCatalog(*expanded,catalog,error));
+    EXPECT_NE(error.find("replace"),std::string::npos)<<error;
+    EXPECT_EQ(base->bundles.size(),9u);EXPECT_EQ(expanded->bundles.size(),12u);
+}
+
+#if defined(__unix__) || defined(__EMSCRIPTEN__)
+TEST(FixtureRegistry, AdditiveCatalogRejectsLayoutChangesReplacementTraversalAndCorruptionAtomically) {
+    std::string error;
+    const auto base=loadAssetFixture(std::filesystem::canonical("data/salvage/fixture-cove-r01.json"),error);
+    ASSERT_TRUE(base)<<error;
+    char name[]="/tmp/voxys-catalog-XXXXXX";ASSERT_NE(::mkdtemp(name),nullptr);
+    const std::filesystem::path root(name);
+    struct Cleanup {std::filesystem::path path;~Cleanup(){std::error_code ignored;std::filesystem::remove_all(path,ignored);}} cleanup{root};
+    Json source;std::ifstream("data/salvage/cove-bricks-r02.json")>>source;
+    for(const auto& spec:source["bundles"]) {
+        const auto directory=spec["directory"].get<std::string>();std::filesystem::create_directories(root/directory);
+        for(const auto* file:{"cook-manifest.json","gameplay.json","lod-1.vmesh","lod-2.vmesh","lod-3.vmesh"})
+            std::filesystem::copy_file(std::filesystem::path("data/salvage")/directory/file,root/directory/file);
+    }
+    const auto refuses=[&](const Json& value,const char* expected){
+        {std::ofstream file(root/"catalog.json");file<<value.dump();}
+        EXPECT_FALSE(appendAssetFixtureCatalog(*base,root/"catalog.json",error));
+        EXPECT_NE(error.find(expected),std::string::npos)<<error;
+        EXPECT_EQ(base->bundles.size(),9u);EXPECT_EQ(base->registry.placements.size(),25u);
+    };
+    auto value=source;value["placements"]=Json::array();refuses(value,"field");
+    value=source;value["bundles"][0]["directory"]="../bricks";refuses(value,"directory");
+    value=source;value["bundles"].push_back(value["bundles"][0]);refuses(value,"replace");
+    Json original;std::ifstream("data/salvage/fixture-cove-r01.json")>>original;
+    value=source;value["bundles"][0]["part"]=original["bundles"][0]["part"];
+    value["bundles"][0]["part"]["version"]=999;refuses(value,"replace");
+    // The third admission fails after two successful cooks; no partial
+    // catalogue reaches the caller and the base remains usable.
+    value=source;value["bundles"][2]["manifest_sha256"]=std::string(64,'0');refuses(value,"SHA256 mismatch");
+}
+#endif
 
 TEST(FixtureRegistry, ParsesDataDrivenKeysLimitsPlacementsAndCamera) {
     std::string error;

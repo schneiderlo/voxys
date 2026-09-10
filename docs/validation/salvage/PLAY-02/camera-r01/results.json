@@ -1,0 +1,189 @@
+{
+  "date": "2026-09-10",
+  "task": "PLAY-02 workshop camera",
+  "status": "verified bounded keyboard/mouse component",
+  "sourceParent": "e51467858a979837c133634e62b7ef92ceb29ce5",
+  "sourceState": "Uncommitted local builder and camera changes; no subsequent main publication.",
+  "units": [
+    {
+      "name": "bazel-input.xml",
+      "status": "passed",
+      "cases": 33,
+      "report": "docs/validation/salvage/PLAY-02/camera-r01/checks/bazel-input.xml"
+    },
+    {
+      "name": "bazel-camera.xml",
+      "status": "passed",
+      "cases": 3,
+      "report": "docs/validation/salvage/PLAY-02/camera-r01/checks/bazel-camera.xml"
+    },
+    {
+      "name": "cmake-camera.xml",
+      "status": "passed",
+      "cases": 3,
+      "report": "docs/validation/salvage/PLAY-02/camera-r01/checks/cmake-camera.xml"
+    }
+  ],
+  "browserUi": {
+    "status": "passed",
+    "cases": 22,
+    "report": "docs/validation/salvage/PLAY-02/camera-r01/checks/browser-ui.log"
+  },
+  "nativeApplicationBuild": "checks/native-build-r04.log",
+  "wasmApplicationBuild": "checks/wasm-build-r04.log",
+  "buildLogBase": "build-workshop-camera-3s8ze75b",
+  "journeys": [
+    {
+      "status": "passed",
+      "rawReport": "build-workshop-camera-3s8ze75b/browser-r04/summary.json",
+      "stages": [
+        "whole-boat-framed",
+        "selected-part-focused",
+        "orbit-preserves-design",
+        "pan-and-outside-release",
+        "wheel-respects-panel",
+        "camera-gesture-cannot-place-ghost",
+        "portrait-framing-and-wrapped-controls",
+        "returned-to-dock-with-unchanged-owned-boat"
+      ],
+      "unchangedBoat": {
+        "parts": 18,
+        "massKg": 1149,
+        "paidPartIds": [
+          "35",
+          "36",
+          "37",
+          "38",
+          "39",
+          "40",
+          "41",
+          "42"
+        ],
+        "inventory": {
+          "salvageMaterial": "23",
+          "specialMachinery": "0"
+        }
+      },
+      "trustedClicks": [
+        {
+          "id": "salvage-pause",
+          "disabled": false,
+          "trusted": true
+        },
+        {
+          "id": "salvage-workshop-toggle",
+          "disabled": false,
+          "trusted": true
+        },
+        {
+          "id": "workshop-focus",
+          "action": "97",
+          "disabled": false,
+          "trusted": true
+        },
+        {
+          "id": "workshop-frame",
+          "action": "98",
+          "disabled": false,
+          "trusted": true
+        },
+        {
+          "id": "workshop-brick-2x4",
+          "action": "110",
+          "disabled": false,
+          "trusted": true
+        },
+        {
+          "id": "workshop-revert",
+          "action": "73",
+          "disabled": false,
+          "trusted": true
+        },
+        {
+          "id": "salvage-workshop-toggle",
+          "disabled": false,
+          "trusted": true
+        }
+      ]
+    },
+    {
+      "status": "passed",
+      "rawReport": "build-workshop-camera-3s8ze75b/native-check-r01/summary.json",
+      "stages": [
+        "whole-boat-framed",
+        "selected-part-focused",
+        "orbit",
+        "shift-pan",
+        "middle-pan-and-wheel",
+        "camera-does-not-place-ghost",
+        "unchanged-owned-boat"
+      ],
+      "unchangedBoat": {
+        "parts": 18,
+        "massKg": 1149,
+        "paidPartIds": [
+          "35",
+          "36",
+          "37",
+          "38",
+          "39",
+          "40",
+          "41",
+          "42"
+        ],
+        "inventory": {
+          "salvageMaterial": "23",
+          "specialMachinery": "0"
+        }
+      }
+    }
+  ],
+  "browserStartupAndDrain": {
+    "status": "passed",
+    "rawReport": "build-workshop-camera-3s8ze75b/browser-startup-r04.json"
+  },
+  "retainedFailedJourneys": [
+    {
+      "rawReport": "build-workshop-camera-3s8ze75b/browser-r01/summary.json",
+      "status": "failed",
+      "passedStages": [
+        "whole-boat-framed",
+        "selected-part-focused"
+      ],
+      "reason": "Short orbit discarded on first pressed frame; fixed per-button held-motion accumulation."
+    },
+    {
+      "rawReport": "build-workshop-camera-3s8ze75b/browser-r02/summary.json",
+      "status": "failed",
+      "passedStages": [
+        "whole-boat-framed",
+        "selected-part-focused",
+        "orbit-preserves-design"
+      ],
+      "reason": "Shift swallowed by focused workshop button; fixed modifier routing and canvas focus."
+    },
+    {
+      "rawReport": "build-workshop-camera-3s8ze75b/browser-r03/summary.json",
+      "status": "failed",
+      "passedStages": [
+        "whole-boat-framed",
+        "selected-part-focused",
+        "orbit-preserves-design",
+        "pan-and-outside-release",
+        "wheel-respects-panel"
+      ],
+      "reason": "Validation driver clicked a moving button after scroll; fixed stable-coordinate click without production change."
+    }
+  ],
+  "ownerPreview": {
+    "url": "http://127.0.0.1:39535/index.html?experience=salvage-cove",
+    "package": "/home/modkin/workspace/schneiderlo/voxys/build-workshop-camera-3s8ze75b/web-r03"
+  },
+  "scopeLimits": [
+    "No screenshots or visual quality acceptance.",
+    "No controller parity, camera collision, saved camera presets or native named-design UI.",
+    "No full PLAY-02 or G00\u2013G14 gate, gate commit, human test or performance certification.",
+    "Full repository suite not rerun for this bounded component; relevant builds and focused tests are recorded above."
+  ],
+  "reproduction": "README.md"
+}

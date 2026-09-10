@@ -1,0 +1,29 @@
+{
+  "result": "failed",
+  "attributes": {
+    "tests": "2061",
+    "failures": "1",
+    "disabled": "4",
+    "errors": "0",
+    "time": "1423.834",
+    "timestamp": "2026-09-10T15:32:58.475",
+    "name": "AllTests"
+  },
+  "failures": [
+    {
+      "suite": "AssemblyFunctions",
+      "case": "MaximumSocketAndConnectionBudgetsRemainGloballyBounded",
+      "message": "tests/test_assembly_functions.cpp:252\nValue of: AssemblyFunctionPlan::compile(denseWelds,definitions,issue)\n  Actual: true\nExpected: false\n"
+    },
+    {
+      "suite": "AssemblyFunctions",
+      "case": "MaximumSocketAndConnectionBudgetsRemainGloballyBounded",
+      "message": "tests/test_assembly_functions.cpp:253\nExpected equality of these values:\n  issue.buoyancy.collision.assembly.build.error\n    Which is: 1-byte object <00>\n  BuildError::Capacity\n    Which is: 1-byte object <01>\n"
+    },
+    {
+      "suite": "AssemblyFunctions",
+      "case": "MaximumSocketAndConnectionBudgetsRemainGloballyBounded",
+      "message": "tests/test_assembly_functions.cpp:254\nExpected equality of these values:\n  issue.buoyancy.collision.assembly.build.field\n    Which is: \"\"\n  \"candidatePairs\"\n    Which is: 0x5780ec647789\n"
+    }
+  ]
+}

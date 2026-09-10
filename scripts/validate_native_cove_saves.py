@@ -95,7 +95,7 @@ def archive(slot):
         assert count<=4 and (schema==4 or count>0)
         for _ in range(count):
             size=int.from_bytes(payload[offset:offset+4],'little');offset+=4
-            assert 0<size<=32768 and offset+size<=len(payload)-32
+            assert 0<size<=131072 and offset+size<=len(payload)-32
             assert payload[offset:offset+4]==b'SVBP';offset+=size
         if schema==4:
             control_part=str(int.from_bytes(payload[offset+16:offset+24],'little'));offset+=24

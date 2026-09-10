@@ -1,0 +1,74 @@
+{
+  "date": "2026-09-10",
+  "task": "PLAY-06 two-cargo archive and logical ownership preparation",
+  "status": "verified preparation; live two-job integration remains required",
+  "sourceParent": "e51467858a979837c133634e62b7ef92ceb29ce5",
+  "sourceState": "Local uncommitted changes layered over prior brick-builder/camera work. No new main publication.",
+  "nativeChecks": [
+    {
+      "name": "bazel-cove-save.xml",
+      "status": "passed",
+      "cases": 25,
+      "report": "docs/validation/salvage/PLAY-06/two-cargo-r01/checks/bazel-cove-save.xml"
+    },
+    {
+      "name": "bazel-game-session.xml",
+      "status": "passed",
+      "cases": 137,
+      "report": "docs/validation/salvage/PLAY-06/two-cargo-r01/checks/bazel-game-session.xml"
+    },
+    {
+      "name": "bazel-cove-player.xml",
+      "status": "passed",
+      "cases": 56,
+      "report": "docs/validation/salvage/PLAY-06/two-cargo-r01/checks/bazel-cove-player.xml"
+    },
+    {
+      "name": "cmake-cove-save.xml",
+      "status": "passed",
+      "cases": 25,
+      "report": "docs/validation/salvage/PLAY-06/two-cargo-r01/checks/cmake-cove-save.xml"
+    }
+  ],
+  "sharedWasm": {
+    "status": "passed",
+    "tests": {
+      "passed": 198,
+      "skipped": 0,
+      "disabled": 0
+    },
+    "sourcesUnchanged": true,
+    "manifest": "shared-wasm-manifest.json"
+  },
+  "builds": [
+    {
+      "target": "native CMake application",
+      "status": "passed",
+      "log": "build-cove-two-cargo-2ohjej41/checks/native-build-r01.log"
+    },
+    {
+      "target": "WASM CMake application",
+      "status": "passed",
+      "log": "build-cove-two-cargo-2ohjej41/checks/wasm-build-r01.log"
+    }
+  ],
+  "behavior": [
+    "Two independently identified physical cargo records survive generator banking, crate tow/break/release and both completed receipts.",
+    "Second Accepted/Completed job requires the banked generator and installed harbor in the archive.",
+    "Missing, aliased, forged, conflicting-winches, over-count, truncated or downgraded records refuse without output mutation.",
+    "Real logical delivery commands, future confirmation, checkpoint byte decoding, fresh owner and duplicate retries preserve exactly-once rewards for two jobs. Physical adapter is a test double.",
+    "Existing v1-v4 golden, construction, restore and ownership checks pass. Live runtime still refuses two-load restoration."
+  ],
+  "retainedFailure": {
+    "log": "build-cove-two-cargo-2ohjej41/checks/shared-wasm-r01.log",
+    "reason": "SDK cache copy exceeded temporary directory quota before compilation.",
+    "resolution": "Fresh r02 uses --use-frozen-sdk-cache; compiler FROZEN_CACHE forbids locking/building the SDK cache."
+  },
+  "limits": [
+    "Not a playable second job, cargo GPU simulation, new real-control journey, migration or rendered-art result.",
+    "No controller/latching, complete PLAY-05/06 or G00-G14 gate acceptance.",
+    "No screenshots, full repository suite rerun, commit or publication.",
+    "Current owner preview remains the previously verified camera/brick builder at port 39535."
+  ],
+  "nextWork": "README.md#next-implementation-in-order"
+}

@@ -64,6 +64,7 @@ int main(int argc, char* argv[]) {
     appConfig.legoTerrainEnabled = gameMode.legoTerrain();
     appConfig.salvagePreviewEnabled = gameMode.mode == voxy::config::GameMode::Salvage;
     appConfig.salvageAssetFixtureRegistry = config.game.assetFixtureRegistry;
+    appConfig.salvageAssetFixtureCatalog = config.game.assetFixtureCatalog;
     appConfig.salvageAssetFixtureGuides = config.game.assetFixtureGuides;
     appConfig.salvageAssetFixtureFilteredLighting = config.game.assetFixtureLighting == "filtered";
     appConfig.salvageAssetFixtureWaterAnchor = config.game.assetFixtureAnchor == "water";

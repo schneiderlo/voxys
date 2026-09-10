@@ -1,0 +1,416 @@
+{
+  "hash": "SHA-256",
+  "sourceParent": "e51467858a979837c133634e62b7ef92ceb29ce5",
+  "sourceState": "Dirty worktree, layered on the verified LEGO-02 builder. Documentation may change after these production-source hashes.",
+  "sourceFiles": [
+    {
+      "path": "src/game/expedition/workshop_camera.hpp",
+      "bytes": 1788,
+      "sha256": "3f598312c5d1dbdd4189c89309d38cdc3628583b716be0d93477fc38bfe4eae2"
+    },
+    {
+      "path": "src/game/expedition/workshop_camera.cpp",
+      "bytes": 3722,
+      "sha256": "3fd06c115b573cc7df8fbdf69820642ce8100fec7a823d244f988de440a44a85"
+    },
+    {
+      "path": "src/game/expedition/cove_workshop.hpp",
+      "bytes": 4727,
+      "sha256": "d7c7c1f27a0fa71814091f6377a50d6c8c7fe3f257d13d9eaacea2eb4ace825a"
+    },
+    {
+      "path": "src/game/expedition/cove_workshop.cpp",
+      "bytes": 30835,
+      "sha256": "499b161af74a246b3af4958cd64756c828e34d09a469ac640c853a5c1223090d"
+    },
+    {
+      "path": "src/game/BUILD",
+      "bytes": 14121,
+      "sha256": "942990f2ce80d4dd7835179be4068e6f3b9bbe2ea78089d6e4c0e5eae5af6e5e"
+    },
+    {
+      "path": "src/app/BUILD",
+      "bytes": 1518,
+      "sha256": "d083db8c49c3021d141d5d8384f2c23d8d41fbd19688e17cf2d08f9ce19e96a1"
+    },
+    {
+      "path": "src/CMakeLists.txt",
+      "bytes": 21745,
+      "sha256": "a4ef732c7a2f2c109a122b14b8b573d89058453e9f4064c213322dada480f589"
+    },
+    {
+      "path": "src/app/application.cpp",
+      "bytes": 444165,
+      "sha256": "d7decb83b310c29dddec99f21e908bf43113d212c4ef9e98300284fa6af2adbf"
+    },
+    {
+      "path": "src/engine/platform/input.hpp",
+      "bytes": 14764,
+      "sha256": "8e71ee06d0470460573cdd90e5a22fb973156020c8626af726fd95a197914173"
+    },
+    {
+      "path": "src/engine/platform/native/input.cpp",
+      "bytes": 15063,
+      "sha256": "2cf39942a1a5c3338242863276eb8f800e866138cca89fe16fd2a01d787763b5"
+    },
+    {
+      "path": "src/engine/platform/wasm/input.cpp",
+      "bytes": 22609,
+      "sha256": "44184b6a955a63022f0de18b3417eb9bf50b9c0d3e0b014532e710d80aea6b8c"
+    },
+    {
+      "path": "web/index.html",
+      "bytes": 82288,
+      "sha256": "11bc87bfbdf0a2e64dc4f1ac357d7b7a31c96609d9f9f8559078fd039beb3ea0"
+    },
+    {
+      "path": "web/salvage_preview.js",
+      "bytes": 27481,
+      "sha256": "880eb7da55ec7ff1e2ed6369ce8afe4086ee7ab592d9874c5b396ae38f4d861b"
+    },
+    {
+      "path": "tests/BUILD",
+      "bytes": 35128,
+      "sha256": "b01133a99315daab6282ebb79b16f2294e03c8e80991a5cadb31d1b6d3b430e7"
+    },
+    {
+      "path": "tests/CMakeLists.txt",
+      "bytes": 42055,
+      "sha256": "9af14d3857b2450c64b9e025feca2467f91859737994cab7e97589b2100b2b79"
+    },
+    {
+      "path": "tests/test_workshop_camera.cpp",
+      "bytes": 3302,
+      "sha256": "1bf4e666d0e21230a3a27824cb51948b87193d98fcbe8f618a0651b17885e41d"
+    },
+    {
+      "path": "tests/test_input.cpp",
+      "bytes": 21134,
+      "sha256": "c6bb43f161b7494d24a4dcbbc1ebb7246fab25bab51c52f78467bc9242a693f6"
+    },
+    {
+      "path": "scripts/test_salvage_preview.mjs",
+      "bytes": 25637,
+      "sha256": "8949e36f9ea44f4d8358bfb8d2239a7ca651a136cf3d983dec4bb4175cb3dc2a"
+    },
+    {
+      "path": "scripts/validate_workshop_camera.mjs",
+      "bytes": 8072,
+      "sha256": "db236c12048f690567431f06182107804b888aabb3d722aa745f3ce2eb69c2df"
+    },
+    {
+      "path": "scripts/validate_native_workshop_camera.py",
+      "bytes": 5633,
+      "sha256": "264840bdf8ef3a9ea7396972432529c9fef30148e72931b9cf1202b74d75c396"
+    },
+    {
+      "path": "scripts/smoke_integrated_wasm.mjs",
+      "bytes": 39247,
+      "sha256": "11308e67edb2a85d91261c4aa7eff4f5ebf6c1857550bc90d065bf2d30d03498"
+    }
+  ],
+  "frozenPackages": [
+    {
+      "path": "build-workshop-camera-3s8ze75b/native-r02/voxy_native",
+      "bytes": 47032344,
+      "sha256": "b3e8c8ffa47aea1b73b6dbca3944a7e362d5ce4b9e3730c8426c9c569936b675"
+    },
+    {
+      "path": "build-workshop-camera-3s8ze75b/web-r03/BUILD",
+      "bytes": 113,
+      "sha256": "d855a115e6c9dd9fd71e315093b7455c35e250f935543c8dd08d587a26af1894"
+    },
+    {
+      "path": "build-workshop-camera-3s8ze75b/web-r03/cove_saves.js",
+      "bytes": 7344,
+      "sha256": "6fc47f5f8f5033e284aa215e42f9ae1145560d3635e6c18f57303ac00bb455fd"
+    },
+    {
+      "path": "build-workshop-camera-3s8ze75b/web-r03/design_library.js",
+      "bytes": 13313,
+      "sha256": "bb6673eacfa3cac3cc0d0722431721350829c8994d6a58535c27e3eb91909104"
+    },
+    {
+      "path": "build-workshop-camera-3s8ze75b/web-r03/expedition_store.js",
+      "bytes": 14315,
+      "sha256": "d5fcf5a97259332cace13a0da51a7e0d8b1a902555119c897c99526133dee736"
+    },
+    {
+      "path": "build-workshop-camera-3s8ze75b/web-r03/frame_budget.js",
+      "bytes": 4973,
+      "sha256": "bd1bc44ce6673377dd04df935ab32ffe1d876d8898c90bb9d8c40415401b1e26"
+    },
+    {
+      "path": "build-workshop-camera-3s8ze75b/web-r03/index.html",
+      "bytes": 82288,
+      "sha256": "11bc87bfbdf0a2e64dc4f1ac357d7b7a31c96609d9f9f8559078fd039beb3ea0"
+    },
+    {
+      "path": "build-workshop-camera-3s8ze75b/web-r03/lego_patch.html",
+      "bytes": 3732,
+      "sha256": "ece80967c7234a53481ea0a6c34701b8b4d4e1a94064669202d4e309f4298de4"
+    },
+    {
+      "path": "build-workshop-camera-3s8ze75b/web-r03/lego_patch.mjs",
+      "bytes": 21965,
+      "sha256": "65a6585fce4dfc721b81679ec15d147b0e7613698e77b0a3de2e07644773cb53"
+    },
+    {
+      "path": "build-workshop-camera-3s8ze75b/web-r03/lego_patch_model.mjs",
+      "bytes": 8702,
+      "sha256": "79310139c2ff864c507c52387c11c3d8590bfbf97074dc0999d165242c8dfea5"
+    },
+    {
+      "path": "build-workshop-camera-3s8ze75b/web-r03/lego_playground.css",
+      "bytes": 1845,
+      "sha256": "a3694b755f8128beb0c4738e4d39ad87e9fc69e7ef8903c60b60a0f45c0250c9"
+    },
+    {
+      "path": "build-workshop-camera-3s8ze75b/web-r03/lego_playground.js",
+      "bytes": 3572,
+      "sha256": "8623c5dab1928e756bf0f9fd559c5e02e6f7311dff57d5e5aebc04def0a53ee0"
+    },
+    {
+      "path": "build-workshop-camera-3s8ze75b/web-r03/loader.js",
+      "bytes": 8233,
+      "sha256": "dda43b965d732c89d684dc2e22cdb657589de9b762adea71ee67de4312d57738"
+    },
+    {
+      "path": "build-workshop-camera-3s8ze75b/web-r03/network_transport.js",
+      "bytes": 13484,
+      "sha256": "744a7327278186f3c8c7a509c4705b235cc7546e207bc1b776040a3b5e99a40b"
+    },
+    {
+      "path": "build-workshop-camera-3s8ze75b/web-r03/renderer_inspector.css",
+      "bytes": 14997,
+      "sha256": "bcd493afa295bb1a1cfe06a7e2f50904c1f74bcf42baedd2d0aa2342bee42ba9"
+    },
+    {
+      "path": "build-workshop-camera-3s8ze75b/web-r03/renderer_inspector.js",
+      "bytes": 51304,
+      "sha256": "329cf0b34cb50a44e0397214404e00ac8744d36a6b57eca9437c831ed3fba21d"
+    },
+    {
+      "path": "build-workshop-camera-3s8ze75b/web-r03/salvage_data.mjs",
+      "bytes": 7947,
+      "sha256": "700ca3061e3b2d37d4698a2b8eccac1be210634bf6ff3cb825d09928fdd9c47b"
+    },
+    {
+      "path": "build-workshop-camera-3s8ze75b/web-r03/salvage_preview.css",
+      "bytes": 3934,
+      "sha256": "a42216dcdb8ea6f9dc17ea8f0bd6a239a2a25aa6cdab8b92228bb3d6dcdc2e10"
+    },
+    {
+      "path": "build-workshop-camera-3s8ze75b/web-r03/salvage_preview.js",
+      "bytes": 27481,
+      "sha256": "880eb7da55ec7ff1e2ed6369ce8afe4086ee7ab592d9874c5b396ae38f4d861b"
+    },
+    {
+      "path": "build-workshop-camera-3s8ze75b/web-r03/shader_parity.html",
+      "bytes": 306,
+      "sha256": "bab9844dc7e6e8c9d683c4af6e7f31aad8534e77bded25fd4478e4eaa3ac08fe"
+    },
+    {
+      "path": "build-workshop-camera-3s8ze75b/web-r03/shader_parity.js",
+      "bytes": 1901,
+      "sha256": "dd92a5fbd5a36b4fd7974fc9d398289b67428b724013010705163ddb675c6076"
+    },
+    {
+      "path": "build-workshop-camera-3s8ze75b/web-r03/shader_parity_manifest.js",
+      "bytes": 989,
+      "sha256": "e86d723130dfb334964ea6e38905549bfe7a018dea48e1ffafef8d8a660beea1"
+    },
+    {
+      "path": "build-workshop-camera-3s8ze75b/web-r03/style.css",
+      "bytes": 21726,
+      "sha256": "793ea83087c860dda1a709f06f7c12580aa7f8a0338f52171af06ab26a82a5d0"
+    },
+    {
+      "path": "build-workshop-camera-3s8ze75b/web-r03/voxy_wasm.data",
+      "bytes": 84625414,
+      "sha256": "01ac555c307d6ecdcef48da8d87e42de082378ce13fef3d2a5aee01bb43d2bfc"
+    },
+    {
+      "path": "build-workshop-camera-3s8ze75b/web-r03/voxy_wasm.js",
+      "bytes": 96310,
+      "sha256": "f4f52ab20683034bdaf52a3d36a72e5aff5c912860035f231d5b5513e2434b1d"
+    },
+    {
+      "path": "build-workshop-camera-3s8ze75b/web-r03/voxy_wasm.wasm",
+      "bytes": 7177117,
+      "sha256": "00697db36fcaf8352405b3fdbd0a04e24b7bc078a612e25e419101974b5c334c"
+    }
+  ],
+  "retainedEvidence": [
+    {
+      "path": "build-workshop-camera-3s8ze75b/browser-r01/summary.json",
+      "bytes": 39617,
+      "sha256": "99173c06582720c56f22c279c83ab6ab794dd048e4ee37088630b97850dc3d21"
+    },
+    {
+      "path": "build-workshop-camera-3s8ze75b/browser-r02/summary.json",
+      "bytes": 51310,
+      "sha256": "1489bb383723eddb429ea7bb6b08e3b4a49801d68c9bd42b84a3bcdee9af9a7b"
+    },
+    {
+      "path": "build-workshop-camera-3s8ze75b/browser-r03/summary.json",
+      "bytes": 74697,
+      "sha256": "1f8804aedae753c9b0257912b8063490a4c71af38b2bed1ea4e6f425052702da"
+    },
+    {
+      "path": "build-workshop-camera-3s8ze75b/browser-r04/summary.json",
+      "bytes": 94398,
+      "sha256": "72e803a1b816a6b03ddd1ca211b318cf0886677eabaf16e29841afbcf3f95f44"
+    },
+    {
+      "path": "build-workshop-camera-3s8ze75b/browser-startup-r04.json",
+      "bytes": 399459,
+      "sha256": "8c27481488ab7604e9e875448f6694c0c5a0e82c8bb17423e3b1358cc7868c0b"
+    },
+    {
+      "path": "build-workshop-camera-3s8ze75b/checks/browser-r01.log",
+      "bytes": 6239,
+      "sha256": "d5bacc2d25c8874a7b1a238d274fe98d8937f958c3a87948cf0f470df6c60b05"
+    },
+    {
+      "path": "build-workshop-camera-3s8ze75b/checks/browser-r02.log",
+      "bytes": 6238,
+      "sha256": "4ac02aa99422088350a1a4e9c49c1057856cb4e2c32e854e0a55eee620ebc1ad"
+    },
+    {
+      "path": "build-workshop-camera-3s8ze75b/checks/browser-r03.log",
+      "bytes": 6248,
+      "sha256": "8e0ac0d5a81bce21dd8ac72ac0152fe71d7968c6e9ed91c40c631691a215978d"
+    },
+    {
+      "path": "build-workshop-camera-3s8ze75b/checks/browser-r04.log",
+      "bytes": 399459,
+      "sha256": "8c27481488ab7604e9e875448f6694c0c5a0e82c8bb17423e3b1358cc7868c0b"
+    },
+    {
+      "path": "build-workshop-camera-3s8ze75b/checks/camera-r01.log",
+      "bytes": 1008,
+      "sha256": "338e3d970097dfd0fa21e4774bc1652387be57d56541b5a4c548b1a475430b26"
+    },
+    {
+      "path": "build-workshop-camera-3s8ze75b/checks/cmake-camera.log",
+      "bytes": 923,
+      "sha256": "8ec6316964f52232229a091e75abdda256ee2ff5cf87b24e11a73810e706c61b"
+    },
+    {
+      "path": "build-workshop-camera-3s8ze75b/checks/cmake-camera.xml",
+      "bytes": 1137,
+      "sha256": "160eddbb50a53365357eca42dcb10823c526e88c08362f3d0134b0babd42b13b"
+    },
+    {
+      "path": "build-workshop-camera-3s8ze75b/checks/input-camera-r02.log",
+      "bytes": 2853,
+      "sha256": "94a800b81269edfbede9c1e8aab497f76e39a75072f1a1628f98109e81a15255"
+    },
+    {
+      "path": "build-workshop-camera-3s8ze75b/checks/input-camera-r03.log",
+      "bytes": 1256,
+      "sha256": "fa912fd37f62def4e434261b73aa420cf51435783680fdfb85aa771fade9afd2"
+    },
+    {
+      "path": "build-workshop-camera-3s8ze75b/checks/native-build-r01.log",
+      "bytes": 8625,
+      "sha256": "7db5771655aa5cbc0320d2a4d1ad6ad44ee3d53a3c593aa856ceda3d23595080"
+    },
+    {
+      "path": "build-workshop-camera-3s8ze75b/checks/native-build-r02.log",
+      "bytes": 1012,
+      "sha256": "848f925e29684baf8f47a584018d8e1d5b8c726a7f3c4038cf6c2d4048d17c06"
+    },
+    {
+      "path": "build-workshop-camera-3s8ze75b/checks/native-build-r03.log",
+      "bytes": 2716,
+      "sha256": "116fb0075f399d939a5eb3968350fe7b03b3e65599da50ff8d81249741b0a8d2"
+    },
+    {
+      "path": "build-workshop-camera-3s8ze75b/checks/native-build-r04.log",
+      "bytes": 1105,
+      "sha256": "41fc3d0222b48bb4e582d8b47f033d7120917b6893bdeb7858acfad0d8d96ed4"
+    },
+    {
+      "path": "build-workshop-camera-3s8ze75b/checks/native-config-r02.log",
+      "bytes": 7179,
+      "sha256": "acdc12cfb38b5bcf5ca19b16cd6b3d20bf2fef7c9c9c4cf6594a293734ddf45d"
+    },
+    {
+      "path": "build-workshop-camera-3s8ze75b/checks/native-journey-r01.log",
+      "bytes": 126,
+      "sha256": "216fc5eb3c4d4c78f4127b5cd5780183463705bdc35f234dcbfa3b96cd53a004"
+    },
+    {
+      "path": "build-workshop-camera-3s8ze75b/checks/ui-r01.log",
+      "bytes": 258,
+      "sha256": "79eadfe92f853e094f6544cf1ef0f1c3cc58059c115e7c812391db015d18ad96"
+    },
+    {
+      "path": "build-workshop-camera-3s8ze75b/checks/ui-r02.log",
+      "bytes": 258,
+      "sha256": "79eadfe92f853e094f6544cf1ef0f1c3cc58059c115e7c812391db015d18ad96"
+    },
+    {
+      "path": "build-workshop-camera-3s8ze75b/checks/ui-r03.log",
+      "bytes": 258,
+      "sha256": "cd187f25164455233fb9e2d03d6b08ffd2b5b2b45570fc6ba936a6e3469055cd"
+    },
+    {
+      "path": "build-workshop-camera-3s8ze75b/checks/ui-r04.log",
+      "bytes": 258,
+      "sha256": "cd187f25164455233fb9e2d03d6b08ffd2b5b2b45570fc6ba936a6e3469055cd"
+    },
+    {
+      "path": "build-workshop-camera-3s8ze75b/checks/wasm-build-r01.log",
+      "bytes": 20187,
+      "sha256": "b3b8193ed691dbabd19bba27b3faac7b37ace64246e447506cb18feeb7083fa5"
+    },
+    {
+      "path": "build-workshop-camera-3s8ze75b/checks/wasm-build-r02.log",
+      "bytes": 1686,
+      "sha256": "ec7712c8f2b9a248ffd4987cb35bfb36bce54d887dba23c83d565177462a279e"
+    },
+    {
+      "path": "build-workshop-camera-3s8ze75b/checks/wasm-build-r03.log",
+      "bytes": 19638,
+      "sha256": "630f622698a0a8c4763e7a614bb5b77d5d0dfbd60c05ee1633e5ddf6933b2f58"
+    },
+    {
+      "path": "build-workshop-camera-3s8ze75b/checks/wasm-build-r04.log",
+      "bytes": 2590,
+      "sha256": "6ceab7ff8e71969f6c34276d086051584892980b177d72bfdbe82fafd2b60b1d"
+    },
+    {
+      "path": "build-workshop-camera-3s8ze75b/native-check-r01/summary.json",
+      "bytes": 81884,
+      "sha256": "af3cdfe1c58b77408fc1a677ff0833c1e674e51c0cbf1c45c495ea2bd870b269"
+    },
+    {
+      "path": "build-workshop-camera-3s8ze75b/owner-preview.json",
+      "bytes": 169,
+      "sha256": "71ca566b9b16a96a1ca2624deaf7e2d9463784fa8146e0e43982f31447bc492a"
+    },
+    {
+      "path": "docs/validation/salvage/PLAY-02/camera-r01/checks/bazel-camera.xml",
+      "bytes": 1014,
+      "sha256": "b375d3ad7807e537cf53cb8022720983b66b23074a8c25cfc324a4036b65ee56"
+    },
+    {
+      "path": "docs/validation/salvage/PLAY-02/camera-r01/checks/bazel-input.xml",
+      "bytes": 6949,
+      "sha256": "4a27bdbc8d1b70162f7f91211b5bf9525c1478e4bec3e23e32a362b3af9c4d8c"
+    },
+    {
+      "path": "docs/validation/salvage/PLAY-02/camera-r01/checks/browser-ui.log",
+      "bytes": 258,
+      "sha256": "cd187f25164455233fb9e2d03d6b08ffd2b5b2b45570fc6ba936a6e3469055cd"
+    },
+    {
+      "path": "docs/validation/salvage/PLAY-02/camera-r01/checks/cmake-camera.xml",
+      "bytes": 1137,
+      "sha256": "160eddbb50a53365357eca42dcb10823c526e88c08362f3d0134b0babd42b13b"
+    }
+  ]
+}

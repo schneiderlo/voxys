@@ -248,13 +248,21 @@ TEST(AssemblyFunctions, MaximumSocketAndConnectionBudgetsRemainGloballyBounded) 
         Connection link; link.id = id(2000 + denseWelds.connections.size()); link.a = {id(9+i),SocketId{socket}}; link.b = {id(10+i),SocketId{socket+1}};
         link.strength = {1000,900,800,700}; denseWelds.connections.push_back(link);
     }
-    AssemblyFunctionIssue issue;
-    EXPECT_FALSE(AssemblyFunctionPlan::compile(denseWelds,definitions,issue));
-    EXPECT_EQ(issue.buoyancy.collision.assembly.build.error,BuildError::Capacity);
-    EXPECT_EQ(issue.buoyancy.collision.assembly.build.field,"candidatePairs");
+    // The adaptive spatial sweep now skips distant levels of this column.
+    // All 1,024 valid welds must survive compilation; admission must not depend
+    // on exhausting the old fixed-axis candidate budget. BuildModel separately
+    // checks refusal of a layout that actually exceeds the work budget.
+    const auto welded = compile(denseWelds,definitions);
+    EXPECT_EQ(welded.modules().size(),256u); EXPECT_EQ(welded.massPlan().roots().size(),1u);
+    EXPECT_EQ(welded.sockets().size(),8192u); EXPECT_EQ(welded.connections().size(),1024u);
+    size_t weldedUsed = 0; for (const auto& socket : welded.sockets()) weldedUsed += socket.usedSlots;
+    EXPECT_EQ(weldedUsed,2048u);
+    AssemblyFunctionIssue issue; AssemblyFunctionLimits weldLimits; weldLimits.connections = 1023;
+    EXPECT_FALSE(AssemblyFunctionPlan::compile(denseWelds,definitions,issue,{},{},{},weldLimits));
+    EXPECT_EQ(issue.error,AssemblyFunctionError::Capacity);
     // 255 actual welds plus authored ropes reach the record limits within the
-    // separate canonical mating-work budget. 1,024 welds exceeded that budget;
-    // record capacity alone never promises admission of every dense design.
+    // separate canonical mating-work budget. Record capacity alone never
+    // promises admission of every dense design.
     for (size_t i = 1; i < build.parts.size(); ++i) for (uint64_t socket = 210; socket < 232 && build.connections.size() < 1024; socket += 2) {
         Connection link; link.id = id(2000 + build.connections.size()); link.a = {id(9+i),SocketId{socket}}; link.b = {id(10+i),SocketId{socket+1}};
         link.kind = ConnectionKind::Rope; link.minimumLengthMillimetres = 1; link.restLengthMillimetres = 1000; link.maximumLengthMillimetres = 2000;

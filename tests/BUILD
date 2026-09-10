@@ -57,6 +57,13 @@ TEST_SRCS = [
 load("//settings:configure_copts.bzl", "PROJECT_TEST_COPTS")
 
 cc_test(
+    name = "workshop_camera",
+    srcs = ["test_workshop_camera.cpp"],
+    copts = PROJECT_TEST_COPTS,
+    deps = ["//src/game:workshop_camera", "//third_party:glm", "@googletest//:gtest_main"],
+)
+
+cc_test(
     name = "cove_player",
     srcs = ["test_cove_player.cpp"],
     copts = PROJECT_TEST_COPTS,
@@ -869,6 +876,7 @@ cc_test(
     size = "large",
     timeout = "eternal",
     srcs = TEST_SRCS + [
+        "test_workshop_camera.cpp",
         "test_environment_lighting.cpp",
         "test_fixture_registry.cpp",
         "test_cove_player.cpp",
@@ -941,6 +949,7 @@ cc_test(
         "//src/core:sha256",
         "//src/render:salvage_asset_fixture",
         "//src/game:fixture_registry",
+        "//src/game:workshop_camera",
         "//src/game:cove_player",
         "//src/game:cove_boat", "//src/game:cove_harbor_lift", "//src/game:cove_harbor_runtime", "//src/game:cove_workshop", "//src/game:cove_build", "//src/game:cove_restore",
         "//src/game:assembly_compiler",

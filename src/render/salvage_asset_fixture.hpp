@@ -1,6 +1,7 @@
 #pragma once
 
 #include "game/assets/cooked_part_bundle.hpp"
+#include "game/assets/fixture_limits.hpp"
 #include "render/mesh_path.hpp"
 #include "render/inspection_guides.hpp"
 #include "render/primitive_path.hpp"
@@ -90,10 +91,13 @@ struct SalvageFixtureStats {
 // the platform must separately pump its GPU/event loop. No frame-delay fences.
 class SalvageAssetFixture final {
 public:
-    static constexpr uint32_t maximumBundles = 12;
+    static constexpr uint32_t maximumBundles = game::assets::kMaximumFixtureBundles;
     static constexpr uint32_t maximumPrototypes = 8;
-    static constexpr uint32_t maximumUniqueAssets = 36;
-    static constexpr uint32_t maximumPlacements = 32;
+    static constexpr uint32_t maximumUniqueAssets = 48;
+    // Three presentation-only native palette thumbnails never consume scene
+    // slots, owned parts, collision shapes or inventory.
+    static constexpr uint32_t maximumPalettePlacements = 3;
+    static constexpr uint32_t maximumPlacements = game::assets::kMaximumFixturePlacements + maximumPalettePlacements;
     static constexpr uint32_t maximumMeshInstances = 256; // Authored nodes, excluding helper boxes.
     static constexpr uint32_t maximumExpandedDraws = 512; // Per model or guide path.
     // Model and X-ray paths each reserve 512 * 96-byte instances, 160-byte

@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <limits>
 #include <tuple>
+#include <cmath>
 
 namespace voxy::game::expedition {
 using namespace construction;
@@ -16,7 +17,7 @@ bool member(const assets::AssetFixtureRegistry& r,uint32_t p) {
 }
 std::unique_ptr<CoveWorkshop> CoveWorkshop::create(const assets::LoadedAssetFixture& scene,std::string& error,uint32_t fixedPlacements,
     std::span<const uint32_t> originalBoatSlots,bool acceptedSeparated) {
-    if(!scene.registry.navigation || scene.registry.placements.size()>32 || scene.registry.connections.size()>64) {
+    if(!scene.registry.navigation || scene.registry.placements.size()>assets::kMaximumFixturePlacements || scene.registry.connections.size()>assets::kMaximumFixtureConnections) {
         error="Workshop needs a bounded starter craft";return {};
     }
     auto result=std::unique_ptr<CoveWorkshop>(new CoveWorkshop(scene));
@@ -25,7 +26,7 @@ std::unique_ptr<CoveWorkshop> CoveWorkshop::create(const assets::LoadedAssetFixt
     result->acceptedSlots_=scene.registry.navigation->boatPlacements;
     result->collisionBoatSlots_=originalBoatSlots.empty()?result->acceptedSlots_
         :std::vector<uint32_t>(originalBoatSlots.begin(),originalBoatSlots.end());
-    for(uint32_t i=result->fixedPlacements_;i<32;++i)result->collisionBoatSlots_.push_back(i);
+    for(uint32_t i=result->fixedPlacements_;i<assets::kMaximumFixturePlacements;++i)result->collisionBoatSlots_.push_back(i);
     result->compiled_=acceptedSeparated?CoveBoatAssembly::compileSeparatedScene(scene,error):CoveBoatAssembly::compile(scene,error);
     if(!result->compiled_)return {};
     for(size_t i=0;i<scene.bundles.size();++i) {
@@ -44,6 +45,31 @@ std::unique_ptr<CoveWorkshop> CoveWorkshop::create(const assets::LoadedAssetFixt
 const PartDefinition& CoveWorkshop::definition(uint32_t p) const {
     return definition(preview_,p);
 }
+std::optional<WorkshopBounds> CoveWorkshop::viewBounds(bool wholeBuild) const {
+    std::optional<WorkshopBounds> result;
+    for(auto slot:preview_.registry.navigation->boatPlacements) {
+        if(!wholeBuild&&slot!=selected_)continue;
+        const auto& placement=preview_.registry.placements[slot];
+        const auto rotation=rotationMatrix(placement.placement.rotation);if(!rotation)return {};
+        const auto include=[&](glm::dvec3 lo,glm::dvec3 hi) {
+            for(unsigned corner=0;corner<8;++corner) {
+                const glm::dvec3 p{corner&1?hi.x:lo.x,corner&2?hi.y:lo.y,corner&4?hi.z:lo.z};
+                const auto t=placement.placement.translation;glm::dvec3 world{t.x*.02,t.y*.02,t.z*.02};
+                for(int row=0;row<3;++row)for(int column=0;column<3;++column)world[row]+=rotation->elements[static_cast<size_t>(row*3+column)]*p[column];
+                if(!result)result=WorkshopBounds{world,world};
+                else {result->minimum=glm::min(result->minimum,world);result->maximum=glm::max(result->maximum,world);}
+            }
+        };
+        if(placement.prototype) {
+            const auto b=definition(slot).footprint;
+            include(glm::dvec3(b.minimum.x,b.minimum.y,b.minimum.z)*.02,glm::dvec3(b.maximum.x,b.maximum.y,b.maximum.z)*.02);
+        } else for(const auto& lod:preview_.bundles[placement.bundleIndex]->lods()) {
+            const auto& b=lod.prefab.canonicalBounds;if(!b.valid)return {};
+            include(b.minimum,b.maximum);
+        }
+    }
+    return result;
+}
 const PartDefinition& CoveWorkshop::definition(const assets::LoadedAssetFixture& scene,uint32_t p) const {
     const auto& place=scene.registry.placements[p];
     return place.prototype?scene.prototypes[place.bundleIndex]:scene.bundles[place.bundleIndex]->sidecar().part;
@@ -56,16 +82,77 @@ std::string_view partName(const PartDefinition& part) noexcept {
     if(std::holds_alternative<PropellerModule>(part.module))return "Propeller";
     if(std::holds_alternative<FlotationModule>(part.module))return "Pontoon";
     if(std::holds_alternative<CargoCradleModule>(part.module))return "Cargo cradle";
+    if(part.nameKey=="salvage.part.brick_1x2")return "Brick 1 x 2";
+    if(part.nameKey=="salvage.part.brick_2x2")return "Brick 2 x 2";
+    if(part.nameKey=="salvage.part.brick_2x4")return "Brick 2 x 4";
     if(part.nameKey.find("beam")!=std::string::npos)return "Beam";
     return "Deck plate";
 }
 }
 std::string_view CoveWorkshop::selectedName() const noexcept { return partName(definition(selected_)); }
-std::string_view CoveWorkshop::catalogName() const noexcept {
-    return catalog_.empty()?"No parts":partName(design_.bundles[catalog_[catalogIndex_].bundleIndex]->sidecar().part);
+std::string_view CoveWorkshop::catalogNameAt(uint32_t index) const noexcept {
+    return index<catalog_.size()?partName(design_.bundles[catalog_[index].bundleIndex]->sidecar().part):"No parts";
 }
-ResourceAmounts CoveWorkshop::catalogCost() const noexcept {
-    return catalog_.empty()?ResourceAmounts{}:design_.bundles[catalog_[catalogIndex_].bundleIndex]->sidecar().part.cost;
+ResourceAmounts CoveWorkshop::catalogCostAt(uint32_t index) const noexcept {
+    return index<catalog_.size()?design_.bundles[catalog_[index].bundleIndex]->sidecar().part.cost:ResourceAmounts{};
+}
+std::string_view CoveWorkshop::catalogName() const noexcept { return catalogNameAt(catalogIndex_); }
+ResourceAmounts CoveWorkshop::catalogCost() const noexcept { return catalogCostAt(catalogIndex_); }
+bool CoveWorkshop::selectCatalogAt(uint32_t index) noexcept {
+    if(index>=catalog_.size())return false;
+    catalogIndex_=index;return true;
+}
+bool CoveWorkshop::selectPart(uint32_t placement) {
+    if(changed() || !member(design_.registry,placement))return false;
+    selected_=placement;preview_=design_;evaluate();return true;
+}
+std::optional<CoveWorkshop::Pick> CoveWorkshop::pick(glm::dvec3 origin,glm::dvec3 direction,bool excludeSelected) const {
+    for(int axis=0;axis<3;++axis)if(!std::isfinite(origin[axis])||!std::isfinite(direction[axis]))return {};
+    const auto length=glm::length(direction);if(length<1e-9)return {};
+    direction/=length;double nearest=std::numeric_limits<double>::infinity();std::optional<Pick> result;
+    for(auto slot:preview_.registry.navigation->boatPlacements) {
+        if(excludeSelected&&slot==selected_)continue;
+        for(const auto& proxy:definition(slot).collision) {
+            const auto local=boxBounds(proxy);
+            const auto bounds=local?transformBounds(preview_.registry.placements[slot].placement,*local):std::nullopt;
+            if(!bounds)continue;
+            const glm::dvec3 lo=glm::dvec3(bounds->minimum.x,bounds->minimum.y,bounds->minimum.z)*.02;
+            const glm::dvec3 hi=glm::dvec3(bounds->maximum.x,bounds->maximum.y,bounds->maximum.z)*.02;
+            double enter=0,leave=nearest;
+            for(int axis=0;axis<3;++axis) {
+                if(std::abs(direction[axis])<1e-12) {if(origin[axis]<lo[axis]||origin[axis]>hi[axis]){leave=-1;break;}}
+                else {
+                    const double a=(lo[axis]-origin[axis])/direction[axis],b=(hi[axis]-origin[axis])/direction[axis];
+                    enter=std::max(enter,std::min(a,b));leave=std::min(leave,std::max(a,b));
+                }
+            }
+            if(enter<=leave&&enter<nearest){nearest=enter;result=Pick{slot,origin+direction*enter};}
+        }
+    }
+    return result;
+}
+bool CoveWorkshop::aimAt(const Pick& hit) {
+    if(hit.placement==selected_||!member(preview_.registry,hit.placement)||!member(preview_.registry,selected_))return false;
+    for(int axis=0;axis<3;++axis)if(!std::isfinite(hit.point[axis]))return false;
+    const auto current=preview_.registry.placements[selected_].placement;
+    std::optional<GridTransform> best;double score=std::numeric_limits<double>::infinity();
+    // Preserve the chosen orientation. The closest exact mating transform is
+    // shown even when blocked, so a red ghost never jumps to a different site.
+    for(const auto& a:definition(selected_).sockets) {
+        const auto ai=inverse(a.frame);if(!ai)continue;
+        for(const auto& b:definition(hit.placement).sockets) {
+            if(matchSockets(b,a,ConnectionKind::Weld)!=SocketMatchError::None)continue;
+            const auto bf=compose(preview_.registry.placements[hit.placement].placement,b.frame);
+            const auto target=bf?compose(*bf,GridTransform{{},mating}):std::nullopt;
+            const auto frame=target?compose(*target,*ai):std::nullopt;
+            if(!frame||frame->rotation!=current.rotation)continue;
+            const auto center=glm::dvec3(frame->translation.x,frame->translation.y,frame->translation.z)*.02;
+            const auto delta=center-hit.point;const double distance=glm::dot(delta,delta);
+            if(distance<score){score=distance;best=*frame;}
+        }
+    }
+    if(!best||*best==current)return false;
+    preview_.registry.placements[selected_].placement=*best;evaluate();return true;
 }
 ContentKey CoveWorkshop::catalogDefinition() const noexcept {
     return catalog_.empty()?ContentKey{}:design_.bundles[catalog_[catalogIndex_].bundleIndex]->sidecar().part.key;
@@ -77,7 +164,7 @@ bool CoveWorkshop::selectCatalog(int direction) noexcept {
 }
 bool CoveWorkshop::canAdd() const noexcept {
     if(catalog_.empty() || changed())return false;
-    for(uint32_t slot=fixedPlacements_;slot<32;++slot)
+    for(uint32_t slot=fixedPlacements_;slot<assets::kMaximumFixturePlacements;++slot)
         if(std::find(acceptedSlots_.begin(),acceptedSlots_.end(),slot)==acceptedSlots_.end()
             && std::find(design_.registry.navigation->boatPlacements.begin(),design_.registry.navigation->boatPlacements.end(),slot)
                 ==design_.registry.navigation->boatPlacements.end())return true;
@@ -164,23 +251,26 @@ bool CoveWorkshop::reconnect(assets::LoadedAssetFixture& candidate) const {
     auto& r=candidate.registry;
     std::erase_if(r.connections,[&](const auto& c){return c.aPlacement==selected_||c.bPlacement==selected_;});
     if(!member(r,selected_))return true;
-    size_t visits=0;
+    struct Socket { GridTransform frame;uint32_t placement;const SocketDefinition* definition; };
+    std::vector<Socket> sockets;
+    for(auto other:r.navigation->boatPlacements)if(other!=selected_)for(const auto& socket:definition(candidate,other).sockets) {
+        if(sockets.size()>=kMaximumBuildSocketRecords)return false;
+        const auto frame=compose(r.placements[other].placement,socket.frame);if(!frame)return false;
+        sockets.push_back({*frame,other,&socket});
+    }
+    std::stable_sort(sockets.begin(),sockets.end(),[](const auto& a,const auto& b){return std::tie(a.frame.translation.x,a.frame.translation.y,a.frame.translation.z)<std::tie(b.frame.translation.x,b.frame.translation.y,b.frame.translation.z);});
     for(const auto& a:definition(candidate,selected_).sockets) {
-        const auto af=compose(r.placements[selected_].placement,a.frame);
-        if(!af)return false;
-        for(auto other:r.navigation->boatPlacements) {
-            if(other==selected_)continue;
-            for(const auto& b:definition(candidate,other).sockets) {
-                if(++visits>8192)return false;
-                if(matchSockets(a,b,ConnectionKind::Weld)!=SocketMatchError::None)continue;
-                const auto bf=compose(r.placements[other].placement,b.frame);
-                if(!bf || af->translation!=bf->translation || compose(af->rotation,mating)!=bf->rotation)continue;
-                const auto used=[&](uint32_t part,SocketId socket){return std::count_if(r.connections.begin(),r.connections.end(),
-                    [&](const auto& c){return (c.aPlacement==part&&c.aSocket==socket)||(c.bPlacement==part&&c.bSocket==socket);});};
-                if(used(selected_,a.id)>=a.connectionCapacity || used(other,b.id)>=b.connectionCapacity)continue;
-                if(r.connections.size()>=64)return false;
-                r.connections.push_back({selected_,other,a.id,b.id});
-            }
+        const auto af=compose(r.placements[selected_].placement,a.frame);if(!af)return false;
+        auto at=std::lower_bound(sockets.begin(),sockets.end(),af->translation,
+            [](const Socket& socket,GridPosition p){return std::tie(socket.frame.translation.x,socket.frame.translation.y,socket.frame.translation.z)<std::tie(p.x,p.y,p.z);});
+        for(;at!=sockets.end()&&at->frame.translation==af->translation;++at) {
+            const auto& b=*at->definition;const auto other=at->placement;
+            if(matchSockets(a,b,ConnectionKind::Weld)!=SocketMatchError::None||compose(af->rotation,mating)!=at->frame.rotation)continue;
+            const auto used=[&](uint32_t part,SocketId socket){return std::count_if(r.connections.begin(),r.connections.end(),
+                [&](const auto& c){return (c.aPlacement==part&&c.aSocket==socket)||(c.bPlacement==part&&c.bSocket==socket);});};
+            if(used(selected_,a.id)>=a.connectionCapacity||used(other,b.id)>=b.connectionCapacity)continue;
+            if(r.connections.size()>=assets::kMaximumFixtureConnections)return false;
+            r.connections.push_back({selected_,other,a.id,b.id});
         }
     }
     return true;
@@ -205,16 +295,21 @@ bool CoveWorkshop::snap() {
         for(auto other:preview_.registry.navigation->boatPlacements) {
             if(other==selected_)continue;
             for(const auto& b:definition(other).sockets) {
-                if(++visits>8192){message_="Too many socket candidates.";return false;}
+                if(++visits>kMaximumBuildSocketRecords*kMaximumPartSockets){message_="Build exceeds the socket budget.";return false;}
                 if(matchSockets(b,a,ConnectionKind::Weld)!=SocketMatchError::None)continue;
                 const auto bf=compose(preview_.registry.placements[other].placement,b.frame);
                 const auto target=bf?compose(*bf,GridTransform{{},mating}):std::nullopt;
                 const auto frame=target?compose(*target,*ai):std::nullopt;
                 if(!frame || *frame==current || !(definition(selected_).permittedRotationMask&(1u<<frame->rotation.value)))continue;
+                if(definition(selected_).nameKey.starts_with("salvage.part.brick_")&&frame->rotation!=current.rotation)continue;
                 if(std::any_of(candidates.begin(),candidates.end(),[&](const auto& c){return c.frame==*frame;}))continue;
-                if(candidates.size()>=256){message_="Too many socket candidates.";return false;}
                 const auto d=checkedSubtract(frame->translation,current.translation);if(!d)continue;
-                candidates.push_back({*frame,double(d->x)*double(d->x)+double(d->y)*double(d->y)+double(d->z)*double(d->z)});
+                Candidate option{*frame,double(d->x)*double(d->x)+double(d->y)*double(d->y)+double(d->z)*double(d->z)};
+                if(candidates.size()<256)candidates.push_back(option);
+                else {
+                    const auto farthest=std::max_element(candidates.begin(),candidates.end(),[](const auto& x,const auto& y){return x.distance<y.distance;});
+                    if(option.distance<farthest->distance)*farthest=option;
+                }
             }
         }
     }
@@ -253,15 +348,15 @@ bool CoveWorkshop::loadBlueprint(std::span<const std::byte> bytes,std::string& e
     const auto catalog=makeCovePartCatalog(design_,error);if(!catalog)return false;
     std::optional<BuildBlueprint> blueprint;
     if(decodeBlueprint(bytes,*catalog,blueprint))return fail("This saved design is damaged, incompatible or uses unavailable parts.");
-    if(blueprint->parts.size()>32 || blueprint->connections.size()>64)return fail("This design is too large for the cove workshop.");
+    if(blueprint->parts.size()>assets::kMaximumFixturePlacements || blueprint->connections.size()>assets::kMaximumFixtureConnections)return fail("This design is too large for the cove workshop.");
     for(const auto& link:blueprint->connections)
         if(link.kind!=ConnectionKind::Weld || !link.enabled)return fail("This workshop requires a welded boat design.");
     auto candidate=design_;auto& registry=candidate.registry;
-    std::array<bool,32> used{};std::array<uint32_t,32> slots{};slots.fill(32);
+    std::array<bool,assets::kMaximumFixturePlacements> used{};std::array<uint32_t,assets::kMaximumFixturePlacements> slots{};slots.fill(assets::kMaximumFixturePlacements);
     // Reserve every exact owned match before reusing a same-definition part.
     // Imported ordinals never supply ownership, loans, identities or inventory.
     for(bool exact:{true,false})for(size_t i=0;i<blueprint->parts.size();++i) {
-        if(slots[i]!=32)continue;
+        if(slots[i]!=assets::kMaximumFixturePlacements)continue;
         const auto& part=blueprint->parts[i];
         for(auto slot:acceptedSlots_)if(!used[slot] && definition(design_,slot).key==part.definition
             && (!exact || registry.placements[slot].placement==part.placement)) {
@@ -275,10 +370,10 @@ bool CoveWorkshop::loadBlueprint(std::span<const std::byte> bytes,std::string& e
     });
     for(size_t i=0;i<blueprint->parts.size();++i) {
         const auto& part=blueprint->parts[i];
-        if(slots[i]==32) {
+        if(slots[i]==assets::kMaximumFixturePlacements) {
             uint32_t slot=fixedPlacements_;
-            while(slot<32 && (used[slot] || std::find(acceptedSlots_.begin(),acceptedSlots_.end(),slot)!=acceptedSlots_.end()))++slot;
-            if(slot==32)return fail("No free part slots. Launch removals before loading a larger design.");
+            while(slot<assets::kMaximumFixturePlacements && (used[slot] || std::find(acceptedSlots_.begin(),acceptedSlots_.end(),slot)!=acceptedSlots_.end()))++slot;
+            if(slot==assets::kMaximumFixturePlacements)return fail("No free part slots. Launch removals before loading a larger design.");
             assets::FixturePartPlacement placed;bool found=false;
             for(size_t j=0;j<candidate.bundles.size();++j)if(candidate.bundles[j]->sidecar().part.key==part.definition) {
                 placed.bundleIndex=static_cast<uint32_t>(j);found=true;break;
@@ -292,7 +387,7 @@ bool CoveWorkshop::loadBlueprint(std::span<const std::byte> bytes,std::string& e
     }
     for(const auto& link:blueprint->connections)
         registry.connections.push_back({slots[link.a.partOrdinal-1],slots[link.b.partOrdinal-1],link.a.socket,link.b.socket});
-    if(registry.connections.size()>64)return fail("This design has too many connections for the cove workshop.");
+    if(registry.connections.size()>assets::kMaximumFixtureConnections)return fail("This design has too many connections for the cove workshop.");
     auto compiled=CoveBoatAssembly::compile(candidate,error);if(!compiled)return false;
     // This cove supports authored-strength welds. Do not silently replace the
     // custom strength of a future imported machine with a different value.

@@ -1,0 +1,125 @@
+{
+  "sourceParent": "e51467858a979837c133634e62b7ef92ceb29ce5",
+  "result": "passed",
+  "nativeSuite": {
+    "passed": 2054,
+    "skipped": [
+      "WindowGLFWTest.WindowCreation",
+      "GpuBroadPhaseOverflowBenchmark.DenseGridCandidateClamp",
+      "RaycastPathGPUTest.LegoHorizonBenchmark"
+    ],
+    "disabled": 4,
+    "attributes": {
+      "tests": "2061",
+      "failures": "0",
+      "disabled": "4",
+      "errors": "0",
+      "time": "1214.545",
+      "timestamp": "2026-09-10T15:58:17.393",
+      "name": "AllTests"
+    }
+  },
+  "terrainImportTarget": "passed",
+  "browserChecks": {
+    "previewUiPassed": 22,
+    "coveSaveHostPassed": 17,
+    "storageEnvelopePassed": 4
+  },
+  "correctedAssemblyFunctionsCmakePassed": 10,
+  "builds": [
+    {
+      "path": "build-native-save-host/bin/voxy_native",
+      "bytes": 47041408,
+      "sha256": "0d5efff1912b9a66b31786667123f82344072a12f1e060e4a7bbe12a1eb8009e",
+      "matchesPriorVerifiedBuild": true
+    },
+    {
+      "path": "build-lego-wasm/bin/voxy_wasm.js",
+      "bytes": 96310,
+      "sha256": "8ced8a0e20231f9a9590fdcfb78a97dedd45131891f860cf8d4d018619ba59f5",
+      "matchesPriorVerifiedBuild": true
+    },
+    {
+      "path": "build-lego-wasm/bin/voxy_wasm.wasm",
+      "bytes": 7184171,
+      "sha256": "0b230c34d35bedb0cab498b058d0f6294638acf36d626a12ff708b8d00bf8472",
+      "matchesPriorVerifiedBuild": true
+    },
+    {
+      "path": "build-lego-wasm/bin/voxy_wasm.data",
+      "bytes": 84625414,
+      "sha256": "01ac555c307d6ecdcef48da8d87e42de082378ce13fef3d2a5aee01bb43d2bfc",
+      "matchesPriorVerifiedBuild": true
+    }
+  ],
+  "sourceHashes": {
+    "data/BUILD": "94d8ae579563332a052f21e02eca840904640923d920e86bccd85f6a5a808e42",
+    "data/salvage/cove-bricks-r02.json": "b51419b5a343fe5e2f8948a747c720f36c523fa75ac9959a44c334b57d66e169",
+    "scripts/smoke_integrated_wasm.mjs": "11308e67edb2a85d91261c4aa7eff4f5ebf6c1857550bc90d065bf2d30d03498",
+    "scripts/test_salvage_preview.mjs": "8949e36f9ea44f4d8358bfb8d2239a7ca651a136cf3d983dec4bb4175cb3dc2a",
+    "scripts/validate_cove_archive.mjs": "189669b05e139a3eec3cdfa7fe90d290ec78aa2755f3997c25a2e183fad471d0",
+    "scripts/validate_cove_bricks.mjs": "35b3ecd78b1829552c8e2872d7fd7a3ff8cec7e92617df340694ee3ea47fb6ec",
+    "scripts/validate_native_cove_bricks.py": "ea191f0aa6a3574094d6354cbfeb91e4423f7a2d0ce211fa71f2f74e90d8385e",
+    "scripts/validate_native_cove_saves.py": "5b2e8240f6e2bd2f7735b04c405c8e2480b0f7fd250c3441fbc84215641b94bc",
+    "scripts/validate_native_workshop_camera.py": "264840bdf8ef3a9ea7396972432529c9fef30148e72931b9cf1202b74d75c396",
+    "scripts/validate_session_transactions_wasm.py": "564fe49258c82ef40da482bb94f946f4a67da749999ff3d2164774163d1005de",
+    "scripts/validate_workshop_camera.mjs": "db236c12048f690567431f06182107804b888aabb3d722aa745f3ce2eb69c2df",
+    "src/CMakeLists.txt": "a4ef732c7a2f2c109a122b14b8b573d89058453e9f4064c213322dada480f589",
+    "src/app/BUILD": "d083db8c49c3021d141d5d8384f2c23d8d41fbd19688e17cf2d08f9ce19e96a1",
+    "src/app/application.cpp": "d7decb83b310c29dddec99f21e908bf43113d212c4ef9e98300284fa6af2adbf",
+    "src/app/application.hpp": "caa3ab8f3533b5d625bffc89b3b321ff2dbb9c24b668cf0a41fae4b6e5864917",
+    "src/core/config.cpp": "7c3efec33da16ef23ace7c1821d9a679efe16b1145fdf757f70a5c4e49e01761",
+    "src/core/config.hpp": "4e732cd7613c865e732602dd69e81abe1aaa3b18352ed61347a0de62a8d2ddb6",
+    "src/engine/platform/input.hpp": "8e71ee06d0470460573cdd90e5a22fb973156020c8626af726fd95a197914173",
+    "src/engine/platform/native/entry.cpp": "cbe70253ebad1a28cefd25390053fb7d1654627039856f2cb0f662c130691cb7",
+    "src/engine/platform/native/input.cpp": "2cf39942a1a5c3338242863276eb8f800e866138cca89fe16fd2a01d787763b5",
+    "src/engine/platform/wasm/entry.cpp": "5eb7ba5921dc8c85d0b6d4013ec15ac6342e5bd63189b941b7a0fb8495d3ec3a",
+    "src/engine/platform/wasm/input.cpp": "44184b6a955a63022f0de18b3417eb9bf50b9c0d3e0b014532e710d80aea6b8c",
+    "src/game/BUILD": "942990f2ce80d4dd7835179be4068e6f3b9bbe2ea78089d6e4c0e5eae5af6e5e",
+    "src/game/assets/fixture_limits.hpp": "cc84278cc8052d2f1ca59d6ff36f513dafa99b61ff7c64fca8e00b51f64eda86",
+    "src/game/assets/fixture_registry.cpp": "177e13ae453c6341ad2cb05b4a9e1553f07c7f678c77baea73eb1a3b35358c6d",
+    "src/game/assets/fixture_registry.hpp": "33d55d2769340ae57d2c5cdde48443e204377ef52c622924c6b630bfdef1e156",
+    "src/game/construction/build_model.cpp": "ef17438b83b4ba90de724e93cc441b60f6c6ae372efa71480b0603ad98e8a3a5",
+    "src/game/expedition/cove_boat.cpp": "ba028b9d1d014c4385d1bb349ceac48d9ebb741a9ff2b74c5783ad022257daf9",
+    "src/game/expedition/cove_build.cpp": "732dea7f2743201a867bf4942078f97e959ab1c6c9f71a2a4ec39cd18772a05f",
+    "src/game/expedition/cove_player.cpp": "9b2267d690840f3e473c7c3ee15456b95c2e46ff33a078f2116a530c15266b23",
+    "src/game/expedition/cove_restore.cpp": "949e895db5ddefeb5c48270932d61feb6f93a7f66519ba0c7589f16a9d49a13a",
+    "src/game/expedition/cove_rigid_roots.cpp": "f70e19fbedd9687a4690aa8e310597bcf4157cd5a4e00b369640f8b25ddbebce",
+    "src/game/expedition/cove_save.cpp": "1fa73323aa730465dd4343b9aaa376158a813e3b8a265f86c45cbd141251dbf0",
+    "src/game/expedition/cove_save.hpp": "272efd5ee51fdd0ef9d8598229ddd301ae8ab6b40fbf12d14042a9e91f4ebe9e",
+    "src/game/expedition/cove_workshop.cpp": "499b161af74a246b3af4958cd64756c828e34d09a469ac640c853a5c1223090d",
+    "src/game/expedition/cove_workshop.hpp": "d7c7c1f27a0fa71814091f6377a50d6c8c7fe3f257d13d9eaacea2eb4ace825a",
+    "src/game/expedition/workshop_camera.cpp": "3fd06c115b573cc7df8fbdf69820642ce8100fec7a823d244f988de440a44a85",
+    "src/game/expedition/workshop_camera.hpp": "3f598312c5d1dbdd4189c89309d38cdc3628583b716be0d93477fc38bfe4eae2",
+    "src/geometry/box_union.cpp": "c712ae833f9270e7bd4ff6e6ff693c12aba66e97cc65699d020d74fd5ca2a103",
+    "src/render/BUILD": "9db1d876af333fdc60f94936583be8c32ef3f23e5550b6644e8115f2665ddbf5",
+    "src/render/salvage_asset_fixture.hpp": "826a70b92b36df385d469c70d13fa1eeaba1dff7f28fd09d520636a3aa38d30f",
+    "tests/BUILD": "b01133a99315daab6282ebb79b16f2294e03c8e80991a5cadb31d1b6d3b430e7",
+    "tests/CMakeLists.txt": "9af14d3857b2450c64b9e025feca2467f91859737994cab7e97589b2100b2b79",
+    "tests/test_build_model.cpp": "2c5533bd7a4b2a6f410e4a67409699fe0724742d435f5701b756b4b3dfcfa964",
+    "tests/test_config.cpp": "834085162d23816f10d015b9b8813a2dcf6bcbf1eb22b933386697a7ff076458",
+    "tests/test_cove_player.cpp": "ddab7ca1ef85e2788faebeae8092daa278e6266a3649ad28a5ff0fe41a68160d",
+    "tests/test_cove_save.cpp": "59aa9e5bd596b29599d50efa2cd34336d2122e3b2a70ef1bb42892d1fa66e992",
+    "tests/test_fixture_registry.cpp": "cb4769869f985dc5a5ae689959464fa25d4f5f524d2f71e682d3d12e28587e3f",
+    "tests/test_game_session.cpp": "85b5892c4a085b8f94dc36ed8e9793932f5d82bf4c53b05ceb98e715834f7cbc",
+    "tests/test_input.cpp": "c6bb43f161b7494d24a4dcbbc1ebb7246fab25bab51c52f78467bc9242a693f6",
+    "tests/test_salvage_asset_fixture.cpp": "41be73921d53b1b460ea80a3f4da690abdc9a5c90cb56efc88e210137c0487bd",
+    "tests/test_workshop_camera.cpp": "1bf4e666d0e21230a3a27824cb51948b87193d98fcbe8f618a0651b17885e41d",
+    "web/cove_saves.js": "6fc47f5f8f5033e284aa215e42f9ae1145560d3635e6c18f57303ac00bb455fd",
+    "web/index.html": "11bc87bfbdf0a2e64dc4f1ac357d7b7a31c96609d9f9f8559078fd039beb3ea0",
+    "web/salvage_preview.css": "a42216dcdb8ea6f9dc17ea8f0bd6a239a2a25aa6cdab8b92228bb3d6dcdc2e10",
+    "web/salvage_preview.js": "880eb7da55ec7ff1e2ed6369ce8afe4086ee7ab592d9874c5b396ae38f4d861b",
+    "tests/test_assembly_functions.cpp": "2314446a20673c8770622c7602e3b3d59677dae05f72ba5c6db4122160f8831f"
+  },
+  "commands": [
+    "nix-shell --run 'bazel test //tests:voxy_tests //tools:terrain_diffusion_import_test --jobs=4 --test_output=errors'",
+    "nix-shell --run 'cmake --build build-native-save-host -j4'",
+    "nix-shell --run 'EM_CONFIG=/tmp/voxys-emsdk/.emscripten cmake --build build-lego-wasm -j4'",
+    "nix-shell --run 'cmake --build build-native-save-host --target assembly_functions_tests -j4 && build-native-save-host/bin/assembly_functions_tests'",
+    "node scripts/test_salvage_preview.mjs",
+    "node scripts/test_cove_saves.mjs",
+    "node scripts/test_expedition_store.mjs"
+  ],
+  "rawLogs": "build-main-brick-checkpoint-arq1suz8",
+  "scope": "Working builder/camera/archive checkpoint; no full game gate or visual approval."
+}

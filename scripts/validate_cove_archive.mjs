@@ -41,7 +41,7 @@ export async function validateCoveArchive(call,directory,name) {
         const count=bytes.readUInt32LE(at);at+=4;assert(count<=4&&(schema===4||count>0));
         archive.recoveryDesigns=[];
         for(let i=0;i<count;i++){
-            const size=bytes.readUInt32LE(at);at+=4;assert(size>0&&size<=32768&&at+size<=bytes.length-32);
+            const size=bytes.readUInt32LE(at);at+=4;assert(size>0&&size<=131072&&at+size<=bytes.length-32);
             assert.equal(bytes.subarray(at,at+4).toString(),'SVBP');
             archive.recoveryDesigns.push({bytes:size,sha256:createHash('sha256').update(bytes.subarray(at,at+size)).digest('hex')});at+=size;
         }

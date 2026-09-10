@@ -1,0 +1,476 @@
+Running main() from /home/modkin/workspace/schneiderlo/voxys/third_party/googletest/googletest/src/gtest_main.cc
+[==========] Running 198 tests from 23 test suites.
+[----------] Global test environment set-up.
+[----------] 25 tests from CoveSave
+[ RUN      ] CoveSave.TwoJobArchiveRetainsBothLoadsAcrossGeneratorBankingCrateTowAndBothReceipts
+[       OK ] CoveSave.TwoJobArchiveRetainsBothLoadsAcrossGeneratorBankingCrateTowAndBothReceipts (176 ms)
+[ RUN      ] CoveSave.SecondJobCannotSkipGeneratorRewardOrPoweredHarbor
+[       OK ] CoveSave.SecondJobCannotSkipGeneratorRewardOrPoweredHarbor (1 ms)
+[ RUN      ] CoveSave.TwoCargoCannotDropAliasOrInventAJobAndCannotShareOneWinch
+[       OK ] CoveSave.TwoCargoCannotDropAliasOrInventAJobAndCannotShareOneWinch (4 ms)
+[ RUN      ] CoveSave.VersionFiveBoundsPhysicalCargoBeforeAllocationAndDoesNotPermitLegacyDowngrade
+[       OK ] CoveSave.VersionFiveBoundsPhysicalCargoBeforeAllocationAndDoesNotPermitLegacyDowngrade (10 ms)
+[ RUN      ] CoveSave.TowingRoundTripPreservesMotionIdentityAndLargeCounters
+[       OK ] CoveSave.TowingRoundTripPreservesMotionIdentityAndLargeCounters (20 ms)
+[ RUN      ] CoveSave.RecoveryDesignIgnoresOwnershipConditionAndOrderingButPreservesConfiguration
+[       OK ] CoveSave.RecoveryDesignIgnoresOwnershipConditionAndOrderingButPreservesConfiguration (13 ms)
+[ RUN      ] CoveSave.RecoveryDesignCapacityDeduplicatesAndNeverOverwritesProtectedLayouts
+[       OK ] CoveSave.RecoveryDesignCapacityDeduplicatesAndNeverOverwritesProtectedLayouts (6 ms)
+[ RUN      ] CoveSave.RecoveryEnvelopeRoundTripRetainsDesignsWithAndWithoutInstalledHarbor
+[       OK ] CoveSave.RecoveryEnvelopeRoundTripRetainsDesignsWithAndWithoutInstalledHarbor (8 ms)
+[ RUN      ] CoveSave.InvalidDuplicateAndOverCapacityRecoveryDesignsPreserveEncodeOutput
+[       OK ] CoveSave.InvalidDuplicateAndOverCapacityRecoveryDesignsPreserveEncodeOutput (1 ms)
+[ RUN      ] CoveSave.LooseBrokenAndBankedCargoHaveDistinctMassAndRewardMeaning
+[       OK ] CoveSave.LooseBrokenAndBankedCargoHaveDistinctMassAndRewardMeaning (6 ms)
+[ RUN      ] CoveSave.HarborExtensionPreservesFourLengthsAndIndividualBreaksOnlyAfterBanking
+[       OK ] CoveSave.HarborExtensionPreservesFourLengthsAndIndividualBreaksOnlyAfterBanking (21 ms)
+[ RUN      ] CoveSave.LegacyArchivesRemainIdenticalAndInstallingTheLiftIsExplicit
+[       OK ] CoveSave.LegacyArchivesRemainIdenticalAndInstallingTheLiftIsExplicit (8 ms)
+[ RUN      ] CoveSave.RefusesMismatchedRolesTickCargoAndImpossibleMotionWithoutChangingOutput
+[       OK ] CoveSave.RefusesMismatchedRolesTickCargoAndImpossibleMotionWithoutChangingOutput (2 ms)
+[ RUN      ] CoveSave.RefusesCorruptionTruncationTrailingDataAndUnknownVersions
+[       OK ] CoveSave.RefusesCorruptionTruncationTrailingDataAndUnknownVersions (12 ms)
+[ RUN      ] CoveSave.RefusesResignedInvalidFieldsAndNestedLengths
+[       OK ] CoveSave.RefusesResignedInvalidFieldsAndNestedLengths (3 ms)
+[ RUN      ] CoveSave.FrozenPortableArchive
+[       OK ] CoveSave.FrozenPortableArchive (0 ms)
+[ RUN      ] CoveSave.RecoveredArchiveRequiresExactRetiredParentAndRejectsOldToken
+[       OK ] CoveSave.RecoveredArchiveRequiresExactRetiredParentAndRejectsOldToken (27 ms)
+[ RUN      ] CoveSave.FragmentArchiveKeepsRemoteMotionAndWinchApartFromTheHelmRoot
+[       OK ] CoveSave.FragmentArchiveKeepsRemoteMotionAndWinchApartFromTheHelmRoot (23 ms)
+[ RUN      ] CoveSave.FragmentsCannotBeEncodedOrResignedAsAnyLegacySingleMotionVersion
+[       OK ] CoveSave.FragmentsCannotBeEncodedOrResignedAsAnyLegacySingleMotionVersion (6 ms)
+[ RUN      ] CoveSave.FragmentRootMembershipMotionControlAndRiderMustMatchTheAcceptedBuild
+[       OK ] CoveSave.FragmentRootMembershipMotionControlAndRiderMustMatchTheAcceptedBuild (1 ms)
+[ RUN      ] CoveSave.FragmentRiderCanWalkOnAnotherRootButCannotUseADisabledOrRemoteHelm
+[       OK ] CoveSave.FragmentRiderCanWalkOnAnotherRootButCannotUseADisabledOrRemoteHelm (4 ms)
+[ RUN      ] CoveSave.ThirtyTwoFragmentMotionsAndFourProtectedDesignsFitTheBoundedArchive
+[       OK ] CoveSave.ThirtyTwoFragmentMotionsAndFourProtectedDesignsFitTheBoundedArchive (10 ms)
+[ RUN      ] CoveSave.ResignedFragmentCountsAndRootRecordsAreValidatedBeforeAdmission
+[       OK ] CoveSave.ResignedFragmentCountsAndRootRecordsAreValidatedBeforeAdmission (6 ms)
+[ RUN      ] CoveSave.ExplicitSingleRootArchiveUsesItsLeastMemberKeyAndCanReturnToLegacyBytes
+[       OK ] CoveSave.ExplicitSingleRootArchiveUsesItsLeastMemberKeyAndCanReturnToLegacyBytes (4 ms)
+[ RUN      ] CoveSave.FragmentArchiveSurvivesFreshWriterRecoveryWithItsExactRetiredParent
+[       OK ] CoveSave.FragmentArchiveSurvivesFreshWriterRecoveryWithItsExactRetiredParent (9 ms)
+[----------] 25 tests from CoveSave (401 ms total)
+
+[----------] 6 tests from CoveWaterClock
+[ RUN      ] CoveWaterClock.SlowRenderingAndRepeatedFramesCannotAccelerateWaves
+[       OK ] CoveWaterClock.SlowRenderingAndRepeatedFramesCannotAccelerateWaves (8 ms)
+[ RUN      ] CoveWaterClock.DiscardedPreparationAndPausedMaintenanceDoNotSpendTime
+[       OK ] CoveWaterClock.DiscardedPreparationAndPausedMaintenanceDoNotSpendTime (0 ms)
+[ RUN      ] CoveWaterClock.ReloadPreservesPhaseEvenBeyondExactDoubleTickRange
+[       OK ] CoveWaterClock.ReloadPreservesPhaseEvenBeyondExactDoubleTickRange (0 ms)
+[ RUN      ] CoveWaterClock.WavePeriodWrapKeepsSavedElapsedTime
+[       OK ] CoveWaterClock.WavePeriodWrapKeepsSavedElapsedTime (0 ms)
+[ RUN      ] CoveWaterClock.InvalidOrMultiTickInputPreservesThePriorClock
+[       OK ] CoveWaterClock.InvalidOrMultiTickInputPreservesThePriorClock (0 ms)
+[ RUN      ] CoveWaterClock.LargeSavedSecondsDoNotAccumulateFractionalTickDrift
+[       OK ] CoveWaterClock.LargeSavedSecondsDoNotAccumulateFractionalTickDrift (0 ms)
+[----------] 6 tests from CoveWaterClock (11 ms total)
+
+[----------] 3 tests from SaveGeneration
+[ RUN      ] SaveGeneration.PortableEnvelopeKeepsFullCounterAndPayload
+[       OK ] SaveGeneration.PortableEnvelopeKeepsFullCounterAndPayload (7 ms)
+[ RUN      ] SaveGeneration.RejectsEveryTruncationCorruptionAndWrongIdentityWithoutPublishing
+[       OK ] SaveGeneration.RejectsEveryTruncationCorruptionAndWrongIdentityWithoutPublishing (7 ms)
+[ RUN      ] SaveGeneration.BoundsPayloadAndPreservesEncodeDestination
+[       OK ] SaveGeneration.BoundsPayloadAndPreservesEncodeDestination (4 ms)
+[----------] 3 tests from SaveGeneration (19 ms total)
+
+[----------] 22 tests from GameSession
+[ RUN      ] GameSession.BuysMovesAndDismantlesUsingCatalogEconomyAndStableIdentity
+[       OK ] GameSession.BuysMovesAndDismantlesUsingCatalogEconomyAndStableIdentity (24 ms)
+[ RUN      ] GameSession.EmptyBuildCreationIsOwnedAndCostsNoParts
+[       OK ] GameSession.EmptyBuildCreationIsOwnedAndCostsNoParts (2 ms)
+[ RUN      ] GameSession.DuplicatePendingCommittedAndConflictingRequestsDoNotSpendAgain
+[       OK ] GameSession.DuplicatePendingCommittedAndConflictingRequestsDoNotSpendAgain (10 ms)
+[ RUN      ] GameSession.CancelBurnsIdsAndStaleCompletionCannotPublishNextPreparation
+[       OK ] GameSession.CancelBurnsIdsAndStaleCompletionCannotPublishNextPreparation (11 ms)
+[ RUN      ] GameSession.ReceiptEvictionKeepsContiguousHighWaterAndNeverReexecutes
+[       OK ] GameSession.ReceiptEvictionKeepsContiguousHighWaterAndNeverReexecutes (3 ms)
+[ RUN      ] GameSession.CallerTokenEpochAndSequenceAreValidatedBeforeAdmission
+[       OK ] GameSession.CallerTokenEpochAndSequenceAreValidatedBeforeAdmission (7 ms)
+[ RUN      ] GameSession.InsufficientFundsInvalidGeometryAndCapacityPreserveWorld
+[       OK ] GameSession.InsufficientFundsInvalidGeometryAndCapacityPreserveWorld (2 ms)
+[ RUN      ] GameSession.DelayedAndFinalReadinessFailuresDiscardExactlyOnce
+[       OK ] GameSession.DelayedAndFinalReadinessFailuresDiscardExactlyOnce (2 ms)
+[ RUN      ] GameSession.LeaseOwnershipEpochAndExclusiveExpiryAreRecheckedAtBoundary
+[       OK ] GameSession.LeaseOwnershipEpochAndExclusiveExpiryAreRecheckedAtBoundary (1 ms)
+[ RUN      ] GameSession.FutureExecutionRejectsLeaseExpiryBeforeStagingPhysicalWork
+[       OK ] GameSession.FutureExecutionRejectsLeaseExpiryBeforeStagingPhysicalWork (1 ms)
+[ RUN      ] GameSession.StaleBuildOrSessionRevisionsRejectBeforeIssuingIds
+[       OK ] GameSession.StaleBuildOrSessionRevisionsRejectBeforeIssuingIds (0 ms)
+[ RUN      ] GameSession.LoanDismantlingPaysZeroAndConnectedRemovalIsExplicitlyRejected
+[       OK ] GameSession.LoanDismantlingPaysZeroAndConnectedRemovalIsExplicitlyRejected (1 ms)
+[ RUN      ] GameSession.TrustedJobAcceptanceDoesNotRewardOrChangeCargo
+[       OK ] GameSession.TrustedJobAcceptanceDoesNotRewardOrChangeCargo (6 ms)
+[ RUN      ] GameSession.PreviewBootstrapDoesNotGrantWorkshopInventoryOrJobs
+[       OK ] GameSession.PreviewBootstrapDoesNotGrantWorkshopInventoryOrJobs (0 ms)
+[ RUN      ] GameSession.IdRevisionTickAndCreditOverflowNeverWrap
+[       OK ] GameSession.IdRevisionTickAndCreditOverflowNeverWrap (0 ms)
+[ RUN      ] GameSession.BootstrapRejectsDuplicateCrossWorldInvalidContentAndUnbackedLoan
+[       OK ] GameSession.BootstrapRejectsDuplicateCrossWorldInvalidContentAndUnbackedLoan (0 ms)
+[ RUN      ] GameSession.TotalPartAndBuildLimitsAreCheckedBeforeIssuingIds
+[       OK ] GameSession.TotalPartAndBuildLimitsAreCheckedBeforeIssuingIds (0 ms)
+[ RUN      ] GameSession.PollingCannotAdvanceClockOrCommitAndDestructorCancelsPending
+[       OK ] GameSession.PollingCannotAdvanceClockOrCommitAndDestructorCancelsPending (0 ms)
+[ RUN      ] GameSession.RetiringReservationsRemainBoundedAndBlockNewPreparations
+[       OK ] GameSession.RetiringReservationsRemainBoundedAndBlockNewPreparations (2 ms)
+[ RUN      ] GameSession.CloseAdmissionCancelsOnceAndCannotBeBypassedByRetryOrBusyQueue
+[       OK ] GameSession.CloseAdmissionCancelsOnceAndCannotBeBypassedByRetryOrBusyQueue (7 ms)
+[ RUN      ] GameSession.UnexpectedAdapterExceptionReleasesReservationAndNeverPublishes
+[       OK ] GameSession.UnexpectedAdapterExceptionReleasesReservationAndNeverPublishes (3 ms)
+[ RUN      ] GameSession.BootstrapParticipantReferencesRejectRoleAliasesAndUnknownIds
+[       OK ] GameSession.BootstrapParticipantReferencesRejectRoleAliasesAndUnknownIds (0 ms)
+[----------] 22 tests from GameSession (97 ms total)
+
+[----------] 7 tests from GameSessionTransactions
+[ RUN      ] GameSessionTransactions.TwoPreparedCandidatesCannotOverwriteNewerAcceptedWorld
+[       OK ] GameSessionTransactions.TwoPreparedCandidatesCannotOverwriteNewerAcceptedWorld (23 ms)
+[ RUN      ] GameSessionTransactions.CanceledFrontAllowsSecondCandidateAfterFreshChecks
+[       OK ] GameSessionTransactions.CanceledFrontAllowsSecondCandidateAfterFreshChecks (6 ms)
+[ RUN      ] GameSessionTransactions.LaterCancellationKeepsItsOrderedTombstoneAndDecisionCapacity
+[       OK ] GameSessionTransactions.LaterCancellationKeepsItsOrderedTombstoneAndDecisionCapacity (12 ms)
+[ RUN      ] GameSessionTransactions.PendingDebitsAndCreditsNeverBecomeSpendableTwice
+[       OK ] GameSessionTransactions.PendingDebitsAndCreditsNeverBecomeSpendableTwice (10 ms)
+[ RUN      ] GameSessionTransactions.FullJournalCannotBlockReservedClosureOrSpendBeforeAdmission
+[       OK ] GameSessionTransactions.FullJournalCannotBlockReservedClosureOrSpendBeforeAdmission (4 ms)
+[ RUN      ] GameSessionTransactions.ThrowingSecondPreparationReleasesOnlyItsOwnReservations
+[       OK ] GameSessionTransactions.ThrowingSecondPreparationReleasesOnlyItsOwnReservations (3 ms)
+[ RUN      ] GameSessionTransactions.CandidateAndAggregateActiveLimitsRejectBeforeNewIdentity
+[       OK ] GameSessionTransactions.CandidateAndAggregateActiveLimitsRejectBeforeNewIdentity (3 ms)
+[----------] 7 tests from GameSessionTransactions (64 ms total)
+
+[----------] 14 tests from GameSessionHistory
+[ RUN      ] GameSessionHistory.PurchaseCyclesReverseExactCostAndKeepOneIdentity
+[       OK ] GameSessionHistory.PurchaseCyclesReverseExactCostAndKeepOneIdentity (7 ms)
+[ RUN      ] GameSessionHistory.DismantleCyclesChargeYieldAndPreserveFullPartImage
+[       OK ] GameSessionHistory.DismantleCyclesChargeYieldAndPreserveFullPartImage (3 ms)
+[ RUN      ] GameSessionHistory.MultipleUndoRedoPreservesReferencesAndUnrelatedJobs
+[       OK ] GameSessionHistory.MultipleUndoRedoPreservesReferencesAndUnrelatedJobs (5 ms)
+[ RUN      ] GameSessionHistory.EmptyBuildRestoresSameIdWithMonotonicDormantRevision
+[       OK ] GameSessionHistory.EmptyBuildRestoresSameIdWithMonotonicDormantRevision (6 ms)
+[ RUN      ] GameSessionHistory.FailedAndCanceledNewEditsPreserveRedoUntilCommit
+[       OK ] GameSessionHistory.FailedAndCanceledNewEditsPreserveRedoUntilCommit (3 ms)
+[ RUN      ] GameSessionHistory.SameInverseReservationCannotRestoreTwiceAndCancelReleasesIt
+[       OK ] GameSessionHistory.SameInverseReservationCannotRestoreTwiceAndCancelReleasesIt (2 ms)
+[ RUN      ] GameSessionHistory.EvictionCannotStealAnEarlierInverseReservationOrViceVersa
+[       OK ] GameSessionHistory.EvictionCannotStealAnEarlierInverseReservationOrViceVersa (2 ms)
+[ RUN      ] GameSessionHistory.StaleSecondInverseCannotEraseAnAcceptedJob
+[       OK ] GameSessionHistory.StaleSecondInverseCannotEraseAnAcceptedJob (3 ms)
+[ RUN      ] GameSessionHistory.HistoryEvictionKeepsDormantObjectReferencedByNewerEntry
+[       OK ] GameSessionHistory.HistoryEvictionKeepsDormantObjectReferencedByNewerEntry (2 ms)
+[ RUN      ] GameSessionHistory.CountAndByteLimitsStageEvictionOrRejectWithoutChangingHistory
+[       OK ] GameSessionHistory.CountAndByteLimitsStageEvictionOrRejectWithoutChangingHistory (4 ms)
+[ RUN      ] GameSessionHistory.DormantLimitsAndActivationFailuresKeepCompensationAvailable
+[       OK ] GameSessionHistory.DormantLimitsAndActivationFailuresKeepCompensationAvailable (2 ms)
+[ RUN      ] GameSessionHistory.InverseDebitCannotConsumeAnotherPreparationsReservedFunds
+[       OK ] GameSessionHistory.InverseDebitCannotConsumeAnotherPreparationsReservedFunds (4 ms)
+[ RUN      ] GameSessionHistory.ForgedEntryGenerationTargetAndDirectionNeverSupplyInverseAuthority
+[       OK ] GameSessionHistory.ForgedEntryGenerationTargetAndDirectionNeverSupplyInverseAuthority (1 ms)
+[ RUN      ] GameSessionHistory.ClosureRetiresEscrowWithoutPayingAgainAndJournalRecordsExactActions
+[       OK ] GameSessionHistory.ClosureRetiresEscrowWithoutPayingAgainAndJournalRecordsExactActions (4 ms)
+[----------] 14 tests from GameSessionHistory (57 ms total)
+
+[----------] 3 tests from GameSessionDelivery
+[ RUN      ] GameSessionDelivery.PublishesOnlyAfterFutureExecutionAndExactRetryNeverPaysTwice
+[       OK ] GameSessionDelivery.PublishesOnlyAfterFutureExecutionAndExactRetryNeverPaysTwice (51 ms)
+[ RUN      ] GameSessionDelivery.RefusalAndCancellationPreserveCargoJobAndBalance
+[       OK ] GameSessionDelivery.RefusalAndCancellationPreserveCargoJobAndBalance (2 ms)
+[ RUN      ] GameSessionDelivery.SecondHaulAfterByteRecoveryPaysOnlyItsOwnCargoAndRetainsTheFirstReceipt
+[       OK ] GameSessionDelivery.SecondHaulAfterByteRecoveryPaysOnlyItsOwnCargoAndRetainsTheFirstReceipt (44 ms)
+[----------] 3 tests from GameSessionDelivery (99 ms total)
+
+[----------] 8 tests from GameSessionCheckpoint
+[ RUN      ] GameSessionCheckpoint.CopiesAcceptedWorldHistoryAndCoverageWithoutPublishingAnything
+[       OK ] GameSessionCheckpoint.CopiesAcceptedWorldHistoryAndCoverageWithoutPublishingAnything (25 ms)
+[ RUN      ] GameSessionCheckpoint.RetainsCanceledSecondSlotAndFullIntentBehindWaitingFront
+[       OK ] GameSessionCheckpoint.RetainsCanceledSecondSlotAndFullIntentBehindWaitingFront (22 ms)
+[ RUN      ] GameSessionCheckpoint.DistinguishesReadyAndRejectedPreparationsWithoutInventingTerminalReceipts
+[       OK ] GameSessionCheckpoint.DistinguishesReadyAndRejectedPreparationsWithoutInventingTerminalReceipts (3 ms)
+[ RUN      ] GameSessionCheckpoint.CapturesDormantPartAndBuildForLaterDeltaValidationOnly
+[       OK ] GameSessionCheckpoint.CapturesDormantPartAndBuildForLaterDeltaValidationOnly (7 ms)
+[ RUN      ] GameSessionCheckpoint.ExactRamPrefixReleaseKeepsMarkersAndCannotAcknowledgeAnotherWorld
+[       OK ] GameSessionCheckpoint.ExactRamPrefixReleaseKeepsMarkersAndCannotAcknowledgeAnotherWorld (12 ms)
+[ RUN      ] GameSessionCheckpoint.MemoryAndContentPreflightRefuseWithoutChangingAuthorityOrTransport
+[       OK ] GameSessionCheckpoint.MemoryAndContentPreflightRefuseWithoutChangingAuthorityOrTransport (5 ms)
+[ RUN      ] GameSessionCheckpoint.ClosedAdmissionExportsCanceledDecisionsAndRetiredHistoryWithoutRefund
+[       OK ] GameSessionCheckpoint.ClosedAdmissionExportsCanceledDecisionsAndRetiredHistoryWithoutRefund (5 ms)
+[ RUN      ] GameSessionCheckpoint.FullHistoryAndReceiptEvictionStayBoundedAcrossJournalTransportCycles
+[       OK ] GameSessionCheckpoint.FullHistoryAndReceiptEvictionStayBoundedAcrossJournalTransportCycles (302 ms)
+[----------] 8 tests from GameSessionCheckpoint (386 ms total)
+
+[----------] 7 tests from GameSessionRecoveryAdmission
+[ RUN      ] GameSessionRecoveryAdmission.OwnsValidatedInputAndRequiresIndependentWorldContentAndSchema
+[       OK ] GameSessionRecoveryAdmission.OwnsValidatedInputAndRequiresIndependentWorldContentAndSchema (4 ms)
+[ RUN      ] GameSessionRecoveryAdmission.RejectsOversizedCountsAndInconsistentOwnedByteAccountingBeforeReads
+[       OK ] GameSessionRecoveryAdmission.RejectsOversizedCountsAndInconsistentOwnedByteAccountingBeforeReads (0 ms)
+[ RUN      ] GameSessionRecoveryAdmission.RejectsFrontierHolesRetiredAdmissionsAndLostPendingIdentities
+[       OK ] GameSessionRecoveryAdmission.RejectsFrontierHolesRetiredAdmissionsAndLostPendingIdentities (2 ms)
+[ RUN      ] GameSessionRecoveryAdmission.RejectsRoleAliasesNoncanonicalBuildsAndMissingLoanEntitlements
+[       OK ] GameSessionRecoveryAdmission.RejectsRoleAliasesNoncanonicalBuildsAndMissingLoanEntitlements (0 ms)
+[ RUN      ] GameSessionRecoveryAdmission.RejectsForgedHistoryAmountsImagesCursorAndDormantOwnership
+[       OK ] GameSessionRecoveryAdmission.RejectsForgedHistoryAmountsImagesCursorAndDormantOwnership (1 ms)
+[ RUN      ] GameSessionRecoveryAdmission.RejectsJournalCorruptionAndContradictoryCoveredState
+[       OK ] GameSessionRecoveryAdmission.RejectsJournalCorruptionAndContradictoryCoveredState (1 ms)
+[ RUN      ] GameSessionRecoveryAdmission.RejectsChangedReceiptIntentOutcomeAndSequenceAfterTransportRelease
+[       OK ] GameSessionRecoveryAdmission.RejectsChangedReceiptIntentOutcomeAndSequenceAfterTransportRelease (2 ms)
+[----------] 7 tests from GameSessionRecoveryAdmission (14 ms total)
+
+[----------] 11 tests from GameSessionRecoveryReplay
+[ RUN      ] GameSessionRecoveryReplay.EveryJournalSplitPreservesExactCompensationJobsAndBuildHighWater
+[       OK ] GameSessionRecoveryReplay.EveryJournalSplitPreservesExactCompensationJobsAndBuildHighWater (67 ms)
+[ RUN      ] GameSessionRecoveryReplay.CapturedPendingIntervalKeepsCanceledSecondSlotAndOrderedReceipts
+[       OK ] GameSessionRecoveryReplay.CapturedPendingIntervalKeepsCanceledSecondSlotAndOrderedReceipts (7 ms)
+[ RUN      ] GameSessionRecoveryReplay.AdmissionWithoutAssignedIdDoesNotInventPreparationOrSpend
+[       OK ] GameSessionRecoveryReplay.AdmissionWithoutAssignedIdDoesNotInventPreparationOrSpend (5 ms)
+[ RUN      ] GameSessionRecoveryReplay.BurnedUnadmittedIdsRemainCoveredByTheRecordedReservationHorizon
+[       OK ] GameSessionRecoveryReplay.BurnedUnadmittedIdsRemainCoveredByTheRecordedReservationHorizon (5 ms)
+[ RUN      ] GameSessionRecoveryReplay.RejectsLateForgedDeltasAtomicallyAgainstPriorHistoryAndEconomics
+[       OK ] GameSessionRecoveryReplay.RejectsLateForgedDeltasAtomicallyAgainstPriorHistoryAndEconomics (3 ms)
+[ RUN      ] GameSessionRecoveryReplay.RejectsWrongWriterHolesOverlapAndOversizedBatchesBeforePublication
+[       OK ] GameSessionRecoveryReplay.RejectsWrongWriterHolesOverlapAndOversizedBatchesBeforePublication (3 ms)
+[ RUN      ] GameSessionRecoveryReplay.HistoryEvictionRedoDeletionAndTransportCompactionStayBounded
+[       OK ] GameSessionRecoveryReplay.HistoryEvictionRedoDeletionAndTransportCompactionStayBounded (10 ms)
+[ RUN      ] GameSessionRecoveryReplay.ClosureCancelsUnresolvedWorkAndRetiresHistoryWithoutPayout
+[       OK ] GameSessionRecoveryReplay.ClosureCancelsUnresolvedWorkAndRetiresHistoryWithoutPayout (3 ms)
+[ RUN      ] GameSessionRecoveryReplay.PreservesDamagedLoanImageAndExactEntitlementAcrossEverySplit
+[       OK ] GameSessionRecoveryReplay.PreservesDamagedLoanImageAndExactEntitlementAcrossEverySplit (4 ms)
+[ RUN      ] GameSessionRecoveryReplay.ExhaustedJournalFrontierNeverWrapsToZero
+[       OK ] GameSessionRecoveryReplay.ExhaustedJournalFrontierNeverWrapsToZero (2 ms)
+[ RUN      ] GameSessionRecoveryReplay.GlobalActivePartLimitAppliesAcrossBuildsBeforeMaterialization
+[       OK ] GameSessionRecoveryReplay.GlobalActivePartLimitAppliesAcrossBuildsBeforeMaterialization (2 ms)
+[----------] 11 tests from GameSessionRecoveryReplay (118 ms total)
+
+[----------] 9 tests from GameSessionRestore
+[ RUN      ] GameSessionRestore.FreshAuthorityPreservesEconomicsSkipsReservedIdsAndRejectsOldRequests
+[       OK ] GameSessionRestore.FreshAuthorityPreservesEconomicsSkipsReservedIdsAndRejectsOldRequests (50 ms)
+[ RUN      ] GameSessionRestore.FinalizesTwoPendingSlotsInOrderAndClearsEscrowWithoutPayout
+[       OK ] GameSessionRestore.FinalizesTwoPendingSlotsInOrderAndClearsEscrowWithoutPayout (19 ms)
+[ RUN      ] GameSessionRestore.KnownRejectionKeepsItsReasonDuringRecoveryClosure
+[       OK ] GameSessionRestore.KnownRejectionKeepsItsReasonDuringRecoveryClosure (3 ms)
+[ RUN      ] GameSessionRestore.EveryRetirementCrashCutConvergesToTheSameNewOpening
+[       OK ] GameSessionRestore.EveryRetirementCrashCutConvergesToTheSameNewOpening (8 ms)
+[ RUN      ] GameSessionRestore.RepeatedRecoveryAdvancesEpochTokenAdmissionAndWriterWithoutCreatingValue
+[       OK ] GameSessionRestore.RepeatedRecoveryAdvancesEpochTokenAdmissionAndWriterWithoutCreatingValue (13 ms)
+[ RUN      ] GameSessionRestore.ReleasesOldLocalEditLeasesAndRejectsOldEpochCompletionWithMatchingGeneration
+[       OK ] GameSessionRestore.ReleasesOldLocalEditLeasesAndRejectsOldEpochCompletionWithMatchingGeneration (8 ms)
+[ RUN      ] GameSessionRestore.RejectsForgedOriginOpeningAndPolicyIncludingAfterJournalCompaction
+[       OK ] GameSessionRestore.RejectsForgedOriginOpeningAndPolicyIncludingAfterJournalCompaction (6 ms)
+[ RUN      ] GameSessionRestore.CounterExhaustionAndInsufficientControlCapacityPreserveInput
+[       OK ] GameSessionRestore.CounterExhaustionAndInsufficientControlCapacityPreserveInput (14 ms)
+[ RUN      ] GameSessionRestore.ExhaustedHistoryDoesNotWrapOrRestoreAnOldUndoChoice
+[       OK ] GameSessionRestore.ExhaustedHistoryDoesNotWrapOrRestoreAnOldUndoChoice (3 ms)
+[----------] 9 tests from GameSessionRestore (131 ms total)
+
+[----------] 9 tests from GameSessionEntitlement
+[ RUN      ] GameSessionEntitlement.ActiveLoansMustUseNormalRemovalAndFailedPreflightPreservesPreparation
+[       OK ] GameSessionEntitlement.ActiveLoansMustUseNormalRemovalAndFailedPreflightPreservesPreparation (11 ms)
+[ RUN      ] GameSessionEntitlement.SelectiveInvalidationPreservesPaidEscrowAndExactCompensation
+[       OK ] GameSessionEntitlement.SelectiveInvalidationPreservesPaidEscrowAndExactCompensation (30 ms)
+[ RUN      ] GameSessionEntitlement.RetainsUnrelatedRedoAcrossRevocationAndMakesRetriesHarmless
+[       OK ] GameSessionEntitlement.RetainsUnrelatedRedoAcrossRevocationAndMakesRetriesHarmless (6 ms)
+[ RUN      ] GameSessionEntitlement.InvalidatesPendingInverseAndPaidCandidateWithOrderedReservedDecisions
+[       OK ] GameSessionEntitlement.InvalidatesPendingInverseAndPaidCandidateWithOrderedReservedDecisions (42 ms)
+[ RUN      ] GameSessionEntitlement.EveryJournalCutAndFreshRecoveryKeepRetiredLoansAbsent
+[       OK ] GameSessionEntitlement.EveryJournalCutAndFreshRecoveryKeepRetiredLoansAbsent (17 ms)
+[ RUN      ] GameSessionEntitlement.RejectsForgedRetirementListsBalancesMarkersAndReintroducedLoanState
+[       OK ] GameSessionEntitlement.RejectsForgedRetirementListsBalancesMarkersAndReintroducedLoanState (7 ms)
+[ RUN      ] GameSessionEntitlement.FullOutboxPreservesInverseUntilExactModelPrefixIsReleased
+[       OK ] GameSessionEntitlement.FullOutboxPreservesInverseUntilExactModelPrefixIsReleased (10 ms)
+[ RUN      ] GameSessionEntitlement.ExhaustedRevisionOrHistoryCannotPartlyRevokeEntitlement
+[       OK ] GameSessionEntitlement.ExhaustedRevisionOrHistoryCannotPartlyRevokeEntitlement (4 ms)
+[ RUN      ] GameSessionEntitlement.TrustedReplacementBootstrapUsesFreshLoanIdsAndNeverRevivesOldUndo
+[       OK ] GameSessionEntitlement.TrustedReplacementBootstrapUsesFreshLoanIdsAndNeverRevivesOldUndo (15 ms)
+[----------] 9 tests from GameSessionEntitlement (149 ms total)
+
+[----------] 9 tests from GameSessionObservation
+[ RUN      ] GameSessionObservation.BootstrapIsAQuietOwnedBaselineWithExplicitPublicIdentity
+[       OK ] GameSessionObservation.BootstrapIsAQuietOwnedBaselineWithExplicitPublicIdentity (8 ms)
+[ RUN      ] GameSessionObservation.RealAddMoveRemoveAndJobPublishExactChangesAndBalancesOnce
+[       OK ] GameSessionObservation.RealAddMoveRemoveAndJobPublishExactChangesAndBalancesOnce (59 ms)
+[ RUN      ] GameSessionObservation.IngressSpamAndOutOfOrderCancellationDoNotInventTransitions
+[       OK ] GameSessionObservation.IngressSpamAndOutOfOrderCancellationDoNotInventTransitions (47 ms)
+[ RUN      ] GameSessionObservation.ImmediateRejectionAndStalePreparationReportOnlyAcceptedFacts
+[       OK ] GameSessionObservation.ImmediateRejectionAndStalePreparationReportOnlyAcceptedFacts (13 ms)
+[ RUN      ] GameSessionObservation.CompensationAndDormantBuildReactivationKeepEventRevisionsMonotonic
+[       OK ] GameSessionObservation.CompensationAndDormantBuildReactivationKeepEventRevisionsMonotonic (9 ms)
+[ RUN      ] GameSessionObservation.EntitlementRetirementPublishesBeforeItsPendingInvalidations
+[       OK ] GameSessionObservation.EntitlementRetirementPublishesBeforeItsPendingInvalidations (19 ms)
+[ RUN      ] GameSessionObservation.DomainOverrunAndReceiptEvictionRecoverFromOneBaselineWithoutSpendingAgain
+[       OK ] GameSessionObservation.DomainOverrunAndReceiptEvictionRecoverFromOneBaselineWithoutSpendingAgain (33 ms)
+[ RUN      ] GameSessionObservation.BaselineFailureAndInPlaceStreamRestartPreserveAuthorityAndReaderLifetime
+[       OK ] GameSessionObservation.BaselineFailureAndInPlaceStreamRestartPreserveAuthorityAndReaderLifetime (20 ms)
+[ RUN      ] GameSessionObservation.FreshRecoveryHasAQuietNewStreamAndKeepsFailedInputReusable
+[       OK ] GameSessionObservation.FreshRecoveryHasAQuietNewStreamAndKeepsFailedInputReusable (36 ms)
+[----------] 9 tests from GameSessionObservation (251 ms total)
+
+[----------] 4 tests from StarterRecoveryPlan
+[ RUN      ] StarterRecoveryPlan.RebuildRetiresLoanInstancesAndStoresExactPaidConditionWithoutRefund
+[       OK ] StarterRecoveryPlan.RebuildRetiresLoanInstancesAndStoresExactPaidConditionWithoutRefund (25 ms)
+[ RUN      ] StarterRecoveryPlan.RepeatedRebuildAndStockReuseCannotDuplicatePaidValue
+[       OK ] StarterRecoveryPlan.RepeatedRebuildAndStockReuseCannotDuplicatePaidValue (52 ms)
+[ RUN      ] StarterRecoveryPlan.CapacityAndInvalidProvenanceRefuseBeforeIssuingIds
+[       OK ] StarterRecoveryPlan.CapacityAndInvalidProvenanceRefuseBeforeIssuingIds (7 ms)
+[ RUN      ] StarterRecoveryPlan.StoredPaidIdsCannotBeReissuedOrClaimedByAnotherBuild
+[       OK ] StarterRecoveryPlan.StoredPaidIdsCannotBeReissuedOrClaimedByAnotherBuild (3 ms)
+[----------] 4 tests from StarterRecoveryPlan (90 ms total)
+
+[----------] 4 tests from StarterRecoveryOwnership
+[ RUN      ] StarterRecoveryOwnership.VersionTwoRoundTripAndNewWriterPreserveExactStockAndGrantBindings
+[       OK ] StarterRecoveryOwnership.VersionTwoRoundTripAndNewWriterPreserveExactStockAndGrantBindings (14 ms)
+[ RUN      ] StarterRecoveryOwnership.RejectsForgedStockAndGrantAliases
+[       OK ] StarterRecoveryOwnership.RejectsForgedStockAndGrantAliases (1 ms)
+[ RUN      ] StarterRecoveryOwnership.StoredPartsCountAgainstWorldCapacity
+[       OK ] StarterRecoveryOwnership.StoredPartsCountAgainstWorldCapacity (1 ms)
+[ RUN      ] StarterRecoveryOwnership.RetiringEntitlementRemovesItsKitButKeepsPaidStorageInExactReplay
+[       OK ] StarterRecoveryOwnership.RetiringEntitlementRemovesItsKitButKeepsPaidStorageInExactReplay (12 ms)
+[----------] 4 tests from StarterRecoveryOwnership (30 ms total)
+
+[----------] 3 tests from StarterRecoveryRegistration
+[ RUN      ] StarterRecoveryRegistration.LegacyWorldBindsKitWithoutNewObjectsOrInventoryAndReplaysExactly
+[       OK ] StarterRecoveryRegistration.LegacyWorldBindsKitWithoutNewObjectsOrInventoryAndReplaysExactly (25 ms)
+[ RUN      ] StarterRecoveryRegistration.CapacityBusyStaleAndWrongEntitlementLeaveNoPartialPolicy
+[       OK ] StarterRecoveryRegistration.CapacityBusyStaleAndWrongEntitlementLeaveNoPartialPolicy (4 ms)
+[ RUN      ] StarterRecoveryRegistration.RetiredRegistrationCannotResurrectAReplacementEntitlement
+[       OK ] StarterRecoveryRegistration.RetiredRegistrationCannotResurrectAReplacementEntitlement (7 ms)
+[----------] 3 tests from StarterRecoveryRegistration (38 ms total)
+
+[----------] 4 tests from StarterRecoveryService
+[ RUN      ] StarterRecoveryService.RepeatedRebuildStoresExactPaidPartAndWithdrawsItWithoutAnotherPurchase
+[       OK ] StarterRecoveryService.RepeatedRebuildStoresExactPaidPartAndWithdrawsItWithoutAnotherPurchase (76 ms)
+[ RUN      ] StarterRecoveryService.AdapterRejectionCancellationAndCapacityPreserveAcceptedOwnership
+[       OK ] StarterRecoveryService.AdapterRejectionCancellationAndCapacityPreserveAcceptedOwnership (9 ms)
+[ RUN      ] StarterRecoveryService.NewWriterRestoresStoredConditionAndCanRebuildAgainWithoutDuplicatingStock
+[       OK ] StarterRecoveryService.NewWriterRestoresStoredConditionAndCanRebuildAgainWithoutDuplicatingStock (9 ms)
+[ RUN      ] StarterRecoveryService.CoveredAndReplayedTransfersRejectForgedStockAndGrantImages
+[       OK ] StarterRecoveryService.CoveredAndReplayedTransfersRejectForgedStockAndGrantImages (4 ms)
+[----------] 4 tests from StarterRecoveryService (100 ms total)
+
+[----------] 8 tests from GameSessionRefit
+[ RUN      ] GameSessionRefit.MovesConnectedPartsTogetherWithOwnedValueRetryAndExactUndo
+[       OK ] GameSessionRefit.MovesConnectedPartsTogetherWithOwnedValueRetryAndExactUndo (15 ms)
+[ RUN      ] GameSessionRefit.RemovesConnectedLoanWithoutRefundAndRestoresOriginalWeld
+[       OK ] GameSessionRefit.RemovesConnectedLoanWithoutRefundAndRestoresOriginalWeld (7 ms)
+[ RUN      ] GameSessionRefit.ReplacesPaidPartAtomicallyAndReplaysExactIdsAndNetEconomy
+[       OK ] GameSessionRefit.ReplacesPaidPartAtomicallyAndReplaysExactIdsAndNetEconomy (18 ms)
+[ RUN      ] GameSessionRefit.InvalidConnectionAndAdapterFailurePreserveLiveBuild
+[       OK ] GameSessionRefit.InvalidConnectionAndAdapterFailurePreserveLiveBuild (5 ms)
+[ RUN      ] GameSessionRefit.LargeRejectedRefitBurnsContiguousIdsAcrossLeaseRecords
+[       OK ] GameSessionRefit.LargeRejectedRefitBurnsContiguousIdsAcrossLeaseRecords (6 ms)
+[ RUN      ] GameSessionRefit.BoundsSharedPayloadsAndRejectsHistoryThatCannotUndoRemoval
+[       OK ] GameSessionRefit.BoundsSharedPayloadsAndRejectsHistoryThatCannotUndoRemoval (7 ms)
+[ RUN      ] GameSessionRefit.RetiringLoanInvalidatesWeldOnlyHistoryThatReferencesItsEndpoint
+[       OK ] GameSessionRefit.RetiringLoanInvalidatesWeldOnlyHistoryThatReferencesItsEndpoint (3 ms)
+[ RUN      ] GameSessionRefit.PublishesOnlyAfterConfirmedFutureExecutionAndRestoresPendingAsCanceled
+[       OK ] GameSessionRefit.PublishesOnlyAfterConfirmedFutureExecutionAndRestoresPendingAsCanceled (9 ms)
+[----------] 8 tests from GameSessionRefit (75 ms total)
+
+[----------] 7 tests from GameSessionSave
+[ RUN      ] GameSessionSave.FrozenNativeAndWasmBytesKeepLargeIdsAndNegativeGridCoordinates
+SAVE_GOLDEN large-checkpoint 2439 962e2c472045fdebac6f218cf53a2e0b0e175871fe871e85c5259d3f629c5265
+SAVE_GOLDEN empty-journal 76 d6fa134cbb6410c3ec1e99c512a26e7ceeddeab65c49998b1a054639f5273076
+[       OK ] GameSessionSave.FrozenNativeAndWasmBytesKeepLargeIdsAndNegativeGridCoordinates (7 ms)
+[ RUN      ] GameSessionSave.DamagedOrTruncatedCheckpointsAndWrongHostIdentityNeverDecode
+[       OK ] GameSessionSave.DamagedOrTruncatedCheckpointsAndWrongHostIdentityNeverDecode (14 ms)
+[ RUN      ] GameSessionSave.ChecksummedForgedCountsBooleansIdsAndNonfiniteValuesAreRejected
+[       OK ] GameSessionSave.ChecksummedForgedCountsBooleansIdsAndNonfiniteValuesAreRejected (11 ms)
+[ RUN      ] GameSessionSave.JournalsRejectBadTagsCountsWritersAndPartialBatchesWithoutReplacingOutput
+[       OK ] GameSessionSave.JournalsRejectBadTagsCountsWritersAndPartialBatchesWithoutReplacingOutput (10 ms)
+[ RUN      ] GameSessionSave.RefitChangesAndMalformedRejectedSettingsSurvivePortableReplay
+SAVE_GOLDEN refit-checkpoint 8156 60d7019f96108c91d97da4e291a55278c228835eb6fe22c266628aacf30a0ecc
+[       OK ] GameSessionSave.RefitChangesAndMalformedRejectedSettingsSurvivePortableReplay (9 ms)
+[ RUN      ] GameSessionSave.EveryEncodedJournalSplitKeepsPurchaseAndBankingExactlyOnce
+[       OK ] GameSessionSave.EveryEncodedJournalSplitKeepsPurchaseAndBankingExactlyOnce (17 ms)
+[ RUN      ] GameSessionSave.CompactedByteReloadRetiresOldRequestsWithoutDuplicatingRewards
+[       OK ] GameSessionSave.CompactedByteReloadRetiresOldRequestsWithoutDuplicatingRewards (21 ms)
+[----------] 7 tests from GameSessionSave (94 ms total)
+
+[----------] 8 tests from GameSessionCut
+[ RUN      ] GameSessionCut.FieldCutWaitsForExecutionAndPreservesEveryOwnedValueOnExactRetry
+[       OK ] GameSessionCut.FieldCutWaitsForExecutionAndPreservesEveryOwnedValueOnExactRetry (51 ms)
+[ RUN      ] GameSessionCut.RetiresOnlyTargetHistoryAndKeepsOtherBuildUndoUsable
+[       OK ] GameSessionCut.RetiresOnlyTargetHistoryAndKeepsOtherBuildUndoUsable (8 ms)
+[ RUN      ] GameSessionCut.AdmissionCancellationAndBackendFailuresKeepOwnershipAndAllocatorUntouched
+[       OK ] GameSessionCut.AdmissionCancellationAndBackendFailuresKeepOwnershipAndAllocatorUntouched (8 ms)
+[ RUN      ] GameSessionCut.FutureCutChecksLeaseBeforeStagingAndPendingCrashRestoresUncutBoat
+[       OK ] GameSessionCut.FutureCutChecksLeaseBeforeStagingAndPendingCrashRestoresUncutBoat (16 ms)
+[ RUN      ] GameSessionCut.CoveredAndReplayedCutsRejectForgedBondsBalancesAndUndoHistory
+[       OK ] GameSessionCut.CoveredAndReplayedCutsRejectForgedBondsBalancesAndUndoHistory (8 ms)
+[ RUN      ] GameSessionCut.EveryJournalBoundaryRoundTripsVersionThreeAndFreshWriterKeepsFragments
+SAVE_GOLDEN cut-checkpoint 2674 49704f0e7cfdc07f0d3015eccabd20d8ac7773b77724973996dafc0647d56e17
+SAVE_GOLDEN cut-journal 957 100155e57d6ae7b491e269af2cf0277bf39abc9271e41e2cf3785089e0689452
+[       OK ] GameSessionCut.EveryJournalBoundaryRoundTripsVersionThreeAndFreshWriterKeepsFragments (64 ms)
+[ RUN      ] GameSessionCut.ReservesEntireCutPayloadBeforeAnyPreparationOrJournalMutation
+[       OK ] GameSessionCut.ReservesEntireCutPayloadBeforeAnyPreparationOrJournalMutation (6 ms)
+[ RUN      ] GameSessionCut.StarterRecoveryAfterCutCollectsPaidPartsOnceAndRetiresEveryOldLoan
+[       OK ] GameSessionCut.StarterRecoveryAfterCutCollectsPaidPartsOnceAndRetiresEveryOldLoan (11 ms)
+[----------] 8 tests from GameSessionCut (178 ms total)
+
+[----------] 12 tests from SessionJournal
+[ RUN      ] SessionJournal.StrongCountersAndBoundedOwnedRecords
+[       OK ] SessionJournal.StrongCountersAndBoundedOwnedRecords (0 ms)
+[ RUN      ] SessionJournal.InvalidFactoryBoundsAndIdentityReject
+[       OK ] SessionJournal.InvalidFactoryBoundsAndIdentityReject (0 ms)
+[ RUN      ] SessionJournal.AggregateReservationsIncludeUnappendedClosure
+[       OK ] SessionJournal.AggregateReservationsIncludeUnappendedClosure (4 ms)
+[ RUN      ] SessionJournal.SequenceFollowsAppendOrderNotReservationOrder
+[       OK ] SessionJournal.SequenceFollowsAppendOrderNotReservationOrder (1 ms)
+[ RUN      ] SessionJournal.ByteDemandAndReleaseAreCheckedSeparately
+[       OK ] SessionJournal.ByteDemandAndReleaseAreCheckedSeparately (2 ms)
+[ RUN      ] SessionJournal.DiscardIsIdempotentAndStaleTicketsCannotDiscardReplacement
+[       OK ] SessionJournal.DiscardIsIdempotentAndStaleTicketsCannotDiscardReplacement (2 ms)
+[ RUN      ] SessionJournal.MalformedAppendPreservesReservationAndSequence
+[       OK ] SessionJournal.MalformedAppendPreservesReservationAndSequence (6 ms)
+[ RUN      ] SessionJournal.ExactPrefixProofRejectsChangedIntentWorldAndResult
+[       OK ] SessionJournal.ExactPrefixProofRejectsChangedIntentWorldAndResult (9 ms)
+[ RUN      ] SessionJournal.RepeatedStorageWrapKeepsAllPrefixBytesAndOrder
+[       OK ] SessionJournal.RepeatedStorageWrapKeepsAllPrefixBytesAndOrder (2 ms)
+[ RUN      ] SessionJournal.SequenceHeadroomIncludesOtherReservationsAndNeverWraps
+[       OK ] SessionJournal.SequenceHeadroomIncludesOtherReservationsAndNeverWraps (3 ms)
+[ RUN      ] SessionJournal.TerminalOutcomeCannotHidePartialEconomicPublication
+[       OK ] SessionJournal.TerminalOutcomeCannotHidePartialEconomicPublication (1 ms)
+[ RUN      ] SessionJournal.CommittedPartDeltaPreservesAsymmetricStateAndRejectsBrokenRevision
+[       OK ] SessionJournal.CommittedPartDeltaPreservesAsymmetricStateAndRejectsBrokenRevision (5 ms)
+[----------] 12 tests from SessionJournal (42 ms total)
+
+[----------] 8 tests from SessionEvents
+[ RUN      ] SessionEvents.OverwriteRequiresExplicitGapRecoveryAndDoesNotAdvanceOtherReaders
+[       OK ] SessionEvents.OverwriteRequiresExplicitGapRecoveryAndDoesNotAdvanceOtherReaders (14 ms)
+[ RUN      ] SessionEvents.InvalidAndEmptyReadsNeverAcknowledgeOrPartlyOverwriteOutput
+[       OK ] SessionEvents.InvalidAndEmptyReadsNeverAcknowledgeOrPartlyOverwriteOutput (1 ms)
+[ RUN      ] SessionEvents.SingleSlotRingAndMultipleIndependentObserversRemainBounded
+[       OK ] SessionEvents.SingleSlotRingAndMultipleIndependentObserversRemainBounded (2 ms)
+[ RUN      ] SessionEvents.TelemetryFloodAndBadIngressCannotEvictDomainHistory
+[       OK ] SessionEvents.TelemetryFloodAndBadIngressCannotEvictDomainHistory (5 ms)
+[ RUN      ] SessionEvents.DomainPublicationRejectsRegressedBoundariesButAllowsSameRevisionReceipts
+[       OK ] SessionEvents.DomainPublicationRejectsRegressedBoundariesButAllowsSameRevisionReceipts (2 ms)
+[ RUN      ] SessionEvents.LastSequencePublishesOnceAndExhaustionNeverWraps
+[       OK ] SessionEvents.LastSequencePublishesOnceAndExhaustionNeverWraps (4 ms)
+[ RUN      ] SessionEvents.DiagnosticCountersSaturateWithoutRecursivePublication
+[       OK ] SessionEvents.DiagnosticCountersSaturateWithoutRecursivePublication (1 ms)
+[ RUN      ] SessionEvents.PublicHubStartsEmptyAndReaderExposesNoWriterOrMutableRecords
+[       OK ] SessionEvents.PublicHubStartsEmptyAndReaderExposesNoWriterOrMutableRecords (3 ms)
+[----------] 8 tests from SessionEvents (37 ms total)
+
+[----------] 7 tests from SessionEventCodec
+[ RUN      ] SessionEventCodec.FourKindsMatchIndependentGoldenBytesIncludingWideCounters
+[       OK ] SessionEventCodec.FourKindsMatchIndependentGoldenBytesIncludingWideCounters (1 ms)
+[ RUN      ] SessionEventCodec.AllTruncationsAndTrailingBytesRejectWithoutPartialDecode
+[       OK ] SessionEventCodec.AllTruncationsAndTrailingBytesRejectWithoutPartialDecode (0 ms)
+[ RUN      ] SessionEventCodec.InvalidOrShortEncodingPreservesEntireDestination
+[       OK ] SessionEventCodec.InvalidOrShortEncodingPreservesEntireDestination (0 ms)
+[ RUN      ] SessionEventCodec.VersionIdentityKindLaneAndTokenlessReceiptValidationAreExplicit
+[       OK ] SessionEventCodec.VersionIdentityKindLaneAndTokenlessReceiptValidationAreExplicit (2 ms)
+[ RUN      ] SessionEventCodec.ReservedAndAbsentFieldsHaveExactlyOneEncoding
+[       OK ] SessionEventCodec.ReservedAndAbsentFieldsHaveExactlyOneEncoding (1 ms)
+[ RUN      ] SessionEventCodec.DiagnosticsRejectNonfiniteNegativeUnmeasuredAndUncertifiedSamples
+[       OK ] SessionEventCodec.DiagnosticsRejectNonfiniteNegativeUnmeasuredAndUncertifiedSamples (0 ms)
+[ RUN      ] SessionEventCodec.ErrorAdaptersUseStableCodesAndRejectUnknownSourceEnums
+[       OK ] SessionEventCodec.ErrorAdaptersUseStableCodesAndRejectUnknownSourceEnums (0 ms)
+[----------] 7 tests from SessionEventCodec (7 ms total)
+
+[----------] Global test environment tear-down
+[==========] 198 tests from 23 test suites ran. (2501 ms total)
+[  PASSED  ] 198 tests.

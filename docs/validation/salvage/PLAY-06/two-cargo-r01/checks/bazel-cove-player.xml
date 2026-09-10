@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="56" failures="0" disabled="0" errors="0" time="141.768" timestamp="2026-09-10T15:06:13.387" name="AllTests">
+  <testsuite name="CoveMovement" tests="55" failures="0" disabled="0" skipped="0" errors="0" time="141.758" timestamp="2026-09-10T15:06:13.387">
+    <testcase name="BrickPointerPlacementRotatesStacksRefusesOverlapAndRestoresOwnedDesign" file="tests/test_cove_player.cpp" line="81" status="run" result="completed" time="0.493" timestamp="2026-09-10T15:06:13.387" classname="CoveMovement" />
+    <testcase name="SixtyFourLargeBricksCompileRoundTripAndRefuseWholeSceneOverflow" file="tests/test_cove_player.cpp" line="133" status="run" result="completed" time="5.822" timestamp="2026-09-10T15:06:13.881" classname="CoveMovement">
+      <properties>
+        <property name="brick_count" value="64"/>
+        <property name="water_cells" value="1893"/>
+        <property name="collision_cells" value="1893"/>
+        <property name="recovery_design_bytes" value="41024"/>
+      </properties>
+    </testcase>
+    <testcase name="HarborLiftUsesActualHullSupportsAndCanonicalBodyFrames" file="tests/test_cove_player.cpp" line="190" status="run" result="completed" time="0.336" timestamp="2026-09-10T15:06:19.704" classname="CoveMovement" />
+    <testcase name="HarborLiftRefusesUnsafeAttachmentAndUnsupportedHulls" file="tests/test_cove_player.cpp" line="221" status="run" result="completed" time="0.338" timestamp="2026-09-10T15:06:20.040" classname="CoveMovement" />
+    <testcase name="OwnedRestorePreparesIndependentBodiesPlayerAndTowWithoutPublishing" file="tests/test_cove_player.cpp" line="248" status="run" result="completed" time="0.359" timestamp="2026-09-10T15:06:20.379" classname="CoveMovement" />
+    <testcase name="HarborParkingUsesExistingPierAndAvoidsPlayerOccupancy" file="tests/test_cove_player.cpp" line="323" status="run" result="completed" time="0.341" timestamp="2026-09-10T15:06:20.738" classname="CoveMovement" />
+    <testcase name="HarborPostsBlockWalkingAndSavedPlayerOccupancy" file="tests/test_cove_player.cpp" line="342" status="run" result="completed" time="0.337" timestamp="2026-09-10T15:06:21.080" classname="CoveMovement" />
+    <testcase name="CanonicalStarterBuildOwnsActualPartsWeldsAndLoanIdentity" file="tests/test_cove_player.cpp" line="354" status="run" result="completed" time="0.335" timestamp="2026-09-10T15:06:21.418" classname="CoveMovement" />
+    <testcase name="CanonicalStarterBuildRejectsExhaustionAndAmbiguousSceneMapping" file="tests/test_cove_player.cpp" line="385" status="run" result="completed" time="0.337" timestamp="2026-09-10T15:06:21.753" classname="CoveMovement" />
+    <testcase name="WorkshopDesignBecomesCanonicalConnectedEditWithRecompiledHull" file="tests/test_cove_player.cpp" line="399" status="run" result="completed" time="0.357" timestamp="2026-09-10T15:06:22.091" classname="CoveMovement" />
+    <testcase name="SettingsSurviveLaunchMappingAndUndoWithoutCostOrIdentityChanges" file="tests/test_cove_player.cpp" line="474" status="run" result="completed" time="0.4" timestamp="2026-09-10T15:06:22.449" classname="CoveMovement" />
+    <testcase name="SavedDesignReloadReusesOwnedPartsAndPricesAdditionsWithoutGrantingLoans" file="tests/test_cove_player.cpp" line="560" status="run" result="completed" time="0.394" timestamp="2026-09-10T15:06:22.849" classname="CoveMovement" />
+    <testcase name="ReplacementGrantMapsTheSameInstalledLegoPiecesWithNewIdentities" file="tests/test_cove_player.cpp" line="594" status="run" result="completed" time="0.339" timestamp="2026-09-10T15:06:23.243" classname="CoveMovement" />
+    <testcase name="StoredPontoonIsQuotedAndLaunchedWithItsExactConditionAndConfiguration" file="tests/test_cove_player.cpp" line="613" status="run" result="completed" time="0.354" timestamp="2026-09-10T15:06:23.583" classname="CoveMovement" />
+    <testcase name="NormalizedRecoveryRestoresWeldedLayoutAndSettingsUsingStoredPaidPart" file="tests/test_cove_player.cpp" line="636" status="run" result="completed" time="0.365" timestamp="2026-09-10T15:06:23.937" classname="CoveMovement" />
+    <testcase name="CuttingAddedPontoonPreparesTwoCompleteRootsWithoutLosingOwnedParts" file="tests/test_cove_player.cpp" line="668" status="run" result="completed" time="0.356" timestamp="2026-09-10T15:06:24.303" classname="CoveMovement" />
+    <testcase name="FragmentRootsPreserveBindingsAndKeepHelmOffTheFirstDetachedPontoon" file="tests/test_cove_player.cpp" line="704" status="run" result="completed" time="0.342" timestamp="2026-09-10T15:06:24.659" classname="CoveMovement" />
+    <testcase name="EverySeparatedPartHasItsOwnShapeWaterAndModuleConfiguration" file="tests/test_cove_player.cpp" line="745" status="run" result="completed" time="0.338" timestamp="2026-09-10T15:06:25.002" classname="CoveMovement" />
+    <testcase name="CutProtectsIntactDesignAndReopensBrokenWorkshopWithoutRepairingOwnership" file="tests/test_cove_player.cpp" line="769" status="run" result="completed" time="0.373" timestamp="2026-09-10T15:06:25.340" classname="CoveMovement" />
+    <testcase name="CutterReachUsesObservedSocketPoseAndRejectsStaleDisabledOrRemoteWelds" file="tests/test_cove_player.cpp" line="806" status="run" result="completed" time="0.348" timestamp="2026-09-10T15:06:25.714" classname="CoveMovement" />
+    <testcase name="CutTransfersStandingPlayerToDetachedSupportWithoutMovingTheirWorldFeet" file="tests/test_cove_player.cpp" line="835" status="run" result="completed" time="0.349" timestamp="2026-09-10T15:06:26.062" classname="CoveMovement" />
+    <testcase name="DetachedRiderFollowsItsSectionAndCannotStandOnAnotherSectionsOldDeck" file="tests/test_cove_player.cpp" line="869" status="run" result="completed" time="0.346" timestamp="2026-09-10T15:06:26.412" classname="CoveMovement" />
+    <testcase name="FragmentArchiveRestoresEveryPoseDetachedRiderAndWinchWithoutPublishing" file="tests/test_cove_player.cpp" line="918" status="run" result="completed" time="0.347" timestamp="2026-09-10T15:06:26.758" classname="CoveMovement" />
+    <testcase name="RecoveryPreparesEveryCutPartWithoutChangingOwnershipOrMovingOnlySomeSections" file="tests/test_cove_player.cpp" line="1000" status="run" result="completed" time="0.345" timestamp="2026-09-10T15:06:27.106" classname="CoveMovement" />
+    <testcase name="RecoveryReturnsAnUnbuoyantLoadWithoutInventingFlotation" file="tests/test_cove_player.cpp" line="1054" status="run" result="completed" time="0.346" timestamp="2026-09-10T15:06:27.451" classname="CoveMovement" />
+    <testcase name="RecoveryOfPaidLayoutStartsClearOfTheDock" file="tests/test_cove_player.cpp" line="1069" status="run" result="completed" time="0.387" timestamp="2026-09-10T15:06:27.798" classname="CoveMovement" />
+    <testcase name="LiveRootOwnerBoundsEverySectionAndRefusesMixedObservations" file="tests/test_cove_player.cpp" line="1091" status="run" result="completed" time="0.346" timestamp="2026-09-10T15:06:28.186" classname="CoveMovement" />
+    <testcase name="CutMotionStagesAllIndependentParentsOrLeavesEveryChildUnchanged" file="tests/test_cove_player.cpp" line="1131" status="run" result="completed" time="0.351" timestamp="2026-09-10T15:06:28.532" classname="CoveMovement" />
+    <testcase name="PaidAdditionLaunchMappingChargesOnceAndUndoRestoresItsExactIdentity" file="tests/test_cove_player.cpp" line="1187" status="run" result="completed" time="0.39" timestamp="2026-09-10T15:06:28.884" classname="CoveMovement" />
+    <testcase name="AddedGhostCanBeCanceledWithoutChangingBlueprintOrSpending" file="tests/test_cove_player.cpp" line="1271" status="run" result="completed" time="0.352" timestamp="2026-09-10T15:06:29.274" classname="CoveMovement" />
+    <testcase name="WorkshopRefusesDisconnectedChangeWithoutEditingCraft" file="tests/test_cove_player.cpp" line="1282" status="run" result="completed" time="0.359" timestamp="2026-09-10T15:06:29.626" classname="CoveMovement" />
+    <testcase name="WorkshopSnapsWinchToRealFreeSocketAndUndoRestoresExactDesign" file="tests/test_cove_player.cpp" line="1295" status="run" result="completed" time="0.34" timestamp="2026-09-10T15:06:29.986" classname="CoveMovement" />
+    <testcase name="WorkshopRemovesCradleAndUndoRestoresItsMassAndConnections" file="tests/test_cove_player.cpp" line="1310" status="run" result="completed" time="0.337" timestamp="2026-09-10T15:06:30.327" classname="CoveMovement" />
+    <testcase name="CompilesActualBoatMassHullFlotationAndPartTransforms" file="tests/test_cove_player.cpp" line="1322" status="run" result="completed" time="0.333" timestamp="2026-09-10T15:06:30.664" classname="CoveMovement" />
+    <testcase name="SalvageLoadHasIndependentMassTowEyeAndNoStaticDuplicate" file="tests/test_cove_player.cpp" line="1361" status="run" result="completed" time="0.333" timestamp="2026-09-10T15:06:30.997" classname="CoveMovement" />
+    <testcase name="WaterPhaseIsBoundToOwnedTickAndSurvivesLargeRestoreEpoch" file="tests/test_cove_player.cpp" line="1380" status="run" result="completed" time="26.991" timestamp="2026-09-10T15:06:31.331" classname="CoveMovement" />
+    <testcase name="ActualRecoveryMovesRemoteSectionsTogetherOrLeavesEveryBodyInPlace" file="tests/test_cove_player.cpp" line="1468" status="run" result="completed" time="9.323" timestamp="2026-09-10T15:06:58.322" classname="CoveMovement" />
+    <testcase name="CutBodyAndWaterCapacityRefusalCancelsEveryChildAndReusesAllReservations" file="tests/test_cove_player.cpp" line="1567" status="run" result="completed" time="18.943" timestamp="2026-09-10T15:07:07.646" classname="CoveMovement" />
+    <testcase name="ActualCutReplacesOneMovingSkiffWithTwoCompleteFloatingGpuBodies" file="tests/test_cove_player.cpp" line="1641" status="run" result="completed" time="10.795" timestamp="2026-09-10T15:07:26.590" classname="CoveMovement" />
+    <testcase name="ActualSkiffHitsFixedDockButPassesThroughOpenWater" file="tests/test_cove_player.cpp" line="1791" status="run" result="completed" time="9.916" timestamp="2026-09-10T15:07:37.385" classname="CoveMovement" />
+    <testcase name="ActualCargoAndSkiffGroundOnBrickSeabed" file="tests/test_cove_player.cpp" line="1857" status="run" result="completed" time="19.384" timestamp="2026-09-10T15:07:47.302" classname="CoveMovement" />
+    <testcase name="HarborLiftActuallyRaisesHoldsAndLowersTheAuthoredSkiff" file="tests/test_cove_player.cpp" line="1936" status="run" result="completed" time="15.024" timestamp="2026-09-10T15:08:06.686" classname="CoveMovement" />
+    <testcase name="ActualSkiffSettlesUprightAtItsDryDraft" file="tests/test_cove_player.cpp" line="2044" status="run" result="completed" time="9.394" timestamp="2026-09-10T15:08:21.711" classname="CoveMovement" />
+    <testcase name="DisconnectedBoatIsRejectedBeforePhysicsAdmission" file="tests/test_cove_player.cpp" line="2105" status="run" result="completed" time="0.335" timestamp="2026-09-10T15:08:31.105" classname="CoveMovement" />
+    <testcase name="WalksAcrossAuthoredDeckSeamsAndBoardsUsesHelmAndReturns" file="tests/test_cove_player.cpp" line="2113" status="run" result="completed" time="0.333" timestamp="2026-09-10T15:08:31.441" classname="CoveMovement" />
+    <testcase name="ObservedBoatPoseCarriesHelmAndResetReturnsToFixedDock" file="tests/test_cove_player.cpp" line="2141" status="run" result="completed" time="0.333" timestamp="2026-09-10T15:08:31.774" classname="CoveMovement" />
+    <testcase name="ResumeKeepsBoatLocalHelmPoseOnRestoredMovingCraft" file="tests/test_cove_player.cpp" line="2158" status="run" result="completed" time="0.332" timestamp="2026-09-10T15:08:32.109" classname="CoveMovement" />
+    <testcase name="ResumePreservesJumpVelocityAndSwimmingWithoutPendingControls" file="tests/test_cove_player.cpp" line="2178" status="run" result="completed" time="0.334" timestamp="2026-09-10T15:08:32.441" classname="CoveMovement" />
+    <testcase name="InvalidResumePreservesPlayerAndQueuedInteraction" file="tests/test_cove_player.cpp" line="2200" status="run" result="completed" time="0.338" timestamp="2026-09-10T15:08:32.776" classname="CoveMovement" />
+    <testcase name="SolidGeneratorStopsWalkingAndLargeFramesDoNotTunnel" file="tests/test_cove_player.cpp" line="2222" status="run" result="completed" time="0.339" timestamp="2026-09-10T15:08:33.114" classname="CoveMovement" />
+    <testcase name="JumpingAboardUsesActualSupportingPartInsteadOfBoardButtonHistory" file="tests/test_cove_player.cpp" line="2230" status="run" result="completed" time="0.337" timestamp="2026-09-10T15:08:33.454" classname="CoveMovement" />
+    <testcase name="JumpLandsOnDockAndResetRecoversFromWater" file="tests/test_cove_player.cpp" line="2246" status="run" result="completed" time="0.334" timestamp="2026-09-10T15:08:33.792" classname="CoveMovement" />
+    <testcase name="WalksUpBrickTerraceAndJumpLandsOnStudSurface" file="tests/test_cove_player.cpp" line="2264" status="run" result="completed" time="0.348" timestamp="2026-09-10T15:08:34.126" classname="CoveMovement" />
+    <testcase name="FixedTicksDoNotDependOnRenderRateAndJumpSurvivesShortFrame" file="tests/test_cove_player.cpp" line="2285" status="run" result="completed" time="0.336" timestamp="2026-09-10T15:08:34.475" classname="CoveMovement" />
+    <testcase name="InvalidNavigationPreservesExistingPlayerAndPendingActionsDoNotDuplicate" file="tests/test_cove_player.cpp" line="2298" status="run" result="completed" time="0.334" timestamp="2026-09-10T15:08:34.811" classname="CoveMovement" />
+  </testsuite>
+  <testsuite name="CoveNavigation" tests="1" failures="0" disabled="0" skipped="0" errors="0" time="0.01" timestamp="2026-09-10T15:08:35.146">
+    <testcase name="RejectsUnknownMissingNonfiniteAndDistantBoardingData" file="tests/test_cove_player.cpp" line="2319" status="run" result="completed" time="0.01" timestamp="2026-09-10T15:08:35.146" classname="CoveNavigation" />
+  </testsuite>
+</testsuites>

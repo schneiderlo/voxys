@@ -28,8 +28,8 @@ std::unique_ptr<CoveSceneryCollision> CoveSceneryCollision::compile(
     const auto fail=[&](const char* detail)->std::unique_ptr<CoveSceneryCollision>{
         error=std::string("Cove scenery collision: ")+detail;return {};
     };
-    if(!scene.registry.navigation || scene.registry.placements.size()>32) return fail("missing bounded navigation");
-    std::array<bool,32> boat{};
+    if(!scene.registry.navigation || scene.registry.placements.size()>assets::kMaximumFixturePlacements) return fail("missing bounded navigation");
+    std::array<bool,assets::kMaximumFixturePlacements> boat{};
     for(uint32_t index:scene.registry.navigation->boatPlacements) {
         if(index>=scene.registry.placements.size() || boat[index]) return fail("invalid boat membership");
         boat[index]=true;
@@ -90,8 +90,8 @@ std::unique_ptr<CoveBoatAssembly> CoveBoatAssembly::compileMembers(
     const auto fail = [&](const std::string& detail) -> std::unique_ptr<CoveBoatAssembly> {
         error = "Boat assembly: " + detail; return {};
     };
-    if (members.empty() || scene.registry.placements.size()>32) return fail("missing physical membership");
-    std::array<bool, 32> selected{};
+    if (members.empty() || scene.registry.placements.size()>assets::kMaximumFixturePlacements) return fail("missing physical membership");
+    std::array<bool,assets::kMaximumFixturePlacements> selected{};
     for (uint32_t index : members) {
         if (index >= scene.registry.placements.size() || selected[index]) return fail("invalid boat membership");
         selected[index] = true;
@@ -102,7 +102,7 @@ std::unique_ptr<CoveBoatAssembly> CoveBoatAssembly::compileMembers(
     const auto id = [&](uint64_t value) { return DurableId{sceneWorld, value}; };
     BuildSnapshot build; build.id = id(1); build.owner = id(2);
     std::vector<Part> parts;
-    std::array<size_t, 32> partAt{};
+    std::array<size_t,assets::kMaximumFixturePlacements> partAt{};
     for (size_t index = 0; index < scene.registry.placements.size(); ++index) {
         if (!selected[index]) continue;
         const auto& placement = scene.registry.placements[index];
@@ -162,8 +162,8 @@ std::unique_ptr<CoveBoatAssembly> CoveBoatAssembly::compileRoots(
     const BuildSnapshot& build,const PartCatalog& catalog,std::span<const Part> placements,
     std::optional<DurableId> controlPart,std::string& error) {
     const auto fail=[&](const std::string& detail)->std::unique_ptr<CoveBoatAssembly>{error="Boat assembly: "+detail;return {};};
-    if(placements.size()!=build.parts.size() || placements.empty() || placements.size()>32)return fail("part mapping count");
-    std::array<bool,32> used{};
+    if(placements.size()!=build.parts.size() || placements.empty() || placements.size()>assets::kMaximumFixturePlacements)return fail("part mapping count");
+    std::array<bool,assets::kMaximumFixturePlacements> used{};
     for(size_t i=0;i<placements.size();++i) {
         const auto& binding=placements[i];
         if(binding.placement>=used.size() || used[binding.placement])return fail("duplicate or invalid scene mapping");
@@ -176,7 +176,10 @@ std::unique_ptr<CoveBoatAssembly> CoveBoatAssembly::compileRoots(
     auto assembly = CompiledAssembly::compile(build, catalog, issue);
     if (!assembly) return fail("invalid physical build at " + std::string(issue.buoyancy.collision.assembly.build.field)
         + " (build " + std::to_string(static_cast<unsigned>(issue.buoyancy.collision.assembly.build.error))
-        + ", assembly " + std::to_string(static_cast<unsigned>(issue.buoyancy.collision.assembly.error)) + ")");
+        + ", assembly " + std::to_string(static_cast<unsigned>(issue.buoyancy.collision.assembly.error))
+        + ", exterior " + std::to_string(static_cast<unsigned>(issue.buoyancy.collision.geometry.error))
+        + ", coverage " + std::to_string(static_cast<unsigned>(issue.buoyancy.coverage.error))
+        + ", functions " + std::to_string(static_cast<unsigned>(issue.error)) + ")");
     const auto count=assembly->mass().roots().size();
     if(!controlPart && count!=1)return fail("boat parts must form one welded body");
     if(count==0 || count!=assembly->collision().roots().size() || count!=assembly->buoyancy().roots().size())

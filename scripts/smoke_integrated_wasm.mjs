@@ -441,6 +441,15 @@ try{
         const {validateCoveSettings}=await import('./validate_cove_settings.mjs');
         report.cove_settings=await validateCoveSettings(call,process.env.VOXY_SMOKE_COVE_SETTINGS);
     }
+    if(process.env.VOXY_SMOKE_COVE_BRICKS){
+        assert.equal(selected,'salvage-cove');
+        const {validateCoveBricks}=await import('./validate_cove_bricks.mjs');
+        report.cove_bricks=await validateCoveBricks(call,process.env.VOXY_SMOKE_COVE_BRICKS);
+    }
+    if(process.env.VOXY_SMOKE_WORKSHOP_CAMERA){
+        const {validateWorkshopCamera}=await import('./validate_workshop_camera.mjs');
+        report.workshop_camera=await validateWorkshopCamera(call,process.env.VOXY_SMOKE_WORKSHOP_CAMERA);
+    }
     if(process.env.VOXY_SMOKE_COVE_PARTS){
         assert.equal(selected,'salvage-cove');
         const {validateCoveParts}=await import('./validate_cove_parts.mjs');

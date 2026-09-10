@@ -418,7 +418,7 @@ TEST_F(FixtureGPU, DeduplicatesAdmittedAssetsAndPreservesActiveOnCpuRejection) {
     EXPECT_FALSE(fixture.beginCandidate({}, error));
     std::array<std::shared_ptr<const Bundle>, 1> nulls{};
     EXPECT_FALSE(fixture.beginCandidate(nulls, error));
-    std::vector<std::shared_ptr<const Bundle>> tooMany(13, bundle);
+    std::vector<std::shared_ptr<const Bundle>> tooMany(SalvageAssetFixture::maximumBundles+1, bundle);
     EXPECT_FALSE(fixture.beginCandidate(tooMany, error));
     Package altered;
     altered.changeMesh([](auto& mesh) { mesh.materials[0].baseColorFactor[0] = .25f; });
@@ -429,7 +429,7 @@ TEST_F(FixtureGPU, DeduplicatesAdmittedAssetsAndPreservesActiveOnCpuRejection) {
     EXPECT_EQ(fixture.stats().candidate.generation, 0u);
 }
 
-TEST_F(FixtureGPU, GuideToggleSharesOwnerAndSupportsMaximumPlacementCount) {
+TEST_F(FixtureGPU, GuideToggleSharesOwnerAndRespectsSeparateGuideBudget) {
     begin();
     const auto resident=fixture.stats().active;
     const std::array placements{SalvageFixturePlacement{0,probeLod,glm::dmat4(1),{}}};
@@ -455,6 +455,21 @@ TEST_F(FixtureGPU, GuideToggleSharesOwnerAndSupportsMaximumPlacementCount) {
     EXPECT_EQ(fixture.stats().lastEncodedGuideBoxes,0u);
     submit(ticket);
     EXPECT_EQ(fixture.stats().active.uniqueUploads,resident.uniqueUploads);
+}
+
+TEST_F(FixtureGPU, FullSceneAndPaletteFitWithoutIncreasingMeshInstanceBudget) {
+    Package package;
+    package.changeMesh([](auto& mesh) {
+        const auto node=*std::find_if(mesh.nodes.begin(),mesh.nodes.end(),[](const auto& value){return value.meshIndex!=UINT32_MAX;});
+        mesh.nodes.assign(1,node);mesh.nodes.front().parent=-1;mesh.header.nodeCount=1;
+    });
+    const std::array bundles{package.admit()};begin(bundles);startFrame();
+    std::vector<SalvageFixturePlacement> placements(SalvageAssetFixture::maximumPlacements);
+    for(auto& placement:placements)placement.lodId=probeLod;
+    SalvageFixtureTicket ticket;
+    ASSERT_TRUE(fixture.encode(encoder,colorView,depthView,placements,frame(),ticket,error))<<error;
+    EXPECT_EQ(fixture.stats().lastEncodedDraws,SalvageAssetFixture::maximumPlacements);
+    submit(ticket);
 }
 
 TEST_F(FixtureGPU, PrototypePartsShareAccountedUploadAndUseTheSameFrameLifetime) {
@@ -536,7 +551,7 @@ TEST_F(FixtureGPU, AppliesOwnerCombinedAndUniqueAssetCeilingsBeforeUpload) {
     config = {}; config.colorFormat = WGPUTextureFormat_RGBA8Unorm;
     ASSERT_TRUE(fixture.init(context.getDevice(), context.getQueue(), config, error));
     std::vector<std::shared_ptr<const Bundle>> many;
-    for (uint64_t i = 0; i < 10; ++i) {
+    for (uint64_t i = 0; i <= SalvageAssetFixture::maximumUniqueAssets/4; ++i) {
         Package package; package.multipleLods(1000u + i * 4u, 4);
         many.push_back(package.admit());
     }
@@ -544,7 +559,7 @@ TEST_F(FixtureGPU, AppliesOwnerCombinedAndUniqueAssetCeilingsBeforeUpload) {
     EXPECT_NE(error.find("unique asset"), std::string::npos) << error;
     many.pop_back();
     begin(many);
-    EXPECT_EQ(fixture.stats().active.uniqueUploads, 36u);
+    EXPECT_EQ(fixture.stats().active.uniqueUploads, SalvageAssetFixture::maximumUniqueAssets);
 }
 
 TEST_F(FixtureGPU, TracksRealSubmitDiscardResetAndReplacementTickets) {
@@ -620,7 +635,7 @@ TEST_F(FixtureGPU, RejectsInvalidStableLodsFramesAndInstanceExpansionAtomically)
     EXPECT_FALSE(fixture.encode(encoder, colorView, depthView, {}, invalid, ticket, error));
     invalid = frame(); invalid.useRayDepth = true;
     EXPECT_FALSE(fixture.encode(encoder, colorView, depthView, {}, invalid, ticket, error));
-    std::vector<SalvageFixturePlacement> tooMany(33);
+    std::vector<SalvageFixturePlacement> tooMany(SalvageAssetFixture::maximumPlacements+1);
     EXPECT_FALSE(fixture.encode(encoder, colorView, depthView, tooMany, frame(), ticket, error));
     EXPECT_EQ(fixture.stats().unresolved.serial, 0u);
     releaseCommands();

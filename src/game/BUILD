@@ -63,12 +63,21 @@ cc_library(
 )
 
 cc_library(
+    name = "workshop_camera",
+    srcs = ["expedition/workshop_camera.cpp"],
+    hdrs = ["expedition/workshop_camera.hpp"],
+    copts = PROJECT_DEFAULT_COPTS,
+    includes = [".."],
+    deps = ["//third_party:glm"],
+)
+
+cc_library(
     name = "cove_workshop",
     srcs = ["expedition/cove_workshop.cpp"],
     hdrs = ["expedition/cove_workshop.hpp"],
     copts = PROJECT_DEFAULT_COPTS,
     includes = [".."],
-    deps = [":cove_boat", ":cove_player"],
+    deps = [":cove_boat", ":cove_player", ":workshop_camera"],
 )
 
 cc_library(
@@ -105,12 +114,18 @@ cc_library(
 )
 
 cc_library(
+    name = "fixture_limits",
+    hdrs = ["assets/fixture_limits.hpp"],
+    includes = [".."],
+)
+
+cc_library(
     name = "fixture_registry",
     srcs = ["assets/fixture_registry.cpp"],
     hdrs = ["assets/fixture_registry.hpp"],
     copts = PROJECT_DEFAULT_COPTS,
     includes = [".."],
-    deps = [":cooked_part_directory", ":build_model", "//src/core:sha256", "//third_party:tinygltf"],
+    deps = [":fixture_limits", ":cooked_part_directory", ":build_model", "//src/core:sha256", "//third_party:tinygltf"],
 )
 
 cc_library(
@@ -204,7 +219,7 @@ cc_library(
     hdrs = ["expedition/cove_save.hpp"],
     copts = PROJECT_DEFAULT_COPTS,
     includes = [".."],
-    deps = [":session_save", ":cove_harbor_state", ":assembly_compiler", "//src/core:sha256"],
+    deps = [":fixture_limits", ":session_save", ":cove_harbor_state", ":assembly_compiler", "//src/core:sha256"],
 )
 
 cc_library(

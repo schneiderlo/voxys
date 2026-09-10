@@ -21,7 +21,10 @@
 #salvage-workshop { max-width: 540px; }
 #salvage-workshop .workshop-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 6px; }
 #salvage-workshop button { margin: 0; padding: 6px 9px; font-size: 13px; }
-#salvage-workshop .workshop-camera { display: flex; gap: 6px; margin-top: 10px; }
+#salvage-workshop .workshop-camera { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 6px; margin-top: 10px; }
+#salvage-workshop .workshop-recovery { margin-top: 12px; }
+#salvage-workshop .workshop-recovery summary { cursor: pointer; padding: 8px 0; font-weight: 700; }
+#salvage-workshop .workshop-recovery > span { display: block; margin-bottom: 8px; }
 #salvage-workshop-status { padding: 6px 0; font-weight: 600; }
 #salvage-workshop-status[data-valid="false"] { color: #9c3428; }
 
@@ -29,6 +32,9 @@
 #salvage-preview[data-workshop="true"] .workshop-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
 #salvage-preview[data-workshop="true"] > button { margin-top: 6px; padding: 6px 9px; }
 #salvage-preview[data-workshop="true"] #salvage-help { font-size: 12px; }
+@media (max-width: 700px) {
+    #salvage-preview[data-workshop="true"] { left: 12px; right: 12px; bottom: 12px; width: auto; max-width: none; max-height: 45vh; }
+}
 
 #workshop-designs { margin-top: 12px; }
 #workshop-designs summary { cursor: pointer; padding: 8px 0; font-weight: 700; }
@@ -37,3 +43,11 @@
     box-sizing: border-box; width: 100%; margin: 4px 0 8px; padding: 8px;
     color: #f3f6fa; background: #172532; border: 1px solid #718396; border-radius: 6px; font: inherit;
 }
+
+#salvage-workshop .workshop-bricks { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 12px 0; }
+#salvage-workshop .workshop-bricks button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; min-height: 92px; padding: 10px 4px; border: 2px solid #d0d8d3; background: #f9f7ef; color: #263d38; }
+#salvage-workshop .workshop-bricks button[aria-pressed="true"] { border-color: #247967; background: #e4f0e9; }
+#salvage-workshop .brick-icon { display: block; width: 48px; height: 24px; border-radius: 3px; background-color: #bd3f32; background-image: radial-gradient(circle, #ffffff50 0 4px, #00000020 4px 6px, transparent 7px); background-size: 24px 24px; box-shadow: 0 6px 0 #84291f, 0 8px 4px #0003; transform: skewY(-8deg); }
+#salvage-workshop .brick-2x2 { height: 48px; background-color: #3777ac; box-shadow: 0 6px 0 #235178, 0 8px 4px #0003; }
+#salvage-workshop .brick-2x4 { width: 72px; height: 36px; background-size: 18px 18px; background-color: #e2b53b; box-shadow: 0 6px 0 #a98120, 0 8px 4px #0003; }
+#salvage-workshop .brick-label { font-size: 12px; line-height: 1.4; }

@@ -45,6 +45,7 @@ set(TEST_SOURCES
     test_part_catalog.cpp
     test_salvage_preview.cpp
     test_cove_player.cpp
+    test_workshop_camera.cpp
     test_bike.cpp
     test_log.cpp
     test_lockstep.cpp
@@ -1036,6 +1037,11 @@ if(TARGET gpu_authored_shapes_tests)
     gtest_discover_tests(gpu_authored_shapes_tests WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
         DISCOVERY_MODE PRE_TEST TEST_PREFIX "gpu_authored_shapes.")
 endif()
+
+add_executable(workshop_camera_tests test_workshop_camera.cpp)
+target_link_libraries(workshop_camera_tests PRIVATE voxy_core gtest gtest_main)
+set_project_warnings(workshop_camera_tests)
+gtest_discover_tests(workshop_camera_tests WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 
 add_executable(cove_player_tests test_cove_player.cpp)
 target_link_libraries(cove_player_tests PRIVATE voxy_core tinygltf gtest gtest_main)

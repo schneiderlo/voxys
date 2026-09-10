@@ -1,0 +1,142 @@
+{
+  "hash": "SHA-256",
+  "sourceParent": "e51467858a979837c133634e62b7ef92ceb29ce5",
+  "changedSourceFiles": [
+    {
+      "path": "src/game/expedition/cove_save.hpp",
+      "bytes": 8197,
+      "sha256": "272efd5ee51fdd0ef9d8598229ddd301ae8ab6b40fbf12d14042a9e91f4ebe9e"
+    },
+    {
+      "path": "src/game/expedition/cove_save.cpp",
+      "bytes": 28536,
+      "sha256": "1fa73323aa730465dd4343b9aaa376158a813e3b8a265f86c45cbd141251dbf0"
+    },
+    {
+      "path": "src/game/expedition/cove_restore.cpp",
+      "bytes": 10183,
+      "sha256": "949e895db5ddefeb5c48270932d61feb6f93a7f66519ba0c7589f16a9d49a13a"
+    },
+    {
+      "path": "tests/test_cove_save.cpp",
+      "bytes": 39976,
+      "sha256": "59aa9e5bd596b29599d50efa2cd34336d2122e3b2a70ef1bb42892d1fa66e992"
+    },
+    {
+      "path": "tests/test_game_session.cpp",
+      "bytes": 236766,
+      "sha256": "85b5892c4a085b8f94dc36ed8e9793932f5d82bf4c53b05ceb98e715834f7cbc"
+    },
+    {
+      "path": "scripts/validate_session_transactions_wasm.py",
+      "bytes": 9217,
+      "sha256": "564fe49258c82ef40da482bb94f946f4a67da749999ff3d2164774163d1005de"
+    }
+  ],
+  "sharedRuntimeSourceManifest": "shared-wasm-manifest.json",
+  "buildOutputsAtVerification": [
+    {
+      "path": "build-native-save-host/bin/voxy_native",
+      "bytes": 47041408,
+      "sha256": "0d5efff1912b9a66b31786667123f82344072a12f1e060e4a7bbe12a1eb8009e"
+    },
+    {
+      "path": "build-native-save-host/bin/cove_save_tests",
+      "bytes": 2139416,
+      "sha256": "4ce49d60d30a3ace2fb6742a4b9a84153bf67018821232c29e0c6523c373d70f"
+    },
+    {
+      "path": "build-lego-wasm/bin/voxy_wasm.js",
+      "bytes": 96310,
+      "sha256": "8ced8a0e20231f9a9590fdcfb78a97dedd45131891f860cf8d4d018619ba59f5"
+    },
+    {
+      "path": "build-lego-wasm/bin/voxy_wasm.wasm",
+      "bytes": 7184171,
+      "sha256": "0b230c34d35bedb0cab498b058d0f6294638acf36d626a12ff708b8d00bf8472"
+    },
+    {
+      "path": "build-lego-wasm/bin/voxy_wasm.data",
+      "bytes": 84625414,
+      "sha256": "01ac555c307d6ecdcef48da8d87e42de082378ce13fef3d2a5aee01bb43d2bfc"
+    }
+  ],
+  "buildOutputRetention": "Application paths are mutable build outputs, not newly frozen preview packages. Source hashes and retained build logs identify this check.",
+  "evidence": [
+    {
+      "path": "build-cove-two-cargo-2ohjej41/checks/bazel-r01.log",
+      "bytes": 1348,
+      "sha256": "82262980be228a48cafc3e16b5fd81e414f6304199fb95bf4c941a992afbd181"
+    },
+    {
+      "path": "build-cove-two-cargo-2ohjej41/checks/cmake-cove-save.log",
+      "bytes": 4854,
+      "sha256": "0bbaf53dbe4ad87b90a665f5f35a4b04a9241bda94999edeaaf687741b4d2879"
+    },
+    {
+      "path": "build-cove-two-cargo-2ohjej41/checks/cmake-cove-save.xml",
+      "bytes": 7585,
+      "sha256": "b4164d7e1f4fa9d3dc972871a774da0a527c28ea47d705bece8e29c9fb1dada6"
+    },
+    {
+      "path": "build-cove-two-cargo-2ohjej41/checks/legacy-restore-r01.log",
+      "bytes": 1315,
+      "sha256": "8e3c503c84a6f3bd1ea202bcd3f7a20d28f8312cf4788275e186d2415c629075"
+    },
+    {
+      "path": "build-cove-two-cargo-2ohjej41/checks/native-build-r01.log",
+      "bytes": 1251,
+      "sha256": "7311ba235438d6374f48b0a0db310c55d33138e092a8eef80863931ec2d28626"
+    },
+    {
+      "path": "build-cove-two-cargo-2ohjej41/checks/shared-wasm-r01.log",
+      "bytes": 130752,
+      "sha256": "535bc675e8240f15ac1341f59b600346cafa853ba330f3a2964adc0e1b386e55"
+    },
+    {
+      "path": "build-cove-two-cargo-2ohjej41/checks/shared-wasm-r02.log",
+      "bytes": 591,
+      "sha256": "7a9a60edc46c3aa56faef23f4ec59adf76bdcd8103269dca83426a981ba73496"
+    },
+    {
+      "path": "build-cove-two-cargo-2ohjej41/checks/wasm-build-r01.log",
+      "bytes": 13105,
+      "sha256": "a808ac87002c00a996e11d972fd6bd8525f03fa77f8b04897215c08f183c17d3"
+    },
+    {
+      "path": "build-cove-two-cargo-2ohjej41/shared-wasm-r02/manifest.json",
+      "bytes": 34663,
+      "sha256": "d8e5020a30227e1f5c65c187bb6b4759471a9815d624247850147aa690418c53"
+    },
+    {
+      "path": "build-cove-two-cargo-2ohjej41/shared-wasm-r02/tests.log",
+      "bytes": 40303,
+      "sha256": "fee7f17c7acafef6c5fac2dbc69c8b221277201be9bbe7450db494e415ee1832"
+    },
+    {
+      "path": "docs/validation/salvage/PLAY-06/two-cargo-r01/checks/bazel-cove-player.xml",
+      "bytes": 13939,
+      "sha256": "803957fe581c664a1742debe7a89b1cf1907f46927aacce92fca6688b78f97a6"
+    },
+    {
+      "path": "docs/validation/salvage/PLAY-06/two-cargo-r01/checks/bazel-cove-save.xml",
+      "bytes": 6610,
+      "sha256": "863f553cb298e1b0b77dc6d1229faf3c4ef2568e472acfa154fab255a9c52727"
+    },
+    {
+      "path": "docs/validation/salvage/PLAY-06/two-cargo-r01/checks/bazel-game-session.xml",
+      "bytes": 36160,
+      "sha256": "1c807b1dfc22163215919d66cc8086a191e4b70cef89b452a20bf76a7c463f89"
+    },
+    {
+      "path": "docs/validation/salvage/PLAY-06/two-cargo-r01/checks/cmake-cove-save.xml",
+      "bytes": 7585,
+      "sha256": "b4164d7e1f4fa9d3dc972871a774da0a527c28ea47d705bece8e29c9fb1dada6"
+    },
+    {
+      "path": "docs/validation/salvage/PLAY-06/two-cargo-r01/checks/shared-wasm-tests.log",
+      "bytes": 40303,
+      "sha256": "fee7f17c7acafef6c5fac2dbc69c8b221277201be9bbe7450db494e415ee1832"
+    }
+  ]
+}

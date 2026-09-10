@@ -5,7 +5,7 @@
     const owners=new WeakMap();
     const toHex=bytes=>Array.from(bytes,b=>b.toString(16).padStart(2,'0')).join('');
     const fromHex=text=>{
-        if(!text||text.length%2||text.length>2*(8*1024*1024+4096+4*(32*1024+4))||!/^[0-9a-f]+$/.test(text))throw Error('The expedition could not be prepared.');
+        if(!text||text.length%2||text.length>2*(8*1024*1024+4096+4*(128*1024+4))||!/^[0-9a-f]+$/.test(text))throw Error('The expedition could not be prepared.');
         return Uint8Array.from(text.match(/../g),pair=>parseInt(pair,16));
     };
     const action=(engine,kind,text='')=>engine.ccall('voxy_salvage_expedition_action','string',['number','string'],[kind,text]);

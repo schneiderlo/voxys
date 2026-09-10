@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="21" failures="0" disabled="0" errors="0" time="1.55" timestamp="2026-09-10T14:10:45.950" name="AllTests">
+  <testsuite name="SalvageAssetFixture" tests="1" failures="0" disabled="0" skipped="0" errors="0" time="0." timestamp="2026-09-10T14:10:45.950">
+    <testcase name="RejectsUninitializedUseWithoutMutatingTicket" file="tests/test_salvage_asset_fixture.cpp" line="110" status="run" result="completed" time="0." timestamp="2026-09-10T14:10:45.950" classname="SalvageAssetFixture" />
+  </testsuite>
+  <testsuite name="InspectionGuides" tests="6" failures="0" disabled="0" skipped="0" errors="0" time="0.001" timestamp="2026-09-10T14:10:45.950">
+    <testcase name="SharedMeshHasOutwardFacesExactBoundsAndAccountedStorage" file="tests/test_salvage_asset_fixture.cpp" line="138" status="run" result="completed" time="0." timestamp="2026-09-10T14:10:45.950" classname="InspectionGuides" />
+    <testcase name="ExactMetrePlateRulersAndAsymmetricCanonicalAxes" file="tests/test_salvage_asset_fixture.cpp" line="163" status="run" result="completed" time="0." timestamp="2026-09-10T14:10:45.950" classname="InspectionGuides" />
+    <testcase name="SocketFramesStayCanonicalAcrossAllRotationsAndSectorRebases" file="tests/test_salvage_asset_fixture.cpp" line="182" status="run" result="completed" time="0." timestamp="2026-09-10T14:10:45.950" classname="InspectionGuides" />
+    <testcase name="RejectsIncompleteOverlaysAndInvalidTransformsTransactionally" file="tests/test_salvage_asset_fixture.cpp" line="209" status="run" result="completed" time="0." timestamp="2026-09-10T14:10:45.951" classname="InspectionGuides" />
+    <testcase name="PrototypeBeamPreservesExactCanonicalFootprintAndLitMaterial" file="tests/test_salvage_asset_fixture.cpp" line="226" status="run" result="completed" time="0." timestamp="2026-09-10T14:10:45.951" classname="InspectionGuides" />
+    <testcase name="ExplicitConnectedSocketSelectionIsCompleteOrRejected" file="tests/test_salvage_asset_fixture.cpp" line="245" status="run" result="completed" time="0." timestamp="2026-09-10T14:10:45.951" classname="InspectionGuides" />
+  </testsuite>
+  <testsuite name="FixtureGPU" tests="14" failures="0" disabled="0" skipped="0" errors="0" time="1.549" timestamp="2026-09-10T14:10:45.951">
+    <testcase name="FilteredEnvironmentIsChargedRetriedAndRetiredWithItsGeneration" file="tests/test_salvage_asset_fixture.cpp" line="362" status="run" result="completed" time="0.129" timestamp="2026-09-10T14:10:45.951" classname="FixtureGPU" />
+    <testcase name="DeduplicatesAdmittedAssetsAndPreservesActiveOnCpuRejection" file="tests/test_salvage_asset_fixture.cpp" line="409" status="run" result="completed" time="0.092" timestamp="2026-09-10T14:10:46.081" classname="FixtureGPU" />
+    <testcase name="GuideToggleSharesOwnerAndRespectsSeparateGuideBudget" file="tests/test_salvage_asset_fixture.cpp" line="432" status="run" result="completed" time="0.073" timestamp="2026-09-10T14:10:46.173" classname="FixtureGPU" />
+    <testcase name="FullSceneAndPaletteFitWithoutIncreasingMeshInstanceBudget" file="tests/test_salvage_asset_fixture.cpp" line="460" status="run" result="completed" time="0.093" timestamp="2026-09-10T14:10:46.246" classname="FixtureGPU" />
+    <testcase name="PrototypePartsShareAccountedUploadAndUseTheSameFrameLifetime" file="tests/test_salvage_asset_fixture.cpp" line="475" status="run" result="completed" time="0.079" timestamp="2026-09-10T14:10:46.340" classname="FixtureGPU" />
+    <testcase name="SocketPathUsesItsOwnReservedCapacityAndRejectsOverflowAtomically" file="tests/test_salvage_asset_fixture.cpp" line="503" status="run" result="completed" time="0.079" timestamp="2026-09-10T14:10:46.419" classname="FixtureGPU" />
+    <testcase name="AppliesOwnerCombinedAndUniqueAssetCeilingsBeforeUpload" file="tests/test_salvage_asset_fixture.cpp" line="533" status="run" result="completed" time="0.431" timestamp="2026-09-10T14:10:46.499" classname="FixtureGPU" />
+    <testcase name="TracksRealSubmitDiscardResetAndReplacementTickets" file="tests/test_salvage_asset_fixture.cpp" line="565" status="run" result="completed" time="0.066" timestamp="2026-09-10T14:10:46.930" classname="FixtureGPU" />
+    <testcase name="RejectsInvalidStableLodsFramesAndInstanceExpansionAtomically" file="tests/test_salvage_asset_fixture.cpp" line="613" status="run" result="completed" time="0.071" timestamp="2026-09-10T14:10:46.997" classname="FixtureGPU" />
+    <testcase name="CapturesRealPipelineValidationFailureAndKeepsPreviousGeneration" file="tests/test_salvage_asset_fixture.cpp" line="644" status="run" result="completed" time="0.083" timestamp="2026-09-10T14:10:47.068" classname="FixtureGPU" />
+    <testcase name="DrainsNeverDrawnCandidatesAndReentersWithoutInventedFrames" file="tests/test_salvage_asset_fixture.cpp" line="671" status="run" result="completed" time="0.16" timestamp="2026-09-10T14:10:47.152" classname="FixtureGPU" />
+    <testcase name="ReentryRejectsOldTicketsAndExceptionalShutdownPreservesCommands" file="tests/test_salvage_asset_fixture.cpp" line="694" status="run" result="completed" time="0.077" timestamp="2026-09-10T14:10:47.313" classname="FixtureGPU" />
+    <testcase name="ValidatesReboundViewsAndSurfacesInvalidViewAsTerminal" file="tests/test_salvage_asset_fixture.cpp" line="730" status="run" result="completed" time="0.055" timestamp="2026-09-10T14:10:47.390" classname="FixtureGPU" />
+    <testcase name="ForwardedDeviceLossDoesNotBecomeAnEndlessLeave" file="tests/test_salvage_asset_fixture.cpp" line="750" status="run" result="completed" time="0.054" timestamp="2026-09-10T14:10:47.446" classname="FixtureGPU" />
+  </testsuite>
+</testsuites>

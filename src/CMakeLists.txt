@@ -39,6 +39,7 @@ set(GAME_SOURCES
     game/construction/part_catalog.cpp
     game/expedition/cove_player.cpp
     game/expedition/cove_workshop.cpp
+    game/expedition/workshop_camera.cpp
     game/expedition/cove_build.cpp
     game/expedition/cove_boat.cpp
     game/expedition/cove_rigid_roots.cpp

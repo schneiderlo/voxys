@@ -1,0 +1,168 @@
+{
+  "sourceParent": "e51467858a979837c133634e62b7ef92ceb29ce5",
+  "sourceStatus": "subsequent local work; not yet committed or pushed",
+  "sourceFiles": {
+    "CMakeLists.txt": "b5945024ba4fdf703eb4b1d7154252f3543df2d3d0646a61016cee5075711460",
+    "data/BUILD": "94d8ae579563332a052f21e02eca840904640923d920e86bccd85f6a5a808e42",
+    "data/salvage/cove-bricks-r02.json": "b51419b5a343fe5e2f8948a747c720f36c523fa75ac9959a44c334b57d66e169",
+    "salvage_cove.cfg": "6dc03d490f264026aadd4d8bc144f001c89c80ba5b8e0bc62aeb855b24b7a15b",
+    "scripts/smoke_integrated_wasm.mjs": "01049aa36a039bbe1ef2072a2baeae7300d5b277590fd0b0c5570202677db444",
+    "scripts/test_salvage_preview.mjs": "3bb1d86960d5306c7d35efc4c28c87d5a8164c1d70c2682351e74a912e100a42",
+    "scripts/validate_cove_archive.mjs": "189669b05e139a3eec3cdfa7fe90d290ec78aa2755f3997c25a2e183fad471d0",
+    "scripts/validate_cove_bricks.mjs": "35b3ecd78b1829552c8e2872d7fd7a3ff8cec7e92617df340694ee3ea47fb6ec",
+    "scripts/validate_native_cove_bricks.py": "1bc48931f8b4bcab4e228ae952a52a5576d824ea7c0639ca09705067320ba6d2",
+    "scripts/validate_native_cove_saves.py": "5b2e8240f6e2bd2f7735b04c405c8e2480b0f7fd250c3441fbc84215641b94bc",
+    "src/app/application.cpp": "2489a12c1da1800af9975eb5dc59f35679fbda823ba721086fe57db89a08b7df",
+    "src/app/application.hpp": "caa3ab8f3533b5d625bffc89b3b321ff2dbb9c24b668cf0a41fae4b6e5864917",
+    "src/core/config.cpp": "7c3efec33da16ef23ace7c1821d9a679efe16b1145fdf757f70a5c4e49e01761",
+    "src/core/config.hpp": "4e732cd7613c865e732602dd69e81abe1aaa3b18352ed61347a0de62a8d2ddb6",
+    "src/engine/platform/native/entry.cpp": "cbe70253ebad1a28cefd25390053fb7d1654627039856f2cb0f662c130691cb7",
+    "src/engine/platform/wasm/entry.cpp": "5eb7ba5921dc8c85d0b6d4013ec15ac6342e5bd63189b941b7a0fb8495d3ec3a",
+    "src/game/BUILD": "08bb971faf642a5dadab2e46b3f86f138ef308292eb6fcc641b1b55c7bd24b22",
+    "src/game/assets/fixture_limits.hpp": "cc84278cc8052d2f1ca59d6ff36f513dafa99b61ff7c64fca8e00b51f64eda86",
+    "src/game/assets/fixture_registry.cpp": "177e13ae453c6341ad2cb05b4a9e1553f07c7f678c77baea73eb1a3b35358c6d",
+    "src/game/assets/fixture_registry.hpp": "33d55d2769340ae57d2c5cdde48443e204377ef52c622924c6b630bfdef1e156",
+    "src/game/construction/build_model.cpp": "ef17438b83b4ba90de724e93cc441b60f6c6ae372efa71480b0603ad98e8a3a5",
+    "src/game/expedition/cove_boat.cpp": "ba028b9d1d014c4385d1bb349ceac48d9ebb741a9ff2b74c5783ad022257daf9",
+    "src/game/expedition/cove_build.cpp": "732dea7f2743201a867bf4942078f97e959ab1c6c9f71a2a4ec39cd18772a05f",
+    "src/game/expedition/cove_player.cpp": "9b2267d690840f3e473c7c3ee15456b95c2e46ff33a078f2116a530c15266b23",
+    "src/game/expedition/cove_rigid_roots.cpp": "f70e19fbedd9687a4690aa8e310597bcf4157cd5a4e00b369640f8b25ddbebce",
+    "src/game/expedition/cove_save.cpp": "46db9a2c9f259564f769478c668e2deb4868b6992676b42c7dac493965840567",
+    "src/game/expedition/cove_save.hpp": "e104bc5d40398a344a928f4eaa36e976a28db5987e751564017e137e14c07448",
+    "src/game/expedition/cove_workshop.cpp": "986b9d595e4db0c309f90fa5a32870680f5cd70f73e8e893af87ecd3709f67d7",
+    "src/game/expedition/cove_workshop.hpp": "8fdf389ed3257bb5bb290b701c165644006a83e3077b8e9db8307966c3a55ebe",
+    "src/geometry/box_union.cpp": "c712ae833f9270e7bd4ff6e6ff693c12aba66e97cc65699d020d74fd5ca2a103",
+    "src/render/BUILD": "9db1d876af333fdc60f94936583be8c32ef3f23e5550b6644e8115f2665ddbf5",
+    "src/render/salvage_asset_fixture.hpp": "826a70b92b36df385d469c70d13fa1eeaba1dff7f28fd09d520636a3aa38d30f",
+    "tests/test_build_model.cpp": "2c5533bd7a4b2a6f410e4a67409699fe0724742d435f5701b756b4b3dfcfa964",
+    "tests/test_config.cpp": "834085162d23816f10d015b9b8813a2dcf6bcbf1eb22b933386697a7ff076458",
+    "tests/test_cove_player.cpp": "ddab7ca1ef85e2788faebeae8092daa278e6266a3649ad28a5ff0fe41a68160d",
+    "tests/test_fixture_registry.cpp": "cb4769869f985dc5a5ae689959464fa25d4f5f524d2f71e682d3d12e28587e3f",
+    "tests/test_salvage_asset_fixture.cpp": "41be73921d53b1b460ea80a3f4da690abdc9a5c90cb56efc88e210137c0487bd",
+    "web/cove_saves.js": "6fc47f5f8f5033e284aa215e42f9ae1145560d3635e6c18f57303ac00bb455fd",
+    "web/index.html": "7b5d589e0d7b4437665d46514c3f9e8f83aa7d812e9b75688ea45a3d644e8c2d",
+    "web/salvage_preview.css": "ac2a6d9e6ad04b7757de3bc869841d873cc14cf080894b32ba2b057226245b7f",
+    "web/salvage_preview.js": "d0f9142abb8f15dd0452e013839d1ba93dc2b275784fca63d3fb1b1f88f35e53"
+  },
+  "webPackage": "/home/modkin/workspace/schneiderlo/voxys/build-cove-builder-3bh5dr4t/web-r03",
+  "webFiles": {
+    "BUILD": {
+      "bytes": 113,
+      "sha256": "d855a115e6c9dd9fd71e315093b7455c35e250f935543c8dd08d587a26af1894"
+    },
+    "cove_saves.js": {
+      "bytes": 7344,
+      "sha256": "6fc47f5f8f5033e284aa215e42f9ae1145560d3635e6c18f57303ac00bb455fd"
+    },
+    "design_library.js": {
+      "bytes": 13313,
+      "sha256": "bb6673eacfa3cac3cc0d0722431721350829c8994d6a58535c27e3eb91909104"
+    },
+    "expedition_store.js": {
+      "bytes": 14315,
+      "sha256": "d5fcf5a97259332cace13a0da51a7e0d8b1a902555119c897c99526133dee736"
+    },
+    "frame_budget.js": {
+      "bytes": 4973,
+      "sha256": "bd1bc44ce6673377dd04df935ab32ffe1d876d8898c90bb9d8c40415401b1e26"
+    },
+    "index.html": {
+      "bytes": 81603,
+      "sha256": "7b5d589e0d7b4437665d46514c3f9e8f83aa7d812e9b75688ea45a3d644e8c2d"
+    },
+    "lego_patch.html": {
+      "bytes": 3732,
+      "sha256": "ece80967c7234a53481ea0a6c34701b8b4d4e1a94064669202d4e309f4298de4"
+    },
+    "lego_patch.mjs": {
+      "bytes": 21965,
+      "sha256": "65a6585fce4dfc721b81679ec15d147b0e7613698e77b0a3de2e07644773cb53"
+    },
+    "lego_patch_model.mjs": {
+      "bytes": 8702,
+      "sha256": "79310139c2ff864c507c52387c11c3d8590bfbf97074dc0999d165242c8dfea5"
+    },
+    "lego_playground.css": {
+      "bytes": 1845,
+      "sha256": "a3694b755f8128beb0c4738e4d39ad87e9fc69e7ef8903c60b60a0f45c0250c9"
+    },
+    "lego_playground.js": {
+      "bytes": 3572,
+      "sha256": "8623c5dab1928e756bf0f9fd559c5e02e6f7311dff57d5e5aebc04def0a53ee0"
+    },
+    "loader.js": {
+      "bytes": 8233,
+      "sha256": "dda43b965d732c89d684dc2e22cdb657589de9b762adea71ee67de4312d57738"
+    },
+    "network_transport.js": {
+      "bytes": 13484,
+      "sha256": "744a7327278186f3c8c7a509c4705b235cc7546e207bc1b776040a3b5e99a40b"
+    },
+    "renderer_inspector.css": {
+      "bytes": 14997,
+      "sha256": "bcd493afa295bb1a1cfe06a7e2f50904c1f74bcf42baedd2d0aa2342bee42ba9"
+    },
+    "renderer_inspector.js": {
+      "bytes": 51304,
+      "sha256": "329cf0b34cb50a44e0397214404e00ac8744d36a6b57eca9437c831ed3fba21d"
+    },
+    "salvage_data.mjs": {
+      "bytes": 7947,
+      "sha256": "700ca3061e3b2d37d4698a2b8eccac1be210634bf6ff3cb825d09928fdd9c47b"
+    },
+    "salvage_preview.css": {
+      "bytes": 3479,
+      "sha256": "ac2a6d9e6ad04b7757de3bc869841d873cc14cf080894b32ba2b057226245b7f"
+    },
+    "salvage_preview.js": {
+      "bytes": 27272,
+      "sha256": "d0f9142abb8f15dd0452e013839d1ba93dc2b275784fca63d3fb1b1f88f35e53"
+    },
+    "shader_parity.html": {
+      "bytes": 306,
+      "sha256": "bab9844dc7e6e8c9d683c4af6e7f31aad8534e77bded25fd4478e4eaa3ac08fe"
+    },
+    "shader_parity.js": {
+      "bytes": 1901,
+      "sha256": "dd92a5fbd5a36b4fd7974fc9d398289b67428b724013010705163ddb675c6076"
+    },
+    "shader_parity_manifest.js": {
+      "bytes": 989,
+      "sha256": "e86d723130dfb334964ea6e38905549bfe7a018dea48e1ffafef8d8a660beea1"
+    },
+    "style.css": {
+      "bytes": 21726,
+      "sha256": "793ea83087c860dda1a709f06f7c12580aa7f8a0338f52171af06ab26a82a5d0"
+    },
+    "voxy_wasm.data": {
+      "bytes": 84625414,
+      "sha256": "01ac555c307d6ecdcef48da8d87e42de082378ce13fef3d2a5aee01bb43d2bfc"
+    },
+    "voxy_wasm.js": {
+      "bytes": 95852,
+      "sha256": "c0a75daa0a2ad5ceba68304223290d86336709fe7b5278f1b19ca1873eb7336b"
+    },
+    "voxy_wasm.wasm": {
+      "bytes": 7167391,
+      "sha256": "50a947066476b399567d440019434777b3a256c5519bfd445e3d43ce8ed54ce9"
+    }
+  },
+  "nativeBinary": {
+    "path": "/home/modkin/workspace/schneiderlo/voxys/build-cove-builder-3bh5dr4t/native-r01-executable/voxy_native",
+    "sha256": "a4a04fd9c00eb3305a9554142442b5ffb365cc45c8c8cc91b914f873ce77bfc8"
+  },
+  "preview": {
+    "url": "http://127.0.0.1:40367/index.html?experience=salvage-cove",
+    "package": "/home/modkin/workspace/schneiderlo/voxys/build-cove-builder-3bh5dr4t/web-r03"
+  },
+  "nativeSaveWorld": "df314a0502c8ef92ad8d9a2419a7a5f7",
+  "browserSave": {
+    "profile": "/tmp/voxys-startup-L5Kxc5",
+    "origin": "http://127.0.0.1:35651",
+    "world": "963d52c06b195929566d224ffa3d168b"
+  },
+  "unchangedBaseRegistry": {
+    "path": "data/salvage/fixture-cove-r01.json",
+    "sha256": "30a63af1b77a32725a1eedab1e412a430401172bdc2799a2f7748caac6adbf96"
+  }
+}

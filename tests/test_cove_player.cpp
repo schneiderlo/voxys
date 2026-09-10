@@ -78,6 +78,115 @@ protected:
     }
 };
 
+TEST_F(CoveMovement, BrickPointerPlacementRotatesStacksRefusesOverlapAndRestoresOwnedDesign) {
+    using namespace construction;using Action=CoveWorkshop::Action;std::string error;
+    const auto expanded=assets::appendAssetFixtureCatalog(*scene,std::filesystem::canonical("data/salvage/cove-bricks-r02.json"),error);
+    ASSERT_TRUE(expanded)<<error;
+    auto workshop=CoveWorkshop::create(*expanded,error);ASSERT_TRUE(workshop)<<error;
+    ASSERT_EQ(workshop->catalogCount(),11u);
+    const auto choose=[&](std::string_view name) {
+        for(uint32_t i=0;i<workshop->catalogCount();++i)if(workshop->catalogNameAt(i)==name)return workshop->selectCatalogAt(i);
+        return false;
+    };
+    // Make an actual building bay without blocking the boarding/helm anchors.
+    ASSERT_TRUE(workshop->selectPart(10));
+    ASSERT_TRUE(workshop->command(Action::Remove));ASSERT_TRUE(workshop->command(Action::Keep));
+    ASSERT_TRUE(choose("Brick 2 x 4"));ASSERT_TRUE(workshop->addPart());
+    ASSERT_TRUE(workshop->valid())<<workshop->message();
+    const auto first=workshop->selected();const auto base=workshop->preview().registry.placements[first].placement;
+    ASSERT_TRUE(workshop->command(Action::Keep));
+    ASSERT_TRUE(choose("Brick 1 x 2"));ASSERT_TRUE(workshop->addPart());
+    const auto second=workshop->selected();
+    ASSERT_TRUE(workshop->command(Action::Rotate));
+    const auto rotated=workshop->preview().registry.placements[second].placement.rotation;
+    const glm::dvec3 top=glm::dvec3(base.translation.x,base.translation.y,base.translation.z)*.02+glm::dvec3(0,.66,0);
+    (void)workshop->aimAt({first,top});
+    EXPECT_EQ(workshop->preview().registry.placements[second].placement.rotation,rotated);
+    ASSERT_TRUE(workshop->valid())<<workshop->message();
+    const auto placed=workshop->preview().registry.placements[second].placement;
+    EXPECT_EQ(placed.translation.y,base.translation.y+48);
+    ASSERT_TRUE(workshop->command(Action::Keep));
+    const auto bytes=workshop->blueprintBytes(error);ASSERT_FALSE(bytes.empty())<<error;
+    const auto rayOrigin=glm::dvec3(placed.translation.x,placed.translation.y,placed.translation.z)*.02+glm::dvec3(0,5,0);
+    const auto picked=workshop->pick(rayOrigin,{0,-1,0});ASSERT_TRUE(picked);EXPECT_EQ(picked->placement,second);
+    EXPECT_FALSE(workshop->pick(rayOrigin,{0,0,0}));
+    ASSERT_TRUE(workshop->command(Action::Remove));ASSERT_TRUE(workshop->command(Action::Keep));
+    ASSERT_TRUE(workshop->command(Action::Undo));EXPECT_EQ(workshop->blueprintBytes(error),bytes);
+    ASSERT_TRUE(workshop->selectPart(first));ASSERT_TRUE(workshop->command(Action::Raise));
+    EXPECT_FALSE(workshop->valid());EXPECT_FALSE(workshop->command(Action::Keep));
+    ASSERT_TRUE(workshop->command(Action::Revert));EXPECT_EQ(workshop->blueprintBytes(error),bytes);
+    const WorldNamespace world{{'b','r','i','c','k','-','o','w','n','e','d'}};
+    auto seed=prepareCoveBuild(*expanded,{world,1},4,error);ASSERT_TRUE(seed)<<error;
+    auto owned=CoveBoatAssembly::compileBuild(seed->build,seed->catalog,seed->placements,error);ASSERT_TRUE(owned)<<error;
+    auto request=prepareCoveRefit(workshop->design(),*owned,seed->catalog,error);ASSERT_TRUE(request)<<error;
+    BuildIssue issue;auto model=BuildModel::create(seed->build,seed->catalog,issue);ASSERT_TRUE(model);
+    uint64_t issued=seed->issuedThrough;
+    auto bought=prepareBuildRefit(*model,*request->design,seed->catalog,[&]{return DurableId{world,++issued};},issue);ASSERT_TRUE(bought)<<issue.field;
+    EXPECT_EQ(bought->debit.salvageMaterial,7u);
+    auto mapped=prepareCoveExpandedLaunchDesign(*expanded,*expanded,bought->after,seed->placements,seed->placements,error);ASSERT_TRUE(mapped)<<error;
+    EXPECT_EQ(mapped->scene.registry.navigation->boatPlacements.size(),12u);
+    EXPECT_TRUE(CoveBoatAssembly::compileBuild(bought->after,seed->catalog,mapped->placements,error))<<error;
+    auto restored=CoveWorkshop::create(mapped->scene,error,25,expanded->registry.navigation->boatPlacements);ASSERT_TRUE(restored)<<error;
+    EXPECT_EQ(restored->blueprintBytes(error),bytes);
+}
+
+TEST_F(CoveMovement, SixtyFourLargeBricksCompileRoundTripAndRefuseWholeSceneOverflow) {
+    using namespace construction;using Action=CoveWorkshop::Action;std::string error;
+    const auto expanded=assets::appendAssetFixtureCatalog(*scene,std::filesystem::canonical("data/salvage/cove-bricks-r02.json"),error);ASSERT_TRUE(expanded)<<error;
+    auto workshop=CoveWorkshop::create(*expanded,error);ASSERT_TRUE(workshop)<<error;
+    ASSERT_TRUE(workshop->selectPart(10));ASSERT_TRUE(workshop->command(Action::Remove));ASSERT_TRUE(workshop->command(Action::Keep));
+    for(uint32_t i=0;i<workshop->catalogCount();++i)if(workshop->catalogNameAt(i)=="Brick 2 x 4"){ASSERT_TRUE(workshop->selectCatalogAt(i));}
+    ASSERT_TRUE(workshop->addPart());ASSERT_TRUE(workshop->valid())<<workshop->message();ASSERT_TRUE(workshop->command(Action::Keep));
+    const auto first=CoveBoatAssembly::compile(workshop->design(),error);ASSERT_TRUE(first)<<error;
+    const auto original=CoveBoatAssembly::compile(*expanded,error);ASSERT_TRUE(original)<<error;
+    const auto catalog=makeCovePartCatalog(*expanded,error);ASSERT_TRUE(catalog)<<error;
+    auto build=first->build();std::vector<CoveBoatAssembly::Part> mappings(first->parts().begin(),first->parts().end());
+    const auto brick=build.parts.back();const auto* definition=catalog->lookup(brick.definition).definition;ASSERT_NE(definition,nullptr);
+    const auto append=[&](uint32_t number) {
+        auto part=brick;part.id.counter=100000+number;part.placement.translation.y+=static_cast<int32_t>(48*number);
+        const auto parent=build.parts.back().id;
+        build.parts.push_back(part);mappings.push_back({25+number,part.id});
+        for(uint64_t stud=0;stud<8;++stud) {
+            Connection weld;weld.id={build.id.world,200000+number*8+stud};
+            weld.a={parent,SocketId{100+2*stud}};weld.b={part.id,SocketId{101+2*stud}};
+            weld.strength=definition->sockets.front().strength;build.connections.push_back(weld);
+        }
+    };
+    for(uint32_t number=1;number<64;++number)append(number);
+    const auto compiled=CoveBoatAssembly::compileBuild(build,*catalog,mappings,error);ASSERT_TRUE(compiled)<<error;
+    EXPECT_EQ(compiled->parts().size(),74u);EXPECT_NEAR(compiled->massKg(),945+64*48,1e-8);
+    EXPECT_LE(compiled->primaryRoot().cells.size(),2048u); // Live water-driver input budget.
+    RecordProperty("brick_count",64);RecordProperty("water_cells",static_cast<int>(compiled->primaryRoot().cells.size()));
+    RecordProperty("collision_cells",static_cast<int>(compiled->assembly().collision().roots()[0].shape.cells().size()));
+    const auto bytes=makeCoveRecoveryDesign(build,*catalog);ASSERT_FALSE(bytes.empty());EXPECT_LE(bytes.size(),kMaximumCoveRecoveryDesignBytes);
+    RecordProperty("recovery_design_bytes",static_cast<int>(bytes.size()));
+    auto loaded=CoveWorkshop::create(*expanded,error);ASSERT_TRUE(loaded)<<error;ASSERT_TRUE(loaded->loadBlueprint(bytes,error))<<error;
+    EXPECT_EQ(loaded->design().registry.navigation->boatPlacements.size(),74u);
+    const auto mapped=prepareCoveExpandedLaunchDesign(*expanded,*expanded,build,original->parts(),original->parts(),error);ASSERT_TRUE(mapped)<<error;
+    EXPECT_EQ(mapped->scene.registry.placements.size(),89u);
+    EXPECT_EQ(mapped->placements.size(),74u);
+    const auto intact=loaded->blueprintBytes(error);ASSERT_FALSE(intact.empty());
+    // The full design remains editable through the ordinary workshop; removal
+    // and Undo preserve the exact accepted layout at the supported capacity.
+    const auto& members=loaded->design().registry.navigation->boatPlacements;
+    const auto highest=*std::max_element(members.begin(),members.end(),[&](auto a,auto b){
+        return loaded->design().registry.placements[a].placement.translation.y
+            <loaded->design().registry.placements[b].placement.translation.y;
+    });
+    ASSERT_TRUE(loaded->selectPart(highest));ASSERT_TRUE(loaded->command(Action::Remove));
+    ASSERT_TRUE(loaded->command(Action::Keep));EXPECT_EQ(loaded->design().registry.navigation->boatPlacements.size(),73u);
+    ASSERT_TRUE(loaded->command(Action::Undo));EXPECT_EQ(loaded->blueprintBytes(error),intact);
+    // Grow only the candidate mapping beyond available scene slots. Nothing
+    // is published, no owned ID is dropped and the accepted design is exact.
+    for(uint32_t number=64;number<72;++number)append(number);
+    EXPECT_FALSE(prepareCoveExpandedLaunchDesign(*expanded,mapped->scene,build,original->parts(),mapped->placements,error));
+    EXPECT_NE(error.find("no room"),std::string::npos)<<error;
+    EXPECT_EQ(loaded->blueprintBytes(error),intact);
+    EXPECT_EQ(mapped->scene.registry.placements.size(),89u);
+    // Increasing paid build capacity never widens the starter grant ID array.
+    EXPECT_FALSE(prepareCoveStarterKit(build,{build.id.world,999999},error));
+}
+
 TEST_F(CoveMovement, HarborLiftUsesActualHullSupportsAndCanonicalBodyFrames) {
     std::string error;const auto boat=CoveBoatAssembly::compile(*scene,error);ASSERT_TRUE(boat)<<error;
     const auto lift=CoveHarborLift::prepare(*boat,*scene->registry.navigation,error);ASSERT_TRUE(lift)<<error;
@@ -1012,10 +1121,11 @@ TEST_F(CoveMovement, LiveRootOwnerBoundsEverySectionAndRefusesMixedObservations)
     last.observedTick=100;last.retired=true;EXPECT_EQ(owned->joinedTick(),0u);
     last.retired=false;last.shape={};EXPECT_EQ(owned->joinedTick(),0u);
     uint32_t first=UINT32_MAX,end=0;owned->includeBodyRange(first,end);EXPECT_EQ(first,1u);EXPECT_EQ(end,63u);
-    // The current 32-placement cove also refuses the 33rd section before an
-    // owner can be constructed; refusal must leave the existing owner intact.
-    add();const auto tooMany=CoveBoatAssembly::compileFragments(build,seed->catalog,bindings,*intact->primaryRoot().helm,error);
-    EXPECT_FALSE(tooMany);EXPECT_FALSE(error.empty());EXPECT_TRUE(owned->matches(*assembly));
+    // Scene part capacity exceeds the independent 32-root owner budget.
+    // Refuse the 33rd physical section without changing the existing owner.
+    add();bindings.back().placement=static_cast<uint32_t>(bindings.size()-1);
+    const auto tooMany=CoveBoatAssembly::compileFragments(build,seed->catalog,bindings,*intact->primaryRoot().helm,error);
+    ASSERT_TRUE(tooMany)<<error;EXPECT_FALSE(CoveRigidRoots::prepare(*tooMany,error));EXPECT_FALSE(error.empty());EXPECT_TRUE(owned->matches(*assembly));
 }
 
 TEST_F(CoveMovement, CutMotionStagesAllIndependentParentsOrLeavesEveryChildUnchanged) {

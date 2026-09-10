@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="33" failures="0" disabled="0" errors="0" time="0." timestamp="2026-09-10T14:36:35.736" name="AllTests">
+  <testsuite name="InputTest" tests="28" failures="0" disabled="0" skipped="0" errors="0" time="0." timestamp="2026-09-10T14:36:35.736">
+    <testcase name="DragIncludesOnlyHeldMotionEvenBetweenDisplayedFrames" file="tests/test_input.cpp" line="13" status="run" result="completed" time="0." timestamp="2026-09-10T14:36:35.736" classname="InputTest" />
+    <testcase name="DragContinuesAcrossFramesAndFocusResetEndsIt" file="tests/test_input.cpp" line="25" status="run" result="completed" time="0." timestamp="2026-09-10T14:36:35.736" classname="InputTest" />
+    <testcase name="DefaultConstruction" file="tests/test_input.cpp" line="80" status="run" result="completed" time="0." timestamp="2026-09-10T14:36:35.736" classname="InputTest" />
+    <testcase name="CallbackOwnerHasStableAddress" file="tests/test_input.cpp" line="108" status="run" result="completed" time="0." timestamp="2026-09-10T14:36:35.736" classname="InputTest" />
+    <testcase name="KeyDownTracking" file="tests/test_input.cpp" line="117" status="run" result="completed" time="0." timestamp="2026-09-10T14:36:35.736" classname="InputTest" />
+    <testcase name="KeyPressedDetection" file="tests/test_input.cpp" line="131" status="run" result="completed" time="0." timestamp="2026-09-10T14:36:35.736" classname="InputTest" />
+    <testcase name="KeyReleasedDetection" file="tests/test_input.cpp" line="152" status="run" result="completed" time="0." timestamp="2026-09-10T14:36:35.736" classname="InputTest" />
+    <testcase name="QuickKeyTapPreservesBothEdges" file="tests/test_input.cpp" line="173" status="run" result="completed" time="0." timestamp="2026-09-10T14:36:35.736" classname="InputTest" />
+    <testcase name="MultipleKeysTracking" file="tests/test_input.cpp" line="189" status="run" result="completed" time="0." timestamp="2026-09-10T14:36:35.736" classname="InputTest" />
+    <testcase name="InvalidKeyCodeHandling" file="tests/test_input.cpp" line="207" status="run" result="completed" time="0." timestamp="2026-09-10T14:36:35.736" classname="InputTest" />
+    <testcase name="MousePositionTracking" file="tests/test_input.cpp" line="223" status="run" result="completed" time="0." timestamp="2026-09-10T14:36:35.736" classname="InputTest" />
+    <testcase name="MouseDeltaComputation" file="tests/test_input.cpp" line="232" status="run" result="completed" time="0." timestamp="2026-09-10T14:36:35.736" classname="InputTest" />
+    <testcase name="MouseDeltaFirstMoveZero" file="tests/test_input.cpp" line="253" status="run" result="completed" time="0." timestamp="2026-09-10T14:36:35.736" classname="InputTest" />
+    <testcase name="InvalidPointerAndScrollInputCannotPoisonState" file="tests/test_input.cpp" line="267" status="run" result="completed" time="0." timestamp="2026-09-10T14:36:35.736" classname="InputTest" />
+    <testcase name="FloodedEventQueuesFailClosedAndRemainUsable" file="tests/test_input.cpp" line="293" status="run" result="completed" time="0." timestamp="2026-09-10T14:36:35.736" classname="InputTest" />
+    <testcase name="MouseButtonDownTracking" file="tests/test_input.cpp" line="319" status="run" result="completed" time="0." timestamp="2026-09-10T14:36:35.736" classname="InputTest" />
+    <testcase name="MouseButtonPressedDetection" file="tests/test_input.cpp" line="333" status="run" result="completed" time="0." timestamp="2026-09-10T14:36:35.736" classname="InputTest" />
+    <testcase name="MouseButtonReleasedDetection" file="tests/test_input.cpp" line="353" status="run" result="completed" time="0." timestamp="2026-09-10T14:36:35.736" classname="InputTest" />
+    <testcase name="QuickMouseClickPreservesBothEdges" file="tests/test_input.cpp" line="373" status="run" result="completed" time="0." timestamp="2026-09-10T14:36:35.736" classname="InputTest" />
+    <testcase name="ScrollDeltaTracking" file="tests/test_input.cpp" line="393" status="run" result="completed" time="0." timestamp="2026-09-10T14:36:35.736" classname="InputTest" />
+    <testcase name="MouseCaptureState" file="tests/test_input.cpp" line="417" status="run" result="completed" time="0." timestamp="2026-09-10T14:36:35.736" classname="InputTest" />
+    <testcase name="MouseCaptureToggle" file="tests/test_input.cpp" line="429" status="run" result="completed" time="0." timestamp="2026-09-10T14:36:35.736" classname="InputTest" />
+    <testcase name="MouseCaptureDuplicateCalls" file="tests/test_input.cpp" line="441" status="run" result="completed" time="0." timestamp="2026-09-10T14:36:35.736" classname="InputTest" />
+    <testcase name="WindowAssociation" file="tests/test_input.cpp" line="459" status="run" result="completed" time="0." timestamp="2026-09-10T14:36:35.736" classname="InputTest" />
+    <testcase name="RapidKeyPressRelease" file="tests/test_input.cpp" line="473" status="run" result="completed" time="0." timestamp="2026-09-10T14:36:35.736" classname="InputTest" />
+    <testcase name="EventsQueuedAfterBeginFrameAreVisibleAfterPolling" file="tests/test_input.cpp" line="486" status="run" result="completed" time="0." timestamp="2026-09-10T14:36:35.736" classname="InputTest" />
+    <testcase name="FocusLossClearsHeldAndQueuedInput" file="tests/test_input.cpp" line="504" status="run" result="completed" time="0." timestamp="2026-09-10T14:36:35.736" classname="InputTest" />
+    <testcase name="FrameOrderingMatters" file="tests/test_input.cpp" line="532" status="run" result="completed" time="0." timestamp="2026-09-10T14:36:35.736" classname="InputTest" />
+  </testsuite>
+  <testsuite name="KeyEnumTest" tests="4" failures="0" disabled="0" skipped="0" errors="0" time="0." timestamp="2026-09-10T14:36:35.736">
+    <testcase name="LetterKeysHaveCorrectValues" file="tests/test_input.cpp" line="39" status="run" result="completed" time="0." timestamp="2026-09-10T14:36:35.736" classname="KeyEnumTest" />
+    <testcase name="NumberKeysHaveCorrectValues" file="tests/test_input.cpp" line="48" status="run" result="completed" time="0." timestamp="2026-09-10T14:36:35.736" classname="KeyEnumTest" />
+    <testcase name="SpecialKeysHaveCorrectValues" file="tests/test_input.cpp" line="53" status="run" result="completed" time="0." timestamp="2026-09-10T14:36:35.736" classname="KeyEnumTest" />
+    <testcase name="ModifierAliasesMatchPrimary" file="tests/test_input.cpp" line="59" status="run" result="completed" time="0." timestamp="2026-09-10T14:36:35.736" classname="KeyEnumTest" />
+  </testsuite>
+  <testsuite name="MouseButtonEnumTest" tests="1" failures="0" disabled="0" skipped="0" errors="0" time="0." timestamp="2026-09-10T14:36:35.736">
+    <testcase name="ButtonsHaveCorrectValues" file="tests/test_input.cpp" line="70" status="run" result="completed" time="0." timestamp="2026-09-10T14:36:35.736" classname="MouseButtonEnumTest" />
+  </testsuite>
+</testsuites>

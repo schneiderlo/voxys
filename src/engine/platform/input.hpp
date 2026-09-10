@@ -150,6 +150,12 @@ public:
     
     // Get mouse movement since last frame
     [[nodiscard]] glm::vec2 mouseDelta() const { return mouseDelta_; }
+    // Motion recorded only while this button was physically down, including
+    // a press/move/release gesture completed between two displayed frames.
+    [[nodiscard]] glm::vec2 mouseDragDelta(MouseButton button) const {
+        const int code=static_cast<int>(button);
+        return isValidButton(code)?dragDeltas_[static_cast<size_t>(code)]:glm::vec2(0);
+    }
     
     // Check if a mouse button is currently held down
     [[nodiscard]] bool isMouseButtonDown(MouseButton button) const;
@@ -205,6 +211,7 @@ public:
         captured_ = captured;
         firstMouseMove_ = true;
         mouseDelta_ = glm::vec2(0.0f);
+        rawButtons_.fill(false);accumulatedDrags_.fill(glm::vec2(0));dragDeltas_.fill(glm::vec2(0));
         prevMousePos_ = mousePos_;
         if (!captured) {
             currentButtons_.fill(false);
@@ -246,6 +253,8 @@ private:
     // Track buttons pressed this frame (even if released before frame end)
     std::array<bool, kMaxButtons> buttonsPressedThisFrame_{};
     std::array<bool, kMaxButtons> buttonsReleasedThisFrame_{};
+    std::array<bool,kMaxButtons> rawButtons_{};
+    std::array<glm::vec2,kMaxButtons> accumulatedDrags_{},dragDeltas_{};
     
     // Scroll
     float scrollDelta_ = 0.0f;

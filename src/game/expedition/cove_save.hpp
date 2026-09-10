@@ -1,17 +1,21 @@
 #pragma once
 #include "game/expedition/session_save.hpp"
 #include "game/expedition/cove_harbor_state.hpp"
+#include "game/assets/fixture_limits.hpp"
 
 namespace voxy::game::expedition {
 inline constexpr uint32_t kCoveSaveSchema=1;
 inline constexpr uint32_t kCoveSaveHarborSchema=2;
 inline constexpr uint32_t kCoveSaveRecoverySchema=3;
 inline constexpr uint32_t kCoveSaveRootsSchema=4;
+inline constexpr uint32_t kCoveSaveJobsSchema=5;
 inline constexpr size_t kMaximumCoveSavedRoots=32;
-// Fixed v4 fields, zero-design count, root table, nested lengths and checksum
-// fit the existing 4096-byte physical allowance; v1-v3 byte ceilings stay valid.
-static_assert(419+22+4+52+88*kMaximumCoveSavedRoots+8+32<=4096);
-inline constexpr size_t kMaximumCoveRecoveryDesigns=4,kMaximumCoveRecoveryDesignBytes=32*1024;
+inline constexpr size_t kMaximumCoveSavedCargo=2;
+// v5 appends a count and one 169-byte cargo record after the complete root
+// table. Both jobs fit the existing physical allowance; legacy ceilings stay.
+static_assert(419+22+4+52+88*kMaximumCoveSavedRoots+4
+    +169*(kMaximumCoveSavedCargo-1)+8+32<=4096);
+inline constexpr size_t kMaximumCoveRecoveryDesigns=4,kMaximumCoveRecoveryDesignBytes=128*1024;
 inline constexpr size_t kMaximumCoveSaveBytes=2*kMaximumSessionSaveBytes+4096
     +kMaximumCoveRecoveryDesigns*(kMaximumCoveRecoveryDesignBytes+4);
 using CoveRecoveryDesigns=std::vector<std::vector<std::byte>>;
@@ -63,6 +67,15 @@ struct CoveSavedWater {
     [[nodiscard]] bool operator==(const CoveSavedWater&) const = default;
 };
 enum class CoveSavedCargoState:uint8_t { Loose,Towed,BrokenTow,Banked };
+struct CoveSavedCargo {
+    construction::DurableId cargo{},job{};
+    construction::ContentKey definition{};
+    CoveSavedMotion motion{};
+    CoveSavedCargoState state=CoveSavedCargoState::Loose;
+    construction::DurableId winchPart{};
+    float ropeLength=0;
+    [[nodiscard]] bool operator==(const CoveSavedCargo&) const = default;
+};
 struct CovePhysicalSave {
     construction::SimulationTick tick{};
     construction::MetresPosition origin{};
@@ -89,7 +102,17 @@ struct CovePhysicalSave {
     construction::DurableId controlPart{},playerRoot{};
     // controlPart is a stable helm part. playerRoot is zero ashore and an
     // exact root key aboard; aboard feet retain authored BUILD coordinates.
+    // v5: first cargo remains the generator in the legacy fields. Every other
+    // installed mission load retains its own motion, identity and delivery.
+    // Banked loads stay present physically even after logical payout removes
+    // their CargoRecord. No active-target selection can omit a saved load.
+    std::vector<CoveSavedCargo> additionalCargo{};
     [[nodiscard]] bool operator==(const CovePhysicalSave&) const = default;
+};
+struct CoveCargoBinding {
+    construction::DurableId cargo{},job{};
+    CargoDefinition definition{};
+    [[nodiscard]] bool operator==(const CoveCargoBinding&) const = default;
 };
 // Independently selected slot/content roles. Never obtain these expected values
 // by trusting the archive being checked. Context/catalog must describe one cove.
@@ -98,6 +121,11 @@ struct CoveSaveContext {
     construction::DurableId boat{},cargo{},job{};
     CargoDefinition cargoDefinition{};
     construction::MetresPosition origin{};
+    // Trusted installed mission roles, never inferred from imported bytes.
+    // Empty accepts only the original one-job profile. One entry requires v5
+    // with both physical loads and both logical job records, including banked
+    // receipts. The second job unlocks after the generator powers the harbor.
+    std::vector<CoveCargoBinding> additionalCargo{};
 };
 enum class CoveSaveError:uint8_t {
     None,Capacity,Encoding,UnsupportedSchema,Checksum,NonCanonical,Identity,

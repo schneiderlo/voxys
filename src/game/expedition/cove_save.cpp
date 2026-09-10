@@ -67,6 +67,7 @@ template<class A>void fields(A& a,MetresPosition& v){a(v.x,v.y,v.z);}
 template<class A>void fields(A& a,CanonicalQuaternion& v){a(v.x,v.y,v.z,v.w);}
 template<class A>void fields(A& a,CoveSavedMotion& v){a(v.position,v.orientation);a.array(v.originVelocity);a.array(v.angularVelocity);}
 template<class A>void fields(A& a,CoveSavedRoot& v){a(v.key,v.motion);}
+template<class A>void fields(A& a,CoveSavedCargo& v){a(v.cargo,v.job,v.definition,v.motion,v.state,v.winchPart,v.ropeLength);}
 template<class A>void fields(A& a,CoveSavedPlayer& v){a(v.feet,v.verticalSpeed,v.tick,v.interactions,v.mode,v.aboard,v.viewYaw,v.viewPitch);}
 template<class A>void fields(A& a,CoveSavedWater& v){
     a(v.model,v.seconds,v.height,v.strength,v.significantWaveHeight,v.directionRadians,v.choppiness,
@@ -103,7 +104,7 @@ bool player(const CoveSavedPlayer& v){
         &&(v.mode!=CoveSavedPlayerMode::Swimming||(!v.aboard&&std::abs(v.feet.y+.8)<=1e-6));
 }
 std::vector<std::byte> normalizedDesign(BuildBlueprint blueprint,const PartCatalog& catalog) {
-    if(blueprint.parts.empty()||blueprint.parts.size()>32||blueprint.connections.size()>64)return {};
+    if(blueprint.parts.empty()||blueprint.parts.size()>assets::kMaximumFixturePlacements||blueprint.connections.size()>assets::kMaximumFixtureConnections)return {};
     for(const auto& c:blueprint.connections)if(c.kind!=ConnectionKind::Weld||!c.enabled)return {};
     const auto key=[](const DesignPart& p) {
         const auto& t=p.placement.translation;const auto& s=p.settings;
@@ -111,13 +112,13 @@ std::vector<std::byte> normalizedDesign(BuildBlueprint blueprint,const PartCatal
             s.kind,s.enabled,s.controlChannel,s.limitPermille,s.reversed,s.defaultLineLengthMillimetres};
     };
     std::sort(blueprint.parts.begin(),blueprint.parts.end(),[&](const auto& a,const auto& b){return key(a)<key(b);});
-    std::array<uint32_t,33> ordinals{};
+    std::array<uint32_t,assets::kMaximumFixturePlacements+1> ordinals{};
     for(size_t i=0;i<blueprint.parts.size();++i) {
-        auto& p=blueprint.parts[i];if(!p.ordinal||p.ordinal>32||ordinals[p.ordinal])return {};
+        auto& p=blueprint.parts[i];if(!p.ordinal||p.ordinal>assets::kMaximumFixturePlacements||ordinals[p.ordinal])return {};
         ordinals[p.ordinal]=static_cast<uint32_t>(i+1);p.ordinal=static_cast<uint32_t>(i+1);
     }
     for(auto& c:blueprint.connections) {
-        if(c.a.partOrdinal>32||c.b.partOrdinal>32||!ordinals[c.a.partOrdinal]||!ordinals[c.b.partOrdinal])return {};
+        if(c.a.partOrdinal>assets::kMaximumFixturePlacements||c.b.partOrdinal>assets::kMaximumFixturePlacements||!ordinals[c.a.partOrdinal]||!ordinals[c.b.partOrdinal])return {};
         c.a.partOrdinal=ordinals[c.a.partOrdinal];c.b.partOrdinal=ordinals[c.b.partOrdinal];
         if(c.b<c.a)std::swap(c.a,c.b);
     }
@@ -144,7 +145,7 @@ CoveSaveError validRoots(const BuildSnapshot& build,const CovePhysicalSave& save
     // archive's count would allow a cut boat to silently lose a physical root.
     AssemblyIssue issue;
     const auto plan=AssemblyMassPlan::compile(build,catalog,issue,
-        {.parts=32,.roots=kMaximumCoveSavedRoots});
+        {.parts=assets::kMaximumFixturePlacements,.roots=kMaximumCoveSavedRoots});
     if(!plan)return issue.error==AssemblyError::Capacity?CoveSaveError::Capacity:CoveSaveError::PhysicalState;
     if(saved.boatRoots.empty()) {
         return plan->roots().size()==1 && saved.controlPart==DurableId{} && saved.playerRoot==DurableId{}
@@ -174,9 +175,40 @@ CoveSaveError validRoots(const BuildSnapshot& build,const CovePhysicalSave& save
     if(saved.boatRoots.size()>1&&saved.harborLift.mode!=CoveHarborLiftMode::Detached)return CoveSaveError::PhysicalState;
     return CoveSaveError::None;
 }
+CoveSaveError validCargo(const SessionBootstrap& state,const CoveSavedCargo& saved,
+    const CoveCargoBinding& expected,const PartCatalog& catalog) {
+    if(saved.cargo!=expected.cargo||saved.job!=expected.job||saved.definition!=expected.definition.key)
+        return CoveSaveError::Identity;
+    const auto definition=std::find(state.cargoDefinitions.begin(),state.cargoDefinitions.end(),expected.definition);
+    const auto job=std::find_if(state.jobs.begin(),state.jobs.end(),[&](const auto& j){return j.id==expected.job;});
+    if(definition==state.cargoDefinitions.end()||job==state.jobs.end())return CoveSaveError::LogicalState;
+    if(saved.state>CoveSavedCargoState::Banked||!motion(saved.motion))return CoveSaveError::PhysicalState;
+    const bool banked=saved.state==CoveSavedCargoState::Banked;
+    if(banked!=(job->phase==JobPhase::Completed))return CoveSaveError::LogicalState;
+    const auto cargo=std::find_if(state.cargo.begin(),state.cargo.end(),[&](const auto& c){return c.id==expected.cargo;});
+    if(banked) {
+        if(cargo!=state.cargo.end())return CoveSaveError::LogicalState;
+        for(float velocity:saved.motion.originVelocity)if(velocity!=0)return CoveSaveError::PhysicalState;
+        for(float velocity:saved.motion.angularVelocity)if(velocity!=0)return CoveSaveError::PhysicalState;
+    } else if(cargo==state.cargo.end()||cargo->definition!=saved.definition||cargo->job!=saved.job
+        ||cargo->owner!=state.caller.participant)return CoveSaveError::LogicalState;
+    const bool rope=saved.state==CoveSavedCargoState::Towed||saved.state==CoveSavedCargoState::BrokenTow;
+    if(rope) {
+        const auto& parts=state.builds.front().parts;
+        const auto part=std::find_if(parts.begin(),parts.end(),[&](const auto& p){return p.id==saved.winchPart;});
+        if(part==parts.end()||!part->settings.enabled)return CoveSaveError::PhysicalState;
+        const auto found=catalog.lookup(part->definition);
+        const auto* winch=found?std::get_if<WinchModule>(&found.definition->module):nullptr;
+        if(!winch||!bounded(saved.ropeLength,winch->minimumLengthMetres,winch->maximumLengthMetres))return CoveSaveError::PhysicalState;
+    } else if(saved.winchPart!=DurableId{}||saved.ropeLength!=0)return CoveSaveError::PhysicalState;
+    return CoveSaveError::None;
+}
 CoveSaveError validate(const LogicalRecoveryCheckpoint& current,const LogicalRecoveryCheckpoint* parent,
     const CovePhysicalSave& v,const CoveSaveContext& context,const PartCatalog& catalog){
     const auto& state=current.accepted;
+    if(context.additionalCargo.size()>=kMaximumCoveSavedCargo||v.additionalCargo.size()>=kMaximumCoveSavedCargo)
+        return CoveSaveError::Capacity;
+    if(context.additionalCargo.size()!=v.additionalCargo.size())return CoveSaveError::Identity;
     if(!validRecoveryDesigns(v.recoveryDesigns,catalog))return CoveSaveError::PhysicalState;
     const auto role=[&](DurableId id){return isValid(id)&&id.world==context.identity.world;};
     if(!isValid(context.identity.world)||!role(context.boat)||!role(context.cargo)||!role(context.job)
@@ -186,9 +218,10 @@ CoveSaveError validate(const LogicalRecoveryCheckpoint& current,const LogicalRec
         ||v.boat!=context.boat||v.cargo!=context.cargo||v.job!=context.job
         ||v.cargoDefinition!=context.cargoDefinition.key||v.origin!=context.origin)return CoveSaveError::Identity;
     if(current.pendingCount||state.builds.size()!=1||state.builds.front().id!=v.boat
-        ||state.builds.front().parts.empty()||state.builds.front().parts.size()>32
-        ||state.jobs.size()!=1||state.jobs.front().id!=v.job||state.cargoDefinitions.size()!=1
-        ||state.cargoDefinitions.front()!=context.cargoDefinition||v.tick!=state.tick)return CoveSaveError::LogicalState;
+        ||state.builds.front().parts.empty()||state.builds.front().parts.size()>assets::kMaximumFixturePlacements
+        ||state.jobs.size()!=1+context.additionalCargo.size()
+        ||state.cargoDefinitions.size()!=1+context.additionalCargo.size()
+        ||v.tick!=state.tick)return CoveSaveError::LogicalState;
     if(std::any_of(state.builds.front().connections.begin(),state.builds.front().connections.end(),
         [](const auto& c){return c.kind!=ConnectionKind::Weld;}))return CoveSaveError::PhysicalState;
     if(v.cargoState>CoveSavedCargoState::Banked||!motion(v.boatMotion)||!motion(v.cargoMotion)
@@ -197,23 +230,29 @@ CoveSaveError validate(const LogicalRecoveryCheckpoint& current,const LogicalRec
     const bool banked=v.cargoState==CoveSavedCargoState::Banked;
     if(!validCoveHarborLiftState(v.harborLift))return CoveSaveError::PhysicalState;
     if(v.harborLift.mode!=CoveHarborLiftMode::Detached&&!banked)return CoveSaveError::LogicalState;
-    if(banked!=(state.jobs.front().phase==JobPhase::Completed))return CoveSaveError::LogicalState;
-    if(banked){
-        if(!state.cargo.empty())return CoveSaveError::LogicalState;
-        for(float velocity:v.cargoMotion.originVelocity)if(velocity!=0)return CoveSaveError::PhysicalState;
-        for(float velocity:v.cargoMotion.angularVelocity)if(velocity!=0)return CoveSaveError::PhysicalState;
-    } else if(state.cargo.size()!=1||state.cargo.front().id!=v.cargo
-        ||state.cargo.front().definition!=v.cargoDefinition||state.cargo.front().job!=v.job
-        ||state.cargo.front().owner!=state.caller.participant)return CoveSaveError::LogicalState;
-    const bool rope=v.cargoState==CoveSavedCargoState::Towed||v.cargoState==CoveSavedCargoState::BrokenTow;
-    if(rope){
-        const auto& parts=state.builds.front().parts;
-        const auto part=std::find_if(parts.begin(),parts.end(),[&](const auto& p){return p.id==v.winchPart;});
-        if(part==parts.end()||!part->settings.enabled)return CoveSaveError::PhysicalState;
-        const auto found=catalog.lookup(part->definition);
-        const auto* winch=found?std::get_if<WinchModule>(&found.definition->module):nullptr;
-        if(!winch||!bounded(v.ropeLength,winch->minimumLengthMetres,winch->maximumLengthMetres))return CoveSaveError::PhysicalState;
-    } else if(v.winchPart!=DurableId{}||v.ropeLength!=0)return CoveSaveError::PhysicalState;
+    const CoveSavedCargo primary{v.cargo,v.job,v.cargoDefinition,v.cargoMotion,v.cargoState,v.winchPart,v.ropeLength};
+    if(const auto result=validCargo(state,primary,{context.cargo,context.job,context.cargoDefinition},catalog);
+        result!=CoveSaveError::None)return result;
+    size_t looseCount=banked?0:1;
+    for(size_t i=0;i<v.additionalCargo.size();++i) {
+        const auto& expected=context.additionalCargo[i];const auto& saved=v.additionalCargo[i];
+        if(!role(expected.cargo)||!role(expected.job)||expected.cargo==expected.job
+            ||expected.cargo==context.boat||expected.cargo==context.cargo||expected.cargo==context.job
+            ||expected.job==context.boat||expected.job==context.cargo||expected.job==context.job
+            ||expected.definition.key==context.cargoDefinition.key)return CoveSaveError::Identity;
+        // v5 requires complete root identity even for an intact boat, so a
+        // later cut cannot change the meaning of an attached cargo's winch.
+        if(v.boatRoots.empty())return CoveSaveError::PhysicalState;
+        if(const auto result=validCargo(state,saved,expected,catalog);result!=CoveSaveError::None)return result;
+        const auto job=std::find_if(state.jobs.begin(),state.jobs.end(),[&](const auto& j){return j.id==expected.job;});
+        if(job->phase!=JobPhase::Available&&(!banked||v.harborLift.profile!=kCoveHarborLiftProfile))
+            return CoveSaveError::LogicalState;
+        if(saved.state!=CoveSavedCargoState::Banked)++looseCount;
+        const bool firstRope=primary.state==CoveSavedCargoState::Towed||primary.state==CoveSavedCargoState::BrokenTow;
+        const bool secondRope=saved.state==CoveSavedCargoState::Towed||saved.state==CoveSavedCargoState::BrokenTow;
+        if(firstRope&&secondRope&&primary.winchPart==saved.winchPart)return CoveSaveError::PhysicalState;
+    }
+    if(state.cargo.size()!=looseCount)return CoveSaveError::LogicalState;
     if(bool(current.origin)!=bool(parent))return CoveSaveError::Lineage;
     if(parent){
         const RecoveryOrigin origin{parent->journalIdentity,parent->coveredThrough,parent->accepted.caller,
@@ -267,7 +306,7 @@ bool CoveSaveCodec::encode(const ValidatedRecoveryCheckpoint& current,const Vali
         if(!SessionSaveCodec::encodeCheckpoint(current,currentBytes,issue.session)
             ||(parent&&!SessionSaveCodec::encodeCheckpoint(*parent,parentBytes,issue.session))){issue.error=CoveSaveError::LogicalState;return false;}
         Bytes<false> bytes;bytes.output.reserve(currentBytes.size()+parentBytes.size()+1024);
-        bytes.append(magic);auto version=!physical.boatRoots.empty()?kCoveSaveRootsSchema:
+        bytes.append(magic);auto version=!physical.additionalCargo.empty()?kCoveSaveJobsSchema:!physical.boatRoots.empty()?kCoveSaveRootsSchema:
             !physical.recoveryDesigns.empty()?kCoveSaveRecoverySchema:physical.harborLift.profile==0?kCoveSaveSchema:kCoveSaveHarborSchema;
         bytes(version);auto state=physical;bytes(state);
         if(version>=kCoveSaveHarborSchema){
@@ -282,6 +321,10 @@ bool CoveSaveCodec::encode(const ValidatedRecoveryCheckpoint& current,const Vali
             bytes(state.controlPart,state.playerRoot);
             auto count=static_cast<uint32_t>(state.boatRoots.size());bytes(count);
             for(auto& root:state.boatRoots)bytes(root);
+        }
+        if(version>=kCoveSaveJobsSchema) {
+            auto count=static_cast<uint32_t>(state.additionalCargo.size());bytes(count);
+            for(auto& cargo:state.additionalCargo)bytes(cargo);
         }
         auto currentSize=static_cast<uint32_t>(currentBytes.size()),parentSize=static_cast<uint32_t>(parentBytes.size());
         bytes(currentSize);bytes.append(currentBytes);bytes(parentSize);bytes.append(parentBytes);
@@ -299,7 +342,7 @@ std::unique_ptr<CoveSaveArchive> CoveSaveCodec::decode(std::span<const std::byte
         if(input.size()<40||!std::equal(magic.begin(),magic.end(),input.begin())){issue.error=CoveSaveError::Encoding;return {};}
         Bytes<true> bytes;bytes.input=input.first(input.size()-32);bytes.at=4;
         uint32_t version=0;bytes(version);
-        if(version<kCoveSaveSchema||version>kCoveSaveRootsSchema){issue.error=CoveSaveError::UnsupportedSchema;return {};}
+        if(version<kCoveSaveSchema||version>kCoveSaveJobsSchema){issue.error=CoveSaveError::UnsupportedSchema;return {};}
         const auto digest=core::sha256(bytes.input);
         if(!std::equal(digest.bytes.begin(),digest.bytes.end(),input.end()-32)){issue.error=CoveSaveError::Checksum;return {};}
         auto result=std::make_unique<CoveSaveArchive>();bytes(result->physical);
@@ -329,6 +372,14 @@ std::unique_ptr<CoveSaveArchive> CoveSaveCodec::decode(std::span<const std::byte
             if(size_t(count)>(bytes.input.size()-bytes.at)/88){issue.error=CoveSaveError::Encoding;return {};}
             result->physical.boatRoots.resize(count);
             for(auto& root:result->physical.boatRoots)bytes(root);
+        }
+        if(version>=kCoveSaveJobsSchema) {
+            uint32_t count=0;bytes(count);
+            if(bytes.bad){issue.error=CoveSaveError::Encoding;return {};}
+            if(!count||count>=kMaximumCoveSavedCargo){issue.error=CoveSaveError::Capacity;return {};}
+            if(size_t(count)>(bytes.input.size()-bytes.at)/169){issue.error=CoveSaveError::Encoding;return {};}
+            result->physical.additionalCargo.resize(count);
+            for(auto& cargo:result->physical.additionalCargo)bytes(cargo);
         }
         uint32_t currentSize=0;bytes(currentSize);
         if(currentSize>kMaximumSessionSaveBytes){issue.error=CoveSaveError::Capacity;return {};}

@@ -90,7 +90,114 @@ protected:
             physical.boatRoots.push_back({build.parts[i].id,state});
         }
     }
+    void secondCargo() {
+        fragments();
+        const CargoDefinition crate{{id(1001),1},700,.1536,{100,0},CargoRecoveryRule::PreserveUnique};
+        context.additionalCargo.push_back({id(8),id(7),crate});
+        bootstrap.cargoDefinitions.push_back(crate);bootstrap.jobs.push_back({id(7)});
+        bootstrap.cargo.push_back({id(8),crate.key,id(1),{-30,-4,-70},{},id(7)});
+        CoveSavedCargo saved;saved.cargo=id(8);saved.job=id(7);saved.definition=crate.key;
+        saved.motion.position={-31,-3.5,-74};saved.motion.originVelocity={.25f,-.5f,.75f};
+        saved.motion.orientation={0,1,0,0};physical.additionalCargo.push_back(saved);
+        recapture();
+    }
+    void bankGenerator() {
+        bootstrap.jobs[0].phase=JobPhase::Completed;bootstrap.jobs[0].acceptedBy=id(1);
+        std::erase_if(bootstrap.cargo,[&](const auto& cargo){return cargo.id==context.cargo;});
+        bootstrap.inventory.salvageMaterial+=context.cargoDefinition.value.salvageMaterial;
+        bootstrap.inventory.specialMachinery+=context.cargoDefinition.value.specialMachinery;
+        physical.cargoState=CoveSavedCargoState::Banked;physical.winchPart={};physical.ropeLength=0;
+        physical.cargoMotion.originVelocity={};physical.cargoMotion.angularVelocity={};recapture();
+    }
 };
+
+TEST_F(CoveSave, TwoJobArchiveRetainsBothLoadsAcrossGeneratorBankingCrateTowAndBothReceipts) {
+    secondCargo();const auto originalParts=bootstrap.builds[0].parts;
+    const auto originalCargo=physical.additionalCargo[0];
+    const auto roundTrip=[&] {
+        const auto bytes=encode();EXPECT_EQ(bytes[4],std::byte{5});CoveSaveIssue issue;
+        auto read=CoveSaveCodec::decode(bytes,context,*catalog,issue);EXPECT_TRUE(read)<<int(issue.error);
+        if(read) {
+            EXPECT_EQ(read->physical,physical);const auto& accepted=read->current->snapshot().accepted;
+            EXPECT_EQ(accepted.inventory,bootstrap.inventory);EXPECT_EQ(accepted.builds[0].parts,originalParts);
+            EXPECT_EQ(accepted.cargo,bootstrap.cargo);EXPECT_EQ(accepted.jobs,bootstrap.jobs);
+            std::vector<std::byte> again;EXPECT_TRUE(CoveSaveCodec::encode(*read->current,nullptr,read->physical,context,*catalog,again,issue));
+            EXPECT_EQ(again,bytes);
+        }
+    };
+    roundTrip();bankGenerator();roundTrip(); // Crate survives the first payout.
+    physical.harborLift.profile=kCoveHarborLiftProfile;
+    bootstrap.jobs[1].phase=JobPhase::Accepted;bootstrap.jobs[1].acceptedBy=id(1);recapture();
+    physical.additionalCargo[0].state=CoveSavedCargoState::Towed;
+    physical.additionalCargo[0].winchPart=id(10);physical.additionalCargo[0].ropeLength=7.5f;roundTrip();
+    physical.additionalCargo[0].state=CoveSavedCargoState::BrokenTow;roundTrip();
+    physical.additionalCargo[0].state=CoveSavedCargoState::Loose;
+    physical.additionalCargo[0].winchPart={};physical.additionalCargo[0].ropeLength=0;roundTrip();
+    bootstrap.jobs[1].phase=JobPhase::Completed;bootstrap.cargo.clear();bootstrap.inventory.salvageMaterial+=100;recapture();
+    physical.additionalCargo[0].state=CoveSavedCargoState::Banked;
+    physical.additionalCargo[0].motion.originVelocity={};physical.additionalCargo[0].motion.angularVelocity={};roundTrip();
+    EXPECT_EQ(physical.additionalCargo[0].motion.position,originalCargo.motion.position);
+    EXPECT_EQ(bootstrap.inventory,(ResourceAmounts{198,1}));EXPECT_EQ(adapter.calls,0u);
+}
+
+TEST_F(CoveSave, SecondJobCannotSkipGeneratorRewardOrPoweredHarbor) {
+    secondCargo();bootstrap.jobs[1].phase=JobPhase::Accepted;bootstrap.jobs[1].acceptedBy=id(1);recapture();
+    const auto refused=[&] {
+        std::vector<std::byte> output{std::byte{42}};CoveSaveIssue issue;
+        EXPECT_FALSE(CoveSaveCodec::encode(*checkpoint,nullptr,physical,context,*catalog,output,issue));
+        EXPECT_EQ(issue.error,CoveSaveError::LogicalState);EXPECT_EQ(output,(std::vector<std::byte>{std::byte{42}}));
+    };
+    refused();physical.harborLift.profile=kCoveHarborLiftProfile;refused();
+    bankGenerator();physical.harborLift.profile=0;refused();
+    physical.harborLift.profile=kCoveHarborLiftProfile;EXPECT_FALSE(encode().empty());
+}
+
+TEST_F(CoveSave, TwoCargoCannotDropAliasOrInventAJobAndCannotShareOneWinch) {
+    secondCargo();const auto before=physical;const auto expected=context;
+    for(int fault=0;fault<16;++fault) {
+        physical=before;context=expected;
+        switch(fault) {
+        case 0:physical.additionalCargo.clear();break;
+        case 1:context.additionalCargo.clear();break;
+        case 2:physical.additionalCargo.push_back(physical.additionalCargo[0]);break;
+        case 3:context.additionalCargo[0].job=context.job;break;
+        case 4:context.additionalCargo[0].cargo=context.cargo;break;
+        case 5:physical.additionalCargo[0].cargo=context.cargo;break;
+        case 6:physical.additionalCargo[0].job=context.job;break;
+        case 7:physical.additionalCargo[0].definition=physical.cargoDefinition;break;
+        case 8:context.additionalCargo[0].definition.massKg+=1;break;
+        case 9:physical.additionalCargo[0].motion.position.x=std::numeric_limits<double>::quiet_NaN();break;
+        case 10:physical.additionalCargo[0].state=CoveSavedCargoState::Banked;break;
+        case 11:physical.additionalCargo[0].winchPart=id(10);break;
+        case 12:physical.boatRoots.clear();physical.controlPart={};physical.playerRoot={};break;
+        case 13:physical.additionalCargo[0].state=CoveSavedCargoState::Towed;physical.additionalCargo[0].winchPart=id(20);physical.additionalCargo[0].ropeLength=7.5f;break;
+        case 14:physical.additionalCargo[0].state=CoveSavedCargoState::Towed;physical.additionalCargo[0].winchPart=id(10);physical.additionalCargo[0].ropeLength=7.5f;break;
+        case 15:context.additionalCargo[0].job.world.bytes[0]^=1;break;
+        }
+        SCOPED_TRACE(fault);CoveSaveIssue issue;std::vector<std::byte> output{std::byte{42}};
+        EXPECT_FALSE(CoveSaveCodec::encode(*checkpoint,nullptr,physical,context,*catalog,output,issue));
+        EXPECT_EQ(output,(std::vector<std::byte>{std::byte{42}}));
+    }
+    physical=before;context=expected;EXPECT_FALSE(encode().empty());
+}
+
+TEST_F(CoveSave, VersionFiveBoundsPhysicalCargoBeforeAllocationAndDoesNotPermitLegacyDowngrade) {
+    const auto legacy=encode();secondCargo();const auto bytes=encode();CoveSaveIssue issue;
+    auto oneJobContext=context;oneJobContext.additionalCargo.clear();
+    EXPECT_FALSE(CoveSaveCodec::decode(bytes,oneJobContext,*catalog,issue));EXPECT_EQ(issue.error,CoveSaveError::Identity);
+    EXPECT_FALSE(CoveSaveCodec::decode(legacy,context,*catalog,issue));EXPECT_EQ(issue.error,CoveSaveError::Identity);
+    const size_t countAt=445+52+88*physical.boatRoots.size();
+    ASSERT_EQ(bytes.at(countAt),std::byte{1});
+    for(uint8_t count:{uint8_t{0},uint8_t{2},uint8_t{255}}) {
+        auto corrupt=bytes;corrupt[countAt]=std::byte{count};checksum(corrupt);
+        EXPECT_FALSE(CoveSaveCodec::decode(corrupt,context,*catalog,issue));EXPECT_EQ(issue.error,CoveSaveError::Capacity);
+    }
+    auto truncated=bytes;truncated.resize(countAt+4+168+32);checksum(truncated);
+    EXPECT_FALSE(CoveSaveCodec::decode(truncated,context,*catalog,issue));EXPECT_EQ(issue.error,CoveSaveError::Encoding);
+    auto downgraded=bytes;downgraded[4]=std::byte{4};checksum(downgraded);
+    EXPECT_FALSE(CoveSaveCodec::decode(downgraded,context,*catalog,issue));
+    EXPECT_TRUE(CoveSaveCodec::decode(bytes,context,*catalog,issue));
+}
 
 TEST_F(CoveSave, TowingRoundTripPreservesMotionIdentityAndLargeCounters){
     const auto bytes=encode();ASSERT_FALSE(bytes.empty());CoveSaveIssue issue;
@@ -270,7 +377,7 @@ TEST_F(CoveSave, RefusesCorruptionTruncationTrailingDataAndUnknownVersions){
         EXPECT_FALSE(CoveSaveCodec::decode(std::span(good).first(size),context,*catalog,issue))<<size;
     auto bad=good;bad.at(48)^=std::byte{1};EXPECT_FALSE(CoveSaveCodec::decode(bad,context,*catalog,issue));
     EXPECT_EQ(issue.error,CoveSaveError::Checksum);
-    bad=good;bad.at(4)=std::byte{5};EXPECT_FALSE(CoveSaveCodec::decode(bad,context,*catalog,issue));
+    bad=good;bad.at(4)=std::byte{6};EXPECT_FALSE(CoveSaveCodec::decode(bad,context,*catalog,issue));
     EXPECT_EQ(issue.error,CoveSaveError::UnsupportedSchema);
     bad=good;bad.insert(bad.end()-32,std::byte{});checksum(bad);
     EXPECT_FALSE(CoveSaveCodec::decode(bad,context,*catalog,issue));EXPECT_EQ(issue.error,CoveSaveError::Encoding);

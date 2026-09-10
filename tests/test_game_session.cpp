@@ -1024,6 +1024,50 @@ TEST(GameSessionDelivery, RefusalAndCancellationPreserveCargoJobAndBalance) {
     }
 }
 
+TEST(GameSessionDelivery, SecondHaulAfterByteRecoveryPaysOnlyItsOwnCargoAndRetainsTheFirstReceipt) {
+    FakeAdapter adapter;auto boot=bootstrap();boot.jobs[0].phase=JobPhase::Accepted;boot.jobs[0].acceptedBy=boot.caller.participant;
+    const CargoDefinition crate{{id(1001),1},700,.1536,{100,0},CargoRecoveryRule::PreserveUnique};
+    boot.cargoDefinitions.push_back(crate);boot.jobs.push_back({id(7)});
+    boot.cargo.push_back({id(8),crate.key,boot.caller.participant,{-30,-4,-70},{},id(7)});
+    auto session=create(adapter,boot);ASSERT_TRUE(session->bindExecution(71,SimulationTick{}));
+    const Command first{AuthorityEpoch{1},RequestSequence{1},SessionRevision{},DeliverCargo{id(6)}};
+    ASSERT_EQ(session->submit(boot.caller,first).state,ReceiptState::PendingPreparation);
+    ASSERT_TRUE(session->stageExecution(71,SimulationTick{1}));adapter.executionObserved=true;
+    ASSERT_TRUE(session->confirmExecution(71,SimulationTick{1}));
+    const auto firstBalance=session->snapshot().inventory;
+    ASSERT_EQ(session->snapshot().cargo.size(),1u);EXPECT_EQ(session->snapshot().cargo[0],boot.cargo[1]);
+    // Real session/checkpoint codecs and new writer/token; the adapter models
+    // confirmed physical execution only. This is not a GPU or disk-I/O test.
+    const auto image=capture(*session);RecoveryIssue issue;
+    auto checkpoint=SessionRecovery::admit(*image,{kWorld,recoveryContent()},catalog(),issue);ASSERT_TRUE(checkpoint);
+    session.reset();FakeAdapter fresh;
+    auto resumed=SessionRecovery::restore(checkpoint,fixtureIncarnation(),fresh,issue);ASSERT_TRUE(resumed)<<int(issue.error);
+    auto& live=*resumed->session;const auto caller=resumed->initial->snapshot().accepted.caller;
+    const auto epoch=resumed->initial->snapshot().accepted.epoch;
+    ASSERT_TRUE(live.bindExecution(72,live.snapshot().tick));
+    EXPECT_EQ(live.submit(boot.caller,first).issue.error,SessionError::WrongToken);
+    const Command accept{epoch,RequestSequence{1},live.snapshot().revision,AcceptJob{id(7)}};
+    ASSERT_EQ(live.submit(caller,accept).state,ReceiptState::PendingPreparation);
+    ASSERT_TRUE(live.stageExecution(72,SimulationTick{2}));fresh.executionObserved=true;
+    ASSERT_TRUE(live.confirmExecution(72,SimulationTick{2}));fresh.completeRetirement();
+    const Command second{epoch,RequestSequence{2},live.snapshot().revision,DeliverCargo{id(8)}};
+    ASSERT_EQ(live.submit(caller,second).state,ReceiptState::PendingPreparation);
+    ASSERT_TRUE(live.stageExecution(72,SimulationTick{3}));
+    EXPECT_EQ(live.snapshot().inventory,firstBalance);
+    ASSERT_TRUE(live.confirmExecution(72,SimulationTick{3}));
+    const auto paid=live.snapshot();EXPECT_TRUE(paid.cargo.empty());ASSERT_EQ(paid.jobs.size(),2u);
+    for(const auto& job:paid.jobs)EXPECT_EQ(job.phase,JobPhase::Completed);
+    EXPECT_EQ(paid.inventory.salvageMaterial,boot.inventory.salvageMaterial+150);
+    EXPECT_EQ(paid.inventory.specialMachinery,boot.inventory.specialMachinery+1);
+    EXPECT_EQ(live.submit(caller,second).state,ReceiptState::Committed);
+    for(uint64_t cargo:{uint64_t{6},uint64_t{8}}) {
+        const Command again{epoch,RequestSequence{live.admissionState().admittedThrough.value()+1},paid.revision,DeliverCargo{id(cargo)}};
+        EXPECT_EQ(live.submit(caller,again).issue.error,SessionError::UnknownCargo);
+    }
+    EXPECT_EQ(live.snapshot().inventory,paid.inventory);
+    const auto final=capture(live);EXPECT_EQ(final->accepted.jobs,paid.jobs);EXPECT_EQ(final->accepted.inventory,paid.inventory);
+}
+
 TEST(GameSessionCheckpoint, CopiesAcceptedWorldHistoryAndCoverageWithoutPublishingAnything) {
     FakeAdapter adapter; auto session = create(adapter);
     commit(*session, adapter, add());

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="12" failures="0" disabled="0" errors="0" time="0.065" timestamp="2026-09-10T13:42:29.072" name="AllTests">
+  <testsuite name="BoxUnion" tests="7" failures="0" disabled="0" skipped="0" errors="0" time="0.037" timestamp="2026-09-10T13:42:29.072">
+    <testcase name="PartialOverlapContainmentAndDuplicateBoundsHaveOneOwner" file="tests/test_assembly_collision.cpp" line="67" status="run" result="completed" time="0." timestamp="2026-09-10T13:42:29.072" classname="BoxUnion" />
+    <testcase name="PartialMatingFacesKeepEveryExposedRectangle" file="tests/test_assembly_collision.cpp" line="74" status="run" result="completed" time="0." timestamp="2026-09-10T13:42:29.072" classname="BoxUnion" />
+    <testcase name="ClosedCavityRetainsItsInnerBoundaryAndExcludesItsVolume" file="tests/test_assembly_collision.cpp" line="84" status="run" result="completed" time="0." timestamp="2026-09-10T13:42:29.073" classname="BoxUnion" />
+    <testcase name="EveryProperRotationMatchesIndependentOccupancyAndSurfaceOracle" file="tests/test_assembly_collision.cpp" line="93" status="run" result="completed" time="0.01" timestamp="2026-09-10T13:42:29.074" classname="BoxUnion" />
+    <testcase name="BoundedMixedFixturesAndInputPermutationsRemainExact" file="tests/test_assembly_collision.cpp" line="105" status="run" result="completed" time="0.024" timestamp="2026-09-10T13:42:29.084" classname="BoxUnion" />
+    <testcase name="BvhQueriesMatchLinearCellsAndNeverPartiallyWriteOnFailure" file="tests/test_assembly_collision.cpp" line="120" status="run" result="completed" time="0.001" timestamp="2026-09-10T13:42:29.108" classname="BoxUnion" />
+    <testcase name="InvalidInputsAndEveryIndependentBudgetRefuseWithoutTruncation" file="tests/test_assembly_collision.cpp" line="145" status="run" result="completed" time="0." timestamp="2026-09-10T13:42:29.110" classname="BoxUnion" />
+  </testsuite>
+  <testsuite name="AssemblyCollision" tests="5" failures="0" disabled="0" skipped="0" errors="0" time="0.027" timestamp="2026-09-10T13:42:29.110">
+    <testcase name="RealWeldedStackHasNoInternalMatingFacesAndStablePartLookup" file="tests/test_assembly_collision.cpp" line="191" status="run" result="completed" time="0." timestamp="2026-09-10T13:42:29.110" classname="AssemblyCollision" />
+    <testcase name="Full256PartProfileCompilesWithoutDecorativeContacts" file="tests/test_assembly_collision.cpp" line="206" status="run" result="completed" time="0.026" timestamp="2026-09-10T13:42:29.110" classname="AssemblyCollision" />
+    <testcase name="DisabledWeldRootsStaySeparateAndBudgetsApplyAcrossAllRoots" file="tests/test_assembly_collision.cpp" line="217" status="run" result="completed" time="0." timestamp="2026-09-10T13:42:29.137" classname="AssemblyCollision" />
+    <testcase name="OverlappingAuthoredProxiesDoNotDoubleVolumeOrMass" file="tests/test_assembly_collision.cpp" line="230" status="run" result="completed" time="0." timestamp="2026-09-10T13:42:29.137" classname="AssemblyCollision" />
+    <testcase name="AuthoredProxyAndPartRotationComposeExactlyOnce" file="tests/test_assembly_collision.cpp" line="242" status="run" result="completed" time="0." timestamp="2026-09-10T13:42:29.137" classname="AssemblyCollision" />
+  </testsuite>
+</testsuites>

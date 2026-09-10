@@ -10,6 +10,28 @@
 
 namespace voxy {
 
+TEST(InputTest, DragIncludesOnlyHeldMotionEvenBetweenDisplayedFrames) {
+    Input input;input.onMouseMove(10,10);input.beginFrame();input.computeDeltas();
+    input.onMouseMove(100,200);input.onMouseDown(static_cast<int>(MouseButton::Right));
+    input.onMouseMove(140,225);input.onMouseUp(static_cast<int>(MouseButton::Right));
+    input.onMouseMove(500,500);input.beginFrame();input.computeDeltas();
+    EXPECT_EQ(input.mouseDragDelta(MouseButton::Right),glm::vec2(40,25));
+    EXPECT_EQ(input.mouseDragDelta(MouseButton::Left),glm::vec2(0));
+    EXPECT_FALSE(input.isMouseButtonDown(MouseButton::Right));
+    EXPECT_TRUE(input.wasMouseButtonPressed(MouseButton::Right));
+    input.beginFrame();input.computeDeltas();EXPECT_EQ(input.mouseDragDelta(MouseButton::Right),glm::vec2(0));
+}
+
+TEST(InputTest, DragContinuesAcrossFramesAndFocusResetEndsIt) {
+    Input input;input.onMouseMove(10,10);input.onMouseDown(static_cast<int>(MouseButton::Middle));
+    input.onMouseMove(20,25);input.beginFrame();input.computeDeltas();
+    EXPECT_EQ(input.mouseDragDelta(MouseButton::Middle),glm::vec2(10,15));
+    input.onMouseMove(28,32);input.beginFrame();input.computeDeltas();
+    EXPECT_EQ(input.mouseDragDelta(MouseButton::Middle),glm::vec2(8,7));
+    input.resetState();input.onMouseMove(100,100);input.beginFrame();input.computeDeltas();
+    EXPECT_EQ(input.mouseDragDelta(MouseButton::Middle),glm::vec2(0));
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Key Enum Tests
 // ─────────────────────────────────────────────────────────────────────────────

@@ -234,7 +234,22 @@
         </div>
         <button id="salvage-workshop-toggle" type="button" hidden disabled>Workshop · B</button>
         <div id="salvage-workshop" hidden aria-label="Starter craft workshop">
+            <div class="workshop-camera" aria-label="Workshop camera">
+                <button id="workshop-focus" data-workshop-action="97">Focus part · G</button>
+                <button id="workshop-frame" data-workshop-action="98">Whole boat · M</button>
+                <button id="workshop-orbit-left" data-workshop-action="75">View left</button>
+                <button id="workshop-orbit-right" data-workshop-action="76">View right</button>
+                <button id="workshop-closer" data-workshop-action="77">Closer</button>
+                <button id="workshop-farther" data-workshop-action="78">Farther</button>
+            </div>
+            <p class="salvage-note">Right-drag: orbit · Shift + right-drag: pan · Wheel: zoom</p>
             <p id="salvage-workshop-stock"></p>
+            <div class="workshop-bricks" aria-label="Build with bricks">
+                <button id="workshop-brick-1x2" data-workshop-action="-1" data-workshop-brick="Brick 1 x 2" disabled><span class="brick-icon brick-1x2" aria-hidden="true"></span><span class="brick-label">1 × 2 · 1</span></button>
+                <button id="workshop-brick-2x2" data-workshop-action="-1" data-workshop-brick="Brick 2 x 2" disabled><span class="brick-icon brick-2x2" aria-hidden="true"></span><span class="brick-label">2 × 2 · 2</span></button>
+                <button id="workshop-brick-2x4" data-workshop-action="-1" data-workshop-brick="Brick 2 x 4" disabled><span class="brick-icon brick-2x4" aria-hidden="true"></span><span class="brick-label">2 × 4 · 3</span></button>
+            </div>
+            <p class="salvage-note">First, select Cargo cradle → Remove → Keep to clear deck space. Then choose a brick, point and click. R rotates. Green fits; red is blocked.</p>
             <div class="workshop-camera" aria-label="Parts drawer">
                 <button id="workshop-catalog-prev" data-workshop-action="82">Previous type</button>
                 <span id="workshop-catalog-name"></span>
@@ -269,17 +284,16 @@
                 <button id="workshop-redo-launch" data-workshop-action="81">Redo launch · O</button>
                 <button id="workshop-rebuild" data-workshop-action="88" title="Save this boat as a recovery design, restore the starter boat and store purchased parts. Previous launch undo is cleared. Keep or discard your current edits first.">Rebuild starter · H</button>
             </div>
-            <div class="workshop-camera" aria-label="Workshop camera">
+            <details class="workshop-recovery">
+                <summary>Recover a boat design</summary>
                 <span id="workshop-recovery-status">No recovered designs yet.</span>
+                <div class="workshop-grid">
                 <button id="workshop-recovery-prev" data-workshop-action="92">Previous recovery</button>
                 <button id="workshop-recovery-next" data-workshop-action="93">Next recovery · J</button>
                 <button id="workshop-recovery-load" data-workshop-action="89">Load recovered design · K</button>
                 <button id="workshop-recovery-remove" data-workshop-action="94" title="Remove only this saved recovery design. Boat parts and exported blueprints stay owned.">Remove recovery design · F</button>
-                <button id="workshop-orbit-left" data-workshop-action="75">View left</button>
-                <button id="workshop-orbit-right" data-workshop-action="76">View right</button>
-                <button id="workshop-closer" data-workshop-action="77">Closer</button>
-                <button id="workshop-farther" data-workshop-action="78">Farther</button>
-            </div>
+                </div>
+            </details>
             <details id="workshop-designs">
                 <summary>Saved designs</summary>
                 <label for="design-name">Design name</label>
@@ -1040,6 +1054,9 @@
             // on the canvas so the input reaches the game without a popup.
             canvas.addEventListener('contextmenu', (event) => {
                 event.preventDefault();
+            });
+            canvas.addEventListener('pointerdown', () => {
+                if(document.getElementById('salvage-preview')?.dataset.workshop==='true')canvas.focus({preventScroll:true});
             });
 
             // 1. Initialize and Start the Roller immediately

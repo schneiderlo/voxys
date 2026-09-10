@@ -1,4 +1,4 @@
-# Cove expedition archive (SVCE v1–v4)
+# Cove expedition archive (live SVCE v1–v4; two-job v5 preparation)
 
 This format joins an existing SVSC logical session checkpoint to physical cove
 state. It is implemented in `src/game/expedition/cove_save.*`. It does not by
@@ -21,11 +21,60 @@ save also loads, upgrades through F10 and restarts as v4 without altering its
 source. Browser and full fragment acceptance are recorded in
 `validation/salvage/MECH-05/root-resume-r01/README.md`.
 
-Live cutting remains disabled. A three-section CPU reconstruction check proves
-prepared identity/frame mapping, not complete physical cut/reload acceptance.
-Full capacity rollback, atomic cut publication, fragment rescue and native/
-browser cut journeys remain required. Existing Rescue still handles the primary
-boat only; it must be generalized before exposing fragments in normal play.
+Live cutting, all-section Rescue and protected rebuilding now pass the bounded
+native/browser journeys in `validation/salvage/MECH-05/live-cut-r01/README.md`.
+General impact-driven fracture, arbitrary joints and broader fault coverage
+remain separate requirements.
+
+## Two independent mission loads (schema 5 preparation)
+
+The shared codec now has an explicit two-job profile. The live application still
+creates one-job contexts and captures v4. Its restore preparation refuses a v5
+two-load archive until it can own and restore **both** physical bodies, ropes
+and render mappings. No current world is silently migrated or replaced.
+
+V5 preserves the entire v4 prefix and appends this table **after the last boat
+root**, before the current/parent logical checkpoint lengths:
+
+| Field | Encoding |
+|---|---|
+| Additional cargo count | u32; exactly 1 in this profile |
+| Cargo identity | Durable ID, 24 bytes |
+| Job identity | Durable ID, 24 bytes |
+| Installed cargo definition | ContentKey, 28 bytes |
+| Authored-root motion | Existing motion encoding, 64 bytes |
+| Cargo state | u8: Loose / Towed / BrokenTow / Banked |
+| Tow winch part | Durable ID, 24 bytes; zero without a retained tow |
+| Rope length | f32, 4 bytes; zero without a retained tow |
+
+Each additional load is 169 bytes. The table adds 173 bytes and fits the
+existing 4096-byte physical allowance even with all 32 boat roots. V5 requires
+the complete root table. The original generator stays in the base fields;
+selecting another target must never overwrite it. The second load stays in its
+table slot after banking, with zero velocities and a completed logical job.
+The logical checkpoint removes only the cargo that was delivered and retains
+both job receipts. Its existing serialization and exactly-once transactions
+already support two jobs; no SVSC or SVSG version change is needed.
+
+`CoveSaveContext::additionalCargo` supplies the expected job/cargo IDs and full
+definition from trusted installed mission setup. The reader never derives that
+context from imported bytes. An empty context admits only the old one-job
+profile; a one-entry context requires both loads, both distinct definitions and
+both jobs. Missing or extra records, swapped roles, incorrect mass/value,
+unowned cargo, a banked moving body and two retained lines on one winch refuse
+the complete archive without changing the caller's output.
+
+The second job may be Available before the generator is recovered. Accepted or
+Completed requires the generator's completed/banked state and installed harbor
+profile 1. This validates the saved progression; the future live command
+boundary must enforce the same prerequisite **before accepting** the job.
+It is not a substitute for command authorization or proof of real hauling.
+
+V1–v4 encoding remains selected when there is no additional cargo. V5 cannot be
+downgraded by omitting one load or rewriting the version. The first and second
+cargo's rope/state and logical receipt are checked independently against the
+accepted boat and catalog. Physical restore still needs actual geometry, tow-eye
+and same-tick GPU evidence for every load before live activation.
 
 ## Starter rebuild and stored paid parts
 
@@ -51,8 +100,8 @@ mission reward. Existing saved design-library entries are not rewritten.
 Before starter rebuild, stage a normalized design of the accepted boat alongside
 the prepared replacement. Publish both together after successful physical
 admission. Skip the original installed starter design and deduplicate exact
-normalized bytes. Keep at most four distinct designs, each at most 32 KiB, with
-at most 32 parts and 64 enabled welds. If a fifth distinct custom design would
+normalized bytes. Keep at most four distinct designs, each at most 128 KiB, with
+at most 96 parts and 1,024 enabled welds. If a fifth distinct custom design would
 be needed, reject the rebuild before replacing the boat. Never evict a backup
 implicitly. Rebuilding the original starter again retains every previous backup.
 
@@ -72,7 +121,7 @@ length and its exact SVBP bytes. The current SVSC length/bytes, parent length/by
 and outer SHA-256 follow the final design. With no backups or explicit root table, the codec emits the
 original v1/v2 encoding based on harbor installation. Both legacy encodings stay
 byte-identical. Maximum total input is now
-`2*kMaximumSessionSaveBytes + 4096 + 4*(32768+4)` bytes; SVSG remains v1.
+`2*kMaximumSessionSaveBytes + 4096 + 4*(131072+4)` bytes; SVSG remains v1.
 
 In the workshop, **K / Load recovered design** loads the selected design through
 the normal editor. Launch reuses owned parts and prices missing parts normally.
@@ -498,3 +547,23 @@ loans deliberately removed in the workshop, recover general cut/damaged
 fragments, provide a general free-berth search or implement periodic autosave.
 Those remain PLAY-05/MECH work. See the scoped
 [actual rescue evidence](validation/salvage/PLAY-05/rescue-r01/README.md).
+
+## Additive brick catalogue (LEGO-02)
+
+The original Cove registry remains the world-layout identity. The optional
+`asset_fixture_catalog` loads a closed schema-1 object containing only `schema`
+and `bundles`, using the same bounded, no-follow, hash-verified content admission.
+It may add unused part IDs; it cannot replace an installed ID, even at a new
+version, or change placements/navigation. Every saved part still resolves its
+full exact content key through the canonical catalogue on restore.
+
+Scene placements now have a separate 96-slot budget; rigid roots stay at 32.
+The four recovery-design slots each accept at most the existing blueprint
+codec's 128 KiB ceiling, with at most 96 parts and 1,024 connections. This
+widens admission bounds without changing version-1 through version-4 field
+order or bytes. Existing byte compatibility, an older pre-brick native save,
+and actual native/browser brick-build reloads pass; see the
+[builder evidence](validation/salvage/LEGO-02/builder-r01/README.md). A prior
+executable may refuse new larger designs or unknown brick keys; it must not
+silently omit them. Starter entitlement recipes retain their own 32-part,
+64-weld bounds.

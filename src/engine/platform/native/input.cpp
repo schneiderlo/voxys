@@ -3,6 +3,7 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 
 #include "engine/platform/input.hpp"
+#include <glm/common.hpp>
 #include "engine/platform/window.hpp"
 #include "core/log.hpp"
 
@@ -105,6 +106,7 @@ void Input::processEvents() {
 }
 
 void Input::computeDeltas() {
+    dragDeltas_=accumulatedDrags_;accumulatedDrags_.fill(glm::vec2(0));
     // GLFW is polled after beginFrame(). Drain events produced by that poll now
     // so buttons and keys are visible in the frame in which they occurred.
     processEvents();
@@ -127,6 +129,7 @@ void Input::endFrame() {
 }
 
 void Input::resetState() {
+    rawButtons_.fill(false);accumulatedDrags_.fill(glm::vec2(0));dragDeltas_.fill(glm::vec2(0));
     releaseMouse();
     currentKeys_.fill(false);
     previousKeys_.fill(false);
@@ -279,12 +282,17 @@ void Input::onMouseMove(float x, float y) {
         prevMousePos_ = glm::vec2(x, y);
         firstMouseMove_ = false;
     }
+    for(size_t i=0;i<rawButtons_.size();++i)if(rawButtons_[i]) {
+        accumulatedDrags_[i]=glm::clamp(accumulatedDrags_[i]+glm::vec2(x,y)-mousePos_,
+            glm::vec2(-kMaximumMouseCoordinate),glm::vec2(kMaximumMouseCoordinate));
+    }
     mousePos_ = glm::vec2(x, y);
 }
 
 void Input::onMouseDown(int button) {
     if (isValidButton(button)) {
         if (mouseButtonQueue_.size() >= kMaximumQueuedInputEvents) {
+            rawButtons_.fill(false);accumulatedDrags_.fill(glm::vec2(0));
             mouseButtonQueue_.clear();
             for (size_t index = 0; index < currentButtons_.size(); ++index) {
                 if (currentButtons_[index]) {
@@ -293,6 +301,7 @@ void Input::onMouseDown(int button) {
                 }
             }
         }
+        rawButtons_[static_cast<size_t>(button)]=true;
         mouseButtonQueue_.push_back({button, true});
     }
 }
@@ -300,6 +309,7 @@ void Input::onMouseDown(int button) {
 void Input::onMouseUp(int button) {
     if (isValidButton(button)) {
         if (mouseButtonQueue_.size() >= kMaximumQueuedInputEvents) {
+            rawButtons_.fill(false);accumulatedDrags_.fill(glm::vec2(0));
             mouseButtonQueue_.clear();
             for (size_t index = 0; index < currentButtons_.size(); ++index) {
                 if (currentButtons_[index]) {
@@ -308,6 +318,7 @@ void Input::onMouseUp(int button) {
                 }
             }
         }
+        rawButtons_[static_cast<size_t>(button)]=false;
         mouseButtonQueue_.push_back({button, false});
     }
 }

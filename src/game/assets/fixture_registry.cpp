@@ -78,22 +78,46 @@ glm::dvec3 point(const Json& value) {
     }
     return result;
 }
+Json registryDocument(std::string_view json) {
+    if (json.empty() || json.size() > 64u * 1024u) reject("fixture registry byte ceiling");
+    std::vector<std::set<std::string>> objectKeys;
+    return Json::parse(json, [&](int depth, Json::parse_event_t event, Json& value) {
+        if (depth > 16) reject("fixture registry nesting ceiling");
+        if (event == Json::parse_event_t::object_start) objectKeys.emplace_back();
+        if (event == Json::parse_event_t::key) {
+            if (objectKeys.empty() || !objectKeys.back().insert(value.get<std::string>()).second)
+                reject("fixture registry duplicate key");
+        }
+        if (event == Json::parse_event_t::object_end) objectKeys.pop_back();
+        return true;
+    });
+}
+FixtureBundleSpec bundleSpec(const Json& value) {
+    fields(value, {"directory", "part", "manifest_sha256", "lod_limits"});
+    FixtureBundleSpec bundle;
+    bundle.directory = directory(value["directory"]);
+    bundle.selection.part = key(value["part"]);
+    bundle.selection.manifestSha256 = hex(value["manifest_sha256"], 64);
+    const auto& lods = value["lod_limits"];
+    if (!lods.is_array() || lods.empty() || lods.size() > 8) reject("fixture registry LOD ceiling");
+    std::set<uint64_t> ids;
+    for (const auto& lod : lods) {
+        fields(lod, {"id", "vertices", "triangles", "texture_dimension"});
+        PartLodAdmissionRule rule;
+        rule.id = id(lod["id"]);
+        if (!ids.insert(rule.id).second) reject("fixture registry duplicate LOD ID");
+        rule.limits.maximumVertices = natural(lod["vertices"], rule.limits.maximumVertices);
+        rule.limits.maximumIndices = natural(lod["triangles"], rule.limits.maximumIndices / 3u) * 3u;
+        rule.limits.maximumTextureDimension = natural(lod["texture_dimension"], rule.limits.maximumTextureDimension);
+        bundle.selection.lodRules.push_back(rule);
+    }
+    return bundle;
+}
 } // namespace
 
 std::optional<AssetFixtureRegistry> parseAssetFixtureRegistry(std::string_view json, std::string& error) {
     try {
-        if (json.empty() || json.size() > 64u * 1024u) reject("fixture registry byte ceiling");
-        std::vector<std::set<std::string>> objectKeys;
-        const auto document = Json::parse(json, [&](int depth, Json::parse_event_t event, Json& value) {
-            if (depth > 16) reject("fixture registry nesting ceiling");
-            if (event == Json::parse_event_t::object_start) objectKeys.emplace_back();
-            if (event == Json::parse_event_t::key) {
-                if (objectKeys.empty() || !objectKeys.back().insert(value.get<std::string>()).second)
-                    reject("fixture registry duplicate key");
-            }
-            if (event == Json::parse_event_t::object_end) objectKeys.pop_back();
-            return true;
-        });
+        const auto document = registryDocument(json);
         if (!document.is_object() || !document.contains("schema")) reject("fixture registry schema");
         const auto schema = natural(document["schema"], 6);
         if (schema == 1) fields(document, {"schema", "bundles", "placements", "camera"});
@@ -102,8 +126,8 @@ std::optional<AssetFixtureRegistry> parseAssetFixtureRegistry(std::string_view j
         else fields(document, {"schema", "bundles", "placements", "camera", "prototypes", "connections"});
         const auto& bundles = document["bundles"];
         const auto& placements = document["placements"];
-        if (!bundles.is_array() || bundles.empty() || bundles.size() > 12
-            || !placements.is_array() || placements.empty() || placements.size() > 32)
+        if (!bundles.is_array() || bundles.empty() || bundles.size() > kMaximumFixtureBundles
+            || !placements.is_array() || placements.empty() || placements.size() > kMaximumFixturePlacements)
             reject("fixture registry bundle/placement ceiling");
         AssetFixtureRegistry result;
         result.schema = schema;
@@ -159,27 +183,7 @@ std::optional<AssetFixtureRegistry> parseAssetFixtureRegistry(std::string_view j
                 result.prototypes.push_back(selected);
             }
         }
-        for (const auto& value : bundles) {
-            fields(value, {"directory", "part", "manifest_sha256", "lod_limits"});
-            FixtureBundleSpec bundle;
-            bundle.directory = directory(value["directory"]);
-            bundle.selection.part = key(value["part"]);
-            bundle.selection.manifestSha256 = hex(value["manifest_sha256"], 64);
-            const auto& lods = value["lod_limits"];
-            if (!lods.is_array() || lods.empty() || lods.size() > 8) reject("fixture registry LOD ceiling");
-            std::set<uint64_t> ids;
-            for (const auto& lod : lods) {
-                fields(lod, {"id", "vertices", "triangles", "texture_dimension"});
-                PartLodAdmissionRule rule;
-                rule.id = id(lod["id"]);
-                if (!ids.insert(rule.id).second) reject("fixture registry duplicate LOD ID");
-                rule.limits.maximumVertices = natural(lod["vertices"], rule.limits.maximumVertices);
-                rule.limits.maximumIndices = natural(lod["triangles"], rule.limits.maximumIndices / 3u) * 3u;
-                rule.limits.maximumTextureDimension = natural(lod["texture_dimension"], rule.limits.maximumTextureDimension);
-                bundle.selection.lodRules.push_back(rule);
-            }
-            result.bundles.push_back(std::move(bundle));
-        }
+        for (const auto& value : bundles) result.bundles.push_back(bundleSpec(value));
         for (const auto& value : placements) {
             FixturePartPlacement placement;
             placement.prototype = schema == 2 && value.contains("prototype");
@@ -208,7 +212,7 @@ std::optional<AssetFixtureRegistry> parseAssetFixtureRegistry(std::string_view j
         }
         if (schema == 2 || schema >= 4) {
             const auto& connections = document["connections"];
-            if (!connections.is_array() || connections.empty() || connections.size() > 64)
+            if (!connections.is_array() || connections.empty() || connections.size() > kMaximumFixtureConnections)
                 reject("fixture registry connection ceiling");
             for (const auto& value : connections) {
                 fields(value,{"a","b"}); fields(value["a"],{"placement","socket"}); fields(value["b"],{"placement","socket"});
@@ -316,6 +320,51 @@ std::unique_ptr<const LoadedAssetFixture> loadAssetFixture(const std::filesystem
     }
     error.clear();
     return result;
+}
+
+std::unique_ptr<const LoadedAssetFixture> appendAssetFixtureCatalog(
+    const LoadedAssetFixture& base,const std::filesystem::path& path,std::string& error) {
+    try {
+        const auto root=path.has_parent_path()?path.parent_path():std::filesystem::path(".");
+        const auto provider=openCookedPartDirectory(root,error);if(!provider)return {};
+        const auto bytes=(*provider)(path.filename().string(),64u*1024u,error);if(!bytes)return {};
+        const auto document=registryDocument(std::string_view(reinterpret_cast<const char*>(bytes->data()),bytes->size()));
+        fields(document,{"schema","bundles"});
+        if(natural(document["schema"],1)!=1)reject("catalogue schema");
+        const auto& entries=document["bundles"];
+        if(!entries.is_array() || entries.empty() || base.bundles.size()>kMaximumFixtureBundles
+            || entries.size()>kMaximumFixtureBundles-base.bundles.size()
+            || base.registry.bundles.size()!=base.bundles.size())reject("catalogue bundle ceiling");
+        auto result=std::make_unique<LoadedAssetFixture>(base);
+        PartCatalogDraft draft;draft.definitions=base.prototypes;
+        for(const auto& bundle:base.bundles) {
+            if(!bundle)reject("catalogue base bundle missing");
+            draft.definitions.push_back(bundle->sidecar().part);
+        }
+        for(const auto& entry:entries) {
+            auto spec=bundleSpec(entry);
+            if(std::any_of(draft.definitions.begin(),draft.definitions.end(),[&](const auto& part){
+                return part.key.id==spec.selection.part.id;
+            }))reject("catalogue cannot replace an installed part ID");
+            const auto source=openCookedPartDirectory(root/spec.directory,error);if(!source)return {};
+            auto bundle=admitCookedPartBundle(spec.selection,*source,error);if(!bundle)return {};
+            draft.definitions.push_back(bundle->sidecar().part);
+            result->registry.bundles.push_back(std::move(spec));
+            result->bundles.emplace_back(std::move(bundle));
+        }
+        CatalogIssue issue;
+        const auto catalog=PartCatalog::create(draft,issue,[&](const CookedMeshVisual& visual){
+            for(const auto& bundle:result->bundles)for(const auto& lod:bundle->lods())
+                if(lod.asset==visual.asset)return true;
+            return false;
+        });
+        if(!catalog){error="catalogue: "+std::string(issue.field);return {};}
+        // Base layout, navigation, current assembly and digest remain exact.
+        // Only unused catalogue definitions have been appended. New owned
+        // parts still undergo the complete canonical build/save validation.
+        error.clear();return result;
+    } catch(const std::bad_alloc&){throw;}
+      catch(const std::exception& failure){error=failure.what();return {};}
 }
 
 std::optional<uint64_t> selectFixtureLod(const CookedPartBundle& bundle,

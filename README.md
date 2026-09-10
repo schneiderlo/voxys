@@ -315,7 +315,11 @@ machine simulation. [Sailing implementation and checks](docs/validation/salvage/
 At the starting dock, **B** or **Workshop** opens the starter design editor.
 Select a part, move or rotate it, snap to a free socket, remove it, keep a valid
 change, or undo. Green means the design connects; red means it does not.
-Use the view buttons or A/D and W/S to orbit and zoom. **B** returns to the dock.
+**G / Focus part** frames the selected part; **M / Whole boat** frames the build.
+Right-drag orbits, Shift + right-drag or middle-drag pans, and the wheel zooms.
+The view buttons and A/D, W/S also orbit and zoom. Framing leaves space for the
+controls; narrow browser windows put the panel below the build. **B** returns
+to the dock. [Camera controls and desktop/browser checks](docs/validation/salvage/PLAY-02/camera-r01/README.md).
 **Launch / Enter** now rebuilds the physical boat from kept changes and returns
 you to the dock. The edited boat uses its new mass, collision, buoyancy, steering
 and tow point. **Undo launch / I** and **Redo launch / O** restore accepted builds;
@@ -331,8 +335,21 @@ then Launch. **C** cycles types with the canvas focused. Fresh cove worlds start
 with **48 material**; Reset preserves the remaining stock. Pontoons cost 24,
 so two purchases expand the starter from 1,035 to 1,275 kg. Prices appear before
 Launch. Undo/redo preserves exact paid identities and costs; dismantling returns
-the lower catalog salvage value. Up to seven active additions fit this initial
-cove profile. [Paid construction and sailing checks](docs/validation/salvage/PLAY-02/parts-r01/README.md).
+the lower catalog salvage value. [Initial paid construction and sailing checks](docs/validation/salvage/PLAY-02/parts-r01/README.md).
+
+The workshop now includes **individual studded bricks**: 1×2, 2×2 and 2×4.
+Clear the **Cargo cradle** first: Next / Tab, Remove / Delete, Keep / E.
+Choose a colored brick from the palette or press **1, 2, 3**. Point at the
+freed deck or another brick, press **R** to rotate, then click a green ghost
+to place it. Click existing parts to select them; click the selected part to
+move it. **U** undoes a kept edit. **Launch / Enter** applies the cost and
+rebuilds the physical boat. Eight mixed, stacked bricks now pass native/browser
+construction, save/reload, boarding and sailing with exact ownership and costs.
+The audited scene budget supports a tested 64-brick design; complex designs
+still obey collision and connection limits. Final art, controller support and
+a polished native HUD remain unfinished.
+[Brick-builder controls, capacity and evidence](docs/validation/salvage/LEGO-02/builder-r01/README.md).
+
 The workshop also has **part settings**. Select a propeller, helm or winch;
 **X** toggles it, **L** cycles thrust/steering limits, and **N** reverses
 propeller drive. Keep, then Launch applies the change at no material cost.

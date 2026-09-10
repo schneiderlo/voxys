@@ -548,6 +548,9 @@ TEST(BuildModel, IndependentPartConnectionProxySocketAndPairWorkCaps) {
         auto box = definitions.definitions[0].solidOccupancy[0]; box.id = ProxyId{i};
         definitions.definitions[0].solidOccupancy.push_back(box);
     }
+    // One distant X outlier selects X while the remaining thin boxes share
+    // X and separate along Z: the adaptive sweep still enforces its work cap.
+    draft.parts.back().placement.translation.x=20000;
     BuildIssue issue; const auto pairCapped = BuildModel::create(draft, validatedCatalog(definitions), issue);
     EXPECT_FALSE(pairCapped); EXPECT_EQ(issue.error, BuildError::Capacity); EXPECT_EQ(issue.field, "candidatePairs");
     definitions = makeStarterCatalogDraft();

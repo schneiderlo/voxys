@@ -74,7 +74,7 @@ bool rigidPose(const glm::dmat4& pose) noexcept {
 
 bool CovePlayer::bindBoatRoots(std::span<const BoatRoot> roots,std::span<const BoatPart> parts,
     construction::DurableId helmRoot) noexcept {
-    if(roots.empty()||roots.size()>roots_.size()||parts.empty()||parts.size()>32)return false;
+    if(roots.empty()||roots.size()>roots_.size()||parts.empty()||parts.size()>assets::kMaximumFixturePlacements)return false;
     const auto find=[&](construction::DurableId key)->std::optional<uint8_t>{
         for(size_t i=0;i<roots.size();++i)if(roots[i].key==key)return static_cast<uint8_t>(i);
         return {};
@@ -84,7 +84,7 @@ bool CovePlayer::bindBoatRoots(std::span<const BoatRoot> roots,std::span<const B
         for(size_t j=0;j<i;++j)if(roots[j].key==roots[i].key)return false;
     }
     const auto helm=find(helmRoot);if(!helm)return false;
-    std::array<const BoatPart*,32> slots{};std::array<bool,32> used{};
+    std::array<const BoatPart*,assets::kMaximumFixturePlacements> slots{};std::array<bool,assets::kMaximumFixturePlacements> used{};
     for(const auto& part:parts) {
         const auto root=find(part.root);
         if(part.placement>=slots.size()||slots[part.placement]||!root||!construction::isValid(part.part)

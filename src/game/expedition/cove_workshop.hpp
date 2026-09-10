@@ -1,5 +1,6 @@
 #pragma once
 #include "game/expedition/cove_boat.hpp"
+#include "game/expedition/workshop_camera.hpp"
 
 namespace voxy::game::expedition {
 
@@ -18,6 +19,19 @@ public:
     [[nodiscard]] std::vector<std::byte> blueprintBytes(std::string& error) const;
     [[nodiscard]] bool loadBlueprint(std::span<const std::byte>,std::string& error);
     [[nodiscard]] bool selectCatalog(int direction) noexcept;
+    [[nodiscard]] bool selectCatalogAt(uint32_t index) noexcept;
+    [[nodiscard]] std::string_view catalogNameAt(uint32_t index) const noexcept;
+    [[nodiscard]] construction::ResourceAmounts catalogCostAt(uint32_t index) const noexcept;
+    [[nodiscard]] std::optional<uint32_t> catalogBundleAt(uint32_t index) const noexcept {
+        return index<catalog_.size()?std::optional<uint32_t>(catalog_[index].bundleIndex):std::nullopt;
+    }
+    [[nodiscard]] bool selectPart(uint32_t placement);
+    struct Pick { uint32_t placement; glm::dvec3 point; };
+    // Rays/points use metres in the canonical build frame, before the
+    // workshop display offset. Picking follows the actual collision shells.
+    [[nodiscard]] std::optional<Pick> pick(glm::dvec3 origin,glm::dvec3 direction,bool excludeSelected=false) const;
+    [[nodiscard]] bool aimAt(const Pick&);
+    [[nodiscard]] std::optional<WorkshopBounds> viewBounds(bool wholeBuild) const;
     [[nodiscard]] bool addPart(const construction::PartInstance* stored = nullptr);
     [[nodiscard]] bool canAdd() const noexcept;
     enum class SettingAction { Toggle, CycleLimit, Reverse };

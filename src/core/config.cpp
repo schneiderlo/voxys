@@ -45,6 +45,11 @@ GameModeResolution resolveGameMode(const Config& config) noexcept {
             || config.game.assetFixtureRegistry->find('\0') != std::string::npos)) {
         result.status = GameModeStatus::InvalidAssetFixture;
     }
+    if (result.ready() && config.game.assetFixtureCatalog
+        && (!config.game.assetFixtureRegistry || config.game.assetFixtureCatalog->empty()
+            || config.game.assetFixtureCatalog->size()>4096
+            || config.game.assetFixtureCatalog->find('\0')!=std::string::npos))
+        result.status=GameModeStatus::InvalidAssetFixture;
     if (result.ready() && ((config.game.assetFixtureGuides != "off"
             && config.game.assetFixtureGuides != "dimensions" && config.game.assetFixtureGuides != "sockets")
         || (config.game.assetFixtureGuides != "off" && !config.game.assetFixtureRegistry)))
@@ -701,6 +706,7 @@ Config load(std::string_view path) {
         // A malformed explicit route must not silently fall back to a legacy title.
         if (currentSection == "game" && key == "mode") config.game.mode = "";
         if (currentSection == "game" && key == "asset_fixture_registry") config.game.assetFixtureRegistry = "";
+        if (currentSection == "game" && key == "asset_fixture_catalog") config.game.assetFixtureCatalog = "";
         if (currentSection == "game" && key == "asset_fixture_guides") config.game.assetFixtureGuides = "";
         if (currentSection == "game" && key == "asset_fixture_lod") config.game.assetFixtureLod = "";
         if (currentSection == "game" && key == "asset_fixture_lighting") config.game.assetFixtureLighting = "";
@@ -734,6 +740,7 @@ Config load(std::string_view path) {
         if (currentSection == "game") {
             if (key == "mode") config.game.mode = value;
             else if (key == "asset_fixture_registry") config.game.assetFixtureRegistry = value;
+            else if (key == "asset_fixture_catalog") config.game.assetFixtureCatalog = value;
             else if (key == "asset_fixture_guides") config.game.assetFixtureGuides = value;
             else if (key == "asset_fixture_lod") config.game.assetFixtureLod = value;
             else if (key == "asset_fixture_lighting") config.game.assetFixtureLighting = value;
@@ -1098,12 +1105,13 @@ bool save(const Config& config, std::string_view path) {
     file << std::format("log_level = {}\n", quote(config.debug.logLevel));
     file << std::format("enable_validation = {}\n\n", config.debug.enableValidation ? "true" : "false");
     
-    if (config.game.mode || config.game.assetFixtureRegistry || config.game.assetFixtureGuides != "off"
+    if (config.game.mode || config.game.assetFixtureRegistry || config.game.assetFixtureCatalog || config.game.assetFixtureGuides != "off"
         || config.game.assetFixtureLod != "auto" || config.game.assetFixtureLighting != "legacy"
         || config.game.assetFixtureAnchor != "inspection") {
         file << "[game]\n";
         if (config.game.mode) file << std::format("mode = {}\n", quote(*config.game.mode));
         if (config.game.assetFixtureRegistry) file << std::format("asset_fixture_registry = {}\n", quote(*config.game.assetFixtureRegistry));
+        if (config.game.assetFixtureCatalog) file << std::format("asset_fixture_catalog = {}\n", quote(*config.game.assetFixtureCatalog));
         file << std::format("asset_fixture_guides = {}\n", quote(config.game.assetFixtureGuides));
         file << std::format("asset_fixture_lod = {}\n", quote(config.game.assetFixtureLod));
         file << std::format("asset_fixture_lighting = {}\n", quote(config.game.assetFixtureLighting));

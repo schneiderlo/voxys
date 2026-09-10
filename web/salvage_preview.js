@@ -112,9 +112,11 @@
             if(!pending && pause && !pause.disabled && act(pausePhase==='paused'?91:90))tick();
         };
         const onWorkshopKey=event=>{
-            // Keep focused button navigation/activation in the UI. Key-up still
-            // reaches the engine so a key held before focusing cannot stick.
-            if(panel.dataset?.workshop==='true')event.stopPropagation();
+            // Keep button/text actions in the UI. Shift alone is also a camera
+            // gesture modifier: retain it when a player holds Shift before
+            // dragging from a focused UI button back onto the build surface.
+            // Key-up still reaches the engine so a released modifier cannot stick.
+            if(panel.dataset?.workshop==='true'&&!['ShiftLeft','ShiftRight'].includes(event.code))event.stopPropagation();
         };
         const onCut=()=>{if(!pending&&cutter&&!cutter.disabled&&act(95))tick();};
         const onWorkshop=()=>{if(!pending && workshopToggle && !workshopToggle.disabled && act(60))tick();};
@@ -264,6 +266,14 @@
                         ? `${settings.enabled?'On':'Off'}${w.hasOutputLimit?` · Limit: ${settings.limitPercent}%`:''}${w.canReverse?` · ${settings.reversed?'Reversed':'Forward'}`:''}`
                         : 'No adjustable settings for this part yet.';
                     for(const button of workshopButtons) {
+                        if(button.dataset.workshopBrick) {
+                            const part=w.catalog?.find(p=>p.name===button.dataset.workshopBrick);
+                            button.dataset.workshopAction=part?String(100+part.index):'-1';
+                            button.hidden=!part;
+                            button.setAttribute('aria-pressed',String(Boolean(w.pointerPlacement&&part?.index===w.catalogIndex)));
+                            const label=button.querySelector?.('.brick-label');
+                            if(label&&part)label.textContent=`${part.name.replace('Brick ','')} · ${part.cost} material`;
+                        }
                         const action=button.dataset.workshopAction;
                         if(action==='85') { button.hidden=!w.configurable;button.textContent=`Turn ${settings.enabled?'off':'on'} · X`; }
                         if(action==='86') { button.hidden=!w.hasOutputLimit;button.textContent=`${w.name==='Helm'?'Steering':'Thrust'} limit · L`; }
@@ -278,7 +288,8 @@
                         ||(button.dataset.workshopAction==='88'&&!w.canRebuild)
                         ||(['89','92','93'].includes(button.dataset.workshopAction)&&!w.canLoadRecovery)
                         ||(button.dataset.workshopAction==='94'&&!w.canRemoveRecovery)
-                        ||(button.dataset.workshopAction==='84'&&!w.canAdd)
+                        ||((button.dataset.workshopAction==='84'||button.dataset.workshopBrick)&&!w.canAdd)
+                        ||(button.dataset.workshopBrick&&button.dataset.workshopAction==='-1')
                         ||(button.dataset.workshopAction==='85'&&!w.configurable)
                         ||(button.dataset.workshopAction==='86'&&!w.hasOutputLimit)
                         ||(button.dataset.workshopAction==='87'&&!w.canReverse);
