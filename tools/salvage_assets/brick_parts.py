@@ -16,6 +16,12 @@ PART_NAMESPACE = b'voxys-bricks-v1'.ljust(16, b'\0').hex()
 VISUAL_NAMESPACE = b'voxys-brick-art1'.ljust(16, b'\0').hex()
 # Names use conventional rows x columns; columns run along canonical X.
 SIZES = {'brick_1x2': (2, 1), 'brick_2x2': (2, 2), 'brick_2x4': (4, 2)}
+PART_IDS = {'brick_1x2': 1, 'brick_2x2': 2, 'brick_2x4': 3}
+VISUAL_IDS = {'brick_1x2': 1, 'brick_2x2': 4, 'brick_2x4': 7}
+PART_VERSION = 2
+# Exact canonical mating frames for yaw 0/90/180/270 degrees. These are
+# alternate frames of the same round underside opening, not extra geometry.
+RECEPTACLE_FRAMES = (2, 23, 14, 11)
 COLORS = {'brick_1x2': (0.72, 0.08, 0.045, 1),
           'brick_2x2': (0.025, 0.20, 0.58, 1),
           'brick_2x4': (0.88, 0.54, 0.025, 1)}
@@ -70,7 +76,7 @@ def mass_properties(name, mass):
 
 def definition(name):
     columns, rows = SIZES[name]
-    counter = list(SIZES).index(name) + 1
+    counter = PART_IDS[name]
     solids = shell_boxes(name)
     buoyancy = [dict(box=copy.deepcopy(b), kind='solid_material') for b in solids]
     sockets = []
@@ -86,7 +92,9 @@ def definition(name):
                                              (hx, 4, hz)), kind='solid_material'))
         sockets += [kit.socket(100 + 2 * i, (x, 24, z), 0, role='plug'),
                     kit.socket(101 + 2 * i, (x, -24, z), 2)]
-    return dict(key=dict(namespace=PART_NAMESPACE, counter=str(counter), version=1),
+        for turn, frame in enumerate(RECEPTACLE_FRAMES[1:], 1):
+            sockets.append(kit.socket(1000 + 4 * i + turn, (x, -24, z), frame))
+    return dict(key=dict(namespace=PART_NAMESPACE, counter=str(counter), version=PART_VERSION),
                 name_key='salvage.part.' + name, permitted_rotation_mask=16777215,
                 footprint=dict(minimum_ticks=[1 - columns * 25, -24, 1 - rows * 25],
                                maximum_ticks=[columns * 25 - 1, 33, rows * 25 - 1]),
@@ -99,7 +107,7 @@ def definition(name):
 
 
 def sidecar(name, directory):
-    first_asset = (list(SIZES).index(name)) * 3 + 1
+    first_asset = VISUAL_IDS[name]
     lods = []
     for lod, (_, _, _, threshold) in enumerate(LOD_LIMITS):
         path = Path(directory) / f'{name}-lod-{lod}.glb'

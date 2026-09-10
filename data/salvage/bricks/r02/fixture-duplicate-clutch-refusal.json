@@ -1,0 +1,284 @@
+{
+  "schema": 2,
+  "prototypes": [],
+  "bundles": [
+    {
+      "directory": "brick_1x2/cooked",
+      "part": {
+        "namespace": "766f7879732d627269636b732d763100",
+        "counter": "1",
+        "version": 2
+      },
+      "manifest_sha256": "24ea620526d725497c97bd639e126a87ad06a843c06f9f71a33774d7dc49e0bb",
+      "lod_limits": [
+        {
+          "id": "1",
+          "vertices": 12000,
+          "triangles": 6000,
+          "texture_dimension": 64
+        },
+        {
+          "id": "2",
+          "vertices": 6000,
+          "triangles": 3000,
+          "texture_dimension": 64
+        },
+        {
+          "id": "3",
+          "vertices": 3000,
+          "triangles": 1500,
+          "texture_dimension": 64
+        }
+      ]
+    },
+    {
+      "directory": "brick_2x2/cooked",
+      "part": {
+        "namespace": "766f7879732d627269636b732d763100",
+        "counter": "2",
+        "version": 2
+      },
+      "manifest_sha256": "704d63a7b763e98c2fe22cbce98d873c2ce56a0357760bf673dcafcf3f899a5b",
+      "lod_limits": [
+        {
+          "id": "1",
+          "vertices": 12000,
+          "triangles": 6000,
+          "texture_dimension": 64
+        },
+        {
+          "id": "2",
+          "vertices": 6000,
+          "triangles": 3000,
+          "texture_dimension": 64
+        },
+        {
+          "id": "3",
+          "vertices": 3000,
+          "triangles": 1500,
+          "texture_dimension": 64
+        }
+      ]
+    },
+    {
+      "directory": "brick_2x4/cooked",
+      "part": {
+        "namespace": "766f7879732d627269636b732d763100",
+        "counter": "3",
+        "version": 2
+      },
+      "manifest_sha256": "764f9d205b627cdb58a2ea163e4e584948f70a6d74f1cd1e6b6e655d3ba6dd26",
+      "lod_limits": [
+        {
+          "id": "1",
+          "vertices": 12000,
+          "triangles": 6000,
+          "texture_dimension": 64
+        },
+        {
+          "id": "2",
+          "vertices": 6000,
+          "triangles": 3000,
+          "texture_dimension": 64
+        },
+        {
+          "id": "3",
+          "vertices": 3000,
+          "triangles": 1500,
+          "texture_dimension": 64
+        }
+      ]
+    }
+  ],
+  "placements": [
+    {
+      "bundle": 2,
+      "translation_ticks": [
+        0,
+        0,
+        0
+      ],
+      "rotation": 0
+    },
+    {
+      "bundle": 1,
+      "translation_ticks": [
+        -50,
+        48,
+        0
+      ],
+      "rotation": 0
+    },
+    {
+      "bundle": 1,
+      "translation_ticks": [
+        50,
+        48,
+        0
+      ],
+      "rotation": 0
+    },
+    {
+      "bundle": 0,
+      "translation_ticks": [
+        -50,
+        96,
+        -25
+      ],
+      "rotation": 0
+    },
+    {
+      "bundle": 0,
+      "translation_ticks": [
+        50,
+        96,
+        25
+      ],
+      "rotation": 0
+    }
+  ],
+  "connections": [
+    {
+      "a": {
+        "placement": 0,
+        "socket": "100"
+      },
+      "b": {
+        "placement": 1,
+        "socket": "101"
+      }
+    },
+    {
+      "a": {
+        "placement": 0,
+        "socket": "102"
+      },
+      "b": {
+        "placement": 1,
+        "socket": "103"
+      }
+    },
+    {
+      "a": {
+        "placement": 0,
+        "socket": "108"
+      },
+      "b": {
+        "placement": 1,
+        "socket": "105"
+      }
+    },
+    {
+      "a": {
+        "placement": 0,
+        "socket": "110"
+      },
+      "b": {
+        "placement": 1,
+        "socket": "107"
+      }
+    },
+    {
+      "a": {
+        "placement": 0,
+        "socket": "104"
+      },
+      "b": {
+        "placement": 2,
+        "socket": "101"
+      }
+    },
+    {
+      "a": {
+        "placement": 0,
+        "socket": "106"
+      },
+      "b": {
+        "placement": 2,
+        "socket": "103"
+      }
+    },
+    {
+      "a": {
+        "placement": 0,
+        "socket": "112"
+      },
+      "b": {
+        "placement": 2,
+        "socket": "105"
+      }
+    },
+    {
+      "a": {
+        "placement": 0,
+        "socket": "114"
+      },
+      "b": {
+        "placement": 2,
+        "socket": "107"
+      }
+    },
+    {
+      "a": {
+        "placement": 1,
+        "socket": "100"
+      },
+      "b": {
+        "placement": 3,
+        "socket": "101"
+      }
+    },
+    {
+      "a": {
+        "placement": 1,
+        "socket": "102"
+      },
+      "b": {
+        "placement": 3,
+        "socket": "103"
+      }
+    },
+    {
+      "a": {
+        "placement": 2,
+        "socket": "104"
+      },
+      "b": {
+        "placement": 4,
+        "socket": "101"
+      }
+    },
+    {
+      "a": {
+        "placement": 2,
+        "socket": "106"
+      },
+      "b": {
+        "placement": 4,
+        "socket": "103"
+      }
+    },
+    {
+      "a": {
+        "placement": 0,
+        "socket": "100"
+      },
+      "b": {
+        "placement": 1,
+        "socket": "1001"
+      }
+    }
+  ],
+  "camera": {
+    "eye": [
+      8,
+      6,
+      -9
+    ],
+    "target": [
+      0,
+      1,
+      0
+    ]
+  }
+}

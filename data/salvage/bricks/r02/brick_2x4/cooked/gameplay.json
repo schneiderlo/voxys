@@ -1,0 +1,3416 @@
+{
+  "lods": [
+    {
+      "asset": {
+        "counter": "7",
+        "namespace": "766f7879732d627269636b2d61727431",
+        "version": 1
+      },
+      "id": "1",
+      "minimum_screen_height_pixels": 180.0,
+      "source": {
+        "bytes": 102596,
+        "file": "brick_2x4-lod-0.glb",
+        "frame": "exported_gltf",
+        "sha256": "2a4d5acf1e744a60f51d0c0335797b0d82fe771d842df9ce11a2c93242f0742b",
+        "to_canonical_rotation": 12
+      }
+    },
+    {
+      "asset": {
+        "counter": "8",
+        "namespace": "766f7879732d627269636b2d61727431",
+        "version": 1
+      },
+      "id": "2",
+      "minimum_screen_height_pixels": 55.0,
+      "source": {
+        "bytes": 53440,
+        "file": "brick_2x4-lod-1.glb",
+        "frame": "exported_gltf",
+        "sha256": "60426f67cc117fd5b85e3f07e37cb79de82779a306d07c05900cd930ec05a8ac",
+        "to_canonical_rotation": 12
+      }
+    },
+    {
+      "asset": {
+        "counter": "9",
+        "namespace": "766f7879732d627269636b2d61727431",
+        "version": 1
+      },
+      "id": "3",
+      "minimum_screen_height_pixels": 0.0,
+      "source": {
+        "bytes": 24060,
+        "file": "brick_2x4-lod-2.glb",
+        "frame": "exported_gltf",
+        "sha256": "cefac4bae6a77f8f5c9cc3533836bacd3c75819e16f349bc83913144e175c127",
+        "to_canonical_rotation": 12
+      }
+    }
+  ],
+  "metadata_frame": "canonical_y_up_minus_z_forward",
+  "part": {
+    "buoyancy": [
+      {
+        "box": {
+          "frame": {
+            "rotation": 0,
+            "translation_ticks": [
+              0,
+              21,
+              0
+            ]
+          },
+          "half_extents_ticks": [
+            99,
+            3,
+            49
+          ],
+          "id": "1"
+        },
+        "kind": "solid_material"
+      },
+      {
+        "box": {
+          "frame": {
+            "rotation": 0,
+            "translation_ticks": [
+              -97,
+              -3,
+              0
+            ]
+          },
+          "half_extents_ticks": [
+            2,
+            21,
+            49
+          ],
+          "id": "2"
+        },
+        "kind": "solid_material"
+      },
+      {
+        "box": {
+          "frame": {
+            "rotation": 0,
+            "translation_ticks": [
+              97,
+              -3,
+              0
+            ]
+          },
+          "half_extents_ticks": [
+            2,
+            21,
+            49
+          ],
+          "id": "3"
+        },
+        "kind": "solid_material"
+      },
+      {
+        "box": {
+          "frame": {
+            "rotation": 0,
+            "translation_ticks": [
+              0,
+              -3,
+              -47
+            ]
+          },
+          "half_extents_ticks": [
+            95,
+            21,
+            2
+          ],
+          "id": "4"
+        },
+        "kind": "solid_material"
+      },
+      {
+        "box": {
+          "frame": {
+            "rotation": 0,
+            "translation_ticks": [
+              0,
+              -3,
+              47
+            ]
+          },
+          "half_extents_ticks": [
+            95,
+            21,
+            2
+          ],
+          "id": "5"
+        },
+        "kind": "solid_material"
+      },
+      {
+        "box": {
+          "frame": {
+            "rotation": 0,
+            "translation_ticks": [
+              -75,
+              29,
+              -25
+            ]
+          },
+          "half_extents_ticks": [
+            7,
+            4,
+            13
+          ],
+          "id": "100"
+        },
+        "kind": "solid_material"
+      },
+      {
+        "box": {
+          "frame": {
+            "rotation": 0,
+            "translation_ticks": [
+              -85,
+              29,
+              -25
+            ]
+          },
+          "half_extents_ticks": [
+            3,
+            4,
+            7
+          ],
+          "id": "101"
+        },
+        "kind": "solid_material"
+      },
+      {
+        "box": {
+          "frame": {
+            "rotation": 0,
+            "translation_ticks": [
+              -65,
+              29,
+              -25
+            ]
+          },
+          "half_extents_ticks": [
+            3,
+            4,
+            7
+          ],
+          "id": "102"
+        },
+        "kind": "solid_material"
+      },
+      {
+        "box": {
+          "frame": {
+            "rotation": 0,
+            "translation_ticks": [
+              -25,
+              29,
+              -25
+            ]
+          },
+          "half_extents_ticks": [
+            7,
+            4,
+            13
+          ],
+          "id": "103"
+        },
+        "kind": "solid_material"
+      },
+      {
+        "box": {
+          "frame": {
+            "rotation": 0,
+            "translation_ticks": [
+              -35,
+              29,
+              -25
+            ]
+          },
+          "half_extents_ticks": [
+            3,
+            4,
+            7
+          ],
+          "id": "104"
+        },
+        "kind": "solid_material"
+      },
+      {
+        "box": {
+          "frame": {
+            "rotation": 0,
+            "translation_ticks": [
+              -15,
+              29,
+              -25
+            ]
+          },
+          "half_extents_ticks": [
+            3,
+            4,
+            7
+          ],
+          "id": "105"
+        },
+        "kind": "solid_material"
+      },
+      {
+        "box": {
+          "frame": {
+            "rotation": 0,
+            "translation_ticks": [
+              25,
+              29,
+              -25
+            ]
+          },
+          "half_extents_ticks": [
+            7,
+            4,
+            13
+          ],
+          "id": "106"
+        },
+        "kind": "solid_material"
+      },
+      {
+        "box": {
+          "frame": {
+            "rotation": 0,
+            "translation_ticks": [
+              15,
+              29,
+              -25
+            ]
+          },
+          "half_extents_ticks": [
+            3,
+            4,
+            7
+          ],
+          "id": "107"
+        },
+        "kind": "solid_material"
+      },
+      {
+        "box": {
+          "frame": {
+            "rotation": 0,
+            "translation_ticks": [
+              35,
+              29,
+              -25
+            ]
+          },
+          "half_extents_ticks": [
+            3,
+            4,
+            7
+          ],
+          "id": "108"
+        },
+        "kind": "solid_material"
+      },
+      {
+        "box": {
+          "frame": {
+            "rotation": 0,
+            "translation_ticks": [
+              75,
+              29,
+              -25
+            ]
+          },
+          "half_extents_ticks": [
+            7,
+            4,
+            13
+          ],
+          "id": "109"
+        },
+        "kind": "solid_material"
+      },
+      {
+        "box": {
+          "frame": {
+            "rotation": 0,
+            "translation_ticks": [
+              65,
+              29,
+              -25
+            ]
+          },
+          "half_extents_ticks": [
+            3,
+            4,
+            7
+          ],
+          "id": "110"
+        },
+        "kind": "solid_material"
+      },
+      {
+        "box": {
+          "frame": {
+            "rotation": 0,
+            "translation_ticks": [
+              85,
+              29,
+              -25
+            ]
+          },
+          "half_extents_ticks": [
+            3,
+            4,
+            7
+          ],
+          "id": "111"
+        },
+        "kind": "solid_material"
+      },
+      {
+        "box": {
+          "frame": {
+            "rotation": 0,
+            "translation_ticks": [
+              -75,
+              29,
+              25
+            ]
+          },
+          "half_extents_ticks": [
+            7,
+            4,
+            13
+          ],
+          "id": "112"
+        },
+        "kind": "solid_material"
+      },
+      {
+        "box": {
+          "frame": {
+            "rotation": 0,
+            "translation_ticks": [
+              -85,
+              29,
+              25
+            ]
+          },
+          "half_extents_ticks": [
+            3,
+            4,
+            7
+          ],
+          "id": "113"
+        },
+        "kind": "solid_material"
+      },
+      {
+        "box": {
+          "frame": {
+            "rotation": 0,
+            "translation_ticks": [
+              -65,
+              29,
+              25
+            ]
+          },
+          "half_extents_ticks": [
+            3,
+            4,
+            7
+          ],
+          "id": "114"
+        },
+        "kind": "solid_material"
+      },
+      {
+        "box": {
+          "frame": {
+            "rotation": 0,
+            "translation_ticks": [
+              -25,
+              29,
+              25
+            ]
+          },
+          "half_extents_ticks": [
+            7,
+            4,
+            13
+          ],
+          "id": "115"
+        },
+        "kind": "solid_material"
+      },
+      {
+        "box": {
+          "frame": {
+            "rotation": 0,
+            "translation_ticks": [
+              -35,
+              29,
+              25
+            ]
+          },
+          "half_extents_ticks": [
+            3,
+            4,
+            7
+          ],
+          "id": "116"
+        },
+        "kind": "solid_material"
+      },
+      {
+        "box": {
+          "frame": {
+            "rotation": 0,
+            "translation_ticks": [
+              -15,
+              29,
+              25
+            ]
+          },
+          "half_extents_ticks": [
+            3,
+            4,
+            7
+          ],
+          "id": "117"
+        },
+        "kind": "solid_material"
+      },
+      {
+        "box": {
+          "frame": {
+            "rotation": 0,
+            "translation_ticks": [
+              25,
+              29,
+              25
+            ]
+          },
+          "half_extents_ticks": [
+            7,
+            4,
+            13
+          ],
+          "id": "118"
+        },
+        "kind": "solid_material"
+      },
+      {
+        "box": {
+          "frame": {
+            "rotation": 0,
+            "translation_ticks": [
+              15,
+              29,
+              25
+            ]
+          },
+          "half_extents_ticks": [
+            3,
+            4,
+            7
+          ],
+          "id": "119"
+        },
+        "kind": "solid_material"
+      },
+      {
+        "box": {
+          "frame": {
+            "rotation": 0,
+            "translation_ticks": [
+              35,
+              29,
+              25
+            ]
+          },
+          "half_extents_ticks": [
+            3,
+            4,
+            7
+          ],
+          "id": "120"
+        },
+        "kind": "solid_material"
+      },
+      {
+        "box": {
+          "frame": {
+            "rotation": 0,
+            "translation_ticks": [
+              75,
+              29,
+              25
+            ]
+          },
+          "half_extents_ticks": [
+            7,
+            4,
+            13
+          ],
+          "id": "121"
+        },
+        "kind": "solid_material"
+      },
+      {
+        "box": {
+          "frame": {
+            "rotation": 0,
+            "translation_ticks": [
+              65,
+              29,
+              25
+            ]
+          },
+          "half_extents_ticks": [
+            3,
+            4,
+            7
+          ],
+          "id": "122"
+        },
+        "kind": "solid_material"
+      },
+      {
+        "box": {
+          "frame": {
+            "rotation": 0,
+            "translation_ticks": [
+              85,
+              29,
+              25
+            ]
+          },
+          "half_extents_ticks": [
+            3,
+            4,
+            7
+          ],
+          "id": "123"
+        },
+        "kind": "solid_material"
+      }
+    ],
+    "collision": [
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            0,
+            21,
+            0
+          ]
+        },
+        "half_extents_ticks": [
+          99,
+          3,
+          49
+        ],
+        "id": "1"
+      },
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            -97,
+            -3,
+            0
+          ]
+        },
+        "half_extents_ticks": [
+          2,
+          21,
+          49
+        ],
+        "id": "2"
+      },
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            97,
+            -3,
+            0
+          ]
+        },
+        "half_extents_ticks": [
+          2,
+          21,
+          49
+        ],
+        "id": "3"
+      },
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            0,
+            -3,
+            -47
+          ]
+        },
+        "half_extents_ticks": [
+          95,
+          21,
+          2
+        ],
+        "id": "4"
+      },
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            0,
+            -3,
+            47
+          ]
+        },
+        "half_extents_ticks": [
+          95,
+          21,
+          2
+        ],
+        "id": "5"
+      },
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            -75,
+            28,
+            -25
+          ]
+        },
+        "half_extents_ticks": [
+          7,
+          5,
+          13
+        ],
+        "id": "100"
+      },
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            -85,
+            28,
+            -25
+          ]
+        },
+        "half_extents_ticks": [
+          3,
+          5,
+          7
+        ],
+        "id": "101"
+      },
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            -65,
+            28,
+            -25
+          ]
+        },
+        "half_extents_ticks": [
+          3,
+          5,
+          7
+        ],
+        "id": "102"
+      },
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            -25,
+            28,
+            -25
+          ]
+        },
+        "half_extents_ticks": [
+          7,
+          5,
+          13
+        ],
+        "id": "103"
+      },
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            -35,
+            28,
+            -25
+          ]
+        },
+        "half_extents_ticks": [
+          3,
+          5,
+          7
+        ],
+        "id": "104"
+      },
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            -15,
+            28,
+            -25
+          ]
+        },
+        "half_extents_ticks": [
+          3,
+          5,
+          7
+        ],
+        "id": "105"
+      },
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            25,
+            28,
+            -25
+          ]
+        },
+        "half_extents_ticks": [
+          7,
+          5,
+          13
+        ],
+        "id": "106"
+      },
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            15,
+            28,
+            -25
+          ]
+        },
+        "half_extents_ticks": [
+          3,
+          5,
+          7
+        ],
+        "id": "107"
+      },
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            35,
+            28,
+            -25
+          ]
+        },
+        "half_extents_ticks": [
+          3,
+          5,
+          7
+        ],
+        "id": "108"
+      },
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            75,
+            28,
+            -25
+          ]
+        },
+        "half_extents_ticks": [
+          7,
+          5,
+          13
+        ],
+        "id": "109"
+      },
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            65,
+            28,
+            -25
+          ]
+        },
+        "half_extents_ticks": [
+          3,
+          5,
+          7
+        ],
+        "id": "110"
+      },
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            85,
+            28,
+            -25
+          ]
+        },
+        "half_extents_ticks": [
+          3,
+          5,
+          7
+        ],
+        "id": "111"
+      },
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            -75,
+            28,
+            25
+          ]
+        },
+        "half_extents_ticks": [
+          7,
+          5,
+          13
+        ],
+        "id": "112"
+      },
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            -85,
+            28,
+            25
+          ]
+        },
+        "half_extents_ticks": [
+          3,
+          5,
+          7
+        ],
+        "id": "113"
+      },
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            -65,
+            28,
+            25
+          ]
+        },
+        "half_extents_ticks": [
+          3,
+          5,
+          7
+        ],
+        "id": "114"
+      },
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            -25,
+            28,
+            25
+          ]
+        },
+        "half_extents_ticks": [
+          7,
+          5,
+          13
+        ],
+        "id": "115"
+      },
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            -35,
+            28,
+            25
+          ]
+        },
+        "half_extents_ticks": [
+          3,
+          5,
+          7
+        ],
+        "id": "116"
+      },
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            -15,
+            28,
+            25
+          ]
+        },
+        "half_extents_ticks": [
+          3,
+          5,
+          7
+        ],
+        "id": "117"
+      },
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            25,
+            28,
+            25
+          ]
+        },
+        "half_extents_ticks": [
+          7,
+          5,
+          13
+        ],
+        "id": "118"
+      },
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            15,
+            28,
+            25
+          ]
+        },
+        "half_extents_ticks": [
+          3,
+          5,
+          7
+        ],
+        "id": "119"
+      },
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            35,
+            28,
+            25
+          ]
+        },
+        "half_extents_ticks": [
+          3,
+          5,
+          7
+        ],
+        "id": "120"
+      },
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            75,
+            28,
+            25
+          ]
+        },
+        "half_extents_ticks": [
+          7,
+          5,
+          13
+        ],
+        "id": "121"
+      },
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            65,
+            28,
+            25
+          ]
+        },
+        "half_extents_ticks": [
+          3,
+          5,
+          7
+        ],
+        "id": "122"
+      },
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            85,
+            28,
+            25
+          ]
+        },
+        "half_extents_ticks": [
+          3,
+          5,
+          7
+        ],
+        "id": "123"
+      }
+    ],
+    "cost": {
+      "salvage_material": "5",
+      "special_machinery": "0"
+    },
+    "footprint": {
+      "maximum_ticks": [
+        99,
+        33,
+        49
+      ],
+      "minimum_ticks": [
+        -99,
+        -24,
+        -49
+      ]
+    },
+    "key": {
+      "counter": "3",
+      "namespace": "766f7879732d627269636b732d763100",
+      "version": 2
+    },
+    "mass": {
+      "center_of_mass_metres": [
+        0.0,
+        0.27302288231120075,
+        0.0
+      ],
+      "dry_mass_kg": 48.0,
+      "inertia_kg_metres_squared": [
+        25.778325757281948,
+        0.0,
+        0.0,
+        0.0,
+        97.38573358601401,
+        -5.551115123125783e-17,
+        0.0,
+        -5.551115123125783e-17,
+        80.22376551069131
+      ]
+    },
+    "material": {
+      "linear_base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "metallic": 1.0,
+      "roughness": 1.0
+    },
+    "module": {
+      "type": "structure"
+    },
+    "name_key": "salvage.part.brick_2x4",
+    "permitted_rotation_mask": 16777215,
+    "salvage_yield": {
+      "salvage_material": "3",
+      "special_machinery": "0"
+    },
+    "sockets": [
+      {
+        "clearance": {
+          "maximum_ticks": [
+            15,
+            9,
+            15
+          ],
+          "minimum_ticks": [
+            -15,
+            0,
+            -15
+          ]
+        },
+        "connection_capacity": 1,
+        "family": "structural",
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            -75,
+            24,
+            -25
+          ]
+        },
+        "id": "100",
+        "profile": 1,
+        "role": "plug",
+        "strength": {
+          "bending_newton_metres": 18000.0,
+          "shear_newtons": 24000.0,
+          "tension_newtons": 30000.0,
+          "torsion_newton_metres": 12000.0
+        }
+      },
+      {
+        "clearance": {
+          "maximum_ticks": [
+            15,
+            0,
+            15
+          ],
+          "minimum_ticks": [
+            -15,
+            -9,
+            -15
+          ]
+        },
+        "connection_capacity": 1,
+        "family": "structural",
+        "frame": {
+          "rotation": 2,
+          "translation_ticks": [
+            -75,
+            -24,
+            -25
+          ]
+        },
+        "id": "101",
+        "profile": 1,
+        "role": "receptacle",
+        "strength": {
+          "bending_newton_metres": 18000.0,
+          "shear_newtons": 24000.0,
+          "tension_newtons": 30000.0,
+          "torsion_newton_metres": 12000.0
+        }
+      },
+      {
+        "clearance": {
+          "maximum_ticks": [
+            15,
+            9,
+            15
+          ],
+          "minimum_ticks": [
+            -15,
+            0,
+            -15
+          ]
+        },
+        "connection_capacity": 1,
+        "family": "structural",
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            -25,
+            24,
+            -25
+          ]
+        },
+        "id": "102",
+        "profile": 1,
+        "role": "plug",
+        "strength": {
+          "bending_newton_metres": 18000.0,
+          "shear_newtons": 24000.0,
+          "tension_newtons": 30000.0,
+          "torsion_newton_metres": 12000.0
+        }
+      },
+      {
+        "clearance": {
+          "maximum_ticks": [
+            15,
+            0,
+            15
+          ],
+          "minimum_ticks": [
+            -15,
+            -9,
+            -15
+          ]
+        },
+        "connection_capacity": 1,
+        "family": "structural",
+        "frame": {
+          "rotation": 2,
+          "translation_ticks": [
+            -25,
+            -24,
+            -25
+          ]
+        },
+        "id": "103",
+        "profile": 1,
+        "role": "receptacle",
+        "strength": {
+          "bending_newton_metres": 18000.0,
+          "shear_newtons": 24000.0,
+          "tension_newtons": 30000.0,
+          "torsion_newton_metres": 12000.0
+        }
+      },
+      {
+        "clearance": {
+          "maximum_ticks": [
+            15,
+            9,
+            15
+          ],
+          "minimum_ticks": [
+            -15,
+            0,
+            -15
+          ]
+        },
+        "connection_capacity": 1,
+        "family": "structural",
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            25,
+            24,
+            -25
+          ]
+        },
+        "id": "104",
+        "profile": 1,
+        "role": "plug",
+        "strength": {
+          "bending_newton_metres": 18000.0,
+          "shear_newtons": 24000.0,
+          "tension_newtons": 30000.0,
+          "torsion_newton_metres": 12000.0
+        }
+      },
+      {
+        "clearance": {
+          "maximum_ticks": [
+            15,
+            0,
+            15
+          ],
+          "minimum_ticks": [
+            -15,
+            -9,
+            -15
+          ]
+        },
+        "connection_capacity": 1,
+        "family": "structural",
+        "frame": {
+          "rotation": 2,
+          "translation_ticks": [
+            25,
+            -24,
+            -25
+          ]
+        },
+        "id": "105",
+        "profile": 1,
+        "role": "receptacle",
+        "strength": {
+          "bending_newton_metres": 18000.0,
+          "shear_newtons": 24000.0,
+          "tension_newtons": 30000.0,
+          "torsion_newton_metres": 12000.0
+        }
+      },
+      {
+        "clearance": {
+          "maximum_ticks": [
+            15,
+            9,
+            15
+          ],
+          "minimum_ticks": [
+            -15,
+            0,
+            -15
+          ]
+        },
+        "connection_capacity": 1,
+        "family": "structural",
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            75,
+            24,
+            -25
+          ]
+        },
+        "id": "106",
+        "profile": 1,
+        "role": "plug",
+        "strength": {
+          "bending_newton_metres": 18000.0,
+          "shear_newtons": 24000.0,
+          "tension_newtons": 30000.0,
+          "torsion_newton_metres": 12000.0
+        }
+      },
+      {
+        "clearance": {
+          "maximum_ticks": [
+            15,
+            0,
+            15
+          ],
+          "minimum_ticks": [
+            -15,
+            -9,
+            -15
+          ]
+        },
+        "connection_capacity": 1,
+        "family": "structural",
+        "frame": {
+          "rotation": 2,
+          "translation_ticks": [
+            75,
+            -24,
+            -25
+          ]
+        },
+        "id": "107",
+        "profile": 1,
+        "role": "receptacle",
+        "strength": {
+          "bending_newton_metres": 18000.0,
+          "shear_newtons": 24000.0,
+          "tension_newtons": 30000.0,
+          "torsion_newton_metres": 12000.0
+        }
+      },
+      {
+        "clearance": {
+          "maximum_ticks": [
+            15,
+            9,
+            15
+          ],
+          "minimum_ticks": [
+            -15,
+            0,
+            -15
+          ]
+        },
+        "connection_capacity": 1,
+        "family": "structural",
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            -75,
+            24,
+            25
+          ]
+        },
+        "id": "108",
+        "profile": 1,
+        "role": "plug",
+        "strength": {
+          "bending_newton_metres": 18000.0,
+          "shear_newtons": 24000.0,
+          "tension_newtons": 30000.0,
+          "torsion_newton_metres": 12000.0
+        }
+      },
+      {
+        "clearance": {
+          "maximum_ticks": [
+            15,
+            0,
+            15
+          ],
+          "minimum_ticks": [
+            -15,
+            -9,
+            -15
+          ]
+        },
+        "connection_capacity": 1,
+        "family": "structural",
+        "frame": {
+          "rotation": 2,
+          "translation_ticks": [
+            -75,
+            -24,
+            25
+          ]
+        },
+        "id": "109",
+        "profile": 1,
+        "role": "receptacle",
+        "strength": {
+          "bending_newton_metres": 18000.0,
+          "shear_newtons": 24000.0,
+          "tension_newtons": 30000.0,
+          "torsion_newton_metres": 12000.0
+        }
+      },
+      {
+        "clearance": {
+          "maximum_ticks": [
+            15,
+            9,
+            15
+          ],
+          "minimum_ticks": [
+            -15,
+            0,
+            -15
+          ]
+        },
+        "connection_capacity": 1,
+        "family": "structural",
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            -25,
+            24,
+            25
+          ]
+        },
+        "id": "110",
+        "profile": 1,
+        "role": "plug",
+        "strength": {
+          "bending_newton_metres": 18000.0,
+          "shear_newtons": 24000.0,
+          "tension_newtons": 30000.0,
+          "torsion_newton_metres": 12000.0
+        }
+      },
+      {
+        "clearance": {
+          "maximum_ticks": [
+            15,
+            0,
+            15
+          ],
+          "minimum_ticks": [
+            -15,
+            -9,
+            -15
+          ]
+        },
+        "connection_capacity": 1,
+        "family": "structural",
+        "frame": {
+          "rotation": 2,
+          "translation_ticks": [
+            -25,
+            -24,
+            25
+          ]
+        },
+        "id": "111",
+        "profile": 1,
+        "role": "receptacle",
+        "strength": {
+          "bending_newton_metres": 18000.0,
+          "shear_newtons": 24000.0,
+          "tension_newtons": 30000.0,
+          "torsion_newton_metres": 12000.0
+        }
+      },
+      {
+        "clearance": {
+          "maximum_ticks": [
+            15,
+            9,
+            15
+          ],
+          "minimum_ticks": [
+            -15,
+            0,
+            -15
+          ]
+        },
+        "connection_capacity": 1,
+        "family": "structural",
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            25,
+            24,
+            25
+          ]
+        },
+        "id": "112",
+        "profile": 1,
+        "role": "plug",
+        "strength": {
+          "bending_newton_metres": 18000.0,
+          "shear_newtons": 24000.0,
+          "tension_newtons": 30000.0,
+          "torsion_newton_metres": 12000.0
+        }
+      },
+      {
+        "clearance": {
+          "maximum_ticks": [
+            15,
+            0,
+            15
+          ],
+          "minimum_ticks": [
+            -15,
+            -9,
+            -15
+          ]
+        },
+        "connection_capacity": 1,
+        "family": "structural",
+        "frame": {
+          "rotation": 2,
+          "translation_ticks": [
+            25,
+            -24,
+            25
+          ]
+        },
+        "id": "113",
+        "profile": 1,
+        "role": "receptacle",
+        "strength": {
+          "bending_newton_metres": 18000.0,
+          "shear_newtons": 24000.0,
+          "tension_newtons": 30000.0,
+          "torsion_newton_metres": 12000.0
+        }
+      },
+      {
+        "clearance": {
+          "maximum_ticks": [
+            15,
+            9,
+            15
+          ],
+          "minimum_ticks": [
+            -15,
+            0,
+            -15
+          ]
+        },
+        "connection_capacity": 1,
+        "family": "structural",
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            75,
+            24,
+            25
+          ]
+        },
+        "id": "114",
+        "profile": 1,
+        "role": "plug",
+        "strength": {
+          "bending_newton_metres": 18000.0,
+          "shear_newtons": 24000.0,
+          "tension_newtons": 30000.0,
+          "torsion_newton_metres": 12000.0
+        }
+      },
+      {
+        "clearance": {
+          "maximum_ticks": [
+            15,
+            0,
+            15
+          ],
+          "minimum_ticks": [
+            -15,
+            -9,
+            -15
+          ]
+        },
+        "connection_capacity": 1,
+        "family": "structural",
+        "frame": {
+          "rotation": 2,
+          "translation_ticks": [
+            75,
+            -24,
+            25
+          ]
+        },
+        "id": "115",
+        "profile": 1,
+        "role": "receptacle",
+        "strength": {
+          "bending_newton_metres": 18000.0,
+          "shear_newtons": 24000.0,
+          "tension_newtons": 30000.0,
+          "torsion_newton_metres": 12000.0
+        }
+      },
+      {
+        "clearance": {
+          "maximum_ticks": [
+            15,
+            0,
+            15
+          ],
+          "minimum_ticks": [
+            -15,
+            -9,
+            -15
+          ]
+        },
+        "connection_capacity": 1,
+        "family": "structural",
+        "frame": {
+          "rotation": 23,
+          "translation_ticks": [
+            -75,
+            -24,
+            -25
+          ]
+        },
+        "id": "1001",
+        "profile": 1,
+        "role": "receptacle",
+        "strength": {
+          "bending_newton_metres": 18000.0,
+          "shear_newtons": 24000.0,
+          "tension_newtons": 30000.0,
+          "torsion_newton_metres": 12000.0
+        }
+      },
+      {
+        "clearance": {
+          "maximum_ticks": [
+            15,
+            0,
+            15
+          ],
+          "minimum_ticks": [
+            -15,
+            -9,
+            -15
+          ]
+        },
+        "connection_capacity": 1,
+        "family": "structural",
+        "frame": {
+          "rotation": 14,
+          "translation_ticks": [
+            -75,
+            -24,
+            -25
+          ]
+        },
+        "id": "1002",
+        "profile": 1,
+        "role": "receptacle",
+        "strength": {
+          "bending_newton_metres": 18000.0,
+          "shear_newtons": 24000.0,
+          "tension_newtons": 30000.0,
+          "torsion_newton_metres": 12000.0
+        }
+      },
+      {
+        "clearance": {
+          "maximum_ticks": [
+            15,
+            0,
+            15
+          ],
+          "minimum_ticks": [
+            -15,
+            -9,
+            -15
+          ]
+        },
+        "connection_capacity": 1,
+        "family": "structural",
+        "frame": {
+          "rotation": 11,
+          "translation_ticks": [
+            -75,
+            -24,
+            -25
+          ]
+        },
+        "id": "1003",
+        "profile": 1,
+        "role": "receptacle",
+        "strength": {
+          "bending_newton_metres": 18000.0,
+          "shear_newtons": 24000.0,
+          "tension_newtons": 30000.0,
+          "torsion_newton_metres": 12000.0
+        }
+      },
+      {
+        "clearance": {
+          "maximum_ticks": [
+            15,
+            0,
+            15
+          ],
+          "minimum_ticks": [
+            -15,
+            -9,
+            -15
+          ]
+        },
+        "connection_capacity": 1,
+        "family": "structural",
+        "frame": {
+          "rotation": 23,
+          "translation_ticks": [
+            -25,
+            -24,
+            -25
+          ]
+        },
+        "id": "1005",
+        "profile": 1,
+        "role": "receptacle",
+        "strength": {
+          "bending_newton_metres": 18000.0,
+          "shear_newtons": 24000.0,
+          "tension_newtons": 30000.0,
+          "torsion_newton_metres": 12000.0
+        }
+      },
+      {
+        "clearance": {
+          "maximum_ticks": [
+            15,
+            0,
+            15
+          ],
+          "minimum_ticks": [
+            -15,
+            -9,
+            -15
+          ]
+        },
+        "connection_capacity": 1,
+        "family": "structural",
+        "frame": {
+          "rotation": 14,
+          "translation_ticks": [
+            -25,
+            -24,
+            -25
+          ]
+        },
+        "id": "1006",
+        "profile": 1,
+        "role": "receptacle",
+        "strength": {
+          "bending_newton_metres": 18000.0,
+          "shear_newtons": 24000.0,
+          "tension_newtons": 30000.0,
+          "torsion_newton_metres": 12000.0
+        }
+      },
+      {
+        "clearance": {
+          "maximum_ticks": [
+            15,
+            0,
+            15
+          ],
+          "minimum_ticks": [
+            -15,
+            -9,
+            -15
+          ]
+        },
+        "connection_capacity": 1,
+        "family": "structural",
+        "frame": {
+          "rotation": 11,
+          "translation_ticks": [
+            -25,
+            -24,
+            -25
+          ]
+        },
+        "id": "1007",
+        "profile": 1,
+        "role": "receptacle",
+        "strength": {
+          "bending_newton_metres": 18000.0,
+          "shear_newtons": 24000.0,
+          "tension_newtons": 30000.0,
+          "torsion_newton_metres": 12000.0
+        }
+      },
+      {
+        "clearance": {
+          "maximum_ticks": [
+            15,
+            0,
+            15
+          ],
+          "minimum_ticks": [
+            -15,
+            -9,
+            -15
+          ]
+        },
+        "connection_capacity": 1,
+        "family": "structural",
+        "frame": {
+          "rotation": 23,
+          "translation_ticks": [
+            25,
+            -24,
+            -25
+          ]
+        },
+        "id": "1009",
+        "profile": 1,
+        "role": "receptacle",
+        "strength": {
+          "bending_newton_metres": 18000.0,
+          "shear_newtons": 24000.0,
+          "tension_newtons": 30000.0,
+          "torsion_newton_metres": 12000.0
+        }
+      },
+      {
+        "clearance": {
+          "maximum_ticks": [
+            15,
+            0,
+            15
+          ],
+          "minimum_ticks": [
+            -15,
+            -9,
+            -15
+          ]
+        },
+        "connection_capacity": 1,
+        "family": "structural",
+        "frame": {
+          "rotation": 14,
+          "translation_ticks": [
+            25,
+            -24,
+            -25
+          ]
+        },
+        "id": "1010",
+        "profile": 1,
+        "role": "receptacle",
+        "strength": {
+          "bending_newton_metres": 18000.0,
+          "shear_newtons": 24000.0,
+          "tension_newtons": 30000.0,
+          "torsion_newton_metres": 12000.0
+        }
+      },
+      {
+        "clearance": {
+          "maximum_ticks": [
+            15,
+            0,
+            15
+          ],
+          "minimum_ticks": [
+            -15,
+            -9,
+            -15
+          ]
+        },
+        "connection_capacity": 1,
+        "family": "structural",
+        "frame": {
+          "rotation": 11,
+          "translation_ticks": [
+            25,
+            -24,
+            -25
+          ]
+        },
+        "id": "1011",
+        "profile": 1,
+        "role": "receptacle",
+        "strength": {
+          "bending_newton_metres": 18000.0,
+          "shear_newtons": 24000.0,
+          "tension_newtons": 30000.0,
+          "torsion_newton_metres": 12000.0
+        }
+      },
+      {
+        "clearance": {
+          "maximum_ticks": [
+            15,
+            0,
+            15
+          ],
+          "minimum_ticks": [
+            -15,
+            -9,
+            -15
+          ]
+        },
+        "connection_capacity": 1,
+        "family": "structural",
+        "frame": {
+          "rotation": 23,
+          "translation_ticks": [
+            75,
+            -24,
+            -25
+          ]
+        },
+        "id": "1013",
+        "profile": 1,
+        "role": "receptacle",
+        "strength": {
+          "bending_newton_metres": 18000.0,
+          "shear_newtons": 24000.0,
+          "tension_newtons": 30000.0,
+          "torsion_newton_metres": 12000.0
+        }
+      },
+      {
+        "clearance": {
+          "maximum_ticks": [
+            15,
+            0,
+            15
+          ],
+          "minimum_ticks": [
+            -15,
+            -9,
+            -15
+          ]
+        },
+        "connection_capacity": 1,
+        "family": "structural",
+        "frame": {
+          "rotation": 14,
+          "translation_ticks": [
+            75,
+            -24,
+            -25
+          ]
+        },
+        "id": "1014",
+        "profile": 1,
+        "role": "receptacle",
+        "strength": {
+          "bending_newton_metres": 18000.0,
+          "shear_newtons": 24000.0,
+          "tension_newtons": 30000.0,
+          "torsion_newton_metres": 12000.0
+        }
+      },
+      {
+        "clearance": {
+          "maximum_ticks": [
+            15,
+            0,
+            15
+          ],
+          "minimum_ticks": [
+            -15,
+            -9,
+            -15
+          ]
+        },
+        "connection_capacity": 1,
+        "family": "structural",
+        "frame": {
+          "rotation": 11,
+          "translation_ticks": [
+            75,
+            -24,
+            -25
+          ]
+        },
+        "id": "1015",
+        "profile": 1,
+        "role": "receptacle",
+        "strength": {
+          "bending_newton_metres": 18000.0,
+          "shear_newtons": 24000.0,
+          "tension_newtons": 30000.0,
+          "torsion_newton_metres": 12000.0
+        }
+      },
+      {
+        "clearance": {
+          "maximum_ticks": [
+            15,
+            0,
+            15
+          ],
+          "minimum_ticks": [
+            -15,
+            -9,
+            -15
+          ]
+        },
+        "connection_capacity": 1,
+        "family": "structural",
+        "frame": {
+          "rotation": 23,
+          "translation_ticks": [
+            -75,
+            -24,
+            25
+          ]
+        },
+        "id": "1017",
+        "profile": 1,
+        "role": "receptacle",
+        "strength": {
+          "bending_newton_metres": 18000.0,
+          "shear_newtons": 24000.0,
+          "tension_newtons": 30000.0,
+          "torsion_newton_metres": 12000.0
+        }
+      },
+      {
+        "clearance": {
+          "maximum_ticks": [
+            15,
+            0,
+            15
+          ],
+          "minimum_ticks": [
+            -15,
+            -9,
+            -15
+          ]
+        },
+        "connection_capacity": 1,
+        "family": "structural",
+        "frame": {
+          "rotation": 14,
+          "translation_ticks": [
+            -75,
+            -24,
+            25
+          ]
+        },
+        "id": "1018",
+        "profile": 1,
+        "role": "receptacle",
+        "strength": {
+          "bending_newton_metres": 18000.0,
+          "shear_newtons": 24000.0,
+          "tension_newtons": 30000.0,
+          "torsion_newton_metres": 12000.0
+        }
+      },
+      {
+        "clearance": {
+          "maximum_ticks": [
+            15,
+            0,
+            15
+          ],
+          "minimum_ticks": [
+            -15,
+            -9,
+            -15
+          ]
+        },
+        "connection_capacity": 1,
+        "family": "structural",
+        "frame": {
+          "rotation": 11,
+          "translation_ticks": [
+            -75,
+            -24,
+            25
+          ]
+        },
+        "id": "1019",
+        "profile": 1,
+        "role": "receptacle",
+        "strength": {
+          "bending_newton_metres": 18000.0,
+          "shear_newtons": 24000.0,
+          "tension_newtons": 30000.0,
+          "torsion_newton_metres": 12000.0
+        }
+      },
+      {
+        "clearance": {
+          "maximum_ticks": [
+            15,
+            0,
+            15
+          ],
+          "minimum_ticks": [
+            -15,
+            -9,
+            -15
+          ]
+        },
+        "connection_capacity": 1,
+        "family": "structural",
+        "frame": {
+          "rotation": 23,
+          "translation_ticks": [
+            -25,
+            -24,
+            25
+          ]
+        },
+        "id": "1021",
+        "profile": 1,
+        "role": "receptacle",
+        "strength": {
+          "bending_newton_metres": 18000.0,
+          "shear_newtons": 24000.0,
+          "tension_newtons": 30000.0,
+          "torsion_newton_metres": 12000.0
+        }
+      },
+      {
+        "clearance": {
+          "maximum_ticks": [
+            15,
+            0,
+            15
+          ],
+          "minimum_ticks": [
+            -15,
+            -9,
+            -15
+          ]
+        },
+        "connection_capacity": 1,
+        "family": "structural",
+        "frame": {
+          "rotation": 14,
+          "translation_ticks": [
+            -25,
+            -24,
+            25
+          ]
+        },
+        "id": "1022",
+        "profile": 1,
+        "role": "receptacle",
+        "strength": {
+          "bending_newton_metres": 18000.0,
+          "shear_newtons": 24000.0,
+          "tension_newtons": 30000.0,
+          "torsion_newton_metres": 12000.0
+        }
+      },
+      {
+        "clearance": {
+          "maximum_ticks": [
+            15,
+            0,
+            15
+          ],
+          "minimum_ticks": [
+            -15,
+            -9,
+            -15
+          ]
+        },
+        "connection_capacity": 1,
+        "family": "structural",
+        "frame": {
+          "rotation": 11,
+          "translation_ticks": [
+            -25,
+            -24,
+            25
+          ]
+        },
+        "id": "1023",
+        "profile": 1,
+        "role": "receptacle",
+        "strength": {
+          "bending_newton_metres": 18000.0,
+          "shear_newtons": 24000.0,
+          "tension_newtons": 30000.0,
+          "torsion_newton_metres": 12000.0
+        }
+      },
+      {
+        "clearance": {
+          "maximum_ticks": [
+            15,
+            0,
+            15
+          ],
+          "minimum_ticks": [
+            -15,
+            -9,
+            -15
+          ]
+        },
+        "connection_capacity": 1,
+        "family": "structural",
+        "frame": {
+          "rotation": 23,
+          "translation_ticks": [
+            25,
+            -24,
+            25
+          ]
+        },
+        "id": "1025",
+        "profile": 1,
+        "role": "receptacle",
+        "strength": {
+          "bending_newton_metres": 18000.0,
+          "shear_newtons": 24000.0,
+          "tension_newtons": 30000.0,
+          "torsion_newton_metres": 12000.0
+        }
+      },
+      {
+        "clearance": {
+          "maximum_ticks": [
+            15,
+            0,
+            15
+          ],
+          "minimum_ticks": [
+            -15,
+            -9,
+            -15
+          ]
+        },
+        "connection_capacity": 1,
+        "family": "structural",
+        "frame": {
+          "rotation": 14,
+          "translation_ticks": [
+            25,
+            -24,
+            25
+          ]
+        },
+        "id": "1026",
+        "profile": 1,
+        "role": "receptacle",
+        "strength": {
+          "bending_newton_metres": 18000.0,
+          "shear_newtons": 24000.0,
+          "tension_newtons": 30000.0,
+          "torsion_newton_metres": 12000.0
+        }
+      },
+      {
+        "clearance": {
+          "maximum_ticks": [
+            15,
+            0,
+            15
+          ],
+          "minimum_ticks": [
+            -15,
+            -9,
+            -15
+          ]
+        },
+        "connection_capacity": 1,
+        "family": "structural",
+        "frame": {
+          "rotation": 11,
+          "translation_ticks": [
+            25,
+            -24,
+            25
+          ]
+        },
+        "id": "1027",
+        "profile": 1,
+        "role": "receptacle",
+        "strength": {
+          "bending_newton_metres": 18000.0,
+          "shear_newtons": 24000.0,
+          "tension_newtons": 30000.0,
+          "torsion_newton_metres": 12000.0
+        }
+      },
+      {
+        "clearance": {
+          "maximum_ticks": [
+            15,
+            0,
+            15
+          ],
+          "minimum_ticks": [
+            -15,
+            -9,
+            -15
+          ]
+        },
+        "connection_capacity": 1,
+        "family": "structural",
+        "frame": {
+          "rotation": 23,
+          "translation_ticks": [
+            75,
+            -24,
+            25
+          ]
+        },
+        "id": "1029",
+        "profile": 1,
+        "role": "receptacle",
+        "strength": {
+          "bending_newton_metres": 18000.0,
+          "shear_newtons": 24000.0,
+          "tension_newtons": 30000.0,
+          "torsion_newton_metres": 12000.0
+        }
+      },
+      {
+        "clearance": {
+          "maximum_ticks": [
+            15,
+            0,
+            15
+          ],
+          "minimum_ticks": [
+            -15,
+            -9,
+            -15
+          ]
+        },
+        "connection_capacity": 1,
+        "family": "structural",
+        "frame": {
+          "rotation": 14,
+          "translation_ticks": [
+            75,
+            -24,
+            25
+          ]
+        },
+        "id": "1030",
+        "profile": 1,
+        "role": "receptacle",
+        "strength": {
+          "bending_newton_metres": 18000.0,
+          "shear_newtons": 24000.0,
+          "tension_newtons": 30000.0,
+          "torsion_newton_metres": 12000.0
+        }
+      },
+      {
+        "clearance": {
+          "maximum_ticks": [
+            15,
+            0,
+            15
+          ],
+          "minimum_ticks": [
+            -15,
+            -9,
+            -15
+          ]
+        },
+        "connection_capacity": 1,
+        "family": "structural",
+        "frame": {
+          "rotation": 11,
+          "translation_ticks": [
+            75,
+            -24,
+            25
+          ]
+        },
+        "id": "1031",
+        "profile": 1,
+        "role": "receptacle",
+        "strength": {
+          "bending_newton_metres": 18000.0,
+          "shear_newtons": 24000.0,
+          "tension_newtons": 30000.0,
+          "torsion_newton_metres": 12000.0
+        }
+      }
+    ],
+    "solid_occupancy": [
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            0,
+            21,
+            0
+          ]
+        },
+        "half_extents_ticks": [
+          99,
+          3,
+          49
+        ],
+        "id": "1"
+      },
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            -97,
+            -3,
+            0
+          ]
+        },
+        "half_extents_ticks": [
+          2,
+          21,
+          49
+        ],
+        "id": "2"
+      },
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            97,
+            -3,
+            0
+          ]
+        },
+        "half_extents_ticks": [
+          2,
+          21,
+          49
+        ],
+        "id": "3"
+      },
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            0,
+            -3,
+            -47
+          ]
+        },
+        "half_extents_ticks": [
+          95,
+          21,
+          2
+        ],
+        "id": "4"
+      },
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            0,
+            -3,
+            47
+          ]
+        },
+        "half_extents_ticks": [
+          95,
+          21,
+          2
+        ],
+        "id": "5"
+      },
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            -75,
+            28,
+            -25
+          ]
+        },
+        "half_extents_ticks": [
+          7,
+          5,
+          13
+        ],
+        "id": "100"
+      },
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            -85,
+            28,
+            -25
+          ]
+        },
+        "half_extents_ticks": [
+          3,
+          5,
+          7
+        ],
+        "id": "101"
+      },
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            -65,
+            28,
+            -25
+          ]
+        },
+        "half_extents_ticks": [
+          3,
+          5,
+          7
+        ],
+        "id": "102"
+      },
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            -25,
+            28,
+            -25
+          ]
+        },
+        "half_extents_ticks": [
+          7,
+          5,
+          13
+        ],
+        "id": "103"
+      },
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            -35,
+            28,
+            -25
+          ]
+        },
+        "half_extents_ticks": [
+          3,
+          5,
+          7
+        ],
+        "id": "104"
+      },
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            -15,
+            28,
+            -25
+          ]
+        },
+        "half_extents_ticks": [
+          3,
+          5,
+          7
+        ],
+        "id": "105"
+      },
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            25,
+            28,
+            -25
+          ]
+        },
+        "half_extents_ticks": [
+          7,
+          5,
+          13
+        ],
+        "id": "106"
+      },
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            15,
+            28,
+            -25
+          ]
+        },
+        "half_extents_ticks": [
+          3,
+          5,
+          7
+        ],
+        "id": "107"
+      },
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            35,
+            28,
+            -25
+          ]
+        },
+        "half_extents_ticks": [
+          3,
+          5,
+          7
+        ],
+        "id": "108"
+      },
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            75,
+            28,
+            -25
+          ]
+        },
+        "half_extents_ticks": [
+          7,
+          5,
+          13
+        ],
+        "id": "109"
+      },
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            65,
+            28,
+            -25
+          ]
+        },
+        "half_extents_ticks": [
+          3,
+          5,
+          7
+        ],
+        "id": "110"
+      },
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            85,
+            28,
+            -25
+          ]
+        },
+        "half_extents_ticks": [
+          3,
+          5,
+          7
+        ],
+        "id": "111"
+      },
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            -75,
+            28,
+            25
+          ]
+        },
+        "half_extents_ticks": [
+          7,
+          5,
+          13
+        ],
+        "id": "112"
+      },
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            -85,
+            28,
+            25
+          ]
+        },
+        "half_extents_ticks": [
+          3,
+          5,
+          7
+        ],
+        "id": "113"
+      },
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            -65,
+            28,
+            25
+          ]
+        },
+        "half_extents_ticks": [
+          3,
+          5,
+          7
+        ],
+        "id": "114"
+      },
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            -25,
+            28,
+            25
+          ]
+        },
+        "half_extents_ticks": [
+          7,
+          5,
+          13
+        ],
+        "id": "115"
+      },
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            -35,
+            28,
+            25
+          ]
+        },
+        "half_extents_ticks": [
+          3,
+          5,
+          7
+        ],
+        "id": "116"
+      },
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            -15,
+            28,
+            25
+          ]
+        },
+        "half_extents_ticks": [
+          3,
+          5,
+          7
+        ],
+        "id": "117"
+      },
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            25,
+            28,
+            25
+          ]
+        },
+        "half_extents_ticks": [
+          7,
+          5,
+          13
+        ],
+        "id": "118"
+      },
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            15,
+            28,
+            25
+          ]
+        },
+        "half_extents_ticks": [
+          3,
+          5,
+          7
+        ],
+        "id": "119"
+      },
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            35,
+            28,
+            25
+          ]
+        },
+        "half_extents_ticks": [
+          3,
+          5,
+          7
+        ],
+        "id": "120"
+      },
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            75,
+            28,
+            25
+          ]
+        },
+        "half_extents_ticks": [
+          7,
+          5,
+          13
+        ],
+        "id": "121"
+      },
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            65,
+            28,
+            25
+          ]
+        },
+        "half_extents_ticks": [
+          3,
+          5,
+          7
+        ],
+        "id": "122"
+      },
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            85,
+            28,
+            25
+          ]
+        },
+        "half_extents_ticks": [
+          3,
+          5,
+          7
+        ],
+        "id": "123"
+      }
+    ],
+    "strength": {
+      "bending_newton_metres": 18000.0,
+      "shear_newtons": 24000.0,
+      "tension_newtons": 30000.0,
+      "torsion_newton_metres": 12000.0
+    }
+  },
+  "placement_lattice_metres": 0.02,
+  "schema": 1,
+  "tool_anchors": [
+    {
+      "frame": {
+        "rotation": 0,
+        "translation_ticks": [
+          -75,
+          24,
+          -25
+        ]
+      },
+      "id": "100",
+      "name_key": "salvage.anchor.brick_2x4.socket_100"
+    },
+    {
+      "frame": {
+        "rotation": 2,
+        "translation_ticks": [
+          -75,
+          -24,
+          -25
+        ]
+      },
+      "id": "101",
+      "name_key": "salvage.anchor.brick_2x4.socket_101"
+    },
+    {
+      "frame": {
+        "rotation": 0,
+        "translation_ticks": [
+          -25,
+          24,
+          -25
+        ]
+      },
+      "id": "102",
+      "name_key": "salvage.anchor.brick_2x4.socket_102"
+    },
+    {
+      "frame": {
+        "rotation": 2,
+        "translation_ticks": [
+          -25,
+          -24,
+          -25
+        ]
+      },
+      "id": "103",
+      "name_key": "salvage.anchor.brick_2x4.socket_103"
+    },
+    {
+      "frame": {
+        "rotation": 0,
+        "translation_ticks": [
+          25,
+          24,
+          -25
+        ]
+      },
+      "id": "104",
+      "name_key": "salvage.anchor.brick_2x4.socket_104"
+    },
+    {
+      "frame": {
+        "rotation": 2,
+        "translation_ticks": [
+          25,
+          -24,
+          -25
+        ]
+      },
+      "id": "105",
+      "name_key": "salvage.anchor.brick_2x4.socket_105"
+    },
+    {
+      "frame": {
+        "rotation": 0,
+        "translation_ticks": [
+          75,
+          24,
+          -25
+        ]
+      },
+      "id": "106",
+      "name_key": "salvage.anchor.brick_2x4.socket_106"
+    },
+    {
+      "frame": {
+        "rotation": 2,
+        "translation_ticks": [
+          75,
+          -24,
+          -25
+        ]
+      },
+      "id": "107",
+      "name_key": "salvage.anchor.brick_2x4.socket_107"
+    },
+    {
+      "frame": {
+        "rotation": 0,
+        "translation_ticks": [
+          -75,
+          24,
+          25
+        ]
+      },
+      "id": "108",
+      "name_key": "salvage.anchor.brick_2x4.socket_108"
+    },
+    {
+      "frame": {
+        "rotation": 2,
+        "translation_ticks": [
+          -75,
+          -24,
+          25
+        ]
+      },
+      "id": "109",
+      "name_key": "salvage.anchor.brick_2x4.socket_109"
+    },
+    {
+      "frame": {
+        "rotation": 0,
+        "translation_ticks": [
+          -25,
+          24,
+          25
+        ]
+      },
+      "id": "110",
+      "name_key": "salvage.anchor.brick_2x4.socket_110"
+    },
+    {
+      "frame": {
+        "rotation": 2,
+        "translation_ticks": [
+          -25,
+          -24,
+          25
+        ]
+      },
+      "id": "111",
+      "name_key": "salvage.anchor.brick_2x4.socket_111"
+    },
+    {
+      "frame": {
+        "rotation": 0,
+        "translation_ticks": [
+          25,
+          24,
+          25
+        ]
+      },
+      "id": "112",
+      "name_key": "salvage.anchor.brick_2x4.socket_112"
+    },
+    {
+      "frame": {
+        "rotation": 2,
+        "translation_ticks": [
+          25,
+          -24,
+          25
+        ]
+      },
+      "id": "113",
+      "name_key": "salvage.anchor.brick_2x4.socket_113"
+    },
+    {
+      "frame": {
+        "rotation": 0,
+        "translation_ticks": [
+          75,
+          24,
+          25
+        ]
+      },
+      "id": "114",
+      "name_key": "salvage.anchor.brick_2x4.socket_114"
+    },
+    {
+      "frame": {
+        "rotation": 2,
+        "translation_ticks": [
+          75,
+          -24,
+          25
+        ]
+      },
+      "id": "115",
+      "name_key": "salvage.anchor.brick_2x4.socket_115"
+    },
+    {
+      "frame": {
+        "rotation": 23,
+        "translation_ticks": [
+          -75,
+          -24,
+          -25
+        ]
+      },
+      "id": "1001",
+      "name_key": "salvage.anchor.brick_2x4.socket_1001"
+    },
+    {
+      "frame": {
+        "rotation": 14,
+        "translation_ticks": [
+          -75,
+          -24,
+          -25
+        ]
+      },
+      "id": "1002",
+      "name_key": "salvage.anchor.brick_2x4.socket_1002"
+    },
+    {
+      "frame": {
+        "rotation": 11,
+        "translation_ticks": [
+          -75,
+          -24,
+          -25
+        ]
+      },
+      "id": "1003",
+      "name_key": "salvage.anchor.brick_2x4.socket_1003"
+    },
+    {
+      "frame": {
+        "rotation": 23,
+        "translation_ticks": [
+          -25,
+          -24,
+          -25
+        ]
+      },
+      "id": "1005",
+      "name_key": "salvage.anchor.brick_2x4.socket_1005"
+    },
+    {
+      "frame": {
+        "rotation": 14,
+        "translation_ticks": [
+          -25,
+          -24,
+          -25
+        ]
+      },
+      "id": "1006",
+      "name_key": "salvage.anchor.brick_2x4.socket_1006"
+    },
+    {
+      "frame": {
+        "rotation": 11,
+        "translation_ticks": [
+          -25,
+          -24,
+          -25
+        ]
+      },
+      "id": "1007",
+      "name_key": "salvage.anchor.brick_2x4.socket_1007"
+    },
+    {
+      "frame": {
+        "rotation": 23,
+        "translation_ticks": [
+          25,
+          -24,
+          -25
+        ]
+      },
+      "id": "1009",
+      "name_key": "salvage.anchor.brick_2x4.socket_1009"
+    },
+    {
+      "frame": {
+        "rotation": 14,
+        "translation_ticks": [
+          25,
+          -24,
+          -25
+        ]
+      },
+      "id": "1010",
+      "name_key": "salvage.anchor.brick_2x4.socket_1010"
+    },
+    {
+      "frame": {
+        "rotation": 11,
+        "translation_ticks": [
+          25,
+          -24,
+          -25
+        ]
+      },
+      "id": "1011",
+      "name_key": "salvage.anchor.brick_2x4.socket_1011"
+    },
+    {
+      "frame": {
+        "rotation": 23,
+        "translation_ticks": [
+          75,
+          -24,
+          -25
+        ]
+      },
+      "id": "1013",
+      "name_key": "salvage.anchor.brick_2x4.socket_1013"
+    },
+    {
+      "frame": {
+        "rotation": 14,
+        "translation_ticks": [
+          75,
+          -24,
+          -25
+        ]
+      },
+      "id": "1014",
+      "name_key": "salvage.anchor.brick_2x4.socket_1014"
+    },
+    {
+      "frame": {
+        "rotation": 11,
+        "translation_ticks": [
+          75,
+          -24,
+          -25
+        ]
+      },
+      "id": "1015",
+      "name_key": "salvage.anchor.brick_2x4.socket_1015"
+    },
+    {
+      "frame": {
+        "rotation": 23,
+        "translation_ticks": [
+          -75,
+          -24,
+          25
+        ]
+      },
+      "id": "1017",
+      "name_key": "salvage.anchor.brick_2x4.socket_1017"
+    },
+    {
+      "frame": {
+        "rotation": 14,
+        "translation_ticks": [
+          -75,
+          -24,
+          25
+        ]
+      },
+      "id": "1018",
+      "name_key": "salvage.anchor.brick_2x4.socket_1018"
+    },
+    {
+      "frame": {
+        "rotation": 11,
+        "translation_ticks": [
+          -75,
+          -24,
+          25
+        ]
+      },
+      "id": "1019",
+      "name_key": "salvage.anchor.brick_2x4.socket_1019"
+    },
+    {
+      "frame": {
+        "rotation": 23,
+        "translation_ticks": [
+          -25,
+          -24,
+          25
+        ]
+      },
+      "id": "1021",
+      "name_key": "salvage.anchor.brick_2x4.socket_1021"
+    },
+    {
+      "frame": {
+        "rotation": 14,
+        "translation_ticks": [
+          -25,
+          -24,
+          25
+        ]
+      },
+      "id": "1022",
+      "name_key": "salvage.anchor.brick_2x4.socket_1022"
+    },
+    {
+      "frame": {
+        "rotation": 11,
+        "translation_ticks": [
+          -25,
+          -24,
+          25
+        ]
+      },
+      "id": "1023",
+      "name_key": "salvage.anchor.brick_2x4.socket_1023"
+    },
+    {
+      "frame": {
+        "rotation": 23,
+        "translation_ticks": [
+          25,
+          -24,
+          25
+        ]
+      },
+      "id": "1025",
+      "name_key": "salvage.anchor.brick_2x4.socket_1025"
+    },
+    {
+      "frame": {
+        "rotation": 14,
+        "translation_ticks": [
+          25,
+          -24,
+          25
+        ]
+      },
+      "id": "1026",
+      "name_key": "salvage.anchor.brick_2x4.socket_1026"
+    },
+    {
+      "frame": {
+        "rotation": 11,
+        "translation_ticks": [
+          25,
+          -24,
+          25
+        ]
+      },
+      "id": "1027",
+      "name_key": "salvage.anchor.brick_2x4.socket_1027"
+    },
+    {
+      "frame": {
+        "rotation": 23,
+        "translation_ticks": [
+          75,
+          -24,
+          25
+        ]
+      },
+      "id": "1029",
+      "name_key": "salvage.anchor.brick_2x4.socket_1029"
+    },
+    {
+      "frame": {
+        "rotation": 14,
+        "translation_ticks": [
+          75,
+          -24,
+          25
+        ]
+      },
+      "id": "1030",
+      "name_key": "salvage.anchor.brick_2x4.socket_1030"
+    },
+    {
+      "frame": {
+        "rotation": 11,
+        "translation_ticks": [
+          75,
+          -24,
+          25
+        ]
+      },
+      "id": "1031",
+      "name_key": "salvage.anchor.brick_2x4.socket_1031"
+    }
+  ],
+  "units": {
+    "angle": "radians",
+    "length": "metres",
+    "mass": "kilograms",
+    "time": "seconds"
+  }
+}
