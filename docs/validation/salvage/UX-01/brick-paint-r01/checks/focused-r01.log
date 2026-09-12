@@ -1,0 +1,52 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: target //tests:voxy_tests (0 packages loaded, 0 targets configured)
+Analyzing: target //tests:voxy_tests (0 packages loaded, 0 targets configured)
+
+Analyzing: target //tests:voxy_tests (0 packages loaded, 0 targets configured)
+
+INFO: Analyzed target //tests:voxy_tests (3 packages loaded, 405 targets configured).
+[550 / 677] Compiling src/app/debug_overlay.cpp; 1s linux-sandbox ... (24 actions running)
+[551 / 677] Compiling src/app/debug_overlay.cpp; 2s linux-sandbox ... (24 actions, 23 running)
+[560 / 677] Compiling tests/test_wreckwater_authority_runtime.cpp; 3s linux-sandbox ... (24 actions, 23 running)
+[566 / 677] Compiling tests/test_wreckwater_authority_runtime.cpp; 4s linux-sandbox ... (24 actions, 23 running)
+[570 / 677] Compiling tests/test_wreckwater_authority_runtime.cpp; 5s linux-sandbox ... (24 actions, 23 running)
+[577 / 677] Compiling tests/test_wreckwater_authority_runtime.cpp; 6s linux-sandbox ... (24 actions, 23 running)
+[586 / 677] Compiling tests/test_wreckwater_authority_runtime.cpp; 8s linux-sandbox ... (24 actions running)
+[589 / 677] Compiling tests/test_fixture_registry.cpp; 9s linux-sandbox ... (24 actions running)
+[598 / 677] Compiling tests/test_fixture_registry.cpp; 10s linux-sandbox ... (24 actions running)
+[602 / 677] Compiling tests/test_fixture_registry.cpp; 11s linux-sandbox ... (24 actions, 23 running)
+[609 / 677] Compiling src/app/application.cpp; 12s linux-sandbox ... (24 actions, 23 running)
+[616 / 677] Compiling src/app/application.cpp; 13s linux-sandbox ... (24 actions, 23 running)
+[622 / 677] Compiling src/app/application.cpp; 14s linux-sandbox ... (24 actions, 23 running)
+[626 / 677] Compiling src/app/application.cpp; 15s linux-sandbox ... (24 actions, 23 running)
+[630 / 677] Compiling src/app/application.cpp; 16s linux-sandbox ... (24 actions, 23 running)
+[637 / 677] Compiling src/app/application.cpp; 18s linux-sandbox ... (24 actions running)
+[640 / 677] Compiling src/app/application.cpp; 19s linux-sandbox ... (24 actions running)
+[642 / 677] Compiling src/app/application.cpp; 20s linux-sandbox ... (24 actions, 23 running)
+[650 / 677] Compiling src/app/application.cpp; 21s linux-sandbox ... (24 actions, 23 running)
+[656 / 677] Compiling src/app/application.cpp; 23s linux-sandbox ... (18 actions running)
+[660 / 677] Compiling src/app/application.cpp; 24s linux-sandbox ... (14 actions running)
+[670 / 677] Compiling src/app/application.cpp; 26s linux-sandbox ... (4 actions running)
+[673 / 677] Compiling tests/test_cove_player.cpp; 14s linux-sandbox ... (3 actions running)
+[674 / 677] Compiling tests/test_cove_player.cpp; 16s linux-sandbox ... (2 actions running)
+[675 / 677] Compiling tests/test_cove_player.cpp; 18s linux-sandbox
+[676 / 677] Linking tests/voxy_tests; 0s linux-sandbox
+[677 / 678] Testing //tests:voxy_tests; 1s linux-sandbox
+[677 / 678] 1 / 1 tests; Testing //tests:voxy_tests; 2s linux-sandbox
+INFO: Found 1 test target...
+Target //tests:voxy_tests up-to-date:
+  bazel-bin/tests/voxy_tests
+INFO: Elapsed time: 37.277s, Critical Path: 29.78s
+INFO: 132 processes: 546 action cache hit, 8 internal, 124 linux-sandbox.
+INFO: Build completed successfully, 132 total actions
+//tests:voxy_tests                                                       PASSED in 2.9s
+
+Executed 1 out of 1 test: 1 test passes.
+There were tests whose specified size is too big. Use the --test_verbose_timeout_warnings command line option to see which ones these are.

@@ -25,7 +25,9 @@ function fixture(asset = false, workshop = false) {
     if(workshop) {
         for(const name of ['Brick 1 x 2','Brick 2 x 2','Brick 2 x 4'])workshopButtons.push(
             Object.assign(new Element(),{dataset:{workshopAction:'-1',workshopBrick:name}}));
-        for(const id of ['voxy-canvas','salvage-workshop','salvage-workshop-toggle','salvage-workshop-part','salvage-workshop-status','salvage-workshop-tool','salvage-scope','salvage-workshop-stock','workshop-catalog-name','workshop-settings-note','workshop-recovery-status'])elements[id]=new Element();
+        for(let index=0;index<8;++index)workshopButtons.push(
+            Object.assign(new Element(),{dataset:{workshopAction:String(200+index),workshopPaint:String(index)}}));
+        for(const id of ['voxy-canvas','salvage-workshop','salvage-workshop-toggle','salvage-workshop-part','salvage-workshop-status','salvage-workshop-tool','salvage-scope','salvage-workshop-stock','workshop-catalog-name','workshop-settings-note','workshop-recovery-status','workshop-paint-name','workshop-paint-note'])elements[id]=new Element();
         elements['salvage-workshop'].querySelectorAll=()=>workshopButtons;
     }
     let state = { active: true, ready: true, busy: false, failed: false, resets: 0 };
@@ -48,6 +50,56 @@ function fixture(asset = false, workshop = false) {
     const cleanup = install(engine, environment);
     return { elements, lodButtons, guideButtons, workshopButtons, actions, navigations, engine, cleanup, tick: () => tick(),
         state: update => Object.assign(state, update), pagehide: () => events.get('pagehide')?.(), event:name=>events.get(name)?.(), events, cleared: () => cleared };
+}
+{
+    const f=fixture(true,true);
+    const w={open:true,canOpen:true,name:'Brick 2 x 4',selected:27,valid:true,changed:true,undo:2,
+        catalogName:'Brick 2 x 4',massKg:1060,parts:13,placedParts:12,placedBricks:2,
+        brickTool:true,canPaint:true,paintIndex:3,paintName:'Blue',paint:[50,108,190,255],
+        brushPaint:[50,108,190,255],materials:'48',charge:'10'};
+    const paints=f.workshopButtons.filter(b=>b.dataset.workshopPaint!==undefined);
+    f.state({workshop:w});f.tick();
+    assert.equal(paints.length,8);assert(paints.every(b=>!b.disabled));
+    assert.deepEqual(paints.map(b=>b.attributes.get('aria-pressed')),['false','false','false','true','false','false','false','false']);
+    assert.equal(f.elements['workshop-paint-name'].textContent,'Paint · Blue');
+    assert.match(f.elements['workshop-paint-note'].textContent,/Paint is free.*Next bricks use this color/);
+    for(const button of paints)button.click();
+    assert.deepEqual(f.actions,[200,201,202,203,204,205,206,207]);
+    assert.equal(f.elements['voxy-canvas'].focused,8,'each brush paint choice returns rotation keys to the canvas');
+    assert.match(f.elements['salvage-workshop-stock'].textContent,/Launch: 10 material/,'painting does not add a browser-side charge');
+    f.state({workshop:{...w,brushPaint:undefined,paintIndex:null,paintName:'Custom',paint:[15,90,117,255]}});f.tick();
+    assert(paints.every(b=>b.attributes.get('aria-pressed')==='false'),'custom stored colors must not select Original');
+    assert.equal(f.elements['workshop-paint-name'].textContent,'Paint · Custom');
+    assert.match(f.elements['workshop-paint-note'].textContent,/Choose a color for new bricks/);
+    f.cleanup();assert(paints.every(b=>b.listeners.size===0));
+    console.log('Brick paint brush: eight actions, exact selection, custom colors and keyboard focus: 1 case passed');
+}
+{
+    const f=fixture(true,true);
+    const w={open:true,canOpen:true,name:'Brick 1 x 2',selected:25,valid:true,changed:false,undo:0,
+        massKg:1040,parts:11,brickTool:false,canPaint:true,paintIndex:0,paintName:'Original',paint:[255,255,255,255]};
+    const paints=f.workshopButtons.filter(b=>b.dataset.workshopPaint!==undefined);
+    const keep=f.workshopButtons.find(b=>b.dataset.workshopAction==='71');
+    f.state({workshop:w});f.tick();
+    assert.equal(paints[0].attributes.get('aria-pressed'),'true');
+    assert.match(f.elements['workshop-paint-note'].textContent,/Paint is free.*then Keep/);
+    paints[2].click();assert.deepEqual(f.actions,[202]);assert(keep.disabled);
+    assert.equal(f.elements['voxy-canvas'].focused,0,'painting an existing brick leaves focus among edit controls');
+    f.state({workshop:{...w,changed:true,paintIndex:2,paintName:'Teal'}});f.tick();
+    assert(!keep.disabled);keep.click();assert.deepEqual(f.actions,[202,71]);
+    for(const blocked of [{canPaint:false},{canPaint:undefined},{pending:true}]){
+        f.state({workshop:{...w,...blocked}});f.tick();
+        assert(paints.every(b=>b.disabled));for(const button of paints)button.click();
+        if(!blocked.pending)assert(paints.every(b=>b.attributes.get('aria-pressed')==='false'));
+    }
+    assert.deepEqual(f.actions,[202,71],'unsupported parts, missing capability and pending launch cannot submit paint');
+    f.state({workshop:w});f.tick();
+    f.engine._voxy_salvage_preview_action=()=>0;paints[5].click();
+    assert.equal(paints[0].attributes.get('aria-pressed'),'true','refused paint does not optimistically change selected color');
+    f.state({workshop:{...w,canPaint:false}});f.tick();
+    assert.match(f.elements['workshop-paint-note'].textContent,/Choose a brick to paint/);
+    f.cleanup();assert(paints.every(b=>b.listeners.size===0));
+    console.log('Brick paint editing: Keep, permission gating, refusal and cleanup: 1 case passed');
 }
 {
     const f=fixture(true,true);

@@ -1,0 +1,667 @@
+{
+  "schema": 1,
+  "status": "offline presentation candidate; runtime admission and visual review remain",
+  "original_metadata": "data/salvage/material-calibration/r04/kit/helm/source/helm.gameplay.json",
+  "original_metadata_sha256": "ee96dfa75d55f6c99c909b5d2fad048a9d37b1666aac05040bb8695aa18a9ace",
+  "canonical_part_unchanged": true,
+  "baseline_bounds": {
+    "minimum": [
+      -0.5,
+      -0.47999998927116394,
+      -0.5
+    ],
+    "maximum": [
+      0.5,
+      0.4569999873638153,
+      0.5
+    ]
+  },
+  "maximum_bounds_expansion_metres": 0.02,
+  "blender_version": "5.2.1 LTS",
+  "blender_build_hash": "9e2066aef7ef",
+  "palette_srgb": {
+    "cream": "F0DDB2",
+    "teal": "197D86",
+    "coral": "ED7942",
+    "slate": "253D53",
+    "steel": "B5C3BE",
+    "rubber": "25363A"
+  },
+  "lods": [
+    {
+      "lod": 0,
+      "vertices": 2728,
+      "triangles": 5224,
+      "draws": 6,
+      "bounds": {
+        "minimum": [
+          -0.5,
+          -0.47999998927116394,
+          -0.5
+        ],
+        "maximum": [
+          0.5,
+          0.4569999873638153,
+          0.5
+        ]
+      },
+      "geometry": {
+        "degenerate_faces": 0,
+        "nonmanifold_edges": 0,
+        "summed_component_volume_m3": 0.3379444689669133,
+        "interface_checks": {},
+        "metric_uv": null,
+        "surface_shading": [
+          {
+            "component": "console_foot",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 42,
+            "minimum_face_alignment": 0.8400260135531425,
+            "maximum_unit_length_error": 8.985443455955533e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "console_column",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 29,
+            "minimum_face_alignment": 0.8177102208137321,
+            "maximum_unit_length_error": 1.0532675687180415e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "console_head",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8578083739075737,
+            "maximum_unit_length_error": 1.2111546099369264e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "dashboard_teal_inset",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8578060893742077,
+            "maximum_unit_length_error": 1.2126223403186032e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "gauge_bezel",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.9159861351781728,
+            "maximum_unit_length_error": 1.585834927819718e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "gauge_face",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.9159876942630945,
+            "maximum_unit_length_error": 1.2470382326768004e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "gauge_needle",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8577949679424819,
+            "maximum_unit_length_error": 1.2017905226535675e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "gauge_bezel.001",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.9159897063509561,
+            "maximum_unit_length_error": 1.2877186672533014e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "gauge_face.001",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.9159897624394944,
+            "maximum_unit_length_error": 1.2111330160990974e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "gauge_needle.001",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8577933091378327,
+            "maximum_unit_length_error": 1.1953652911955714e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "steering_wheel",
+            "method": "analytic torus normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.9200678840279579,
+            "maximum_unit_length_error": 1.6018746995527522e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "steering_hub",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.9159909656500531,
+            "maximum_unit_length_error": 1.217872656056329e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "wheel_crossbar",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.857809208987419,
+            "maximum_unit_length_error": 1.2115504466336802e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "wheel_lower_spoke",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8578064507473755,
+            "maximum_unit_length_error": 1.2115598813089434e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "wheel_orange_cap",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.9159921724713058,
+            "maximum_unit_length_error": 1.2290290851701968e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "console_side_inset",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8577955548535101,
+            "maximum_unit_length_error": 1.215467644311019e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "console_side_boss",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.9159923394381622,
+            "maximum_unit_length_error": 1.2294081153108039e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "foot_molded_stud",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.9159858171806263,
+            "maximum_unit_length_error": 1.3622075878405582e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "foot_molded_stud.001",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.9159877215661254,
+            "maximum_unit_length_error": 1.3622075878405582e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "console_side_inset.001",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8578066168438454,
+            "maximum_unit_length_error": 1.215240057472755e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "console_side_boss.001",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.9159923736096971,
+            "maximum_unit_length_error": 1.2262111859229208e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "foot_molded_stud.002",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.9159877215661254,
+            "maximum_unit_length_error": 1.3622075878405582e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "foot_molded_stud.003",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.915987691763803,
+            "maximum_unit_length_error": 1.3622075878405582e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "column_badge",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8578075920149786,
+            "maximum_unit_length_error": 1.216315144159097e-07,
+            "positions_unchanged": true
+          }
+        ],
+        "volume_note": "Decorative components can intersect; this sum is not displacement."
+      },
+      "source_sha256": "f4f2378ca9affa738b18380e881975bad44147a1df1944d5ef9b434616a31c9b"
+    },
+    {
+      "lod": 1,
+      "vertices": 1104,
+      "triangles": 2040,
+      "draws": 6,
+      "bounds": {
+        "minimum": [
+          -0.5,
+          -0.47999998927116394,
+          -0.5
+        ],
+        "maximum": [
+          0.5,
+          0.4569999873638153,
+          0.5
+        ]
+      },
+      "geometry": {
+        "degenerate_faces": 0,
+        "nonmanifold_edges": 0,
+        "summed_component_volume_m3": 0.3291237636251116,
+        "interface_checks": {},
+        "metric_uv": null,
+        "surface_shading": [
+          {
+            "component": "console_foot",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 26,
+            "minimum_face_alignment": 0.6374250575900078,
+            "maximum_unit_length_error": 7.450580874479584e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "console_column",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 17,
+            "minimum_face_alignment": 0.64057089202106,
+            "maximum_unit_length_error": 8.079223623447263e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "console_head",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.5773474124061977,
+            "maximum_unit_length_error": 1.19351242000576e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "dashboard_teal_inset",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.5773453950323528,
+            "maximum_unit_length_error": 1.1907345720540974e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "gauge_bezel",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.6935338954572217,
+            "maximum_unit_length_error": 1.2028179652290305e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "gauge_face",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.6935346945319907,
+            "maximum_unit_length_error": 1.2034558860563038e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "gauge_needle",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.5773405388199535,
+            "maximum_unit_length_error": 1.1908831465401448e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "gauge_bezel.001",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.693534131261913,
+            "maximum_unit_length_error": 1.203136876792854e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "gauge_face.001",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.6935344537760102,
+            "maximum_unit_length_error": 1.2027220308574726e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "gauge_needle.001",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.5773405302165884,
+            "maximum_unit_length_error": 5.948955805745726e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "steering_wheel",
+            "method": "analytic torus normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.857973039150238,
+            "maximum_unit_length_error": 1.443550095014956e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "steering_hub",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.6935448451222328,
+            "maximum_unit_length_error": 1.2079393507669067e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "wheel_crossbar",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.5773465318789022,
+            "maximum_unit_length_error": 1.1905581598359305e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "wheel_lower_spoke",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.5773462909551199,
+            "maximum_unit_length_error": 5.947235681702523e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "wheel_orange_cap",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.6935449776729001,
+            "maximum_unit_length_error": 1.2097727708493267e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "console_side_inset",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.5773457998452614,
+            "maximum_unit_length_error": 5.947331671585232e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "foot_molded_stud",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.6935352994842106,
+            "maximum_unit_length_error": 1.2028408202802154e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "foot_molded_stud.001",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.6935347362850734,
+            "maximum_unit_length_error": 1.20307267259534e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "console_side_inset.001",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.5773457015261556,
+            "maximum_unit_length_error": 1.1902008600905845e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "foot_molded_stud.002",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.6935347362850734,
+            "maximum_unit_length_error": 1.1814139022625625e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "foot_molded_stud.003",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.6935352994842106,
+            "maximum_unit_length_error": 1.203052795162307e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "column_badge",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.5773466946880035,
+            "maximum_unit_length_error": 1.1907678565403756e-07,
+            "positions_unchanged": true
+          }
+        ],
+        "volume_note": "Decorative components can intersect; this sum is not displacement."
+      },
+      "source_sha256": "df49920dcbec3dac808bc0c8ceb0c3813ab1a3d2f7a113ddb0a0091903957268"
+    },
+    {
+      "lod": 2,
+      "vertices": 718,
+      "triangles": 604,
+      "draws": 6,
+      "bounds": {
+        "minimum": [
+          -0.5,
+          -0.47999998927116394,
+          -0.5
+        ],
+        "maximum": [
+          0.5,
+          0.4569999873638153,
+          0.5
+        ]
+      },
+      "geometry": {
+        "degenerate_faces": 0,
+        "nonmanifold_edges": 0,
+        "summed_component_volume_m3": 0.33589146209296933,
+        "interface_checks": {},
+        "metric_uv": null,
+        "surface_shading": [
+          {
+            "component": "console_foot",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 30,
+            "minimum_face_alignment": 0.9999998807907104,
+            "maximum_unit_length_error": 5.960464655174746e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "console_column",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 21,
+            "minimum_face_alignment": 0.9999998807907104,
+            "maximum_unit_length_error": 4.470348458074369e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "console_head",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 12,
+            "minimum_face_alignment": 0.9999998807907104,
+            "maximum_unit_length_error": 5.960464655174746e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "dashboard_teal_inset",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 12,
+            "minimum_face_alignment": 0.9999999403953552,
+            "maximum_unit_length_error": 0.0,
+            "positions_unchanged": true
+          },
+          {
+            "component": "gauge_bezel",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 20,
+            "minimum_face_alignment": 0.9510563313961029,
+            "maximum_unit_length_error": 8.940697115988883e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "gauge_face",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 20,
+            "minimum_face_alignment": 0.9510563067575788,
+            "maximum_unit_length_error": 7.450580874479584e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "gauge_bezel.001",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 20,
+            "minimum_face_alignment": 0.9510563313961029,
+            "maximum_unit_length_error": 8.940697115988883e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "gauge_face.001",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 20,
+            "minimum_face_alignment": 0.9510563067575788,
+            "maximum_unit_length_error": 7.450580874479584e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "steering_wheel",
+            "method": "analytic torus normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.6947129387999667,
+            "maximum_unit_length_error": 1.198158143811412e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "steering_hub",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 20,
+            "minimum_face_alignment": 0.9510563313961029,
+            "maximum_unit_length_error": 5.960464655174746e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "wheel_crossbar",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 12,
+            "minimum_face_alignment": 1.0,
+            "maximum_unit_length_error": 0.0,
+            "positions_unchanged": true
+          },
+          {
+            "component": "wheel_lower_spoke",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 12,
+            "minimum_face_alignment": 1.0,
+            "maximum_unit_length_error": 0.0,
+            "positions_unchanged": true
+          },
+          {
+            "component": "wheel_orange_cap",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 20,
+            "minimum_face_alignment": 0.9510562717914581,
+            "maximum_unit_length_error": 7.450580874479584e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "console_side_inset",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 12,
+            "minimum_face_alignment": 0.9999999403953552,
+            "maximum_unit_length_error": 0.0,
+            "positions_unchanged": true
+          },
+          {
+            "component": "foot_molded_stud",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 20,
+            "minimum_face_alignment": 0.9510563313961029,
+            "maximum_unit_length_error": 2.9802321943606103e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "foot_molded_stud.001",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 20,
+            "minimum_face_alignment": 0.9510563313961029,
+            "maximum_unit_length_error": 2.9802321943606103e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "console_side_inset.001",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 12,
+            "minimum_face_alignment": 0.9999999403953552,
+            "maximum_unit_length_error": 0.0,
+            "positions_unchanged": true
+          },
+          {
+            "component": "foot_molded_stud.002",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 20,
+            "minimum_face_alignment": 0.9510563313961029,
+            "maximum_unit_length_error": 2.9802321943606103e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "foot_molded_stud.003",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 20,
+            "minimum_face_alignment": 0.9510563313961029,
+            "maximum_unit_length_error": 2.9802321943606103e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "column_badge",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 12,
+            "minimum_face_alignment": 1.0,
+            "maximum_unit_length_error": 0.0,
+            "positions_unchanged": true
+          }
+        ],
+        "volume_note": "Decorative components can intersect; this sum is not displacement."
+      },
+      "source_sha256": "3657162fcfb5843d1674b5727ba6761ae340b6f9f3e8225c45e2b39da8fdfc2a"
+    }
+  ],
+  "inputs": {
+    "tools/salvage_assets/author_functional_kit.py": "17d8ec95739accb369f7df65303631b012d2bfdf8ea90b466cb74ca6e89cd163",
+    "tools/salvage_assets/author_cove_toy_art.py": "d849f129f076510c313d3de6b31534ce5c2200b13a8b667b2b48baf494717f6b",
+    "tools/salvage_assets/author_pontoon.py": "65142b372f2ec48eec8d994c751dca8b3263f492da39e27393e4d615242ce4b5",
+    "tools/salvage_assets/pontoon_parameters.py": "348dd03c4f49009f14d8b430728b87925458a27f8a4db1923cffce93b8e4260a",
+    "tools/salvage_assets/surface_shading.py": "b53656d0c42cf0f934fd65a7ccb0c528539da794a8482265809e5189bab19720",
+    "tools/salvage_assets/metric_materials.py": "e4d31cdf8ee8bf46dab081589f6f5aa876eb984801416dc8e4e0feb5f6af32f5",
+    "tools/salvage_assets/authoring_probe.py": "81edf36885bedff0f51380c89213094dad908d9287bbfd74987e363d392edbc0",
+    "tools/salvage_assets/author_cove_machinery_art.py": "a0078cddb9b237c6f2dde68a233ac9cfbf1b82d3e0239e9abc07d36745a42a7e"
+  },
+  "provenance": "Original procedural geometry and solid PBR factors. No external models, image textures, UV charts or rendered captures.",
+  "limitations": [
+    "Static mechanical presentation; wheel/drum animation is not implemented.",
+    "Geometry checks and cook do not establish visual approval or runtime gameplay acceptance."
+  ],
+  "metadata_correction": {
+    "reason": "Use a stable installed recipe path instead of the staging-directory path.",
+    "recipe_sha256_at_authoring": "daf9ac3cc70575a49264b0ac60a951197d545a2de8450e1a793109c19ca43eb8",
+    "scope": "Provenance key and recipe hashing only; geometry, source GLBs, Blender files and cooked manifests are unchanged."
+  }
+}

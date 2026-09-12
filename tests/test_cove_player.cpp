@@ -243,9 +243,11 @@ TEST_F(CoveMovement, BrickToolUsesEachStoredPartOnceAndDoesNotReserveItsFinalPre
     ASSERT_TRUE(workshop->valid())<<workshop->message();
     const auto first=workshop->selected();const auto frame=workshop->preview().registry.placements[first].placement;
     EXPECT_EQ(workshop->preview().registry.placements[first].paint,paid.paint);
+    EXPECT_EQ(workshop->currentPaint(),paid.paint);EXPECT_FALSE(workshop->paintIndex());EXPECT_FALSE(workshop->brushPaint());
     const auto* next=availableCoveStoredPart(workshop->preview(),*owned,stock,key);ASSERT_NE(next,nullptr);EXPECT_EQ(next->id,other.id);
     ASSERT_TRUE(workshop->placeBrickTool(next));
     EXPECT_EQ(workshop->preview().registry.placements[workshop->selected()].paint,other.paint);
+    EXPECT_EQ(workshop->currentPaint(),other.paint);EXPECT_FALSE(workshop->paintIndex());EXPECT_FALSE(workshop->brushPaint());
     (void)workshop->aimAt({first,glm::dvec3(frame.translation.x,frame.translation.y,frame.translation.z)*.02+glm::dvec3(0,.66,0)});
     ASSERT_TRUE(workshop->valid())<<workshop->message();
     EXPECT_EQ(availableCoveStoredPart(workshop->preview(),*owned,stock,key),nullptr);
@@ -259,6 +261,132 @@ TEST_F(CoveMovement, BrickToolUsesEachStoredPartOnceAndDoesNotReserveItsFinalPre
     for(const auto& source:stock) {
         const auto fitted=std::find_if(plan->after.parts.begin(),plan->after.parts.end(),[&](const auto& part){return part.id==source.id;});ASSERT_NE(fitted,plan->after.parts.end());
         EXPECT_EQ(fitted->paint,source.paint);EXPECT_EQ(fitted->health,source.health);EXPECT_EQ(fitted->settings,source.settings);
+    }
+}
+
+TEST_F(CoveMovement, BrickPaintOnlyKeepUndoAndLaunchPreserveGeometryCostAndIdentity) {
+    using namespace construction;using Action=CoveWorkshop::Action;std::string error;
+    const auto expanded=assets::appendAssetFixtureCatalog(*scene,std::filesystem::canonical("data/salvage/cove-bricks-r02.json"),error);ASSERT_TRUE(expanded)<<error;
+    auto workshop=CoveWorkshop::create(*expanded,error);ASSERT_TRUE(workshop)<<error;
+    const auto unedited=workshop->blueprintBytes(error);ASSERT_FALSE(unedited.empty())<<error;
+    for(const auto slot:expanded->registry.navigation->boatPlacements) {
+        ASSERT_TRUE(workshop->selectPart(slot));EXPECT_FALSE(workshop->canPaint());EXPECT_FALSE(workshop->paintIndex());
+        EXPECT_FALSE(workshop->setPaint(2));EXPECT_FALSE(workshop->changed());EXPECT_FALSE(workshop->brushPaint());
+    }
+    EXPECT_EQ(workshop->blueprintBytes(error),unedited); // Functional modules and structural kits cannot be painted.
+    uint32_t brick=UINT32_MAX;for(uint32_t i=0;i<workshop->catalogCount();++i)if(workshop->catalogNameAt(i)=="Brick 1 x 2")brick=i;
+    ASSERT_TRUE(workshop->selectPart(10));ASSERT_TRUE(workshop->command(Action::Remove));ASSERT_TRUE(workshop->command(Action::Keep));
+    ASSERT_TRUE(workshop->beginBrickTool(brick));ASSERT_TRUE(workshop->valid())<<workshop->message();
+    const auto selected=workshop->selected();ASSERT_TRUE(workshop->command(Action::Keep));
+    ASSERT_TRUE(workshop->canPaint());ASSERT_EQ(workshop->paintIndex(),0u);EXPECT_EQ(workshop->currentPaint(),kOriginalBrickPaint);
+    const auto before=workshop->design();const auto beforeBytes=workshop->blueprintBytes(error);ASSERT_FALSE(beforeBytes.empty())<<error;
+    const auto mass=workshop->massKg();const auto revision=workshop->revision();const auto history=workshop->undoCount();
+    EXPECT_FALSE(workshop->setPaint(8));EXPECT_FALSE(workshop->setPaint(UINT32_MAX));EXPECT_FALSE(workshop->changed());
+    EXPECT_FALSE(workshop->brushPaint());EXPECT_EQ(workshop->revision(),revision);EXPECT_EQ(workshop->undoCount(),history);
+    ASSERT_TRUE(workshop->setPaint(2));EXPECT_EQ(workshop->currentPaint(),kBrickPaintPalette[2].rgba);
+    EXPECT_TRUE(workshop->changed());EXPECT_TRUE(workshop->valid());EXPECT_DOUBLE_EQ(workshop->massKg(),mass);
+    EXPECT_EQ(workshop->preview().registry.placements[selected].placement,before.registry.placements[selected].placement);
+    EXPECT_EQ(workshop->preview().registry.placements[selected].settings,before.registry.placements[selected].settings);
+    EXPECT_EQ(workshop->revision(),revision);EXPECT_EQ(workshop->undoCount(),history);
+    EXPECT_TRUE(workshop->blueprintBytes(error).empty()); // A color-only edit still needs Keep.
+    ASSERT_TRUE(workshop->command(Action::Revert));EXPECT_FALSE(workshop->changed());EXPECT_EQ(workshop->currentPaint(),kOriginalBrickPaint);
+    ASSERT_TRUE(workshop->setPaint(2));ASSERT_TRUE(workshop->command(Action::Keep));
+    EXPECT_FALSE(workshop->changed());EXPECT_EQ(workshop->undoCount(),history+1);EXPECT_FALSE(workshop->matchesDesign(before));
+    const auto paintedBytes=workshop->blueprintBytes(error);ASSERT_FALSE(paintedBytes.empty())<<error;EXPECT_NE(paintedBytes,beforeBytes);
+    ASSERT_TRUE(workshop->command(Action::Undo));EXPECT_EQ(workshop->blueprintBytes(error),beforeBytes);
+    EXPECT_EQ(workshop->currentPaint(),kOriginalBrickPaint);EXPECT_TRUE(workshop->matchesDesign(before));
+    ASSERT_TRUE(workshop->setPaint(2));ASSERT_TRUE(workshop->command(Action::Keep));
+    const WorldNamespace world{{'b','r','i','c','k','-','p','a','i','n','t'}};
+    auto seed=prepareCoveBuild(before,{world,1},4,error);ASSERT_TRUE(seed)<<error;
+    const auto owned=CoveBoatAssembly::compileBuild(seed->build,seed->catalog,seed->placements,error);ASSERT_TRUE(owned)<<error;
+    const auto binding=std::find_if(seed->placements.begin(),seed->placements.end(),[&](const auto& p){return p.placement==selected;});ASSERT_NE(binding,seed->placements.end());
+    const auto quote=quoteCoveDesign(workshop->design(),*owned,seed->catalog);ASSERT_TRUE(quote);
+    EXPECT_EQ(quote->debit,ResourceAmounts{});EXPECT_EQ(quote->credit,ResourceAmounts{});
+    const auto request=prepareCoveRefit(workshop->design(),*owned,seed->catalog,error);ASSERT_TRUE(request)<<error;
+    BuildIssue issue;const auto model=BuildModel::create(seed->build,seed->catalog,issue);ASSERT_TRUE(model);auto issued=seed->issuedThrough;
+    const auto plan=prepareBuildRefit(*model,*request->design,seed->catalog,[&]{return DurableId{world,++issued};},issue);ASSERT_TRUE(plan)<<issue.field;
+    EXPECT_EQ(plan->debit,ResourceAmounts{});EXPECT_EQ(plan->credit,ResourceAmounts{});EXPECT_EQ(issued,seed->issuedThrough);
+    ASSERT_TRUE(plan->delta);EXPECT_EQ(plan->delta->parts().size(),1u);EXPECT_TRUE(plan->delta->welds().empty());EXPECT_TRUE(plan->createdIds.empty());
+    ASSERT_EQ(plan->after.parts.size(),seed->build.parts.size());
+    for(auto expected:seed->build.parts) {
+        if(expected.id==binding->id)expected.paint=kBrickPaintPalette[2].rgba;
+        const auto fitted=std::find_if(plan->after.parts.begin(),plan->after.parts.end(),[&](const auto& p){return p.id==expected.id;});ASSERT_NE(fitted,plan->after.parts.end());
+        EXPECT_EQ(*fitted,expected); // Identity, health, provenance, settings and placement stay exact.
+    }
+    std::vector<std::byte> saved;ASSERT_FALSE(encodeBuild(plan->after,seed->catalog,saved));
+    std::optional<BuildModel> decoded;ASSERT_FALSE(decodeBuild(saved,seed->catalog,decoded));ASSERT_TRUE(decoded);
+    const auto mapped=prepareCoveLaunchDesign(before,decoded->snapshot(),seed->placements,error);ASSERT_TRUE(mapped)<<error;
+    auto reopened=CoveWorkshop::create(mapped->scene,error);ASSERT_TRUE(reopened)<<error;
+    ASSERT_TRUE(reopened->selectPart(selected));EXPECT_EQ(reopened->paintIndex(),2u);EXPECT_EQ(reopened->currentPaint(),kBrickPaintPalette[2].rgba);
+    EXPECT_FALSE(reopened->brushPaint());EXPECT_EQ(reopened->blueprintBytes(error),paintedBytes);
+    ASSERT_TRUE(reopened->setPaint(0));EXPECT_TRUE(reopened->changed());EXPECT_EQ(reopened->currentPaint(),kOriginalBrickPaint);
+    ASSERT_TRUE(reopened->command(Action::Keep));EXPECT_EQ(reopened->blueprintBytes(error),beforeBytes);
+    ASSERT_TRUE(reopened->setPaint(0));EXPECT_FALSE(reopened->changed()); // Explicit Original can be selected even when already original.
+    EXPECT_EQ(reopened->brushPaint(),std::optional<BrickPaint>(kOriginalBrickPaint));
+    ASSERT_TRUE(reopened->loadBlueprint(paintedBytes,error))<<error;ASSERT_TRUE(reopened->selectPart(selected));
+    EXPECT_EQ(reopened->paintIndex(),2u);EXPECT_EQ(reopened->blueprintBytes(error),paintedBytes);
+    EXPECT_EQ(reopened->brushPaint(),std::optional<BrickPaint>(kOriginalBrickPaint)); // Loading preserves saved paint, not the active brush color.
+}
+
+TEST_F(CoveMovement, BrickPaintBrushCarriesExplicitColorAcrossPlacementsAndTypes) {
+    using namespace construction;using Action=CoveWorkshop::Action;std::string error;
+    const auto expanded=assets::appendAssetFixtureCatalog(*scene,std::filesystem::canonical("data/salvage/cove-bricks-r02.json"),error);ASSERT_TRUE(expanded)<<error;
+    auto workshop=CoveWorkshop::create(*expanded,error);ASSERT_TRUE(workshop)<<error;
+    const auto index=[&](std::string_view name){for(uint32_t i=0;i<workshop->catalogCount();++i)if(workshop->catalogNameAt(i)==name)return i;return UINT32_MAX;};
+    ASSERT_TRUE(workshop->selectPart(10));ASSERT_TRUE(workshop->command(Action::Remove));ASSERT_TRUE(workshop->command(Action::Keep));
+    ASSERT_TRUE(workshop->beginBrickTool(index("Brick 2 x 4")));ASSERT_TRUE(workshop->canPaint());ASSERT_TRUE(workshop->setPaint(3));
+    const auto first=workshop->selected();const auto frame=workshop->preview().registry.placements[first].placement;
+    ASSERT_TRUE(workshop->placeBrickTool());ASSERT_TRUE(workshop->brickToolActive());EXPECT_EQ(workshop->paintIndex(),3u);
+    EXPECT_EQ(workshop->design().registry.placements[first].paint,kBrickPaintPalette[3].rgba);
+    ASSERT_TRUE(workshop->beginBrickTool(index("Brick 2 x 2")));EXPECT_TRUE(workshop->canPaint());EXPECT_EQ(workshop->paintIndex(),3u);
+    ASSERT_TRUE(workshop->beginBrickTool(index("Brick 1 x 2")));EXPECT_TRUE(workshop->canPaint());EXPECT_EQ(workshop->paintIndex(),3u);
+    const auto second=workshop->selected();
+    (void)workshop->aimAt({first,glm::dvec3(frame.translation.x,frame.translation.y,frame.translation.z)*.02+glm::dvec3(0,.66,0)});
+    ASSERT_TRUE(workshop->valid())<<workshop->message();ASSERT_TRUE(workshop->setPaint(0));ASSERT_TRUE(workshop->placeBrickTool());
+    EXPECT_EQ(workshop->design().registry.placements[second].paint,kOriginalBrickPaint);
+    EXPECT_EQ(workshop->currentPaint(),kOriginalBrickPaint);EXPECT_EQ(workshop->brushPaint(),std::optional<BrickPaint>(kOriginalBrickPaint));
+    const auto keptBytes=workshop->blueprintBytes(error);ASSERT_FALSE(keptBytes.empty())<<error;
+    ASSERT_TRUE(workshop->stopBrickTool());EXPECT_EQ(workshop->blueprintBytes(error),keptBytes);
+    ASSERT_TRUE(workshop->selectPart(first));EXPECT_EQ(workshop->paintIndex(),3u);
+    EXPECT_EQ(workshop->brushPaint(),std::optional<BrickPaint>(kOriginalBrickPaint)); // Selection reports its own paint, not the brush preference.
+    ASSERT_TRUE(workshop->command(Action::Undo));EXPECT_EQ(workshop->design().registry.navigation->boatPlacements.size(),11u);
+    EXPECT_EQ(workshop->currentPaint(),kBrickPaintPalette[3].rgba);
+    ASSERT_TRUE(workshop->beginBrickTool(index("Brick 2 x 2")));EXPECT_EQ(workshop->currentPaint(),kOriginalBrickPaint);
+    ASSERT_TRUE(workshop->stopBrickTool());ASSERT_TRUE(workshop->selectPart(0));EXPECT_FALSE(workshop->canPaint());
+    EXPECT_FALSE(workshop->setPaint(5));EXPECT_EQ(workshop->brushPaint(),std::optional<BrickPaint>(kOriginalBrickPaint));
+}
+
+TEST_F(CoveMovement, BrickPaintOverridesStoredColorWithoutChangingStockIdentityOrCondition) {
+    using namespace construction;using Action=CoveWorkshop::Action;std::string error;
+    const auto expanded=assets::appendAssetFixtureCatalog(*scene,std::filesystem::canonical("data/salvage/cove-bricks-r02.json"),error);ASSERT_TRUE(expanded)<<error;
+    const WorldNamespace world{{'p','a','i','n','t','-','s','t','o','c','k'}};
+    auto seed=prepareCoveBuild(*expanded,{world,1},4,error);ASSERT_TRUE(seed)<<error;
+    const auto owned=CoveBoatAssembly::compileBuild(seed->build,seed->catalog,seed->placements,error);ASSERT_TRUE(owned)<<error;
+    auto workshop=CoveWorkshop::create(*expanded,error);ASSERT_TRUE(workshop)<<error;
+    uint32_t brick=UINT32_MAX;for(uint32_t i=0;i<workshop->catalogCount();++i)if(workshop->catalogNameAt(i)=="Brick 1 x 2")brick=i;
+    ASSERT_TRUE(workshop->selectCatalogAt(brick));const auto key=workshop->catalogDefinition();
+    const auto* definition=seed->catalog.lookup(key).definition;ASSERT_NE(definition,nullptr);
+    PartInstance firstStock;firstStock.id={world,1000};firstStock.owningBuild=seed->build.id;firstStock.definition=key;
+    firstStock.health=4321;firstStock.paint={20,40,60,255};firstStock.settings=defaultModuleSettings(*definition);
+    auto secondStock=firstStock;secondStock.id.counter=1001;secondStock.health=6543;secondStock.paint={80,100,120,255};const std::array stock{firstStock,secondStock};
+    ASSERT_TRUE(workshop->selectPart(10));ASSERT_TRUE(workshop->command(Action::Remove));ASSERT_TRUE(workshop->command(Action::Keep));
+    ASSERT_TRUE(workshop->beginBrickTool(brick,availableCoveStoredPart(workshop->design(),*owned,stock,key)));
+    EXPECT_EQ(workshop->currentPaint(),firstStock.paint);EXPECT_FALSE(workshop->paintIndex());EXPECT_FALSE(workshop->brushPaint());
+    const auto first=workshop->selected();const auto frame=workshop->preview().registry.placements[first].placement;
+    ASSERT_TRUE(workshop->setPaint(2));
+    const auto* next=availableCoveStoredPart(workshop->preview(),*owned,stock,key);ASSERT_NE(next,nullptr);ASSERT_EQ(next->id,secondStock.id);
+    ASSERT_TRUE(workshop->placeBrickTool(next));EXPECT_EQ(workshop->currentPaint(),kBrickPaintPalette[2].rgba); // Explicit brush overrides the next stored color.
+    ASSERT_TRUE(workshop->setPaint(0));EXPECT_EQ(workshop->currentPaint(),kOriginalBrickPaint);
+    (void)workshop->aimAt({first,glm::dvec3(frame.translation.x,frame.translation.y,frame.translation.z)*.02+glm::dvec3(0,.66,0)});
+    ASSERT_TRUE(workshop->valid())<<workshop->message();ASSERT_TRUE(workshop->command(Action::Keep));
+    auto request=prepareCoveRefit(workshop->design(),*owned,seed->catalog,error,expanded->registry.navigation->boatPlacements,stock);ASSERT_TRUE(request)<<error;
+    BuildIssue issue;const auto model=BuildModel::create(seed->build,seed->catalog,issue);ASSERT_TRUE(model);uint64_t issued=1001;
+    const auto plan=prepareBuildRefit(*model,*request->design,seed->catalog,[&]{return DurableId{world,++issued};},issue,{stock,{}});ASSERT_TRUE(plan)<<issue.field;
+    EXPECT_EQ(plan->debit,ResourceAmounts{});EXPECT_TRUE(plan->storedPartsAfter.empty());
+    for(auto expected:stock) {
+        const auto fitted=std::find_if(plan->after.parts.begin(),plan->after.parts.end(),[&](const auto& p){return p.id==expected.id;});ASSERT_NE(fitted,plan->after.parts.end());
+        expected.placement=fitted->placement;expected.paint=expected.id==firstStock.id?kBrickPaintPalette[2].rgba:kOriginalBrickPaint;
+        EXPECT_EQ(*fitted,expected); // Paint and placement alone change; no duplicate purchase or repaired condition.
     }
 }
 

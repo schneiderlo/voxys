@@ -13,6 +13,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
+#include <limits>
 #include <map>
 #include <thread>
 
@@ -265,6 +266,25 @@ TEST(InspectionGuides, ExplicitConnectedSocketSelectionIsCompleteOrRejected) {
     EXPECT_TRUE(guides.empty());
 }
 
+TEST(SalvageFixtureAccounting, PaintFitsBothFullDrawPathsWithinUnchangedReservation) {
+    EXPECT_EQ(MeshPath::gpuInstanceBytes,112u);
+    EXPECT_EQ(SalvageAssetFixture::maximumExpandedDraws,512u);
+    EXPECT_EQ(SalvageAssetFixture::maximumMeshInstances,256u);
+    EXPECT_EQ(SalvageAssetFixture::fixedGpuReservationBytes,128u*1024u);
+    // The ABI assertion in MeshPath ties this value to the allocation stride.
+    // Account for both model and X-ray buffers, including all 512 entries in
+    // each, rather than charging only visible or currently painted instances.
+    EXPECT_EQ(2u * SalvageAssetFixture::maximumExpandedDraws * (MeshPath::gpuInstanceBytes-96u),16384u);
+    // Each path loads its own helper mesh (vertices, indices and material),
+    // even though both uploads originate from the same CPU data.
+    EXPECT_EQ(SalvageAssetFixture::fixedGpuRequestedBytes,119336u);
+    EXPECT_EQ(SalvageAssetFixture::fixedGpuRequestedBytes,102952u+16384u);
+    EXPECT_LE(SalvageAssetFixture::fixedGpuRequestedBytes,SalvageAssetFixture::fixedGpuReservationBytes);
+    EXPECT_EQ(SalvageFixtureConfig{}.maximumOwnerGpuBytes,16u*1024u*1024u);
+    EXPECT_EQ(SalvageFixtureConfig{}.maximumResidentGpuBytes,48u*1024u*1024u);
+    EXPECT_EQ(SalvageFixturePlacement{}.baseColorOverride,glm::vec4(0));
+}
+
 #if !defined(VOXY_WASM)
 struct FixtureGPU : testing::Test {
     gpu::Context context;
@@ -434,6 +454,45 @@ TEST_F(FixtureGPU, CoveToyArtFitsExistingOwnerAndDrawLimits) {
     ASSERT_TRUE(fixture.publishCandidate(error))<<error;
     const auto reserved=fixture.stats().active.reservedGpuBytes;
     EXPECT_LE(reserved,16ull*1024ull*1024ull);
+    EXPECT_EQ(fixture.stats().active.uniqueUploads,36u);
+    RecordProperty("ownerGpuBytes",std::to_string(reserved));
+    std::vector<SalvageFixturePlacement> placements;
+    for(const auto& p:scene->registry.placements)placements.push_back({p.bundleIndex,1,glm::dmat4(1),p.placement});
+    auto value=frame();value.cameraPosition={4,8,-46};
+    value.view=glm::lookAtLH(glm::vec3(4,8,-46),glm::vec3(1,0,-54),glm::vec3(0,1,0));
+    startFrame();SalvageFixtureTicket ticket;
+    ASSERT_TRUE(fixture.encode(encoder,colorView,depthView,placements,value,ticket,error))<<error;
+    submit(ticket);
+    EXPECT_LE(fixture.stats().lastSubmittedDraws,SalvageAssetFixture::maximumExpandedDraws);
+    RecordProperty("colorDraws",std::to_string(fixture.stats().lastSubmittedDraws));
+}
+
+TEST_F(FixtureGPU, CoveMoldedMachineryFitsCurrentOwnerBudget) {
+    fixture.shutdown();
+    const auto base=game::assets::loadAssetFixture(std::filesystem::canonical("data/salvage/fixture-cove-r01.json"),error);
+    ASSERT_TRUE(base)<<error;
+    const auto scene=game::assets::appendAssetFixtureCatalog(*base,std::filesystem::canonical("data/salvage/cove-workshop-r04.json"),error);
+    ASSERT_TRUE(scene)<<error;
+    SalvageFixtureConfig config;config.colorFormat=WGPUTextureFormat_RGBA8Unorm;
+    config.filteredEnvironment=true;config.sunShadows=true;
+    uint64_t requested=SalvageAssetFixture::fixedGpuReservationBytes
+        +MeshPath::filteredEnvironmentReservationBytes+MeshPath::sunShadowReservationBytes;
+    for(size_t i=0;i<scene->renderBundles().size();++i) {
+        uint64_t bytes=0;
+        for(const auto& lod:scene->renderBundles()[i]->lods())bytes+=lod.prefab.counts.gpuBytes;
+        requested+=bytes;
+        RecordProperty("bundleGpuBytes"+std::to_string(i),std::to_string(bytes));
+    }
+    RecordProperty("requestedOwnerGpuBytes",std::to_string(requested));
+    ASSERT_LE(requested,config.maximumOwnerGpuBytes);
+    ASSERT_TRUE(fixture.init(context.getDevice(),context.getQueue(),config,error))<<error;
+    ASSERT_TRUE(fixture.beginCandidate(scene->renderBundles(),error))<<error;
+    ASSERT_EQ(await([](Status s){return s==Status::CandidateReady;}),Status::CandidateReady)<<fixture.lastError();
+    ASSERT_TRUE(fixture.publishCandidate(error))<<error;
+    const auto reserved=fixture.stats().active.reservedGpuBytes;
+    EXPECT_LE(reserved,16ull*1024ull*1024ull);
+    EXPECT_EQ(reserved,requested);
+    EXPECT_EQ(reserved,10740488u); // Independent cooked-byte audit, all seven presentations.
     EXPECT_EQ(fixture.stats().active.uniqueUploads,36u);
     RecordProperty("ownerGpuBytes",std::to_string(reserved));
     std::vector<SalvageFixturePlacement> placements;
@@ -682,6 +741,36 @@ TEST_F(FixtureGPU, RejectsInvalidStableLodsFramesAndInstanceExpansionAtomically)
     EXPECT_FALSE(fixture.encode(encoder, colorView, depthView, tooMany, frame(), ticket, error));
     EXPECT_EQ(fixture.stats().unresolved.serial, 0u);
     releaseCommands();
+}
+
+TEST_F(FixtureGPU, RejectsInvalidPaintBeforeOpeningTicketAndAcceptsNeutralOrOpaqueColor) {
+    begin();
+    startFrame();
+    SalvageFixtureTicket ticket{7,9};
+    std::array placements{SalvageFixturePlacement{.lodId=probeLod}};
+    const auto before = fixture.stats().active;
+    for (const auto& invalid : std::array{
+        glm::vec4(-0.01f,0,0,1),glm::vec4(0,1.01f,0,1),glm::vec4(0,0,0,0.5f),
+        glm::vec4(0,0,std::numeric_limits<float>::infinity(),1),
+        glm::vec4(0,0,0,std::numeric_limits<float>::quiet_NaN())}) {
+        placements[0].baseColorOverride = invalid;
+        EXPECT_FALSE(fixture.encode(encoder,colorView,depthView,placements,frame(),ticket,error));
+        EXPECT_NE(error.find("base color override"),std::string::npos) << error;
+        EXPECT_EQ(ticket,(SalvageFixtureTicket{7,9}));
+        EXPECT_EQ(fixture.stats().unresolved.serial,0u);
+        EXPECT_EQ(fixture.stats().active.generation,before.generation);
+        EXPECT_EQ(fixture.stats().active.reservedGpuBytes,before.reservedGpuBytes);
+    }
+    releaseCommands();
+    for (const auto& valid : std::array{glm::vec4(0),glm::vec4(0.3f,0.6f,0.9f,0),
+        opaqueSrgbPaintOverride({48,112,224,0})}) {
+        placements[0].baseColorOverride = valid;
+        startFrame();
+        ASSERT_TRUE(fixture.encode(encoder,colorView,depthView,placements,frame(),ticket,error)) << error;
+        EXPECT_GT(fixture.stats().lastEncodedDraws,0u);
+        submit(ticket);
+        EXPECT_EQ(fixture.stats().active.reservedGpuBytes,before.reservedGpuBytes);
+    }
 }
 
 TEST_F(FixtureGPU, CapturesRealPipelineValidationFailureAndKeepsPreviousGeneration) {

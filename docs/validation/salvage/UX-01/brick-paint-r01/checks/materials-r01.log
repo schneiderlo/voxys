@@ -1,0 +1,26 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: target //tests:mesh_path_test (0 packages loaded, 0 targets configured)
+Analyzing: target //tests:mesh_path_test (0 packages loaded, 0 targets configured)
+
+Analyzing: target //tests:mesh_path_test (0 packages loaded, 0 targets configured)
+
+INFO: Analyzed target //tests:mesh_path_test (1 packages loaded, 63 targets configured).
+[344 / 346] Compiling tests/test_mesh_path.cpp; 1s linux-sandbox
+[345 / 346] [Prepa] Linking tests/mesh_path_test
+INFO: Found 1 test target...
+Target //tests:mesh_path_test up-to-date:
+  bazel-bin/tests/mesh_path_test
+INFO: Elapsed time: 5.084s, Critical Path: 3.19s
+INFO: 7 processes: 340 action cache hit, 4 internal, 3 linux-sandbox.
+INFO: Build completed successfully, 7 total actions
+//tests:mesh_path_test                                                   PASSED in 0.4s
+
+Executed 1 out of 1 test: 1 test passes.
+There were tests whose specified size is too big. Use the --test_verbose_timeout_warnings command line option to see which ones these are.

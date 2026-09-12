@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="8" failures="0" disabled="0" errors="0" time="2.786" timestamp="2026-09-12T04:26:16.470" name="AllTests">
+  <testsuite name="FixtureRegistry" tests="1" failures="0" disabled="0" skipped="0" errors="0" time="0.465" timestamp="2026-09-12T04:26:16.470">
+    <testcase name="MoldedMachineryPreservesEveryCanonicalPartAndPlacedTransform" file="tests/test_fixture_registry.cpp" line="107" status="run" result="completed" time="0.464" timestamp="2026-09-12T04:26:16.470" classname="FixtureRegistry" />
+  </testsuite>
+  <testsuite name="CoveMovement" tests="4" failures="0" disabled="0" skipped="0" errors="0" time="1.64" timestamp="2026-09-12T04:26:16.935">
+    <testcase name="BrickToolUsesEachStoredPartOnceAndDoesNotReserveItsFinalPreview" file="tests/test_cove_player.cpp" line="229" status="run" result="completed" time="0.369" timestamp="2026-09-12T04:26:16.935" classname="CoveMovement" />
+    <testcase name="BrickPaintOnlyKeepUndoAndLaunchPreserveGeometryCostAndIdentity" file="tests/test_cove_player.cpp" line="267" status="run" result="completed" time="0.415" timestamp="2026-09-12T04:26:17.305" classname="CoveMovement" />
+    <testcase name="BrickPaintBrushCarriesExplicitColorAcrossPlacementsAndTypes" file="tests/test_cove_player.cpp" line="331" status="run" result="completed" time="0.461" timestamp="2026-09-12T04:26:17.721" classname="CoveMovement" />
+    <testcase name="BrickPaintOverridesStoredColorWithoutChangingStockIdentityOrCondition" file="tests/test_cove_player.cpp" line="359" status="run" result="completed" time="0.393" timestamp="2026-09-12T04:26:18.182" classname="CoveMovement" />
+  </testsuite>
+  <testsuite name="SalvageFixtureAccounting" tests="1" failures="0" disabled="0" skipped="0" errors="0" time="0." timestamp="2026-09-12T04:26:18.576">
+    <testcase name="PaintFitsBothFullDrawPathsWithinUnchangedReservation" file="tests/test_salvage_asset_fixture.cpp" line="269" status="run" result="completed" time="0." timestamp="2026-09-12T04:26:18.576" classname="SalvageFixtureAccounting" />
+  </testsuite>
+  <testsuite name="FixtureGPU" tests="2" failures="0" disabled="0" skipped="0" errors="0" time="0.68" timestamp="2026-09-12T04:26:18.576">
+    <testcase name="CoveMoldedMachineryFitsCurrentOwnerBudget" file="tests/test_salvage_asset_fixture.cpp" line="470" status="run" result="completed" time="0.608" timestamp="2026-09-12T04:26:18.576" classname="FixtureGPU">
+      <properties>
+        <property name="bundleGpuBytes0" value="388200"/>
+        <property name="bundleGpuBytes1" value="392472"/>
+        <property name="bundleGpuBytes2" value="430632"/>
+        <property name="bundleGpuBytes3" value="371592"/>
+        <property name="bundleGpuBytes4" value="238752"/>
+        <property name="bundleGpuBytes5" value="423168"/>
+        <property name="bundleGpuBytes6" value="686448"/>
+        <property name="bundleGpuBytes7" value="694396"/>
+        <property name="bundleGpuBytes8" value="1051660"/>
+        <property name="bundleGpuBytes9" value="84672"/>
+        <property name="bundleGpuBytes10" value="148896"/>
+        <property name="bundleGpuBytes11" value="275184"/>
+        <property name="requestedOwnerGpuBytes" value="10740488"/>
+        <property name="ownerGpuBytes" value="10740488"/>
+        <property name="colorDraws" value="78"/>
+      </properties>
+    </testcase>
+    <testcase name="RejectsInvalidPaintBeforeOpeningTicketAndAcceptsNeutralOrOpaqueColor" file="tests/test_salvage_asset_fixture.cpp" line="746" status="run" result="completed" time="0.072" timestamp="2026-09-12T04:26:19.184" classname="FixtureGPU" />
+  </testsuite>
+</testsuites>

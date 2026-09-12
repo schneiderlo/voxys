@@ -69,6 +69,7 @@ struct alignas(16) GpuDrawInstance {
     float emissiveBoost = 0.0f;
     uint32_t materialIndex = 0u;
     uint32_t padding[2] = {};
+    glm::vec4 baseColorOverride{0.0f};
 };
 
 static_assert(sizeof(MeshUniforms) == 160u);
@@ -86,13 +87,14 @@ static_assert(offsetof(GpuMaterial, baseColorFactor) == 0u);
 static_assert(offsetof(GpuMaterial, emissiveFactorAlphaCutoff) == 16u);
 static_assert(offsetof(GpuMaterial, metallicRoughnessNormalOcclusion) == 32u);
 static_assert(offsetof(GpuMaterial, flags) == 48u);
-static_assert(sizeof(GpuDrawInstance) == 96u);
+static_assert(sizeof(GpuDrawInstance) == MeshPath::gpuInstanceBytes);
 static_assert(alignof(GpuDrawInstance) == 16u);
 static_assert(offsetof(GpuDrawInstance, modelMatrix) == 0u);
 static_assert(offsetof(GpuDrawInstance, tintColor) == 64u);
 static_assert(offsetof(GpuDrawInstance, emissiveBoost) == 80u);
 static_assert(offsetof(GpuDrawInstance, materialIndex) == 84u);
 static_assert(offsetof(GpuDrawInstance, padding) == 88u);
+static_assert(offsetof(GpuDrawInstance, baseColorOverride) == 96u);
 static_assert(sizeof(moto::VmeshVertex) == 72u);
 
 struct PendingDraw {
@@ -352,6 +354,12 @@ void releaseAsset(Asset& asset, bool destroyResources = true) noexcept {
 }
 
 }  // namespace
+
+glm::vec4 opaqueSrgbPaintOverride(const std::array<uint8_t, 4>& rgba) noexcept {
+    return {srgbToLinear(float(rgba[0]) / 255.0f),
+        srgbToLinear(float(rgba[1]) / 255.0f),
+        srgbToLinear(float(rgba[2]) / 255.0f), 1.0f};
+}
 
 MeshPath::~MeshPath() { shutdown(); }
 
@@ -1330,6 +1338,10 @@ bool MeshPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
         if (instance.assetIndex >= assets_.size()
             || !validModelMatrix(instance.modelMatrix)
             || !finiteVec4(instance.tintColor)
+            || !finiteVec4(instance.baseColorOverride)
+            || glm::any(glm::lessThan(instance.baseColorOverride, glm::vec4(0.0f)))
+            || glm::any(glm::greaterThan(instance.baseColorOverride, glm::vec4(1.0f)))
+            || (instance.baseColorOverride.w != 0.0f && instance.baseColorOverride.w != 1.0f)
             || !finiteFloat(instance.emissiveBoost)) {
             LOG_ERROR("MeshPath::render: invalid mesh instance");
             instancesValid_ = false;
@@ -1394,6 +1406,7 @@ bool MeshPath::render(WGPUCommandEncoder encoder, WGPUTextureView colorView,
             GpuDrawInstance gpuInstance;
             gpuInstance.modelMatrix = instance.modelMatrix;
             gpuInstance.tintColor = instance.tintColor;
+            gpuInstance.baseColorOverride = instance.baseColorOverride;
             gpuInstance.emissiveBoost = instance.emissiveBoost;
             gpuInstance.materialIndex = submesh.materialIndex;
             gpuInstance.padding[0] = instance.physicsBody.index;

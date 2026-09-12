@@ -192,6 +192,8 @@ bool CoveWorkshop::addPreview(uint32_t index,const PartInstance* stored,GridTran
         if(stored->definition!=design_.bundles[placed.bundleIndex]->sidecar().part.key||stored->provenance!=PartProvenance{})return false;
         placed.paint=stored->paint;placed.settings=stored->settings;
     }
+    if(brushPaint_&&isPaintableBrick(design_.bundles[placed.bundleIndex]->sidecar().part.nameKey))
+        placed.paint=*brushPaint_;
     const auto raised=checkedAdd(placed.placement.translation,{0,32,0});if(!raised)return false;
     placed.placement.translation=*raised;
     if(slot==candidate.registry.placements.size())candidate.registry.placements.push_back(placed);
@@ -207,7 +209,7 @@ bool CoveWorkshop::canChooseBrick() const noexcept {
 }
 bool CoveWorkshop::beginBrickTool(uint32_t index,const PartInstance* stored) {
     if(!canChooseBrick() || index>=catalog_.size()
-        || !design_.bundles[catalog_[index].bundleIndex]->sidecar().part.nameKey.starts_with("salvage.part.brick_"))return false;
+        || !isPaintableBrick(design_.bundles[catalog_[index].bundleIndex]->sidecar().part.nameKey))return false;
     const auto anchor=brickToolActive_?brickToolAnchor_:selected_;
     const auto from=preview_.registry.placements[selected_].placement;
     // Build the replacement from kept design data. A rejected type/stock/slot
@@ -232,6 +234,26 @@ bool CoveWorkshop::stopBrickTool() {
     brickToolActive_=false;selected_=brickToolAnchor_;
     if(!member(design_.registry,selected_))selected_=design_.registry.navigation->boatPlacements.front();
     preview_=design_;evaluate();return true;
+}
+bool CoveWorkshop::canPaint() const noexcept {
+    return selected_<preview_.registry.placements.size()&&member(preview_.registry,selected_)
+        &&!preview_.registry.placements[selected_].prototype&&isPaintableBrick(definition(selected_).nameKey);
+}
+BrickPaint CoveWorkshop::currentPaint() const noexcept {
+    return selected_<preview_.registry.placements.size()
+        ?preview_.registry.placements[selected_].paint.value_or(kOriginalBrickPaint):kOriginalBrickPaint;
+}
+std::optional<uint32_t> CoveWorkshop::paintIndex() const noexcept {
+    return canPaint()?brickPaintIndex(currentPaint()):std::nullopt;
+}
+bool CoveWorkshop::setPaint(uint32_t index) {
+    if(!canPaint()||index>=kBrickPaintPalette.size())return false;
+    brushPaint_=kBrickPaintPalette[index].rgba;
+    preview_.registry.placements[selected_].paint=*brushPaint_;
+    evaluate();
+    if(valid())message_=brickToolActive_?"Color ready. Click to place another brick."
+        :changed()?"Color ready. Keep, then Launch to apply.":"This brick already has that color.";
+    return true;
 }
 double CoveWorkshop::massKg() const noexcept {
     return compiled_?compiled_->massKg():0;
@@ -269,6 +291,7 @@ bool CoveWorkshop::configure(SettingAction action) {
 bool CoveWorkshop::changed() const noexcept {
     return selected_>=design_.registry.placements.size()
         || preview_.registry.placements[selected_].placement!=design_.registry.placements[selected_].placement
+        || currentPaint()!=design_.registry.placements[selected_].paint.value_or(kOriginalBrickPaint)
         || selectedSettings()!=design_.registry.placements[selected_].settings.value_or(defaultModuleSettings(definition(design_,selected_)))
         || preview_.registry.navigation->boatPlacements!=design_.registry.navigation->boatPlacements;
 }

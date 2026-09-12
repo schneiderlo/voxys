@@ -104,6 +104,44 @@ TEST(FixtureRegistry, AdditiveBricksPreserveInstalledCoveIdentityAndEveryExistin
     EXPECT_EQ(base->bundles.size(),9u);EXPECT_EQ(expanded->bundles.size(),12u);
 }
 
+TEST(FixtureRegistry, MoldedMachineryPreservesEveryCanonicalPartAndPlacedTransform) {
+    std::string error;
+    const auto base=loadAssetFixture(std::filesystem::canonical("data/salvage/fixture-cove-r01.json"),error);
+    ASSERT_TRUE(base)<<error;
+    const auto selected=appendAssetFixtureCatalog(*base,std::filesystem::canonical("data/salvage/cove-workshop-r04.json"),error);
+    ASSERT_TRUE(selected)<<error;
+    ASSERT_EQ(selected->bundles.size(),12u);ASSERT_EQ(selected->renderBundles().size(),12u);
+    EXPECT_EQ(selected->installedRegistryDigest,base->installedRegistryDigest);
+    EXPECT_EQ(selected->registry.navigation->boatPlacements,base->registry.navigation->boatPlacements);
+    EXPECT_EQ(selected->registry.navigation->cargoPlacements,base->registry.navigation->cargoPlacements);
+    EXPECT_EQ(selected->registry.navigation->spawn,base->registry.navigation->spawn);
+    size_t revised=0;
+    for(size_t i=0;i<base->bundles.size();++i) {
+        EXPECT_EQ(selected->bundles[i],base->bundles[i]);
+        EXPECT_EQ(selected->registry.bundles[i].selection.manifestSha256,base->registry.bundles[i].selection.manifestSha256);
+        const auto& key=base->bundles[i]->sidecar().part.nameKey;
+        const bool changed=key=="salvage.part.pontoon"||key=="salvage.part.beam"||key=="salvage.part.plate"
+            ||key=="salvage.part.engine"||key=="salvage.part.propeller"||key=="salvage.part.helm"||key=="salvage.part.winch";
+        if(changed) {
+            ++revised;
+            EXPECT_NE(selected->renderBundles()[i],selected->bundles[i]);
+            EXPECT_EQ(selected->renderBundles()[i]->sidecar().part.key,selected->bundles[i]->sidecar().part.key);
+            ASSERT_EQ(selected->renderBundles()[i]->lods().size(),3u);
+            for(size_t lod=0;lod<3;++lod) {
+                EXPECT_NE(selected->renderBundles()[i]->lods()[lod].asset,selected->bundles[i]->lods()[lod].asset);
+            }
+        } else EXPECT_EQ(selected->renderBundles()[i],selected->bundles[i]);
+    }
+    EXPECT_EQ(revised,7u);
+    ASSERT_EQ(selected->registry.placements.size(),base->registry.placements.size());
+    for(size_t i=0;i<base->registry.placements.size();++i) {
+        EXPECT_EQ(selected->registry.placements[i].placement,base->registry.placements[i].placement);
+        EXPECT_EQ(selected->registry.placements[i].bundleIndex,base->registry.placements[i].bundleIndex);
+    }
+    for(size_t i=9;i<12;++i)EXPECT_EQ(selected->renderBundles()[i],selected->bundles[i]);
+    EXPECT_TRUE(base->presentationBundles.empty());
+}
+
 TEST(FixtureRegistry, ToyArtSelectsRenderBundlesWithoutChangingOwnedContent) {
     std::string error;
     const auto base=loadAssetFixture(std::filesystem::canonical("data/salvage/fixture-cove-r01.json"),error);

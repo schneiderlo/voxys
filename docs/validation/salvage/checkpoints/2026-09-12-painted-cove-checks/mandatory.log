@@ -1,0 +1,47 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: 2 targets (0 packages loaded, 0 targets configured)
+Analyzing: 2 targets (0 packages loaded, 0 targets configured)
+
+Analyzing: 2 targets (0 packages loaded, 4 targets configured)
+[6 / 6] 1 / 1 tests; no actions running
+INFO: Analyzed 2 targets (1 packages loaded, 141 targets configured).
+[682 / 683] 1 / 2 tests; Testing //tests:voxy_tests; 1s linux-sandbox
+[682 / 683] 1 / 2 tests; Testing //tests:voxy_tests; 10s linux-sandbox
+[682 / 683] 1 / 2 tests; Testing //tests:voxy_tests; 40s linux-sandbox
+[682 / 683] 1 / 2 tests; Testing //tests:voxy_tests; 100s linux-sandbox
+[682 / 683] 1 / 2 tests; Testing //tests:voxy_tests; 160s linux-sandbox
+[682 / 683] 1 / 2 tests; Testing //tests:voxy_tests; 220s linux-sandbox
+[682 / 683] 1 / 2 tests; Testing //tests:voxy_tests; 280s linux-sandbox
+[682 / 683] 1 / 2 tests; Testing //tests:voxy_tests; 340s linux-sandbox
+[682 / 683] 1 / 2 tests; Testing //tests:voxy_tests; 400s linux-sandbox
+[682 / 683] 1 / 2 tests; Testing //tests:voxy_tests; 460s linux-sandbox
+[682 / 683] 1 / 2 tests; Testing //tests:voxy_tests; 520s linux-sandbox
+[682 / 683] 1 / 2 tests; Testing //tests:voxy_tests; 580s linux-sandbox
+[682 / 683] 1 / 2 tests; Testing //tests:voxy_tests; 640s linux-sandbox
+[682 / 683] 1 / 2 tests; Testing //tests:voxy_tests; 700s linux-sandbox
+[682 / 683] 1 / 2 tests; Testing //tests:voxy_tests; 760s linux-sandbox
+[682 / 683] 1 / 2 tests; Testing //tests:voxy_tests; 820s linux-sandbox
+[682 / 683] 1 / 2 tests; Testing //tests:voxy_tests; 880s linux-sandbox
+[682 / 683] 1 / 2 tests; Testing //tests:voxy_tests; 940s linux-sandbox
+[682 / 683] 1 / 2 tests; Testing //tests:voxy_tests; 1000s linux-sandbox
+[682 / 683] 1 / 2 tests; Testing //tests:voxy_tests; 1060s linux-sandbox
+[682 / 683] 1 / 2 tests; Testing //tests:voxy_tests; 1120s linux-sandbox
+[682 / 683] 1 / 2 tests; Testing //tests:voxy_tests; 1180s linux-sandbox
+[682 / 683] 1 / 2 tests; Testing //tests:voxy_tests; 1240s linux-sandbox
+[682 / 683] 2 / 2 tests; Testing //tests:voxy_tests; 1293s linux-sandbox
+INFO: Found 2 test targets...
+INFO: Elapsed time: 1295.413s, Critical Path: 1293.57s
+INFO: 2 processes: 683 action cache hit, 1 internal, 1 linux-sandbox.
+INFO: Build completed successfully, 2 total actions
+//tools:terrain_diffusion_import_test                           (cached) PASSED in 0.2s
+//tests:voxy_tests                                                       PASSED in 1293.5s
+
+Executed 1 out of 2 tests: 2 tests pass.
+There were tests whose specified size is too big. Use the --test_verbose_timeout_warnings command line option to see which ones these are.

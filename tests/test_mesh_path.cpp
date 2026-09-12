@@ -41,6 +41,24 @@ TEST(MeshPathTest, RejectsNullGpuHandlesAndInvalidData) {
     EXPECT_FALSE(path.loadMeshData({}));
 }
 
+TEST(MeshPathTest, OpaquePaintDecodesSrgbOnceAndNeverUsesSwatchAlpha) {
+    const auto paint = opaqueSrgbPaintOverride({0, 128, 255, 0});
+    EXPECT_FLOAT_EQ(paint.r, 0.0f);
+    EXPECT_NEAR(paint.g, 0.2158605001f, 1e-7f);
+    EXPECT_FLOAT_EQ(paint.b, 1.0f);
+    EXPECT_FLOAT_EQ(paint.w, 1.0f);
+    EXPECT_EQ(paint, opaqueSrgbPaintOverride({0, 128, 255, 255}));
+    // Both sides of the IEC sRGB transfer boundary, not only its endpoints.
+    const auto boundary = opaqueSrgbPaintOverride({10, 11, 64, 127});
+    EXPECT_NEAR(boundary.r, 0.0030352698f, 1e-9f);
+    EXPECT_NEAR(boundary.g, 0.0033465358f, 1e-9f);
+    EXPECT_NEAR(boundary.b, 0.0512694584f, 1e-7f);
+    EXPECT_EQ(MeshDrawInstance{}.baseColorOverride, glm::vec4(0.0f));
+    // White is only a sentinel at the application boundary. This conversion
+    // helper must remain usable as a real opaque white material replacement.
+    EXPECT_EQ(opaqueSrgbPaintOverride({255, 255, 255, 255}), glm::vec4(1.0f));
+}
+
 namespace {
 
 // The browser supplies a real requested device. It must not call the native
@@ -287,13 +305,34 @@ TEST(MeshPathGPUTest, AuthoredPoseRendersRootFrameAndRejectsStaleBodyGeneration)
     ASSERT_TRUE(drawDiagnosticPixels(path,context,{0,0,-3},lighting,actual));
     size_t differences=0; for(size_t i=0;i<actual.size();++i) differences+=actual[i]!=reference[i];
     EXPECT_LE(differences,32u); EXPECT_GT(pixelAt(actual,32,32).r,10);
+    // The appended paint vector must not overwrite the live body identity.
+    // Compare a rotated, COM-offset GPU root with its static matrix, and
+    // require an actual color change so two unpainted draws cannot pass.
+    const auto paint = opaqueSrgbPaintOverride({48,112,224,0});
+    const glm::vec4 selection{0.5f,0.8f,1.0f,1.0f};
+    path.clearInstances();
+    path.addInstance({.modelMatrix=glm::translate(glm::mat4(1),rootPosition)*glm::mat4_cast(rootRotation),
+        .tintColor=selection,.baseColorOverride=paint});
+    ASSERT_TRUE(drawDiagnosticPixels(path,context,{0,0,-3},lighting,reference));
+    const auto painted = pixelAt(reference,32,32);
+    EXPECT_GT(painted.b, painted.r + 40);
+    path.clearInstances();
+    path.addInstance({.tintColor=selection,.physicsBody={1,3},.baseColorOverride=paint});
+    ASSERT_TRUE(drawDiagnosticPixels(path,context,{0,0,-3},lighting,actual));
+    differences=0; for(size_t i=0;i<actual.size();++i) differences+=actual[i]!=reference[i];
+    EXPECT_LE(differences,32u);
+    for (int channel=0; channel<3; ++channel)
+        EXPECT_NEAR(pixelAt(actual,32,32)[channel],painted[channel],1);
+    std::printf("Paint live root static=%d,%d,%d live=%d,%d,%d differingBytes=%zu\n",
+        painted.r,painted.g,painted.b,pixelAt(actual,32,32).r,pixelAt(actual,32,32).g,
+        pixelAt(actual,32,32).b,differences);
     poses[2].x+=4;
     ASSERT_TRUE(gpu::writeBuffer(context.getQueue(),bodyView.poseBuffer,0,std::span<const glm::vec4>(poses)));
     ASSERT_TRUE(drawDiagnosticPixels(path,context,{0,0,-3},lighting,actual));
     EXPECT_EQ(pixelAt(actual,32,32).r,0);
     poses[2].x-=4;
     ASSERT_TRUE(gpu::writeBuffer(context.getQueue(),bodyView.poseBuffer,0,std::span<const glm::vec4>(poses)));
-    path.clearInstances(); path.addInstance({.physicsBody={1,4}});
+    path.clearInstances(); path.addInstance({.physicsBody={1,4},.baseColorOverride=paint});
     ASSERT_TRUE(drawDiagnosticPixels(path,context,{0,0,-3},lighting,actual));
     EXPECT_EQ(pixelAt(actual,32,32).r,0);
     path.shutdown();
@@ -341,13 +380,14 @@ TEST(MeshPathGPUTest, LiveSunShadowUpdatesOffscreenCastersAndRejectsStalePoses) 
     PrimitiveLighting light; light.direction = {1,0,-1}; light.sunIntensity = 2;
     light.ambientIntensity = 0.08f; light.fogDensity = 0;
     std::vector<uint8_t> pixels;
-    const auto sample=[&](uint32_t generation, uint32_t asset) {
+    const auto sample=[&](uint32_t generation, uint32_t asset, glm::vec4 paint=glm::vec4(0)) {
         path.clearInstances(); path.addInstance({});
         if (generation >= 42) path.addInstance({.assetIndex=asset,
             .modelMatrix=glm::translate(glm::mat4(1),glm::vec3(2,0,-2))*glm::scale(glm::mat4(1),glm::vec3(.3f)),
-            .castsSunShadow=generation==42});
+            .castsSunShadow=generation==42,.baseColorOverride=paint});
         else if (generation) path.addInstance({.assetIndex=asset,
-            .modelMatrix=glm::scale(glm::mat4(1),glm::vec3(.3f)),.physicsBody={1,generation}});
+            .modelMatrix=glm::scale(glm::mat4(1),glm::vec3(.3f)),.physicsBody={1,generation},
+            .baseColorOverride=paint});
         if (!drawDiagnosticPixels(path,context,{0,0,-3},light,pixels)) return -1;
         return pixelAt(pixels,32,32).r;
     };
@@ -367,6 +407,9 @@ TEST(MeshPathGPUTest, LiveSunShadowUpdatesOffscreenCastersAndRejectsStalePoses) 
     EXPECT_NEAR(sample(3,0),shadowed,2);
     EXPECT_NEAR(sample(4,0),clear,2); // Recycled/stale body cannot leave a shadow.
     EXPECT_NEAR(sample(3,1),clear,2); // Masked holes cannot cast solid silhouettes.
+    const auto paint = opaqueSrgbPaintOverride({48,112,224,0});
+    EXPECT_NEAR(sample(42,0,paint),staticShadow,2); // Paint alpha never removes an opaque caster.
+    EXPECT_NEAR(sample(3,1,paint),clear,2); // Paint never fills authored alpha-mask holes.
     // Sun occlusion never darkens skylight or emits a stale shadow next frame.
     light.sunIntensity = 0;
     const int ambient = sample(0,0);
@@ -444,6 +487,73 @@ TEST(MeshPathGPUTest, SamplesActualTextureQuadrantsAndRejectsSingleSidedBackFace
     ASSERT_TRUE(drawDiagnosticPixels(path, context, {0,0,-3}, lighting, pixels, true));
     EXPECT_EQ(path.lastSubmittedDrawCount(), 0u);
     EXPECT_EQ(pixelAt(pixels,32,32), glm::ivec3(0));
+}
+
+TEST(MeshPathGPUTest, PaintReplacesAuthoredRgbBeforeTintAndPreservesTexturesAndOpacity) {
+    DiagnosticContext context;
+    ASSERT_TRUE(context.initHeadless());
+    MeshPathConfig config; config.colorFormat = WGPUTextureFormat_RGBA8Unorm;
+    config.frontFace = WGPUFrontFace_CW;
+    MeshPath path; ASSERT_TRUE(path.init(context.getDevice(), context.getQueue(), config));
+    PrimitiveLighting lighting; lighting.fogDensity = 0; lighting.exposure = 1;
+    lighting.direction = {0.2f,0.1f,-1}; lighting.sunIntensity = 1.5f;
+    lighting.ambientIntensity = 0.15f;
+    const auto paint = opaqueSrgbPaintOverride({52,128,204,0});
+    const glm::vec4 selection{0.6f,1.0f,0.4f,0.75f};
+    const auto draw = [&](uint32_t asset, glm::vec4 overrideColor, std::vector<uint8_t>& pixels) {
+        path.clearInstances();
+        path.addInstance({.assetIndex=asset,.tintColor=selection,.baseColorOverride=overrideColor});
+        return drawDiagnosticPixels(path,context,{0,0,-3},lighting,pixels);
+    };
+    for (bool unlit : {true,false}) {
+        for (auto alphaMode : {moto::VmeshAlphaOpaque,moto::VmeshAlphaMask,moto::VmeshAlphaBlend}) {
+            SCOPED_TRACE(::testing::Message() << "unlit=" << unlit << " alphaMode=" << int(alphaMode));
+            auto data = diagnosticQuad();
+            auto& material = data.materials[0];
+            material.unlit = unlit;
+            material.alphaMode = alphaMode;
+            material.alphaCutoff = 0.5f;
+            material.baseColorFactor[0] = 0.8f; material.baseColorFactor[1] = 0.12f;
+            material.baseColorFactor[2] = 0.02f; material.baseColorFactor[3] = 0.8f;
+            material.metallicFactor = 0.72f; material.roughnessFactor = 0.37f;
+            material.emissiveFactor[0] = 0.013f; material.emissiveFactor[1] = 0.007f;
+            material.emissiveFactor[2] = 0.002f;
+            setDiagnosticTexture(data,moto::VmeshTextureBaseColor,
+                {{255,128,64,255, 128,255,96,255, 64,240,255,20, 224,64,208,255}});
+            setDiagnosticTexture(data,moto::VmeshTextureMetallicRoughness,
+                {{0,100,224,255, 0,200,64,255, 0,128,192,255, 0,96,240,255}});
+            const auto authoredIndex = static_cast<uint32_t>(path.assetCount());
+            ASSERT_TRUE(path.loadMeshData(data));
+            // Independent render oracle: bake only the desired linear RGB into
+            // a material. All other authored fields/textures remain identical.
+            auto expectedData = data;
+            for (int channel=0; channel<3; ++channel)
+                expectedData.materials[0].baseColorFactor[channel] = paint[channel];
+            const auto expectedIndex = static_cast<uint32_t>(path.assetCount());
+            ASSERT_TRUE(path.loadMeshData(expectedData));
+            std::vector<uint8_t> original, disabled, painted, expected;
+            ASSERT_TRUE(draw(authoredIndex,glm::vec4(0),original));
+            ASSERT_TRUE(draw(authoredIndex,{0.4f,0.6f,0.8f,0},disabled));
+            ASSERT_TRUE(draw(authoredIndex,paint,painted));
+            ASSERT_TRUE(draw(expectedIndex,glm::vec4(0),expected));
+            size_t disabledDifferences=0, paintedDifferences=0, changedBytes=0;
+            for (size_t i=0; i<painted.size(); ++i) {
+                disabledDifferences += original[i] != disabled[i];
+                paintedDifferences += painted[i] != expected[i];
+                changedBytes += original[i] != painted[i];
+            }
+            EXPECT_EQ(disabledDifferences,0u); // Disabled payload is byte-exact legacy.
+            EXPECT_EQ(paintedDifferences,0u); // Tint, PBR fields and alpha are unchanged.
+            EXPECT_GT(changedBytes,500u); // Cannot pass by ignoring paint or drawing nothing.
+            if (alphaMode == moto::VmeshAlphaMask) {
+                EXPECT_EQ(pixelAt(painted,22,42),glm::ivec3(0));
+                EXPECT_GT(pixelAt(painted,22,22).g,10);
+            }
+            std::printf("Paint material unlit=%d alpha=%u center=%d,%d,%d changed=%zu mismatches=%zu\n",
+                int(unlit),unsigned(alphaMode),pixelAt(painted,32,32).r,pixelAt(painted,32,32).g,
+                pixelAt(painted,32,32).b,changedBytes,paintedDifferences);
+        }
+    }
 }
 
 TEST(MeshPathGPUTest, DirectionalNormalMapUsesFullInverseTransposeAndTangentFrame) {

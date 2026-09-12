@@ -27,6 +27,7 @@
 #include "game/construction/assembly_fracture.hpp"
 #include "game/expedition/cove_build.hpp"
 #include "game/expedition/cove_workshop.hpp"
+#include "game/expedition/brick_paint.hpp"
 #include "game/expedition/cove_save.hpp"
 #include "game/expedition/cove_restore.hpp"
 #include "game/expedition/cove_harbor_runtime.hpp"
@@ -5087,6 +5088,10 @@ bool Application::renderSalvageAsset(WGPUCommandEncoder encoder, WGPUTextureView
         if(i<asset.selectedLods.size())asset.selectedLods[i]=*lod;
         rendered = {.bundleIndex = source.bundleIndex, .lodId = *lod,
             .cameraRelativeRoot = root, .placement = source.placement, .prototype = source.prototype};
+        if(!source.prototype && game::expedition::isPaintableBrick(scene.bundles[source.bundleIndex]->sidecar().part.nameKey)) {
+            const auto paint=source.paint.value_or(game::expedition::kOriginalBrickPaint);
+            if(paint!=game::expedition::kOriginalBrickPaint)rendered.baseColorOverride=render::opaqueSrgbPaintOverride(paint);
+        }
         if(designPart) {
             rendered.cameraRelativeRoot=glm::translate(root,glm::dvec3(0,4,0));
             if(i==asset.workshop->selected())rendered.tint=!asset.workshop->valid()
@@ -5124,7 +5129,10 @@ bool Application::renderSalvageAsset(WGPUCommandEncoder encoder, WGPUTextureView
             model=glm::rotate(model,.48,glm::dvec3(1,0,0));
             model=glm::rotate(model,-.35,glm::dvec3(0,1,0));
             model=glm::scale(model,glm::dvec3(.1));
-            placements[placementCount++]={.bundleIndex=*bundle,.lodId=1,.cameraRelativeRoot=model,.castsSunShadow=false};
+            auto& thumbnail=placements[placementCount++];
+            thumbnail={.bundleIndex=*bundle,.lodId=1,.cameraRelativeRoot=model,.castsSunShadow=false};
+            if(const auto paint=asset.workshop->brushPaint();paint&&*paint!=game::expedition::kOriginalBrickPaint)
+                thumbnail.baseColorOverride=render::opaqueSrgbPaintOverride(*paint);
         }
     }
 #endif
@@ -6445,7 +6453,8 @@ bool Application::salvagePreviewAction(int action) {
         const auto result=session.submit(local.caller,command);local.launchRequest=command.sequence;
         asset->player->discardPendingInput();if(input_)input_->resetState();return result.admitted;
     }
-    if(((action>=60 && action<=89)||(action>=92&&action<=94)||(action>=96&&action<=98)||(action>=100&&action<100+int(game::assets::kMaximumFixtureBundles))) && salvageLocalSession_->asset && salvageLocalSession_->asset->player) {
+    if(((action>=60 && action<=89)||(action>=92&&action<=94)||(action>=96&&action<=98)||(action>=100&&action<100+int(game::assets::kMaximumFixtureBundles))
+        ||(action>=200&&action<200+int(game::expedition::kBrickPaintPalette.size()))) && salvageLocalSession_->asset && salvageLocalSession_->asset->player) {
         auto& asset=*salvageLocalSession_->asset;
         if(asset.leaving || salvagePreview_->busy() || salvageLocalSession_->pendingControl
             || salvageLocalSession_->session->hasPending() || asset.launch || asset.status!=render::SalvageFixtureStatus::Active)return false;
@@ -6522,6 +6531,10 @@ bool Application::salvagePreviewAction(int action) {
                 game::expedition::RebuildStarter{{local.boatId,asset.boat->build().revision}}};
             asset.launchMessage="Preparing boat…";
             const auto result=session.submit(local.caller,command);local.launchRequest=command.sequence;return result.admitted;
+        }
+        if(action>=200) {
+            if(!asset.workshop->setPaint(static_cast<uint32_t>(action-200)))return false;
+            asset.launchMessage.clear();return true;
         }
         if(action>=100) {
             const auto index=static_cast<uint32_t>(action-100);
@@ -6724,6 +6737,10 @@ render::CoveHudContent Application::nativeCoveHudContent() const {
         const auto& workshop=*asset.workshop;
         hud.title="Brick workshop";
         hud.selected=std::string(workshop.brickToolActive()?workshop.catalogName():workshop.selectedName());
+        if(workshop.canPaint()) {
+            const auto index=workshop.paintIndex();
+            hud.selected+=" / "+std::string(index?game::expedition::kBrickPaintPalette[*index].name:"Custom");
+        }
         const auto quote=game::expedition::quoteCoveDesign(workshop.design(),*asset.boat,*local.catalog,owned.storedParts);
         hud.economy+=quote?"  Launch "+std::to_string(quote->debit.salvageMaterial):"  Cost unavailable";
         if(quote&&quote->credit.salvageMaterial)hud.economy+="  Return "+std::to_string(quote->credit.salvageMaterial);
@@ -6741,7 +6758,8 @@ render::CoveHudContent Application::nativeCoveHudContent() const {
             hud.tone=Tone::Ready;
         }
         hud.hints={workshop.brickToolActive()?"Click: Place   R: Rotate":"1 / 2 / 3: Choose brick",
-            workshop.brickToolActive()?"Esc: Select   U: Undo":"E: Keep   U: Undo",
+            workshop.canPaint()?(workshop.brickToolActive()?"Y: Color  Esc: Select  U: Undo":"Y: Color  E: Keep  U: Undo")
+                :(workshop.brickToolActive()?"Esc: Select   U: Undo":"E: Keep   U: Undo"),
             "Enter: Launch   B: Close"};
         return hud;
     }
@@ -6918,6 +6936,14 @@ std::string Application::salvagePreviewJson() const {
                 <<",\"partCost\":\""<<price.salvageMaterial<<"\",\"partMachinery\":\""<<price.specialMachinery<<'"';
         }
         if(asset->workshop) {
+            const auto paint=asset->workshop->currentPaint();const auto paintIndex=asset->workshop->paintIndex();
+            json<<",\"canPaint\":"<<(!pending&&asset->workshop->canPaint()?"true":"false")<<",\"paintIndex\":";
+            if(paintIndex)json<<*paintIndex;else json<<"null";
+            json<<",\"paintName\":\""<<(paintIndex?game::expedition::kBrickPaintPalette[*paintIndex].name:"Custom")
+                <<"\",\"paint\":["<<unsigned(paint[0])<<','<<unsigned(paint[1])<<','<<unsigned(paint[2])<<','<<unsigned(paint[3])<<']'
+                <<",\"brushPaint\":";
+            if(const auto preference=asset->workshop->brushPaint())json<<'['<<unsigned((*preference)[0])<<','<<unsigned((*preference)[1])<<','<<unsigned((*preference)[2])<<','<<unsigned((*preference)[3])<<']';
+            else json<<"null";
             json<<",\"catalog\":[";
             for(uint32_t i=0;i<asset->workshop->catalogCount();++i) {
                 if(i)json<<',';
@@ -7423,6 +7449,11 @@ void Application::updateCovePlayer(float deltaTime) {
             {Key::Enter,79},{Key::I,80},{Key::O,81},{Key::C,83},{Key::V,84},{Key::X,85},{Key::L,86},{Key::N,87},{Key::H,88},{Key::K,89},{Key::J,93},{Key::F,94},{Key::G,97},{Key::M,98}}};
         for(const auto& [key,action]:actions)if(input_->wasKeyPressed(key))(void)salvagePreviewAction(action);
         if(!asset.workshopOpen)return;
+        if(input_->wasKeyPressed(Key::Y)&&asset.workshop->canPaint()) {
+            const auto count=static_cast<uint32_t>(game::expedition::kBrickPaintPalette.size());
+            const auto next=(asset.workshop->paintIndex().value_or(count-1)+1)%count;
+            (void)salvagePreviewAction(200+static_cast<int>(next));
+        }
         auto& view=asset.workshopCamera;
         if(input_->isKeyDown(Key::A))view.orbit(-double(deltaTime),0);
         if(input_->isKeyDown(Key::D))view.orbit(double(deltaTime),0);

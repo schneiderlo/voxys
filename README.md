@@ -317,6 +317,9 @@ models with panel details and rounded edges. Their separate visual revisions
 preserve existing builds, connections, weight and prices. Editable Blender
 sources are included; the materials use solid colors without image textures.
 [Structural art, compatibility and checks](docs/validation/salvage/LOOK-01/toy-art-r01/README.md).
+The helm, winch, engine and propeller now share that style. Their new models
+retain the same physical interfaces, and the propeller clears its guard.
+[Machinery source, compatibility and checks](docs/validation/salvage/LOOK-01/machinery-r01/README.md).
 The boat, dock, cargo and built bricks also cast shadows onto the brick terrain
 and ocean. Shadows move with the parts; the shadowed seabed stays visible through
 the water. [Scene-shadow integration and checks](docs/validation/salvage/REND-03/scene-shadows-r01/README.md).
@@ -370,6 +373,14 @@ remaining workshop tools are unfinished.
 [Brick-builder controls, capacity and evidence](docs/validation/salvage/LEGO-02/builder-r01/README.md).
 [Continuous tool and current verification](docs/validation/salvage/PLAY-02/continuous-r01/README.md).
 [Native panel implementation and scope](docs/validation/salvage/UX-01/native-hud-r01/README.md).
+
+**Paint your bricks:** use the named colour swatches in the browser, or **Y**
+in the native game. A colour chosen with a brick tool stays active for further
+placements and size changes. To repaint a built brick, select it, choose its
+colour, then **Keep / E** and **Launch / Enter**. Repainting costs no material.
+**Original** restores the brick's authored colour; **Undo / U** reverses a kept
+paint edit. Colours survive boat saves and blueprint export/import.
+[Paint controls, ownership and validation](docs/validation/salvage/UX-01/brick-paint-r01/README.md).
 
 The workshop also has **part settings**. Select a propeller, helm or winch;
 **X** toggles it, **L** cycles thrust/steering limits, and **N** reverses

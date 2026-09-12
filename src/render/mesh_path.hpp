@@ -34,6 +34,11 @@ namespace voxy::render {
 
 struct PrimitiveLighting;
 
+/// Convert an opaque paint swatch to linear material RGB plus an enable flag.
+/// Alpha is deliberately ignored: paint never changes authored opacity. The
+/// application selects Original/eligible parts before calling this function.
+[[nodiscard]] glm::vec4 opaqueSrgbPaintOverride(const std::array<uint8_t, 4>& rgba) noexcept;
+
 struct MeshPathConfig {
     std::filesystem::path shaderPath = "shaders/mesh_path.wgsl";
     WGPUTextureFormat colorFormat = WGPUTextureFormat_BGRA8Unorm;
@@ -63,6 +68,9 @@ struct MeshDrawInstance {
     uint32_t pad[3] = {};
     physics::BodyHandle physicsBody{}; // If valid, modelMatrix is root-local.
     bool castsSunShadow = true;
+    // Linear base RGB replacement + enable (0 or 1), applied before tintColor.
+    // Zero retains authored RGB; the material's alpha and texture stay intact.
+    glm::vec4 baseColorOverride{0.0f};
 };
 
 /// A loaded mesh part (one glTF mesh). The importer flattens multi-primitive
@@ -79,6 +87,8 @@ struct MeshAsset {
 
 class MeshPath {
 public:
+    // The private GPU ABI is statically checked against this accounting value.
+    static constexpr uint64_t gpuInstanceBytes = 112u;
     MeshPath() = default;
     ~MeshPath();
 

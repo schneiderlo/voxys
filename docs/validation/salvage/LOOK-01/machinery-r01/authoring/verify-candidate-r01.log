@@ -1,0 +1,219 @@
+{
+  "schema": 1,
+  "parts": {
+    "helm": {
+      "lods": [
+        {
+          "id": "1",
+          "vertices": 2728,
+          "triangles": 5224,
+          "draws": 6,
+          "materials": 6,
+          "bounds": {
+            "minimum": [
+              -0.5,
+              -0.47999998927116394,
+              -0.5
+            ],
+            "maximum": [
+              0.5,
+              0.4569999873638153,
+              0.5
+            ]
+          },
+          "vertex_flags": 0,
+          "gpu_bytes": 259488,
+          "texture_mip_bytes": 0,
+          "encoded_bytes": 229094,
+          "sha256": "1235fbb3fc31a1ca75d3b3c57eefd45608294bccc52f476cba0ca1dc60d5f0b1"
+        },
+        {
+          "id": "2",
+          "vertices": 1104,
+          "triangles": 2040,
+          "draws": 6,
+          "materials": 6,
+          "bounds": {
+            "minimum": [
+              -0.5,
+              -0.47999998927116394,
+              -0.5
+            ],
+            "maximum": [
+              0.5,
+              0.4569999873638153,
+              0.5
+            ]
+          },
+          "vertex_flags": 0,
+          "gpu_bytes": 104352,
+          "texture_mip_bytes": 0,
+          "encoded_bytes": 93062,
+          "sha256": "d60e6245c30c03042bdcdb3b4a02e42e48070dbc154ca8c420aae0e5ae9be78a"
+        },
+        {
+          "id": "3",
+          "vertices": 718,
+          "triangles": 604,
+          "draws": 6,
+          "materials": 6,
+          "bounds": {
+            "minimum": [
+              -0.5,
+              -0.47999998927116394,
+              -0.5
+            ],
+            "maximum": [
+              0.5,
+              0.4569999873638153,
+              0.5
+            ]
+          },
+          "vertex_flags": 0,
+          "gpu_bytes": 59328,
+          "texture_mip_bytes": 0,
+          "encoded_bytes": 56654,
+          "sha256": "adec836d2264121f7600e0981dc9617803ac0ea1bc53170e48af091404e42f88"
+        }
+      ],
+      "baseline_bounds": {
+        "minimum": [
+          -0.5,
+          -0.47999998927116394,
+          -0.5
+        ],
+        "maximum": [
+          0.5,
+          0.4569999873638153,
+          0.5
+        ]
+      },
+      "original_gpu_bytes": 1785504,
+      "candidate_gpu_bytes": 423168,
+      "canonical_part": {
+        "counter": "6",
+        "namespace": "766f7879732d73616c766167652d7631",
+        "version": 2
+      },
+      "cook_manifest_sha256": "50b7bc103a150bd198d323d27c0f2de58a4b4f69eacf09ddc5d0633ba354f1e1"
+    },
+    "winch": {
+      "lods": [
+        {
+          "id": "1",
+          "vertices": 4684,
+          "triangles": 9200,
+          "draws": 5,
+          "materials": 5,
+          "bounds": {
+            "minimum": [
+              -0.5,
+              -0.9599999785423279,
+              -0.5040000081062317
+            ],
+            "maximum": [
+              0.5,
+              0.9089999794960022,
+              0.5
+            ]
+          },
+          "vertex_flags": 0,
+          "gpu_bytes": 447968,
+          "texture_mip_bytes": 0,
+          "encoded_bytes": 393616,
+          "sha256": "943cb2069f71a9aae2c069da96f4cedbdc944bcfaa868cbd60b4f488f3084794"
+        },
+        {
+          "id": "2",
+          "vertices": 1900,
+          "triangles": 3664,
+          "draws": 5,
+          "materials": 5,
+          "bounds": {
+            "minimum": [
+              -0.5,
+              -0.9599999785423279,
+              -0.5007846355438232
+            ],
+            "maximum": [
+              0.5,
+              0.9089999794960022,
+              0.5
+            ]
+          },
+          "vertex_flags": 0,
+          "gpu_bytes": 181088,
+          "texture_mip_bytes": 0,
+          "encoded_bytes": 159952,
+          "sha256": "71a5d7ddae38ae3c4d22f8fc72dd3ee136be4b9b68a06700dafbb87d3457bce7"
+        },
+        {
+          "id": "3",
+          "vertices": 692,
+          "triangles": 604,
+          "draws": 5,
+          "materials": 5,
+          "bounds": {
+            "minimum": [
+              -0.5,
+              -0.9599999785423279,
+              -0.5040000081062317
+            ],
+            "maximum": [
+              0.5,
+              0.9089999794960022,
+              0.5
+            ]
+          },
+          "vertex_flags": 0,
+          "gpu_bytes": 57392,
+          "texture_mip_bytes": 0,
+          "encoded_bytes": 54616,
+          "sha256": "8b5af172be75e3c0edbcfac2b3921d22a3915b339db5e91dd00401d793694146"
+        }
+      ],
+      "baseline_bounds": {
+        "minimum": [
+          -0.5,
+          -0.9599999785423279,
+          -0.5040000081062317
+        ],
+        "maximum": [
+          0.5,
+          0.9089999794960022,
+          0.5
+        ]
+      },
+      "original_gpu_bytes": 2097312,
+      "candidate_gpu_bytes": 686448,
+      "canonical_part": {
+        "counter": "7",
+        "namespace": "766f7879732d73616c766167652d7631",
+        "version": 2
+      },
+      "cook_manifest_sha256": "49aa3deb0cfe7f5ed5d79d9bf9b2071296498d4d26ac256b1d6ace3dec647e2d"
+    }
+  },
+  "checks": [
+    "strict three-LOD cooker and canonical validator",
+    "normalized non-LOD metadata equality",
+    "unchanged LOD IDs/basis/thresholds",
+    "cooked-payload hashes, normals, bounds and GPU requested storage",
+    "closed outward component authoring checks; solid PBR without textures/UV charts"
+  ],
+  "memory": {
+    "previous_reported_owner_reservation": 14522896,
+    "removed_machinery_gpu_bytes": 3882816,
+    "candidate_machinery_gpu_bytes": 1109616,
+    "expected_owner_reservation": 11749696,
+    "unchanged_owner_limit": 16777216,
+    "unchanged_resident_limit": 50331648,
+    "note": "CPU requested-storage projection; runtime admission remains required. Fixed reservation stays128KiB with paint."
+  },
+  "limitations": [
+    "No rendered images or visual approval. No GPU/browser/native game checks performed.",
+    "Wheel and cable drum remain static meshes; animation is future work.",
+    "Blender completed export/save checks but its sandboxed PulseAudio shutdown hung; the completed process was interrupted.",
+    "The first author run attempted an automatic cache thumbnail; the sandbox refused it. Final recipe disables thumbnails."
+  ]
+}

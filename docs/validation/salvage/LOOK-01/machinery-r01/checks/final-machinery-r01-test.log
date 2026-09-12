@@ -1,0 +1,26 @@
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //tests:voxy_tests
+-----------------------------------------------------------------------------
+Running main() from gmock_main.cc
+Note: Google Test filter = FixtureRegistry.MoldedMachineryPreservesEveryCanonicalPartAndPlacedTransform:FixtureGPU.CoveMoldedMachineryFitsCurrentOwnerBudget
+[==========] Running 2 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 1 test from FixtureRegistry
+[ RUN      ] FixtureRegistry.MoldedMachineryPreservesEveryCanonicalPartAndPlacedTransform
+[       OK ] FixtureRegistry.MoldedMachineryPreservesEveryCanonicalPartAndPlacedTransform (454 ms)
+[----------] 1 test from FixtureRegistry (455 ms total)
+
+[----------] 1 test from FixtureGPU
+[ RUN      ] FixtureGPU.CoveMoldedMachineryFitsCurrentOwnerBudget
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [03:41:41.442] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [03:41:41.442] [GPU]   Vendor: radv[0m
+[32m[INFO ] [03:41:41.442] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [03:41:41.442] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [03:41:41.444] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] FixtureGPU.CoveMoldedMachineryFitsCurrentOwnerBudget (594 ms)
+[----------] 1 test from FixtureGPU (594 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 2 test suites ran. (1050 ms total)
+[  PASSED  ] 2 tests.

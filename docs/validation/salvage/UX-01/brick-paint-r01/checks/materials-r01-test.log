@@ -1,0 +1,51 @@
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //tests:mesh_path_test
+-----------------------------------------------------------------------------
+Running main() from gmock_main.cc
+Note: Google Test filter = MeshPathTest.OpaquePaintDecodesSrgbOnceAndNeverUsesSwatchAlpha:MeshPathGPUTest.PaintReplacesAuthoredRgbBeforeTintAndPreservesTexturesAndOpacity:MeshPathGPUTest.AuthoredPoseRendersRootFrameAndRejectsStaleBodyGeneration:MeshPathGPUTest.LiveSunShadowUpdatesOffscreenCastersAndRejectsStalePoses
+[==========] Running 4 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 1 test from MeshPathTest
+[ RUN      ] MeshPathTest.OpaquePaintDecodesSrgbOnceAndNeverUsesSwatchAlpha
+[       OK ] MeshPathTest.OpaquePaintDecodesSrgbOnceAndNeverUsesSwatchAlpha (0 ms)
+[----------] 1 test from MeshPathTest (0 ms total)
+
+[----------] 3 tests from MeshPathGPUTest
+[ RUN      ] MeshPathGPUTest.AuthoredPoseRendersRootFrameAndRejectsStaleBodyGeneration
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [03:36:45.645] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [03:36:45.645] [GPU]   Vendor: radv[0m
+[32m[INFO ] [03:36:45.645] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [03:36:45.645] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [03:36:45.647] [GPU] Headless GPU context initialized successfully[0m
+Paint live root static=24,105,215 live=24,105,215 differingBytes=0
+[       OK ] MeshPathGPUTest.AuthoredPoseRendersRootFrameAndRejectsStaleBodyGeneration (107 ms)
+[ RUN      ] MeshPathGPUTest.LiveSunShadowUpdatesOffscreenCastersAndRejectsStalePoses
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [03:36:45.722] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [03:36:45.722] [GPU]   Vendor: radv[0m
+[32m[INFO ] [03:36:45.722] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [03:36:45.722] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [03:36:45.723] [GPU] Headless GPU context initialized successfully[0m
+Sun receiver clear=190 static=6 live=6
+Live sun: clear 190, shadow 6, ambient 6
+[       OK ] MeshPathGPUTest.LiveSunShadowUpdatesOffscreenCastersAndRejectsStalePoses (101 ms)
+[ RUN      ] MeshPathGPUTest.PaintReplacesAuthoredRgbBeforeTintAndPreservesTexturesAndOpacity
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [03:36:45.821] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [03:36:45.821] [GPU]   Vendor: radv[0m
+[32m[INFO ] [03:36:45.821] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [03:36:45.821] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [03:36:45.822] [GPU] Headless GPU context initialized successfully[0m
+Paint material unlit=1 alpha=0 center=0,98,93 changed=4800 mismatches=0
+Paint material unlit=1 alpha=1 center=0,0,0 changed=2352 mismatches=0
+Paint material unlit=1 alpha=2 center=0,45,43 changed=4800 mismatches=0
+Paint material unlit=0 alpha=0 center=34,85,79 changed=4800 mismatches=0
+Paint material unlit=0 alpha=1 center=0,0,0 changed=2352 mismatches=0
+Paint material unlit=0 alpha=2 center=15,39,36 changed=4800 mismatches=0
+[       OK ] MeshPathGPUTest.PaintReplacesAuthoredRgbBeforeTintAndPreservesTexturesAndOpacity (137 ms)
+[----------] 3 tests from MeshPathGPUTest (345 ms total)
+
+[----------] Global test environment tear-down
+[==========] 4 tests from 2 test suites ran. (345 ms total)
+[  PASSED  ] 4 tests.

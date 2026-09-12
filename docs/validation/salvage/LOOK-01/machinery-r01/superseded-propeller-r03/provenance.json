@@ -1,0 +1,462 @@
+{
+  "schema": 1,
+  "status": "offline presentation candidate; runtime admission and visual review remain",
+  "original_metadata": "data/salvage/functional-kit/r09/propeller/source/propeller.gameplay.json",
+  "original_metadata_sha256": "3213751822639f7edd843a14f47ca0a97681cc09d5149c64cdaf55ce0e31b7fb",
+  "canonical_part_unchanged": true,
+  "baseline_bounds": {
+    "minimum": [
+      -0.4699999988079071,
+      -0.4699999988079071,
+      -0.3199999928474426
+    ],
+    "maximum": [
+      0.4699999988079071,
+      0.4699999988079071,
+      0.3199999928474426
+    ]
+  },
+  "maximum_bounds_expansion_metres": 0.02,
+  "blender_version": "5.2.1 LTS",
+  "blender_build_hash": "9e2066aef7ef",
+  "palette_srgb": {
+    "cream": "F0DDB2",
+    "teal": "197D86",
+    "coral": "ED7942",
+    "slate": "253D53",
+    "steel": "B5C3BE",
+    "rubber": "25363A"
+  },
+  "lods": [
+    {
+      "lod": 0,
+      "vertices": 1512,
+      "triangles": 2984,
+      "draws": 4,
+      "bounds": {
+        "minimum": [
+          -0.4699999988079071,
+          -0.4699999988079071,
+          -0.3199999928474426
+        ],
+        "maximum": [
+          0.4699999988079071,
+          0.4699999988079071,
+          0.33000001311302185
+        ]
+      },
+      "geometry": {
+        "degenerate_faces": 0,
+        "nonmanifold_edges": 0,
+        "summed_component_volume_m3": 0.08280073854278668,
+        "interface_checks": {},
+        "metric_uv": null,
+        "surface_shading": [
+          {
+            "component": "prop_guard",
+            "method": "analytic torus normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.9200682640075684,
+            "maximum_unit_length_error": 1.1927756204954676e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "guard_cream_front_molding",
+            "method": "analytic torus normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.920068085193634,
+            "maximum_unit_length_error": 1.1928171828046175e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "hub",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.9159908941724098,
+            "maximum_unit_length_error": 1.1902691077203542e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "hub_molded_sleeve",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.915994492776008,
+            "maximum_unit_length_error": 1.1737944216605456e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "hub_orange_cap",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.9159925860985823,
+            "maximum_unit_length_error": 1.2126101278653323e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "prop_blade",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8577952813739103,
+            "maximum_unit_length_error": 1.2111956104732258e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "prop_blade.001",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8577952813739103,
+            "maximum_unit_length_error": 1.2111956104732258e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "prop_blade.002",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8577952813739103,
+            "maximum_unit_length_error": 1.2111956104732258e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "guard_arm",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8578084395458063,
+            "maximum_unit_length_error": 1.4787333291188531e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "guard_orange_boss",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.9159907717407805,
+            "maximum_unit_length_error": 1.2157818973790313e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "guard_arm.001",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8578084395458063,
+            "maximum_unit_length_error": 1.3297217060781463e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "guard_orange_boss.001",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.9159900243234915,
+            "maximum_unit_length_error": 1.2157818973790313e-07,
+            "positions_unchanged": true
+          }
+        ],
+        "volume_note": "Decorative components can intersect; this sum is not displacement."
+      },
+      "source_sha256": "24a4eb0680cbda619b46fe31cee8558e629ab24904fa0b126f13fa9183082428"
+    },
+    {
+      "lod": 1,
+      "vertices": 680,
+      "triangles": 1320,
+      "draws": 4,
+      "bounds": {
+        "minimum": [
+          -0.4699999988079071,
+          -0.4699999988079071,
+          -0.3199999928474426
+        ],
+        "maximum": [
+          0.4699999988079071,
+          0.4699999988079071,
+          0.33000001311302185
+        ]
+      },
+      "geometry": {
+        "degenerate_faces": 0,
+        "nonmanifold_edges": 0,
+        "summed_component_volume_m3": 0.08010406557020251,
+        "interface_checks": {},
+        "metric_uv": null,
+        "surface_shading": [
+          {
+            "component": "prop_guard",
+            "method": "analytic torus normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8579731583595276,
+            "maximum_unit_length_error": 1.1548400591365748e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "guard_cream_front_molding",
+            "method": "analytic torus normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8579721542417929,
+            "maximum_unit_length_error": 1.5553088206221588e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "hub",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.6935452154866653,
+            "maximum_unit_length_error": 6.118259188170327e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "hub_molded_sleeve",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.6935542580490619,
+            "maximum_unit_length_error": 7.292115578039216e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "hub_orange_cap",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.6935535996080944,
+            "maximum_unit_length_error": 8.36037212792462e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "prop_blade",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.577347325757728,
+            "maximum_unit_length_error": 5.946148950997099e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "prop_blade.001",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.577347325757728,
+            "maximum_unit_length_error": 5.946148950997099e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "prop_blade.002",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.577347325757728,
+            "maximum_unit_length_error": 5.946148950997099e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "guard_arm",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.5773472341975321,
+            "maximum_unit_length_error": 5.945553349651078e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "guard_orange_boss",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.6935463007039289,
+            "maximum_unit_length_error": 7.290264658621481e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "guard_arm.001",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.5773472341975321,
+            "maximum_unit_length_error": 5.945553349651078e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "guard_orange_boss.001",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.6935367251608113,
+            "maximum_unit_length_error": 1.026693373651355e-07,
+            "positions_unchanged": true
+          }
+        ],
+        "volume_note": "Decorative components can intersect; this sum is not displacement."
+      },
+      "source_sha256": "46c3057a29e954b70c29f0c52a298ae523c6ed7d819ed301bf259cbefed3250c"
+    },
+    {
+      "lod": 2,
+      "vertices": 336,
+      "triangles": 360,
+      "draws": 4,
+      "bounds": {
+        "minimum": [
+          -0.4699999988079071,
+          -0.4699999988079071,
+          -0.3199999928474426
+        ],
+        "maximum": [
+          0.4699999988079071,
+          0.4699999988079071,
+          0.33000001311302185
+        ]
+      },
+      "geometry": {
+        "degenerate_faces": 0,
+        "nonmanifold_edges": 0,
+        "summed_component_volume_m3": 0.07519569047473218,
+        "interface_checks": {},
+        "metric_uv": null,
+        "surface_shading": [
+          {
+            "component": "prop_guard",
+            "method": "analytic torus normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.6947210769546928,
+            "maximum_unit_length_error": 1.1985334658071167e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "guard_cream_front_molding",
+            "method": "analytic torus normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.6947167441153397,
+            "maximum_unit_length_error": 1.203474064848109e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "hub",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 20,
+            "minimum_face_alignment": 0.9510564208030701,
+            "maximum_unit_length_error": 5.9604642999033786e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "hub_molded_sleeve",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 20,
+            "minimum_face_alignment": 0.9510564804077148,
+            "maximum_unit_length_error": 4.470348458074369e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "hub_orange_cap",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 20,
+            "minimum_face_alignment": 0.9510564804077148,
+            "maximum_unit_length_error": 1.490116130486996e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "prop_blade",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 12,
+            "minimum_face_alignment": 0.9999999403953552,
+            "maximum_unit_length_error": 5.960464655174746e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "prop_blade.001",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 12,
+            "minimum_face_alignment": 0.9999999403953552,
+            "maximum_unit_length_error": 5.960464655174746e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "prop_blade.002",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 12,
+            "minimum_face_alignment": 0.9999999403953552,
+            "maximum_unit_length_error": 5.960464655174746e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "guard_arm",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 12,
+            "minimum_face_alignment": 1.0,
+            "maximum_unit_length_error": 0.0,
+            "positions_unchanged": true
+          },
+          {
+            "component": "guard_arm.001",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 12,
+            "minimum_face_alignment": 1.0,
+            "maximum_unit_length_error": 0.0,
+            "positions_unchanged": true
+          }
+        ],
+        "volume_note": "Decorative components can intersect; this sum is not displacement."
+      },
+      "source_sha256": "f38595efa882bde99ed090651efaa3a31f14236b2d3779151cecdfebc505917f"
+    }
+  ],
+  "inputs": {
+    "tools/salvage_assets/author_functional_kit.py": "17d8ec95739accb369f7df65303631b012d2bfdf8ea90b466cb74ca6e89cd163",
+    "tools/salvage_assets/author_cove_toy_art.py": "d849f129f076510c313d3de6b31534ce5c2200b13a8b667b2b48baf494717f6b",
+    "tools/salvage_assets/author_pontoon.py": "65142b372f2ec48eec8d994c751dca8b3263f492da39e27393e4d615242ce4b5",
+    "tools/salvage_assets/pontoon_parameters.py": "348dd03c4f49009f14d8b430728b87925458a27f8a4db1923cffce93b8e4260a",
+    "tools/salvage_assets/surface_shading.py": "b53656d0c42cf0f934fd65a7ccb0c528539da794a8482265809e5189bab19720",
+    "tools/salvage_assets/metric_materials.py": "e4d31cdf8ee8bf46dab081589f6f5aa876eb984801416dc8e4e0feb5f6af32f5",
+    "tools/salvage_assets/authoring_probe.py": "81edf36885bedff0f51380c89213094dad908d9287bbfd74987e363d392edbc0",
+    "tools/salvage_assets/author_cove_power_art.py": "97b50bf663ac557eb76408cbb3c127c2068d00256b043de68dfa0b171656b61b"
+  },
+  "provenance": "Original procedural geometry and solid PBR factors. No external models, image textures, UV charts or rendered captures.",
+  "limitations": [
+    "Static mechanical presentation; propeller rotation and engine animation are not implemented.",
+    "Geometry checks and cook do not establish visual approval or runtime gameplay acceptance."
+  ],
+  "cook_manifest_sha256": "1fa80fd34f513900337444d2c3fbca2e7fe2a0101c5d15a006e34649b627690d",
+  "requested_gpu_bytes": 238752,
+  "export_process": {
+    "exports_complete": true,
+    "process_exit_code": 130,
+    "note": "All six total GLB exports, both .blend saves, bounds/normal/manifold checks and provenance writes completed. This sandbox hung in PulseAudio during Blender shutdown; the finished process was interrupted. No thumbnails were generated."
+  },
+  "files": {
+    "cooked/cook-manifest.json": {
+      "bytes": 1721,
+      "sha256": "1fa80fd34f513900337444d2c3fbca2e7fe2a0101c5d15a006e34649b627690d"
+    },
+    "cooked/gameplay.json": {
+      "bytes": 5002,
+      "sha256": "7adc79aa11ab4cc0b14688fafeab438c57e78568035e4e05cfae581f8525d622"
+    },
+    "cooked/lod-1.vmesh": {
+      "bytes": 127772,
+      "sha256": "20eb9c65daf1d3d42935a92a3db9a41a07570a25a9c3a33fb33c468f4868c056"
+    },
+    "cooked/lod-2.vmesh": {
+      "bytes": 57884,
+      "sha256": "2437124507660595f89daa2297a05f3f6265e22a953fd3b6f2206e88163eb729"
+    },
+    "cooked/lod-3.vmesh": {
+      "bytes": 27356,
+      "sha256": "f579f6d5cde8357f305d6485eb760724cf13092556aa094b42554d7ab6f2b817"
+    },
+    "source/propeller-lod-0.glb": {
+      "bytes": 57684,
+      "sha256": "24a4eb0680cbda619b46fe31cee8558e629ab24904fa0b126f13fa9183082428"
+    },
+    "source/propeller-lod-1.glb": {
+      "bytes": 27732,
+      "sha256": "46c3057a29e954b70c29f0c52a298ae523c6ed7d819ed301bf259cbefed3250c"
+    },
+    "source/propeller-lod-2.glb": {
+      "bytes": 13696,
+      "sha256": "f38595efa882bde99ed090651efaa3a31f14236b2d3779151cecdfebc505917f"
+    },
+    "source/propeller.blend": {
+      "bytes": 190169,
+      "sha256": "d4154f15e3f1b21868a8f2fb4efcc74e0db297920e55c06ae1bf12cf2212d3a3"
+    },
+    "source/propeller.gameplay.json": {
+      "bytes": 4964,
+      "sha256": "88fb40e4133140724c3ae89fe274d740df77883997e2d1592a113f4bfc24acf1"
+    }
+  },
+  "metadata_only_correction": {
+    "reason": "Portable installed author recipe path; no geometry, source asset or cooked payload changes.",
+    "original_authoring_recipe_sha256": "08eccc3efdc9d18506dccf09c94711991ba03e49818fcac81c28da5f61d85504",
+    "corrected_recipe_sha256": "97b50bf663ac557eb76408cbb3c127c2068d00256b043de68dfa0b171656b61b",
+    "original_recipe_path": "build-cove-power-art-r01/overlay/tools/salvage_assets/author_cove_power_art.py",
+    "installed_recipe_path": "tools/salvage_assets/author_cove_power_art.py"
+  }
+}

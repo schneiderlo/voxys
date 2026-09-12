@@ -1,0 +1,50 @@
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //tests:voxy_tests
+-----------------------------------------------------------------------------
+Running main() from gmock_main.cc
+Note: Google Test filter = CoveMovement.BrickPaint*:CoveMovement.BrickToolUsesEachStoredPartOnceAndDoesNotReserveItsFinalPreview:MeshPathTest.OpaquePaintDecodesSrgbOnceAndNeverUsesSwatchAlpha:MeshPathGPUTest.PaintReplacesAuthoredRgbBeforeTintAndPreservesTexturesAndOpacity:MeshPathGPUTest.AuthoredPoseRendersRootFrameAndRejectsStaleBodyGeneration:MeshPathGPUTest.LiveSunShadowUpdatesOffscreenCastersAndRejectsStalePoses:SalvageFixtureAccounting.PaintFitsBothFullDrawPathsWithinUnchangedReservation:FixtureGPU.RejectsInvalidPaintBeforeOpeningTicketAndAcceptsNeutralOrOpaqueColor:FixtureRegistry.MoldedMachineryPreservesEveryCanonicalPartAndPlacedTransform:FixtureGPU.CoveMoldedMachineryFitsCurrentOwnerBudget
+[==========] Running 8 tests from 4 test suites.
+[----------] Global test environment set-up.
+[----------] 1 test from FixtureRegistry
+[ RUN      ] FixtureRegistry.MoldedMachineryPreservesEveryCanonicalPartAndPlacedTransform
+[       OK ] FixtureRegistry.MoldedMachineryPreservesEveryCanonicalPartAndPlacedTransform (464 ms)
+[----------] 1 test from FixtureRegistry (465 ms total)
+
+[----------] 4 tests from CoveMovement
+[ RUN      ] CoveMovement.BrickToolUsesEachStoredPartOnceAndDoesNotReserveItsFinalPreview
+[       OK ] CoveMovement.BrickToolUsesEachStoredPartOnceAndDoesNotReserveItsFinalPreview (369 ms)
+[ RUN      ] CoveMovement.BrickPaintOnlyKeepUndoAndLaunchPreserveGeometryCostAndIdentity
+[       OK ] CoveMovement.BrickPaintOnlyKeepUndoAndLaunchPreserveGeometryCostAndIdentity (415 ms)
+[ RUN      ] CoveMovement.BrickPaintBrushCarriesExplicitColorAcrossPlacementsAndTypes
+[       OK ] CoveMovement.BrickPaintBrushCarriesExplicitColorAcrossPlacementsAndTypes (461 ms)
+[ RUN      ] CoveMovement.BrickPaintOverridesStoredColorWithoutChangingStockIdentityOrCondition
+[       OK ] CoveMovement.BrickPaintOverridesStoredColorWithoutChangingStockIdentityOrCondition (393 ms)
+[----------] 4 tests from CoveMovement (1640 ms total)
+
+[----------] 1 test from SalvageFixtureAccounting
+[ RUN      ] SalvageFixtureAccounting.PaintFitsBothFullDrawPathsWithinUnchangedReservation
+[       OK ] SalvageFixtureAccounting.PaintFitsBothFullDrawPathsWithinUnchangedReservation (0 ms)
+[----------] 1 test from SalvageFixtureAccounting (0 ms total)
+
+[----------] 2 tests from FixtureGPU
+[ RUN      ] FixtureGPU.CoveMoldedMachineryFitsCurrentOwnerBudget
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [03:35:02.848] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [03:35:02.848] [GPU]   Vendor: radv[0m
+[32m[INFO ] [03:35:02.848] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [03:35:02.848] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [03:35:02.849] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] FixtureGPU.CoveMoldedMachineryFitsCurrentOwnerBudget (608 ms)
+[ RUN      ] FixtureGPU.RejectsInvalidPaintBeforeOpeningTicketAndAcceptsNeutralOrOpaqueColor
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [03:35:03.427] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [03:35:03.427] [GPU]   Vendor: radv[0m
+[32m[INFO ] [03:35:03.427] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [03:35:03.427] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [03:35:03.428] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] FixtureGPU.RejectsInvalidPaintBeforeOpeningTicketAndAcceptsNeutralOrOpaqueColor (72 ms)
+[----------] 2 tests from FixtureGPU (680 ms total)
+
+[----------] Global test environment tear-down
+[==========] 8 tests from 4 test suites ran. (2786 ms total)
+[  PASSED  ] 8 tests.

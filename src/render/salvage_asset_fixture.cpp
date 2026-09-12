@@ -516,6 +516,13 @@ bool SalvageAssetFixture::encode(WGPUCommandEncoder encoder, WGPUTextureView col
     for (const auto& placement : placements) {
         for(int channel=0;channel<4;++channel)if(!std::isfinite(placement.tint[channel])
             || placement.tint[channel]<0 || placement.tint[channel]>1)return state.fail(error,"invalid placement tint");
+        for (int channel = 0; channel < 4; ++channel) {
+            if (!std::isfinite(placement.baseColorOverride[channel])
+                || placement.baseColorOverride[channel] < 0 || placement.baseColorOverride[channel] > 1)
+                return state.fail(error, "invalid placement base color override");
+        }
+        if (placement.baseColorOverride.w != 0 && placement.baseColorOverride.w != 1)
+            return state.fail(error, "invalid placement base color override enable flag");
         const game::assets::RigidPrefab* selectedPrefab=nullptr;
         const game::construction::PartDefinition* definition=nullptr;
         uint32_t upload=0;
@@ -544,7 +551,8 @@ bool SalvageAssetFixture::encode(WGPUCommandEncoder encoder, WGPUTextureView col
         authoredInstances += prefab.counts.meshInstances;
         for (const auto& draw : placed) instances.push_back({.assetIndex = upload,
             .meshIndex = draw.meshIndex, .modelMatrix = draw.modelMatrix, .tintColor = placement.tint,
-            .physicsBody = placement.physicsBody, .castsSunShadow = placement.castsSunShadow});
+            .physicsBody = placement.physicsBody, .castsSunShadow = placement.castsSunShadow,
+            .baseColorOverride = placement.baseColorOverride});
         // One ruler stand avoids duplicating labels/scales. Socket inspection
         // covers every placement; reject the whole frame if its budget cannot
         // represent every socket instead of silently dropping late guides.

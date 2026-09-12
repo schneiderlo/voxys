@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="4" failures="0" disabled="0" errors="0" time="0.345" timestamp="2026-09-12T04:28:01.369" name="AllTests">
+  <testsuite name="MeshPathTest" tests="1" failures="0" disabled="0" skipped="0" errors="0" time="0." timestamp="2026-09-12T04:28:01.369">
+    <testcase name="OpaquePaintDecodesSrgbOnceAndNeverUsesSwatchAlpha" file="tests/test_mesh_path.cpp" line="44" status="run" result="completed" time="0." timestamp="2026-09-12T04:28:01.369" classname="MeshPathTest" />
+  </testsuite>
+  <testsuite name="MeshPathGPUTest" tests="3" failures="0" disabled="0" skipped="0" errors="0" time="0.345" timestamp="2026-09-12T04:28:01.369">
+    <testcase name="AuthoredPoseRendersRootFrameAndRejectsStaleBodyGeneration" file="tests/test_mesh_path.cpp" line="265" status="run" result="completed" time="0.107" timestamp="2026-09-12T04:28:01.369" classname="MeshPathGPUTest" />
+    <testcase name="LiveSunShadowUpdatesOffscreenCastersAndRejectsStalePoses" file="tests/test_mesh_path.cpp" line="341" status="run" result="completed" time="0.101" timestamp="2026-09-12T04:28:01.477" classname="MeshPathGPUTest" />
+    <testcase name="PaintReplacesAuthoredRgbBeforeTintAndPreservesTexturesAndOpacity" file="tests/test_mesh_path.cpp" line="492" status="run" result="completed" time="0.137" timestamp="2026-09-12T04:28:01.578" classname="MeshPathGPUTest" />
+  </testsuite>
+</testsuites>

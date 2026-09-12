@@ -455,6 +455,12 @@ try{
         const {validateCoveBricks}=await import('./validate_cove_bricks.mjs');
         report.cove_bricks=await validateCoveBricks(call,process.env.VOXY_SMOKE_COVE_BRICKS);
     }
+    if(process.env.VOXY_SMOKE_COVE_PAINT){
+        assert.equal(selected,'salvage-cove');
+        const {validateCovePaint}=await import('./validate_cove_paint.mjs');
+        report.cove_paint=await validateCovePaint(call,process.env.VOXY_SMOKE_COVE_PAINT,
+            {expectedPresentationParts:Number(process.env.VOXY_SMOKE_PRESENTATION_PARTS??3)});
+    }
     if(process.env.VOXY_SMOKE_COVE_PARTS){
         assert.equal(selected,'salvage-cove');
         const {validateCoveParts}=await import('./validate_cove_parts.mjs');

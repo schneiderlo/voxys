@@ -13,9 +13,13 @@ filegroup(
         "salvage/fixture-cove-r01.json",
         "salvage/cove-bricks-r02.json",
         "salvage/cove-workshop-r03.json",
+        "salvage/cove-workshop-r04.json",
     ] + glob([
         "salvage/bricks/r02/*/cooked/*",
         "salvage/toy-art/r01/*/cooked/*",
+        "salvage/toy-art/r02/*/cooked/*",
+        "salvage/toy-art/r03/*/cooked/*",
+        "salvage/toy-art/r04/*/cooked/*",
         "salvage/material-calibration/r02/pontoon-r02/cooked/*",
         "salvage/material-calibration/r02/kit/winch/cooked/*",
         "salvage/material-calibration/r02/kit/helm/cooked/*",

@@ -1,6 +1,7 @@
 #pragma once
 #include "game/expedition/cove_boat.hpp"
 #include "game/expedition/workshop_camera.hpp"
+#include "game/expedition/brick_paint.hpp"
 
 namespace voxy::game::expedition {
 
@@ -43,6 +44,13 @@ public:
     [[nodiscard]] bool stopBrickTool();
     [[nodiscard]] bool brickToolActive() const noexcept { return brickToolActive_; }
     [[nodiscard]] bool canChooseBrick() const noexcept;
+    [[nodiscard]] bool canPaint() const noexcept;
+    [[nodiscard]] std::optional<uint32_t> paintIndex() const noexcept;
+    [[nodiscard]] BrickPaint currentPaint() const noexcept;
+    [[nodiscard]] const std::optional<BrickPaint>& brushPaint() const noexcept { return brushPaint_; }
+    // A preview edit; Keep/Launch remain authoritative. Explicit preference
+    // carries through the brush. No preference preserves stored part paint.
+    [[nodiscard]] bool setPaint(uint32_t index);
     enum class SettingAction { Toggle, CycleLimit, Reverse };
     [[nodiscard]] bool configure(SettingAction);
     [[nodiscard]] bool configurable() const noexcept;
@@ -85,6 +93,7 @@ private:
     uint64_t revision_=0;
     bool brickToolActive_=false;
     uint32_t brickToolAnchor_=0;
+    std::optional<BrickPaint> brushPaint_;
     std::string message_;
 };
 } // namespace voxy::game::expedition

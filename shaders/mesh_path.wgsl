@@ -247,6 +247,7 @@ struct GpuDrawInstance {
     emissiveBoost : f32,
     materialIndex : u32,
     padding : vec2<u32>,
+    baseColorOverride : vec4<f32>,
 };
 
 struct GpuMaterial {
@@ -330,6 +331,7 @@ struct VertexOutput {
     @location(4) @interpolate(flat) emissiveBoost : f32,
     @location(5) texCoord : vec2<f32>,
     @location(6) worldTangent : vec4<f32>,
+    @location(7) @interpolate(flat) baseColorOverride : vec4<f32>,
 };
 
 fn meshVertex(input : VertexInput, shadowPass: bool) -> VertexOutput {
@@ -358,6 +360,7 @@ fn meshVertex(input : VertexInput, shadowPass: bool) -> VertexOutput {
     output.worldNormal = safeNormalize(
         normalMatrix * input.normal * determinantSign, vec3<f32>(0.0, 1.0, 0.0));
     output.tintColor = instance.tintColor;
+    output.baseColorOverride = instance.baseColorOverride;
     output.materialIndex = instance.materialIndex;
     output.emissiveBoost = instance.emissiveBoost;
     output.texCoord = input.texCoord;
@@ -484,7 +487,11 @@ fn shadeLinear(input : VertexOutput, frontFacing : bool) -> vec4<f32> {
             baseColorTexture, materialSampler, input.texCoord,
             texCoordDx, texCoordDy);
     }
-    let baseColor = material.baseColorFactor * input.tintColor
+    var authoredBaseColor = material.baseColorFactor;
+    if (input.baseColorOverride.w > 0.5) {
+        authoredBaseColor = vec4<f32>(input.baseColorOverride.xyz, authoredBaseColor.a);
+    }
+    let baseColor = authoredBaseColor * input.tintColor
         * baseColorSample;
     let alpha = clamp(baseColor.a, 0.0, 1.0);
     if (material.flags.x == 1u

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="2" failures="0" disabled="0" errors="0" time="1.05" timestamp="2026-09-12T04:32:56.714" name="AllTests">
+  <testsuite name="FixtureRegistry" tests="1" failures="0" disabled="0" skipped="0" errors="0" time="0.455" timestamp="2026-09-12T04:32:56.714">
+    <testcase name="MoldedMachineryPreservesEveryCanonicalPartAndPlacedTransform" file="tests/test_fixture_registry.cpp" line="107" status="run" result="completed" time="0.454" timestamp="2026-09-12T04:32:56.714" classname="FixtureRegistry" />
+  </testsuite>
+  <testsuite name="FixtureGPU" tests="1" failures="0" disabled="0" skipped="0" errors="0" time="0.594" timestamp="2026-09-12T04:32:57.170">
+    <testcase name="CoveMoldedMachineryFitsCurrentOwnerBudget" file="tests/test_salvage_asset_fixture.cpp" line="470" status="run" result="completed" time="0.594" timestamp="2026-09-12T04:32:57.170" classname="FixtureGPU">
+      <properties>
+        <property name="bundleGpuBytes0" value="388200"/>
+        <property name="bundleGpuBytes1" value="392472"/>
+        <property name="bundleGpuBytes2" value="430632"/>
+        <property name="bundleGpuBytes3" value="371592"/>
+        <property name="bundleGpuBytes4" value="238752"/>
+        <property name="bundleGpuBytes5" value="423168"/>
+        <property name="bundleGpuBytes6" value="686448"/>
+        <property name="bundleGpuBytes7" value="694396"/>
+        <property name="bundleGpuBytes8" value="1051660"/>
+        <property name="bundleGpuBytes9" value="84672"/>
+        <property name="bundleGpuBytes10" value="148896"/>
+        <property name="bundleGpuBytes11" value="275184"/>
+        <property name="requestedOwnerGpuBytes" value="10740488"/>
+        <property name="ownerGpuBytes" value="10740488"/>
+        <property name="colorDraws" value="78"/>
+      </properties>
+    </testcase>
+  </testsuite>
+</testsuites>

@@ -33,6 +33,7 @@ struct SalvageFixturePlacement {
     physics::BodyHandle physicsBody{};
     glm::vec4 tint{1.0f}; // Workshop selection; material remains authored.
     bool castsSunShadow = true; // Screen-space palette thumbnails opt out.
+    glm::vec4 baseColorOverride{0.0f}; // Linear RGB + enable; independent of selection tint.
 };
 
 struct SalvageFixtureSolid {glm::mat4 model{1};glm::vec4 color{1};};
@@ -104,15 +105,20 @@ public:
     static constexpr uint32_t maximumPlacements = game::assets::kMaximumFixturePlacements + maximumPalettePlacements;
     static constexpr uint32_t maximumMeshInstances = 256; // Authored nodes, excluding helper boxes.
     static constexpr uint32_t maximumExpandedDraws = 512; // Per model or guide path.
-    // Model and X-ray paths each reserve 512 * 96-byte instances, 160-byte
-    // uniforms, two 1x1 2D fallbacks and one 1x1 cube, plus the 1936-byte guide:
-    // 100624 base requested bytes plus both paths' 64-byte body fallbacks,
-    // 32-byte body cameras, 96-byte shadow uniforms and 1-texel fallback maps
-    // total 101016 bytes. Live shadow storage is additionally charged below.
+    // Model and X-ray paths each reserve 512 * 112-byte instances, 160-byte
+    // uniforms, two 1x1 2D fallbacks and one 1x1 cube, plus one 1936-byte helper
+    // mesh in each path: 118944 base requested bytes. Both paths' 64-byte body
+    // fallbacks, 32-byte body cameras, 96-byte shadow uniforms and 1-texel maps
+    // bring the total to 119336 bytes. The old 96-byte stride requested 102952 bytes;
+    // paint adds 16384 bytes. Live shadow storage is additionally charged below.
     // The independent paths can each draw 512;
     // guides do not consume the model path's already reserved capacity.
     // Conservative requested-storage reservation, not driver working set.
     static constexpr uint64_t fixedGpuReservationBytes = 128ull * 1024ull;
+    static constexpr uint64_t fixedGpuRequestedBytes = 2u * (
+        maximumExpandedDraws * MeshPath::gpuInstanceBytes + 160u + 32u
+        + 64u + 32u + sizeof(SunShadowUniforms) + 4u + 1936u);
+    static_assert(fixedGpuRequestedBytes <= fixedGpuReservationBytes);
     // Optional filter is added once per generation, outside the fixed reserve
     // but inside the unchanged owner/resident ceilings. Guides never own one.
 

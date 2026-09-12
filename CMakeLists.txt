@@ -527,6 +527,27 @@ if(VOXY_BUILD_WASM)
             data/salvage/fixture-cove-r01.json
             data/salvage/cove-bricks-r02.json
             data/salvage/cove-workshop-r03.json
+            data/salvage/cove-workshop-r04.json
+            data/salvage/toy-art/r02/helm/cooked/cook-manifest.json
+            data/salvage/toy-art/r02/helm/cooked/gameplay.json
+            data/salvage/toy-art/r02/helm/cooked/lod-1.vmesh
+            data/salvage/toy-art/r02/helm/cooked/lod-2.vmesh
+            data/salvage/toy-art/r02/helm/cooked/lod-3.vmesh
+            data/salvage/toy-art/r02/winch/cooked/cook-manifest.json
+            data/salvage/toy-art/r02/winch/cooked/gameplay.json
+            data/salvage/toy-art/r02/winch/cooked/lod-1.vmesh
+            data/salvage/toy-art/r02/winch/cooked/lod-2.vmesh
+            data/salvage/toy-art/r02/winch/cooked/lod-3.vmesh
+            data/salvage/toy-art/r03/engine/cooked/cook-manifest.json
+            data/salvage/toy-art/r03/engine/cooked/gameplay.json
+            data/salvage/toy-art/r03/engine/cooked/lod-1.vmesh
+            data/salvage/toy-art/r03/engine/cooked/lod-2.vmesh
+            data/salvage/toy-art/r03/engine/cooked/lod-3.vmesh
+            data/salvage/toy-art/r04/propeller/cooked/cook-manifest.json
+            data/salvage/toy-art/r04/propeller/cooked/gameplay.json
+            data/salvage/toy-art/r04/propeller/cooked/lod-1.vmesh
+            data/salvage/toy-art/r04/propeller/cooked/lod-2.vmesh
+            data/salvage/toy-art/r04/propeller/cooked/lod-3.vmesh
             data/salvage/toy-art/r01/pontoon/cooked/cook-manifest.json
             data/salvage/toy-art/r01/pontoon/cooked/gameplay.json
             data/salvage/toy-art/r01/pontoon/cooked/lod-1.vmesh

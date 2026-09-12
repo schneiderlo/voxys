@@ -44,7 +44,7 @@
         const guideButtons = guidePanel ? Array.from(guidePanel.querySelectorAll('button')) : [];
         const inspectionButtons = [...lodButtons, ...guideButtons];
         let stopped = false, pending = null, resetCount = 0, requestedReset = 0, hasRescue = false;
-        let pausePhase='running';
+        let pausePhase='running',brickToolActive=false;
         let timer;
         const cleanup = () => {
             if (stopped) return;
@@ -239,6 +239,7 @@
             }
             if(workshopToggle) {
                 const w=state.workshop,open=Boolean(w?.open);
+                brickToolActive=Boolean(open&&w.brickTool);
                 workshopToggle.hidden=!w;
                 panel.dataset.workshop=String(open);
                 workshopToggle.disabled=paused||!state.ready||Boolean(pending)||Boolean(state.job?.pending)||Boolean(w?.pending)||(!open&&!w?.canOpen);
@@ -252,6 +253,12 @@
                     if(tool)tool.textContent=w.brickTool
                         ? `Building with ${w.catalogName.replace('Brick ','')}. Click to place another. R rotates; Esc selects. The preview is not charged.`
                         : 'Choose a brick once. Click to build with it again and again.';
+                    const paintName=document.getElementById('workshop-paint-name');
+                    if(paintName)paintName.textContent=w.canPaint?`Paint · ${w.paintName||'Custom'}`:'Brick paint';
+                    const paintNote=document.getElementById('workshop-paint-note');
+                    if(paintNote)paintNote.textContent=!w.canPaint?'Paint is free. Choose a brick to paint.':w.brickTool
+                        ?(Array.isArray(w.brushPaint)?'Paint is free. Next bricks use this color.':'Paint is free. Choose a color for new bricks.')
+                        :'Paint is free. Choose a color, then Keep.';
                     const note=document.getElementById('salvage-workshop-status');
                     const noTarget=w.valid&&w.pointerPlacement&&w.pointerTarget===false;
                     note.textContent=(w.launchMessage||(noTarget?(w.brickTool?'Point at a matching stud or socket.':'Point at a part to place, or Keep this position.'):w.message))
@@ -285,12 +292,16 @@
                             if(label&&part)label.textContent=`${part.name.replace('Brick ','')} · ${part.cost} material`;
                         }
                         const action=button.dataset.workshopAction;
+                        if(button.dataset.workshopPaint!==undefined)
+                            button.setAttribute('aria-pressed',String(Boolean(w.canPaint&&Number.isInteger(w.paintIndex)
+                                &&Number(button.dataset.workshopPaint)===w.paintIndex)));
                         if(action==='96')button.setAttribute('aria-pressed',String(!w.brickTool));
                         if(action==='85') { button.hidden=!w.configurable;button.textContent=`Turn ${settings.enabled?'off':'on'} · X`; }
                         if(action==='86') { button.hidden=!w.hasOutputLimit;button.textContent=`${w.name==='Helm'?'Steering':'Thrust'} limit · L`; }
                         if(action==='87') { button.hidden=!w.canReverse;button.textContent=`${settings.reversed?'Forward':'Reverse'} drive · N`; }
                     }
                     for(const button of workshopButtons)button.disabled=!state.ready||Boolean(pending)||Boolean(w.pending)
+                        ||(button.dataset.workshopPaint!==undefined&&!w.canPaint)
                         ||(button.dataset.workshopAction==='71'&&(!w.valid||!w.changed))
                         ||(button.dataset.workshopAction==='72'&&!w.undo)
                         ||(button.dataset.workshopAction==='79'&&!w.canLaunch)
@@ -355,7 +366,8 @@
                     tick();
                     // Selecting the brush hands rotation/undo back to the
                     // canvas immediately, before the first placement click.
-                    if(button.dataset.workshopBrick||button.dataset.workshopAction==='96')
+                    if(button.dataset.workshopBrick||button.dataset.workshopAction==='96'
+                        ||(button.dataset.workshopPaint!==undefined&&brickToolActive))
                         document.getElementById('voxy-canvas')?.focus({preventScroll:true});
                 }
             };

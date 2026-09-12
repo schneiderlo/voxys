@@ -1,0 +1,782 @@
+{
+  "schema": 1,
+  "status": "offline presentation candidate; runtime admission and visual review remain",
+  "original_metadata": "data/salvage/functional-kit/r09/engine/source/engine.gameplay.json",
+  "original_metadata_sha256": "83599036450029687b3b2256b7a2c798b1f505016e863b2721d1a6e7afcab418",
+  "canonical_part_unchanged": true,
+  "baseline_bounds": {
+    "minimum": [
+      -0.5239999890327454,
+      -2.200000047683716,
+      -0.5
+    ],
+    "maximum": [
+      0.5239999890327454,
+      0.4830000102519989,
+      1.5
+    ]
+  },
+  "maximum_bounds_expansion_metres": 0.02,
+  "blender_version": "5.2.1 LTS",
+  "blender_build_hash": "9e2066aef7ef",
+  "palette_srgb": {
+    "cream": "F0DDB2",
+    "teal": "197D86",
+    "coral": "ED7942",
+    "slate": "253D53",
+    "steel": "B5C3BE",
+    "rubber": "25363A"
+  },
+  "lods": [
+    {
+      "lod": 0,
+      "vertices": 2332,
+      "triangles": 4480,
+      "draws": 6,
+      "bounds": {
+        "minimum": [
+          -0.5239999890327454,
+          -2.200000047683716,
+          -0.5
+        ],
+        "maximum": [
+          0.5239999890327454,
+          0.5,
+          1.5080000162124634
+        ]
+      },
+      "geometry": {
+        "degenerate_faces": 0,
+        "nonmanifold_edges": 0,
+        "summed_component_volume_m3": 1.1089404070831859,
+        "interface_checks": {},
+        "metric_uv": null,
+        "surface_shading": [
+          {
+            "component": "engine_cover",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.857795314210307,
+            "maximum_unit_length_error": 1.628541060894051e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "transom_bracket",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 42,
+            "minimum_face_alignment": 0.8400260135531425,
+            "maximum_unit_length_error": 1.4842954632054983e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "lower_leg",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8577971020877158,
+            "maximum_unit_length_error": 1.3299902690278032e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "bracket_neck",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8577938404496308,
+            "maximum_unit_length_error": 1.2113376168798595e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "shaft",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.9159897332810942,
+            "maximum_unit_length_error": 1.2216609879267537e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "top_molded_panel",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8578053928322333,
+            "maximum_unit_length_error": 1.0320581533829198e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cowling_side_inset",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8577973099863812,
+            "maximum_unit_length_error": 1.1838585456391826e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cowling_air_vent",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8578017996351264,
+            "maximum_unit_length_error": 1.2168065577355947e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cowling_air_vent.001",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8578000496008826,
+            "maximum_unit_length_error": 1.2124853876471775e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cowling_air_vent.002",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8577914662391777,
+            "maximum_unit_length_error": 1.2096253221294262e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "lower_leg_orange_trim",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8577878471860458,
+            "maximum_unit_length_error": 7.900226606238903e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "top_molded_stud",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.9159854575154895,
+            "maximum_unit_length_error": 1.2184757403055357e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "top_molded_stud.001",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.9159712400542048,
+            "maximum_unit_length_error": 1.2188586517858369e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "bracket_fastener",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.9159859342817072,
+            "maximum_unit_length_error": 1.2145885652792288e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "bracket_fastener.001",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.9159852868797316,
+            "maximum_unit_length_error": 1.3571273838053344e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cowling_side_inset.001",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8577920300685946,
+            "maximum_unit_length_error": 1.201848567333741e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cowling_air_vent.003",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8578093727810483,
+            "maximum_unit_length_error": 1.217176130996478e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cowling_air_vent.004",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8578030726848738,
+            "maximum_unit_length_error": 1.2052406161977558e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cowling_air_vent.005",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8577997548200074,
+            "maximum_unit_length_error": 1.2257666859305516e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "lower_leg_orange_trim.001",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8578029815307673,
+            "maximum_unit_length_error": 1.24949047775047e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "top_molded_stud.002",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.9159871792489866,
+            "maximum_unit_length_error": 1.217821612442549e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "top_molded_stud.003",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.9159650820351999,
+            "maximum_unit_length_error": 1.1940164590384938e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "bracket_fastener.002",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.9159859342817072,
+            "maximum_unit_length_error": 1.3231200113317243e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "bracket_fastener.003",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.9159880126733242,
+            "maximum_unit_length_error": 1.4722733554517475e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cowling_rear_badge",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8578030324624706,
+            "maximum_unit_length_error": 1.2083836620213617e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cowling_lower_seam",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8578063657641906,
+            "maximum_unit_length_error": 1.211706122106193e-07,
+            "positions_unchanged": true
+          }
+        ],
+        "volume_note": "Decorative components can intersect; this sum is not displacement."
+      },
+      "source_sha256": "56a34e46e5e30ecc591f6f42d593487c26d1944709e4c23b054dd7c1dc256068"
+    },
+    {
+      "lod": 1,
+      "vertices": 1034,
+      "triangles": 1918,
+      "draws": 6,
+      "bounds": {
+        "minimum": [
+          -0.5239999890327454,
+          -2.200000047683716,
+          -0.5
+        ],
+        "maximum": [
+          0.5239999890327454,
+          0.5,
+          1.5080000162124634
+        ]
+      },
+      "geometry": {
+        "degenerate_faces": 0,
+        "nonmanifold_edges": 0,
+        "summed_component_volume_m3": 1.095555253220036,
+        "interface_checks": {},
+        "metric_uv": null,
+        "surface_shading": [
+          {
+            "component": "engine_cover",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.5773474007446566,
+            "maximum_unit_length_error": 1.1906516250714816e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "transom_bracket",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 25,
+            "minimum_face_alignment": 0.601120756007731,
+            "maximum_unit_length_error": 8.760253356054903e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "lower_leg",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.5773463346122298,
+            "maximum_unit_length_error": 1.1935864696610565e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "bracket_neck",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.577346813910026,
+            "maximum_unit_length_error": 1.1907826036328117e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "shaft",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.6935476667094918,
+            "maximum_unit_length_error": 1.2212041733405954e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "top_molded_panel",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.577340890953792,
+            "maximum_unit_length_error": 1.1950920297820744e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cowling_side_inset",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.5773402433351293,
+            "maximum_unit_length_error": 1.1935804189455723e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cowling_air_vent",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.5773436987125251,
+            "maximum_unit_length_error": 1.1955786294315374e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cowling_air_vent.001",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.5773314604469988,
+            "maximum_unit_length_error": 1.1937433308517598e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cowling_air_vent.002",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.5773398657991038,
+            "maximum_unit_length_error": 1.1440366987081063e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "lower_leg_orange_trim",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.5773485563836402,
+            "maximum_unit_length_error": 1.2090509926565574e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "top_molded_stud",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.6935356447174854,
+            "maximum_unit_length_error": 1.201190247268613e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "top_molded_stud.001",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.6935311552188068,
+            "maximum_unit_length_error": 1.2155535933366934e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "bracket_fastener",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.6935337131435517,
+            "maximum_unit_length_error": 1.2030607443591634e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "bracket_fastener.001",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.6935398852219805,
+            "maximum_unit_length_error": 1.263121494066155e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cowling_side_inset.001",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.5773402604322655,
+            "maximum_unit_length_error": 1.1898502527696309e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cowling_air_vent.003",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.577343720411136,
+            "maximum_unit_length_error": 1.1955786294315374e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cowling_air_vent.004",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.5773314604468851,
+            "maximum_unit_length_error": 1.194581509267323e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cowling_air_vent.005",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.5773398916089718,
+            "maximum_unit_length_error": 1.2090592083069396e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "lower_leg_orange_trim.001",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.5773486119005611,
+            "maximum_unit_length_error": 5.568208227835214e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "top_molded_stud.002",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.693537656130502,
+            "maximum_unit_length_error": 1.201181043519739e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "top_molded_stud.003",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.6935364923447196,
+            "maximum_unit_length_error": 1.2155535933366934e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "bracket_fastener.002",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.6935337280447129,
+            "maximum_unit_length_error": 1.2023102713420997e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "bracket_fastener.003",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.69353980051892,
+            "maximum_unit_length_error": 1.325905162330443e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cowling_rear_badge",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.5773423848008861,
+            "maximum_unit_length_error": 1.1910619956978508e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cowling_lower_seam",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.5773445642080333,
+            "maximum_unit_length_error": 1.1930354570921509e-07,
+            "positions_unchanged": true
+          }
+        ],
+        "volume_note": "Decorative components can intersect; this sum is not displacement."
+      },
+      "source_sha256": "10a2145eeb2468700727720851fcf97d22fb4508b7bbdf54e5420a44afa46500"
+    },
+    {
+      "lod": 2,
+      "vertices": 644,
+      "triangles": 412,
+      "draws": 6,
+      "bounds": {
+        "minimum": [
+          -0.5239999890327454,
+          -2.200000047683716,
+          -0.5
+        ],
+        "maximum": [
+          0.5239999890327454,
+          0.5,
+          1.5080000162124634
+        ]
+      },
+      "geometry": {
+        "degenerate_faces": 0,
+        "nonmanifold_edges": 0,
+        "summed_component_volume_m3": 1.1155624189136146,
+        "interface_checks": {},
+        "metric_uv": null,
+        "surface_shading": [
+          {
+            "component": "engine_cover",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 12,
+            "minimum_face_alignment": 1.0,
+            "maximum_unit_length_error": 0.0,
+            "positions_unchanged": true
+          },
+          {
+            "component": "transom_bracket",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 30,
+            "minimum_face_alignment": 0.9999998807907104,
+            "maximum_unit_length_error": 5.960464655174746e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "lower_leg",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 12,
+            "minimum_face_alignment": 0.9999998807907104,
+            "maximum_unit_length_error": 5.960464655174746e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "bracket_neck",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 12,
+            "minimum_face_alignment": 1.0,
+            "maximum_unit_length_error": 0.0,
+            "positions_unchanged": true
+          },
+          {
+            "component": "shaft",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 20,
+            "minimum_face_alignment": 0.9510561972856522,
+            "maximum_unit_length_error": 5.9604642999033786e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "top_molded_panel",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 12,
+            "minimum_face_alignment": 0.9999998807907104,
+            "maximum_unit_length_error": 5.960464655174746e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cowling_side_inset",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 12,
+            "minimum_face_alignment": 1.0,
+            "maximum_unit_length_error": 0.0,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cowling_air_vent",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 12,
+            "minimum_face_alignment": 0.9999999403953552,
+            "maximum_unit_length_error": 0.0,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cowling_air_vent.001",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 12,
+            "minimum_face_alignment": 0.9999999403953552,
+            "maximum_unit_length_error": 0.0,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cowling_air_vent.002",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 12,
+            "minimum_face_alignment": 0.9999999403953552,
+            "maximum_unit_length_error": 5.960464655174746e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "lower_leg_orange_trim",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 12,
+            "minimum_face_alignment": 1.0,
+            "maximum_unit_length_error": 0.0,
+            "positions_unchanged": true
+          },
+          {
+            "component": "top_molded_stud",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 20,
+            "minimum_face_alignment": 0.9510562419891357,
+            "maximum_unit_length_error": 4.470348458074369e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "top_molded_stud.001",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 20,
+            "minimum_face_alignment": 0.951056182384491,
+            "maximum_unit_length_error": 8.940696316628305e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cowling_side_inset.001",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 12,
+            "minimum_face_alignment": 1.0,
+            "maximum_unit_length_error": 0.0,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cowling_air_vent.003",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 12,
+            "minimum_face_alignment": 0.9999999403953552,
+            "maximum_unit_length_error": 0.0,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cowling_air_vent.004",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 12,
+            "minimum_face_alignment": 0.9999999403953552,
+            "maximum_unit_length_error": 0.0,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cowling_air_vent.005",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 12,
+            "minimum_face_alignment": 0.9999999403953552,
+            "maximum_unit_length_error": 5.960464655174746e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "lower_leg_orange_trim.001",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 12,
+            "minimum_face_alignment": 1.0,
+            "maximum_unit_length_error": 0.0,
+            "positions_unchanged": true
+          },
+          {
+            "component": "top_molded_stud.002",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 20,
+            "minimum_face_alignment": 0.9510562419891357,
+            "maximum_unit_length_error": 4.470348458074369e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "top_molded_stud.003",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 20,
+            "minimum_face_alignment": 0.951056182384491,
+            "maximum_unit_length_error": 8.940696316628305e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cowling_rear_badge",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 12,
+            "minimum_face_alignment": 1.0,
+            "maximum_unit_length_error": 0.0,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cowling_lower_seam",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 12,
+            "minimum_face_alignment": 1.0,
+            "maximum_unit_length_error": 0.0,
+            "positions_unchanged": true
+          }
+        ],
+        "volume_note": "Decorative components can intersect; this sum is not displacement."
+      },
+      "source_sha256": "d432762f8339efede0e290d34d0785d3d139e8d44a5534cbd23173dbbf25b988"
+    }
+  ],
+  "inputs": {
+    "tools/salvage_assets/author_functional_kit.py": "17d8ec95739accb369f7df65303631b012d2bfdf8ea90b466cb74ca6e89cd163",
+    "tools/salvage_assets/author_cove_toy_art.py": "d849f129f076510c313d3de6b31534ce5c2200b13a8b667b2b48baf494717f6b",
+    "tools/salvage_assets/author_pontoon.py": "65142b372f2ec48eec8d994c751dca8b3263f492da39e27393e4d615242ce4b5",
+    "tools/salvage_assets/pontoon_parameters.py": "348dd03c4f49009f14d8b430728b87925458a27f8a4db1923cffce93b8e4260a",
+    "tools/salvage_assets/surface_shading.py": "b53656d0c42cf0f934fd65a7ccb0c528539da794a8482265809e5189bab19720",
+    "tools/salvage_assets/metric_materials.py": "e4d31cdf8ee8bf46dab081589f6f5aa876eb984801416dc8e4e0feb5f6af32f5",
+    "tools/salvage_assets/authoring_probe.py": "81edf36885bedff0f51380c89213094dad908d9287bbfd74987e363d392edbc0",
+    "tools/salvage_assets/author_cove_power_art.py": "97b50bf663ac557eb76408cbb3c127c2068d00256b043de68dfa0b171656b61b"
+  },
+  "provenance": "Original procedural geometry and solid PBR factors. No external models, image textures, UV charts or rendered captures.",
+  "limitations": [
+    "Static mechanical presentation; propeller rotation and engine animation are not implemented.",
+    "Geometry checks and cook do not establish visual approval or runtime gameplay acceptance."
+  ],
+  "cook_manifest_sha256": "83f838aab2c5dbec9fa5d00ed9b75e51d5d083bef0aea665305b179206177a46",
+  "requested_gpu_bytes": 371592,
+  "export_process": {
+    "exports_complete": true,
+    "process_exit_code": 130,
+    "note": "All six total GLB exports, both .blend saves, bounds/normal/manifold checks and provenance writes completed. This sandbox hung in PulseAudio during Blender shutdown; the finished process was interrupted. No thumbnails were generated."
+  },
+  "files": {
+    "cooked/cook-manifest.json": {
+      "bytes": 1721,
+      "sha256": "83f838aab2c5dbec9fa5d00ed9b75e51d5d083bef0aea665305b179206177a46"
+    },
+    "cooked/gameplay.json": {
+      "bytes": 8477,
+      "sha256": "2f19d91c7736b42f002d742a6b30125964b3947922e9763581798cdfa896b1f8"
+    },
+    "cooked/lod-1.vmesh": {
+      "bytes": 196120,
+      "sha256": "bcbd235486fd821dd1a7bcff3a7bf71f237845585884082844b0974d1dcb12a7"
+    },
+    "cooked/lod-2.vmesh": {
+      "bytes": 87292,
+      "sha256": "e48ac809b0149a81dec5a37780153ef9e484650cbf5e32e3eb2adfc915025b70"
+    },
+    "cooked/lod-3.vmesh": {
+      "bytes": 50176,
+      "sha256": "5a8adcf6acf5f7a0045657471139a8ff9e5d6c94af22a24523837ae199df8226"
+    },
+    "source/engine-lod-0.glb": {
+      "bytes": 87792,
+      "sha256": "56a34e46e5e30ecc591f6f42d593487c26d1944709e4c23b054dd7c1dc256068"
+    },
+    "source/engine-lod-1.glb": {
+      "bytes": 41260,
+      "sha256": "10a2145eeb2468700727720851fcf97d22fb4508b7bbdf54e5420a44afa46500"
+    },
+    "source/engine-lod-2.glb": {
+      "bytes": 22856,
+      "sha256": "d432762f8339efede0e290d34d0785d3d139e8d44a5534cbd23173dbbf25b988"
+    },
+    "source/engine.blend": {
+      "bytes": 245254,
+      "sha256": "b481f6b5f418808d7c26b18d41609d0daedf3491915b4e2b8af70234050fa923"
+    },
+    "source/engine.gameplay.json": {
+      "bytes": 8431,
+      "sha256": "362c8085f598429cff3985065a93a27ac6f6bf95478eadf51cc02671fefc3877"
+    }
+  },
+  "metadata_only_correction": {
+    "reason": "Portable installed author recipe path; no geometry, source asset or cooked payload changes.",
+    "original_authoring_recipe_sha256": "08eccc3efdc9d18506dccf09c94711991ba03e49818fcac81c28da5f61d85504",
+    "corrected_recipe_sha256": "97b50bf663ac557eb76408cbb3c127c2068d00256b043de68dfa0b171656b61b",
+    "original_recipe_path": "build-cove-power-art-r01/overlay/tools/salvage_assets/author_cove_power_art.py",
+    "installed_recipe_path": "tools/salvage_assets/author_cove_power_art.py"
+  }
+}

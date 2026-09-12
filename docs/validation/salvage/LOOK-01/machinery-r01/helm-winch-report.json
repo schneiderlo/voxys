@@ -1,0 +1,318 @@
+{
+  "schema": 1,
+  "parts": {
+    "helm": {
+      "lods": [
+        {
+          "id": "1",
+          "vertices": 2728,
+          "triangles": 5224,
+          "draws": 6,
+          "materials": 6,
+          "bounds": {
+            "minimum": [
+              -0.5,
+              -0.47999998927116394,
+              -0.5
+            ],
+            "maximum": [
+              0.5,
+              0.4569999873638153,
+              0.5
+            ]
+          },
+          "vertex_flags": 0,
+          "gpu_bytes": 259488,
+          "texture_mip_bytes": 0,
+          "encoded_bytes": 229094,
+          "sha256": "1235fbb3fc31a1ca75d3b3c57eefd45608294bccc52f476cba0ca1dc60d5f0b1"
+        },
+        {
+          "id": "2",
+          "vertices": 1104,
+          "triangles": 2040,
+          "draws": 6,
+          "materials": 6,
+          "bounds": {
+            "minimum": [
+              -0.5,
+              -0.47999998927116394,
+              -0.5
+            ],
+            "maximum": [
+              0.5,
+              0.4569999873638153,
+              0.5
+            ]
+          },
+          "vertex_flags": 0,
+          "gpu_bytes": 104352,
+          "texture_mip_bytes": 0,
+          "encoded_bytes": 93062,
+          "sha256": "d60e6245c30c03042bdcdb3b4a02e42e48070dbc154ca8c420aae0e5ae9be78a"
+        },
+        {
+          "id": "3",
+          "vertices": 718,
+          "triangles": 604,
+          "draws": 6,
+          "materials": 6,
+          "bounds": {
+            "minimum": [
+              -0.5,
+              -0.47999998927116394,
+              -0.5
+            ],
+            "maximum": [
+              0.5,
+              0.4569999873638153,
+              0.5
+            ]
+          },
+          "vertex_flags": 0,
+          "gpu_bytes": 59328,
+          "texture_mip_bytes": 0,
+          "encoded_bytes": 56654,
+          "sha256": "adec836d2264121f7600e0981dc9617803ac0ea1bc53170e48af091404e42f88"
+        }
+      ],
+      "baseline_bounds": {
+        "minimum": [
+          -0.5,
+          -0.47999998927116394,
+          -0.5
+        ],
+        "maximum": [
+          0.5,
+          0.4569999873638153,
+          0.5
+        ]
+      },
+      "original_gpu_bytes": 1785504,
+      "candidate_gpu_bytes": 423168,
+      "canonical_part": {
+        "counter": "6",
+        "namespace": "766f7879732d73616c766167652d7631",
+        "version": 2
+      },
+      "cook_manifest_sha256": "50b7bc103a150bd198d323d27c0f2de58a4b4f69eacf09ddc5d0633ba354f1e1"
+    },
+    "winch": {
+      "lods": [
+        {
+          "id": "1",
+          "vertices": 4684,
+          "triangles": 9200,
+          "draws": 5,
+          "materials": 5,
+          "bounds": {
+            "minimum": [
+              -0.5,
+              -0.9599999785423279,
+              -0.5040000081062317
+            ],
+            "maximum": [
+              0.5,
+              0.9089999794960022,
+              0.5
+            ]
+          },
+          "vertex_flags": 0,
+          "gpu_bytes": 447968,
+          "texture_mip_bytes": 0,
+          "encoded_bytes": 393616,
+          "sha256": "943cb2069f71a9aae2c069da96f4cedbdc944bcfaa868cbd60b4f488f3084794"
+        },
+        {
+          "id": "2",
+          "vertices": 1900,
+          "triangles": 3664,
+          "draws": 5,
+          "materials": 5,
+          "bounds": {
+            "minimum": [
+              -0.5,
+              -0.9599999785423279,
+              -0.5007846355438232
+            ],
+            "maximum": [
+              0.5,
+              0.9089999794960022,
+              0.5
+            ]
+          },
+          "vertex_flags": 0,
+          "gpu_bytes": 181088,
+          "texture_mip_bytes": 0,
+          "encoded_bytes": 159952,
+          "sha256": "71a5d7ddae38ae3c4d22f8fc72dd3ee136be4b9b68a06700dafbb87d3457bce7"
+        },
+        {
+          "id": "3",
+          "vertices": 692,
+          "triangles": 604,
+          "draws": 5,
+          "materials": 5,
+          "bounds": {
+            "minimum": [
+              -0.5,
+              -0.9599999785423279,
+              -0.5040000081062317
+            ],
+            "maximum": [
+              0.5,
+              0.9089999794960022,
+              0.5
+            ]
+          },
+          "vertex_flags": 0,
+          "gpu_bytes": 57392,
+          "texture_mip_bytes": 0,
+          "encoded_bytes": 54616,
+          "sha256": "8b5af172be75e3c0edbcfac2b3921d22a3915b339db5e91dd00401d793694146"
+        }
+      ],
+      "baseline_bounds": {
+        "minimum": [
+          -0.5,
+          -0.9599999785423279,
+          -0.5040000081062317
+        ],
+        "maximum": [
+          0.5,
+          0.9089999794960022,
+          0.5
+        ]
+      },
+      "original_gpu_bytes": 2097312,
+      "candidate_gpu_bytes": 686448,
+      "canonical_part": {
+        "counter": "7",
+        "namespace": "766f7879732d73616c766167652d7631",
+        "version": 2
+      },
+      "cook_manifest_sha256": "49aa3deb0cfe7f5ed5d79d9bf9b2071296498d4d26ac256b1d6ace3dec647e2d"
+    }
+  },
+  "checks": [
+    "strict three-LOD cooker and canonical validator",
+    "normalized non-LOD metadata equality",
+    "unchanged LOD IDs/basis/thresholds",
+    "cooked-payload hashes, normals, bounds and GPU requested storage",
+    "closed outward component authoring checks; solid PBR without textures/UV charts"
+  ],
+  "memory": {
+    "previous_reported_owner_reservation": 14522896,
+    "removed_machinery_gpu_bytes": 3882816,
+    "candidate_machinery_gpu_bytes": 1109616,
+    "expected_owner_reservation": 11749696,
+    "unchanged_owner_limit": 16777216,
+    "unchanged_resident_limit": 50331648,
+    "note": "CPU requested-storage projection; runtime admission remains required. Fixed reservation stays128KiB with paint."
+  },
+  "limitations": [
+    "No rendered images or visual approval. No GPU/browser/native game checks performed.",
+    "Wheel and cable drum remain static meshes; animation is future work.",
+    "Blender completed export/save checks but its sandboxed PulseAudio shutdown hung; the completed process was interrupted.",
+    "The first author run attempted an automatic cache thumbnail; the sandbox refused it. Final recipe disables thumbnails."
+  ],
+  "files": {
+    "data/salvage/cove-workshop-r04.json": {
+      "bytes": 6653,
+      "sha256": "941471c4b3911a126a5f9ca1ecc22462fd47be4d0a17adb167b72df01e30be29"
+    },
+    "data/salvage/toy-art/r02/helm/cooked/cook-manifest.json": {
+      "bytes": 1722,
+      "sha256": "50b7bc103a150bd198d323d27c0f2de58a4b4f69eacf09ddc5d0633ba354f1e1"
+    },
+    "data/salvage/toy-art/r02/helm/cooked/gameplay.json": {
+      "bytes": 6740,
+      "sha256": "da009cf84f40012bb9caeb18455cc7c55e7d19216629337e07cc29cb0be47973"
+    },
+    "data/salvage/toy-art/r02/helm/cooked/lod-1.vmesh": {
+      "bytes": 229094,
+      "sha256": "1235fbb3fc31a1ca75d3b3c57eefd45608294bccc52f476cba0ca1dc60d5f0b1"
+    },
+    "data/salvage/toy-art/r02/helm/cooked/lod-2.vmesh": {
+      "bytes": 93062,
+      "sha256": "d60e6245c30c03042bdcdb3b4a02e42e48070dbc154ca8c420aae0e5ae9be78a"
+    },
+    "data/salvage/toy-art/r02/helm/cooked/lod-3.vmesh": {
+      "bytes": 56654,
+      "sha256": "adec836d2264121f7600e0981dc9617803ac0ea1bc53170e48af091404e42f88"
+    },
+    "data/salvage/toy-art/r02/helm/provenance.json": {
+      "bytes": 25732,
+      "sha256": "6106a079ce95d98c100c0e01d0b41b4b78bdb8227f39b8a934e9cc596766236b"
+    },
+    "data/salvage/toy-art/r02/helm/source/helm-lod-0.glb": {
+      "bytes": 101836,
+      "sha256": "f4f2378ca9affa738b18380e881975bad44147a1df1944d5ef9b434616a31c9b"
+    },
+    "data/salvage/toy-art/r02/helm/source/helm-lod-1.glb": {
+      "bytes": 43744,
+      "sha256": "df49920dcbec3dac808bc0c8ceb0c3813ab1a3d2f7a113ddb0a0091903957268"
+    },
+    "data/salvage/toy-art/r02/helm/source/helm-lod-2.glb": {
+      "bytes": 25852,
+      "sha256": "3657162fcfb5843d1674b5727ba6761ae340b6f9f3e8225c45e2b39da8fdfc2a"
+    },
+    "data/salvage/toy-art/r02/helm/source/helm.blend": {
+      "bytes": 267352,
+      "sha256": "5f95663232285469961cd0f99ac69e2712608bcaef85bbea4eceb0e347c55c0a"
+    },
+    "data/salvage/toy-art/r02/helm/source/helm.gameplay.json": {
+      "bytes": 6706,
+      "sha256": "8c5fa5297341dff42077673841e245c73736b1feb2030be23449deb11fec9e34"
+    },
+    "data/salvage/toy-art/r02/winch/cooked/cook-manifest.json": {
+      "bytes": 1724,
+      "sha256": "49aa3deb0cfe7f5ed5d79d9bf9b2071296498d4d26ac256b1d6ace3dec647e2d"
+    },
+    "data/salvage/toy-art/r02/winch/cooked/gameplay.json": {
+      "bytes": 11175,
+      "sha256": "5297e0001bc53a0c2dbe072ef116fca7fb4fa1c3896a4a22a2fd8712aff182a8"
+    },
+    "data/salvage/toy-art/r02/winch/cooked/lod-1.vmesh": {
+      "bytes": 393616,
+      "sha256": "943cb2069f71a9aae2c069da96f4cedbdc944bcfaa868cbd60b4f488f3084794"
+    },
+    "data/salvage/toy-art/r02/winch/cooked/lod-2.vmesh": {
+      "bytes": 159952,
+      "sha256": "71a5d7ddae38ae3c4d22f8fc72dd3ee136be4b9b68a06700dafbb87d3457bce7"
+    },
+    "data/salvage/toy-art/r02/winch/cooked/lod-3.vmesh": {
+      "bytes": 54616,
+      "sha256": "8b5af172be75e3c0edbcfac2b3921d22a3915b339db5e91dd00401d793694146"
+    },
+    "data/salvage/toy-art/r02/winch/provenance.json": {
+      "bytes": 30502,
+      "sha256": "d9803f19817a9c81568c7d6e63da1439f6378ceb479f49779d35e2cb0a64104a"
+    },
+    "data/salvage/toy-art/r02/winch/source/winch-lod-0.glb": {
+      "bytes": 171848,
+      "sha256": "2c2e6f5dc4ea33710de16a71ff2a1d53908a7cee9874b6ce58a7a540411018cf"
+    },
+    "data/salvage/toy-art/r02/winch/source/winch-lod-1.glb": {
+      "bytes": 71804,
+      "sha256": "a152a0f4ef5ba433d257c9ee409f1fc5456bc512de51ce11a7b97290603840ee"
+    },
+    "data/salvage/toy-art/r02/winch/source/winch-lod-2.glb": {
+      "bytes": 24436,
+      "sha256": "4fa805bc7f6917b89726329777f7de605187fb14c85e763fcb2e220bc50cec2f"
+    },
+    "data/salvage/toy-art/r02/winch/source/winch.blend": {
+      "bytes": 359478,
+      "sha256": "8230c89def30929e9fe08397e5eef55aeb08e3e721e84c12f8bc9074bcd7f88e"
+    },
+    "data/salvage/toy-art/r02/winch/source/winch.gameplay.json": {
+      "bytes": 11127,
+      "sha256": "fdd241153347d36bafbf7fcb05768cf1c0957ded697f158e2d95171b8d8baf01"
+    },
+    "tools/salvage_assets/author_cove_machinery_art.py": {
+      "bytes": 10910,
+      "sha256": "a0078cddb9b237c6f2dde68a233ac9cfbf1b82d3e0239e9abc07d36745a42a7e"
+    }
+  },
+  "metadata_correction": "Stable installed self-recipe path and corrected source hash in both provenance files; no model or cooked payload changed."
+}

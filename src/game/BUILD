@@ -74,7 +74,7 @@ cc_library(
 cc_library(
     name = "cove_workshop",
     srcs = ["expedition/cove_workshop.cpp"],
-    hdrs = ["expedition/cove_workshop.hpp"],
+    hdrs = ["expedition/cove_workshop.hpp", "expedition/brick_paint.hpp"],
     copts = PROJECT_DEFAULT_COPTS,
     includes = [".."],
     deps = [":cove_boat", ":cove_player", ":workshop_camera"],
