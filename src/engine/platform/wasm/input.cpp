@@ -144,6 +144,7 @@ void Input::endFrame() {
 }
 
 void Input::resetState() {
+    ++resetSerial_;
     gamepad_.disarm(); queuedText_.clear(); frameText_.clear();
     rawButtons_.fill(false);accumulatedDrags_.fill(glm::vec2(0));dragDeltas_.fill(glm::vec2(0));
     releaseMouse();
@@ -282,9 +283,11 @@ void Input::onCharacter(uint32_t c) {
     else { queuedText_.push_back(char(0xf0|(c>>18)));queuedText_.push_back(char(0x80|((c>>12)&63)));queuedText_.push_back(char(0x80|((c>>6)&63)));queuedText_.push_back(char(0x80|(c&63))); }
 }
 
-void Input::onKeyDown(int keyCode) {
-    if(!focused_)return;
+void Input::onKeyDown(int keyCode,bool repeat) {
+    if(!focused_||repeat)return;
     if (isValidKey(keyCode)) {
+        if(physicalKeys_[static_cast<size_t>(keyCode)])return;
+        physicalKeys_[static_cast<size_t>(keyCode)]=true;
         if (keyQueue_.size() >= kMaximumQueuedInputEvents) {
             keyQueue_.clear();
             for (size_t key = 0; key < currentKeys_.size(); ++key) {
@@ -300,6 +303,7 @@ void Input::onKeyDown(int keyCode) {
 
 void Input::onKeyUp(int keyCode) {
     if (isValidKey(keyCode)) {
+        physicalKeys_[static_cast<size_t>(keyCode)]=false;
         if (keyQueue_.size() >= kMaximumQueuedInputEvents) {
             keyQueue_.clear();
             for (size_t key = 0; key < currentKeys_.size(); ++key) {
@@ -333,6 +337,7 @@ void Input::onMouseMove(float x, float y) {
 void Input::onMouseDown(int button) {
     if(!focused_)return;
     if (isValidButton(button)) {
+        physicalButtons_[static_cast<size_t>(button)]=true;
         if (mouseButtonQueue_.size() >= kMaximumQueuedInputEvents) {
             rawButtons_.fill(false);accumulatedDrags_.fill(glm::vec2(0));
             mouseButtonQueue_.clear();
@@ -350,6 +355,7 @@ void Input::onMouseDown(int button) {
 
 void Input::onMouseUp(int button) {
     if (isValidButton(button)) {
+        physicalButtons_[static_cast<size_t>(button)]=false;
         if (mouseButtonQueue_.size() >= kMaximumQueuedInputEvents) {
             rawButtons_.fill(false);accumulatedDrags_.fill(glm::vec2(0));
             mouseButtonQueue_.clear();

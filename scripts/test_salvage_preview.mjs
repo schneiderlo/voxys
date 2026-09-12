@@ -686,3 +686,9 @@ console.log('Browser next objective: permissions, focus, stale clicks, forwardin
     inspection.cleanup();
     console.log('Compact Cove disclosure, workshop transitions and unchanged inspection controls: 1 case passed');
 }
+
+{
+    const f=fixture(true,true,true);f.state({world:'test',pause:{phase:'paused',canPause:false},session:{admissionOpen:true},workshop:{open:false},practice:{active:true,canReturn:false,message:'Returning to your workshop…'},job:{phase:'available',canAccept:true}});f.tick();
+    assert.equal(f.elements['salvage-objective'].dataset.step,'practice');assert.equal(f.elements['salvage-objective-title'].textContent,'Free boat test');assert.match(f.elements['salvage-objective-detail'].textContent,/Returning/);assert(f.elements['salvage-objective-action'].hidden);f.cleanup();
+    console.log('Practice objective priority over paused job/reward guidance: 1 case passed');
+}

@@ -182,7 +182,7 @@
         <button id="lego-compare" type="button" aria-pressed="true">Grouped bricks · K</button>
         <button id="lego-flight" type="button" aria-pressed="false">Fly · F8</button>
         <button id="lego-reset" type="button">Reset</button>
-        <a id="cove-continue" hidden>Continue saved Cove</a>
+        <button id="cove-landing-open" type="button" hidden>Salvage Cove</button>
         <a href="lego_patch.html">Island study</a>
     </nav>
     <style>
@@ -197,6 +197,22 @@
       @media(max-width:800px) { #lego-shore-controls .lego-help { display:none; } }
       @media(max-width:540px) { #lego-shore-controls:not([hidden]) { bottom:12px; gap:6px; padding:8px; flex-wrap:wrap; justify-content:center; width:max-content; } #lego-shore-controls strong { width:100%; text-align:center; } #lego-shore-controls a:not(#cove-continue) { display:none; } }
     </style>
+    <section id="cove-landing" hidden data-voxy-ui aria-labelledby="cove-landing-title">
+        <h1 id="cove-landing-title">Salvage Cove</h1>
+        <p>Build a boat. Explore. Bring salvage home.</p>
+        <div class="cove-menu-actions">
+            <a id="cove-new" href="?experience=salvage-cove">New expedition</a>
+            <a id="cove-continue" hidden>Continue saved Cove</a>
+            <details id="cove-saved-worlds"><summary>Load saved Cove</summary><ul id="cove-saved-list"></ul><p>Older saves remain available through their saved addresses. This list does not replace your saved data.</p></details>
+        <button id="cove-landing-help" type="button">How to play</button>
+            <button id="cove-landing-close" type="button">LEGO playground</button>
+        </div>
+        <p id="cove-landing-note">Continue opens your last confirmed checkpoint on this browser and address.</p>
+        <section id="cove-landing-instructions" hidden aria-label="Starting help">
+            <ol><li>Build with the dock workshop.</li><li>Board the boat and use the helm.</li><li>Recover the generator. Pause and save before leaving.</li></ol>
+            <button id="cove-landing-back" type="button">Back</button>
+        </section>
+    </section>
     <section id="lego-build-panel" hidden data-voxy-ui aria-label="Building playground">
         <h2 id="lego-build-status" aria-live="polite">Build a three-level tower</h2>
         <p id="lego-build-detail">Point at the pad or a brick. Green means it fits.</p>
@@ -275,9 +291,10 @@
                 <button id="workshop-undo" data-workshop-action="72">Undo · U</button>
                 <button id="workshop-redo" data-workshop-action="306">Redo edit</button>
             </div>
-                <button id="workshop-launch" data-workshop-action="79" title="Launch with your placed bricks. The unused brick preview is not added or charged.">Launch boat · Enter</button>
+                <button id="workshop-test" type="button" disabled>Test boat · free</button><p id="workshop-test-note" class="salvage-note">Test a kept design without cost or rewards. Return restores this workshop. Save your design before testing if you want it after quitting.</p>
+            <button id="workshop-launch" data-workshop-action="79" title="Launch with your placed bricks. The unused brick preview is not added or charged.">Launch boat · Enter</button>
             <details class="workshop-section"><summary>How to build</summary>
-            <p class="salvage-note">First, select Cargo cradle → Remove → Keep to clear deck space. Choose a brick once, then click repeatedly to build. R rotates. Green fits; red is blocked. Select or Esc stops; U undoes the last placement. Launch leaves out the unused preview.</p>
+            <p class="salvage-note">First, select Cargo cradle → Remove → Keep to clear deck space. Choose a brick once, then click repeatedly to build. Use Rotate to turn the preview. Green fits; red is blocked. Select parts stops; Undo reverses the last placement. Launch leaves out the unused preview.</p>
             </details>
             <details class="workshop-section" id="workshop-groups"><summary>Select, copy &amp; mirror</summary>
             <p id="workshop-selection-note" class="salvage-note">Shift-click parts to select a group.</p>
@@ -370,20 +387,60 @@
             </details>
             <p class="salvage-note">Keep your changes, then Launch to sail the rebuilt boat. Changes last until you leave this scene.</p>
         </div>
+        <section id="cove-practice" hidden aria-label="Boat test"><p id="cove-practice-status" role="status" aria-live="polite"></p><button id="cove-practice-return" type="button" disabled>Return to workshop</button></section>
         <div class="salvage-session-actions">
         <button id="salvage-pause" type="button" hidden disabled>Pause · P</button>
         <button id="salvage-save" type="button" title="Save expedition" aria-label="Save expedition" hidden disabled>Save</button>
         <button id="salvage-reset" type="button">Reset · R</button>
         </div>
         <p id="salvage-save-status" role="status" aria-live="polite" hidden></p>
+        <p id="cove-event-caption" role="status" aria-live="polite" hidden></p>
+        <button id="cove-tutorial-open" type="button" hidden>Open tutorial</button>
         <details id="salvage-more-controls">
-            <summary>More controls</summary>
-        <p id="salvage-controller-help" class="salvage-note" hidden>View opens the workshop. Menu opens its controls. Directions choose · Confirm uses · Back closes · Menu returns to building. Right stick orbits · hold R3 to pan · hold L3 to zoom.</p>
-        <details class="salvage-help-drawer"><summary>Controls &amp; help</summary>
-        <p id="salvage-help">WASD to walk · click to look · Space to jump</p>
-        <p class="salvage-note">Build a boat, explore the coast and bring salvage home.</p>
+            <summary data-cove-text="menu.open">Menu &amp; help</summary>
+            <h3 data-cove-text="menu.title">Cove menu</h3>
+            <p id="cove-menu-state" role="status" aria-live="polite"></p>
+            <button id="cove-menu-resume" type="button" data-cove-forward="salvage-pause" hidden>Resume expedition</button>
+            <nav id="cove-menu-nav" aria-label="Cove pages" class="cove-menu-nav">
+                <button type="button" data-cove-page="pause" aria-controls="cove-page-pause" aria-pressed="false" data-cove-text="page.pause">Overview</button>
+                <button type="button" data-cove-page="job" aria-controls="cove-page-job" aria-pressed="false" data-cove-text="page.job">Job</button>
+                <button type="button" data-cove-page="map" aria-controls="cove-page-map" aria-pressed="false" data-cove-text="page.map">Map</button>
+                <button type="button" data-cove-page="inventory" aria-controls="cove-page-inventory" aria-pressed="false" data-cove-text="page.inventory">Inventory</button>
+                <button type="button" data-cove-page="settings" aria-controls="cove-page-settings" aria-pressed="false" data-cove-text="page.settings">Settings</button>
+                <button type="button" data-cove-page="help" aria-controls="cove-page-help" aria-pressed="false" data-cove-text="page.help">Help</button>
+                <button type="button" data-cove-page="tools" aria-controls="cove-page-tools" aria-pressed="false" data-cove-text="page.tools">Winch & lift</button>
+            </nav>
+            <section id="cove-page-pause" data-cove-section="pause" aria-label="Pause and saving">
+                <p id="cove-checkpoint-state" role="status" aria-live="polite"></p>
+                <div class="cove-menu-actions">
+                    <button type="button" data-cove-forward="salvage-pause" data-cove-text="pause.resume">Resume expedition</button>
+                    <button type="button" data-cove-forward="salvage-save" data-cove-text="save.now">Save checkpoint</button>
+                    <button type="button" data-cove-forward="salvage-reset" data-cove-text="rescue.now">Rescue boat</button>
+                </div>
+        <p id="salvage-save-help" class="salvage-note" hidden>Save before leaving. Use Continue saved Cove on the LEGO page, or bookmark this saved address.</p>
+        <button id="salvage-leave" type="button">Leave preview</button>
+            </section>
+            <section id="cove-page-job" data-cove-section="job" aria-label="Recovery job" hidden>
+        <details id="salvage-job" hidden aria-label="Recovery job"><summary>Recovery job</summary>
+            <p id="salvage-job-status" role="status" aria-live="polite"></p>
+            <button id="salvage-job-accept" type="button" disabled>Recover the generator · J</button>
+            <button id="salvage-job-deliver" type="button" disabled>Deliver generator · H</button>
         </details>
-        <p class="salvage-note" id="salvage-scope">Work in progress</p>
+                <p id="cove-result" role="status" aria-live="polite"></p>
+            </section>
+            <section id="cove-page-map" data-cove-section="map" aria-label="Nearby positions" hidden>
+                <h4 data-cove-text="map.title">Around the Cove</h4>
+                <p class="salvage-note" data-cove-text="map.note">Observed locations. North is up; the coastline is not shown.</p>
+                <svg id="cove-map" viewBox="0 0 320 220" role="img" aria-label="Nearby positions, also listed below"></svg>
+                <ul id="cove-landmark-list"></ul>
+            </section>
+            <section id="cove-page-inventory" data-cove-section="inventory" aria-label="Owned parts and resources" hidden>
+                <h4 data-cove-text="inventory.title">Your resources</h4>
+                <dl id="cove-inventory"></dl>
+                <p data-cove-text="inventory.note">Blueprints save a design. Launch checks your owned parts and material cost.</p>
+                <button type="button" data-cove-forward="salvage-workshop-toggle" data-cove-text="workshop.open">Open workshop</button>
+            </section>
+            <section id="cove-page-settings" data-cove-section="settings" aria-label="Settings" hidden>
         <details id="salvage-camera" class="workshop-section" hidden>
             <summary>Camera · F2</summary>
             <div class="workshop-grid">
@@ -396,11 +453,31 @@
             </div>
             <p class="salvage-note">Click the view to orbit. Wheel: zoom. V: view. G: recenter. Settings work while paused.</p>
         </details>
-        <details id="salvage-job" hidden aria-label="Recovery job"><summary>Recovery job</summary>
-            <p id="salvage-job-status" role="status" aria-live="polite"></p>
-            <button id="salvage-job-accept" type="button" disabled>Recover the generator · J</button>
-            <button id="salvage-job-deliver" type="button" disabled>Deliver generator · H</button>
+                <div id="cove-preferences"></div>
+            </section>
+            <section id="cove-page-help" data-cove-section="help" aria-label="Short help and tutorial" hidden>
+                <section id="cove-tutorial" aria-label="Current tutorial step">
+                    <p id="cove-tutorial-progress"></p>
+                    <h4 id="cove-tutorial-title"></h4>
+                    <p id="cove-tutorial-text" aria-live="polite"></p>
+                    <button id="cove-tutorial-action" type="button" disabled></button>
+                    <button id="cove-tutorial-restart" type="button" data-cove-text="tutorial.restart">Restart tutorial</button>
+                    <button id="cove-tutorial-toggle" type="button" data-cove-text="tutorial.hide">Hide tutorial</button>
+                </section>
+                <h4 id="cove-help-title"></h4>
+                <ol id="cove-help-steps"></ol>
+                <div class="cove-menu-actions">
+                    <button id="cove-help-prev" type="button" data-cove-text="help.previous">Previous help</button>
+                    <button id="cove-help-next" type="button" data-cove-text="help.next">Next help</button>
+                </div>
+        <p id="salvage-controller-help" class="salvage-note" hidden>View opens the workshop. Menu opens its controls. Directions choose · Confirm uses · Back closes · Menu returns to building. Right stick orbits · hold R3 to pan · hold L3 to zoom.</p>
+        <details class="salvage-help-drawer"><summary>Controls &amp; help</summary>
+        <p id="salvage-help">WASD to walk · click to look · Space to jump</p>
+        <p class="salvage-note">Build a boat, explore the coast and bring salvage home.</p>
         </details>
+        <p class="salvage-note" id="salvage-scope">Work in progress</p>
+            </section>
+            <section id="cove-page-tools" data-cove-section="tools" aria-label="Winch, lift and cutting" hidden>
         <details id="salvage-field-tools"><summary>Winch, lift &amp; cutting</summary>
         <button id="salvage-cut" type="button" hidden disabled>Cut nearby weld · C</button>
         <div id="salvage-harbor" hidden aria-label="Harbor lift">
@@ -420,14 +497,16 @@
             <button id="salvage-hold" type="button" disabled>Stop winch</button>
         </div>
         </details>
-        <p id="salvage-save-help" class="salvage-note" hidden>Save before leaving. Use Continue saved Cove on the LEGO page, or bookmark this saved address.</p>
-        <button id="salvage-leave" type="button">Leave preview</button>
+            </section>
+            <button id="cove-menu-back" type="button" data-cove-text="menu.back">Back</button>
         </details>
     </section>
     <script src="expedition_store.js"></script>
     <script src="cove_saves.js"></script>
     <script src="controller_menu.js"></script>
     <script src="design_library.js"></script>
+    <script src="cove_preferences.js"></script>
+    <script src="cove_menu.js"></script>
     <script src="salvage_preview.js"></script>
     <script src="lego_playground.js"></script>
     <script src="network_transport.js"></script>
@@ -460,11 +539,13 @@
         const salvageAsset = experience === 'salvage-asset' || salvageAssembly || salvageHierarchy || salvageMaterials || salvageRotations || salvageKit || salvageCove;
         const salvage = experience === 'salvage' || salvageAsset;
         if (salvageCove) document.getElementById('salvage-preview').dataset.scene = 'cove';
-        if (salvage) document.title = salvageCove ? 'Cove Preview — Voxys' : salvageMaterials ? 'Material Inspection — Voxys' : salvageKit ? 'Salvage Kit Inspection — Voxys' : salvageRotations ? 'Assembly Rotations — Voxys' : salvageHierarchy ? 'Hierarchy Inspection — Voxys' : salvageAssembly ? 'Pontoon Assembly Check — Voxys'
+        if (salvage) document.title = salvageCove ? 'Salvage Cove — Voxys' : salvageMaterials ? 'Material Inspection — Voxys' : salvageKit ? 'Salvage Kit Inspection — Voxys' : salvageRotations ? 'Assembly Rotations — Voxys' : salvageHierarchy ? 'Hierarchy Inspection — Voxys' : salvageAssembly ? 'Pontoon Assembly Check — Voxys'
             : salvageAsset ? 'Pontoon Inspection — Voxys' : 'Cove Preview — Voxys';
 
         if (legoShore || legoWorld) {
             VoxyCoveSaves.installContinue();
+            VoxyCoveSaves.installHistory();
+            window.VoxyCoveMenu.installLanding();
             const sceneName = legoWorld ? 'LEGO Landscape' : 'LEGO Shore';
             document.title = sceneName + ' — Voxys';
             document.querySelector('#lego-shore-controls strong').textContent = sceneName;

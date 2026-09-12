@@ -298,18 +298,42 @@ TEST(InputTest, FloodedEventQueuesFailClosedAndRemainUsable) {
     ASSERT_TRUE(input.isKeyDown(Key::W));
     ASSERT_TRUE(input.isMouseButtonDown(MouseButton::Left));
 
+    // Duplicate key-down notifications are intentionally filtered while held.
+    // Real press/release pairs must still exercise both bounded queue limits.
     for (size_t event = 0; event < 5'000u; ++event) {
         input.onKeyDown(static_cast<int>(Key::A));
+        input.onKeyUp(static_cast<int>(Key::A));
         input.onMouseDown(static_cast<int>(MouseButton::Right));
+        input.onMouseUp(static_cast<int>(MouseButton::Right));
     }
-    input.onKeyUp(static_cast<int>(Key::A));
-    input.onMouseUp(static_cast<int>(MouseButton::Right));
     input.computeDeltas();
 
     EXPECT_FALSE(input.isKeyDown(Key::W));
     EXPECT_FALSE(input.isKeyDown(Key::A));
     EXPECT_FALSE(input.isMouseButtonDown(MouseButton::Left));
     EXPECT_FALSE(input.isMouseButtonDown(MouseButton::Right));
+
+    // Overflow releases logical actions without inventing a physical release.
+    // A genuine release and fresh press must make the controls usable again.
+    input.onKeyUp(static_cast<int>(Key::W));
+    input.onMouseUp(static_cast<int>(MouseButton::Left));
+    input.beginFrame();
+    input.onKeyDown(static_cast<int>(Key::W));
+    input.onMouseDown(static_cast<int>(MouseButton::Left));
+    input.computeDeltas();
+    EXPECT_TRUE(input.isKeyDown(Key::W));
+    EXPECT_TRUE(input.wasKeyPressed(Key::W));
+    EXPECT_TRUE(input.isMouseButtonDown(MouseButton::Left));
+    EXPECT_TRUE(input.wasMouseButtonPressed(MouseButton::Left));
+
+    input.beginFrame();
+    input.onKeyUp(static_cast<int>(Key::W));
+    input.onMouseUp(static_cast<int>(MouseButton::Left));
+    input.computeDeltas();
+    EXPECT_FALSE(input.isKeyDown(Key::W));
+    EXPECT_TRUE(input.wasKeyReleased(Key::W));
+    EXPECT_FALSE(input.isMouseButtonDown(MouseButton::Left));
+    EXPECT_TRUE(input.wasMouseButtonReleased(MouseButton::Left));
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

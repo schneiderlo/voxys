@@ -1406,6 +1406,15 @@ const char* voxy_salvage_blueprint_action(int action,const char* text) {
 }
 
 EMSCRIPTEN_KEEPALIVE
+const char* voxy_cove_preferences_action(int action,const char* text) {
+    static std::string result;
+    result=g_app&&text?g_app->covePreferencesAction(action,text):"Settings are not ready.";
+    return result.c_str();
+}
+EMSCRIPTEN_KEEPALIVE
+void voxy_cove_save_completed() { if(g_app)g_app->noteCoveSaveCompleted(); }
+
+EMSCRIPTEN_KEEPALIVE
 int voxy_stage_cove_resume(const char* worldText,const char* archiveText) {
     if(g_app || g_wasmAppInstance || !worldText || !archiveText)return 0;
     const std::string_view world(worldText),hex(archiveText),digits="0123456789abcdef";

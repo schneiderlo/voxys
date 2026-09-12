@@ -95,11 +95,11 @@
         const call=(action,text='')=>engine.ccall('voxy_salvage_blueprint_action','string',['number','string'],[action,text]);
         const store=createStore(environment,hex=>call(3,hex)==='ok');
         const selectedRow=()=>rows.find(row=>row.id===list.value);
-        const live=token=>!stopped&&token===generation&&state?.ready&&!state.failed&&!state.busy&&state.workshop?.open&&!state.workshop.pending&&state.session?.admissionOpen!==false;
+        const live=token=>!stopped&&token===generation&&state?.ready&&!state.failed&&!state.busy&&state.workshop?.open&&!state.workshop.pending&&state.session?.admissionOpen!==false&&!state.practice?.active;
         const requireLive=token=>{if(!live(token))throw Error('The workshop changed. Open saved designs again before continuing.');};
         const showError=error=>{status.textContent=error?.name==='QuotaExceededError'?'Storage is full. Your previous design is safe; export a file to keep this design.':String(error?.message||error);};
         const render=()=>{
-            const w=state?.workshop,ready=Boolean(state?.ready&&w?.open&&!w.pending&&!state?.busy&&!state?.failed&&!busy&&!stopped&&state.session?.admissionOpen!==false);
+            const w=state?.workshop,ready=Boolean(state?.ready&&w?.open&&!w.pending&&!state?.busy&&!state?.failed&&!busy&&!stopped&&state.session?.admissionOpen!==false&&!state.practice?.active);
             const clean=ready&&(!w.changed||w.brickTool),has=Boolean(selectedRow());
             for(const b of buttons){
                 const action=b.dataset.designAction;

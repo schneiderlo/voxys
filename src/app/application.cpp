@@ -36,9 +36,12 @@
 #include "game/construction/assembly_fracture.hpp"
 #include "game/expedition/cove_build.hpp"
 #include "game/expedition/cove_workshop.hpp"
+#include "game/expedition/cove_test_session.hpp"
 #include "game/expedition/brick_paint.hpp"
 #include "game/expedition/cove_save.hpp"
 #include "game/expedition/cove_restore.hpp"
+#include "app/cove_ui_state.hpp"
+#include <json.hpp>
 #include "game/expedition/cove_harbor_runtime.hpp"
 #include "core/sha256.hpp"
 #include <bit>
@@ -101,6 +104,7 @@
 #if defined(VOXY_NATIVE)
     #include <stb_image_write.h>
     #include "engine/platform/native/workshop_menu.hpp"
+    #include "engine/platform/native/cove_preferences_store.hpp"
     // Platform-specific sleep includes for async polling
     #if defined(_WIN32)
         #include <windows.h>
@@ -283,6 +287,8 @@ struct SalvageLocalSessionState {
         size_t selectedRecoveryDesign=0;
         const game::assets::LoadedAssetFixture& acceptedScene() const noexcept { return liveScene?*liveScene:*content; }
         struct Launch {
+            enum class Purpose { Expedition, TestEnter, TestReturn };
+            Purpose purpose=Purpose::Expedition;
             std::unique_ptr<const game::assets::LoadedAssetFixture> scene;
             std::unique_ptr<game::expedition::CoveBoatAssembly> boat;
             std::unique_ptr<game::expedition::CoveRigidRoots> roots;
@@ -310,6 +316,18 @@ struct SalvageLocalSessionState {
             bool staged=false,published=false,canceled=false,retired=false,ownershipService=false;
         };
         std::unique_ptr<Launch> launch;
+        enum class PracticePhase { None, Capturing, Entering, Running, Returning };
+        PracticePhase practicePhase=PracticePhase::None;
+        std::string practiceMessage;
+        uint64_t practiceRuns=0,practiceReturns=0;
+        struct Practice {
+            std::unique_ptr<game::expedition::CoveTestSession> proof;
+            std::unique_ptr<Launch> original;
+            game::expedition::CoveCamera camera;
+            game::expedition::CoveCharacter character;
+            game::expedition::WorkshopCamera workshopCamera;
+        };
+        std::unique_ptr<Practice> practice;
         std::string launchMessage;
         uint64_t launchCount=0,lastLaunchTick=0;
         bool workshopOpen=false;
@@ -420,6 +438,7 @@ struct SalvageLocalSessionState {
         std::optional<game::expedition::CoveRigidRoots::CutTarget> cutTarget(
             std::optional<game::construction::DurableId> exact={}) const noexcept {
             if(!player||!boat||!boatRoots||leaving||workshopOpen||checkpointPending||pause!=Pause::Running
+                ||practicePhase!=PracticePhase::None
                 ||rescue!=Rescue::None||cargoSecuring||towRope.valid()||towAction
                 ||(harbor&&(harbor->hasRopes()||harbor->busy()))
                 ||(player->mode()!=game::expedition::CovePlayer::Mode::Walking
@@ -1294,6 +1313,79 @@ void Application::setSalvageSaveStatus(std::string status) {
 #endif
 }
 
+std::string Application::covePreferencesAction(int action,std::string_view text) {
+    using namespace game::expedition;
+    if(!coveUi_)coveUi_=std::make_unique<CoveUiState>();
+    auto& ui=*coveUi_;std::string error,result;
+    if(action==1)return encodeCoveInputPreferences(ui.preferences,result,error)?result:"";
+    if(action!=2&&action!=3)return "Unknown settings action.";
+    CoveInputPreferences next;
+    if(action==2&&!parseCoveInputPreferences(text,next,error))return error;
+    if(action==3&&!text.empty())return "Reset settings takes no extra data.";
+    ui.preferences=std::move(next);ui.input.reset();ui.orbitLatched=false;
+    if(input_){(void)input_->setGamepadDeadzones(float(ui.preferences.moveDeadzone),float(ui.preferences.lookDeadzone));input_->resetState();}
+    ui.preferenceStatus.clear();
+#if defined(VOXY_NATIVE)
+    if(!ui.preferencesPath.empty()) {
+        const auto stored=platform::saveNativeCovePreferences(ui.preferencesPath,ui.preferences,ui.preferenceStatus);
+        // Optional settings failure is visible but never revokes world saving.
+        if(stored==platform::CovePreferencesStatus::Saved)ui.preferenceStatus="Settings saved.";
+    }
+#endif
+    return "ok";
+}
+bool Application::consumeCoveSaveRequest() noexcept {
+    if(!coveUi_||!coveUi_->saveRequested)return false;
+    coveUi_->saveRequested=false;return true;
+}
+void Application::noteCoveSaveCompleted() noexcept {
+    if(coveUi_)coveUi_->saveConfirmed=true;
+}
+void Application::setCoveSavedWorlds(std::vector<std::pair<std::string,std::string>> worlds,std::string current) {
+    if(!coveUi_)coveUi_=std::make_unique<CoveUiState>();
+    if(worlds.size()>64)worlds.resize(64);
+    coveUi_->worlds=std::move(worlds);coveUi_->currentWorld=std::move(current);
+}
+void Application::setCoveHostBusy(bool busy) noexcept {if(coveUi_)coveUi_->hostBusy=busy;}
+std::optional<std::string> Application::consumeCoveWorldRequest() {
+    if(!coveUi_)return {};
+    return std::exchange(coveUi_->worldRequest,{});
+}
+bool Application::completeCoveWorldPreparation() {
+    if(!coveUi_||!coveUi_->worldPreparing||!salvagePreviewAction(2))return false;
+    coveUi_->exitAfterLeave=true;return true;
+}
+bool Application::coveWorldTransitionDrained() const noexcept {
+    return coveUi_&&coveUi_->worldPreparing&&coveUi_->exitAfterLeave&&!salvagePreviewFailed_
+        &&salvagePreview_&&salvagePreview_->phase()==game::expedition::SalvagePreview::Phase::Empty
+        &&!coveAssetsDraining();
+}
+void Application::cancelCoveWorldPreparation(std::string message) {
+    if(!coveUi_)return;
+    coveUi_->worldPreparing=false;coveUi_->worldRequest.reset();coveUi_->worldStatus=std::move(message);
+}
+
+bool Application::preflightCoveWorld(std::array<uint8_t,16> world,std::span<const std::byte> bytes,std::string& error) {
+    using namespace game::expedition;
+    using namespace game::construction;
+    if(!salvageLocalSession_||!salvageLocalSession_->asset||!salvageLocalSession_->saveContext
+        ||!isValid(WorldNamespace{world})){error="The current Cove is not ready to check another save.";return false;}
+    const auto& local=*salvageLocalSession_;const auto& asset=*local.asset;
+    // Independent trusted bootstrap for validation only. Never publishes a
+    // session, mutates the current allocator, or trusts content from the save.
+    auto seed=prepareCoveBuild(*asset.content,{WorldNamespace{world},1},4,error);
+    if(!seed)return false;
+    auto starter=prepareCoveStarterKit(seed->build,seed->starterEntitlement,error);
+    if(!starter)return false;
+    auto context=*local.saveContext;context.identity.world={world};
+    context.boat=seed->build.id;context.cargo={WorldNamespace{world},4};context.job={WorldNamespace{world},3};
+    const auto origin=asset.origin;
+    auto candidate=CoveRestoreCandidate::prepare(bytes,context,*asset.content,seed->catalog,seed->placements,
+        [this,origin](double x,double z){return double(sampleTerrainHeight(float(x+origin.x),float(z+origin.z)))-origin.y;},
+        error,&*starter,coveGroundSupport(origin),asset.environmentObstacleSpan());
+    return bool(candidate);
+}
+
 bool Application::stageCoveResume(std::array<uint8_t,16> world,std::span<const std::byte> bytes) {
     if(initialized_ || physicsWorld_ || coveResume_ || !game::construction::isValid(game::construction::WorldNamespace{world})
         ||bytes.size()<459 ||bytes.size()>game::expedition::kMaximumCoveSaveBytes)return false;
@@ -1356,6 +1448,20 @@ bool Application::init(const ApplicationConfig& config) {
     tourCurrentPath_.clear();
 
     config_ = config;
+    if(config_.salvageAssetFixtureWaterAnchor) {
+        if(!coveUi_)coveUi_=std::make_unique<CoveUiState>();
+#if defined(VOXY_NATIVE)
+        if(!coveUi_->preferencesLoaded) {
+            game::expedition::StoreIssue issue;
+            auto root=config_.salvageDesignLibraryRoot.empty()?platform::NativeDesignLibrary::defaultRoot(issue):config_.salvageDesignLibraryRoot;
+            if(!issue) {
+                coveUi_->preferencesPath=root.parent_path()/"cove-preferences.json";
+                (void)platform::loadNativeCovePreferences(coveUi_->preferencesPath,coveUi_->preferences,coveUi_->preferenceStatus);
+            }
+            coveUi_->preferencesLoaded=true;
+        }
+#endif
+    }
     // The playable cove retains the original brick terrain. Authored machine
     // contacts use the same plate quantization and round studs as rendering.
     if (config_.salvageAssetFixtureWaterAnchor) {
@@ -2267,6 +2373,19 @@ void Application::update(float simulationDeltaTime, float frameDeltaTime) {
     if (!std::isfinite(frameDeltaTime) || frameDeltaTime < 0.0f) {
         frameDeltaTime = 0.0f;
     }
+    landingMenuConsumed_=false;
+#if defined(VOXY_WASM)
+    if(input_&&config_.legoTerrainEnabled&&!config_.salvagePreviewEnabled){
+        const auto& pad=input_->gamepad();
+        const bool before=EM_ASM_INT({return typeof window['voxyCoveLandingMenuActive']==='function'&&window['voxyCoveLandingMenuActive']();})!=0;
+        const bool consumed=EM_ASM_INT({return typeof window['voxyCoveLandingMenuInput']==='function'&&window['voxyCoveLandingMenuInput'](
+            {'up':!!$0,'down':!!$1,'left':!!$2,'right':!!$3,'confirm':!!$4,'back':!!$5,'menu':!!$6});},
+            pad.navigation(0),pad.navigation(1),pad.navigation(2),pad.navigation(3),pad.pressed(PadButton::Confirm),pad.pressed(PadButton::Back),pad.pressed(PadButton::Menu))!=0;
+        const bool after=EM_ASM_INT({return typeof window['voxyCoveLandingMenuActive']==='function'&&window['voxyCoveLandingMenuActive']();})!=0;
+        landingMenuConsumed_=before||after||consumed;
+        if(before!=after)input_->resetState();
+    }
+#endif
     updateSalvagePreview(frameDeltaTime);
     if (salvagePreviewFailed_) return;
 #if defined(VOXY_NATIVE)
@@ -2292,7 +2411,7 @@ void Application::update(float simulationDeltaTime, float frameDeltaTime) {
                && !scriptedBenchmark && !browserJourneyWasRunning) {
         updateMoto(simulationDeltaTime);
         handleKeyboardShortcuts();
-    } else if (!scriptedBenchmark && !browserJourneyWasRunning
+    } else if (!scriptedBenchmark && !browserJourneyWasRunning && !landingMenuConsumed_
                && (!config_.salvagePreviewEnabled || (salvagePreview_
                    && salvagePreview_->phase() == game::expedition::SalvagePreview::Phase::Ready))) {
         processInput(simulationDeltaTime);
@@ -2302,6 +2421,7 @@ void Application::update(float simulationDeltaTime, float frameDeltaTime) {
         if (input_ && salvageLocalSession_ && salvageLocalSession_->asset
             && salvageLocalSession_->asset->player) {
             updateCovePlayer(simulationDeltaTime);
+            updateCoveOnboarding();
         } else if (input_) {
             switch (controllerMode_) {
                 case ControllerMode::FreeFly:
@@ -6344,6 +6464,258 @@ bool Application::initSalvagePreview() {
     return true;
 }
 
+bool Application::covePracticeCanReturn() const {
+    using Asset=SalvageLocalSessionState::AssetPreview;
+    const auto* local=salvageLocalSession_.get();const auto* asset=local?local->asset.get():nullptr;
+    return initialized_&&!salvagePreviewFailed_&&salvagePreview_&&!salvagePreview_->busy()
+        &&local&&asset&&local->session&&physicsWorld_&&asset->player&&asset->boatRoots&&asset->boatRoot().body.valid()
+        &&!asset->leaving&&!asset->launch&&!local->pendingControl&&!local->storageRevoked&&local->storageHostReady
+        &&local->executionBound&&local->session->admissionOpen()&&!local->session->hasPending()
+        &&!local->session->executionInFlight()&&!asset->checkpointPending&&!asset->cargoSecuring
+        &&asset->rescue==Asset::Rescue::None&&asset->status==render::SalvageFixtureStatus::Active
+        &&asset->practicePhase==Asset::PracticePhase::Running&&asset->practice
+        &&(asset->pause==Asset::Pause::Running||asset->pause==Asset::Pause::Paused);
+}
+
+bool Application::covePracticeCanBegin() const {
+    using Asset=SalvageLocalSessionState::AssetPreview;
+    const auto* local=salvageLocalSession_.get();const auto* asset=local?local->asset.get():nullptr;
+    if(!initialized_||salvagePreviewFailed_||!salvagePreview_||salvagePreview_->busy()||!local||!asset||!local->session
+        ||!physicsWorld_||!asset->player||!asset->boat||!asset->boatRoots||!asset->boatRoot().body.valid()
+        ||!local->saveContext||asset->leaving||asset->launch||local->pendingControl||local->storageRevoked||!local->storageHostReady
+        ||!local->executionBound||!local->session->admissionOpen()||local->session->hasPending()||local->session->executionInFlight()
+        ||asset->checkpointPending||asset->cargoSecuring||asset->rescue!=Asset::Rescue::None
+        ||asset->status!=render::SalvageFixtureStatus::Active||asset->practicePhase!=Asset::PracticePhase::None
+        ||!asset->workshopOpen||!asset->workshop||asset->player->onBoat()||asset->towRope.valid()||asset->towBroken||asset->towAction
+        ||(asset->harbor&&(asset->harbor->hasRopes()||asset->harbor->busy()))
+        ||(asset->pause!=Asset::Pause::Running&&asset->pause!=Asset::Pause::Paused)
+        ||glm::length(asset->player->feet()-asset->content->registry.navigation->spawn)>3
+        ||(asset->workshop->changed()&&!asset->workshop->brickToolActive())
+        ||(!asset->workshop->brickToolActive()&&!asset->workshop->valid())
+        ||asset->practiceRuns==std::numeric_limits<uint64_t>::max())return false;
+    for(size_t i=0;i<asset->boatRoots->roots().size();++i) {
+        const auto current=physics::worldPositionToAbsolute(asset->boatRoots->roots()[i].observed.position);
+        const auto p=asset->boat->assembly().mass().roots()[i].buildFromRoot.translation;
+        const auto home=asset->origin+glm::dvec3(p.x,p.y,p.z)*.02;
+        if(std::hypot(current.x-home.x,current.z-home.z)>4)return false;
+    }
+    return asset->boat->roots().size()!=1||(asset->boatRoot().observed.orientation*glm::vec3(0,1,0)).y>=.7f;
+}
+
+bool Application::covePracticeAction(int action) {
+    using Asset=SalvageLocalSessionState::AssetPreview;
+    using Phase=Asset::PracticePhase;
+    if((action==340&&!covePracticeCanBegin())||(action==341&&!covePracticeCanReturn())||(action!=340&&action!=341))return false;
+    auto& local=*salvageLocalSession_;auto& asset=*local.asset;
+    if(asset.leaving||asset.launch||local.pendingControl||local.storageRevoked||!local.storageHostReady
+        ||!local.executionBound||!local.session->admissionOpen()||local.session->hasPending()
+        ||local.session->executionInFlight()||asset.checkpointPending||asset.cargoSecuring
+        ||asset.rescue!=Asset::Rescue::None||asset.status!=render::SalvageFixtureStatus::Active)return false;
+    if(action==340) {
+        if(asset.practicePhase!=Phase::None||!asset.workshopOpen||!asset.workshop||!asset.player
+            ||asset.player->onBoat()||asset.towRope.valid()||asset.towBroken||asset.towAction
+            ||(asset.harbor&&(asset.harbor->hasRopes()||asset.harbor->busy()))
+            ||glm::length(asset.player->feet()-asset.content->registry.navigation->spawn)>3)return false;
+        if(asset.workshop->changed()&&!asset.workshop->brickToolActive()) {
+            asset.practiceMessage="Keep or cancel the current change before testing.";return false;
+        }
+        std::string error;
+        if(asset.workshop->blueprintBytes(error).empty()){asset.practiceMessage=error;return false;}
+        asset.practicePhase=Phase::Capturing;
+        asset.practiceMessage="Protecting your expedition before testing…";
+    } else {
+        if(asset.practicePhase!=Phase::Running||!asset.practice)return false;
+        asset.practicePhase=Phase::Returning;
+        asset.practiceMessage="Discarding the test and restoring your workshop…";
+    }
+    if(asset.pause==Asset::Pause::Running){asset.pause=Asset::Pause::Requested;asset.pauseTick=0;asset.pauseWaitSeconds=0;}
+    asset.player->discardPendingInput();asset.towAction=0;
+    if(input_){input_->releaseMouse();input_->resetState();}
+    return true;
+}
+
+bool Application::updateCovePractice() {
+    using namespace game::expedition;
+    using Asset=SalvageLocalSessionState::AssetPreview;
+    using Phase=Asset::PracticePhase;
+    using Purpose=Asset::Launch::Purpose;
+    auto& local=*salvageLocalSession_;auto& asset=*local.asset;
+    if(asset.practicePhase==Phase::None||asset.leaving)return true;
+    // A requested Leave may discard RAM practice, but only after a staged
+    // replacement has published. Its normal drain owns all GPU lifetimes.
+    if(local.pendingControl && (!asset.launch||!asset.launch->staged||asset.launch->published)) {
+        if(asset.launch&&!asset.launch->staged)asset.launch->canceled=true;
+        return true;
+    }
+    const auto refuse=[&](std::string message) {
+        asset.practiceMessage=std::move(message);
+        if(asset.practicePhase==Phase::Capturing||asset.practicePhase==Phase::Entering) {
+            asset.practicePhase=Phase::None;asset.practice.reset();
+        } else asset.practicePhase=Phase::Running;
+    };
+    const auto nextTick=[&]() {
+        const auto frontier=physicsWorld_->tickFrontier();
+        if(frontier.scheduled!=frontier.completed||!physicsWorld_->setSchedulingPaused(false)
+            ||!physicsWorld_->setSchedulingPaused(true,1))return false;
+        asset.pause=Asset::Pause::Draining;asset.pauseTick=frontier.scheduled+1;asset.pauseWaitSeconds=0;return true;
+    };
+    try {
+        if(asset.practicePhase==Phase::Capturing && asset.pause==Asset::Pause::Paused) {
+            auto bytes=captureCoveCheckpoint(true);std::string error;
+            auto proof=CoveTestSession::prepare(bytes,*local.saveContext,*local.catalog,*asset.workshop,error);
+            if(!proof){refuse(error);return true;}
+            auto practice=std::make_unique<Asset::Practice>();practice->proof=std::move(proof);
+            practice->original=std::make_unique<Asset::Launch>();
+            practice->camera=asset.characterCamera;practice->character=asset.character;practice->workshopCamera=asset.workshopCamera;
+            auto& original=*practice->original;
+            original.water=asset.boat->primaryRoot().water({});original.tow=asset.towDesc;
+            original.towPoint=asset.towBoatPoint;original.towRootIndex=asset.towRootIndex;original.reelSpeed=asset.towReelSpeed;
+            asset.practice=std::move(practice);asset.practicePhase=Phase::Entering;
+        }
+        if(asset.practicePhase==Phase::Returning && asset.pause==Asset::Pause::Paused && !asset.launch) {
+            if(asset.towRope.valid()) {
+                if(!physicsWorld_->destroyAttachment(asset.towRope))return false;
+                asset.rescueRope=asset.towRope;asset.rescueRopeTick=physicsWorld_->tickFrontier().scheduled+1;
+                asset.towRope={};asset.towMotor=0;asset.towAction=0;
+                if(!nextTick())return false;
+                return true;
+            }
+            if(asset.rescueRope.valid())return true;
+        }
+        const bool returning=asset.practicePhase==Phase::Returning;
+        if((asset.practicePhase==Phase::Entering||returning)&&asset.pause==Asset::Pause::Paused&&!asset.launch) {
+            auto& practice=*asset.practice;std::string error;
+            if(!practice.proof->canonicalUnchanged(*local.session,error)){refuse(error);return true;}
+            auto candidate=std::make_unique<Asset::Launch>();candidate->purpose=returning?Purpose::TestReturn:Purpose::TestEnter;
+            const auto& scene=returning?(practice.original->scene?*practice.original->scene:*asset.content):practice.proof->draft();
+            candidate->scene=std::make_unique<const game::assets::LoadedAssetFixture>(scene);
+            if(returning) {
+                const auto& original=*practice.original->boat;
+                candidate->boat=original.roots().size()==1
+                    ?CoveBoatAssembly::compileBuild(original.build(),*local.catalog,original.parts(),error)
+                    :CoveBoatAssembly::compileFragments(original.build(),*local.catalog,original.parts(),*original.primaryRoot().helm,error);
+            } else candidate->boat=practice.proof->takeDraftBoat();
+            if(!candidate->boat){refuse(error.empty()?"The test boat could not be prepared.":error);return true;}
+            candidate->roots=CoveRigidRoots::prepare(*candidate->boat,error);
+            if(!candidate->roots){refuse(error);return true;}
+            candidate->boatSlots=asset.content->registry.navigation->boatPlacements;
+            for(size_t i=asset.content->registry.placements.size();i<scene.registry.placements.size();++i)
+                candidate->boatSlots.push_back(static_cast<uint32_t>(i));
+            candidate->player=std::make_unique<CovePlayer>();const auto origin=asset.origin;
+            if(!candidate->player->initialize(scene,[this,origin](double x,double z){
+                return double(sampleTerrainHeight(float(x+origin.x),float(z+origin.z)))-origin.y;
+            },error,candidate->boatSlots,coveGroundSupport(origin))
+                ||!candidate->player->setEnvironmentObstacles(asset.environmentObstacleSpan())
+                ||(asset.harbor&&asset.harbor->installed()&&!asset.harbor->structure().applyPlayerCollision(*candidate->player))) {
+                refuse(error.empty()?"The test player could not be prepared.":error);return true;
+            }
+            candidate->workshop=CoveWorkshop::create(scene,error,static_cast<uint32_t>(asset.content->registry.placements.size()),
+                asset.content->registry.navigation->boatPlacements,returning&&candidate->boat->roots().size()!=1);
+            if(!candidate->workshop){refuse(error);return true;}
+            candidate->lods.resize(scene.registry.placements.size());candidate->recoveryDesigns=asset.recoveryDesigns;
+            candidate->selectedRecoveryDesign=asset.selectedRecoveryDesign;
+            if(returning) {
+                const auto& original=*practice.original;
+                candidate->water=original.water;candidate->tow=original.tow;candidate->towPoint=original.towPoint;
+                candidate->towRootIndex=original.towRootIndex;candidate->reelSpeed=original.reelSpeed;
+            } else {
+                candidate->water=candidate->boat->primaryRoot().water({});unsigned winches=0;
+                const auto& functions=candidate->boat->assembly().functions();
+                for(size_t i=0;i<functions.modules().size();++i) {
+                    const auto& module=functions.modules()[i];
+                    if(const auto* winch=std::get_if<game::construction::WinchModule>(&module.parameters)) {
+                        const auto root=candidate->boat->rootForPart(module.part);if(!root)return false;
+                        candidate->towRootIndex=*root;
+                        for(const auto& frame:functions.moduleFrames(i))if(frame.kind==game::construction::AssemblyFrameKind::TowLine) {
+                            ++winches;const auto p=frame.rootFromFrame.translation;
+                            candidate->towPoint=glm::vec3(p.x,p.y,p.z)*.02f;
+                            candidate->reelSpeed=static_cast<float>(winch->reelSpeedMetresPerSecond)*coveModuleOutput(module);
+                            candidate->tow.minimumLength=static_cast<float>(winch->minimumLengthMetres);
+                            candidate->tow.maximumLength=static_cast<float>(winch->maximumLengthMetres);
+                            candidate->tow.maximumForce=static_cast<float>(winch->maximumForceNewtons);
+                            candidate->tow.breakForce=static_cast<float>(functions.sockets()[frame.socket].definition.strength.tensionNewtons);
+                        }
+                    }
+                }
+                if(winches>1){refuse("Testing supports at most one winch.");return true;}
+                if(winches) {
+                    const auto& cargo=asset.cargo->assembly().functions();unsigned eyes=0;
+                    for(const auto& frame:cargo.frames())if(frame.kind==game::construction::AssemblyFrameKind::TowEye) {
+                        ++eyes;candidate->tow.breakForce=std::min(candidate->tow.breakForce,
+                            static_cast<float>(cargo.sockets()[frame.socket].definition.strength.tensionNewtons));
+                    }
+                    physics::AuthoredFrameError issue;
+                    const auto a=physics::AuthoredBodyFrame(candidate->boat->roots()[candidate->towRootIndex].shape).bodyPoint(candidate->towPoint,issue);
+                    const auto b=physics::AuthoredBodyFrame(asset.cargo->shape()).bodyPoint(asset.towCargoPoint,issue);
+                    if(eyes!=1||!a||!b){refuse("The test cable anchors are invalid.");return true;}
+                    candidate->tow.localAnchorA=*a;candidate->tow.localAnchorB=*b;
+                }
+            }
+            candidate->preparedShapes.reserve(candidate->boat->roots().size());
+            for(const auto& root:candidate->boat->roots())candidate->preparedShapes.push_back(root.shape);
+            asset.launch=std::move(candidate);
+        }
+        if(!asset.launch||asset.launch->purpose==Purpose::Expedition)return true;
+        auto& launch=*asset.launch;
+        if(launch.canceled) {refuse("The test replacement was refused. The active boat is unchanged.");return true;}
+        if(!launch.staged) {
+            const auto ready=local.preparation.pollBuild();
+            if(ready==PreparationState::Pending)return true;
+            if(ready!=PreparationState::Ready){launch.canceled=true;refuse("The test could not be prepared. The active boat is unchanged.");return true;}
+            const auto frontier=physicsWorld_->tickFrontier();
+            const auto staged=local.preparation.stageBuild(game::construction::SimulationTick{frontier.completed+1});
+            if(staged==PreparationState::Pending)return true;
+            if(staged!=PreparationState::Ready){launch.canceled=true;refuse(asset.launchMessage);return true;}
+            if(!asset.practice->proof->stage(frontier.incarnation,launch.executionTick,returning))return false;
+            if(returning) {
+                const auto seconds=asset.practice->proof->physical().water.seconds;
+                if(!asset.waterClock.reset(frontier.scheduled,seconds))return false;
+                asset.waterTime=seconds;
+            }
+            if(!nextTick())return false;
+        }
+        if(!launch.published&&local.preparation.observedBuild(game::construction::SimulationTick{launch.executionTick})) {
+            std::string error;const auto frontier=physicsWorld_->tickFrontier();
+            if(asset.cargoObservedTick<launch.executionTick
+                ||(asset.harbor&&!asset.harbor->joined(launch.executionTick)))return true;
+            if(!asset.practice->proof->confirm(frontier.incarnation,frontier.completed,*local.session,error))return false;
+            local.preparation.publishBuild();auto& original=*asset.practice->original;
+            if(launch.purpose==Purpose::TestEnter) {
+                original.boat=std::move(launch.boat);original.player=std::move(launch.player);
+                original.workshop=std::move(launch.workshop);original.scene=std::move(launch.scene);original.lods=std::move(launch.lods);
+                asset.practicePhase=Phase::Running;++asset.practiceRuns;asset.workshopOpen=false;
+                asset.practiceMessage="Test mode — no cost or rewards. Return restores your workshop. Quitting discards this test.";
+                if(!physicsWorld_->setSchedulingPaused(false))return false;
+                asset.pause=Asset::Pause::Running;asset.pauseTick=0;
+            } else {
+                asset.boat.swap(original.boat);asset.player.swap(original.player);asset.workshop.swap(original.workshop);
+                asset.liveScene.swap(original.scene);asset.selectedLods.swap(original.lods);
+                asset.characterCamera=asset.practice->camera;asset.character=asset.practice->character;asset.workshopCamera=asset.practice->workshopCamera;
+                if(!asset.boatRoots->bindPlayer(*asset.player,*asset.boat,asset.origin,error))return false;
+                asset.practicePhase=Phase::None;++asset.practiceReturns;asset.workshopOpen=true;
+                asset.practiceMessage="Test discarded. Your original boat, inventory and workshop are restored. Resume to edit.";
+                asset.practice.reset();asset.pause=Asset::Pause::Paused;asset.pauseTick=frontier.completed;
+            }
+            asset.playerObservedTick=frontier.completed;asset.terrainBoundPlayer=nullptr;
+            asset.characterDiscontinuity=true;asset.characterViewReady=false;asset.characterPresentation.valid=false;
+            asset.characterCameraInput={};asset.player->discardPendingInput();
+            asset.towMotor=0;asset.towAction=0;asset.towBroken=false;asset.towObserved={};asset.towObservedTick=0;
+            asset.rotorCommandBody={};asset.rotorCommandDrive=0;
+            if(!asset.mechanisms.reset(frontier.incarnation,frontier.completed)
+                ||!asset.effects.reset(frontier.incarnation,frontier.completed))return false;
+            asset.effectsDrives={};asset.effectsImpactCount=0;asset.effectsImpactTick=0;asset.surfaceStates={};asset.surfaceTick=0;
+            if(input_){input_->releaseMouse();input_->resetState();}
+        }
+        return true;
+    } catch(const std::bad_alloc&) {
+        // All allocations precede staging; post-stage failures use the normal
+        // fatal drain rather than abandoning a committed physical replacement.
+        if(asset.launch&&asset.launch->staged)return false;
+        if(asset.launch)asset.launch->canceled=true;
+        refuse("Not enough memory to prepare the test. The active boat is unchanged.");return true;
+    }
+}
+
 void Application::configureCoveLaunch() {
     using State=game::expedition::PreparationState;
     using Frame=game::construction::AssemblyFrameKind;
@@ -6476,7 +6848,22 @@ void Application::configureCoveLaunch() {
             || asset->cargoSecuring || asset->towRope.valid()
             ||(asset->harbor&&(asset->harbor->hasRopes()||asset->harbor->busy())))return State::Rejected;
         std::string playerIssue;
-        if(launch.fracture) {
+        if(launch.purpose==SalvageLocalSessionState::AssetPreview::Launch::Purpose::TestReturn) {
+            if(!asset->practice || !asset->practice->proof)return State::Rejected;
+            const auto& saved=asset->practice->proof->physical();
+            if(saved.boatRoots.size()!=launch.roots->roots().size())return State::Rejected;
+            for(size_t i=0;i<saved.boatRoots.size();++i) {
+                auto& child=launch.roots->roots()[i];const auto& source=saved.boatRoots[i];
+                if(child.key!=source.key)return State::Rejected;
+                const auto& p=source.motion.position;const auto& q=source.motion.orientation;
+                child.spawn.position=physics::worldPositionFromAbsolute({p.x,p.y,p.z});
+                child.spawn.orientation={q.w,q.x,q.y,q.z};
+                child.spawn.originVelocity=glm::vec3(source.motion.originVelocity[0],source.motion.originVelocity[1],source.motion.originVelocity[2]);
+                child.spawn.angularVelocity=glm::vec3(source.motion.angularVelocity[0],source.motion.angularVelocity[1],source.motion.angularVelocity[2]);
+                child.observed=child.spawn;
+            }
+            if(!launch.roots->bindPlayer(*launch.player,*launch.boat,asset->origin,playerIssue))return State::Rejected;
+        } else if(launch.fracture) {
             if(!asset->cutTarget(launch.fracture->cuts().front())) {
                 asset->launchMessage="That weld moved out of reach. The build is unchanged.";return State::Rejected;
             }
@@ -6545,7 +6932,27 @@ void Application::configureCoveLaunch() {
         std::array<physics::BodyHandle,game::expedition::CoveRigidRoots::maximumRoots> parents{};
         const auto oldRoots=asset->boatRoots->roots();
         for(size_t i=0;i<oldRoots.size();++i)parents[i]=oldRoots[i].body;
+        std::array<physics::PhysicsCommand,3> cargoCommands{};size_t cargoCommandCount=0;
+        if(launch.purpose==SalvageLocalSessionState::AssetPreview::Launch::Purpose::TestReturn && !asset->cargoBanked) {
+            const auto& saved=asset->practice->proof->physical().cargoMotion;
+            physics::AuthoredRootMotion motion;
+            motion.position=physics::worldPositionFromAbsolute({saved.position.x,saved.position.y,saved.position.z});
+            motion.orientation={saved.orientation.w,saved.orientation.x,saved.orientation.y,saved.orientation.z};
+            motion.originVelocity={saved.originVelocity[0],saved.originVelocity[1],saved.originVelocity[2]};
+            motion.angularVelocity={saved.angularVelocity[0],saved.angularVelocity[1],saved.angularVelocity[2]};
+            physics::AuthoredFrameError issue;
+            const auto body=physics::AuthoredBodyFrame(asset->cargo->shape()).bodyMotion(motion,issue);
+            if(!body){cancelChildren();return State::Rejected;}
+            auto& teleport=cargoCommands[0];teleport.type=physics::PhysicsCommandType::Teleport;teleport.body=asset->cargoBody;
+            teleport.sector=body->centerPosition.sector;teleport.a=glm::vec4(body->centerPosition.local,0);
+            teleport.b={body->orientation.x,body->orientation.y,body->orientation.z,body->orientation.w};
+            auto& velocity=cargoCommands[1];velocity.type=physics::PhysicsCommandType::SetVelocity;velocity.body=asset->cargoBody;
+            velocity.a=glm::vec4(body->centerVelocity,0);
+            auto& angular=cargoCommands[2];angular.type=physics::PhysicsCommandType::SetAngularVelocity;angular.body=asset->cargoBody;
+            angular.a=glm::vec4(body->angularVelocity,0);cargoCommandCount=3;
+        }
         const auto retirement=physicsWorld_->prepareMutationBatch({
+            .bodyCommands=std::span<const physics::PhysicsCommand>{cargoCommands.data(),cargoCommandCount},
             .bodyDestroys=std::span<const physics::BodyHandle>{parents.data(),oldRoots.size()},
             .joinedBoundary=physics::PhysicsMutationJoin{frontier.incarnation,frontier.completed}});
         if(!retirement){cancelChildren();asset->launchMessage="Boat setup was refused. Your original boat is unchanged.";return State::Rejected;}
@@ -6588,7 +6995,10 @@ void Application::configureCoveLaunch() {
         asset->thrustLimit=launch.water.maximumThrustNewtons;asset->steeringLimit=launch.water.maximumSteeringRadians;
         asset->thrustDirection=launch.water.propellerDirection;
         asset->towAction=0;asset->towMotor=0;asset->towBroken=false;
-        asset->lastLaunchTick=launch.executionTick;++asset->launchCount;launch.published=true;
+        if(launch.purpose==SalvageLocalSessionState::AssetPreview::Launch::Purpose::Expedition) {
+            asset->lastLaunchTick=launch.executionTick;++asset->launchCount;
+        }
+        launch.published=true;
     };
     // Capture the stable asset, not Application's owning unique_ptr: session
     // closure can run while that unique_ptr itself is being reset.
@@ -6637,6 +7047,7 @@ void Application::resetSalvagePreviewView() {
 }
 
 bool Application::coveUiOwnsInput() const {
+    if(landingMenuConsumed_)return true;
     if(!salvageLocalSession_||!salvageLocalSession_->asset)return false;
     const auto& asset=*salvageLocalSession_->asset;
 #if defined(VOXY_WASM)
@@ -6649,7 +7060,8 @@ std::string Application::salvageBlueprintAction(int action,std::string_view text
     if(!initialized_ || !salvageLocalSession_ || !salvageLocalSession_->asset || !salvageLocalSession_->session
         || salvagePreviewFailed_ || !salvagePreview_ || salvagePreview_->busy() || salvageLocalSession_->pendingControl)return {};
     auto& asset=*salvageLocalSession_->asset;
-    if(asset.leaving || !asset.workshopOpen || !asset.workshop || asset.launch || salvageLocalSession_->session->hasPending()
+    if(asset.leaving || asset.practicePhase!=SalvageLocalSessionState::AssetPreview::PracticePhase::None
+        || !asset.workshopOpen || !asset.workshop || asset.launch || salvageLocalSession_->session->hasPending()
         || asset.status!=render::SalvageFixtureStatus::Active)return {};
     constexpr std::string_view digits="0123456789abcdef";
     if(action==1) {
@@ -6676,8 +7088,101 @@ std::string Application::salvageBlueprintAction(int action,std::string_view text
 
 bool Application::salvageCheckpointNeedsSave() const noexcept {
     const auto* asset=salvageLocalSession_?salvageLocalSession_->asset.get():nullptr;
-    return asset && asset->checkpointPending
+    return asset && asset->practicePhase==SalvageLocalSessionState::AssetPreview::PracticePhase::None && asset->checkpointPending
         && asset->pause==SalvageLocalSessionState::AssetPreview::Pause::Paused;
+}
+
+std::vector<std::byte> Application::captureCoveCheckpoint(bool allowWorkshop) {
+    using namespace game::expedition;
+    using namespace game::construction;
+    using Pause=SalvageLocalSessionState::AssetPreview::Pause;
+    if(!salvageLocalSession_ || !salvageLocalSession_->asset || !salvageLocalSession_->session
+        || !salvageLocalSession_->saveContext || !physicsWorld_ || !waterSimulation_)return {};
+    auto& local=*salvageLocalSession_;auto& asset=*local.asset;
+    if(asset.pause!=Pause::Paused || (!allowWorkshop&&asset.workshopOpen) || asset.launch
+        || asset.leaving || asset.cargoSecuring || local.storageRevoked || local.session->hasPending()
+        || local.session->executionInFlight() || !asset.player || !asset.boat || !asset.cargo
+        || asset.practice)return {};
+    try {
+    const auto frontier=physicsWorld_->tickFrontier();
+    if(frontier.scheduled!=asset.pauseTick || frontier.encoded!=asset.pauseTick
+        || frontier.submitted!=asset.pauseTick || frontier.completed!=asset.pauseTick
+        || asset.boatEventsThrough!=asset.pauseTick || asset.boatRoots->joinedTick()!=asset.pauseTick
+        || asset.cargoObservedTick!=asset.pauseTick || (asset.towRope.valid() && asset.towObservedTick!=asset.pauseTick))return {};
+    CovePhysicalSave physical;physical.recoveryDesigns=asset.recoveryDesigns;const auto& context=*local.saveContext;
+    physical.tick=SimulationTick{asset.pauseTick};physical.origin=context.origin;
+    physical.boat=context.boat;physical.cargo=context.cargo;physical.job=context.job;
+    physical.cargoDefinition=context.cargoDefinition.key;
+    const auto motion=[](const physics::AuthoredRootMotion& source,CoveSavedMotion& dest){
+        const auto p=physics::worldPositionToAbsolute(source.position);
+        const auto q=canonicalQuaternion(source.orientation.x,source.orientation.y,source.orientation.z,source.orientation.w);
+        if(!q)return false;
+        dest.position={p.x,p.y,p.z};dest.orientation=*q;
+        dest.originVelocity={source.originVelocity.x,source.originVelocity.y,source.originVelocity.z};
+        dest.angularVelocity={source.angularVelocity.x,source.angularVelocity.y,source.angularVelocity.z};return true;
+    };
+    if(!motion(asset.boatRoot().observed,physical.boatMotion)||!motion(asset.cargoObserved,physical.cargoMotion))return {};
+    if(!asset.boat->primaryRoot().helm)return {};
+    physical.controlPart=*asset.boat->primaryRoot().helm;
+    physical.boatRoots.reserve(asset.boatRoots->roots().size());
+    for(const auto& root:asset.boatRoots->roots()) {
+        CoveSavedRoot saved;saved.key=root.key;if(!motion(root.observed,saved.motion))return {};
+        physical.boatRoots.push_back(saved);
+    }
+    const auto player=asset.player->state();
+    physical.player.feet={player.feet.x,player.feet.y,player.feet.z};physical.player.verticalSpeed=player.verticalSpeed;
+    physical.player.tick=player.tick;physical.player.interactions=player.interactions;
+    switch(player.mode){
+    case CovePlayer::Mode::Walking:physical.player.mode=CoveSavedPlayerMode::Walking;break;
+    case CovePlayer::Mode::Airborne:physical.player.mode=CoveSavedPlayerMode::Airborne;break;
+    case CovePlayer::Mode::Swimming:physical.player.mode=CoveSavedPlayerMode::Swimming;break;
+    case CovePlayer::Mode::Helm:physical.player.mode=CoveSavedPlayerMode::Helm;break;
+    }
+    physical.player.aboard=player.onBoat;
+    physical.player.viewYaw=static_cast<float>(asset.characterCamera.pose().yaw);
+    physical.player.viewPitch=static_cast<float>(asset.characterCamera.pose().elevation);
+    physical.character.profile=1;
+    physical.character.worldVelocity={player.worldVelocity.x,player.worldVelocity.y,player.worldVelocity.z};
+    physical.character.facingYaw=player.facingYaw;
+    physical.character.cameraDistance=asset.characterCamera.userDistance();
+    const auto cameraSettings=asset.characterCamera.settings();
+    physical.character.chaseCamera=cameraSettings.mode==game::expedition::CoveCamera::Mode::Chase;
+    physical.character.reducedMotion=cameraSettings.reducedMotion;physical.character.loadView=cameraSettings.frameLoad;
+    physical.playerRoot=player.root;
+    auto& savedWater=physical.water;const auto& spectrum=waterSimulation_->spectrumConfig();
+    savedWater.seconds=asset.waterTime;savedWater.height=rendererSettings_.waterHeight;
+    savedWater.strength=rendererSettings_.waterWaveStrength;
+    savedWater.significantWaveHeight=spectrum.significantWaveHeight;savedWater.directionRadians=spectrum.directionRadians;
+    savedWater.choppiness=spectrum.choppiness;savedWater.peakEnhancement=spectrum.peakEnhancement;
+    savedWater.windAlignment=spectrum.windAlignment;savedWater.animationSpeed=spectrum.animationSpeed;
+    savedWater.patchLengths={spectrum.patchLengths.x,spectrum.patchLengths.y};
+    savedWater.cascadeAmplitudes={spectrum.cascadeAmplitudes.x,spectrum.cascadeAmplitudes.y};
+    savedWater.directionalSineScale=spectrum.directionalSineScale;
+    physical.cargoState=asset.cargoBanked?CoveSavedCargoState::Banked:CoveSavedCargoState::Loose;
+    if(asset.towRope.valid() || asset.towBroken) {
+        if(asset.cargoBanked || (asset.towRope.valid() && (!asset.towObserved.alive || asset.towObserved.broken!=asset.towBroken))
+            || (!asset.towBroken && asset.towObserved.distance.motorSpeed!=0))return {};
+        physical.cargoState=asset.towBroken?CoveSavedCargoState::BrokenTow:CoveSavedCargoState::Towed;
+        for(const auto& module:asset.boat->assembly().functions().modules())
+            if(std::holds_alternative<WinchModule>(module.parameters) && module.settings.enabled) {
+                if(isValid(physical.winchPart))return {};
+                physical.winchPart=module.part;
+            }
+        physical.ropeLength=asset.towRope.valid()?asset.towObserved.distance.targetLength:asset.towDesc.targetLength;
+    }
+    if(asset.harbor){
+        const auto saved=asset.harbor->capture(asset.pauseTick);if(!saved)return {};
+        physical.harborLift=*saved;
+    }
+    RecoveryIssue recoveryIssue;
+    auto snapshot=SessionRecovery::capture(*local.session,context.identity.content,recoveryIssue);
+    if(!snapshot)return {};
+    auto admitted=SessionRecovery::admit(*snapshot,context.identity,*local.catalog,recoveryIssue);
+    if(!admitted)return {};
+    CoveSaveIssue issue;std::vector<std::byte> bytes;
+    if(!CoveSaveCodec::encode(*admitted,local.retiredSaveParent.get(),physical,context,*local.catalog,bytes,issue))return {};
+        return bytes;
+    } catch(const std::bad_alloc&) {return {};}
 }
 
 std::string Application::salvageExpeditionAction(int action,std::string_view text) {
@@ -6685,6 +7190,8 @@ std::string Application::salvageExpeditionAction(int action,std::string_view tex
         salvageLocalSession_->storageRevoked=true;salvageLocalSession_->session->closeAdmission();return "ok";
     }
     if(salvageLocalSession_ && salvageLocalSession_->storageRevoked)return {};
+    if(salvageLocalSession_ && salvageLocalSession_->asset
+        && salvageLocalSession_->asset->practicePhase!=SalvageLocalSessionState::AssetPreview::PracticePhase::None)return {};
     if(action==6) {
         if(!text.empty() || !initialized_ || salvagePreviewFailed_ || !salvageLocalSession_
             || !salvageLocalSession_->saveContext || !salvageLocalSession_->asset)return {};
@@ -6757,83 +7264,8 @@ std::string Application::salvageExpeditionAction(int action,std::string_view tex
         if(action!=1 || !text.empty() || !waterSimulation_)return {};
         if(asset.rescue!=SalvageLocalSessionState::AssetPreview::Rescue::None
             &&asset.rescue!=SalvageLocalSessionState::AssetPreview::Rescue::Saving)return {};
-        const auto frontier=physicsWorld_->tickFrontier();
-        if(frontier.scheduled!=asset.pauseTick || frontier.encoded!=asset.pauseTick
-            || frontier.submitted!=asset.pauseTick || frontier.completed!=asset.pauseTick
-            || asset.boatEventsThrough!=asset.pauseTick || asset.boatRoots->joinedTick()!=asset.pauseTick
-            || asset.cargoObservedTick!=asset.pauseTick || (asset.towRope.valid() && asset.towObservedTick!=asset.pauseTick))return {};
-        CovePhysicalSave physical;physical.recoveryDesigns=asset.recoveryDesigns;const auto& context=*local.saveContext;
-        physical.tick=SimulationTick{asset.pauseTick};physical.origin=context.origin;
-        physical.boat=context.boat;physical.cargo=context.cargo;physical.job=context.job;
-        physical.cargoDefinition=context.cargoDefinition.key;
-        const auto motion=[](const physics::AuthoredRootMotion& source,CoveSavedMotion& dest){
-            const auto p=physics::worldPositionToAbsolute(source.position);
-            const auto q=canonicalQuaternion(source.orientation.x,source.orientation.y,source.orientation.z,source.orientation.w);
-            if(!q)return false;
-            dest.position={p.x,p.y,p.z};dest.orientation=*q;
-            dest.originVelocity={source.originVelocity.x,source.originVelocity.y,source.originVelocity.z};
-            dest.angularVelocity={source.angularVelocity.x,source.angularVelocity.y,source.angularVelocity.z};return true;
-        };
-        if(!motion(asset.boatRoot().observed,physical.boatMotion)||!motion(asset.cargoObserved,physical.cargoMotion))return {};
-        if(!asset.boat->primaryRoot().helm)return {};
-        physical.controlPart=*asset.boat->primaryRoot().helm;
-        physical.boatRoots.reserve(asset.boatRoots->roots().size());
-        for(const auto& root:asset.boatRoots->roots()) {
-            CoveSavedRoot saved;saved.key=root.key;if(!motion(root.observed,saved.motion))return {};
-            physical.boatRoots.push_back(saved);
-        }
-        const auto player=asset.player->state();
-        physical.player.feet={player.feet.x,player.feet.y,player.feet.z};physical.player.verticalSpeed=player.verticalSpeed;
-        physical.player.tick=player.tick;physical.player.interactions=player.interactions;
-        switch(player.mode){
-        case CovePlayer::Mode::Walking:physical.player.mode=CoveSavedPlayerMode::Walking;break;
-        case CovePlayer::Mode::Airborne:physical.player.mode=CoveSavedPlayerMode::Airborne;break;
-        case CovePlayer::Mode::Swimming:physical.player.mode=CoveSavedPlayerMode::Swimming;break;
-        case CovePlayer::Mode::Helm:physical.player.mode=CoveSavedPlayerMode::Helm;break;
-        }
-        physical.player.aboard=player.onBoat;
-        physical.player.viewYaw=static_cast<float>(asset.characterCamera.pose().yaw);
-        physical.player.viewPitch=static_cast<float>(asset.characterCamera.pose().elevation);
-        physical.character.profile=1;
-        physical.character.worldVelocity={player.worldVelocity.x,player.worldVelocity.y,player.worldVelocity.z};
-        physical.character.facingYaw=player.facingYaw;
-        physical.character.cameraDistance=asset.characterCamera.userDistance();
-        const auto cameraSettings=asset.characterCamera.settings();
-        physical.character.chaseCamera=cameraSettings.mode==game::expedition::CoveCamera::Mode::Chase;
-        physical.character.reducedMotion=cameraSettings.reducedMotion;physical.character.loadView=cameraSettings.frameLoad;
-        physical.playerRoot=player.root;
-        auto& savedWater=physical.water;const auto& spectrum=waterSimulation_->spectrumConfig();
-        savedWater.seconds=asset.waterTime;savedWater.height=rendererSettings_.waterHeight;
-        savedWater.strength=rendererSettings_.waterWaveStrength;
-        savedWater.significantWaveHeight=spectrum.significantWaveHeight;savedWater.directionRadians=spectrum.directionRadians;
-        savedWater.choppiness=spectrum.choppiness;savedWater.peakEnhancement=spectrum.peakEnhancement;
-        savedWater.windAlignment=spectrum.windAlignment;savedWater.animationSpeed=spectrum.animationSpeed;
-        savedWater.patchLengths={spectrum.patchLengths.x,spectrum.patchLengths.y};
-        savedWater.cascadeAmplitudes={spectrum.cascadeAmplitudes.x,spectrum.cascadeAmplitudes.y};
-        savedWater.directionalSineScale=spectrum.directionalSineScale;
-        physical.cargoState=asset.cargoBanked?CoveSavedCargoState::Banked:CoveSavedCargoState::Loose;
-        if(asset.towRope.valid() || asset.towBroken) {
-            if(asset.cargoBanked || (asset.towRope.valid() && (!asset.towObserved.alive || asset.towObserved.broken!=asset.towBroken))
-                || (!asset.towBroken && asset.towObserved.distance.motorSpeed!=0))return {};
-            physical.cargoState=asset.towBroken?CoveSavedCargoState::BrokenTow:CoveSavedCargoState::Towed;
-            for(const auto& module:asset.boat->assembly().functions().modules())
-                if(std::holds_alternative<WinchModule>(module.parameters) && module.settings.enabled) {
-                    if(isValid(physical.winchPart))return {};
-                    physical.winchPart=module.part;
-                }
-            physical.ropeLength=asset.towRope.valid()?asset.towObserved.distance.targetLength:asset.towDesc.targetLength;
-        }
-        if(asset.harbor){
-            const auto saved=asset.harbor->capture(asset.pauseTick);if(!saved)return {};
-            physical.harborLift=*saved;
-        }
-        RecoveryIssue recoveryIssue;
-        auto snapshot=SessionRecovery::capture(*local.session,context.identity.content,recoveryIssue);
-        if(!snapshot)return {};
-        auto admitted=SessionRecovery::admit(*snapshot,context.identity,*local.catalog,recoveryIssue);
-        if(!admitted)return {};
-        CoveSaveIssue issue;std::vector<std::byte> bytes;
-        if(!CoveSaveCodec::encode(*admitted,local.retiredSaveParent.get(),physical,context,*local.catalog,bytes,issue))return {};
+        auto bytes=captureCoveCheckpoint(false);
+        if(bytes.empty())return {};
         if(asset.checkpointPending)asset.checkpointDigest=core::sha256Hex(core::sha256(bytes));
         std::string result;result.reserve(bytes.size()*2);
         for(auto byte:bytes){const auto value=std::to_integer<uint8_t>(byte);result+=digits[value>>4];result+=digits[value&15];}
@@ -6842,9 +7274,58 @@ std::string Application::salvageExpeditionAction(int action,std::string_view tex
 }
 
 bool Application::salvagePreviewAction(int action) {
+    if(action==340||action==341)return covePracticeAction(action);
+    if((action>=350&&action<=354)||action==360||(action>=4000&&action<4064)) {
+        auto* asset=salvageLocalSession_?salvageLocalSession_->asset.get():nullptr;
+        if(!initialized_||!asset||!asset->player||!coveUi_||asset->leaving||salvagePreviewFailed_)return false;
+        auto& ui=*coveUi_;
+        using Pause=SalvageLocalSessionState::AssetPreview::Pause;
+        if(action==350) {
+            if(asset->pause!=Pause::Paused||asset->workshopOpen||ui.hostBusy
+                ||asset->practicePhase!=SalvageLocalSessionState::AssetPreview::PracticePhase::None)return false;
+#if defined(VOXY_WASM)
+            return EM_ASM_INT({return typeof window['voxyCoveSave']==='function'&&window['voxyCoveSave']();})!=0;
+#else
+            ui.saveRequested=true;return true;
+#endif
+        }
+        if(action==351) {
+#if defined(VOXY_WASM)
+            return EM_ASM_INT({return typeof window['voxyCoveMenu']==='function'&&window['voxyCoveMenu']('job');})!=0;
+#else
+            if(!nativeWorkshopMenu_)return false;
+            nativeWorkshopMenu_->openJob();return true;
+#endif
+        }
+        if(action==352) {ui.tutorial.restart();ui.walkedMetres=0;ui.sailedMetres=0;ui.saveConfirmed=false;return true;}
+        if(action==353) {
+            auto next=ui.preferences;next.tutorialsEnabled=!next.tutorialsEnabled;
+            std::string encoded,error;
+            return game::expedition::encodeCoveInputPreferences(next,encoded,error)&&covePreferencesAction(2,encoded)=="ok";
+        }
+#if defined(VOXY_NATIVE)
+        if(ui.hostBusy||ui.saveRequested||ui.worldPreparing||asset->checkpointPending||asset->workshopSavePending
+            ||asset->pause!=Pause::Paused)return false;
+        if(action==354) {
+            if(!salvagePreviewAction(2))return false;
+            ui.exitAfterLeave=true;return true;
+        }
+        if(action==360||(action>=4000&&size_t(action-4000)<ui.worlds.size())) {
+            const std::string world=action==360?"":ui.worlds[size_t(action-4000)].first;
+            if(!world.empty()&&world==ui.currentWorld)return false;
+            ui.worldRequest=world;ui.worldPreparing=true;ui.worldStatus="Opening expedition...";return true;
+        }
+#endif
+        return false;
+    }
     if((coveResume_ && !coveResume_->ready) || (salvageLocalSession_ && salvageLocalSession_->storageRevoked && action!=2))return false;
     if (!initialized_ || !config_.salvagePreviewEnabled || !salvagePreview_
         || salvagePreviewFailed_ || !salvageLocalSession_ || !salvageLocalSession_->session) return false;
+    if(auto* asset=salvageLocalSession_->asset.get();asset&&asset->practicePhase!=SalvageLocalSessionState::AssetPreview::PracticePhase::None) {
+        if(action==1)return covePracticeAction(341);
+        if(action!=2 && (asset->practicePhase!=SalvageLocalSessionState::AssetPreview::PracticePhase::Running
+            || !(action==30||(action>=40&&action<=43)||action==90||action==91||(action>=320&&action<=325))))return false;
+    }
     if(salvageLocalSession_->asset && (salvageLocalSession_->asset->checkpointPending
         ||salvageLocalSession_->asset->rescue!=SalvageLocalSessionState::AssetPreview::Rescue::None
         ||(salvageLocalSession_->asset->harbor&&salvageLocalSession_->asset->harbor->installationPending())))return false;
@@ -7199,8 +7680,13 @@ void Application::updateNativeWorkshopMenu() {
         game::expedition::StoreIssue issue;
         auto root=config_.salvageDesignLibraryRoot.empty()?platform::NativeDesignLibrary::defaultRoot(issue):config_.salvageDesignLibraryRoot;
         nativeWorkshopMenu_=std::make_unique<platform::NativeWorkshopMenu>(std::move(root),
-            [this](int action){return salvagePreviewAction(action);},
-            [this](int action,std::string_view bytes){return salvageBlueprintAction(action,bytes);});
+            [this](int action){
+                const bool accepted=salvagePreviewAction(action);
+                LOG_INFO("Cove menu action {}: {}",action,accepted?"accepted":"refused");
+                return accepted;
+            },
+            [this](int action,std::string_view bytes){return salvageBlueprintAction(action,bytes);},
+            [this](int action,std::string_view text){return covePreferencesAction(action,text);});
     }
     if(!nativeWorkshopMenu_)return;
     platform::NativeWorkshopMenu::Facts facts;
@@ -7214,7 +7700,7 @@ void Application::updateNativeWorkshopMenu() {
     facts.reducedMotion=viewSettings.reducedMotion;facts.frameLoad=viewSettings.frameLoad;
     facts.cameraDistance=asset->characterCamera.userDistance();
     facts.workshopOpen=asset->workshopOpen&&!asset->leaving&&!salvagePreviewFailed_;
-    facts.pending=!facts.workshopOpen||salvageLocalSession_->storageRevoked
+    facts.pending=salvageLocalSession_->storageRevoked
         ||salvageLocalSession_->pendingControl||salvageLocalSession_->session->hasPending()
         ||salvageLocalSession_->launchRequest||asset->launch||asset->checkpointPending
         ||asset->status!=render::SalvageFixtureStatus::Active||salvagePreview_->busy();
@@ -7243,6 +7729,69 @@ void Application::updateNativeWorkshopMenu() {
         facts.catalogIndex=w.catalogIndex();
         for(uint32_t i=0;i<w.catalogCount();++i)facts.catalogNames.emplace_back(w.catalogNameAt(i));
     }
+    using Pause=SalvageLocalSessionState::AssetPreview::Pause;
+    using Practice=SalvageLocalSessionState::AssetPreview::PracticePhase;
+    const auto& local=*salvageLocalSession_;const auto owned=local.session->snapshot();
+    facts.gameAvailable=!asset->leaving&&!salvagePreviewFailed_&&!local.storageRevoked
+        &&asset->status==render::SalvageFixtureStatus::Active;
+    facts.paused=asset->pause==Pause::Paused;facts.pausePending=asset->pause!=Pause::Running&&!facts.paused;
+    facts.canResume=facts.paused&&!asset->checkpointPending&&!local.pendingControl&&!asset->launch
+        &&!(coveUi_&&coveUi_->worldPreparing);
+    facts.testActive=asset->practicePhase!=Practice::None;
+    facts.testBusy=facts.testActive&&asset->practicePhase!=Practice::Running;
+    facts.testAvailable=covePracticeCanBegin();facts.canReturnTest=covePracticeCanReturn();
+    facts.practiceMessage=asset->practiceMessage;
+    const bool hostBusy=coveUi_&&(coveUi_->hostBusy||coveUi_->worldPreparing||coveUi_->saveRequested);
+    facts.canSave=facts.paused&&!asset->workshopOpen&&!facts.testActive&&!hostBusy;
+    facts.canRescue=!facts.testActive&&!facts.pending&&!asset->checkpointPending;
+    facts.canQuit=facts.paused&&!facts.testBusy&&!hostBusy&&!asset->checkpointPending&&!asset->workshopSavePending;
+    facts.canChangeWorld=facts.canQuit;
+    facts.saveMessage=salvageSaveStatus_;
+    if(coveUi_&&!coveUi_->worldStatus.empty())facts.saveMessage=coveUi_->worldStatus;
+    facts.inventoryLines={"Material: "+std::to_string(owned.inventory.salvageMaterial),
+        "Machinery: "+std::to_string(owned.inventory.specialMachinery),
+        "Fitted parts: "+std::to_string(asset->boat->parts().size()),
+        "Stored parts: "+std::to_string(owned.storedParts.size()),
+        "Blueprints save a design.","Launch checks parts and material."};
+    const auto distance=[&](std::string label,glm::dvec3 position){
+        return label+": "+std::to_string(static_cast<int>(std::round(glm::length(position-asset->player->feet()))))+" m";
+    };
+    if(asset->content->registry.navigation){
+        const auto& navigation=*asset->content->registry.navigation;
+        facts.mapLines.push_back(distance("Boarding dock",navigation.dockBoarding));
+        if(navigation.delivery)facts.mapLines.push_back(distance("Delivery harbor",navigation.delivery->center));
+    }
+    if(asset->boatRoot().observedTick)facts.mapLines.push_back(distance("Your boat",physics::worldPositionToAbsolute(asset->boatRoot().observed.position)-asset->origin));
+    if(asset->cargoObservedTick&&!asset->cargoBanked)facts.mapLines.push_back(distance("Sunken generator",physics::worldPositionToAbsolute(asset->cargoObserved.position)-asset->origin));
+    facts.mapLines.push_back("Distances from your robot.");
+    const auto job=std::find_if(owned.jobs.begin(),owned.jobs.end(),[&](const auto& j){return j.id==local.jobId;});
+    if(job!=owned.jobs.end()){
+        using Phase=game::expedition::JobPhase;
+        facts.jobTitle="Recover the generator";
+        facts.jobText=job->phase==Phase::Available?"Accept the job. Sail to the sunken generator.":job->phase==Phase::Accepted
+            ?"Hook the generator. Tow it into the delivery harbor.":asset->deliveryDurable?"Delivery saved. Your material reward is available.":"Delivered. Wait for save confirmation.";
+        facts.jobAction=job->phase==Phase::Available?50:job->phase==Phase::Accepted?51:0;
+        facts.jobActionLabel=job->phase==Phase::Available?"Accept job":"Deliver cargo";
+        facts.jobActionEnabled=!facts.pending&&!facts.testActive&&!facts.paused&&local.session->admissionOpen();
+        if(job->phase==Phase::Accepted){
+            const auto cargo=std::find_if(owned.cargo.begin(),owned.cargo.end(),[&](const auto& c){return c.id==local.cargoId;});
+            facts.jobActionEnabled=facts.jobActionEnabled&&local.storageHostReady&&cargo!=owned.cargo.end()
+                &&local.preparation.eligible&&local.preparation.eligible({*cargo,*job,*job,{}});
+        }
+    }
+    if(coveUi_){
+        facts.preferences=&coveUi_->preferences;facts.preferencesMessage=coveUi_->preferenceStatus;
+        for(const auto& [id,name]:coveUi_->worlds){(void)id;facts.worldNames.push_back(name);}
+        const auto card=coveUi_->tutorial.card(input_->gamepad().connected(),facts.paused,asset->workshopOpen);
+        facts.tutorialTitle=card.title;facts.tutorialText=card.text;facts.tutorialActionLabel=card.actionLabel;
+        facts.tutorialAction=card.action;facts.tutorialComplete=card.complete;
+        for(const auto& action:game::expedition::coveActionList()){
+            const auto& binding=coveUi_->preferences.bindings[static_cast<size_t>(action.action)];
+            if(!(action.contexts&(asset->workshopOpen?2:1)))continue;
+            facts.helpLines.emplace_back(std::string(action.label)+": "+(input_->gamepad().connected()
+                ?game::expedition::covePadLabel(binding.pad):game::expedition::coveKeyLabel(binding.key,binding.modifiers)));
+        }
+    }
     const bool before=nativeWorkshopMenu_->active();
     const auto width=gpuContext_->getSwapchainWidth(),height=gpuContext_->getSwapchainHeight();
     const glm::vec2 pointerScale{float(width)/float(std::max(window_->getWidth(),1)),
@@ -7255,16 +7804,67 @@ void Application::updateNativeWorkshopMenu() {
 
 render::CoveHudContent Application::nativeCoveHudContent() const {
     render::CoveHudContent hud;
+    if(coveUi_){hud.textScale=static_cast<float>(coveUi_->preferences.textScale);hud.highContrast=coveUi_->preferences.highContrast;}
     const auto& local=*salvageLocalSession_;
     const auto& asset=*local.asset;
     using Tone=render::CoveHudTone;
     using Pause=SalvageLocalSessionState::AssetPreview::Pause;
+    using Action=game::expedition::CoveAction;
+    static const game::expedition::CoveInputPreferences defaults;
+    const auto& preferences=coveUi_?coveUi_->preferences:defaults;
+    const bool controller=input_&&input_->gamepad().connected();
+    const auto binding=[&](Action action) {
+        const auto& b=preferences.bindings[static_cast<size_t>(action)];
+        if(controller&&b.pad>=0)return game::expedition::covePadLabel(b.pad);
+        if(b.key)return game::expedition::coveKeyLabel(b.key,b.modifiers);
+        if(b.alternate)return game::expedition::coveKeyLabel(b.alternate,b.alternateModifiers);
+        return std::string("Unbound");
+    };
+    const auto boundText=[&](std::string& text) {
+        const std::pair<std::string_view,std::string> labels[]{
+            {"Q/Z:",binding(Action::ReelIn)+"/"+binding(Action::PayOut)+":"},
+            {"F10:",binding(Action::Save)+":"},{"P:",binding(Action::Pause)+":"},
+            {"J:",binding(Action::AcceptJob)+":"},{"H:",binding(Action::Deliver)+":"},
+            {"K:",binding(Action::PowerHarbor)+":"},{"B:",binding(Action::Workshop)+":"},
+            {"E:",binding(Action::Interact)+":"},{"F:",binding(Action::Hook)+":"},
+            {"Q:",binding(Action::ReelIn)+":"},{"Z:",binding(Action::PayOut)+":"}};
+        // Only fixed formatter tokens are substituted. The formatter's numeric
+        // eligibility and refusal text remain authoritative and unchanged.
+        std::string output;output.reserve(text.size());
+        for(size_t i=0;i<text.size();) {
+            bool matched=false;
+            for(const auto& [token,label]:labels)if(std::string_view(text).substr(i).starts_with(token)) {
+                output+=label;i+=token.size();matched=true;break;
+            }
+            if(!matched)output+=text[i++];
+        }
+        text=std::move(output);
+    };
+    const auto finish=[&](bool guide=false) {
+        if(guide&&coveUi_&&preferences.tutorialsEnabled&&hud.tone!=Tone::Blocked&&hud.tone!=Tone::Waiting) {
+            const auto card=coveUi_->tutorial.card(controller,asset.pause==Pause::Paused,asset.workshopOpen);
+            if(!card.complete)hud.title="Guide "+std::to_string(card.number)+"/"+std::to_string(card.total)+": "+std::string(card.title);
+        }
+        if(coveUi_&&preferences.captionsEnabled&&!coveUi_->caption.empty()
+            &&hud.tone!=Tone::Blocked&&hud.tone!=Tone::Waiting)hud.hints[2]=coveUi_->caption;
+        return hud;
+    };
     if(nativeWorkshopMenu_&&nativeWorkshopMenu_->active()) {
-        hud.title=asset.workshopOpen?"Workshop tools":"Camera";hud.menu=nativeWorkshopMenu_->menuContent();
+        hud.menu=nativeWorkshopMenu_->menuContent();hud.title=hud.menu->title;
         hud.tone=Tone::Neutral;hud.objective="workshop-tools";return hud;
     }
     const auto owned=local.session->snapshot();
     hud.economy="Material "+std::to_string(owned.inventory.salvageMaterial);
+    if(asset.practicePhase!=SalvageLocalSessionState::AssetPreview::PracticePhase::None) {
+        const bool running=asset.practicePhase==SalvageLocalSessionState::AssetPreview::PracticePhase::Running;
+        hud.title=running?(asset.pause==Pause::Paused?"Test paused":"Testing your boat"):"Preparing test transition";
+        hud.objective="practice";hud.selected="Free test — no rewards or saving";
+        hud.status=running?"Return restores your original workshop":"Wait for the protected replacement";
+        hud.tone=running?Tone::Neutral:Tone::Waiting;
+        hud.hints={running?binding(Action::Pause)+": Menu / Return":"Controls wait for completion",
+            "Quitting discards this test","Original expedition stays unchanged"};
+        return finish();
+    }
     if(asset.pause!=Pause::Running){
         render::CovePauseFacts facts;
         facts.paused=asset.pause==Pause::Paused;facts.storageRevoked=local.storageRevoked;
@@ -7277,7 +7877,13 @@ render::CoveHudContent Application::nativeCoveHudContent() const {
         if(asset.harbor&&asset.harbor->stage()==game::expedition::CoveHarborRuntime::Stage::Absent)
             facts.harborRefusal=asset.harbor->message();
         render::applyCovePauseGuidance(facts,hud);
-        return hud;
+        boundText(hud.status);boundText(hud.selected);for(auto& hint:hud.hints)boundText(hint);
+        if(asset.workshopOpen&&!facts.storageRevoked&&!facts.checkpointPending&&!facts.harborPending&&!facts.rescuePending) {
+            hud.title="Workshop paused";hud.objective="workshop-paused";hud.selected="Your draft is kept";
+            hud.status=asset.practiceReturns?"Test discarded; original boat restored":"Resume to edit your boat";
+            hud.hints={binding(Action::Pause)+": Menu / Resume","Save a design in workshop tools",""};
+        }
+        return finish();
     }
     if(asset.workshopOpen&&asset.workshop){
         const auto& workshop=*asset.workshop;
@@ -7303,21 +7909,21 @@ render::CoveHudContent Application::nativeCoveHudContent() const {
                 :workshop.changed()?"Connected - keep your edit":"Design connected";
             hud.tone=Tone::Ready;
         }
-        hud.hints={workshop.brickToolActive()?"Click: Place   R: Rotate":"1 / 2 / 3: Choose brick",
-            workshop.canPaint()?(workshop.brickToolActive()?"Y: Color  Esc: Select  U: Undo":"Y: Color  E: Keep  U: Undo")
-                :(workshop.brickToolActive()?"Esc: Select   U: Undo":"E: Keep   U: Undo"),
-            "Enter: Launch   F2 / Menu: Tools"};
-        return hud;
+        hud.hints={workshop.brickToolActive()?binding(Action::Keep)+": Place  "+binding(Action::RotateY)+": Rotate"
+                :binding(Action::BrickOne)+" / "+binding(Action::BrickTwo)+" / "+binding(Action::BrickThree)+": Bricks",
+            (workshop.canPaint()?binding(Action::Paint)+": Color  ":"")+binding(Action::Keep)+": Keep  "+binding(Action::Undo)+": Undo",
+            binding(Action::Launch)+": Launch  "+binding(Action::ToolsMenu)+": Tools"};
+        return finish(true);
     }
     using Player=game::expedition::CovePlayer;
     switch(asset.player->interaction()){
-        case Player::Interaction::Board:hud.selected="E: Board boat";break;
-        case Player::Interaction::ReturnToDock:hud.selected="E: Return to dock";break;
-        case Player::Interaction::UseHelm:hud.selected="E: Use helm";break;
-        case Player::Interaction::LeaveHelm:hud.selected="E: Leave helm";break;
+        case Player::Interaction::Board:hud.selected=binding(Action::Interact)+": Board boat";break;
+        case Player::Interaction::ReturnToDock:hud.selected=binding(Action::Interact)+": Return to dock";break;
+        case Player::Interaction::UseHelm:hud.selected=binding(Action::Interact)+": Use helm";break;
+        case Player::Interaction::LeaveHelm:hud.selected=binding(Action::Interact)+": Leave helm";break;
         case Player::Interaction::None:hud.selected="Walk beside the boat";break;
     }
-    if(asset.player->mode()==Player::Mode::Swimming)hud.selected="Swimming - R: Rescue";
+    if(asset.player->mode()==Player::Mode::Swimming)hud.selected="Swimming — "+binding(Action::Rescue)+": Rescue";
     render::CoveRecoveryFacts facts;
     const auto job=std::find_if(owned.jobs.begin(),owned.jobs.end(),[&](const auto& item){return item.id==local.jobId;});
     const auto cargo=std::find_if(owned.cargo.begin(),owned.cargo.end(),[&](const auto& item){return item.id==local.cargoId;});
@@ -7378,11 +7984,14 @@ render::CoveHudContent Application::nativeCoveHudContent() const {
     }
     const auto guidance=render::coveRecoveryGuidance(facts);
     hud.title=guidance.title;hud.status=guidance.status;hud.tone=guidance.tone;hud.objective=guidance.step;
-    hud.hints[0]=asset.player->mode()==Player::Mode::Helm?"W/S: Drive  A/D: Steer":"WASD: Walk  Space: Jump";
-    hud.hints[1]=guidance.controls;
-    hud.hints[2]="B: Build  F2: Camera  P: Pause";
-    if(facts.deliveryPending||facts.harborPending)hud.hints={std::string(guidance.controls),"Controls wait for hand-off",""};
-    return hud;
+    boundText(hud.status);std::string controls(guidance.controls);boundText(controls);
+    const auto movement=controller?std::string("Left stick")
+        :binding(Action::MoveForward)+"/"+binding(Action::MoveBack)+"/"+binding(Action::MoveLeft)+"/"+binding(Action::MoveRight);
+    hud.hints[0]=movement+(asset.player->mode()==Player::Mode::Helm?": Drive / steer":": Walk  "+binding(Action::Jump)+": Jump");
+    hud.hints[1]=controls;
+    hud.hints[2]=binding(Action::Workshop)+": Build  "+binding(Action::CameraMenu)+": Camera  "+binding(Action::Pause)+": Menu";
+    if(facts.deliveryPending||facts.harborPending)hud.hints={controls,"Controls wait for hand-off",""};
+    return finish(true);
 }
 
 bool Application::renderNativeCoveHud(WGPUCommandEncoder encoder,WGPUTextureView target) {
@@ -7408,10 +8017,7 @@ bool Application::renderNativeCoveHud(WGPUCommandEncoder encoder,WGPUTextureView
 }
 #endif
 
-std::string Application::salvagePreviewJson() const {
-    using Preview = game::expedition::SalvagePreview;
-    const auto phase = salvagePreview_ ? salvagePreview_->phase() : Preview::Phase::Empty;
-    const bool failed = salvagePreviewFailed_ || phase == Preview::Phase::Failed;
+bool Application::coveAssetsDraining() const noexcept {
     const auto* asset = salvageLocalSession_ ? salvageLocalSession_->asset.get() : nullptr;
     const auto* shapeResources=physicsWorld_?physicsWorld_->authoredShapeResources():nullptr;
     const bool boatDraining=asset && asset->boat && asset->leaving
@@ -7419,8 +8025,16 @@ std::string Application::salvagePreviewJson() const {
             || (asset->harbor&&asset->harbor->stage()!=game::expedition::CoveHarborRuntime::Stage::Drained)
             || (asset->cargo && !asset->cargoRetired) || (shapeResources && shapeResources->stats().pendingOperations!=0)
             || asset->boatEventsThrough<physicsWorld_->tickFrontier().submitted);
-    const bool assetDraining = asset && asset->leaving
+    return asset && asset->leaving
         && (asset->status != render::SalvageFixtureStatus::Drained || boatDraining);
+}
+
+std::string Application::salvagePreviewJson() const {
+    using Preview = game::expedition::SalvagePreview;
+    const auto phase = salvagePreview_ ? salvagePreview_->phase() : Preview::Phase::Empty;
+    const bool failed = salvagePreviewFailed_ || phase == Preview::Phase::Failed;
+    const auto* asset = salvageLocalSession_ ? salvageLocalSession_->asset.get() : nullptr;
+    const bool assetDraining = coveAssetsDraining();
     const bool assetReady = !asset || (!asset->leaving && asset->fixture.stats().active.generation != 0
         && asset->status != render::SalvageFixtureStatus::ViewsValidating);
     std::ostringstream json;
@@ -7522,7 +8136,7 @@ std::string Application::salvagePreviewJson() const {
             <<",\"tick\":\""<<asset->pauseTick<<"\",\"waterTick\":\""<<asset->waterClock.tick()<<"\",\"waterTime\":"<<asset->waterTime<<'}';
     }
     if(asset && asset->player) {
-        const bool canOpen=!asset->player->onBoat()
+        const bool canOpen=asset->practicePhase==SalvageLocalSessionState::AssetPreview::PracticePhase::None&&!asset->player->onBoat()
             &&(!asset->harbor||asset->harbor->state().mode==game::expedition::CoveHarborLiftMode::Detached)
             && glm::length(asset->player->feet()-asset->content->registry.navigation->spawn)<=3;
 #if defined(VOXY_NATIVE)
@@ -7572,9 +8186,63 @@ std::string Application::salvagePreviewJson() const {
             <<",\"blend\":"<<asset->character.blend()<<",\"facingYaw\":"<<asset->player->facingYaw()
             <<",\"worldVelocity\":["<<velocity.x<<','<<velocity.y<<','<<velocity.z<<']'
             <<",\"draws\":"<<asset->fixture.stats().lastSubmittedRobotDraws<<'}';
+        if(coveUi_){
+            const auto& ui=*coveUi_;const auto& p=ui.preferences;
+            const auto card=ui.tutorial.card(input_&&input_->gamepad().connected(),asset->pause==SalvageLocalSessionState::AssetPreview::Pause::Paused,asset->workshopOpen);
+            bool tutorialEnabled=assetReady&&!failed&&!salvageLocalSession_->storageRevoked&&!asset->checkpointPending;
+            if(card.action==340)tutorialEnabled=covePracticeCanBegin();
+            if(card.action==350)tutorialEnabled=tutorialEnabled&&!asset->workshopOpen
+                &&asset->practicePhase==SalvageLocalSessionState::AssetPreview::PracticePhase::None;
+            nlohmann::json presentation={{"textScale",p.textScale},{"highContrast",p.highContrast},
+                {"captionsEnabled",p.captionsEnabled},{"tutorialsEnabled",p.tutorialsEnabled},
+                {"preferenceMessage",ui.preferenceStatus},{"locale",p.locale},{"caption",p.captionsEnabled?ui.caption:std::string{}},
+                {"tutorial",{{"key",std::string(card.key)},{"title",std::string(card.title)},{"text",std::string(card.text)},
+                    {"actionLabel",std::string(card.actionLabel)},{"action",card.action},{"step",card.number},{"number",card.number},
+                    {"total",card.total},{"complete",card.complete},{"enabled",tutorialEnabled}}}};
+            presentation["actions"]=nlohmann::json::array();
+            for(const auto& action:game::expedition::coveActionList()){
+                const auto& binding=p.bindings[static_cast<size_t>(action.action)];
+                presentation["actions"].push_back({{"id",std::string(action.id)},{"label",std::string(action.label)},
+                    {"contexts",action.contexts},{"keyLabel",game::expedition::coveKeyLabel(binding.key,binding.modifiers)},
+                    {"padLabel",game::expedition::covePadLabel(binding.pad)}});
+            }
+            json<<",\"ui\":"<<presentation.dump();
+            nlohmann::json places=nlohmann::json::array();
+            const auto addPlace=[&](const char* id,const char* label,glm::dvec3 position){
+                places.push_back({{"id",id},{"label",label},{"position",{position.x,position.y,position.z}}});
+            };
+            if(asset->content->registry.navigation){
+                const auto& navigation=*asset->content->registry.navigation;
+                addPlace("dock","Boarding dock",navigation.dockBoarding);
+                if(navigation.delivery)addPlace("harbor","Delivery harbor",navigation.delivery->center);
+            }
+            if(asset->boatRoot().observedTick)addPlace("boat","Your boat",physics::worldPositionToAbsolute(asset->boatRoot().observed.position)-asset->origin);
+            if(asset->cargoObservedTick&&!asset->cargoBanked)addPlace("generator","Sunken generator",physics::worldPositionToAbsolute(asset->cargoObserved.position)-asset->origin);
+            json<<",\"landmarks\":"<<places.dump();
+        }
         if(input_)json<<",\"gamepad\":{\"connected\":"<<(input_->gamepad().connected()?"true":"false")
             <<",\"armed\":"<<(input_->gamepad().armed()?"true":"false")
             <<",\"menuOwner\":"<<(coveUiOwnsInput()?"true":"false")<<'}';
+        {
+            using Phase=SalvageLocalSessionState::AssetPreview::PracticePhase;
+            const char* practicePhaseName="none";
+            switch(asset->practicePhase) {
+                case Phase::None:break;
+                case Phase::Capturing:practicePhaseName="capturing";break;
+                case Phase::Entering:practicePhaseName="entering";break;
+                case Phase::Running:practicePhaseName="running";break;
+                case Phase::Returning:practicePhaseName="returning";break;
+            }
+            json<<",\"practice\":{\"active\":"<<(asset->practicePhase!=Phase::None?"true":"false")
+                <<",\"phase\":\""<<practicePhaseName<<"\",\"canBegin\":"<<(covePracticeCanBegin()?"true":"false")
+                <<",\"canReturn\":"<<(covePracticeCanReturn()?"true":"false")<<",\"message\":\"";
+            for(const char byte:asset->practiceMessage) {
+                const auto c=static_cast<unsigned char>(byte);
+                if(c=='"'||c=='\\')json<<'\\'<<static_cast<char>(c);
+                else if(c<32)json<<' ';else json<<static_cast<char>(c);
+            }
+            json<<"\",\"runs\":\""<<asset->practiceRuns<<"\",\"returns\":\""<<asset->practiceReturns<<"\"}";
+        }
         json<<",\"workshop\":{\"open\":"<<(asset->workshopOpen?"true":"false")
             <<",\"canOpen\":"<<(canOpen?"true":"false")
             <<",\"displayOrigin\":["<<asset->origin.x<<','<<asset->origin.y+4<<','<<asset->origin.z<<']';
@@ -7603,7 +8271,8 @@ std::string Application::salvagePreviewJson() const {
             if(w.placementIssue().placement)json<<*w.placementIssue().placement;else json<<"null";
         }
         const auto history=salvageLocalSession_->session->history();
-        const bool pending=salvageLocalSession_->session->hasPending() || bool(asset->launch);
+        const bool pending=salvageLocalSession_->session->hasPending() || bool(asset->launch)
+            || asset->practicePhase!=SalvageLocalSessionState::AssetPreview::PracticePhase::None;
         const bool kept=asset->workshop && (!asset->workshop->changed() || asset->workshop->brickToolActive());
         const bool same=asset->workshop && asset->workshop->matchesDesign(asset->acceptedScene());
         const auto owned=salvageLocalSession_->session->snapshot();const auto stock=owned.inventory;
@@ -7982,6 +8651,7 @@ void Application::updateSalvagePreview(float frameDeltaTime) {
     }
     if (salvageLocalSession_ && salvageLocalSession_->pendingControl
         && !salvageLocalSession_->session->executionInFlight()
+        && (!asset || !asset->launch || !asset->launch->staged || asset->launch->published)
         && (!asset || *salvageLocalSession_->pendingControl == Preview::Action::Leave
             || asset->status != render::SalvageFixtureStatus::ViewsValidating)) {
         const auto action = *salvageLocalSession_->pendingControl;
@@ -8043,7 +8713,7 @@ void Application::updateSalvagePreview(float frameDeltaTime) {
     }
     salvagePreview_->update();
     if (salvagePreview_->busy() || (salvageLocalSession_ && salvageLocalSession_->session->executionInFlight())
-        || (asset && asset->leaving && asset->status != render::SalvageFixtureStatus::Drained)) {
+        || coveAssetsDraining()) {
         if (previousPhase == Preview::Phase::Ready && input_) input_->resetState();
         salvageRetirementSeconds_ += frameDeltaTime;
         if (salvageRetirementSeconds_ > 10.0f) {
@@ -8079,6 +8749,11 @@ void Application::updateSalvagePreview(float frameDeltaTime) {
         }
         preSalvageCamera_.reset();
     }
+    // Logical session retirement can precede the rendered scene and authored
+    // physics owners. Keep pumping frames until the same complete drain used
+    // by the host handoff and browser Leave has finished.
+    if(coveUi_&&coveUi_->exitAfterLeave&&!salvagePreviewFailed_
+        &&salvagePreview_->phase()==Preview::Phase::Empty&&!coveAssetsDraining())requestExit();
 }
 
 void Application::encodeSalvageRetirement(WGPUCommandEncoder encoder) {
@@ -8182,6 +8857,46 @@ void Application::updateCoveCharacterView(float deltaTime) {
     setCameraWorldPose(*camera_,asset->origin+pose.eye,asset->origin+pose.viewTarget);
 }
 
+void Application::updateCoveOnboarding() {
+    if(!coveUi_||!salvageLocalSession_||!salvageLocalSession_->session||!salvageLocalSession_->asset)return;
+    auto& ui=*coveUi_;const auto& local=*salvageLocalSession_;const auto& asset=*local.asset;
+    if(!asset.player||!asset.boatRoots||asset.leaving)return;
+    const auto tick=asset.player->collisionTick(),epoch=local.session->events().identity().epoch.value();
+    const auto& player=asset.player->state();const auto boat=physics::worldPositionToAbsolute(asset.boatRoot().observed.position);
+    const bool helm=asset.player->mode()==game::expedition::CovePlayer::Mode::Helm;
+    if(ui.observedEpoch==epoch&&tick>ui.observedTick&&ui.observedTick&&player.interactions==ui.previousInteractions){
+        const auto walked=glm::length(player.feet-ui.previousFeet),sailed=glm::length(boat-ui.previousBoat);
+        if(!player.onBoat&&!ui.previousOnBoat&&walked<5)ui.walkedMetres+=walked;
+        if(helm&&ui.previousHelm&&sailed<5)ui.sailedMetres+=sailed;
+    }
+    if(ui.observedEpoch&&ui.observedEpoch!=epoch){ui.caption.clear();ui.captionTick=0;}
+    const int mode=static_cast<int>(asset.player->mode());
+    const bool tow=asset.towRope.valid()&&!asset.towBroken;
+    if(ui.observedEpoch==epoch&&ui.observedTick&&tick>=ui.observedTick){
+        const auto caption=[&](const char* text){ui.caption=text;ui.captionTick=tick;};
+        if(player.onBoat!=ui.previousOnBoat)caption(player.onBoat?"Stepped aboard.":"Left the boat.");
+        if(mode!=ui.previousMode){
+            if(asset.player->mode()==game::expedition::CovePlayer::Mode::Swimming)caption("In the water. Swim toward the boat or use Rescue.");
+            else if(helm)caption("At the helm. Ready to sail.");
+            else if(ui.previousHelm)caption("Left the helm.");
+        }
+        if(tow!=ui.previousTow)caption(tow?"Cable attached.":"Cable released.");
+        if(asset.towBroken&&!ui.previousTowBroken)caption("Cable broke.");
+        if(asset.launchCount>ui.previousLaunches)caption("Boat launched.");
+        if(asset.practiceRuns>ui.previousTests)caption("Test sail started. No cost or rewards.");
+        if(asset.practiceReturns>ui.previousReturns)caption("Test discarded. Workshop restored.");
+        if(asset.deliveryDurable&&!ui.previousDelivered)caption("Delivery saved. Material reward received.");
+    }
+    if(ui.captionTick&&tick>ui.captionTick&&tick-ui.captionTick>480)ui.caption.clear();
+    ui.previousMode=mode;ui.previousTow=tow;ui.previousTowBroken=asset.towBroken;
+    ui.previousLaunches=asset.launchCount;ui.previousTests=asset.practiceRuns;ui.previousReturns=asset.practiceReturns;
+    ui.previousDelivered=asset.deliveryDurable;
+    ui.observedEpoch=epoch;ui.observedTick=tick;ui.previousFeet=player.feet;ui.previousBoat=boat;
+    ui.previousOnBoat=player.onBoat;ui.previousHelm=helm;ui.previousInteractions=player.interactions;
+    ui.tutorial.observe({epoch,tick,ui.walkedMetres,ui.sailedMetres,asset.workshopOpen,
+        asset.workshop&&asset.workshop->undoCount()>0,asset.practiceRuns>0,asset.launchCount>0,player.onBoat,helm,ui.saveConfirmed});
+}
+
 void Application::updateCovePlayer(float deltaTime) {
     if((coveResume_ && !coveResume_->ready) || salvageLocalSession_->storageRevoked)return;
     auto& asset = *salvageLocalSession_->asset;
@@ -8206,29 +8921,44 @@ void Application::updateCovePlayer(float deltaTime) {
     if (!camera_ || asset.leaving || salvageLocalSession_->pendingControl
         || asset.status != render::SalvageFixtureStatus::Active) return;
     using Pause=SalvageLocalSessionState::AssetPreview::Pause;
-    const auto pad=input_->gamepad();
+    using A=game::expedition::CoveAction;
+    using Context=game::expedition::CoveInputContext;
+    if(!coveUi_)coveUi_=std::make_unique<CoveUiState>();
+    auto& ui=*coveUi_;const auto& prefs=ui.preferences;
+    (void)input_->setGamepadDeadzones(static_cast<float>(prefs.moveDeadzone),static_cast<float>(prefs.lookDeadzone));
+    [[maybe_unused]] const auto pad=input_->gamepad();
+    const bool priorOwner=coveUiOwnsInput();
+    ui.input.tick(game::expedition::sampleCoveInput(*input_),priorOwner?Context::Menu
+        :asset.workshopOpen&&asset.pause==Pause::Running?Context::Workshop:Context::World,prefs);
+    const auto pressed=[&](A action){return ui.input.pressed(action);};
+    const auto down=[&](A action){return ui.input.down(action);};
+    const auto look=ui.input.look();
 #if defined(VOXY_WASM)
     asset.menuConsumedFrame=false;
     const bool before=EM_ASM_INT({return typeof window['voxyControllerMenuActive']==='function'&&window['voxyControllerMenuActive']();})!=0;
-    const bool cameraKey=!asset.workshopOpen&&(input_->wasKeyPressed(Key::F2)||pad.pressed(PadButton::Alternate));
-    const bool opened=cameraKey&&!before&&EM_ASM_INT({
+    const bool cameraKey=!asset.workshopOpen&&(pressed(A::CameraMenu)||input_->wasKeyPressed(Key::F2));
+    const bool pauseKey=pressed(A::Pause)||((!asset.workshopOpen||asset.pause!=Pause::Running)
+        &&(input_->wasKeyPressed(Key::Escape)||pad.pressed(PadButton::Menu)));
+    bool opened=false;
+    if(!before&&pauseKey) {
+        if(asset.pause!=Pause::Running||salvagePreviewAction(90))
+            opened=EM_ASM_INT({return typeof window['voxyCoveMenu']==='function'&&window['voxyCoveMenu']('pause');})!=0;
+    }else if(!before&&cameraKey)opened=EM_ASM_INT({
         return typeof window['voxyCoveCameraMenu']==='function'&&window['voxyCoveCameraMenu']();
     })!=0;
-    // Outside the workshop Menu retains pause unless a modal already owns it.
-    const bool menuClose=before&&(cameraKey||pad.pressed(PadButton::Menu));
     const bool consumed=!opened&&EM_ASM_INT({
         if(typeof window['voxyControllerMenuInput']!=='function')return false;
         return window['voxyControllerMenuInput']({'up':!!$0,'down':!!$1,'left':!!$2,'right':!!$3,
             'confirm':!!$4,'back':!!$5,'menu':!!$6});
     },pad.navigation(0),pad.navigation(1),pad.navigation(2),pad.navigation(3),
-        pad.pressed(PadButton::Confirm),pad.pressed(PadButton::Back),menuClose||(asset.workshopOpen&&pad.pressed(PadButton::Menu)))!=0;
+        pad.pressed(PadButton::Confirm),pad.pressed(PadButton::Back),
+        (before&&pad.pressed(PadButton::Menu))||pressed(A::ToolsMenu)
+        ||(asset.workshopOpen&&asset.pause==Pause::Running&&(input_->wasKeyPressed(Key::F2)||pad.pressed(PadButton::Menu))))!=0;
     const bool after=EM_ASM_INT({return typeof window['voxyControllerMenuActive']==='function'&&window['voxyControllerMenuActive']();})!=0;
     if(before!=after||asset.controllerMenuOwner!=after)input_->resetState();
     asset.controllerMenuOwner=after;asset.menuConsumedFrame=opened||consumed||before||after;
 #endif
-    if(!asset.menuConsumedFrame&&!asset.controllerMenuOwner
-        &&(input_->wasKeyPressed(Key::P)||(!asset.workshopOpen&&pad.pressed(PadButton::Menu))))
-        if(salvagePreviewAction(asset.pause==Pause::Paused?91:90))return;
+    if(!asset.menuConsumedFrame&&!asset.controllerMenuOwner&&pressed(A::Save))(void)salvagePreviewAction(350);
     if(asset.pause!=Pause::Running) {
         asset.player->discardPendingInput();
 #if defined(VOXY_NATIVE)
@@ -8278,7 +9008,7 @@ void Application::updateCovePlayer(float deltaTime) {
         const auto& projection=camera_->projectionMatrix();
         glm::dvec4 rectangle=view.rectangle();
 #if defined(VOXY_NATIVE)
-        rectangle=render::coveHudWorkshopRectangle(gpuContext_->getSwapchainWidth(),gpuContext_->getSwapchainHeight());
+        rectangle=render::coveHudWorkshopRectangle(gpuContext_->getSwapchainWidth(),gpuContext_->getSwapchainHeight(),coveUi_?static_cast<float>(coveUi_->preferences.textScale):1);
 #endif
         if(view.viewport({projection[0][0],projection[1][1]},rectangle)&&asset.workshopFrameRequest) {
             asset.workshopFrameWhole=asset.workshopFrameRequest==2;
@@ -8295,29 +9025,30 @@ void Application::updateCovePlayer(float deltaTime) {
 #if defined(VOXY_WASM)
     if(asset.menuConsumedFrame){menuFrame();return;}
 #endif
-    if(input_->wasKeyPressed(Key::B)||pad.pressed(PadButton::View))
+    if(pressed(A::Workshop))
         if(salvagePreviewAction(60)){neutralize();return;}
     if(asset.workshopOpen) {
-        const bool ctrl=input_->isKeyDown(Key::LeftControl)||input_->isKeyDown(Key::RightControl);
-        const auto modified=[&](Key key,uint8_t mask){return (input_->keyPressModifiers(key)&mask)!=0;};
-        const bool shifted=modified(Key::R,Input::shiftModifier),alt=modified(Key::R,Input::altModifier);
-        for(const auto& [key,action]:std::array<std::pair<Key,int>,5>{{
-            {Key::A,300},{Key::D,302},{Key::Z,72},{Key::Y,306},{Key::R,305}}})
-            if(input_->wasKeyPressed(key)&&modified(key,Input::controlModifier))(void)salvagePreviewAction(action);
-        if(input_->wasKeyPressed(Key::R)&&!modified(Key::R,Input::controlModifier)&&(shifted||alt))
-            (void)salvagePreviewAction(shifted?307:308);
         bool padEdit=false;
-        for(size_t direction=0;direction<4;++direction)if(pad.navigation(direction)) {
-            constexpr std::array<int,4> commands{65,66,63,64};
-            (void)salvagePreviewAction(commands[direction]);padEdit=true;
+        const std::pair<A,int> actions[]{
+            {A::PreviousPart,61},{A::NextPart,62},{A::PartLeft,63},{A::PartRight,64},
+            {A::PartForward,65},{A::PartBack,66},{A::PartUp,67},{A::PartDown,68},
+            {A::RotateY,69},{A::RotateX,307},{A::RotateZ,308},{A::Snap,70},
+            {A::Undo,72},{A::Redo,306},{A::Remove,74},{A::Launch,79},
+            {A::UndoLaunch,80},{A::RedoLaunch,81},{A::NextType,83},{A::AddPart,84},
+            {A::TogglePart,85},{A::LimitPart,86},{A::ReversePart,87},{A::RebuildStarter,88},
+            {A::LoadRecovery,89},{A::NextRecovery,93},{A::RemoveRecovery,94},
+            {A::FocusPart,97},{A::WholeBoat,98},{A::SelectAll,300},{A::OnlyPrimary,301},
+            {A::Duplicate,302},{A::MirrorX,303},{A::MirrorZ,304},{A::Replace,305},{A::ToggleNext,309}};
+        for(const auto& [binding,action]:actions)if(pressed(binding)){
+            (void)salvagePreviewAction(action);padEdit=true;
         }
-        for(const auto& [button,action]:std::array<std::pair<PadButton,int>,7>{{
-            {PadButton::LeftShoulder,61},{PadButton::RightShoulder,62},
-            {PadButton::Tool,69},{PadButton::Alternate,70},{PadButton::LeftTrigger,68},
-            {PadButton::RightTrigger,67},
-            {PadButton::Back,asset.workshop->brickToolActive()?96:73}}})
-            if(pad.pressed(button)){(void)salvagePreviewAction(action);padEdit=true;}
-        if(pad.pressed(PadButton::Confirm)) {
+        if(!asset.workshopOpen)return;
+        if(pressed(A::Cancel))(void)salvagePreviewAction(asset.workshop->brickToolActive()?96:73);
+        if(input_->wasKeyPressed(Key::Escape)){
+            (void)salvagePreviewAction(asset.workshop->brickToolActive()?96:60);
+            if(!asset.workshopOpen)return;
+        }
+        if(pressed(A::Keep)) {
             if(asset.workshop->brickToolActive()) {
                 const auto state=salvageLocalSession_->session->snapshot();
                 const auto* stored=game::expedition::availableCoveStoredPart(asset.workshop->preview(),*asset.boat,
@@ -8326,33 +9057,27 @@ void Application::updateCovePlayer(float deltaTime) {
             }else (void)salvagePreviewAction(71);
             padEdit=true;
         }
-        if(padEdit||std::abs(pad.axis(2))>.001f||std::abs(pad.axis(3))>.001f) {
+        if(padEdit||std::abs(look[0])>.001||std::abs(look[1])>.001) {
             asset.workshopPointerPlacement=false;asset.workshopPointerTarget=false;
         }
-        const std::array<std::pair<Key,int>,28> actions{{{Key::Tab,62},{Key::Left,63},{Key::Right,64},
-            {Key::Up,65},{Key::Down,66},{Key::Q,67},{Key::Z,68},{Key::R,69},{Key::T,70},
-            {Key::E,71},{Key::U,72},{Key::Backspace,73},{Key::Delete,74},{Key::Escape,asset.workshop->brickToolActive()?96:60},
-            {Key::Enter,79},{Key::I,80},{Key::O,81},{Key::C,83},{Key::V,84},{Key::X,85},{Key::L,86},{Key::N,87},{Key::H,88},{Key::K,89},{Key::J,93},{Key::F,94},{Key::G,97},{Key::M,98}}};
-        for(const auto& [key,action]:actions)if(!modified(key,Input::controlModifier)&&!(key==Key::R&&(shifted||alt))&&input_->wasKeyPressed(key))(void)salvagePreviewAction(action);
-        if(!asset.workshopOpen)return;
-        if(!modified(Key::Y,Input::controlModifier)&&input_->wasKeyPressed(Key::Y)&&asset.workshop->canPaint()) {
+        if(pressed(A::Paint)&&asset.workshop->canPaint()) {
             const auto count=static_cast<uint32_t>(game::expedition::kBrickPaintPalette.size());
             const auto next=(asset.workshop->paintIndex().value_or(count-1)+1)%count;
             (void)salvagePreviewAction(200+static_cast<int>(next));
         }
         auto& view=asset.workshopCamera;
-        if(!ctrl&&input_->isKeyDown(Key::A))view.orbit(-double(deltaTime),0);
-        if(!ctrl&&input_->isKeyDown(Key::D))view.orbit(double(deltaTime),0);
-        if(!ctrl&&input_->isKeyDown(Key::W))view.zoom(4*double(deltaTime));
-        if(!ctrl&&input_->isKeyDown(Key::S))view.zoom(-4*double(deltaTime));
-        for(const auto& [key,name]:std::array<std::pair<Key,std::string_view>,3>{{
-            {Key::Num1,"Brick 1 x 2"},{Key::Num2,"Brick 2 x 2"},{Key::Num3,"Brick 2 x 4"}}})
-            if(input_->wasKeyPressed(key))for(uint32_t i=0;i<asset.workshop->catalogCount();++i)
+        if(down(A::OrbitLeft))view.orbit(-double(deltaTime),0);
+        if(down(A::OrbitRight))view.orbit(double(deltaTime),0);
+        if(down(A::ZoomIn))view.zoom(4*double(deltaTime));
+        if(down(A::ZoomOut))view.zoom(-4*double(deltaTime));
+        for(const auto& [binding,name]:std::array<std::pair<A,std::string_view>,3>{{
+            {A::BrickOne,"Brick 1 x 2"},{A::BrickTwo,"Brick 2 x 2"},{A::BrickThree,"Brick 2 x 4"}}})
+            if(pressed(binding))for(uint32_t i=0;i<asset.workshop->catalogCount();++i)
                 if(asset.workshop->catalogNameAt(i)==name)(void)salvagePreviewAction(100+static_cast<int>(i));
         double pointerWidth=window_?window_->getWidth():0,pointerHeight=window_?window_->getHeight():0;
         glm::dvec4 visible{-.94,-.9,.94,.9};
 #if defined(VOXY_NATIVE)
-        visible=render::coveHudWorkshopRectangle(gpuContext_->getSwapchainWidth(),gpuContext_->getSwapchainHeight());
+        visible=render::coveHudWorkshopRectangle(gpuContext_->getSwapchainWidth(),gpuContext_->getSwapchainHeight(),coveUi_?static_cast<float>(coveUi_->preferences.textScale):1);
 #endif
 #if defined(VOXY_WASM)
         // DOM pointer coordinates are CSS pixels, independent of display DPI.
@@ -8380,20 +9105,22 @@ void Application::updateCovePlayer(float deltaTime) {
             if(bounds&&!view.frame(*bounds))asset.launchMessage="This design is too wide to fit in one view.";
             asset.workshopFrameRequest=0;
         }
-        if(pad.down(PadButton::RightStick))
-            view.pan({-double(pad.axis(2))*320*double(deltaTime),double(pad.axis(3))*320*double(deltaTime)},pointerHeight);
-        else if(pad.down(PadButton::LeftStick))view.zoom(-double(pad.axis(3))*4*double(deltaTime));
-        else view.orbit(-double(pad.axis(2))*double(deltaTime),double(pad.axis(3))*double(deltaTime));
+        if(down(A::PanMode))
+            view.pan({-look[0]*320*double(deltaTime),look[1]*320*double(deltaTime)},pointerHeight);
+        else if(down(A::ZoomMode))view.zoom(-look[1]*4*double(deltaTime));
+        else view.orbit(-look[0]*double(deltaTime),look[1]*double(deltaTime));
         const auto gestureButton=[&](MouseButton button){return input_->isMouseButtonDown(button)
             ||input_->wasMouseButtonPressed(button)||input_->wasMouseButtonReleased(button);};
-        const bool middle=gestureButton(MouseButton::Middle),orbiting=gestureButton(MouseButton::Right);
+        const bool middle=gestureButton(MouseButton::Middle),orbiting=ui.input.orbitDrag()
+            ||(!prefs.orbitToggle&&input_->wasMouseButtonReleased(MouseButton::Right));
         const bool shift=input_->isKeyDown(Key::LeftShift)||input_->isKeyDown(Key::RightShift)
             ||input_->wasKeyReleased(Key::LeftShift)||input_->wasKeyReleased(Key::RightShift);
         const bool panning=middle||(orbiting&&shift);
         const bool gesture=orbiting||panning;
-        const auto delta=glm::dvec2(input_->mouseDragDelta(middle?MouseButton::Middle:MouseButton::Right));
+        const auto delta=glm::dvec2(prefs.orbitToggle&&!middle?input_->mouseDelta()
+            :input_->mouseDragDelta(middle?MouseButton::Middle:MouseButton::Right))*prefs.mouseSensitivity;
         if(panning)view.pan(delta,pointerHeight);
-        else if(orbiting)view.orbit(-delta.x*.006,delta.y*.006);
+        else if(orbiting)view.orbit(-delta.x*.006*(prefs.invertX?-1:1),delta.y*.006*(prefs.invertY?-1:1));
         view.zoom(input_->scrollDelta());
         const auto displayOrigin=asset.origin+glm::dvec3(0,4,0);
         setCameraWorldPose(*camera_,displayOrigin+view.eye(),displayOrigin+view.viewTarget());
@@ -8423,7 +9150,7 @@ void Application::updateCovePlayer(float deltaTime) {
             const auto from=cameraLocal+glm::dvec3(camera_->worldSector())*double(physics::kWorldSectorSize)-asset.origin-glm::dvec3(0,4,0);
             const auto hit=asset.workshop->pick(from,direction,asset.workshopPointerPlacement);
             asset.workshopPointerTarget=hit.has_value();
-            if(asset.workshopPointerPlacement&&hit && (asset.workshop->brickToolActive()||input_->mouseDelta()!=glm::vec2(0)||input_->wasKeyPressed(Key::R)||input_->wasMouseButtonPressed(MouseButton::Left)))
+            if(asset.workshopPointerPlacement&&hit && (asset.workshop->brickToolActive()||input_->mouseDelta()!=glm::vec2(0)||pressed(A::RotateY)||input_->wasMouseButtonPressed(MouseButton::Left)))
                 asset.workshopPointerTarget=asset.workshop->aimAt(*hit);
             if(input_->wasMouseButtonPressed(MouseButton::Left)) {
                 if(asset.workshopPointerPlacement) {
@@ -8467,52 +9194,40 @@ void Application::updateCovePlayer(float deltaTime) {
         && !input_->wasKeyPressed(Key::Escape)) input_->captureMouse();
     if (input_->isMouseCaptured()) {
         const auto delta = input_->mouseDelta();
-        asset.characterCameraInput.orbitRadians+=glm::dvec2(-delta.x,delta.y)*double(config_.cameraMouseSensitivity);
+        asset.characterCameraInput.orbitRadians+=glm::dvec2(-delta.x*(prefs.invertX?-1:1),delta.y*(prefs.invertY?-1:1))
+            *double(config_.cameraMouseSensitivity)*prefs.mouseSensitivity;
     }
-    asset.characterCameraInput.orbitRadians+=glm::dvec2(-pad.axis(2),pad.axis(3))*1.8*double(std::min(deltaTime,.1f));
+    asset.characterCameraInput.orbitRadians+=glm::dvec2(-look[0],look[1])*1.8*double(std::min(deltaTime,.1f));
     asset.characterCameraInput.zoomSteps+=double(input_->scrollDelta());
-    if(input_->wasKeyPressed(Key::V)||pad.pressed(PadButton::LeftStick))(void)salvagePreviewAction(320);
-    if(input_->wasKeyPressed(Key::G)||pad.pressed(PadButton::RightStick))(void)salvagePreviewAction(321);
-    if(input_->wasKeyPressed(Key::M))(void)salvagePreviewAction(322);
-    if(input_->wasKeyPressed(Key::L))(void)salvagePreviewAction(323);
-    const double forwardInput = std::clamp(double(input_->isKeyDown(Key::W) || input_->isKeyDown(Key::Up))
-        - double(input_->isKeyDown(Key::S) || input_->isKeyDown(Key::Down))-double(pad.axis(1)),-1.,1.);
-    const double rightInput = std::clamp(double(input_->isKeyDown(Key::D) || input_->isKeyDown(Key::Right))
-        - double(input_->isKeyDown(Key::A) || input_->isKeyDown(Key::Left))+double(pad.axis(0)),-1.,1.);
+    if(pressed(A::CameraMode))(void)salvagePreviewAction(320);
+    if(pressed(A::Recenter))(void)salvagePreviewAction(321);
+    if(pressed(A::FrameLoad))(void)salvagePreviewAction(322);
+    if(pressed(A::ReducedMotion))(void)salvagePreviewAction(323);
+    const auto movement=ui.input.movement();
+    const double forwardInput=movement[1],rightInput=movement[0];
     const double movementYaw=asset.characterCamera.pose().yaw+asset.characterCameraInput.orbitRadians.x;
     const glm::dvec2 horizontal{-std::sin(movementYaw),-std::cos(movementYaw)};
     const glm::dvec2 sideways{std::cos(movementYaw),-std::sin(movementYaw)};
-    if(input_->wasKeyPressed(Key::C)) { (void)salvagePreviewAction(95);if(salvageLocalSession_->launchRequest)return; }
-    if (input_->wasKeyPressed(Key::E)||pad.pressed(PadButton::Confirm)) (void)salvagePreviewAction(30);
-    if(input_->wasKeyPressed(Key::J)||pad.pressed(PadButton::Up)) (void)salvagePreviewAction(50);
-    if(input_->wasKeyPressed(Key::H)||pad.pressed(PadButton::Down)) (void)salvagePreviewAction(51);
+    if(pressed(A::Rescue)){(void)salvagePreviewAction(1);return;}
+    if(pressed(A::Cut)) { (void)salvagePreviewAction(95);if(salvageLocalSession_->launchRequest)return; }
+    if(pressed(A::Interact))(void)salvagePreviewAction(30);
+    if(pressed(A::AcceptJob))(void)salvagePreviewAction(50);
+    if(pressed(A::Deliver))(void)salvagePreviewAction(51);
     const bool dockLift=asset.harbor&&asset.harbor->durable()&&!asset.player->onBoat();
-    if(input_->wasKeyPressed(Key::K)||pad.pressed(PadButton::Left))(void)salvagePreviewAction(52);
-    if(input_->wasKeyPressed(Key::F)||pad.pressed(PadButton::Tool))(void)salvagePreviewAction(dockLift?(asset.harbor->attachmentPending()||asset.harbor->state().mode!=game::expedition::CoveHarborLiftMode::Detached?57:53):40);
-    if(input_->wasKeyPressed(Key::Q)){
-        if(salvagePreviewAction(dockLift?54:41)&&dockLift)asset.harborKeyboardMotor=true;
-    }
-    if(input_->wasKeyPressed(Key::Z)){
-        if(salvagePreviewAction(dockLift?55:42)&&dockLift)asset.harborKeyboardMotor=true;
-    }
-    if(asset.harborKeyboardMotor&&!input_->isKeyDown(Key::Q)&&!input_->isKeyDown(Key::Z)){
-        (void)salvagePreviewAction(56);asset.harborKeyboardMotor=false;
-    }
-    if(input_->wasKeyReleased(Key::Q)||input_->wasKeyReleased(Key::Z)){
-        (void)salvagePreviewAction(43);(void)salvagePreviewAction(56);
-    }
-    if(pad.pressed(PadButton::RightTrigger)) {
+    if(pressed(A::PowerHarbor))(void)salvagePreviewAction(52);
+    if(pressed(A::Hook))(void)salvagePreviewAction(dockLift?(asset.harbor->attachmentPending()||asset.harbor->state().mode!=game::expedition::CoveHarborLiftMode::Detached?57:53):40);
+    if(pressed(A::ReelIn)) {
         if(salvagePreviewAction(dockLift?54:41))asset.controllerMotor=true;
     }
-    if(pad.pressed(PadButton::LeftTrigger)) {
+    if(pressed(A::PayOut)) {
         if(salvagePreviewAction(dockLift?55:42))asset.controllerMotor=true;
     }
-    if(asset.controllerMotor&&!pad.down(PadButton::LeftTrigger)&&!pad.down(PadButton::RightTrigger)) {
+    if(asset.controllerMotor&&!down(A::ReelIn)&&!down(A::PayOut)) {
         (void)salvagePreviewAction(43);(void)salvagePreviewAction(56);asset.controllerMotor=false;
     }
     const auto beforeState=asset.player->state();
     if(!asset.checkpointPending)asset.player->advance(movementSeconds, {horizontal * forwardInput + sideways * rightInput,
-        input_->wasKeyPressed(Key::Space)||pad.pressed(PadButton::Back)});
+        pressed(A::Jump)});
     const auto afterState=asset.player->state();
     double gaitSpeed=0;
     if(movementSeconds>0&&beforeState.onBoat==afterState.onBoat&&beforeState.root==afterState.root
@@ -8895,10 +9610,13 @@ void Application::handleKeyboardShortcuts() {
     // Presentation pacing applies to every experience, including the Cove
     // and its workshop. Handle it before their gameplay-shortcut guards.
     if (input_->wasKeyPressed(Key::F9)) toggleUncappedFPS();
+    // The playable Cove owns its remapped function keys; legacy debug views
+    // must not fire alongside a movement/build action bound to those keys.
+    if(salvageLocalSession_&&salvageLocalSession_->asset&&salvageLocalSession_->asset->player)return;
     if(salvageLocalSession_ && salvageLocalSession_->asset && salvageLocalSession_->asset->workshopOpen)return;
 
     // Escape - release mouse or exit
-    if (input_->wasKeyPressed(Key::Escape)) {
+    if (input_->wasKeyPressed(Key::Escape)&&!(salvageLocalSession_&&salvageLocalSession_->asset&&salvageLocalSession_->asset->player)) {
         if (input_->isMouseCaptured()) {
             input_->releaseMouse();
         } else {
@@ -8951,6 +9669,7 @@ void Application::handleKeyboardShortcuts() {
     }
 
     if (config_.salvagePreviewEnabled) {
+        if(salvageLocalSession_&&salvageLocalSession_->asset&&salvageLocalSession_->asset->player)return;
         if (input_->wasKeyPressed(Key::R)) salvagePreviewAction(1);
         if (input_->wasKeyPressed(Key::Num0)) salvagePreviewAction(10);
         if (input_->wasKeyPressed(Key::Num1)) salvagePreviewAction(11);
@@ -9697,7 +10416,7 @@ bool Application::updateCoveBoat() {
         if(!physicsWorld_->setAttachmentMotorSpeed(asset.towRope,0)) return false;
         asset.towMotor=0;
     }
-    if(!asset.leaving && salvageLocalSession_->boatId.counter) {
+    if(!asset.leaving && !asset.practice && salvageLocalSession_->boatId.counter) {
         auto& local=*salvageLocalSession_;auto& session=*local.session;const auto frontier=physicsWorld_->tickFrontier();
         if(frontier.supported && !local.executionBound) {
             if(!session.bindExecution(frontier.incarnation,game::construction::SimulationTick{frontier.baseTick})) return false;
@@ -9746,6 +10465,7 @@ bool Application::updateCoveBoat() {
             if(session.journalFaulted()) return false;
         }
     }
+    if(!updateCovePractice())return false;
     if(asset.launch && (asset.launch->published || asset.launch->canceled)) {
         auto& launch=*asset.launch;
         bool gone=true;
@@ -9784,7 +10504,7 @@ bool Application::updateCoveBoat() {
             && (!asset.harbor||asset.harbor->joined(asset.pauseTick))) {
             const auto& session=*salvageLocalSession_->session;
             if(session.hasPending() || session.executionInFlight()
-                || session.snapshot().tick.value()!=asset.pauseTick){LOG_ERROR("Cove pause session join: snapshot {}, requested {}",session.snapshot().tick.value(),asset.pauseTick);return false;}
+                || (!asset.practice&&session.snapshot().tick.value()!=asset.pauseTick)){LOG_ERROR("Cove pause session join: snapshot {}, requested {}",session.snapshot().tick.value(),asset.pauseTick);return false;}
             if(asset.towRope.valid() && !asset.towBroken && asset.towObserved.distance.motorSpeed!=0)return false;
             asset.pause=Pause::Paused;
             if(coveResume_ && coveResume_->staged) {

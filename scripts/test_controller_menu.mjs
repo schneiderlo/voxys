@@ -136,4 +136,23 @@ for(const transition of ['unavailable','workshop','hidden','closed','world','blu
     if(transition==='cleanup')f.menu.cleanup();else f.menu.tick(f.state);
     assert(!f.menu.active()&&!camera.open,transition);if(transition!=='cleanup')assert.equal(f.input({confirm:true}),false,transition);f.menu.cleanup();++cases;
 }
+
+{
+    const f=fixture();f.state.gamepad={connected:true};f.menu.tick(f.state);f.input({menu:true});const pending=f.menu.confirm({title:'Leave?',message:'Unsaved'});
+    f.state.gamepad.connected=false;f.menu.tick(f.state);assert.equal(await pending,false);assert(!f.active());assert.equal(f.input({confirm:true}),false);f.menu.cleanup();++cases;
+}
+{
+    const f=fixture();f.input({menu:true});f.canvas.dispatchEvent(new f.Event('pointerdown',{bubbles:true}));assert(!f.active());
+    f.input({menu:true});const pending=f.menu.confirm({title:'Remove?',message:'Saved design'});f.canvas.dispatchEvent(new f.Event('pointerdown',{bubbles:true}));assert(f.active(),'a modal keeps its exclusive owner');f.input({back:true});assert.equal(await pending,false);f.menu.cleanup();++cases;
+}
+{
+    const f=fixture(),check=f.add('input','comfort-toggle',f.panel);check.type='checkbox';f.input({menu:true});check.focus();let changed=0;check.addEventListener('change',()=>++changed);
+    f.input({confirm:true});assert(check.checked);assert.equal(changed,1,'checkbox is a control, not a text-input trap');f.menu.cleanup();++cases;
+}
+
+{
+    const f=fixture();f.input({menu:true});f.last.focus();let used=0;f.last.addEventListener('click',()=>++used);const before=f.last.scrollCount;
+    f.environment.emit('resize');assert.equal(f.document.activeElement,f.last);assert.equal(f.last.scrollCount,before+1,'resize keeps the owned focus visible through normal scrolling');assert.equal(used,0);
+    f.input({back:true});const released=f.last.scrollCount;f.environment.emit('resize');assert.equal(f.last.scrollCount,released,'unowned resize cannot steal focus');f.menu.cleanup();++cases;
+}
 console.log(`Controller menu ownership, navigation, naming and lifecycle: ${cases} cases passed`);

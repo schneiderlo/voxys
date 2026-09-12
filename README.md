@@ -312,9 +312,26 @@ salvage generator rests on the seabed nearby: **F** hooks/releases its tow eye,
 hold **Q** to reel in and **Z** to pay out. Browser buttons provide the same
 winch controls. Sail to tow the load; **R** recovers both boat and cargo.
 The browser panel also shows the cable's actual length as it reels or pays out.
-**P / Pause** now freezes the expedition after queued movement finishes;
-**P / Resume** continues with neutral controls. Leave also works from pause.
+**P** opens the expedition menu and freezes the expedition after queued
+movement finishes. Choose **Resume** to continue with neutral controls.
+Leave also works from pause.
 [Pause behavior and checks](docs/validation/salvage/SAVE-04/pause-r01/README.md).
+
+**Menus and accessible controls:** **P**, **Escape**, or controller **Menu**
+opens the expedition menu. Find the job board, nearby map, inventory, settings
+and short Help cards there. In the browser, these pages are also under **More
+controls**. Remap controls, adjust look/stick speed, choose hold or toggle,
+increase text to 125% or 150%, and enable high contrast or event captions.
+Preferences stay on this device, separately from expedition saves. The native
+Expeditions page and browser saved-world list reopen confirmed saves.
+
+**Test sail** in the workshop tries your kept design without spending material.
+**Return to workshop** discards the test and restores your original boat and
+editor. Choose **Resume** to keep building. Tests cannot earn rewards or save
+an expedition. Normal **Launch** still checks and spends authoritative resources.
+Quit discards a test; restart uses the last confirmed normal save.
+[Menus, input, tutorial and test-sail contract](docs/validation/salvage/UX-02/menus-r01/README.md).
+
 [Playable towing and checks](docs/validation/salvage/SIM-08/towing-r01/README.md).
 The authored boat, dock and cargo now cast sun shadows onto authored parts,
 including the bricks you build with. The browser panel puts the main actions

@@ -583,3 +583,28 @@ cc_library(
     includes = [".."],
     deps = [":cove_environment", "//src/geometry:box_union", "//src/physics:authored_shape"],
 )
+
+cc_library(
+    name = "cove_onboarding",
+    srcs = ["expedition/cove_onboarding.cpp"],
+    hdrs = ["expedition/cove_onboarding.hpp"],
+    copts = PROJECT_DEFAULT_COPTS,
+    includes = [".."],
+)
+cc_library(
+    name = "cove_input_preferences",
+    srcs = ["expedition/cove_input_preferences.cpp"],
+    hdrs = ["expedition/cove_input_preferences.hpp"],
+    copts = PROJECT_DEFAULT_COPTS,
+    includes = [".."],
+    deps = ["//src/engine/platform:input", "//third_party:tinygltf"],
+)
+
+cc_library(
+    name = "cove_test_session",
+    srcs = ["expedition/cove_test_session.cpp"],
+    hdrs = ["expedition/cove_test_session.hpp"],
+    copts = PROJECT_DEFAULT_COPTS,
+    includes = [".."],
+    deps = [":cove_save", ":cove_workshop"],
+)

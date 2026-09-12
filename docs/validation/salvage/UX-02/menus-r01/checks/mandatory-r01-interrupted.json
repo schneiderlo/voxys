@@ -1,0 +1,19 @@
+{
+  "status": "failed-and-interrupted",
+  "exitCode": 8,
+  "reason": "InputTest.FloodedEventQueuesFailClosedAndRemainUsable used duplicate held-key Down events that the new intentional physical-repeat filter no longer enqueues. Stop after the confirmed failure; adapt the test to genuine Down/Up events without changing production input. This run is not a full-suite pass.",
+  "files": [
+    {
+      "source": "build-cove-ux-r01/checks/mandatory-r01.log",
+      "retained": "mandatory-r01.log.gz",
+      "sha256": "11768993786dd93cc5ea54d78c30c887761f03662260c4d087d6a9fd349eb8d1",
+      "bytes": 1828
+    },
+    {
+      "source": "bazel-testlogs/tests/voxy_tests/test.log",
+      "retained": "mandatory-r01-partial-tests.log.gz",
+      "sha256": "9875194914a1004074010cda6d2c0046196cc7a790f21d8934b4be17f3f9d096",
+      "bytes": 1463200
+    }
+  ]
+}

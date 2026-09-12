@@ -91,4 +91,10 @@ for(const kind of ['world','closed','pending','revoked','cleanup']){
     assert.equal(f.calls.length,0);f.library.cleanup();assert(f.storage.closed());
     assert(Object.values(f.buttons).every(button=>[...button.listeners.values()].every(set=>set.size===0)));++cases;
 }
+
+{
+    const f=await fixture();f.storage.delay();f.buttons.load.click();await settle();f.tick({practice:{active:true}});
+    for(const button of Object.values(f.buttons))assert(button.disabled);assert(f.name.disabled&&f.file.disabled);
+    f.storage.release();await settle();assert.equal(f.calls.filter(([id])=>id===2).length,0,'test transition refuses a pending normal design load');f.library.cleanup();++cases;
+}
 console.log(`Design library UI permissions, naming, owned confirmation and stale async replies: ${cases} cases passed`);

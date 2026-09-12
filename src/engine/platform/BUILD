@@ -92,5 +92,14 @@ cc_library(
     hdrs = ["native/workshop_menu.hpp"],
     copts = PROJECT_DEFAULT_COPTS,
     includes = ["../.."],
-    deps = [":native_design_library", ":input", "//src/render:render", "//src/game:design_library", "//src/game:cove_workshop"],
+    deps = [":native_design_library", ":input", "//src/render:render", "//src/game:design_library", "//src/game:cove_workshop", "//src/game:cove_input_preferences", "//src/game:cove_onboarding", "//third_party:tinygltf"],
+)
+
+cc_library(
+    name = "native_cove_preferences",
+    srcs = ["native/cove_preferences_store.cpp"],
+    hdrs = ["native/cove_preferences_store.hpp"],
+    copts = PROJECT_DEFAULT_COPTS,
+    includes = ["../.."],
+    deps = ["//src/game:cove_input_preferences"],
 )

@@ -1,0 +1,183 @@
+{
+  "baseline": "c5300d05e0f4a2fb3bfd7466925fd0790ceb7e2c",
+  "recordedUtc": "2026-09-12T20:05:57.993069+00:00",
+  "note": "Final native-r06 and browser web-r04 source/build inputs; the subsequent input flood test correction changes only test_input.cpp, not application binaries. Verify before commit.",
+  "files": [
+    {
+      "path": "src/CMakeLists.txt",
+      "sha256": "1b164db8ae18fb67397c87f0cfa2f274390a1ee787e9349e414c755a1f59ba5d"
+    },
+    {
+      "path": "src/app/BUILD",
+      "sha256": "8d75c788fbdb8602447f7e574366446e79355e949a440889eac664b085dc250e"
+    },
+    {
+      "path": "src/app/application.cpp",
+      "sha256": "348e3791980fc7a47f74b6302d8632ad0e7d7f62d4053ae697c5faee0ac25bbb"
+    },
+    {
+      "path": "src/app/application.hpp",
+      "sha256": "e1ab699188b0c866e6d1497e2997e22acbe1f56dee91cb661ec846acaab20086"
+    },
+    {
+      "path": "src/app/cove_ui_state.hpp",
+      "sha256": "6ffb8d4db3dbe72a62d1a19725502a73487145b26dbd01f3df2ffc171ea19520"
+    },
+    {
+      "path": "src/engine/platform/BUILD",
+      "sha256": "03381ac3dfcedce94343b5bf5b2d97c27cd0b59fb7aa4eb75c58d99e09698795"
+    },
+    {
+      "path": "src/engine/platform/gamepad.hpp",
+      "sha256": "6457c13db3625e267a5b00d47133fd0503fdd8294de4556bdc44d020325ee9c4"
+    },
+    {
+      "path": "src/engine/platform/input.hpp",
+      "sha256": "c73d0e2433e4e633accbbf23e0c9c8ef59333c92f8e0404e4737ca03f69d4778"
+    },
+    {
+      "path": "src/engine/platform/native/cove_preferences_store.cpp",
+      "sha256": "aa2c57d443bbebadb609c24156bcc16bb13caedb950c63a596c1e52ab70cb871"
+    },
+    {
+      "path": "src/engine/platform/native/cove_preferences_store.hpp",
+      "sha256": "ec99ed384d522bcdb1c4d70bdd077047b8165d455d355c9eafac366795d1f3c0"
+    },
+    {
+      "path": "src/engine/platform/native/cove_saves.cpp",
+      "sha256": "1a7610a7bbc5cb3769c0767cfba868fcebd56549f3c473004fc1014e8d0cb440"
+    },
+    {
+      "path": "src/engine/platform/native/cove_saves.hpp",
+      "sha256": "9cfbadcef9a8e1520a093173955873c3ac7c1f615d9e3f5d65f2c90f5693da5a"
+    },
+    {
+      "path": "src/engine/platform/native/entry.cpp",
+      "sha256": "00ecf89ee4f2ca4058f6a4b30cbccecb19eb1ce8e9f2dfc8b757f6f20455b890"
+    },
+    {
+      "path": "src/engine/platform/native/input.cpp",
+      "sha256": "a9e321929c70dbc157d7364316a24bf495d782b271fe1c5aaa781b1bd0c88a9d"
+    },
+    {
+      "path": "src/engine/platform/native/workshop_menu.cpp",
+      "sha256": "87e70befd9d2e146054060c0e067fa59e1bd1e80f057de23810c09e8467fa93a"
+    },
+    {
+      "path": "src/engine/platform/native/workshop_menu.hpp",
+      "sha256": "f480dac7114397254828669278fbbd210041eddff1150d5d0f9540a8322e34fc"
+    },
+    {
+      "path": "src/engine/platform/wasm/entry.cpp",
+      "sha256": "a7067689f032a183fe1af45dc4fbd297036d689bef40cd76454308e65bf0a2cc"
+    },
+    {
+      "path": "src/engine/platform/wasm/input.cpp",
+      "sha256": "9df664d313f3c15a5a6f44b52eb283266ffbab21b9d7e0bae041baa556f2a41c"
+    },
+    {
+      "path": "src/game/BUILD",
+      "sha256": "73bb7139280d75c9b3aca45ad606bda17187c9affb50426313f501c519156344"
+    },
+    {
+      "path": "src/game/expedition/cove_input_preferences.cpp",
+      "sha256": "6ef48d2bc94bb86d41d148447e6c60b5d23d67282394fae66085abc74a80d1f0"
+    },
+    {
+      "path": "src/game/expedition/cove_input_preferences.hpp",
+      "sha256": "99bfcd4d1c9b06810c5e806fd44c7ee1931540b7ba3ba3b21dfe9e3b3450ffde"
+    },
+    {
+      "path": "src/game/expedition/cove_onboarding.cpp",
+      "sha256": "b7696378f3e9293fedc842c7f76ad4590278c5b69eb5e8ffea28c0a92f9404f2"
+    },
+    {
+      "path": "src/game/expedition/cove_onboarding.hpp",
+      "sha256": "492c3298c6b62cb6cb2f395101d164f3ea5b787c4f09188e8aa73aca09aad48d"
+    },
+    {
+      "path": "src/game/expedition/cove_test_session.cpp",
+      "sha256": "3298f7f6025193c3617470dbeaf172d636c3dd32f73ee20b0b2635e39a1dfc5b"
+    },
+    {
+      "path": "src/game/expedition/cove_test_session.hpp",
+      "sha256": "fd67b5539662abc9b34d2bd0009b97e92d5c94eb08584583cb2587740a80ca47"
+    },
+    {
+      "path": "src/render/cove_hud.cpp",
+      "sha256": "1494f547ad54ac9feaa5cb92ee8e3ee4770d86c0e7d9f3d115cbae21b039c53a"
+    },
+    {
+      "path": "src/render/cove_hud.hpp",
+      "sha256": "d0306e3446b10a87734fe510a59d94421e05e3a15891b3caf852d4bf4b86b1aa"
+    },
+    {
+      "path": "tests/BUILD",
+      "sha256": "7f64332de5036b4119e02ce853b7ee686311ddfe82e06ae9ffafa383464e2e8f"
+    },
+    {
+      "path": "tests/CMakeLists.txt",
+      "sha256": "fa1cbe54e8694aa75794311fe67bea849030cf2989a99dfcaf08958a71b14cc1"
+    },
+    {
+      "path": "tests/test_cove_hud.cpp",
+      "sha256": "1ab73f7387436d8a431fe141109ec9e1d3e2152bb676d7300701e94796bf2a04"
+    },
+    {
+      "path": "tests/test_cove_input_preferences.cpp",
+      "sha256": "91fe1f326c69c6c100d7d32c8afcc2c170e6b5c05f0f93b2097552de13d4f915"
+    },
+    {
+      "path": "tests/test_cove_onboarding.cpp",
+      "sha256": "3af9a3d031025d16e92479f19d1012ee94b358d429efedb2c652e6eaf798d165"
+    },
+    {
+      "path": "tests/test_cove_preferences_store.cpp",
+      "sha256": "efd28492d5530c3bb32f6ca44077a8d0a7a500db4b25669619f71f346cd9fc7f"
+    },
+    {
+      "path": "tests/test_cove_test_session.cpp",
+      "sha256": "4bfcc60286234fc0fc387d70dabe1f060913848d3f12003df0b47d555bbfb955"
+    },
+    {
+      "path": "tests/test_input.cpp",
+      "sha256": "0abf252a98caaf0d75942209f89242d695e5d2ba2caedcda3ea125fe649e384c"
+    },
+    {
+      "path": "tests/test_native_workshop_menu.cpp",
+      "sha256": "b5aaa13a83f27e3e2582d73b7d5887cc49fbe97b3ae47b83cf9e21ccd878f574"
+    },
+    {
+      "path": "web/controller_menu.js",
+      "sha256": "89d852f971b609ab4bba16b1fd0619e2f7dab566019026a969695af4cf4faf3f"
+    },
+    {
+      "path": "web/cove_menu.js",
+      "sha256": "dc71a666200d6dc803340bb27a63e7cd73d8d0f3f541f61cfc7d549876386057"
+    },
+    {
+      "path": "web/cove_preferences.js",
+      "sha256": "cffac6b4efe07fda01a95a26b1492d1b360010cb0ae195ed6d0ea294bf2c19a5"
+    },
+    {
+      "path": "web/cove_saves.js",
+      "sha256": "7b446c2badb84b378cf9f398125d7e0d7b8fd9005c9d7bb9ccae836c7263607e"
+    },
+    {
+      "path": "web/design_library.js",
+      "sha256": "c3b86e399ab368f3f0dca7188d7156c01394ee9403fed7e9e1ad8a089bf2d675"
+    },
+    {
+      "path": "web/index.html",
+      "sha256": "3c4b8e018db820fd7b69688a7b9275a6a3fd87e1a7b64425f6063e356caf73e5"
+    },
+    {
+      "path": "web/salvage_preview.css",
+      "sha256": "c0ceb7dd80a6a71342b10898139332b5e3a8761d72a340fb926a5a8b0609a83c"
+    },
+    {
+      "path": "web/salvage_preview.js",
+      "sha256": "9dfa4f07e53164ddf4e7c3a1ae22ab928d91ddc4725ab1070fcff36276dff83b"
+    }
+  ]
+}

@@ -10,6 +10,7 @@ cc_library(
     ],
     hdrs = [
         "application.hpp",
+        "cove_ui_state.hpp",
         "debug_overlay.hpp",
         "salvage_preview_readback.hpp",
     ],
@@ -32,6 +33,10 @@ cc_library(
         "//src/game:cove_environment",
         "//src/game:cove_environment_collision",
         "//src/game:cove_effects",
+        "//src/game:cove_onboarding",
+        "//src/game:cove_test_session",
+        "//src/game:cove_input_preferences",
+        "//third_party:tinygltf",
         "//src/render:cove_effects_path",
         "//src/game:cove_character",
         "//src/game:cove_water_clock",
@@ -56,5 +61,5 @@ cc_library(
         "//src/terrain:terrain",
         "//third_party:glm",
         "//third_party:stb",
-    ] + select({"//src/engine/platform:wasm": [], "//conditions:default": ["//src/engine/platform:native_workshop_menu"]}),
+    ] + select({"//src/engine/platform:wasm": [], "//conditions:default": ["//src/engine/platform:native_workshop_menu", "//src/engine/platform:native_cove_preferences"]}),
 )

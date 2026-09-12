@@ -1,0 +1,9 @@
+file:///home/modkin/workspace/schneiderlo/voxys/build-cove-ux-r01/checks/resize-dom-r01.mjs:25
+const evaluate=async expression=>{const x=await call('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(x.exceptionDetails)throw Error(JSON.stringify(x.exceptionDetails));return x.result.value;};
+                                                                                                                                                       ^
+
+Error: {"exceptionId":2,"text":"Uncaught","lineNumber":0,"columnNumber":0,"scriptId":"6","exception":{"type":"object","subtype":"error","className":"ReferenceError","description":"ReferenceError: snap is not defined\n    at <anonymous>:1:1","objectId":"-2759991681256296330.2.2"}}
+    at evaluate (file:///home/modkin/workspace/schneiderlo/voxys/build-cove-ux-r01/checks/resize-dom-r01.mjs:25:152)
+    at async file:///home/modkin/workspace/schneiderlo/voxys/build-cove-ux-r01/checks/resize-dom-r01.mjs:27:18
+
+Node.js v22.23.1

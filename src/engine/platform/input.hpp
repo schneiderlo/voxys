@@ -130,8 +130,20 @@ public:
     /// capture so the next click can acquire pointer lock again.
     void resetState();
     [[nodiscard]] const GamepadInput& gamepad() const noexcept { return gamepad_; }
+    [[nodiscard]] bool setGamepadDeadzones(float movement,float look) noexcept {return gamepad_.setDeadzones(movement,look);}
+    [[nodiscard]] uint64_t resetSerial() const noexcept {return resetSerial_;}
+    [[nodiscard]] bool physicalKeyDown(Key key) const noexcept {
+        const int code=static_cast<int>(key);return isValidKey(code)&&physicalKeys_[static_cast<size_t>(code)];
+    }
+    [[nodiscard]] bool physicalMouseDown(MouseButton button) const noexcept {
+        const int code=static_cast<int>(button);return isValidButton(code)&&physicalButtons_[static_cast<size_t>(code)];
+    }
     [[nodiscard]] bool focused() const noexcept { return focused_; }
-    void onFocusChanged(bool focused) { focused_=focused; resetState(); }
+    void onFocusChanged(bool focused) {
+        focused_=focused;
+        if(!focused){physicalKeys_.fill(false);physicalButtons_.fill(false);}
+        resetState();
+    }
     void onCharacter(uint32_t codepoint);
     [[nodiscard]] const std::string& textInput() const noexcept { return frameText_; }
 
@@ -211,7 +223,7 @@ public:
     // Event Handlers (called by platform-specific code)
     // ─────────────────────────────────────────────────────────────────────────
     
-    void onKeyDown(int keyCode);
+    void onKeyDown(int keyCode,bool repeat=false);
     void onKeyUp(int keyCode);
     void onMouseMove(float x, float y);
     void onMouseDown(int button);
@@ -245,6 +257,7 @@ public:
     
 private:
     GamepadInput gamepad_;
+    uint64_t resetSerial_=0;
     bool focused_=true;
     std::string queuedText_,frameText_;
     void pollGamepad();
@@ -253,6 +266,8 @@ private:
     
     // Keyboard state
     std::array<bool, kMaxKeys> currentKeys_{};
+    std::array<bool,kMaxKeys> physicalKeys_{};
+    std::array<bool,kMaxButtons> physicalButtons_{};
     std::array<uint8_t,kMaxKeys> keyModifiers_{};
     std::array<bool, kMaxKeys> previousKeys_{};
     // Track keys pressed this frame (even if released before frame end)

@@ -1,0 +1,467 @@
+{
+  "attempts": [
+    {
+      "attempt": "r01",
+      "status": "failed",
+      "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'Salvage Cove \u2014 Voxys'\n- 'Cove Preview \u2014 Voxys'\n",
+      "browserErrors": [],
+      "sampleErrors": [],
+      "browserShutdown": null
+    },
+    {
+      "attempt": "r02",
+      "status": "failed",
+      "error": "AssertionError [ERR_ASSERTION]: focused control remains readable and reachable after normal focus scrolling",
+      "browserErrors": [],
+      "sampleErrors": [],
+      "browserShutdown": null,
+      "seconds": 5.928,
+      "stages": [
+        "controller-applied-accessibility-and-remapped-pause"
+      ],
+      "controllerExit": {
+        "code": 0,
+        "signal": null
+      },
+      "controllerStderr": "",
+      "layouts": [
+        {
+          "layout": "standard-text-wide",
+          "width": 1280,
+          "height": 720,
+          "panel": {
+            "left": 904,
+            "top": 24,
+            "right": 1256,
+            "bottom": 696,
+            "width": 352,
+            "height": 672
+          },
+          "active": {
+            "left": 1078.7265625,
+            "top": 650.9921875,
+            "right": 1228,
+            "bottom": 694.9921875,
+            "width": 149.2734375,
+            "height": 44
+          },
+          "activeId": "cove-pref-textScale",
+          "fontSize": "13px",
+          "unobstructed": true,
+          "bodyWidth": 1280
+        }
+      ]
+    },
+    {
+      "attempt": "r03",
+      "status": "failed",
+      "error": "AssertionError [ERR_ASSERTION]: focused control remains readable and reachable after normal focus scrolling",
+      "browserErrors": [],
+      "sampleErrors": [],
+      "browserShutdown": null,
+      "seconds": 5.827,
+      "stages": [
+        "controller-applied-accessibility-and-remapped-pause"
+      ],
+      "controllerExit": {
+        "code": 0,
+        "signal": null
+      },
+      "controllerStderr": "",
+      "layouts": [
+        {
+          "layout": "standard-text-wide",
+          "width": 1280,
+          "height": 720,
+          "panel": {
+            "left": 904,
+            "top": 24,
+            "right": 1256,
+            "bottom": 696,
+            "width": 352,
+            "height": 672
+          },
+          "active": {
+            "left": 1078.7265625,
+            "top": 650.9921875,
+            "right": 1228,
+            "bottom": 694.9921875,
+            "width": 149.2734375,
+            "height": 44
+          },
+          "activeId": "cove-pref-textScale",
+          "fontSize": "13px",
+          "unobstructed": true,
+          "bodyWidth": 1280
+        },
+        {
+          "layout": "150-percent-small-screen",
+          "width": 640,
+          "height": 480,
+          "panel": {
+            "left": 276,
+            "top": 12,
+            "right": 628,
+            "bottom": 468,
+            "width": 352,
+            "height": 456
+          },
+          "active": {
+            "left": 290,
+            "top": 611.34375,
+            "right": 441.5,
+            "bottom": 681.9375,
+            "width": 151.5,
+            "height": 70.59375
+          },
+          "activeId": "cove-preferences-apply",
+          "fontSize": "19.5px",
+          "unobstructed": false,
+          "bodyWidth": 640
+        }
+      ]
+    },
+    {
+      "attempt": "r04",
+      "status": "failed",
+      "error": "AssertionError [ERR_ASSERTION]: optional device preferences survived the prior actual controller application\n+ actual - expected\n... Skipped lines\n\n  {\n    bindings: [\n      {\n        action: 'move_forward',\n        alternate: 265,\n...\n        alternateModifiers: 0,\n+       key: 80,\n-       key: 79,\n        modifiers: 0,\n        pad: 9\n      },\n      {\n        action: 'save',\n...\n    captionsEnabled: true,\n+   highContrast: false,\n-   highContrast: true,\n    invertX: false,\n    invertY: false,\n    locale: 'en',\n    lookDeadzone: 0.2,\n    mouseSensitivity: 1,\n...\n    reelToggle: false,\n+   textScale: 1,\n-   textScale: 1.5,\n    tutorialsEnabled: true,\n    version: 1\n  }\n",
+      "browserErrors": [],
+      "sampleErrors": [],
+      "browserShutdown": null,
+      "seconds": 2.532,
+      "stages": [],
+      "controllerExit": {
+        "code": 0,
+        "signal": null
+      },
+      "controllerStderr": "",
+      "layouts": []
+    },
+    {
+      "attempt": "r05",
+      "status": "failed",
+      "error": "Error: physical F9 presentation control",
+      "browserErrors": [],
+      "sampleErrors": [],
+      "browserShutdown": null,
+      "seconds": 39.273,
+      "stages": [
+        "controller-applied-accessibility-and-remapped-pause",
+        "controller-reaches-help-map-inventory-at-large-text",
+        "kept-test-design-does-not-spend-or-replace-owned-boat",
+        "temporary-test-runs-without-economy-or-save-authority",
+        "return-restores-exact-draft-history-and-original-ownership",
+        "normal-save-keeps-original-expedition-and-settings"
+      ],
+      "controllerExit": {
+        "code": 0,
+        "signal": null
+      },
+      "controllerStderr": "",
+      "layouts": [
+        {
+          "layout": "standard-text-wide",
+          "width": 1280,
+          "height": 720,
+          "panel": {
+            "left": 904,
+            "top": 24,
+            "right": 1256,
+            "bottom": 696,
+            "width": 352,
+            "height": 672
+          },
+          "active": {
+            "left": 1078.7265625,
+            "top": 650.9921875,
+            "right": 1228,
+            "bottom": 694.9921875,
+            "width": 149.2734375,
+            "height": 44
+          },
+          "activeId": "cove-pref-textScale",
+          "fontSize": "13px",
+          "unobstructed": true,
+          "bodyWidth": 1280
+        },
+        {
+          "resize": {
+            "samples": [
+              {
+                "label": "before-request",
+                "at": 39922.5,
+                "width": 1280,
+                "height": 720,
+                "focus": "cove-preferences-apply",
+                "owner": true,
+                "scrollTop": 1826,
+                "font": "19.5px",
+                "top": 623.34375,
+                "bottom": 693.9375
+              },
+              {
+                "label": "resize-delivered",
+                "at": 40023.90000000596,
+                "width": 640,
+                "height": 480,
+                "focus": "cove-preferences-apply",
+                "owner": true,
+                "scrollTop": 2042,
+                "font": "19.5px",
+                "top": 395.34375,
+                "bottom": 465.9375
+              },
+              {
+                "label": "following-browser-frame",
+                "at": 40024,
+                "width": 640,
+                "height": 480,
+                "focus": "cove-preferences-apply",
+                "owner": true,
+                "scrollTop": 2042,
+                "font": "19.5px",
+                "top": 395.34375,
+                "bottom": 465.9375
+              }
+            ],
+            "delivered": true,
+            "frame": true
+          }
+        },
+        {
+          "layout": "150-percent-small-screen",
+          "width": 640,
+          "height": 480,
+          "panel": {
+            "left": 276,
+            "top": 12,
+            "right": 628,
+            "bottom": 468,
+            "width": 352,
+            "height": 456
+          },
+          "active": {
+            "left": 290,
+            "top": 395.34375,
+            "right": 441.5,
+            "bottom": 465.9375,
+            "width": 151.5,
+            "height": 70.59375
+          },
+          "activeId": "cove-preferences-apply",
+          "fontSize": "19.5px",
+          "unobstructed": true,
+          "bodyWidth": 640
+        },
+        {
+          "layout": "job-150-percent-small-screen",
+          "width": 640,
+          "height": 480,
+          "panel": {
+            "left": 276,
+            "top": 12,
+            "right": 628,
+            "bottom": 468,
+            "width": 352,
+            "height": 456
+          },
+          "active": {
+            "left": 290,
+            "top": 422.828125,
+            "right": 351.328125,
+            "bottom": 466.125,
+            "width": 61.328125,
+            "height": 43.296875
+          },
+          "activeId": "cove-menu-back",
+          "fontSize": "19.5px",
+          "unobstructed": true,
+          "bodyWidth": 640
+        },
+        {
+          "layout": "map-150-percent-small-screen",
+          "width": 640,
+          "height": 480,
+          "panel": {
+            "left": 276,
+            "top": 12,
+            "right": 628,
+            "bottom": 468,
+            "width": 352,
+            "height": 456
+          },
+          "active": {
+            "left": 290,
+            "top": 422.75,
+            "right": 351.328125,
+            "bottom": 466.046875,
+            "width": 61.328125,
+            "height": 43.296875
+          },
+          "activeId": "cove-menu-back",
+          "fontSize": "19.5px",
+          "unobstructed": true,
+          "bodyWidth": 640
+        },
+        {
+          "layout": "inventory-150-percent-small-screen",
+          "width": 640,
+          "height": 480,
+          "panel": {
+            "left": 276,
+            "top": 12,
+            "right": 628,
+            "bottom": 468,
+            "width": 352,
+            "height": 456
+          },
+          "active": {
+            "left": 290,
+            "top": 422.78125,
+            "right": 351.328125,
+            "bottom": 466.078125,
+            "width": 61.328125,
+            "height": 43.296875
+          },
+          "activeId": "cove-menu-back",
+          "fontSize": "19.5px",
+          "unobstructed": true,
+          "bodyWidth": 640
+        },
+        {
+          "layout": "help-150-percent-small-screen",
+          "width": 640,
+          "height": 480,
+          "panel": {
+            "left": 276,
+            "top": 12,
+            "right": 628,
+            "bottom": 468,
+            "width": 352,
+            "height": 456
+          },
+          "active": {
+            "left": 290,
+            "top": 422.53125,
+            "right": 351.328125,
+            "bottom": 465.828125,
+            "width": 61.328125,
+            "height": 43.296875
+          },
+          "activeId": "cove-menu-back",
+          "fontSize": "19.5px",
+          "unobstructed": true,
+          "bodyWidth": 640
+        },
+        {
+          "resize": {
+            "samples": [
+              {
+                "label": "before-request",
+                "at": 44016,
+                "width": 640,
+                "height": 480,
+                "focus": "",
+                "owner": true,
+                "scrollTop": 804.5,
+                "font": "19.5px",
+                "top": -105.34375,
+                "bottom": -62.046875
+              },
+              {
+                "label": "resize-delivered",
+                "at": 44025.20000000298,
+                "width": 1280,
+                "height": 720,
+                "focus": "",
+                "owner": true,
+                "scrollTop": 608.5,
+                "font": "19.5px",
+                "top": 102.65625,
+                "bottom": 145.953125
+              },
+              {
+                "label": "following-browser-frame",
+                "at": 44025.29999999702,
+                "width": 1280,
+                "height": 720,
+                "focus": "",
+                "owner": true,
+                "scrollTop": 608.5,
+                "font": "19.5px",
+                "top": 102.65625,
+                "bottom": 145.953125
+              }
+            ],
+            "delivered": true,
+            "frame": true
+          }
+        }
+      ]
+    },
+    {
+      "attempt": "r06",
+      "status": "failed",
+      "error": "Error: restored remapped Pause key resumes",
+      "browserErrors": [],
+      "sampleErrors": [],
+      "browserShutdown": {
+        "retainedProfile": true,
+        "directory": "/home/modkin/workspace/schneiderlo/voxys/build-cove-ux-r01/browser-profile-r03",
+        "requestedClose": true,
+        "requestedTerminate": false,
+        "forced": false,
+        "completed": true,
+        "exitCode": 0,
+        "signal": null
+      },
+      "seconds": 48.736,
+      "stages": [
+        "strict-saved-world-start-for-picker-continuation"
+      ],
+      "controllerExit": {
+        "code": 0,
+        "signal": null
+      },
+      "controllerStderr": "",
+      "layouts": []
+    },
+    {
+      "attempt": "r07",
+      "status": "passed",
+      "error": null,
+      "browserErrors": [],
+      "sampleErrors": [],
+      "browserShutdown": {
+        "retainedProfile": true,
+        "directory": "/home/modkin/workspace/schneiderlo/voxys/build-cove-ux-r01/browser-profile-r03",
+        "requestedClose": true,
+        "requestedTerminate": false,
+        "forced": false,
+        "completed": true,
+        "exitCode": 0,
+        "signal": null
+      },
+      "seconds": 2.213,
+      "stages": [
+        "strict-saved-world-start-for-picker-continuation",
+        "explicit-resume-opens-exact-restored-original-blueprint"
+      ],
+      "controllerExit": {
+        "code": 0,
+        "signal": null
+      },
+      "controllerStderr": "",
+      "layouts": []
+    }
+  ],
+  "fullRequiredSuite": {
+    "status": "passed",
+    "gamePassed": 2243,
+    "gameSkipped": 3,
+    "gameDisabled": 4,
+    "cachedTerrainPassed": 10,
+    "cachedTerrainSkipped": 1,
+    "checkpoint": "../README.md"
+  }
+}

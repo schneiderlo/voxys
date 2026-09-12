@@ -930,6 +930,9 @@ cc_test(
         "test_cove_environment.cpp",
         "test_cove_environment_collision.cpp",
         "test_cove_effects.cpp",
+        "test_cove_onboarding.cpp",
+        "test_cove_test_session.cpp",
+        "test_cove_input_preferences.cpp",
         "test_cove_effects_path.cpp",
         "test_cove_character.cpp",
         "test_rigid_animation.cpp",
@@ -988,7 +991,7 @@ cc_test(
         "test_wreckwater_client_replication.cpp",
         "test_wreckwater_client_runtime.cpp",
         "test_wreckwater_protocol.cpp",
-    ] + select({"@platforms//os:linux": ["test_native_save_store.cpp", "test_native_save_worker.cpp", "test_native_design_library.cpp", "test_native_workshop_menu.cpp"], "//conditions:default": []}),
+    ] + select({"@platforms//os:linux": ["test_native_save_store.cpp", "test_native_save_worker.cpp", "test_native_design_library.cpp", "test_native_workshop_menu.cpp", "test_cove_preferences_store.cpp"], "//conditions:default": []}),
     copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
     deps = [
         "//src/game:cove_rigid_roots",
@@ -1012,6 +1015,10 @@ cc_test(
         "//src/game:cove_environment",
         "//src/game:cove_environment_collision",
         "//src/game:cove_effects",
+        "//src/game:cove_onboarding",
+        "//src/game:cove_test_session",
+        "//src/game:cove_input_preferences",
+        "//src/engine/platform:native_cove_preferences",
         "//src/render:cove_effects_path",
         "//src/game:cove_character",
         "//src/game:rigid_animation",
@@ -1321,4 +1328,35 @@ cc_test(
     copts = PROJECT_TEST_COPTS,
     deps = ["//src/game:cove_environment_collision", "//src/game:cove_environment", "@googletest//:gtest_main"],
     data = ["//data:salvage_environment"],
+)
+
+cc_test(
+    name = "cove_onboarding",
+    srcs = ["test_cove_onboarding.cpp"],
+    copts = PROJECT_TEST_COPTS,
+    deps = ["//src/game:cove_onboarding", "@googletest//:gtest_main"],
+)
+
+cc_test(
+    name = "cove_input_preferences",
+    srcs = ["test_cove_input_preferences.cpp"],
+    copts = PROJECT_TEST_COPTS,
+    deps = ["//src/game:cove_input_preferences", "@googletest//:gtest_main"],
+)
+
+cc_test(
+    name = "cove_preferences_store",
+    srcs = ["test_cove_preferences_store.cpp"],
+    copts = PROJECT_TEST_COPTS,
+    deps = ["//src/engine/platform:native_cove_preferences", "@googletest//:gtest_main"],
+)
+
+cc_test(
+    name = "cove_test_session",
+    srcs = ["test_cove_test_session.cpp"],
+    data = ["//data:salvage_asset_fixture", "//data:salvage_functional_kit", "//data:salvage_material_metric"],
+    copts = PROJECT_TEST_COPTS,
+    deps = ["//src/game:cove_test_session", "//src/game:cove_build",
+        "//src/game:cove_save",
+        "//src/game:cove_rigid_roots", "//src/core:sha256", "@googletest//:gtest_main"],
 )

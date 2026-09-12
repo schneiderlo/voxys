@@ -48,6 +48,9 @@ set(TEST_SOURCES
     test_cove_camera.cpp
     test_cove_environment.cpp
     test_cove_environment_collision.cpp
+    test_cove_onboarding.cpp
+    test_cove_test_session.cpp
+    test_cove_input_preferences.cpp
     test_cove_effects.cpp
     test_cove_effects_path.cpp
     test_cove_character.cpp
@@ -150,7 +153,7 @@ endif()
 # Test Executable
 # ─────────────────────────────────────────────────────────────────────────────
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND NOT EMSCRIPTEN)
-    list(APPEND TEST_SOURCES test_native_save_store.cpp test_native_save_worker.cpp test_native_design_library.cpp test_native_workshop_menu.cpp)
+    list(APPEND TEST_SOURCES test_native_save_store.cpp test_native_save_worker.cpp test_native_design_library.cpp test_native_workshop_menu.cpp test_cove_preferences_store.cpp)
     add_executable(native_save_store_tests test_native_save_store.cpp test_native_save_worker.cpp test_save_generation.cpp
         ${CMAKE_SOURCE_DIR}/src/engine/platform/native/save_store.cpp
         ${CMAKE_SOURCE_DIR}/src/engine/platform/native/save_worker.cpp

@@ -1,0 +1,111 @@
+{
+  "status": "passed: 138 focused Node cases; six actual browser stages in r05; actual Leave/history reload evidence in r06; final two-stage explicit Resume/exact original blueprint continuation passed in r07",
+  "sourceFiles": [
+    {
+      "path": "web/index.html",
+      "sha256": "3c4b8e018db820fd7b69688a7b9275a6a3fd87e1a7b64425f6063e356caf73e5"
+    },
+    {
+      "path": "web/salvage_preview.js",
+      "sha256": "9dfa4f07e53164ddf4e7c3a1ae22ab928d91ddc4725ab1070fcff36276dff83b"
+    },
+    {
+      "path": "web/salvage_preview.css",
+      "sha256": "c0ceb7dd80a6a71342b10898139332b5e3a8761d72a340fb926a5a8b0609a83c"
+    },
+    {
+      "path": "web/controller_menu.js",
+      "sha256": "89d852f971b609ab4bba16b1fd0619e2f7dab566019026a969695af4cf4faf3f"
+    },
+    {
+      "path": "web/cove_saves.js",
+      "sha256": "7b446c2badb84b378cf9f398125d7e0d7b8fd9005c9d7bb9ccae836c7263607e"
+    },
+    {
+      "path": "web/design_library.js",
+      "sha256": "c3b86e399ab368f3f0dca7188d7156c01394ee9403fed7e9e1ad8a089bf2d675"
+    },
+    {
+      "path": "web/cove_menu.js",
+      "sha256": "dc71a666200d6dc803340bb27a63e7cd73d8d0f3f541f61cfc7d549876386057"
+    },
+    {
+      "path": "web/cove_preferences.js",
+      "sha256": "cffac6b4efe07fda01a95a26b1492d1b360010cb0ae195ed6d0ea294bf2c19a5"
+    },
+    {
+      "path": "scripts/cove_ui_test_dom.mjs",
+      "sha256": "a5b821a1b8cb4c39d709f871b47583810245bcac7d7d63a8dc23e21ef5440964"
+    },
+    {
+      "path": "scripts/test_cove_menu.mjs",
+      "sha256": "3a5a9dfe4d8d09922dc54fe7ea006f25b4db14bca7674487611974183d6aab65"
+    },
+    {
+      "path": "scripts/test_cove_preferences.mjs",
+      "sha256": "cf1b689293088aa472d4410ea5647b24ed360ef3b02b178ceda1353e59187460"
+    },
+    {
+      "path": "scripts/test_cove_saves.mjs",
+      "sha256": "ab8c3b92d07a4bf020bf23db78981bfb32b21ef07d9606c274cdd15151cf0814"
+    },
+    {
+      "path": "scripts/test_controller_menu.mjs",
+      "sha256": "43ac06fb637c61a0632b62580fabe6bf12b96d900b7a027e1d7b0a6aff58a9a8"
+    },
+    {
+      "path": "scripts/test_design_library_ui.mjs",
+      "sha256": "bbb2d61b68f44e1c6437414099e4ad800256b04990d488fcd151acf754a9664e"
+    },
+    {
+      "path": "scripts/test_salvage_preview.mjs",
+      "sha256": "f86e0d1dc58e53f3c0638145847673a72853f4b7ee102a565be1d9593acb22c9"
+    },
+    {
+      "path": "scripts/validate_cove_ui.mjs",
+      "sha256": "203883ddf352ee4ffdaf40f517e27bf25fd9847bf24de2fbc50780380c305767"
+    },
+    {
+      "path": "scripts/smoke_integrated_wasm.mjs",
+      "sha256": "19a33479c2281ecedf7529e8247c354e2f71d0862440b3ab4ff857434102b7fb"
+    }
+  ],
+  "tests": [
+    {
+      "suite": "cove_menu",
+      "passedCases": 15,
+      "log": "checks/menu-r05.log"
+    },
+    {
+      "suite": "cove_preferences",
+      "passedCases": 8,
+      "log": "checks/preferences-r01.log"
+    },
+    {
+      "suite": "cove_saves",
+      "passedCases": 31,
+      "log": "checks/cove_saves-r02.log"
+    },
+    {
+      "suite": "controller_menu",
+      "passedCases": 33,
+      "log": "checks/controller_menu-r02.log"
+    },
+    {
+      "suite": "design_library_ui",
+      "passedCases": 12,
+      "log": "checks/design_library_ui-r01.log"
+    },
+    {
+      "suite": "salvage_preview",
+      "passedCases": 39,
+      "log": "checks/salvage_preview-r02.log"
+    }
+  ],
+  "totalPassedCases": 138,
+  "failedCases": 0,
+  "gpuOrBrowserRun": true,
+  "review": "Independent source review by presentation_review: two permission/guidance findings corrected and focused regressions passed; final UI and driver source read has no remaining actionable finding.",
+  "package": "web-r04",
+  "packageManifest": "checks/web-r04-package.json"
+}

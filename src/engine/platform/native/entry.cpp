@@ -217,66 +217,65 @@ int main(int argc, char* argv[]) {
         LOG_ERROR("Invalid inspection capture: {}",motionError);
         voxy::log::shutdown();return 1;
     }
-    voxy::Application app;
+    auto app=std::make_unique<voxy::Application>();
     std::unique_ptr<voxy::NativeCoveSaves> saves;
     if(appConfig.salvagePreviewEnabled && appConfig.salvageAssetFixtureWaterAnchor){
         saves=voxy::NativeCoveSaves::create(*saveOptions,saveError);
-        if(!saves || !saves->prepare(app,saveError)){
+        if(!saves || !saves->prepare(*app,saveError)){
             LOG_ERROR("Expedition startup: {}",saveError);return 1;
         }
     }else if(saveOptions->world || saveOptions->root || saveOptions->observation){
         LOG_ERROR("Expedition options require --config salvage_cove.cfg");return 1;
     }
 
-    if (!app.init(appConfig)) {
-        LOG_ERROR("Failed to initialize application");
-        if (motion) static_cast<void>(motion->finish());
-        voxy::log::shutdown();
-        return 1;
-    }
-    if(saves && !saves->initialized(app,saveError)){
-        LOG_ERROR("Expedition startup: {}",saveError);saves->close(app);app.shutdown();return 1;
-    }
-
-    // Run the main loop (blocking)
-    if (motion) {
-        app.setUpdateCallback([&](float){motion->update(app);});
-        app.setCaptureCallback([&]{motion->capture(app);});
-    }
-    LOG_INFO("Starting main loop (native)...");
-
     using Clock = std::chrono::steady_clock;
-    auto lastTime = Clock::now();
-
-    while (!app.shouldExit() && app.getWindow() && !app.getWindow()->shouldClose()) {
-        auto now = Clock::now();
-        float deltaTime = std::chrono::duration<float>(now - lastTime).count();
-        lastTime = now;
-
-        // Clamp delta time to avoid huge jumps
-        deltaTime = std::clamp(deltaTime, 0.0f, 0.1f);
-
-        if (appConfig.benchmarkOnStartup
-            && appConfig.benchmarkFixedDeltaSeconds > 0.0f) {
-            app.processFrame(appConfig.benchmarkFixedDeltaSeconds,
-                             appConfig.benchmarkFixedDeltaSeconds);
-        } else {
-            app.processFrame(deltaTime);
+    bool startupPassed=true,benchmarkPassed=true;
+    for (;;) {
+        if(!app->init(appConfig)) {
+            LOG_ERROR("Failed to initialize application");startupPassed=false;break;
         }
-        if(saves)saves->update(app);
+        if(saves&&!saves->initialized(*app,saveError)) {
+            LOG_ERROR("Expedition startup: {}",saveError);startupPassed=false;break;
+        }
+        if(motion) {
+            app->setUpdateCallback([&](float){motion->update(*app);});
+            app->setCaptureCallback([&]{motion->capture(*app);});
+        }
+        LOG_INFO("Starting main loop (native)...");
+        auto lastTime=Clock::now();
+        while(!app->shouldExit()&&app->getWindow()&&!app->getWindow()->shouldClose()) {
+            const auto now=Clock::now();
+            const float deltaTime=std::clamp(std::chrono::duration<float>(now-lastTime).count(),0.0f,0.1f);
+            lastTime=now;
+            if(appConfig.benchmarkOnStartup&&appConfig.benchmarkFixedDeltaSeconds>0.0f)
+                app->processFrame(appConfig.benchmarkFixedDeltaSeconds,appConfig.benchmarkFixedDeltaSeconds);
+            else app->processFrame(deltaTime);
+            if(saves)saves->update(*app);
+        }
+        LOG_INFO("Main loop ended");
+        benchmarkPassed=benchmarkPassed&&(!appConfig.benchmarkOnStartup||app->benchmarkPassed());
+        // The staged target retains its already-read archive and its own store
+        // lock. Only a completed, explicit Leave can transfer those owners.
+        // The old GPU/window is gone before the next one is initialized.
+        auto next=saves?saves->takeTransition(*app)
+            :std::pair<std::unique_ptr<voxy::Application>,std::unique_ptr<voxy::NativeCoveSaves>>{};
+        app->setUpdateCallback({});app->setCaptureCallback({});
+        if(saves)saves->close(*app);
+        app->shutdown();
+        if(!next.first||!next.second)break;
+        app=std::move(next.first);saves=std::move(next.second);
+        appConfig.screenshotPath.reset();appConfig.screenshotTourIndices.clear();
+        appConfig.benchmarkOnStartup=false;appConfig.exitAfterBenchmark=false;
+        if(!saves->prepare(*app,saveError)) {
+            LOG_ERROR("Prepared expedition could not start: {}",saveError);startupPassed=false;break;
+        }
     }
-
-    LOG_INFO("Main loop ended");
-
-    const bool benchmarkPassed = !appConfig.benchmarkOnStartup
-                              || app.benchmarkPassed();
-
-    // Cleanup
-    app.setUpdateCallback({});app.setCaptureCallback({});
     const bool motionPassed=!motion || motion->finish();
-    if(saves)saves->close(app);
-    app.shutdown();
+    if(app) {
+        app->setUpdateCallback({});app->setCaptureCallback({});
+        if(saves)saves->close(*app);
+        app->shutdown();
+    }
     voxy::log::shutdown();
-
-    return benchmarkPassed && motionPassed ? 0 : 2;
+    return !startupPassed?1:benchmarkPassed&&motionPassed?0:2;
 }

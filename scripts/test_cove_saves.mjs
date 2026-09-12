@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
 import {webcrypto} from 'node:crypto';
 import {readFile} from 'node:fs/promises';
+import {testDOM} from './cove_ui_test_dom.mjs';
 const require=createRequire(import.meta.url),api=require('../web/cove_saves.js');
 const world='0102030405060708090a0b0c0d0e0f10';
 const shortcutKey='voxys.cove.last-confirmed-world.v1';
@@ -282,6 +283,42 @@ test('Continue uses a semantic hidden anchor, appears on LEGO routes only and su
     const html=await readFile(new URL('../web/index.html',import.meta.url),'utf8');
     assert.match(html,/<a id="cove-continue" hidden>Continue saved Cove<\/a>/);
     assert.match(html,/if \(legoShore \|\| legoWorld\) \{\s*VoxyCoveSaves\.installContinue\(\);/);
-    assert.match(html,/#lego-shore-controls a:not\(#cove-continue\) \{ display:none; \}/);
-    assert.match(html,/#lego-shore-controls #cove-continue:not\(\[hidden\]\).*min-height:44px/);
+    assert.match(html,/<section id="cove-landing" hidden data-voxy-ui/);
+    const css=await readFile(new URL('../web/salvage_preview.css',import.meta.url),'utf8');
+    assert.match(css,/#cove-landing :is\(button,a,summary\).*min-height: 44px/);
+});
+
+const historyKey='voxys.cove.confirmed-world-history.v1';
+test('save-completed tutorial observation follows publication and acknowledgment only',async()=>{
+    const f=saveFixture();let acknowledged=0;f.engine._voxy_cove_save_completed=()=>++acknowledged;f.ready();const pending=f.click();
+    await f.until(()=>f.calls.some(c=>c.name==='publish'));assert.equal(acknowledged,0);assert.equal(f.ui.status().busy,true);assert.equal(f.ui.status().hasConfirmedSave,false);
+    f.finish({generation:1n});await pending;assert.equal(acknowledged,1);assert(f.ui.status().hasConfirmedSave);f.ui.cleanup();
+    const bad=fixture();let failed=0;bad.engine._voxy_cove_save_completed=()=>++failed;const load=api.resume(bad.engine,world,[],bad.environment);
+    await bad.until(()=>bad.calls.some(c=>c.name==='publish'));bad.fail(Error('disk'));await assert.rejects(load);assert.equal(failed,0);
+});
+test('save bridge rechecks current pause/practice state and restores previous callback on cleanup',async()=>{
+    const f=saveFixture();f.engine._voxy_get_salvage_preview_json=()=>JSON.stringify({world,ready:true,pause:{phase:'running'}});assert.equal(f.environment.voxyCoveSave(),false);
+    f.engine._voxy_get_salvage_preview_json=()=>JSON.stringify({world,ready:true,pause:{phase:'paused'},practice:{active:true}});assert.equal(f.environment.voxyCoveSave(),false);
+    assert.match(f.elements['salvage-save-status'].textContent,/Test mode cannot be saved/);assert(!f.calls.some(c=>c.name==='publish'));f.ui.cleanup();assert.equal(f.environment.voxyCoveSave,undefined);
+});
+test('history records at most 32 unique successful worlds with timestamps and never changes on failure',async()=>{
+    const f=saveFixture(),rows=Array.from({length:40},(_,i)=>({world:(i+100).toString(16).padStart(32,'0'),savedAt:1000+i}));f.metadata.set(historyKey,JSON.stringify(rows));
+    f.ready();const save=f.click();await f.until(()=>f.calls.some(c=>c.name==='publish'));assert.equal(JSON.parse(f.metadata.get(historyKey)).length,40);
+    f.finish({generation:1n});await save;const history=JSON.parse(f.metadata.get(historyKey));assert.equal(history.length,32);assert.equal(history[0].world,world);assert(Number.isSafeInteger(history[0].savedAt));f.ui.cleanup();
+    const failed=saveFixture();failed.metadata.set(historyKey,JSON.stringify(rows));failed.ready();const pending=failed.click();await failed.until(()=>failed.calls.some(c=>c.name==='publish'));failed.fail(Error('disk'));await pending;assert.equal(failed.metadata.get(historyKey),JSON.stringify(rows));failed.ui.cleanup();
+});
+test('history picker links only bounded valid same-origin world addresses',()=>{
+    const f=testDOM(),list=f.add('ul','cove-saved-list');f.environment.location={href:'https://example.test/game/index.html?redirect=bad#fragment'};
+    const rows=[{world,savedAt:1700000000000},{world,savedAt:1700000000001},{world:'javascript:bad',savedAt:1},{world:'0'.repeat(32),savedAt:1}];
+    f.environment.localStorage={getItem:()=>JSON.stringify(rows)};api.installHistory(f.environment);assert.equal(list.children.length,1);
+    const link=list.children[0].children[0];assert.match(link.textContent,/Cove/);const url=new URL(link.href);assert.equal(url.origin,'https://example.test');assert.equal(url.pathname,'/game/index.html');assert.equal(url.search,`?experience=salvage-cove&world=${world}`);assert.equal(url.hash,'');
+    f.environment.localStorage.getItem=()=>'{bad';api.installHistory(f.environment);assert.equal(list.querySelectorAll('a[href]').length,0);assert.match(list.children[0].textContent,/No saved expeditions/);
+});
+
+test('returned paused workshop and revoked admission cannot offer or request expedition Save',()=>{
+    for(const blocked of [{workshop:{open:true},practice:{active:false}},{session:{admissionOpen:false}}]){
+        const f=saveFixture(),state={world,ready:true,pause:{phase:'paused'},...blocked};f.engine._voxy_get_salvage_preview_json=()=>JSON.stringify(state);f.ui.tick(state);
+        assert(f.elements['salvage-save'].disabled);assert.equal(f.ui.status().canSave,false);assert.equal(f.environment.voxyCoveSave(),false);assert(!f.calls.some(c=>c.name==='publish'));
+        assert.match(f.ui.status().message,blocked.workshop?/Close the workshop/:/unavailable/);f.ui.cleanup();
+    }
 });

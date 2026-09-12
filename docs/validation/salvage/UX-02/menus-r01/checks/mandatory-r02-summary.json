@@ -1,0 +1,60 @@
+{
+  "status": "passed",
+  "command": "nix-shell --run 'bazel test //tests:voxy_tests //tools:terrain_diffusion_import_test --test_output=errors'",
+  "exitCode": 0,
+  "game": {
+    "registered": 2250,
+    "ran": 2246,
+    "passed": 2243,
+    "skipped": 3,
+    "disabled": 4,
+    "failures": 0,
+    "errors": 0,
+    "durationSeconds": 1122.712,
+    "skips": [
+      "WindowGLFWTest.WindowCreation",
+      "GpuBroadPhaseOverflowBenchmark.DenseGridCandidateClamp",
+      "RaycastPathGPUTest.LegoHorizonBenchmark"
+    ]
+  },
+  "terrain": {
+    "bazelStatus": "cached pass",
+    "ran": 11,
+    "passed": 10,
+    "skipped": 1,
+    "failures": 0,
+    "note": "Bazel XML wraps this unittest target as one testcase; individual counts come from the retained unittest log."
+  },
+  "artifacts": [
+    {
+      "path": "mandatory-r02.log.gz",
+      "bytes": 702,
+      "sha256": "83e35c7119bdd7dc49f6271356b3b8494415033e232884a00e99c2c021abc31b",
+      "uncompressedSha256": "06eb6b34b62ddac38d22127583a8b7a12070f0edfc9c5dee58aa7c55556eed5f"
+    },
+    {
+      "path": "mandatory-r02-tests.log.gz",
+      "bytes": 584885,
+      "sha256": "6cd83a4a23e906cf8f9fd0eec933ac2f001c13b43aed06ad036db0a2710e8b14",
+      "uncompressedSha256": "c24ea7f38ec36a88d173b23bcd133fed75b3a1e35be6022f3fcf15114e840b6d"
+    },
+    {
+      "path": "mandatory-r02.xml.gz",
+      "bytes": 70011,
+      "sha256": "01a1d0f340fcfda1c98d603b585a258c2588aac38383c01c081ac9a8f90646f4",
+      "uncompressedSha256": "2fd5fdee60848ac182a9083ecd93dd4a3fc5b297fcb88f8e24e67021a73e0d24"
+    },
+    {
+      "path": "terrain-import.log.gz",
+      "bytes": 346,
+      "sha256": "bc1f239b23e48b7a92c6c236c56e1fc6d4f8905653bf7959e1d948c296e2f9bb",
+      "uncompressedSha256": "3c174e28878fe0ab9382485a5b9ce08aeeb60c858a5d4fcf97fa6ddf7c49637b"
+    },
+    {
+      "path": "terrain-import.xml.gz",
+      "bytes": 538,
+      "sha256": "8b9db80cca6ff16fb6455a4196a33fd317fef377737c7ab1c2134f14a7b72aac",
+      "uncompressedSha256": "59d93441551ba3044a93b0a0ddd66a78af6a647392f7016f41a1767e4778771c"
+    }
+  ]
+}

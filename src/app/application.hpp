@@ -56,6 +56,7 @@ class CharacterController;
 struct WreckwaterApplicationClientState;
 struct SalvageLocalSessionState;
 struct CoveResumeSource;
+struct CoveUiState;
 
 namespace platform { class NativeWorkshopMenu; }
 
@@ -711,6 +712,15 @@ public:
     bool legoAction(int action);
     [[nodiscard]] std::string legoHudJson() const;
     bool salvagePreviewAction(int action);
+    std::string covePreferencesAction(int action,std::string_view text);
+    bool consumeCoveSaveRequest() noexcept;
+    void noteCoveSaveCompleted() noexcept;
+    void setCoveSavedWorlds(std::vector<std::pair<std::string,std::string>>,std::string current);
+    void setCoveHostBusy(bool busy) noexcept;
+    std::optional<std::string> consumeCoveWorldRequest();
+    bool completeCoveWorldPreparation();
+    bool coveWorldTransitionDrained() const noexcept;
+    void cancelCoveWorldPreparation(std::string message);
     std::string salvageBlueprintAction(int action,std::string_view text);
     [[nodiscard]] bool coveUiOwnsInput() const;
     // Trusted storage host API: 1 paused capture, 2 preflight, 3 recovered pair,
@@ -721,6 +731,7 @@ public:
     // Storage host only, before init. Caller exclusively owns the selected slot
     // and has retired its old session/backend. Copies bounded bytes; full content
     // admission occurs during init. No fallback to a new/free world on failure.
+    bool preflightCoveWorld(std::array<uint8_t,16>,std::span<const std::byte>,std::string&);
     bool stageCoveResume(std::array<uint8_t,16> world,std::span<const std::byte> archive);
     // Composition-root save feedback, independent of the storage worker.
     void setSalvageSaveStatus(std::string status);
@@ -760,6 +771,7 @@ private:
     bool initSalvagePreview();
     void resetSalvagePreviewView();
     void updateSalvagePreview(float frameDeltaTime);
+    [[nodiscard]] bool coveAssetsDraining() const noexcept;
     void encodeSalvageRetirement(WGPUCommandEncoder encoder);
     bool startMotoCircuit();
     bool initRenderGpuProfiling();
@@ -807,10 +819,16 @@ private:
 
     void processInput(float deltaTime);
     void updateCovePlayer(float deltaTime);
+    void updateCoveOnboarding();
     std::function<double(double,double,double)> coveGroundSupport(glm::dvec3 origin) const;
     void updateCoveCharacterView(float deltaTime);
     bool updateCoveBoat();
     void configureCoveLaunch();
+    bool covePracticeAction(int action);
+    bool covePracticeCanBegin() const;
+    bool covePracticeCanReturn() const;
+    bool updateCovePractice();
+    std::vector<std::byte> captureCoveCheckpoint(bool allowWorkshop);
     void updateMoto(float deltaTime);
     void advanceMotoRaceFixedStep(const moto::BikeState& state);
     void processThrowableInput(float deltaTime);
@@ -910,6 +928,8 @@ private:
     std::unique_ptr<SalvageLocalSessionState> salvageLocalSession_;
     std::string salvageSaveStatus_;
     std::unique_ptr<CoveResumeSource> coveResume_;
+    std::unique_ptr<CoveUiState> coveUi_;
+    bool landingMenuConsumed_=false;
     std::unique_ptr<game::expedition::SalvagePreview> salvagePreview_;
     physics::DebugReadbackRing salvageRetirementReadback_;
     app_detail::SalvageMetadataReadbackSource salvageMetadataSource_;

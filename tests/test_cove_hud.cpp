@@ -78,6 +78,56 @@ TEST(CoveHud, ImportFolderAndRefusalRemainReadableTogether) {
         }
     }
 }
+TEST(CoveHud, LargeTextNamingScrollsEveryLetterAndSelectedButtonWithoutShrinking) {
+    for(const auto size:std::array<glm::uvec2,2>{{{640,480},{960,540}}}) {
+        CoveHudContent content;content.title="Name the boat";content.textScale=1.5f;content.menu.emplace();
+        auto& menu=*content.menu;menu.title="Name this boat";menu.subtitle="Use the letter grid";
+        menu.status="Choose a letter";menu.naming=true;menu.name="BOAT";
+        menu.rows={{"Done",true},{"Backspace",true},{"Cancel",true}};
+        for(size_t key=0;key<40;++key)for(size_t selected=0;selected<3;++selected) {
+            menu.key=key;menu.selected=selected;
+            const auto layout=layoutCoveHud(content,size.x,size.y);
+            SCOPED_TRACE(::testing::Message()<<size.x<<"x"<<size.y<<" key="<<key<<" row="<<selected);
+            EXPECT_FALSE(layout.truncated);EXPECT_GE(layout.bodyPixels,30.f);EXPECT_LT(layout.count,CoveHudLayout::maximumQuads);
+            EXPECT_TRUE(std::any_of(layout.menuHits.begin(),layout.menuHits.end(),[&](const auto& hit){return hit.key==static_cast<int>(key);}));
+            EXPECT_TRUE(std::any_of(layout.menuHits.begin(),layout.menuHits.end(),[&](const auto& hit){return hit.row==static_cast<int>(selected);}));
+            for(size_t i=0;i<layout.count;++i) {
+                const auto& bounds=layout.quads[i].bounds;
+                EXPECT_GE(bounds.x,0);EXPECT_GE(bounds.y,0);EXPECT_LE(bounds.x+bounds.z,float(size.x));EXPECT_LE(bounds.y+bounds.w,float(size.y));
+            }
+        }
+    }
+}
+
+TEST(CoveHud, ActualControllerGuidanceTitleAndHintsWrapAtSupportedTextScales) {
+    CoveHudContent content{"Guide 1/7: Walk along the dock","Walk beside the boat","Material 48",
+        "First job: sunken generator",{"Left stick: Walk  B / Circle: Jump","D-pad Up: Accept job",
+        "View: Build  Y / Triangle: Camera  Menu: Menu"},CoveHudTone::Neutral};
+    content.rightAligned=true;
+    for(const float scale:std::array{1.f,1.25f,1.5f}) {
+        content.textScale=scale;const auto layout=layoutCoveHud(content,960,800);
+        EXPECT_FALSE(layout.truncated)<<scale;EXPECT_GE(layout.bodyPixels,20*scale);
+        EXPECT_GT(layout.count,154u);EXPECT_LT(layout.count,CoveHudLayout::maximumQuads);
+        EXPECT_LE(layout.panel.x+layout.panel.z,960.f);EXPECT_LE(layout.panel.y+layout.panel.w,800.f);
+    }
+}
+
+TEST(CoveHud, ActualGameAndAccessibilityMenusKeepLargeTextAndNavigationVisible) {
+    for(const std::string title:{"Expedition menu","Controls and accessibility"}) {
+        CoveHudContent content;content.title=title;content.textScale=1.5f;content.menu.emplace();
+        auto& menu=*content.menu;menu.title=title;menu.subtitle="Changes apply immediately";
+        menu.status="Preferences saved.";
+        menu.rows={{"Resume",true},{"Save expedition",true},{"Job board",true},{"Nearby map",true},
+            {"Inventory",true},{"Controls and accessibility",true},{"Text size: 150%",true},
+            {"High contrast: On",true},{"Winch: Press to start / stop",true},{"Remap controls",true},{"Back",true}};
+        for(size_t selected=0;selected<menu.rows.size();++selected) {
+            menu.selected=selected;const auto layout=layoutCoveHud(content,960,800);
+            EXPECT_FALSE(layout.truncated)<<title<<selected;EXPECT_EQ(layout.bodyPixels,30.f);
+            EXPECT_LT(layout.count,CoveHudLayout::maximumQuads);
+            EXPECT_TRUE(std::any_of(layout.menuHits.begin(),layout.menuHits.end(),[&](const auto& hit){return hit.row==static_cast<int>(selected);}));
+        }
+    }
+}
 
 TEST(CoveHud, OversizedTextAndTinyWindowsStayBoundedWithoutShrinking) {
     auto content=workshop();

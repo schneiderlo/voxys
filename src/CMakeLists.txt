@@ -23,6 +23,9 @@ set(GAME_SOURCES
     game/assets/cove_environment.cpp
     game/expedition/cove_environment_collision.cpp
     game/expedition/cove_effects.cpp
+    game/expedition/cove_onboarding.cpp
+    game/expedition/cove_test_session.cpp
+    game/expedition/cove_input_preferences.cpp
     game/assets/gameplay_sidecar.cpp
     game/expedition/game_session.cpp
     game/expedition/session_recovery.cpp
@@ -56,7 +59,8 @@ set(GAME_SOURCES
 )
 if(NOT EMSCRIPTEN)
     list(APPEND GAME_SOURCES engine/platform/native/save_store.cpp engine/platform/native/save_worker.cpp
-        engine/platform/native/design_library.cpp engine/platform/native/workshop_menu.cpp)
+        engine/platform/native/design_library.cpp engine/platform/native/workshop_menu.cpp
+        engine/platform/native/cove_preferences_store.cpp)
 endif()
 set(GAMEPLAY_SOURCES "")
 set(MOTO_SOURCES "")

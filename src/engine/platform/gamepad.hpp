@@ -22,7 +22,15 @@ struct GamepadSample {
 // rearming. Confirm never repeats; only navigation repeats, on a bounded clock.
 class GamepadInput {
 public:
+    // Changing a deadzone must not turn a previously neutral stick into motion.
+    [[nodiscard]] bool setDeadzones(float movement,float look) noexcept {
+        if(!std::isfinite(movement)||!std::isfinite(look)||movement<.05f||movement>.45f||look<.05f||look>.45f)return false;
+        if(movement!=deadzones_[0]||look!=deadzones_[1]) {deadzones_={movement,look};disarm();}
+        return true;
+    }
+    [[nodiscard]] uint64_t serial() const noexcept {return serial_;}
     void disarm() noexcept {
+        if(armed_)++serial_;
         armed_=false; axes_.fill(0); down_.fill(false); pressed_.fill(false);
         navigation_.fill(false); repeatAt_.fill(0);
     }
@@ -35,14 +43,16 @@ public:
             axis=std::clamp(axis,-1.f,1.f);
         }
         if(!sample.connected||!focused||!std::isfinite(seconds)) { disarm();return; }
-        if(changed)disarm();
+        if(changed){++serial_;disarm();}
         bool neutral=true;
-        for(float axis:sample.axes)neutral=neutral&&std::abs(axis)<=.2f;
+        for(size_t i=0;i<sample.axes.size();i+=2)
+            neutral=neutral&&std::hypot(sample.axes[i],sample.axes[i+1])<=deadzones_[i/2];
         for(bool button:sample.buttons)neutral=neutral&&!button;
         if(!armed_) { if(neutral)armed_=true;return; }
         for(size_t i=0;i<axes_.size();i+=2) {
             const float length=std::hypot(sample.axes[i],sample.axes[i+1]);
-            const float gain=length>.2f?(std::min(length,1.f)-.2f)/(.8f*length):0.f;
+            const float deadzone=deadzones_[i/2];
+            const float gain=length>deadzone?(std::min(length,1.f)-deadzone)/((1.f-deadzone)*length):0.f;
             axes_[i]=sample.axes[i]*gain; axes_[i+1]=sample.axes[i+1]*gain;
         }
         for(size_t i=0;i<down_.size();++i) {
@@ -65,6 +75,8 @@ public:
     [[nodiscard]] bool navigation(size_t i) const noexcept {return i<navigation_.size()&&navigation_[i];}
 private:
     int device_=-1;
+    uint64_t serial_=0;
+    std::array<float,2> deadzones_{.2f,.2f};
     bool connected_=false,armed_=false;
     std::array<float,4> axes_{};
     std::array<bool,17> down_{},pressed_{};

@@ -37,6 +37,7 @@
         const controllerMenu=cove?environment.VoxyControllerMenu?.install(environment,panel):null;
         const designLibrary=environment.VoxyDesignLibrary?.install(engine,environment,controllerMenu);
         const expeditionSaves=environment.VoxyCoveSaves?.install(engine,environment);
+        const coveMenu=environment.VoxyCoveMenu?.install(engine,environment,controllerMenu,expeditionSaves);
         const jobPanel=document.getElementById('salvage-job');
         const jobStatus=document.getElementById('salvage-job-status');
         const jobButtons=['salvage-job-accept','salvage-job-deliver'].map(id=>document.getElementById(id));
@@ -60,12 +61,14 @@
         const inspectionButtons = [...lodButtons, ...guideButtons];
         let stopped = false, pending = null, resetCount = 0, requestedReset = 0, hasRescue = false;
         let pausePhase='running',brickToolActive=false;
+        let leaveConfirming=false;
         let timer;
         const cleanup = () => {
             if (stopped) return;
             blurHarbor();
             stopped = true;
             designLibrary?.cleanup();
+            coveMenu?.cleanup();
             controllerMenu?.cleanup();
             expeditionSaves?.cleanup();
             environment.clearInterval(timer);
@@ -131,8 +134,24 @@
                 status.textContent = hasRescue?'Recovering your boat and fitted parts…':'Resetting the cove…';
             }
         };
-        const onLeave = () => {
-            if (pending === 'leave' || leave.disabled) return;
+        const onLeave = async () => {
+            if (pending === 'leave' || leave.disabled || leaveConfirming) return;
+            if(cove&&controllerMenu?.confirm){
+                let before;try{before=JSON.parse(engine.UTF8ToString(engine._voxy_get_salvage_preview_json()));}catch{return;}
+                // Revoked admission already prevents progress; its existing
+                // Leave action must remain an escape even when UI ownership
+                // can no longer open a confirmation modal.
+                if(before.session?.admissionOpen!==false){
+                    const saved=expeditionSaves?.status?.();leaveConfirming=true;
+                    const accepted=await controllerMenu.confirm({title:'Leave the Cove?',confirmLabel:'Leave without saving',
+                        message:before.practice?.active?'Leaving discards this temporary test. Return to the workshop first to recover your draft. Your saved expedition stays unchanged.':(saved?.hasConfirmedSave?'Your last confirmed checkpoint remains available. ':'No checkpoint has been confirmed. ')
+                            +'Leaving does not save. Cancel, pause and choose Save checkpoint to keep your latest progress.'});
+                    leaveConfirming=false;if(stopped||!accepted)return;
+                    let after;try{after=JSON.parse(engine.UTF8ToString(engine._voxy_get_salvage_preview_json()));}catch{return;}
+                    if(before.world!==after.world||before.observation?.incarnation!==after.observation?.incarnation)return;
+                    tick();if(leave.disabled||pending)return;
+                }
+            }
             if (act(2)) {
                 pending = 'leave';
                 reset.disabled = leave.disabled = true;
@@ -188,12 +207,13 @@
         const openCameraMenu=()=>{
             tick();
             if(stopped||!cameraAvailable)return false;
-            const expanded=moreControls?.open;
+            const expanded=moreControls?.open,previousPage=coveMenu?.page();
+            coveMenu?.reveal('settings');
             if(moreControls)moreControls.open=true;
             const opened=Boolean(controllerMenu?.openSection(cameraPanel));
             // A modal may already own focus. Do not expand the panel on a
             // refused handoff or change that owner's focus.
-            if(!opened&&moreControls)moreControls.open=Boolean(expanded);
+            if(!opened){if(moreControls)moreControls.open=Boolean(expanded);if(previousPage)coveMenu?.reveal(previousPage);}
             return opened;
         };
         const onWorkshop=()=>{if(!pending && workshopToggle && !workshopToggle.disabled && act(60))tick();};
@@ -225,6 +245,7 @@
             if(state.session?.admissionOpen===false&&pending!=='leave')
                 return show('unavailable','Expedition unavailable','Check save status below. Reload to continue.');
             if(pending)return show('waiting','Please wait',pending==='leave'?'Leaving the Cove…':pending==='rescue'?'Recovering your boat…':'Preparing the Cove…');
+            if(state.practice?.active)return show('practice','Free boat test',state.practice.message||'No cost or rewards. Return restores your original boat and workshop.',state.practice.canReturn?document.getElementById('cove-practice-return'):null);
             if(state.rescue?.pending)return show('recovering','Recovering your boat','Progress stays paused until the recovery is saved.');
             if(lift?.pending)return show('powering','Saving harbor power','Wait for the harbor installation and save to finish.');
             if(job?.pending)return show('securing','Updating your recovery','Wait for the current job action to finish.');
@@ -264,6 +285,7 @@
             if(stopped||objectivePanel.hidden||!current||current.step!==requested.step
                 ||current.target!==requested.target||!available(current.target,current.owner))return;
             if(current.drawer){
+                coveMenu?.reveal('tools');
                 if(moreControls)moreControls.open=true;
                 current.drawer.open=true;current.target.focus();
             }
@@ -501,7 +523,7 @@
             if(pending==='rescue'&&state.rescue?.phase==='idle')pending=null;
             if (pending === 'reset' && state.ready && resetCount > requestedReset) pending = null;
             if(state.rescue?.pending)leave.disabled=true;
-            if (pending) return;
+            if (pending) {coveMenu?.tick(state);return;}
             reset.disabled = paused || !state.ready || Boolean(state.job?.pending);
             leave.disabled = !state.active || Boolean(state.job?.savePending)||Boolean(state.harbor?.pending)||Boolean(state.rescue?.pending);
             status.textContent = state.rescue?.pending ? 'Recovering your boat. Resume unlocks after saving.' : state.harbor?.pending ? 'Installing the harbor lift. Resume unlocks after saving.' : state.job?.savePending ? 'Your haul is being saved. Resume unlocks after confirmation.'
@@ -518,6 +540,8 @@
                         : 'Inspect the connected parts from every side.')
                     : 'Inspect the shape, sockets and surface.')
                 : (state.busy ? 'Resetting the cove…' : 'Explore the dock and wreck.');
+            coveMenu?.tick(state);
+            if(coveMenu)updateObjective(state);
         };
         reset.addEventListener('click', onReset);
         pause?.addEventListener('click',onPause);

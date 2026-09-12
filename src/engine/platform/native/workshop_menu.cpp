@@ -6,8 +6,8 @@
 namespace voxy::platform {
 using namespace game::expedition;
 
-NativeWorkshopMenu::NativeWorkshopMenu(std::filesystem::path root, Action action, Blueprint blueprint)
-    : action_(std::move(action)), blueprint_(std::move(blueprint)),
+NativeWorkshopMenu::NativeWorkshopMenu(std::filesystem::path root, Action action, Blueprint blueprint, Preferences preferences)
+    : action_(std::move(action)), blueprint_(std::move(blueprint)),preferences_(std::move(preferences)),
       library_(std::move(root), [this](std::span<const std::byte> bytes) {
           return blueprint_ && blueprint_(3, designBlueprintHex(bytes)) == "ok";
       }) {}
@@ -17,8 +17,12 @@ void NativeWorkshopMenu::page(Page value) {
     status_.clear();
 }
 void NativeWorkshopMenu::open() { page(Page::Main); }
-void NativeWorkshopMenu::openCamera() { page(Page::PlayerCamera); }
+void NativeWorkshopMenu::openCamera() {cameraReturn_=Page::Closed;page(Page::PlayerCamera);}
+void NativeWorkshopMenu::openGame() {page(Page::Game);}
+void NativeWorkshopMenu::openJob() {page(Page::Job);}
+void NativeWorkshopMenu::openHelp() {helpReturn_=Page::Game;page(Page::Help);}
 void NativeWorkshopMenu::dismiss() { page(Page::Closed); }
+bool NativeWorkshopMenu::generalPage() const noexcept {return page_>=Page::Game;}
 std::string_view NativeWorkshopMenu::pageName() const noexcept {
     switch (page_) {
     case Page::Closed: return "closed";
@@ -35,6 +39,20 @@ std::string_view NativeWorkshopMenu::pageName() const noexcept {
     case Page::Imports: return "imports";
     case Page::Naming: return "naming";
     case Page::Remove: return "remove";
+    case Page::Game:return "game";
+    case Page::Job:return "job";
+    case Page::Map:return "map";
+    case Page::Inventory:return "inventory";
+    case Page::Accessibility:return "accessibility";
+    case Page::Bindings:return "bindings";
+    case Page::Binding:return "binding";
+    case Page::CaptureKey:return "capture-key";
+    case Page::ChooseKey:return "choose-key";
+    case Page::ChoosePad:return "choose-pad";
+    case Page::Help:return "help";
+    case Page::Title:return "title";
+    case Page::Worlds:return "worlds";
+    case Page::Confirm:return "confirm";
     }
     return "closed";
 }
@@ -56,6 +74,15 @@ void NativeWorkshopMenu::rebuild(const Facts& facts) {
     const auto submenu = [&](std::string label, Page destination, bool available = true) {
         choices_.push_back({{std::move(label), available}, -1, destination, 0, 0});
     };
+    const auto gameAction=[&](std::string label,int id,bool available=true) {
+        choices_.push_back({{std::move(label),facts.gameAvailable&&available},id,Page::Closed,0,0});
+    };
+    const auto information=[&](const std::vector<std::string>& lines) {
+        for(size_t i=0;i<std::min(lines.size(),size_t(64));++i)
+            choices_.push_back({{lines[i],false},-1,Page::Closed,0,0});
+    };
+    static const CoveInputPreferences defaults;
+    const auto& prefs=facts.preferences?*facts.preferences:defaults;
     switch (page_) {
     case Page::Closed: content_ = {}; return;
     case Page::Main:
@@ -72,6 +99,9 @@ void NativeWorkshopMenu::rebuild(const Facts& facts) {
         add("Cancel change", 73); add("Stop brick tool", 96, facts.brushActive);
         add("Launch boat", 79, facts.canLaunch);
         add("Undo launch", 80, facts.canUndoLaunch); add("Redo launch", 81, facts.canRedoLaunch);
+        add("Test sail (temporary copy)",340,facts.testAvailable&&!facts.testBusy);
+        submenu("Controls and accessibility",Page::Accessibility,bool(preferences_));
+        submenu("Help",Page::Help);
         submenu("Back to building", Page::Closed);
         break;
     case Page::Selection:
@@ -130,7 +160,9 @@ void NativeWorkshopMenu::rebuild(const Facts& facts) {
             &&facts.cameraDistance>=1.5&&facts.cameraDistance<=12.;
         cameraAction("Move camera closer",324,validDistance&&facts.cameraDistance>1.5);
         cameraAction("Move camera farther",325,validDistance&&facts.cameraDistance<12.);
-        submenu("Back to game",Page::Closed);
+        submenu("Controls and accessibility",Page::Accessibility,bool(preferences_));
+        submenu("Help",Page::Help);
+        submenu(cameraReturn_==Page::Game?"Back":"Back to game",cameraReturn_);
         break;
     }
     case Page::Library:
@@ -171,6 +203,110 @@ void NativeWorkshopMenu::rebuild(const Facts& facts) {
         content_.status = "The saved design and its backup will be removed.";
         add("Remove design and backup", -23, libraryReady && chosen() && chosen()->revision == selectedRevision_);
         submenu("Cancel", Page::Design); break;
+    case Page::Game:
+        content_.title=facts.testActive?"Test sail":"Expedition menu";
+        content_.subtitle=facts.pausePending?"Waiting for movement to stop":facts.paused?"Paused":"Game controls";
+        content_.status=status_.empty()?(facts.testActive?facts.practiceMessage:facts.saveMessage):status_;
+        gameAction("Resume",91,facts.canResume&&!facts.pausePending);
+        gameAction("Save expedition",350,facts.canSave&&!facts.testActive);
+        submenu("Job board",Page::Job);submenu("Nearby map",Page::Map);submenu("Inventory",Page::Inventory);
+        gameAction(facts.workshopOpen?"Return to building":facts.paused?"Resume and open workshop":"Open workshop",-53,
+            !facts.pending&&!facts.testActive&&!facts.pausePending&&(!facts.paused||facts.canResume));
+        submenu("Camera",Page::PlayerCamera,facts.cameraAvailable);
+        submenu("Controls and accessibility",Page::Accessibility,bool(preferences_));submenu("Help",Page::Help);
+        gameAction("Return from test sail",341,facts.testActive&&facts.canReturnTest&&!facts.testBusy);
+        gameAction("Rescue to dock",1,facts.canRescue&&!facts.testActive);
+        submenu("Expeditions",Page::Title,facts.canChangeWorld);
+        gameAction("Quit game...",-50,facts.canQuit);break;
+    case Page::Job:
+        content_.title=facts.jobTitle.empty()?"Job board":facts.jobTitle;content_.subtitle=facts.jobText;content_.status=status_;
+        if(facts.paused)gameAction("Resume expedition",91,facts.canResume&&!facts.pausePending);
+        gameAction(facts.jobActionLabel.empty()?"Continue job":facts.jobActionLabel,facts.jobAction,facts.jobActionEnabled&&facts.jobAction>0);
+        submenu("Help",Page::Help);submenu("Back",Page::Game);break;
+    case Page::Map:
+        content_.title="Nearby map";content_.subtitle="Distances from your robot";content_.status=status_;
+        information(facts.mapLines);submenu("Back",Page::Game);break;
+    case Page::Inventory:
+        content_.title="Inventory";content_.subtitle="Owned parts and material";content_.status=status_;
+        information(facts.inventoryLines);submenu("Back",Page::Game);break;
+    case Page::Accessibility: {
+        content_.title="Controls and accessibility";content_.subtitle="Changes apply immediately";
+        content_.status=status_.empty()?facts.preferencesMessage:status_;
+        const auto option=[&](std::string label,int command){choices_.push_back({{std::move(label),bool(preferences_)},command,Page::Closed,0,0});};
+        option("Text size: "+std::to_string(static_cast<int>(prefs.textScale*100))+"%",-100);
+        option(prefs.highContrast?"High contrast: On":"High contrast: Off",-101);
+        option(prefs.tutorialsEnabled?"Guidance: On":"Guidance: Off",-102);
+        option(prefs.captionsEnabled?"Captions: On":"Captions: Off",-103);
+        option("Mouse speed: "+std::to_string(static_cast<int>(prefs.mouseSensitivity*100))+"%",-104);
+        option("Stick speed: "+std::to_string(static_cast<int>(prefs.padSensitivity*100))+"%",-105);
+        option("Move deadzone: "+std::to_string(static_cast<int>(std::lround(prefs.moveDeadzone*100)))+"%",-106);
+        option("Look deadzone: "+std::to_string(static_cast<int>(std::lround(prefs.lookDeadzone*100)))+"%",-107);
+        option(prefs.invertX?"Invert camera X: On":"Invert camera X: Off",-108);
+        option(prefs.invertY?"Invert camera Y: On":"Invert camera Y: Off",-109);
+        option(prefs.reelToggle?"Winch: Press to start / stop":"Winch: Hold to run",-110);
+        option(prefs.orbitToggle?"Mouse orbit: Press to start / stop":"Mouse orbit: Hold to turn",-111);
+        submenu("Remap controls",Page::Bindings,bool(preferences_));
+        choices_.push_back({{"Language: English",false},-1,Page::Closed,0,0});
+        option("Restore default controls...",-112);submenu("Back",settingsReturn_);break;
+    }
+    case Page::Bindings:
+        content_.title="Remap controls";content_.subtitle="Escape and menu navigation stay available";
+        content_.status=status_;
+        for(const auto& info:coveActionList()) {
+            const auto& b=prefs.bindings[static_cast<size_t>(info.action)];
+            choices_.push_back({{std::string(info.label)+": "+coveKeyLabel(b.key,b.modifiers),bool(preferences_)},
+                -4000-static_cast<int>(info.action),Page::Closed,0,0});
+        }
+        submenu("Back",Page::Accessibility);break;
+    case Page::Binding:
+        content_.title=std::string(coveActionList()[static_cast<size_t>(bindingAction_)].label);
+        content_.subtitle="Change choices, then Apply";content_.status=status_;
+        choices_.push_back({{"Primary: "+coveKeyLabel(bindingDraft_.key,bindingDraft_.modifiers),true},-120,Page::Closed,0,0});
+        choices_.push_back({{"Alternate: "+coveKeyLabel(bindingDraft_.alternate,bindingDraft_.alternateModifiers),true},-121,Page::Closed,0,0});
+        choices_.push_back({{"Primary modifiers: "+coveKeyLabel(32,bindingDraft_.modifiers),true},-127,Page::Closed,0,0});
+        choices_.push_back({{"Alternate modifiers: "+coveKeyLabel(32,bindingDraft_.alternateModifiers),true},-128,Page::Closed,0,0});
+        submenu("Controller: "+covePadLabel(bindingDraft_.pad),Page::ChoosePad);
+        choices_.push_back({{"Clear primary key",true},-122,Page::Closed,0,0});
+        choices_.push_back({{"Clear alternate key",true},-123,Page::Closed,0,0});
+        choices_.push_back({{"Apply binding",bool(preferences_)},-124,Page::Closed,0,0});
+        choices_.push_back({{"Restore this control",bool(preferences_)},-125,Page::Closed,0,0});
+        submenu("Back",Page::Bindings);break;
+    case Page::CaptureKey:
+        content_.title="Press the new key";content_.subtitle="Hold Ctrl, Shift or Alt for a shortcut";content_.status=status_;
+        submenu("Choose from key list",Page::ChooseKey);submenu("Cancel",Page::Binding);break;
+    case Page::ChooseKey:
+        content_.title="Choose a key";content_.subtitle="Controller-friendly key list";content_.status=status_;
+        for(int key=32;key<=301;++key) {
+            if(!(key==32||(key>=48&&key<=57)||(key>=65&&key<=90)||(key>=257&&key<=265)||(key>=290&&key<=301))||key==298)continue;
+            choices_.push_back({{coveKeyLabel(key),true},-3000-key,Page::Closed,0,0});
+        }
+        choices_.push_back({{"Cycle modifiers",true},-126,Page::Closed,0,0});submenu("Back",Page::Binding);break;
+    case Page::ChoosePad:
+        content_.title="Choose controller button";content_.subtitle="Menu navigation always keeps its standard buttons";content_.status=status_;
+        for(int button=-1;button<16;++button)choices_.push_back({{covePadLabel(button),
+            button!=9||bindingAction_==CoveAction::Pause||bindingAction_==CoveAction::ToolsMenu},-3500-(button+1),Page::Closed,0,0});
+        submenu("Back",Page::Binding);break;
+    case Page::Help:
+        content_.title=facts.tutorialTitle.empty()?"Quick help":facts.tutorialTitle;
+        content_.subtitle=facts.tutorialText;content_.status=status_;
+        information(facts.helpLines);
+        gameAction(facts.tutorialActionLabel.empty()?"Next action":facts.tutorialActionLabel,facts.tutorialAction,
+            !facts.tutorialComplete&&facts.tutorialAction>0&&!facts.pending);
+        gameAction("Restart guidance",352);submenu("Back",helpReturn_);break;
+    case Page::Title:
+        content_.title="Expeditions";content_.subtitle="Leaving keeps only confirmed saves";content_.status=status_;
+        gameAction("New expedition...",-51,facts.canChangeWorld);submenu("Load saved Cove",Page::Worlds,facts.canChangeWorld&&!facts.worldNames.empty());
+        submenu("Controls and accessibility",Page::Accessibility,bool(preferences_));submenu("Help",Page::Help);submenu("Back",Page::Game);break;
+    case Page::Worlds:
+        content_.title="Load saved Cove";content_.subtitle="Choose a confirmed saved world";content_.status=status_;
+        for(size_t i=0;i<std::min(facts.worldNames.size(),size_t(64));++i)gameAction(facts.worldNames[i],-5000-static_cast<int>(i),facts.canChangeWorld);
+        submenu("Back",Page::Title);break;
+    case Page::Confirm:
+        content_.title=confirmedAction_==354?"Quit this game?":confirmedAction_==360?"Start a new expedition?":confirmedAction_== -112?"Restore all controls?":"Load this saved Cove?";
+        content_.subtitle=confirmedAction_== -112?"Your custom bindings will be replaced":"Only confirmed saves will be kept";
+        content_.status=status_;
+        choices_.push_back({{"Cancel",true},-1,confirmReturn_,0,0});
+        choices_.push_back({{"Confirm",confirmedAction_== -112?bool(preferences_):facts.gameAvailable&&(confirmedAction_==354?facts.canQuit:facts.canChangeWorld)},-52,Page::Closed,0,0});break;
     }
     content_.rows.clear(); content_.rows.reserve(choices_.size());
     for (const auto& choice : choices_) content_.rows.push_back(choice.row);
@@ -213,17 +349,81 @@ void NativeWorkshopMenu::finishName() {
 void NativeWorkshopMenu::back() {
     switch (page_) {
     case Page::Closed: break;
-    case Page::Main: case Page::PlayerCamera: dismiss(); break;
+    case Page::Main:dismiss();break;
+    case Page::PlayerCamera:page(cameraReturn_);break;
     case Page::Naming: page(namingReturn_); break;
     case Page::Design: case Page::Imports: page(Page::Library); break;
     case Page::Remove: page(Page::Design); break;
+    case Page::Game:dismiss();break;
+    case Page::Job:case Page::Map:case Page::Inventory:case Page::Title:page(Page::Game);break;
+    case Page::Accessibility:page(settingsReturn_);break;
+    case Page::Bindings:page(Page::Accessibility);break;
+    case Page::Binding:page(Page::Bindings);break;
+    case Page::CaptureKey:case Page::ChooseKey:case Page::ChoosePad:page(Page::Binding);break;
+    case Page::Help:page(helpReturn_);break;
+    case Page::Worlds:page(Page::Title);break;
+    case Page::Confirm:page(confirmReturn_);break;
     default: page(Page::Main); break;
     }
+}
+void NativeWorkshopMenu::closeGame(const Facts& facts) {
+    if(facts.pausePending){status_="Waiting for movement to stop.";return;}
+    if(!facts.paused){dismiss();return;}
+    if(facts.canResume&&action_&&action_(91))dismiss();
+}
+void NativeWorkshopMenu::applyPreferences(const CoveInputPreferences& preferences) {
+    std::string text,error;
+    if(!encodeCoveInputPreferences(preferences,text,error)){status_=error;return;}
+    if(!preferences_){status_="Settings are unavailable.";return;}
+    const auto result=preferences_(2,text);status_=result=="ok"?"":result;
+}
+void NativeWorkshopMenu::updatePreference(int command,const Facts& facts) {
+    auto candidate=facts.preferences?*facts.preferences:CoveInputPreferences{};
+    const auto speed=[](double value){return value>=3? .25:value+.25;};
+    const auto zone=[](double value){const auto step=std::lround(value*20);return step>=9?.05:double(step+1)/20;};
+    switch(command) {
+    case -100:candidate.textScale=candidate.textScale==1?1.25:candidate.textScale==1.25?1.5:1;break;
+    case -101:candidate.highContrast=!candidate.highContrast;break;
+    case -102:candidate.tutorialsEnabled=!candidate.tutorialsEnabled;break;
+    case -103:candidate.captionsEnabled=!candidate.captionsEnabled;break;
+    case -104:candidate.mouseSensitivity=speed(candidate.mouseSensitivity);break;
+    case -105:candidate.padSensitivity=speed(candidate.padSensitivity);break;
+    case -106:candidate.moveDeadzone=zone(candidate.moveDeadzone);break;
+    case -107:candidate.lookDeadzone=zone(candidate.lookDeadzone);break;
+    case -108:candidate.invertX=!candidate.invertX;break;
+    case -109:candidate.invertY=!candidate.invertY;break;
+    case -110:candidate.reelToggle=!candidate.reelToggle;break;
+    case -111:candidate.orbitToggle=!candidate.orbitToggle;break;
+    default:return;
+    }
+    applyPreferences(candidate);
 }
 void NativeWorkshopMenu::activate(size_t index, const Facts& facts) {
     if (index >= choices_.size() || !choices_[index].row.enabled) return;
     const auto choice = choices_[index];
+    if(choice.action<=-5000) {
+        const auto world=static_cast<size_t>(-5000-choice.action);
+        if(world>=facts.worldNames.size()||world>=64||!facts.canChangeWorld)return;
+        confirmReturn_=Page::Worlds;confirmedAction_=4000+static_cast<int>(world);page(Page::Confirm);return;
+    }
+    if(choice.action<=-4000) {
+        const auto id=static_cast<size_t>(-4000-choice.action);if(id>=kCoveActionCount)return;
+        bindingAction_=static_cast<CoveAction>(id);
+        bindingDraft_=facts.preferences?facts.preferences->bindings[id]:CoveInputPreferences{}.bindings[id];
+        page(Page::Binding);return;
+    }
+    if(choice.action<=-3500) {
+        bindingDraft_.pad=-3500-choice.action-1;page(Page::Binding);return;
+    }
+    if(choice.action<=-3000) {
+        const int key=-3000-choice.action;
+        if(alternateKey_)bindingDraft_.alternate=key;else bindingDraft_.key=key;
+        page(Page::Binding);return;
+    }
     if (choice.action == -1) {
+        if(choice.page==Page::Accessibility)settingsReturn_=page_;
+        if(choice.page==Page::Help)helpReturn_=page_;
+        if(choice.page==Page::PlayerCamera)cameraReturn_=page_;
         if (choice.page == Page::Library && !libraryOpened_) { libraryOpened_ = true; (void)library_.open(); }
         if (choice.page == Page::Imports) (void)library_.refreshImports();
         if (choice.page == Page::Design && choice.id) { selectedId_ = choice.id; selectedRevision_ = choice.revision; }
@@ -247,6 +447,33 @@ void NativeWorkshopMenu::activate(size_t index, const Facts& facts) {
         status_.clear(); return;
     }
     switch (choice.action) {
+    case -50:confirmedAction_=354;confirmReturn_=Page::Game;page(Page::Confirm);return;
+    case -51:confirmedAction_=360;confirmReturn_=Page::Title;page(Page::Confirm);return;
+    case -52:
+        if(confirmedAction_== -112){page(Page::Accessibility);applyPreferences(CoveInputPreferences{});return;}
+        if(action_&&action_(confirmedAction_))dismiss();
+        return;
+    case -53:
+        if(facts.paused&&(!facts.canResume||!action_||!action_(91)))return;
+        if(facts.workshopOpen){dismiss();return;}
+        if(action_&&action_(60))dismiss();
+        return;
+    case -112:confirmedAction_= -112;confirmReturn_=Page::Accessibility;page(Page::Confirm);return;
+    case -120:alternateKey_=false;page(Page::CaptureKey);return;
+    case -121:alternateKey_=true;page(Page::CaptureKey);return;
+    case -122:bindingDraft_.key=0;bindingDraft_.modifiers=0;return;
+    case -123:bindingDraft_.alternate=0;bindingDraft_.alternateModifiers=0;return;
+    case -124: {
+        auto prefs=facts.preferences?*facts.preferences:CoveInputPreferences{};std::string error;
+        if(!rebindCoveAction(prefs,bindingAction_,bindingDraft_,error)){status_=error;return;}
+        applyPreferences(prefs);return;
+    }
+    case -125:bindingDraft_=coveActionList()[static_cast<size_t>(bindingAction_)].defaults;return;
+    case -126:case -127:case -128: {
+        const bool alternate=choice.action== -128||(choice.action== -126&&alternateKey_);
+        auto& modifiers=alternate?bindingDraft_.alternateModifiers:bindingDraft_.modifiers;
+        modifiers=static_cast<uint8_t>((modifiers+1)%8);return;
+    }
     case -10: name(Naming::SaveNew); return;
     case -11: name(Naming::Update, chosen() ? chosen()->name : ""); return;
     case -12: name(Naming::Duplicate); return;
@@ -266,13 +493,16 @@ void NativeWorkshopMenu::activate(size_t index, const Facts& facts) {
     case -32: back(); return;
     default: break;
     }
+    if(choice.action>=-111&&choice.action<=-100){updatePreference(choice.action,facts);return;}
+    const bool resumeJob=page_==Page::Job&&choice.action==91;
     if (action_ && action_(choice.action)) {
         status_.clear();
-        if (choice.action == 79 || choice.action == 80 || choice.action == 81) dismiss();
+        if (choice.action == 79 || choice.action == 80 || choice.action == 81||(choice.action==91&&!resumeJob)||choice.action==340||choice.action==341||choice.action==60) dismiss();
     } else {
         // The authoritative action updates facts.message on the next host
         // snapshot. Do not cover that concrete refusal with generic UI text.
-        status_.clear();
+        if(resumeJob)status_="The expedition could not resume yet.";
+        else status_.clear();
     }
 }
 bool NativeWorkshopMenu::tick(Input& input, const Facts& facts, uint32_t width, uint32_t height, glm::vec2 pointerScale) {
@@ -288,20 +518,56 @@ bool NativeWorkshopMenu::tick(Input& input, const Facts& facts, uint32_t width, 
     // A mode/ownership handoff closes the old modal and consumes this entire
     // frame. Its old selected action cannot execute in the new context.
     if (active() && ((playerCamera&&(!facts.cameraAvailable||facts.workshopOpen))
-        ||(!playerCamera&&!facts.workshopOpen))) {
+        ||(!playerCamera&&!generalPage()&&!facts.workshopOpen)
+        ||(generalPage()&&!facts.gameAvailable&&!facts.workshopOpen))) {
         dismiss();rebuild(facts);return true;
     }
-    if (!facts.workshopOpen&&!facts.cameraAvailable)return wasActive;
+    if (!facts.workshopOpen&&!facts.cameraAvailable&&!facts.gameAvailable)return wasActive;
     if (!input.focused()) return active();
     const auto& pad = input.gamepad();
-    if (input.wasKeyPressed(Key::F2)
-        || (facts.workshopOpen?pad.pressed(PadButton::Menu):pad.pressed(PadButton::Alternate))) {
+    static const CoveInputPreferences defaults;
+    const auto& prefs=facts.preferences?*facts.preferences:defaults;
+    const auto bindingPressed=[&](CoveAction action) {
+        const auto& binding=prefs.bindings[static_cast<size_t>(action)];
+        const auto key=[&](int code,uint8_t modifiers) {return code>0&&code<512&&input.wasKeyPressed(static_cast<Key>(code))
+            &&input.keyPressModifiers(static_cast<Key>(code))==modifiers;};
+        return key(binding.key,binding.modifiers)||key(binding.alternate,binding.alternateModifiers)
+            ||(binding.pad>=0&&binding.pad<17&&pad.pressed(static_cast<PadButton>(binding.pad)));
+    };
+    const bool capturing=page_==Page::CaptureKey||page_==Page::ChooseKey||page_==Page::ChoosePad||page_==Page::Binding||page_==Page::Naming;
+    if((!facts.workshopOpen||facts.paused)&&facts.gameAvailable&&!capturing
+        &&(bindingPressed(CoveAction::Pause)||pad.pressed(PadButton::Menu)||(!active()&&input.wasKeyPressed(Key::Escape)))) {
+        if(page_==Page::Game)closeGame(facts);
+        else {
+            if(!facts.paused&&!facts.pausePending&&action_)(void)action_(90);
+            openGame();
+        }
+        rebuild(facts);return true;
+    }
+    if (!capturing&&(input.wasKeyPressed(Key::F2)
+        ||bindingPressed(facts.workshopOpen?CoveAction::ToolsMenu:CoveAction::CameraMenu))) {
         if (active()) dismiss(); else if(facts.workshopOpen)open();else openCamera();
         rebuild(facts); return true;
     }
     if (!active()) return false;
     rebuild(facts);
-    if (input.wasKeyPressed(Key::Escape) || pad.pressed(PadButton::Back)) { back(); rebuild(facts); return true; }
+    if (input.wasKeyPressed(Key::Escape) || pad.pressed(PadButton::Back)) {
+        if(page_==Page::Game)closeGame(facts);else back();
+        rebuild(facts);return true;
+    }
+    if(!facts.workshopOpen&&!capturing&&bindingPressed(CoveAction::Save)) {
+        if(facts.canSave&&!facts.testActive&&action_)(void)action_(350);
+        rebuild(facts);return true;
+    }
+    if(page_==Page::CaptureKey) {
+        // Enter/standard Confirm navigates to the controller-friendly picker.
+        // Other physical key edges capture their event-time modifiers exactly.
+        for(int key=32;key<=301;++key)if(key!=256&&key!=257&&input.wasKeyPressed(static_cast<Key>(key))) {
+            if(alternateKey_){bindingDraft_.alternate=key;bindingDraft_.alternateModifiers=input.keyPressModifiers(static_cast<Key>(key));}
+            else {bindingDraft_.key=key;bindingDraft_.modifiers=input.keyPressModifiers(static_cast<Key>(key));}
+            page(Page::Binding);rebuild(facts);return true;
+        }
+    }
     if (page_ == Page::Naming && !facts.pending && !library_.busy()) {
         const bool control = input.isKeyDown(Key::LeftControl) || input.isKeyDown(Key::RightControl);
         if (control && input.wasKeyPressed(Key::A)) replaceName_ = true;
@@ -330,6 +596,7 @@ bool NativeWorkshopMenu::tick(Input& input, const Facts& facts, uint32_t width, 
     bool clickedKey = false;
     if (input.wasMouseButtonPressed(MouseButton::Left)) {
         render::CoveHudContent content; content.menu = content_; content.title = content_.title;
+        content.textScale=static_cast<float>(prefs.textScale);content.highContrast=prefs.highContrast;
         const auto layout = render::layoutCoveHud(content, width, height);
         const auto pointer = input.mousePosition() * pointerScale;
         for (const auto& hit : layout.menuHits) {
@@ -340,7 +607,7 @@ bool NativeWorkshopMenu::tick(Input& input, const Facts& facts, uint32_t width, 
             break;
         }
     }
-    if (activateChoice && (page_==Page::PlayerCamera?facts.cameraAvailable:!facts.pending)) {
+    if (activateChoice && (page_==Page::PlayerCamera?facts.cameraAvailable:generalPage()||!facts.pending)) {
         if (page_ == Page::Naming && (clickedKey || content_.keyboardFocus)) {
             if (!library_.busy() && content_.key < render::kCoveNameKeys.size()) appendText(render::kCoveNameKeys.substr(content_.key, 1));
         } else activate(content_.selected, facts);

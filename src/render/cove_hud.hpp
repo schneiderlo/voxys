@@ -41,10 +41,12 @@ struct CoveHudContent {
     std::optional<CoveHudMenu> menu{};
     std::string objective{}; // Read-only formatter step; never gameplay state.
     bool rightAligned=false; // Play view; workshop keeps its reserved left column.
+    float textScale=1;
+    bool highContrast=false;
     bool operator==(const CoveHudContent&) const = default;
 };
 // Normalized camera rectangle, leaving the left HUD and bottom 3D palette free.
-[[nodiscard]] glm::dvec4 coveHudWorkshopRectangle(uint32_t width,uint32_t height) noexcept;
+[[nodiscard]] glm::dvec4 coveHudWorkshopRectangle(uint32_t width,uint32_t height,float textScale=1) noexcept;
 
 struct CoveHudQuad {
     glm::vec4 bounds; // Pixel x,y,width,height, converted to NDC before upload.

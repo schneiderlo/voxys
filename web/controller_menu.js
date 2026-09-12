@@ -3,7 +3,7 @@
 })(globalThis,function(){
     'use strict';
     const focusSelector='button, summary, input:not([type="file"]), select, a[href]';
-    const isText=element=>Boolean(element?.matches?.('input:not([type="button"]):not([type="file"]), textarea, [contenteditable="true"]'));
+    const isText=element=>Boolean(element&&(element.tagName==='TEXTAREA'||element.getAttribute?.('contenteditable')==='true'||(element.tagName==='INPUT'&&!['button','file','checkbox','radio','range','submit','reset','color'].includes(element.type))));
     function visible(element,scope,environment){
         if(!element||element.disabled||!scope.contains(element))return false;
         for(let at=element;at;at=at.parentElement){
@@ -17,7 +17,7 @@
     function install(environment=globalThis,panel=environment.document.getElementById('salvage-preview')){
         const document=environment.document,canvas=document.getElementById('voxy-canvas');
         const help=document.getElementById('salvage-controller-help');
-        let enabled=false,stopped=false,owned=false,modal=null,section=null,world=null,workshop=false,pinned=null,connected=false;
+        let enabled=false,stopped=false,owned=false,modal=null,section=null,sectionBack=null,world=null,workshop=false,pinned=null,connected=false;
         const candidates=()=>Array.from((modal?.element||section||panel).querySelectorAll(focusSelector))
             .filter(element=>visible(element,modal?.element||section||panel,environment));
         const textOwned=()=>Boolean(enabled&&isText(document.activeElement)&&visible(document.activeElement,panel,environment));
@@ -37,12 +37,12 @@
             const choices=candidates();
             if(!choices.includes(document.activeElement))focus(choices[0]);
         };
-        const closeSection=()=>{if(section)section.open=false;section=null;};
+        const closeSection=()=>{if(section)section.open=false;section=null;sectionBack=null;};
         const release=()=>{pinned=null;closeSection();owned=false;showOwnership();canvas?.focus({preventScroll:true});};
-        const openSection=element=>{
+        const openSection=(element,onBack=null)=>{
             if(stopped||!enabled||!focused()||modal||element?.tagName!=='DETAILS'
                 ||!visible(element.querySelector('summary'),panel,environment))return false;
-            closeSection();section=element;section.open=true;pinned=null;owned=true;showOwnership();
+            closeSection();section=element;sectionBack=onBack;section.open=true;pinned=null;owned=true;showOwnership();
             const choices=candidates();focus(choices.find(choice=>choice.tagName!=='SUMMARY')||choices[0]);
             return true;
         };
@@ -173,6 +173,7 @@
             if(!wasActive)return false;
             if(events.back){
                 if(modal)closeModal(false);
+                else if(section&&sectionBack)sectionBack();
                 else if(section)release();
                 else {
                     const drawer=document.activeElement?.closest?.('details[open]');
@@ -205,23 +206,38 @@
         environment.voxyControllerMenuInput=input;environment.voxyControllerMenuActive=active;
         const blur=()=>{pinned=null;closeModal(false,false);closeSection();owned=false;showOwnership();};
         const hidden=()=>{if(document.hidden)blur();};
+        const pointer=event=>{
+            if(!owned||modal||!event.target)return;
+            if(!panel.contains(event.target))release();
+            else if(section&&!section.contains(event.target)){section=null;sectionBack=null;}
+        };
+        const resized=()=>{
+            if(!active())return;
+            const current=document.activeElement;
+            if(candidates().includes(current))focus(current);
+            else repairFocus();
+        };
+        environment.addEventListener('resize',resized);
         environment.addEventListener('blur',blur);document.addEventListener('visibilitychange',hidden);
+        document.addEventListener('pointerdown',pointer);
         return {
-            active,confirm,editName,pinFocus,openSection,
+            active,confirm,editName,pinFocus,openSection,release,
             tick(state){
                 const nextWorld=state.observation?`${state.observation.world}/${state.observation.incarnation}/${state.observation.epoch}`:state.world||null;
                 const nextWorkshop=Boolean(state.workshop?.open);
                 const nextEnabled=Boolean(state.active&&state.ready&&!state.failed&&state.session?.admissionOpen!==false);
-                if(!nextEnabled||(world!==null&&nextWorld!==world)||(workshop&&!nextWorkshop)
+                const nextConnected=Boolean(state.gamepad?.connected);
+                if(!nextEnabled||(world!==null&&nextWorld!==world)||(workshop&&!nextWorkshop)||(connected&&!nextConnected)
                     ||(section&&(!section.open||!visible(section.querySelector('summary'),panel,environment)
                         ||(section.id==='salvage-camera'&&(nextWorkshop||state.characterCamera?.available!==true)))))blur();
                 else if(modal&&(state.busy||state.workshop?.pending))closeModal(false);
-                enabled=nextEnabled;world=nextWorld;workshop=nextWorkshop;connected=Boolean(state.gamepad?.connected);
+                enabled=nextEnabled;world=nextWorld;workshop=nextWorkshop;connected=nextConnected;
                 showOwnership();repairFocus();
             },
             cleanup(){
                 if(stopped)return;blur();stopped=true;enabled=false;
-                environment.removeEventListener('blur',blur);document.removeEventListener('visibilitychange',hidden);
+                environment.removeEventListener('blur',blur);environment.removeEventListener('resize',resized);document.removeEventListener('visibilitychange',hidden);
+                document.removeEventListener('pointerdown',pointer);
                 if(environment.voxyControllerMenuInput===input)environment.voxyControllerMenuInput=priorInput;
                 if(environment.voxyControllerMenuActive===active)environment.voxyControllerMenuActive=priorActive;
             }

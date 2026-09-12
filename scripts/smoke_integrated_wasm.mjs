@@ -101,7 +101,8 @@ const chrome=spawn(process.env.VOXY_TEST_CHROME||'google-chrome',[
     '--disable-gpu-watchdog','--disable-background-timer-throttling','--disable-renderer-backgrounding',...gpuFlags,
     '--remote-debugging-port=0',`--user-data-dir=${directory}`,'about:blank'
 ],{stdio:['ignore','ignore','pipe']});
-let logs='',spawnError,socket;
+let logs='',spawnError,socket,chromeClosed=false;
+chrome.once('close',()=>{chromeClosed=true;});
 const browserErrors=[],consoleMessages=[];
 const diagnostics={allocationSemantics:'cumulative creation calls/requested buffer bytes; not live memory',allocations:{buffers:0,textures:0,bufferBytes:0},destroyCalls:[]};
 chrome.stderr.on('data',d=>logs+=d);chrome.on('error',e=>spawnError=e);
@@ -338,7 +339,7 @@ try{
     assert.equal(Boolean(sample.salvage?.active),isSalvage,'salvage activation mismatch');
     assert.equal(sample.salvageControlsVisible,isSalvage,'salvage UI route mismatch');
     if(isSalvage){
-        assert.equal(sample.title,selected==='salvage-cove'?'Cove Preview — Voxys':isSalvageMaterials?'Material Inspection — Voxys':isSalvageKit?'Salvage Kit Inspection — Voxys':isSalvageRotations?'Assembly Rotations — Voxys':selected==='salvage-hierarchy'?'Hierarchy Inspection — Voxys':selected==='salvage-assembly'?'Pontoon Assembly Check — Voxys':isSalvageAsset?'Pontoon Inspection — Voxys':'Cove Preview — Voxys');
+        assert.equal(sample.title,selected==='salvage-cove'?'Salvage Cove — Voxys':isSalvageMaterials?'Material Inspection — Voxys':isSalvageKit?'Salvage Kit Inspection — Voxys':isSalvageRotations?'Assembly Rotations — Voxys':selected==='salvage-hierarchy'?'Hierarchy Inspection — Voxys':selected==='salvage-assembly'?'Pontoon Assembly Check — Voxys':isSalvageAsset?'Pontoon Inspection — Voxys':'Cove Preview — Voxys');
         assert.equal(sample.salvage.ready,true);
         assert.equal(sample.salvage.failed,false);
         if(isSalvageAsset)assert.equal(sample.salvage.bodies,0,'asset inspector must not spawn cove scenery');
@@ -358,7 +359,7 @@ try{
         assert.equal(sample.heapBytes,512*1024*1024,'fixed WASM memory budget changed');
     }
     assert.equal(browserErrors.length,0,browserErrors.join('\n'));
-    if(process.env.VOXY_SMOKE_NO_SCREENSHOT!=='1' && !process.env.VOXY_SMOKE_COVE_CONTINUE && !process.env.VOXY_SMOKE_COVE_BUILDER_TOOLS && !process.env.VOXY_SMOKE_COVE_EFFECTS){
+    if(process.env.VOXY_SMOKE_NO_SCREENSHOT!=='1' && !process.env.VOXY_SMOKE_COVE_CONTINUE && !process.env.VOXY_SMOKE_COVE_BUILDER_TOOLS && !process.env.VOXY_SMOKE_COVE_EFFECTS && !process.env.VOXY_SMOKE_COVE_UI){
     const screenshot=await call('Page.captureScreenshot',{format:'png'});
     const screenshotPath=process.env.VOXY_SMOKE_SCREENSHOT||`startup-${selected}.png`;
     await writeFile(screenshotPath,Buffer.from(screenshot.data,'base64'));
@@ -491,6 +492,18 @@ try{
         const {validateCoveCargoCompatibility}=await import('./validate_cove_cargo_compatibility.mjs');
         report.cove_cargo_compatibility=await validateCoveCargoCompatibility(call,process.env.VOXY_SMOKE_COVE_CARGO_COMPATIBILITY,
             {expectedPresentationParts:Number(process.env.VOXY_SMOKE_PRESENTATION_PARTS??9),baselineReportPath:process.env.VOXY_SMOKE_CARGO_BASELINE});
+    }
+    if(process.env.VOXY_SMOKE_COVE_UI){
+        assert.equal(selected,'salvage-cove');
+        assert.equal(process.env.VOXY_SMOKE_NO_SCREENSHOT,'1','Cove UI journey requires no screenshots');
+        if(process.env.VOXY_SMOKE_COVE_UI_CONTINUE_REPORT)assert(process.env.VOXY_SMOKE_RESUME_WORLD,'UI continuation requires its actual saved world');
+        if(process.env.VOXY_SMOKE_COVE_UI_RESTORED_DESIGN)assert(process.env.VOXY_SMOKE_COVE_UI_CONTINUE_REPORT,'restored design proof requires the actual saved baseline');
+        const {validateCoveUI}=await import('./validate_cove_ui.mjs');
+        report.cove_ui=await validateCoveUI(call,process.env.VOXY_SMOKE_COVE_UI,
+            {expectedPresentationParts:Number(process.env.VOXY_SMOKE_PRESENTATION_PARTS??9),
+                appliedSettingsReportPath:process.env.VOXY_SMOKE_COVE_UI_APPLIED_SETTINGS||null,
+                savedContinuationReportPath:process.env.VOXY_SMOKE_COVE_UI_CONTINUE_REPORT||null,
+                restoredDesignReportPath:process.env.VOXY_SMOKE_COVE_UI_RESTORED_DESIGN||null});
     }
     if(process.env.VOXY_SMOKE_COVE_BUILDER_TOOLS){
         assert.equal(selected,'salvage-cove');
@@ -633,10 +646,34 @@ finally{
             socket.send(JSON.stringify({id:n,method:'Runtime.evaluate',params:{returnByValue:true,expression:`({diagnostics:globalThis.voxyStartupDiagnostics,profile:window.voxyDeviceProfile,lost:globalThis.voxyDeviceLost,memory:performance.memory?{used:performance.memory.usedJSHeapSize,total:performance.memory.totalJSHeapSize}:null})`}}));
         }),delay(3000).then(()=>({timeout:true}))]);
     }
+    clearTimeout(timer);
+    report.browserShutdown={retainedProfile,directory,requestedClose:false,requestedTerminate:false,forced:false,completed:chromeClosed};
+    if(!chromeClosed&&!spawnError){
+        let stopped=false;const closed=new Promise(resolve=>chrome.once('close',()=>{stopped=true;resolve();}));
+        const waitClosed=async milliseconds=>{let timeout;await Promise.race([closed,new Promise(resolve=>{timeout=setTimeout(resolve,milliseconds);})]);clearTimeout(timeout);};
+        if(retainedProfile){
+            // Ask the owned browser to close normally so optional profile data
+            // can flush. Sending Close is not itself proof of persisted bytes.
+            if(chrome.exitCode===null&&chrome.signalCode===null&&socket?.readyState===WebSocket.OPEN){
+                try{socket.send(JSON.stringify({id:900001,method:'Browser.close'}));report.browserShutdown.requestedClose=true;}
+                catch(error){report.browserShutdown.closeError=String(error);}
+            }
+            await waitClosed(3000);
+            if(!stopped&&chrome.exitCode===null&&chrome.signalCode===null){report.browserShutdown.requestedTerminate=chrome.kill('SIGTERM');await waitClosed(3000);}
+        }
+        if(!stopped){report.browserShutdown.forced=true;report.browserShutdown.forceSignalSent=chrome.kill('SIGKILL');await waitClosed(3000);}
+        report.browserShutdown.completed=stopped;
+        if(!stopped){for(const stream of chrome.stdio)stream?.destroy();chrome.unref();}
+    }
+    report.browserShutdown.exitCode=chrome.exitCode;report.browserShutdown.signal=chrome.signalCode;
+    const normalBrowserExit=chrome.exitCode===0||(report.browserShutdown.requestedTerminate&&chrome.signalCode==='SIGTERM');
+    if((!report.browserShutdown.completed||(retainedProfile&&(!normalBrowserExit||report.browserShutdown.forced||(!report.browserShutdown.requestedClose&&!report.browserShutdown.requestedTerminate))))&&report.status==='passed'){
+        report.status='failed';report.error='Retained browser profile did not receive a bounded normal shutdown';
+    }
+    socket?.close();
     await writeFile(process.env.VOXY_SMOKE_REPORT||'integrated-startup-report.json',JSON.stringify(report,null,2)+'\n');
-    clearTimeout(timer);socket?.close();
-    if(chrome.exitCode===null&&chrome.signalCode===null&&!spawnError){const closed=new Promise(r=>chrome.once('close',r));chrome.kill('SIGKILL');await closed;}
     await new Promise(r=>server.close(r));
     if(!retainedProfile)await rm(directory,{recursive:true,force:true,maxRetries:8,retryDelay:100});
 }
 console.log(JSON.stringify(report,null,2));
+if(report.status!=='passed')process.exitCode=1;
