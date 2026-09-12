@@ -1,0 +1,11 @@
+--- executed/scripts/smoke_integrated_wasm.mjs
++++ final/scripts/smoke_integrated_wasm.mjs
+@@ -358,7 +358,7 @@
+         assert.equal(sample.heapBytes,512*1024*1024,'fixed WASM memory budget changed');
+     }
+     assert.equal(browserErrors.length,0,browserErrors.join('\n'));
+-    if(process.env.VOXY_SMOKE_NO_SCREENSHOT!=='1'){
++    if(process.env.VOXY_SMOKE_NO_SCREENSHOT!=='1' && !process.env.VOXY_SMOKE_COVE_CONTINUE){
+     const screenshot=await call('Page.captureScreenshot',{format:'png'});
+     const screenshotPath=process.env.VOXY_SMOKE_SCREENSHOT||`startup-${selected}.png`;
+     await writeFile(screenshotPath,Buffer.from(screenshot.data,'base64'));

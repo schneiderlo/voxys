@@ -1,0 +1,166 @@
+TAP version 13
+# Subtest: restoration cannot activate before the paired lineage is committed
+ok 1 - restoration cannot activate before the paired lineage is committed
+  ---
+  duration_ms: 4.149028
+  type: 'test'
+  ...
+# Subtest: failed publication closes admission and never activates the saved world
+ok 2 - failed publication closes admission and never activates the saved world
+  ---
+  duration_ms: 2.030998
+  type: 'test'
+  ...
+# Subtest: missing selected world cannot launch a fresh world or grant materials
+ok 3 - missing selected world cannot launch a fresh world or grant materials
+  ---
+  duration_ms: 0.138668
+  type: 'test'
+  ...
+# Subtest: page closure during publication cannot release a retired owner
+ok 4 - page closure during publication cannot release a retired owner
+  ---
+  duration_ms: 1.871501
+  type: 'test'
+  ...
+# Subtest: invalid selected world refuses without opening storage or starting the game
+ok 5 - invalid selected world refuses without opening storage or starting the game
+  ---
+  duration_ms: 0.515819
+  type: 'test'
+  ...
+# Subtest: manual save is pause-only, hides outside the cove, and acknowledges actual publication
+ok 6 - manual save is pause-only, hides outside the cove, and acknowledges actual publication
+  ---
+  duration_ms: 1.983741
+  type: 'test'
+  ...
+# Subtest: failed manual save remains visibly unsaved and never changes the return address
+ok 7 - failed manual save remains visibly unsaved and never changes the return address
+  ---
+  duration_ms: 1.306009
+  type: 'test'
+  ...
+# Subtest: closing the save UI while publication is pending revokes the owner without reporting success
+ok 8 - closing the save UI while publication is pending revokes the owner without reporting success
+  ---
+  duration_ms: 1.404382
+  type: 'test'
+  ...
+# Subtest: delivery freezes until the exact archive publication completes, then acknowledges once
+ok 9 - delivery freezes until the exact archive publication completes, then acknowledges once
+  ---
+  duration_ms: 1.774611
+  type: 'test'
+  ...
+# Subtest: failed delivery is not acknowledged or retried every frame; explicit retry can commit
+ok 10 - failed delivery is not acknowledged or retried every frame; explicit retry can commit
+  ---
+  duration_ms: 2.984792
+  type: 'test'
+  ...
+# Subtest: closure after delivery publication starts never releases the live reward
+ok 11 - closure after delivery publication starts never releases the live reward
+  ---
+  duration_ms: 11.86388
+  type: 'test'
+  ...
+# Subtest: rejected delivery digest revokes admission instead of showing a reward
+ok 12 - rejected delivery digest revokes admission instead of showing a reward
+  ---
+  duration_ms: 1.961548
+  type: 'test'
+  ...
+# Subtest: harbor installation acknowledges its frozen archive without announcing a second payout
+ok 13 - harbor installation acknowledges its frozen archive without announcing a second payout
+  ---
+  duration_ms: 1.710692
+  type: 'test'
+  ...
+# Subtest: rescue saves unbanked cargo only after physical return joins, then acknowledges exact bytes
+ok 14 - rescue saves unbanked cargo only after physical return joins, then acknowledges exact bytes
+  ---
+  duration_ms: 3.160399
+  type: 'test'
+  ...
+# Subtest: failed rescue stays pending without automatic retry and explicit retry publishes once
+ok 15 - failed rescue stays pending without automatic retry and explicit retry publishes once
+  ---
+  duration_ms: 1.998067
+  type: 'test'
+  ...
+# Subtest: closing during rescue publication cannot release the retired game owner
+ok 16 - closing during rescue publication cannot release the retired game owner
+  ---
+  duration_ms: 11.89636
+  type: 'test'
+  ...
+# Subtest: starter rebuild and stock withdrawal save without granting a delivery reward
+ok 17 - starter rebuild and stock withdrawal save without granting a delivery reward
+  ---
+  duration_ms: 2.232483
+  type: 'test'
+  ...
+# Subtest: Continue remembers only a completed resume with accepted lineage acknowledgment
+ok 18 - Continue remembers only a completed resume with accepted lineage acknowledgment
+  ---
+  duration_ms: 0.627658
+  type: 'test'
+  ...
+# Subtest: failed or closed resume leaves the previous Continue pointer unchanged
+ok 19 - failed or closed resume leaves the previous Continue pointer unchanged
+  ---
+  duration_ms: 3.403702
+  type: 'test'
+  ...
+# Subtest: manual and delivery pointers wait for successful publication and required acknowledgment
+ok 20 - manual and delivery pointers wait for successful publication and required acknowledgment
+  ---
+  duration_ms: 3.983059
+  type: 'test'
+  ...
+# Subtest: failed, unacknowledged and closed save attempts never replace a confirmed shortcut
+ok 21 - failed, unacknowledged and closed save attempts never replace a confirmed shortcut
+  ---
+  duration_ms: 15.781758
+  type: 'test'
+  ...
+# Subtest: Continue is a same-origin current-path link containing only validated world and Cove route
+ok 22 - Continue is a same-origin current-path link containing only validated world and Cove route
+  ---
+  duration_ms: 0.391358
+  type: 'test'
+  ...
+# Subtest: missing, corrupt and oversized Continue metadata hides the shortcut without touching saves
+ok 23 - missing, corrupt and oversized Continue metadata hides the shortcut without touching saves
+  ---
+  duration_ms: 0.285922
+  type: 'test'
+  ...
+# Subtest: unavailable localStorage cannot fail save/resume or expose a broken Continue link
+ok 24 - unavailable localStorage cannot fail save/resume or expose a broken Continue link
+  ---
+  duration_ms: 7.841227
+  type: 'test'
+  ...
+# Subtest: a valid but missing shortcut still refuses restoration and cannot create a fresh world
+ok 25 - a valid but missing shortcut still refuses restoration and cannot create a fresh world
+  ---
+  duration_ms: 0.313342
+  type: 'test'
+  ...
+# Subtest: Continue uses a semantic hidden anchor, appears on LEGO routes only and survives narrow navigation CSS
+ok 26 - Continue uses a semantic hidden anchor, appears on LEGO routes only and survives narrow navigation CSS
+  ---
+  duration_ms: 1.17772
+  type: 'test'
+  ...
+1..26
+# tests 26
+# suites 0
+# pass 26
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 93.77328

@@ -1,0 +1,367 @@
+--- a/scripts/smoke_integrated_wasm.mjs
++++ b/scripts/smoke_integrated_wasm.mjs
+@@ -455,6 +455,14 @@
+         const {validateCoveBricks}=await import('./validate_cove_bricks.mjs');
+         report.cove_bricks=await validateCoveBricks(call,process.env.VOXY_SMOKE_COVE_BRICKS);
+     }
++    if(process.env.VOXY_SMOKE_COVE_CONTINUE){
++        assert.equal(selected,'salvage-cove');
++        assert(process.env.VOXY_SMOKE_RESUME_WORLD,'Continue requires an existing saved world');
++        assert(process.env.VOXY_SMOKE_CONTINUE_BASELINE,'Continue requires the original combined report');
++        const {validateCoveContinue}=await import('./validate_cove_continue.mjs');
++        report.cove_continue=await validateCoveContinue(call,process.env.VOXY_SMOKE_COVE_CONTINUE,
++            {baselineReportPath:process.env.VOXY_SMOKE_CONTINUE_BASELINE,expectedPresentationParts:Number(process.env.VOXY_SMOKE_PRESENTATION_PARTS??9)});
++    }
+     if(process.env.VOXY_SMOKE_COVE_CARGO_COMPATIBILITY){
+         assert.equal(selected,'salvage-cove');
+         assert(process.env.VOXY_SMOKE_RESUME_WORLD,'cargo compatibility requires the older saved world');
+--- a/scripts/test_cove_saves.mjs
++++ b/scripts/test_cove_saves.mjs
+@@ -2,10 +2,12 @@
+ import assert from 'node:assert/strict';
+ import {createRequire} from 'node:module';
+ import {webcrypto} from 'node:crypto';
++import {readFile} from 'node:fs/promises';
+ const require=createRequire(import.meta.url),api=require('../web/cove_saves.js');
+ const world='0102030405060708090a0b0c0d0e0f10';
++const shortcutKey='voxys.cove.last-confirmed-world.v1';
+ function fixture(){
+-    const calls=[],events=new Map();let finish,fail;
++    const calls=[],events=new Map(),metadata=new Map();let finish,fail;
+     const publication=new Promise((resolve,reject)=>{finish=resolve;fail=reject;});
+     const engine={
+         ccall(name,result,types,args){calls.push({name,args});if(name==='voxy_stage_cove_resume')return 1;
+@@ -19,11 +21,12 @@
+         async close(){this.closed=true;calls.push({name:'close'});}
+     };
+     const environment={crypto:webcrypto,setTimeout,
++        localStorage:{getItem:key=>metadata.get(key)??null,setItem(key,value){calls.push({name:'remember',key,value});metadata.set(key,value);}},
+         addEventListener(name,fn){events.set(name,fn);},removeEventListener(name){events.delete(name);},
+         VoxyExpeditionStore:{async openStore(id,validate){assert.equal(id,world);store.validate=validate;return store;}}
+     };
+     const until=async predicate=>{for(let i=0;i<100&&!predicate();i++)await new Promise(r=>setTimeout(r,1));assert(predicate());};
+-    return {engine,store,environment,calls,events,finish,fail,until};
++    return {engine,store,environment,calls,events,finish,fail,until,metadata};
+ }
+ test('restoration cannot activate before the paired lineage is committed',async()=>{
+     const f=fixture(),pending=api.resume(f.engine,world,['--config','salvage_cove.cfg'],f.environment);
+@@ -184,3 +187,101 @@
+     assert.match(f.elements['salvage-save-status'].textContent,/Boat and owned parts saved/);
+     assert(!f.elements['salvage-save-status'].textContent.includes('60'));f.ui.cleanup();
+ });
++
++test('Continue remembers only a completed resume with accepted lineage acknowledgment',async()=>{
++    const f=fixture(),previous='11111111111111111111111111111111';f.metadata.set(shortcutKey,previous);
++    const pending=api.resume(f.engine,world,[],f.environment);
++    await f.until(()=>f.calls.some(c=>c.name==='publish'));
++    assert.equal(f.metadata.get(shortcutKey),previous);f.finish({generation:9n});await pending;
++    assert.equal(f.metadata.get(shortcutKey),world);
++    assert(f.calls.findIndex(c=>c.name==='remember')>f.calls.findIndex(c=>c.args?.[0]===4));
++});
++test('failed or closed resume leaves the previous Continue pointer unchanged',async()=>{
++    for(const refusal of ['publish','ack','close']){
++        const f=fixture(),previous='11111111111111111111111111111111';f.metadata.set(shortcutKey,previous);
++        if(refusal==='ack'){
++            const original=f.engine.ccall.bind(f.engine);
++            f.engine.ccall=(...args)=>args[3]?.[0]===4?'':original(...args);
++        }
++        const pending=api.resume(f.engine,world,[],f.environment);
++        await f.until(()=>f.calls.some(c=>c.name==='publish'));
++        if(refusal==='publish')f.fail(Error('disk full'));
++        else {if(refusal==='close')f.events.get('pagehide')();f.finish({generation:9n});}
++        await assert.rejects(pending);
++        assert.equal(f.metadata.get(shortcutKey),previous);assert(!f.calls.some(c=>c.name==='remember'));
++    }
++});
++test('manual and delivery pointers wait for successful publication and required acknowledgment',async()=>{
++    for(const delivery of [false,true]){
++        const f=saveFixture(),previous='11111111111111111111111111111111';f.metadata.set(shortcutKey,previous);
++        f.ui.tick({world,ready:true,pause:{phase:'paused'},...(delivery?{job:{secured:true,savePending:true}}:{})});
++        const pending=delivery?null:f.click();await f.until(()=>f.calls.some(c=>c.name==='publish'));
++        assert.equal(f.metadata.get(shortcutKey),previous);f.finish({generation:1n});
++        if(pending)await pending;else await f.until(()=>f.calls.some(c=>c.name==='remember'));
++        assert.equal(f.metadata.get(shortcutKey),world);
++        if(delivery)assert(f.calls.findIndex(c=>c.name==='remember')>f.calls.findIndex(c=>c.args?.[0]===7));
++        f.ui.cleanup();
++    }
++});
++test('failed, unacknowledged and closed save attempts never replace a confirmed shortcut',async()=>{
++    for(const refusal of ['publish','ack','close']){
++        const f=saveFixture(),previous='11111111111111111111111111111111';f.metadata.set(shortcutKey,previous);
++        if(refusal==='ack'){
++            const original=f.engine.ccall.bind(f.engine);
++            f.engine.ccall=(...args)=>args[3]?.[0]===7?'':original(...args);
++        }
++        f.ui.tick({world,ready:true,pause:{phase:'paused'},job:{secured:true,savePending:true}});
++        await f.until(()=>f.calls.some(c=>c.name==='publish'));
++        if(refusal==='publish')f.fail(Error('quota'));
++        else {if(refusal==='close')f.ui.cleanup();f.finish({generation:1n});}
++        if(refusal!=='close')await f.until(()=>f.elements['salvage-save-status'].textContent.startsWith('Save failed.'));
++        else await new Promise(r=>setTimeout(r,10));
++        assert.equal(f.metadata.get(shortcutKey),previous);assert(!f.calls.some(c=>c.name==='remember'));f.ui.cleanup();
++    }
++});
++function shortcutFixture(value,href='https://example.test/game/index.html?experience=lego&world=bad&redirect=https://other.test/#fragment'){
++    const link={hidden:false,href:'https://untrusted.test/',removeAttribute(name){assert.equal(name,'href');delete this.href;}};
++    const environment={document:{getElementById:id=>id==='cove-continue'?link:null},location:{href},
++        localStorage:{getItem(key){assert.equal(key,shortcutKey);return value;}}};
++    return {environment,link};
++}
++test('Continue is a same-origin current-path link containing only validated world and Cove route',()=>{
++    const f=shortcutFixture(world);api.installContinue(f.environment);assert.equal(f.link.hidden,false);
++    const url=new URL(f.link.href);assert.equal(url.origin,'https://example.test');assert.equal(url.pathname,'/game/index.html');
++    assert.equal(url.search,`?experience=salvage-cove&world=${world}`);assert.equal(url.hash,'');
++});
++test('missing, corrupt and oversized Continue metadata hides the shortcut without touching saves',()=>{
++    for(const value of [null,undefined,'',world.toUpperCase(),'0'.repeat(32),'a'.repeat(33),'x'.repeat(100000),
++        '../other',`https://other.test/?world=${world}`,{world},` ${world}`]){
++        const f=shortcutFixture(value);api.installContinue(f.environment);assert.equal(f.link.hidden,true);assert.equal(f.link.href,undefined);
++    }
++    for(const href of ['file:///tmp/index.html','javascript:alert(1)','not a URL']){
++        const f=shortcutFixture(world,href);api.installContinue(f.environment);assert.equal(f.link.hidden,true);assert.equal(f.link.href,undefined);
++    }
++});
++test('unavailable localStorage cannot fail save/resume or expose a broken Continue link',async()=>{
++    for(const failure of ['getter','getItem','setItem']){
++        const blocked=environment=>{
++            if(failure==='getter')Object.defineProperty(environment,'localStorage',{get(){throw Error('permission');}});
++            else environment.localStorage={getItem(){if(failure==='getItem')throw Error('permission');return null;},setItem(){throw Error('quota');}};
++        };
++        const link=shortcutFixture(world);blocked(link.environment);assert.doesNotThrow(()=>api.installContinue(link.environment));assert(link.link.hidden);
++        const restored=fixture();blocked(restored.environment);const resume=api.resume(restored.engine,world,[],restored.environment);
++        await restored.until(()=>restored.calls.some(c=>c.name==='publish'));restored.finish({generation:9n});await resume;assert(!restored.store.closed);
++        const saved=saveFixture();blocked(saved.environment);saved.ready();const save=saved.click();
++        await saved.until(()=>saved.calls.some(c=>c.name==='publish'));saved.finish({generation:1n});await save;
++        assert.match(saved.elements['salvage-save-status'].textContent,/^Saved\./);assert(!saved.store.closed);saved.ui.cleanup();
++    }
++});
++test('a valid but missing shortcut still refuses restoration and cannot create a fresh world',async()=>{
++    const f=fixture();f.metadata.set(shortcutKey,world);f.store.load=async()=>({generation:0n,payload:new Uint8Array()});
++    await assert.rejects(api.resume(f.engine,world,[],f.environment),/missing/);
++    assert.equal(f.metadata.get(shortcutKey),world);assert(!f.calls.some(c=>c.name==='main'||c.name==='publish'||c.name==='remember'));
++});
++test('Continue uses a semantic hidden anchor, appears on LEGO routes only and survives narrow navigation CSS',async()=>{
++    const html=await readFile(new URL('../web/index.html',import.meta.url),'utf8');
++    assert.match(html,/<a id="cove-continue" hidden>Continue saved Cove<\/a>/);
++    assert.match(html,/if \(legoShore \|\| legoWorld\) \{\s*VoxyCoveSaves\.installContinue\(\);/);
++    assert.match(html,/#lego-shore-controls a:not\(#cove-continue\) \{ display:none; \}/);
++    assert.match(html,/#lego-shore-controls #cove-continue:not\(\[hidden\]\).*min-height:44px/);
++});
+--- /dev/null
++++ b/scripts/validate_cove_continue.mjs
+@@ -0,0 +1,123 @@
++// One real Leave -> Continue return to an existing confirmed Cove save.
++// Reads only game observations/export and local navigation metadata; no save setters.
++import assert from 'node:assert/strict';
++import {mkdir,readFile,writeFile} from 'node:fs/promises';
++import {createHash} from 'node:crypto';
++
++export async function validateCoveContinue(call,directory,{baselineReportPath,expectedPresentationParts=9}={}) {
++    assert(typeof baselineReportPath==='string');
++    assert(Number.isInteger(expectedPresentationParts)&&expectedPresentationParts>0&&expectedPresentationParts<=16);
++    const baselineBytes=await readFile(baselineReportPath),baseline=JSON.parse(baselineBytes);
++    assert.equal(baseline.status,'passed');assert.equal(baseline.cove_mechanisms?.status,'passed');
++    const old=baseline.cove_mechanisms,saved=old.stages.find(s=>s.name==='saved-mechanisms')?.state;
++    assert(saved&&saved.pause.phase==='paused'&&!saved.workshop.open);
++    const blueprint=old.blueprint;assert(typeof blueprint==='string'&&/^53564250[0-9a-f]+$/.test(blueprint));
++    const identity=s=>({world:s.world,build:s.boat.buildId,topology:s.boat.topologyRevision,roots:s.boat.roots.map(r=>r.key)});
++    const ownership=s=>({parts:s.boat.parts,mass:s.boat.massKg,paid:s.boat.paidPartIds,inventory:s.session.inventory,
++        revision:s.session.revision,builds:s.session.builds,buildParts:s.session.buildParts,connections:s.session.buildConnections,
++        cargo:s.session.cargo,jobs:s.session.jobs,stock:s.workshop.storedPartIds,recovery:s.workshop.recoveryDigests});
++    const expectedIdentity=identity(saved),expectedOwnership=ownership(saved);
++    const runtime=s=>({...identity(s),incarnation:s.boat.physicsTicks.incarnation,body:s.boat.mechanisms.bodyIndex,generation:s.boat.mechanisms.bodyGeneration});
++    const began=Date.now(),deadline=began+120000;
++    await mkdir(directory,{recursive:true});
++    const report={status:'running',maximumSeconds:120,kind:'Actual Leave then same-origin Continue saved Cove; no refit or additional manual save action',
++        baseline:{path:baselineReportPath,sha256:createHash('sha256').update(baselineBytes).digest('hex'),
++            url:baseline.url,profile:baseline.retained_profile,identity:expectedIdentity,ownership:expectedOwnership,
++            blueprintSha256:createHash('sha256').update(Buffer.from(blueprint,'hex')).digest('hex')},stages:[]};
++    const persist=()=>writeFile(`${directory}/summary.json`,JSON.stringify(report,null,2));
++    const evaluate=async expression=>{
++        const result=await call('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});
++        if(result.exceptionDetails)throw Error(JSON.stringify(result.exceptionDetails));return result.result.value;
++    };
++    const read=()=>evaluate("typeof voxyModule==='object'&&voxyModule?._voxy_is_initialized?.()===1?JSON.parse(voxyModule.UTF8ToString(voxyModule._voxy_get_salvage_preview_json())):null");
++    const until=async(reader,predicate,label)=>{
++        const end=Math.min(deadline,Date.now()+40000);let value,lastError;
++        while(Date.now()<end){
++            try{value=await reader();if(predicate(value))return value;lastError=null;}catch(error){lastError=String(error);}
++            await new Promise(resolve=>setTimeout(resolve,30));
++        }
++        throw Error(`${label}: ${JSON.stringify(value)}${lastError?' / '+lastError:''}`);
++    };
++    const key=async(key,code,number)=>{
++        await evaluate('voxyModule.canvas.focus({preventScroll:true})');
++        try{await call('Input.dispatchKeyEvent',{type:'keyDown',key,code,windowsVirtualKeyCode:number,nativeVirtualKeyCode:number});}
++        finally{await call('Input.dispatchKeyEvent',{type:'keyUp',key,code,windowsVirtualKeyCode:number,nativeVirtualKeyCode:number});}
++    };
++    const uncap=async()=>{
++        if(!await evaluate('Boolean(voxyModule._voxy_get_uncapped_fps())'))await key('F9','F9',120);
++        await until(()=>evaluate('Boolean(voxyModule._voxy_get_uncapped_fps())'),x=>x,'physical F9 uncapped');
++    };
++    const element=async selector=>evaluate(`(()=>{const e=document.querySelector(${JSON.stringify(selector)});if(!e)return null;
++        const r=e.getBoundingClientRect(),c=getComputedStyle(e),x=r.x+r.width/2,y=r.y+r.height/2;
++        return {text:e.textContent.trim(),href:e.href||null,disabled:Boolean(e.disabled),hidden:e.hidden,
++            visible:r.width>0&&r.height>0&&c.visibility!=='hidden'&&c.display!=='none'&&x>=0&&x<innerWidth&&y>=0&&y<innerHeight,
++            hit:e.contains(document.elementFromPoint(x,y)),x,y,width:r.width,height:r.height,tag:e.tagName,tabIndex:e.tabIndex};})()`);
++    const click=async selector=>{
++        await evaluate(`document.querySelector(${JSON.stringify(selector)})?.scrollIntoView({block:'center'})`);
++        const target=await until(()=>element(selector),e=>e&&e.visible&&e.hit&&!e.hidden&&!e.disabled,`actual ${selector} hit target`);
++        try{await call('Input.dispatchMouseEvent',{type:'mousePressed',x:target.x,y:target.y,button:'left',clickCount:1});}
++        finally{await call('Input.dispatchMouseEvent',{type:'mouseReleased',x:target.x,y:target.y,button:'left',clickCount:1});}
++        return target;
++    };
++    let pageOwner;
++    const invariant=s=>{
++        assert(s?.active&&s.ready&&!s.failed&&s.boat.active&&s.session.admissionOpen);
++        assert.equal(s.restore.phase,'ready');assert.equal(s.terrainSurface,'lego');assert.equal(s.boat.physicsTicks.failed,false);
++        assert.deepEqual(identity(s),expectedIdentity);assert.deepEqual(ownership(s),expectedOwnership);
++        assert.equal(s.job.phase,saved.job.phase);assert.equal(s.job.secured,saved.job.secured);assert.equal(s.job.durable,saved.job.durable);
++        assert.equal(s.harbor.installed,saved.harbor.installed);assert.equal(s.assetFixture.presentationParts,expectedPresentationParts);
++        assert.equal(s.assetFixture.gpuReservationBytes,'9731960');assert(s.assetFixture.environmentReady&&s.assetFixture.draws>0);
++        assert(s.boat.mechanisms.bodyIndex>0&&s.boat.mechanisms.bodyGeneration>0);
++        assert(!s.workshop.pending&&!s.workshop.savePending&&!s.job.pending&&!s.job.savePending&&!s.rescue.pending&&!s.harbor.pending);
++        if(pageOwner)assert.deepEqual(runtime(s),pageOwner);
++    };
++    const capture=async(name,{paused=true,workshop=false}={})=>{
++        const state=await until(read,s=>s?.restore?.phase==='ready'&&s.ready&&s.pause.phase===(paused?'paused':'running')
++            &&s.workshop.open===workshop&&s.assetFixture.environmentReady,name);
++        invariant(state);const owner=runtime(state);
++        const next=await until(read,s=>s&&s.workshop.open===workshop&&s.pause.phase===(paused?'paused':'running')
++            &&BigInt(s.assetFixture.submittedSerial)>BigInt(state.assetFixture.submittedSerial),name+' later submission');
++        invariant(next);assert.deepEqual(runtime(next),owner);
++        const done=await until(read,s=>s&&BigInt(s.assetFixture.completedSerial)>=BigInt(next.assetFixture.submittedSerial)
++            &&BigInt(s.boat.physicsTicks.completed)>=BigInt(next.boat.mechanisms.tick),name+' actual GPU and physics completion');
++        invariant(done);assert.deepEqual(runtime(done),owner);
++        assert.equal(done.workshop.open,workshop);assert.equal(done.pause.phase,paused?'paused':'running');
++        assert.deepEqual(await evaluate('globalThis.voxyUncapturedGpuErrors||[]'),[]);
++        report.stages.push({name,state,submission:{owner,fixture:next.assetFixture.submittedSerial,physics:next.boat.mechanisms.tick},
++            completion:{owner:runtime(done),fixture:done.assetFixture.completedSerial,physics:done.boat.physicsTicks.completed}});
++        await persist();return done;
++    };
++    try{
++        const originalUrl=await evaluate('location.href'),original=new URL(originalUrl);
++        assert.equal(original.origin,new URL(baseline.url).origin);assert.equal(original.searchParams.get('world'),saved.world);
++        await until(read,s=>s?.restore?.phase==='ready'&&s.ready&&s.pause.phase==='paused','initial existing save ready');
++        await uncap();pageOwner=runtime(await read());
++        const first=await capture('confirmed-old-save-before-leave');
++        assert.equal(await evaluate("localStorage.getItem('voxys.cove.last-confirmed-world.v1')"),saved.world,'confirmed navigation pointer matches the resumed world');
++        report.leaveControl=await click('#salvage-leave');
++        // Existing Leave navigates only after its frame-boundary active=false acknowledgment.
++        // The subsequent document also releases the previous page's exclusive storage owner.
++        await until(()=>evaluate('location.href'),href=>new URL(href).searchParams.get('experience')==='lego-world'
++            &&!new URL(href).searchParams.has('world'),'real drained Leave reaches LEGO page');
++        const link=await until(()=>element('#cove-continue'),e=>e?.visible&&!e.hidden&&e.hit,'Continue is visibly reachable');
++        assert.equal(link.tag,'A');assert.equal(link.text,'Continue saved Cove');assert.equal(link.tabIndex,0);assert(link.height>=44);
++        const destination=new URL(link.href);assert.equal(destination.origin,original.origin);assert.equal(destination.pathname,original.pathname);
++        assert.equal(destination.search,`?experience=salvage-cove&world=${saved.world}`);assert.equal(destination.hash,'');
++        report.stages.push({name:'left-cove-and-found-confirmed-continue',url:await evaluate('location.href'),link});await persist();
++        report.continueControl=await click('#cove-continue');pageOwner=null;
++        await until(()=>evaluate('location.href'),href=>href===destination.href,'actual Continue follows the canonical same-origin link');
++        await until(read,s=>s?.restore?.phase==='ready'&&s.ready&&s.pause.phase==='paused'&&s.world===saved.world,'same saved Cove resumes paused');
++        await uncap();pageOwner=runtime(await read());const returned=await capture('continue-restores-the-same-paused-owned-world');
++        assert.notEqual(returned.observation.incarnation,first.observation.incarnation,'new page restored a fresh observation owner');
++        await key('p','KeyP',80);await until(read,s=>s?.pause.phase==='running'&&s.workshop.canOpen,'resume for read-only blueprint comparison');
++        await key('b','KeyB',66);await until(read,s=>s?.workshop.open&&!s.workshop.changed&&!s.workshop.camera.framePending,'open unchanged owned design');
++        const actual=await evaluate("voxyModule.ccall('voxy_salvage_blueprint_action','string',['number','string'],[1,''])");
++        assert.equal(actual,blueprint,'exact saved part identities, placements, paint, connections and module settings');
++        report.blueprintSha256=createHash('sha256').update(Buffer.from(actual,'hex')).digest('hex');
++        await capture('continued-design-settings-and-stock-exact',{paused:false,workshop:true});
++        await key('b','KeyB',66);await until(read,s=>s&&!s.workshop.open,'close without edits');
++        await key('p','KeyP',80);await capture('continued-cove-paused-without-manual-save');report.status='passed';
++    }catch(error){report.status='failed';report.error=String(error);try{report.failureState=await read();}catch{}throw error;}
++    finally{report.elapsedSeconds=(Date.now()-began)/1000;await persist();}
++    return report;
++}
+--- a/web/cove_saves.js
++++ b/web/cove_saves.js
+@@ -3,6 +3,27 @@
+ })(globalThis,function(){
+     'use strict';
+     const owners=new WeakMap();
++    // A disposable navigation hint; IndexedDB remains the sole save authority.
++    const lastConfirmedWorldKey='voxys.cove.last-confirmed-world.v1';
++    const validWorld=world=>typeof world==='string'&&/^[0-9a-f]{32}$/.test(world)&&!/^0+$/.test(world);
++    function rememberConfirmedWorld(world,environment){
++        if(!validWorld(world))return;
++        try{environment.localStorage.setItem(lastConfirmedWorldKey,world);}catch{} // Saving must not depend on this hint.
++    }
++    function installContinue(environment=globalThis){
++        const link=environment.document.getElementById('cove-continue');
++        if(!link)return;
++        link.hidden=true;link.removeAttribute('href');
++        try{
++            const world=environment.localStorage.getItem(lastConfirmedWorldKey);
++            if(!validWorld(world))return;
++            const url=new URL(environment.location.href);
++            if(url.protocol!=='https:'&&url.protocol!=='http:')return;
++            url.search='';url.hash='';
++            url.searchParams.set('experience','salvage-cove');url.searchParams.set('world',world);
++            link.href=url.href;link.hidden=false;
++        }catch{} // Unavailable or damaged local metadata hides only the shortcut.
++    }
+     const toHex=bytes=>Array.from(bytes,b=>b.toString(16).padStart(2,'0')).join('');
+     const fromHex=text=>{
+         if(!text||text.length%2||text.length>2*(8*1024*1024+4096+4*(128*1024+4))||!/^[0-9a-f]+$/.test(text))throw Error('The expedition could not be prepared.');
+@@ -37,6 +58,7 @@
+             const digest=toHex(new Uint8Array(await environment.crypto.subtle.digest('SHA-256',next)));
+             if(stopped||store.closed||action(engine,4,digest)!=='ok')throw Error('The expedition could not finish loading. Reload to retry.');
+             owners.set(engine,{store,generation:committed.generation,world});store=null;
++            rememberConfirmedWorld(world,environment);
+         }catch(error){if(booted)action(engine,5);throw error;}
+         finally {environment.removeEventListener('pagehide',stop);await store?.close();}
+     }
+@@ -78,6 +100,7 @@
+                     }
+                     const url=new URL(environment.location.href);url.searchParams.set('world',world);
+                     environment.history.replaceState(null,'',url.href);
++                    rememberConfirmedWorld(world,environment);
+                     message=savingWorkshop?'Boat and owned parts saved. Resume when ready.':savingRescue?'Boat recovered and saved. Resume when ready.':savingHarbor?'Harbor lift powered and saved. Resume when ready.':savingDelivery?'Delivery saved. Resume when ready.':'Saved. Reload resumes this expedition.';
+                 }
+             }catch(error){message=`Save failed. ${error.message||error}`;}
+@@ -99,5 +122,5 @@
+             if(delivery&&!deliveryAttempted&&!button.disabled)void save(true);
+         }};
+     }
+-    return {resume,install};
++    return {resume,install,installContinue};
+ });
+--- a/web/index.html
++++ b/web/index.html
+@@ -182,6 +182,7 @@
+         <button id="lego-compare" type="button" aria-pressed="true">Grouped bricks · K</button>
+         <button id="lego-flight" type="button" aria-pressed="false">Fly · F8</button>
+         <button id="lego-reset" type="button">Reset</button>
++        <a id="cove-continue" hidden>Continue saved Cove</a>
+         <a href="lego_patch.html">Island study</a>
+     </nav>
+     <style>
+@@ -191,9 +192,10 @@
+       #lego-shore-controls button,#lego-shore-controls a { color:inherit; font:inherit; white-space:nowrap; }
+       #lego-shore-controls button { border:1px solid #243e3c22; background:#fff9; border-radius:9px; padding:8px 10px; cursor:pointer; }
+       #lego-shore-controls button:hover { background:white; }
++      #lego-shore-controls #cove-continue:not([hidden]) { display:inline-flex; align-items:center; min-height:44px; box-sizing:border-box; padding:8px 10px; border-radius:9px; background:#fff9; font-size:15px; }
+       #lego-shore-controls button:focus-visible,#lego-shore-controls a:focus-visible { outline:2px solid #497e69; outline-offset:3px; }
+       @media(max-width:800px) { #lego-shore-controls .lego-help { display:none; } }
+-      @media(max-width:540px) { #lego-shore-controls:not([hidden]) { bottom:12px; gap:6px; padding:8px; flex-wrap:wrap; justify-content:center; width:max-content; } #lego-shore-controls strong { width:100%; text-align:center; } #lego-shore-controls a { display:none; } }
++      @media(max-width:540px) { #lego-shore-controls:not([hidden]) { bottom:12px; gap:6px; padding:8px; flex-wrap:wrap; justify-content:center; width:max-content; } #lego-shore-controls strong { width:100%; text-align:center; } #lego-shore-controls a:not(#cove-continue) { display:none; } }
+     </style>
+     <section id="lego-build-panel" hidden data-voxy-ui aria-label="Building playground">
+         <h2 id="lego-build-status" aria-live="polite">Build a three-level tower</h2>
+@@ -383,7 +385,7 @@
+         <button id="salvage-save" type="button" hidden disabled>Save expedition</button>
+         </div>
+         <p id="salvage-save-status" role="status" aria-live="polite" hidden></p>
+-        <p id="salvage-save-help" class="salvage-note" hidden>Saving is manual. After saving, bookmark this address to return to your expedition.</p>
++        <p id="salvage-save-help" class="salvage-note" hidden>Save before leaving. Use Continue saved Cove on the LEGO page, or bookmark this saved address.</p>
+         <button id="salvage-leave" type="button">Leave preview</button>
+     </section>
+     <script src="expedition_store.js"></script>
+@@ -425,6 +427,7 @@
+             : salvageAsset ? 'Pontoon Inspection — Voxys' : 'Cove Preview — Voxys';
+ 
+         if (legoShore || legoWorld) {
++            VoxyCoveSaves.installContinue();
+             const sceneName = legoWorld ? 'LEGO Landscape' : 'LEGO Shore';
+             document.title = sceneName + ' — Voxys';
+             document.querySelector('#lego-shore-controls strong').textContent = sceneName;

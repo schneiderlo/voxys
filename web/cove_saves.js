@@ -3,6 +3,27 @@
 })(globalThis,function(){
     'use strict';
     const owners=new WeakMap();
+    // A disposable navigation hint; IndexedDB remains the sole save authority.
+    const lastConfirmedWorldKey='voxys.cove.last-confirmed-world.v1';
+    const validWorld=world=>typeof world==='string'&&/^[0-9a-f]{32}$/.test(world)&&!/^0+$/.test(world);
+    function rememberConfirmedWorld(world,environment){
+        if(!validWorld(world))return;
+        try{environment.localStorage.setItem(lastConfirmedWorldKey,world);}catch{} // Saving must not depend on this hint.
+    }
+    function installContinue(environment=globalThis){
+        const link=environment.document.getElementById('cove-continue');
+        if(!link)return;
+        link.hidden=true;link.removeAttribute('href');
+        try{
+            const world=environment.localStorage.getItem(lastConfirmedWorldKey);
+            if(!validWorld(world))return;
+            const url=new URL(environment.location.href);
+            if(url.protocol!=='https:'&&url.protocol!=='http:')return;
+            url.search='';url.hash='';
+            url.searchParams.set('experience','salvage-cove');url.searchParams.set('world',world);
+            link.href=url.href;link.hidden=false;
+        }catch{} // Unavailable or damaged local metadata hides only the shortcut.
+    }
     const toHex=bytes=>Array.from(bytes,b=>b.toString(16).padStart(2,'0')).join('');
     const fromHex=text=>{
         if(!text||text.length%2||text.length>2*(8*1024*1024+4096+4*(128*1024+4))||!/^[0-9a-f]+$/.test(text))throw Error('The expedition could not be prepared.');
@@ -37,6 +58,7 @@
             const digest=toHex(new Uint8Array(await environment.crypto.subtle.digest('SHA-256',next)));
             if(stopped||store.closed||action(engine,4,digest)!=='ok')throw Error('The expedition could not finish loading. Reload to retry.');
             owners.set(engine,{store,generation:committed.generation,world});store=null;
+            rememberConfirmedWorld(world,environment);
         }catch(error){if(booted)action(engine,5);throw error;}
         finally {environment.removeEventListener('pagehide',stop);await store?.close();}
     }
@@ -78,6 +100,7 @@
                     }
                     const url=new URL(environment.location.href);url.searchParams.set('world',world);
                     environment.history.replaceState(null,'',url.href);
+                    rememberConfirmedWorld(world,environment);
                     message=savingWorkshop?'Boat and owned parts saved. Resume when ready.':savingRescue?'Boat recovered and saved. Resume when ready.':savingHarbor?'Harbor lift powered and saved. Resume when ready.':savingDelivery?'Delivery saved. Resume when ready.':'Saved. Reload resumes this expedition.';
                 }
             }catch(error){message=`Save failed. ${error.message||error}`;}
@@ -99,5 +122,5 @@
             if(delivery&&!deliveryAttempted&&!button.disabled)void save(true);
         }};
     }
-    return {resume,install};
+    return {resume,install,installContinue};
 });

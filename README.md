@@ -424,6 +424,8 @@ motion, cable length and water time survive reload. Missing selected saves fail
 visibly instead of silently starting a new world. Three real reloads pass,
 including further purchases, reeling attached cargo and sailing afterward.
 [Save/load implementation and checks](docs/validation/salvage/SAVE-04/resume-r01/README.md).
+After a confirmed browser save or load, **Continue saved Cove** appears on the LEGO landing page. It reopens the last confirmed world on the same browser profile and origin, paused and ready to resume. You can still bookmark the saved address. The shortcut is optional browser metadata; denied storage never breaks saving, and an unavailable saved world keeps the existing visible refusal. Leaving still does not save.
+[Continue controls, save ordering and real leave/return checks](docs/validation/salvage/SAVE-04/continue-r01/README.md).
 The Linux cove also supports manual expedition saves: close the workshop,
 press **P** to pause, then **F10** to save. Wait for **Expedition saved** in the
 window title. The startup log prints the save folder and the exact command to

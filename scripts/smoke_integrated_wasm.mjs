@@ -358,7 +358,7 @@ try{
         assert.equal(sample.heapBytes,512*1024*1024,'fixed WASM memory budget changed');
     }
     assert.equal(browserErrors.length,0,browserErrors.join('\n'));
-    if(process.env.VOXY_SMOKE_NO_SCREENSHOT!=='1'){
+    if(process.env.VOXY_SMOKE_NO_SCREENSHOT!=='1' && !process.env.VOXY_SMOKE_COVE_CONTINUE){
     const screenshot=await call('Page.captureScreenshot',{format:'png'});
     const screenshotPath=process.env.VOXY_SMOKE_SCREENSHOT||`startup-${selected}.png`;
     await writeFile(screenshotPath,Buffer.from(screenshot.data,'base64'));
@@ -454,6 +454,14 @@ try{
         assert.equal(selected,'salvage-cove');
         const {validateCoveBricks}=await import('./validate_cove_bricks.mjs');
         report.cove_bricks=await validateCoveBricks(call,process.env.VOXY_SMOKE_COVE_BRICKS);
+    }
+    if(process.env.VOXY_SMOKE_COVE_CONTINUE){
+        assert.equal(selected,'salvage-cove');
+        assert(process.env.VOXY_SMOKE_RESUME_WORLD,'Continue requires an existing saved world');
+        assert(process.env.VOXY_SMOKE_CONTINUE_BASELINE,'Continue requires the original combined report');
+        const {validateCoveContinue}=await import('./validate_cove_continue.mjs');
+        report.cove_continue=await validateCoveContinue(call,process.env.VOXY_SMOKE_COVE_CONTINUE,
+            {baselineReportPath:process.env.VOXY_SMOKE_CONTINUE_BASELINE,expectedPresentationParts:Number(process.env.VOXY_SMOKE_PRESENTATION_PARTS??9)});
     }
     if(process.env.VOXY_SMOKE_COVE_CARGO_COMPATIBILITY){
         assert.equal(selected,'salvage-cove');

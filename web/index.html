@@ -182,6 +182,7 @@
         <button id="lego-compare" type="button" aria-pressed="true">Grouped bricks · K</button>
         <button id="lego-flight" type="button" aria-pressed="false">Fly · F8</button>
         <button id="lego-reset" type="button">Reset</button>
+        <a id="cove-continue" hidden>Continue saved Cove</a>
         <a href="lego_patch.html">Island study</a>
     </nav>
     <style>
@@ -191,9 +192,10 @@
       #lego-shore-controls button,#lego-shore-controls a { color:inherit; font:inherit; white-space:nowrap; }
       #lego-shore-controls button { border:1px solid #243e3c22; background:#fff9; border-radius:9px; padding:8px 10px; cursor:pointer; }
       #lego-shore-controls button:hover { background:white; }
+      #lego-shore-controls #cove-continue:not([hidden]) { display:inline-flex; align-items:center; min-height:44px; box-sizing:border-box; padding:8px 10px; border-radius:9px; background:#fff9; font-size:15px; }
       #lego-shore-controls button:focus-visible,#lego-shore-controls a:focus-visible { outline:2px solid #497e69; outline-offset:3px; }
       @media(max-width:800px) { #lego-shore-controls .lego-help { display:none; } }
-      @media(max-width:540px) { #lego-shore-controls:not([hidden]) { bottom:12px; gap:6px; padding:8px; flex-wrap:wrap; justify-content:center; width:max-content; } #lego-shore-controls strong { width:100%; text-align:center; } #lego-shore-controls a { display:none; } }
+      @media(max-width:540px) { #lego-shore-controls:not([hidden]) { bottom:12px; gap:6px; padding:8px; flex-wrap:wrap; justify-content:center; width:max-content; } #lego-shore-controls strong { width:100%; text-align:center; } #lego-shore-controls a:not(#cove-continue) { display:none; } }
     </style>
     <section id="lego-build-panel" hidden data-voxy-ui aria-label="Building playground">
         <h2 id="lego-build-status" aria-live="polite">Build a three-level tower</h2>
@@ -383,7 +385,7 @@
         <button id="salvage-save" type="button" hidden disabled>Save expedition</button>
         </div>
         <p id="salvage-save-status" role="status" aria-live="polite" hidden></p>
-        <p id="salvage-save-help" class="salvage-note" hidden>Saving is manual. After saving, bookmark this address to return to your expedition.</p>
+        <p id="salvage-save-help" class="salvage-note" hidden>Save before leaving. Use Continue saved Cove on the LEGO page, or bookmark this saved address.</p>
         <button id="salvage-leave" type="button">Leave preview</button>
     </section>
     <script src="expedition_store.js"></script>
@@ -425,6 +427,7 @@
             : salvageAsset ? 'Pontoon Inspection — Voxys' : 'Cove Preview — Voxys';
 
         if (legoShore || legoWorld) {
+            VoxyCoveSaves.installContinue();
             const sceneName = legoWorld ? 'LEGO Landscape' : 'LEGO Shore';
             document.title = sceneName + ' — Voxys';
             document.querySelector('#lego-shore-controls strong').textContent = sceneName;

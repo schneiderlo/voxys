@@ -1,0 +1,11 @@
+{
+  "kind": "Retained D45 runner capture mistake; no journey rerun",
+  "executedRunnerSha256": "57d13685011b5af191d28cff746a14df9b3c3f845b6d64d4716f3d185a16b939",
+  "correctedRunnerSha256": "742e4b7ad9c0820c9e4522ae6bcbe3a2e5d433ee6c67c750657bab610b23a809",
+  "automaticStartupImage": {
+    "path": "startup-salvage-cove.png",
+    "bytes": 395763,
+    "sha256": "8c889bdc60c980680da2697f9bfb8a8beb03f354cb580bf7177f63ebc849e1f7"
+  },
+  "scope": "The already-passing outer r01 runner captured one automatic startup PNG and executed its existing image checker before the five-stage Continue journey. The image was not opened by the assistant and is not final-art evidence. The final runner skips this capture whenever the Continue journey is requested. Game code, served package and journey are unchanged; no repeat run is required to conceal the event."
+}

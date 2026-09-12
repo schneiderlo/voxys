@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "base": "8a5998d39417d4516c2002f8568c9964a3abc5f0",
+  "scope": "Integrated source logs, separate case/group counts; no browser acceptance claim",
+  "checks": [
+    {
+      "script": "scripts/test_cove_saves.mjs",
+      "passed": 26,
+      "failed": 0,
+      "skipped": 0,
+      "duration_ms": 97.730442
+    },
+    {
+      "script": "scripts/test_expedition_store.mjs",
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "duration_ms": 22.779805
+    },
+    {
+      "script": "scripts/test_salvage_preview.mjs",
+      "assertion_groups": 36,
+      "result": "passed",
+      "legacy_printed_aggregate": 18,
+      "aggregate_note": "Legacy printed summary is incomplete; actual top-level assertion groups counted from source.",
+      "source_sha256": "439d1c523d151b9200c494391e097fd4d09e1e528931383f131c4998972c476b"
+    }
+  ],
+  "applied_files": 5,
+  "applied_files_match": true,
+  "package_files": 25
+}
