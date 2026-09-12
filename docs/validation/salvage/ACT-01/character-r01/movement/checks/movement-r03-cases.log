@@ -1,0 +1,59 @@
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //tests:cove_player
+-----------------------------------------------------------------------------
+Running main() from gmock_main.cc
+Note: Google Test filter = CoveMovement.Takeoff*:CoveMovement.LegacyAttached*:CoveMovement.CompleteRootPackets*:CoveMovement.UprightCapsule*:CoveMovement.AboardWalking*:CoveMovement.SwimmingCan*:CoveMovement.CameraSphere*:CoveMovement.OrientedCargo*:CoveMovement.ExactCapsule*:CoveMovement.NearParallel*:CoveMovement.Walk*:CoveMovement.ObservedBoat*:CoveMovement.Resume*:CoveMovement.InvalidResume*:CoveMovement.SolidGenerator*:CoveMovement.JumpingAboard*:CoveMovement.JumpLands*:CoveMovement.FixedTicks*:CoveMovement.InvalidNavigation*:CoveMovement.CutTransfers*:CoveMovement.DetachedRider*
+[==========] Running 23 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 23 tests from CoveMovement
+[ RUN      ] CoveMovement.CutTransfersStandingPlayerToDetachedSupportWithoutMovingTheirWorldFeet
+[       OK ] CoveMovement.CutTransfersStandingPlayerToDetachedSupportWithoutMovingTheirWorldFeet (347 ms)
+[ RUN      ] CoveMovement.DetachedRiderFollowsItsSectionAndCannotStandOnAnotherSectionsOldDeck
+[       OK ] CoveMovement.DetachedRiderFollowsItsSectionAndCannotStandOnAnotherSectionsOldDeck (387 ms)
+[ RUN      ] CoveMovement.TakeoffInheritsLinearAndAngularVelocityOnceThenDetaches
+[       OK ] CoveMovement.TakeoffInheritsLinearAndAngularVelocityOnceThenDetaches (355 ms)
+[ RUN      ] CoveMovement.LegacyAttachedJumpMigratesIntoIndependentWorldStateAndResumesExactly
+[       OK ] CoveMovement.LegacyAttachedJumpMigratesIntoIndependentWorldStateAndResumesExactly (365 ms)
+[ RUN      ] CoveMovement.CompleteRootPacketsRejectStaleAndConflictingPartialPoses
+[       OK ] CoveMovement.CompleteRootPacketsRejectStaleAndConflictingPartialPoses (362 ms)
+[ RUN      ] CoveMovement.UprightCapsuleFollowsRollingDeckAndSunkenHelmReleasesIntoWater
+[       OK ] CoveMovement.UprightCapsuleFollowsRollingDeckAndSunkenHelmReleasesIntoWater (356 ms)
+[ RUN      ] CoveMovement.AboardWalkingCollidesWithInstalledSceneryAndAirCannotTunnelThinWalls
+[       OK ] CoveMovement.AboardWalkingCollidesWithInstalledSceneryAndAirCannotTunnelThinWalls (361 ms)
+[ RUN      ] CoveMovement.SwimmingCanReboardNearbySlowCraftButRejectsFastAndSunkenTargets
+[       OK ] CoveMovement.SwimmingCanReboardNearbySlowCraftButRejectsFastAndSunkenTargets (348 ms)
+[ RUN      ] CoveMovement.CameraSphereSweepIncludesEveryProxyAndFailsClosedWithoutCertifiedTerrain
+[       OK ] CoveMovement.CameraSphereSweepIncludesEveryProxyAndFailsClosedWithoutCertifiedTerrain (348 ms)
+[ RUN      ] CoveMovement.OrientedCargoPacketKeepsRealBeamClearanceAndJoinsObservedTick
+[       OK ] CoveMovement.OrientedCargoPacketKeepsRealBeamClearanceAndJoinsObservedTick (353 ms)
+[ RUN      ] CoveMovement.ExactCapsuleGroundSupportDoesNotStandOnDiagonalProbeCorners
+[       OK ] CoveMovement.ExactCapsuleGroundSupportDoesNotStandOnDiagonalProbeCorners (341 ms)
+[ RUN      ] CoveMovement.NearParallelCameraSweepCertifiesClearAndFindsRealShallowHit
+[       OK ] CoveMovement.NearParallelCameraSweepCertifiesClearAndFindsRealShallowHit (335 ms)
+[ RUN      ] CoveMovement.WalksAcrossAuthoredDeckSeamsAndBoardsUsesHelmAndReturns
+[       OK ] CoveMovement.WalksAcrossAuthoredDeckSeamsAndBoardsUsesHelmAndReturns (390 ms)
+[ RUN      ] CoveMovement.ObservedBoatPoseCarriesHelmAndResetReturnsToFixedDock
+[       OK ] CoveMovement.ObservedBoatPoseCarriesHelmAndResetReturnsToFixedDock (408 ms)
+[ RUN      ] CoveMovement.ResumeKeepsBoatLocalHelmPoseOnRestoredMovingCraft
+[       OK ] CoveMovement.ResumeKeepsBoatLocalHelmPoseOnRestoredMovingCraft (371 ms)
+[ RUN      ] CoveMovement.ResumePreservesJumpVelocityAndSwimmingWithoutPendingControls
+[       OK ] CoveMovement.ResumePreservesJumpVelocityAndSwimmingWithoutPendingControls (389 ms)
+[ RUN      ] CoveMovement.InvalidResumePreservesPlayerAndQueuedInteraction
+[       OK ] CoveMovement.InvalidResumePreservesPlayerAndQueuedInteraction (356 ms)
+[ RUN      ] CoveMovement.SolidGeneratorStopsWalkingAndLargeFramesDoNotTunnel
+[       OK ] CoveMovement.SolidGeneratorStopsWalkingAndLargeFramesDoNotTunnel (469 ms)
+[ RUN      ] CoveMovement.JumpingAboardUsesActualSupportingPartInsteadOfBoardButtonHistory
+[       OK ] CoveMovement.JumpingAboardUsesActualSupportingPartInsteadOfBoardButtonHistory (412 ms)
+[ RUN      ] CoveMovement.JumpLandsOnDockAndResetRecoversFromWater
+[       OK ] CoveMovement.JumpLandsOnDockAndResetRecoversFromWater (366 ms)
+[ RUN      ] CoveMovement.WalksUpBrickTerraceAndJumpLandsOnStudSurface
+[       OK ] CoveMovement.WalksUpBrickTerraceAndJumpLandsOnStudSurface (377 ms)
+[ RUN      ] CoveMovement.FixedTicksDoNotDependOnRenderRateAndJumpSurvivesShortFrame
+[       OK ] CoveMovement.FixedTicksDoNotDependOnRenderRateAndJumpSurvivesShortFrame (372 ms)
+[ RUN      ] CoveMovement.InvalidNavigationPreservesExistingPlayerAndPendingActionsDoNotDuplicate
+[       OK ] CoveMovement.InvalidNavigationPreservesExistingPlayerAndPendingActionsDoNotDuplicate (354 ms)
+[----------] 23 tests from CoveMovement (8536 ms total)
+
+[----------] Global test environment tear-down
+[==========] 23 tests from 1 test suite ran. (8536 ms total)
+[  PASSED  ] 23 tests.

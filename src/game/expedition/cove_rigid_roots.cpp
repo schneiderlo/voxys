@@ -135,6 +135,11 @@ bool CoveRigidRoots::bindPlayer(CovePlayer& player,const CoveBoatAssembly& boat,
         poses[i]={roots_[i].key,glm::translate(glm::dmat4(1),physics::worldPositionToAbsolute(motion.position)-origin)
             *glm::mat4_cast(glm::normalize(glm::dquat(motion.orientation)))
             *glm::translate(glm::dmat4(1),-glm::dvec3(anchor.x,anchor.y,anchor.z)*.02)};
+        poses[i].angularVelocity=glm::dvec3(motion.angularVelocity);
+        const auto rootPosition=physics::worldPositionToAbsolute(motion.position)-origin;
+        poses[i].originVelocity=glm::dvec3(motion.originVelocity)
+            +glm::cross(poses[i].angularVelocity,glm::dvec3(poses[i].sceneFromBoat[3])-rootPosition);
+        poses[i].observedTick=roots_[i].observedTick;
     }
     for(size_t i=0;i<boat.parts().size();++i) {
         const auto& member=boat.parts()[i];const auto root=boat.rootForPart(member.id);

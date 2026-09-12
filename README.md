@@ -332,9 +332,23 @@ models with their original connections, weight and lifting interfaces.
 The boat, dock, cargo and built bricks also cast shadows onto the brick terrain
 and ocean. Shadows move with the parts; the shadowed seabed stays visible through
 the water. [Scene-shadow integration and checks](docs/validation/salvage/REND-03/scene-shadows-r01/README.md).
-Water-relative drag, latching, full mission progression, the robot, dry hull interiors and final visual quality remain unfinished. This is initial sailing, not complete
+Water-relative drag, latching, full mission progression, dry hull interiors and final visual quality remain unfinished. This is initial sailing, not complete
 machine simulation. [Sailing implementation and checks](docs/validation/salvage/SIM-03/sailing-r01/README.md),
 [dock collision](docs/validation/salvage/SIM-03/dock-collision-r01/README.md).
+
+The Cove now has an articulated robot and a third-person camera. **WASD**
+walks, **Space** jumps and **E** boards or uses the helm. Click the view to
+capture the mouse for orbit; the wheel changes distance. **F2** opens camera
+options, **V** switches orbit/chase, **G** recenters, **M** frames the towed load
+and **L** enables reduced motion. On a controller, use the left stick to move,
+right stick to orbit, **A** to interact, **B** to jump and **Y** for camera options.
+
+The robot walks with the deck and carries its momentum when jumping off.
+Swimming, reboarding and Rescue provide a way back. Camera collision uses
+studs, dock parts, boat sections, cargo and installed harbor machinery; camera
+choices and airborne velocity are included in expedition saves. The robot
+uses exported rigid-node clips, not a skinned-character implementation.
+[Character architecture, controls and validation scope](docs/validation/salvage/ACT-01/character-r01/README.md).
 
 At the starting dock, **B** or **Workshop** opens the starter design editor.
 Select a part, move or rotate it, snap to a free socket, remove it, keep a valid

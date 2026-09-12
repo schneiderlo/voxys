@@ -8,7 +8,7 @@ cc_library(
     hdrs = ["salvage_asset_fixture.hpp", "inspection_guides.hpp", "cove_dock_markings.hpp"],
     copts = PROJECT_DEFAULT_COPTS,
     includes = [".."],
-    deps = [":render", "//src/game:fixture_limits", "//src/game:cooked_part_bundle", "//src/game:fixture_registry", "//third_party:glm"],
+    deps = [":render", "//src/game:fixture_limits", "//src/game:cooked_part_bundle", "//src/game:fixture_registry", "//src/game:rigid_animation", "//third_party:glm"],
 )
 
 cc_library(

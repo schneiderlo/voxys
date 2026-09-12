@@ -22,7 +22,7 @@ import time
 
 from cove_virtual_gamepad import VirtualGamepad
 from validate_native_cove_delivery import Controls
-from validate_native_cove_saves import archive
+from validate_native_cove_saves import archive, archive_payload
 
 WIDTH, HEIGHT = 960, 800
 NAME_KEYS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 -_.'
@@ -44,14 +44,17 @@ def blueprint_file(path):
 
 
 def owned_design(payload):
-    """Read the frozen schema4/session records; never write them into the game.
+    """Read the frozen schema4 or live schema6/session records; never write them into the game.
 
     Authority epochs/leases change during restore. Compare accepted part IDs,
     geometry, health, settings, paint, provenance and weld records exactly.
     """
-    assert payload[:8] == b'SVCE\4\0\0\0'
-    assert hashlib.sha256(payload[:-32]).digest() == payload[-32:]
-    data, at = payload, 441
+    physical = archive_payload(payload)
+    assert physical['schema'] >= 4 and physical['additionalCargoCount'] == 0
+    recovery = physical['recoveryDesignDigests']
+    at = physical['logicalOffset']
+    data = payload[at:at + physical['logicalBytes']]
+    at = 0
 
     def take(n):
         nonlocal at
@@ -63,9 +66,6 @@ def owned_design(payload):
         n = int.from_bytes(take(4), 'little'); assert n <= limit
         return n
 
-    recovery = [hashlib.sha256(take(count(131072))).hexdigest() for _ in range(count(4))]
-    take(48); roots = count(32); assert roots > 0; take(88 * roots)
-    data = take(count(4 * 1024 * 1024))
     assert data[:4] == b'SVSC' and 1 <= int.from_bytes(data[4:8], 'little') <= 3
     assert hashlib.sha256(data[:-32]).digest() == data[-32:]
     at = 8 + 4 + 68

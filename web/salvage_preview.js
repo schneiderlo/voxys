@@ -26,6 +26,11 @@
         const workshopToggle=document.getElementById('salvage-workshop-toggle');
         const workshopButtons=workshopPanel ? Array.from(workshopPanel.querySelectorAll('[data-workshop-action]')) : [];
         const workshopHandlers=new Map();
+        const cameraPanel=document.getElementById('salvage-camera');
+        const cameraButtons=cameraPanel?Array.from(cameraPanel.querySelectorAll('[data-camera-action]')):[];
+        const cameraHandlers=new Map();
+        let cameraAvailable=false;
+        const priorCameraMenu=environment['voxyCoveCameraMenu'];
         const controllerMenu=cove?environment.VoxyControllerMenu?.install(environment,panel):null;
         const designLibrary=environment.VoxyDesignLibrary?.install(engine,environment,controllerMenu);
         const expeditionSaves=environment.VoxyCoveSaves?.install(engine,environment);
@@ -71,6 +76,11 @@
             cutter?.removeEventListener('click',onCut);
             workshopToggle?.removeEventListener('click',onWorkshop);
             panel.removeEventListener('keydown',onWorkshopKey);
+            cameraPanel?.removeEventListener('keydown',onCameraKey);
+            cameraPanel?.removeEventListener('keyup',onCameraKey);
+            for(const [button,handler] of cameraHandlers)button.removeEventListener('click',handler);
+            if(environment['voxyCoveCameraMenu']===openCameraMenu)environment['voxyCoveCameraMenu']=priorCameraMenu;
+            if(cameraPanel){cameraPanel.hidden=true;cameraPanel.open=false;}cameraAvailable=false;
             for(const [button,handler] of workshopHandlers)button.removeEventListener('click',handler);
             for (const [button, handler] of jobHandlers) button.removeEventListener('click', handler);
             for (const [button, handler] of towHandlers) button.removeEventListener('click', handler);
@@ -90,6 +100,10 @@
             if(cutter)cutter.disabled=true;
             if(workshopToggle)workshopToggle.disabled=true;
             for(const button of workshopButtons)button.disabled=true;
+            cameraAvailable=false;
+            for(const button of cameraButtons)button.disabled=true;
+            if(cameraPanel)cameraPanel.open=false;
+            controllerMenu?.tick({active:false,ready:false,failed:true});
             for (const button of [...inspectionButtons,...towButtons.filter(Boolean),...jobButtons.filter(Boolean),...harborButtons.filter(Boolean)]) button.disabled = true;
             pending = null;
             objectiveAction=null;
@@ -136,6 +150,41 @@
             if(panel.dataset?.workshop==='true'&&!['ShiftLeft','ShiftRight'].includes(event.code))event.stopPropagation();
         };
         const onCut=()=>{if(!pending&&cutter&&!cutter.disabled&&act(95))tick();};
+        const onCameraKey=event=>{
+            if(!cameraPanel||cameraPanel.hidden)return;
+            // A mouse-opened drawer has not reset the engine's held keys.
+            // Let their releases through; an owned controller menu has already
+            // cleared those inputs and may safely consume both event edges.
+            if(event.type==='keyup'&&!controllerMenu?.active?.())return;
+            event.stopPropagation();
+            if(event.type==='keydown'&&(event.key==='F2'||event.key==='Escape')){
+                event.preventDefault();
+                if(controllerMenu?.active?.())environment.voxyControllerMenuInput?.({menu:true});
+                else {cameraPanel.open=false;document.getElementById('voxy-canvas')?.focus({preventScroll:true});}
+            }
+        };
+        const updateCamera=state=>{
+            if(!cameraPanel)return;
+            cameraPanel.hidden=!cove||!state.player||Boolean(state.workshop?.open);
+            const camera=state.characterCamera;
+            cameraAvailable=!cameraPanel.hidden&&state.active&&state.ready&&!state.failed&&!pending
+                &&state.session?.admissionOpen!==false&&camera?.available===true;
+            if(!cameraAvailable)cameraPanel.open=false;
+            const labels={320:`View: ${camera?.mode==='orbit'?'Orbit':'Chase'}`,
+                322:`Frame load: ${camera?.frameLoad?'On':'Off'}`,323:`Reduced motion: ${camera?.reducedMotion?'On':'Off'}`};
+            for(const button of cameraButtons){
+                const action=Number(button.dataset.cameraAction);
+                button.disabled=!cameraAvailable||(action===324&&!(Number.isFinite(camera?.distance)&&camera.distance>1.5))
+                    ||(action===325&&!(Number.isFinite(camera?.distance)&&camera.distance<12));
+                if(labels[action]&&button.textContent!==labels[action])button.textContent=labels[action];
+                if(action===320||action===322||action===323)button.setAttribute('aria-pressed',String(
+                    action===320?camera?.mode==='chase':action===322?Boolean(camera?.frameLoad):Boolean(camera?.reducedMotion)));
+            }
+        };
+        const openCameraMenu=()=>{
+            tick();
+            return Boolean(!stopped&&cameraAvailable&&controllerMenu?.openSection(cameraPanel));
+        };
         const onWorkshop=()=>{if(!pending && workshopToggle && !workshopToggle.disabled && act(60))tick();};
         const available=(button,owner)=>Boolean(button&&!button.hidden&&!button.disabled&&(!owner||!owner.hidden));
         const updateObjective=state=>{
@@ -223,6 +272,7 @@
             }
             designLibrary?.tick(state);
             expeditionSaves?.tick(state);
+            updateCamera(state);
             controllerMenu?.tick(state);
             if (state.failed) { fail(); return; }
             if (state.assetFixture && lodPanel) {
@@ -460,6 +510,16 @@
         cutter?.addEventListener('click',onCut);
         workshopToggle?.addEventListener('click',onWorkshop);
         panel.addEventListener('keydown',onWorkshopKey);
+        cameraPanel?.addEventListener('keydown',onCameraKey);
+        cameraPanel?.addEventListener('keyup',onCameraKey);
+        if(cove)environment['voxyCoveCameraMenu']=openCameraMenu;
+        for(const button of cameraButtons){
+            const handler=()=>{
+                tick(); // Permissions may have changed since the visible frame.
+                if(!stopped&&cameraAvailable&&!button.disabled&&act(Number(button.dataset.cameraAction)))tick();
+            };
+            cameraHandlers.set(button,handler);button.addEventListener('click',handler);
+        }
         for(const button of workshopButtons) {
             const handler=()=>{
                 if(!pending&&!button.disabled&&act(Number(button.dataset.workshopAction))) {

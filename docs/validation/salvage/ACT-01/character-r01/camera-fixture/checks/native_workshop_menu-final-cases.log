@@ -1,0 +1,32 @@
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //tests:native_workshop_menu
+-----------------------------------------------------------------------------
+Running main() from gmock_main.cc
+[==========] Running 10 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 10 tests from MenuFixture
+[ RUN      ] MenuFixture.OpeningClosingAndFocusLossConsumeWithoutConstruction
+[       OK ] MenuFixture.OpeningClosingAndFocusLossConsumeWithoutConstruction (0 ms)
+[ RUN      ] MenuFixture.GroupAndHistoryChoicesUseOnlyApprovedActionsAndExposeRefusal
+[       OK ] MenuFixture.GroupAndHistoryChoicesUseOnlyApprovedActionsAndExposeRefusal (0 ms)
+[ RUN      ] MenuFixture.CatalogChoiceDoesNotAddAndLaunchRequiresAnEnabledAction
+[       OK ] MenuFixture.CatalogChoiceDoesNotAddAndLaunchRequiresAnEnabledAction (0 ms)
+[ RUN      ] MenuFixture.UnicodeNamingBackspaceAndSaveDoNotLeakGameplayKeys
+[       OK ] MenuFixture.UnicodeNamingBackspaceAndSaveDoNotLeakGameplayKeys (33 ms)
+[ RUN      ] MenuFixture.OnscreenLetterGridNamesWithoutPhysicalTextAndCancelPreservesLibrary
+[       OK ] MenuFixture.OnscreenLetterGridNamesWithoutPhysicalTextAndCancelPreservesLibrary (25 ms)
+[ RUN      ] MenuFixture.PointerUsesRendererHitBoundsAndClosingFrameRemainsConsumed
+[       OK ] MenuFixture.PointerUsesRendererHitBoundsAndClosingFrameRemainsConsumed (0 ms)
+[ RUN      ] MenuFixture.HighDpiPointerHitsTheExactFramebufferRow
+[       OK ] MenuFixture.HighDpiPointerHitsTheExactFramebufferRow (0 ms)
+[ RUN      ] MenuFixture.OutsideCameraOptionsUseOnlyCameraActionsEvenWhileWorkshopPending
+[       OK ] MenuFixture.OutsideCameraOptionsUseOnlyCameraActionsEvenWhileWorkshopPending (0 ms)
+[ RUN      ] MenuFixture.CameraOwnershipRevocationAndWorkshopTransitionConsumeStaleConfirm
+[       OK ] MenuFixture.CameraOwnershipRevocationAndWorkshopTransitionConsumeStaleConfirm (0 ms)
+[ RUN      ] MenuFixture.ControllerCameraMenuNeedsFreshEdgesAndConsumesOpeningAndClosingFrames
+[       OK ] MenuFixture.ControllerCameraMenuNeedsFreshEdgesAndConsumesOpeningAndClosingFrames (0 ms)
+[----------] 10 tests from MenuFixture (60 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 1 test suite ran. (60 ms total)
+[  PASSED  ] 10 tests.

@@ -658,6 +658,19 @@ TEST_F(CoveMovement, OwnedRestorePreparesIndependentBodiesPlayerAndTowWithoutPub
     EXPECT_FLOAT_EQ(restored->tow.targetLength,6);EXPECT_FLOAT_EQ(restored->tow.motorSpeed,0);
     EXPECT_GT(restored->tow.breakForce,0);EXPECT_FALSE(restored->tow.bodyA.valid());EXPECT_FALSE(restored->tow.bodyB.valid());
     EXPECT_EQ(adapter.calls,0u);
+    // Load preflight must reject a saved capsule inside the independent cargo
+    // even before a harbor exists, without publishing any physics resources.
+    const auto savedPlayer=physical.player;const auto savedHarbor=physical.harborLift;
+    const auto box=cargo->shape().rootBounds();
+    const auto center=glm::dvec3(box.minimum.x+box.maximum.x,box.minimum.y+box.maximum.y,box.minimum.z+box.maximum.z)*.01;
+    physical.player.aboard=false;physical.player.mode=CoveSavedPlayerMode::Airborne;physical.player.verticalSpeed=0;
+    physical.player.feet={physical.cargoMotion.position.x+center.x,physical.cargoMotion.position.y+center.y-.3,physical.cargoMotion.position.z+center.z};
+    for(uint32_t harbor:{0u,1u}) {
+        physical.harborLift.profile=harbor;bytes=encode();ASSERT_FALSE(bytes.empty());
+        EXPECT_FALSE(CoveRestoreCandidate::prepare(bytes,context,*scene,seed->catalog,seed->placements,[](double,double){return -5.;},error));
+        EXPECT_EQ(adapter.calls,0u);
+    }
+    physical.player=savedPlayer;physical.harborLift=savedHarbor;
     physical.player.feet.y+=1;bytes=encode();ASSERT_FALSE(bytes.empty());
     EXPECT_FALSE(CoveRestoreCandidate::prepare(bytes,context,*scene,seed->catalog,seed->placements,[](double,double){return -5.;},error));
     physical.player.feet.y-=1;physical.cargoState=CoveSavedCargoState::Banked;physical.winchPart={};physical.ropeLength=0;
@@ -702,6 +715,9 @@ TEST_F(CoveMovement, HarborPostsBlockWalkingAndSavedPlayerOccupancy) {
     ASSERT_TRUE(structure)<<error;ASSERT_TRUE(structure->applyPlayerCollision(player));
     const auto center=structure->center();CovePlayer::State state;
     state.mode=CovePlayer::Mode::Airborne;state.feet=center+glm::dvec3(3,2,-4);
+    // Start with actual incoming speed so this measures collision, not the new
+    // finite air-steering acceleration from rest.
+    state.locomotionVersion=1;state.worldVelocity={3.6,0,0};
     ASSERT_TRUE(player.restore(state));move({1,0},12);
     EXPECT_LE(player.feet().x,center.x+3.5);EXPECT_GT(player.feet().x,center.x+3.3);
     const auto preserved=player.state();state.feet=center+glm::dvec3(4,2,-4);
@@ -1219,7 +1235,7 @@ TEST_F(CoveMovement, CutTransfersStandingPlayerToDetachedSupportWithoutMovingThe
     // Independently rounded float sector-local root origins permit sub-mm differences.
     EXPECT_LT(glm::length(destination.feet()-oldFeet),.00005);
     EXPECT_EQ(destination.state().tick,rider.tick);EXPECT_EQ(player.state().root,source->primary().key);
-    auto airborne=player.state();airborne.mode=CovePlayer::Mode::Airborne;airborne.feet.y+=1;ASSERT_TRUE(player.restore(airborne));
+    auto airborne=player.state();airborne.locomotionVersion=0;airborne.mode=CovePlayer::Mode::Airborne;airborne.feet.y+=1;ASSERT_TRUE(player.restore(airborne));
     const auto before=destination.state();EXPECT_FALSE(target->transferCutPlayer(destination,*boat,player,origin,error));
     EXPECT_EQ(destination.state().feet,before.feet);EXPECT_EQ(destination.state().root,before.root);
 }
@@ -1238,7 +1254,10 @@ TEST_F(CoveMovement, DetachedRiderFollowsItsSectionAndCannotStandOnAnotherSectio
     auto roots=CoveRigidRoots::prepare(*boat,error);ASSERT_TRUE(roots)<<error;
     for(size_t i=0;i<roots->roots().size();++i){
         const auto p=boat->assembly().mass().roots()[i].buildFromRoot.translation;
-        roots->roots()[i].observed.position=physics::worldPositionFromAbsolute(glm::dvec3(p.x,p.y,p.z)*.02);
+        // Move the cut pontoon clear of the intact deck first. Its original
+        // top is under that deck and is not upright standing room.
+        const glm::dvec3 separation=i==0?glm::dvec3(10,2,10):glm::dvec3(0);
+        roots->roots()[i].observed.position=physics::worldPositionFromAbsolute(glm::dvec3(p.x,p.y,p.z)*.02+separation);
     }
     ASSERT_TRUE(roots->bindPlayer(player,*boat,{},error))<<error;
     // Pick a real top surface belonging only to the detached pontoon. These
@@ -1346,7 +1365,17 @@ TEST_F(CoveMovement, FragmentArchiveRestoresEveryPoseDetachedRiderAndWinchWithou
     const auto local=glm::dvec3(physical.player.feet.x,physical.player.feet.y,physical.player.feet.z)-glm::dvec3(anchor.x,anchor.y,anchor.z)*.02;
     const auto expectedFeet=physics::worldPositionToAbsolute(rider.observed.position)-glm::dvec3(100,-200,300)
         +glm::normalize(glm::dquat(rider.observed.orientation))*local;
-    EXPECT_LT(glm::length(restored->player->feet()-expectedFeet),1e-6);EXPECT_EQ(restored->player->state().root,rider.key);
+    EXPECT_LT(glm::length(restored->player->feet()-expectedFeet),1e-6);
+    // This archive predates independent airborne motion. Its old section key
+    // supplies the inherited launch velocity, then must be cleared on resume.
+    const auto rotation=glm::normalize(glm::dquat(rider.observed.orientation));
+    const auto expectedVelocity=glm::dvec3(rider.observed.originVelocity)
+        +glm::cross(glm::dvec3(rider.observed.angularVelocity),rotation*local)
+        +rotation*glm::dvec3(0,physical.player.verticalSpeed,0);
+    EXPECT_FALSE(restored->player->onBoat());EXPECT_EQ(restored->player->state().root,DurableId{});
+    EXPECT_EQ(restored->player->state().locomotionVersion,1u);EXPECT_EQ(restored->player->mode(),CovePlayer::Mode::Airborne);
+    EXPECT_LT(glm::length(restored->player->worldVelocity()-expectedVelocity),1e-6);
+    EXPECT_NEAR(restored->player->state().verticalSpeed,expectedVelocity.y,1e-6);
     const auto winchRoot=boat->rootForPart(winch);ASSERT_TRUE(winchRoot);EXPECT_NE(*winchRoot,boat->primaryRootIndex());
     EXPECT_EQ(restored->towRoot,restored->roots->roots()[*winchRoot].key);
     physics::AuthoredFrameError frameError;
@@ -2602,6 +2631,240 @@ TEST_F(CoveMovement, DisconnectedBoatIsRejectedBeforePhysicsAdmission) {
     std::string error;
     EXPECT_FALSE(CoveBoatAssembly::compile(disconnected, error));
     EXPECT_NE(error.find("one welded body"), std::string::npos) << error;
+}
+
+// Exact admitted prototype geometry is shared with the runtime. Only the root
+// observations below are synthetic, keeping these movement regressions CPU-only.
+const construction::WorldNamespace motionWorld{{'a','c','t','-','m','o','t','i','o','n'}};
+const construction::DurableId motionRoot{motionWorld,1};
+bool bindMotion(CovePlayer& player,const assets::LoadedAssetFixture& scene,
+    glm::dmat4 pose=glm::dmat4(1),glm::dvec3 velocity={},glm::dvec3 angular={},uint64_t tick=1,bool scenePacket=true) {
+    const CovePlayer::BoatRoot root{motionRoot,pose,velocity,angular,tick};
+    std::vector<CovePlayer::BoatPart> parts;
+    for(auto slot:scene.registry.navigation->boatPlacements)parts.push_back({slot,{motionWorld,10+slot},motionRoot});
+    return player.bindBoatRoots(std::span(&root,1),parts,motionRoot)&&(!scenePacket||player.setSceneObstacles({},tick));
+}
+
+TEST_F(CoveMovement, TakeoffInheritsLinearAndAngularVelocityOnceThenDetaches) {
+    const auto pose=glm::translate(glm::dmat4(1),glm::dvec3(100,2,100));
+    const glm::dvec3 linear{2,.5,1},angular{0,.2,0};
+    ASSERT_TRUE(bindMotion(player,*scene,pose,linear,angular));
+    CovePlayer::State saved;saved.onBoat=true;saved.root=motionRoot;
+    saved.feet=scene->registry.navigation->boatBoarding+glm::dvec3(0,.005,0);
+    ASSERT_TRUE(player.restore(saved));const auto before=player.feet();
+    const auto inherited=linear+glm::cross(angular,before-glm::dvec3(pose[3]));
+    player.advance(CovePlayer::fixedStep,{{0,0},true});
+    ASSERT_EQ(player.mode(),CovePlayer::Mode::Airborne);EXPECT_FALSE(player.onBoat());
+    EXPECT_EQ(player.state().root,construction::DurableId{});
+    EXPECT_NEAR(player.worldVelocity().x,inherited.x,1e-9);
+    EXPECT_NEAR(player.worldVelocity().z,inherited.z,1e-9);
+    EXPECT_NEAR(player.worldVelocity().y,inherited.y+6-.3,1e-9);
+    const auto airborne=player.feet(),velocity=player.worldVelocity();
+    const auto moved=glm::translate(glm::dmat4(1),glm::dvec3(50,0,0))*pose;
+    ASSERT_TRUE(player.setBoatRootMotion(motionRoot,moved,linear,angular,2));
+    ASSERT_TRUE(player.setSceneObstacles({},player.collisionTick()));
+    EXPECT_EQ(player.feet(),airborne); // Installing a new root pose cannot carry a detached jumper.
+    player.advance(CovePlayer::fixedStep,{});
+    EXPECT_NEAR(player.feet().x,airborne.x+velocity.x*CovePlayer::fixedStep,1e-9);
+    EXPECT_NEAR(player.feet().z,airborne.z+velocity.z*CovePlayer::fixedStep,1e-9);
+    EXPECT_NEAR(player.worldVelocity().y,velocity.y-.3,1e-9);
+}
+
+TEST_F(CoveMovement, LegacyAttachedJumpMigratesIntoIndependentWorldStateAndResumesExactly) {
+    const auto pose=glm::translate(glm::dmat4(1),glm::dvec3(100,3,100))
+        *glm::rotate(glm::dmat4(1),.3,glm::dvec3(0,1,0));
+    const glm::dvec3 linear{3,1,-2},angular{0,.1,0};
+    ASSERT_TRUE(bindMotion(player,*scene,pose,linear,angular,10));
+    CovePlayer::State saved;saved.onBoat=true;saved.root=motionRoot;saved.mode=CovePlayer::Mode::Airborne;
+    saved.feet=scene->registry.navigation->boatBoarding+glm::dvec3(0,2,0);saved.verticalSpeed=4;
+    const auto point=glm::dvec3(pose*glm::dvec4(saved.feet,1));
+    const auto expected=linear+glm::cross(angular,point-glm::dvec3(pose[3]))+glm::dmat3(pose)*glm::dvec3(0,4,0);
+    ASSERT_TRUE(player.restore(saved));EXPECT_FALSE(player.onBoat());EXPECT_EQ(player.feet(),point);
+    EXPECT_EQ(player.worldVelocity(),expected);EXPECT_EQ(player.state().locomotionVersion,1u);
+    auto modern=player.state();modern.facingYaw=-3.1;
+    ASSERT_TRUE(player.restore(modern));CovePlayer restored=player;ASSERT_TRUE(restored.restore(player.state()));
+    for(int i=0;i<20;++i){player.advance(CovePlayer::fixedStep,{});restored.advance(CovePlayer::fixedStep,{});}
+    EXPECT_EQ(player.feet(),restored.feet());EXPECT_EQ(player.worldVelocity(),restored.worldVelocity());
+    auto invalid=modern;invalid.worldVelocity.y+=1;EXPECT_FALSE(player.restore(invalid));
+    invalid=modern;invalid.facingYaw=3.15;EXPECT_FALSE(player.restore(invalid));
+    invalid=modern;invalid.worldVelocity.x=151;EXPECT_FALSE(player.restore(invalid));
+    invalid=modern;invalid.onBoat=true;invalid.root=motionRoot;EXPECT_FALSE(player.restore(invalid));
+}
+
+TEST_F(CoveMovement, CompleteRootPacketsRejectStaleAndConflictingPartialPoses) {
+    const construction::DurableId other{motionWorld,2};
+    std::array<CovePlayer::BoatRoot,2> roots{{{motionRoot,glm::dmat4(1)},{other,glm::dmat4(1)}}};
+    std::vector<CovePlayer::BoatPart> parts;
+    const auto& slots=scene->registry.navigation->boatPlacements;
+    for(size_t i=0;i<slots.size();++i)parts.push_back({slots[i],{motionWorld,10+slots[i]},i?other:motionRoot});
+    ASSERT_TRUE(player.bindBoatRoots(roots,parts,other));
+    const auto originalHelm=player.helmPoint();const auto moved=glm::translate(glm::dmat4(1),glm::dvec3(20,0,0));
+    ASSERT_TRUE(player.setBoatRootMotion(other,moved,{1,0,0},{0,0,0},5));
+    ASSERT_TRUE(player.setSceneObstacles({},player.collisionTick()));
+    EXPECT_EQ(player.collisionTick(),0u);EXPECT_EQ(player.helmPoint(),originalHelm);
+    EXPECT_FALSE(player.setBoatRootMotion(other,glm::dmat4(1),{1,0,0},{0,0,0},5));
+    ASSERT_TRUE(player.setBoatRootMotion(motionRoot,glm::dmat4(1),{0,0,0},{0,0,0},5));
+    ASSERT_TRUE(player.setSceneObstacles({},player.collisionTick()));
+    EXPECT_EQ(player.collisionTick(),5u);EXPECT_EQ(player.helmPoint(),originalHelm+glm::dvec3(20,0,0));
+    EXPECT_FALSE(player.setBoatRootMotion(other,glm::dmat4(1),{0,0,0},{0,0,0},4));
+    EXPECT_FALSE(player.setBoatRootMotion(other,moved,{NAN,0,0},{0,0,0},6));
+    EXPECT_EQ(player.collisionTick(),5u);
+}
+
+TEST_F(CoveMovement, UprightCapsuleFollowsRollingDeckAndSunkenHelmReleasesIntoWater) {
+    const auto base=glm::translate(glm::dmat4(1),glm::dvec3(100,1,100));
+    ASSERT_TRUE(bindMotion(player,*scene,base));
+    CovePlayer::State saved;saved.onBoat=true;saved.root=motionRoot;
+    saved.feet=scene->registry.navigation->boatBoarding+glm::dvec3(0,.005,0);
+    ASSERT_TRUE(player.restore(saved));const auto pivot=scene->registry.navigation->boatBoarding;
+    const auto rolled=base*glm::translate(glm::dmat4(1),pivot)*glm::rotate(glm::dmat4(1),.2,glm::dvec3(0,0,1))
+        *glm::translate(glm::dmat4(1),-pivot);
+    ASSERT_TRUE(player.setBoatRootMotion(motionRoot,rolled,{0,0,0},{0,0,0},7));
+    ASSERT_TRUE(player.setSceneObstacles({},player.collisionTick()));
+    player.advance(.1,{});ASSERT_EQ(player.mode(),CovePlayer::Mode::Walking);ASSERT_TRUE(player.onBoat());
+    EXPECT_NEAR(player.supportNormal().x,-std::sin(.2),1e-6);EXPECT_NEAR(player.supportNormal().y,std::cos(.2),1e-6);
+    EXPECT_TRUE(construction::isValid(player.supportingPart()));
+    const auto stable=player.feet();player.advance(.1,{});EXPECT_LT(glm::length(player.feet()-stable),1e-5);
+    ASSERT_TRUE(player.setBoatRootMotion(motionRoot,base,{0,0,0},{0,0,0},8));
+    ASSERT_TRUE(player.setSceneObstacles({},player.collisionTick()));player.discardPendingInput();
+    saved.feet=scene->registry.navigation->helmStanding+glm::dvec3(0,.005,0);saved.mode=CovePlayer::Mode::Helm;
+    ASSERT_TRUE(player.restore(saved));
+    const auto sunk=glm::translate(glm::dmat4(1),glm::dvec3(100,-3,100));
+    ASSERT_TRUE(player.setBoatRootMotion(motionRoot,sunk,{0,-1,0},{0,0,0},9));
+    ASSERT_TRUE(player.setSceneObstacles({},player.collisionTick()));
+    player.advance(CovePlayer::fixedStep,{});
+    EXPECT_EQ(player.mode(),CovePlayer::Mode::Swimming);EXPECT_FALSE(player.onBoat());EXPECT_DOUBLE_EQ(player.feet().y,-.8);
+}
+
+TEST_F(CoveMovement, AboardWalkingCollidesWithInstalledSceneryAndAirCannotTunnelThinWalls) {
+    const auto pose=glm::translate(glm::dmat4(1),glm::dvec3(100,1,100));
+    ASSERT_TRUE(bindMotion(player,*scene,pose));CovePlayer::State saved;saved.onBoat=true;saved.root=motionRoot;
+    saved.feet=scene->registry.navigation->boatBoarding+glm::dvec3(0,.005,0);ASSERT_TRUE(player.restore(saved));
+    const auto before=player.feet();const CovePlayer::StaticObstacle obstacle{before+glm::dvec3(.7,-.1,-1),before+glm::dvec3(.72,3,1)};
+    ASSERT_TRUE(player.setStaticObstacles(std::span(&obstacle,1)));move({1,0},30);
+    EXPECT_LT(player.feet().x,before.x+.41);EXPECT_GT(player.feet().x,before.x+.35);EXPECT_TRUE(player.onBoat());
+    const CovePlayer::StaticObstacle wall{{101,1,99},{101.02,20,101}};
+    ASSERT_TRUE(player.setStaticObstacles(std::span(&wall,1)));
+    auto air=player.state();air.mode=CovePlayer::Mode::Airborne;air.onBoat=false;air.root={};air.feet={100,5,100};
+    air.worldVelocity={150,0,0};air.verticalSpeed=0;ASSERT_TRUE(player.restore(air));player.advance(.25,{});
+    EXPECT_LT(player.feet().x,100.701);EXPECT_GE(player.feet().x,100.69);EXPECT_NEAR(player.worldVelocity().x,0,1e-6);
+}
+
+TEST_F(CoveMovement, SwimmingCanReboardNearbySlowCraftButRejectsFastAndSunkenTargets) {
+    const auto pose=glm::translate(glm::dmat4(1),glm::dvec3(100,0,100));ASSERT_TRUE(bindMotion(player,*scene,pose));
+    const auto board=glm::dvec3(pose*glm::dvec4(scene->registry.navigation->boatBoarding,1));
+    CovePlayer::State swim;swim.mode=CovePlayer::Mode::Swimming;swim.feet={board.x+1.3,-.8,board.z};
+    ASSERT_TRUE(player.restore(swim));ASSERT_EQ(player.interaction(),CovePlayer::Interaction::Board);
+    ASSERT_TRUE(player.setBoatRootMotion(motionRoot,pose,{4,0,0},{0,0,0},2));
+    ASSERT_TRUE(player.setSceneObstacles({},player.collisionTick()));
+    EXPECT_EQ(player.interaction(),CovePlayer::Interaction::None);
+    ASSERT_TRUE(player.setBoatRootMotion(motionRoot,pose,{0,0,0},{0,0,0},3));
+    ASSERT_TRUE(player.setSceneObstacles({},player.collisionTick()));
+    ASSERT_TRUE(player.requestInteraction());player.advance(CovePlayer::fixedStep,{});
+    EXPECT_TRUE(player.onBoat());EXPECT_EQ(player.mode(),CovePlayer::Mode::Walking);EXPECT_EQ(player.interactions(),1u);
+    ASSERT_TRUE(player.restore(swim));const auto sunk=glm::translate(glm::dmat4(1),glm::dvec3(0,-2,0))*pose;
+    ASSERT_TRUE(player.setBoatRootMotion(motionRoot,sunk,{0,0,0},{0,0,0},4));
+    ASSERT_TRUE(player.setSceneObstacles({},player.collisionTick()));
+    EXPECT_EQ(player.interaction(),CovePlayer::Interaction::None);
+}
+
+TEST_F(CoveMovement, CameraSphereSweepIncludesEveryProxyAndFailsClosedWithoutCertifiedTerrain) {
+    const glm::dvec3 start{100,5,100},end{103,5,100};
+    EXPECT_FALSE(player.sweepSphere(start,end,.2).complete);
+    player.setTerrainSweep([](glm::dvec3 a,glm::dvec3 b,double){return CovePlayer::SweepResult{true,false,false,glm::length(b-a),{0,0,0}};});
+    ASSERT_TRUE(bindMotion(player,*scene,glm::dmat4(1),{0,0,0},{0,0,0},1,false));
+    EXPECT_FALSE(player.sweepSphere(start,end,.2,1).complete); // No first cargo/empty packet yet.
+    ASSERT_TRUE(player.setSceneObstacles({},1));
+    const CovePlayer::StaticObstacle wall{{101,1,99},{101.02,20,101}};ASSERT_TRUE(player.setStaticObstacles(std::span(&wall,1)));
+    auto result=player.sweepSphere(start,end,.2,1);ASSERT_TRUE(result.complete);ASSERT_TRUE(result.hit);
+    EXPECT_NEAR(result.distance,.8,1e-7);EXPECT_EQ(result.normal,glm::dvec3(-1,0,0));
+    result=player.sweepSphere({101,5,100},end,.2,1);EXPECT_TRUE(result.startOverlapped);EXPECT_DOUBLE_EQ(result.distance,0);
+    EXPECT_FALSE(player.sweepSphere(start,end,.2,2).complete);
+    player.setTerrainSweep([](glm::dvec3,glm::dvec3,double){return CovePlayer::SweepResult{true,true,false,0,{0,1,0}};});
+    result=player.sweepSphere({101,5,100},end,.2,1);
+    EXPECT_TRUE(result.startOverlapped);EXPECT_DOUBLE_EQ(result.distance,0); // An equal terrain tangent cannot hide solid overlap.
+    player.setTerrainSweep([](glm::dvec3,glm::dvec3,double)->CovePlayer::SweepResult{throw 1;});
+    EXPECT_FALSE(player.sweepSphere(start,end,.2,1).complete);
+}
+
+TEST_F(CoveMovement, OrientedCargoPacketKeepsRealBeamClearanceAndJoinsObservedTick) {
+    ASSERT_TRUE(bindMotion(player,*scene));
+    ASSERT_TRUE(player.setBoatRootMotion(motionRoot,glm::dmat4(1),{0,0,0},{0,0,0},2));
+    player.setTerrainSweep([](glm::dvec3 a,glm::dvec3 b,double){return CovePlayer::SweepResult{true,false,false,glm::length(b-a),{0,0,0}};});
+    const auto pose=glm::translate(glm::dmat4(1),glm::dvec3(100,5,100))*glm::rotate(glm::dmat4(1),std::acos(-1.)/4,glm::dvec3(0,1,0));
+    const CovePlayer::SceneObstacle beam{{-2,-.2,-.1},{2,.2,.1},pose};
+    ASSERT_TRUE(player.setSceneObstacles(std::span(&beam,1),2));
+    auto hit=player.sweepSphere({100.8,5,100.8},{101.2,5,101.2},.2,2);
+    ASSERT_TRUE(hit.complete);EXPECT_FALSE(hit.hit); // This gap lies inside the beam's enclosing world AABB.
+    hit=player.sweepSphere({99,5,99},{101,5,101},.2,2);
+    ASSERT_TRUE(hit.complete);ASSERT_TRUE(hit.hit);EXPECT_NEAR(hit.distance,std::sqrt(2.)-.3,1e-6);
+    ASSERT_TRUE(player.setBoatRootMotion(motionRoot,glm::dmat4(1),{0,0,0},{0,0,0},3));
+    EXPECT_FALSE(player.sweepSphere({99,5,99},{101,5,101},.2,3).complete);
+    const auto before=player.tick();player.advance(CovePlayer::fixedStep,{{0,0},true});EXPECT_EQ(player.tick(),before);
+    EXPECT_FALSE(player.setSceneObstacles(std::span(&beam,1),2));
+    ASSERT_TRUE(player.setSceneObstacles(std::span(&beam,1),3));
+    player.advance(CovePlayer::fixedStep,{});EXPECT_EQ(player.mode(),CovePlayer::Mode::Airborne); // Held geometry retains the queued edge.
+}
+
+TEST_F(CoveMovement, ExactCapsuleGroundSupportDoesNotStandOnDiagonalProbeCorners) {
+    const auto encode=[](double y){return static_cast<uint16_t>(std::lround((y/600+1)*32767.5));};
+    std::vector<uint16_t> samples(257*257,encode(0));const terrain::lego::Surface surface{samples,257,257,600,1};
+    const double support=terrain::lego::supportHeight(surface,{20.16f,20.16f},float(CovePlayer::radius));
+    auto land=*scene;land.registry.navigation->spawn={20.16,support,20.16};std::string error;
+    ASSERT_TRUE(player.initialize(land,[&](double x,double z){return x>10?double(surface.heightAt(float(x),float(z))):-5.;},error,{},
+        [&](double x,double z,double r){return x>10?double(terrain::lego::supportHeight(surface,{float(x),float(z)},float(r))):-5.;}))<<error;
+    auto state=player.state();
+    ASSERT_LT(support,.15);state.feet={20.16,support+.005,20.16};ASSERT_TRUE(player.restore(state));
+    player.advance(.1,{});EXPECT_NEAR(player.feet().y,support+.005,1e-6);EXPECT_EQ(player.mode(),CovePlayer::Mode::Walking);
+    state.feet.y=.185;EXPECT_FALSE(player.restore(state)); // The old square-corner probes incorrectly call this grounded.
+}
+
+TEST_F(CoveMovement, NearParallelCameraSweepCertifiesClearAndFindsRealShallowHit) {
+    player.setTerrainSweep([](glm::dvec3 a,glm::dvec3 b,double){return CovePlayer::SweepResult{true,false,false,glm::length(b-a),{0,0,0}};});
+    const CovePlayer::StaticObstacle wall{{101,1,80},{101.02,20,120}};ASSERT_TRUE(player.setStaticObstacles(std::span(&wall,1)));
+    auto hit=player.sweepSphere({100.7,5,94},{100.701,5,106},.2);
+    ASSERT_TRUE(hit.complete);EXPECT_FALSE(hit.hit);
+    hit=player.sweepSphere({100.7,5,94},{100.9,5,106},.2);
+    ASSERT_TRUE(hit.complete);ASSERT_TRUE(hit.hit);EXPECT_NEAR(hit.distance,std::hypot(.2,12.)*.5,1e-7);
+}
+
+TEST_F(CoveMovement, IdleHeadingFollowsObservedDeckTurnAndTakeoffKeepsWorldHeading) {
+    const auto base=glm::translate(glm::dmat4(1),glm::dvec3(100,2,100));ASSERT_TRUE(bindMotion(player,*scene,base));
+    CovePlayer::State saved;saved.onBoat=true;saved.root=motionRoot;saved.feet=scene->registry.navigation->boatBoarding+glm::dvec3(0,.005,0);
+    ASSERT_TRUE(player.restore(saved));EXPECT_DOUBLE_EQ(player.facingYaw(),0);
+    const auto pivot=scene->registry.navigation->boatBoarding;
+    const auto rotated=base*glm::translate(glm::dmat4(1),pivot)*glm::rotate(glm::dmat4(1),.5,glm::dvec3(0,1,0))*glm::translate(glm::dmat4(1),-pivot);
+    ASSERT_TRUE(player.setBoatRootMotion(motionRoot,rotated,{0,0,0},{0,0,0},7));ASSERT_TRUE(player.setSceneObstacles({},7));
+    player.advance(.1,{});ASSERT_TRUE(player.onBoat());EXPECT_NEAR(player.facingYaw(),.5,1e-9);
+    player.advance(CovePlayer::fixedStep,{{0,0},true});ASSERT_FALSE(player.onBoat());
+    ASSERT_TRUE(player.setBoatRootMotion(motionRoot,base,{0,0,0},{0,0,0},8));ASSERT_TRUE(player.setSceneObstacles({},8));
+    player.advance(CovePlayer::fixedStep,{});EXPECT_NEAR(player.facingYaw(),.5,1e-9);
+}
+
+TEST_F(CoveMovement, AirborneLandingUsesMovingRootAndRelativeApproachVelocity) {
+    const auto base=glm::translate(glm::dmat4(1),glm::dvec3(100,2,100));ASSERT_TRUE(bindMotion(player,*scene,base,{0,3,0}));
+    auto state=player.state();state.mode=CovePlayer::Mode::Airborne;state.onBoat=false;state.root={};
+    state.feet=glm::dvec3(base*glm::dvec4(scene->registry.navigation->boatBoarding+glm::dvec3(0,.105,0),1));
+    state.worldVelocity={0,1,0};state.verticalSpeed=1;ASSERT_TRUE(player.restore(state));
+    bool landedWhileRising=false;
+    for(uint64_t tick=2;tick<=3;++tick) {
+        const auto pose=glm::translate(glm::dmat4(1),glm::dvec3(0,double(tick-1)*.05,0))*base;
+        ASSERT_TRUE(player.setBoatRootMotion(motionRoot,pose,{0,3,0},{0,0,0},tick));ASSERT_TRUE(player.setSceneObstacles({},tick));
+        player.advance(CovePlayer::fixedStep,{});
+        if(player.onBoat()) {landedWhileRising=true;break;}
+    }
+    ASSERT_TRUE(landedWhileRising);EXPECT_EQ(player.mode(),CovePlayer::Mode::Walking);
+    EXPECT_EQ(player.state().root,motionRoot);EXPECT_EQ(player.worldVelocity(),glm::dvec3(0,3,0));
+}
+
+TEST_F(CoveMovement, AirSteeringAcceleratesGraduallyAndNeutralInputPreservesMomentum) {
+    auto state=player.state();state.mode=CovePlayer::Mode::Airborne;state.feet={100,5,100};
+    state.worldVelocity={0,0,0};state.verticalSpeed=0;ASSERT_TRUE(player.restore(state));
+    player.advance(CovePlayer::fixedStep,{{1,0},false});
+    EXPECT_NEAR(player.worldVelocity().x,.2,1e-9);EXPECT_NEAR(player.feet().x,100+.2/60,1e-9);
+    move({1,0},17);EXPECT_NEAR(player.worldVelocity().x,3.6,1e-9);
+    const double before=player.feet().x;move({0,0},2);
+    EXPECT_NEAR(player.worldVelocity().x,3.6,1e-9);EXPECT_NEAR(player.feet().x,before+3.6/30,1e-9);
 }
 
 TEST_F(CoveMovement, WalksAcrossAuthoredDeckSeamsAndBoardsUsesHelmAndReturns) {

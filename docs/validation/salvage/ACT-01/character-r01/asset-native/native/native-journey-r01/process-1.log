@@ -1,0 +1,64 @@
+[32m[INFO ] [00:00:00.000] Loading config: salvage_cove.cfg[0m
+[32m[INFO ] [00:00:00.000] ═══════════════════════════════════════════════════════════════[0m
+[32m[INFO ] [00:00:00.000]   Voxy - Terrain Renderer[0m
+[32m[INFO ] [00:00:00.000]   Build target: native[0m
+[32m[INFO ] [00:00:00.000]   Render path: raycast[0m
+[32m[INFO ] [00:00:00.000] ═══════════════════════════════════════════════════════════════[0m
+[32m[INFO ] [00:00:00.014] [Application::init] Window created via X11: 960x800 logical, 960x800 framebuffer (2.00x2.00 scale)[0m
+[32m[INFO ] [00:00:00.077] [Application::init::GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [00:00:00.077] [Application::init::GPU]   Vendor: radv[0m
+[32m[INFO ] [00:00:00.077] [Application::init::GPU]   Backend: Vulkan[0m
+[32m[INFO ] [00:00:00.077] [Application::init::GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [00:00:00.080] [Application::init::GPU] Surface configured: 960x800, format=BGRA8Unorm, presentation=Immediate (uncapped)[0m
+[32m[INFO ] [00:00:00.080] [Application::init::GPU] GPU context initialized successfully[0m
+[32m[INFO ] [00:00:00.180] [Application::init] WebGPU physics initialized: 1024 usable body slots, 0 MiB resident, 32 MiB scratch[0m
+[32m[INFO ] [00:00:00.180] [Application::init] Physics backend: webgpu_soft (scheduler internal, concurrency 1)[0m
+[32m[INFO ] [00:00:00.180] [Application::init] Decompressed 256x256 heightmap: 25054 -> 131072 bytes (0.21 ms)[0m
+[32m[INFO ] [00:00:00.180] [Application::init] Loaded LDH heightmap: 256x256 (0.12 MB, 0.21 ms)[0m
+[32m[INFO ] [00:00:00.180] [Application::init] Loaded heightmap: data/lego_shore.ldh[0m
+[32m[INFO ] [00:00:00.180] [Application::init] Uploaded heightmap to GPU with mips: 256x256 (9 levels, 0.17 MB total)[0m
+[32m[INFO ] [00:00:00.195] [Application::init] Coastal refraction field initialized: 256x256[0m
+[32m[INFO ] [00:00:00.196] [Application::init] FFT water simulation initialized: 2 cascades at 256x256[0m
+[32m[INFO ] [00:00:00.198] [Application::init::TrianglePath::init] TrianglePath initialized successfully[0m
+[32m[INFO ] [00:00:00.201] [Application::init::RaycastPath::init] RaycastPath initialized successfully (960x800 output)[0m
+[32m[INFO ] [00:00:00.202] [Application::init] Baked shadow height field: 128x128 (0.2 ms)[0m
+[32m[INFO ] [00:00:00.454] [Application::init::TerrainTextures::init::TerrainTextures::loadTerrainMaterials] Loaded CC0 terrain material arrays from 'data/materials' (1024x1024x4)[0m
+[32m[INFO ] [00:00:00.455] [Application::init::TerrainTextures::init] TerrainTextures initialized: macro 256x256, lightmap 1x1, materials 1024x1024x4[0m
+[32m[INFO ] [00:00:00.488] [Application::init::BlitPath::init] Created water clipmap: 18817 vertices, 33792 triangles[0m
+[32m[INFO ] [00:00:00.570] [Application::init::BlitPath::init] Loaded original generated ocean environment: data/generated/ocean_environment.png[0m
+[32m[INFO ] [00:00:01.475] [Application::init::BlitPath::init] BlitPath initialized successfully[0m
+[32m[INFO ] [00:00:01.477] [Application::init] LEGO layout: shore study (131072 bytes)[0m
+[32m[INFO ] [00:00:01.529] [Application::init] Cove boat prepared: 11 welded parts, 1035 kg dry mass, 9.884032000000001 cubic metres displacement[0m
+[32m[INFO ] [00:00:01.540] [Application::init] Pontoon inspection: authored candidate; 0 auto LOD, 1/2/3 fixed LOD, G guides, R reset[0m
+[32m[INFO ] [00:00:01.541] Application initialized successfully[0m
+[32m[INFO ] [00:00:01.541]   Window: 960x800[0m
+[32m[INFO ] [00:00:01.541]   Terrain: 256x256 (mips: 9)[0m
+[32m[INFO ] [00:00:01.541]   Render path: raycast[0m
+[32m[INFO ] [00:00:01.541] [0m
+[32m[INFO ] [00:00:01.541] Controls:[0m
+[32m[INFO ] [00:00:01.541]   WASD      - Move camera[0m
+[32m[INFO ] [00:00:01.541]   Mouse     - Look around (click to capture)[0m
+[32m[INFO ] [00:00:01.541]   Shift     - Speed boost / Run[0m
+[32m[INFO ] [00:00:01.541]   E/Space   - Move up / Jump[0m
+[32m[INFO ] [00:00:01.541]   Q/Ctrl    - Move down[0m
+[32m[INFO ] [00:00:01.541]   F1        - Toggle debug overlay[0m
+[32m[INFO ] [00:00:01.541]   F2        - Toggle wireframe mode[0m
+[32m[INFO ] [00:00:01.541]   F3        - Toggle render path[0m
+[32m[INFO ] [00:00:01.541]   F4        - Toggle depth visualization[0m
+[32m[INFO ] [00:00:01.541]   F5        - Toggle normal visualization[0m
+[32m[INFO ] [00:00:01.541]   F6        - Toggle mip level heat map[0m
+[32m[INFO ] [00:00:01.541]   F9        - Toggle uncapped/VSync presentation[0m
+[32m[INFO ] [00:00:01.541]   Escape    - Release mouse / Exit[0m
+[32m[INFO ] [00:00:01.541]   R         - Reset cove preview[0m
+[32m[INFO ] [00:00:01.541] [0m
+[32m[INFO ] [00:00:01.542] Expedition save folder: /home/modkin/workspace/schneiderlo/voxys/build-cove-actor-r01/native-storage-r01/1051101acc7d4a8d66050a21d4e0f783[0m
+[32m[INFO ] [00:00:01.542] To resume: --config salvage_cove.cfg --expedition-root '/home/modkin/workspace/schneiderlo/voxys/build-cove-actor-r01/native-storage-r01' --expedition-world 1051101acc7d4a8d66050a21d4e0f783[0m
+[32m[INFO ] [00:00:01.542] P: Pause | F10: Save expedition (manual)[0m
+[32m[INFO ] [00:00:01.542] Starting main loop (native)...[0m
+[32m[INFO ] [00:00:01.544] Cove | Walk beside the boat to board | P: Pause | J: Take recovery job | H: Deliver | WASD: Walk | Space: Jump | R: Return | P: Pause | F10: Save expedition (manual)[0m
+[32m[INFO ] [00:00:01.554] Cove machine active: 1 physical sections[0m
+[32m[INFO ] [00:00:01.554] Salvage load active: 420 kg, authored winch and tow eye[0m
+[32m[INFO ] [00:00:10.017] Saving expedition...[0m
+[32m[INFO ] [00:00:10.037] Expedition saved. F10: Save again | P: Resume[0m
+[32m[INFO ] [00:00:10.037] Expedition checkpoint state: {"active":true,"ready":true,"busy":false,"failed":false,"bodies":0,"resets":0,"controller":"cove-player","terrainSurface":"lego","mouseCaptured":false,"origin":[-12,-187.68,-32],"nativeHud":{"enabled":true,"lastEncodedQuads":98,"uploads":23,"bodyPixels":20,"truncated":false,"panel":[14,14,400,245],"objective":"paused","title":"Cove paused","selected":"Expedition on hold","status":"P: Pause | F10: Save expedition (manual)","hints":["F10: Save expedition","P: Resume",""]},"world":"1051101acc7d4a8d66050a21d4e0f783","camera":{"local":[-11.912,59.9891,-83.0986],"sector":[0,-1,0],"yaw":-2.78282,"pitch":-0.32,"viewProjection":[-1.35147,-0.191309,-0.333322,-0.333299,3.76291e-07,1.64412,-0.314589,-0.314568,0.506804,-0.510157,-0.888855,-0.888796,26.016,-143.302,-59.0612,-58.9572]},"player":{"mode":"walking","interaction":"none","feet":[5.49438,1.285,-50.3483],"tick":"118","interactions":"0","collisionBoxes":55,"rootKey":"0","onBoat":false},"cutter":{"canCut":false,"pending":false,"weld":"0","label":"","sections":1,"cutWelds":0},"rescue":{"phase":"idle","pending":false,"completed":"0","savePending":false},"pause":{"phase":"paused","canPause":false,"tick":"490","waterTick":"490","waterTime":8.15},"nativeMenu":{"open":false,"page":"closed","title":"","selected":0,"rows":[],"naming":false,"name":"","key":0,"keyboardFocus":true,"library":{"ready":false,"busy":false,"generation":"0","root":"/home/modkin/workspace/schneiderlo/voxys/build-cove-actor-r01/native-storage-r01/Designs","selectedId":"0","rows":[],"imports":[],"lastPath":"","message":"Open Saved designs."}},"characterCamera":{"available":true,"mode":"orbit","distance":4.78147,"actualDistance":4.78147,"reducedMotion":true,"frameLoad":true,"valid":true,"held":false,"geometryTick":"490","presentedTick":"490","yaw":0.358771,"elevation":0.32,"eye":[7.08804,3.98909,-46.0986]},"character":{"clip":"idle","time":0.4,"blend":1,"facingYaw":0.358771,"worldVelocity":[0,0,0],"draws":34},"gamepad":{"connected":false,"armed":false,"menuOwner":false},"workshop":{"open":false,"canOpen":true,"displayOrigin":[-19,-196,-37],"camera":{"target":[0,0,0],"distance":12.55,"yaw":0.6,"elevation":0.502843,"framePending":false,"rectangle":[-0.92,-0.74,0.92,0.92]},"canLoadBlueprint":false,"storedParts":0,"savePending":false,"canRebuild":false,"recoveryDesigns":0,"recoverySelected":0,"canLoadRecovery":false,"canRemoveRecovery":false,"recoveryDigests":[],"storedPartIds":[],"materials":"48","machinery":"0","affordable":false,"pending":false,"canLaunch":false,"canUndoLaunch":false,"canRedoLaunch":false,"launches":0,"lastLaunchTick":0,"launchMessage":""},"boat":{"prepared":true,"active":true,"observedTick":490,"position":[-0.488441,-1.16687,-54.0006],"speed":0.0747966,"orientation":[2.5036e-05,-0.000191399,0.00642487,0.999979],"helmPosition":[0.49674,-0.0341642,-53.1001],"buildId":"6","topologyRevision":"0","parts":11,"eventsThrough":"490","attachmentBreaks":"0","physicsTicks":{"supported":true,"failed":false,"incarnation":"1","base":"0","scheduled":"490","encoded":"490","submitted":"490","completed":"490","maximumInFlight":2},"sceneryCollision":true,"sceneryProxies":13,"thrustLimitNewtons":2500,"steeringLimitRadians":0.6,"thrustDirection":[0,0,-1],"mechanisms":{"tick":"490","incarnation":"1","rotorRadians":0,"drumRadians":0,"effectiveDrive":0,"animatedParts":2,"bodyIndex":2,"bodyGeneration":1,"ropeTick":"0","ropeIndex":0,"ropeGeneration":0,"ropeLength":0},"massKg":1035,"displacementM3":9.88403,"paidPartIds":[],"rootCount":1,"controlPart":"15","joinedTick":"490","roots":[{"key":"7","active":true,"observedTick":"490","position":[-0.488441,-1.16687,-54.0006],"orientation":[2.5036e-05,-0.000191399,0.00642487,0.999979],"velocity":[0.04919,-0.0417396,0.0378507],"angularVelocity":[-0.0417468,0.000114053,0.0545032]}]},"tow":{"name":"Salvage generator","active":true,"attached":false,"broken":false,"hasWinch":true,"rootKey":"7","operable":false,"inRange":true,"confirmed":true,"motor":0,"distance":6.31156,"ropeObservedTick":"0","ropeLength":null,"observedTick":490,"position":[-4.49983,-3.02555,-57.9988],"speed":0.0438251,"massKg":420},"job":{"phase":"available","pending":false,"canDeliver":false,"harborDistance":6.40223,"secured":false,"savePending":false,"durable":false,"message":""},"harbor":{"installed":false,"durable":false,"pending":false,"atDock":true,"compatible":true,"attached":false,"brokenMask":0,"canInstall":false,"canAttach":false,"attachmentPending":false,"canOperate":false,"canRelease":false,"motor":0,"bodyObservedTick":"0","stage":0,"message":"","attachmentIssue":"","rigIssue":"","lengths":[0,0,0,0],"lineLoads":[null,null,null,null]},"session":{"revision":"0","tick":"490","admissionOpen":true,"builds":1,"buildParts":11,"buildConnections":17,"cargo":1,"jobs":1,"inventory":{"salvageMaterial":"48","specialMachinery":"0"}},"observation":{"world":"1051101acc7d4a8d66050a21d4e0f783","incarnation":"6734c0fd39b4172df60b9c5718c3edb7","epoch":"1","publicationLost":false,"lanes":[{"through":"0","retained":0,"overwritten":"0","invalid":"0","exhausted":false},{"through":"0","retained":0,"overwritten":"0","invalid":"0","exhausted":false},{"through":"0","retained":0,"overwritten":"0","invalid":"0","exhausted":false}]},"assetFixture":{"status":2,"presentationParts":9,"sceneSunShadows":true,"generation":"1","uploads":36,"prototypeUploads":0,"dockMarkingGpuBytes":"7760","dockMarkingDraws":2,"environmentGpuBytes":"1228944","environmentBakeCount":1,"environmentReady":true,"gpuReservationBytes":"10119560","submittedSerial":"6216","completedSerial":"6212","draws":129,"guides":0,"opaqueSceneGpuBytes":"9216000","guideBoxes":0,"guideMeshGpuBytes":1936,"forcedLod":"0","lods":["2","2","2","2","2","2","1","2","2","2","2","2","2","2","1","1","1","1","1","1","1","1","1","2","2"],"availableLods":["0","1","2","3"]}}[0m
+[32m[INFO ] [00:00:10.037] Expedition checkpoint committed: world 1051101acc7d4a8d66050a21d4e0f783, generation 1[0m

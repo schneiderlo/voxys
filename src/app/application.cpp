@@ -24,6 +24,9 @@
 #include "game/expedition/cove_player.hpp"
 #include "game/expedition/cove_water_clock.hpp"
 #include "game/expedition/cove_mechanisms.hpp"
+#include "game/expedition/cove_camera.hpp"
+#include "game/expedition/cove_character.hpp"
+#include "game/assets/robot_asset.hpp"
 #include "game/expedition/cove_boat.hpp"
 #include "game/expedition/cove_rigid_roots.hpp"
 #include "game/construction/assembly_fracture.hpp"
@@ -235,6 +238,28 @@ struct SalvageLocalSessionState {
         render::InspectionGuides guides = render::InspectionGuides::Off;
         std::vector<uint64_t> selectedLods;
         std::unique_ptr<game::expedition::CovePlayer> player;
+        std::shared_ptr<const game::assets::RigidAnimationAsset> robot;
+        game::expedition::CoveCharacter character;
+        game::expedition::CoveCamera characterCamera;
+        game::expedition::CoveCamera::Input characterCameraInput;
+        bool characterDiscontinuity=true;
+        uint64_t playerObservedTick=0;
+        const game::expedition::CovePlayer* terrainBoundPlayer=nullptr;
+        bool characterViewReady=false;
+        // CPU-owned semantic presentation only: no submitted ticket, view,
+        // bind group or GPU body handle survives in this snapshot.
+        struct CharacterPresentation {
+            bool valid=false,robotVisible=false;
+            Camera camera;
+            std::array<render::SalvageFixturePlacement,render::SalvageAssetFixture::maximumPlacements> placements{};
+            size_t placementCount=0,solidCount=0,cableCount=0;
+            game::assets::RigidAnimationPose robot;
+            std::array<render::SalvageFixtureSolid,10> solids{};
+            std::array<std::array<glm::vec3,2>,4> cables{};
+            std::optional<std::array<glm::vec3,2>> tow;
+            std::optional<glm::dmat4> dock;
+            uint64_t tick=0;
+        } characterPresentation;
         std::unique_ptr<game::expedition::CoveBoatAssembly> boat;
         std::unique_ptr<game::expedition::CoveRigidRoots> boatRoots;
         auto& boatRoot() noexcept { return boatRoots->primary(); }
@@ -1155,7 +1180,8 @@ bool Application::stageCoveResume(std::array<uint8_t,16> world,std::span<const s
     if(!std::equal(header.begin(),header.end(),bytes.begin()))return false;
     uint32_t schema=0;for(size_t i=0;i<4;++i)schema|=uint32_t(std::to_integer<uint8_t>(bytes[4+i]))<<(8*i);
     if(schema!=game::expedition::kCoveSaveSchema&&schema!=game::expedition::kCoveSaveHarborSchema
-        &&schema!=game::expedition::kCoveSaveRecoverySchema&&schema!=game::expedition::kCoveSaveRootsSchema)return false;
+        &&schema!=game::expedition::kCoveSaveRecoverySchema&&schema!=game::expedition::kCoveSaveRootsSchema
+        &&schema!=game::expedition::kCoveSaveCharacterSchema)return false;
     const auto digest=core::sha256(bytes.first(bytes.size()-32));
     if(!std::equal(digest.bytes.begin(),digest.bytes.end(),bytes.end()-32))return false;
     try {
@@ -2174,6 +2200,7 @@ void Application::update(float simulationDeltaTime, float frameDeltaTime) {
     if (config_.salvagePreviewEnabled && salvagePreview_ && salvagePreview_->busy())
         handleKeyboardShortcuts();
     if (legoPlayground_) legoPlayground_->step(simulationDeltaTime);
+    updateCoveCharacterView(frameDeltaTime);
     if (physicsWorld_) {
         const auto* cove=salvageLocalSession_?salvageLocalSession_->asset.get():nullptr;
         const bool covePaused=(cove && cove->pause!=SalvageLocalSessionState::AssetPreview::Pause::Running)
@@ -5103,6 +5130,12 @@ bool Application::renderSalvageAsset(WGPUCommandEncoder encoder, WGPUTextureView
     auto& asset = *salvageLocalSession_->asset;
     if (asset.leaving || asset.status != render::SalvageFixtureStatus::Active
         || salvagePreviewFailed_) return true;
+    auto& presentation=asset.characterPresentation;
+    if(asset.workshopOpen)presentation.valid=false;
+    const bool hold=asset.player&&!asset.workshopOpen&&!asset.characterViewReady;
+    // Before the first complete camera packet there is no safe actor frame.
+    // GPU simulation/readback keeps progressing through the normal frame.
+    if(hold&&!presentation.valid)return true;
     const auto depth = getOrCreateDepthView();
     if (!depth) return false;
     const auto cameraSectorOrigin = glm::dvec3(camera_->worldSector()) * static_cast<double>(physics::kWorldSectorSize);
@@ -5110,6 +5143,12 @@ bool Application::renderSalvageAsset(WGPUCommandEncoder encoder, WGPUTextureView
     const auto viewProjection = glm::dmat4(camera_->projectionMatrix() * camera_->viewMatrix());
     std::array<render::SalvageFixturePlacement, render::SalvageAssetFixture::maximumPlacements> placements{};
     size_t placementCount=0;
+    render::SalvageFixtureFrame frame;
+    game::assets::RigidAnimationPose robotPose;
+    std::array<render::SalvageFixtureSolid,10> harborSolids;
+    std::array<std::array<glm::vec3,2>,4> harborCables;
+    size_t cableCount=0;
+    if(!hold) {
     asset.mechanismPlacements=0;
     const auto& visibleScene=asset.workshopOpen?asset.workshop->preview():asset.acceptedScene();
     for (size_t i = 0; i < visibleScene.registry.placements.size(); ++i) {
@@ -5178,7 +5217,18 @@ bool Application::renderSalvageAsset(WGPUCommandEncoder encoder, WGPUTextureView
                         }
                     }
                 } else rendered.physicsBody=body;
-                rendered.cameraRelativeRoot=glm::dmat4(1);
+                // Cove third-person presentation uses the same completed
+                // packet as character collision and camera sweeps. Other
+                // routes retain direct GPU body transforms.
+                const physics::AuthoredRootMotion* motion=&asset.cargoObserved;
+                if(assembly==asset.boat.get()) {
+                    const auto index=asset.boatRoots->indexForPart(*asset.boat,part.id);
+                    if(!index)return false;
+                    motion=&asset.boatRoots->roots()[*index].observed;
+                }
+                rendered.physicsBody={};
+                rendered.cameraRelativeRoot=glm::translate(glm::dmat4(1),physics::worldPositionToAbsolute(motion->position)-cameraSectorOrigin)
+                    *glm::mat4_cast(glm::normalize(glm::dquat(motion->orientation)));
                 rendered.placement=member->rootFromPart;
             }
         }
@@ -5203,15 +5253,15 @@ bool Application::renderSalvageAsset(WGPUCommandEncoder encoder, WGPUTextureView
         }
     }
 #endif
-    render::SalvageFixtureFrame frame;
-    frame.view = camera_->viewMatrix(); frame.projection = camera_->projectionMatrix();
-    frame.cameraPosition = camera_->position();
-    frame.physics=physicsWorld_->renderView();
-    frame.worldCamera={camera_->worldSector(),camera_->position()};
-    frame.shadowFrameWorldOrigin=glm::vec3(cameraSectorOrigin);
-    frame.width = gpuContext_->getSwapchainWidth(); frame.height = gpuContext_->getSwapchainHeight();
-    frame.useRayDepth = config_.renderPath == RenderPath::Raycast;
-    frame.guides = asset.guides;
+    if(asset.robot&&!asset.workshopOpen&&asset.characterViewReady&&!asset.characterCamera.pose().hideAvatar) {
+        const auto model=glm::translate(glm::dmat4(1),asset.origin+asset.player->feet()-cameraSectorOrigin)
+            *glm::rotate(glm::dmat4(1),asset.player->facingYaw(),glm::dvec3(0,1,0));
+        std::string error;
+        if(!asset.character.sample(*asset.robot,model,robotPose,error)){
+            LOG_ERROR("Cove robot animation failed: {}",error);return false;
+        }
+        frame.robot=&robotPose;
+    }
     if(asset.dockMarkings && !asset.workshopOpen)frame.dockMarkingsRoot=root;
     if(!asset.workshopOpen && asset.towRope.valid() && !asset.towBroken && asset.towRoot().observedTick>=asset.towChangedTick) {
         const auto a=physics::worldPositionToAbsolute(asset.towRoot().observed.position)
@@ -5220,8 +5270,6 @@ bool Application::renderSalvageAsset(WGPUCommandEncoder encoder, WGPUTextureView
             +glm::dvec3(asset.cargoObserved.orientation*asset.towCargoPoint)-cameraSectorOrigin;
         frame.towCable=std::array{glm::vec3(a),glm::vec3(b)};
     }
-    std::array<render::SalvageFixtureSolid,10> harborSolids;
-    std::array<std::array<glm::vec3,2>,4> harborCables;size_t cableCount=0;
     if(!asset.workshopOpen&&asset.harbor&&asset.harbor->durable()&&asset.harbor->body().valid()){
         const auto fixed=physics::worldPositionToAbsolute(asset.harbor->motion().position)-cameraSectorOrigin;
         size_t solidIndex=0;
@@ -5241,6 +5289,21 @@ bool Application::renderSalvageAsset(WGPUCommandEncoder encoder, WGPUTextureView
         }
         frame.harborCables=std::span(harborCables).first(cableCount);
     }
+    } else {
+        placements=presentation.placements;placementCount=presentation.placementCount;
+        if(presentation.robotVisible)frame.robot=&presentation.robot;
+        frame.harborStructure=std::span(presentation.solids).first(presentation.solidCount);
+        frame.harborCables=std::span(presentation.cables).first(presentation.cableCount);
+        frame.towCable=presentation.tow;frame.dockMarkingsRoot=presentation.dock;
+    }
+    frame.view = camera_->viewMatrix(); frame.projection = camera_->projectionMatrix();
+    frame.cameraPosition = camera_->position();
+    frame.physics=physicsWorld_->renderView();
+    frame.worldCamera={camera_->worldSector(),camera_->position()};
+    frame.shadowFrameWorldOrigin=glm::vec3(cameraSectorOrigin);
+    frame.width = gpuContext_->getSwapchainWidth(); frame.height = gpuContext_->getSwapchainHeight();
+    frame.useRayDepth = config_.renderPath == RenderPath::Raycast;
+    frame.guides = asset.guides;
     frame.linearDepthOutput = linearDepthOutput;
     frame.beforeColor = beforeColor;
     frame.lighting = {.direction = rendererSettings_.sunDirection,
@@ -5253,6 +5316,17 @@ bool Application::renderSalvageAsset(WGPUCommandEncoder encoder, WGPUTextureView
         std::span(placements).first(placementCount), frame, ticket, error)) {
         LOG_ERROR("Asset fixture frame rejected: {}", error);
         salvagePreviewFailed_ = true; requestExit(); return false;
+    }
+    if(asset.player&&!asset.workshopOpen&&!hold) {
+        presentation.camera=*camera_;presentation.placements=placements;presentation.placementCount=placementCount;
+        // Cove guides are off; do not retain borrowed socket spans.
+        for(auto& placement:presentation.placements)placement.selectedSockets.reset();
+        presentation.robotVisible=frame.robot!=nullptr;if(frame.robot)presentation.robot=*frame.robot;
+        presentation.solidCount=frame.harborStructure.size();presentation.cableCount=frame.harborCables.size();
+        std::copy(frame.harborStructure.begin(),frame.harborStructure.end(),presentation.solids.begin());
+        std::copy(frame.harborCables.begin(),frame.harborCables.end(),presentation.cables.begin());
+        presentation.tow=frame.towCable;presentation.dock=frame.dockMarkingsRoot;
+        presentation.tick=asset.player->collisionTick();presentation.valid=true;
     }
     return true;
 }
@@ -5804,7 +5878,7 @@ bool Application::initSalvagePreview() {
             if (!asset->player->initialize(*asset->content,
                     [this, localOrigin](double x, double z) {
                         return double(sampleTerrainHeight(float(x + localOrigin.x), float(z + localOrigin.z))) - localOrigin.y;
-                    }, error)) {
+                    }, error,{},coveGroundSupport(localOrigin))) {
                 LOG_ERROR("Cove movement initialization failed: {}", error);
                 return false;
             }
@@ -5827,6 +5901,13 @@ bool Application::initSalvagePreview() {
         fixtureConfig.filteredEnvironment = config_.salvageAssetFixtureFilteredLighting;
         fixtureConfig.sunShadows = config_.salvageAssetFixtureWaterAnchor;
         if(asset->player) {
+            std::filesystem::path robotDirectory="data/salvage/robot-r01";
+#if defined(VOXY_NATIVE)
+            if(const char* workspace=std::getenv("BUILD_WORKSPACE_DIRECTORY");workspace&&*workspace)
+                robotDirectory=std::filesystem::path(workspace)/robotDirectory;
+#endif
+            asset->robot=game::assets::loadRobotAsset(robotDirectory,error);
+            if(!asset->robot){LOG_ERROR("Cove robot preparation failed: {}",error);return false;}
             asset->dockMarkings.emplace();
             if(!render::makeCoveDockMarkings(*asset->content,*asset->dockMarkings,error)) {
                 LOG_ERROR("Cove dock marking preparation failed: {}",error);return false;
@@ -5834,7 +5915,7 @@ bool Application::initSalvagePreview() {
         }
         if (!asset->fixture.init(gpuContext_->getDevice(), gpuContext_->getQueue(), fixtureConfig, error)
             || !asset->fixture.beginCandidate(asset->content->renderBundles(), error, asset->content->prototypes,
-                asset->dockMarkings?&*asset->dockMarkings:nullptr)) {
+                asset->dockMarkings?&*asset->dockMarkings:nullptr,asset->robot)) {
             LOG_ERROR("Asset fixture initialization failed: {}", error);
             return false;
         }
@@ -5964,7 +6045,7 @@ bool Application::initSalvagePreview() {
         auto candidate=game::expedition::CoveRestoreCandidate::prepare(coveResume_->source,*local.saveContext,
             *asset->content,*local.catalog,asset->initialBindings,[this,loadOrigin](double x,double z){
                 return double(sampleTerrainHeight(float(x+loadOrigin.x),float(z+loadOrigin.z)))-loadOrigin.y;
-            },error,&asset->initialStarterKit);
+            },error,&asset->initialStarterKit,coveGroundSupport(loadOrigin));
         if(!candidate || candidate->archive->physical.tick.value()!=coveResume_->tick){LOG_ERROR("Cove load: {}",error);return false;}
         game::expedition::RecoveryIssue issue;
         auto recovered=game::expedition::SessionRecovery::restore(candidate->archive->current,observer,local.preparation,issue);
@@ -6002,6 +6083,19 @@ bool Application::initSalvagePreview() {
         const auto eye=physics::worldPositionFromAbsolute(asset->origin+asset->player->feet()+glm::dvec3(0,game::expedition::CovePlayer::eyeHeight,0));
         camera_->setWorldPosition(eye.sector,eye.local);
         camera_->setYaw(asset->restorePhysical->player.viewYaw);camera_->setPitch(asset->restorePhysical->player.viewPitch);
+        using CameraRig=game::expedition::CoveCamera;
+        const auto& character=asset->restorePhysical->character;
+        if(character.profile) {
+            if(!asset->characterCamera.settings({character.chaseCamera?CameraRig::Mode::Chase:CameraRig::Mode::Orbit,
+                character.reducedMotion,character.loadView})
+                ||!asset->characterCamera.restoreOrbit(asset->restorePhysical->player.viewYaw,
+                    std::clamp(double(asset->restorePhysical->player.viewPitch),CameraRig::minimumElevation,CameraRig::maximumElevation),
+                    character.cameraDistance))return false;
+        } else {
+            const auto forward=camera_->forward();
+            if(!asset->characterCamera.restoreOrbit(std::atan2(-double(forward.x),-double(forward.z)),
+                std::clamp(-std::asin(double(forward.y)),CameraRig::minimumElevation,CameraRig::maximumElevation),5.5))return false;
+        }
         coveResume_->source.clear();
     } else {
         salvageLocalSession_->session=game::expedition::GameSession::create(bootstrap,observer,
@@ -6064,11 +6158,11 @@ void Application::configureCoveLaunch() {
         candidate->lods=asset->selectedLods;candidate->lods.resize(design->scene.registry.placements.size());
         if(!candidate->player->initialize(design->scene,[this,origin](double x,double z) {
                 return double(sampleTerrainHeight(float(x+origin.x),float(z+origin.z)))-origin.y;
-            },error,candidate->boatSlots)) {
+            },error,candidate->boatSlots,coveGroundSupport(origin))) {
             asset->launchMessage=error;return State::Rejected;
         }
         if(asset->harbor&&asset->harbor->installed()
-            &&!asset->harbor->structure().applyPlayerCollision(*candidate->player,asset->cargo.get(),&asset->cargoObserved,asset->origin))return State::Rejected;
+            &&!asset->harbor->structure().applyPlayerCollision(*candidate->player))return State::Rejected;
         candidate->workshop=game::expedition::CoveWorkshop::create(design->scene,error,static_cast<uint32_t>(asset->content->registry.placements.size()),asset->content->registry.navigation->boatPlacements,request.cut!=nullptr);
         if(!candidate->workshop){asset->launchMessage=error;return State::Rejected;}
         candidate->scene=std::make_unique<const game::assets::LoadedAssetFixture>(std::move(design->scene));
@@ -6281,9 +6375,13 @@ void Application::resetSalvagePreviewView() {
             // This resets only the view/player. Physical recovery is a reserved
             // all-section mutation in the joined Rescue state machine below.
             asset.player->reset();
+            asset.character.reset();asset.playerObservedTick=0;asset.characterDiscontinuity=true;
             setCameraWorldPose(*camera_, glm::vec3(asset.origin + asset.player->feet()
                 + glm::dvec3(0, game::expedition::CovePlayer::eyeHeight, 0)),
                 glm::vec3(asset.origin + asset.content->registry.navigation->lookTarget));
+            const auto forward=camera_->forward();
+            asset.characterCamera.reset();
+            (void)asset.characterCamera.restoreOrbit(std::atan2(-double(forward.x),-double(forward.z)),.32,5.5);
             return;
         }
         setCameraWorldPose(*camera_, glm::vec3(asset.origin + asset.content->registry.cameraEye),
@@ -6394,7 +6492,7 @@ std::string Application::salvageExpeditionAction(int action,std::string_view tex
             if(asset.workshopSavePending)asset.launchMessage=asset.jobMessage;}
         catch(const std::bad_alloc&){return {};}
         if(installing){
-            if(!asset.harbor->structure().applyPlayerCollision(*asset.player,asset.cargo.get(),&asset.cargoObserved,asset.origin)||!asset.harbor->acknowledgeInstallation())return {};
+            if(!asset.harbor->structure().applyPlayerCollision(*asset.player)||!asset.harbor->acknowledgeInstallation())return {};
         }
         asset.checkpointPending=false;asset.workshopSavePending=false;asset.deliveryDurable=asset.cargoBanked;asset.checkpointDigest.clear();
         if(rescuing){asset.rescue=SalvageLocalSessionState::AssetPreview::Rescue::None;++asset.rescues;}
@@ -6414,7 +6512,7 @@ std::string Application::salvageExpeditionAction(int action,std::string_view tex
             auto candidate=CoveRestoreCandidate::prepare(bytes,*local.saveContext,*asset.content,*local.catalog,
                 asset.initialBindings,[this,origin](double x,double z){
                     return double(sampleTerrainHeight(float(x+origin.x),float(z+origin.z)))-origin.y;
-                },error,&asset.initialStarterKit);
+                },error,&asset.initialStarterKit,coveGroundSupport(origin));
             return candidate?"ok":"";
         }
         if(action!=1 || !text.empty() || !waterSimulation_)return {};
@@ -6454,7 +6552,16 @@ std::string Application::salvageExpeditionAction(int action,std::string_view tex
         case CovePlayer::Mode::Swimming:physical.player.mode=CoveSavedPlayerMode::Swimming;break;
         case CovePlayer::Mode::Helm:physical.player.mode=CoveSavedPlayerMode::Helm;break;
         }
-        physical.player.aboard=player.onBoat;physical.player.viewYaw=camera_->yaw();physical.player.viewPitch=camera_->pitch();
+        physical.player.aboard=player.onBoat;
+        physical.player.viewYaw=static_cast<float>(asset.characterCamera.pose().yaw);
+        physical.player.viewPitch=static_cast<float>(asset.characterCamera.pose().elevation);
+        physical.character.profile=1;
+        physical.character.worldVelocity={player.worldVelocity.x,player.worldVelocity.y,player.worldVelocity.z};
+        physical.character.facingYaw=player.facingYaw;
+        physical.character.cameraDistance=asset.characterCamera.userDistance();
+        const auto cameraSettings=asset.characterCamera.settings();
+        physical.character.chaseCamera=cameraSettings.mode==game::expedition::CoveCamera::Mode::Chase;
+        physical.character.reducedMotion=cameraSettings.reducedMotion;physical.character.loadView=cameraSettings.frameLoad;
         physical.playerRoot=player.root;
         auto& savedWater=physical.water;const auto& spectrum=waterSimulation_->spectrumConfig();
         savedWater.seconds=asset.waterTime;savedWater.height=rendererSettings_.waterHeight;
@@ -6504,6 +6611,22 @@ bool Application::salvagePreviewAction(int action) {
         ||(salvageLocalSession_->asset->harbor&&salvageLocalSession_->asset->harbor->installationPending())))return false;
     using Preview = game::expedition::SalvagePreview;
     using Pause = SalvageLocalSessionState::AssetPreview::Pause;
+    if(action>=320&&action<=325) {
+        auto* asset=salvageLocalSession_->asset.get();
+        if(!asset||!asset->player||asset->workshopOpen||asset->leaving||asset->launch
+            ||salvageLocalSession_->launchRequest||asset->status!=render::SalvageFixtureStatus::Active)return false;
+        auto settings=asset->characterCamera.settings();
+        using CharacterCamera=game::expedition::CoveCamera;
+        if(action==320)settings.mode=settings.mode==CharacterCamera::Mode::Chase?CharacterCamera::Mode::Orbit:CharacterCamera::Mode::Chase;
+        if(action==321)return asset->characterCamera.restoreOrbit(asset->player->facingYaw(),
+            asset->characterCamera.pose().elevation,asset->characterCamera.userDistance());
+        if(action==322)settings.frameLoad=!settings.frameLoad;
+        if(action==323)settings.reducedMotion=!settings.reducedMotion;
+        if(action==324||action==325)return asset->characterCamera.setUserDistance(std::clamp(
+            asset->characterCamera.userDistance()*std::exp(action==324?-.14:.14),
+            CharacterCamera::minimumDistance,CharacterCamera::maximumDistance));
+        return asset->characterCamera.settings(settings);
+    }
     if(action==90 || action==91) {
         auto* asset=salvageLocalSession_->asset.get();
         if(!asset || !asset->player || !asset->boatRoot().body.valid() || asset->leaving || !physicsWorld_
@@ -6833,7 +6956,7 @@ void Application::updateNativeWorkshopMenu() {
     auto* asset=salvageLocalSession_?salvageLocalSession_->asset.get():nullptr;
     if(!asset||!asset->player||!input_) {if(nativeWorkshopMenu_)nativeWorkshopMenu_->dismiss();return;}
     asset->menuConsumedFrame=false;
-    if(!nativeWorkshopMenu_&&asset->workshopOpen) {
+    if(!nativeWorkshopMenu_) {
         game::expedition::StoreIssue issue;
         auto root=config_.salvageDesignLibraryRoot.empty()?platform::NativeDesignLibrary::defaultRoot(issue):config_.salvageDesignLibraryRoot;
         nativeWorkshopMenu_=std::make_unique<platform::NativeWorkshopMenu>(std::move(root),
@@ -6842,6 +6965,15 @@ void Application::updateNativeWorkshopMenu() {
     }
     if(!nativeWorkshopMenu_)return;
     platform::NativeWorkshopMenu::Facts facts;
+    facts.cameraAvailable=!asset->workshopOpen&&!asset->leaving&&!asset->launch&&!asset->checkpointPending
+        &&!salvageLocalSession_->storageRevoked&&!salvageLocalSession_->launchRequest
+        &&asset->status==render::SalvageFixtureStatus::Active&&!salvagePreview_->busy()
+        &&!salvageLocalSession_->pendingControl&&asset->rescue==SalvageLocalSessionState::AssetPreview::Rescue::None
+        &&!(asset->harbor&&asset->harbor->installationPending());
+    const auto viewSettings=asset->characterCamera.settings();
+    facts.chaseCamera=viewSettings.mode==game::expedition::CoveCamera::Mode::Chase;
+    facts.reducedMotion=viewSettings.reducedMotion;facts.frameLoad=viewSettings.frameLoad;
+    facts.cameraDistance=asset->characterCamera.userDistance();
     facts.workshopOpen=asset->workshopOpen&&!asset->leaving&&!salvagePreviewFailed_;
     facts.pending=!facts.workshopOpen||salvageLocalSession_->storageRevoked
         ||salvageLocalSession_->pendingControl||salvageLocalSession_->session->hasPending()
@@ -6889,7 +7021,7 @@ render::CoveHudContent Application::nativeCoveHudContent() const {
     using Tone=render::CoveHudTone;
     using Pause=SalvageLocalSessionState::AssetPreview::Pause;
     if(nativeWorkshopMenu_&&nativeWorkshopMenu_->active()) {
-        hud.title="Workshop tools";hud.menu=nativeWorkshopMenu_->menuContent();
+        hud.title=asset.workshopOpen?"Workshop tools":"Camera";hud.menu=nativeWorkshopMenu_->menuContent();
         hud.tone=Tone::Neutral;hud.objective="workshop-tools";return hud;
     }
     const auto owned=local.session->snapshot();
@@ -7009,7 +7141,7 @@ render::CoveHudContent Application::nativeCoveHudContent() const {
     hud.title=guidance.title;hud.status=guidance.status;hud.tone=guidance.tone;hud.objective=guidance.step;
     hud.hints[0]=asset.player->mode()==Player::Mode::Helm?"W/S: Drive  A/D: Steer":"WASD: Walk  Space: Jump";
     hud.hints[1]=guidance.controls;
-    hud.hints[2]="B: Build  P: Pause  R: Rescue";
+    hud.hints[2]="B: Build  F2: Camera  P: Pause";
     if(facts.deliveryPending||facts.harborPending)hud.hints={std::string(guidance.controls),"Controls wait for hand-off",""};
     return hud;
 }
@@ -7176,6 +7308,28 @@ std::string Application::salvagePreviewJson() const {
             json<<"],\"lastPath\":";string(library.lastPath().string());json<<",\"message\":";string(library.message());json<<"}}";
         }
 #endif
+        const auto cameraSettings=asset->characterCamera.settings();
+        const auto& pose=asset->characterCamera.pose();
+        const bool cameraAvailable=!asset->workshopOpen&&!asset->leaving&&!asset->launch&&!asset->checkpointPending
+            &&!salvageLocalSession_->storageRevoked&&!salvageLocalSession_->launchRequest&&!salvageLocalSession_->pendingControl
+            &&asset->status==render::SalvageFixtureStatus::Active&&!salvagePreview_->busy()
+            &&asset->rescue==SalvageLocalSessionState::AssetPreview::Rescue::None
+            &&!(asset->harbor&&asset->harbor->installationPending());
+        json<<",\"characterCamera\":{\"available\":"<<(cameraAvailable?"true":"false")
+            <<",\"mode\":\""<<(cameraSettings.mode==game::expedition::CoveCamera::Mode::Chase?"chase":"orbit")
+            <<"\",\"distance\":"<<asset->characterCamera.userDistance()<<",\"actualDistance\":"<<pose.distance
+            <<",\"reducedMotion\":"<<(cameraSettings.reducedMotion?"true":"false")
+            <<",\"frameLoad\":"<<(cameraSettings.frameLoad?"true":"false")
+            <<",\"valid\":"<<(asset->characterViewReady?"true":"false")
+            <<",\"held\":"<<(!asset->characterViewReady&&asset->characterPresentation.valid?"true":"false")
+            <<",\"geometryTick\":\""<<pose.geometryTick<<"\",\"presentedTick\":\""<<asset->characterPresentation.tick
+            <<"\",\"yaw\":"<<pose.yaw<<",\"elevation\":"<<pose.elevation
+            <<",\"eye\":["<<pose.eye.x<<','<<pose.eye.y<<','<<pose.eye.z<<"]}";
+        const auto velocity=asset->player->worldVelocity();
+        json<<",\"character\":{\"clip\":\""<<asset->character.name()<<"\",\"time\":"<<asset->character.time()
+            <<",\"blend\":"<<asset->character.blend()<<",\"facingYaw\":"<<asset->player->facingYaw()
+            <<",\"worldVelocity\":["<<velocity.x<<','<<velocity.y<<','<<velocity.z<<']'
+            <<",\"draws\":"<<asset->fixture.stats().lastSubmittedRobotDraws<<'}';
         if(input_)json<<",\"gamepad\":{\"connected\":"<<(input_->gamepad().connected()?"true":"false")
             <<",\"armed\":"<<(input_->gamepad().armed()?"true":"false")
             <<",\"menuOwner\":"<<(coveUiOwnsInput()?"true":"false")<<'}';
@@ -7700,9 +7854,92 @@ void Application::encodeSalvageRetirement(WGPUCommandEncoder encoder) {
     }
 }
 
+std::function<double(double,double,double)> Application::coveGroundSupport(glm::dvec3 origin) const {
+    if(!config_.legoTerrainEnabled||!heightmap_)return {};
+    const terrain::lego::Surface surface{heightmap_->getData(),heightmap_->getWidth(),heightmap_->getHeight(),config_.heightScale,config_.cellScale};
+    return [surface,origin](double x,double z,double radius){
+        return double(terrain::lego::supportHeight(surface,glm::vec2(float(x+origin.x),float(z+origin.z)),float(radius)))-origin.y;
+    };
+}
+
+void Application::updateCoveCharacterView(float deltaTime) {
+    auto* asset=salvageLocalSession_?salvageLocalSession_->asset.get():nullptr;
+    if(!asset||!asset->player||!asset->robot||!camera_||!heightmap_||asset->leaving)return;
+    using Rig=game::expedition::CoveCamera;
+    using Player=game::expedition::CovePlayer;
+    auto& player=*asset->player;
+    if(asset->terrainBoundPlayer!=&player) {
+        const terrain::lego::Surface surface{heightmap_->getData(),heightmap_->getWidth(),heightmap_->getHeight(),config_.heightScale,config_.cellScale};
+        const auto origin=asset->origin;const bool lego=config_.legoTerrainEnabled;
+        player.setTerrainSweep([surface,origin,lego](glm::dvec3 a,glm::dvec3 b,double radius){
+            const auto hit=game::expedition::sweepCoveTerrainSphere(surface,a+origin,b+origin,radius,lego);
+            return Player::SweepResult{hit.complete,hit.hit,hit.startOverlapped,hit.distance,hit.normal};
+        });
+        if(lego)player.setGroundSupport([surface,origin](double x,double z,double radius){
+            return double(terrain::lego::supportHeight(surface,glm::vec2(float(x+origin.x),float(z+origin.z)),float(radius)))-origin.y;
+        });
+        if(!asset->character.restoreMode(player.mode(),player.state().verticalSpeed)) {
+            LOG_ERROR("Cove character could not restore its movement pose");salvagePreviewFailed_=true;requestExit();return;
+        }
+        asset->terrainBoundPlayer=&player;asset->playerObservedTick=player.collisionTick();
+        asset->characterDiscontinuity=true;
+    }
+    if(asset->workshopOpen)return;
+    asset->characterViewReady=false;
+    const auto hold=[&]{if(asset->characterPresentation.valid)*camera_=asset->characterPresentation.camera;};
+    const auto tick=player.collisionTick();
+    if(asset->cargo&&asset->cargoObservedTick!=tick){hold();return;}
+    for(const auto& root:asset->boatRoots->roots())if(root.observedTick!=tick){hold();return;}
+    camera_->setAspectRatio(gpuContext_->getSwapchainWidth(),gpuContext_->getSwapchainHeight());
+    Rig::Target target;
+    target.anchor=player.feet()+glm::dvec3(0,1.2,0);target.facingYaw=player.facingYaw();target.geometryTick=tick;
+    target.discontinuity=asset->characterDiscontinuity;
+    target.chaseActive=asset->character.clip()==game::expedition::CoveCharacter::Clip::Walk||player.mode()==Player::Mode::Helm;
+    if(asset->cargo&&!asset->cargoBanked&&asset->towRope.valid()&&!asset->towBroken) {
+        const auto bounds=asset->cargo->shape().rootBounds();
+        Rig::Bounds load{glm::dvec3(std::numeric_limits<double>::infinity()),glm::dvec3(-std::numeric_limits<double>::infinity())};
+        for(unsigned corner=0;corner<8;++corner) {
+            const glm::dvec3 p=glm::dvec3((corner&1)?bounds.maximum.x:bounds.minimum.x,
+                (corner&2)?bounds.maximum.y:bounds.minimum.y,(corner&4)?bounds.maximum.z:bounds.minimum.z)*.02;
+            const auto world=physics::worldPositionToAbsolute(asset->cargoObserved.position)-asset->origin
+                +glm::dquat(asset->cargoObserved.orientation)*p;
+            load.minimum=glm::min(load.minimum,world);load.maximum=glm::max(load.maximum,world);
+        }
+        target.load=load;
+    }
+    const Rig::Sweep sweep{&player,[](const void* context,glm::dvec3 a,glm::dvec3 b,double radius,uint64_t expected) noexcept {
+        const auto hit=static_cast<const Player*>(context)->sweepSphere(a,b,radius,expected);
+        return Rig::SweepResult{hit.complete,hit.hit,hit.startOverlapped,hit.distance,hit.normal};
+    }};
+    auto input=asset->characterCameraInput;asset->characterCameraInput={};
+    input.active=input_&&input_->focused()&&!asset->menuConsumedFrame&&!asset->controllerMenuOwner;
+    const auto status=asset->characterCamera.update(target,input,{camera_->fovY(),camera_->aspectRatio(),camera_->nearPlane()},sweep,double(deltaTime));
+    const auto& pose=asset->characterCamera.pose();
+    if(status==Rig::Result::InvalidInput||!pose.valid){hold();return;}
+    asset->characterViewReady=true;asset->characterDiscontinuity=false;
+    setCameraWorldPose(*camera_,asset->origin+pose.eye,asset->origin+pose.viewTarget);
+}
+
 void Application::updateCovePlayer(float deltaTime) {
     if((coveResume_ && !coveResume_->ready) || salvageLocalSession_->storageRevoked)return;
     auto& asset = *salvageLocalSession_->asset;
+    // Input and locomotion share the completed root/cargo packet. Rendering
+    // uses those same observed transforms; frame/RAF time cannot glue a jump
+    // to a boat or advance the player beyond its available contact geometry.
+    const auto observedTick=asset.player->collisionTick();
+    double movementSeconds=0;
+    if(asset.playerObservedTick&&observedTick>=asset.playerObservedTick)
+        movementSeconds=double(std::min<uint64_t>(observedTick-asset.playerObservedTick,15))*game::expedition::CovePlayer::fixedStep;
+    asset.playerObservedTick=observedTick;
+    if(asset.cargo&&asset.cargoObservedTick==observedTick) {
+        const auto bounds=asset.cargo->shape().rootBounds();
+        const auto& a=bounds.minimum;const auto& b=bounds.maximum;
+        const game::expedition::CovePlayer::SceneObstacle cargo{
+            glm::dvec3(a.x,a.y,a.z)*.02,glm::dvec3(b.x,b.y,b.z)*.02,
+            glm::translate(glm::dmat4(1),physics::worldPositionToAbsolute(asset.cargoObserved.position)-asset.origin)
+                *glm::mat4_cast(glm::normalize(glm::dquat(asset.cargoObserved.orientation)))};
+        if(!asset.player->setSceneObstacles(std::span(&cargo,1),observedTick))return;
+    } else if(asset.cargo)movementSeconds=0;
     asset.rotorCommandBody={};asset.rotorCommandDrive=0;
     if (!camera_ || asset.leaving || salvageLocalSession_->pendingControl
         || asset.status != render::SalvageFixtureStatus::Active) return;
@@ -7710,15 +7947,28 @@ void Application::updateCovePlayer(float deltaTime) {
     const auto pad=input_->gamepad();
 #if defined(VOXY_WASM)
     asset.menuConsumedFrame=false;
+    const bool before=EM_ASM_INT({return typeof window['voxyControllerMenuActive']==='function'&&window['voxyControllerMenuActive']();})!=0;
+    const bool cameraKey=!asset.workshopOpen&&(input_->wasKeyPressed(Key::F2)||pad.pressed(PadButton::Alternate));
+    const bool opened=cameraKey&&!before&&EM_ASM_INT({
+        return typeof window['voxyCoveCameraMenu']==='function'&&window['voxyCoveCameraMenu']();
+    })!=0;
+    // Outside the workshop Menu retains pause unless a modal already owns it.
+    const bool menuClose=before&&(cameraKey||pad.pressed(PadButton::Menu));
+    const bool consumed=!opened&&EM_ASM_INT({
+        if(typeof window['voxyControllerMenuInput']!=='function')return false;
+        return window['voxyControllerMenuInput']({'up':!!$0,'down':!!$1,'left':!!$2,'right':!!$3,
+            'confirm':!!$4,'back':!!$5,'menu':!!$6});
+    },pad.navigation(0),pad.navigation(1),pad.navigation(2),pad.navigation(3),
+        pad.pressed(PadButton::Confirm),pad.pressed(PadButton::Back),menuClose||(asset.workshopOpen&&pad.pressed(PadButton::Menu)))!=0;
+    const bool after=EM_ASM_INT({return typeof window['voxyControllerMenuActive']==='function'&&window['voxyControllerMenuActive']();})!=0;
+    if(before!=after||asset.controllerMenuOwner!=after)input_->resetState();
+    asset.controllerMenuOwner=after;asset.menuConsumedFrame=opened||consumed||before||after;
 #endif
-    if(input_->wasKeyPressed(Key::P)||(!asset.workshopOpen&&pad.pressed(PadButton::Menu)))
+    if(!asset.menuConsumedFrame&&!asset.controllerMenuOwner
+        &&(input_->wasKeyPressed(Key::P)||(!asset.workshopOpen&&pad.pressed(PadButton::Menu))))
         if(salvagePreviewAction(asset.pause==Pause::Paused?91:90))return;
     if(asset.pause!=Pause::Running) {
-        // The final observed boat transform carries an aboard player while
-        // outstanding GPU work drains. Walking/input time stays frozen.
-        const auto eye=physics::worldPositionFromAbsolute(asset.origin+asset.player->feet()
-            +glm::dvec3(0,game::expedition::CovePlayer::eyeHeight,0));
-        camera_->setWorldPosition(eye.sector,eye.local);
+        asset.player->discardPendingInput();
 #if defined(VOXY_NATIVE)
         const std::string prompt=std::string(asset.checkpointPending?"Cove paused | Progress awaiting save"
             :asset.pause==Pause::Paused?"Cove paused | P: Resume":"Cove | Pausing…")
@@ -7781,16 +8031,6 @@ void Application::updateCovePlayer(float deltaTime) {
     if(asset.menuConsumedFrame){menuFrame();return;}
 #endif
 #if defined(VOXY_WASM)
-    const bool before=EM_ASM_INT({return typeof window['voxyControllerMenuActive']==='function'&&window['voxyControllerMenuActive']();})!=0;
-    const bool consumed=EM_ASM_INT({
-        if(typeof window['voxyControllerMenuInput']!=='function')return false;
-        return window['voxyControllerMenuInput']({'up':!!$0,'down':!!$1,'left':!!$2,'right':!!$3,
-            'confirm':!!$4,'back':!!$5,'menu':!!$6});
-    },pad.navigation(0),pad.navigation(1),pad.navigation(2),pad.navigation(3),
-        pad.pressed(PadButton::Confirm),pad.pressed(PadButton::Back),pad.pressed(PadButton::Menu))!=0;
-    const bool after=EM_ASM_INT({return typeof window['voxyControllerMenuActive']==='function'&&window['voxyControllerMenuActive']();})!=0;
-    if(before!=after||asset.controllerMenuOwner!=after)input_->resetState();
-    asset.controllerMenuOwner=after;asset.menuConsumedFrame=consumed||before||after;
     if(asset.menuConsumedFrame){menuFrame();return;}
 #endif
     if(input_->wasKeyPressed(Key::B)||pad.pressed(PadButton::View))
@@ -7965,17 +8205,21 @@ void Application::updateCovePlayer(float deltaTime) {
         && !input_->wasKeyPressed(Key::Escape)) input_->captureMouse();
     if (input_->isMouseCaptured()) {
         const auto delta = input_->mouseDelta();
-        camera_->rotate(delta.x * config_.cameraMouseSensitivity, -delta.y * config_.cameraMouseSensitivity);
+        asset.characterCameraInput.orbitRadians+=glm::dvec2(-delta.x,delta.y)*double(config_.cameraMouseSensitivity);
     }
-    camera_->rotate(pad.axis(2)*100.f*deltaTime,-pad.axis(3)*100.f*deltaTime);
+    asset.characterCameraInput.orbitRadians+=glm::dvec2(-pad.axis(2),pad.axis(3))*1.8*double(std::min(deltaTime,.1f));
+    asset.characterCameraInput.zoomSteps+=double(input_->scrollDelta());
+    if(input_->wasKeyPressed(Key::V)||pad.pressed(PadButton::LeftStick))(void)salvagePreviewAction(320);
+    if(input_->wasKeyPressed(Key::G)||pad.pressed(PadButton::RightStick))(void)salvagePreviewAction(321);
+    if(input_->wasKeyPressed(Key::M))(void)salvagePreviewAction(322);
+    if(input_->wasKeyPressed(Key::L))(void)salvagePreviewAction(323);
     const double forwardInput = std::clamp(double(input_->isKeyDown(Key::W) || input_->isKeyDown(Key::Up))
         - double(input_->isKeyDown(Key::S) || input_->isKeyDown(Key::Down))-double(pad.axis(1)),-1.,1.);
     const double rightInput = std::clamp(double(input_->isKeyDown(Key::D) || input_->isKeyDown(Key::Right))
         - double(input_->isKeyDown(Key::A) || input_->isKeyDown(Key::Left))+double(pad.axis(0)),-1.,1.);
-    const auto forward = camera_->forward();
-    const auto right = camera_->right();
-    const auto horizontal = glm::normalize(glm::dvec2(forward.x, forward.z));
-    const auto sideways = glm::normalize(glm::dvec2(right.x, right.z));
+    const double movementYaw=asset.characterCamera.pose().yaw+asset.characterCameraInput.orbitRadians.x;
+    const glm::dvec2 horizontal{-std::sin(movementYaw),-std::cos(movementYaw)};
+    const glm::dvec2 sideways{std::cos(movementYaw),-std::sin(movementYaw)};
     if(input_->wasKeyPressed(Key::C)) { (void)salvagePreviewAction(95);if(salvageLocalSession_->launchRequest)return; }
     if (input_->wasKeyPressed(Key::E)||pad.pressed(PadButton::Confirm)) (void)salvagePreviewAction(30);
     if(input_->wasKeyPressed(Key::J)||pad.pressed(PadButton::Up)) (void)salvagePreviewAction(50);
@@ -8004,8 +8248,16 @@ void Application::updateCovePlayer(float deltaTime) {
     if(asset.controllerMotor&&!pad.down(PadButton::LeftTrigger)&&!pad.down(PadButton::RightTrigger)) {
         (void)salvagePreviewAction(43);(void)salvagePreviewAction(56);asset.controllerMotor=false;
     }
-    if(!asset.checkpointPending)asset.player->advance(deltaTime, {horizontal * forwardInput + sideways * rightInput,
+    const auto beforeState=asset.player->state();
+    if(!asset.checkpointPending)asset.player->advance(movementSeconds, {horizontal * forwardInput + sideways * rightInput,
         input_->wasKeyPressed(Key::Space)||pad.pressed(PadButton::Back)});
+    const auto afterState=asset.player->state();
+    double gaitSpeed=0;
+    if(movementSeconds>0&&beforeState.onBoat==afterState.onBoat&&beforeState.root==afterState.root
+        &&beforeState.interactions==afterState.interactions)
+        gaitSpeed=glm::length(glm::dvec2(afterState.feet.x-beforeState.feet.x,afterState.feet.z-beforeState.feet.z))/movementSeconds;
+    asset.character.update(movementSeconds,asset.player->mode(),gaitSpeed,afterState.verticalSpeed,
+        asset.towMotor!=0||(asset.harbor&&asset.harbor->motor()!=0));
     if (asset.boatRoot().body.valid()&&!asset.boat->primaryRoot().cells.empty()) {
         const bool helm=asset.player->mode()==game::expedition::CovePlayer::Mode::Helm
             && !salvageLocalSession_->session->hasPending()&&!(asset.harbor&&asset.harbor->hasRopes());
@@ -8025,9 +8277,6 @@ void Application::updateCovePlayer(float deltaTime) {
         ||glm::length(asset.player->feet()-asset.content->registry.navigation->dockBoarding)>4)){
         if(!asset.harbor->stop(*physicsWorld_)){salvagePreviewFailed_=true;requestExit();return;}
     }
-    const auto eye = physics::worldPositionFromAbsolute(asset.origin + asset.player->feet()
-        + glm::dvec3(0, game::expedition::CovePlayer::eyeHeight, 0));
-    camera_->setWorldPosition(eye.sector, eye.local);
 #if defined(VOXY_NATIVE)
     using Player = game::expedition::CovePlayer;
     const char* action = "Walk beside the boat to board";
@@ -8403,7 +8652,7 @@ void Application::handleKeyboardShortcuts() {
     }
 
     // F2 - toggle wireframe mode (triangle path)
-    if (input_->wasKeyPressed(Key::F2)) {
+    if (input_->wasKeyPressed(Key::F2)&&!(salvageLocalSession_&&salvageLocalSession_->asset&&salvageLocalSession_->asset->player)) {
         toggleWireframe();
     }
 
@@ -8928,10 +9177,13 @@ bool Application::updateCoveBoat() {
                     if(!motion)return false;
                     child->observed=*motion;child->observedTick=snapshot->tick;
                     const auto anchor=launch.boat->assembly().mass().roots()[index].buildFromRoot.translation;
-                    if(!launch.player->setBoatRootTransform(child->key,
-                        glm::translate(glm::dmat4(1),physics::worldPositionToAbsolute(motion->position)-asset.origin)
+                    const auto rootPosition=physics::worldPositionToAbsolute(motion->position)-asset.origin;
+                    const auto pose=glm::translate(glm::dmat4(1),rootPosition)
                         *glm::mat4_cast(glm::dquat(motion->orientation))
-                        *glm::translate(glm::dmat4(1),-glm::dvec3(anchor.x,anchor.y,anchor.z)*.02)))return false;
+                        *glm::translate(glm::dmat4(1),-glm::dvec3(anchor.x,anchor.y,anchor.z)*.02);
+                    const auto omega=glm::dvec3(motion->angularVelocity);
+                    const auto originVelocity=glm::dvec3(motion->originVelocity)+glm::cross(omega,glm::dvec3(pose[3])-rootPosition);
+                    if(!launch.player->setBoatRootMotion(child->key,pose,originVelocity,omega,snapshot->tick))return false;
                     continue;
                 }
             }
@@ -8985,8 +9237,11 @@ bool Application::updateCoveBoat() {
             const auto anchor=asset.boat->assembly().mass().roots()[index].buildFromRoot.translation;
             const auto initial=glm::dvec3(anchor.x,anchor.y,anchor.z)*.02;
             const auto current=physics::worldPositionToAbsolute(root->position)-asset.origin;
-            if(!asset.player->setBoatRootTransform(owned.key,glm::translate(glm::dmat4(1),current)
-                *glm::mat4_cast(glm::dquat(root->orientation))*glm::translate(glm::dmat4(1),-initial)))return false;
+            const auto pose=glm::translate(glm::dmat4(1),current)
+                *glm::mat4_cast(glm::normalize(glm::dquat(root->orientation)))*glm::translate(glm::dmat4(1),-initial);
+            const auto omega=glm::dvec3(root->angularVelocity);
+            const auto velocity=glm::dvec3(root->originVelocity)+glm::cross(omega,glm::dvec3(pose[3])-current);
+            if(!asset.player->setBoatRootMotion(owned.key,pose,velocity,omega,snapshot->tick))return false;
         }
         for(const auto& rope:snapshot->attachments) {
             if(asset.rescueRope.valid()&&rope.handle.index==asset.rescueRope.index

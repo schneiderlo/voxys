@@ -19,7 +19,7 @@ import subprocess
 import time
 
 from validate_native_cove_delivery import Controls
-from validate_native_cove_saves import archive
+from validate_native_cove_saves import archive, archive_payload
 
 WIDTH, HEIGHT = 960, 540
 TAU = 2 * math.pi
@@ -32,28 +32,18 @@ def phase_error(actual, expected):
 
 
 def saved_owned_design(payload):
-    """Read exact accepted part/connection bytes from this journey's schema4 save.
+    """Read exact accepted part/connection bytes from a legacy schema4 or live schema6 save.
 
     Frozen protocol field order is in cove_save.cpp and session_save.cpp. This
     reads bounded byte slices, never deserializes objects into the running game.
     Authority epoch/leases may change on restore; owned part IDs, health, paint,
     settings, provenance and connections must remain byte-for-byte identical.
     """
-    assert payload[:4] == b'SVCE' and int.from_bytes(payload[4:8], 'little') == 4
-    assert hashlib.sha256(payload[:-32]).digest() == payload[-32:]
-    at = 441  # Header + frozen CovePhysicalSave + harbor state in schema4.
-    def take(size):
-        nonlocal at
-        assert 0 <= size <= 4 * 1024 * 1024 and at + size <= len(payload) - 32
-        result = payload[at:at + size]; at += size
-        return result
-    def count(maximum):
-        n = int.from_bytes(take(4), 'little'); assert n <= maximum
-        return n
-    recovery = [hashlib.sha256(take(count(131072))).hexdigest() for _ in range(count(4))]
-    take(48)  # Control part and player root durable IDs.
-    roots = count(32); assert roots > 0; take(88 * roots)
-    session = take(count(4 * 1024 * 1024))
+    physical = archive_payload(payload)
+    assert physical['schema'] >= 4 and physical['additionalCargoCount'] == 0
+    recovery = physical['recoveryDesignDigests']
+    at = physical['logicalOffset']
+    session = payload[at:at + physical['logicalBytes']]
     assert session[:4] == b'SVSC' and 1 <= int.from_bytes(session[4:8], 'little') <= 3
     assert hashlib.sha256(session[:-32]).digest() == session[-32:]
     at = 8 + 4 + 68  # Envelope, logical schema, content key/digest/profile.

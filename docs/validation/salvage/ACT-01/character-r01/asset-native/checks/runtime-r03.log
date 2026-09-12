@@ -1,0 +1,59 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: target //tests:rigid_animation (0 packages loaded, 0 targets configured)
+Analyzing: target //tests:rigid_animation (0 packages loaded, 0 targets configured)
+
+Analyzing: target //tests:rigid_animation (0 packages loaded, 0 targets configured)
+
+INFO: Analyzed target //tests:rigid_animation (1 packages loaded, 33 targets configured).
+[40 / 41] [Prepa] Linking tests/rigid_animation
+FAIL: //tests:rigid_animation (Exit 1) (see /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-fastbuild/testlogs/tests/rigid_animation/test.log)
+INFO: From Testing //tests:rigid_animation:
+==================== Test output for //tests:rigid_animation:
+Running main() from gmock_main.cc
+[==========] Running 5 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 5 tests from RigidAnimation
+[ RUN      ] RigidAnimation.ExportedHierarchySamplingBoundsAndAnchorsUseOneBasis
+[       OK ] RigidAnimation.ExportedHierarchySamplingBoundsAndAnchorsUseOneBasis (0 ms)
+[ RUN      ] RigidAnimation.LoopClampStepAndShortestQuaternionBlendAreDeterministic
+tests/test_rigid_animation.cpp:99: Failure
+Expected equality of these values:
+  a.draws[0].modelMatrix
+    Which is: 64-byte object <00-00 80-25 00-00 00-00 00-00 80-3F 00-00 00-00 00-00 00-00 00-00 80-3F 00-00 00-00 00-00 00-00 00-00 80-BF 00-00 00-00 00-00 80-25 00-00 00-00 00-00 00-00 00-00 00-3F 00-00 00-00 00-00 80-3F>
+  c.draws[0].modelMatrix
+    Which is: 64-byte object <00-00 80-25 00-00 00-00 00-00 80-BF 00-00 00-00 00-00 00-00 00-00 80-3F 00-00 00-00 00-00 00-00 00-00 80-3F 00-00 00-00 00-00 80-25 00-00 00-00 00-00 00-00 00-00 00-3F 00-00 00-00 00-00 80-3F>
+
+[  FAILED  ] RigidAnimation.LoopClampStepAndShortestQuaternionBlendAreDeterministic (0 ms)
+[ RUN      ] RigidAnimation.InvalidClipAndHierarchyAdmissionPreservesOutput
+[       OK ] RigidAnimation.InvalidClipAndHierarchyAdmissionPreservesOutput (0 ms)
+[ RUN      ] RigidAnimation.InvalidSamplePreservesLastSubmittedPose
+[       OK ] RigidAnimation.InvalidSamplePreservesLastSubmittedPose (0 ms)
+[ RUN      ] RigidAnimation.InstalledRobotAllLodsHaveRealClipsAndBoundEveryDrawVertex
+[       OK ] RigidAnimation.InstalledRobotAllLodsHaveRealClipsAndBoundEveryDrawVertex (48 ms)
+[----------] 5 tests from RigidAnimation (49 ms total)
+
+[----------] Global test environment tear-down
+[==========] 5 tests from 1 test suite ran. (49 ms total)
+[  PASSED  ] 4 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] RigidAnimation.LoopClampStepAndShortestQuaternionBlendAreDeterministic
+
+ 1 FAILED TEST
+================================================================================
+INFO: Found 1 test target...
+Target //tests:rigid_animation up-to-date:
+  bazel-bin/tests/rigid_animation
+INFO: Elapsed time: 3.064s, Critical Path: 1.41s
+INFO: 7 processes: 35 action cache hit, 2 internal, 5 linux-sandbox.
+INFO: Build completed, 1 test FAILED, 7 total actions
+//tests:rigid_animation                                                  FAILED in 0.1s
+  /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-fastbuild/testlogs/tests/rigid_animation/test.log
+
+Executed 1 out of 1 test: 1 fails locally.

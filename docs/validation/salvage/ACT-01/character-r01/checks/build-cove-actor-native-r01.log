@@ -1,0 +1,199 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+-- Building for native platform: Linux
+-- Configuring third-party dependencies...
+--   GLM: Found
+CMake Deprecation Warning at third_party/zstd/build/cmake/CMakeLists.txt:10 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+
+
+-- ZSTD VERSION: 1.5.5
+-- CMAKE_INSTALL_PREFIX: /usr/local
+-- CMAKE_INSTALL_LIBDIR: lib64
+-- ZSTD_LEGACY_SUPPORT not defined!
+-- ZSTD_MULTITHREAD_SUPPORT is disabled
+--   zstd: Found
+--   stb: Found
+--   tinyexr: Found (with miniz)
+--   GLFW: Found system package (Wayland + X11)
+-- Found wgpu-native: /home/modkin/workspace/schneiderlo/voxys/third_party/wgpu-native/dist/lib/libwgpu_native.so
+--   wgpu-native: Found and configured
+--   tinygltf: Found
+-- Found Python3: /usr/bin/python3.14 (found version "3.14.4") found components: Interpreter
+--   GoogleTest: Found
+--   Jolt Physics: Found (v5.5.0)
+-- CMake C compiler: GNU
+-- CMake C++ compiler: GNU
+-- CMake system name: Linux
+-- CMake host system processor: x86_64
+-- Box3D using Unix
+--   Box3D: Found (pinned d421e45c828f)
+-- Third-party configuration complete
+-- Found Python3: /nix/store/0k05rim4nalb3sshxdrbkqski6w9l907-python3-3.13.13-env/bin/python3.13 (found version "3.13.13") found components: Interpreter
+-- Building voxy_core with sources: core/log.cpp;core/config.cpp;core/stb_impl.cpp;gpu/context.cpp;gpu/context_surface.cpp;gpu/resources.cpp;game/assets/cooked_part_directory.cpp;game/assets/fixture_registry.cpp;game/expedition/session_events.cpp;game/expedition/session_transactions.cpp;game/assets/cooked_part_bundle.cpp;game/assets/rigid_prefab.cpp;game/assets/rigid_animation.cpp;game/assets/robot_asset.cpp;game/assets/gameplay_sidecar.cpp;game/expedition/game_session.cpp;game/expedition/session_recovery.cpp;game/expedition/session_save.cpp;game/expedition/cove_save.cpp;game/expedition/cove_restore.cpp;game/expedition/save_generation.cpp;game/construction/build_refit.cpp;game/construction/build_model.cpp;game/construction/assembly_compiler.cpp;geometry/box_union.cpp;game/construction/assembly_collision.cpp;game/construction/orthogonal_coverage.cpp;game/construction/assembly_buoyancy.cpp;game/construction/assembly_functions.cpp;game/construction/compiled_assembly.cpp;game/construction/assembly_fracture.cpp;game/construction/construction_types.cpp;game/construction/part_catalog.cpp;game/expedition/cove_player.cpp;game/expedition/cove_camera.cpp;game/expedition/cove_workshop.cpp;game/expedition/design_library.cpp;game/expedition/workshop_camera.cpp;game/expedition/cove_build.cpp;game/expedition/cove_boat.cpp;game/expedition/cove_rigid_roots.cpp;game/expedition/cove_harbor_lift.cpp;game/expedition/cove_harbor_runtime.cpp;game/expedition/salvage_preview.cpp;engine/platform/native/save_store.cpp;engine/platform/native/save_worker.cpp;engine/platform/native/design_library.cpp;engine/platform/native/workshop_menu.cpp;game/wreckwater_character_authority_bridge.cpp;game/wreckwater_character_movement.cpp;game/wreckwater_character_step.cpp;game/wreckwater_content_manifest.cpp;game/wreckwater_live_world.cpp;game/wreckwater_match.cpp;game/wreckwater_replay.cpp;game/wreckwater_replay_playback.cpp;game/wreckwater_vessel_damage.cpp;gameplay/structural_assembly.cpp;gameplay/platform_parity.cpp;gameplay/vertical_slices.cpp;gameplay/water_dynamics.cpp;moto/bike.cpp;moto/race.cpp;moto/session.cpp;moto/vmesh_io.cpp;moto/world.cpp;terrain/heightmap.cpp;terrain/authored_cove.cpp;terrain/compression.cpp;terrain/mip_generator.cpp;terrain/textures.cpp;terrain/shadow_bake.cpp;voxel/svo_buffers.cpp;render/cove_hud.cpp;render/triangle_path.cpp;render/mip_pipeline.cpp;render/raycast_path.cpp;render/debug_visualizer.cpp;render/mesh_path.cpp;render/environment_lighting.cpp;render/salvage_asset_fixture.cpp;render/inspection_guides.cpp;render/cove_dock_markings.cpp;render/blit_path.cpp;render/opaque_scene.cpp;render/water_clipmap_mesh.cpp;render/water_simulation.cpp;render/primitive_culling.cpp;render/primitive_gpu_culling.cpp;render/primitive_instance_packing.cpp;render/primitive_path.cpp;camera/camera.cpp;camera/controller.cpp;camera/character_controller.cpp;physics/box3d/box3d_backend.cpp;physics/character/cpu_capsule_mover.cpp;physics/deterministic/lockstep_world.cpp;physics/deterministic/replay.cpp;physics/gpu/debug_readback_ring.cpp;physics/gpu/deterministic_primitives.cpp;physics/gpu/gpu_buffer_arena.cpp;physics/gpu/gpu_broad_phase.cpp;physics/gpu/gpu_ccd.cpp;physics/gpu/gpu_attachments.cpp;physics/gpu/gpu_dynamic_solver.cpp;physics/gpu/gpu_event_readback.cpp;physics/gpu/gpu_islands.cpp;physics/gpu/gpu_lockstep.cpp;physics/gpu/gpu_narrow_phase.cpp;physics/gpu/gpu_queries.cpp;physics/gpu/gpu_physics_backend.cpp;physics/jolt/jolt_backend.cpp;physics/physics_backend_factory.cpp;physics/physics_types.cpp;physics/rigid_mass_frame.cpp;physics/authored_body_frame.cpp;physics/authored_shape.cpp;physics/authored_shape_pool.cpp;physics/gpu/gpu_authored_shapes.cpp;physics/physics_world.cpp;network/authoritative_sandbox.cpp;network/deterministic_adversity_transport.cpp;network/multiplayer_session.cpp;network/native_tcp_transport.cpp;network/protocol.cpp;network/replication.cpp;network/ridgebreak_client_replication.cpp;network/ridgebreak_protocol.cpp;network/session_transport.hpp;network/transport.cpp;network/wreckwater_client_replication.cpp;network/wreckwater_client_runtime.cpp;network/wreckwater_protocol.cpp;client/wreckwater_character_platform_timeline.cpp;client/wreckwater_character_controller.cpp;client/wreckwater_character_presentation.cpp;client/wreckwater_third_person_camera.cpp;client/wreckwater_application_client.cpp;client/wreckwater_client_visual_clock.cpp;client/wreckwater_graphical_client_loop.cpp;server/native_gpu_backend.cpp;server/ridgebreak_authority.cpp;server/ridgebreak_server_runtime.cpp;server/wreckwater_authority_runtime.cpp;server/world_coordinator.cpp;engine/platform/native/window.cpp;engine/platform/native/input.cpp;app/application.cpp;game/lego_playground.cpp;app/debug_overlay.cpp;perf/gpu_timer.cpp;perf/benchmark.cpp
+-- Configuring native target: voxy_native
+-- Configuring ldh_tool - heightmap compression utility
+--   Including GPU tests (WebGPU available)
+-- 
+-- ═══════════════════════════════════════════════════════════════
+--   voxy 0.1.0 Configuration Summary
+-- ═══════════════════════════════════════════════════════════════
+--   Build type:        Release
+--   C++ Standard:      20
+--   Native build:      ON
+--   WASM build:        OFF
+--   Build tools:       ON
+--   Build tests:       ON
+--   Build benchmarks:  OFF
+--   Validation:        ON
+--   Jolt Physics:      ON
+-- ═══════════════════════════════════════════════════════════════
+-- 
+-- Configuring done (0.4s)
+-- Generating done (0.1s)
+-- Build files have been written to: /home/modkin/workspace/schneiderlo/voxys/build-native-save-host
+[  0%] Built target wreckwater_build_content_header
+[  2%] Built target miniz
+[  2%] Built target tinygltf
+[ 10%] Built target libzstd_static
+[ 25%] Built target box3d
+[ 25%] Refreshing native shaders and launch configs
+[ 25%] Built target voxy_native_runtime_files
+[ 58%] Built target Jolt
+[ 58%] Building CXX object src/CMakeFiles/voxy_core.dir/game/assets/robot_asset.cpp.o
+[ 58%] Building CXX object src/CMakeFiles/voxy_core.dir/game/expedition/cove_save.cpp.o
+[ 58%] Building CXX object src/CMakeFiles/voxy_core.dir/game/assets/rigid_animation.cpp.o
+[ 58%] Building CXX object src/CMakeFiles/voxy_core.dir/game/expedition/cove_restore.cpp.o
+[ 58%] Building CXX object src/CMakeFiles/voxy_core.dir/game/expedition/cove_player.cpp.o
+[ 58%] Building CXX object src/CMakeFiles/voxy_core.dir/game/expedition/cove_camera.cpp.o
+[ 58%] Building CXX object src/CMakeFiles/voxy_core.dir/game/expedition/cove_workshop.cpp.o
+[ 60%] Building CXX object src/CMakeFiles/voxy_core.dir/game/expedition/cove_rigid_roots.cpp.o
+In file included from /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/stl_algobase.h:71,
+                 from /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/array:45,
+                 from /home/modkin/workspace/schneiderlo/voxys/src/game/construction/construction_types.hpp:5,
+                 from /home/modkin/workspace/schneiderlo/voxys/src/game/construction/part_catalog.hpp:3,
+                 from /home/modkin/workspace/schneiderlo/voxys/src/game/assets/gameplay_sidecar.hpp:3,
+                 from /home/modkin/workspace/schneiderlo/voxys/src/game/assets/cooked_part_bundle.hpp:3,
+                 from /home/modkin/workspace/schneiderlo/voxys/src/game/assets/cooked_part_directory.hpp:3,
+                 from /home/modkin/workspace/schneiderlo/voxys/src/game/assets/fixture_registry.hpp:3,
+                 from /home/modkin/workspace/schneiderlo/voxys/src/game/expedition/cove_player.hpp:3,
+                 from /home/modkin/workspace/schneiderlo/voxys/src/game/expedition/cove_player.cpp:1:
+In member function ‘constexpr bool __gnu_cxx::__ops::_Iter_less_iter::operator()(_Iterator1, _Iterator2) const [with _Iterator1 = double*; _Iterator2 = double*]’,
+    inlined from ‘constexpr void std::__move_median_to_first(_Iterator, _Iterator, _Iterator, _Iterator, _Compare) [with _Iterator = double*; _Compare = __gnu_cxx::__ops::_Iter_less_iter]’ at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/stl_algo.h:91:17,
+    inlined from ‘constexpr _RandomAccessIterator std::__unguarded_partition_pivot(_RandomAccessIterator, _RandomAccessIterator, _Compare) [with _RandomAccessIterator = double*; _Compare = __gnu_cxx::__ops::_Iter_less_iter]’ at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/stl_algo.h:1856:34,
+    inlined from ‘constexpr void std::__introsort_loop(_RandomAccessIterator, _RandomAccessIterator, _Size, _Compare) [with _RandomAccessIterator = double*; _Size = long int; _Compare = __gnu_cxx::__ops::_Iter_less_iter]’ at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/stl_algo.h:1890:38,
+    inlined from ‘constexpr void std::__sort(_RandomAccessIterator, _RandomAccessIterator, _Compare) [with _RandomAccessIterator = double*; _Compare = __gnu_cxx::__ops::_Iter_less_iter]’ at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/stl_algo.h:1906:25,
+    inlined from ‘constexpr void std::__sort(_RandomAccessIterator, _RandomAccessIterator, _Compare) [with _RandomAccessIterator = double*; _Compare = __gnu_cxx::__ops::_Iter_less_iter]’ at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/stl_algo.h:1901:5,
+    inlined from ‘constexpr void std::sort(_RAIter, _RAIter) [with _RAIter = double*]’ at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/stl_algo.h:4841:18,
+    inlined from ‘voxy::game::expedition::{anonymous}::Gap voxy::game::expedition::{anonymous}::capsuleBox(glm::dvec3, double, double, glm::dvec3, glm::dvec3, const glm::dmat4&)’ at /home/modkin/workspace/schneiderlo/voxys/src/game/expedition/cove_player.cpp:34:14:
+/nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/predefined_ops.h:45:23: warning: array subscript 8 is outside array bounds of ‘std::array<double, 8> [1]’ [-Warray-bounds=]
+   45 |       { return *__it1 < *__it2; }
+      |                ~~~~~~~^~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/src/game/expedition/cove_player.cpp: In function ‘voxy::game::expedition::{anonymous}::Gap voxy::game::expedition::{anonymous}::capsuleBox(glm::dvec3, double, double, glm::dvec3, glm::dvec3, const glm::dmat4&)’:
+/home/modkin/workspace/schneiderlo/voxys/src/game/expedition/cove_player.cpp:28:26: note: at offset 64 into object ‘points’ of size 64
+   28 |     std::array<double,8> points{0,1};size_t count=2;
+      |                          ^~~~~~
+In file included from /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/stl_pair.h:61,
+                 from /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/stl_algobase.h:64:
+In function ‘constexpr std::_Require<std::__not_<std::__is_tuple_like<_Tp> >, std::is_move_constructible<_Tp>, std::is_move_assignable<_Tp> > std::swap(_Tp&, _Tp&) [with _Tp = double]’,
+    inlined from ‘constexpr void std::iter_swap(_ForwardIterator1, _ForwardIterator2) [with _ForwardIterator1 = double*; _ForwardIterator2 = double*]’ at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/stl_algobase.h:186:11,
+    inlined from ‘constexpr void std::__move_median_to_first(_Iterator, _Iterator, _Iterator, _Iterator, _Compare) [with _Iterator = double*; _Compare = __gnu_cxx::__ops::_Iter_less_iter]’ at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/stl_algo.h:105:16,
+    inlined from ‘constexpr _RandomAccessIterator std::__unguarded_partition_pivot(_RandomAccessIterator, _RandomAccessIterator, _Compare) [with _RandomAccessIterator = double*; _Compare = __gnu_cxx::__ops::_Iter_less_iter]’ at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/stl_algo.h:1856:34,
+    inlined from ‘constexpr void std::__introsort_loop(_RandomAccessIterator, _RandomAccessIterator, _Size, _Compare) [with _RandomAccessIterator = double*; _Size = long int; _Compare = __gnu_cxx::__ops::_Iter_less_iter]’ at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/stl_algo.h:1890:38,
+    inlined from ‘constexpr void std::__sort(_RandomAccessIterator, _RandomAccessIterator, _Compare) [with _RandomAccessIterator = double*; _Compare = __gnu_cxx::__ops::_Iter_less_iter]’ at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/stl_algo.h:1906:25,
+    inlined from ‘constexpr void std::__sort(_RandomAccessIterator, _RandomAccessIterator, _Compare) [with _RandomAccessIterator = double*; _Compare = __gnu_cxx::__ops::_Iter_less_iter]’ at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/stl_algo.h:1901:5,
+    inlined from ‘constexpr void std::sort(_RAIter, _RAIter) [with _RAIter = double*]’ at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/stl_algo.h:4841:18,
+    inlined from ‘voxy::game::expedition::{anonymous}::Gap voxy::game::expedition::{anonymous}::capsuleBox(glm::dvec3, double, double, glm::dvec3, glm::dvec3, const glm::dmat4&)’ at /home/modkin/workspace/schneiderlo/voxys/src/game/expedition/cove_player.cpp:34:14:
+/nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/move.h:237:11: warning: array subscript 8 is outside array bounds of ‘std::array<double, 8> [1]’ [-Warray-bounds=]
+  237 |       __b = _GLIBCXX_MOVE(__tmp);
+      |           ^
+/home/modkin/workspace/schneiderlo/voxys/src/game/expedition/cove_player.cpp: In function ‘voxy::game::expedition::{anonymous}::Gap voxy::game::expedition::{anonymous}::capsuleBox(glm::dvec3, double, double, glm::dvec3, glm::dvec3, const glm::dmat4&)’:
+/home/modkin/workspace/schneiderlo/voxys/src/game/expedition/cove_player.cpp:28:26: note: at offset 64 into object ‘points’ of size 64
+   28 |     std::array<double,8> points{0,1};size_t count=2;
+      |                          ^~~~~~
+In function ‘constexpr std::_Require<std::__not_<std::__is_tuple_like<_Tp> >, std::is_move_constructible<_Tp>, std::is_move_assignable<_Tp> > std::swap(_Tp&, _Tp&) [with _Tp = double]’,
+    inlined from ‘constexpr void std::iter_swap(_ForwardIterator1, _ForwardIterator2) [with _ForwardIterator1 = double*; _ForwardIterator2 = double*]’ at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/stl_algobase.h:186:11,
+    inlined from ‘constexpr void std::__move_median_to_first(_Iterator, _Iterator, _Iterator, _Iterator, _Compare) [with _Iterator = double*; _Compare = __gnu_cxx::__ops::_Iter_less_iter]’ at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/stl_algo.h:94:20,
+    inlined from ‘constexpr _RandomAccessIterator std::__unguarded_partition_pivot(_RandomAccessIterator, _RandomAccessIterator, _Compare) [with _RandomAccessIterator = double*; _Compare = __gnu_cxx::__ops::_Iter_less_iter]’ at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/stl_algo.h:1856:34,
+    inlined from ‘constexpr void std::__introsort_loop(_RandomAccessIterator, _RandomAccessIterator, _Size, _Compare) [with _RandomAccessIterator = double*; _Size = long int; _Compare = __gnu_cxx::__ops::_Iter_less_iter]’ at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/stl_algo.h:1890:38,
+    inlined from ‘constexpr void std::__sort(_RandomAccessIterator, _RandomAccessIterator, _Compare) [with _RandomAccessIterator = double*; _Compare = __gnu_cxx::__ops::_Iter_less_iter]’ at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/stl_algo.h:1906:25,
+    inlined from ‘constexpr void std::__sort(_RandomAccessIterator, _RandomAccessIterator, _Compare) [with _RandomAccessIterator = double*; _Compare = __gnu_cxx::__ops::_Iter_less_iter]’ at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/stl_algo.h:1901:5,
+    inlined from ‘constexpr void std::sort(_RAIter, _RAIter) [with _RAIter = double*]’ at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/stl_algo.h:4841:18,
+    inlined from ‘voxy::game::expedition::{anonymous}::Gap voxy::game::expedition::{anonymous}::capsuleBox(glm::dvec3, double, double, glm::dvec3, glm::dvec3, const glm::dmat4&)’ at /home/modkin/workspace/schneiderlo/voxys/src/game/expedition/cove_player.cpp:34:14:
+/nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/move.h:237:11: warning: array subscript 8 is outside array bounds of ‘std::array<double, 8> [1]’ [-Warray-bounds=]
+  237 |       __b = _GLIBCXX_MOVE(__tmp);
+      |           ^
+/home/modkin/workspace/schneiderlo/voxys/src/game/expedition/cove_player.cpp: In function ‘voxy::game::expedition::{anonymous}::Gap voxy::game::expedition::{anonymous}::capsuleBox(glm::dvec3, double, double, glm::dvec3, glm::dvec3, const glm::dmat4&)’:
+/home/modkin/workspace/schneiderlo/voxys/src/game/expedition/cove_player.cpp:28:26: note: at offset 64 into object ‘points’ of size 64
+   28 |     std::array<double,8> points{0,1};size_t count=2;
+      |                          ^~~~~~
+In file included from /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/stl_algo.h:61,
+                 from /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/algorithm:63,
+                 from /home/modkin/workspace/schneiderlo/voxys/src/game/expedition/cove_player.cpp:2:
+In function ‘constexpr void std::__adjust_heap(_RandomAccessIterator, _Distance, _Distance, _Tp, _Compare) [with _RandomAccessIterator = double*; _Distance = long int; _Tp = double; _Compare = __gnu_cxx::__ops::_Iter_less_iter]’,
+    inlined from ‘constexpr void std::__make_heap(_RandomAccessIterator, _RandomAccessIterator, _Compare&) [with _RandomAccessIterator = double*; _Compare = __gnu_cxx::__ops::_Iter_less_iter]’ at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/stl_heap.h:356:22,
+    inlined from ‘constexpr void std::__heap_select(_RandomAccessIterator, _RandomAccessIterator, _RandomAccessIterator, _Compare) [with _RandomAccessIterator = double*; _Compare = __gnu_cxx::__ops::_Iter_less_iter]’ at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/stl_algo.h:1594:23,
+    inlined from ‘constexpr void std::__partial_sort(_RandomAccessIterator, _RandomAccessIterator, _RandomAccessIterator, _Compare) [with _RandomAccessIterator = double*; _Compare = __gnu_cxx::__ops::_Iter_less_iter]’ at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/stl_algo.h:1869:25,
+    inlined from ‘constexpr void std::__introsort_loop(_RandomAccessIterator, _RandomAccessIterator, _Size, _Compare) [with _RandomAccessIterator = double*; _Size = long int; _Compare = __gnu_cxx::__ops::_Iter_less_iter]’ at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/stl_algo.h:1885:27,
+    inlined from ‘constexpr void std::__sort(_RandomAccessIterator, _RandomAccessIterator, _Compare) [with _RandomAccessIterator = double*; _Compare = __gnu_cxx::__ops::_Iter_less_iter]’ at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/stl_algo.h:1906:25,
+    inlined from ‘constexpr void std::__sort(_RandomAccessIterator, _RandomAccessIterator, _Compare) [with _RandomAccessIterator = double*; _Compare = __gnu_cxx::__ops::_Iter_less_iter]’ at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/stl_algo.h:1901:5,
+    inlined from ‘constexpr void std::sort(_RAIter, _RAIter) [with _RAIter = double*]’ at /nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/stl_algo.h:4841:18,
+    inlined from ‘voxy::game::expedition::{anonymous}::Gap voxy::game::expedition::{anonymous}::capsuleBox(glm::dvec3, double, double, glm::dvec3, glm::dvec3, const glm::dmat4&)’ at /home/modkin/workspace/schneiderlo/voxys/src/game/expedition/cove_player.cpp:34:14:
+/nix/store/qxaq7jz61a6zkr2mq49i0zvqip2m2jj8-gcc-15.2.0/include/c++/15.2.0/bits/stl_heap.h:241:36: warning: array subscript [15, 1152921504606846973] is outside array bounds of ‘std::array<double, 8> [1]’ [-Warray-bounds=]
+  241 |           *(__first + __holeIndex) = _GLIBCXX_MOVE(*(__first
+      |                                    ^
+/home/modkin/workspace/schneiderlo/voxys/src/game/expedition/cove_player.cpp: In function ‘voxy::game::expedition::{anonymous}::Gap voxy::game::expedition::{anonymous}::capsuleBox(glm::dvec3, double, double, glm::dvec3, glm::dvec3, const glm::dmat4&)’:
+/home/modkin/workspace/schneiderlo/voxys/src/game/expedition/cove_player.cpp:28:26: note: at offset [120, 9223372036854775784] into object ‘points’ of size 64
+   28 |     std::array<double,8> points{0,1};size_t count=2;
+      |                          ^~~~~~
+[ 60%] Building CXX object src/CMakeFiles/voxy_core.dir/game/expedition/cove_harbor_lift.cpp.o
+[ 60%] Building CXX object src/CMakeFiles/voxy_core.dir/game/expedition/cove_harbor_runtime.cpp.o
+[ 60%] Building CXX object src/CMakeFiles/voxy_core.dir/engine/platform/native/workshop_menu.cpp.o
+[ 60%] Building CXX object src/CMakeFiles/voxy_core.dir/render/salvage_asset_fixture.cpp.o
+[ 60%] Building CXX object src/CMakeFiles/voxy_core.dir/app/application.cpp.o
+[ 60%] Building CXX object src/CMakeFiles/voxy_core.dir/app/debug_overlay.cpp.o
+In file included from /nix/store/qifsyxln0a60s9yfgv5wr12xzbcwzjaq-glfw-3.4-dev/include/GLFW/glfw3native.h:118,
+                 from /home/modkin/workspace/schneiderlo/voxys/src/engine/platform/window.hpp:29,
+                 from /home/modkin/workspace/schneiderlo/voxys/src/app/application.hpp:41,
+                 from /home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:9:
+/home/modkin/workspace/schneiderlo/voxys/src/game/expedition/cove_camera.hpp:15:16: error: unnamed scoped enum is not allowed
+   15 |     enum class Status { Ready, Obstructed, GeometryUnavailable, AnchorOverlapped, InvalidInput };
+      |                ^~~~~~
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:27:
+/home/modkin/workspace/schneiderlo/voxys/src/game/expedition/cove_camera.hpp:15:10: warning: elaborated-type-specifier for a scoped enum must not use the ‘class’ keyword
+   15 |     enum class Status { Ready, Obstructed, GeometryUnavailable, AnchorOverlapped, InvalidInput };
+      |     ~~~~ ^~~~~
+      |          -----
+/home/modkin/workspace/schneiderlo/voxys/src/game/expedition/cove_camera.hpp:15:16: error: expected identifier before ‘int’
+   15 |     enum class Status { Ready, Obstructed, GeometryUnavailable, AnchorOverlapped, InvalidInput };
+      |                ^~~~~~
+/home/modkin/workspace/schneiderlo/voxys/src/game/expedition/cove_camera.hpp:15:23: error: expected unqualified-id before ‘{’ token
+   15 |     enum class Status { Ready, Obstructed, GeometryUnavailable, AnchorOverlapped, InvalidInput };
+      |                       ^
+/home/modkin/workspace/schneiderlo/voxys/src/game/expedition/cove_camera.hpp:52:23: error: expected primary-expression before ‘int’
+   52 |         Status status=Status::GeometryUnavailable;
+      |                       ^~~~~~
+/home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp: In member function ‘bool voxy::Application::salvagePreviewAction(int)’:
+/home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:6619:15: warning: declaration of ‘using Camera = class voxy::game::expedition::CoveCamera’ shadows a global declaration [-Wshadow]
+ 6619 |         using Camera=game::expedition::CoveCamera;
+      |               ^~~~~~
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:44:
+/home/modkin/workspace/schneiderlo/voxys/src/camera/camera.hpp:47:7: note: shadowed declaration is here
+   47 | class Camera {
+      |       ^~~~~~
+/home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp: In member function ‘void voxy::Application::updateCovePlayer(float)’:
+/home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:8207:41: warning: implicit conversion from ‘float’ to ‘double’ to match other operand of binary expression [-Wdouble-promotion]
+ 8207 |     asset.characterCameraInput.zoomSteps+=input_->scrollDelta();
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~
+make[3]: *** [src/CMakeFiles/voxy_core.dir/build.make:2123: src/CMakeFiles/voxy_core.dir/app/application.cpp.o] Error 1
+make[2]: *** [CMakeFiles/Makefile2:2115: src/CMakeFiles/voxy_core.dir/all] Error 2
+make[1]: *** [CMakeFiles/Makefile2:632: CMakeFiles/voxy_native.dir/rule] Error 2
+make: *** [Makefile:192: voxy_native] Error 2

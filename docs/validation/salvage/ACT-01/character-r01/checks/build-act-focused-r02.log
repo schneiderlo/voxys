@@ -1,0 +1,26 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: 3 targets (0 packages loaded, 0 targets configured)
+Analyzing: 3 targets (0 packages loaded, 0 targets configured)
+
+Analyzing: 3 targets (0 packages loaded, 0 targets configured)
+
+INFO: Analyzed 3 targets (2 packages loaded, 73 targets configured).
+[75 / 84] Compiling tests/test_gltf_vmesh_tool.cpp; 1s linux-sandbox ... (4 actions running)
+[76 / 84] Compiling tests/test_gltf_vmesh_tool.cpp; 3s linux-sandbox ... (4 actions, 3 running)
+[85 / 86] 1 / 2 tests; Testing //tests:gltf_vmesh_tool_test; 1s linux-sandbox
+INFO: Found 1 target and 2 test targets...
+INFO: Elapsed time: 7.544s, Critical Path: 5.78s
+INFO: 12 processes: 74 action cache hit, 2 internal, 10 linux-sandbox.
+INFO: Build completed successfully, 12 total actions
+//tests:cove_save                                                        PASSED in 0.1s
+//tests:gltf_vmesh_tool_test                                             PASSED in 1.8s
+
+Executed 2 out of 2 tests: 2 tests pass.
+There were tests whose specified size is too big. Use the --test_verbose_timeout_warnings command line option to see which ones these are.

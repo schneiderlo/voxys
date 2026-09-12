@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 const { install } = require('../web/salvage_preview.js');
-function fixture(asset = false, workshop = false, cove = false) {
+function fixture(asset = false, workshop = false, cove = false, cameraController = false) {
     class Element {
         hidden = true; disabled = false; textContent = ''; listeners = new Map();
         addEventListener(name, callback) { this.listeners.set(name, callback); }
@@ -26,6 +26,8 @@ function fixture(asset = false, workshop = false, cove = false) {
         elements['salvage-lods'].querySelectorAll = () => lodButtons;
         elements['salvage-guides'].querySelectorAll = () => guideButtons;
     }
+    const cameraButtons=[320,321,322,323,324,325].map(action=>Object.assign(new Element(),{hidden:false,dataset:{cameraAction:String(action)}}));
+    elements['salvage-camera']=new Element();elements['salvage-camera'].querySelectorAll=()=>cameraButtons;
     const workshopButtons=workshop?[61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,92,93,94,96,97,98,300,301,302,303,304,305,306,307,308,309]
         .map(action=>Object.assign(new Element(),{dataset:{workshopAction:String(action)}})):[];
     if(workshop) {
@@ -48,13 +50,16 @@ function fixture(asset = false, workshop = false, cove = false) {
         addEventListener: (name, callback) => { assert(!events.has(name));events.set(name,callback); },
         removeEventListener: (name, callback) => {assert.equal(events.get(name),callback);events.delete(name);},
     };
+    const priorCameraMenu=()=> 'prior',cameraOpened=[];
+    environment['voxyCoveCameraMenu']=priorCameraMenu;
+    if(cameraController)environment.VoxyControllerMenu={install:()=>({tick(){},cleanup(){},openSection(element){cameraOpened.push(element);return true;}})};
     const engine = {
         _voxy_is_initialized: () => 1,
         _voxy_salvage_preview_action: action => { actions.push(action); return 1; },
         _voxy_get_salvage_preview_json: () => JSON.stringify(state), UTF8ToString: s => s,
     };
     const cleanup = install(engine, environment);
-    return { elements, lodButtons, guideButtons, workshopButtons, actions, navigations, engine, cleanup, tick: () => tick(),
+    return { elements, lodButtons, guideButtons, workshopButtons, cameraButtons, cameraOpened, environment, priorCameraMenu, actions, navigations, engine, cleanup, tick: () => tick(),
         state: update => Object.assign(state, update), pagehide: () => events.get('pagehide')?.(), event:name=>events.get(name)?.(), events, cleared: () => cleared };
 }
 {
@@ -627,3 +632,29 @@ const next=f=>f.elements['salvage-objective-action'];
     f.cleanup();
 }
 console.log('Browser next objective: permissions, focus, stale clicks, forwarding, drawer focus, save priority and cleanup: 10 cases passed');
+
+{
+    const f=fixture(false,false,true,true),panel=f.elements['salvage-camera'];
+    const camera={available:true,mode:'chase',distance:4.8,reducedMotion:false,frameLoad:false};
+    f.state({player:{mode:'walking'},characterCamera:camera,pause:{phase:'paused'}});f.tick();
+    assert(!panel.hidden&&f.cameraButtons.every(button=>!button.disabled),'paused camera controls remain available');
+    assert(f.environment['voxyCoveCameraMenu']());assert.deepEqual(f.cameraOpened,[panel]);
+    for(const button of f.cameraButtons)button.click();assert.deepEqual(f.actions,[320,321,322,323,324,325]);
+    f.state({characterCamera:{...camera,mode:'orbit',distance:1.5,reducedMotion:true,frameLoad:true}});f.tick();
+    assert.equal(f.cameraButtons[0].textContent,'View: Orbit');assert.equal(f.cameraButtons[2].textContent,'Frame load: On');
+    assert.equal(f.cameraButtons[3].textContent,'Reduced motion: On');assert(f.cameraButtons[4].disabled&&!f.cameraButtons[5].disabled);
+    f.state({characterCamera:{...camera,distance:12}});f.tick();assert(!f.cameraButtons[4].disabled&&f.cameraButtons[5].disabled);
+    for(const update of [{characterCamera:{...camera,available:false}},{characterCamera:camera,session:{admissionOpen:false}},
+        {session:{admissionOpen:true},workshop:{open:true}},{workshop:{open:false},characterCamera:undefined}]){
+        f.state(update);f.cameraButtons[0].click();assert.equal(f.actions.length,6,'stale click must re-read permissions');
+        assert(!f.environment['voxyCoveCameraMenu']());
+    }
+    f.state({characterCamera:camera,workshop:{open:false}});f.tick();
+    let swallowed=0;panel.listeners.get('keydown')({type:'keydown',key:'ArrowUp',stopPropagation(){++swallowed;}});
+    panel.listeners.get('keyup')({type:'keyup',key:'ArrowUp',stopPropagation(){++swallowed;}});
+    assert.equal(swallowed,1,'mouse-opened drawer lets old held keys release');
+    const opener=f.environment['voxyCoveCameraMenu'];f.cleanup();assert.equal(f.environment['voxyCoveCameraMenu'],f.priorCameraMenu);
+    assert(!opener()&&panel.hidden&&!panel.open);assert(f.cameraButtons.every(button=>button.listeners.size===0));
+    assert.equal(panel.listeners.size,0);
+    console.log('Outside camera actions, paused permissions, bounds, stale events and global cleanup: 1 case passed');
+}

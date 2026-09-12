@@ -91,7 +91,7 @@ export async function validateCoveSaves(call,directory,resume=false){
         await click('salvage-pause');await wait(s=>s.pause.phase==='paused','pause for save');
         const saved=await record(name+'-before-save');
         const captured=await validateCoveArchive(call,directory,name+'-archive');
-        assert.equal(captured.archive.schema,4,'the live host captures every section in v4');
+        assert.equal(captured.archive.schema,6,'the live host captures every section plus character and camera state in v6');
         await click('salvage-save');
         const deadline=Date.now()+20000;
         while(Date.now()<deadline&&!await evaluate('document.getElementById("salvage-save-status").textContent.startsWith("Saved.")'))await delay(60);

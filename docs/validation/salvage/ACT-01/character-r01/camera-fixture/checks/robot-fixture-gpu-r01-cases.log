@@ -1,0 +1,29 @@
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //tests:salvage_asset_fixture
+-----------------------------------------------------------------------------
+Running main() from gmock_main.cc
+Note: Google Test filter = FixtureGPU.RobotUsesExactOwnerBytesRealAnimatedPixelsAndSameRetirementTicket:FixtureGPU.CoveMoldedMachineryFitsCurrentOwnerBudget
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from FixtureGPU
+[ RUN      ] FixtureGPU.RobotUsesExactOwnerBytesRealAnimatedPixelsAndSameRetirementTicket
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [12:33:31.954] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [12:33:31.954] [GPU]   Vendor: radv[0m
+[32m[INFO ] [12:33:31.954] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [12:33:31.954] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [12:33:31.956] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] FixtureGPU.RobotUsesExactOwnerBytesRealAnimatedPixelsAndSameRetirementTicket (138 ms)
+[ RUN      ] FixtureGPU.CoveMoldedMachineryFitsCurrentOwnerBudget
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [12:33:32.071] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [12:33:32.071] [GPU]   Vendor: radv[0m
+[32m[INFO ] [12:33:32.071] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [12:33:32.071] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [12:33:32.072] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] FixtureGPU.CoveMoldedMachineryFitsCurrentOwnerBudget (642 ms)
+[----------] 2 tests from FixtureGPU (781 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (781 ms total)
+[  PASSED  ] 2 tests.

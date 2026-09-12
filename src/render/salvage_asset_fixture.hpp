@@ -1,6 +1,7 @@
 #pragma once
 
 #include "game/assets/cooked_part_bundle.hpp"
+#include "game/assets/rigid_animation.hpp"
 #include "game/assets/fixture_limits.hpp"
 #include "render/mesh_path.hpp"
 #include "render/inspection_guides.hpp"
@@ -58,6 +59,10 @@ struct SalvageFixtureFrame {
     std::span<const std::array<glm::vec3,2>> harborCables{}; // At most four actual constraint lines.
     std::optional<std::array<glm::vec3,2>> towCable{}; // Camera-relative presentation endpoints.
     std::optional<glm::dmat4> dockMarkingsRoot{}; // Installed static frame, camera sector already removed.
+    // Separate presentation asset. Never consumes a construction placement or
+    // receives a body/inventory identity. Draws share opaque depth and shadows.
+    const game::assets::RigidAnimationPose* robot=nullptr;
+    physics::BodyHandle robotBody{}; // Aboard: matrices are authored root-local.
 };
 
 struct SalvageFixtureTicket {
@@ -84,6 +89,7 @@ struct SalvageFixtureOwnerStats {
     uint32_t environmentBakeCount = 0;
     bool environmentReady = false;
     uint64_t dockMarkingGpuBytes = 0; // Extra owned mesh; outside fixed reservation.
+    uint64_t robotGpuBytes = 0;
 };
 
 struct SalvageFixtureStats {
@@ -94,6 +100,7 @@ struct SalvageFixtureStats {
     uint32_t lastEncodedGuideBoxes = 0;
     uint32_t lastEncodedDockMarkingDraws = 0;
     uint32_t lastSubmittedDockMarkingDraws = 0;
+    uint32_t lastSubmittedRobotDraws = 0;
     uint32_t pendingViewCallbacks = 0;
 };
 
@@ -139,7 +146,8 @@ public:
         std::span<const std::shared_ptr<const game::assets::CookedPartBundle>> bundles,
         std::string& error,
         std::span<const game::construction::PartDefinition> prototypes = {},
-        const CoveDockMarkings* dockMarkings = nullptr);
+        const CoveDockMarkings* dockMarkings = nullptr,
+        std::shared_ptr<const game::assets::RigidAnimationAsset> robot = {});
     [[nodiscard]] SalvageFixtureStatus poll();
     [[nodiscard]] bool publishCandidate(std::string& error);
     // Retains refs. Rebinding is validated asynchronously; encode waits until

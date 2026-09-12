@@ -1,4 +1,4 @@
-# Cove expedition archive (live SVCE v1–v4; two-job v5 preparation)
+# Cove expedition archive (live SVCE v1–v4/v6; two-job v5 preparation)
 
 This format joins an existing SVSC logical session checkpoint to physical cove
 state. It is implemented in `src/game/expedition/cove_save.*`. It does not by
@@ -7,12 +7,13 @@ native/browser storage envelope remains SVSG v1.
 
 SVCE v1 remains byte-identical for existing worlds. V2 explicitly records
 installation of the harbor lift and its four suspension lines. Application
-startup accepts schemas 1–4, then fully validates the selected archive before
+startup accepts schemas 1–4 and 6, then fully validates the selected archive before
 creating a replacement owner. V2 restores the fixed body and every unbroken
 line with neutral motors, after publishing recovered ownership. Codec acceptance
 alone is not evidence of a durable save or completed physical restoration.
 
-The live host now captures schema 4, including ordinary single-root boats.
+The live host captures schema 6, including ordinary single-root boats.
+The physical-root contract below was introduced by schema 4.
 Restore preparation reconstructs every accepted root, its authored-origin
 motion, the rider's section and the winch's section. Application startup owns
 and admits the complete set before its joined neutral restoration tick.
@@ -26,10 +27,48 @@ native/browser journeys in `validation/salvage/MECH-05/live-cut-r01/README.md`.
 General impact-driven fracture, arbitrary joints and broader fault coverage
 remain separate requirements.
 
+## Robot locomotion and camera choices (schema 6)
+
+ACT-01–03 adds explicit character profile **1**. It retains the complete v4
+prefix, then the v5 additional-cargo count/table, then the following fields
+before the logical checkpoint lengths. A one-job v6 archive has additional
+cargo count **0**; v5 continues to require count **1**. The live one-job host
+refuses any additional cargo, including in v6, until both physical loads have
+an implemented owner. Character support does not activate the parked second job.
+
+| Field | Encoding |
+|---|---|
+| Character profile | u32, exactly 1 |
+| World velocity X/Y/Z | Three f64 values, metres/second, each within ±150 |
+| Facing yaw | f64, radians within ±π; forward = (−sin(yaw), 0, −cos(yaw)) |
+| Preferred camera distance | f64, metres within 1.5–12 |
+| Chase camera / reduced motion / load view | Three canonical u8 booleans |
+
+The character record is **47 bytes**, plus the four-byte empty cargo count
+for the current one-job profile. The existing base view yaw/pitch fields now
+store orbit yaw and elevation; elevation is within −0.45…1.20 radians. The
+old byte ceiling and outer SVSG/logical SVSC schemas remain unchanged.
+
+Walking/Helm feet aboard retain authored **build** coordinates and a root key.
+Airborne/Swimming feet use **scene** coordinates and must have zero rider key
+and `aboard=false`. Their existing vertical-speed field must equal world
+velocity Y; grounded/Helm vertical speed is zero even on a rising platform.
+World momentum is not rotated or inherited a second time during restore.
+
+Older profile-zero archives retain their exact original v1–v5 encoding.
+A restored legacy aboard jump is converted once: transform feet to the scene,
+rotate its local vertical velocity and add the supporting root's point
+velocity, then detach. Restore validates the actual installed capsule support
+and collision before replacing the live session. Saved camera choices are
+reinstated and obstruction is queried again; a saved eye position is never a
+clearance certificate. Animation phase/crossfade are cosmetic and restart;
+part ownership, inventory, body motion and water phase retain their existing
+joined checkpoint rules.
+
 ## Two independent mission loads (schema 5 preparation)
 
 The shared codec now has an explicit two-job profile. The live application still
-creates one-job contexts and captures v4. Its restore preparation refuses a v5
+creates one-job contexts and captures v6. Its restore preparation refuses a v5
 two-load archive until it can own and restore **both** physical bodies, ropes
 and render mappings. No current world is silently migrated or replaced.
 
@@ -70,7 +109,7 @@ profile 1. This validates the saved progression; the future live command
 boundary must enforce the same prerequisite **before accepting** the job.
 It is not a substitute for command authorization or proof of real hauling.
 
-V1–v4 encoding remains selected when there is no additional cargo. V5 cannot be
+With character profile zero, V1–v4 encoding remains selected when there is no additional cargo. V5 cannot be
 downgraded by omitting one load or rewriting the version. The first and second
 cargo's rope/state and logical receipt are checked independently against the
 accepted boat and catalog. Physical restore still needs actual geometry, tow-eye
@@ -175,7 +214,8 @@ the primary root while the player is ashore, but cannot be saved in Helm mode.
 
 Aboard player feet retain **authored build coordinates**, as in older archives.
 The additional rider key selects which root transforms those coordinates into
-the world. Walking/airborne riders may belong to another surviving root. Helm
+the world. Legacy walking/airborne riders may belong to another surviving root. Schema 6
+airborne state is detached world-space motion. Helm
 mode requires the rider's root to contain the enabled controlling helm.
 Ashore/swimming state requires a zero rider key. Geometry support/reach remains
 an independent live-restore check; the codec does not create a player or body.
@@ -187,7 +227,8 @@ archive requires detached harbor lines. Installed but detached harbor state is
 valid. Supporting suspension across fragments requires explicit per-line root
 ownership and corresponding runtime work; no line is silently discarded.
 
-Writers select v4 whenever `CovePhysicalSave::boatRoots` is nonempty, including
+With character profile zero and no additional cargo, writers select v4 whenever
+`CovePhysicalSave::boatRoots` is nonempty, including
 an explicitly represented single root. An empty table selects the unchanged
 v1–v3 encoding and requires zero new binding IDs and exactly one compiled
 physical root. A fragmented logical checkpoint cannot be encoded or re-signed

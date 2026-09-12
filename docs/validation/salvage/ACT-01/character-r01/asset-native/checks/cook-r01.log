@@ -1,0 +1,25 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+[
+  {
+    "lod": 0,
+    "exit": 0,
+    "stdout": "",
+    "stderr": "gltf_vmesh_tool: wrote 360588 bytes (v=3776 i=22092 s=34 m=6 n=22 sk=0 a=8)\n"
+  },
+  {
+    "lod": 1,
+    "exit": 0,
+    "stdout": "",
+    "stderr": "gltf_vmesh_tool: wrote 181836 bytes (v=1648 i=9324 s=34 m=6 n=22 sk=0 a=8)\n"
+  },
+  {
+    "lod": 2,
+    "exit": 0,
+    "stdout": "",
+    "stderr": "gltf_vmesh_tool: wrote 145980 bytes (v=1336 i=2628 s=34 m=6 n=22 sk=0 a=8)\n"
+  }
+]

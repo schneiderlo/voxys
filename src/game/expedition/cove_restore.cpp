@@ -17,7 +17,7 @@ physics::AuthoredRootMotion motion(const CoveSavedMotion& value){
 }
 std::unique_ptr<CoveRestoreCandidate> CoveRestoreCandidate::prepare(std::span<const std::byte> bytes,
     const CoveSaveContext& context,const assets::LoadedAssetFixture& installed,const PartCatalog& catalog,
-    std::span<const CoveBoatAssembly::Part> originalBindings,CovePlayer::Ground ground,std::string& error,const StarterKit* installedStarter){
+    std::span<const CoveBoatAssembly::Part> originalBindings,CovePlayer::Ground ground,std::string& error,const StarterKit* installedStarter,CovePlayer::GroundSupport support){
     const auto fail=[&](const char* reason)->std::unique_ptr<CoveRestoreCandidate>{error=reason;return {};};
     try {
         auto result=std::make_unique<CoveRestoreCandidate>();CoveSaveIssue issue;
@@ -108,19 +108,34 @@ std::unique_ptr<CoveRestoreCandidate> CoveRestoreCandidate::prepare(std::span<co
         auto boatSlots=installed.registry.navigation->boatPlacements;
         for(size_t i=installed.registry.placements.size();i<result->scene->registry.placements.size();++i)
             boatSlots.push_back(static_cast<uint32_t>(i));
-        if(!result->player->initialize(*result->scene,std::move(ground),error,boatSlots)
+        if(!result->player->initialize(*result->scene,std::move(ground),error,boatSlots,std::move(support))
             ||!result->roots->bindPlayer(*result->player,*result->boat,{context.origin.x,context.origin.y,context.origin.z},error))return {};
         if(physical.harborLift.profile){
             auto structure=CoveHarborLift::prepareStructure(*installed.registry.navigation,error);
-            if(!structure||!structure->applyPlayerCollision(*result->player,result->cargo.get(),&result->cargoMotion,glm::dvec3(context.origin.x,context.origin.y,context.origin.z)))return fail("Cannot restore harbor collision.");
+            if(!structure||!structure->applyPlayerCollision(*result->player))return fail("Cannot restore harbor collision.");
             if(physical.harborLift.mode!=CoveHarborLiftMode::Detached){
                 auto rig=CoveHarborLift::prepare(*result->boat,*installed.registry.navigation,error);
                 if(!rig||!rig->restoreLines(physical.harborLift,error))return {};
             }
         }
+        // Cargo is an oriented member of the same scene packet, including
+        // during nonactivating load validation. Harbor installation must not
+        // retain an additional broad AABB that blocks empty beam corners.
+        const auto cargoBounds=result->cargo->shape().rootBounds();
+        const auto& minimum=cargoBounds.minimum;const auto& maximum=cargoBounds.maximum;
+        const CovePlayer::SceneObstacle cargoObstacle{
+            glm::dvec3(minimum.x,minimum.y,minimum.z)*.02,glm::dvec3(maximum.x,maximum.y,maximum.z)*.02,
+            glm::translate(glm::dmat4(1),physics::worldPositionToAbsolute(result->cargoMotion.position)
+                -glm::dvec3(context.origin.x,context.origin.y,context.origin.z))
+                *glm::mat4_cast(glm::normalize(glm::dquat(result->cargoMotion.orientation)))};
+        if(!result->player->setSceneObstacles(std::span(&cargoObstacle,1),result->player->collisionTick()))
+            return fail("Saved cargo collision cannot join the restored craft.");
         const auto& saved=physical.player;CovePlayer::State state;
         state.feet={saved.feet.x,saved.feet.y,saved.feet.z};state.verticalSpeed=saved.verticalSpeed;
         state.tick=saved.tick;state.interactions=saved.interactions;state.onBoat=saved.aboard;
+        state.locomotionVersion=physical.character.profile;
+        state.worldVelocity={physical.character.worldVelocity[0],physical.character.worldVelocity[1],physical.character.worldVelocity[2]};
+        state.facingYaw=physical.character.facingYaw;
         if(saved.aboard)state.root=physical.boatRoots.empty()?result->roots->primary().key:physical.playerRoot;
         switch(saved.mode){
         case CoveSavedPlayerMode::Walking:state.mode=CovePlayer::Mode::Walking;break;

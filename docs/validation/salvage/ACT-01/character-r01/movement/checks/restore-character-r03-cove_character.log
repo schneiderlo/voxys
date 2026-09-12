@@ -1,0 +1,27 @@
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //tests:cove_character
+-----------------------------------------------------------------------------
+Running main() from gmock_main.cc
+Note: Google Test filter = CoveCharacter.*:CoveMovement.OwnedRestorePreparesIndependentBodiesPlayerAndTowWithoutPublishing:CoveMovement.FragmentArchiveRestoresEveryPoseDetachedRiderAndWinchWithoutPublishing:CoveMovement.AirSteeringAcceleratesGraduallyAndNeutralInputPreservesMomentum
+[==========] Running 7 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 7 tests from CoveCharacter
+[ RUN      ] CoveCharacter.ZeroElapsedTimePreservesPoseAndDoesNotQueueAFalseLanding
+[       OK ] CoveCharacter.ZeroElapsedTimePreservesPoseAndDoesNotQueueAFalseLanding (0 ms)
+[ RUN      ] CoveCharacter.WalkPhaseUsesActualRelativeSpeedAndBoundedElapsedTime
+[       OK ] CoveCharacter.WalkPhaseUsesActualRelativeSpeedAndBoundedElapsedTime (0 ms)
+[ RUN      ] CoveCharacter.JumpFallAndLandingFollowActualModeAndVerticalVelocity
+[       OK ] CoveCharacter.JumpFallAndLandingFollowActualModeAndVerticalVelocity (0 ms)
+[ RUN      ] CoveCharacter.SwimmingHelmAndToolHaveExplicitMovementPriority
+[       OK ] CoveCharacter.SwimmingHelmAndToolHaveExplicitMovementPriority (0 ms)
+[ RUN      ] CoveCharacter.PauseKeepsBlendedPhaseAndResetDropsAllTransientHistory
+[       OK ] CoveCharacter.PauseKeepsBlendedPhaseAndResetDropsAllTransientHistory (0 ms)
+[ RUN      ] CoveCharacter.PausedRestoreSelectsSemanticPoseWithoutAdvancingCosmeticTime
+[       OK ] CoveCharacter.PausedRestoreSelectsSemanticPoseWithoutAdvancingCosmeticTime (0 ms)
+[ RUN      ] CoveCharacter.InvalidObservationPreservesTheLastAcceptedCosmeticState
+[       OK ] CoveCharacter.InvalidObservationPreservesTheLastAcceptedCosmeticState (0 ms)
+[----------] 7 tests from CoveCharacter (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 7 tests from 1 test suite ran. (0 ms total)
+[  PASSED  ] 7 tests.

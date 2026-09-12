@@ -1,0 +1,61 @@
+{
+  "command": "bazel test //tests:salvage_asset_fixture --test_filter=FixtureGPU.RobotUsesExactOwnerBytesRealAnimatedPixelsAndSameRetirementTicket:FixtureGPU.CoveMoldedMachineryFitsCurrentOwnerBudget --test_output=errors",
+  "exitCode": 0,
+  "casesRun": 2,
+  "casesPassed": 2,
+  "casesSkipped": 0,
+  "adapter": "AMD Radeon 890M Graphics (RADV STRIX1), Vulkan",
+  "cases": [
+    {
+      "name": "FixtureGPU.RobotUsesExactOwnerBytesRealAnimatedPixelsAndSameRetirementTicket",
+      "seconds": 0.138,
+      "status": "run",
+      "result": "completed",
+      "properties": {
+        "robotGpuBytes": "387600",
+        "robotOpaquePixels": "549",
+        "robotAnimatedPixels": "586",
+        "robotStableBackgroundPixels": "3509"
+      }
+    },
+    {
+      "name": "FixtureGPU.CoveMoldedMachineryFitsCurrentOwnerBudget",
+      "seconds": 0.642,
+      "status": "run",
+      "result": "completed",
+      "properties": {
+        "bundleGpuBytes0": "388200",
+        "bundleGpuBytes1": "392472",
+        "bundleGpuBytes2": "430632",
+        "bundleGpuBytes3": "371592",
+        "bundleGpuBytes4": "238752",
+        "bundleGpuBytes5": "423168",
+        "bundleGpuBytes6": "691344",
+        "bundleGpuBytes7": "266184",
+        "bundleGpuBytes8": "458688",
+        "bundleGpuBytes9": "84672",
+        "bundleGpuBytes10": "148896",
+        "bundleGpuBytes11": "275184",
+        "requestedOwnerGpuBytes": "10119560",
+        "ownerGpuBytes": "10119560",
+        "colorDraws": "129",
+        "with64BricksColorDraws": "196",
+        "with64BricksPlacements": "92"
+      }
+    }
+  ],
+  "limitation": "Headless numeric GPU proof only; no app/browser/layout or ACT gate claim. Missing XDG_RUNTIME_DIR environment notice was retained; both actual contexts initialized.",
+  "sourceSha256": {
+    "tests/test_salvage_asset_fixture.cpp": "06856e501f77d8c2ce399ba02fb55c5775cde71916da9fb0f53e4f44f0b7772f",
+    "src/render/salvage_asset_fixture.cpp": "9c2d8c7369d62c07c367b57df1e473e7a483b5ed0eeff27289d5f880b15f888d",
+    "src/render/salvage_asset_fixture.hpp": "8edfd885eaeb07ef9d7081f284284f04771c7e9751f678bca0c3798264859aa0",
+    "src/render/mesh_path.cpp": "d8b0405b23eb9677b2681096f32e2e8f19c47bcedcd49c6d40b43ab2fab20329",
+    "src/render/mesh_path.hpp": "7a6a96ba8936289100362ffcf5d8f18c7c280591d1c895076af84df0fca68140",
+    "shaders/mesh_path.wgsl": "412744f7b45bdbafee4fd77ccbdfc48e19fc24f934c930f1c47c9de2a3c26e49",
+    "src/game/assets/robot_asset.cpp": "2420f91bdacfd36fccad86210ec282b0e470e81bbf571ce36486138406139a67",
+    "src/game/assets/rigid_animation.cpp": "c64de15855f252fb6f6291fcb67f93b88639d4ea9550fed29169a5e7c2a80419",
+    "data/salvage/robot-r01/manifest.json": "c5cb41c8e8c36122a048800308264b6a07ca922650a4d49e540140effbf89101",
+    "data/salvage/robot-r01/robot.vmesh": "e0e2564cea9730a5b8d362d158e8770910f85077d3712547d65c5b4964493b4b",
+    "data/salvage/cove-workshop-r06.json": "a19e435f23fc322ff53bfa1895d8b31ff9d894d2f0d371df7f89e751c15b0b9c"
+  }
+}

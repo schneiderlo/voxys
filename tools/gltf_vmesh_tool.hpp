@@ -11,6 +11,7 @@ namespace voxy::tools {
 enum class GltfImportProfile : uint8_t {
     Legacy,
     SalvageRigidV1,
+    SalvageAnimatedRigidV1,
 };
 
 /// Convert a glTF 2.0 document held in memory into the engine's .vmesh form.

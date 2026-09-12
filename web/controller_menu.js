@@ -17,9 +17,9 @@
     function install(environment=globalThis,panel=environment.document.getElementById('salvage-preview')){
         const document=environment.document,canvas=document.getElementById('voxy-canvas');
         const help=document.getElementById('salvage-controller-help');
-        let enabled=false,stopped=false,owned=false,modal=null,world=null,workshop=false,pinned=null,connected=false;
-        const candidates=()=>Array.from((modal?.element||panel).querySelectorAll(focusSelector))
-            .filter(element=>visible(element,modal?.element||panel,environment));
+        let enabled=false,stopped=false,owned=false,modal=null,section=null,world=null,workshop=false,pinned=null,connected=false;
+        const candidates=()=>Array.from((modal?.element||section||panel).querySelectorAll(focusSelector))
+            .filter(element=>visible(element,modal?.element||section||panel,environment));
         const textOwned=()=>Boolean(enabled&&isText(document.activeElement)&&visible(document.activeElement,panel,environment));
         const focused=()=>!document.hidden&&document.hasFocus?.()!==false;
         const active=()=>!stopped&&enabled&&focused()&&Boolean(owned||modal||textOwned());
@@ -37,7 +37,15 @@
             const choices=candidates();
             if(!choices.includes(document.activeElement))focus(choices[0]);
         };
-        const release=()=>{pinned=null;owned=false;showOwnership();canvas?.focus({preventScroll:true});};
+        const closeSection=()=>{if(section)section.open=false;section=null;};
+        const release=()=>{pinned=null;closeSection();owned=false;showOwnership();canvas?.focus({preventScroll:true});};
+        const openSection=element=>{
+            if(stopped||!enabled||!focused()||modal||element?.tagName!=='DETAILS'
+                ||!visible(element.querySelector('summary'),panel,environment))return false;
+            closeSection();section=element;section.open=true;pinned=null;owned=true;showOwnership();
+            const choices=candidates();focus(choices.find(choice=>choice.tagName!=='SUMMARY')||choices[0]);
+            return true;
+        };
         const pinFocus=element=>{
             if(!owned||modal||document.activeElement!==element)return ()=>{};
             const pin={element,moved:false,world};pinned=pin;
@@ -165,6 +173,7 @@
             if(!wasActive)return false;
             if(events.back){
                 if(modal)closeModal(false);
+                else if(section)release();
                 else {
                     const drawer=document.activeElement?.closest?.('details[open]');
                     if(drawer&&panel.contains(drawer)){drawer.open=false;focus(drawer.querySelector('summary'));}
@@ -194,16 +203,18 @@
         };
         const priorInput=environment.voxyControllerMenuInput,priorActive=environment.voxyControllerMenuActive;
         environment.voxyControllerMenuInput=input;environment.voxyControllerMenuActive=active;
-        const blur=()=>{pinned=null;closeModal(false,false);owned=false;showOwnership();};
+        const blur=()=>{pinned=null;closeModal(false,false);closeSection();owned=false;showOwnership();};
         const hidden=()=>{if(document.hidden)blur();};
         environment.addEventListener('blur',blur);document.addEventListener('visibilitychange',hidden);
         return {
-            active,confirm,editName,pinFocus,
+            active,confirm,editName,pinFocus,openSection,
             tick(state){
                 const nextWorld=state.observation?`${state.observation.world}/${state.observation.incarnation}/${state.observation.epoch}`:state.world||null;
                 const nextWorkshop=Boolean(state.workshop?.open);
                 const nextEnabled=Boolean(state.active&&state.ready&&!state.failed&&state.session?.admissionOpen!==false);
-                if(!nextEnabled||(world!==null&&nextWorld!==world)||(workshop&&!nextWorkshop))blur();
+                if(!nextEnabled||(world!==null&&nextWorld!==world)||(workshop&&!nextWorkshop)
+                    ||(section&&(!section.open||!visible(section.querySelector('summary'),panel,environment)
+                        ||(section.id==='salvage-camera'&&(nextWorkshop||state.characterCamera?.available!==true)))))blur();
                 else if(modal&&(state.busy||state.workshop?.pending))closeModal(false);
                 enabled=nextEnabled;world=nextWorld;workshop=nextWorkshop;connected=Boolean(state.gamepad?.connected);
                 showOwnership();repairFocus();

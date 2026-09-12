@@ -111,6 +111,61 @@ protected:
     }
 };
 
+TEST_F(CoveSave, CharacterArchivePreservesAirborneMomentumCameraAndExactLegacyEncoding) {
+    fragments();
+    const auto legacy=encode();ASSERT_EQ(legacy[4],std::byte{4});
+    physical.character.profile=1;
+    physical.character.worldVelocity={4.5,8.25,-3.125};
+    physical.character.facingYaw=-1.25;physical.character.cameraDistance=7.75;
+    physical.character.chaseCamera=false;physical.character.reducedMotion=true;physical.character.loadView=true;
+    physical.player.mode=CoveSavedPlayerMode::Airborne;physical.player.aboard=false;physical.playerRoot={};
+    physical.player.verticalSpeed=8.25;
+    const auto bytes=encode();ASSERT_EQ(bytes[4],std::byte{6});
+    CoveSaveIssue issue;auto read=CoveSaveCodec::decode(bytes,context,*catalog,issue);
+    ASSERT_TRUE(read)<<int(issue.error);EXPECT_EQ(read->physical,physical);
+    std::vector<std::byte> again;
+    ASSERT_TRUE(CoveSaveCodec::encode(*read->current,nullptr,read->physical,context,*catalog,again,issue));
+    EXPECT_EQ(again,bytes);
+    auto old=CoveSaveCodec::decode(legacy,context,*catalog,issue);ASSERT_TRUE(old)<<int(issue.error);
+    EXPECT_EQ(old->physical.character,CoveSavedCharacter{});
+    ASSERT_TRUE(CoveSaveCodec::encode(*old->current,nullptr,old->physical,context,*catalog,again,issue));
+    EXPECT_EQ(again,legacy);
+    // One-byte truncation with a repaired checksum must not consume logical
+    // checkpoint bytes as a partially initialized character extension.
+    auto truncated=bytes;truncated.erase(truncated.end()-33);checksum(truncated);
+    EXPECT_FALSE(CoveSaveCodec::decode(truncated,context,*catalog,issue));
+}
+
+TEST_F(CoveSave, CharacterArchiveRejectsContradictoryMomentumWithoutChangingOutput) {
+    fragments();physical.character.profile=1;
+    physical.player.mode=CoveSavedPlayerMode::Airborne;physical.player.aboard=false;physical.playerRoot={};
+    physical.player.verticalSpeed=6;physical.character.worldVelocity={2,6,3};
+    const auto good=physical;const auto original=encode();
+    for(int defect=0;defect<8;++defect) {
+        physical=good;
+        switch(defect) {
+        case 0:physical.character.worldVelocity[0]=std::numeric_limits<double>::quiet_NaN();break;
+        case 1:physical.character.worldVelocity[2]=151;break;
+        case 2:physical.character.worldVelocity[1]=5;break;
+        case 3:physical.player.aboard=true;physical.playerRoot=physical.boatRoots[0].key;break;
+        case 4:physical.character.profile=2;break;
+        case 5:physical.character.profile=0;break;
+        case 6:physical.character.cameraDistance=100;break;
+        case 7:physical.character.facingYaw=100;break;
+        }
+        std::vector<std::byte> output=original;CoveSaveIssue issue;
+        EXPECT_FALSE(CoveSaveCodec::encode(*checkpoint,nullptr,physical,context,*catalog,output,issue))<<defect;
+        EXPECT_EQ(output,original)<<defect;
+    }
+}
+
+TEST_F(CoveSave, CharacterExtensionRetainsBothCargoRecords) {
+    secondCargo();physical.character.profile=1;
+    const auto bytes=encode();ASSERT_EQ(bytes[4],std::byte{6});CoveSaveIssue issue;
+    auto read=CoveSaveCodec::decode(bytes,context,*catalog,issue);
+    ASSERT_TRUE(read)<<int(issue.error);EXPECT_EQ(read->physical,physical);
+}
+
 TEST_F(CoveSave, TwoJobArchiveRetainsBothLoadsAcrossGeneratorBankingCrateTowAndBothReceipts) {
     secondCargo();const auto originalParts=bootstrap.builds[0].parts;
     const auto originalCargo=physical.additionalCargo[0];
@@ -377,7 +432,7 @@ TEST_F(CoveSave, RefusesCorruptionTruncationTrailingDataAndUnknownVersions){
         EXPECT_FALSE(CoveSaveCodec::decode(std::span(good).first(size),context,*catalog,issue))<<size;
     auto bad=good;bad.at(48)^=std::byte{1};EXPECT_FALSE(CoveSaveCodec::decode(bad,context,*catalog,issue));
     EXPECT_EQ(issue.error,CoveSaveError::Checksum);
-    bad=good;bad.at(4)=std::byte{6};EXPECT_FALSE(CoveSaveCodec::decode(bad,context,*catalog,issue));
+    bad=good;bad.at(4)=std::byte{7};EXPECT_FALSE(CoveSaveCodec::decode(bad,context,*catalog,issue));
     EXPECT_EQ(issue.error,CoveSaveError::UnsupportedSchema);
     bad=good;bad.insert(bad.end()-32,std::byte{});checksum(bad);
     EXPECT_FALSE(CoveSaveCodec::decode(bad,context,*catalog,issue));EXPECT_EQ(issue.error,CoveSaveError::Encoding);

@@ -121,7 +121,7 @@ uint32_t u32le(const uint8_t* bytes) {
         | (uint32_t{bytes[2]} << 16u) | (uint32_t{bytes[3]} << 24u);
 }
 
-bool preflightRigid(const std::vector<uint8_t>& input, bool isGlb, std::string* error) {
+bool preflightRigid(const std::vector<uint8_t>& input, bool isGlb, std::string* error, bool animated=false) {
     try {
         if (!isGlb || input.size() < 20u || input.size() > kRigidInputBytes
             || u32le(input.data()) != 0x46546c67u || u32le(input.data() + 4u) != 2u
@@ -162,13 +162,15 @@ bool preflightRigid(const std::vector<uint8_t>& input, bool isGlb, std::string* 
             for (const auto& extension : jsonArray(document, key, 1u, "root"))
                 if (extension != "KHR_materials_unlit") reject(key, "unsupported extension");
         }
-        for (const char* key : {"skins", "animations", "cameras"})
+        for (const char* key : {"skins", "cameras"})
             if (!jsonArray(document, key, 0u, "root").empty()) reject(key, "unsupported rigid feature");
+        const auto& animations=jsonArray(document,"animations",animated?8u:0u,"root");
+        if(animated&&animations.empty())reject("animations","animated profile requires clips");
         for (const char* key : {"materials", "images", "textures", "samplers"}) (void)jsonArray(document, key, 64u, "root");
         for (const char* key : {"accessors", "bufferViews", "buffers"}) (void)jsonArray(document, key, 4096u, "root");
         const auto& scenes = jsonArray(document, "scenes", 1u, "root");
-        const auto& nodes = jsonArray(document, "nodes", 256u, "root");
-        const auto& meshes = jsonArray(document, "meshes", 256u, "root");
+        const auto& nodes = jsonArray(document, "nodes", animated?32u:256u, "root");
+        const auto& meshes = jsonArray(document, "meshes", animated?24u:256u, "root");
         if (scenes.size() != 1u || nodes.empty() || meshes.empty()) reject("scene", "one nonempty rigid scene required");
         if (document.contains("scene")) (void)jsonSize(document["scene"], 0u, "scene");
         size_t bufferBytes = 0u;
@@ -202,6 +204,9 @@ bool preflightRigid(const std::vector<uint8_t>& input, bool isGlb, std::string* 
             const auto& node = nodes[i];
             const std::string path = "nodes[" + std::to_string(i) + "]";
             if (!node.is_object() || node.contains("skin") || node.contains("weights") || node.contains("camera")) reject(path, "unsupported node");
+            if(animated&&node.contains("matrix"))reject(path,"animated rigid nodes require explicit TRS");
+            if(animated&&node.contains("scale"))for(const auto& value:node["scale"])
+                if(!value.is_number()||std::abs(value.get<double>()-1)>1e-6)reject(path,"animated rigid scale must be unit");
             if (node.contains("matrix") && (node.contains("translation") || node.contains("rotation") || node.contains("scale"))) reject(path, "matrix and TRS are exclusive");
             for (const auto& [key, count] : {std::pair{"matrix", 16u}, {"translation", 3u}, {"rotation", 4u}, {"scale", 3u}}) {
                 if (!node.contains(key)) continue;
@@ -236,6 +241,33 @@ bool preflightRigid(const std::vector<uint8_t>& input, bool isGlb, std::string* 
             for (const auto& child : jsonArray(nodes[index], "children", 256u, "nodes")) stack.push_back(jsonSize(child, nodes.size() - 1u, "child"));
         }
         if (std::find(visited.begin(), visited.end(), false) != visited.end()) reject("nodes", "unreachable node/cycle");
+        if(animated) {
+            if(roots.size()!=1)reject("scene","animated rigid scene requires one root");
+            const auto root=jsonSize(roots[0],nodes.size()-1,"root");
+            const auto& node=nodes[root];
+            if(node.value("name","")!="robot_root"||node.contains("mesh"))reject("root","robot_root must be meshless");
+            if(node.contains("translation")&&node["translation"]!=Json::array({0,0,0}))reject("root","identity translation required");
+            if(node.contains("rotation")&&node["rotation"]!=Json::array({0,0,0,1}))reject("root","identity rotation required");
+            size_t channelCount=0;
+            std::set<std::string> clipNames;
+            for(const auto& animation:animations) {
+                const auto name=animation.value("name","");
+                if(name.empty()||name.size()>64||!clipNames.insert(name).second)reject("animation","unique bounded name required");
+                const auto& samplers=jsonArray(animation,"samplers",96,"animation");
+                const auto& channels=jsonArray(animation,"channels",96,"animation");
+                if(samplers.empty()||channels.empty())reject("animation","empty clip");
+                channelCount+=channels.size();if(channelCount>768)reject("animation","channel capacity");
+                std::set<std::pair<size_t,std::string>> targets;
+                for(const auto& channel:channels) {
+                    const auto& target=channel.at("target");
+                    const auto index=jsonSize(target.at("node"),nodes.size()-1,"animation node");
+                    const auto path=target.value("path","");
+                    if(index==root||(path!="translation"&&path!="rotation")||!targets.emplace(index,path).second)
+                        reject("animation","root motion, scale, or duplicate channel is unsupported");
+                    (void)jsonSize(channel.at("sampler"),samplers.size()-1,"animation sampler");
+                }
+            }
+        }
         for (const auto& accessor : jsonArray(document, "accessors", 4096u, "root")) {
             if (!accessor.is_object() || accessor.contains("sparse")) reject("accessor", "sparse/type unsupported");
             (void)jsonSize(accessor.at("count"), kRigidIndices, "accessor.count");
@@ -1432,7 +1464,7 @@ bool validateSkins(const moto::VmeshData& data, std::string* error) {
     return true;
 }
 
-bool buildAnimations(const tinygltf::Model& model, moto::VmeshData* data, std::string* error) {
+bool buildAnimations(const tinygltf::Model& model, moto::VmeshData* data, std::string* error, bool strict=false) {
     const size_t animationCount = model.animations.size();
     for (size_t a = 0; a < animationCount; ++a) {
         const tinygltf::Animation& source = model.animations[a];
@@ -1477,6 +1509,8 @@ bool buildAnimations(const tinygltf::Model& model, moto::VmeshData* data, std::s
             if (output.componentCount != valueComponents) return fail(error, "animation output accessor size mismatch");
             if (input.count != output.count) return fail(error, "animation input/output count mismatch");
             if (input.count < 2u) return fail(error, "animation needs at least two keys");
+            if(strict&&(input.count>121u||data->channelData.size()+input.count*size_t(valueComponents+1)*4u>256u*1024u))
+                return fail(error,"animated rigid key/data capacity");
             if (input.count > 0xFFFFFFFFu) return fail(error, "too many animation keys");
             if (channel.target_node < 0 || static_cast<size_t>(channel.target_node) >= data->nodes.size()) {
                 return fail(error, "animation node out of range");
@@ -1487,6 +1521,8 @@ bool buildAnimations(const tinygltf::Model& model, moto::VmeshData* data, std::s
             for (size_t k = 0; k < input.count; ++k) {
                 const float time = readFloatComponent(input, k, 0);
                 if (!std::isfinite(time)) return fail(error, "non-finite animation time");
+                if(strict&&((k==0u&&time!=0)||(k>0u&&time<=previous)||time>10))
+                    return fail(error,"animated rigid times must increase strictly from zero through at most ten seconds");
                 if (k > 0u && time < previous) return fail(error, "animation times not monotonic");
                 previous = time;
                 duration = time;
@@ -1507,6 +1543,13 @@ bool buildAnimations(const tinygltf::Model& model, moto::VmeshData* data, std::s
                 appendFloatLE(&data->channelData, readFloatComponent(input, k, 0));
             }
             for (size_t k = 0; k < input.count; ++k) {
+                if(strict) {
+                    double magnitude=0;
+                    for(int c=0;c<valueComponents;++c){const double value=readFloatComponent(output,k,c);magnitude+=value*value;}
+                    if((path==moto::VmeshAnimPathRotation&&std::abs(magnitude-1)>2e-4)
+                        ||(path==moto::VmeshAnimPathTranslation&&magnitude>9))
+                        return fail(error,"animated rigid quaternion/translation outside profile");
+                }
                 for (int c = 0; c < valueComponents; ++c) {
                     const float value = readFloatComponent(output, k, c);
                     if (!std::isfinite(value)) return fail(error, "non-finite animation value");
@@ -1533,11 +1576,14 @@ bool convertGltfBytesToVmesh(const std::vector<uint8_t>& inputBytes, bool isGlb,
                              GltfImportProfile profile, voxy::moto::VmeshData* out, std::string* error) {
     if (out == nullptr) return fail(error, "null output");
     if (error != nullptr) error->clear();
-    if (profile != GltfImportProfile::Legacy && profile != GltfImportProfile::SalvageRigidV1) return fail(error, "unknown import profile");
+    if (profile != GltfImportProfile::Legacy && profile != GltfImportProfile::SalvageRigidV1
+        &&profile!=GltfImportProfile::SalvageAnimatedRigidV1) return fail(error, "unknown import profile");
     if (inputBytes.empty()) return fail(error, "input is empty");
     if (inputBytes.size() > kMaxInputBytes) return fail(error, "input too large");
-    const bool rigid = profile == GltfImportProfile::SalvageRigidV1;
-    if (rigid && !preflightRigid(inputBytes, isGlb, error)) return false;
+    const bool animated=profile==GltfImportProfile::SalvageAnimatedRigidV1;
+    const bool rigid = profile != GltfImportProfile::Legacy;
+    if(animated&&inputBytes.size()>4u*1024u*1024u)return fail(error,"animated rigid input capacity");
+    if (rigid && !preflightRigid(inputBytes, isGlb, error,animated)) return false;
 
     tinygltf::TinyGLTF loader;
     ImportContext context{rigid, 0u};
@@ -1580,7 +1626,8 @@ bool convertGltfBytesToVmesh(const std::vector<uint8_t>& inputBytes, bool isGlb,
     if (!buildSkins(model, &result, error)) return false;
     if (!buildNodes(model, &result, error, rigid)) return false;
     if (!validateSkins(result, error)) return false;
-    if (!buildAnimations(model, &result, error)) return false;
+    if (!buildAnimations(model, &result, error,animated)) return false;
+    if(animated&&(result.submeshes.size()>48||result.channelData.size()>256u*1024u))return fail(error,"animated rigid draw/data capacity");
 
     result.header.vertexCount = static_cast<uint32_t>(result.vertices.size() / moto::kVmeshVertexStride);
     result.header.indexCount = static_cast<uint32_t>(result.indices.size() / result.header.indexStride);
@@ -1588,8 +1635,9 @@ bool convertGltfBytesToVmesh(const std::vector<uint8_t>& inputBytes, bool isGlb,
     if (rigid) {
         const uint64_t bytes = result.vertices.size() + result.indices.size() + result.images.size()
             + result.materials.size() * sizeof(moto::VmeshMaterial) + result.nodes.size() * sizeof(moto::VmeshNode)
-            + result.submeshes.size() * sizeof(moto::VmeshSubmesh) + result.stringBlob.size() + 4096u;
-        if (bytes > kRigidOutputBytes) return fail(error, "rigid output byte limit");
+            + result.submeshes.size() * sizeof(moto::VmeshSubmesh) + result.stringBlob.size() + 4096u
+            +result.channelData.size()+result.animChannels.size()*sizeof(moto::VmeshAnimChannel)+result.anims.size()*sizeof(moto::VmeshAnim);
+        if (bytes > (animated?2u*1024u*1024u:kRigidOutputBytes)) return fail(error, "rigid output byte limit");
         if (result.header.vertexCount == 0u || result.header.indexCount == 0u) return fail(error, "rigid scene has no geometry");
     }
 
@@ -1604,11 +1652,13 @@ bool convertGltfBytesToVmesh(const std::vector<uint8_t>& inputBytes, bool isGlb,
 int main(int argc, char** argv) {
     voxy::tools::GltfImportProfile profile = voxy::tools::GltfImportProfile::Legacy;
     int firstPath = 1;
-    if (argc == 5 && std::strcmp(argv[1], "--profile") == 0 && std::strcmp(argv[2], "salvage-rigid-v1") == 0) {
-        profile = voxy::tools::GltfImportProfile::SalvageRigidV1;
+    if (argc == 5 && std::strcmp(argv[1], "--profile") == 0
+        && (std::strcmp(argv[2], "salvage-rigid-v1") == 0 || std::strcmp(argv[2],"salvage-animated-rigid-v1")==0)) {
+        profile = std::strcmp(argv[2],"salvage-animated-rigid-v1")==0
+            ?voxy::tools::GltfImportProfile::SalvageAnimatedRigidV1:voxy::tools::GltfImportProfile::SalvageRigidV1;
         firstPath = 3;
     } else if (argc != 3) {
-        std::fprintf(stderr, "usage: %s [--profile salvage-rigid-v1] <input.gltf|input.glb> <output.vmesh>\n",
+        std::fprintf(stderr, "usage: %s [--profile salvage-rigid-v1|salvage-animated-rigid-v1] <input.gltf|input.glb> <output.vmesh>\n",
                      argc > 0 ? argv[0] : "gltf_vmesh_tool");
         return 2;
     }
@@ -1622,8 +1672,8 @@ int main(int argc, char** argv) {
     }
     std::vector<uint8_t> bytes;
     uint8_t chunk[1u << 16u];
-    const size_t maximum = profile == voxy::tools::GltfImportProfile::SalvageRigidV1
-        ? 64u * 1024u * 1024u : size_t{1} << 30u;
+    const size_t maximum = profile == voxy::tools::GltfImportProfile::SalvageAnimatedRigidV1?4u*1024u*1024u:
+        profile == voxy::tools::GltfImportProfile::SalvageRigidV1?64u * 1024u * 1024u:size_t{1} << 30u;
     for (;;) {
         const size_t got = std::fread(chunk, 1u, sizeof(chunk), in);
         if (got > maximum - bytes.size()) {

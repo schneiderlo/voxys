@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="6" failures="0" disabled="0" errors="0" time="0." timestamp="2026-09-12T13:09:15.267" name="AllTests">
+  <testsuite name="CoveCharacter" tests="6" failures="0" disabled="0" skipped="0" errors="0" time="0." timestamp="2026-09-12T13:09:15.267">
+    <testcase name="ZeroElapsedTimePreservesPoseAndDoesNotQueueAFalseLanding" file="tests/test_cove_character.cpp" line="10" status="run" result="completed" time="0." timestamp="2026-09-12T13:09:15.267" classname="CoveCharacter" />
+    <testcase name="WalkPhaseUsesActualRelativeSpeedAndBoundedElapsedTime" file="tests/test_cove_character.cpp" line="23" status="run" result="completed" time="0." timestamp="2026-09-12T13:09:15.267" classname="CoveCharacter" />
+    <testcase name="JumpFallAndLandingFollowActualModeAndVerticalVelocity" file="tests/test_cove_character.cpp" line="37" status="run" result="completed" time="0." timestamp="2026-09-12T13:09:15.267" classname="CoveCharacter" />
+    <testcase name="SwimmingHelmAndToolHaveExplicitMovementPriority" file="tests/test_cove_character.cpp" line="48" status="run" result="completed" time="0." timestamp="2026-09-12T13:09:15.267" classname="CoveCharacter" />
+    <testcase name="PauseKeepsBlendedPhaseAndResetDropsAllTransientHistory" file="tests/test_cove_character.cpp" line="58" status="run" result="completed" time="0." timestamp="2026-09-12T13:09:15.267" classname="CoveCharacter" />
+    <testcase name="InvalidObservationPreservesTheLastAcceptedCosmeticState" file="tests/test_cove_character.cpp" line="67" status="run" result="completed" time="0." timestamp="2026-09-12T13:09:15.267" classname="CoveCharacter" />
+  </testsuite>
+</testsuites>

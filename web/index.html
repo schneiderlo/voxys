@@ -245,6 +245,18 @@
             <button id="salvage-objective-action" type="button" hidden disabled></button>
         </section>
         <button id="salvage-workshop-toggle" type="button" hidden disabled>Workshop · B</button>
+        <details id="salvage-camera" class="workshop-section" hidden>
+            <summary>Camera · F2</summary>
+            <div class="workshop-grid">
+                <button type="button" data-camera-action="320" disabled>View: Chase</button>
+                <button type="button" data-camera-action="321" disabled>Recenter behind robot</button>
+                <button type="button" data-camera-action="322" disabled>Frame load: Off</button>
+                <button type="button" data-camera-action="323" disabled>Reduced motion: Off</button>
+                <button type="button" data-camera-action="324" disabled>Move camera closer</button>
+                <button type="button" data-camera-action="325" disabled>Move camera farther</button>
+            </div>
+            <p class="salvage-note">Click the view to orbit. Wheel: zoom. V: view. G: recenter. Settings work while paused.</p>
+        </details>
         <div id="salvage-workshop" hidden aria-label="Starter craft workshop">
             <p id="salvage-workshop-stock"></p>
             <div class="workshop-bricks" aria-label="Build with bricks">

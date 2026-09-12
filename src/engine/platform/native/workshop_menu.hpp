@@ -14,6 +14,10 @@ public:
         bool canLaunch = false, canPaint = false, canConfigure = false;
         bool canAdd = false, brushActive = false, canUndoLaunch = false, canRedoLaunch = false;
         bool hasOutputLimit = false, canReverse = false;
+        // Independent from workshop pending: viewing options remain usable
+        // while paused, but not during a revoked/retiring/replacing session.
+        bool cameraAvailable = false, chaseCamera = true, reducedMotion = false, frameLoad = false;
+        double cameraDistance = 4.8;
         size_t selectedCount = 0;
         std::string selectedName, message;
         std::vector<std::string> catalogNames;
@@ -33,12 +37,13 @@ public:
                             glm::vec2 pointerScale = {1, 1});
     [[nodiscard]] bool active() const noexcept;
     void open();
+    void openCamera();
     void dismiss();
     [[nodiscard]] const render::CoveHudMenu& menuContent() const noexcept { return content_; }
     [[nodiscard]] const NativeDesignLibrary& library() const noexcept { return library_; }
     [[nodiscard]] std::string_view pageName() const noexcept;
 private:
-    enum class Page { Closed, Main, Selection, Move, Parts, Paint, Settings, Camera,
+    enum class Page { Closed, Main, Selection, Move, Parts, Paint, Settings, Camera, PlayerCamera,
                       Library, Design, Imports, Naming, Remove };
     enum class Naming { SaveNew, Update, Duplicate, Rename, Export };
     struct Choice {

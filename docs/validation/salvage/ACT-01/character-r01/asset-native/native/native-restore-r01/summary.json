@@ -1,0 +1,2053 @@
+{
+  "status": "passed",
+  "kind": "Native ACT robot, camera and moving-deck real controls; no images",
+  "startedUtc": "2026-09-12T13:24:09.918141+00:00",
+  "binary": "/home/modkin/workspace/schneiderlo/voxys/build-native-save-host/bin/voxy_native",
+  "binarySha256": "7e39b41851e6f839a2edd5ded1db18c7cb7ce317af7bc7cdc4619c0ca76c5511",
+  "storageRoot": "/home/modkin/workspace/schneiderlo/voxys/build-cove-actor-r01/native-storage-r01",
+  "phase": "restore",
+  "stages": [
+    {
+      "name": "continued-durable-world",
+      "process": 1,
+      "state": {
+        "active": true,
+        "ready": true,
+        "busy": false,
+        "failed": false,
+        "bodies": 0,
+        "resets": 0,
+        "controller": "cove-player",
+        "terrainSurface": "lego",
+        "mouseCaptured": false,
+        "origin": [
+          -12,
+          -187.68,
+          -32
+        ],
+        "nativeHud": {
+          "enabled": true,
+          "lastEncodedQuads": 98,
+          "uploads": 2,
+          "bodyPixels": 20,
+          "truncated": false,
+          "panel": [
+            14,
+            14,
+            400,
+            245
+          ],
+          "objective": "paused",
+          "title": "Cove paused",
+          "selected": "Expedition on hold",
+          "status": "Expedition loaded. P: Resume | F10: Save",
+          "hints": [
+            "F10: Save expedition",
+            "P: Resume",
+            ""
+          ]
+        },
+        "world": "1051101acc7d4a8d66050a21d4e0f783",
+        "restore": {
+          "phase": "ready",
+          "baseTick": "1503"
+        },
+        "camera": {
+          "local": [
+            -11.1669,
+            60.2151,
+            -81.1116
+          ],
+          "sector": [
+            0,
+            -1,
+            0
+          ],
+          "yaw": -2.78282,
+          "pitch": -0.32,
+          "viewProjection": [
+            -1.35147,
+            -0.191309,
+            -0.333322,
+            -0.333299,
+            3.79879e-07,
+            1.64412,
+            -0.314589,
+            -0.314568,
+            0.506804,
+            -0.510157,
+            -0.888855,
+            -0.888796,
+            26.016,
+            -142.517,
+            -56.9756,
+            -56.8718
+          ]
+        },
+        "player": {
+          "mode": "walking",
+          "interaction": "none",
+          "feet": [
+            6,
+            1.285,
+            -49
+          ],
+          "tick": "0",
+          "interactions": "0",
+          "collisionBoxes": 55,
+          "rootKey": "0",
+          "onBoat": false
+        },
+        "cutter": {
+          "canCut": false,
+          "pending": false,
+          "weld": "0",
+          "label": "",
+          "sections": 1,
+          "cutWelds": 0
+        },
+        "rescue": {
+          "phase": "idle",
+          "pending": false,
+          "completed": "0",
+          "savePending": false
+        },
+        "pause": {
+          "phase": "paused",
+          "canPause": false,
+          "tick": "1504",
+          "waterTick": "1504",
+          "waterTime": 24.9667
+        },
+        "nativeMenu": {
+          "open": false,
+          "page": "closed",
+          "title": "",
+          "selected": 0,
+          "rows": [],
+          "naming": false,
+          "name": "",
+          "key": 0,
+          "keyboardFocus": true,
+          "library": {
+            "ready": false,
+            "busy": false,
+            "generation": "0",
+            "root": "/home/modkin/workspace/schneiderlo/voxys/build-cove-actor-r01/native-storage-r01/Designs",
+            "selectedId": "0",
+            "rows": [],
+            "imports": [],
+            "lastPath": "",
+            "message": "Open Saved designs."
+          }
+        },
+        "characterCamera": {
+          "available": true,
+          "mode": "orbit",
+          "distance": 5.5,
+          "actualDistance": 5.5,
+          "reducedMotion": true,
+          "frameLoad": true,
+          "valid": true,
+          "held": false,
+          "geometryTick": "1504",
+          "presentedTick": "1504",
+          "yaw": 0.358771,
+          "elevation": 0.32,
+          "eye": [
+            7.83314,
+            4.21512,
+            -44.1116
+          ]
+        },
+        "character": {
+          "clip": "idle",
+          "time": 0,
+          "blend": 1,
+          "facingYaw": 0.358771,
+          "worldVelocity": [
+            0,
+            0,
+            0
+          ],
+          "draws": 34
+        },
+        "gamepad": {
+          "connected": false,
+          "armed": false,
+          "menuOwner": false
+        },
+        "workshop": {
+          "open": false,
+          "canOpen": true,
+          "displayOrigin": [
+            -19,
+            -196,
+            -37
+          ],
+          "camera": {
+            "target": [
+              0,
+              0,
+              0
+            ],
+            "distance": 12.55,
+            "yaw": 0.6,
+            "elevation": 0.502843,
+            "framePending": false,
+            "rectangle": [
+              -0.92,
+              -0.74,
+              0.92,
+              0.92
+            ]
+          },
+          "canLoadBlueprint": false,
+          "storedParts": 0,
+          "savePending": false,
+          "canRebuild": false,
+          "recoveryDesigns": 0,
+          "recoverySelected": 0,
+          "canLoadRecovery": false,
+          "canRemoveRecovery": false,
+          "recoveryDigests": [],
+          "storedPartIds": [],
+          "materials": "48",
+          "machinery": "0",
+          "affordable": false,
+          "pending": false,
+          "canLaunch": false,
+          "canUndoLaunch": false,
+          "canRedoLaunch": false,
+          "launches": 0,
+          "lastLaunchTick": 0,
+          "launchMessage": ""
+        },
+        "boat": {
+          "prepared": true,
+          "active": true,
+          "observedTick": 1504,
+          "position": [
+            -0.500616,
+            0.244362,
+            -53.9989
+          ],
+          "speed": 0.0557193,
+          "orientation": [
+            -0.000560897,
+            4.88353e-05,
+            -0.000337621,
+            1
+          ],
+          "helmPosition": [
+            0.500228,
+            1.3647,
+            -53.1002
+          ],
+          "buildId": "6",
+          "topologyRevision": "0",
+          "parts": 11,
+          "eventsThrough": "1504",
+          "attachmentBreaks": "0",
+          "physicsTicks": {
+            "supported": true,
+            "failed": false,
+            "incarnation": "1",
+            "base": "1503",
+            "scheduled": "1504",
+            "encoded": "1504",
+            "submitted": "1504",
+            "completed": "1504",
+            "maximumInFlight": 2
+          },
+          "sceneryCollision": true,
+          "sceneryProxies": 13,
+          "thrustLimitNewtons": 2500,
+          "steeringLimitRadians": 0.6,
+          "thrustDirection": [
+            0,
+            0,
+            -1
+          ],
+          "mechanisms": {
+            "tick": "1504",
+            "incarnation": "1",
+            "rotorRadians": 0,
+            "drumRadians": 0,
+            "effectiveDrive": 0,
+            "animatedParts": 2,
+            "bodyIndex": 2,
+            "bodyGeneration": 1,
+            "ropeTick": "0",
+            "ropeIndex": 0,
+            "ropeGeneration": 0,
+            "ropeLength": 0
+          },
+          "massKg": 1035,
+          "displacementM3": 9.88403,
+          "paidPartIds": [],
+          "rootCount": 1,
+          "controlPart": "15",
+          "joinedTick": "1504",
+          "roots": [
+            {
+              "key": "7",
+              "active": true,
+              "observedTick": "1504",
+              "position": [
+                -0.500616,
+                0.244362,
+                -53.9989
+              ],
+              "orientation": [
+                -0.000560897,
+                4.88353e-05,
+                -0.000337621,
+                1
+              ],
+              "velocity": [
+                -0.0243907,
+                -0.0223801,
+                0.0448204
+              ],
+              "angularVelocity": [
+                -0.0445798,
+                0.00387597,
+                -0.0267742
+              ]
+            }
+          ]
+        },
+        "tow": {
+          "name": "Salvage generator",
+          "active": true,
+          "attached": false,
+          "broken": false,
+          "hasWinch": true,
+          "rootKey": "7",
+          "operable": false,
+          "inRange": true,
+          "confirmed": true,
+          "motor": 0,
+          "distance": 7.32574,
+          "ropeObservedTick": "0",
+          "ropeLength": null,
+          "observedTick": 1504,
+          "position": [
+            -4.4999,
+            -3.00259,
+            -58
+          ],
+          "speed": 0.00686017,
+          "massKg": 420
+        },
+        "job": {
+          "phase": "available",
+          "pending": false,
+          "canDeliver": false,
+          "harborDistance": 6.40303,
+          "secured": false,
+          "savePending": false,
+          "durable": false,
+          "message": ""
+        },
+        "harbor": {
+          "installed": false,
+          "durable": false,
+          "pending": false,
+          "atDock": false,
+          "compatible": true,
+          "attached": false,
+          "brokenMask": 0,
+          "canInstall": false,
+          "canAttach": false,
+          "attachmentPending": false,
+          "canOperate": false,
+          "canRelease": false,
+          "motor": 0,
+          "bodyObservedTick": "0",
+          "stage": 0,
+          "message": "",
+          "attachmentIssue": "",
+          "rigIssue": "",
+          "lengths": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "lineLoads": [
+            null,
+            null,
+            null,
+            null
+          ]
+        },
+        "session": {
+          "revision": "0",
+          "tick": "1504",
+          "admissionOpen": true,
+          "builds": 1,
+          "buildParts": 11,
+          "buildConnections": 17,
+          "cargo": 1,
+          "jobs": 1,
+          "inventory": {
+            "salvageMaterial": "48",
+            "specialMachinery": "0"
+          }
+        },
+        "observation": {
+          "world": "1051101acc7d4a8d66050a21d4e0f783",
+          "incarnation": "4ed3e134c42835ef117a8b199d167175",
+          "epoch": "3",
+          "publicationLost": false,
+          "lanes": [
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            },
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            },
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            }
+          ]
+        },
+        "assetFixture": {
+          "status": 2,
+          "presentationParts": 9,
+          "sceneSunShadows": true,
+          "generation": "1",
+          "uploads": 36,
+          "prototypeUploads": 0,
+          "dockMarkingGpuBytes": "7760",
+          "dockMarkingDraws": 2,
+          "environmentGpuBytes": "1228944",
+          "environmentBakeCount": 1,
+          "environmentReady": true,
+          "gpuReservationBytes": "10119560",
+          "submittedSerial": "115",
+          "completedSerial": "111",
+          "draws": 129,
+          "guides": 0,
+          "opaqueSceneGpuBytes": "9216000",
+          "guideBoxes": 0,
+          "guideMeshGpuBytes": 1936,
+          "forcedLod": "0",
+          "lods": [
+            "2",
+            "2",
+            "2",
+            "2",
+            "2",
+            "2",
+            "1",
+            "2",
+            "2",
+            "2",
+            "2",
+            "2",
+            "2",
+            "2",
+            "2",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "2",
+            "2"
+          ],
+          "availableLods": [
+            "0",
+            "1",
+            "2",
+            "3"
+          ]
+        }
+      },
+      "completion": {
+        "frame": 115,
+        "tick": 1504,
+        "completedFrame": 195,
+        "completedTick": 1504,
+        "owner": [
+          "1",
+          "6",
+          "0",
+          [
+            "7"
+          ],
+          2,
+          1
+        ]
+      }
+    },
+    {
+      "name": "robot-camera-world-restored-paused",
+      "process": 1,
+      "state": {
+        "active": true,
+        "ready": true,
+        "busy": false,
+        "failed": false,
+        "bodies": 0,
+        "resets": 0,
+        "controller": "cove-player",
+        "terrainSurface": "lego",
+        "mouseCaptured": false,
+        "origin": [
+          -12,
+          -187.68,
+          -32
+        ],
+        "nativeHud": {
+          "enabled": true,
+          "lastEncodedQuads": 98,
+          "uploads": 2,
+          "bodyPixels": 20,
+          "truncated": false,
+          "panel": [
+            14,
+            14,
+            400,
+            245
+          ],
+          "objective": "paused",
+          "title": "Cove paused",
+          "selected": "Expedition on hold",
+          "status": "Expedition loaded. P: Resume | F10: Save",
+          "hints": [
+            "F10: Save expedition",
+            "P: Resume",
+            ""
+          ]
+        },
+        "world": "1051101acc7d4a8d66050a21d4e0f783",
+        "restore": {
+          "phase": "ready",
+          "baseTick": "1503"
+        },
+        "camera": {
+          "local": [
+            -11.1669,
+            60.2151,
+            -81.1116
+          ],
+          "sector": [
+            0,
+            -1,
+            0
+          ],
+          "yaw": -2.78282,
+          "pitch": -0.32,
+          "viewProjection": [
+            -1.35147,
+            -0.191309,
+            -0.333322,
+            -0.333299,
+            3.79879e-07,
+            1.64412,
+            -0.314589,
+            -0.314568,
+            0.506804,
+            -0.510157,
+            -0.888855,
+            -0.888796,
+            26.016,
+            -142.517,
+            -56.9756,
+            -56.8718
+          ]
+        },
+        "player": {
+          "mode": "walking",
+          "interaction": "none",
+          "feet": [
+            6,
+            1.285,
+            -49
+          ],
+          "tick": "0",
+          "interactions": "0",
+          "collisionBoxes": 55,
+          "rootKey": "0",
+          "onBoat": false
+        },
+        "cutter": {
+          "canCut": false,
+          "pending": false,
+          "weld": "0",
+          "label": "",
+          "sections": 1,
+          "cutWelds": 0
+        },
+        "rescue": {
+          "phase": "idle",
+          "pending": false,
+          "completed": "0",
+          "savePending": false
+        },
+        "pause": {
+          "phase": "paused",
+          "canPause": false,
+          "tick": "1504",
+          "waterTick": "1504",
+          "waterTime": 24.9667
+        },
+        "nativeMenu": {
+          "open": false,
+          "page": "closed",
+          "title": "",
+          "selected": 0,
+          "rows": [],
+          "naming": false,
+          "name": "",
+          "key": 0,
+          "keyboardFocus": true,
+          "library": {
+            "ready": false,
+            "busy": false,
+            "generation": "0",
+            "root": "/home/modkin/workspace/schneiderlo/voxys/build-cove-actor-r01/native-storage-r01/Designs",
+            "selectedId": "0",
+            "rows": [],
+            "imports": [],
+            "lastPath": "",
+            "message": "Open Saved designs."
+          }
+        },
+        "characterCamera": {
+          "available": true,
+          "mode": "orbit",
+          "distance": 5.5,
+          "actualDistance": 5.5,
+          "reducedMotion": true,
+          "frameLoad": true,
+          "valid": true,
+          "held": false,
+          "geometryTick": "1504",
+          "presentedTick": "1504",
+          "yaw": 0.358771,
+          "elevation": 0.32,
+          "eye": [
+            7.83314,
+            4.21512,
+            -44.1116
+          ]
+        },
+        "character": {
+          "clip": "idle",
+          "time": 0,
+          "blend": 1,
+          "facingYaw": 0.358771,
+          "worldVelocity": [
+            0,
+            0,
+            0
+          ],
+          "draws": 34
+        },
+        "gamepad": {
+          "connected": false,
+          "armed": false,
+          "menuOwner": false
+        },
+        "workshop": {
+          "open": false,
+          "canOpen": true,
+          "displayOrigin": [
+            -19,
+            -196,
+            -37
+          ],
+          "camera": {
+            "target": [
+              0,
+              0,
+              0
+            ],
+            "distance": 12.55,
+            "yaw": 0.6,
+            "elevation": 0.502843,
+            "framePending": false,
+            "rectangle": [
+              -0.92,
+              -0.74,
+              0.92,
+              0.92
+            ]
+          },
+          "canLoadBlueprint": false,
+          "storedParts": 0,
+          "savePending": false,
+          "canRebuild": false,
+          "recoveryDesigns": 0,
+          "recoverySelected": 0,
+          "canLoadRecovery": false,
+          "canRemoveRecovery": false,
+          "recoveryDigests": [],
+          "storedPartIds": [],
+          "materials": "48",
+          "machinery": "0",
+          "affordable": false,
+          "pending": false,
+          "canLaunch": false,
+          "canUndoLaunch": false,
+          "canRedoLaunch": false,
+          "launches": 0,
+          "lastLaunchTick": 0,
+          "launchMessage": ""
+        },
+        "boat": {
+          "prepared": true,
+          "active": true,
+          "observedTick": 1504,
+          "position": [
+            -0.500616,
+            0.244362,
+            -53.9989
+          ],
+          "speed": 0.0557193,
+          "orientation": [
+            -0.000560897,
+            4.88353e-05,
+            -0.000337621,
+            1
+          ],
+          "helmPosition": [
+            0.500228,
+            1.3647,
+            -53.1002
+          ],
+          "buildId": "6",
+          "topologyRevision": "0",
+          "parts": 11,
+          "eventsThrough": "1504",
+          "attachmentBreaks": "0",
+          "physicsTicks": {
+            "supported": true,
+            "failed": false,
+            "incarnation": "1",
+            "base": "1503",
+            "scheduled": "1504",
+            "encoded": "1504",
+            "submitted": "1504",
+            "completed": "1504",
+            "maximumInFlight": 2
+          },
+          "sceneryCollision": true,
+          "sceneryProxies": 13,
+          "thrustLimitNewtons": 2500,
+          "steeringLimitRadians": 0.6,
+          "thrustDirection": [
+            0,
+            0,
+            -1
+          ],
+          "mechanisms": {
+            "tick": "1504",
+            "incarnation": "1",
+            "rotorRadians": 0,
+            "drumRadians": 0,
+            "effectiveDrive": 0,
+            "animatedParts": 2,
+            "bodyIndex": 2,
+            "bodyGeneration": 1,
+            "ropeTick": "0",
+            "ropeIndex": 0,
+            "ropeGeneration": 0,
+            "ropeLength": 0
+          },
+          "massKg": 1035,
+          "displacementM3": 9.88403,
+          "paidPartIds": [],
+          "rootCount": 1,
+          "controlPart": "15",
+          "joinedTick": "1504",
+          "roots": [
+            {
+              "key": "7",
+              "active": true,
+              "observedTick": "1504",
+              "position": [
+                -0.500616,
+                0.244362,
+                -53.9989
+              ],
+              "orientation": [
+                -0.000560897,
+                4.88353e-05,
+                -0.000337621,
+                1
+              ],
+              "velocity": [
+                -0.0243907,
+                -0.0223801,
+                0.0448204
+              ],
+              "angularVelocity": [
+                -0.0445798,
+                0.00387597,
+                -0.0267742
+              ]
+            }
+          ]
+        },
+        "tow": {
+          "name": "Salvage generator",
+          "active": true,
+          "attached": false,
+          "broken": false,
+          "hasWinch": true,
+          "rootKey": "7",
+          "operable": false,
+          "inRange": true,
+          "confirmed": true,
+          "motor": 0,
+          "distance": 7.32574,
+          "ropeObservedTick": "0",
+          "ropeLength": null,
+          "observedTick": 1504,
+          "position": [
+            -4.4999,
+            -3.00259,
+            -58
+          ],
+          "speed": 0.00686017,
+          "massKg": 420
+        },
+        "job": {
+          "phase": "available",
+          "pending": false,
+          "canDeliver": false,
+          "harborDistance": 6.40303,
+          "secured": false,
+          "savePending": false,
+          "durable": false,
+          "message": ""
+        },
+        "harbor": {
+          "installed": false,
+          "durable": false,
+          "pending": false,
+          "atDock": false,
+          "compatible": true,
+          "attached": false,
+          "brokenMask": 0,
+          "canInstall": false,
+          "canAttach": false,
+          "attachmentPending": false,
+          "canOperate": false,
+          "canRelease": false,
+          "motor": 0,
+          "bodyObservedTick": "0",
+          "stage": 0,
+          "message": "",
+          "attachmentIssue": "",
+          "rigIssue": "",
+          "lengths": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "lineLoads": [
+            null,
+            null,
+            null,
+            null
+          ]
+        },
+        "session": {
+          "revision": "0",
+          "tick": "1504",
+          "admissionOpen": true,
+          "builds": 1,
+          "buildParts": 11,
+          "buildConnections": 17,
+          "cargo": 1,
+          "jobs": 1,
+          "inventory": {
+            "salvageMaterial": "48",
+            "specialMachinery": "0"
+          }
+        },
+        "observation": {
+          "world": "1051101acc7d4a8d66050a21d4e0f783",
+          "incarnation": "4ed3e134c42835ef117a8b199d167175",
+          "epoch": "3",
+          "publicationLost": false,
+          "lanes": [
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            },
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            },
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            }
+          ]
+        },
+        "assetFixture": {
+          "status": 2,
+          "presentationParts": 9,
+          "sceneSunShadows": true,
+          "generation": "1",
+          "uploads": 36,
+          "prototypeUploads": 0,
+          "dockMarkingGpuBytes": "7760",
+          "dockMarkingDraws": 2,
+          "environmentGpuBytes": "1228944",
+          "environmentBakeCount": 1,
+          "environmentReady": true,
+          "gpuReservationBytes": "10119560",
+          "submittedSerial": "199",
+          "completedSerial": "195",
+          "draws": 129,
+          "guides": 0,
+          "opaqueSceneGpuBytes": "9216000",
+          "guideBoxes": 0,
+          "guideMeshGpuBytes": 1936,
+          "forcedLod": "0",
+          "lods": [
+            "2",
+            "2",
+            "2",
+            "2",
+            "2",
+            "2",
+            "1",
+            "2",
+            "2",
+            "2",
+            "2",
+            "2",
+            "2",
+            "2",
+            "2",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "2",
+            "2"
+          ],
+          "availableLods": [
+            "0",
+            "1",
+            "2",
+            "3"
+          ]
+        }
+      },
+      "completion": {
+        "frame": 199,
+        "tick": 1504,
+        "completedFrame": 276,
+        "completedTick": 1504,
+        "owner": [
+          "1",
+          "6",
+          "0",
+          [
+            "7"
+          ],
+          2,
+          1
+        ]
+      }
+    },
+    {
+      "name": "paused-character-and-camera-frozen",
+      "process": 1,
+      "state": {
+        "active": true,
+        "ready": true,
+        "busy": false,
+        "failed": false,
+        "bodies": 0,
+        "resets": 0,
+        "controller": "cove-player",
+        "terrainSurface": "lego",
+        "mouseCaptured": false,
+        "origin": [
+          -12,
+          -187.68,
+          -32
+        ],
+        "nativeHud": {
+          "enabled": true,
+          "lastEncodedQuads": 98,
+          "uploads": 2,
+          "bodyPixels": 20,
+          "truncated": false,
+          "panel": [
+            14,
+            14,
+            400,
+            245
+          ],
+          "objective": "paused",
+          "title": "Cove paused",
+          "selected": "Expedition on hold",
+          "status": "Expedition loaded. P: Resume | F10: Save",
+          "hints": [
+            "F10: Save expedition",
+            "P: Resume",
+            ""
+          ]
+        },
+        "world": "1051101acc7d4a8d66050a21d4e0f783",
+        "restore": {
+          "phase": "ready",
+          "baseTick": "1503"
+        },
+        "camera": {
+          "local": [
+            -11.1669,
+            60.2151,
+            -81.1116
+          ],
+          "sector": [
+            0,
+            -1,
+            0
+          ],
+          "yaw": -2.78282,
+          "pitch": -0.32,
+          "viewProjection": [
+            -1.35147,
+            -0.191309,
+            -0.333322,
+            -0.333299,
+            3.79879e-07,
+            1.64412,
+            -0.314589,
+            -0.314568,
+            0.506804,
+            -0.510157,
+            -0.888855,
+            -0.888796,
+            26.016,
+            -142.517,
+            -56.9756,
+            -56.8718
+          ]
+        },
+        "player": {
+          "mode": "walking",
+          "interaction": "none",
+          "feet": [
+            6,
+            1.285,
+            -49
+          ],
+          "tick": "0",
+          "interactions": "0",
+          "collisionBoxes": 55,
+          "rootKey": "0",
+          "onBoat": false
+        },
+        "cutter": {
+          "canCut": false,
+          "pending": false,
+          "weld": "0",
+          "label": "",
+          "sections": 1,
+          "cutWelds": 0
+        },
+        "rescue": {
+          "phase": "idle",
+          "pending": false,
+          "completed": "0",
+          "savePending": false
+        },
+        "pause": {
+          "phase": "paused",
+          "canPause": false,
+          "tick": "1504",
+          "waterTick": "1504",
+          "waterTime": 24.9667
+        },
+        "nativeMenu": {
+          "open": false,
+          "page": "closed",
+          "title": "",
+          "selected": 0,
+          "rows": [],
+          "naming": false,
+          "name": "",
+          "key": 0,
+          "keyboardFocus": true,
+          "library": {
+            "ready": false,
+            "busy": false,
+            "generation": "0",
+            "root": "/home/modkin/workspace/schneiderlo/voxys/build-cove-actor-r01/native-storage-r01/Designs",
+            "selectedId": "0",
+            "rows": [],
+            "imports": [],
+            "lastPath": "",
+            "message": "Open Saved designs."
+          }
+        },
+        "characterCamera": {
+          "available": true,
+          "mode": "orbit",
+          "distance": 5.5,
+          "actualDistance": 5.5,
+          "reducedMotion": true,
+          "frameLoad": true,
+          "valid": true,
+          "held": false,
+          "geometryTick": "1504",
+          "presentedTick": "1504",
+          "yaw": 0.358771,
+          "elevation": 0.32,
+          "eye": [
+            7.83314,
+            4.21512,
+            -44.1116
+          ]
+        },
+        "character": {
+          "clip": "idle",
+          "time": 0,
+          "blend": 1,
+          "facingYaw": 0.358771,
+          "worldVelocity": [
+            0,
+            0,
+            0
+          ],
+          "draws": 34
+        },
+        "gamepad": {
+          "connected": false,
+          "armed": false,
+          "menuOwner": false
+        },
+        "workshop": {
+          "open": false,
+          "canOpen": true,
+          "displayOrigin": [
+            -19,
+            -196,
+            -37
+          ],
+          "camera": {
+            "target": [
+              0,
+              0,
+              0
+            ],
+            "distance": 12.55,
+            "yaw": 0.6,
+            "elevation": 0.502843,
+            "framePending": false,
+            "rectangle": [
+              -0.92,
+              -0.74,
+              0.92,
+              0.92
+            ]
+          },
+          "canLoadBlueprint": false,
+          "storedParts": 0,
+          "savePending": false,
+          "canRebuild": false,
+          "recoveryDesigns": 0,
+          "recoverySelected": 0,
+          "canLoadRecovery": false,
+          "canRemoveRecovery": false,
+          "recoveryDigests": [],
+          "storedPartIds": [],
+          "materials": "48",
+          "machinery": "0",
+          "affordable": false,
+          "pending": false,
+          "canLaunch": false,
+          "canUndoLaunch": false,
+          "canRedoLaunch": false,
+          "launches": 0,
+          "lastLaunchTick": 0,
+          "launchMessage": ""
+        },
+        "boat": {
+          "prepared": true,
+          "active": true,
+          "observedTick": 1504,
+          "position": [
+            -0.500616,
+            0.244362,
+            -53.9989
+          ],
+          "speed": 0.0557193,
+          "orientation": [
+            -0.000560897,
+            4.88353e-05,
+            -0.000337621,
+            1
+          ],
+          "helmPosition": [
+            0.500228,
+            1.3647,
+            -53.1002
+          ],
+          "buildId": "6",
+          "topologyRevision": "0",
+          "parts": 11,
+          "eventsThrough": "1504",
+          "attachmentBreaks": "0",
+          "physicsTicks": {
+            "supported": true,
+            "failed": false,
+            "incarnation": "1",
+            "base": "1503",
+            "scheduled": "1504",
+            "encoded": "1504",
+            "submitted": "1504",
+            "completed": "1504",
+            "maximumInFlight": 2
+          },
+          "sceneryCollision": true,
+          "sceneryProxies": 13,
+          "thrustLimitNewtons": 2500,
+          "steeringLimitRadians": 0.6,
+          "thrustDirection": [
+            0,
+            0,
+            -1
+          ],
+          "mechanisms": {
+            "tick": "1504",
+            "incarnation": "1",
+            "rotorRadians": 0,
+            "drumRadians": 0,
+            "effectiveDrive": 0,
+            "animatedParts": 2,
+            "bodyIndex": 2,
+            "bodyGeneration": 1,
+            "ropeTick": "0",
+            "ropeIndex": 0,
+            "ropeGeneration": 0,
+            "ropeLength": 0
+          },
+          "massKg": 1035,
+          "displacementM3": 9.88403,
+          "paidPartIds": [],
+          "rootCount": 1,
+          "controlPart": "15",
+          "joinedTick": "1504",
+          "roots": [
+            {
+              "key": "7",
+              "active": true,
+              "observedTick": "1504",
+              "position": [
+                -0.500616,
+                0.244362,
+                -53.9989
+              ],
+              "orientation": [
+                -0.000560897,
+                4.88353e-05,
+                -0.000337621,
+                1
+              ],
+              "velocity": [
+                -0.0243907,
+                -0.0223801,
+                0.0448204
+              ],
+              "angularVelocity": [
+                -0.0445798,
+                0.00387597,
+                -0.0267742
+              ]
+            }
+          ]
+        },
+        "tow": {
+          "name": "Salvage generator",
+          "active": true,
+          "attached": false,
+          "broken": false,
+          "hasWinch": true,
+          "rootKey": "7",
+          "operable": false,
+          "inRange": true,
+          "confirmed": true,
+          "motor": 0,
+          "distance": 7.32574,
+          "ropeObservedTick": "0",
+          "ropeLength": null,
+          "observedTick": 1504,
+          "position": [
+            -4.4999,
+            -3.00259,
+            -58
+          ],
+          "speed": 0.00686017,
+          "massKg": 420
+        },
+        "job": {
+          "phase": "available",
+          "pending": false,
+          "canDeliver": false,
+          "harborDistance": 6.40303,
+          "secured": false,
+          "savePending": false,
+          "durable": false,
+          "message": ""
+        },
+        "harbor": {
+          "installed": false,
+          "durable": false,
+          "pending": false,
+          "atDock": false,
+          "compatible": true,
+          "attached": false,
+          "brokenMask": 0,
+          "canInstall": false,
+          "canAttach": false,
+          "attachmentPending": false,
+          "canOperate": false,
+          "canRelease": false,
+          "motor": 0,
+          "bodyObservedTick": "0",
+          "stage": 0,
+          "message": "",
+          "attachmentIssue": "",
+          "rigIssue": "",
+          "lengths": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "lineLoads": [
+            null,
+            null,
+            null,
+            null
+          ]
+        },
+        "session": {
+          "revision": "0",
+          "tick": "1504",
+          "admissionOpen": true,
+          "builds": 1,
+          "buildParts": 11,
+          "buildConnections": 17,
+          "cargo": 1,
+          "jobs": 1,
+          "inventory": {
+            "salvageMaterial": "48",
+            "specialMachinery": "0"
+          }
+        },
+        "observation": {
+          "world": "1051101acc7d4a8d66050a21d4e0f783",
+          "incarnation": "4ed3e134c42835ef117a8b199d167175",
+          "epoch": "3",
+          "publicationLost": false,
+          "lanes": [
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            },
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            },
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            }
+          ]
+        },
+        "assetFixture": {
+          "status": 2,
+          "presentationParts": 9,
+          "sceneSunShadows": true,
+          "generation": "1",
+          "uploads": 36,
+          "prototypeUploads": 0,
+          "dockMarkingGpuBytes": "7760",
+          "dockMarkingDraws": 2,
+          "environmentGpuBytes": "1228944",
+          "environmentBakeCount": 1,
+          "environmentReady": true,
+          "gpuReservationBytes": "10119560",
+          "submittedSerial": "366",
+          "completedSerial": "360",
+          "draws": 129,
+          "guides": 0,
+          "opaqueSceneGpuBytes": "9216000",
+          "guideBoxes": 0,
+          "guideMeshGpuBytes": 1936,
+          "forcedLod": "0",
+          "lods": [
+            "2",
+            "2",
+            "2",
+            "2",
+            "2",
+            "2",
+            "1",
+            "2",
+            "2",
+            "2",
+            "2",
+            "2",
+            "2",
+            "2",
+            "2",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "2",
+            "2"
+          ],
+          "availableLods": [
+            "0",
+            "1",
+            "2",
+            "3"
+          ]
+        }
+      },
+      "completion": {
+        "frame": 366,
+        "tick": 1504,
+        "completedFrame": 447,
+        "completedTick": 1504,
+        "owner": [
+          "1",
+          "6",
+          "0",
+          [
+            "7"
+          ],
+          2,
+          1
+        ]
+      }
+    }
+  ],
+  "completedPhases": [
+    "ground",
+    "motion",
+    "restore"
+  ],
+  "continues": "/home/modkin/workspace/schneiderlo/voxys/build-cove-actor-r01/native-motion-r01/summary.json",
+  "lastCheckpoint": {
+    "phase": "motion",
+    "archive": {
+      "world": "1051101acc7d4a8d66050a21d4e0f783",
+      "generation": 3,
+      "tick": 1503,
+      "schema": 6,
+      "payloadSha256": "b9787f7565f4706720fe1af9100681ab302f411b1254068f597705b63665d7ca",
+      "envelopeSha256": "995ccbbb74e007f03be9b615ad26c81a66a8cf2162613a22f0e97d8f979622f1",
+      "character": {
+        "worldVelocity": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "facingYaw": 0.35877067027057225,
+        "distance": 5.5,
+        "mode": "orbit",
+        "reducedMotion": true,
+        "frameLoad": true
+      },
+      "characterBytesSha256": "84dbb6af33e4c186997995651c1a672b54c6abe7729b264ed7bbae6d9e07f7a3",
+      "owned": {
+        "world": "1051101acc7d4a8d66050a21d4e0f783",
+        "inventory": [
+          48,
+          0
+        ],
+        "builds": [
+          {
+            "id": "1051101acc7d4a8d66050a21d4e0f7830600000000000000",
+            "revision": "0000000000000000",
+            "owner": "1051101acc7d4a8d66050a21d4e0f7830100000000000000",
+            "partIds": [
+              "1051101acc7d4a8d66050a21d4e0f7830700000000000000",
+              "1051101acc7d4a8d66050a21d4e0f7830800000000000000",
+              "1051101acc7d4a8d66050a21d4e0f7830900000000000000",
+              "1051101acc7d4a8d66050a21d4e0f7830a00000000000000",
+              "1051101acc7d4a8d66050a21d4e0f7830b00000000000000",
+              "1051101acc7d4a8d66050a21d4e0f7830c00000000000000",
+              "1051101acc7d4a8d66050a21d4e0f7830d00000000000000",
+              "1051101acc7d4a8d66050a21d4e0f7830e00000000000000",
+              "1051101acc7d4a8d66050a21d4e0f7830f00000000000000",
+              "1051101acc7d4a8d66050a21d4e0f7831000000000000000",
+              "1051101acc7d4a8d66050a21d4e0f7831100000000000000"
+            ],
+            "parts": 11,
+            "connections": 17,
+            "partsSha256": "1dd3f518e61b68798c0508ee1958d841b7d32c45efb64467c7546bd89ca885c0",
+            "connectionsSha256": "9c39e24d3e3c9c7a6e4f58f2c09b98d8010c74b55f30c98d7cc82ee7fe4021a3"
+          }
+        ],
+        "recoveryDesignDigests": []
+      }
+    },
+    "state": {
+      "active": true,
+      "ready": true,
+      "busy": false,
+      "failed": false,
+      "bodies": 0,
+      "resets": 0,
+      "controller": "cove-player",
+      "terrainSurface": "lego",
+      "mouseCaptured": false,
+      "origin": [
+        -12,
+        -187.68,
+        -32
+      ],
+      "nativeHud": {
+        "enabled": true,
+        "lastEncodedQuads": 94,
+        "uploads": 13,
+        "bodyPixels": 20,
+        "truncated": false,
+        "panel": [
+          14,
+          14,
+          400,
+          245
+        ],
+        "objective": "paused",
+        "title": "Cove paused",
+        "selected": "Expedition on hold",
+        "status": "Boat recovered and saved | P: Resume",
+        "hints": [
+          "F10: Save expedition",
+          "P: Resume",
+          ""
+        ]
+      },
+      "world": "1051101acc7d4a8d66050a21d4e0f783",
+      "restore": {
+        "phase": "ready",
+        "baseTick": "490"
+      },
+      "camera": {
+        "local": [
+          -11.1669,
+          60.2151,
+          -81.1116
+        ],
+        "sector": [
+          0,
+          -1,
+          0
+        ],
+        "yaw": -2.78282,
+        "pitch": -0.32,
+        "viewProjection": [
+          -1.35147,
+          -0.191309,
+          -0.333322,
+          -0.333299,
+          3.79879e-07,
+          1.64412,
+          -0.314589,
+          -0.314568,
+          0.506804,
+          -0.510157,
+          -0.888855,
+          -0.888796,
+          26.016,
+          -142.517,
+          -56.9756,
+          -56.8718
+        ]
+      },
+      "player": {
+        "mode": "walking",
+        "interaction": "none",
+        "feet": [
+          6,
+          1.285,
+          -49
+        ],
+        "tick": "0",
+        "interactions": "0",
+        "collisionBoxes": 55,
+        "rootKey": "0",
+        "onBoat": false
+      },
+      "cutter": {
+        "canCut": false,
+        "pending": false,
+        "weld": "0",
+        "label": "",
+        "sections": 1,
+        "cutWelds": 0
+      },
+      "rescue": {
+        "phase": "idle",
+        "pending": false,
+        "completed": "1",
+        "savePending": false
+      },
+      "pause": {
+        "phase": "paused",
+        "canPause": false,
+        "tick": "1503",
+        "waterTick": "1503",
+        "waterTime": 24.9667
+      },
+      "nativeMenu": {
+        "open": false,
+        "page": "closed",
+        "title": "",
+        "selected": 0,
+        "rows": [],
+        "naming": false,
+        "name": "",
+        "key": 0,
+        "keyboardFocus": true,
+        "library": {
+          "ready": false,
+          "busy": false,
+          "generation": "0",
+          "root": "/home/modkin/workspace/schneiderlo/voxys/build-cove-actor-r01/native-storage-r01/Designs",
+          "selectedId": "0",
+          "rows": [],
+          "imports": [],
+          "lastPath": "",
+          "message": "Open Saved designs."
+        }
+      },
+      "characterCamera": {
+        "available": true,
+        "mode": "orbit",
+        "distance": 5.5,
+        "actualDistance": 5.5,
+        "reducedMotion": true,
+        "frameLoad": true,
+        "valid": true,
+        "held": false,
+        "geometryTick": "1503",
+        "presentedTick": "1503",
+        "yaw": 0.358771,
+        "elevation": 0.32,
+        "eye": [
+          7.83314,
+          4.21512,
+          -44.1116
+        ]
+      },
+      "character": {
+        "clip": "idle",
+        "time": 0,
+        "blend": 1,
+        "facingYaw": 0.358771,
+        "worldVelocity": [
+          0,
+          0,
+          0
+        ],
+        "draws": 34
+      },
+      "gamepad": {
+        "connected": false,
+        "armed": false,
+        "menuOwner": false
+      },
+      "workshop": {
+        "open": false,
+        "canOpen": true,
+        "displayOrigin": [
+          -19,
+          -196,
+          -37
+        ],
+        "camera": {
+          "target": [
+            0,
+            0,
+            0
+          ],
+          "distance": 12.55,
+          "yaw": 0.6,
+          "elevation": 0.502843,
+          "framePending": false,
+          "rectangle": [
+            -0.92,
+            -0.74,
+            0.92,
+            0.92
+          ]
+        },
+        "canLoadBlueprint": false,
+        "storedParts": 0,
+        "savePending": false,
+        "canRebuild": false,
+        "recoveryDesigns": 0,
+        "recoverySelected": 0,
+        "canLoadRecovery": false,
+        "canRemoveRecovery": false,
+        "recoveryDigests": [],
+        "storedPartIds": [],
+        "materials": "48",
+        "machinery": "0",
+        "affordable": false,
+        "pending": false,
+        "canLaunch": false,
+        "canUndoLaunch": false,
+        "canRedoLaunch": false,
+        "launches": 0,
+        "lastLaunchTick": 0,
+        "launchMessage": ""
+      },
+      "boat": {
+        "prepared": true,
+        "active": true,
+        "observedTick": 1503,
+        "position": [
+          -0.50021,
+          0.244732,
+          -53.9996
+        ],
+        "speed": 0.0283593,
+        "orientation": [
+          -0.000189419,
+          1.65113e-05,
+          -0.000114511,
+          1
+        ],
+        "helmPosition": [
+          0.500076,
+          1.36484,
+          -53.1001
+        ],
+        "buildId": "6",
+        "topologyRevision": "0",
+        "parts": 11,
+        "eventsThrough": "1503",
+        "attachmentBreaks": "0",
+        "physicsTicks": {
+          "supported": true,
+          "failed": false,
+          "incarnation": "1",
+          "base": "490",
+          "scheduled": "1503",
+          "encoded": "1503",
+          "submitted": "1503",
+          "completed": "1503",
+          "maximumInFlight": 2
+        },
+        "sceneryCollision": true,
+        "sceneryProxies": 13,
+        "thrustLimitNewtons": 2500,
+        "steeringLimitRadians": 0.6,
+        "thrustDirection": [
+          0,
+          0,
+          -1
+        ],
+        "mechanisms": {
+          "tick": "1503",
+          "incarnation": "1",
+          "rotorRadians": 5.329070518200751e-15,
+          "drumRadians": 0,
+          "effectiveDrive": 0,
+          "animatedParts": 2,
+          "bodyIndex": 2,
+          "bodyGeneration": 1,
+          "ropeTick": "0",
+          "ropeIndex": 0,
+          "ropeGeneration": 0,
+          "ropeLength": 0
+        },
+        "massKg": 1035,
+        "displacementM3": 9.88403,
+        "paidPartIds": [],
+        "rootCount": 1,
+        "controlPart": "15",
+        "joinedTick": "1503",
+        "roots": [
+          {
+            "key": "7",
+            "active": true,
+            "observedTick": "1503",
+            "position": [
+              -0.50021,
+              0.244732,
+              -53.9996
+            ],
+            "orientation": [
+              -0.000189419,
+              1.65113e-05,
+              -0.000114511,
+              1
+            ],
+            "velocity": [
+              -0.0125191,
+              -0.0111631,
+              0.0228672
+            ],
+            "angularVelocity": [
+              -0.0227265,
+              0.0019816,
+              -0.0137349
+            ]
+          }
+        ]
+      },
+      "tow": {
+        "name": "Salvage generator",
+        "active": true,
+        "attached": false,
+        "broken": false,
+        "hasWinch": true,
+        "rootKey": "7",
+        "operable": false,
+        "inRange": true,
+        "confirmed": true,
+        "motor": 0,
+        "distance": 7.32599,
+        "ropeObservedTick": "0",
+        "ropeLength": null,
+        "observedTick": 1503,
+        "position": [
+          -4.5,
+          -3.00124,
+          -58
+        ],
+        "speed": 0.00952542,
+        "massKg": 420
+      },
+      "job": {
+        "phase": "available",
+        "pending": false,
+        "canDeliver": false,
+        "harborDistance": 6.40312,
+        "secured": false,
+        "savePending": false,
+        "durable": false,
+        "message": "Boat recovered and saved. All fitted parts kept. Resume when ready."
+      },
+      "harbor": {
+        "installed": false,
+        "durable": false,
+        "pending": false,
+        "atDock": false,
+        "compatible": true,
+        "attached": false,
+        "brokenMask": 0,
+        "canInstall": false,
+        "canAttach": false,
+        "attachmentPending": false,
+        "canOperate": false,
+        "canRelease": false,
+        "motor": 0,
+        "bodyObservedTick": "0",
+        "stage": 0,
+        "message": "Lift released.",
+        "attachmentIssue": "",
+        "rigIssue": "",
+        "lengths": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "lineLoads": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "session": {
+        "revision": "0",
+        "tick": "1503",
+        "admissionOpen": true,
+        "builds": 1,
+        "buildParts": 11,
+        "buildConnections": 17,
+        "cargo": 1,
+        "jobs": 1,
+        "inventory": {
+          "salvageMaterial": "48",
+          "specialMachinery": "0"
+        }
+      },
+      "observation": {
+        "world": "1051101acc7d4a8d66050a21d4e0f783",
+        "incarnation": "067436bdd6cd8bff70dcc09fc6ae704c",
+        "epoch": "2",
+        "publicationLost": false,
+        "lanes": [
+          {
+            "through": "0",
+            "retained": 0,
+            "overwritten": "0",
+            "invalid": "0",
+            "exhausted": false
+          },
+          {
+            "through": "0",
+            "retained": 0,
+            "overwritten": "0",
+            "invalid": "0",
+            "exhausted": false
+          },
+          {
+            "through": "0",
+            "retained": 0,
+            "overwritten": "0",
+            "invalid": "0",
+            "exhausted": false
+          }
+        ]
+      },
+      "assetFixture": {
+        "status": 2,
+        "presentationParts": 9,
+        "sceneSunShadows": true,
+        "generation": "1",
+        "uploads": 36,
+        "prototypeUploads": 0,
+        "dockMarkingGpuBytes": "7760",
+        "dockMarkingDraws": 2,
+        "environmentGpuBytes": "1228944",
+        "environmentBakeCount": 1,
+        "environmentReady": true,
+        "gpuReservationBytes": "10119560",
+        "submittedSerial": "12129",
+        "completedSerial": "12125",
+        "draws": 129,
+        "guides": 0,
+        "opaqueSceneGpuBytes": "9216000",
+        "guideBoxes": 0,
+        "guideMeshGpuBytes": 1936,
+        "forcedLod": "0",
+        "lods": [
+          "2",
+          "2",
+          "2",
+          "2",
+          "2",
+          "2",
+          "1",
+          "2",
+          "2",
+          "2",
+          "2",
+          "2",
+          "2",
+          "2",
+          "2",
+          "1",
+          "1",
+          "1",
+          "1",
+          "1",
+          "1",
+          "1",
+          "1",
+          "2",
+          "2"
+        ],
+        "availableLods": [
+          "0",
+          "1",
+          "2",
+          "3"
+        ]
+      }
+    }
+  },
+  "commands": [
+    [
+      "/home/modkin/workspace/schneiderlo/voxys/build-native-save-host/bin/voxy_native",
+      "--config",
+      "salvage_cove.cfg",
+      "--uncapped",
+      "--width",
+      "960",
+      "--height",
+      "800",
+      "--expedition-root",
+      "/home/modkin/workspace/schneiderlo/voxys/build-cove-actor-r01/native-storage-r01",
+      "--expedition-observe",
+      "/home/modkin/workspace/schneiderlo/voxys/build-cove-actor-r01/native-restore-r01/observation-1",
+      "--expedition-world",
+      "1051101acc7d4a8d66050a21d4e0f783"
+    ]
+  ],
+  "elapsedSeconds": 2.201,
+  "observedClips": [
+    "idle"
+  ],
+  "processChecks": [
+    {
+      "process": 1,
+      "exitCode": -15,
+      "exitBeforeStop": null,
+      "requestedTermination": true,
+      "forceKilled": false,
+      "errorLines": []
+    }
+  ]
+}

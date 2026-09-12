@@ -525,6 +525,8 @@ if(VOXY_BUILD_WASM)
             salvage_metric_fixture.cfg
             salvage_cove.cfg
             data/salvage/fixture-cove-r01.json
+            data/salvage/robot-r01/manifest.json
+            data/salvage/robot-r01/robot.vmesh
             data/salvage/cove-bricks-r02.json
             data/salvage/cove-workshop-r03.json
             data/salvage/cove-workshop-r05.json

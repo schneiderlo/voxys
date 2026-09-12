@@ -13,6 +13,7 @@
 #include <stb_image_write.h>
 
 #include <cmath>
+#include <bit>
 #include <array>
 #include <cstdint>
 #include <cstring>
@@ -351,6 +352,60 @@ TEST(GltfVmeshTool, RigidProfileAcceptsGoldenAndPreservesSharedMeshHierarchy) {
     ASSERT_TRUE(roundTrip(mesh, &copy, &error)) << error;
     EXPECT_EQ(copy.vertices, mesh.vertices);
     EXPECT_EQ(copy.nodes[2].translation[2], 2.0f);
+}
+
+Json animatedDocument(float endTime=1.f,float quaternionW=1.f) {
+    Options options;options.withAnimation=true;options.withHierarchy=true;
+    auto document=Json::parse(buildGltf(options));auto source=buildBuffer(options);
+    const auto put=[&](size_t offset,float value){
+        const auto bits=std::bit_cast<uint32_t>(value);
+        for(size_t i=0;i<4;++i)source[offset+i]=uint8_t(bits>>(8*i));
+    };
+    put(306,endTime);put(362,quaternionW);
+    // Make every accessor's underlying view genuinely four-byte aligned.
+    std::vector<uint8_t> aligned;
+    for(auto& view:document["bufferViews"]) {
+        while(aligned.size()%4)aligned.push_back(0);
+        const auto start=view["byteOffset"].get<size_t>(),size=view["byteLength"].get<size_t>();
+        view["byteOffset"]=aligned.size();aligned.insert(aligned.end(),source.data()+start,source.data()+start+size);
+    }
+    document["buffers"][0]["byteLength"]=aligned.size();
+    document["buffers"][0]["uri"]="data:application/octet-stream;base64,"+base64Encode(aligned);
+    document["nodes"][0]["name"]="robot_root";
+    return document;
+}
+
+TEST(GltfVmeshTool, AnimatedRigidProfileExportsRealChannelsAndKeepsRigidProfileStrict) {
+    auto document=animatedDocument();voxy::moto::VmeshData mesh;std::string error;
+    ASSERT_TRUE(voxy::tools::convertGltfBytesToVmesh(jsonGlb(document),true,
+        voxy::tools::GltfImportProfile::SalvageAnimatedRigidV1,&mesh,&error))<<error;
+    ASSERT_EQ(mesh.anims.size(),1u);ASSERT_EQ(mesh.animChannels.size(),2u);
+    EXPECT_EQ(mesh.animChannels[0].interpolation,voxy::moto::VmeshAnimInterpolationLinear);
+    EXPECT_EQ(mesh.animChannels[1].interpolation,voxy::moto::VmeshAnimInterpolationStep);
+    EXPECT_EQ(mesh.anims[0].duration,1.f);
+    voxy::moto::VmeshData reloaded;ASSERT_TRUE(roundTrip(mesh,&reloaded,&error))<<error;
+    EXPECT_EQ(reloaded.channelData,mesh.channelData);
+    rejectsRigid(document);
+}
+
+TEST(GltfVmeshTool, AnimatedRigidProfileRejectsUnsafeOrUnsupportedAnimationTransactionally) {
+    for(int defect=0;defect<11;++defect) {
+        auto document=animatedDocument(defect==0?0.f:defect==1?11.f:1.f,defect==2?0.f:1.f);
+        switch(defect) {
+        case 3:document["animations"][0]["channels"][0]["target"]["node"]=0;break;
+        case 4:document["animations"][0]["channels"].push_back(document["animations"][0]["channels"][0]);break;
+        case 5:document["animations"][0]["channels"][0]["target"]["path"]="scale";break;
+        case 6:document["animations"][0]["samplers"][0]["interpolation"]="CUBICSPLINE";break;
+        case 7:document["buffers"][0]["uri"]="/tmp/private.bin";break;
+        case 8:document["skins"]=Json::array({Json::object()});break;
+        case 9:document["nodes"][0]["scale"]=Json::array({2,1,1});break;
+        case 10:document["nodes"][0]["name"]="unidentified_root";break;
+        }
+        voxy::moto::VmeshData output;output.stringBlob="unchanged";std::string error;
+        EXPECT_FALSE(voxy::tools::convertGltfBytesToVmesh(jsonGlb(document),true,
+            voxy::tools::GltfImportProfile::SalvageAnimatedRigidV1,&output,&error))<<defect;
+        EXPECT_EQ(output.stringBlob,"unchanged");EXPECT_FALSE(error.empty());
+    }
 }
 
 TEST(GltfVmeshTool, AllAttributeCountsAreValidatedBeforeReadsInLegacyAndRigidPaths) {

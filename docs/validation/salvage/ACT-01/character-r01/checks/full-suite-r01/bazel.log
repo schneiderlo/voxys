@@ -1,0 +1,70 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: 2 targets (0 packages loaded, 0 targets configured)
+Analyzing: 2 targets (0 packages loaded, 0 targets configured)
+
+Analyzing: 2 targets (0 packages loaded, 6 targets configured)
+[6 / 6] 1 / 1 tests; no actions running
+INFO: Analyzed 2 targets (2 packages loaded, 418 targets configured).
+[583 / 710] 1 / 2 tests; Compiling tests/test_lockstep.cpp; 1s linux-sandbox ... (24 actions running)
+[586 / 710] 1 / 2 tests; Compiling tests/test_gamepad.cpp; 2s linux-sandbox ... (24 actions running)
+[595 / 710] 1 / 2 tests; Compiling tests/test_compression.cpp; 3s linux-sandbox ... (24 actions, 23 running)
+[600 / 710] 1 / 2 tests; Compiling tests/test_compression.cpp; 4s linux-sandbox ... (24 actions, 23 running)
+[607 / 710] 1 / 2 tests; Compiling src/app/application.cpp; 5s linux-sandbox ... (24 actions, 23 running)
+[615 / 710] 1 / 2 tests; Compiling src/app/application.cpp; 6s linux-sandbox ... (24 actions, 23 running)
+[621 / 710] 1 / 2 tests; Compiling src/app/application.cpp; 8s linux-sandbox ... (24 actions, 23 running)
+[628 / 710] 1 / 2 tests; Compiling src/app/application.cpp; 9s linux-sandbox ... (24 actions, 23 running)
+[634 / 710] 1 / 2 tests; Compiling src/app/application.cpp; 10s linux-sandbox ... (24 actions, 23 running)
+[638 / 710] 1 / 2 tests; Compiling src/app/application.cpp; 11s linux-sandbox ... (24 actions running)
+[644 / 710] 1 / 2 tests; Compiling src/app/application.cpp; 12s linux-sandbox ... (24 actions running)
+[651 / 710] 1 / 2 tests; Compiling src/app/application.cpp; 13s linux-sandbox ... (24 actions running)
+[655 / 710] 1 / 2 tests; Compiling src/app/application.cpp; 14s linux-sandbox ... (24 actions running)
+[659 / 710] 1 / 2 tests; Compiling src/app/application.cpp; 15s linux-sandbox ... (24 actions running)
+[664 / 710] 1 / 2 tests; Compiling src/app/application.cpp; 16s linux-sandbox ... (24 actions running)
+[666 / 710] 1 / 2 tests; Compiling src/app/application.cpp; 17s linux-sandbox ... (24 actions, 23 running)
+[670 / 710] 1 / 2 tests; Compiling src/app/application.cpp; 19s linux-sandbox ... (24 actions, 23 running)
+[676 / 710] 1 / 2 tests; Compiling src/app/application.cpp; 20s linux-sandbox ... (24 actions, 23 running)
+[682 / 710] 1 / 2 tests; Compiling src/app/application.cpp; 21s linux-sandbox ... (24 actions, 23 running)
+[685 / 710] 1 / 2 tests; Compiling src/app/application.cpp; 22s linux-sandbox ... (22 actions running)
+[694 / 710] 1 / 2 tests; Compiling tests/test_cove_player.cpp; 11s linux-sandbox ... (14 actions, 13 running)
+[704 / 710] 1 / 2 tests; Compiling tests/test_cove_player.cpp; 13s linux-sandbox ... (5 actions running)
+[706 / 710] 1 / 2 tests; Compiling tests/test_cove_player.cpp; 14s linux-sandbox ... (3 actions running)
+[708 / 710] 1 / 2 tests; Compiling tests/test_cove_player.cpp; 16s linux-sandbox
+[709 / 710] 1 / 2 tests; [Prepa] Linking tests/voxy_tests
+[710 / 711] 1 / 2 tests; Testing //tests:voxy_tests; 1s linux-sandbox
+[710 / 711] 1 / 2 tests; Testing //tests:voxy_tests; 11s linux-sandbox
+[710 / 711] 1 / 2 tests; Testing //tests:voxy_tests; 41s linux-sandbox
+[710 / 711] 1 / 2 tests; Testing //tests:voxy_tests; 101s linux-sandbox
+[710 / 711] 1 / 2 tests; Testing //tests:voxy_tests; 161s linux-sandbox
+[710 / 711] 1 / 2 tests; Testing //tests:voxy_tests; 221s linux-sandbox
+[710 / 711] 1 / 2 tests; Testing //tests:voxy_tests; 281s linux-sandbox
+[710 / 711] 1 / 2 tests; Testing //tests:voxy_tests; 341s linux-sandbox
+[710 / 711] 1 / 2 tests; Testing //tests:voxy_tests; 401s linux-sandbox
+[710 / 711] 1 / 2 tests; Testing //tests:voxy_tests; 461s linux-sandbox
+[710 / 711] 1 / 2 tests; Testing //tests:voxy_tests; 521s linux-sandbox
+[710 / 711] 1 / 2 tests; Testing //tests:voxy_tests; 581s linux-sandbox
+[710 / 711] 1 / 2 tests; Testing //tests:voxy_tests; 641s linux-sandbox
+[710 / 711] 1 / 2 tests; Testing //tests:voxy_tests; 701s linux-sandbox
+[710 / 711] 1 / 2 tests; Testing //tests:voxy_tests; 761s linux-sandbox
+[710 / 711] 1 / 2 tests; Testing //tests:voxy_tests; 821s linux-sandbox
+[710 / 711] 1 / 2 tests; Testing //tests:voxy_tests; 881s linux-sandbox
+[710 / 711] 1 / 2 tests; Testing //tests:voxy_tests; 941s linux-sandbox
+[710 / 711] 1 / 2 tests; Testing //tests:voxy_tests; 1001s linux-sandbox
+[710 / 711] 1 / 2 tests; Testing //tests:voxy_tests; 1061s linux-sandbox
+[710 / 711] 1 / 2 tests; Testing //tests:voxy_tests; 1121s linux-sandbox
+[710 / 711] 2 / 2 tests; Testing //tests:voxy_tests; 1141s linux-sandbox
+INFO: Found 2 test targets...
+INFO: Elapsed time: 1173.781s, Critical Path: 1166.29s
+INFO: 132 processes: 580 action cache hit, 5 internal, 127 linux-sandbox.
+INFO: Build completed successfully, 132 total actions
+//tools:terrain_diffusion_import_test                           (cached) PASSED in 0.3s
+//tests:voxy_tests                                                       PASSED in 1142.0s
+
+Executed 1 out of 2 tests: 2 tests pass.
+There were tests whose specified size is too big. Use the --test_verbose_timeout_warnings command line option to see which ones these are.

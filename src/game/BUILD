@@ -121,6 +121,40 @@ cc_library(
 )
 
 cc_library(
+    name = "cove_camera",
+    srcs = ["expedition/cove_camera.cpp"],
+    hdrs = ["expedition/cove_camera.hpp"],
+    copts = PROJECT_DEFAULT_COPTS,
+    includes = [".."],
+    deps = ["//src/terrain:lego_surface", "//third_party:glm"],
+)
+
+cc_library(
+    name = "rigid_animation",
+    srcs = ["assets/rigid_animation.cpp"],
+    hdrs = ["assets/rigid_animation.hpp"],
+    copts = PROJECT_DEFAULT_COPTS,
+    includes = [".."],
+    deps = [":rigid_prefab"],
+)
+
+cc_library(
+    name = "robot_asset",
+    srcs = ["assets/robot_asset.cpp"],
+    hdrs = ["assets/robot_asset.hpp"],
+    copts = PROJECT_DEFAULT_COPTS,
+    includes = [".."],
+    deps = [":rigid_animation", ":cooked_part_directory", "//src/core:sha256", "//third_party:tinygltf"],
+)
+
+cc_library(
+    name = "cove_character",
+    hdrs = ["expedition/cove_character.hpp"],
+    includes = [".."],
+    deps = [":rigid_animation", ":cove_player"],
+)
+
+cc_library(
     name = "fixture_limits",
     hdrs = ["assets/fixture_limits.hpp"],
     includes = [".."],

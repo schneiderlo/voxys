@@ -393,6 +393,11 @@ try{
         const {validateSalvageAssetFixture}=await import('./validate_salvage_asset_fixture.mjs');
         report.asset_fixture_journey=await validateSalvageAssetFixture(call,process.env.VOXY_SMOKE_ASSET_FIXTURE);
     }
+    if(process.env.VOXY_SMOKE_COVE_CHARACTER){
+        assert.equal(selected,'salvage-cove');
+        const {validateCoveCharacter}=await import('./validate_cove_character.mjs');
+        report.cove_character=await validateCoveCharacter(call,process.env.VOXY_SMOKE_COVE_CHARACTER);
+    }
     if(process.env.VOXY_SMOKE_COVE_HARBOR){
         assert.equal(selected,'salvage-cove');
         const {validateCoveHarbor}=await import('./validate_cove_harbor.mjs');

@@ -1,0 +1,24 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: target //tests:rigid_animation (0 packages loaded, 0 targets configured)
+Analyzing: target //tests:rigid_animation (0 packages loaded, 0 targets configured)
+
+Analyzing: target //tests:rigid_animation (0 packages loaded, 0 targets configured)
+
+ERROR: Traceback (most recent call last):
+	File "/home/modkin/workspace/schneiderlo/voxys/data/BUILD", line 128, column 16, in <toplevel>
+		srcs = glob(["salvage/robot-r01/*.vmesh", "salvage/robot-r01/manifest.json"]),
+Error in glob: glob pattern 'salvage/robot-r01/*.vmesh' didn't match anything, but allow_empty is set to False (the default value of allow_empty can be set with --incompatible_disallow_empty_glob).
+ERROR: /home/modkin/workspace/schneiderlo/voxys/data/BUILD: no such target '//data:salvage_robot': target 'salvage_robot' not declared in package 'data' defined by /home/modkin/workspace/schneiderlo/voxys/data/BUILD
+ERROR: /home/modkin/workspace/schneiderlo/voxys/tests/BUILD:90:8: no such target '//data:salvage_robot': target 'salvage_robot' not declared in package 'data' defined by /home/modkin/workspace/schneiderlo/voxys/data/BUILD and referenced by '//tests:rigid_animation'
+ERROR: Analysis of target '//tests:rigid_animation' failed; build aborted: Analysis failed
+INFO: Elapsed time: 1.537s, Critical Path: 0.00s
+INFO: 1 process: 1 internal.
+ERROR: Build did NOT complete successfully
+ERROR: No test targets were found, yet testing was requested

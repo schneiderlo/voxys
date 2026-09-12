@@ -1,0 +1,25 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: target //tests:rigid_animation (0 packages loaded, 0 targets configured)
+Analyzing: target //tests:rigid_animation (0 packages loaded, 0 targets configured)
+
+Analyzing: target //tests:rigid_animation (0 packages loaded, 0 targets configured)
+
+INFO: Analyzed target //tests:rigid_animation (1 packages loaded, 38 targets configured).
+[41 / 42] 1 / 1 tests; Testing //tests:rigid_animation; 0s linux-sandbox
+INFO: Found 1 test target...
+Target //tests:rigid_animation up-to-date:
+  bazel-bin/tests/rigid_animation
+INFO: Elapsed time: 2.830s, Critical Path: 1.02s
+INFO: 6 processes: 36 action cache hit, 2 internal, 4 linux-sandbox.
+INFO: Build completed successfully, 6 total actions
+//tests:rigid_animation                                                  PASSED in 0.1s
+
+Executed 1 out of 1 test: 1 test passes.
+There were tests whose specified size is too big. Use the --test_verbose_timeout_warnings command line option to see which ones these are.

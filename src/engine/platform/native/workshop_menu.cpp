@@ -17,6 +17,7 @@ void NativeWorkshopMenu::page(Page value) {
     status_.clear();
 }
 void NativeWorkshopMenu::open() { page(Page::Main); }
+void NativeWorkshopMenu::openCamera() { page(Page::PlayerCamera); }
 void NativeWorkshopMenu::dismiss() { page(Page::Closed); }
 std::string_view NativeWorkshopMenu::pageName() const noexcept {
     switch (page_) {
@@ -28,6 +29,7 @@ std::string_view NativeWorkshopMenu::pageName() const noexcept {
     case Page::Paint: return "paint";
     case Page::Settings: return "settings";
     case Page::Camera: return "camera";
+    case Page::PlayerCamera: return "player-camera";
     case Page::Library: return "library";
     case Page::Design: return "design";
     case Page::Imports: return "imports";
@@ -112,6 +114,25 @@ void NativeWorkshopMenu::rebuild(const Facts& facts) {
         content_.title = "Camera";
         add("Focus selection", 97); add("Frame whole boat", 98); add("Orbit left", 75); add("Orbit right", 76);
         add("Zoom in", 77); add("Zoom out", 78); submenu("Back", Page::Main); break;
+    case Page::PlayerCamera: {
+        content_.title = "Camera options";
+        content_.subtitle = "Choose your view";
+        content_.status = status_;
+        const bool cameraEnabled = facts.cameraAvailable && !facts.workshopOpen;
+        const auto cameraAction = [&](std::string label,int action,bool available=true) {
+            choices_.push_back({{std::move(label),cameraEnabled&&available},action,Page::Closed,0,0});
+        };
+        cameraAction(facts.chaseCamera?"View: Chase":"View: Orbit",320);
+        cameraAction("Recenter behind robot",321);
+        cameraAction(facts.frameLoad?"Frame load: On":"Frame load: Off",322);
+        cameraAction(facts.reducedMotion?"Reduced motion: On":"Reduced motion: Off",323);
+        const bool validDistance=std::isfinite(facts.cameraDistance)
+            &&facts.cameraDistance>=1.5&&facts.cameraDistance<=12.;
+        cameraAction("Move camera closer",324,validDistance&&facts.cameraDistance>1.5);
+        cameraAction("Move camera farther",325,validDistance&&facts.cameraDistance<12.);
+        submenu("Back to game",Page::Closed);
+        break;
+    }
     case Page::Library:
         content_.title = "Saved designs"; content_.subtitle = library_.root().string();
         content_.status = status_.empty() ? library_.message() : status_;
@@ -192,7 +213,7 @@ void NativeWorkshopMenu::finishName() {
 void NativeWorkshopMenu::back() {
     switch (page_) {
     case Page::Closed: break;
-    case Page::Main: dismiss(); break;
+    case Page::Main: case Page::PlayerCamera: dismiss(); break;
     case Page::Naming: page(namingReturn_); break;
     case Page::Design: case Page::Imports: page(Page::Library); break;
     case Page::Remove: page(Page::Design); break;
@@ -263,11 +284,19 @@ bool NativeWorkshopMenu::tick(Input& input, const Facts& facts, uint32_t width, 
         }
     }
     const bool wasActive = active();
-    if (!facts.workshopOpen) { if (active()) dismiss(); return wasActive; }
+    const bool playerCamera=page_==Page::PlayerCamera;
+    // A mode/ownership handoff closes the old modal and consumes this entire
+    // frame. Its old selected action cannot execute in the new context.
+    if (active() && ((playerCamera&&(!facts.cameraAvailable||facts.workshopOpen))
+        ||(!playerCamera&&!facts.workshopOpen))) {
+        dismiss();rebuild(facts);return true;
+    }
+    if (!facts.workshopOpen&&!facts.cameraAvailable)return wasActive;
     if (!input.focused()) return active();
     const auto& pad = input.gamepad();
-    if (input.wasKeyPressed(Key::F2) || pad.pressed(PadButton::Menu)) {
-        if (active()) dismiss(); else open();
+    if (input.wasKeyPressed(Key::F2)
+        || (facts.workshopOpen?pad.pressed(PadButton::Menu):pad.pressed(PadButton::Alternate))) {
+        if (active()) dismiss(); else if(facts.workshopOpen)open();else openCamera();
         rebuild(facts); return true;
     }
     if (!active()) return false;
@@ -311,7 +340,7 @@ bool NativeWorkshopMenu::tick(Input& input, const Facts& facts, uint32_t width, 
             break;
         }
     }
-    if (activateChoice && !facts.pending) {
+    if (activateChoice && (page_==Page::PlayerCamera?facts.cameraAvailable:!facts.pending)) {
         if (page_ == Page::Naming && (clickedKey || content_.keyboardFocus)) {
             if (!library_.busy() && content_.key < render::kCoveNameKeys.size()) appendText(render::kCoveNameKeys.substr(content_.key, 1));
         } else activate(content_.selected, facts);

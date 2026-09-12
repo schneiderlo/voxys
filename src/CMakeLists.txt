@@ -18,6 +18,8 @@ set(GAME_SOURCES
     game/expedition/session_transactions.cpp
     game/assets/cooked_part_bundle.cpp
     game/assets/rigid_prefab.cpp
+    game/assets/rigid_animation.cpp
+    game/assets/robot_asset.cpp
     game/assets/gameplay_sidecar.cpp
     game/expedition/game_session.cpp
     game/expedition/session_recovery.cpp
@@ -38,6 +40,7 @@ set(GAME_SOURCES
     game/construction/construction_types.cpp
     game/construction/part_catalog.cpp
     game/expedition/cove_player.cpp
+    game/expedition/cove_camera.cpp
     game/expedition/cove_workshop.cpp
     game/expedition/design_library.cpp
     game/expedition/workshop_camera.cpp

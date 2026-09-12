@@ -1,0 +1,33 @@
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //tests:cove_camera
+-----------------------------------------------------------------------------
+Running main() from gmock_main.cc
+[==========] Running 9 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 6 tests from CoveCamera
+[ RUN      ] CoveCamera.NearPlaneSphereEnclosesEveryCornerAcrossActualViewports
+[       OK ] CoveCamera.NearPlaneSphereEnclosesEveryCornerAcrossActualViewports (0 ms)
+[ RUN      ] CoveCamera.NewlyMovingObstructionPullsInImmediatelyAndClearanceReleasesGradually
+[       OK ] CoveCamera.NewlyMovingObstructionPullsInImmediatelyAndClearanceReleasesGradually (0 ms)
+[ RUN      ] CoveCamera.ZeroDistanceAndUnknownOrOverlappedGeometryNeverUseAnUnsafeMinimumBoom
+[       OK ] CoveCamera.ZeroDistanceAndUnknownOrOverlappedGeometryNeverUseAnUnsafeMinimumBoom (0 ms)
+[ RUN      ] CoveCamera.OrbitChaseAndMenuHandoffsPreserveHeadingAndReducedMotionStopsPassiveSwing
+[       OK ] CoveCamera.OrbitChaseAndMenuHandoffsPreserveHeadingAndReducedMotionStopsPassiveSwing (0 ms)
+[ RUN      ] CoveCamera.EventAnglesSurviveLongFramesAndDiscontinuityNeverSweepsFromTheOldWorldPoint
+[       OK ] CoveCamera.EventAnglesSurviveLongFramesAndDiscontinuityNeverSweepsFromTheOldWorldPoint (0 ms)
+[ RUN      ] CoveCamera.LoadFramingFitsActualCornersAndReportsOcclusionOrDistanceLimits
+[       OK ] CoveCamera.LoadFramingFitsActualCornersAndReportsOcclusionOrDistanceLimits (0 ms)
+[----------] 6 tests from CoveCamera (0 ms total)
+
+[----------] 3 tests from CoveCameraTerrain
+[ RUN      ] CoveCameraTerrain.CircularStudAndColumnEdgesCannotBeSkippedByALongSweep
+[       OK ] CoveCameraTerrain.CircularStudAndColumnEdgesCannotBeSkippedByALongSweep (0 ms)
+[ RUN      ] CoveCameraTerrain.ExactStartingOverlapTangencyAndFiniteBoundaryAreReported
+[       OK ] CoveCameraTerrain.ExactStartingOverlapTangencyAndFiniteBoundaryAreReported (0 ms)
+[ RUN      ] CoveCameraTerrain.SmoothFallbackAndWorkLimitsNeverPretendMissingCoverageIsClear
+[       OK ] CoveCameraTerrain.SmoothFallbackAndWorkLimitsNeverPretendMissingCoverageIsClear (0 ms)
+[----------] 3 tests from CoveCameraTerrain (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 9 tests from 2 test suites ran. (0 ms total)
+[  PASSED  ] 9 tests.

@@ -1,0 +1,65 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+{
+  "output": "/home/modkin/workspace/schneiderlo/voxys/build-cove-actor-r01/robot-package-r02",
+  "manifest_sha256": "82be1563b38f9d1d55489b03baf858daaf09cda7e5efc19bbb3be58936e06374",
+  "lods": [
+    {
+      "lod": 0,
+      "asset_id": "voxys-cove-robot-r01-lod0",
+      "filename": "robot.vmesh",
+      "sha256": "abebc3101d729c34a6ee294e4e6f65853ec9b7c863e3ab987b53978cefd97ff0",
+      "bytes": 363644,
+      "gpu_bytes": 360624,
+      "vertex_count": 3776,
+      "index_count": 22092,
+      "mesh_count": 15,
+      "node_count": 22,
+      "expanded_draws": 34,
+      "clips": 8,
+      "channels": 73,
+      "source_sha256": "cdc7742414a21e6693bac96071619372fff708129b9595860e7c80ad622c87b1",
+      "cook_exit": 0,
+      "cook_stderr": "gltf_vmesh_tool: wrote 363644 bytes (v=3776 i=22092 s=34 m=6 n=22 sk=0 a=8)\n"
+    },
+    {
+      "lod": 1,
+      "asset_id": "voxys-cove-robot-r01-lod1",
+      "filename": "lod1.vmesh",
+      "sha256": "1e6e63fc57826024f44be25070de10c2e9d1d5dd16536ac66082756a40c53efe",
+      "bytes": 184892,
+      "gpu_bytes": 156336,
+      "vertex_count": 1648,
+      "index_count": 9324,
+      "mesh_count": 15,
+      "node_count": 22,
+      "expanded_draws": 34,
+      "clips": 8,
+      "channels": 73,
+      "source_sha256": "2efedcbf176bae13cab1297784c5cc42c41b8ddc34fc6eadd343b6a3eb77c44d",
+      "cook_exit": 0,
+      "cook_stderr": "gltf_vmesh_tool: wrote 184892 bytes (v=1648 i=9324 s=34 m=6 n=22 sk=0 a=8)\n"
+    },
+    {
+      "lod": 2,
+      "asset_id": "voxys-cove-robot-r01-lod2",
+      "filename": "lod2.vmesh",
+      "sha256": "d970548b9b723fe3ac83ab1f22ba6e085f2d2f2ffc5a866cfc536e254d80cd08",
+      "bytes": 149036,
+      "gpu_bytes": 107088,
+      "vertex_count": 1336,
+      "index_count": 2628,
+      "mesh_count": 15,
+      "node_count": 22,
+      "expanded_draws": 34,
+      "clips": 8,
+      "channels": 73,
+      "source_sha256": "662fa88b54ba550e662edc5a132a996929ec0a939c316e2f784f098b74f4bb30",
+      "cook_exit": 0,
+      "cook_stderr": "gltf_vmesh_tool: wrote 149036 bytes (v=1336 i=2628 s=34 m=6 n=22 sk=0 a=8)\n"
+    }
+  ]
+}

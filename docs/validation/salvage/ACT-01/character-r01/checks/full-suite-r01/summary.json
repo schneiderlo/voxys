@@ -1,0 +1,53 @@
+{
+  "command": "nix-shell --run 'bazel test //tests:voxy_tests //tools:terrain_diffusion_import_test'",
+  "exit_code": 0,
+  "baseline": "69a69164337a36afbd417c58022e2d61ca84dd50",
+  "source_fingerprints": "../final-source-fingerprints.json",
+  "source_hashes_rechecked_before_archiving": true,
+  "elapsed_seconds": 1173.781,
+  "game": {
+    "cached": false,
+    "declared": 2189,
+    "executed": 2185,
+    "passed": 2182,
+    "failed": 0,
+    "skipped": [
+      {
+        "test": "WindowGLFWTest.WindowCreation",
+        "reason": "tests/test_window.cpp:175\nGLFW not available - skipping window creation test\n"
+      },
+      {
+        "test": "GpuBroadPhaseOverflowBenchmark.DenseGridCandidateClamp",
+        "reason": "tests/test_gpu_broad_phase.cpp:1054\nSet VOXY_BROAD_PHASE_BENCHMARK_SHADER_DIR to run\n"
+      },
+      {
+        "test": "RaycastPathGPUTest.LegoHorizonBenchmark",
+        "reason": "tests/test_raycast_path.cpp:514\nSet VOXY_RAYCAST_BENCHMARK_SHADER to run\n"
+      }
+    ],
+    "disabled": [
+      "ApplicationGPUTest.DISABLED_InitAndShutdown",
+      "ApplicationGPUTest.DISABLED_RenderPathToggle",
+      "ApplicationGPUTest.DISABLED_ProcessSingleFrame",
+      "ApplicationGPUTest.DISABLED_UpdateCallback"
+    ],
+    "seconds": 1141.658
+  },
+  "terrain": {
+    "cached": true,
+    "executed": 11,
+    "passed": 10,
+    "skipped": 1,
+    "failed": 0,
+    "note": "Bazel reused the unchanged passing importer target; its original unittest output is preserved in terrain.log."
+  },
+  "game_log": {
+    "compressed": "game.log.gz",
+    "original_bytes": 8431822,
+    "original_sha256": "aa32b7b2798f9d0aaa5c007c3c641c4839a49fa582f0d6aa77909118c3e3aeae"
+  },
+  "notes": [
+    "Raw tool logs retain original whitespace and environment notices. Source, documentation and structured evidence pass the whitespace check; raw .log files are excluded from that cosmetic check.",
+    "Bazel test-size advisory is preserved. No gameplay journey or image was repeated for this suite."
+  ]
+}

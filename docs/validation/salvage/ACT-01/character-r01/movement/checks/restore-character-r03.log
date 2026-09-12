@@ -1,0 +1,29 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+WARNING: Build option --test_env has changed, discarding analysis cache (this can be expensive, see https://bazel.build/advanced/performance/iteration-speed).
+Analyzing: 2 targets (0 packages loaded, 0 targets configured)
+Analyzing: 2 targets (0 packages loaded, 0 targets configured)
+
+Analyzing: 2 targets (0 packages loaded, 924 targets configured)
+
+INFO: Analyzed 2 targets (1 packages loaded, 3604 targets configured).
+[406 / 416] Compiling tests/test_cove_character.cpp; 1s linux-sandbox ... (4 actions running)
+[412 / 417] 1 / 2 tests; Compiling src/game/expedition/cove_restore.cpp; 2s linux-sandbox ... (2 actions running)
+[415 / 417] 1 / 2 tests; Compiling tests/test_cove_player.cpp; 4s linux-sandbox
+[416 / 417] 1 / 2 tests; [Prepa] Linking tests/cove_player
+[417 / 418] 1 / 2 tests; Testing //tests:cove_player; 1s linux-sandbox
+INFO: Found 2 test targets...
+INFO: Elapsed time: 15.090s, Critical Path: 13.50s
+INFO: 11 processes: 407 action cache hit, 2 internal, 9 linux-sandbox.
+INFO: Build completed successfully, 11 total actions
+//tests:cove_character                                                   PASSED in 0.0s
+//tests:cove_player                                                      PASSED in 1.1s
+
+Executed 2 out of 2 tests: 2 tests pass.
+There were tests whose specified size is too big. Use the --test_verbose_timeout_warnings command line option to see which ones these are.

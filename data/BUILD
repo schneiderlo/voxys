@@ -122,3 +122,8 @@ filegroup(
     name = "performance_golden",
     srcs = ["canyon_8k.ldh"],
 )
+
+filegroup(
+    name = "salvage_robot",
+    srcs = glob(["salvage/robot-r01/*.vmesh", "salvage/robot-r01/manifest.json"]),
+)

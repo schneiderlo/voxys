@@ -1,0 +1,1829 @@
+{
+  "schema": 1,
+  "asset": "original-cove-salvage-robot",
+  "author": "Voxys original procedural artwork",
+  "license": "Original project asset; same project distribution terms; no external art inputs.",
+  "blender": "5.2.1 LTS",
+  "profile": "salvage-animated-rigid-v1",
+  "render_to_canonical": 12,
+  "canonical": {
+    "up": "+Y",
+    "forward": "-Z",
+    "units": "metres",
+    "height": 1.7,
+    "root_motion": false
+  },
+  "clips": [
+    "idle",
+    "walk",
+    "jump",
+    "fall",
+    "swim",
+    "helm",
+    "tool",
+    "land"
+  ],
+  "anchors": [
+    "robot_head_anchor",
+    "robot_hand_l_anchor",
+    "robot_hand_r_anchor",
+    "robot_tool_anchor",
+    "robot_helm_l_anchor",
+    "robot_helm_r_anchor"
+  ],
+  "palette": {
+    "cream": "F0DDB2",
+    "teal": "197D86",
+    "coral": "ED7942",
+    "slate": "253D53",
+    "steel": "B5C3BE",
+    "rubber": "25363A"
+  },
+  "inputs": {
+    "tools/salvage_assets/author_cove_robot.py": "fd05335fb233456d562549c091db8a651e5617ce383e9f81dc546f245e5f7832",
+    "tools/salvage_assets/author_functional_kit.py": "17d8ec95739accb369f7df65303631b012d2bfdf8ea90b466cb74ca6e89cd163",
+    "tools/salvage_assets/author_cove_toy_art.py": "d849f129f076510c313d3de6b31534ce5c2200b13a8b667b2b48baf494717f6b",
+    "tools/salvage_assets/author_pontoon.py": "65142b372f2ec48eec8d994c751dca8b3263f492da39e27393e4d615242ce4b5",
+    "tools/salvage_assets/authoring_probe.py": "81edf36885bedff0f51380c89213094dad908d9287bbfd74987e363d392edbc0",
+    "tools/salvage_assets/metric_materials.py": "e4d31cdf8ee8bf46dab081589f6f5aa876eb984801416dc8e4e0feb5f6af32f5",
+    "tools/salvage_assets/surface_shading.py": "b53656d0c42cf0f934fd65a7ccb0c528539da794a8482265809e5189bab19720"
+  },
+  "lods": [
+    {
+      "lod": 0,
+      "asset_id": "voxys-cove-robot-r01-lod0",
+      "glb": "robot-lod-0.glb",
+      "glb_sha256": "a79b9ace0ab0b3d225cf566c7f385174dc2f09483a4f5b7613d5f1a4aa4df746",
+      "blend": "robot-lod-0.blend",
+      "blend_sha256": "d61bd352fbcb00a79c8326920e2f6382854b9bb4f11df4c5c44fab67c6be7222",
+      "nodes": 22,
+      "meshes": 15,
+      "draws": 34,
+      "vertices": 4065,
+      "triangles": 7878,
+      "clips": [
+        {
+          "name": "idle",
+          "channels": 5
+        },
+        {
+          "name": "walk",
+          "channels": 13
+        },
+        {
+          "name": "jump",
+          "channels": 11
+        },
+        {
+          "name": "fall",
+          "channels": 7
+        },
+        {
+          "name": "swim",
+          "channels": 11
+        },
+        {
+          "name": "helm",
+          "channels": 7
+        },
+        {
+          "name": "tool",
+          "channels": 6
+        },
+        {
+          "name": "land",
+          "channels": 13
+        }
+      ],
+      "removed_constant_rest_channels": 287,
+      "geometry_checks": [
+        {
+          "node": "robot_pelvis",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.01909376997521971,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "waist_casting",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8578083280326609,
+              "maximum_unit_length_error": 1.3307767465775555e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "waist_bearing",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.9159847706778237,
+              "maximum_unit_length_error": 1.5087606519692542e-07,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_torso",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.05477060881631086,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "cream_chest",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577945452407221,
+              "maximum_unit_length_error": 1.2109710434415888e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "teal_backpack",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8578086075222018,
+              "maximum_unit_length_error": 1.2119447201364153e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "front_service_panel",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8578072753589367,
+              "maximum_unit_length_error": 1.053791791605363e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "orange_rescue_stripe",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8578042317685686,
+              "maximum_unit_length_error": 1.2078016986549756e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "status_window",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.857810348377825,
+              "maximum_unit_length_error": 1.1746877592866412e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "status_light",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577978557477763,
+              "maximum_unit_length_error": 1.2280390948582465e-07,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_head",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.02928518147620081,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "neck_joint",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.9159909991249151,
+              "maximum_unit_length_error": 1.5646218032294712e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "rounded_helmet_shell",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 32,
+              "minimum_face_alignment": 0.970360716804862,
+              "maximum_unit_length_error": 1.5180559120864245e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "teal_brow",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8578035095060841,
+              "maximum_unit_length_error": 1.1920928244535389e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "dark_face_window",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577957012530533,
+              "maximum_unit_length_error": 1.211950431123654e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "large_optic_ring",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.9159905280903331,
+              "maximum_unit_length_error": 1.266598621540993e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "large_optic_lens",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.915990585093823,
+              "maximum_unit_length_error": 1.341113882169509e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "small_optic",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577984710709643,
+              "maximum_unit_length_error": 1.233576445436313e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "side_receiver",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.9159901107068436,
+              "maximum_unit_length_error": 1.2214649403041733e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "receiver_tip",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.9159662242254853,
+              "maximum_unit_length_error": 1.5286210586218374e-07,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_arm_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.006407445139019522,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "shoulder_axle",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.9159722734107163,
+              "maximum_unit_length_error": 1.2295207096890692e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "upper_arm_shell",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.857808411697988,
+              "maximum_unit_length_error": 1.3304972135141924e-07,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_forearm_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.004497574066273734,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "elbow_axle",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.9159890585633548,
+              "maximum_unit_length_error": 1.2272672123003758e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "forearm_shell",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8578085870385621,
+              "maximum_unit_length_error": 1.211953313262626e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "forearm_guard",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.857804858160307,
+              "maximum_unit_length_error": 1.5000149722332878e-07,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_hand_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.0016889440156194104,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "gripper_palm",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.857808228975955,
+              "maximum_unit_length_error": 1.2119759240647454e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "parallel_grip_jaw",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577955271248356,
+              "maximum_unit_length_error": 1.2111159208849642e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "parallel_grip_jaw.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577949140717465,
+              "maximum_unit_length_error": 1.2122254267055155e-07,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_arm_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.006407445139019525,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "shoulder_axle",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.9159722734107163,
+              "maximum_unit_length_error": 1.2285833972391913e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "upper_arm_shell",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.857808411697988,
+              "maximum_unit_length_error": 1.3304972135141924e-07,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_forearm_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.004497574065667767,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "elbow_axle",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.9159891010604042,
+              "maximum_unit_length_error": 1.2600366283699316e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "forearm_shell",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8578088184003718,
+              "maximum_unit_length_error": 1.211786100352441e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "forearm_guard",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577914299539771,
+              "maximum_unit_length_error": 1.2166721674589098e-07,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_hand_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.0016889440156194083,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "gripper_palm",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8578082140747938,
+              "maximum_unit_length_error": 1.4795225655728217e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "parallel_grip_jaw",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8578079954204441,
+              "maximum_unit_length_error": 1.2132383053753415e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "parallel_grip_jaw.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577959122239918,
+              "maximum_unit_length_error": 1.2125587334210763e-07,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_thigh_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.00839814709605786,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "hip_axle",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.9159921983155073,
+              "maximum_unit_length_error": 1.211089355468431e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "thigh_shell",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8578077103411488,
+              "maximum_unit_length_error": 1.2112627678639853e-07,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_shin_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.009049981035876089,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "knee_hinge",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.915990213963596,
+              "maximum_unit_length_error": 1.2125516080097043e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "shin_shell",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8578085287908834,
+              "maximum_unit_length_error": 1.2113805292202073e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "knee_guard",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.857794182014004,
+              "maximum_unit_length_error": 1.2113075120723238e-07,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_foot_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.0092182224619065,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "boot_sole",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577956688131962,
+              "maximum_unit_length_error": 1.628209379544998e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "boot_shell",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8578084845121339,
+              "maximum_unit_length_error": 1.777696200244705e-07,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_thigh_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.008398147066752237,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "hip_axle",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.9159922858543723,
+              "maximum_unit_length_error": 1.1677395173048666e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "thigh_shell",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8578076660078295,
+              "maximum_unit_length_error": 1.2111061531427936e-07,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_shin_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.009049981046331756,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "knee_hinge",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.9159938676859838,
+              "maximum_unit_length_error": 1.216385521196628e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "shin_shell",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8578083227966999,
+              "maximum_unit_length_error": 1.2114533554097306e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "knee_guard",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8578073076678265,
+              "maximum_unit_length_error": 1.2114105185645485e-07,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_foot_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.009218222461906503,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "boot_sole",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577956188710232,
+              "maximum_unit_length_error": 1.2113423930593115e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "boot_shell",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8578082770154651,
+              "maximum_unit_length_error": 1.2112023251020787e-07,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        }
+      ]
+    },
+    {
+      "lod": 1,
+      "asset_id": "voxys-cove-robot-r01-lod1",
+      "glb": "robot-lod-1.glb",
+      "glb_sha256": "44a618307e2498c6d21b1e7aae90cb117ffe91008af44718d34d513927a549d9",
+      "blend": "robot-lod-1.blend",
+      "blend_sha256": "f583aedc54dbb6890c139d217c1020fa59f6b6943f7427831a472f6f5907e9a3",
+      "nodes": 22,
+      "meshes": 15,
+      "draws": 34,
+      "vertices": 1809,
+      "triangles": 3382,
+      "clips": [
+        {
+          "name": "idle",
+          "channels": 5
+        },
+        {
+          "name": "walk",
+          "channels": 13
+        },
+        {
+          "name": "jump",
+          "channels": 11
+        },
+        {
+          "name": "fall",
+          "channels": 7
+        },
+        {
+          "name": "swim",
+          "channels": 11
+        },
+        {
+          "name": "helm",
+          "channels": 7
+        },
+        {
+          "name": "tool",
+          "channels": 6
+        },
+        {
+          "name": "land",
+          "channels": 13
+        }
+      ],
+      "removed_constant_rest_channels": 287,
+      "geometry_checks": [
+        {
+          "node": "robot_pelvis",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.018373411753454395,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "waist_casting",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773473067192754,
+              "maximum_unit_length_error": 5.9459784651494374e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "waist_bearing",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.6935439152657636,
+              "maximum_unit_length_error": 1.2025520534919565e-07,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_torso",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.052769847678912706,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "cream_chest",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773475168739424,
+              "maximum_unit_length_error": 5.946846648452464e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "teal_backpack",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773474437596633,
+              "maximum_unit_length_error": 5.946835435199915e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "front_service_panel",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773452261282728,
+              "maximum_unit_length_error": 1.193601544269285e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "orange_rescue_stripe",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773460727573365,
+              "maximum_unit_length_error": 5.947965076025241e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "status_window",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773442295753739,
+              "maximum_unit_length_error": 1.1943891076171553e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "status_light",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773443121920536,
+              "maximum_unit_length_error": 5.954615556191811e-08,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_head",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.028298519604669982,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "neck_joint",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.693535172729753,
+              "maximum_unit_length_error": 5.844467376725504e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "rounded_helmet_shell",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 24,
+              "minimum_face_alignment": 0.93704454600811,
+              "maximum_unit_length_error": 1.1920928244535389e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "teal_brow",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773457029713427,
+              "maximum_unit_length_error": 1.1936600530226826e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "dark_face_window",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773466363098123,
+              "maximum_unit_length_error": 5.947536119155217e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "large_optic_ring",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.6935529649199452,
+              "maximum_unit_length_error": 1.1769596652833059e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "large_optic_lens",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.6935352519867592,
+              "maximum_unit_length_error": 1.2109106695135097e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "small_optic",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.577346185452825,
+              "maximum_unit_length_error": 1.2105080693380899e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "side_receiver",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.6935507670750667,
+              "maximum_unit_length_error": 1.2132378968132684e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "receiver_tip",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.6935501538282551,
+              "maximum_unit_length_error": 1.2112294944799373e-07,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_arm_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.006137044550070564,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "shoulder_axle",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.6935402182198231,
+              "maximum_unit_length_error": 1.2065706656017028e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "upper_arm_shell",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773475101304939,
+              "maximum_unit_length_error": 5.946688985680737e-08,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_forearm_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.00431309624154514,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "elbow_axle",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.693553553745005,
+              "maximum_unit_length_error": 1.21437527367263e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "forearm_shell",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773470596764128,
+              "maximum_unit_length_error": 1.1906337049616411e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "forearm_guard",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773439969398169,
+              "maximum_unit_length_error": 1.1903896446341378e-07,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_hand_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.001601565187198916,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "gripper_palm",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773473190015466,
+              "maximum_unit_length_error": 5.946133119216768e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "parallel_grip_jaw",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773467585950129,
+              "maximum_unit_length_error": 1.1934896870791079e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "parallel_grip_jaw.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773467886720027,
+              "maximum_unit_length_error": 1.1937675226114663e-07,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_arm_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.006137044550070569,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "shoulder_axle",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.693550114192476,
+              "maximum_unit_length_error": 1.6553284121201273e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "upper_arm_shell",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773475101304939,
+              "maximum_unit_length_error": 5.946688985680737e-08,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_forearm_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.004313096241545142,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "elbow_axle",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.6935532524548762,
+              "maximum_unit_length_error": 1.208205899771997e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "forearm_shell",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773470553745028,
+              "maximum_unit_length_error": 1.1906466712563457e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "forearm_guard",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773439668687388,
+              "maximum_unit_length_error": 1.193882432914961e-07,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_hand_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.0016015651871989164,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "gripper_palm",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773474179391087,
+              "maximum_unit_length_error": 1.193508263330756e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "parallel_grip_jaw",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773468654897442,
+              "maximum_unit_length_error": 1.1906796792970908e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "parallel_grip_jaw.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773467290810004,
+              "maximum_unit_length_error": 1.1936682597912807e-07,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_thigh_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.00811128465085288,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "hip_axle",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.6935551442802534,
+              "maximum_unit_length_error": 1.2121589842983838e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "thigh_shell",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773474953780351,
+              "maximum_unit_length_error": 1.1935346533320512e-07,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_shin_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.008746114989701192,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "knee_hinge",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.6935439126964411,
+              "maximum_unit_length_error": 1.2081990830026257e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "shin_shell",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773474978200284,
+              "maximum_unit_length_error": 1.190660435801405e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "knee_guard",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773473423623727,
+              "maximum_unit_length_error": 5.946713332871667e-08,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_foot_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.009019823698565134,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "boot_sole",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773473208359974,
+              "maximum_unit_length_error": 5.946682679613957e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "boot_shell",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773473226900023,
+              "maximum_unit_length_error": 1.1906737451550242e-07,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_thigh_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.008111284650852882,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "hip_axle",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.6935551442802534,
+              "maximum_unit_length_error": 1.2085848277720856e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "thigh_shell",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773474953780351,
+              "maximum_unit_length_error": 1.1935346533320512e-07,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_shin_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.008746114989701195,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "knee_hinge",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.69355375734267,
+              "maximum_unit_length_error": 1.282011929948368e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "shin_shell",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773475058081203,
+              "maximum_unit_length_error": 5.946359493691489e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "knee_guard",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773472944274545,
+              "maximum_unit_length_error": 5.946713332871667e-08,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_foot_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.009019823698565134,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "boot_sole",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773473208359974,
+              "maximum_unit_length_error": 5.9466871649149766e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "boot_shell",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773473355975511,
+              "maximum_unit_length_error": 1.1906594543642512e-07,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        }
+      ]
+    },
+    {
+      "lod": 2,
+      "asset_id": "voxys-cove-robot-r01-lod2",
+      "glb": "robot-lod-2.glb",
+      "glb_sha256": "6f5a411cd18ceec3a4e23bf8cf2397f0a2dbcee6c688f09d5bcee6943dcaf0a3",
+      "blend": "robot-lod-2.blend",
+      "blend_sha256": "c824062faa8623c2d809f5c9df7f5e0e825016b2f7a4fc8c5bb509e2e7792dd3",
+      "nodes": 22,
+      "meshes": 15,
+      "draws": 34,
+      "vertices": 1409,
+      "triangles": 1014,
+      "clips": [
+        {
+          "name": "idle",
+          "channels": 5
+        },
+        {
+          "name": "walk",
+          "channels": 13
+        },
+        {
+          "name": "jump",
+          "channels": 11
+        },
+        {
+          "name": "fall",
+          "channels": 7
+        },
+        {
+          "name": "swim",
+          "channels": 11
+        },
+        {
+          "name": "helm",
+          "channels": 7
+        },
+        {
+          "name": "tool",
+          "channels": 6
+        },
+        {
+          "name": "land",
+          "channels": 13
+        }
+      ],
+      "removed_constant_rest_channels": 287,
+      "geometry_checks": [
+        {
+          "node": "robot_pelvis",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.020033227072842677,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "waist_casting",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "waist_bearing",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 20,
+              "minimum_face_alignment": 0.9510564208030701,
+              "maximum_unit_length_error": 4.470348458074369e-08,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_torso",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.057836853046725076,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "cream_chest",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "teal_backpack",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999998807907104,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "front_service_panel",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "orange_rescue_stripe",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "status_window",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "status_light",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_head",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.027281255712398464,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "neck_joint",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 20,
+              "minimum_face_alignment": 0.9510564804077148,
+              "maximum_unit_length_error": 7.450580874479584e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "rounded_helmet_shell",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 16,
+              "minimum_face_alignment": 0.8827904500067234,
+              "maximum_unit_length_error": 9.033828574089853e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "teal_brow",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "dark_face_window",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999998807907104,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "large_optic_ring",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 20,
+              "minimum_face_alignment": 0.9510560631752014,
+              "maximum_unit_length_error": 5.9604643443122995e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "large_optic_lens",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 20,
+              "minimum_face_alignment": 0.9510551393032074,
+              "maximum_unit_length_error": 1.0430813379702641e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "small_optic",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "side_receiver",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 20,
+              "minimum_face_alignment": 0.9510563760995865,
+              "maximum_unit_length_error": 5.960464455334602e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "receiver_tip",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 20,
+              "minimum_face_alignment": 0.9510562419891357,
+              "maximum_unit_length_error": 1.8626451714354175e-08,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_arm_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.006661764841921979,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "shoulder_axle",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 20,
+              "minimum_face_alignment": 0.9510563313961029,
+              "maximum_unit_length_error": 4.470348269336455e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "upper_arm_shell",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_forearm_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.004708622245935698,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "elbow_axle",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 20,
+              "minimum_face_alignment": 0.9510562419891357,
+              "maximum_unit_length_error": 2.980232283178452e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "forearm_shell",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "forearm_guard",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_hand_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.0018256799215817122,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "gripper_palm",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "parallel_grip_jaw",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "parallel_grip_jaw.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_arm_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.006661764841921972,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "shoulder_axle",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 20,
+              "minimum_face_alignment": 0.9510563313961029,
+              "maximum_unit_length_error": 4.470348269336455e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "upper_arm_shell",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_forearm_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.004708622245935696,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "elbow_axle",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 20,
+              "minimum_face_alignment": 0.9510562419891357,
+              "maximum_unit_length_error": 2.980232283178452e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "forearm_shell",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "forearm_guard",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_hand_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.001825679921581712,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "gripper_palm",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "parallel_grip_jaw",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "parallel_grip_jaw.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_thigh_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.008700264389768175,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "hip_axle",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 20,
+              "minimum_face_alignment": 0.9510562717914581,
+              "maximum_unit_length_error": 7.450580874479584e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "thigh_shell",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_shin_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.009389283203915105,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "knee_hinge",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 20,
+              "minimum_face_alignment": 0.9510563910007477,
+              "maximum_unit_length_error": 8.940697115988883e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "shin_shell",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "knee_guard",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999998807907104,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_foot_l",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.009513280355366454,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "boot_sole",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999998807907104,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "boot_shell",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_thigh_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.008700264389768175,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "hip_axle",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 20,
+              "minimum_face_alignment": 0.9510562717914581,
+              "maximum_unit_length_error": 7.450580874479584e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "thigh_shell",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_shin_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.009389283203915105,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "knee_hinge",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 20,
+              "minimum_face_alignment": 0.9510563910007477,
+              "maximum_unit_length_error": 8.940697115988883e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "shin_shell",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "knee_guard",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999998807907104,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "node": "robot_foot_r",
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.009513280355366454,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "boot_sole",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999998807907104,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "boot_shell",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 0.9999999403953552,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        }
+      ]
+    }
+  ],
+  "reproduction": "blender --background --factory-startup -noaudio --threads 2 --python-exit-code 1 --python tools/salvage_assets/author_cove_robot.py -- --output-dir <new-directory>",
+  "export_cleanup": "Remove rest-equal channels and <=1e-6 unit-scale bake roundoff; actual moving translation/quaternion keys unchanged.",
+  "scope": "Rigid presentation character only; no gameplay parts, sockets, body masses or inventory changes."
+}

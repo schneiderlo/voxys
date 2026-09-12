@@ -1,0 +1,26 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: target //tests:cove_player (0 packages loaded, 0 targets configured)
+Analyzing: target //tests:cove_player (0 packages loaded, 0 targets configured)
+
+Analyzing: target //tests:cove_player (0 packages loaded, 0 targets configured)
+
+INFO: Analyzed target //tests:cove_player (1 packages loaded, 89 targets configured).
+[406 / 408] Compiling tests/test_cove_player.cpp; 1s linux-sandbox
+[407 / 408] [Prepa] Linking tests/cove_player
+INFO: Found 1 test target...
+Target //tests:cove_player up-to-date:
+  bazel-bin/tests/cove_player
+INFO: Elapsed time: 11.966s, Critical Path: 10.23s
+INFO: 4 processes: 405 action cache hit, 1 internal, 3 linux-sandbox.
+INFO: Build completed successfully, 4 total actions
+//tests:cove_player                                                      PASSED in 0.8s
+
+Executed 1 out of 1 test: 1 test passes.
+There were tests whose specified size is too big. Use the --test_verbose_timeout_warnings command line option to see which ones these are.

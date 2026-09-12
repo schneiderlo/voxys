@@ -81,6 +81,36 @@ cc_test(
 )
 
 cc_test(
+    name = "cove_character",
+    srcs = ["test_cove_character.cpp"],
+    copts = PROJECT_TEST_COPTS,
+    deps = ["//src/game:cove_character", "@googletest//:gtest_main"],
+)
+
+cc_test(
+    name = "cove_camera",
+    srcs = ["test_cove_camera.cpp"],
+    copts = PROJECT_TEST_COPTS,
+    deps = ["//src/game:cove_camera", "@googletest//:gtest_main"],
+)
+
+cc_test(
+    name = "rigid_animation",
+    srcs = ["test_rigid_animation.cpp"],
+    copts = PROJECT_TEST_COPTS,
+    deps = ["//src/game:rigid_animation", "@googletest//:gtest_main"],
+    data = ["//data:salvage_robot"],
+)
+
+cc_test(
+    name = "robot_asset",
+    srcs = ["test_robot_asset.cpp"],
+    copts = PROJECT_TEST_COPTS,
+    deps = ["//src/game:robot_asset", "//src/core:sha256", "//third_party:tinygltf", "@googletest//:gtest_main"],
+    data = ["//data:salvage_robot"],
+)
+
+cc_test(
     name = "functional_kit",
     srcs = ["test_functional_kit.cpp"],
     copts = PROJECT_TEST_COPTS,
@@ -445,12 +475,13 @@ cc_test(
     deps = [
         "//src/render:salvage_asset_fixture",
         "//src/game:fixture_registry",
+        "//src/game:robot_asset",
         "//src/core:sha256",
         "//src/gpu:gpu",
         "//third_party:tinygltf",
         "@googletest//:gtest_main",
     ],
-    data = ["//data:salvage_runtime_probe", "//data:salvage_material_metric", "//shaders:shaders"],
+    data = ["//data:salvage_runtime_probe", "//data:salvage_material_metric", "//data:salvage_robot", "//shaders:shaders"],
 )
 
 cc_test(
@@ -893,6 +924,10 @@ cc_test(
         "test_environment_lighting.cpp",
         "test_fixture_registry.cpp",
         "test_cove_player.cpp",
+        "test_cove_camera.cpp",
+        "test_cove_character.cpp",
+        "test_rigid_animation.cpp",
+        "test_robot_asset.cpp",
         "test_functional_kit.cpp",
         "test_pontoon_pipeline.cpp",
         "test_hierarchy_pipeline.cpp",
@@ -967,6 +1002,10 @@ cc_test(
         "//src/game:fixture_registry",
         "//src/game:workshop_camera",
         "//src/game:cove_player",
+        "//src/game:cove_camera",
+        "//src/game:cove_character",
+        "//src/game:rigid_animation",
+        "//src/game:robot_asset",
         "//src/game:cove_boat", "//src/game:cove_harbor_lift", "//src/game:cove_harbor_runtime", "//src/game:cove_workshop", "//src/game:cove_mechanisms", "//src/game:cove_build", "//src/game:cove_restore",
         "//src/game:assembly_compiler",
         "//src/game:assembly_collision",
@@ -987,6 +1026,7 @@ cc_test(
         "//data:salvage_runtime_probe",
         "//data:salvage_asset_fixture",
         "//data:salvage_functional_kit",
+        "//data:salvage_robot",
         "//data:salvage_hierarchy_probe",
         "//data:salvage_material_metric",
         "//:asan_suppressions",

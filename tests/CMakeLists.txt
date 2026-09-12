@@ -45,6 +45,10 @@ set(TEST_SOURCES
     test_part_catalog.cpp
     test_salvage_preview.cpp
     test_cove_player.cpp
+    test_cove_camera.cpp
+    test_cove_character.cpp
+    test_rigid_animation.cpp
+    test_robot_asset.cpp
     test_workshop_camera.cpp
     test_bike.cpp
     test_log.cpp
@@ -1049,6 +1053,11 @@ gtest_discover_tests(workshop_camera_tests WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 
 add_executable(cove_player_tests test_cove_player.cpp)
 target_link_libraries(cove_player_tests PRIVATE voxy_core tinygltf gtest gtest_main)
+add_executable(cove_actor_tests test_cove_character.cpp test_cove_camera.cpp test_rigid_animation.cpp test_robot_asset.cpp)
+target_link_libraries(cove_actor_tests PRIVATE voxy_core tinygltf gtest gtest_main)
+set_project_warnings(cove_actor_tests)
+gtest_discover_tests(cove_actor_tests WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    DISCOVERY_MODE PRE_TEST TEST_PREFIX "cove_actor.")
 
 add_executable(cove_save_tests test_cove_save.cpp)
 target_link_libraries(cove_save_tests PRIVATE voxy_core gtest gtest_main)

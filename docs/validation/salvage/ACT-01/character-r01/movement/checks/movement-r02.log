@@ -1,0 +1,98 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: target //tests:cove_player (0 packages loaded, 0 targets configured)
+Analyzing: target //tests:cove_player (0 packages loaded, 0 targets configured)
+
+Analyzing: target //tests:cove_player (0 packages loaded, 0 targets configured)
+
+INFO: Analyzed target //tests:cove_player (2 packages loaded, 321 targets configured).
+[388 / 408] Compiling src/game/expedition/cove_player.cpp; 1s linux-sandbox ... (7 actions running)
+[400 / 408] Compiling src/game/expedition/cove_restore.cpp; 2s linux-sandbox ... (3 actions running)
+[403 / 408] Compiling src/game/expedition/cove_workshop.cpp; 3s linux-sandbox ... (2 actions running)
+[406 / 408] Compiling tests/test_cove_player.cpp; 5s linux-sandbox
+[407 / 408] [Prepa] Linking tests/cove_player
+[408 / 409] Testing //tests:cove_player; 0s linux-sandbox
+FAIL: //tests:cove_player (Exit 1) (see /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-fastbuild/testlogs/tests/cove_player/test.log)
+[408 / 409] 1 / 1 tests, 1 failed; Testing //tests:cove_player; 7s linux-sandbox
+INFO: From Testing //tests:cove_player:
+==================== Test output for //tests:cove_player:
+Running main() from gmock_main.cc
+Note: Google Test filter = CoveMovement.Takeoff*:CoveMovement.LegacyAttached*:CoveMovement.CompleteRootPackets*:CoveMovement.UprightCapsule*:CoveMovement.AboardWalking*:CoveMovement.SwimmingCan*:CoveMovement.CameraSphere*:CoveMovement.OrientedCargo*:CoveMovement.ExactCapsule*:CoveMovement.Walk*:CoveMovement.ObservedBoat*:CoveMovement.Resume*:CoveMovement.InvalidResume*:CoveMovement.SolidGenerator*:CoveMovement.JumpingAboard*:CoveMovement.JumpLands*:CoveMovement.FixedTicks*:CoveMovement.InvalidNavigation*:CoveMovement.CutTransfers*:CoveMovement.DetachedRider*
+[==========] Running 22 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 22 tests from CoveMovement
+[ RUN      ] CoveMovement.CutTransfersStandingPlayerToDetachedSupportWithoutMovingTheirWorldFeet
+[       OK ] CoveMovement.CutTransfersStandingPlayerToDetachedSupportWithoutMovingTheirWorldFeet (333 ms)
+[ RUN      ] CoveMovement.DetachedRiderFollowsItsSectionAndCannotStandOnAnotherSectionsOldDeck
+tests/test_cove_player.cpp:1256: Failure
+Value of: found
+  Actual: false
+Expected: true
+
+[  FAILED  ] CoveMovement.DetachedRiderFollowsItsSectionAndCannotStandOnAnotherSectionsOldDeck (327 ms)
+[ RUN      ] CoveMovement.TakeoffInheritsLinearAndAngularVelocityOnceThenDetaches
+[       OK ] CoveMovement.TakeoffInheritsLinearAndAngularVelocityOnceThenDetaches (332 ms)
+[ RUN      ] CoveMovement.LegacyAttachedJumpMigratesIntoIndependentWorldStateAndResumesExactly
+[       OK ] CoveMovement.LegacyAttachedJumpMigratesIntoIndependentWorldStateAndResumesExactly (332 ms)
+[ RUN      ] CoveMovement.CompleteRootPacketsRejectStaleAndConflictingPartialPoses
+[       OK ] CoveMovement.CompleteRootPacketsRejectStaleAndConflictingPartialPoses (331 ms)
+[ RUN      ] CoveMovement.UprightCapsuleFollowsRollingDeckAndSunkenHelmReleasesIntoWater
+[       OK ] CoveMovement.UprightCapsuleFollowsRollingDeckAndSunkenHelmReleasesIntoWater (337 ms)
+[ RUN      ] CoveMovement.AboardWalkingCollidesWithInstalledSceneryAndAirCannotTunnelThinWalls
+[       OK ] CoveMovement.AboardWalkingCollidesWithInstalledSceneryAndAirCannotTunnelThinWalls (347 ms)
+[ RUN      ] CoveMovement.SwimmingCanReboardNearbySlowCraftButRejectsFastAndSunkenTargets
+[       OK ] CoveMovement.SwimmingCanReboardNearbySlowCraftButRejectsFastAndSunkenTargets (329 ms)
+[ RUN      ] CoveMovement.CameraSphereSweepIncludesEveryProxyAndFailsClosedWithoutCertifiedTerrain
+[       OK ] CoveMovement.CameraSphereSweepIncludesEveryProxyAndFailsClosedWithoutCertifiedTerrain (328 ms)
+[ RUN      ] CoveMovement.OrientedCargoPacketKeepsRealBeamClearanceAndJoinsObservedTick
+[       OK ] CoveMovement.OrientedCargoPacketKeepsRealBeamClearanceAndJoinsObservedTick (328 ms)
+[ RUN      ] CoveMovement.ExactCapsuleGroundSupportDoesNotStandOnDiagonalProbeCorners
+[       OK ] CoveMovement.ExactCapsuleGroundSupportDoesNotStandOnDiagonalProbeCorners (331 ms)
+[ RUN      ] CoveMovement.WalksAcrossAuthoredDeckSeamsAndBoardsUsesHelmAndReturns
+[       OK ] CoveMovement.WalksAcrossAuthoredDeckSeamsAndBoardsUsesHelmAndReturns (394 ms)
+[ RUN      ] CoveMovement.ObservedBoatPoseCarriesHelmAndResetReturnsToFixedDock
+[       OK ] CoveMovement.ObservedBoatPoseCarriesHelmAndResetReturnsToFixedDock (393 ms)
+[ RUN      ] CoveMovement.ResumeKeepsBoatLocalHelmPoseOnRestoredMovingCraft
+[       OK ] CoveMovement.ResumeKeepsBoatLocalHelmPoseOnRestoredMovingCraft (365 ms)
+[ RUN      ] CoveMovement.ResumePreservesJumpVelocityAndSwimmingWithoutPendingControls
+[       OK ] CoveMovement.ResumePreservesJumpVelocityAndSwimmingWithoutPendingControls (385 ms)
+[ RUN      ] CoveMovement.InvalidResumePreservesPlayerAndQueuedInteraction
+[       OK ] CoveMovement.InvalidResumePreservesPlayerAndQueuedInteraction (337 ms)
+[ RUN      ] CoveMovement.SolidGeneratorStopsWalkingAndLargeFramesDoNotTunnel
+[       OK ] CoveMovement.SolidGeneratorStopsWalkingAndLargeFramesDoNotTunnel (452 ms)
+[ RUN      ] CoveMovement.JumpingAboardUsesActualSupportingPartInsteadOfBoardButtonHistory
+[       OK ] CoveMovement.JumpingAboardUsesActualSupportingPartInsteadOfBoardButtonHistory (391 ms)
+[ RUN      ] CoveMovement.JumpLandsOnDockAndResetRecoversFromWater
+[       OK ] CoveMovement.JumpLandsOnDockAndResetRecoversFromWater (382 ms)
+[ RUN      ] CoveMovement.WalksUpBrickTerraceAndJumpLandsOnStudSurface
+[       OK ] CoveMovement.WalksUpBrickTerraceAndJumpLandsOnStudSurface (378 ms)
+[ RUN      ] CoveMovement.FixedTicksDoNotDependOnRenderRateAndJumpSurvivesShortFrame
+[       OK ] CoveMovement.FixedTicksDoNotDependOnRenderRateAndJumpSurvivesShortFrame (352 ms)
+[ RUN      ] CoveMovement.InvalidNavigationPreservesExistingPlayerAndPendingActionsDoNotDuplicate
+[       OK ] CoveMovement.InvalidNavigationPreservesExistingPlayerAndPendingActionsDoNotDuplicate (338 ms)
+[----------] 22 tests from CoveMovement (7834 ms total)
+
+[----------] Global test environment tear-down
+[==========] 22 tests from 1 test suite ran. (7834 ms total)
+[  PASSED  ] 21 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] CoveMovement.DetachedRiderFollowsItsSectionAndCannotStandOnAnotherSectionsOldDeck
+
+ 1 FAILED TEST
+================================================================================
+INFO: Found 1 test target...
+Target //tests:cove_player up-to-date:
+  bazel-bin/tests/cove_player
+INFO: Elapsed time: 21.046s, Critical Path: 19.32s
+INFO: 20 processes: 389 action cache hit, 6 internal, 14 linux-sandbox.
+INFO: Build completed, 1 test FAILED, 20 total actions
+//tests:cove_player                                                      FAILED in 7.9s
+  /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-fastbuild/testlogs/tests/cove_player/test.log
+
+Executed 1 out of 1 test: 1 fails locally.

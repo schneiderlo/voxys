@@ -1,0 +1,33 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: target //tests:rigid_animation (0 packages loaded, 0 targets configured)
+Analyzing: target //tests:rigid_animation (0 packages loaded, 0 targets configured)
+
+Analyzing: target //tests:rigid_animation (0 packages loaded, 0 targets configured)
+
+INFO: Analyzed target //tests:rigid_animation (2 packages loaded, 41 targets configured).
+ERROR: /home/modkin/workspace/schneiderlo/voxys/src/game/BUILD:132:11: Compiling src/game/assets/rigid_animation.cpp failed: (Exit 1): gcc failed: error executing CppCompile command (from target //src/game:rigid_animation) /nix/store/788mx070y81zjlg5ipcl0cra3afviw9k-gcc-wrapper-15.2.0/bin/gcc -U_FORTIFY_SOURCE -fstack-protector -Wall -Wunused-but-set-parameter -Wno-free-nonheap-object -fno-omit-frame-pointer '-std=c++17' ... (remaining 51 arguments skipped)
+
+Use --sandbox_debug to see verbose messages from the sandbox and retain the sandbox build root for debugging
+src/game/assets/rigid_animation.cpp: In function 'void voxy::game::assets::{anonymous}::sampleLocal(const voxy::game::assets::RigidAnimationAsset&, uint32_t, double, bool, Locals&)':
+src/game/assets/rigid_animation.cpp:71:26: error: useless cast to type 'size_t' {aka 'long unsigned int'} [-Werror=useless-cast]
+   71 |     const size_t first = static_cast<size_t>(clip.channelsOffset / sizeof(moto::VmeshAnimChannel));
+      |                          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/game/assets/rigid_animation.cpp:77:68: error: implicit conversion from 'float' to 'double' to match other operand of binary expression [-Werror=double-promotion]
+   77 |             if (scalar(data,channel.keysOffset + uint64_t{mid}*4u) <= time) left = mid;
+      |                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~
+cc1plus: all warnings being treated as errors
+Target //tests:rigid_animation failed to build
+Use --verbose_failures to see the command lines of failed build steps.
+INFO: Elapsed time: 2.436s, Critical Path: 0.75s
+INFO: 6 processes: 32 action cache hit, 6 internal.
+ERROR: Build did NOT complete successfully
+//tests:rigid_animation                                         FAILED TO BUILD
+
+Executed 0 out of 1 test: 1 fails to build.

@@ -1,0 +1,120 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: 3 targets (0 packages loaded, 0 targets configured)
+Analyzing: 3 targets (0 packages loaded, 0 targets configured)
+
+Analyzing: 3 targets (0 packages loaded, 0 targets configured)
+
+INFO: Analyzed 3 targets (1 packages loaded, 52 targets configured).
+[72 / 84] Compiling tests/test_gltf_vmesh_tool.cpp; 1s linux-sandbox ... (5 actions running)
+[75 / 84] Compiling tests/test_gltf_vmesh_tool.cpp; 2s linux-sandbox ... (4 actions running)
+[77 / 85] Compiling tests/test_gltf_vmesh_tool.cpp; 3s linux-sandbox ... (4 actions, 3 running)
+FAIL: //tests:cove_save (Exit 1) (see /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-fastbuild/testlogs/tests/cove_save/test.log)
+INFO: From Testing //tests:cove_save:
+==================== Test output for //tests:cove_save:
+Running main() from gmock_main.cc
+[==========] Running 28 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 28 tests from CoveSave
+[ RUN      ] CoveSave.CharacterArchivePreservesAirborneMomentumCameraAndExactLegacyEncoding
+[       OK ] CoveSave.CharacterArchivePreservesAirborneMomentumCameraAndExactLegacyEncoding (4 ms)
+[ RUN      ] CoveSave.CharacterArchiveRejectsContradictoryMomentumWithoutChangingOutput
+[       OK ] CoveSave.CharacterArchiveRejectsContradictoryMomentumWithoutChangingOutput (1 ms)
+[ RUN      ] CoveSave.CharacterExtensionRetainsBothCargoRecords
+[       OK ] CoveSave.CharacterExtensionRetainsBothCargoRecords (2 ms)
+[ RUN      ] CoveSave.TwoJobArchiveRetainsBothLoadsAcrossGeneratorBankingCrateTowAndBothReceipts
+[       OK ] CoveSave.TwoJobArchiveRetainsBothLoadsAcrossGeneratorBankingCrateTowAndBothReceipts (10 ms)
+[ RUN      ] CoveSave.SecondJobCannotSkipGeneratorRewardOrPoweredHarbor
+[       OK ] CoveSave.SecondJobCannotSkipGeneratorRewardOrPoweredHarbor (2 ms)
+[ RUN      ] CoveSave.TwoCargoCannotDropAliasOrInventAJobAndCannotShareOneWinch
+[       OK ] CoveSave.TwoCargoCannotDropAliasOrInventAJobAndCannotShareOneWinch (2 ms)
+[ RUN      ] CoveSave.VersionFiveBoundsPhysicalCargoBeforeAllocationAndDoesNotPermitLegacyDowngrade
+[       OK ] CoveSave.VersionFiveBoundsPhysicalCargoBeforeAllocationAndDoesNotPermitLegacyDowngrade (4 ms)
+[ RUN      ] CoveSave.TowingRoundTripPreservesMotionIdentityAndLargeCounters
+[       OK ] CoveSave.TowingRoundTripPreservesMotionIdentityAndLargeCounters (1 ms)
+[ RUN      ] CoveSave.RecoveryDesignIgnoresOwnershipConditionAndOrderingButPreservesConfiguration
+[       OK ] CoveSave.RecoveryDesignIgnoresOwnershipConditionAndOrderingButPreservesConfiguration (0 ms)
+[ RUN      ] CoveSave.RecoveryDesignCapacityDeduplicatesAndNeverOverwritesProtectedLayouts
+[       OK ] CoveSave.RecoveryDesignCapacityDeduplicatesAndNeverOverwritesProtectedLayouts (2 ms)
+[ RUN      ] CoveSave.RecoveryEnvelopeRoundTripRetainsDesignsWithAndWithoutInstalledHarbor
+[       OK ] CoveSave.RecoveryEnvelopeRoundTripRetainsDesignsWithAndWithoutInstalledHarbor (3 ms)
+[ RUN      ] CoveSave.InvalidDuplicateAndOverCapacityRecoveryDesignsPreserveEncodeOutput
+[       OK ] CoveSave.InvalidDuplicateAndOverCapacityRecoveryDesignsPreserveEncodeOutput (0 ms)
+[ RUN      ] CoveSave.LooseBrokenAndBankedCargoHaveDistinctMassAndRewardMeaning
+[       OK ] CoveSave.LooseBrokenAndBankedCargoHaveDistinctMassAndRewardMeaning (3 ms)
+[ RUN      ] CoveSave.HarborExtensionPreservesFourLengthsAndIndividualBreaksOnlyAfterBanking
+[       OK ] CoveSave.HarborExtensionPreservesFourLengthsAndIndividualBreaksOnlyAfterBanking (6 ms)
+[ RUN      ] CoveSave.LegacyArchivesRemainIdenticalAndInstallingTheLiftIsExplicit
+[       OK ] CoveSave.LegacyArchivesRemainIdenticalAndInstallingTheLiftIsExplicit (2 ms)
+[ RUN      ] CoveSave.RefusesMismatchedRolesTickCargoAndImpossibleMotionWithoutChangingOutput
+[       OK ] CoveSave.RefusesMismatchedRolesTickCargoAndImpossibleMotionWithoutChangingOutput (0 ms)
+[ RUN      ] CoveSave.RefusesCorruptionTruncationTrailingDataAndUnknownVersions
+tests/test_cove_save.cpp:436: Failure
+Expected equality of these values:
+  issue.error
+    Which is: 1-byte object <04>
+  CoveSaveError::UnsupportedSchema
+    Which is: 1-byte object <03>
+
+[  FAILED  ] CoveSave.RefusesCorruptionTruncationTrailingDataAndUnknownVersions (37 ms)
+[ RUN      ] CoveSave.RefusesResignedInvalidFieldsAndNestedLengths
+[       OK ] CoveSave.RefusesResignedInvalidFieldsAndNestedLengths (3 ms)
+[ RUN      ] CoveSave.FrozenPortableArchive
+[       OK ] CoveSave.FrozenPortableArchive (0 ms)
+[ RUN      ] CoveSave.RecoveredArchiveRequiresExactRetiredParentAndRejectsOldToken
+[       OK ] CoveSave.RecoveredArchiveRequiresExactRetiredParentAndRejectsOldToken (3 ms)
+[ RUN      ] CoveSave.FragmentArchiveKeepsRemoteMotionAndWinchApartFromTheHelmRoot
+[       OK ] CoveSave.FragmentArchiveKeepsRemoteMotionAndWinchApartFromTheHelmRoot (2 ms)
+[ RUN      ] CoveSave.FragmentsCannotBeEncodedOrResignedAsAnyLegacySingleMotionVersion
+[       OK ] CoveSave.FragmentsCannotBeEncodedOrResignedAsAnyLegacySingleMotionVersion (3 ms)
+[ RUN      ] CoveSave.FragmentRootMembershipMotionControlAndRiderMustMatchTheAcceptedBuild
+[       OK ] CoveSave.FragmentRootMembershipMotionControlAndRiderMustMatchTheAcceptedBuild (1 ms)
+[ RUN      ] CoveSave.FragmentRiderCanWalkOnAnotherRootButCannotUseADisabledOrRemoteHelm
+[       OK ] CoveSave.FragmentRiderCanWalkOnAnotherRootButCannotUseADisabledOrRemoteHelm (4 ms)
+[ RUN      ] CoveSave.ThirtyTwoFragmentMotionsAndFourProtectedDesignsFitTheBoundedArchive
+[       OK ] CoveSave.ThirtyTwoFragmentMotionsAndFourProtectedDesignsFitTheBoundedArchive (9 ms)
+[ RUN      ] CoveSave.ResignedFragmentCountsAndRootRecordsAreValidatedBeforeAdmission
+[       OK ] CoveSave.ResignedFragmentCountsAndRootRecordsAreValidatedBeforeAdmission (2 ms)
+[ RUN      ] CoveSave.ExplicitSingleRootArchiveUsesItsLeastMemberKeyAndCanReturnToLegacyBytes
+[       OK ] CoveSave.ExplicitSingleRootArchiveUsesItsLeastMemberKeyAndCanReturnToLegacyBytes (2 ms)
+[ RUN      ] CoveSave.FragmentArchiveSurvivesFreshWriterRecoveryWithItsExactRetiredParent
+[       OK ] CoveSave.FragmentArchiveSurvivesFreshWriterRecoveryWithItsExactRetiredParent (4 ms)
+[----------] 28 tests from CoveSave (126 ms total)
+
+[----------] Global test environment tear-down
+[==========] 28 tests from 1 test suite ran. (126 ms total)
+[  PASSED  ] 27 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] CoveSave.RefusesCorruptionTruncationTrailingDataAndUnknownVersions
+
+ 1 FAILED TEST
+================================================================================
+ERROR: /home/modkin/workspace/schneiderlo/voxys/tests/BUILD:378:8: Compiling tests/test_gltf_vmesh_tool.cpp failed: (Exit 1): gcc failed: error executing CppCompile command (from target //tests:gltf_vmesh_tool_test) /nix/store/788mx070y81zjlg5ipcl0cra3afviw9k-gcc-wrapper-15.2.0/bin/gcc -U_FORTIFY_SOURCE -fstack-protector -Wall -Wunused-but-set-parameter -Wno-free-nonheap-object -fno-omit-frame-pointer '-std=c++17' ... (remaining 94 arguments skipped)
+
+Use --sandbox_debug to see verbose messages from the sandbox and retain the sandbox build root for debugging
+tests/test_gltf_vmesh_tool.cpp: In function '{anonymous}::Json {anonymous}::animatedDocument(float, float)':
+tests/test_gltf_vmesh_tool.cpp:370:87: error: conversion to '__gnu_cxx::__normal_iterator<unsigned char*, std::vector<unsigned char> >::difference_type' {aka 'long int'} from 'long unsigned int' may change the sign of the result [-Werror=sign-conversion]
+  370 |         view["byteOffset"]=aligned.size();aligned.insert(aligned.end(),source.begin()+start,source.begin()+start+size);
+      |                                                                                       ^~~~~
+tests/test_gltf_vmesh_tool.cpp:370:108: error: conversion to '__gnu_cxx::__normal_iterator<unsigned char*, std::vector<unsigned char> >::difference_type' {aka 'long int'} from 'long unsigned int' may change the sign of the result [-Werror=sign-conversion]
+  370 |         view["byteOffset"]=aligned.size();aligned.insert(aligned.end(),source.begin()+start,source.begin()+start+size);
+      |                                                                                                            ^~~~~
+tests/test_gltf_vmesh_tool.cpp:370:114: error: conversion to '__gnu_cxx::__normal_iterator<unsigned char*, std::vector<unsigned char> >::difference_type' {aka 'long int'} from 'long unsigned int' may change the sign of the result [-Werror=sign-conversion]
+  370 |         view["byteOffset"]=aligned.size();aligned.insert(aligned.end(),source.begin()+start,source.begin()+start+size);
+      |                                                                                                                  ^~~~
+cc1plus: all warnings being treated as errors
+Use --verbose_failures to see the command lines of failed build steps.
+INFO: Elapsed time: 5.310s, Critical Path: 3.56s
+INFO: 17 processes: 64 action cache hit, 12 internal, 5 linux-sandbox.
+ERROR: Build did NOT complete successfully
+//tests:gltf_vmesh_tool_test                                    FAILED TO BUILD
+//tests:cove_save                                                        FAILED in 0.2s
+  /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-fastbuild/testlogs/tests/cove_save/test.log
+
+Executed 1 out of 2 tests: 1 fails to build and 1 fails locally.

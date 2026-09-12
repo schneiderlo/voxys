@@ -1,0 +1,24 @@
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //tests:rigid_animation
+-----------------------------------------------------------------------------
+Running main() from gmock_main.cc
+[==========] Running 6 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 6 tests from RigidAnimation
+[ RUN      ] RigidAnimation.ExportedHierarchySamplingBoundsAndAnchorsUseOneBasis
+[       OK ] RigidAnimation.ExportedHierarchySamplingBoundsAndAnchorsUseOneBasis (0 ms)
+[ RUN      ] RigidAnimation.LoopClampStepAndShortestQuaternionBlendAreDeterministic
+[       OK ] RigidAnimation.LoopClampStepAndShortestQuaternionBlendAreDeterministic (0 ms)
+[ RUN      ] RigidAnimation.OutgoingClipKeepsItsOwnLoopPolicyDuringCrossfade
+[       OK ] RigidAnimation.OutgoingClipKeepsItsOwnLoopPolicyDuringCrossfade (0 ms)
+[ RUN      ] RigidAnimation.InvalidClipAndHierarchyAdmissionPreservesOutput
+[       OK ] RigidAnimation.InvalidClipAndHierarchyAdmissionPreservesOutput (0 ms)
+[ RUN      ] RigidAnimation.InvalidSamplePreservesLastSubmittedPose
+[       OK ] RigidAnimation.InvalidSamplePreservesLastSubmittedPose (0 ms)
+[ RUN      ] RigidAnimation.InstalledRobotAllLodsHaveRealClipsAndBoundEveryDrawVertex
+[       OK ] RigidAnimation.InstalledRobotAllLodsHaveRealClipsAndBoundEveryDrawVertex (68 ms)
+[----------] 6 tests from RigidAnimation (69 ms total)
+
+[----------] Global test environment tear-down
+[==========] 6 tests from 1 test suite ran. (69 ms total)
+[  PASSED  ] 6 tests.

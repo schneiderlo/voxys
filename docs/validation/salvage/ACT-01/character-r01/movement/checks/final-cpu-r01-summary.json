@@ -1,0 +1,36 @@
+{
+  "status": "failed",
+  "note": "Target name was incorrectly classified CPU-only before execution; cove_player includes eight existing headless GPU cases via transitive native defines. Those eight passed on AMD Radeon 890M Graphics (RADV STRIX1), Vulkan. No app or screenshot.",
+  "targets": [
+    {
+      "target": "//tests:cove_player",
+      "tests": "81",
+      "failures": "2",
+      "disabled": "0",
+      "errors": "0",
+      "time": "128.413",
+      "timestamp": "2026-09-12T13:09:24.585",
+      "name": "AllTests"
+    },
+    {
+      "target": "//tests:cove_character",
+      "tests": "6",
+      "failures": "0",
+      "disabled": "0",
+      "errors": "0",
+      "time": "0.",
+      "timestamp": "2026-09-12T13:09:15.267",
+      "name": "AllTests"
+    },
+    {
+      "target": "//tests:rigid_animation",
+      "tests": "6",
+      "failures": "0",
+      "disabled": "0",
+      "errors": "0",
+      "time": "0.069",
+      "timestamp": "2026-09-12T13:09:15.655",
+      "name": "AllTests"
+    }
+  ]
+}

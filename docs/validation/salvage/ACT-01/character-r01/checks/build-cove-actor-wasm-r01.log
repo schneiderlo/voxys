@@ -1,0 +1,171 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+-- Building for WebAssembly with Emscripten
+-- Configuring third-party dependencies...
+--   GLM: Found
+CMake Deprecation Warning at third_party/zstd/build/cmake/CMakeLists.txt:10 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+
+
+-- The ASM compiler identification is unknown
+-- Found assembler: /tmp/voxys-emsdk/upstream/emscripten/emcc
+-- ZSTD VERSION: 1.5.5
+-- CMAKE_INSTALL_PREFIX: /tmp/voxys-emsdk/upstream/emscripten/cache/sysroot
+-- CMAKE_INSTALL_LIBDIR: lib
+-- ZSTD_LEGACY_SUPPORT not defined!
+-- ZSTD_MULTITHREAD_SUPPORT is disabled
+--   zstd: Found
+--   stb: Found
+--   tinyexr: Found (with miniz)
+--   tinygltf: Found
+--   GoogleTest: Found
+--   Jolt Physics: Found (v5.5.0)
+-- CMake C compiler: Clang
+-- CMake C++ compiler: Clang
+-- CMake system name: Emscripten
+-- CMake host system processor: x86_64
+-- Box3D on Emscripten
+--   Box3D: Found (pinned d421e45c828f)
+-- Third-party configuration complete
+-- WebGPU available via Emscripten
+-- Building voxy_core with sources: core/log.cpp;core/config.cpp;core/stb_impl.cpp;gpu/context.cpp;gpu/context_surface.cpp;gpu/resources.cpp;game/assets/cooked_part_directory.cpp;game/assets/fixture_registry.cpp;game/expedition/session_events.cpp;game/expedition/session_transactions.cpp;game/assets/cooked_part_bundle.cpp;game/assets/rigid_prefab.cpp;game/assets/rigid_animation.cpp;game/assets/robot_asset.cpp;game/assets/gameplay_sidecar.cpp;game/expedition/game_session.cpp;game/expedition/session_recovery.cpp;game/expedition/session_save.cpp;game/expedition/cove_save.cpp;game/expedition/cove_restore.cpp;game/expedition/save_generation.cpp;game/construction/build_refit.cpp;game/construction/build_model.cpp;game/construction/assembly_compiler.cpp;geometry/box_union.cpp;game/construction/assembly_collision.cpp;game/construction/orthogonal_coverage.cpp;game/construction/assembly_buoyancy.cpp;game/construction/assembly_functions.cpp;game/construction/compiled_assembly.cpp;game/construction/assembly_fracture.cpp;game/construction/construction_types.cpp;game/construction/part_catalog.cpp;game/expedition/cove_player.cpp;game/expedition/cove_camera.cpp;game/expedition/cove_workshop.cpp;game/expedition/design_library.cpp;game/expedition/workshop_camera.cpp;game/expedition/cove_build.cpp;game/expedition/cove_boat.cpp;game/expedition/cove_rigid_roots.cpp;game/expedition/cove_harbor_lift.cpp;game/expedition/cove_harbor_runtime.cpp;game/expedition/salvage_preview.cpp;game/wreckwater_character_authority_bridge.cpp;game/wreckwater_character_movement.cpp;game/wreckwater_character_step.cpp;game/wreckwater_content_manifest.cpp;game/wreckwater_live_world.cpp;game/wreckwater_match.cpp;game/wreckwater_replay.cpp;game/wreckwater_replay_playback.cpp;game/wreckwater_vessel_damage.cpp;gameplay/structural_assembly.cpp;gameplay/platform_parity.cpp;gameplay/vertical_slices.cpp;gameplay/water_dynamics.cpp;moto/bike.cpp;moto/race.cpp;moto/session.cpp;moto/vmesh_io.cpp;moto/world.cpp;terrain/heightmap.cpp;terrain/authored_cove.cpp;terrain/compression.cpp;terrain/mip_generator.cpp;terrain/textures.cpp;terrain/shadow_bake.cpp;voxel/svo_buffers.cpp;render/cove_hud.cpp;render/triangle_path.cpp;render/mip_pipeline.cpp;render/raycast_path.cpp;render/debug_visualizer.cpp;render/mesh_path.cpp;render/environment_lighting.cpp;render/salvage_asset_fixture.cpp;render/inspection_guides.cpp;render/cove_dock_markings.cpp;render/blit_path.cpp;render/opaque_scene.cpp;render/water_clipmap_mesh.cpp;render/water_simulation.cpp;render/primitive_culling.cpp;render/primitive_gpu_culling.cpp;render/primitive_instance_packing.cpp;render/primitive_path.cpp;camera/camera.cpp;camera/controller.cpp;camera/character_controller.cpp;physics/box3d/box3d_backend.cpp;physics/character/cpu_capsule_mover.cpp;physics/deterministic/lockstep_world.cpp;physics/deterministic/replay.cpp;physics/gpu/debug_readback_ring.cpp;physics/gpu/deterministic_primitives.cpp;physics/gpu/gpu_buffer_arena.cpp;physics/gpu/gpu_broad_phase.cpp;physics/gpu/gpu_ccd.cpp;physics/gpu/gpu_attachments.cpp;physics/gpu/gpu_dynamic_solver.cpp;physics/gpu/gpu_event_readback.cpp;physics/gpu/gpu_islands.cpp;physics/gpu/gpu_lockstep.cpp;physics/gpu/gpu_narrow_phase.cpp;physics/gpu/gpu_queries.cpp;physics/gpu/gpu_physics_backend.cpp;physics/jolt/jolt_backend.cpp;physics/physics_backend_factory.cpp;physics/physics_types.cpp;physics/rigid_mass_frame.cpp;physics/authored_body_frame.cpp;physics/authored_shape.cpp;physics/authored_shape_pool.cpp;physics/gpu/gpu_authored_shapes.cpp;physics/physics_world.cpp;network/authoritative_sandbox.cpp;network/deterministic_adversity_transport.cpp;network/multiplayer_session.cpp;network/native_tcp_transport.cpp;network/protocol.cpp;network/replication.cpp;network/ridgebreak_client_replication.cpp;network/ridgebreak_protocol.cpp;network/session_transport.hpp;network/transport.cpp;network/wreckwater_client_replication.cpp;network/wreckwater_client_runtime.cpp;network/wreckwater_protocol.cpp;client/wreckwater_character_platform_timeline.cpp;client/wreckwater_character_controller.cpp;client/wreckwater_character_presentation.cpp;client/wreckwater_third_person_camera.cpp;client/wreckwater_application_client.cpp;client/wreckwater_client_visual_clock.cpp;client/wreckwater_graphical_client_loop.cpp;server/native_gpu_backend.cpp;server/ridgebreak_authority.cpp;server/ridgebreak_server_runtime.cpp;server/wreckwater_authority_runtime.cpp;server/world_coordinator.cpp;engine/platform/wasm/window.cpp;engine/platform/wasm/input.cpp;app/application.cpp;game/lego_playground.cpp;app/debug_overlay.cpp;perf/gpu_timer.cpp;perf/benchmark.cpp
+-- Configuring WASM target: voxy_wasm
+-- 
+-- ═══════════════════════════════════════════════════════════════
+--   voxy 0.1.0 Configuration Summary
+-- ═══════════════════════════════════════════════════════════════
+--   Build type:        Release
+--   C++ Standard:      20
+--   Native build:      OFF
+--   WASM build:        ON
+--   Build tools:       OFF
+--   Build tests:       OFF
+--   Build benchmarks:  OFF
+--   Validation:        ON
+--   Jolt Physics:      ON
+-- ═══════════════════════════════════════════════════════════════
+-- 
+-- Configuring done (2.1s)
+-- Generating done (0.0s)
+-- Build files have been written to: /home/modkin/workspace/schneiderlo/voxys/build-lego-wasm
+[  1%] Built target miniz
+[  9%] Built target libzstd_static
+[  9%] Built target tinygltf
+[ 22%] Built target box3d
+[ 57%] Built target Jolt
+[ 58%] Building CXX object src/CMakeFiles/voxy_core.dir/game/expedition/cove_restore.cpp.o
+[ 58%] Building CXX object src/CMakeFiles/voxy_core.dir/game/assets/robot_asset.cpp.o
+[ 58%] Building CXX object src/CMakeFiles/voxy_core.dir/game/expedition/cove_save.cpp.o
+[ 58%] Building CXX object src/CMakeFiles/voxy_core.dir/game/assets/rigid_animation.cpp.o
+[ 58%] Building CXX object src/CMakeFiles/voxy_core.dir/game/expedition/cove_player.cpp.o
+[ 59%] Building CXX object src/CMakeFiles/voxy_core.dir/game/expedition/cove_camera.cpp.o
+/home/modkin/workspace/schneiderlo/voxys/src/game/expedition/cove_camera.cpp:167:73: warning: implicit conversion increases floating-point precision: 'const float' to 'const double' [-Wdouble-promotion]
+  167 |     const glm::dvec2 origin(surface.origin());const double cell=surface.cellScale;
+      |                                                            ~~~~ ~~~~~~~~^~~~~~~~~
+1 warning generated.
+[ 59%] Building CXX object src/CMakeFiles/voxy_core.dir/game/expedition/cove_workshop.cpp.o
+/home/modkin/workspace/schneiderlo/voxys/src/game/assets/rigid_animation.cpp:72:96: warning: implicit conversion increases floating-point precision: 'const float' to 'double' [-Wdouble-promotion]
+   72 |         pose[i].rotation = glm::normalize(glm::dquat(n.rotation[3],n.rotation[0],n.rotation[1],n.rotation[2]));
+      |                                           ~~~                                                  ^~~~~~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/src/game/assets/rigid_animation.cpp:72:82: warning: implicit conversion increases floating-point precision: 'const float' to 'double' [-Wdouble-promotion]
+   72 |         pose[i].rotation = glm::normalize(glm::dquat(n.rotation[3],n.rotation[0],n.rotation[1],n.rotation[2]));
+      |                                           ~~~                                    ^~~~~~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/src/game/assets/rigid_animation.cpp:72:68: warning: implicit conversion increases floating-point precision: 'const float' to 'double' [-Wdouble-promotion]
+   72 |         pose[i].rotation = glm::normalize(glm::dquat(n.rotation[3],n.rotation[0],n.rotation[1],n.rotation[2]));
+      |                                           ~~~                      ^~~~~~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/src/game/assets/rigid_animation.cpp:72:54: warning: implicit conversion increases floating-point precision: 'const float' to 'double' [-Wdouble-promotion]
+   72 |         pose[i].rotation = glm::normalize(glm::dquat(n.rotation[3],n.rotation[0],n.rotation[1],n.rotation[2]));
+      |                                           ~~~        ^~~~~~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/src/game/assets/rigid_animation.cpp:89:34: warning: implicit conversion increases floating-point precision: 'float' to 'const double' [-Wdouble-promotion]
+   89 |         const double firstTime = scalar(data,channel.keysOffset + uint64_t{left}*4u);
+      |                      ~~~~~~~~~   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/src/game/assets/rigid_animation.cpp:90:33: warning: implicit conversion increases floating-point precision: 'float' to 'const double' [-Wdouble-promotion]
+   90 |         const double lastTime = scalar(data,channel.keysOffset + uint64_t{right}*4u);
+      |                      ~~~~~~~~   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/src/game/assets/rigid_animation.cpp:97:41: warning: implicit conversion increases floating-point precision: 'float' to 'value_type' (aka 'double') [-Wdouble-promotion]
+   97 |             a[static_cast<size_t>(v)] = scalar(data,values+(uint64_t{left}*width+v)*4u);
+      |                                       ~ ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/src/game/assets/rigid_animation.cpp:98:41: warning: implicit conversion increases floating-point precision: 'float' to 'value_type' (aka 'double') [-Wdouble-promotion]
+   98 |             b[static_cast<size_t>(v)] = scalar(data,values+(uint64_t{right}*width+v)*4u);
+      |                                       ~ ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/src/game/assets/rigid_animation.cpp:175:34: warning: implicit conversion increases floating-point precision: 'float' to 'const double' [-Wdouble-promotion]
+  175 |                 const double t = scalar(data,c.keysOffset+uint64_t{key}*4u);
+      |                              ~   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/src/game/assets/rigid_animation.cpp:181:42: warning: implicit conversion increases floating-point precision: 'float' to 'const double' [-Wdouble-promotion]
+  181 |                     const double value = scalar(data,c.keysOffset+(uint64_t{c.keyCount}+uint64_t{key}*width+v)*4u);
+      |                                  ~~~~~   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/game/assets/robot_asset.cpp:3:
+/home/modkin/workspace/schneiderlo/voxys/third_party/tinygltf/json.hpp:5563:14: error: implicit instantiation of undefined template 'std::char_traits<unsigned char>'
+ 5563 |     typename std::char_traits<char_type>::int_type get_character()
+      |              ^
+/home/modkin/workspace/schneiderlo/voxys/third_party/tinygltf/json.hpp:24443:16: note: in instantiation of template class 'nlohmann::detail::iterator_input_adapter<std::__wrap_iter<const unsigned char *>>' requested here
+ 24443 |         parser(detail::input_adapter(std::move(first), std::move(last)), cb, allow_exceptions, ignore_comments).parse(true, result);
+       |                ^
+/home/modkin/workspace/schneiderlo/voxys/src/game/assets/robot_asset.cpp:13:45: note: in instantiation of function template specialization 'nlohmann::basic_json<>::parse<std::__wrap_iter<const unsigned char *>>' requested here
+   13 |         const auto document=nlohmann::json::parse(manifest->begin(),manifest->end(),[&](int depth,auto event,auto& parsed){
+      |                                             ^
+/home/modkin/workspace/schneiderlo/voxys/build-toolchains/emsdk-6.0.1/upstream/emscripten/cache/sysroot/include/c++/v1/__fwd/string.h:23:8: note: template is declared here
+   23 | struct char_traits;
+      |        ^
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/game/assets/robot_asset.cpp:3:
+/home/modkin/workspace/schneiderlo/voxys/third_party/tinygltf/json.hpp:6738:36: error: implicit instantiation of undefined template 'std::char_traits<unsigned char>'
+ 6738 |     using char_int_type = typename std::char_traits<char_type>::int_type;
+      |                                    ^
+/home/modkin/workspace/schneiderlo/voxys/third_party/tinygltf/json.hpp:10984:33: note: in instantiation of template class 'nlohmann::detail::lexer<nlohmann::basic_json<>, nlohmann::detail::iterator_input_adapter<std::__wrap_iter<const unsigned char *>>>' requested here
+ 10984 |     using token_type = typename lexer_t::token_type;
+       |                                 ^
+/home/modkin/workspace/schneiderlo/voxys/third_party/tinygltf/json.hpp:24443:9: note: in instantiation of template class 'nlohmann::detail::parser<nlohmann::basic_json<>, nlohmann::detail::iterator_input_adapter<std::__wrap_iter<const unsigned char *>>>' requested here
+ 24443 |         parser(detail::input_adapter(std::move(first), std::move(last)), cb, allow_exceptions, ignore_comments).parse(true, result);
+       |         ^
+/home/modkin/workspace/schneiderlo/voxys/src/game/assets/robot_asset.cpp:13:45: note: in instantiation of function template specialization 'nlohmann::basic_json<>::parse<std::__wrap_iter<const unsigned char *>>' requested here
+   13 |         const auto document=nlohmann::json::parse(manifest->begin(),manifest->end(),[&](int depth,auto event,auto& parsed){
+      |                                             ^
+/home/modkin/workspace/schneiderlo/voxys/build-toolchains/emsdk-6.0.1/upstream/emscripten/cache/sysroot/include/c++/v1/__fwd/string.h:23:8: note: template is declared here
+   23 | struct char_traits;
+      |        ^
+2 errors generated.
+make[3]: *** [src/CMakeFiles/voxy_core.dir/build.make:261: src/CMakeFiles/voxy_core.dir/game/assets/robot_asset.cpp.o] Error 1
+make[3]: *** Waiting for unfinished jobs....
+10 warnings generated.
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/game/expedition/cove_restore.cpp:1:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/game/expedition/cove_restore.hpp:3:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/game/expedition/cove_build.hpp:2:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/game/expedition/cove_boat.hpp:5:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/physics/authored_body_frame.hpp:4:
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:36:34: warning: explicitly defaulted three-way comparison operator is implicitly deleted [-Wdefaulted-function-deleted]
+   36 |     [[nodiscard]] constexpr auto operator<=>(
+      |                                  ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:33:16: note: defaulted 'operator<=>' is implicitly deleted because there is no viable three-way comparison function for member 'sector'
+   33 |     glm::ivec3 sector{0};
+      |                ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:37:48: note: replace 'default' with 'delete'
+   37 |         const WorldPosition&) const noexcept = default;
+      |                                                ^~~~~~~
+      |                                                delete
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/game/expedition/cove_workshop.cpp:1:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/game/expedition/cove_workshop.hpp:2:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/game/expedition/cove_boat.hpp:5:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/physics/authored_body_frame.hpp:4:
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:36:34: warning: explicitly defaulted three-way comparison operator is implicitly deleted [-Wdefaulted-function-deleted]
+   36 |     [[nodiscard]] constexpr auto operator<=>(
+      |                                  ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:33:16: note: defaulted 'operator<=>' is implicitly deleted because there is no viable three-way comparison function for member 'sector'
+   33 |     glm::ivec3 sector{0};
+      |                ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:37:48: note: replace 'default' with 'delete'
+   37 |         const WorldPosition&) const noexcept = default;
+      |                                                ^~~~~~~
+      |                                                delete
+1 warning generated.
+1 warning generated.
+make[2]: *** [CMakeFiles/Makefile2:701: src/CMakeFiles/voxy_core.dir/all] Error 2
+make[1]: *** [CMakeFiles/Makefile2:319: CMakeFiles/voxy_wasm.dir/rule] Error 2
+make: *** [Makefile:170: voxy_wasm] Error 2

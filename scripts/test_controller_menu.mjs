@@ -113,4 +113,27 @@ for(const navigation of [null,'controller','mouse']){
     f.menu.tick({...f.state,gamepad:{connected:false,armed:false,menuOwner:false}});assert(help.hidden);
     f.menu.cleanup();++cases;
 }
+{
+    const f=fixture(),camera=f.add('details','salvage-camera',f.panel),summary=f.add('summary',null,camera);
+    const near=f.add('button','camera-near',camera),far=f.add('button','camera-far',camera);let calls=0;
+    near.addEventListener('click',()=>++calls);f.state.workshop.open=false;f.state.characterCamera={available:true};f.menu.tick(f.state);
+    assert(f.menu.openSection(camera));assert(f.active()&&camera.open);assert.equal(f.document.activeElement,near);
+    f.input({confirm:true});assert.equal(calls,1);f.input({down:true});assert.equal(f.document.activeElement,far);
+    f.input({down:true});assert.equal(f.document.activeElement,summary,'section navigation cannot reach Leave or Workshop');
+    f.input({back:true,confirm:true});assert(!f.active()&&!camera.open);assert.equal(calls,1);assert.equal(f.document.activeElement,f.canvas);
+    assert(f.menu.openSection(camera));f.input({menu:true,confirm:true});assert(!f.active()&&!camera.open);assert.equal(calls,1);
+    f.menu.cleanup();assert(!f.menu.openSection(camera));++cases;
+}
+for(const transition of ['unavailable','workshop','hidden','closed','world','blur','cleanup']){
+    const f=fixture(),camera=f.add('details','salvage-camera',f.panel);f.add('summary',null,camera);f.add('button',null,camera);
+    f.state.workshop.open=false;f.state.characterCamera={available:true};f.menu.tick(f.state);assert(f.menu.openSection(camera));
+    if(transition==='unavailable')f.state.characterCamera.available=false;
+    if(transition==='workshop')f.state.workshop.open=true;
+    if(transition==='hidden')camera.hidden=true;
+    if(transition==='closed')camera.open=false;
+    if(transition==='world')f.state.world='world-b';
+    if(transition==='blur')f.environment.emit('blur');
+    if(transition==='cleanup')f.menu.cleanup();else f.menu.tick(f.state);
+    assert(!f.menu.active()&&!camera.open,transition);if(transition!=='cleanup')assert.equal(f.input({confirm:true}),false,transition);f.menu.cleanup();++cases;
+}
 console.log(`Controller menu ownership, navigation, naming and lifecycle: ${cases} cases passed`);

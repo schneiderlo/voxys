@@ -1,0 +1,335 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: 3 targets (0 packages loaded, 0 targets configured)
+Analyzing: 3 targets (0 packages loaded, 0 targets configured)
+
+Analyzing: 3 targets (0 packages loaded, 0 targets configured)
+
+INFO: Analyzed 3 targets (2 packages loaded, 263 targets configured).
+[410 / 421] Compiling tests/test_rigid_animation.cpp; 1s linux-sandbox ... (5 actions, 4 running)
+[418 / 423] 2 / 3 tests; Compiling tests/test_cove_player.cpp; 2s linux-sandbox ... (2 actions running)
+[421 / 423] 2 / 3 tests; Compiling tests/test_cove_player.cpp; 3s linux-sandbox
+[422 / 423] 2 / 3 tests; [Prepa] Linking tests/cove_player
+[423 / 424] 2 / 3 tests; Testing //tests:cove_player; 0s linux-sandbox
+[423 / 424] 2 / 3 tests; Testing //tests:cove_player; 10s linux-sandbox
+[423 / 424] 2 / 3 tests; Testing //tests:cove_player; 40s linux-sandbox
+[423 / 424] 2 / 3 tests; Testing //tests:cove_player; 100s linux-sandbox
+FAIL: //tests:cove_player (Exit 1) (see /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-fastbuild/testlogs/tests/cove_player/test.log)
+[423 / 424] 3 / 3 tests, 1 failed; Testing //tests:cove_player; 128s linux-sandbox
+INFO: From Testing //tests:cove_player:
+==================== Test output for //tests:cove_player:
+Running main() from gmock_main.cc
+[==========] Running 81 tests from 3 test suites.
+[----------] Global test environment set-up.
+[----------] 5 tests from CoveMechanismsTest
+[ RUN      ] CoveMechanismsTest.SubmittedTicksRespectDirectionStopAndDiscard
+[       OK ] CoveMechanismsTest.SubmittedTicksRespectDirectionStopAndDiscard (0 ms)
+[ RUN      ] CoveMechanismsTest.RopeIdentityAndMonotonicTicksRejectRetiredSamples
+[       OK ] CoveMechanismsTest.RopeIdentityAndMonotonicTicksRejectRetiredSamples (0 ms)
+[ RUN      ] CoveMechanismsTest.PauseAndDetachRebaseWithoutQueuedCatchUp
+[       OK ] CoveMechanismsTest.PauseAndDetachRebaseWithoutQueuedCatchUp (0 ms)
+[ RUN      ] CoveMechanismsTest.MalformedSamplesAndOverflowLeaveTheCommittedStateUntouched
+[       OK ] CoveMechanismsTest.MalformedSamplesAndOverflowLeaveTheCommittedStateUntouched (0 ms)
+[ RUN      ] CoveMechanismsTest.NewWorldStartsNeutralWithoutPersistentVisualState
+[       OK ] CoveMechanismsTest.NewWorldStartsNeutralWithoutPersistentVisualState (0 ms)
+[----------] 5 tests from CoveMechanismsTest (0 ms total)
+
+[----------] 75 tests from CoveMovement
+[ RUN      ] CoveMovement.BrickPointerPlacementRotatesStacksRefusesOverlapAndRestoresOwnedDesign
+[       OK ] CoveMovement.BrickPointerPlacementRotatesStacksRefusesOverlapAndRestoresOwnedDesign (467 ms)
+[ RUN      ] CoveMovement.BrickToolRepeatsRotatedPlacementsAndLaunchExcludesUnusedGhost
+[       OK ] CoveMovement.BrickToolRepeatsRotatedPlacementsAndLaunchExcludesUnusedGhost (478 ms)
+[ RUN      ] CoveMovement.BrickToolRefusalUndoAndExplicitKeepPreserveOrdinaryEditSemantics
+[       OK ] CoveMovement.BrickToolRefusalUndoAndExplicitKeepPreserveOrdinaryEditSemantics (448 ms)
+[ RUN      ] CoveMovement.BrickToolUsesEachStoredPartOnceAndDoesNotReserveItsFinalPreview
+[       OK ] CoveMovement.BrickToolUsesEachStoredPartOnceAndDoesNotReserveItsFinalPreview (387 ms)
+[ RUN      ] CoveMovement.BrickPaintOnlyKeepUndoAndLaunchPreserveGeometryCostAndIdentity
+[       OK ] CoveMovement.BrickPaintOnlyKeepUndoAndLaunchPreserveGeometryCostAndIdentity (437 ms)
+[ RUN      ] CoveMovement.BrickPaintBrushCarriesExplicitColorAcrossPlacementsAndTypes
+[       OK ] CoveMovement.BrickPaintBrushCarriesExplicitColorAcrossPlacementsAndTypes (479 ms)
+[ RUN      ] CoveMovement.BrickPaintOverridesStoredColorWithoutChangingStockIdentityOrCondition
+[       OK ] CoveMovement.BrickPaintOverridesStoredColorWithoutChangingStockIdentityOrCondition (400 ms)
+[ RUN      ] CoveMovement.SixtyFourLargeBricksCompileRoundTripAndRefuseWholeSceneOverflow
+[       OK ] CoveMovement.SixtyFourLargeBricksCompileRoundTripAndRefuseWholeSceneOverflow (6054 ms)
+[ RUN      ] CoveMovement.HarborLiftUsesActualHullSupportsAndCanonicalBodyFrames
+[       OK ] CoveMovement.HarborLiftUsesActualHullSupportsAndCanonicalBodyFrames (321 ms)
+[ RUN      ] CoveMovement.HarborLiftRefusesUnsafeAttachmentAndUnsupportedHulls
+[       OK ] CoveMovement.HarborLiftRefusesUnsafeAttachmentAndUnsupportedHulls (330 ms)
+[ RUN      ] CoveMovement.OwnedRestorePreparesIndependentBodiesPlayerAndTowWithoutPublishing
+[       OK ] CoveMovement.OwnedRestorePreparesIndependentBodiesPlayerAndTowWithoutPublishing (341 ms)
+[ RUN      ] CoveMovement.HarborParkingUsesExistingPierAndAvoidsPlayerOccupancy
+[       OK ] CoveMovement.HarborParkingUsesExistingPierAndAvoidsPlayerOccupancy (319 ms)
+[ RUN      ] CoveMovement.HarborPostsBlockWalkingAndSavedPlayerOccupancy
+tests/test_cove_player.cpp:706: Failure
+Expected: (player.feet().x) > (center.x+3.3), actual: 3.76 vs 3.8
+
+[  FAILED  ] CoveMovement.HarborPostsBlockWalkingAndSavedPlayerOccupancy (320 ms)
+[ RUN      ] CoveMovement.CanonicalStarterBuildOwnsActualPartsWeldsAndLoanIdentity
+[       OK ] CoveMovement.CanonicalStarterBuildOwnsActualPartsWeldsAndLoanIdentity (325 ms)
+[ RUN      ] CoveMovement.CanonicalStarterBuildRejectsExhaustionAndAmbiguousSceneMapping
+[       OK ] CoveMovement.CanonicalStarterBuildRejectsExhaustionAndAmbiguousSceneMapping (322 ms)
+[ RUN      ] CoveMovement.WorkshopDesignBecomesCanonicalConnectedEditWithRecompiledHull
+[       OK ] CoveMovement.WorkshopDesignBecomesCanonicalConnectedEditWithRecompiledHull (337 ms)
+[ RUN      ] CoveMovement.SettingsSurviveLaunchMappingAndUndoWithoutCostOrIdentityChanges
+[       OK ] CoveMovement.SettingsSurviveLaunchMappingAndUndoWithoutCostOrIdentityChanges (370 ms)
+[ RUN      ] CoveMovement.SavedDesignReloadReusesOwnedPartsAndPricesAdditionsWithoutGrantingLoans
+[       OK ] CoveMovement.SavedDesignReloadReusesOwnedPartsAndPricesAdditionsWithoutGrantingLoans (347 ms)
+[ RUN      ] CoveMovement.ReplacementGrantMapsTheSameInstalledLegoPiecesWithNewIdentities
+[       OK ] CoveMovement.ReplacementGrantMapsTheSameInstalledLegoPiecesWithNewIdentities (319 ms)
+[ RUN      ] CoveMovement.StoredPontoonIsQuotedAndLaunchedWithItsExactConditionAndConfiguration
+[       OK ] CoveMovement.StoredPontoonIsQuotedAndLaunchedWithItsExactConditionAndConfiguration (336 ms)
+[ RUN      ] CoveMovement.NormalizedRecoveryRestoresWeldedLayoutAndSettingsUsingStoredPaidPart
+[       OK ] CoveMovement.NormalizedRecoveryRestoresWeldedLayoutAndSettingsUsingStoredPaidPart (340 ms)
+[ RUN      ] CoveMovement.CuttingAddedPontoonPreparesTwoCompleteRootsWithoutLosingOwnedParts
+[       OK ] CoveMovement.CuttingAddedPontoonPreparesTwoCompleteRootsWithoutLosingOwnedParts (345 ms)
+[ RUN      ] CoveMovement.FragmentRootsPreserveBindingsAndKeepHelmOffTheFirstDetachedPontoon
+[       OK ] CoveMovement.FragmentRootsPreserveBindingsAndKeepHelmOffTheFirstDetachedPontoon (318 ms)
+[ RUN      ] CoveMovement.EverySeparatedPartHasItsOwnShapeWaterAndModuleConfiguration
+[       OK ] CoveMovement.EverySeparatedPartHasItsOwnShapeWaterAndModuleConfiguration (315 ms)
+[ RUN      ] CoveMovement.CutProtectsIntactDesignAndReopensBrokenWorkshopWithoutRepairingOwnership
+[       OK ] CoveMovement.CutProtectsIntactDesignAndReopensBrokenWorkshopWithoutRepairingOwnership (343 ms)
+[ RUN      ] CoveMovement.CutterReachUsesObservedSocketPoseAndRejectsStaleDisabledOrRemoteWelds
+[       OK ] CoveMovement.CutterReachUsesObservedSocketPoseAndRejectsStaleDisabledOrRemoteWelds (322 ms)
+[ RUN      ] CoveMovement.CutTransfersStandingPlayerToDetachedSupportWithoutMovingTheirWorldFeet
+[       OK ] CoveMovement.CutTransfersStandingPlayerToDetachedSupportWithoutMovingTheirWorldFeet (320 ms)
+[ RUN      ] CoveMovement.DetachedRiderFollowsItsSectionAndCannotStandOnAnotherSectionsOldDeck
+[       OK ] CoveMovement.DetachedRiderFollowsItsSectionAndCannotStandOnAnotherSectionsOldDeck (339 ms)
+[ RUN      ] CoveMovement.FragmentArchiveRestoresEveryPoseDetachedRiderAndWinchWithoutPublishing
+tests/test_cove_player.cpp:1352: Failure
+Expected equality of these values:
+  restored->player->state().root
+    Which is: 24-byte object <00-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00 00-00>
+  rider.key
+    Which is: 24-byte object <72-65 73-74 6F-72 65-2D 72-6F 6F-74 00-00 00-00 07-00 00-00 00-00 00-00>
+
+[  FAILED  ] CoveMovement.FragmentArchiveRestoresEveryPoseDetachedRiderAndWinchWithoutPublishing (332 ms)
+[ RUN      ] CoveMovement.RecoveryPreparesEveryCutPartWithoutChangingOwnershipOrMovingOnlySomeSections
+[       OK ] CoveMovement.RecoveryPreparesEveryCutPartWithoutChangingOwnershipOrMovingOnlySomeSections (325 ms)
+[ RUN      ] CoveMovement.RecoveryReturnsAnUnbuoyantLoadWithoutInventingFlotation
+[       OK ] CoveMovement.RecoveryReturnsAnUnbuoyantLoadWithoutInventingFlotation (317 ms)
+[ RUN      ] CoveMovement.RecoveryOfPaidLayoutStartsClearOfTheDock
+[       OK ] CoveMovement.RecoveryOfPaidLayoutStartsClearOfTheDock (358 ms)
+[ RUN      ] CoveMovement.LaunchShapesRetryBusyWithoutLosingPayloadOrDuplicatingAcceptedRoots
+[       OK ] CoveMovement.LaunchShapesRetryBusyWithoutLosingPayloadOrDuplicatingAcceptedRoots (322 ms)
+[ RUN      ] CoveMovement.LaunchShapeTerminalErrorsRetainEveryPartialHandleForCancellation
+[       OK ] CoveMovement.LaunchShapeTerminalErrorsRetainEveryPartialHandleForCancellation (319 ms)
+[ RUN      ] CoveMovement.LiveRootOwnerBoundsEverySectionAndRefusesMixedObservations
+[       OK ] CoveMovement.LiveRootOwnerBoundsEverySectionAndRefusesMixedObservations (321 ms)
+[ RUN      ] CoveMovement.CutMotionStagesAllIndependentParentsOrLeavesEveryChildUnchanged
+[       OK ] CoveMovement.CutMotionStagesAllIndependentParentsOrLeavesEveryChildUnchanged (322 ms)
+[ RUN      ] CoveMovement.PaidAdditionLaunchMappingChargesOnceAndUndoRestoresItsExactIdentity
+[       OK ] CoveMovement.PaidAdditionLaunchMappingChargesOnceAndUndoRestoresItsExactIdentity (372 ms)
+[ RUN      ] CoveMovement.AddedGhostCanBeCanceledWithoutChangingBlueprintOrSpending
+[       OK ] CoveMovement.AddedGhostCanBeCanceledWithoutChangingBlueprintOrSpending (341 ms)
+[ RUN      ] CoveMovement.WorkshopRefusesDisconnectedChangeWithoutEditingCraft
+[       OK ] CoveMovement.WorkshopRefusesDisconnectedChangeWithoutEditingCraft (316 ms)
+[ RUN      ] CoveMovement.WorkshopSnapsWinchToRealFreeSocketAndUndoRestoresExactDesign
+[       OK ] CoveMovement.WorkshopSnapsWinchToRealFreeSocketAndUndoRestoresExactDesign (320 ms)
+[ RUN      ] CoveMovement.WorkshopRemovesCradleAndUndoRestoresItsMassAndConnections
+[       OK ] CoveMovement.WorkshopRemovesCradleAndUndoRestoresItsMassAndConnections (321 ms)
+[ RUN      ] CoveMovement.CompilesActualBoatMassHullFlotationAndPartTransforms
+[       OK ] CoveMovement.CompilesActualBoatMassHullFlotationAndPartTransforms (312 ms)
+[ RUN      ] CoveMovement.SalvageLoadHasIndependentMassTowEyeAndNoStaticDuplicate
+[       OK ] CoveMovement.SalvageLoadHasIndependentMassTowEyeAndNoStaticDuplicate (314 ms)
+[ RUN      ] CoveMovement.WaterPhaseIsBoundToOwnedTickAndSurvivesLargeRestoreEpoch
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[INFO ] [12:18:29.875] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [12:18:29.875] [GPU]   Vendor: radv
+[INFO ] [12:18:29.875] [GPU]   Backend: Vulkan
+[INFO ] [12:18:29.875] [GPU]   Type: Integrated GPU
+[INFO ] [12:18:29.877] [GPU] Headless GPU context initialized successfully
+[INFO ] [12:18:37.462] WebGPU physics initialized: 8 usable body slots, 0 MiB resident, 0 MiB scratch
+[WARN ] [12:18:37.481] Abandoning undrained authored shape resources during world shutdown
+[INFO ] [12:18:44.815] WebGPU physics initialized: 8 usable body slots, 0 MiB resident, 0 MiB scratch
+[WARN ] [12:18:44.834] Abandoning undrained authored shape resources during world shutdown
+[INFO ] [12:18:52.467] WebGPU physics initialized: 8 usable body slots, 0 MiB resident, 0 MiB scratch
+[WARN ] [12:18:52.485] Abandoning undrained authored shape resources during world shutdown
+[       OK ] CoveMovement.WaterPhaseIsBoundToOwnedTickAndSurvivesLargeRestoreEpoch (22980 ms)
+[ RUN      ] CoveMovement.ActualRecoveryMovesRemoteSectionsTogetherOrLeavesEveryBodyInPlace
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[INFO ] [12:18:52.859] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [12:18:52.859] [GPU]   Vendor: radv
+[INFO ] [12:18:52.859] [GPU]   Backend: Vulkan
+[INFO ] [12:18:52.859] [GPU]   Type: Integrated GPU
+[INFO ] [12:18:52.860] [GPU] Headless GPU context initialized successfully
+[INFO ] [12:19:00.305] WebGPU physics initialized: 8 usable body slots, 0 MiB resident, 0 MiB scratch
+[       OK ] CoveMovement.ActualRecoveryMovesRemoteSectionsTogetherOrLeavesEveryBodyInPlace (7826 ms)
+[ RUN      ] CoveMovement.CutBodyAndWaterCapacityRefusalCancelsEveryChildAndReusesAllReservations
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[INFO ] [12:19:00.673] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [12:19:00.673] [GPU]   Vendor: radv
+[INFO ] [12:19:00.673] [GPU]   Backend: Vulkan
+[INFO ] [12:19:00.673] [GPU]   Type: Integrated GPU
+[INFO ] [12:19:00.675] [GPU] Headless GPU context initialized successfully
+[INFO ] [12:19:08.545] WebGPU physics initialized: 16 usable body slots, 0 MiB resident, 0 MiB scratch
+[INFO ] [12:19:16.322] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch
+[       OK ] CoveMovement.CutBodyAndWaterCapacityRefusalCancelsEveryChildAndReusesAllReservations (16030 ms)
+[ RUN      ] CoveMovement.ActualCutReplacesOneMovingSkiffWithTwoCompleteFloatingGpuBodies
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[INFO ] [12:19:16.705] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [12:19:16.705] [GPU]   Vendor: radv
+[INFO ] [12:19:16.705] [GPU]   Backend: Vulkan
+[INFO ] [12:19:16.705] [GPU]   Type: Integrated GPU
+[INFO ] [12:19:16.706] [GPU] Headless GPU context initialized successfully
+[INFO ] [12:19:24.611] WebGPU physics initialized: 16 usable body slots, 0 MiB resident, 0 MiB scratch
+Detached pontoon tick 363 y=56.3211 vy=-0.00499
+Detached pontoon tick 724 y=56.3187 vy=-0.000599617
+[       OK ] CoveMovement.ActualCutReplacesOneMovingSkiffWithTwoCompleteFloatingGpuBodies (9123 ms)
+[ RUN      ] CoveMovement.ActualSkiffHitsFixedDockButPassesThroughOpenWater
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[INFO ] [12:19:25.815] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [12:19:25.815] [GPU]   Vendor: radv
+[INFO ] [12:19:25.815] [GPU]   Backend: Vulkan
+[INFO ] [12:19:25.815] [GPU]   Type: Integrated GPU
+[INFO ] [12:19:25.816] [GPU] Headless GPU context initialized successfully
+[INFO ] [12:19:33.519] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch
+Actual dock impact: blocked hull x -0.700017, clear hull x 5.09801, peak contacts 2, scenery proxies 13
+[       OK ] CoveMovement.ActualSkiffHitsFixedDockButPassesThroughOpenWater (8120 ms)
+[ RUN      ] CoveMovement.ActualCargoAndSkiffGroundOnBrickSeabed
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[INFO ] [12:19:33.980] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [12:19:33.980] [GPU]   Vendor: radv
+[INFO ] [12:19:33.980] [GPU]   Backend: Vulkan
+[INFO ] [12:19:33.980] [GPU]   Type: Integrated GPU
+[INFO ] [12:19:33.981] [GPU] Headless GPU context initialized successfully
+[INFO ] [12:19:41.329] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+Settled generator: bottom -203.666, plate -203.84, speed 0.0365947
+[INFO ] [12:19:41.673] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [12:19:41.673] [GPU]   Vendor: radv
+[INFO ] [12:19:41.673] [GPU]   Backend: Vulkan
+[INFO ] [12:19:41.673] [GPU]   Type: Integrated GPU
+[INFO ] [12:19:41.674] [GPU] Headless GPU context initialized successfully
+[INFO ] [12:19:49.333] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch
+Grounded skiff: bottom -203.667, plate -203.84, speed 0.100339
+[       OK ] CoveMovement.ActualCargoAndSkiffGroundOnBrickSeabed (16174 ms)
+[ RUN      ] CoveMovement.HarborLiftActuallyRaisesHoldsAndLowersTheAuthoredSkiff
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[INFO ] [12:19:50.124] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [12:19:50.124] [GPU]   Vendor: radv
+[INFO ] [12:19:50.124] [GPU]   Backend: Vulkan
+[INFO ] [12:19:50.124] [GPU]   Type: Integrated GPU
+[INFO ] [12:19:50.125] [GPU] Headless GPU context initialized successfully
+[INFO ] [12:19:57.530] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch
+Lift line 1: force=2027.28, break tick=0, length=3.86 min=3.86
+Lift line 2: force=3418.08, break tick=0, length=3.86 min=3.86
+Lift line 3: force=1655.96, break tick=0, length=3.86 min=3.86
+Lift line 4: force=3047.03, break tick=0, length=3.86 min=3.86
+Lower tick 1083 position=-0.500001,-197.356,-53.9926 up=0.999999 speed=0.441388
+  rope 1 length=4.86415 force=0 break=0
+  rope 2 length=4.86415 force=0 break=0
+  rope 3 length=4.86415 force=4717.47 break=0
+  rope 4 length=4.86415 force=5036.3 break=0
+Lower tick 1324 position=-0.501177,-198.357,-53.9968 up=1 speed=0.149605
+  rope 1 length=5.8683 force=4830.66 break=0
+  rope 2 length=5.8683 force=3894.97 break=0
+  rope 3 length=5.8683 force=0 break=0
+  rope 4 length=5.8683 force=5925.5 break=0
+Lower tick 1565 position=-0.49896,-199.363,-54.0045 up=1 speed=0.30611
+  rope 1 length=6.87245 force=0 break=0
+  rope 2 length=6.87245 force=7140.18 break=0
+  rope 3 length=6.87245 force=0 break=0
+  rope 4 length=6.87245 force=6687.63 break=0
+Lower tick 1806 position=-0.495397,-199.673,-53.9951 up=0.999931 speed=0.0624604
+  rope 1 length=7.87661 force=0 break=0
+  rope 2 length=7.87661 force=0 break=0
+  rope 3 length=7.87661 force=0 break=0
+  rope 4 length=7.87661 force=0 break=0
+Lower tick 2047 position=-0.495196,-199.68,-53.9935 up=0.999935 speed=0
+  rope 1 length=8.88076 force=0 break=0
+  rope 2 length=8.88076 force=0 break=0
+  rope 3 length=8.88076 force=0 break=0
+  rope 4 length=8.88076 force=0 break=0
+Harbor lift actual 1035 kg skiff: rest=-199.68, raised=-196.354, hull bottom=-197.328, lowered=-199.68, upright=0.999987
+[       OK ] CoveMovement.HarborLiftActuallyRaisesHoldsAndLowersTheAuthoredSkiff (11155 ms)
+[ RUN      ] CoveMovement.ActualSkiffSettlesUprightAtItsDryDraft
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[INFO ] [12:20:01.317] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [12:20:01.318] [GPU]   Vendor: radv
+[INFO ] [12:20:01.318] [GPU]   Backend: Vulkan
+[INFO ] [12:20:01.318] [GPU]   Type: Integrated GPU
+[INFO ] [12:20:01.318] [GPU] Headless GPU context initialized successfully
+[INFO ] [12:20:08.878] WebGPU physics initialized: 32 usable body slots, 0 MiB resident, 0 MiB scratch
+Actual skiff: root height 56.3204, up 0.999935, vertical speed -1.62627e-05, angular speed 2.60485e-06
+[       OK ] CoveMovement.ActualSkiffSettlesUprightAtItsDryDraft (8121 ms)
+[ RUN      ] CoveMovement.DisconnectedBoatIsRejectedBeforePhysicsAdmission
+[       OK ] CoveMovement.DisconnectedBoatIsRejectedBeforePhysicsAdmission (320 ms)
+[ RUN      ] CoveMovement.TakeoffInheritsLinearAndAngularVelocityOnceThenDetaches
+[       OK ] CoveMovement.TakeoffInheritsLinearAndAngularVelocityOnceThenDetaches (320 ms)
+[ RUN      ] CoveMovement.LegacyAttachedJumpMigratesIntoIndependentWorldStateAndResumesExactly
+[       OK ] CoveMovement.LegacyAttachedJumpMigratesIntoIndependentWorldStateAndResumesExactly (323 ms)
+[ RUN      ] CoveMovement.CompleteRootPacketsRejectStaleAndConflictingPartialPoses
+[       OK ] CoveMovement.CompleteRootPacketsRejectStaleAndConflictingPartialPoses (320 ms)
+[ RUN      ] CoveMovement.UprightCapsuleFollowsRollingDeckAndSunkenHelmReleasesIntoWater
+[       OK ] CoveMovement.UprightCapsuleFollowsRollingDeckAndSunkenHelmReleasesIntoWater (322 ms)
+[ RUN      ] CoveMovement.AboardWalkingCollidesWithInstalledSceneryAndAirCannotTunnelThinWalls
+[       OK ] CoveMovement.AboardWalkingCollidesWithInstalledSceneryAndAirCannotTunnelThinWalls (332 ms)
+[ RUN      ] CoveMovement.SwimmingCanReboardNearbySlowCraftButRejectsFastAndSunkenTargets
+[       OK ] CoveMovement.SwimmingCanReboardNearbySlowCraftButRejectsFastAndSunkenTargets (319 ms)
+[ RUN      ] CoveMovement.CameraSphereSweepIncludesEveryProxyAndFailsClosedWithoutCertifiedTerrain
+[       OK ] CoveMovement.CameraSphereSweepIncludesEveryProxyAndFailsClosedWithoutCertifiedTerrain (335 ms)
+[ RUN      ] CoveMovement.OrientedCargoPacketKeepsRealBeamClearanceAndJoinsObservedTick
+[       OK ] CoveMovement.OrientedCargoPacketKeepsRealBeamClearanceAndJoinsObservedTick (311 ms)
+[ RUN      ] CoveMovement.ExactCapsuleGroundSupportDoesNotStandOnDiagonalProbeCorners
+[       OK ] CoveMovement.ExactCapsuleGroundSupportDoesNotStandOnDiagonalProbeCorners (313 ms)
+[ RUN      ] CoveMovement.NearParallelCameraSweepCertifiesClearAndFindsRealShallowHit
+[       OK ] CoveMovement.NearParallelCameraSweepCertifiesClearAndFindsRealShallowHit (316 ms)
+[ RUN      ] CoveMovement.IdleHeadingFollowsObservedDeckTurnAndTakeoffKeepsWorldHeading
+[       OK ] CoveMovement.IdleHeadingFollowsObservedDeckTurnAndTakeoffKeepsWorldHeading (315 ms)
+[ RUN      ] CoveMovement.AirborneLandingUsesMovingRootAndRelativeApproachVelocity
+[       OK ] CoveMovement.AirborneLandingUsesMovingRootAndRelativeApproachVelocity (311 ms)
+[ RUN      ] CoveMovement.WalksAcrossAuthoredDeckSeamsAndBoardsUsesHelmAndReturns
+[       OK ] CoveMovement.WalksAcrossAuthoredDeckSeamsAndBoardsUsesHelmAndReturns (369 ms)
+[ RUN      ] CoveMovement.ObservedBoatPoseCarriesHelmAndResetReturnsToFixedDock
+[       OK ] CoveMovement.ObservedBoatPoseCarriesHelmAndResetReturnsToFixedDock (367 ms)
+[ RUN      ] CoveMovement.ResumeKeepsBoatLocalHelmPoseOnRestoredMovingCraft
+[       OK ] CoveMovement.ResumeKeepsBoatLocalHelmPoseOnRestoredMovingCraft (344 ms)
+[ RUN      ] CoveMovement.ResumePreservesJumpVelocityAndSwimmingWithoutPendingControls
+[       OK ] CoveMovement.ResumePreservesJumpVelocityAndSwimmingWithoutPendingControls (366 ms)
+[ RUN      ] CoveMovement.InvalidResumePreservesPlayerAndQueuedInteraction
+[       OK ] CoveMovement.InvalidResumePreservesPlayerAndQueuedInteraction (333 ms)
+[ RUN      ] CoveMovement.SolidGeneratorStopsWalkingAndLargeFramesDoNotTunnel
+[       OK ] CoveMovement.SolidGeneratorStopsWalkingAndLargeFramesDoNotTunnel (437 ms)
+[ RUN      ] CoveMovement.JumpingAboardUsesActualSupportingPartInsteadOfBoardButtonHistory
+[       OK ] CoveMovement.JumpingAboardUsesActualSupportingPartInsteadOfBoardButtonHistory (361 ms)
+[ RUN      ] CoveMovement.JumpLandsOnDockAndResetRecoversFromWater
+[       OK ] CoveMovement.JumpLandsOnDockAndResetRecoversFromWater (370 ms)
+[ RUN      ] CoveMovement.WalksUpBrickTerraceAndJumpLandsOnStudSurface
+[       OK ] CoveMovement.WalksUpBrickTerraceAndJumpLandsOnStudSurface (362 ms)
+[ RUN      ] CoveMovement.FixedTicksDoNotDependOnRenderRateAndJumpSurvivesShortFrame
+[       OK ] CoveMovement.FixedTicksDoNotDependOnRenderRateAndJumpSurvivesShortFrame (342 ms)
+[ RUN      ] CoveMovement.InvalidNavigationPreservesExistingPlayerAndPendingActionsDoNotDuplicate
+[       OK ] CoveMovement.InvalidNavigationPreservesExistingPlayerAndPendingActionsDoNotDuplicate (334 ms)
+[----------] 75 tests from CoveMovement (128403 ms total)
+
+[----------] 1 test from CoveNavigation
+[ RUN      ] CoveNavigation.RejectsUnknownMissingNonfiniteAndDistantBoardingData
+[       OK ] CoveNavigation.RejectsUnknownMissingNonfiniteAndDistantBoardingData (9 ms)
+[----------] 1 test from CoveNavigation (9 ms total)
+
+[----------] Global test environment tear-down
+[==========] 81 tests from 3 test suites ran. (128413 ms total)
+[  PASSED  ] 79 tests.
+[  FAILED  ] 2 tests, listed below:
+[  FAILED  ] CoveMovement.HarborPostsBlockWalkingAndSavedPlayerOccupancy
+[  FAILED  ] CoveMovement.FragmentArchiveRestoresEveryPoseDetachedRiderAndWinchWithoutPublishing
+
+ 2 FAILED TESTS
+================================================================================
+INFO: Found 3 test targets...
+INFO: Elapsed time: 140.644s, Critical Path: 138.99s
+INFO: 19 processes: 405 action cache hit, 6 internal, 13 linux-sandbox.
+INFO: Build completed, 1 test FAILED, 19 total actions
+//tests:cove_character                                                   PASSED in 0.0s
+//tests:rigid_animation                                                  PASSED in 0.1s
+//tests:cove_player                                                      FAILED in 128.5s
+  /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-fastbuild/testlogs/tests/cove_player/test.log
+
+Executed 3 out of 3 tests: 2 tests pass and 1 fails locally.
+There were tests whose specified size is too big. Use the --test_verbose_timeout_warnings command line option to see which ones these are.

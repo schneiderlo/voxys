@@ -69,6 +69,9 @@ template<class A>void fields(A& a,CoveSavedMotion& v){a(v.position,v.orientation
 template<class A>void fields(A& a,CoveSavedRoot& v){a(v.key,v.motion);}
 template<class A>void fields(A& a,CoveSavedCargo& v){a(v.cargo,v.job,v.definition,v.motion,v.state,v.winchPart,v.ropeLength);}
 template<class A>void fields(A& a,CoveSavedPlayer& v){a(v.feet,v.verticalSpeed,v.tick,v.interactions,v.mode,v.aboard,v.viewYaw,v.viewPitch);}
+template<class A>void fields(A& a,CoveSavedCharacter& v){
+    a(v.profile);a.array(v.worldVelocity);a(v.facingYaw,v.cameraDistance,v.chaseCamera,v.reducedMotion,v.loadView);
+}
 template<class A>void fields(A& a,CoveSavedWater& v){
     a(v.model,v.seconds,v.height,v.strength,v.significantWaveHeight,v.directionRadians,v.choppiness,
         v.peakEnhancement,v.windAlignment,v.animationSpeed);
@@ -96,10 +99,20 @@ bool water(const CoveSavedWater& v){
         &&bounded(v.patchLengths[0],64,8192)&&bounded(v.patchLengths[1],16,2048)
         &&bounded(v.cascadeAmplitudes[0],0,2)&&bounded(v.cascadeAmplitudes[1],0,2)&&bounded(v.directionalSineScale,0,1.5);
 }
-bool player(const CoveSavedPlayer& v){
-    return position(v.feet)&&bounded(v.verticalSpeed,-30,6)&&v.mode<=CoveSavedPlayerMode::Helm
+bool player(const CoveSavedPlayer& v,const CoveSavedCharacter& character){
+    if(character.profile>1)return false;
+    if(character.profile==0 && character!=CoveSavedCharacter{})return false;
+    if(character.profile==1) {
+        if(!std::all_of(character.worldVelocity.begin(),character.worldVelocity.end(),
+            [](double value){return bounded(value,-150,150);})
+            ||!bounded(character.facingYaw,-std::numbers::pi,std::numbers::pi)
+            ||!bounded(character.cameraDistance,1.5,12)||!bounded(v.viewPitch,-.45f,1.2f))return false;
+        if((v.mode==CoveSavedPlayerMode::Airborne||v.mode==CoveSavedPlayerMode::Swimming)
+            &&(v.aboard||v.verticalSpeed!=character.worldVelocity[1]))return false;
+    }
+    return position(v.feet)&&bounded(v.verticalSpeed,character.profile?-150:-30,character.profile?150:6)&&v.mode<=CoveSavedPlayerMode::Helm
         &&bounded(v.viewYaw,-1e6,1e6)&&bounded(v.viewPitch,-std::numbers::pi/2,std::numbers::pi/2)
-        &&(v.mode==CoveSavedPlayerMode::Airborne||v.verticalSpeed==0)
+        &&(v.mode==CoveSavedPlayerMode::Airborne||(character.profile&&v.mode==CoveSavedPlayerMode::Swimming)||v.verticalSpeed==0)
         &&(v.mode!=CoveSavedPlayerMode::Helm||v.aboard)
         &&(v.mode!=CoveSavedPlayerMode::Swimming||(!v.aboard&&std::abs(v.feet.y+.8)<=1e-6));
 }
@@ -225,7 +238,8 @@ CoveSaveError validate(const LogicalRecoveryCheckpoint& current,const LogicalRec
     if(std::any_of(state.builds.front().connections.begin(),state.builds.front().connections.end(),
         [](const auto& c){return c.kind!=ConnectionKind::Weld;}))return CoveSaveError::PhysicalState;
     if(v.cargoState>CoveSavedCargoState::Banked||!motion(v.boatMotion)||!motion(v.cargoMotion)
-        ||!player(v.player)||!water(v.water)||double(v.water.height)!=v.origin.y)return CoveSaveError::PhysicalState;
+        ||!player(v.player,v.character)||!water(v.water)||double(v.water.height)!=v.origin.y
+        ||(v.character.profile && v.boatRoots.empty()))return CoveSaveError::PhysicalState;
     if(const auto roots=validRoots(state.builds.front(),v,catalog);roots!=CoveSaveError::None)return roots;
     const bool banked=v.cargoState==CoveSavedCargoState::Banked;
     if(!validCoveHarborLiftState(v.harborLift))return CoveSaveError::PhysicalState;
@@ -306,7 +320,7 @@ bool CoveSaveCodec::encode(const ValidatedRecoveryCheckpoint& current,const Vali
         if(!SessionSaveCodec::encodeCheckpoint(current,currentBytes,issue.session)
             ||(parent&&!SessionSaveCodec::encodeCheckpoint(*parent,parentBytes,issue.session))){issue.error=CoveSaveError::LogicalState;return false;}
         Bytes<false> bytes;bytes.output.reserve(currentBytes.size()+parentBytes.size()+1024);
-        bytes.append(magic);auto version=!physical.additionalCargo.empty()?kCoveSaveJobsSchema:!physical.boatRoots.empty()?kCoveSaveRootsSchema:
+        bytes.append(magic);auto version=physical.character.profile?kCoveSaveCharacterSchema:!physical.additionalCargo.empty()?kCoveSaveJobsSchema:!physical.boatRoots.empty()?kCoveSaveRootsSchema:
             !physical.recoveryDesigns.empty()?kCoveSaveRecoverySchema:physical.harborLift.profile==0?kCoveSaveSchema:kCoveSaveHarborSchema;
         bytes(version);auto state=physical;bytes(state);
         if(version>=kCoveSaveHarborSchema){
@@ -326,6 +340,7 @@ bool CoveSaveCodec::encode(const ValidatedRecoveryCheckpoint& current,const Vali
             auto count=static_cast<uint32_t>(state.additionalCargo.size());bytes(count);
             for(auto& cargo:state.additionalCargo)bytes(cargo);
         }
+        if(version>=kCoveSaveCharacterSchema)bytes(state.character);
         auto currentSize=static_cast<uint32_t>(currentBytes.size()),parentSize=static_cast<uint32_t>(parentBytes.size());
         bytes(currentSize);bytes.append(currentBytes);bytes(parentSize);bytes.append(parentBytes);
         const auto digest=core::sha256(bytes.output);bytes.append(digest.bytes);
@@ -342,7 +357,7 @@ std::unique_ptr<CoveSaveArchive> CoveSaveCodec::decode(std::span<const std::byte
         if(input.size()<40||!std::equal(magic.begin(),magic.end(),input.begin())){issue.error=CoveSaveError::Encoding;return {};}
         Bytes<true> bytes;bytes.input=input.first(input.size()-32);bytes.at=4;
         uint32_t version=0;bytes(version);
-        if(version<kCoveSaveSchema||version>kCoveSaveJobsSchema){issue.error=CoveSaveError::UnsupportedSchema;return {};}
+        if(version<kCoveSaveSchema||version>kCoveSaveCharacterSchema){issue.error=CoveSaveError::UnsupportedSchema;return {};}
         const auto digest=core::sha256(bytes.input);
         if(!std::equal(digest.bytes.begin(),digest.bytes.end(),input.end()-32)){issue.error=CoveSaveError::Checksum;return {};}
         auto result=std::make_unique<CoveSaveArchive>();bytes(result->physical);
@@ -376,10 +391,15 @@ std::unique_ptr<CoveSaveArchive> CoveSaveCodec::decode(std::span<const std::byte
         if(version>=kCoveSaveJobsSchema) {
             uint32_t count=0;bytes(count);
             if(bytes.bad){issue.error=CoveSaveError::Encoding;return {};}
-            if(!count||count>=kMaximumCoveSavedCargo){issue.error=CoveSaveError::Capacity;return {};}
+            if((version==kCoveSaveJobsSchema&&!count)||count>=kMaximumCoveSavedCargo){issue.error=CoveSaveError::Capacity;return {};}
             if(size_t(count)>(bytes.input.size()-bytes.at)/169){issue.error=CoveSaveError::Encoding;return {};}
             result->physical.additionalCargo.resize(count);
             for(auto& cargo:result->physical.additionalCargo)bytes(cargo);
+        }
+        if(version>=kCoveSaveCharacterSchema){
+            bytes(result->physical.character);
+            if(bytes.bad){issue.error=CoveSaveError::Encoding;return {};}
+            if(result->physical.character.profile!=1){issue.error=CoveSaveError::UnsupportedSchema;return {};}
         }
         uint32_t currentSize=0;bytes(currentSize);
         if(currentSize>kMaximumSessionSaveBytes){issue.error=CoveSaveError::Capacity;return {};}

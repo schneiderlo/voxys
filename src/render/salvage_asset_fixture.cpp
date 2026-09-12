@@ -181,6 +181,7 @@ struct Owner {
     };
     std::vector<Prototype> prototypes{};
     std::optional<CoveDockMarkings> dockMarkings{};
+    std::shared_ptr<const game::assets::RigidAnimationAsset> robot;
     MeshPath path{};
     MeshPath guidePath{}; // Same owner/fences; separate buffers prevent queued-write aliasing.
     ScopeRecords scopes{};
@@ -211,7 +212,8 @@ struct Owner {
             .environmentGpuBytes = path.environmentLightingBytes(),
             .environmentBakeCount = path.environmentBakeCount(),
             .environmentReady = path.environmentLightingReady(),
-            .dockMarkingGpuBytes = dockMarkings ? dockMarkings->prefab.counts.gpuBytes : 0u};
+            .dockMarkingGpuBytes = dockMarkings ? dockMarkings->prefab.counts.gpuBytes : 0u,
+            .robotGpuBytes = robot ? robot->prefab.counts.gpuBytes : 0u};
     }
 };
 } // namespace
@@ -237,6 +239,7 @@ struct SalvageAssetFixture::Impl {
     uint32_t guideBoxes = 0;
     uint32_t encodedDockMarkingDraws = 0;
     uint32_t submittedDockMarkingDraws = 0;
+    uint32_t encodedRobotDraws=0,submittedRobotDraws=0;
 
     ~Impl() {
         candidate.reset(); retiring.reset(); active.reset();
@@ -315,7 +318,8 @@ bool SalvageAssetFixture::init(WGPUDevice device, WGPUQueue queue,
 bool SalvageAssetFixture::beginCandidate(
     std::span<const std::shared_ptr<const Bundle>> bundles, std::string& error,
     std::span<const game::construction::PartDefinition> prototypes,
-    const CoveDockMarkings* dockMarkings) {
+    const CoveDockMarkings* dockMarkings,
+    std::shared_ptr<const game::assets::RigidAnimationAsset> robot) {
     if (!impl_) { error = "fixture is not initialized"; return false; }
     auto& state = *impl_;
     if (!state.boundary(error)) return false;
@@ -379,6 +383,16 @@ bool SalvageAssetFixture::beginCandidate(
         }
     }
     if (owner->uploads.empty()) return state.fail(error, "bundle has no admitted LOD assets");
+    if(robot) {
+        // Revalidate before reserving/uploading; caller-populated counts cannot
+        // bypass the hard asset limits or shared generation ownership.
+        auto admitted=std::make_shared<game::assets::RigidAnimationAsset>();
+        if(!game::assets::prepareRigidAnimation(robot->mesh,*admitted,error))return false;
+        const auto bytes=admitted->prefab.counts.gpuBytes;
+        if(bytes>state.config.maximumOwnerGpuBytes-owner->reservedBytes)
+            return state.fail(error,"per-owner robot GPU reservation exceeded");
+        owner->assetBytes+=bytes;owner->reservedBytes+=bytes;owner->robot=std::move(admitted);
+    }
     if (dockMarkings) {
         // Validate exact bytes before copying or allocating GPU storage. Counts
         // supplied by the caller cannot bypass the separate 16 KiB mesh cap.
@@ -429,6 +443,7 @@ bool SalvageAssetFixture::beginCandidate(
     if(valid) valid=owner->path.loadMeshData(guideMesh);
     // Append after the helper so existing helper/prototype indices stay stable.
     if(valid && owner->dockMarkings) valid=owner->path.loadMeshData(owner->dockMarkings->mesh);
+    if(valid && owner->robot) valid=owner->path.loadMeshData(owner->robot->mesh);
     config.depthOverlay = true;
     config.filteredEnvironment = false;
     config.sunShadows = false;
@@ -496,6 +511,8 @@ bool SalvageAssetFixture::publishCandidate(std::string& error) {
     else state.active.reset();
     state.active = std::move(state.candidate);
     state.encodedDraws = 0; state.submittedDraws = 0;
+    state.encodedRobotDraws = 0; state.submittedRobotDraws = 0;
+    state.encodedDockMarkingDraws = 0; state.submittedDockMarkingDraws = 0;
     state.guideBoxes = 0;
     error.clear();
     return true;
@@ -554,6 +571,7 @@ bool SalvageAssetFixture::encode(WGPUCommandEncoder encoder, WGPUTextureView col
     uint32_t expandedDraws = 0;
     uint32_t authoredInstances = 0;
     uint32_t guideBoxes = 0;
+    uint32_t robotDraws = 0;
     std::vector<game::assets::RigidPrefabDraw> placed;
     std::vector<InspectionGuideBox> guides;
     for (const auto& placement : placements) {
@@ -656,11 +674,30 @@ bool SalvageAssetFixture::encode(WGPUCommandEncoder encoder, WGPUTextureView col
         expandedDraws+=prefab.counts.expandedDraws;
         authoredInstances+=prefab.counts.meshInstances;
     }
+    if(frame.robot) {
+        if(!owner.robot||frame.robot->drawCount!=owner.robot->prefab.meshNodes.size())
+            return state.fail(error,"robot frame lacks admitted hierarchy");
+        const auto& counts=owner.robot->prefab.counts;
+        if(counts.expandedDraws>maximumExpandedDraws-expandedDraws
+            ||counts.meshInstances>maximumMeshInstances-authoredInstances)
+            return state.fail(error,"robot shared draw capacity exceeded");
+        const uint32_t upload=helperAsset+1u+(owner.dockMarkings?1u:0u);
+        for(size_t i=0;i<frame.robot->drawCount;++i) {
+            const auto& draw=frame.robot->draws[i];
+            const auto& expected=owner.robot->prefab.meshNodes[i];
+            if(draw.nodeIndex!=expected.nodeIndex||draw.meshIndex!=expected.meshIndex||!finite(draw.modelMatrix)
+                ||std::abs(glm::determinant(glm::mat3(draw.modelMatrix))-1.f)>.001f)
+                return state.fail(error,"invalid robot pose or mesh binding");
+            instances.push_back({.assetIndex=upload,.meshIndex=draw.meshIndex,.modelMatrix=draw.modelMatrix,.physicsBody=frame.robotBody});
+        }
+        expandedDraws+=counts.expandedDraws;authoredInstances+=counts.meshInstances;robotDraws=counts.expandedDraws;
+    }
     state.unresolved = {owner.generation, state.nextSerial++};
     output = state.unresolved;
     owner.encoded = true;
     state.encodedDraws = 0;
     state.encodedDockMarkingDraws = 0;
+    state.encodedRobotDraws=0;
     if (!owner.path.setAuthoredBodyView(frame.physics,frame.worldCamera))
         return state.fail(error,"authored body render binding failed");
     if (!owner.path.encodeEnvironmentLighting(encoder))
@@ -681,6 +718,7 @@ bool SalvageAssetFixture::encode(WGPUCommandEncoder encoder, WGPUTextureView col
     state.encodedDraws = owner.path.lastSubmittedDrawCount()+owner.guidePath.lastSubmittedDrawCount();
     state.guideBoxes = guideBoxes;
     state.encodedDockMarkingDraws = frame.dockMarkingsRoot ? owner.dockMarkings->prefab.counts.expandedDraws : 0u;
+    state.encodedRobotDraws=robotDraws;
     error.clear();
     return true;
 }
@@ -698,6 +736,7 @@ bool SalvageAssetFixture::submitted(SalvageFixtureTicket ticket, std::string& er
     state.unresolved = {};
     state.submittedDraws = state.encodedDraws;
     state.submittedDockMarkingDraws = state.encodedDockMarkingDraws;
+    state.submittedRobotDraws=state.encodedRobotDraws;
     error.clear();
     return true; // poll registers a bounded fence; acknowledgment cannot allocate.
 }
@@ -769,6 +808,7 @@ SalvageFixtureStats SalvageAssetFixture::stats() const {
     result.lastEncodedGuideBoxes = impl_->guideBoxes;
     result.lastEncodedDockMarkingDraws = impl_->encodedDockMarkingDraws;
     result.lastSubmittedDockMarkingDraws = impl_->submittedDockMarkingDraws;
+    result.lastSubmittedRobotDraws=impl_->submittedRobotDraws;
     result.lastSubmittedDraws = impl_->submittedDraws;
     result.pendingViewCallbacks = pendingScopes(impl_->viewScopes);
     return result;

@@ -1,0 +1,31 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: target //tests:cove_player (1 packages loaded, 0 targets configured)
+Analyzing: target //tests:cove_player (1 packages loaded, 0 targets configured)
+
+Analyzing: target //tests:cove_player (2 packages loaded, 0 targets configured)
+
+INFO: Analyzed target //tests:cove_player (3 packages loaded, 90 targets configured).
+[385 / 408] Compiling src/game/expedition/cove_player.cpp; 1s linux-sandbox ... (8 actions running)
+[400 / 408] Compiling src/game/expedition/cove_restore.cpp; 2s linux-sandbox ... (3 actions running)
+[404 / 408] Compiling tests/test_cove_player.cpp; 3s linux-sandbox ... (2 actions, 1 running)
+[406 / 408] Compiling tests/test_cove_player.cpp; 5s linux-sandbox
+[407 / 408] [Prepa] Linking tests/cove_player
+[408 / 409] Testing //tests:cove_player; 0s linux-sandbox
+[408 / 409] 1 / 1 tests; Testing //tests:cove_player; 8s linux-sandbox
+INFO: Found 1 test target...
+Target //tests:cove_player up-to-date:
+  bazel-bin/tests/cove_player
+INFO: Elapsed time: 20.703s, Critical Path: 18.94s
+INFO: 19 processes: 390 action cache hit, 5 internal, 14 linux-sandbox.
+INFO: Build completed successfully, 19 total actions
+//tests:cove_player                                                      PASSED in 8.6s
+
+Executed 1 out of 1 test: 1 test passes.
+There were tests whose specified size is too big. Use the --test_verbose_timeout_warnings command line option to see which ones these are.

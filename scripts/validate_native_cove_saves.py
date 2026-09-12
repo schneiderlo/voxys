@@ -7,11 +7,13 @@ import argparse
 import ctypes as C
 import hashlib
 import json
+import math
 import os
 from pathlib import Path
 import re
 import signal
 import subprocess
+import struct
 import time
 
 class KeyEvent(C.Structure):
@@ -82,32 +84,76 @@ class X11:
             self.x.XFlush(self.display);time.sleep(.08)
     def close(self):self.x.XCloseDisplay(self.display)
 
+def archive_payload(payload, expected_world=None):
+    """Read the frozen v1-v4 prefix and optional v5/v6 tails, without activation.
+
+    v6 always includes the additional-cargo count, even when empty, then a
+    47-byte character record. Parsing that field does not validate a two-job
+    gameplay journey; individual single-cargo drivers still require count zero.
+    """
+    assert len(payload)>=8+419-8+8+32 and payload[:4]==b'SVCE'
+    assert hashlib.sha256(payload[:-32]).digest()==payload[-32:]
+    schema=int.from_bytes(payload[4:8],'little');assert 1<=schema<=6
+    world=payload[40:56].hex()
+    if expected_world is not None:assert world==expected_world
+    at=419
+    def take(size):
+        nonlocal at
+        assert 0<=size<=4*1024*1024 and at+size<=len(payload)-32
+        data=payload[at:at+size];at+=size;return data
+    def count(limit):
+        value=int.from_bytes(take(4),'little');assert value<=limit;return value
+    def identity(allow_zero=False):
+        raw=take(24);counter=int.from_bytes(raw[16:24],'little')
+        if allow_zero and counter==0:assert raw==bytes(24)
+        else:assert counter>0 and raw[:16].hex()==world
+        return str(counter)
+    roots=[];control_part=player_root=None;recovery=[];character=None;additional=[]
+    if schema>=2:take(22)
+    if schema>=3:
+        designs=count(4);assert schema>=4 or designs>0
+        for _ in range(designs):
+            size=count(131072);assert size>0;design=take(size)
+            assert design[:4]==b'SVBP' and hashlib.sha256(design[:-32]).digest()==design[-32:]
+            recovery.append(hashlib.sha256(design).hexdigest())
+    if schema>=4:
+        control_part=identity();player_root=identity(True);root_count=count(32);assert root_count>0
+        for _ in range(root_count):roots.append(identity());take(64)
+        assert len(set(roots))==root_count
+    if schema>=5:
+        extra=count(1);assert schema>=6 or extra>0
+        for _ in range(extra):
+            record=take(169)
+            assert record[:16].hex()==world and record[24:40].hex()==world
+            additional.append(hashlib.sha256(record).hexdigest())
+    if schema>=6:
+        values=struct.unpack('<I5d3B',take(47));profile=values[0];numbers=values[1:6];flags=values[6:]
+        assert profile==1 and all(math.isfinite(n) for n in numbers) and all(n in (0,1) for n in flags)
+        assert all(abs(n)<=150 for n in numbers[:3]) and abs(numbers[3])<=math.pi and 1.5<=numbers[4]<=12
+        mode,aboard=payload[316:318];vertical=struct.unpack_from('<d',payload,292)[0]
+        assert mode<=3 and aboard in (0,1)
+        if mode in (1,2):assert not aboard and vertical==numbers[1]
+        else:assert vertical==0
+        character={'profile':profile,'worldVelocity':list(numbers[:3]),'facingYaw':numbers[3],
+                   'cameraDistance':numbers[4],'chaseCamera':bool(flags[0]),'reducedMotion':bool(flags[1]),'loadView':bool(flags[2])}
+    logical_size=count(4*1024*1024);assert logical_size>0;logical_offset=at;logical=take(logical_size)
+    assert logical[:4]==b'SVSC' and hashlib.sha256(logical[:-32]).digest()==logical[-32:]
+    parent_size=count(4*1024*1024);parent=take(parent_size)
+    if parent_size:assert parent[:4]==b'SVSC' and hashlib.sha256(parent[:-32]).digest()==parent[-32:]
+    assert at==len(payload)-32
+    return {'schema':schema,'rootKeys':roots,'controlPart':control_part,'playerRoot':player_root,
+            'recoveryDesignDigests':recovery,'additionalCargoCount':len(additional),'additionalCargoDigests':additional,
+            'character':character,'logicalOffset':logical_offset,'logicalBytes':logical_size,'parentBytes':parent_size}
+
+
 def archive(slot):
     a=(slot/'current').read_bytes();b=(slot/'mirror').read_bytes();assert a==b,'save replicas must agree after acknowledgment'
     assert a[:4]==b'SVSG' and a[4:8]==(1).to_bytes(4,'little')
     assert hashlib.sha256(a[:-32]).digest()==a[-32:]
     size=int.from_bytes(a[32:40],'little');payload=a[40:-32];assert len(payload)==size
-    assert payload[:4]==b'SVCE' and hashlib.sha256(payload[:-32]).digest()==payload[-32:]
-    schema=int.from_bytes(payload[4:8],'little');assert 1<=schema<=4
-    roots=[];control_part=player_root=None
-    if schema>=3:
-        offset=441;count=int.from_bytes(payload[offset:offset+4],'little');offset+=4
-        assert count<=4 and (schema==4 or count>0)
-        for _ in range(count):
-            size=int.from_bytes(payload[offset:offset+4],'little');offset+=4
-            assert 0<size<=131072 and offset+size<=len(payload)-32
-            assert payload[offset:offset+4]==b'SVBP';offset+=size
-        if schema==4:
-            control_part=str(int.from_bytes(payload[offset+16:offset+24],'little'));offset+=24
-            player_root=str(int.from_bytes(payload[offset+16:offset+24],'little'));offset+=24
-            count=int.from_bytes(payload[offset:offset+4],'little');offset+=4
-            assert 0<count<=32 and offset+count*88<=len(payload)-32
-            for _ in range(count):
-                assert payload[offset:offset+16]==a[8:24]
-                roots.append(str(int.from_bytes(payload[offset+16:offset+24],'little')));offset+=88
+    details=archive_payload(payload,a[8:24].hex())
     return {'world':a[8:24].hex(),'generation':int.from_bytes(a[24:32],'little'),
-        'tick':int.from_bytes(payload[8:16],'little'),'schema':schema,'rootKeys':roots,
-        'controlPart':control_part,'playerRoot':player_root,
+        'tick':int.from_bytes(payload[8:16],'little'),**details,
         'bytes':len(payload),'sha256':hashlib.sha256(payload).hexdigest()},payload
 
 def main():
@@ -152,7 +198,7 @@ def main():
         x.key(window,'p');wait(lambda:'Cove paused' in x.title(window),'pause joins physical state')
         x.key(window,'F10');state=wait(lambda:latest_state('Expedition checkpoint state'),'disk save acknowledged')
         meta,payload=archive(args.storage_root/state['world']);assert str(meta['tick'])==state['pause']['tick']
-        assert meta['schema']==4 and meta['rootKeys']==[root['key'] for root in state['boat']['roots']]
+        assert meta['schema']==6 and meta['additionalCargoCount']==0 and meta['rootKeys']==[root['key'] for root in state['boat']['roots']]
         assert meta['controlPart']==state['boat']['controlPart'] and meta['playerRoot']==state['player']['rootKey']
         assert state['boat']['joinedTick']==str(meta['tick'])
         (args.output/(label+'.svce')).write_bytes(payload);record(label,state=state,archive=meta);return state,meta

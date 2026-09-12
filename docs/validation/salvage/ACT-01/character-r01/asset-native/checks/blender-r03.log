@@ -1,0 +1,51 @@
+INFO Draco is available, use library at /snap/blender/7740/lib/libbf_intern_draco_bridge.so
+INFO MeshOptimizer is available, use library at /snap/blender/7740/lib/libbf_intern_meshopt_bridge.so
+08:42:04 | INFO: Starting glTF 2.0 export
+08:42:04 | INFO: Extracting primitive: waist_casting_mesh
+08:42:04 | INFO: Primitives created: 2
+08:42:04 | INFO: Extracting primitive: hip_axle_mesh
+08:42:04 | INFO: Primitives created: 2
+08:42:04 | INFO: Extracting primitive: knee_hinge_mesh
+08:42:04 | INFO: Primitives created: 2
+08:42:04 | INFO: Extracting primitive: boot_sole_mesh
+08:42:04 | INFO: Primitives created: 2
+08:42:04 | INFO: Extracting primitive: hip_axle_mesh.001
+08:42:04 | INFO: Primitives created: 2
+08:42:04 | INFO: Extracting primitive: knee_hinge_mesh.001
+08:42:04 | INFO: Primitives created: 2
+08:42:04 | INFO: Extracting primitive: boot_sole_mesh.001
+08:42:04 | INFO: Primitives created: 2
+08:42:04 | INFO: Extracting primitive: cream_chest_mesh
+08:42:04 | INFO: Primitives created: 4
+08:42:04 | INFO: Extracting primitive: shoulder_axle_mesh
+08:42:04 | INFO: Primitives created: 2
+08:42:04 | INFO: Extracting primitive: elbow_axle_mesh
+08:42:04 | INFO: Primitives created: 2
+08:42:04 | INFO: Extracting primitive: gripper_palm_mesh
+08:42:04 | INFO: Primitives created: 2
+08:42:04 | INFO: Extracting primitive: shoulder_axle_mesh.001
+08:42:04 | INFO: Primitives created: 2
+08:42:04 | INFO: Extracting primitive: elbow_axle_mesh.001
+08:42:04 | INFO: Primitives created: 2
+08:42:04 | INFO: Extracting primitive: gripper_palm_mesh.001
+08:42:04 | INFO: Primitives created: 2
+08:42:04 | INFO: Extracting primitive: neck_joint_mesh
+08:42:04 | INFO: Primitives created: 4
+08:42:05 | INFO: Finished glTF 2.0 export in 0.20218253135681152 s
+Traceback (most recent call last):
+  File "/home/modkin/workspace/schneiderlo/voxys/tools/salvage_assets/author_cove_robot.py", line 323, in <module>
+    if __name__=='__main__': main()
+                             ~~~~^^
+  File "/home/modkin/workspace/schneiderlo/voxys/tools/salvage_assets/author_cove_robot.py", line 292, in main
+    doc,dropped=prune_export(path)
+                ~~~~~~~~~~~~^^^^^^
+  File "/home/modkin/workspace/schneiderlo/voxys/tools/salvage_assets/author_cove_robot.py", line 249, in prune_export
+    assert prop!='scale', 'Robot scales must never animate'
+           ^^^^^^^^^^^^^
+AssertionError: Robot scales must never animate
+
+
+Error: script failed, file: 'tools/salvage_assets/author_cove_robot.py', exiting.
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 02:12:34)
+
+Blender quit

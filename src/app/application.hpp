@@ -807,6 +807,8 @@ private:
 
     void processInput(float deltaTime);
     void updateCovePlayer(float deltaTime);
+    std::function<double(double,double,double)> coveGroundSupport(glm::dvec3 origin) const;
+    void updateCoveCharacterView(float deltaTime);
     bool updateCoveBoat();
     void configureCoveLaunch();
     void updateMoto(float deltaTime);

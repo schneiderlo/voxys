@@ -15,7 +15,7 @@ export async function validateCoveArchive(call,directory,name) {
     const before=await read();assert.equal(before.pause.phase,'paused');
     const hex=await action(1);assert(hex.length>846,'the actual paused cove must produce an archive');
     assert(/^[0-9a-f]+$/.test(hex));const bytes=Buffer.from(hex,'hex');
-    assert.equal(bytes.subarray(0,4).toString(),'SVCE');const schema=bytes.readUInt32LE(4);assert(schema>=1&&schema<=4);
+    assert.equal(bytes.subarray(0,4).toString(),'SVCE');const schema=bytes.readUInt32LE(4);assert(schema>=1&&schema<=6);
     assert.equal(createHash('sha256').update(bytes.subarray(0,-32)).digest('hex'),bytes.subarray(-32).toString('hex'));
     let at=8;
     const u64=()=>{const n=bytes.readBigUInt64LE(at);at+=8;return n.toString();};
@@ -38,7 +38,7 @@ export async function validateCoveArchive(call,directory,name) {
         archive.harbor.lengths=Array.from({length:4},f32);
     }
     if(schema>=3){
-        const count=bytes.readUInt32LE(at);at+=4;assert(count<=4&&(schema===4||count>0));
+        const count=bytes.readUInt32LE(at);at+=4;assert(count<=4&&(schema>=4||count>0));
         archive.recoveryDesigns=[];
         for(let i=0;i<count;i++){
             const size=bytes.readUInt32LE(at);at+=4;assert(size>0&&size<=131072&&at+size<=bytes.length-32);
@@ -46,10 +46,29 @@ export async function validateCoveArchive(call,directory,name) {
             archive.recoveryDesigns.push({bytes:size,sha256:createHash('sha256').update(bytes.subarray(at,at+size)).digest('hex')});at+=size;
         }
     }
-    if(schema===4){
+    if(schema>=4){
         archive.controlPart=id();archive.playerRoot=id();const count=bytes.readUInt32LE(at);at+=4;
         assert(count>0&&count<=32&&at+88*count<=bytes.length-32);
         archive.roots=Array.from({length:count},()=>({key:id(),motion:motion()}));
+    }
+    if(schema>=5){
+        const count=bytes.readUInt32LE(at);at+=4;
+        assert(count<=1&&(schema>=6||count>0));
+        // This established journey owns exactly one load. Reading the v6
+        // count is necessary even when zero; it is not a two-job acceptance.
+        assert.equal(count,0,'this single-cargo journey must not gain another load');
+        archive.additionalCargoCount=count;
+    }
+    if(schema>=6){
+        const start=at,profile=bytes.readUInt32LE(at);at+=4;assert.equal(profile,1);
+        const worldVelocity=vector64(),facingYaw=f64(),cameraDistance=f64();
+        const flag=()=>{const value=bytes[at++];assert(value===0||value===1);return Boolean(value);};
+        archive.character={profile,worldVelocity,facingYaw,cameraDistance,chaseCamera:flag(),reducedMotion:flag(),loadView:flag()};
+        assert.equal(at-start,47,'frozen SVCE v6 character extension');
+        assert(worldVelocity.every(v=>Math.abs(v)<=150)&&Math.abs(facingYaw)<=Math.PI&&cameraDistance>=1.5&&cameraDistance<=12);
+        if(archive.player.mode===1||archive.player.mode===2){
+            assert.equal(archive.player.aboard,false);assert.equal(archive.player.verticalSpeed,worldVelocity[1]);
+        }else assert.equal(archive.player.verticalSpeed,0);
     }
     const logicalSize=bytes.readUInt32LE(at);at+=4;
     assert.equal(bytes.subarray(at,at+4).toString(),'SVSC');at+=logicalSize;
@@ -59,7 +78,7 @@ export async function validateCoveArchive(call,directory,name) {
     assert.equal(archive.tick,before.pause.tick);assert.equal(archive.tick,before.session.tick);
     assert.equal(archive.boat.counter,before.boat.buildId);
     const near=(a,b,tolerance=1e-3)=>assert(Math.abs(a-b)<=tolerance,`${a} differs from ${b}`);
-    if(schema===4){
+    if(schema>=4){
         assert.equal(archive.controlPart.counter,before.boat.controlPart);
         assert.equal(archive.playerRoot.counter,before.player.rootKey);
         assert.equal(archive.roots.length,before.boat.rootCount);
@@ -74,6 +93,16 @@ export async function validateCoveArchive(call,directory,name) {
             for(const field of ['velocity','angularVelocity'])
                 saved.motion[field].forEach((value,axis)=>near(value,observed[field][axis]));
         }
+    }
+    if(schema>=6){
+        assert(before.character&&before.characterCamera,'live v6 must expose the saved character and camera settings');
+        archive.character.worldVelocity.forEach((value,axis)=>near(value,before.character.worldVelocity[axis]));
+        near(archive.character.facingYaw,before.character.facingYaw);
+        near(archive.character.cameraDistance,before.characterCamera.distance);
+        assert.equal(archive.character.chaseCamera,before.characterCamera.mode==='chase');
+        assert.equal(archive.character.reducedMotion,before.characterCamera.reducedMotion);
+        assert.equal(archive.character.loadView,before.characterCamera.frameLoad);
+        near(archive.player.yaw,before.characterCamera.yaw);near(archive.player.pitch,before.characterCamera.elevation);
     }
     for(let i=0;i<3;i++){
         near(archive.boatMotion.position[i]-archive.origin[i],before.boat.position[i]);

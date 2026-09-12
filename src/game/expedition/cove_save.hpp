@@ -9,6 +9,7 @@ inline constexpr uint32_t kCoveSaveHarborSchema=2;
 inline constexpr uint32_t kCoveSaveRecoverySchema=3;
 inline constexpr uint32_t kCoveSaveRootsSchema=4;
 inline constexpr uint32_t kCoveSaveJobsSchema=5;
+inline constexpr uint32_t kCoveSaveCharacterSchema=6;
 inline constexpr size_t kMaximumCoveSavedRoots=32;
 inline constexpr size_t kMaximumCoveSavedCargo=2;
 // v5 appends a count and one 169-byte cargo record after the complete root
@@ -55,6 +56,17 @@ struct CoveSavedPlayer {
     bool aboard=false;
     float viewYaw=0,viewPitch=0;
     [[nodiscard]] bool operator==(const CoveSavedPlayer&) const = default;
+};
+// v6 preserves detached character momentum and the player's camera choices.
+// Profile zero retains the exact v1-v5 encoding; the new runtime explicitly
+// opts in with profile one. Animation phase is cosmetic and rebuilt on load.
+struct CoveSavedCharacter {
+    uint32_t profile=0;
+    std::array<double,3> worldVelocity{};
+    double facingYaw=0;
+    double cameraDistance=5.5;
+    bool chaseCamera=true,reducedMotion=false,loadView=false;
+    [[nodiscard]] bool operator==(const CoveSavedCharacter&) const = default;
 };
 struct CoveSavedWater {
     uint32_t model=1; // Current two-cascade algorithm and its fixed seed recipe.
@@ -107,6 +119,7 @@ struct CovePhysicalSave {
     // Banked loads stay present physically even after logical payout removes
     // their CargoRecord. No active-target selection can omit a saved load.
     std::vector<CoveSavedCargo> additionalCargo{};
+    CoveSavedCharacter character{};
     [[nodiscard]] bool operator==(const CovePhysicalSave&) const = default;
 };
 struct CoveCargoBinding {
@@ -122,7 +135,7 @@ struct CoveSaveContext {
     CargoDefinition cargoDefinition{};
     construction::MetresPosition origin{};
     // Trusted installed mission roles, never inferred from imported bytes.
-    // Empty accepts only the original one-job profile. One entry requires v5
+    // Empty accepts only the original one-job profile. One entry requires v5/v6
     // with both physical loads and both logical job records, including banked
     // receipts. The second job unlocks after the generator powers the harbor.
     std::vector<CoveCargoBinding> additionalCargo{};

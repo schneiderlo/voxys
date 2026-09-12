@@ -1,0 +1,19 @@
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //tests:cove_player
+-----------------------------------------------------------------------------
+Running main() from gmock_main.cc
+Note: Google Test filter = CoveCharacter.*:CoveMovement.OwnedRestorePreparesIndependentBodiesPlayerAndTowWithoutPublishing:CoveMovement.FragmentArchiveRestoresEveryPoseDetachedRiderAndWinchWithoutPublishing:CoveMovement.AirSteeringAcceleratesGraduallyAndNeutralInputPreservesMomentum
+[==========] Running 3 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 3 tests from CoveMovement
+[ RUN      ] CoveMovement.OwnedRestorePreparesIndependentBodiesPlayerAndTowWithoutPublishing
+[       OK ] CoveMovement.OwnedRestorePreparesIndependentBodiesPlayerAndTowWithoutPublishing (367 ms)
+[ RUN      ] CoveMovement.FragmentArchiveRestoresEveryPoseDetachedRiderAndWinchWithoutPublishing
+[       OK ] CoveMovement.FragmentArchiveRestoresEveryPoseDetachedRiderAndWinchWithoutPublishing (334 ms)
+[ RUN      ] CoveMovement.AirSteeringAcceleratesGraduallyAndNeutralInputPreservesMomentum
+[       OK ] CoveMovement.AirSteeringAcceleratesGraduallyAndNeutralInputPreservesMomentum (332 ms)
+[----------] 3 tests from CoveMovement (1034 ms total)
+
+[----------] Global test environment tear-down
+[==========] 3 tests from 1 test suite ran. (1034 ms total)
+[  PASSED  ] 3 tests.
