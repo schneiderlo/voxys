@@ -1,0 +1,48 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: target //tests:voxy_tests (0 packages loaded, 0 targets configured)
+Analyzing: target //tests:voxy_tests (0 packages loaded, 0 targets configured)
+
+Analyzing: target //tests:voxy_tests (0 packages loaded, 0 targets configured)
+
+INFO: Analyzed target //tests:voxy_tests (1 packages loaded, 140 targets configured).
+[676 / 678] Compiling tests/test_salvage_asset_fixture.cpp; 1s linux-sandbox
+[677 / 678] [Prepa] Linking tests/voxy_tests
+[678 / 679] 1 / 1 tests; Testing //tests:voxy_tests; 0s linux-sandbox
+INFO: From Testing //tests:voxy_tests:
+==================== Test output for //tests:voxy_tests:
+Running main() from gmock_main.cc
+Note: Google Test filter = FixtureGPU.DockMarkingsUseExactOwnerChargeSharedDrawTicketAndRetirement
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from FixtureGPU
+[ RUN      ] FixtureGPU.DockMarkingsUseExactOwnerChargeSharedDrawTicketAndRetirement
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[INFO ] [04:21:45.129] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [04:21:45.130] [GPU]   Vendor: radv
+[INFO ] [04:21:45.130] [GPU]   Backend: Vulkan
+[INFO ] [04:21:45.130] [GPU]   Type: Integrated GPU
+[INFO ] [04:21:45.132] [GPU] Headless GPU context initialized successfully
+[       OK ] FixtureGPU.DockMarkingsUseExactOwnerChargeSharedDrawTicketAndRetirement (475 ms)
+[----------] 1 test from FixtureGPU (475 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (475 ms total)
+[  PASSED  ] 1 test.
+================================================================================
+INFO: Found 1 test target...
+Target //tests:voxy_tests up-to-date:
+  bazel-bin/tests/voxy_tests
+INFO: Elapsed time: 8.190s, Critical Path: 6.33s
+INFO: 4 processes: 675 action cache hit, 1 internal, 3 linux-sandbox.
+INFO: Build completed successfully, 4 total actions
+//tests:voxy_tests                                                       PASSED in 0.6s
+
+Executed 1 out of 1 test: 1 test passes.
+There were tests whose specified size is too big. Use the --test_verbose_timeout_warnings command line option to see which ones these are.

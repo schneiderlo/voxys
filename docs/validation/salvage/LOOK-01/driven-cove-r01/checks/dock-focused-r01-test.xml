@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="5" failures="1" disabled="0" errors="0" time="1.927" timestamp="2026-09-12T05:11:54.536" name="AllTests">
+  <testsuite name="CoveDockMarkings" tests="3" failures="0" disabled="0" skipped="0" errors="0" time="0.905" timestamp="2026-09-12T05:11:54.536">
+    <testcase name="InstalledStaticPanelsKeepSocketsChannelsAndGeneratorClear" file="tests/test_salvage_asset_fixture.cpp" line="301" status="run" result="completed" time="0.299" timestamp="2026-09-12T05:11:54.536" classname="CoveDockMarkings" />
+    <testcase name="MovingBoatAndCargoCannotMoveStaticMarkingsAndUnsafeRouteRefusesAtomically" file="tests/test_salvage_asset_fixture.cpp" line="354" status="run" result="completed" time="0.301" timestamp="2026-09-12T05:11:54.835" classname="CoveDockMarkings" />
+    <testcase name="AdmissionRecountsExactStorageAndRejectsUnlitOrNonIdentityMesh" file="tests/test_salvage_asset_fixture.cpp" line="385" status="run" result="completed" time="0.304" timestamp="2026-09-12T05:11:55.136" classname="CoveDockMarkings" />
+  </testsuite>
+  <testsuite name="FixtureGPU" tests="2" failures="1" disabled="0" skipped="0" errors="0" time="1.022" timestamp="2026-09-12T05:11:55.441">
+    <testcase name="DockMarkingsUseExactOwnerChargeSharedDrawTicketAndRetirement" file="tests/test_salvage_asset_fixture.cpp" line="560" status="run" result="completed" time="0.435" timestamp="2026-09-12T05:11:55.441" classname="FixtureGPU">
+      <failure message="tests/test_salvage_asset_fixture.cpp:611&#x0A;Expected equality of these values:&#x0A;  fixture.stats().lastEncodedDraws&#x0A;    Which is: 6&#x0A;  baseDraws+marks.prefab.counts.expandedDraws&#x0A;    Which is: 10&#x0A;" type=""><![CDATA[tests/test_salvage_asset_fixture.cpp:611
+Expected equality of these values:
+  fixture.stats().lastEncodedDraws
+    Which is: 6
+  baseDraws+marks.prefab.counts.expandedDraws
+    Which is: 10
+]]></failure>
+      <failure message="tests/test_salvage_asset_fixture.cpp:616&#x0A;Expected equality of these values:&#x0A;  fixture.stats().lastSubmittedDraws&#x0A;    Which is: 6&#x0A;  baseDraws+2u&#x0A;    Which is: 10&#x0A;" type=""><![CDATA[tests/test_salvage_asset_fixture.cpp:616
+Expected equality of these values:
+  fixture.stats().lastSubmittedDraws
+    Which is: 6
+  baseDraws+2u
+    Which is: 10
+]]></failure>
+      <properties>
+        <property name="dockChangedOpaquePixels" value="78"/>
+        <property name="dockTealPixels" value="28"/>
+        <property name="dockOrangePixels" value="50"/>
+        <property name="dockMarkingGpuBytes" value="7760"/>
+      </properties>
+    </testcase>
+    <testcase name="CoveMoldedMachineryFitsCurrentOwnerBudget" file="tests/test_salvage_asset_fixture.cpp" line="754" status="run" result="completed" time="0.586" timestamp="2026-09-12T05:11:55.877" classname="FixtureGPU">
+      <properties>
+        <property name="bundleGpuBytes0" value="388200"/>
+        <property name="bundleGpuBytes1" value="392472"/>
+        <property name="bundleGpuBytes2" value="430632"/>
+        <property name="bundleGpuBytes3" value="371592"/>
+        <property name="bundleGpuBytes4" value="238752"/>
+        <property name="bundleGpuBytes5" value="423168"/>
+        <property name="bundleGpuBytes6" value="691344"/>
+        <property name="bundleGpuBytes7" value="694396"/>
+        <property name="bundleGpuBytes8" value="1051660"/>
+        <property name="bundleGpuBytes9" value="84672"/>
+        <property name="bundleGpuBytes10" value="148896"/>
+        <property name="bundleGpuBytes11" value="275184"/>
+        <property name="requestedOwnerGpuBytes" value="10745384"/>
+        <property name="ownerGpuBytes" value="10745384"/>
+        <property name="colorDraws" value="82"/>
+        <property name="with64BricksColorDraws" value="149"/>
+        <property name="with64BricksPlacements" value="92"/>
+      </properties>
+    </testcase>
+  </testsuite>
+</testsuites>

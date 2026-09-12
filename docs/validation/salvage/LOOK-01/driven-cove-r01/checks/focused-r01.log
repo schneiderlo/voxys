@@ -1,0 +1,56 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: target //tests:voxy_tests (1 packages loaded, 0 targets configured)
+Analyzing: target //tests:voxy_tests (1 packages loaded, 0 targets configured)
+
+Analyzing: target //tests:voxy_tests (1 packages loaded, 0 targets configured)
+
+INFO: Analyzed target //tests:voxy_tests (5 packages loaded, 535 targets configured).
+[519 / 677] Compiling src/game/assets/cooked_part_directory.cpp; 1s linux-sandbox ... (24 actions running)
+[524 / 677] Compiling src/game/expedition/cove_player.cpp; 2s linux-sandbox ... (24 actions running)
+[528 / 677] Compiling src/game/assets/cooked_part_bundle.cpp; 3s linux-sandbox ... (24 actions running)
+[541 / 677] Compiling src/game/assets/cooked_part_bundle.cpp; 4s linux-sandbox ... (24 actions, 23 running)
+[552 / 677] Compiling src/game/assets/cooked_part_bundle.cpp; 5s linux-sandbox ... (24 actions running)
+[558 / 677] Compiling src/game/assets/cooked_part_bundle.cpp; 6s linux-sandbox ... (24 actions running)
+[572 / 677] Compiling src/game/assets/fixture_registry.cpp; 7s linux-sandbox ... (24 actions running)
+[576 / 677] Compiling src/game/assets/fixture_registry.cpp; 8s linux-sandbox ... (24 actions running)
+[581 / 677] Compiling src/game/assets/fixture_registry.cpp; 9s linux-sandbox ... (24 actions running)
+[584 / 677] Compiling src/game/assets/fixture_registry.cpp; 10s linux-sandbox ... (24 actions running)
+[592 / 677] Compiling src/game/assets/fixture_registry.cpp; 11s linux-sandbox ... (24 actions running)
+[597 / 677] Compiling src/app/application.cpp; 12s linux-sandbox ... (24 actions running)
+[601 / 677] Compiling src/app/application.cpp; 13s linux-sandbox ... (24 actions running)
+[611 / 677] Compiling src/app/application.cpp; 14s linux-sandbox ... (24 actions running)
+[613 / 677] Compiling src/app/application.cpp; 15s linux-sandbox ... (24 actions running)
+[616 / 677] Compiling src/app/application.cpp; 16s linux-sandbox ... (24 actions running)
+[622 / 677] Compiling src/app/application.cpp; 17s linux-sandbox ... (24 actions, 23 running)
+[625 / 677] Compiling src/app/application.cpp; 18s linux-sandbox ... (24 actions, 23 running)
+[629 / 677] Compiling src/app/application.cpp; 20s linux-sandbox ... (24 actions, 23 running)
+[638 / 677] Compiling src/app/application.cpp; 21s linux-sandbox ... (24 actions, 23 running)
+[642 / 677] Compiling src/app/application.cpp; 22s linux-sandbox ... (24 actions, 23 running)
+[644 / 677] Compiling src/app/application.cpp; 23s linux-sandbox ... (24 actions running)
+[653 / 677] Compiling src/app/application.cpp; 24s linux-sandbox ... (21 actions running)
+[666 / 677] Compiling src/app/application.cpp; 26s linux-sandbox ... (8 actions running)
+[670 / 677] Compiling tests/test_game_session.cpp; 14s linux-sandbox ... (5 actions, 4 running)
+[672 / 677] Compiling tests/test_game_session.cpp; 15s linux-sandbox ... (4 actions running)
+ERROR: /home/modkin/workspace/schneiderlo/voxys/tests/BUILD:872:8: Compiling tests/test_fixture_registry.cpp failed: (Exit 1): gcc failed: error executing CppCompile command (from target //tests:voxy_tests) /nix/store/788mx070y81zjlg5ipcl0cra3afviw9k-gcc-wrapper-15.2.0/bin/gcc -U_FORTIFY_SOURCE -fstack-protector -Wall -Wunused-but-set-parameter -Wno-free-nonheap-object -fno-omit-frame-pointer '-std=c++17' ... (remaining 131 arguments skipped)
+
+Use --sandbox_debug to see verbose messages from the sandbox and retain the sandbox build root for debugging
+tests/test_fixture_registry.cpp: In member function 'virtual void voxy::game::assets::{anonymous}::FixtureRegistry_MoldedMachineryPreservesEveryCanonicalPartAndPlacedTransform_Test::TestBody()':
+tests/test_fixture_registry.cpp:135:19: error: suggest explicit braces to avoid ambiguous 'else' [-Werror=dangling-else]
+  135 |                 if(role) EXPECT_EQ(role->kind,key=="salvage.part.propeller"
+      |                   ^
+cc1plus: all warnings being treated as errors
+Target //tests:voxy_tests failed to build
+Use --verbose_failures to see the command lines of failed build steps.
+INFO: Elapsed time: 31.386s, Critical Path: 28.13s
+INFO: 155 processes: 521 action cache hit, 19 internal, 136 linux-sandbox.
+ERROR: Build did NOT complete successfully
+//tests:voxy_tests                                              FAILED TO BUILD
+
+Executed 0 out of 1 test: 1 fails to build.

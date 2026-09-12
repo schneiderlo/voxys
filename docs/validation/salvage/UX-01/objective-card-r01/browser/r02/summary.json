@@ -1,0 +1,4552 @@
+{
+  "status": "passed",
+  "maximumSeconds": 90,
+  "expectedPresentationParts": 7,
+  "kind": "Real objective Accept, workshop hide/restore and natural 1280/640 layout; no images",
+  "stages": [
+    {
+      "name": "wide-available-objective",
+      "state": {
+        "active": true,
+        "ready": true,
+        "busy": false,
+        "failed": false,
+        "bodies": 0,
+        "resets": 0,
+        "controller": "cove-player",
+        "terrainSurface": "lego",
+        "mouseCaptured": false,
+        "origin": [
+          -12,
+          -187.68,
+          -32
+        ],
+        "world": "d00074effd95777b146c7c069ba23997",
+        "camera": {
+          "local": [
+            -13,
+            58.835,
+            -86
+          ],
+          "sector": [
+            0,
+            -1,
+            0
+          ],
+          "yaw": -2.78282,
+          "pitch": -0.237696,
+          "viewProjection": [
+            -1.01361,
+            -0.143199,
+            -0.341274,
+            -0.341251,
+            -1.6131e-8,
+            1.68335,
+            -0.235478,
+            -0.235462,
+            0.380102,
+            -0.381865,
+            -0.910064,
+            -0.910003,
+            19.5119,
+            -133.742,
+            -68.9477,
+            -68.8431
+          ]
+        },
+        "player": {
+          "mode": "walking",
+          "interaction": "none",
+          "feet": [
+            6,
+            1.285,
+            -49
+          ],
+          "tick": "199",
+          "interactions": "0",
+          "collisionBoxes": 54,
+          "rootKey": "0",
+          "onBoat": false
+        },
+        "cutter": {
+          "canCut": false,
+          "pending": false,
+          "weld": "0",
+          "label": "",
+          "sections": 1,
+          "cutWelds": 0
+        },
+        "rescue": {
+          "phase": "idle",
+          "pending": false,
+          "completed": "0",
+          "savePending": false
+        },
+        "pause": {
+          "phase": "running",
+          "canPause": true,
+          "tick": "0",
+          "waterTick": "35",
+          "waterTime": 0.583333
+        },
+        "workshop": {
+          "open": false,
+          "canOpen": true,
+          "displayOrigin": [
+            -19,
+            -196,
+            -37
+          ],
+          "camera": {
+            "target": [
+              0,
+              0,
+              0
+            ],
+            "distance": 12.55,
+            "yaw": 0.6,
+            "elevation": 0.502843,
+            "framePending": false,
+            "rectangle": [
+              -0.92,
+              -0.74,
+              0.92,
+              0.92
+            ]
+          },
+          "storedParts": 0,
+          "savePending": false,
+          "canRebuild": false,
+          "recoveryDesigns": 0,
+          "recoverySelected": 0,
+          "canLoadRecovery": false,
+          "canRemoveRecovery": false,
+          "recoveryDigests": [],
+          "storedPartIds": [],
+          "materials": "48",
+          "machinery": "0",
+          "affordable": false,
+          "pending": false,
+          "canLaunch": false,
+          "canUndoLaunch": false,
+          "canRedoLaunch": false,
+          "launches": 0,
+          "lastLaunchTick": 0,
+          "launchMessage": ""
+        },
+        "boat": {
+          "prepared": true,
+          "active": true,
+          "observedTick": 33,
+          "position": [
+            -0.436615,
+            0.22596,
+            -53.9562
+          ],
+          "speed": 1.94293,
+          "orientation": [
+            -0.0228725,
+            0.00035559,
+            0.033929,
+            0.999162
+          ],
+          "helmPosition": [
+            0.48437,
+            1.45115,
+            -53.1106
+          ],
+          "buildId": "6",
+          "topologyRevision": "0",
+          "parts": 11,
+          "eventsThrough": "33",
+          "attachmentBreaks": "0",
+          "physicsTicks": {
+            "supported": true,
+            "failed": false,
+            "incarnation": "1",
+            "base": "0",
+            "scheduled": "35",
+            "encoded": "35",
+            "submitted": "35",
+            "completed": "33",
+            "maximumInFlight": 2
+          },
+          "sceneryCollision": true,
+          "sceneryProxies": 13,
+          "thrustLimitNewtons": 2500,
+          "steeringLimitRadians": 0.6,
+          "thrustDirection": [
+            0,
+            0,
+            -1
+          ],
+          "mechanisms": {
+            "tick": "35",
+            "incarnation": "1",
+            "rotorRadians": 0,
+            "drumRadians": 0,
+            "effectiveDrive": 0,
+            "animatedParts": 2,
+            "bodyIndex": 2,
+            "bodyGeneration": 1,
+            "ropeTick": "0",
+            "ropeIndex": 0,
+            "ropeGeneration": 0,
+            "ropeLength": 0
+          },
+          "massKg": 1035,
+          "displacementM3": 9.88403,
+          "paidPartIds": [],
+          "rootCount": 1,
+          "controlPart": "15",
+          "joinedTick": "33",
+          "roots": [
+            {
+              "key": "7",
+              "active": true,
+              "observedTick": "33",
+              "position": [
+                -0.436615,
+                0.22596,
+                -53.9562
+              ],
+              "orientation": [
+                -0.0228725,
+                0.00035559,
+                0.033929,
+                0.999162
+              ],
+              "velocity": [
+                -0.260102,
+                -1.92191,
+                0.116524
+              ],
+              "angularVelocity": [
+                -0.106278,
+                0.00892389,
+                -0.262808
+              ]
+            }
+          ]
+        },
+        "tow": {
+          "name": "Salvage generator",
+          "active": true,
+          "attached": false,
+          "broken": false,
+          "hasWinch": true,
+          "rootKey": "7",
+          "operable": false,
+          "inRange": true,
+          "confirmed": true,
+          "motor": 0,
+          "distance": 7.17,
+          "ropeObservedTick": "0",
+          "ropeLength": null,
+          "observedTick": 33,
+          "position": [
+            -4.49973,
+            -3.02552,
+            -57.9997
+          ],
+          "speed": 0,
+          "massKg": 420
+        },
+        "job": {
+          "phase": "available",
+          "pending": false,
+          "canDeliver": false,
+          "harborDistance": 6.40273,
+          "secured": false,
+          "savePending": false,
+          "durable": false,
+          "message": ""
+        },
+        "harbor": {
+          "installed": false,
+          "durable": false,
+          "pending": false,
+          "atDock": false,
+          "compatible": true,
+          "attached": false,
+          "brokenMask": 0,
+          "canInstall": false,
+          "canAttach": false,
+          "attachmentPending": false,
+          "canOperate": false,
+          "canRelease": false,
+          "motor": 0,
+          "bodyObservedTick": "0",
+          "stage": 0,
+          "message": "",
+          "attachmentIssue": "",
+          "rigIssue": "",
+          "lengths": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "lineLoads": [
+            null,
+            null,
+            null,
+            null
+          ]
+        },
+        "session": {
+          "revision": "0",
+          "tick": "33",
+          "admissionOpen": true,
+          "builds": 1,
+          "buildParts": 11,
+          "buildConnections": 17,
+          "cargo": 1,
+          "jobs": 1,
+          "inventory": {
+            "salvageMaterial": "48",
+            "specialMachinery": "0"
+          }
+        },
+        "observation": {
+          "world": "d00074effd95777b146c7c069ba23997",
+          "incarnation": "96666db36ee7ab3d4ddc7dcb38008d47",
+          "epoch": "1",
+          "publicationLost": false,
+          "lanes": [
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            },
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            },
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            }
+          ]
+        },
+        "assetFixture": {
+          "status": 2,
+          "presentationParts": 7,
+          "sceneSunShadows": true,
+          "generation": "1",
+          "uploads": 36,
+          "prototypeUploads": 0,
+          "dockMarkingGpuBytes": "7760",
+          "dockMarkingDraws": 2,
+          "environmentGpuBytes": "1228944",
+          "environmentBakeCount": 1,
+          "environmentReady": true,
+          "gpuReservationBytes": "10753144",
+          "submittedSerial": "40",
+          "completedSerial": "33",
+          "draws": 84,
+          "guides": 0,
+          "opaqueSceneGpuBytes": "12288000",
+          "guideBoxes": 0,
+          "guideMeshGpuBytes": 1936,
+          "forcedLod": "0",
+          "lods": [
+            "1",
+            "1",
+            "2",
+            "2",
+            "2",
+            "1",
+            "1",
+            "1",
+            "2",
+            "2",
+            "2",
+            "2",
+            "2",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "2"
+          ],
+          "availableLods": [
+            "0",
+            "1",
+            "2",
+            "3"
+          ]
+        }
+      },
+      "dom": {
+        "width": 1280,
+        "height": 800,
+        "documentWidth": 1280,
+        "documentClientWidth": 1280,
+        "scrollX": 0,
+        "scrollY": 0,
+        "panel": {
+          "rect": {
+            "left": 24,
+            "top": 102.5390625,
+            "right": 376,
+            "bottom": 776,
+            "width": 352,
+            "height": 673.4609375
+          },
+          "scrollTop": 0,
+          "scrollLeft": 0,
+          "clientWidth": 350,
+          "clientHeight": 671,
+          "scrollWidth": 350,
+          "scrollHeight": 671,
+          "clip": {
+            "left": 25,
+            "top": 103.5390625,
+            "right": 375,
+            "bottom": 774.5390625
+          }
+        },
+        "step": "accept",
+        "card": {
+          "id": "salvage-objective",
+          "text": "Next objective\n            Recover the generator\n            Your first job is the sunken generator beside the boat.\n            Recover the generator · J",
+          "hidden": false,
+          "disabled": false,
+          "visible": true,
+          "rect": {
+            "left": 41,
+            "top": 262.828125,
+            "right": 359,
+            "bottom": 425.5,
+            "width": 318,
+            "height": 162.671875
+          },
+          "textRects": [
+            {
+              "left": 57,
+              "top": 275.828125,
+              "right": 346,
+              "bottom": 291.7734375,
+              "width": 289,
+              "height": 15.9453125
+            },
+            {
+              "left": 57,
+              "top": 276.828125,
+              "right": 131.421875,
+              "bottom": 290.328125,
+              "width": 74.421875,
+              "height": 13.5
+            },
+            {
+              "left": 57,
+              "top": 296.7734375,
+              "right": 346,
+              "bottom": 319.96875,
+              "width": 289,
+              "height": 23.1953125
+            },
+            {
+              "left": 57,
+              "top": 298.7734375,
+              "right": 225.8515625,
+              "bottom": 317.7734375,
+              "width": 168.8515625,
+              "height": 19
+            },
+            {
+              "left": 57,
+              "top": 324.96875,
+              "right": 346,
+              "bottom": 362.65625,
+              "width": 289,
+              "height": 37.6875
+            },
+            {
+              "left": 57,
+              "top": 326.46875,
+              "right": 336.359375,
+              "bottom": 341.96875,
+              "width": 279.359375,
+              "height": 15.5
+            },
+            {
+              "left": 57,
+              "top": 345.3125,
+              "right": 87.359375,
+              "bottom": 360.8125,
+              "width": 30.359375,
+              "height": 15.5
+            },
+            {
+              "left": 57,
+              "top": 375.65625,
+              "right": 230.4921875,
+              "bottom": 412.5,
+              "width": 173.4921875,
+              "height": 36.84375
+            },
+            {
+              "left": 68,
+              "top": 386.15625,
+              "right": 219.4921875,
+              "bottom": 401.65625,
+              "width": 151.4921875,
+              "height": 15.5
+            }
+          ],
+          "clientWidth": 313,
+          "scrollWidth": 313,
+          "centerTarget": true
+        },
+        "label": {
+          "id": "salvage-objective-label",
+          "text": "Next objective",
+          "hidden": false,
+          "disabled": false,
+          "visible": true,
+          "rect": {
+            "left": 57,
+            "top": 275.828125,
+            "right": 346,
+            "bottom": 291.7734375,
+            "width": 289,
+            "height": 15.9453125
+          },
+          "textRects": [
+            {
+              "left": 57,
+              "top": 276.828125,
+              "right": 131.421875,
+              "bottom": 290.328125,
+              "width": 74.421875,
+              "height": 13.5
+            }
+          ],
+          "clientWidth": 289,
+          "scrollWidth": 289,
+          "centerTarget": true
+        },
+        "title": {
+          "id": "salvage-objective-title",
+          "text": "Recover the generator",
+          "hidden": false,
+          "disabled": false,
+          "visible": true,
+          "rect": {
+            "left": 57,
+            "top": 296.7734375,
+            "right": 346,
+            "bottom": 319.96875,
+            "width": 289,
+            "height": 23.1953125
+          },
+          "textRects": [
+            {
+              "left": 57,
+              "top": 298.7734375,
+              "right": 225.8515625,
+              "bottom": 317.7734375,
+              "width": 168.8515625,
+              "height": 19
+            }
+          ],
+          "clientWidth": 289,
+          "scrollWidth": 289,
+          "centerTarget": true
+        },
+        "detail": {
+          "id": "salvage-objective-detail",
+          "text": "Your first job is the sunken generator beside the boat.",
+          "hidden": false,
+          "disabled": false,
+          "visible": true,
+          "rect": {
+            "left": 57,
+            "top": 324.96875,
+            "right": 346,
+            "bottom": 362.65625,
+            "width": 289,
+            "height": 37.6875
+          },
+          "textRects": [
+            {
+              "left": 57,
+              "top": 326.46875,
+              "right": 336.359375,
+              "bottom": 341.96875,
+              "width": 279.359375,
+              "height": 15.5
+            },
+            {
+              "left": 57,
+              "top": 345.3125,
+              "right": 87.359375,
+              "bottom": 360.8125,
+              "width": 30.359375,
+              "height": 15.5
+            }
+          ],
+          "clientWidth": 289,
+          "scrollWidth": 289,
+          "centerTarget": true
+        },
+        "action": {
+          "id": "salvage-objective-action",
+          "text": "Recover the generator · J",
+          "hidden": false,
+          "disabled": false,
+          "visible": true,
+          "rect": {
+            "left": 57,
+            "top": 375.65625,
+            "right": 230.4921875,
+            "bottom": 412.5,
+            "width": 173.4921875,
+            "height": 36.84375
+          },
+          "textRects": [
+            {
+              "left": 68,
+              "top": 386.15625,
+              "right": 219.4921875,
+              "bottom": 401.65625,
+              "width": 151.4921875,
+              "height": 15.5
+            }
+          ],
+          "clientWidth": 171,
+          "scrollWidth": 171,
+          "centerTarget": true
+        },
+        "originalAccept": {
+          "id": "salvage-job-accept",
+          "text": "Recover the generator · J",
+          "hidden": false,
+          "disabled": false,
+          "visible": true,
+          "rect": {
+            "left": 41,
+            "top": 586.6875,
+            "right": 209.9296875,
+            "bottom": 623.53125,
+            "width": 168.9296875,
+            "height": 36.84375
+          },
+          "textRects": [
+            {
+              "left": 52,
+              "top": 597.1875,
+              "right": 198.9296875,
+              "bottom": 612.6875,
+              "width": 146.9296875,
+              "height": 15.5
+            }
+          ],
+          "clientWidth": 167,
+          "scrollWidth": 167,
+          "centerTarget": false
+        }
+      },
+      "completion": {
+        "fixture": "41",
+        "physics": "37",
+        "owner": {
+          "world": "d00074effd95777b146c7c069ba23997",
+          "incarnation": "1",
+          "build": "6",
+          "topology": "0",
+          "roots": [
+            "7"
+          ],
+          "bodyIndex": 2,
+          "bodyGeneration": 1
+        }
+      }
+    },
+    {
+      "name": "narrow-available-objective",
+      "state": {
+        "active": true,
+        "ready": true,
+        "busy": false,
+        "failed": false,
+        "bodies": 0,
+        "resets": 0,
+        "controller": "cove-player",
+        "terrainSurface": "lego",
+        "mouseCaptured": false,
+        "origin": [
+          -12,
+          -187.68,
+          -32
+        ],
+        "world": "d00074effd95777b146c7c069ba23997",
+        "camera": {
+          "local": [
+            -13,
+            58.835,
+            -86
+          ],
+          "sector": [
+            0,
+            -1,
+            0
+          ],
+          "yaw": -2.78282,
+          "pitch": -0.237696,
+          "viewProjection": [
+            -1.01361,
+            -0.143199,
+            -0.341274,
+            -0.341251,
+            -1.6131e-8,
+            1.68335,
+            -0.235478,
+            -0.235462,
+            0.380102,
+            -0.381865,
+            -0.910064,
+            -0.910003,
+            19.5119,
+            -133.742,
+            -68.9477,
+            -68.8431
+          ]
+        },
+        "player": {
+          "mode": "walking",
+          "interaction": "none",
+          "feet": [
+            6,
+            1.285,
+            -49
+          ],
+          "tick": "204",
+          "interactions": "0",
+          "collisionBoxes": 54,
+          "rootKey": "0",
+          "onBoat": false
+        },
+        "cutter": {
+          "canCut": false,
+          "pending": false,
+          "weld": "0",
+          "label": "",
+          "sections": 1,
+          "cutWelds": 0
+        },
+        "rescue": {
+          "phase": "idle",
+          "pending": false,
+          "completed": "0",
+          "savePending": false
+        },
+        "pause": {
+          "phase": "running",
+          "canPause": true,
+          "tick": "0",
+          "waterTick": "41",
+          "waterTime": 0.683333
+        },
+        "workshop": {
+          "open": false,
+          "canOpen": true,
+          "displayOrigin": [
+            -19,
+            -196,
+            -37
+          ],
+          "camera": {
+            "target": [
+              0,
+              0,
+              0
+            ],
+            "distance": 12.55,
+            "yaw": 0.6,
+            "elevation": 0.502843,
+            "framePending": false,
+            "rectangle": [
+              -0.92,
+              -0.74,
+              0.92,
+              0.92
+            ]
+          },
+          "storedParts": 0,
+          "savePending": false,
+          "canRebuild": false,
+          "recoveryDesigns": 0,
+          "recoverySelected": 0,
+          "canLoadRecovery": false,
+          "canRemoveRecovery": false,
+          "recoveryDigests": [],
+          "storedPartIds": [],
+          "materials": "48",
+          "machinery": "0",
+          "affordable": false,
+          "pending": false,
+          "canLaunch": false,
+          "canUndoLaunch": false,
+          "canRedoLaunch": false,
+          "launches": 0,
+          "lastLaunchTick": 0,
+          "launchMessage": ""
+        },
+        "boat": {
+          "prepared": true,
+          "active": true,
+          "observedTick": 39,
+          "position": [
+            -0.46336,
+            0.0639648,
+            -53.9518
+          ],
+          "speed": 1.40284,
+          "orientation": [
+            -0.0246397,
+            0.0010842,
+            0.0201637,
+            0.999492
+          ],
+          "helmPosition": [
+            0.491677,
+            1.26632,
+            -53.1112
+          ],
+          "buildId": "6",
+          "topologyRevision": "0",
+          "parts": 11,
+          "eventsThrough": "39",
+          "attachmentBreaks": "0",
+          "physicsTicks": {
+            "supported": true,
+            "failed": false,
+            "incarnation": "1",
+            "base": "0",
+            "scheduled": "41",
+            "encoded": "41",
+            "submitted": "41",
+            "completed": "39",
+            "maximumInFlight": 2
+          },
+          "sceneryCollision": true,
+          "sceneryProxies": 13,
+          "thrustLimitNewtons": 2500,
+          "steeringLimitRadians": 0.6,
+          "thrustDirection": [
+            0,
+            0,
+            -1
+          ],
+          "mechanisms": {
+            "tick": "41",
+            "incarnation": "1",
+            "rotorRadians": 0,
+            "drumRadians": 0,
+            "effectiveDrive": 0,
+            "animatedParts": 2,
+            "bodyIndex": 2,
+            "bodyGeneration": 1,
+            "ropeTick": "0",
+            "ropeIndex": 0,
+            "ropeGeneration": 0,
+            "ropeLength": 0
+          },
+          "massKg": 1035,
+          "displacementM3": 9.88403,
+          "paidPartIds": [],
+          "rootCount": 1,
+          "controlPart": "15",
+          "joinedTick": "39",
+          "roots": [
+            {
+              "key": "7",
+              "active": true,
+              "observedTick": "39",
+              "position": [
+                -0.46336,
+                0.0639648,
+                -53.9518
+              ],
+              "orientation": [
+                -0.0246397,
+                0.0010842,
+                0.0201637,
+                0.999492
+              ],
+              "velocity": [
+                -0.238489,
+                -1.38234,
+                -0.0147021
+              ],
+              "angularVelocity": [
+                0.0215818,
+                0.00425698,
+                -0.250842
+              ]
+            }
+          ]
+        },
+        "tow": {
+          "name": "Salvage generator",
+          "active": true,
+          "attached": false,
+          "broken": false,
+          "hasWinch": true,
+          "rootKey": "7",
+          "operable": false,
+          "inRange": true,
+          "confirmed": true,
+          "motor": 0,
+          "distance": 7.0699,
+          "ropeObservedTick": "0",
+          "ropeLength": null,
+          "observedTick": 39,
+          "position": [
+            -4.49976,
+            -3.02554,
+            -57.9997
+          ],
+          "speed": 0.0407842,
+          "massKg": 420
+        },
+        "job": {
+          "phase": "available",
+          "pending": false,
+          "canDeliver": false,
+          "harborDistance": 6.40272,
+          "secured": false,
+          "savePending": false,
+          "durable": false,
+          "message": ""
+        },
+        "harbor": {
+          "installed": false,
+          "durable": false,
+          "pending": false,
+          "atDock": false,
+          "compatible": true,
+          "attached": false,
+          "brokenMask": 0,
+          "canInstall": false,
+          "canAttach": false,
+          "attachmentPending": false,
+          "canOperate": false,
+          "canRelease": false,
+          "motor": 0,
+          "bodyObservedTick": "0",
+          "stage": 0,
+          "message": "",
+          "attachmentIssue": "",
+          "rigIssue": "",
+          "lengths": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "lineLoads": [
+            null,
+            null,
+            null,
+            null
+          ]
+        },
+        "session": {
+          "revision": "0",
+          "tick": "39",
+          "admissionOpen": true,
+          "builds": 1,
+          "buildParts": 11,
+          "buildConnections": 17,
+          "cargo": 1,
+          "jobs": 1,
+          "inventory": {
+            "salvageMaterial": "48",
+            "specialMachinery": "0"
+          }
+        },
+        "observation": {
+          "world": "d00074effd95777b146c7c069ba23997",
+          "incarnation": "96666db36ee7ab3d4ddc7dcb38008d47",
+          "epoch": "1",
+          "publicationLost": false,
+          "lanes": [
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            },
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            },
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            }
+          ]
+        },
+        "assetFixture": {
+          "status": 2,
+          "presentationParts": 7,
+          "sceneSunShadows": true,
+          "generation": "1",
+          "uploads": 36,
+          "prototypeUploads": 0,
+          "dockMarkingGpuBytes": "7760",
+          "dockMarkingDraws": 2,
+          "environmentGpuBytes": "1228944",
+          "environmentBakeCount": 1,
+          "environmentReady": true,
+          "gpuReservationBytes": "10753144",
+          "submittedSerial": "62",
+          "completedSerial": "54",
+          "draws": 84,
+          "guides": 0,
+          "opaqueSceneGpuBytes": "12288000",
+          "guideBoxes": 0,
+          "guideMeshGpuBytes": 1936,
+          "forcedLod": "0",
+          "lods": [
+            "1",
+            "1",
+            "2",
+            "2",
+            "2",
+            "1",
+            "1",
+            "1",
+            "2",
+            "2",
+            "2",
+            "2",
+            "2",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "2"
+          ],
+          "availableLods": [
+            "0",
+            "1",
+            "2",
+            "3"
+          ]
+        }
+      },
+      "dom": {
+        "width": 640,
+        "height": 480,
+        "documentWidth": 640,
+        "documentClientWidth": 640,
+        "scrollX": 0,
+        "scrollY": 0,
+        "panel": {
+          "rect": {
+            "left": 24,
+            "top": 24,
+            "right": 376,
+            "bottom": 456,
+            "width": 352,
+            "height": 432
+          },
+          "scrollTop": 0,
+          "scrollLeft": 0,
+          "clientWidth": 335,
+          "clientHeight": 430,
+          "scrollWidth": 335,
+          "scrollHeight": 671,
+          "clip": {
+            "left": 25,
+            "top": 25,
+            "right": 360,
+            "bottom": 455
+          }
+        },
+        "step": "accept",
+        "card": {
+          "id": "salvage-objective",
+          "text": "Next objective\n            Recover the generator\n            Your first job is the sunken generator beside the boat.\n            Recover the generator · J",
+          "hidden": false,
+          "disabled": false,
+          "visible": true,
+          "rect": {
+            "left": 41,
+            "top": 184.2890625,
+            "right": 344,
+            "bottom": 346.9609375,
+            "width": 303,
+            "height": 162.671875
+          },
+          "textRects": [
+            {
+              "left": 57,
+              "top": 197.2890625,
+              "right": 331,
+              "bottom": 213.234375,
+              "width": 274,
+              "height": 15.9453125
+            },
+            {
+              "left": 57,
+              "top": 198.2890625,
+              "right": 131.421875,
+              "bottom": 211.7890625,
+              "width": 74.421875,
+              "height": 13.5
+            },
+            {
+              "left": 57,
+              "top": 218.234375,
+              "right": 331,
+              "bottom": 241.4296875,
+              "width": 274,
+              "height": 23.1953125
+            },
+            {
+              "left": 57,
+              "top": 220.234375,
+              "right": 225.8515625,
+              "bottom": 239.234375,
+              "width": 168.8515625,
+              "height": 19
+            },
+            {
+              "left": 57,
+              "top": 246.4296875,
+              "right": 331,
+              "bottom": 284.1171875,
+              "width": 274,
+              "height": 37.6875
+            },
+            {
+              "left": 57,
+              "top": 247.9296875,
+              "right": 313.6796875,
+              "bottom": 263.4296875,
+              "width": 256.6796875,
+              "height": 15.5
+            },
+            {
+              "left": 57,
+              "top": 266.7734375,
+              "right": 110.046875,
+              "bottom": 282.2734375,
+              "width": 53.046875,
+              "height": 15.5
+            },
+            {
+              "left": 57,
+              "top": 297.1171875,
+              "right": 230.4921875,
+              "bottom": 333.9609375,
+              "width": 173.4921875,
+              "height": 36.84375
+            },
+            {
+              "left": 68,
+              "top": 307.6171875,
+              "right": 219.4921875,
+              "bottom": 323.1171875,
+              "width": 151.4921875,
+              "height": 15.5
+            }
+          ],
+          "clientWidth": 298,
+          "scrollWidth": 298,
+          "centerTarget": true
+        },
+        "label": {
+          "id": "salvage-objective-label",
+          "text": "Next objective",
+          "hidden": false,
+          "disabled": false,
+          "visible": true,
+          "rect": {
+            "left": 57,
+            "top": 197.2890625,
+            "right": 331,
+            "bottom": 213.234375,
+            "width": 274,
+            "height": 15.9453125
+          },
+          "textRects": [
+            {
+              "left": 57,
+              "top": 198.2890625,
+              "right": 131.421875,
+              "bottom": 211.7890625,
+              "width": 74.421875,
+              "height": 13.5
+            }
+          ],
+          "clientWidth": 274,
+          "scrollWidth": 274,
+          "centerTarget": true
+        },
+        "title": {
+          "id": "salvage-objective-title",
+          "text": "Recover the generator",
+          "hidden": false,
+          "disabled": false,
+          "visible": true,
+          "rect": {
+            "left": 57,
+            "top": 218.234375,
+            "right": 331,
+            "bottom": 241.4296875,
+            "width": 274,
+            "height": 23.1953125
+          },
+          "textRects": [
+            {
+              "left": 57,
+              "top": 220.234375,
+              "right": 225.8515625,
+              "bottom": 239.234375,
+              "width": 168.8515625,
+              "height": 19
+            }
+          ],
+          "clientWidth": 274,
+          "scrollWidth": 274,
+          "centerTarget": true
+        },
+        "detail": {
+          "id": "salvage-objective-detail",
+          "text": "Your first job is the sunken generator beside the boat.",
+          "hidden": false,
+          "disabled": false,
+          "visible": true,
+          "rect": {
+            "left": 57,
+            "top": 246.4296875,
+            "right": 331,
+            "bottom": 284.1171875,
+            "width": 274,
+            "height": 37.6875
+          },
+          "textRects": [
+            {
+              "left": 57,
+              "top": 247.9296875,
+              "right": 313.6796875,
+              "bottom": 263.4296875,
+              "width": 256.6796875,
+              "height": 15.5
+            },
+            {
+              "left": 57,
+              "top": 266.7734375,
+              "right": 110.046875,
+              "bottom": 282.2734375,
+              "width": 53.046875,
+              "height": 15.5
+            }
+          ],
+          "clientWidth": 274,
+          "scrollWidth": 274,
+          "centerTarget": true
+        },
+        "action": {
+          "id": "salvage-objective-action",
+          "text": "Recover the generator · J",
+          "hidden": false,
+          "disabled": false,
+          "visible": true,
+          "rect": {
+            "left": 57,
+            "top": 297.1171875,
+            "right": 230.4921875,
+            "bottom": 333.9609375,
+            "width": 173.4921875,
+            "height": 36.84375
+          },
+          "textRects": [
+            {
+              "left": 68,
+              "top": 307.6171875,
+              "right": 219.4921875,
+              "bottom": 323.1171875,
+              "width": 151.4921875,
+              "height": 15.5
+            }
+          ],
+          "clientWidth": 171,
+          "scrollWidth": 171,
+          "centerTarget": true
+        },
+        "originalAccept": {
+          "id": "salvage-job-accept",
+          "text": "Recover the generator · J",
+          "hidden": false,
+          "disabled": false,
+          "visible": true,
+          "rect": {
+            "left": 41,
+            "top": 508.1484375,
+            "right": 209.9296875,
+            "bottom": 544.9921875,
+            "width": 168.9296875,
+            "height": 36.84375
+          },
+          "textRects": [
+            {
+              "left": 52,
+              "top": 518.6484375,
+              "right": 198.9296875,
+              "bottom": 534.1484375,
+              "width": 146.9296875,
+              "height": 15.5
+            }
+          ],
+          "clientWidth": 167,
+          "scrollWidth": 167,
+          "centerTarget": false
+        }
+      },
+      "completion": {
+        "fixture": "67",
+        "physics": "43",
+        "owner": {
+          "world": "d00074effd95777b146c7c069ba23997",
+          "incarnation": "1",
+          "build": "6",
+          "topology": "0",
+          "roots": [
+            "7"
+          ],
+          "bodyIndex": 2,
+          "bodyGeneration": 1
+        }
+      }
+    },
+    {
+      "name": "accepted-job-preserves-boat-stock",
+      "state": {
+        "active": true,
+        "ready": true,
+        "busy": false,
+        "failed": false,
+        "bodies": 0,
+        "resets": 0,
+        "controller": "cove-player",
+        "terrainSurface": "lego",
+        "mouseCaptured": false,
+        "origin": [
+          -12,
+          -187.68,
+          -32
+        ],
+        "world": "d00074effd95777b146c7c069ba23997",
+        "camera": {
+          "local": [
+            -13,
+            58.835,
+            -86
+          ],
+          "sector": [
+            0,
+            -1,
+            0
+          ],
+          "yaw": -2.78282,
+          "pitch": -0.237696,
+          "viewProjection": [
+            -1.21633,
+            -0.143199,
+            -0.341274,
+            -0.341251,
+            -1.93572e-8,
+            1.68335,
+            -0.235478,
+            -0.235462,
+            0.456123,
+            -0.381865,
+            -0.910064,
+            -0.910003,
+            23.4143,
+            -133.742,
+            -68.9477,
+            -68.8431
+          ]
+        },
+        "player": {
+          "mode": "walking",
+          "interaction": "none",
+          "feet": [
+            6,
+            1.285,
+            -49
+          ],
+          "tick": "263",
+          "interactions": "0",
+          "collisionBoxes": 54,
+          "rootKey": "0",
+          "onBoat": false
+        },
+        "cutter": {
+          "canCut": false,
+          "pending": false,
+          "weld": "0",
+          "label": "",
+          "sections": 1,
+          "cutWelds": 0
+        },
+        "rescue": {
+          "phase": "idle",
+          "pending": false,
+          "completed": "0",
+          "savePending": false
+        },
+        "pause": {
+          "phase": "running",
+          "canPause": true,
+          "tick": "0",
+          "waterTick": "96",
+          "waterTime": 1.6
+        },
+        "workshop": {
+          "open": false,
+          "canOpen": true,
+          "displayOrigin": [
+            -19,
+            -196,
+            -37
+          ],
+          "camera": {
+            "target": [
+              0,
+              0,
+              0
+            ],
+            "distance": 12.55,
+            "yaw": 0.6,
+            "elevation": 0.502843,
+            "framePending": false,
+            "rectangle": [
+              -0.92,
+              -0.74,
+              0.92,
+              0.92
+            ]
+          },
+          "storedParts": 0,
+          "savePending": false,
+          "canRebuild": false,
+          "recoveryDesigns": 0,
+          "recoverySelected": 0,
+          "canLoadRecovery": false,
+          "canRemoveRecovery": false,
+          "recoveryDigests": [],
+          "storedPartIds": [],
+          "materials": "48",
+          "machinery": "0",
+          "affordable": false,
+          "pending": false,
+          "canLaunch": false,
+          "canUndoLaunch": false,
+          "canRedoLaunch": false,
+          "launches": 0,
+          "lastLaunchTick": 0,
+          "launchMessage": ""
+        },
+        "boat": {
+          "prepared": true,
+          "active": true,
+          "observedTick": 95,
+          "position": [
+            -0.484943,
+            -0.981621,
+            -54.0037
+          ],
+          "speed": 0.373945,
+          "orientation": [
+            0.00189052,
+            -0.0000985275,
+            0.00837867,
+            0.999963
+          ],
+          "helmPosition": [
+            0.495999,
+            0.151566,
+            -53.0992
+          ],
+          "buildId": "6",
+          "topologyRevision": "0",
+          "parts": 11,
+          "eventsThrough": "95",
+          "attachmentBreaks": "0",
+          "physicsTicks": {
+            "supported": true,
+            "failed": false,
+            "incarnation": "1",
+            "base": "0",
+            "scheduled": "96",
+            "encoded": "96",
+            "submitted": "96",
+            "completed": "95",
+            "maximumInFlight": 2
+          },
+          "sceneryCollision": true,
+          "sceneryProxies": 13,
+          "thrustLimitNewtons": 2500,
+          "steeringLimitRadians": 0.6,
+          "thrustDirection": [
+            0,
+            0,
+            -1
+          ],
+          "mechanisms": {
+            "tick": "96",
+            "incarnation": "1",
+            "rotorRadians": 0,
+            "drumRadians": 0,
+            "effectiveDrive": 0,
+            "animatedParts": 2,
+            "bodyIndex": 2,
+            "bodyGeneration": 1,
+            "ropeTick": "0",
+            "ropeIndex": 0,
+            "ropeGeneration": 0,
+            "ropeLength": 0
+          },
+          "massKg": 1035,
+          "displacementM3": 9.88403,
+          "paidPartIds": [],
+          "rootCount": 1,
+          "controlPart": "15",
+          "joinedTick": "95",
+          "roots": [
+            {
+              "key": "7",
+              "active": true,
+              "observedTick": "95",
+              "position": [
+                -0.484943,
+                -0.981621,
+                -54.0037
+              ],
+              "orientation": [
+                0.00189052,
+                -0.0000985275,
+                0.00837867,
+                0.999963
+              ],
+              "velocity": [
+                0.0893599,
+                -0.360796,
+                -0.04094
+              ],
+              "angularVelocity": [
+                0.0357251,
+                -0.00618792,
+                0.0971728
+              ]
+            }
+          ]
+        },
+        "tow": {
+          "name": "Salvage generator",
+          "active": true,
+          "attached": false,
+          "broken": false,
+          "hasWinch": true,
+          "rootKey": "7",
+          "operable": false,
+          "inRange": true,
+          "confirmed": true,
+          "motor": 0,
+          "distance": 6.4385,
+          "ropeObservedTick": "0",
+          "ropeLength": null,
+          "observedTick": 95,
+          "position": [
+            -4.49957,
+            -3.02551,
+            -57.9992
+          ],
+          "speed": 0,
+          "massKg": 420
+        },
+        "job": {
+          "phase": "accepted",
+          "pending": false,
+          "canDeliver": false,
+          "harborDistance": 6.40231,
+          "secured": false,
+          "savePending": false,
+          "durable": false,
+          "message": "Recover the generator. Reel it above the water and return to the harbor."
+        },
+        "harbor": {
+          "installed": false,
+          "durable": false,
+          "pending": false,
+          "atDock": false,
+          "compatible": true,
+          "attached": false,
+          "brokenMask": 0,
+          "canInstall": false,
+          "canAttach": false,
+          "attachmentPending": false,
+          "canOperate": false,
+          "canRelease": false,
+          "motor": 0,
+          "bodyObservedTick": "0",
+          "stage": 0,
+          "message": "",
+          "attachmentIssue": "",
+          "rigIssue": "",
+          "lengths": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "lineLoads": [
+            null,
+            null,
+            null,
+            null
+          ]
+        },
+        "session": {
+          "revision": "1",
+          "tick": "95",
+          "admissionOpen": true,
+          "builds": 1,
+          "buildParts": 11,
+          "buildConnections": 17,
+          "cargo": 1,
+          "jobs": 1,
+          "inventory": {
+            "salvageMaterial": "48",
+            "specialMachinery": "0"
+          }
+        },
+        "observation": {
+          "world": "d00074effd95777b146c7c069ba23997",
+          "incarnation": "96666db36ee7ab3d4ddc7dcb38008d47",
+          "epoch": "1",
+          "publicationLost": false,
+          "lanes": [
+            {
+              "through": "3",
+              "retained": 3,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            },
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            },
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            }
+          ]
+        },
+        "assetFixture": {
+          "status": 2,
+          "presentationParts": 7,
+          "sceneSunShadows": true,
+          "generation": "1",
+          "uploads": 36,
+          "prototypeUploads": 0,
+          "dockMarkingGpuBytes": "7760",
+          "dockMarkingDraws": 2,
+          "environmentGpuBytes": "1228944",
+          "environmentBakeCount": 1,
+          "environmentReady": true,
+          "gpuReservationBytes": "10753144",
+          "submittedSerial": "286",
+          "completedSerial": "280",
+          "draws": 84,
+          "guides": 0,
+          "opaqueSceneGpuBytes": "3686400",
+          "guideBoxes": 0,
+          "guideMeshGpuBytes": 1936,
+          "forcedLod": "0",
+          "lods": [
+            "2",
+            "1",
+            "2",
+            "2",
+            "2",
+            "2",
+            "1",
+            "2",
+            "2",
+            "2",
+            "2",
+            "2",
+            "2",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "2",
+            "2"
+          ],
+          "availableLods": [
+            "0",
+            "1",
+            "2",
+            "3"
+          ]
+        }
+      },
+      "dom": {
+        "width": 640,
+        "height": 480,
+        "documentWidth": 640,
+        "documentClientWidth": 640,
+        "scrollX": 0,
+        "scrollY": 0,
+        "panel": {
+          "rect": {
+            "left": 24,
+            "top": 24,
+            "right": 376,
+            "bottom": 456,
+            "width": 352,
+            "height": 432
+          },
+          "scrollTop": 0,
+          "scrollLeft": 0,
+          "clientWidth": 335,
+          "clientHeight": 430,
+          "scrollWidth": 335,
+          "scrollHeight": 627,
+          "clip": {
+            "left": 25,
+            "top": 25,
+            "right": 360,
+            "bottom": 455
+          }
+        },
+        "step": "board",
+        "card": {
+          "id": "salvage-objective",
+          "text": "Next objective\n            Board your boat\n            Follow the teal dock lane to the orange boarding pad.\n            Recover the generator · J",
+          "hidden": false,
+          "disabled": false,
+          "visible": true,
+          "rect": {
+            "left": 41,
+            "top": 184.2890625,
+            "right": 344,
+            "bottom": 302.1171875,
+            "width": 303,
+            "height": 117.828125
+          },
+          "textRects": [
+            {
+              "left": 57,
+              "top": 197.2890625,
+              "right": 331,
+              "bottom": 213.234375,
+              "width": 274,
+              "height": 15.9453125
+            },
+            {
+              "left": 57,
+              "top": 198.2890625,
+              "right": 131.421875,
+              "bottom": 211.7890625,
+              "width": 74.421875,
+              "height": 13.5
+            },
+            {
+              "left": 57,
+              "top": 218.234375,
+              "right": 331,
+              "bottom": 241.4296875,
+              "width": 274,
+              "height": 23.1953125
+            },
+            {
+              "left": 57,
+              "top": 220.234375,
+              "right": 178.2421875,
+              "bottom": 239.234375,
+              "width": 121.2421875,
+              "height": 19
+            },
+            {
+              "left": 57,
+              "top": 246.4296875,
+              "right": 331,
+              "bottom": 284.1171875,
+              "width": 274,
+              "height": 37.6875
+            },
+            {
+              "left": 57,
+              "top": 247.9296875,
+              "right": 285.0234375,
+              "bottom": 263.4296875,
+              "width": 228.0234375,
+              "height": 15.5
+            },
+            {
+              "left": 57,
+              "top": 266.7734375,
+              "right": 137.5390625,
+              "bottom": 282.2734375,
+              "width": 80.5390625,
+              "height": 15.5
+            }
+          ],
+          "clientWidth": 298,
+          "scrollWidth": 298,
+          "centerTarget": true
+        },
+        "label": {
+          "id": "salvage-objective-label",
+          "text": "Next objective",
+          "hidden": false,
+          "disabled": false,
+          "visible": true,
+          "rect": {
+            "left": 57,
+            "top": 197.2890625,
+            "right": 331,
+            "bottom": 213.234375,
+            "width": 274,
+            "height": 15.9453125
+          },
+          "textRects": [
+            {
+              "left": 57,
+              "top": 198.2890625,
+              "right": 131.421875,
+              "bottom": 211.7890625,
+              "width": 74.421875,
+              "height": 13.5
+            }
+          ],
+          "clientWidth": 274,
+          "scrollWidth": 274,
+          "centerTarget": true
+        },
+        "title": {
+          "id": "salvage-objective-title",
+          "text": "Board your boat",
+          "hidden": false,
+          "disabled": false,
+          "visible": true,
+          "rect": {
+            "left": 57,
+            "top": 218.234375,
+            "right": 331,
+            "bottom": 241.4296875,
+            "width": 274,
+            "height": 23.1953125
+          },
+          "textRects": [
+            {
+              "left": 57,
+              "top": 220.234375,
+              "right": 178.2421875,
+              "bottom": 239.234375,
+              "width": 121.2421875,
+              "height": 19
+            }
+          ],
+          "clientWidth": 274,
+          "scrollWidth": 274,
+          "centerTarget": true
+        },
+        "detail": {
+          "id": "salvage-objective-detail",
+          "text": "Follow the teal dock lane to the orange boarding pad.",
+          "hidden": false,
+          "disabled": false,
+          "visible": true,
+          "rect": {
+            "left": 57,
+            "top": 246.4296875,
+            "right": 331,
+            "bottom": 284.1171875,
+            "width": 274,
+            "height": 37.6875
+          },
+          "textRects": [
+            {
+              "left": 57,
+              "top": 247.9296875,
+              "right": 285.0234375,
+              "bottom": 263.4296875,
+              "width": 228.0234375,
+              "height": 15.5
+            },
+            {
+              "left": 57,
+              "top": 266.7734375,
+              "right": 137.5390625,
+              "bottom": 282.2734375,
+              "width": 80.5390625,
+              "height": 15.5
+            }
+          ],
+          "clientWidth": 274,
+          "scrollWidth": 274,
+          "centerTarget": true
+        },
+        "action": {
+          "id": "salvage-objective-action",
+          "text": "Recover the generator · J",
+          "hidden": true,
+          "disabled": true,
+          "visible": false,
+          "rect": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "width": 0,
+            "height": 0
+          },
+          "textRects": [],
+          "clientWidth": 0,
+          "scrollWidth": 0,
+          "centerTarget": false
+        },
+        "originalAccept": {
+          "id": "salvage-job-accept",
+          "text": "Recover the generator · J",
+          "hidden": true,
+          "disabled": false,
+          "visible": false,
+          "rect": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "width": 0,
+            "height": 0
+          },
+          "textRects": [],
+          "clientWidth": 0,
+          "scrollWidth": 0,
+          "centerTarget": false
+        }
+      },
+      "completion": {
+        "fixture": "293",
+        "physics": "97",
+        "owner": {
+          "world": "d00074effd95777b146c7c069ba23997",
+          "incarnation": "1",
+          "build": "6",
+          "topology": "0",
+          "roots": [
+            "7"
+          ],
+          "bodyIndex": 2,
+          "bodyGeneration": 1
+        }
+      }
+    },
+    {
+      "name": "workshop-hides-objective",
+      "state": {
+        "active": true,
+        "ready": true,
+        "busy": false,
+        "failed": false,
+        "bodies": 0,
+        "resets": 0,
+        "controller": "cove-player",
+        "terrainSurface": "lego",
+        "mouseCaptured": false,
+        "origin": [
+          -12,
+          -187.68,
+          -32
+        ],
+        "world": "d00074effd95777b146c7c069ba23997",
+        "camera": {
+          "local": [
+            -10.938,
+            64.0712,
+            -80.1635
+          ],
+          "sector": [
+            0,
+            -1,
+            0
+          ],
+          "yaw": -2.54159,
+          "pitch": -0.502843,
+          "viewProjection": [
+            -1.07214,
+            -0.47131,
+            -0.494781,
+            -0.494748,
+            -8.71073e-7,
+            1.51765,
+            -0.481949,
+            -0.481917,
+            0.733491,
+            -0.688912,
+            -0.723222,
+            -0.723174,
+            47.0722,
+            -157.619,
+            -32.6089,
+            -32.5067
+          ]
+        },
+        "player": {
+          "mode": "walking",
+          "interaction": "none",
+          "feet": [
+            6,
+            1.285,
+            -49
+          ],
+          "tick": "265",
+          "interactions": "0",
+          "collisionBoxes": 54,
+          "rootKey": "0",
+          "onBoat": false
+        },
+        "cutter": {
+          "canCut": false,
+          "pending": false,
+          "weld": "0",
+          "label": "",
+          "sections": 1,
+          "cutWelds": 0
+        },
+        "rescue": {
+          "phase": "idle",
+          "pending": false,
+          "completed": "0",
+          "savePending": false
+        },
+        "pause": {
+          "phase": "running",
+          "canPause": false,
+          "tick": "0",
+          "waterTick": "101",
+          "waterTime": 1.68333
+        },
+        "workshop": {
+          "open": true,
+          "canOpen": true,
+          "displayOrigin": [
+            -19,
+            -196,
+            -37
+          ],
+          "camera": {
+            "target": [
+              1,
+              0.8595,
+              -53.486
+            ],
+            "distance": 12.5066,
+            "yaw": 0.6,
+            "elevation": 0.502843,
+            "framePending": false,
+            "rectangle": [
+              -0.94,
+              -0.01,
+              0.94,
+              0.9
+            ]
+          },
+          "configurable": true,
+          "hasOutputLimit": false,
+          "canReverse": false,
+          "settings": {
+            "enabled": true,
+            "limitPercent": 0,
+            "reversed": false
+          },
+          "selected": 9,
+          "name": "Winch",
+          "valid": true,
+          "changed": false,
+          "undo": 0,
+          "revision": "0",
+          "massKg": 1035,
+          "parts": 11,
+          "placement": [
+            -25,
+            96,
+            -2750
+          ],
+          "rotation": 0,
+          "message": "Select a part. Snap finds a matching socket.",
+          "catalogName": "Pontoon",
+          "catalogIndex": 0,
+          "catalogCount": 11,
+          "canAdd": true,
+          "partCost": "24",
+          "partMachinery": "0",
+          "canPaint": false,
+          "paintIndex": null,
+          "paintName": "Custom",
+          "paint": [
+            255,
+            255,
+            255,
+            255
+          ],
+          "brushPaint": null,
+          "catalog": [
+            {
+              "index": 0,
+              "name": "Pontoon",
+              "cost": "24"
+            },
+            {
+              "index": 1,
+              "name": "Beam",
+              "cost": "12"
+            },
+            {
+              "index": 2,
+              "name": "Deck plate",
+              "cost": "10"
+            },
+            {
+              "index": 3,
+              "name": "Engine",
+              "cost": "30"
+            },
+            {
+              "index": 4,
+              "name": "Propeller",
+              "cost": "16"
+            },
+            {
+              "index": 5,
+              "name": "Helm",
+              "cost": "10"
+            },
+            {
+              "index": 6,
+              "name": "Winch",
+              "cost": "30"
+            },
+            {
+              "index": 7,
+              "name": "Cargo cradle",
+              "cost": "14"
+            },
+            {
+              "index": 8,
+              "name": "Brick 1 x 2",
+              "cost": "2"
+            },
+            {
+              "index": 9,
+              "name": "Brick 2 x 2",
+              "cost": "3"
+            },
+            {
+              "index": 10,
+              "name": "Brick 2 x 4",
+              "cost": "5"
+            }
+          ],
+          "brickTool": false,
+          "canChooseBrick": true,
+          "placedParts": 11,
+          "placedBricks": 0,
+          "pointerPlacement": false,
+          "pointerTarget": false,
+          "storedParts": 0,
+          "savePending": false,
+          "canRebuild": true,
+          "recoveryDesigns": 0,
+          "recoverySelected": 0,
+          "canLoadRecovery": false,
+          "canRemoveRecovery": false,
+          "recoveryDigests": [],
+          "storedPartIds": [],
+          "materials": "48",
+          "machinery": "0",
+          "affordable": true,
+          "charge": "0",
+          "refund": "0",
+          "machineryCharge": "0",
+          "machineryRefund": "0",
+          "pending": false,
+          "canLaunch": false,
+          "canUndoLaunch": false,
+          "canRedoLaunch": false,
+          "launches": 0,
+          "lastLaunchTick": 0,
+          "launchMessage": ""
+        },
+        "boat": {
+          "prepared": true,
+          "active": true,
+          "observedTick": 99,
+          "position": [
+            -0.480566,
+            -1.00589,
+            -54.0049
+          ],
+          "speed": 0.393582,
+          "orientation": [
+            0.00239589,
+            -0.000228049,
+            0.0107542,
+            0.999939
+          ],
+          "helmPosition": [
+            0.494749,
+            0.131031,
+            -53.0991
+          ],
+          "buildId": "6",
+          "topologyRevision": "0",
+          "parts": 11,
+          "eventsThrough": "99",
+          "attachmentBreaks": "0",
+          "physicsTicks": {
+            "supported": true,
+            "failed": false,
+            "incarnation": "1",
+            "base": "0",
+            "scheduled": "101",
+            "encoded": "101",
+            "submitted": "101",
+            "completed": "99",
+            "maximumInFlight": 2
+          },
+          "sceneryCollision": true,
+          "sceneryProxies": 13,
+          "thrustLimitNewtons": 2500,
+          "steeringLimitRadians": 0.6,
+          "thrustDirection": [
+            0,
+            0,
+            -1
+          ],
+          "mechanisms": {
+            "tick": "101",
+            "incarnation": "1",
+            "rotorRadians": 0,
+            "drumRadians": 0,
+            "effectiveDrive": 0,
+            "animatedParts": 0,
+            "bodyIndex": 2,
+            "bodyGeneration": 1,
+            "ropeTick": "0",
+            "ropeIndex": 0,
+            "ropeGeneration": 0,
+            "ropeLength": 0
+          },
+          "massKg": 1035,
+          "displacementM3": 9.88403,
+          "paidPartIds": [],
+          "rootCount": 1,
+          "controlPart": "15",
+          "joinedTick": "99",
+          "roots": [
+            {
+              "key": "7",
+              "active": true,
+              "observedTick": "99",
+              "position": [
+                -0.480566,
+                -1.00589,
+                -54.0049
+              ],
+              "orientation": [
+                0.00239589,
+                -0.000228049,
+                0.0107542,
+                0.999939
+              ],
+              "velocity": [
+                0.0488503,
+                -0.390522,
+                -0.00359254
+              ],
+              "angularVelocity": [
+                0.000495102,
+                -0.00228888,
+                0.0529755
+              ]
+            }
+          ]
+        },
+        "tow": {
+          "name": "Salvage generator",
+          "active": true,
+          "attached": false,
+          "broken": false,
+          "hasWinch": true,
+          "rootKey": "7",
+          "operable": false,
+          "inRange": true,
+          "confirmed": true,
+          "motor": 0,
+          "distance": 6.41782,
+          "ropeObservedTick": "0",
+          "ropeLength": null,
+          "observedTick": 99,
+          "position": [
+            -4.49951,
+            -3.02544,
+            -57.9993
+          ],
+          "speed": 0.0413473,
+          "massKg": 420
+        },
+        "job": {
+          "phase": "accepted",
+          "pending": false,
+          "canDeliver": false,
+          "harborDistance": 6.4023,
+          "secured": false,
+          "savePending": false,
+          "durable": false,
+          "message": "Recover the generator. Reel it above the water and return to the harbor."
+        },
+        "harbor": {
+          "installed": false,
+          "durable": false,
+          "pending": false,
+          "atDock": false,
+          "compatible": true,
+          "attached": false,
+          "brokenMask": 0,
+          "canInstall": false,
+          "canAttach": false,
+          "attachmentPending": false,
+          "canOperate": false,
+          "canRelease": false,
+          "motor": 0,
+          "bodyObservedTick": "0",
+          "stage": 0,
+          "message": "",
+          "attachmentIssue": "",
+          "rigIssue": "",
+          "lengths": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "lineLoads": [
+            null,
+            null,
+            null,
+            null
+          ]
+        },
+        "session": {
+          "revision": "1",
+          "tick": "99",
+          "admissionOpen": true,
+          "builds": 1,
+          "buildParts": 11,
+          "buildConnections": 17,
+          "cargo": 1,
+          "jobs": 1,
+          "inventory": {
+            "salvageMaterial": "48",
+            "specialMachinery": "0"
+          }
+        },
+        "observation": {
+          "world": "d00074effd95777b146c7c069ba23997",
+          "incarnation": "96666db36ee7ab3d4ddc7dcb38008d47",
+          "epoch": "1",
+          "publicationLost": false,
+          "lanes": [
+            {
+              "through": "3",
+              "retained": 3,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            },
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            },
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            }
+          ]
+        },
+        "assetFixture": {
+          "status": 2,
+          "presentationParts": 7,
+          "sceneSunShadows": true,
+          "generation": "1",
+          "uploads": 36,
+          "prototypeUploads": 0,
+          "dockMarkingGpuBytes": "7760",
+          "dockMarkingDraws": 0,
+          "environmentGpuBytes": "1228944",
+          "environmentBakeCount": 1,
+          "environmentReady": true,
+          "gpuReservationBytes": "10753144",
+          "submittedSerial": "312",
+          "completedSerial": "307",
+          "draws": 81,
+          "guides": 0,
+          "opaqueSceneGpuBytes": "3686400",
+          "guideBoxes": 0,
+          "guideMeshGpuBytes": 1936,
+          "forcedLod": "0",
+          "lods": [
+            "2",
+            "2",
+            "3",
+            "2",
+            "2",
+            "2",
+            "2",
+            "3",
+            "3",
+            "3",
+            "3",
+            "2",
+            "2",
+            "2",
+            "2",
+            "2",
+            "1",
+            "1",
+            "1",
+            "2",
+            "2",
+            "2",
+            "1",
+            "2",
+            "3"
+          ],
+          "availableLods": [
+            "0",
+            "1",
+            "2",
+            "3"
+          ]
+        }
+      },
+      "dom": {
+        "width": 640,
+        "height": 480,
+        "documentWidth": 640,
+        "documentClientWidth": 640,
+        "scrollX": 0,
+        "scrollY": 0,
+        "panel": {
+          "rect": {
+            "left": 12,
+            "top": 252,
+            "right": 628,
+            "bottom": 468,
+            "width": 616,
+            "height": 216
+          },
+          "scrollTop": 0,
+          "scrollLeft": 0,
+          "clientWidth": 599,
+          "clientHeight": 214,
+          "scrollWidth": 599,
+          "scrollHeight": 1304,
+          "clip": {
+            "left": 13,
+            "top": 253,
+            "right": 612,
+            "bottom": 467
+          }
+        },
+        "step": "board",
+        "card": {
+          "id": "salvage-objective",
+          "text": "Next objective\n            Board your boat\n            Follow the teal dock lane to the orange boarding pad.\n            Recover the generator · J",
+          "hidden": true,
+          "disabled": false,
+          "visible": false,
+          "rect": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "width": 0,
+            "height": 0
+          },
+          "textRects": [],
+          "clientWidth": 0,
+          "scrollWidth": 0,
+          "centerTarget": false
+        },
+        "label": {
+          "id": "salvage-objective-label",
+          "text": "Next objective",
+          "hidden": false,
+          "disabled": false,
+          "visible": false,
+          "rect": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "width": 0,
+            "height": 0
+          },
+          "textRects": [],
+          "clientWidth": 0,
+          "scrollWidth": 0,
+          "centerTarget": false
+        },
+        "title": {
+          "id": "salvage-objective-title",
+          "text": "Board your boat",
+          "hidden": false,
+          "disabled": false,
+          "visible": false,
+          "rect": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "width": 0,
+            "height": 0
+          },
+          "textRects": [],
+          "clientWidth": 0,
+          "scrollWidth": 0,
+          "centerTarget": false
+        },
+        "detail": {
+          "id": "salvage-objective-detail",
+          "text": "Follow the teal dock lane to the orange boarding pad.",
+          "hidden": false,
+          "disabled": false,
+          "visible": false,
+          "rect": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "width": 0,
+            "height": 0
+          },
+          "textRects": [],
+          "clientWidth": 0,
+          "scrollWidth": 0,
+          "centerTarget": false
+        },
+        "action": {
+          "id": "salvage-objective-action",
+          "text": "Recover the generator · J",
+          "hidden": true,
+          "disabled": true,
+          "visible": false,
+          "rect": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "width": 0,
+            "height": 0
+          },
+          "textRects": [],
+          "clientWidth": 0,
+          "scrollWidth": 0,
+          "centerTarget": false
+        },
+        "originalAccept": {
+          "id": "salvage-job-accept",
+          "text": "Recover the generator · J",
+          "hidden": true,
+          "disabled": false,
+          "visible": false,
+          "rect": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "width": 0,
+            "height": 0
+          },
+          "textRects": [],
+          "clientWidth": 0,
+          "scrollWidth": 0,
+          "centerTarget": false
+        }
+      },
+      "completion": {
+        "fixture": "323",
+        "physics": "104",
+        "owner": {
+          "world": "d00074effd95777b146c7c069ba23997",
+          "incarnation": "1",
+          "build": "6",
+          "topology": "0",
+          "roots": [
+            "7"
+          ],
+          "bodyIndex": 2,
+          "bodyGeneration": 1
+        }
+      }
+    },
+    {
+      "name": "workshop-restores-objective",
+      "state": {
+        "active": true,
+        "ready": true,
+        "busy": false,
+        "failed": false,
+        "bodies": 0,
+        "resets": 0,
+        "controller": "cove-player",
+        "terrainSurface": "lego",
+        "mouseCaptured": false,
+        "origin": [
+          -12,
+          -187.68,
+          -32
+        ],
+        "world": "d00074effd95777b146c7c069ba23997",
+        "camera": {
+          "local": [
+            -13,
+            58.835,
+            -86
+          ],
+          "sector": [
+            0,
+            -1,
+            0
+          ],
+          "yaw": -2.78282,
+          "pitch": -0.237696,
+          "viewProjection": [
+            -1.21633,
+            -0.143199,
+            -0.341274,
+            -0.341251,
+            -1.93572e-8,
+            1.68335,
+            -0.235478,
+            -0.235462,
+            0.456123,
+            -0.381865,
+            -0.910064,
+            -0.910003,
+            23.4143,
+            -133.742,
+            -68.9477,
+            -68.8431
+          ]
+        },
+        "player": {
+          "mode": "walking",
+          "interaction": "none",
+          "feet": [
+            6,
+            1.285,
+            -49
+          ],
+          "tick": "270",
+          "interactions": "0",
+          "collisionBoxes": 54,
+          "rootKey": "0",
+          "onBoat": false
+        },
+        "cutter": {
+          "canCut": false,
+          "pending": false,
+          "weld": "0",
+          "label": "",
+          "sections": 1,
+          "cutWelds": 0
+        },
+        "rescue": {
+          "phase": "idle",
+          "pending": false,
+          "completed": "0",
+          "savePending": false
+        },
+        "pause": {
+          "phase": "running",
+          "canPause": true,
+          "tick": "0",
+          "waterTick": "109",
+          "waterTime": 1.81667
+        },
+        "workshop": {
+          "open": false,
+          "canOpen": true,
+          "displayOrigin": [
+            -19,
+            -196,
+            -37
+          ],
+          "camera": {
+            "target": [
+              1,
+              0.8595,
+              -53.486
+            ],
+            "distance": 12.5066,
+            "yaw": 0.6,
+            "elevation": 0.502843,
+            "framePending": false,
+            "rectangle": [
+              -0.94,
+              -0.01,
+              0.94,
+              0.9
+            ]
+          },
+          "configurable": true,
+          "hasOutputLimit": false,
+          "canReverse": false,
+          "settings": {
+            "enabled": true,
+            "limitPercent": 0,
+            "reversed": false
+          },
+          "selected": 9,
+          "name": "Winch",
+          "valid": true,
+          "changed": false,
+          "undo": 0,
+          "revision": "0",
+          "massKg": 1035,
+          "parts": 11,
+          "placement": [
+            -25,
+            96,
+            -2750
+          ],
+          "rotation": 0,
+          "message": "Select a part. Snap finds a matching socket.",
+          "catalogName": "Pontoon",
+          "catalogIndex": 0,
+          "catalogCount": 11,
+          "canAdd": true,
+          "partCost": "24",
+          "partMachinery": "0",
+          "canPaint": false,
+          "paintIndex": null,
+          "paintName": "Custom",
+          "paint": [
+            255,
+            255,
+            255,
+            255
+          ],
+          "brushPaint": null,
+          "catalog": [
+            {
+              "index": 0,
+              "name": "Pontoon",
+              "cost": "24"
+            },
+            {
+              "index": 1,
+              "name": "Beam",
+              "cost": "12"
+            },
+            {
+              "index": 2,
+              "name": "Deck plate",
+              "cost": "10"
+            },
+            {
+              "index": 3,
+              "name": "Engine",
+              "cost": "30"
+            },
+            {
+              "index": 4,
+              "name": "Propeller",
+              "cost": "16"
+            },
+            {
+              "index": 5,
+              "name": "Helm",
+              "cost": "10"
+            },
+            {
+              "index": 6,
+              "name": "Winch",
+              "cost": "30"
+            },
+            {
+              "index": 7,
+              "name": "Cargo cradle",
+              "cost": "14"
+            },
+            {
+              "index": 8,
+              "name": "Brick 1 x 2",
+              "cost": "2"
+            },
+            {
+              "index": 9,
+              "name": "Brick 2 x 2",
+              "cost": "3"
+            },
+            {
+              "index": 10,
+              "name": "Brick 2 x 4",
+              "cost": "5"
+            }
+          ],
+          "brickTool": false,
+          "canChooseBrick": true,
+          "placedParts": 11,
+          "placedBricks": 0,
+          "pointerPlacement": false,
+          "pointerTarget": false,
+          "storedParts": 0,
+          "savePending": false,
+          "canRebuild": true,
+          "recoveryDesigns": 0,
+          "recoverySelected": 0,
+          "canLoadRecovery": false,
+          "canRemoveRecovery": false,
+          "recoveryDigests": [],
+          "storedPartIds": [],
+          "materials": "48",
+          "machinery": "0",
+          "affordable": true,
+          "charge": "0",
+          "refund": "0",
+          "machineryCharge": "0",
+          "machineryRefund": "0",
+          "pending": false,
+          "canLaunch": false,
+          "canUndoLaunch": false,
+          "canRedoLaunch": false,
+          "launches": 0,
+          "lastLaunchTick": 0,
+          "launchMessage": ""
+        },
+        "boat": {
+          "prepared": true,
+          "active": true,
+          "observedTick": 106,
+          "position": [
+            -0.481115,
+            -1.07644,
+            -53.9995
+          ],
+          "speed": 0.81917,
+          "orientation": [
+            -0.000329014,
+            -0.00003672,
+            0.0104875,
+            0.999945
+          ],
+          "helmPosition": [
+            0.495102,
+            0.0648759,
+            -53.1002
+          ],
+          "buildId": "6",
+          "topologyRevision": "0",
+          "parts": 11,
+          "eventsThrough": "107",
+          "attachmentBreaks": "0",
+          "physicsTicks": {
+            "supported": true,
+            "failed": false,
+            "incarnation": "1",
+            "base": "0",
+            "scheduled": "109",
+            "encoded": "109",
+            "submitted": "109",
+            "completed": "107",
+            "maximumInFlight": 2
+          },
+          "sceneryCollision": true,
+          "sceneryProxies": 13,
+          "thrustLimitNewtons": 2500,
+          "steeringLimitRadians": 0.6,
+          "thrustDirection": [
+            0,
+            0,
+            -1
+          ],
+          "mechanisms": {
+            "tick": "109",
+            "incarnation": "1",
+            "rotorRadians": 0,
+            "drumRadians": 0,
+            "effectiveDrive": 0,
+            "animatedParts": 2,
+            "bodyIndex": 2,
+            "bodyGeneration": 1,
+            "ropeTick": "0",
+            "ropeIndex": 0,
+            "ropeGeneration": 0,
+            "ropeLength": 0
+          },
+          "massKg": 1035,
+          "displacementM3": 9.88403,
+          "paidPartIds": [],
+          "rootCount": 1,
+          "controlPart": "15",
+          "joinedTick": "106",
+          "roots": [
+            {
+              "key": "7",
+              "active": true,
+              "observedTick": "106",
+              "position": [
+                -0.481115,
+                -1.07644,
+                -53.9995
+              ],
+              "orientation": [
+                -0.000329014,
+                -0.00003672,
+                0.0104875,
+                0.999945
+              ],
+              "velocity": [
+                -0.0443533,
+                -0.813612,
+                0.0843076
+              ],
+              "angularVelocity": [
+                -0.082511,
+                0.00646636,
+                -0.047211
+              ]
+            }
+          ]
+        },
+        "tow": {
+          "name": "Salvage generator",
+          "active": true,
+          "attached": false,
+          "broken": false,
+          "hasWinch": true,
+          "rootKey": "7",
+          "operable": false,
+          "inRange": true,
+          "confirmed": true,
+          "motor": 0,
+          "distance": 6.3607,
+          "ropeObservedTick": "0",
+          "ropeLength": null,
+          "observedTick": 106,
+          "position": [
+            -4.49956,
+            -3.02552,
+            -57.9993
+          ],
+          "speed": 0.0377664,
+          "massKg": 420
+        },
+        "job": {
+          "phase": "accepted",
+          "pending": false,
+          "canDeliver": false,
+          "harborDistance": 6.40236,
+          "secured": false,
+          "savePending": false,
+          "durable": false,
+          "message": "Recover the generator. Reel it above the water and return to the harbor."
+        },
+        "harbor": {
+          "installed": false,
+          "durable": false,
+          "pending": false,
+          "atDock": false,
+          "compatible": true,
+          "attached": false,
+          "brokenMask": 0,
+          "canInstall": false,
+          "canAttach": false,
+          "attachmentPending": false,
+          "canOperate": false,
+          "canRelease": false,
+          "motor": 0,
+          "bodyObservedTick": "0",
+          "stage": 0,
+          "message": "",
+          "attachmentIssue": "",
+          "rigIssue": "",
+          "lengths": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "lineLoads": [
+            null,
+            null,
+            null,
+            null
+          ]
+        },
+        "session": {
+          "revision": "1",
+          "tick": "107",
+          "admissionOpen": true,
+          "builds": 1,
+          "buildParts": 11,
+          "buildConnections": 17,
+          "cargo": 1,
+          "jobs": 1,
+          "inventory": {
+            "salvageMaterial": "48",
+            "specialMachinery": "0"
+          }
+        },
+        "observation": {
+          "world": "d00074effd95777b146c7c069ba23997",
+          "incarnation": "96666db36ee7ab3d4ddc7dcb38008d47",
+          "epoch": "1",
+          "publicationLost": false,
+          "lanes": [
+            {
+              "through": "3",
+              "retained": 3,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            },
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            },
+            {
+              "through": "0",
+              "retained": 0,
+              "overwritten": "0",
+              "invalid": "0",
+              "exhausted": false
+            }
+          ]
+        },
+        "assetFixture": {
+          "status": 2,
+          "presentationParts": 7,
+          "sceneSunShadows": true,
+          "generation": "1",
+          "uploads": 36,
+          "prototypeUploads": 0,
+          "dockMarkingGpuBytes": "7760",
+          "dockMarkingDraws": 2,
+          "environmentGpuBytes": "1228944",
+          "environmentBakeCount": 1,
+          "environmentReady": true,
+          "gpuReservationBytes": "10753144",
+          "submittedSerial": "350",
+          "completedSerial": "339",
+          "draws": 84,
+          "guides": 0,
+          "opaqueSceneGpuBytes": "3686400",
+          "guideBoxes": 0,
+          "guideMeshGpuBytes": 1936,
+          "forcedLod": "0",
+          "lods": [
+            "2",
+            "1",
+            "2",
+            "2",
+            "2",
+            "2",
+            "1",
+            "2",
+            "2",
+            "2",
+            "2",
+            "2",
+            "2",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "1",
+            "2",
+            "2"
+          ],
+          "availableLods": [
+            "0",
+            "1",
+            "2",
+            "3"
+          ]
+        }
+      },
+      "dom": {
+        "width": 640,
+        "height": 480,
+        "documentWidth": 640,
+        "documentClientWidth": 640,
+        "scrollX": 0,
+        "scrollY": 0,
+        "panel": {
+          "rect": {
+            "left": 24,
+            "top": 24,
+            "right": 376,
+            "bottom": 456,
+            "width": 352,
+            "height": 432
+          },
+          "scrollTop": 0,
+          "scrollLeft": 0,
+          "clientWidth": 335,
+          "clientHeight": 430,
+          "scrollWidth": 335,
+          "scrollHeight": 627,
+          "clip": {
+            "left": 25,
+            "top": 25,
+            "right": 360,
+            "bottom": 455
+          }
+        },
+        "step": "board",
+        "card": {
+          "id": "salvage-objective",
+          "text": "Next objective\n            Board your boat\n            Follow the teal dock lane to the orange boarding pad.\n            Recover the generator · J",
+          "hidden": false,
+          "disabled": false,
+          "visible": true,
+          "rect": {
+            "left": 41,
+            "top": 184.2890625,
+            "right": 344,
+            "bottom": 302.1171875,
+            "width": 303,
+            "height": 117.828125
+          },
+          "textRects": [
+            {
+              "left": 57,
+              "top": 197.2890625,
+              "right": 331,
+              "bottom": 213.234375,
+              "width": 274,
+              "height": 15.9453125
+            },
+            {
+              "left": 57,
+              "top": 198.2890625,
+              "right": 131.421875,
+              "bottom": 211.7890625,
+              "width": 74.421875,
+              "height": 13.5
+            },
+            {
+              "left": 57,
+              "top": 218.234375,
+              "right": 331,
+              "bottom": 241.4296875,
+              "width": 274,
+              "height": 23.1953125
+            },
+            {
+              "left": 57,
+              "top": 220.234375,
+              "right": 178.2421875,
+              "bottom": 239.234375,
+              "width": 121.2421875,
+              "height": 19
+            },
+            {
+              "left": 57,
+              "top": 246.4296875,
+              "right": 331,
+              "bottom": 284.1171875,
+              "width": 274,
+              "height": 37.6875
+            },
+            {
+              "left": 57,
+              "top": 247.9296875,
+              "right": 285.0234375,
+              "bottom": 263.4296875,
+              "width": 228.0234375,
+              "height": 15.5
+            },
+            {
+              "left": 57,
+              "top": 266.7734375,
+              "right": 137.5390625,
+              "bottom": 282.2734375,
+              "width": 80.5390625,
+              "height": 15.5
+            }
+          ],
+          "clientWidth": 298,
+          "scrollWidth": 298,
+          "centerTarget": true
+        },
+        "label": {
+          "id": "salvage-objective-label",
+          "text": "Next objective",
+          "hidden": false,
+          "disabled": false,
+          "visible": true,
+          "rect": {
+            "left": 57,
+            "top": 197.2890625,
+            "right": 331,
+            "bottom": 213.234375,
+            "width": 274,
+            "height": 15.9453125
+          },
+          "textRects": [
+            {
+              "left": 57,
+              "top": 198.2890625,
+              "right": 131.421875,
+              "bottom": 211.7890625,
+              "width": 74.421875,
+              "height": 13.5
+            }
+          ],
+          "clientWidth": 274,
+          "scrollWidth": 274,
+          "centerTarget": true
+        },
+        "title": {
+          "id": "salvage-objective-title",
+          "text": "Board your boat",
+          "hidden": false,
+          "disabled": false,
+          "visible": true,
+          "rect": {
+            "left": 57,
+            "top": 218.234375,
+            "right": 331,
+            "bottom": 241.4296875,
+            "width": 274,
+            "height": 23.1953125
+          },
+          "textRects": [
+            {
+              "left": 57,
+              "top": 220.234375,
+              "right": 178.2421875,
+              "bottom": 239.234375,
+              "width": 121.2421875,
+              "height": 19
+            }
+          ],
+          "clientWidth": 274,
+          "scrollWidth": 274,
+          "centerTarget": true
+        },
+        "detail": {
+          "id": "salvage-objective-detail",
+          "text": "Follow the teal dock lane to the orange boarding pad.",
+          "hidden": false,
+          "disabled": false,
+          "visible": true,
+          "rect": {
+            "left": 57,
+            "top": 246.4296875,
+            "right": 331,
+            "bottom": 284.1171875,
+            "width": 274,
+            "height": 37.6875
+          },
+          "textRects": [
+            {
+              "left": 57,
+              "top": 247.9296875,
+              "right": 285.0234375,
+              "bottom": 263.4296875,
+              "width": 228.0234375,
+              "height": 15.5
+            },
+            {
+              "left": 57,
+              "top": 266.7734375,
+              "right": 137.5390625,
+              "bottom": 282.2734375,
+              "width": 80.5390625,
+              "height": 15.5
+            }
+          ],
+          "clientWidth": 274,
+          "scrollWidth": 274,
+          "centerTarget": true
+        },
+        "action": {
+          "id": "salvage-objective-action",
+          "text": "Recover the generator · J",
+          "hidden": true,
+          "disabled": true,
+          "visible": false,
+          "rect": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "width": 0,
+            "height": 0
+          },
+          "textRects": [],
+          "clientWidth": 0,
+          "scrollWidth": 0,
+          "centerTarget": false
+        },
+        "originalAccept": {
+          "id": "salvage-job-accept",
+          "text": "Recover the generator · J",
+          "hidden": true,
+          "disabled": false,
+          "visible": false,
+          "rect": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "width": 0,
+            "height": 0
+          },
+          "textRects": [],
+          "clientWidth": 0,
+          "scrollWidth": 0,
+          "centerTarget": false
+        }
+      },
+      "completion": {
+        "fixture": "354",
+        "physics": "111",
+        "owner": {
+          "world": "d00074effd95777b146c7c069ba23997",
+          "incarnation": "1",
+          "build": "6",
+          "topology": "0",
+          "roots": [
+            "7"
+          ],
+          "bodyIndex": 2,
+          "bodyGeneration": 1
+        }
+      }
+    }
+  ],
+  "presentationControl": {
+    "initiallyUncapped": false,
+    "physicalF9": true,
+    "uncapped": true
+  },
+  "clickPoint": {
+    "x": 143.74609375,
+    "y": 315.5390625
+  },
+  "inputTrace": [
+    {
+      "kind": "before-single-click",
+      "time": 35018.099999997765,
+      "target": null,
+      "active": {
+        "id": "voxy-canvas",
+        "tag": "CANVAS",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 1280,
+          "height": 800
+        }
+      },
+      "hit": null,
+      "action": {
+        "id": "salvage-objective-action",
+        "tag": "BUTTON",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 57,
+          "y": 297.1171875,
+          "width": 173.4921875,
+          "height": 36.84375
+        }
+      },
+      "originalAccept": {
+        "id": "salvage-job-accept",
+        "tag": "BUTTON",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 41,
+          "y": 508.1484375,
+          "width": 168.9296875,
+          "height": 36.84375
+        }
+      },
+      "step": "accept"
+    },
+    {
+      "kind": "before-move",
+      "time": 35185,
+      "target": null,
+      "active": {
+        "id": "voxy-canvas",
+        "tag": "CANVAS",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 1280,
+          "height": 800
+        }
+      },
+      "hit": null,
+      "action": {
+        "id": "salvage-objective-action",
+        "tag": "BUTTON",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 57,
+          "y": 297.1171875,
+          "width": 173.4921875,
+          "height": 36.84375
+        }
+      },
+      "originalAccept": {
+        "id": "salvage-job-accept",
+        "tag": "BUTTON",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 41,
+          "y": 508.1484375,
+          "width": 168.9296875,
+          "height": 36.84375
+        }
+      },
+      "step": "accept"
+    },
+    {
+      "kind": "after-move",
+      "time": 35846.199999999255,
+      "target": null,
+      "active": {
+        "id": "voxy-canvas",
+        "tag": "CANVAS",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 640,
+          "height": 480
+        }
+      },
+      "hit": null,
+      "action": {
+        "id": "salvage-objective-action",
+        "tag": "BUTTON",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 57,
+          "y": 297.1171875,
+          "width": 173.4921875,
+          "height": 36.84375
+        }
+      },
+      "originalAccept": {
+        "id": "salvage-job-accept",
+        "tag": "BUTTON",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 41,
+          "y": 508.1484375,
+          "width": 168.9296875,
+          "height": 36.84375
+        }
+      },
+      "step": "accept"
+    },
+    {
+      "kind": "capture",
+      "time": 35849,
+      "type": "pointerdown",
+      "phase": 1,
+      "trusted": true,
+      "button": 0,
+      "buttons": 1,
+      "x": 143.74609375,
+      "y": 315.5390625,
+      "defaultPrevented": false,
+      "target": {
+        "id": "salvage-objective-action",
+        "tag": "BUTTON",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 57,
+          "y": 297.1171875,
+          "width": 173.4921875,
+          "height": 36.84375
+        }
+      },
+      "active": {
+        "id": "voxy-canvas",
+        "tag": "CANVAS",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 640,
+          "height": 480
+        }
+      },
+      "hit": {
+        "id": "salvage-objective-action",
+        "tag": "BUTTON",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 57,
+          "y": 297.1171875,
+          "width": 173.4921875,
+          "height": 36.84375
+        }
+      },
+      "action": {
+        "id": "salvage-objective-action",
+        "tag": "BUTTON",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 57,
+          "y": 297.1171875,
+          "width": 173.4921875,
+          "height": 36.84375
+        }
+      },
+      "originalAccept": {
+        "id": "salvage-job-accept",
+        "tag": "BUTTON",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 41,
+          "y": 508.1484375,
+          "width": 168.9296875,
+          "height": 36.84375
+        }
+      },
+      "step": "accept"
+    },
+    {
+      "kind": "bubble",
+      "time": 35849.300000000745,
+      "type": "pointerdown",
+      "phase": 3,
+      "trusted": true,
+      "button": 0,
+      "buttons": 1,
+      "x": 143.74609375,
+      "y": 315.5390625,
+      "defaultPrevented": false,
+      "target": {
+        "id": "salvage-objective-action",
+        "tag": "BUTTON",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 57,
+          "y": 297.1171875,
+          "width": 173.4921875,
+          "height": 36.84375
+        }
+      },
+      "active": {
+        "id": "voxy-canvas",
+        "tag": "CANVAS",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 640,
+          "height": 480
+        }
+      },
+      "hit": {
+        "id": "salvage-objective-action",
+        "tag": "BUTTON",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 57,
+          "y": 297.1171875,
+          "width": 173.4921875,
+          "height": 36.84375
+        }
+      },
+      "action": {
+        "id": "salvage-objective-action",
+        "tag": "BUTTON",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 57,
+          "y": 297.1171875,
+          "width": 173.4921875,
+          "height": 36.84375
+        }
+      },
+      "originalAccept": {
+        "id": "salvage-job-accept",
+        "tag": "BUTTON",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 41,
+          "y": 508.1484375,
+          "width": 168.9296875,
+          "height": 36.84375
+        }
+      },
+      "step": "accept"
+    },
+    {
+      "kind": "capture",
+      "time": 35849.300000000745,
+      "type": "mousedown",
+      "phase": 1,
+      "trusted": true,
+      "button": 0,
+      "buttons": 1,
+      "x": 143,
+      "y": 315,
+      "defaultPrevented": false,
+      "target": {
+        "id": "salvage-objective-action",
+        "tag": "BUTTON",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 57,
+          "y": 297.1171875,
+          "width": 173.4921875,
+          "height": 36.84375
+        }
+      },
+      "active": {
+        "id": "voxy-canvas",
+        "tag": "CANVAS",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 640,
+          "height": 480
+        }
+      },
+      "hit": {
+        "id": "salvage-objective-action",
+        "tag": "BUTTON",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 57,
+          "y": 297.1171875,
+          "width": 173.4921875,
+          "height": 36.84375
+        }
+      },
+      "action": {
+        "id": "salvage-objective-action",
+        "tag": "BUTTON",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 57,
+          "y": 297.1171875,
+          "width": 173.4921875,
+          "height": 36.84375
+        }
+      },
+      "originalAccept": {
+        "id": "salvage-job-accept",
+        "tag": "BUTTON",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 41,
+          "y": 508.1484375,
+          "width": 168.9296875,
+          "height": 36.84375
+        }
+      },
+      "step": "accept"
+    },
+    {
+      "kind": "bubble",
+      "time": 35849.300000000745,
+      "type": "mousedown",
+      "phase": 3,
+      "trusted": true,
+      "button": 0,
+      "buttons": 1,
+      "x": 143,
+      "y": 315,
+      "defaultPrevented": false,
+      "target": {
+        "id": "salvage-objective-action",
+        "tag": "BUTTON",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 57,
+          "y": 297.1171875,
+          "width": 173.4921875,
+          "height": 36.84375
+        }
+      },
+      "active": {
+        "id": "voxy-canvas",
+        "tag": "CANVAS",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 640,
+          "height": 480
+        }
+      },
+      "hit": {
+        "id": "salvage-objective-action",
+        "tag": "BUTTON",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 57,
+          "y": 297.1171875,
+          "width": 173.4921875,
+          "height": 36.84375
+        }
+      },
+      "action": {
+        "id": "salvage-objective-action",
+        "tag": "BUTTON",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 57,
+          "y": 297.1171875,
+          "width": 173.4921875,
+          "height": 36.84375
+        }
+      },
+      "originalAccept": {
+        "id": "salvage-job-accept",
+        "tag": "BUTTON",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 41,
+          "y": 508.1484375,
+          "width": 168.9296875,
+          "height": 36.84375
+        }
+      },
+      "step": "accept"
+    },
+    {
+      "kind": "after-press",
+      "time": 35850.300000000745,
+      "target": null,
+      "active": {
+        "id": "salvage-objective-action",
+        "tag": "BUTTON",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 57,
+          "y": 297.1171875,
+          "width": 173.4921875,
+          "height": 36.84375
+        }
+      },
+      "hit": null,
+      "action": {
+        "id": "salvage-objective-action",
+        "tag": "BUTTON",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 57,
+          "y": 297.1171875,
+          "width": 173.4921875,
+          "height": 36.84375
+        }
+      },
+      "originalAccept": {
+        "id": "salvage-job-accept",
+        "tag": "BUTTON",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 41,
+          "y": 508.1484375,
+          "width": 168.9296875,
+          "height": 36.84375
+        }
+      },
+      "step": "accept"
+    },
+    {
+      "kind": "capture",
+      "time": 35851.599999997765,
+      "type": "pointerup",
+      "phase": 1,
+      "trusted": true,
+      "button": 0,
+      "buttons": 0,
+      "x": 143.74609375,
+      "y": 315.5390625,
+      "defaultPrevented": false,
+      "target": {
+        "id": "salvage-objective-action",
+        "tag": "BUTTON",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 57,
+          "y": 297.1171875,
+          "width": 173.4921875,
+          "height": 36.84375
+        }
+      },
+      "active": {
+        "id": "salvage-objective-action",
+        "tag": "BUTTON",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 57,
+          "y": 297.1171875,
+          "width": 173.4921875,
+          "height": 36.84375
+        }
+      },
+      "hit": {
+        "id": "salvage-objective-action",
+        "tag": "BUTTON",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 57,
+          "y": 297.1171875,
+          "width": 173.4921875,
+          "height": 36.84375
+        }
+      },
+      "action": {
+        "id": "salvage-objective-action",
+        "tag": "BUTTON",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 57,
+          "y": 297.1171875,
+          "width": 173.4921875,
+          "height": 36.84375
+        }
+      },
+      "originalAccept": {
+        "id": "salvage-job-accept",
+        "tag": "BUTTON",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 41,
+          "y": 508.1484375,
+          "width": 168.9296875,
+          "height": 36.84375
+        }
+      },
+      "step": "accept"
+    },
+    {
+      "kind": "bubble",
+      "time": 35851.599999997765,
+      "type": "pointerup",
+      "phase": 3,
+      "trusted": true,
+      "button": 0,
+      "buttons": 0,
+      "x": 143.74609375,
+      "y": 315.5390625,
+      "defaultPrevented": false,
+      "target": {
+        "id": "salvage-objective-action",
+        "tag": "BUTTON",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 57,
+          "y": 297.1171875,
+          "width": 173.4921875,
+          "height": 36.84375
+        }
+      },
+      "active": {
+        "id": "salvage-objective-action",
+        "tag": "BUTTON",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 57,
+          "y": 297.1171875,
+          "width": 173.4921875,
+          "height": 36.84375
+        }
+      },
+      "hit": {
+        "id": "salvage-objective-action",
+        "tag": "BUTTON",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 57,
+          "y": 297.1171875,
+          "width": 173.4921875,
+          "height": 36.84375
+        }
+      },
+      "action": {
+        "id": "salvage-objective-action",
+        "tag": "BUTTON",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 57,
+          "y": 297.1171875,
+          "width": 173.4921875,
+          "height": 36.84375
+        }
+      },
+      "originalAccept": {
+        "id": "salvage-job-accept",
+        "tag": "BUTTON",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 41,
+          "y": 508.1484375,
+          "width": 168.9296875,
+          "height": 36.84375
+        }
+      },
+      "step": "accept"
+    },
+    {
+      "kind": "capture",
+      "time": 35851.699999999255,
+      "type": "mouseup",
+      "phase": 1,
+      "trusted": true,
+      "button": 0,
+      "buttons": 0,
+      "x": 143,
+      "y": 315,
+      "defaultPrevented": false,
+      "target": {
+        "id": "salvage-objective-action",
+        "tag": "BUTTON",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 57,
+          "y": 297.1171875,
+          "width": 173.4921875,
+          "height": 36.84375
+        }
+      },
+      "active": {
+        "id": "salvage-objective-action",
+        "tag": "BUTTON",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 57,
+          "y": 297.1171875,
+          "width": 173.4921875,
+          "height": 36.84375
+        }
+      },
+      "hit": {
+        "id": "salvage-objective-action",
+        "tag": "BUTTON",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 57,
+          "y": 297.1171875,
+          "width": 173.4921875,
+          "height": 36.84375
+        }
+      },
+      "action": {
+        "id": "salvage-objective-action",
+        "tag": "BUTTON",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 57,
+          "y": 297.1171875,
+          "width": 173.4921875,
+          "height": 36.84375
+        }
+      },
+      "originalAccept": {
+        "id": "salvage-job-accept",
+        "tag": "BUTTON",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 41,
+          "y": 508.1484375,
+          "width": 168.9296875,
+          "height": 36.84375
+        }
+      },
+      "step": "accept"
+    },
+    {
+      "kind": "bubble",
+      "time": 35852,
+      "type": "mouseup",
+      "phase": 3,
+      "trusted": true,
+      "button": 0,
+      "buttons": 0,
+      "x": 143,
+      "y": 315,
+      "defaultPrevented": false,
+      "target": {
+        "id": "salvage-objective-action",
+        "tag": "BUTTON",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 57,
+          "y": 297.1171875,
+          "width": 173.4921875,
+          "height": 36.84375
+        }
+      },
+      "active": {
+        "id": "salvage-objective-action",
+        "tag": "BUTTON",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 57,
+          "y": 297.1171875,
+          "width": 173.4921875,
+          "height": 36.84375
+        }
+      },
+      "hit": {
+        "id": "salvage-objective-action",
+        "tag": "BUTTON",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 57,
+          "y": 297.1171875,
+          "width": 173.4921875,
+          "height": 36.84375
+        }
+      },
+      "action": {
+        "id": "salvage-objective-action",
+        "tag": "BUTTON",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 57,
+          "y": 297.1171875,
+          "width": 173.4921875,
+          "height": 36.84375
+        }
+      },
+      "originalAccept": {
+        "id": "salvage-job-accept",
+        "tag": "BUTTON",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 41,
+          "y": 508.1484375,
+          "width": 168.9296875,
+          "height": 36.84375
+        }
+      },
+      "step": "accept"
+    },
+    {
+      "kind": "capture",
+      "time": 35852.099999997765,
+      "type": "click",
+      "phase": 1,
+      "trusted": true,
+      "button": 0,
+      "buttons": 0,
+      "x": 143,
+      "y": 315,
+      "defaultPrevented": false,
+      "target": {
+        "id": "salvage-objective-action",
+        "tag": "BUTTON",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 57,
+          "y": 297.1171875,
+          "width": 173.4921875,
+          "height": 36.84375
+        }
+      },
+      "active": {
+        "id": "salvage-objective-action",
+        "tag": "BUTTON",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 57,
+          "y": 297.1171875,
+          "width": 173.4921875,
+          "height": 36.84375
+        }
+      },
+      "hit": {
+        "id": "salvage-objective-action",
+        "tag": "BUTTON",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 57,
+          "y": 297.1171875,
+          "width": 173.4921875,
+          "height": 36.84375
+        }
+      },
+      "action": {
+        "id": "salvage-objective-action",
+        "tag": "BUTTON",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 57,
+          "y": 297.1171875,
+          "width": 173.4921875,
+          "height": 36.84375
+        }
+      },
+      "originalAccept": {
+        "id": "salvage-job-accept",
+        "tag": "BUTTON",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 41,
+          "y": 508.1484375,
+          "width": 168.9296875,
+          "height": 36.84375
+        }
+      },
+      "step": "accept"
+    },
+    {
+      "kind": "capture",
+      "time": 35853.199999999255,
+      "type": "click",
+      "phase": 1,
+      "trusted": false,
+      "button": 0,
+      "buttons": 0,
+      "x": 0,
+      "y": 0,
+      "defaultPrevented": false,
+      "target": {
+        "id": "salvage-job-accept",
+        "tag": "BUTTON",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 41,
+          "y": 508.1484375,
+          "width": 168.9296875,
+          "height": 36.84375
+        }
+      },
+      "active": {
+        "id": "salvage-objective-action",
+        "tag": "BUTTON",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 57,
+          "y": 297.1171875,
+          "width": 173.4921875,
+          "height": 36.84375
+        }
+      },
+      "hit": {
+        "id": "voxy-canvas",
+        "tag": "CANVAS",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 640,
+          "height": 480
+        }
+      },
+      "action": {
+        "id": "salvage-objective-action",
+        "tag": "BUTTON",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 57,
+          "y": 297.1171875,
+          "width": 173.4921875,
+          "height": 36.84375
+        }
+      },
+      "originalAccept": {
+        "id": "salvage-job-accept",
+        "tag": "BUTTON",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 41,
+          "y": 508.1484375,
+          "width": 168.9296875,
+          "height": 36.84375
+        }
+      },
+      "step": "accept"
+    },
+    {
+      "kind": "bubble",
+      "time": 35858.599999997765,
+      "type": "click",
+      "phase": 3,
+      "trusted": false,
+      "button": 0,
+      "buttons": 0,
+      "x": 0,
+      "y": 0,
+      "defaultPrevented": false,
+      "target": {
+        "id": "salvage-job-accept",
+        "tag": "BUTTON",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 41,
+          "y": 508.1484375,
+          "width": 168.9296875,
+          "height": 36.84375
+        }
+      },
+      "active": {
+        "id": "salvage-objective-action",
+        "tag": "BUTTON",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 57,
+          "y": 297.1171875,
+          "width": 173.4921875,
+          "height": 36.84375
+        }
+      },
+      "hit": {
+        "id": "voxy-canvas",
+        "tag": "CANVAS",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 640,
+          "height": 480
+        }
+      },
+      "action": {
+        "id": "salvage-objective-action",
+        "tag": "BUTTON",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 57,
+          "y": 297.1171875,
+          "width": 173.4921875,
+          "height": 36.84375
+        }
+      },
+      "originalAccept": {
+        "id": "salvage-job-accept",
+        "tag": "BUTTON",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 41,
+          "y": 508.1484375,
+          "width": 168.9296875,
+          "height": 36.84375
+        }
+      },
+      "step": "accept"
+    },
+    {
+      "kind": "bubble",
+      "time": 35858.800000000745,
+      "type": "click",
+      "phase": 3,
+      "trusted": true,
+      "button": 0,
+      "buttons": 0,
+      "x": 143,
+      "y": 315,
+      "defaultPrevented": false,
+      "target": {
+        "id": "salvage-objective-action",
+        "tag": "BUTTON",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 57,
+          "y": 297.1171875,
+          "width": 173.4921875,
+          "height": 36.84375
+        }
+      },
+      "active": {
+        "id": "salvage-objective-action",
+        "tag": "BUTTON",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 57,
+          "y": 297.1171875,
+          "width": 173.4921875,
+          "height": 36.84375
+        }
+      },
+      "hit": {
+        "id": "salvage-objective-action",
+        "tag": "BUTTON",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 57,
+          "y": 297.1171875,
+          "width": 173.4921875,
+          "height": 36.84375
+        }
+      },
+      "action": {
+        "id": "salvage-objective-action",
+        "tag": "BUTTON",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 57,
+          "y": 297.1171875,
+          "width": 173.4921875,
+          "height": 36.84375
+        }
+      },
+      "originalAccept": {
+        "id": "salvage-job-accept",
+        "tag": "BUTTON",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 41,
+          "y": 508.1484375,
+          "width": 168.9296875,
+          "height": 36.84375
+        }
+      },
+      "step": "accept"
+    },
+    {
+      "kind": "after-release",
+      "time": 35859.5,
+      "target": null,
+      "active": {
+        "id": "salvage-objective-action",
+        "tag": "BUTTON",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 57,
+          "y": 297.1171875,
+          "width": 173.4921875,
+          "height": 36.84375
+        }
+      },
+      "hit": null,
+      "action": {
+        "id": "salvage-objective-action",
+        "tag": "BUTTON",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 57,
+          "y": 297.1171875,
+          "width": 173.4921875,
+          "height": 36.84375
+        }
+      },
+      "originalAccept": {
+        "id": "salvage-job-accept",
+        "tag": "BUTTON",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 41,
+          "y": 508.1484375,
+          "width": 168.9296875,
+          "height": 36.84375
+        }
+      },
+      "step": "accept"
+    },
+    {
+      "kind": "journey-finished",
+      "time": 36270.599999997765,
+      "target": null,
+      "active": {
+        "id": "voxy-canvas",
+        "tag": "CANVAS",
+        "hidden": false,
+        "disabled": false,
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 640,
+          "height": 480
+        }
+      },
+      "hit": null,
+      "action": {
+        "id": "salvage-objective-action",
+        "tag": "BUTTON",
+        "hidden": true,
+        "disabled": true,
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        }
+      },
+      "originalAccept": {
+        "id": "salvage-job-accept",
+        "tag": "BUTTON",
+        "hidden": true,
+        "disabled": false,
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        }
+      },
+      "step": "board"
+    }
+  ],
+  "elapsedSeconds": 3.033
+}

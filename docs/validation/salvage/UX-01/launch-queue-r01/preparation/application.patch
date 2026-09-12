@@ -1,0 +1,44 @@
+--- a/src/app/application.cpp
++++ b/src/app/application.cpp
+@@ -6107,25 +6107,25 @@
+             asset->launchMessage="Not enough memory to prepare every boat section.";return State::Rejected;
+         }
+         asset->launch=std::move(candidate);
+-        auto& launch=*asset->launch;auto* resources=physicsWorld_->authoredShapeResources();
+-        for(size_t i=0;i<launch.roots->roots().size();++i) {
+-            physics::ShapeResourceError shapeError;
+-            auto& root=launch.roots->roots()[i];root.shape=resources->upload(std::move(launch.preparedShapes[i]),shapeError);
+-            if(!root.shape.valid()) {
+-                launch.canceled=true;asset->launchMessage="Boat preparation is busy. Try Launch again.";return State::Rejected;
+-            }
+-        }
+-        launch.preparedShapes.clear();return State::Pending;
++        // Upload during pollBuild, after the resource owner has consumed GPU
++        // completions. Temporary queue pressure keeps this compiled candidate.
++        return State::Pending;
+     };
+     local.preparation.pollBuild=[this,asset] {
+         if(!asset->launch || asset->launch->canceled)return State::Rejected;
+-        bool pending=false;
+-        for(const auto& root:asset->launch->roots->roots()) {
+-            const auto state=physicsWorld_->authoredShapeResources()->state(root.shape);
+-            if(state==physics::ShapeResourceState::Uploading)pending=true;
+-            else if(state!=physics::ShapeResourceState::Ready)return State::Rejected;
+-        }
+-        return pending?State::Pending:State::Ready;
++        auto& launch=*asset->launch;
++        auto* resources=physicsWorld_->authoredShapeResources();
++        if(!resources){launch.canceled=true;return State::Rejected;}
++        const auto result=launch.roots->prepareShapes(*resources,launch.preparedShapes);
++        if(std::all_of(launch.roots->roots().begin(),launch.roots->roots().end(),
++            [](const auto& root){return root.shape.valid();}))launch.preparedShapes.clear();
++        if(result==physics::ShapeResourceError::Busy || result==physics::ShapeResourceError::NotReady)
++            return State::Pending;
++        if(result!=physics::ShapeResourceError::None) {
++            launch.canceled=true;asset->launchMessage="Boat preparation failed. Your build is unchanged.";
++            return State::Rejected;
++        }
++        return State::Ready;
+     };
+     local.preparation.stageBuild=[this,asset](auto tick) {
+         if(!asset->launch || asset->launch->staged || asset->launch->canceled)return State::Rejected;

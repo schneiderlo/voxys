@@ -9,6 +9,7 @@ import hashlib
 import json
 import math
 import os
+import re
 from pathlib import Path
 import signal
 import subprocess
@@ -51,6 +52,7 @@ def main():
     parser.add_argument('--storage-root', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--permission-failure', action='store_true', help='Check real unwritable save-root failure and explicit retry')
+    parser.add_argument('--objectives-and-harbor', action='store_true', help='Assert native recovery guidance and extend this same haul through durable harbor power')
     args = parser.parse_args()
     args.storage_root = args.storage_root.resolve()
     args.storage_root.mkdir(parents=True, exist_ok=False)
@@ -62,6 +64,8 @@ def main():
     child = stream = window = None
     index = 0
     began = time.monotonic()
+    checked_logs = set()
+    objective_steps = set()
 
     def read():
         path = args.output / f'observation-{index}' / 'state.json'
@@ -71,16 +75,37 @@ def main():
         end = time.monotonic() + seconds
         state = {}
         while time.monotonic() < end:
-            if time.monotonic() - began > 360:
-                raise RuntimeError('Native journey exceeded six-minute bound')
+            if time.monotonic() - began > (480 if args.objectives_and_harbor else 360):
+                raise RuntimeError('Native journey exceeded its bounded work time')
             if child.poll() is not None:
                 raise RuntimeError(f'Native child exited {child.returncode}: {label}')
             state = read()
             assert not state.get('failed'), state
+            if args.objectives_and_harbor:
+                hud = state.get('nativeHud', {})
+                if hud.get('objective'):
+                    objective_steps.add(hud['objective'])
+                if hud.get('objective') == 'powered':
+                    assert state.get('harbor', {}).get('durable') and state['harbor']['installed'], state
+                if hud.get('objective') in ('delivered', 'power', 'powered'):
+                    assert state.get('job', {}).get('durable'), state
             if predicate(state):
                 return state
             time.sleep(.02)
         raise RuntimeError(label + ': ' + json.dumps(state))
+
+    def objective(*steps):
+        if not args.objectives_and_harbor:
+            return read()
+        return wait(lambda state: state.get('nativeHud', {}).get('objective') in steps,
+                    'HUD objective ' + '/'.join(steps))
+
+    def body_identity(state):
+        boat = state['boat']
+        mechanism = boat['mechanisms']
+        return (boat['physicsTicks']['incarnation'], boat['buildId'], boat['topologyRevision'],
+                mechanism['bodyIndex'], mechanism['bodyGeneration'],
+                tuple(root['key'] for root in boat['roots']))
 
     def record(name, state=None, **extra):
         state = state or read()
@@ -94,6 +119,22 @@ def main():
             assert all(root['active'] and int(root['observedTick']) == joined for root in roots)
         if state['pause']['phase'] == 'paused':
             assert joined == int(boat['observedTick']) and joined > 0
+        if args.objectives_and_harbor:
+            hud, fixture = state['nativeHud'], state['assetFixture']
+            assert hud['enabled'] and hud['lastEncodedQuads'] > 0 and hud['bodyPixels'] >= 20 and not hud['truncated'], hud
+            assert fixture['presentationParts'] == 7 and fixture['sceneSunShadows'] and fixture['environmentReady'], fixture
+            frame = int(fixture['submittedSerial'])
+            tick = max(int(boat['observedTick']), int(state['tow']['observedTick']))
+            identity = body_identity(state)
+            assert frame > 0 and tick > 0
+            completed = wait(lambda newer: body_identity(newer) == identity
+                             and int(newer['assetFixture']['completedSerial']) >= frame
+                             and int(newer['boat']['physicsTicks']['completed']) >= tick,
+                             name + ' actual frame and physics completion')
+            extra['completion'] = {'frame': frame, 'tick': tick,
+                                   'completedFrame': int(completed['assetFixture']['completedSerial']),
+                                   'completedTick': int(completed['boat']['physicsTicks']['completed']),
+                                   'body': identity}
         report['stages'].append({'name': name, 'state': state, **extra})
         (args.output / 'summary.json').write_text(json.dumps(report, indent=2) + '\n')
         return state
@@ -134,12 +175,28 @@ def main():
 
     def stop():
         nonlocal child, stream
-        if child and child.poll() is None:
-            child.send_signal(signal.SIGTERM)
-            child.wait(timeout=15)
-        if stream:
-            stream.close()
-        child = stream = None
+        try:
+            if child and child.poll() is None:
+                child.send_signal(signal.SIGTERM)
+                try:
+                    child.wait(timeout=15)
+                except subprocess.TimeoutExpired:
+                    child.kill(); child.wait(timeout=5)
+        finally:
+            if stream:
+                stream.close()
+            child = stream = None
+        path = args.output / f'process-{index}.log'
+        if args.objectives_and_harbor and index not in checked_logs and path.exists():
+            checked_logs.add(index)
+            pattern = re.compile(r'uncaptured(?:\s+WebGPU)?(?:\s+GPU)?\s+error|WebGPU validation error|'
+                                 r'(?:WGPU|WebGPU)[^\n]{0,100}(?:error|validation failed)|\[(?:error|fatal)\s*\]', re.IGNORECASE)
+            errors = [line for line in path.read_text(errors='replace').splitlines() if pattern.search(line)
+                      and not (args.permission_failure and 'Expedition storage error' in line)]
+            report.setdefault('processChecks', []).append({'process': index, 'errorLines': errors})
+            if errors:
+                report.update(status='failed', error='Unexpected native log errors: ' + ' | '.join(errors[:8]))
+                raise RuntimeError(report['error'])
 
     def select(name):
         for _ in range(18):
@@ -169,16 +226,21 @@ def main():
                 wait(lambda s: s['workshop']['placement'] == expected, 'part move observed')
         wait(lambda s: s['workshop']['placement'] == target, 'exact design placement')
 
-    def walk(target):
+    def walk(target, reached=None, accept_point=False):
         for _ in range(100):
             s = read()
+            if reached and reached(s):
+                hold([], 3)
+                return
             p = s['player']['feet']
             t = target(s) if callable(target) else target
             dx, dz = t[0] - p[0], t[1] - p[2]
             distance = math.hypot(dx, dz)
             if distance < .18:
                 hold([], 10)
-                return
+                if reached is None or accept_point:
+                    return
+                continue
             yaw = s['camera']['yaw']
             forward = (dx * math.sin(yaw) + dz * math.cos(yaw)) / distance
             right = (dx * math.cos(yaw) - dz * math.sin(yaw)) / distance
@@ -192,9 +254,11 @@ def main():
 
     try:
         start()
+        objective('accept')
         record('fresh')
         key('b')
         wait(lambda s: s['workshop']['open'], 'workshop')
+        objective('workshop')
         select('Cargo cradle'); record('cradle-selected'); key('Delete'); keep()
         assert read()['workshop']['massKg'] == 945
         select('Winch'); move([75, 96, -2750]); keep()
@@ -212,17 +276,26 @@ def main():
         assert rig['session']['inventory']['salvageMaterial'] == '36'
         key('j')
         wait(lambda s: s['job']['phase'] == 'accepted' and not s['job']['pending'], 'accepted job')
-        walk([4.5, -49]); walk([4.5, -53])
+        if args.objectives_and_harbor: record('objective-board', objective('board'))
+        if args.objectives_and_harbor:
+            for point in ([6, -49.5], [4.5, -49.5]):
+                walk(point, lambda state: state['player']['interaction'] == 'board', accept_point=True)
+            walk([4.5, -53], lambda state: state['player']['interaction'] == 'board')
+        else:
+            walk([4.5, -49]); walk([4.5, -53])
         wait(lambda s: s['player']['interaction'] == 'board', 'boarding')
         key('e'); wait(lambda s: s['player']['onBoat'], 'aboard')
-        walk(lambda s: [s['boat']['helmPosition'][0], s['boat']['helmPosition'][2]])
+        walk(lambda s: [s['boat']['helmPosition'][0], s['boat']['helmPosition'][2]],
+             (lambda state: state['player']['interaction'] == 'helm') if args.objectives_and_harbor else None)
         wait(lambda s: s['player']['interaction'] == 'helm', 'helm position')
         key('e'); wait(lambda s: s['player']['mode'] == 'helm', 'using helm')
         wait(lambda s: s['tow']['operable'] and s['tow']['confirmed'] and s['tow']['distance'] < 7.5,
              'load within hooking reach')
+        objective('hook')
         record('helm-before-hook')
         hold(['f'], 2)
         wait(lambda s: s['tow']['attached'] and s['tow']['confirmed'], 'hooked cargo')
+        objective('return', 'lift')
         record('hooked')
         for i in range(32):
             # Bring the load alongside without hauling it into the beam.
@@ -257,6 +330,7 @@ def main():
             hold(['q'], 5); hold([], 15)
             record(f'harbor-hoist-{i}')
         wait(lambda s: s['job']['canDeliver'], 'cargo inside harbor and slow enough')
+        objective('deliver')
         record('eligible-delivery')
         if args.permission_failure:
             args.storage_root.chmod(0o500)
@@ -264,7 +338,15 @@ def main():
         if args.permission_failure:
             wait(lambda s: s['job']['savePending'] and s['job']['secured'] and s['pause']['phase'] == 'paused'
                  and 'Save failed.' in x.title(window), 'real filesystem permission failure')
+            if args.objectives_and_harbor:
+                wait(lambda state: state['job']['savePending'] and not state['job']['durable']
+                     and state['pause']['phase'] == 'paused'
+                     and state.get('nativeHud', {}).get('objective') == 'saving'
+                     and state['nativeHud']['status'] == 'Save failed. F10: Retry',
+                     'actual failure reached the 10 Hz HUD')
             unsaved = record('delivery-save-permission-failed')
+            if args.objectives_and_harbor:
+                assert unsaved['nativeHud']['status'] == 'Save failed. F10: Retry', unsaved['nativeHud']
             assert not unsaved['job']['durable'] and not (args.storage_root / unsaved['world'] / 'current').exists()
             key('p'); key('r'); key('h'); key('w')
             time.sleep(.15)
@@ -274,6 +356,7 @@ def main():
             args.storage_root.chmod(0o700)
             key('F10')
         wait(lambda s: s['job']['durable'] and not s['job']['savePending'] and s['pause']['phase'] == 'paused', 'automatic durable delivery')
+        objective('delivered')
         saved = record('delivery-saved')
         assert saved['job']['phase'] == 'completed' and saved['job']['secured']
         assert saved['session']['inventory']['salvageMaterial'] == '96' and saved['session']['cargo'] == 0
@@ -284,6 +367,7 @@ def main():
         record('mirrored-delivery-checkpoint', archive=meta)
         stop()
         start(saved['world'])
+        objective('delivered')
         restored = record('delivery-restarted')
         assert restored['job']['durable'] and restored['job']['secured'] and restored['job']['phase'] == 'completed'
         assert restored['session']['inventory'] == saved['session']['inventory'] and restored['session']['cargo'] == 0
@@ -294,18 +378,51 @@ def main():
         key('h'); hold([], 20)
         repeated = record('duplicate-delivery-refused')
         assert repeated['session']['inventory'] == saved['session']['inventory'] and repeated['session']['cargo'] == 0
-        hold(['w'], 90)
-        sailed = record('sail-away')
-        assert math.dist(sailed['tow']['position'], restored['tow']['position']) < .001
-        assert sailed['boat']['speed'] > .2 and sailed['session']['inventory']['salvageMaterial'] == '96'
+        if args.objectives_and_harbor:
+            # Reuse the existing harbor journey's ordinary Rescue/berth return;
+            # no cargo/world payload is fabricated and this is still one haul.
+            record('objective-return-to-dock', objective('dock'))
+            before_rescue = int(read()['rescue']['completed'])
+            key('r')
+            wait(lambda state: int(state['rescue']['completed']) > before_rescue
+                 and not state['rescue']['pending'] and state['pause']['phase'] == 'paused',
+                 'real recovery saved at berth')
+            key('p'); wait(lambda state: state['pause']['phase'] == 'running', 'resume at berth')
+            walk([4.5, -52.5], lambda state: state['harbor']['canInstall'])
+            wait(lambda state: state['harbor']['canInstall'], 'dock installation available')
+            ready = record('objective-power-harbor', objective('power'))
+            assert 'K: Power harbor' in ready['nativeHud']['hints']
+            key('k')
+            wait(lambda state: state['harbor']['durable'] and not state['harbor']['pending']
+                 and state['pause']['phase'] == 'paused', 'harbor installation saved')
+            powered = record('objective-powered-and-saved', objective('powered'))
+            assert powered['session']['inventory'] == saved['session']['inventory']
+            assert powered['boat']['paidPartIds'] == saved['boat']['paidPartIds']
+            assert powered['boat']['massKg'] == saved['boat']['massKg']
+            meta, payload = archive(args.storage_root / saved['world'])
+            assert meta['tick'] == int(powered['pause']['tick'])
+            (args.output / 'powered.svce').write_bytes(payload)
+            report['poweredArchive'] = meta
+            assert {'accept', 'workshop', 'board', 'hook', 'return', 'lift', 'deliver', 'delivered', 'dock', 'power', 'powered'} <= objective_steps, objective_steps
+            if args.permission_failure:
+                assert 'saving' in objective_steps
+            report['objectiveSteps'] = sorted(objective_steps)
+        else:
+            hold(['w'], 90)
+            sailed = record('sail-away')
+            assert math.dist(sailed['tow']['position'], restored['tow']['position']) < .001
+            assert sailed['boat']['speed'] > .2 and sailed['session']['inventory']['salvageMaterial'] == '96'
         report['status'] = 'passed'
     except Exception as error:
         report.update(status='failed', error=str(error))
         raise
     finally:
         args.storage_root.chmod(0o700)
-        stop(); x.close()
-        (args.output / 'summary.json').write_text(json.dumps(report, indent=2) + '\n')
+        try:
+            stop()
+        finally:
+            x.close()
+            (args.output / 'summary.json').write_text(json.dumps(report, indent=2) + '\n')
 
 
 if __name__ == '__main__':

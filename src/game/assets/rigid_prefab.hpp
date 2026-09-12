@@ -5,6 +5,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -56,6 +57,19 @@ struct RigidPrefabCounts {
     uint32_t expandedDraws = 0;
 };
 
+// Two explicitly authored presentation roles. These are not canonical parts or
+// simulated shaft angles. Positive radians use canonical +Z / +X respectively.
+enum class RigidMechanismKind : uint8_t { PropellerRotor, WinchDrum };
+struct RigidMechanismPose {
+    RigidMechanismKind kind = RigidMechanismKind::PropellerRotor;
+    double radians = 0;
+};
+struct RigidMechanismBinding {
+    RigidMechanismKind kind = RigidMechanismKind::PropellerRotor;
+    uint32_t nodeIndex = 0;
+    glm::dvec3 sourceAxis{0,0,1};
+};
+
 // CPU-only owned record. Store as immutable alongside its exact admitted VMESH;
 // neither this type nor transient GPU array indices are durable content IDs.
 struct RigidPrefab {
@@ -65,6 +79,7 @@ struct RigidPrefab {
     PrefabBounds canonicalBounds{};
     RigidPrefabCounts counts{};
     RigidPrefabLimits limits{};
+    std::optional<RigidMechanismBinding> mechanism{}; // Validated named rigid root; CPU only.
 };
 
 // Validates rigid drawable VMESH, evaluates the complete node forest in double
@@ -85,9 +100,13 @@ struct RigidPrefabDraw {
 // conversion. Composition is root * gridPart * perLOD basis * full node matrix.
 // Socket/collision/anchor transforms MUST NOT use the render basis/node matrix.
 // Replaces output transactionally; does not append or mutate the prefab.
+// Optional mechanism pose rotates only its validated named root about the
+// rebased node pivot. Omission or a zero phase preserves the neutral matrices.
+// No GPU ABI, collision, canonical identity or instance-count changes.
 [[nodiscard]] bool placeRigidPrefab(
     const RigidPrefab& prefab, const glm::dmat4& cameraRelativeRoot,
     construction::GridTransform gridPart, size_t maximumDrawRecords,
-    std::vector<RigidPrefabDraw>& output, std::string& error);
+    std::vector<RigidPrefabDraw>& output, std::string& error,
+    std::optional<RigidMechanismPose> mechanism = {});
 
 } // namespace voxy::game::assets

@@ -108,7 +108,7 @@ TEST(FixtureRegistry, MoldedMachineryPreservesEveryCanonicalPartAndPlacedTransfo
     std::string error;
     const auto base=loadAssetFixture(std::filesystem::canonical("data/salvage/fixture-cove-r01.json"),error);
     ASSERT_TRUE(base)<<error;
-    const auto selected=appendAssetFixtureCatalog(*base,std::filesystem::canonical("data/salvage/cove-workshop-r04.json"),error);
+    const auto selected=appendAssetFixtureCatalog(*base,std::filesystem::canonical("data/salvage/cove-workshop-r06.json"),error);
     ASSERT_TRUE(selected)<<error;
     ASSERT_EQ(selected->bundles.size(),12u);ASSERT_EQ(selected->renderBundles().size(),12u);
     EXPECT_EQ(selected->installedRegistryDigest,base->installedRegistryDigest);
@@ -121,7 +121,8 @@ TEST(FixtureRegistry, MoldedMachineryPreservesEveryCanonicalPartAndPlacedTransfo
         EXPECT_EQ(selected->registry.bundles[i].selection.manifestSha256,base->registry.bundles[i].selection.manifestSha256);
         const auto& key=base->bundles[i]->sidecar().part.nameKey;
         const bool changed=key=="salvage.part.pontoon"||key=="salvage.part.beam"||key=="salvage.part.plate"
-            ||key=="salvage.part.engine"||key=="salvage.part.propeller"||key=="salvage.part.helm"||key=="salvage.part.winch";
+            ||key=="salvage.part.engine"||key=="salvage.part.propeller"||key=="salvage.part.helm"||key=="salvage.part.winch"
+            ||key=="salvage.cargo.generator"||key=="salvage.part.cargo_cradle";
         if(changed) {
             ++revised;
             EXPECT_NE(selected->renderBundles()[i],selected->bundles[i]);
@@ -129,10 +130,17 @@ TEST(FixtureRegistry, MoldedMachineryPreservesEveryCanonicalPartAndPlacedTransfo
             ASSERT_EQ(selected->renderBundles()[i]->lods().size(),3u);
             for(size_t lod=0;lod<3;++lod) {
                 EXPECT_NE(selected->renderBundles()[i]->lods()[lod].asset,selected->bundles[i]->lods()[lod].asset);
+                const auto& role=selected->renderBundles()[i]->lods()[lod].prefab.mechanism;
+                const bool articulated=key=="salvage.part.propeller"||key=="salvage.part.winch";
+                ASSERT_EQ(role.has_value(),articulated);
+                if(role) {
+                    EXPECT_EQ(role->kind,key=="salvage.part.propeller"
+                        ?RigidMechanismKind::PropellerRotor:RigidMechanismKind::WinchDrum);
+                }
             }
         } else EXPECT_EQ(selected->renderBundles()[i],selected->bundles[i]);
     }
-    EXPECT_EQ(revised,7u);
+    EXPECT_EQ(revised,9u);
     ASSERT_EQ(selected->registry.placements.size(),base->registry.placements.size());
     for(size_t i=0;i<base->registry.placements.size();++i) {
         EXPECT_EQ(selected->registry.placements[i].placement,base->registry.placements[i].placement);

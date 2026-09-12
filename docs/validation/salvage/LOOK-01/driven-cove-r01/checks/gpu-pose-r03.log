@@ -1,0 +1,49 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: target //tests:mesh_path_test (0 packages loaded, 0 targets configured)
+Analyzing: target //tests:mesh_path_test (0 packages loaded, 0 targets configured)
+
+Analyzing: target //tests:mesh_path_test (0 packages loaded, 0 targets configured)
+
+INFO: Analyzed target //tests:mesh_path_test (1 packages loaded, 61 targets configured).
+[350 / 352] Compiling tests/test_mesh_path.cpp; 1s linux-sandbox
+[351 / 352] [Prepa] Linking tests/mesh_path_test
+INFO: From Testing //tests:mesh_path_test:
+==================== Test output for //tests:mesh_path_test:
+Running main() from gmock_main.cc
+Note: Google Test filter = MeshPathGPUTest.NamedMechanismsKeepStationaryNodesAndMatchLiveBodyAtLargeSectors
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from MeshPathGPUTest
+[ RUN      ] MeshPathGPUTest.NamedMechanismsKeepStationaryNodesAndMatchLiveBodyAtLargeSectors
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[INFO ] [04:18:37.871] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [04:18:37.871] [GPU]   Vendor: radv
+[INFO ] [04:18:37.871] [GPU]   Backend: Vulkan
+[INFO ] [04:18:37.871] [GPU]   Type: Integrated GPU
+[INFO ] [04:18:37.873] [GPU] Headless GPU context initialized successfully
+Mechanism rotor stationaryPixels=87 stationaryChanged=0 movingChanged=456 liveDifference=0 stalePixels=0
+Mechanism drum stationaryPixels=88 stationaryChanged=0 movingChanged=420 liveDifference=0 stalePixels=0
+[       OK ] MeshPathGPUTest.NamedMechanismsKeepStationaryNodesAndMatchLiveBodyAtLargeSectors (118 ms)
+[----------] 1 test from MeshPathGPUTest (118 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (118 ms total)
+[  PASSED  ] 1 test.
+================================================================================
+INFO: Found 1 test target...
+Target //tests:mesh_path_test up-to-date:
+  bazel-bin/tests/mesh_path_test
+INFO: Elapsed time: 4.854s, Critical Path: 3.12s
+INFO: 4 processes: 349 action cache hit, 1 internal, 3 linux-sandbox.
+INFO: Build completed successfully, 4 total actions
+//tests:mesh_path_test                                                   PASSED in 0.2s
+
+Executed 1 out of 1 test: 1 test passes.
+There were tests whose specified size is too big. Use the --test_verbose_timeout_warnings command line option to see which ones these are.

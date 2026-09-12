@@ -1,0 +1,9 @@
+# Actual interaction ends the approach
+
+The first native journey stopped after30.167seconds with the player at `[4.68133,1.285,-52.3956]` and the real `board` interaction available. The driver unnecessarily insisted on reaching the exact authored boarding-point vicinity before pressing E, and never used the available prompt. The application remained healthy, with no process GPU errors.
+
+Approach now follows the admitted marked route through `(6,-49.5)` and `(4.5,-49.5)`, then ends when the actual board interaction is available. Helm/dock approaches likewise end on their respective real prompt. Each action still uses physical E/click input and requires its confirmed on-boat/helm/dock transition. No state, camera, collision, physics or application code changed. Native and browser drivers share this correction; preserve the first failure.
+
+The second native journey completed the forward/reverse/stopped rotor pairs, then failed at a post-dock waypoint even though the real workshop action was already available. The corrected route also stops once `workshop.canOpen` is true; B/click and the actual open transition remain required. No navigation or physics state is injected.
+
+That run also recorded native surface acquisition status1 at29.604seconds. Pinned wgpu-native v22.1.0.5 defines this as Timeout (Success is0); WASM's separate API defines its own named Timeout value3. The application already skips such a frame before acquiring renderer/physics tickets. Source now explicitly handles the named Timeout, warns once per consecutive outage, logs successful reacquisition, releases any returned texture and returns. Genuine acquisition errors and both process error scanners stay unchanged. This changes diagnostics for a recoverable frame skip, not the native/WebGPU success conventions. Final native and WASM packages must be rebuilt before subsequent journeys.

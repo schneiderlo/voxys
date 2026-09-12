@@ -1,0 +1,29 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+fresh-world
+forward-throttle-before
+forward-throttle-after
+stopped-after-forward-before
+stopped-after-forward-after
+reverse-throttle-before
+reverse-throttle-after
+stopped-after-reverse-before
+stopped-after-reverse-after
+reversed-propeller-preview
+reversed-propeller-launched
+Traceback (most recent call last):
+  File "/home/modkin/workspace/schneiderlo/voxys/scripts/validate_native_cove_mechanisms.py", line 401, in <module>
+    if __name__=='__main__': main()
+                             ~~~~^^
+  File "/home/modkin/workspace/schneiderlo/voxys/scripts/validate_native_cove_mechanisms.py", line 346, in main
+    board(); rotor('reversed-setting-forward-key','w',-1); rotor('reversed-setting-stopped',None,0)
+    ~~~~~^^
+  File "/home/modkin/workspace/schneiderlo/voxys/scripts/validate_native_cove_mechanisms.py", line 225, in board
+    walk([6,-49.5]); walk([4.5,-49.5]); walk([4.5,-53],lambda s:s['player']['interaction']=='board')
+                                        ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/modkin/workspace/schneiderlo/voxys/scripts/validate_native_cove_mechanisms.py", line 222, in walk
+    raise RuntimeError('Boarding waypoint was not reached')
+RuntimeError: Boarding waypoint was not reached

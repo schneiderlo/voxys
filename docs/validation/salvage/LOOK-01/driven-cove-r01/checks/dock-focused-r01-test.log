@@ -1,0 +1,56 @@
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //tests:voxy_tests
+-----------------------------------------------------------------------------
+Running main() from gmock_main.cc
+Note: Google Test filter = CoveDockMarkings.*:FixtureGPU.DockMarkingsUseExactOwnerChargeSharedDrawTicketAndRetirement:FixtureGPU.CoveMoldedMachineryFitsCurrentOwnerBudget
+[==========] Running 5 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 3 tests from CoveDockMarkings
+[ RUN      ] CoveDockMarkings.InstalledStaticPanelsKeepSocketsChannelsAndGeneratorClear
+[       OK ] CoveDockMarkings.InstalledStaticPanelsKeepSocketsChannelsAndGeneratorClear (299 ms)
+[ RUN      ] CoveDockMarkings.MovingBoatAndCargoCannotMoveStaticMarkingsAndUnsafeRouteRefusesAtomically
+[       OK ] CoveDockMarkings.MovingBoatAndCargoCannotMoveStaticMarkingsAndUnsafeRouteRefusesAtomically (301 ms)
+[ RUN      ] CoveDockMarkings.AdmissionRecountsExactStorageAndRejectsUnlitOrNonIdentityMesh
+[       OK ] CoveDockMarkings.AdmissionRecountsExactStorageAndRejectsUnlitOrNonIdentityMesh (304 ms)
+[----------] 3 tests from CoveDockMarkings (905 ms total)
+
+[----------] 2 tests from FixtureGPU
+[ RUN      ] FixtureGPU.DockMarkingsUseExactOwnerChargeSharedDrawTicketAndRetirement
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [04:20:39.725] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [04:20:39.725] [GPU]   Vendor: radv[0m
+[32m[INFO ] [04:20:39.725] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [04:20:39.725] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [04:20:39.726] [GPU] Headless GPU context initialized successfully[0m
+tests/test_salvage_asset_fixture.cpp:611: Failure
+Expected equality of these values:
+  fixture.stats().lastEncodedDraws
+    Which is: 6
+  baseDraws+marks.prefab.counts.expandedDraws
+    Which is: 10
+
+tests/test_salvage_asset_fixture.cpp:616: Failure
+Expected equality of these values:
+  fixture.stats().lastSubmittedDraws
+    Which is: 6
+  baseDraws+2u
+    Which is: 10
+
+[  FAILED  ] FixtureGPU.DockMarkingsUseExactOwnerChargeSharedDrawTicketAndRetirement (435 ms)
+[ RUN      ] FixtureGPU.CoveMoldedMachineryFitsCurrentOwnerBudget
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [04:20:40.120] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [04:20:40.120] [GPU]   Vendor: radv[0m
+[32m[INFO ] [04:20:40.120] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [04:20:40.120] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [04:20:40.121] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] FixtureGPU.CoveMoldedMachineryFitsCurrentOwnerBudget (586 ms)
+[----------] 2 tests from FixtureGPU (1022 ms total)
+
+[----------] Global test environment tear-down
+[==========] 5 tests from 2 test suites ran. (1927 ms total)
+[  PASSED  ] 4 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] FixtureGPU.DockMarkingsUseExactOwnerChargeSharedDrawTicketAndRetirement
+
+ 1 FAILED TEST

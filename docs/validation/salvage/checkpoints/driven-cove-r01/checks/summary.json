@@ -1,0 +1,36 @@
+{
+  "result": "passed",
+  "command": "nix-shell --run 'bazel test //tests:voxy_tests //tools:terrain_diffusion_import_test'",
+  "baseMain": "411fa1cfc7e6a396b2d59b14b04f90eb4b83f6f8",
+  "scope": "Final frozen D39\u2013D44 source and nine-presentation content. Initial interrupted required-r01 is retained separately and is not a pass.",
+  "finishedUtc": "2026-09-12T06:50:25.142957+00:00",
+  "voxyXmlAttributes": {
+    "tests": "2103",
+    "failures": "0",
+    "disabled": "4",
+    "errors": "0",
+    "time": "1125.548",
+    "timestamp": "2026-09-12T06:30:26.787",
+    "name": "AllTests"
+  },
+  "caseCount": 2103,
+  "passed": 2096,
+  "skipped": [
+    "WindowGLFWTest.WindowCreation",
+    "GpuBroadPhaseOverflowBenchmark.DenseGridCandidateClamp",
+    "RaycastPathGPUTest.LegoHorizonBenchmark"
+  ],
+  "notRun": [
+    "ApplicationGPUTest.DISABLED_InitAndShutdown",
+    "ApplicationGPUTest.DISABLED_RenderPathToggle",
+    "ApplicationGPUTest.DISABLED_ProcessSingleFrame",
+    "ApplicationGPUTest.DISABLED_UpdateCallback"
+  ],
+  "failed": [],
+  "terrain": {
+    "passed": 10,
+    "skipped": 1,
+    "bazelCached": true
+  },
+  "elapsedBazelSeconds": 1132.896
+}

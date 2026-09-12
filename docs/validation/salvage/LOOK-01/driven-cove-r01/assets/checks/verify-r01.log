@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "/home/modkin/workspace/schneiderlo/voxys/build-cove-mechanisms-art-r01/checks/verify_candidate.py", line 83, in <module>
+    assert now['triangles_key']==prev['triangles_key'], f'{name} LOD{i}: phase-zero geometry/normals changed'
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: winch LOD0: phase-zero geometry/normals changed

@@ -1,0 +1,40 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+fresh-world
+forward-throttle-before
+forward-throttle-after
+stopped-after-forward-before
+stopped-after-forward-after
+reverse-throttle-before
+reverse-throttle-after
+stopped-after-reverse-before
+stopped-after-reverse-after
+reversed-propeller-preview
+reversed-propeller-launched
+reversed-setting-forward-key-before
+reversed-setting-forward-key-after
+reversed-setting-stopped-before
+reversed-setting-stopped-after
+disabled-propeller-preview
+disabled-propeller-launched
+disabled-setting-forward-key-before
+disabled-setting-forward-key-after
+disabled-setting-stopped-before
+disabled-setting-stopped-after
+generator-hooked
+reel-in-before
+reel-in-after
+Traceback (most recent call last):
+  File "/home/modkin/workspace/schneiderlo/voxys/scripts/validate_native_cove_mechanisms.py", line 409, in <module>
+    if __name__=='__main__': main()
+                             ~~~~^^
+  File "/home/modkin/workspace/schneiderlo/voxys/scripts/validate_native_cove_mechanisms.py", line 359, in main
+    rope_pair('reel-in','q',8,-1); paid=rope_pair('pay-out','z',3,1)
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "/home/modkin/workspace/schneiderlo/voxys/scripts/validate_native_cove_mechanisms.py", line 299, in rope_pair
+    assert length*direction>.015 and abs(error)<TOLERANCE,(name,length,error)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ('reel-in', -0.1333332061767578, -0.2380950110299246)

@@ -4,6 +4,7 @@
 #include <cmath>
 #include <cstring>
 #include <limits>
+#include <string_view>
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
@@ -153,6 +154,59 @@ bool validMaterial(const moto::VmeshMaterial& material) {
         && std::isfinite(material.occlusionStrength) && material.occlusionStrength >= 0.0f && material.occlusionStrength <= 1.0f
         && std::isfinite(material.alphaCutoff) && material.alphaMode == moto::VmeshAlphaOpaque
         && material.doubleSided <= 1u && material.unlit <= 1u;
+}
+
+// Art contract: exactly two root mesh nodes, an explicit moving role and a
+// stationary root. Geometry is rebased to each node translation; no inferred
+// material regions, hierarchy animation, hidden pivots or shared GPU state.
+bool prepareMechanismBinding(const moto::VmeshData& data, RigidPrefab& prefab, std::string& error) {
+    std::optional<RigidMechanismBinding> moving;
+    std::optional<uint32_t> stationary;
+    for (uint32_t index = 0; index < data.nodes.size(); ++index) {
+        const auto offset = data.nodes[index].nameOffset;
+        if (offset == 0) continue;
+        if (offset >= data.stringBlob.size()) return fail(error, "mechanism: node name range");
+        const auto end = data.stringBlob.find('\0', offset);
+        if (end == std::string::npos) return fail(error, "mechanism: unterminated node name");
+        const std::string_view name(data.stringBlob.data() + offset, end - offset);
+        if (name == "voxys_mechanism_static") {
+            if (stationary) return fail(error, "mechanism: duplicate stationary root");
+            stationary = index;
+        } else if (name == "voxys_propeller_rotor" || name == "voxys_winch_drum") {
+            if (moving) return fail(error, "mechanism: duplicate moving root");
+            moving = RigidMechanismBinding{
+                name == "voxys_propeller_rotor" ? RigidMechanismKind::PropellerRotor : RigidMechanismKind::WinchDrum,
+                index, {0,0,1}};
+        } else if (name.starts_with("voxys_propeller_") || name.starts_with("voxys_winch_")
+                   || name.starts_with("voxys_mechanism_")) {
+            return fail(error, "mechanism: unknown reserved node role");
+        }
+    }
+    if (!moving && !stationary) return true;
+    if (!moving || !stationary || data.nodes.size() != 2 || prefab.meshNodes.size() != 2)
+        return fail(error, "mechanism: requires one moving and one stationary mesh root");
+    for (const auto& node : data.nodes) {
+        if (node.parent != -1 || node.meshIndex == UINT32_MAX || node.skinIndex != -1)
+            return fail(error, "mechanism: nodes must be unskinned mesh roots");
+        for (size_t axis = 0; axis < 3; ++axis) {
+            if (std::abs(node.scale[axis] - 1.0f) > 1e-6f || std::abs(node.rotation[axis]) > 1e-6f)
+                return fail(error, "mechanism: node rotation/scale must be identity");
+        }
+        if (std::abs(std::abs(node.rotation[3]) - 1.0f) > 1e-6f)
+            return fail(error, "mechanism: node rotation must be identity");
+    }
+    const auto basis = basisMatrix(prefab.renderToCanonical);
+    const bool propeller = moving->kind == RigidMechanismKind::PropellerRotor;
+    const auto& node = data.nodes[moving->nodeIndex];
+    const glm::dvec3 sourcePivot(node.translation[0], node.translation[1], node.translation[2]);
+    const glm::dvec3 canonicalPivot = glm::dmat3(basis) * sourcePivot;
+    const glm::dvec3 expectedPivot = propeller ? glm::dvec3(0) : glm::dvec3(0,.12,0);
+    if (glm::any(glm::greaterThan(glm::abs(canonicalPivot - expectedPivot), glm::dvec3(1e-6))))
+        return fail(error, "mechanism: named pivot does not match the authored role");
+    moving->sourceAxis = glm::transpose(glm::dmat3(basis))
+        * (propeller ? glm::dvec3(0,0,1) : glm::dvec3(1,0,0));
+    prefab.mechanism = *moving;
+    return true;
 }
 
 } // namespace
@@ -311,19 +365,30 @@ bool prepareRigidPrefab(const moto::VmeshData& data, construction::CubeRotation 
                              limits.maximumAbsoluteCoordinate, pending.canonicalBounds)) return fail(error, "prefab: canonical render bounds");
     }
     if (pending.meshNodes.empty()) return fail(error, "prefab: no mesh-bearing node");
+    if (!prepareMechanismBinding(data, pending, error)) return false;
     output = std::move(pending);
     return true;
 }
 
 bool placeRigidPrefab(const RigidPrefab& prefab, const glm::dmat4& cameraRelativeRoot,
                       construction::GridTransform gridPart, size_t maximumDrawRecords,
-                      std::vector<RigidPrefabDraw>& output, std::string& error) {
+                      std::vector<RigidPrefabDraw>& output, std::string& error,
+                      std::optional<RigidMechanismPose> mechanism) {
     error.clear();
     if (!validLimits(prefab.limits) || !construction::isValid(prefab.renderToCanonical)
         || !construction::isValid(gridPart.rotation) || !construction::isValid(gridPart.translation)
         || prefab.meshNodes.empty() || prefab.meshNodes.size() > maximumDrawRecords
         || prefab.meshNodes.size() > prefab.limits.maximumMeshInstances
         || !validTransform(cameraRelativeRoot, prefab.limits)) return fail(error, "placement: invalid root/part/capacity");
+    glm::dmat4 mechanismRotation(1.0);
+    bool rotateMechanism = false;
+    if (mechanism) {
+        if (!prefab.mechanism || mechanism->kind != prefab.mechanism->kind || !std::isfinite(mechanism->radians))
+            return fail(error, "placement: invalid or unavailable mechanism role/phase");
+        const double phase = std::remainder(mechanism->radians, 2.0 * std::acos(-1.0));
+        rotateMechanism = phase != 0;
+        if (rotateMechanism) mechanismRotation = glm::rotate(glm::dmat4(1.0), phase, prefab.mechanism->sourceAxis);
+    }
     const auto metres = construction::toMetres(gridPart.translation);
     if (!metres) return fail(error, "placement: invalid ticks");
     const glm::dmat4 rootPartBasis = cameraRelativeRoot
@@ -332,7 +397,8 @@ bool placeRigidPrefab(const RigidPrefab& prefab, const glm::dmat4& cameraRelativ
     std::vector<RigidPrefabDraw> pending;
     pending.reserve(prefab.meshNodes.size());
     for (const auto& node : prefab.meshNodes) {
-        const glm::dmat4 matrix = rootPartBasis * node.nodeToAsset;
+        glm::dmat4 matrix = rootPartBasis * node.nodeToAsset;
+        if (rotateMechanism && node.nodeIndex == prefab.mechanism->nodeIndex) matrix *= mechanismRotation;
         PrefabBounds transformed;
         if (node.meshIndex >= prefab.meshBounds.size() || !validTransform(matrix, prefab.limits)
             || !transformBounds(prefab.meshBounds[node.meshIndex], matrix,

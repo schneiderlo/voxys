@@ -1,0 +1,244 @@
+{
+  "lods": [
+    {
+      "asset": {
+        "counter": "801",
+        "namespace": "766f7879732d746f792d6172742d7631",
+        "version": 1
+      },
+      "id": "1",
+      "minimum_screen_height_pixels": 200.0,
+      "source": {
+        "bytes": 58972,
+        "file": "propeller-lod-0.glb",
+        "frame": "exported_gltf",
+        "sha256": "1124a046534682a1ed06b88b9c208a4bbee0142d45e744c74585ca9025ad2604",
+        "to_canonical_rotation": 12
+      }
+    },
+    {
+      "asset": {
+        "counter": "802",
+        "namespace": "766f7879732d746f792d6172742d7631",
+        "version": 1
+      },
+      "id": "2",
+      "minimum_screen_height_pixels": 60.0,
+      "source": {
+        "bytes": 29012,
+        "file": "propeller-lod-1.glb",
+        "frame": "exported_gltf",
+        "sha256": "41e49f32f7ef5729ff59e0bafc46fc76b9aa12f76de39dd3ae6192330fce3279",
+        "to_canonical_rotation": 12
+      }
+    },
+    {
+      "asset": {
+        "counter": "803",
+        "namespace": "766f7879732d746f792d6172742d7631",
+        "version": 1
+      },
+      "id": "3",
+      "minimum_screen_height_pixels": 0.0,
+      "source": {
+        "bytes": 14032,
+        "file": "propeller-lod-2.glb",
+        "frame": "exported_gltf",
+        "sha256": "1a637af126a1b18a409f12c2131dc03d680e91cf5a6a3a6bd1caf9e7e3d11e91",
+        "to_canonical_rotation": 12
+      }
+    }
+  ],
+  "metadata_frame": "canonical_y_up_minus_z_forward",
+  "part": {
+    "buoyancy": [
+      {
+        "box": {
+          "frame": {
+            "rotation": 0,
+            "translation_ticks": [
+              0,
+              0,
+              0
+            ]
+          },
+          "half_extents_ticks": [
+            25,
+            2,
+            16
+          ],
+          "id": "1"
+        },
+        "kind": "solid_material"
+      }
+    ],
+    "collision": [
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            0,
+            0,
+            0
+          ]
+        },
+        "half_extents_ticks": [
+          25,
+          24,
+          16
+        ],
+        "id": "1"
+      }
+    ],
+    "cost": {
+      "salvage_material": "16",
+      "special_machinery": "0"
+    },
+    "footprint": {
+      "maximum_ticks": [
+        25,
+        24,
+        16
+      ],
+      "minimum_ticks": [
+        -25,
+        -24,
+        -16
+      ]
+    },
+    "key": {
+      "counter": "5",
+      "namespace": "766f7879732d73616c766167652d7631",
+      "version": 2
+    },
+    "mass": {
+      "center_of_mass_metres": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "dry_mass_kg": 35.0,
+      "inertia_kg_metres_squared": [
+        3.8826666666666663,
+        0.0,
+        0.0,
+        0.0,
+        4.1113333333333335,
+        0.0,
+        0.0,
+        0.0,
+        5.604666666666667
+      ]
+    },
+    "material": {
+      "linear_base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "metallic": 1.0,
+      "roughness": 1.0
+    },
+    "module": {
+      "force_frame": {
+        "rotation": 0,
+        "translation_ticks": [
+          0,
+          0,
+          0
+        ]
+      },
+      "maximum_thrust_newtons": 2500.0,
+      "required_power_watts": 18000.0,
+      "shaft": "10",
+      "type": "propeller"
+    },
+    "name_key": "salvage.part.propeller",
+    "permitted_rotation_mask": 16777215,
+    "salvage_yield": {
+      "salvage_material": "10",
+      "special_machinery": "0"
+    },
+    "sockets": [
+      {
+        "clearance": {
+          "maximum_ticks": [
+            15,
+            0,
+            15
+          ],
+          "minimum_ticks": [
+            -15,
+            -9,
+            -15
+          ]
+        },
+        "connection_capacity": 1,
+        "family": "drive_shaft",
+        "frame": {
+          "rotation": 3,
+          "translation_ticks": [
+            0,
+            0,
+            -16
+          ]
+        },
+        "id": "10",
+        "profile": 1,
+        "role": "receptacle",
+        "strength": {
+          "bending_newton_metres": 18000.0,
+          "shear_newtons": 24000.0,
+          "tension_newtons": 30000.0,
+          "torsion_newton_metres": 12000.0
+        }
+      }
+    ],
+    "solid_occupancy": [
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            0,
+            0,
+            0
+          ]
+        },
+        "half_extents_ticks": [
+          25,
+          24,
+          16
+        ],
+        "id": "1"
+      }
+    ],
+    "strength": {
+      "bending_newton_metres": 18000.0,
+      "shear_newtons": 24000.0,
+      "tension_newtons": 30000.0,
+      "torsion_newton_metres": 12000.0
+    }
+  },
+  "placement_lattice_metres": 0.02,
+  "schema": 1,
+  "tool_anchors": [
+    {
+      "frame": {
+        "rotation": 3,
+        "translation_ticks": [
+          0,
+          0,
+          -16
+        ]
+      },
+      "id": "10",
+      "name_key": "salvage.anchor.propeller.socket_10"
+    }
+  ],
+  "units": {
+    "angle": "radians",
+    "length": "metres",
+    "mass": "kilograms",
+    "time": "seconds"
+  }
+}

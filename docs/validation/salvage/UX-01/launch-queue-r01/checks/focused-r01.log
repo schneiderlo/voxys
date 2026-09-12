@@ -1,0 +1,67 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: 2 targets (0 packages loaded, 0 targets configured)
+Analyzing: 2 targets (0 packages loaded, 0 targets configured)
+
+Analyzing: 2 targets (0 packages loaded, 0 targets configured)
+
+INFO: Analyzed 2 targets (2 packages loaded, 162 targets configured).
+[403 / 413] Compiling tests/test_gpu_authored_shapes.cpp; 1s linux-sandbox ... (4 actions running)
+[407 / 413] Compiling tests/test_gpu_authored_shapes.cpp; 2s linux-sandbox ... (3 actions, 2 running)
+[409 / 413] Compiling tests/test_gpu_authored_shapes.cpp; 4s linux-sandbox ... (2 actions running)
+INFO: From Testing //tests:gpu_authored_shapes:
+==================== Test output for //tests:gpu_authored_shapes:
+Running main() from gmock_main.cc
+Note: Google Test filter = CoveMovement.LaunchShapes*:*LaunchShapeTerminalErrors*:GpuAuthoredShapes.BoundedPendingOperationsRefuseWithoutConsumingPreparedStorage
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from GpuAuthoredShapes
+[ RUN      ] GpuAuthoredShapes.BoundedPendingOperationsRefuseWithoutConsumingPreparedStorage
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[INFO ] [05:03:40.139] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [05:03:40.139] [GPU]   Vendor: radv
+[INFO ] [05:03:40.139] [GPU]   Backend: Vulkan
+[INFO ] [05:03:40.139] [GPU]   Type: Integrated GPU
+[INFO ] [05:03:40.142] [GPU] Headless GPU context initialized successfully
+[       OK ] GpuAuthoredShapes.BoundedPendingOperationsRefuseWithoutConsumingPreparedStorage (74 ms)
+[----------] 1 test from GpuAuthoredShapes (74 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (74 ms total)
+[  PASSED  ] 1 test.
+================================================================================
+[412 / 414] 1 / 2 tests; Compiling tests/test_cove_player.cpp; 5s linux-sandbox
+[413 / 414] 1 / 2 tests; [Prepa] Linking tests/cove_player
+[414 / 415] 2 / 2 tests; Testing //tests:cove_player; 0s linux-sandbox
+INFO: From Testing //tests:cove_player:
+==================== Test output for //tests:cove_player:
+Running main() from gmock_main.cc
+Note: Google Test filter = CoveMovement.LaunchShapes*:*LaunchShapeTerminalErrors*:GpuAuthoredShapes.BoundedPendingOperationsRefuseWithoutConsumingPreparedStorage
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from CoveMovement
+[ RUN      ] CoveMovement.LaunchShapesRetryBusyWithoutLosingPayloadOrDuplicatingAcceptedRoots
+[       OK ] CoveMovement.LaunchShapesRetryBusyWithoutLosingPayloadOrDuplicatingAcceptedRoots (385 ms)
+[ RUN      ] CoveMovement.LaunchShapeTerminalErrorsRetainEveryPartialHandleForCancellation
+[       OK ] CoveMovement.LaunchShapeTerminalErrorsRetainEveryPartialHandleForCancellation (362 ms)
+[----------] 2 tests from CoveMovement (747 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (747 ms total)
+[  PASSED  ] 2 tests.
+================================================================================
+INFO: Found 2 test targets...
+INFO: Elapsed time: 16.369s, Critical Path: 14.49s
+INFO: 19 processes: 396 action cache hit, 9 internal, 10 linux-sandbox.
+INFO: Build completed successfully, 19 total actions
+//tests:cove_player                                                      PASSED in 0.8s
+//tests:gpu_authored_shapes                                              PASSED in 0.2s
+
+Executed 2 out of 2 tests: 2 tests pass.
+There were tests whose specified size is too big. Use the --test_verbose_timeout_warnings command line option to see which ones these are.

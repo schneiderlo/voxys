@@ -1,0 +1,12 @@
+{
+  "command": "/home/modkin/.nix-profile/bin/node build-cove-browser-objectives-r01/overlay/scripts/test_salvage_preview.mjs",
+  "result": "passed",
+  "exitCode": 0,
+  "newObjectiveCases": 10,
+  "baselineAssertionBlocks": 26,
+  "candidateAssertionBlocks": 36,
+  "log": "checks/node-ui-r02.log",
+  "reasonForRerun": "Two independent review findings fixed: preserve focused unchanged action; explicit revoked-admission refusal. Also guard unchanged aria-live text.",
+  "whitespaceDiff": "No diagnostics from git diff --no-index --check; exit 1 denotes differing trees.",
+  "limits": "CPU/Node only; no actual browser, GPU, screenshot or live source changes."
+}

@@ -1,0 +1,58 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: target //tests:cove_hud (0 packages loaded, 0 targets configured)
+Analyzing: target //tests:cove_hud (0 packages loaded, 0 targets configured)
+
+Analyzing: target //tests:cove_hud (0 packages loaded, 0 targets configured)
+
+INFO: Analyzed target //tests:cove_hud (1 packages loaded, 133 targets configured).
+[553 / 557] Compiling src/app/application.cpp; 1s linux-sandbox
+[554 / 557] [Prepa] Linking src/app/libapp.so
+INFO: From Testing //tests:cove_hud:
+==================== Test output for //tests:cove_hud:
+Running main() from gmock_main.cc
+Note: Google Test filter = CoveRecoveryGuidance.*:CoveHud.ReadableBoundsKeepTheBuildAndPaletteClear:CoveHud.OversizedTextAndTinyWindowsStayBoundedWithoutShrinking
+[==========] Running 8 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 2 tests from CoveHud
+[ RUN      ] CoveHud.ReadableBoundsKeepTheBuildAndPaletteClear
+[       OK ] CoveHud.ReadableBoundsKeepTheBuildAndPaletteClear (0 ms)
+[ RUN      ] CoveHud.OversizedTextAndTinyWindowsStayBoundedWithoutShrinking
+[       OK ] CoveHud.OversizedTextAndTinyWindowsStayBoundedWithoutShrinking (0 ms)
+[----------] 2 tests from CoveHud (0 ms total)
+
+[----------] 6 tests from CoveRecoveryGuidance
+[ RUN      ] CoveRecoveryGuidance.AcceptOnFootButNeverInventDeliveryPermissionFromGeometry
+[       OK ] CoveRecoveryGuidance.AcceptOnFootButNeverInventDeliveryPermissionFromGeometry (0 ms)
+[ RUN      ] CoveRecoveryGuidance.UsesCargoRangeHeightAndFullSpeedIncludingExactBoundaries
+[       OK ] CoveRecoveryGuidance.UsesCargoRangeHeightAndFullSpeedIncludingExactBoundaries (0 ms)
+[ RUN      ] CoveRecoveryGuidance.MissingBodiesWinchOrConfirmedTowCannotAdvertiseAReadyHook
+[       OK ] CoveRecoveryGuidance.MissingBodiesWinchOrConfirmedTowCannotAdvertiseAReadyHook (0 ms)
+[ RUN      ] CoveRecoveryGuidance.PhysicalBankingAndInstalledHarborAreNotDurableSuccess
+[       OK ] CoveRecoveryGuidance.PhysicalBankingAndInstalledHarborAreNotDurableSuccess (0 ms)
+[ RUN      ] CoveRecoveryGuidance.PausedPowerAndManualSaveOverrideHistoricalDeliverySuccess
+[       OK ] CoveRecoveryGuidance.PausedPowerAndManualSaveOverrideHistoricalDeliverySuccess (0 ms)
+[ RUN      ] CoveRecoveryGuidance.EveryMissionStepKeepsReadableLayoutAndExistingGpuBounds
+[       OK ] CoveRecoveryGuidance.EveryMissionStepKeepsReadableLayoutAndExistingGpuBounds (0 ms)
+[----------] 6 tests from CoveRecoveryGuidance (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 8 tests from 2 test suites ran. (0 ms total)
+[  PASSED  ] 8 tests.
+================================================================================
+INFO: Found 1 test target...
+Target //tests:cove_hud up-to-date:
+  bazel-bin/tests/cove_hud
+INFO: Elapsed time: 11.170s, Critical Path: 9.34s
+INFO: 6 processes: 552 action cache hit, 2 internal, 4 linux-sandbox.
+INFO: Build completed successfully, 6 total actions
+//tests:cove_hud                                                         PASSED in 0.1s
+
+Executed 1 out of 1 test: 1 test passes.
+There were tests whose specified size is too big. Use the --test_verbose_timeout_warnings command line option to see which ones these are.

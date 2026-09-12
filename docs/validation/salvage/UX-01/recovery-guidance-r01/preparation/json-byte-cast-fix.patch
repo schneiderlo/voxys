@@ -1,0 +1,12 @@
+--- a/src/app/application.cpp
++++ b/src/app/application.cpp
+@@ -6967,7 +6967,8 @@
+         const auto string=[&](std::string_view value){
+             json<<'"';
+             constexpr char hex[]="0123456789abcdef";
+-            for(const unsigned char c:value){
++            for(const char byte:value){
++                const auto c=static_cast<unsigned char>(byte);
+                 if(c=='"'||c=='\\')json<<'\\'<<static_cast<char>(c);
+                 else if(c<32)json<<"\\u00"<<hex[c>>4]<<hex[c&15];
+                 else json<<static_cast<char>(c);

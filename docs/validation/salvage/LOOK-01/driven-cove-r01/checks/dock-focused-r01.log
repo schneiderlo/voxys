@@ -1,0 +1,111 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: target //tests:voxy_tests (0 packages loaded, 0 targets configured)
+Analyzing: target //tests:voxy_tests (0 packages loaded, 0 targets configured)
+
+Analyzing: target //tests:voxy_tests (0 packages loaded, 0 targets configured)
+
+INFO: Analyzed target //tests:voxy_tests (2 packages loaded, 299 targets configured).
+[555 / 678] Compiling tests/test_gpu_authored_shapes.cpp; 1s linux-sandbox ... (24 actions running)
+[556 / 678] Compiling tests/test_gpu_authored_shapes.cpp; 2s linux-sandbox ... (24 actions running)
+[565 / 678] Compiling tests/test_gpu_authored_shapes.cpp; 3s linux-sandbox ... (24 actions running)
+[570 / 678] Compiling tests/test_gpu_authored_shapes.cpp; 4s linux-sandbox ... (24 actions running)
+[574 / 678] Compiling tests/test_gpu_authored_shapes.cpp; 5s linux-sandbox ... (24 actions running)
+[581 / 678] Compiling tests/test_gpu_authored_shapes.cpp; 6s linux-sandbox ... (24 actions running)
+[587 / 678] Compiling tests/test_gpu_authored_shapes.cpp; 7s linux-sandbox ... (24 actions running)
+[591 / 678] Compiling tests/test_gpu_authored_shapes.cpp; 8s linux-sandbox ... (24 actions running)
+[596 / 678] Compiling tests/test_gpu_authored_shapes.cpp; 9s linux-sandbox ... (24 actions running)
+[604 / 678] Compiling tests/test_gpu_authored_shapes.cpp; 10s linux-sandbox ... (24 actions running)
+[608 / 678] Compiling tests/test_gpu_authored_shapes.cpp; 11s linux-sandbox ... (24 actions, 23 running)
+[613 / 678] Compiling src/app/application.cpp; 12s linux-sandbox ... (24 actions, 23 running)
+[617 / 678] Compiling src/app/application.cpp; 13s linux-sandbox ... (24 actions running)
+[622 / 678] Compiling src/app/application.cpp; 14s linux-sandbox ... (24 actions running)
+[627 / 678] Compiling src/app/application.cpp; 15s linux-sandbox ... (24 actions running)
+[630 / 678] Compiling src/app/application.cpp; 16s linux-sandbox ... (24 actions running)
+[636 / 678] Compiling src/app/application.cpp; 17s linux-sandbox ... (24 actions running)
+[640 / 678] Compiling src/app/application.cpp; 18s linux-sandbox ... (24 actions running)
+[646 / 678] Compiling src/app/application.cpp; 19s linux-sandbox ... (24 actions running)
+[651 / 678] Compiling src/app/application.cpp; 20s linux-sandbox ... (24 actions, 23 running)
+[654 / 678] Compiling src/app/application.cpp; 22s linux-sandbox ... (21 actions running)
+[657 / 678] Compiling src/app/application.cpp; 23s linux-sandbox ... (18 actions running)
+[660 / 678] Compiling src/app/application.cpp; 24s linux-sandbox ... (15 actions running)
+[670 / 678] Compiling src/app/application.cpp; 25s linux-sandbox ... (5 actions running)
+[673 / 678] Compiling tests/test_game_session.cpp; 10s linux-sandbox ... (3 actions, 2 running)
+[675 / 678] Compiling tests/test_game_session.cpp; 11s linux-sandbox ... (2 actions running)
+[676 / 678] Compiling tests/test_cove_player.cpp; 12s linux-sandbox
+[677 / 678] [Prepa] Linking tests/voxy_tests
+[678 / 679] Testing //tests:voxy_tests; 0s linux-sandbox
+FAIL: //tests:voxy_tests (Exit 1) (see /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-fastbuild/testlogs/tests/voxy_tests/test.log)
+[678 / 679] 1 / 1 tests, 1 failed; Testing //tests:voxy_tests; 2s linux-sandbox
+INFO: From Testing //tests:voxy_tests:
+==================== Test output for //tests:voxy_tests:
+Running main() from gmock_main.cc
+Note: Google Test filter = CoveDockMarkings.*:FixtureGPU.DockMarkingsUseExactOwnerChargeSharedDrawTicketAndRetirement:FixtureGPU.CoveMoldedMachineryFitsCurrentOwnerBudget
+[==========] Running 5 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 3 tests from CoveDockMarkings
+[ RUN      ] CoveDockMarkings.InstalledStaticPanelsKeepSocketsChannelsAndGeneratorClear
+[       OK ] CoveDockMarkings.InstalledStaticPanelsKeepSocketsChannelsAndGeneratorClear (299 ms)
+[ RUN      ] CoveDockMarkings.MovingBoatAndCargoCannotMoveStaticMarkingsAndUnsafeRouteRefusesAtomically
+[       OK ] CoveDockMarkings.MovingBoatAndCargoCannotMoveStaticMarkingsAndUnsafeRouteRefusesAtomically (301 ms)
+[ RUN      ] CoveDockMarkings.AdmissionRecountsExactStorageAndRejectsUnlitOrNonIdentityMesh
+[       OK ] CoveDockMarkings.AdmissionRecountsExactStorageAndRejectsUnlitOrNonIdentityMesh (304 ms)
+[----------] 3 tests from CoveDockMarkings (905 ms total)
+
+[----------] 2 tests from FixtureGPU
+[ RUN      ] FixtureGPU.DockMarkingsUseExactOwnerChargeSharedDrawTicketAndRetirement
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[INFO ] [04:20:39.725] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [04:20:39.725] [GPU]   Vendor: radv
+[INFO ] [04:20:39.725] [GPU]   Backend: Vulkan
+[INFO ] [04:20:39.725] [GPU]   Type: Integrated GPU
+[INFO ] [04:20:39.726] [GPU] Headless GPU context initialized successfully
+tests/test_salvage_asset_fixture.cpp:611: Failure
+Expected equality of these values:
+  fixture.stats().lastEncodedDraws
+    Which is: 6
+  baseDraws+marks.prefab.counts.expandedDraws
+    Which is: 10
+
+tests/test_salvage_asset_fixture.cpp:616: Failure
+Expected equality of these values:
+  fixture.stats().lastSubmittedDraws
+    Which is: 6
+  baseDraws+2u
+    Which is: 10
+
+[  FAILED  ] FixtureGPU.DockMarkingsUseExactOwnerChargeSharedDrawTicketAndRetirement (435 ms)
+[ RUN      ] FixtureGPU.CoveMoldedMachineryFitsCurrentOwnerBudget
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[INFO ] [04:20:40.120] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [04:20:40.120] [GPU]   Vendor: radv
+[INFO ] [04:20:40.120] [GPU]   Backend: Vulkan
+[INFO ] [04:20:40.120] [GPU]   Type: Integrated GPU
+[INFO ] [04:20:40.121] [GPU] Headless GPU context initialized successfully
+[       OK ] FixtureGPU.CoveMoldedMachineryFitsCurrentOwnerBudget (586 ms)
+[----------] 2 tests from FixtureGPU (1022 ms total)
+
+[----------] Global test environment tear-down
+[==========] 5 tests from 2 test suites ran. (1927 ms total)
+[  PASSED  ] 4 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] FixtureGPU.DockMarkingsUseExactOwnerChargeSharedDrawTicketAndRetirement
+
+ 1 FAILED TEST
+================================================================================
+INFO: Found 1 test target...
+Target //tests:voxy_tests up-to-date:
+  bazel-bin/tests/voxy_tests
+INFO: Elapsed time: 36.675s, Critical Path: 29.96s
+INFO: 126 processes: 553 action cache hit, 4 internal, 122 linux-sandbox.
+INFO: Build completed, 1 test FAILED, 126 total actions
+//tests:voxy_tests                                                       FAILED in 2.0s
+  /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-fastbuild/testlogs/tests/voxy_tests/test.log
+
+Executed 1 out of 1 test: 1 fails locally.

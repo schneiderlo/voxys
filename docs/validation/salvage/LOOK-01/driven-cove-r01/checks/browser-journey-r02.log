@@ -1,0 +1,10 @@
+file:///home/modkin/workspace/schneiderlo/voxys/scripts/validate_cove_mechanisms.mjs:45
+        throw Error('F9 uncapped input was not accepted');
+              ^
+
+Error: F9 uncapped input was not accepted
+    at uncap (file:///home/modkin/workspace/schneiderlo/voxys/scripts/validate_cove_mechanisms.mjs:45:15)
+    at async validateCoveMechanisms (file:///home/modkin/workspace/schneiderlo/voxys/scripts/validate_cove_mechanisms.mjs:230:9)
+    at async file:///home/modkin/workspace/schneiderlo/voxys/scripts/smoke_integrated_wasm.mjs:461:32
+
+Node.js v22.23.1

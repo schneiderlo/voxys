@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include "render/cove_hud.hpp"
+#include "render/cove_recovery_guidance.hpp"
 #include "gpu/context.hpp"
 #include "gpu/resources.hpp"
 #include <glm/vec2.hpp>
@@ -8,6 +9,7 @@
 #include <chrono>
 #include <cmath>
 #include <memory>
+#include <limits>
 #include <thread>
 
 namespace voxy::render {
@@ -55,6 +57,183 @@ TEST(CoveHud, OversizedTextAndTinyWindowsStayBoundedWithoutShrinking) {
     EXPECT_EQ(layoutCoveHud(content,0,0).count,0u);
     EXPECT_EQ(layoutCoveHud(content,1280,0).count,0u);
     EXPECT_EQ(layoutCoveHud({},1280,800).count,0u);
+}
+
+namespace {
+CoveRecoveryFacts acceptedRecovery() {
+    CoveRecoveryFacts f;
+    f.job=CoveRecoveryFacts::Job::Accepted;
+    f.commandsReady=f.storageReady=f.cargoObserved=f.onBoat=true;
+    f.hasWinch=f.onWinchRoot=f.towReady=true;
+    f.hookDistance=6;f.harborDistance=6;f.harborLimit=3.9;
+    f.height=-3;f.minimumHeight=-1;f.maximumSpeed=.8;f.maximumSpin=1;
+    return f;
+}
+CoveHudContent recoveryContent(const CoveRecoveryFacts& f) {
+    const auto g=coveRecoveryGuidance(f);
+    CoveHudContent content;
+    content.title=g.title;content.selected="E: Return to dock";content.economy="Material 96";
+    content.status=g.status;content.tone=g.tone;content.objective=g.step;
+    content.hints={"WASD: Walk  Space: Jump",std::string(g.controls),"B: Build  P: Pause  R: Rescue"};
+    return content;
+}
+}
+
+TEST(CoveRecoveryGuidance, AcceptOnFootButNeverInventDeliveryPermissionFromGeometry) {
+    auto f=acceptedRecovery();
+    f.job=CoveRecoveryFacts::Job::Available;f.onBoat=false;f.canAccept=true;
+    EXPECT_EQ(coveRecoveryGuidance(f).step,"accept");
+    EXPECT_EQ(coveRecoveryGuidance(f).controls,"J: Accept job");
+    f.commandsReady=false;
+    EXPECT_EQ(coveRecoveryGuidance(f).step,"waiting");
+    f=acceptedRecovery();f.harborDistance=3.9;f.height=-1;f.speed=.8;f.spin=1;
+    f.hasWinch=false; // Delivery never requires a fitted winch, rope or helm.
+    EXPECT_EQ(coveRecoveryGuidance(f).step,"waiting");
+    f.canDeliver=true;
+    EXPECT_EQ(coveRecoveryGuidance(f).step,"deliver");
+    EXPECT_EQ(coveRecoveryGuidance(f).controls,"H: Deliver generator");
+    f.commandsReady=false;
+    EXPECT_EQ(coveRecoveryGuidance(f).step,"waiting");
+    f.commandsReady=true;f.canDeliver=false;f.storageReady=false;
+    EXPECT_EQ(coveRecoveryGuidance(f).step,"storage");
+}
+
+TEST(CoveRecoveryGuidance, UsesCargoRangeHeightAndFullSpeedIncludingExactBoundaries) {
+    auto f=acceptedRecovery();f.hookDistance=8;
+    EXPECT_EQ(coveRecoveryGuidance(f).step,"hook");
+    f.hookDistance=std::nextafter(8.0,9.0);
+    EXPECT_EQ(coveRecoveryGuidance(f).step,"approach");
+    f=acceptedRecovery();f.towAttached=f.towConfirmed=true;
+    EXPECT_EQ(coveRecoveryGuidance(f).step,"return");
+    EXPECT_EQ(coveRecoveryGuidance(f).status,"Harbor 6.0 / 3.9 m");
+    f.harborDistance=f.harborLimit;
+    EXPECT_EQ(coveRecoveryGuidance(f).step,"lift");
+    EXPECT_EQ(coveRecoveryGuidance(f).status,"Raise load 2.0 m");
+    f.height=std::nextafter(f.minimumHeight,-2.0);
+    EXPECT_EQ(coveRecoveryGuidance(f).status,"Raise load 0.1 m");
+    f.height=f.minimumHeight;f.speed=std::nextafter(f.maximumSpeed,1.0);
+    EXPECT_EQ(coveRecoveryGuidance(f).step,"slow");
+    f.speed=f.maximumSpeed;f.spin=std::nextafter(f.maximumSpin,2.0);
+    EXPECT_EQ(coveRecoveryGuidance(f).step,"steady");
+    f.spin=f.maximumSpin;
+    EXPECT_EQ(coveRecoveryGuidance(f).step,"waiting"); // Only eligible() grants H.
+    f.canDeliver=true;
+    EXPECT_EQ(coveRecoveryGuidance(f).step,"deliver");
+    f.canDeliver=false;f.harborDistance=std::numeric_limits<double>::quiet_NaN();
+    EXPECT_EQ(coveRecoveryGuidance(f).step,"waiting");
+}
+
+TEST(CoveRecoveryGuidance, MissingBodiesWinchOrConfirmedTowCannotAdvertiseAReadyHook) {
+    auto f=acceptedRecovery();f.cargoObserved=false;
+    EXPECT_EQ(coveRecoveryGuidance(f).step,"waiting");
+    f=acceptedRecovery();f.onBoat=false;
+    EXPECT_EQ(coveRecoveryGuidance(f).step,"board");
+    f=acceptedRecovery();f.hasWinch=false;
+    EXPECT_EQ(coveRecoveryGuidance(f).step,"winch");
+    f=acceptedRecovery();f.onWinchRoot=false;
+    EXPECT_EQ(coveRecoveryGuidance(f).step,"winch");
+    f=acceptedRecovery();f.towReady=false;
+    EXPECT_EQ(coveRecoveryGuidance(f).step,"waiting");
+    f=acceptedRecovery();f.towAttached=true;f.towConfirmed=false;
+    EXPECT_EQ(coveRecoveryGuidance(f).step,"waiting");
+}
+
+TEST(CoveRecoveryGuidance, PhysicalBankingAndInstalledHarborAreNotDurableSuccess) {
+    auto f=acceptedRecovery();f.deliveryPending=true;
+    EXPECT_EQ(coveRecoveryGuidance(f).step,"securing");
+    EXPECT_EQ(coveRecoveryGuidance(f).status,"Securing the observed load");
+    f.cargoBanked=true;
+    EXPECT_EQ(coveRecoveryGuidance(f).step,"saving");
+    f.deliveryPending=false;f.job=CoveRecoveryFacts::Job::Completed;
+    f.harborPresent=true;f.harborInstalled=true;f.harborDurable=true;
+    EXPECT_EQ(coveRecoveryGuidance(f).step,"saving"); // Generator receipt is not durable yet.
+    f.deliveryDurable=true;f.harborDurable=false;f.harborPending=true;
+    EXPECT_EQ(coveRecoveryGuidance(f).step,"powering");
+    f.harborPending=false;f.onBoat=false;f.atDock=true;
+    EXPECT_EQ(coveRecoveryGuidance(f).step,"waiting");
+    f.harborInstalled=false;f.canInstall=true;
+    EXPECT_EQ(coveRecoveryGuidance(f).step,"power");
+    EXPECT_EQ(coveRecoveryGuidance(f).controls,"K: Power harbor");
+    f.canInstall=false;f.atDock=false;
+    EXPECT_EQ(coveRecoveryGuidance(f).step,"dock");
+    f.atDock=true;f.storageReady=false;
+    EXPECT_EQ(coveRecoveryGuidance(f).step,"storage");
+    f.storageReady=true;f.harborInstalled=f.harborDurable=true;
+    EXPECT_EQ(coveRecoveryGuidance(f).step,"powered");
+}
+
+TEST(CoveRecoveryGuidance, PausedPowerAndManualSaveOverrideHistoricalDeliverySuccess) {
+    CovePauseFacts f;
+    f.paused=f.cargoBanked=f.deliveryDurable=true;
+    f.saveStatus="Delivery saved. +60 material | P: Resume";
+    CoveHudContent hud;hud.economy="Material 96";
+    const auto apply=[&]{
+        applyCovePauseGuidance(f,hud);
+        for(const auto size:std::array<glm::uvec2,2>{{{640,480},{960,540}}}){
+            SCOPED_TRACE(::testing::Message()<<hud.objective<<" "<<size.x<<"x"<<size.y);
+            const auto layout=layoutCoveHud(hud,size.x,size.y);
+            EXPECT_FALSE(layout.truncated);EXPECT_GE(layout.bodyPixels,20.f);
+            EXPECT_LT(layout.count,CoveHudLayout::maximumQuads);
+        }
+    };
+    f.harborPending=true; // Requested/Uploading/Admitting, before checkpoint.
+    apply();
+    EXPECT_EQ(hud.objective,"powering");EXPECT_EQ(hud.status,"Preparing harbor lift");
+    for(const auto& hint:hud.hints)EXPECT_EQ(hint.find("P: Resume"),std::string::npos);
+    f.checkpointPending=true;apply();
+    EXPECT_EQ(hud.objective,"powering");EXPECT_EQ(hud.status,"Waiting for durable save");
+    f.saveStatus="Save failed. Disk full. Pause, then F10 to retry.";
+    apply();
+    EXPECT_EQ(hud.objective,"powering");EXPECT_EQ(hud.status,"Save failed. F10: Retry");
+    f.harborPending=f.checkpointPending=false; // Separate later manual failure.
+    apply();
+    EXPECT_EQ(hud.objective,"save-failed");EXPECT_EQ(hud.status,"Save failed. F10: Retry");
+    f.saveStatus="Saving expedition...";apply();
+    EXPECT_EQ(hud.objective,"manual-saving");EXPECT_EQ(hud.status,"Saving expedition...");
+    f.saveStatus="Expedition saved. F10: Save again | P: Resume";f.harborPowered=true;
+    apply();
+    EXPECT_EQ(hud.objective,"powered");
+    f.rescuePending=true;apply();
+    EXPECT_EQ(hud.objective,"rescuing");
+    for(const auto& hint:hud.hints)EXPECT_EQ(hint.find("P: Resume"),std::string::npos);
+    f.rescuePending=false;f.harborPowered=false;
+    f.harborRefusal="Clear space on the pier before powering the lift.";
+    apply();
+    EXPECT_EQ(hud.objective,"harbor-blocked");EXPECT_EQ(hud.status,f.harborRefusal);
+    EXPECT_EQ(hud.hints[1],"P: Resume");
+    f.storageRevoked=true;apply();
+    EXPECT_EQ(hud.objective,"storage-revoked");EXPECT_EQ(hud.status,"Restart game to recover");
+    for(const auto& hint:hud.hints)EXPECT_EQ(hint.find("F10"),std::string::npos);
+    EXPECT_EQ(hud.economy,"Material 96");
+}
+
+TEST(CoveRecoveryGuidance, EveryMissionStepKeepsReadableLayoutAndExistingGpuBounds) {
+    std::vector<CoveRecoveryFacts> samples;
+    auto f=acceptedRecovery();samples.push_back(f);
+    f.job=CoveRecoveryFacts::Job::Available;f.canAccept=true;samples.push_back(f);
+    f=acceptedRecovery();f.onBoat=false;samples.push_back(f);
+    f=acceptedRecovery();f.hookDistance=123.4;samples.push_back(f);
+    f.towAttached=f.towConfirmed=true;samples.push_back(f);
+    f.harborDistance=3;f.height=-6;samples.push_back(f);
+    f.height=-1;f.speed=2.3;samples.push_back(f);
+    f.speed=.8;f.spin=2.3;samples.push_back(f);
+    f.canDeliver=true;samples.push_back(f);
+    f.canDeliver=false;f.deliveryPending=true;samples.push_back(f);
+    f.cargoBanked=true;samples.push_back(f);
+    f.deliveryPending=false;f.job=CoveRecoveryFacts::Job::Completed;f.deliveryDurable=true;
+    f.harborPresent=true;f.onBoat=false;f.atDock=true;f.canInstall=true;samples.push_back(f);
+    f.harborPending=true;samples.push_back(f);
+    f.harborPending=false;f.harborInstalled=f.harborDurable=true;f.canUseLift=true;samples.push_back(f);
+    for(const auto& sample:samples)for(const auto size:std::array<glm::uvec2,2>{{{640,480},{960,540}}}){
+        const auto content=recoveryContent(sample);
+        SCOPED_TRACE(::testing::Message()<<content.objective<<" "<<size.x<<"x"<<size.y);
+        const auto hud=layoutCoveHud(content,size.x,size.y);
+        EXPECT_FALSE(hud.truncated);EXPECT_GE(hud.bodyPixels,20.f);
+        EXPECT_GT(hud.count,50u);EXPECT_LT(hud.count,CoveHudLayout::maximumQuads);
+        EXPECT_LT(hud.panel.y+hud.panel.w,float(size.y)*.78f);
+    }
+    EXPECT_EQ(CoveHudLayout::maximumQuads,768u);
+    EXPECT_EQ(CoveHudPath::residentBytes,167936u);
 }
 
 TEST(CoveHud, AtlasIsBoundedAntialiasedAndIndependentOfInstalledFonts) {

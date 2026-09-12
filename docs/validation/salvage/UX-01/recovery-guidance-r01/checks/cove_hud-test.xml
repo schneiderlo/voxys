@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="8" failures="0" disabled="0" errors="0" time="0." timestamp="2026-09-12T05:52:04.953" name="AllTests">
+  <testsuite name="CoveHud" tests="2" failures="0" disabled="0" skipped="0" errors="0" time="0." timestamp="2026-09-12T05:52:04.953">
+    <testcase name="ReadableBoundsKeepTheBuildAndPaletteClear" file="tests/test_cove_hud.cpp" line="23" status="run" result="completed" time="0." timestamp="2026-09-12T05:52:04.953" classname="CoveHud" />
+    <testcase name="OversizedTextAndTinyWindowsStayBoundedWithoutShrinking" file="tests/test_cove_hud.cpp" line="44" status="run" result="completed" time="0." timestamp="2026-09-12T05:52:04.953" classname="CoveHud" />
+  </testsuite>
+  <testsuite name="CoveRecoveryGuidance" tests="6" failures="0" disabled="0" skipped="0" errors="0" time="0." timestamp="2026-09-12T05:52:04.953">
+    <testcase name="AcceptOnFootButNeverInventDeliveryPermissionFromGeometry" file="tests/test_cove_hud.cpp" line="82" status="run" result="completed" time="0." timestamp="2026-09-12T05:52:04.953" classname="CoveRecoveryGuidance" />
+    <testcase name="UsesCargoRangeHeightAndFullSpeedIncludingExactBoundaries" file="tests/test_cove_hud.cpp" line="101" status="run" result="completed" time="0." timestamp="2026-09-12T05:52:04.953" classname="CoveRecoveryGuidance" />
+    <testcase name="MissingBodiesWinchOrConfirmedTowCannotAdvertiseAReadyHook" file="tests/test_cove_hud.cpp" line="126" status="run" result="completed" time="0." timestamp="2026-09-12T05:52:04.953" classname="CoveRecoveryGuidance" />
+    <testcase name="PhysicalBankingAndInstalledHarborAreNotDurableSuccess" file="tests/test_cove_hud.cpp" line="141" status="run" result="completed" time="0." timestamp="2026-09-12T05:52:04.953" classname="CoveRecoveryGuidance" />
+    <testcase name="PausedPowerAndManualSaveOverrideHistoricalDeliverySuccess" file="tests/test_cove_hud.cpp" line="165" status="run" result="completed" time="0." timestamp="2026-09-12T05:52:04.953" classname="CoveRecoveryGuidance" />
+    <testcase name="EveryMissionStepKeepsReadableLayoutAndExistingGpuBounds" file="tests/test_cove_hud.cpp" line="210" status="run" result="completed" time="0." timestamp="2026-09-12T05:52:04.953" classname="CoveRecoveryGuidance" />
+  </testsuite>
+</testsuites>

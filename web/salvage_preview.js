@@ -15,6 +15,12 @@
         if (cove) leave.textContent = 'Leave Cove';
         else document.getElementById('salvage-field-tools')?.setAttribute('open','');
         const interact = document.getElementById('salvage-interact');
+        const objectivePanel=document.getElementById('salvage-objective');
+        const objectiveTitle=document.getElementById('salvage-objective-title');
+        const objectiveDetail=document.getElementById('salvage-objective-detail');
+        const objectiveButton=document.getElementById('salvage-objective-action');
+        const fieldTools=document.getElementById('salvage-field-tools');
+        let objectiveAction=null;
         const cutter = document.getElementById('salvage-cut');
         const workshopPanel=document.getElementById('salvage-workshop');
         const workshopToggle=document.getElementById('salvage-workshop-toggle');
@@ -57,6 +63,9 @@
             pause?.removeEventListener('click',onPause);
             leave.removeEventListener('click', onLeave);
             interact?.removeEventListener('click', onInteract);
+            objectiveButton?.removeEventListener('click',onObjective);
+            objectiveAction=null;
+            if(objectivePanel)objectivePanel.hidden=true;
             cutter?.removeEventListener('click',onCut);
             workshopToggle?.removeEventListener('click',onWorkshop);
             panel.removeEventListener('keydown',onWorkshopKey);
@@ -81,6 +90,10 @@
             for(const button of workshopButtons)button.disabled=true;
             for (const button of [...inspectionButtons,...towButtons.filter(Boolean),...jobButtons.filter(Boolean),...harborButtons.filter(Boolean)]) button.disabled = true;
             pending = null;
+            objectiveAction=null;
+            if(objectiveButton){objectiveButton.hidden=true;objectiveButton.disabled=true;}
+            if(objectiveTitle)objectiveTitle.textContent='Cove unavailable';
+            if(objectiveDetail)objectiveDetail.textContent='Reload the page to try again.';
         };
         const act = action => {
             if (stopped || engine._voxy_is_initialized?.() !== 1) return false;
@@ -122,6 +135,75 @@
         };
         const onCut=()=>{if(!pending&&cutter&&!cutter.disabled&&act(95))tick();};
         const onWorkshop=()=>{if(!pending && workshopToggle && !workshopToggle.disabled && act(60))tick();};
+        const available=(button,owner)=>Boolean(button&&!button.hidden&&!button.disabled&&(!owner||!owner.hidden));
+        const updateObjective=state=>{
+            if(!objectivePanel||!objectiveButton)return;
+            objectiveAction=null;
+            objectivePanel.hidden=!cove||Boolean(state.workshop?.open);
+            if(objectivePanel.hidden){objectiveButton.hidden=true;objectiveButton.disabled=true;return;}
+            const show=(step,title,detail,target=null,owner=null,drawer=null)=>{
+                objectivePanel.dataset.step=step;
+                // Keep the live region quiet while the objective is unchanged.
+                if(objectiveTitle.textContent!==title)objectiveTitle.textContent=title;
+                if(objectiveDetail.textContent!==detail)objectiveDetail.textContent=detail;
+                // These are the existing controls' exact permissions after tick
+                // updates them. Guidance never calculates gameplay eligibility.
+                const enabled=available(target,owner);
+                // Commit the final state once: transient disable/hide on every
+                // refresh would steal focus from a still-valid objective.
+                objectiveButton.hidden=!enabled;objectiveButton.disabled=!enabled;
+                if(enabled){
+                    objectiveAction={step,target,owner,drawer};
+                    const label=drawer?'Open winch controls':target.textContent;
+                    if(objectiveButton.textContent!==label)objectiveButton.textContent=label;
+                    objectiveButton.hidden=false;objectiveButton.disabled=false;
+                }
+            };
+            const job=state.job,tow=state.tow,lift=state.harbor;
+            if(state.session?.admissionOpen===false&&pending!=='leave')
+                return show('unavailable','Expedition unavailable','Check save status below. Reload to continue.');
+            if(pending)return show('waiting','Please wait',pending==='leave'?'Leaving the Cove…':pending==='rescue'?'Recovering your boat…':'Preparing the Cove…');
+            if(state.rescue?.pending)return show('recovering','Recovering your boat','Progress stays paused until the recovery is saved.');
+            if(lift?.pending)return show('powering','Saving harbor power','Wait for the harbor installation and save to finish.');
+            if(job?.pending)return show('securing','Updating your recovery','Wait for the current job action to finish.');
+            if(job?.savePending)return show('saving','Saving your progress','Wait for the save to finish. Check Save expedition below for status or retry.');
+            if(!state.ready||!state.active||state.busy||state.workshop?.pending)
+                return show('waiting','Preparing the Cove','Your next action will appear when the game is ready.');
+            if(pausePhase!=='running')return show('paused','Expedition paused',pausePhase==='paused'?'Resume when you are ready.':'Finishing the current movement. Please wait.');
+            if(job?.phase==='available')return show('accept','Recover the generator','Your first job is the sunken generator beside the boat.',jobButtons[0],jobPanel);
+            if(job?.phase==='completed'){
+                if(!job.durable)return show('saving','Confirming your delivery','Wait for the saved delivery to be restored.');
+                if(!lift)return show('delivered','Delivery saved','The generator is safely delivered. Build or explore when you are ready.');
+                if(lift?.installed)return lift.durable
+                    ?show('powered','Harbor powered','Generator delivered and harbor power saved.')
+                    :show('powering','Confirming harbor power','Wait for the saved harbor installation to be ready.');
+                if(available(harborButtons[0],harborPanel))return show('power','Power the harbor','Your delivery is saved. Power the lift from the dock.',harborButtons[0],harborPanel);
+                const step=state.player?.interaction;
+                return show('dock-'+step,'Return to dock controls','Step off the boat and walk to the dock to power the harbor.',
+                    step==='dock'||step==='leave-helm'?interact:null);
+            }
+            if(job?.phase!=='accepted')return show('explore','Build and explore','Prepare your boat in the workshop, then explore the Cove.');
+            // Delivery can be valid without a tow, winch or player on the boat.
+            if(available(jobButtons[1],jobPanel))return show('deliver','Deliver the generator','The harbor can accept your load now.',jobButtons[1],jobPanel);
+            if(tow?.hasWinch===false)return show('winch','Prepare a winch','Fit or enable a winch in the workshop.',workshopToggle);
+            if(!state.player?.onBoat)return show('board','Board your boat','Follow the teal dock lane to the orange boarding pad.',
+                state.player?.interaction==='board'?interact:null);
+            if(!tow?.confirmed)return show('waiting-tow','Waiting for the winch','Let the current winch command finish.');
+            if(tow.attached)return show('return','Bring the generator home','Tow it to the harbor, lift it, then let it settle.',fieldTools?towButtons[1]:null,towPanel,fieldTools);
+            if(available(towButtons[0],towPanel))return show('hook','Hook the generator','The generator is within reach of your winch.',towButtons[0],towPanel);
+            return show('approach','Reach the generator',tow.operable?'Use the helm to bring the generator within winch range.':'Move onto the boat section with the winch.',
+                state.player?.interaction==='helm'?interact:null);
+        };
+        const onObjective=()=>{
+            const requested=objectiveAction;
+            if(stopped||!requested||objectiveButton.disabled)return;
+            tick(); // Revalidate before forwarding a possibly stale card click.
+            const current=objectiveAction;
+            if(stopped||objectivePanel.hidden||!current||current.step!==requested.step
+                ||current.target!==requested.target||!available(current.target,current.owner))return;
+            if(current.drawer){current.drawer.open=true;current.target.focus();}
+            else current.target.click(); // Exactly the established handler, once.
+        };
         const tick = () => {
             if (stopped) return;
             let state;
@@ -321,6 +403,7 @@
                 reset.hidden=open;
                 const scope=document.getElementById('salvage-scope');if(scope)scope.hidden=open;
             }
+            updateObjective(state);
             if (pending === 'leave' && state.active === false) {
                 cleanup();
                 // Navigation follows the C++ frame-boundary removal acknowledgement.
@@ -357,6 +440,7 @@
         pause?.addEventListener('click',onPause);
         leave.addEventListener('click', onLeave);
         interact?.addEventListener('click', onInteract);
+        objectiveButton?.addEventListener('click',onObjective);
         cutter?.addEventListener('click',onCut);
         workshopToggle?.addEventListener('click',onWorkshop);
         panel.addEventListener('keydown',onWorkshopKey);

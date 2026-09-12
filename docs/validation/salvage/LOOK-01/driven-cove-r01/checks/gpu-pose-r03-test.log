@@ -1,0 +1,23 @@
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //tests:mesh_path_test
+-----------------------------------------------------------------------------
+Running main() from gmock_main.cc
+Note: Google Test filter = MeshPathGPUTest.NamedMechanismsKeepStationaryNodesAndMatchLiveBodyAtLargeSectors
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from MeshPathGPUTest
+[ RUN      ] MeshPathGPUTest.NamedMechanismsKeepStationaryNodesAndMatchLiveBodyAtLargeSectors
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [04:18:37.871] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [04:18:37.871] [GPU]   Vendor: radv[0m
+[32m[INFO ] [04:18:37.871] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [04:18:37.871] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [04:18:37.873] [GPU] Headless GPU context initialized successfully[0m
+Mechanism rotor stationaryPixels=87 stationaryChanged=0 movingChanged=456 liveDifference=0 stalePixels=0
+Mechanism drum stationaryPixels=88 stationaryChanged=0 movingChanged=420 liveDifference=0 stalePixels=0
+[       OK ] MeshPathGPUTest.NamedMechanismsKeepStationaryNodesAndMatchLiveBodyAtLargeSectors (118 ms)
+[----------] 1 test from MeshPathGPUTest (118 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (118 ms total)
+[  PASSED  ] 1 test.

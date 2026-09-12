@@ -1,0 +1,13 @@
+# Native first-recovery guidance — D41
+
+Source-only scratch preparation from the exact current combined mechanism/dock source. Live files, assets, parked two-job work and GPU processes remain untouched. Root owns integration, runtime checks and publication. Deadline: 2026-09-12 07:27:33 UTC.
+
+The existing native HUD gains concise first-generator recovery guidance. Preserve its fixed 768-quad / 167,936-byte allocation, readable font, nearby E interaction, movement, dock B workshop, workshop paint/build controls, pause/save and R rescue. No new actions, gameplay state, authority, inventory, content identity or save format.
+
+A small pure formatter consumes a read-only snapshot assembled by Application. Its readiness fields must come from the exact current action guards and delivery callback. It never submits commands. Status prioritizes pending authoritative work, then the next useful action: J accept; board/use the winch; approach within the real eight-metre hook range; F hook and Q/Z reel; return to the delivery circle, raise the load, slow translation/rotation; H deliver; wait for durable save; leave the boat and approach the four-metre dock installation area; K power harbor; report powered completion only after durable acknowledgment. Delivery reasons use the actual zone and observed cargo, including its current 1.1 m radius allowance. Unsupported/unready states get a neutral waiting message, not invented eligibility.
+
+Pause and workshop keep their existing priority and layout. Pending delivery/harbor save explains waiting and F10 retry without claiming that every pending save has failed. Native observation exposes the actual last HUD content sampled by the renderer so an existing real-control journey can assert text honestly; observation never recomputes or advances gameplay.
+
+Author focused CPU tests for inclusive delivery/range boundaries, each unavailable permission/observation, pending and durable transitions, meaningful blocked conditions, and bounded layouts at 640x480 and 960x540. Do not run them while the current checkpoint is frozen. Extend one existing native generator delivery journey, optionally through harbor installation, with HUD assertions and completion evidence. Do not repeat unrelated brick, camera, paint, sailing or mechanism matrices. Preserve old invocations by making the extra objective/harbor acceptance opt-in.
+
+Completion requires root's focused checks, native/browser builds, one real native accept/haul/deliver/save/restart/power flow, and the mandatory commit checks. No screenshot or final visual/game gate is implied by source preparation.

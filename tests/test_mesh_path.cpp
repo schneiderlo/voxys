@@ -3,6 +3,7 @@
 #include "gpu/context.hpp"
 #include "gpu/resources.hpp"
 #include "moto/vmesh.hpp"
+#include "game/assets/rigid_prefab.hpp"
 #include "render/mesh_path.hpp"
 #include "render/opaque_scene.hpp"
 #include <glm/gtc/packing.hpp>
@@ -261,6 +262,107 @@ glm::ivec3 pixelAt(const std::vector<uint8_t>& pixels, uint32_t x, uint32_t y) {
 }
 
 } // namespace
+
+TEST(MeshPathGPUTest, NamedMechanismsKeepStationaryNodesAndMatchLiveBodyAtLargeSectors) {
+    namespace a=game::assets;
+    DiagnosticContext context; ASSERT_TRUE(context.initHeadless());
+    MeshPathConfig config; config.colorFormat=WGPUTextureFormat_RGBA8Unorm; config.frontFace=WGPUFrontFace_CW;
+    MeshPath path; ASSERT_TRUE(path.init(context.getDevice(),context.getQueue(),config));
+    const glm::vec3 rootPosition{.15f,.1f,0},center{.4f,-.2f,.25f};
+    const auto rootRotation=glm::angleAxis(.2f,glm::vec3(0,0,1));
+    const auto principal=glm::angleAxis(.4f,glm::vec3(1,0,0));
+    const auto orientation=rootRotation*principal;
+    std::array<glm::vec4,4> poses{};
+    poses[2]=glm::vec4(rootPosition+rootRotation*center,1);
+    poses[3]={orientation.x,orientation.y,orientation.z,orientation.w};
+    std::array<glm::uvec4,2> metadata{};
+    metadata[1]=glm::uvec4(glm::ivec4(1000000,-2000000,3,0x00100003));
+    std::array<glm::uvec4,8> shapes{}; shapes[7]={1,7,1,0};
+    std::array<glm::uvec4,39> atlas{};
+    atlas[0]={1,1,16,19}; atlas[1]={37,39,1,6};
+    atlas[9]={7,1,0,1}; atlas[10]={0,6,0,1};
+    const auto bits=[](glm::vec4 v){return glm::uvec4(std::bit_cast<uint32_t>(v.x),std::bit_cast<uint32_t>(v.y),
+        std::bit_cast<uint32_t>(v.z),std::bit_cast<uint32_t>(v.w));};
+    atlas[11]=bits(glm::vec4(center,1));
+    atlas[12]=bits({principal.x,principal.y,principal.z,principal.w});
+    atlas[13]=bits({1,1,1,2}); atlas[14]=glm::uvec4(glm::ivec4(-50,-50,-50,0)); atlas[15]={50,50,50,0};
+    struct Buffers {std::vector<WGPUBuffer> handles;~Buffers(){for(auto b:handles)wgpuBufferRelease(b);}} buffers;
+    const auto upload=[&](const auto& values){
+        auto buffer=gpu::createBuffer(context.getDevice(),gpu::BufferDesc::storage(sizeof(values),true,"mechanism_live_pose"));
+        if(buffer){buffers.handles.push_back(buffer);(void)gpu::writeBuffer(context.getQueue(),buffer,0,
+            std::span<const std::byte>(reinterpret_cast<const std::byte*>(values.data()),sizeof(values)));}
+        return buffer;
+    };
+    physics::PhysicsRenderView live;
+    live.poseBuffer=upload(poses); live.metadataBuffer=upload(metadata);
+    live.shapeBuffer=upload(shapes); live.authoredShapeBuffer=upload(atlas);
+    ASSERT_NE(live.authoredShapeBuffer,nullptr);
+    physics::WorldPosition worldCamera; worldCamera.sector={1000000,-2000000,3};
+    ASSERT_TRUE(path.setAuthoredBodyView(live,worldCamera));
+    const auto root=glm::translate(glm::dmat4(1),glm::dvec3(rootPosition))*glm::mat4_cast(glm::dquat(rootRotation));
+    PrimitiveLighting light; light.fogDensity=0;
+    uint32_t assetIndex=0;
+    for(const auto kind:{a::RigidMechanismKind::PropellerRotor,a::RigidMechanismKind::WinchDrum}) {
+        const bool propeller=kind==a::RigidMechanismKind::PropellerRotor;
+        auto mesh=diagnosticQuad(); mesh.header.flags=0;mesh.materials[0].unlit=1;
+        mesh.header.nodeCount=2;mesh.nodes.resize(2);mesh.stringBlob.assign(1,'\0');
+        const auto name=[&](std::string_view value){auto offset=static_cast<uint32_t>(mesh.stringBlob.size());
+            mesh.stringBlob.append(value);mesh.stringBlob.push_back('\0');return offset;};
+        mesh.nodes[0].meshIndex=mesh.nodes[1].meshIndex=0;
+        mesh.nodes[0].nameOffset=name("voxys_mechanism_static");
+        mesh.nodes[0].translation[propeller?1:2]=.9f;
+        mesh.nodes[1].nameOffset=name(propeller?"voxys_propeller_rotor":"voxys_winch_drum");
+        mesh.nodes[1].translation[1]=propeller?0:.12f;
+        for(uint32_t i=0;i<mesh.header.vertexCount;++i) {
+            moto::VmeshVertex v{};std::memcpy(&v,mesh.vertices.data()+i*sizeof(v),sizeof(v));
+            const float x=v.position[0],y=v.position[1];
+            v.position[0]=propeller?x*.55f:0;v.position[1]=propeller?y*.1f:x*.55f;v.position[2]=propeller?0:y*.1f;
+            v.normal[0]=propeller?0:-1;v.normal[1]=0;v.normal[2]=propeller?-1:0;
+            std::memcpy(mesh.vertices.data()+i*sizeof(v),&v,sizeof(v));
+        }
+        a::RigidPrefab prefab;std::string error;
+        ASSERT_TRUE(a::prepareRigidPrefab(mesh,{},{},prefab,error))<<error;
+        ASSERT_TRUE(path.loadMeshData(mesh));
+        const glm::vec3 camera=propeller?glm::vec3(0,0,-3):glm::vec3(-3,0,0);
+        const auto draw=[&](double phase,bool body,std::vector<uint8_t>& pixels,uint32_t generation=3){
+            std::vector<a::RigidPrefabDraw> records;
+            if(!a::placeRigidPrefab(prefab,body?glm::dmat4(1):root,{},2,records,error,a::RigidMechanismPose{kind,phase}))return false;
+            path.clearInstances();
+            for(const auto& record:records)path.addInstance({.assetIndex=assetIndex,.meshIndex=record.meshIndex,
+                .modelMatrix=record.modelMatrix,.tintColor=record.nodeIndex==0?glm::vec4(0,1,0,1):glm::vec4(1,.15f,0,1),
+                .physicsBody=body?physics::BodyHandle{1,generation}:physics::BodyHandle{}});
+            return drawDiagnosticPixels(path,context,camera,light,pixels);
+        };
+        std::vector<uint8_t> neutral,rotated,actual,stale;
+        ASSERT_TRUE(draw(0,false,neutral));ASSERT_TRUE(draw(std::acos(-1.0)*.5,false,rotated));
+        ASSERT_TRUE(draw(std::acos(-1.0)*.5,true,actual));
+        size_t changed=0,green=0,greenDifferences=0,liveDifferences=0;
+        // ACES mixes color channels: linear (0,1,0) becomes about
+        // RGBA8 (148,228,89), so exact zero red/blue cannot identify it.
+        // Use the same separated green hue as the texture-quadrant test.
+        const auto stationaryPixel=[](const std::vector<uint8_t>& pixels,size_t offset){
+            return pixels[offset+1]>pixels[offset]+70 && pixels[offset+1]>pixels[offset+2]+70;
+        };
+        for(size_t offset=0;offset<rotated.size();offset+=4) {
+            const bool staticBefore=stationaryPixel(neutral,offset);
+            const bool staticAfter=stationaryPixel(rotated,offset);
+            green+=staticBefore;
+            if(staticBefore||staticAfter)for(size_t c=0;c<3;++c)greenDifferences+=neutral[offset+c]!=rotated[offset+c];
+            for(size_t c=0;c<3;++c){changed+=neutral[offset+c]!=rotated[offset+c];liveDifferences+=actual[offset+c]!=rotated[offset+c];}
+        }
+        EXPECT_GT(green,20u);EXPECT_EQ(greenDifferences,0u);EXPECT_GT(changed,100u);
+        EXPECT_LE(liveDifferences,32u);
+        ASSERT_TRUE(draw(std::acos(-1.0)*.5,true,stale,4));
+        size_t staleColor=0;for(size_t offset=0;offset<stale.size();offset+=4)
+            staleColor+=stale[offset]!=0||stale[offset+1]!=0||stale[offset+2]!=0;
+        EXPECT_EQ(staleColor,0u);
+        std::printf("Mechanism %s stationaryPixels=%zu stationaryChanged=%zu movingChanged=%zu liveDifference=%zu stalePixels=%zu\n",
+            propeller?"rotor":"drum",green,greenDifferences,changed,liveDifferences,staleColor);
+        ++assetIndex;
+    }
+    EXPECT_EQ(MeshPath::gpuInstanceBytes,112u);
+    path.shutdown();
+}
 
 TEST(MeshPathGPUTest, AuthoredPoseRendersRootFrameAndRejectsStaleBodyGeneration) {
     DiagnosticContext context; ASSERT_TRUE(context.initHeadless());

@@ -1,0 +1,60 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: target //tests:mesh_path_test (1 packages loaded, 0 targets configured)
+Analyzing: target //tests:mesh_path_test (1 packages loaded, 0 targets configured)
+
+Analyzing: target //tests:mesh_path_test (1 packages loaded, 0 targets configured)
+
+INFO: Analyzed target //tests:mesh_path_test (2 packages loaded, 62 targets configured).
+[350 / 352] Compiling tests/test_mesh_path.cpp; 1s linux-sandbox
+[351 / 352] [Prepa] Linking tests/mesh_path_test
+FAIL: //tests:mesh_path_test (Exit 1) (see /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-fastbuild/testlogs/tests/mesh_path_test/test.log)
+INFO: From Testing //tests:mesh_path_test:
+==================== Test output for //tests:mesh_path_test:
+Running main() from gmock_main.cc
+Note: Google Test filter = MeshPathGPUTest.NamedMechanismsKeepStationaryNodesAndMatchLiveBodyAtLargeSectors
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from MeshPathGPUTest
+[ RUN      ] MeshPathGPUTest.NamedMechanismsKeepStationaryNodesAndMatchLiveBodyAtLargeSectors
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[INFO ] [04:15:39.746] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [04:15:39.746] [GPU]   Vendor: radv
+[INFO ] [04:15:39.746] [GPU]   Backend: Vulkan
+[INFO ] [04:15:39.746] [GPU]   Type: Integrated GPU
+[INFO ] [04:15:39.748] [GPU] Headless GPU context initialized successfully
+tests/test_mesh_path.cpp:347: Failure
+Expected: (green) > (20u), actual: 0 vs 20
+
+Mechanism rotor stationaryPixels=0 stationaryChanged=0 movingChanged=456 liveDifference=0 stalePixels=0
+tests/test_mesh_path.cpp:347: Failure
+Expected: (green) > (20u), actual: 0 vs 20
+
+Mechanism drum stationaryPixels=0 stationaryChanged=0 movingChanged=420 liveDifference=0 stalePixels=0
+[  FAILED  ] MeshPathGPUTest.NamedMechanismsKeepStationaryNodesAndMatchLiveBodyAtLargeSectors (97 ms)
+[----------] 1 test from MeshPathGPUTest (97 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (97 ms total)
+[  PASSED  ] 0 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] MeshPathGPUTest.NamedMechanismsKeepStationaryNodesAndMatchLiveBodyAtLargeSectors
+
+ 1 FAILED TEST
+================================================================================
+INFO: Found 1 test target...
+Target //tests:mesh_path_test up-to-date:
+  bazel-bin/tests/mesh_path_test
+INFO: Elapsed time: 4.614s, Critical Path: 2.94s
+INFO: 7 processes: 346 action cache hit, 4 internal, 3 linux-sandbox.
+INFO: Build completed, 1 test FAILED, 7 total actions
+//tests:mesh_path_test                                                   FAILED in 0.2s
+  /home/modkin/.cache/bazel/_bazel_modkin/cbcbf4be6285ea63e5938aa06a96dc1e/execroot/_main/bazel-out/k8-fastbuild/testlogs/tests/mesh_path_test/test.log
+
+Executed 1 out of 1 test: 1 fails locally.

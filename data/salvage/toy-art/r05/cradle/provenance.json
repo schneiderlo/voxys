@@ -1,0 +1,1118 @@
+{
+  "schema": 1,
+  "status": "offline presentation candidate; runtime admission and visual review remain",
+  "original_metadata": "data/salvage/functional-kit/r09/cradle/source/cradle.gameplay.json",
+  "original_metadata_sha256": "c8f8bcda130c760836d6c211324cb554612083badb0b3b94dd95730662476857",
+  "canonical_part_unchanged": true,
+  "baseline_bounds": {
+    "minimum": [
+      -1,
+      -0.3199999928474426,
+      -1
+    ],
+    "maximum": [
+      1,
+      0.3199999928474426,
+      1
+    ]
+  },
+  "maximum_bounds_expansion_metres": 0.02,
+  "blender_version": "5.2.1 LTS",
+  "blender_build_hash": "9e2066aef7ef",
+  "palette_srgb": {
+    "cream": "F0DDB2",
+    "teal": "197D86",
+    "coral": "ED7942",
+    "slate": "253D53",
+    "steel": "B5C3BE",
+    "rubber": "25363A"
+  },
+  "lods": [
+    {
+      "lod": 0,
+      "vertices": 1620,
+      "triangles": 2932,
+      "draws": 4,
+      "bounds": {
+        "minimum": [
+          -1.0119999647140503,
+          -0.3199999928474426,
+          -1.0119999647140503
+        ],
+        "maximum": [
+          1.0119999647140503,
+          0.33000001311302185,
+          1.0119999647140503
+        ]
+      },
+      "geometry": {
+        "degenerate_faces": 0,
+        "nonmanifold_edges": 0,
+        "summed_component_volume_m3": 1.2364180403295562,
+        "interface_checks": {},
+        "metric_uv": null,
+        "surface_shading": [
+          {
+            "component": "cradle_floor",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 42,
+            "minimum_face_alignment": 0.8400260135531425,
+            "maximum_unit_length_error": 1.2859482834137737e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "latch_pedestal",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 42,
+            "minimum_face_alignment": 0.8400259539484978,
+            "maximum_unit_length_error": 1.2298904339402839e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cargo_runner",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.857794575290427,
+            "maximum_unit_length_error": 6.063675073164632e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cargo_runner.001",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8578078779573843,
+            "maximum_unit_length_error": 6.063675073164632e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "latch_housing",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 42,
+            "minimum_face_alignment": 0.8400259166955948,
+            "maximum_unit_length_error": 1.0430812302786308e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "runner_teal_outer_inset",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.857802526425985,
+            "maximum_unit_length_error": 1.20830090377666e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "runner_orange_end",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8578052796383417,
+            "maximum_unit_length_error": 1.1756732865020325e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "runner_orange_end.001",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8578052796383417,
+            "maximum_unit_length_error": 1.1756732865020325e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "runner_molded_stud",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.9159774256263518,
+            "maximum_unit_length_error": 1.2124611914465788e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "runner_molded_stud.001",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.9159774349866439,
+            "maximum_unit_length_error": 1.2124611914465788e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "runner_teal_outer_inset.001",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.857800160250008,
+            "maximum_unit_length_error": 1.2131632254330782e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "runner_orange_end.002",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8578061561265713,
+            "maximum_unit_length_error": 1.1978540115364922e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "runner_orange_end.003",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8578061561265713,
+            "maximum_unit_length_error": 1.1978540115364922e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "runner_molded_stud.002",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.9159774349866439,
+            "maximum_unit_length_error": 1.212455964516579e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "runner_molded_stud.003",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.9159774256263518,
+            "maximum_unit_length_error": 1.2124500936572247e-07,
+            "positions_unchanged": true
+          }
+        ],
+        "volume_note": "Decorative components can intersect; this sum is not displacement."
+      },
+      "interfaces": {
+        "protected_geometry": {
+          "cradle_floor": {
+            "vertices": 98,
+            "faces": 77,
+            "minimum": [
+              -0.7599999904632568,
+              -0.3199999928474426,
+              -1.0
+            ],
+            "maximum": [
+              0.7599999904632568,
+              -0.1599999964237213,
+              1.0
+            ],
+            "geometry_sha256": "73a651fcef3101130352d69137cd9302c69c802d5911d687412815dadd0a65ef"
+          },
+          "latch_pedestal": {
+            "vertices": 186,
+            "faces": 145,
+            "minimum": [
+              -0.3400000035762787,
+              -0.25999999046325684,
+              -0.3400000035762787
+            ],
+            "maximum": [
+              0.3400000035762787,
+              0.10000000149011612,
+              0.3400000035762787
+            ],
+            "geometry_sha256": "a1873374f9878d85c551ead6b957bcf8fd23c2b256ef40d880fd4f2d269d1b7d"
+          },
+          "latch_housing": {
+            "vertices": 186,
+            "faces": 145,
+            "minimum": [
+              -0.3499999940395355,
+              0.10000000149011612,
+              -0.3499999940395355
+            ],
+            "maximum": [
+              0.3499999940395355,
+              0.3199999928474426,
+              0.3499999940395355
+            ],
+            "geometry_sha256": "9aa6dc772065b718ee5fd6d0faea6f4cfa44db690ab61dd3b30b3b175c2eb258"
+          }
+        },
+        "new_detail_count": 10,
+        "additions": [
+          {
+            "vertices": 56,
+            "faces": 54,
+            "minimum": [
+              -1.0119999647140503,
+              -0.20499999821186066,
+              -0.7400000095367432
+            ],
+            "maximum": [
+              -1.0,
+              0.20499999821186066,
+              0.7400000095367432
+            ],
+            "geometry_sha256": "c3bf628cd21eb0fda5f123f05b2dbd81b8039b8d63ce1be6fb77aeac15ece38b"
+          },
+          {
+            "vertices": 56,
+            "faces": 54,
+            "minimum": [
+              -0.9649999737739563,
+              -0.2199999988079071,
+              -1.0119999647140503
+            ],
+            "maximum": [
+              -0.7950000166893005,
+              0.2199999988079071,
+              -1.0
+            ],
+            "geometry_sha256": "c73b96ebaaacd4ced8c4b3eb2648a6581ac45a4a94a5625db2742379b16285f7"
+          },
+          {
+            "vertices": 56,
+            "faces": 54,
+            "minimum": [
+              -0.9649999737739563,
+              -0.2199999988079071,
+              1.0
+            ],
+            "maximum": [
+              -0.7950000166893005,
+              0.2199999988079071,
+              1.0119999647140503
+            ],
+            "geometry_sha256": "0490b0165694f2358e7d16254713adb536deede829b56a3098d5c500e8a25d2b"
+          },
+          {
+            "vertices": 144,
+            "faces": 122,
+            "minimum": [
+              -0.949999988079071,
+              0.3179999887943268,
+              -0.7900000214576721
+            ],
+            "maximum": [
+              -0.8100000023841858,
+              0.33000001311302185,
+              -0.6499999761581421
+            ],
+            "geometry_sha256": "5b27ae1259e979f772496e73e221d36adb6b91bdee23e82eafddd04cbe040c7b"
+          },
+          {
+            "vertices": 144,
+            "faces": 122,
+            "minimum": [
+              -0.949999988079071,
+              0.3179999887943268,
+              0.6499999761581421
+            ],
+            "maximum": [
+              -0.8100000023841858,
+              0.33000001311302185,
+              0.7900000214576721
+            ],
+            "geometry_sha256": "bf7466178c517bf2a5239f489ee9bee753cf86e5a86d816f7ced742cda873d42"
+          },
+          {
+            "vertices": 56,
+            "faces": 54,
+            "minimum": [
+              1.0,
+              -0.20499999821186066,
+              -0.7400000095367432
+            ],
+            "maximum": [
+              1.0119999647140503,
+              0.20499999821186066,
+              0.7400000095367432
+            ],
+            "geometry_sha256": "d59f1c551c4e3c44660f1fc53cc3b1344e6d54f2dda16223d59083a962998260"
+          },
+          {
+            "vertices": 56,
+            "faces": 54,
+            "minimum": [
+              0.7950000166893005,
+              -0.2199999988079071,
+              -1.0119999647140503
+            ],
+            "maximum": [
+              0.9649999737739563,
+              0.2199999988079071,
+              -1.0
+            ],
+            "geometry_sha256": "d2490411cc6b684c1ff005b8caca57cadd17d6b156bb39d63f9ef11be8587bb7"
+          },
+          {
+            "vertices": 56,
+            "faces": 54,
+            "minimum": [
+              0.7950000166893005,
+              -0.2199999988079071,
+              1.0
+            ],
+            "maximum": [
+              0.9649999737739563,
+              0.2199999988079071,
+              1.0119999647140503
+            ],
+            "geometry_sha256": "9213cbb5c7235588179b0564d16c025067c1621e0aa0af0a55a0d7feb115dc4e"
+          },
+          {
+            "vertices": 144,
+            "faces": 122,
+            "minimum": [
+              0.8100000023841858,
+              0.3179999887943268,
+              -0.7900000214576721
+            ],
+            "maximum": [
+              0.949999988079071,
+              0.33000001311302185,
+              -0.6499999761581421
+            ],
+            "geometry_sha256": "61cf263f6f78a85987111bb4c0ea2dceb917d68741c1ef0408c23ad4e1f28056"
+          },
+          {
+            "vertices": 144,
+            "faces": 122,
+            "minimum": [
+              0.8100000023841858,
+              0.3179999887943268,
+              0.6499999761581421
+            ],
+            "maximum": [
+              0.949999988079071,
+              0.33000001311302185,
+              0.7900000214576721
+            ],
+            "geometry_sha256": "b685325ce9ac0964985841673cad41890caf3388b6bf4cf279baff09ae729dfa"
+          }
+        ],
+        "cradle_interior_x_metres": [
+          -0.76,
+          0.76
+        ],
+        "generator_eye_center_metres": null,
+        "generator_eye_inner_radius_metres": null
+      },
+      "source_sha256": "77d42415f8ef634ea746a76b7e70ecd1ab4c73eb9dabe8ab0e4ea2d8776c1817"
+    },
+    {
+      "lod": 1,
+      "vertices": 734,
+      "triangles": 1278,
+      "draws": 4,
+      "bounds": {
+        "minimum": [
+          -1.0119999647140503,
+          -0.3199999928474426,
+          -1.0119999647140503
+        ],
+        "maximum": [
+          1.0119999647140503,
+          0.33000001311302185,
+          1.0119999647140503
+        ]
+      },
+      "geometry": {
+        "degenerate_faces": 0,
+        "nonmanifold_edges": 0,
+        "summed_component_volume_m3": 1.2186429421386216,
+        "interface_checks": {},
+        "metric_uv": null,
+        "surface_shading": [
+          {
+            "component": "cradle_floor",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 22,
+            "minimum_face_alignment": 0.5917519605718553,
+            "maximum_unit_length_error": 1.4008400217591088e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "latch_pedestal",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 23,
+            "minimum_face_alignment": 0.7045021380708931,
+            "maximum_unit_length_error": 1.0071380018850107e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cargo_runner",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.5773471014567804,
+            "maximum_unit_length_error": 5.9470928404081747e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cargo_runner.001",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.5773471014567804,
+            "maximum_unit_length_error": 5.9470928404081747e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "latch_housing",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 22,
+            "minimum_face_alignment": 0.7090090556448558,
+            "maximum_unit_length_error": 8.81294257570886e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "runner_teal_outer_inset",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.5773433517781541,
+            "maximum_unit_length_error": 1.1942613342696973e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "runner_orange_end",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.577343859102939,
+            "maximum_unit_length_error": 1.192969869556748e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "runner_orange_end.001",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.577343859102939,
+            "maximum_unit_length_error": 1.192969869556748e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "runner_molded_stud",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.6935342851866153,
+            "maximum_unit_length_error": 1.2046943620447337e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "runner_molded_stud.001",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.6935342098513502,
+            "maximum_unit_length_error": 1.2046986008762417e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "runner_teal_outer_inset.001",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.5773433517781541,
+            "maximum_unit_length_error": 1.1942613342696973e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "runner_orange_end.002",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.577343859102939,
+            "maximum_unit_length_error": 1.192969869556748e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "runner_orange_end.003",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.577343859102939,
+            "maximum_unit_length_error": 1.192969869556748e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "runner_molded_stud.002",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.6935342305587255,
+            "maximum_unit_length_error": 1.2046943620447337e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "runner_molded_stud.003",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.6935342851866153,
+            "maximum_unit_length_error": 1.2046986008762417e-07,
+            "positions_unchanged": true
+          }
+        ],
+        "volume_note": "Decorative components can intersect; this sum is not displacement."
+      },
+      "interfaces": {
+        "protected_geometry": {
+          "cradle_floor": {
+            "vertices": 46,
+            "faces": 39,
+            "minimum": [
+              -0.7599999904632568,
+              -0.3199999928474426,
+              -1.0
+            ],
+            "maximum": [
+              0.7599999904632568,
+              -0.1599999964237213,
+              1.0
+            ],
+            "geometry_sha256": "f094c80d0b656d0c7ce7c85ec44d6d02be5d30040120dd1398b2104f04fa7265"
+          },
+          "latch_pedestal": {
+            "vertices": 87,
+            "faces": 63,
+            "minimum": [
+              -0.3400000035762787,
+              -0.25999999046325684,
+              -0.3400000035762787
+            ],
+            "maximum": [
+              0.3400000035762787,
+              0.10000000149011612,
+              0.3400000035762787
+            ],
+            "geometry_sha256": "cb254107de8fc04bd81772728bb79f50fb33deaedca6f13fb3e25a9ca83d417b"
+          },
+          "latch_housing": {
+            "vertices": 87,
+            "faces": 63,
+            "minimum": [
+              -0.3499999940395355,
+              0.10000000149011612,
+              -0.3499999940395355
+            ],
+            "maximum": [
+              0.3499999940395355,
+              0.3199999928474426,
+              0.3499999940395355
+            ],
+            "geometry_sha256": "9e6be7d831cb15f28f67153b1a5b31067d61ca791f5f154a8333b05f67852f42"
+          }
+        },
+        "new_detail_count": 10,
+        "additions": [
+          {
+            "vertices": 24,
+            "faces": 26,
+            "minimum": [
+              -1.0119999647140503,
+              -0.20499999821186066,
+              -0.7400000095367432
+            ],
+            "maximum": [
+              -1.0,
+              0.20499999821186066,
+              0.7400000095367432
+            ],
+            "geometry_sha256": "e4fd354f23249311b030ac14393362dc638ce42c19627d323c798c262cd5272f"
+          },
+          {
+            "vertices": 24,
+            "faces": 26,
+            "minimum": [
+              -0.9649999737739563,
+              -0.2199999988079071,
+              -1.0119999647140503
+            ],
+            "maximum": [
+              -0.7950000166893005,
+              0.2199999988079071,
+              -1.0
+            ],
+            "geometry_sha256": "13991844f3775aceda4e7f942193079485885e6183db066641fee69d930d05de"
+          },
+          {
+            "vertices": 24,
+            "faces": 26,
+            "minimum": [
+              -0.9649999737739563,
+              -0.2199999988079071,
+              1.0
+            ],
+            "maximum": [
+              -0.7950000166893005,
+              0.2199999988079071,
+              1.0119999647140503
+            ],
+            "geometry_sha256": "f21d05e5f2375577f782d2537656254ed1030a0cdec9cacb0a8f49030876c198"
+          },
+          {
+            "vertices": 64,
+            "faces": 50,
+            "minimum": [
+              -0.949999988079071,
+              0.3179999887943268,
+              -0.7900000214576721
+            ],
+            "maximum": [
+              -0.8100000023841858,
+              0.33000001311302185,
+              -0.6499999761581421
+            ],
+            "geometry_sha256": "9f73825fb210f86ad73d64a5fc2589586ca46032c103674d2f1698c141d1dc7e"
+          },
+          {
+            "vertices": 64,
+            "faces": 50,
+            "minimum": [
+              -0.949999988079071,
+              0.3179999887943268,
+              0.6499999761581421
+            ],
+            "maximum": [
+              -0.8100000023841858,
+              0.33000001311302185,
+              0.7900000214576721
+            ],
+            "geometry_sha256": "ed06b461d1e22da16717b367d0e6f56409404e6cc984f20e6741cc2f335c164e"
+          },
+          {
+            "vertices": 24,
+            "faces": 26,
+            "minimum": [
+              1.0,
+              -0.20499999821186066,
+              -0.7400000095367432
+            ],
+            "maximum": [
+              1.0119999647140503,
+              0.20499999821186066,
+              0.7400000095367432
+            ],
+            "geometry_sha256": "d5625606ac2936ed4e14f9ee42cb468b889a2436216e028e7172490a250f42d0"
+          },
+          {
+            "vertices": 24,
+            "faces": 26,
+            "minimum": [
+              0.7950000166893005,
+              -0.2199999988079071,
+              -1.0119999647140503
+            ],
+            "maximum": [
+              0.9649999737739563,
+              0.2199999988079071,
+              -1.0
+            ],
+            "geometry_sha256": "6fdd527d6f2357e3da7e18ca635bd181ff58146afc31e3a0f6b950872a92a4c6"
+          },
+          {
+            "vertices": 24,
+            "faces": 26,
+            "minimum": [
+              0.7950000166893005,
+              -0.2199999988079071,
+              1.0
+            ],
+            "maximum": [
+              0.9649999737739563,
+              0.2199999988079071,
+              1.0119999647140503
+            ],
+            "geometry_sha256": "94014ce84aa5620dca50d501a52c0d9376b6c87156118fadec35d322b4d1a19b"
+          },
+          {
+            "vertices": 64,
+            "faces": 50,
+            "minimum": [
+              0.8100000023841858,
+              0.3179999887943268,
+              -0.7900000214576721
+            ],
+            "maximum": [
+              0.949999988079071,
+              0.33000001311302185,
+              -0.6499999761581421
+            ],
+            "geometry_sha256": "da8a41121a8a602a2aa5e93e1b89bab4c89625355e1759a53078fb4a51db5546"
+          },
+          {
+            "vertices": 64,
+            "faces": 50,
+            "minimum": [
+              0.8100000023841858,
+              0.3179999887943268,
+              0.6499999761581421
+            ],
+            "maximum": [
+              0.949999988079071,
+              0.33000001311302185,
+              0.7900000214576721
+            ],
+            "geometry_sha256": "84dd1964345ce1603ae1f98bf1c3b5e2875662b9bf8ccad8960ce6a579bac1b8"
+          }
+        ],
+        "cradle_interior_x_metres": [
+          -0.76,
+          0.76
+        ],
+        "generator_eye_center_metres": null,
+        "generator_eye_inner_radius_metres": null
+      },
+      "source_sha256": "29ff9300e10622a10244a2fafe2797ea1dc10d6e56f94f37d305f8808f205d94"
+    },
+    {
+      "lod": 2,
+      "vertices": 564,
+      "triangles": 400,
+      "draws": 4,
+      "bounds": {
+        "minimum": [
+          -1.0119999647140503,
+          -0.3199999928474426,
+          -1.0119999647140503
+        ],
+        "maximum": [
+          1.0119999647140503,
+          0.33000001311302185,
+          1.0119999647140503
+        ]
+      },
+      "geometry": {
+        "degenerate_faces": 0,
+        "nonmanifold_edges": 0,
+        "summed_component_volume_m3": 1.2081508937154926,
+        "interface_checks": {},
+        "metric_uv": null,
+        "surface_shading": [
+          {
+            "component": "cradle_floor",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 30,
+            "minimum_face_alignment": 0.9999998807907104,
+            "maximum_unit_length_error": 7.450580330470302e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "latch_pedestal",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 38,
+            "minimum_face_alignment": 0.9510564208030701,
+            "maximum_unit_length_error": 5.960464655174746e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cargo_runner",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 12,
+            "minimum_face_alignment": 1.0,
+            "maximum_unit_length_error": 0.0,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cargo_runner.001",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 12,
+            "minimum_face_alignment": 1.0,
+            "maximum_unit_length_error": 0.0,
+            "positions_unchanged": true
+          },
+          {
+            "component": "latch_housing",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 38,
+            "minimum_face_alignment": 0.9510564208030701,
+            "maximum_unit_length_error": 8.940696316628305e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "runner_teal_outer_inset",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 12,
+            "minimum_face_alignment": 1.0,
+            "maximum_unit_length_error": 0.0,
+            "positions_unchanged": true
+          },
+          {
+            "component": "runner_orange_end",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 12,
+            "minimum_face_alignment": 1.0,
+            "maximum_unit_length_error": 0.0,
+            "positions_unchanged": true
+          },
+          {
+            "component": "runner_orange_end.001",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 12,
+            "minimum_face_alignment": 1.0,
+            "maximum_unit_length_error": 0.0,
+            "positions_unchanged": true
+          },
+          {
+            "component": "runner_molded_stud",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 20,
+            "minimum_face_alignment": 0.9510558545589447,
+            "maximum_unit_length_error": 5.960464655174746e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "runner_molded_stud.001",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 20,
+            "minimum_face_alignment": 0.9510558545589447,
+            "maximum_unit_length_error": 5.960464655174746e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "runner_teal_outer_inset.001",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 12,
+            "minimum_face_alignment": 1.0,
+            "maximum_unit_length_error": 0.0,
+            "positions_unchanged": true
+          },
+          {
+            "component": "runner_orange_end.002",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 12,
+            "minimum_face_alignment": 1.0,
+            "maximum_unit_length_error": 0.0,
+            "positions_unchanged": true
+          },
+          {
+            "component": "runner_orange_end.003",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 12,
+            "minimum_face_alignment": 1.0,
+            "maximum_unit_length_error": 0.0,
+            "positions_unchanged": true
+          },
+          {
+            "component": "runner_molded_stud.002",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 20,
+            "minimum_face_alignment": 0.9510558545589447,
+            "maximum_unit_length_error": 5.960464655174746e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "runner_molded_stud.003",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 20,
+            "minimum_face_alignment": 0.9510558545589447,
+            "maximum_unit_length_error": 5.960464655174746e-08,
+            "positions_unchanged": true
+          }
+        ],
+        "volume_note": "Decorative components can intersect; this sum is not displacement."
+      },
+      "interfaces": {
+        "protected_geometry": {
+          "cradle_floor": {
+            "vertices": 20,
+            "faces": 14,
+            "minimum": [
+              -0.7599999904632568,
+              -0.3199999928474426,
+              -1.0
+            ],
+            "maximum": [
+              0.7599999904632568,
+              -0.1599999964237213,
+              1.0
+            ],
+            "geometry_sha256": "c303bd7cb227cefa5dc64777a05e3fcfede1d0e4f1d6bde6dc260cfcaffbecf3"
+          },
+          "latch_pedestal": {
+            "vertices": 32,
+            "faces": 20,
+            "minimum": [
+              -0.3400000035762787,
+              -0.25999999046325684,
+              -0.3233592212200165
+            ],
+            "maximum": [
+              0.3400000035762787,
+              0.10000000149011612,
+              0.3233592212200165
+            ],
+            "geometry_sha256": "351423851a49091a8bc8e51e1fe3be53c48f641333bc6bd42732722c49876b24"
+          },
+          "latch_housing": {
+            "vertices": 32,
+            "faces": 20,
+            "minimum": [
+              -0.3499999940395355,
+              0.10000000149011612,
+              -0.3328697681427002
+            ],
+            "maximum": [
+              0.3499999940395355,
+              0.3199999928474426,
+              0.3328697681427002
+            ],
+            "geometry_sha256": "804abdb293a8ad57a17e5911f782ef334795eca959bcdf379d5977d1d18d272a"
+          }
+        },
+        "new_detail_count": 10,
+        "additions": [
+          {
+            "vertices": 8,
+            "faces": 6,
+            "minimum": [
+              -1.0119999647140503,
+              -0.20499999821186066,
+              -0.7400000095367432
+            ],
+            "maximum": [
+              -1.0,
+              0.20499999821186066,
+              0.7400000095367432
+            ],
+            "geometry_sha256": "f419b4813803997ccf926f62c362c050b97c8585af722477951d9c76d0347259"
+          },
+          {
+            "vertices": 8,
+            "faces": 6,
+            "minimum": [
+              -0.9649999737739563,
+              -0.2199999988079071,
+              -1.0119999647140503
+            ],
+            "maximum": [
+              -0.7950000166893005,
+              0.2199999988079071,
+              -1.0
+            ],
+            "geometry_sha256": "d6c4780d56a5fd36443204429c088b7d5f8a82bf87ecf4e0e7abe16ca1c1f063"
+          },
+          {
+            "vertices": 8,
+            "faces": 6,
+            "minimum": [
+              -0.9649999737739563,
+              -0.2199999988079071,
+              1.0
+            ],
+            "maximum": [
+              -0.7950000166893005,
+              0.2199999988079071,
+              1.0119999647140503
+            ],
+            "geometry_sha256": "0af9ccbbd518958b8f03e8997c038aac1f8d48114ab053a313b36f7a6487c976"
+          },
+          {
+            "vertices": 20,
+            "faces": 12,
+            "minimum": [
+              -0.949999988079071,
+              0.3179999887943268,
+              -0.7865739464759827
+            ],
+            "maximum": [
+              -0.8100000023841858,
+              0.33000001311302185,
+              -0.6534260511398315
+            ],
+            "geometry_sha256": "b4fa31a82dc88180d3d665c783328587e831359d3a45e36813a44d42455f8b04"
+          },
+          {
+            "vertices": 20,
+            "faces": 12,
+            "minimum": [
+              -0.949999988079071,
+              0.3179999887943268,
+              0.6534260511398315
+            ],
+            "maximum": [
+              -0.8100000023841858,
+              0.33000001311302185,
+              0.7865739464759827
+            ],
+            "geometry_sha256": "949f9cd7896a10633c663f7393e9266ddf7233a0c8eefe8fa0c77da0b122cda6"
+          },
+          {
+            "vertices": 8,
+            "faces": 6,
+            "minimum": [
+              1.0,
+              -0.20499999821186066,
+              -0.7400000095367432
+            ],
+            "maximum": [
+              1.0119999647140503,
+              0.20499999821186066,
+              0.7400000095367432
+            ],
+            "geometry_sha256": "1ce8847e37749ca7b7d0c0d1dbfa268dd2d3b04a00dbd9f045b928fc7a2758bf"
+          },
+          {
+            "vertices": 8,
+            "faces": 6,
+            "minimum": [
+              0.7950000166893005,
+              -0.2199999988079071,
+              -1.0119999647140503
+            ],
+            "maximum": [
+              0.9649999737739563,
+              0.2199999988079071,
+              -1.0
+            ],
+            "geometry_sha256": "5603aeda2718e3ca82a059bbef792916bd7d70dd879f061b8e977d4dbbb3d6f7"
+          },
+          {
+            "vertices": 8,
+            "faces": 6,
+            "minimum": [
+              0.7950000166893005,
+              -0.2199999988079071,
+              1.0
+            ],
+            "maximum": [
+              0.9649999737739563,
+              0.2199999988079071,
+              1.0119999647140503
+            ],
+            "geometry_sha256": "e7c5726add3628ce77958891a8fd3f38dded72939fe512cc4b60d7b4bdf1dd47"
+          },
+          {
+            "vertices": 20,
+            "faces": 12,
+            "minimum": [
+              0.8100000023841858,
+              0.3179999887943268,
+              -0.7865739464759827
+            ],
+            "maximum": [
+              0.949999988079071,
+              0.33000001311302185,
+              -0.6534260511398315
+            ],
+            "geometry_sha256": "e6996b7a83e4e347a2dc962614e0cf0a204e7e32f97c9b481e481dd4d919d289"
+          },
+          {
+            "vertices": 20,
+            "faces": 12,
+            "minimum": [
+              0.8100000023841858,
+              0.3179999887943268,
+              0.6534260511398315
+            ],
+            "maximum": [
+              0.949999988079071,
+              0.33000001311302185,
+              0.7865739464759827
+            ],
+            "geometry_sha256": "87395ffda18051703228e6bae9c097b3fc9275857d6d0425ba7d2709b2236244"
+          }
+        ],
+        "cradle_interior_x_metres": [
+          -0.76,
+          0.76
+        ],
+        "generator_eye_center_metres": null,
+        "generator_eye_inner_radius_metres": null
+      },
+      "source_sha256": "a4f8178980e9c2f8e619aa2ed598bab675617098f5cd05f3c4f9758a2724a7c3"
+    }
+  ],
+  "inputs": {
+    "tools/salvage_assets/author_cove_cargo_art.py": "369df7c51a97482d55f9badd04a150aa44630f0d57520d29bf04721ea8fb04e6",
+    "tools/salvage_assets/author_functional_kit.py": "17d8ec95739accb369f7df65303631b012d2bfdf8ea90b466cb74ca6e89cd163",
+    "tools/salvage_assets/author_cove_toy_art.py": "d849f129f076510c313d3de6b31534ce5c2200b13a8b667b2b48baf494717f6b",
+    "tools/salvage_assets/author_pontoon.py": "65142b372f2ec48eec8d994c751dca8b3263f492da39e27393e4d615242ce4b5",
+    "tools/salvage_assets/pontoon_parameters.py": "348dd03c4f49009f14d8b430728b87925458a27f8a4db1923cffce93b8e4260a",
+    "tools/salvage_assets/surface_shading.py": "b53656d0c42cf0f934fd65a7ccb0c528539da794a8482265809e5189bab19720",
+    "tools/salvage_assets/metric_materials.py": "e4d31cdf8ee8bf46dab081589f6f5aa876eb984801416dc8e4e0feb5f6af32f5",
+    "tools/salvage_assets/authoring_probe.py": "81edf36885bedff0f51380c89213094dad908d9287bbfd74987e363d392edbc0"
+  },
+  "provenance": "Original procedural geometry and solid PBR factors. No external models, image textures, UV charts or rendered captures.",
+  "limitations": [
+    "Presentation-only generator and cradle; no new cargo latch gameplay or animation.",
+    "Geometry checks and cook do not establish visual approval or runtime gameplay acceptance."
+  ]
+}

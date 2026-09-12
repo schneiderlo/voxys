@@ -1,0 +1,93 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+[  0%] Built target miniz
+[  9%] Built target libzstd_static
+[ 23%] Built target box3d
+[ 24%] Built target tinygltf
+[ 59%] Built target Jolt
+[ 60%] Building CXX object src/CMakeFiles/voxy_core.dir/app/application.cpp.o
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:9:
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/app/application.hpp:44:
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:36:34: warning: explicitly defaulted three-way comparison operator is implicitly deleted [-Wdefaulted-function-deleted]
+   36 |     [[nodiscard]] constexpr auto operator<=>(
+      |                                  ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:33:16: note: defaulted 'operator<=>' is implicitly deleted because there is no viable three-way comparison function for member 'sector'
+   33 |     glm::ivec3 sector{0};
+      |                ^
+/home/modkin/workspace/schneiderlo/voxys/src/physics/physics_types.hpp:37:48: note: replace 'default' with 'delete'
+   37 |         const WorldPosition&) const noexcept = default;
+      |                                                ^~~~~~~
+      |                                                delete
+In file included from /home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:55:
+/home/modkin/workspace/schneiderlo/voxys/src/terrain/lego_layout_cache.hpp:57:53: warning: implicit conversion changes signedness: 'uint32_t' (aka 'unsigned int') to 'difference_type' (aka 'long') [-Wsign-conversion]
+   57 |         std::sort(pending_.begin(),pending_.begin()+pendingCount_,[&](const auto& a,const auto& b) {
+      |                                                    ~^~~~~~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:5764:79: warning: implicit conversion increases floating-point precision: 'float' to 'double' [-Wdouble-promotion]
+ 5764 |         if (config_.salvageAssetFixtureWaterAnchor) asset->origin.y = config_.waterHeight;
+      |                                                                     ~ ~~~~~~~~^~~~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:6229:81: warning: implicit conversion changes signedness: 'const size_t' (aka 'const unsigned long') to 'difference_type' (aka 'long') [-Wsign-conversion]
+ 6229 |             && std::all_of(launch.parents.begin(),launch.parents.begin()+launch.parentCount,
+      |                                                                         ~~~~~~~~^~~~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/build-toolchains/emsdk-6.0.1/upstream/emscripten/cache/sysroot/include/c++/v1/__type_traits/invoke.h:74:47: note: in instantiation of function template specialization 'voxy::Application::configureCoveLaunch()::(lambda)::operator()<voxy::game::construction::Counter<voxy::game::construction::SimulationTickTag, true>>' requested here
+   74 | struct __invoke_result_impl<__void_t<decltype(__builtin_invoke(std::declval<_Args>()...))>, _Args...> {
+      |                                               ^
+/home/modkin/workspace/schneiderlo/voxys/build-toolchains/emsdk-6.0.1/upstream/emscripten/cache/sysroot/include/c++/v1/__type_traits/invoke.h:82:1: note: during template argument deduction for class template partial specialization '__invoke_result_impl<__void_t<decltype(__builtin_invoke(std::declval<_Args>()...))>, _Args...>' [with _Args = <(lambda at /home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:6224:37) &, voxy::game::construction::Counter<voxy::game::construction::SimulationTickTag, true>>]
+   82 | using __invoke_result_t _LIBCPP_NODEBUG = typename __invoke_result<_Args...>::type;
+      | ^
+/home/modkin/workspace/schneiderlo/voxys/build-toolchains/emsdk-6.0.1/upstream/emscripten/cache/sysroot/include/c++/v1/__type_traits/invoke.h:82:1: note: in instantiation of template class 'std::__invoke_result_impl<void, (lambda at /home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:6224:37) &, voxy::game::construction::Counter<voxy::game::construction::SimulationTickTag, true>>' requested here
+/home/modkin/workspace/schneiderlo/voxys/build-toolchains/emsdk-6.0.1/upstream/emscripten/cache/sysroot/include/c++/v1/__type_traits/invoke.h:94:48: note: in instantiation of template type alias '__invoke_result_t' requested here
+   94 | inline const bool __is_invocable_impl<__void_t<__invoke_result_t<_Args...> >, _Args...> = true;
+      |                                                ^
+/home/modkin/workspace/schneiderlo/voxys/build-toolchains/emsdk-6.0.1/upstream/emscripten/cache/sysroot/include/c++/v1/__type_traits/invoke.h:97:38: note: during template argument deduction for variable template partial specialization '__is_invocable_impl<__void_t<__invoke_result_t<_Args...>>, _Args...>' [with _Args = <(lambda at /home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:6224:37) &, voxy::game::construction::Counter<voxy::game::construction::SimulationTickTag, true>>]
+   97 | inline const bool __is_invocable_v = __is_invocable_impl<void, _Args...>;
+      |                                      ^
+/home/modkin/workspace/schneiderlo/voxys/build-toolchains/emsdk-6.0.1/upstream/emscripten/cache/sysroot/include/c++/v1/__type_traits/invoke.h:100:49: note: (skipping 3 contexts in backtrace; use -ftemplate-backtrace-limit=0 to see all)
+  100 | struct __is_invocable : integral_constant<bool, __is_invocable_v<_Args...> > {};
+      |                                                 ^
+/home/modkin/workspace/schneiderlo/voxys/build-toolchains/emsdk-6.0.1/upstream/emscripten/cache/sysroot/include/c++/v1/__functional/function.h:619:20: note: in instantiation of template type alias '_And' requested here
+  619 |             bool = _And<_IsNotSame<__remove_cvref_t<_Fp>, function>, __is_invocable<_Fp, _ArgTypes...> >::value>
+      |                    ^
+/home/modkin/workspace/schneiderlo/voxys/build-toolchains/emsdk-6.0.1/upstream/emscripten/cache/sysroot/include/c++/v1/__functional/function.h:632:65: note: in instantiation of default argument for '__callable<(lambda at /home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:6224:37) &>' required here
+  632 |   using _EnableIfLValueCallable _LIBCPP_NODEBUG = __enable_if_t<__callable<_Fp&>::value>;
+      |                                                                 ^~~~~~~~~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/build-toolchains/emsdk-6.0.1/upstream/emscripten/cache/sysroot/include/c++/v1/__functional/function.h:642:32: note: in instantiation of template type alias '_EnableIfLValueCallable' requested here
+  642 |   template <class _Fp, class = _EnableIfLValueCallable<_Fp>>
+      |                                ^
+/home/modkin/workspace/schneiderlo/voxys/build-toolchains/emsdk-6.0.1/upstream/emscripten/cache/sysroot/include/c++/v1/__functional/function.h:643:25: note: in instantiation of default argument for 'function<(lambda at /home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:6224:37)>' required here
+  643 |   _LIBCPP_HIDE_FROM_ABI function(_Fp);
+      |                         ^~~~~~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:6224:37: note: while substituting deduced template arguments into function template 'function' [with _Fp = (lambda at /home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:6224:37), $1 = (no value)]
+ 6224 |     local.preparation.observedBuild=[asset](auto tick) {
+      |                                     ^
+/home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:6412:128: warning: implicit conversion increases floating-point precision: 'const float' to 'double' [-Wdouble-promotion]
+ 6412 |             const auto q=canonicalQuaternion(source.orientation.x,source.orientation.y,source.orientation.z,source.orientation.w);
+      |                          ~~~~~~~~~~~~~~~~~~~                                                                ~~~~~~~~~~~~~~~~~~~^
+/home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:6412:107: warning: implicit conversion increases floating-point precision: 'const float' to 'double' [-Wdouble-promotion]
+ 6412 |             const auto q=canonicalQuaternion(source.orientation.x,source.orientation.y,source.orientation.z,source.orientation.w);
+      |                          ~~~~~~~~~~~~~~~~~~~                                           ~~~~~~~~~~~~~~~~~~~^
+/home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:6412:86: warning: implicit conversion increases floating-point precision: 'const float' to 'double' [-Wdouble-promotion]
+ 6412 |             const auto q=canonicalQuaternion(source.orientation.x,source.orientation.y,source.orientation.z,source.orientation.w);
+      |                          ~~~~~~~~~~~~~~~~~~~                      ~~~~~~~~~~~~~~~~~~~^
+/home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:6412:65: warning: implicit conversion increases floating-point precision: 'const float' to 'double' [-Wdouble-promotion]
+ 6412 |             const auto q=canonicalQuaternion(source.orientation.x,source.orientation.y,source.orientation.z,source.orientation.w);
+      |                          ~~~~~~~~~~~~~~~~~~~ ~~~~~~~~~~~~~~~~~~~^
+/home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:7580:27: warning: implicit conversion increases floating-point precision: 'float' to 'double' [-Wdouble-promotion]
+ 7580 |         view.zoom(input_->scrollDelta());
+      |              ~~~~ ~~~~~~~~^~~~~~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:7681:55: warning: implicit conversion increases floating-point precision: 'float' to 'double' [-Wdouble-promotion]
+ 7681 |     if(!asset.checkpointPending)asset.player->advance(deltaTime, {horizontal * forwardInput + sideways * rightInput,
+      |                                               ~~~~~~~ ^~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:8588:101: warning: implicit conversion changes signedness: 'size_t' (aka 'unsigned long') to 'difference_type' (aka 'long') [-Wsign-conversion]
+ 8588 |                 const auto parent=std::find_if(launch.parents.begin(),launch.parents.begin()+launch.parentCount,
+      |                                                                                             ~~~~~~~~^~~~~~~~~~~
+/home/modkin/workspace/schneiderlo/voxys/src/app/application.cpp:8590:58: warning: implicit conversion changes signedness: 'size_t' (aka 'unsigned long') to 'difference_type' (aka 'long') [-Wsign-conversion]
+ 8590 |                 if(parent!=launch.parents.begin()+launch.parentCount) {
+      |                                                  ~~~~~~~~^~~~~~~~~~~
+12 warnings generated.
+[ 60%] Linking CXX static library ../lib/libvoxy_core.a
+[ 98%] Built target voxy_core
+[100%] Linking CXX executable bin/voxy_wasm.js
+[100%] Built target voxy_wasm

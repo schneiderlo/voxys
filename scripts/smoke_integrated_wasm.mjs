@@ -455,6 +455,26 @@ try{
         const {validateCoveBricks}=await import('./validate_cove_bricks.mjs');
         report.cove_bricks=await validateCoveBricks(call,process.env.VOXY_SMOKE_COVE_BRICKS);
     }
+    if(process.env.VOXY_SMOKE_COVE_CARGO_COMPATIBILITY){
+        assert.equal(selected,'salvage-cove');
+        assert(process.env.VOXY_SMOKE_RESUME_WORLD,'cargo compatibility requires the older saved world');
+        assert(process.env.VOXY_SMOKE_CARGO_BASELINE,'cargo compatibility requires the original combined report');
+        const {validateCoveCargoCompatibility}=await import('./validate_cove_cargo_compatibility.mjs');
+        report.cove_cargo_compatibility=await validateCoveCargoCompatibility(call,process.env.VOXY_SMOKE_COVE_CARGO_COMPATIBILITY,
+            {expectedPresentationParts:Number(process.env.VOXY_SMOKE_PRESENTATION_PARTS??9),baselineReportPath:process.env.VOXY_SMOKE_CARGO_BASELINE});
+    }
+    if(process.env.VOXY_SMOKE_COVE_OBJECTIVES){
+        assert.equal(selected,'salvage-cove');
+        const {validateCoveObjectives}=await import('./validate_cove_objectives.mjs');
+        report.cove_objectives=await validateCoveObjectives(call,process.env.VOXY_SMOKE_COVE_OBJECTIVES,
+            {expectedPresentationParts:Number(process.env.VOXY_SMOKE_PRESENTATION_PARTS??7)});
+    }
+    if(process.env.VOXY_SMOKE_COVE_MECHANISMS){
+        assert.equal(selected,'salvage-cove');
+        const {validateCoveMechanisms}=await import('./validate_cove_mechanisms.mjs');
+        report.cove_mechanisms=await validateCoveMechanisms(call,process.env.VOXY_SMOKE_COVE_MECHANISMS,
+            {expectedPresentationParts:Number(process.env.VOXY_SMOKE_PRESENTATION_PARTS??7)});
+    }
     if(process.env.VOXY_SMOKE_COVE_PAINT){
         assert.equal(selected,'salvage-cove');
         const {validateCovePaint}=await import('./validate_cove_paint.mjs');

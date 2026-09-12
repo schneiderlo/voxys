@@ -1,0 +1,1670 @@
+{
+  "schema": 1,
+  "status": "offline presentation candidate; runtime admission and visual review remain",
+  "original_metadata": "data/salvage/functional-kit/r09/generator/source/generator.gameplay.json",
+  "original_metadata_sha256": "08d153a3e6ba1d9294651d38562296571f30e2fdc4a92339f847a553c30d241f",
+  "canonical_part_unchanged": true,
+  "baseline_bounds": {
+    "minimum": [
+      -0.875,
+      -0.8199999928474426,
+      -0.7749999761581421
+    ],
+    "maximum": [
+      0.875,
+      0.6399999856948853,
+      0.7749999761581421
+    ]
+  },
+  "maximum_bounds_expansion_metres": 0.02,
+  "blender_version": "5.2.1 LTS",
+  "blender_build_hash": "9e2066aef7ef",
+  "palette_srgb": {
+    "cream": "F0DDB2",
+    "teal": "197D86",
+    "coral": "ED7942",
+    "slate": "253D53",
+    "steel": "B5C3BE",
+    "rubber": "25363A"
+  },
+  "lods": [
+    {
+      "lod": 0,
+      "vertices": 2924,
+      "triangles": 5632,
+      "draws": 5,
+      "bounds": {
+        "minimum": [
+          -0.875,
+          -0.8199999928474426,
+          -0.7749999761581421
+        ],
+        "maximum": [
+          0.875,
+          0.6489999890327454,
+          0.7749999761581421
+        ]
+      },
+      "geometry": {
+        "degenerate_faces": 0,
+        "nonmanifold_edges": 0,
+        "summed_component_volume_m3": 1.7408044770623663,
+        "interface_checks": {},
+        "metric_uv": null,
+        "surface_shading": [
+          {
+            "component": "generator_core",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8578081522318826,
+            "maximum_unit_length_error": 1.628732179126402e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cage_upright",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8577938085836649,
+            "maximum_unit_length_error": 1.2105748603552513e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cage_upright.001",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8577938085836649,
+            "maximum_unit_length_error": 1.2105748603552513e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cage_rail",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8577938506959981,
+            "maximum_unit_length_error": 1.0334850120141681e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cage_rail.001",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8577938506959981,
+            "maximum_unit_length_error": 1.0334850120141681e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cage_upright.002",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8577938085836649,
+            "maximum_unit_length_error": 1.2105748603552513e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cage_upright.003",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8577938085836649,
+            "maximum_unit_length_error": 1.2105748603552513e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cage_rail.002",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.857795551441086,
+            "maximum_unit_length_error": 1.0334850120141681e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cage_rail.003",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.857795551441086,
+            "maximum_unit_length_error": 1.0334850120141681e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "vent_panel",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8577930665951499,
+            "maximum_unit_length_error": 1.211472528961366e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "vent_louver",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8577951581155503,
+            "maximum_unit_length_error": 1.2112247538276222e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "vent_louver.001",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8577943373484231,
+            "maximum_unit_length_error": 1.2111071123754868e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "vent_louver.002",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8578084036480504,
+            "maximum_unit_length_error": 1.1727193138799663e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "vent_louver.003",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8578073303560814,
+            "maximum_unit_length_error": 1.2022117967802615e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "vent_louver.004",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8578053626206383,
+            "maximum_unit_length_error": 1.2150072192795847e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "service_panel",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8577939305823747,
+            "maximum_unit_length_error": 1.211136202439178e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "eye_mount",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8577943866130227,
+            "maximum_unit_length_error": 1.2104171642768335e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "tow_eye",
+            "method": "analytic torus normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.9200679874047637,
+            "maximum_unit_length_error": 1.2200324972511112e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cargo_latch_pin",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 42,
+            "minimum_face_alignment": 0.8333562463521957,
+            "maximum_unit_length_error": 7.450580330470302e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cage_orange_cap",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8578081256837322,
+            "maximum_unit_length_error": 1.2172280383637712e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cage_orange_cap.001",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8578056110354737,
+            "maximum_unit_length_error": 8.940697115988883e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cage_orange_cap.002",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8578056110354737,
+            "maximum_unit_length_error": 9.000969791728153e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cage_orange_cap.003",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8578081256837322,
+            "maximum_unit_length_error": 1.2172280383637712e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "roof_molded_stud",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.9159856923870393,
+            "maximum_unit_length_error": 1.217035872080885e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "roof_molded_stud.001",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.9159900573831692,
+            "maximum_unit_length_error": 1.361635085794788e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "roof_molded_stud.002",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.9159900573831692,
+            "maximum_unit_length_error": 1.361635085794788e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "roof_molded_stud.003",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.9159856923870393,
+            "maximum_unit_length_error": 1.218800858016067e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "front_orange_identity_bar",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8577966566890609,
+            "maximum_unit_length_error": 8.826868169720115e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "service_orange_control",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.9159943990707688,
+            "maximum_unit_length_error": 1.415610213495455e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "service_cream_inset",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8577843631601354,
+            "maximum_unit_length_error": 1.202627950558366e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "service_fastener",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.9159710745434495,
+            "maximum_unit_length_error": 1.5464989333580093e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "service_fastener.001",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.9159714193096988,
+            "maximum_unit_length_error": 1.221702343734421e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "service_fastener.002",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.9159755987388962,
+            "maximum_unit_length_error": 1.2136094906800565e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "service_fastener.003",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.9159717357342743,
+            "maximum_unit_length_error": 1.266598621540993e-07,
+            "positions_unchanged": true
+          }
+        ],
+        "volume_note": "Decorative components can intersect; this sum is not displacement."
+      },
+      "interfaces": {
+        "protected_geometry": {
+          "eye_mount": {
+            "vertices": 56,
+            "faces": 54,
+            "minimum": [
+              -0.14000000059604645,
+              0.39500001072883606,
+              -0.09000000357627869
+            ],
+            "maximum": [
+              0.14000000059604645,
+              0.4350000023841858,
+              0.09000000357627869
+            ],
+            "geometry_sha256": "dc6fa6c2c65108d9054c9adf01f99108673c8edb0aa5f775aa2674f6cbf8ca75"
+          },
+          "tow_eye": {
+            "vertices": 256,
+            "faces": 256,
+            "minimum": [
+              -0.10499999672174454,
+              0.41499999165534973,
+              -0.02500000037252903
+            ],
+            "maximum": [
+              0.10499999672174454,
+              0.625,
+              0.02500000037252903
+            ],
+            "geometry_sha256": "9c7dec7412f6d90a7b5872a908b24a3b420134565edc2d73ed45df1ed36808a3"
+          },
+          "cargo_latch_pin": {
+            "vertices": 42,
+            "faces": 23,
+            "minimum": [
+              -0.23999999463558197,
+              -0.8199999928474426,
+              -0.23983348906040192
+            ],
+            "maximum": [
+              0.20000000298023224,
+              -0.6299999952316284,
+              0.23983348906040192
+            ],
+            "geometry_sha256": "5d7f0ec9535425bbe9991a88bf813e9ec72cfad93de3e7ddd52b701c1e532f00"
+          }
+        },
+        "new_detail_count": 15,
+        "additions": [
+          {
+            "vertices": 56,
+            "faces": 54,
+            "minimum": [
+              -0.8659999966621399,
+              0.6370000243186951,
+              -0.765999972820282
+            ],
+            "maximum": [
+              -0.734000027179718,
+              0.6489999890327454,
+              -0.6340000033378601
+            ],
+            "geometry_sha256": "714c251c58eeeece3a84dada1c9c511f064c9e4832cff80571e97e39b38b4510"
+          },
+          {
+            "vertices": 56,
+            "faces": 54,
+            "minimum": [
+              -0.8659999966621399,
+              0.6370000243186951,
+              0.6340000033378601
+            ],
+            "maximum": [
+              -0.734000027179718,
+              0.6489999890327454,
+              0.765999972820282
+            ],
+            "geometry_sha256": "f66400f339b608b2d493ce8329c8a93c2073a9321c14ed10ad6135b76ff5fbc5"
+          },
+          {
+            "vertices": 56,
+            "faces": 54,
+            "minimum": [
+              0.734000027179718,
+              0.6370000243186951,
+              -0.765999972820282
+            ],
+            "maximum": [
+              0.8659999966621399,
+              0.6489999890327454,
+              -0.6340000033378601
+            ],
+            "geometry_sha256": "f70083ff4949e44d3ba97f1f2b29646d034f044ce6be2c5a84fb1a81016a6605"
+          },
+          {
+            "vertices": 56,
+            "faces": 54,
+            "minimum": [
+              0.734000027179718,
+              0.6370000243186951,
+              0.6340000033378601
+            ],
+            "maximum": [
+              0.8659999966621399,
+              0.6489999890327454,
+              0.765999972820282
+            ],
+            "geometry_sha256": "1b5377f466979205bccbc0fd3091968c4dc196f587b6c4e32223ad8785c30d84"
+          },
+          {
+            "vertices": 144,
+            "faces": 122,
+            "minimum": [
+              -0.4650000035762787,
+              0.39399999380111694,
+              -0.3050000071525574
+            ],
+            "maximum": [
+              -0.33500000834465027,
+              0.414000004529953,
+              -0.17499999701976776
+            ],
+            "geometry_sha256": "e42ca4a50fc67498d0f9d6d96ebe768eb08e5af725edb9e2cd2a1e80d0081302"
+          },
+          {
+            "vertices": 144,
+            "faces": 122,
+            "minimum": [
+              -0.4650000035762787,
+              0.39399999380111694,
+              0.17499999701976776
+            ],
+            "maximum": [
+              -0.33500000834465027,
+              0.414000004529953,
+              0.3050000071525574
+            ],
+            "geometry_sha256": "0fbf2c3095d166518a48784b56f72f8a4fb84a6f03ae9fa26c8a8d46e82e184a"
+          },
+          {
+            "vertices": 144,
+            "faces": 122,
+            "minimum": [
+              0.33500000834465027,
+              0.39399999380111694,
+              -0.3050000071525574
+            ],
+            "maximum": [
+              0.4650000035762787,
+              0.414000004529953,
+              -0.17499999701976776
+            ],
+            "geometry_sha256": "163eb9b0b6cc575d9a0b973ef8e8314b6cf803a8ac7f64f8292f284482c68a5c"
+          },
+          {
+            "vertices": 144,
+            "faces": 122,
+            "minimum": [
+              0.33500000834465027,
+              0.39399999380111694,
+              0.17499999701976776
+            ],
+            "maximum": [
+              0.4650000035762787,
+              0.414000004529953,
+              0.3050000071525574
+            ],
+            "geometry_sha256": "e279898a8e90ebc706361737bd68db1ba354f5e7174b6fb074dfd69c07780b08"
+          },
+          {
+            "vertices": 56,
+            "faces": 54,
+            "minimum": [
+              -0.25,
+              -0.4050000011920929,
+              -0.6050000190734863
+            ],
+            "maximum": [
+              0.25,
+              -0.33500000834465027,
+              -0.5770000219345093
+            ],
+            "geometry_sha256": "95c8d215b5fe85e858e32d865976895f402a90c7fbf882513fd5fd76d7658283"
+          },
+          {
+            "vertices": 144,
+            "faces": 122,
+            "minimum": [
+              0.7059999704360962,
+              0.054999999701976776,
+              0.054999999701976776
+            ],
+            "maximum": [
+              0.7279999852180481,
+              0.1850000023841858,
+              0.1850000023841858
+            ],
+            "geometry_sha256": "3f6bd432c1acb8186c385dda76529e34d37ac55233fee6c1205587cd84da5bc1"
+          },
+          {
+            "vertices": 56,
+            "faces": 54,
+            "minimum": [
+              0.7039999961853027,
+              -0.1850000023841858,
+              -0.28999999165534973
+            ],
+            "maximum": [
+              0.7160000205039978,
+              -0.054999999701976776,
+              0.17000000178813934
+            ],
+            "geometry_sha256": "c520b9582cc40faa5f2bf5ddd2aa85a85993fa8b8a0acf4475873577f52bd0bc"
+          },
+          {
+            "vertices": 144,
+            "faces": 122,
+            "minimum": [
+              0.7059999704360962,
+              -0.2549999952316284,
+              -0.3149999976158142
+            ],
+            "maximum": [
+              0.7179999947547913,
+              -0.20499999821186066,
+              -0.26499998569488525
+            ],
+            "geometry_sha256": "5c78e8246d80fa60d4ca9510b7d6ea7d65608ff7c83314658bfba16b3ba6bf2a"
+          },
+          {
+            "vertices": 144,
+            "faces": 122,
+            "minimum": [
+              0.7059999704360962,
+              -0.2549999952316284,
+              0.26499998569488525
+            ],
+            "maximum": [
+              0.7179999947547913,
+              -0.20499999821186066,
+              0.3149999976158142
+            ],
+            "geometry_sha256": "d19a0c875c74185816b02df86aaa30a9b514b64c86a2fbc0916bc7164a4849c7"
+          },
+          {
+            "vertices": 144,
+            "faces": 122,
+            "minimum": [
+              0.7059999704360962,
+              0.1850000023841858,
+              -0.3149999976158142
+            ],
+            "maximum": [
+              0.7179999947547913,
+              0.23499999940395355,
+              -0.26499998569488525
+            ],
+            "geometry_sha256": "8f54966163d4bb0aad844c2c690051bf066cc1610794c70a98460975d5c3531a"
+          },
+          {
+            "vertices": 144,
+            "faces": 122,
+            "minimum": [
+              0.7059999704360962,
+              0.1850000023841858,
+              0.26499998569488525
+            ],
+            "maximum": [
+              0.7179999947547913,
+              0.23499999940395355,
+              0.3149999976158142
+            ],
+            "geometry_sha256": "376da9bbbb847606e0282f2911803adab9c85f091626444446f2d98f96f27913"
+          }
+        ],
+        "cradle_interior_x_metres": null,
+        "generator_eye_center_metres": [
+          0.0,
+          0.52,
+          0.0
+        ],
+        "generator_eye_inner_radius_metres": 0.055
+      },
+      "source_sha256": "42948d48526cc6795e6749fd1449bc029db74ce680064007f9104198b881bfb6"
+    },
+    {
+      "lod": 1,
+      "vertices": 1292,
+      "triangles": 2408,
+      "draws": 5,
+      "bounds": {
+        "minimum": [
+          -0.875,
+          -0.8199999928474426,
+          -0.7749999761581421
+        ],
+        "maximum": [
+          0.875,
+          0.6489999890327454,
+          0.7749999761581421
+        ]
+      },
+      "geometry": {
+        "degenerate_faces": 0,
+        "nonmanifold_edges": 0,
+        "summed_component_volume_m3": 1.7261053625780827,
+        "interface_checks": {},
+        "metric_uv": null,
+        "surface_shading": [
+          {
+            "component": "generator_core",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.5773475015048462,
+            "maximum_unit_length_error": 5.9460340651185106e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cage_upright",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.5773466842024391,
+            "maximum_unit_length_error": 5.9474518421254174e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cage_upright.001",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.5773466842024391,
+            "maximum_unit_length_error": 5.9474518421254174e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cage_rail",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.5773471967099795,
+            "maximum_unit_length_error": 5.946537873224855e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cage_rail.001",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.5773471967099795,
+            "maximum_unit_length_error": 5.946537873224855e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cage_upright.002",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.5773466842024391,
+            "maximum_unit_length_error": 5.9474518421254174e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cage_upright.003",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.5773466842024391,
+            "maximum_unit_length_error": 5.9474518421254174e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cage_rail.002",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.5773471967099795,
+            "maximum_unit_length_error": 5.946537873224855e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cage_rail.003",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.5773471967099795,
+            "maximum_unit_length_error": 5.946537873224855e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "vent_panel",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.5773469244732041,
+            "maximum_unit_length_error": 5.947278480800122e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "vent_louver",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.5773468507481994,
+            "maximum_unit_length_error": 1.1937391386496188e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "vent_louver.001",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.5773471972847801,
+            "maximum_unit_length_error": 5.944926395606842e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "vent_louver.002",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.5773466675718737,
+            "maximum_unit_length_error": 5.948502379560239e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "vent_louver.003",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.5773469994114748,
+            "maximum_unit_length_error": 1.776787605933805e-10,
+            "positions_unchanged": true
+          },
+          {
+            "component": "vent_louver.004",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.5773467051117223,
+            "maximum_unit_length_error": 1.1936913657528692e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "service_panel",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.5773467530270864,
+            "maximum_unit_length_error": 1.190673687423427e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "eye_mount",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.5773464955918826,
+            "maximum_unit_length_error": 5.947487258239903e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "tow_eye",
+            "method": "analytic torus normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.8579723474986167,
+            "maximum_unit_length_error": 1.294538461982242e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cargo_latch_pin",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 22,
+            "minimum_face_alignment": 0.833343580365181,
+            "maximum_unit_length_error": 6.70552231518684e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cage_orange_cap",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.577341023303461,
+            "maximum_unit_length_error": 1.193354579598349e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cage_orange_cap.001",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.577341023303461,
+            "maximum_unit_length_error": 5.9544293717905816e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cage_orange_cap.002",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.577341023303461,
+            "maximum_unit_length_error": 5.9544293717905816e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cage_orange_cap.003",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.577341023303461,
+            "maximum_unit_length_error": 1.193354579598349e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "roof_molded_stud",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.6935352469008649,
+            "maximum_unit_length_error": 1.2038255969848422e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "roof_molded_stud.001",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.6935348885926942,
+            "maximum_unit_length_error": 1.2083550382513408e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "roof_molded_stud.002",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.6935348885926942,
+            "maximum_unit_length_error": 1.2509030022922474e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "roof_molded_stud.003",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.6935352469008649,
+            "maximum_unit_length_error": 1.2037085705962625e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "front_orange_identity_bar",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.5773460709365281,
+            "maximum_unit_length_error": 1.193904743956864e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "service_orange_control",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.693536027942173,
+            "maximum_unit_length_error": 1.176029345018037e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "service_cream_inset",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.5773422530528478,
+            "maximum_unit_length_error": 5.949703818508567e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "service_fastener",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.6935523875181389,
+            "maximum_unit_length_error": 1.2099815682731219e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "service_fastener.001",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.6935523875181389,
+            "maximum_unit_length_error": 1.2020567985437935e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "service_fastener.002",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.6935322389217617,
+            "maximum_unit_length_error": 1.0263331151616484e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "service_fastener.003",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.6935322389217617,
+            "maximum_unit_length_error": 1.2100601254338983e-07,
+            "positions_unchanged": true
+          }
+        ],
+        "volume_note": "Decorative components can intersect; this sum is not displacement."
+      },
+      "interfaces": {
+        "protected_geometry": {
+          "eye_mount": {
+            "vertices": 24,
+            "faces": 26,
+            "minimum": [
+              -0.14000000059604645,
+              0.39500001072883606,
+              -0.09000000357627869
+            ],
+            "maximum": [
+              0.14000000059604645,
+              0.4350000023841858,
+              0.09000000357627869
+            ],
+            "geometry_sha256": "70ff09a69c15ef61763a130f6879ae8f40db7ae438ce1e481c20c29a62ec50fc"
+          },
+          "tow_eye": {
+            "vertices": 120,
+            "faces": 120,
+            "minimum": [
+              -0.10499999672174454,
+              0.41499999165534973,
+              -0.021650634706020355
+            ],
+            "maximum": [
+              0.10499999672174454,
+              0.625,
+              0.021650634706020355
+            ],
+            "geometry_sha256": "2158757b6de0f764211f5cfb058f6e2e671b4b34dd35d50444eb4b7776dd71ae"
+          },
+          "cargo_latch_pin": {
+            "vertices": 22,
+            "faces": 13,
+            "minimum": [
+              -0.23999999463558197,
+              -0.8199999928474426,
+              -0.23983348906040192
+            ],
+            "maximum": [
+              0.20000000298023224,
+              -0.6299999952316284,
+              0.23983348906040192
+            ],
+            "geometry_sha256": "49435309b2219dca4a475419a5fbd0ad59ffb7b4e6d6b5639cf9daeea12c47e9"
+          }
+        },
+        "new_detail_count": 15,
+        "additions": [
+          {
+            "vertices": 24,
+            "faces": 26,
+            "minimum": [
+              -0.8659999966621399,
+              0.6370000243186951,
+              -0.765999972820282
+            ],
+            "maximum": [
+              -0.734000027179718,
+              0.6489999890327454,
+              -0.6340000033378601
+            ],
+            "geometry_sha256": "c47f0230964aaf473d09a33565ee435484adf99262fbbe08985d70e8f5aef544"
+          },
+          {
+            "vertices": 24,
+            "faces": 26,
+            "minimum": [
+              -0.8659999966621399,
+              0.6370000243186951,
+              0.6340000033378601
+            ],
+            "maximum": [
+              -0.734000027179718,
+              0.6489999890327454,
+              0.765999972820282
+            ],
+            "geometry_sha256": "df4485770d44e58929fe6c8604259702611683a416fae8b77f5539d9fe980425"
+          },
+          {
+            "vertices": 24,
+            "faces": 26,
+            "minimum": [
+              0.734000027179718,
+              0.6370000243186951,
+              -0.765999972820282
+            ],
+            "maximum": [
+              0.8659999966621399,
+              0.6489999890327454,
+              -0.6340000033378601
+            ],
+            "geometry_sha256": "d07141843d6b4773931a42defb613a75026620a6fc7ee2909ab77ab5b522bbee"
+          },
+          {
+            "vertices": 24,
+            "faces": 26,
+            "minimum": [
+              0.734000027179718,
+              0.6370000243186951,
+              0.6340000033378601
+            ],
+            "maximum": [
+              0.8659999966621399,
+              0.6489999890327454,
+              0.765999972820282
+            ],
+            "geometry_sha256": "6e8bb69dd9556f1cfac49e37f9590bbd3168daa9f6feae5d38e1fa984c7b50d3"
+          },
+          {
+            "vertices": 64,
+            "faces": 50,
+            "minimum": [
+              -0.4650000035762787,
+              0.39399999380111694,
+              -0.3050000071525574
+            ],
+            "maximum": [
+              -0.33500000834465027,
+              0.414000004529953,
+              -0.17499999701976776
+            ],
+            "geometry_sha256": "91a68ed8a148bdd53ce1dbc04eac3f50022fc42ee2c4353402fc8c09bd4423b5"
+          },
+          {
+            "vertices": 64,
+            "faces": 50,
+            "minimum": [
+              -0.4650000035762787,
+              0.39399999380111694,
+              0.17499999701976776
+            ],
+            "maximum": [
+              -0.33500000834465027,
+              0.414000004529953,
+              0.3050000071525574
+            ],
+            "geometry_sha256": "834ba2344da80776b50e59023a459b300a8918ec9bcaaa59d1050b472e4d3748"
+          },
+          {
+            "vertices": 64,
+            "faces": 50,
+            "minimum": [
+              0.33500000834465027,
+              0.39399999380111694,
+              -0.3050000071525574
+            ],
+            "maximum": [
+              0.4650000035762787,
+              0.414000004529953,
+              -0.17499999701976776
+            ],
+            "geometry_sha256": "420732ebc9d34a64acba90bcb0af16b57b24cc9d299e3c4ef8ac2a54c70d31af"
+          },
+          {
+            "vertices": 64,
+            "faces": 50,
+            "minimum": [
+              0.33500000834465027,
+              0.39399999380111694,
+              0.17499999701976776
+            ],
+            "maximum": [
+              0.4650000035762787,
+              0.414000004529953,
+              0.3050000071525574
+            ],
+            "geometry_sha256": "714c357255ceec38e6b53dc12961f589d7db50c50c039a3d403b23c9f06c76fe"
+          },
+          {
+            "vertices": 24,
+            "faces": 26,
+            "minimum": [
+              -0.25,
+              -0.4050000011920929,
+              -0.6050000190734863
+            ],
+            "maximum": [
+              0.25,
+              -0.33500000834465027,
+              -0.5770000219345093
+            ],
+            "geometry_sha256": "6be29fcda98e461f39d95b4c781673a8768362df1d33e1f157c23b39e36826fd"
+          },
+          {
+            "vertices": 64,
+            "faces": 50,
+            "minimum": [
+              0.7059999704360962,
+              0.054999999701976776,
+              0.054999999701976776
+            ],
+            "maximum": [
+              0.7279999852180481,
+              0.1850000023841858,
+              0.1850000023841858
+            ],
+            "geometry_sha256": "9518edc10b330b8e1fcc3ae44d2b41013d6fa400b21442160d3d5c2c9a3017f8"
+          },
+          {
+            "vertices": 24,
+            "faces": 26,
+            "minimum": [
+              0.7039999961853027,
+              -0.1850000023841858,
+              -0.28999999165534973
+            ],
+            "maximum": [
+              0.7160000205039978,
+              -0.054999999701976776,
+              0.17000000178813934
+            ],
+            "geometry_sha256": "234290dafc3949b514855835fc5f46f6f5b32183345f8a52283930770deb1b9d"
+          },
+          {
+            "vertices": 64,
+            "faces": 50,
+            "minimum": [
+              0.7059999704360962,
+              -0.2549999952316284,
+              -0.3149999976158142
+            ],
+            "maximum": [
+              0.7179999947547913,
+              -0.20499999821186066,
+              -0.26499998569488525
+            ],
+            "geometry_sha256": "558d6a1e31679a0b42e9cd02bfcb45d7cce30930c9f0847c0c116570b6b3b371"
+          },
+          {
+            "vertices": 64,
+            "faces": 50,
+            "minimum": [
+              0.7059999704360962,
+              -0.2549999952316284,
+              0.26499998569488525
+            ],
+            "maximum": [
+              0.7179999947547913,
+              -0.20499999821186066,
+              0.3149999976158142
+            ],
+            "geometry_sha256": "25a9aa5b5800e70493c952306606314147d795f56cbc9ece4adf2b9ea70fef32"
+          },
+          {
+            "vertices": 64,
+            "faces": 50,
+            "minimum": [
+              0.7059999704360962,
+              0.1850000023841858,
+              -0.3149999976158142
+            ],
+            "maximum": [
+              0.7179999947547913,
+              0.23499999940395355,
+              -0.26499998569488525
+            ],
+            "geometry_sha256": "99e882c859503b4dd3c3273c0f222e64796f0a51be89c27abe21e93f3cc951df"
+          },
+          {
+            "vertices": 64,
+            "faces": 50,
+            "minimum": [
+              0.7059999704360962,
+              0.1850000023841858,
+              0.26499998569488525
+            ],
+            "maximum": [
+              0.7179999947547913,
+              0.23499999940395355,
+              0.3149999976158142
+            ],
+            "geometry_sha256": "e50a6f237dc829a1a9c711dd1c4f6463b89633af87010b9f23fd6a2044539ede"
+          }
+        ],
+        "cradle_interior_x_metres": null,
+        "generator_eye_center_metres": [
+          0.0,
+          0.52,
+          0.0
+        ],
+        "generator_eye_inner_radius_metres": 0.055
+      },
+      "source_sha256": "f8fd360e2ca693e65395396142e8b5dbfdced09ac39f9a0c42b1ed3df8879e26"
+    },
+    {
+      "lod": 2,
+      "vertices": 716,
+      "triangles": 512,
+      "draws": 5,
+      "bounds": {
+        "minimum": [
+          -0.875,
+          -0.8199999928474426,
+          -0.7749999761581421
+        ],
+        "maximum": [
+          0.875,
+          0.6489999890327454,
+          0.7749999761581421
+        ]
+      },
+      "geometry": {
+        "degenerate_faces": 0,
+        "nonmanifold_edges": 0,
+        "summed_component_volume_m3": 1.7499258526879495,
+        "interface_checks": {},
+        "metric_uv": null,
+        "surface_shading": [
+          {
+            "component": "generator_core",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 12,
+            "minimum_face_alignment": 1.0,
+            "maximum_unit_length_error": 0.0,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cage_upright",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 12,
+            "minimum_face_alignment": 1.0,
+            "maximum_unit_length_error": 0.0,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cage_upright.001",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 12,
+            "minimum_face_alignment": 1.0,
+            "maximum_unit_length_error": 0.0,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cage_rail",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 12,
+            "minimum_face_alignment": 0.9999998807907104,
+            "maximum_unit_length_error": 5.960464655174746e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cage_rail.001",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 12,
+            "minimum_face_alignment": 0.9999998807907104,
+            "maximum_unit_length_error": 5.960464655174746e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cage_upright.002",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 12,
+            "minimum_face_alignment": 1.0,
+            "maximum_unit_length_error": 0.0,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cage_upright.003",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 12,
+            "minimum_face_alignment": 1.0,
+            "maximum_unit_length_error": 0.0,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cage_rail.002",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 12,
+            "minimum_face_alignment": 0.9999998807907104,
+            "maximum_unit_length_error": 5.960464655174746e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cage_rail.003",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 12,
+            "minimum_face_alignment": 0.9999998807907104,
+            "maximum_unit_length_error": 5.960464655174746e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "vent_panel",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 12,
+            "minimum_face_alignment": 1.0,
+            "maximum_unit_length_error": 0.0,
+            "positions_unchanged": true
+          },
+          {
+            "component": "service_panel",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 12,
+            "minimum_face_alignment": 0.9999998807907104,
+            "maximum_unit_length_error": 5.960464655174746e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "eye_mount",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 12,
+            "minimum_face_alignment": 1.0,
+            "maximum_unit_length_error": 0.0,
+            "positions_unchanged": true
+          },
+          {
+            "component": "tow_eye",
+            "method": "analytic torus normals",
+            "sharp_edges": 0,
+            "minimum_face_alignment": 0.6947170023022409,
+            "maximum_unit_length_error": 1.198162513649237e-07,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cargo_latch_pin",
+            "method": "face area / corner angle weighted; hard edge above 50 degrees",
+            "sharp_edges": 18,
+            "minimum_face_alignment": 0.9999999701976776,
+            "maximum_unit_length_error": 2.980232283178452e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cage_orange_cap",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 12,
+            "minimum_face_alignment": 0.9999999403953552,
+            "maximum_unit_length_error": 0.0,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cage_orange_cap.001",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 12,
+            "minimum_face_alignment": 0.9999999403953552,
+            "maximum_unit_length_error": 0.0,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cage_orange_cap.002",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 12,
+            "minimum_face_alignment": 0.9999999403953552,
+            "maximum_unit_length_error": 0.0,
+            "positions_unchanged": true
+          },
+          {
+            "component": "cage_orange_cap.003",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 12,
+            "minimum_face_alignment": 0.9999999403953552,
+            "maximum_unit_length_error": 0.0,
+            "positions_unchanged": true
+          },
+          {
+            "component": "roof_molded_stud",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 20,
+            "minimum_face_alignment": 0.9510564208030701,
+            "maximum_unit_length_error": 5.960464655174746e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "roof_molded_stud.001",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 20,
+            "minimum_face_alignment": 0.9510564208030701,
+            "maximum_unit_length_error": 5.960464655174746e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "roof_molded_stud.002",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 20,
+            "minimum_face_alignment": 0.9510564208030701,
+            "maximum_unit_length_error": 5.960464655174746e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "roof_molded_stud.003",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 20,
+            "minimum_face_alignment": 0.9510564208030701,
+            "maximum_unit_length_error": 5.960464655174746e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "front_orange_identity_bar",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 12,
+            "minimum_face_alignment": 1.0,
+            "maximum_unit_length_error": 0.0,
+            "positions_unchanged": true
+          },
+          {
+            "component": "service_orange_control",
+            "method": "analytic rounded_cylinder normals",
+            "sharp_edges": 20,
+            "minimum_face_alignment": 0.9510563164949417,
+            "maximum_unit_length_error": 5.960464655174746e-08,
+            "positions_unchanged": true
+          },
+          {
+            "component": "service_cream_inset",
+            "method": "analytic rounded_box normals",
+            "sharp_edges": 12,
+            "minimum_face_alignment": 0.9999998807907104,
+            "maximum_unit_length_error": 5.960464655174746e-08,
+            "positions_unchanged": true
+          }
+        ],
+        "volume_note": "Decorative components can intersect; this sum is not displacement."
+      },
+      "interfaces": {
+        "protected_geometry": {
+          "eye_mount": {
+            "vertices": 8,
+            "faces": 6,
+            "minimum": [
+              -0.14000000059604645,
+              0.39500001072883606,
+              -0.09000000357627869
+            ],
+            "maximum": [
+              0.14000000059604645,
+              0.4350000023841858,
+              0.09000000357627869
+            ],
+            "geometry_sha256": "64e8669cabf7b947132389dbafac86c32cd57eededd4e76e3d66878e34e4dfe4"
+          },
+          "tow_eye": {
+            "vertices": 48,
+            "faces": 48,
+            "minimum": [
+              -0.10499999672174454,
+              0.41499999165534973,
+              -0.02500000037252903
+            ],
+            "maximum": [
+              0.10499999672174454,
+              0.625,
+              0.02500000037252903
+            ],
+            "geometry_sha256": "e93ca37df0a3b9deccd026cc642046cae7a76de20e1946014931fd15547996d4"
+          },
+          "cargo_latch_pin": {
+            "vertices": 12,
+            "faces": 8,
+            "minimum": [
+              -0.20932011306285858,
+              -0.8199999928474426,
+              -0.23983348906040192
+            ],
+            "maximum": [
+              0.20000000298023224,
+              -0.6299999952316284,
+              0.23983348906040192
+            ],
+            "geometry_sha256": "08668fbdf10da18936fa1ea245b0150c64c434c8b9094f39072dd7654c513676"
+          }
+        },
+        "new_detail_count": 11,
+        "additions": [
+          {
+            "vertices": 8,
+            "faces": 6,
+            "minimum": [
+              -0.8659999966621399,
+              0.6370000243186951,
+              -0.765999972820282
+            ],
+            "maximum": [
+              -0.734000027179718,
+              0.6489999890327454,
+              -0.6340000033378601
+            ],
+            "geometry_sha256": "e42aa0cc229cd8b9f88898e8381b8c92d76dcd63d1a3487507e9e03f6cde614a"
+          },
+          {
+            "vertices": 8,
+            "faces": 6,
+            "minimum": [
+              -0.8659999966621399,
+              0.6370000243186951,
+              0.6340000033378601
+            ],
+            "maximum": [
+              -0.734000027179718,
+              0.6489999890327454,
+              0.765999972820282
+            ],
+            "geometry_sha256": "f95c02a2ff1c4ea191633afcd3375de54c6900d193493eea63a521d2b3bb4a5e"
+          },
+          {
+            "vertices": 8,
+            "faces": 6,
+            "minimum": [
+              0.734000027179718,
+              0.6370000243186951,
+              -0.765999972820282
+            ],
+            "maximum": [
+              0.8659999966621399,
+              0.6489999890327454,
+              -0.6340000033378601
+            ],
+            "geometry_sha256": "931df5b2313f68e7a09a59dbfb2a71780690dfa539f3f2db4b4ac99ae48f5909"
+          },
+          {
+            "vertices": 8,
+            "faces": 6,
+            "minimum": [
+              0.734000027179718,
+              0.6370000243186951,
+              0.6340000033378601
+            ],
+            "maximum": [
+              0.8659999966621399,
+              0.6489999890327454,
+              0.765999972820282
+            ],
+            "geometry_sha256": "a421f898750b3cf3b2115702f01d31118bb570e6c2feb6d9b299421c36b4fcdf"
+          },
+          {
+            "vertices": 20,
+            "faces": 12,
+            "minimum": [
+              -0.4650000035762787,
+              0.39399999380111694,
+              -0.3018186688423157
+            ],
+            "maximum": [
+              -0.33500000834465027,
+              0.414000004529953,
+              -0.17818132042884827
+            ],
+            "geometry_sha256": "00fbb4d83cf8829a37b92e7a1492cdec9659d64b99892622a0e375b371f0f83c"
+          },
+          {
+            "vertices": 20,
+            "faces": 12,
+            "minimum": [
+              -0.4650000035762787,
+              0.39399999380111694,
+              0.17818132042884827
+            ],
+            "maximum": [
+              -0.33500000834465027,
+              0.414000004529953,
+              0.3018186688423157
+            ],
+            "geometry_sha256": "63e4a69517cd7be037529ae712f30c3a3abb4bfd45e8e2d4e7d1aacb314c8703"
+          },
+          {
+            "vertices": 20,
+            "faces": 12,
+            "minimum": [
+              0.33500000834465027,
+              0.39399999380111694,
+              -0.3018186688423157
+            ],
+            "maximum": [
+              0.4650000035762787,
+              0.414000004529953,
+              -0.17818132042884827
+            ],
+            "geometry_sha256": "1654005ec72e13d14cdcd2c66e7868691e0bbea2465a1a711887b0fbb278124d"
+          },
+          {
+            "vertices": 20,
+            "faces": 12,
+            "minimum": [
+              0.33500000834465027,
+              0.39399999380111694,
+              0.17818132042884827
+            ],
+            "maximum": [
+              0.4650000035762787,
+              0.414000004529953,
+              0.3018186688423157
+            ],
+            "geometry_sha256": "21a2203bfe1a80195474440e6b8c4fe67de4a619133139cad2dd927498568ef8"
+          },
+          {
+            "vertices": 8,
+            "faces": 6,
+            "minimum": [
+              -0.25,
+              -0.4050000011920929,
+              -0.6050000190734863
+            ],
+            "maximum": [
+              0.25,
+              -0.33500000834465027,
+              -0.5770000219345093
+            ],
+            "geometry_sha256": "41e33f2918d90c8107bcb4e04a5d4a47c93a5b41636502d76ca520fd385d6ed8"
+          },
+          {
+            "vertices": 20,
+            "faces": 12,
+            "minimum": [
+              0.7059999704360962,
+              0.054999999701976776,
+              0.05818132683634758
+            ],
+            "maximum": [
+              0.7279999852180481,
+              0.1850000023841858,
+              0.18181867897510529
+            ],
+            "geometry_sha256": "321980962192ced7e7e3ccbae0fdae21b72dc56874e0d5e594dd420de7b3ec3a"
+          },
+          {
+            "vertices": 8,
+            "faces": 6,
+            "minimum": [
+              0.7039999961853027,
+              -0.1850000023841858,
+              -0.28999999165534973
+            ],
+            "maximum": [
+              0.7160000205039978,
+              -0.054999999701976776,
+              0.17000000178813934
+            ],
+            "geometry_sha256": "79a35d9fd3fb0d1c62a894fdc7fbf3a83838f0f868c762fb810f5a52fa337d36"
+          }
+        ],
+        "cradle_interior_x_metres": null,
+        "generator_eye_center_metres": [
+          0.0,
+          0.52,
+          0.0
+        ],
+        "generator_eye_inner_radius_metres": 0.055
+      },
+      "source_sha256": "923caf96548de779ff221ae4e8f0d77e9e9a041b290d127c8077c04e2c3557d5"
+    }
+  ],
+  "inputs": {
+    "tools/salvage_assets/author_cove_cargo_art.py": "369df7c51a97482d55f9badd04a150aa44630f0d57520d29bf04721ea8fb04e6",
+    "tools/salvage_assets/author_functional_kit.py": "17d8ec95739accb369f7df65303631b012d2bfdf8ea90b466cb74ca6e89cd163",
+    "tools/salvage_assets/author_cove_toy_art.py": "d849f129f076510c313d3de6b31534ce5c2200b13a8b667b2b48baf494717f6b",
+    "tools/salvage_assets/author_pontoon.py": "65142b372f2ec48eec8d994c751dca8b3263f492da39e27393e4d615242ce4b5",
+    "tools/salvage_assets/pontoon_parameters.py": "348dd03c4f49009f14d8b430728b87925458a27f8a4db1923cffce93b8e4260a",
+    "tools/salvage_assets/surface_shading.py": "b53656d0c42cf0f934fd65a7ccb0c528539da794a8482265809e5189bab19720",
+    "tools/salvage_assets/metric_materials.py": "e4d31cdf8ee8bf46dab081589f6f5aa876eb984801416dc8e4e0feb5f6af32f5",
+    "tools/salvage_assets/authoring_probe.py": "81edf36885bedff0f51380c89213094dad908d9287bbfd74987e363d392edbc0"
+  },
+  "provenance": "Original procedural geometry and solid PBR factors. No external models, image textures, UV charts or rendered captures.",
+  "limitations": [
+    "Presentation-only generator and cradle; no new cargo latch gameplay or animation.",
+    "Geometry checks and cook do not establish visual approval or runtime gameplay acceptance."
+  ]
+}

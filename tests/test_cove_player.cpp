@@ -1,4 +1,5 @@
 #include "game/expedition/cove_player.hpp"
+#include "game/expedition/cove_mechanisms.hpp"
 #include "game/expedition/cove_boat.hpp"
 #include "game/expedition/cove_rigid_roots.hpp"
 #include "game/expedition/cove_harbor_lift.hpp"
@@ -24,6 +25,103 @@ extern "C" WGPUBool wgpuDevicePoll(WGPUDevice,WGPUBool,const WGPUWrappedSubmissi
 
 namespace voxy::game::expedition {
 namespace {
+
+TEST(CoveMechanismsTest, SubmittedTicksRespectDirectionStopAndDiscard) {
+    CoveMechanisms state;
+    constexpr uint64_t first=(uint64_t{1}<<54)+17;
+    ASSERT_TRUE(state.reset(7,first));
+    const auto proposal=state.prepare(first+1,true,1);ASSERT_TRUE(proposal);
+    EXPECT_EQ(state.tick(),first);EXPECT_DOUBLE_EQ(state.rotorRadians(),0);
+    const auto retry=state.prepare(first+1,true,1);ASSERT_TRUE(retry);
+    EXPECT_DOUBLE_EQ(retry->rotorRadians(),proposal->rotorRadians());
+    state=*proposal;
+    EXPECT_NEAR(state.rotorRadians(),CoveMechanisms::fullRotorRadiansPerSecond/60,1e-12);
+    const auto repeated=state.prepare(first+1,true,1);ASSERT_TRUE(repeated);
+    EXPECT_DOUBLE_EQ(repeated->rotorRadians(),state.rotorRadians());
+    const auto reversed=state.prepare(first+2,true,-.5);ASSERT_TRUE(reversed);state=*reversed;
+    EXPECT_NEAR(state.rotorRadians(),CoveMechanisms::fullRotorRadiansPerSecond/120,1e-12);
+    const auto neutral=state.prepare(first+3,true,0);ASSERT_TRUE(neutral);
+    EXPECT_DOUBLE_EQ(neutral->rotorRadians(),state.rotorRadians());state=*neutral;
+    const auto paused=state.prepare(first+4,false,1);ASSERT_TRUE(paused);
+    EXPECT_DOUBLE_EQ(paused->rotorRadians(),state.rotorRadians());EXPECT_DOUBLE_EQ(paused->effectiveDrive(),0);
+    EXPECT_FALSE(state.prepare(first+2,true,1));EXPECT_FALSE(state.prepare(first+5,true,1));
+    EXPECT_FALSE(state.prepare(first+4,true,1.01));
+    EXPECT_FALSE(state.prepare(first+4,true,std::numeric_limits<double>::quiet_NaN()));
+}
+
+TEST(CoveMechanismsTest, RopeIdentityAndMonotonicTicksRejectRetiredSamples) {
+    using Sample=CoveMechanisms::RopeSample;
+    const physics::AttachmentHandle a{3,2},b{3,3};
+    CoveMechanisms state;ASSERT_TRUE(state.reset(7,100));
+    auto next=state.prepare(100,true,0,Sample{a,100,4});ASSERT_TRUE(next);state=*next;
+    next=state.prepare(101,true,0,Sample{a,101,3.72});ASSERT_TRUE(next);state=*next;
+    EXPECT_NEAR(state.drumRadians(),1,1e-12);
+    next=state.prepare(102,true,0,Sample{b,102,30});ASSERT_TRUE(next);state=*next;
+    EXPECT_NEAR(state.drumRadians(),1,1e-12);ASSERT_TRUE(state.ropeSample());EXPECT_EQ(state.ropeSample()->handle,b);
+    // A late packet from a retired generation cannot replace the new baseline.
+    next=state.prepare(103,true,0,Sample{a,101,1});ASSERT_TRUE(next);state=*next;
+    ASSERT_TRUE(state.ropeSample());EXPECT_EQ(state.ropeSample()->handle,b);
+    next=state.prepare(104,true,0,Sample{a,102,2});ASSERT_TRUE(next);state=*next;
+    ASSERT_TRUE(state.ropeSample());EXPECT_EQ(state.ropeSample()->handle,b);
+    next=state.prepare(105,true,0,Sample{b,105,29.72});ASSERT_TRUE(next);state=*next;
+    EXPECT_NEAR(state.drumRadians(),2,1e-11);
+    next=state.prepare(106,true,0,Sample{b,105,29.72});ASSERT_TRUE(next);
+    EXPECT_DOUBLE_EQ(next->drumRadians(),state.drumRadians());
+    EXPECT_FALSE(state.prepare(106,true,0,Sample{b,105,29.5}));
+    next=state.prepare(106,true,0,Sample{b,106,30});ASSERT_TRUE(next);
+    EXPECT_NEAR(next->drumRadians(),1,1e-11); // Paying out reverses the drum.
+}
+
+TEST(CoveMechanismsTest, PauseAndDetachRebaseWithoutQueuedCatchUp) {
+    using Sample=CoveMechanisms::RopeSample;
+    const physics::AttachmentHandle rope{3,2};
+    CoveMechanisms state;ASSERT_TRUE(state.reset(7,10));
+    auto next=state.prepare(10,true,0,Sample{rope,10,4});ASSERT_TRUE(next);state=*next;
+    next=state.prepare(11,true,0,Sample{rope,11,3.72});ASSERT_TRUE(next);state=*next;
+    next=state.prepare(12,false,0,Sample{rope,12,3.44});ASSERT_TRUE(next);state=*next;
+    EXPECT_NEAR(state.drumRadians(),1,1e-12);EXPECT_FALSE(state.ropeSample());
+    next=state.prepare(13,true,0,Sample{rope,12,3.44});ASSERT_TRUE(next);state=*next;
+    EXPECT_FALSE(state.ropeSample());EXPECT_NEAR(state.drumRadians(),1,1e-12);
+    next=state.prepare(14,true,0,Sample{rope,14,3.16});ASSERT_TRUE(next);state=*next;
+    EXPECT_NEAR(state.drumRadians(),1,1e-12);
+    next=state.prepare(15,true,0,Sample{rope,15,2.88});ASSERT_TRUE(next);state=*next;
+    EXPECT_NEAR(state.drumRadians(),2,1e-12);
+    next=state.prepare(16,true,0);ASSERT_TRUE(next);state=*next;
+    next=state.prepare(17,true,0,Sample{rope,15,2.88});ASSERT_TRUE(next);state=*next;
+    EXPECT_FALSE(state.ropeSample());
+    next=state.prepare(18,true,0,Sample{rope,18,100});ASSERT_TRUE(next);state=*next;
+    EXPECT_NEAR(state.drumRadians(),2,1e-12);
+    next=state.prepare(19,true,0,Sample{rope,19,99.72});ASSERT_TRUE(next);
+    EXPECT_NEAR(next->drumRadians(),3,1e-11);
+}
+
+TEST(CoveMechanismsTest, MalformedSamplesAndOverflowLeaveTheCommittedStateUntouched) {
+    using Sample=CoveMechanisms::RopeSample;
+    const physics::AttachmentHandle rope{3,2};
+    CoveMechanisms state;EXPECT_FALSE(state.prepare(0,true,0));ASSERT_TRUE(state.reset(7,5));
+    EXPECT_FALSE(state.prepare(6,true,0,Sample{{0,1},5,2}));
+    EXPECT_FALSE(state.prepare(6,true,0,Sample{{3,0},5,2}));
+    EXPECT_FALSE(state.prepare(6,true,0,Sample{rope,7,2}));
+    EXPECT_FALSE(state.prepare(6,true,0,Sample{rope,5,-1}));
+    EXPECT_FALSE(state.prepare(6,true,0,Sample{rope,5,std::numeric_limits<double>::infinity()}));
+    EXPECT_FALSE(state.prepare(6,true,0,Sample{rope,5,std::numeric_limits<double>::quiet_NaN()}));
+    const auto baseline=state.prepare(5,true,0,Sample{rope,5,std::numeric_limits<double>::max()});
+    ASSERT_TRUE(baseline);state=*baseline;
+    EXPECT_FALSE(state.prepare(6,true,0,Sample{rope,6,0}));
+    EXPECT_EQ(state.tick(),5u);EXPECT_DOUBLE_EQ(state.drumRadians(),0);
+    ASSERT_TRUE(state.ropeSample());EXPECT_EQ(state.ropeSample()->length,std::numeric_limits<double>::max());
+    EXPECT_FALSE(state.reset(0,0));EXPECT_EQ(state.incarnation(),7u);
+}
+
+TEST(CoveMechanismsTest, NewWorldStartsNeutralWithoutPersistentVisualState) {
+    CoveMechanisms state;ASSERT_TRUE(state.reset(7,8));
+    const auto next=state.prepare(9,true,-1);ASSERT_TRUE(next);state=*next;
+    EXPECT_GT(state.rotorRadians(),0);
+    ASSERT_TRUE(state.reset(8,10000));
+    EXPECT_DOUBLE_EQ(state.rotorRadians(),0);EXPECT_DOUBLE_EQ(state.drumRadians(),0);
+    EXPECT_DOUBLE_EQ(state.effectiveDrive(),0);EXPECT_FALSE(state.ropeSample());EXPECT_EQ(state.tick(),10000u);
+}
+
 class CoveMovement : public testing::Test {
 protected:
     std::unique_ptr<const assets::LoadedAssetFixture> scene;
@@ -1345,6 +1443,142 @@ TEST_F(CoveMovement, RecoveryOfPaidLayoutStartsClearOfTheDock) {
         const auto depth=glm::min(upper,dockUpper)-glm::max(lower,dockLower);
         EXPECT_FALSE(glm::all(glm::greaterThan(depth,glm::dvec3(.0001))))
             <<"home "<<home.x<<","<<home.y<<","<<home.z<<" overlap "<<depth.x<<","<<depth.y<<","<<depth.z;
+    }
+}
+
+// Scripted resource ownership only: no device, fake completion or bodies are
+// used to claim GPU behavior. The separate authored-shape GPU case fills the
+// real eight-operation ring and proves refused payload preservation.
+class LaunchShapeResources final : public physics::IAuthoredShapeResources {
+public:
+    using Error=physics::ShapeResourceError;
+    using State=physics::ShapeResourceState;
+    std::array<Error,4> script{Error::None,Error::None,Error::None,Error::None};
+    std::array<std::optional<physics::AuthoredShape>,2> values;
+    std::array<State,2> states{State::Missing,State::Missing};
+    physics::ShapeResourcePhase phase=physics::ShapeResourcePhase::Ready;
+    size_t calls=0,accepted=0,polls=0,retirements=0;
+    bool handleOnGpuFailure=false;
+    physics::ShapeHandle upload(physics::AuthoredShape&& value,Error& error) noexcept override {
+        error=calls<script.size()?script[calls]:Error::Capacity;++calls;
+        if(error!=Error::None && !(handleOnGpuFailure&&error==Error::GpuFailure))return {};
+        if(accepted==values.size()){error=Error::Capacity;return {};}
+        const auto index=accepted++;values[index].emplace(std::move(value));states[index]=State::Uploading;
+        return {static_cast<uint32_t>(index+1),7,71};
+    }
+    State state(physics::ShapeHandle handle) const noexcept override {
+        return valid(handle)?states[handle.index-1]:State::Missing;
+    }
+    const physics::AuthoredShape* get(physics::ShapeHandle handle) const noexcept override {
+        return valid(handle)&&values[handle.index-1]?&*values[handle.index-1]:nullptr;
+    }
+    Error retain(physics::ShapeHandle handle) noexcept override {return valid(handle)?Error::None:Error::InvalidHandle;}
+    Error release(physics::ShapeHandle handle) noexcept override {return valid(handle)?Error::None:Error::InvalidHandle;}
+    Error retire(physics::ShapeHandle handle) noexcept override {
+        if(!valid(handle))return Error::InvalidHandle;
+        states[handle.index-1]=State::Retiring;++retirements;return Error::None;
+    }
+    physics::ShapeResourceSubmission prepareSubmission(std::span<const physics::ShapeHandle>,Error& error) noexcept override {
+        error=Error::Unsupported;return {};
+    }
+    Error submit(physics::ShapeResourceSubmission,std::span<const WGPUCommandBuffer>) noexcept override {return Error::Unsupported;}
+    Error discard(physics::ShapeResourceSubmission) noexcept override {return Error::Unsupported;}
+    void poll() noexcept override {
+        ++polls;
+        for(size_t i=0;i<states.size();++i) {
+            if(states[i]==State::Uploading)states[i]=State::Ready;
+            else if(states[i]==State::Retiring){states[i]=State::Missing;values[i].reset();}
+        }
+    }
+    void close() noexcept override {phase=physics::ShapeResourcePhase::Closed;}
+    physics::ShapeResourceStats stats() const noexcept override {physics::ShapeResourceStats result;result.phase=phase;return result;}
+    std::string_view failure() const noexcept override {return {};}
+    WGPUBuffer buffer() const noexcept override {return nullptr;}
+private:
+    bool valid(physics::ShapeHandle handle) const noexcept {
+        return handle.pool==71&&handle.generation==7&&handle.index>0&&handle.index<=accepted;
+    }
+};
+
+std::string launchShapePayload(const physics::AuthoredShape& shape) {
+    std::string result;
+    const auto append=[&](const auto bytes){result.append(reinterpret_cast<const char*>(bytes.data()),bytes.size_bytes());};
+    append(shape.cells());append(shape.faces());append(shape.nodes());
+    result.append(reinterpret_cast<const char*>(&shape.packedMass()),sizeof(shape.packedMass()));
+    return result;
+}
+
+TEST_F(CoveMovement, LaunchShapesRetryBusyWithoutLosingPayloadOrDuplicatingAcceptedRoots) {
+    using namespace construction;using Error=physics::ShapeResourceError;
+    std::string error;const WorldNamespace world{{'l','a','u','n','c','h','-','q','u','e','u','e'}};
+    auto seed=prepareCoveBuild(*scene,{world,1},4,error);ASSERT_TRUE(seed)<<error;
+    const auto intact=CoveBoatAssembly::compileBuild(seed->build,seed->catalog,seed->placements,error);ASSERT_TRUE(intact)<<error;
+    const auto first=seed->build.parts.front().id;std::vector<DurableId> cuts;
+    for(const auto& link:seed->build.connections)if(link.a.part==first||link.b.part==first)cuts.push_back(link.id);
+    AssemblyFractureIssue issue;const auto split=AssemblyFracturePlan::prepare(seed->build,seed->build.revision,cuts,seed->catalog,issue);ASSERT_TRUE(split);
+    const auto boat=CoveBoatAssembly::compileFragments(split->afterBuild(),seed->catalog,seed->placements,*intact->primaryRoot().helm,error);ASSERT_TRUE(boat)<<error;
+    auto roots=CoveRigidRoots::prepare(*boat,error);ASSERT_TRUE(roots);ASSERT_EQ(roots->roots().size(),2u);
+    std::vector<physics::AuthoredShape> prepared;for(const auto& root:boat->roots())prepared.push_back(root.shape);
+    const std::array original{launchShapePayload(prepared[0]),launchShapePayload(prepared[1])};
+    const auto* secondStorage=prepared[1].cells().data();
+    LaunchShapeResources resources;resources.script={Error::NotReady,Error::None,Error::Busy,Error::None};
+    resources.phase=physics::ShapeResourcePhase::Initializing;
+    EXPECT_EQ(roots->prepareShapes(resources,prepared),Error::NotReady);EXPECT_EQ(resources.calls,0u);
+    resources.phase=physics::ShapeResourcePhase::Ready;
+    EXPECT_EQ(roots->prepareShapes(resources,prepared),Error::NotReady);EXPECT_EQ(resources.calls,1u);
+    EXPECT_EQ(launchShapePayload(prepared[0]),original[0]);EXPECT_EQ(launchShapePayload(prepared[1]),original[1]);
+    EXPECT_EQ(roots->prepareShapes(resources,prepared),Error::Busy);EXPECT_EQ(resources.calls,3u);
+    const auto accepted=roots->roots()[0].shape;ASSERT_TRUE(accepted.valid());EXPECT_FALSE(roots->roots()[1].shape.valid());
+    ASSERT_NE(resources.get(accepted),nullptr);EXPECT_EQ(launchShapePayload(*resources.get(accepted)),original[0]);
+    EXPECT_EQ(prepared[1].cells().data(),secondStorage);EXPECT_EQ(launchShapePayload(prepared[1]),original[1]);
+    EXPECT_EQ(roots->prepareShapes(resources,prepared),Error::NotReady);EXPECT_EQ(resources.calls,4u);
+    EXPECT_EQ(roots->roots()[0].shape,accepted);ASSERT_TRUE(roots->roots()[1].shape.valid());
+    EXPECT_EQ(launchShapePayload(*resources.get(roots->roots()[1].shape)),original[1]);
+    prepared.clear(); // Application frees moved payloads only after every handle exists.
+    EXPECT_EQ(roots->prepareShapes(resources,prepared),Error::NotReady);EXPECT_EQ(resources.polls,0u);
+    resources.poll();EXPECT_EQ(roots->prepareShapes(resources,prepared),Error::None);EXPECT_EQ(resources.calls,4u);
+    EXPECT_EQ(roots->prepareShapes(resources,prepared),Error::None);EXPECT_EQ(resources.calls,4u);
+    EXPECT_TRUE(roots->matches(*boat));EXPECT_FALSE(roots->allAdmitted());EXPECT_EQ(roots->joinedTick(),0u);
+    for(size_t i=0;i<roots->roots().size();++i) {
+        EXPECT_EQ(roots->roots()[i].key,boat->assembly().mass().roots()[i].key);
+        EXPECT_FALSE(roots->roots()[i].body.valid());EXPECT_FALSE(roots->roots()[i].retired);
+    }
+}
+
+TEST_F(CoveMovement, LaunchShapeTerminalErrorsRetainEveryPartialHandleForCancellation) {
+    using namespace construction;using Error=physics::ShapeResourceError;using State=physics::ShapeResourceState;
+    std::string error;const WorldNamespace world{{'l','a','u','n','c','h','-','e','r','r','o','r'}};
+    auto seed=prepareCoveBuild(*scene,{world,1},4,error);ASSERT_TRUE(seed)<<error;
+    const auto intact=CoveBoatAssembly::compileBuild(seed->build,seed->catalog,seed->placements,error);ASSERT_TRUE(intact)<<error;
+    const auto first=seed->build.parts.front().id;std::vector<DurableId> cuts;
+    for(const auto& link:seed->build.connections)if(link.a.part==first||link.b.part==first)cuts.push_back(link.id);
+    AssemblyFractureIssue issue;const auto split=AssemblyFracturePlan::prepare(seed->build,seed->build.revision,cuts,seed->catalog,issue);ASSERT_TRUE(split);
+    const auto boat=CoveBoatAssembly::compileFragments(split->afterBuild(),seed->catalog,seed->placements,*intact->primaryRoot().helm,error);ASSERT_TRUE(boat)<<error;
+    for(const auto terminal:{Error::Capacity,Error::GpuFailure}) {
+        auto roots=CoveRigidRoots::prepare(*boat,error);ASSERT_TRUE(roots);ASSERT_EQ(roots->roots().size(),2u);
+        std::vector<physics::AuthoredShape> prepared;for(const auto& root:boat->roots())prepared.push_back(root.shape);
+        const auto remaining=launchShapePayload(prepared[1]);LaunchShapeResources resources;
+        resources.script={Error::None,terminal,Error::None,Error::None};resources.handleOnGpuFailure=true;
+        EXPECT_EQ(roots->prepareShapes(resources,std::span{prepared}.first(1)),Error::InvalidHandle);EXPECT_EQ(resources.calls,0u);
+        EXPECT_EQ(roots->prepareShapes(resources,prepared),terminal);EXPECT_EQ(resources.calls,2u);
+        ASSERT_TRUE(roots->roots()[0].shape.valid());
+        EXPECT_EQ(roots->roots()[1].shape.valid(),terminal==Error::GpuFailure);
+        if(terminal==Error::Capacity){EXPECT_EQ(launchShapePayload(prepared[1]),remaining);}
+        EXPECT_TRUE(roots->matches(*boat));EXPECT_FALSE(roots->allAdmitted());EXPECT_EQ(roots->joinedTick(),0u);
+        // Simulate the existing owner's cancellation protocol, retaining shapes
+        // through Retiring until the resource owner acknowledges their removal.
+        size_t accepted=0;
+        for(auto& root:roots->roots())if(root.shape.valid()) {
+            ++accepted;EXPECT_EQ(resources.retire(root.shape),Error::None);root.retired=true;
+            EXPECT_EQ(resources.state(root.shape),State::Retiring);EXPECT_FALSE(root.body.valid());
+            EXPECT_NE(resources.get(root.shape),nullptr);
+        }
+        EXPECT_EQ(resources.retirements,accepted);EXPECT_EQ(resources.polls,0u);
+        EXPECT_EQ(roots->prepareShapes(resources,prepared),Error::InvalidHandle);EXPECT_EQ(resources.calls,2u);
+        resources.poll();
+        for(const auto& root:roots->roots())if(root.shape.valid()) {
+            EXPECT_EQ(resources.state(root.shape),State::Missing);EXPECT_EQ(resources.get(root.shape),nullptr);
+        }
     }
 }
 

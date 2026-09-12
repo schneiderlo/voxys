@@ -1,0 +1,834 @@
+--- a/scripts/validate_native_cove_delivery.py
++++ b/scripts/validate_native_cove_delivery.py
+@@ -9,6 +9,7 @@
+ import json
+ import math
+ import os
++import re
+ from pathlib import Path
+ import signal
+ import subprocess
+@@ -51,6 +52,7 @@
+     parser.add_argument('--storage-root', type=Path, required=True)
+     parser.add_argument('--output', type=Path, required=True)
+     parser.add_argument('--permission-failure', action='store_true', help='Check real unwritable save-root failure and explicit retry')
++    parser.add_argument('--objectives-and-harbor', action='store_true', help='Assert native recovery guidance and extend this same haul through durable harbor power')
+     args = parser.parse_args()
+     args.storage_root = args.storage_root.resolve()
+     args.storage_root.mkdir(parents=True, exist_ok=False)
+@@ -62,6 +64,8 @@
+     child = stream = window = None
+     index = 0
+     began = time.monotonic()
++    checked_logs = set()
++    objective_steps = set()
+ 
+     def read():
+         path = args.output / f'observation-{index}' / 'state.json'
+@@ -71,16 +75,37 @@
+         end = time.monotonic() + seconds
+         state = {}
+         while time.monotonic() < end:
+-            if time.monotonic() - began > 360:
+-                raise RuntimeError('Native journey exceeded six-minute bound')
++            if time.monotonic() - began > (480 if args.objectives_and_harbor else 360):
++                raise RuntimeError('Native journey exceeded its bounded work time')
+             if child.poll() is not None:
+                 raise RuntimeError(f'Native child exited {child.returncode}: {label}')
+             state = read()
+             assert not state.get('failed'), state
++            if args.objectives_and_harbor:
++                hud = state.get('nativeHud', {})
++                if hud.get('objective'):
++                    objective_steps.add(hud['objective'])
++                if hud.get('objective') == 'powered':
++                    assert state.get('harbor', {}).get('durable') and state['harbor']['installed'], state
++                if hud.get('objective') in ('delivered', 'power', 'powered'):
++                    assert state.get('job', {}).get('durable'), state
+             if predicate(state):
+                 return state
+             time.sleep(.02)
+         raise RuntimeError(label + ': ' + json.dumps(state))
++
++    def objective(*steps):
++        if not args.objectives_and_harbor:
++            return read()
++        return wait(lambda state: state.get('nativeHud', {}).get('objective') in steps,
++                    'HUD objective ' + '/'.join(steps))
++
++    def body_identity(state):
++        boat = state['boat']
++        mechanism = boat['mechanisms']
++        return (boat['physicsTicks']['incarnation'], boat['buildId'], boat['topologyRevision'],
++                mechanism['bodyIndex'], mechanism['bodyGeneration'],
++                tuple(root['key'] for root in boat['roots']))
+ 
+     def record(name, state=None, **extra):
+         state = state or read()
+@@ -94,6 +119,22 @@
+             assert all(root['active'] and int(root['observedTick']) == joined for root in roots)
+         if state['pause']['phase'] == 'paused':
+             assert joined == int(boat['observedTick']) and joined > 0
++        if args.objectives_and_harbor:
++            hud, fixture = state['nativeHud'], state['assetFixture']
++            assert hud['enabled'] and hud['lastEncodedQuads'] > 0 and hud['bodyPixels'] >= 20 and not hud['truncated'], hud
++            assert fixture['presentationParts'] == 7 and fixture['sceneSunShadows'] and fixture['environmentReady'], fixture
++            frame = int(fixture['submittedSerial'])
++            tick = max(int(boat['observedTick']), int(state['tow']['observedTick']))
++            identity = body_identity(state)
++            assert frame > 0 and tick > 0
++            completed = wait(lambda newer: body_identity(newer) == identity
++                             and int(newer['assetFixture']['completedSerial']) >= frame
++                             and int(newer['boat']['physicsTicks']['completed']) >= tick,
++                             name + ' actual frame and physics completion')
++            extra['completion'] = {'frame': frame, 'tick': tick,
++                                   'completedFrame': int(completed['assetFixture']['completedSerial']),
++                                   'completedTick': int(completed['boat']['physicsTicks']['completed']),
++                                   'body': identity}
+         report['stages'].append({'name': name, 'state': state, **extra})
+         (args.output / 'summary.json').write_text(json.dumps(report, indent=2) + '\n')
+         return state
+@@ -134,12 +175,28 @@
+ 
+     def stop():
+         nonlocal child, stream
+-        if child and child.poll() is None:
+-            child.send_signal(signal.SIGTERM)
+-            child.wait(timeout=15)
+-        if stream:
+-            stream.close()
+-        child = stream = None
++        try:
++            if child and child.poll() is None:
++                child.send_signal(signal.SIGTERM)
++                try:
++                    child.wait(timeout=15)
++                except subprocess.TimeoutExpired:
++                    child.kill(); child.wait(timeout=5)
++        finally:
++            if stream:
++                stream.close()
++            child = stream = None
++        path = args.output / f'process-{index}.log'
++        if args.objectives_and_harbor and index not in checked_logs and path.exists():
++            checked_logs.add(index)
++            pattern = re.compile(r'uncaptured(?:\s+WebGPU)?(?:\s+GPU)?\s+error|WebGPU validation error|'
++                                 r'(?:WGPU|WebGPU)[^\n]{0,100}(?:error|validation failed)|\[(?:error|fatal)\s*\]', re.IGNORECASE)
++            errors = [line for line in path.read_text(errors='replace').splitlines() if pattern.search(line)
++                      and not (args.permission_failure and 'Expedition storage error' in line)]
++            report.setdefault('processChecks', []).append({'process': index, 'errorLines': errors})
++            if errors:
++                report.update(status='failed', error='Unexpected native log errors: ' + ' | '.join(errors[:8]))
++                raise RuntimeError(report['error'])
+ 
+     def select(name):
+         for _ in range(18):
+@@ -169,16 +226,21 @@
+                 wait(lambda s: s['workshop']['placement'] == expected, 'part move observed')
+         wait(lambda s: s['workshop']['placement'] == target, 'exact design placement')
+ 
+-    def walk(target):
++    def walk(target, reached=None, accept_point=False):
+         for _ in range(100):
+             s = read()
++            if reached and reached(s):
++                hold([], 3)
++                return
+             p = s['player']['feet']
+             t = target(s) if callable(target) else target
+             dx, dz = t[0] - p[0], t[1] - p[2]
+             distance = math.hypot(dx, dz)
+             if distance < .18:
+                 hold([], 10)
+-                return
++                if reached is None or accept_point:
++                    return
++                continue
+             yaw = s['camera']['yaw']
+             forward = (dx * math.sin(yaw) + dz * math.cos(yaw)) / distance
+             right = (dx * math.cos(yaw) - dz * math.sin(yaw)) / distance
+@@ -192,9 +254,11 @@
+ 
+     try:
+         start()
++        objective('accept')
+         record('fresh')
+         key('b')
+         wait(lambda s: s['workshop']['open'], 'workshop')
++        objective('workshop')
+         select('Cargo cradle'); record('cradle-selected'); key('Delete'); keep()
+         assert read()['workshop']['massKg'] == 945
+         select('Winch'); move([75, 96, -2750]); keep()
+@@ -212,17 +276,26 @@
+         assert rig['session']['inventory']['salvageMaterial'] == '36'
+         key('j')
+         wait(lambda s: s['job']['phase'] == 'accepted' and not s['job']['pending'], 'accepted job')
+-        walk([4.5, -49]); walk([4.5, -53])
++        if args.objectives_and_harbor: record('objective-board', objective('board'))
++        if args.objectives_and_harbor:
++            for point in ([6, -49.5], [4.5, -49.5]):
++                walk(point, lambda state: state['player']['interaction'] == 'board', accept_point=True)
++            walk([4.5, -53], lambda state: state['player']['interaction'] == 'board')
++        else:
++            walk([4.5, -49]); walk([4.5, -53])
+         wait(lambda s: s['player']['interaction'] == 'board', 'boarding')
+         key('e'); wait(lambda s: s['player']['onBoat'], 'aboard')
+-        walk(lambda s: [s['boat']['helmPosition'][0], s['boat']['helmPosition'][2]])
++        walk(lambda s: [s['boat']['helmPosition'][0], s['boat']['helmPosition'][2]],
++             (lambda state: state['player']['interaction'] == 'helm') if args.objectives_and_harbor else None)
+         wait(lambda s: s['player']['interaction'] == 'helm', 'helm position')
+         key('e'); wait(lambda s: s['player']['mode'] == 'helm', 'using helm')
+         wait(lambda s: s['tow']['operable'] and s['tow']['confirmed'] and s['tow']['distance'] < 7.5,
+              'load within hooking reach')
++        objective('hook')
+         record('helm-before-hook')
+         hold(['f'], 2)
+         wait(lambda s: s['tow']['attached'] and s['tow']['confirmed'], 'hooked cargo')
++        objective('return', 'lift')
+         record('hooked')
+         for i in range(32):
+             # Bring the load alongside without hauling it into the beam.
+@@ -257,6 +330,7 @@
+             hold(['q'], 5); hold([], 15)
+             record(f'harbor-hoist-{i}')
+         wait(lambda s: s['job']['canDeliver'], 'cargo inside harbor and slow enough')
++        objective('deliver')
+         record('eligible-delivery')
+         if args.permission_failure:
+             args.storage_root.chmod(0o500)
+@@ -264,7 +338,15 @@
+         if args.permission_failure:
+             wait(lambda s: s['job']['savePending'] and s['job']['secured'] and s['pause']['phase'] == 'paused'
+                  and 'Save failed.' in x.title(window), 'real filesystem permission failure')
++            if args.objectives_and_harbor:
++                wait(lambda state: state['job']['savePending'] and not state['job']['durable']
++                     and state['pause']['phase'] == 'paused'
++                     and state.get('nativeHud', {}).get('objective') == 'saving'
++                     and state['nativeHud']['status'] == 'Save failed. F10: Retry',
++                     'actual failure reached the 10 Hz HUD')
+             unsaved = record('delivery-save-permission-failed')
++            if args.objectives_and_harbor:
++                assert unsaved['nativeHud']['status'] == 'Save failed. F10: Retry', unsaved['nativeHud']
+             assert not unsaved['job']['durable'] and not (args.storage_root / unsaved['world'] / 'current').exists()
+             key('p'); key('r'); key('h'); key('w')
+             time.sleep(.15)
+@@ -274,6 +356,7 @@
+             args.storage_root.chmod(0o700)
+             key('F10')
+         wait(lambda s: s['job']['durable'] and not s['job']['savePending'] and s['pause']['phase'] == 'paused', 'automatic durable delivery')
++        objective('delivered')
+         saved = record('delivery-saved')
+         assert saved['job']['phase'] == 'completed' and saved['job']['secured']
+         assert saved['session']['inventory']['salvageMaterial'] == '96' and saved['session']['cargo'] == 0
+@@ -284,6 +367,7 @@
+         record('mirrored-delivery-checkpoint', archive=meta)
+         stop()
+         start(saved['world'])
++        objective('delivered')
+         restored = record('delivery-restarted')
+         assert restored['job']['durable'] and restored['job']['secured'] and restored['job']['phase'] == 'completed'
+         assert restored['session']['inventory'] == saved['session']['inventory'] and restored['session']['cargo'] == 0
+@@ -294,18 +378,51 @@
+         key('h'); hold([], 20)
+         repeated = record('duplicate-delivery-refused')
+         assert repeated['session']['inventory'] == saved['session']['inventory'] and repeated['session']['cargo'] == 0
+-        hold(['w'], 90)
+-        sailed = record('sail-away')
+-        assert math.dist(sailed['tow']['position'], restored['tow']['position']) < .001
+-        assert sailed['boat']['speed'] > .2 and sailed['session']['inventory']['salvageMaterial'] == '96'
++        if args.objectives_and_harbor:
++            # Reuse the existing harbor journey's ordinary Rescue/berth return;
++            # no cargo/world payload is fabricated and this is still one haul.
++            record('objective-return-to-dock', objective('dock'))
++            before_rescue = int(read()['rescue']['completed'])
++            key('r')
++            wait(lambda state: int(state['rescue']['completed']) > before_rescue
++                 and not state['rescue']['pending'] and state['pause']['phase'] == 'paused',
++                 'real recovery saved at berth')
++            key('p'); wait(lambda state: state['pause']['phase'] == 'running', 'resume at berth')
++            walk([4.5, -52.5], lambda state: state['harbor']['canInstall'])
++            wait(lambda state: state['harbor']['canInstall'], 'dock installation available')
++            ready = record('objective-power-harbor', objective('power'))
++            assert 'K: Power harbor' in ready['nativeHud']['hints']
++            key('k')
++            wait(lambda state: state['harbor']['durable'] and not state['harbor']['pending']
++                 and state['pause']['phase'] == 'paused', 'harbor installation saved')
++            powered = record('objective-powered-and-saved', objective('powered'))
++            assert powered['session']['inventory'] == saved['session']['inventory']
++            assert powered['boat']['paidPartIds'] == saved['boat']['paidPartIds']
++            assert powered['boat']['massKg'] == saved['boat']['massKg']
++            meta, payload = archive(args.storage_root / saved['world'])
++            assert meta['tick'] == int(powered['pause']['tick'])
++            (args.output / 'powered.svce').write_bytes(payload)
++            report['poweredArchive'] = meta
++            assert {'accept', 'workshop', 'board', 'hook', 'return', 'lift', 'deliver', 'delivered', 'dock', 'power', 'powered'} <= objective_steps, objective_steps
++            if args.permission_failure:
++                assert 'saving' in objective_steps
++            report['objectiveSteps'] = sorted(objective_steps)
++        else:
++            hold(['w'], 90)
++            sailed = record('sail-away')
++            assert math.dist(sailed['tow']['position'], restored['tow']['position']) < .001
++            assert sailed['boat']['speed'] > .2 and sailed['session']['inventory']['salvageMaterial'] == '96'
+         report['status'] = 'passed'
+     except Exception as error:
+         report.update(status='failed', error=str(error))
+         raise
+     finally:
+         args.storage_root.chmod(0o700)
+-        stop(); x.close()
+-        (args.output / 'summary.json').write_text(json.dumps(report, indent=2) + '\n')
++        try:
++            stop()
++        finally:
++            x.close()
++            (args.output / 'summary.json').write_text(json.dumps(report, indent=2) + '\n')
+ 
+ 
+ if __name__ == '__main__':
+--- a/src/app/application.cpp
++++ b/src/app/application.cpp
+@@ -19,6 +19,7 @@
+ 
+ #include "app/debug_overlay.hpp"
+ #include "render/cove_hud.hpp"
++#include "render/cove_recovery_guidance.hpp"
+ #include "game/expedition/game_session.hpp"
+ #include "game/expedition/cove_player.hpp"
+ #include "game/expedition/cove_water_clock.hpp"
+@@ -6787,17 +6788,22 @@
+     const auto owned=local.session->snapshot();
+     hud.economy="Material "+std::to_string(owned.inventory.salvageMaterial);
+     if(asset.pause!=Pause::Running){
+-        hud.title=asset.pause==Pause::Paused?"Cove paused":"Stopping safely";
+-        hud.selected=asset.checkpointPending?"Progress awaiting save":"Expedition on hold";
+-        hud.status=salvageSaveStatus_.empty()
+-            ?(asset.pause==Pause::Paused?"Ready to save":"Waiting for motion to stop"):salvageSaveStatus_;
+-        hud.tone=asset.checkpointPending?Tone::Waiting:Tone::Neutral;
+-        hud.hints={"F10: Save expedition",asset.checkpointPending?"Wait for save to finish":"P: Resume", ""};
++        render::CovePauseFacts facts;
++        facts.paused=asset.pause==Pause::Paused;facts.storageRevoked=local.storageRevoked;
++        facts.checkpointPending=asset.checkpointPending;
++        facts.harborPending=asset.harbor&&asset.harbor->installationPending();
++        facts.rescuePending=asset.rescue!=SalvageLocalSessionState::AssetPreview::Rescue::None;
++        facts.cargoBanked=asset.cargoBanked;facts.deliveryDurable=asset.deliveryDurable;
++        facts.harborPowered=asset.harbor&&asset.harbor->durable()&&asset.harbor->installed();
++        facts.saveStatus=salvageSaveStatus_;
++        if(asset.harbor&&asset.harbor->stage()==game::expedition::CoveHarborRuntime::Stage::Absent)
++            facts.harborRefusal=asset.harbor->message();
++        render::applyCovePauseGuidance(facts,hud);
+         return hud;
+     }
+     if(asset.workshopOpen&&asset.workshop){
+         const auto& workshop=*asset.workshop;
+-        hud.title="Brick workshop";
++        hud.title="Brick workshop";hud.objective="workshop";
+         hud.selected=std::string(workshop.brickToolActive()?workshop.catalogName():workshop.selectedName());
+         if(workshop.canPaint()) {
+             const auto index=workshop.paintIndex();
+@@ -6825,22 +6831,79 @@
+             "Enter: Launch   B: Close"};
+         return hud;
+     }
+-    hud.title="Salvage Cove";
+     using Player=game::expedition::CovePlayer;
+     switch(asset.player->interaction()){
+         case Player::Interaction::Board:hud.selected="E: Board boat";break;
+         case Player::Interaction::ReturnToDock:hud.selected="E: Return to dock";break;
+         case Player::Interaction::UseHelm:hud.selected="E: Use helm";break;
+         case Player::Interaction::LeaveHelm:hud.selected="E: Leave helm";break;
+-        case Player::Interaction::None:hud.selected="Walk beside the boat to board";break;
++        case Player::Interaction::None:hud.selected="Walk beside the boat";break;
+     }
+     if(asset.player->mode()==Player::Mode::Swimming)hud.selected="Swimming - R: Rescue";
+-    hud.status=salvageSaveStatus_.empty()?"P pauses play before saving":salvageSaveStatus_;
+-    hud.hints[0]=asset.player->mode()==Player::Mode::Helm?"W/S: Throttle  A/D: Steer":"WASD: Walk  Space: Jump";
+-    hud.hints[1]=asset.player->onBoat()&&asset.cargo&&!asset.cargoBanked
+-        ?(asset.towRope.valid()&&!asset.towBroken?"F: Release  Q/Z: Reel":"F: Hook salvage")
+-        :"B: Workshop at the dock";
+-    hud.hints[2]="P: Pause   R: Rescue";
++    render::CoveRecoveryFacts facts;
++    const auto job=std::find_if(owned.jobs.begin(),owned.jobs.end(),[&](const auto& item){return item.id==local.jobId;});
++    const auto cargo=std::find_if(owned.cargo.begin(),owned.cargo.end(),[&](const auto& item){return item.id==local.cargoId;});
++    if(job!=owned.jobs.end()) {
++        using Job=game::expedition::JobPhase;
++        using FactJob=render::CoveRecoveryFacts::Job;
++        facts.job=job->phase==Job::Available?FactJob::Available:job->phase==Job::Accepted?FactJob::Accepted:FactJob::Completed;
++    }
++    // Common outer and action 50/51/52 guards. Per-action readiness below is
++    // deliberately sampled without submitting any intent or opening a ticket.
++    facts.commandsReady=!(coveResume_&&!coveResume_->ready)&&!local.storageRevoked
++        &&!asset.checkpointPending&&asset.rescue==SalvageLocalSessionState::AssetPreview::Rescue::None
++        &&!(asset.harbor&&asset.harbor->installationPending())&&!asset.leaving
++        &&!local.session->hasPending()&&!salvagePreview_->busy()&&!local.pendingControl;
++    const bool jobCommands=facts.commandsReady&&local.executionBound&&local.session->admissionOpen();
++    facts.storageReady=local.storageHostReady;
++    facts.canAccept=jobCommands&&facts.job==render::CoveRecoveryFacts::Job::Available;
++    facts.deliveryPending=asset.checkpointPending;
++    facts.deliveryDurable=asset.deliveryDurable;facts.cargoBanked=asset.cargoBanked;
++    facts.onBoat=asset.player->onBoat();
++    facts.cargoObserved=asset.cargo&&asset.cargoBody.valid()&&!asset.cargoBanked&&!asset.cargoSecuring&&asset.cargoObservedTick!=0;
++    if(jobCommands&&facts.storageReady&&facts.job==render::CoveRecoveryFacts::Job::Accepted
++        &&cargo!=owned.cargo.end()&&local.preparation.eligible)
++        facts.canDeliver=local.preparation.eligible({*cargo,*job,*job,{}});
++    if(asset.content->registry.navigation&&asset.content->registry.navigation->delivery){
++        const auto& zone=*asset.content->registry.navigation->delivery;
++        const auto position=physics::worldPositionToAbsolute(asset.cargoObserved.position)-asset.origin;
++        facts.harborDistance=std::hypot(position.x-zone.center.x,position.z-zone.center.z);
++        facts.harborLimit=zone.radius-1.1; // Same current cargo allowance as eligible().
++        facts.height=position.y;facts.minimumHeight=zone.minimumHeight;
++        facts.speed=double(glm::length(asset.cargoObserved.originVelocity));facts.maximumSpeed=zone.maximumSpeed;
++        facts.spin=double(glm::length(asset.cargoObserved.angularVelocity));facts.maximumSpin=zone.maximumAngularSpeed;
++    }
++    facts.hasWinch=asset.towReelSpeed>0;
++    facts.onWinchRoot=facts.onBoat&&asset.player->state().root==asset.towRoot().key;
++    facts.towAttached=asset.towRope.valid()&&!asset.towBroken;
++    facts.towConfirmed=asset.boatEventsThrough>=asset.towChangedTick
++        &&asset.towObservedTick>=asset.towChangedTick&&asset.towObserved.handle==asset.towRope;
++    facts.towReady=facts.commandsReady&&facts.hasWinch&&facts.cargoObserved&&facts.onWinchRoot
++        &&asset.towRoot().body.valid()&&asset.towRoot().observedTick&&!asset.towAction
++        &&asset.status==render::SalvageFixtureStatus::Active;
++    if(facts.cargoObserved&&asset.towRoot().observedTick){
++        const auto a=physics::worldPositionToAbsolute(asset.towRoot().observed.position)
++            +glm::dvec3(asset.towRoot().observed.orientation*asset.towBoatPoint);
++        const auto b=physics::worldPositionToAbsolute(asset.cargoObserved.position)
++            +glm::dvec3(asset.cargoObserved.orientation*asset.towCargoPoint);
++        facts.hookDistance=glm::length(b-a);
++    }
++    if(asset.harbor){
++        const auto& harbor=*asset.harbor;
++        facts.harborPresent=true;facts.harborInstalled=harbor.installed();facts.harborDurable=harbor.durable();
++        facts.harborPending=harbor.installationPending();
++        facts.atDock=!facts.onBoat&&glm::length(asset.player->feet()-asset.content->registry.navigation->dockBoarding)<=4;
++        const bool harborCommands=facts.commandsReady&&!asset.launch&&asset.deliveryDurable&&asset.boatRoot().body.valid()&&facts.atDock;
++        facts.canInstall=harborCommands&&facts.storageReady&&harbor.stage()==game::expedition::CoveHarborRuntime::Stage::Absent&&!harbor.installed();
++        facts.canUseLift=harborCommands&&harbor.durable()&&!harbor.busy()&&harbor.rig()
++            &&harbor.stage()==game::expedition::CoveHarborRuntime::Stage::Ready;
++    }
++    const auto guidance=render::coveRecoveryGuidance(facts);
++    hud.title=guidance.title;hud.status=guidance.status;hud.tone=guidance.tone;hud.objective=guidance.step;
++    hud.hints[0]=asset.player->mode()==Player::Mode::Helm?"W/S: Drive  A/D: Steer":"WASD: Walk  Space: Jump";
++    hud.hints[1]=guidance.controls;
++    hud.hints[2]="B: Build  P: Pause  R: Rescue";
++    if(facts.deliveryPending||facts.harborPending)hud.hints={std::string(guidance.controls),"Controls wait for hand-off",""};
+     return hud;
+ }
+ 
+@@ -6899,7 +6962,25 @@
+             <<",\"lastEncodedQuads\":"<<nativeCoveHud_->lastEncodedQuads()
+             <<",\"uploads\":"<<nativeCoveHud_->uploadCount()<<",\"bodyPixels\":"<<hud.bodyPixels
+             <<",\"truncated\":"<<(hud.truncated?"true":"false")
+-            <<",\"panel\":["<<hud.panel.x<<','<<hud.panel.y<<','<<hud.panel.z<<','<<hud.panel.w<<"]}";
++            <<",\"panel\":["<<hud.panel.x<<','<<hud.panel.y<<','<<hud.panel.z<<','<<hud.panel.w<<']';
++        const auto& content=nativeCoveHud_->content();
++        const auto string=[&](std::string_view value){
++            json<<'"';
++            constexpr char hex[]="0123456789abcdef";
++            for(const unsigned char c:value){
++                if(c=='"'||c=='\\')json<<'\\'<<static_cast<char>(c);
++                else if(c<32)json<<"\\u00"<<hex[c>>4]<<hex[c&15];
++                else json<<static_cast<char>(c);
++            }
++            json<<'"';
++        };
++        json<<",\"objective\":";string(content.objective);
++        json<<",\"title\":";string(content.title);
++        json<<",\"selected\":";string(content.selected);
++        json<<",\"status\":";string(content.status);
++        json<<",\"hints\":[";
++        for(size_t i=0;i<content.hints.size();++i){if(i)json<<',';string(content.hints[i]);}
++        json<<"]}";
+     }
+ #endif
+     if(salvageLocalSession_ && salvageLocalSession_->saveContext){
+--- a/src/render/BUILD
++++ b/src/render/BUILD
+@@ -94,6 +94,7 @@
+     hdrs = [
+         "blit_path.hpp",
+         "cove_hud.hpp",
++        "cove_recovery_guidance.hpp",
+         "cove_hud_font.inc",
+         "opaque_scene.hpp",
+         "periodic_gradient_lut.hpp",
+--- a/src/render/cove_hud.hpp
++++ b/src/render/cove_hud.hpp
+@@ -16,6 +16,7 @@
+     std::string title, selected, economy, status;
+     std::array<std::string,3> hints;
+     CoveHudTone tone=CoveHudTone::Neutral;
++    std::string objective{}; // Read-only formatter step; never gameplay state.
+     bool operator==(const CoveHudContent&) const = default;
+ };
+ // Normalized camera rectangle, leaving the left HUD and bottom 3D palette free.
+@@ -52,6 +53,7 @@
+     void clearEncodedObservation() noexcept { lastEncodedQuads_=0; }
+     [[nodiscard]] uint32_t lastEncodedQuads() const noexcept {return lastEncodedQuads_;}
+     [[nodiscard]] const CoveHudLayout& layout() const noexcept {return layout_;}
++    [[nodiscard]] const CoveHudContent& content() const noexcept {return content_;}
+     [[nodiscard]] uint64_t uploadCount() const noexcept {return uploadCount_;}
+     [[nodiscard]] bool initialized() const noexcept {return pipeline_!=nullptr;}
+     static constexpr uint64_t residentBytes=512u*256u+CoveHudLayout::maximumQuads*sizeof(CoveHudQuad);
+--- /dev/null
++++ b/src/render/cove_recovery_guidance.hpp
+@@ -0,0 +1,159 @@
++#pragma once
++
++#include "render/cove_hud.hpp"
++#include <algorithm>
++#include <cmath>
++#include <string_view>
++#include <utility>
++
++namespace voxy::render {
++
++// Read-only facts from the current native command guards and observed cargo.
++// This formatter cannot grant permission or mutate a mission. In particular,
++// canDeliver includes the authoritative physical eligibility callback; numeric
++// values below explain refusal but are never used to declare success.
++struct CoveRecoveryFacts {
++    enum class Job { Missing, Available, Accepted, Completed };
++    Job job=Job::Missing;
++    bool commandsReady=false,canAccept=false,canDeliver=false,storageReady=false;
++    bool deliveryPending=false,deliveryDurable=false,cargoBanked=false,cargoObserved=false,onBoat=false;
++    bool hasWinch=false,onWinchRoot=false,towReady=false,towAttached=false,towConfirmed=false;
++    double hookDistance=0,harborDistance=0,harborLimit=0;
++    double height=0,minimumHeight=0,speed=0,maximumSpeed=0,spin=0,maximumSpin=0;
++    bool harborPresent=false,harborInstalled=false,harborDurable=false,harborPending=false;
++    bool atDock=false,canInstall=false,canUseLift=false;
++};
++struct CoveRecoveryGuidance {
++    std::string_view step="none",title="Salvage Cove",controls="B: Build at dock";
++    std::string status="P: Pause before saving";
++    CoveHudTone tone=CoveHudTone::Neutral;
++};
++struct CovePauseFacts {
++    bool paused=false,storageRevoked=false,checkpointPending=false,harborPending=false,rescuePending=false;
++    bool cargoBanked=false,deliveryDurable=false,harborPowered=false;
++    std::string_view saveStatus{},harborRefusal{};
++};
++// Pause is presented before workshop/running guidance. Historical delivery or
++// power must never hide a current installation, save attempt or save failure.
++inline void applyCovePauseGuidance(const CovePauseFacts& f,CoveHudContent& hud) {
++    using Tone=CoveHudTone;
++    hud.title=f.paused?"Cove paused":"Stopping safely";
++    hud.selected="Expedition on hold";hud.objective="paused";hud.tone=Tone::Neutral;
++    hud.status=f.saveStatus.empty()?(f.paused?"Ready to save":"Waiting for motion to stop"):std::string(f.saveStatus);
++    hud.hints={f.paused?"F10: Save expedition":"Wait for motion to stop",f.paused?"P: Resume":"", ""};
++    if(f.storageRevoked){
++        hud.objective="storage-revoked";hud.selected="Save needs recovery";
++        hud.status="Restart game to recover";hud.hints={"Progress stays paused","",""};hud.tone=Tone::Blocked;
++        return;
++    }
++    if(f.harborPending||f.checkpointPending||f.rescuePending){
++        hud.objective=f.harborPending?"powering":f.rescuePending?"rescuing"
++            :f.cargoBanked&&!f.deliveryDurable?"saving":"checkpoint";
++        hud.selected=f.harborPending?"Powering the harbor":f.rescuePending?"Recovering your boat"
++            :f.cargoBanked&&!f.deliveryDurable?"Saving delivery":"Progress awaiting save";
++        hud.status=f.checkpointPending?(f.paused?"Waiting for durable save":"Waiting for motion to stop")
++            :f.harborPending?"Preparing harbor lift":"Returning boat safely";
++        hud.hints={f.paused&&f.checkpointPending?"F10: Retry save":"Wait for completion","Controls wait for completion",""};
++        hud.tone=Tone::Waiting;
++        if(f.paused&&f.checkpointPending&&f.saveStatus.starts_with("Save failed.")){
++            hud.status="Save failed. F10: Retry";hud.tone=Tone::Blocked;
++        }
++        return;
++    }
++    if(f.saveStatus.starts_with("Save failed.")){
++        hud.objective="save-failed";hud.selected="Save not complete";
++        hud.status=f.paused?"Save failed. F10: Retry":"Save failed. Stopping safely";hud.tone=Tone::Blocked;
++        return;
++    }
++    if(f.saveStatus.starts_with("Saving ")){
++        hud.objective="manual-saving";hud.selected="Saving expedition";
++        hud.hints={"Wait for save to finish","",""};hud.tone=Tone::Waiting;
++        return;
++    }
++    if(f.deliveryDurable){
++        hud.objective=f.harborPowered?"powered":"delivered";
++        hud.selected=f.harborPowered?"Harbor power saved":"Generator delivery saved";
++        if(f.saveStatus.empty())hud.status="P: Resume when ready";
++        if(!f.harborRefusal.empty()){
++            hud.objective="harbor-blocked";hud.selected="Harbor not installed";
++            hud.status=f.harborRefusal;hud.tone=Tone::Blocked;
++        }
++    }
++}
++namespace cove_guidance_detail {
++inline std::string decimal(double value) {
++    // Bounded, locale-independent output. Upward rounding of a positive
++    // deficit never tells the player to move/lift zero while still outside.
++    if(value>=999)return "999+";
++    const auto tenths=static_cast<unsigned>(std::ceil(std::clamp(value,0.0,999.0)*10.0));
++    return std::to_string(tenths/10)+'.'+std::to_string(tenths%10);
++}
++}
++[[nodiscard]] inline CoveRecoveryGuidance coveRecoveryGuidance(const CoveRecoveryFacts& f) {
++    using Job=CoveRecoveryFacts::Job;
++    using Tone=CoveHudTone;
++    if(f.job==Job::Missing)return {};
++    const auto result=[](std::string_view step,std::string_view title,std::string status,
++        std::string_view controls,Tone tone=Tone::Neutral){return CoveRecoveryGuidance{step,title,controls,std::move(status),tone};};
++    if(f.harborPending)
++        return result("powering","Powering harbor","Preparing lift and save","Wait for harbor power",Tone::Waiting);
++    if(f.deliveryPending)
++        return f.cargoBanked?result("saving","Saving delivery","Wait for delivery save","Wait for save to finish",Tone::Waiting)
++            :result("securing","Deliver generator","Securing the observed load","Wait for hand-off",Tone::Waiting);
++    if(!f.commandsReady)
++        return result("waiting","Recovery job","Waiting for game to be ready","B: Build at dock",Tone::Waiting);
++    if(f.job==Job::Available)
++        return f.canAccept?result("accept","Recover generator","First job: sunken generator","J: Accept job",Tone::Ready)
++            :result("waiting","Recovery job","Waiting to accept the job","B: Build at dock",Tone::Waiting);
++    if(f.job==Job::Completed) {
++        if(!f.deliveryDurable)return result("saving","Saving delivery","Wait for delivery save","F10: Retry save",Tone::Waiting);
++        if(!f.harborPresent)return result("delivered","Delivery saved","Generator recovered","B: Build at dock",Tone::Ready);
++        if(f.harborInstalled&&f.harborDurable)
++            return result("powered","Harbor powered","Harbor power saved",f.canUseLift?"F: Attach/release lift":"Walk to dock controls",Tone::Ready);
++        if(!f.storageReady)return result("storage","Power harbor","Save storage unavailable","P: Pause",Tone::Blocked);
++        if(f.canInstall)return result("power","Power harbor","Generator delivery saved","K: Power harbor",Tone::Ready);
++        if(f.onBoat)return result("dock","Power harbor","Step off the boat at dock","E: Nearby interaction");
++        if(!f.atDock)return result("dock","Power harbor","Walk to dock controls","B: Build at dock");
++        return result("waiting","Power harbor","Waiting for harbor controls","P: Pause",Tone::Waiting);
++    }
++    // H does not require an attached tow, a winch or the helm. Check actual
++    // eligibility before suggesting any of those optional ways to recover it.
++    if(f.canDeliver)return result("deliver","Deliver generator","Load ready for delivery","H: Deliver generator",Tone::Ready);
++    if(!f.storageReady)return result("storage","Recover generator","Save storage unavailable","P: Pause",Tone::Blocked);
++    if(!f.cargoObserved)return result("waiting","Recover generator","Waiting for cargo position","B: Build at dock",Tone::Waiting);
++    if(!f.onBoat)return result("board","Recover generator","Board your boat","E: Nearby interaction");
++    const bool numeric=std::isfinite(f.hookDistance)&&std::isfinite(f.harborDistance)&&std::isfinite(f.harborLimit)
++        &&std::isfinite(f.height)&&std::isfinite(f.minimumHeight)&&std::isfinite(f.speed)
++        &&std::isfinite(f.maximumSpeed)&&std::isfinite(f.spin)&&std::isfinite(f.maximumSpin)
++        &&f.harborLimit>=0&&f.maximumSpeed>=0&&f.maximumSpin>=0;
++    if(!numeric)return result("waiting","Recover generator","Waiting for cargo position","P: Pause",Tone::Waiting);
++    if(!f.towAttached) {
++        // Cargo already in the delivery zone only needs to settle. Do not
++        // demand a cable or winch that the delivery mechanic does not require.
++        if(f.harborDistance<=f.harborLimit&&f.height>=f.minimumHeight) {
++            if(f.speed>f.maximumSpeed)return result("slow","Settle the load",
++                "Speed "+cove_guidance_detail::decimal(f.speed)+" / "+cove_guidance_detail::decimal(f.maximumSpeed)+" m/s","Stop and let it settle");
++            if(f.spin>f.maximumSpin)return result("steady","Settle the load",
++                "Spin "+cove_guidance_detail::decimal(f.spin)+" / "+cove_guidance_detail::decimal(f.maximumSpin)+" rad/s","Stop and let it settle");
++            return result("waiting","Deliver generator","Waiting for delivery check","P: Pause",Tone::Waiting);
++        }
++        if(!f.hasWinch)return result("winch","Prepare your boat","Fit or enable a winch","B: Build at dock",Tone::Blocked);
++        if(!f.onWinchRoot)return result("winch","Recover generator","Board the winch section","E: Nearby interaction");
++        if(!f.towReady)return result("waiting","Recover generator","Waiting for winch controls","P: Pause",Tone::Waiting);
++        if(f.hookDistance>8)return result("approach","Reach generator",
++            "Hook range "+cove_guidance_detail::decimal(f.hookDistance)+" / 8.0 m","Steer closer to the load");
++        return result("hook","Hook the generator","Generator within reach","F: Hook generator",Tone::Ready);
++    }
++    if(!f.towConfirmed||!f.towReady)return result("waiting","Recover generator","Waiting for tow controls","P: Pause",Tone::Waiting);
++    if(f.harborDistance>f.harborLimit)return result("return","Return to harbor",
++        "Harbor "+cove_guidance_detail::decimal(f.harborDistance)+" / "+cove_guidance_detail::decimal(f.harborLimit)+" m","Q/Z: Reel  F: Release");
++    if(f.height<f.minimumHeight)return result("lift","Lift the generator",
++        "Raise load "+cove_guidance_detail::decimal(f.minimumHeight-f.height)+" m","Q: Lift  Z: Lower");
++    if(f.speed>f.maximumSpeed)return result("slow","Settle the load",
++        "Speed "+cove_guidance_detail::decimal(f.speed)+" / "+cove_guidance_detail::decimal(f.maximumSpeed)+" m/s","Stop and let it settle");
++    if(f.spin>f.maximumSpin)return result("steady","Settle the load",
++        "Spin "+cove_guidance_detail::decimal(f.spin)+" / "+cove_guidance_detail::decimal(f.maximumSpin)+" rad/s","Stop and let it settle");
++    return result("waiting","Deliver generator","Waiting for delivery check","P: Pause",Tone::Waiting);
++}
++
++} // namespace voxy::render
+--- a/tests/test_cove_hud.cpp
++++ b/tests/test_cove_hud.cpp
+@@ -1,5 +1,6 @@
+ #include <gtest/gtest.h>
+ #include "render/cove_hud.hpp"
++#include "render/cove_recovery_guidance.hpp"
+ #include "gpu/context.hpp"
+ #include "gpu/resources.hpp"
+ #include <glm/vec2.hpp>
+@@ -8,6 +9,7 @@
+ #include <chrono>
+ #include <cmath>
+ #include <memory>
++#include <limits>
+ #include <thread>
+ 
+ namespace voxy::render {
+@@ -55,6 +57,183 @@
+     EXPECT_EQ(layoutCoveHud(content,0,0).count,0u);
+     EXPECT_EQ(layoutCoveHud(content,1280,0).count,0u);
+     EXPECT_EQ(layoutCoveHud({},1280,800).count,0u);
++}
++
++namespace {
++CoveRecoveryFacts acceptedRecovery() {
++    CoveRecoveryFacts f;
++    f.job=CoveRecoveryFacts::Job::Accepted;
++    f.commandsReady=f.storageReady=f.cargoObserved=f.onBoat=true;
++    f.hasWinch=f.onWinchRoot=f.towReady=true;
++    f.hookDistance=6;f.harborDistance=6;f.harborLimit=3.9;
++    f.height=-3;f.minimumHeight=-1;f.maximumSpeed=.8;f.maximumSpin=1;
++    return f;
++}
++CoveHudContent recoveryContent(const CoveRecoveryFacts& f) {
++    const auto g=coveRecoveryGuidance(f);
++    CoveHudContent content;
++    content.title=g.title;content.selected="E: Return to dock";content.economy="Material 96";
++    content.status=g.status;content.tone=g.tone;content.objective=g.step;
++    content.hints={"WASD: Walk  Space: Jump",std::string(g.controls),"B: Build  P: Pause  R: Rescue"};
++    return content;
++}
++}
++
++TEST(CoveRecoveryGuidance, AcceptOnFootButNeverInventDeliveryPermissionFromGeometry) {
++    auto f=acceptedRecovery();
++    f.job=CoveRecoveryFacts::Job::Available;f.onBoat=false;f.canAccept=true;
++    EXPECT_EQ(coveRecoveryGuidance(f).step,"accept");
++    EXPECT_EQ(coveRecoveryGuidance(f).controls,"J: Accept job");
++    f.commandsReady=false;
++    EXPECT_EQ(coveRecoveryGuidance(f).step,"waiting");
++    f=acceptedRecovery();f.harborDistance=3.9;f.height=-1;f.speed=.8;f.spin=1;
++    f.hasWinch=false; // Delivery never requires a fitted winch, rope or helm.
++    EXPECT_EQ(coveRecoveryGuidance(f).step,"waiting");
++    f.canDeliver=true;
++    EXPECT_EQ(coveRecoveryGuidance(f).step,"deliver");
++    EXPECT_EQ(coveRecoveryGuidance(f).controls,"H: Deliver generator");
++    f.commandsReady=false;
++    EXPECT_EQ(coveRecoveryGuidance(f).step,"waiting");
++    f.commandsReady=true;f.canDeliver=false;f.storageReady=false;
++    EXPECT_EQ(coveRecoveryGuidance(f).step,"storage");
++}
++
++TEST(CoveRecoveryGuidance, UsesCargoRangeHeightAndFullSpeedIncludingExactBoundaries) {
++    auto f=acceptedRecovery();f.hookDistance=8;
++    EXPECT_EQ(coveRecoveryGuidance(f).step,"hook");
++    f.hookDistance=std::nextafter(8.0,9.0);
++    EXPECT_EQ(coveRecoveryGuidance(f).step,"approach");
++    f=acceptedRecovery();f.towAttached=f.towConfirmed=true;
++    EXPECT_EQ(coveRecoveryGuidance(f).step,"return");
++    EXPECT_EQ(coveRecoveryGuidance(f).status,"Harbor 6.0 / 3.9 m");
++    f.harborDistance=f.harborLimit;
++    EXPECT_EQ(coveRecoveryGuidance(f).step,"lift");
++    EXPECT_EQ(coveRecoveryGuidance(f).status,"Raise load 2.0 m");
++    f.height=std::nextafter(f.minimumHeight,-2.0);
++    EXPECT_EQ(coveRecoveryGuidance(f).status,"Raise load 0.1 m");
++    f.height=f.minimumHeight;f.speed=std::nextafter(f.maximumSpeed,1.0);
++    EXPECT_EQ(coveRecoveryGuidance(f).step,"slow");
++    f.speed=f.maximumSpeed;f.spin=std::nextafter(f.maximumSpin,2.0);
++    EXPECT_EQ(coveRecoveryGuidance(f).step,"steady");
++    f.spin=f.maximumSpin;
++    EXPECT_EQ(coveRecoveryGuidance(f).step,"waiting"); // Only eligible() grants H.
++    f.canDeliver=true;
++    EXPECT_EQ(coveRecoveryGuidance(f).step,"deliver");
++    f.canDeliver=false;f.harborDistance=std::numeric_limits<double>::quiet_NaN();
++    EXPECT_EQ(coveRecoveryGuidance(f).step,"waiting");
++}
++
++TEST(CoveRecoveryGuidance, MissingBodiesWinchOrConfirmedTowCannotAdvertiseAReadyHook) {
++    auto f=acceptedRecovery();f.cargoObserved=false;
++    EXPECT_EQ(coveRecoveryGuidance(f).step,"waiting");
++    f=acceptedRecovery();f.onBoat=false;
++    EXPECT_EQ(coveRecoveryGuidance(f).step,"board");
++    f=acceptedRecovery();f.hasWinch=false;
++    EXPECT_EQ(coveRecoveryGuidance(f).step,"winch");
++    f=acceptedRecovery();f.onWinchRoot=false;
++    EXPECT_EQ(coveRecoveryGuidance(f).step,"winch");
++    f=acceptedRecovery();f.towReady=false;
++    EXPECT_EQ(coveRecoveryGuidance(f).step,"waiting");
++    f=acceptedRecovery();f.towAttached=true;f.towConfirmed=false;
++    EXPECT_EQ(coveRecoveryGuidance(f).step,"waiting");
++}
++
++TEST(CoveRecoveryGuidance, PhysicalBankingAndInstalledHarborAreNotDurableSuccess) {
++    auto f=acceptedRecovery();f.deliveryPending=true;
++    EXPECT_EQ(coveRecoveryGuidance(f).step,"securing");
++    EXPECT_EQ(coveRecoveryGuidance(f).status,"Securing the observed load");
++    f.cargoBanked=true;
++    EXPECT_EQ(coveRecoveryGuidance(f).step,"saving");
++    f.deliveryPending=false;f.job=CoveRecoveryFacts::Job::Completed;
++    f.harborPresent=true;f.harborInstalled=true;f.harborDurable=true;
++    EXPECT_EQ(coveRecoveryGuidance(f).step,"saving"); // Generator receipt is not durable yet.
++    f.deliveryDurable=true;f.harborDurable=false;f.harborPending=true;
++    EXPECT_EQ(coveRecoveryGuidance(f).step,"powering");
++    f.harborPending=false;f.onBoat=false;f.atDock=true;
++    EXPECT_EQ(coveRecoveryGuidance(f).step,"waiting");
++    f.harborInstalled=false;f.canInstall=true;
++    EXPECT_EQ(coveRecoveryGuidance(f).step,"power");
++    EXPECT_EQ(coveRecoveryGuidance(f).controls,"K: Power harbor");
++    f.canInstall=false;f.atDock=false;
++    EXPECT_EQ(coveRecoveryGuidance(f).step,"dock");
++    f.atDock=true;f.storageReady=false;
++    EXPECT_EQ(coveRecoveryGuidance(f).step,"storage");
++    f.storageReady=true;f.harborInstalled=f.harborDurable=true;
++    EXPECT_EQ(coveRecoveryGuidance(f).step,"powered");
++}
++
++TEST(CoveRecoveryGuidance, PausedPowerAndManualSaveOverrideHistoricalDeliverySuccess) {
++    CovePauseFacts f;
++    f.paused=f.cargoBanked=f.deliveryDurable=true;
++    f.saveStatus="Delivery saved. +60 material | P: Resume";
++    CoveHudContent hud;hud.economy="Material 96";
++    const auto apply=[&]{
++        applyCovePauseGuidance(f,hud);
++        for(const auto size:std::array<glm::uvec2,2>{{{640,480},{960,540}}}){
++            SCOPED_TRACE(::testing::Message()<<hud.objective<<" "<<size.x<<"x"<<size.y);
++            const auto layout=layoutCoveHud(hud,size.x,size.y);
++            EXPECT_FALSE(layout.truncated);EXPECT_GE(layout.bodyPixels,20.f);
++            EXPECT_LT(layout.count,CoveHudLayout::maximumQuads);
++        }
++    };
++    f.harborPending=true; // Requested/Uploading/Admitting, before checkpoint.
++    apply();
++    EXPECT_EQ(hud.objective,"powering");EXPECT_EQ(hud.status,"Preparing harbor lift");
++    for(const auto& hint:hud.hints)EXPECT_EQ(hint.find("P: Resume"),std::string::npos);
++    f.checkpointPending=true;apply();
++    EXPECT_EQ(hud.objective,"powering");EXPECT_EQ(hud.status,"Waiting for durable save");
++    f.saveStatus="Save failed. Disk full. Pause, then F10 to retry.";
++    apply();
++    EXPECT_EQ(hud.objective,"powering");EXPECT_EQ(hud.status,"Save failed. F10: Retry");
++    f.harborPending=f.checkpointPending=false; // Separate later manual failure.
++    apply();
++    EXPECT_EQ(hud.objective,"save-failed");EXPECT_EQ(hud.status,"Save failed. F10: Retry");
++    f.saveStatus="Saving expedition...";apply();
++    EXPECT_EQ(hud.objective,"manual-saving");EXPECT_EQ(hud.status,"Saving expedition...");
++    f.saveStatus="Expedition saved. F10: Save again | P: Resume";f.harborPowered=true;
++    apply();
++    EXPECT_EQ(hud.objective,"powered");
++    f.rescuePending=true;apply();
++    EXPECT_EQ(hud.objective,"rescuing");
++    for(const auto& hint:hud.hints)EXPECT_EQ(hint.find("P: Resume"),std::string::npos);
++    f.rescuePending=false;f.harborPowered=false;
++    f.harborRefusal="Clear space on the pier before powering the lift.";
++    apply();
++    EXPECT_EQ(hud.objective,"harbor-blocked");EXPECT_EQ(hud.status,f.harborRefusal);
++    EXPECT_EQ(hud.hints[1],"P: Resume");
++    f.storageRevoked=true;apply();
++    EXPECT_EQ(hud.objective,"storage-revoked");EXPECT_EQ(hud.status,"Restart game to recover");
++    for(const auto& hint:hud.hints)EXPECT_EQ(hint.find("F10"),std::string::npos);
++    EXPECT_EQ(hud.economy,"Material 96");
++}
++
++TEST(CoveRecoveryGuidance, EveryMissionStepKeepsReadableLayoutAndExistingGpuBounds) {
++    std::vector<CoveRecoveryFacts> samples;
++    auto f=acceptedRecovery();samples.push_back(f);
++    f.job=CoveRecoveryFacts::Job::Available;f.canAccept=true;samples.push_back(f);
++    f=acceptedRecovery();f.onBoat=false;samples.push_back(f);
++    f=acceptedRecovery();f.hookDistance=123.4;samples.push_back(f);
++    f.towAttached=f.towConfirmed=true;samples.push_back(f);
++    f.harborDistance=3;f.height=-6;samples.push_back(f);
++    f.height=-1;f.speed=2.3;samples.push_back(f);
++    f.speed=.8;f.spin=2.3;samples.push_back(f);
++    f.canDeliver=true;samples.push_back(f);
++    f.canDeliver=false;f.deliveryPending=true;samples.push_back(f);
++    f.cargoBanked=true;samples.push_back(f);
++    f.deliveryPending=false;f.job=CoveRecoveryFacts::Job::Completed;f.deliveryDurable=true;
++    f.harborPresent=true;f.onBoat=false;f.atDock=true;f.canInstall=true;samples.push_back(f);
++    f.harborPending=true;samples.push_back(f);
++    f.harborPending=false;f.harborInstalled=f.harborDurable=true;f.canUseLift=true;samples.push_back(f);
++    for(const auto& sample:samples)for(const auto size:std::array<glm::uvec2,2>{{{640,480},{960,540}}}){
++        const auto content=recoveryContent(sample);
++        SCOPED_TRACE(::testing::Message()<<content.objective<<" "<<size.x<<"x"<<size.y);
++        const auto hud=layoutCoveHud(content,size.x,size.y);
++        EXPECT_FALSE(hud.truncated);EXPECT_GE(hud.bodyPixels,20.f);
++        EXPECT_GT(hud.count,50u);EXPECT_LT(hud.count,CoveHudLayout::maximumQuads);
++        EXPECT_LT(hud.panel.y+hud.panel.w,float(size.y)*.78f);
++    }
++    EXPECT_EQ(CoveHudLayout::maximumQuads,768u);
++    EXPECT_EQ(CoveHudPath::residentBytes,167936u);
+ }
+ 
+ TEST(CoveHud, AtlasIsBoundedAntialiasedAndIndependentOfInstalledFonts) {

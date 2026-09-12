@@ -1,0 +1,1164 @@
+{
+  "schema": 1,
+  "status": "scratch articulated presentation candidate; runtime validation pending",
+  "original_metadata": "data/salvage/material-calibration/r04/kit/winch/source/winch.gameplay.json",
+  "original_metadata_sha256": "ceafb8afc115f339b39b638ea64f4aed4146a9c43968a3becac193394fefa5dc",
+  "previous_presentation": "data/salvage/toy-art/r02/winch",
+  "previous_manifest_sha256": "49aa3deb0cfe7f5ed5d79d9bf9b2071296498d4d26ac256b1d6ace3dec647e2d",
+  "canonical_metadata_unchanged": true,
+  "inputs": {
+    "tools/salvage_assets/author_cove_mechanisms.py": "4519f6c3e44dff450598fe78b6f06b1cc5ba173c28c536f746695b342420f35c",
+    "tools/salvage_assets/author_cove_machinery_art.py": "a0078cddb9b237c6f2dde68a233ac9cfbf1b82d3e0239e9abc07d36745a42a7e",
+    "tools/salvage_assets/author_functional_kit.py": "17d8ec95739accb369f7df65303631b012d2bfdf8ea90b466cb74ca6e89cd163",
+    "tools/salvage_assets/author_cove_toy_art.py": "d849f129f076510c313d3de6b31534ce5c2200b13a8b667b2b48baf494717f6b",
+    "tools/salvage_assets/author_pontoon.py": "65142b372f2ec48eec8d994c751dca8b3263f492da39e27393e4d615242ce4b5",
+    "tools/salvage_assets/pontoon_parameters.py": "348dd03c4f49009f14d8b430728b87925458a27f8a4db1923cffce93b8e4260a",
+    "tools/salvage_assets/surface_shading.py": "b53656d0c42cf0f934fd65a7ccb0c528539da794a8482265809e5189bab19720",
+    "tools/salvage_assets/authoring_probe.py": "81edf36885bedff0f51380c89213094dad908d9287bbfd74987e363d392edbc0",
+    "tools/salvage_assets/metric_materials.py": "e4d31cdf8ee8bf46dab081589f6f5aa876eb984801416dc8e4e0feb5f6af32f5"
+  },
+  "palette_srgb": {
+    "cream": "F0DDB2",
+    "teal": "197D86",
+    "coral": "ED7942",
+    "slate": "253D53",
+    "steel": "B5C3BE",
+    "rubber": "25363A"
+  },
+  "blender_version": "5.2.1 LTS",
+  "blender_build_hash": "9e2066aef7ef",
+  "mechanism": {
+    "moving_node": "voxys_winch_drum",
+    "fixed_node": "voxys_mechanism_static",
+    "canonical_pivot": [
+      0,
+      0.12,
+      0
+    ],
+    "canonical_positive_axis": [
+      1,
+      0,
+      0
+    ],
+    "source_pivot": [
+      0,
+      0.12,
+      0
+    ],
+    "source_positive_axis": [
+      -1,
+      0,
+      0
+    ],
+    "contract": "Two root mesh nodes, no parent/children; identity rotation/scale. Moving vertices pivot-relative, node translation restores phase zero."
+  },
+  "lods": [
+    {
+      "lod": 0,
+      "vertices": 4712,
+      "triangles": 9200,
+      "draws": 7,
+      "nodes": [
+        {
+          "mesh": 0,
+          "name": "voxys_mechanism_static"
+        },
+        {
+          "mesh": 1,
+          "name": "voxys_winch_drum",
+          "translation": [
+            0,
+            0.11999999731779099,
+            0
+          ]
+        }
+      ],
+      "bounds": {
+        "minimum": [
+          -0.5,
+          -0.9599999785423279,
+          -0.5040000081062317
+        ],
+        "maximum": [
+          0.5,
+          0.9089999794960022,
+          0.5
+        ]
+      },
+      "checks": [
+        {
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.495055162957453,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "winch_foot",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 42,
+              "minimum_face_alignment": 0.8400259539484978,
+              "maximum_unit_length_error": 1.0027815222635184e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "mast_cheek",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8578073605058307,
+              "maximum_unit_length_error": 1.2108482172479285e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "cheek_teal_inset",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.857793525499801,
+              "maximum_unit_length_error": 1.0306813447158447e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "axle_bearing",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.9159944887724123,
+              "maximum_unit_length_error": 1.2122462633712416e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "axle_orange_cap",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.9159919284593343,
+              "maximum_unit_length_error": 1.256946891015076e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "foot_molded_stud",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.9159858171806263,
+              "maximum_unit_length_error": 1.3622075878405582e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "foot_molded_stud.001",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.9159859461287851,
+              "maximum_unit_length_error": 1.3622075878405582e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "cheek_fastener",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.9159905426204205,
+              "maximum_unit_length_error": 1.2519547065714676e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "cheek_fastener.001",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.9159880688293924,
+              "maximum_unit_length_error": 1.266598621540993e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "mast_cheek.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8578073605058307,
+              "maximum_unit_length_error": 1.2108482172479285e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "cheek_teal_inset.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.857793525499801,
+              "maximum_unit_length_error": 1.0306813447158447e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "axle_bearing.001",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.9159943425420352,
+              "maximum_unit_length_error": 1.2139996141691256e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "axle_orange_cap.001",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.9159889603797637,
+              "maximum_unit_length_error": 1.2269898230776732e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "foot_molded_stud.002",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.9159859461287851,
+              "maximum_unit_length_error": 1.3622075878405582e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "foot_molded_stud.003",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.9159897415465821,
+              "maximum_unit_length_error": 1.3622075878405582e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "cheek_fastener.002",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.9159905426204205,
+              "maximum_unit_length_error": 1.2098998025678043e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "cheek_fastener.003",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.9159880688293924,
+              "maximum_unit_length_error": 1.21536579245074e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "fairlead_mount",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577942087440533,
+              "maximum_unit_length_error": 1.2109774338853185e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "fairlead",
+              "method": "analytic torus normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.9200679361820221,
+              "maximum_unit_length_error": 1.1929302101698624e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "fairlead_orange_badge",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8577943181899172,
+              "maximum_unit_length_error": 1.2137621818730793e-07,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.1536020207054655,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "cable_drum",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.915993777121912,
+              "maximum_unit_length_error": 1.2116091618885605e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "drum_flange",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.9159937698036629,
+              "maximum_unit_length_error": 1.2179127528710865e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "drum_flange.001",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.9159937698036629,
+              "maximum_unit_length_error": 1.217916159035326e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "cable_wrap",
+              "method": "analytic torus normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.9200680553913116,
+              "maximum_unit_length_error": 1.1927979359782626e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "cable_wrap.001",
+              "method": "analytic torus normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.9200679510831833,
+              "maximum_unit_length_error": 1.266598621540993e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "cable_wrap.002",
+              "method": "analytic torus normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.9200680926442146,
+              "maximum_unit_length_error": 1.1927823417856587e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "cable_wrap.003",
+              "method": "analytic torus normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.9200681298971176,
+              "maximum_unit_length_error": 1.378357314951728e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "cable_wrap.004",
+              "method": "analytic torus normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.9200680702924728,
+              "maximum_unit_length_error": 1.266598621540993e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "cable_wrap.005",
+              "method": "analytic torus normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.9200679734349251,
+              "maximum_unit_length_error": 1.30385152008472e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "cable_wrap.006",
+              "method": "analytic torus normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.9200680553913116,
+              "maximum_unit_length_error": 1.3690440914260193e-07,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement.",
+          "rotation_mark": {
+            "triangles_recoloured": 48,
+            "half_angle_radians": 0.5235987755982988,
+            "material": "coral",
+            "geometry_changed": false,
+            "note": "Existing flange rim surface is orange near canonical +Y; no added geometry."
+          }
+        }
+      ],
+      "clearance": {
+        "flange_cheek_gap_metres": [
+          0.010000020265579224,
+          0.010000020265579224
+        ],
+        "flange_bounds": [
+          [
+            -0.25999999046325684,
+            -0.20999999344348907
+          ],
+          [
+            0.20999999344348907,
+            0.25999999046325684
+          ]
+        ],
+        "rotation_preserves_axis_x_bounds": true
+      },
+      "source_sha256": "8a244532f421b37409f3b60bf79b80bb8411017b8a5bb528dc49eca370c86735"
+    },
+    {
+      "lod": 1,
+      "vertices": 1932,
+      "triangles": 3664,
+      "draws": 7,
+      "nodes": [
+        {
+          "mesh": 0,
+          "name": "voxys_mechanism_static"
+        },
+        {
+          "mesh": 1,
+          "name": "voxys_winch_drum",
+          "translation": [
+            0,
+            0.11999999731779099,
+            0
+          ]
+        }
+      ],
+      "bounds": {
+        "minimum": [
+          -0.5,
+          -0.9599999785423279,
+          -0.5007846355438232
+        ],
+        "maximum": [
+          0.5,
+          0.9089999794960022,
+          0.5
+        ]
+      },
+      "checks": [
+        {
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.4872051470571819,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "winch_foot",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 26,
+              "minimum_face_alignment": 0.6374248210340738,
+              "maximum_unit_length_error": 8.358620451343057e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "mast_cheek",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773475598884943,
+              "maximum_unit_length_error": 5.946926484590165e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "cheek_teal_inset",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773453845815766,
+              "maximum_unit_length_error": 1.1931329635395116e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "axle_bearing",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.6935555377622222,
+              "maximum_unit_length_error": 1.208869964131054e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "axle_orange_cap",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.6935458059706434,
+              "maximum_unit_length_error": 5.0596143275072336e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "foot_molded_stud",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.6935447011774158,
+              "maximum_unit_length_error": 1.2036640395507447e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "foot_molded_stud.001",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.6935341054086166,
+              "maximum_unit_length_error": 1.2037879182358324e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "cheek_fastener",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.6935533580253832,
+              "maximum_unit_length_error": 1.2737175159038827e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "cheek_fastener.001",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.6935447597443272,
+              "maximum_unit_length_error": 1.2096616175405472e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "mast_cheek.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773475598884943,
+              "maximum_unit_length_error": 5.946926484590165e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "cheek_teal_inset.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773453845815766,
+              "maximum_unit_length_error": 1.1931329635395116e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "axle_bearing.001",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.693545340840501,
+              "maximum_unit_length_error": 9.103383757924632e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "axle_orange_cap.001",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.6935359860653989,
+              "maximum_unit_length_error": 7.290095860312817e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "foot_molded_stud.002",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.6935343782115524,
+              "maximum_unit_length_error": 1.2112736391678425e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "foot_molded_stud.003",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.6935442741805673,
+              "maximum_unit_length_error": 1.2038085350773997e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "cheek_fastener.002",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.6935533580253832,
+              "maximum_unit_length_error": 1.2097106050212858e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "cheek_fastener.003",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.6935413416904339,
+              "maximum_unit_length_error": 7.291779846596569e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "fairlead_mount",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773474775551222,
+              "maximum_unit_length_error": 1.1935304855548168e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "fairlead",
+              "method": "analytic torus normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8579721862382712,
+              "maximum_unit_length_error": 1.4342368681585782e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "fairlead_orange_badge",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773434484049176,
+              "maximum_unit_length_error": 2.1493229418467763e-10,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.14754469763735792,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "cable_drum",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.6935450257515186,
+              "maximum_unit_length_error": 8.78038090013078e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "drum_flange",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.693545053397429,
+              "maximum_unit_length_error": 1.027218026194987e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "drum_flange.001",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.6935457452600531,
+              "maximum_unit_length_error": 1.2116929903882578e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "cable_wrap",
+              "method": "analytic torus normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8579728603363037,
+              "maximum_unit_length_error": 1.3783575059100883e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "cable_wrap.001",
+              "method": "analytic torus normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8579729050397873,
+              "maximum_unit_length_error": 1.5087426852300467e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "cable_wrap.002",
+              "method": "analytic torus normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8579729460179806,
+              "maximum_unit_length_error": 1.4156104133355996e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "cable_wrap.003",
+              "method": "analytic torus normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.857972514951939,
+              "maximum_unit_length_error": 1.5273691389428024e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "cable_wrap.004",
+              "method": "analytic torus normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8579729851335287,
+              "maximum_unit_length_error": 1.5739352754451374e-07,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement.",
+          "rotation_mark": {
+            "triangles_recoloured": 36,
+            "half_angle_radians": 0.5235987755982988,
+            "material": "coral",
+            "geometry_changed": false,
+            "note": "Existing flange rim surface is orange near canonical +Y; no added geometry."
+          }
+        }
+      ],
+      "clearance": {
+        "flange_cheek_gap_metres": [
+          0.010000020265579224,
+          0.010000020265579224
+        ],
+        "flange_bounds": [
+          [
+            -0.25999999046325684,
+            -0.20999999344348907
+          ],
+          [
+            0.20999999344348907,
+            0.25999999046325684
+          ]
+        ],
+        "rotation_preserves_axis_x_bounds": true
+      },
+      "source_sha256": "1a0d9119f7e43fa048e5c0fda3818ee5dd3bd33d06073882cc1e15b52ecea309"
+    },
+    {
+      "lod": 2,
+      "vertices": 700,
+      "triangles": 604,
+      "draws": 7,
+      "nodes": [
+        {
+          "mesh": 0,
+          "name": "voxys_mechanism_static"
+        },
+        {
+          "mesh": 1,
+          "name": "voxys_winch_drum",
+          "translation": [
+            0,
+            0.11999999731779099,
+            0
+          ]
+        }
+      ],
+      "bounds": {
+        "minimum": [
+          -0.5,
+          -0.9599999785423279,
+          -0.5040000081062317
+        ],
+        "maximum": [
+          0.5,
+          0.9089999794960022,
+          0.5
+        ]
+      },
+      "checks": [
+        {
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.4935391170133089,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "winch_foot",
+              "method": "face area / corner angle weighted; hard edge above 50 degrees",
+              "sharp_edges": 30,
+              "minimum_face_alignment": 0.9999998509883881,
+              "maximum_unit_length_error": 1.0430813379702641e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "mast_cheek",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "cheek_teal_inset",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "axle_bearing",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 20,
+              "minimum_face_alignment": 0.9510564208030701,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "axle_orange_cap",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 20,
+              "minimum_face_alignment": 0.951056182384491,
+              "maximum_unit_length_error": 4.470348458074369e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "foot_molded_stud",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 20,
+              "minimum_face_alignment": 0.9510560631752014,
+              "maximum_unit_length_error": 4.470348269336455e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "foot_molded_stud.001",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 20,
+              "minimum_face_alignment": 0.9510560631752014,
+              "maximum_unit_length_error": 4.470348269336455e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "mast_cheek.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "cheek_teal_inset.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "axle_bearing.001",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 20,
+              "minimum_face_alignment": 0.9510564208030701,
+              "maximum_unit_length_error": 5.960464655174746e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "axle_orange_cap.001",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 20,
+              "minimum_face_alignment": 0.951056182384491,
+              "maximum_unit_length_error": 4.470348458074369e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "foot_molded_stud.002",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 20,
+              "minimum_face_alignment": 0.9510560631752014,
+              "maximum_unit_length_error": 4.470348269336455e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "foot_molded_stud.003",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 20,
+              "minimum_face_alignment": 0.9510560631752014,
+              "maximum_unit_length_error": 4.470348269336455e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "fairlead_mount",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "fairlead",
+              "method": "analytic torus normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.6947210303335396,
+              "maximum_unit_length_error": 1.1982130465604257e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "fairlead_orange_badge",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.13486143944676945,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "cable_drum",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 20,
+              "minimum_face_alignment": 0.9510564208030701,
+              "maximum_unit_length_error": 8.940697115988883e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "drum_flange",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 20,
+              "minimum_face_alignment": 0.9510563910007477,
+              "maximum_unit_length_error": 8.940697115988883e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "drum_flange.001",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 20,
+              "minimum_face_alignment": 0.9510563910007477,
+              "maximum_unit_length_error": 8.940697115988883e-08,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement.",
+          "rotation_mark": {
+            "triangles_recoloured": 8,
+            "half_angle_radians": 0.5235987755982988,
+            "material": "coral",
+            "geometry_changed": false,
+            "note": "Existing flange rim surface is orange near canonical +Y; no added geometry."
+          }
+        }
+      ],
+      "clearance": {
+        "flange_cheek_gap_metres": [
+          0.010000020265579224,
+          0.010000020265579224
+        ],
+        "flange_bounds": [
+          [
+            -0.25999999046325684,
+            -0.20999999344348907
+          ],
+          [
+            0.20999999344348907,
+            0.25999999046325684
+          ]
+        ],
+        "rotation_preserves_axis_x_bounds": true
+      },
+      "source_sha256": "d222f5790f798f4d6c6636dc72bb4a1700daa628f390f1155d780ef4ea8951ad"
+    }
+  ],
+  "provenance": "Original procedural geometry reused from exact accepted recipes; no external assets, textures or images.",
+  "limitations": [
+    "No previews/screenshots or GPU checks. Runtime state drives rotation; asset contains no animation clips.",
+    "Winch intentional visible-detail change: orange flange-rim surface segment, no shape or clearance change."
+  ],
+  "cook_manifest_sha256": "d86f4f0df012234b720f01a3ca13338a65273aa9819018215119e1a5e2162bc5",
+  "export_process": {
+    "exports_and_blend_saves_complete": true,
+    "exit_code": 130,
+    "note": "Blender finished all exports/checks and then hung in sandbox PulseAudio shutdown. Only the completed process was interrupted. No images."
+  },
+  "verification": {
+    "phase_zero_geometry_unchanged": true,
+    "existing_pbr_materials_unchanged": true,
+    "requested_gpu_bytes": 691344,
+    "lods": [
+      {
+        "lod": 0,
+        "vertices": 4712,
+        "triangles": 9200,
+        "draws": 7,
+        "materials": 5,
+        "nodes": [
+          {
+            "name": "voxys_mechanism_static",
+            "translation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "meshIndex": 0
+          },
+          {
+            "name": "voxys_winch_drum",
+            "translation": [
+              0.0,
+              0.11999999731779099,
+              0.0
+            ],
+            "meshIndex": 1
+          }
+        ],
+        "meshes": 2,
+        "gpu_bytes": 449984,
+        "bytes": 395756,
+        "sha256": "ac7f77c9a1478b238fdcfe59d53723feddfc2c97ffeb5f1790b62e5faeed2d20",
+        "bounds": {
+          "minimum": [
+            -0.5,
+            -0.9599999785423279,
+            -0.5040000081062317
+          ],
+          "maximum": [
+            0.5,
+            0.9089999794960022,
+            0.5
+          ]
+        },
+        "previous_gpu_bytes": 447968,
+        "gpu_delta": 2016,
+        "previous_draws": 5,
+        "mark_recoloured_triangles": 48,
+        "maximum_phase_zero_position_error_metres": 7.450580596923828e-09,
+        "maximum_phase_zero_normal_component_error": 9.999999747378752e-05,
+        "moving_radial_upper_bound_metres": 0.36000001430511475,
+        "complete_rotation_swept_bounds": {
+          "minimum": [
+            -0.25999999046325684,
+            -0.24000001430511475,
+            -0.36000001430511475
+          ],
+          "maximum": [
+            0.25999999046325684,
+            0.48000001430511474,
+            0.36000001430511475
+          ]
+        }
+      },
+      {
+        "lod": 1,
+        "vertices": 1932,
+        "triangles": 3664,
+        "draws": 7,
+        "materials": 5,
+        "nodes": [
+          {
+            "name": "voxys_mechanism_static",
+            "translation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "meshIndex": 0
+          },
+          {
+            "name": "voxys_winch_drum",
+            "translation": [
+              0.0,
+              0.11999999731779099,
+              0.0
+            ],
+            "meshIndex": 1
+          }
+        ],
+        "meshes": 2,
+        "gpu_bytes": 183392,
+        "bytes": 162380,
+        "sha256": "4491ed311cc2c2887e228ab21045b8921e91c5020391d0635eea818752e18d7b",
+        "bounds": {
+          "minimum": [
+            -0.5,
+            -0.9599999785423279,
+            -0.5007846355438232
+          ],
+          "maximum": [
+            0.5,
+            0.9089999794960022,
+            0.5
+          ]
+        },
+        "previous_gpu_bytes": 181088,
+        "gpu_delta": 2304,
+        "previous_draws": 5,
+        "mark_recoloured_triangles": 36,
+        "maximum_phase_zero_position_error_metres": 7.450580596923828e-09,
+        "maximum_phase_zero_normal_component_error": 0.0,
+        "moving_radial_upper_bound_metres": 0.36000001430511475,
+        "complete_rotation_swept_bounds": {
+          "minimum": [
+            -0.25999999046325684,
+            -0.24000001430511475,
+            -0.36000001430511475
+          ],
+          "maximum": [
+            0.25999999046325684,
+            0.48000001430511474,
+            0.36000001430511475
+          ]
+        }
+      },
+      {
+        "lod": 2,
+        "vertices": 700,
+        "triangles": 604,
+        "draws": 7,
+        "materials": 5,
+        "nodes": [
+          {
+            "name": "voxys_mechanism_static",
+            "translation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "meshIndex": 0
+          },
+          {
+            "name": "voxys_winch_drum",
+            "translation": [
+              0.0,
+              0.11999999731779099,
+              0.0
+            ],
+            "meshIndex": 1
+          }
+        ],
+        "meshes": 2,
+        "gpu_bytes": 57968,
+        "bytes": 55316,
+        "sha256": "49a4f59da5e17315acb44fbf3cc290ef52436b2f23cc446185f42b68ba66af4b",
+        "bounds": {
+          "minimum": [
+            -0.5,
+            -0.9599999785423279,
+            -0.5040000081062317
+          ],
+          "maximum": [
+            0.5,
+            0.9089999794960022,
+            0.5
+          ]
+        },
+        "previous_gpu_bytes": 57392,
+        "gpu_delta": 576,
+        "previous_draws": 5,
+        "mark_recoloured_triangles": 8,
+        "maximum_phase_zero_position_error_metres": 7.450580596923828e-09,
+        "maximum_phase_zero_normal_component_error": 0.0,
+        "moving_radial_upper_bound_metres": 0.35999999941082195,
+        "complete_rotation_swept_bounds": {
+          "minimum": [
+            -0.25999999046325684,
+            -0.23999999941082195,
+            -0.35999999941082195
+          ],
+          "maximum": [
+            0.25999999046325684,
+            0.47999999941082194,
+            0.35999999941082195
+          ]
+        }
+      }
+    ]
+  },
+  "files": {
+    "cooked/cook-manifest.json": {
+      "bytes": 1724,
+      "sha256": "d86f4f0df012234b720f01a3ca13338a65273aa9819018215119e1a5e2162bc5"
+    },
+    "cooked/gameplay.json": {
+      "bytes": 11175,
+      "sha256": "0cf64f3e37db38c9eec0e0f0fd26cd20b65ac77540a78ff4d15bb170674ab0e8"
+    },
+    "cooked/lod-1.vmesh": {
+      "bytes": 395756,
+      "sha256": "ac7f77c9a1478b238fdcfe59d53723feddfc2c97ffeb5f1790b62e5faeed2d20"
+    },
+    "cooked/lod-2.vmesh": {
+      "bytes": 162380,
+      "sha256": "4491ed311cc2c2887e228ab21045b8921e91c5020391d0635eea818752e18d7b"
+    },
+    "cooked/lod-3.vmesh": {
+      "bytes": 55316,
+      "sha256": "49a4f59da5e17315acb44fbf3cc290ef52436b2f23cc446185f42b68ba66af4b"
+    },
+    "source/winch-lod-0.glb": {
+      "bytes": 173848,
+      "sha256": "8a244532f421b37409f3b60bf79b80bb8411017b8a5bb528dc49eca370c86735"
+    },
+    "source/winch-lod-1.glb": {
+      "bytes": 73896,
+      "sha256": "1a0d9119f7e43fa048e5c0fda3818ee5dd3bd33d06073882cc1e15b52ecea309"
+    },
+    "source/winch-lod-2.glb": {
+      "bytes": 25948,
+      "sha256": "d222f5790f798f4d6c6636dc72bb4a1700daa628f390f1155d780ef4ea8951ad"
+    },
+    "source/winch.blend": {
+      "bytes": 349046,
+      "sha256": "31820a48e512de23c990c9326309cb83a64091746ae2f7ce86727b87d384709f"
+    },
+    "source/winch.gameplay.json": {
+      "bytes": 11127,
+      "sha256": "4bdb78bf31d3ad7f33e5469a54d635d9f0b844aad74943f9436a770970975726"
+    }
+  },
+  "metadata_only_correction": {
+    "original_authoring_recipe_sha256": "a9f0f2c55c99db2371ac97fbd44f051d4f2ec826d7298feab3b474a91912b1c5",
+    "corrected_recipe_sha256": "4519f6c3e44dff450598fe78b6f06b1cc5ba173c28c536f746695b342420f35c",
+    "reason": "Pin metric_materials.py, whose linear_channel function is used by toy.materials(); source/cooked files are unchanged."
+  }
+}

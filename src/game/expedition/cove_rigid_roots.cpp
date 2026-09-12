@@ -35,6 +35,50 @@ std::unique_ptr<CoveRigidRoots> CoveRigidRoots::prepare(
     }
 }
 
+physics::ShapeResourceError CoveRigidRoots::prepareShapes(
+    physics::IAuthoredShapeResources& resources,
+    std::span<physics::AuthoredShape> prepared) noexcept {
+    using Error=physics::ShapeResourceError;
+    using State=physics::ShapeResourceState;
+    if(!count_ || (!prepared.empty() && prepared.size()!=count_))return Error::InvalidHandle;
+    // Validate every existing binding before accepting another GPU owner.
+    for(size_t i=0;i<count_;++i) {
+        const auto& root=roots_[i];
+        if(root.body.valid() || root.retired)return Error::InvalidHandle;
+        if(root.shape.valid()) {
+            const auto state=resources.state(root.shape);
+            if(state!=State::Uploading && state!=State::Ready)return Error::InvalidHandle;
+        } else {
+            if(prepared.empty())return Error::InvalidHandle;
+            const auto cost=prepared[i].cost();
+            if(!cost.cells || !cost.faces || !cost.nodes)return Error::InvalidHandle;
+        }
+    }
+    switch(resources.stats().phase) {
+    case physics::ShapeResourcePhase::Initializing:return Error::NotReady;
+    case physics::ShapeResourcePhase::Closing:
+    case physics::ShapeResourcePhase::Closed:return Error::Closed;
+    case physics::ShapeResourcePhase::Failed:return Error::GpuFailure;
+    case physics::ShapeResourcePhase::Ready:break;
+    }
+    for(size_t i=0;i<count_;++i) {
+        auto& root=roots_[i];
+        if(root.shape.valid())continue;
+        Error error=Error::None;
+        root.shape=resources.upload(std::move(prepared[i]),error);
+        // A failure may return a valid owned handle. Never overwrite or lose it.
+        if(error!=Error::None)return error;
+        if(!root.shape.valid())return Error::InvalidHandle;
+    }
+    bool pending=false;
+    for(const auto& root:roots()) {
+        const auto state=resources.state(root.shape);
+        if(state==State::Uploading)pending=true;
+        else if(state!=State::Ready)return Error::InvalidHandle;
+    }
+    return pending?Error::NotReady:Error::None;
+}
+
 bool CoveRigidRoots::matches(const CoveBoatAssembly& boat) const noexcept {
     if (build_ != boat.build().id || revision_ != boat.build().revision
         || count_ != boat.roots().size() || primary_ != boat.primaryRootIndex()) return false;

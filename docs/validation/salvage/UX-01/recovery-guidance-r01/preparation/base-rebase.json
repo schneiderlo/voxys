@@ -1,0 +1,25 @@
+{
+  "reason": "Root-authorized baseline rebase: retain the accepted same-handle rope sample while a motor command awaits acknowledgment; observer validation remains unchanged. Applied equally to base and overlay so D41 does not reintroduce the mechanism baseline-reset defect. Final block exactly matches live source, including the three-line explanation and towObservedTick > 0 guard.",
+  "time_utc": "2026-09-12 05:32 UTC",
+  "previous_application_sha256": {
+    "base": "5403bf8a00b7a6cc7e88f32a522844f4f9b695bede2ede0f431739f8fb8cff28",
+    "overlay": "06a0436173434449ba2b7d11b52b1ec38734034dc7851bcbb084b9bdee456481"
+  },
+  "new_application_sha256": {
+    "base": "15f25110d15a46d3e7b7bb8aa710ac030460286fb362effe3a0d940e2ed07bd9",
+    "overlay": "b24d0d63005b26208267ccd0ccd94de300339ccd3e8210a8cbb9851086491d22"
+  },
+  "subsequentRebases": [
+    {
+      "reason": "Exact root F9 shortcut relocation before Cove/workshop guards; old lower handler removed; both scratch trees receive identical correction.",
+      "previous_application_sha256": {
+        "base": "15f25110d15a46d3e7b7bb8aa710ac030460286fb362effe3a0d940e2ed07bd9",
+        "overlay": "b24d0d63005b26208267ccd0ccd94de300339ccd3e8210a8cbb9851086491d22"
+      },
+      "new_application_sha256": {
+        "base": "a49c00da973eaf0cde57f226e7c7897fc4e841195bc2d83fb989f91bdee041f2",
+        "overlay": "79c1a6bc6fcc484b84ee88a83c473bd89ceb04ace68575bf4e208c6dc72c915a"
+      }
+    }
+  ]
+}

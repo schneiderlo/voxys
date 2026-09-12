@@ -1,0 +1,17 @@
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //tests:cove_player
+-----------------------------------------------------------------------------
+Running main() from gmock_main.cc
+Note: Google Test filter = CoveMovement.LaunchShapes*:*LaunchShapeTerminalErrors*:GpuAuthoredShapes.BoundedPendingOperationsRefuseWithoutConsumingPreparedStorage
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from CoveMovement
+[ RUN      ] CoveMovement.LaunchShapesRetryBusyWithoutLosingPayloadOrDuplicatingAcceptedRoots
+[       OK ] CoveMovement.LaunchShapesRetryBusyWithoutLosingPayloadOrDuplicatingAcceptedRoots (385 ms)
+[ RUN      ] CoveMovement.LaunchShapeTerminalErrorsRetainEveryPartialHandleForCancellation
+[       OK ] CoveMovement.LaunchShapeTerminalErrorsRetainEveryPartialHandleForCancellation (362 ms)
+[----------] 2 tests from CoveMovement (747 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (747 ms total)
+[  PASSED  ] 2 tests.

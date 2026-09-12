@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 const { install } = require('../web/salvage_preview.js');
-function fixture(asset = false, workshop = false) {
+function fixture(asset = false, workshop = false, cove = false) {
     class Element {
         hidden = true; disabled = false; textContent = ''; listeners = new Map();
         addEventListener(name, callback) { this.listeners.set(name, callback); }
@@ -13,6 +13,12 @@ function fixture(asset = false, workshop = false) {
         setAttribute(name, value) { this.attributes.set(name, value); }
     }
     const elements = Object.fromEntries(['salvage-preview', 'salvage-status', 'salvage-reset', 'salvage-pause', 'salvage-leave', 'salvage-interact','salvage-towing','salvage-tow-status','salvage-hook','salvage-reel','salvage-payout','salvage-hold','salvage-job','salvage-job-status','salvage-job-accept','salvage-job-deliver','salvage-harbor','salvage-harbor-status',...['install','attach','raise','lower','stop','release'].map(n=>'salvage-harbor-'+n)].map(id => [id, new Element()]));
+    for(const id of ['salvage-objective','salvage-objective-title','salvage-objective-detail','salvage-objective-action','salvage-field-tools'])elements[id]=new Element();
+    elements['salvage-field-tools'].hidden=false;
+    if(cove)elements['salvage-preview'].dataset.scene='cove';
+    for(const [id,label] of Object.entries({'salvage-job-accept':'Recover the generator · J','salvage-job-deliver':'Deliver generator · H',
+        'salvage-harbor-install':'Power harbor lift · K','salvage-reel':'Reel in · Q','salvage-payout':'Pay out · Z','salvage-hold':'Stop winch'}))elements[id].textContent=label;
+    for(const id of ['salvage-hook','salvage-reel','salvage-payout','salvage-hold'])elements[id].hidden=false;
     const lodButtons = asset ? [0, 1, 2, 3].map(value => Object.assign(new Element(), {dataset: {salvageLod: String(value)}})) : [];
     const guideButtons = asset ? [0, 1, 2].map(value => Object.assign(new Element(), {dataset: {salvageGuide: String(value)}})) : [];
     if (asset) {
@@ -458,3 +464,143 @@ console.log('Rescue controls: saved acknowledgment gates Resume: 1 case passed')
     assert(load.disabled&&remove.disabled);assert.match(f.elements['workshop-recovery-status'].textContent,/four custom boat designs/);
     f.cleanup();
 }
+
+// D42: one promoted existing action, with read-only guidance and exact controls.
+const objectiveState=()=>({
+    player:{onBoat:false,mode:'walking',interaction:'none'},pause:{phase:'running',canPause:true},
+    workshop:{open:false,canOpen:true},job:{phase:'available',pending:false,savePending:false,durable:false,canDeliver:false,harborDistance:8},
+    tow:{name:'Generator',massKg:420,distance:6,hasWinch:true,operable:false,confirmed:true,attached:false,inRange:true,motor:0},
+    harbor:{installed:false,durable:false,pending:false,canInstall:false,lengths:[]}
+});
+const objectiveFixture=()=>{const f=fixture(true,true,true);f.state(objectiveState());f.tick();return f;};
+const card=f=>f.elements['salvage-objective'];
+const next=f=>f.elements['salvage-objective-action'];
+{
+    const f=objectiveFixture();
+    assert(!card(f).hidden&&!next(f).hidden&&!next(f).disabled);
+    assert.equal(card(f).dataset.step,'accept');
+    assert.equal(next(f).textContent,f.elements['salvage-job-accept'].textContent);
+    next(f).click();assert.deepEqual(f.actions,[50],'one click forwards the existing accept handler once');
+    f.state({job:{...objectiveState().job,phase:'accepted'},player:{onBoat:false,interaction:'none'}});f.tick();
+    assert.equal(card(f).dataset.step,'board');assert(next(f).hidden&&next(f).disabled);
+    next(f).click();assert.deepEqual(f.actions,[50],'no invented interaction without a real prompt');
+    f.state({player:{onBoat:false,interaction:'board'}});f.tick();
+    assert.equal(next(f).textContent,'Board boat · E');next(f).click();assert.deepEqual(f.actions,[50,30]);
+    f.cleanup();
+}
+{
+    const f=objectiveFixture();
+    // A state transition between paint and click must never dispatch the old action.
+    f.state({job:{...objectiveState().job,phase:'accepted'},player:{onBoat:false,interaction:'board'}});
+    next(f).click();assert.deepEqual(f.actions,[]);assert.equal(card(f).dataset.step,'board');
+    f.elements['salvage-interact'].hidden=true; // Existing tick restores actual current visibility.
+    f.state({player:{onBoat:false,interaction:'none'}});next(f).click();assert.deepEqual(f.actions,[]);
+    f.state({job:{...objectiveState().job,phase:'available',pending:true}});f.tick();
+    assert.equal(card(f).dataset.step,'securing');assert(next(f).hidden);next(f).click();assert.deepEqual(f.actions,[]);
+    f.cleanup();
+}
+{
+    const f=objectiveFixture(),s=objectiveState();
+    f.state({job:{...s.job,phase:'accepted'},player:{onBoat:true,interaction:'helm'},tow:{...s.tow,operable:true,confirmed:false}});f.tick();
+    assert.equal(card(f).dataset.step,'waiting-tow');assert(next(f).hidden);
+    f.state({tow:{...s.tow,operable:true,confirmed:true}});f.tick();
+    assert.equal(card(f).dataset.step,'hook');next(f).click();assert.deepEqual(f.actions,[40]);
+    f.state({tow:{...s.tow,operable:true,attached:true,ropeLength:4}});f.tick();
+    assert.equal(card(f).dataset.step,'return');assert.equal(next(f).textContent,'Open winch controls');
+    next(f).click();assert.equal(f.elements['salvage-field-tools'].open,true);
+    assert.equal(f.elements['salvage-reel'].focused,1);assert.deepEqual(f.actions,[40],'revealing controls must not start the winch');
+    f.state({tow:{...s.tow,operable:true,attached:true,confirmed:false,ropeLength:4}});f.tick();
+    assert(next(f).hidden);next(f).click();assert.deepEqual(f.actions,[40]);f.cleanup();
+}
+{
+    const f=objectiveFixture(),s=objectiveState();
+    f.state({job:{...s.job,phase:'accepted',canDeliver:true},tow:{...s.tow,hasWinch:false,confirmed:false}});f.tick();
+    assert.equal(card(f).dataset.step,'deliver','authoritative delivery readiness precedes optional winch/boarding steps');
+    assert(!f.elements['salvage-job-deliver'].hidden&&!f.elements['salvage-job-deliver'].disabled);
+    next(f).click();assert.deepEqual(f.actions,[51]);
+    f.state({job:{...s.job,phase:'accepted',canDeliver:false,harborDistance:0}});f.tick();
+    assert.notEqual(card(f).dataset.step,'deliver','geometry never grants delivery permission');
+    assert.equal(card(f).dataset.step,'winch');next(f).click();assert.deepEqual(f.actions,[51,60]);f.cleanup();
+}
+{
+    const f=objectiveFixture(),s=objectiveState();
+    for(const change of [
+        {job:{...s.job,phase:'accepted',canDeliver:true,pending:true}},
+        {job:{...s.job,phase:'completed',durable:false,savePending:true}},
+        {job:{...s.job,phase:'completed',durable:true},harbor:{...s.harbor,pending:true,canInstall:true}},
+        {rescue:{pending:true,phase:'saving',completed:'0'}},
+        {pause:{phase:'draining'}},{pause:{phase:'paused'}},{ready:false},{busy:true},
+    ]){
+        f.state({...objectiveState(),rescue:undefined,ready:true,busy:false,...change});f.tick();
+        assert(next(f).hidden&&next(f).disabled);next(f).click();assert.deepEqual(f.actions,[]);
+    }
+    f.state({...objectiveState(),rescue:undefined,ready:true,busy:false});f.tick();
+    assert.equal(card(f).dataset.step,'accept');f.elements['salvage-reset'].click();next(f).click();
+    assert.deepEqual(f.actions,[1],'local pending Reset must also suppress an old promoted action');f.cleanup();
+}
+{
+    const f=objectiveFixture(),s=objectiveState();
+    f.state({job:{...s.job,phase:'completed',durable:false},harbor:{...s.harbor,canInstall:true}});f.tick();
+    assert.equal(card(f).dataset.step,'saving');assert(next(f).hidden);
+    f.state({job:{...s.job,phase:'completed',durable:true},player:{onBoat:true,interaction:'dock'},harbor:s.harbor});f.tick();
+    assert.match(card(f).dataset.step,/dock/);next(f).click();assert.deepEqual(f.actions,[30]);
+    f.state({player:{onBoat:false,interaction:'none'},harbor:{...s.harbor,canInstall:true}});f.tick();
+    assert.equal(card(f).dataset.step,'power');next(f).click();assert.deepEqual(f.actions,[30,52]);
+    f.state({harbor:{...s.harbor,installed:true,durable:false}});f.tick();assert.notEqual(card(f).dataset.step,'powered');assert(next(f).hidden);
+    f.state({harbor:{...s.harbor,installed:true,durable:true}});f.tick();assert.equal(card(f).dataset.step,'powered');assert(next(f).hidden);
+    f.state({harbor:undefined});f.tick();assert.equal(card(f).dataset.step,'delivered');assert(next(f).hidden);f.cleanup();
+}
+{
+    const f=objectiveFixture();
+    f.state({workshop:{open:true,canOpen:true,name:'Winch',selected:9,parts:11,massKg:1035,message:'Ready',valid:true}});f.tick();
+    assert(card(f).hidden&&next(f).hidden);next(f).click();assert.deepEqual(f.actions,[]);
+    f.state({workshop:{open:false,canOpen:true}});f.tick();assert(!card(f).hidden);
+    f.state({failed:true});f.tick();assert(next(f).hidden&&next(f).disabled);next(f).click();assert.deepEqual(f.actions,[]);
+    assert.equal(f.elements['salvage-objective-title'].textContent,'Cove unavailable');f.cleanup();
+    assert(card(f).hidden);assert.equal(next(f).listeners.size,0);assert.equal(f.events.size,0);next(f).click();assert.deepEqual(f.actions,[]);
+    const inspection=fixture(true,true);assert(card(inspection).hidden);inspection.cleanup();
+}
+{
+    const f=objectiveFixture();
+    f.elements['salvage-leave'].click();next(f).click();assert.deepEqual(f.actions,[2]);assert(next(f).hidden);
+    f.state({active:false,ready:false});f.tick();assert.equal(f.cleared(),1);assert(card(f).hidden);
+    assert.deepEqual(f.navigations,['?experience=lego-world']);next(f).click();assert.deepEqual(f.actions,[2]);
+}
+{
+    const f=objectiveFixture(),button=next(f),detail=f.elements['salvage-objective-detail'];
+    button.focus();const transitions=[];
+    for(const field of ['hidden','disabled']){
+        let value=button[field];
+        Object.defineProperty(button,field,{get:()=>value,set:next=>{
+            if(next!==value){transitions.push([field,next]);if(next)button.focused=0;}value=next;
+        }});
+    }
+    let text=detail.textContent,announcements=0;
+    Object.defineProperty(detail,'textContent',{get:()=>text,set:value=>{text=value;++announcements;}});
+    f.tick();f.tick();
+    assert.deepEqual(transitions,[],'unchanged refresh must not temporarily disable or hide a focused action');
+    assert.equal(button.focused,1);assert.equal(announcements,0,'unchanged objective must not mutate its live region');
+    f.state({job:{...objectiveState().job,pending:true}});f.tick();
+    assert(button.hidden&&button.disabled);assert.equal(button.focused,0,'real unavailability clears the action');
+    f.cleanup();
+}
+{
+    const f=objectiveFixture(),s=objectiveState();
+    for(const change of [
+        {},
+        {job:{...s.job,phase:'accepted'},player:{onBoat:true,interaction:'helm'},tow:{...s.tow,operable:true}},
+        {job:{...s.job,phase:'completed',durable:true},harbor:{...s.harbor,canInstall:true}},
+        {pause:{phase:'paused',canPause:false}},
+    ]){
+        f.state({...objectiveState(),...change,session:{admissionOpen:false}});f.tick();
+        assert.equal(card(f).dataset.step,'unavailable');assert(next(f).hidden&&next(f).disabled);
+        assert.equal(f.elements['salvage-objective-title'].textContent,'Expedition unavailable');
+        next(f).click();assert.deepEqual(f.actions,[]);
+    }
+    f.state({...objectiveState(),session:{admissionOpen:true}});f.tick();assert.equal(card(f).dataset.step,'accept');
+    f.state({session:{admissionOpen:false}});next(f).click();assert.deepEqual(f.actions,[],'revoked admission invalidates an already displayed action');
+    assert(!f.elements['salvage-job-accept'].disabled,'the legacy enabled button alone is insufficient after revocation');
+    f.state({session:{}});f.tick();assert.equal(card(f).dataset.step,'accept','missing optional observation preserves older engine compatibility');
+    f.cleanup();
+}
+console.log('Browser next objective: permissions, focus, stale clicks, forwarding, drawer focus, save priority and cleanup: 10 cases passed');

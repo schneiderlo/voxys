@@ -1,0 +1,72 @@
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //tests:voxy_tests
+-----------------------------------------------------------------------------
+Running main() from gmock_main.cc
+Note: Google Test filter = CoveMechanismsTest.*:RigidPrefab.*Mechanism*:FixtureGPU.*Mechanism*:FixtureRegistry.MoldedMachineryPreservesEveryCanonicalPartAndPlacedTransform:FixtureGPU.CoveMoldedMachineryFitsCurrentOwnerBudget:FixtureGPU.FullSceneAndPaletteFitWithoutIncreasingMeshInstanceBudget
+[==========] Running 13 tests from 4 test suites.
+[----------] Global test environment set-up.
+[----------] 1 test from FixtureRegistry
+[ RUN      ] FixtureRegistry.MoldedMachineryPreservesEveryCanonicalPartAndPlacedTransform
+[       OK ] FixtureRegistry.MoldedMachineryPreservesEveryCanonicalPartAndPlacedTransform (458 ms)
+[----------] 1 test from FixtureRegistry (458 ms total)
+
+[----------] 5 tests from CoveMechanismsTest
+[ RUN      ] CoveMechanismsTest.SubmittedTicksRespectDirectionStopAndDiscard
+[       OK ] CoveMechanismsTest.SubmittedTicksRespectDirectionStopAndDiscard (0 ms)
+[ RUN      ] CoveMechanismsTest.RopeIdentityAndMonotonicTicksRejectRetiredSamples
+[       OK ] CoveMechanismsTest.RopeIdentityAndMonotonicTicksRejectRetiredSamples (0 ms)
+[ RUN      ] CoveMechanismsTest.PauseAndDetachRebaseWithoutQueuedCatchUp
+[       OK ] CoveMechanismsTest.PauseAndDetachRebaseWithoutQueuedCatchUp (0 ms)
+[ RUN      ] CoveMechanismsTest.MalformedSamplesAndOverflowLeaveTheCommittedStateUntouched
+[       OK ] CoveMechanismsTest.MalformedSamplesAndOverflowLeaveTheCommittedStateUntouched (0 ms)
+[ RUN      ] CoveMechanismsTest.NewWorldStartsNeutralWithoutPersistentVisualState
+[       OK ] CoveMechanismsTest.NewWorldStartsNeutralWithoutPersistentVisualState (0 ms)
+[----------] 5 tests from CoveMechanismsTest (0 ms total)
+
+[----------] 4 tests from FixtureGPU
+[ RUN      ] FixtureGPU.CoveMoldedMachineryFitsCurrentOwnerBudget
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [04:13:14.804] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [04:13:14.804] [GPU]   Vendor: radv[0m
+[32m[INFO ] [04:13:14.804] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [04:13:14.804] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [04:13:14.806] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] FixtureGPU.CoveMoldedMachineryFitsCurrentOwnerBudget (582 ms)
+[ RUN      ] FixtureGPU.FullSceneAndPaletteFitWithoutIncreasingMeshInstanceBudget
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [04:13:15.359] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [04:13:15.359] [GPU]   Vendor: radv[0m
+[32m[INFO ] [04:13:15.359] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [04:13:15.359] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [04:13:15.361] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] FixtureGPU.FullSceneAndPaletteFitWithoutIncreasingMeshInstanceBudget (88 ms)
+[ RUN      ] FixtureGPU.NamedMechanismPhaseUsesOwnedTicketWithoutAdditionalGpuReservation
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [04:13:15.447] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [04:13:15.447] [GPU]   Vendor: radv[0m
+[32m[INFO ] [04:13:15.447] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [04:13:15.448] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [04:13:15.449] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] FixtureGPU.NamedMechanismPhaseUsesOwnedTicketWithoutAdditionalGpuReservation (90 ms)
+[ RUN      ] FixtureGPU.RejectsWrongCanonicalMechanismRoleAndMissingRoleInAnotherLodBeforeUpload
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [04:13:15.551] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [04:13:15.551] [GPU]   Vendor: radv[0m
+[32m[INFO ] [04:13:15.551] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [04:13:15.551] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [04:13:15.553] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] FixtureGPU.RejectsWrongCanonicalMechanismRoleAndMissingRoleInAnotherLodBeforeUpload (124 ms)
+[----------] 4 tests from FixtureGPU (886 ms total)
+
+[----------] 3 tests from RigidPrefab
+[ RUN      ] RigidPrefab.NamedMechanismUsesCanonicalAxisPivotAndExactNodeAcrossAllPartRotations
+[       OK ] RigidPrefab.NamedMechanismUsesCanonicalAxisPivotAndExactNodeAcrossAllPartRotations (4 ms)
+[ RUN      ] RigidPrefab.MechanismContractRejectsMissingDuplicateHierarchyAndWrongPivots
+[       OK ] RigidPrefab.MechanismContractRejectsMissingDuplicateHierarchyAndWrongPivots (0 ms)
+[ RUN      ] RigidPrefab.MechanismPhaseRefusalIsAtomicAndDoesNotRelaxExistingCapacity
+[       OK ] RigidPrefab.MechanismPhaseRefusalIsAtomicAndDoesNotRelaxExistingCapacity (0 ms)
+[----------] 3 tests from RigidPrefab (4 ms total)
+
+[----------] Global test environment tear-down
+[==========] 13 tests from 4 test suites ran. (1350 ms total)
+[  PASSED  ] 13 tests.

@@ -142,6 +142,15 @@ bool finite(const glm::mat4& value) {
     }
     return true;
 }
+bool rigidDockRoot(const glm::dmat4& root) {
+    for (int c=0;c<4;++c) for (int r=0;r<4;++r) if (!std::isfinite(root[c][r])) return false;
+    if (root[0][3]!=0 || root[1][3]!=0 || root[2][3]!=0 || root[3][3]!=1) return false;
+    const glm::dmat3 basis(root), gram=glm::transpose(basis)*basis;
+    if (std::abs(glm::determinant(basis)-1)>1e-10) return false;
+    for (int c=0;c<3;++c) for (int r=0;r<3;++r) if (std::abs(gram[c][r]-(c==r?1.0:0.0))>1e-10) return false;
+    return true;
+}
+
 bool validFrame(const SalvageFixtureFrame& frame) {
     const auto& light = frame.lighting;
     const float length = glm::dot(light.direction, light.direction);
@@ -171,6 +180,7 @@ struct Owner {
         game::assets::RigidPrefab prefab;
     };
     std::vector<Prototype> prototypes{};
+    std::optional<CoveDockMarkings> dockMarkings{};
     MeshPath path{};
     MeshPath guidePath{}; // Same owner/fences; separate buffers prevent queued-write aliasing.
     ScopeRecords scopes{};
@@ -200,7 +210,8 @@ struct Owner {
             .pendingCallbacks = pendingScopes(scopes) + (fencePending ? 1u : 0u),
             .environmentGpuBytes = path.environmentLightingBytes(),
             .environmentBakeCount = path.environmentBakeCount(),
-            .environmentReady = path.environmentLightingReady()};
+            .environmentReady = path.environmentLightingReady(),
+            .dockMarkingGpuBytes = dockMarkings ? dockMarkings->prefab.counts.gpuBytes : 0u};
     }
 };
 } // namespace
@@ -224,6 +235,8 @@ struct SalvageAssetFixture::Impl {
     uint32_t encodedDraws = 0;
     uint32_t submittedDraws = 0;
     uint32_t guideBoxes = 0;
+    uint32_t encodedDockMarkingDraws = 0;
+    uint32_t submittedDockMarkingDraws = 0;
 
     ~Impl() {
         candidate.reset(); retiring.reset(); active.reset();
@@ -301,7 +314,8 @@ bool SalvageAssetFixture::init(WGPUDevice device, WGPUQueue queue,
 
 bool SalvageAssetFixture::beginCandidate(
     std::span<const std::shared_ptr<const Bundle>> bundles, std::string& error,
-    std::span<const game::construction::PartDefinition> prototypes) {
+    std::span<const game::construction::PartDefinition> prototypes,
+    const CoveDockMarkings* dockMarkings) {
     if (!impl_) { error = "fixture is not initialized"; return false; }
     auto& state = *impl_;
     if (!state.boundary(error)) return false;
@@ -329,7 +343,21 @@ bool SalvageAssetFixture::beginCandidate(
     owner->bundles.assign(bundles.begin(), bundles.end());
     for (size_t bundleIndex = 0; bundleIndex < bundles.size(); ++bundleIndex) {
         if (!bundles[bundleIndex]) return state.fail(error, "null admitted bundle");
+        std::optional<game::assets::RigidMechanismKind> bundleMechanism;
+        bool firstLod = true;
         for (const auto& lod : bundles[bundleIndex]->lods()) {
+            const auto role = lod.prefab.mechanism
+                ? std::optional{lod.prefab.mechanism->kind} : std::nullopt;
+            if (!firstLod && role != bundleMechanism)
+                return state.fail(error, "mechanism role differs across bundle LODs");
+            firstLod = false;
+            bundleMechanism = role;
+            if (role) {
+                const auto expectedName = *role == game::assets::RigidMechanismKind::PropellerRotor
+                    ? "salvage.part.propeller" : "salvage.part.winch";
+                if (bundles[bundleIndex]->sidecar().part.nameKey != expectedName)
+                    return state.fail(error, "mechanism role does not match the canonical part name");
+            }
             size_t upload = 0;
             for (; upload < owner->uploads.size(); ++upload) {
                 if (owner->uploads[upload]->asset == lod.asset) {
@@ -351,6 +379,19 @@ bool SalvageAssetFixture::beginCandidate(
         }
     }
     if (owner->uploads.empty()) return state.fail(error, "bundle has no admitted LOD assets");
+    if (dockMarkings) {
+        // Validate exact bytes before copying or allocating GPU storage. Counts
+        // supplied by the caller cannot bypass the separate 16 KiB mesh cap.
+        game::assets::RigidPrefab prepared;
+        if (!prepareCoveDockMarkingMesh(dockMarkings->mesh,prepared,error)) return false;
+        if (prepared.counts.gpuBytes > state.config.maximumOwnerGpuBytes-owner->reservedBytes)
+            return state.fail(error,"per-owner dock marking GPU reservation exceeded");
+        owner->dockMarkings.emplace();
+        owner->dockMarkings->mesh=dockMarkings->mesh;
+        owner->dockMarkings->prefab=std::move(prepared);
+        owner->assetBytes+=owner->dockMarkings->prefab.counts.gpuBytes;
+        owner->reservedBytes+=owner->dockMarkings->prefab.counts.gpuBytes;
+    }
     const uint64_t resident = (state.active ? state.active->reservedBytes : 0)
         + (state.retiring ? state.retiring->reservedBytes : 0);
     if (owner->reservedBytes > state.config.maximumResidentGpuBytes - resident)
@@ -386,6 +427,8 @@ bool SalvageAssetFixture::beginCandidate(
     }
     // Opaque cable shares the small helper cube, with ordinary model depth.
     if(valid) valid=owner->path.loadMeshData(guideMesh);
+    // Append after the helper so existing helper/prototype indices stay stable.
+    if(valid && owner->dockMarkings) valid=owner->path.loadMeshData(owner->dockMarkings->mesh);
     config.depthOverlay = true;
     config.filteredEnvironment = false;
     config.sunShadows = false;
@@ -546,7 +589,7 @@ bool SalvageAssetFixture::encode(WGPUCommandEncoder encoder, WGPUTextureView col
         if (prefab.counts.meshInstances > maximumMeshInstances - authoredInstances)
             return state.fail(error, "mesh instance ceiling exceeded");
         if (!game::assets::placeRigidPrefab(prefab, placement.cameraRelativeRoot, placement.placement,
-            maximumMeshInstances - authoredInstances, placed, error)) return false;
+            maximumMeshInstances - authoredInstances, placed, error, placement.mechanism)) return false;
         expandedDraws += prefab.counts.expandedDraws;
         authoredInstances += prefab.counts.meshInstances;
         for (const auto& draw : placed) instances.push_back({.assetIndex = upload,
@@ -599,10 +642,25 @@ bool SalvageAssetFixture::encode(WGPUCommandEncoder encoder, WGPUTextureView col
     };
     if(frame.towCable&&!addCable(*frame.towCable))return false;
     for(const auto& cable:frame.harborCables)if(!addCable(cable))return false;
+    if (frame.dockMarkingsRoot) {
+        if (!owner.dockMarkings || !rigidDockRoot(*frame.dockMarkingsRoot))
+            return state.fail(error,"dock marking frame lacks admitted geometry or a rigid root");
+        const auto& prefab=owner.dockMarkings->prefab;
+        if (prefab.counts.expandedDraws>maximumExpandedDraws-expandedDraws
+            || prefab.counts.meshInstances>maximumMeshInstances-authoredInstances)
+            return state.fail(error,"dock marking shared draw capacity exceeded");
+        if (!game::assets::placeRigidPrefab(prefab,*frame.dockMarkingsRoot,{},
+            maximumMeshInstances-authoredInstances,placed,error)) return false;
+        for (const auto& draw:placed) instances.push_back({.assetIndex=helperAsset+1u,
+            .meshIndex=draw.meshIndex,.modelMatrix=draw.modelMatrix,.castsSunShadow=false});
+        expandedDraws+=prefab.counts.expandedDraws;
+        authoredInstances+=prefab.counts.meshInstances;
+    }
     state.unresolved = {owner.generation, state.nextSerial++};
     output = state.unresolved;
     owner.encoded = true;
     state.encodedDraws = 0;
+    state.encodedDockMarkingDraws = 0;
     if (!owner.path.setAuthoredBodyView(frame.physics,frame.worldCamera))
         return state.fail(error,"authored body render binding failed");
     if (!owner.path.encodeEnvironmentLighting(encoder))
@@ -622,6 +680,7 @@ bool SalvageAssetFixture::encode(WGPUCommandEncoder encoder, WGPUTextureView col
         return state.fail(error, "guide drawing failed; discard the open frame ticket");
     state.encodedDraws = owner.path.lastSubmittedDrawCount()+owner.guidePath.lastSubmittedDrawCount();
     state.guideBoxes = guideBoxes;
+    state.encodedDockMarkingDraws = frame.dockMarkingsRoot ? owner.dockMarkings->prefab.counts.expandedDraws : 0u;
     error.clear();
     return true;
 }
@@ -638,6 +697,7 @@ bool SalvageAssetFixture::submitted(SalvageFixtureTicket ticket, std::string& er
     owner.path.acknowledgeEnvironmentSubmission();
     state.unresolved = {};
     state.submittedDraws = state.encodedDraws;
+    state.submittedDockMarkingDraws = state.encodedDockMarkingDraws;
     error.clear();
     return true; // poll registers a bounded fence; acknowledgment cannot allocate.
 }
@@ -657,6 +717,7 @@ bool SalvageAssetFixture::discarded(SalvageFixtureTicket ticket, std::string& er
     state.active->guidePath.clearInstances();
     state.unresolved = {};
     state.encodedDraws = 0;
+    state.encodedDockMarkingDraws = 0;
     state.guideBoxes = 0;
     error.clear();
     return true;
@@ -667,6 +728,7 @@ bool SalvageAssetFixture::resetInstances(std::string& error) {
     if (!impl_->boundary(error)) return false;
     if (impl_->active) {impl_->active->path.clearInstances();impl_->active->guidePath.clearInstances();}
     impl_->encodedDraws = 0;
+    impl_->encodedDockMarkingDraws = 0;
     impl_->guideBoxes = 0;
     error.clear();
     return true;
@@ -680,6 +742,7 @@ bool SalvageAssetFixture::requestLeave(std::string& error) {
     state.leaving = true;
     if (state.active) {state.active->path.clearInstances();state.active->guidePath.clearInstances();}
     state.encodedDraws = 0;
+    state.encodedDockMarkingDraws = 0;
     state.guideBoxes = 0;
     error.clear();
     return true;
@@ -704,6 +767,8 @@ SalvageFixtureStats SalvageAssetFixture::stats() const {
     result.unresolved = impl_->unresolved;
     result.lastEncodedDraws = impl_->encodedDraws;
     result.lastEncodedGuideBoxes = impl_->guideBoxes;
+    result.lastEncodedDockMarkingDraws = impl_->encodedDockMarkingDraws;
+    result.lastSubmittedDockMarkingDraws = impl_->submittedDockMarkingDraws;
     result.lastSubmittedDraws = impl_->submittedDraws;
     result.pendingViewCallbacks = pendingScopes(impl_->viewScopes);
     return result;

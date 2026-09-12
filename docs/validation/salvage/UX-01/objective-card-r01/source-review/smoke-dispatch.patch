@@ -1,0 +1,15 @@
+--- a/scripts/smoke_integrated_wasm.mjs
++++ b/scripts/smoke_integrated_wasm.mjs
+@@ -455,6 +455,12 @@
+         const {validateCoveBricks}=await import('./validate_cove_bricks.mjs');
+         report.cove_bricks=await validateCoveBricks(call,process.env.VOXY_SMOKE_COVE_BRICKS);
+     }
++    if(process.env.VOXY_SMOKE_COVE_OBJECTIVES){
++        assert.equal(selected,'salvage-cove');
++        const {validateCoveObjectives}=await import('./validate_cove_objectives.mjs');
++        report.cove_objectives=await validateCoveObjectives(call,process.env.VOXY_SMOKE_COVE_OBJECTIVES,
++            {expectedPresentationParts:Number(process.env.VOXY_SMOKE_PRESENTATION_PARTS??7)});
++    }
+     if(process.env.VOXY_SMOKE_COVE_MECHANISMS){
+         assert.equal(selected,'salvage-cove');
+         const {validateCoveMechanisms}=await import('./validate_cove_mechanisms.mjs');

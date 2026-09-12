@@ -1,0 +1,754 @@
+{
+  "schema": 1,
+  "status": "scratch articulated presentation candidate; runtime validation pending",
+  "original_metadata": "data/salvage/functional-kit/r09/propeller/source/propeller.gameplay.json",
+  "original_metadata_sha256": "3213751822639f7edd843a14f47ca0a97681cc09d5149c64cdaf55ce0e31b7fb",
+  "previous_presentation": "data/salvage/toy-art/r04/propeller",
+  "previous_manifest_sha256": "390120c23e8e062886c92ff358d5e50dc9ba63df7b73ca114f86a8388da40812",
+  "canonical_metadata_unchanged": true,
+  "inputs": {
+    "tools/salvage_assets/author_cove_mechanisms.py": "4519f6c3e44dff450598fe78b6f06b1cc5ba173c28c536f746695b342420f35c",
+    "tools/salvage_assets/author_cove_propeller_art.py": "765493c268a209f77d9922d341533bba181fb3ad9a9c4a6e25cc668c5f662028",
+    "tools/salvage_assets/author_functional_kit.py": "17d8ec95739accb369f7df65303631b012d2bfdf8ea90b466cb74ca6e89cd163",
+    "tools/salvage_assets/author_cove_toy_art.py": "d849f129f076510c313d3de6b31534ce5c2200b13a8b667b2b48baf494717f6b",
+    "tools/salvage_assets/author_pontoon.py": "65142b372f2ec48eec8d994c751dca8b3263f492da39e27393e4d615242ce4b5",
+    "tools/salvage_assets/pontoon_parameters.py": "348dd03c4f49009f14d8b430728b87925458a27f8a4db1923cffce93b8e4260a",
+    "tools/salvage_assets/surface_shading.py": "b53656d0c42cf0f934fd65a7ccb0c528539da794a8482265809e5189bab19720",
+    "tools/salvage_assets/authoring_probe.py": "81edf36885bedff0f51380c89213094dad908d9287bbfd74987e363d392edbc0",
+    "tools/salvage_assets/metric_materials.py": "e4d31cdf8ee8bf46dab081589f6f5aa876eb984801416dc8e4e0feb5f6af32f5"
+  },
+  "palette_srgb": {
+    "cream": "F0DDB2",
+    "teal": "197D86",
+    "coral": "ED7942",
+    "slate": "253D53",
+    "steel": "B5C3BE",
+    "rubber": "25363A"
+  },
+  "blender_version": "5.2.1 LTS",
+  "blender_build_hash": "9e2066aef7ef",
+  "mechanism": {
+    "moving_node": "voxys_propeller_rotor",
+    "fixed_node": "voxys_mechanism_static",
+    "canonical_pivot": [
+      0,
+      0,
+      0
+    ],
+    "canonical_positive_axis": [
+      0,
+      0,
+      1
+    ],
+    "source_pivot": [
+      0,
+      0,
+      0
+    ],
+    "source_positive_axis": [
+      0,
+      0,
+      -1
+    ],
+    "contract": "Two root mesh nodes, no parent/children; identity rotation/scale. Moving vertices pivot-relative, node translation restores phase zero."
+  },
+  "lods": [
+    {
+      "lod": 0,
+      "vertices": 1512,
+      "triangles": 2984,
+      "draws": 6,
+      "nodes": [
+        {
+          "mesh": 0,
+          "name": "voxys_mechanism_static"
+        },
+        {
+          "mesh": 1,
+          "name": "voxys_propeller_rotor"
+        }
+      ],
+      "bounds": {
+        "minimum": [
+          -0.4699999988079071,
+          -0.4699999988079071,
+          -0.3199999928474426
+        ],
+        "maximum": [
+          0.4699999988079071,
+          0.4699999988079071,
+          0.33000001311302185
+        ]
+      },
+      "checks": [
+        {
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.02011383598706952,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "prop_guard",
+              "method": "analytic torus normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.9200682640075684,
+              "maximum_unit_length_error": 1.1927756204954676e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "guard_cream_front_molding",
+              "method": "analytic torus normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.920068085193634,
+              "maximum_unit_length_error": 1.1928171828046175e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "guard_arm",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8578084395458063,
+              "maximum_unit_length_error": 1.4787333291188531e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "guard_orange_boss",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.9159907717407805,
+              "maximum_unit_length_error": 1.2157818973790313e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "guard_arm.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8578084395458063,
+              "maximum_unit_length_error": 1.3297217060781463e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "guard_orange_boss.001",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.9159900243234915,
+              "maximum_unit_length_error": 1.2157818973790313e-07,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.05646787170735932,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "hub",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.9159908941724098,
+              "maximum_unit_length_error": 1.1902691077203542e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "hub_molded_sleeve",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.915994492776008,
+              "maximum_unit_length_error": 1.1737944216605456e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "hub_orange_cap",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.9159925860985823,
+              "maximum_unit_length_error": 1.2126101278653323e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "prop_blade",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8578212026450274,
+              "maximum_unit_length_error": 1.4796729286281618e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "prop_blade.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8578212026450274,
+              "maximum_unit_length_error": 1.4796729286281618e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "prop_blade.002",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8578212026450274,
+              "maximum_unit_length_error": 1.4796729286281618e-07,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        }
+      ],
+      "clearance": {
+        "blade_radius_upper_metres": 0.3530580688781946,
+        "guard_inner_apothem_lower_metres": 0.367051813989846,
+        "minimum_blade_guard_gap_metres": 0.013993745111651412,
+        "blade_guard_arm_axial_gap_metres": 0.025,
+        "blade_guard_boss_axial_gap_metres": 0.005
+      },
+      "source_sha256": "1124a046534682a1ed06b88b9c208a4bbee0142d45e744c74585ca9025ad2604"
+    },
+    {
+      "lod": 1,
+      "vertices": 680,
+      "triangles": 1320,
+      "draws": 6,
+      "nodes": [
+        {
+          "mesh": 0,
+          "name": "voxys_mechanism_static"
+        },
+        {
+          "mesh": 1,
+          "name": "voxys_propeller_rotor"
+        }
+      ],
+      "bounds": {
+        "minimum": [
+          -0.4699999988079071,
+          -0.4699999988079071,
+          -0.3199999928474426
+        ],
+        "maximum": [
+          0.4699999988079071,
+          0.4699999988079071,
+          0.33000001311302185
+        ]
+      },
+      "checks": [
+        {
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.018480624016112765,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "prop_guard",
+              "method": "analytic torus normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8579731583595276,
+              "maximum_unit_length_error": 1.1548400591365748e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "guard_cream_front_molding",
+              "method": "analytic torus normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.8579721542417929,
+              "maximum_unit_length_error": 1.5553088206221588e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "guard_arm",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773472341975321,
+              "maximum_unit_length_error": 5.945553349651078e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "guard_orange_boss",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.6935463007039289,
+              "maximum_unit_length_error": 7.290264658621481e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "guard_arm.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773472341975321,
+              "maximum_unit_length_error": 5.945553349651078e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "guard_orange_boss.001",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.6935367251608113,
+              "maximum_unit_length_error": 1.026693373651355e-07,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.05548712088275035,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "hub",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.6935452154866653,
+              "maximum_unit_length_error": 6.118259188170327e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "hub_molded_sleeve",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.6935542580490619,
+              "maximum_unit_length_error": 7.292115578039216e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "hub_orange_cap",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.6935535996080944,
+              "maximum_unit_length_error": 8.36037212792462e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "prop_blade",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773473429640035,
+              "maximum_unit_length_error": 1.1935148669373064e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "prop_blade.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773473429640035,
+              "maximum_unit_length_error": 1.1935148669373064e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "prop_blade.002",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.5773473429640035,
+              "maximum_unit_length_error": 1.1935148669373064e-07,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        }
+      ],
+      "clearance": {
+        "blade_radius_upper_metres": 0.3530580688781946,
+        "guard_inner_apothem_lower_metres": 0.367051813989846,
+        "minimum_blade_guard_gap_metres": 0.013993745111651412,
+        "blade_guard_arm_axial_gap_metres": 0.025,
+        "blade_guard_boss_axial_gap_metres": 0.005
+      },
+      "source_sha256": "41e49f32f7ef5729ff59e0bafc46fc76b9aa12f76de39dd3ae6192330fce3279"
+    },
+    {
+      "lod": 2,
+      "vertices": 336,
+      "triangles": 360,
+      "draws": 5,
+      "nodes": [
+        {
+          "mesh": 0,
+          "name": "voxys_mechanism_static"
+        },
+        {
+          "mesh": 1,
+          "name": "voxys_propeller_rotor"
+        }
+      ],
+      "bounds": {
+        "minimum": [
+          -0.4699999988079071,
+          -0.4699999988079071,
+          -0.3199999928474426
+        ],
+        "maximum": [
+          0.4699999988079071,
+          0.4699999988079071,
+          0.33000001311302185
+        ]
+      },
+      "checks": [
+        {
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.014443901804296208,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "prop_guard",
+              "method": "analytic torus normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.6947210769546928,
+              "maximum_unit_length_error": 1.1985334658071167e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "guard_cream_front_molding",
+              "method": "analytic torus normals",
+              "sharp_edges": 0,
+              "minimum_face_alignment": 0.6947167441153397,
+              "maximum_unit_length_error": 1.203474064848109e-07,
+              "positions_unchanged": true
+            },
+            {
+              "component": "guard_arm",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "guard_arm.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        },
+        {
+          "degenerate_faces": 0,
+          "nonmanifold_edges": 0,
+          "summed_component_volume_m3": 0.05441578756359844,
+          "interface_checks": {},
+          "metric_uv": null,
+          "surface_shading": [
+            {
+              "component": "hub",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 20,
+              "minimum_face_alignment": 0.9510564208030701,
+              "maximum_unit_length_error": 5.9604642999033786e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "hub_molded_sleeve",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 20,
+              "minimum_face_alignment": 0.9510564804077148,
+              "maximum_unit_length_error": 4.470348458074369e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "hub_orange_cap",
+              "method": "analytic rounded_cylinder normals",
+              "sharp_edges": 20,
+              "minimum_face_alignment": 0.9510564804077148,
+              "maximum_unit_length_error": 1.490116130486996e-08,
+              "positions_unchanged": true
+            },
+            {
+              "component": "prop_blade",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "prop_blade.001",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            },
+            {
+              "component": "prop_blade.002",
+              "method": "analytic rounded_box normals",
+              "sharp_edges": 12,
+              "minimum_face_alignment": 1.0,
+              "maximum_unit_length_error": 0.0,
+              "positions_unchanged": true
+            }
+          ],
+          "volume_note": "Decorative components can intersect; this sum is not displacement."
+        }
+      ],
+      "clearance": {
+        "blade_radius_upper_metres": 0.3530580688781946,
+        "guard_inner_apothem_lower_metres": 0.367051813989846,
+        "minimum_blade_guard_gap_metres": 0.013993745111651412,
+        "blade_guard_arm_axial_gap_metres": 0.025,
+        "blade_guard_boss_axial_gap_metres": 0.005
+      },
+      "source_sha256": "1a637af126a1b18a409f12c2131dc03d680e91cf5a6a3a6bd1caf9e7e3d11e91"
+    }
+  ],
+  "provenance": "Original procedural geometry reused from exact accepted recipes; no external assets, textures or images.",
+  "limitations": [
+    "No previews/screenshots or GPU checks. Runtime state drives rotation; asset contains no animation clips.",
+    "Winch intentional visible-detail change: orange flange-rim surface segment, no shape or clearance change."
+  ],
+  "cook_manifest_sha256": "61e53b6fb936e49d74ea7c505b1aadbf0d5955c8ff5944b22f2c59235b4e57b8",
+  "export_process": {
+    "exports_and_blend_saves_complete": true,
+    "exit_code": 130,
+    "note": "Blender finished all exports/checks and then hung in sandbox PulseAudio shutdown. Only the completed process was interrupted. No images."
+  },
+  "verification": {
+    "phase_zero_geometry_unchanged": true,
+    "existing_pbr_materials_unchanged": true,
+    "requested_gpu_bytes": 238752,
+    "lods": [
+      {
+        "lod": 0,
+        "vertices": 1512,
+        "triangles": 2984,
+        "draws": 6,
+        "materials": 4,
+        "nodes": [
+          {
+            "name": "voxys_mechanism_static",
+            "translation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "meshIndex": 0
+          },
+          {
+            "name": "voxys_propeller_rotor",
+            "translation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "meshIndex": 1
+          }
+        ],
+        "meshes": 2,
+        "gpu_bytes": 144928,
+        "bytes": 127897,
+        "sha256": "b3cbd223a46f1f56442ad177d36aec514603b312d93ccf8960e75c09a120288d",
+        "bounds": {
+          "minimum": [
+            -0.4699999988079071,
+            -0.4699999988079071,
+            -0.3199999928474426
+          ],
+          "maximum": [
+            0.4699999988079071,
+            0.4699999988079071,
+            0.33000001311302185
+          ]
+        },
+        "previous_gpu_bytes": 144928,
+        "gpu_delta": 0,
+        "previous_draws": 4,
+        "mark_recoloured_triangles": 0,
+        "maximum_phase_zero_position_error_metres": 0.0,
+        "maximum_phase_zero_normal_component_error": 0.0,
+        "moving_radial_upper_bound_metres": 0.35000859037780274,
+        "complete_rotation_swept_bounds": {
+          "minimum": [
+            -0.35000859037780274,
+            -0.35000859037780274,
+            -0.3199999928474426
+          ],
+          "maximum": [
+            0.35000859037780274,
+            0.35000859037780274,
+            0.33000001311302185
+          ]
+        }
+      },
+      {
+        "lod": 1,
+        "vertices": 680,
+        "triangles": 1320,
+        "draws": 6,
+        "materials": 4,
+        "nodes": [
+          {
+            "name": "voxys_mechanism_static",
+            "translation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "meshIndex": 0
+          },
+          {
+            "name": "voxys_propeller_rotor",
+            "translation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "meshIndex": 1
+          }
+        ],
+        "meshes": 2,
+        "gpu_bytes": 65056,
+        "bytes": 58009,
+        "sha256": "7dddd0b5a43e3cca1818a75739a761fcae3d867e74efddc275cf24f8b5421487",
+        "bounds": {
+          "minimum": [
+            -0.4699999988079071,
+            -0.4699999988079071,
+            -0.3199999928474426
+          ],
+          "maximum": [
+            0.4699999988079071,
+            0.4699999988079071,
+            0.33000001311302185
+          ]
+        },
+        "previous_gpu_bytes": 65056,
+        "gpu_delta": 0,
+        "previous_draws": 4,
+        "mark_recoloured_triangles": 0,
+        "maximum_phase_zero_position_error_metres": 0.0,
+        "maximum_phase_zero_normal_component_error": 0.0,
+        "moving_radial_upper_bound_metres": 0.35000859037780274,
+        "complete_rotation_swept_bounds": {
+          "minimum": [
+            -0.35000859037780274,
+            -0.35000859037780274,
+            -0.3199999928474426
+          ],
+          "maximum": [
+            0.35000859037780274,
+            0.35000859037780274,
+            0.33000001311302185
+          ]
+        }
+      },
+      {
+        "lod": 2,
+        "vertices": 336,
+        "triangles": 360,
+        "draws": 5,
+        "materials": 4,
+        "nodes": [
+          {
+            "name": "voxys_mechanism_static",
+            "translation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "meshIndex": 0
+          },
+          {
+            "name": "voxys_propeller_rotor",
+            "translation": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "meshIndex": 1
+          }
+        ],
+        "meshes": 2,
+        "gpu_bytes": 28768,
+        "bytes": 27465,
+        "sha256": "ef35b4c37dfe357ce002eaf6d1f50bd9f3a72678c17ce1391c461b7125c82ec5",
+        "bounds": {
+          "minimum": [
+            -0.4699999988079071,
+            -0.4699999988079071,
+            -0.3199999928474426
+          ],
+          "maximum": [
+            0.4699999988079071,
+            0.4699999988079071,
+            0.33000001311302185
+          ]
+        },
+        "previous_gpu_bytes": 28768,
+        "gpu_delta": 0,
+        "previous_draws": 4,
+        "mark_recoloured_triangles": 0,
+        "maximum_phase_zero_position_error_metres": 0.0,
+        "maximum_phase_zero_normal_component_error": 0.0,
+        "moving_radial_upper_bound_metres": 0.3530580830714717,
+        "complete_rotation_swept_bounds": {
+          "minimum": [
+            -0.3530580830714717,
+            -0.3530580830714717,
+            -0.3199999928474426
+          ],
+          "maximum": [
+            0.3530580830714717,
+            0.3530580830714717,
+            0.33000001311302185
+          ]
+        }
+      }
+    ]
+  },
+  "files": {
+    "cooked/cook-manifest.json": {
+      "bytes": 1721,
+      "sha256": "61e53b6fb936e49d74ea7c505b1aadbf0d5955c8ff5944b22f2c59235b4e57b8"
+    },
+    "cooked/gameplay.json": {
+      "bytes": 5002,
+      "sha256": "8e576545febd02614d81cca4d674437b30c1e9218f7dd911db3780d4746a0cf3"
+    },
+    "cooked/lod-1.vmesh": {
+      "bytes": 127897,
+      "sha256": "b3cbd223a46f1f56442ad177d36aec514603b312d93ccf8960e75c09a120288d"
+    },
+    "cooked/lod-2.vmesh": {
+      "bytes": 58009,
+      "sha256": "7dddd0b5a43e3cca1818a75739a761fcae3d867e74efddc275cf24f8b5421487"
+    },
+    "cooked/lod-3.vmesh": {
+      "bytes": 27465,
+      "sha256": "ef35b4c37dfe357ce002eaf6d1f50bd9f3a72678c17ce1391c461b7125c82ec5"
+    },
+    "source/propeller-lod-0.glb": {
+      "bytes": 58972,
+      "sha256": "1124a046534682a1ed06b88b9c208a4bbee0142d45e744c74585ca9025ad2604"
+    },
+    "source/propeller-lod-1.glb": {
+      "bytes": 29012,
+      "sha256": "41e49f32f7ef5729ff59e0bafc46fc76b9aa12f76de39dd3ae6192330fce3279"
+    },
+    "source/propeller-lod-2.glb": {
+      "bytes": 14032,
+      "sha256": "1a637af126a1b18a409f12c2131dc03d680e91cf5a6a3a6bd1caf9e7e3d11e91"
+    },
+    "source/propeller.blend": {
+      "bytes": 189344,
+      "sha256": "f1e0ff8c8fef49b502d07af2df1d836d52811c7df104fba43dc082425116a37a"
+    },
+    "source/propeller.gameplay.json": {
+      "bytes": 4964,
+      "sha256": "43ff3960e5c1a37d57d36863910aa65f2613c4571c5411bbfa086933939d52a4"
+    }
+  },
+  "metadata_only_correction": {
+    "original_authoring_recipe_sha256": "a9f0f2c55c99db2371ac97fbd44f051d4f2ec826d7298feab3b474a91912b1c5",
+    "corrected_recipe_sha256": "4519f6c3e44dff450598fe78b6f06b1cc5ba173c28c536f746695b342420f35c",
+    "reason": "Pin metric_materials.py, whose linear_channel function is used by toy.materials(); source/cooked files are unchanged."
+  }
+}

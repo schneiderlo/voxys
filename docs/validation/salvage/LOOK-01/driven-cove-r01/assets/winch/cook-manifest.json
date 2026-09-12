@@ -1,0 +1,49 @@
+{
+  "converter": {
+    "interface": "--profile salvage-rigid-v1 input.glb output.vmesh",
+    "profile": "salvage-rigid-v1",
+    "sha256": "9de1ede050e226e444ab3c2dbe44e358c6f0ca04d299de9582b9d6ea1e1a93fa"
+  },
+  "cooker": {
+    "sha256": "88a32ac9824e2a9864f4d97e4311eeb27a312d917e3ce23d41fd5953c0e7023a",
+    "source": "cook_gameplay_asset.py"
+  },
+  "input_sidecar_sha256": "4bdb78bf31d3ad7f33e5469a54d635d9f0b844aad74943f9436a770970975726",
+  "lods": [
+    {
+      "bytes": 395756,
+      "file": "lod-1.vmesh",
+      "id": "1",
+      "sha256": "ac7f77c9a1478b238fdcfe59d53723feddfc2c97ffeb5f1790b62e5faeed2d20",
+      "source_bytes": 173848,
+      "source_sha256": "8a244532f421b37409f3b60bf79b80bb8411017b8a5bb528dc49eca370c86735"
+    },
+    {
+      "bytes": 162380,
+      "file": "lod-2.vmesh",
+      "id": "2",
+      "sha256": "4491ed311cc2c2887e228ab21045b8921e91c5020391d0635eea818752e18d7b",
+      "source_bytes": 73896,
+      "source_sha256": "1a0d9119f7e43fa048e5c0fda3818ee5dd3bd33d06073882cc1e15b52ecea309"
+    },
+    {
+      "bytes": 55316,
+      "file": "lod-3.vmesh",
+      "id": "3",
+      "sha256": "49a4f59da5e17315acb44fbf3cc290ef52436b2f23cc446185f42b68ba66af4b",
+      "source_bytes": 25948,
+      "source_sha256": "d222f5790f798f4d6c6636dc72bb4a1700daa628f390f1155d780ef4ea8951ad"
+    }
+  ],
+  "normalized_sidecar": {
+    "bytes": 11175,
+    "file": "gameplay.json",
+    "sha256": "0cf64f3e37db38c9eec0e0f0fd26cd20b65ac77540a78ff4d15bb170674ab0e8"
+  },
+  "schema": 1,
+  "scope": "offline gameplay sidecar and unchanged exported-glTF-frame VMESH",
+  "validator": {
+    "interface": "sidecar.json cooked-directory",
+    "sha256": "d6e84f2728146822a0781a7a4e6ea4139209e1017bff99616802a2fc33e09f62"
+  }
+}

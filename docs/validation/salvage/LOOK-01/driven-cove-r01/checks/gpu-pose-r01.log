@@ -1,0 +1,29 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: target //tests:mesh_path_test (0 packages loaded, 0 targets configured)
+Analyzing: target //tests:mesh_path_test (0 packages loaded, 0 targets configured)
+
+Analyzing: target //tests:mesh_path_test (0 packages loaded, 0 targets configured)
+
+INFO: Analyzed target //tests:mesh_path_test (1 packages loaded, 63 targets configured).
+ERROR: /home/modkin/workspace/schneiderlo/voxys/tests/BUILD:448:8: Compiling tests/test_mesh_path.cpp failed: (Exit 1): gcc failed: error executing CppCompile command (from target //tests:mesh_path_test) /nix/store/788mx070y81zjlg5ipcl0cra3afviw9k-gcc-wrapper-15.2.0/bin/gcc -U_FORTIFY_SOURCE -fstack-protector -Wall -Wunused-but-set-parameter -Wno-free-nonheap-object -fno-omit-frame-pointer '-std=c++17' ... (remaining 121 arguments skipped)
+
+Use --sandbox_debug to see verbose messages from the sandbox and retain the sandbox build root for debugging
+tests/test_mesh_path.cpp:6:10: fatal error: game/assets/rigid_prefab.hpp: No such file or directory
+    6 | #include "game/assets/rigid_prefab.hpp"
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+compilation terminated.
+Target //tests:mesh_path_test failed to build
+Use --verbose_failures to see the command lines of failed build steps.
+INFO: Elapsed time: 1.984s, Critical Path: 0.13s
+INFO: 2 processes: 343 action cache hit, 2 internal.
+ERROR: Build did NOT complete successfully
+//tests:mesh_path_test                                          FAILED TO BUILD
+
+Executed 0 out of 1 test: 1 fails to build.

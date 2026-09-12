@@ -1,0 +1,21 @@
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //tests:salvage_asset_fixture
+-----------------------------------------------------------------------------
+Running main() from gmock_main.cc
+Note: Google Test filter = FixtureRegistry.MoldedMachineryPreservesEveryCanonicalPartAndPlacedTransform:FixtureGPU.CoveMoldedMachineryFitsCurrentOwnerBudget
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from FixtureGPU
+[ RUN      ] FixtureGPU.CoveMoldedMachineryFitsCurrentOwnerBudget
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[32m[INFO ] [05:26:56.796] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [05:26:56.796] [GPU]   Vendor: radv[0m
+[32m[INFO ] [05:26:56.796] [GPU]   Backend: Vulkan[0m
+[32m[INFO ] [05:26:56.796] [GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [05:26:56.799] [GPU] Headless GPU context initialized successfully[0m
+[       OK ] FixtureGPU.CoveMoldedMachineryFitsCurrentOwnerBudget (1269 ms)
+[----------] 1 test from FixtureGPU (1269 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (1269 ms total)
+[  PASSED  ] 1 test.

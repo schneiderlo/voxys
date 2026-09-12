@@ -1,0 +1,62 @@
+--- a/scripts/validate_cove_objectives.mjs
++++ b/scripts/validate_cove_objectives.mjs
+@@ -34,6 +34,28 @@
+     };
+     // Same stable, unobstructed center proof as the mechanism journey. The
+     // objective is already visible; deliberately do not scroll it into view.
++    const traceBegin=()=>evaluate(`(()=>{
++        const entries=[],types=['pointerdown','mousedown','pointerup','mouseup','click'];
++        const rect=e=>{if(!e)return null;const r=e.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height};};
++        const target=e=>e?{id:e.id,tag:e.tagName,hidden:Boolean(e.hidden),disabled:Boolean(e.disabled),rect:rect(e)}:null;
++        const snapshot=(kind,event=null)=>{
++            if(entries.length>=64)return;
++            const action=document.getElementById('salvage-objective-action');
++            entries.push({kind,time:performance.now(),type:event?.type,phase:event?.eventPhase,
++                trusted:event?.isTrusted,button:event?.button,buttons:event?.buttons,x:event?.clientX,y:event?.clientY,
++                defaultPrevented:event?.defaultPrevented,target:target(event?.target),active:target(document.activeElement),
++                hit:event?target(document.elementFromPoint(event.clientX,event.clientY)):null,
++                action:target(action),originalAccept:target(document.getElementById('salvage-job-accept')),
++                step:document.getElementById('salvage-objective').dataset.step});
++        };
++        const capture=event=>snapshot('capture',event),bubble=event=>snapshot('bubble',event);
++        for(const type of types){document.addEventListener(type,capture,{capture:true,passive:true});document.addEventListener(type,bubble,{passive:true});}
++        globalThis.voxyObjectiveInputTrace={entries,snapshot,stop(){for(const type of types){document.removeEventListener(type,capture,true);document.removeEventListener(type,bubble);}}};
++        snapshot('before-single-click');return entries;
++    })()`);
++    const traceMark=async name=>{
++        report.inputTrace=await evaluate(`(()=>{const t=globalThis.voxyObjectiveInputTrace;t?.snapshot(${JSON.stringify(name)});return t?.entries||[];})()`);
++    };
+     const click=async id=>{
+         const locate=()=>evaluate(`(()=>{const e=document.getElementById(${JSON.stringify(id)});
+             if(!e||e.hidden||e.disabled||!e.getClientRects().length)return null;
+@@ -43,9 +65,10 @@
+         while(Date.now()<end){
+             const before=await locate();await delay(160);const after=await locate();
+             if(before&&after&&Math.hypot(before.x-after.x,before.y-after.y)<.5){
+-                await call('Input.dispatchMouseEvent',{type:'mouseMoved',...after});
+-                await call('Input.dispatchMouseEvent',{type:'mousePressed',button:'left',buttons:1,clickCount:1,...after});
+-                await call('Input.dispatchMouseEvent',{type:'mouseReleased',button:'left',buttons:0,clickCount:1,...after});return;
++                report.clickPoint=after;await traceMark('before-move');
++                await call('Input.dispatchMouseEvent',{type:'mouseMoved',...after});await traceMark('after-move');
++                await call('Input.dispatchMouseEvent',{type:'mousePressed',button:'left',buttons:1,clickCount:1,...after});await traceMark('after-press');
++                await call('Input.dispatchMouseEvent',{type:'mouseReleased',button:'left',buttons:0,clickCount:1,...after});await traceMark('after-release');return;
+             }
+         }
+         throw Error(`${id} must be naturally visible, stable, enabled and unobstructed`);
+@@ -132,7 +155,7 @@
+         await wait(async()=>{const d=await dom();return d.step==='accept'&&d.action.visible&&!d.action.disabled;},'initial available objective');
+         await capture('wide-available-objective',{layout:true,step:'accept'});
+         await resize(640,480);await capture('narrow-available-objective',{layout:true,step:'accept'});
+-        await click('salvage-objective-action');
++        await traceBegin();await click('salvage-objective-action');
+         await wait(async s=>s.job.phase==='accepted'&&!s.job.pending&&(await dom()).step==='board','real objective Accept handler');
+         await capture('accepted-job-preserves-boat-stock',{step:'board'});
+         await press('b','KeyB',66);
+@@ -147,6 +170,7 @@
+         try{report.failureState=await read();report.failureDom=await dom();}catch{}
+         throw error;
+     }finally{
++        try{await traceMark('journey-finished');await evaluate('globalThis.voxyObjectiveInputTrace?.stop()');}catch{}
+         // Restore the runner's documented wide viewport through browser controls.
+         try{await call('Emulation.setDeviceMetricsOverride',{width:1280,height:800,deviceScaleFactor:1,mobile:false});}catch{}
+         report.elapsedSeconds=(Date.now()-started)/1000;

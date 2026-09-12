@@ -44,6 +44,7 @@ Context::Context(Context&& other) noexcept
     , currentTexture_(other.currentTexture_)
     , currentTextureView_(other.currentTextureView_)
     , lastSurfaceConfig_(other.lastSurfaceConfig_)
+    , surfaceTimeoutPending_(other.surfaceTimeoutPending_)
     , adapterInfo_(std::move(other.adapterInfo_))
     , errorCallback_(std::move(other.errorCallback_))
     , deviceLostCallback_(std::move(other.deviceLostCallback_))
@@ -59,6 +60,7 @@ Context::Context(Context&& other) noexcept
     other.surface_ = nullptr;
     other.currentTexture_ = nullptr;
     other.currentTextureView_ = nullptr;
+    other.surfaceTimeoutPending_ = false;
 }
 
 Context& Context::operator=(Context&& other) noexcept {
@@ -76,6 +78,7 @@ Context& Context::operator=(Context&& other) noexcept {
         currentTexture_ = other.currentTexture_;
         currentTextureView_ = other.currentTextureView_;
         lastSurfaceConfig_ = other.lastSurfaceConfig_;
+        surfaceTimeoutPending_ = other.surfaceTimeoutPending_;
         adapterInfo_ = std::move(other.adapterInfo_);
         errorCallback_ = std::move(other.errorCallback_);
         deviceLostCallback_ = std::move(other.deviceLostCallback_);
@@ -91,6 +94,7 @@ Context& Context::operator=(Context&& other) noexcept {
         other.surface_ = nullptr;
         other.currentTexture_ = nullptr;
         other.currentTextureView_ = nullptr;
+        other.surfaceTimeoutPending_ = false;
     }
     return *this;
 }
@@ -185,6 +189,7 @@ void Context::shutdown() {
     swapchainWidth_ = 0;
     swapchainHeight_ = 0;
     lastSurfaceConfig_ = {};
+    surfaceTimeoutPending_ = false;
     adapterInfo_ = {};
 }
 

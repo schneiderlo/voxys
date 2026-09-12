@@ -1,0 +1,62 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: 2 targets (0 packages loaded, 0 targets configured)
+Analyzing: 2 targets (0 packages loaded, 0 targets configured)
+
+Analyzing: 2 targets (0 packages loaded, 4 targets configured)
+[6 / 6] 1 / 1 tests; no actions running
+INFO: Analyzed 2 targets (1 packages loaded, 174 targets configured).
+[565 / 683] 1 / 2 tests; Compiling tests/test_wreckwater_replay.cpp; 1s linux-sandbox ... (24 actions running)
+[567 / 683] 1 / 2 tests; Compiling tests/test_wreckwater_replay.cpp; 2s linux-sandbox ... (24 actions running)
+[570 / 683] 1 / 2 tests; Compiling tests/test_wreckwater_replay.cpp; 3s linux-sandbox ... (24 actions running)
+[577 / 683] 1 / 2 tests; Compiling tests/test_moto_session.cpp; 4s linux-sandbox ... (24 actions running)
+[584 / 683] 1 / 2 tests; Compiling tests/test_moto_session.cpp; 5s linux-sandbox ... (24 actions running)
+[592 / 683] 1 / 2 tests; Compiling src/app/application.cpp; 6s linux-sandbox ... (24 actions running)
+[594 / 683] 1 / 2 tests; Compiling src/app/application.cpp; 7s linux-sandbox ... (24 actions running)
+[602 / 683] 1 / 2 tests; Compiling src/app/application.cpp; 8s linux-sandbox ... (24 actions, 23 running)
+[605 / 683] 1 / 2 tests; Compiling src/app/application.cpp; 9s linux-sandbox ... (24 actions running)
+[610 / 683] 1 / 2 tests; Compiling src/app/application.cpp; 10s linux-sandbox ... (24 actions running)
+[618 / 683] 1 / 2 tests; Compiling src/app/application.cpp; 11s linux-sandbox ... (24 actions running)
+[622 / 683] 1 / 2 tests; Compiling src/app/application.cpp; 12s linux-sandbox ... (24 actions running)
+[627 / 683] 1 / 2 tests; Compiling src/app/application.cpp; 13s linux-sandbox ... (24 actions running)
+[630 / 683] 1 / 2 tests; Compiling src/app/application.cpp; 14s linux-sandbox ... (24 actions, 23 running)
+[636 / 683] 1 / 2 tests; Compiling src/app/application.cpp; 15s linux-sandbox ... (24 actions, 23 running)
+[643 / 683] 1 / 2 tests; Compiling src/app/application.cpp; 16s linux-sandbox ... (24 actions, 23 running)
+[647 / 683] 1 / 2 tests; Compiling src/app/application.cpp; 18s linux-sandbox ... (24 actions, 23 running)
+[650 / 683] 1 / 2 tests; Compiling src/app/application.cpp; 19s linux-sandbox ... (24 actions running)
+[651 / 683] 1 / 2 tests; Compiling src/app/application.cpp; 20s linux-sandbox ... (24 actions, 23 running)
+[655 / 683] 1 / 2 tests; Compiling src/app/application.cpp; 21s linux-sandbox ... (23 actions, 22 running)
+[661 / 683] 1 / 2 tests; Compiling src/app/application.cpp; 23s linux-sandbox ... (19 actions running)
+[674 / 683] 1 / 2 tests; Compiling src/app/application.cpp; 25s linux-sandbox ... (6 actions running)
+[677 / 683] 1 / 2 tests; Compiling src/app/application.cpp; 27s linux-sandbox ... (3 actions running)
+[680 / 683] 1 / 2 tests; Compiling tests/test_cove_player.cpp; 16s linux-sandbox ... (2 actions running)
+[681 / 683] 1 / 2 tests; Compiling tests/test_cove_player.cpp; 18s linux-sandbox
+[682 / 683] 1 / 2 tests; [Prepa] Linking tests/voxy_tests
+[683 / 684] 1 / 2 tests; Testing //tests:voxy_tests; 0s linux-sandbox
+[683 / 684] 1 / 2 tests; Testing //tests:voxy_tests; 11s linux-sandbox
+[683 / 684] 1 / 2 tests; Testing //tests:voxy_tests; 41s linux-sandbox
+[683 / 684] 1 / 2 tests; Testing //tests:voxy_tests; 101s linux-sandbox
+[683 / 684] 1 / 2 tests; Testing //tests:voxy_tests; 161s linux-sandbox
+[683 / 684] 1 / 2 tests; Testing //tests:voxy_tests; 221s linux-sandbox
+[683 / 684] 1 / 2 tests; Testing //tests:voxy_tests; 281s linux-sandbox
+[683 / 684] 1 / 2 tests; Testing //tests:voxy_tests; 341s linux-sandbox
+[683 / 684] 1 / 2 tests; Testing //tests:voxy_tests; 401s linux-sandbox
+[683 / 684] 1 / 2 tests; Testing //tests:voxy_tests; 461s linux-sandbox
+
+Bazel caught interrupt signal; cancelling pending invocation.
+
+ERROR: build interrupted
+INFO: Elapsed time: 520.422s, Critical Path: 514.32s
+INFO: 123 processes: 6 internal, 117 linux-sandbox.
+ERROR: Build did NOT complete successfully
+//tools:terrain_diffusion_import_test                           (cached) PASSED in 0.2s
+//tests:voxy_tests                                                    NO STATUS
+
+Executed 0 out of 2 tests: 1 test passes and 1 was skipped.
+There were tests whose specified size is too big. Use the --test_verbose_timeout_warnings command line option to see which ones these are.

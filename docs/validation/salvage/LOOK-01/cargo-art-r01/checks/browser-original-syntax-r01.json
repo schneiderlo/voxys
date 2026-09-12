@@ -1,0 +1,10 @@
+{
+  "status": "passed",
+  "kind": "Source syntax only; no browser, game, GPU or build execution",
+  "commands": [
+    "/home/modkin/.nix-profile/bin/node --check build-cove-cargo-art-r01/runtime-overlay/scripts/validate_cove_cargo_compatibility.mjs",
+    "/home/modkin/.nix-profile/bin/node --check build-cove-cargo-art-r01/runtime-overlay/scripts/smoke_integrated_wasm.mjs"
+  ],
+  "combinedExitCode": 0,
+  "output": ""
+}

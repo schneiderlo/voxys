@@ -1,0 +1,516 @@
+{
+  "schema": 1,
+  "parts": {
+    "propeller": {
+      "lods": [
+        {
+          "lod": 0,
+          "vertices": 1512,
+          "triangles": 2984,
+          "draws": 6,
+          "materials": 4,
+          "nodes": [
+            {
+              "name": "voxys_mechanism_static",
+              "translation": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "meshIndex": 0
+            },
+            {
+              "name": "voxys_propeller_rotor",
+              "translation": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "meshIndex": 1
+            }
+          ],
+          "meshes": 2,
+          "gpu_bytes": 144928,
+          "bytes": 127897,
+          "sha256": "b3cbd223a46f1f56442ad177d36aec514603b312d93ccf8960e75c09a120288d",
+          "bounds": {
+            "minimum": [
+              -0.4699999988079071,
+              -0.4699999988079071,
+              -0.3199999928474426
+            ],
+            "maximum": [
+              0.4699999988079071,
+              0.4699999988079071,
+              0.33000001311302185
+            ]
+          },
+          "previous_gpu_bytes": 144928,
+          "gpu_delta": 0,
+          "previous_draws": 4,
+          "mark_recoloured_triangles": 0,
+          "maximum_phase_zero_position_error_metres": 0.0,
+          "maximum_phase_zero_normal_component_error": 0.0,
+          "moving_radial_upper_bound_metres": 0.35000859037780274,
+          "complete_rotation_swept_bounds": {
+            "minimum": [
+              -0.35000859037780274,
+              -0.35000859037780274,
+              -0.3199999928474426
+            ],
+            "maximum": [
+              0.35000859037780274,
+              0.35000859037780274,
+              0.33000001311302185
+            ]
+          }
+        },
+        {
+          "lod": 1,
+          "vertices": 680,
+          "triangles": 1320,
+          "draws": 6,
+          "materials": 4,
+          "nodes": [
+            {
+              "name": "voxys_mechanism_static",
+              "translation": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "meshIndex": 0
+            },
+            {
+              "name": "voxys_propeller_rotor",
+              "translation": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "meshIndex": 1
+            }
+          ],
+          "meshes": 2,
+          "gpu_bytes": 65056,
+          "bytes": 58009,
+          "sha256": "7dddd0b5a43e3cca1818a75739a761fcae3d867e74efddc275cf24f8b5421487",
+          "bounds": {
+            "minimum": [
+              -0.4699999988079071,
+              -0.4699999988079071,
+              -0.3199999928474426
+            ],
+            "maximum": [
+              0.4699999988079071,
+              0.4699999988079071,
+              0.33000001311302185
+            ]
+          },
+          "previous_gpu_bytes": 65056,
+          "gpu_delta": 0,
+          "previous_draws": 4,
+          "mark_recoloured_triangles": 0,
+          "maximum_phase_zero_position_error_metres": 0.0,
+          "maximum_phase_zero_normal_component_error": 0.0,
+          "moving_radial_upper_bound_metres": 0.35000859037780274,
+          "complete_rotation_swept_bounds": {
+            "minimum": [
+              -0.35000859037780274,
+              -0.35000859037780274,
+              -0.3199999928474426
+            ],
+            "maximum": [
+              0.35000859037780274,
+              0.35000859037780274,
+              0.33000001311302185
+            ]
+          }
+        },
+        {
+          "lod": 2,
+          "vertices": 336,
+          "triangles": 360,
+          "draws": 5,
+          "materials": 4,
+          "nodes": [
+            {
+              "name": "voxys_mechanism_static",
+              "translation": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "meshIndex": 0
+            },
+            {
+              "name": "voxys_propeller_rotor",
+              "translation": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "meshIndex": 1
+            }
+          ],
+          "meshes": 2,
+          "gpu_bytes": 28768,
+          "bytes": 27465,
+          "sha256": "ef35b4c37dfe357ce002eaf6d1f50bd9f3a72678c17ce1391c461b7125c82ec5",
+          "bounds": {
+            "minimum": [
+              -0.4699999988079071,
+              -0.4699999988079071,
+              -0.3199999928474426
+            ],
+            "maximum": [
+              0.4699999988079071,
+              0.4699999988079071,
+              0.33000001311302185
+            ]
+          },
+          "previous_gpu_bytes": 28768,
+          "gpu_delta": 0,
+          "previous_draws": 4,
+          "mark_recoloured_triangles": 0,
+          "maximum_phase_zero_position_error_metres": 0.0,
+          "maximum_phase_zero_normal_component_error": 0.0,
+          "moving_radial_upper_bound_metres": 0.3530580830714717,
+          "complete_rotation_swept_bounds": {
+            "minimum": [
+              -0.3530580830714717,
+              -0.3530580830714717,
+              -0.3199999928474426
+            ],
+            "maximum": [
+              0.3530580830714717,
+              0.3530580830714717,
+              0.33000001311302185
+            ]
+          }
+        }
+      ],
+      "cook_manifest_sha256": "61e53b6fb936e49d74ea7c505b1aadbf0d5955c8ff5944b22f2c59235b4e57b8",
+      "moving_node": "voxys_propeller_rotor",
+      "pivot": [
+        0,
+        0,
+        0
+      ]
+    },
+    "winch": {
+      "lods": [
+        {
+          "lod": 0,
+          "vertices": 4712,
+          "triangles": 9200,
+          "draws": 7,
+          "materials": 5,
+          "nodes": [
+            {
+              "name": "voxys_mechanism_static",
+              "translation": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "meshIndex": 0
+            },
+            {
+              "name": "voxys_winch_drum",
+              "translation": [
+                0.0,
+                0.11999999731779099,
+                0.0
+              ],
+              "meshIndex": 1
+            }
+          ],
+          "meshes": 2,
+          "gpu_bytes": 449984,
+          "bytes": 395756,
+          "sha256": "ac7f77c9a1478b238fdcfe59d53723feddfc2c97ffeb5f1790b62e5faeed2d20",
+          "bounds": {
+            "minimum": [
+              -0.5,
+              -0.9599999785423279,
+              -0.5040000081062317
+            ],
+            "maximum": [
+              0.5,
+              0.9089999794960022,
+              0.5
+            ]
+          },
+          "previous_gpu_bytes": 447968,
+          "gpu_delta": 2016,
+          "previous_draws": 5,
+          "mark_recoloured_triangles": 48,
+          "maximum_phase_zero_position_error_metres": 7.450580596923828e-09,
+          "maximum_phase_zero_normal_component_error": 9.999999747378752e-05,
+          "moving_radial_upper_bound_metres": 0.36000001430511475,
+          "complete_rotation_swept_bounds": {
+            "minimum": [
+              -0.25999999046325684,
+              -0.24000001430511475,
+              -0.36000001430511475
+            ],
+            "maximum": [
+              0.25999999046325684,
+              0.48000001430511474,
+              0.36000001430511475
+            ]
+          }
+        },
+        {
+          "lod": 1,
+          "vertices": 1932,
+          "triangles": 3664,
+          "draws": 7,
+          "materials": 5,
+          "nodes": [
+            {
+              "name": "voxys_mechanism_static",
+              "translation": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "meshIndex": 0
+            },
+            {
+              "name": "voxys_winch_drum",
+              "translation": [
+                0.0,
+                0.11999999731779099,
+                0.0
+              ],
+              "meshIndex": 1
+            }
+          ],
+          "meshes": 2,
+          "gpu_bytes": 183392,
+          "bytes": 162380,
+          "sha256": "4491ed311cc2c2887e228ab21045b8921e91c5020391d0635eea818752e18d7b",
+          "bounds": {
+            "minimum": [
+              -0.5,
+              -0.9599999785423279,
+              -0.5007846355438232
+            ],
+            "maximum": [
+              0.5,
+              0.9089999794960022,
+              0.5
+            ]
+          },
+          "previous_gpu_bytes": 181088,
+          "gpu_delta": 2304,
+          "previous_draws": 5,
+          "mark_recoloured_triangles": 36,
+          "maximum_phase_zero_position_error_metres": 7.450580596923828e-09,
+          "maximum_phase_zero_normal_component_error": 0.0,
+          "moving_radial_upper_bound_metres": 0.36000001430511475,
+          "complete_rotation_swept_bounds": {
+            "minimum": [
+              -0.25999999046325684,
+              -0.24000001430511475,
+              -0.36000001430511475
+            ],
+            "maximum": [
+              0.25999999046325684,
+              0.48000001430511474,
+              0.36000001430511475
+            ]
+          }
+        },
+        {
+          "lod": 2,
+          "vertices": 700,
+          "triangles": 604,
+          "draws": 7,
+          "materials": 5,
+          "nodes": [
+            {
+              "name": "voxys_mechanism_static",
+              "translation": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "meshIndex": 0
+            },
+            {
+              "name": "voxys_winch_drum",
+              "translation": [
+                0.0,
+                0.11999999731779099,
+                0.0
+              ],
+              "meshIndex": 1
+            }
+          ],
+          "meshes": 2,
+          "gpu_bytes": 57968,
+          "bytes": 55316,
+          "sha256": "49a4f59da5e17315acb44fbf3cc290ef52436b2f23cc446185f42b68ba66af4b",
+          "bounds": {
+            "minimum": [
+              -0.5,
+              -0.9599999785423279,
+              -0.5040000081062317
+            ],
+            "maximum": [
+              0.5,
+              0.9089999794960022,
+              0.5
+            ]
+          },
+          "previous_gpu_bytes": 57392,
+          "gpu_delta": 576,
+          "previous_draws": 5,
+          "mark_recoloured_triangles": 8,
+          "maximum_phase_zero_position_error_metres": 7.450580596923828e-09,
+          "maximum_phase_zero_normal_component_error": 0.0,
+          "moving_radial_upper_bound_metres": 0.35999999941082195,
+          "complete_rotation_swept_bounds": {
+            "minimum": [
+              -0.25999999046325684,
+              -0.23999999941082195,
+              -0.35999999941082195
+            ],
+            "maximum": [
+              0.25999999046325684,
+              0.47999999941082194,
+              0.35999999941082195
+            ]
+          }
+        }
+      ],
+      "cook_manifest_sha256": "d86f4f0df012234b720f01a3ca13338a65273aa9819018215119e1a5e2162bc5",
+      "moving_node": "voxys_winch_drum",
+      "pivot": [
+        0,
+        0.12,
+        0
+      ]
+    }
+  },
+  "checks": [
+    "strict salvage-rigid-v1 CPU cooks",
+    "two named mesh roots survive GLB to VMESH; identity rotation/scale; exact pivot translations",
+    "phase-zero world-space triangle positions/winding match within 1 micrometre; normals match within 1.1e-4 per component",
+    "exact normalized canonical gameplay metadata and LOD basis/thresholds",
+    "unchanged solid PBR material factors; no textures, skins or animation clips",
+    "actual decoded GPU storage and cooked file hashes"
+  ],
+  "memory": {
+    "previous_two_parts_gpu_bytes": 925200,
+    "candidate_two_parts_gpu_bytes": 930096,
+    "delta": 4896,
+    "previous_full_owner_projection": 10740488,
+    "expected_full_owner_projection": 10745384,
+    "unchanged_owner_cap": 16777216,
+    "unchanged_resident_cap": 50331648,
+    "note": "CPU requested-storage accounting; fixed instance reservation and runtime draw caps unchanged. Runtime admission still required."
+  },
+  "limitations": [
+    "No rendered images, visual approval, runtime animation or GPU checks performed.",
+    "Named nodes and rest geometry verified from actual cooked bytes; source geometry proves swept clearances.",
+    "The only intentional visible difference at rest is the existing-material orange flange-rim segment."
+  ],
+  "files": {
+    "data/salvage/mechanisms/r01/propeller/cooked/cook-manifest.json": {
+      "bytes": 1721,
+      "sha256": "61e53b6fb936e49d74ea7c505b1aadbf0d5955c8ff5944b22f2c59235b4e57b8"
+    },
+    "data/salvage/mechanisms/r01/propeller/cooked/gameplay.json": {
+      "bytes": 5002,
+      "sha256": "8e576545febd02614d81cca4d674437b30c1e9218f7dd911db3780d4746a0cf3"
+    },
+    "data/salvage/mechanisms/r01/propeller/cooked/lod-1.vmesh": {
+      "bytes": 127897,
+      "sha256": "b3cbd223a46f1f56442ad177d36aec514603b312d93ccf8960e75c09a120288d"
+    },
+    "data/salvage/mechanisms/r01/propeller/cooked/lod-2.vmesh": {
+      "bytes": 58009,
+      "sha256": "7dddd0b5a43e3cca1818a75739a761fcae3d867e74efddc275cf24f8b5421487"
+    },
+    "data/salvage/mechanisms/r01/propeller/cooked/lod-3.vmesh": {
+      "bytes": 27465,
+      "sha256": "ef35b4c37dfe357ce002eaf6d1f50bd9f3a72678c17ce1391c461b7125c82ec5"
+    },
+    "data/salvage/mechanisms/r01/propeller/provenance.json": {
+      "bytes": 26166,
+      "sha256": "6ae60b20b746dcd2b72f9c9bbf81d5410bb361ac9ab14042c759af5d56052df7"
+    },
+    "data/salvage/mechanisms/r01/propeller/source/propeller-lod-0.glb": {
+      "bytes": 58972,
+      "sha256": "1124a046534682a1ed06b88b9c208a4bbee0142d45e744c74585ca9025ad2604"
+    },
+    "data/salvage/mechanisms/r01/propeller/source/propeller-lod-1.glb": {
+      "bytes": 29012,
+      "sha256": "41e49f32f7ef5729ff59e0bafc46fc76b9aa12f76de39dd3ae6192330fce3279"
+    },
+    "data/salvage/mechanisms/r01/propeller/source/propeller-lod-2.glb": {
+      "bytes": 14032,
+      "sha256": "1a637af126a1b18a409f12c2131dc03d680e91cf5a6a3a6bd1caf9e7e3d11e91"
+    },
+    "data/salvage/mechanisms/r01/propeller/source/propeller.blend": {
+      "bytes": 189344,
+      "sha256": "f1e0ff8c8fef49b502d07af2df1d836d52811c7df104fba43dc082425116a37a"
+    },
+    "data/salvage/mechanisms/r01/propeller/source/propeller.gameplay.json": {
+      "bytes": 4964,
+      "sha256": "43ff3960e5c1a37d57d36863910aa65f2613c4571c5411bbfa086933939d52a4"
+    },
+    "data/salvage/mechanisms/r01/winch/cooked/cook-manifest.json": {
+      "bytes": 1724,
+      "sha256": "d86f4f0df012234b720f01a3ca13338a65273aa9819018215119e1a5e2162bc5"
+    },
+    "data/salvage/mechanisms/r01/winch/cooked/gameplay.json": {
+      "bytes": 11175,
+      "sha256": "0cf64f3e37db38c9eec0e0f0fd26cd20b65ac77540a78ff4d15bb170674ab0e8"
+    },
+    "data/salvage/mechanisms/r01/winch/cooked/lod-1.vmesh": {
+      "bytes": 395756,
+      "sha256": "ac7f77c9a1478b238fdcfe59d53723feddfc2c97ffeb5f1790b62e5faeed2d20"
+    },
+    "data/salvage/mechanisms/r01/winch/cooked/lod-2.vmesh": {
+      "bytes": 162380,
+      "sha256": "4491ed311cc2c2887e228ab21045b8921e91c5020391d0635eea818752e18d7b"
+    },
+    "data/salvage/mechanisms/r01/winch/cooked/lod-3.vmesh": {
+      "bytes": 55316,
+      "sha256": "49a4f59da5e17315acb44fbf3cc290ef52436b2f23cc446185f42b68ba66af4b"
+    },
+    "data/salvage/mechanisms/r01/winch/provenance.json": {
+      "bytes": 41943,
+      "sha256": "da476d766f7db643ee919d3442bd2c97d1389f6ba92bd9f3f96e7116c2a0ac4e"
+    },
+    "data/salvage/mechanisms/r01/winch/source/winch-lod-0.glb": {
+      "bytes": 173848,
+      "sha256": "8a244532f421b37409f3b60bf79b80bb8411017b8a5bb528dc49eca370c86735"
+    },
+    "data/salvage/mechanisms/r01/winch/source/winch-lod-1.glb": {
+      "bytes": 73896,
+      "sha256": "1a0d9119f7e43fa048e5c0fda3818ee5dd3bd33d06073882cc1e15b52ecea309"
+    },
+    "data/salvage/mechanisms/r01/winch/source/winch-lod-2.glb": {
+      "bytes": 25948,
+      "sha256": "d222f5790f798f4d6c6636dc72bb4a1700daa628f390f1155d780ef4ea8951ad"
+    },
+    "data/salvage/mechanisms/r01/winch/source/winch.blend": {
+      "bytes": 349046,
+      "sha256": "31820a48e512de23c990c9326309cb83a64091746ae2f7ce86727b87d384709f"
+    },
+    "data/salvage/mechanisms/r01/winch/source/winch.gameplay.json": {
+      "bytes": 11127,
+      "sha256": "4bdb78bf31d3ad7f33e5469a54d635d9f0b844aad74943f9436a770970975726"
+    },
+    "tools/salvage_assets/author_cove_mechanisms.py": {
+      "bytes": 11016,
+      "sha256": "4519f6c3e44dff450598fe78b6f06b1cc5ba173c28c536f746695b342420f35c"
+    }
+  }
+}

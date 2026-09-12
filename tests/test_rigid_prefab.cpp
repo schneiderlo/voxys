@@ -302,5 +302,113 @@ TEST(RigidPrefab, PlacementCapacityAndInvalidFinalTransformLeavePriorDraws) {
     EXPECT_EQ(draws[0].meshIndex, 9u);
 }
 
+// Both nodes deliberately share the same mesh. Rotation must be selected by
+// the authored node identity, never by mesh/material index or traversal order.
+moto::VmeshData mechanismTriangle(RigidMechanismKind kind) {
+    auto data = triangle();
+    data.nodes.resize(2);
+    data.header.nodeCount = 2;
+    data.stringBlob.assign(1, '\0');
+    const auto name = [&](std::string_view value) {
+        const auto offset = static_cast<uint32_t>(data.stringBlob.size());
+        data.stringBlob.append(value); data.stringBlob.push_back('\0'); return offset;
+    };
+    data.nodes[0].meshIndex = data.nodes[1].meshIndex = 0;
+    data.nodes[0].nameOffset = name("voxys_mechanism_static");
+    data.nodes[0].translation[0] = 4;
+    data.nodes[1].nameOffset = name(kind == RigidMechanismKind::PropellerRotor
+        ? "voxys_propeller_rotor" : "voxys_winch_drum");
+    data.nodes[1].translation[1] = kind == RigidMechanismKind::WinchDrum ? .12f : 0;
+    return data;
+}
+
+TEST(RigidPrefab, NamedMechanismUsesCanonicalAxisPivotAndExactNodeAcrossAllPartRotations) {
+    for (const auto kind : {RigidMechanismKind::PropellerRotor, RigidMechanismKind::WinchDrum}) {
+        const auto data = mechanismTriangle(kind);
+        RigidPrefab prefab; std::string error;
+        ASSERT_TRUE(prepareRigidPrefab(data, {12}, {}, prefab, error)) << error;
+        ASSERT_TRUE(prefab.mechanism);
+        EXPECT_EQ(prefab.mechanism->nodeIndex, 1u);
+        EXPECT_EQ(prefab.mechanism->sourceAxis, kind == RigidMechanismKind::PropellerRotor
+            ? glm::dvec3(0,0,-1) : glm::dvec3(-1,0,0));
+        for (uint8_t rotation = 0; rotation < 24; ++rotation) for (int sign : {-1,1}) {
+            const construction::GridTransform part{{-75,25,50},{rotation}};
+            const auto root = glm::translate(glm::dmat4(1), glm::dvec3(-257,3,511))
+                * glm::rotate(glm::dmat4(1), .37, glm::dvec3(0,1,0));
+            std::vector<RigidPrefabDraw> neutral, zero, moving;
+            ASSERT_TRUE(placeRigidPrefab(prefab,root,part,2,neutral,error)) << error;
+            ASSERT_TRUE(placeRigidPrefab(prefab,root,part,2,zero,error,RigidMechanismPose{kind,0})) << error;
+            ASSERT_TRUE(placeRigidPrefab(prefab,root,part,2,moving,error,
+                RigidMechanismPose{kind,sign*std::acos(-1.0)*.5})) << error;
+            for (size_t i=0;i<2;++i)
+                EXPECT_EQ(std::memcmp(&neutral[i].modelMatrix,&zero[i].modelMatrix,sizeof(glm::mat4)),0);
+            EXPECT_EQ(std::memcmp(&neutral[0].modelMatrix,&moving[0].modelMatrix,sizeof(glm::mat4)),0);
+            const bool propeller = kind == RigidMechanismKind::PropellerRotor;
+            // Independent canonical quarter-turn oracle, then exact integer
+            // part placement; includes the .12 m winch pivot (six ticks).
+            const auto expectedTicks = construction::transformPosition(part,
+                propeller ? construction::GridPosition{0,-sign*50,0} : construction::GridPosition{0,6+sign*50,0});
+            ASSERT_TRUE(expectedTicks);
+            const auto metres = construction::toMetres(*expectedTicks); ASSERT_TRUE(metres);
+            const glm::vec4 source = propeller ? glm::vec4(1,0,0,1) : glm::vec4(0,0,1,1);
+            expectPoint(glm::dvec3(moving[1].modelMatrix*source),
+                glm::dvec3(root*glm::dvec4(metres->x,metres->y,metres->z,1)),4e-5);
+        }
+        EXPECT_EQ(prefab.counts.gpuBytes,292u); // Shared geometry is uploaded once.
+        EXPECT_EQ(prefab.counts.meshInstances,2u);
+        EXPECT_EQ(prefab.counts.expandedDraws,2u);
+    }
+}
+
+TEST(RigidPrefab, MechanismContractRejectsMissingDuplicateHierarchyAndWrongPivots) {
+    const auto reject = [&](moto::VmeshData data) {
+        RigidPrefab output; output.counts.gpuBytes=12345; std::string error;
+        EXPECT_FALSE(prepareRigidPrefab(data,{12},{},output,error));
+        EXPECT_EQ(output.counts.gpuBytes,12345u);
+        EXPECT_NE(error.find("mechanism"),std::string::npos) << error;
+    };
+    auto data=mechanismTriangle(RigidMechanismKind::PropellerRotor);
+    data.nodes[0].nameOffset=0; reject(data);
+    data=mechanismTriangle(RigidMechanismKind::PropellerRotor);
+    data.nodes[0].nameOffset=data.nodes[1].nameOffset; reject(data);
+    data=mechanismTriangle(RigidMechanismKind::PropellerRotor);
+    data.nodes[1].parent=0; reject(data);
+    data=mechanismTriangle(RigidMechanismKind::WinchDrum);
+    data.nodes[1].translation[1]=0; reject(data);
+    data=mechanismTriangle(RigidMechanismKind::PropellerRotor);
+    data.nodes[1].scale[0]=2; reject(data);
+    data=mechanismTriangle(RigidMechanismKind::PropellerRotor);
+    data.nodes[1].rotation[2]=std::sqrt(.5f); data.nodes[1].rotation[3]=std::sqrt(.5f); reject(data);
+    data=mechanismTriangle(RigidMechanismKind::PropellerRotor);
+    data.stringBlob[data.nodes[1].nameOffset+20]='x'; reject(data);
+}
+
+TEST(RigidPrefab, MechanismPhaseRefusalIsAtomicAndDoesNotRelaxExistingCapacity) {
+    RigidPrefab prefab; std::string error;
+    ASSERT_TRUE(prepareRigidPrefab(mechanismTriangle(RigidMechanismKind::PropellerRotor),{12},{},prefab,error)) << error;
+    std::vector<RigidPrefabDraw> output(1); output[0].meshIndex=91;
+    for (const auto pose : {RigidMechanismPose{RigidMechanismKind::WinchDrum,0},
+            RigidMechanismPose{RigidMechanismKind::PropellerRotor,std::numeric_limits<double>::infinity()},
+            RigidMechanismPose{RigidMechanismKind::PropellerRotor,std::numeric_limits<double>::quiet_NaN()}}) {
+        EXPECT_FALSE(placeRigidPrefab(prefab,glm::dmat4(1),{},2,output,error,pose));
+        EXPECT_EQ(output.size(),1u); EXPECT_EQ(output[0].meshIndex,91u);
+    }
+    EXPECT_FALSE(placeRigidPrefab(prefab,glm::dmat4(1),{},1,output,error,
+        RigidMechanismPose{RigidMechanismKind::PropellerRotor,.4}));
+    EXPECT_EQ(output[0].meshIndex,91u);
+    RigidPrefab legacy;
+    ASSERT_TRUE(prepareRigidPrefab(triangle(),{},{},legacy,error)) << error;
+    EXPECT_FALSE(placeRigidPrefab(legacy,glm::dmat4(1),{},2,output,error,
+        RigidMechanismPose{RigidMechanismKind::PropellerRotor,0}));
+    EXPECT_EQ(output[0].meshIndex,91u);
+    std::vector<RigidPrefabDraw> near, wrapped;
+    ASSERT_TRUE(placeRigidPrefab(prefab,glm::dmat4(1),{},2,near,error,
+        RigidMechanismPose{RigidMechanismKind::PropellerRotor,.37})) << error;
+    ASSERT_TRUE(placeRigidPrefab(prefab,glm::dmat4(1),{},2,wrapped,error,
+        RigidMechanismPose{RigidMechanismKind::PropellerRotor,.37+2000*std::acos(-1.0)})) << error;
+    for(size_t n=0;n<2;++n)for(int c=0;c<4;++c)for(int r=0;r<4;++r)
+        EXPECT_NEAR(near[n].modelMatrix[c][r],wrapped[n].modelMatrix[c][r],1e-6);
+}
+
 } // namespace
 } // namespace voxy::game::assets

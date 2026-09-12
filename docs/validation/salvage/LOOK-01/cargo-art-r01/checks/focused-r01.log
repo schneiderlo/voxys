@@ -1,0 +1,64 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: 2 targets (0 packages loaded, 0 targets configured)
+Analyzing: 2 targets (0 packages loaded, 0 targets configured)
+
+Analyzing: 2 targets (0 packages loaded, 0 targets configured)
+
+INFO: Analyzed 2 targets (2 packages loaded, 242 targets configured).
+[379 / 383] Compiling tests/test_fixture_registry.cpp; 1s linux-sandbox ... (2 actions running)
+[380 / 383] Compiling tests/test_salvage_asset_fixture.cpp; 4s linux-sandbox ... (2 actions, 1 running)
+INFO: From Testing //tests:fixture_registry:
+==================== Test output for //tests:fixture_registry:
+Running main() from gmock_main.cc
+Note: Google Test filter = FixtureRegistry.MoldedMachineryPreservesEveryCanonicalPartAndPlacedTransform:FixtureGPU.CoveMoldedMachineryFitsCurrentOwnerBudget
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from FixtureRegistry
+[ RUN      ] FixtureRegistry.MoldedMachineryPreservesEveryCanonicalPartAndPlacedTransform
+[       OK ] FixtureRegistry.MoldedMachineryPreservesEveryCanonicalPartAndPlacedTransform (552 ms)
+[----------] 1 test from FixtureRegistry (552 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (552 ms total)
+[  PASSED  ] 1 test.
+================================================================================
+[382 / 384] 1 / 2 tests; Compiling tests/test_salvage_asset_fixture.cpp; 5s linux-sandbox
+[384 / 385] 1 / 2 tests; [Prepa] Testing //tests:salvage_asset_fixture
+[384 / 385] 2 / 2 tests; Testing //tests:salvage_asset_fixture; 1s linux-sandbox
+INFO: From Testing //tests:salvage_asset_fixture:
+==================== Test output for //tests:salvage_asset_fixture:
+Running main() from gmock_main.cc
+Note: Google Test filter = FixtureRegistry.MoldedMachineryPreservesEveryCanonicalPartAndPlacedTransform:FixtureGPU.CoveMoldedMachineryFitsCurrentOwnerBudget
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from FixtureGPU
+[ RUN      ] FixtureGPU.CoveMoldedMachineryFitsCurrentOwnerBudget
+error: XDG_RUNTIME_DIR is invalid or not set in the environment.
+[INFO ] [05:26:56.796] [GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)
+[INFO ] [05:26:56.796] [GPU]   Vendor: radv
+[INFO ] [05:26:56.796] [GPU]   Backend: Vulkan
+[INFO ] [05:26:56.796] [GPU]   Type: Integrated GPU
+[INFO ] [05:26:56.799] [GPU] Headless GPU context initialized successfully
+[       OK ] FixtureGPU.CoveMoldedMachineryFitsCurrentOwnerBudget (1269 ms)
+[----------] 1 test from FixtureGPU (1269 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (1269 ms total)
+[  PASSED  ] 1 test.
+================================================================================
+INFO: Found 2 test targets...
+INFO: Elapsed time: 9.523s, Critical Path: 8.04s
+INFO: 13 processes: 372 action cache hit, 7 internal, 6 linux-sandbox.
+INFO: Build completed successfully, 13 total actions
+//tests:fixture_registry                                                 PASSED in 0.6s
+//tests:salvage_asset_fixture                                            PASSED in 1.4s
+
+Executed 2 out of 2 tests: 2 tests pass.
+There were tests whose specified size is too big. Use the --test_verbose_timeout_warnings command line option to see which ones these are.

@@ -1,0 +1,3 @@
+# WASM span lifetime diagnostic
+
+The first combined build passed but Clang warned about the reference through `art->lods().front().prefab.mechanism`. `CookedPartBundle::lods()` returns a non-owning span over the admitted bundle's owned LOD vector; the bundle stays alive throughout the draw, so the backing object is not temporary. Store that span in a named local before referencing its first binding. This expresses the existing lifetime clearly and removes the new warning without changing phase or draw behavior. Rebuild the two application packages; prior CPU/GPU renderer results remain applicable.

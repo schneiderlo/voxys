@@ -1,0 +1,35 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+Computing main repo mapping: 
+Loading: 
+Loading: 0 packages loaded
+Analyzing: target //tests:cove_hud (0 packages loaded, 0 targets configured)
+Analyzing: target //tests:cove_hud (0 packages loaded, 0 targets configured)
+
+Analyzing: target //tests:cove_hud (0 packages loaded, 0 targets configured)
+
+INFO: Analyzed target //tests:cove_hud (2 packages loaded, 178 targets configured).
+[528 / 557] Compiling src/gpu/context.cpp; 1s linux-sandbox ... (18 actions running)
+[533 / 557] Compiling src/render/inspection_guides.cpp; 2s linux-sandbox ... (15 actions, 14 running)
+[551 / 557] Compiling src/app/application.cpp; 4s linux-sandbox ... (2 actions, 1 running)
+[553 / 557] Compiling src/app/application.cpp; 5s linux-sandbox
+ERROR: /home/modkin/workspace/schneiderlo/voxys/src/app/BUILD:5:11: Compiling src/app/application.cpp failed: (Exit 1): gcc failed: error executing CppCompile command (from target //src/app:app) /nix/store/788mx070y81zjlg5ipcl0cra3afviw9k-gcc-wrapper-15.2.0/bin/gcc -U_FORTIFY_SOURCE -fstack-protector -Wall -Wunused-but-set-parameter -Wno-free-nonheap-object -fno-omit-frame-pointer '-std=c++17' ... (remaining 102 arguments skipped)
+
+Use --sandbox_debug to see verbose messages from the sandbox and retain the sandbox build root for debugging
+src/app/application.cpp: In lambda function:
+src/app/application.cpp:6970:39: error: conversion to 'unsigned char' from 'std::basic_string_view<char>::value_type' {aka 'char'} may change the sign of the result [-Werror=sign-conversion]
+ 6970 |             for(const unsigned char c:value){
+      |                                       ^~~~~
+cc1plus: all warnings being treated as errors
+[554 / 557] 1 / 1 tests, 1 failed; checking cached actions
+Target //tests:cove_hud failed to build
+Use --verbose_failures to see the command lines of failed build steps.
+INFO: Elapsed time: 11.995s, Critical Path: 10.14s
+INFO: 27 processes: 527 action cache hit, 7 internal, 20 linux-sandbox.
+ERROR: Build did NOT complete successfully
+//tests:cove_hud                                                FAILED TO BUILD
+
+Executed 0 out of 1 test: 1 fails to build.

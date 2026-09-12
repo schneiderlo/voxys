@@ -1,0 +1,72 @@
+--- a/scripts/validate_cove_cargo_compatibility.mjs
++++ b/scripts/validate_cove_cargo_compatibility.mjs
+@@ -79,21 +79,43 @@
+         const ownerBytes=BigInt(f.gpuReservationBytes);
+         assert(ownerBytes>0n&&ownerBytes<=16n*1024n*1024n,'owned fixture stays within the existing16MiB cap');
+         assert(f.environmentReady&&BigInt(f.environmentGpuBytes)>0n&&f.draws>0,'lit fixture and draw work available');
+-        assert.equal(f.sceneSunShadows,!s.workshop.open,'normal world shadows and workshop presentation state');
+         assert.equal(s.player.onBoat,false,'continuation stays at the dock');
+         assert.equal(s.workshop.pending,false);assert.equal(s.workshop.savePending,false);
+         assert.equal(s.job.pending,false);assert.equal(s.job.savePending,false);
+         assert.equal(s.rescue.pending,false);assert.equal(s.harbor.pending,false);
+     };
+-    const capture=async(name,{blueprint}={})=>{
+-        const state=await read();invariant(state);const owner=runtimeIdentity(state);
++    const capture=async(name,{blueprint,workshopOpen=false,pausePhase='running'}={})=>{
++        // The flag can reset across render/discard/transition updates. It
++        // is not tagged to a submitted serial. Match its requested mode,
++        // then require a later same-mode submission and its completion.
++        const state=await wait(s=>{
++            invariant(s);
++            return s.workshop.open===workshopOpen&&s.pause.phase===pausePhase
++                &&s.assetFixture.sceneSunShadows===!workshopOpen;
++        },'requested logical mode and rendered shadow sample');
++        assert.equal(state.assetFixture.sceneSunShadows,!workshopOpen);
++        const owner=runtimeIdentity(state);
++        const sameMode=s=>{
++            invariant(s);assert.deepEqual(runtimeIdentity(s),owner);
++            assert.equal(s.workshop.open,workshopOpen);assert.equal(s.pause.phase,pausePhase);
++        };
++        const submitted=await wait(s=>{
++            sameMode(s);
++            return BigInt(s.assetFixture.submittedSerial)>BigInt(state.assetFixture.submittedSerial);
++        },'later same-mode submission follows the matched shadow sample');
++        const submittedSerial=submitted.assetFixture.submittedSerial,submittedTick=submitted.boat.mechanisms.tick;
+         const completed=await wait(s=>{
+-            invariant(s);assert.deepEqual(runtimeIdentity(s),owner);
+-            return BigInt(s.assetFixture.completedSerial)>=BigInt(state.assetFixture.submittedSerial)
+-                &&BigInt(s.boat.physicsTicks.completed)>=BigInt(state.boat.mechanisms.tick);
+-        },'captured current-owner GPU and physics work completes');
++            sameMode(s);
++            return BigInt(s.assetFixture.completedSerial)>=BigInt(submittedSerial)
++                &&BigInt(s.boat.physicsTicks.completed)>=BigInt(submittedTick);
++        },'later current-owner submission and physics work completes');
+         assert.deepEqual(await evaluate('globalThis.voxyUncapturedGpuErrors||[]'),[],'no uncaptured GPU errors');
+-        report.stages.push({name,state,...(blueprint?{blueprint}:{}),completion:{owner:runtimeIdentity(completed),
++        report.stages.push({name,state,...(blueprint?{blueprint}:{}),presentation:{workshopOpen,pausePhase,
++            sceneSunShadows:state.assetFixture.sceneSunShadows,submittedSerial:state.assetFixture.submittedSerial},
++            submission:{owner:runtimeIdentity(submitted),fixture:submittedSerial,physics:submittedTick,
++                workshopOpen:submitted.workshop.open,pausePhase:submitted.pause.phase,
++                sceneSunShadows:submitted.assetFixture.sceneSunShadows},
++            completion:{owner:runtimeIdentity(completed),
+             fixture:completed.assetFixture.completedSerial,physics:completed.boat.physicsTicks.completed}});
+         await writeFile(`${directory}/summary.json`,JSON.stringify(report,null,2));return state;
+     };
+@@ -104,7 +126,7 @@
+         await wait(s=>s.ready&&s.restore?.phase==='ready'&&s.pause.phase==='paused'&&!s.workshop.open
+             &&s.boat?.mechanisms&&s.assetFixture.environmentReady,'actual older paused save');
+         await uncap();currentOwner=runtimeIdentity(await read());
+-        const paused=await capture('older-save-restored-with-nine-presentations');
++        const paused=await capture('older-save-restored-with-nine-presentations',{pausePhase:'paused'});
+         assert.equal(paused.pause.phase,'paused');
+         await press('p','KeyP',80);
+         await fresh(paused.assetFixture.submittedSerial,s=>s.pause.phase==='running'&&s.workshop.canOpen,'physical P resumes at the workshop station');
+@@ -114,7 +136,7 @@
+             &&!s.assetFixture.sceneSunShadows,'physical B opens the workshop');
+         const blueprint=await evaluate("voxyModule.ccall('voxy_salvage_blueprint_action','string',['number','string'],[1,''])");
+         assert.equal(blueprint,expectedBlueprint,'exact part/connection/paint/placement/settings blueprint bytes survive new presentations');
+-        const workshop=await capture('workshop-preserves-exact-saved-blueprint',{blueprint});
++        const workshop=await capture('workshop-preserves-exact-saved-blueprint',{blueprint,workshopOpen:true});
+         assert.equal(workshop.workshop.changed,false);assert.equal(workshop.workshop.brickTool,false);
+         for(const key of ['charge','refund','machineryCharge','machineryRefund'])assert.equal(workshop.workshop[key],'0');
+         await press('b','KeyB',66);

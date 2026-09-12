@@ -1,0 +1,437 @@
+{
+  "schema": 1,
+  "units": {
+    "length": "metres",
+    "mass": "kilograms",
+    "time": "seconds",
+    "angle": "radians"
+  },
+  "metadata_frame": "canonical_y_up_minus_z_forward",
+  "placement_lattice_metres": 0.02,
+  "part": {
+    "key": {
+      "namespace": "766f7879732d73616c766167652d7631",
+      "counter": "9",
+      "version": 2
+    },
+    "name_key": "salvage.part.cargo_cradle",
+    "permitted_rotation_mask": 16777215,
+    "footprint": {
+      "minimum_ticks": [
+        -50,
+        -16,
+        -50
+      ],
+      "maximum_ticks": [
+        50,
+        16,
+        50
+      ]
+    },
+    "solid_occupancy": [
+      {
+        "id": "1",
+        "frame": {
+          "translation_ticks": [
+            0,
+            -12,
+            0
+          ],
+          "rotation": 0
+        },
+        "half_extents_ticks": [
+          38,
+          4,
+          50
+        ]
+      },
+      {
+        "id": "2",
+        "frame": {
+          "translation_ticks": [
+            -44,
+            0,
+            0
+          ],
+          "rotation": 0
+        },
+        "half_extents_ticks": [
+          6,
+          16,
+          50
+        ]
+      },
+      {
+        "id": "3",
+        "frame": {
+          "translation_ticks": [
+            44,
+            0,
+            0
+          ],
+          "rotation": 0
+        },
+        "half_extents_ticks": [
+          6,
+          16,
+          50
+        ]
+      },
+      {
+        "id": "4",
+        "frame": {
+          "translation_ticks": [
+            0,
+            4,
+            0
+          ],
+          "rotation": 0
+        },
+        "half_extents_ticks": [
+          17,
+          12,
+          17
+        ]
+      }
+    ],
+    "collision": [
+      {
+        "id": "1",
+        "frame": {
+          "translation_ticks": [
+            0,
+            -12,
+            0
+          ],
+          "rotation": 0
+        },
+        "half_extents_ticks": [
+          38,
+          4,
+          50
+        ]
+      },
+      {
+        "id": "2",
+        "frame": {
+          "translation_ticks": [
+            -44,
+            0,
+            0
+          ],
+          "rotation": 0
+        },
+        "half_extents_ticks": [
+          6,
+          16,
+          50
+        ]
+      },
+      {
+        "id": "3",
+        "frame": {
+          "translation_ticks": [
+            44,
+            0,
+            0
+          ],
+          "rotation": 0
+        },
+        "half_extents_ticks": [
+          6,
+          16,
+          50
+        ]
+      },
+      {
+        "id": "4",
+        "frame": {
+          "translation_ticks": [
+            0,
+            4,
+            0
+          ],
+          "rotation": 0
+        },
+        "half_extents_ticks": [
+          17,
+          12,
+          17
+        ]
+      }
+    ],
+    "mass": {
+      "dry_mass_kg": 90,
+      "center_of_mass_metres": [
+        0.0,
+        -0.07482872072769498,
+        0.0
+      ],
+      "inertia_kg_metres_squared": [
+        28.83446179748519,
+        0.0,
+        0.0,
+        0.0,
+        65.07526843429456,
+        0.0,
+        0.0,
+        0.0,
+        42.813637334547316
+      ]
+    },
+    "buoyancy": [
+      {
+        "box": {
+          "id": "1",
+          "frame": {
+            "translation_ticks": [
+              0,
+              -12,
+              0
+            ],
+            "rotation": 0
+          },
+          "half_extents_ticks": [
+            38,
+            2,
+            50
+          ]
+        },
+        "kind": "solid_material"
+      },
+      {
+        "box": {
+          "id": "2",
+          "frame": {
+            "translation_ticks": [
+              -44,
+              0,
+              0
+            ],
+            "rotation": 0
+          },
+          "half_extents_ticks": [
+            6,
+            2,
+            50
+          ]
+        },
+        "kind": "solid_material"
+      },
+      {
+        "box": {
+          "id": "3",
+          "frame": {
+            "translation_ticks": [
+              44,
+              0,
+              0
+            ],
+            "rotation": 0
+          },
+          "half_extents_ticks": [
+            6,
+            2,
+            50
+          ]
+        },
+        "kind": "solid_material"
+      },
+      {
+        "box": {
+          "id": "4",
+          "frame": {
+            "translation_ticks": [
+              0,
+              4,
+              0
+            ],
+            "rotation": 0
+          },
+          "half_extents_ticks": [
+            17,
+            2,
+            17
+          ]
+        },
+        "kind": "solid_material"
+      }
+    ],
+    "sockets": [
+      {
+        "id": "2",
+        "family": "structural",
+        "role": "receptacle",
+        "profile": 1,
+        "frame": {
+          "translation_ticks": [
+            0,
+            -16,
+            0
+          ],
+          "rotation": 2
+        },
+        "connection_capacity": 1,
+        "clearance": {
+          "minimum_ticks": [
+            -15,
+            -9,
+            -15
+          ],
+          "maximum_ticks": [
+            15,
+            0,
+            15
+          ]
+        },
+        "strength": {
+          "tension_newtons": 30000,
+          "shear_newtons": 24000,
+          "bending_newton_metres": 18000,
+          "torsion_newton_metres": 12000
+        }
+      },
+      {
+        "id": "10",
+        "family": "cargo_latch",
+        "role": "receptacle",
+        "profile": 1,
+        "frame": {
+          "translation_ticks": [
+            0,
+            16,
+            0
+          ],
+          "rotation": 0
+        },
+        "connection_capacity": 1,
+        "clearance": {
+          "minimum_ticks": [
+            -15,
+            -9,
+            -15
+          ],
+          "maximum_ticks": [
+            15,
+            0,
+            15
+          ]
+        },
+        "strength": {
+          "tension_newtons": 30000,
+          "shear_newtons": 24000,
+          "bending_newton_metres": 18000,
+          "torsion_newton_metres": 12000
+        }
+      }
+    ],
+    "strength": {
+      "tension_newtons": 30000,
+      "shear_newtons": 24000,
+      "bending_newton_metres": 18000,
+      "torsion_newton_metres": 12000
+    },
+    "module": {
+      "type": "cargo_cradle",
+      "latch": "10",
+      "maximum_cargo_mass_kg": 3000,
+      "capture_distance_metres": 0.1,
+      "capture_angle_radians": 0.08726646259971647,
+      "capture_speed_metres_per_second": 0.5,
+      "capture_angular_speed_radians_per_second": 0.5235987755982988
+    },
+    "cost": {
+      "salvage_material": "14",
+      "special_machinery": "0"
+    },
+    "salvage_yield": {
+      "salvage_material": "9",
+      "special_machinery": "0"
+    },
+    "material": {
+      "linear_base_color": [
+        1,
+        1,
+        1
+      ],
+      "roughness": 1,
+      "metallic": 1
+    }
+  },
+  "lods": [
+    {
+      "id": "1",
+      "asset": {
+        "namespace": "766f7879732d746f792d6172742d7631",
+        "counter": "1101",
+        "version": 1
+      },
+      "source": {
+        "file": "cradle-lod-0.glb",
+        "sha256": "77d42415f8ef634ea746a76b7e70ecd1ab4c73eb9dabe8ab0e4ea2d8776c1817",
+        "bytes": 59856,
+        "frame": "exported_gltf",
+        "to_canonical_rotation": 12
+      },
+      "minimum_screen_height_pixels": 200
+    },
+    {
+      "id": "2",
+      "asset": {
+        "namespace": "766f7879732d746f792d6172742d7631",
+        "counter": "1102",
+        "version": 1
+      },
+      "source": {
+        "file": "cradle-lod-1.glb",
+        "sha256": "29ff9300e10622a10244a2fafe2797ea1dc10d6e56f94f37d305f8808f205d94",
+        "bytes": 28664,
+        "frame": "exported_gltf",
+        "to_canonical_rotation": 12
+      },
+      "minimum_screen_height_pixels": 60
+    },
+    {
+      "id": "3",
+      "asset": {
+        "namespace": "766f7879732d746f792d6172742d7631",
+        "counter": "1103",
+        "version": 1
+      },
+      "source": {
+        "file": "cradle-lod-2.glb",
+        "sha256": "a4f8178980e9c2f8e619aa2ed598bab675617098f5cd05f3c4f9758a2724a7c3",
+        "bytes": 19308,
+        "frame": "exported_gltf",
+        "to_canonical_rotation": 12
+      },
+      "minimum_screen_height_pixels": 0
+    }
+  ],
+  "tool_anchors": [
+    {
+      "id": "2",
+      "name_key": "salvage.anchor.cradle.socket_2",
+      "frame": {
+        "translation_ticks": [
+          0,
+          -16,
+          0
+        ],
+        "rotation": 2
+      }
+    },
+    {
+      "id": "10",
+      "name_key": "salvage.anchor.cradle.socket_10",
+      "frame": {
+        "translation_ticks": [
+          0,
+          16,
+          0
+        ],
+        "rotation": 0
+      }
+    }
+  ]
+}

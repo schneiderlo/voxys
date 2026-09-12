@@ -1,0 +1,82 @@
+{
+  "schema": 1,
+  "scope": "source and copied-restored physical archives differ; only source archive immutability and exact owned design/inventory/settings are asserted",
+  "identities": {
+    "source": {
+      "source_slot": "/home/modkin/workspace/schneiderlo/voxys/build-cove-mechanisms-r01/native-storage-r06/780c284fb58b3e5bbc435905fc775f26",
+      "archive": {
+        "world": "780c284fb58b3e5bbc435905fc775f26",
+        "generation": 2,
+        "tick": 1625,
+        "schema": 4,
+        "rootKeys": [
+          "7"
+        ],
+        "controlPart": "15",
+        "playerRoot": "0",
+        "bytes": 23849,
+        "sha256": "d73e19d1f0d1a5bc2a7c2426f8740c335d52be2cec78afd0f1e5cf11c42b7919"
+      },
+      "wrapper": {
+        "bytes": 23921,
+        "sha256": "04f08bb50c8945f04b958d09219595a6671e1a311e9e7077223bf7f0bf20bcf4"
+      },
+      "current_mirror_exact": true,
+      "owned_design_exact": true
+    },
+    "copied-restored": {
+      "source_slot": "build-cove-cargo-art-r01/native-storage-r01/780c284fb58b3e5bbc435905fc775f26",
+      "archive": {
+        "world": "780c284fb58b3e5bbc435905fc775f26",
+        "generation": 3,
+        "tick": 1625,
+        "schema": 4,
+        "rootKeys": [
+          "7"
+        ],
+        "controlPart": "15",
+        "playerRoot": "0",
+        "bytes": 13924,
+        "sha256": "a5643c4435e76792aaa2e11e462ec4fe19cfdb9925095e3aa8dda9ec788a2732"
+      },
+      "wrapper": {
+        "bytes": 13996,
+        "sha256": "c9af535d984d8ce7ab54ed7b4d094d973587412223101761069587f328bec1b9"
+      },
+      "current_mirror_exact": true,
+      "owned_design_exact": true
+    }
+  },
+  "expectedOwnedDesign": {
+    "world": "780c284fb58b3e5bbc435905fc775f26",
+    "inventory": [
+      48,
+      0
+    ],
+    "builds": [
+      {
+        "id": "780c284fb58b3e5bbc435905fc775f260600000000000000",
+        "revision": "0200000000000000",
+        "owner": "780c284fb58b3e5bbc435905fc775f260100000000000000",
+        "partIds": [
+          "780c284fb58b3e5bbc435905fc775f260700000000000000",
+          "780c284fb58b3e5bbc435905fc775f260800000000000000",
+          "780c284fb58b3e5bbc435905fc775f260900000000000000",
+          "780c284fb58b3e5bbc435905fc775f260a00000000000000",
+          "780c284fb58b3e5bbc435905fc775f260b00000000000000",
+          "780c284fb58b3e5bbc435905fc775f260c00000000000000",
+          "780c284fb58b3e5bbc435905fc775f260d00000000000000",
+          "780c284fb58b3e5bbc435905fc775f260e00000000000000",
+          "780c284fb58b3e5bbc435905fc775f260f00000000000000",
+          "780c284fb58b3e5bbc435905fc775f261000000000000000",
+          "780c284fb58b3e5bbc435905fc775f261100000000000000"
+        ],
+        "partsSha256": "7a7ffd35420542b26a9e6d2ff200184240a9b27da4c053358f6b79b97f8b00d6",
+        "connectionsSha256": "3faffa180d5c4dea455b6d4c0c2e2a38fc23ea6b00eebd28a3e48210837d7957",
+        "parts": 11,
+        "connections": 17
+      }
+    ],
+    "recoveryDesignDigests": []
+  }
+}

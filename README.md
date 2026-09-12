@@ -320,6 +320,15 @@ sources are included; the materials use solid colors without image textures.
 The helm, winch, engine and propeller now share that style. Their new models
 retain the same physical interfaces, and the propeller clears its guard.
 [Machinery source, compatibility and checks](docs/validation/salvage/LOOK-01/machinery-r01/README.md).
+The propeller now turns with effective drive and reverses with reverse thrust.
+The winch drum follows actual cable movement; its frame and the propeller guard
+stay fixed. Pause and the workshop stop driven motion. A teal dock lane leads
+around the generator to the orange boarding pad.
+[Moving machinery, dock markings and checks](docs/validation/salvage/LOOK-01/driven-cove-r01/README.md).
+The generator and cargo cradle now share the molded palette, with service
+panels, orange accents and exposed studs. Existing saved boats use these new
+models with their original connections, weight and lifting interfaces.
+[Generator/cradle sources and save compatibility](docs/validation/salvage/LOOK-01/cargo-art-r01/README.md).
 The boat, dock, cargo and built bricks also cast shadows onto the brick terrain
 and ocean. Shadows move with the parts; the shadowed seabed stays visible through
 the water. [Scene-shadow integration and checks](docs/validation/salvage/REND-03/scene-shadows-r01/README.md).
@@ -385,6 +394,8 @@ paint edit. Colours survive boat saves and blueprint export/import.
 The workshop also has **part settings**. Select a propeller, helm or winch;
 **X** toggles it, **L** cycles thrust/steering limits, and **N** reverses
 propeller drive. Keep, then Launch applies the change at no material cost.
+Launch now waits when the GPU upload queue is busy, preserving the prepared
+build and finishing automatically when capacity becomes available.
 Undo/redo and Reset preserve settings. Engine drive networks and advanced rope
 settings remain unfinished. [Working settings and gameplay checks](docs/validation/salvage/PLAY-02/settings-r01/README.md).
 In the browser, expand **Saved designs** to name, save, copy, load or update a
@@ -435,6 +446,15 @@ Linux delivery also saves automatically and survives an actual process restart.
 A real unwritable-folder check stays paused until permission is restored and
 **F10** retries successfully; the reward is paid only once.
 [Desktop delivery, retry and restart checks](docs/validation/salvage/PLAY-04/native-delivery-r01/README.md).
+The native HUD now guides the first recovery: **J** to accept, build and board,
+hook and lift the generator, deliver with **H**, then **K** to power the harbor.
+It reports the real remaining distance, height or speed requirement and waits
+for a confirmed save before announcing success. In the browser, the **Next
+objective** card exposes the current action above the other controls and hides
+while building. Its button uses the same permissions as the existing controls.
+[Native recovery guidance](docs/validation/salvage/UX-01/recovery-guidance-r01/README.md),
+[browser objective card](docs/validation/salvage/UX-01/objective-card-r01/README.md).
+
 The harbor lift is now integrated. After the generator is delivered and saved,
 walk to the dock and press **K** to power it. Installation places the banked
 generator on the pier and saves the upgrade. **F** requests four-line attachment;

@@ -1,0 +1,73 @@
+[32m[INFO ] [00:00:00.000] Loading config: salvage_cove.cfg[0m
+[32m[INFO ] [00:00:00.000] ═══════════════════════════════════════════════════════════════[0m
+[32m[INFO ] [00:00:00.000]   Voxy - Terrain Renderer[0m
+[32m[INFO ] [00:00:00.000]   Build target: native[0m
+[32m[INFO ] [00:00:00.000]   Render path: raycast[0m
+[32m[INFO ] [00:00:00.000] ═══════════════════════════════════════════════════════════════[0m
+[32m[INFO ] [00:00:00.018] [Application::init] Window created via X11: 960x540 logical, 960x540 framebuffer (2.00x2.00 scale)[0m
+[32m[INFO ] [00:00:00.081] [Application::init::GPU] GPU Adapter: AMD Radeon 890M Graphics (RADV STRIX1)[0m
+[32m[INFO ] [00:00:00.081] [Application::init::GPU]   Vendor: radv[0m
+[32m[INFO ] [00:00:00.081] [Application::init::GPU]   Backend: Vulkan[0m
+[32m[INFO ] [00:00:00.081] [Application::init::GPU]   Type: Integrated GPU[0m
+[32m[INFO ] [00:00:00.083] [Application::init::GPU] Surface configured: 960x540, format=BGRA8Unorm, presentation=Immediate (uncapped)[0m
+[32m[INFO ] [00:00:00.083] [Application::init::GPU] GPU context initialized successfully[0m
+[32m[INFO ] [00:00:00.148] [Application::init] WebGPU physics initialized: 1024 usable body slots, 0 MiB resident, 32 MiB scratch[0m
+[32m[INFO ] [00:00:00.148] [Application::init] Physics backend: webgpu_soft (scheduler internal, concurrency 1)[0m
+[32m[INFO ] [00:00:00.148] [Application::init] Decompressed 256x256 heightmap: 25054 -> 131072 bytes (0.21 ms)[0m
+[32m[INFO ] [00:00:00.148] [Application::init] Loaded LDH heightmap: 256x256 (0.12 MB, 0.21 ms)[0m
+[32m[INFO ] [00:00:00.148] [Application::init] Loaded heightmap: data/lego_shore.ldh[0m
+[32m[INFO ] [00:00:00.148] [Application::init] Uploaded heightmap to GPU with mips: 256x256 (9 levels, 0.17 MB total)[0m
+[32m[INFO ] [00:00:00.163] [Application::init] Coastal refraction field initialized: 256x256[0m
+[32m[INFO ] [00:00:00.164] [Application::init] FFT water simulation initialized: 2 cascades at 256x256[0m
+[32m[INFO ] [00:00:00.166] [Application::init::TrianglePath::init] TrianglePath initialized successfully[0m
+[32m[INFO ] [00:00:00.170] [Application::init::RaycastPath::init] RaycastPath initialized successfully (960x540 output)[0m
+[32m[INFO ] [00:00:00.171] [Application::init] Baked shadow height field: 128x128 (0.2 ms)[0m
+[32m[INFO ] [00:00:00.422] [Application::init::TerrainTextures::init::TerrainTextures::loadTerrainMaterials] Loaded CC0 terrain material arrays from 'data/materials' (1024x1024x4)[0m
+[32m[INFO ] [00:00:00.423] [Application::init::TerrainTextures::init] TerrainTextures initialized: macro 256x256, lightmap 1x1, materials 1024x1024x4[0m
+[32m[INFO ] [00:00:00.455] [Application::init::BlitPath::init] Created water clipmap: 18817 vertices, 33792 triangles[0m
+[32m[INFO ] [00:00:00.538] [Application::init::BlitPath::init] Loaded original generated ocean environment: data/generated/ocean_environment.png[0m
+[32m[INFO ] [00:00:01.446] [Application::init::BlitPath::init] BlitPath initialized successfully[0m
+[32m[INFO ] [00:00:01.448] [Application::init] LEGO layout: shore study (131072 bytes)[0m
+[32m[INFO ] [00:00:01.499] [Application::init] Cove boat prepared: 11 welded parts, 1035 kg dry mass, 9.884032000000001 cubic metres displacement[0m
+[32m[INFO ] [00:00:01.510] [Application::init] Pontoon inspection: authored candidate; 0 auto LOD, 1/2/3 fixed LOD, G guides, R reset[0m
+[32m[INFO ] [00:00:01.511] Application initialized successfully[0m
+[32m[INFO ] [00:00:01.511]   Window: 960x540[0m
+[32m[INFO ] [00:00:01.511]   Terrain: 256x256 (mips: 9)[0m
+[32m[INFO ] [00:00:01.511]   Render path: raycast[0m
+[32m[INFO ] [00:00:01.511] [0m
+[32m[INFO ] [00:00:01.511] Controls:[0m
+[32m[INFO ] [00:00:01.511]   WASD      - Move camera[0m
+[32m[INFO ] [00:00:01.511]   Mouse     - Look around (click to capture)[0m
+[32m[INFO ] [00:00:01.511]   Shift     - Speed boost / Run[0m
+[32m[INFO ] [00:00:01.511]   E/Space   - Move up / Jump[0m
+[32m[INFO ] [00:00:01.511]   Q/Ctrl    - Move down[0m
+[32m[INFO ] [00:00:01.511]   F1        - Toggle debug overlay[0m
+[32m[INFO ] [00:00:01.511]   F2        - Toggle wireframe mode[0m
+[32m[INFO ] [00:00:01.511]   F3        - Toggle render path[0m
+[32m[INFO ] [00:00:01.511]   F4        - Toggle depth visualization[0m
+[32m[INFO ] [00:00:01.511]   F5        - Toggle normal visualization[0m
+[32m[INFO ] [00:00:01.511]   F6        - Toggle mip level heat map[0m
+[32m[INFO ] [00:00:01.511]   F9        - Toggle uncapped/VSync presentation[0m
+[32m[INFO ] [00:00:01.511]   Escape    - Release mouse / Exit[0m
+[32m[INFO ] [00:00:01.511]   R         - Reset cove preview[0m
+[32m[INFO ] [00:00:01.511] [0m
+[32m[INFO ] [00:00:01.512] Expedition save folder: /home/modkin/workspace/schneiderlo/voxys/build-cove-mechanisms-r01/native-storage-r02/670fc503161f0ffbd1edf5dfe1d2b14f[0m
+[32m[INFO ] [00:00:01.512] To resume: --config salvage_cove.cfg --expedition-root '/home/modkin/workspace/schneiderlo/voxys/build-cove-mechanisms-r01/native-storage-r02' --expedition-world 670fc503161f0ffbd1edf5dfe1d2b14f[0m
+[32m[INFO ] [00:00:01.512] P: Pause | F10: Save expedition (manual)[0m
+[32m[INFO ] [00:00:01.512] Starting main loop (native)...[0m
+[32m[INFO ] [00:00:01.515] Cove | Walk beside the boat to board | P: Pause | J: Take recovery job | H: Deliver | WASD: Walk | Space: Jump | R: Return | P: Pause | F10: Save expedition (manual)[0m
+[32m[INFO ] [00:00:01.519] Cove machine active: 1 physical sections[0m
+[32m[INFO ] [00:00:01.519] Salvage load active: 420 kg, authored winch and tow eye[0m
+[31m[ERROR] [00:00:29.604] Failed to get current surface texture: status=1[0m
+[32m[INFO ] [00:00:31.390] Cove | E: Board boat | P: Pause | J: Take recovery job | H: Deliver | WASD: Walk | Space: Jump | R: Return | P: Pause | F10: Save expedition (manual)[0m
+[32m[INFO ] [00:00:31.509] Cove | E: Return to dock | C: Cut Frame / Frame | P: Pause | J: Take recovery job | H: Deliver | F: Hook salvage | WASD: Walk | Space: Jump | R: Return | P: Pause | F10: Save expedition (manual)[0m
+[32m[INFO ] [00:00:31.792] Cove | E: Return to dock | C: Cut Frame / Engine | P: Pause | J: Take recovery job | H: Deliver | F: Hook salvage | WASD: Walk | Space: Jump | R: Return | P: Pause | F10: Save expedition (manual)[0m
+[32m[INFO ] [00:00:37.061] Cove | Walk beside the boat to board | C: Cut Frame / Engine | P: Pause | J: Take recovery job | H: Deliver | F: Hook salvage | WASD: Walk | Space: Jump | R: Return | P: Pause | F10: Save expedition (manual)[0m
+[32m[INFO ] [00:00:43.457] Cove | E: Use helm | C: Cut Frame / Engine | P: Pause | J: Take recovery job | H: Deliver | F: Hook salvage | WASD: Walk | Space: Jump | R: Return | P: Pause | F10: Save expedition (manual)[0m
+[32m[INFO ] [00:00:43.522] Cove | W/S: Throttle | A/D: Steer | E: Leave helm | C: Cut Frame / Frame | P: Pause | J: Take recovery job | H: Deliver | F: Hook salvage | R: Return | P: Pause | F10: Save expedition (manual)[0m
+[32m[INFO ] [00:00:46.762] Cove | E: Use helm | C: Cut Frame / Frame | P: Pause | J: Take recovery job | H: Deliver | F: Hook salvage | WASD: Walk | Space: Jump | R: Return | P: Pause | F10: Save expedition (manual)[0m
+[32m[INFO ] [00:00:46.961] Cove | E: Use helm | C: Cut Frame / Engine | P: Pause | J: Take recovery job | H: Deliver | F: Hook salvage | WASD: Walk | Space: Jump | R: Return | P: Pause | F10: Save expedition (manual)[0m
+[32m[INFO ] [00:00:50.173] Cove | Walk beside the boat to board | C: Cut Frame / Engine | P: Pause | J: Take recovery job | H: Deliver | F: Hook salvage | WASD: Walk | Space: Jump | R: Return | P: Pause | F10: Save expedition (manual)[0m
+[32m[INFO ] [00:00:50.284] Cove | E: Return to dock | C: Cut Frame / Engine | P: Pause | J: Take recovery job | H: Deliver | F: Hook salvage | WASD: Walk | Space: Jump | R: Return | P: Pause | F10: Save expedition (manual)[0m
+[32m[INFO ] [00:00:50.401] Cove | E: Board boat | P: Pause | J: Take recovery job | H: Deliver | WASD: Walk | Space: Jump | R: Return | P: Pause | F10: Save expedition (manual)[0m
+[32m[INFO ] [00:00:57.695] Cove | Walk beside the boat to board | P: Pause | J: Take recovery job | H: Deliver | WASD: Walk | Space: Jump | R: Return | P: Pause | F10: Save expedition (manual)[0m

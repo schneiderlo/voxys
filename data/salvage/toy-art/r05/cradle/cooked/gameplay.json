@@ -1,0 +1,437 @@
+{
+  "lods": [
+    {
+      "asset": {
+        "counter": "1101",
+        "namespace": "766f7879732d746f792d6172742d7631",
+        "version": 1
+      },
+      "id": "1",
+      "minimum_screen_height_pixels": 200.0,
+      "source": {
+        "bytes": 59856,
+        "file": "cradle-lod-0.glb",
+        "frame": "exported_gltf",
+        "sha256": "77d42415f8ef634ea746a76b7e70ecd1ab4c73eb9dabe8ab0e4ea2d8776c1817",
+        "to_canonical_rotation": 12
+      }
+    },
+    {
+      "asset": {
+        "counter": "1102",
+        "namespace": "766f7879732d746f792d6172742d7631",
+        "version": 1
+      },
+      "id": "2",
+      "minimum_screen_height_pixels": 60.0,
+      "source": {
+        "bytes": 28664,
+        "file": "cradle-lod-1.glb",
+        "frame": "exported_gltf",
+        "sha256": "29ff9300e10622a10244a2fafe2797ea1dc10d6e56f94f37d305f8808f205d94",
+        "to_canonical_rotation": 12
+      }
+    },
+    {
+      "asset": {
+        "counter": "1103",
+        "namespace": "766f7879732d746f792d6172742d7631",
+        "version": 1
+      },
+      "id": "3",
+      "minimum_screen_height_pixels": 0.0,
+      "source": {
+        "bytes": 19308,
+        "file": "cradle-lod-2.glb",
+        "frame": "exported_gltf",
+        "sha256": "a4f8178980e9c2f8e619aa2ed598bab675617098f5cd05f3c4f9758a2724a7c3",
+        "to_canonical_rotation": 12
+      }
+    }
+  ],
+  "metadata_frame": "canonical_y_up_minus_z_forward",
+  "part": {
+    "buoyancy": [
+      {
+        "box": {
+          "frame": {
+            "rotation": 0,
+            "translation_ticks": [
+              0,
+              -12,
+              0
+            ]
+          },
+          "half_extents_ticks": [
+            38,
+            2,
+            50
+          ],
+          "id": "1"
+        },
+        "kind": "solid_material"
+      },
+      {
+        "box": {
+          "frame": {
+            "rotation": 0,
+            "translation_ticks": [
+              -44,
+              0,
+              0
+            ]
+          },
+          "half_extents_ticks": [
+            6,
+            2,
+            50
+          ],
+          "id": "2"
+        },
+        "kind": "solid_material"
+      },
+      {
+        "box": {
+          "frame": {
+            "rotation": 0,
+            "translation_ticks": [
+              44,
+              0,
+              0
+            ]
+          },
+          "half_extents_ticks": [
+            6,
+            2,
+            50
+          ],
+          "id": "3"
+        },
+        "kind": "solid_material"
+      },
+      {
+        "box": {
+          "frame": {
+            "rotation": 0,
+            "translation_ticks": [
+              0,
+              4,
+              0
+            ]
+          },
+          "half_extents_ticks": [
+            17,
+            2,
+            17
+          ],
+          "id": "4"
+        },
+        "kind": "solid_material"
+      }
+    ],
+    "collision": [
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            0,
+            -12,
+            0
+          ]
+        },
+        "half_extents_ticks": [
+          38,
+          4,
+          50
+        ],
+        "id": "1"
+      },
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            -44,
+            0,
+            0
+          ]
+        },
+        "half_extents_ticks": [
+          6,
+          16,
+          50
+        ],
+        "id": "2"
+      },
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            44,
+            0,
+            0
+          ]
+        },
+        "half_extents_ticks": [
+          6,
+          16,
+          50
+        ],
+        "id": "3"
+      },
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            0,
+            4,
+            0
+          ]
+        },
+        "half_extents_ticks": [
+          17,
+          12,
+          17
+        ],
+        "id": "4"
+      }
+    ],
+    "cost": {
+      "salvage_material": "14",
+      "special_machinery": "0"
+    },
+    "footprint": {
+      "maximum_ticks": [
+        50,
+        16,
+        50
+      ],
+      "minimum_ticks": [
+        -50,
+        -16,
+        -50
+      ]
+    },
+    "key": {
+      "counter": "9",
+      "namespace": "766f7879732d73616c766167652d7631",
+      "version": 2
+    },
+    "mass": {
+      "center_of_mass_metres": [
+        0.0,
+        -0.07482872072769498,
+        0.0
+      ],
+      "dry_mass_kg": 90.0,
+      "inertia_kg_metres_squared": [
+        28.83446179748519,
+        0.0,
+        0.0,
+        0.0,
+        65.07526843429456,
+        0.0,
+        0.0,
+        0.0,
+        42.813637334547316
+      ]
+    },
+    "material": {
+      "linear_base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "metallic": 1.0,
+      "roughness": 1.0
+    },
+    "module": {
+      "capture_angle_radians": 0.08726646259971647,
+      "capture_angular_speed_radians_per_second": 0.5235987755982988,
+      "capture_distance_metres": 0.1,
+      "capture_speed_metres_per_second": 0.5,
+      "latch": "10",
+      "maximum_cargo_mass_kg": 3000.0,
+      "type": "cargo_cradle"
+    },
+    "name_key": "salvage.part.cargo_cradle",
+    "permitted_rotation_mask": 16777215,
+    "salvage_yield": {
+      "salvage_material": "9",
+      "special_machinery": "0"
+    },
+    "sockets": [
+      {
+        "clearance": {
+          "maximum_ticks": [
+            15,
+            0,
+            15
+          ],
+          "minimum_ticks": [
+            -15,
+            -9,
+            -15
+          ]
+        },
+        "connection_capacity": 1,
+        "family": "structural",
+        "frame": {
+          "rotation": 2,
+          "translation_ticks": [
+            0,
+            -16,
+            0
+          ]
+        },
+        "id": "2",
+        "profile": 1,
+        "role": "receptacle",
+        "strength": {
+          "bending_newton_metres": 18000.0,
+          "shear_newtons": 24000.0,
+          "tension_newtons": 30000.0,
+          "torsion_newton_metres": 12000.0
+        }
+      },
+      {
+        "clearance": {
+          "maximum_ticks": [
+            15,
+            0,
+            15
+          ],
+          "minimum_ticks": [
+            -15,
+            -9,
+            -15
+          ]
+        },
+        "connection_capacity": 1,
+        "family": "cargo_latch",
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            0,
+            16,
+            0
+          ]
+        },
+        "id": "10",
+        "profile": 1,
+        "role": "receptacle",
+        "strength": {
+          "bending_newton_metres": 18000.0,
+          "shear_newtons": 24000.0,
+          "tension_newtons": 30000.0,
+          "torsion_newton_metres": 12000.0
+        }
+      }
+    ],
+    "solid_occupancy": [
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            0,
+            -12,
+            0
+          ]
+        },
+        "half_extents_ticks": [
+          38,
+          4,
+          50
+        ],
+        "id": "1"
+      },
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            -44,
+            0,
+            0
+          ]
+        },
+        "half_extents_ticks": [
+          6,
+          16,
+          50
+        ],
+        "id": "2"
+      },
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            44,
+            0,
+            0
+          ]
+        },
+        "half_extents_ticks": [
+          6,
+          16,
+          50
+        ],
+        "id": "3"
+      },
+      {
+        "frame": {
+          "rotation": 0,
+          "translation_ticks": [
+            0,
+            4,
+            0
+          ]
+        },
+        "half_extents_ticks": [
+          17,
+          12,
+          17
+        ],
+        "id": "4"
+      }
+    ],
+    "strength": {
+      "bending_newton_metres": 18000.0,
+      "shear_newtons": 24000.0,
+      "tension_newtons": 30000.0,
+      "torsion_newton_metres": 12000.0
+    }
+  },
+  "placement_lattice_metres": 0.02,
+  "schema": 1,
+  "tool_anchors": [
+    {
+      "frame": {
+        "rotation": 2,
+        "translation_ticks": [
+          0,
+          -16,
+          0
+        ]
+      },
+      "id": "2",
+      "name_key": "salvage.anchor.cradle.socket_2"
+    },
+    {
+      "frame": {
+        "rotation": 0,
+        "translation_ticks": [
+          0,
+          16,
+          0
+        ]
+      },
+      "id": "10",
+      "name_key": "salvage.anchor.cradle.socket_10"
+    }
+  ],
+  "units": {
+    "angle": "radians",
+    "length": "metres",
+    "mass": "kilograms",
+    "time": "seconds"
+  }
+}

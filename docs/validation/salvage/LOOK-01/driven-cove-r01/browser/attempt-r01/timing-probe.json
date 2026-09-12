@@ -1,0 +1,278 @@
+{
+  "telemetry": {
+    "schema_version": 1,
+    "frame": {
+      "count": 221,
+      "fps": 0.9993504336,
+      "current_ms": 1001.50001,
+      "average_ms": 1000.649989,
+      "cpu_ms": 1.100000001,
+      "gpu_queue": 1,
+      "gpu_queue_limit": 12,
+      "pacing_skips": 0
+    },
+    "render": {
+      "path": "raycast",
+      "terrain_width": 256,
+      "terrain_height": 256,
+      "terrain_mips": 9,
+      "terrain_cache_refreshes": 92,
+      "static_cache_frames": 220,
+      "geometry_water_frames": 220,
+      "submitted_primitives": 3
+    },
+    "render_gpu": {
+      "available": true,
+      "frame": 210,
+      "age_frames": 11,
+      "water_simulation_ms": 0.428363,
+      "terrain_raycast_ms": 0.340238,
+      "lighting_composite_ms": 1.942886,
+      "primitives_ms": 0.002564,
+      "total_ms": 2.714051,
+      "frame_interval_available": true,
+      "gpu_frame_ms": 3.758532,
+      "render_width": 1280,
+      "render_height": 800,
+      "includes_gpu_physics": true
+    },
+    "render_throughput": {
+      "status": 0,
+      "full_quality": false,
+      "width": 1280,
+      "height": 800,
+      "batch_frames": 0,
+      "submitted_frames": 0,
+      "completed_frames": 0,
+      "encoding_ms": 0,
+      "terrain_cache_refreshes": 92,
+      "static_cache_frames": 220,
+      "geometry_water_frames": 220,
+      "elapsed_ms": 0,
+      "fps": 0
+    },
+    "physics": {
+      "backend": "webgpu_soft",
+      "arithmetic": "fast_float",
+      "tick": 216,
+      "substeps": 4,
+      "fixed_tick_seconds": 0.01666666754,
+      "maximum_catch_up_ticks": 1,
+      "broad_phase_cell_size": 4,
+      "solver_workgroup_size": 256,
+      "solver_color_count": 32,
+      "solver_parallel_color_count": 4,
+      "scheduled_substeps": 4,
+      "bodies": {
+        "current": 3,
+        "capacity": 1024,
+        "high_water": 4,
+        "overflow": false
+      },
+      "active_bodies": {
+        "current": 2,
+        "capacity": 1024,
+        "high_water": 3,
+        "overflow": false
+      },
+      "sleeping_bodies": 1,
+      "kinematic_bodies": 0,
+      "commands": {
+        "current": 0,
+        "capacity": 262144,
+        "high_water": 3,
+        "overflow": false
+      },
+      "grid_entries": {
+        "current": 0,
+        "capacity": 1025,
+        "high_water": 0,
+        "overflow": false
+      },
+      "occupied_cells": 0,
+      "maximum_cell_bodies": 0,
+      "pair_driving_bodies": 0,
+      "candidate_pairs": {
+        "current": 3,
+        "capacity": 262144,
+        "high_water": 3,
+        "overflow": false
+      },
+      "pairs": {
+        "current": 3,
+        "capacity": 65536,
+        "high_water": 3,
+        "overflow": false
+      },
+      "sleeping_pairs": 2,
+      "oversized_bodies": 3,
+      "contacts": {
+        "current": 0,
+        "capacity": 65536,
+        "high_water": 3,
+        "overflow": false
+      },
+      "narrow_pair_classes": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        3,
+        0,
+        0,
+        0,
+        0
+      ],
+      "narrow_collision_pair_classes": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        3,
+        0,
+        0,
+        0,
+        0
+      ],
+      "manifolds": {
+        "current": 0,
+        "capacity": 65536,
+        "high_water": 0,
+        "overflow": false
+      },
+      "manifold_points": 0,
+      "speculative_manifolds": 0,
+      "invalid_manifolds": 0,
+      "terrain_contacts": {
+        "current": 4,
+        "capacity": 4096,
+        "high_water": 4,
+        "overflow": false
+      },
+      "terrain_contact_bodies": 1,
+      "maximum_terrain_contacts_per_body": 4,
+      "solver_mode": "serial",
+      "compact_contacts": 0,
+      "compact_bodies": 0,
+      "graph_colors": 0,
+      "solver_overflow": {
+        "current": 0,
+        "capacity": 65536,
+        "high_water": 0,
+        "overflow": false
+      },
+      "maximum_body_degree": 0,
+      "color_conflicts": 0,
+      "islands": {
+        "total": 3,
+        "awake": 2,
+        "sleeping": 1,
+        "maximum_bodies": 1,
+        "root_errors": 0
+      },
+      "sleeping_grid": {
+        "current": 1,
+        "capacity": 1024,
+        "high_water": 2,
+        "overflow": false
+      },
+      "sleeping_grid_cells": 1,
+      "sleep_transitions": 0,
+      "wake_transitions": 0,
+      "bullets": {
+        "current": 0,
+        "capacity": 1024,
+        "high_water": 0,
+        "overflow": false
+      },
+      "ccd_hits": 0,
+      "ccd_stalls": 0,
+      "ccd_failures": 0,
+      "ccd_maximum_iterations": 0,
+      "submerged_bodies": 2,
+      "water_samples": {
+        "current": 108,
+        "capacity": 32768,
+        "high_water": 108,
+        "overflow": false
+      },
+      "events": {
+        "current": 0,
+        "capacity": 512,
+        "high_water": 6,
+        "overflow": false
+      },
+      "contact_begin_events": 0,
+      "contact_end_events": 0,
+      "island_events": 0,
+      "memory": {
+        "persistent_bytes": 6978944,
+        "scratch_bytes": 145354072
+      },
+      "io": {
+        "upload_bytes": 208,
+        "readback_bytes": 50312
+      },
+      "device_limits": {
+        "storage_bindings": 8,
+        "compute_invocations": 256,
+        "storage_buffer_bytes": 134217728,
+        "maximum_buffer_bytes": 268435456
+      },
+      "stages": {
+        "available": true,
+        "tick": 206,
+        "total_ms": 1.047565,
+        "commands_active_compaction": 0.207188,
+        "ccd": 0.017153,
+        "forces_water": 0.006492,
+        "broad_index_build": 0.002805,
+        "broad_index_sort_ranges": 0.002765,
+        "broad_pair_count": 0.009498,
+        "broad_pair_scatter": 0.005851,
+        "broad_pair_sort_unique": 0.002765,
+        "broad_lifecycle": 0.002806,
+        "narrow_phase_bucketing": 0.008736,
+        "narrow_phase_collision": 0.150603,
+        "dynamic_solver_coloring": 0.003005,
+        "dynamic_solver_graph": 0.002765,
+        "dynamic_solver_solve": 0.010179,
+        "static_contacts": 0.30894,
+        "islands_sleeping": 0.02116,
+        "tick_finalize": 0.284854
+      }
+    },
+    "camera": {
+      "position": [
+        -17.18793869,
+        57.30411911,
+        -89.977211
+      ],
+      "sector": [
+        0,
+        -1,
+        0
+      ],
+      "forward": [
+        -0.3412510157,
+        -0.2354640216,
+        -0.9100025296
+      ],
+      "yaw": -2.782821894,
+      "pitch": -0.2376959622,
+      "fov_y": 1.04719758,
+      "aspect_ratio": 1.600000024
+    }
+  },
+  "visibility": "visible",
+  "focus": true,
+  "adapter": {
+    "vendor": "amd",
+    "architecture": "rdna-3",
+    "device": "Unknown",
+    "description": "Unknown",
+    "fallback": false
+  }
+}

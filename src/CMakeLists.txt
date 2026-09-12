@@ -283,6 +283,7 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/render/mesh_path.cpp")
         render/environment_lighting.cpp
         render/salvage_asset_fixture.cpp
         render/inspection_guides.cpp
+        render/cove_dock_markings.cpp
     )
 endif()
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/render/blit_path.cpp")

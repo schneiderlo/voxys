@@ -1,0 +1,234 @@
+--- a/src/game/BUILD
++++ b/src/game/BUILD
+@@ -95,7 +95,7 @@
+     hdrs = ["expedition/cove_rigid_roots.hpp"],
+     copts = PROJECT_DEFAULT_COPTS,
+     includes = [".."],
+-    deps = [":cove_boat", ":cove_player", ":assembly_fracture", ":build_refit", ":orthogonal_coverage"],
++    deps = [":cove_boat", ":cove_player", ":assembly_fracture", ":build_refit", ":orthogonal_coverage", "//src/physics:physics"],
+ )
+ 
+ cc_library(
+--- a/src/game/expedition/cove_rigid_roots.cpp
++++ b/src/game/expedition/cove_rigid_roots.cpp
+@@ -33,6 +33,50 @@
+         error = "Not enough memory to prepare every machine section.";
+         return {};
+     }
++}
++
++physics::ShapeResourceError CoveRigidRoots::prepareShapes(
++    physics::IAuthoredShapeResources& resources,
++    std::span<physics::AuthoredShape> prepared) noexcept {
++    using Error=physics::ShapeResourceError;
++    using State=physics::ShapeResourceState;
++    if(!count_ || (!prepared.empty() && prepared.size()!=count_))return Error::InvalidHandle;
++    // Validate every existing binding before accepting another GPU owner.
++    for(size_t i=0;i<count_;++i) {
++        const auto& root=roots_[i];
++        if(root.body.valid() || root.retired)return Error::InvalidHandle;
++        if(root.shape.valid()) {
++            const auto state=resources.state(root.shape);
++            if(state!=State::Uploading && state!=State::Ready)return Error::InvalidHandle;
++        } else {
++            if(prepared.empty())return Error::InvalidHandle;
++            const auto cost=prepared[i].cost();
++            if(!cost.cells || !cost.faces || !cost.nodes)return Error::InvalidHandle;
++        }
++    }
++    switch(resources.stats().phase) {
++    case physics::ShapeResourcePhase::Initializing:return Error::NotReady;
++    case physics::ShapeResourcePhase::Closing:
++    case physics::ShapeResourcePhase::Closed:return Error::Closed;
++    case physics::ShapeResourcePhase::Failed:return Error::GpuFailure;
++    case physics::ShapeResourcePhase::Ready:break;
++    }
++    for(size_t i=0;i<count_;++i) {
++        auto& root=roots_[i];
++        if(root.shape.valid())continue;
++        Error error=Error::None;
++        root.shape=resources.upload(std::move(prepared[i]),error);
++        // A failure may return a valid owned handle. Never overwrite or lose it.
++        if(error!=Error::None)return error;
++        if(!root.shape.valid())return Error::InvalidHandle;
++    }
++    bool pending=false;
++    for(const auto& root:roots()) {
++        const auto state=resources.state(root.shape);
++        if(state==State::Uploading)pending=true;
++        else if(state!=State::Ready)return Error::InvalidHandle;
++    }
++    return pending?Error::NotReady:Error::None;
+ }
+ 
+ bool CoveRigidRoots::matches(const CoveBoatAssembly& boat) const noexcept {
+--- a/src/game/expedition/cove_rigid_roots.hpp
++++ b/src/game/expedition/cove_rigid_roots.hpp
+@@ -1,6 +1,7 @@
+ #pragma once
+ 
+ #include "game/expedition/cove_boat.hpp"
++#include "physics/authored_shape_resources.hpp"
+ 
+ #include <array>
+ #include <cassert>
+@@ -30,6 +31,14 @@
+         const CoveBoatAssembly&, std::string& error);
+     CoveRigidRoots(const CoveRigidRoots&) = delete;
+     CoveRigidRoots& operator=(const CoveRigidRoots&) = delete;
++
++    // Retry only unsubmitted prepared shapes after the caller polls resources.
++    // None certifies every shape is Ready; Busy/NotReady retain preparation.
++    // Every accepted handle stays owned here, including on terminal failure;
++    // the caller cancels/drains it through the existing retirement path.
++    // No body admission, polling, staging, allocation or payload copies occur.
++    [[nodiscard]] physics::ShapeResourceError prepareShapes(
++        physics::IAuthoredShapeResources&, std::span<physics::AuthoredShape>) noexcept;
+ 
+     [[nodiscard]] bool matches(const CoveBoatAssembly&) const noexcept;
+     [[nodiscard]] std::span<Root> roots() noexcept { return {roots_.data(), count_}; }
+--- a/tests/test_cove_player.cpp
++++ b/tests/test_cove_player.cpp
+@@ -1443,6 +1443,142 @@
+         const auto depth=glm::min(upper,dockUpper)-glm::max(lower,dockLower);
+         EXPECT_FALSE(glm::all(glm::greaterThan(depth,glm::dvec3(.0001))))
+             <<"home "<<home.x<<","<<home.y<<","<<home.z<<" overlap "<<depth.x<<","<<depth.y<<","<<depth.z;
++    }
++}
++
++// Scripted resource ownership only: no device, fake completion or bodies are
++// used to claim GPU behavior. The separate authored-shape GPU case fills the
++// real eight-operation ring and proves refused payload preservation.
++class LaunchShapeResources final : public physics::IAuthoredShapeResources {
++public:
++    using Error=physics::ShapeResourceError;
++    using State=physics::ShapeResourceState;
++    std::array<Error,4> script{Error::None,Error::None,Error::None,Error::None};
++    std::array<std::optional<physics::AuthoredShape>,2> values;
++    std::array<State,2> states{State::Missing,State::Missing};
++    physics::ShapeResourcePhase phase=physics::ShapeResourcePhase::Ready;
++    size_t calls=0,accepted=0,polls=0,retirements=0;
++    bool handleOnGpuFailure=false;
++    physics::ShapeHandle upload(physics::AuthoredShape&& value,Error& error) noexcept override {
++        error=calls<script.size()?script[calls]:Error::Capacity;++calls;
++        if(error!=Error::None && !(handleOnGpuFailure&&error==Error::GpuFailure))return {};
++        if(accepted==values.size()){error=Error::Capacity;return {};}
++        const auto index=accepted++;values[index].emplace(std::move(value));states[index]=State::Uploading;
++        return {static_cast<uint32_t>(index+1),7,71};
++    }
++    State state(physics::ShapeHandle handle) const noexcept override {
++        return valid(handle)?states[handle.index-1]:State::Missing;
++    }
++    const physics::AuthoredShape* get(physics::ShapeHandle handle) const noexcept override {
++        return valid(handle)&&values[handle.index-1]?&*values[handle.index-1]:nullptr;
++    }
++    Error retain(physics::ShapeHandle handle) noexcept override {return valid(handle)?Error::None:Error::InvalidHandle;}
++    Error release(physics::ShapeHandle handle) noexcept override {return valid(handle)?Error::None:Error::InvalidHandle;}
++    Error retire(physics::ShapeHandle handle) noexcept override {
++        if(!valid(handle))return Error::InvalidHandle;
++        states[handle.index-1]=State::Retiring;++retirements;return Error::None;
++    }
++    physics::ShapeResourceSubmission prepareSubmission(std::span<const physics::ShapeHandle>,Error& error) noexcept override {
++        error=Error::Unsupported;return {};
++    }
++    Error submit(physics::ShapeResourceSubmission,std::span<const WGPUCommandBuffer>) noexcept override {return Error::Unsupported;}
++    Error discard(physics::ShapeResourceSubmission) noexcept override {return Error::Unsupported;}
++    void poll() noexcept override {
++        ++polls;
++        for(size_t i=0;i<states.size();++i) {
++            if(states[i]==State::Uploading)states[i]=State::Ready;
++            else if(states[i]==State::Retiring){states[i]=State::Missing;values[i].reset();}
++        }
++    }
++    void close() noexcept override {phase=physics::ShapeResourcePhase::Closed;}
++    physics::ShapeResourceStats stats() const noexcept override {physics::ShapeResourceStats result;result.phase=phase;return result;}
++    std::string_view failure() const noexcept override {return {};}
++    WGPUBuffer buffer() const noexcept override {return nullptr;}
++private:
++    bool valid(physics::ShapeHandle handle) const noexcept {
++        return handle.pool==71&&handle.generation==7&&handle.index>0&&handle.index<=accepted;
++    }
++};
++
++std::string launchShapePayload(const physics::AuthoredShape& shape) {
++    std::string result;
++    const auto append=[&](const auto bytes){result.append(reinterpret_cast<const char*>(bytes.data()),bytes.size_bytes());};
++    append(shape.cells());append(shape.faces());append(shape.nodes());
++    result.append(reinterpret_cast<const char*>(&shape.packedMass()),sizeof(shape.packedMass()));
++    return result;
++}
++
++TEST_F(CoveMovement, LaunchShapesRetryBusyWithoutLosingPayloadOrDuplicatingAcceptedRoots) {
++    using namespace construction;using Error=physics::ShapeResourceError;
++    std::string error;const WorldNamespace world{{'l','a','u','n','c','h','-','q','u','e','u','e'}};
++    auto seed=prepareCoveBuild(*scene,{world,1},4,error);ASSERT_TRUE(seed)<<error;
++    const auto intact=CoveBoatAssembly::compileBuild(seed->build,seed->catalog,seed->placements,error);ASSERT_TRUE(intact)<<error;
++    const auto first=seed->build.parts.front().id;std::vector<DurableId> cuts;
++    for(const auto& link:seed->build.connections)if(link.a.part==first||link.b.part==first)cuts.push_back(link.id);
++    AssemblyFractureIssue issue;const auto split=AssemblyFracturePlan::prepare(seed->build,seed->build.revision,cuts,seed->catalog,issue);ASSERT_TRUE(split);
++    const auto boat=CoveBoatAssembly::compileFragments(split->afterBuild(),seed->catalog,seed->placements,*intact->primaryRoot().helm,error);ASSERT_TRUE(boat)<<error;
++    auto roots=CoveRigidRoots::prepare(*boat,error);ASSERT_TRUE(roots);ASSERT_EQ(roots->roots().size(),2u);
++    std::vector<physics::AuthoredShape> prepared;for(const auto& root:boat->roots())prepared.push_back(root.shape);
++    const std::array original{launchShapePayload(prepared[0]),launchShapePayload(prepared[1])};
++    const auto* secondStorage=prepared[1].cells().data();
++    LaunchShapeResources resources;resources.script={Error::NotReady,Error::None,Error::Busy,Error::None};
++    resources.phase=physics::ShapeResourcePhase::Initializing;
++    EXPECT_EQ(roots->prepareShapes(resources,prepared),Error::NotReady);EXPECT_EQ(resources.calls,0u);
++    resources.phase=physics::ShapeResourcePhase::Ready;
++    EXPECT_EQ(roots->prepareShapes(resources,prepared),Error::NotReady);EXPECT_EQ(resources.calls,1u);
++    EXPECT_EQ(launchShapePayload(prepared[0]),original[0]);EXPECT_EQ(launchShapePayload(prepared[1]),original[1]);
++    EXPECT_EQ(roots->prepareShapes(resources,prepared),Error::Busy);EXPECT_EQ(resources.calls,3u);
++    const auto accepted=roots->roots()[0].shape;ASSERT_TRUE(accepted.valid());EXPECT_FALSE(roots->roots()[1].shape.valid());
++    ASSERT_NE(resources.get(accepted),nullptr);EXPECT_EQ(launchShapePayload(*resources.get(accepted)),original[0]);
++    EXPECT_EQ(prepared[1].cells().data(),secondStorage);EXPECT_EQ(launchShapePayload(prepared[1]),original[1]);
++    EXPECT_EQ(roots->prepareShapes(resources,prepared),Error::NotReady);EXPECT_EQ(resources.calls,4u);
++    EXPECT_EQ(roots->roots()[0].shape,accepted);ASSERT_TRUE(roots->roots()[1].shape.valid());
++    EXPECT_EQ(launchShapePayload(*resources.get(roots->roots()[1].shape)),original[1]);
++    prepared.clear(); // Application frees moved payloads only after every handle exists.
++    EXPECT_EQ(roots->prepareShapes(resources,prepared),Error::NotReady);EXPECT_EQ(resources.polls,0u);
++    resources.poll();EXPECT_EQ(roots->prepareShapes(resources,prepared),Error::None);EXPECT_EQ(resources.calls,4u);
++    EXPECT_EQ(roots->prepareShapes(resources,prepared),Error::None);EXPECT_EQ(resources.calls,4u);
++    EXPECT_TRUE(roots->matches(*boat));EXPECT_FALSE(roots->allAdmitted());EXPECT_EQ(roots->joinedTick(),0u);
++    for(size_t i=0;i<roots->roots().size();++i) {
++        EXPECT_EQ(roots->roots()[i].key,boat->assembly().mass().roots()[i].key);
++        EXPECT_FALSE(roots->roots()[i].body.valid());EXPECT_FALSE(roots->roots()[i].retired);
++    }
++}
++
++TEST_F(CoveMovement, LaunchShapeTerminalErrorsRetainEveryPartialHandleForCancellation) {
++    using namespace construction;using Error=physics::ShapeResourceError;using State=physics::ShapeResourceState;
++    std::string error;const WorldNamespace world{{'l','a','u','n','c','h','-','e','r','r','o','r'}};
++    auto seed=prepareCoveBuild(*scene,{world,1},4,error);ASSERT_TRUE(seed)<<error;
++    const auto intact=CoveBoatAssembly::compileBuild(seed->build,seed->catalog,seed->placements,error);ASSERT_TRUE(intact)<<error;
++    const auto first=seed->build.parts.front().id;std::vector<DurableId> cuts;
++    for(const auto& link:seed->build.connections)if(link.a.part==first||link.b.part==first)cuts.push_back(link.id);
++    AssemblyFractureIssue issue;const auto split=AssemblyFracturePlan::prepare(seed->build,seed->build.revision,cuts,seed->catalog,issue);ASSERT_TRUE(split);
++    const auto boat=CoveBoatAssembly::compileFragments(split->afterBuild(),seed->catalog,seed->placements,*intact->primaryRoot().helm,error);ASSERT_TRUE(boat)<<error;
++    for(const auto terminal:{Error::Capacity,Error::GpuFailure}) {
++        auto roots=CoveRigidRoots::prepare(*boat,error);ASSERT_TRUE(roots);ASSERT_EQ(roots->roots().size(),2u);
++        std::vector<physics::AuthoredShape> prepared;for(const auto& root:boat->roots())prepared.push_back(root.shape);
++        const auto remaining=launchShapePayload(prepared[1]);LaunchShapeResources resources;
++        resources.script={Error::None,terminal,Error::None,Error::None};resources.handleOnGpuFailure=true;
++        EXPECT_EQ(roots->prepareShapes(resources,std::span{prepared}.first(1)),Error::InvalidHandle);EXPECT_EQ(resources.calls,0u);
++        EXPECT_EQ(roots->prepareShapes(resources,prepared),terminal);EXPECT_EQ(resources.calls,2u);
++        ASSERT_TRUE(roots->roots()[0].shape.valid());
++        EXPECT_EQ(roots->roots()[1].shape.valid(),terminal==Error::GpuFailure);
++        if(terminal==Error::Capacity){EXPECT_EQ(launchShapePayload(prepared[1]),remaining);}
++        EXPECT_TRUE(roots->matches(*boat));EXPECT_FALSE(roots->allAdmitted());EXPECT_EQ(roots->joinedTick(),0u);
++        // Simulate the existing owner's cancellation protocol, retaining shapes
++        // through Retiring until the resource owner acknowledges their removal.
++        size_t accepted=0;
++        for(auto& root:roots->roots())if(root.shape.valid()) {
++            ++accepted;EXPECT_EQ(resources.retire(root.shape),Error::None);root.retired=true;
++            EXPECT_EQ(resources.state(root.shape),State::Retiring);EXPECT_FALSE(root.body.valid());
++            EXPECT_NE(resources.get(root.shape),nullptr);
++        }
++        EXPECT_EQ(resources.retirements,accepted);EXPECT_EQ(resources.polls,0u);
++        EXPECT_EQ(roots->prepareShapes(resources,prepared),Error::InvalidHandle);EXPECT_EQ(resources.calls,2u);
++        resources.poll();
++        for(const auto& root:roots->roots())if(root.shape.valid()) {
++            EXPECT_EQ(resources.state(root.shape),State::Missing);EXPECT_EQ(resources.get(root.shape),nullptr);
++        }
+     }
+ }
+ 

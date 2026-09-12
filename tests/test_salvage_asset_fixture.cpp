@@ -79,6 +79,19 @@ struct Package {
         files["cook-manifest.json"] = bytes(manifest.dump(2) + "\n");
         selection.manifestSha256 = hash(files["cook-manifest.json"]);
     }
+    void setPartName(std::string_view name) {
+        auto metadata=Json::parse(files["gameplay.json"]);
+        metadata["part"]["name_key"]=name;
+        std::string error;
+        const auto normalized=game::assets::parseGameplaySidecar(metadata.dump(),[](const auto&){return true;},error);
+        if(!normalized)throw std::runtime_error(error);
+        files["gameplay.json"]=bytes(normalized->normalizedJson);
+        auto manifest=Json::parse(files["cook-manifest.json"]);
+        manifest["normalized_sidecar"]["bytes"]=files["gameplay.json"].size();
+        manifest["normalized_sidecar"]["sha256"]=hash(files["gameplay.json"]);
+        files["cook-manifest.json"]=bytes(manifest.dump(2)+"\n");
+        selection.manifestSha256=hash(files["cook-manifest.json"]);
+    }
     void multipleLods(uint64_t firstAsset, uint32_t count) {
         auto metadata = Json::parse(files["gameplay.json"]);
         auto manifest = Json::parse(files["cook-manifest.json"]);
@@ -285,6 +298,119 @@ TEST(SalvageFixtureAccounting, PaintFitsBothFullDrawPathsWithinUnchangedReservat
     EXPECT_EQ(SalvageFixturePlacement{}.baseColorOverride,glm::vec4(0));
 }
 
+TEST(CoveDockMarkings, InstalledStaticPanelsKeepSocketsChannelsAndGeneratorClear) {
+    std::string error;
+    const auto source=game::assets::loadAssetFixture(std::filesystem::canonical("data/salvage/fixture-cove-r01.json"),error);
+    ASSERT_TRUE(source)<<error;
+    const auto digest=source->installedRegistryDigest;
+    CoveDockMarkings marks;
+    ASSERT_TRUE(makeCoveDockMarkings(*source,marks,error))<<error;
+    EXPECT_EQ(source->installedRegistryDigest,digest);
+    EXPECT_EQ(marks.dockPlacements,(std::vector<uint32_t>{11,12,13,14,15,16,17,18}));
+    ASSERT_EQ(marks.mesh.materials.size(),2u);
+    EXPECT_EQ(marks.prefab.counts.meshInstances,1u);
+    EXPECT_EQ(marks.prefab.counts.expandedDraws,2u);
+    EXPECT_EQ(marks.prefab.counts.textureCount,0u);
+    EXPECT_EQ(marks.prefab.counts.gpuBytes,marks.mesh.vertices.size()+marks.mesh.indices.size()+2u*64u);
+    EXPECT_LE(marks.prefab.counts.gpuBytes,16u*1024u);
+    for (const auto& m:marks.mesh.materials) {
+        EXPECT_EQ(m.unlit,0); EXPECT_EQ(m.alphaMode,moto::VmeshAlphaOpaque);
+        EXPECT_FLOAT_EQ(m.baseColorFactor[3],1); EXPECT_FLOAT_EQ(m.metallicFactor,0);
+    }
+    ASSERT_EQ(marks.mesh.header.indexCount%3,0u);
+    for (size_t t=0;t<marks.mesh.header.indexCount;t+=3) {
+        std::array<uint32_t,3> indices{};
+        std::memcpy(indices.data(),marks.mesh.indices.data()+t*4,12);
+        std::array<glm::dvec3,3> points{};
+        glm::dvec3 low(1e9),high(-1e9);
+        for (size_t c=0;c<3;++c) {
+            moto::VmeshVertex v{};
+            std::memcpy(&v,marks.mesh.vertices.data()+indices[c]*sizeof(v),sizeof(v));
+            points[c]={v.position[0],v.position[1],v.position[2]};
+            low=glm::min(low,points[c]); high=glm::max(high,points[c]);
+            EXPECT_NEAR(v.position[1],1.2815,1e-6);
+            EXPECT_FLOAT_EQ(v.normal[1],1);
+        }
+        EXPECT_GT(glm::cross(points[1]-points[0],points[2]-points[0]).y,1e-9)<<t;
+        // Independent all-LOD cooked-surface contract: complete triangles fit
+        // one flat 0.974 x 0.970 m panel, not just their centroids.
+        bool onFlat=false;
+        for (double centerX:{4.5,5.5,6.5,7.5}) for (int row=0;row<16;++row) {
+            const double centerZ=-57.5+row;
+            onFlat |= low.x>=centerX-.487-1e-5 && high.x<=centerX+.487+1e-5
+                && low.z>=centerZ-.485-1e-5 && high.z<=centerZ+.485+1e-5;
+        }
+        EXPECT_TRUE(onFlat)<<t;
+        for (double socketX:{4.5,5.5,6.5,7.5}) for (int row=0;row<8;++row) {
+            const double socketZ=-57+row*2;
+            const bool overlap=high.x>socketX-.32+1e-5 && low.x<socketX+.32-1e-5
+                && high.z>socketZ-.32+1e-5 && low.z<socketZ+.32-1e-5;
+            EXPECT_FALSE(overlap)<<t;
+        }
+        EXPECT_FALSE(high.x>5.08 && low.x<6.92 && high.z>-54.32 && low.z<-52.68)<<t;
+    }
+}
+
+TEST(CoveDockMarkings, MovingBoatAndCargoCannotMoveStaticMarkingsAndUnsafeRouteRefusesAtomically) {
+    std::string error;
+    const auto source=game::assets::loadAssetFixture(std::filesystem::canonical("data/salvage/fixture-cove-r01.json"),error);
+    ASSERT_TRUE(source)<<error;
+    CoveDockMarkings original;
+    ASSERT_TRUE(makeCoveDockMarkings(*source,original,error))<<error;
+    game::assets::LoadedAssetFixture moved;
+    moved.registry=source->registry; moved.bundles=source->bundles;
+    for (const auto index:moved.registry.navigation->boatPlacements) moved.registry.placements[index].placement.translation.x+=10000;
+    for (const auto index:moved.registry.navigation->cargoPlacements) moved.registry.placements[index].placement.translation={300,96,-2500};
+    CoveDockMarkings marks;
+    ASSERT_TRUE(makeCoveDockMarkings(moved,marks,error))<<error;
+    EXPECT_EQ(marks.mesh.vertices,original.mesh.vertices);
+    EXPECT_EQ(marks.mesh.indices,original.mesh.indices);
+    // The installed obstacle now occupies the lane; it may never be clipped
+    // away while retaining a misleading navigation cue through its collider.
+    moved.registry.placements[23].placement.translation.x=225;
+    EXPECT_FALSE(makeCoveDockMarkings(moved,marks,error));
+    EXPECT_EQ(marks.mesh.vertices,original.mesh.vertices);
+    moved.registry=source->registry;
+    moved.registry.placements[14].placement.translation.z+=2000;
+    EXPECT_FALSE(makeCoveDockMarkings(moved,marks,error));
+    EXPECT_EQ(marks.mesh.indices,original.mesh.indices);
+    moved.registry=source->registry;
+    moved.registry.placements[14].placement.rotation={6};
+    EXPECT_FALSE(makeCoveDockMarkings(moved,marks,error));
+    moved.registry=source->registry;
+    moved.registry.navigation->spawn.y=std::numeric_limits<double>::quiet_NaN();
+    EXPECT_FALSE(makeCoveDockMarkings(moved,marks,error));
+}
+
+TEST(CoveDockMarkings, AdmissionRecountsExactStorageAndRejectsUnlitOrNonIdentityMesh) {
+    std::string error;
+    const auto source=game::assets::loadAssetFixture(std::filesystem::canonical("data/salvage/fixture-cove-r01.json"),error);
+    ASSERT_TRUE(source)<<error;
+    CoveDockMarkings marks;
+    ASSERT_TRUE(makeCoveDockMarkings(*source,marks,error))<<error;
+    const auto bytes=marks.prefab.counts.gpuBytes;
+    marks.prefab.counts.gpuBytes=0;
+    ASSERT_TRUE(prepareCoveDockMarkingMesh(marks.mesh,marks.prefab,error))<<error;
+    EXPECT_EQ(marks.prefab.counts.gpuBytes,bytes);
+    marks.mesh.materials[0].unlit=1;
+    EXPECT_FALSE(prepareCoveDockMarkingMesh(marks.mesh,marks.prefab,error));
+    EXPECT_EQ(marks.prefab.counts.gpuBytes,bytes);
+    marks.mesh.materials[0].unlit=0;
+    marks.mesh.nodes[0].translation[0]=1;
+    EXPECT_FALSE(prepareCoveDockMarkingMesh(marks.mesh,marks.prefab,error));
+    marks.mesh.nodes[0].translation[0]=0;
+    // Actual double absolute-to-camera-sector bridge at a nonzero far origin.
+    const glm::dvec3 sector(1000000,-2000000,3);
+    const glm::dvec3 origin=sector*256.0+glm::dvec3(3,0,2);
+    const auto root=glm::translate(glm::dmat4(1),origin-sector*256.0);
+    std::vector<game::assets::RigidPrefabDraw> placed;
+    ASSERT_TRUE(game::assets::placeRigidPrefab(marks.prefab,root,{},1,placed,error))<<error;
+    ASSERT_EQ(placed.size(),1u);
+    EXPECT_EQ(glm::vec3(placed[0].modelMatrix[3]),glm::vec3(3,0,2));
+    EXPECT_EQ(MeshPath::gpuInstanceBytes,112u);
+    EXPECT_EQ(SalvageAssetFixture::fixedGpuRequestedBytes,119336u);
+}
+
 #if !defined(VOXY_WASM)
 struct FixtureGPU : testing::Test {
     gpu::Context context;
@@ -326,10 +452,13 @@ struct FixtureGPU : testing::Test {
         value.width = value.height = 64;
         return value;
     }
-    void startFrame() {
+    void startFrame(bool allowReadback=false) {
         if (!color) {
-            color = gpu::createTexture(context.getDevice(), gpu::TextureDesc::renderTarget(64,64,WGPUTextureFormat_RGBA8Unorm));
-            depth = gpu::createTexture(context.getDevice(), gpu::TextureDesc::depth(64,64,WGPUTextureFormat_Depth32Float));
+            auto colorDesc=gpu::TextureDesc::renderTarget(64,64,WGPUTextureFormat_RGBA8Unorm);
+            auto depthDesc=gpu::TextureDesc::depth(64,64,WGPUTextureFormat_Depth32Float);
+            if (allowReadback) {colorDesc.usage|=WGPUTextureUsage_CopySrc;depthDesc.usage|=WGPUTextureUsage_CopySrc;}
+            color = gpu::createTexture(context.getDevice(), colorDesc);
+            depth = gpu::createTexture(context.getDevice(), depthDesc);
             ASSERT_NE(color, nullptr); ASSERT_NE(depth, nullptr);
             colorView = gpu::createTextureView(color); depthView = gpu::createTextureView(depth);
         }
@@ -358,6 +487,54 @@ struct FixtureGPU : testing::Test {
         ASSERT_TRUE(fixture.submitted(ticket, error)) << error;
         releaseCommands();
     }
+    struct NumericFrame {
+        std::array<uint8_t,64u*64u*4u> rgba{};
+        std::array<float,64u*64u> depth{};
+    };
+    // Test-only numeric readback of the already encoded frame. No capture path
+    // or image writer exists; copies and scene draw share one submitted ticket.
+    bool submitNumeric(SalvageFixtureTicket ticket, NumericFrame& output) {
+        constexpr uint64_t planeBytes=64u*64u*4u,totalBytes=2u*planeBytes;
+        struct Readback {
+            WGPUBuffer buffer=nullptr;
+            ~Readback(){if(buffer){wgpuBufferDestroy(buffer);wgpuBufferRelease(buffer);}}
+        } readback;
+        readback.buffer=gpu::createBuffer(context.getDevice(),gpu::BufferDesc{
+            .label="dock numeric color/depth",.size=totalBytes,
+            .usage=WGPUBufferUsage_CopyDst|WGPUBufferUsage_MapRead});
+        if(!readback.buffer)return false;
+        for(int plane=0;plane<2;++plane) {
+            gpu::CompatImageCopyTexture source{};
+            source.texture=plane==0?color:depth;
+            source.aspect=plane==0?WGPUTextureAspect_All:WGPUTextureAspect_DepthOnly;
+            WGPUImageCopyBuffer destination{};
+            destination.buffer=readback.buffer;
+            destination.layout.offset=plane==0?0:planeBytes;
+            destination.layout.bytesPerRow=256;destination.layout.rowsPerImage=64;
+            const WGPUExtent3D extent{64,64,1};
+            wgpuCommandEncoderCopyTextureToBuffer(encoder,&source,&destination,&extent);
+        }
+        submit(ticket);
+        if(HasFatalFailure())return false;
+        auto state=std::make_shared<std::atomic<int>>(0);
+        using Payload=std::shared_ptr<std::atomic<int>>;
+        wgpuBufferMapAsync(readback.buffer,WGPUMapMode_Read,0,totalBytes,
+            [](WGPUBufferMapAsyncStatus status,void* userdata){
+                const std::unique_ptr<Payload> payload(static_cast<Payload*>(userdata));
+                (*payload)->store(status==WGPUBufferMapAsyncStatus_Success?1:2,std::memory_order_release);
+            },new Payload(state));
+        const auto deadline=std::chrono::steady_clock::now()+std::chrono::seconds(10);
+        while(state->load(std::memory_order_acquire)==0 && std::chrono::steady_clock::now()<deadline) {
+            pump();std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+        if(state->load(std::memory_order_acquire)!=1)return false;
+        const auto* bytes=static_cast<const uint8_t*>(wgpuBufferGetConstMappedRange(readback.buffer,0,totalBytes));
+        if(!bytes){wgpuBufferUnmap(readback.buffer);return false;}
+        std::memcpy(output.rgba.data(),bytes,planeBytes);
+        std::memcpy(output.depth.data(),bytes+planeBytes,planeBytes);
+        wgpuBufferUnmap(readback.buffer);
+        return true;
+    }
     void releaseCommands() {
         if (command) { wgpuCommandBufferRelease(command); command = nullptr; }
         if (encoder) { wgpuCommandEncoderRelease(encoder); encoder = nullptr; }
@@ -379,6 +556,117 @@ struct FixtureGPU : testing::Test {
         if (!temporary.empty()) std::filesystem::remove_all(temporary);
     }
 };
+
+TEST_F(FixtureGPU, DockMarkingsUseExactOwnerChargeSharedDrawTicketAndRetirement) {
+    const auto source=game::assets::loadAssetFixture(std::filesystem::canonical("data/salvage/fixture-cove-r01.json"),error);
+    ASSERT_TRUE(source)<<error;
+    CoveDockMarkings marks;
+    ASSERT_TRUE(makeCoveDockMarkings(*source,marks,error))<<error;
+    // Use the real admitted plate underneath the inlay, not an empty backdrop.
+    bundle=source->bundles[2];
+    std::vector<SalvageFixturePlacement> dock;
+    for(const auto index:marks.dockPlacements)
+        dock.push_back({0,bundle->lods().front().id,glm::dmat4(1),source->registry.placements[index].placement});
+    fixture.shutdown();
+    SalvageFixtureConfig config; config.colorFormat=WGPUTextureFormat_RGBA8Unorm;
+    config.maximumOwnerGpuBytes=SalvageAssetFixture::fixedGpuReservationBytes
+        +bundle->requestedGpuBytes()+marks.prefab.counts.gpuBytes-1u;
+    ASSERT_TRUE(fixture.init(context.getDevice(),context.getQueue(),config,error))<<error;
+    EXPECT_FALSE(fixture.beginCandidate(std::array{bundle},error,{},&marks));
+    EXPECT_EQ(fixture.stats().candidate.generation,0u);
+    EXPECT_EQ(fixture.stats().candidate.assetGpuBytes,0u);
+    fixture.shutdown();
+    config.maximumOwnerGpuBytes=16u*1024u*1024u;
+    ASSERT_TRUE(fixture.init(context.getDevice(),context.getQueue(),config,error))<<error;
+    begin();
+    const auto original=fixture.stats().active;
+    auto value=frame(); value.dockMarkingsRoot=glm::dmat4(1);
+    value.cameraPosition={5,8,-51.5f};
+    value.view=glm::lookAtLH(value.cameraPosition,glm::vec3(5,1.28f,-51.5f),glm::vec3(0,0,-1));
+    value.projection=glm::orthoLH_ZO(-2.5f,2.5f,-3.0f,3.0f,.1f,20.0f);
+    value.lighting.direction={0,1,0};value.lighting.sunColor={1,1,1};value.lighting.sunIntensity=.8f;
+    value.lighting.ambientColor={.25f,.25f,.25f};value.lighting.ambientIntensity=1;
+    value.lighting.fogDensity=0;
+    startFrame(true); SalvageFixtureTicket ticket;
+    EXPECT_FALSE(fixture.encode(encoder,colorView,depthView,dock,value,ticket,error));
+    EXPECT_EQ(ticket.serial,0u); EXPECT_EQ(fixture.stats().unresolved.serial,0u);
+    releaseCommands();
+    value.dockMarkingsRoot.reset();
+    NumericFrame baseline,visible,hidden;
+    startFrame();
+    ASSERT_TRUE(fixture.encode(encoder,colorView,depthView,dock,value,ticket,error))<<error;
+    // This fixed camera sees four of the eight dock plates. Compare against
+    // its actual culled baseline, not every admitted offscreen placement.
+    const auto baseDraws=fixture.stats().lastEncodedDraws;
+    EXPECT_GT(baseDraws,0u);
+    EXPECT_LE(baseDraws,bundle->lods().front().prefab.counts.expandedDraws*dock.size());
+    ASSERT_TRUE(submitNumeric(ticket,baseline));
+    const std::array bundles{bundle};
+    ASSERT_TRUE(fixture.beginCandidate(bundles,error,{},&marks))<<error;
+    EXPECT_EQ(fixture.stats().candidate.reservedGpuBytes,original.reservedGpuBytes+marks.prefab.counts.gpuBytes);
+    EXPECT_EQ(fixture.stats().candidate.assetGpuBytes,original.assetGpuBytes+marks.prefab.counts.gpuBytes);
+    EXPECT_EQ(fixture.stats().candidate.dockMarkingGpuBytes,marks.prefab.counts.gpuBytes);
+    EXPECT_EQ(fixture.stats().candidate.uniqueUploads,original.uniqueUploads);
+    ASSERT_EQ(await([](Status s){return s==Status::CandidateReady;}),Status::CandidateReady)<<fixture.lastError();
+    ASSERT_TRUE(fixture.publishCandidate(error))<<error;
+    value.dockMarkingsRoot=glm::dmat4(1);
+    startFrame();
+    ASSERT_TRUE(fixture.encode(encoder,colorView,depthView,dock,value,ticket,error))<<error;
+    EXPECT_EQ(fixture.stats().lastEncodedDraws,baseDraws+marks.prefab.counts.expandedDraws);
+    EXPECT_EQ(fixture.stats().lastEncodedDockMarkingDraws,2u);
+    EXPECT_EQ(fixture.stats().lastSubmittedDockMarkingDraws,0u);
+    EXPECT_FALSE(fixture.requestLeave(error));
+    ASSERT_TRUE(submitNumeric(ticket,visible));
+    EXPECT_EQ(fixture.stats().lastSubmittedDraws,baseDraws+2u);
+    EXPECT_EQ(fixture.stats().lastSubmittedDockMarkingDraws,2u);
+    uint32_t changed=0,teal=0,orange=0,stable=0;
+    for(size_t pixel=0;pixel<64u*64u;++pixel) {
+        const auto byte=pixel*4u;
+        const bool colorChanged=std::memcmp(visible.rgba.data()+byte,baseline.rgba.data()+byte,4)!=0;
+        if(colorChanged) {
+            ++changed;
+            const int r=visible.rgba[byte],g=visible.rgba[byte+1],b=visible.rgba[byte+2];
+            // Hue ordering survives the renderer's ACES tone mapping; do not
+            // assume saturated primaries remain exact encoded RGB channels.
+            teal+=g>r+8 && b>r+8;
+            orange+=r>g+8 && g>b+4;
+            EXPECT_EQ(visible.rgba[byte+3],255u);
+            EXPECT_LT(visible.depth[pixel],baseline.depth[pixel]-1e-6f)<<pixel;
+            EXPECT_LT(baseline.depth[pixel],1.0f)<<pixel; // actual dock below it
+        } else {
+            ++stable;
+            EXPECT_FLOAT_EQ(visible.depth[pixel],baseline.depth[pixel])<<pixel;
+        }
+    }
+    EXPECT_GT(changed,20u);EXPECT_GT(teal,8u);EXPECT_GT(orange,8u);EXPECT_GT(stable,3500u);
+    RecordProperty("dockChangedOpaquePixels",changed);
+    RecordProperty("dockTealPixels",teal);RecordProperty("dockOrangePixels",orange);
+    RecordProperty("dockMarkingGpuBytes",std::to_string(marks.prefab.counts.gpuBytes));
+    // Encoding and discarding hidden workshop state does not advance the
+    // submitted observation. An actual hidden submission restores baseline.
+    value.dockMarkingsRoot.reset();
+    startFrame();
+    ASSERT_TRUE(fixture.encode(encoder,colorView,depthView,dock,value,ticket,error))<<error;
+    EXPECT_EQ(fixture.stats().lastEncodedDockMarkingDraws,0u);
+    EXPECT_EQ(fixture.stats().lastSubmittedDockMarkingDraws,2u);
+    releaseCommands(); ASSERT_TRUE(fixture.discarded(ticket,error));
+    EXPECT_EQ(fixture.stats().lastSubmittedDockMarkingDraws,2u);
+    startFrame();
+    ASSERT_TRUE(fixture.encode(encoder,colorView,depthView,dock,value,ticket,error))<<error;
+    ASSERT_TRUE(submitNumeric(ticket,hidden));
+    EXPECT_EQ(fixture.stats().lastSubmittedDockMarkingDraws,0u);
+    EXPECT_EQ(hidden.rgba,baseline.rgba);
+    EXPECT_EQ(hidden.depth,baseline.depth);
+    startFrame(); ticket={};
+    value.dockMarkingsRoot=glm::scale(glm::dmat4(1),glm::dvec3(2));
+    EXPECT_FALSE(fixture.encode(encoder,colorView,depthView,dock,value,ticket,error));
+    EXPECT_EQ(ticket.serial,0u); EXPECT_EQ(fixture.stats().unresolved.serial,0u);
+    releaseCommands();
+    ASSERT_TRUE(fixture.requestLeave(error));
+    ASSERT_EQ(await([](Status s){return s==Status::Drained;}),Status::Drained);
+    EXPECT_EQ(fixture.stats().active.dockMarkingGpuBytes,0u);
+    EXPECT_EQ(fixture.stats().retiring.dockMarkingGpuBytes,0u);
+}
 
 TEST_F(FixtureGPU, FilteredEnvironmentAndSunShadowsAreChargedRetriedAndRetiredWithTheirGeneration) {
     fixture.shutdown();
@@ -471,7 +759,7 @@ TEST_F(FixtureGPU, CoveMoldedMachineryFitsCurrentOwnerBudget) {
     fixture.shutdown();
     const auto base=game::assets::loadAssetFixture(std::filesystem::canonical("data/salvage/fixture-cove-r01.json"),error);
     ASSERT_TRUE(base)<<error;
-    const auto scene=game::assets::appendAssetFixtureCatalog(*base,std::filesystem::canonical("data/salvage/cove-workshop-r04.json"),error);
+    const auto scene=game::assets::appendAssetFixtureCatalog(*base,std::filesystem::canonical("data/salvage/cove-workshop-r06.json"),error);
     ASSERT_TRUE(scene)<<error;
     SalvageFixtureConfig config;config.colorFormat=WGPUTextureFormat_RGBA8Unorm;
     config.filteredEnvironment=true;config.sunShadows=true;
@@ -492,7 +780,7 @@ TEST_F(FixtureGPU, CoveMoldedMachineryFitsCurrentOwnerBudget) {
     const auto reserved=fixture.stats().active.reservedGpuBytes;
     EXPECT_LE(reserved,16ull*1024ull*1024ull);
     EXPECT_EQ(reserved,requested);
-    EXPECT_EQ(reserved,10740488u); // Independent cooked-byte audit, all seven presentations.
+    EXPECT_EQ(reserved,9724200u); // Independent cooked-byte audit, all nine presentations.
     EXPECT_EQ(fixture.stats().active.uniqueUploads,36u);
     RecordProperty("ownerGpuBytes",std::to_string(reserved));
     std::vector<SalvageFixturePlacement> placements;
@@ -504,6 +792,25 @@ TEST_F(FixtureGPU, CoveMoldedMachineryFitsCurrentOwnerBudget) {
     submit(ticket);
     EXPECT_LE(fixture.stats().lastSubmittedDraws,SalvageAssetFixture::maximumExpandedDraws);
     RecordProperty("colorDraws",std::to_string(fixture.stats().lastSubmittedDraws));
+
+    releaseCommands();
+    for(auto& placement:placements) {
+        const auto& binding=scene->renderBundles()[placement.bundleIndex]->lods().front().prefab.mechanism;
+        if(binding) placement.mechanism=game::assets::RigidMechanismPose{binding->kind,.75};
+    }
+    // The real articulated scene must retain the supported 64-large-brick
+    // builder capacity and its three palette previews under existing caps.
+    for(int i=0;i<64;++i)
+        placements.push_back({11,1,glm::dmat4(1),{{(i%8)*250,100+(i/8)*48,-3000},{}}});
+    for(uint32_t i=9;i<12;++i)placements.push_back({i,1,glm::dmat4(1),{{0,500,-3000},{}}});
+    ASSERT_LE(placements.size(),SalvageAssetFixture::maximumPlacements);
+    startFrame();ticket={};
+    ASSERT_TRUE(fixture.encode(encoder,colorView,depthView,placements,value,ticket,error))<<error;
+    submit(ticket);
+    EXPECT_EQ(fixture.stats().active.reservedGpuBytes,reserved);
+    EXPECT_LE(fixture.stats().lastSubmittedDraws,SalvageAssetFixture::maximumExpandedDraws);
+    RecordProperty("with64BricksColorDraws",std::to_string(fixture.stats().lastSubmittedDraws));
+    RecordProperty("with64BricksPlacements",std::to_string(placements.size()));
 }
 
 TEST_F(FixtureGPU, DeduplicatesAdmittedAssetsAndPreservesActiveOnCpuRejection) {
@@ -771,6 +1078,71 @@ TEST_F(FixtureGPU, RejectsInvalidPaintBeforeOpeningTicketAndAcceptsNeutralOrOpaq
         submit(ticket);
         EXPECT_EQ(fixture.stats().active.reservedGpuBytes,before.reservedGpuBytes);
     }
+}
+
+void makeMechanismProbe(Package& package) {
+    package.setPartName("salvage.part.propeller");
+    package.changeMesh([](auto& mesh) {
+        mesh.nodes.assign(2,moto::VmeshNode{}); mesh.header.nodeCount=2;
+        mesh.stringBlob.assign(1,'\0');
+        const auto name=[&](std::string_view value){auto offset=static_cast<uint32_t>(mesh.stringBlob.size());
+            mesh.stringBlob.append(value);mesh.stringBlob.push_back('\0');return offset;};
+        mesh.nodes[0].nameOffset=name("voxys_mechanism_static");
+        mesh.nodes[1].nameOffset=name("voxys_propeller_rotor");
+        mesh.nodes[0].meshIndex=mesh.nodes[1].meshIndex=0;
+        mesh.nodes[0].translation[0]=1.5f;
+    });
+}
+
+TEST_F(FixtureGPU, NamedMechanismPhaseUsesOwnedTicketWithoutAdditionalGpuReservation) {
+    Package package;makeMechanismProbe(package);bundle=package.admit();begin();
+    const auto reserved=fixture.stats().active.reservedGpuBytes;
+    std::array placements{SalvageFixturePlacement{.lodId=probeLod}};
+    uint32_t drawCount=0;
+    for(double angle:{0.,.7,-.7}) {
+        placements[0].mechanism=game::assets::RigidMechanismPose{game::assets::RigidMechanismKind::PropellerRotor,angle};
+        SalvageFixtureTicket ticket;startFrame();
+        ASSERT_TRUE(fixture.encode(encoder,colorView,depthView,placements,frame(),ticket,error))<<error;
+        if(drawCount==0)drawCount=fixture.stats().lastEncodedDraws;
+        EXPECT_EQ(fixture.stats().lastEncodedDraws,drawCount);
+        EXPECT_GT(drawCount,1u);submit(ticket);
+        EXPECT_EQ(fixture.stats().active.reservedGpuBytes,reserved);
+    }
+    SalvageFixtureTicket unchanged{71,93};startFrame();
+    for(const auto pose:{game::assets::RigidMechanismPose{game::assets::RigidMechanismKind::WinchDrum,0},
+            game::assets::RigidMechanismPose{game::assets::RigidMechanismKind::PropellerRotor,std::numeric_limits<double>::quiet_NaN()}}) {
+        placements[0].mechanism=pose;
+        EXPECT_FALSE(fixture.encode(encoder,colorView,depthView,placements,frame(),unchanged,error));
+        EXPECT_NE(error.find("mechanism"),std::string::npos)<<error;
+        EXPECT_EQ(unchanged,(SalvageFixtureTicket{71,93}));
+        EXPECT_EQ(fixture.stats().unresolved.serial,0u);
+        EXPECT_EQ(fixture.stats().active.reservedGpuBytes,reserved);
+    }
+    releaseCommands();
+    EXPECT_EQ(MeshPath::gpuInstanceBytes,112u);
+    EXPECT_EQ(SalvageAssetFixture::fixedGpuRequestedBytes,119336u);
+    EXPECT_EQ(SalvageAssetFixture::maximumExpandedDraws,512u);
+    EXPECT_EQ(SalvageAssetFixture::maximumMeshInstances,256u);
+}
+
+TEST_F(FixtureGPU, RejectsWrongCanonicalMechanismRoleAndMissingRoleInAnotherLodBeforeUpload) {
+    Package wrong;makeMechanismProbe(wrong);wrong.setPartName("salvage.part.beam");
+    const std::array wrongBundles{wrong.admit()};
+    EXPECT_FALSE(fixture.beginCandidate(wrongBundles,error));
+    EXPECT_NE(error.find("canonical part name"),std::string::npos)<<error;
+    EXPECT_EQ(fixture.stats().candidate.generation,0u);
+    Package partial;makeMechanismProbe(partial);partial.multipleLods(7401,2);
+    const auto legacy=Package{}.files.at("lod-9007199254740997.vmesh");
+    partial.files["lod-101.vmesh"]=legacy;
+    auto manifest=Json::parse(partial.files["cook-manifest.json"]);
+    manifest["lods"][1]["bytes"]=legacy.size();manifest["lods"][1]["sha256"]=hash(legacy);
+    partial.files["cook-manifest.json"]=bytes(manifest.dump(2)+"\n");
+    partial.selection.manifestSha256=hash(partial.files["cook-manifest.json"]);
+    const std::array partialBundles{partial.admit()};
+    EXPECT_FALSE(fixture.beginCandidate(partialBundles,error));
+    EXPECT_NE(error.find("across bundle LODs"),std::string::npos)<<error;
+    EXPECT_EQ(fixture.stats().candidate.generation,0u);
+    EXPECT_EQ(fixture.stats().unresolved.serial,0u);
 }
 
 TEST_F(FixtureGPU, CapturesRealPipelineValidationFailureAndKeepsPreviousGeneration) {

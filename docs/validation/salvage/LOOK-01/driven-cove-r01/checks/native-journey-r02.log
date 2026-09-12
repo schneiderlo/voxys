@@ -1,0 +1,37 @@
+voxys Nix shell
+  setup deps: ./scripts/fetch_deps.sh
+  build:      bazel build -c opt //:voxy_native
+  fullscreen: bazel run -c opt //:voxy_native -- --fullscreen --uncapped
+  benchmark:  bazel run -c opt //:voxy_native -- --fullscreen --benchmark --no-validation
+fresh-world
+forward-throttle-before
+forward-throttle-after
+stopped-after-forward-before
+stopped-after-forward-after
+reverse-throttle-before
+reverse-throttle-after
+stopped-after-reverse-before
+stopped-after-reverse-after
+Traceback (most recent call last):
+  File "/home/modkin/workspace/schneiderlo/voxys/scripts/validate_native_cove_mechanisms.py", line 344, in main
+    dock(); refit('reversed-propeller','n',True,True)
+    ~~~~^^
+  File "/home/modkin/workspace/schneiderlo/voxys/scripts/validate_native_cove_mechanisms.py", line 244, in dock
+    walk([4.5,-49]); walk([6,-49])
+    ~~~~^^^^^^^^^^^
+  File "/home/modkin/workspace/schneiderlo/voxys/scripts/validate_native_cove_mechanisms.py", line 222, in walk
+    raise RuntimeError('Boarding waypoint was not reached')
+RuntimeError: Boarding waypoint was not reached
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/modkin/workspace/schneiderlo/voxys/scripts/validate_native_cove_mechanisms.py", line 400, in <module>
+    if __name__=='__main__': main()
+                             ~~~~^^
+  File "/home/modkin/workspace/schneiderlo/voxys/scripts/validate_native_cove_mechanisms.py", line 394, in main
+    try: stop()
+         ~~~~^^
+  File "/home/modkin/workspace/schneiderlo/voxys/scripts/validate_native_cove_mechanisms.py", line 327, in stop
+    raise RuntimeError(message)
+RuntimeError: Native process log contains GPU/runtime errors: [31m[ERROR] [00:00:29.604] Failed to get current surface texture: status=1[0m

@@ -1,0 +1,32 @@
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //tests:cove_hud
+-----------------------------------------------------------------------------
+Running main() from gmock_main.cc
+Note: Google Test filter = CoveRecoveryGuidance.*:CoveHud.ReadableBoundsKeepTheBuildAndPaletteClear:CoveHud.OversizedTextAndTinyWindowsStayBoundedWithoutShrinking
+[==========] Running 8 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 2 tests from CoveHud
+[ RUN      ] CoveHud.ReadableBoundsKeepTheBuildAndPaletteClear
+[       OK ] CoveHud.ReadableBoundsKeepTheBuildAndPaletteClear (0 ms)
+[ RUN      ] CoveHud.OversizedTextAndTinyWindowsStayBoundedWithoutShrinking
+[       OK ] CoveHud.OversizedTextAndTinyWindowsStayBoundedWithoutShrinking (0 ms)
+[----------] 2 tests from CoveHud (0 ms total)
+
+[----------] 6 tests from CoveRecoveryGuidance
+[ RUN      ] CoveRecoveryGuidance.AcceptOnFootButNeverInventDeliveryPermissionFromGeometry
+[       OK ] CoveRecoveryGuidance.AcceptOnFootButNeverInventDeliveryPermissionFromGeometry (0 ms)
+[ RUN      ] CoveRecoveryGuidance.UsesCargoRangeHeightAndFullSpeedIncludingExactBoundaries
+[       OK ] CoveRecoveryGuidance.UsesCargoRangeHeightAndFullSpeedIncludingExactBoundaries (0 ms)
+[ RUN      ] CoveRecoveryGuidance.MissingBodiesWinchOrConfirmedTowCannotAdvertiseAReadyHook
+[       OK ] CoveRecoveryGuidance.MissingBodiesWinchOrConfirmedTowCannotAdvertiseAReadyHook (0 ms)
+[ RUN      ] CoveRecoveryGuidance.PhysicalBankingAndInstalledHarborAreNotDurableSuccess
+[       OK ] CoveRecoveryGuidance.PhysicalBankingAndInstalledHarborAreNotDurableSuccess (0 ms)
+[ RUN      ] CoveRecoveryGuidance.PausedPowerAndManualSaveOverrideHistoricalDeliverySuccess
+[       OK ] CoveRecoveryGuidance.PausedPowerAndManualSaveOverrideHistoricalDeliverySuccess (0 ms)
+[ RUN      ] CoveRecoveryGuidance.EveryMissionStepKeepsReadableLayoutAndExistingGpuBounds
+[       OK ] CoveRecoveryGuidance.EveryMissionStepKeepsReadableLayoutAndExistingGpuBounds (0 ms)
+[----------] 6 tests from CoveRecoveryGuidance (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 8 tests from 2 test suites ran. (0 ms total)
+[  PASSED  ] 8 tests.

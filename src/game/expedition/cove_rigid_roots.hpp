@@ -1,6 +1,7 @@
 #pragma once
 
 #include "game/expedition/cove_boat.hpp"
+#include "physics/authored_shape_resources.hpp"
 
 #include <array>
 #include <cassert>
@@ -30,6 +31,14 @@ public:
         const CoveBoatAssembly&, std::string& error);
     CoveRigidRoots(const CoveRigidRoots&) = delete;
     CoveRigidRoots& operator=(const CoveRigidRoots&) = delete;
+
+    // Retry only unsubmitted prepared shapes after the caller polls resources.
+    // None certifies every shape is Ready; Busy/NotReady retain preparation.
+    // Every accepted handle stays owned here, including on terminal failure;
+    // the caller cancels/drains it through the existing retirement path.
+    // No body admission, polling, staging, allocation or payload copies occur.
+    [[nodiscard]] physics::ShapeResourceError prepareShapes(
+        physics::IAuthoredShapeResources&, std::span<physics::AuthoredShape>) noexcept;
 
     [[nodiscard]] bool matches(const CoveBoatAssembly&) const noexcept;
     [[nodiscard]] std::span<Root> roots() noexcept { return {roots_.data(), count_}; }

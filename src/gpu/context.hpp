@@ -200,6 +200,7 @@ private:
     WGPUTexture currentTexture_ = nullptr;       // Surface texture for current frame
     WGPUTextureView currentTextureView_ = nullptr;
     WGPUSurfaceConfiguration lastSurfaceConfig_ = {};
+    bool surfaceTimeoutPending_ = false; // One warning per consecutive outage.
     
     // Adapter information
     AdapterInfo adapterInfo_;

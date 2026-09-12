@@ -4,11 +4,11 @@ load("//settings:configure_copts.bzl", "PROJECT_DEFAULT_COPTS")
 
 cc_library(
     name = "salvage_asset_fixture",
-    srcs = ["salvage_asset_fixture.cpp", "inspection_guides.cpp"],
-    hdrs = ["salvage_asset_fixture.hpp", "inspection_guides.hpp"],
+    srcs = ["salvage_asset_fixture.cpp", "inspection_guides.cpp", "cove_dock_markings.cpp"],
+    hdrs = ["salvage_asset_fixture.hpp", "inspection_guides.hpp", "cove_dock_markings.hpp"],
     copts = PROJECT_DEFAULT_COPTS,
     includes = [".."],
-    deps = [":render", "//src/game:fixture_limits", "//src/game:cooked_part_bundle", "//third_party:glm"],
+    deps = [":render", "//src/game:fixture_limits", "//src/game:cooked_part_bundle", "//src/game:fixture_registry", "//third_party:glm"],
 )
 
 cc_library(
@@ -94,6 +94,7 @@ cc_library(
     hdrs = [
         "blit_path.hpp",
         "cove_hud.hpp",
+        "cove_recovery_guidance.hpp",
         "cove_hud_font.inc",
         "opaque_scene.hpp",
         "periodic_gradient_lut.hpp",

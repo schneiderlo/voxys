@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="13" failures="0" disabled="0" errors="0" time="1.35" timestamp="2026-09-12T05:04:30.077" name="AllTests">
+  <testsuite name="FixtureRegistry" tests="1" failures="0" disabled="0" skipped="0" errors="0" time="0.458" timestamp="2026-09-12T05:04:30.077">
+    <testcase name="MoldedMachineryPreservesEveryCanonicalPartAndPlacedTransform" file="tests/test_fixture_registry.cpp" line="107" status="run" result="completed" time="0.458" timestamp="2026-09-12T05:04:30.077" classname="FixtureRegistry" />
+  </testsuite>
+  <testsuite name="CoveMechanismsTest" tests="5" failures="0" disabled="0" skipped="0" errors="0" time="0." timestamp="2026-09-12T05:04:30.536">
+    <testcase name="SubmittedTicksRespectDirectionStopAndDiscard" file="tests/test_cove_player.cpp" line="29" status="run" result="completed" time="0." timestamp="2026-09-12T05:04:30.536" classname="CoveMechanismsTest" />
+    <testcase name="RopeIdentityAndMonotonicTicksRejectRetiredSamples" file="tests/test_cove_player.cpp" line="52" status="run" result="completed" time="0." timestamp="2026-09-12T05:04:30.536" classname="CoveMechanismsTest" />
+    <testcase name="PauseAndDetachRebaseWithoutQueuedCatchUp" file="tests/test_cove_player.cpp" line="75" status="run" result="completed" time="0." timestamp="2026-09-12T05:04:30.536" classname="CoveMechanismsTest" />
+    <testcase name="MalformedSamplesAndOverflowLeaveTheCommittedStateUntouched" file="tests/test_cove_player.cpp" line="98" status="run" result="completed" time="0." timestamp="2026-09-12T05:04:30.536" classname="CoveMechanismsTest" />
+    <testcase name="NewWorldStartsNeutralWithoutPersistentVisualState" file="tests/test_cove_player.cpp" line="116" status="run" result="completed" time="0." timestamp="2026-09-12T05:04:30.536" classname="CoveMechanismsTest" />
+  </testsuite>
+  <testsuite name="FixtureGPU" tests="4" failures="0" disabled="0" skipped="0" errors="0" time="0.886" timestamp="2026-09-12T05:04:30.536">
+    <testcase name="CoveMoldedMachineryFitsCurrentOwnerBudget" file="tests/test_salvage_asset_fixture.cpp" line="483" status="run" result="completed" time="0.582" timestamp="2026-09-12T05:04:30.536" classname="FixtureGPU">
+      <properties>
+        <property name="bundleGpuBytes0" value="388200"/>
+        <property name="bundleGpuBytes1" value="392472"/>
+        <property name="bundleGpuBytes2" value="430632"/>
+        <property name="bundleGpuBytes3" value="371592"/>
+        <property name="bundleGpuBytes4" value="238752"/>
+        <property name="bundleGpuBytes5" value="423168"/>
+        <property name="bundleGpuBytes6" value="691344"/>
+        <property name="bundleGpuBytes7" value="694396"/>
+        <property name="bundleGpuBytes8" value="1051660"/>
+        <property name="bundleGpuBytes9" value="84672"/>
+        <property name="bundleGpuBytes10" value="148896"/>
+        <property name="bundleGpuBytes11" value="275184"/>
+        <property name="requestedOwnerGpuBytes" value="10745384"/>
+        <property name="ownerGpuBytes" value="10745384"/>
+        <property name="colorDraws" value="82"/>
+        <property name="with64BricksColorDraws" value="149"/>
+        <property name="with64BricksPlacements" value="92"/>
+      </properties>
+    </testcase>
+    <testcase name="FullSceneAndPaletteFitWithoutIncreasingMeshInstanceBudget" file="tests/test_salvage_asset_fixture.cpp" line="592" status="run" result="completed" time="0.088" timestamp="2026-09-12T05:04:31.119" classname="FixtureGPU" />
+    <testcase name="NamedMechanismPhaseUsesOwnedTicketWithoutAdditionalGpuReservation" file="tests/test_salvage_asset_fixture.cpp" line="822" status="run" result="completed" time="0.09" timestamp="2026-09-12T05:04:31.207" classname="FixtureGPU" />
+    <testcase name="RejectsWrongCanonicalMechanismRoleAndMissingRoleInAnotherLodBeforeUpload" file="tests/test_salvage_asset_fixture.cpp" line="853" status="run" result="completed" time="0.124" timestamp="2026-09-12T05:04:31.297" classname="FixtureGPU" />
+  </testsuite>
+  <testsuite name="RigidPrefab" tests="3" failures="0" disabled="0" skipped="0" errors="0" time="0.004" timestamp="2026-09-12T05:04:31.422">
+    <testcase name="NamedMechanismUsesCanonicalAxisPivotAndExactNodeAcrossAllPartRotations" file="tests/test_rigid_prefab.cpp" line="325" status="run" result="completed" time="0.004" timestamp="2026-09-12T05:04:31.422" classname="RigidPrefab" />
+    <testcase name="MechanismContractRejectsMissingDuplicateHierarchyAndWrongPivots" file="tests/test_rigid_prefab.cpp" line="363" status="run" result="completed" time="0." timestamp="2026-09-12T05:04:31.427" classname="RigidPrefab" />
+    <testcase name="MechanismPhaseRefusalIsAtomicAndDoesNotRelaxExistingCapacity" file="tests/test_rigid_prefab.cpp" line="386" status="run" result="completed" time="0." timestamp="2026-09-12T05:04:31.427" classname="RigidPrefab" />
+  </testsuite>
+</testsuites>

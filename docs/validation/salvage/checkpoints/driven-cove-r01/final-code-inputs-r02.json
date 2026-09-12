@@ -1,0 +1,358 @@
+{
+  "base": "411fa1cfc7e6a396b2d59b14b04f90eb4b83f6f8",
+  "scope": "All changed/new executable, asset and validation inputs for final D39\u2013D44. Unchanged inputs are bound by the base commit. Documentation and isolated D45 preparation excluded. Captured while final required suite runs; compare before publication.",
+  "files": {
+    "CMakeLists.txt": {
+      "bytes": 44615,
+      "sha256": "f43f12aa4ab97cc8d8b1e1dd66636dda029448ec9a100381b39af6d6c39f0e6d"
+    },
+    "data/BUILD": {
+      "bytes": 4257,
+      "sha256": "c33026b0410289912c4cf58a6ed2ed1c3787fef7d8b0c97fc4597b16a34cb13d"
+    },
+    "data/salvage/cove-workshop-r05.json": {
+      "bytes": 8446,
+      "sha256": "0cbd44020ba4198b3303496e60c5a9b90fb90a980cdf3d73bd5f5b650f433133"
+    },
+    "data/salvage/cove-workshop-r06.json": {
+      "bytes": 10233,
+      "sha256": "a19e435f23fc322ff53bfa1895d8b31ff9d894d2f0d371df7f89e751c15b0b9c"
+    },
+    "data/salvage/mechanisms/r01/propeller/cooked/cook-manifest.json": {
+      "bytes": 1721,
+      "sha256": "61e53b6fb936e49d74ea7c505b1aadbf0d5955c8ff5944b22f2c59235b4e57b8"
+    },
+    "data/salvage/mechanisms/r01/propeller/cooked/gameplay.json": {
+      "bytes": 5002,
+      "sha256": "8e576545febd02614d81cca4d674437b30c1e9218f7dd911db3780d4746a0cf3"
+    },
+    "data/salvage/mechanisms/r01/propeller/cooked/lod-1.vmesh": {
+      "bytes": 127897,
+      "sha256": "b3cbd223a46f1f56442ad177d36aec514603b312d93ccf8960e75c09a120288d"
+    },
+    "data/salvage/mechanisms/r01/propeller/cooked/lod-2.vmesh": {
+      "bytes": 58009,
+      "sha256": "7dddd0b5a43e3cca1818a75739a761fcae3d867e74efddc275cf24f8b5421487"
+    },
+    "data/salvage/mechanisms/r01/propeller/cooked/lod-3.vmesh": {
+      "bytes": 27465,
+      "sha256": "ef35b4c37dfe357ce002eaf6d1f50bd9f3a72678c17ce1391c461b7125c82ec5"
+    },
+    "data/salvage/mechanisms/r01/propeller/provenance.json": {
+      "bytes": 26166,
+      "sha256": "6ae60b20b746dcd2b72f9c9bbf81d5410bb361ac9ab14042c759af5d56052df7"
+    },
+    "data/salvage/mechanisms/r01/propeller/source/propeller-lod-0.glb": {
+      "bytes": 58972,
+      "sha256": "1124a046534682a1ed06b88b9c208a4bbee0142d45e744c74585ca9025ad2604"
+    },
+    "data/salvage/mechanisms/r01/propeller/source/propeller-lod-1.glb": {
+      "bytes": 29012,
+      "sha256": "41e49f32f7ef5729ff59e0bafc46fc76b9aa12f76de39dd3ae6192330fce3279"
+    },
+    "data/salvage/mechanisms/r01/propeller/source/propeller-lod-2.glb": {
+      "bytes": 14032,
+      "sha256": "1a637af126a1b18a409f12c2131dc03d680e91cf5a6a3a6bd1caf9e7e3d11e91"
+    },
+    "data/salvage/mechanisms/r01/propeller/source/propeller.blend": {
+      "bytes": 189344,
+      "sha256": "f1e0ff8c8fef49b502d07af2df1d836d52811c7df104fba43dc082425116a37a"
+    },
+    "data/salvage/mechanisms/r01/propeller/source/propeller.gameplay.json": {
+      "bytes": 4964,
+      "sha256": "43ff3960e5c1a37d57d36863910aa65f2613c4571c5411bbfa086933939d52a4"
+    },
+    "data/salvage/mechanisms/r01/winch/cooked/cook-manifest.json": {
+      "bytes": 1724,
+      "sha256": "d86f4f0df012234b720f01a3ca13338a65273aa9819018215119e1a5e2162bc5"
+    },
+    "data/salvage/mechanisms/r01/winch/cooked/gameplay.json": {
+      "bytes": 11175,
+      "sha256": "0cf64f3e37db38c9eec0e0f0fd26cd20b65ac77540a78ff4d15bb170674ab0e8"
+    },
+    "data/salvage/mechanisms/r01/winch/cooked/lod-1.vmesh": {
+      "bytes": 395756,
+      "sha256": "ac7f77c9a1478b238fdcfe59d53723feddfc2c97ffeb5f1790b62e5faeed2d20"
+    },
+    "data/salvage/mechanisms/r01/winch/cooked/lod-2.vmesh": {
+      "bytes": 162380,
+      "sha256": "4491ed311cc2c2887e228ab21045b8921e91c5020391d0635eea818752e18d7b"
+    },
+    "data/salvage/mechanisms/r01/winch/cooked/lod-3.vmesh": {
+      "bytes": 55316,
+      "sha256": "49a4f59da5e17315acb44fbf3cc290ef52436b2f23cc446185f42b68ba66af4b"
+    },
+    "data/salvage/mechanisms/r01/winch/provenance.json": {
+      "bytes": 41943,
+      "sha256": "da476d766f7db643ee919d3442bd2c97d1389f6ba92bd9f3f96e7116c2a0ac4e"
+    },
+    "data/salvage/mechanisms/r01/winch/source/winch-lod-0.glb": {
+      "bytes": 173848,
+      "sha256": "8a244532f421b37409f3b60bf79b80bb8411017b8a5bb528dc49eca370c86735"
+    },
+    "data/salvage/mechanisms/r01/winch/source/winch-lod-1.glb": {
+      "bytes": 73896,
+      "sha256": "1a0d9119f7e43fa048e5c0fda3818ee5dd3bd33d06073882cc1e15b52ecea309"
+    },
+    "data/salvage/mechanisms/r01/winch/source/winch-lod-2.glb": {
+      "bytes": 25948,
+      "sha256": "d222f5790f798f4d6c6636dc72bb4a1700daa628f390f1155d780ef4ea8951ad"
+    },
+    "data/salvage/mechanisms/r01/winch/source/winch.blend": {
+      "bytes": 349046,
+      "sha256": "31820a48e512de23c990c9326309cb83a64091746ae2f7ce86727b87d384709f"
+    },
+    "data/salvage/mechanisms/r01/winch/source/winch.gameplay.json": {
+      "bytes": 11127,
+      "sha256": "4bdb78bf31d3ad7f33e5469a54d635d9f0b844aad74943f9436a770970975726"
+    },
+    "data/salvage/toy-art/r05/cradle/cooked/cook-manifest.json": {
+      "bytes": 1721,
+      "sha256": "01b548b7cfd5d15f6e83813a7eec6b5f28fc78259078b3c5a6e5f19baeafaeb0"
+    },
+    "data/salvage/toy-art/r05/cradle/cooked/gameplay.json": {
+      "bytes": 8598,
+      "sha256": "eb89e33b7d6da4d363705f45feb9395c3ecbf0114d9a72cdda4577eda5d10df1"
+    },
+    "data/salvage/toy-art/r05/cradle/cooked/lod-1.vmesh": {
+      "bytes": 135233,
+      "sha256": "81eb42bdd59dc2ccf960d71815d669231406b5dd9b47e334a5f5e4c4f8ea0c1f"
+    },
+    "data/salvage/toy-art/r05/cradle/cooked/lod-2.vmesh": {
+      "bytes": 61517,
+      "sha256": "6c192c0bdc39767e8e6e89e84b8239a6c25960124dcaecdcfe70afd46caf04be"
+    },
+    "data/salvage/toy-art/r05/cradle/cooked/lod-3.vmesh": {
+      "bytes": 44009,
+      "sha256": "b8a7cf22c22f0467fd5d2279c6b6f660cb180bdbaaf72f0fcfefd3d2a99ba82b"
+    },
+    "data/salvage/toy-art/r05/cradle/provenance.json": {
+      "bytes": 37682,
+      "sha256": "0d5da0365beed3eef5637b36c679221179342fb2e5dbd0a8fd0da87de4764b96"
+    },
+    "data/salvage/toy-art/r05/cradle/source/cradle-lod-0.glb": {
+      "bytes": 59856,
+      "sha256": "77d42415f8ef634ea746a76b7e70ecd1ab4c73eb9dabe8ab0e4ea2d8776c1817"
+    },
+    "data/salvage/toy-art/r05/cradle/source/cradle-lod-1.glb": {
+      "bytes": 28664,
+      "sha256": "29ff9300e10622a10244a2fafe2797ea1dc10d6e56f94f37d305f8808f205d94"
+    },
+    "data/salvage/toy-art/r05/cradle/source/cradle-lod-2.glb": {
+      "bytes": 19308,
+      "sha256": "a4f8178980e9c2f8e619aa2ed598bab675617098f5cd05f3c4f9758a2724a7c3"
+    },
+    "data/salvage/toy-art/r05/cradle/source/cradle.blend": {
+      "bytes": 190043,
+      "sha256": "402251c9f76a97e3ff00524284062b11540b3de621bc5f64184e4046b5e387cf"
+    },
+    "data/salvage/toy-art/r05/cradle/source/cradle.gameplay.json": {
+      "bytes": 8554,
+      "sha256": "ea4020ac981f113bc915a268c993daa41ed4fe8c47c195c3b12780838ea3080c"
+    },
+    "data/salvage/toy-art/r05/generator/cooked/cook-manifest.json": {
+      "bytes": 1723,
+      "sha256": "c9cc02f760378e8f85f63dc4fcc5354f76e10037ffdd0eb2a2fd4376dc735ddd"
+    },
+    "data/salvage/toy-art/r05/generator/cooked/gameplay.json": {
+      "bytes": 5693,
+      "sha256": "ff114a6535aa2522f2139e12ee82debb39bed70d5b15e48e8ea522481335d7d8"
+    },
+    "data/salvage/toy-art/r05/generator/cooked/lod-1.vmesh": {
+      "bytes": 245491,
+      "sha256": "88106f5ad59d9cd551aac1eb376db720a441ec0ca2db64410c398f4322bd0cf1"
+    },
+    "data/salvage/toy-art/r05/generator/cooked/lod-2.vmesh": {
+      "bytes": 108643,
+      "sha256": "1fb38fb9e79e7259d6923d678ea3df308b5eb637bc0c236c8cace830c3f54d5e"
+    },
+    "data/salvage/toy-art/r05/generator/cooked/lod-3.vmesh": {
+      "bytes": 55795,
+      "sha256": "836852d3e9796b72eaecf680b296174417c8ec5c157f4d9b7bc23a099b277752"
+    },
+    "data/salvage/toy-art/r05/generator/provenance.json": {
+      "bytes": 57831,
+      "sha256": "9e5d749c45ccd8d40757cd2ad0135c09ebbb429ec2b1c7d65ef38bce4ab063c6"
+    },
+    "data/salvage/toy-art/r05/generator/source/generator-lod-0.glb": {
+      "bytes": 108176,
+      "sha256": "42948d48526cc6795e6749fd1449bc029db74ce680064007f9104198b881bfb6"
+    },
+    "data/salvage/toy-art/r05/generator/source/generator-lod-1.glb": {
+      "bytes": 49664,
+      "sha256": "f8fd360e2ca693e65395396142e8b5dbfdced09ac39f9a0c42b1ed3df8879e26"
+    },
+    "data/salvage/toy-art/r05/generator/source/generator-lod-2.glb": {
+      "bytes": 24456,
+      "sha256": "923caf96548de779ff221ae4e8f0d77e9e9a041b290d127c8077c04e2c3557d5"
+    },
+    "data/salvage/toy-art/r05/generator/source/generator.blend": {
+      "bytes": 270855,
+      "sha256": "ceadf9204910d1aa6e7222cc537ba5cb04fb2fea9f505be42670807d3b6a756d"
+    },
+    "data/salvage/toy-art/r05/generator/source/generator.gameplay.json": {
+      "bytes": 5651,
+      "sha256": "b6699e5b64dedcf08990202549e4e7070b9686ab3b9f608541813a4c0cfabe96"
+    },
+    "salvage_cove.cfg": {
+      "bytes": 1480,
+      "sha256": "59be70009c590d6d221b2b12d3d86267ae6642112da4bd5cd203c58037fa8053"
+    },
+    "scripts/smoke_integrated_wasm.mjs": {
+      "bytes": 41995,
+      "sha256": "bea9dce78b1379376a3372b2a2374ba497aa7b9c8e7a378d0c3fe3a9345f440b"
+    },
+    "scripts/test_salvage_preview.mjs": {
+      "bytes": 42895,
+      "sha256": "439d1c523d151b9200c494391e097fd4d09e1e528931383f131c4998972c476b"
+    },
+    "scripts/validate_cove_cargo_compatibility.mjs": {
+      "bytes": 11750,
+      "sha256": "0f8cd58024d8ed563552472e8ea3690e2aa4e8e4ca74356cbccb86b127c0485c"
+    },
+    "scripts/validate_cove_mechanisms.mjs": {
+      "bytes": 19201,
+      "sha256": "595960963f372e54b2ae56b7d68efaac74d00a185db40eb12224215718e9cbd1"
+    },
+    "scripts/validate_cove_objectives.mjs": {
+      "bytes": 13997,
+      "sha256": "cc722aadc5ef8a08dc816b45c59e7506990df311b337e97e3109803788cc9295"
+    },
+    "scripts/validate_native_cove_art_resume.py": {
+      "bytes": 8868,
+      "sha256": "18fe6615882cbf247710cb5f34e6c4d7aa28de3845878f06c1dc8ec92c95aa50"
+    },
+    "scripts/validate_native_cove_delivery.py": {
+      "bytes": 22737,
+      "sha256": "bef18ffa6bfbd728b6c749854a78686ab568f396cb2d0d6882550f3ce639367f"
+    },
+    "scripts/validate_native_cove_mechanisms.py": {
+      "bytes": 25266,
+      "sha256": "df338dfe73d335088276091ecb8c485bf1a7753147d0727f6737094ed80c34ee"
+    },
+    "src/CMakeLists.txt": {
+      "bytes": 21831,
+      "sha256": "be43380da877f721ac9102e78249a72eefe258bdd263322d0d6e9611b2824cde"
+    },
+    "src/app/BUILD": {
+      "bytes": 1556,
+      "sha256": "c9b0c78292534ae82f0ad2e87bd50cd6578407cb38f7428862e59a4280a89332"
+    },
+    "src/app/application.cpp": {
+      "bytes": 468912,
+      "sha256": "5afdd3007e500e85fa7654652b9bf5f180358be0fa57be4294743033bfb840d1"
+    },
+    "src/game/BUILD": {
+      "bytes": 14329,
+      "sha256": "e44040740c0da2faead17395c6fdc35870f89e3ab61b9eb5b2cdffed8c82a638"
+    },
+    "src/game/assets/rigid_prefab.cpp": {
+      "bytes": 24733,
+      "sha256": "17d0f4ca3cecc36be379499a9ce9480cc0d0303221486cdc8e823d7ca892869a"
+    },
+    "src/game/assets/rigid_prefab.hpp": {
+      "bytes": 4458,
+      "sha256": "b965c7e6f16255e98d552abb35e025756bc12e9ed89296112c8ed48ee80c8869"
+    },
+    "src/game/expedition/cove_mechanisms.hpp": {
+      "bytes": 3981,
+      "sha256": "8d8b9ae53a773ccba8ee6020b47cf4ad8d30eae3030ebde0c2d283a5833260a2"
+    },
+    "src/game/expedition/cove_rigid_roots.cpp": {
+      "bytes": 19150,
+      "sha256": "dd0949937e05b1bef70028563691675c1dc7185f2bab5833e449672f2406dd4f"
+    },
+    "src/game/expedition/cove_rigid_roots.hpp": {
+      "bytes": 5752,
+      "sha256": "9dd26b21bb4a8e3d372d1ea6fb270241d85e7e5f02a8f3d19a11fc6cc8aa0d83"
+    },
+    "src/gpu/context.cpp": {
+      "bytes": 19933,
+      "sha256": "29c9d6534e2212c36dcb3868706096c4dc0cc81f8b258f1dbe63f8aaa025a166"
+    },
+    "src/gpu/context.hpp": {
+      "bytes": 13089,
+      "sha256": "8e20563bab10cd43ef0743beb9aecb1a0a4ddae316e61d5edd05b94f2b35b165"
+    },
+    "src/gpu/context_surface.cpp": {
+      "bytes": 20823,
+      "sha256": "3ce9f426b082a2faefe68eb2c34d96e4b4f67c7e7527e98608a02bf924c11b6f"
+    },
+    "src/render/BUILD": {
+      "bytes": 3383,
+      "sha256": "95023c9ec40d2ebc87189cb4e7ef4ff593bfc502bd089188cd184da0616d63d5"
+    },
+    "src/render/cove_dock_markings.cpp": {
+      "bytes": 15698,
+      "sha256": "84f6c1f5c3ed506afeebda9e9cf1af49ebdbcb3577cf6fca6d3bf7fcf057aebd"
+    },
+    "src/render/cove_dock_markings.hpp": {
+      "bytes": 1320,
+      "sha256": "45bbc3bfe05a72d34cd042d5e091cefe49d19e20bc96cc68c9e4c74968a07fa9"
+    },
+    "src/render/cove_hud.hpp": {
+      "bytes": 3095,
+      "sha256": "a24481871f22750c09894dddd5af0434319dfaa71ca78bf95f18a68b401a1322"
+    },
+    "src/render/cove_recovery_guidance.hpp": {
+      "bytes": 10729,
+      "sha256": "52bf741dbeb25e8034f3a958121e848ce9ffb23aa985f26c80f21dfabb9fca7d"
+    },
+    "src/render/salvage_asset_fixture.cpp": {
+      "bytes": 40565,
+      "sha256": "a84e1c9fd7c5a2ea3bfc9594ff1aa24845d2308df0123b259353f03675659214"
+    },
+    "src/render/salvage_asset_fixture.hpp": {
+      "bytes": 8430,
+      "sha256": "5dc78c6402c154dae3d851b9ff745357b18d4463d1b67cf68f3b0d87826484b2"
+    },
+    "tests/BUILD": {
+      "bytes": 35342,
+      "sha256": "a2ca37cc8fc05df6c5cc1d8c39e3ac40a4dee98576773599ec8ec393e0e790e1"
+    },
+    "tests/test_cove_hud.cpp": {
+      "bytes": 17176,
+      "sha256": "ebaaaa22d2d40e0bf891c3c7c2e99e462f0aaa92f2e9f9d59d0a9c27f64cdd38"
+    },
+    "tests/test_cove_player.cpp": {
+      "bytes": 222717,
+      "sha256": "0e2d3d0746e7f5359afcdb71a6c206feecfad34508efbed6ff8e0b3ee9ac3134"
+    },
+    "tests/test_fixture_registry.cpp": {
+      "bytes": 30802,
+      "sha256": "bad9d41c4ddecebd9e0c8db3ac2caa224c0be70466a23cd2d720377119a75e9b"
+    },
+    "tests/test_mesh_path.cpp": {
+      "bytes": 68805,
+      "sha256": "b31cadc6364b9d9a837c72f865b92b1c21d946ca8f8563eea4b9f183c452370a"
+    },
+    "tests/test_rigid_prefab.cpp": {
+      "bytes": 22038,
+      "sha256": "f372a0f008e799a70984a2537dfd02e5726533950b11fdacbfca07af2ebd726d"
+    },
+    "tests/test_salvage_asset_fixture.cpp": {
+      "bytes": 71628,
+      "sha256": "c6c0a08339b3d7e0da331d41457dc053f2800c6b65f51822faf924d9d28462e2"
+    },
+    "tools/salvage_assets/author_cove_cargo_art.py": {
+      "bytes": 11410,
+      "sha256": "369df7c51a97482d55f9badd04a150aa44630f0d57520d29bf04721ea8fb04e6"
+    },
+    "tools/salvage_assets/author_cove_mechanisms.py": {
+      "bytes": 11016,
+      "sha256": "4519f6c3e44dff450598fe78b6f06b1cc5ba173c28c536f746695b342420f35c"
+    },
+    "web/index.html": {
+      "bytes": 86400,
+      "sha256": "95e18dd25fa90b0a163ccae20f2d90e91e9a1b2ca24cf2161183571a1d86a52b"
+    },
+    "web/salvage_preview.css": {
+      "bytes": 9319,
+      "sha256": "d07867e3b6bc8964c451ebc6e6776e10c212e66acaba106752a1a6814b3bd4b5"
+    },
+    "web/salvage_preview.js": {
+      "bytes": 37429,
+      "sha256": "df58cd40eca80d859029ccd11b99fc219e8cb442a041504ca23e741abffdf25c"
+    }
+  }
+}

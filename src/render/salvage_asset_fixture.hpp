@@ -4,6 +4,7 @@
 #include "game/assets/fixture_limits.hpp"
 #include "render/mesh_path.hpp"
 #include "render/inspection_guides.hpp"
+#include "render/cove_dock_markings.hpp"
 #include "render/primitive_path.hpp"
 
 #include <memory>
@@ -34,6 +35,7 @@ struct SalvageFixturePlacement {
     glm::vec4 tint{1.0f}; // Workshop selection; material remains authored.
     bool castsSunShadow = true; // Screen-space palette thumbnails opt out.
     glm::vec4 baseColorOverride{0.0f}; // Linear RGB + enable; independent of selection tint.
+    std::optional<game::assets::RigidMechanismPose> mechanism{}; // Radians for the explicit named moving root only.
 };
 
 struct SalvageFixtureSolid {glm::mat4 model{1};glm::vec4 color{1};};
@@ -55,6 +57,7 @@ struct SalvageFixtureFrame {
     std::span<const SalvageFixtureSolid> harborStructure{}; // At most ten opaque structural boxes.
     std::span<const std::array<glm::vec3,2>> harborCables{}; // At most four actual constraint lines.
     std::optional<std::array<glm::vec3,2>> towCable{}; // Camera-relative presentation endpoints.
+    std::optional<glm::dmat4> dockMarkingsRoot{}; // Installed static frame, camera sector already removed.
 };
 
 struct SalvageFixtureTicket {
@@ -80,6 +83,7 @@ struct SalvageFixtureOwnerStats {
     uint64_t environmentGpuBytes = 0;
     uint32_t environmentBakeCount = 0;
     bool environmentReady = false;
+    uint64_t dockMarkingGpuBytes = 0; // Extra owned mesh; outside fixed reservation.
 };
 
 struct SalvageFixtureStats {
@@ -88,6 +92,8 @@ struct SalvageFixtureStats {
     uint32_t lastEncodedDraws = 0;
     uint32_t lastSubmittedDraws = 0;
     uint32_t lastEncodedGuideBoxes = 0;
+    uint32_t lastEncodedDockMarkingDraws = 0;
+    uint32_t lastSubmittedDockMarkingDraws = 0;
     uint32_t pendingViewCallbacks = 0;
 };
 
@@ -132,7 +138,8 @@ public:
     [[nodiscard]] bool beginCandidate(
         std::span<const std::shared_ptr<const game::assets::CookedPartBundle>> bundles,
         std::string& error,
-        std::span<const game::construction::PartDefinition> prototypes = {});
+        std::span<const game::construction::PartDefinition> prototypes = {},
+        const CoveDockMarkings* dockMarkings = nullptr);
     [[nodiscard]] SalvageFixtureStatus poll();
     [[nodiscard]] bool publishCandidate(std::string& error);
     // Retains refs. Rebinding is validated asynchronously; encode waits until

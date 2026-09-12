@@ -1,0 +1,17 @@
+file:///home/modkin/workspace/schneiderlo/voxys/scripts/smoke_integrated_wasm.mjs:225
+        if(socket.readyState!==WebSocket.OPEN){reject(new Error(`Chrome connection is closed: ${method}`));return;}
+                                                      ^
+
+Error: Chrome connection is closed: Runtime.evaluate
+    at file:///home/modkin/workspace/schneiderlo/voxys/scripts/smoke_integrated_wasm.mjs:225:55
+    at new Promise (<anonymous>)
+    at call (file:///home/modkin/workspace/schneiderlo/voxys/scripts/smoke_integrated_wasm.mjs:224:36)
+    at evaluate (file:///home/modkin/workspace/schneiderlo/voxys/scripts/validate_cove_mechanisms.mjs:13:28)
+    at read (file:///home/modkin/workspace/schneiderlo/voxys/scripts/validate_cove_mechanisms.mjs:16:20)
+    at wait (file:///home/modkin/workspace/schneiderlo/voxys/scripts/validate_cove_mechanisms.mjs:21:29)
+    at async holdWalking (file:///home/modkin/workspace/schneiderlo/voxys/scripts/validate_cove_mechanisms.mjs:131:9)
+    at async walkTo (file:///home/modkin/workspace/schneiderlo/voxys/scripts/validate_cove_mechanisms.mjs:143:13)
+    at async board (file:///home/modkin/workspace/schneiderlo/voxys/scripts/validate_cove_mechanisms.mjs:149:69)
+    at async validateCoveMechanisms (file:///home/modkin/workspace/schneiderlo/voxys/scripts/validate_cove_mechanisms.mjs:222:9)
+
+Node.js v22.23.1

@@ -68,7 +68,7 @@ cc_test(
     name = "cove_player",
     srcs = ["test_cove_player.cpp"],
     copts = PROJECT_TEST_COPTS,
-    deps = ["//src/game:cove_player", "//src/game:cove_boat", "//src/game:cove_rigid_roots", "//src/game:cove_harbor_lift", "//src/game:cove_harbor_runtime", "//src/game:cove_workshop", "//src/game:cove_build", "//src/game:cove_restore", "//src/game:game_session", "//src/game:assembly_fracture", "//third_party:tinygltf", "@googletest//:gtest_main"],
+    deps = ["//src/game:cove_player", "//src/game:cove_boat", "//src/game:cove_rigid_roots", "//src/game:cove_harbor_lift", "//src/game:cove_harbor_runtime", "//src/game:cove_workshop", "//src/game:cove_mechanisms", "//src/game:cove_build", "//src/game:cove_restore", "//src/game:game_session", "//src/game:assembly_fracture", "//third_party:tinygltf", "@googletest//:gtest_main"],
     data = ["//shaders:shaders", "//data:salvage_asset_fixture", "//data:salvage_functional_kit", "//data:salvage_material_metric"],
 )
 
@@ -450,6 +450,7 @@ cc_test(
     srcs = ["test_mesh_path.cpp"],
     copts = PROJECT_TEST_COPTS + ["-DVOXY_NATIVE=1"],
     deps = [
+        "//src/game:rigid_prefab",
         "//src/gpu:gpu",
         "//src/moto:moto",
         "//src/render:render",
@@ -953,7 +954,7 @@ cc_test(
         "//src/game:fixture_registry",
         "//src/game:workshop_camera",
         "//src/game:cove_player",
-        "//src/game:cove_boat", "//src/game:cove_harbor_lift", "//src/game:cove_harbor_runtime", "//src/game:cove_workshop", "//src/game:cove_build", "//src/game:cove_restore",
+        "//src/game:cove_boat", "//src/game:cove_harbor_lift", "//src/game:cove_harbor_runtime", "//src/game:cove_workshop", "//src/game:cove_mechanisms", "//src/game:cove_build", "//src/game:cove_restore",
         "//src/game:assembly_compiler",
         "//src/game:assembly_collision",
         "//src/game:assembly_buoyancy",

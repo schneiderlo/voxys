@@ -16,6 +16,7 @@ struct CoveHudContent {
     std::string title, selected, economy, status;
     std::array<std::string,3> hints;
     CoveHudTone tone=CoveHudTone::Neutral;
+    std::string objective{}; // Read-only formatter step; never gameplay state.
     bool operator==(const CoveHudContent&) const = default;
 };
 // Normalized camera rectangle, leaving the left HUD and bottom 3D palette free.
@@ -52,6 +53,7 @@ public:
     void clearEncodedObservation() noexcept { lastEncodedQuads_=0; }
     [[nodiscard]] uint32_t lastEncodedQuads() const noexcept {return lastEncodedQuads_;}
     [[nodiscard]] const CoveHudLayout& layout() const noexcept {return layout_;}
+    [[nodiscard]] const CoveHudContent& content() const noexcept {return content_;}
     [[nodiscard]] uint64_t uploadCount() const noexcept {return uploadCount_;}
     [[nodiscard]] bool initialized() const noexcept {return pipeline_!=nullptr;}
     static constexpr uint64_t residentBytes=512u*256u+CoveHudLayout::maximumQuads*sizeof(CoveHudQuad);

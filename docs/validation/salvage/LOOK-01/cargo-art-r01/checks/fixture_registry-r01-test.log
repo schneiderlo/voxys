@@ -1,0 +1,15 @@
+exec ${PAGER:-/usr/bin/less} "$0" || exit 1
+Executing tests from //tests:fixture_registry
+-----------------------------------------------------------------------------
+Running main() from gmock_main.cc
+Note: Google Test filter = FixtureRegistry.MoldedMachineryPreservesEveryCanonicalPartAndPlacedTransform:FixtureGPU.CoveMoldedMachineryFitsCurrentOwnerBudget
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from FixtureRegistry
+[ RUN      ] FixtureRegistry.MoldedMachineryPreservesEveryCanonicalPartAndPlacedTransform
+[       OK ] FixtureRegistry.MoldedMachineryPreservesEveryCanonicalPartAndPlacedTransform (552 ms)
+[----------] 1 test from FixtureRegistry (552 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (552 ms total)
+[  PASSED  ] 1 test.

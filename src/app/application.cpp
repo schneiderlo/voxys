@@ -19,9 +19,11 @@
 
 #include "app/debug_overlay.hpp"
 #include "render/cove_hud.hpp"
+#include "render/cove_recovery_guidance.hpp"
 #include "game/expedition/game_session.hpp"
 #include "game/expedition/cove_player.hpp"
 #include "game/expedition/cove_water_clock.hpp"
+#include "game/expedition/cove_mechanisms.hpp"
 #include "game/expedition/cove_boat.hpp"
 #include "game/expedition/cove_rigid_roots.hpp"
 #include "game/construction/assembly_fracture.hpp"
@@ -63,6 +65,7 @@
 #include "render/primitive_culling.hpp"
 #include "render/mesh_path.hpp"
 #include "render/salvage_asset_fixture.hpp"
+#include "render/cove_dock_markings.hpp"
 #include "physics/physics_world.hpp"
 
 #if !defined(VOXY_WASM)
@@ -78,6 +81,7 @@
 #include <cstdlib>
 #include <exception>
 #include <filesystem>
+#include <iomanip>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <limits>
@@ -281,6 +285,11 @@ struct SalvageLocalSessionState {
         uint64_t pauseTick=0;
         double waterTime=0,pauseWaitSeconds=0;
         game::expedition::CoveWaterClock waterClock;
+        game::expedition::CoveMechanisms mechanisms;
+        physics::BodyHandle rotorCommandBody{};
+        double rotorCommandDrive=0;
+        uint32_t mechanismPlacements=0;
+        std::optional<render::CoveDockMarkings> dockMarkings;
         game::expedition::WorkshopCamera workshopCamera;
         int workshopFrameRequest=0;
         bool workshopFrameWhole=true;
@@ -372,12 +381,15 @@ struct RenderFrameGuard {
     render::WaterSimulation* water = nullptr;
     double* waterTime = nullptr;
     double previousWaterTime = 0;
+    game::expedition::CoveMechanisms* mechanisms = nullptr;
+    game::expedition::CoveMechanisms previousMechanisms;
     bool submitted = false;
     ~RenderFrameGuard() {
         if (command) wgpuCommandBufferRelease(command);
         if (encoder) wgpuCommandEncoderRelease(encoder);
         if (!submitted) {
             if (waterTime) *waterTime = previousWaterTime;
+            if (mechanisms) *mechanisms = previousMechanisms;
             if (water) water->discardUpdate();
             if (blit) blit->discardEncoding();
             if (raycast) raycast->discardEncoding();
@@ -2267,6 +2279,31 @@ void Application::render() {
         frameGuard.waterTime = &cove->waterTime;
         frameGuard.previousWaterTime = cove->waterTime;
         cove->waterTime = coveWaterFrame->seconds();
+        if (cove->mechanisms.incarnation()!=frontier.incarnation
+            && !cove->mechanisms.reset(frontier.incarnation,frontier.encoded)) {
+            LOG_ERROR("Invalid Cove mechanism clock"); requestExit(); return;
+        }
+        const bool mechanismsRunning=advancing && !cove->workshopOpen && !cove->checkpointPending
+            && !salvageLocalSession_->launchRequest && !salvageLocalSession_->pendingControl
+            && cove->rescue==SalvageLocalSessionState::AssetPreview::Rescue::None;
+        const double drive=cove->boatRoots && cove->rotorCommandBody==cove->boatRoot().body
+            ?cove->rotorCommandDrive:0;
+        std::optional<game::expedition::CoveMechanisms::RopeSample> rope;
+        // The last accepted sample remains a valid baseline while a motor
+        // command awaits confirmation. Treating that gap as detach loses the
+        // first accepted cable-length changes when reeling starts or stops.
+        if(mechanismsRunning && cove->towRope.valid() && !cove->towBroken
+            && cove->towObserved.handle==cove->towRope && cove->towObserved.alive
+            && !cove->towObserved.broken && cove->towObservedTick>0)
+            rope=game::expedition::CoveMechanisms::RopeSample{
+                cove->towRope,cove->towObservedTick,static_cast<double>(cove->towObserved.distance.targetLength)};
+        const auto mechanisms=cove->mechanisms.prepare(frontier.scheduled,mechanismsRunning,drive,rope);
+        if(!mechanisms) {LOG_ERROR("Invalid Cove mechanism frame");requestExit();return;}
+        // The same instance transforms feed color, depth and current shadows.
+        // A failed encode/submit restores the previous phase and rope sample.
+        frameGuard.mechanisms=&cove->mechanisms;
+        frameGuard.previousMechanisms=cove->mechanisms;
+        cove->mechanisms=*mechanisms;
     }
 
     // Update camera uniforms for all renderers
@@ -5061,6 +5098,7 @@ bool Application::renderSalvageAsset(WGPUCommandEncoder encoder, WGPUTextureView
     const auto viewProjection = glm::dmat4(camera_->projectionMatrix() * camera_->viewMatrix());
     std::array<render::SalvageFixturePlacement, render::SalvageAssetFixture::maximumPlacements> placements{};
     size_t placementCount=0;
+    asset.mechanismPlacements=0;
     const auto& visibleScene=asset.workshopOpen?asset.workshop->preview():asset.acceptedScene();
     for (size_t i = 0; i < visibleScene.registry.placements.size(); ++i) {
         const auto* navigation=asset.content->registry.navigation?&*asset.content->registry.navigation:nullptr;
@@ -5110,6 +5148,23 @@ bool Application::renderSalvageAsset(WGPUCommandEncoder encoder, WGPUTextureView
                     const auto index=asset.boatRoots->indexForPart(*asset.boat,part.id);
                     if(!index || !asset.boatRoots->roots()[*index].body.valid())return false;
                     rendered.physicsBody=asset.boatRoots->roots()[*index].body;
+                    if(!source.prototype) {
+                        const auto& art=asset.content->renderBundles()[source.bundleIndex];
+                        const auto lods=art->lods();
+                        const auto& binding=lods.front().prefab.mechanism;
+                        const auto* module=assembly->assembly().functions().module(part.id);
+                        if(binding && module) {
+                            using Kind=game::assets::RigidMechanismKind;
+                            if(binding->kind==Kind::PropellerRotor
+                                && std::holds_alternative<game::construction::PropellerModule>(module->parameters)) {
+                                const double angle=assembly->primaryRoot().propeller==part.id?asset.mechanisms.rotorRadians():0;
+                                rendered.mechanism=game::assets::RigidMechanismPose{Kind::PropellerRotor,angle};
+                            } else if(binding->kind==Kind::WinchDrum && *index==asset.towRootIndex
+                                && std::holds_alternative<game::construction::WinchModule>(module->parameters))
+                                rendered.mechanism=game::assets::RigidMechanismPose{Kind::WinchDrum,asset.mechanisms.drumRadians()};
+                            if(rendered.mechanism)++asset.mechanismPlacements;
+                        }
+                    }
                 } else rendered.physicsBody=body;
                 rendered.cameraRelativeRoot=glm::dmat4(1);
                 rendered.placement=member->rootFromPart;
@@ -5145,6 +5200,7 @@ bool Application::renderSalvageAsset(WGPUCommandEncoder encoder, WGPUTextureView
     frame.width = gpuContext_->getSwapchainWidth(); frame.height = gpuContext_->getSwapchainHeight();
     frame.useRayDepth = config_.renderPath == RenderPath::Raycast;
     frame.guides = asset.guides;
+    if(asset.dockMarkings && !asset.workshopOpen)frame.dockMarkingsRoot=root;
     if(!asset.workshopOpen && asset.towRope.valid() && !asset.towBroken && asset.towRoot().observedTick>=asset.towChangedTick) {
         const auto a=physics::worldPositionToAbsolute(asset.towRoot().observed.position)
             +glm::dvec3(asset.towRoot().observed.orientation*asset.towBoatPoint)-cameraSectorOrigin;
@@ -5758,8 +5814,15 @@ bool Application::initSalvagePreview() {
         fixtureConfig.colorFormat = fixtureConfig.linearHdrOutput ? WGPUTextureFormat_RGBA16Float : config_.colorFormat;
         fixtureConfig.filteredEnvironment = config_.salvageAssetFixtureFilteredLighting;
         fixtureConfig.sunShadows = config_.salvageAssetFixtureWaterAnchor;
+        if(asset->player) {
+            asset->dockMarkings.emplace();
+            if(!render::makeCoveDockMarkings(*asset->content,*asset->dockMarkings,error)) {
+                LOG_ERROR("Cove dock marking preparation failed: {}",error);return false;
+            }
+        }
         if (!asset->fixture.init(gpuContext_->getDevice(), gpuContext_->getQueue(), fixtureConfig, error)
-            || !asset->fixture.beginCandidate(asset->content->renderBundles(), error, asset->content->prototypes)) {
+            || !asset->fixture.beginCandidate(asset->content->renderBundles(), error, asset->content->prototypes,
+                asset->dockMarkings?&*asset->dockMarkings:nullptr)) {
             LOG_ERROR("Asset fixture initialization failed: {}", error);
             return false;
         }
@@ -6044,25 +6107,25 @@ void Application::configureCoveLaunch() {
             asset->launchMessage="Not enough memory to prepare every boat section.";return State::Rejected;
         }
         asset->launch=std::move(candidate);
-        auto& launch=*asset->launch;auto* resources=physicsWorld_->authoredShapeResources();
-        for(size_t i=0;i<launch.roots->roots().size();++i) {
-            physics::ShapeResourceError shapeError;
-            auto& root=launch.roots->roots()[i];root.shape=resources->upload(std::move(launch.preparedShapes[i]),shapeError);
-            if(!root.shape.valid()) {
-                launch.canceled=true;asset->launchMessage="Boat preparation is busy. Try Launch again.";return State::Rejected;
-            }
-        }
-        launch.preparedShapes.clear();return State::Pending;
+        // Upload during pollBuild, after the resource owner has consumed GPU
+        // completions. Temporary queue pressure keeps this compiled candidate.
+        return State::Pending;
     };
     local.preparation.pollBuild=[this,asset] {
         if(!asset->launch || asset->launch->canceled)return State::Rejected;
-        bool pending=false;
-        for(const auto& root:asset->launch->roots->roots()) {
-            const auto state=physicsWorld_->authoredShapeResources()->state(root.shape);
-            if(state==physics::ShapeResourceState::Uploading)pending=true;
-            else if(state!=physics::ShapeResourceState::Ready)return State::Rejected;
+        auto& launch=*asset->launch;
+        auto* resources=physicsWorld_->authoredShapeResources();
+        if(!resources){launch.canceled=true;return State::Rejected;}
+        const auto result=launch.roots->prepareShapes(*resources,launch.preparedShapes);
+        if(std::all_of(launch.roots->roots().begin(),launch.roots->roots().end(),
+            [](const auto& root){return root.shape.valid();}))launch.preparedShapes.clear();
+        if(result==physics::ShapeResourceError::Busy || result==physics::ShapeResourceError::NotReady)
+            return State::Pending;
+        if(result!=physics::ShapeResourceError::None) {
+            launch.canceled=true;asset->launchMessage="Boat preparation failed. Your build is unchanged.";
+            return State::Rejected;
         }
-        return pending?State::Pending:State::Ready;
+        return State::Ready;
     };
     local.preparation.stageBuild=[this,asset](auto tick) {
         if(!asset->launch || asset->launch->staged || asset->launch->canceled)return State::Rejected;
@@ -6725,17 +6788,22 @@ render::CoveHudContent Application::nativeCoveHudContent() const {
     const auto owned=local.session->snapshot();
     hud.economy="Material "+std::to_string(owned.inventory.salvageMaterial);
     if(asset.pause!=Pause::Running){
-        hud.title=asset.pause==Pause::Paused?"Cove paused":"Stopping safely";
-        hud.selected=asset.checkpointPending?"Progress awaiting save":"Expedition on hold";
-        hud.status=salvageSaveStatus_.empty()
-            ?(asset.pause==Pause::Paused?"Ready to save":"Waiting for motion to stop"):salvageSaveStatus_;
-        hud.tone=asset.checkpointPending?Tone::Waiting:Tone::Neutral;
-        hud.hints={"F10: Save expedition",asset.checkpointPending?"Wait for save to finish":"P: Resume", ""};
+        render::CovePauseFacts facts;
+        facts.paused=asset.pause==Pause::Paused;facts.storageRevoked=local.storageRevoked;
+        facts.checkpointPending=asset.checkpointPending;
+        facts.harborPending=asset.harbor&&asset.harbor->installationPending();
+        facts.rescuePending=asset.rescue!=SalvageLocalSessionState::AssetPreview::Rescue::None;
+        facts.cargoBanked=asset.cargoBanked;facts.deliveryDurable=asset.deliveryDurable;
+        facts.harborPowered=asset.harbor&&asset.harbor->durable()&&asset.harbor->installed();
+        facts.saveStatus=salvageSaveStatus_;
+        if(asset.harbor&&asset.harbor->stage()==game::expedition::CoveHarborRuntime::Stage::Absent)
+            facts.harborRefusal=asset.harbor->message();
+        render::applyCovePauseGuidance(facts,hud);
         return hud;
     }
     if(asset.workshopOpen&&asset.workshop){
         const auto& workshop=*asset.workshop;
-        hud.title="Brick workshop";
+        hud.title="Brick workshop";hud.objective="workshop";
         hud.selected=std::string(workshop.brickToolActive()?workshop.catalogName():workshop.selectedName());
         if(workshop.canPaint()) {
             const auto index=workshop.paintIndex();
@@ -6763,22 +6831,79 @@ render::CoveHudContent Application::nativeCoveHudContent() const {
             "Enter: Launch   B: Close"};
         return hud;
     }
-    hud.title="Salvage Cove";
     using Player=game::expedition::CovePlayer;
     switch(asset.player->interaction()){
         case Player::Interaction::Board:hud.selected="E: Board boat";break;
         case Player::Interaction::ReturnToDock:hud.selected="E: Return to dock";break;
         case Player::Interaction::UseHelm:hud.selected="E: Use helm";break;
         case Player::Interaction::LeaveHelm:hud.selected="E: Leave helm";break;
-        case Player::Interaction::None:hud.selected="Walk beside the boat to board";break;
+        case Player::Interaction::None:hud.selected="Walk beside the boat";break;
     }
     if(asset.player->mode()==Player::Mode::Swimming)hud.selected="Swimming - R: Rescue";
-    hud.status=salvageSaveStatus_.empty()?"P pauses play before saving":salvageSaveStatus_;
-    hud.hints[0]=asset.player->mode()==Player::Mode::Helm?"W/S: Throttle  A/D: Steer":"WASD: Walk  Space: Jump";
-    hud.hints[1]=asset.player->onBoat()&&asset.cargo&&!asset.cargoBanked
-        ?(asset.towRope.valid()&&!asset.towBroken?"F: Release  Q/Z: Reel":"F: Hook salvage")
-        :"B: Workshop at the dock";
-    hud.hints[2]="P: Pause   R: Rescue";
+    render::CoveRecoveryFacts facts;
+    const auto job=std::find_if(owned.jobs.begin(),owned.jobs.end(),[&](const auto& item){return item.id==local.jobId;});
+    const auto cargo=std::find_if(owned.cargo.begin(),owned.cargo.end(),[&](const auto& item){return item.id==local.cargoId;});
+    if(job!=owned.jobs.end()) {
+        using Job=game::expedition::JobPhase;
+        using FactJob=render::CoveRecoveryFacts::Job;
+        facts.job=job->phase==Job::Available?FactJob::Available:job->phase==Job::Accepted?FactJob::Accepted:FactJob::Completed;
+    }
+    // Common outer and action 50/51/52 guards. Per-action readiness below is
+    // deliberately sampled without submitting any intent or opening a ticket.
+    facts.commandsReady=!(coveResume_&&!coveResume_->ready)&&!local.storageRevoked
+        &&!asset.checkpointPending&&asset.rescue==SalvageLocalSessionState::AssetPreview::Rescue::None
+        &&!(asset.harbor&&asset.harbor->installationPending())&&!asset.leaving
+        &&!local.session->hasPending()&&!salvagePreview_->busy()&&!local.pendingControl;
+    const bool jobCommands=facts.commandsReady&&local.executionBound&&local.session->admissionOpen();
+    facts.storageReady=local.storageHostReady;
+    facts.canAccept=jobCommands&&facts.job==render::CoveRecoveryFacts::Job::Available;
+    facts.deliveryPending=asset.checkpointPending;
+    facts.deliveryDurable=asset.deliveryDurable;facts.cargoBanked=asset.cargoBanked;
+    facts.onBoat=asset.player->onBoat();
+    facts.cargoObserved=asset.cargo&&asset.cargoBody.valid()&&!asset.cargoBanked&&!asset.cargoSecuring&&asset.cargoObservedTick!=0;
+    if(jobCommands&&facts.storageReady&&facts.job==render::CoveRecoveryFacts::Job::Accepted
+        &&cargo!=owned.cargo.end()&&local.preparation.eligible)
+        facts.canDeliver=local.preparation.eligible({*cargo,*job,*job,{}});
+    if(asset.content->registry.navigation&&asset.content->registry.navigation->delivery){
+        const auto& zone=*asset.content->registry.navigation->delivery;
+        const auto position=physics::worldPositionToAbsolute(asset.cargoObserved.position)-asset.origin;
+        facts.harborDistance=std::hypot(position.x-zone.center.x,position.z-zone.center.z);
+        facts.harborLimit=zone.radius-1.1; // Same current cargo allowance as eligible().
+        facts.height=position.y;facts.minimumHeight=zone.minimumHeight;
+        facts.speed=double(glm::length(asset.cargoObserved.originVelocity));facts.maximumSpeed=zone.maximumSpeed;
+        facts.spin=double(glm::length(asset.cargoObserved.angularVelocity));facts.maximumSpin=zone.maximumAngularSpeed;
+    }
+    facts.hasWinch=asset.towReelSpeed>0;
+    facts.onWinchRoot=facts.onBoat&&asset.player->state().root==asset.towRoot().key;
+    facts.towAttached=asset.towRope.valid()&&!asset.towBroken;
+    facts.towConfirmed=asset.boatEventsThrough>=asset.towChangedTick
+        &&asset.towObservedTick>=asset.towChangedTick&&asset.towObserved.handle==asset.towRope;
+    facts.towReady=facts.commandsReady&&facts.hasWinch&&facts.cargoObserved&&facts.onWinchRoot
+        &&asset.towRoot().body.valid()&&asset.towRoot().observedTick&&!asset.towAction
+        &&asset.status==render::SalvageFixtureStatus::Active;
+    if(facts.cargoObserved&&asset.towRoot().observedTick){
+        const auto a=physics::worldPositionToAbsolute(asset.towRoot().observed.position)
+            +glm::dvec3(asset.towRoot().observed.orientation*asset.towBoatPoint);
+        const auto b=physics::worldPositionToAbsolute(asset.cargoObserved.position)
+            +glm::dvec3(asset.cargoObserved.orientation*asset.towCargoPoint);
+        facts.hookDistance=glm::length(b-a);
+    }
+    if(asset.harbor){
+        const auto& harbor=*asset.harbor;
+        facts.harborPresent=true;facts.harborInstalled=harbor.installed();facts.harborDurable=harbor.durable();
+        facts.harborPending=harbor.installationPending();
+        facts.atDock=!facts.onBoat&&glm::length(asset.player->feet()-asset.content->registry.navigation->dockBoarding)<=4;
+        const bool harborCommands=facts.commandsReady&&!asset.launch&&asset.deliveryDurable&&asset.boatRoot().body.valid()&&facts.atDock;
+        facts.canInstall=harborCommands&&facts.storageReady&&harbor.stage()==game::expedition::CoveHarborRuntime::Stage::Absent&&!harbor.installed();
+        facts.canUseLift=harborCommands&&harbor.durable()&&!harbor.busy()&&harbor.rig()
+            &&harbor.stage()==game::expedition::CoveHarborRuntime::Stage::Ready;
+    }
+    const auto guidance=render::coveRecoveryGuidance(facts);
+    hud.title=guidance.title;hud.status=guidance.status;hud.tone=guidance.tone;hud.objective=guidance.step;
+    hud.hints[0]=asset.player->mode()==Player::Mode::Helm?"W/S: Drive  A/D: Steer":"WASD: Walk  Space: Jump";
+    hud.hints[1]=guidance.controls;
+    hud.hints[2]="B: Build  P: Pause  R: Rescue";
+    if(facts.deliveryPending||facts.harborPending)hud.hints={std::string(guidance.controls),"Controls wait for hand-off",""};
     return hud;
 }
 
@@ -6837,7 +6962,26 @@ std::string Application::salvagePreviewJson() const {
             <<",\"lastEncodedQuads\":"<<nativeCoveHud_->lastEncodedQuads()
             <<",\"uploads\":"<<nativeCoveHud_->uploadCount()<<",\"bodyPixels\":"<<hud.bodyPixels
             <<",\"truncated\":"<<(hud.truncated?"true":"false")
-            <<",\"panel\":["<<hud.panel.x<<','<<hud.panel.y<<','<<hud.panel.z<<','<<hud.panel.w<<"]}";
+            <<",\"panel\":["<<hud.panel.x<<','<<hud.panel.y<<','<<hud.panel.z<<','<<hud.panel.w<<']';
+        const auto& content=nativeCoveHud_->content();
+        const auto string=[&](std::string_view value){
+            json<<'"';
+            constexpr char hex[]="0123456789abcdef";
+            for(const char byte:value){
+                const auto c=static_cast<unsigned char>(byte);
+                if(c=='"'||c=='\\')json<<'\\'<<static_cast<char>(c);
+                else if(c<32)json<<"\\u00"<<hex[c>>4]<<hex[c&15];
+                else json<<static_cast<char>(c);
+            }
+            json<<'"';
+        };
+        json<<",\"objective\":";string(content.objective);
+        json<<",\"title\":";string(content.title);
+        json<<",\"selected\":";string(content.selected);
+        json<<",\"status\":";string(content.status);
+        json<<",\"hints\":[";
+        for(size_t i=0;i<content.hints.size();++i){if(i)json<<',';string(content.hints[i]);}
+        json<<"]}";
     }
 #endif
     if(salvageLocalSession_ && salvageLocalSession_->saveContext){
@@ -7016,6 +7160,14 @@ std::string Application::salvagePreviewJson() const {
              << ",\"sceneryProxies\":" << (asset->scenery?asset->scenery->sources().size():0)
              << ",\"thrustLimitNewtons\":"<<asset->thrustLimit<<",\"steeringLimitRadians\":"<<asset->steeringLimit
              << ",\"thrustDirection\":["<<asset->thrustDirection.x<<','<<asset->thrustDirection.y<<','<<asset->thrustDirection.z<<']'
+             << std::setprecision(17) << ",\"mechanisms\":{\"tick\":\""<<asset->mechanisms.tick()<<"\",\"incarnation\":\""<<asset->mechanisms.incarnation()
+             <<"\",\"rotorRadians\":"<<asset->mechanisms.rotorRadians()<<",\"drumRadians\":"<<asset->mechanisms.drumRadians()
+             <<",\"effectiveDrive\":"<<asset->mechanisms.effectiveDrive()<<",\"animatedParts\":"<<asset->mechanismPlacements
+             <<",\"bodyIndex\":"<<asset->boatRoot().body.index<<",\"bodyGeneration\":"<<asset->boatRoot().body.generation
+             <<",\"ropeTick\":\""<<(asset->mechanisms.ropeSample()?asset->mechanisms.ropeSample()->tick:0)
+             <<"\",\"ropeIndex\":"<<(asset->mechanisms.ropeSample()?asset->mechanisms.ropeSample()->handle.index:0)
+             <<",\"ropeGeneration\":"<<(asset->mechanisms.ropeSample()?asset->mechanisms.ropeSample()->handle.generation:0)
+             <<",\"ropeLength\":"<<(asset->mechanisms.ropeSample()?asset->mechanisms.ropeSample()->length:0)<<'}'<<std::setprecision(6)
              << ",\"massKg\":" << asset->boat->massKg()
              << ",\"displacementM3\":" << asset->boat->displacementCubicMetres()
              << ",\"paidPartIds\":[";
@@ -7183,6 +7335,8 @@ std::string Application::salvagePreviewJson() const {
              << ",\"sceneSunShadows\":" << (blitPath_ && blitPath_->didUseSceneSunShadows() ? "true" : "false")
              << ",\"generation\":\"" << stats.active.generation << "\",\"uploads\":" << stats.active.uniqueUploads
              << ",\"prototypeUploads\":" << stats.active.prototypeUploads
+             << ",\"dockMarkingGpuBytes\":\"" << stats.active.dockMarkingGpuBytes << '"'
+             << ",\"dockMarkingDraws\":" << stats.lastSubmittedDockMarkingDraws
              << ",\"environmentGpuBytes\":\"" << stats.active.environmentGpuBytes
              << "\",\"environmentBakeCount\":" << stats.active.environmentBakeCount
              << ",\"environmentReady\":" << (stats.active.environmentReady ? "true" : "false")
@@ -7405,6 +7559,7 @@ void Application::encodeSalvageRetirement(WGPUCommandEncoder encoder) {
 void Application::updateCovePlayer(float deltaTime) {
     if((coveResume_ && !coveResume_->ready) || salvageLocalSession_->storageRevoked)return;
     auto& asset = *salvageLocalSession_->asset;
+    asset.rotorCommandBody={};asset.rotorCommandDrive=0;
     if (!camera_ || asset.leaving || salvageLocalSession_->pendingControl
         || asset.status != render::SalvageFixtureStatus::Active) return;
     using Pause=SalvageLocalSessionState::AssetPreview::Pause;
@@ -7613,6 +7768,13 @@ void Application::updateCovePlayer(float deltaTime) {
         if (!physicsWorld_->setAuthoredHelm(asset.boatRoot().body,helm?static_cast<float>(forwardInput):0,
                                           helm?static_cast<float>(rightInput):0)) {
             LOG_ERROR("Cove helm input refused"); salvagePreviewFailed_=true; requestExit(); return;
+        }
+        asset.rotorCommandBody=asset.boatRoot().body;
+        if(helm && asset.boat->primaryRoot().propeller) {
+            const auto* module=asset.boat->assembly().functions().module(*asset.boat->primaryRoot().propeller);
+            if(module)asset.rotorCommandDrive=forwardInput
+                *static_cast<double>(game::expedition::coveModuleOutput(*module))
+                *(module->settings.reversed?-1.0:1.0);
         }
     }
     if(asset.harbor&&(asset.harbor->motor()!=0||asset.harbor->attachmentPending())&&(asset.player->onBoat()
@@ -7975,6 +8137,9 @@ void Application::processThrowableInput(float deltaTime) {
 
 void Application::handleKeyboardShortcuts() {
     if (!input_) return;
+    // Presentation pacing applies to every experience, including the Cove
+    // and its workshop. Handle it before their gameplay-shortcut guards.
+    if (input_->wasKeyPressed(Key::F9)) toggleUncappedFPS();
     if(salvageLocalSession_ && salvageLocalSession_->asset && salvageLocalSession_->asset->workshopOpen)return;
 
     // Escape - release mouse or exit
@@ -8051,11 +8216,6 @@ void Application::handleKeyboardShortcuts() {
     if (!wreckwaterClientState_ && !motoSession_
         && !legoPlaygroundActive_ && input_->wasKeyPressed(Key::F8)) {
         toggleControllerMode();
-    }
-
-    // F9 - toggle uncapped FPS mode
-    if (input_->wasKeyPressed(Key::F9)) {
-        toggleUncappedFPS();
     }
 
     // K - toggle Lego Mode (F10 is reserved by browser)

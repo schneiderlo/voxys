@@ -95,7 +95,14 @@ cc_library(
     hdrs = ["expedition/cove_rigid_roots.hpp"],
     copts = PROJECT_DEFAULT_COPTS,
     includes = [".."],
-    deps = [":cove_boat", ":cove_player", ":assembly_fracture", ":build_refit", ":orthogonal_coverage"],
+    deps = [":cove_boat", ":cove_player", ":assembly_fracture", ":build_refit", ":orthogonal_coverage", "//src/physics:physics"],
+)
+
+cc_library(
+    name = "cove_mechanisms",
+    hdrs = ["expedition/cove_mechanisms.hpp"],
+    includes = [".."],
+    deps = ["//src/physics:physics"],
 )
 
 cc_library(
